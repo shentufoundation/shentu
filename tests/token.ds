@@ -1,0 +1,55 @@
+(* Loosely based on the "sample fixed supply token contract" from https://theethereum.wiki/w/index.php/ERC20_Token_Standard#Sample_Fixed_Supply_Token_Contract *)
+
+external [[except DataTypeOps]] with "Require token.Invariant.\n"
+
+
+(* Todo: we should support addresses (160-bit integers) as a builtin type. *)
+type addr := uint
+
+const _totalSupply = 100000
+
+object signature ERC20Interface = {
+  initialize : unit -> uint;
+  const totalSupply : unit -> int;
+  const balanceOf : addr -> int;
+  transfer : addr * int -> bool
+}
+
+object FixedSupplyToken : ERC20Interface {
+  let balances : mapping[addr] int := mapping_init 
+
+  (* This is just a hack, we should fix it so that we can actually compile constructors correctly. *)
+  let initialize () =
+    balances[msg_sender] := 100000;
+    0u0
+
+  let totalSupply () =
+    let bal0 = balances[0u0] in
+    _totalSupply - bal0 
+
+  let balanceOf tokenOwner =
+    let bal = balances[tokenOwner] in
+    bal
+     
+  let transfer(toA, tokens) =
+    let fromA = msg_sender in
+    let from_bal = balances[fromA] in
+    let to_bal   = balances[toA] in
+    if (fromA <> toA /\ from_bal >= tokens)
+    then begin
+      balances[fromA] := from_bal-tokens;
+      balances[toA] := to_bal+tokens;
+      true
+    end else
+      false
+
+   (* Todo: the approve() and transferFrom() methods. (Requires hashmappings with two keys.) *)
+}
+    
+layer signature FIXEDSUPPLYTOKENSig = {
+  fixedSupplyToken : ERC20Interface
+}
+
+layer FIXEDSUPPLYTOKEN : [{}] FIXEDSUPPLYTOKENSig = {
+  fixedSupplyToken = FixedSupplyToken
+} assert "Invariant.inv"

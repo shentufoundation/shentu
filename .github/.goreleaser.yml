@@ -1,0 +1,86 @@
+env:
+  - GO111MODULE=on
+before:
+  hooks:
+    - go mod tidy
+builds:
+  -
+    id: "certikcli"
+
+    main: ./cmd/certikcli
+
+    binary: certikcli
+
+    ldflags: 
+      - -X github.com/certikfoundation/shentu/version.Version={{ .Version }}
+      - -X github.com/certikfoundation/shentu/version.Commit={{ .FullCommit }}
+      - -X github.com/certikfoundation/shentu/version.BuildTags={{ .Tag }}
+
+    goos:
+      - linux
+      - windows
+      - darwin
+
+    goarch:
+      - amd64
+      # - 386
+
+    ignore:
+      # - goos: windows
+      #   goarch: 386
+      # - goos: darwin
+      #   goarch: 386
+
+
+  -
+    id: "certikd"
+
+    main: ./cmd/certikd
+
+    binary: certikd
+
+    ldflags: 
+      - -X github.com/certikfoundation/shentu/version.Version={{ .Version }}
+      - -X github.com/certikfoundation/shentu/version.Commit={{ .FullCommit }}
+      - -X github.com/certikfoundation/shentu/version.BuildTags={{ .Tag }}
+
+    goos:
+      - linux
+      - windows
+      - darwin
+
+    goarch:
+      - amd64
+      # - 386
+
+    ignore:
+      # - goos: windows
+      #   goarch: 386
+      # - goos: darwin
+      #   goarch: 386
+archives:
+  - 
+    id: certikcli-archives
+
+    builds: 
+      - certikcli
+      - certikd
+
+    name_template: "{{ .Binary }}-{{ .Os }}"
+    replacements:
+      linux: ''
+      windows: ''
+      amd64: 64
+      # 386: 32
+      darwin: macos
+
+    format: binary
+
+    files:
+      - none*
+
+checksum:
+
+  name_template: "release-checksums"
+
+  algorithm: sha256

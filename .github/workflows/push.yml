@@ -1,0 +1,53 @@
+name: Build on Push
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  golangci-lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Code
+        uses: actions/checkout@v1
+      - name: golangci-lint
+        uses: reviewdog/action-golangci-lint@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          golangci_lint_flags: "--config=.github/.golangci.yml"
+          reporter: github-check
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+      - name: Check out Code
+        uses: actions/checkout@v1
+      - name: Run Unit Test
+        run: make cov
+      - name: Upload Coverage Report to CodeCov
+        uses: codecov/codecov-action@v1.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.out
+          flags: unittests
+          name: codecov-umbrella
+          yml: .github/.codecov.yml
+          fail_ci_if_error: true
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+      - name: Check out Code
+        uses: actions/checkout@v1
+      - name: Build
+        run: make install
