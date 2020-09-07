@@ -1,5 +1,6 @@
 # CertiK Chain
 
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/certikfoundation/shentu)](https://pkg.go.dev/github.com/certikfoundation/shentu)
 [![GitHub Actions](https://github.com/certikfoundation/shentu/workflows/Build%20on%20Push/badge.svg)](https://github.com/certikfoundation/shentu/actions)
 [![Codecov](https://codecov.io/gh/certikfoundation/shentu/branch/master/graph/badge.svg?token=CwEKiob9GB)](https://codecov.io/gh/certikfoundation/shentu)
 
