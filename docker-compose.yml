@@ -1,0 +1,77 @@
+version: '3.7'
+
+services:
+  node0:
+    restart: on-failure
+    image: shentu
+    command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
+    volumes:
+      - type: bind
+        source: ${LOCALNET_ROOT}/node0
+        target: /root
+    networks:
+      localnet:
+        ipv4_address: ${LOCALNET_START_IP}
+    ports:
+      - "26656-26657:26656-26657"
+      - "26756-26757:26756-26757"
+      - "26856-26857:26856-26857"
+      - "26956-26957:26956-26957"
+      - "1317:1317"
+
+  node1:
+    restart: on-failure
+    image: shentu
+    command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
+    volumes:
+      - type: bind
+        source: ${LOCALNET_ROOT}/node1
+        target: /root
+    network_mode: "service:node0"
+
+  node2:
+    restart: on-failure
+    image: shentu
+    command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
+    volumes:
+      - type: bind
+        source: ${LOCALNET_ROOT}/node2
+        target: /root
+    network_mode: "service:node0"
+
+  node3:
+    restart: on-failure
+    image: shentu
+    command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
+    volumes:
+      - type: bind
+        source: ${LOCALNET_ROOT}/node3
+        target: /root
+    network_mode: "service:node0"
+
+  rpc-server:
+    restart: on-failure
+    image: shentu
+    command: [ "certikcli", "rest-server", "--trust-node", "--laddr", "tcp://0.0.0.0:1317", "--home", "/root/certikcli", "--trace"]
+    volumes:
+      - type: bind
+        source: ${LOCALNET_ROOT}/node0
+        target: /root
+    network_mode: "service:node0"
+
+  client:
+    image: shentu
+    command: [ "tail", "-f", "/dev/null" ]
+    volumes:
+      - type: bind
+        source: ${LOCALNET_ROOT}
+        target: /root
+    network_mode: "service:node0"
+
+networks:
+  localnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${LOCALNET_SUBNET}

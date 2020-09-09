@@ -1,0 +1,30 @@
+# OS
+.DS_Store
+*.swp
+*.swo
+cscope.*
+
+# Build
+build
+vendor
+__pycache__
+*.pyc
+
+# Generated binaries & files
+certikcli
+certikd
+!cmd/certikd
+!cmd/certikcli
+
+# Test
+coverage.out
+launch/localnet
+
+# IDE
+.idea/
+.vscode
+*.iml
+debug.test
+
+# E2E
+e2e/data/*_out.json
