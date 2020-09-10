@@ -175,6 +175,32 @@ jobs:
       - run:
           name: upload
           command: bash <(curl -s https://codecov.io/bash) -f coverage.txt
+
+  localnet:
+    working_directory: /home/circleci/.go_workspace/src/github.com/certikfoundation/shentu
+    machine:
+      image: circleci/classic:latest
+    environment:
+      GOPATH: /home/circleci/.go_workspace/
+      GOOS: linux
+      GOARCH: amd64
+      GO_VERSION: "1.13.1"
+    parallelism: 1
+    steps:
+      - checkout
+      - run:
+          name: run localnet and exit on failure
+          command: |
+            pushd /tmp
+            wget https://dl.google.com/go/go$GO_VERSION.linux-amd64.tar.gz
+            sudo tar -xvf go$GO_VERSION.linux-amd64.tar.gz
+            sudo rm -rf /usr/local/go
+            sudo mv go /usr/local
+            popd
+            set -x
+            make clean build-docker-certikdnode localnet-start
+            ./contrib/localnet-blocks-test.sh 40 5 10 localhost
+
   macos-ci:
     executor: mac
     steps:
@@ -199,10 +225,79 @@ jobs:
           command: |
             source $BASH_ENV
             make sim
+
+  docker-image:
+    executor: golang
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: |
+          CERTIKD_VERSION=''
+          if [ "${CIRCLE_BRANCH}" = "master" ]; then
+            CERTIKD_VERSION="stable"
+          elif [ "${CIRCLE_BRANCH}" = "develop" ]; then
+            CERTIKD_VERSION="develop"
+          fi
+          if [ -z "${CERTIKD_VERSION}" ]; then
+            docker build .
+          else
+            docker build -t shentu:CERTIKD_VERSION .
+            docker login --password-stdin -u $DOCKER_USER \<<<$DOCKER_PASS
+            docker push shentu:CERTIKD_VERSION
+          fi
+
+  docker-tagged:
+    executor: golang
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: |
+          docker build -t shentu:$CIRCLE_TAG .
+          docker login --password-stdin -u $DOCKER_USER \<<<$DOCKER_PASS
+          docker push shentu:$CIRCLE_TAG
+
+  reproducible-builds:
+    executor: golang
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build shentu
+          no_output_timeout: 20m
+          command: |
+            sudo apt-get install -y ruby
+            bash -x ./contrib/gitian-build.sh multi
+            cp gitian-build-multi/result/shentu-multi-res.yml .
+            rm -rf gitian-build-multi/
+      - store_artifacts:
+          path: /go/src/github.com/certikfoundation/shentu/certik-multi-res.yml
+
 workflows:
   version: 2.1
   test-suite:
     jobs:
+      - docker-image:
+          requires:
+            - setup-dependencies
+      - docker-tagged:
+          filters:
+            tags:
+              only:
+                - /^v.*/
+            branches:
+              ignore:
+                - /.*/
+          requires:
+            - setup-dependencies
       - macos-ci:
           filters:
             branches:
@@ -240,6 +335,14 @@ workflows:
       - test-cover:
           requires:
             - setup-dependencies
+      - localnet
       - upload-coverage:
           requires:
             - test-cover
+      - reproducible-builds:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - setup-dependencies

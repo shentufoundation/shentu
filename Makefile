@@ -56,9 +56,13 @@ release: go.sum
 	GOOS=darwin go build $(BUILD_FLAGS) -o build/certikcli-macos ./cmd/certikcli
 	GOOS=darwin go build $(BUILD_FLAGS) -o build/certikd-macos ./cmd/certikd
 
-release32: go.sum
-	GOOS=linux GOARCH=386 go build $(BUILD_FLAGS) -o certikcli ./cmd/certikcli
-	GOOS=linux GOARCH=386 go build $(BUILD_FLAGS) -o certikd ./cmd/certikd
+build-linux:
+	mkdir -p ./build
+	docker build --tag shentu ./
+	docker create --name temp shentu:latest
+	docker cp temp:/usr/local/bin/certikd ./build/
+	docker cp temp:/usr/local/bin/certikcli ./build/
+	docker rm temp
 
 clean:
 	rm -rf snapcraft-local.yaml build/
@@ -104,6 +108,9 @@ localnet: localnet.down image.update docker-compose.yml ./launch/localnet_client
 	@docker run --volume $(abspath ${LOCALNET_ROOT}):/root --workdir /root -it shentu certikd testnet --v 4 --output-dir /root --server-ip-address ${LOCALNET_START_IP} --chain-id certikchain
 	@docker-compose up -d
 	@docker exec $(shell basename $(CURDIR))_client_1 bash /shentu/launch/localnet_client_setup.sh
+
+build-docker-certikdnode: build-linux
+	$(MAKE) -C networks/local
 
 localnet.client:
 	@docker exec -it $(shell basename $(CURDIR))_client_1 bash
