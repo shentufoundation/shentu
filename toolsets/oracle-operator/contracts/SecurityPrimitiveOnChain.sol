@@ -39,7 +39,7 @@ contract SecurityPrimitiveOnChain is ISecurityPrimitive {
         if (result[0] == 0x01) {
             return (false, "255");
         } else {
-            return (false, "0");
+            return (false, "128");
         }
     }
 }
