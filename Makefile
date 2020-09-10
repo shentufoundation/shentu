@@ -1,3 +1,4 @@
+PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 COMMIT := $(shell git log -1 --format='%H')
 GOBIN ?= $(GOPATH)/bin
@@ -19,13 +20,16 @@ ldflags := $(strip $(ldflags))
 
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 
+# The below include contains the tools target.
+include devtools/Makefile
+
 export GO111MODULE = on
 
 all: install release lint test
 
 install: go.sum
-	GO111MODULE=on go install $(BUILD_FLAGS) ./cmd/certikd
-	GO111MODULE=on go install $(BUILD_FLAGS) ./cmd/certikcli
+	go install $(BUILD_FLAGS) ./cmd/certikd
+	go install $(BUILD_FLAGS) ./cmd/certikcli
 
 update-swagger-docs: statik
 	$(GOBIN)/statik -src=client/lcd/swagger-ui -dest=client/lcd -f -m
@@ -35,15 +39,10 @@ update-swagger-docs: statik
     else \
     	echo "\033[92mSwagger docs are in sync\033[0m";\
     fi
-.PHONY: update-swagger-docs statik-clean
 
-statik: $(STATIK)
-$(STATIK):
-	@echo "Installing statik..."
-	@(cd /tmp && go get github.com/rakyll/statik@v0.1.6)
-
-statik-clean:
-	rm -f $(STATIK)
+go-mod-cache: go.sum
+	@echo "--> Download go modules to local cache"
+	@go mod download
 
 go.sum: go.mod
 	@echo "--> Ensure dependencies have not been modified"
@@ -60,6 +59,16 @@ release: go.sum
 release32: go.sum
 	GOOS=linux GOARCH=386 go build $(BUILD_FLAGS) -o certikcli ./cmd/certikcli
 	GOOS=linux GOARCH=386 go build $(BUILD_FLAGS) -o certikd ./cmd/certikd
+
+clean:
+	rm -rf snapcraft-local.yaml build/
+
+distclean:
+	rm -rf \
+    gitian-build-darwin/ \
+    gitian-build-linux/ \
+    gitian-build-windows/ \
+    .gitian-builder-cache/
 
 tidy:
 	@gofmt -s -w .
@@ -106,20 +115,5 @@ localnet.down:
 
 .PHONY: all install release release32 fix lint test cov coverage coverage.out image image.update localnet localnet.client localnet.both localnet.down
 
-sim-full-app:
-	@echo "1/4 full app simulation..."
-	@go test ./app -run TestFullAppSimulation -Enabled -Commit -NumBlocks=10 -BlockSize=200 -Seed 4 -v -timeout 5m
-
-sim-determinism:
-	@echo "\n2/4 determinism simulation..."
-	@go test ./app -run TestAppStateDeterminism -Enabled -Commit -NumBlocks=10 -BlockSize=200 -Seed 4 -v -timeout 5m
-
-sim-after-import:
-	@echo "\n3/4 import simulation..."
-	@go test ./app -run TestAppSimulationAfterImport -Enabled -Commit -NumBlocks=10 -BlockSize=200 -Seed 4 -v -timeout 5m
-
-sim-import-export:
-	@echo "\n4/4 import & export simulation..."
-	@go test ./app -run TestAppImportExport -Enabled -Commit -NumBlocks=10 -BlockSize=200 -Seed 4 -v -timeout 5m
-
-sim: sim-full-app sim-determinism sim-after-import sim-import-export
+# include simulations
+include sims.mk

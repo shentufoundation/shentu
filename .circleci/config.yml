@@ -57,7 +57,7 @@ jobs:
           command: make go-mod-cache
       - run:
           name: Build
-          command: make build
+          command: make release
       - run:
           name: "Git garbage collection"
           command: git gc
