@@ -40,14 +40,6 @@ update-swagger-docs: statik
     	echo "\033[92mSwagger docs are in sync\033[0m";\
     fi
 
-go-mod-cache: go.sum
-	@echo "--> Download go modules to local cache"
-	@go mod download
-
-go.sum: go.mod
-	@echo "--> Ensure dependencies have not been modified"
-	GO111MODULE=on go mod verify
-
 release: go.sum
 	GOOS=linux go build $(BUILD_FLAGS) -o build/certikcli ./cmd/certikcli
 	GOOS=linux go build $(BUILD_FLAGS) -o build/certikd ./cmd/certikd
@@ -56,6 +48,15 @@ release: go.sum
 	GOOS=darwin go build $(BUILD_FLAGS) -o build/certikcli-macos ./cmd/certikcli
 	GOOS=darwin go build $(BUILD_FLAGS) -o build/certikd-macos ./cmd/certikd
 
+build: go.sum
+ifeq ($(OS),Windows_NT)
+	go build -mod=readonly $(BUILD_FLAGS) -o build/certikd.exe ./cmd/certikd
+	go build -mod=readonly $(BUILD_FLAGS) -o build/certikcli.exe ./cmd/certikcli
+else
+	go build -mod=readonly $(BUILD_FLAGS) -o build/certikd ./cmd/certikd
+	go build -mod=readonly $(BUILD_FLAGS) -o build/certikcli ./cmd/certikcli
+endif
+
 build-linux:
 	mkdir -p ./build
 	docker build --tag shentu ./
@@ -63,6 +64,16 @@ build-linux:
 	docker cp temp:/usr/local/bin/certikd ./build/
 	docker cp temp:/usr/local/bin/certikcli ./build/
 	docker rm temp
+
+########## Tools ##########
+
+go-mod-cache: go.sum
+	@echo "--> Download go modules to local cache"
+	@go mod download
+
+go.sum: go.mod
+	@echo "--> Ensure dependencies have not been modified"
+	GO111MODULE=on go mod verify
 
 clean:
 	rm -rf snapcraft-local.yaml build/
@@ -81,16 +92,18 @@ tidy:
 lint: tidy
 	@GO111MODULE=on golangci-lint run --config .github/.golangci.yml
 
+########## Testing ##########
+
 test: tidy
 	@GO111MODULE=on go test ${PKG_LIST}
 
 coverage.out: tidy
 	@GO111MODULE=on go test -short -coverprofile=coverage.out -covermode=atomic ${PKG_LIST}
 
-cov: coverage.out
+test-cov: coverage.out
 	@GO111MODULE=on go tool cover -func $<
 
-coverage: coverage.out
+test-cov-html: coverage.out
 	@GO111MODULE=on go tool cover -html $<
 
 image: Dockerfile Dockerfile.update
