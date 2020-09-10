@@ -1,0 +1,12 @@
+# configurations related to runner
+[runner]
+[runner.strategy]
+# strategy type
+type = "linear"
+# primitive configuration
+[[runner.strategy.primitive]]
+primitive_contract_address = "certik1r4834vyyu8vrarxgyatn34j8lsguyhn7csl0ju"
+weight = 0.1
+[[runner.strategy.primitive]]
+primitive_contract_address = "certik1r4834vyyu8vrarxgyatn34j8lsguyhn7csl0ju"
+weight = 0.1
