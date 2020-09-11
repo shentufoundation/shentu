@@ -3,7 +3,6 @@ package keeper
 import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -192,16 +191,10 @@ func queryVotes(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	votes := keeper.GetVotes(ctx, params.ProposalID)
+	// Page and limit parameters are guaranteed to be positive.
+	votes := keeper.GetVotesPaginated(ctx, params.ProposalID, uint(params.Page), uint(params.Limit))
 	if votes == nil {
 		votes = types.Votes{}
-	} else {
-		start, end := client.Paginate(len(votes), params.Page, params.Limit, 100)
-		if start < 0 || end < 0 {
-			votes = types.Votes{}
-		} else {
-			votes = votes[start:end]
-		}
 	}
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, votes)
