@@ -198,8 +198,8 @@ jobs:
             sudo mv go /usr/local
             popd
             set -x
-            make clean build-docker-certikdnode localnet-start
-            ./contrib/localnet-blocks-test.sh 40 5 10 localhost
+            make clean image image.update localnet
+            ./devtools/localnet-blocks-test.sh 40 5 10 localhost
 
   macos-ci:
     executor: mac

@@ -73,7 +73,7 @@ go-mod-cache: go.sum
 
 go.sum: go.mod
 	@echo "--> Ensure dependencies have not been modified"
-	GO111MODULE=on go mod verify
+	go mod verify
 
 clean:
 	rm -rf snapcraft-local.yaml build/
@@ -114,13 +114,13 @@ image.update: Dockerfile.update
 	@docker rmi -f shentu
 	@docker build -t shentu . -f Dockerfile.update
 
-include .env
+include devtools/localnet/Makefile
 
-localnet: localnet.down image.update docker-compose.yml ./launch/localnet_client_setup.sh
+localnet: localnet.down image.update docker-compose.yml ./devtools/localnet/localnet_client_setup.sh
 	@$(RM) -r ${LOCALNET_ROOT}
 	@docker run --volume $(abspath ${LOCALNET_ROOT}):/root --workdir /root -it shentu certikd testnet --v 4 --output-dir /root --server-ip-address ${LOCALNET_START_IP} --chain-id certikchain
 	@docker-compose up -d
-	@docker exec $(shell basename $(CURDIR))_client_1 bash /shentu/launch/localnet_client_setup.sh
+	@docker exec $(shell basename $(CURDIR))_client_1 bash /shentu/localnet/localnet_client_setup.sh
 
 build-docker-certikdnode: build-linux
 	$(MAKE) -C networks/local
