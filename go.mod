@@ -9,6 +9,7 @@ require (
 	github.com/magiconair/properties v1.8.1
 	github.com/pkg/errors v0.9.1
 	github.com/rakyll/statik v0.1.6
+	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.3 // new version doesnt work
@@ -17,6 +18,7 @@ require (
 	github.com/tendermint/go-amino v0.15.1
 	github.com/tendermint/tendermint v0.33.7
 	github.com/tendermint/tm-db v0.5.1
+	github.com/tendermint/tmlibs v0.9.0
 	github.com/tmthrgd/go-hex v0.0.0-20190303111820-0bdcb15db631
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	gopkg.in/yaml.v2 v2.3.0

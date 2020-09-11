@@ -26,6 +26,7 @@ import (
 	"github.com/certikfoundation/shentu/client/lcd"
 	certikinit "github.com/certikfoundation/shentu/cmd/init"
 	"github.com/certikfoundation/shentu/common"
+	"github.com/certikfoundation/shentu/toolsets/oracle-operator"
 	cvmcli "github.com/certikfoundation/shentu/x/cvm/client/cli"
 )
 
@@ -70,6 +71,7 @@ func main() {
 		txCmd(cdc),
 		flags.LineBreak,
 		lcd.ServeCommand(cdc, registerRoutes),
+		oracle.ServeCommand(cdc),
 		flags.LineBreak,
 		keys.Commands(),
 		flags.LineBreak,
