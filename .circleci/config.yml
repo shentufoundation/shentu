@@ -199,7 +199,7 @@ jobs:
             popd
             set -x
             make clean image image.update localnet
-            ./devtools/localnet-blocks-test.sh 40 5 10 localhost
+            ./devtools/localnet/localnet-blocks-test.sh 40 5 10 localhost
 
   macos-ci:
     executor: mac
