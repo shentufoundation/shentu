@@ -9,6 +9,7 @@ queries the primitives and pushes the result back to CertiK Chain.
 ```bash
 $ certikcli tx oracle create-operator <account address> <collateral> --name <operator name> --from <key> --fees 5000uctk -y -b block
 ```
+
 2. Create the oracle-operator configuration file in `certikcli` home, e.g. `.certikcli/oracle-operator.toml` and write the following configurations in it.
 See template at [oracle-operator.toml](oracle-operator.toml).
 ```
@@ -26,6 +27,7 @@ weight = 0.1
 The field of `primitive_contract_address` should be filled in with provided security primitive contract address.
 The `weight` decides the weight of the result from the corresponding primitive to the final result.
 The number of primitives is not limited.
+
 3. Run the oracle operator by the following command.
 ```bash
 $ certikcli oracle-operator --log_level "debug" --from <key> 
