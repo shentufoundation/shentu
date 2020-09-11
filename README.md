@@ -67,13 +67,13 @@ $ make test
 Run unit test and view brief coverage in cli:
 
 ```bash
-$ make cov
+$ make test-cov
 ```
 
 Run unit test and view detailed coverage report in browser:
 
 ```bash
-$ make coverage
+$ make test-cov-html
 ```
 
 # Build Docker Image

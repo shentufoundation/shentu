@@ -11,10 +11,13 @@ builds:
 
     binary: certikcli
 
-    ldflags: 
-      - -X github.com/certikfoundation/shentu/version.Version={{ .Version }}
-      - -X github.com/certikfoundation/shentu/version.Commit={{ .FullCommit }}
-      - -X github.com/certikfoundation/shentu/version.BuildTags={{ .Tag }}
+    ldflags: |
+      -X github.com/cosmos/cosmos-sdk/version.Name=certik
+      -X github.com/cosmos/cosmos-sdk/version.ServerName=certikd
+      -X github.com/cosmos/cosmos-sdk/version.ClientName=certikcli
+      -X github.com/certikfoundation/shentu/version.Version={{ .Version }}
+      -X github.com/certikfoundation/shentu/version.Commit={{ .FullCommit }}
+      -X github.com/certikfoundation/shentu/version.BuildTags={{ .Tag }}
 
     goos:
       - linux
@@ -39,10 +42,13 @@ builds:
 
     binary: certikd
 
-    ldflags: 
-      - -X github.com/certikfoundation/shentu/version.Version={{ .Version }}
-      - -X github.com/certikfoundation/shentu/version.Commit={{ .FullCommit }}
-      - -X github.com/certikfoundation/shentu/version.BuildTags={{ .Tag }}
+    ldflags: |
+      -X github.com/cosmos/cosmos-sdk/version.Name=certik
+      -X github.com/cosmos/cosmos-sdk/version.ServerName=certikd
+      -X github.com/cosmos/cosmos-sdk/version.ClientName=certikcli
+      -X github.com/certikfoundation/shentu/version.Version={{ .Version }}
+      -X github.com/certikfoundation/shentu/version.Commit={{ .FullCommit }}
+      -X github.com/certikfoundation/shentu/version.BuildTags={{ .Tag }}
 
     goos:
       - linux
