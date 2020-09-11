@@ -1,31 +1,37 @@
 # Oracle Operator
 
-Oracle Operator is used to listen to the `creat_task` event
-from certik-chain, query the primitive and push the result back to
-certik-chain.  
-Ideally it is started as client process of certik chain, e.g.:
+Oracle Operator listens to the `creat_task` event from CertiK Chain,
+queries the primitives and pushes the result back to CertiK Chain.  
+
+## How to Config and Run
+
+1. Register the operator on CertiK Chain (through CLI or RESTful API) and lock a certain amount `ctk`.
 ```bash
-certikcli oracle-operator --home <~/.certikcli/config/oracle-operator.toml> --log_level "debug"  --from <account>
+$ certikcli tx oracle create-operator <account address> <collateral> --name <operator name> --from <key> --fees 5000uctk -y -b block
+```
+2. Create the oracle-operator configuration file in `certikcli` home, e.g. `.certikcli/oracle-operator.toml` and write the following configurations in it.
+See template at [oracle-operator.toml](oracle-operator.toml).
+```
+# configurations related to oracle operator
+# strategy type
+type = "linear"
+# primitive configuration
+[[runner.strategy.primitive]]
+primitive_contract_address = "certik1r4834vyyu8vrarxgyatn34j8lsguyhn7csl0ju"
+weight = 0.1
+[[runner.strategy.primitive]]
+primitive_contract_address = "certik1r4834vyyu8vrarxgyatn34j8lsguyhn7csl0ju"
+weight = 0.1
+```
+The field of `primitive_contract_address` should be filled in with provided security primitive contract address.
+The `weight` decides the weight of the result from the corresponding primitive to the final result.
+The number of primitives is not limited.
+3. Run the oracle operator by the following command.
+```bash
+$ certikcli oracle-operator --log_level "debug" --from <key> 
 ```
 
-## How to Deploy
-
-The oracle-operator should be mounted onto `certikcli` and started with, e.g.:
-```bash
-certikcli oracle-operator --log_level "debug" --query_endpoint <endpoint_url> --from <account> 
-```
-
-## How to Run
-
-1. Register the operator on certik chain (through certikcli CLI or RESTful API) 
-    and lock certain amount `ctk`.
-2. Fill in the `rpc_addr` of certain (normally, `tcp://127.0.0.1:26657`), 
-    primitive endpoint url and corresponding http method (`GET` or `POST`) the oracle-operator configuration file 
-    (<home>/.certikcli/config/oracle-operator.toml). See template at [oracle-operator.toml](oracle-operator.toml).
-3. Run the oracle operator as instructed above.
-4. Wait for rewards after completing tasks. Get rewards by using withdraw command.
-
-e.g.
+A sample shell script of running Oracle Operator:
 ```bash
 # start `alice` operator in `test` mode
 node0Addr=$(certikcli keys show node0 --keyring-backend test -a)
