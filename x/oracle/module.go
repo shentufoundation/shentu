@@ -120,6 +120,7 @@ func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 
 // RegisterStoreDecoder registers a decoder for oracle module.
 func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[StoreKey] = simulation.DecodeStore
 }
 
 // WeightedOperations returns cert operations for use in simulations.
