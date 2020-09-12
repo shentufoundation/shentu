@@ -17,16 +17,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/certikfoundation/shentu/toolsets/oracle-operator/runner"
 	"github.com/certikfoundation/shentu/toolsets/oracle-operator/types"
 )
 
-// start starts the service.
+// starts the oracle operator.
 func start(ctx types.Context) {
-	for err := range runner.Start(ctx.WithLoggerLabels("module", runner.Name())) {
-		ctx.Logger().Error(err.Error())
-		os.Exit(1)
-	}
+	ctx = ctx.WithLoggerLabels("module", "oracle-operator")
+	fatalError := make(chan error)
+	ctkMsgChan := make(chan interface{}, 1000)
+	go Listen(ctx.WithLoggerLabels("protocol", "certik", "submodule", "listener"), ctkMsgChan, fatalError)
+	go Push(ctx.WithLoggerLabels("protocol", "certik", "submodule", "pusher"), ctkMsgChan, fatalError)
+	// exit on fatal error
+	err := <-fatalError
+	ctx.Logger().Error(err.Error())
+	os.Exit(1)
 }
 
 // ServeCommand will start the oracle operator as a blocking process.
@@ -63,13 +67,14 @@ func ServeCommand(cdc *codec.Codec) *cobra.Command {
 // registerFlags registers additional flags to the command.
 func registerFlags(cmd *cobra.Command) *cobra.Command {
 	cmd = flags.PostCommands(cmd)[0]
-	cmd.Flags().Uint(flags.FlagRPCReadTimeout, 10, "the RPC read timeout (in seconds)")
-	cmd.Flags().Uint(flags.FlagRPCWriteTimeout, 10, "the RPC write timeout (in seconds)")
-	cmd.Flags().String(types.FlagLogLevel, tmconfig.DefaultLogLevel(), "log level")
+	cmd.Flags().Uint(flags.FlagRPCReadTimeout, 10, "RPC read timeout (in seconds)")
+	cmd.Flags().Uint(flags.FlagRPCWriteTimeout, 10, "RPC write timeout (in seconds)")
+	cmd.Flags().String(types.FlagLogLevel, tmconfig.DefaultLogLevel(), "Log level")
+	cmd.Flags().String(types.FlagConfigFile, types.DefaultConfigFileName, "Name of the config file")
 	return cmd
 }
 
-// serve sets up operator runner running environment.
+// serve sets up oracle operator running environment.
 func serve(ctx types.Context) error {
 	done := make(chan struct{})
 	panicChan := make(chan interface{}, 1)
