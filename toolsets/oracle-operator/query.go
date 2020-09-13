@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/hyperledger/burrow/execution/evm/abi"
+
+	"github.com/cosmos/cosmos-sdk/client/context"
 
 	"github.com/certikfoundation/shentu/x/cvm"
 )
