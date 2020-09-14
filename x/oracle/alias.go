@@ -13,7 +13,6 @@ const (
 )
 
 var (
-	// function aliases
 	NewKeeper           = keeper.NewKeeper
 	NewQuerier          = keeper.NewQuerier
 	NewMsgTaskResponse  = types.NewMsgTaskResponse
@@ -21,5 +20,7 @@ var (
 )
 
 type (
-	Keeper = keeper.Keeper
+	Keeper          = keeper.Keeper
+	MsgTaskResponse = types.MsgTaskResponse
+	MsgCreateTask   = types.MsgCreateTask
 )
