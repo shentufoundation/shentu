@@ -2,24 +2,21 @@ package types
 
 import (
 	"context"
-	"time"
 
 	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/libs/log"
 
 	clientcontext "github.com/cosmos/cosmos-sdk/client/context"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
-// Context define the type of data for service node.
+// Context define the type of data for the operator node.
 type Context struct {
 	*clientcontext.CLIContext
 	ctx       context.Context
 	txBuilder *authtypes.TxBuilder
 	config    *Config
 	logger    log.Logger
-	service   Service
 }
 
 // Context returns the internal context object.
@@ -34,14 +31,11 @@ func (c Context) Codec() *amino.Codec { return c.CLIContext.Codec }
 // TxBuilder returns a copy of the certik chain transaction builder object.
 func (c Context) TxBuilder() authtypes.TxBuilder { return *c.txBuilder }
 
-// Config returns a copy of the service node global configuration.
+// Config returns a copy of the oracle operator node global configuration.
 func (c Context) Config() Config { return *c.config }
 
-// Logger returns the logger for service node internal use.
+// Logger returns the logger for oracle node internal use.
 func (c Context) Logger() log.Logger { return c.logger }
-
-// Service returns the service registered on certik chain and run by the service node.
-func (c Context) Service() Service { return c.service }
 
 // NewContextWithDefaultConfigAndLogger returns a new context with global configuration set from a config file.
 func NewContextWithDefaultConfigAndLogger() (Context, error) {
@@ -101,32 +95,8 @@ func (c Context) WithLoggerLabels(keyvals ...interface{}) Context {
 	return c
 }
 
-// // WithService returns a copy of the context with an updated service info.
-func (c Context) WithService(s Service) Context {
-	c.service = s
-	return c
-}
-
 // WithValue returns a copy of the context with an extra key-value information.
 func (c Context) WithValue(key, value interface{}) Context {
 	c.ctx = context.WithValue(c.ctx, key, value)
 	return c
-}
-
-type ServiceID string
-
-// Service defines the data structure of a service.
-type Service struct {
-	ID              ServiceID      `json:"service_id"`
-	Name            string         `json:"name"`
-	Protocol        string         `json:"protocol"`
-	ContractAddress string         `json:"contract_address"`
-	RequestDataABI  string         `json:"request_data_abi"`
-	ResponseDataABI string         `json:"response_data_abi"`
-	Owner           sdk.AccAddress `json:"service_owner"`
-	ProviderID      ServiceID      `json:"service_provider_id"`
-	Tags            []string       `json:"tags"`
-	Description     string         `json:"descriptions"`
-	CreateTime      time.Time      `json:"create_time"`
-	RevokeTime      time.Time      `json:"revoke_time"`
 }
