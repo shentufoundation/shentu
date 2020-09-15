@@ -26,6 +26,7 @@ import (
 	"github.com/certikfoundation/shentu/client/lcd"
 	certikinit "github.com/certikfoundation/shentu/cmd/init"
 	"github.com/certikfoundation/shentu/common"
+	certikauthcli "github.com/certikfoundation/shentu/x/auth/client/cli"
 	cvmcli "github.com/certikfoundation/shentu/x/cvm/client/cli"
 )
 
@@ -123,6 +124,8 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 		flags.LineBreak,
 		authcli.GetSignCommand(cdc),
 		authcli.GetBroadcastCommand(cdc),
+		certikauthcli.GetCmdTriggerVesting(cdc),
+		certikauthcli.GetCmdManualVesting(cdc),
 		cvmcli.GetCmdCall(cdc),
 		cvmcli.GetCmdDeploy(cdc),
 		flags.LineBreak,

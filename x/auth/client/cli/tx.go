@@ -33,15 +33,17 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 		// custom command
 		GetCmdTriggerVesting(cdc),
+		GetCmdManualVesting(cdc),
 	)
 	return txCmd
 }
 
-// GetCmdTriggerVesting triggers vesting of a CustomPeriodicVestingAccount type account
+// GetCmdTriggerVesting implements the command for triggering
+// vesting of a triggered vesting account.
 func GetCmdTriggerVesting(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "trigger-vesting [address]",
-		Short: "Begin vesting of a CustomPeriodicVestingAccount type acccount",
+		Short: "Begin vesting of a triggered vesting account.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -54,6 +56,36 @@ func GetCmdTriggerVesting(cdc *codec.Codec) *cobra.Command {
 			}
 
 			msg := types.NewMsgTriggerVesting(cliCtx.GetFromAddress(), addr)
+			return authutils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	cmd = flags.PostCommands(cmd)[0]
+	return cmd
+}
+
+// GetCmdManualVesting implements the command for unlocking
+// the specified amount in a manual vesting account.
+func GetCmdManualVesting(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "manual-vesting [address] [amount]",
+		Short: "Unlock the amount from a manual vesting account's vesting coins.",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := authtypes.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authutils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
+
+			addr, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoin(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgManualVesting(cliCtx.GetFromAddress(), addr, amount)
 			return authutils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
