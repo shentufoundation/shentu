@@ -1,11 +1,10 @@
-package runner
+package oracle
 
 import (
 	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -23,7 +22,7 @@ import (
 	"github.com/hyperledger/burrow/logging"
 
 	"github.com/certikfoundation/shentu/common"
-	runnerTypes "github.com/certikfoundation/shentu/toolsets/oracle-operator/runner/types"
+	"github.com/certikfoundation/shentu/toolsets/oracle-operator/types"
 	"github.com/certikfoundation/shentu/x/cvm"
 	"github.com/certikfoundation/shentu/x/cvm/compile"
 )
@@ -57,17 +56,17 @@ func CompleteAndBroadcastTx(cliCtx context.CLIContext, txBldr authtypes.TxBuilde
 			return sdk.TxResponse{}, err
 		}
 
-		var rawJson []byte
+		var rawJSON []byte
 		if viper.GetBool(flags.FlagIndentResponse) {
-			rawJson, err = cliCtx.Codec.MarshalJSONIndent(stdSignMsg, "", "  ")
+			rawJSON, err = cliCtx.Codec.MarshalJSONIndent(stdSignMsg, "", "  ")
 			if err != nil {
 				return sdk.TxResponse{}, err
 			}
 		} else {
-			rawJson = cliCtx.Codec.MustMarshalJSON(stdSignMsg)
+			rawJSON = cliCtx.Codec.MustMarshalJSON(stdSignMsg)
 		}
 
-		_, _ = fmt.Fprintf(os.Stderr, "%s\n\n", rawJson)
+		_, _ = fmt.Fprintf(os.Stderr, "%s\n\n", rawJSON)
 
 		buf := bufio.NewReader(os.Stdin)
 		ok, err := input.GetConfirmation("confirm transaction before signing and broadcasting", buf)
@@ -92,8 +91,10 @@ func CompleteAndBroadcastTx(cliCtx context.CLIContext, txBldr authtypes.TxBuilde
 	return res, nil
 }
 
-// BuildQueryInsight queries insight from Security Primitive Interface Contract from certik-chain.
-func BuildQueryInsight(cliCtx context.CLIContext, calleeString string, function string, args []string) (bool, string, error) {
+// callContract calls contract on certik-chain.
+func callContract(ctx types.Context, calleeString string, function string, args []string) (bool, string, error) {
+	cliCtx := ctx.ClientContext()
+
 	calleeAddr, err := sdk.AccAddressFromBech32(calleeString)
 	if err != nil {
 		return false, "", err
@@ -103,25 +104,19 @@ func BuildQueryInsight(cliCtx context.CLIContext, calleeString string, function 
 		return false, "", err
 	}
 
-	abiSpec, err := queryAbi(cliCtx, "cvm", calleeString)
-	if err != nil {
-		return false, "", err
-	}
-	logger := logging.NewNoopLogger()
-
-	data, err := parseData(function, abiSpec, args, logger)
+	abiSpec, err := queryAbi(cliCtx, cvm.QuerierRoute, calleeString)
 	if err != nil {
 		return false, "", err
 	}
 
-	value := viper.GetUint64(runnerTypes.FlagValue)
-	msg := cvm.NewMsgCall(cliCtx.GetFromAddress(), calleeAddr, value, data)
-	if err := msg.ValidateBasic(); err != nil {
+	data, err := parseData(function, abiSpec, args, logging.NewNoopLogger())
+	if err != nil {
 		return false, "", err
 	}
+
 	// Decode abiSpec to check if the called function's type is view or pure.
 	// If it is, reroute to query.
-	var abiEntries []runnerTypes.AbiEntry
+	var abiEntries []types.ABIEntry
 	err = json.Unmarshal(abiSpec, &abiEntries)
 	if err != nil {
 		return false, "", err
@@ -134,9 +129,8 @@ func BuildQueryInsight(cliCtx context.CLIContext, calleeString string, function 
 			return false, "", fmt.Errorf("getInsight function should be view or pure function")
 		}
 		queryPath := fmt.Sprintf("custom/%s/view/%s/%s", cvm.QuerierRoute, cliCtx.GetFromAddress(), calleeAddr)
-		return queryInsightAndReturn(cliCtx, queryPath, function, abiSpec, data)
+		return queryContract(cliCtx, queryPath, function, abiSpec, data)
 	}
-
 	return false, "", fmt.Errorf("function %s was not found in abi", function)
 }
 
@@ -167,44 +161,4 @@ func parseData(function string, abiSpec []byte, args []string, logger *logging.L
 
 	data, _, err := abi.EncodeFunctionCall(string(abiSpec), function, logger, params...)
 	return data, err
-}
-
-// queryAbi queries ABI from certik chain
-func queryAbi(cliCtx context.CLIContext, queryRoute string, addr string) ([]byte, error) {
-	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/abi/%s", queryRoute, addr), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var out cvm.QueryResAbi
-	cliCtx.Codec.MustUnmarshalJSON(res, &out)
-	return out.Abi, nil
-}
-
-// queryInsightAndReturn queries Security Primitive Interface and get insight for primitive
-func queryInsightAndReturn(cliCtx context.CLIContext, queryPath, fname string, abiSpec, data []byte,
-) (bool, string, error) {
-	res, _, err := cliCtx.QueryWithData(queryPath, data)
-	if err != nil {
-		return false, "", fmt.Errorf("querying CVM contract code: %v", err)
-	}
-	var out cvm.QueryResView
-	err = json.Unmarshal(res, &out)
-	if err != nil {
-		return false, "", err
-	}
-	ret, err := abi.DecodeFunctionReturn(string(abiSpec), fname, out.Ret)
-	if err != nil {
-		return false, "", fmt.Errorf("decoding function return: %v", err)
-	}
-	if len(ret) != 2 {
-		return false, "", fmt.Errorf("mismatch return length: %v", ret)
-	}
-
-	retBool, err := strconv.ParseBool(ret[0].Value)
-	if err != nil {
-		return false, "", fmt.Errorf("decoding function return: %v", err)
-	}
-
-	return retBool, ret[1].Value, nil
 }

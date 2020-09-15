@@ -3,39 +3,50 @@ package types
 
 import (
 	"path"
+	"strings"
 
 	"github.com/spf13/viper"
 
 	"github.com/tendermint/tmlibs/cli"
-
-	querierTypes "github.com/certikfoundation/shentu/toolsets/oracle-operator/querier/types"
-	runnerTypes "github.com/certikfoundation/shentu/toolsets/oracle-operator/runner/types"
 )
+
+// DefaultConfigFileName defines the default config file name.
+const DefaultConfigFileName = "oracle-operator.toml"
 
 // Config for Relayer
 type Config struct {
-	Runner  runnerTypes.Config  `mapstructure:"runner"`
-	Querier querierTypes.Config `mapstructure:"querier"`
+	Strategy   map[Client]Strategy `mapstructure:"strategy"`
+	Method     string              `mapstructure:"method"` // HTTP method, `GET` or `POST`
+	Timeout    int                 `mapstructure:"timeout"`
+	RetryTimes int                 `mapstructure:"retry_times"`
 }
 
+// Default config values.
 var config = Config{
-	Runner:  runnerTypes.DefaultConfig(),
-	Querier: querierTypes.DefaultConfig(),
+	Strategy:   make(map[Client]Strategy),
+	Method:     "GET",
+	Timeout:    300,
+	RetryTimes: 3,
 }
 
 func initConfig() error {
 	v := viper.New()
-	v.SetConfigName("oracle-operator")
-	v.SetConfigType("toml")
+	configFileName := viper.GetString(FlagConfigFile)
+	if configFileName == "" {
+		configFileName = DefaultConfigFileName
+	}
+	configName, configType := getBasenameAndExtension(configFileName)
+	v.SetConfigName(configName)
+	v.SetConfigType(configType)
 	if home := viper.GetString(cli.HomeFlag); home == "" {
 		v.AddConfigPath(".")
 		v.AddConfigPath("..")
 		v.AddConfigPath("../..")
-		v.AddConfigPath("../../..")
-		v.AddConfigPath("../../../..")
 	} else {
 		v.AddConfigPath(home)
-		v.AddConfigPath(path.Join(viper.GetString(cli.HomeFlag), "config"))
+		v.AddConfigPath(path.Join(home, "config"))
+		v.AddConfigPath(path.Join(home, "oracle"))
+		v.AddConfigPath(path.Join(home, "operator"))
 	}
 	v.AutomaticEnv()
 	if err := v.ReadInConfig(); err != nil {
@@ -44,6 +55,12 @@ func initConfig() error {
 	if err := v.Unmarshal(&config); err != nil {
 		return err
 	}
-
 	return nil
+}
+
+func getBasenameAndExtension(fileName string) (string, string) {
+	fileName = path.Base(fileName)
+	extension := path.Ext(fileName)
+	basename := strings.TrimSuffix(fileName, extension)
+	return basename, strings.TrimPrefix(extension, ".")
 }
