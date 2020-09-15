@@ -386,6 +386,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		cvm.NewAppModule(app.cvmKeeper),
 		cert.NewAppModule(app.certKeeper, app.accountKeeper),
+		oracle.NewAppModule(app.oracleKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
