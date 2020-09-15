@@ -245,9 +245,9 @@ jobs:
           if [ -z "${CERTIKD_VERSION}" ]; then
             docker build .
           else
-            docker build -t shentu:CERTIKD_VERSION .
+            docker build -t shentu:$CERTIKD_VERSION .
             docker login --password-stdin -u $DOCKER_USER \<<<$DOCKER_PASS
-            docker push shentu:CERTIKD_VERSION
+            docker push shentu:$CERTIKD_VERSION
           fi
 
   docker-tagged:
