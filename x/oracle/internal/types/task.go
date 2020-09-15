@@ -1,8 +1,7 @@
 package types
 
 import (
-	"fmt"
-	"strings"
+	"encoding/json"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -97,22 +96,21 @@ func NewResponse(score sdk.Int, operator sdk.AccAddress) Response {
 
 // String implements the Stringer interface.
 func (r Response) String() string {
-	var rewardString string
-	if len(r.Reward) == 0 || r.Reward.IsZero() {
-		rewardString = "0uctk"
-	} else {
-		rewardString = r.Reward.String()
+	jsonBytes, err := json.Marshal(r)
+	if err != nil {
+		return ""
 	}
-	return fmt.Sprintf("%s/%s/%s/%s", r.Operator.String(), r.Score.String(), r.Weight.String(), rewardString)
+	return string(jsonBytes)
 }
 
+// Responses defines a list of responses.
 type Responses []Response
 
 // String implements the Stringer interface.
 func (r Responses) String() string {
-	strs := []string{}
-	for _, response := range r {
-		strs = append(strs, response.String())
+	jsonBytes, err := json.Marshal(r)
+	if err != nil {
+		return "[]"
 	}
-	return strings.Join(strs, ":")
+	return string(jsonBytes)
 }

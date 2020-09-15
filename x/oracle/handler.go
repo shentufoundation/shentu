@@ -140,16 +140,34 @@ func handleMsgInquiryTask(ctx sdk.Context, k Keeper, msg types.MsgInquiryTask) (
 	if err != nil {
 		return nil, err
 	}
-	InquiryTaskEvent := sdk.NewEvent(
-		types.EventTypeInquireTask,
-		sdk.NewAttribute("contract", msg.Contract),
-		sdk.NewAttribute("function", msg.Function),
-		sdk.NewAttribute("txhash", msg.TxHash),
-		sdk.NewAttribute("inquirer", msg.Inquirer.String()),
-		sdk.NewAttribute("result", strconv.FormatUint(task.Result.Uint64(), 10)),
-		sdk.NewAttribute("expiration", task.Expiration.String()),
+	/*
+		InquiryTaskEvent := sdk.NewEvent(
+			types.EventTypeInquireTask,
+			sdk.NewAttribute("contract", msg.Contract),
+			sdk.NewAttribute("function", msg.Function),
+			sdk.NewAttribute("txhash", msg.TxHash),
+			sdk.NewAttribute("inquirer", msg.Inquirer.String()),
+			sdk.NewAttribute("result", strconv.FormatUint(task.Result.Uint64(), 10)),
+			sdk.NewAttribute("expiration", task.Expiration.String()),
+		)
+		ctx.EventManager().EmitEvent(InquiryTaskEvent)
+	*/
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			"aggregate_task",
+			sdk.NewAttribute("contract", task.Contract),
+			sdk.NewAttribute("function", task.Function),
+			sdk.NewAttribute("begin_block_height", strconv.FormatInt(task.BeginBlock, 10)),
+			sdk.NewAttribute("bounty", task.Bounty.String()),
+			sdk.NewAttribute("description", task.Description),
+			sdk.NewAttribute("expiration", task.Expiration.String()),
+			sdk.NewAttribute("creator", task.Creator.String()),
+			sdk.NewAttribute("responses", task.Responses.String()),
+			sdk.NewAttribute("result", task.Result.String()),
+			sdk.NewAttribute("end_block_height", strconv.FormatInt(task.ClosingBlock, 10)),
+			sdk.NewAttribute("status", task.Status.String()),
+		),
 	)
-	ctx.EventManager().EmitEvent(InquiryTaskEvent)
 	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
 	}, nil
