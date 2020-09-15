@@ -20,11 +20,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 
 	"github.com/certikfoundation/shentu/app"
 	"github.com/certikfoundation/shentu/common"
+	"github.com/certikfoundation/shentu/x/auth/vesting"
 )
 
 const (
@@ -35,6 +36,7 @@ const (
 	flagPeriod        = "period"
 	flagNumberPeriods = "num-periods"
 	flagContinuous    = "continuous"
+	flagTriggered     = "triggered"
 )
 
 // AddGenesisAccountCmd returns add-genesis-account cobra Command.
@@ -124,6 +126,7 @@ the precedence rule is period > continuous > endtime.
 	cmd.Flags().Uint64(flagPeriod, 0, "set to periodic vesting with period in seconds")
 	cmd.Flags().Uint64(flagNumberPeriods, 1, "number of months for monthly vesting")
 	cmd.Flags().Bool(flagContinuous, false, "set to continuous vesting.")
+	cmd.Flags().Bool(flagTriggered, true, "set to false to deactivate periodic vesting until manually triggered")
 	return cmd
 }
 
@@ -134,6 +137,7 @@ func getVestedAccountFromFlags(baseAccount *authtypes.BaseAccount, coins sdk.Coi
 	period := viper.GetInt64(flagPeriod)
 	numberPeriods := viper.GetInt64(flagNumberPeriods)
 	continuous := viper.GetBool(flagContinuous)
+	vestingTriggered := viper.GetBool(flagTriggered)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse vesting amount: %w", err)
 	}
@@ -141,7 +145,7 @@ func getVestedAccountFromFlags(baseAccount *authtypes.BaseAccount, coins sdk.Coi
 		return baseAccount, nil
 	}
 	vestingAmt = vestingAmt.Sort()
-	baseVestingAccount, err := vesting.NewBaseVestingAccount(baseAccount, vestingAmt, vestingEnd)
+	baseVestingAccount, err := authvesting.NewBaseVestingAccount(baseAccount, vestingAmt, vestingEnd)
 	if err != nil {
 		return nil, err
 	}
@@ -157,27 +161,30 @@ func getVestedAccountFromFlags(baseAccount *authtypes.BaseAccount, coins sdk.Coi
 
 	switch {
 	case period != 0:
-		periods := vesting.Periods{}
+		periods := authvesting.Periods{}
 		remaining := vestingAmt
 		monthlyAmount := common.DivideCoins(vestingAmt, numberPeriods)
 
 		for i := int64(0); i < numberPeriods-1; i++ {
-			periods = append(periods, vesting.Period{Length: period, Amount: monthlyAmount})
+			periods = append(periods, authvesting.Period{Length: period, Amount: monthlyAmount})
 			remaining = remaining.Sub(monthlyAmount)
 		}
-		periods = append(periods, vesting.Period{Length: period, Amount: remaining})
+		periods = append(periods, authvesting.Period{Length: period, Amount: remaining})
 		endTime := vestingStart
 		for _, p := range periods {
 			endTime += p.Length
 		}
 		baseVestingAccount.EndTime = endTime
-		return vesting.NewPeriodicVestingAccountRaw(baseVestingAccount, vestingStart, periods), nil
+		if !vestingTriggered {
+			return vesting.NewTriggeredVestingAccountRaw(baseVestingAccount, vestingStart, periods, false), nil
+		}
+		return authvesting.NewPeriodicVestingAccountRaw(baseVestingAccount, vestingStart, periods), nil
 
 	case continuous && vestingEnd != 0:
-		return vesting.NewContinuousVestingAccountRaw(baseVestingAccount, vestingStart), nil
+		return authvesting.NewContinuousVestingAccountRaw(baseVestingAccount, vestingStart), nil
 
 	case vestingEnd != 0:
-		return vesting.NewDelayedVestingAccountRaw(baseVestingAccount), nil
+		return authvesting.NewDelayedVestingAccountRaw(baseVestingAccount), nil
 
 	default:
 		return nil, errors.New("invalid vesting parameters; must supply start and end time or end time")

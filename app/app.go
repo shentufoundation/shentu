@@ -17,8 +17,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	cosmosBank "github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	cosmosGov "github.com/cosmos/cosmos-sdk/x/gov"
@@ -27,6 +25,8 @@ import (
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
+	"github.com/certikfoundation/shentu/x/auth"
+	"github.com/certikfoundation/shentu/x/auth/vesting"
 	"github.com/certikfoundation/shentu/x/bank"
 	"github.com/certikfoundation/shentu/x/cert"
 	"github.com/certikfoundation/shentu/x/crisis"
@@ -125,6 +125,7 @@ type CertiKApp struct {
 	govKeeper      gov.Keeper
 	certKeeper     cert.Keeper
 	cvmKeeper      cvm.Keeper
+	authKeeper     auth.Keeper
 	oracleKeeper   oracle.Keeper
 
 	// module manager
@@ -271,6 +272,9 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.slashingKeeper,
 		stakingKeeper,
 	)
+	app.authKeeper = auth.NewKeeper(
+		app.certKeeper,
+	)
 	app.crisisKeeper = crisis.NewKeeper(
 		crisisSubspace,
 		invCheckPeriod,
@@ -310,7 +314,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// later modified must be passed by reference here.
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
-		auth.NewAppModule(app.accountKeeper),
+		auth.NewAppModule(app.accountKeeper, app.certKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
@@ -371,7 +375,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
 
 	app.sm = module.NewSimulationManager(
-		auth.NewAppModule(app.accountKeeper),
+		auth.NewAppModule(app.accountKeeper, app.certKeeper),
 		cosmosBank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
