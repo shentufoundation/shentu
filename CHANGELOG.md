@@ -44,6 +44,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking Changes
 
 ### Features
+* (x/auth) [\#7] (https://github.com/certikfoundation/shentu/pull/7) Added new vesting account types TriggeredVestingAccount and ManualVestingAccount.
 
 ### Improvements
 
