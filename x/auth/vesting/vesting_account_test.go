@@ -483,3 +483,27 @@ func TestTriggeredVestingAccountJSON(t *testing.T) {
 	require.NoError(t, json.Unmarshal(bz2, &a2))
 	require.Equal(t, acc2.String(), a2.String())
 }
+
+func TestManualVestingAcc(t *testing.T) {
+	// Account setup
+	origCoins := sdk.Coins{sdk.NewInt64Coin(denom, 1000)}
+	bacc := authtypes.NewBaseAccount(addr, origCoins, nil, 0, 0)
+	baseVestingAccount, err := authvesting.NewBaseVestingAccount(bacc, origCoins, 0)
+	require.Nil(t, err)
+
+	mva := NewManualVestingAccountRaw(baseVestingAccount, sdk.NewCoins())
+
+	now := tmtime.Now()
+	vestedCoins := mva.GetVestedCoins(now)
+	require.Nil(t, vestedCoins)
+	vestingCoins := mva.GetVestingCoins(now)
+	require.Equal(t, origCoins, vestingCoins)
+
+	coinToUnlock := sdk.NewCoin(denom, sdk.NewInt(700))
+	mva.VestedCoins = mva.VestedCoins.Add(coinToUnlock)
+
+	vestedCoins = mva.GetVestedCoins(now)
+	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 700)}, vestedCoins)
+	vestingCoins = mva.GetVestingCoins(now)
+	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 300)}, vestingCoins)
+}

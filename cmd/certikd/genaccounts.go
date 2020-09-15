@@ -37,6 +37,7 @@ const (
 	flagNumberPeriods = "num-periods"
 	flagContinuous    = "continuous"
 	flagTriggered     = "triggered"
+	flagManual        = "manual"
 )
 
 // AddGenesisAccountCmd returns add-genesis-account cobra Command.
@@ -127,6 +128,7 @@ the precedence rule is period > continuous > endtime.
 	cmd.Flags().Uint64(flagNumberPeriods, 1, "number of months for monthly vesting")
 	cmd.Flags().Bool(flagContinuous, false, "set to continuous vesting.")
 	cmd.Flags().Bool(flagTriggered, true, "set to false to deactivate periodic vesting until manually triggered")
+	cmd.Flags().Bool(flagManual, false, "set to manual vesting")
 	return cmd
 }
 
@@ -138,6 +140,7 @@ func getVestedAccountFromFlags(baseAccount *authtypes.BaseAccount, coins sdk.Coi
 	numberPeriods := viper.GetInt64(flagNumberPeriods)
 	continuous := viper.GetBool(flagContinuous)
 	vestingTriggered := viper.GetBool(flagTriggered)
+	manual := viper.GetBool(flagManual)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse vesting amount: %w", err)
 	}
@@ -160,6 +163,9 @@ func getVestedAccountFromFlags(baseAccount *authtypes.BaseAccount, coins sdk.Coi
 	}
 
 	switch {
+	case manual:
+		return vesting.NewManualVestingAccountRaw(baseVestingAccount, sdk.NewCoins()), nil
+
 	case period != 0:
 		periods := authvesting.Periods{}
 		remaining := vestingAmt

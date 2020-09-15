@@ -24,4 +24,5 @@ func RegisterCodec(cdc *codec.Codec) {
 
 	// Custom
 	cdc.RegisterConcrete(&TriggeredVestingAccount{}, "auth/TriggeredVestingAccount", nil)
+	cdc.RegisterConcrete(&ManualVestingAccount{}, "auth/ManualVestingAccount", nil)
 }

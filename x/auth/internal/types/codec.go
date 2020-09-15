@@ -15,7 +15,9 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(&auth.BaseAccount{}, "cosmos-sdk/BaseAccount", nil)
 	cdc.RegisterConcrete(auth.StdTx{}, "cosmos-sdk/StdTx", nil)
 
+	// Custom types
 	cdc.RegisterConcrete(MsgTriggerVesting{}, "auth/MsgTriggerVesting", nil)
+	cdc.RegisterConcrete(MsgManualVesting{}, "auth/MsgManualVesting", nil)
 }
 
 func RegisterAccountTypeCodec(o interface{}, name string) {
