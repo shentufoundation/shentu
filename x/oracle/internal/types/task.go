@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,11 +34,12 @@ func (t TaskStatus) String() string {
 type Task struct {
 	Contract      string         `json:"contract"`
 	Function      string         `json:"function"`
+	BeginBlock    int64          `json:"begin_block"`
 	Bounty        sdk.Coins      `json:"bounty"`
 	Description   string         `json:"string"`
 	Expiration    time.Time      `json:"expiration"`
 	Creator       sdk.AccAddress `json:"creator"`
-	Responses     []Response     `json:"responses"`
+	Responses     Responses      `json:"responses"`
 	Result        sdk.Int        `json:"result"`
 	ClosingBlock  int64          `json:"closing_block"`
 	WaitingBlocks int64          `json:"waiting_blocks"`
@@ -48,6 +50,7 @@ type Task struct {
 func NewTask(
 	contract string,
 	function string,
+	beginBlock int64,
 	bounty sdk.Coins,
 	description string,
 	expiration time.Time,
@@ -58,6 +61,7 @@ func NewTask(
 	return Task{
 		Contract:      contract,
 		Function:      function,
+		BeginBlock:    beginBlock,
 		Bounty:        bounty,
 		Description:   description,
 		Expiration:    expiration,
@@ -76,18 +80,37 @@ type TaskID struct {
 
 // Response defines the data structure of a response.
 type Response struct {
-	Contract string         `json:"contract"`
-	Function string         `json:"function"`
-	Score    sdk.Int        `json:"score"`
 	Operator sdk.AccAddress `json:"operator"`
+	Score    sdk.Int        `json:"score"`
+	Weight   sdk.Int        `json:"weight"`
+	Reward   sdk.Coins      `json:"reward"`
 }
 
 // NewResponse returns a new response.
-func NewResponse(contract, function string, score sdk.Int, operator sdk.AccAddress) Response {
+func NewResponse(score sdk.Int, operator sdk.AccAddress) Response {
 	return Response{
-		Contract: contract,
-		Function: function,
-		Score:    score,
 		Operator: operator,
+		Score:    score,
 	}
+}
+
+// String implements the Stringer interface.
+func (r Response) String() string {
+	jsonBytes, err := json.Marshal(r)
+	if err != nil {
+		return ""
+	}
+	return string(jsonBytes)
+}
+
+// Responses defines a list of responses.
+type Responses []Response
+
+// String implements the Stringer interface.
+func (r Responses) String() string {
+	jsonBytes, err := json.Marshal(r)
+	if err != nil {
+		return "[]"
+	}
+	return string(jsonBytes)
 }
