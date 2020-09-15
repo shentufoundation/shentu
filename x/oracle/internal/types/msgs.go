@@ -53,7 +53,7 @@ func (m MsgCreateOperator) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgCreateOperator) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{m.Proposer}
+	return []sdk.AccAddress{m.Address}
 }
 
 type MsgRemoveOperator struct {
