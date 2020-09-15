@@ -286,19 +286,6 @@ workflows:
   version: 2.1
   test-suite:
     jobs:
-      - docker-image:
-          requires:
-            - setup-dependencies
-      - docker-tagged:
-          filters:
-            tags:
-              only:
-                - /^v.*/
-            branches:
-              ignore:
-                - /.*/
-          requires:
-            - setup-dependencies
       - macos-ci:
           filters:
             branches:
@@ -340,3 +327,16 @@ workflows:
       - upload-coverage:
           requires:
             - test-cover
+#      - docker-image:
+#          requires:
+#            - setup-dependencies
+#      - docker-tagged:
+#          filters:
+#            tags:
+#              only:
+#                - /^v.*/
+#            branches:
+#              ignore:
+#                - /.*/
+#          requires:
+#            - setup-dependencies
