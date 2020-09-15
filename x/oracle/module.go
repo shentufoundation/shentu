@@ -125,7 +125,7 @@ func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 
 // WeightedOperations returns cert operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return nil
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.keeper.GetAuthKeeper())
 }
 
 // ProposalContents returns functions that generate gov proposals for the module.

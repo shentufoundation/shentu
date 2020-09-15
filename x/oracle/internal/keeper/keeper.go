@@ -27,3 +27,8 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, authKeeper types.AuthKee
 		supplyKeeper: supplyKeeper,
 	}
 }
+
+// GetAuthKeeper returns the auth keeper wrapped in module keeper.
+func (k Keeper) GetAuthKeeper() types.AuthKeeper {
+	return k.authKeeper
+}
