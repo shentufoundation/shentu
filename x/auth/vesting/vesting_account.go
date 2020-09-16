@@ -1,7 +1,6 @@
 package vesting
 
 import (
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -26,10 +25,10 @@ var _ vestexported.VestingAccount = (*ManualVestingAccount)(nil)
 var _ authexported.GenesisAccount = (*ManualVestingAccount)(nil)
 
 func init() {
-	customauth.RegisterAccountTypeCodec(&vesttypes.BaseVestingAccount{}, "auth/BaseVestingAccount")
-	customauth.RegisterAccountTypeCodec(&vesttypes.ContinuousVestingAccount{}, "auth/ContinuousVestingAccount")
-	customauth.RegisterAccountTypeCodec(&vesttypes.DelayedVestingAccount{}, "auth/DelayedVestingAccount")
-	customauth.RegisterAccountTypeCodec(&vesttypes.PeriodicVestingAccount{}, "auth/PeriodicVestingAccount")
+	customauth.RegisterAccountTypeCodec(&vesttypes.BaseVestingAccount{}, "cosmos-sdk/BaseVestingAccount")
+	customauth.RegisterAccountTypeCodec(&vesttypes.ContinuousVestingAccount{}, "cosmos-sdk/ContinuousVestingAccount")
+	customauth.RegisterAccountTypeCodec(&vesttypes.DelayedVestingAccount{}, "cosmos-sdk/DelayedVestingAccount")
+	customauth.RegisterAccountTypeCodec(&vesttypes.PeriodicVestingAccount{}, "cosmos-sdk/PeriodicVestingAccount")
 	customauth.RegisterAccountTypeCodec(&TriggeredVestingAccount{}, "auth/TriggeredVestingAccount")
 	customauth.RegisterAccountTypeCodec(&ManualVestingAccount{}, "auth/ManualVestingAccount")
 
@@ -223,7 +222,7 @@ func (tva TriggeredVestingAccount) MarshalJSON() ([]byte, error) {
 
 func (tva *TriggeredVestingAccount) UnmarshalJSON(bz []byte) error {
 	var alias vestingAccountJSON
-	if err := json.Unmarshal(bz, &alias); err != nil {
+	if err := codec.Cdc.UnmarshalJSON(bz, &alias); err != nil {
 		return err
 	}
 
@@ -347,19 +346,6 @@ func (mva ManualVestingAccount) Validate() error {
 	return mva.BaseVestingAccount.Validate()
 }
 
-type manualVestingAccountPretty struct {
-	Address          sdk.AccAddress `json:"address" yaml:"address"`
-	Coins            sdk.Coins      `json:"coins" yaml:"coins"`
-	PubKey           string         `json:"public_key" yaml:"public_key"`
-	AccountNumber    uint64         `json:"account_number" yaml:"account_number"`
-	Sequence         uint64         `json:"sequence" yaml:"sequence"`
-	OriginalVesting  sdk.Coins      `json:"original_vesting" yaml:"original_vesting"`
-	DelegatedFree    sdk.Coins      `json:"delegated_free" yaml:"delegated_free"`
-	DelegatedVesting sdk.Coins      `json:"delegated_vesting" yaml:"delegated_vesting"`
-	EndTime          int64          `json:"end_time" yaml:"end_time"`
-	VestedCoins      sdk.Coins      `json:"vested_coins" yaml:"vested_coins"`
-}
-
 func (mva ManualVestingAccount) MarshalJSON() ([]byte, error) {
 	alias := vestingAccountJSON{
 		Address:          mva.Address,
@@ -379,7 +365,7 @@ func (mva ManualVestingAccount) MarshalJSON() ([]byte, error) {
 
 func (mva *ManualVestingAccount) UnmarshalJSON(bz []byte) error {
 	var alias vestingAccountJSON
-	if err := json.Unmarshal(bz, &alias); err != nil {
+	if err := codec.Cdc.UnmarshalJSON(bz, &alias); err != nil {
 		return err
 	}
 
