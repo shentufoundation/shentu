@@ -9,6 +9,7 @@ import (
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
 )
 
@@ -69,7 +70,7 @@ func GenerateATallyParams(r *rand.Rand) govTypes.TallyParams {
 
 // GenerateACoin returns a Coin object with all of its fields randomized.
 func GenerateACoin(r *rand.Rand) sdk.Coin {
-	denom := sdk.DefaultBondDenom
+	denom := common.MicroCTKDenom
 	amount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, 1e3)))
 	return sdk.NewCoin(denom, amount)
 }

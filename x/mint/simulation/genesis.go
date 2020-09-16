@@ -19,32 +19,32 @@ func RandomizedGenState(simState *module.SimulationState) {
 	var inflation sdk.Dec
 	simState.AppParams.GetOrGenerate(
 		simState.Cdc, mintSim.Inflation, &inflation, simState.Rand,
-		func(r *rand.Rand) { inflation = sdk.NewDecWithPrec(7, 2) },
+		func(r *rand.Rand) { inflation = mintSim.GenInflation(r) },
 	)
 
 	// params
 	var inflationRateChange sdk.Dec
 	simState.AppParams.GetOrGenerate(
 		simState.Cdc, mintSim.InflationRateChange, &inflationRateChange, simState.Rand,
-		func(r *rand.Rand) { inflationRateChange = sdk.NewDecWithPrec(10, 2) },
+		func(r *rand.Rand) { inflationRateChange = mintSim.GenInflationRateChange(r) },
 	)
 
 	var inflationMax sdk.Dec
 	simState.AppParams.GetOrGenerate(
 		simState.Cdc, mintSim.InflationMax, &inflationMax, simState.Rand,
-		func(r *rand.Rand) { inflationMax = sdk.NewDecWithPrec(14, 2) },
+		func(r *rand.Rand) { inflationMax = mintSim.GenInflationMax(r) },
 	)
 
 	var inflationMin sdk.Dec
 	simState.AppParams.GetOrGenerate(
 		simState.Cdc, mintSim.InflationMin, &inflationMin, simState.Rand,
-		func(r *rand.Rand) { inflationMin = sdk.NewDecWithPrec(4, 2) },
+		func(r *rand.Rand) { inflationMin = mintSim.GenInflationMin(r) },
 	)
 
 	var goalBonded sdk.Dec
 	simState.AppParams.GetOrGenerate(
 		simState.Cdc, mintSim.GoalBonded, &goalBonded, simState.Rand,
-		func(r *rand.Rand) { goalBonded = sdk.NewDecWithPrec(67, 2) },
+		func(r *rand.Rand) { goalBonded = mintSim.GenGoalBonded(r) },
 	)
 
 	mintDenom := common.MicroCTKDenom

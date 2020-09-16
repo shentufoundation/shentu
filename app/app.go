@@ -24,7 +24,7 @@ import (
 	cosmosGov "github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	"github.com/cosmos/cosmos-sdk/x/supply"
+	cosmosSupply "github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/certikfoundation/shentu/x/bank"
 	"github.com/certikfoundation/shentu/x/cert"
@@ -36,6 +36,7 @@ import (
 	"github.com/certikfoundation/shentu/x/oracle"
 	"github.com/certikfoundation/shentu/x/slashing"
 	"github.com/certikfoundation/shentu/x/staking"
+	"github.com/certikfoundation/shentu/x/supply"
 	"github.com/certikfoundation/shentu/x/upgrade"
 )
 
@@ -75,7 +76,7 @@ var (
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
-		supply.AppModuleBasic{},
+		cosmosSupply.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		cvm.NewAppModuleBasic(),
 		cert.NewAppModuleBasic(),
@@ -86,11 +87,11 @@ var (
 	maccPerms = map[string][]string{
 		auth.FeeCollectorName:     nil,
 		distr.ModuleName:          nil,
-		mint.ModuleName:           {supply.Minter},
-		staking.BondedPoolName:    {supply.Burner, supply.Staking},
-		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
-		gov.ModuleName:            {supply.Burner},
-		oracle.ModuleName:         {supply.Burner},
+		mint.ModuleName:           {cosmosSupply.Minter},
+		staking.BondedPoolName:    {cosmosSupply.Burner, cosmosSupply.Staking},
+		staking.NotBondedPoolName: {cosmosSupply.Burner, cosmosSupply.Staking},
+		gov.ModuleName:            {cosmosSupply.Burner},
+		oracle.ModuleName:         {cosmosSupply.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -118,7 +119,7 @@ type CertiKApp struct {
 	mintKeeper     mint.Keeper
 	distrKeeper    distr.Keeper
 	crisisKeeper   crisis.Keeper
-	supplyKeeper   supply.Keeper
+	supplyKeeper   cosmosSupply.Keeper
 	paramsKeeper   params.Keeper
 	upgradeKeeper  upgrade.Keeper
 	govKeeper      gov.Keeper
@@ -148,9 +149,10 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		bam.MainStoreKey,
 		auth.StoreKey,
 		staking.StoreKey,
-		supply.StoreKey,
+		cosmosSupply.StoreKey,
 		distr.StoreKey,
 		mint.StoreKey,
+
 		slashing.StoreKey,
 		params.StoreKey,
 		upgrade.StoreKey,
@@ -211,9 +213,9 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		bankSubspace,
 		app.BlacklistedAccAddrs(),
 	)
-	app.supplyKeeper = supply.NewKeeper(
+	app.supplyKeeper = cosmosSupply.NewKeeper(
 		app.cdc,
-		keys[supply.StoreKey],
+		keys[cosmosSupply.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
 		maccPerms,
@@ -328,7 +330,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// there is nothing left over in the validator fee pool, so as to
 	// keep the CanWithdrawInvariant invariant.
 	app.mm.SetOrderBeginBlockers(upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
-		supply.ModuleName, oracle.ModuleName)
+		cosmosSupply.ModuleName, oracle.ModuleName)
 
 	app.mm.SetOrderEndBlockers(cvm.ModuleName, staking.ModuleName, gov.ModuleName, oracle.ModuleName)
 
@@ -342,7 +344,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashing.ModuleName,
 		gov.ModuleName,
 		mint.ModuleName,
-		supply.ModuleName,
+		cosmosSupply.ModuleName,
 		cvm.ModuleName,
 		crisis.ModuleName,
 		cert.ModuleName,
@@ -358,7 +360,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashing.ModuleName,
 		gov.ModuleName,
 		mint.ModuleName,
-		supply.ModuleName,
+		cosmosSupply.ModuleName,
 		cvm.ModuleName,
 		crisis.ModuleName,
 		cert.ModuleName,
@@ -440,7 +442,7 @@ func (app *CertiKApp) LoadHeight(height int64) error {
 func (app *CertiKApp) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
-		modAccAddrs[supply.NewModuleAddress(acc).String()] = true
+		modAccAddrs[cosmosSupply.NewModuleAddress(acc).String()] = true
 	}
 
 	return modAccAddrs
@@ -450,7 +452,7 @@ func (app *CertiKApp) ModuleAccountAddrs() map[string]bool {
 func (app *CertiKApp) BlacklistedAccAddrs() map[string]bool {
 	blacklistedAddrs := make(map[string]bool)
 	for acc := range maccPerms {
-		blacklistedAddrs[supply.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
+		blacklistedAddrs[cosmosSupply.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
 	}
 
 	return blacklistedAddrs
