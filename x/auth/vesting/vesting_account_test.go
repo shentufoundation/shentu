@@ -520,7 +520,6 @@ func TestManualVestingAcc(t *testing.T) {
 	require.NoError(t, json.Unmarshal(bz, &a))
 	require.Equal(t, mva.String(), a.String())
 
-
 	// New account setup
 	origCoins = sdk.Coins{sdk.NewInt64Coin(denom, 1000)}
 	origVesting := sdk.Coins{sdk.NewInt64Coin(denom, 300)}
@@ -533,7 +532,7 @@ func TestManualVestingAcc(t *testing.T) {
 	// Test SpendableCoins
 	spendableCoins := mva2.SpendableCoins(now)
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 700)}, spendableCoins)
-	
+
 	coinToUnlock = sdk.NewCoin(denom, sdk.NewInt(150))
 	mva2.VestedCoins = mva2.VestedCoins.Add(coinToUnlock)
 

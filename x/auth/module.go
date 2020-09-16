@@ -56,7 +56,12 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router
 
 // GetTxCmd returns the root tx command for the auth module.
 func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return GetTxCmd(cdc)
+	root := GetTxCmd(cdc)
+	root.AddCommand(
+		GetCmdTriggerVesting(cdc),
+		GetCmdManualVesting(cdc),
+	)
+	return root
 }
 
 // GetQueryCmd returns the root query command for the auth module.

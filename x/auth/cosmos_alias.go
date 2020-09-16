@@ -2,6 +2,7 @@ package auth
 
 import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 )
 
 const (
@@ -19,6 +20,7 @@ var (
 	ProtoBaseAccount                  = auth.ProtoBaseAccount
 	DefaultTxDecoder                  = auth.DefaultTxDecoder
 	NewCosmosAppModule                = auth.NewAppModule
+	GetTxCmd                          = cli.GetTxCmd
 
 	// variable aliases
 	CosmosModuleCdc = auth.ModuleCdc

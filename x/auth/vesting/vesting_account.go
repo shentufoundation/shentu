@@ -9,12 +9,12 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	vesttypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	customauth "github.com/certikfoundation/shentu/x/auth/internal/types"
 )
@@ -32,7 +32,6 @@ func init() {
 	customauth.RegisterAccountTypeCodec(&vesttypes.PeriodicVestingAccount{}, "auth/PeriodicVestingAccount")
 	customauth.RegisterAccountTypeCodec(&TriggeredVestingAccount{}, "auth/TriggeredVestingAccount")
 	customauth.RegisterAccountTypeCodec(&ManualVestingAccount{}, "auth/ManualVestingAccount")
-	customauth.RegisterAccountTypeCodec(&supply.ModuleAccount{}, "cosmos-sdk/ModuleAccount")
 
 	authtypes.RegisterAccountTypeCodec(&TriggeredVestingAccount{}, "auth/TriggeredVestingAccount")
 	authtypes.RegisterAccountTypeCodec(&ManualVestingAccount{}, "auth/ManualVestingAccount")
@@ -167,25 +166,47 @@ func (tva TriggeredVestingAccount) Validate() error {
 	return tva.BaseVestingAccount.Validate()
 }
 
-type triggeredVestingAccountPretty struct {
-	Address          sdk.AccAddress    `json:"address" yaml:"address"`
-	Coins            sdk.Coins         `json:"coins" yaml:"coins"`
-	PubKey           string            `json:"public_key" yaml:"public_key"`
-	AccountNumber    uint64            `json:"account_number" yaml:"account_number"`
-	Sequence         uint64            `json:"sequence" yaml:"sequence"`
-	OriginalVesting  sdk.Coins         `json:"original_vesting" yaml:"original_vesting"`
-	DelegatedFree    sdk.Coins         `json:"delegated_free" yaml:"delegated_free"`
-	DelegatedVesting sdk.Coins         `json:"delegated_vesting" yaml:"delegated_vesting"`
-	EndTime          int64             `json:"end_time" yaml:"end_time"`
-	StartTime        int64             `json:"start_time" yaml:"start_time"`
-	VestingPeriods   vesttypes.Periods `json:"vesting_periods" yaml:"vesting_periods"`
-	Activated        bool              `json:"activated" yaml:"activated"`
+type vestingAccountYAML struct {
+	Address          sdk.AccAddress `json:"address" yaml:"address"`
+	Coins            sdk.Coins      `json:"coins" yaml:"coins"`
+	PubKey           string         `json:"public_key" yaml:"public_key"`
+	AccountNumber    uint64         `json:"account_number" yaml:"account_number"`
+	Sequence         uint64         `json:"sequence" yaml:"sequence"`
+	OriginalVesting  sdk.Coins      `json:"original_vesting" yaml:"original_vesting"`
+	DelegatedFree    sdk.Coins      `json:"delegated_free" yaml:"delegated_free"`
+	DelegatedVesting sdk.Coins      `json:"delegated_vesting" yaml:"delegated_vesting"`
+	EndTime          int64          `json:"end_time" yaml:"end_time"`
+
+	// can be omitted if not applicable
+	StartTime      int64             `json:"start_time,omitempty" yaml:"start_time,omitempty"`
+	VestingPeriods vesttypes.Periods `json:"vesting_periods,omitempty" yaml:"vesting_periods,omitempty"`
+	Activated      bool              `json:"activated,omitempty" yaml:"activated,omitempty"`
+	VestedCoins    sdk.Coins         `json:"vested_coins,omitempty" yaml:"vested_coins,omitempty"`
+}
+
+type vestingAccountJSON struct {
+	Address          sdk.AccAddress `json:"address" yaml:"address"`
+	Coins            sdk.Coins      `json:"coins" yaml:"coins"`
+	PubKey           crypto.PubKey  `json:"public_key" yaml:"public_key"`
+	AccountNumber    uint64         `json:"account_number" yaml:"account_number"`
+	Sequence         uint64         `json:"sequence" yaml:"sequence"`
+	OriginalVesting  sdk.Coins      `json:"original_vesting" yaml:"original_vesting"`
+	DelegatedFree    sdk.Coins      `json:"delegated_free" yaml:"delegated_free"`
+	DelegatedVesting sdk.Coins      `json:"delegated_vesting" yaml:"delegated_vesting"`
+	EndTime          int64          `json:"end_time" yaml:"end_time"`
+
+	// can be omitted if not applicable
+	StartTime      int64             `json:"start_time,omitempty" yaml:"start_time,omitempty"`
+	VestingPeriods vesttypes.Periods `json:"vesting_periods,omitempty" yaml:"vesting_periods,omitempty"`
+	Activated      bool              `json:"activated,omitempty" yaml:"activated,omitempty"`
+	VestedCoins    sdk.Coins         `json:"vested_coins,omitempty" yaml:"vested_coins,omitempty"`
 }
 
 func (tva TriggeredVestingAccount) MarshalJSON() ([]byte, error) {
-	alias := triggeredVestingAccountPretty{
+	alias := vestingAccountJSON{
 		Address:          tva.Address,
 		Coins:            tva.Coins,
+		PubKey:           tva.GetPubKey(),
 		AccountNumber:    tva.AccountNumber,
 		Sequence:         tva.Sequence,
 		OriginalVesting:  tva.OriginalVesting,
@@ -197,38 +218,17 @@ func (tva TriggeredVestingAccount) MarshalJSON() ([]byte, error) {
 		Activated:        tva.Activated,
 	}
 
-	if tva.PubKey != nil {
-		pks, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, tva.PubKey)
-		if err != nil {
-			return nil, err
-		}
-
-		alias.PubKey = pks
-	}
-
-	return json.Marshal(alias)
+	return codec.Cdc.MarshalJSON(alias)
 }
 
 func (tva *TriggeredVestingAccount) UnmarshalJSON(bz []byte) error {
-	var alias triggeredVestingAccountPretty
+	var alias vestingAccountJSON
 	if err := json.Unmarshal(bz, &alias); err != nil {
 		return err
 	}
 
-	var (
-		pk  crypto.PubKey
-		err error
-	)
-
-	if alias.PubKey != "" {
-		pk, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, alias.PubKey)
-		if err != nil {
-			return err
-		}
-	}
-
 	tva.BaseVestingAccount = &vesttypes.BaseVestingAccount{
-		BaseAccount:      authtypes.NewBaseAccount(alias.Address, alias.Coins, pk, alias.AccountNumber, alias.Sequence),
+		BaseAccount:      authtypes.NewBaseAccount(alias.Address, alias.Coins, alias.PubKey, alias.AccountNumber, alias.Sequence),
 		OriginalVesting:  alias.OriginalVesting,
 		DelegatedFree:    alias.DelegatedFree,
 		DelegatedVesting: alias.DelegatedVesting,
@@ -247,7 +247,7 @@ func (tva TriggeredVestingAccount) String() string {
 }
 
 func (tva TriggeredVestingAccount) MarshalYAML() (interface{}, error) {
-	alias := triggeredVestingAccountPretty{
+	alias := vestingAccountYAML{
 		Address:          tva.Address,
 		Coins:            tva.Coins,
 		AccountNumber:    tva.AccountNumber,
@@ -361,9 +361,10 @@ type manualVestingAccountPretty struct {
 }
 
 func (mva ManualVestingAccount) MarshalJSON() ([]byte, error) {
-	alias := manualVestingAccountPretty{
+	alias := vestingAccountJSON{
 		Address:          mva.Address,
 		Coins:            mva.Coins,
+		PubKey:           mva.GetPubKey(),
 		AccountNumber:    mva.AccountNumber,
 		Sequence:         mva.Sequence,
 		OriginalVesting:  mva.OriginalVesting,
@@ -373,38 +374,17 @@ func (mva ManualVestingAccount) MarshalJSON() ([]byte, error) {
 		VestedCoins:      mva.VestedCoins,
 	}
 
-	if mva.PubKey != nil {
-		pks, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, mva.PubKey)
-		if err != nil {
-			return nil, err
-		}
-
-		alias.PubKey = pks
-	}
-
-	return json.Marshal(alias)
+	return codec.Cdc.MarshalJSON(alias)
 }
 
 func (mva *ManualVestingAccount) UnmarshalJSON(bz []byte) error {
-	var alias manualVestingAccountPretty
+	var alias vestingAccountJSON
 	if err := json.Unmarshal(bz, &alias); err != nil {
 		return err
 	}
 
-	var (
-		pk  crypto.PubKey
-		err error
-	)
-
-	if alias.PubKey != "" {
-		pk, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, alias.PubKey)
-		if err != nil {
-			return err
-		}
-	}
-
 	mva.BaseVestingAccount = &vesttypes.BaseVestingAccount{
-		BaseAccount:      authtypes.NewBaseAccount(alias.Address, alias.Coins, pk, alias.AccountNumber, alias.Sequence),
+		BaseAccount:      authtypes.NewBaseAccount(alias.Address, alias.Coins, alias.PubKey, alias.AccountNumber, alias.Sequence),
 		OriginalVesting:  alias.OriginalVesting,
 		DelegatedFree:    alias.DelegatedFree,
 		DelegatedVesting: alias.DelegatedVesting,
@@ -421,7 +401,7 @@ func (mva ManualVestingAccount) String() string {
 }
 
 func (mva ManualVestingAccount) MarshalYAML() (interface{}, error) {
-	alias := manualVestingAccountPretty{
+	alias := vestingAccountYAML{
 		Address:          mva.Address,
 		Coins:            mva.Coins,
 		AccountNumber:    mva.AccountNumber,

@@ -2,20 +2,16 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 var ModuleCdc = codec.New()
 
 func RegisterCodec(cdc *codec.Codec) {
-	// Copied from Cosmos
-	cdc.RegisterInterface((*exported.GenesisAccount)(nil), nil)
-	cdc.RegisterInterface((*exported.Account)(nil), nil)
-	cdc.RegisterConcrete(&auth.BaseAccount{}, "cosmos-sdk/BaseAccount", nil)
-	cdc.RegisterConcrete(auth.StdTx{}, "cosmos-sdk/StdTx", nil)
+	// Register Cosmos types
+	types.RegisterCodec(cdc)
 
-	// Custom types
+	// Register custom types
 	cdc.RegisterConcrete(MsgTriggerVesting{}, "auth/MsgTriggerVesting", nil)
 	cdc.RegisterConcrete(MsgManualVesting{}, "auth/MsgManualVesting", nil)
 }

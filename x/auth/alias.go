@@ -10,7 +10,8 @@ var (
 	// function aliases
 	RegisterCodec            = types.RegisterCodec
 	RegisterAccountTypeCodec = types.RegisterAccountTypeCodec
-	GetTxCmd                 = cli.GetTxCmd
+	GetCmdTriggerVesting     = cli.GetCmdTriggerVesting
+	GetCmdManualVesting      = cli.GetCmdManualVesting
 	NewKeeper                = keeper.NewKeeper
 
 	// variable aliases

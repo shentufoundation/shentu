@@ -16,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	authcli "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -27,7 +26,6 @@ import (
 	certikinit "github.com/certikfoundation/shentu/cmd/init"
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/toolsets/oracle-operator"
-	certikauthcli "github.com/certikfoundation/shentu/x/auth/client/cli"
 	cvmcli "github.com/certikfoundation/shentu/x/cvm/client/cli"
 )
 
@@ -126,8 +124,6 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 		flags.LineBreak,
 		authcli.GetSignCommand(cdc),
 		authcli.GetBroadcastCommand(cdc),
-		certikauthcli.GetCmdTriggerVesting(cdc),
-		certikauthcli.GetCmdManualVesting(cdc),
 		cvmcli.GetCmdCall(cdc),
 		cvmcli.GetCmdDeploy(cdc),
 		flags.LineBreak,
@@ -140,7 +136,7 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 	var cmdsToRemove []*cobra.Command
 
 	for _, cmd := range txCmd.Commands() {
-		if cmd.Use == auth.ModuleName || cmd.Use == bank.ModuleName {
+		if cmd.Use == bank.ModuleName {
 			cmdsToRemove = append(cmdsToRemove, cmd)
 		}
 	}

@@ -5,38 +5,15 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authcli "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	authutils "github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/certikfoundation/shentu/x/auth/internal/types"
 )
-
-// GetTxCmd returns the transaction commands for this module
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	txCmd := &cobra.Command{
-		Use:                        types.ModuleName,
-		Short:                      "Auth transaction subcommands",
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
-	}
-	txCmd.AddCommand(
-		// cosmos commands
-		authcli.GetMultiSignCommand(cdc),
-		authcli.GetSignCommand(cdc),
-
-		// custom command
-		GetCmdTriggerVesting(cdc),
-		GetCmdManualVesting(cdc),
-	)
-	return txCmd
-}
 
 // GetCmdTriggerVesting implements the command for triggering
 // vesting of a triggered vesting account.

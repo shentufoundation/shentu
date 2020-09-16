@@ -127,7 +127,7 @@ the precedence rule is period > continuous > endtime.
 	cmd.Flags().Uint64(flagPeriod, 0, "set to periodic vesting with period in seconds")
 	cmd.Flags().Uint64(flagNumberPeriods, 1, "number of months for monthly vesting")
 	cmd.Flags().Bool(flagContinuous, false, "set to continuous vesting.")
-	cmd.Flags().Bool(flagTriggered, true, "set to false to deactivate periodic vesting until manually triggered")
+	cmd.Flags().Bool(flagTriggered, false, "set to initialize with vesting turned off until triggered.")
 	cmd.Flags().Bool(flagManual, false, "set to manual vesting")
 	return cmd
 }
@@ -136,14 +136,15 @@ func getVestedAccountFromFlags(baseAccount *authtypes.BaseAccount, coins sdk.Coi
 	vestingStart := viper.GetInt64(flagVestingStart)
 	vestingEnd := viper.GetInt64(flagVestingEnd)
 	vestingAmt, err := sdk.ParseCoins(viper.GetString(flagVestingAmt))
-	period := viper.GetInt64(flagPeriod)
-	numberPeriods := viper.GetInt64(flagNumberPeriods)
-	continuous := viper.GetBool(flagContinuous)
-	vestingTriggered := viper.GetBool(flagTriggered)
-	manual := viper.GetBool(flagManual)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse vesting amount: %w", err)
 	}
+	period := viper.GetInt64(flagPeriod)
+	numberPeriods := viper.GetInt64(flagNumberPeriods)
+	continuous := viper.GetBool(flagContinuous)
+	triggered := viper.GetBool(flagTriggered)
+	manual := viper.GetBool(flagManual)
+
 	if vestingAmt.IsZero() {
 		return baseAccount, nil
 	}
@@ -181,7 +182,7 @@ func getVestedAccountFromFlags(baseAccount *authtypes.BaseAccount, coins sdk.Coi
 			endTime += p.Length
 		}
 		baseVestingAccount.EndTime = endTime
-		if !vestingTriggered {
+		if triggered {
 			return vesting.NewTriggeredVestingAccountRaw(baseVestingAccount, vestingStart, periods, false), nil
 		}
 		return authvesting.NewPeriodicVestingAccountRaw(baseVestingAccount, vestingStart, periods), nil
