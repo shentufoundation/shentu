@@ -14,7 +14,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	vesttypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-
+	"github.com/cosmos/cosmos-sdk/x/supply"
+	
 	customauth "github.com/certikfoundation/shentu/x/auth/internal/types"
 )
 
@@ -31,6 +32,7 @@ func init() {
 	customauth.RegisterAccountTypeCodec(&vesttypes.PeriodicVestingAccount{}, "cosmos-sdk/PeriodicVestingAccount")
 	customauth.RegisterAccountTypeCodec(&TriggeredVestingAccount{}, "auth/TriggeredVestingAccount")
 	customauth.RegisterAccountTypeCodec(&ManualVestingAccount{}, "auth/ManualVestingAccount")
+	customauth.RegisterAccountTypeCodec(&supply.ModuleAccount{}, "cosmos-sdk/ModuleAccount")
 
 	authtypes.RegisterAccountTypeCodec(&TriggeredVestingAccount{}, "auth/TriggeredVestingAccount")
 	authtypes.RegisterAccountTypeCodec(&ManualVestingAccount{}, "auth/ManualVestingAccount")
