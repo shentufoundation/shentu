@@ -165,44 +165,38 @@ func (tva TriggeredVestingAccount) Validate() error {
 	return tva.BaseVestingAccount.Validate()
 }
 
-type vestingAccountYAML struct {
-	Address          sdk.AccAddress `json:"address" yaml:"address"`
-	Coins            sdk.Coins      `json:"coins" yaml:"coins"`
-	PubKey           string         `json:"public_key" yaml:"public_key"`
-	AccountNumber    uint64         `json:"account_number" yaml:"account_number"`
-	Sequence         uint64         `json:"sequence" yaml:"sequence"`
-	OriginalVesting  sdk.Coins      `json:"original_vesting" yaml:"original_vesting"`
-	DelegatedFree    sdk.Coins      `json:"delegated_free" yaml:"delegated_free"`
-	DelegatedVesting sdk.Coins      `json:"delegated_vesting" yaml:"delegated_vesting"`
-	EndTime          int64          `json:"end_time" yaml:"end_time"`
-
-	// can be omitted if not applicable
-	StartTime      int64             `json:"start_time,omitempty" yaml:"start_time,omitempty"`
-	VestingPeriods vesttypes.Periods `json:"vesting_periods,omitempty" yaml:"vesting_periods,omitempty"`
-	Activated      bool              `json:"activated,omitempty" yaml:"activated,omitempty"`
-	VestedCoins    sdk.Coins         `json:"vested_coins,omitempty" yaml:"vested_coins,omitempty"`
+type triggeredVestingAccountYAML struct {
+	Address          sdk.AccAddress    `json:"address" yaml:"address"`
+	Coins            sdk.Coins         `json:"coins" yaml:"coins"`
+	PubKey           string            `json:"public_key" yaml:"public_key"`
+	AccountNumber    uint64            `json:"account_number" yaml:"account_number"`
+	Sequence         uint64            `json:"sequence" yaml:"sequence"`
+	OriginalVesting  sdk.Coins         `json:"original_vesting" yaml:"original_vesting"`
+	DelegatedFree    sdk.Coins         `json:"delegated_free" yaml:"delegated_free"`
+	DelegatedVesting sdk.Coins         `json:"delegated_vesting" yaml:"delegated_vesting"`
+	EndTime          int64             `json:"end_time" yaml:"end_time"`
+	StartTime        int64             `json:"start_time" yaml:"start_time"`
+	VestingPeriods   vesttypes.Periods `json:"vesting_periods" yaml:"vesting_periods"`
+	Activated        bool              `json:"activated" yaml:"activated"`
 }
 
-type vestingAccountJSON struct {
-	Address          sdk.AccAddress `json:"address" yaml:"address"`
-	Coins            sdk.Coins      `json:"coins" yaml:"coins"`
-	PubKey           crypto.PubKey  `json:"public_key" yaml:"public_key"`
-	AccountNumber    uint64         `json:"account_number" yaml:"account_number"`
-	Sequence         uint64         `json:"sequence" yaml:"sequence"`
-	OriginalVesting  sdk.Coins      `json:"original_vesting" yaml:"original_vesting"`
-	DelegatedFree    sdk.Coins      `json:"delegated_free" yaml:"delegated_free"`
-	DelegatedVesting sdk.Coins      `json:"delegated_vesting" yaml:"delegated_vesting"`
-	EndTime          int64          `json:"end_time" yaml:"end_time"`
-
-	// can be omitted if not applicable
-	StartTime      int64             `json:"start_time,omitempty" yaml:"start_time,omitempty"`
-	VestingPeriods vesttypes.Periods `json:"vesting_periods,omitempty" yaml:"vesting_periods,omitempty"`
-	Activated      bool              `json:"activated,omitempty" yaml:"activated,omitempty"`
-	VestedCoins    sdk.Coins         `json:"vested_coins,omitempty" yaml:"vested_coins,omitempty"`
+type triggeredVestingAccountJSON struct {
+	Address          sdk.AccAddress    `json:"address" yaml:"address"`
+	Coins            sdk.Coins         `json:"coins" yaml:"coins"`
+	PubKey           crypto.PubKey     `json:"public_key" yaml:"public_key"`
+	AccountNumber    uint64            `json:"account_number" yaml:"account_number"`
+	Sequence         uint64            `json:"sequence" yaml:"sequence"`
+	OriginalVesting  sdk.Coins         `json:"original_vesting" yaml:"original_vesting"`
+	DelegatedFree    sdk.Coins         `json:"delegated_free" yaml:"delegated_free"`
+	DelegatedVesting sdk.Coins         `json:"delegated_vesting" yaml:"delegated_vesting"`
+	EndTime          int64             `json:"end_time" yaml:"end_time"`
+	StartTime        int64             `json:"start_time" yaml:"start_time"`
+	VestingPeriods   vesttypes.Periods `json:"vesting_periods" yaml:"vesting_periods"`
+	Activated        bool              `json:"activated" yaml:"activated"`
 }
 
 func (tva TriggeredVestingAccount) MarshalJSON() ([]byte, error) {
-	alias := vestingAccountJSON{
+	alias := triggeredVestingAccountJSON{
 		Address:          tva.Address,
 		Coins:            tva.Coins,
 		PubKey:           tva.GetPubKey(),
@@ -221,7 +215,7 @@ func (tva TriggeredVestingAccount) MarshalJSON() ([]byte, error) {
 }
 
 func (tva *TriggeredVestingAccount) UnmarshalJSON(bz []byte) error {
-	var alias vestingAccountJSON
+	var alias triggeredVestingAccountJSON
 	if err := codec.Cdc.UnmarshalJSON(bz, &alias); err != nil {
 		return err
 	}
@@ -246,7 +240,7 @@ func (tva TriggeredVestingAccount) String() string {
 }
 
 func (tva TriggeredVestingAccount) MarshalYAML() (interface{}, error) {
-	alias := vestingAccountYAML{
+	alias := triggeredVestingAccountYAML{
 		Address:          tva.Address,
 		Coins:            tva.Coins,
 		AccountNumber:    tva.AccountNumber,
@@ -346,8 +340,34 @@ func (mva ManualVestingAccount) Validate() error {
 	return mva.BaseVestingAccount.Validate()
 }
 
+type manualVestingAccountYAML struct {
+	Address          sdk.AccAddress `json:"address" yaml:"address"`
+	Coins            sdk.Coins      `json:"coins" yaml:"coins"`
+	PubKey           string         `json:"public_key" yaml:"public_key"`
+	AccountNumber    uint64         `json:"account_number" yaml:"account_number"`
+	Sequence         uint64         `json:"sequence" yaml:"sequence"`
+	OriginalVesting  sdk.Coins      `json:"original_vesting" yaml:"original_vesting"`
+	DelegatedFree    sdk.Coins      `json:"delegated_free" yaml:"delegated_free"`
+	DelegatedVesting sdk.Coins      `json:"delegated_vesting" yaml:"delegated_vesting"`
+	EndTime          int64          `json:"end_time" yaml:"end_time"`
+	VestedCoins      sdk.Coins      `json:"vested_coins" yaml:"vested_coins"`
+}
+
+type manualVestingAccountJSON struct {
+	Address          sdk.AccAddress `json:"address" yaml:"address"`
+	Coins            sdk.Coins      `json:"coins" yaml:"coins"`
+	PubKey           crypto.PubKey  `json:"public_key" yaml:"public_key"`
+	AccountNumber    uint64         `json:"account_number" yaml:"account_number"`
+	Sequence         uint64         `json:"sequence" yaml:"sequence"`
+	OriginalVesting  sdk.Coins      `json:"original_vesting" yaml:"original_vesting"`
+	DelegatedFree    sdk.Coins      `json:"delegated_free" yaml:"delegated_free"`
+	DelegatedVesting sdk.Coins      `json:"delegated_vesting" yaml:"delegated_vesting"`
+	EndTime          int64          `json:"end_time" yaml:"end_time"`
+	VestedCoins      sdk.Coins      `json:"vested_coins" yaml:"vested_coins"`
+}
+
 func (mva ManualVestingAccount) MarshalJSON() ([]byte, error) {
-	alias := vestingAccountJSON{
+	alias := manualVestingAccountJSON{
 		Address:          mva.Address,
 		Coins:            mva.Coins,
 		PubKey:           mva.GetPubKey(),
@@ -364,7 +384,7 @@ func (mva ManualVestingAccount) MarshalJSON() ([]byte, error) {
 }
 
 func (mva *ManualVestingAccount) UnmarshalJSON(bz []byte) error {
-	var alias vestingAccountJSON
+	var alias manualVestingAccountJSON
 	if err := codec.Cdc.UnmarshalJSON(bz, &alias); err != nil {
 		return err
 	}
@@ -387,7 +407,7 @@ func (mva ManualVestingAccount) String() string {
 }
 
 func (mva ManualVestingAccount) MarshalYAML() (interface{}, error) {
-	alias := vestingAccountYAML{
+	alias := manualVestingAccountYAML{
 		Address:          mva.Address,
 		Coins:            mva.Coins,
 		AccountNumber:    mva.AccountNumber,
