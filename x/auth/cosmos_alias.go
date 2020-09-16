@@ -20,7 +20,6 @@ var (
 	ProtoBaseAccount                  = auth.ProtoBaseAccount
 	DefaultTxDecoder                  = auth.DefaultTxDecoder
 	NewCosmosAppModule                = auth.NewAppModule
-	GetTxCmd                          = cli.GetTxCmd
 
 	// variable aliases
 	CosmosModuleCdc = auth.ModuleCdc
