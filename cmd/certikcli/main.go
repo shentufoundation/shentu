@@ -27,6 +27,7 @@ import (
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/toolsets/oracle-operator"
 	cvmcli "github.com/certikfoundation/shentu/x/cvm/client/cli"
+	"github.com/certikfoundation/shentu/x/auth"
 	certikauthcli "github.com/certikfoundation/shentu/x/auth/client/cli"
 )
 
