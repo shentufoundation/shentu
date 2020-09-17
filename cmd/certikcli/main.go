@@ -18,6 +18,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	authcli "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 
 	"github.com/certikfoundation/shentu/app"
@@ -137,6 +138,17 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 
 	// add modules' tx commands
 	app.ModuleBasics.AddTxCommands(txCmd, cdc)
+
+	// remove auth and bank commands as they're mounted under the root tx command
+	var cmdsToRemove []*cobra.Command
+
+	for _, cmd := range txCmd.Commands() {
+		if cmd.Use == auth.ModuleName || cmd.Use == bank.ModuleName {
+			cmdsToRemove = append(cmdsToRemove, cmd)
+		}
+	}
+
+	txCmd.RemoveCommand(cmdsToRemove...)
 
 	return txCmd
 }
