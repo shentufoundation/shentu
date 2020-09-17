@@ -15,7 +15,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
-	cosmosSupply "github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/cosmos/cosmos-sdk/x/supply/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/supply/client/rest"
 	supplySim "github.com/cosmos/cosmos-sdk/x/supply/simulation"
@@ -35,27 +35,27 @@ type AppModuleBasic struct{}
 
 // Name returns the supply module's name.
 func (AppModuleBasic) Name() string {
-	return cosmosSupply.ModuleName
+	return supply.ModuleName
 }
 
 // RegisterCodec registers the supply module's types for the given codec.
 func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	cosmosSupply.RegisterCodec(cdc)
+	supply.RegisterCodec(cdc)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the supply module.
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return cosmosSupply.ModuleCdc.MustMarshalJSON(cosmosSupply.DefaultGenesisState())
+	return supply.ModuleCdc.MustMarshalJSON(supply.DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the supply module.
 func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	var data cosmosSupply.GenesisState
-	if err := cosmosSupply.ModuleCdc.UnmarshalJSON(bz, &data); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", cosmosSupply.ModuleName, err)
+	var data supply.GenesisState
+	if err := supply.ModuleCdc.UnmarshalJSON(bz, &data); err != nil {
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", supply.ModuleName, err)
 	}
 
-	return cosmosSupply.ValidateGenesis(data)
+	return supply.ValidateGenesis(data)
 }
 
 // RegisterRESTRoutes registers the REST routes for the supply module.
@@ -77,12 +77,12 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper cosmosSupply.Keeper
+	keeper supply.Keeper
 	ak     types.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(keeper cosmosSupply.Keeper, ak types.AccountKeeper) AppModule {
+func NewAppModule(keeper supply.Keeper, ak types.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
@@ -92,17 +92,17 @@ func NewAppModule(keeper cosmosSupply.Keeper, ak types.AccountKeeper) AppModule 
 
 // Name returns the supply module's name.
 func (AppModule) Name() string {
-	return cosmosSupply.ModuleName
+	return supply.ModuleName
 }
 
 // RegisterInvariants registers the supply module invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	cosmosSupply.RegisterInvariants(ir, am.keeper)
+	supply.RegisterInvariants(ir, am.keeper)
 }
 
 // Route returns the message routing key for the supply module.
 func (AppModule) Route() string {
-	return cosmosSupply.RouterKey
+	return supply.RouterKey
 }
 
 // NewHandler returns an sdk.Handler for the supply module.
@@ -110,26 +110,26 @@ func (am AppModule) NewHandler() sdk.Handler { return nil }
 
 // QuerierRoute returns the supply module's querier route name.
 func (AppModule) QuerierRoute() string {
-	return cosmosSupply.QuerierRoute
+	return supply.QuerierRoute
 }
 
 // NewQuerierHandler returns the supply module sdk.Querier.
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return cosmosSupply.NewQuerier(am.keeper)
+	return supply.NewQuerier(am.keeper)
 }
 
 // InitGenesis performs genesis initialization for the supply module. It returns no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState cosmosSupply.GenesisState
-	cosmosSupply.ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	cosmosSupply.InitGenesis(ctx, am.keeper, am.ak, genesisState)
+	var genesisState supply.GenesisState
+	supply.ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	supply.InitGenesis(ctx, am.keeper, am.ak, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the supply module.
 func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
-	gs := cosmosSupply.ExportGenesis(ctx, am.keeper)
-	return cosmosSupply.ModuleCdc.MustMarshalJSON(gs)
+	gs := supply.ExportGenesis(ctx, am.keeper)
+	return supply.ModuleCdc.MustMarshalJSON(gs)
 }
 
 // BeginBlock returns the begin blocker for the supply module.
@@ -161,7 +161,7 @@ func (AppModule) RandomizedParams(_ *rand.Rand) []sim.ParamChange {
 
 // RegisterStoreDecoder registers a decoder for supply module's types.
 func (AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[cosmosSupply.StoreKey] = supplySim.DecodeStore
+	sdr[supply.StoreKey] = supplySim.DecodeStore
 }
 
 // WeightedOperations doesn't return any operation for the nft module.

@@ -24,7 +24,6 @@ import (
 	cosmosGov "github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	cosmosSupply "github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/certikfoundation/shentu/x/bank"
 	"github.com/certikfoundation/shentu/x/cert"
@@ -76,7 +75,7 @@ var (
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
-		cosmosSupply.AppModuleBasic{},
+		supply.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		cvm.NewAppModuleBasic(),
 		cert.NewAppModuleBasic(),
@@ -87,11 +86,11 @@ var (
 	maccPerms = map[string][]string{
 		auth.FeeCollectorName:     nil,
 		distr.ModuleName:          nil,
-		mint.ModuleName:           {cosmosSupply.Minter},
-		staking.BondedPoolName:    {cosmosSupply.Burner, cosmosSupply.Staking},
-		staking.NotBondedPoolName: {cosmosSupply.Burner, cosmosSupply.Staking},
-		gov.ModuleName:            {cosmosSupply.Burner},
-		oracle.ModuleName:         {cosmosSupply.Burner},
+		mint.ModuleName:           {supply.Minter},
+		staking.BondedPoolName:    {supply.Burner, supply.Staking},
+		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
+		gov.ModuleName:            {supply.Burner},
+		oracle.ModuleName:         {supply.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -119,7 +118,7 @@ type CertiKApp struct {
 	mintKeeper     mint.Keeper
 	distrKeeper    distr.Keeper
 	crisisKeeper   crisis.Keeper
-	supplyKeeper   cosmosSupply.Keeper
+	supplyKeeper   supply.Keeper
 	paramsKeeper   params.Keeper
 	upgradeKeeper  upgrade.Keeper
 	govKeeper      gov.Keeper
@@ -149,7 +148,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		bam.MainStoreKey,
 		auth.StoreKey,
 		staking.StoreKey,
-		cosmosSupply.StoreKey,
+		supply.StoreKey,
 		distr.StoreKey,
 		mint.StoreKey,
 
@@ -213,9 +212,9 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		bankSubspace,
 		app.BlacklistedAccAddrs(),
 	)
-	app.supplyKeeper = cosmosSupply.NewKeeper(
+	app.supplyKeeper = supply.NewKeeper(
 		app.cdc,
-		keys[cosmosSupply.StoreKey],
+		keys[supply.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
 		maccPerms,
@@ -330,7 +329,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// there is nothing left over in the validator fee pool, so as to
 	// keep the CanWithdrawInvariant invariant.
 	app.mm.SetOrderBeginBlockers(upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
-		cosmosSupply.ModuleName, oracle.ModuleName)
+		supply.ModuleName, oracle.ModuleName)
 
 	app.mm.SetOrderEndBlockers(cvm.ModuleName, staking.ModuleName, gov.ModuleName, oracle.ModuleName)
 
@@ -344,7 +343,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashing.ModuleName,
 		gov.ModuleName,
 		mint.ModuleName,
-		cosmosSupply.ModuleName,
+		supply.ModuleName,
 		cvm.ModuleName,
 		crisis.ModuleName,
 		cert.ModuleName,
@@ -360,7 +359,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashing.ModuleName,
 		gov.ModuleName,
 		mint.ModuleName,
-		cosmosSupply.ModuleName,
+		supply.ModuleName,
 		cvm.ModuleName,
 		crisis.ModuleName,
 		cert.ModuleName,
@@ -442,7 +441,7 @@ func (app *CertiKApp) LoadHeight(height int64) error {
 func (app *CertiKApp) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
-		modAccAddrs[cosmosSupply.NewModuleAddress(acc).String()] = true
+		modAccAddrs[supply.NewModuleAddress(acc).String()] = true
 	}
 
 	return modAccAddrs
@@ -452,7 +451,7 @@ func (app *CertiKApp) ModuleAccountAddrs() map[string]bool {
 func (app *CertiKApp) BlacklistedAccAddrs() map[string]bool {
 	blacklistedAddrs := make(map[string]bool)
 	for acc := range maccPerms {
-		blacklistedAddrs[cosmosSupply.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
+		blacklistedAddrs[supply.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
 	}
 
 	return blacklistedAddrs
