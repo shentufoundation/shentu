@@ -1,8 +1,7 @@
 package types
 
 import (
-	//"crypto/sha256"
-	"encoding/binary"
+	"crypto/sha256"
 	"encoding/hex"
 
 	"github.com/tendermint/tendermint/crypto"
@@ -73,42 +72,32 @@ func CertificateStoreKey(bz []byte) []byte {
 	return concat(certificateStoreKeyPrefix, bz)
 }
 
-// CertificateStoreCertifierKey gets the prefix for a given certifier for accessing its certificates.
-func CertificateStoreCertifierKey(certifier sdk.AccAddress) []byte {
-	return concat(certificateStoreKeyPrefix, certifier.Bytes())
-}
-
 // CertificateStoreContentKey gets the prefix for certificate key of given certifier, certificate type,
 // content type, and content.
-func CertificateStoreContentKey(certifier sdk.AccAddress, certType CertificateType,
-	contentType RequestContentType, content string) []byte {
+func CertificateStoreContentKey(certType CertificateType, reqContentType RequestContentType, reqContent string) []byte {
+	content := concat(reqContentType.Bytes(), []byte(reqContent))
+	contentHash := sha256.Sum224(content)
 	return concat(
 		certificateStoreKeyPrefix,
-		certifier.Bytes(),
 		certType.Bytes(),
-		contentType.Bytes(),
-		[]byte(content),
+		contentHash[:],
 	)
 }
 
 // GetCertificateID constructs CertificateID (hex string) given certificate information.
 // Its binary representation is the certificate store key without prefix.
-func GetCertificateID(certifier sdk.AccAddress, certType CertificateType, certContent RequestContent,
-	i uint64) CertificateID {
+func GetCertificateID(certType CertificateType, reqContent RequestContent, i uint8) CertificateID {
 	// Construct certificate store key (without prefix):
-	// certifier | certificate type | request content type | request content | uint64
-	bz := make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, i)
+	// certificate type | sha224(request content type | request content) | uint8
+	bz := make([]byte, 1)
+	bz[0] = i
 
-	//content := concat(certContent.RequestContentType.Bytes(), []byte(certContent.RequestContent))
-	//contentHash := sha256.Sum256(content)
+	content := concat(reqContent.RequestContentType.Bytes(), []byte(reqContent.RequestContent))
+	contentHash := sha256.Sum224(content)
 
 	keyWoPrefix := concat(
-		certifier.Bytes(),
 		certType.Bytes(),
-		//contentHash[:],
-		certContent.RequestContentType.Bytes(),
-		[]byte(certContent.RequestContent),
+		contentHash[:],
 		bz,
 	)
 	return CertificateID(hex.EncodeToString(keyWoPrefix))
