@@ -27,40 +27,9 @@ import (
 		RunE:                       client.ValidateCmd,
 	}
 	txCmd.AddCommand(
-		GetCmdTriggerVesting(cdc),
 		GetCmdManualVesting(cdc),
 	)
 	return txCmd
-}
-
-// GetCmdTriggerVesting implements the command for triggering
-// vesting of a triggered vesting account.
-func GetCmdTriggerVesting(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "trigger-vesting [address]",
-		Short: "Begin vesting of a triggered vesting account.",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-
-			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
-				return err
-			}
-
-			addr, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgTriggerVesting(cliCtx.GetFromAddress(), addr)
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
-	cmd = flags.PostCommands(cmd)[0]
-	return cmd
 }
 
 // GetCmdManualVesting implements the command for unlocking
