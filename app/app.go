@@ -151,7 +151,6 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		supply.StoreKey,
 		distr.StoreKey,
 		mint.StoreKey,
-
 		slashing.StoreKey,
 		params.StoreKey,
 		upgrade.StoreKey,

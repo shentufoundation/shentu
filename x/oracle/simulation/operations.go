@@ -1,8 +1,9 @@
 package simulation
 
 import (
-	"github.com/certikfoundation/shentu/common"
 	"math/rand"
+
+	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -11,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/oracle/internal/keeper"
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
@@ -38,6 +40,7 @@ func WeightedOperations(
 }
 
 // SimulateMsgCreateOperator generates a MsgCreateOperator object with all of its fields randomized.
+// This operation leads a series of future operations.
 func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
@@ -49,9 +52,9 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-
 		if collateral.AmountOf(common.MicroCTKDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
-			return simulation.NewOperationMsgBasic(types.ModuleName, "NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
+			return simulation.NewOperationMsgBasic(types.ModuleName,
+				"NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
 		}
 
 		proposerAcc := ak.GetAccount(ctx, proposer.Address)
@@ -77,10 +80,19 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
+		stdOperator := types.NewOperator(operator.Address, proposer.Address, collateral, nil, "an operator")
 		futureOperations := []simulation.FutureOperation{
 			{
-				BlockHeight: int(ctx.BlockHeight()) + 3,
-				Op:          SimulateMsgAddCollateral(k, ak, operator),
+				BlockHeight: int(ctx.BlockHeight()) + 2,
+				Op:          SimulateMsgAddCollateral(k, ak, &stdOperator, operator.PrivKey),
+			},
+			{
+				BlockHeight: int(ctx.BlockHeight()) + 4,
+				Op:          SimulateMsgReduceCollateral(k, ak, &stdOperator, operator.PrivKey),
+			},
+			{
+				BlockHeight: int(ctx.BlockHeight()) + 6,
+				Op:          SimulateMsgRemoveOperator(k, ak, &stdOperator, operator.PrivKey),
 			},
 		}
 
@@ -89,11 +101,15 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 }
 
 // SimulateMsgAddCollateral generates a MsgAddCollateral object with all of its fields randomized.
-func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AuthKeeper, operator simulation.Account) simulation.Operation {
+func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator, operatorPrivKey crypto.PrivKey) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		_, err := k.GetOperator(ctx, operator.Address)
+		operator, err := k.GetOperator(ctx, stdOperator.Address)
 		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		if err := checkConsistency(operator, *stdOperator); err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
@@ -102,6 +118,7 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AuthKeeper, operator sim
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
+		stdOperator.Collateral = stdOperator.Collateral.Add(collateralIncrement...)
 
 		fees, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()).Sub(collateralIncrement))
 		if err != nil {
@@ -117,7 +134,7 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AuthKeeper, operator sim
 			chainID,
 			[]uint64{operatorAcc.GetAccountNumber()},
 			[]uint64{operatorAcc.GetSequence()},
-			operator.PrivKey,
+			operatorPrivKey,
 		)
 
 		_, _, err = app.Deliver(tx)
@@ -127,4 +144,106 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AuthKeeper, operator sim
 
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
+}
+
+// SimulateMsgReduceCollateral generates a MsgReduceCollateral object with all of its fields randomized.
+func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator, operatorPrivKey crypto.PrivKey) simulation.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
+		simulation.OperationMsg, []simulation.FutureOperation, error) {
+		operator, err := k.GetOperator(ctx, stdOperator.Address)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		if err := checkConsistency(operator, *stdOperator); err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		collateralDecrement, err := simulation.RandomFees(r, ctx, operator.Collateral)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+		newCollateral := operator.Collateral.Sub(collateralDecrement)
+		if newCollateral.AmountOf(common.MicroCTKDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
+			return simulation.NewOperationMsgBasic(types.ModuleName,
+				"NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
+		}
+		stdOperator.Collateral = newCollateral
+
+		operatorAcc := ak.GetAccount(ctx, operator.Address)
+		fees, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()))
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		msg := types.NewMsgReduceCollateral(operator.Address, collateralDecrement)
+
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{operatorAcc.GetAccountNumber()},
+			[]uint64{operatorAcc.GetSequence()},
+			operatorPrivKey,
+		)
+
+		_, _, err = app.Deliver(tx)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+	}
+}
+
+// SimulateMsgRemoveOperator generates a MsgRemoveOperator object with all of its fields randomized.
+func SimulateMsgRemoveOperator(k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator, operatorPrivKey crypto.PrivKey) simulation.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
+		simulation.OperationMsg, []simulation.FutureOperation, error) {
+		operator, err := k.GetOperator(ctx, stdOperator.Address)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		if err := checkConsistency(operator, *stdOperator); err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		operatorAcc := ak.GetAccount(ctx, operator.Address)
+		fees, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()))
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		msg := types.NewMsgRemoveOperator(operator.Address, operator.Address)
+
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{operatorAcc.GetAccountNumber()},
+			[]uint64{operatorAcc.GetSequence()},
+			operatorPrivKey,
+		)
+
+		_, _, err = app.Deliver(tx)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+	}
+}
+
+func checkConsistency(operator1, operator2 types.Operator) error {
+	if !operator1.Address.Equals(operator2.Address) ||
+		!operator1.Proposer.Equals(operator2.Proposer) ||
+		!operator1.Collateral.IsEqual(operator2.Collateral) ||
+		!operator1.AccumulatedRewards.IsEqual(operator2.AccumulatedRewards) ||
+		operator1.Name != operator2.Name {
+		return types.ErrInconsistentOperators
+	}
+	return nil
 }
