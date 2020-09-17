@@ -9,8 +9,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authutils "github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/certikfoundation/shentu/x/auth/internal/types"
 )
@@ -24,8 +24,13 @@ func GetCmdTriggerVesting(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := authtypes.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authutils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			accGetter := authtxb.NewAccountRetriever(cliCtx)
+
+			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
+				return err
+			}
 
 			addr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -33,7 +38,7 @@ func GetCmdTriggerVesting(cdc *codec.Codec) *cobra.Command {
 			}
 
 			msg := types.NewMsgTriggerVesting(cliCtx.GetFromAddress(), addr)
-			return authutils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 	cmd = flags.PostCommands(cmd)[0]
@@ -49,8 +54,13 @@ func GetCmdManualVesting(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := authtypes.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authutils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			accGetter := authtxb.NewAccountRetriever(cliCtx)
+
+			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
+				return err
+			}
 
 			addr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -63,7 +73,7 @@ func GetCmdManualVesting(cdc *codec.Codec) *cobra.Command {
 			}
 
 			msg := types.NewMsgManualVesting(cliCtx.GetFromAddress(), addr, amount)
-			return authutils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 	cmd = flags.PostCommands(cmd)[0]
