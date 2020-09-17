@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
@@ -23,4 +24,8 @@ type ParamSubspace interface {
 	Get(ctx sdk.Context, key []byte, ptr interface{})
 	Set(ctx sdk.Context, key []byte, param interface{})
 	WithKeyTable(table subspace.KeyTable) subspace.Subspace
+}
+
+type ParamsKeeper interface {
+	GetSubspace(s string) (params.Subspace, bool)
 }

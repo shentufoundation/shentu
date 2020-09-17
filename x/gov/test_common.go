@@ -154,6 +154,7 @@ func createTestInput(t *testing.T) testInput {
 		cdc,
 		keyGov,
 		paramsKeeper.Subspace(govTypes.DefaultParamspace).WithKeyTable(ParamKeyTable()),
+		paramsKeeper,
 		supplyKeeper,
 		stakingKeeper,
 		certKeeper,

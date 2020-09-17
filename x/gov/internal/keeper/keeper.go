@@ -19,6 +19,9 @@ type Keeper struct {
 	// the reference to the ParamSpace to get and set gov specific params
 	paramSpace types.ParamSubspace
 
+	// the ParamsKeeper to validate param change proposals
+	ParamsKeeper types.ParamsKeeper
+
 	// the SupplyKeeper to reduce the supply of the network
 	supplyKeeper govTypes.SupplyKeeper
 
@@ -44,7 +47,7 @@ type Keeper struct {
 // - users voting on proposals, with weight proportional to stake in the system
 // - and tallying the result of the vote.
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace,
+	cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, paramsKeeper types.ParamsKeeper,
 	supplyKeeper govTypes.SupplyKeeper, stakingKeeper govTypes.StakingKeeper,
 	certKeeper types.CertKeeper, upgradeKeeper types.UpgradeKeeper, router govTypes.Router,
 ) Keeper {
@@ -57,6 +60,7 @@ func NewKeeper(
 		Keeper:        cosmosKeeper,
 		storeKey:      key,
 		paramSpace:    paramSpace,
+		ParamsKeeper:  paramsKeeper,
 		supplyKeeper:  supplyKeeper,
 		stakingKeeper: stakingKeeper,
 		CertKeeper:    certKeeper,

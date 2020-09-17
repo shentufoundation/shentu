@@ -294,6 +294,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.cdc,
 		keys[gov.StoreKey],
 		govSubspace,
+		app.paramsKeeper,
 		app.supplyKeeper,
 		app.stakingKeeper,
 		app.certKeeper,

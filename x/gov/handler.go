@@ -5,12 +5,13 @@ import (
 	"fmt"
 
 	"github.com/tendermint/tendermint/crypto/tmhash"
-
+	
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	"github.com/certikfoundation/shentu/common"
@@ -144,6 +145,17 @@ func validateProposalByType(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmitP
 		}
 	case upgrade.SoftwareUpgradeProposal:
 		return k.UpgradeKeeper.ValidatePlan(ctx, c.Plan)
+	case params.ParameterChangeProposal:
+		for _, change := range c.Changes {
+			ss, ok := k.ParamsKeeper.GetSubspace(change.Subspace)
+			if !ok {
+				return sdkerrors.Wrap(params.ErrUnknownSubspace, change.Subspace)
+			}
+
+			if !ss.Has(ctx, []byte(change.Key)) {
+				return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "param key %s not found", change.Key)
+			}
+		}
 	default:
 		return nil
 	}
