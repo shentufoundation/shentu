@@ -18,6 +18,5 @@ func RegisterCodec(cdc *codec.Codec) {
 	vtypes.RegisterCodec(cdc)
 
 	// Register custom types
-	cdc.RegisterConcrete(&TriggeredVestingAccount{}, "auth/TriggeredVestingAccount", nil)
 	cdc.RegisterConcrete(&ManualVestingAccount{}, "auth/ManualVestingAccount", nil)
 }
