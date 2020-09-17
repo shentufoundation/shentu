@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/bank/client/rest"
 
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
@@ -54,7 +53,7 @@ func (AppModuleBasic) RegisterRESTRoutes(cliCtx context.CLIContext, route *mux.R
 
 // GetTxCmd returns the root tx command for the bank module.
 func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetTxCmd(cdc)
+	return nil
 }
 
 // GetQueryCmd returns the root query command for the bank module.

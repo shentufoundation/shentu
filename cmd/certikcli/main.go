@@ -18,7 +18,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	authcli "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 
 	"github.com/certikfoundation/shentu/app"
@@ -27,6 +26,7 @@ import (
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/toolsets/oracle-operator"
 	cvmcli "github.com/certikfoundation/shentu/x/cvm/client/cli"
+	certikauthcli "github.com/certikfoundation/shentu/x/auth/client/cli"
 )
 
 func main() {
@@ -127,6 +127,8 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 		authcli.GetDecodeCommand(cdc),
 		authcli.GetMultiSignCommand(cdc),
 		authcli.GetBroadcastCommand(cdc),
+		certikauthcli.GetCmdTriggerVesting(cdc),
+		certikauthcli.GetCmdManualVesting(cdc),
 		flags.LineBreak,
 		cvmcli.GetCmdCall(cdc),
 		cvmcli.GetCmdDeploy(cdc),
@@ -135,17 +137,6 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 
 	// add modules' tx commands
 	app.ModuleBasics.AddTxCommands(txCmd, cdc)
-
-	// remove auth and bank commands as they're mounted under the root tx command
-	var cmdsToRemove []*cobra.Command
-
-	for _, cmd := range txCmd.Commands() {
-		if cmd.Use == bank.ModuleName {
-			cmdsToRemove = append(cmdsToRemove, cmd)
-		}
-	}
-
-	txCmd.RemoveCommand(cmdsToRemove...)
 
 	return txCmd
 }

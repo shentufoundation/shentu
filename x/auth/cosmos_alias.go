@@ -2,7 +2,6 @@ package auth
 
 import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 )
 
 const (

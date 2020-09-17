@@ -16,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/x/auth/client/cli"
 	"github.com/certikfoundation/shentu/x/auth/internal/types"
 )
 
@@ -57,7 +56,7 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router
 
 // GetTxCmd returns the root tx command for the auth module.
 func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetTxCmd(cdc)
+	return nil
 }
 
 // GetQueryCmd returns the root query command for the auth module.
