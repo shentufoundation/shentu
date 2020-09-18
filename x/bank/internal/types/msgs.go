@@ -9,19 +9,19 @@ import (
 // RouterKey is they name of the bank module
 const RouterKey = bank.ModuleName
 
-// MsgSendLock transfers coins and have them vesting
+// MsgLockedSend transfers coins and have them vesting
 // in the receiver's manual vesting account.
-type MsgSendLock struct {
+type MsgLockedSend struct {
 	From   sdk.AccAddress `json:"from" yaml:"from"`
 	To     sdk.AccAddress `json:"to" yaml:"to"`
-	Amount sdk.Coin       `json:"amount" yaml:"amount"`
+	Amount sdk.Coins      `json:"amount" yaml:"amount"`
 }
 
-var _ sdk.Msg = MsgSendLock{}
+var _ sdk.Msg = MsgLockedSend{}
 
-// NewMsgSendLock returns a MsgSendLock object.
-func NewMsgSendLock(from, to sdk.AccAddress, amount sdk.Coin) MsgSendLock {
-	return MsgSendLock{
+// NewMsgLockedSend returns a MsgLockedSend object.
+func NewMsgLockedSend(from, to sdk.AccAddress, amount sdk.Coins) MsgLockedSend {
+	return MsgLockedSend{
 		From:   from,
 		To:     to,
 		Amount: amount,
@@ -29,13 +29,13 @@ func NewMsgSendLock(from, to sdk.AccAddress, amount sdk.Coin) MsgSendLock {
 }
 
 // Route returns the name of the module.
-func (m MsgSendLock) Route() string { return bank.ModuleName }
+func (m MsgLockedSend) Route() string { return bank.ModuleName }
 
 // Type returns a human-readable string for the message.
-func (m MsgSendLock) Type() string { return "send_lock" }
+func (m MsgLockedSend) Type() string { return "locked_send" }
 
 // ValidateBasic runs stateless checks on the message.
-func (m MsgSendLock) ValidateBasic() error {
+func (m MsgLockedSend) ValidateBasic() error {
 	if m.From.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing from address")
 	}
@@ -46,11 +46,11 @@ func (m MsgSendLock) ValidateBasic() error {
 }
 
 // GetSignBytes encodes the message for signing.
-func (m MsgSendLock) GetSignBytes() []byte {
+func (m MsgLockedSend) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required.
-func (m MsgSendLock) GetSigners() []sdk.AccAddress {
+func (m MsgLockedSend) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{m.From}
 }

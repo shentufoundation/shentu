@@ -12,7 +12,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(bank.MsgMultiSend{}, "bank/MsgMultiSend", nil)
 
 	// Custom types
-	cdc.RegisterConcrete(MsgSendLock{}, "bank/MsgSendLock", nil)
+	cdc.RegisterConcrete(MsgLockedSend{}, "bank/MsgLockedSend", nil)
 }
 
 // ModuleCdc defines module codec.

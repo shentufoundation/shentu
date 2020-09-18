@@ -15,9 +15,9 @@ import (
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
 )
 
-// SendLockTxCmd sends coins to a manual vesting account
+// LockedSendTxCmd sends coins to a manual vesting account
 // and have them vesting.
-func SendLockTxCmd(cdc *codec.Codec) *cobra.Command {
+func LockedSendTxCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "send-lock [from_key_or_address] [to_address] [amount]",
 		Short: "Send coins and have them locked (vesting).",
@@ -37,12 +37,12 @@ func SendLockTxCmd(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			amount, err := sdk.ParseCoin(args[2])
+			coins, err := sdk.ParseCoins(args[2])
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgSendLock(cliCtx.GetFromAddress(), to, amount)
+			msg := types.NewMsgLockedSend(cliCtx.GetFromAddress(), to, coins)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

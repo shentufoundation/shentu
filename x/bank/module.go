@@ -13,8 +13,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/bank/client/cli"
-	"github.com/cosmos/cosmos-sdk/x/bank/client/rest"
 
+	"github.com/certikfoundation/shentu/x/bank/client/rest"
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
 )
 
@@ -50,6 +50,7 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 // RegisterRESTRoutes registers the REST routes for the bank module.
 func (AppModuleBasic) RegisterRESTRoutes(cliCtx context.CLIContext, route *mux.Router) {
 	rest.RegisterRoutes(cliCtx, route)
+	CosmosAppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
 }
 
 // GetTxCmd returns the root tx command for the bank module.
