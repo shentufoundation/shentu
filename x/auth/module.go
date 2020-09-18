@@ -72,17 +72,15 @@ type AppModule struct {
 	AppModuleBasic
 	cosmosAppModule CosmosAppModule
 	authKeeper      AccountKeeper
-	bankKeeper		types.BankKeeper
 	certKeeper      types.CertKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(ak AccountKeeper, bk types.BankKeeper, ck types.CertKeeper) AppModule {
+func NewAppModule(ak AccountKeeper, ck types.CertKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
 		cosmosAppModule: NewCosmosAppModule(ak),
 		authKeeper:      ak,
-		bankKeeper:      bk,
 		certKeeper:      ck,
 	}
 }
@@ -104,7 +102,7 @@ func (am AppModule) Route() string {
 
 // NewHandler returns an sdk.Handler for the auth module.
 func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.authKeeper, am.bankKeeper, am.certKeeper)
+	return NewHandler(am.authKeeper, am.certKeeper)
 }
 
 // QuerierRoute returns the auth module's querier route name.

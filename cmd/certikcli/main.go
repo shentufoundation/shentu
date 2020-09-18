@@ -28,6 +28,7 @@ import (
 	"github.com/certikfoundation/shentu/toolsets/oracle-operator"
 	"github.com/certikfoundation/shentu/x/auth"
 	certikauthcli "github.com/certikfoundation/shentu/x/auth/client/cli"
+	certikbankcli "github.com/certikfoundation/shentu/x/bank/client/cli"
 	cvmcli "github.com/certikfoundation/shentu/x/cvm/client/cli"
 )
 
@@ -123,6 +124,7 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 
 	txCmd.AddCommand(
 		bankcli.SendTxCmd(cdc),
+		certikbankcli.SendLockTxCmd(cdc),
 		flags.LineBreak,
 		authcli.GetSignCommand(cdc),
 		authcli.GetEncodeCommand(cdc),
@@ -130,7 +132,6 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 		authcli.GetMultiSignCommand(cdc),
 		authcli.GetBroadcastCommand(cdc),
 		certikauthcli.GetCmdManualVesting(cdc),
-		certikauthcli.GetCmdSendLock(cdc),
 		flags.LineBreak,
 		cvmcli.GetCmdCall(cdc),
 		cvmcli.GetCmdDeploy(cdc),

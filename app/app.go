@@ -314,7 +314,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// later modified must be passed by reference here.
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
-		auth.NewAppModule(app.accountKeeper, app.bankKeeper, app.certKeeper),
+		auth.NewAppModule(app.accountKeeper, app.certKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
@@ -375,7 +375,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
 
 	app.sm = module.NewSimulationManager(
-		auth.NewAppModule(app.accountKeeper, app.bankKeeper, app.certKeeper),
+		auth.NewAppModule(app.accountKeeper, app.certKeeper),
 		cosmosBank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),

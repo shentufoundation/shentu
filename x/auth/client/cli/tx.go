@@ -27,7 +27,6 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	}
 	txCmd.AddCommand(
 		GetCmdManualVesting(cdc),
-		GetCmdSendLock(cdc),
 	)
 	return txCmd
 }
@@ -67,37 +66,3 @@ func GetCmdManualVesting(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-// GetCmdSendLock sends coins to a manual vesting account
-// and have them vesting.
-func GetCmdSendLock(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "send-lock [from_key_or_address] [to_address] [amount]",
-		Short: "Send coins and have them locked (vesting).",
-		Args:  cobra.ExactArgs(3),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-
-			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
-				return err
-			}
-
-			to, err := sdk.AccAddressFromBech32(args[1])
-			if err != nil {
-				return err
-			}
-
-			amount, err := sdk.ParseCoin(args[2])
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgSendLock(cliCtx.GetFromAddress(), to, amount)
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
-	cmd = flags.PostCommands(cmd)[0]
-	return cmd
-}
