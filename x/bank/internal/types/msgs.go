@@ -29,7 +29,7 @@ func NewMsgLockedSend(from, to sdk.AccAddress, amount sdk.Coins) MsgLockedSend {
 }
 
 // Route returns the name of the module.
-func (m MsgLockedSend) Route() string { return bank.ModuleName }
+func (m MsgLockedSend) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message.
 func (m MsgLockedSend) Type() string { return "locked_send" }
