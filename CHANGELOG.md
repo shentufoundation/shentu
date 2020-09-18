@@ -45,7 +45,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking Changes
 
 ### Features
-* (x/auth) [\#7] (https://github.com/certikfoundation/shentu/pull/7) Added new vesting account type ManualVestingAccount.
+* (x/cvm) [\#15](https://github.com/certikfoundation/shentu/pull/15) Enabled EWASM supoort.
+* (x/auth) [\#7](https://github.com/certikfoundation/shentu/pull/7) Added new vesting account type ManualVestingAccount.
 * (toolsets/oracle-operator) [\#2](https://github.com/certikfoundation/shentu/pull/2) Added toolset oracle-operator.
 * (toolsets/oracle-operator) [\#5](https://github.com/certikfoundation/shentu/pull/5) Added multi-client support.
 
