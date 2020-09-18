@@ -2,16 +2,19 @@ package oracle
 
 import (
 	"encoding/json"
+	"math/rand"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/oracle/client/cli"
 	"github.com/certikfoundation/shentu/x/oracle/client/rest"
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
+	"github.com/certikfoundation/shentu/x/oracle/simulation"
 )
 
 var (
@@ -108,4 +111,29 @@ func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	EndBlocker(ctx, am.keeper)
 	return []abci.ValidatorUpdate{}
+}
+
+// GenerateGenesisState creates a randomized GenState of this module.
+func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
+
+// RegisterStoreDecoder registers a decoder for oracle module.
+func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[StoreKey] = simulation.DecodeStore
+}
+
+// WeightedOperations returns cert operations for use in simulations.
+func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
+	return nil
+}
+
+// ProposalContents returns functions that generate gov proposals for the module.
+func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
+	return nil
+}
+
+// RandomizedParams returns functions that generate params for the module.
+func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
+	return simulation.ParamChanges(r)
 }

@@ -32,9 +32,9 @@ func OperatorStoreKey(operator sdk.AccAddress) []byte {
 	return append(OperatorStoreKeyPrefix, operator.Bytes()...)
 }
 
-func WithdrawStoreKey(address sdk.AccAddress, startTime int64) []byte {
+func WithdrawStoreKey(address sdk.AccAddress, dueBlock int64) []byte {
 	b := make([]byte, 8)
-	binary.LittleEndian.PutUint64(b, uint64(startTime))
+	binary.LittleEndian.PutUint64(b, uint64(dueBlock))
 	return append(append(WithdrawStoreKeyPrefix, b...), address.Bytes()...)
 }
 
