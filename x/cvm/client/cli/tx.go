@@ -42,7 +42,7 @@ const (
 )
 
 var (
-	errFileExt = errors.New("contract file extension must be .sol, .ds, .bc, or .bytecode")
+	errFileExt = errors.New("contract file extension must be .sol, .ds, .bc .bytecode or .wasm")
 )
 
 type abiEntry struct {
@@ -319,21 +319,12 @@ func callEVM(cmd *cobra.Command, filename string) (*evm.Response, error) {
 		}
 	case "ds":
 		resp, err = compile.DeepseaEVM(basename, workDir, logger)
-	case "bc", "bytecode":
+	case "bc", "bytecode", "wasm":
 		abiFile, err := cmd.Flags().GetString(FlagABI)
 		if err != nil {
 			return nil, err
 		}
 		resp, err = compile.BytecodeEVM(basename, workDir, abiFile, logger)
-		if err != nil {
-			return nil, err
-		}
-	case "wasm":
-		abiFile, err := cmd.Flags().GetString("abi")
-		if err != nil {
-			return nil, err
-		}
-		resp, err = compile.GetEWASM(basename, workDir, abiFile, logger)
 		if err != nil {
 			return nil, err
 		}
