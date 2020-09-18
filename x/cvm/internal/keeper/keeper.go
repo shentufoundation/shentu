@@ -123,14 +123,14 @@ func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint
 
 	logger.Info("CVM Start", "txHash", hex.EncodeToString(txHash))
 	var ret []byte
-	if !isEWASM {
-		ret, err = newCVM.Execute(cache, bc, NewEventSink(ctx), params, code)
-	} else {
+	if isEWASM {
 		if isRuntime {
 			ret = code
 		} else {
 			ret, err = wasm.RunWASM(cache, params, code)
 		}
+	} else {
+		ret, err = newCVM.Execute(cache, bc, NewEventSink(ctx), params, code)
 	}
 	defer func() {
 		logger.Info("CVM Stop", "result", hex.EncodeToString(ret))
@@ -150,10 +150,10 @@ func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint
 	}
 
 	if callee == nil {
-		if !isEWASM {
-			err = native.InitEVMCode(cache, calleeAddr, ret)
-		} else {
+		if isEWASM {
 			err = native.InitWASMCode(cache, calleeAddr, ret)
+		} else {
+			err = native.InitEVMCode(cache, calleeAddr, ret)
 		}
 		if err != nil {
 			return nil, types.ErrCodedError(errors.GetCode(err))
@@ -313,7 +313,8 @@ func (k Keeper) GetAllContracts(ctx sdk.Context) []types.Contract {
 		if err != nil {
 			panic(err)
 		}
-		code := contractIterator.Value()
+		var code types.CVMCode
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(contractIterator.Value(), &code)
 		abi := k.getAbi(ctx, address)
 		addrMeta, err := k.getAddrMeta(ctx, address)
 
