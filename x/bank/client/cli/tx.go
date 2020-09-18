@@ -19,7 +19,7 @@ import (
 // and have them vesting.
 func LockedSendTxCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "send-lock [from_key_or_address] [to_address] [amount]",
+		Use:   "locked-send [from_key_or_address] [to_address] [amount]",
 		Short: "Send coins and have them locked (vesting).",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
