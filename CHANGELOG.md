@@ -40,11 +40,18 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Client Breaking Changes
 
 ### API Breaking Changes
+* (x/oracle) [\#6](https://github.com/certikfoundation/shentu/pull/6) Updated the `aggregate_task` event.
 
 ### State Machine Breaking Changes
 
 ### Features
+* (x/auth) [\#7] (https://github.com/certikfoundation/shentu/pull/7) Added new vesting account type ManualVestingAccount.
+* (toolsets/oracle-operator) [\#2](https://github.com/certikfoundation/shentu/pull/2) Added toolset oracle-operator.
+* (toolsets/oracle-operator) [\#5](https://github.com/certikfoundation/shentu/pull/5) Added multi-client support.
 
 ### Improvements
+* (x/oracle) [\#6](https://github.com/certikfoundation/shentu/pull/6) Updated events and added useful fields in task types.
+* (toolsets/oracle-operator) [\#5](https://github.com/certikfoundation/shentu/pull/5) Operator refactor.
+* (circleci) [\#4](https://github.com/certikfoundation/shentu/pull/4) Circleci project setup.
 
 ### Bug Fixes

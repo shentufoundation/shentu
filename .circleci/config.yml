@@ -245,9 +245,9 @@ jobs:
           if [ -z "${CERTIKD_VERSION}" ]; then
             docker build .
           else
-            docker build -t shentu:CERTIKD_VERSION .
+            docker build -t shentu:$CERTIKD_VERSION .
             docker login --password-stdin -u $DOCKER_USER \<<<$DOCKER_PASS
-            docker push shentu:CERTIKD_VERSION
+            docker push shentu:$CERTIKD_VERSION
           fi
 
   docker-tagged:
@@ -286,19 +286,6 @@ workflows:
   version: 2.1
   test-suite:
     jobs:
-      - docker-image:
-          requires:
-            - setup-dependencies
-      - docker-tagged:
-          filters:
-            tags:
-              only:
-                - /^v.*/
-            branches:
-              ignore:
-                - /.*/
-          requires:
-            - setup-dependencies
       - macos-ci:
           filters:
             branches:
@@ -340,3 +327,16 @@ workflows:
       - upload-coverage:
           requires:
             - test-cover
+#      - docker-image:
+#          requires:
+#            - setup-dependencies
+#      - docker-tagged:
+#          filters:
+#            tags:
+#              only:
+#                - /^v.*/
+#            branches:
+#              ignore:
+#                - /.*/
+#          requires:
+#            - setup-dependencies
