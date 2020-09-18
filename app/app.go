@@ -333,7 +333,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// there is nothing left over in the validator fee pool, so as to
 	// keep the CanWithdrawInvariant invariant.
 	app.mm.SetOrderBeginBlockers(upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
-		supply.ModuleName, oracle.ModuleName)
+		supply.ModuleName, oracle.ModuleName, cvm.ModuleName)
 
 	app.mm.SetOrderEndBlockers(cvm.ModuleName, staking.ModuleName, gov.ModuleName, oracle.ModuleName)
 
