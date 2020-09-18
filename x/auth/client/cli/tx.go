@@ -26,16 +26,16 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 	txCmd.AddCommand(
-		GetCmdManualVesting(cdc),
+		GetCmdUnlock(cdc),
 	)
 	return txCmd
 }
 
-// GetCmdManualVesting implements the command for unlocking
+// GetCmdUnlock implements the command for unlocking
 // the specified amount in a manual vesting account.
-func GetCmdManualVesting(cdc *codec.Codec) *cobra.Command {
+func GetCmdUnlock(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "manual-vesting [address] [amount]",
+		Use:   "unlock [address] [amount]",
 		Short: "Unlock the amount from a manual vesting account's vesting coins.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
