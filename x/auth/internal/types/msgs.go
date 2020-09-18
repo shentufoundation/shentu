@@ -10,6 +10,7 @@ const (
 	RouterKey  = ModuleName
 )
 
+
 // MsgManualVesting unlocks the specified amount in a manual vesting account.
 type MsgManualVesting struct {
 	Certifier    sdk.AccAddress `json:"certifier" yaml:"certifier"`
