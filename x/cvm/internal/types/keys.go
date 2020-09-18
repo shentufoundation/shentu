@@ -43,6 +43,9 @@ var (
 
 	// AddressMetaHashStoreKeyPrefix is the prefix of contract metadata hash kv-store keys.
 	AddressMetaHashStoreKeyPrefix = []byte{0x5}
+
+	// EWASMCodeStoreKeyPrefix is the prefix of EWASM code kv-store keys.
+	EWASMCodeStoreKeyPrefix = []byte{0x6}
 )
 
 // StorageStoreKey returns the kv-store key for the contract's storage key.
@@ -73,4 +76,9 @@ func MetaHashStoreKey(metahash acmstate.MetadataHash) []byte {
 // AddressMetaStoreKey returns the kv-store key for the address-metahash key.
 func AddressMetaStoreKey(addr crypto.Address) []byte {
 	return append(AddressMetaHashStoreKeyPrefix, addr.Bytes()...)
+}
+
+// EWASMCodeStoreKey returns the kv-store key for the EWASM code.
+func EWASMCodeStoreKey(addr crypto.Address) []byte {
+	return append(EWASMCodeStoreKeyPrefix, addr.Bytes()...)
 }

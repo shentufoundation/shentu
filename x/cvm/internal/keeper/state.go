@@ -48,9 +48,10 @@ func (s *State) GetAccount(address crypto.Address) (*acm.Account, error) {
 	}
 
 	acc := acm.Account{
-		Address: address,
-		Balance: balance,
-		EVMCode: s.store.Get(types.CodeStoreKey(address)),
+		Address:  address,
+		Balance:  balance,
+		EVMCode:  s.store.Get(types.CodeStoreKey(address)),
+		WASMCode: s.store.Get(types.EWASMCodeStoreKey(address)),
 		Permissions: permission.AccountPermissions{
 			Base: permission.BasePermissions{
 				Perms: permission.Call | permission.CreateContract,
@@ -73,6 +74,7 @@ func (s *State) UpdateAccount(updatedAccount *acm.Account) error {
 		account = s.ak.NewAccountWithAddress(s.ctx, address)
 	}
 	s.store.Set(types.CodeStoreKey(updatedAccount.Address), append([]byte{}, updatedAccount.EVMCode...))
+	s.store.Set(types.EWASMCodeStoreKey(updatedAccount.Address), append([]byte{}, updatedAccount.WASMCode...))
 	err := account.SetCoins(sdk.Coins{sdk.NewInt64Coin("uctk", int64(updatedAccount.Balance))})
 	if err != nil {
 		return err
@@ -90,6 +92,7 @@ func (s *State) RemoveAccount(address crypto.Address) error {
 	s.store.Delete(types.CodeStoreKey(address))
 	s.store.Delete(types.AbiStoreKey(address))
 	s.store.Delete(types.AddressMetaStoreKey(address))
+	s.store.Delete(types.EWASMCodeStoreKey(address))
 	return nil
 }
 

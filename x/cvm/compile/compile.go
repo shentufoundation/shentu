@@ -1,6 +1,7 @@
 package compile
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -67,6 +68,36 @@ func runDeepseaCompile(basename, workDir, callParam string) ([]byte, error) {
 	}
 	output, err := shellCmd.CombinedOutput()
 	return output, err
+}
+
+func GetEWASM(basename, workDir, abiFile string, logger *logging.Logger) (*compile.Response, error) {
+	ewasmCode, err := ioutil.ReadFile(workDir + "/" + basename)
+	if err != nil {
+		return nil, err
+	}
+	ewasmCode = []byte(hex.EncodeToString(ewasmCode))
+	logger.TraceMsg("Command Output", "ewasm", ewasmCode)
+
+	abi := json.RawMessage(NoABI)
+	if abiFile != "" {
+		abiBasename, abiWorkDir, err := ResolveFilename(abiFile)
+		if err != nil {
+			return nil, err
+		}
+
+		abiBasenameSplit := strings.Split(abiBasename, ".")
+		if abiBasenameSplit[len(abiBasenameSplit)-1] != "abi" {
+			return nil, errors.New("ABI file extension must be .abi")
+		}
+
+		abi, err = ioutil.ReadFile(abiWorkDir + "/" + abiBasename)
+		if err != nil {
+			return nil, err
+		}
+		logger.TraceMsg("Command Output", "abi", abi)
+	}
+
+	return newResponse(basename, ewasmCode, abi)
 }
 
 func newResponse(basename string, bytecode, abi json.RawMessage) (*compile.Response, error) {

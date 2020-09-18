@@ -20,6 +20,7 @@ import (
 	"github.com/hyperledger/burrow/execution/engine"
 	"github.com/hyperledger/burrow/execution/errors"
 	"github.com/hyperledger/burrow/execution/native"
+	"github.com/hyperledger/burrow/execution/wasm"
 	"github.com/hyperledger/burrow/logging"
 	"github.com/hyperledger/burrow/txs/payload"
 
@@ -54,7 +55,8 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, ak types.AccountKeeper, dk ty
 }
 
 // Call executes the CVM call from caller to callee with the given data and gas limit.
-func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64, data []byte, payloadMeta []*payload.ContractMeta, view bool) ([]byte, error) {
+func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64, data []byte, payloadMeta []*payload.ContractMeta,
+	view, isEWASM, isRuntime bool) ([]byte, error) {
 	state := k.NewState(ctx)
 
 	callframe := engine.NewCallFrame(state, acmstate.Named("TxCache"))
@@ -81,7 +83,7 @@ func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint
 		err = native.UpdateContractMeta(cache, state, calleeAddr, payloadMeta)
 	} else {
 		calleeAddr = crypto.MustAddressFromBytes(callee)
-		calleeAddr, code, err = getCallee(callee, cache)
+		calleeAddr, code, isEWASM, err = getCallee(callee, cache)
 		if len(code) == 0 && !bytes.Equal(data, []byte{}) {
 			return nil, types.ErrCodedError(errors.Codes.CodeOutOfBounds)
 		}
@@ -120,7 +122,16 @@ func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint
 	bc := NewBlockChain(ctx, *k)
 
 	logger.Info("CVM Start", "txHash", hex.EncodeToString(txHash))
-	ret, err := newCVM.Execute(cache, bc, NewEventSink(ctx), params, code)
+	var ret []byte
+	if !isEWASM {
+		ret, err = newCVM.Execute(cache, bc, NewEventSink(ctx), params, code)
+	} else {
+		if isRuntime {
+			ret = code
+		} else {
+			ret, err = wasm.RunWASM(cache, params, code)
+		}
+	}
 	defer func() {
 		logger.Info("CVM Stop", "result", hex.EncodeToString(ret))
 	}()
@@ -139,7 +150,11 @@ func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint
 	}
 
 	if callee == nil {
-		err = native.InitEVMCode(cache, calleeAddr, ret)
+		if !isEWASM {
+			err = native.InitEVMCode(cache, calleeAddr, ret)
+		} else {
+			err = native.InitWASMCode(cache, calleeAddr, ret)
+		}
 		if err != nil {
 			return nil, types.ErrCodedError(errors.GetCode(err))
 		}
@@ -158,7 +173,7 @@ func (k Keeper) Send(ctx sdk.Context, caller, callee sdk.AccAddress, coins sdk.C
 	if value <= 0 {
 		return sdkerrors.ErrInvalidCoins
 	}
-	_, err := k.Call(ctx, caller, callee, value, nil, nil, false)
+	_, err := k.Call(ctx, caller, callee, value, nil, nil, false, false, false)
 	return err
 }
 
@@ -178,15 +193,16 @@ func (k Keeper) GetCode(ctx sdk.Context, addr crypto.Address) ([]byte, error) {
 }
 
 // getCallee returns the callee address and bytecode of a given account address.
-func getCallee(callee sdk.AccAddress, cache *acmstate.Cache) (crypto.Address, acm.Bytecode, error) {
+func getCallee(callee sdk.AccAddress, cache *acmstate.Cache) (crypto.Address, acm.Bytecode, bool, error) {
 	calleeAddr := crypto.MustAddressFromBytes(callee)
 	acc, err := cache.GetAccount(calleeAddr)
 	if err != nil {
-		return crypto.Address{}, nil, err
+		return crypto.Address{}, nil, false, err
 	}
-	code := acc.EVMCode
-
-	return calleeAddr, code, err
+	if len(acc.WASMCode) != 0 {
+		return calleeAddr, acc.WASMCode, true, err
+	}
+	return calleeAddr, acc.EVMCode, false, err
 }
 
 // getOriginalGas returns the original gas cost.

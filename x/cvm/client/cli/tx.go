@@ -37,6 +37,8 @@ const (
 	FlagContract = "contract"
 	FlagRaw      = "raw"
 	FlagABI      = "abi"
+	FlagEWASM    = "ewasm"
+	FlagRuntime  = "runtime"
 )
 
 var (
@@ -192,6 +194,8 @@ func GetCmdDeploy(cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().Uint64(FlagValue, 0, "value sent with transaction")
 	cmd.Flags().String(FlagArgs, "", "constructor arguments")
 	cmd.Flags().String(FlagContract, "", "the name of the contract to be deployed")
+	cmd.Flags().Bool(FlagEWASM, false, "compile solidity contract to EWASM")
+	cmd.Flags().Bool(FlagRuntime, false, "runtime code")
 	cmd = flags.PostCommands(cmd)[0]
 
 	return cmd
@@ -217,7 +221,7 @@ func appendDeployMsgs(cmd *cobra.Command, cliCtx context.CLIContext, msgs []sdk.
 
 	fileNameMatch := false
 	for _, object := range resp.Objects {
-		code, err := hex.DecodeString(object.Contract.Evm.Bytecode.Object)
+		code, err := hex.DecodeString(object.Contract.Code())
 		if err != nil {
 			return msgs, err
 		}
@@ -248,7 +252,9 @@ func appendDeployMsgs(cmd *cobra.Command, cliCtx context.CLIContext, msgs []sdk.
 				}
 				code = append(code, callArgsBytes...)
 			}
-			msg := types.NewMsgDeploy(cliCtx.GetFromAddress(), value, code, string(object.Contract.Abi), metas)
+			isEWASM := viper.GetBool(FlagEWASM)
+			isRuntime := viper.GetBool(FlagRuntime)
+			msg := types.NewMsgDeploy(cliCtx.GetFromAddress(), value, code, string(object.Contract.Abi), metas, isEWASM, isRuntime)
 			if err := msg.ValidateBasic(); err != nil {
 				return msgs, err
 			}
@@ -306,7 +312,11 @@ func callEVM(cmd *cobra.Command, filename string) (*evm.Response, error) {
 
 	switch fileExt := basenameSplit[len(basenameSplit)-1]; fileExt {
 	case "sol":
-		resp, err = evm.EVM(basename, false, workDir, nil, logger)
+		if viper.GetBool(FlagEWASM) {
+			resp, err = evm.WASM(basename, workDir, logger)
+		} else {
+			resp, err = evm.EVM(basename, false, workDir, nil, logger)
+		}
 	case "ds":
 		resp, err = compile.DeepseaEVM(basename, workDir, logger)
 	case "bc", "bytecode":
@@ -315,6 +325,15 @@ func callEVM(cmd *cobra.Command, filename string) (*evm.Response, error) {
 			return nil, err
 		}
 		resp, err = compile.BytecodeEVM(basename, workDir, abiFile, logger)
+		if err != nil {
+			return nil, err
+		}
+	case "wasm":
+		abiFile, err := cmd.Flags().GetString("abi")
+		if err != nil {
+			return nil, err
+		}
+		resp, err = compile.GetEWASM(basename, workDir, abiFile, logger)
 		if err != nil {
 			return nil, err
 		}
