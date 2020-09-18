@@ -15,7 +15,6 @@ import (
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
 )
 
-
 // SendLockTxCmd sends coins to a manual vesting account
 // and have them vesting.
 func SendLockTxCmd(cdc *codec.Codec) *cobra.Command {

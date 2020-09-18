@@ -65,4 +65,3 @@ func GetCmdManualVesting(cdc *codec.Codec) *cobra.Command {
 	cmd = flags.PostCommands(cmd)[0]
 	return cmd
 }
-

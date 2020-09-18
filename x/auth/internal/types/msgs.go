@@ -8,9 +8,8 @@ import (
 
 const (
 	ModuleName = auth.ModuleName
-	RouterKey = ModuleName
+	RouterKey  = ModuleName
 )
-
 
 // MsgManualVesting unlocks the specified amount in a manual vesting account.
 type MsgManualVesting struct {

@@ -68,8 +68,8 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 	cosmosAppModule CosmosAppModule
-	keeper Keeper
-	accountKeeper types.AccountKeeper
+	keeper          Keeper
+	accountKeeper   types.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object.
@@ -77,8 +77,8 @@ func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
 		cosmosAppModule: NewCosmosAppModule(keeper, accountKeeper),
-		keeper: keeper,
-		accountKeeper: accountKeeper,
+		keeper:          keeper,
+		accountKeeper:   accountKeeper,
 	}
 }
 
@@ -100,7 +100,6 @@ func (am AppModule) Route() string {
 // NewHandler returns an sdk.Handler for the bank module.
 func (am AppModule) NewHandler() sdk.Handler {
 	return NewHandler(am.keeper, am.accountKeeper)
-	//return am.cosmosAppModule.NewHandler()
 }
 
 // QuerierRoute returns the bank module's querier route name.
