@@ -10,7 +10,7 @@ var (
 	// function aliases
 	RegisterCodec            = types.RegisterCodec
 	RegisterAccountTypeCodec = types.RegisterAccountTypeCodec
-	GetCmdUnlock      = cli.GetCmdUnlock
+	GetCmdUnlock             = cli.GetCmdUnlock
 	NewKeeper                = keeper.NewKeeper
 
 	// variable aliases
