@@ -47,13 +47,16 @@ func (s *State) GetAccount(address crypto.Address) (*acm.Account, error) {
 		return nil, err
 	}
 
-	var cvmCode types.CVMCode
-	s.cdc.MustUnmarshalBinaryLengthPrefixed(s.store.Get(types.CodeStoreKey(address)), &cvmCode)
 	var evmCode, wasmCode acm.Bytecode
-	if cvmCode.CodeType == types.CVMCodeTypeEVMCode {
-		evmCode = cvmCode.Code
-	} else {
-		wasmCode = cvmCode.Code
+	codeData := s.store.Get(types.CodeStoreKey(address))
+	if len(codeData) > 0 {
+		var cvmCode types.CVMCode
+		s.cdc.MustUnmarshalBinaryLengthPrefixed(codeData, &cvmCode)
+		if cvmCode.CodeType == types.CVMCodeTypeEVMCode {
+			evmCode = cvmCode.Code
+		} else {
+			wasmCode = cvmCode.Code
+		}
 	}
 
 	acc := acm.Account{
