@@ -27,7 +27,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	}
 	txCmd.AddCommand(
 		GetCmdManualVesting(cdc),
-		GetCmdLockedSend(cdc),
+		GetCmdSendLocked(cdc),
 	)
 	return txCmd
 }
@@ -67,12 +67,12 @@ func GetCmdManualVesting(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-// GetCmdLockedSend sends coins to a manual vesting account
+// GetCmdSendLocked sends coins to a manual vesting account
 // and have them vesting.
-func GetCmdLockedSend(cdc *codec.Codec) *cobra.Command {
+func GetCmdSendLocked(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "send-locked [from_key_or_address] [to_address] [amount]",
-		Short: "Send locked coins.",
+		Short: "Send coins and have them locked.",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())

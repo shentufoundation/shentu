@@ -55,19 +55,19 @@ func (m MsgManualVesting) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{m.Certifier}
 }
 
-// MsgLockedSend transfers coins and have them vesting
+// MsgSendLocked transfers coins and have them vesting
 // in the receiver's manual vesting account.
-type MsgLockedSend struct {
+type MsgSendLocked struct {
 	From   sdk.AccAddress `json:"from" yaml:"from"`
 	To     sdk.AccAddress `json:"to" yaml:"to"`
 	Amount sdk.Coin       `json:"amount" yaml:"amount"`
 }
 
-var _ sdk.Msg = MsgLockedSend{}
+var _ sdk.Msg = MsgSendLocked{}
 
-// NewMsgLockedSend returns a MsgLockedSend object.
-func NewMsgLockedSend(from, to sdk.AccAddress, amount sdk.Coin) MsgLockedSend {
-	return MsgLockedSend{
+// NewMsgSendLocked returns a MsgSendLocked object.
+func NewMsgSendLocked(from, to sdk.AccAddress, amount sdk.Coin) MsgSendLocked {
+	return MsgSendLocked{
 		From:   from,
 		To:     to,
 		Amount: amount,
@@ -75,13 +75,13 @@ func NewMsgLockedSend(from, to sdk.AccAddress, amount sdk.Coin) MsgLockedSend {
 }
 
 // Route returns the name of the module.
-func (m MsgLockedSend) Route() string { return ModuleName }
+func (m MsgSendLocked) Route() string { return ModuleName }
 
 // Type returns a human-readable string for the message.
-func (m MsgLockedSend) Type() string { return "locked_send" }
+func (m MsgSendLocked) Type() string { return "send_locked" }
 
 // ValidateBasic runs stateless checks on the message.
-func (m MsgLockedSend) ValidateBasic() error {
+func (m MsgSendLocked) ValidateBasic() error {
 	if m.From.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing from address")
 	}
@@ -92,11 +92,11 @@ func (m MsgLockedSend) ValidateBasic() error {
 }
 
 // GetSignBytes encodes the message for signing.
-func (m MsgLockedSend) GetSignBytes() []byte {
+func (m MsgSendLocked) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required.
-func (m MsgLockedSend) GetSigners() []sdk.AccAddress {
+func (m MsgSendLocked) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{m.From}
 }
