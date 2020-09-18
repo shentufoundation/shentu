@@ -55,19 +55,19 @@ func (m MsgManualVesting) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{m.Certifier}
 }
 
-// MsgSendLocked transfers coins and have them vesting
+// MsgSendLock transfers coins and have them vesting
 // in the receiver's manual vesting account.
-type MsgSendLocked struct {
+type MsgSendLock struct {
 	From   sdk.AccAddress `json:"from" yaml:"from"`
 	To     sdk.AccAddress `json:"to" yaml:"to"`
 	Amount sdk.Coin       `json:"amount" yaml:"amount"`
 }
 
-var _ sdk.Msg = MsgSendLocked{}
+var _ sdk.Msg = MsgSendLock{}
 
-// NewMsgSendLocked returns a MsgSendLocked object.
-func NewMsgSendLocked(from, to sdk.AccAddress, amount sdk.Coin) MsgSendLocked {
-	return MsgSendLocked{
+// NewMsgSendLock returns a MsgSendLock object.
+func NewMsgSendLock(from, to sdk.AccAddress, amount sdk.Coin) MsgSendLock {
+	return MsgSendLock{
 		From:   from,
 		To:     to,
 		Amount: amount,
@@ -75,13 +75,13 @@ func NewMsgSendLocked(from, to sdk.AccAddress, amount sdk.Coin) MsgSendLocked {
 }
 
 // Route returns the name of the module.
-func (m MsgSendLocked) Route() string { return ModuleName }
+func (m MsgSendLock) Route() string { return ModuleName }
 
 // Type returns a human-readable string for the message.
-func (m MsgSendLocked) Type() string { return "send_locked" }
+func (m MsgSendLock) Type() string { return "send_locked" }
 
 // ValidateBasic runs stateless checks on the message.
-func (m MsgSendLocked) ValidateBasic() error {
+func (m MsgSendLock) ValidateBasic() error {
 	if m.From.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing from address")
 	}
@@ -92,11 +92,11 @@ func (m MsgSendLocked) ValidateBasic() error {
 }
 
 // GetSignBytes encodes the message for signing.
-func (m MsgSendLocked) GetSignBytes() []byte {
+func (m MsgSendLock) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required.
-func (m MsgSendLocked) GetSigners() []sdk.AccAddress {
+func (m MsgSendLock) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{m.From}
 }

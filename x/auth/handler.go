@@ -14,8 +14,8 @@ func NewHandler(ak AccountKeeper, bk types.BankKeeper, ck types.CertKeeper) sdk.
 		switch msg := msg.(type) {
 		case types.MsgManualVesting:
 			return handleMsgManualVesting(ctx, ak, ck, msg)
-		case types.MsgSendLocked:
-			return handleMsgSendLocked(ctx, ak, bk, ck, msg)
+		case types.MsgSendLock:
+			return handleMsgSendLock(ctx, ak, bk, ck, msg)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Unrecognized cert Msg type: %v", msg.Type())
 		}
@@ -49,7 +49,7 @@ func handleMsgManualVesting(ctx sdk.Context, ak AccountKeeper, ck types.CertKeep
 	return &sdk.Result{}, nil
 }
 
-func handleMsgSendLocked(ctx sdk.Context, ak AccountKeeper, bk types.BankKeeper, ck types.CertKeeper, msg types.MsgSendLocked) (*sdk.Result, error) {
+func handleMsgSendLock(ctx sdk.Context, ak AccountKeeper, bk types.BankKeeper, ck types.CertKeeper, msg types.MsgSendLock) (*sdk.Result, error) {
 	// preliminary checks
 	acc := ak.GetAccount(ctx, msg.From)
 	if acc == nil {

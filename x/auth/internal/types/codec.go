@@ -13,7 +13,7 @@ func RegisterCodec(cdc *codec.Codec) {
 
 	// Register custom types
 	cdc.RegisterConcrete(MsgManualVesting{}, "auth/MsgManualVesting", nil)
-	cdc.RegisterConcrete(MsgSendLocked{}, "auth/MsgSendLocked", nil)
+	cdc.RegisterConcrete(MsgSendLock{}, "auth/MsgSendLock", nil)
 }
 
 func RegisterAccountTypeCodec(o interface{}, name string) {
