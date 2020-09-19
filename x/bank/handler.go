@@ -5,6 +5,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/certikfoundation/shentu/x/auth/vesting"
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
 )
@@ -30,12 +31,23 @@ func handleMsgLockedSend(ctx sdk.Context, k Keeper, ak types.AccountKeeper, msg 
 	}
 
 	acc = ak.GetAccount(ctx, msg.To)
+	var toAcc *vesting.ManualVestingAccount
+	var ok bool
 	if acc == nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "account %s does not exist", msg.To)
-	}
-	toAcc, ok := acc.(*vesting.ManualVestingAccount)
-	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account does not appear to be a ManualVestingAccount")
+		// create a new manual vesting account at the empty address
+		unlocker := ak.GetAccount(ctx, msg.Unlocker)
+		if unlocker == nil {
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "unlocker account %s does not exist", msg.Unlocker)
+		}
+		baseAcc := auth.NewBaseAccount(msg.To, sdk.NewCoins(), nil, 0, 0)
+		toAcc = vesting.NewManualVestingAccount(baseAcc, sdk.NewCoins(), msg.Unlocker)
+		ak.NewAccount(ctx, toAcc)
+	} else {
+		// ensure correct account type
+		toAcc, ok = acc.(*vesting.ManualVestingAccount)
+		if !ok {
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account does not appear to be a ManualVestingAccount")
+		}
 	}
 
 	//TODO: event?
