@@ -58,10 +58,11 @@ func GetCmdUnlock(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgManualVesting(cliCtx.GetFromAddress(), addr, amount)
+			msg := types.NewMsgUnlock(cliCtx.GetFromAddress(), addr, amount)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+
 	cmd = flags.PostCommands(cmd)[0]
 	return cmd
 }
