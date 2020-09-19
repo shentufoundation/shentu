@@ -13,11 +13,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth/simulation"
+	authSim "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/auth/client/cli"
 	"github.com/certikfoundation/shentu/x/auth/internal/types"
+	"github.com/certikfoundation/shentu/x/auth/simulation"
 )
 
 var (
@@ -39,8 +40,7 @@ func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
 	*CosmosModuleCdc = *ModuleCdc // nolint
 }
 
-// DefaultGenesis returns default genesis state as raw bytes for the auth
-// module.
+// DefaultGenesis returns default genesis state as raw bytes for the auth module.
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
 	return CosmosAppModuleBasic{}.DefaultGenesis()
 }
@@ -75,7 +75,7 @@ type AppModule struct {
 	certKeeper      types.CertKeeper
 }
 
-// NewAppModule creates a new AppModule object
+// NewAppModule creates a new AppModule object.
 func NewAppModule(ak AccountKeeper, ck types.CertKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
@@ -115,14 +115,12 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 	return am.cosmosAppModule.NewQuerierHandler()
 }
 
-// InitGenesis performs genesis initialization for the auth module. It returns
-// no validator updates.
+// InitGenesis performs genesis initialization for the auth module. It returns no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
 	return am.cosmosAppModule.InitGenesis(ctx, data)
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the auth
-// module.
+// ExportGenesis returns the exported genesis state as raw bytes for the auth module.
 func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 	return am.cosmosAppModule.ExportGenesis(ctx)
 }
@@ -132,8 +130,7 @@ func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
 	am.cosmosAppModule.BeginBlock(ctx, rbb)
 }
 
-// EndBlock returns the end blocker for the auth module. It returns no validator
-// updates.
+// EndBlock returns the end blocker for the auth module. It returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return am.cosmosAppModule.EndBlock(ctx, rbb)
 }
@@ -142,7 +139,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.V
 
 // AppModuleSimulation functions
 
-// GenerateGenesisState creates a randomized GenState of the auth module
+// GenerateGenesisState creates a randomized GenState of the auth module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
@@ -154,12 +151,12 @@ func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedPropos
 
 // RandomizedParams creates randomized auth param changes for the simulator.
 func (AppModule) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-	return simulation.ParamChanges(r)
+	return authSim.ParamChanges(r)
 }
 
-// RegisterStoreDecoder registers a decoder for auth module's types
+// RegisterStoreDecoder registers a decoder for auth module's types.
 func (AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[StoreKey] = simulation.DecodeStore
+	sdr[StoreKey] = authSim.DecodeStore
 }
 
 // WeightedOperations doesn't return any auth module operation.

@@ -27,7 +27,7 @@ func WeightedOperations(
 	var weightMsgCreateOperator int
 	appParams.GetOrGenerate(cdc, OpWeightMsgCreateOperator, &weightMsgCreateOperator, nil,
 		func(_ *rand.Rand) {
-			weightMsgCreateOperator = simappparams.DefaultWeightMsgMultiSend
+			weightMsgCreateOperator = simappparams.DefaultWeightMsgSend
 		},
 	)
 
@@ -45,7 +45,11 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		operator, _ := simulation.RandomAcc(r, accs)
-		proposer, _ := simulation.RandomAcc(r, accs)
+
+		if k.IsOperator(ctx, operator.Address) {
+			return simulation.NewOperationMsgBasic(types.ModuleName,
+				"NoOp: operator already exists, skip this tx", "", false, nil), nil, nil
+		}
 
 		operatorAcc := ak.GetAccount(ctx, operator.Address)
 		collateral, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()))
@@ -57,22 +61,21 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 				"NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
 		}
 
-		proposerAcc := ak.GetAccount(ctx, proposer.Address)
-		fees, err := simulation.RandomFees(r, ctx, proposerAcc.SpendableCoins(ctx.BlockTime()))
+		fees, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()).Sub(collateral))
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		msg := types.NewMsgCreateOperator(operator.Address, collateral, proposer.Address, "an operator")
+		msg := types.NewMsgCreateOperator(operator.Address, collateral, operator.Address, "an operator")
 
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
 			fees,
 			helpers.DefaultGenTxGas,
 			chainID,
-			[]uint64{proposerAcc.GetAccountNumber()},
-			[]uint64{proposerAcc.GetSequence()},
-			proposer.PrivKey,
+			[]uint64{operatorAcc.GetAccountNumber()},
+			[]uint64{operatorAcc.GetSequence()},
+			operator.PrivKey,
 		)
 
 		_, _, err = app.Deliver(tx)
@@ -80,18 +83,18 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		stdOperator := types.NewOperator(operator.Address, proposer.Address, collateral, nil, "an operator")
+		stdOperator := types.NewOperator(operator.Address, operator.Address, collateral, nil, "an operator")
 		futureOperations := []simulation.FutureOperation{
 			{
-				BlockHeight: int(ctx.BlockHeight()) + 2,
+				BlockHeight: int(ctx.BlockHeight()) + 1,
 				Op:          SimulateMsgAddCollateral(k, ak, &stdOperator, operator.PrivKey),
 			},
 			{
-				BlockHeight: int(ctx.BlockHeight()) + 4,
+				BlockHeight: int(ctx.BlockHeight()) + 2,
 				Op:          SimulateMsgReduceCollateral(k, ak, &stdOperator, operator.PrivKey),
 			},
 			{
-				BlockHeight: int(ctx.BlockHeight()) + 6,
+				BlockHeight: int(ctx.BlockHeight()) + 3,
 				Op:          SimulateMsgRemoveOperator(k, ak, &stdOperator, operator.PrivKey),
 			},
 		}

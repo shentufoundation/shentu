@@ -28,20 +28,9 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 // GenerateADepositParams returns a DepositParams object with all of its fields randomized.
 func GenerateADepositParams(r *rand.Rand) types.DepositParams {
-	minInitialDeposit := sdk.Coins{}
-	numOfMinInitialDeposit := r.Intn(30) + 1
-	for i := 0; i < numOfMinInitialDeposit; i++ {
-		minInitialDeposit = append(minInitialDeposit, GenerateACoin(r))
-	}
-
-	minDeposit := sdk.Coins{}
-	numOfMinDeposit := r.Intn(30) + 1
-	for i := 0; i < numOfMinDeposit; i++ {
-		minDeposit = append(minDeposit, GenerateACoin(r))
-	}
-
+	minInitialDeposit := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, int64(simulation.RandIntBetween(r, 1, 1e2))))
+	minDeposit := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, int64(simulation.RandIntBetween(r, 1, 1e3))))
 	maxDepositPeriod := simulation.RandIntBetween(r, 1, 2*60*60*24*2)
-
 	return types.NewDepositParams(minInitialDeposit, minDeposit, time.Duration(maxDepositPeriod)*time.Second)
 }
 
@@ -66,11 +55,4 @@ func GenerateATallyParams(r *rand.Rand) govTypes.TallyParams {
 	threshold := sdk.NewDecWithPrec(int64(simulation.RandIntBetween(r, 450, 550)), 3)
 	veto := sdk.NewDecWithPrec(int64(simulation.RandIntBetween(r, 250, 334)), 3)
 	return govTypes.NewTallyParams(quorum, threshold, veto)
-}
-
-// GenerateACoin returns a Coin object with all of its fields randomized.
-func GenerateACoin(r *rand.Rand) sdk.Coin {
-	denom := common.MicroCTKDenom
-	amount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, 1e3)))
-	return sdk.NewCoin(denom, amount)
 }

@@ -17,8 +17,8 @@ import (
 )
 
 // GetTxCmd returns the transaction commands for this module.
- // NOTE: Auth tx commands from Cosmos are mounted directly under the root.
- func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+// NOTE: Auth tx commands from Cosmos are mounted directly under the root.
+func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Auth transaction subcommands",
