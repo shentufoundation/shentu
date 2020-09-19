@@ -15,13 +15,13 @@ const (
 type MsgUnlock struct {
 	Issuer       sdk.AccAddress `json:"certifier" yaml:"certifier"`
 	Account      sdk.AccAddress `json:"account_address" yaml:"account_address"`
-	UnlockAmount sdk.Coin       `json:"unlock_amount" yaml:"unlock_amount"`
+	UnlockAmount sdk.Coins      `json:"unlock_amount" yaml:"unlock_amount"`
 }
 
 var _ sdk.Msg = MsgUnlock{}
 
 // NewMsgUnlock returns a MsgUnlock object.
-func NewMsgUnlock(issuer, account sdk.AccAddress, unlockAmount sdk.Coin) MsgUnlock {
+func NewMsgUnlock(issuer, account sdk.AccAddress, unlockAmount sdk.Coins) MsgUnlock {
 	return MsgUnlock{
 		Issuer:       issuer,
 		Account:      account,

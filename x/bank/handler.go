@@ -5,9 +5,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/certikfoundation/shentu/x/auth/vesting"
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 )
 
 // NewHandler returns a handler for "auth" type messages.

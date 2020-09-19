@@ -10,35 +10,33 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
-	"github.com/certikfoundation/shentu/x/bank/internal/types"
+	"github.com/certikfoundation/shentu/x/auth/internal/types"
 )
 
 // RegisterRoutes registers custom REST routes.
 func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc("/bank/accounts/{address}/locked_transfers", LockedSendRequestHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/txs/{address}/unlock", UnlockRequestHandlerFn(cliCtx)).Methods("POST")
 }
 
-// SendReq defines the properties of a send request's body.
-type SendReq struct {
-	BaseReq  rest.BaseReq `json:"base_req" yaml:"base_req"`
-	Amount   sdk.Coins    `json:"amount" yaml:"amount"`
-	Unlocker string       `json:"unlocker" yaml:"unlocker"`
+// UnlockReq defines the properties of a unlock request's body.
+type UnlockReq struct {
+	BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
+	Amount  sdk.Coins    `json:"amount" yaml:"amount"`
 }
 
-// LockedSendRequestHandlerFn is an http request handler to send coins
-// to a manual vesting account and have them locked (vesting).
-func LockedSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+// UnlockRequestHandlerFn handles a request sent by an unlocker
+// to unlock coins from a manual vesting account
+func UnlockRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		bech32Addr := vars["address"]
-
-		toAddr, err := sdk.AccAddressFromBech32(bech32Addr)
+		accAddr, err := sdk.AccAddressFromBech32(bech32Addr)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		var req SendReq
+		var req UnlockReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
 			return
 		}
@@ -54,15 +52,7 @@ func LockedSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		unlocker := sdk.AccAddress{}
-		if req.Unlocker != "" {
-			unlocker, err = sdk.AccAddressFromBech32(req.Unlocker)
-			if err != nil {
-				return
-			}
-		}
-
-		msg := types.NewMsgLockedSend(fromAddr, toAddr, unlocker, req.Amount)
+		msg := types.NewMsgUnlock(fromAddr, accAddr, req.Amount)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
 	}
 }

@@ -53,7 +53,7 @@ func GetCmdUnlock(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			amount, err := sdk.ParseCoin(args[1])
+			amount, err := sdk.ParseCoins(args[1])
 			if err != nil {
 				return err
 			}

@@ -36,12 +36,12 @@ func handleMsgUnlock(ctx sdk.Context, ak AccountKeeper, ck types.CertKeeper, msg
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "the issuer of this transaction is not the designated unlocker")
 	}
 
-	if mvacc.VestedCoins.Add(msg.UnlockAmount).IsAnyGT(mvacc.OriginalVesting) {
+	if mvacc.VestedCoins.Add(msg.UnlockAmount...).IsAnyGT(mvacc.OriginalVesting) {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "cannot unlock more than the original vesting amount")
 	}
 
 	// update vested coins
-	mvacc.VestedCoins = mvacc.VestedCoins.Add(msg.UnlockAmount)
+	mvacc.VestedCoins = mvacc.VestedCoins.Add(msg.UnlockAmount...)
 	ak.SetAccount(ctx, mvacc)
 
 	return &sdk.Result{}, nil
