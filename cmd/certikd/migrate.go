@@ -13,9 +13,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	extypes "github.com/cosmos/cosmos-sdk/x/genutil"
-
-	"github.com/certikfoundation/shentu/x/genutil"
-	"github.com/certikfoundation/shentu/x/slashing"
 )
 
 const (
@@ -44,30 +41,6 @@ $ %s migrate /path/to/genesis.json --chain-id=shentu-incentivized-2 --genesis-ti
 			var initialState extypes.AppMap
 			if err := cdc.UnmarshalJSON(genDoc.AppState, &initialState); err != nil {
 				return errors.Wrap(err, "failed to JSON unmarshal initial genesis state")
-			}
-
-			newGenState := genutil.Migrate(initialState)
-
-			// set slashing parameters to zero
-			if initialState[slashing.ModuleName] != nil {
-				var slashingGenState slashing.GenesisState
-				cdc.MustUnmarshalJSON(initialState[slashing.ModuleName], &slashingGenState)
-				slashingGenState.Params.SlashFractionDoubleSign = sdk.ZeroDec()
-				slashingGenState.Params.SlashFractionDowntime = sdk.ZeroDec()
-
-				// ensure resulting JSON has empty slices, not nil
-				for k, v := range slashingGenState.MissedBlocks {
-					if v == nil {
-						slashingGenState.MissedBlocks[k] = []slashing.MissedBlock{}
-					}
-				}
-				initialState[slashing.ModuleName] = cdc.MustMarshalJSON(slashingGenState)
-				genDoc.AppState = cdc.MustMarshalJSON(initialState)
-			}
-
-			genDoc.AppState, err = cdc.MarshalJSON(newGenState)
-			if err != nil {
-				return errors.Wrap(err, "failed to JSON marshal migrated genesis state")
 			}
 
 			genesisTime := cmd.Flag(flagGenesisTime).Value.String()
