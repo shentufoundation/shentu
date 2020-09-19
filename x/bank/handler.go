@@ -46,13 +46,13 @@ func handleMsgLockedSend(ctx sdk.Context, k Keeper, ak types.AccountKeeper, msg 
 		// ensure correct account type
 		toAcc, ok = acc.(*vesting.ManualVestingAccount)
 		if !ok {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account does not appear to be a ManualVestingAccount")
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a ManualVestingAccount")
 		}
 	}
 
 	//TODO: event?
 
-	// subtraction from sender account (as normally done)
+	// subtract from sender account (as normally done)
 	_, err := k.SubtractCoins(ctx, msg.From, msg.Amount)
 	if err != nil {
 		return nil, err
