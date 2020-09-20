@@ -33,7 +33,7 @@ func handleMsgUnlock(ctx sdk.Context, ak AccountKeeper, ck types.CertKeeper, msg
 	}
 
 	if !msg.Issuer.Equals(mvacc.Unlocker) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "the issuer of this transaction is not the designated unlocker")
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "the sender of this transaction is not the designated unlocker")
 	}
 
 	if mvacc.VestedCoins.Add(msg.UnlockAmount...).IsAnyGT(mvacc.OriginalVesting) {
