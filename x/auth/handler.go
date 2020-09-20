@@ -29,11 +29,11 @@ func handleMsgUnlock(ctx sdk.Context, ak AccountKeeper, ck types.CertKeeper, msg
 
 	mvacc, ok := acc.(*vesting.ManualVestingAccount)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "account is not a manual vesting account")
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a manual vesting account")
 	}
 
 	if !msg.Issuer.Equals(mvacc.Unlocker) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "the sender of this transaction is not the designated unlocker")
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "sender of this transaction is not the designated unlocker")
 	}
 
 	if mvacc.VestedCoins.Add(msg.UnlockAmount...).IsAnyGT(mvacc.OriginalVesting) {
