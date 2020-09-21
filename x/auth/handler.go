@@ -44,5 +44,13 @@ func handleMsgUnlock(ctx sdk.Context, ak AccountKeeper, ck types.CertKeeper, msg
 	mvacc.VestedCoins = mvacc.VestedCoins.Add(msg.UnlockAmount...)
 	ak.SetAccount(ctx, mvacc)
 
-	return &sdk.Result{}, nil
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeUnlock,
+			sdk.NewAttribute("unlocker", msg.Issuer.String()),
+			sdk.NewAttribute("account", msg.Account.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.UnlockAmount.String()),
+		),
+	)
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
