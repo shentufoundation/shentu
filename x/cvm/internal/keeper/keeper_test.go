@@ -27,13 +27,13 @@ func TestContractCreation(t *testing.T) {
 	input := CreateTestInput(t)
 
 	t.Run("should allow call on a contract with no code when calling with empty data (transfer)", func(t *testing.T) {
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], Addrs[1], 10, []byte{}, []*payload.ContractMeta{}, false)
+		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], Addrs[1], 10, []byte{}, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, result)
 		require.Nil(t, err)
 	})
 
 	t.Run("should not allow call on a contract with no code when calling with data (transfer)", func(t *testing.T) {
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], Addrs[1], 10, []byte{0x00}, []*payload.ContractMeta{}, false)
+		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], Addrs[1], 10, []byte{0x00}, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, result)
 		require.NotNil(t, err)
 		require.Equal(t, types.ErrCodedError(errors.Codes.CodeOutOfBounds), err)
@@ -44,7 +44,7 @@ func TestContractCreation(t *testing.T) {
 
 		require.Nil(t, err)
 
-		result, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false)
+		result, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, result)
 		require.Nil(t, err2)
 
@@ -57,7 +57,7 @@ func TestContractCreation(t *testing.T) {
 
 		// call its function
 		newContractAddress := sdk.AccAddress(result)
-		result, err2 = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, sayHiCall, []*payload.ContractMeta{}, false)
+		result, err2 = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, sayHiCall, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(55))
 		require.Nil(t, err2)
 	})
@@ -72,7 +72,7 @@ func TestProperExecution(t *testing.T) {
 		code, err := hex.DecodeString(BasicTestsBytecodeString)
 		require.Nil(t, err)
 
-		result, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false)
+		result, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -86,7 +86,7 @@ func TestProperExecution(t *testing.T) {
 		acc := input.AccountKeeper.GetAccount(input.Ctx, Addrs[0])
 		_ = acc.SetSequence(acc.GetSequence() + 1)
 		input.AccountKeeper.SetAccount(input.Ctx, acc)
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false)
+		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 	})
@@ -99,7 +99,7 @@ func TestProperExecution(t *testing.T) {
 			7, 8,
 		)
 		require.Nil(t, err)
-		result, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, addSevenAndEightCall, []*payload.ContractMeta{}, false)
+		result, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, addSevenAndEightCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(15))
 	})
@@ -111,13 +111,13 @@ func TestProperExecution(t *testing.T) {
 			WrapLogger(input.Ctx.Logger()),
 		)
 		require.Nil(t, err)
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, failureFunctionCall, []*payload.ContractMeta{}, false)
+		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, failureFunctionCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		require.Equal(t, types.ErrCodedError(errors.Codes.ExecutionReverted), err2)
 	})
 
 	t.Run("call a contract with junk callcode and ensure it reverts", func(t *testing.T) {
-		_, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, []byte("Kanye West"), []*payload.ContractMeta{}, false)
+		_, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, []byte("Kanye West"), []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err)
 		require.Equal(t, types.ErrCodedError(errors.Codes.ExecutionReverted), err)
 	})
@@ -130,7 +130,7 @@ func TestProperExecution(t *testing.T) {
 			777,
 		)
 		require.Nil(t, err2)
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, setMyFavoriteNumberCall, []*payload.ContractMeta{}, false)
+		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, setMyFavoriteNumberCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		result, err2 = input.CvmKeeper.GetStorage(input.Ctx, crypto.MustAddressFromBytes(newContractAddress), binary.Int64ToWord256(0))
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(777))
@@ -145,7 +145,7 @@ func TestView(t *testing.T) {
 		code, err := hex.DecodeString(BasicTestsBytecodeString)
 		require.Nil(t, err)
 
-		result, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false)
+		result, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -159,7 +159,7 @@ func TestView(t *testing.T) {
 			777,
 		)
 		require.Nil(t, err2)
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, setMyFavoriteNumberCall, []*payload.ContractMeta{}, true)
+		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, setMyFavoriteNumberCall, []*payload.ContractMeta{}, true, false, false)
 		require.NotNil(t, err)
 		result, err2 = input.CvmKeeper.GetStorage(input.Ctx, crypto.MustAddressFromBytes(newContractAddress), binary.Int64ToWord256(0))
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(34))
@@ -172,7 +172,7 @@ func TestGasPrice(t *testing.T) {
 	t.Run("deploy contract", func(t *testing.T) {
 		code, err2 := hex.DecodeString(GasTestsBytecodeString)
 		require.Nil(t, err2)
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false)
+		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -193,14 +193,14 @@ func TestGasPrice(t *testing.T) {
 			}
 		}()
 		input.Ctx = input.Ctx.WithGasMeter(NewGasMeter(AddTwoNumbersGasCost - 5000))
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false)
+		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		require.Equal(t, err2.Error(), types.ErrCodedError(errors.Codes.InsufficientGas).Error())
 	})
 
 	t.Run("add two numbers with the right gas amount", func(t *testing.T) {
 		input.Ctx = input.Ctx.WithGasMeter(NewGasMeter(AddTwoNumbersGasCost + 50000))
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false)
+		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 	})
 
@@ -214,14 +214,14 @@ func TestGasPrice(t *testing.T) {
 	t.Run("hash some bytes with not enough gas and see it fail", func(t *testing.T) {
 		require.Nil(t, err)
 		input.Ctx = input.Ctx.WithGasMeter(NewGasMeter(HashMeGasCost - 4000))
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, hashMeCall, nil, false)
+		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, hashMeCall, nil, false, false, false)
 		require.NotNil(t, err2)
 		require.Equal(t, err2, types.ErrCodedError(errors.Codes.InsufficientGas))
 	})
 
 	t.Run("hash some bytes with the right gas amount", func(t *testing.T) {
 		input.Ctx = input.Ctx.WithGasMeter(NewGasMeter(HashMeGasCost + 50000))
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, hashMeCall, nil, false)
+		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, hashMeCall, nil, false, false, false)
 		require.Nil(t, err2)
 	})
 
@@ -235,14 +235,14 @@ func TestGasPrice(t *testing.T) {
 
 		require.Nil(t, err)
 		input.Ctx = input.Ctx.WithGasMeter(NewGasMeter(DeployAnotherContractGasCost - 150000)) //DeployAnotherContractGasCost - 20))
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, deployAnotherContractCall, []*payload.ContractMeta{}, false)
+		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, deployAnotherContractCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		require.Equal(t, err2, types.ErrCodedError(errors.Codes.InsufficientGas))
 	})
 
 	t.Run("deploy another contract with the right gas amount", func(t *testing.T) {
 		input.Ctx = input.Ctx.WithGasMeter(NewGasMeter(DeployAnotherContractGasCost))
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, deployAnotherContractCall, []*payload.ContractMeta{}, false)
+		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, deployAnotherContractCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 	})
 }
@@ -272,7 +272,7 @@ func TestGasRefund(t *testing.T) {
 	t.Run("deploy gas test contract", func(t *testing.T) {
 		code, err2 := hex.DecodeString(GasTestsBytecodeString)
 		require.Nil(t, err2)
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false)
+		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -290,7 +290,7 @@ func TestGasRefund(t *testing.T) {
 			3, 5,
 		)
 		require.Nil(t, err)
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false)
+		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		/* TODO, check for gas refunded */
 	})
@@ -302,7 +302,7 @@ func TestGasRefund(t *testing.T) {
 	t.Run("deploy gas refund contract", func(t *testing.T) {
 		code, err2 := hex.DecodeString(GasRefundBytecodeString)
 		require.Nil(t, err2)
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[1], nil, 0, code, []*payload.ContractMeta{}, false)
+		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[1], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -320,7 +320,7 @@ func TestGasRefund(t *testing.T) {
 		)
 
 		require.Nil(t, err)
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[1], newContractAddress, 0, iWillRevertCall, []*payload.ContractMeta{}, false)
+		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[1], newContractAddress, 0, iWillRevertCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		/* TODO, check for gas refunded */
 	})
@@ -336,7 +336,7 @@ func TestGasRefund(t *testing.T) {
 			WrapLogger(input.Ctx.Logger()),
 		)
 		require.Nil(t, err)
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[1], newContractAddress, 0, iWillFailCall, []*payload.ContractMeta{}, false)
+		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[1], newContractAddress, 0, iWillFailCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		/* TODO, ensure that no refund took place */
 	})
@@ -352,7 +352,7 @@ func TestGasRefund(t *testing.T) {
 			WrapLogger(input.Ctx.Logger()),
 		)
 		require.Nil(t, err)
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[1], newContractAddress, 0, deleteFromStorageCall, []*payload.ContractMeta{}, false)
+		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[1], newContractAddress, 0, deleteFromStorageCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		/* TODO, ensure that refund took place (half the gas should be refunded) */
 	})
@@ -368,7 +368,7 @@ func TestGasRefund(t *testing.T) {
 			WrapLogger(input.Ctx.Logger()),
 		)
 		require.Nil(t, err)
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[1], newContractAddress, 0, dieCall, []*payload.ContractMeta{}, false)
+		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[1], newContractAddress, 0, dieCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		/* TODO, ensure that refund took place (half the gas should be refunded) */
 	})
@@ -391,7 +391,7 @@ func TestCTKTransfer(t *testing.T) {
 		code, err2 := hex.DecodeString(CtkTransferTestBytecodeString)
 		require.Nil(t, err2)
 
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false)
+		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
 
@@ -413,7 +413,7 @@ func TestCTKTransfer(t *testing.T) {
 
 		require.Nil(t, err)
 		_, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress,
-			10000, sendToAFriendCall, []*payload.ContractMeta{}, false)
+			10000, sendToAFriendCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 	})
 
@@ -439,7 +439,7 @@ func TestCTKTransfer(t *testing.T) {
 			WrapLogger(input.Ctx.Logger()),
 		)
 		require.Nil(t, err)
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, whatsMyBalanceCall, []*payload.ContractMeta{}, false)
+		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, whatsMyBalanceCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(5000))
 	})
@@ -517,7 +517,7 @@ func TestCode(t *testing.T) {
 		require.Nil(t, err)
 		addr, err := crypto.AddressFromBytes(Addrs[0].Bytes())
 		require.Nil(t, err)
-		_, err = cvmk.Call(ctx, Addrs[0], nil, 0, bytecode, nil, false)
+		_, err = cvmk.Call(ctx, Addrs[0], nil, 0, bytecode, nil, false, false, false)
 		require.Nil(t, err)
 
 		seqNum := cvmk.getAccountSeqNum(ctx, Addrs[0])
@@ -573,7 +573,7 @@ func TestPrecompiles(t *testing.T) {
 		code, err := hex.DecodeString(testCheckBytecodeString)
 		require.Nil(t, err)
 
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false)
+		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress := sdk.AccAddress(result)
@@ -640,15 +640,15 @@ func TestPrecompiles(t *testing.T) {
 			WrapLogger(input.Ctx.Logger()),
 		)
 		require.Nil(t, err)
-		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, callCheckCall, []*payload.ContractMeta{}, false)
+		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, callCheckCall, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
-		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, callCheckNotCertified, []*payload.ContractMeta{}, false)
+		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, callCheckNotCertified, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x00}, result)
-		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, proofCheck, []*payload.ContractMeta{}, false)
+		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, proofCheck, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
-		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, compCheck, []*payload.ContractMeta{}, false)
+		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, compCheck, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
-		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, bothCheck, []*payload.ContractMeta{}, false)
+		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, bothCheck, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
 		require.Nil(t, err)
 	})
@@ -658,7 +658,7 @@ func TestPrecompiles(t *testing.T) {
 		code, err := hex.DecodeString(testCertifyValidatorString)
 		require.Nil(t, err)
 
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[1], nil, 0, code, []*payload.ContractMeta{}, false)
+		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[1], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress := sdk.AccAddress(result)
@@ -681,9 +681,9 @@ func TestPrecompiles(t *testing.T) {
 		_ = certAcc.SetSequence(1)
 		input.AccountKeeper.SetAccount(input.Ctx, certAcc)
 
-		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false)
+		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x00}, result)
-		result, err = input.CvmKeeper.Call(input.Ctx, certAddr, newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false)
+		result, err = input.CvmKeeper.Call(input.Ctx, certAddr, newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false, false, false)
 		fmt.Println(result)
 		fmt.Println(err)
 		require.Equal(t, []byte{0x01}, result)

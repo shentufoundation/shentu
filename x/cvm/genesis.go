@@ -60,10 +60,17 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 		} else {
 			balance = account.Balance
 		}
+		var evmCode, wasmCode acm.Bytecode
+		if contract.Code.CodeType == types.CVMCodeTypeEVMCode {
+			evmCode = contract.Code.Code
+		} else {
+			wasmCode = contract.Code.Code
+		}
 		newAccount := acm.Account{
-			Address: contract.Address,
-			Balance: balance,
-			EVMCode: contract.Code,
+			Address:  contract.Address,
+			Balance:  balance,
+			EVMCode:  evmCode,
+			WASMCode: wasmCode,
 			Permissions: permission.AccountPermissions{
 				Base: permission.BasePermissions{
 					Perms: permission.Call | permission.CreateContract,
