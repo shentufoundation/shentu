@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/CertiKProject/certik-chain/x/shield/types"
+	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // GetTxCmd returns the transaction commands for this module

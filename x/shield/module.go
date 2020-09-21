@@ -15,9 +15,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
-	"github.com/CertiKProject/certik-chain/x/shield/client/cli"
-	"github.com/CertiKProject/certik-chain/x/shield/client/rest"
-	"github.com/CertiKProject/certik-chain/x/shield/types"
+	"github.com/certikfoundation/shentu/x/shield/client/cli"
+	"github.com/certikfoundation/shentu/x/shield/client/rest"
+	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
 var (

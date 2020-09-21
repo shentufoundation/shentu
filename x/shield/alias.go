@@ -1,8 +1,8 @@
 package shield
 
 import (
-	"github.com/CertiKProject/certik-chain/x/shield/keeper"
-	"github.com/CertiKProject/certik-chain/x/shield/types"
+	"github.com/certikfoundation/shentu/x/shield/keeper"
+	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
 const (
