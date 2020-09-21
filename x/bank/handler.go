@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-
+	
 	"github.com/certikfoundation/shentu/x/auth/vesting"
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
 )
@@ -40,8 +40,6 @@ func handleMsgLockedSend(ctx sdk.Context, k Keeper, ak types.AccountKeeper, msg 
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a ManualVestingAccount")
 	}
 
-	//TODO: event?
-
 	// subtract from sender account (as normally done)
 	_, err := k.SubtractCoins(ctx, msg.From, msg.Amount)
 	if err != nil {
@@ -58,5 +56,13 @@ func handleMsgLockedSend(ctx sdk.Context, k Keeper, ak types.AccountKeeper, msg 
 		return nil, err
 	}
 
-	return &sdk.Result{}, nil
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeLockedSend,
+			sdk.NewAttribute(bank.AttributeKeyRecipient, msg.From.String()),
+			sdk.NewAttribute(bank.AttributeKeySender, msg.To.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
+		),
+	)
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
