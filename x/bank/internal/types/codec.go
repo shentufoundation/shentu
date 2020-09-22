@@ -7,8 +7,12 @@ import (
 
 // RegisterCodec registers concrete types on codec.
 func RegisterCodec(cdc *codec.Codec) {
+	// Cosmos types
 	cdc.RegisterConcrete(bank.MsgSend{}, "bank/MsgSend", nil)
 	cdc.RegisterConcrete(bank.MsgMultiSend{}, "bank/MsgMultiSend", nil)
+
+	// Custom types
+	cdc.RegisterConcrete(MsgLockedSend{}, "bank/MsgLockedSend", nil)
 }
 
 // ModuleCdc defines module codec.

@@ -47,10 +47,23 @@ func (s *State) GetAccount(address crypto.Address) (*acm.Account, error) {
 		return nil, err
 	}
 
+	var evmCode, wasmCode acm.Bytecode
+	codeData := s.store.Get(types.CodeStoreKey(address))
+	if len(codeData) > 0 {
+		var cvmCode types.CVMCode
+		s.cdc.MustUnmarshalBinaryLengthPrefixed(codeData, &cvmCode)
+		if cvmCode.CodeType == types.CVMCodeTypeEVMCode {
+			evmCode = cvmCode.Code
+		} else {
+			wasmCode = cvmCode.Code
+		}
+	}
+
 	acc := acm.Account{
-		Address: address,
-		Balance: balance,
-		EVMCode: s.store.Get(types.CodeStoreKey(address)),
+		Address:  address,
+		Balance:  balance,
+		EVMCode:  evmCode,
+		WASMCode: wasmCode,
 		Permissions: permission.AccountPermissions{
 			Base: permission.BasePermissions{
 				Perms: permission.Call | permission.CreateContract,
@@ -72,7 +85,13 @@ func (s *State) UpdateAccount(updatedAccount *acm.Account) error {
 	if account == nil {
 		account = s.ak.NewAccountWithAddress(s.ctx, address)
 	}
-	s.store.Set(types.CodeStoreKey(updatedAccount.Address), append([]byte{}, updatedAccount.EVMCode...))
+	var cvmCode types.CVMCode
+	if len(updatedAccount.WASMCode) > 0 {
+		cvmCode = types.NewCVMCode(types.CVMCodeTypeEWASMCode, updatedAccount.WASMCode)
+	} else {
+		cvmCode = types.NewCVMCode(types.CVMCodeTypeEVMCode, updatedAccount.EVMCode)
+	}
+	s.store.Set(types.CodeStoreKey(updatedAccount.Address), s.cdc.MustMarshalBinaryLengthPrefixed(cvmCode))
 	err := account.SetCoins(sdk.Coins{sdk.NewInt64Coin("uctk", int64(updatedAccount.Balance))})
 	if err != nil {
 		return err

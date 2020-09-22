@@ -31,7 +31,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 func handleMsgCall(ctx sdk.Context, keeper Keeper, msg MsgCall) (*sdk.Result, error) {
 	ctx = ctx.WithEventManager(sdk.NewEventManager())
 
-	result, err := keeper.Call(ctx, msg.Caller, msg.Callee, msg.Value, msg.Data, nil, false)
+	result, err := keeper.Call(ctx, msg.Caller, msg.Callee, msg.Value, msg.Data, nil, false, false, false)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func handleMsgCall(ctx sdk.Context, keeper Keeper, msg MsgCall) (*sdk.Result, er
 func handleMsgDeploy(ctx sdk.Context, keeper Keeper, msg MsgDeploy) (*sdk.Result, error) {
 	ctx = ctx.WithEventManager(sdk.NewEventManager())
 
-	result, err := keeper.Call(ctx, msg.Caller, nil, msg.Value, msg.Code, msg.Meta, false)
+	result, err := keeper.Call(ctx, msg.Caller, nil, msg.Value, msg.Code, msg.Meta, false, msg.IsEWASM, msg.IsRuntime)
 	if err != nil {
 		return nil, err
 	}
