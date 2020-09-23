@@ -93,6 +93,8 @@ type deployReq struct {
 	Data         string       `json:"data"`
 	Abi          string       `json:"abi"`
 	Meta         []string     `json:"meta"`
+	IsEWASM      bool         `json:"is_ewasm"`
+	IsRuntime    bool         `json:"is_runtime"`
 }
 
 func deployHandler(cliCtx context.CLIContext) http.HandlerFunc {
@@ -167,7 +169,7 @@ func deployHandler(cliCtx context.CLIContext) http.HandlerFunc {
 			})
 		}
 
-		msg := types.NewMsgDeploy(caller, value.Uint64(), code, string(abi), metas)
+		msg := types.NewMsgDeploy(caller, value.Uint64(), code, string(abi), metas, req.IsEWASM, req.IsRuntime)
 		if err = msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
