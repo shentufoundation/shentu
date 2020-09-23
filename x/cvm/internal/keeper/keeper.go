@@ -131,10 +131,10 @@ func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint
 		if isRuntime {
 			ret = code
 		} else {
-			ret, err = wasm.RunWASM(cache, params, code)
+			ret, err = wasm.RunWASM(cache, callParams, code)
 		}
 	} else {
-		ret, err = newCVM.Execute(cache, bc, NewEventSink(ctx), params, code)
+		ret, err = newCVM.Execute(cache, bc, NewEventSink(ctx), callParams, code)
 	}
 	defer func() {
 		logger.Info("CVM Stop", "result", hex.EncodeToString(ret))
