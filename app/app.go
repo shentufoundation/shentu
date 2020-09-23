@@ -35,6 +35,7 @@ import (
 	"github.com/certikfoundation/shentu/x/gov"
 	"github.com/certikfoundation/shentu/x/mint"
 	"github.com/certikfoundation/shentu/x/oracle"
+	"github.com/certikfoundation/shentu/x/shield"
 	"github.com/certikfoundation/shentu/x/slashing"
 	"github.com/certikfoundation/shentu/x/staking"
 	"github.com/certikfoundation/shentu/x/upgrade"
@@ -81,6 +82,7 @@ var (
 		cvm.NewAppModuleBasic(),
 		cert.NewAppModuleBasic(),
 		oracle.NewAppModuleBasic(),
+		shield.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -92,12 +94,14 @@ var (
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		gov.ModuleName:            {supply.Burner},
 		oracle.ModuleName:         {supply.Burner},
+		shield.ModuleName:         {supply.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
 	allowedReceivingModAcc = map[string]bool{
 		distr.ModuleName:  true,
 		oracle.ModuleName: true,
+		shield.ModuleName: true,
 	}
 )
 
@@ -127,6 +131,7 @@ type CertiKApp struct {
 	cvmKeeper      cvm.Keeper
 	authKeeper     auth.Keeper
 	oracleKeeper   oracle.Keeper
+	shieldKeeper   shield.Keeper
 
 	// module manager
 	mm *module.Manager
@@ -160,6 +165,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cert.StoreKey,
 		cvm.StoreKey,
 		oracle.StoreKey,
+		shield.StoreKey,
 	}
 
 	for i := 0; i < keysReserved; i++ {
@@ -199,6 +205,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 	oracleSubspace := app.paramsKeeper.Subspace(oracle.DefaultParamSpace)
 	cvmSubspace := app.paramsKeeper.Subspace(cvm.DefaultParamSpace)
+	shieldSubspace := app.paramsKeeper.Subspace(shield.DefaultParamSpace)
 
 	// initialize keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -286,6 +293,12 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		keys[upgrade.StoreKey],
 		app.cdc,
 	)
+	app.shieldKeeper = shield.NewKeeper(
+		app.cdc,
+		keys[shield.StoreKey],
+		&stakingKeeper,
+		shieldSubspace,
+	)
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference so that it will contain these hooks.
 	app.stakingKeeper = *stakingKeeper.SetHooks(
@@ -327,6 +340,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cvm.NewAppModule(app.cvmKeeper),
 		cert.NewAppModule(app.certKeeper, app.accountKeeper),
 		oracle.NewAppModule(app.oracleKeeper),
+		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper),
 	)
 
 	// NOTE: During BeginBlocker, slashing comes after distr so that
@@ -353,6 +367,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cert.ModuleName,
 		genutil.ModuleName,
 		oracle.ModuleName,
+		shield.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
@@ -369,6 +384,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cert.ModuleName,
 		genutil.ModuleName,
 		oracle.ModuleName,
+		shield.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

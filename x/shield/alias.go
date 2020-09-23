@@ -25,5 +25,6 @@ var (
 	RegisterCodec       = types.RegisterCodec
 	ModuleCdc           = types.ModuleCdc
 	DefaultGenesisState = types.DefaultGenesisState
+	DefaultParamSpace   = types.DefaultParamspace
 	ValidateGenesis     = types.ValidateGenesis
 )

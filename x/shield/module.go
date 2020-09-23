@@ -89,30 +89,30 @@ func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper, stakingKeepe
 	}
 }
 
-// Name returns the slashing module's name.
+// Name returns the shield module's name.
 func (am AppModule) Name() string {
 	return ModuleName
 }
 
-// RegisterInvariants registers the slashing module invariants.
+// RegisterInvariants registers the shield module invariants.
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Route returns the message routing key for the slashing module.
+// Route returns the message routing key for the shield module.
 func (am AppModule) Route() string {
 	return RouterKey
 }
 
-// NewHandler returns an sdk.Handler for the slashing module.
+// NewHandler returns an sdk.Handler for the shield module.
 func (am AppModule) NewHandler() sdk.Handler {
 	return NewHandler(am.keeper)
 }
 
-// QuerierRoute returns the slashing module's querier route name.
+// QuerierRoute returns the shield module's querier route name.
 func (am AppModule) QuerierRoute() string {
 	return QuerierRoute
 }
 
-// NewQuerierHandler returns the slashing module sdk.Querier.
+// NewQuerierHandler returns the shield module sdk.Querier.
 func (am AppModule) NewQuerierHandler() sdk.Querier {
 	return NewQuerier(am.keeper)
 }
@@ -124,18 +124,18 @@ func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.Va
 	return InitGenesis(ctx, am.keeper, genesisState)
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the slashing module.
+// ExportGenesis returns the exported genesis state as raw bytes for the shield module.
 func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
 	return ModuleCdc.MustMarshalJSON(gs)
 }
 
-// BeginBlock returns the begin blocker for the slashing module.
+// BeginBlock returns the begin blocker for the shield module.
 func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
 	BeginBlock(ctx, rbb, am.keeper)
 }
 
-// EndBlock returns the end blocker for the slashing module.
+// EndBlock returns the end blocker for the shield module.
 func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return EndBlock(ctx, rbb, am.keeper)
 }

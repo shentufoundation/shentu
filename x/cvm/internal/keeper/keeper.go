@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/params"
 
 	"github.com/hyperledger/burrow/acm"
 	"github.com/hyperledger/burrow/acm/acmstate"
@@ -39,11 +40,13 @@ type Keeper struct {
 	ak         types.AccountKeeper
 	dk         types.DistributionKeeper
 	ck         types.CertKeeper
-	paramSpace types.ParamSubspace
+	paramSpace params.Subspace
 }
 
 // NewKeeper creates a new instance of the CVM keeper.
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, ak types.AccountKeeper, dk types.DistributionKeeper, ck types.CertKeeper, paramSpace types.ParamSubspace) Keeper {
+func NewKeeper(
+	cdc *codec.Codec, key sdk.StoreKey, ak types.AccountKeeper, dk types.DistributionKeeper,
+	ck types.CertKeeper, paramSpace params.Subspace) Keeper {
 	return Keeper{
 		cdc:        cdc,
 		key:        key,
@@ -99,7 +102,7 @@ func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint
 	}
 	gasTracker := originalGas
 
-	params := engine.CallParams{
+	callParams := engine.CallParams{
 		Origin: callerAddr,
 		Caller: callerAddr,
 		Callee: calleeAddr,
@@ -122,6 +125,7 @@ func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint
 	bc := NewBlockChain(ctx, *k)
 
 	logger.Info("CVM Start", "txHash", hex.EncodeToString(txHash))
+
 	var ret []byte
 	if isEWASM {
 		if isRuntime {

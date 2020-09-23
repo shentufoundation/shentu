@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
 )
 
@@ -15,10 +16,11 @@ type AccountKeeper interface {
 // StakingKeeper expected staking keeper
 type StakingKeeper interface {
 	// iterate through validators by operator address, execute func for each validator
-	IterateValidators(sdk.Context,
-		func(index int64, validator stakingexported.ValidatorI) (stop bool))
 
-	Validator(sdk.Context, sdk.ValAddress) stakingexported.ValidatorI            // get a particular validator by operator address
+	IterateValidators(sdk.Context, func(index int64, validator stakingexported.ValidatorI) (stop bool))
+
+	GetValidator(sdk.Context, sdk.ValAddress) (staking.Validator, bool) // get a particular validator by operator address with a found flag
+
 	ValidatorByConsAddr(sdk.Context, sdk.ConsAddress) stakingexported.ValidatorI // get a particular validator by consensus address
 
 	// slash the validator and delegators of the validator, specifying offense height, offense power, and slash fraction
