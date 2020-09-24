@@ -20,10 +20,16 @@ const (
 )
 
 var (
-	PoolKey = []byte{0x0}
+	PoolKey           = []byte{0x0}
+	ShieldOperatorKey = []byte{0x01}
 )
 
-// gets the key for the pool with address
+// GetPoolKey gets the key for the pool with address
 func GetPoolKey(accAddr sdk.AccAddress) []byte {
 	return append(PoolKey, accAddr.Bytes()...)
+}
+
+// GetShieldOperator gets the key for the pool with address
+func GetShieldOperatorKey() []byte {
+	return PoolKey
 }

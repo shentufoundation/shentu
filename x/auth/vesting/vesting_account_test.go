@@ -78,5 +78,4 @@ func TestManualVestingAcc(t *testing.T) {
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 850)}, spendableCoins)
 
 	// TODO: Test delegation, undelegation, genesis validation
-
 }

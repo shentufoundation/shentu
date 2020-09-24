@@ -13,6 +13,7 @@ type Keeper struct {
 	storeKey   sdk.StoreKey
 	cdc        *codec.Codec
 	sk         types.StakingKeeper
+	bk         types.BankKeeper
 	paramSpace params.Subspace
 }
 
@@ -30,8 +31,13 @@ func (k Keeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (staking.Vali
 	return k.sk.GetValidator(ctx, addr)
 }
 
-func (k Keeper) CreatePool(ctx sdk.Context, accAddr sdk.AccAddress, coverage, deposit sdk.Coins) (types.Pool, error) {
-	pool := types.NewPool(accAddr, coverage, deposit)
+func (k Keeper) CreatePool(
+	ctx sdk.Context, creator sdk.AccAddress, coverage sdk.Coins, deposit types.MixedCoins, sponsor string) (types.Pool, error) {
+	operator := k.GetOperator(ctx)
+	if !creator.Equals(operator) {
+		return types.Pool{}, types.ErrNotShieldOperator
+	}
+	pool := types.NewPool(coverage, deposit, sponsor)
 	k.SetPool(ctx, pool)
 	return pool, nil
 }
@@ -40,5 +46,13 @@ func (k Keeper) CreatePool(ctx sdk.Context, accAddr sdk.AccAddress, coverage, de
 func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(pool)
-	store.Set(types.GetPoolKey(pool.BlockChainCompany.Creator.Bytes()), bz)
+	store.Set(types.GetPoolKey([]byte(pool.Sponsor)), bz)
+}
+
+// set the main record holding validator details
+func (k Keeper) GetPool(ctx sdk.Context, sponsor string) (pool types.Pool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetPoolKey([]byte(sponsor)))
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &pool)
+	return
 }

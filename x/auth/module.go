@@ -103,7 +103,7 @@ func (am AppModule) Route() string {
 
 // NewHandler returns an sdk.Handler for the auth module.
 func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.authKeeper, am.certKeeper)
+	return NewHandler(am.authKeeper)
 }
 
 // QuerierRoute returns the auth module's querier route name.

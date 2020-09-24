@@ -2,22 +2,23 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 )
 
 // MsgBeginRedelegate defines the attributes of a bonding transaction.
 type MsgCreatePool struct {
-	CreatorAddress sdk.AccAddress `json:"creator_address" yaml:"creator_address"`
-	Coverage       sdk.Coins      `json:"amount" yaml:"amount"`
-	Deposit        sdk.Coins      `json:"deposit" yaml:"deposit"`
+	From     sdk.AccAddress `json:"creator_address" yaml:"creator_address"`
+	Coverage sdk.Coins      `json:"amount" yaml:"amount"`
+	Deposit  MixedCoins     `json:"deposit" yaml:"deposit"`
+	Sponsor  string         `json:"sponsor" yaml:"sponsor"`
 }
 
 // NewMsgBeginRedelegate creates a new MsgBeginRedelegate instance.
-func NewMsgCreatePool(accAddr sdk.AccAddress, coverage sdk.Coins, deposit sdk.Coins) (MsgCreatePool, error) {
+func NewMsgCreatePool(accAddr sdk.AccAddress, coverage sdk.Coins, deposit MixedCoins, sponsor string) (MsgCreatePool, error) {
 	return MsgCreatePool{
-		CreatorAddress: accAddr,
-		Coverage:       coverage,
-		Deposit:        deposit,
+		From:     accAddr,
+		Coverage: coverage,
+		Deposit:  deposit,
+		Sponsor:  sponsor,
 	}, nil
 }
 
@@ -29,7 +30,7 @@ func (msg MsgCreatePool) Type() string { return EventTypeCreatePool }
 
 // GetSigners implements the sdk.Msg interface
 func (msg MsgCreatePool) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.CreatorAddress}
+	return []sdk.AccAddress{msg.From}
 }
 
 // GetSignBytes implements the sdk.Msg interface.
@@ -40,8 +41,14 @@ func (msg MsgCreatePool) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgCreatePool) ValidateBasic() error {
-	if msg.CreatorAddress.Empty() {
-		return staking.ErrEmptyValidatorAddr
+	if msg.Sponsor == "" {
+		return ErrEmptySponsor
+	}
+	if msg.Deposit.Native == nil && msg.Deposit.Foreign == nil {
+		return ErrNoDeposit
+	}
+	if msg.Coverage == nil {
+		return ErrNoCoverage
 	}
 	return nil
 }

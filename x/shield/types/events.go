@@ -5,5 +5,6 @@ const (
 
 	AttributeKeyCoverage   = "coverage"
 	AttributeKeyDeposit    = "deposit"
+	AttributeKeySponsor    = "sponsor"
 	AttributeValueCategory = ModuleName
 )

@@ -3,19 +3,26 @@ package cli
 import (
 	"bufio"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/spf13/cobra"
 	"strings"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
+)
+
+var (
+	flagNativeDeposit  = "native-deposit"
+	flagForeignDeposit = "foreign-deposit"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -42,10 +49,10 @@ func GetCmdCreateShield(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		Short: "create new Shield pool initialized with an validator address",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Create a shield pool. Requires a PoolCreator certificate in the from address.
+			fmt.Sprintf(`Create a shield pool. Can only be executed from the shield operator address.
 
 Example:
-$ %s tx shield create-pool <coverage> <deposit>
+$ %s tx shield create-pool <coverage> <sponsor> --native-deposit <ctk deposit> --foreign-deposit <external deposit>
 `,
 				version.ClientName,
 			),
@@ -62,12 +69,24 @@ $ %s tx shield create-pool <coverage> <deposit>
 				return err
 			}
 
-			deposit, err := sdk.ParseCoins(args[1])
+			sponsor := args[1]
+
+			nativeDeposit, err := sdk.ParseCoins(viper.GetString(flagNativeDeposit))
 			if err != nil {
 				return err
 			}
 
-			msg, err := types.NewMsgCreatePool(fromAddr, coverage, deposit)
+			foreignDeposit, err := sdk.ParseCoins(viper.GetString(flagForeignDeposit))
+			if err != nil {
+				return err
+			}
+
+			deposit := types.MixedCoins{
+				Native:  nativeDeposit,
+				Foreign: types.ForeignCoins(foreignDeposit),
+			}
+
+			msg, err := types.NewMsgCreatePool(fromAddr, coverage, deposit, sponsor)
 			if err != nil {
 				return err
 			}
@@ -75,8 +94,6 @@ $ %s tx shield create-pool <coverage> <deposit>
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
-
-	cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
 }

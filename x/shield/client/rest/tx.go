@@ -18,9 +18,10 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 }
 
 type createPoolReq struct {
-	BaseReq  rest.BaseReq `json:"base_req" yaml:"base_req"'`
-	Coverage sdk.Coins    `json:"coverage" yaml:"coverage"`
-	Deposit  sdk.Coins    `json:"deposit" yaml:"deposit"`
+	BaseReq  rest.BaseReq     `json:"base_req" yaml:"base_req"'`
+	Coverage sdk.Coins        `json:"coverage" yaml:"coverage"`
+	Deposit  types.MixedCoins `json:"deposit" yaml:"deposit"`
+	Sponsor  string           `json:"sponsor" yaml:"sponsor"`
 }
 
 func createPoolHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -41,7 +42,7 @@ func createPoolHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg, err := types.NewMsgCreatePool(accAddr, req.Coverage, req.Deposit)
+		msg, err := types.NewMsgCreatePool(accAddr, req.Coverage, req.Deposit, req.Sponsor)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
