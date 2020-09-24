@@ -27,6 +27,17 @@ func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*s
 		return nil, err
 	}
 
-	// TODO: emit event
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeCreatePool,
+			sdk.NewAttribute(types.AttributeKeyCoverage, msg.Coverage.String()),
+			sdk.NewAttribute(types.AttributeKeyDeposit, msg.Deposit.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.CreatorAddress.String()),
+		),
+	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

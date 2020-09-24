@@ -25,7 +25,7 @@ func NewMsgCreatePool(accAddr sdk.AccAddress, coverage sdk.Coins, deposit sdk.Co
 func (msg MsgCreatePool) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface
-func (msg MsgCreatePool) Type() string { return "create_pool" }
+func (msg MsgCreatePool) Type() string { return EventTypeCreatePool }
 
 // GetSigners implements the sdk.Msg interface
 func (msg MsgCreatePool) GetSigners() []sdk.AccAddress {
