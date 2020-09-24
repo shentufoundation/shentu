@@ -144,16 +144,13 @@ func GetCmdIssueCertificate(cdc *codec.Codec) *cobra.Command {
 				}
 				return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 
-			case "auditing", "proof", "oracleoperator":
+			default:
 				description := viper.GetString(FlagDescription)
 				msg := types.NewMsgCertifyGeneral(certificateTypeString, args[1], args[2], description, from)
 				if err := msg.ValidateBasic(); err != nil {
 					return err
 				}
 				return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-
-			default:
-				return types.ErrInvalidCertificateType
 			}
 		},
 	}
