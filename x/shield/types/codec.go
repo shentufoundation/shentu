@@ -7,6 +7,7 @@ import (
 // RegisterCodec registers the account types and interface
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgCreatePool{}, "shield/MsgCreatePool", nil)
+	cdc.RegisterConcrete(ShieldClaimProposal{}, "shield/ShieldClaimProposal", nil)
 }
 
 // ModuleCdc generic sealed codec to be used throughout module

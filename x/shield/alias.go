@@ -1,6 +1,7 @@
 package shield
 
 import (
+	"github.com/certikfoundation/shentu/x/shield/client"
 	"github.com/certikfoundation/shentu/x/shield/keeper"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -27,5 +28,6 @@ var (
 	DefaultGenesisState         = types.DefaultGenesisState
 	DefaultParamSpace           = types.DefaultParamspace
 	ValidateGenesis             = types.ValidateGenesis
+	ProposalHandler             = client.ProposalHandler
 	GetGenesisStateFromAppState = types.GetGenesisStateFromAppState
 )

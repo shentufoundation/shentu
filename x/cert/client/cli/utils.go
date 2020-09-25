@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	// CommunityPoolSpendProposalJSON defines a CommunityPoolSpendProposal with a deposit
+	// CertifierUpdateProposalJSON defines a CertifierUpdateProposal with a deposit
 	CertifierUpdateProposalJSON struct {
 		Title       string            `json:"title" yaml:"title"`
 		Description string            `json:"description" yaml:"description"`
@@ -21,7 +21,7 @@ type (
 	}
 )
 
-// ParseCommunityPoolSpendProposalJSON reads and parses a CommunityPoolSpendProposalJSON from a file.
+// ParseCertifierUpdateProposalJSON reads and parses a CertifierUpdateProposalJSON from a file.
 func ParseCertifierUpdateProposalJSON(cdc *codec.Codec, proposalFile string) (CertifierUpdateProposalJSON, error) {
 	proposal := CertifierUpdateProposalJSON{}
 

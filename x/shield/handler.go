@@ -3,6 +3,7 @@ package shield
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -41,4 +42,19 @@ func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*s
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func NewShieldClaimProposalHandler(k Keeper) govtypes.Handler {
+	return func(ctx sdk.Context, content govtypes.Content) error {
+		switch c := content.(type) {
+		case types.ShieldClaimProposal:
+			return handleShieldClaimProposal(ctx, k, c)
+		default:
+			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized shield proposal content type: %T", c)
+		}
+	}
+}
+
+func handleShieldClaimProposal(ctx sdk.Context, k Keeper, p types.ShieldClaimProposal) error {
+	return nil
 }
