@@ -20,11 +20,12 @@ type (
 
 var (
 	// functions aliases
-	NewKeeper           = keeper.NewKeeper
-	NewQuerier          = keeper.NewQuerier
-	RegisterCodec       = types.RegisterCodec
-	ModuleCdc           = types.ModuleCdc
-	DefaultGenesisState = types.DefaultGenesisState
-	DefaultParamSpace   = types.DefaultParamspace
-	ValidateGenesis     = types.ValidateGenesis
+	NewKeeper                   = keeper.NewKeeper
+	NewQuerier                  = keeper.NewQuerier
+	RegisterCodec               = types.RegisterCodec
+	ModuleCdc                   = types.ModuleCdc
+	DefaultGenesisState         = types.DefaultGenesisState
+	DefaultParamSpace           = types.DefaultParamspace
+	ValidateGenesis             = types.ValidateGenesis
+	GetGenesisStateFromAppState = types.GetGenesisStateFromAppState
 )
