@@ -8,21 +8,30 @@ import (
 )
 
 type GenesisState struct {
-	ShieldOperator sdk.AccAddress `json:"shield_operator" yaml:"shield_operator"`
+	ShieldOperator      sdk.AccAddress      `json:"shield_operator" yaml:"shield_operator"`
+	PoolParams          PoolParams          `json:"pool_params" yaml:"pool_params"`
+	ClaimProposalParams ClaimProposalParams `json:"claim_proposal_params" yaml:"claim_proposal_params"`
 }
 
 // NewGenesisState creates a new genesis state.
-func NewGenesisState() GenesisState {
-	return GenesisState{}
+func NewGenesisState(shieldOperator sdk.AccAddress, poolParams PoolParams, claimProposalParams ClaimProposalParams) GenesisState {
+	return GenesisState{
+		ShieldOperator:      shieldOperator,
+		PoolParams:          poolParams,
+		ClaimProposalParams: claimProposalParams,
+	}
 }
 
 // DefaultGenesisState returns a default genesis state
 func DefaultGenesisState() GenesisState {
-	return NewGenesisState()
+	return GenesisState{
+		PoolParams:          DefaultPoolParams(),
+		ClaimProposalParams: DefaultClaimProposalParams(),
+	}
 }
 
 // ValidateGenesis returns a default genesis state
-func ValidateGenesis(data GenesisState) error {
+func ValidateGenesis(bz json.RawMessage) error {
 	return nil
 }
 

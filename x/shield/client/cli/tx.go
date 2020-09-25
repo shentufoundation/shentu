@@ -95,5 +95,8 @@ $ %s tx shield create-pool <coverage> <sponsor> --native-deposit <ctk deposit> -
 		},
 	}
 
+	cmd.Flags().String(flagNativeDeposit, "", "native deposit")
+	cmd.Flags().String(flagForeignDeposit, "", "foreign deposit")
+
 	return cmd
 }

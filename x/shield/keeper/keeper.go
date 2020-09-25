@@ -23,7 +23,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, sk types.StakingKeeper, param
 		storeKey:   key,
 		cdc:        cdc,
 		sk:         sk,
-		paramSpace: paramSpace,
+		paramSpace: paramSpace.WithKeyTable(types.ParamKeyTable()),
 	}
 }
 
@@ -55,4 +55,28 @@ func (k Keeper) GetPool(ctx sdk.Context, sponsor string) (pool types.Pool) {
 	bz := store.Get(types.GetPoolKey([]byte(sponsor)))
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &pool)
 	return
+}
+
+// SetPoolParams sets parameters subspace for shield pool parameters.
+func (k Keeper) SetPoolParams(ctx sdk.Context, poolParams types.PoolParams) {
+	k.paramSpace.Set(ctx, types.ParamStoreKeyPoolParams, &poolParams)
+}
+
+// GetPoolParams returns shield pool parameters.
+func (k *Keeper) GetPoolParams(ctx sdk.Context) types.PoolParams {
+	var poolParams types.PoolParams
+	k.paramSpace.Get(ctx, types.ParamStoreKeyPoolParams, &poolParams)
+	return poolParams
+}
+
+// SetClaimProposalParams sets parameters subspace for shield claim proposal parameters.
+func (k Keeper) SetClaimProposalParams(ctx sdk.Context, claimProposalParams types.ClaimProposalParams) {
+	k.paramSpace.Set(ctx, types.ParamStoreKeyClaimProposalParams, &claimProposalParams)
+}
+
+// GetClaimProposalParams returns shield claim proposal parameters.
+func (k *Keeper) GetClaimProposalParams(ctx sdk.Context) types.ClaimProposalParams {
+	var claimProposalParams types.ClaimProposalParams
+	k.paramSpace.Get(ctx, types.ParamStoreKeyClaimProposalParams, &claimProposalParams)
+	return claimProposalParams
 }

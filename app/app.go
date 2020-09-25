@@ -82,7 +82,7 @@ var (
 		cvm.NewAppModuleBasic(),
 		cert.NewAppModuleBasic(),
 		oracle.NewAppModuleBasic(),
-		shield.AppModuleBasic{},
+		shield.NewAppModuleBasic(),
 	)
 
 	// module account permissions
@@ -347,7 +347,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// there is nothing left over in the validator fee pool, so as to
 	// keep the CanWithdrawInvariant invariant.
 	app.mm.SetOrderBeginBlockers(upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
-		supply.ModuleName, oracle.ModuleName, cvm.ModuleName)
+		supply.ModuleName, oracle.ModuleName, cvm.ModuleName, shield.ModuleName)
 
 	app.mm.SetOrderEndBlockers(cvm.ModuleName, staking.ModuleName, gov.ModuleName, oracle.ModuleName)
 
@@ -403,6 +403,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cvm.NewAppModule(app.cvmKeeper),
 		cert.NewAppModule(app.certKeeper, app.accountKeeper),
 		oracle.NewAppModule(app.oracleKeeper),
+		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()

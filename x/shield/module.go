@@ -2,21 +2,19 @@ package shield
 
 import (
 	"encoding/json"
-	"fmt"
-
-	"github.com/gorilla/mux"
-	"github.com/spf13/cobra"
+	"math/rand"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/client/cli"
 	"github.com/certikfoundation/shentu/x/shield/client/rest"
+	"github.com/certikfoundation/shentu/x/shield/simulation"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
@@ -25,50 +23,27 @@ var (
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
-// AppModuleBasic defines the basic application module used by the shield module.
-type AppModuleBasic struct{}
-
-// Name returns the slashing module's name.
-func (AppModuleBasic) Name() string {
-	return ModuleName
+// AppModuleBasic specifies the app module basics object.
+type AppModuleBasic struct {
+	common.AppModuleBasic
 }
 
-// RegisterCodec registers the slashing module's types for the given codec.
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	RegisterCodec(cdc)
-}
-
-// DefaultGenesis returns default genesis state as raw bytes for the shield module.
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	defGenState := DefaultGenesisState()
-	return ModuleCdc.MustMarshalJSON(defGenState)
-}
-
-// ValidateGenesis performs genesis state validation for the shield module.
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	var data GenesisState
-	if err := ModuleCdc.UnmarshalJSON(bz, &data); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
+// NewAppModuleBasic creates a new AppModuleBasic object in cert module.
+func NewAppModuleBasic() AppModuleBasic {
+	return AppModuleBasic{
+		common.NewAppModuleBasic(
+			types.ModuleName,
+			types.RegisterCodec,
+			types.ModuleCdc,
+			types.DefaultGenesisState(),
+			types.ValidateGenesis,
+			types.StoreKey,
+			rest.RegisterRoutes,
+			cli.GetQueryCmd,
+			cli.GetTxCmd,
+		),
 	}
-	return ValidateGenesis(data)
 }
-
-// RegisterRESTRoutes registers the REST routes for the shield module.
-func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, route *mux.Router) {
-	rest.RegisterRoutes(ctx, route)
-}
-
-// GetTxCmd returns the root tx command for the shield module.
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetTxCmd(cdc)
-}
-
-// GetQueryCmd returns the root query command for the shield module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd(StoreKey, cdc)
-}
-
-//___________________________
 
 // AppModule implements an application module for the slashing module.
 type AppModule struct {
@@ -141,3 +116,28 @@ func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.V
 }
 
 // TODO: Simulation functions
+// GenerateGenesisState creates a randomized GenState of this module.
+func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
+
+// RegisterStoreDecoder registers a decoder for this module.
+func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	// TODO
+	// sdr[StoreKey] = simulation.DecodeStore
+}
+
+// WeightedOperations returns shield operations for use in simulations.
+func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
+	return nil
+}
+
+// ProposalContents returns functions that generate gov proposals for the module.
+func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
+	return nil
+}
+
+// RandomizedParams returns functions that generate params for the module.
+func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
+	return simulation.ParamChanges(r)
+}
