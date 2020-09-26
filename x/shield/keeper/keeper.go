@@ -42,6 +42,47 @@ func (k Keeper) CreatePool(
 	return pool, nil
 }
 
+func (k Keeper) UpdatePool(
+	ctx sdk.Context, updater sdk.AccAddress, coverage sdk.Coins, deposit types.MixedCoins, sponsor string) (types.Pool, error) {
+	operator := k.GetOperator(ctx)
+	if !updater.Equals(operator) {
+		return types.Pool{}, types.ErrNotShieldOperator
+	}
+	pool := k.GetPool(ctx, sponsor)
+	pool.Coverage = pool.Coverage.Add(coverage...)
+	pool.Premium = pool.Premium.Add(deposit)
+	k.SetPool(ctx, pool)
+	return pool, nil
+}
+
+func (k Keeper) PausePool(	ctx sdk.Context, updater sdk.AccAddress, sponsor string) (types.Pool, error) {
+	operator := k.GetOperator(ctx)
+	if !updater.Equals(operator) {
+		return types.Pool{}, types.ErrNotShieldOperator
+	}
+	pool := k.GetPool(ctx, sponsor)
+	if pool.Active == false {
+		return types.Pool{}, types.ErrPoolAlreadyPaused
+	}
+	pool.Active = false
+	k.SetPool(ctx, pool)
+	return pool, nil
+}
+
+func (k Keeper) ResumePool(	ctx sdk.Context, updater sdk.AccAddress, sponsor string) (types.Pool, error) {
+	operator := k.GetOperator(ctx)
+	if !updater.Equals(operator) {
+		return types.Pool{}, types.ErrNotShieldOperator
+	}
+	pool := k.GetPool(ctx, sponsor)
+	if pool.Active == true {
+		return types.Pool{}, types.ErrPoolAlreadyActive
+	}
+	pool.Active = true
+	k.SetPool(ctx, pool)
+	return pool, nil
+}
+
 // set the main record holding validator details
 func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
 	store := ctx.KVStore(k.storeKey)

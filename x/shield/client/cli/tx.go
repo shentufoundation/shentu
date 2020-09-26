@@ -24,6 +24,7 @@ import (
 var (
 	flagNativeDeposit  = "native-deposit"
 	flagForeignDeposit = "foreign-deposit"
+	flagShield = "shield"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -37,7 +38,10 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	shieldTxCmd.AddCommand(flags.PostCommands(
-		GetCmdCreateShield(cdc),
+		GetCmdCreatePool(cdc),
+		GetCmdUpdatePool(cdc),
+		GetCmdPausePool(cdc),
+		GetCmdResumePool(cdc),
 	)...)
 
 	return shieldTxCmd
@@ -98,12 +102,11 @@ Where proposal.json contains:
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
-
 	return cmd
 }
 
-// GetCmdCreateShield implements the create pool command handler.
-func GetCmdCreateShield(cdc *codec.Codec) *cobra.Command {
+// GetCmdCreatePool implements the create pool command handler.
+func GetCmdCreatePool(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-pool",
 		Args:  cobra.ExactArgs(2),
@@ -112,7 +115,7 @@ func GetCmdCreateShield(cdc *codec.Codec) *cobra.Command {
 			fmt.Sprintf(`Create a shield pool. Can only be executed from the shield operator address.
 
 Example:
-$ %s tx shield create-pool <coverage> <sponsor> --native-deposit <ctk deposit> --foreign-deposit <external deposit>
+$ %s tx shield create-pool <shield amount> <sponsor> --native-deposit <ctk deposit> --foreign-deposit <external deposit>
 `,
 				version.ClientName,
 			),
@@ -124,7 +127,7 @@ $ %s tx shield create-pool <coverage> <sponsor> --native-deposit <ctk deposit> -
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			coverage, err := sdk.ParseCoins(args[0])
+			shield, err := sdk.ParseCoins(args[0])
 			if err != nil {
 				return err
 			}
@@ -143,10 +146,10 @@ $ %s tx shield create-pool <coverage> <sponsor> --native-deposit <ctk deposit> -
 
 			deposit := types.MixedCoins{
 				Native:  nativeDeposit,
-				Foreign: types.ForeignCoins(foreignDeposit),
+				Foreign: foreignDeposit,
 			}
 
-			msg, err := types.NewMsgCreatePool(fromAddr, coverage, deposit, sponsor)
+			msg, err := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor)
 			if err != nil {
 				return err
 			}
@@ -154,9 +157,133 @@ $ %s tx shield create-pool <coverage> <sponsor> --native-deposit <ctk deposit> -
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
-
-	cmd.Flags().String(flagNativeDeposit, "", "native deposit")
-	cmd.Flags().String(flagForeignDeposit, "", "foreign deposit")
-
+	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
+	cmd.Flags().String(flagForeignDeposit, "", "foreign coins deposit amount")
 	return cmd
+}
+
+// GetCmdUpdatePool implements the create pool command handler.
+func GetCmdUpdatePool(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-pool",
+		Args:  cobra.ExactArgs(1),
+		Short: "update new Shield pool through adding more deposit or updating shield amount.",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Update a shield pool. Can only be executed from the shield operator address.
+
+Example:
+$ %s tx shield update-pool <sponsor> --native-deposit <ctk deposit> --foreign-deposit <external deposit> --shield <shield amount>
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			fromAddr := cliCtx.GetFromAddress()
+
+			sponsor := args[0]
+
+			nativeDeposit, err := sdk.ParseCoins(viper.GetString(flagNativeDeposit))
+			if err != nil {
+				return err
+			}
+
+			foreignDeposit, err := sdk.ParseCoins(viper.GetString(flagForeignDeposit))
+			if err != nil {
+				return err
+			}
+
+			shield, err := sdk.ParseCoins(viper.GetString(flagShield))
+			if err != nil {
+				return err
+			}
+
+			deposit := types.MixedCoins{
+				Native:  nativeDeposit,
+				Foreign: foreignDeposit,
+			}
+
+			if deposit.Native == nil && deposit.Foreign == nil && shield == nil {
+				return types.ErrNoUpdate
+			}
+			msg, err := types.NewMsgUpdatePool(fromAddr, shield, deposit, sponsor)
+			if err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	cmd.Flags().String(flagShield, "", "CTK deposit amount")
+	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
+	cmd.Flags().String(flagForeignDeposit, "", "foreign coins deposit amount")
+	return cmd
+}
+
+// GetCmdPausePool implements the create pool command handler.
+func GetCmdPausePool(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pause-pool",
+		Args:  cobra.ExactArgs(1),
+		Short: "pause a Shield pool to disallow further shield purchase.",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Pause a shield pool to prevent and new shield purchases for the pool. Can only be executed from the shield operator address.
+
+Example:
+$ %s tx shield pause-pool <sponsor>
+`,
+				version.ClientName,
+			),
+		),
+		RunE: PauseOrResume(cdc, false),
+	}
+	return cmd
+}
+
+// GetCmdResumePool implements the create pool command handler.
+func GetCmdResumePool(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "resume-pool",
+		Args:  cobra.ExactArgs(1),
+		Short: "resume a Shield pool to allow shield purchase for an existing pool.",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Resume a shield pool to reactivate shield purchase. Can only be executed from the shield operator address.
+
+Example:
+$ %s tx shield resume-pool <sponsor>
+`,
+				version.ClientName,
+			),
+		),
+		RunE: PauseOrResume(cdc, true),
+	}
+	return cmd
+}
+
+func PauseOrResume(cdc *codec.Codec, active bool) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		inBuf := bufio.NewReader(cmd.InOrStdin())
+		txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+		cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+		fromAddr := cliCtx.GetFromAddress()
+
+		sponsor := args[0]
+
+		var msg sdk.Msg
+		var err error
+		if active {
+			msg, err = types.NewMsgResumePool(fromAddr, sponsor)
+		} else {
+			msg, err = types.NewMsgPausePool(fromAddr, sponsor)
+		}
+		if err != nil {
+			return err
+		}
+
+		return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+	}
 }
