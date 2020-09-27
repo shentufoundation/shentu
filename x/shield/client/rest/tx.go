@@ -20,10 +20,12 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 }
 
 type createPoolReq struct {
-	BaseReq  rest.BaseReq     `json:"base_req" yaml:"base_req"`
-	Coverage sdk.Coins        `json:"coverage" yaml:"coverage"`
-	Deposit  types.MixedCoins `json:"deposit" yaml:"deposit"`
-	Sponsor  string           `json:"sponsor" yaml:"sponsor"`
+	BaseReq          rest.BaseReq     `json:"base_req" yaml:"base_req"`
+	Shield           sdk.Coins        `json:"shield" yaml:"shield"`
+	Deposit          types.MixedCoins `json:"deposit" yaml:"deposit"`
+	Sponsor          string           `json:"sponsor" yaml:"sponsor"`
+	TimeOfCoverage   int64            `json:"time_of_coverage" yaml:"time_of_coverage"`
+	BlocksOfCoverage int64            `json:"blocks_of_coverage" yaml:"blocks_of_coverage"`
 }
 
 func createPoolHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -44,7 +46,7 @@ func createPoolHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg, err := types.NewMsgCreatePool(accAddr, req.Coverage, req.Deposit, req.Sponsor)
+		msg, err := types.NewMsgCreatePool(accAddr, req.Shield, req.Deposit, req.Sponsor, req.TimeOfCoverage, req.BlocksOfCoverage)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return

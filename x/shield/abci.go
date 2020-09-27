@@ -1,16 +1,71 @@
 package shield
 
 import (
+	"fmt"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/certikfoundation/shentu/common"
+	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // BeginBlock executes logics to begin a block
 func BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 }
 
-// EndBlock executes logics to begin a block
-func EndBlock(ctx sdk.Context, req abci.RequestEndBlock, k Keeper) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
+// EndBlocker processes premium payment at every block.
+func EndBlocker(ctx sdk.Context, k Keeper, stakingKeeper types.StakingKeeper) {
+	pools := k.GetAllPools(ctx)
+	for _, pool := range pools {
+		if pool.Premium.Native.Empty() || pool.Premium.Foreign.Empty() {
+			// TODO: close pool
+			continue
+		}
+		// compute premiums for current block
+		// TODO: Compute and add premium payments from P
+		var currentBlockPremium types.MixedDecCoins
+		if pool.EndTime != 0 {
+			// use endTime to compute premiums
+			timeUntilEnd := pool.EndTime - ctx.BlockTime().Unix()
+			blocksUntilEnd := sdk.MaxDec(common.BlocksPerSecondDec.Mul(sdk.NewDec(timeUntilEnd)), sdk.OneDec())
+			if ctx.BlockTime().Unix() > pool.EndTime {
+				// must spend all premium
+				currentBlockPremium = pool.Premium
+			} else {
+				currentBlockPremium = pool.Premium.QuoDec(blocksUntilEnd)
+			}
+		} else {
+			// use block height to compute premiums
+			blocksUntilEnd := sdk.NewDec(pool.EndBlockHeight - ctx.BlockHeight())
+			if ctx.BlockHeight() >= pool.EndBlockHeight {
+				// must spend all premium
+				currentBlockPremium = pool.Premium
+			} else {
+				currentBlockPremium = pool.Premium.QuoDec(blocksUntilEnd)
+			}
+		}
+
+		// distribute to A and C in proportion
+		bondDenom := stakingKeeper.BondDenom(ctx) // common.MicroCTKDenom
+		totalColatInt := pool.TotalCollateral.AmountOf(bondDenom)
+		recipients := append(pool.Community, pool.CertiK)
+		for i, recipient := range recipients {
+			stakeProportion := sdk.NewDecFromInt(recipient.Amount.AmountOf(bondDenom)).QuoInt(totalColatInt)
+			nativePremium := currentBlockPremium.Native.MulDecTruncate(stakeProportion)
+			foreignPremium := currentBlockPremium.Foreign.MulDecTruncate(stakeProportion)
+			fmt.Printf("\n\n\n nativePremium %v\n", nativePremium.String())
+			fmt.Printf(" foreignPremium %v\n", foreignPremium.String())
+
+			pool.Premium.Native = pool.Premium.Native.Sub(nativePremium)
+			recipients[i].Earnings.Native = recipient.Earnings.Native.Add(nativePremium...)
+
+			pool.Premium.Foreign = pool.Premium.Foreign.Sub(foreignPremium)
+			recipients[i].Earnings.Foreign = recipient.Earnings.Foreign.Add(foreignPremium...)
+			fmt.Printf(" pool premium %v\n", pool.Premium.String())
+		}
+
+		k.SetPool(ctx, pool)
+	} // for each pool
 }

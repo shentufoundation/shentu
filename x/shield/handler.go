@@ -1,6 +1,8 @@
 package shield
 
 import (
+	"strconv"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -8,7 +10,7 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-// NewHandler creates an sdk.Handler for all the slashing type messages
+// NewHandler creates an sdk.Handler for all the shield type messages
 func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
@@ -16,6 +18,8 @@ func NewHandler(k Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgCreatePool:
 			return handleMsgCreatePool(ctx, msg, k)
+		case types.MsgDepositCollateral:
+			return handleMsgDepositCollateral(ctx, msg, k)
 		case types.MsgUpdatePool:
 			return handleMsgUpdatePool(ctx, msg, k)
 		case types.MsgPausePool:
@@ -29,17 +33,18 @@ func NewHandler(k Keeper) sdk.Handler {
 }
 
 func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*sdk.Result, error) {
-	_, err := k.CreatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.Sponsor)
+	pool, err := k.CreatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.Sponsor, msg.TimeOfCoverage, msg.BlocksOfCoverage)
 	if err != nil {
 		return nil, err
 	}
-
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreatePool,
-			sdk.NewAttribute(types.AttributeKeyCoverage, msg.Shield.String()),
+			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
 			sdk.NewAttribute(types.AttributeKeyDeposit, msg.Deposit.String()),
 			sdk.NewAttribute(types.AttributeKeySponsor, msg.Sponsor),
+			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(pool.PoolID, 10)),
+			sdk.NewAttribute(types.AttributeKeyTimeOfCoverage, strconv.FormatInt(msg.TimeOfCoverage, 10)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -50,8 +55,15 @@ func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*s
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
+func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral, k Keeper) (*sdk.Result, error) {
+	if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral); err != nil {
+		return nil, err
+	}
+	return &sdk.Result{}, nil
+}
+
 func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*sdk.Result, error) {
-	_, err := k.UpdatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.Sponsor)
+	_, err := k.UpdatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.PoolID, msg.AdditionalTime, msg.AdditionalBlocks)
 	if err != nil {
 		return nil, err
 	}
@@ -59,9 +71,10 @@ func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*s
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpdatePool,
-			sdk.NewAttribute(types.AttributeKeyCoverage, msg.Shield.String()),
+			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
 			sdk.NewAttribute(types.AttributeKeyDeposit, msg.Deposit.String()),
-			sdk.NewAttribute(types.AttributeKeySponsor, msg.Sponsor),
+			sdk.NewAttribute(types.AttributeKeyPoolID, string(msg.PoolID)),
+			sdk.NewAttribute(types.AttributeKeyAdditionalTime, strconv.FormatInt(msg.AdditionalTime, 10)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -73,7 +86,7 @@ func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*s
 }
 
 func handleMsgPausePool(ctx sdk.Context, msg types.MsgPausePool, k Keeper) (*sdk.Result, error) {
-	_, err := k.PausePool(ctx, msg.From, msg.Sponsor)
+	_, err := k.PausePool(ctx, msg.From, msg.PoolID)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +94,7 @@ func handleMsgPausePool(ctx sdk.Context, msg types.MsgPausePool, k Keeper) (*sdk
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePausePool,
-			sdk.NewAttribute(types.AttributeKeySponsor, msg.Sponsor),
+			sdk.NewAttribute(types.AttributeKeyPoolID, string(msg.PoolID)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -93,7 +106,7 @@ func handleMsgPausePool(ctx sdk.Context, msg types.MsgPausePool, k Keeper) (*sdk
 }
 
 func handleMsgResumePool(ctx sdk.Context, msg types.MsgResumePool, k Keeper) (*sdk.Result, error) {
-	_, err := k.ResumePool(ctx, msg.From, msg.Sponsor)
+	_, err := k.ResumePool(ctx, msg.From, msg.PoolID)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +114,7 @@ func handleMsgResumePool(ctx sdk.Context, msg types.MsgResumePool, k Keeper) (*s
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeResumePool,
-			sdk.NewAttribute(types.AttributeKeySponsor, msg.Sponsor),
+			sdk.NewAttribute(types.AttributeKeyPoolID, string(msg.PoolID)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

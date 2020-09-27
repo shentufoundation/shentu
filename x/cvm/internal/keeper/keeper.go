@@ -136,6 +136,7 @@ func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint
 	} else {
 		ret, err = newCVM.Execute(cache, bc, NewEventSink(ctx), callParams, code)
 	}
+
 	defer func() {
 		logger.Info("CVM Stop", "result", hex.EncodeToString(ret))
 	}()

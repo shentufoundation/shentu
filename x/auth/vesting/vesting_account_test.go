@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	denom  = "uctk"
-	denom2 = "uctk2"
-	addrs  = []sdk.AccAddress{
+	denom = "uctk"
+	//denom2 = "uctk2"
+	addrs = []sdk.AccAddress{
 		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
 		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
 	}

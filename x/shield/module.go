@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/client/cli"
@@ -51,16 +50,19 @@ type AppModule struct {
 
 	keeper        Keeper
 	accountKeeper types.AccountKeeper
-	stakingKeeper stakingkeeper.Keeper
+	stakingKeeper types.StakingKeeper
+	supplyKeeper  types.SupplyKeeper
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper, stakingKeeper stakingkeeper.Keeper) AppModule {
+func NewAppModule(
+	keeper Keeper, accountKeeper types.AccountKeeper, stakingKeeper types.StakingKeeper, supplyKeeper types.SupplyKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
 		accountKeeper:  accountKeeper,
 		stakingKeeper:  stakingKeeper,
+		supplyKeeper:   supplyKeeper,
 	}
 }
 
@@ -112,19 +114,8 @@ func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
 
 // EndBlock returns the end blocker for the shield module.
 func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return EndBlock(ctx, rbb, am.keeper)
-}
-
-// TODO: Simulation functions
-// GenerateGenesisState creates a randomized GenState of this module.
-func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
-}
-
-// RegisterStoreDecoder registers a decoder for this module.
-func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	// TODO
-	// sdr[StoreKey] = simulation.DecodeStore
+	EndBlocker(ctx, am.keeper, am.stakingKeeper)
+	return []abci.ValidatorUpdate{}
 }
 
 // WeightedOperations returns shield operations for use in simulations.
@@ -140,4 +131,16 @@ func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedPropos
 // RandomizedParams returns functions that generate params for the module.
 func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
 	return simulation.ParamChanges(r)
+}
+
+// TODO: Simulation functions
+// GenerateGenesisState creates a randomized GenState of this module.
+func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
+
+// RegisterStoreDecoder registers a decoder for this module.
+func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	// TODO
+	// sdr[StoreKey] = simulation.DecodeStore
 }

@@ -298,6 +298,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.cdc,
 		keys[shield.StoreKey],
 		&stakingKeeper,
+		app.supplyKeeper,
 		shieldSubspace,
 	)
 	// register the staking hooks
@@ -342,7 +343,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cvm.NewAppModule(app.cvmKeeper),
 		cert.NewAppModule(app.certKeeper, app.accountKeeper),
 		oracle.NewAppModule(app.oracleKeeper),
-		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper),
+		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper, app.supplyKeeper),
 	)
 
 	// NOTE: During BeginBlocker, slashing comes after distr so that
@@ -351,7 +352,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.SetOrderBeginBlockers(upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
 		supply.ModuleName, oracle.ModuleName, cvm.ModuleName, shield.ModuleName)
 
-	app.mm.SetOrderEndBlockers(cvm.ModuleName, staking.ModuleName, gov.ModuleName, oracle.ModuleName)
+	app.mm.SetOrderEndBlockers(cvm.ModuleName, staking.ModuleName, gov.ModuleName, oracle.ModuleName, shield.ModuleName)
 
 	// NOTE: genutil moodule must occur after staking so that pools
 	// are properly initialized with tokens from genesis accounts.
@@ -405,7 +406,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cvm.NewAppModule(app.cvmKeeper),
 		cert.NewAppModule(app.certKeeper, app.accountKeeper),
 		oracle.NewAppModule(app.oracleKeeper),
-		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper),
+		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper, app.supplyKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()

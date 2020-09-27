@@ -1,6 +1,8 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	"encoding/binary"
+)
 
 const (
 	// ModuleName is the name of this module
@@ -21,15 +23,23 @@ const (
 
 var (
 	PoolKey           = []byte{0x0}
-	ShieldOperatorKey = []byte{0x01}
+	ShieldOperatorKey = []byte{0x1}
+	NextPoolIDKey     = []byte{0x2}
 )
 
-// GetPoolKey gets the key for the pool with address
-func GetPoolKey(accAddr sdk.AccAddress) []byte {
-	return append(PoolKey, accAddr.Bytes()...)
+// GetPoolKey gets the key for the pool identified by pool ID.
+func GetPoolKey(id uint64) []byte {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, id)
+	return append(PoolKey, b...)
 }
 
-// GetShieldOperator gets the key for the pool with address
+// GetShieldOperatorKey gets the key for the shield admin.
 func GetShieldOperatorKey() []byte {
-	return PoolKey
+	return ShieldOperatorKey
+}
+
+// GetNextPoolIDKey gets the key for the latest pool ID.
+func GetNextPoolIDKey() []byte {
+	return NextPoolIDKey
 }
