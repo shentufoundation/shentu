@@ -47,12 +47,13 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetCmdPausePool(cdc),
 		GetCmdResumePool(cdc),
 		GetCmdDepositCollateral(cdc),
+		GetCmdPurchaseShield(cdc),
 	)...)
 
 	return shieldTxCmd
 }
 
-// GetCmdSubmitProposal implements the command to submit a shield-claim proposal
+// GetCmdSubmitProposal implements the command to submit a shield-claim proposal.
 func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "shield-claim [proposal-file]",
@@ -113,7 +114,7 @@ Where proposal.json contains:
 // GetCmdCreatePool implements the create pool command handler.
 func GetCmdCreatePool(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-pool",
+		Use:   "create-pool [shield amount] [sponsor]",
 		Args:  cobra.ExactArgs(2),
 		Short: "create new Shield pool initialized with an validator address",
 		Long: strings.TrimSpace(
@@ -158,8 +159,8 @@ $ %s tx shield create-pool <shield amount> <sponsor> --native-deposit <ctk depos
 			timeOfCoverage := viper.GetInt64(flagTimeOfCoverage)
 			blocksOfCoverage := viper.GetInt64(flagBlocksOfCoverage)
 
-			msg, err := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, timeOfCoverage, blocksOfCoverage)
-			if err != nil {
+			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, timeOfCoverage, blocksOfCoverage)
+			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
@@ -177,7 +178,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> --native-deposit <ctk depos
 // GetCmdUpdatePool implements the create pool command handler.
 func GetCmdUpdatePool(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-pool",
+		Use:   "update-pool [pool id]",
 		Args:  cobra.ExactArgs(1),
 		Short: "update new Shield pool through adding more deposit or updating shield amount.",
 		Long: strings.TrimSpace(
@@ -229,8 +230,8 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit
 			timeOfCoverage := viper.GetInt64(flagTimeOfCoverage)
 			blocksOfCoverage := viper.GetInt64(flagBlocksOfCoverage)
 
-			msg, err := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, timeOfCoverage, blocksOfCoverage)
-			if err != nil {
+			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, timeOfCoverage, blocksOfCoverage)
+			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
@@ -238,7 +239,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit
 		},
 	}
 
-	cmd.Flags().String(flagShield, "", "CTK deposit amount")
+	cmd.Flags().String(flagShield, "", "CTK shield amount")
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagForeignDeposit, "", "foreign coins deposit amount")
 	cmd.Flags().Int64(flagTimeOfCoverage, 0, "additional time of coverage")
@@ -246,17 +247,17 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit
 	return cmd
 }
 
-// GetCmdPausePool implements the create pool command handler.
+// GetCmdPausePool implements the pause pool command handler.
 func GetCmdPausePool(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pause-pool",
+		Use:   "pause-pool [pool id]",
 		Args:  cobra.ExactArgs(1),
 		Short: "pause a Shield pool to disallow further shield purchase.",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Pause a shield pool to prevent and new shield purchases for the pool. Can only be executed from the shield operator address.
 
 Example:
-$ %s tx shield pause-pool <sponsor>
+$ %s tx shield pause-pool <pool id>
 `,
 				version.ClientName,
 			),
@@ -266,17 +267,17 @@ $ %s tx shield pause-pool <sponsor>
 	return cmd
 }
 
-// GetCmdResumePool implements the create pool command handler.
+// GetCmdResumePool implements the resume pool command handler.
 func GetCmdResumePool(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "resume-pool",
+		Use:   "resume-pool [pool id]",
 		Args:  cobra.ExactArgs(1),
 		Short: "resume a Shield pool to allow shield purchase for an existing pool.",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Resume a shield pool to reactivate shield purchase. Can only be executed from the shield operator address.
 
 Example:
-$ %s tx shield resume-pool <sponsor>
+$ %s tx shield resume-pool <pool id>
 `,
 				version.ClientName,
 			),
@@ -301,11 +302,11 @@ func PauseOrResume(cdc *codec.Codec, active bool) func(cmd *cobra.Command, args 
 
 		var msg sdk.Msg
 		if active {
-			msg, err = types.NewMsgResumePool(fromAddr, id)
+			msg = types.NewMsgResumePool(fromAddr, id)
 		} else {
-			msg, err = types.NewMsgPausePool(fromAddr, id)
+			msg = types.NewMsgPausePool(fromAddr, id)
 		}
-		if err != nil {
+		if err := msg.ValidateBasic(); err != nil {
 			return err
 		}
 
@@ -317,7 +318,7 @@ func PauseOrResume(cdc *codec.Codec, active bool) func(cmd *cobra.Command, args 
 // join a pool by depositing collateral.
 func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deposit-collateral [id] [collateral]",
+		Use:   "deposit-collateral [pool id] [collateral]",
 		Short: "join a Shield pool as a community member by depositing collateral",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -337,8 +338,8 @@ func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg, err := types.NewMsgDepositCollateral(fromAddr, id, collateral)
-			if err != nil {
+			msg := types.NewMsgDepositCollateral(fromAddr, id, collateral)
+			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
@@ -346,5 +347,51 @@ func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
 		},
 	}
 
+	return cmd
+}
+
+// GetCmdPurchaseShield implements the purchase shield command handler.
+func GetCmdPurchaseShield(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "purchase [pool id] [shield amount] [description]",
+		Args:  cobra.ExactArgs(3),
+		Short: "purchase shield",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Purchase shield. Requires purchaser to provide descriptions of accounts to be protected.
+
+Example:
+$ %s tx shield purchase <pool id> <shield amount> <description>
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			fromAddr := cliCtx.GetFromAddress()
+
+			poolID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+			shield, err := sdk.ParseCoins(args[1])
+			if err != nil {
+				return err
+			}
+			description := args[2]
+			if description == "" {
+				return types.ErrPurchaseMissingDescription
+			}
+
+			msg := types.NewMsgPurchaseShield(poolID, shield, description, fromAddr)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
 	return cmd
 }

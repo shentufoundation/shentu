@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -24,9 +25,10 @@ const (
 )
 
 var (
-	PoolKey        = []byte{0x0}
+	PoolKey           = []byte{0x0}
 	ShieldOperatorKey = []byte{0x1}
-	NextPoolIDKey  = []byte{0x2}
+	NextPoolIDKey     = []byte{0x2}
+	PurchaseKey       = []byte{0x3}
 
 	ParticipantKey = []byte{0x5}
 )
@@ -46,6 +48,15 @@ func GetShieldOperatorKey() []byte {
 // GetNextPoolIDKey gets the key for the latest pool ID.
 func GetNextPoolIDKey() []byte {
 	return NextPoolIDKey
+}
+
+// GetPurchaseTxHashKey gets the key for a purchase.
+func GetPurchaseTxHashKey(txhashStr string) []byte {
+	txhash, err := hex.DecodeString(txhashStr)
+	if err != nil {
+		panic(err)
+	}
+	return append(PurchaseKey, txhash...)
 }
 
 // GetParticipantKey gets the key for the delegator's tracker.

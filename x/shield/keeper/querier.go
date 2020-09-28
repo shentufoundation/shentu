@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	QueryPool = "pool"
+	QueryPool     = "pool"
+	QueryPurchase = "purchase"
 )
 
 // NewQuerier creates a querier for shield module
@@ -22,6 +23,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case QueryPool:
 			return queryPool(ctx, path[1:], k)
+		case QueryPurchase:
+			return queryPurchase(ctx, path[1:], k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
@@ -58,6 +61,24 @@ func queryPool(ctx sdk.Context, path []string, k Keeper) (res []byte, err error)
 		}
 	}
 	res, err = codec.MarshalJSONIndent(k.cdc, pool)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+// queryPurchase returns information about a queried purchase.
+func queryPurchase(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 1); err != nil {
+		return nil, err
+	}
+
+	purchase, err := k.GetPurchase(ctx, path[0])
+	if err != nil {
+		return nil, err
+	}
+
+	res, err = codec.MarshalJSONIndent(k.cdc, purchase)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

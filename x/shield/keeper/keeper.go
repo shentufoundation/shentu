@@ -19,7 +19,7 @@ type Keeper struct {
 	paramSpace   params.Subspace
 }
 
-// NewKeeper creates a slashing keeper
+// NewKeeper creates a shield keeper.
 func NewKeeper(
 	cdc *codec.Codec, key sdk.StoreKey, sk types.StakingKeeper, supplyKeeper types.SupplyKeeper, paramSpace params.Subspace) Keeper {
 	return Keeper{
@@ -41,6 +41,9 @@ func (k Keeper) CreatePool(
 	operator := k.GetOperator(ctx)
 	if !creator.Equals(operator) {
 		return types.Pool{}, types.ErrNotShieldOperator
+	}
+	if err := k.DepositNativePremium(ctx, deposit.Native, creator); err != nil {
+		return types.Pool{}, err
 	}
 
 	// check if shield is backed by operator's delegations
@@ -152,14 +155,12 @@ func (k Keeper) ResumePool(ctx sdk.Context, updater sdk.AccAddress, id uint64) (
 	return pool, nil
 }
 
-// set the main record holding validator details
 func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(pool)
 	store.Set(types.GetPoolKey(pool.PoolID), bz)
 }
 
-// set the main record holding validator details
 func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetPoolKey(id))
@@ -272,7 +273,7 @@ func (k Keeper) SetPoolParams(ctx sdk.Context, poolParams types.PoolParams) {
 }
 
 // GetPoolParams returns shield pool parameters.
-func (k *Keeper) GetPoolParams(ctx sdk.Context) types.PoolParams {
+func (k Keeper) GetPoolParams(ctx sdk.Context) types.PoolParams {
 	var poolParams types.PoolParams
 	k.paramSpace.Get(ctx, types.ParamStoreKeyPoolParams, &poolParams)
 	return poolParams
@@ -284,7 +285,7 @@ func (k Keeper) SetClaimProposalParams(ctx sdk.Context, claimProposalParams type
 }
 
 // GetClaimProposalParams returns shield claim proposal parameters.
-func (k *Keeper) GetClaimProposalParams(ctx sdk.Context) types.ClaimProposalParams {
+func (k Keeper) GetClaimProposalParams(ctx sdk.Context) types.ClaimProposalParams {
 	var claimProposalParams types.ClaimProposalParams
 	k.paramSpace.Get(ctx, types.ParamStoreKeyClaimProposalParams, &claimProposalParams)
 	return claimProposalParams
@@ -327,4 +328,12 @@ func (k Keeper) GetParticipant(ctx sdk.Context, delegator sdk.AccAddress) (dt ty
 		return dt, true
 	}
 	return types.Participant{}, false
+}
+
+// DepositNativePremium deposits premium in native tokens from the shield admin or purchasers.
+func (k Keeper) DepositNativePremium(ctx sdk.Context, premium sdk.Coins, from sdk.AccAddress) error {
+	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, premium); err != nil {
+		return err
+	}
+	return nil
 }

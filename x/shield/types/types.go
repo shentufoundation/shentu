@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -51,15 +53,6 @@ func NewCollateral(provider sdk.AccAddress, amount sdk.Coins) Collateral {
 		Amount:   amount,
 		Earnings: &mdc,
 	}
-}
-
-type Purchase struct {
-	PoolID           int64
-	Address          sdk.AccAddress
-	Amount           sdk.Coins
-	StartBlockHeight int64
-	TxHash           string
-	Description      string
 }
 
 // ForeignCoins separates sdk.Coins to shield foreign coins
@@ -150,5 +143,29 @@ func NewParticipant() Participant {
 	return Participant{
 		TotalDelegation: sdk.Coins{},
 		TotalCollateral: sdk.Coins{},
+	}
+}
+
+type Purchase struct {
+	PoolID                  uint64
+	Shield                  sdk.Coins
+	StartBlockHeight        int64
+	ProtectionPeriodEndTime time.Time
+	ClaimPeriodEndTime      time.Time
+	Description             string
+	Purchaser               sdk.AccAddress
+}
+
+func NewPurchase(
+	poolID uint64, shield sdk.Coins, startBlockHeight int64, protectionPeriodEndTime, claimPeriodEndTime time.Time,
+	description string, purchaser sdk.AccAddress) Purchase {
+	return Purchase{
+		PoolID:                  poolID,
+		Shield:                  shield,
+		StartBlockHeight:        startBlockHeight,
+		ProtectionPeriodEndTime: protectionPeriodEndTime,
+		ClaimPeriodEndTime:      claimPeriodEndTime,
+		Description:             description,
+		Purchaser:               purchaser,
 	}
 }

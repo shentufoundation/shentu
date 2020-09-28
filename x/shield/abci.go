@@ -62,4 +62,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, stakingKeeper types.StakingKeeper) {
 
 		k.SetPool(ctx, pool)
 	} // for each pool
+
+	// remove expired purchases
+	k.RemoveExpiredPurchases(ctx)
 }

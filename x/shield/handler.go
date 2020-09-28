@@ -18,18 +18,36 @@ func NewHandler(k Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgCreatePool:
 			return handleMsgCreatePool(ctx, msg, k)
-		case types.MsgDepositCollateral:
-			return handleMsgDepositCollateral(ctx, msg, k)
 		case types.MsgUpdatePool:
 			return handleMsgUpdatePool(ctx, msg, k)
 		case types.MsgPausePool:
 			return handleMsgPausePool(ctx, msg, k)
 		case types.MsgResumePool:
 			return handleMsgResumePool(ctx, msg, k)
+		case types.MsgDepositCollateral:
+			return handleMsgDepositCollateral(ctx, msg, k)
+		case types.MsgPurchaseShield:
+			return handleMsgPurchaseShield(ctx, msg, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
 	}
+}
+
+func NewShieldClaimProposalHandler(k Keeper) govtypes.Handler {
+	return func(ctx sdk.Context, content govtypes.Content) error {
+		switch c := content.(type) {
+		case types.ShieldClaimProposal:
+			return handleShieldClaimProposal(ctx, k, c)
+		default:
+			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized shield proposal content type: %T", c)
+		}
+	}
+}
+
+func handleShieldClaimProposal(ctx sdk.Context, k Keeper, p types.ShieldClaimProposal) error {
+	// TODO schedule payouts
+	return nil
 }
 
 func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*sdk.Result, error) {
@@ -37,6 +55,7 @@ func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*s
 	if err != nil {
 		return nil, err
 	}
+
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreatePool,
@@ -45,6 +64,7 @@ func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*s
 			sdk.NewAttribute(types.AttributeKeySponsor, msg.Sponsor),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(pool.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyTimeOfCoverage, strconv.FormatInt(msg.TimeOfCoverage, 10)),
+			sdk.NewAttribute(types.AttributeKeyBlocksOfCoverage, strconv.FormatInt(msg.BlocksOfCoverage, 10)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -59,7 +79,16 @@ func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral,
 	if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral); err != nil {
 		return nil, err
 	}
-	return &sdk.Result{}, nil
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeDepositCollateral,
+			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
+			sdk.NewAttribute(types.AttributeKeyCollateral, msg.Collateral.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*sdk.Result, error) {
@@ -73,7 +102,7 @@ func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*s
 			types.EventTypeUpdatePool,
 			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
 			sdk.NewAttribute(types.AttributeKeyDeposit, msg.Deposit.String()),
-			sdk.NewAttribute(types.AttributeKeyPoolID, string(msg.PoolID)),
+			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyAdditionalTime, strconv.FormatInt(msg.AdditionalTime, 10)),
 		),
 		sdk.NewEvent(
@@ -94,7 +123,7 @@ func handleMsgPausePool(ctx sdk.Context, msg types.MsgPausePool, k Keeper) (*sdk
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePausePool,
-			sdk.NewAttribute(types.AttributeKeyPoolID, string(msg.PoolID)),
+			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -114,7 +143,7 @@ func handleMsgResumePool(ctx sdk.Context, msg types.MsgResumePool, k Keeper) (*s
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeResumePool,
-			sdk.NewAttribute(types.AttributeKeyPoolID, string(msg.PoolID)),
+			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -124,18 +153,19 @@ func handleMsgResumePool(ctx sdk.Context, msg types.MsgResumePool, k Keeper) (*s
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
-
-func NewShieldClaimProposalHandler(k Keeper) govtypes.Handler {
-	return func(ctx sdk.Context, content govtypes.Content) error {
-		switch c := content.(type) {
-		case types.ShieldClaimProposal:
-			return handleShieldClaimProposal(ctx, k, c)
-		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized shield proposal content type: %T", c)
-		}
+func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Keeper) (*sdk.Result, error) {
+	_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func handleShieldClaimProposal(ctx sdk.Context, k Keeper, p types.ShieldClaimProposal) error {
-	return nil
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypePurchase,
+			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
+			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

@@ -12,6 +12,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgResumePool{}, "shield/MsgResumePool", nil)
 	cdc.RegisterConcrete(MsgDepositCollateral{}, "shield/MsgDepositCollateral", nil)
 	cdc.RegisterConcrete(ShieldClaimProposal{}, "shield/ShieldClaimProposal", nil)
+	cdc.RegisterConcrete(MsgPurchaseShield{}, "shield/MsgPurchaseShield", nil)
 }
 
 // ModuleCdc generic sealed codec to be used throughout module

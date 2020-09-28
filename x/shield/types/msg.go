@@ -14,10 +14,10 @@ type MsgCreatePool struct {
 	BlocksOfCoverage int64          `json:"blocks_of_coverage" yaml:"blocks_of_coverage"`
 }
 
-// NewMsgCreatePool creates a new MsgBeginRedelegate instance.
+// NewMsgCreatePool creates a new NewMsgCreatePool instance.
 func NewMsgCreatePool(
 	accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, timeOfCoverage,
-	blocksOfCoverage int64) (MsgCreatePool, error) {
+	blocksOfCoverage int64) MsgCreatePool {
 	return MsgCreatePool{
 		From:             accAddr,
 		Shield:           shield,
@@ -25,7 +25,7 @@ func NewMsgCreatePool(
 		Sponsor:          sponsor,
 		TimeOfCoverage:   timeOfCoverage,
 		BlocksOfCoverage: blocksOfCoverage,
-	}, nil
+	}
 }
 
 // Route implements the sdk.Msg interface.
@@ -74,7 +74,7 @@ type MsgUpdatePool struct {
 
 // NewMsgUpdatePool creates a new MsgUpdatePool instance.
 func NewMsgUpdatePool(
-	accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, id uint64, additionalTime, additionalBlocks int64) (MsgUpdatePool, error) {
+	accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, id uint64, additionalTime, additionalBlocks int64) MsgUpdatePool {
 	return MsgUpdatePool{
 		From:             accAddr,
 		Shield:           shield,
@@ -82,7 +82,7 @@ func NewMsgUpdatePool(
 		PoolID:           id,
 		AdditionalTime:   additionalTime,
 		AdditionalBlocks: additionalBlocks,
-	}, nil
+	}
 }
 
 // Route implements the sdk.Msg interface.
@@ -126,11 +126,11 @@ type MsgPausePool struct {
 }
 
 // NewMsgPausePool creates a new NewMsgPausePool instance.
-func NewMsgPausePool(accAddr sdk.AccAddress, id uint64) (MsgPausePool, error) {
+func NewMsgPausePool(accAddr sdk.AccAddress, id uint64) MsgPausePool {
 	return MsgPausePool{
 		From:   accAddr,
 		PoolID: id,
-	}, nil
+	}
 }
 
 // Route implements the sdk.Msg interface.
@@ -165,11 +165,11 @@ type MsgResumePool struct {
 }
 
 // NewMsgResumePool creates a new NewMsgResumePool instance.
-func NewMsgResumePool(accAddr sdk.AccAddress, id uint64) (MsgResumePool, error) {
+func NewMsgResumePool(accAddr sdk.AccAddress, id uint64) MsgResumePool {
 	return MsgResumePool{
 		From:   accAddr,
 		PoolID: id,
-	}, nil
+	}
 }
 
 // Route implements the sdk.Msg interface.
@@ -197,6 +197,7 @@ func (msg MsgResumePool) ValidateBasic() error {
 	return nil
 }
 
+// MsgDepositCollateral defines the attributes of a depositing collaterals.
 type MsgDepositCollateral struct {
 	From       sdk.AccAddress `json:"sender" yaml:"sender"`
 	PoolID     uint64         `json:"pool_id" yaml:"pool_id"`
@@ -204,12 +205,12 @@ type MsgDepositCollateral struct {
 }
 
 // NewMsgDepositCollateral creates a new MsgDepositCollateral instance.
-func NewMsgDepositCollateral(sender sdk.AccAddress, id uint64, collateral sdk.Coins) (MsgDepositCollateral, error) {
+func NewMsgDepositCollateral(sender sdk.AccAddress, id uint64, collateral sdk.Coins) MsgDepositCollateral {
 	return MsgDepositCollateral{
 		From:       sender,
 		PoolID:     id,
 		Collateral: collateral,
-	}, nil
+	}
 }
 
 // Route implements the sdk.Msg interface.
@@ -233,6 +234,49 @@ func (msg MsgDepositCollateral) GetSignBytes() []byte {
 func (msg MsgDepositCollateral) ValidateBasic() error {
 	if msg.PoolID == 0 {
 		return ErrInvalidPoolID
+	}
+	return nil
+}
+
+// MsgPurchaseShield defines the attributes of purchase shield transaction
+type MsgPurchaseShield struct {
+	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
+	Shield      sdk.Coins      `json:"shield" yaml:"shield"`
+	Description string         `json:"description" yaml:"description"`
+	From        sdk.AccAddress `json:"from" yaml:"from"`
+}
+
+// NewMsgPurchaseShield creates a new MsgPurchaseShield instance.
+func NewMsgPurchaseShield(poolID uint64, shield sdk.Coins, description string, from sdk.AccAddress) MsgPurchaseShield {
+	return MsgPurchaseShield{
+		PoolID:      poolID,
+		Shield:      shield,
+		Description: description,
+		From:        from,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgPurchaseShield) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgPurchaseShield) Type() string { return EventTypePurchase }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgPurchaseShield) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgPurchaseShield) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgPurchaseShield) ValidateBasic() error {
+	if msg.Description == "" {
+		return ErrPurchaseMissingDescription
 	}
 	return nil
 }

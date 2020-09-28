@@ -25,6 +25,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 	shieldQueryCmd.AddCommand(flags.GetCommands(
 		GetCmdPool(queryRoute, cdc),
+		GetCmdPurchase(queryRoute, cdc),
 	)...)
 
 	return shieldQueryCmd
@@ -34,7 +35,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 func GetCmdPool(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pool [pool-id]",
-		Short: "Get pool information",
+		Short: "get pool information",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -61,6 +62,29 @@ func GetCmdPool(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		},
 	}
 	cmd.Flags().String(flagSponsor, "", "use sponsor to query the pool info")
+
+	return cmd
+}
+
+// GetCmdPurchase returns the command for querying a purchase.
+func GetCmdPurchase(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "purchase [txhash]",
+		Short: "get purchase information",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/purchase/%s", queryRoute, args[0]), nil)
+			if err != nil {
+				return err
+			}
+
+			var out types.Purchase
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
 
 	return cmd
 }
