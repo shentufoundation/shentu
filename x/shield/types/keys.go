@@ -2,6 +2,8 @@ package types
 
 import (
 	"encoding/binary"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -22,9 +24,11 @@ const (
 )
 
 var (
-	PoolKey           = []byte{0x0}
+	PoolKey        = []byte{0x0}
 	ShieldOperatorKey = []byte{0x1}
-	NextPoolIDKey     = []byte{0x2}
+	NextPoolIDKey  = []byte{0x2}
+
+	ParticipantKey = []byte{0x5}
 )
 
 // GetPoolKey gets the key for the pool identified by pool ID.
@@ -34,7 +38,7 @@ func GetPoolKey(id uint64) []byte {
 	return append(PoolKey, b...)
 }
 
-// GetShieldOperatorKey gets the key for the shield admin.
+// GetShieldOperatorKey gets the key for the shield operator.
 func GetShieldOperatorKey() []byte {
 	return ShieldOperatorKey
 }
@@ -42,4 +46,9 @@ func GetShieldOperatorKey() []byte {
 // GetNextPoolIDKey gets the key for the latest pool ID.
 func GetNextPoolIDKey() []byte {
 	return NextPoolIDKey
+}
+
+// GetParticipantKey gets the key for the delegator's tracker.
+func GetParticipantKey(addr sdk.AccAddress) []byte {
+	return append(ParticipantKey, addr...)
 }

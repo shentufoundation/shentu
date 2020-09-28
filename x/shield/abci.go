@@ -1,8 +1,6 @@
 package shield
 
 import (
-	"fmt"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,7 +22,6 @@ func EndBlocker(ctx sdk.Context, k Keeper, stakingKeeper types.StakingKeeper) {
 			continue
 		}
 		// compute premiums for current block
-		// TODO: Compute and add premium payments from P
 		var currentBlockPremium types.MixedDecCoins
 		if pool.EndTime != 0 {
 			// use endTime to compute premiums
@@ -55,15 +52,12 @@ func EndBlocker(ctx sdk.Context, k Keeper, stakingKeeper types.StakingKeeper) {
 			stakeProportion := sdk.NewDecFromInt(recipient.Amount.AmountOf(bondDenom)).QuoInt(totalColatInt)
 			nativePremium := currentBlockPremium.Native.MulDecTruncate(stakeProportion)
 			foreignPremium := currentBlockPremium.Foreign.MulDecTruncate(stakeProportion)
-			fmt.Printf("\n\n\n nativePremium %v\n", nativePremium.String())
-			fmt.Printf(" foreignPremium %v\n", foreignPremium.String())
 
 			pool.Premium.Native = pool.Premium.Native.Sub(nativePremium)
 			recipients[i].Earnings.Native = recipient.Earnings.Native.Add(nativePremium...)
 
 			pool.Premium.Foreign = pool.Premium.Foreign.Sub(foreignPremium)
 			recipients[i].Earnings.Foreign = recipient.Earnings.Foreign.Add(foreignPremium...)
-			fmt.Printf(" pool premium %v\n", pool.Premium.String())
 		}
 
 		k.SetPool(ctx, pool)

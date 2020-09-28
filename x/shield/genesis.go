@@ -10,7 +10,7 @@ import (
 
 // InitGenesis initialize store values with genesis states.
 func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorUpdate {
-	k.SetAdmin(ctx, data.ShieldOperator)
+	k.SetOperator(ctx, data.ShieldOperator)
 	k.SetNextPoolID(ctx, data.NextPoolID)
 	k.SetPoolParams(ctx, data.PoolParams)
 	k.SetClaimProposalParams(ctx, data.ClaimProposalParams)
@@ -20,7 +20,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis.
 func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
-	shieldOperator := k.GetAdmin(ctx)
+	shieldOperator := k.GetOperator(ctx)
 	nextPoolID := k.GetNextPoolID(ctx)
 	poolParams := k.GetPoolParams(ctx)
 	claimProposalParams := k.GetClaimProposalParams(ctx)

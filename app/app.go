@@ -307,6 +307,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		staking.NewMultiStakingHooks(
 			app.distrKeeper.Hooks(),
 			app.slashingKeeper.Hooks(),
+			app.shieldKeeper.Hooks(),
 		),
 	)
 	app.govKeeper = gov.NewKeeper(

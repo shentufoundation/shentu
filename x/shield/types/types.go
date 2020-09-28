@@ -20,11 +20,11 @@ type Pool struct {
 }
 
 func NewPool(
-	admin sdk.AccAddress, shield sdk.Coins, deposit MixedDecCoins, sponsor string,
+	operator sdk.AccAddress, shield sdk.Coins, deposit MixedDecCoins, sponsor string,
 	endTime, startBlockHeight, endBlockHeight int64, id uint64) Pool {
 	return Pool{
 		Shield:           shield,
-		CertiK:           NewCollateral(admin, shield),
+		CertiK:           NewCollateral(operator, shield),
 		Premium:          deposit,
 		Sponsor:          sponsor,
 		Active:           true,
@@ -137,4 +137,18 @@ func (mdc MixedDecCoins) QuoDec(d sdk.Dec) MixedDecCoins {
 
 func (mdc MixedDecCoins) String() string {
 	return append(mdc.Native, mdc.Foreign...).String()
+}
+
+// Participant tracks A or C's total delegation, total collateral,
+// and rewards.
+type Participant struct {
+	TotalDelegation sdk.Coins
+	TotalCollateral sdk.Coins
+}
+
+func NewParticipant() Participant {
+	return Participant{
+		TotalDelegation: sdk.Coins{},
+		TotalCollateral: sdk.Coins{},
+	}
 }

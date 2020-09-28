@@ -117,7 +117,7 @@ func GetCmdCreatePool(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		Short: "create new Shield pool initialized with an validator address",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Create a shield pool. Can only be executed from the shield admin address.
+			fmt.Sprintf(`Create a shield pool. Can only be executed from the shield operator address.
 
 Example:
 $ %s tx shield create-pool <shield amount> <sponsor> --native-deposit <ctk deposit> --foreign-deposit <external deposit>
@@ -181,7 +181,7 @@ func GetCmdUpdatePool(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "update new Shield pool through adding more deposit or updating shield amount.",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Update a shield pool. Can only be executed from the shield admin address.
+			fmt.Sprintf(`Update a shield pool. Can only be executed from the shield operator address.
 
 Example:
 $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit <external deposit> --shield <shield amount> 
@@ -253,7 +253,7 @@ func GetCmdPausePool(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "pause a Shield pool to disallow further shield purchase.",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Pause a shield pool to prevent and new shield purchases for the pool. Can only be executed from the shield admin address.
+			fmt.Sprintf(`Pause a shield pool to prevent and new shield purchases for the pool. Can only be executed from the shield operator address.
 
 Example:
 $ %s tx shield pause-pool <sponsor>
@@ -273,7 +273,7 @@ func GetCmdResumePool(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "resume a Shield pool to allow shield purchase for an existing pool.",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Resume a shield pool to reactivate shield purchase. Can only be executed from the shield admin address.
+			fmt.Sprintf(`Resume a shield pool to reactivate shield purchase. Can only be executed from the shield operator address.
 
 Example:
 $ %s tx shield resume-pool <sponsor>
