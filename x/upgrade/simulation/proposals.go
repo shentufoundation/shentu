@@ -33,7 +33,7 @@ func SimulateSoftwareUpgradeProposalContent() simulation.ContentSimulatorFn {
 		plan := upgrade.Plan{
 			Name:   simulation.RandStringOfLength(r, 140),
 			Time:   time.Now(),
-			Height: ctx.BlockHeight() + 50,
+			Height: ctx.BlockHeight() + int64(r.Intn(1000)),
 			Info:   simulation.RandStringOfLength(r, 140),
 		}
 		return upgrade.NewSoftwareUpgradeProposal(
