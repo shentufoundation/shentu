@@ -46,18 +46,19 @@ func EndBlocker(ctx sdk.Context, k Keeper, stakingKeeper types.StakingKeeper) {
 
 		// distribute to A and C in proportion
 		bondDenom := stakingKeeper.BondDenom(ctx) // common.MicroCTKDenom
-		totalColatInt := pool.TotalCollateral.AmountOf(bondDenom)
+		totalCollatInt := pool.TotalCollateral.AmountOf(bondDenom)
 		recipients := append(pool.Community, pool.CertiK)
-		for i, recipient := range recipients {
-			stakeProportion := sdk.NewDecFromInt(recipient.Amount.AmountOf(bondDenom)).QuoInt(totalColatInt)
+		for _, recipient := range recipients {
+			stakeProportion := sdk.NewDecFromInt(recipient.Amount.AmountOf(bondDenom)).QuoInt(totalCollatInt)
 			nativePremium := currentBlockPremium.Native.MulDecTruncate(stakeProportion)
 			foreignPremium := currentBlockPremium.Foreign.MulDecTruncate(stakeProportion)
 
 			pool.Premium.Native = pool.Premium.Native.Sub(nativePremium)
-			recipients[i].Earnings.Native = recipient.Earnings.Native.Add(nativePremium...)
 
 			pool.Premium.Foreign = pool.Premium.Foreign.Sub(foreignPremium)
-			recipients[i].Earnings.Foreign = recipient.Earnings.Foreign.Add(foreignPremium...)
+
+			rewards := types.NewMixedDecCoins(nativePremium, foreignPremium)
+			k.AddRewards(ctx, recipient.Provider, rewards)
 		}
 
 		k.SetPool(ctx, pool)

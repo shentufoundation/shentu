@@ -24,6 +24,10 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgPausePool(ctx, msg, k)
 		case types.MsgResumePool:
 			return handleMsgResumePool(ctx, msg, k)
+		case types.MsgTransferForeign:
+			return handleMsgTransferForeign(ctx, msg, k)
+		case types.MsgClearPayouts:
+			return handleMsgClearPayouts(ctx, msg, k)
 		case types.MsgDepositCollateral:
 			return handleMsgDepositCollateral(ctx, msg, k)
 		case types.MsgPurchaseShield:
@@ -164,6 +168,57 @@ func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Kee
 			types.EventTypePurchase,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgTransferForeign(ctx sdk.Context, msg types.MsgTransferForeign, k Keeper) (*sdk.Result, error) {
+	rewards := k.GetRewards(ctx, msg.From)
+	amount := rewards.Foreign.AmountOf(msg.Denom)
+	if amount.Equal(sdk.ZeroDec()) {
+		return &sdk.Result{Events: ctx.EventManager().Events()}, types.ErrNoRewards
+	}
+	newPayout := types.NewPendingPayouts(amount, msg.ToAddr)
+	rewards.Foreign = rewards.Foreign.Sub(
+		sdk.DecCoins{sdk.NewDecCoinFromDec(msg.Denom, amount)})
+	k.SetRewards(ctx, msg.From, rewards)
+	k.AddPendingPayout(ctx, msg.Denom, newPayout)
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeTransferForeign,
+			sdk.NewAttribute(types.AttributeKeyToAddr, msg.ToAddr),
+			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
+			sdk.NewAttribute(types.AttributeKeyAmount, newPayout.Amount.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgClearPayouts(ctx sdk.Context, msg types.MsgClearPayouts, k Keeper) (*sdk.Result, error) {
+	if !k.GetAdmin(ctx).Equals(msg.From) {
+		return &sdk.Result{Events: ctx.EventManager().Events()}, types.ErrNotShieldOperator
+	}
+	earnings := k.GetPendingPayouts(ctx, msg.Denom)
+	if earnings == nil {
+		return &sdk.Result{Events: ctx.EventManager().Events()}, types.ErrNoRewards
+	}
+	k.SetPendingPayouts(ctx, msg.Denom, nil)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeClearPayouts,
+			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
 	})

@@ -47,6 +47,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetCmdPausePool(cdc),
 		GetCmdResumePool(cdc),
 		GetCmdDepositCollateral(cdc),
+		GetCmdTransferForeign(cdc),
+		GetCmdClearPayouts(cdc),
 		GetCmdPurchaseShield(cdc),
 	)...)
 
@@ -346,7 +348,53 @@ func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+	return cmd
+}
 
+// GetCmdTransferForeign implements command for requesting to transfer foreign tokens
+func GetCmdTransferForeign(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "transfer-foreign [denom] [address]",
+		Short: "transfer foreign coins to their original chain",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			fromAddr := cliCtx.GetFromAddress()
+
+			denom := args[0]
+			addr := args[1]
+
+			msg := types.NewMsgTransferForeign(fromAddr, denom, addr)
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	return cmd
+}
+
+// GetCmdClearPayouts implements command for requesting to clear out pending payouts
+func GetCmdClearPayouts(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "clear-payouts [denom]",
+		Short: "clears pending payouts after they have been distributed",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			fromAddr := cliCtx.GetFromAddress()
+
+			denom := args[0]
+
+			msg := types.NewMsgClearPayouts(fromAddr, denom)
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
 	return cmd
 }
 

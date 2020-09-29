@@ -5,7 +5,7 @@ import sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 var (
 	ErrNotShieldOperator = sdkerrors.Register(ModuleName, 101, "not the shield operator account")
 	ErrNoDeposit         = sdkerrors.Register(ModuleName, 102, "no coins given for initial deposit")
-	ErrNoShield          = sdkerrors.Register(ModuleName, 103, "no coins given for shield shield")
+	ErrNoShield          = sdkerrors.Register(ModuleName, 103, "no coins given for shield")
 	ErrEmptySponsor      = sdkerrors.Register(ModuleName, 104, "no sponsor specified for a pool")
 	ErrNoPoolFound       = sdkerrors.Register(ModuleName, 105, "no pool found for the given ID")
 	ErrNoUpdate          = sdkerrors.Register(ModuleName, 106, "nothing was updated for the pool")
@@ -23,4 +23,7 @@ var (
 	ErrPurchaseMissingDescription = sdkerrors.Register(ModuleName, 116, "missing description for the purchase")
 	ErrNotEnoughShield            = sdkerrors.Register(ModuleName, 117, "not enough available shield")
 	ErrNoPurchaseFound            = sdkerrors.Register(ModuleName, 118, "no purchase found for the given txhash")
+	ErrNoRewards                  = sdkerrors.Register(ModuleName, 119, "no foreign coins to transfer for the denomination")
+	ErrInvalidDenom               = sdkerrors.Register(ModuleName, 120, "invalid coin denomination")
+	ErrInvalidToAddr              = sdkerrors.Register(ModuleName, 121, "invalid recipient address")
 )

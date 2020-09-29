@@ -42,16 +42,13 @@ type Collateral struct {
 	PoolID      uint
 	Provider    sdk.AccAddress
 	Amount      sdk.Coins
-	Earnings    *MixedDecCoins
 	Description string
 }
 
 func NewCollateral(provider sdk.AccAddress, amount sdk.Coins) Collateral {
-	mdc := InitMixedDecCoins()
 	return Collateral{
 		Provider: provider,
 		Amount:   amount,
-		Earnings: &mdc,
 	}
 }
 
@@ -132,11 +129,26 @@ func (mdc MixedDecCoins) String() string {
 	return append(mdc.Native, mdc.Foreign...).String()
 }
 
+type PendingPayout struct {
+	Amount sdk.Dec
+	ToAddr string
+}
+
+type PendingPayouts []PendingPayout
+
+func NewPendingPayouts(amount sdk.Dec, to string) PendingPayout {
+	return PendingPayout{
+		Amount: amount,
+		ToAddr: to,
+	}
+}
+
 // Participant tracks A or C's total delegation, total collateral,
 // and rewards.
 type Participant struct {
 	TotalDelegation sdk.Coins
 	TotalCollateral sdk.Coins
+	Rewards         MixedDecCoins
 }
 
 func NewParticipant() Participant {

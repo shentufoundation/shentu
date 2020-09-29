@@ -30,7 +30,8 @@ var (
 	NextPoolIDKey     = []byte{0x2}
 	PurchaseKey       = []byte{0x3}
 
-	ParticipantKey = []byte{0x5}
+	ParticipantKey    = []byte{0x5}
+	PendingPayoutsKey = []byte{0x6}
 )
 
 // GetPoolKey gets the key for the pool identified by pool ID.
@@ -45,9 +46,14 @@ func GetShieldOperatorKey() []byte {
 	return ShieldOperatorKey
 }
 
-// GetNextPoolIDKey gets the key for the latest pool ID.
+// GetNextPoolIDKey gets the key for the next pool ID.
 func GetNextPoolIDKey() []byte {
 	return NextPoolIDKey
+}
+
+// GetPendingPayoutsKey gets the key for pending payouts.
+func GetPendingPayoutsKey(denom string) []byte {
+	return append(PendingPayoutsKey, []byte(denom)...)
 }
 
 // GetPurchaseTxHashKey gets the key for a purchase.

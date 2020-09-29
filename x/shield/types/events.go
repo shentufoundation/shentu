@@ -7,6 +7,8 @@ const (
 	EventTypeResumePool        = "resume_pool"
 	EventTypeDepositCollateral = "deposit_collateral"
 	EventTypePurchase          = "purchase_shield"
+	EventTypeTransferForeign   = "transfer_foreign"
+	EventTypeClearPayouts      = "clear_payouts"
 
 	AttributeKeyShield           = "shield"
 	AttributeKeyDeposit          = "deposit"
@@ -16,5 +18,8 @@ const (
 	AttributeKeyTimeOfCoverage   = "time_of_coverage"
 	AttributeKeyBlocksOfCoverage = "blocks_of_coverage"
 	AttributeKeyCollateral       = "collateral"
+	AttributeKeyDenom            = "denom"
+	AttributeKeyToAddr           = "to_addr"
+	AttributeKeyAmount           = "amount"
 	AttributeValueCategory       = ModuleName
 )

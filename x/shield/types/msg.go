@@ -238,6 +238,87 @@ func (msg MsgDepositCollateral) ValidateBasic() error {
 	return nil
 }
 
+type MsgTransferForeign struct {
+	From   sdk.AccAddress `json:"sender" yaml:"sender"`
+	Denom  string         `json:"denom" yaml:"denom"`
+	ToAddr string         `json:"to_addr" yaml:"to_addr"`
+}
+
+// NewMsgTransferForeign creates a new MsgTransferForeign instance.
+func NewMsgTransferForeign(sender sdk.AccAddress, denom, toAddr string) MsgTransferForeign {
+	return MsgTransferForeign{
+		From:   sender,
+		Denom:  denom,
+		ToAddr: toAddr,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgTransferForeign) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface
+func (msg MsgTransferForeign) Type() string { return EventTypeTransferForeign }
+
+// GetSigners implements the sdk.Msg interface
+func (msg MsgTransferForeign) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgTransferForeign) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgTransferForeign) ValidateBasic() error {
+	if msg.Denom == "" {
+		return ErrInvalidDenom
+	}
+	if msg.ToAddr == "" {
+		return ErrInvalidToAddr
+	}
+	return nil
+}
+
+type MsgClearPayouts struct {
+	From  sdk.AccAddress `json:"sender" yaml:"sender"`
+	Denom string         `json:"denom" yaml:"denom"`
+}
+
+// NewMsgClearPayouts creates a new MsgClearPayouts instance.
+func NewMsgClearPayouts(sender sdk.AccAddress, denom string) MsgClearPayouts {
+	return MsgClearPayouts{
+		From:  sender,
+		Denom: denom,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgClearPayouts) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface
+func (msg MsgClearPayouts) Type() string { return EventTypeClearPayouts }
+
+// GetSigners implements the sdk.Msg interface
+func (msg MsgClearPayouts) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgClearPayouts) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgClearPayouts) ValidateBasic() error {
+	if msg.Denom == "" {
+		return ErrInvalidDenom
+	}
+	return nil
+}
+
 // MsgPurchaseShield defines the attributes of purchase shield transaction
 type MsgPurchaseShield struct {
 	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
