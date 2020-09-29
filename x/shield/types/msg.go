@@ -1,7 +1,10 @@
 package types
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // MsgCreatePool defines the attributes of a create-pool transaction.
@@ -47,15 +50,19 @@ func (msg MsgCreatePool) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgCreatePool) ValidateBasic() error {
-	if msg.Sponsor == "" {
+	if msg.From.Empty() {
+		return ErrEmptySender
+	}
+	if strings.TrimSpace(msg.Sponsor) == "" {
 		return ErrEmptySponsor
 	}
-	if msg.Deposit.Native == nil && msg.Deposit.Foreign == nil {
+	if msg.Deposit.Native.IsValid() || msg.Deposit.Native.IsZero() || msg.Deposit.Foreign.IsValid() || msg.Deposit.Foreign.IsZero() {
 		return ErrNoDeposit
 	}
-	if msg.Shield == nil {
+	if msg.Shield.IsValid() || msg.Shield.IsZero() {
 		return ErrNoShield
 	}
+	// TO-DO need to double check
 	if msg.TimeOfCoverage <= 0 && msg.BlocksOfCoverage <= 0 {
 		return ErrInvalidDuration
 	}
@@ -104,15 +111,19 @@ func (msg MsgUpdatePool) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgUpdatePool) ValidateBasic() error {
+	if msg.From.Empty() {
+		return ErrEmptySender
+	}
 	if msg.PoolID == 0 {
 		return ErrInvalidPoolID
 	}
-	if msg.Deposit.Native == nil && msg.Deposit.Foreign == nil {
+	if msg.Deposit.Native.IsValid() || msg.Deposit.Native.IsZero() || msg.Deposit.Foreign.IsValid() || msg.Deposit.Foreign.IsZero() {
 		return ErrNoDeposit
 	}
-	if msg.Shield == nil {
+	if msg.Shield.IsValid() || msg.Shield.IsZero() {
 		return ErrNoShield
 	}
+	// TO-DO need to double check
 	if msg.AdditionalTime <= 0 && msg.AdditionalBlocks <= 0 {
 		return ErrInvalidDuration
 	}
@@ -152,6 +163,9 @@ func (msg MsgPausePool) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgPausePool) ValidateBasic() error {
+	if msg.From.Empty() {
+		return ErrEmptySender
+	}
 	if msg.PoolID == 0 {
 		return ErrInvalidPoolID
 	}
@@ -191,6 +205,9 @@ func (msg MsgResumePool) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgResumePool) ValidateBasic() error {
+	if msg.From.Empty() {
+		return ErrEmptySender
+	}
 	if msg.PoolID == 0 {
 		return ErrInvalidPoolID
 	}
@@ -232,8 +249,14 @@ func (msg MsgDepositCollateral) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgDepositCollateral) ValidateBasic() error {
+	if msg.From.Empty() {
+		return ErrEmptySender
+	}
 	if msg.PoolID == 0 {
 		return ErrInvalidPoolID
+	}
+	if !msg.Collateral.IsValid() || msg.Collateral.IsZero() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Collateral amount: %s", msg.Collateral)
 	}
 	return nil
 }
@@ -272,10 +295,13 @@ func (msg MsgTransferForeign) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgTransferForeign) ValidateBasic() error {
-	if msg.Denom == "" {
+	if msg.From.Empty() {
+		return ErrEmptySender
+	}
+	if err := sdk.ValidateDenom(msg.Denom); err != nil {
 		return ErrInvalidDenom
 	}
-	if msg.ToAddr == "" {
+	if strings.TrimSpace(msg.ToAddr) == "" || len(msg.ToAddr) != sdk.AddrLen {
 		return ErrInvalidToAddr
 	}
 	return nil
@@ -313,7 +339,10 @@ func (msg MsgClearPayouts) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgClearPayouts) ValidateBasic() error {
-	if msg.Denom == "" {
+	if msg.From.Empty() {
+		return ErrEmptySender
+	}
+	if err := sdk.ValidateDenom(msg.Denom); err != nil {
 		return ErrInvalidDenom
 	}
 	return nil
@@ -356,8 +385,17 @@ func (msg MsgPurchaseShield) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgPurchaseShield) ValidateBasic() error {
-	if msg.Description == "" {
+	if msg.PoolID == 0 {
+		return ErrInvalidPoolID
+	}
+	if !msg.Shield.IsValid() || msg.Shield.IsZero() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "shield amount: %s", msg.Shield)
+	}
+	if strings.TrimSpace(msg.Description) == "" {
 		return ErrPurchaseMissingDescription
+	}
+	if msg.From.Empty() {
+		return ErrEmptySender
 	}
 	return nil
 }

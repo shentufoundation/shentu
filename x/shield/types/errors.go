@@ -26,4 +26,5 @@ var (
 	ErrNoRewards                  = sdkerrors.Register(ModuleName, 119, "no foreign coins to transfer for the denomination")
 	ErrInvalidDenom               = sdkerrors.Register(ModuleName, 120, "invalid coin denomination")
 	ErrInvalidToAddr              = sdkerrors.Register(ModuleName, 121, "invalid recipient address")
+	ErrEmptySender                = sdkerrors.Register(ModuleName, 122, "no sender provided")
 )
