@@ -1,27 +1,26 @@
 package simulation
 
 import (
-	// "fmt"
 	"math/rand"
 
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
+	"github.com/certikfoundation/shentu/app/params"
 	"github.com/certikfoundation/shentu/x/cert/internal/keeper"
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
 )
 
-// OpWeightSubmitCommunitySpendProposal app params key for community spend proposal
-const OpWeightSubmitCommunitySpendProposal = "op_weight_submit_community_spend_proposal"
+// OpWeightSubmitCertifierUpdateProposal app params key for certifier update proposal
+const OpWeightSubmitCertifierUpdateProposal = "op_weight_submit_certifier_update_proposal"
 
 // ProposalContents defines the module weighted proposals' contents
 func ProposalContents(k keeper.Keeper) []simulation.WeightedProposalContent {
 	return []simulation.WeightedProposalContent{
 		{
-			AppParamsKey:       OpWeightSubmitCommunitySpendProposal,
-			DefaultWeight:      simappparams.DefaultWeightCommunitySpendProposal,
+			AppParamsKey:       OpWeightSubmitCertifierUpdateProposal,
+			DefaultWeight:      params.DefaultWeightCertifierUpdateProposal,
 			ContentSimulatorFn: SimulateCertifierUpdateProposalContent(k),
 		},
 	}
@@ -44,7 +43,6 @@ func SimulateCertifierUpdateProposalContent(k keeper.Keeper) simulation.ContentS
 			addorremove = types.Remove
 			certifier_index := r.Intn(len(certifiers))
 			certifier = certifiers[certifier_index].Address
-			// fmt.Printf("%s should be a certifier", certifier.String())
 		}
 
 		return types.NewCertifierUpdateProposal(

@@ -1,27 +1,26 @@
 package simulation
 
 import (
-	// "fmt"
 	"math/rand"
 	"time"
 
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
+
+	"github.com/certikfoundation/shentu/app/params"
 )
 
-// OpWeightSubmitCommunitySpendProposal app params key for community spend proposal
-const OpWeightSubmitCommunitySpendProposal = "op_weight_submit_community_spend_proposal"
+// OpWeightSubmitSoftwareUpgradeProposal app params key for software upgrade proposal
+const OpWeightSubmitSoftwareUpgradeProposal = "op_weight_submit_software_upgrade_proposal"
 
 // ProposalContents defines the module weighted proposals' contents
 func ProposalContents() []simulation.WeightedProposalContent {
 	return []simulation.WeightedProposalContent{
 		{
-			AppParamsKey:       OpWeightSubmitCommunitySpendProposal,
-			DefaultWeight:      simappparams.DefaultWeightCommunitySpendProposal,
+			AppParamsKey:       OpWeightSubmitSoftwareUpgradeProposal,
+			DefaultWeight:      params.DefaultWeightSoftwareUpgradeProposal,
 			ContentSimulatorFn: SimulateSoftwareUpgradeProposalContent(),
 		},
 	}
