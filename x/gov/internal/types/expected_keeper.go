@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	"github.com/certikfoundation/shentu/x/cert"
+	"github.com/certikfoundation/shentu/x/shield"
 )
 
 type CertKeeper interface {
@@ -17,6 +18,14 @@ type CertKeeper interface {
 
 type UpgradeKeeper interface {
 	ValidatePlan(ctx sdk.Context, plan upgrade.Plan) error
+}
+
+type ShieldKeeper interface {
+	GetPurchase(ctx sdk.Context, txhash string) (shield.Purchase, error)
+	GetClaimProposalParams(ctx sdk.Context) shield.ClaimProposalParams
+	ClaimLock(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash string, proposalID uint64) error
+	ClaimUnlock(ctx sdk.Context, poolID uint64, loss sdk.Coins, proposalID uint64) error
+	RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash string) error
 }
 
 type ParamSubspace interface {

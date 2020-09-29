@@ -39,10 +39,11 @@ func NewPool(
 }
 
 type Collateral struct {
-	PoolID      uint
-	Provider    sdk.AccAddress
-	Amount      sdk.Coins
-	Description string
+	PoolID            uint
+	Provider          sdk.AccAddress
+	Amount            sdk.Coins
+	Description       string
+	LockedCollaterals []LockedCollateral
 }
 
 func NewCollateral(provider sdk.AccAddress, amount sdk.Coins) Collateral {
@@ -159,25 +160,25 @@ func NewParticipant() Participant {
 }
 
 type Purchase struct {
-	PoolID                  uint64
-	Shield                  sdk.Coins
-	StartBlockHeight        int64
-	ProtectionPeriodEndTime time.Time
-	ClaimPeriodEndTime      time.Time
-	Description             string
-	Purchaser               sdk.AccAddress
+	PoolID             uint64
+	Shield             sdk.Coins
+	StartBlockHeight   int64
+	ProtectionEndTime  time.Time
+	ClaimPeriodEndTime time.Time
+	Description        string
+	Purchaser          sdk.AccAddress
 }
 
 func NewPurchase(
-	poolID uint64, shield sdk.Coins, startBlockHeight int64, protectionPeriodEndTime, claimPeriodEndTime time.Time,
+	poolID uint64, shield sdk.Coins, startBlockHeight int64, protectionEndTime, claimPeriodEndTime time.Time,
 	description string, purchaser sdk.AccAddress) Purchase {
 	return Purchase{
-		PoolID:                  poolID,
-		Shield:                  shield,
-		StartBlockHeight:        startBlockHeight,
-		ProtectionPeriodEndTime: protectionPeriodEndTime,
-		ClaimPeriodEndTime:      claimPeriodEndTime,
-		Description:             description,
-		Purchaser:               purchaser,
+		PoolID:             poolID,
+		Shield:             shield,
+		StartBlockHeight:   startBlockHeight,
+		ProtectionEndTime:  protectionEndTime,
+		ClaimPeriodEndTime: claimPeriodEndTime,
+		Description:        description,
+		Purchaser:          purchaser,
 	}
 }

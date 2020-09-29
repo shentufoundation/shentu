@@ -11,6 +11,7 @@ import (
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/shield"
 )
 
 // GetDeposit gets the deposit of a specific depositor on a specific proposal.
@@ -57,7 +58,8 @@ func (k Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk
 
 	// check if deposit has provided sufficient total funds to transition the proposal into the voting period
 	activatedVotingPeriod := false
-	if proposal.Status == types.StatusDepositPeriod && proposal.TotalDeposit.IsAllGTE(k.GetDepositParams(ctx).MinDeposit) {
+	if proposal.Status == types.StatusDepositPeriod && proposal.TotalDeposit.IsAllGTE(k.GetDepositParams(ctx).MinDeposit) ||
+		proposal.ProposalType() == shield.ProposalTypeShieldClaim {
 		k.ActivateVotingPeriod(ctx, proposal)
 		activatedVotingPeriod = true
 	}

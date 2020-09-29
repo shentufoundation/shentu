@@ -28,7 +28,7 @@ type createPoolReq struct {
 // ShieldClaimProposalReq defines a shield claim proposal request body.
 type ShieldClaimProposalReq struct {
 	BaseReq        rest.BaseReq `json:"base_req" yaml:"base_req"`
-	PoolID         int64        `json:"pool_id" yaml:"pool_id"`
+	PoolID         uint64       `json:"pool_id" yaml:"pool_id"`
 	Loss           sdk.Coins    `json:"loss" yaml:"loss"`
 	Evidence       string       `json:"evidence" yaml:"evidence"`
 	PurchaseTxHash string       `json:"purchase_txash" yaml:"purchase_txash"`

@@ -74,9 +74,9 @@ func (k Keeper) PurchaseShield(
 
 	// set purchase
 	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
-	protectionPeriodEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
-	claimPeriodEndTime := protectionPeriodEndTime.Add(claimParams.ClaimPeriod)
-	purchase := types.NewPurchase(poolID, shield, ctx.BlockHeight(), protectionPeriodEndTime, claimPeriodEndTime, description, purchaser)
+	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
+	claimPeriodEndTime := protectionEndTime.Add(claimParams.ClaimPeriod)
+	purchase := types.NewPurchase(poolID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, description, purchaser)
 	k.SetPurchase(ctx, txhash, purchase)
 
 	return purchase, nil

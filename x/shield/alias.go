@@ -16,18 +16,20 @@ const (
 type (
 	Keeper = keeper.Keeper
 
-	GenesisState = types.GenesisState
+	GenesisState        = types.GenesisState
+	ClaimProposal       = types.ShieldClaimProposal
+	ClaimProposalParams = types.ClaimProposalParams
+	Purchase            = types.Purchase
 )
 
 var (
 	// functions aliases
 	NewKeeper                   = keeper.NewKeeper
 	NewQuerier                  = keeper.NewQuerier
-	RegisterCodec               = types.RegisterCodec
 	ModuleCdc                   = types.ModuleCdc
-	DefaultGenesisState         = types.DefaultGenesisState
-	DefaultParamSpace           = types.DefaultParamspace
-	ValidateGenesis             = types.ValidateGenesis
 	ProposalHandler             = client.ProposalHandler
 	GetGenesisStateFromAppState = types.GetGenesisStateFromAppState
+
+	DefaultParamSpace       = types.DefaultParamspace
+	ProposalTypeShieldClaim = types.ProposalTypeShieldClaim
 )

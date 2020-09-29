@@ -127,11 +127,11 @@ func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal types.Proposal) {
 	oldDepositEndTime := proposal.DepositEndTime
 
 	if proposal.HasSecurityVoting() && (proposal.Status != types.StatusCertifierVotingPeriod) {
-		// Special case: just for software upgrade and certifier update proposals.
+		// Special case: just for software upgrade, certifier update and shield claim proposals.
 		proposal.Status = types.StatusCertifierVotingPeriod
 	} else {
 		// Default case: for plain text proposals, community pool spend proposals;
-		// and second round of software upgrade proposals, certifier update
+		// and second round of software upgrade, certifier update and shield claim
 		// proposals.
 		if proposal.Status == types.StatusCertifierVotingPeriod {
 			k.RemoveFromActiveProposalQueue(ctx, proposal.ProposalID, oldVotingEndTime)

@@ -317,6 +317,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.supplyKeeper,
 		app.stakingKeeper,
 		app.certKeeper,
+		app.shieldKeeper,
 		app.upgradeKeeper,
 		cosmosGov.NewRouter().
 			AddRoute(gov.RouterKey, gov.ProposalHandler).
