@@ -27,4 +27,5 @@ var (
 	ErrInvalidDenom               = sdkerrors.Register(ModuleName, 120, "invalid coin denomination")
 	ErrInvalidToAddr              = sdkerrors.Register(ModuleName, 121, "invalid recipient address")
 	ErrEmptySender                = sdkerrors.Register(ModuleName, 122, "no sender provided")
+	ErrPoolLifeTooShort           = sdkerrors.Register(ModuleName, 123, "new pool life is too short")
 )

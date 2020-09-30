@@ -57,7 +57,7 @@ func handleShieldClaimProposal(ctx sdk.Context, k Keeper, p types.ShieldClaimPro
 func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*sdk.Result, error) {
 	pool, err := k.CreatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.Sponsor, msg.TimeOfCoverage, msg.BlocksOfCoverage)
 	if err != nil {
-		return nil, err
+		return &sdk.Result{Events: ctx.EventManager().Events()}, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -79,26 +79,10 @@ func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*s
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral, k Keeper) (*sdk.Result, error) {
-	if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral); err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeDepositCollateral,
-			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
-			sdk.NewAttribute(types.AttributeKeyCollateral, msg.Collateral.String()),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
-		),
-	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
-}
-
 func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*sdk.Result, error) {
 	_, err := k.UpdatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.PoolID, msg.AdditionalTime, msg.AdditionalBlocks)
 	if err != nil {
-		return nil, err
+		return &sdk.Result{Events: ctx.EventManager().Events()}, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -112,6 +96,22 @@ func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*s
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral, k Keeper) (*sdk.Result, error) {
+	if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeDepositCollateral,
+			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
+			sdk.NewAttribute(types.AttributeKeyCollateral, msg.Collateral.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
 	})

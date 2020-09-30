@@ -6,7 +6,6 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-
 func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(pool)
@@ -24,7 +23,6 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, error) {
 	return types.Pool{}, types.ErrNoPoolFound
 }
 
-
 func (k Keeper) CreatePool(
 	ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, sponsor string,
 	timeOfCoverage, blocksOfCoverage int64) (types.Pool, error) {
@@ -36,6 +34,9 @@ func (k Keeper) CreatePool(
 		return types.Pool{}, err
 	}
 
+	if !k.ValidatePoolDuration(ctx, timeOfCoverage, blocksOfCoverage) {
+		return types.Pool{}, types.ErrPoolLifeTooShort
+	}
 	// check if shield is backed by operator's delegations
 	participant, found := k.GetParticipant(ctx, operator)
 	if !found {
@@ -90,6 +91,11 @@ func (k Keeper) UpdatePool(
 		return types.Pool{}, err
 	}
 
+	newCoverageTime := additionalTime + pool.EndTime - ctx.BlockTime().Unix()
+	newCoverageBlocks := additionalBlocks + pool.EndBlockHeight - ctx.BlockHeight()
+	if !k.ValidatePoolDuration(ctx, newCoverageTime, newCoverageBlocks) {
+		return types.Pool{}, types.ErrPoolLifeTooShort
+	}
 	// Extend EndTime. If not available, extend EndBlockHeight.
 	if additionalTime != 0 {
 		if pool.EndTime == 0 {
@@ -193,4 +199,11 @@ func (k Keeper) IterateAllPools(ctx sdk.Context, callback func(certificate types
 			break
 		}
 	}
+}
+
+// ValidatePoolDuration validates new pool duration to be valid
+func (k Keeper) ValidatePoolDuration(ctx sdk.Context, timeDuration, numBlocks int64) bool {
+	poolparams := k.GetPoolParams(ctx)
+	minPoolDuration := int64(poolparams.MinPoolLife)
+	return timeDuration > minPoolDuration || numBlocks*5 > minPoolDuration
 }
