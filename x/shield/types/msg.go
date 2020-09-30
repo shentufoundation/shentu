@@ -56,10 +56,13 @@ func (msg MsgCreatePool) ValidateBasic() error {
 	if strings.TrimSpace(msg.Sponsor) == "" {
 		return ErrEmptySponsor
 	}
-	if msg.Deposit.Native.IsValid() || msg.Deposit.Native.IsZero() || msg.Deposit.Foreign.IsValid() || msg.Deposit.Foreign.IsZero() {
-		return ErrNoDeposit
+	if msg.Deposit.Native.IsZero() || !msg.Deposit.Native.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "native amount: %s", msg.Deposit.Native)
 	}
-	if msg.Shield.IsValid() || msg.Shield.IsZero() {
+	if msg.Deposit.Foreign.IsZero() || !msg.Deposit.Foreign.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "foreign amount %s", msg.Deposit.Foreign)
+	}
+	if !msg.Shield.IsValid() || msg.Shield.IsZero() {
 		return ErrNoShield
 	}
 	// TO-DO need to double check
@@ -117,11 +120,11 @@ func (msg MsgUpdatePool) ValidateBasic() error {
 	if msg.PoolID == 0 {
 		return ErrInvalidPoolID
 	}
-	if msg.Deposit.Native.IsValid() || msg.Deposit.Native.IsZero() || msg.Deposit.Foreign.IsValid() || msg.Deposit.Foreign.IsZero() {
-		return ErrNoDeposit
+	if !(msg.Deposit.Native.IsValid() && msg.Deposit.Foreign.IsValid()) {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid deposit")
 	}
-	if msg.Shield.IsValid() || msg.Shield.IsZero() {
-		return ErrNoShield
+	if !msg.Shield.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid shield")
 	}
 	// TO-DO need to double check
 	if msg.AdditionalTime <= 0 && msg.AdditionalBlocks <= 0 {
