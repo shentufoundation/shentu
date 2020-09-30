@@ -6,6 +6,7 @@ const (
 	EventTypePausePool              = "pause_pool"
 	EventTypeResumePool             = "resume_pool"
 	EventTypeDepositCollateral      = "deposit_collateral"
+	EventTypeWithdrawCollateral     = "withdraw_collateral"
 	EventTypePurchase               = "purchase_shield"
 	EventTypeWithdrawRewards        = "withdraw_rewards"
 	EventTypeWithdrawForeignRewards = "withdraw_foreign_rewards"

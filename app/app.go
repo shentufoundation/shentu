@@ -354,7 +354,9 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.SetOrderBeginBlockers(upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
 		supply.ModuleName, oracle.ModuleName, cvm.ModuleName, shield.ModuleName)
 
-	app.mm.SetOrderEndBlockers(cvm.ModuleName, staking.ModuleName, gov.ModuleName, oracle.ModuleName, shield.ModuleName)
+	// NOTE: Shield endblocker comes before staking because it queries
+	// unbonding delegations that staking endblocker deletes.
+	app.mm.SetOrderEndBlockers(cvm.ModuleName, shield.ModuleName, staking.ModuleName, gov.ModuleName, oracle.ModuleName)
 
 	// NOTE: genutil moodule must occur after staking so that pools
 	// are properly initialized with tokens from genesis accounts.

@@ -61,7 +61,7 @@ func main() {
 	rootCmd.AddCommand(genutilcli.CollectGenTxsCmd(ctx, cdc, auth.GenesisAccountIterator{}, app.DefaultNodeHome))
 	rootCmd.AddCommand(AddGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome))
 	rootCmd.AddCommand(AddGenesisCertifierCmd(ctx, cdc))
-	rootCmd.AddCommand(AddGenesisShieldOperatorCmd(ctx, cdc))
+	rootCmd.AddCommand(AddGenesisShieldAdminCmd(ctx, cdc))
 	rootCmd.AddCommand(MigrateGenesisCmd(ctx, cdc))
 	rootCmd.AddCommand(certikinit.TestnetFilesCmd(ctx, cdc, app.ModuleBasics, auth.GenesisAccountIterator{}))
 	rootCmd.AddCommand(genutilcli.GenTxCmd(

@@ -16,12 +16,12 @@ import (
 	"github.com/certikfoundation/shentu/x/shield"
 )
 
-// AddGenesisShieldOperatorCmd returns add-genesis-shield-operator cobra Command.
-func AddGenesisShieldOperatorCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
+// AddGenesisShieldAdminCmd returns add-genesis-shield-admin cobra Command.
+func AddGenesisShieldAdminCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-genesis-shield-operator [address]",
-		Short: "Add a genesis shield operator to genesis.json",
-		Long:  `Add a genesis shield operator to genesis.json. The provided shield operator must specify the account address. `,
+		Use:   "add-genesis-shield-admin [address]",
+		Short: "Add a genesis shield admin to genesis.json",
+		Long:  `Add a genesis shield admin to genesis.json. The provided shield admin must specify the account address. `,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config := ctx.Config
@@ -39,7 +39,7 @@ func AddGenesisShieldOperatorCmd(ctx *server.Context, cdc *codec.Codec) *cobra.C
 			}
 			shieldGenState := shield.GetGenesisStateFromAppState(cdc, appState)
 
-			shieldGenState.ShieldOperator = addr
+			shieldGenState.ShieldAdmin = addr
 
 			shieldGenStateBz, err := cdc.MarshalJSON(shieldGenState)
 			if err != nil {

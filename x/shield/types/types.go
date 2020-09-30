@@ -22,11 +22,11 @@ type Pool struct {
 }
 
 func NewPool(
-	operator sdk.AccAddress, shield sdk.Coins, deposit MixedDecCoins, sponsor string,
+	admin sdk.AccAddress, shield sdk.Coins, deposit MixedDecCoins, sponsor string,
 	endTime, startBlockHeight, endBlockHeight int64, id uint64) Pool {
 	return Pool{
 		Shield:           shield,
-		CertiK:           NewCollateral(operator, shield),
+		CertiK:           NewCollateral(admin, shield),
 		Premium:          deposit,
 		Sponsor:          sponsor,
 		Active:           true,
@@ -39,7 +39,7 @@ func NewPool(
 }
 
 type Collateral struct {
-	PoolID            uint
+	PoolID            uint64
 	Provider          sdk.AccAddress
 	Amount            sdk.Coins
 	Description       string
@@ -147,15 +147,17 @@ func NewPendingPayouts(amount sdk.Dec, to string) PendingPayout {
 // Participant tracks A or C's total delegation, total collateral,
 // and rewards.
 type Participant struct {
-	TotalDelegation sdk.Coins
-	TotalCollateral sdk.Coins
-	Rewards         MixedDecCoins
+	DelegationBonded    sdk.Coins
+	DelegationUnbonding sdk.Coins
+	Collateral          sdk.Coins
+	Rewards             MixedDecCoins
 }
 
 func NewParticipant() Participant {
 	return Participant{
-		TotalDelegation: sdk.Coins{},
-		TotalCollateral: sdk.Coins{},
+		DelegationBonded:    sdk.Coins{},
+		DelegationUnbonding: sdk.Coins{},
+		Collateral:          sdk.Coins{},
 	}
 }
 
@@ -180,5 +182,18 @@ func NewPurchase(
 		ClaimPeriodEndTime: claimPeriodEndTime,
 		Description:        description,
 		Purchaser:          purchaser,
+	}
+}
+
+// Withdrawal stores an ongoing withdrawal of pool collateral.
+type Withdrawal struct {
+	Address sdk.AccAddress `json:"address" yaml:"address"`
+	Amount  sdk.Coins      `json:"amount" yaml:"amount"`
+}
+
+func NewWithdrawal(addr sdk.AccAddress, amount sdk.Coins) Withdrawal {
+	return Withdrawal{
+		Address: addr,
+		Amount:  amount,
 	}
 }

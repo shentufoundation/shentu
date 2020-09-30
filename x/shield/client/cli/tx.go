@@ -47,6 +47,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetCmdPausePool(cdc),
 		GetCmdResumePool(cdc),
 		GetCmdDepositCollateral(cdc),
+		GetCmdWithdrawCollateral(cdc),
 		GetCmdWithdrawRewards(cdc),
 		GetCmdWithdrawForeignRewards(cdc),
 		GetCmdClearPayouts(cdc),
@@ -121,7 +122,7 @@ func GetCmdCreatePool(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		Short: "create new Shield pool initialized with an validator address",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Create a shield pool. Can only be executed from the shield operator address.
+			fmt.Sprintf(`Create a shield pool. Can only be executed from the shield admin address.
 
 Example:
 $ %s tx shield create-pool <shield amount> <sponsor> --native-deposit <ctk deposit> --foreign-deposit <external deposit>
@@ -185,7 +186,7 @@ func GetCmdUpdatePool(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "update new Shield pool through adding more deposit or updating shield amount.",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Update a shield pool. Can only be executed from the shield operator address.
+			fmt.Sprintf(`Update a shield pool. Can only be executed from the shield admin address.
 
 Example:
 $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit <external deposit> --shield <shield amount> 
@@ -257,7 +258,7 @@ func GetCmdPausePool(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "pause a Shield pool to disallow further shield purchase.",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Pause a shield pool to prevent and new shield purchases for the pool. Can only be executed from the shield operator address.
+			fmt.Sprintf(`Pause a shield pool to prevent and new shield purchases for the pool. Can only be executed from the shield admin address.
 
 Example:
 $ %s tx shield pause-pool <pool id>
@@ -277,7 +278,7 @@ func GetCmdResumePool(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "resume a Shield pool to allow shield purchase for an existing pool.",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Resume a shield pool to reactivate shield purchase. Can only be executed from the shield operator address.
+			fmt.Sprintf(`Resume a shield pool to reactivate shield purchase. Can only be executed from the shield admin address.
 
 Example:
 $ %s tx shield resume-pool <pool id>
@@ -342,6 +343,41 @@ func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
 			}
 
 			msg := types.NewMsgDepositCollateral(fromAddr, id, collateral)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	return cmd
+}
+
+// GetCmdWithdrawCollateral implements command for community member to
+// withdraw deposited collateral from a pool.
+func GetCmdWithdrawCollateral(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "withdraw-collateral [pool id] [collateral]",
+		Short: "withdraw deposited collateral from a pool",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			fromAddr := cliCtx.GetFromAddress()
+
+			id, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			collateral, err := sdk.ParseCoins(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgWithdrawCollateral(fromAddr, id, collateral)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

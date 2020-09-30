@@ -6,15 +6,15 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-// SetAdmin sets the Shield Admin account address.
+// SetAdmin sets the Shield admin account address.
 func (k Keeper) SetAdmin(ctx sdk.Context, admin sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	bz := admin
-	store.Set(types.GetShieldOperatorKey(), bz)
+	store.Set(types.GetShieldAdminKey(), bz)
 }
 
-// GetAdmin gets the Shield Admin account address.
+// GetAdmin gets the Shield admin account address.
 func (k Keeper) GetAdmin(ctx sdk.Context) sdk.AccAddress {
 	store := ctx.KVStore(k.storeKey)
-	return store.Get(types.GetShieldOperatorKey())
+	return store.Get(types.GetShieldAdminKey())
 }

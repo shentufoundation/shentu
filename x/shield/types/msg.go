@@ -264,6 +264,49 @@ func (msg MsgDepositCollateral) ValidateBasic() error {
 	return nil
 }
 
+// NewMsgWithdrawCollateral defines the attributes of a withdrawing collaterals.
+type MsgWithdrawCollateral struct {
+	From       sdk.AccAddress `json:"sender" yaml:"sender"`
+	PoolID     uint64         `json:"pool_id" yaml:"pool_id"`
+	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
+}
+
+// NewMsgDepositCollateral creates a new MsgDepositCollateral instance.
+func NewMsgWithdrawCollateral(sender sdk.AccAddress, id uint64, collateral sdk.Coins) MsgWithdrawCollateral {
+	return MsgWithdrawCollateral{
+		From:       sender,
+		PoolID:     id,
+		Collateral: collateral,
+	}
+}
+
+
+// Route implements the sdk.Msg interface.
+func (msg MsgWithdrawCollateral) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface
+func (msg MsgWithdrawCollateral) Type() string { return "withdraw_collateral" }
+
+// GetSigners implements the sdk.Msg interface
+func (msg MsgWithdrawCollateral) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgWithdrawCollateral) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgWithdrawCollateral) ValidateBasic() error {
+	if msg.PoolID == 0 {
+		return ErrInvalidPoolID
+	}
+	return nil
+}
+
 type MsgWithdrawRewards struct {
 	From   sdk.AccAddress `json:"sender" yaml:"sender"`
 	Denom  string         `json:"denom" yaml:"denom"`
@@ -277,7 +320,6 @@ func NewMsgWithdrawRewards(sender sdk.AccAddress) MsgWithdrawRewards {
 	}
 }
 
-// Route implements the sdk.Msg interface.
 func (msg MsgWithdrawRewards) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface

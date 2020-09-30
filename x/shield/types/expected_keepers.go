@@ -1,10 +1,13 @@
 package types
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 // AccountKeeper expected account keeper
@@ -15,10 +18,10 @@ type AccountKeeper interface {
 
 // StakingKeeper expected staking keeper
 type StakingKeeper interface {
-	// iterate through validators by operator address, execute func for each validator
+	// iterate through validators by admin address, execute func for each validator
 	IterateValidators(sdk.Context, func(index int64, validator stakingexported.ValidatorI) (stop bool))
 
-	GetValidator(sdk.Context, sdk.ValAddress) (staking.Validator, bool) // get a particular validator by operator address with a found flag
+	GetValidator(sdk.Context, sdk.ValAddress) (staking.Validator, bool) // get a particular validator by admin address with a found flag
 
 	ValidatorByConsAddr(sdk.Context, sdk.ConsAddress) stakingexported.ValidatorI // get a particular validator by consensus address
 
@@ -30,9 +33,13 @@ type StakingKeeper interface {
 	// Delegation allows for getting a particular delegation for a given validator
 	// and delegator outside the scope of the staking module.
 	Delegation(sdk.Context, sdk.AccAddress, sdk.ValAddress) stakingexported.DelegationI
-	GetAllDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddress) []staking.Delegation
+	GetAllDelegatorDelegations(sdk.Context, sdk.AccAddress) []staking.Delegation
 
-	BondDenom(ctx sdk.Context) string
+	BondDenom(sdk.Context) string
+
+	UBDQueueIterator(sdk.Context, time.Time) sdk.Iterator
+	GetUnbondingDelegation(sdk.Context, sdk.AccAddress, sdk.ValAddress) (stakingTypes.UnbondingDelegation, bool)
+	InsertUBDQueue(sdk.Context, stakingTypes.UnbondingDelegation, time.Time)
 
 	// MaxValidators returns the maximum amount of bonded validators
 	MaxValidators(sdk.Context) uint16

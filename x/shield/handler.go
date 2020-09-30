@@ -33,6 +33,8 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgClearPayouts(ctx, msg, k)
 		case types.MsgDepositCollateral:
 			return handleMsgDepositCollateral(ctx, msg, k)
+		case types.MsgWithdrawCollateral:
+			return handleMsgWithdrawCollateral(ctx, msg, k)
 		case types.MsgPurchaseShield:
 			return handleMsgPurchaseShield(ctx, msg, k)
 		default:
@@ -105,6 +107,22 @@ func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*s
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
+func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollateral, k Keeper) (*sdk.Result, error) {
+	if err := k.WithdrawCollateral(ctx, msg.From, msg.PoolID, msg.Collateral); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeWithdrawCollateral,
+			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
+			sdk.NewAttribute(types.AttributeKeyCollateral, msg.Collateral.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+  
 func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral, k Keeper) (*sdk.Result, error) {
 	if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral); err != nil {
 		return nil, err
@@ -228,7 +246,7 @@ func handleMsgWithdrawForeignRewards(ctx sdk.Context, msg types.MsgWithdrawForei
 
 func handleMsgClearPayouts(ctx sdk.Context, msg types.MsgClearPayouts, k Keeper) (*sdk.Result, error) {
 	if !k.GetAdmin(ctx).Equals(msg.From) {
-		return &sdk.Result{Events: ctx.EventManager().Events()}, types.ErrNotShieldOperator
+		return &sdk.Result{Events: ctx.EventManager().Events()}, types.ErrNotShieldAdmin
 	}
 	earnings := k.GetPendingPayouts(ctx, msg.Denom)
 	if earnings == nil {

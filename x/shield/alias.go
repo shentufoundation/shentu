@@ -14,9 +14,9 @@ const (
 )
 
 type (
-	Keeper = keeper.Keeper
-
+	Keeper              = keeper.Keeper
 	GenesisState        = types.GenesisState
+	Participant         = types.Participant
 	ClaimProposal       = types.ShieldClaimProposal
 	ClaimProposalParams = types.ClaimProposalParams
 	Purchase            = types.Purchase

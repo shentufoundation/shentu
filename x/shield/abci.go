@@ -14,7 +14,7 @@ func BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 }
 
 // EndBlocker processes premium payment at every block.
-func EndBlocker(ctx sdk.Context, k Keeper, stakingKeeper types.StakingKeeper) {
+func EndBlocker(ctx sdk.Context, k Keeper, stk types.StakingKeeper) {
 	pools := k.GetAllPools(ctx)
 	for _, pool := range pools {
 		if k.PoolEnded(ctx, pool) || (pool.Premium.Native.Empty() && pool.Premium.Foreign.Empty()) {
@@ -45,7 +45,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, stakingKeeper types.StakingKeeper) {
 		}
 
 		// distribute to A and C in proportion
-		bondDenom := stakingKeeper.BondDenom(ctx) // common.MicroCTKDenom
+		bondDenom := stk.BondDenom(ctx) // common.MicroCTKDenom
 		totalCollatInt := pool.TotalCollateral.AmountOf(bondDenom)
 		recipients := append(pool.Community, pool.CertiK)
 		for _, recipient := range recipients {
@@ -66,4 +66,40 @@ func EndBlocker(ctx sdk.Context, k Keeper, stakingKeeper types.StakingKeeper) {
 
 	// remove expired purchases
 	k.RemoveExpiredPurchases(ctx)
+
+	// track unbonding amounts of participants
+	TrackUnbondingAmount(ctx, k, stk)
+
+	// process completed withdrawals
+	// Remove all mature unbonding delegations from the ubd queue.
+	k.DequeueCompletedWithdrawalQueue(ctx)
+	
+}
+
+// TrackUnbondingAmount tracks the amount to be unbonded by staking end blocker.
+func TrackUnbondingAmount(ctx sdk.Context, k Keeper, stk types.StakingKeeper) {
+	matureUnbonds := k.GetAllMatureUBDQueue(ctx, ctx.BlockHeader().Time, stk)
+	for _, dvPair := range matureUnbonds {
+		delAddr := dvPair.DelegatorAddress
+		valAddr := dvPair.ValidatorAddress
+		ubd, _ := stk.GetUnbondingDelegation(ctx, delAddr, valAddr)
+		bondDenom := stk.BondDenom(ctx)
+		balances := sdk.NewCoins()
+		ctxTime := ctx.BlockHeader().Time
+
+		// loop through all the entries and complete unbonding mature entries
+		for _, entry := range(ubd.Entries) {
+			if entry.IsMature(ctxTime)  && !entry.Balance.IsZero(){
+				balances = balances.Add(sdk.NewCoin(bondDenom, entry.Balance))
+			}
+		}
+
+		participant, _ := k.GetParticipant(ctx, delAddr)
+
+		if participant.DelegationUnbonding.Empty() {
+			continue
+		}
+		participant.DelegationUnbonding = participant.DelegationUnbonding.Sub(balances)
+		k.SetParticipant(ctx, delAddr, participant)
+	} // for each mature unbond dv pair
 }

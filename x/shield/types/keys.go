@@ -1,6 +1,7 @@
 package types
 
 import (
+	"time"
 	"encoding/binary"
 	"encoding/hex"
 
@@ -25,13 +26,14 @@ const (
 )
 
 var (
-	PoolKey           = []byte{0x0}
-	ShieldOperatorKey = []byte{0x1}
-	NextPoolIDKey     = []byte{0x2}
-	PurchaseKey       = []byte{0x3}
+	PoolKey        = []byte{0x0}
+	ShieldAdminKey = []byte{0x1}
+	NextPoolIDKey  = []byte{0x2}
+	PurchaseKey    = []byte{0x3}
 
 	ParticipantKey    = []byte{0x5}
 	PendingPayoutsKey = []byte{0x6}
+	WithdrawalQueueKey = []byte{0x7}
 )
 
 // GetPoolKey gets the key for the pool identified by pool ID.
@@ -41,9 +43,9 @@ func GetPoolKey(id uint64) []byte {
 	return append(PoolKey, b...)
 }
 
-// GetShieldOperatorKey gets the key for the shield operator.
-func GetShieldOperatorKey() []byte {
-	return ShieldOperatorKey
+// GetShieldadminKey gets the key for the shield admin.
+func GetShieldAdminKey() []byte {
+	return ShieldAdminKey
 }
 
 // GetNextPoolIDKey gets the key for the next pool ID.
@@ -68,4 +70,11 @@ func GetPurchaseTxHashKey(txhashStr string) []byte {
 // GetParticipantKey gets the key for the delegator's tracker.
 func GetParticipantKey(addr sdk.AccAddress) []byte {
 	return append(ParticipantKey, addr...)
+}
+
+// GetWithdrawalCompletionTimeKey gets a withdrawal queue key,
+// which is obtained from the completion time.
+func GetWithdrawalCompletionTimeKey(timestamp time.Time) []byte {
+	bz := sdk.FormatTimeBytes(timestamp)
+	return append(WithdrawalQueueKey, bz...)
 }
