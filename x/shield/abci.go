@@ -4,6 +4,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/types"
@@ -14,7 +15,7 @@ func BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 }
 
 // EndBlocker processes premium payment at every block.
-func EndBlocker(ctx sdk.Context, k Keeper, stk types.StakingKeeper) {
+func EndBlocker(ctx sdk.Context, k Keeper, stakingKeeper types.StakingKeeper) {
 	pools := k.GetAllPools(ctx)
 	for _, pool := range pools {
 		if k.PoolEnded(ctx, pool) || (pool.Premium.Native.Empty() && pool.Premium.Foreign.Empty()) {
@@ -45,7 +46,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, stk types.StakingKeeper) {
 		}
 
 		// distribute to A and C in proportion
-		bondDenom := stk.BondDenom(ctx) // common.MicroCTKDenom
+		bondDenom := stakingKeeper.BondDenom(ctx) // common.MicroCTKDenom
 		totalCollatInt := pool.TotalCollateral.AmountOf(bondDenom)
 		recipients := append(pool.Community, pool.CertiK)
 		for _, recipient := range recipients {
@@ -68,17 +69,23 @@ func EndBlocker(ctx sdk.Context, k Keeper, stk types.StakingKeeper) {
 	k.RemoveExpiredPurchases(ctx)
 
 	// track unbonding amounts of participants
-	TrackUnbondingAmount(ctx, k, stk)
+	TrackUnbondingAmount(ctx, k, stakingKeeper)
 
 	// process completed withdrawals
 	// Remove all mature unbonding delegations from the ubd queue.
 	k.DequeueCompletedWithdrawalQueue(ctx)
+
 }
 
 // TrackUnbondingAmount tracks the amount to be unbonded by staking end blocker.
 func TrackUnbondingAmount(ctx sdk.Context, k Keeper, stk types.StakingKeeper) {
 	matureUnbonds := k.GetAllMatureUBDQueue(ctx, ctx.BlockHeader().Time, stk)
+	accounted := []staking.DVPair{}
 	for _, dvPair := range matureUnbonds {
+		if dvPairAccounted(accounted, dvPair) {
+			continue
+		}
+		accounted = append(accounted, dvPair)
 		delAddr := dvPair.DelegatorAddress
 		valAddr := dvPair.ValidatorAddress
 		ubd, _ := stk.GetUnbondingDelegation(ctx, delAddr, valAddr)
@@ -101,4 +108,13 @@ func TrackUnbondingAmount(ctx sdk.Context, k Keeper, stk types.StakingKeeper) {
 		participant.DelegationUnbonding = participant.DelegationUnbonding.Sub(balances)
 		k.SetParticipant(ctx, delAddr, participant)
 	} // for each mature unbond dv pair
+}
+
+func dvPairAccounted(accounted []staking.DVPair, new staking.DVPair) bool {
+	for _, dvPair := range accounted {
+		if dvPair.ValidatorAddress.Equals(new.ValidatorAddress) && dvPair.DelegatorAddress.Equals(new.DelegatorAddress) {
+			return true
+		}
+	}
+	return false
 }

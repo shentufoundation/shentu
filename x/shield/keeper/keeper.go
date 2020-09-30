@@ -46,7 +46,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 	// check eligibility
 	participant, found := k.GetParticipant(ctx, from)
 	if !found {
-		return types.ErrNoDelegationAmount
+		k.addParticipant(ctx, from)
 	}
 	participant.Collateral = participant.Collateral.Add(amount...)
 	if participant.Collateral.IsAnyGT(participant.DelegationBonded) {

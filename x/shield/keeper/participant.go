@@ -22,30 +22,60 @@ func (k Keeper) GetParticipant(ctx sdk.Context, delegator sdk.AccAddress) (dt ty
 	return dt, true
 }
 
-func (k Keeper) updateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) {
-	// go through delAddr's delegations to recompute total amount of bonded delegation
-	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
-	bondedAmount := sdk.Coins{}
+// addParticipant adds a new participant into shield module. Should only be called from DepositCollateral.
+func (k Keeper) addParticipant(ctx sdk.Context, addr sdk.AccAddress) types.Participant {
+	delegations := k.sk.GetAllDelegatorDelegations(ctx, addr)
+
+	totalStaked := sdk.Coins{}
+	totalUnbonding := sdk.Coins{}
 	for _, del := range delegations {
 		val, found := k.sk.GetValidator(ctx, del.GetValidatorAddr())
 		if !found {
 			panic("expected validator, not found")
 		}
-		bondedAmount = bondedAmount.Add(sdk.NewCoin(k.sk.BondDenom(ctx), val.TokensFromShares(del.GetShares()).TruncateInt()))
+		totalStaked = totalStaked.Add(sdk.NewCoin(k.sk.BondDenom(ctx), val.TokensFromShares(del.GetShares()).TruncateInt()))
+		ubds, found := k.sk.GetUnbondingDelegation(ctx, addr, del.GetValidatorAddr())
+		if !found {
+			continue
+		}
+		for _, ubd := range ubds.Entries {
+			totalUnbonding = totalUnbonding.Add(sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), ubd.Balance))...)
+		}
 	}
+	participant := types.NewParticipant()
+	participant.DelegationBonded = totalStaked
+	participant.DelegationUnbonding = totalUnbonding
 
+	k.SetParticipant(ctx, addr, participant)
+	return participant
+}
+
+func (k Keeper) updateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) {
+	// go through delAddr's delegations to recompute total amount of bonded delegation
 	// update or create a new entry
 	participant, found := k.GetParticipant(ctx, delAddr)
 	if !found {
 		return // ignore non-participating addr
 	}
-	originalBonded := participant.DelegationBonded
-	participant.DelegationBonded = bondedAmount
-
-	// if bonded decreased, an unbonding began
-	if bondedAmount.IsAllLT(originalBonded) {
-		participant.DelegationUnbonding = participant.DelegationUnbonding.Add(originalBonded.Sub(bondedAmount)...)
+	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
+	totalStaked := sdk.Coins{}
+	totalUnbonding := sdk.Coins{}
+	for _, del := range delegations {
+		val, found := k.sk.GetValidator(ctx, del.GetValidatorAddr())
+		if !found {
+			panic("expected validator, not found")
+		}
+		totalStaked = totalStaked.Add(sdk.NewCoin(k.sk.BondDenom(ctx), val.TokensFromShares(del.GetShares()).TruncateInt()))
+		ubds, found := k.sk.GetUnbondingDelegation(ctx, delAddr, del.GetValidatorAddr())
+		if !found {
+			continue
+		}
+		for _, ubd := range ubds.Entries {
+			totalUnbonding = totalUnbonding.Add(sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), ubd.Balance))...)
+		}
 	}
+	participant.DelegationBonded = totalStaked
+	participant.DelegationUnbonding = totalUnbonding
 
 	totalDelegation := participant.DelegationBonded.Add(participant.DelegationUnbonding...)
 	if totalDelegation.IsAllLT(participant.Collateral) {
