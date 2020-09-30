@@ -36,7 +36,7 @@ type ShieldClaimProposalReq struct {
 	Deposit        sdk.Coins    `json:"deposit" yaml:"deposit"`
 }
 
-type transferForeignReq struct {
+type withdrawForeignRewardsReq struct {
 	BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
 	Denom   string       `json:"denom" yaml:"denom"`
 	ToAddr  string       `json:"to_addr" yaml:"to_addr"`

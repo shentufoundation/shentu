@@ -1,14 +1,14 @@
 package types
 
 const (
-	EventTypeCreatePool        = "create_pool"
-	EventTypeUpdatePool        = "update_pool"
-	EventTypePausePool         = "pause_pool"
-	EventTypeResumePool        = "resume_pool"
-	EventTypeDepositCollateral = "deposit_collateral"
-	EventTypePurchase          = "purchase_shield"
-	EventTypeTransferForeign   = "transfer_foreign"
-	EventTypeClearPayouts      = "clear_payouts"
+	EventTypeCreatePool             = "create_pool"
+	EventTypeUpdatePool             = "update_pool"
+	EventTypePausePool              = "pause_pool"
+	EventTypeResumePool             = "resume_pool"
+	EventTypeDepositCollateral      = "deposit_collateral"
+	EventTypePurchase               = "purchase_shield"
+	EventTypeWithdrawForeignRewards = "withdraw_foreign_rewards"
+	EventTypeClearPayouts           = "clear_payouts"
 
 	AttributeKeyShield           = "shield"
 	AttributeKeyDeposit          = "deposit"

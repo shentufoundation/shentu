@@ -23,7 +23,7 @@ var (
 	ErrPurchaseMissingDescription = sdkerrors.Register(ModuleName, 116, "missing description for the purchase")
 	ErrNotEnoughShield            = sdkerrors.Register(ModuleName, 117, "not enough available shield")
 	ErrNoPurchaseFound            = sdkerrors.Register(ModuleName, 118, "no purchase found for the given txhash")
-	ErrNoRewards                  = sdkerrors.Register(ModuleName, 119, "no foreign coins to transfer for the denomination")
+	ErrNoRewards                  = sdkerrors.Register(ModuleName, 119, "no foreign coins rewards to transfer for the denomination")
 	ErrInvalidDenom               = sdkerrors.Register(ModuleName, 120, "invalid coin denomination")
 	ErrInvalidToAddr              = sdkerrors.Register(ModuleName, 121, "invalid recipient address")
 	ErrEmptySender                = sdkerrors.Register(ModuleName, 122, "no sender provided")

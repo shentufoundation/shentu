@@ -17,7 +17,7 @@ import (
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/shield/create_pool", createPoolHandlerFn(cliCtx)).Methods("POST")
-	r.HandleFunc("/shield/transfer_foreign", transferForeignHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/shield/withdraw_foreign_rewards", withdrawForeignRewardsHandlerFn(cliCtx)).Methods("POST")
 }
 
 func createPoolHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -83,9 +83,9 @@ func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func transferForeignHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func withdrawForeignRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req transferForeignReq
+		var req withdrawForeignRewardsReq
 
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
 			return
@@ -102,7 +102,7 @@ func transferForeignHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgTransferForeign(accAddr, req.Denom, req.ToAddr)
+		msg := types.NewMsgWithdrawForeignRewards(accAddr, req.Denom, req.ToAddr)
 
 		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
 	}

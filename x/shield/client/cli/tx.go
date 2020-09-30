@@ -47,7 +47,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetCmdPausePool(cdc),
 		GetCmdResumePool(cdc),
 		GetCmdDepositCollateral(cdc),
-		GetCmdTransferForeign(cdc),
+		GetCmdWithdrawForeignRewards(cdc),
 		GetCmdClearPayouts(cdc),
 		GetCmdPurchaseShield(cdc),
 	)...)
@@ -351,11 +351,11 @@ func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-// GetCmdTransferForeign implements command for requesting to transfer foreign tokens
-func GetCmdTransferForeign(cdc *codec.Codec) *cobra.Command {
+// GetCmdWithdrawForeignRewards implements command for requesting to withdraw foreign tokens rewards
+func GetCmdWithdrawForeignRewards(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "transfer-foreign [denom] [address]",
-		Short: "transfer foreign coins to their original chain",
+		Use:   "withdraw-foreign-rewards [denom] [address]",
+		Short: "withdraw foreign rewards coins to their original chain",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -367,7 +367,7 @@ func GetCmdTransferForeign(cdc *codec.Codec) *cobra.Command {
 			denom := args[0]
 			addr := args[1]
 
-			msg := types.NewMsgTransferForeign(fromAddr, denom, addr)
+			msg := types.NewMsgWithdrawForeignRewards(fromAddr, denom, addr)
 
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},

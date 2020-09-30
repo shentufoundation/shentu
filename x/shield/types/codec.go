@@ -11,7 +11,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgPausePool{}, "shield/MsgPausePool", nil)
 	cdc.RegisterConcrete(MsgResumePool{}, "shield/MsgResumePool", nil)
 	cdc.RegisterConcrete(MsgDepositCollateral{}, "shield/MsgDepositCollateral", nil)
-	cdc.RegisterConcrete(MsgTransferForeign{}, "shield/MsgTransferForeign", nil)
+	cdc.RegisterConcrete(MsgWithdrawForeignRewards{}, "shield/MsgWithdrawForeignRewards", nil)
 	cdc.RegisterConcrete(MsgClearPayouts{}, "shield/MsgClearPayouts", nil)
 	cdc.RegisterConcrete(ShieldClaimProposal{}, "shield/ShieldClaimProposal", nil)
 	cdc.RegisterConcrete(MsgPurchaseShield{}, "shield/MsgPurchaseShield", nil)

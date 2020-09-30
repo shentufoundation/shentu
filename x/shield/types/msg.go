@@ -264,15 +264,15 @@ func (msg MsgDepositCollateral) ValidateBasic() error {
 	return nil
 }
 
-type MsgTransferForeign struct {
+type MsgWithdrawForeignRewards struct {
 	From   sdk.AccAddress `json:"sender" yaml:"sender"`
 	Denom  string         `json:"denom" yaml:"denom"`
 	ToAddr string         `json:"to_addr" yaml:"to_addr"`
 }
 
-// NewMsgTransferForeign creates a new MsgTransferForeign instance.
-func NewMsgTransferForeign(sender sdk.AccAddress, denom, toAddr string) MsgTransferForeign {
-	return MsgTransferForeign{
+// NewMsgWithdrawForeignRewards creates a new MsgWithdrawForeignRewards instance.
+func NewMsgWithdrawForeignRewards(sender sdk.AccAddress, denom, toAddr string) MsgWithdrawForeignRewards {
+	return MsgWithdrawForeignRewards{
 		From:   sender,
 		Denom:  denom,
 		ToAddr: toAddr,
@@ -280,24 +280,24 @@ func NewMsgTransferForeign(sender sdk.AccAddress, denom, toAddr string) MsgTrans
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgTransferForeign) Route() string { return RouterKey }
+func (msg MsgWithdrawForeignRewards) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface
-func (msg MsgTransferForeign) Type() string { return EventTypeTransferForeign }
+func (msg MsgWithdrawForeignRewards) Type() string { return EventTypeWithdrawForeignRewards }
 
 // GetSigners implements the sdk.Msg interface
-func (msg MsgTransferForeign) GetSigners() []sdk.AccAddress {
+func (msg MsgWithdrawForeignRewards) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.From}
 }
 
 // GetSignBytes implements the sdk.Msg interface.
-func (msg MsgTransferForeign) GetSignBytes() []byte {
+func (msg MsgWithdrawForeignRewards) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgTransferForeign) ValidateBasic() error {
+func (msg MsgWithdrawForeignRewards) ValidateBasic() error {
 	if msg.From.Empty() {
 		return ErrEmptySender
 	}

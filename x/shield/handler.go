@@ -24,8 +24,8 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgPausePool(ctx, msg, k)
 		case types.MsgResumePool:
 			return handleMsgResumePool(ctx, msg, k)
-		case types.MsgTransferForeign:
-			return handleMsgTransferForeign(ctx, msg, k)
+		case types.MsgWithdrawForeignRewards:
+			return handleMsgWithdrawForeignRewards(ctx, msg, k)
 		case types.MsgClearPayouts:
 			return handleMsgClearPayouts(ctx, msg, k)
 		case types.MsgDepositCollateral:
@@ -175,7 +175,7 @@ func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Kee
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgTransferForeign(ctx sdk.Context, msg types.MsgTransferForeign, k Keeper) (*sdk.Result, error) {
+func handleMsgWithdrawForeignRewards(ctx sdk.Context, msg types.MsgWithdrawForeignRewards, k Keeper) (*sdk.Result, error) {
 	rewards := k.GetRewards(ctx, msg.From)
 	amount := rewards.Foreign.AmountOf(msg.Denom)
 	if amount.Equal(sdk.ZeroDec()) {
@@ -188,7 +188,7 @@ func handleMsgTransferForeign(ctx sdk.Context, msg types.MsgTransferForeign, k K
 	k.AddPendingPayout(ctx, msg.Denom, newPayout)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeTransferForeign,
+			types.EventTypeWithdrawForeignRewards,
 			sdk.NewAttribute(types.AttributeKeyToAddr, msg.ToAddr),
 			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
 			sdk.NewAttribute(types.AttributeKeyAmount, newPayout.Amount.String()),
