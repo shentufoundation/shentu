@@ -17,8 +17,8 @@ func BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 func EndBlocker(ctx sdk.Context, k Keeper, stakingKeeper types.StakingKeeper) {
 	pools := k.GetAllPools(ctx)
 	for _, pool := range pools {
-		if pool.Premium.Native.Empty() || pool.Premium.Foreign.Empty() {
-			// TODO: close pool
+		if k.PoolEnded(ctx, pool) || (pool.Premium.Native.Empty() && pool.Premium.Foreign.Empty()) {
+			k.ClosePool(ctx, pool)
 			continue
 		}
 		// compute premiums for current block
