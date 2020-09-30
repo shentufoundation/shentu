@@ -204,6 +204,6 @@ func (k Keeper) IterateAllPools(ctx sdk.Context, callback func(certificate types
 // ValidatePoolDuration validates new pool duration to be valid
 func (k Keeper) ValidatePoolDuration(ctx sdk.Context, timeDuration, numBlocks int64) bool {
 	poolparams := k.GetPoolParams(ctx)
-	minPoolDuration := int64(poolparams.MinPoolLife)
+	minPoolDuration := int64(poolparams.MinPoolLife.Seconds())
 	return timeDuration > minPoolDuration || numBlocks*5 > minPoolDuration
 }
