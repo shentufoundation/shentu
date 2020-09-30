@@ -26,7 +26,7 @@ func (k Keeper) GetPurchase(ctx sdk.Context, txhash string) (types.Purchase, err
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &purchase)
 		return purchase, nil
 	}
-	return types.Purchase{}, types.ErrNoPurchaseFound
+	return types.Purchase{}, types.ErrPurchaseNotFound
 }
 
 // DeletePurchase deletes a purchase of shield.
@@ -75,7 +75,7 @@ func (k Keeper) PurchaseShield(
 	// set purchase
 	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
-	claimPeriodEndTime := protectionEndTime.Add(claimParams.ClaimPeriod)
+	claimPeriodEndTime := ctx.BlockTime().Add(claimParams.ClaimPeriod)
 	purchase := types.NewPurchase(poolID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, description, purchaser)
 	k.SetPurchase(ctx, txhash, purchase)
 

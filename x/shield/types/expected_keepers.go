@@ -7,7 +7,6 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
-	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 // AccountKeeper expected account keeper
@@ -33,13 +32,19 @@ type StakingKeeper interface {
 	// Delegation allows for getting a particular delegation for a given validator
 	// and delegator outside the scope of the staking module.
 	Delegation(sdk.Context, sdk.AccAddress, sdk.ValAddress) stakingexported.DelegationI
-	GetAllDelegatorDelegations(sdk.Context, sdk.AccAddress) []staking.Delegation
+	GetAllDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddress) []staking.Delegation
+	GetAllUnbondingDelegations(ctx sdk.Context, delegator sdk.AccAddress) []staking.UnbondingDelegation
+	GetUnbondingDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (staking.UnbondingDelegation, bool)
+	SetUnbondingDelegation(ctx sdk.Context, ubd staking.UnbondingDelegation)
+	GetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (dvPairs []staking.DVPair)
+	InsertUBDQueue(ctx sdk.Context, ubd staking.UnbondingDelegation, completionTime time.Time)
+	SetDelegation(ctx sdk.Context, delegation staking.Delegation)
+	GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (staking.Delegation, bool)
+	BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
+	AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
+	UBDQueueIterator(sdk.Context, time.Time) sdk.Iterator
 
 	BondDenom(sdk.Context) string
-
-	UBDQueueIterator(sdk.Context, time.Time) sdk.Iterator
-	GetUnbondingDelegation(sdk.Context, sdk.AccAddress, sdk.ValAddress) (stakingTypes.UnbondingDelegation, bool)
-	InsertUBDQueue(sdk.Context, stakingTypes.UnbondingDelegation, time.Time)
 
 	// MaxValidators returns the maximum amount of bonded validators
 	MaxValidators(sdk.Context) uint16
@@ -57,6 +62,7 @@ type BankKeeper interface {
 
 type SupplyKeeper interface {
 	GetModuleAddress(moduleName string) sdk.AccAddress
-	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
 }

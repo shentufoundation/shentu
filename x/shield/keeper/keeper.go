@@ -88,7 +88,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	if amount.IsAnyGT(participant.Collateral) {
 		return types.ErrInvalidCollateralAmount
 	}
-	
+
 	// insert to withdrawal queue
 	//participant.Collateral.Sub(amount)
 	poolParams := k.GetPoolParams(ctx)
@@ -97,7 +97,6 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	k.InsertWithdrawlQueue(ctx, withdrawal, completionTime)
 
 	// update the pool - update or create collateral entry
-	found = false
 	for i, collateral := range pool.Community {
 		if collateral.Provider.Equals(from) {
 			pool.Community[i].Amount = pool.Community[i].Amount.Sub(amount)
@@ -193,7 +192,7 @@ func (k Keeper) InsertWithdrawlQueue(ctx sdk.Context, withdrawal types.Withdrawa
 	k.SetWithdrawalQueueTimeSlice(ctx, completionTime, timeSlice)
 }
 
-// GetWithdrawalQueueTimeSlice gets a specific withdrawal queue timeslice, 
+// GetWithdrawalQueueTimeSlice gets a specific withdrawal queue timeslice,
 // which is a slice of withdrawals corresponding to a given time.
 func (k Keeper) GetWithdrawalQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []types.Withdrawal {
 	store := ctx.KVStore(k.storeKey)
@@ -235,7 +234,7 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 
 	for _, withdrawal := range withdrawals {
 		participant, found := k.GetParticipant(ctx, withdrawal.Address)
-		if !found  || withdrawal.Amount.IsAnyGT(participant.Collateral){
+		if !found || withdrawal.Amount.IsAnyGT(participant.Collateral) {
 			continue
 		}
 		participant.Collateral.Sub(withdrawal.Amount)

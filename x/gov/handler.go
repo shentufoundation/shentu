@@ -130,10 +130,8 @@ func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmit
 func updateAfterSubmitProposal(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) error {
 	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
 		c := proposal.Content.(shield.ClaimProposal)
-		if err := k.ShieldKeeper.ClaimLock(ctx, c.PoolID, c.Loss, c.PurchaseTxHash, proposal.ProposalID); err != nil {
-			return err
-		}
-		return nil
+		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
+		return k.ShieldKeeper.ClaimLock(ctx, c.PoolID, c.Loss, c.PurchaseTxHash, lockPeriod)
 	}
 	return nil
 }

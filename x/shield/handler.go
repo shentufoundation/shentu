@@ -37,6 +37,8 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgWithdrawCollateral(ctx, msg, k)
 		case types.MsgPurchaseShield:
 			return handleMsgPurchaseShield(ctx, msg, k)
+		case types.MsgWithdrawReimbursement:
+			return handleMsgWithdrawReimbursement(ctx, msg, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -55,7 +57,18 @@ func NewShieldClaimProposalHandler(k Keeper) govtypes.Handler {
 }
 
 func handleShieldClaimProposal(ctx sdk.Context, k Keeper, p types.ShieldClaimProposal) error {
-	// TODO schedule payouts
+	if err := k.CreateReimbursement(ctx, p.PoolID, p.PurchaseTxHash, p.Loss, p.Proposer); err != nil {
+		return err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeCreateCompensation,
+			sdk.NewAttribute(types.AttributeKeyPurchaseTxHash, p.PurchaseTxHash),
+			sdk.NewAttribute(types.AttributeKeyCompensationAmount, p.Loss.String()),
+			sdk.NewAttribute(types.AttributeKeyBeneficiary, p.Proposer.String()),
+		),
+	})
 	return nil
 }
 
@@ -122,7 +135,7 @@ func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollatera
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
-  
+
 func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral, k Keeper) (*sdk.Result, error) {
 	if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral); err != nil {
 		return nil, err
@@ -187,7 +200,7 @@ func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Kee
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypePurchase,
+			types.EventTypePurchaseShield,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
@@ -263,6 +276,23 @@ func handleMsgClearPayouts(ctx sdk.Context, msg types.MsgClearPayouts, k Keeper)
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgWithdrawReimbursement(ctx sdk.Context, msg types.MsgWithdrawReimbursement, k Keeper) (*sdk.Result, error) {
+	amount, err := k.WithdrawReimbursement(ctx, msg.PurchaseTxHash, msg.From)
+	if err != nil {
+		return &sdk.Result{Events: ctx.EventManager().Events()}, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeWithdrawReimbursement,
+			sdk.NewAttribute(types.AttributeKeyPurchaseTxHash, msg.PurchaseTxHash),
+			sdk.NewAttribute(types.AttributeKeyCompensationAmount, amount.String()),
+			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.From.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil

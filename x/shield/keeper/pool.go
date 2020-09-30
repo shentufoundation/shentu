@@ -174,7 +174,7 @@ func (k Keeper) ClosePool(ctx sdk.Context, pool types.Pool) {
 	k.FreeCollateral(ctx, pool)
 }
 
-// FreeCollateral frees collaterals depositted in a pool.
+// FreeCollateral frees collaterals deposited in a pool.
 func (k Keeper) FreeCollateral(ctx sdk.Context, pool types.Pool) {
 	participants := append(pool.Community, pool.CertiK)
 	for _, member := range participants {
@@ -209,7 +209,7 @@ func (k Keeper) ValidatePoolDuration(ctx sdk.Context, timeDuration, numBlocks in
 }
 
 // WithdrawFromPools withdraws coins from all pools to match total collateral to be less than or equal to total delegation.
-func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount sdk.Coins)  {
+func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount sdk.Coins) {
 	participant, _ := k.GetParticipant(ctx, addr)
 	withdrawAmtDec := sdk.NewDecFromInt(amount.AmountOf(k.sk.BondDenom(ctx)))
 	collateralDec := sdk.NewDecFromInt(participant.Collateral.AmountOf(k.sk.BondDenom(ctx)))

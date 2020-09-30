@@ -1,9 +1,9 @@
 package types
 
 import (
-	"time"
 	"encoding/binary"
 	"encoding/hex"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -26,13 +26,14 @@ const (
 )
 
 var (
-	PoolKey        = []byte{0x0}
-	ShieldAdminKey = []byte{0x1}
-	NextPoolIDKey  = []byte{0x2}
-	PurchaseKey    = []byte{0x3}
+	PoolKey          = []byte{0x0}
+	ShieldAdminKey   = []byte{0x1}
+	NextPoolIDKey    = []byte{0x2}
+	PurchaseKey      = []byte{0x3}
+	ReimbursementKey = []byte{0x4}
 
-	ParticipantKey    = []byte{0x5}
-	PendingPayoutsKey = []byte{0x6}
+	ParticipantKey     = []byte{0x5}
+	PendingPayoutsKey  = []byte{0x6}
 	WithdrawalQueueKey = []byte{0x7}
 )
 
@@ -77,4 +78,13 @@ func GetParticipantKey(addr sdk.AccAddress) []byte {
 func GetWithdrawalCompletionTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
 	return append(WithdrawalQueueKey, bz...)
+}
+
+// GetReimbursement gets the key for a reimbursement.
+func GetReimbursementKey(txhashStr string) []byte {
+	txhash, err := hex.DecodeString(txhashStr)
+	if err != nil {
+		panic(err)
+	}
+	return append(ReimbursementKey, txhash...)
 }

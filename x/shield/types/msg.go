@@ -280,7 +280,6 @@ func NewMsgWithdrawCollateral(sender sdk.AccAddress, id uint64, collateral sdk.C
 	}
 }
 
-
 // Route implements the sdk.Msg interface.
 func (msg MsgWithdrawCollateral) Route() string { return RouterKey }
 
@@ -297,7 +296,6 @@ func (msg MsgWithdrawCollateral) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
-
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgWithdrawCollateral) ValidateBasic() error {
@@ -459,7 +457,7 @@ func NewMsgPurchaseShield(poolID uint64, shield sdk.Coins, description string, f
 func (msg MsgPurchaseShield) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgPurchaseShield) Type() string { return EventTypePurchase }
+func (msg MsgPurchaseShield) Type() string { return EventTypePurchaseShield }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgPurchaseShield) GetSigners() []sdk.AccAddress {
@@ -486,5 +484,41 @@ func (msg MsgPurchaseShield) ValidateBasic() error {
 	if msg.From.Empty() {
 		return ErrEmptySender
 	}
+	return nil
+}
+
+// MsgWithdrawReimburse defines the attributes of withdraw reimbursement transaction.
+type MsgWithdrawReimbursement struct {
+	PurchaseTxHash string         `json:"purchase_txhash" yaml:"purchase_txhash"`
+	From           sdk.AccAddress `json:"from" yaml:"from"`
+}
+
+// NewMsgWithdrawReimbursement creates a new MsgWithdrawReimbursement instance.
+func NewMsgWithdrawReimbursement(purchaseTxHash string, from sdk.AccAddress) MsgWithdrawReimbursement {
+	return MsgWithdrawReimbursement{
+		PurchaseTxHash: purchaseTxHash,
+		From:           from,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgWithdrawReimbursement) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgWithdrawReimbursement) Type() string { return EventTypeWithdrawReimbursement }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgWithdrawReimbursement) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgWithdrawReimbursement) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgWithdrawReimbursement) ValidateBasic() error {
 	return nil
 }

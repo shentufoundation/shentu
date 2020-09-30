@@ -52,6 +52,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetCmdWithdrawForeignRewards(cdc),
 		GetCmdClearPayouts(cdc),
 		GetCmdPurchaseShield(cdc),
+		GetCmdWithdrawReimbursement(cdc),
 	)...)
 
 	return shieldTxCmd
@@ -492,6 +493,38 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 			}
 
 			msg := types.NewMsgPurchaseShield(poolID, shield, description, fromAddr)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	return cmd
+}
+
+// GetCmdWithdrawReimbursement implements the withdraw reimbursement command handler.
+func GetCmdWithdrawReimbursement(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "withdraw-reimbursement [purchase txhash]",
+		Args:  cobra.ExactArgs(1),
+		Short: "withdraw reimbursement",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Withdraw reimbursement by purchase txhash.
+
+Example:
+$ %s tx shield withdraw-reimbursement <purchase txhash>
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			fromAddr := cliCtx.GetFromAddress()
+			msg := types.NewMsgWithdrawReimbursement(args[0], fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

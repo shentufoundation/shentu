@@ -150,6 +150,7 @@ type Participant struct {
 	DelegationBonded    sdk.Coins
 	DelegationUnbonding sdk.Coins
 	Collateral          sdk.Coins
+	TotalLocked         sdk.Coins
 	Rewards             MixedDecCoins
 }
 
@@ -158,6 +159,7 @@ func NewParticipant() Participant {
 		DelegationBonded:    sdk.Coins{},
 		DelegationUnbonding: sdk.Coins{},
 		Collateral:          sdk.Coins{},
+		TotalLocked:         sdk.Coins{},
 	}
 }
 

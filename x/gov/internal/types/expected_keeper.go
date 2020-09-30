@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
@@ -23,8 +25,8 @@ type UpgradeKeeper interface {
 type ShieldKeeper interface {
 	GetPurchase(ctx sdk.Context, txhash string) (shield.Purchase, error)
 	GetClaimProposalParams(ctx sdk.Context) shield.ClaimProposalParams
-	ClaimLock(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash string, proposalID uint64) error
-	ClaimUnlock(ctx sdk.Context, poolID uint64, loss sdk.Coins, proposalID uint64) error
+	ClaimLock(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash string, lockPeriod time.Duration) error
+	ClaimUnlock(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash string) error
 	RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash string) error
 }
 

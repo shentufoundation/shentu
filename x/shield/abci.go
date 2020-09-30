@@ -73,7 +73,6 @@ func EndBlocker(ctx sdk.Context, k Keeper, stk types.StakingKeeper) {
 	// process completed withdrawals
 	// Remove all mature unbonding delegations from the ubd queue.
 	k.DequeueCompletedWithdrawalQueue(ctx)
-	
 }
 
 // TrackUnbondingAmount tracks the amount to be unbonded by staking end blocker.
@@ -88,8 +87,8 @@ func TrackUnbondingAmount(ctx sdk.Context, k Keeper, stk types.StakingKeeper) {
 		ctxTime := ctx.BlockHeader().Time
 
 		// loop through all the entries and complete unbonding mature entries
-		for _, entry := range(ubd.Entries) {
-			if entry.IsMature(ctxTime)  && !entry.Balance.IsZero(){
+		for _, entry := range ubd.Entries {
+			if entry.IsMature(ctxTime) && !entry.Balance.IsZero() {
 				balances = balances.Add(sdk.NewCoin(bondDenom, entry.Balance))
 			}
 		}
