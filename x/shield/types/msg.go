@@ -264,6 +264,50 @@ func (msg MsgDepositCollateral) ValidateBasic() error {
 	return nil
 }
 
+type MsgWithdrawRewards struct {
+	From   sdk.AccAddress `json:"sender" yaml:"sender"`
+	Denom  string         `json:"denom" yaml:"denom"`
+	ToAddr string         `json:"to_addr" yaml:"to_addr"`
+}
+
+// NewMsgWithdrawRewards creates a new MsgWithdrawRewards instance.
+func NewMsgWithdrawRewards(sender sdk.AccAddress) MsgWithdrawRewards {
+	return MsgWithdrawRewards{
+		From: sender,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgWithdrawRewards) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface
+func (msg MsgWithdrawRewards) Type() string { return EventTypeWithdrawRewards }
+
+// GetSigners implements the sdk.Msg interface
+func (msg MsgWithdrawRewards) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgWithdrawRewards) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgWithdrawRewards) ValidateBasic() error {
+	if msg.From.Empty() {
+		return ErrEmptySender
+	}
+	if err := sdk.ValidateDenom(msg.Denom); err != nil {
+		return ErrInvalidDenom
+	}
+	if strings.TrimSpace(msg.ToAddr) == "" || len(msg.ToAddr) != sdk.AddrLen {
+		return ErrInvalidToAddr
+	}
+	return nil
+}
+
 type MsgWithdrawForeignRewards struct {
 	From   sdk.AccAddress `json:"sender" yaml:"sender"`
 	Denom  string         `json:"denom" yaml:"denom"`

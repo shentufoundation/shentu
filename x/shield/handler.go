@@ -7,6 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
@@ -24,6 +25,8 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgPausePool(ctx, msg, k)
 		case types.MsgResumePool:
 			return handleMsgResumePool(ctx, msg, k)
+		case types.MsgWithdrawRewards:
+			return handleMsgWithdrawRewards(ctx, msg, k)
 		case types.MsgWithdrawForeignRewards:
 			return handleMsgWithdrawForeignRewards(ctx, msg, k)
 		case types.MsgClearPayouts:
@@ -169,6 +172,27 @@ func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Kee
 			types.EventTypePurchase,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgWithdrawRewards(ctx sdk.Context, msg types.MsgWithdrawRewards, k Keeper) (*sdk.Result, error) {
+	amount, err := k.PayoutNativeRewards(ctx, msg.From)
+	if err != nil {
+		return &sdk.Result{Events: ctx.EventManager().Events()}, err
+	}
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeWithdrawRewards,
+			sdk.NewAttribute(types.AttributeKeyToAddr, msg.ToAddr),
+			sdk.NewAttribute(types.AttributeKeyDenom, common.MicroCTKDenom),
+			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
 	})

@@ -129,67 +129,6 @@ func (k Keeper) GetClaimProposalParams(ctx sdk.Context) types.ClaimProposalParam
 	return claimProposalParams
 }
 
-// GetPendingPayouts gets pending payouts for a denom.
-func (k Keeper) GetPendingPayouts(ctx sdk.Context, denom string) types.PendingPayouts {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetPendingPayoutsKey(denom))
-	if bz == nil {
-		return nil
-	}
-	var pending types.PendingPayouts
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &pending)
-	return pending
-}
-
-// SetPendingPayouts sets pending payouts for a denom.
-func (k Keeper) SetPendingPayouts(ctx sdk.Context, denom string, payout types.PendingPayouts) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(payout)
-	store.Set(types.GetPendingPayoutsKey(denom), bz)
-}
-
-// GetRewards returns total rewards for an address.
-func (k Keeper) GetRewards(ctx sdk.Context, addr sdk.AccAddress) types.MixedDecCoins {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetParticipantKey(addr))
-	if bz == nil {
-		return types.InitMixedDecCoins()
-	}
-	var participant types.Participant
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &participant)
-	return participant.Rewards
-}
-
-// SetRewards sets the rewards for an address.
-func (k Keeper) SetRewards(ctx sdk.Context, addr sdk.AccAddress, earnings types.MixedDecCoins) {
-	participant, found := k.GetParticipant(ctx, addr)
-	if !found {
-		participant = types.NewParticipant()
-	}
-	participant.Rewards = earnings
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(participant)
-	store.Set(types.GetParticipantKey(addr), bz)
-}
-
-// AddRewards adds coins to earned rewards.
-func (k Keeper) AddRewards(ctx sdk.Context, provider sdk.AccAddress, earnings types.MixedDecCoins) {
-	rewards := k.GetRewards(ctx, provider)
-	rewards = rewards.Add(earnings)
-	k.SetRewards(ctx, provider, rewards)
-}
-
-// AddPendingPayout appends a pending payment to pending payouts for a denomination.
-func (k Keeper) AddPendingPayout(ctx sdk.Context, denom string, payout types.PendingPayout) {
-	payouts := k.GetPendingPayouts(ctx, denom)
-	if payouts == nil {
-		k.SetPendingPayouts(ctx, denom, types.PendingPayouts{payout})
-		return
-	}
-	payouts = append(payouts, payout)
-	k.SetPendingPayouts(ctx, denom, payouts)
-}
-
 func (k Keeper) updateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) {
 	// go through delAddr's delegations to recompute total amount of delegation
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)

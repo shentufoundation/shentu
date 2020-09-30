@@ -47,6 +47,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetCmdPausePool(cdc),
 		GetCmdResumePool(cdc),
 		GetCmdDepositCollateral(cdc),
+		GetCmdWithdrawRewards(cdc),
 		GetCmdWithdrawForeignRewards(cdc),
 		GetCmdClearPayouts(cdc),
 		GetCmdPurchaseShield(cdc),
@@ -344,6 +345,27 @@ func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	return cmd
+}
+
+// GetCmdWithdrawRewards implements command for requesting to withdraw foreign tokens rewards
+func GetCmdWithdrawRewards(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "withdraw-rewards [denom] [address]",
+		Short: "withdraw CTK rewards",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			fromAddr := cliCtx.GetFromAddress()
+
+			msg := types.NewMsgWithdrawRewards(fromAddr)
 
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
