@@ -73,6 +73,20 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 	return nil
 }
 
+// GetOnesCollaterals returns a community member's all collaterals.
+func (k Keeper) GetOnesCollaterals(ctx sdk.Context, address sdk.AccAddress) (collaterals []types.Collateral) {
+	k.IterateAllPools(ctx, func(pool types.Pool) bool {
+		for _, collateral := range pool.Community {
+			if collateral.Provider.Equals(address) {
+				collaterals = append(collaterals, collateral)
+				break
+			}
+		}
+		return false
+	})
+	return collaterals
+}
+
 // WithdrawCollateral withdraws a community member's collateral for a pool.
 func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint64, amount sdk.Coins) error {
 	pool, err := k.GetPool(ctx, id)
@@ -116,14 +130,14 @@ func (k Keeper) SetNextPoolID(ctx sdk.Context, id uint64) {
 	store.Set(types.GetNextPoolIDKey(), bz)
 }
 
-// GetLatestPoolID gets the latest pool ID from store.
+// GetNextPoolID gets the latest pool ID from store.
 func (k Keeper) GetNextPoolID(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	opBz := store.Get(types.GetNextPoolIDKey())
 	return binary.LittleEndian.Uint64(opBz)
 }
 
-// GetPoolByID search store for a pool object with given pool ID.
+// GetPoolBySponsor search store for a pool object with given pool ID.
 func (k Keeper) GetPoolBySponsor(ctx sdk.Context, sponsor string) (types.Pool, error) {
 	ret := types.Pool{
 		PoolID: 0,

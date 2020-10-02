@@ -113,3 +113,14 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 		}
 	}
 }
+
+// GetOnesPurchases returns a purchaser's all purchases.
+func (k Keeper) GetOnesPurchases(ctx sdk.Context, address sdk.AccAddress) (purchases []types.Purchase) {
+	k.IterateAllPurchases(ctx, func(purchase types.Purchase) bool {
+		if purchase.Purchaser.Equals(address) {
+			purchases = append(purchases, purchase)
+		}
+		return false
+	})
+	return purchases
+}

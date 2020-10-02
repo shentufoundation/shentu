@@ -13,9 +13,12 @@ import (
 )
 
 const (
-	QueryPool        = "pool"
-	QueryPurchase    = "purchase"
-	QueryParticipant = "participant"
+	QueryPool            = "pool"
+	QueryPools           = "pools"
+	QueryPurchase        = "purchase"
+	QueryOnesPurchases   = "purchases"
+	QueryOnesCollaterals = "collaterals"
+	QueryParticipant     = "participant"
 )
 
 // NewQuerier creates a querier for shield module
@@ -24,8 +27,14 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case QueryPool:
 			return queryPool(ctx, path[1:], k)
+		case QueryPools:
+			return queryPools(ctx, path[1:], k)
 		case QueryPurchase:
 			return queryPurchase(ctx, path[1:], k)
+		case QueryOnesPurchases:
+			return queryOnesPurchases(ctx, path[1:], k)
+		case QueryOnesCollaterals:
+			return queryOnesCollaterals(ctx, path[1:], k)
 		case QueryParticipant:
 			return queryParticipant(ctx, path[1:], k)
 		default:
@@ -70,6 +79,18 @@ func queryPool(ctx sdk.Context, path []string, k Keeper) (res []byte, err error)
 	return res, nil
 }
 
+// queryPools returns information about all the pools.
+func queryPools(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 0); err != nil {
+		return nil, err
+	}
+	res, err = codec.MarshalJSONIndent(k.cdc, k.GetAllPools(ctx))
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
 // queryPurchase returns information about a queried purchase.
 func queryPurchase(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
 	if err := validatePathLength(path, 1); err != nil {
@@ -82,6 +103,38 @@ func queryPurchase(ctx sdk.Context, path []string, k Keeper) (res []byte, err er
 	}
 
 	res, err = codec.MarshalJSONIndent(k.cdc, purchase)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+// queryOnesPurchases returns information about one's purchases.
+func queryOnesPurchases(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 1); err != nil {
+		return nil, err
+	}
+	address, err := sdk.AccAddressFromBech32(path[0])
+	if err != nil {
+		return nil, err
+	}
+	res, err = codec.MarshalJSONIndent(k.cdc, k.GetOnesPurchases(ctx, address))
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+// queryOnesCollaterals returns information about one's collaterals.
+func queryOnesCollaterals(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 1); err != nil {
+		return nil, err
+	}
+	address, err := sdk.AccAddressFromBech32(path[0])
+	if err != nil {
+		return nil, err
+	}
+	res, err = codec.MarshalJSONIndent(k.cdc, k.GetOnesCollaterals(ctx, address))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
