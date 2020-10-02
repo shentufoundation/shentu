@@ -192,7 +192,7 @@ func queryVotes(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, 
 	}
 
 	votes := keeper.GetVotesPaginated(ctx, params.ProposalID, uint(params.Page), uint(params.Limit))
-	
+
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, votes)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())

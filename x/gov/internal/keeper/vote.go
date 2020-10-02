@@ -114,7 +114,7 @@ func (k Keeper) GetVotesIterator(ctx sdk.Context, proposalID uint64) sdk.Iterato
 	return sdk.KVStorePrefixIterator(store, govTypes.VotesKey(proposalID))
 }
 
-// GetVotesIteratorPaginated returns an iterator to go over 
+// GetVotesIteratorPaginated returns an iterator to go over
 // votes on a given proposal based on pagination parameters.
 func (k Keeper) GetVotesIteratorPaginated(ctx sdk.Context, proposalID uint64, page, limit uint) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
@@ -166,7 +166,7 @@ func (k Keeper) IterateVotes(ctx sdk.Context, proposalID uint64, cb func(vote ty
 	}
 }
 
-// IterateVotesPaginated iterates over votes on a given proposal 
+// IterateVotesPaginated iterates over votes on a given proposal
 // based on pagination parameters and performs a callback function.
 func (k Keeper) IterateVotesPaginated(ctx sdk.Context, proposalID uint64, page, limit uint, cb func(vote types.Vote) (stop bool)) {
 	iterator := k.GetVotesIteratorPaginated(ctx, proposalID, page, limit)

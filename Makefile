@@ -90,7 +90,7 @@ tidy:
 	@go mod tidy
 
 lint: tidy
-	@GO111MODULE=on golangci-lint run --config .github/.golangci.yml
+	@GO111MODULE=on golangci-lint run --config .golangci.yml
 
 ########## Testing ##########
 

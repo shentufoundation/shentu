@@ -14,9 +14,8 @@ import (
 )
 
 var (
-	denom  = "uctk"
-	denom2 = "uctk2"
-	addr   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	denom = "uctk"
+	addr  = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 )
 
 func TestManualVestingAcc(t *testing.T) {
@@ -75,5 +74,4 @@ func TestManualVestingAcc(t *testing.T) {
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 850)}, spendableCoins)
 
 	// TODO: Test delegation, undelegation, genesis validation
-
 }

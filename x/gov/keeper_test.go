@@ -2,8 +2,8 @@ package gov
 
 import (
 	"fmt"
-	"testing"
 	"reflect"
+	"testing"
 
 	"github.com/stretchr/testify/require"
 
@@ -63,7 +63,6 @@ func TestKeeper_GetVotes(t *testing.T) {
 
 	tp := gov.TextProposal{Title: "title0", Description: "desc0"}
 	t.Run("Test adding a lot of votes and retrieving them", func(t *testing.T) {
-
 		pp, err := input.govKeeper.SubmitProposal(input.ctx, tp, addrs[0])
 		require.Equal(t, nil, err)
 		coins700 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 700*1e6))
