@@ -37,7 +37,8 @@ func (k Keeper) CreatePool(
 	// check if shield is backed by admin's delegations
 	provider, found := k.GetProvider(ctx, admin)
 	if !found {
-		return types.Pool{}, types.ErrNoDelegationAmount
+		k.addProvider(ctx, admin)
+		provider, _ = k.GetProvider(ctx, admin)
 	}
 	provider.Collateral = provider.Collateral.Add(shield...)
 	if provider.Collateral.IsAnyGT(provider.DelegationBonded) {
