@@ -12,6 +12,7 @@ const (
 
 var (
 	// function aliases
+	NewAppModule                      = upgrade.NewAppModule
 	NewSoftwareUpgradeProposalHandler = upgrade.NewSoftwareUpgradeProposalHandler
 )
 
