@@ -10,7 +10,7 @@ import (
 
 type Contract struct {
 	Address crypto.Address `json:"address"`
-	Code    []byte         `json:"code"`
+	Code    CVMCode        `json:"code"`
 	Storage []Storage      `json:"storage"`
 	Abi     []byte         `json:"abi"`
 	Meta    []ContractMeta `json:"meta"`
@@ -50,7 +50,7 @@ func NewGenesisState(rate uint64) GenesisState {
 // DefaultGenesisState creates a default GenesisState object.
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		GasRate: 1,
+		GasRate: DefaultGasRate,
 	}
 }
 

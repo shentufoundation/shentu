@@ -7,26 +7,22 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
 )
 
 func Test_GetCertificateID(t *testing.T) {
 	t.Run("Testing GetCertificateID", func(t *testing.T) {
-		var certifier sdk.AccAddress
 		var certType types.CertificateType
-		var i uint64
+		var i uint8
 
-		certifier = addrs[0]
 		certType = types.CertificateTypeFromString("COMPILATION")
 		certContent, err := types.NewRequestContent("ADDRESS", "sample_content")
 		require.NoError(t, err)
 		i = 5
 
-		id1 := types.GetCertificateID(certifier, certType, certContent, i)
-		i += 1
-		id2 := types.GetCertificateID(certifier, certType, certContent, i)
+		id1 := types.GetCertificateID(certType, certContent, i)
+		i++
+		id2 := types.GetCertificateID(certType, certContent, i)
 
 		s1 := id1.String()
 		s2 := id2.String()
@@ -45,7 +41,7 @@ func Test_GetNewCertificateID(t *testing.T) {
 		c1 := types.NewCompilationCertificate(types.CertificateTypeCompilation, "sourcodehash0",
 			"compiler1", "bytecodehash1", "", addrs[0])
 
-		id1, err := input.certKeeper.GetNewCertificateID(input.ctx, c1.Certifier(), c1.Type(), c1.RequestContent())
+		id1, err := input.certKeeper.GetNewCertificateID(input.ctx, c1.Type(), c1.RequestContent())
 		if err != nil {
 			t.Errorf(err.Error())
 		}
@@ -64,7 +60,7 @@ func Test_GetNewCertificateID(t *testing.T) {
 		// Set an identical certificate
 		c2 := types.NewCompilationCertificate(types.CertificateTypeCompilation, "sourcodehash0",
 			"compiler1", "bytecodehash1", "", addrs[0])
-		id2, err := input.certKeeper.GetNewCertificateID(input.ctx, c2.Certifier(), c2.Type(), c2.RequestContent())
+		id2, err := input.certKeeper.GetNewCertificateID(input.ctx, c2.Type(), c2.RequestContent())
 		if err != nil {
 			t.Errorf(err.Error())
 		}
@@ -85,7 +81,7 @@ func Test_GetNewCertificateID(t *testing.T) {
 
 		c3 := types.NewCompilationCertificate(types.CertificateTypeCompilation, "sourcodehash0",
 			"compiler1", "bytecodehash1", "", addrs[0])
-		id3, err := input.certKeeper.GetNewCertificateID(input.ctx, c3.Certifier(), c3.Type(), c3.RequestContent())
+		id3, err := input.certKeeper.GetNewCertificateID(input.ctx, c3.Type(), c3.RequestContent())
 		if err != nil {
 			t.Errorf(err.Error())
 		}

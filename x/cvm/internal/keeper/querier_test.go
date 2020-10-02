@@ -65,7 +65,7 @@ func TestViewQuery(t *testing.T) {
 	code, err := hex.DecodeString(Hello55BytecodeString)
 	require.Nil(t, err)
 
-	newContractAddress, err2 := cvmk.Call(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false)
+	newContractAddress, err2 := cvmk.Call(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 	require.Nil(t, err2)
 	require.NotNil(t, newContractAddress)
 
