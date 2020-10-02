@@ -79,16 +79,24 @@ type MsgDeploy struct {
 
 	// Meta is the metadata for the contract.
 	Meta []*payload.ContractMeta
+
+	// IsEWASM is true if the code is EWASM code.
+	IsEWASM bool
+
+	// IsRuntime is true if the code is runtime code.
+	IsRuntime bool
 }
 
 // NewMsgDeploy returns a new CVM deploy message.
-func NewMsgDeploy(caller sdk.AccAddress, value uint64, code acm.Bytecode, abi string, meta []*payload.ContractMeta) MsgDeploy {
+func NewMsgDeploy(caller sdk.AccAddress, value uint64, code acm.Bytecode, abi string, meta []*payload.ContractMeta, isEWASM, isRuntime bool) MsgDeploy {
 	return MsgDeploy{
-		Caller: caller,
-		Value:  value,
-		Code:   code,
-		Abi:    abi,
-		Meta:   meta,
+		Caller:    caller,
+		Value:     value,
+		Code:      code,
+		Abi:       abi,
+		Meta:      meta,
+		IsEWASM:   isEWASM,
+		IsRuntime: isRuntime,
 	}
 }
 

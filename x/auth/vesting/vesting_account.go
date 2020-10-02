@@ -42,18 +42,20 @@ func init() {
 type ManualVestingAccount struct {
 	*vesttypes.BaseVestingAccount
 
-	VestedCoins sdk.Coins `json:"vested_coins" yaml:"vested_coins"`
+	VestedCoins sdk.Coins      `json:"vested_coins" yaml:"vested_coins"`
+	Unlocker    sdk.AccAddress `json:"unlocker" yaml:"unlocker"`
 }
 
 // NewManualVestingAccountRaw creates a new ManualVestingAccount object from BaseVestingAccount.
-func NewManualVestingAccountRaw(bva *vesttypes.BaseVestingAccount, vestedCoins sdk.Coins) *ManualVestingAccount {
+func NewManualVestingAccountRaw(bva *vesttypes.BaseVestingAccount, vestedCoins sdk.Coins, unlocker sdk.AccAddress) *ManualVestingAccount {
 	return &ManualVestingAccount{
 		BaseVestingAccount: bva,
 		VestedCoins:        vestedCoins,
+		Unlocker:           unlocker,
 	}
 }
 
-func NewManualVestingAccount(baseAcc *authtypes.BaseAccount, vestedCoins sdk.Coins) *ManualVestingAccount {
+func NewManualVestingAccount(baseAcc *authtypes.BaseAccount, vestedCoins sdk.Coins, unlocker sdk.AccAddress) *ManualVestingAccount {
 	baseVestingAcc := &vesttypes.BaseVestingAccount{
 		BaseAccount:     baseAcc,
 		OriginalVesting: baseAcc.Coins,
@@ -62,6 +64,7 @@ func NewManualVestingAccount(baseAcc *authtypes.BaseAccount, vestedCoins sdk.Coi
 	return &ManualVestingAccount{
 		BaseVestingAccount: baseVestingAcc,
 		VestedCoins:        vestedCoins,
+		Unlocker:           unlocker,
 	}
 }
 
@@ -114,6 +117,7 @@ type manualVestingAccountYAML struct {
 	DelegatedVesting sdk.Coins      `json:"delegated_vesting" yaml:"delegated_vesting"`
 	EndTime          int64          `json:"end_time" yaml:"end_time"`
 	VestedCoins      sdk.Coins      `json:"vested_coins" yaml:"vested_coins"`
+	Unlocker         sdk.AccAddress `json:"unlocker" yaml:"unlocker"`
 }
 
 type manualVestingAccountJSON struct {
@@ -127,6 +131,7 @@ type manualVestingAccountJSON struct {
 	DelegatedVesting sdk.Coins      `json:"delegated_vesting" yaml:"delegated_vesting"`
 	EndTime          int64          `json:"end_time" yaml:"end_time"`
 	VestedCoins      sdk.Coins      `json:"vested_coins" yaml:"vested_coins"`
+	Unlocker         sdk.AccAddress `json:"unlocker" yaml:"unlocker"`
 }
 
 func (mva ManualVestingAccount) MarshalJSON() ([]byte, error) {
@@ -141,6 +146,7 @@ func (mva ManualVestingAccount) MarshalJSON() ([]byte, error) {
 		DelegatedVesting: mva.DelegatedVesting,
 		EndTime:          mva.EndTime,
 		VestedCoins:      mva.VestedCoins,
+		Unlocker:         mva.Unlocker,
 	}
 
 	return codec.Cdc.MarshalJSON(alias)
@@ -160,6 +166,7 @@ func (mva *ManualVestingAccount) UnmarshalJSON(bz []byte) error {
 		EndTime:          alias.EndTime,
 	}
 	mva.VestedCoins = alias.VestedCoins
+	mva.Unlocker = alias.Unlocker
 
 	return nil
 }
@@ -180,6 +187,7 @@ func (mva ManualVestingAccount) MarshalYAML() (interface{}, error) {
 		DelegatedVesting: mva.DelegatedVesting,
 		EndTime:          mva.EndTime,
 		VestedCoins:      mva.VestedCoins,
+		Unlocker:         mva.Unlocker,
 	}
 
 	if mva.PubKey != nil {

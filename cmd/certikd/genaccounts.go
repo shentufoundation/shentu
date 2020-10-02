@@ -37,6 +37,7 @@ const (
 	flagNumberPeriods = "num-periods"
 	flagContinuous    = "continuous"
 	flagManual        = "manual"
+	flagUnlocker      = "unlocker"
 )
 
 // AddGenesisAccountCmd returns add-genesis-account cobra Command.
@@ -127,6 +128,7 @@ the precedence rule is period > continuous > endtime.
 	cmd.Flags().Uint64(flagNumberPeriods, 1, "number of months for monthly vesting")
 	cmd.Flags().Bool(flagContinuous, false, "set to continuous vesting.")
 	cmd.Flags().Bool(flagManual, false, "set to manual vesting")
+	cmd.Flags().String(flagUnlocker, "", "address that can unlock this account's locked coins")
 	return cmd
 }
 
@@ -162,7 +164,11 @@ func getVestedAccountFromFlags(baseAccount *authtypes.BaseAccount, coins sdk.Coi
 
 	switch {
 	case manual:
-		return vesting.NewManualVestingAccountRaw(baseVestingAccount, sdk.NewCoins()), nil
+		unlocker, err := sdk.AccAddressFromBech32(viper.GetString(flagUnlocker))
+		if err != nil || unlocker.Empty() {
+			return nil, errors.New("unlocker address is in incorrect format")
+		}
+		return vesting.NewManualVestingAccountRaw(baseVestingAccount, sdk.NewCoins(), unlocker), nil
 
 	case period != 0:
 		periods := authvesting.Periods{}

@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"encoding/hex"
+	"errors"
+	"math"
 	"strings"
 
 	"github.com/tendermint/tendermint/crypto/tmhash"
@@ -47,17 +49,20 @@ func (k Keeper) GetCertificateByID(ctx sdk.Context, id types.CertificateID) (typ
 }
 
 // GetNewCertificateID gets an unused certificate ID for a new certificate.
-func (k Keeper) GetNewCertificateID(ctx sdk.Context, certifier sdk.AccAddress, certType types.CertificateType,
+func (k Keeper) GetNewCertificateID(ctx sdk.Context, certType types.CertificateType,
 	certContent types.RequestContent) (types.CertificateID, error) {
-	var i uint64
+	var i uint8
 	var certID types.CertificateID
 	var err error
 	// Find an unoccupied key
 	for {
-		certID = types.GetCertificateID(certifier, certType, certContent, i)
+		certID = types.GetCertificateID(certType, certContent, i)
 		_, err = k.GetCertificateByID(ctx, certID)
 		if err == types.ErrCertificateNotExists {
 			break
+		}
+		if i == math.MaxUint8 {
+			return "", errors.New("index overflow")
 		}
 		i++
 	}
@@ -101,7 +106,7 @@ func (k Keeper) IssueCertificate(ctx sdk.Context, c types.Certificate) (types.Ce
 		return "", types.ErrUnqualifiedCertifier
 	}
 
-	certificateID, err := k.GetNewCertificateID(ctx, c.Certifier(), c.Type(), c.RequestContent())
+	certificateID, err := k.GetNewCertificateID(ctx, c.Type(), c.RequestContent())
 	if err != nil {
 		return "", err
 	}
@@ -131,33 +136,13 @@ func (k Keeper) IterateAllCertificate(ctx sdk.Context, callback func(certificate
 	}
 }
 
-// IterateCertificatesByCertifier iterates over all certificates issued by a given certifier
-// and performs a callback function.
-func (k Keeper) IterateCertificatesByCertifier(ctx sdk.Context, certifier sdk.AccAddress,
-	callback func(certificate types.Certificate) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-
-	certifierPrefixKey := types.CertificateStoreCertifierKey(certifier)
-	iterator := sdk.KVStorePrefixIterator(store, certifierPrefixKey)
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var certificate types.Certificate
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &certificate)
-
-		if callback(certificate) {
-			break
-		}
-	}
-}
-
 // IterateCertificatesByContent iterates over certificates with identical given certifier,
 // certificate type, and certificate content.
-func (k Keeper) IterateCertificatesByContent(ctx sdk.Context, certifier sdk.AccAddress, certType types.CertificateType,
+func (k Keeper) IterateCertificatesByContent(ctx sdk.Context, certType types.CertificateType,
 	content types.RequestContent, callback func(certificate types.Certificate) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 
-	prefix := types.CertificateStoreContentKey(certifier, certType, content.RequestContentType, content.RequestContent)
+	prefix := types.CertificateStoreContentKey(certType, content.RequestContentType, content.RequestContent)
 	iterator := sdk.KVStorePrefixIterator(store, prefix)
 
 	defer iterator.Close()
@@ -183,7 +168,7 @@ func (k Keeper) GetAllCertificates(ctx sdk.Context) (certificates []types.Certif
 // GetCertificatesByCertifier gets certificates certified by a given certifier.
 func (k Keeper) GetCertificatesByCertifier(ctx sdk.Context, certifier sdk.AccAddress) []types.Certificate {
 	certificates := []types.Certificate{}
-	k.IterateCertificatesByCertifier(ctx, certifier, func(certificate types.Certificate) bool {
+	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
 		if certificate.Certifier().Equals(certifier) {
 			certificates = append(certificates, certificate)
 		}
@@ -192,48 +177,42 @@ func (k Keeper) GetCertificatesByCertifier(ctx sdk.Context, certifier sdk.AccAdd
 	return certificates
 }
 
-// GetCertificatesByContent retrieves certificates with given content.
+// GetCertificatesByContent retrieves all certificates with given content.
 func (k Keeper) GetCertificatesByContent(ctx sdk.Context, requestContent types.RequestContent) []types.Certificate {
 	certificates := []types.Certificate{}
-	certifiers := k.GetAllCertifiers(ctx)
-	for _, certifier := range certifiers {
-		for _, certType := range types.CertificateTypes {
-			k.IterateCertificatesByContent(
-				ctx,
-				certifier.Address,
-				certType,
-				requestContent,
-				func(certificate types.Certificate) bool {
-					if certificate.RequestContent() == requestContent {
-						certificates = append(certificates, certificate)
-					}
-					return false
-				},
-			)
-		} // for each certificate type
-	} // for each certifier
-	return certificates
-}
-
-// GetCertificatesByTypeAndContent retrieves certificates with given content.
-func (k Keeper) GetCertificatesByTypeAndContent(ctx sdk.Context, certType types.CertificateType,
-	requestContent types.RequestContent) []types.Certificate {
-	certificates := []types.Certificate{}
-	certifiers := k.GetAllCertifiers(ctx)
-	for _, certifier := range certifiers {
+	for _, certType := range types.CertificateTypes {
 		k.IterateCertificatesByContent(
 			ctx,
-			certifier.Address,
 			certType,
 			requestContent,
 			func(certificate types.Certificate) bool {
-				if certificate.RequestContent() == requestContent && certificate.Type() == certType {
+				if certificate.RequestContent() == requestContent {
 					certificates = append(certificates, certificate)
 				}
 				return false
 			},
 		)
-	} // for each certifier
+	} // for each certificate type
+
+	return certificates
+}
+
+// GetCertificatesByTypeAndContent retrieves all certificates with given certificate type and content.
+func (k Keeper) GetCertificatesByTypeAndContent(ctx sdk.Context, certType types.CertificateType,
+	requestContent types.RequestContent) []types.Certificate {
+	certificates := []types.Certificate{}
+	k.IterateCertificatesByContent(
+		ctx,
+		certType,
+		requestContent,
+		func(certificate types.Certificate) bool {
+			if certificate.RequestContent() == requestContent &&
+				certificate.Type() == certType {
+				certificates = append(certificates, certificate)
+			}
+			return false
+		},
+	)
 	return certificates
 }
 
@@ -261,10 +240,10 @@ func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCerti
 				if err != nil {
 					return 0, nil, err
 				}
-				k.IterateCertificatesByContent(ctx, params.Certifier, certType, requestContent, callback)
+				k.IterateCertificatesByContent(ctx, certType, requestContent, callback)
 			}
 		} else {
-			k.IterateCertificatesByCertifier(ctx, params.Certifier, callback)
+			k.IterateAllCertificate(ctx, callback)
 		}
 	} else if params.ContentType != "" && params.Content != "" {
 		requestContent, err := types.NewRequestContent(params.ContentType, params.Content)

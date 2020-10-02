@@ -1,6 +1,7 @@
 package compile
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -20,7 +21,12 @@ func BytecodeEVM(basename, workDir, abiFile string, logger *logging.Logger) (*co
 	if err != nil {
 		return nil, err
 	}
-	logger.TraceMsg("Command Output", "bytecode", bytecode)
+	if basenameSplit := strings.Split(basename, "."); basenameSplit[len(basenameSplit)-1] == "wasm" {
+		bytecode = []byte(hex.EncodeToString(bytecode))
+		logger.TraceMsg("Command Output", "ewasm", bytecode)
+	} else {
+		logger.TraceMsg("Command Output", "bytecode", bytecode)
+	}
 
 	abi := json.RawMessage(NoABI)
 	if abiFile != "" {

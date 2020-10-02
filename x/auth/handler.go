@@ -12,36 +12,45 @@ import (
 func NewHandler(ak AccountKeeper, ck types.CertKeeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		switch msg := msg.(type) {
-		case types.MsgManualVesting:
-			return handleMsgManualVesting(ctx, ak, ck, msg)
+		case types.MsgUnlock:
+			return handleMsgUnlock(ctx, ak, ck, msg)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Unrecognized cert Msg type: %v", msg.Type())
 		}
 	}
 }
 
-func handleMsgManualVesting(ctx sdk.Context, ak AccountKeeper, ck types.CertKeeper, msg types.MsgManualVesting) (*sdk.Result, error) {
-	if !ck.IsCertifier(ctx, msg.Certifier) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "not a valid certifier")
-	}
-
+func handleMsgUnlock(ctx sdk.Context, ak AccountKeeper, ck types.CertKeeper, msg types.MsgUnlock) (*sdk.Result, error) {
+	// preliminary checks
 	acc := ak.GetAccount(ctx, msg.Account)
 	if acc == nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "account %s does not exist", msg.Account)
 	}
+
 	mvacc, ok := acc.(*vesting.ManualVestingAccount)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "account does not appear to be a ManualVestingAccount")
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a manual vesting account")
 	}
 
-	if mvacc.VestedCoins.Add(msg.UnlockAmount).IsAnyGT(mvacc.OriginalVesting) {
+	if !msg.Issuer.Equals(mvacc.Unlocker) {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "sender of this transaction is not the designated unlocker")
+	}
+
+	if mvacc.VestedCoins.Add(msg.UnlockAmount...).IsAnyGT(mvacc.OriginalVesting) {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "cannot unlock more than the original vesting amount")
 	}
 
-	newacc := vesting.NewManualVestingAccountRaw(
-		mvacc.BaseVestingAccount,
-		mvacc.VestedCoins.Add(msg.UnlockAmount),
+	// update vested coins
+	mvacc.VestedCoins = mvacc.VestedCoins.Add(msg.UnlockAmount...)
+	ak.SetAccount(ctx, mvacc)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeUnlock,
+			sdk.NewAttribute("unlocker", msg.Issuer.String()),
+			sdk.NewAttribute("account", msg.Account.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.UnlockAmount.String()),
+		),
 	)
-	ak.SetAccount(ctx, newacc)
-	return &sdk.Result{}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
