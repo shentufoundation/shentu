@@ -37,49 +37,44 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 	pool.Shield = pool.Shield.Sub(loss)
 
 	// update locked collaterals for community
-	for i := range pool.Community {
-		lockedCoins := GetLockedCoins(loss, pool.TotalCollateral, pool.Community[i].Amount)
+	collaterals := k.GetAllPoolCollaterals(ctx, pool)
+	for _, collateral := range collaterals {
+		lockedCoins := GetLockedCoins(loss, pool.TotalCollateral, collateral.Amount)
 		lockedCollateral := types.NewLockedCollateral(proposalID, lockedCoins)
-		pool.Community[i].LockedCollaterals = append(pool.Community[i].LockedCollaterals, lockedCollateral)
-		pool.Community[i].Amount = pool.Community[i].Amount.Sub(lockedCoins)
-		k.LockParticipant(ctx, pool.Community[i].Provider, lockedCoins, lockPeriod)
+		collateral.LockedCollaterals = append(collateral.LockedCollaterals, lockedCollateral)
+		collateral.Amount = collateral.Amount.Sub(lockedCoins)
+		k.LockProvider(ctx, collateral.Provider, lockedCoins, lockPeriod)
+		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 	}
-
-	// update locked collateral for CertiK
-	lockedCoins := GetLockedCoins(loss, pool.TotalCollateral, pool.CertiK.Amount)
-	lockedCollateral := types.NewLockedCollateral(proposalID, lockedCoins)
-	pool.CertiK.LockedCollaterals = append(pool.CertiK.LockedCollaterals, lockedCollateral)
-	pool.CertiK.Amount = pool.CertiK.Amount.Sub(lockedCoins)
-	k.LockParticipant(ctx, pool.CertiK.Provider, lockedCoins, lockPeriod)
 
 	k.SetPool(ctx, pool)
 	return nil
 }
 
-// LockParticipant checks if delegations of an account can cover the loss.
+// LockProvider checks if delegations of an account can cover the loss.
 // It modifies unbonding time if the totals delegations cannot cover the loss.
-func (k Keeper) LockParticipant(ctx sdk.Context, delAddr sdk.AccAddress, locked sdk.Coins, lockPeriod time.Duration) {
-	participant, found := k.GetParticipant(ctx, delAddr)
+func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, locked sdk.Coins, lockPeriod time.Duration) {
+	provider, found := k.GetProvider(ctx, delAddr)
 	if !found {
-		panic(types.ErrParticipantNotFound)
+		panic(types.ErrProviderNotFound)
 	}
-	if !participant.Collateral.IsAllGTE(locked) {
+	if !provider.Collateral.IsAllGTE(locked) {
 		panic(types.ErrNotEnoughCollateral)
 	}
 
-	// update participant
-	participant.TotalLocked = participant.TotalLocked.Add(locked...)
-	k.SetParticipant(ctx, delAddr, participant)
+	// update provider
+	provider.TotalLocked = provider.TotalLocked.Add(locked...)
+	k.SetProvider(ctx, delAddr, provider)
 
 	// if there are enough delegations
-	// TODO logics for participants are changing, check if it outdated
-	if participant.DelegationBonded.IsAllGTE(participant.TotalLocked) {
+	// TODO logics for providers are changing, check if it outdated
+	if provider.DelegationBonded.IsAllGTE(provider.TotalLocked) {
 		return
 	}
 
 	// if there are not enough delegations, check unbondings
 	unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, delAddr)
-	short := participant.TotalLocked.Sub(participant.DelegationBonded).AmountOf(k.sk.BondDenom(ctx))
+	short := provider.TotalLocked.Sub(provider.DelegationBonded).AmountOf(k.sk.BondDenom(ctx))
 	endTime := ctx.BlockTime().Add(lockPeriod)
 	for _, ubd := range unbondingDelegations {
 		if !short.IsPositive() {
@@ -154,7 +149,8 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 	}
 
 	// unlock collaterals for community
-	for i, collateral := range pool.Community {
+	collaterals := k.GetAllPoolCollaterals(ctx, pool)
+	for _, collateral := range collaterals {
 		for j, locked := range collateral.LockedCollaterals {
 			if locked.ProposalID == proposalID {
 				collateral.Amount = collateral.Amount.Add(locked.LockedCoins...)
@@ -162,11 +158,11 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 				break
 			}
 		}
-		pool.Community[i] = collateral
+		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 	}
 
 	// unlock collaterals for CertiK
-	collateral := pool.CertiK
+	collateral := k.GetPoolCertiKCollateral(ctx, pool)
 	for i, locked := range collateral.LockedCollaterals {
 		if locked.ProposalID == proposalID {
 			collateral.Amount = collateral.Amount.Add(locked.LockedCoins...)
@@ -175,7 +171,7 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 			break
 		}
 	}
-	pool.CertiK = collateral
+	k.SetCollateral(ctx, pool, k.GetAdmin(ctx), collateral)
 
 	k.SetPool(ctx, pool)
 	return nil
@@ -329,18 +325,20 @@ func (k Keeper) CreateReimbursement(
 
 	// for each community member, get coins from delegations
 	var loss sdk.Coins
-	for i := range pool.Community {
-		for j := range pool.Community[i].LockedCollaterals {
-			if pool.Community[i].LockedCollaterals[j].ProposalID == proposalID {
-				loss = pool.Community[i].LockedCollaterals[j].LockedCoins
-				pool.Community[i].LockedCollaterals = append(
-					pool.Community[i].LockedCollaterals[:j],
-					pool.Community[i].LockedCollaterals[j+1],
+	collaterals := k.GetAllPoolCollaterals(ctx, pool)
+	for _, collateral := range collaterals {
+		for j := range collateral.LockedCollaterals {
+			if collateral.LockedCollaterals[j].ProposalID == proposalID {
+				loss = collateral.LockedCollaterals[j].LockedCoins
+				collateral.LockedCollaterals = append(
+					collateral.LockedCollaterals[:j],
+					collateral.LockedCollaterals[j+1],
 				)
+				k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 				break
 			}
 		}
-		if err := k.UndelegateCoinsToShieldModule(ctx, pool.Community[i].Provider, loss); err != nil {
+		if err := k.UndelegateCoinsToShieldModule(ctx, collateral.Provider, loss); err != nil {
 			return err
 		}
 	}

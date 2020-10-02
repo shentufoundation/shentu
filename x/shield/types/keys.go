@@ -31,8 +31,9 @@ var (
 	NextPoolIDKey    = []byte{0x2}
 	PurchaseKey      = []byte{0x3}
 	ReimbursementKey = []byte{0x4}
+	CollateralKey    = []byte{0x5}
 
-	ParticipantKey     = []byte{0x5}
+	ProviderKey        = []byte{0x5}
 	PendingPayoutsKey  = []byte{0x6}
 	WithdrawalQueueKey = []byte{0x7}
 )
@@ -68,9 +69,9 @@ func GetPurchaseTxHashKey(txhashStr string) []byte {
 	return append(PurchaseKey, txhash...)
 }
 
-// GetParticipantKey gets the key for the delegator's tracker.
-func GetParticipantKey(addr sdk.AccAddress) []byte {
-	return append(ParticipantKey, addr...)
+// GetProviderKey gets the key for the delegator's tracker.
+func GetProviderKey(addr sdk.AccAddress) []byte {
+	return append(ProviderKey, addr...)
 }
 
 // GetWithdrawalCompletionTimeKey gets a withdrawal queue key,
@@ -85,4 +86,11 @@ func GetReimbursementKey(proposalID uint64) []byte {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, proposalID)
 	return append(ReimbursementKey, bz...)
+}
+
+// GetCollateralKey gets the key for a reimbursement.
+func GetCollateralKey(poolID uint64, address sdk.AccAddress) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, poolID)
+	return append(CollateralKey, append(bz, address...)...)
 }

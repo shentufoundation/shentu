@@ -26,7 +26,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	shieldQueryCmd.AddCommand(flags.GetCommands(
 		GetCmdPool(queryRoute, cdc),
 		GetCmdPurchase(queryRoute, cdc),
-		GetCmdParticipant(queryRoute, cdc),
+		GetCmdProvider(queryRoute, cdc),
 	)...)
 
 	return shieldQueryCmd
@@ -90,21 +90,21 @@ func GetCmdPurchase(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-// GetCmdParticipant returns the command for querying a participant.
-func GetCmdParticipant(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// GetCmdProvider returns the command for querying a provider.
+func GetCmdProvider(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "participant [address]",
-		Short: "get participant information",
+		Use:   "provider [address]",
+		Short: "get provider information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/participant/%s", queryRoute, args[0]), nil)
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/provider/%s", queryRoute, args[0]), nil)
 			if err != nil {
 				return err
 			}
 
-			var out types.Participant
+			var out types.Provider
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},

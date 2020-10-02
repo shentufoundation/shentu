@@ -36,86 +36,6 @@ func (k Keeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (staking.Vali
 	return k.sk.GetValidator(ctx, addr)
 }
 
-// DepositCollateral deposits a community member's collateral for a pool.
-func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint64, amount sdk.Coins) error {
-	pool, err := k.GetPool(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	// check eligibility and update participant
-	participant, found := k.GetParticipant(ctx, from)
-	if !found {
-		k.addParticipant(ctx, from)
-	}
-	participant.Collateral = participant.Collateral.Add(amount...)
-	if participant.Collateral.IsAnyGT(participant.DelegationBonded) {
-		return types.ErrInsufficientStaking
-	}
-	k.SetParticipant(ctx, from, participant)
-
-	// update the pool and pool community
-	found = false
-	for i, collateral := range pool.Community {
-		if collateral.Provider.Equals(from) {
-			pool.Community[i].Amount = pool.Community[i].Amount.Add(amount...)
-			found = true
-			break
-		}
-	}
-	if !found {
-		pool.Community = append(pool.Community, types.NewCollateral(from, amount))
-	}
-	pool.TotalCollateral = pool.TotalCollateral.Add(amount...)
-	pool.Available = pool.Available.Add(amount.AmountOf(k.sk.BondDenom(ctx)))
-	k.SetPool(ctx, pool)
-
-	return nil
-}
-
-// GetOnesCollaterals returns a community member's all collaterals.
-func (k Keeper) GetOnesCollaterals(ctx sdk.Context, address sdk.AccAddress) (collaterals []types.Collateral) {
-	k.IterateAllPools(ctx, func(pool types.Pool) bool {
-		for _, collateral := range pool.Community {
-			if collateral.Provider.Equals(address) {
-				collaterals = append(collaterals, collateral)
-				break
-			}
-		}
-		return false
-	})
-	return collaterals
-}
-
-// WithdrawCollateral withdraws a community member's collateral for a pool.
-func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint64, amount sdk.Coins) error {
-	pool, err := k.GetPool(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	// check eligibility
-	participant, found := k.GetParticipant(ctx, from)
-	if !found {
-		return types.ErrNoDelegationAmount
-	}
-	if amount.IsAnyGT(participant.Collateral) {
-		return types.ErrInvalidCollateralAmount
-	}
-
-	// update the pool available coins, but not pool total collateral or community which should be updated 21 days later
-	pool.Available = pool.Available.Sub(amount.AmountOf(k.sk.BondDenom(ctx)))
-	k.SetPool(ctx, pool)
-
-	// insert to withdrawal queue
-	poolParams := k.GetPoolParams(ctx)
-	completionTime := ctx.BlockHeader().Time.Add(poolParams.WithdrawalPeriod)
-	withdrawal := types.NewWithdrawal(id, from, amount)
-	k.InsertWithdrawalQueue(ctx, withdrawal, completionTime)
-
-	return nil
-}
-
 // SetLatestPoolID sets the latest pool ID to store.
 func (k Keeper) SetNextPoolID(ctx sdk.Context, id uint64) {
 	store := ctx.KVStore(k.storeKey)
@@ -148,30 +68,6 @@ func (k Keeper) GetPoolBySponsor(ctx sdk.Context, sponsor string) (types.Pool, e
 		return ret, types.ErrNoPoolFound
 	}
 	return ret, nil
-}
-
-// SetPoolParams sets parameters subspace for shield pool parameters.
-func (k Keeper) SetPoolParams(ctx sdk.Context, poolParams types.PoolParams) {
-	k.paramSpace.Set(ctx, types.ParamStoreKeyPoolParams, &poolParams)
-}
-
-// GetPoolParams returns shield pool parameters.
-func (k Keeper) GetPoolParams(ctx sdk.Context) types.PoolParams {
-	var poolParams types.PoolParams
-	k.paramSpace.Get(ctx, types.ParamStoreKeyPoolParams, &poolParams)
-	return poolParams
-}
-
-// SetClaimProposalParams sets parameters subspace for shield claim proposal parameters.
-func (k Keeper) SetClaimProposalParams(ctx sdk.Context, claimProposalParams types.ClaimProposalParams) {
-	k.paramSpace.Set(ctx, types.ParamStoreKeyClaimProposalParams, &claimProposalParams)
-}
-
-// GetClaimProposalParams returns shield claim proposal parameters.
-func (k Keeper) GetClaimProposalParams(ctx sdk.Context) types.ClaimProposalParams {
-	var claimProposalParams types.ClaimProposalParams
-	k.paramSpace.Get(ctx, types.ParamStoreKeyClaimProposalParams, &claimProposalParams)
-	return claimProposalParams
 }
 
 // DepositNativePremium deposits premium in native tokens from the shield admin or purchasers.
@@ -229,33 +125,32 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 		// update pool community or CertiK first in case the pool is closed
 		pool, err := k.GetPool(ctx, withdrawal.PoolID)
 		if err != nil {
-			// do not update participant if the pool has been closed
+			// do not update provider if the pool has been closed
 			continue
 		}
 		pool.TotalCollateral = pool.TotalCollateral.Sub(withdrawal.Amount)
-		for i := range pool.Community {
-			if pool.Community[i].Provider.Equals(withdrawal.Address) {
-				pool.Community[i].Amount = pool.Community[i].Amount.Sub(withdrawal.Amount)
+		collaterals := k.GetAllPoolCollaterals(ctx, pool)
+		for _, collateral := range collaterals {
+			if collateral.Provider.Equals(withdrawal.Address) {
+				collateral.Amount = collateral.Amount.Sub(withdrawal.Amount)
+				k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 				break
 			}
 		}
-		if pool.CertiK.Provider.Equals(withdrawal.Address) {
-			pool.CertiK.Amount = pool.CertiK.Amount.Sub(withdrawal.Amount)
-		}
 		k.SetPool(ctx, pool)
 
-		// update participant
-		participant, found := k.GetParticipant(ctx, withdrawal.Address)
+		// update provider
+		provider, found := k.GetProvider(ctx, withdrawal.Address)
 		if !found {
 			// TODO will this happen?
 			continue
 		}
-		if withdrawal.Amount.IsAnyGT(participant.Collateral) {
+		if withdrawal.Amount.IsAnyGT(provider.Collateral) {
 			// TODO will this happen?
-			participant.Collateral = sdk.Coins{}
+			provider.Collateral = sdk.Coins{}
 		} else {
-			participant.Collateral = participant.Collateral.Sub(withdrawal.Amount)
+			provider.Collateral = provider.Collateral.Sub(withdrawal.Amount)
 		}
-		k.SetParticipant(ctx, withdrawal.Address, participant)
+		k.SetProvider(ctx, withdrawal.Address, provider)
 	}
 }

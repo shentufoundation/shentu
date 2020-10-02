@@ -47,7 +47,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, stakingKeeper types.StakingKeeper) {
 		// distribute to A and C in proportion
 		bondDenom := stakingKeeper.BondDenom(ctx) // common.MicroCTKDenom
 		totalCollateralAmount := pool.TotalCollateral.AmountOf(bondDenom)
-		recipients := append(pool.Community, pool.CertiK)
+		recipients := k.GetAllPoolCollaterals(ctx, pool)
 		for _, recipient := range recipients {
 			stakeProportion := sdk.NewDecFromInt(recipient.Amount.AmountOf(bondDenom)).QuoInt(totalCollateralAmount)
 			nativePremium := currentBlockPremium.Native.MulDecTruncate(stakeProportion)

@@ -8,26 +8,23 @@ import (
 
 type Pool struct {
 	PoolID           uint64
-	Community        []Collateral
-	Shield           sdk.Coins
-	Premium          MixedDecCoins
-	CertiK           Collateral
-	Sponsor          string
-	StartBlockHeight int64
-	Description      string
 	Active           bool
+	Description      string
+	Sponsor          string
+	Premium          MixedDecCoins
+	StartBlockHeight int64
 	TotalCollateral  sdk.Coins
 	Available        sdk.Int
+	Shield           sdk.Coins
 	EndTime          int64
 	EndBlockHeight   int64
 }
 
 func NewPool(
-	admin sdk.AccAddress, shield sdk.Coins, deposit MixedDecCoins, sponsor string,
+	shield sdk.Coins, deposit MixedDecCoins, sponsor string,
 	endTime, startBlockHeight, endBlockHeight int64, id uint64) Pool {
 	return Pool{
 		Shield:           shield,
-		CertiK:           NewCollateral(admin, shield),
 		Premium:          deposit,
 		Sponsor:          sponsor,
 		Active:           true,
@@ -47,16 +44,13 @@ type Collateral struct {
 	LockedCollaterals []LockedCollateral
 }
 
-func NewCollateral(provider sdk.AccAddress, amount sdk.Coins) Collateral {
+func NewCollateral(pool Pool, provider sdk.AccAddress, amount sdk.Coins) Collateral {
 	return Collateral{
+		PoolID:   pool.PoolID,
 		Provider: provider,
 		Amount:   amount,
 	}
 }
-
-// ForeignCoins separates sdk.Coins to shield foreign coins
-type ForeignCoins sdk.Coins
-type ForeignDecCoins sdk.DecCoins
 
 type MixedCoins struct {
 	Native  sdk.Coins
@@ -145,17 +139,17 @@ func NewPendingPayouts(amount sdk.Dec, to string) PendingPayout {
 	}
 }
 
-// Participant tracks A or C's total delegation, total collateral,
+// Provider tracks A or C's total delegation, total collateral,
 // and rewards.
-type Participant struct {
+type Provider struct {
 	DelegationBonded sdk.Coins
 	Collateral       sdk.Coins
 	TotalLocked      sdk.Coins
 	Rewards          MixedDecCoins
 }
 
-func NewParticipant() Participant {
-	return Participant{
+func NewProvider() Provider {
+	return Provider{
 		DelegationBonded: sdk.Coins{},
 		Collateral:       sdk.Coins{},
 		TotalLocked:      sdk.Coins{},

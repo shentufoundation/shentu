@@ -28,25 +28,25 @@ func (k Keeper) SetPendingPayouts(ctx sdk.Context, denom string, payout types.Pe
 // GetRewards returns total rewards for an address.
 func (k Keeper) GetRewards(ctx sdk.Context, addr sdk.AccAddress) types.MixedDecCoins {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetParticipantKey(addr))
+	bz := store.Get(types.GetProviderKey(addr))
 	if bz == nil {
 		return types.InitMixedDecCoins()
 	}
-	var participant types.Participant
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &participant)
-	return participant.Rewards
+	var provider types.Provider
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &provider)
+	return provider.Rewards
 }
 
 // SetRewards sets the rewards for an address.
 func (k Keeper) SetRewards(ctx sdk.Context, addr sdk.AccAddress, earnings types.MixedDecCoins) {
-	participant, found := k.GetParticipant(ctx, addr)
+	provider, found := k.GetProvider(ctx, addr)
 	if !found {
-		participant = types.NewParticipant()
+		provider = types.NewProvider()
 	}
-	participant.Rewards = earnings
+	provider.Rewards = earnings
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(participant)
-	store.Set(types.GetParticipantKey(addr), bz)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(provider)
+	store.Set(types.GetProviderKey(addr), bz)
 }
 
 // AddRewards adds coins to earned rewards.

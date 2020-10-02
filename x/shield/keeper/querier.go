@@ -18,7 +18,7 @@ const (
 	QueryPurchase        = "purchase"
 	QueryOnesPurchases   = "purchases"
 	QueryOnesCollaterals = "collaterals"
-	QueryParticipant     = "participant"
+	QueryProvider        = "provider"
 )
 
 // NewQuerier creates a querier for shield module
@@ -35,8 +35,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryOnesPurchases(ctx, path[1:], k)
 		case QueryOnesCollaterals:
 			return queryOnesCollaterals(ctx, path[1:], k)
-		case QueryParticipant:
-			return queryParticipant(ctx, path[1:], k)
+		case QueryProvider:
+			return queryProvider(ctx, path[1:], k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
@@ -142,7 +142,7 @@ func queryOnesCollaterals(ctx sdk.Context, path []string, k Keeper) (res []byte,
 }
 
 // queryPurchase returns information about a queried purchase.
-func queryParticipant(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+func queryProvider(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
 	if err := validatePathLength(path, 1); err != nil {
 		return nil, err
 	}
@@ -152,12 +152,12 @@ func queryParticipant(ctx sdk.Context, path []string, k Keeper) (res []byte, err
 		return nil, err
 	}
 
-	participant, found := k.GetParticipant(ctx, addr)
+	provider, found := k.GetProvider(ctx, addr)
 	if !found {
 		return nil, types.ErrNoDelegationAmount
 	}
 
-	res, err = codec.MarshalJSONIndent(k.cdc, participant)
+	res, err = codec.MarshalJSONIndent(k.cdc, provider)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

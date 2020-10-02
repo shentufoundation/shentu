@@ -31,7 +31,7 @@ var (
 	ErrEmptySender                = sdkerrors.Register(ModuleName, 124, "no sender provided")
 	ErrPoolLifeTooShort           = sdkerrors.Register(ModuleName, 125, "new pool life is too short")
 	ErrPurchaseNotFound           = sdkerrors.Register(ModuleName, 126, "purchase is not found")
-	ErrParticipantNotFound        = sdkerrors.Register(ModuleName, 127, "participant is not found")
+	ErrProviderNotFound           = sdkerrors.Register(ModuleName, 127, "provider is not found")
 	ErrNotEnoughCollateral        = sdkerrors.Register(ModuleName, 128, "not enough collateral")
 	ErrCompensationNotFound       = sdkerrors.Register(ModuleName, 129, "compensation is not found")
 	ErrInvalidBeneficiary         = sdkerrors.Register(ModuleName, 130, "invalid beneficiary")

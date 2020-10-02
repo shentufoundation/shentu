@@ -6,24 +6,24 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-func (k Keeper) SetParticipant(ctx sdk.Context, delAddr sdk.AccAddress, participant types.Participant) {
+func (k Keeper) SetProvider(ctx sdk.Context, delAddr sdk.AccAddress, provider types.Provider) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(participant)
-	store.Set(types.GetParticipantKey(delAddr), bz)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(provider)
+	store.Set(types.GetProviderKey(delAddr), bz)
 }
 
-func (k Keeper) GetParticipant(ctx sdk.Context, delegator sdk.AccAddress) (dt types.Participant, found bool) {
+func (k Keeper) GetProvider(ctx sdk.Context, delegator sdk.AccAddress) (dt types.Provider, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetParticipantKey(delegator))
+	bz := store.Get(types.GetProviderKey(delegator))
 	if bz == nil {
-		return types.Participant{}, false
+		return types.Provider{}, false
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &dt)
 	return dt, true
 }
 
-// addParticipant adds a new participant into shield module. Should only be called from DepositCollateral.
-func (k Keeper) addParticipant(ctx sdk.Context, addr sdk.AccAddress) types.Participant {
+// addProvider adds a new provider into shield module. Should only be called from DepositCollateral.
+func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) types.Provider {
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, addr)
 
 	totalStaked := sdk.Coins{}
@@ -34,17 +34,18 @@ func (k Keeper) addParticipant(ctx sdk.Context, addr sdk.AccAddress) types.Parti
 		}
 		totalStaked = totalStaked.Add(sdk.NewCoin(k.sk.BondDenom(ctx), val.TokensFromShares(del.GetShares()).TruncateInt()))
 	}
-	participant := types.NewParticipant()
-	participant.DelegationBonded = totalStaked
 
-	k.SetParticipant(ctx, addr, participant)
-	return participant
+	provider := types.NewProvider()
+	provider.DelegationBonded = totalStaked
+
+	k.SetProvider(ctx, addr, provider)
+	return provider
 }
 
 func (k Keeper) updateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) {
 	// go through delAddr's delegations to recompute total amount of bonded delegation
 	// update or create a new entry
-	participant, found := k.GetParticipant(ctx, delAddr)
+	provider, found := k.GetProvider(ctx, delAddr)
 	if !found {
 		return // ignore non-participating addr
 	}
@@ -59,11 +60,12 @@ func (k Keeper) updateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) 
 		}
 		totalStaked = totalStaked.Add(sdk.NewCoin(k.sk.BondDenom(ctx), val.TokensFromShares(del.GetShares()).TruncateInt()))
 	}
-	participant.DelegationBonded = totalStaked
 
-	if participant.DelegationBonded.IsAllLT(participant.Collateral) {
-		withdrawAmount := participant.Collateral.Sub(participant.DelegationBonded)
+	provider.DelegationBonded = totalStaked
+
+	if provider.DelegationBonded.IsAllLT(provider.Collateral) {
+		withdrawAmount := provider.Collateral.Sub(provider.DelegationBonded)
 		k.WithdrawFromPools(ctx, delAddr, withdrawAmount)
 	}
-	k.SetParticipant(ctx, delAddr, participant)
+	k.SetProvider(ctx, delAddr, provider)
 }
