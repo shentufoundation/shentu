@@ -43,7 +43,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 		return err
 	}
 
-	// check eligibility
+	// check eligibility and update participant
 	participant, found := k.GetParticipant(ctx, from)
 	if !found {
 		k.addParticipant(ctx, from)
@@ -52,8 +52,9 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 	if participant.Collateral.IsAnyGT(participant.DelegationBonded) {
 		return types.ErrInsufficientStaking
 	}
+	k.SetParticipant(ctx, from, participant)
 
-	// update the pool - update or create collateral entry
+	// update the pool and pool community
 	found = false
 	for i, collateral := range pool.Community {
 		if collateral.Provider.Equals(from) {
@@ -65,10 +66,9 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 	if !found {
 		pool.Community = append(pool.Community, types.NewCollateral(from, amount))
 	}
-
 	pool.TotalCollateral = pool.TotalCollateral.Add(amount...)
+	pool.Available = pool.Available.Add(amount.AmountOf(k.sk.BondDenom(ctx)))
 	k.SetPool(ctx, pool)
-	k.SetParticipant(ctx, from, participant)
 
 	return nil
 }
@@ -102,24 +102,18 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	if amount.IsAnyGT(participant.Collateral) {
 		return types.ErrInvalidCollateralAmount
 	}
-	
-	// insert into withdrawal queue
+
+	// update the pool available coins, but not pool total collateral or community which should be updated 21 days later
+	pool.Available = pool.Available.Sub(amount.AmountOf(k.sk.BondDenom(ctx)))
+	k.SetPool(ctx, pool)
+
+	// insert to withdrawal queue
 	poolParams := k.GetPoolParams(ctx)
 	completionTime := ctx.BlockHeader().Time.Add(poolParams.WithdrawalPeriod)
-	withdrawal := types.NewWithdrawal(from, amount)
-	k.InsertWithdrawlQueue(ctx, withdrawal, completionTime)
+	withdrawal := types.NewWithdrawal(id, from, amount)
+	k.InsertWithdrawalQueue(ctx, withdrawal, completionTime)
 
-	// update the pool - update or create collateral entry
-	for i, collateral := range pool.Community {
-		if collateral.Provider.Equals(from) {
-			pool.Community[i].Amount = pool.Community[i].Amount.Sub(amount)
-			pool.TotalCollateral = pool.TotalCollateral.Sub(amount)
-			k.SetPool(ctx, pool)
-			k.SetParticipant(ctx, from, participant)
-			return nil
-		}
-	}
-	return types.ErrNoCollateralFound
+	return nil
 }
 
 // SetLatestPoolID sets the latest pool ID to store.
@@ -185,27 +179,13 @@ func (k Keeper) DepositNativePremium(ctx sdk.Context, premium sdk.Coins, from sd
 	return k.supplyKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, premium)
 }
 
-func (k Keeper) GetAllMatureUBDQueue(ctx sdk.Context, currTime time.Time, stk types.StakingKeeper) (matureUnbonds []staking.DVPair) {
-	// gets an iterator for all timeslices from time 0 until the current Blockheader time
-	unbondingTimesliceIterator := stk.UBDQueueIterator(ctx, ctx.BlockHeader().Time)
-	defer unbondingTimesliceIterator.Close()
-
-	for ; unbondingTimesliceIterator.Valid(); unbondingTimesliceIterator.Next() {
-		timeslice := []staking.DVPair{}
-		value := unbondingTimesliceIterator.Value()
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
-		matureUnbonds = append(matureUnbonds, timeslice...)
-	}
-	return matureUnbonds
-}
-
-func (k Keeper) InsertWithdrawlQueue(ctx sdk.Context, withdrawal types.Withdrawal, completionTime time.Time) {
+func (k Keeper) InsertWithdrawalQueue(ctx sdk.Context, withdrawal types.Withdrawal, completionTime time.Time) {
 	timeSlice := k.GetWithdrawalQueueTimeSlice(ctx, completionTime)
 	timeSlice = append(timeSlice, withdrawal)
 	k.SetWithdrawalQueueTimeSlice(ctx, completionTime, timeSlice)
 }
 
-// GetWithdrawalQueueTimeSlice gets a specific withdrawal queue timeslice, 
+// GetWithdrawalQueueTimeSlice gets a specific withdrawal queue timeslice,
 // which is a slice of withdrawals corresponding to a given time.
 func (k Keeper) GetWithdrawalQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []types.Withdrawal {
 	store := ctx.KVStore(k.storeKey)
@@ -246,10 +226,36 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 	}
 
 	for _, withdrawal := range withdrawals {
-		participant, found := k.GetParticipant(ctx, withdrawal.Address)
-		if !found || withdrawal.Amount.IsAnyGT(participant.Collateral) {
+		// update pool community or CertiK first in case the pool is closed
+		pool, err := k.GetPool(ctx, withdrawal.PoolID)
+		if err != nil {
+			// do not update participant if the pool has been closed
 			continue
 		}
-		participant.Collateral.Sub(withdrawal.Amount)
+		pool.TotalCollateral = pool.TotalCollateral.Sub(withdrawal.Amount)
+		for i := range pool.Community {
+			if pool.Community[i].Provider.Equals(withdrawal.Address) {
+				pool.Community[i].Amount = pool.Community[i].Amount.Sub(withdrawal.Amount)
+				break
+			}
+		}
+		if pool.CertiK.Provider.Equals(withdrawal.Address) {
+			pool.CertiK.Amount = pool.CertiK.Amount.Sub(withdrawal.Amount)
+		}
+		k.SetPool(ctx, pool)
+
+		// update participant
+		participant, found := k.GetParticipant(ctx, withdrawal.Address)
+		if !found {
+			// TODO will this happen?
+			continue
+		}
+		if withdrawal.Amount.IsAnyGT(participant.Collateral) {
+			// TODO will this happen?
+			participant.Collateral = sdk.Coins{}
+		} else {
+			participant.Collateral = participant.Collateral.Sub(withdrawal.Amount)
+		}
+		k.SetParticipant(ctx, withdrawal.Address, participant)
 	}
 }

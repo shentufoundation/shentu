@@ -55,7 +55,7 @@ func (k Keeper) PurchaseShield(
 	if !pool.Active {
 		return types.Purchase{}, types.ErrPoolInactive
 	}
-	if !pool.Shield.Add(shield...).IsAllGTE(pool.TotalCollateral) {
+	if shield.AmountOf(k.sk.BondDenom(ctx)).LT(pool.Available) {
 		return types.Purchase{}, types.ErrNotEnoughShield
 	}
 
@@ -66,10 +66,11 @@ func (k Keeper) PurchaseShield(
 		return types.Purchase{}, err
 	}
 
-	// update pool premium and shield
+	// update pool premium, shield and available
 	premiumMixedDec := types.NewMixedDecCoins(sdk.NewDecCoinsFromCoins(premium...), sdk.DecCoins{})
 	pool.Premium = pool.Premium.Add(premiumMixedDec)
 	pool.Shield = pool.Shield.Add(shield...)
+	pool.Available = pool.Available.Sub(shield.AmountOf(k.sk.BondDenom(ctx)))
 	k.SetPool(ctx, pool)
 
 	// set purchase
@@ -108,6 +109,12 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 	for ; iterator.Valid(); iterator.Next() {
 		var purchase types.Purchase
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchase)
+		pool, err := k.GetPool(ctx, purchase.PoolID)
+		if err == nil {
+			pool.Available = pool.Available.Add(purchase.Shield.AmountOf(k.sk.BondDenom(ctx)))
+			pool.Shield = pool.Shield.Sub(purchase.Shield)
+			k.SetPool(ctx, pool)
+		}
 		if purchase.ClaimPeriodEndTime.Before(ctx.BlockTime()) {
 			store.Delete(iterator.Key())
 		}

@@ -27,24 +27,15 @@ func (k Keeper) addParticipant(ctx sdk.Context, addr sdk.AccAddress) types.Parti
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, addr)
 
 	totalStaked := sdk.Coins{}
-	totalUnbonding := sdk.Coins{}
 	for _, del := range delegations {
 		val, found := k.sk.GetValidator(ctx, del.GetValidatorAddr())
 		if !found {
 			panic("expected validator, not found")
 		}
 		totalStaked = totalStaked.Add(sdk.NewCoin(k.sk.BondDenom(ctx), val.TokensFromShares(del.GetShares()).TruncateInt()))
-		ubds, found := k.sk.GetUnbondingDelegation(ctx, addr, del.GetValidatorAddr())
-		if !found {
-			continue
-		}
-		for _, ubd := range ubds.Entries {
-			totalUnbonding = totalUnbonding.Add(sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), ubd.Balance))...)
-		}
 	}
 	participant := types.NewParticipant()
 	participant.DelegationBonded = totalStaked
-	participant.DelegationUnbonding = totalUnbonding
 
 	k.SetParticipant(ctx, addr, participant)
 	return participant
@@ -57,30 +48,21 @@ func (k Keeper) updateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) 
 	if !found {
 		return // ignore non-participating addr
 	}
-	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
+
+	// update delegations
 	totalStaked := sdk.Coins{}
-	totalUnbonding := sdk.Coins{}
+	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
 	for _, del := range delegations {
 		val, found := k.sk.GetValidator(ctx, del.GetValidatorAddr())
 		if !found {
 			panic("expected validator, not found")
 		}
 		totalStaked = totalStaked.Add(sdk.NewCoin(k.sk.BondDenom(ctx), val.TokensFromShares(del.GetShares()).TruncateInt()))
-		ubds, found := k.sk.GetUnbondingDelegation(ctx, delAddr, del.GetValidatorAddr())
-		if !found {
-			continue
-		}
-		for _, ubd := range ubds.Entries {
-			totalUnbonding = totalUnbonding.Add(sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), ubd.Balance))...)
-		}
 	}
 	participant.DelegationBonded = totalStaked
-	participant.DelegationUnbonding = totalUnbonding
 
-	totalDelegation := participant.DelegationBonded.Add(participant.DelegationUnbonding...)
-	if totalDelegation.IsAllLT(participant.Collateral) {
-		participant.Collateral = totalDelegation
-		withdrawAmount := participant.Collateral.Sub(totalDelegation)
+	if participant.DelegationBonded.IsAllLT(participant.Collateral) {
+		withdrawAmount := participant.Collateral.Sub(participant.DelegationBonded)
 		k.WithdrawFromPools(ctx, delAddr, withdrawAmount)
 	}
 	k.SetParticipant(ctx, delAddr, participant)

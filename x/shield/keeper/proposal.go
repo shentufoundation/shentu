@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
@@ -30,9 +29,9 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 	purchase.Shield = purchase.Shield.Sub(loss)
 	k.SetPurchase(ctx, purchaseTxHash, purchase)
 
-	// update total collateral and shield of pool
-	pool.TotalCollateral = pool.TotalCollateral.Sub(loss)
+	// update the shield of pool
 	if !pool.Shield.IsAllGTE(loss) {
+		// TODO this should never happen?
 		return types.ErrNotEnoughShield
 	}
 	pool.Shield = pool.Shield.Sub(loss)
@@ -40,9 +39,6 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 	// update locked collaterals for community
 	for i := range pool.Community {
 		lockedCoins := GetLockedCoins(loss, pool.TotalCollateral, pool.Community[i].Amount)
-		if !pool.Community[i].Amount.IsAllGTE(lockedCoins) {
-			return types.ErrNotEnoughCollateral
-		}
 		lockedCollateral := types.NewLockedCollateral(proposalID, lockedCoins)
 		pool.Community[i].LockedCollaterals = append(pool.Community[i].LockedCollaterals, lockedCollateral)
 		pool.Community[i].Amount = pool.Community[i].Amount.Sub(lockedCoins)
@@ -51,9 +47,6 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 
 	// update locked collateral for CertiK
 	lockedCoins := GetLockedCoins(loss, pool.TotalCollateral, pool.CertiK.Amount)
-	if !pool.CertiK.Amount.IsAllGTE(lockedCoins) {
-		return types.ErrNotEnoughCollateral
-	}
 	lockedCollateral := types.NewLockedCollateral(proposalID, lockedCoins)
 	pool.CertiK.LockedCollaterals = append(pool.CertiK.LockedCollaterals, lockedCollateral)
 	pool.CertiK.Amount = pool.CertiK.Amount.Sub(lockedCoins)
@@ -86,7 +79,7 @@ func (k Keeper) LockParticipant(ctx sdk.Context, delAddr sdk.AccAddress, locked 
 
 	// if there are not enough delegations, check unbondings
 	unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, delAddr)
-	short := participant.TotalLocked.Sub(participant.DelegationBonded).AmountOf(common.MicroCTKDenom)
+	short := participant.TotalLocked.Sub(participant.DelegationBonded).AmountOf(k.sk.BondDenom(ctx))
 	endTime := ctx.BlockTime().Add(lockPeriod)
 	for _, ubd := range unbondingDelegations {
 		if !short.IsPositive() {
@@ -159,7 +152,6 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 	if err != nil {
 		return err
 	}
-	pool.TotalCollateral = pool.TotalCollateral.Add(loss...)
 
 	// unlock collaterals for community
 	for i, collateral := range pool.Community {
@@ -259,7 +251,7 @@ func (k Keeper) UndelegateCoinsToShieldModule(ctx sdk.Context, delAddr sdk.AccAd
 		ubdAmountDec := ubd.Entry.InitialBalance.ToDec()
 		if ubdAmountDec.GT(shortDec) {
 			// FIXME not a good way to go maybe?
-			overflowCoins := sdk.NewDecCoins(sdk.NewDecCoin(common.MicroCTKDenom, ubdAmountDec.Sub(shortDec).TruncateInt()))
+			overflowCoins := sdk.NewDecCoins(sdk.NewDecCoin(k.sk.BondDenom(ctx), ubdAmountDec.Sub(shortDec).TruncateInt()))
 			overflowMixedCoins := types.MixedDecCoins{Native: overflowCoins}
 			k.AddRewards(ctx, delAddr, overflowMixedCoins)
 			break

@@ -110,6 +110,8 @@ func (k Keeper) UpdatePool(
 		pool.EndBlockHeight += additionalBlocks
 	}
 
+	pool.TotalCollateral = pool.TotalCollateral.Add(shield...)
+	pool.CertiK.Amount = pool.CertiK.Amount.Add(shield...)
 	pool.Shield = pool.Shield.Add(shield...)
 	pool.Premium = pool.Premium.Add(types.MixedDecCoinsFromMixedCoins(deposit))
 
@@ -178,6 +180,8 @@ func (k Keeper) PoolEnded(ctx sdk.Context, pool types.Pool) bool {
 func (k Keeper) ClosePool(ctx sdk.Context, pool types.Pool) {
 	// TODO: make sure nothing else needs to be done
 	k.FreeCollateral(ctx, pool)
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetPoolKey(pool.PoolID))
 }
 
 // FreeCollateral frees collaterals deposited in a pool.
@@ -186,9 +190,8 @@ func (k Keeper) FreeCollateral(ctx sdk.Context, pool types.Pool) {
 	for _, member := range participants {
 		participant, _ := k.GetParticipant(ctx, member.Provider)
 		participant.Collateral = participant.Collateral.Sub(member.Amount)
+		k.SetParticipant(ctx, member.Provider, participant)
 	}
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetPoolKey(pool.PoolID))
 }
 
 // IterateAllPools iterates over the all the stored pools and performs a callback function.
@@ -209,8 +212,8 @@ func (k Keeper) IterateAllPools(ctx sdk.Context, callback func(certificate types
 
 // ValidatePoolDuration validates new pool duration to be valid
 func (k Keeper) ValidatePoolDuration(ctx sdk.Context, timeDuration, numBlocks int64) bool {
-	poolparams := k.GetPoolParams(ctx)
-	minPoolDuration := int64(poolparams.MinPoolLife.Seconds())
+	poolParams := k.GetPoolParams(ctx)
+	minPoolDuration := int64(poolParams.MinPoolLife.Seconds())
 	return timeDuration > minPoolDuration || numBlocks*5 > minPoolDuration
 }
 
@@ -223,26 +226,25 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 
 	pools := k.GetAllPools(ctx)
 
-	joinedPools := []types.Collateral{}
-	// TODO: better searching mechanism
+	collaterals := []types.Collateral{}
 	for _, pool := range pools {
 		for _, part := range pool.Community {
 			if part.Provider.Equals(addr) {
-				joinedPools = append(joinedPools, part)
+				collaterals = append(collaterals, part)
 			}
 		}
 	}
 
 	remainingWithdraw := amount
-	for i, collateral := range joinedPools {
+	for i, collateral := range collaterals {
 		var withdrawAmtDec sdk.Dec
-		if i == len(joinedPools) {
+		if i == len(collaterals)-1 {
 			withdrawAmtDec = sdk.NewDecFromInt(remainingWithdraw.AmountOf(k.sk.BondDenom(ctx)))
 		} else {
 			withdrawAmtDec = sdk.NewDecFromInt(collateral.Amount.AmountOf(k.sk.BondDenom(ctx))).Mul(proportion)
 		}
 		withdrawAmt := withdrawAmtDec.TruncateInt()
 		withdrawCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), withdrawAmt))
-		k.WithdrawCollateral(ctx, addr, collateral.PoolID, withdrawCoins)
+		_ = k.WithdrawCollateral(ctx, addr, collateral.PoolID, withdrawCoins)
 	}
 }
