@@ -43,7 +43,7 @@ func GenerateAContract(r *rand.Rand) types.Contract {
 	copy(address[:], bytes)
 	contract.Address = address
 
-	contract.Code = []byte(simulation.RandStringOfLength(r, 1+r.Intn(50)))
+	contract.Code = types.NewCVMCode(types.CVMCodeTypeEVMCode, []byte(simulation.RandStringOfLength(r, 1+r.Intn(50))))
 
 	contract.Abi = []byte(simulation.RandStringOfLength(r, 1+r.Intn(50)))
 

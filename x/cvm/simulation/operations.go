@@ -87,7 +87,7 @@ func SimulateMsgDeploy(k keeper.Keeper) simulation.Operation {
 		abi := keeper.Hello55AbiJsonString
 		var meta []*payload.ContractMeta
 
-		msg := types.NewMsgDeploy(caller.Address, value, code, abi, meta)
+		msg := types.NewMsgDeploy(caller.Address, value, code, abi, meta, false, false)
 
 		account := k.AuthKeeper().GetAccount(ctx, caller.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))

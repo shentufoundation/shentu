@@ -16,17 +16,20 @@ import (
 var (
 	denom  = "uctk"
 	denom2 = "uctk2"
-	addr   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	addrs  = []sdk.AccAddress{
+		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
+		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
+	}
 )
 
 func TestManualVestingAcc(t *testing.T) {
 	// Account setup
 	origCoins := sdk.Coins{sdk.NewInt64Coin(denom, 1000)}
-	ba := authtypes.NewBaseAccount(addr, origCoins, nil, 0, 0)
+	ba := authtypes.NewBaseAccount(addrs[0], origCoins, nil, 0, 0)
 	bva, err := authvesting.NewBaseVestingAccount(ba, origCoins, 0)
 	require.Nil(t, err)
 
-	mva := NewManualVestingAccountRaw(bva, sdk.NewCoins())
+	mva := NewManualVestingAccountRaw(bva, sdk.NewCoins(), addrs[1])
 
 	// Test GetVestedCoins and GetVestingCoins
 	now := tmtime.Now()
@@ -59,10 +62,10 @@ func TestManualVestingAcc(t *testing.T) {
 	origCoins = sdk.Coins{sdk.NewInt64Coin(denom, 1000)}
 	origVesting := sdk.Coins{sdk.NewInt64Coin(denom, 300)}
 
-	ba2 := authtypes.NewBaseAccount(addr, origCoins, nil, 0, 0)
+	ba2 := authtypes.NewBaseAccount(addrs[0], origCoins, nil, 0, 0)
 	bva2, err := authvesting.NewBaseVestingAccount(ba2, origVesting, 0)
 	require.Nil(t, err)
-	mva2 := NewManualVestingAccountRaw(bva2, sdk.NewCoins())
+	mva2 := NewManualVestingAccountRaw(bva2, sdk.NewCoins(), addrs[1])
 
 	// Test SpendableCoins
 	spendableCoins := mva2.SpendableCoins(now)

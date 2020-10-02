@@ -52,6 +52,7 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 
 // RegisterRESTRoutes registers the REST routes for the auth module.
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
+	RegisterRoutes(ctx, rtr)
 	CosmosAppModuleBasic{}.RegisterRESTRoutes(ctx, rtr)
 }
 

@@ -13,8 +13,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/bank/client/cli"
-	"github.com/cosmos/cosmos-sdk/x/bank/client/rest"
 
+	"github.com/certikfoundation/shentu/x/bank/client/rest"
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
 )
 
@@ -50,6 +50,7 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 // RegisterRESTRoutes registers the REST routes for the bank module.
 func (AppModuleBasic) RegisterRESTRoutes(cliCtx context.CLIContext, route *mux.Router) {
 	rest.RegisterRoutes(cliCtx, route)
+	CosmosAppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
 }
 
 // GetTxCmd returns the root tx command for the bank module.
@@ -68,6 +69,8 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 	cosmosAppModule CosmosAppModule
+	keeper          Keeper
+	accountKeeper   types.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object.
@@ -75,6 +78,8 @@ func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
 		cosmosAppModule: NewCosmosAppModule(keeper, accountKeeper),
+		keeper:          keeper,
+		accountKeeper:   accountKeeper,
 	}
 }
 
@@ -95,7 +100,7 @@ func (am AppModule) Route() string {
 
 // NewHandler returns an sdk.Handler for the bank module.
 func (am AppModule) NewHandler() sdk.Handler {
-	return am.cosmosAppModule.NewHandler()
+	return NewHandler(am.keeper, am.accountKeeper)
 }
 
 // QuerierRoute returns the bank module's querier route name.

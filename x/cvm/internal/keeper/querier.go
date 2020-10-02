@@ -63,7 +63,7 @@ func queryView(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 		panic("could not parse address " + path[1])
 	}
 
-	value, err := keeper.Call(ctx, caller, callee, 0, req.Data, []*payload.ContractMeta{}, true)
+	value, err := keeper.Call(ctx, caller, callee, 0, req.Data, []*payload.ContractMeta{}, true, false, false)
 
 	if err != nil {
 		panic("failed to get storage at address " + path[0])
@@ -92,9 +92,16 @@ func queryCode(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, path[0])
 	}
 
-	res, err = codec.MarshalJSONIndent(keeper.cdc, types.QueryResCode{Code: account.EVMCode})
-	if err != nil {
-		panic("could not marshal result to JSON")
+	if len(account.EVMCode) != 0 {
+		res, err = codec.MarshalJSONIndent(keeper.cdc, types.QueryResCode{Code: account.EVMCode})
+		if err != nil {
+			panic("could not marshal result to JSON")
+		}
+	} else {
+		res, err = codec.MarshalJSONIndent(keeper.cdc, types.QueryResCode{Code: account.WASMCode})
+		if err != nil {
+			panic("could not marshal result to JSON")
+		}
 	}
 
 	return res, nil
