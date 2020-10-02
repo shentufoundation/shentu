@@ -45,7 +45,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking Changes
 
 ### Features
-* (x/auth) [\#7] (https://github.com/certikfoundation/shentu/pull/7) Added new vesting account type ManualVestingAccount.
+* (x/cvm) [\#15](https://github.com/certikfoundation/shentu/pull/15) Enabled EWASM supoort.
+* (x/auth) [\#7](https://github.com/certikfoundation/shentu/pull/7) Added new vesting account type ManualVestingAccount.
+* (x/auth) [\#13](https://github.com/certikfoundation/shentu/pull/13) New locked-send tx type to ManualVestingAccounts.
 * (toolsets/oracle-operator) [\#2](https://github.com/certikfoundation/shentu/pull/2) Added toolset oracle-operator.
 * (toolsets/oracle-operator) [\#5](https://github.com/certikfoundation/shentu/pull/5) Added multi-client support.
 
@@ -53,5 +55,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (x/oracle) [\#6](https://github.com/certikfoundation/shentu/pull/6) Updated events and added useful fields in task types.
 * (toolsets/oracle-operator) [\#5](https://github.com/certikfoundation/shentu/pull/5) Operator refactor.
 * (circleci) [\#4](https://github.com/certikfoundation/shentu/pull/4) Circleci project setup.
+* (x/oracle) [\#8](https://github.com/certikfoundation/shentu/pull/8) Added simulation package to x/oracle.
 
 ### Bug Fixes

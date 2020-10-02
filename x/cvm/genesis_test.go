@@ -21,7 +21,7 @@ func TestExportGenesis(t *testing.T) {
 	code, err := hex.DecodeString(keeper.BasicTestsBytecodeString)
 	require.Nil(t, err)
 
-	_, _ = k.Call(ctx, keeper.Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false)
+	_, _ = k.Call(ctx, keeper.Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 	exported := ExportGenesis(ctx, k)
 
 	testInput2 := keeper.CreateTestInput(t)

@@ -5,38 +5,31 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 
 	"github.com/certikfoundation/shentu/x/auth/internal/types"
 )
 
 // GetTxCmd returns the transaction commands for this module.
- // NOTE: Auth tx commands from Cosmos are mounted directly under the root.
- func GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	txCmd := &cobra.Command{
-		Use:                        types.ModuleName,
-		Short:                      "Auth transaction subcommands",
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
-	}
+func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+	txCmd := cli.GetTxCmd(cdc)
 	txCmd.AddCommand(
-		GetCmdManualVesting(cdc),
+		GetCmdUnlock(cdc),
 	)
 	return txCmd
 }
 
-// GetCmdManualVesting implements the command for unlocking
+// GetCmdUnlock implements the command for unlocking
 // the specified amount in a manual vesting account.
-func GetCmdManualVesting(cdc *codec.Codec) *cobra.Command {
+func GetCmdUnlock(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "manual-vesting [address] [amount]",
+		Use:   "unlock [address] [amount]",
 		Short: "Unlock the amount from a manual vesting account's vesting coins.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -54,15 +47,16 @@ func GetCmdManualVesting(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			amount, err := sdk.ParseCoin(args[1])
+			amount, err := sdk.ParseCoins(args[1])
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgManualVesting(cliCtx.GetFromAddress(), addr, amount)
+			msg := types.NewMsgUnlock(cliCtx.GetFromAddress(), addr, amount)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+
 	cmd = flags.PostCommands(cmd)[0]
 	return cmd
 }

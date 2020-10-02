@@ -133,9 +133,9 @@ func RandomString(n int) string {
 
 func RandomResponse() types.Response {
 	return types.Response{
-		Contract: RandomString(30),
-		Function: RandomString(15),
 		Score:    sdk.NewInt(rand.Int63n(256)),
 		Operator: RandomAccount().Address,
+		Weight:   sdk.NewInt(rand.Int63n(256)),
+		Reward:   RandomCoins(100000),
 	}
 }
