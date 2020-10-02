@@ -165,7 +165,7 @@ func getVestedAccountFromFlags(baseAccount *authtypes.BaseAccount, coins sdk.Coi
 	switch {
 	case manual:
 		unlocker, err := sdk.AccAddressFromBech32(viper.GetString(flagUnlocker))
-		if err != nil {
+		if err != nil || unlocker.Empty() {
 			return nil, errors.New("unlocker address is in incorrect format")
 		}
 		return vesting.NewManualVestingAccountRaw(baseVestingAccount, sdk.NewCoins(), unlocker), nil

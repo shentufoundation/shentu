@@ -13,6 +13,7 @@ import (
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
 )
@@ -121,6 +122,13 @@ func SimulateSubmitProposal(
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		case err != nil:
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+		}
+
+		minInitialDeposit := k.GetDepositParams(ctx).MinInitialDeposit
+		if deposit.AmountOf(common.MicroCTKDenom).LT(minInitialDeposit.AmountOf(common.MicroCTKDenom)) &&
+			!k.IsCouncilMember(ctx, simAccount.Address) {
+			return simulation.NewOperationMsgBasic(govTypes.ModuleName,
+				"NoOp: insufficient initial deposits amount, skip this tx", "", false, nil), nil, nil
 		}
 
 		msg := govTypes.NewMsgSubmitProposal(content, deposit, simAccount.Address)
