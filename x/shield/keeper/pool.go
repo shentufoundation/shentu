@@ -30,9 +30,6 @@ func (k Keeper) CreatePool(
 	if !creator.Equals(operator) {
 		return types.Pool{}, types.ErrNotShieldAdmin
 	}
-	if err := k.DepositNativePremium(ctx, deposit.Native, creator); err != nil {
-		return types.Pool{}, err
-	}
 
 	if !k.ValidatePoolDuration(ctx, timeOfCoverage, blocksOfCoverage) {
 		return types.Pool{}, types.ErrPoolLifeTooShort
@@ -61,6 +58,10 @@ func (k Keeper) CreatePool(
 
 	pool := types.NewPool(operator, shield, depositDec, sponsor, endTime, startBlockHeight, endBlockHeight, id)
 
+	// transfer deposit and store
+	if err := k.DepositNativePremium(ctx, deposit.Native, creator); err != nil {
+		return types.Pool{}, err
+	}
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, id+1)
 	k.SetParticipant(ctx, operator, participant)
@@ -111,6 +112,11 @@ func (k Keeper) UpdatePool(
 
 	pool.Shield = pool.Shield.Add(shield...)
 	pool.Premium = pool.Premium.Add(types.MixedDecCoinsFromMixedCoins(deposit))
+
+	// transfer deposit and store
+	if err := k.DepositNativePremium(ctx, deposit.Native, updater); err != nil {
+		return types.Pool{}, err
+	}
 	k.SetPool(ctx, pool)
 	k.SetParticipant(ctx, operator, participant)
 

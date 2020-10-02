@@ -88,9 +88,8 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	if amount.IsAnyGT(participant.Collateral) {
 		return types.ErrInvalidCollateralAmount
 	}
-
-	// insert to withdrawal queue
-	//participant.Collateral.Sub(amount)
+	
+	// insert into withdrawal queue
 	poolParams := k.GetPoolParams(ctx)
 	completionTime := ctx.BlockHeader().Time.Add(poolParams.WithdrawalPeriod)
 	withdrawal := types.NewWithdrawal(from, amount)
@@ -192,7 +191,7 @@ func (k Keeper) InsertWithdrawlQueue(ctx sdk.Context, withdrawal types.Withdrawa
 	k.SetWithdrawalQueueTimeSlice(ctx, completionTime, timeSlice)
 }
 
-// GetWithdrawalQueueTimeSlice gets a specific withdrawal queue timeslice,
+// GetWithdrawalQueueTimeSlice gets a specific withdrawal queue timeslice, 
 // which is a slice of withdrawals corresponding to a given time.
 func (k Keeper) GetWithdrawalQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []types.Withdrawal {
 	store := ctx.KVStore(k.storeKey)
