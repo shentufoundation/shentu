@@ -41,8 +41,8 @@ func RandomizedGenState(simState *module.SimulationState) {
 // GenPoolParams returns a randomized LockedPoolParams object.
 func GenPoolParams(r *rand.Rand) types.LockedPoolParams {
 	return types.LockedPoolParams{
-		LockedInBlocks:    r.Int63n(60),
-		MinimumCollateral: r.Int63n(100000),
+		LockedInBlocks:    r.Int63n(10),
+		MinimumCollateral: r.Int63n(10000),
 	}
 }
 
