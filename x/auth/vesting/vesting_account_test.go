@@ -15,7 +15,10 @@ import (
 
 var (
 	denom = "uctk"
-	addr  = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	addrs  = []sdk.AccAddress{
+		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
+		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
+	}
 )
 
 func TestManualVestingAcc(t *testing.T) {
