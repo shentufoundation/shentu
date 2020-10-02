@@ -12,7 +12,8 @@ import (
 )
 
 // ClaimLock locks collaterals after a claim proposal is submitted.
-func (k Keeper) ClaimLock(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash string, lockPeriod time.Duration) error {
+func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
+	loss sdk.Coins, purchaseTxHash string, lockPeriod time.Duration) error {
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
 		return err
@@ -42,7 +43,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, poolID uint64, loss sdk.Coins, purcha
 		if !pool.Community[i].Amount.IsAllGTE(lockedCoins) {
 			return types.ErrNotEnoughCollateral
 		}
-		lockedCollateral := types.NewLockedCollateral(purchaseTxHash, lockedCoins)
+		lockedCollateral := types.NewLockedCollateral(proposalID, lockedCoins)
 		pool.Community[i].LockedCollaterals = append(pool.Community[i].LockedCollaterals, lockedCollateral)
 		pool.Community[i].Amount = pool.Community[i].Amount.Sub(lockedCoins)
 		k.LockParticipant(ctx, pool.Community[i].Provider, lockedCoins, lockPeriod)
@@ -53,7 +54,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, poolID uint64, loss sdk.Coins, purcha
 	if !pool.CertiK.Amount.IsAllGTE(lockedCoins) {
 		return types.ErrNotEnoughCollateral
 	}
-	lockedCollateral := types.NewLockedCollateral(purchaseTxHash, lockedCoins)
+	lockedCollateral := types.NewLockedCollateral(proposalID, lockedCoins)
 	pool.CertiK.LockedCollaterals = append(pool.CertiK.LockedCollaterals, lockedCollateral)
 	pool.CertiK.Amount = pool.CertiK.Amount.Sub(lockedCoins)
 	k.LockParticipant(ctx, pool.CertiK.Provider, lockedCoins, lockPeriod)
@@ -153,7 +154,7 @@ func (k Keeper) UpdateUnbonding(
 }
 
 // ClaimUnlock unlocks locked collaterals.
-func (k Keeper) ClaimUnlock(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash string) error {
+func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, loss sdk.Coins) error {
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
 		return err
@@ -163,7 +164,7 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, poolID uint64, loss sdk.Coins, purc
 	// unlock collaterals for community
 	for i, collateral := range pool.Community {
 		for j, locked := range collateral.LockedCollaterals {
-			if locked.PurchaseTxHash == purchaseTxHash {
+			if locked.ProposalID == proposalID {
 				collateral.Amount = collateral.Amount.Add(locked.LockedCoins...)
 				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1:]...)
 				break
@@ -175,7 +176,7 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, poolID uint64, loss sdk.Coins, purc
 	// unlock collaterals for CertiK
 	collateral := pool.CertiK
 	for i, locked := range collateral.LockedCollaterals {
-		if locked.PurchaseTxHash == purchaseTxHash {
+		if locked.ProposalID == proposalID {
 			collateral.Amount = collateral.Amount.Add(locked.LockedCoins...)
 			collateral.LockedCollaterals[i] = collateral.LockedCollaterals[len(collateral.LockedCollaterals)-1]
 			collateral.LockedCollaterals = collateral.LockedCollaterals[:len(collateral.LockedCollaterals)-1]
@@ -297,16 +298,16 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 }
 
 // SetReimbursement sets a reimbursement in store.
-func (k Keeper) SetReimbursement(ctx sdk.Context, purchaseTxHash string, payout types.Reimbursement) {
+func (k Keeper) SetReimbursement(ctx sdk.Context, proposalID uint64, payout types.Reimbursement) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(payout)
-	store.Set(types.GetReimbursementKey(purchaseTxHash), bz)
+	store.Set(types.GetReimbursementKey(proposalID), bz)
 }
 
 // GetReimbursement get a reimbursement in store.
-func (k Keeper) GetReimbursement(ctx sdk.Context, purchaseTxHash string) (types.Reimbursement, error) {
+func (k Keeper) GetReimbursement(ctx sdk.Context, proposalID uint64) (types.Reimbursement, error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetReimbursementKey(purchaseTxHash))
+	bz := store.Get(types.GetReimbursementKey(proposalID))
 	if bz != nil {
 		var reimbursement types.Reimbursement
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &reimbursement)
@@ -316,18 +317,18 @@ func (k Keeper) GetReimbursement(ctx sdk.Context, purchaseTxHash string) (types.
 }
 
 // DeleteReimbursement deletes a reimbursement.
-func (k Keeper) DeleteReimbursement(ctx sdk.Context, purchaseTxHash string) error {
+func (k Keeper) DeleteReimbursement(ctx sdk.Context, proposalID uint64) error {
 	store := ctx.KVStore(k.storeKey)
-	if _, err := k.GetReimbursement(ctx, purchaseTxHash); err != nil {
+	if _, err := k.GetReimbursement(ctx, proposalID); err != nil {
 		return err
 	}
-	store.Delete(types.GetReimbursementKey(purchaseTxHash))
+	store.Delete(types.GetReimbursementKey(proposalID))
 	return nil
 }
 
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(
-	ctx sdk.Context, poolID uint64, purchaseTxHash string, amount sdk.Coins, beneficiary sdk.AccAddress,
+	ctx sdk.Context, proposalID uint64, poolID uint64, amount sdk.Coins, beneficiary sdk.AccAddress,
 ) error {
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
@@ -338,7 +339,7 @@ func (k Keeper) CreateReimbursement(
 	var loss sdk.Coins
 	for i := range pool.Community {
 		for j := range pool.Community[i].LockedCollaterals {
-			if pool.Community[i].LockedCollaterals[j].PurchaseTxHash == purchaseTxHash {
+			if pool.Community[i].LockedCollaterals[j].ProposalID == proposalID {
 				loss = pool.Community[i].LockedCollaterals[j].LockedCoins
 				pool.Community[i].LockedCollaterals = append(
 					pool.Community[i].LockedCollaterals[:j],
@@ -354,13 +355,13 @@ func (k Keeper) CreateReimbursement(
 
 	proposalParams := k.GetClaimProposalParams(ctx)
 	reimbursement := types.NewReimbursement(amount, beneficiary, ctx.BlockTime().Add(proposalParams.PayoutPeriod))
-	k.SetReimbursement(ctx, purchaseTxHash, reimbursement)
+	k.SetReimbursement(ctx, proposalID, reimbursement)
 	return nil
 }
 
 // WithdrawReimbursement checks a reimbursement and pays the beneficiary.
-func (k Keeper) WithdrawReimbursement(ctx sdk.Context, purchaseTxHash string, beneficiary sdk.AccAddress) (sdk.Coins, error) {
-	reimbursement, err := k.GetReimbursement(ctx, purchaseTxHash)
+func (k Keeper) WithdrawReimbursement(ctx sdk.Context, proposalID uint64, beneficiary sdk.AccAddress) (sdk.Coins, error) {
+	reimbursement, err := k.GetReimbursement(ctx, proposalID)
 	if err != nil {
 		return sdk.Coins{}, err
 	}
@@ -376,7 +377,7 @@ func (k Keeper) WithdrawReimbursement(ctx sdk.Context, purchaseTxHash string, be
 	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, beneficiary, reimbursement.Amount); err != nil {
 		return sdk.Coins{}, types.ErrNotPayoutTime
 	}
-	if err := k.DeleteReimbursement(ctx, purchaseTxHash); err != nil {
+	if err := k.DeleteReimbursement(ctx, proposalID); err != nil {
 		return sdk.Coins{}, err
 	}
 	return reimbursement.Amount, nil

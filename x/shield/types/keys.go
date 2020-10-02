@@ -81,10 +81,8 @@ func GetWithdrawalCompletionTimeKey(timestamp time.Time) []byte {
 }
 
 // GetReimbursement gets the key for a reimbursement.
-func GetReimbursementKey(txhashStr string) []byte {
-	txhash, err := hex.DecodeString(txhashStr)
-	if err != nil {
-		panic(err)
-	}
-	return append(ReimbursementKey, txhash...)
+func GetReimbursementKey(proposalID uint64) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, proposalID)
+	return append(ReimbursementKey, bz...)
 }

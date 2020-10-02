@@ -25,8 +25,8 @@ type UpgradeKeeper interface {
 type ShieldKeeper interface {
 	GetPurchase(ctx sdk.Context, txhash string) (shield.Purchase, error)
 	GetClaimProposalParams(ctx sdk.Context) shield.ClaimProposalParams
-	ClaimLock(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash string, lockPeriod time.Duration) error
-	ClaimUnlock(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash string) error
+	ClaimLock(ctx sdk.Context, proposalID, poolID uint64, loss sdk.Coins, purchaseTxHash string, lockPeriod time.Duration) error
+	ClaimUnlock(ctx sdk.Context, proposalID, poolID uint64, loss sdk.Coins) error
 	RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash string) error
 }
 

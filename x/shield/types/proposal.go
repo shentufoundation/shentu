@@ -26,6 +26,7 @@ func init() {
 
 // ShieldClaimProposal defines the data structure of a shield claim proposal.
 type ShieldClaimProposal struct {
+	ProposalID     uint64         `json:"proposal_id" yaml:"proposal_id"`
 	PoolID         uint64         `json:"pool_id" yaml:"pool_id"`
 	Loss           sdk.Coins      `json:"loss" yaml:"loss"`
 	Evidence       string         `json:"evidence" yaml:"evidence"`
@@ -92,15 +93,15 @@ func (scp ShieldClaimProposal) String() string {
 
 // LockedCollateral defines the data type of locked collateral for a claim proposal.
 type LockedCollateral struct {
-	PurchaseTxHash string    `json:"purchase_txhash" yaml:"purchase_txhash"`
-	LockedCoins    sdk.Coins `json:"locked_coins" yaml:"locked_coins"`
+	ProposalID  uint64    `json:"proposal_id" yaml:"proposal_id"`
+	LockedCoins sdk.Coins `json:"locked_coins" yaml:"locked_coins"`
 }
 
 // NewLockedCollateral returns a new LockedCollateral instance.
-func NewLockedCollateral(purchaseTxHash string, lockedCoins sdk.Coins) LockedCollateral {
+func NewLockedCollateral(proposalID uint64, lockedCoins sdk.Coins) LockedCollateral {
 	return LockedCollateral{
-		PurchaseTxHash: purchaseTxHash,
-		LockedCoins:    lockedCoins,
+		ProposalID:  proposalID,
+		LockedCoins: lockedCoins,
 	}
 }
 

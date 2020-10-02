@@ -74,7 +74,6 @@ func EndBlocker(ctx sdk.Context, k Keeper, stakingKeeper types.StakingKeeper) {
 	// process completed withdrawals
 	// Remove all mature unbonding delegations from the ubd queue.
 	k.DequeueCompletedWithdrawalQueue(ctx)
-
 }
 
 // TrackUnbondingAmount tracks the amount to be unbonded by staking end blocker.

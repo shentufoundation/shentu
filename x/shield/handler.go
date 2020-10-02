@@ -57,7 +57,7 @@ func NewShieldClaimProposalHandler(k Keeper) govtypes.Handler {
 }
 
 func handleShieldClaimProposal(ctx sdk.Context, k Keeper, p types.ShieldClaimProposal) error {
-	if err := k.CreateReimbursement(ctx, p.PoolID, p.PurchaseTxHash, p.Loss, p.Proposer); err != nil {
+	if err := k.CreateReimbursement(ctx, p.ProposalID, p.PoolID, p.Loss, p.Proposer); err != nil {
 		return err
 	}
 
@@ -282,7 +282,7 @@ func handleMsgClearPayouts(ctx sdk.Context, msg types.MsgClearPayouts, k Keeper)
 }
 
 func handleMsgWithdrawReimbursement(ctx sdk.Context, msg types.MsgWithdrawReimbursement, k Keeper) (*sdk.Result, error) {
-	amount, err := k.WithdrawReimbursement(ctx, msg.PurchaseTxHash, msg.From)
+	amount, err := k.WithdrawReimbursement(ctx, msg.ProposalID, msg.From)
 	if err != nil {
 		return &sdk.Result{Events: ctx.EventManager().Events()}, err
 	}
@@ -290,7 +290,7 @@ func handleMsgWithdrawReimbursement(ctx sdk.Context, msg types.MsgWithdrawReimbu
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWithdrawReimbursement,
-			sdk.NewAttribute(types.AttributeKeyPurchaseTxHash, msg.PurchaseTxHash),
+			sdk.NewAttribute(types.AttributeKeyPurchaseTxHash, strconv.FormatUint(msg.ProposalID, 10)),
 			sdk.NewAttribute(types.AttributeKeyCompensationAmount, amount.String()),
 			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.From.String()),
 		),

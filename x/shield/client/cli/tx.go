@@ -506,11 +506,11 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 // GetCmdWithdrawReimbursement implements the withdraw reimbursement command handler.
 func GetCmdWithdrawReimbursement(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "withdraw-reimbursement [purchase txhash]",
+		Use:   "withdraw-reimbursement [proposal id]",
 		Args:  cobra.ExactArgs(1),
 		Short: "withdraw reimbursement",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Withdraw reimbursement by purchase txhash.
+			fmt.Sprintf(`Withdraw reimbursement by proposal id.
 
 Example:
 $ %s tx shield withdraw-reimbursement <purchase txhash>
@@ -524,7 +524,12 @@ $ %s tx shield withdraw-reimbursement <purchase txhash>
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
 			fromAddr := cliCtx.GetFromAddress()
-			msg := types.NewMsgWithdrawReimbursement(args[0], fromAddr)
+			proposalID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgWithdrawReimbursement(proposalID, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

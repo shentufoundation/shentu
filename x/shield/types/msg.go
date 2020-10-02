@@ -489,15 +489,15 @@ func (msg MsgPurchaseShield) ValidateBasic() error {
 
 // MsgWithdrawReimburse defines the attributes of withdraw reimbursement transaction.
 type MsgWithdrawReimbursement struct {
-	PurchaseTxHash string         `json:"purchase_txhash" yaml:"purchase_txhash"`
-	From           sdk.AccAddress `json:"from" yaml:"from"`
+	ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"`
+	From       sdk.AccAddress `json:"from" yaml:"from"`
 }
 
 // NewMsgWithdrawReimbursement creates a new MsgWithdrawReimbursement instance.
-func NewMsgWithdrawReimbursement(purchaseTxHash string, from sdk.AccAddress) MsgWithdrawReimbursement {
+func NewMsgWithdrawReimbursement(proposalID uint64, from sdk.AccAddress) MsgWithdrawReimbursement {
 	return MsgWithdrawReimbursement{
-		PurchaseTxHash: purchaseTxHash,
-		From:           from,
+		ProposalID: proposalID,
+		From:       from,
 	}
 }
 

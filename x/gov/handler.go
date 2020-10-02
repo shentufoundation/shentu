@@ -131,7 +131,7 @@ func updateAfterSubmitProposal(ctx sdk.Context, k keeper.Keeper, proposal types.
 	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
 		c := proposal.Content.(shield.ClaimProposal)
 		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
-		return k.ShieldKeeper.ClaimLock(ctx, c.PoolID, c.Loss, c.PurchaseTxHash, lockPeriod)
+		return k.ShieldKeeper.ClaimLock(ctx, c.ProposalID, c.PoolID, c.Loss, c.PurchaseTxHash, lockPeriod)
 	}
 	return nil
 }
