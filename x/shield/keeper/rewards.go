@@ -41,7 +41,7 @@ func (k Keeper) GetRewards(ctx sdk.Context, addr sdk.AccAddress) types.MixedDecC
 func (k Keeper) SetRewards(ctx sdk.Context, addr sdk.AccAddress, earnings types.MixedDecCoins) {
 	provider, found := k.GetProvider(ctx, addr)
 	if !found {
-		provider = types.NewProvider()
+		provider = types.NewProvider(addr)
 	}
 	provider.Rewards = earnings
 	store := ctx.KVStore(k.storeKey)

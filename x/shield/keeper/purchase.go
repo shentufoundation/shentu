@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"encoding/hex"
-
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,14 +9,14 @@ import (
 )
 
 // SetPurchase sets a purchase of shield.
-func (k Keeper) SetPurchase(ctx sdk.Context, txhash string, purchase types.Purchase) {
+func (k Keeper) SetPurchase(ctx sdk.Context, txhash []byte, purchase types.Purchase) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchase)
 	store.Set(types.GetPurchaseTxHashKey(txhash), bz)
 }
 
 // GetPurchase gets a purchase from store by txhash.
-func (k Keeper) GetPurchase(ctx sdk.Context, txhash string) (types.Purchase, error) {
+func (k Keeper) GetPurchase(ctx sdk.Context, txhash []byte) (types.Purchase, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetPurchaseTxHashKey(txhash))
 	if bz != nil {
@@ -30,7 +28,7 @@ func (k Keeper) GetPurchase(ctx sdk.Context, txhash string) (types.Purchase, err
 }
 
 // DeletePurchase deletes a purchase of shield.
-func (k Keeper) DeletePurchase(ctx sdk.Context, txhash string) error {
+func (k Keeper) DeletePurchase(ctx sdk.Context, txhash []byte) error {
 	store := ctx.KVStore(k.storeKey)
 	_, err := k.GetPurchase(ctx, txhash)
 	if err != nil {
@@ -74,10 +72,10 @@ func (k Keeper) PurchaseShield(
 	k.SetPool(ctx, pool)
 
 	// set purchase
-	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
+	txhash := tmhash.Sum(ctx.TxBytes())
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
 	claimPeriodEndTime := ctx.BlockTime().Add(claimParams.ClaimPeriod)
-	purchase := types.NewPurchase(poolID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, description, purchaser)
+	purchase := types.NewPurchase(txhash, poolID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, description, purchaser)
 	k.SetPurchase(ctx, txhash, purchase)
 
 	return purchase, nil
@@ -130,4 +128,29 @@ func (k Keeper) GetOnesPurchases(ctx sdk.Context, address sdk.AccAddress) (purch
 		return false
 	})
 	return purchases
+}
+
+// IteratePurchases iterates through purchases in a pool
+func (k Keeper) IteratePurchases(ctx sdk.Context, callback func(purchase types.Purchase) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ProviderKey)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var purchase types.Purchase
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchase)
+
+		if callback(purchase) {
+			break
+		}
+	}
+}
+
+// GetAllProviders retrieves all providres.
+func (k Keeper) GetAllPurchases(ctx sdk.Context) (purchases []types.Purchase) {
+	k.IteratePurchases(ctx, func(purchase types.Purchase) bool {
+		purchases = append(purchases, purchase)
+		return false
+	})
+	return
 }

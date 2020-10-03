@@ -12,7 +12,7 @@ import (
 
 // ClaimLock locks collaterals after a claim proposal is submitted.
 func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
-	loss sdk.Coins, purchaseTxHash string, lockPeriod time.Duration) error {
+	loss sdk.Coins, purchaseTxHash []byte, lockPeriod time.Duration) error {
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
 		return err
@@ -119,7 +119,7 @@ func (k Keeper) UpdateUnbonding(
 		panic("unbonding delegation was not found")
 	}
 	for i, entry := range ubd.Entries {
-		// FIXME is this check good enough?
+		// TODO: this check is not enough. Need to fix it.
 		if entry.CreationHeight == unbondingDelegation.Entry.CreationHeight {
 			// remove unbonding delegation with old completion time from UBDQueue
 			timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, entry.CompletionTime)
@@ -178,7 +178,7 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 }
 
 // RestoreShield restores shield for proposer.
-func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash string) error {
+func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash []byte) error {
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
 		return err

@@ -45,7 +45,7 @@ func (k Keeper) IteratePoolCollaterals(ctx sdk.Context, pool types.Pool, callbac
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var collateral types.Collateral
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &pool)
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &collateral)
 
 		if callback(collateral) {
 			break

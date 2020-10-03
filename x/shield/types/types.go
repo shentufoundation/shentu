@@ -40,7 +40,6 @@ type Collateral struct {
 	PoolID            uint64
 	Provider          sdk.AccAddress
 	Amount            sdk.Coins
-	Description       string
 	LockedCollaterals []LockedCollateral
 }
 
@@ -142,14 +141,16 @@ func NewPendingPayouts(amount sdk.Dec, to string) PendingPayout {
 // Provider tracks A or C's total delegation, total collateral,
 // and rewards.
 type Provider struct {
+	Address          sdk.AccAddress
 	DelegationBonded sdk.Coins
 	Collateral       sdk.Coins
 	TotalLocked      sdk.Coins
 	Rewards          MixedDecCoins
 }
 
-func NewProvider() Provider {
+func NewProvider(addr sdk.AccAddress) Provider {
 	return Provider{
+		Address:          addr,
 		DelegationBonded: sdk.Coins{},
 		Collateral:       sdk.Coins{},
 		TotalLocked:      sdk.Coins{},
@@ -157,6 +158,7 @@ func NewProvider() Provider {
 }
 
 type Purchase struct {
+	TxHash             []byte
 	PoolID             uint64
 	Shield             sdk.Coins
 	StartBlockHeight   int64
@@ -167,9 +169,10 @@ type Purchase struct {
 }
 
 func NewPurchase(
-	poolID uint64, shield sdk.Coins, startBlockHeight int64, protectionEndTime, claimPeriodEndTime time.Time,
+	txhash []byte, poolID uint64, shield sdk.Coins, startBlockHeight int64, protectionEndTime, claimPeriodEndTime time.Time,
 	description string, purchaser sdk.AccAddress) Purchase {
 	return Purchase{
+		TxHash:             txhash,
 		PoolID:             poolID,
 		Shield:             shield,
 		StartBlockHeight:   startBlockHeight,

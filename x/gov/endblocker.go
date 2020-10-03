@@ -1,6 +1,7 @@
 package gov
 
 import (
+	"encoding/hex"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,7 +41,8 @@ func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
 		c := proposal.Content.(shield.ClaimProposal)
 		_ = k.ShieldKeeper.ClaimUnlock(ctx, c.ProposalID, c.PoolID, c.Loss)
-		_ = k.ShieldKeeper.RestoreShield(ctx, c.PoolID, c.Loss, c.PurchaseTxHash)
+		txhash, _ := hex.DecodeString(c.PurchaseTxHash)
+		_ = k.ShieldKeeper.RestoreShield(ctx, c.PoolID, c.Loss, txhash)
 	}
 }
 

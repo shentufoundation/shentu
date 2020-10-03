@@ -131,7 +131,11 @@ func updateAfterSubmitProposal(ctx sdk.Context, k keeper.Keeper, proposal types.
 	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
 		c := proposal.Content.(shield.ClaimProposal)
 		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
-		return k.ShieldKeeper.ClaimLock(ctx, c.ProposalID, c.PoolID, c.Loss, c.PurchaseTxHash, lockPeriod)
+		txhash, err := hex.DecodeString(c.PurchaseTxHash)
+		if err != nil {
+			return err
+		}
+		return k.ShieldKeeper.ClaimLock(ctx, c.ProposalID, c.PoolID, c.Loss, txhash, lockPeriod)
 	}
 	return nil
 }
@@ -176,7 +180,11 @@ func validateProposalByType(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmitP
 		}
 
 		// check shield >= loss
-		purchase, err := k.ShieldKeeper.GetPurchase(ctx, c.PurchaseTxHash)
+		txhash, err := hex.DecodeString(c.PurchaseTxHash)
+		if err != nil {
+			return err
+		}
+		purchase, err := k.ShieldKeeper.GetPurchase(ctx, txhash)
 		if err != nil {
 			return err
 		}

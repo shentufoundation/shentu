@@ -20,13 +20,13 @@ func (k Keeper) Hooks() Hooks { return Hooks{k} }
 // - when a validator self-delegates to become a validator
 // - when a delegator sends a redelegate tx
 func (h Hooks) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, _ sdk.ValAddress) {
-	h.k.updateDelegationAmount(ctx, delAddr)
+	h.k.UpdateDelegationAmount(ctx, delAddr)
 }
 
 // - when a delegator sends an unbond tx that removes a delegation
 // - when a delegator sends a redelegate tx
 func (h Hooks) BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, _ sdk.ValAddress) {
-	h.k.updateDelegationAmount(ctx, delAddr)
+	h.k.UpdateDelegationAmount(ctx, delAddr)
 }
 
 // unused hooks

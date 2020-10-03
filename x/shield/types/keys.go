@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/binary"
-	"encoding/hex"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -61,11 +60,7 @@ func GetPendingPayoutsKey(denom string) []byte {
 }
 
 // GetPurchaseTxHashKey gets the key for a purchase.
-func GetPurchaseTxHashKey(txhashStr string) []byte {
-	txhash, err := hex.DecodeString(txhashStr)
-	if err != nil {
-		panic(err)
-	}
+func GetPurchaseTxHashKey(txhash []byte) []byte {
 	return append(PurchaseKey, txhash...)
 }
 

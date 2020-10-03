@@ -35,14 +35,14 @@ func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) types.Provider
 		totalStaked = totalStaked.Add(sdk.NewCoin(k.sk.BondDenom(ctx), val.TokensFromShares(del.GetShares()).TruncateInt()))
 	}
 
-	provider := types.NewProvider()
+	provider := types.NewProvider(addr)
 	provider.DelegationBonded = totalStaked
 
 	k.SetProvider(ctx, addr, provider)
 	return provider
 }
 
-func (k Keeper) updateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) {
+func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) {
 	// go through delAddr's delegations to recompute total amount of bonded delegation
 	// update or create a new entry
 	provider, found := k.GetProvider(ctx, delAddr)
@@ -68,4 +68,29 @@ func (k Keeper) updateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) 
 		k.WithdrawFromPools(ctx, delAddr, withdrawAmount)
 	}
 	k.SetProvider(ctx, delAddr, provider)
+}
+
+// IterateProviders iterates through all providers
+func (k Keeper) IterateProviders(ctx sdk.Context, callback func(provider types.Provider) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ProviderKey)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var provider types.Provider
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &provider)
+
+		if callback(provider) {
+			break
+		}
+	}
+}
+
+// GetAllProviders retrieves all providres.
+func (k Keeper) GetAllProviders(ctx sdk.Context) (providers []types.Provider) {
+	k.IterateProviders(ctx, func(provider types.Provider) bool {
+		providers = append(providers, provider)
+		return false
+	})
+	return
 }

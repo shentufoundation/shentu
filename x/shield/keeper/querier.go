@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"strconv"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -97,7 +98,11 @@ func queryPurchase(ctx sdk.Context, path []string, k Keeper) (res []byte, err er
 		return nil, err
 	}
 
-	purchase, err := k.GetPurchase(ctx, path[0])
+	txhash, err := hex.DecodeString(path[0])
+	if err != nil {
+		return nil, err
+	}
+	purchase, err := k.GetPurchase(ctx, txhash)
 	if err != nil {
 		return nil, err
 	}
