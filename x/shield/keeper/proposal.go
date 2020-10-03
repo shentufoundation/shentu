@@ -80,11 +80,23 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, locked sdk
 		if !short.IsPositive() {
 			return
 		}
-		if ubd.Entry.CompletionTime.Before(endTime) {
-			// change unbonding completion time
-			k.UpdateUnbonding(ctx, ubd, ubd.DelegatorAddress, endTime)
+		for i, entry := range ubd.Entries {
+			if entry.CompletionTime.Before(endTime) {
+				// change unbonding completion time
+				timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, ubd.Entries[i].CompletionTime)
+				for i := 0; i < len(timeSlice); i++ {
+					if timeSlice[i].DelegatorAddress.Equals(delAddr) && timeSlice[i].ValidatorAddress.Equals(ubd.ValidatorAddress) {
+						timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
+						k.sk.SetUBDQueueTimeSlice(ctx, entry.CompletionTime, timeSlice)
+						break
+					}
+				}
+				ubd.Entries[i].CompletionTime = endTime
+				k.sk.InsertUBDQueue(ctx, ubd, endTime)
+			}
+			short = short.Sub(entry.Balance)
 		}
-		short = short.Sub(ubd.Entry.Balance)
+		k.sk.SetUnbondingDelegation(ctx, ubd)
 	}
 	if short.IsPositive() {
 		panic("not enough bonded and unbonding delegations")
@@ -92,9 +104,9 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, locked sdk
 }
 
 // GetSortedUnbondingDelegations gets unbonding delegations sorted by completion time.
-func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAddress) []types.UnbondingDelegation {
+func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAddress) []staking.UnbondingDelegation {
 	unbondingDelegation := k.sk.GetAllUnbondingDelegations(ctx, delAddr)
-	var unbondingDelegations []types.UnbondingDelegation
+	var unbondingDelegations []staking.UnbondingDelegation
 	for _, ubd := range unbondingDelegation {
 		for _, entry := range ubd.Entries {
 			unbondingDelegations = append(
@@ -104,41 +116,43 @@ func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAd
 		}
 	}
 	sort.SliceStable(unbondingDelegations, func(i, j int) bool {
-		return unbondingDelegations[i].Entry.CompletionTime.After(unbondingDelegations[j].Entry.CompletionTime)
+		return unbondingDelegations[i].Entries[0].CompletionTime.After(unbondingDelegations[j].Entries[0].CompletionTime)
 	})
 	return unbondingDelegations
 }
 
-// UpdateUnbondingCompletionTime updates the completion time of a unbonding delegation.
-func (k Keeper) UpdateUnbonding(
-	ctx sdk.Context, unbondingDelegation types.UnbondingDelegation, recipient sdk.AccAddress, endTime time.Time) {
+func (k Keeper) RedirectUnbondingEntryToShieldModule(ctx sdk.Context, unbondingDelegation staking.UnbondingDelegation, entryIndex int) {
 	delAddr := unbondingDelegation.DelegatorAddress
 	valAddr := unbondingDelegation.ValidatorAddress
+	shieldAddr := k.supplyKeeper.GetModuleAddress(types.ModuleName)
 	ubd, found := k.sk.GetUnbondingDelegation(ctx, delAddr, valAddr)
 	if !found {
 		panic("unbonding delegation was not found")
 	}
-	for i, entry := range ubd.Entries {
-		// TODO: this check is not enough. Need to fix it.
-		if entry.CreationHeight == unbondingDelegation.Entry.CreationHeight {
-			// remove unbonding delegation with old completion time from UBDQueue
-			timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, entry.CompletionTime)
-			for i := 0; i < len(timeSlice); i++ {
-				if timeSlice[i].DelegatorAddress.Equals(delAddr) && timeSlice[i].ValidatorAddress.Equals(valAddr) {
-					timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
-					break
-				}
-			}
 
-			// update and add unbonding delegation
-			entry.CompletionTime = endTime
-			ubd.Entries[i] = entry
-			ubd.DelegatorAddress = recipient
-			k.sk.SetUnbondingDelegation(ctx, ubd)
-			k.sk.InsertUBDQueue(ctx, ubd, endTime)
+	entry := unbondingDelegation.Entries[entryIndex]
+
+	// remove unbonding delegation with old completion time from UBDQueue
+	timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, entry.CompletionTime)
+	for i := 0; i < len(timeSlice); i++ {
+		if timeSlice[i].DelegatorAddress.Equals(delAddr) && timeSlice[i].ValidatorAddress.Equals(valAddr) {
+			timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
+			k.sk.SetUBDQueueTimeSlice(ctx, entry.CompletionTime, timeSlice)
 			break
 		}
 	}
+	ubd.Entries = append(ubd.Entries[:entryIndex], ubd.Entries[entryIndex+1:]...)
+	k.sk.SetUnbondingDelegation(ctx, ubd)
+	k.sk.InsertUBDQueue(ctx, ubd, entry.CompletionTime)
+
+	shieldUbd, found := k.sk.GetUnbondingDelegation(ctx, shieldAddr, valAddr)
+	if !found {
+		shieldUbd = staking.NewUnbondingDelegation(shieldAddr, valAddr, entry.CreationHeight, entry.CompletionTime, entry.Balance)
+	} else {
+		shieldUbd.AddEntry(entry.CreationHeight, entry.CompletionTime, entry.Balance)
+	}
+	k.sk.SetUnbondingDelegation(ctx, shieldUbd)
+	k.sk.InsertUBDQueue(ctx, shieldUbd, entry.CompletionTime)
 }
 
 // ClaimUnlock unlocks locked collaterals.
@@ -236,23 +250,24 @@ func (k Keeper) UndelegateCoinsToShieldModule(ctx sdk.Context, delAddr sdk.AccAd
 	}
 
 	// if bonded delegations are not enough, track unbonding delegations
-	moduleAddr := k.supplyKeeper.GetModuleAddress(types.ModuleName)
 	unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, delAddr)
 	shortDec := lossAmountDec.Sub(totalDelAmountDec)
 	for _, ubd := range unbondingDelegations {
 		if !shortDec.IsPositive() {
 			return nil
 		}
-		k.UpdateUnbonding(ctx, ubd, moduleAddr, ubd.Entry.CompletionTime)
-		ubdAmountDec := ubd.Entry.InitialBalance.ToDec()
-		if ubdAmountDec.GT(shortDec) {
-			// FIXME not a good way to go maybe?
-			overflowCoins := sdk.NewDecCoins(sdk.NewDecCoin(k.sk.BondDenom(ctx), ubdAmountDec.Sub(shortDec).TruncateInt()))
-			overflowMixedCoins := types.MixedDecCoins{Native: overflowCoins}
-			k.AddRewards(ctx, delAddr, overflowMixedCoins)
-			break
+		for i := range ubd.Entries {
+			k.RedirectUnbondingEntryToShieldModule(ctx, ubd, i)
+			ubdAmountDec := ubd.Entries[i].InitialBalance.ToDec()
+			if ubdAmountDec.GT(shortDec) {
+				// FIXME not a good way to go maybe?
+				overflowCoins := sdk.NewDecCoins(sdk.NewDecCoin(k.sk.BondDenom(ctx), ubdAmountDec.Sub(shortDec).TruncateInt()))
+				overflowMixedCoins := types.MixedDecCoins{Native: overflowCoins}
+				k.AddRewards(ctx, delAddr, overflowMixedCoins)
+				break
+			}
+			shortDec = shortDec.Sub(ubdAmountDec)
 		}
-		shortDec = shortDec.Sub(ubdAmountDec)
 	}
 	if shortDec.IsPositive() {
 		panic("not enough bonded stake")

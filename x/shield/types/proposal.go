@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/x/staking"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -105,21 +107,14 @@ func NewLockedCollateral(proposalID uint64, lockedCoins sdk.Coins) LockedCollate
 	}
 }
 
-// UnbondingDelegation stores a delegator's unbonding delegation.
-type UnbondingDelegation struct {
-	DelegatorAddress sdk.AccAddress                        `json:"delegator_address" yaml:"delegator_address"`
-	ValidatorAddress sdk.ValAddress                        `json:"validator_address" yaml:"validator_address"`
-	Entry            stakingTypes.UnbondingDelegationEntry `json:"entry" yaml:"entry"`
-}
-
 // NewUnbondingDelegation returns a new UnbondingDelegation instance.
 func NewUnbondingDelegation(
 	delAddr sdk.AccAddress, valAddr sdk.ValAddress, entry stakingTypes.UnbondingDelegationEntry,
-) UnbondingDelegation {
-	return UnbondingDelegation{
+) staking.UnbondingDelegation {
+	return staking.UnbondingDelegation{
 		DelegatorAddress: delAddr,
 		ValidatorAddress: valAddr,
-		Entry:            entry,
+		Entries:          []stakingTypes.UnbondingDelegationEntry{entry},
 	}
 }
 
