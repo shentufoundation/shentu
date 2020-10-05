@@ -36,7 +36,7 @@ func depositCollateralHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		from, err := sdk.AccAddressFromHex(req.BaseReq.From)
+		from, err := sdk.AccAddressFromBech32(req.BaseReq.From)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -65,7 +65,7 @@ func withdrawCollateralHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		from, err := sdk.AccAddressFromHex(req.BaseReq.From)
+		from, err := sdk.AccAddressFromBech32(req.BaseReq.From)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -94,7 +94,7 @@ func withdrawRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		from, err := sdk.AccAddressFromHex(req.BaseReq.From)
+		from, err := sdk.AccAddressFromBech32(req.BaseReq.From)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -153,7 +153,7 @@ func withdrawReimbursementHandlerFn(cliCtx context.CLIContext) http.HandlerFunc 
 			return
 		}
 
-		from, err := sdk.AccAddressFromHex(req.BaseReq.From)
+		from, err := sdk.AccAddressFromBech32(req.BaseReq.From)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -182,7 +182,7 @@ func purchaseHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		from, err := sdk.AccAddressFromHex(req.BaseReq.From)
+		from, err := sdk.AccAddressFromBech32(req.BaseReq.From)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -211,7 +211,7 @@ func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		from, err := sdk.AccAddressFromHex(req.BaseReq.From)
+		from, err := sdk.AccAddressFromBech32(req.BaseReq.From)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
