@@ -83,9 +83,16 @@ func GetReimbursementKey(proposalID uint64) []byte {
 	return append(ReimbursementKey, bz...)
 }
 
-// GetCollateralKey gets the key for a reimbursement.
+// GetCollateralKey gets the key for a collateral.
 func GetCollateralKey(poolID uint64, address sdk.AccAddress) []byte {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, poolID)
 	return append(CollateralKey, append(bz, address...)...)
+}
+
+// GetPoolCollateralsKey gets the key for collaterals of a pool.
+func GetPoolCollateralsKey(poolID uint64) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, poolID)
+	return append(CollateralKey, bz...)
 }

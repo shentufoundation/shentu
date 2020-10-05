@@ -18,7 +18,7 @@ func (k Keeper) GetCollateral(ctx sdk.Context, pool types.Pool, addr sdk.AccAddr
 	return collateral, true
 }
 
-// SetCollateral retrieves collateral for a pool-provider pair.
+// SetCollateral stores collateral based on pool-provider pair.
 func (k Keeper) SetCollateral(ctx sdk.Context, pool types.Pool, addr sdk.AccAddress, collateral types.Collateral) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(collateral)
@@ -40,7 +40,7 @@ func (k Keeper) FreeCollaterals(ctx sdk.Context, pool types.Pool) {
 // IteratePoolCollaterals iterates through collaterals in a pool
 func (k Keeper) IteratePoolCollaterals(ctx sdk.Context, pool types.Pool, callback func(collateral types.Collateral) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, append(types.PoolKey, types.GetPoolKey(pool.PoolID)...))
+	iterator := sdk.KVStorePrefixIterator(store, types.GetPoolCollateralsKey(pool.PoolID))
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

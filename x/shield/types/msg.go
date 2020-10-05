@@ -306,9 +306,7 @@ func (msg MsgWithdrawCollateral) ValidateBasic() error {
 }
 
 type MsgWithdrawRewards struct {
-	From   sdk.AccAddress `json:"sender" yaml:"sender"`
-	Denom  string         `json:"denom" yaml:"denom"`
-	ToAddr string         `json:"to_addr" yaml:"to_addr"`
+	From sdk.AccAddress `json:"sender" yaml:"sender"`
 }
 
 // NewMsgWithdrawRewards creates a new MsgWithdrawRewards instance.
@@ -338,12 +336,6 @@ func (msg MsgWithdrawRewards) GetSignBytes() []byte {
 func (msg MsgWithdrawRewards) ValidateBasic() error {
 	if msg.From.Empty() {
 		return ErrEmptySender
-	}
-	if err := sdk.ValidateDenom(msg.Denom); err != nil {
-		return ErrInvalidDenom
-	}
-	if strings.TrimSpace(msg.ToAddr) == "" || len(msg.ToAddr) != sdk.AddrLen {
-		return ErrInvalidToAddr
 	}
 	return nil
 }

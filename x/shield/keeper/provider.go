@@ -23,7 +23,7 @@ func (k Keeper) GetProvider(ctx sdk.Context, delegator sdk.AccAddress) (dt types
 }
 
 // addProvider adds a new provider into shield module. Should only be called from DepositCollateral.
-func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) types.Provider {
+func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) {
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, addr)
 
 	totalStaked := sdk.Coins{}
@@ -39,7 +39,6 @@ func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) types.Provider
 	provider.DelegationBonded = totalStaked
 
 	k.SetProvider(ctx, addr, provider)
-	return provider
 }
 
 func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) {

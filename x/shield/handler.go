@@ -217,7 +217,7 @@ func handleMsgWithdrawRewards(ctx sdk.Context, msg types.MsgWithdrawRewards, k K
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWithdrawRewards,
-			sdk.NewAttribute(types.AttributeKeyToAddr, msg.ToAddr),
+			sdk.NewAttribute(types.AttributeKeyAccountAddress, msg.From.String()),
 			sdk.NewAttribute(types.AttributeKeyDenom, common.MicroCTKDenom),
 			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 		),

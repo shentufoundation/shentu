@@ -130,10 +130,21 @@ func (k Keeper) GetOnesPurchases(ctx sdk.Context, address sdk.AccAddress) (purch
 	return purchases
 }
 
+// GetPoolPurchases returns a all purchases in a given pool.
+func (k Keeper) GetPoolPurchases(ctx sdk.Context, poolID uint64) (purchases []types.Purchase) {
+	k.IterateAllPurchases(ctx, func(purchase types.Purchase) bool {
+		if purchase.PoolID == poolID {
+			purchases = append(purchases, purchase)
+		}
+		return false
+	})
+	return purchases
+}
+
 // IteratePurchases iterates through purchases in a pool
 func (k Keeper) IteratePurchases(ctx sdk.Context, callback func(purchase types.Purchase) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ProviderKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.PurchaseKey)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -146,7 +157,7 @@ func (k Keeper) IteratePurchases(ctx sdk.Context, callback func(purchase types.P
 	}
 }
 
-// GetAllProviders retrieves all providres.
+// GetAllPurchases retrieves all purchases.
 func (k Keeper) GetAllPurchases(ctx sdk.Context) (purchases []types.Purchase) {
 	k.IteratePurchases(ctx, func(purchase types.Purchase) bool {
 		purchases = append(purchases, purchase)
