@@ -196,7 +196,7 @@ func (k Keeper) ClosePool(ctx sdk.Context, pool types.Pool) {
 }
 
 // IterateAllPools iterates over the all the stored pools and performs a callback function.
-func (k Keeper) IterateAllPools(ctx sdk.Context, callback func(certificate types.Pool) (stop bool)) {
+func (k Keeper) IterateAllPools(ctx sdk.Context, callback func(pool types.Pool) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.PoolKey)
 

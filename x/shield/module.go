@@ -72,7 +72,9 @@ func (am AppModule) Name() string {
 }
 
 // RegisterInvariants registers the shield module invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	RegisterInvariants(ir, am.keeper)
+}
 
 // Route returns the message routing key for the shield module.
 func (am AppModule) Route() string {

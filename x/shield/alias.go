@@ -24,6 +24,7 @@ type (
 
 var (
 	// functions aliases
+	RegisterInvariants          = keeper.RegisterInvariants
 	NewKeeper                   = keeper.NewKeeper
 	NewQuerier                  = keeper.NewQuerier
 	ModuleCdc                   = types.ModuleCdc
