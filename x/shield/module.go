@@ -118,13 +118,15 @@ func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.V
 	return []abci.ValidatorUpdate{}
 }
 
+// TODO: Simulation functions
 // WeightedOperations returns shield operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return nil
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
 }
 
 // ProposalContents returns functions that generate gov proposals for the module.
-func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
+func (am AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
+	// return simulation.ProposalContents(am.keeper)
 	return nil
 }
 
@@ -133,7 +135,6 @@ func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
 	return simulation.ParamChanges(r)
 }
 
-// TODO: Simulation functions
 // GenerateGenesisState creates a randomized GenState of this module.
 func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)

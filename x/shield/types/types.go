@@ -72,6 +72,7 @@ type Provider struct {
 	DelegationBonded sdk.Coins
 	Collateral       sdk.Coins
 	TotalLocked      sdk.Coins
+	Available        sdk.Int
 	Rewards          MixedDecCoins
 }
 

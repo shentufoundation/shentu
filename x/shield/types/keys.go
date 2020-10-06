@@ -25,16 +25,15 @@ const (
 )
 
 var (
-	PoolKey          = []byte{0x0}
-	ShieldAdminKey   = []byte{0x1}
-	NextPoolIDKey    = []byte{0x2}
-	PurchaseKey      = []byte{0x3}
-	ReimbursementKey = []byte{0x4}
-	CollateralKey    = []byte{0x5}
-
-	ProviderKey        = []byte{0x5}
-	PendingPayoutsKey  = []byte{0x6}
-	WithdrawalQueueKey = []byte{0x7}
+	PoolKey            = []byte{0x0}
+	ShieldAdminKey     = []byte{0x1}
+	NextPoolIDKey      = []byte{0x2}
+	PurchaseKey        = []byte{0x3}
+	ReimbursementKey   = []byte{0x4}
+	CollateralKey      = []byte{0x5}
+	ProviderKey        = []byte{0x6}
+	PendingPayoutsKey  = []byte{0x7}
+	WithdrawalQueueKey = []byte{0x8}
 )
 
 // GetPoolKey gets the key for the pool identified by pool ID.

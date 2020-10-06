@@ -151,6 +151,7 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 		} else {
 			provider.Collateral = provider.Collateral.Sub(withdrawal.Amount)
 		}
+		provider.Available = provider.Available.Add(withdrawal.Amount.AmountOf(k.sk.BondDenom(ctx)))
 		k.SetProvider(ctx, withdrawal.Address, provider)
 	}
 }

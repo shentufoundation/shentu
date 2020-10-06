@@ -35,6 +35,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 		return types.ErrNotEnoughShield
 	}
 	pool.Shield = pool.Shield.Sub(loss)
+	k.SetPool(ctx, pool)
 
 	// update locked collaterals for community
 	collaterals := k.GetAllPoolCollaterals(ctx, pool)
@@ -42,12 +43,10 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 		lockedCoins := GetLockedCoins(loss, pool.TotalCollateral, collateral.Amount)
 		lockedCollateral := types.NewLockedCollateral(proposalID, lockedCoins)
 		collateral.LockedCollaterals = append(collateral.LockedCollaterals, lockedCollateral)
-		collateral.Amount = collateral.Amount.Sub(lockedCoins)
 		k.LockProvider(ctx, collateral.Provider, lockedCoins, lockPeriod)
 		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 	}
 
-	k.SetPool(ctx, pool)
 	return nil
 }
 
@@ -165,9 +164,8 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 	// unlock collaterals for community
 	collaterals := k.GetAllPoolCollaterals(ctx, pool)
 	for _, collateral := range collaterals {
-		for j, locked := range collateral.LockedCollaterals {
-			if locked.ProposalID == proposalID {
-				collateral.Amount = collateral.Amount.Add(locked.LockedCoins...)
+		for j := range collateral.LockedCollaterals {
+			if collateral.LockedCollaterals[j].ProposalID == proposalID {
 				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1:]...)
 				break
 			}
@@ -177,38 +175,34 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 
 	// unlock collaterals for CertiK
 	collateral := k.GetPoolCertiKCollateral(ctx, pool)
-	for i, locked := range collateral.LockedCollaterals {
-		if locked.ProposalID == proposalID {
-			collateral.Amount = collateral.Amount.Add(locked.LockedCoins...)
-			collateral.LockedCollaterals[i] = collateral.LockedCollaterals[len(collateral.LockedCollaterals)-1]
-			collateral.LockedCollaterals = collateral.LockedCollaterals[:len(collateral.LockedCollaterals)-1]
+	for i := range collateral.LockedCollaterals {
+		if collateral.LockedCollaterals[i].ProposalID == proposalID {
+			collateral.LockedCollaterals = append(collateral.LockedCollaterals[:i], collateral.LockedCollaterals[i+1:]...)
 			break
 		}
 	}
 	k.SetCollateral(ctx, pool, k.GetAdmin(ctx), collateral)
 
-	k.SetPool(ctx, pool)
 	return nil
 }
 
 // RestoreShield restores shield for proposer.
 func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash []byte) error {
+	// update shield of pool
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
 		return err
 	}
+	pool.Shield = pool.Shield.Add(loss...)
+	k.SetPool(ctx, pool)
 
 	// update shield of purchase
 	purchase, err := k.GetPurchase(ctx, purchaseTxHash)
 	if err != nil {
 		return err
 	}
-	purchase.Shield = purchase.Shield.Sub(loss)
+	purchase.Shield = purchase.Shield.Add(loss...)
 	k.SetPurchase(ctx, purchaseTxHash, purchase)
-
-	// update shield of pool
-	pool.Shield = pool.Shield.Add(loss...)
-	k.SetPool(ctx, pool)
 
 	return nil
 }

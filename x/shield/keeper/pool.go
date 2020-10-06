@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -41,9 +42,11 @@ func (k Keeper) CreatePool(
 		provider, _ = k.GetProvider(ctx, admin)
 	}
 	provider.Collateral = provider.Collateral.Add(shield...)
-	if provider.Collateral.IsAnyGT(provider.DelegationBonded) {
-		return types.Pool{}, types.ErrInsufficientStaking
+	if shield.AmountOf(k.sk.BondDenom(ctx)).GT(provider.Available) {
+		return types.Pool{}, sdkerrors.Wrapf(types.ErrInsufficientStaking,
+			"available %s, shield %s", provider.Available, shield)
 	}
+	provider.Available.Sub(shield.AmountOf(k.sk.BondDenom(ctx)))
 
 	// Store endTime. If not available, store endBlockHeight.
 	var endTime, endBlockHeight int64
@@ -59,13 +62,15 @@ func (k Keeper) CreatePool(
 
 	pool := types.NewPool(shield, depositDec, sponsor, endTime, startBlockHeight, endBlockHeight, id)
 
-	// transfer deposit and store
+	// transfer deposit
 	if err := k.DepositNativePremium(ctx, deposit.Native, creator); err != nil {
 		return types.Pool{}, err
 	}
+
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, id+1)
 	k.SetProvider(ctx, admin, provider)
+	k.SetCollateral(ctx, pool, admin, types.NewCollateral(pool, admin, shield))
 
 	return pool, nil
 }
@@ -84,9 +89,11 @@ func (k Keeper) UpdatePool(
 		return types.Pool{}, types.ErrNoDelegationAmount
 	}
 	provider.Collateral = provider.Collateral.Add(shield...)
-	if provider.Collateral.IsAnyGT(provider.DelegationBonded) {
-		return types.Pool{}, types.ErrInsufficientStaking
+	if shield.AmountOf(k.sk.BondDenom(ctx)).GT(provider.Available) {
+		return types.Pool{}, sdkerrors.Wrapf(types.ErrInsufficientStaking,
+			"available %s, shield %s", provider.Available, shield)
 	}
+	provider.Available.Sub(shield.AmountOf(k.sk.BondDenom(ctx)))
 
 	pool, err := k.GetPool(ctx, id)
 	if err != nil {
@@ -217,6 +224,9 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 	withdrawAmtDec := sdk.NewDecFromInt(amount.AmountOf(k.sk.BondDenom(ctx)))
 	collateralDec := sdk.NewDecFromInt(provider.Collateral.AmountOf(k.sk.BondDenom(ctx)))
 	proportion := withdrawAmtDec.Quo(collateralDec)
+	if amount.IsAnyGT(provider.Collateral) {
+		panic(types.ErrNotEnoughCollateral)
+	}
 
 	addrCollaterals := k.GetOnesCollaterals(ctx, addr)
 
@@ -231,5 +241,6 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 		withdrawAmt := withdrawAmtDec.TruncateInt()
 		withdrawCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), withdrawAmt))
 		_ = k.WithdrawCollateral(ctx, addr, collateral.PoolID, withdrawCoins)
+		remainingWithdraw = remainingWithdraw.Sub(withdrawCoins)
 	}
 }

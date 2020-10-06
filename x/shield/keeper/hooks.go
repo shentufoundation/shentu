@@ -25,8 +25,8 @@ func (h Hooks) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, 
 
 // - when a delegator sends an unbond tx that removes a delegation
 // - when a delegator sends a redelegate tx
-func (h Hooks) BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, _ sdk.ValAddress) {
-	h.k.UpdateDelegationAmount(ctx, delAddr)
+func (h Hooks) BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+	h.k.RemoveDelegation(ctx, delAddr, valAddr)
 }
 
 // unused hooks

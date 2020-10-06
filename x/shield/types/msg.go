@@ -377,10 +377,7 @@ func (msg MsgWithdrawForeignRewards) ValidateBasic() error {
 	if msg.From.Empty() {
 		return ErrEmptySender
 	}
-	if err := sdk.ValidateDenom(msg.Denom); err != nil {
-		return ErrInvalidDenom
-	}
-	if strings.TrimSpace(msg.ToAddr) == "" || len(msg.ToAddr) != sdk.AddrLen {
+	if strings.TrimSpace(msg.ToAddr) == "" {
 		return ErrInvalidToAddr
 	}
 	return nil

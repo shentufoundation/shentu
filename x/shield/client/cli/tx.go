@@ -103,7 +103,7 @@ Where proposal.json contains:
 			}
 			from := cliCtx.GetFromAddress()
 			content := types.NewShieldClaimProposal(proposal.PoolID, proposal.Loss, proposal.Evidence,
-				proposal.PurchaseTxHash, proposal.Description, from, proposal.Deposit)
+				proposal.PurchaseTxHash, proposal.Description, from)
 
 			msg := gov.NewMsgSubmitProposal(content, proposal.Deposit, from)
 			if err := msg.ValidateBasic(); err != nil {

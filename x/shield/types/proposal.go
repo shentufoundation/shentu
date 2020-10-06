@@ -35,12 +35,11 @@ type ShieldClaimProposal struct {
 	PurchaseTxHash string         `json:"purchase_txash" yaml:"purchase_txash"`
 	Description    string         `json:"description" yaml:"description"`
 	Proposer       sdk.AccAddress `json:"proposer" yaml:"proposer"`
-	Deposit        sdk.Coins      `json:"deposit" yaml:"deposit"`
 }
 
 // NewShieldClaimProposal creates a new shield claim proposal.
-func NewShieldClaimProposal(poolID uint64, loss sdk.Coins, evidence, purchaseTxHash, description string,
-	proposer sdk.AccAddress, deposit sdk.Coins) ShieldClaimProposal {
+func NewShieldClaimProposal(poolID uint64, loss sdk.Coins, evidence, purchaseTxHash,
+	description string, proposer sdk.AccAddress) ShieldClaimProposal {
 	return ShieldClaimProposal{
 		PoolID:         poolID,
 		Loss:           loss,
@@ -48,7 +47,6 @@ func NewShieldClaimProposal(poolID uint64, loss sdk.Coins, evidence, purchaseTxH
 		PurchaseTxHash: purchaseTxHash,
 		Description:    description,
 		Proposer:       proposer,
-		Deposit:        deposit,
 	}
 }
 
@@ -88,8 +86,7 @@ func (scp ShieldClaimProposal) String() string {
   PurchaseTxHash: %s
   Description:    %s
   Proposer:       %s
-  Deposit:        %s
-`, scp.PoolID, scp.Loss, scp.Evidence, scp.PurchaseTxHash, scp.Description, scp.Proposer, scp.Deposit))
+`, scp.PoolID, scp.Loss, scp.Evidence, scp.PurchaseTxHash, scp.Description, scp.Proposer))
 	return b.String()
 }
 

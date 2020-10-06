@@ -95,19 +95,21 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 		provider, _ = k.GetProvider(ctx, from)
 	}
 	provider.Collateral = provider.Collateral.Add(amount...)
-	if provider.Collateral.IsAnyGT(provider.DelegationBonded) {
+	if amount.AmountOf(k.sk.BondDenom(ctx)).GT(provider.Available) {
 		return types.ErrInsufficientStaking
 	}
+	provider.Available = provider.Available.Sub(amount.AmountOf(k.sk.BondDenom(ctx)))
 
-	// update the pool - update or create collateral entry
+	// update the pool, collateral and provider
 	collateral, found := k.GetCollateral(ctx, pool, from)
 	if !found {
 		collateral = types.NewCollateral(pool, from, amount)
+	} else {
+		collateral.Amount = collateral.Amount.Add(amount...)
 	}
-	collateral.Amount = collateral.Amount.Add(amount...)
-	k.SetCollateral(ctx, pool, from, collateral)
 	pool.TotalCollateral = pool.TotalCollateral.Add(amount...)
 	k.SetPool(ctx, pool)
+	k.SetCollateral(ctx, pool, from, collateral)
 	k.SetProvider(ctx, from, provider)
 
 	return nil
@@ -115,12 +117,6 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 
 // WithdrawCollateral withdraws a community member's collateral for a pool.
 func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint64, amount sdk.Coins) error {
-	pool, err := k.GetPool(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	// check eligibility
 	provider, found := k.GetProvider(ctx, from)
 	if !found {
 		return types.ErrNoDelegationAmount
@@ -135,15 +131,5 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	withdrawal := types.NewWithdrawal(id, from, amount)
 	k.InsertWithdrawalQueue(ctx, withdrawal, completionTime)
 
-	// update the pool - update or create collateral entry
-
-	collateral, found := k.GetCollateral(ctx, pool, from)
-	if !found {
-		return types.ErrNoCollateralFound
-	}
-	collateral.Amount = collateral.Amount.Sub(amount)
-	k.SetCollateral(ctx, pool, from, collateral)
-	pool.TotalCollateral = pool.TotalCollateral.Sub(amount)
-	k.SetPool(ctx, pool)
 	return nil
 }

@@ -20,7 +20,12 @@ type StakingKeeper interface {
 	// iterate through validators by admin address, execute func for each validator
 	IterateValidators(sdk.Context, func(index int64, validator stakingexported.ValidatorI) (stop bool))
 
-	GetValidator(sdk.Context, sdk.ValAddress) (staking.Validator, bool) // get a particular validator by admin address with a found flag
+	// get a particular validator by admin address with a found flag
+	GetValidator(sdk.Context, sdk.ValAddress) (staking.Validator, bool)
+	// get the set of all validators with no limits, used during genesis dump
+	GetAllValidators(ctx sdk.Context) []staking.Validator
+	// return all delegations to a specific validator. Useful for querier
+	GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) []staking.Delegation
 
 	ValidatorByConsAddr(sdk.Context, sdk.ConsAddress) stakingexported.ValidatorI // get a particular validator by consensus address
 

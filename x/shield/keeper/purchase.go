@@ -107,13 +107,13 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 	for ; iterator.Valid(); iterator.Next() {
 		var purchase types.Purchase
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchase)
-		pool, err := k.GetPool(ctx, purchase.PoolID)
-		if err == nil {
-			pool.Available = pool.Available.Add(purchase.Shield.AmountOf(k.sk.BondDenom(ctx)))
-			pool.Shield = pool.Shield.Sub(purchase.Shield)
-			k.SetPool(ctx, pool)
-		}
 		if purchase.ClaimPeriodEndTime.Before(ctx.BlockTime()) {
+			pool, err := k.GetPool(ctx, purchase.PoolID)
+			if err == nil {
+				pool.Available = pool.Available.Add(purchase.Shield.AmountOf(k.sk.BondDenom(ctx)))
+				pool.Shield = pool.Shield.Sub(purchase.Shield)
+				k.SetPool(ctx, pool)
+			}
 			store.Delete(iterator.Key())
 		}
 	}
