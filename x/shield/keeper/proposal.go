@@ -29,13 +29,10 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 	purchase.Shield = purchase.Shield.Sub(loss)
 	k.SetPurchase(ctx, purchaseTxHash, purchase)
 
-	// update the shield of pool
 	if !pool.Shield.IsAllGTE(loss) {
 		// TODO this should never happen?
 		return types.ErrNotEnoughShield
 	}
-	pool.Shield = pool.Shield.Sub(loss)
-	k.SetPool(ctx, pool)
 
 	// update locked collaterals for community
 	collaterals := k.GetAllPoolCollaterals(ctx, pool)
@@ -43,9 +40,15 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 		lockedCoins := GetLockedCoins(loss, pool.TotalCollateral, collateral.Amount)
 		lockedCollateral := types.NewLockedCollateral(proposalID, lockedCoins)
 		collateral.LockedCollaterals = append(collateral.LockedCollaterals, lockedCollateral)
-		k.LockProvider(ctx, collateral.Provider, lockedCoins, lockPeriod)
+		collateral.Amount = collateral.Amount.Sub(lockedCoins)
 		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
+		k.LockProvider(ctx, collateral.Provider, lockedCoins, lockPeriod)
 	}
+
+	// update the shield of pool
+	pool.Shield = pool.Shield.Sub(loss)
+	pool.TotalCollateral = pool.TotalCollateral.Sub(loss)
+	k.SetPool(ctx, pool)
 
 	return nil
 }
@@ -63,6 +66,7 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, locked sdk
 
 	// update provider
 	provider.TotalLocked = provider.TotalLocked.Add(locked...)
+	provider.Collateral = provider.Collateral.Sub(locked)
 	k.SetProvider(ctx, delAddr, provider)
 
 	// if there are enough delegations
@@ -160,28 +164,28 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 	if err != nil {
 		return err
 	}
+	pool.TotalCollateral = pool.TotalCollateral.Add(loss...)
+	k.SetPool(ctx, pool)
 
-	// unlock collaterals for community
+	// update collaterals and providers
 	collaterals := k.GetAllPoolCollaterals(ctx, pool)
 	for _, collateral := range collaterals {
 		for j := range collateral.LockedCollaterals {
 			if collateral.LockedCollaterals[j].ProposalID == proposalID {
+				collateral.Amount = collateral.Amount.Add(collateral.LockedCollaterals[j].LockedCoins...)
 				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1:]...)
+				provider, found := k.GetProvider(ctx, collateral.Provider)
+				if !found {
+					panic("provider is not found")
+				}
+				provider.TotalLocked = provider.TotalLocked.Sub(collateral.LockedCollaterals[j].LockedCoins)
+				provider.Collateral = provider.Collateral.Add(collateral.LockedCollaterals[j].LockedCoins...)
+				k.SetProvider(ctx, collateral.Provider, provider)
 				break
 			}
 		}
 		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 	}
-
-	// unlock collaterals for CertiK
-	collateral := k.GetPoolCertiKCollateral(ctx, pool)
-	for i := range collateral.LockedCollaterals {
-		if collateral.LockedCollaterals[i].ProposalID == proposalID {
-			collateral.LockedCollaterals = append(collateral.LockedCollaterals[:i], collateral.LockedCollaterals[i+1:]...)
-			break
-		}
-	}
-	k.SetCollateral(ctx, pool, k.GetAdmin(ctx), collateral)
 
 	return nil
 }
@@ -333,22 +337,17 @@ func (k Keeper) CreateReimbursement(
 	}
 
 	// for each community member, get coins from delegations
-	var loss sdk.Coins
 	collaterals := k.GetAllPoolCollaterals(ctx, pool)
 	for _, collateral := range collaterals {
 		for j := range collateral.LockedCollaterals {
 			if collateral.LockedCollaterals[j].ProposalID == proposalID {
-				loss = collateral.LockedCollaterals[j].LockedCoins
-				collateral.LockedCollaterals = append(
-					collateral.LockedCollaterals[:j],
-					collateral.LockedCollaterals[j+1],
-				)
+				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1])
 				k.SetCollateral(ctx, pool, collateral.Provider, collateral)
+				if err := k.UndelegateCoinsToShieldModule(ctx, collateral.Provider, collateral.LockedCollaterals[j].LockedCoins); err != nil {
+					return err
+				}
 				break
 			}
-		}
-		if err := k.UndelegateCoinsToShieldModule(ctx, collateral.Provider, loss); err != nil {
-			return err
 		}
 	}
 

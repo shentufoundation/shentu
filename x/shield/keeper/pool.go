@@ -46,7 +46,7 @@ func (k Keeper) CreatePool(
 		return types.Pool{}, sdkerrors.Wrapf(types.ErrInsufficientStaking,
 			"available %s, shield %s", provider.Available, shield)
 	}
-	provider.Available.Sub(shield.AmountOf(k.sk.BondDenom(ctx)))
+	provider.Available = provider.Available.Sub(shield.AmountOf(k.sk.BondDenom(ctx)))
 
 	// Store endTime. If not available, store endBlockHeight.
 	var endTime, endBlockHeight int64
@@ -93,7 +93,7 @@ func (k Keeper) UpdatePool(
 		return types.Pool{}, sdkerrors.Wrapf(types.ErrInsufficientStaking,
 			"available %s, shield %s", provider.Available, shield)
 	}
-	provider.Available.Sub(shield.AmountOf(k.sk.BondDenom(ctx)))
+	provider.Available = provider.Available.Sub(shield.AmountOf(k.sk.BondDenom(ctx)))
 
 	pool, err := k.GetPool(ctx, id)
 	if err != nil {

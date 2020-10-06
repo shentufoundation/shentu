@@ -53,7 +53,7 @@ func (k Keeper) PurchaseShield(
 	if !pool.Active {
 		return types.Purchase{}, types.ErrPoolInactive
 	}
-	if shield.AmountOf(k.sk.BondDenom(ctx)).LT(pool.Available) {
+	if shield.AmountOf(k.sk.BondDenom(ctx)).GT(pool.Available) {
 		return types.Purchase{}, types.ErrNotEnoughShield
 	}
 

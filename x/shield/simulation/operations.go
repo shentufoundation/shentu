@@ -529,7 +529,7 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper) simulati
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		maxPurchaseAmount := sdk.MaxInt(pool.Available, account.SpendableCoins(ctx.BlockTime()).AmountOf(denom))
+		maxPurchaseAmount := sdk.MinInt(pool.Available, account.SpendableCoins(ctx.BlockTime()).AmountOf(denom))
 		shieldAmount, err := simulation.RandPositiveInt(r, maxPurchaseAmount)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
