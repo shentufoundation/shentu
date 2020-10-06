@@ -51,25 +51,24 @@ func AccountCollateralsInvariants(k Keeper) sdk.Invariant {
 // PurchasedCollateralsInvariants checks the total purchased amount is less than or equal to the pool's total collateral amount.
 func PurchasedCollateralsInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		var id uint64
 		broken := false
-		pool := types.Pool{}
+		currentPool := types.Pool{}
 		purchased := sdk.Coins{}
 		k.IterateAllPools(ctx, func(pool types.Pool) bool {
 			purchases := k.GetAllPurchases(ctx)
 			purchased = sdk.Coins{}
 			for _, purchase := range purchases {
 				if purchase.PoolID == pool.PoolID {
-					purchased.Add(purchase.Shield...)
+					purchased = purchased.Add(purchase.Shield...)
 				}
 			}
-			id = pool.PoolID
+			currentPool = pool
 			broken = pool.TotalCollateral.IsAllLT(purchased)
 			return broken
 		})
 		return sdk.FormatInvariant(types.ModuleName, "account collateral and total sum of deposited collateral",
 			fmt.Sprintf("\tPool ID: %v\n"+
 				"\tSum of purchased Shield: %v\n"+
-				"\tPool's total collaterals: %v\n", id, purchased, pool.TotalCollateral)), broken
+				"\tPool's total collaterals: %v\n", currentPool.PoolID, purchased, currentPool.TotalCollateral)), broken
 	}
 }
