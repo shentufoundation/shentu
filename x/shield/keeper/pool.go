@@ -229,17 +229,17 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 	}
 
 	addrCollaterals := k.GetOnesCollaterals(ctx, addr)
-
+	bondDenom := k.sk.BondDenom(ctx)
 	remainingWithdraw := amount
 	for i, collateral := range addrCollaterals {
 		var withdrawAmtDec sdk.Dec
 		if i == len(addrCollaterals)-1 {
-			withdrawAmtDec = sdk.NewDecFromInt(remainingWithdraw.AmountOf(k.sk.BondDenom(ctx)))
+			withdrawAmtDec = sdk.NewDecFromInt(remainingWithdraw.AmountOf(bondDenom))
 		} else {
-			withdrawAmtDec = sdk.NewDecFromInt(collateral.Amount.AmountOf(k.sk.BondDenom(ctx))).Mul(proportion)
+			withdrawAmtDec = sdk.NewDecFromInt(collateral.Amount.AmountOf(bondDenom)).Mul(proportion)
 		}
 		withdrawAmt := withdrawAmtDec.TruncateInt()
-		withdrawCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), withdrawAmt))
+		withdrawCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, withdrawAmt))
 		err := k.WithdrawCollateral(ctx, addr, collateral.PoolID, withdrawCoins)
 		if err != nil {
 			//TODO: address this error

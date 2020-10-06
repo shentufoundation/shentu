@@ -370,11 +370,11 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		mint.ModuleName,
 		supply.ModuleName,
 		cvm.ModuleName,
+		shield.ModuleName,
 		crisis.ModuleName,
 		cert.ModuleName,
 		genutil.ModuleName,
 		oracle.ModuleName,
-		shield.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(

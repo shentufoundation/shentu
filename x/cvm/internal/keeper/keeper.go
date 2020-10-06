@@ -4,9 +4,7 @@ package keeper
 import (
 	"bytes"
 	gobin "encoding/binary"
-	"encoding/hex"
 
-	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -120,11 +118,7 @@ func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint
 	registerCVMNative(&options, cc)
 
 	newCVM := vm.NewCVM(options)
-	logger := ctx.Logger()
-	txHash := tmhash.Sum(ctx.TxBytes())
 	bc := NewBlockChain(ctx, *k)
-
-	logger.Info("CVM Start", "txHash", hex.EncodeToString(txHash))
 
 	var ret []byte
 	if isEWASM {
@@ -136,10 +130,6 @@ func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint
 	} else {
 		ret, err = newCVM.Execute(cache, bc, NewEventSink(ctx), callParams, code)
 	}
-
-	defer func() {
-		logger.Info("CVM Stop", "result", hex.EncodeToString(ret))
-	}()
 
 	// Refund cannot exceed half of the total gas cost.
 	// Only refund when there is no error.

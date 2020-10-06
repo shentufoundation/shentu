@@ -53,10 +53,14 @@ func (k Keeper) PurchaseShield(
 	if !pool.Active {
 		return types.Purchase{}, types.ErrPoolInactive
 	}
+	if pool.EndTime <= ctx.BlockTime().Unix()+types.DefaultWithdrawalPeriod.Milliseconds()/1000 &&
+		pool.EndBlockHeight <= ctx.BlockHeight()+types.DefaultWithdrawalPeriod.Milliseconds()/1000/5 {
+		return types.Purchase{}, types.ErrPoolLifeTooShort
+	}
 	if shield.AmountOf(k.sk.BondDenom(ctx)).GT(pool.Available) {
 		return types.Purchase{}, types.ErrNotEnoughShield
 	}
-
+  
 	// send tokens to shield module account
 	shieldDec := sdk.NewDecCoinsFromCoins(shield...)
 	premium, _ := shieldDec.MulDec(poolParams.ShieldFeesRate).TruncateDecimal()
