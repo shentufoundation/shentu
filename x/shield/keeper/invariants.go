@@ -46,7 +46,6 @@ func AccountCollateralsInvariants(k Keeper) sdk.Invariant {
 		return sdk.FormatInvariant(types.ModuleName, "account collateral and total sum of deposited collateral",
 			fmt.Sprintf("\tSum of Provider's deposited tokens: %v\n"+
 				"\tAccount's tracked collaterals: %v\n", providerCollateralSum, providerCollateral)), broken
-
 	}
 }
 
