@@ -1,6 +1,7 @@
 package simulation
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"time"
@@ -116,6 +117,8 @@ func SimulateSubmitProposal(
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
+		// fmt.Printf(">> debug SimulateSubmitProposal: proposal type %s\n", content.ProposalType())
+
 		var (
 			deposit sdk.Coins
 			skip    bool
@@ -131,9 +134,6 @@ func SimulateSubmitProposal(
 				}
 			}
 			account := ak.GetAccount(ctx, simAccount.Address)
-			if account == nil {
-				return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
-			}
 			denom := account.GetCoins()[0].Denom
 			lossAmountDec := c.Loss.AmountOf(denom).ToDec()
 			claimProposalParams := k.ShieldKeeper.GetClaimProposalParams(ctx)
@@ -144,6 +144,8 @@ func SimulateSubmitProposal(
 				return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 			}
 			deposit = sdk.NewCoins(sdk.NewCoin(denom, minDepositAmount))
+			// FIXME
+			fmt.Printf(">> debug SimulateSubmitProposal: shield claim proposal\n")
 		} else {
 			simAccount, _ = simulation.RandomAcc(r, accs)
 			deposit, skip, err = randomDeposit(r, ctx, ak, k, simAccount.Address)
@@ -179,7 +181,7 @@ func SimulateSubmitProposal(
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
 			fees,
-			helpers.DefaultGenTxGas,
+			helpers.DefaultGenTxGas * 5,
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},

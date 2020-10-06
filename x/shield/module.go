@@ -143,8 +143,7 @@ func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 
 // RegisterStoreDecoder registers a decoder for this module.
 func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	// TODO
-	// sdr[StoreKey] = simulation.DecodeStore
+	sdr[StoreKey] = simulation.DecodeStore
 }
 
 // ValidateGenesis validates the module genesis.
