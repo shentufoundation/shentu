@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -144,16 +145,13 @@ func GetCmdIssueCertificate(cdc *codec.Codec) *cobra.Command {
 				}
 				return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 
-			case "auditing", "proof", "oracleoperator":
+			default:
 				description := viper.GetString(FlagDescription)
 				msg := types.NewMsgCertifyGeneral(certificateTypeString, args[1], args[2], description, from)
 				if err := msg.ValidateBasic(); err != nil {
 					return err
 				}
 				return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-
-			default:
-				return types.ErrInvalidCertificateType
 			}
 		},
 	}
@@ -247,7 +245,8 @@ func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 		Use:   "certifier-update [proposal-file]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Submit a certifier update proposal",
-		Long: strings.TrimSpace(`Submit a certifier update proposal along with an initial deposit.
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a certifier update proposal along with an initial deposit.
 The proposal details must be supplied via a JSON file.
 Example:
 $ %s tx gov submit-proposal certifier-update <path/to/proposal.json> --from=<key_or_address>
@@ -265,7 +264,10 @@ Where proposal.json contains:
     }
   ]
 }
-`),
+`,
+				version.ClientName,
+			),
+		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))

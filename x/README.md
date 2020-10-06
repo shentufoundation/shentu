@@ -1,10 +1,19 @@
 # List of Modules
 
-Modules used in CertiK Chain and their corresponding documentation:
+Modules used in CertiK Chain:
 
-- [CVM](cvm/spec/README.md): CertiK VM, the support for smart contract
-- [Staking](staking/spec/README.md): PoS layer for the CertiK Chain
-- [Certification](cert/spec/README.md): Management of certifiers and smart contracts certifications
-- [Governance](gov/spec/README.md): On-chain proposals and voting
+- [auth](auth): Account management
+- [bank](bank): Banking
+- [cert](cert): Management of certifiers and smart contracts certifications
+- [crisis](crisis): Crisis handling
+- [cvm](cvm): CertiK VM, the support for smart contract
+- [distribution](distribution): CTK distribution
+- [gov](gov): On-chain proposals and voting
+- [mint](mint): CTK miniting
+- [oracle](oracle): CertiK Security Oracle
+- [shield](shield): CertiKShield
+- [slashing](slashing): Punishment
+- [staking](staking): PoS layer for the CertiK Chain
+- [upgrade](upgrade): Node software upgrade
 
-For other chain documentation, please see [`docs/`](../docs).
+For chain documentation, please see [`docs/`](../docs).

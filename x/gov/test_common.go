@@ -28,6 +28,7 @@ import (
 	distr "github.com/certikfoundation/shentu/x/distribution"
 	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/shield"
 	"github.com/certikfoundation/shentu/x/upgrade"
 )
 
@@ -76,6 +77,7 @@ func createTestInput(t *testing.T) testInput {
 	keyDistr := sdk.NewKVStoreKey(distr.StoreKey)
 	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
 	keyGov := sdk.NewKVStoreKey(StoreKey)
+	keyShield := sdk.NewKVStoreKey(shield.StoreKey)
 
 	cdc := newTestCodec()
 	db := dbm.NewMemDB()
@@ -144,6 +146,7 @@ func createTestInput(t *testing.T) testInput {
 
 	slashingKeeper := slashing.NewKeeper(cdc, keySlashing, stakingKeeper, paramsKeeper.Subspace(slashing.DefaultParamspace))
 	certKeeper := cert.NewKeeper(cdc, keyCert, slashingKeeper, stakingKeeper)
+	shieldKeeper := shield.NewKeeper(cdc, keyShield, stakingKeeper, supplyKeeper, paramsKeeper.Subspace(shield.DefaultParamSpace))
 
 	upgradeKeeper := upgrade.NewKeeper(map[int64]bool{}, fillerStoreKey(""), cdc)
 
@@ -157,6 +160,7 @@ func createTestInput(t *testing.T) testInput {
 		supplyKeeper,
 		stakingKeeper,
 		certKeeper,
+		shieldKeeper,
 		upgradeKeeper,
 		rtr,
 	)
