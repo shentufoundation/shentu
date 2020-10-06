@@ -2,7 +2,6 @@ package simulation
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math/rand"
 	"strings"
 
@@ -558,21 +557,15 @@ func ProposalContents(k keeper.Keeper) []simulation.WeightedProposalContent {
 // SimulateShieldClaimProposalContent generates random shield claim proposal content
 func SimulateShieldClaimProposalContent(k keeper.Keeper) simulation.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simulation.Account) govtypes.Content {
-		// fmt.Printf(">> debug SimulateShieldClaimProposalContent <<\n")
 		purchase, found := keeper.RandomPurchase(r, k, ctx)
 		if !found {
-			// fmt.Printf(">> debug SimulateShieldClaimProposalContent: purchase is not found <<\n")
 			return nil
 		}
 		lossAmount, err := simulation.RandPositiveInt(r, purchase.Shield.AmountOf(common.MicroCTKDenom))
 		if err != nil {
-			fmt.Printf(">> debug SimulateShieldClaimProposalContent: invalid shield %s <<\n", purchase.Shield)
 			return nil
 		}
 		txhash := hex.EncodeToString(purchase.TxHash)
-
-		fmt.Printf(">> debug SimulateShieldClaimProposalContent: pool id %d, loss %s, proposer %s\n",
-			purchase.PoolID, lossAmount, purchase.Purchaser)
 
 		return types.NewShieldClaimProposal(
 			purchase.PoolID,

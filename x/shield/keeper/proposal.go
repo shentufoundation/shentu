@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"sort"
 	"time"
 
@@ -14,7 +13,6 @@ import (
 // ClaimLock locks collaterals after a claim proposal is submitted.
 func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 	loss sdk.Coins, purchaseTxHash []byte, lockPeriod time.Duration) error {
-	fmt.Printf(">> debug ClaimLock.\n")
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
 		return err

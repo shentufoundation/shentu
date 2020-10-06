@@ -1,7 +1,6 @@
 package simulation
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 	"time"
@@ -117,8 +116,6 @@ func SimulateSubmitProposal(
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
-		// fmt.Printf(">> debug SimulateSubmitProposal: proposal type %s\n", content.ProposalType())
-
 		var (
 			deposit sdk.Coins
 			skip    bool
@@ -144,8 +141,6 @@ func SimulateSubmitProposal(
 				return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 			}
 			deposit = sdk.NewCoins(sdk.NewCoin(denom, minDepositAmount))
-			// FIXME
-			fmt.Printf(">> debug SimulateSubmitProposal: shield claim proposal\n")
 		} else {
 			simAccount, _ = simulation.RandomAcc(r, accs)
 			deposit, skip, err = randomDeposit(r, ctx, ak, k, simAccount.Address)
