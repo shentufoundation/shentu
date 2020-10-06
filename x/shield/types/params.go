@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -57,13 +58,35 @@ func NewPoolParams(protectionPeriod, minPoolLife, withdrawalPeriod time.Duration
 	}
 }
 
-// DefaultClaimProposalParams returns a default PoolParams instance.
+// DefaultPoolParams returns a default PoolParams instance.
 func DefaultPoolParams() PoolParams {
 	return NewPoolParams(DefaultProtectionPeriod, DefaultMinPoolLife, DefaultWithdrawalPeriod, DefaultShieldFeesRate)
 }
 
 func validatePoolParams(i interface{}) error {
-	// TODO
+	v, ok := i.(PoolParams)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	protectionPeriod := v.ProtectionPeriod
+	minPoolLife := v.MinPoolLife
+	shieldFeesRate := v.ShieldFeesRate
+	withdrawalPeriod := v.WithdrawalPeriod
+
+	if protectionPeriod <= 0 {
+		return fmt.Errorf("protection period must be positive: %s", protectionPeriod)
+	}
+	if minPoolLife <= 0 {
+		return fmt.Errorf("minimum pool life must be positive: %s", minPoolLife)
+	}
+	if shieldFeesRate.IsNegative() || shieldFeesRate.GT(sdk.OneDec()) {
+		return fmt.Errorf("shield fees rate should be positive and less or equal to one but is %s",
+			shieldFeesRate.String())
+	}
+	if withdrawalPeriod <= 0 {
+		return fmt.Errorf("withdrawal period must be positive: %s", withdrawalPeriod)
+	}
+
 	return nil
 }
 
@@ -95,6 +118,34 @@ func DefaultClaimProposalParams() ClaimProposalParams {
 }
 
 func validateClaimProposalParams(i interface{}) error {
-	// TODO
+	v, ok := i.(ClaimProposalParams)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	claimPeriod := v.ClaimPeriod
+	payoutPeriod := v.PayoutPeriod
+	minDeposit := v.MinDeposit
+	depositRate := v.DepositRate
+	feesRate := v.FeesRate
+
+	if claimPeriod <= 0 {
+		return fmt.Errorf("claim period must be positive: %s", claimPeriod)
+	}
+	if payoutPeriod <= 0 {
+		return fmt.Errorf("payout period must be positive: %s", payoutPeriod)
+	}
+	if !minDeposit.IsValid() {
+		return fmt.Errorf("minimum deposit amount must be a valid sdk.Coins amount, is %s",
+			minDeposit.String())
+	}
+	if depositRate.IsNegative() || depositRate.GT(sdk.OneDec()) {
+		return fmt.Errorf("deposit rate should be positive and less or equal to one but is %s",
+			depositRate.String())
+	}
+	if feesRate.IsNegative() || feesRate.GT(sdk.OneDec()) {
+		return fmt.Errorf("fees rate should be positive and less or equal to one but is %s",
+			feesRate.String())
+	}
+
 	return nil
 }

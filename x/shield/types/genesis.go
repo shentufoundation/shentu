@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -43,8 +44,25 @@ func DefaultGenesisState() GenesisState {
 	}
 }
 
-// ValidateGenesis returns a default genesis state
+// ValidateGenesis validates shield genesis data.
 func ValidateGenesis(bz json.RawMessage) error {
+	var data GenesisState
+	if err := ModuleCdc.UnmarshalJSON(bz, &data); err != nil {
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", ModuleName, err)
+	}
+
+	if data.NextPoolID < 1 {
+		return fmt.Errorf("failed to validate %s genesis state: NextPoolID must be positive ", ModuleName)
+	}
+	if err := validatePoolParams(data.PoolParams); err != nil {
+		return fmt.Errorf("failed to validate %s pool params: %w", ModuleName, err)
+	}
+	if err := validateClaimProposalParams(data.ClaimProposalParams); err != nil {
+		return fmt.Errorf("failed to validate %s claim proposal params: %w", ModuleName, err)
+	}
+
+	//TODO: check invariants?
+
 	return nil
 }
 

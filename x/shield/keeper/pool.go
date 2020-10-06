@@ -240,7 +240,11 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 		}
 		withdrawAmt := withdrawAmtDec.TruncateInt()
 		withdrawCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), withdrawAmt))
-		_ = k.WithdrawCollateral(ctx, addr, collateral.PoolID, withdrawCoins)
+		err := k.WithdrawCollateral(ctx, addr, collateral.PoolID, withdrawCoins)
+		if err != nil {
+			//TODO: address this error
+			continue
+		}
 		remainingWithdraw = remainingWithdraw.Sub(withdrawCoins)
 	}
 }

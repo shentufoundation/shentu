@@ -386,12 +386,14 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper) simu
 				break
 			}
 		}
+
 		account := ak.GetAccount(ctx, simAccount.Address)
 		if account == nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 
-		withdrawalAmount, err := simulation.RandPositiveInt(r, collateral.Amount.AmountOf(denom))
+		collateralNotBeingWithdrawn := collateral.Amount.Sub(collateral.Withdrawal)
+		withdrawalAmount, err := simulation.RandPositiveInt(r, collateralNotBeingWithdrawn.AmountOf(denom))
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}

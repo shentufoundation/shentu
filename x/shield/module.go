@@ -145,3 +145,8 @@ func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	// TODO
 	// sdr[StoreKey] = simulation.DecodeStore
 }
+
+// ValidateGenesis validates the module genesis.
+func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
+	return ValidateGenesis(bz)
+}

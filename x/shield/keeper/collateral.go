@@ -18,6 +18,15 @@ func (k Keeper) GetCollateral(ctx sdk.Context, pool types.Pool, addr sdk.AccAddr
 	return collateral, true
 }
 
+// GetAllCollaterals gets all collaterals.
+func (k Keeper) GetAllCollaterals(ctx sdk.Context) (collaterals []types.Collateral) {
+	k.IterateCollaterals(ctx, func(collateral types.Collateral) bool {
+		collaterals = append(collaterals, collateral)
+		return false
+	})
+	return collaterals
+}
+
 // SetCollateral stores collateral based on pool-provider pair.
 func (k Keeper) SetCollateral(ctx sdk.Context, pool types.Pool, addr sdk.AccAddress, collateral types.Collateral) {
 	store := ctx.KVStore(k.storeKey)
@@ -35,6 +44,22 @@ func (k Keeper) FreeCollaterals(ctx sdk.Context, pool types.Pool) {
 		store.Delete(types.GetCollateralKey(pool.PoolID, collateral.Provider))
 		return false
 	})
+}
+
+// IterateCollaterals iterates through all collaterals.
+func (k Keeper) IterateCollaterals(ctx sdk.Context, callback func(collateral types.Collateral) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.CollateralKey)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var collateral types.Collateral
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &collateral)
+
+		if callback(collateral) {
+			break
+		}
+	}
 }
 
 // IteratePoolCollaterals iterates through collaterals in a pool
@@ -117,12 +142,22 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 
 // WithdrawCollateral withdraws a community member's collateral for a pool.
 func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint64, amount sdk.Coins) error {
-	provider, found := k.GetProvider(ctx, from)
-	if !found {
-		return types.ErrNoDelegationAmount
+	pool, err := k.GetPool(ctx, id)
+	if err != nil {
+		return err
 	}
-	if amount.IsAnyGT(provider.Collateral) {
-		return types.ErrInvalidCollateralAmount
+
+	// retrieve the particular collateral to ensure that
+	// amount is less than collateral minus collateral withdrawal
+	collateral, found := k.GetCollateral(ctx, pool, from)
+
+	if !found {
+		return types.ErrNoCollateralFound
+	}
+
+	withdrawable := collateral.Amount.Sub(collateral.Withdrawal)
+	if amount.IsAnyGT(withdrawable) {
+		return types.ErrOverWithdrawal
 	}
 
 	// insert into withdrawal queue
@@ -130,6 +165,9 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	completionTime := ctx.BlockHeader().Time.Add(poolParams.WithdrawalPeriod)
 	withdrawal := types.NewWithdrawal(id, from, amount)
 	k.InsertWithdrawalQueue(ctx, withdrawal, completionTime)
+
+	collateral.Withdrawal = collateral.Withdrawal.Add(amount...)
+	k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 
 	return nil
 }

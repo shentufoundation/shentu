@@ -40,6 +40,7 @@ type Collateral struct {
 	PoolID            uint64
 	Provider          sdk.AccAddress
 	Amount            sdk.Coins
+	Withdrawal        sdk.Coins
 	LockedCollaterals []LockedCollateral
 }
 

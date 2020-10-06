@@ -133,24 +133,26 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 		for _, collateral := range collaterals {
 			if collateral.Provider.Equals(withdrawal.Address) {
 				collateral.Amount = collateral.Amount.Sub(withdrawal.Amount)
+				collateral.Withdrawal = collateral.Withdrawal.Sub(withdrawal.Amount)
+				if collateral.Amount.IsZero() {
+					// TODO: remove collateral?
+				}
 				k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 				break
 			}
 		}
 		k.SetPool(ctx, pool)
 
-		// update provider
+		// update provider's collateral amount
 		provider, found := k.GetProvider(ctx, withdrawal.Address)
 		if !found {
-			// TODO will this happen?
-			continue
+			panic("provider not found but its collaterals are being withdrawn")
 		}
 		if withdrawal.Amount.IsAnyGT(provider.Collateral) {
-			// TODO will this happen?
-			provider.Collateral = sdk.Coins{}
-		} else {
-			provider.Collateral = provider.Collateral.Sub(withdrawal.Amount)
+			panic("withdrawal amount is greater than the provider's total collateral amount")
 		}
+
+		provider.Collateral = provider.Collateral.Sub(withdrawal.Amount)
 		provider.Available = provider.Available.Add(withdrawal.Amount.AmountOf(k.sk.BondDenom(ctx)))
 		k.SetProvider(ctx, withdrawal.Address, provider)
 	}

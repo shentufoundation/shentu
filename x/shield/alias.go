@@ -29,6 +29,7 @@ var (
 	ModuleCdc                   = types.ModuleCdc
 	ProposalHandler             = client.ProposalHandler
 	GetGenesisStateFromAppState = types.GetGenesisStateFromAppState
+	ValidateGenesis             = types.ValidateGenesis
 
 	DefaultParamSpace       = types.DefaultParamspace
 	ProposalTypeShieldClaim = types.ProposalTypeShieldClaim

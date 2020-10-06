@@ -42,10 +42,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	poolParams := k.GetPoolParams(ctx)
 	claimProposalParams := k.GetClaimProposalParams(ctx)
 	pools := k.GetAllPools(ctx)
-	collaterals := []types.Collateral{}
-	for _, pool := range pools {
-		collaterals = append(collaterals, k.GetAllPoolCollaterals(ctx, pool)...)
-	}
+	collaterals := k.GetAllCollaterals(ctx)
 	providers := k.GetAllProviders(ctx)
 	purchases := k.GetAllPurchases(ctx)
 
