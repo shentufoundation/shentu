@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking Changes
 * (x/oracle) [\#6](https://github.com/certikfoundation/shentu/pull/6) Updated the `aggregate_task` event.
+* (x/gov) [\#9](https://github.com/certikfoundation/shentu/pull/9) Paginated query and next page field in votes query. 
 
 ### State Machine Breaking Changes
 

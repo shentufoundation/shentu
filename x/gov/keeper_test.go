@@ -2,12 +2,16 @@ package gov
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/tendermint/tendermint/crypto/secp256k1"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/stretchr/testify/require"
 
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
@@ -50,6 +54,48 @@ func TestKeeper_ProposeAndVote(t *testing.T) {
 
 	// TODO: more tests. validator cases
 }
+
+func TestKeeper_GetVotes(t *testing.T) {
+	t.Log("Test keeper GetVotes")
+	input := createTestInput(t)
+	err := input.bankKeeper.SetCoins(input.ctx, addrs[0], sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 80000*1e6)))
+	require.Equal(t, nil, err)
+
+	tp := gov.TextProposal{Title: "title0", Description: "desc0"}
+	t.Run("Test adding a lot of votes and retrieving them", func(t *testing.T) {
+		pp, err := input.govKeeper.SubmitProposal(input.ctx, tp, addrs[0])
+		require.Equal(t, nil, err)
+		coins700 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 700*1e6))
+		votingPeriodActivated, err := input.govKeeper.AddDeposit(input.ctx, pp.ProposalID, addrs[0], coins700)
+		require.Equal(t, nil, err)
+		require.Equal(t, true, votingPeriodActivated)
+
+		var addr sdk.AccAddress
+		for i := 0; i < 880; i++ {
+			addr = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+
+			vote := govTypes.NewVote(pp.ProposalID, addr, govTypes.OptionYes)
+
+			err = input.govKeeper.AddVote(input.ctx, vote.ProposalID, vote.Voter, vote.Option)
+			require.Equal(t, nil, err)
+		}
+
+		retrievedVotes := input.govKeeper.GetVotesPaginated(input.ctx, pp.ProposalID, 1, 2000)
+		require.Equal(t, 880, len(retrievedVotes))
+		retrievedVotes = input.govKeeper.GetVotesPaginated(input.ctx, pp.ProposalID, 2, 200)
+		require.Equal(t, 200, len(retrievedVotes))
+		retrievedVotes = input.govKeeper.GetVotesPaginated(input.ctx, pp.ProposalID, 5, 200)
+		require.Equal(t, 80, len(retrievedVotes))
+
+		retrievedVotesNoPage := input.govKeeper.GetVotes(input.ctx, pp.ProposalID)
+		require.Equal(t, 880, len(retrievedVotesNoPage))
+
+		for i := range retrievedVotes[:10] {
+			require.True(t, reflect.DeepEqual(retrievedVotes[i], retrievedVotesNoPage[i+800]))
+		}
+	})
+}
+
 func TestKeeper_AddDeposit(t *testing.T) {
 	t.Log("Test keeper AddDeposit")
 	input := createTestInput(t)

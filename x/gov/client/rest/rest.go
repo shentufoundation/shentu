@@ -41,3 +41,8 @@ type VoteWithPower struct {
 }
 
 type VotesWithPower []VoteWithPower
+
+type VotesWithPowerAndNextPage struct {
+	NextPgExists    bool `json:"next_page" yaml:"next_page"`
+	VotesWithPower       `json:"votes_with_power" yaml:"votes_with_power"` 
+}

@@ -25,4 +25,6 @@ var (
 	ErrNotFinished         = sdkerrors.Register(ModuleName, 208, "the task is on going")
 	ErrTaskFailed          = sdkerrors.Register(ModuleName, 209, "task failed")
 	ErrInvalidScore        = sdkerrors.Register(ModuleName, 210, "invalid score")
+
+	ErrInconsistentOperators = sdkerrors.Register(ModuleName, 301, "two operators not consistent")
 )
