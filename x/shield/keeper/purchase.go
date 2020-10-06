@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -82,8 +81,6 @@ func (k Keeper) PurchaseShield(
 	claimPeriodEndTime := ctx.BlockTime().Add(claimParams.ClaimPeriod)
 	purchase := types.NewPurchase(txhash, poolID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, description, purchaser)
 	k.SetPurchase(ctx, txhash, purchase)
-
-	fmt.Printf(">>>>>> debug PurchaseShield: pool %d, purchased %s\n", purchase.PoolID, purchase.Shield)
 
 	return purchase, nil
 }

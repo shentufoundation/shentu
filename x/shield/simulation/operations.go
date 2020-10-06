@@ -97,12 +97,12 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak typ
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(weightMsgCreatePool, SimulateMsgCreatePool(k, ak)),
 		simulation.NewWeightedOperation(weightMsgUpdatePool, SimulateMsgUpdatePool(k, ak)),
-		// simulation.NewWeightedOperation(weightMsgClearPayouts, SimulateMsgClearPayouts(k, ak)),
+		simulation.NewWeightedOperation(weightMsgClearPayouts, SimulateMsgClearPayouts(k, ak)),
 		simulation.NewWeightedOperation(weightMsgDepositCollateral, SimulateMsgDepositCollateral(k, ak)),
 		simulation.NewWeightedOperation(weightMsgWithdrawCollateral, SimulateMsgWithdrawCollateral(k, ak)),
-		// simulation.NewWeightedOperation(weightMsgWithdrawRewards, SimulateMsgWithdrawRewards(k, ak)),
-		// simulation.NewWeightedOperation(weightMsgWithdrawForeignRewards, SimulateMsgWithdrawForeignRewards(k, ak)),
-		// simulation.NewWeightedOperation(weightMsgPurchaseShield, SimulateMsgPurchaseShield(k, ak)),
+		simulation.NewWeightedOperation(weightMsgWithdrawRewards, SimulateMsgWithdrawRewards(k, ak)),
+		simulation.NewWeightedOperation(weightMsgWithdrawForeignRewards, SimulateMsgWithdrawForeignRewards(k, ak)),
+		simulation.NewWeightedOperation(weightMsgPurchaseShield, SimulateMsgPurchaseShield(k, ak)),
 	}
 }
 
@@ -505,13 +505,11 @@ func SimulateMsgWithdrawForeignRewards(k keeper.Keeper, ak types.AccountKeeper) 
 func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		fmt.Printf(">> debug SimulateMsgPurchaseShield\n")
 		purchaser, _ := simulation.RandomAcc(r, accs)
 		account := ak.GetAccount(ctx, purchaser.Address)
 
 		poolID, _, found := keeper.RandomPoolInfo(r, k, ctx)
 		if !found {
-			fmt.Printf(">> debug SimulateMsgPurchaseShield: no pool found\n")
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 		pool, err := k.GetPool(ctx, poolID)
@@ -521,7 +519,6 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper) simulati
 		maxPurchaseAmount := sdk.MinInt(pool.Available, account.SpendableCoins(ctx.BlockTime()).AmountOf(common.MicroCTKDenom))
 		shieldAmount, err := simulation.RandPositiveInt(r, maxPurchaseAmount)
 		if err != nil {
-			fmt.Printf(">> debug SimulateMsgPurchaseShield: pool %d, no available shield %s\n", pool.PoolID, pool.Available)
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 		description := simulation.RandStringOfLength(r, 100)

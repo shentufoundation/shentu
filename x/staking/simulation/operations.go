@@ -171,7 +171,6 @@ func SimulateMsgUndelegate(ak stakingTypes.AccountKeeper, k staking.Keeper) simu
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-
 		// get random validator
 		validator, ok := stakingKeeper.RandomValidator(r, k, ctx)
 		if !ok {
@@ -229,7 +228,7 @@ func SimulateMsgUndelegate(ak stakingTypes.AccountKeeper, k staking.Keeper) simu
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
 			fees,
-			helpers.DefaultGenTxGas * 5,
+			helpers.DefaultGenTxGas*10,
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},
@@ -249,7 +248,6 @@ func SimulateMsgBeginRedelegate(ak stakingTypes.AccountKeeper, k staking.Keeper)
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-
 		// get random source validator
 		srcVal, ok := stakingKeeper.RandomValidator(r, k, ctx)
 		if !ok {
@@ -277,7 +275,6 @@ func SimulateMsgBeginRedelegate(ak stakingTypes.AccountKeeper, k staking.Keeper)
 		if srcAddr.Equals(destAddr) ||
 			destVal.InvalidExRate() ||
 			k.HasMaxRedelegationEntries(ctx, delAddr, srcAddr, destAddr) {
-
 			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, nil
 		}
 
@@ -333,7 +330,7 @@ func SimulateMsgBeginRedelegate(ak stakingTypes.AccountKeeper, k staking.Keeper)
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
 			fees,
-			helpers.DefaultGenTxGas * 5,
+			helpers.DefaultGenTxGas*10,
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},
