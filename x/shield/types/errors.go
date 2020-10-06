@@ -7,7 +7,7 @@ var (
 	ErrNoDeposit       = sdkerrors.Register(ModuleName, 102, "no coins given for initial deposit")
 	ErrNoShield        = sdkerrors.Register(ModuleName, 103, "no coins given for shield")
 	ErrEmptySponsor    = sdkerrors.Register(ModuleName, 104, "no sponsor specified for a pool")
-	ErrNoPoolFound     = sdkerrors.Register(ModuleName, 105, "no pool found for the given ID")
+	ErrNoPoolFound     = sdkerrors.Register(ModuleName, 105, "no pool found")
 	ErrNoUpdate        = sdkerrors.Register(ModuleName, 106, "nothing was updated for the pool")
 	ErrInvalidGenesis  = sdkerrors.Register(ModuleName, 107, "invalid genesis state")
 	ErrInvalidPoolID   = sdkerrors.Register(ModuleName, 108, "invalid pool ID")

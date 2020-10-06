@@ -4,6 +4,8 @@ import (
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/certikfoundation/shentu/common"
 )
 
 func GetPremiumRate(days uint64) sdk.Dec {
@@ -11,13 +13,12 @@ func GetPremiumRate(days uint64) sdk.Dec {
 }
 
 func GetLockedCoins(loss, totalCollateral, collateral sdk.Coins) sdk.Coins {
-	denom := loss[0].Denom
-	lossAmount := loss.AmountOf(denom)
-	totalCollateralAmount := totalCollateral.AmountOf(denom)
+	lossAmount := loss.AmountOf(common.MicroCTKDenom)
+	totalCollateralAmount := totalCollateral.AmountOf(common.MicroCTKDenom)
 	if totalCollateralAmount.IsZero() {
 		return sdk.Coins{}
 	}
-	collateralAmount := collateral.AmountOf(denom)
+	collateralAmount := collateral.AmountOf(common.MicroCTKDenom)
 	lockedAmount := lossAmount.Mul(collateralAmount).Quo(totalCollateralAmount)
-	return sdk.NewCoins(sdk.NewCoin(denom, lockedAmount))
+	return sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, lockedAmount))
 }
