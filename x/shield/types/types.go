@@ -7,17 +7,17 @@ import (
 )
 
 type Pool struct {
-	PoolID           uint64
-	Active           bool
-	Description      string
-	Sponsor          string
-	Premium          MixedDecCoins
-	StartBlockHeight int64
-	TotalCollateral  sdk.Coins
-	Available        sdk.Int
-	Shield           sdk.Coins
-	EndTime          int64
-	EndBlockHeight   int64
+	PoolID           uint64        `json:"pool_id" yaml:"pool_id"`
+	Active           bool          `json:"active" yaml:"active"`
+	Description      string        `json:"description" yaml:"description"`
+	Sponsor          string        `json:"sponsor" yaml:"sponsor"`
+	Premium          MixedDecCoins `json:"premium" yaml:"premium"`
+	StartBlockHeight int64         `json:"start_block_height" yaml:"start_block_height"`
+	TotalCollateral  sdk.Coins     `json:"total_collateral" yaml:"total_collateral"`
+	Available        sdk.Int       `json:"available" yaml:"available"`
+	Shield           sdk.Coins     `json:"shield" yaml:"shield"`
+	EndTime          int64         `json:"end_time" yaml:"end_time"`
+	EndBlockHeight   int64         `json:"end_block_height" yaml:"end_block_height"`
 }
 
 func NewPool(
@@ -37,19 +37,18 @@ func NewPool(
 }
 
 type Collateral struct {
-	PoolID            uint64
-	Provider          sdk.AccAddress
-	Amount            sdk.Coins
-	Withdrawable      sdk.Coins
-	LockedCollaterals []LockedCollateral
+	PoolID            uint64             `json:"pool_id" yaml:"pool_id"`
+	Provider          sdk.AccAddress     `json:"provider" yaml:"provider"`
+	Amount            sdk.Coins          `json:"amount" yaml:"amount"`
+	Withdrawal        sdk.Coins          `json:"withdrawal" yaml:"withdrawal"`
+	LockedCollaterals []LockedCollateral `json:"locked_collaterals" yaml:"locked_collaterals"`
 }
 
 func NewCollateral(pool Pool, provider sdk.AccAddress, amount sdk.Coins) Collateral {
 	return Collateral{
-		PoolID:       pool.PoolID,
-		Provider:     provider,
-		Amount:       amount,
-		Withdrawable: amount,
+		PoolID:   pool.PoolID,
+		Provider: provider,
+		Amount:   amount,
 	}
 }
 
@@ -71,19 +70,19 @@ func NewPendingPayouts(amount sdk.Dec, to string) PendingPayout {
 // and rewards.
 type Provider struct {
 	// address of the provider
-	Address sdk.AccAddress
+	Address sdk.AccAddress `json:"address" yaml:"address"`
 	// bonded delegations
-	DelegationBonded sdk.Coins
+	DelegationBonded sdk.Coins `json:"delegation_bonded" yaml:"delegation_bonded"`
 	// collateral, including that in withdrawal queue and excluding that being locked
-	Collateral sdk.Coins
+	Collateral sdk.Coins `json:"collateral" yaml:"collateral"`
 	// coins locked because of claim proposals
-	TotalLocked sdk.Coins
+	TotalLocked sdk.Coins `json:"total_locked" yaml:"total_locked"`
 	// amount of coins staked but not in any pool
-	Available sdk.Int
+	Available sdk.Int `json:"available" yaml:"available"`
 	// amount of collateral that is in withdrawable queue
-	Withdrawal sdk.Int
+	Withdrawal sdk.Int `json:"withrawal" yaml:"withdrawal"`
 	// rewards to be claimed
-	Rewards MixedDecCoins
+	Rewards MixedDecCoins `json:"rewards" yaml:"rewards"`
 }
 
 func NewProvider(addr sdk.AccAddress) Provider {
@@ -93,14 +92,14 @@ func NewProvider(addr sdk.AccAddress) Provider {
 }
 
 type Purchase struct {
-	TxHash             []byte
-	PoolID             uint64
-	Shield             sdk.Coins
-	StartBlockHeight   int64
-	ProtectionEndTime  time.Time
-	ClaimPeriodEndTime time.Time
-	Description        string
-	Purchaser          sdk.AccAddress
+	TxHash             []byte         `json:"tx_hash" yaml:"tx_hash"`
+	PoolID             uint64         `json:"pool_id" yaml:"pool_id"`
+	Shield             sdk.Coins      `json:"shield" yaml:"shield"`
+	StartBlockHeight   int64          `json:"start_block_height" yaml:"start_block_height"`
+	ProtectionEndTime  time.Time      `json:"protection_end_time" yaml:"protection_end_time"`
+	ClaimPeriodEndTime time.Time      `json:"claim_period_end_time" yaml:"claim_period_end_time"`
+	Description        string         `json:"description" yaml:"description"`
+	Purchaser          sdk.AccAddress `json:"purchaser" yaml:"purchaser"`
 }
 
 func NewPurchase(

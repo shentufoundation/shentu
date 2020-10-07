@@ -134,6 +134,7 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 			panic("withdrawal collateral not found!")
 		}
 		collateral.Amount = collateral.Amount.Sub(withdrawal.Amount)
+		collateral.Withdrawal = collateral.Withdrawal.Sub(withdrawal.Amount)
 		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 		k.SetPool(ctx, pool)
 

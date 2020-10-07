@@ -131,7 +131,6 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 		collateral = types.NewCollateral(pool, from, amount)
 	} else {
 		collateral.Amount = collateral.Amount.Add(amount...)
-		collateral.Withdrawable = collateral.Withdrawable.Add(amount...)
 	}
 	pool.TotalCollateral = pool.TotalCollateral.Add(amount...)
 	pool.Available = pool.Available.Add(amount.AmountOf(k.sk.BondDenom(ctx)))
@@ -158,7 +157,8 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	if !found {
 		return types.ErrNoCollateralFound
 	}
-	if amount.AmountOf(k.sk.BondDenom(ctx)).GT(collateral.Withdrawable.AmountOf(k.sk.BondDenom(ctx))) {
+	withdrawable := collateral.Amount.Sub(collateral.Withdrawal)
+	if amount.IsAnyGT(withdrawable) {
 		return types.ErrOverWithdrawal
 	}
 
@@ -172,7 +172,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	withdrawal := types.NewWithdrawal(id, from, amount)
 	k.InsertWithdrawalQueue(ctx, withdrawal, completionTime)
 
-	collateral.Withdrawable = collateral.Withdrawable.Sub(amount)
+	collateral.Withdrawal = collateral.Withdrawal.Add(amount...)
 	k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 
 	provider, found := k.GetProvider(ctx, from)

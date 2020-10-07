@@ -121,7 +121,6 @@ func (k Keeper) UpdatePool(
 	pool.TotalCollateral = pool.TotalCollateral.Add(shield...)
 	poolCertiKCollateral := k.GetPoolCertiKCollateral(ctx, pool)
 	poolCertiKCollateral.Amount = poolCertiKCollateral.Amount.Add(shield...)
-	poolCertiKCollateral.Withdrawable = poolCertiKCollateral.Withdrawable.Add(shield...)
 	k.SetCollateral(ctx, pool, k.GetAdmin(ctx), poolCertiKCollateral)
 
 	pool.Shield = pool.Shield.Add(shield...)
@@ -238,11 +237,12 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 		if i == len(addrCollaterals)-1 {
 			withdrawAmt = remainingWithdraw.AmountOf(bondDenom)
 		} else {
-			withdrawAmtDec := sdk.NewDecFromInt(collateral.Withdrawable.AmountOf(bondDenom)).Mul(proportion)
+			withdrawable := collateral.Amount.AmountOf(bondDenom).Sub(collateral.Withdrawal.AmountOf(bondDenom))
+			withdrawAmtDec := sdk.NewDecFromInt(withdrawable).Mul(proportion)
 			withdrawAmt = withdrawAmtDec.TruncateInt()
 			if remainingWithdraw.AmountOf(bondDenom).LTE(withdrawAmt) {
 				withdrawAmt = remainingWithdraw.AmountOf(bondDenom)
-			} else if remainingWithdraw.AmountOf(bondDenom).GT(withdrawAmt) && collateral.Withdrawable.AmountOf(bondDenom).GT(withdrawAmt) {
+			} else if remainingWithdraw.AmountOf(bondDenom).GT(withdrawAmt) && withdrawable.GT(withdrawAmt) {
 				withdrawAmt = withdrawAmt.Add(sdk.NewInt(1))
 			}
 		}

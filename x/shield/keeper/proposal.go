@@ -41,7 +41,6 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 		lockedCollateral := types.NewLockedCollateral(proposalID, lockedCoins)
 		collateral.LockedCollaterals = append(collateral.LockedCollaterals, lockedCollateral)
 		collateral.Amount = collateral.Amount.Sub(lockedCoins)
-		collateral.Withdrawable = collateral.Withdrawable.Sub(lockedCoins)
 		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 		k.LockProvider(ctx, collateral.Provider, lockedCoins, lockPeriod)
 	}
@@ -174,7 +173,6 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 		for j := range collateral.LockedCollaterals {
 			if collateral.LockedCollaterals[j].ProposalID == proposalID {
 				collateral.Amount = collateral.Amount.Add(collateral.LockedCollaterals[j].LockedCoins...)
-				collateral.Withdrawable = collateral.Withdrawable.Add(collateral.LockedCollaterals[j].LockedCoins...)
 				provider, found := k.GetProvider(ctx, collateral.Provider)
 				if !found {
 					panic("provider is not found")
