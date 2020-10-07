@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"encoding/binary"
-	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -77,9 +76,6 @@ func (k Keeper) DepositNativePremium(ctx sdk.Context, premium sdk.Coins, from sd
 }
 
 func (k Keeper) InsertWithdrawalQueue(ctx sdk.Context, withdrawal types.Withdrawal, completionTime time.Time) {
-	if withdrawal.PoolID == 11 && withdrawal.Address.String() == "cosmos1r4p2ka6rf0xa0zj8r6y3h2dy4ys4h4qdu799uv" {
-		fmt.Printf(">>>>>> debug InsertWithdrawalQueue: pool %d, %s, %s\n", withdrawal.PoolID, withdrawal.Address, withdrawal.Amount)
-	}
 	timeSlice := k.GetWithdrawalQueueTimeSlice(ctx, completionTime)
 	timeSlice = append(timeSlice, withdrawal)
 	k.SetWithdrawalQueueTimeSlice(ctx, completionTime, timeSlice)
@@ -133,21 +129,12 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 			continue
 		}
 		pool.TotalCollateral = pool.TotalCollateral.Sub(withdrawal.Amount)
-		fmt.Printf(">> debug DequeueCompletedWithdrawalQueue: pool %d, %s %s\n", withdrawal.PoolID, withdrawal.Address, withdrawal.Amount)
 		collateral, found := k.GetCollateral(ctx, pool, withdrawal.Address)
 		if !found {
 			panic("withdrawal collateral not found!")
 		}
-		/*
-		fmt.Printf(">> debug DequeueCompletedWithdrawalQueue: %s pool %d, collateral %s, withdraw %s\n",
-			collateral.Provider, pool.PoolID, collateral.Amount, withdrawal.Amount)
-		 */
 		collateral.Amount = collateral.Amount.Sub(withdrawal.Amount)
-		if collateral.Amount.IsZero() {
-			store.Delete(types.GetCollateralKey(pool.PoolID, collateral.Provider))
-		} else {
-			k.SetCollateral(ctx, pool, collateral.Provider, collateral)
-		}
+		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 		k.SetPool(ctx, pool)
 
 		// update provider's collateral amount

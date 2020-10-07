@@ -139,11 +139,6 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 	k.SetCollateral(ctx, pool, from, collateral)
 	k.SetProvider(ctx, from, provider)
 
-	/*
-	fmt.Printf(">> debug DepositCollateral: %s pool %d, collateral %s, withdrawable %s, withdrawing %s\n",
-		collateral.Provider, pool.PoolID, collateral.Amount, collateral.Withdrawable, amount)
-	 */
-
 	return nil
 }
 
@@ -163,13 +158,8 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	if !found {
 		return types.ErrNoCollateralFound
 	}
-	/*
-	fmt.Printf(">> debug WithdrawCollateral: %s pool %d, collateral %s, withdrawable %s, withdrawing %s\n",
-		collateral.Provider, pool.PoolID, collateral.Amount, collateral.Withdrawable, amount)
-	 */
 	if amount.AmountOf(k.sk.BondDenom(ctx)).GT(collateral.Withdrawable.AmountOf(k.sk.BondDenom(ctx))) {
-		panic(types.ErrOverWithdrawal)
-		// return types.ErrOverWithdrawal
+		return types.ErrOverWithdrawal
 	}
 
 	// update the pool available coins, but not pool total collateral or community which should be updated 21 days later

@@ -40,15 +40,15 @@ type Collateral struct {
 	PoolID            uint64
 	Provider          sdk.AccAddress
 	Amount            sdk.Coins
-	Withdrawable        sdk.Coins
+	Withdrawable      sdk.Coins
 	LockedCollaterals []LockedCollateral
 }
 
 func NewCollateral(pool Pool, provider sdk.AccAddress, amount sdk.Coins) Collateral {
 	return Collateral{
-		PoolID:   pool.PoolID,
-		Provider: provider,
-		Amount:   amount,
+		PoolID:       pool.PoolID,
+		Provider:     provider,
+		Amount:       amount,
 		Withdrawable: amount,
 	}
 }
@@ -71,24 +71,24 @@ func NewPendingPayouts(amount sdk.Dec, to string) PendingPayout {
 // and rewards.
 type Provider struct {
 	// address of the provider
-	Address          sdk.AccAddress
+	Address sdk.AccAddress
 	// bonded delegations
 	DelegationBonded sdk.Coins
 	// collateral, including that in withdrawal queue and excluding that being locked
-	Collateral       sdk.Coins
+	Collateral sdk.Coins
 	// coins locked because of claim proposals
-	TotalLocked      sdk.Coins
+	TotalLocked sdk.Coins
 	// amount of coins staked but not in any pool
-	Available        sdk.Int
+	Available sdk.Int
 	// amount of collateral that is in withdrawable queue
 	Withdrawal sdk.Int
 	// rewards to be claimed
-	Rewards          MixedDecCoins
+	Rewards MixedDecCoins
 }
 
 func NewProvider(addr sdk.AccAddress) Provider {
 	return Provider{
-		Address:          addr,
+		Address: addr,
 	}
 }
 

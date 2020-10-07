@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -28,7 +27,6 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, error) {
 func (k Keeper) CreatePool(
 	ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, sponsor string,
 	timeOfCoverage, blocksOfCoverage int64) (types.Pool, error) {
-	// fmt.Printf(">> debug CreatePool: shield %s\n", shield)
 	admin := k.GetAdmin(ctx)
 	if !creator.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -80,7 +78,6 @@ func (k Keeper) CreatePool(
 func (k Keeper) UpdatePool(
 	ctx sdk.Context, updater sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, id uint64,
 	additionalTime, additionalBlocks int64) (types.Pool, error) {
-	// fmt.Printf(">> debug UpdatePool: shield %s\n", shield)
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -228,7 +225,6 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 	withdrawAmtDec := sdk.NewDecFromInt(amount.AmountOf(k.sk.BondDenom(ctx)))
 	withdrawableAmtDec := sdk.NewDecFromInt(provider.Collateral.AmountOf(k.sk.BondDenom(ctx)).Sub(provider.Withdrawal))
 	proportion := withdrawAmtDec.Quo(withdrawableAmtDec)
-	// fmt.Printf(">> debug WithdrawFromPools: provider %s, withdrawable %s, withdraw %s\n", provider.Address, withdrawableAmtDec, amount)
 	if amount.AmountOf(k.sk.BondDenom(ctx)).ToDec().GT(withdrawableAmtDec) {
 		// FIXME this could happen. Set an error instead of panic.
 		panic(types.ErrNotEnoughCollateral)
@@ -237,7 +233,6 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 	addrCollaterals := k.GetOnesCollaterals(ctx, addr)
 	bondDenom := k.sk.BondDenom(ctx)
 	remainingWithdraw := amount
-	// fmt.Printf(">> debug WithdrawFromPools: num of cols %d\n", len(addrCollaterals))
 	for i, collateral := range addrCollaterals {
 		var withdrawAmt sdk.Int
 		if i == len(addrCollaterals)-1 {
@@ -252,15 +247,10 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 			}
 		}
 		withdrawCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, withdrawAmt))
-		if collateral.Provider.String() == "cosmos1r4p2ka6rf0xa0zj8r6y3h2dy4ys4h4qdu799uv" {
-			fmt.Printf(">>>> debug WithdrawFromPools: pool %d, %s, withdrawAmtDec %s, remaining %s, withdraw %s\n",
-				collateral.PoolID, collateral.Provider, withdrawableAmtDec, remainingWithdraw, withdrawCoins)
-		}
 		err := k.WithdrawCollateral(ctx, addr, collateral.PoolID, withdrawCoins)
 		if err != nil {
 			//TODO: address this error
 			// continue
-			panic("failed to withdraw collateral")
 		}
 		remainingWithdraw = remainingWithdraw.Sub(withdrawCoins)
 	}
