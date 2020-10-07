@@ -14,7 +14,7 @@ func BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 }
 
 // EndBlocker processes premium payment at every block.
-func EndBlocker(ctx sdk.Context, k Keeper, stakingKeeper types.StakingKeeper) {
+func EndBlocker(ctx sdk.Context, k Keeper) {
 	pools := k.GetAllPools(ctx)
 	for _, pool := range pools {
 		if k.PoolEnded(ctx, pool) || (pool.Premium.Native.Empty() && pool.Premium.Foreign.Empty()) {
@@ -45,7 +45,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, stakingKeeper types.StakingKeeper) {
 		}
 
 		// distribute to A and C in proportion
-		bondDenom := stakingKeeper.BondDenom(ctx) // common.MicroCTKDenom
+		bondDenom := k.BondDenom(ctx) // common.MicroCTKDenom
 		totalCollateralAmount := pool.TotalCollateral.AmountOf(bondDenom)
 		recipients := k.GetAllPoolCollaterals(ctx, pool)
 		for _, recipient := range recipients {

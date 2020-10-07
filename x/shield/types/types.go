@@ -79,8 +79,8 @@ type Provider struct {
 	TotalLocked sdk.Coins `json:"total_locked" yaml:"total_locked"`
 	// amount of coins staked but not in any pool
 	Available sdk.Int `json:"available" yaml:"available"`
-	// amount of collateral that is in withdrawable queue
-	Withdrawal sdk.Int `json:"withrawal" yaml:"withdrawal"`
+	// amount of collateral that is in withdraw queue
+	Withdraw sdk.Int `json:"withrawal" yaml:"withdrawal"`
 	// rewards to be claimed
 	Rewards MixedDecCoins `json:"rewards" yaml:"rewards"`
 }
@@ -117,15 +117,15 @@ func NewPurchase(
 	}
 }
 
-// Withdrawal stores an ongoing withdrawal of pool collateral.
-type Withdrawal struct {
+// Withdraw stores an ongoing withdrawal of pool collateral.
+type Withdraw struct {
 	PoolID  uint64         `json:"pool_id" yaml:"pool_id"`
 	Address sdk.AccAddress `json:"address" yaml:"address"`
 	Amount  sdk.Coins      `json:"amount" yaml:"amount"`
 }
 
-func NewWithdrawal(poolID uint64, addr sdk.AccAddress, amount sdk.Coins) Withdrawal {
-	return Withdrawal{
+func NewWithdrawal(poolID uint64, addr sdk.AccAddress, amount sdk.Coins) Withdraw {
+	return Withdraw{
 		PoolID:  poolID,
 		Address: addr,
 		Amount:  amount,

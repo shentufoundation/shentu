@@ -223,7 +223,7 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 	bondDenom := k.sk.BondDenom(ctx)
 	provider, _ := k.GetProvider(ctx, addr)
 	withdrawAmtDec := sdk.NewDecFromInt(amount.AmountOf(bondDenom))
-	withdrawableAmtDec := sdk.NewDecFromInt(provider.Collateral.AmountOf(bondDenom).Sub(provider.Withdrawal))
+	withdrawableAmtDec := sdk.NewDecFromInt(provider.Collateral.AmountOf(bondDenom).Sub(provider.Withdraw))
 	proportion := withdrawAmtDec.Quo(withdrawableAmtDec)
 	if amount.AmountOf(bondDenom).ToDec().GT(withdrawableAmtDec) {
 		// FIXME this could happen. Set an error instead of panic.

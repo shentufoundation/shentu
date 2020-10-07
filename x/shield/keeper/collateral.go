@@ -181,7 +181,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	if !found {
 		return types.ErrProviderNotFound
 	}
-	provider.Withdrawal = provider.Withdrawal.Add(amount.AmountOf(bondDenom))
+	provider.Withdraw = provider.Withdraw.Add(amount.AmountOf(bondDenom))
 	k.SetProvider(ctx, provider.Address, provider)
 
 	return nil
