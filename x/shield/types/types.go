@@ -40,7 +40,7 @@ type Collateral struct {
 	PoolID            uint64             `json:"pool_id" yaml:"pool_id"`
 	Provider          sdk.AccAddress     `json:"provider" yaml:"provider"`
 	Amount            sdk.Coins          `json:"amount" yaml:"amount"`
-	Withdrawal        sdk.Coins          `json:"withdrawal" yaml:"withdrawal"`
+	Withdrawing       sdk.Coins          `json:"withdrawing" yaml:"withdrawing"`
 	LockedCollaterals []LockedCollateral `json:"locked_collaterals" yaml:"locked_collaterals"`
 }
 

@@ -158,7 +158,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	if !found {
 		return types.ErrNoCollateralFound
 	}
-	withdrawable := collateral.Amount.Sub(collateral.Withdrawal)
+	withdrawable := collateral.Amount.Sub(collateral.Withdrawing)
 	if amount.IsAnyGT(withdrawable) {
 		return types.ErrOverWithdrawal
 	}
@@ -174,7 +174,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	withdrawal := types.NewWithdrawal(id, from, amount, completionTime)
 	k.InsertWithdrawalQueue(ctx, withdrawal)
 
-	collateral.Withdrawal = collateral.Withdrawal.Add(amount...)
+	collateral.Withdrawing = collateral.Withdrawing.Add(amount...)
 	k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 
 	provider, found := k.GetProvider(ctx, from)

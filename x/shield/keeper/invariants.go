@@ -16,6 +16,8 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 		PurchasedCollateralsInvariants(k))
 	ir.RegisterRoute(types.ModuleName, "module-coins",
 		ModuleCoinsInvariants(k))
+	ir.RegisterRoute(types.ModuleName, "collateral-pool",
+		CollateralPoolInvariants(k))
 }
 
 // AllInvariants runs all invariants of the shield module.
@@ -113,5 +115,30 @@ func ModuleCoinsInvariants(k Keeper) sdk.Invariant {
 				"\ttotal providers' withdraw sum: %v\n"+
 				"\ttotal withdraw queue sum: %v\n",
 				actualModuleCoinsAmt, expectedModuleCoinsAmt, providersWithdrawSum, actualWithdrawAmt)), broken
+	}
+}
+
+// CollateralPoolInvariants checks there is no dangling collateral not assigned to any pool.
+func CollateralPoolInvariants(k Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		collaterals := k.GetAllCollaterals(ctx)
+		broken := false
+		poolID := uint64(0)
+		currentCollateral := types.Collateral{}
+		for _, collateral := range collaterals {
+			_, err := k.GetPool(ctx, collateral.PoolID)
+			if err != nil {
+				broken = true
+				poolID = collateral.PoolID
+				currentCollateral = collateral
+				break
+			}
+		}
+		return sdk.FormatInvariant(types.ModuleName, "collaterals and pools",
+			fmt.Sprintf("\tpoolID: %v\n"+
+				"\tcollateral provider: %v\n"+
+				"\tcollateral amount: %v\n"+
+				"\tcollateral withdraws: %v\n",
+				poolID, currentCollateral.Provider, currentCollateral.Amount, currentCollateral.Withdrawing)), broken
 	}
 }
