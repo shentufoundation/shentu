@@ -20,8 +20,10 @@ import (
 	cosmosBank "github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	cosmosGov "github.com/cosmos/cosmos-sdk/x/gov"
+	cosmosMint "github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/certikfoundation/shentu/x/auth"
 	"github.com/certikfoundation/shentu/x/auth/vesting"
@@ -36,7 +38,6 @@ import (
 	"github.com/certikfoundation/shentu/x/shield"
 	"github.com/certikfoundation/shentu/x/slashing"
 	"github.com/certikfoundation/shentu/x/staking"
-	"github.com/certikfoundation/shentu/x/supply"
 	"github.com/certikfoundation/shentu/x/upgrade"
 )
 
@@ -255,6 +256,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		keys[oracle.StoreKey],
 		app.accountKeeper,
 		app.distrKeeper,
+		&app.stakingKeeper,
 		app.supplyKeeper,
 		oracleSubspace,
 	)
@@ -404,7 +406,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
 		params.NewAppModule(),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper, app.certKeeper),
-		mint.NewAppModule(app.mintKeeper),
+		cosmosMint.NewAppModule(app.mintKeeper.Keeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		cvm.NewAppModule(app.cvmKeeper),
 		cert.NewAppModule(app.certKeeper, app.accountKeeper),
