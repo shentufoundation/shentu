@@ -147,9 +147,10 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 			panic("withdrawal amount is greater than the provider's total collateral amount")
 		}
 
+		bondDenom := k.sk.BondDenom(ctx)
 		provider.Collateral = provider.Collateral.Sub(withdrawal.Amount)
-		provider.Available = provider.Available.Add(withdrawal.Amount.AmountOf(k.sk.BondDenom(ctx)))
-		provider.Withdrawal = provider.Withdrawal.Sub(withdrawal.Amount.AmountOf(k.sk.BondDenom(ctx)))
+		provider.Available = provider.Available.Add(withdrawal.Amount.AmountOf(bondDenom))
+		provider.Withdrawal = provider.Withdrawal.Sub(withdrawal.Amount.AmountOf(bondDenom))
 		k.SetProvider(ctx, withdrawal.Address, provider)
 	}
 }

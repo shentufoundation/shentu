@@ -112,6 +112,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 	if err != nil {
 		return err
 	}
+	bondDenom := k.sk.BondDenom(ctx)
 
 	// check eligibility
 	provider, found := k.GetProvider(ctx, from)
@@ -120,10 +121,10 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 		provider, _ = k.GetProvider(ctx, from)
 	}
 	provider.Collateral = provider.Collateral.Add(amount...)
-	if amount.AmountOf(k.sk.BondDenom(ctx)).GT(provider.Available) {
+	if amount.AmountOf(bondDenom).GT(provider.Available) {
 		return types.ErrInsufficientStaking
 	}
-	provider.Available = provider.Available.Sub(amount.AmountOf(k.sk.BondDenom(ctx)))
+	provider.Available = provider.Available.Sub(amount.AmountOf(bondDenom))
 
 	// update the pool, collateral and provider
 	collateral, found := k.GetCollateral(ctx, pool, from)
@@ -133,7 +134,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 		collateral.Amount = collateral.Amount.Add(amount...)
 	}
 	pool.TotalCollateral = pool.TotalCollateral.Add(amount...)
-	pool.Available = pool.Available.Add(amount.AmountOf(k.sk.BondDenom(ctx)))
+	pool.Available = pool.Available.Add(amount.AmountOf(bondDenom))
 	k.SetPool(ctx, pool)
 	k.SetCollateral(ctx, pool, from, collateral)
 	k.SetProvider(ctx, from, provider)
@@ -163,7 +164,8 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	}
 
 	// update the pool available coins, but not pool total collateral or community which should be updated 21 days later
-	pool.Available = pool.Available.Sub(amount.AmountOf(k.sk.BondDenom(ctx)))
+	bondDenom := k.sk.BondDenom(ctx)
+	pool.Available = pool.Available.Sub(amount.AmountOf(bondDenom))
 	k.SetPool(ctx, pool)
 
 	// insert into withdrawal queue
@@ -179,7 +181,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	if !found {
 		return types.ErrProviderNotFound
 	}
-	provider.Withdrawal = provider.Withdrawal.Add(amount.AmountOf(k.sk.BondDenom(ctx)))
+	provider.Withdrawal = provider.Withdrawal.Add(amount.AmountOf(bondDenom))
 	k.SetProvider(ctx, provider.Address, provider)
 
 	return nil

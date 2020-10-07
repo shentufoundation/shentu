@@ -220,17 +220,17 @@ func (k Keeper) ValidatePoolDuration(ctx sdk.Context, timeDuration, numBlocks in
 
 // WithdrawFromPools withdraws coins from all pools to match total collateral to be less than or equal to total delegation.
 func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount sdk.Coins) {
+	bondDenom := k.sk.BondDenom(ctx)
 	provider, _ := k.GetProvider(ctx, addr)
-	withdrawAmtDec := sdk.NewDecFromInt(amount.AmountOf(k.sk.BondDenom(ctx)))
-	withdrawableAmtDec := sdk.NewDecFromInt(provider.Collateral.AmountOf(k.sk.BondDenom(ctx)).Sub(provider.Withdrawal))
+	withdrawAmtDec := sdk.NewDecFromInt(amount.AmountOf(bondDenom))
+	withdrawableAmtDec := sdk.NewDecFromInt(provider.Collateral.AmountOf(bondDenom).Sub(provider.Withdrawal))
 	proportion := withdrawAmtDec.Quo(withdrawableAmtDec)
-	if amount.AmountOf(k.sk.BondDenom(ctx)).ToDec().GT(withdrawableAmtDec) {
+	if amount.AmountOf(bondDenom).ToDec().GT(withdrawableAmtDec) {
 		// FIXME this could happen. Set an error instead of panic.
 		panic(types.ErrNotEnoughCollateral)
 	}
 
 	addrCollaterals := k.GetOnesCollaterals(ctx, addr)
-	bondDenom := k.sk.BondDenom(ctx)
 	remainingWithdraw := amount
 	for i, collateral := range addrCollaterals {
 		var withdrawAmt sdk.Int
