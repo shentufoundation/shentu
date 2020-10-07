@@ -8,10 +8,10 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-func (k Keeper) InsertWithdrawalQueue(ctx sdk.Context, withdrawal types.Withdraw, completionTime time.Time) {
-	timeSlice := k.GetWithdrawalQueueTimeSlice(ctx, completionTime)
+func (k Keeper) InsertWithdrawalQueue(ctx sdk.Context, withdrawal types.Withdraw) {
+	timeSlice := k.GetWithdrawalQueueTimeSlice(ctx, withdrawal.CompletionTime)
 	timeSlice = append(timeSlice, withdrawal)
-	k.SetWithdrawalQueueTimeSlice(ctx, completionTime, timeSlice)
+	k.SetWithdrawalQueueTimeSlice(ctx, withdrawal.CompletionTime, timeSlice)
 }
 
 // GetWithdrawalQueueTimeSlice gets a specific withdrawal queue timeslice,
@@ -94,8 +94,8 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 
 // IterateWithdraws iterates through all ongoing withdraws.
 func (k Keeper) IterateWithdraws(ctx sdk.Context, callback func(withdraw types.Withdraws) (stop bool)) {
-	maxWithdrawTime := ctx.BlockHeader().Time.Add(k.GetPoolParams(ctx).WithdrawalPeriod)
-	iterator := k.WithdrawalQueueIterator(ctx, maxWithdrawTime)
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.WithdrawalQueueKey)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

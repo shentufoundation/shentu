@@ -119,16 +119,18 @@ func NewPurchase(
 
 // Withdraw stores an ongoing withdrawal of pool collateral.
 type Withdraw struct {
-	PoolID  uint64         `json:"pool_id" yaml:"pool_id"`
-	Address sdk.AccAddress `json:"address" yaml:"address"`
-	Amount  sdk.Coins      `json:"amount" yaml:"amount"`
+	PoolID         uint64         `json:"pool_id" yaml:"pool_id"`
+	Address        sdk.AccAddress `json:"address" yaml:"address"`
+	Amount         sdk.Coins      `json:"amount" yaml:"amount"`
+	CompletionTime time.Time      `json:"completion_time" yaml:"completion_time"`
 }
 
-func NewWithdrawal(poolID uint64, addr sdk.AccAddress, amount sdk.Coins) Withdraw {
+func NewWithdrawal(poolID uint64, addr sdk.AccAddress, amount sdk.Coins, completionTime time.Time) Withdraw {
 	return Withdraw{
-		PoolID:  poolID,
-		Address: addr,
-		Amount:  amount,
+		PoolID:         poolID,
+		Address:        addr,
+		Amount:         amount,
+		CompletionTime: completionTime,
 	}
 }
 

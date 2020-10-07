@@ -111,7 +111,7 @@ func ModuleCoinsInvariants(k Keeper) sdk.Invariant {
 			fmt.Sprintf("\tSum of premiums and unbondings: %v\n"+
 				"\tmodule coins amount: %v\n"+
 				"\ttotal providers' withdraw sum: %v\n"+
-				"\ttotal withdraw queue amount sum: %v\n",
+				"\ttotal withdraw queue sum: %v\n",
 				actualModuleCoinsAmt, expectedModuleCoinsAmt, providersWithdrawSum, actualWithdrawAmt)), broken
 	}
 }
