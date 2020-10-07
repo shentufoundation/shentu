@@ -788,10 +788,10 @@ paths:
                     type: object
                     properties:
                       request_content_type:
-                        type : integer
+                        type: integer
                         example: 1
                       request_content_type_name:
-                        type : string
+                        type: string
                         example: "SourceCodeHash"
                       request_content:
                         type: string
@@ -855,7 +855,7 @@ paths:
                           type: object
                           properties:
                             request_content_type:
-                              type : integer
+                              type: integer
                               example: 1
                             request_content_type_name:
                               type: string
