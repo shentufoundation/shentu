@@ -104,7 +104,8 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 }
 
 // SimulateMsgAddCollateral generates a MsgAddCollateral object with all of its fields randomized.
-func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator, operatorPrivKey crypto.PrivKey) simulation.Operation {
+func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator,
+	operatorPrivKey crypto.PrivKey) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		operator, err := k.GetOperator(ctx, stdOperator.Address)
@@ -150,7 +151,8 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperator 
 }
 
 // SimulateMsgReduceCollateral generates a MsgReduceCollateral object with all of its fields randomized.
-func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator, operatorPrivKey crypto.PrivKey) simulation.Operation {
+func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator,
+	operatorPrivKey crypto.PrivKey) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		operator, err := k.GetOperator(ctx, stdOperator.Address)
@@ -201,7 +203,8 @@ func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperat
 }
 
 // SimulateMsgRemoveOperator generates a MsgRemoveOperator object with all of its fields randomized.
-func SimulateMsgRemoveOperator(k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator, operatorPrivKey crypto.PrivKey) simulation.Operation {
+func SimulateMsgRemoveOperator(k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator,
+	operatorPrivKey crypto.PrivKey) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		operator, err := k.GetOperator(ctx, stdOperator.Address)

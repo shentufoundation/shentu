@@ -23,8 +23,8 @@ func (mc MixedCoins) String() string {
 }
 
 type MixedDecCoins struct {
-	Native  sdk.DecCoins
-	Foreign sdk.DecCoins
+	Native  sdk.DecCoins `json:"native" yaml:"native"`
+	Foreign sdk.DecCoins `json:"foreign" yaml:"foreign"`
 }
 
 func InitMixedDecCoins() MixedDecCoins {
