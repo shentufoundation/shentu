@@ -124,38 +124,28 @@ func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAd
 	return unbondingDelegations
 }
 
-func (k Keeper) RedirectUnbondingEntryToShieldModule(ctx sdk.Context, unbondingDelegation staking.UnbondingDelegation, entryIndex int) {
-	delAddr := unbondingDelegation.DelegatorAddress
-	valAddr := unbondingDelegation.ValidatorAddress
+func (k Keeper) RedirectUnbondingEntryToShieldModule(ctx sdk.Context, ubd staking.UnbondingDelegation, endIndex int) {
+	delAddr := ubd.DelegatorAddress
+	valAddr := ubd.ValidatorAddress
 	shieldAddr := k.supplyKeeper.GetModuleAddress(types.ModuleName)
-	ubd, found := k.sk.GetUnbondingDelegation(ctx, delAddr, valAddr)
-	if !found {
-		panic("unbonding delegation was not found")
-	}
 
-	entry := unbondingDelegation.Entries[entryIndex]
-
-	// remove unbonding delegation with old completion time from UBDQueue
-	timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, entry.CompletionTime)
-	for i := 0; i < len(timeSlice); i++ {
-		if timeSlice[i].DelegatorAddress.Equals(delAddr) && timeSlice[i].ValidatorAddress.Equals(valAddr) {
-			timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
-			k.sk.SetUBDQueueTimeSlice(ctx, entry.CompletionTime, timeSlice)
-			break
-		}
-	}
-	ubd.Entries = append(ubd.Entries[:entryIndex], ubd.Entries[entryIndex+1:]...)
-	k.sk.SetUnbondingDelegation(ctx, ubd)
-	k.sk.InsertUBDQueue(ctx, ubd, entry.CompletionTime)
-
-	shieldUbd, found := k.sk.GetUnbondingDelegation(ctx, shieldAddr, valAddr)
-	if !found {
-		shieldUbd = staking.NewUnbondingDelegation(shieldAddr, valAddr, entry.CreationHeight, entry.CompletionTime, entry.Balance)
-	} else {
+	// iterate through entries and add it to shield unbonding entries
+	shieldUbd, _ := k.sk.GetUnbondingDelegation(ctx, shieldAddr, valAddr)
+	for _, entry := range ubd.Entries[:endIndex+1] {
 		shieldUbd.AddEntry(entry.CreationHeight, entry.CompletionTime, entry.Balance)
+		timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, entry.CompletionTime)
+		for i := 0; i < len(timeSlice); i++ {
+			if timeSlice[i].DelegatorAddress.Equals(delAddr) && timeSlice[i].ValidatorAddress.Equals(valAddr) {
+				timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
+				k.sk.SetUBDQueueTimeSlice(ctx, entry.CompletionTime, timeSlice)
+				break
+			}
+		}
+		k.sk.InsertUBDQueue(ctx, shieldUbd, entry.CompletionTime)
 	}
+	ubd.Entries = ubd.Entries[endIndex+1:]
+	k.sk.SetUnbondingDelegation(ctx, ubd)
 	k.sk.SetUnbondingDelegation(ctx, shieldUbd)
-	k.sk.InsertUBDQueue(ctx, shieldUbd, entry.CompletionTime)
 }
 
 // ClaimUnlock unlocks locked collaterals.
@@ -251,11 +241,12 @@ func (k Keeper) UndelegateCoinsToShieldModule(ctx sdk.Context, delAddr sdk.AccAd
 	unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, delAddr)
 	shortDec := lossAmountDec.Sub(totalDelAmountDec)
 	for _, ubd := range unbondingDelegations {
+		entry := 0
 		if !shortDec.IsPositive() {
 			return nil
 		}
 		for i := range ubd.Entries {
-			k.RedirectUnbondingEntryToShieldModule(ctx, ubd, i)
+			entry = i
 			ubdAmountDec := ubd.Entries[i].InitialBalance.ToDec()
 			if ubdAmountDec.GT(shortDec) {
 				// FIXME not a good way to go maybe?
@@ -266,7 +257,9 @@ func (k Keeper) UndelegateCoinsToShieldModule(ctx sdk.Context, delAddr sdk.AccAd
 			}
 			shortDec = shortDec.Sub(ubdAmountDec)
 		}
+		k.RedirectUnbondingEntryToShieldModule(ctx, ubd, entry)
 	}
+
 	if shortDec.IsPositive() {
 		panic("not enough bonded stake")
 	}
