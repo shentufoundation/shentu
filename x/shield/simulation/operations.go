@@ -35,18 +35,18 @@ const (
 )
 
 var (
-	DefaultWeightMsgCreatePool             int = 10
-	DefaultWeightMsgUpdatePool             int = 10
-	DefaultWeightMsgClearPayouts           int = 5
-	DefaultWeightMsgDepositCollateral      int = 20
-	DefaultWeightMsgWithdrawCollateral     int = 20
-	DefaultWeightMsgWithdrawRewards        int = 10
-	DefaultWeightMsgWithdrawForeignRewards int = 10
-	DefaultWeightMsgPurchaseShield         int = 20
-	DefaultWeightShieldClaimProposal       int = 5
+	DefaultWeightMsgCreatePool             = 10
+	DefaultWeightMsgUpdatePool             = 10
+	DefaultWeightMsgClearPayouts           = 5
+	DefaultWeightMsgDepositCollateral      = 20
+	DefaultWeightMsgWithdrawCollateral     = 20
+	DefaultWeightMsgWithdrawRewards        = 10
+	DefaultWeightMsgWithdrawForeignRewards = 10
+	DefaultWeightMsgPurchaseShield         = 20
+	DefaultWeightShieldClaimProposal       = 5
 
-	DefaultIntMax            int = 1000000000000
-	DefaultTimeOfCoverageMin int = 4838401
+	DefaultIntMax            = 1000000000000
+	DefaultTimeOfCoverageMin = 4838401
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
@@ -109,6 +109,11 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak typ
 func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		pools := k.GetAllPools(ctx)
+		// restrict number of pools to reduce gas consumptions for unbondings and redelegations
+		if len(pools) > 20 {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 		// admin
 		var (
 			adminAddr  sdk.AccAddress
@@ -387,11 +392,11 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper) simu
 		}
 		account := ak.GetAccount(ctx, simAccount.Address)
 
-		collateralNotBeingWithdrawn := collateral.Amount.Sub(collateral.Withdrawal)
-		withdrawalAmount, err := simulation.RandPositiveInt(r, collateralNotBeingWithdrawn.AmountOf(common.MicroCTKDenom))
+		withdrawalAmount, err := simulation.RandPositiveInt(r, collateral.Withdrawable.AmountOf(common.MicroCTKDenom))
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
+		// fmt.Printf(">> debug SimulateMsgWithdrawCollateral: %s withdraw %s\n", collateral.Provider, withdrawalAmount)
 		withdrawal := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, withdrawalAmount))
 
 		msg := types.NewMsgWithdrawCollateral(simAccount.Address, collateral.PoolID, withdrawal)

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 // ClaimLock locks collaterals after a claim proposal is submitted.
 func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 	loss sdk.Coins, purchaseTxHash []byte, lockPeriod time.Duration) error {
+	fmt.Printf(">> debug ClaimLock <<\n")
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
 		return err
@@ -41,6 +43,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 		lockedCollateral := types.NewLockedCollateral(proposalID, lockedCoins)
 		collateral.LockedCollaterals = append(collateral.LockedCollaterals, lockedCollateral)
 		collateral.Amount = collateral.Amount.Sub(lockedCoins)
+		collateral.Withdrawable = collateral.Withdrawable.Sub(lockedCoins)
 		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 		k.LockProvider(ctx, collateral.Provider, lockedCoins, lockPeriod)
 	}
@@ -173,6 +176,7 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 		for j := range collateral.LockedCollaterals {
 			if collateral.LockedCollaterals[j].ProposalID == proposalID {
 				collateral.Amount = collateral.Amount.Add(collateral.LockedCollaterals[j].LockedCoins...)
+				collateral.Withdrawable = collateral.Withdrawable.Add(collateral.LockedCollaterals[j].LockedCoins...)
 				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1:]...)
 				provider, found := k.GetProvider(ctx, collateral.Provider)
 				if !found {

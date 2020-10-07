@@ -7,6 +7,7 @@ import (
 )
 
 func (k Keeper) SetProvider(ctx sdk.Context, delAddr sdk.AccAddress, provider types.Provider) {
+	// fmt.Printf(">> debug SetProvider: %s\n", provider)
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(provider)
 	store.Set(types.GetProviderKey(delAddr), bz)
@@ -62,11 +63,15 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) 
 	}
 
 	deltaAmount := totalStakedAmount.Sub(provider.DelegationBonded.AmountOf(k.sk.BondDenom(ctx)))
+	/*
+	fmt.Printf(">> debug UpdateDelegationAmount: provider %s, delegation %s --> %s, collateral %s, available %s, withdrawal %s\n",
+		provider.Address, provider.DelegationBonded, totalStakedAmount, provider.Collateral, provider.Available, provider.Withdrawal)
+	 */
 	provider.DelegationBonded = sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), totalStakedAmount))
 	withdrawalAmount := sdk.NewInt(0)
 	if deltaAmount.IsNegative() {
-		if provider.Available.LTE(deltaAmount.Neg()) {
-			withdrawalAmount = deltaAmount.Neg().Sub(provider.Available)
+		if totalStakedAmount.LT(provider.Collateral.AmountOf(k.sk.BondDenom(ctx)).Sub(provider.Withdrawal)) {
+			withdrawalAmount = provider.Collateral.AmountOf(k.sk.BondDenom(ctx)).Sub(provider.Withdrawal).Sub(totalStakedAmount)
 		}
 		provider.Available = provider.Available.Sub(deltaAmount.Neg())
 	} else {
@@ -99,10 +104,10 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	provider.DelegationBonded = provider.DelegationBonded.Sub(sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), deltaAmount)))
 	withdrawalAmount := sdk.NewInt(0)
 	if deltaAmount.IsNegative() {
-		provider.Available = provider.Available.Sub(deltaAmount.Neg())
-		if provider.Available.LTE(deltaAmount.Neg()) {
-			withdrawalAmount = deltaAmount.Neg().Sub(provider.Available)
+		if provider.DelegationBonded.AmountOf(k.sk.BondDenom(ctx)).LT(provider.Collateral.AmountOf(k.sk.BondDenom(ctx)).Sub(provider.Withdrawal)) {
+			withdrawalAmount = provider.Collateral.AmountOf(k.sk.BondDenom(ctx)).Sub(provider.Withdrawal).Sub(provider.DelegationBonded.AmountOf(k.sk.BondDenom(ctx)))
 		}
+		provider.Available = provider.Available.Sub(deltaAmount.Neg())
 	} else {
 		provider.Available = provider.Available.Add(deltaAmount)
 	}
