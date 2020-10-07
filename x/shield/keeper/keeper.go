@@ -135,7 +135,7 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 		}
 		collateral.Amount = collateral.Amount.Sub(withdrawal.Amount)
 		collateral.Withdrawal = collateral.Withdrawal.Sub(withdrawal.Amount)
-		if collateral.Amount.IsZero() {
+		if collateral.Amount.IsZero() && len(collateral.LockedCollaterals) == 0 {
 			store.Delete(types.GetCollateralKey(pool.PoolID, collateral.Provider))
 		} else {
 			k.SetCollateral(ctx, pool, collateral.Provider, collateral)
@@ -151,8 +151,10 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 			panic("withdrawal amount is greater than the provider's total collateral amount")
 		}
 
+		bondDenom := k.sk.BondDenom(ctx)
 		provider.Collateral = provider.Collateral.Sub(withdrawal.Amount)
-		provider.Available = provider.Available.Add(withdrawal.Amount.AmountOf(k.sk.BondDenom(ctx)))
+		provider.Available = provider.Available.Add(withdrawal.Amount.AmountOf(bondDenom))
+		provider.Withdrawal = provider.Withdrawal.Sub(withdrawal.Amount.AmountOf(bondDenom))
 		k.SetProvider(ctx, withdrawal.Address, provider)
 	}
 }

@@ -1,6 +1,7 @@
 package simulation
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -10,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingKeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingSim "github.com/cosmos/cosmos-sdk/x/staking/simulation"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -79,11 +81,11 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak sta
 		),
 		simulation.NewWeightedOperation(
 			weightMsgUndelegate,
-			stakingSim.SimulateMsgUndelegate(ak, k),
+			SimulateMsgUndelegate(ak, k),
 		),
 		simulation.NewWeightedOperation(
 			weightMsgBeginRedelegate,
-			stakingSim.SimulateMsgBeginRedelegate(ak, k),
+			SimulateMsgBeginRedelegate(ak, k),
 		),
 	}
 }
@@ -150,6 +152,185 @@ func SimulateMsgCreateValidator(k staking.Keeper, ak stakingTypes.AccountKeeper,
 			[]sdk.Msg{msg},
 			fees,
 			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{account.GetAccountNumber()},
+			[]uint64{account.GetSequence()},
+			simAccount.PrivKey,
+		)
+
+		_, _, err = app.Deliver(tx)
+		if err != nil {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, err
+		}
+
+		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+	}
+}
+
+func SimulateMsgUndelegate(ak stakingTypes.AccountKeeper, k staking.Keeper) simulation.Operation {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		// get random validator
+		validator, ok := stakingKeeper.RandomValidator(r, k, ctx)
+		if !ok {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, nil
+		}
+		valAddr := validator.GetOperator()
+
+		delegations := k.GetValidatorDelegations(ctx, validator.OperatorAddress)
+
+		// get random delegator from validator
+		delegation := delegations[r.Intn(len(delegations))]
+		delAddr := delegation.GetDelegatorAddr()
+
+		if k.HasMaxUnbondingDelegationEntries(ctx, delAddr, valAddr) {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, nil
+		}
+
+		totalBond := validator.TokensFromShares(delegation.GetShares()).TruncateInt()
+		if !totalBond.IsPositive() {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, nil
+		}
+
+		unbondAmt, err := simulation.RandPositiveInt(r, totalBond)
+		if err != nil {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, err
+		}
+
+		if unbondAmt.IsZero() {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, nil
+		}
+
+		msg := stakingTypes.NewMsgUndelegate(
+			delAddr, valAddr, sdk.NewCoin(k.BondDenom(ctx), unbondAmt),
+		)
+
+		// need to retrieve the simulation account associated with delegation to retrieve PrivKey
+		var simAccount simulation.Account
+		for _, simAcc := range accs {
+			if simAcc.Address.Equals(delAddr) {
+				simAccount = simAcc
+				break
+			}
+		}
+		// if simaccount.PrivKey == nil, delegation address does not exist in accs. Return error
+		if simAccount.PrivKey == nil {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, fmt.Errorf("delegation addr: %s does not exist in simulation accounts", delAddr)
+		}
+
+		account := ak.GetAccount(ctx, delAddr)
+		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+		if err != nil {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, err
+		}
+
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas*10,
+			chainID,
+			[]uint64{account.GetAccountNumber()},
+			[]uint64{account.GetSequence()},
+			simAccount.PrivKey,
+		)
+
+		_, _, err = app.Deliver(tx)
+		if err != nil {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, err
+		}
+
+		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+	}
+}
+
+func SimulateMsgBeginRedelegate(ak stakingTypes.AccountKeeper, k staking.Keeper) simulation.Operation {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		// get random source validator
+		srcVal, ok := stakingKeeper.RandomValidator(r, k, ctx)
+		if !ok {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, nil
+		}
+		srcAddr := srcVal.GetOperator()
+
+		delegations := k.GetValidatorDelegations(ctx, srcAddr)
+
+		// get random delegator from src validator
+		delegation := delegations[r.Intn(len(delegations))]
+		delAddr := delegation.GetDelegatorAddr()
+
+		if k.HasReceivingRedelegation(ctx, delAddr, srcAddr) {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, nil // skip
+		}
+
+		// get random destination validator
+		destVal, ok := stakingKeeper.RandomValidator(r, k, ctx)
+		if !ok {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, nil
+		}
+		destAddr := destVal.GetOperator()
+
+		if srcAddr.Equals(destAddr) ||
+			destVal.InvalidExRate() ||
+			k.HasMaxRedelegationEntries(ctx, delAddr, srcAddr, destAddr) {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, nil
+		}
+
+		totalBond := srcVal.TokensFromShares(delegation.GetShares()).TruncateInt()
+		if !totalBond.IsPositive() {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, nil
+		}
+
+		redAmt, err := simulation.RandPositiveInt(r, totalBond)
+		if err != nil {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, err
+		}
+
+		if redAmt.IsZero() {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, nil
+		}
+
+		// check if the shares truncate to zero
+		shares, err := srcVal.SharesFromTokens(redAmt)
+		if err != nil {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, err
+		}
+
+		if srcVal.TokensFromShares(shares).TruncateInt().IsZero() {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, nil // skip
+		}
+
+		// need to retrieve the simulation account associated with delegation to retrieve PrivKey
+		var simAccount simulation.Account
+		for _, simAcc := range accs {
+			if simAcc.Address.Equals(delAddr) {
+				simAccount = simAcc
+				break
+			}
+		}
+		// if simaccount.PrivKey == nil, delegation address does not exist in accs. Return error
+		if simAccount.PrivKey == nil {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, fmt.Errorf("delegation addr: %s does not exist in simulation accounts", delAddr)
+		}
+
+		// get tx fees
+		account := ak.GetAccount(ctx, delAddr)
+		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+		if err != nil {
+			return simulation.NoOpMsg(stakingTypes.ModuleName), nil, err
+		}
+
+		msg := stakingTypes.NewMsgBeginRedelegate(
+			delAddr, srcAddr, destAddr,
+			sdk.NewCoin(k.BondDenom(ctx), redAmt),
+		)
+
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas*10,
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},

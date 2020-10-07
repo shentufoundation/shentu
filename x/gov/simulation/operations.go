@@ -131,9 +131,6 @@ func SimulateSubmitProposal(
 				}
 			}
 			account := ak.GetAccount(ctx, simAccount.Address)
-			if account == nil {
-				return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
-			}
 			denom := account.GetCoins()[0].Denom
 			lossAmountDec := c.Loss.AmountOf(denom).ToDec()
 			claimProposalParams := k.ShieldKeeper.GetClaimProposalParams(ctx)
@@ -179,7 +176,7 @@ func SimulateSubmitProposal(
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
 			fees,
-			helpers.DefaultGenTxGas,
+			helpers.DefaultGenTxGas*5,
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},

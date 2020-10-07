@@ -69,20 +69,25 @@ func NewPendingPayouts(amount sdk.Dec, to string) PendingPayout {
 // Provider tracks A or C's total delegation, total collateral,
 // and rewards.
 type Provider struct {
-	Address          sdk.AccAddress `json:"address" yaml:"address"`
-	DelegationBonded sdk.Coins      `json:"delegation_bonded" yaml:"delegation_bonded"`
-	Collateral       sdk.Coins      `json:"collateral" yaml:"collateral"`
-	TotalLocked      sdk.Coins      `json:"total_locked" yaml:"total_locked"`
-	Available        sdk.Int        `json:"available" yaml:"available"`
-	Rewards          MixedDecCoins  `json:"rewards" yaml:"rewards"`
+	// address of the provider
+	Address sdk.AccAddress `json:"address" yaml:"address"`
+	// bonded delegations
+	DelegationBonded sdk.Coins `json:"delegation_bonded" yaml:"delegation_bonded"`
+	// collateral, including that in withdrawal queue and excluding that being locked
+	Collateral sdk.Coins `json:"collateral" yaml:"collateral"`
+	// coins locked because of claim proposals
+	TotalLocked sdk.Coins `json:"total_locked" yaml:"total_locked"`
+	// amount of coins staked but not in any pool
+	Available sdk.Int `json:"available" yaml:"available"`
+	// amount of collateral that is in withdrawable queue
+	Withdrawal sdk.Int `json:"withrawal" yaml:"withdrawal"`
+	// rewards to be claimed
+	Rewards MixedDecCoins `json:"rewards" yaml:"rewards"`
 }
 
 func NewProvider(addr sdk.AccAddress) Provider {
 	return Provider{
-		Address:          addr,
-		DelegationBonded: sdk.Coins{},
-		Collateral:       sdk.Coins{},
-		TotalLocked:      sdk.Coins{},
+		Address: addr,
 	}
 }
 

@@ -220,25 +220,32 @@ func (k Keeper) ValidatePoolDuration(ctx sdk.Context, timeDuration, numBlocks in
 
 // WithdrawFromPools withdraws coins from all pools to match total collateral to be less than or equal to total delegation.
 func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount sdk.Coins) {
+	bondDenom := k.sk.BondDenom(ctx)
 	provider, _ := k.GetProvider(ctx, addr)
-	withdrawAmtDec := sdk.NewDecFromInt(amount.AmountOf(k.sk.BondDenom(ctx)))
-	collateralDec := sdk.NewDecFromInt(provider.Collateral.AmountOf(k.sk.BondDenom(ctx)))
-	proportion := withdrawAmtDec.Quo(collateralDec)
-	if amount.IsAnyGT(provider.Collateral) {
+	withdrawAmtDec := sdk.NewDecFromInt(amount.AmountOf(bondDenom))
+	withdrawableAmtDec := sdk.NewDecFromInt(provider.Collateral.AmountOf(bondDenom).Sub(provider.Withdrawal))
+	proportion := withdrawAmtDec.Quo(withdrawableAmtDec)
+	if amount.AmountOf(bondDenom).ToDec().GT(withdrawableAmtDec) {
+		// FIXME this could happen. Set an error instead of panic.
 		panic(types.ErrNotEnoughCollateral)
 	}
 
 	addrCollaterals := k.GetOnesCollaterals(ctx, addr)
-	bondDenom := k.sk.BondDenom(ctx)
 	remainingWithdraw := amount
 	for i, collateral := range addrCollaterals {
-		var withdrawAmtDec sdk.Dec
+		var withdrawAmt sdk.Int
 		if i == len(addrCollaterals)-1 {
-			withdrawAmtDec = sdk.NewDecFromInt(remainingWithdraw.AmountOf(bondDenom))
+			withdrawAmt = remainingWithdraw.AmountOf(bondDenom)
 		} else {
-			withdrawAmtDec = sdk.NewDecFromInt(collateral.Amount.AmountOf(bondDenom)).Mul(proportion)
+			withdrawable := collateral.Amount.AmountOf(bondDenom).Sub(collateral.Withdrawal.AmountOf(bondDenom))
+			withdrawAmtDec := sdk.NewDecFromInt(withdrawable).Mul(proportion)
+			withdrawAmt = withdrawAmtDec.TruncateInt()
+			if remainingWithdraw.AmountOf(bondDenom).LTE(withdrawAmt) {
+				withdrawAmt = remainingWithdraw.AmountOf(bondDenom)
+			} else if remainingWithdraw.AmountOf(bondDenom).GT(withdrawAmt) && withdrawable.GT(withdrawAmt) {
+				withdrawAmt = withdrawAmt.Add(sdk.NewInt(1))
+			}
 		}
-		withdrawAmt := withdrawAmtDec.TruncateInt()
 		withdrawCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, withdrawAmt))
 		err := k.WithdrawCollateral(ctx, addr, collateral.PoolID, withdrawCoins)
 		if err != nil {

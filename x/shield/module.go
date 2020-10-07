@@ -123,12 +123,13 @@ func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.V
 // TODO: Simulation functions
 // WeightedOperations returns shield operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.accountKeeper, am.stakingKeeper)
 }
 
 // ProposalContents returns functions that generate gov proposals for the module.
 func (am AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-	return simulation.ProposalContents(am.keeper)
+	// return simulation.ProposalContents(am.keeper, am.stakingKeeper)
+	return nil
 }
 
 // RandomizedParams returns functions that generate params for the module.
@@ -143,8 +144,7 @@ func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 
 // RegisterStoreDecoder registers a decoder for this module.
 func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	// TODO
-	// sdr[StoreKey] = simulation.DecodeStore
+	sdr[StoreKey] = simulation.DecodeStore
 }
 
 // ValidateGenesis validates the module genesis.

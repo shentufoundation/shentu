@@ -112,6 +112,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 	if err != nil {
 		return err
 	}
+	bondDenom := k.sk.BondDenom(ctx)
 
 	// check eligibility
 	provider, found := k.GetProvider(ctx, from)
@@ -120,10 +121,10 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 		provider, _ = k.GetProvider(ctx, from)
 	}
 	provider.Collateral = provider.Collateral.Add(amount...)
-	if amount.AmountOf(k.sk.BondDenom(ctx)).GT(provider.Available) {
+	if amount.AmountOf(bondDenom).GT(provider.Available) {
 		return types.ErrInsufficientStaking
 	}
-	provider.Available = provider.Available.Sub(amount.AmountOf(k.sk.BondDenom(ctx)))
+	provider.Available = provider.Available.Sub(amount.AmountOf(bondDenom))
 
 	// update the pool, collateral and provider
 	collateral, found := k.GetCollateral(ctx, pool, from)
@@ -133,6 +134,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 		collateral.Amount = collateral.Amount.Add(amount...)
 	}
 	pool.TotalCollateral = pool.TotalCollateral.Add(amount...)
+	pool.Available = pool.Available.Add(amount.AmountOf(bondDenom))
 	k.SetPool(ctx, pool)
 	k.SetCollateral(ctx, pool, from, collateral)
 	k.SetProvider(ctx, from, provider)
@@ -142,6 +144,9 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 
 // WithdrawCollateral withdraws a community member's collateral for a pool.
 func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint64, amount sdk.Coins) error {
+	if amount.IsZero() {
+		return nil
+	}
 	pool, err := k.GetPool(ctx, id)
 	if err != nil {
 		return err
@@ -150,15 +155,18 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	// retrieve the particular collateral to ensure that
 	// amount is less than collateral minus collateral withdrawal
 	collateral, found := k.GetCollateral(ctx, pool, from)
-
 	if !found {
 		return types.ErrNoCollateralFound
 	}
-
 	withdrawable := collateral.Amount.Sub(collateral.Withdrawal)
 	if amount.IsAnyGT(withdrawable) {
 		return types.ErrOverWithdrawal
 	}
+
+	// update the pool available coins, but not pool total collateral or community which should be updated 21 days later
+	bondDenom := k.sk.BondDenom(ctx)
+	pool.Available = pool.Available.Sub(amount.AmountOf(bondDenom))
+	k.SetPool(ctx, pool)
 
 	// insert into withdrawal queue
 	poolParams := k.GetPoolParams(ctx)
@@ -168,6 +176,13 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 
 	collateral.Withdrawal = collateral.Withdrawal.Add(amount...)
 	k.SetCollateral(ctx, pool, collateral.Provider, collateral)
+
+	provider, found := k.GetProvider(ctx, from)
+	if !found {
+		return types.ErrProviderNotFound
+	}
+	provider.Withdrawal = provider.Withdrawal.Add(amount.AmountOf(bondDenom))
+	k.SetProvider(ctx, provider.Address, provider)
 
 	return nil
 }

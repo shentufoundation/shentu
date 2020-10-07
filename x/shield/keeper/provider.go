@@ -26,18 +26,19 @@ func (k Keeper) GetProvider(ctx sdk.Context, delegator sdk.AccAddress) (dt types
 func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) {
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, addr)
 
+	bondDenom := k.sk.BondDenom(ctx)
 	totalStaked := sdk.Coins{}
 	for _, del := range delegations {
 		val, found := k.sk.GetValidator(ctx, del.GetValidatorAddr())
 		if !found {
 			panic("expected validator, not found")
 		}
-		totalStaked = totalStaked.Add(sdk.NewCoin(k.sk.BondDenom(ctx), val.TokensFromShares(del.GetShares()).TruncateInt()))
+		totalStaked = totalStaked.Add(sdk.NewCoin(bondDenom, val.TokensFromShares(del.GetShares()).TruncateInt()))
 	}
 
 	provider := types.NewProvider(addr)
 	provider.DelegationBonded = totalStaked
-	provider.Available = totalStaked.AmountOf(k.sk.BondDenom(ctx))
+	provider.Available = totalStaked.AmountOf(bondDenom)
 
 	k.SetProvider(ctx, addr, provider)
 }
@@ -61,12 +62,13 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) 
 		totalStakedAmount = totalStakedAmount.Add(val.TokensFromShares(del.GetShares()).TruncateInt())
 	}
 
-	deltaAmount := totalStakedAmount.Sub(provider.DelegationBonded.AmountOf(k.sk.BondDenom(ctx)))
-	provider.DelegationBonded = sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), totalStakedAmount))
+	bondDenom := k.sk.BondDenom(ctx)
+	deltaAmount := totalStakedAmount.Sub(provider.DelegationBonded.AmountOf(bondDenom))
+	provider.DelegationBonded = sdk.NewCoins(sdk.NewCoin(bondDenom, totalStakedAmount))
 	withdrawalAmount := sdk.NewInt(0)
 	if deltaAmount.IsNegative() {
-		if provider.Available.LTE(deltaAmount.Neg()) {
-			withdrawalAmount = deltaAmount.Neg().Sub(provider.Available)
+		if totalStakedAmount.LT(provider.Collateral.AmountOf(bondDenom).Sub(provider.Withdrawal)) {
+			withdrawalAmount = provider.Collateral.AmountOf(bondDenom).Sub(provider.Withdrawal).Sub(totalStakedAmount)
 		}
 		provider.Available = provider.Available.Sub(deltaAmount.Neg())
 	} else {
@@ -76,7 +78,7 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) 
 
 	// save the change of provider before this because withdrawal also updates the provider
 	if withdrawalAmount.IsPositive() {
-		k.WithdrawFromPools(ctx, delAddr, sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), withdrawalAmount)))
+		k.WithdrawFromPools(ctx, delAddr, sdk.NewCoins(sdk.NewCoin(bondDenom, withdrawalAmount)))
 	}
 }
 
@@ -96,13 +98,17 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	}
 	deltaAmount := validator.TokensFromShares(delegation.Shares).TruncateInt()
 
-	provider.DelegationBonded = provider.DelegationBonded.Sub(sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), deltaAmount)))
+	bondDenom := k.sk.BondDenom(ctx)
+	provider.DelegationBonded = provider.DelegationBonded.Sub(sdk.NewCoins(sdk.NewCoin(bondDenom, deltaAmount)))
 	withdrawalAmount := sdk.NewInt(0)
 	if deltaAmount.IsNegative() {
-		provider.Available = provider.Available.Sub(deltaAmount.Neg())
-		if provider.Available.LTE(deltaAmount.Neg()) {
-			withdrawalAmount = deltaAmount.Neg().Sub(provider.Available)
+		if provider.DelegationBonded.AmountOf(bondDenom).LT(
+			provider.Collateral.AmountOf(bondDenom).Sub(provider.Withdrawal),
+		) {
+			withdrawalAmount = provider.Collateral.AmountOf(bondDenom).Sub(
+				provider.Withdrawal).Sub(provider.DelegationBonded.AmountOf(bondDenom))
 		}
+		provider.Available = provider.Available.Sub(deltaAmount.Neg())
 	} else {
 		provider.Available = provider.Available.Add(deltaAmount)
 	}
@@ -110,7 +116,7 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 
 	// note that this will also be triggered by redelegations
 	if withdrawalAmount.IsPositive() {
-		k.WithdrawFromPools(ctx, delAddr, sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), withdrawalAmount)))
+		k.WithdrawFromPools(ctx, delAddr, sdk.NewCoins(sdk.NewCoin(bondDenom, withdrawalAmount)))
 	}
 }
 

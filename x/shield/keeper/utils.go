@@ -10,8 +10,7 @@ func GetPremiumRate(days uint64) sdk.Dec {
 	return sdk.NewDecFromBigIntWithPrec(big.NewInt(4), 2) //placeholder 4% for now
 }
 
-func GetLockedCoins(loss, totalCollateral, collateral sdk.Coins) sdk.Coins {
-	denom := loss[0].Denom
+func GetLockedCoins(loss, totalCollateral, collateral sdk.Coins, denom string) sdk.Coins {
 	lossAmount := loss.AmountOf(denom)
 	totalCollateralAmount := totalCollateral.AmountOf(denom)
 	if totalCollateralAmount.IsZero() {
