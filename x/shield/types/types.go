@@ -131,3 +131,5 @@ func NewWithdrawal(poolID uint64, addr sdk.AccAddress, amount sdk.Coins) Withdra
 		Amount:  amount,
 	}
 }
+
+type Withdraws []Withdraw

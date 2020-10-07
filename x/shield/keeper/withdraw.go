@@ -93,13 +93,13 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 }
 
 // IterateWithdraws iterates through all ongoing withdraws.
-func (k Keeper) IterateWithdraws(ctx sdk.Context, callback func(withdraw []types.Withdraw) (stop bool)) {
-	maxWithdrawTime := ctx.BlockHeader().Time.Add(k.GetPoolParams(ctx).MinPoolLife)
+func (k Keeper) IterateWithdraws(ctx sdk.Context, callback func(withdraw types.Withdraws) (stop bool)) {
+	maxWithdrawTime := ctx.BlockHeader().Time.Add(k.GetPoolParams(ctx).WithdrawalPeriod)
 	iterator := k.WithdrawalQueueIterator(ctx, maxWithdrawTime)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		timeslice := []types.Withdraw{}
+		timeslice := types.Withdraws{}
 		value := iterator.Value()
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
 
@@ -110,8 +110,8 @@ func (k Keeper) IterateWithdraws(ctx sdk.Context, callback func(withdraw []types
 }
 
 // GetAllWithdraws gets all collaterals.
-func (k Keeper) GetAllWithdraws(ctx sdk.Context) (withdraws []types.Withdraw) {
-	k.IterateWithdraws(ctx, func(withdraw []types.Withdraw) bool {
+func (k Keeper) GetAllWithdraws(ctx sdk.Context) (withdraws types.Withdraws) {
+	k.IterateWithdraws(ctx, func(withdraw types.Withdraws) bool {
 		withdraws = append(withdraws, withdraw...)
 		return false
 	})
