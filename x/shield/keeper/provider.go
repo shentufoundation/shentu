@@ -99,7 +99,7 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	deltaAmount := validator.TokensFromShares(delegation.Shares).TruncateInt()
 
 	provider.DelegationBonded = provider.DelegationBonded.Sub(deltaAmount)
-	withdrawalAmount := sdk.NewInt(0)
+	withdrawalAmount := sdk.ZeroInt()
 	if deltaAmount.IsNegative() {
 		if provider.DelegationBonded.LT(
 			provider.Collateral.Sub(provider.Withdrawal),

@@ -129,7 +129,6 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 	if !found {
 		collateral = types.NewCollateral(pool, from, amount)
 	}
-	collateral.Amount = collateral.Amount.Add(amount)
 	pool.TotalCollateral = pool.TotalCollateral.Add(amount)
 	pool.Available = pool.Available.Add(amount)
 	k.SetPool(ctx, pool)

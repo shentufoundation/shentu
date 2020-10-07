@@ -137,6 +137,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 			}
 		}
 		account := ak.GetAccount(ctx, simAccount.Address)
+		bondDenom := sk.BondDenom(ctx)
 
 		// shield
 		provider, found := k.GetProvider(ctx, simAccount.Address)
@@ -153,13 +154,13 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 				return simulation.NoOpMsg(types.ModuleName), nil, nil
 			}
 		}
-		shield := sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), shieldAmount))
+		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
 		// sponsor
 		sponsor := strings.ToLower(simulation.RandStringOfLength(r, 3))
 
 		// deposit
-		nativeAmount := account.SpendableCoins(ctx.BlockTime()).AmountOf(sk.BondDenom(ctx))
+		nativeAmount := account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom)
 		if !nativeAmount.IsPositive() {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
@@ -167,7 +168,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		nativeDeposit := sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), nativeAmount))
+		nativeDeposit := sdk.NewCoins(sdk.NewCoin(bondDenom, nativeAmount))
 		foreignAmount, err := simulation.RandPositiveInt(r, sdk.NewInt(int64(DefaultIntMax)))
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
@@ -212,6 +213,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 			}
 		}
 		account := ak.GetAccount(ctx, simAccount.Address)
+		bondDenom := sk.BondDenom(ctx)
 
 		// poolID and sponsor
 		poolID, sponsor, found := keeper.RandomPoolInfo(r, k, ctx)
@@ -228,10 +230,10 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		shield := sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), shieldAmount))
+		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
 		// deposit
-		nativeAmount := account.SpendableCoins(ctx.BlockTime()).AmountOf(sk.BondDenom(ctx))
+		nativeAmount := account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom)
 		if !nativeAmount.IsPositive() {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
@@ -239,7 +241,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		nativeDeposit := sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), nativeAmount))
+		nativeDeposit := sdk.NewCoins(sdk.NewCoin(bondDenom, nativeAmount))
 		foreignAmount, err := simulation.RandPositiveInt(r, sdk.NewInt(int64(DefaultIntMax)))
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
@@ -510,6 +512,7 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 		purchaser, _ := simulation.RandomAcc(r, accs)
 		account := ak.GetAccount(ctx, purchaser.Address)
+		bondDenom := sk.BondDenom(ctx)
 
 		poolID, _, found := keeper.RandomPoolInfo(r, k, ctx)
 		if !found {
@@ -519,14 +522,14 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		maxPurchaseAmount := sdk.MinInt(pool.Available, account.SpendableCoins(ctx.BlockTime()).AmountOf(sk.BondDenom(ctx)))
+		maxPurchaseAmount := sdk.MinInt(pool.Available, account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom))
 		shieldAmount, err := simulation.RandPositiveInt(r, maxPurchaseAmount)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 		description := simulation.RandStringOfLength(r, 100)
 
-		msg := types.NewMsgPurchaseShield(poolID, sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), shieldAmount)), description, purchaser.Address)
+		msg := types.NewMsgPurchaseShield(poolID, sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount)), description, purchaser.Address)
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
@@ -561,11 +564,12 @@ func ProposalContents(k keeper.Keeper, sk types.StakingKeeper) []simulation.Weig
 // SimulateShieldClaimProposalContent generates random shield claim proposal content
 func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper) simulation.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simulation.Account) govtypes.Content {
+		bondDenom := sk.BondDenom(ctx)
 		purchase, found := keeper.RandomPurchase(r, k, ctx)
 		if !found {
 			return nil
 		}
-		lossAmount, err := simulation.RandPositiveInt(r, purchase.Shield.AmountOf(sk.BondDenom(ctx)))
+		lossAmount, err := simulation.RandPositiveInt(r, purchase.Shield.AmountOf(bondDenom))
 		if err != nil {
 			return nil
 		}
@@ -573,7 +577,7 @@ func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper)
 
 		return types.NewShieldClaimProposal(
 			purchase.PoolID,
-			sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), lossAmount)),
+			sdk.NewCoins(sdk.NewCoin(bondDenom, lossAmount)),
 			simulation.RandStringOfLength(r, 500),
 			txhash,
 			simulation.RandStringOfLength(r, 500),

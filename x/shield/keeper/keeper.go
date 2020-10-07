@@ -135,7 +135,11 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 		}
 		collateral.Amount = collateral.Amount.Sub(withdrawal.Amount)
 		collateral.Withdrawal = collateral.Withdrawal.Sub(withdrawal.Amount)
-		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
+		if collateral.Amount.IsZero() && len(collateral.LockedCollaterals) == 0 {
+			store.Delete(types.GetCollateralKey(pool.PoolID, collateral.Provider))
+		} else {
+			k.SetCollateral(ctx, pool, collateral.Provider, collateral)
+		}
 		k.SetPool(ctx, pool)
 
 		// update provider's collateral amount
