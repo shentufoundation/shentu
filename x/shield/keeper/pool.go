@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -251,6 +252,10 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 			}
 		}
 		withdrawCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, withdrawAmt))
+		if collateral.Provider.String() == "cosmos1r4p2ka6rf0xa0zj8r6y3h2dy4ys4h4qdu799uv" {
+			fmt.Printf(">>>> debug WithdrawFromPools: pool %d, %s, withdrawAmtDec %s, remaining %s, withdraw %s\n",
+				collateral.PoolID, collateral.Provider, withdrawableAmtDec, remainingWithdraw, withdrawCoins)
+		}
 		err := k.WithdrawCollateral(ctx, addr, collateral.PoolID, withdrawCoins)
 		if err != nil {
 			//TODO: address this error

@@ -149,6 +149,9 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 
 // WithdrawCollateral withdraws a community member's collateral for a pool.
 func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint64, amount sdk.Coins) error {
+	if amount.IsZero() {
+		return nil
+	}
 	pool, err := k.GetPool(ctx, id)
 	if err != nil {
 		return err

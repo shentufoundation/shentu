@@ -2,6 +2,7 @@ package simulation
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/rand"
 	"strings"
 
@@ -400,6 +401,9 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper) simu
 		withdrawal := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, withdrawalAmount))
 
 		msg := types.NewMsgWithdrawCollateral(simAccount.Address, collateral.PoolID, withdrawal)
+
+		fmt.Printf(">> debug SimulateMsgWithdrawCollateral: pool %d, %s withdraw %s, total %s, withdrawable %s\n",
+			collateral.PoolID, collateral.Provider, withdrawal, collateral.Amount, collateral.Withdrawable)
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
