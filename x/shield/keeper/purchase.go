@@ -60,7 +60,7 @@ func (k Keeper) PurchaseShield(
 	if shield.AmountOf(k.sk.BondDenom(ctx)).GT(pool.Available) {
 		return types.Purchase{}, types.ErrNotEnoughShield
 	}
-  
+
 	// send tokens to shield module account
 	shieldDec := sdk.NewDecCoinsFromCoins(shield...)
 	premium, _ := shieldDec.MulDec(poolParams.ShieldFeesRate).TruncateDecimal()
