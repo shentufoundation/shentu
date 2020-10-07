@@ -1,8 +1,6 @@
 package shield
 
 import (
-	"fmt"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,7 +15,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	k.SetPoolParams(ctx, data.PoolParams)
 	k.SetClaimProposalParams(ctx, data.ClaimProposalParams)
 	for _, pool := range data.Pools {
-		fmt.Println(pool.PoolID)
 		k.SetPool(ctx, pool)
 	}
 	for _, collateral := range data.Collaterals {
