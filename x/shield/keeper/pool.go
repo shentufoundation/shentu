@@ -250,7 +250,7 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 		err := k.WithdrawCollateral(ctx, addr, collateral.PoolID, withdrawCoins)
 		if err != nil {
 			//TODO: address this error
-			// continue
+			continue
 		}
 		remainingWithdraw = remainingWithdraw.Sub(withdrawCoins)
 	}
