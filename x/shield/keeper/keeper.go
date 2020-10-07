@@ -143,13 +143,17 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 		if !found {
 			panic("provider not found but its collaterals are being withdrawn")
 		}
-		if withdrawal.Amount.IsAnyGT(provider.Collateral) {
+		if withdrawal.Amount.GT(provider.Collateral) {
 			panic("withdrawal amount is greater than the provider's total collateral amount")
 		}
 
 		provider.Collateral = provider.Collateral.Sub(withdrawal.Amount)
-		provider.Available = provider.Available.Add(withdrawal.Amount.AmountOf(k.sk.BondDenom(ctx)))
-		provider.Withdrawal = provider.Withdrawal.Sub(withdrawal.Amount.AmountOf(k.sk.BondDenom(ctx)))
+		provider.Available = provider.Available.Add(withdrawal.Amount)
+		provider.Withdrawal = provider.Withdrawal.Sub(withdrawal.Amount)
 		k.SetProvider(ctx, withdrawal.Address, provider)
 	}
+}
+
+func (k Keeper) BondDenom(ctx sdk.Context) string {
+	return k.sk.BondDenom(ctx)
 }

@@ -342,7 +342,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		// collateral
 		provider, found := k.GetProvider(ctx, simAccount.Address)
 		if found {
-			delAmount = provider.DelegationBonded.AmountOf(sk.BondDenom(ctx)).Sub(provider.Collateral.AmountOf(sk.BondDenom(ctx)))
+			delAmount = provider.DelegationBonded.Sub(provider.Collateral)
 			if !delAmount.IsPositive() {
 				return simulation.NoOpMsg(types.ModuleName), nil, nil
 			}
@@ -351,7 +351,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		collateral := sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), collateralAmount))
+		collateral := sdk.NewCoin(sk.BondDenom(ctx), collateralAmount)
 
 		msg := types.NewMsgDepositCollateral(simAccount.Address, poolID, collateral)
 
@@ -391,12 +391,12 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 		}
 		account := ak.GetAccount(ctx, simAccount.Address)
 
-		withdrawable := collateral.Amount.Sub(collateral.Withdrawal).AmountOf(sk.BondDenom(ctx))
+		withdrawable := collateral.Amount.Sub(collateral.Withdrawal)
 		withdrawalAmount, err := simulation.RandPositiveInt(r, withdrawable)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		withdrawal := sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), withdrawalAmount))
+		withdrawal := sdk.NewCoin(sk.BondDenom(ctx), withdrawalAmount)
 
 		msg := types.NewMsgWithdrawCollateral(simAccount.Address, collateral.PoolID, withdrawal)
 

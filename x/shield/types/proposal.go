@@ -92,15 +92,15 @@ func (scp ShieldClaimProposal) String() string {
 
 // LockedCollateral defines the data type of locked collateral for a claim proposal.
 type LockedCollateral struct {
-	ProposalID  uint64    `json:"proposal_id" yaml:"proposal_id"`
-	LockedCoins sdk.Coins `json:"locked_coins" yaml:"locked_coins"`
+	ProposalID uint64  `json:"proposal_id" yaml:"proposal_id"`
+	Amount     sdk.Int `json:"locked_coins" yaml:"locked_coins"`
 }
 
 // NewLockedCollateral returns a new LockedCollateral instance.
-func NewLockedCollateral(proposalID uint64, lockedCoins sdk.Coins) LockedCollateral {
+func NewLockedCollateral(proposalID uint64, lockedAmt sdk.Int) LockedCollateral {
 	return LockedCollateral{
-		ProposalID:  proposalID,
-		LockedCoins: lockedCoins,
+		ProposalID: proposalID,
+		Amount:     lockedAmt,
 	}
 }
 

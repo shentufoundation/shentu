@@ -121,7 +121,11 @@ func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*s
 }
 
 func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollateral, k Keeper) (*sdk.Result, error) {
-	if err := k.WithdrawCollateral(ctx, msg.From, msg.PoolID, msg.Collateral); err != nil {
+	if msg.Collateral.Denom != k.BondDenom(ctx) {
+		return nil, types.ErrCollateralBadDenom
+	}
+
+	if err := k.WithdrawCollateral(ctx, msg.From, msg.PoolID, msg.Collateral.Amount); err != nil {
 		return nil, err
 	}
 
@@ -137,7 +141,11 @@ func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollatera
 }
 
 func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral, k Keeper) (*sdk.Result, error) {
-	if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral); err != nil {
+	if msg.Collateral.Denom != k.BondDenom(ctx) {
+		return nil, types.ErrCollateralBadDenom
+	}
+
+	if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral.Amount); err != nil {
 		return nil, err
 	}
 
