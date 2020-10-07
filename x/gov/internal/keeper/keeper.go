@@ -28,6 +28,9 @@ type Keeper struct {
 	// the reference to get information about certifiers
 	CertKeeper types.CertKeeper
 
+	// the reference to get claim proposal parameters
+	ShieldKeeper types.ShieldKeeper
+
 	// for ValidatePlan
 	UpgradeKeeper types.UpgradeKeeper
 
@@ -44,9 +47,9 @@ type Keeper struct {
 // - users voting on proposals, with weight proportional to stake in the system
 // - and tallying the result of the vote.
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace,
-	supplyKeeper govTypes.SupplyKeeper, stakingKeeper govTypes.StakingKeeper,
-	certKeeper types.CertKeeper, upgradeKeeper types.UpgradeKeeper, router govTypes.Router,
+	cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, supplyKeeper govTypes.SupplyKeeper,
+	stakingKeeper govTypes.StakingKeeper, certKeeper types.CertKeeper, shieldKeeper types.ShieldKeeper,
+	upgradeKeeper types.UpgradeKeeper, router govTypes.Router,
 ) Keeper {
 	// ensure governance module account is set
 	if addr := supplyKeeper.GetModuleAddress(govTypes.ModuleName); addr == nil {
@@ -60,6 +63,7 @@ func NewKeeper(
 		supplyKeeper:  supplyKeeper,
 		stakingKeeper: stakingKeeper,
 		CertKeeper:    certKeeper,
+		ShieldKeeper:  shieldKeeper,
 		UpgradeKeeper: upgradeKeeper,
 		cdc:           cdc,
 	}

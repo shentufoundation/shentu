@@ -19,15 +19,17 @@ const (
 	CertificateTypeAuditing
 	CertificateTypeProof
 	CertificateTypeOracleOperator
+	CertificateTypeShieldPoolCreator
 )
 
-// CertificateTypes is an array of all certificate types
+// CertificateTypes is an array of all certificate types.
 var CertificateTypes = [...]CertificateType{
 	CertificateTypeNil,
 	CertificateTypeCompilation,
 	CertificateTypeAuditing,
 	CertificateTypeProof,
 	CertificateTypeOracleOperator,
+	CertificateTypeShieldPoolCreator,
 }
 
 // Bytes returns the byte array for a certificate type.
@@ -46,6 +48,8 @@ func (c CertificateType) String() string {
 		return "Proof"
 	case CertificateTypeOracleOperator:
 		return "OracleOperator"
+	case CertificateTypeShieldPoolCreator:
+		return "ShieldPoolCreator"
 	default:
 		return "UnknownCertificateType"
 	}
@@ -62,6 +66,8 @@ func CertificateTypeFromString(s string) CertificateType {
 		return CertificateTypeProof
 	case "ORACLEOPERATOR":
 		return CertificateTypeOracleOperator
+	case "SHIELDPOOLCREATOR":
+		return CertificateTypeShieldPoolCreator
 	default:
 		return CertificateTypeNil
 	}
@@ -110,7 +116,7 @@ const (
 	RequestContentTypeSourceCodeHash
 	RequestContentTypeAddress
 	RequestContentTypeBytecodeHash
-	RequestContentTypeEthAddress
+	RequestContentTypeGeneral
 )
 
 // RequestContentTypes is an array of all request content types.
@@ -119,7 +125,7 @@ var RequestContentTypes = [...]RequestContentType{
 	RequestContentTypeSourceCodeHash,
 	RequestContentTypeAddress,
 	RequestContentTypeBytecodeHash,
-	RequestContentTypeEthAddress,
+	RequestContentTypeGeneral,
 }
 
 // Bytes returns the byte array for a request content type.
@@ -136,8 +142,8 @@ func (c RequestContentType) String() string {
 		return "Address"
 	case RequestContentTypeBytecodeHash:
 		return "BytecodeHash"
-	case RequestContentTypeEthAddress:
-		return "EthAddress"
+	case RequestContentTypeGeneral:
+		return "General"
 	default:
 		return "UnknownRequestContentType"
 	}
@@ -152,8 +158,8 @@ func RequestContentTypeFromString(s string) RequestContentType {
 		return RequestContentTypeAddress
 	case "BYTECODEHASH":
 		return RequestContentTypeBytecodeHash
-	case "ETHADDRESS":
-		return RequestContentTypeEthAddress
+	case "GENERAL":
+		return RequestContentTypeGeneral
 	default:
 		return RequestContentTypeNil
 	}

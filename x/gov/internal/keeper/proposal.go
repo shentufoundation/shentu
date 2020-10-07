@@ -10,6 +10,7 @@ import (
 	staking "github.com/cosmos/cosmos-sdk/x/staking/exported"
 
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/shield"
 )
 
 // Proposal
@@ -84,7 +85,14 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govTypes.Content, addr s
 	submitTime := ctx.BlockHeader().Time
 	depositPeriod := k.GetDepositParams(ctx).MaxDepositPeriod
 
-	proposal := types.NewProposal(content, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
+	var proposal types.Proposal
+	if content.ProposalType() == shield.ProposalTypeShieldClaim {
+		c := content.(shield.ClaimProposal)
+		c.ProposalID = proposalID
+		proposal = types.NewProposal(c, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
+	} else {
+		proposal = types.NewProposal(content, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
+	}
 
 	k.SetProposal(ctx, proposal)
 	k.InsertInactiveProposalQueue(ctx, proposalID, proposal.DepositEndTime)
@@ -127,11 +135,11 @@ func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal types.Proposal) {
 	oldDepositEndTime := proposal.DepositEndTime
 
 	if proposal.HasSecurityVoting() && (proposal.Status != types.StatusCertifierVotingPeriod) {
-		// Special case: just for software upgrade and certifier update proposals.
+		// Special case: just for software upgrade, certifier update and shield claim proposals.
 		proposal.Status = types.StatusCertifierVotingPeriod
 	} else {
 		// Default case: for plain text proposals, community pool spend proposals;
-		// and second round of software upgrade proposals, certifier update
+		// and second round of software upgrade, certifier update and shield claim
 		// proposals.
 		if proposal.Status == types.StatusCertifierVotingPeriod {
 			k.RemoveFromActiveProposalQueue(ctx, proposal.ProposalID, oldVotingEndTime)

@@ -16,6 +16,7 @@ import (
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/shield"
 )
 
 var initialProposalID = uint64(100000000000000)
@@ -115,13 +116,40 @@ func SimulateSubmitProposal(
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
-		simAccount, _ := simulation.RandomAcc(r, accs)
-		deposit, skip, err := randomDeposit(r, ctx, ak, k, simAccount.Address)
-		switch {
-		case skip:
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
-		case err != nil:
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+		var (
+			deposit sdk.Coins
+			skip    bool
+			err     error
+		)
+		var simAccount simulation.Account
+		if content.ProposalType() == shield.ProposalTypeShieldClaim {
+			c := content.(shield.ClaimProposal)
+			for _, simAcc := range accs {
+				if simAcc.Address.Equals(c.Proposer) {
+					simAccount = simAcc
+					break
+				}
+			}
+			account := ak.GetAccount(ctx, simAccount.Address)
+			denom := account.GetCoins()[0].Denom
+			lossAmountDec := c.Loss.AmountOf(denom).ToDec()
+			claimProposalParams := k.ShieldKeeper.GetClaimProposalParams(ctx)
+			depositRate := claimProposalParams.DepositRate
+			minDepositAmountDec := sdk.MaxDec(claimProposalParams.MinDeposit.AmountOf(denom).ToDec(), lossAmountDec.Mul(depositRate))
+			minDepositAmount := minDepositAmountDec.Ceil().RoundInt()
+			if minDepositAmount.GT(account.SpendableCoins(ctx.BlockTime()).AmountOf(denom)) {
+				return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			}
+			deposit = sdk.NewCoins(sdk.NewCoin(denom, minDepositAmount))
+		} else {
+			simAccount, _ = simulation.RandomAcc(r, accs)
+			deposit, skip, err = randomDeposit(r, ctx, ak, k, simAccount.Address)
+			switch {
+			case skip:
+				return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			case err != nil:
+				return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+			}
 		}
 
 		minInitialDeposit := k.GetDepositParams(ctx).MinInitialDeposit
@@ -148,7 +176,7 @@ func SimulateSubmitProposal(
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
 			fees,
-			helpers.DefaultGenTxGas,
+			helpers.DefaultGenTxGas*5,
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},

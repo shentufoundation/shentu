@@ -9,18 +9,18 @@ import (
 )
 
 // NewHandler returns a handler for "auth" type messages.
-func NewHandler(ak AccountKeeper, ck types.CertKeeper) sdk.Handler {
+func NewHandler(ak AccountKeeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		switch msg := msg.(type) {
 		case types.MsgUnlock:
-			return handleMsgUnlock(ctx, ak, ck, msg)
+			return handleMsgUnlock(ctx, ak, msg)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Unrecognized cert Msg type: %v", msg.Type())
 		}
 	}
 }
 
-func handleMsgUnlock(ctx sdk.Context, ak AccountKeeper, ck types.CertKeeper, msg types.MsgUnlock) (*sdk.Result, error) {
+func handleMsgUnlock(ctx sdk.Context, ak AccountKeeper, msg types.MsgUnlock) (*sdk.Result, error) {
 	// preliminary checks
 	acc := ak.GetAccount(ctx, msg.Account)
 	if acc == nil {

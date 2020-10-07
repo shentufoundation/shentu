@@ -1,6 +1,7 @@
 package gov
 
 import (
+	"encoding/hex"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/shield"
 )
 
 func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
@@ -26,6 +28,22 @@ func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 		// TODO log reason of proposal deletion
 		return false
 	})
+}
+
+func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
+	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
+		c := proposal.Content.(shield.ClaimProposal)
+		_ = k.ShieldKeeper.ClaimUnlock(ctx, c.ProposalID, c.PoolID, c.Loss)
+	}
+}
+
+func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
+	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
+		c := proposal.Content.(shield.ClaimProposal)
+		_ = k.ShieldKeeper.ClaimUnlock(ctx, c.ProposalID, c.PoolID, c.Loss)
+		txhash, _ := hex.DecodeString(c.PurchaseTxHash)
+		_ = k.ShieldKeeper.RestoreShield(ctx, c.PoolID, c.Loss, txhash)
+	}
 }
 
 // EndBlocker is called every block, removes inactive proposals, tallies active proposals and deletes/refunds deposits.
@@ -58,8 +76,12 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 		if veto {
 			k.DeleteDepositsByProposalID(ctx, proposal.ProposalID)
+			updateVeto(ctx, k, proposal)
 		} else {
 			k.RefundDepositsByProposalID(ctx, proposal.ProposalID)
+			if !pass {
+				updateAbstain(ctx, k, proposal)
+			}
 		}
 
 		if pass {

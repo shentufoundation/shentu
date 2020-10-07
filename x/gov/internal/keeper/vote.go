@@ -66,9 +66,18 @@ func (k Keeper) GetAllVotes(ctx sdk.Context) (votes types.Votes) {
 	return
 }
 
-// GetVotes returns all the votes from a proposal.
+// GetVotes returns all votes on a given proposal.
 func (k Keeper) GetVotes(ctx sdk.Context, proposalID uint64) (votes types.Votes) {
 	k.IterateVotes(ctx, proposalID, func(vote types.Vote) bool {
+		votes = append(votes, vote)
+		return false
+	})
+	return
+}
+
+// GetVotesPaginated performs paginated query of votes on a given proposal.
+func (k Keeper) GetVotesPaginated(ctx sdk.Context, proposalID uint64, page, limit uint) (votes types.Votes) {
+	k.IterateVotesPaginated(ctx, proposalID, page, limit, func(vote types.Vote) bool {
 		votes = append(votes, vote)
 		return false
 	})
@@ -99,10 +108,17 @@ func (k Keeper) SetVote(ctx sdk.Context, vote types.Vote) {
 	k.setVote(ctx, vote)
 }
 
-// GetVotesIterator gets all the votes on a specific proposal as an sdk.Iterator.
+// GetVotesIterator returns an iterator to go over all votes on a given proposal.
 func (k Keeper) GetVotesIterator(ctx sdk.Context, proposalID uint64) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
 	return sdk.KVStorePrefixIterator(store, govTypes.VotesKey(proposalID))
+}
+
+// GetVotesIteratorPaginated returns an iterator to go over
+// votes on a given proposal based on pagination parameters.
+func (k Keeper) GetVotesIteratorPaginated(ctx sdk.Context, proposalID uint64, page, limit uint) sdk.Iterator {
+	store := ctx.KVStore(k.storeKey)
+	return sdk.KVStorePrefixIteratorPaginated(store, govTypes.VotesKey(proposalID), page, limit)
 }
 
 // deleteVote delete a vote for a proposal.
@@ -111,7 +127,7 @@ func (k Keeper) deleteVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.Acc
 	store.Delete(govTypes.VoteKey(proposalID, voterAddr))
 }
 
-// deleteAllVotes deletes all votes for a proposal.
+// DeleteAllVotes deletes all votes for a proposal.
 func (k Keeper) DeleteAllVotes(ctx sdk.Context, proposalID uint64) {
 	k.IterateVotes(ctx, proposalID, func(vote types.Vote) bool {
 		k.deleteVote(ctx, proposalID, vote.Voter)
@@ -135,9 +151,25 @@ func (k Keeper) IterateAllVotes(ctx sdk.Context, cb func(vote types.Vote) (stop 
 	}
 }
 
-// IterateVotes iterates over the all votes for a proposal and performs a callback function.
+// IterateVotes iterates over the all votes on a given proposal and performs a callback function.
 func (k Keeper) IterateVotes(ctx sdk.Context, proposalID uint64, cb func(vote types.Vote) (stop bool)) {
 	iterator := k.GetVotesIterator(ctx, proposalID)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var vote types.Vote
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &vote)
+
+		if cb(vote) {
+			break
+		}
+	}
+}
+
+// IterateVotesPaginated iterates over votes on a given proposal
+// based on pagination parameters and performs a callback function.
+func (k Keeper) IterateVotesPaginated(ctx sdk.Context, proposalID uint64, page, limit uint, cb func(vote types.Vote) (stop bool)) {
+	iterator := k.GetVotesIteratorPaginated(ctx, proposalID, page, limit)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
