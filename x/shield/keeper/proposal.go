@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-	"github.com/tmthrgd/go-hex"
 	"sort"
 	"time"
 
@@ -35,10 +33,6 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 		// TODO this should never happen?
 		return types.ErrNotEnoughShield
 	}
-
-	fmt.Printf(">> debug ClaimLock: pool %d, total collateral %s --> %s\n", poolID, pool.TotalCollateral, pool.TotalCollateral.Sub(loss))
-	txhashStr := hex.EncodeToString(purchase.TxHash)
-	fmt.Printf(">> debug ClaimLock: pool %d, purchase %s, shield %s --> %s\n", purchase.PoolID, txhashStr, purchase.Shield.Add(loss...), purchase.Shield)
 
 	// update locked collaterals for community
 	collaterals := k.GetAllPoolCollaterals(ctx, pool)
@@ -161,8 +155,6 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 		return err
 	}
 
-	fmt.Printf(">> debug ClaimUnlock: pool %d, total collateral %s --> %s\n", poolID, pool.TotalCollateral, pool.TotalCollateral.Add(loss...))
-
 	pool.TotalCollateral = pool.TotalCollateral.Add(loss...)
 	k.SetPool(ctx, pool)
 
@@ -206,9 +198,6 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, pu
 	}
 	purchase.Shield = purchase.Shield.Add(loss...)
 	k.SetPurchase(ctx, purchaseTxHash, purchase)
-
-	txhashStr := hex.EncodeToString(purchase.TxHash)
-	fmt.Printf(">> debug RestoreShield: pool %d, purchase %s, shield %s --> %s\n", purchase.PoolID, txhashStr, purchase.Shield.Sub(loss), purchase.Shield)
 
 	return nil
 }

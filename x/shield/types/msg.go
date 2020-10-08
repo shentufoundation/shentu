@@ -430,7 +430,7 @@ type MsgPurchaseShield struct {
 	Shield      sdk.Coins      `json:"shield" yaml:"shield"`
 	Description string         `json:"description" yaml:"description"`
 	From        sdk.AccAddress `json:"from" yaml:"from"`
-	Simulate bool `json:"simulate" yaml:"simulate"`
+	Simulate    bool           `json:"simulate" yaml:"simulate"`
 }
 
 // NewMsgPurchaseShield creates a new MsgPurchaseShield instance.

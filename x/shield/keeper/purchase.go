@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"crypto/rand"
-	"encoding/hex"
-	"fmt"
 
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
@@ -17,8 +15,6 @@ func (k Keeper) SetPurchase(ctx sdk.Context, txhash []byte, purchase types.Purch
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchase)
 	store.Set(types.GetPurchaseTxHashKey(txhash), bz)
-	txhashStr := hex.EncodeToString(purchase.TxHash)
-	fmt.Printf(">> debug SetPurchase: pool %d, txhash %s, shield %s\n", purchase.PoolID, txhashStr, purchase.Shield)
 }
 
 // GetPurchase gets a purchase from store by txhash.
@@ -99,6 +95,7 @@ func (k Keeper) SimulatePurchaseShield(
 	if err != nil {
 		return types.Purchase{}, err
 	}
+	_ = k.DeletePurchase(ctx, purchase.TxHash)
 
 	simTxHash := make([]byte, 64)
 	if _, err := rand.Read(simTxHash); err != nil {
