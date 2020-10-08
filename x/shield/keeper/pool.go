@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -189,10 +187,6 @@ func (k Keeper) PoolEnded(ctx sdk.Context, pool types.Pool) bool {
 // ClosePool closes the pool
 func (k Keeper) ClosePool(ctx sdk.Context, pool types.Pool) {
 	// TODO: make sure nothing else needs to be done
-	fmt.Println("CLOSING POOL ", pool)
-	fmt.Println("CLOSING POOL ", pool)
-	fmt.Println("CLOSING POOL ", pool)
-	fmt.Println("CLOSING POOL ", pool)
 	k.FreeCollaterals(ctx, pool)
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetPoolKey(pool.PoolID))
