@@ -17,7 +17,7 @@ type MsgCreatePool struct {
 }
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
-func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, 
+func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins,
 	sponsor string, timeOfCoverage int64) MsgCreatePool {
 	return MsgCreatePool{
 		From:           accAddr,
