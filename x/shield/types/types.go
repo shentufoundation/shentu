@@ -12,17 +12,15 @@ type Pool struct {
 	Description      string        `json:"description" yaml:"description"`
 	Sponsor          string        `json:"sponsor" yaml:"sponsor"`
 	Premium          MixedDecCoins `json:"premium" yaml:"premium"`
-	StartBlockHeight int64         `json:"start_block_height" yaml:"start_block_height"`
 	TotalCollateral  sdk.Int       `json:"total_collateral" yaml:"total_collateral"`
 	Available        sdk.Int       `json:"available" yaml:"available"`
 	Shield           sdk.Coins     `json:"shield" yaml:"shield"`
 	EndTime          int64         `json:"end_time" yaml:"end_time"`
-	EndBlockHeight   int64         `json:"end_block_height" yaml:"end_block_height"`
 }
 
 func NewPool(
 	shield sdk.Coins, totalCollateral sdk.Int, deposit MixedDecCoins, sponsor string,
-	endTime, startBlockHeight, endBlockHeight int64, id uint64) Pool {
+	endTime int64, id uint64) Pool {
 	return Pool{
 		Shield:           shield,
 		Premium:          deposit,
@@ -30,8 +28,6 @@ func NewPool(
 		Active:           true,
 		TotalCollateral:  totalCollateral,
 		EndTime:          endTime,
-		StartBlockHeight: startBlockHeight,
-		EndBlockHeight:   endBlockHeight,
 		PoolID:           id,
 	}
 }

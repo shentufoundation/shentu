@@ -14,20 +14,17 @@ type MsgCreatePool struct {
 	Deposit          MixedCoins     `json:"deposit" yaml:"deposit"`
 	Sponsor          string         `json:"sponsor" yaml:"sponsor"`
 	TimeOfCoverage   int64          `json:"time_of_coverage" yaml:"time_of_coverage"`
-	BlocksOfCoverage int64          `json:"blocks_of_coverage" yaml:"blocks_of_coverage"`
 }
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
 func NewMsgCreatePool(
-	accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, timeOfCoverage,
-	blocksOfCoverage int64) MsgCreatePool {
+	accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, timeOfCoverage int64) MsgCreatePool {
 	return MsgCreatePool{
 		From:             accAddr,
 		Shield:           shield,
 		Deposit:          deposit,
 		Sponsor:          sponsor,
 		TimeOfCoverage:   timeOfCoverage,
-		BlocksOfCoverage: blocksOfCoverage,
 	}
 }
 
@@ -65,8 +62,7 @@ func (msg MsgCreatePool) ValidateBasic() error {
 	if !msg.Shield.IsValid() || msg.Shield.IsZero() {
 		return ErrNoShield
 	}
-	// TO-DO need to double check
-	if msg.TimeOfCoverage <= 0 && msg.BlocksOfCoverage <= 0 {
+	if msg.TimeOfCoverage <= 0 {
 		return ErrInvalidDuration
 	}
 	return nil
@@ -79,19 +75,17 @@ type MsgUpdatePool struct {
 	Deposit          MixedCoins     `json:"deposit" yaml:"deposit"`
 	PoolID           uint64         `json:"pool_id" yaml:"pool_id"`
 	AdditionalTime   int64          `json:"additional_period" yaml:"additional_period"`
-	AdditionalBlocks int64          `json:"additional_blocks" yaml:"additional_blocks"`
 }
 
 // NewMsgUpdatePool creates a new MsgUpdatePool instance.
 func NewMsgUpdatePool(
-	accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, id uint64, additionalTime, additionalBlocks int64) MsgUpdatePool {
+	accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, id uint64, additionalTime int64) MsgUpdatePool {
 	return MsgUpdatePool{
 		From:             accAddr,
 		Shield:           shield,
 		Deposit:          deposit,
 		PoolID:           id,
 		AdditionalTime:   additionalTime,
-		AdditionalBlocks: additionalBlocks,
 	}
 }
 
@@ -126,8 +120,7 @@ func (msg MsgUpdatePool) ValidateBasic() error {
 	if !msg.Shield.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid shield")
 	}
-	// TO-DO need to double check
-	if msg.AdditionalTime <= 0 && msg.AdditionalBlocks <= 0 {
+	if msg.AdditionalTime <= 0 {
 		return ErrInvalidDuration
 	}
 	return nil
