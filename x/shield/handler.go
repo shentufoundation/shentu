@@ -7,7 +7,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
@@ -226,7 +225,7 @@ func handleMsgWithdrawRewards(ctx sdk.Context, msg types.MsgWithdrawRewards, k K
 		sdk.NewEvent(
 			types.EventTypeWithdrawRewards,
 			sdk.NewAttribute(types.AttributeKeyAccountAddress, msg.From.String()),
-			sdk.NewAttribute(types.AttributeKeyDenom, common.MicroCTKDenom),
+			sdk.NewAttribute(types.AttributeKeyDenom, k.BondDenom(ctx)),
 			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 		),
 		sdk.NewEvent(

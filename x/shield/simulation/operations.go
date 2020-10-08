@@ -393,7 +393,7 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 		}
 		account := ak.GetAccount(ctx, simAccount.Address)
 
-		withdrawable := collateral.Amount.Sub(collateral.Withdrawal)
+		withdrawable := collateral.Amount.Sub(collateral.Withdrawing)
 		withdrawalAmount, err := simulation.RandPositiveInt(r, withdrawable)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil

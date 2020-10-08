@@ -67,8 +67,8 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) 
 	provider.DelegationBonded = totalStakedAmount
 	withdrawalAmount := sdk.ZeroInt()
 	if deltaAmount.IsNegative() {
-		if totalStakedAmount.LT(provider.Collateral.Sub(provider.Withdrawal)) {
-			withdrawalAmount = provider.Collateral.Sub(provider.Withdrawal).Sub(totalStakedAmount)
+		if totalStakedAmount.LT(provider.Collateral.Sub(provider.Withdrawing)) {
+			withdrawalAmount = provider.Collateral.Sub(provider.Withdrawing).Sub(totalStakedAmount)
 		}
 		provider.Available = provider.Available.Sub(deltaAmount.Neg())
 	} else {
@@ -102,10 +102,10 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	withdrawalAmount := sdk.ZeroInt()
 	if deltaAmount.IsNegative() {
 		if provider.DelegationBonded.LT(
-			provider.Collateral.Sub(provider.Withdrawal),
+			provider.Collateral.Sub(provider.Withdrawing),
 		) {
 			withdrawalAmount = provider.Collateral.Sub(
-				provider.Withdrawal).Sub(provider.DelegationBonded)
+				provider.Withdrawing).Sub(provider.DelegationBonded)
 		}
 		provider.Available = provider.Available.Sub(deltaAmount.Neg())
 	} else {
