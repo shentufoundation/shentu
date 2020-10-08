@@ -31,7 +31,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 	if purchase.ExpirationTime.Before(votingEndTime) {
 		purchase.ExpirationTime = votingEndTime
 	}
-	k.SetPurchase(ctx, purchaseTxHash, purchase)
+	k.SetPurchase(ctx, purchase)
 
 	if !pool.Shield.IsAllGTE(loss) {
 		// TODO this should never happen?
@@ -205,7 +205,7 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, pu
 		return err
 	}
 	purchase.Shield = purchase.Shield.Add(loss...)
-	k.SetPurchase(ctx, purchaseTxHash, purchase)
+	k.SetPurchase(ctx, purchase)
 
 	return nil
 }

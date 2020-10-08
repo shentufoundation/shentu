@@ -90,6 +90,10 @@ type Purchase struct {
 	Purchaser          sdk.AccAddress `json:"purchaser" yaml:"purchaser"`
 }
 
+type PurchaseTxHash struct {
+	TxHash []byte `json:"tx_hash" yaml:"tx_hash"`
+}
+
 func NewPurchase(
 	txhash []byte, poolID uint64, shield sdk.Coins, startBlockHeight int64,
 	protectionEndTime, claimPeriodEndTime, expirationTime time.Time, description string, purchaser sdk.AccAddress,
