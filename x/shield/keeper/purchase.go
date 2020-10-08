@@ -27,7 +27,6 @@ func (k Keeper) GetPurchase(ctx sdk.Context, txhash []byte) (types.Purchase, err
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &purchase)
 		return purchase, nil
 	}
-
 	return types.Purchase{}, types.ErrPurchaseNotFound
 }
 

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
@@ -118,6 +119,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 	if !found {
 		provider = k.addProvider(ctx, from)
 	}
+	fmt.Printf(">> DEBUG DepositCollateral: pool %d, provider %s, available %s, collateral %s\n", id, from, provider.Available, amount)
 	provider.Collateral = provider.Collateral.Add(amount)
 	if amount.GT(provider.Available) {
 		return types.ErrInsufficientStaking
