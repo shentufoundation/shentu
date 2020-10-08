@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/tendermint/tendermint/crypto/tmhash"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
@@ -530,6 +532,8 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		description := simulation.RandStringOfLength(r, 100)
 
 		msg := types.NewMsgPurchaseShield(poolID, sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount)), description, purchaser.Address)
+		msg.Simulate = true
+		msg.SimTxHash = tmhash.Sum([]byte(description))
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(

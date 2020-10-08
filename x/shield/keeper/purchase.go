@@ -86,6 +86,19 @@ func (k Keeper) PurchaseShield(
 	return purchase, nil
 }
 
+func (k Keeper) SimulatePurchaseShield(
+	ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress, simTxHash []byte,
+) (types.Purchase, error) {
+	purchase, err := k.PurchaseShield(ctx, poolID, shield, description, purchaser)
+	if err != nil {
+		return types.Purchase{}, err
+	}
+	_ = k.DeletePurchase(ctx, purchase.TxHash)
+
+	k.SetPurchase(ctx, simTxHash, purchase)
+	return purchase, nil
+}
+
 // IterateAllPurchases iterates over the all the stored purchases and performs a callback function.
 func (k Keeper) IterateAllPurchases(ctx sdk.Context, callback func(purchase types.Purchase) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
