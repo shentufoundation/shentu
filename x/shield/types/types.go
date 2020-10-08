@@ -39,8 +39,8 @@ func NewPool(
 type Collateral struct {
 	PoolID            uint64             `json:"pool_id" yaml:"pool_id"`
 	Provider          sdk.AccAddress     `json:"provider" yaml:"provider"`
-	Amount            sdk.Int          `json:"amount" yaml:"amount"`
-	Withdrawing       sdk.Int          `json:"withdrawing" yaml:"withdrawing"`
+	Amount            sdk.Int            `json:"amount" yaml:"amount"`
+	Withdrawing       sdk.Int            `json:"withdrawing" yaml:"withdrawing"`
 	LockedCollaterals []LockedCollateral `json:"locked_collaterals" yaml:"locked_collaterals"`
 }
 
@@ -92,7 +92,7 @@ func NewProvider(addr sdk.AccAddress) Provider {
 		Collateral:       sdk.ZeroInt(),
 		TotalLocked:      sdk.ZeroInt(),
 		Available:        sdk.ZeroInt(),
-		Withdrawing:       sdk.ZeroInt(),
+		Withdrawing:      sdk.ZeroInt(),
 	}
 }
 
@@ -126,7 +126,7 @@ func NewPurchase(
 type Withdraw struct {
 	PoolID         uint64         `json:"pool_id" yaml:"pool_id"`
 	Address        sdk.AccAddress `json:"address" yaml:"address"`
-	Amount         sdk.Int      `json:"amount" yaml:"amount"`
+	Amount         sdk.Int        `json:"amount" yaml:"amount"`
 	CompletionTime time.Time      `json:"completion_time" yaml:"completion_time"`
 }
 
