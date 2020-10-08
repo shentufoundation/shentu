@@ -28,8 +28,6 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgWithdrawRewards(ctx, msg, k)
 		case types.MsgWithdrawForeignRewards:
 			return handleMsgWithdrawForeignRewards(ctx, msg, k)
-		case types.MsgClearPayouts:
-			return handleMsgClearPayouts(ctx, msg, k)
 		case types.MsgDepositCollateral:
 			return handleMsgDepositCollateral(ctx, msg, k)
 		case types.MsgWithdrawCollateral:
@@ -249,41 +247,15 @@ func handleMsgWithdrawForeignRewards(ctx sdk.Context, msg types.MsgWithdrawForei
 	if amount.Equal(sdk.ZeroDec()) {
 		return &sdk.Result{Events: ctx.EventManager().Events()}, types.ErrNoRewards
 	}
-	newPayout := types.NewPendingPayouts(amount, msg.ToAddr)
 	rewards.Foreign = rewards.Foreign.Sub(
 		sdk.DecCoins{sdk.NewDecCoinFromDec(msg.Denom, amount)})
 	k.SetRewards(ctx, msg.From, rewards)
-	k.AddPendingPayout(ctx, msg.Denom, newPayout)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWithdrawForeignRewards,
 			sdk.NewAttribute(types.AttributeKeyToAddr, msg.ToAddr),
 			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, newPayout.Amount.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
-		),
-	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
-}
-
-func handleMsgClearPayouts(ctx sdk.Context, msg types.MsgClearPayouts, k Keeper) (*sdk.Result, error) {
-	if !k.GetAdmin(ctx).Equals(msg.From) {
-		return &sdk.Result{Events: ctx.EventManager().Events()}, types.ErrNotShieldAdmin
-	}
-	earnings := k.GetPendingPayouts(ctx, msg.Denom)
-	if earnings == nil {
-		return &sdk.Result{Events: ctx.EventManager().Events()}, types.ErrNoRewards
-	}
-	k.SetPendingPayouts(ctx, msg.Denom, nil)
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeClearPayouts,
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
+			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
