@@ -1361,6 +1361,722 @@ paths:
         404:
           description: Failed to find result
 
+  /oracle/create-operator:
+    post:
+      tags:
+        - Oracle
+      summary: Create operator
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: createOperatorReq
+          description: Request type to create operator
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              address:
+                type: string
+                example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+              collateral:
+                $ref: "#/definitions/CertikCoins"
+              proposer:
+                type: string
+                example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
+              name:
+                type: string
+                example: "jack"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "oracle/CreateOperator"
+                        value:
+                          type: object
+                          properties:
+                            Address:
+                              type: string
+                              example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                            Collateral:
+                              $ref: "#/definitions/CertikCoins"
+                            Proposer:
+                              type: string
+                              example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
+                            Name:
+                              type: string
+                              example: "jack"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
+  /oracle/remove-operator:
+    post:
+      tags:
+        - Oracle
+      summary: Remove operator
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: removeOperatorReq
+          description: Request type to remove operator
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              address:
+                type: string
+                example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+              proposer:
+                type: string
+                example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "oracle/RemoveOperator"
+                        value:
+                          type: object
+                          properties:
+                            Address:
+                              type: string
+                              example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                            Proposer:
+                              type: string
+                              example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
+  /oracle/deposit-collateral:
+    post:
+      tags:
+        - Oracle
+      summary: Deposit collateral
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: depositCollateralReq
+          description: Request type to deposit collateral
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              address:
+                type: string
+                example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+              collateral_increment:
+                $ref: "#/definitions/CertikCoins"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "oracle/AddCollateral"
+                        value:
+                          type: object
+                          properties:
+                            Address:
+                              type: string
+                              example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                            CollateralIncrement:
+                              $ref: "#/definitions/CertikCoins"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
+  /oracle/withdraw-collateral:
+    post:
+      tags:
+        - Oracle
+      summary: Withdraw collateral
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: withdrawCollateralReq
+          description: Request type to withdraw collateral
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              address:
+                type: string
+                example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+              collateral_decrement:
+                $ref: "#/definitions/CertikCoins"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "oracle/ReduceCollateral"
+                        value:
+                          type: object
+                          properties:
+                            Address:
+                              type: string
+                              example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                            CollateralDecrement:
+                              $ref: "#/definitions/CertikCoins"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
+  /oracle/claim-reward:
+    post:
+      tags:
+        - Oracle
+      summary: Claim reward
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: claimRewardReq
+          description: Request type to claim reward
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              address:
+                type: string
+                example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "oracle/WithdrawReward"
+                        value:
+                          type: object
+                          properties:
+                            Address:
+                              type: string
+                              example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
+  /oracle/create-task:
+    post:
+      tags:
+        - Oracle
+      summary: Create task
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: createTaskReq
+          description: Request type to create a task
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              contract:
+                type: string
+                example: "0x1234567890abcdef"
+              function:
+                type: string
+                example: "funcA"
+              bounty:
+                type: string
+                example: "50000uctk"
+              description:
+                type: string
+                example: "This is a description"
+              wait:
+                type: string
+                example: "1000"
+              valid_duration:
+                type: string
+                example: "10000"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "oracle/CreateTask"
+                        value:
+                          type: object
+                          properties:
+                            Contract:
+                              type: string
+                              example: "0x1234567890abcdef"
+                            Function:
+                              type: string
+                              example: "funcA"
+                            Bounty:
+                              $ref: "#/definitions/CertikCoins"
+                            Description:
+                              type: string
+                              example: "This is a description"
+                            Creater:
+                              type: string
+                              example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                            Wait:
+                              type: integer
+                              example: 1000
+                            Now:
+                              type: string
+                              example: "2020-10-27T20:29:34.755279Z"
+                            ValidDuration:
+                              type: integer
+                              example: 10000
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
+  /oracle/respond-to-task:
+    post:
+      tags:
+        - Oracle
+      summary: Respond to task
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: respondToTaskReq
+          description: Request type to respond to task
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              contract:
+                type: string
+                example: "0x1234567890abcdef"
+              function:
+                type: string
+                example: "funcA"
+              score:
+                type: string
+                example: "255"
+              operator:
+                type: string
+                example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "oracle/TaskResponse"
+                        value:
+                          type: object
+                          properties:
+                            Contract:
+                              type: string
+                              example: "0x1234567890abcdef"
+                            Function:
+                              type: string
+                              example: "funcA"
+                            Score:
+                              type: integer
+                              example: 255
+                            Operator:
+                              type: string
+                              example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
+  /oracle/inquire-task:
+    post:
+      tags:
+        - Oracle
+      summary: Inquire task
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: inquiryTaskReq
+          description: Request type to inquire task
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              contract:
+                type: string
+                example: "0x1234567890abcdef"
+              function:
+                type: string
+                example: "funcA"
+              tx_hash:
+                type: string
+                example: "37E4F407FB0B3BD81E6B970D86E618A7F903B1BA40CE87B9B6C6DA4F13C1E47C"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "oracle/InquiryTask"
+                        value:
+                          type: object
+                          properties:
+                            Contract:
+                              type: string
+                              example: "0x1234567890abcdef"
+                            Function:
+                              type: string
+                              example: "funcA"
+                            TxHash:
+                              type: string
+                              example: "37E4F407FB0B3BD81E6B970D86E618A7F903B1BA40CE87B9B6C6DA4F13C1E47C"
+                            Inquirer:
+                              type: string
+                              example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
+  /oracle/delete-task:
+    post:
+      tags:
+        - Oracle
+      summary: Delete task
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: deleteTaskReq
+          description: Request type to delete task
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              contract:
+                type: string
+                example: "0x1234567890abcdef"
+              function:
+                type: string
+                example: "funcA"
+              force:
+                type: string
+                example: "true"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "oracle/DeleteTask"
+                        value:
+                          type: object
+                          properties:
+                            Contract:
+                              type: string
+                              example: "0x1234567890abcdef"
+                            Function:
+                              type: string
+                              example: "funcA"
+                            Force:
+                              type: boolean
+                              example: true
+                            Deleter:
+                              type: string
+                              example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
   /shield/deposit_collateral:
     post:
       tags:
