@@ -395,13 +395,12 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 		account := ak.GetAccount(ctx, simAccount.Address)
 		bondDenom := sk.BondDenom(ctx)
 
-		withdrawable := collateral.Amount.Sub(collateral.Withdrawal).AmountOf(bondDenom)
+		withdrawable := collateral.Amount.Sub(collateral.Withdrawing).AmountOf(bondDenom)
 		withdrawalAmount, err := simulation.RandPositiveInt(r, withdrawable)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 		withdrawal := sdk.NewCoins(sdk.NewCoin(bondDenom, withdrawalAmount))
-
 		msg := types.NewMsgWithdrawCollateral(simAccount.Address, collateral.PoolID, withdrawal)
 
 		fees := sdk.Coins{}

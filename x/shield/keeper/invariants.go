@@ -16,6 +16,8 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 		PurchasedCollateralsInvariants(k))
 	ir.RegisterRoute(types.ModuleName, "module-coins",
 		ModuleCoinsInvariants(k))
+	ir.RegisterRoute(types.ModuleName, "collateral-pool",
+		CollateralPoolInvariants(k))
 }
 
 // AllInvariants runs all invariants of the shield module.
@@ -75,6 +77,7 @@ func PurchasedCollateralsInvariants(k Keeper) sdk.Invariant {
 // ModuleCoinsInvariants checks the total sum of coins equals to module account's balance.
 func ModuleCoinsInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
+		bondDenom := k.sk.BondDenom(ctx)
 		unbondings := k.sk.GetAllUnbondingDelegations(ctx, k.supplyKeeper.GetModuleAddress(types.ModuleName))
 		actualModuleCoinsAmt := sdk.NewInt(0)
 		for _, ubd := range unbondings {
@@ -84,21 +87,58 @@ func ModuleCoinsInvariants(k Keeper) sdk.Invariant {
 		}
 		providers := k.GetAllProviders(ctx)
 		rewardsDec := sdk.NewDec(0)
+		providersWithdrawSum := sdk.NewInt(0)
 		for _, provider := range providers {
-			rewardsDec = rewardsDec.Add(provider.Rewards.Native.AmountOf(k.sk.BondDenom(ctx)))
+			rewardsDec = rewardsDec.Add(provider.Rewards.Native.AmountOf(bondDenom))
+			providersWithdrawSum = providersWithdrawSum.Add(provider.Withdraw)
 		}
 		pools := k.GetAllPools(ctx)
 		for _, pool := range pools {
-			rewardsDec = rewardsDec.Add(pool.Premium.Native.AmountOf(k.sk.BondDenom(ctx)))
+			rewardsDec = rewardsDec.Add(pool.Premium.Native.AmountOf(bondDenom))
 		}
+
+		withdrawSum := sdk.Coins{}
+		withdraws := k.GetAllWithdraws(ctx)
+		for _, withdraw := range withdraws {
+			withdrawSum = withdrawSum.Add(withdraw.Amount...)
+		}
+		actualWithdrawAmt := withdrawSum.AmountOf(bondDenom)
 
 		actualModuleCoinsAmt = actualModuleCoinsAmt.Add(rewardsDec.TruncateInt())
 
-		expectedModuleCoinsAmt := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(k.sk.BondDenom(ctx))
+		expectedModuleCoinsAmt := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(bondDenom)
 
-		broken := !expectedModuleCoinsAmt.Equal(actualModuleCoinsAmt)
+		broken := !expectedModuleCoinsAmt.Equal(actualModuleCoinsAmt) || !providersWithdrawSum.Equal(actualWithdrawAmt)
 		return sdk.FormatInvariant(types.ModuleName, "module total sum of coins and module account coins",
 			fmt.Sprintf("\tSum of premiums and unbondings: %v\n"+
-				"\tmodule coins amount: %v\n", actualModuleCoinsAmt, expectedModuleCoinsAmt)), broken
+				"\tmodule coins amount: %v\n"+
+				"\ttotal providers' withdraw sum: %v\n"+
+				"\ttotal withdraw queue sum: %v\n",
+				actualModuleCoinsAmt, expectedModuleCoinsAmt, providersWithdrawSum, actualWithdrawAmt)), broken
+	}
+}
+
+// CollateralPoolInvariants checks there is no dangling collateral not assigned to any pool.
+func CollateralPoolInvariants(k Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		collaterals := k.GetAllCollaterals(ctx)
+		broken := false
+		poolID := uint64(0)
+		currentCollateral := types.Collateral{}
+		for _, collateral := range collaterals {
+			_, err := k.GetPool(ctx, collateral.PoolID)
+			if err != nil {
+				broken = true
+				poolID = collateral.PoolID
+				currentCollateral = collateral
+				break
+			}
+		}
+		return sdk.FormatInvariant(types.ModuleName, "collaterals and pools",
+			fmt.Sprintf("\tpoolID: %v\n"+
+				"\tcollateral provider: %v\n"+
+				"\tcollateral amount: %v\n"+
+				"\tcollateral withdraws: %v\n",
+				poolID, currentCollateral.Provider, currentCollateral.Amount, currentCollateral.Withdrawing)), broken
 	}
 }

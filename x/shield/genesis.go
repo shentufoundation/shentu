@@ -31,6 +31,9 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 		k.SetProvider(ctx, provider.Address, provider)
 		k.UpdateDelegationAmount(ctx, provider.Address)
 	}
+	for _, withdraw := range data.Withdraws {
+		k.InsertWithdrawalQueue(ctx, withdraw)
+	}
 
 	return []abci.ValidatorUpdate{}
 }
@@ -45,6 +48,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	collaterals := k.GetAllCollaterals(ctx)
 	providers := k.GetAllProviders(ctx)
 	purchases := k.GetAllPurchases(ctx)
+	withdraws := k.GetAllWithdraws(ctx)
 
-	return types.NewGenesisState(shieldAdmin, nextPoolID, poolParams, claimProposalParams, pools, collaterals, providers, purchases)
+	return types.NewGenesisState(shieldAdmin, nextPoolID, poolParams, claimProposalParams, pools, collaterals, providers, purchases, withdraws)
 }

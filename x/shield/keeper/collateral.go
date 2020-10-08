@@ -91,9 +91,9 @@ func (k Keeper) GetOnesCollaterals(ctx sdk.Context, address sdk.AccAddress) (col
 }
 
 // GetPoolCertiKCollateral retrieves CertiK's provided collateral from a pool.
-func (k Keeper) GetPoolCertiKCollateral(ctx sdk.Context, pool types.Pool) (collateral types.Collateral) {
+func (k Keeper) GetPoolCertiKCollateral(ctx sdk.Context, pool types.Pool) (collateral types.Collateral, found bool) {
 	admin := k.GetAdmin(ctx)
-	collateral, _ = k.GetCollateral(ctx, pool, admin)
+	collateral, found = k.GetCollateral(ctx, pool, admin)
 	return
 }
 
@@ -158,7 +158,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	if !found {
 		return types.ErrNoCollateralFound
 	}
-	withdrawable := collateral.Amount.Sub(collateral.Withdrawal)
+	withdrawable := collateral.Amount.Sub(collateral.Withdrawing)
 	if amount.IsAnyGT(withdrawable) {
 		return types.ErrOverWithdrawal
 	}
@@ -171,17 +171,17 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	// insert into withdrawal queue
 	poolParams := k.GetPoolParams(ctx)
 	completionTime := ctx.BlockHeader().Time.Add(poolParams.WithdrawalPeriod)
-	withdrawal := types.NewWithdrawal(id, from, amount)
-	k.InsertWithdrawalQueue(ctx, withdrawal, completionTime)
+	withdrawal := types.NewWithdrawal(id, from, amount, completionTime)
+	k.InsertWithdrawalQueue(ctx, withdrawal)
 
-	collateral.Withdrawal = collateral.Withdrawal.Add(amount...)
+	collateral.Withdrawing = collateral.Withdrawing.Add(amount...)
 	k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 
 	provider, found := k.GetProvider(ctx, from)
 	if !found {
 		return types.ErrProviderNotFound
 	}
-	provider.Withdrawal = provider.Withdrawal.Add(amount.AmountOf(bondDenom))
+	provider.Withdraw = provider.Withdraw.Add(amount.AmountOf(bondDenom))
 	k.SetProvider(ctx, provider.Address, provider)
 
 	return nil

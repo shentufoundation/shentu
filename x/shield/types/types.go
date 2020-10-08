@@ -40,7 +40,7 @@ type Collateral struct {
 	PoolID            uint64             `json:"pool_id" yaml:"pool_id"`
 	Provider          sdk.AccAddress     `json:"provider" yaml:"provider"`
 	Amount            sdk.Coins          `json:"amount" yaml:"amount"`
-	Withdrawal        sdk.Coins          `json:"withdrawal" yaml:"withdrawal"`
+	Withdrawing       sdk.Coins          `json:"withdrawing" yaml:"withdrawing"`
 	LockedCollaterals []LockedCollateral `json:"locked_collaterals" yaml:"locked_collaterals"`
 }
 
@@ -79,8 +79,8 @@ type Provider struct {
 	TotalLocked sdk.Coins `json:"total_locked" yaml:"total_locked"`
 	// amount of coins staked but not in any pool
 	Available sdk.Int `json:"available" yaml:"available"`
-	// amount of collateral that is in withdrawable queue
-	Withdrawal sdk.Int `json:"withrawal" yaml:"withdrawal"`
+	// amount of collateral that is in withdraw queue
+	Withdraw sdk.Int `json:"withrawal" yaml:"withdrawal"`
 	// rewards to be claimed
 	Rewards MixedDecCoins `json:"rewards" yaml:"rewards"`
 }
@@ -117,17 +117,21 @@ func NewPurchase(
 	}
 }
 
-// Withdrawal stores an ongoing withdrawal of pool collateral.
-type Withdrawal struct {
-	PoolID  uint64         `json:"pool_id" yaml:"pool_id"`
-	Address sdk.AccAddress `json:"address" yaml:"address"`
-	Amount  sdk.Coins      `json:"amount" yaml:"amount"`
+// Withdraw stores an ongoing withdrawal of pool collateral.
+type Withdraw struct {
+	PoolID         uint64         `json:"pool_id" yaml:"pool_id"`
+	Address        sdk.AccAddress `json:"address" yaml:"address"`
+	Amount         sdk.Coins      `json:"amount" yaml:"amount"`
+	CompletionTime time.Time      `json:"completion_time" yaml:"completion_time"`
 }
 
-func NewWithdrawal(poolID uint64, addr sdk.AccAddress, amount sdk.Coins) Withdrawal {
-	return Withdrawal{
-		PoolID:  poolID,
-		Address: addr,
-		Amount:  amount,
+func NewWithdrawal(poolID uint64, addr sdk.AccAddress, amount sdk.Coins, completionTime time.Time) Withdraw {
+	return Withdraw{
+		PoolID:         poolID,
+		Address:        addr,
+		Amount:         amount,
+		CompletionTime: completionTime,
 	}
 }
+
+type Withdraws []Withdraw
