@@ -91,9 +91,9 @@ func (k Keeper) GetOnesCollaterals(ctx sdk.Context, address sdk.AccAddress) (col
 }
 
 // GetPoolCertiKCollateral retrieves CertiK's provided collateral from a pool.
-func (k Keeper) GetPoolCertiKCollateral(ctx sdk.Context, pool types.Pool) (collateral types.Collateral) {
+func (k Keeper) GetPoolCertiKCollateral(ctx sdk.Context, pool types.Pool) (collateral types.Collateral, found bool) {
 	admin := k.GetAdmin(ctx)
-	collateral, _ = k.GetCollateral(ctx, pool, admin)
+	collateral, found = k.GetCollateral(ctx, pool, admin)
 	return
 }
 

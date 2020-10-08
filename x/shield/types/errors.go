@@ -37,4 +37,5 @@ var (
 	ErrInvalidBeneficiary         = sdkerrors.Register(ModuleName, 130, "invalid beneficiary")
 	ErrNotPayoutTime              = sdkerrors.Register(ModuleName, 131, "has not reached payout time yet")
 	ErrOverWithdrawal             = sdkerrors.Register(ModuleName, 132, "too much withdrawal initiated")
+	ErrAdminWithdraw              = sdkerrors.Register(ModuleName, 133, "admin cannot manually withdraw collateral")
 )

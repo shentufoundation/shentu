@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -52,7 +54,7 @@ func (k Keeper) CreatePool(
 	var endTime, endBlockHeight int64
 	startBlockHeight := ctx.BlockHeight()
 	if timeOfCoverage != 0 {
-		endTime = ctx.BlockTime().Unix() + timeOfCoverage
+		endTime = ctx.BlockHeader().Time.Unix() + timeOfCoverage
 	} else if blocksOfCoverage != 0 {
 		endBlockHeight = startBlockHeight + blocksOfCoverage
 	}
@@ -99,7 +101,6 @@ func (k Keeper) UpdatePool(
 	if err != nil {
 		return types.Pool{}, err
 	}
-
 	newEndTime := additionalTime + pool.EndTime
 	newEndBlockHeight := additionalBlocks + pool.EndBlockHeight
 	if !k.ValidatePoolDuration(ctx, additionalTime, additionalBlocks) {
@@ -113,7 +114,10 @@ func (k Keeper) UpdatePool(
 	}
 
 	pool.TotalCollateral = pool.TotalCollateral.Add(shield...)
-	poolCertiKCollateral := k.GetPoolCertiKCollateral(ctx, pool)
+	poolCertiKCollateral, found := k.GetPoolCertiKCollateral(ctx, pool)
+	if !found {
+		poolCertiKCollateral = types.NewCollateral(pool, admin, sdk.Coins{})
+	}
 	poolCertiKCollateral.Amount = poolCertiKCollateral.Amount.Add(shield...)
 
 	pool.Shield = pool.Shield.Add(shield...)
@@ -185,6 +189,10 @@ func (k Keeper) PoolEnded(ctx sdk.Context, pool types.Pool) bool {
 // ClosePool closes the pool
 func (k Keeper) ClosePool(ctx sdk.Context, pool types.Pool) {
 	// TODO: make sure nothing else needs to be done
+	fmt.Println("CLOSING POOL ", pool)
+	fmt.Println("CLOSING POOL ", pool)
+	fmt.Println("CLOSING POOL ", pool)
+	fmt.Println("CLOSING POOL ", pool)
 	k.FreeCollaterals(ctx, pool)
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetPoolKey(pool.PoolID))
