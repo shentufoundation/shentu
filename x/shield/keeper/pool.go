@@ -32,7 +32,7 @@ func (k Keeper) CreatePool(
 		return types.Pool{}, types.ErrNotShieldAdmin
 	}
 
-	if _, err := k.GetPoolBySponsor(ctx, sponsor); err == nil {
+	if _, found := k.GetPoolBySponsor(ctx, sponsor); found {
 		return types.Pool{}, types.ErrSponsorAlreadyExists
 	}
 
