@@ -870,8 +870,8 @@ paths:
                     type: object
                     properties:
                       request_content_type:
-                        type: integer
-                        example: 1
+                        type: string
+                        example: "1"
                       request_content_type_name:
                         type: string
                         example: "SourceCodeHash"
@@ -937,8 +937,8 @@ paths:
                           type: object
                           properties:
                             request_content_type:
-                              type: integer
-                              example: 1
+                              type: string
+                              example: "1"
                             request_content_type_name:
                               type: string
                               example: "SourceCodeHash"
@@ -1801,14 +1801,14 @@ paths:
                               type: string
                               example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
                             Wait:
-                              type: integer
-                              example: 1000
+                              type: string
+                              example: "1000"
                             Now:
                               type: string
                               example: "2020-10-27T20:29:34.755279Z"
                             ValidDuration:
-                              type: integer
-                              example: 10000
+                              type: string
+                              example: "10000"
                   fee:
                     type: object
                     properties:
@@ -1889,8 +1889,8 @@ paths:
                               type: string
                               example: "funcA"
                             Score:
-                              type: integer
-                              example: 255
+                              type: string
+                              example: "255"
                             Operator:
                               type: string
                               example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
@@ -2076,6 +2076,220 @@ paths:
                     example: "This is a memo!"
         400:
           description: Failed to parse request
+
+  /oracle/operator/{address}:
+    get:
+      summary: Query operator by address
+      tags:
+        - Oracle
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: address
+          description: Operator address
+          required: true
+          type: string
+          x-example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: object
+                properties:
+                  address:
+                    type: string
+                    example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
+                  proposer:
+                    type: string
+                    example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                  collateral:
+                    $ref: "#/definitions/CertikCoins"
+                  accumulated_rewards:
+                    $ref: "#/definitions/CertikCoins"
+                  name:
+                    type: string
+                    example: "jack"
+        404:
+          description: Failed to find result
+
+  /oracle/operators:
+    get:
+      summary: Query all operators
+      tags:
+        - Oracle
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    address:
+                      type: string
+                      example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
+                    proposer:
+                      type: string
+                      example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                    collateral:
+                      $ref: "#/definitions/CertikCoins"
+                    accumulated_rewards:
+                      $ref: "#/definitions/CertikCoins"
+                    name:
+                      type: string
+                      example: "jack"
+        404:
+          description: Failed to find result
+
+  /oracle/withdraws:
+    get:
+      summary: Query all withdrawals
+      tags:
+        - Oracle
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    address:
+                      type: string
+                      example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
+                    amount:
+                      $ref: "#/definitions/CertikCoins"
+                    due_block:
+                      type: string
+                      example: "78"
+        404:
+          description: Failed to find result
+
+  /oracle/task:
+    get:
+      summary: Query task
+      tags:
+        - Oracle
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: object
+                properties:
+                  contract:
+                    type: string
+                    example: "0x1234567890abcdef"
+                  function:
+                    type: string
+                    example: "funcA"
+                  begin_block:
+                    type: string
+                    example: "78"
+                  bounty:
+                    $ref: "#/definitions/CertikCoins"
+                  description:
+                    type: string
+                    example: "This is a description"
+                  expiration:
+                    type: string
+                    example: "2020-10-27T20:29:34.755279Z"
+                  creater:
+                    type: string
+                    example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                  responses:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        operator:
+                          type: string
+                          example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                        score:
+                          type: string
+                          example: "255"
+                        weight:
+                          type: string
+                          example: "100"
+                        reward:
+                          $ref: "#/definitions/CertikCoins"
+                  result:
+                    type: string
+                    example: "255"
+                  closing_block:
+                    type: string
+                    example: "85"
+                  waiting_blocks:
+                    type: string
+                    example: "7"
+                  status:
+                    type: string
+                    example: "1"
+        404:
+          description: Failed to find result
+
+  /oracle/response:
+    get:
+      summary: Query response
+      tags:
+        - Oracle
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: object
+                properties:
+                  operator:
+                    type: string
+                    example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                  score:
+                    type: string
+                    example: "255"
+                  weight:
+                    type: string
+                    example: "100"
+                  reward:
+                    $ref: "#/definitions/CertikCoins"
+        404:
+          description: Failed to find result
 
   /shield/deposit_collateral:
     post:
@@ -2385,8 +2599,8 @@ paths:
               base_req:
                 $ref: "#/definitions/CertikBaseReq"
               proposal_id:
-                type: integer
-                example: 1
+                type: string
+                example: "1"
       responses:
         200:
           description: Successfully parsed request
@@ -2414,8 +2628,8 @@ paths:
                               type: string
                               example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
                             proposal_id:
-                              type: integer
-                              example: 1
+                              type: string
+                              example: "1"
                   fee:
                     type: object
                     properties:
