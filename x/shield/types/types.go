@@ -48,20 +48,6 @@ func NewCollateral(pool Pool, provider sdk.AccAddress, amount sdk.Int) Collatera
 	}
 }
 
-type PendingPayout struct {
-	Amount sdk.Dec
-	ToAddr string
-}
-
-type PendingPayouts []PendingPayout
-
-func NewPendingPayouts(amount sdk.Dec, to string) PendingPayout {
-	return PendingPayout{
-		Amount: amount,
-		ToAddr: to,
-	}
-}
-
 // Provider tracks A or C's total delegation, total collateral,
 // and rewards.
 type Provider struct {

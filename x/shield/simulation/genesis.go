@@ -7,8 +7,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
+	"github.com/certikfoundation/shentu/x/staking"
 )
 
 const letters = "abcdefghijklmnopqrstuvwxyz"
@@ -26,6 +28,19 @@ func RandomizedGenState(simState *module.SimulationState) {
 	gs.PoolParams = GenPoolParams(r)
 	gs.ClaimProposalParams = GenClaimProposalParams(r)
 
+	stakingGenStatebz := simState.GenState[staking.ModuleName]
+	var stakingGenState stakingTypes.GenesisState
+	stakingTypes.ModuleCdc.MustUnmarshalJSON(stakingGenStatebz, &stakingGenState)
+	ubdTime := stakingGenState.Params.UnbondingTime
+	gs.PoolParams.WithdrawalPeriod = ubdTime
+	gs.ClaimProposalParams.ClaimPeriod = gs.PoolParams.WithdrawalPeriod
+	if gs.PoolParams.ProtectionPeriod >= gs.ClaimProposalParams.ClaimPeriod {
+		gs.PoolParams.ProtectionPeriod = gs.ClaimProposalParams.ClaimPeriod - 1
+	}
+	if gs.PoolParams.MinPoolLife < gs.PoolParams.WithdrawalPeriod {
+		gs.PoolParams.MinPoolLife = gs.PoolParams.WithdrawalPeriod + 1
+	}
+
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(gs)
 }
 
@@ -35,9 +50,6 @@ func GenPoolParams(r *rand.Rand) types.PoolParams {
 	withdrawalPeriod := time.Duration(sim.RandIntBetween(r, 60*60*24, 60*60*24*3)) * time.Second
 	minPoolLife := time.Duration(sim.RandIntBetween(r, 60*60*24, 60*60*24*5)) * time.Second
 	shieldFeesRate := sdk.NewDecWithPrec(int64(sim.RandIntBetween(r, 0, 50)), 3)
-	if minPoolLife < withdrawalPeriod {
-		minPoolLife = withdrawalPeriod + 1
-	}
 
 	return types.NewPoolParams(protectionPeriod, minPoolLife, withdrawalPeriod, shieldFeesRate)
 }

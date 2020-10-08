@@ -38,7 +38,6 @@ const (
 var (
 	DefaultWeightMsgCreatePool             = 10
 	DefaultWeightMsgUpdatePool             = 10
-	DefaultWeightMsgClearPayouts           = 5
 	DefaultWeightMsgDepositCollateral      = 20
 	DefaultWeightMsgWithdrawCollateral     = 20
 	DefaultWeightMsgWithdrawRewards        = 10
@@ -51,7 +50,7 @@ var (
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
-func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keeper.Keeper, 
+func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keeper.Keeper,
 	ak types.AccountKeeper, sk types.StakingKeeper) simulation.WeightedOperations {
 	var weightMsgCreatePool int
 	appParams.GetOrGenerate(cdc, OpWeightMsgCreatePool, &weightMsgCreatePool, nil,
@@ -62,11 +61,6 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 	appParams.GetOrGenerate(cdc, OpWeightMsgUpdatePool, &weightMsgUpdatePool, nil,
 		func(_ *rand.Rand) {
 			weightMsgUpdatePool = DefaultWeightMsgUpdatePool
-		})
-	var weightMsgClearPayouts int
-	appParams.GetOrGenerate(cdc, OpWeightMsgClearPayouts, &weightMsgClearPayouts, nil,
-		func(_ *rand.Rand) {
-			weightMsgClearPayouts = DefaultWeightMsgClearPayouts
 		})
 	var weightMsgDepositCollateral int
 	appParams.GetOrGenerate(cdc, OpWeightMsgDepositCollateral, &weightMsgDepositCollateral, nil,
@@ -97,7 +91,6 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(weightMsgCreatePool, SimulateMsgCreatePool(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgUpdatePool, SimulateMsgUpdatePool(k, ak, sk)),
-		simulation.NewWeightedOperation(weightMsgClearPayouts, SimulateMsgClearPayouts(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgDepositCollateral, SimulateMsgDepositCollateral(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgWithdrawCollateral, SimulateMsgWithdrawCollateral(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgWithdrawRewards, SimulateMsgWithdrawRewards(k, ak, sk)),
@@ -159,8 +152,11 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
 		// sponsor
-		sponsor := strings.ToLower(simulation.RandStringOfLength(r, 3))
-
+		sponsor := strings.ToLower(simulation.RandStringOfLength(r, 10))
+		_, found = k.GetPoolBySponsor(ctx, sponsor)
+		if found {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 		// deposit
 		nativeAmount := account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom)
 		if !nativeAmount.IsPositive() {
@@ -268,51 +264,6 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		)
 
 		_, _, err = app.Deliver(tx)
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
-	}
-}
-
-// SimulateMsgClearPayouts generates a MsgClearPayouts object with all of its fields randomized.
-func SimulateMsgClearPayouts(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
-	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		adminAddr := k.GetAdmin(ctx)
-		var simAccount simulation.Account
-		for _, simAcc := range accs {
-			if simAcc.Address.Equals(adminAddr) {
-				simAccount = simAcc
-				break
-			}
-		}
-		account := ak.GetAccount(ctx, simAccount.Address)
-
-		// poolID and sponsor
-		_, sponsor, found := keeper.RandomPoolInfo(r, k, ctx)
-		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
-		}
-
-		earnings := k.GetPendingPayouts(ctx, sponsor)
-		if earnings == nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
-		}
-		msg := types.NewMsgClearPayouts(adminAddr, sponsor)
-
-		fees := sdk.Coins{}
-		tx := helpers.GenTx(
-			[]sdk.Msg{msg},
-			fees,
-			helpers.DefaultGenTxGas,
-			chainID,
-			[]uint64{account.GetAccountNumber()},
-			[]uint64{account.GetSequence()},
-			simAccount.PrivKey,
-		)
-
-		_, _, err := app.Deliver(tx)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
