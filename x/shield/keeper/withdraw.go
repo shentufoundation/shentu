@@ -64,7 +64,10 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 		pool.TotalCollateral = pool.TotalCollateral.Sub(withdrawal.Amount)
 		collateral, found := k.GetCollateral(ctx, pool, withdrawal.Address)
 		if !found {
-			panic("withdrawal collateral not found!")
+			panic("withdrawal collateral not found")
+		}
+		if collateral.Amount.LT(withdrawal.Amount) {
+			panic("not enough collateral")
 		}
 		collateral.Amount = collateral.Amount.Sub(withdrawal.Amount)
 		collateral.Withdrawing = collateral.Withdrawing.Sub(withdrawal.Amount)

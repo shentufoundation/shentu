@@ -2,7 +2,6 @@ package simulation
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math/rand"
 	"strings"
 
@@ -104,7 +103,7 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		fmt.Printf(">> DEBUG SimulateMsgCreatePool\n")
+		// fmt.Printf(">> DEBUG SimulateMsgCreatePool\n")
 		pools := k.GetAllPools(ctx)
 		// restrict number of pools to reduce gas consumptions for unbondings and redelegations
 		if len(pools) > 20 {
@@ -204,7 +203,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		fmt.Printf(">> DEBUG SimulateMsgUpdatePool\n")
+		// fmt.Printf(">> DEBUG SimulateMsgUpdatePool\n")
 		adminAddr := k.GetAdmin(ctx)
 		var simAccount simulation.Account
 		for _, simAcc := range accs {
@@ -278,7 +277,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		fmt.Printf(">> DEBUG SimulateMsgDepositCollateral\n")
+		// fmt.Printf(">> DEBUG SimulateMsgDepositCollateral\n")
 		delAddr, delAmount, found := keeper.RandomDelegation(r, k, ctx)
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
