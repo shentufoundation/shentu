@@ -193,7 +193,7 @@ func handleMsgResumePool(ctx sdk.Context, msg types.MsgResumePool, k Keeper) (*s
 
 func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Keeper) (*sdk.Result, error) {
 	if msg.Simulate {
-		_, err := k.SimulatePurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
+		_, err := k.SimulatePurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From, msg.SimTxHash)
 		if err != nil {
 			return nil, err
 		}

@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"crypto/rand"
-
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -89,7 +87,7 @@ func (k Keeper) PurchaseShield(
 }
 
 func (k Keeper) SimulatePurchaseShield(
-	ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress,
+	ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress, simTxHash []byte,
 ) (types.Purchase, error) {
 	purchase, err := k.PurchaseShield(ctx, poolID, shield, description, purchaser)
 	if err != nil {
@@ -97,11 +95,6 @@ func (k Keeper) SimulatePurchaseShield(
 	}
 	_ = k.DeletePurchase(ctx, purchase.TxHash)
 
-	simTxHash := make([]byte, 64)
-	if _, err := rand.Read(simTxHash); err != nil {
-		return types.Purchase{}, err
-	}
-	purchase.TxHash = simTxHash
 	k.SetPurchase(ctx, simTxHash, purchase)
 	return purchase, nil
 }
