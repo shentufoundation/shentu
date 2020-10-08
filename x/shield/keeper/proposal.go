@@ -11,7 +11,7 @@ import (
 )
 
 // ClaimLock locks collaterals after a claim proposal is submitted.
-func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, 
+func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 	loss sdk.Coins, purchaseTxHash []byte, lockPeriod time.Duration) error {
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
@@ -27,7 +27,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 		return types.ErrNotEnoughShield
 	}
 	purchase.Shield = purchase.Shield.Sub(loss)
-	k.SetPurchase(ctx, purchaseTxHash, purchase)
+	k.SetPurchase(ctx, purchase)
 
 	if !pool.Shield.IsAllGTE(loss) {
 		// TODO this should never happen?
@@ -201,7 +201,7 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, pu
 		return err
 	}
 	purchase.Shield = purchase.Shield.Add(loss...)
-	k.SetPurchase(ctx, purchaseTxHash, purchase)
+	k.SetPurchase(ctx, purchase)
 
 	return nil
 }
