@@ -152,8 +152,11 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
 		// sponsor
-		sponsor := strings.ToLower(simulation.RandStringOfLength(r, 3))
-
+		sponsor := strings.ToLower(simulation.RandStringOfLength(r, 10))
+		_, found = k.GetPoolBySponsor(ctx, sponsor)
+		if found {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 		// deposit
 		nativeAmount := account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom)
 		if !nativeAmount.IsPositive() {
