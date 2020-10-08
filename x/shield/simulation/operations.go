@@ -524,6 +524,9 @@ func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper)
 		if !found {
 			return nil
 		}
+		if purchase.ClaimPeriodEndTime.Before(ctx.BlockTime()) {
+			return nil
+		}
 		lossAmount, err := simulation.RandPositiveInt(r, purchase.Shield.AmountOf(bondDenom))
 		if err != nil {
 			return nil

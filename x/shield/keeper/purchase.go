@@ -7,7 +7,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -96,7 +95,8 @@ func (k Keeper) PurchaseShield(
 	txhash := tmhash.Sum(ctx.TxBytes())
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
 	claimPeriodEndTime := ctx.BlockTime().Add(claimParams.ClaimPeriod)
-	purchase := types.NewPurchase(txhash, poolID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, claimPeriodEndTime, description, purchaser)
+	purchase := types.NewPurchase(txhash, poolID, shield, ctx.BlockHeight(), protectionEndTime,
+		claimPeriodEndTime, claimPeriodEndTime, description, purchaser)
 	k.SetPurchase(ctx, purchase)
 	k.InsertPurchaseQueue(ctx, purchase)
 
