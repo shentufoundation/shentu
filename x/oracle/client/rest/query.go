@@ -3,15 +3,12 @@ package rest
 import (
 	"fmt"
 	"net/http"
-	"strconv"
-	"time"
 
 	"github.com/gorilla/mux"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	clientrest "github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
@@ -78,60 +75,6 @@ func withdrawsHandler(cliCtx context.CLIContext, storeName string) http.HandlerF
 
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
-	}
-}
-
-func createTaskHandler(cliCtx context.CLIContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req createTaskReq
-
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
-			return
-		}
-
-		baseReq := req.BaseReq.Sanitize()
-		if !baseReq.ValidateBasic(w) {
-			return
-		}
-
-		bounty, err := sdk.ParseCoins(req.Bounty)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		if !bounty[0].Amount.IsPositive() {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "bounty amount is required to be positive")
-			return
-		}
-
-		creator, err := sdk.AccAddressFromBech32(req.BaseReq.From)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		wait, err := strconv.ParseInt(req.Wait, 10, 64)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		hours, err := strconv.ParseInt(req.ValidDuration, 10, 64)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		validDuration := time.Duration(hours) * time.Hour
-
-		msg := types.NewMsgCreateTask(req.Contract, req.Function, bounty, req.Description, creator, wait, time.Now(), validDuration)
-		if err = msg.ValidateBasic(); err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
 }
 
