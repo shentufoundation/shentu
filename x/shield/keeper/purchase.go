@@ -1,6 +1,10 @@
 package keeper
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
+
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,6 +17,8 @@ func (k Keeper) SetPurchase(ctx sdk.Context, txhash []byte, purchase types.Purch
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchase)
 	store.Set(types.GetPurchaseTxHashKey(txhash), bz)
+	txhashStr := hex.EncodeToString(purchase.TxHash)
+	fmt.Printf(">> debug SetPurchase: pool %d, txhash %s, shield %s\n", purchase.PoolID, txhashStr, purchase.Shield)
 }
 
 // GetPurchase gets a purchase from store by txhash.
@@ -83,6 +89,23 @@ func (k Keeper) PurchaseShield(
 	purchase := types.NewPurchase(txhash, poolID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, description, purchaser)
 	k.SetPurchase(ctx, txhash, purchase)
 
+	return purchase, nil
+}
+
+func (k Keeper) SimulatePurchaseShield(
+	ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress,
+) (types.Purchase, error) {
+	purchase, err := k.PurchaseShield(ctx, poolID, shield, description, purchaser)
+	if err != nil {
+		return types.Purchase{}, err
+	}
+
+	simTxHash := make([]byte, 64)
+	if _, err := rand.Read(simTxHash); err != nil {
+		return types.Purchase{}, err
+	}
+	purchase.TxHash = simTxHash
+	k.SetPurchase(ctx, simTxHash, purchase)
 	return purchase, nil
 }
 

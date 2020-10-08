@@ -532,6 +532,7 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		description := simulation.RandStringOfLength(r, 100)
 
 		msg := types.NewMsgPurchaseShield(poolID, sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount)), description, purchaser.Address)
+		msg.Simulate = true
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
