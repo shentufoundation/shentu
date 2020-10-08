@@ -1,9 +1,8 @@
 package keeper
 
 import (
-	"github.com/tendermint/tendermint/crypto/tmhash"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -13,6 +12,8 @@ func (k Keeper) SetPurchase(ctx sdk.Context, txhash []byte, purchase types.Purch
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchase)
 	store.Set(types.GetPurchaseTxHashKey(txhash), bz)
+
+
 }
 
 // GetPurchase gets a purchase from store by txhash.
@@ -24,6 +25,7 @@ func (k Keeper) GetPurchase(ctx sdk.Context, txhash []byte) (types.Purchase, err
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &purchase)
 		return purchase, nil
 	}
+
 	return types.Purchase{}, types.ErrPurchaseNotFound
 }
 
@@ -94,6 +96,7 @@ func (k Keeper) SimulatePurchaseShield(
 	}
 	_ = k.DeletePurchase(ctx, purchase.TxHash)
 
+	purchase.TxHash = simTxHash
 	k.SetPurchase(ctx, simTxHash, purchase)
 	return purchase, nil
 }
