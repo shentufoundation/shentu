@@ -13,7 +13,7 @@ type Pool struct {
 	Sponsor          string        `json:"sponsor" yaml:"sponsor"`
 	Premium          MixedDecCoins `json:"premium" yaml:"premium"`
 	StartBlockHeight int64         `json:"start_block_height" yaml:"start_block_height"`
-	TotalCollateral  sdk.Coins     `json:"total_collateral" yaml:"total_collateral"`
+	TotalCollateral  sdk.Int       `json:"total_collateral" yaml:"total_collateral"`
 	Available        sdk.Int       `json:"available" yaml:"available"`
 	Shield           sdk.Coins     `json:"shield" yaml:"shield"`
 	EndTime          int64         `json:"end_time" yaml:"end_time"`
@@ -21,14 +21,14 @@ type Pool struct {
 }
 
 func NewPool(
-	shield sdk.Coins, deposit MixedDecCoins, sponsor string,
+	shield sdk.Coins, totalCollateral sdk.Int, deposit MixedDecCoins, sponsor string,
 	endTime, startBlockHeight, endBlockHeight int64, id uint64) Pool {
 	return Pool{
 		Shield:           shield,
 		Premium:          deposit,
 		Sponsor:          sponsor,
 		Active:           true,
-		TotalCollateral:  shield,
+		TotalCollateral:  totalCollateral,
 		EndTime:          endTime,
 		StartBlockHeight: startBlockHeight,
 		EndBlockHeight:   endBlockHeight,
@@ -39,12 +39,12 @@ func NewPool(
 type Collateral struct {
 	PoolID            uint64             `json:"pool_id" yaml:"pool_id"`
 	Provider          sdk.AccAddress     `json:"provider" yaml:"provider"`
-	Amount            sdk.Coins          `json:"amount" yaml:"amount"`
-	Withdrawing       sdk.Coins          `json:"withdrawing" yaml:"withdrawing"`
+	Amount            sdk.Int          `json:"amount" yaml:"amount"`
+	Withdrawing       sdk.Int          `json:"withdrawing" yaml:"withdrawing"`
 	LockedCollaterals []LockedCollateral `json:"locked_collaterals" yaml:"locked_collaterals"`
 }
 
-func NewCollateral(pool Pool, provider sdk.AccAddress, amount sdk.Coins) Collateral {
+func NewCollateral(pool Pool, provider sdk.AccAddress, amount sdk.Int) Collateral {
 	return Collateral{
 		PoolID:   pool.PoolID,
 		Provider: provider,
@@ -72,22 +72,27 @@ type Provider struct {
 	// address of the provider
 	Address sdk.AccAddress `json:"address" yaml:"address"`
 	// bonded delegations
-	DelegationBonded sdk.Coins `json:"delegation_bonded" yaml:"delegation_bonded"`
+	DelegationBonded sdk.Int `json:"delegation_bonded" yaml:"delegation_bonded"`
 	// collateral, including that in withdrawal queue and excluding that being locked
-	Collateral sdk.Coins `json:"collateral" yaml:"collateral"`
+	Collateral sdk.Int `json:"collateral" yaml:"collateral"`
 	// coins locked because of claim proposals
-	TotalLocked sdk.Coins `json:"total_locked" yaml:"total_locked"`
+	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
 	// amount of coins staked but not in any pool
 	Available sdk.Int `json:"available" yaml:"available"`
 	// amount of collateral that is in withdraw queue
-	Withdraw sdk.Int `json:"withrawal" yaml:"withdrawal"`
+	Withdrawing sdk.Int `json:"withrawal" yaml:"withdrawal"`
 	// rewards to be claimed
 	Rewards MixedDecCoins `json:"rewards" yaml:"rewards"`
 }
 
 func NewProvider(addr sdk.AccAddress) Provider {
 	return Provider{
-		Address: addr,
+		Address:          addr,
+		DelegationBonded: sdk.ZeroInt(),
+		Collateral:       sdk.ZeroInt(),
+		TotalLocked:      sdk.ZeroInt(),
+		Available:        sdk.ZeroInt(),
+		Withdrawing:       sdk.ZeroInt(),
 	}
 }
 
@@ -121,11 +126,11 @@ func NewPurchase(
 type Withdraw struct {
 	PoolID         uint64         `json:"pool_id" yaml:"pool_id"`
 	Address        sdk.AccAddress `json:"address" yaml:"address"`
-	Amount         sdk.Coins      `json:"amount" yaml:"amount"`
+	Amount         sdk.Int      `json:"amount" yaml:"amount"`
 	CompletionTime time.Time      `json:"completion_time" yaml:"completion_time"`
 }
 
-func NewWithdrawal(poolID uint64, addr sdk.AccAddress, amount sdk.Coins, completionTime time.Time) Withdraw {
+func NewWithdraw(poolID uint64, addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) Withdraw {
 	return Withdraw{
 		PoolID:         poolID,
 		Address:        addr,

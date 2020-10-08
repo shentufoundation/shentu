@@ -51,7 +51,7 @@ func (k Keeper) GetNextPoolID(ctx sdk.Context) uint64 {
 }
 
 // GetPoolBySponsor search store for a pool object with given pool ID.
-func (k Keeper) GetPoolBySponsor(ctx sdk.Context, sponsor string) (types.Pool, error) {
+func (k Keeper) GetPoolBySponsor(ctx sdk.Context, sponsor string) (types.Pool, bool) {
 	ret := types.Pool{
 		PoolID: 0,
 	}
@@ -64,9 +64,9 @@ func (k Keeper) GetPoolBySponsor(ctx sdk.Context, sponsor string) (types.Pool, e
 		}
 	})
 	if ret.PoolID == 0 {
-		return ret, types.ErrNoPoolFound
+		return ret, false
 	}
-	return ret, nil
+	return ret, true
 }
 
 // DepositNativePremium deposits premium in native tokens from the shield admin or purchasers.

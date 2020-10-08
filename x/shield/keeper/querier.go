@@ -63,6 +63,7 @@ func queryPool(ctx sdk.Context, path []string, k Keeper) (res []byte, err error)
 		return nil, err
 	}
 	var pool types.Pool
+	var found bool
 	if path[0] == "id" {
 		id, err := strconv.ParseUint(path[1], 10, 64)
 		if err != nil {
@@ -74,9 +75,9 @@ func queryPool(ctx sdk.Context, path []string, k Keeper) (res []byte, err error)
 		}
 	}
 	if path[0] == "sponsor" {
-		pool, err = k.GetPoolBySponsor(ctx, path[1])
-		if err != nil {
-			return nil, err
+		pool, found = k.GetPoolBySponsor(ctx, path[1])
+		if !found {
+			return nil, types.ErrNoPoolFoundForSponsor
 		}
 	}
 	res, err = codec.MarshalJSONIndent(k.cdc, pool)

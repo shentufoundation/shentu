@@ -32,17 +32,17 @@ func AllInvariants(k Keeper) sdk.Invariant {
 func AccountCollateralsInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		broken := false
-		providerCollateral := sdk.Coins{}
-		providerCollateralSum := sdk.Coins{}
+		providerCollateral := sdk.ZeroInt()
+		providerCollateralSum := sdk.ZeroInt()
 		k.IterateProviders(ctx, func(provider types.Provider) bool {
 			providerCollaterals := k.GetOnesCollaterals(ctx, provider.Address)
-			sum := sdk.Coins{}
+			sum := sdk.ZeroInt()
 			for _, collateral := range providerCollaterals {
-				sum = sum.Add(collateral.Amount...)
+				sum = sum.Add(collateral.Amount)
 			}
 			providerCollateral = provider.Collateral
 			providerCollateralSum = sum
-			broken = !(sum.IsEqual(provider.Collateral))
+			broken = !(sum.Equal(provider.Collateral))
 			return broken
 		})
 		return sdk.FormatInvariant(types.ModuleName, "account collateral and total sum of deposited collateral",
@@ -55,6 +55,7 @@ func AccountCollateralsInvariants(k Keeper) sdk.Invariant {
 func PurchasedCollateralsInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		broken := false
+		denom := k.sk.BondDenom(ctx)
 		currentPool := types.Pool{}
 		purchased := sdk.Coins{}
 		k.IterateAllPools(ctx, func(pool types.Pool) bool {
@@ -64,7 +65,7 @@ func PurchasedCollateralsInvariants(k Keeper) sdk.Invariant {
 				purchased = purchased.Add(purchase.Shield...)
 			}
 			currentPool = pool
-			broken = pool.TotalCollateral.IsAllLT(purchased)
+			broken = pool.TotalCollateral.LT(purchased.AmountOf(denom))
 			return broken
 		})
 		return sdk.FormatInvariant(types.ModuleName, "pool total collateral and total sum of purchased collateral",
@@ -90,19 +91,19 @@ func ModuleCoinsInvariants(k Keeper) sdk.Invariant {
 		providersWithdrawSum := sdk.NewInt(0)
 		for _, provider := range providers {
 			rewardsDec = rewardsDec.Add(provider.Rewards.Native.AmountOf(bondDenom))
-			providersWithdrawSum = providersWithdrawSum.Add(provider.Withdraw)
+			providersWithdrawSum = providersWithdrawSum.Add(provider.Withdrawing)
 		}
 		pools := k.GetAllPools(ctx)
 		for _, pool := range pools {
 			rewardsDec = rewardsDec.Add(pool.Premium.Native.AmountOf(bondDenom))
 		}
 
-		withdrawSum := sdk.Coins{}
+		withdrawSum := sdk.ZeroInt()
 		withdraws := k.GetAllWithdraws(ctx)
 		for _, withdraw := range withdraws {
-			withdrawSum = withdrawSum.Add(withdraw.Amount...)
+			withdrawSum = withdrawSum.Add(withdraw.Amount)
 		}
-		actualWithdrawAmt := withdrawSum.AmountOf(bondDenom)
+		actualWithdrawAmt := withdrawSum
 
 		actualModuleCoinsAmt = actualModuleCoinsAmt.Add(rewardsDec.TruncateInt())
 
