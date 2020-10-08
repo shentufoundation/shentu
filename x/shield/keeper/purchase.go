@@ -12,8 +12,6 @@ func (k Keeper) SetPurchase(ctx sdk.Context, txhash []byte, purchase types.Purch
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchase)
 	store.Set(types.GetPurchaseTxHashKey(txhash), bz)
-
-
 }
 
 // GetPurchase gets a purchase from store by txhash.
@@ -81,7 +79,8 @@ func (k Keeper) PurchaseShield(
 	txhash := tmhash.Sum(ctx.TxBytes())
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
 	claimPeriodEndTime := ctx.BlockTime().Add(claimParams.ClaimPeriod)
-	purchase := types.NewPurchase(txhash, poolID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, claimPeriodEndTime, description, purchaser)
+	purchase := types.NewPurchase(txhash, poolID, shield, ctx.BlockHeight(), protectionEndTime,
+		claimPeriodEndTime, claimPeriodEndTime, description, purchaser)
 	k.SetPurchase(ctx, txhash, purchase)
 
 	return purchase, nil
