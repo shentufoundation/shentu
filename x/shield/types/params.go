@@ -100,8 +100,9 @@ type ClaimProposalParams struct {
 }
 
 // NewClaimProposalParams creates a new ClaimProposalParams instance.
-func NewClaimProposalParams(claimPeriod, payoutPeriod time.Duration,
-	minDeposit sdk.Coins, depositRate, feesRate sdk.Dec) ClaimProposalParams {
+func NewClaimProposalParams(
+	claimPeriod, payoutPeriod time.Duration, minDeposit sdk.Coins, depositRate, feesRate sdk.Dec,
+) ClaimProposalParams {
 	return ClaimProposalParams{
 		ClaimPeriod:  claimPeriod,
 		PayoutPeriod: payoutPeriod,

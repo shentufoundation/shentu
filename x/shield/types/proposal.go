@@ -38,8 +38,9 @@ type ShieldClaimProposal struct {
 }
 
 // NewShieldClaimProposal creates a new shield claim proposal.
-func NewShieldClaimProposal(poolID uint64, loss sdk.Coins, evidence, purchaseTxHash,
-	description string, proposer sdk.AccAddress) ShieldClaimProposal {
+func NewShieldClaimProposal(
+	poolID uint64, loss sdk.Coins, evidence, purchaseTxHash, description string, proposer sdk.AccAddress,
+) ShieldClaimProposal {
 	return ShieldClaimProposal{
 		PoolID:         poolID,
 		Loss:           loss,
