@@ -79,7 +79,7 @@ func (k Keeper) PurchaseShield(
 	txhash := tmhash.Sum(ctx.TxBytes())
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
 	claimPeriodEndTime := ctx.BlockTime().Add(claimParams.ClaimPeriod)
-	purchase := types.NewPurchase(txhash, poolID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, description, purchaser)
+	purchase := types.NewPurchase(txhash, poolID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, claimPeriodEndTime, description, purchaser)
 	k.SetPurchase(ctx, txhash, purchase)
 
 	return purchase, nil
@@ -124,7 +124,7 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 	for ; iterator.Valid(); iterator.Next() {
 		var purchase types.Purchase
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchase)
-		if purchase.ClaimPeriodEndTime.Before(ctx.BlockTime()) {
+		if purchase.ExpirationTime.Before(ctx.BlockTime()) {
 			pool, err := k.GetPool(ctx, purchase.PoolID)
 			if err == nil {
 				pool.Available = pool.Available.Add(purchase.Shield.AmountOf(k.sk.BondDenom(ctx)))

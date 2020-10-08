@@ -85,13 +85,14 @@ type Purchase struct {
 	StartBlockHeight   int64          `json:"start_block_height" yaml:"start_block_height"`
 	ProtectionEndTime  time.Time      `json:"protection_end_time" yaml:"protection_end_time"`
 	ClaimPeriodEndTime time.Time      `json:"claim_period_end_time" yaml:"claim_period_end_time"`
+	ExpirationTime     time.Time      `json:"expiration_time" yaml:"expiration_time"`
 	Description        string         `json:"description" yaml:"description"`
 	Purchaser          sdk.AccAddress `json:"purchaser" yaml:"purchaser"`
 }
 
 func NewPurchase(
 	txhash []byte, poolID uint64, shield sdk.Coins, startBlockHeight int64,
-	protectionEndTime, claimPeriodEndTime time.Time, description string, purchaser sdk.AccAddress,
+	protectionEndTime, claimPeriodEndTime, expirationTime time.Time, description string, purchaser sdk.AccAddress,
 ) Purchase {
 	return Purchase{
 		TxHash:             txhash,
@@ -100,6 +101,7 @@ func NewPurchase(
 		StartBlockHeight:   startBlockHeight,
 		ProtectionEndTime:  protectionEndTime,
 		ClaimPeriodEndTime: claimPeriodEndTime,
+		ExpirationTime:     expirationTime,
 		Description:        description,
 		Purchaser:          purchaser,
 	}

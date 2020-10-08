@@ -20,7 +20,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a shield keeper.
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, sk types.StakingKeeper, 
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, sk types.StakingKeeper,
 	supplyKeeper types.SupplyKeeper, paramSpace params.Subspace) Keeper {
 	return Keeper{
 		storeKey:     key,
