@@ -26,7 +26,8 @@ type WithdrawTimeSlice struct {
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(
 	shieldAdmin sdk.AccAddress, nextPoolID uint64, poolParams PoolParams, claimProposalParams ClaimProposalParams,
-	pools []Pool, collaterals []Collateral, providers []Provider, purchase []Purchase, withdraws Withdraws) GenesisState {
+	pools []Pool, collaterals []Collateral, providers []Provider, purchase []Purchase, withdraws Withdraws,
+) GenesisState {
 	return GenesisState{
 		ShieldAdmin:         shieldAdmin,
 		NextPoolID:          nextPoolID,

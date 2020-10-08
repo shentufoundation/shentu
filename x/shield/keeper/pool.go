@@ -25,8 +25,8 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, error) {
 }
 
 func (k Keeper) CreatePool(
-	ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, sponsor string,
-	timeOfCoverage int64) (types.Pool, error) {
+	ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, sponsor string, timeOfCoverage int64,
+) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !creator.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -73,8 +73,8 @@ func (k Keeper) CreatePool(
 }
 
 func (k Keeper) UpdatePool(
-	ctx sdk.Context, updater sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, id uint64,
-	additionalTime int64) (types.Pool, error) {
+	ctx sdk.Context, updater sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, id uint64, additionalTime int64,
+) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -168,10 +168,7 @@ func (k Keeper) GetAllPools(ctx sdk.Context) (pools []types.Pool) {
 
 // PoolEnded returns if pool has reached ending time and block height
 func (k Keeper) PoolEnded(ctx sdk.Context, pool types.Pool) bool {
-	if ctx.BlockTime().Unix() > pool.EndTime {
-		return true
-	}
-	return false
+	return ctx.BlockTime().Unix() > pool.EndTime
 }
 
 // ClosePool closes the pool
@@ -211,7 +208,7 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 	withdrawAmtDec := sdk.NewDecFromInt(amount)
 	withdrawableAmtDec := sdk.NewDecFromInt(provider.Collateral.Sub(provider.Withdrawing))
 	proportion := withdrawAmtDec.Quo(withdrawableAmtDec)
-	if amount.ToDec().GT(withdrawableAmtDec) {
+	if withdrawAmtDec.GT(withdrawableAmtDec) {
 		// FIXME this could happen. Set an error instead of panic.
 		panic(types.ErrNotEnoughCollateral)
 	}

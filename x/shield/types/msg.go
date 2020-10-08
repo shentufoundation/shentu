@@ -9,22 +9,23 @@ import (
 
 // MsgCreatePool defines the attributes of a create-pool transaction.
 type MsgCreatePool struct {
-	From             sdk.AccAddress `json:"from" yaml:"from"`
-	Shield           sdk.Coins      `json:"shield" yaml:"shield"`
-	Deposit          MixedCoins     `json:"deposit" yaml:"deposit"`
-	Sponsor          string         `json:"sponsor" yaml:"sponsor"`
-	TimeOfCoverage   int64          `json:"time_of_coverage" yaml:"time_of_coverage"`
+	From           sdk.AccAddress `json:"from" yaml:"from"`
+	Shield         sdk.Coins      `json:"shield" yaml:"shield"`
+	Deposit        MixedCoins     `json:"deposit" yaml:"deposit"`
+	Sponsor        string         `json:"sponsor" yaml:"sponsor"`
+	TimeOfCoverage int64          `json:"time_of_coverage" yaml:"time_of_coverage"`
 }
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
 func NewMsgCreatePool(
-	accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, timeOfCoverage int64) MsgCreatePool {
+	accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, timeOfCoverage int64,
+) MsgCreatePool {
 	return MsgCreatePool{
-		From:             accAddr,
-		Shield:           shield,
-		Deposit:          deposit,
-		Sponsor:          sponsor,
-		TimeOfCoverage:   timeOfCoverage,
+		From:           accAddr,
+		Shield:         shield,
+		Deposit:        deposit,
+		Sponsor:        sponsor,
+		TimeOfCoverage: timeOfCoverage,
 	}
 }
 
@@ -70,22 +71,23 @@ func (msg MsgCreatePool) ValidateBasic() error {
 
 // MsgUpdatePool defines the attributes of a shield pool update transaction.
 type MsgUpdatePool struct {
-	From             sdk.AccAddress `json:"from" yaml:"from"`
-	Shield           sdk.Coins      `json:"Shield" yaml:"Shield"`
-	Deposit          MixedCoins     `json:"deposit" yaml:"deposit"`
-	PoolID           uint64         `json:"pool_id" yaml:"pool_id"`
-	AdditionalTime   int64          `json:"additional_period" yaml:"additional_period"`
+	From           sdk.AccAddress `json:"from" yaml:"from"`
+	Shield         sdk.Coins      `json:"Shield" yaml:"Shield"`
+	Deposit        MixedCoins     `json:"deposit" yaml:"deposit"`
+	PoolID         uint64         `json:"pool_id" yaml:"pool_id"`
+	AdditionalTime int64          `json:"additional_period" yaml:"additional_period"`
 }
 
 // NewMsgUpdatePool creates a new MsgUpdatePool instance.
 func NewMsgUpdatePool(
-	accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, id uint64, additionalTime int64) MsgUpdatePool {
+	accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, id uint64, additionalTime int64,
+) MsgUpdatePool {
 	return MsgUpdatePool{
-		From:             accAddr,
-		Shield:           shield,
-		Deposit:          deposit,
-		PoolID:           id,
-		AdditionalTime:   additionalTime,
+		From:           accAddr,
+		Shield:         shield,
+		Deposit:        deposit,
+		PoolID:         id,
+		AdditionalTime: additionalTime,
 	}
 }
 

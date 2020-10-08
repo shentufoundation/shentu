@@ -23,12 +23,11 @@ import (
 )
 
 var (
-	flagNativeDeposit    = "native-deposit"
-	flagForeignDeposit   = "foreign-deposit"
-	flagShield           = "shield"
-	flagSponsor          = "sponsor"
-	flagTimeOfCoverage   = "time-of-coverage"
-	flagBlocksOfCoverage = "blocks-of-coverage"
+	flagNativeDeposit  = "native-deposit"
+	flagForeignDeposit = "foreign-deposit"
+	flagShield         = "shield"
+	flagSponsor        = "sponsor"
+	flagTimeOfCoverage = "time-of-coverage"
 )
 
 // GetTxCmd returns the transaction commands for this module.

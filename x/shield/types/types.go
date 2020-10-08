@@ -7,36 +7,36 @@ import (
 )
 
 type Pool struct {
-	PoolID           uint64        `json:"pool_id" yaml:"pool_id"`
-	Active           bool          `json:"active" yaml:"active"`
-	Description      string        `json:"description" yaml:"description"`
-	Sponsor          string        `json:"sponsor" yaml:"sponsor"`
-	Premium          MixedDecCoins `json:"premium" yaml:"premium"`
-	TotalCollateral  sdk.Int       `json:"total_collateral" yaml:"total_collateral"`
-	Available        sdk.Int       `json:"available" yaml:"available"`
-	Shield           sdk.Coins     `json:"shield" yaml:"shield"`
-	EndTime          int64         `json:"end_time" yaml:"end_time"`
+	PoolID          uint64        `json:"pool_id" yaml:"pool_id"`
+	Active          bool          `json:"active" yaml:"active"`
+	Description     string        `json:"description" yaml:"description"`
+	Sponsor         string        `json:"sponsor" yaml:"sponsor"`
+	Premium         MixedDecCoins `json:"premium" yaml:"premium"`
+	TotalCollateral sdk.Int       `json:"total_collateral" yaml:"total_collateral"`
+	Available       sdk.Int       `json:"available" yaml:"available"`
+	Shield          sdk.Coins     `json:"shield" yaml:"shield"`
+	EndTime         int64         `json:"end_time" yaml:"end_time"`
 }
 
 func NewPool(
-	shield sdk.Coins, totalCollateral sdk.Int, deposit MixedDecCoins, sponsor string,
-	endTime int64, id uint64) Pool {
+	shield sdk.Coins, totalCollateral sdk.Int, deposit MixedDecCoins, sponsor string, endTime int64, id uint64,
+) Pool {
 	return Pool{
-		Shield:           shield,
-		Premium:          deposit,
-		Sponsor:          sponsor,
-		Active:           true,
-		TotalCollateral:  totalCollateral,
-		EndTime:          endTime,
-		PoolID:           id,
+		Shield:          shield,
+		Premium:         deposit,
+		Sponsor:         sponsor,
+		Active:          true,
+		TotalCollateral: totalCollateral,
+		EndTime:         endTime,
+		PoolID:          id,
 	}
 }
 
 type Collateral struct {
 	PoolID            uint64             `json:"pool_id" yaml:"pool_id"`
 	Provider          sdk.AccAddress     `json:"provider" yaml:"provider"`
-	Amount            sdk.Int          `json:"amount" yaml:"amount"`
-	Withdrawing       sdk.Int          `json:"withdrawing" yaml:"withdrawing"`
+	Amount            sdk.Int            `json:"amount" yaml:"amount"`
+	Withdrawing       sdk.Int            `json:"withdrawing" yaml:"withdrawing"`
 	LockedCollaterals []LockedCollateral `json:"locked_collaterals" yaml:"locked_collaterals"`
 }
 
@@ -88,7 +88,7 @@ func NewProvider(addr sdk.AccAddress) Provider {
 		Collateral:       sdk.ZeroInt(),
 		TotalLocked:      sdk.ZeroInt(),
 		Available:        sdk.ZeroInt(),
-		Withdrawing:       sdk.ZeroInt(),
+		Withdrawing:      sdk.ZeroInt(),
 	}
 }
 
@@ -104,8 +104,9 @@ type Purchase struct {
 }
 
 func NewPurchase(
-	txhash []byte, poolID uint64, shield sdk.Coins, startBlockHeight int64, protectionEndTime, claimPeriodEndTime time.Time,
-	description string, purchaser sdk.AccAddress) Purchase {
+	txhash []byte, poolID uint64, shield sdk.Coins, startBlockHeight int64,
+	protectionEndTime, claimPeriodEndTime time.Time, description string, purchaser sdk.AccAddress,
+) Purchase {
 	return Purchase{
 		TxHash:             txhash,
 		PoolID:             poolID,
@@ -122,7 +123,7 @@ func NewPurchase(
 type Withdraw struct {
 	PoolID         uint64         `json:"pool_id" yaml:"pool_id"`
 	Address        sdk.AccAddress `json:"address" yaml:"address"`
-	Amount         sdk.Int      `json:"amount" yaml:"amount"`
+	Amount         sdk.Int        `json:"amount" yaml:"amount"`
 	CompletionTime time.Time      `json:"completion_time" yaml:"completion_time"`
 }
 
