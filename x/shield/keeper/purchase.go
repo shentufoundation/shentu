@@ -16,7 +16,6 @@ func (k Keeper) SetPurchase(ctx sdk.Context, purchase types.Purchase) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchase)
 	store.Set(types.GetPurchaseTxHashKey(purchase.TxHash), bz)
-	k.InsertPurchaseQueue(ctx, purchase)
 }
 
 // GetPurchase gets a purchase from store by txhash.
@@ -96,6 +95,7 @@ func (k Keeper) PurchaseShield(
 	claimPeriodEndTime := ctx.BlockTime().Add(claimParams.ClaimPeriod)
 	purchase := types.NewPurchase(txhash, poolID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, description, purchaser)
 	k.SetPurchase(ctx, purchase)
+	k.InsertPurchaseQueue(ctx, purchase)
 
 	return purchase, nil
 }
@@ -107,9 +107,6 @@ func (k Keeper) SimulatePurchaseShield(
 	if err != nil {
 		return types.Purchase{}, err
 	}
-	_ = k.DeletePurchase(ctx, purchase.TxHash)
-
-	k.SetPurchase(ctx, purchase)
 	return purchase, nil
 }
 
@@ -202,7 +199,7 @@ func (k Keeper) GetAllPurchases(ctx sdk.Context) (purchases []types.Purchase) {
 
 func (k Keeper) InsertPurchaseQueue(ctx sdk.Context, purchase types.Purchase) {
 	timeSlice := k.GetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime)
-	timeSlice = append(timeSlice, types.PurchaseTxHash{purchase.TxHash})
+	timeSlice = append(timeSlice, types.PurchaseTxHash{TxHash: purchase.TxHash})
 	k.SetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime, timeSlice)
 }
 
