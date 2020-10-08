@@ -48,20 +48,6 @@ func NewCollateral(pool Pool, provider sdk.AccAddress, amount sdk.Int) Collatera
 	}
 }
 
-type PendingPayout struct {
-	Amount sdk.Dec
-	ToAddr string
-}
-
-type PendingPayouts []PendingPayout
-
-func NewPendingPayouts(amount sdk.Dec, to string) PendingPayout {
-	return PendingPayout{
-		Amount: amount,
-		ToAddr: to,
-	}
-}
-
 // Provider tracks A or C's total delegation, total collateral,
 // and rewards.
 type Provider struct {
@@ -101,6 +87,10 @@ type Purchase struct {
 	ClaimPeriodEndTime time.Time      `json:"claim_period_end_time" yaml:"claim_period_end_time"`
 	Description        string         `json:"description" yaml:"description"`
 	Purchaser          sdk.AccAddress `json:"purchaser" yaml:"purchaser"`
+}
+
+type PurchaseTxHash struct {
+	TxHash []byte `json:"tx_hash" yaml:"tx_hash"`
 }
 
 func NewPurchase(
