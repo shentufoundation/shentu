@@ -221,11 +221,11 @@ func (msg MsgResumePool) ValidateBasic() error {
 type MsgDepositCollateral struct {
 	From       sdk.AccAddress `json:"sender" yaml:"sender"`
 	PoolID     uint64         `json:"pool_id" yaml:"pool_id"`
-	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
+	Collateral sdk.Coin       `json:"collateral" yaml:"collateral"`
 }
 
 // NewMsgDepositCollateral creates a new MsgDepositCollateral instance.
-func NewMsgDepositCollateral(sender sdk.AccAddress, id uint64, collateral sdk.Coins) MsgDepositCollateral {
+func NewMsgDepositCollateral(sender sdk.AccAddress, id uint64, collateral sdk.Coin) MsgDepositCollateral {
 	return MsgDepositCollateral{
 		From:       sender,
 		PoolID:     id,
@@ -268,11 +268,11 @@ func (msg MsgDepositCollateral) ValidateBasic() error {
 type MsgWithdrawCollateral struct {
 	From       sdk.AccAddress `json:"sender" yaml:"sender"`
 	PoolID     uint64         `json:"pool_id" yaml:"pool_id"`
-	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
+	Collateral sdk.Coin       `json:"collateral" yaml:"collateral"`
 }
 
 // NewMsgDepositCollateral creates a new MsgDepositCollateral instance.
-func NewMsgWithdrawCollateral(sender sdk.AccAddress, id uint64, collateral sdk.Coins) MsgWithdrawCollateral {
+func NewMsgWithdrawCollateral(sender sdk.AccAddress, id uint64, collateral sdk.Coin) MsgWithdrawCollateral {
 	return MsgWithdrawCollateral{
 		From:       sender,
 		PoolID:     id,
