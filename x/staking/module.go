@@ -173,7 +173,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.V
 
 // GenerateGenesisState creates a randomized GenState of this module.
 func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
+	stakingSim.RandomizedGenState(simState)
 }
 
 // RegisterStoreDecoder registers a decoder for staking module.
