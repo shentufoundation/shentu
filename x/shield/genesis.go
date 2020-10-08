@@ -26,7 +26,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	}
 	for _, purchase := range data.Purchases {
 		k.SetPurchase(ctx, purchase)
-		k.InsertPurchaseQueue(ctx, purchase)
 	}
 	for _, provider := range data.Providers {
 		k.SetProvider(ctx, provider.Address, provider)
