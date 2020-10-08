@@ -49,7 +49,7 @@ func AccountCollateralsInvariants(k Keeper) sdk.Invariant {
 	}
 }
 
-// PurchasedCollateralsInvariants checks that, for each pool, total purchased 
+// PurchasedCollateralsInvariants checks that, for each pool, total purchased
 // amount is less than or equal to the pool's total collateral amount.
 func PurchasedCollateralsInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
@@ -78,14 +78,14 @@ func PurchasedCollateralsInvariants(k Keeper) sdk.Invariant {
 func ModuleCoinsInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		unbondings := k.sk.GetAllUnbondingDelegations(ctx, k.supplyKeeper.GetModuleAddress(types.ModuleName))
-		actualModuleCoinsAmt := sdk.NewInt(0)
+		actualModuleCoinsAmt := sdk.ZeroInt()
 		for _, ubd := range unbondings {
 			for _, entry := range ubd.Entries {
 				actualModuleCoinsAmt = actualModuleCoinsAmt.Add(entry.Balance)
 			}
 		}
 		providers := k.GetAllProviders(ctx)
-		rewardsDec := sdk.NewDec(0)
+		rewardsDec := sdk.ZeroDec()
 		for _, provider := range providers {
 			rewardsDec = rewardsDec.Add(provider.Rewards.Native.AmountOf(k.sk.BondDenom(ctx)))
 		}

@@ -105,8 +105,8 @@ func (k Keeper) UpdatePool(
 		return types.Pool{}, err
 	}
 
-	newCoverageTime := additionalTime + pool.EndTime - ctx.BlockTime().Unix()
-	newCoverageBlocks := additionalBlocks + pool.EndBlockHeight - ctx.BlockHeight()
+	newCoverageTime := additionalTime + pool.EndTime
+	newCoverageBlocks := additionalBlocks + pool.EndBlockHeight
 	if !k.ValidatePoolDuration(ctx, newCoverageTime, newCoverageBlocks) {
 		return types.Pool{}, types.ErrPoolLifeTooShort
 	}

@@ -87,12 +87,12 @@ type Provider struct {
 
 func NewProvider(addr sdk.AccAddress) Provider {
 	return Provider{
-		Address: addr,
+		Address:          addr,
 		DelegationBonded: sdk.ZeroInt(),
-		Collateral: sdk.ZeroInt(),
-		TotalLocked: sdk.ZeroInt(),
-		Available: sdk.ZeroInt(),
-		Withdrawal: sdk.ZeroInt(),
+		Collateral:       sdk.ZeroInt(),
+		TotalLocked:      sdk.ZeroInt(),
+		Available:        sdk.ZeroInt(),
+		Withdrawal:       sdk.ZeroInt(),
 	}
 }
 
