@@ -116,7 +116,7 @@ func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
 
 // EndBlock returns the end blocker for the shield module.
 func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	EndBlocker(ctx, am.keeper, am.stakingKeeper)
+	EndBlocker(ctx, am.keeper)
 	return []abci.ValidatorUpdate{}
 }
 

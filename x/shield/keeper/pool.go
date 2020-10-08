@@ -16,12 +16,12 @@ func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
 func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetPoolKey(id))
-	if bz != nil {
-		var pool types.Pool
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &pool)
-		return pool, nil
+	if bz == nil {
+		return types.Pool{}, types.ErrNoPoolFound
 	}
-	return types.Pool{}, types.ErrNoPoolFound
+	var pool types.Pool
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &pool)
+	return pool, nil
 }
 
 func (k Keeper) CreatePool(
@@ -32,16 +32,20 @@ func (k Keeper) CreatePool(
 		return types.Pool{}, types.ErrNotShieldAdmin
 	}
 
+	if _, found := k.GetPoolBySponsor(ctx, sponsor); found {
+		return types.Pool{}, types.ErrSponsorAlreadyExists
+	}
+
 	if !k.ValidatePoolDuration(ctx, timeOfCoverage, blocksOfCoverage) {
 		return types.Pool{}, types.ErrPoolLifeTooShort
 	}
 	// check if shield is backed by admin's delegations
 	provider, found := k.GetProvider(ctx, admin)
 	if !found {
-		k.addProvider(ctx, admin)
-		provider, _ = k.GetProvider(ctx, admin)
+		provider = k.addProvider(ctx, admin)
 	}
-	provider.Collateral = provider.Collateral.Add(shield...)
+	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
+	provider.Collateral = provider.Collateral.Add(shieldAmt)
 	if shield.AmountOf(k.sk.BondDenom(ctx)).GT(provider.Available) {
 		return types.Pool{}, sdkerrors.Wrapf(types.ErrInsufficientStaking,
 			"available %s, shield %s", provider.Available, shield)
@@ -52,7 +56,7 @@ func (k Keeper) CreatePool(
 	var endTime, endBlockHeight int64
 	startBlockHeight := ctx.BlockHeight()
 	if timeOfCoverage != 0 {
-		endTime = ctx.BlockTime().Unix() + timeOfCoverage
+		endTime = ctx.BlockHeader().Time.Unix() + timeOfCoverage
 	} else if blocksOfCoverage != 0 {
 		endBlockHeight = startBlockHeight + blocksOfCoverage
 	}
@@ -60,7 +64,7 @@ func (k Keeper) CreatePool(
 	id := k.GetNextPoolID(ctx)
 	depositDec := types.MixedDecCoinsFromMixedCoins(deposit)
 
-	pool := types.NewPool(shield, depositDec, sponsor, endTime, startBlockHeight, endBlockHeight, id)
+	pool := types.NewPool(shield, shieldAmt, depositDec, sponsor, endTime, startBlockHeight, endBlockHeight, id)
 
 	// transfer deposit
 	if err := k.DepositNativePremium(ctx, deposit.Native, creator); err != nil {
@@ -70,7 +74,7 @@ func (k Keeper) CreatePool(
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, id+1)
 	k.SetProvider(ctx, admin, provider)
-	k.SetCollateral(ctx, pool, admin, types.NewCollateral(pool, admin, shield))
+	k.SetCollateral(ctx, pool, admin, types.NewCollateral(pool, admin, shieldAmt))
 
 	return pool, nil
 }
@@ -88,51 +92,49 @@ func (k Keeper) UpdatePool(
 	if !found {
 		return types.Pool{}, types.ErrNoDelegationAmount
 	}
-	provider.Collateral = provider.Collateral.Add(shield...)
+	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
+	provider.Collateral = provider.Collateral.Add(shieldAmt)
 	if shield.AmountOf(k.sk.BondDenom(ctx)).GT(provider.Available) {
 		return types.Pool{}, sdkerrors.Wrapf(types.ErrInsufficientStaking,
 			"available %s, shield %s", provider.Available, shield)
 	}
-	provider.Available = provider.Available.Sub(shield.AmountOf(k.sk.BondDenom(ctx)))
+	provider.Available = provider.Available.Sub(shieldAmt)
 
 	pool, err := k.GetPool(ctx, id)
 	if err != nil {
 		return types.Pool{}, err
 	}
-
-	newCoverageTime := additionalTime + pool.EndTime - ctx.BlockTime().Unix()
-	newCoverageBlocks := additionalBlocks + pool.EndBlockHeight - ctx.BlockHeight()
-	if !k.ValidatePoolDuration(ctx, newCoverageTime, newCoverageBlocks) {
+	newEndTime := additionalTime + pool.EndTime
+	newEndBlockHeight := additionalBlocks + pool.EndBlockHeight
+	if !k.ValidatePoolDuration(ctx, additionalTime, additionalBlocks) {
 		return types.Pool{}, types.ErrPoolLifeTooShort
 	}
 	// Extend EndTime. If not available, extend EndBlockHeight.
 	if additionalTime != 0 {
-		if pool.EndTime == 0 {
-			return types.Pool{}, types.ErrCannotExtend
-		}
-		pool.EndTime += additionalTime
+		pool.EndTime = newEndTime
 	} else if additionalBlocks != 0 {
-		if pool.EndBlockHeight == 0 {
-			return types.Pool{}, types.ErrCannotExtend
-		}
-		pool.EndBlockHeight += additionalBlocks
+		pool.EndBlockHeight = newEndBlockHeight
 	}
 
-	pool.TotalCollateral = pool.TotalCollateral.Add(shield...)
-	poolCertiKCollateral := k.GetPoolCertiKCollateral(ctx, pool)
-	poolCertiKCollateral.Amount = poolCertiKCollateral.Amount.Add(shield...)
-	k.SetCollateral(ctx, pool, k.GetAdmin(ctx), poolCertiKCollateral)
+	pool.TotalCollateral = pool.TotalCollateral.Add(shieldAmt)
+	poolCertiKCollateral, found := k.GetPoolCertiKCollateral(ctx, pool)
+	if !found {
+		poolCertiKCollateral = types.NewCollateral(pool, admin, sdk.ZeroInt())
+	}
+	poolCertiKCollateral.Amount = poolCertiKCollateral.Amount.Add(shieldAmt)
 
 	pool.Shield = pool.Shield.Add(shield...)
 	pool.Premium = pool.Premium.Add(types.MixedDecCoinsFromMixedCoins(deposit))
 
 	// transfer deposit and store
-	if err := k.DepositNativePremium(ctx, deposit.Native, updater); err != nil {
+	err = k.DepositNativePremium(ctx, deposit.Native, admin)
+	if err != nil {
 		return types.Pool{}, err
 	}
+
+	k.SetCollateral(ctx, pool, k.GetAdmin(ctx), poolCertiKCollateral)
 	k.SetPool(ctx, pool)
 	k.SetProvider(ctx, admin, provider)
-
 	return pool, nil
 }
 
@@ -219,39 +221,38 @@ func (k Keeper) ValidatePoolDuration(ctx sdk.Context, timeDuration, numBlocks in
 }
 
 // WithdrawFromPools withdraws coins from all pools to match total collateral to be less than or equal to total delegation.
-func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount sdk.Coins) {
-	bondDenom := k.sk.BondDenom(ctx)
+func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount sdk.Int) {
 	provider, _ := k.GetProvider(ctx, addr)
-	withdrawAmtDec := sdk.NewDecFromInt(amount.AmountOf(bondDenom))
-	withdrawableAmtDec := sdk.NewDecFromInt(provider.Collateral.AmountOf(bondDenom).Sub(provider.Withdrawal))
+	withdrawAmtDec := sdk.NewDecFromInt(amount)
+	withdrawableAmtDec := sdk.NewDecFromInt(provider.Collateral.Sub(provider.Withdrawing))
 	proportion := withdrawAmtDec.Quo(withdrawableAmtDec)
-	if amount.AmountOf(bondDenom).ToDec().GT(withdrawableAmtDec) {
+	if amount.ToDec().GT(withdrawableAmtDec) {
 		// FIXME this could happen. Set an error instead of panic.
 		panic(types.ErrNotEnoughCollateral)
 	}
 
+	// initiate proportional withdraws from all of the address's collaterals.
 	addrCollaterals := k.GetOnesCollaterals(ctx, addr)
 	remainingWithdraw := amount
 	for i, collateral := range addrCollaterals {
 		var withdrawAmt sdk.Int
 		if i == len(addrCollaterals)-1 {
-			withdrawAmt = remainingWithdraw.AmountOf(bondDenom)
+			withdrawAmt = remainingWithdraw
 		} else {
-			withdrawable := collateral.Amount.AmountOf(bondDenom).Sub(collateral.Withdrawal.AmountOf(bondDenom))
+			withdrawable := collateral.Amount.Sub(collateral.Withdrawing)
 			withdrawAmtDec := sdk.NewDecFromInt(withdrawable).Mul(proportion)
 			withdrawAmt = withdrawAmtDec.TruncateInt()
-			if remainingWithdraw.AmountOf(bondDenom).LTE(withdrawAmt) {
-				withdrawAmt = remainingWithdraw.AmountOf(bondDenom)
-			} else if remainingWithdraw.AmountOf(bondDenom).GT(withdrawAmt) && withdrawable.GT(withdrawAmt) {
-				withdrawAmt = withdrawAmt.Add(sdk.NewInt(1))
+			if remainingWithdraw.LTE(withdrawAmt) {
+				withdrawAmt = remainingWithdraw
+			} else if remainingWithdraw.GT(withdrawAmt) && withdrawable.GT(withdrawAmt) {
+				withdrawAmt = withdrawAmt.Add(sdk.OneInt())
 			}
 		}
-		withdrawCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, withdrawAmt))
-		err := k.WithdrawCollateral(ctx, addr, collateral.PoolID, withdrawCoins)
+		err := k.WithdrawCollateral(ctx, addr, collateral.PoolID, withdrawAmt)
 		if err != nil {
 			//TODO: address this error
 			continue
 		}
-		remainingWithdraw = remainingWithdraw.Sub(withdrawCoins)
+		remainingWithdraw = remainingWithdraw.Sub(withdrawAmt)
 	}
 }

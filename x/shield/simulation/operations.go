@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/tendermint/tendermint/crypto/tmhash"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
@@ -334,7 +336,6 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 			}
 		}
 		account := ak.GetAccount(ctx, simAccount.Address)
-		bondDenom := sk.BondDenom(ctx)
 
 		// poolID
 		poolID, _, found := keeper.RandomPoolInfo(r, k, ctx)
@@ -345,7 +346,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		// collateral
 		provider, found := k.GetProvider(ctx, simAccount.Address)
 		if found {
-			delAmount = provider.DelegationBonded.AmountOf(bondDenom).Sub(provider.Collateral.AmountOf(bondDenom))
+			delAmount = provider.DelegationBonded.Sub(provider.Collateral)
 			if !delAmount.IsPositive() {
 				return simulation.NoOpMsg(types.ModuleName), nil, nil
 			}
@@ -354,7 +355,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		collateral := sdk.NewCoins(sdk.NewCoin(bondDenom, collateralAmount))
+		collateral := sdk.NewCoin(sk.BondDenom(ctx), collateralAmount)
 
 		msg := types.NewMsgDepositCollateral(simAccount.Address, poolID, collateral)
 
@@ -393,14 +394,13 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 			}
 		}
 		account := ak.GetAccount(ctx, simAccount.Address)
-		bondDenom := sk.BondDenom(ctx)
 
-		withdrawable := collateral.Amount.Sub(collateral.Withdrawal).AmountOf(bondDenom)
+		withdrawable := collateral.Amount.Sub(collateral.Withdrawing)
 		withdrawalAmount, err := simulation.RandPositiveInt(r, withdrawable)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		withdrawal := sdk.NewCoins(sdk.NewCoin(bondDenom, withdrawalAmount))
+		withdrawal := sdk.NewCoin(sk.BondDenom(ctx), withdrawalAmount)
 
 		msg := types.NewMsgWithdrawCollateral(simAccount.Address, collateral.PoolID, withdrawal)
 
@@ -532,6 +532,8 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		description := simulation.RandStringOfLength(r, 100)
 
 		msg := types.NewMsgPurchaseShield(poolID, sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount)), description, purchaser.Address)
+		msg.Simulate = true
+		msg.SimTxHash = tmhash.Sum([]byte(description))
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(

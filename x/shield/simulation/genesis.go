@@ -32,9 +32,12 @@ func RandomizedGenState(simState *module.SimulationState) {
 // GenPoolParams returns a randomized PoolParams object.
 func GenPoolParams(r *rand.Rand) types.PoolParams {
 	protectionPeriod := time.Duration(sim.RandIntBetween(r, 60*60*24, 60*60*24*2)) * time.Second
+	withdrawalPeriod := time.Duration(sim.RandIntBetween(r, 60*60*24, 60*60*24*3)) * time.Second
 	minPoolLife := time.Duration(sim.RandIntBetween(r, 60*60*24, 60*60*24*5)) * time.Second
 	shieldFeesRate := sdk.NewDecWithPrec(int64(sim.RandIntBetween(r, 0, 50)), 3)
-	withdrawalPeriod := time.Duration(sim.RandIntBetween(r, 60*60*24, 60*60*24*3)) * time.Second
+	if minPoolLife < withdrawalPeriod {
+		minPoolLife = withdrawalPeriod + 1
+	}
 
 	return types.NewPoolParams(protectionPeriod, minPoolLife, withdrawalPeriod, shieldFeesRate)
 }

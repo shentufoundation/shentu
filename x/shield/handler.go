@@ -7,7 +7,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
@@ -121,7 +120,11 @@ func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*s
 }
 
 func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollateral, k Keeper) (*sdk.Result, error) {
-	if err := k.WithdrawCollateral(ctx, msg.From, msg.PoolID, msg.Collateral); err != nil {
+	if msg.Collateral.Denom != k.BondDenom(ctx) {
+		return nil, types.ErrCollateralBadDenom
+	}
+
+	if err := k.WithdrawCollateral(ctx, msg.From, msg.PoolID, msg.Collateral.Amount); err != nil {
 		return nil, err
 	}
 
@@ -137,7 +140,11 @@ func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollatera
 }
 
 func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral, k Keeper) (*sdk.Result, error) {
-	if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral); err != nil {
+	if msg.Collateral.Denom != k.BondDenom(ctx) {
+		return nil, types.ErrCollateralBadDenom
+	}
+
+	if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral.Amount); err != nil {
 		return nil, err
 	}
 
@@ -193,9 +200,16 @@ func handleMsgResumePool(ctx sdk.Context, msg types.MsgResumePool, k Keeper) (*s
 }
 
 func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Keeper) (*sdk.Result, error) {
-	_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
-	if err != nil {
-		return nil, err
+	if msg.Simulate {
+		_, err := k.SimulatePurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From, msg.SimTxHash)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -218,7 +232,7 @@ func handleMsgWithdrawRewards(ctx sdk.Context, msg types.MsgWithdrawRewards, k K
 		sdk.NewEvent(
 			types.EventTypeWithdrawRewards,
 			sdk.NewAttribute(types.AttributeKeyAccountAddress, msg.From.String()),
-			sdk.NewAttribute(types.AttributeKeyDenom, common.MicroCTKDenom),
+			sdk.NewAttribute(types.AttributeKeyDenom, k.BondDenom(ctx)),
 			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 		),
 		sdk.NewEvent(

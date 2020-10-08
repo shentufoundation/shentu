@@ -10,13 +10,15 @@ func GetPremiumRate(days uint64) sdk.Dec {
 	return sdk.NewDecFromBigIntWithPrec(big.NewInt(4), 2) //placeholder 4% for now
 }
 
-func GetLockedCoins(loss, totalCollateral, collateral sdk.Coins, denom string) sdk.Coins {
-	lossAmount := loss.AmountOf(denom)
-	totalCollateralAmount := totalCollateral.AmountOf(denom)
+// GetLockAmount returns the proportional collateral amount
+// to lock given some loss amount.
+func GetLockAmount(loss, totalCollateral, collateral sdk.Int) sdk.Int {
+	lossAmount := loss
+	totalCollateralAmount := totalCollateral
 	if totalCollateralAmount.IsZero() {
-		return sdk.Coins{}
+		return sdk.ZeroInt()
 	}
-	collateralAmount := collateral.AmountOf(denom)
-	lockedAmount := lossAmount.Mul(collateralAmount).Quo(totalCollateralAmount)
-	return sdk.NewCoins(sdk.NewCoin(denom, lockedAmount))
+	collateralAmount := collateral
+	lockAmount := lossAmount.Mul(collateralAmount).Quo(totalCollateralAmount)
+	return lockAmount
 }
