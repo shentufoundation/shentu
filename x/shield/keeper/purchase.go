@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"bytes"
+	"time"
+
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,10 +12,10 @@ import (
 )
 
 // SetPurchase sets a purchase of shield.
-func (k Keeper) SetPurchase(ctx sdk.Context, txhash []byte, purchase types.Purchase) {
+func (k Keeper) SetPurchase(ctx sdk.Context, purchase types.Purchase) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchase)
-	store.Set(types.GetPurchaseTxHashKey(txhash), bz)
+	store.Set(types.GetPurchaseTxHashKey(purchase.TxHash), bz)
 }
 
 // GetPurchase gets a purchase from store by txhash.
@@ -38,6 +41,18 @@ func (k Keeper) DeletePurchase(ctx sdk.Context, txhash []byte) error {
 	return nil
 }
 
+// DequeuePurchase dequeues a purchase from the purchase queue
+func (k Keeper) DequeuePurchase(ctx sdk.Context, purchase types.Purchase) {
+	timeslice := k.GetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime)
+	for i, entry := range timeslice {
+		if bytes.Equal(entry.TxHash, purchase.TxHash) {
+			timeslice = append(timeslice[:i], timeslice[i+1:]...)
+			break
+		}
+	}
+	k.SetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime, timeslice)
+}
+
 // PurchaseShield purchases shield of a pool.
 func (k Keeper) PurchaseShield(
 	ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress,
@@ -53,12 +68,11 @@ func (k Keeper) PurchaseShield(
 	if !pool.Active {
 		return types.Purchase{}, types.ErrPoolInactive
 	}
-	if pool.EndTime <= ctx.BlockTime().Unix()+types.DefaultWithdrawalPeriod.Milliseconds()/1000 &&
-		pool.EndBlockHeight <= ctx.BlockHeight()+types.DefaultWithdrawalPeriod.Milliseconds()/1000/5 {
+	if pool.EndTime <= ctx.BlockTime().Unix()+claimParams.ClaimPeriod.Milliseconds()/1000 {
 		return types.Purchase{}, types.ErrPoolLifeTooShort
 	}
-	bondDenom := k.sk.BondDenom(ctx)
-	if shield.AmountOf(bondDenom).GT(pool.Available) {
+	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
+	if shieldAmt.GT(pool.Available) {
 		return types.Purchase{}, types.ErrNotEnoughShield
 	}
 
@@ -73,7 +87,7 @@ func (k Keeper) PurchaseShield(
 	premiumMixedDec := types.NewMixedDecCoins(sdk.NewDecCoinsFromCoins(premium...), sdk.DecCoins{})
 	pool.Premium = pool.Premium.Add(premiumMixedDec)
 	pool.Shield = pool.Shield.Add(shield...)
-	pool.Available = pool.Available.Sub(shield.AmountOf(bondDenom))
+	pool.Available = pool.Available.Sub(shieldAmt)
 	k.SetPool(ctx, pool)
 
 	// set purchase
@@ -81,8 +95,19 @@ func (k Keeper) PurchaseShield(
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
 	claimPeriodEndTime := ctx.BlockTime().Add(claimParams.ClaimPeriod)
 	purchase := types.NewPurchase(txhash, poolID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, description, purchaser)
-	k.SetPurchase(ctx, txhash, purchase)
+	k.SetPurchase(ctx, purchase)
+	k.InsertPurchaseQueue(ctx, purchase)
 
+	return purchase, nil
+}
+
+func (k Keeper) SimulatePurchaseShield(
+	ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress, simTxHash []byte,
+) (types.Purchase, error) {
+	purchase, err := k.PurchaseShield(ctx, poolID, shield, description, purchaser)
+	if err != nil {
+		return types.Purchase{}, err
+	}
 	return purchase, nil
 }
 
@@ -106,21 +131,23 @@ func (k Keeper) IterateAllPurchases(ctx sdk.Context, callback func(purchase type
 // RemoveExpiredPurchases removes purchases whose claim period end time is before current block time.
 func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.PurchaseKey)
+	iterator := k.PurchaseQueueIterator(ctx, ctx.BlockTime())
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var purchase types.Purchase
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchase)
-		if purchase.ClaimPeriodEndTime.Before(ctx.BlockTime()) {
+		var timeslice []types.PurchaseTxHash
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &timeslice)
+		for _, entry := range timeslice {
+			purchase, _ := k.GetPurchase(ctx, entry.TxHash)
 			pool, err := k.GetPool(ctx, purchase.PoolID)
 			if err == nil {
 				pool.Available = pool.Available.Add(purchase.Shield.AmountOf(k.sk.BondDenom(ctx)))
 				pool.Shield = pool.Shield.Sub(purchase.Shield)
 				k.SetPool(ctx, pool)
 			}
-			store.Delete(iterator.Key())
+			k.DeletePurchase(ctx, purchase.TxHash)
 		}
+		store.Delete(iterator.Key())
 	}
 }
 
@@ -169,4 +196,36 @@ func (k Keeper) GetAllPurchases(ctx sdk.Context) (purchases []types.Purchase) {
 		return false
 	})
 	return
+}
+
+func (k Keeper) InsertPurchaseQueue(ctx sdk.Context, purchase types.Purchase) {
+	timeSlice := k.GetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime)
+	timeSlice = append(timeSlice, types.PurchaseTxHash{TxHash: purchase.TxHash})
+	k.SetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime, timeSlice)
+}
+
+// GetPurchaseQueueTimeSlice gets a specific purchase queue timeslice,
+// which is a slice of purchases corresponding to a given time.
+func (k Keeper) GetPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []types.PurchaseTxHash {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetPurchaseCompletionTimeKey(timestamp))
+	if bz == nil {
+		return []types.PurchaseTxHash{}
+	}
+	var purchases []types.PurchaseTxHash
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &purchases)
+	return purchases
+}
+
+func (k Keeper) SetPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time, purchases []types.PurchaseTxHash) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchases)
+	store.Set(types.GetPurchaseCompletionTimeKey(timestamp), bz)
+}
+
+// PurchaseQueueIterator returns all the purchase queue timeslices from time 0 until endTime
+func (k Keeper) PurchaseQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
+	store := ctx.KVStore(k.storeKey)
+	return store.Iterator(types.PurchaseQueueKey,
+		sdk.InclusiveEndBytes(types.GetPurchaseCompletionTimeKey(endTime)))
 }

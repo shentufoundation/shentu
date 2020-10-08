@@ -17,12 +17,16 @@ type GenesisState struct {
 	Collaterals         []Collateral        `json:"collaterals" yaml:"collaterals"`
 	Providers           []Provider          `json:"providers" yaml:"providers"`
 	Purchases           []Purchase          `json:"purchases" yaml:"purchases"`
+	Withdraws           Withdraws           `json:"withdraws" yaml:"withdraws"`
+}
+
+type WithdrawTimeSlice struct {
 }
 
 // NewGenesisState creates a new genesis state.
-func NewGenesisState(
-	shieldAdmin sdk.AccAddress, nextPoolID uint64, poolParams PoolParams, claimProposalParams ClaimProposalParams,
-	pools []Pool, collaterals []Collateral, providers []Provider, purchase []Purchase) GenesisState {
+func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID uint64, poolParams PoolParams,
+	claimProposalParams ClaimProposalParams, pools []Pool, collaterals []Collateral,
+	providers []Provider, purchase []Purchase, withdraws Withdraws) GenesisState {
 	return GenesisState{
 		ShieldAdmin:         shieldAdmin,
 		NextPoolID:          nextPoolID,
@@ -32,6 +36,7 @@ func NewGenesisState(
 		Collaterals:         collaterals,
 		Providers:           providers,
 		Purchases:           purchase,
+		Withdraws:           withdraws,
 	}
 }
 
@@ -60,8 +65,6 @@ func ValidateGenesis(bz json.RawMessage) error {
 	if err := validateClaimProposalParams(data.ClaimProposalParams); err != nil {
 		return fmt.Errorf("failed to validate %s claim proposal params: %w", ModuleName, err)
 	}
-
-	//TODO: check invariants?
 
 	return nil
 }

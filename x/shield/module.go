@@ -55,8 +55,8 @@ type AppModule struct {
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(
-	keeper Keeper, accountKeeper types.AccountKeeper, stakingKeeper types.StakingKeeper, supplyKeeper types.SupplyKeeper) AppModule {
+func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper,
+	stakingKeeper types.StakingKeeper, supplyKeeper types.SupplyKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
@@ -116,7 +116,7 @@ func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
 
 // EndBlock returns the end blocker for the shield module.
 func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	EndBlocker(ctx, am.keeper, am.stakingKeeper)
+	EndBlocker(ctx, am.keeper)
 	return []abci.ValidatorUpdate{}
 }
 

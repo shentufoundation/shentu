@@ -23,12 +23,11 @@ import (
 )
 
 var (
-	flagNativeDeposit    = "native-deposit"
-	flagForeignDeposit   = "foreign-deposit"
-	flagShield           = "shield"
-	flagSponsor          = "sponsor"
-	flagTimeOfCoverage   = "time-of-coverage"
-	flagBlocksOfCoverage = "blocks-of-coverage"
+	flagNativeDeposit  = "native-deposit"
+	flagForeignDeposit = "foreign-deposit"
+	flagShield         = "shield"
+	flagSponsor        = "sponsor"
+	flagTimeOfCoverage = "time-of-coverage"
 )
 
 // GetTxCmd returns the transaction commands for this module.
@@ -162,9 +161,8 @@ $ %s tx shield create-pool <shield amount> <sponsor> --native-deposit <ctk depos
 			}
 
 			timeOfCoverage := viper.GetInt64(flagTimeOfCoverage)
-			blocksOfCoverage := viper.GetInt64(flagBlocksOfCoverage)
 
-			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, timeOfCoverage, blocksOfCoverage)
+			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, timeOfCoverage)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -175,8 +173,6 @@ $ %s tx shield create-pool <shield amount> <sponsor> --native-deposit <ctk depos
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagForeignDeposit, "", "foreign coins deposit amount")
 	cmd.Flags().Int64(flagTimeOfCoverage, 0, "time of coverage")
-	cmd.Flags().Int64(flagBlocksOfCoverage, 0, "blocks of coverage")
-
 	return cmd
 }
 
@@ -233,9 +229,8 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit
 			}
 
 			timeOfCoverage := viper.GetInt64(flagTimeOfCoverage)
-			blocksOfCoverage := viper.GetInt64(flagBlocksOfCoverage)
 
-			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, timeOfCoverage, blocksOfCoverage)
+			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, timeOfCoverage)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -248,7 +243,6 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagForeignDeposit, "", "foreign coins deposit amount")
 	cmd.Flags().Int64(flagTimeOfCoverage, 0, "additional time of coverage")
-	cmd.Flags().Int64(flagBlocksOfCoverage, 0, "additional blocks of coverage")
 	return cmd
 }
 
@@ -338,7 +332,7 @@ func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			collateral, err := sdk.ParseCoins(args[1])
+			collateral, err := sdk.ParseCoin(args[1])
 			if err != nil {
 				return err
 			}
@@ -373,7 +367,7 @@ func GetCmdWithdrawCollateral(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			collateral, err := sdk.ParseCoins(args[1])
+			collateral, err := sdk.ParseCoin(args[1])
 			if err != nil {
 				return err
 			}

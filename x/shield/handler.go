@@ -7,7 +7,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
@@ -29,8 +28,6 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgWithdrawRewards(ctx, msg, k)
 		case types.MsgWithdrawForeignRewards:
 			return handleMsgWithdrawForeignRewards(ctx, msg, k)
-		case types.MsgClearPayouts:
-			return handleMsgClearPayouts(ctx, msg, k)
 		case types.MsgDepositCollateral:
 			return handleMsgDepositCollateral(ctx, msg, k)
 		case types.MsgWithdrawCollateral:
@@ -73,7 +70,7 @@ func handleShieldClaimProposal(ctx sdk.Context, k Keeper, p types.ShieldClaimPro
 }
 
 func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*sdk.Result, error) {
-	pool, err := k.CreatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.Sponsor, msg.TimeOfCoverage, msg.BlocksOfCoverage)
+	pool, err := k.CreatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.Sponsor, msg.TimeOfCoverage)
 	if err != nil {
 		return &sdk.Result{Events: ctx.EventManager().Events()}, err
 	}
@@ -86,7 +83,6 @@ func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*s
 			sdk.NewAttribute(types.AttributeKeySponsor, msg.Sponsor),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(pool.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyTimeOfCoverage, strconv.FormatInt(msg.TimeOfCoverage, 10)),
-			sdk.NewAttribute(types.AttributeKeyBlocksOfCoverage, strconv.FormatInt(msg.BlocksOfCoverage, 10)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -98,7 +94,7 @@ func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*s
 }
 
 func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*sdk.Result, error) {
-	_, err := k.UpdatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.PoolID, msg.AdditionalTime, msg.AdditionalBlocks)
+	_, err := k.UpdatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.PoolID, msg.AdditionalTime)
 	if err != nil {
 		return &sdk.Result{Events: ctx.EventManager().Events()}, err
 	}
@@ -121,7 +117,11 @@ func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*s
 }
 
 func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollateral, k Keeper) (*sdk.Result, error) {
-	if err := k.WithdrawCollateral(ctx, msg.From, msg.PoolID, msg.Collateral); err != nil {
+	if msg.Collateral.Denom != k.BondDenom(ctx) {
+		return nil, types.ErrCollateralBadDenom
+	}
+
+	if err := k.WithdrawCollateral(ctx, msg.From, msg.PoolID, msg.Collateral.Amount); err != nil {
 		return nil, err
 	}
 
@@ -137,7 +137,11 @@ func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollatera
 }
 
 func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral, k Keeper) (*sdk.Result, error) {
-	if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral); err != nil {
+	if msg.Collateral.Denom != k.BondDenom(ctx) {
+		return nil, types.ErrCollateralBadDenom
+	}
+
+	if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral.Amount); err != nil {
 		return nil, err
 	}
 
@@ -193,9 +197,16 @@ func handleMsgResumePool(ctx sdk.Context, msg types.MsgResumePool, k Keeper) (*s
 }
 
 func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Keeper) (*sdk.Result, error) {
-	_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
-	if err != nil {
-		return nil, err
+	if msg.Simulate {
+		_, err := k.SimulatePurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From, msg.SimTxHash)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -218,7 +229,7 @@ func handleMsgWithdrawRewards(ctx sdk.Context, msg types.MsgWithdrawRewards, k K
 		sdk.NewEvent(
 			types.EventTypeWithdrawRewards,
 			sdk.NewAttribute(types.AttributeKeyAccountAddress, msg.From.String()),
-			sdk.NewAttribute(types.AttributeKeyDenom, common.MicroCTKDenom),
+			sdk.NewAttribute(types.AttributeKeyDenom, k.BondDenom(ctx)),
 			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 		),
 		sdk.NewEvent(
@@ -236,41 +247,15 @@ func handleMsgWithdrawForeignRewards(ctx sdk.Context, msg types.MsgWithdrawForei
 	if amount.Equal(sdk.ZeroDec()) {
 		return &sdk.Result{Events: ctx.EventManager().Events()}, types.ErrNoRewards
 	}
-	newPayout := types.NewPendingPayouts(amount, msg.ToAddr)
 	rewards.Foreign = rewards.Foreign.Sub(
 		sdk.DecCoins{sdk.NewDecCoinFromDec(msg.Denom, amount)})
 	k.SetRewards(ctx, msg.From, rewards)
-	k.AddPendingPayout(ctx, msg.Denom, newPayout)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWithdrawForeignRewards,
 			sdk.NewAttribute(types.AttributeKeyToAddr, msg.ToAddr),
 			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, newPayout.Amount.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
-		),
-	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
-}
-
-func handleMsgClearPayouts(ctx sdk.Context, msg types.MsgClearPayouts, k Keeper) (*sdk.Result, error) {
-	if !k.GetAdmin(ctx).Equals(msg.From) {
-		return &sdk.Result{Events: ctx.EventManager().Events()}, types.ErrNotShieldAdmin
-	}
-	earnings := k.GetPendingPayouts(ctx, msg.Denom)
-	if earnings == nil {
-		return &sdk.Result{Events: ctx.EventManager().Events()}, types.ErrNoRewards
-	}
-	k.SetPendingPayouts(ctx, msg.Denom, nil)
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeClearPayouts,
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
+			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

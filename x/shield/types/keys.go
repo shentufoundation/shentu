@@ -29,10 +29,10 @@ var (
 	ShieldAdminKey     = []byte{0x1}
 	NextPoolIDKey      = []byte{0x2}
 	PurchaseKey        = []byte{0x3}
-	ReimbursementKey   = []byte{0x4}
-	CollateralKey      = []byte{0x5}
-	ProviderKey        = []byte{0x6}
-	PendingPayoutsKey  = []byte{0x7}
+	PurchaseQueueKey   = []byte{0x4}
+	ReimbursementKey   = []byte{0x5}
+	CollateralKey      = []byte{0x6}
+	ProviderKey        = []byte{0x7}
 	WithdrawalQueueKey = []byte{0x8}
 )
 
@@ -53,11 +53,6 @@ func GetNextPoolIDKey() []byte {
 	return NextPoolIDKey
 }
 
-// GetPendingPayoutsKey gets the key for pending payouts.
-func GetPendingPayoutsKey(denom string) []byte {
-	return append(PendingPayoutsKey, []byte(denom)...)
-}
-
 // GetPurchaseTxHashKey gets the key for a purchase.
 func GetPurchaseTxHashKey(txhash []byte) []byte {
 	return append(PurchaseKey, txhash...)
@@ -73,6 +68,13 @@ func GetProviderKey(addr sdk.AccAddress) []byte {
 func GetWithdrawalCompletionTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
 	return append(WithdrawalQueueKey, bz...)
+}
+
+// GetPurchaseCompletionTimeKey gets a withdrawal queue key,
+// which is obtained from the completion time.
+func GetPurchaseCompletionTimeKey(timestamp time.Time) []byte {
+	bz := sdk.FormatTimeBytes(timestamp)
+	return append(PurchaseQueueKey, bz...)
 }
 
 // GetReimbursement gets the key for a reimbursement.

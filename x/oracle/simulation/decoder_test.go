@@ -16,7 +16,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
 
@@ -117,7 +116,7 @@ func RandomAccount() simulation.Account {
 
 func RandomCoins(n int) sdk.Coins {
 	amount := rand.Intn(n)
-	denom := common.MicroCTKDenom
+	denom := sdk.DefaultBondDenom
 	coins, err := sdk.ParseCoins(strconv.Itoa(amount) + denom)
 	if err != nil {
 		panic(err)
