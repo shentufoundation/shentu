@@ -47,9 +47,10 @@ func (k Keeper) DequeuePurchase(ctx sdk.Context, purchase types.Purchase) {
 	for i, entry := range timeslice {
 		if bytes.Equal(entry.TxHash, purchase.TxHash) {
 			timeslice = append(timeslice[:i], timeslice[i+1:]...)
+			break
 		}
-		k.SetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime, timeslice)
 	}
+	k.SetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime, timeslice)
 }
 
 // PurchaseShield purchases shield of a pool.
