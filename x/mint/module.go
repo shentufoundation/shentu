@@ -14,10 +14,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/mint"
-	mintSim "github.com/cosmos/cosmos-sdk/x/mint/simulation"
+	"github.com/cosmos/cosmos-sdk/x/mint/simulation"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
-
-	"github.com/certikfoundation/shentu/x/mint/simulation"
 )
 
 var (
@@ -114,12 +112,12 @@ func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 }
 
 // BeginBlock processes module beginblock.
-func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
+func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 	BeginBlocker(ctx, am.keeper)
 }
 
 // EndBlock processes module beginblock.
-func (am AppModule) EndBlock(ctx sdk.Context, reb abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
 
@@ -135,12 +133,12 @@ func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedPropos
 
 // RandomizedParams creates randomized mint param changes for the simulator.
 func (AppModule) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-	return mintSim.ParamChanges(r)
+	return simulation.ParamChanges(r)
 }
 
 // RegisterStoreDecoder registers a decoder for mint module's types.
 func (AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[StoreKey] = mintSim.DecodeStore
+	sdr[StoreKey] = simulation.DecodeStore
 }
 
 // WeightedOperations doesn't return any mint module operation.

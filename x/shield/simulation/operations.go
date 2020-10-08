@@ -51,7 +51,7 @@ var (
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
-func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keeper.Keeper,
+func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keeper.Keeper, 
 	ak types.AccountKeeper, sk types.StakingKeeper) simulation.WeightedOperations {
 	var weightMsgCreatePool int
 	appParams.GetOrGenerate(cdc, OpWeightMsgCreatePool, &weightMsgCreatePool, nil,
@@ -181,7 +181,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		// time of coverage
 		timeOfCoverage := int64(simulation.RandIntBetween(r, DefaultTimeOfCoverageMin, DefaultIntMax))
 
-		msg := types.NewMsgCreatePool(simAccount.Address, shield, deposit, sponsor, timeOfCoverage, timeOfCoverage)
+		msg := types.NewMsgCreatePool(simAccount.Address, shield, deposit, sponsor, timeOfCoverage)
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
@@ -254,7 +254,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		// time of coverage
 		timeOfCoverage := int64(simulation.RandIntBetween(r, DefaultTimeOfCoverageMin, DefaultIntMax))
 
-		msg := types.NewMsgUpdatePool(simAccount.Address, shield, deposit, poolID, timeOfCoverage, timeOfCoverage)
+		msg := types.NewMsgUpdatePool(simAccount.Address, shield, deposit, poolID, timeOfCoverage)
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(

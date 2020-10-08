@@ -3,7 +3,6 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
 
@@ -57,7 +56,7 @@ func (k Keeper) IterateAllOperators(ctx sdk.Context, callback func(operator type
 // IsBelowMinCollateral determines if collateral is below the minimum requirement.
 func (k Keeper) IsBelowMinCollateral(ctx sdk.Context, currentCollateral sdk.Coins) bool {
 	params := k.GetLockedPoolParams(ctx)
-	return currentCollateral.AmountOf(common.MicroCTKDenom).LT(sdk.NewInt(params.MinimumCollateral))
+	return currentCollateral.AmountOf(k.stakingKeeper.BondDenom(ctx)).LT(sdk.NewInt(params.MinimumCollateral))
 }
 
 // CreateOperator creates an operator and deposits collateral.

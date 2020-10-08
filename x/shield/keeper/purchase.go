@@ -53,12 +53,11 @@ func (k Keeper) PurchaseShield(
 	if !pool.Active {
 		return types.Purchase{}, types.ErrPoolInactive
 	}
-	if pool.EndTime <= ctx.BlockTime().Unix()+types.DefaultWithdrawalPeriod.Milliseconds()/1000 &&
-		pool.EndBlockHeight <= ctx.BlockHeight()+types.DefaultWithdrawalPeriod.Milliseconds()/1000/5 {
+	if pool.EndTime <= ctx.BlockTime().Unix()+types.DefaultWithdrawalPeriod.Milliseconds()/1000 {
 		return types.Purchase{}, types.ErrPoolLifeTooShort
 	}
-	bondDenom := k.sk.BondDenom(ctx)
-	if shield.AmountOf(bondDenom).GT(pool.Available) {
+	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
+	if shieldAmt.GT(pool.Available) {
 		return types.Purchase{}, types.ErrNotEnoughShield
 	}
 
@@ -73,7 +72,7 @@ func (k Keeper) PurchaseShield(
 	premiumMixedDec := types.NewMixedDecCoins(sdk.NewDecCoinsFromCoins(premium...), sdk.DecCoins{})
 	pool.Premium = pool.Premium.Add(premiumMixedDec)
 	pool.Shield = pool.Shield.Add(shield...)
-	pool.Available = pool.Available.Sub(shield.AmountOf(bondDenom))
+	pool.Available = pool.Available.Sub(shieldAmt)
 	k.SetPool(ctx, pool)
 
 	// set purchase

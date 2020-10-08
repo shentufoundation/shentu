@@ -13,12 +13,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authSim "github.com/cosmos/cosmos-sdk/x/auth/simulation"
+	"github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/auth/client/cli"
 	"github.com/certikfoundation/shentu/x/auth/internal/types"
-	"github.com/certikfoundation/shentu/x/auth/simulation"
 )
 
 var (
@@ -152,12 +151,12 @@ func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedPropos
 
 // RandomizedParams creates randomized auth param changes for the simulator.
 func (AppModule) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-	return authSim.ParamChanges(r)
+	return simulation.ParamChanges(r)
 }
 
 // RegisterStoreDecoder registers a decoder for auth module's types.
 func (AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[StoreKey] = authSim.DecodeStore
+	sdr[StoreKey] = simulation.DecodeStore
 }
 
 // WeightedOperations doesn't return any auth module operation.

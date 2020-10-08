@@ -12,7 +12,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/oracle/internal/keeper"
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
@@ -56,7 +55,7 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-		if collateral.AmountOf(common.MicroCTKDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
+		if collateral.AmountOf(sdk.DefaultBondDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
 			return simulation.NewOperationMsgBasic(types.ModuleName,
 				"NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
 		}
@@ -171,7 +170,7 @@ func SimulateMsgReduceCollateral(
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		newCollateral := operator.Collateral.Sub(collateralDecrement)
-		if newCollateral.AmountOf(common.MicroCTKDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
+		if newCollateral.AmountOf(sdk.DefaultBondDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
 			return simulation.NewOperationMsgBasic(types.ModuleName,
 				"NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
 		}
