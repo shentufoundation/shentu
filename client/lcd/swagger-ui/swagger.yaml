@@ -5,16 +5,18 @@ info:
   title: CertiK Chain
   description: A REST interface for state queries, transaction generation and broadcasting.
 tags:
-  - name: Transactions
-    description: Search, encode, or broadcast transactions.
-  - name: Tendermint RPC
-    description: Tendermint APIs, such as query blocks, transactions and validatorset
   - name: Certification
     description: Manage certifications
   - name: CVM
     description: Chain computation and state
+  - name: Oracle
+    description: Security oracle
   - name: Shield
     description: Shield protection
+  - name: Transactions
+    description: Search, encode, or broadcast transactions.
+  - name: Tendermint RPC
+    description: Tendermint APIs, such as query blocks, transactions and validatorset
   - name: Auth
     description: Authenticate accounts
   - name: Bank
@@ -539,6 +541,86 @@ paths:
                     example: "This is a memo!"
         400:
           description: Failed to parse request
+
+  /cert/revoke/certificate:
+    post:
+      tags:
+        - Certification
+      summary: Revoke certificate
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: revokeCertificateReq
+          description: Request type to revoke certificate
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              revoker:
+                type: string
+                example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
+              certificate_id:
+                type: string
+                example: "1"
+              description:
+                type: string
+                example: "This is a description"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "cert/RevokeCertificate"
+                        value:
+                          type: object
+                          properties:
+                            revoker:
+                              type: string
+                              example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
+                            certificate_id:
+                              type: string
+                              example: "1"
+                            description:
+                              type: string
+                              example: "This is a description"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
   /cert/certifier/{address}:
     get:
       summary: Query certifier by address
