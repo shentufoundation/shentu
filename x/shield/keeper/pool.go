@@ -24,9 +24,8 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, error) {
 	return pool, nil
 }
 
-func (k Keeper) CreatePool(
-	ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, sponsor string, timeOfCoverage int64,
-) (types.Pool, error) {
+func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins,
+	deposit types.MixedCoins, sponsor string, timeOfCoverage int64) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !creator.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -72,9 +71,8 @@ func (k Keeper) CreatePool(
 	return pool, nil
 }
 
-func (k Keeper) UpdatePool(
-	ctx sdk.Context, updater sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, id uint64, additionalTime int64,
-) (types.Pool, error) {
+func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.Coins, 
+	deposit types.MixedCoins, id uint64, additionalTime int64) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
