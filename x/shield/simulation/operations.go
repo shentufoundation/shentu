@@ -50,8 +50,7 @@ var (
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
-func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keeper.Keeper,
-	ak types.AccountKeeper, sk types.StakingKeeper) simulation.WeightedOperations {
+func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.WeightedOperations {
 	var weightMsgCreatePool int
 	appParams.GetOrGenerate(cdc, OpWeightMsgCreatePool, &weightMsgCreatePool, nil,
 		func(_ *rand.Rand) {

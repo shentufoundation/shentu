@@ -18,9 +18,7 @@ type Pool struct {
 	EndTime         int64         `json:"end_time" yaml:"end_time"`
 }
 
-func NewPool(
-	shield sdk.Coins, totalCollateral sdk.Int, deposit MixedDecCoins, sponsor string, endTime int64, id uint64,
-) Pool {
+func NewPool(shield sdk.Coins, totalCollateral sdk.Int, deposit MixedDecCoins, sponsor string, endTime int64, id uint64) Pool {
 	return Pool{
 		Shield:          shield,
 		Premium:         deposit,
@@ -93,10 +91,7 @@ type PurchaseTxHash struct {
 	TxHash []byte `json:"tx_hash" yaml:"tx_hash"`
 }
 
-func NewPurchase(
-	txhash []byte, poolID uint64, shield sdk.Coins, startBlockHeight int64,
-	protectionEndTime, claimPeriodEndTime time.Time, description string, purchaser sdk.AccAddress,
-) Purchase {
+func NewPurchase(txhash []byte, poolID uint64, shield sdk.Coins, startBlockHeight int64, protectionEndTime, claimPeriodEndTime time.Time, description string, purchaser sdk.AccAddress) Purchase {
 	return Purchase{
 		TxHash:             txhash,
 		PoolID:             poolID,

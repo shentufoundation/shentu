@@ -55,6 +55,5 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 	k.RemoveExpiredPurchases(ctx)
 
 	// process completed withdrawals
-	// Remove all mature unbonding delegations from the ubd queue.
 	k.DequeueCompletedWithdrawalQueue(ctx)
 }
