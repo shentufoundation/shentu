@@ -336,6 +336,7 @@ workflows:
       - upload-coverage:
           requires:
             - test-cover
+      - lint
 #      - docker-image:
 #          requires:
 #            - setup-dependencies
