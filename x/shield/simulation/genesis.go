@@ -35,13 +35,12 @@ func RandomizedGenState(simState *module.SimulationState) {
 	gs.PoolParams.WithdrawPeriod = ubdTime
 	gs.ClaimProposalParams.ClaimPeriod = gs.PoolParams.WithdrawPeriod
 	if gs.PoolParams.ProtectionPeriod >= gs.ClaimProposalParams.ClaimPeriod {
-		gs.PoolParams.ProtectionPeriod = gs.ClaimProposalParams.ClaimPeriod * 2 / 3
+		gs.PoolParams.ProtectionPeriod = time.Duration(sim.RandIntBetween(r,
+			int(gs.ClaimProposalParams.ClaimPeriod)/10, int(gs.ClaimProposalParams.ClaimPeriod)))
 	}
 	if gs.PoolParams.MinPoolLife < gs.PoolParams.WithdrawPeriod {
-		gs.PoolParams.MinPoolLife = time.Duration(sim.RandIntBetween(
-			r,
-			int(gs.PoolParams.WithdrawPeriod), int(gs.PoolParams.WithdrawPeriod)*3),
-		)
+		gs.PoolParams.MinPoolLife = time.Duration(sim.RandIntBetween(r,
+			int(gs.PoolParams.WithdrawPeriod), int(gs.PoolParams.WithdrawPeriod)*3))
 	}
 
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(gs)
