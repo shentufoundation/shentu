@@ -13,6 +13,10 @@ type DistrKeeper interface {
 	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 }
 
+type StakingKeeper interface {
+	BondDenom(ctx sdk.Context) (res string)
+}
+
 type SupplyKeeper interface {
 	GetModuleAddress(moduleName string) sdk.AccAddress
 	SendCoinsFromAccountToModule(

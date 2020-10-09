@@ -3,7 +3,6 @@ package types
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
 )
@@ -61,10 +60,4 @@ func validateGasRate(i interface{}) error {
 // ParamKeyTable for auth module
 func ParamKeyTable() subspace.KeyTable {
 	return subspace.NewKeyTable().RegisterParamSet(&Params{})
-}
-
-type ParamSubspace interface {
-	Get(ctx sdk.Context, key []byte, ptr interface{})
-	Set(ctx sdk.Context, key []byte, param interface{})
-	WithKeyTable(table subspace.KeyTable) subspace.Subspace
 }

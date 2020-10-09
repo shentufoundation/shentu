@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	"github.com/certikfoundation/shentu/x/cert"
+	"github.com/certikfoundation/shentu/x/shield"
 )
 
 // Proposal defines a struct used by the governance module to allow for voting
@@ -89,7 +90,7 @@ func (p Proposal) String() string {
 // (certifier) voting before stake (validator) voting.
 func (p Proposal) HasSecurityVoting() bool {
 	switch p.Content.(type) {
-	case upgrade.SoftwareUpgradeProposal, cert.CertifierUpdateProposal:
+	case upgrade.SoftwareUpgradeProposal, cert.CertifierUpdateProposal, shield.ClaimProposal:
 		return true
 	default:
 		return false

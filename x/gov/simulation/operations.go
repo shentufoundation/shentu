@@ -13,9 +13,9 @@ import (
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/shield"
 )
 
 var initialProposalID = uint64(100000000000000)
@@ -115,20 +115,47 @@ func SimulateSubmitProposal(
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
-		simAccount, _ := simulation.RandomAcc(r, accs)
-		deposit, skip, err := randomDeposit(r, ctx, ak, k, simAccount.Address)
-		switch {
-		case skip:
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
-		case err != nil:
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+		var (
+			deposit sdk.Coins
+			skip    bool
+			err     error
+		)
+		var simAccount simulation.Account
+		if content.ProposalType() == shield.ProposalTypeShieldClaim {
+			c := content.(shield.ClaimProposal)
+			for _, simAcc := range accs {
+				if simAcc.Address.Equals(c.Proposer) {
+					simAccount = simAcc
+					break
+				}
+			}
+			account := ak.GetAccount(ctx, simAccount.Address)
+			denom := account.GetCoins()[0].Denom
+			lossAmountDec := c.Loss.AmountOf(denom).ToDec()
+			claimProposalParams := k.ShieldKeeper.GetClaimProposalParams(ctx)
+			depositRate := claimProposalParams.DepositRate
+			minDepositAmountDec := sdk.MaxDec(claimProposalParams.MinDeposit.AmountOf(denom).ToDec(), lossAmountDec.Mul(depositRate))
+			minDepositAmount := minDepositAmountDec.Ceil().RoundInt()
+			if minDepositAmount.GT(account.SpendableCoins(ctx.BlockTime()).AmountOf(denom)) {
+				return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			}
+			deposit = sdk.NewCoins(sdk.NewCoin(denom, minDepositAmount))
+		} else {
+			simAccount, _ = simulation.RandomAcc(r, accs)
+			deposit, skip, err = randomDeposit(r, ctx, ak, k, simAccount.Address)
+			switch {
+			case skip:
+				return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			case err != nil:
+				return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+			}
 		}
 
 		minInitialDeposit := k.GetDepositParams(ctx).MinInitialDeposit
-		if deposit.AmountOf(common.MicroCTKDenom).LT(minInitialDeposit.AmountOf(common.MicroCTKDenom)) &&
+		if deposit.AmountOf(sdk.DefaultBondDenom).LT(minInitialDeposit.AmountOf(sdk.DefaultBondDenom)) &&
 			!k.IsCouncilMember(ctx, simAccount.Address) {
 			return simulation.NewOperationMsgBasic(govTypes.ModuleName,
-				"NoOp: insufficient initial deposits amount, skip this tx", "", false, nil), nil, nil
+				"NoOp: insufficient initial deposit amount, skip this tx", "", false, nil), nil, nil
 		}
 
 		msg := govTypes.NewMsgSubmitProposal(content, deposit, simAccount.Address)
@@ -148,7 +175,7 @@ func SimulateSubmitProposal(
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
 			fees,
-			helpers.DefaultGenTxGas,
+			helpers.DefaultGenTxGas*5,
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},

@@ -31,6 +31,9 @@ type Keeper struct {
 	// the reference to get information about certifiers
 	CertKeeper types.CertKeeper
 
+	// the reference to get claim proposal parameters
+	ShieldKeeper types.ShieldKeeper
+
 	// for ValidatePlan
 	UpgradeKeeper types.UpgradeKeeper
 
@@ -64,6 +67,7 @@ func NewKeeper(
 		supplyKeeper:  supplyKeeper,
 		stakingKeeper: stakingKeeper,
 		CertKeeper:    certKeeper,
+		ShieldKeeper:  shieldKeeper,
 		UpgradeKeeper: upgradeKeeper,
 		cdc:           cdc,
 	}

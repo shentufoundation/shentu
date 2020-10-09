@@ -22,6 +22,7 @@ import (
 	cosmosGov "github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/certikfoundation/shentu/x/auth"
 	"github.com/certikfoundation/shentu/x/auth/vesting"
@@ -33,9 +34,9 @@ import (
 	"github.com/certikfoundation/shentu/x/gov"
 	"github.com/certikfoundation/shentu/x/mint"
 	"github.com/certikfoundation/shentu/x/oracle"
+	"github.com/certikfoundation/shentu/x/shield"
 	"github.com/certikfoundation/shentu/x/slashing"
 	"github.com/certikfoundation/shentu/x/staking"
-	"github.com/certikfoundation/shentu/x/supply"
 	"github.com/certikfoundation/shentu/x/upgrade"
 )
 
@@ -71,6 +72,7 @@ var (
 			upgrade.ProposalHandler,
 			cert.ProposalHandler,
 			paramsclient.ProposalHandler,
+			shield.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -80,6 +82,7 @@ var (
 		cvm.NewAppModuleBasic(),
 		cert.NewAppModuleBasic(),
 		oracle.NewAppModuleBasic(),
+		shield.NewAppModuleBasic(),
 	)
 
 	// module account permissions
@@ -91,12 +94,14 @@ var (
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		gov.ModuleName:            {supply.Burner},
 		oracle.ModuleName:         {supply.Burner},
+		shield.ModuleName:         {supply.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
 	allowedReceivingModAcc = map[string]bool{
 		distr.ModuleName:  true,
 		oracle.ModuleName: true,
+		shield.ModuleName: true,
 	}
 )
 
@@ -126,6 +131,7 @@ type CertiKApp struct {
 	cvmKeeper      cvm.Keeper
 	authKeeper     auth.Keeper
 	oracleKeeper   oracle.Keeper
+	shieldKeeper   shield.Keeper
 
 	// module manager
 	mm *module.Manager
@@ -159,6 +165,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cert.StoreKey,
 		cvm.StoreKey,
 		oracle.StoreKey,
+		shield.StoreKey,
 	}
 
 	for i := 0; i < keysReserved; i++ {
@@ -198,6 +205,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 	oracleSubspace := app.paramsKeeper.Subspace(oracle.DefaultParamSpace)
 	cvmSubspace := app.paramsKeeper.Subspace(cvm.DefaultParamSpace)
+	shieldSubspace := app.paramsKeeper.Subspace(shield.DefaultParamSpace)
 
 	// initialize keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -247,6 +255,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		keys[oracle.StoreKey],
 		app.accountKeeper,
 		app.distrKeeper,
+		&app.stakingKeeper,
 		app.supplyKeeper,
 		oracleSubspace,
 	)
@@ -285,12 +294,20 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		keys[upgrade.StoreKey],
 		app.cdc,
 	)
+	app.shieldKeeper = shield.NewKeeper(
+		app.cdc,
+		keys[shield.StoreKey],
+		&stakingKeeper,
+		app.supplyKeeper,
+		shieldSubspace,
+	)
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference so that it will contain these hooks.
 	app.stakingKeeper = *stakingKeeper.SetHooks(
 		staking.NewMultiStakingHooks(
 			app.distrKeeper.Hooks(),
 			app.slashingKeeper.Hooks(),
+			app.shieldKeeper.Hooks(),
 		),
 	)
 	app.govKeeper = gov.NewKeeper(
@@ -301,13 +318,15 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.supplyKeeper,
 		app.stakingKeeper,
 		app.certKeeper,
+		app.shieldKeeper,
 		app.upgradeKeeper,
 		cosmosGov.NewRouter().
 			AddRoute(gov.RouterKey, gov.ProposalHandler).
 			AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 			AddRoute(cert.RouterKey, cert.NewCertifierUpdateProposalHandler(app.certKeeper)).
 			AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper.Keeper)).
-			AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)),
+			AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+			AddRoute(shield.RouterKey, shield.NewShieldClaimProposalHandler(app.shieldKeeper)),
 	)
 
 	// NOTE: Any module instantiated in the module manager that is
@@ -327,15 +346,18 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cvm.NewAppModule(app.cvmKeeper),
 		cert.NewAppModule(app.certKeeper, app.accountKeeper),
 		oracle.NewAppModule(app.oracleKeeper),
+		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper, app.supplyKeeper),
 	)
 
 	// NOTE: During BeginBlocker, slashing comes after distr so that
 	// there is nothing left over in the validator fee pool, so as to
 	// keep the CanWithdrawInvariant invariant.
 	app.mm.SetOrderBeginBlockers(upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
-		supply.ModuleName, oracle.ModuleName, cvm.ModuleName)
+		supply.ModuleName, oracle.ModuleName, cvm.ModuleName, shield.ModuleName)
 
-	app.mm.SetOrderEndBlockers(cvm.ModuleName, staking.ModuleName, gov.ModuleName, oracle.ModuleName)
+	// NOTE: Shield endblocker comes before staking because it queries
+	// unbonding delegations that staking endblocker deletes.
+	app.mm.SetOrderEndBlockers(crisis.ModuleName, cvm.ModuleName, shield.ModuleName, staking.ModuleName, gov.ModuleName, oracle.ModuleName)
 
 	// NOTE: genutil moodule must occur after staking so that pools
 	// are properly initialized with tokens from genesis accounts.
@@ -349,6 +371,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		mint.ModuleName,
 		supply.ModuleName,
 		cvm.ModuleName,
+		shield.ModuleName,
 		crisis.ModuleName,
 		cert.ModuleName,
 		genutil.ModuleName,
@@ -369,6 +392,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cert.ModuleName,
 		genutil.ModuleName,
 		oracle.ModuleName,
+		shield.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -387,6 +411,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cvm.NewAppModule(app.cvmKeeper),
 		cert.NewAppModule(app.certKeeper, app.accountKeeper),
 		oracle.NewAppModule(app.oracleKeeper),
+		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper, app.supplyKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()

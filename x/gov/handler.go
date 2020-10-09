@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
@@ -17,6 +16,8 @@ import (
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/cert"
 	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
+	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/shield"
 )
 
 // NewHandler handles all "gov" type messages.
@@ -46,7 +47,7 @@ func handleMsgDeposit(ctx sdk.Context, k keeper.Keeper, msg gov.MsgDeposit) (*sd
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor.String()),
 			sdk.NewAttribute(AttributeTxHash, hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))),
 		),
@@ -55,8 +56,8 @@ func handleMsgDeposit(ctx sdk.Context, k keeper.Keeper, msg gov.MsgDeposit) (*sd
 	if votingStarted {
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				types.EventTypeProposalDeposit,
-				sdk.NewAttribute(types.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", msg.ProposalID)),
+				govtypes.EventTypeProposalDeposit,
+				sdk.NewAttribute(govtypes.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", msg.ProposalID)),
 			),
 		)
 	}
@@ -98,6 +99,10 @@ func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmit
 		}
 	}
 
+	if err := updateAfterSubmitProposal(ctx, k, proposal); err != nil {
+		return nil, err
+	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -107,13 +112,13 @@ func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmit
 	)
 
 	submitEvent := sdk.NewEvent(
-		types.EventTypeSubmitProposal,
-		sdk.NewAttribute(types.AttributeKeyProposalType, msg.Content.ProposalType()),
-		sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalID)),
+		govtypes.EventTypeSubmitProposal,
+		sdk.NewAttribute(govtypes.AttributeKeyProposalType, msg.Content.ProposalType()),
+		sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalID)),
 	)
 	if isVotingPeriodActivated {
 		submitEvent = submitEvent.AppendAttributes(
-			sdk.NewAttribute(types.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", proposal.ProposalID)),
+			sdk.NewAttribute(govtypes.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", proposal.ProposalID)),
 		)
 	}
 	ctx.EventManager().EmitEvent(submitEvent)
@@ -121,6 +126,19 @@ func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmit
 		Data:   gov.GetProposalIDBytes(proposal.ProposalID),
 		Events: ctx.EventManager().Events(),
 	}, nil
+}
+
+func updateAfterSubmitProposal(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) error {
+	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
+		c := proposal.Content.(shield.ClaimProposal)
+		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
+		txhash, err := hex.DecodeString(c.PurchaseTxHash)
+		if err != nil {
+			return err
+		}
+		return k.ShieldKeeper.ClaimLock(ctx, c.ProposalID, c.PoolID, c.Loss, txhash, lockPeriod)
+	}
+	return nil
 }
 
 func validateProposalByType(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmitProposal) error {
@@ -143,8 +161,10 @@ func validateProposalByType(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmitP
 		if c.Alias != "" && k.CertKeeper.HasCertifierAlias(ctx, c.Alias) {
 			return cert.ErrRepeatedAlias
 		}
+
 	case upgrade.SoftwareUpgradeProposal:
 		return k.UpgradeKeeper.ValidatePlan(ctx, c.Plan)
+
 	case params.ParameterChangeProposal:
 		for _, change := range c.Changes {
 			ss, ok := k.ParamsKeeper.GetSubspace(change.Subspace)
@@ -156,6 +176,41 @@ func validateProposalByType(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmitP
 				return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "param key %s not found", change.Key)
 			}
 		}
+
+	case shield.ClaimProposal:
+		// check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit)
+		initialDepositAmount := msg.InitialDeposit.AmountOf(common.MicroCTKDenom).ToDec()
+		lossAmount := c.Loss.AmountOf(common.MicroCTKDenom).ToDec()
+		claimProposalParams := k.ShieldKeeper.GetClaimProposalParams(ctx)
+		depositRate := claimProposalParams.DepositRate
+		minDeposit := claimProposalParams.MinDeposit.AmountOf(common.MicroCTKDenom).ToDec()
+		if initialDepositAmount.LT(lossAmount.Mul(depositRate)) || initialDepositAmount.LT(minDeposit) {
+			return sdkerrors.Wrapf(
+				sdkerrors.ErrInsufficientFunds,
+				"insufficient initial deposits amount: %v, minimum: max(%v, %v)",
+				initialDepositAmount, lossAmount.Mul(depositRate), minDeposit,
+			)
+		}
+
+		// check shield >= loss
+		txhash, err := hex.DecodeString(c.PurchaseTxHash)
+		if err != nil {
+			return err
+		}
+		purchase, err := k.ShieldKeeper.GetPurchase(ctx, txhash)
+		if err != nil {
+			return err
+		}
+		if !purchase.Shield.IsAllGTE(c.Loss) {
+			return fmt.Errorf("insufficient shield: %s, loss: %s", purchase.Shield, c.Loss)
+		}
+
+		// check the purchase is not expired
+		if purchase.ClaimPeriodEndTime.Before(ctx.BlockTime()) {
+			return fmt.Errorf("after claim period end time: %s", purchase.ClaimPeriodEndTime)
+		}
+		return nil
+
 	default:
 		return nil
 	}
@@ -171,7 +226,7 @@ func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg gov.MsgVote) (*sdk.Resu
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter.String()),
 		),
 	)

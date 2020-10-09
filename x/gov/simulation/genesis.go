@@ -9,7 +9,6 @@ import (
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
 )
 
@@ -28,8 +27,8 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 // GenerateADepositParams returns a DepositParams object with all of its fields randomized.
 func GenerateADepositParams(r *rand.Rand) types.DepositParams {
-	minInitialDeposit := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, int64(simulation.RandIntBetween(r, 1, 1e2))))
-	minDeposit := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, int64(simulation.RandIntBetween(r, 1, 1e3))))
+	minInitialDeposit := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, int64(simulation.RandIntBetween(r, 1, 1e2))))
+	minDeposit := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, int64(simulation.RandIntBetween(r, 1, 1e3))))
 	maxDepositPeriod := simulation.RandIntBetween(r, 1, 2*60*60*24*2)
 	return types.NewDepositParams(minInitialDeposit, minDeposit, time.Duration(maxDepositPeriod)*time.Second)
 }

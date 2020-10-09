@@ -12,7 +12,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/oracle/internal/keeper"
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
@@ -56,7 +55,7 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-		if collateral.AmountOf(common.MicroCTKDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
+		if collateral.AmountOf(sdk.DefaultBondDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
 			return simulation.NewOperationMsgBasic(types.ModuleName,
 				"NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
 		}
@@ -104,7 +103,9 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 }
 
 // SimulateMsgAddCollateral generates a MsgAddCollateral object with all of its fields randomized.
-func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator, operatorPrivKey crypto.PrivKey) simulation.Operation {
+func SimulateMsgAddCollateral(
+	k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator, operatorPrivKey crypto.PrivKey,
+) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		operator, err := k.GetOperator(ctx, stdOperator.Address)
@@ -150,7 +151,9 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperator 
 }
 
 // SimulateMsgReduceCollateral generates a MsgReduceCollateral object with all of its fields randomized.
-func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator, operatorPrivKey crypto.PrivKey) simulation.Operation {
+func SimulateMsgReduceCollateral(
+	k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator, operatorPrivKey crypto.PrivKey,
+) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		operator, err := k.GetOperator(ctx, stdOperator.Address)
@@ -167,7 +170,7 @@ func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperat
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		newCollateral := operator.Collateral.Sub(collateralDecrement)
-		if newCollateral.AmountOf(common.MicroCTKDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
+		if newCollateral.AmountOf(sdk.DefaultBondDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
 			return simulation.NewOperationMsgBasic(types.ModuleName,
 				"NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
 		}
@@ -201,7 +204,9 @@ func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperat
 }
 
 // SimulateMsgRemoveOperator generates a MsgRemoveOperator object with all of its fields randomized.
-func SimulateMsgRemoveOperator(k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator, operatorPrivKey crypto.PrivKey) simulation.Operation {
+func SimulateMsgRemoveOperator(
+	k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator, operatorPrivKey crypto.PrivKey,
+) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		operator, err := k.GetOperator(ctx, stdOperator.Address)

@@ -69,7 +69,7 @@ type respondToTaskReq struct {
 	Operator string       `json:"operator"`
 }
 
-type DeleteTaskReq struct {
+type deleteTaskReq struct {
 	BaseReq  rest.BaseReq `json:"base_req"`
 	Contract string       `json:"contract"`
 	Function string       `json:"function"`

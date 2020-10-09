@@ -8,23 +8,25 @@ import (
 )
 
 type Keeper struct {
-	cdc          *codec.Codec
-	storeKey     sdk.StoreKey
-	authKeeper   types.AuthKeeper
-	distrKeeper  types.DistrKeeper
-	supplyKeeper types.SupplyKeeper
-	paramSpace   types.ParamSubspace
+	cdc           *codec.Codec
+	storeKey      sdk.StoreKey
+	authKeeper    types.AuthKeeper
+	distrKeeper   types.DistrKeeper
+	stakingKeeper types.StakingKeeper
+	supplyKeeper  types.SupplyKeeper
+	paramSpace    types.ParamSubspace
 }
 
 func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, authKeeper types.AuthKeeper, distriKeeper types.DistrKeeper,
-	supplyKeeper types.SupplyKeeper, paramSpace types.ParamSubspace) Keeper {
+	stakingKeeper types.StakingKeeper, supplyKeeper types.SupplyKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
-		cdc:          cdc,
-		paramSpace:   paramSpace.WithKeyTable(types.ParamKeyTable()),
-		storeKey:     storeKey,
-		authKeeper:   authKeeper,
-		distrKeeper:  distriKeeper,
-		supplyKeeper: supplyKeeper,
+		cdc:           cdc,
+		paramSpace:    paramSpace.WithKeyTable(types.ParamKeyTable()),
+		storeKey:      storeKey,
+		authKeeper:    authKeeper,
+		distrKeeper:   distriKeeper,
+		stakingKeeper: stakingKeeper,
+		supplyKeeper:  supplyKeeper,
 	}
 }
 
