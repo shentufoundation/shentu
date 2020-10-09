@@ -144,20 +144,6 @@ func updateAfterSubmitProposal(ctx sdk.Context, k keeper.Keeper, proposal types.
 func validateProposalByType(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmitProposal) error {
 	switch c := msg.Content.(type) {
 	case cert.CertifierUpdateProposal:
-		if !k.IsCertifier(ctx, msg.Proposer) {
-			return sdkerrors.Wrapf(cert.ErrUnqualifiedCertifier,
-				"%s is not a certifier", msg.Proposer,
-			)
-		}
-		isCertifier := k.IsCertifier(ctx, c.Certifier)
-		if c.AddOrRemove == cert.Add && isCertifier {
-			return cert.ErrCertifierAlreadyExists
-		}
-		if c.AddOrRemove == cert.Remove && !isCertifier {
-			return sdkerrors.Wrapf(cert.ErrUnqualifiedCertifier,
-				"%s is not a certifier", msg.Proposer,
-			)
-		}
 		if c.Alias != "" && k.CertKeeper.HasCertifierAlias(ctx, c.Alias) {
 			return cert.ErrRepeatedAlias
 		}
