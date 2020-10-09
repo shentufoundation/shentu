@@ -153,7 +153,9 @@ jobs:
           name: Run linters
           command: |
             curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.20.0
-            make lint
+      - make:
+          target: lint
+          description: "Run linters"
 
   release:
     docker:
