@@ -36,8 +36,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 		totalCollateralAmount := pool.TotalCollateral.Add(pool.TotalLocked)
 		recipients := k.GetAllPoolCollaterals(ctx, pool)
 		for _, recipient := range recipients {
-			stakeProportion := sdk.NewDecFromInt(sdk.MaxInt(recipient.Amount.Add(recipient.TotalLocked), sdk.ZeroInt(),
-				)).QuoInt(totalCollateralAmount)
+			stakeProportion := sdk.NewDecFromInt(sdk.MaxInt(recipient.Amount.Add(recipient.TotalLocked), sdk.ZeroInt())).QuoInt(totalCollateralAmount)
 			nativePremium := currentBlockPremium.Native.MulDecTruncate(stakeProportion)
 			foreignPremium := currentBlockPremium.Foreign.MulDecTruncate(stakeProportion)
 
