@@ -118,7 +118,7 @@ Where proposal.json contains:
 // GetCmdCreatePool implements the command for creating a Shield pool.
 func GetCmdCreatePool(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-pool [shield amount] [sponsor]",
+		Use:   "create-pool [shield amount] [sponsor] [sponsor-address]",
 		Args:  cobra.ExactArgs(2),
 		Short: "create new Shield pool initialized with an validator address",
 		Long: strings.TrimSpace(
@@ -145,6 +145,11 @@ $ %s tx shield create-pool <shield amount> <sponsor> --native-deposit <ctk depos
 
 			sponsor := args[1]
 
+			sponsorAddr, err := sdk.AccAddressFromBech32(args[2])
+			if err != nil {
+				return err
+			}
+
 			nativeDeposit, err := sdk.ParseCoins(viper.GetString(flagNativeDeposit))
 			if err != nil {
 				return err
@@ -162,7 +167,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> --native-deposit <ctk depos
 
 			timeOfCoverage := viper.GetInt64(flagTimeOfCoverage)
 
-			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, timeOfCoverage)
+			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, timeOfCoverage)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
