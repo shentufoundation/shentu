@@ -131,7 +131,7 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 			}
 			found = false
 			for i := 0; i < len(unbonding.Entries); i++ {
-				if !found && unbonding.Entries[i].CreationHeight == ubd.Entries[0].CreationHeight && unbonding.Entries[i].Balance == ubd.Entries[0].Balance {
+				if !found && unbonding.Entries[i].CreationHeight == ubd.Entries[0].CreationHeight && unbonding.Entries[i].InitialBalance.Equal(ubd.Entries[0].InitialBalance) {
 					found = true
 				} else if found && unbonding.Entries[i].CompletionTime.Before(unbonding.Entries[i-1].CompletionTime) {
 					unbonding.Entries[i-1], unbonding.Entries[i] = unbonding.Entries[i], unbonding.Entries[i-1]
