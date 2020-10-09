@@ -63,6 +63,12 @@ func (k Keeper) PurchaseShield(
 	}
 	poolParams := k.GetPoolParams(ctx)
 	claimParams := k.GetClaimProposalParams(ctx)
+	/*
+	if poolID == 15 {
+		fmt.Printf(">> DEBUG PurchaseShield: total collateral %s, available %s, purchase %s\n",
+			pool.TotalCollateral, pool.Available, shield)
+	}
+	 */
 
 	// check preconditions
 	if !pool.Active {

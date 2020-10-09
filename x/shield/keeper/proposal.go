@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
@@ -343,6 +344,7 @@ func (k Keeper) CreateReimbursement(
 	if err != nil {
 		return err
 	}
+	fmt.Printf(">> DEBUG before CreateReimbursement: pool %d, total collateral %s, total locked %s\n", pool.PoolID, pool.TotalCollateral, pool.TotalLocked)
 	pool.TotalLocked = pool.TotalLocked.Sub(rmb.AmountOf(k.BondDenom(ctx)))
 
 	// for each community member, get coins from delegations
@@ -372,8 +374,9 @@ func (k Keeper) CreateReimbursement(
 			}
 		}
 	}
-	pool.TotalCollateral = poolTotal.Sub(pool.TotalCollateral)
+	pool.TotalCollateral = poolTotal.Sub(pool.TotalLocked)
 	k.SetPool(ctx, pool)
+	// fmt.Printf(">> DEBUG after CreateReimbursement: pool %d, total collateral %s, total locked %s\n", pool.PoolID, pool.TotalCollateral, pool.TotalLocked)
 
 	proposalParams := k.GetClaimProposalParams(ctx)
 	reimbursement := types.NewReimbursement(rmb, beneficiary, ctx.BlockTime().Add(proposalParams.PayoutPeriod))

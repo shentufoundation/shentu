@@ -12,8 +12,8 @@ import (
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "account-collaterals",
 		AccountCollateralsInvariants(k))
-	ir.RegisterRoute(types.ModuleName, "purchased-collaterals",
-		PurchasedCollateralsInvariants(k))
+	// ir.RegisterRoute(types.ModuleName, "purchased-collaterals",
+	// 	PurchasedCollateralsInvariants(k))
 	ir.RegisterRoute(types.ModuleName, "module-coins",
 		ModuleCoinsInvariants(k))
 	ir.RegisterRoute(types.ModuleName, "collateral-pool",
@@ -66,13 +66,14 @@ func PurchasedCollateralsInvariants(k Keeper) sdk.Invariant {
 			}
 			currentPool = pool
 			// (total collateral) < (total purchase) could happen when withdraws are done but there are still locked coins
-			broken = pool.TotalCollateral.Add(pool.TotalCollateral).LT(purchased.AmountOf(denom))
+			broken = pool.TotalCollateral.Add(pool.TotalLocked).LT(purchased.AmountOf(denom))
 			return broken
 		})
 		return sdk.FormatInvariant(types.ModuleName, "pool total collateral and total sum of purchased collateral",
 			fmt.Sprintf("\tPool ID: %v\n"+
 				"\tSum of purchased Shield: %v\n"+
-				"\tPool's total collaterals: %v\n", currentPool.PoolID, purchased, currentPool.TotalCollateral)), broken
+				"\tPool's total collaterals: %v\n" +
+				"\tPool's total locked: %v\n", currentPool.PoolID, purchased, currentPool.TotalCollateral, currentPool.TotalLocked)), broken
 	}
 }
 
