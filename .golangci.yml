@@ -67,7 +67,6 @@ linters:
     - goimports
     - gosimple
     - ineffassign
-    - lll
     - maligned
     - misspell
     - nakedret
@@ -79,6 +78,7 @@ linters:
     - unparam
     - varcheck
     - whitespace
+    # - lll
     # - dupl
     # - gochecknoglobals
     # - godox
