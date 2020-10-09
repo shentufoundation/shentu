@@ -16,7 +16,7 @@ var (
 	DefaultProtectionPeriod = time.Hour * 24 * 14      // 14 days
 	DefaultMinPoolLife      = time.Hour * 24 * 56      // 56 days
 	DefaultShieldFeesRate   = sdk.NewDecWithPrec(1, 2) // 1%
-	DefaultWithdrawalPeriod = time.Hour * 24 * 21      // 21 days
+	DefaultWithdrawPeriod = time.Hour * 24 * 21      // 21 days
 
 	// default values for Shield claim proposal's parameters
 	DefaultClaimPeriod              = time.Hour * 24 * 21                                                    // 21 days
@@ -45,22 +45,22 @@ type PoolParams struct {
 	ProtectionPeriod time.Duration `json:"protection_period" yaml:"protection_period"`
 	MinPoolLife      time.Duration `json:"min_pool_life" yaml:"min_pool_life"`
 	ShieldFeesRate   sdk.Dec       `json:"shield_fees_rate" yaml:"shield_fees_rate"`
-	WithdrawalPeriod time.Duration `json:"withdrawal_period" yaml:"withdrawal_period"`
+	WithdrawPeriod time.Duration `json:"withdraw_period" yaml:"withdraw_period"`
 }
 
 // NewPoolParams creates a new PoolParams object.
-func NewPoolParams(protectionPeriod, minPoolLife, withdrawalPeriod time.Duration, shieldFeesRate sdk.Dec) PoolParams {
+func NewPoolParams(protectionPeriod, minPoolLife, withdrawPeriod time.Duration, shieldFeesRate sdk.Dec) PoolParams {
 	return PoolParams{
 		ProtectionPeriod: protectionPeriod,
 		MinPoolLife:      minPoolLife,
 		ShieldFeesRate:   shieldFeesRate,
-		WithdrawalPeriod: withdrawalPeriod,
+		WithdrawPeriod: withdrawPeriod,
 	}
 }
 
 // DefaultPoolParams returns a default PoolParams instance.
 func DefaultPoolParams() PoolParams {
-	return NewPoolParams(DefaultProtectionPeriod, DefaultMinPoolLife, DefaultWithdrawalPeriod, DefaultShieldFeesRate)
+	return NewPoolParams(DefaultProtectionPeriod, DefaultMinPoolLife, DefaultWithdrawPeriod, DefaultShieldFeesRate)
 }
 
 func validatePoolParams(i interface{}) error {
@@ -71,7 +71,7 @@ func validatePoolParams(i interface{}) error {
 	protectionPeriod := v.ProtectionPeriod
 	minPoolLife := v.MinPoolLife
 	shieldFeesRate := v.ShieldFeesRate
-	withdrawalPeriod := v.WithdrawalPeriod
+	withdrawPeriod := v.WithdrawPeriod
 
 	if protectionPeriod <= 0 {
 		return fmt.Errorf("protection period must be positive: %s", protectionPeriod)
@@ -83,8 +83,8 @@ func validatePoolParams(i interface{}) error {
 		return fmt.Errorf("shield fees rate should be positive and less or equal to one but is %s",
 			shieldFeesRate.String())
 	}
-	if withdrawalPeriod <= 0 {
-		return fmt.Errorf("withdrawal period must be positive: %s", withdrawalPeriod)
+	if withdrawPeriod <= 0 {
+		return fmt.Errorf("withdraw period must be positive: %s", withdrawPeriod)
 	}
 
 	return nil

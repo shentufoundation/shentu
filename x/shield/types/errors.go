@@ -34,7 +34,7 @@ var (
 	ErrCompensationNotFound       = sdkerrors.Register(ModuleName, 129, "compensation is not found")
 	ErrInvalidBeneficiary         = sdkerrors.Register(ModuleName, 130, "invalid beneficiary")
 	ErrNotPayoutTime              = sdkerrors.Register(ModuleName, 131, "has not reached payout time yet")
-	ErrOverWithdrawal             = sdkerrors.Register(ModuleName, 132, "too much withdrawal initiated")
+	ErrOverWithdraw             = sdkerrors.Register(ModuleName, 132, "too much withdraw initiated")
 	ErrNoPoolFoundForSponsor      = sdkerrors.Register(ModuleName, 133, "no pool found for the given sponsor")
 	ErrSponsorAlreadyExists       = sdkerrors.Register(ModuleName, 134, "a pool already exists under the given sponsor")
 	ErrCollateralBadDenom         = sdkerrors.Register(ModuleName, 135, "invalid coin denomination for collateral")
