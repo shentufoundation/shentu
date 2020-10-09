@@ -24,6 +24,7 @@ var (
 	DefaultGenesisState         = types.DefaultGenesisState
 	NewGeneralCertificate       = types.NewGeneralCertificate
 	NewCompilationCertificate   = types.NewCompilationCertificate
+	NewCertifierUpdateProposal  = types.NewCertifierUpdateProposal
 
 	// variable aliases
 	ProposalHandler           = client.ProposalHandler
@@ -42,4 +43,5 @@ type (
 	Validator               = types.Validator
 	Platform                = types.Platform
 	Library                 = types.Library
+	AddOrRemove             = types.AddOrRemove
 )
