@@ -66,12 +66,10 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 		if !found {
 			panic("withdrawal collateral not found")
 		}
-		if collateral.Amount.LT(withdrawal.Amount) {
-			panic("not enough collateral")
-		}
+		// allow collateral amount to be negative, which could happen when it is locked
 		collateral.Amount = collateral.Amount.Sub(withdrawal.Amount)
 		collateral.Withdrawing = collateral.Withdrawing.Sub(withdrawal.Amount)
-		if collateral.Amount.IsZero() && len(collateral.LockedCollaterals) == 0 {
+		if collateral.Amount.IsNegative() && len(collateral.LockedCollaterals) == 0 {
 			store.Delete(types.GetCollateralKey(pool.PoolID, collateral.Provider))
 		} else {
 			k.SetCollateral(ctx, pool, collateral.Provider, collateral)
@@ -82,9 +80,6 @@ func (k Keeper) DequeueCompletedWithdrawalQueue(ctx sdk.Context) {
 		provider, found := k.GetProvider(ctx, withdrawal.Address)
 		if !found {
 			panic("provider not found but its collaterals are being withdrawn")
-		}
-		if withdrawal.Amount.GT(provider.Collateral) {
-			panic("withdrawal amount is greater than the provider's total collateral amount")
 		}
 
 		provider.Collateral = provider.Collateral.Sub(withdrawal.Amount)

@@ -63,7 +63,7 @@ type ShieldClaimProposalReq struct {
 	PoolID         uint64       `json:"pool_id" yaml:"pool_id"`
 	Loss           sdk.Coins    `json:"loss" yaml:"loss"`
 	Evidence       string       `json:"evidence" yaml:"evidence"`
-	PurchaseTxHash string       `json:"purchase_txash" yaml:"purchase_txash"`
+	PurchaseTxHash string       `json:"purchase_txhash" yaml:"purchase_txhash"`
 	Description    string       `json:"description" yaml:"description"`
 	Deposit        sdk.Coins    `json:"deposit" yaml:"deposit"`
 }

@@ -65,7 +65,8 @@ func PurchasedCollateralsInvariants(k Keeper) sdk.Invariant {
 				purchased = purchased.Add(purchase.Shield...)
 			}
 			currentPool = pool
-			broken = pool.TotalCollateral.LT(purchased.AmountOf(denom))
+			// (total collateral) < (total purchase) could happen when withdraws are done but there are still locked coins
+			broken = pool.TotalCollateral.Add(pool.TotalCollateral).LT(purchased.AmountOf(denom))
 			return broken
 		})
 		return sdk.FormatInvariant(types.ModuleName, "pool total collateral and total sum of purchased collateral",

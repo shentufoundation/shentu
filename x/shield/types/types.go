@@ -14,6 +14,7 @@ type Pool struct {
 	Premium         MixedDecCoins `json:"premium" yaml:"premium"`
 	TotalCollateral sdk.Int       `json:"total_collateral" yaml:"total_collateral"`
 	Available       sdk.Int       `json:"available" yaml:"available"`
+	TotalLocked     sdk.Int       `json:"total_locked" yaml:"total_locked"`
 	Shield          sdk.Coins     `json:"shield" yaml:"shield"`
 	EndTime         int64         `json:"end_time" yaml:"end_time"`
 }
@@ -37,6 +38,7 @@ type Collateral struct {
 	Provider          sdk.AccAddress     `json:"provider" yaml:"provider"`
 	Amount            sdk.Int            `json:"amount" yaml:"amount"`
 	Withdrawing       sdk.Int            `json:"withdrawing" yaml:"withdrawing"`
+	TotalLocked       sdk.Int            `json:"total_locked" yaml:"total_locked"`
 	LockedCollaterals []LockedCollateral `json:"locked_collaterals" yaml:"locked_collaterals"`
 }
 

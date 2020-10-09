@@ -13,13 +13,13 @@ import (
 // default parameter values
 var (
 	// default values for Shield pool's parameters
-	DefaultProtectionPeriod = time.Hour * 24 * 1      // 14 days FIXME change for test purpose
+	DefaultProtectionPeriod = time.Hour * 24 * 14      // 14 days
 	DefaultMinPoolLife      = time.Hour * 24 * 56      // 56 days
 	DefaultShieldFeesRate   = sdk.NewDecWithPrec(1, 2) // 1%
 	DefaultWithdrawalPeriod = time.Hour * 24 * 21      // 21 days
 
 	// default values for Shield claim proposal's parameters
-	DefaultClaimPeriod              = time.Hour * 24 * 1                                                    // 21 days FIXME change for test purpose
+	DefaultClaimPeriod              = time.Hour * 24 * 21                                                    // 21 days
 	DefaultPayoutPeriod             = time.Hour * 24 * 56                                                    // 56 days
 	DefaultMinClaimProposalDeposit  = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100000000))) // 100 CTK
 	DefaultClaimProposalDepositRate = sdk.NewDecWithPrec(10, 2)                                              // 10%

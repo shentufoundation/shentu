@@ -49,13 +49,15 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 		lockedCollateral := types.NewLockedCollateral(proposalID, lockAmt)
 		collateral.LockedCollaterals = append(collateral.LockedCollaterals, lockedCollateral)
 		collateral.Amount = collateral.Amount.Sub(lockAmt)
+		collateral.TotalLocked = collateral.TotalLocked.Add(lockAmt)
 		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 		k.LockProvider(ctx, collateral.Provider, lockAmt, lockPeriod)
 	}
 
-	// update the shield of pool
+	// update pool
 	pool.Shield = pool.Shield.Sub(loss)
 	pool.TotalCollateral = pool.TotalCollateral.Sub(lossAmt)
+	pool.TotalLocked = pool.TotalCollateral.Add(lossAmt)
 	k.SetPool(ctx, pool)
 
 	return nil
@@ -164,6 +166,7 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 	}
 	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
 	pool.TotalCollateral = pool.TotalCollateral.Add(lossAmt)
+	pool.TotalLocked = pool.TotalLocked.Sub(lossAmt)
 	k.SetPool(ctx, pool)
 
 	// update collaterals and providers
@@ -171,14 +174,17 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 	for _, collateral := range collaterals {
 		for j := range collateral.LockedCollaterals {
 			if collateral.LockedCollaterals[j].ProposalID == proposalID {
-				collateral.Amount = collateral.Amount.Add(collateral.LockedCollaterals[j].Amount)
+				lockedAmount := collateral.LockedCollaterals[j].Amount
 				provider, found := k.GetProvider(ctx, collateral.Provider)
 				if !found {
-					panic("provider is not found")
+					panic(types.ErrProviderNotFound)
 				}
-				provider.TotalLocked = provider.TotalLocked.Sub(collateral.LockedCollaterals[j].Amount)
-				provider.Collateral = provider.Collateral.Add(collateral.LockedCollaterals[j].Amount)
+				provider.Collateral = provider.Collateral.Add(lockedAmount)
+				provider.TotalLocked = provider.TotalLocked.Sub(lockedAmount)
 				k.SetProvider(ctx, collateral.Provider, provider)
+
+				collateral.Amount = collateral.Amount.Add(lockedAmount)
+				collateral.TotalLocked = collateral.TotalLocked.Sub(lockedAmount)
 				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1:]...)
 				k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 				break
@@ -331,30 +337,46 @@ func (k Keeper) DeleteReimbursement(ctx sdk.Context, proposalID uint64) error {
 
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(
-	ctx sdk.Context, proposalID uint64, poolID uint64, amount sdk.Coins, beneficiary sdk.AccAddress,
+	ctx sdk.Context, proposalID uint64, poolID uint64, rmb sdk.Coins, beneficiary sdk.AccAddress,
 ) error {
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
 		return err
 	}
+	pool.TotalLocked = pool.TotalLocked.Sub(rmb.AmountOf(k.BondDenom(ctx)))
 
 	// for each community member, get coins from delegations
+	poolTotal := sdk.ZeroInt()
 	collaterals := k.GetAllPoolCollaterals(ctx, pool)
 	for _, collateral := range collaterals {
 		for j := range collateral.LockedCollaterals {
 			if collateral.LockedCollaterals[j].ProposalID == proposalID {
+				lockedAmount := collateral.LockedCollaterals[j].Amount
+				provider, found := k.GetProvider(ctx, collateral.Provider)
+				if !found {
+					panic(types.ErrProviderNotFound)
+				}
+				provider.TotalLocked = provider.TotalLocked.Sub(lockedAmount)
+				k.SetProvider(ctx, collateral.Provider, provider)
+
+				if err := k.UndelegateCoinsToShieldModule(ctx, collateral.Provider, lockedAmount); err != nil {
+					panic(err)
+				}
+				collateral.TotalLocked = collateral.TotalLocked.Sub(lockedAmount)
+				if collateral.Amount.Add(collateral.TotalLocked).IsPositive() {
+					poolTotal = poolTotal.Add(collateral.Amount.Add(collateral.TotalLocked))
+				}
 				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1])
 				k.SetCollateral(ctx, pool, collateral.Provider, collateral)
-				if err := k.UndelegateCoinsToShieldModule(ctx, collateral.Provider, collateral.LockedCollaterals[j].Amount); err != nil {
-					return err
-				}
 				break
 			}
 		}
 	}
+	pool.TotalCollateral = poolTotal.Sub(pool.TotalCollateral)
+	k.SetPool(ctx, pool)
 
 	proposalParams := k.GetClaimProposalParams(ctx)
-	reimbursement := types.NewReimbursement(amount, beneficiary, ctx.BlockTime().Add(proposalParams.PayoutPeriod))
+	reimbursement := types.NewReimbursement(rmb, beneficiary, ctx.BlockTime().Add(proposalParams.PayoutPeriod))
 	k.SetReimbursement(ctx, proposalID, reimbursement)
 	return nil
 }
