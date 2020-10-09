@@ -71,7 +71,7 @@ func (k Keeper) GetAllWithdraws(ctx sdk.Context) (withdraws types.Withdraws) {
 }
 
 // DequeueCompletedWithdrawQueue dequeues completed withdraws
-// and  
+// and processes their completions.
 func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 	// retrieve completed withdraws from the queue
 	store := ctx.KVStore(k.storeKey)
