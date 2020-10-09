@@ -112,17 +112,16 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 			if !found {
 				panic("unbonding delegation was not found")
 			}
-			i := 0
-			for i < len(unbonding.Entries) {
-				if unbonding.Entries[i].CreationHeight == ubd.Entries[0].CreationHeight && unbonding.Entries[i].Balance == ubd.Entries[0].Balance {
-					unbonding.Entries = append(unbonding.Entries[:i], unbonding.Entries[i+1:]...)
+			found = false
+			for i := 0; i < len(unbonding.Entries); i++ {
+				if !found && unbonding.Entries[i].CreationHeight == ubd.Entries[0].CreationHeight && unbonding.Entries[i].Balance == ubd.Entries[0].Balance {
+					found = true
+				} else if found && unbonding.Entries[i].CompletionTime.Before(unbonding.Entries[i-1].CompletionTime) {
+					unbonding.Entries[i-1], unbonding.Entries[i] = unbonding.Entries[i], unbonding.Entries[i-1]
+				} else if found {
+					break
 				}
-				i++
 			}
-			for i < len(unbonding.Entries) && unbonding.Entries[i].CompletionTime.Before(ubd.Entries[0].CompletionTime) {
-				i++
-			}
-			unbonding.Entries = append(append(unbonding.Entries[:i], ubd.Entries[0]), unbonding.Entries[i+1:]...)
 			k.sk.SetUnbondingDelegation(ctx, unbonding)
 		}
 		short = short.Sub(ubd.Entries[0].Balance)
