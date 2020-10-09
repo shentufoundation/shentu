@@ -14,6 +14,7 @@ import (
 // ClaimLock locks collaterals after a claim proposal is submitted.
 func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 	loss sdk.Coins, purchaseTxHash []byte, lockPeriod time.Duration) error {
+	// fmt.Printf("DEBUG ClaimLock\n")
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
 		return err
@@ -67,6 +68,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 // LockProvider checks if delegations of an account can cover the loss.
 // It modifies unbonding time if the totals delegations cannot cover the loss.
 func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk.Int, lockPeriod time.Duration) {
+	// fmt.Printf("DEBUG LockProvider\n")
 	provider, found := k.GetProvider(ctx, delAddr)
 	if !found {
 		panic(types.ErrProviderNotFound)
@@ -80,8 +82,7 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 	provider.Collateral = provider.Collateral.Sub(amount)
 	k.SetProvider(ctx, delAddr, provider)
 
-	// if there are enough delegations
-	// TODO logics for providers are changing, check if it outdated
+	// if there are enough delegations, do nothing
 	if provider.DelegationBonded.GTE(provider.TotalLocked) {
 		return
 	}
@@ -94,23 +95,37 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 		if !short.IsPositive() {
 			return
 		}
-		for i, entry := range ubd.Entries {
-			if entry.CompletionTime.Before(endTime) {
-				// change unbonding completion time
-				timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, ubd.Entries[i].CompletionTime)
-				for i := 0; i < len(timeSlice); i++ {
-					if timeSlice[i].DelegatorAddress.Equals(delAddr) && timeSlice[i].ValidatorAddress.Equals(ubd.ValidatorAddress) {
-						timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
-						k.sk.SetUBDQueueTimeSlice(ctx, entry.CompletionTime, timeSlice)
-						break
-					}
+		if ubd.Entries[0].CompletionTime.Before(endTime) {
+			// change unbonding completion time
+			timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, ubd.Entries[0].CompletionTime)
+			for i := 0; i < len(timeSlice); i++ {
+				if timeSlice[i].DelegatorAddress.Equals(delAddr) && timeSlice[i].ValidatorAddress.Equals(ubd.ValidatorAddress) {
+					timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
+					k.sk.SetUBDQueueTimeSlice(ctx, ubd.Entries[0].CompletionTime, timeSlice)
+					break
 				}
-				ubd.Entries[i].CompletionTime = endTime
-				k.sk.InsertUBDQueue(ctx, ubd, endTime)
 			}
-			short = short.Sub(entry.Balance)
+			ubd.Entries[0].CompletionTime = endTime
+			k.sk.InsertUBDQueue(ctx, ubd, endTime)
+
+			unbonding, found := k.sk.GetUnbondingDelegation(ctx, ubd.DelegatorAddress, ubd.ValidatorAddress)
+			if !found {
+				panic("unbonding delegation was not found")
+			}
+			i := 0
+			for i < len(unbonding.Entries) {
+				if unbonding.Entries[i].CreationHeight == ubd.Entries[0].CreationHeight && unbonding.Entries[i].Balance == ubd.Entries[0].Balance {
+					unbonding.Entries = append(unbonding.Entries[:i], unbonding.Entries[i+1:]...)
+				}
+				i++
+			}
+			for i < len(unbonding.Entries) && unbonding.Entries[i].CompletionTime.Before(ubd.Entries[0].CompletionTime) {
+				i++
+			}
+			unbonding.Entries = append(append(unbonding.Entries[:i], ubd.Entries[0]), unbonding.Entries[i+1:]...)
+			k.sk.SetUnbondingDelegation(ctx, unbonding)
 		}
-		k.sk.SetUnbondingDelegation(ctx, ubd)
+		short = short.Sub(ubd.Entries[0].Balance)
 	}
 	if short.IsPositive() {
 		panic("not enough bonded and unbonding delegations")
@@ -119,9 +134,9 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 
 // GetSortedUnbondingDelegations gets unbonding delegations sorted by completion time.
 func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAddress) []staking.UnbondingDelegation {
-	unbondingDelegation := k.sk.GetAllUnbondingDelegations(ctx, delAddr)
+	ubds := k.sk.GetAllUnbondingDelegations(ctx, delAddr)
 	var unbondingDelegations []staking.UnbondingDelegation
-	for _, ubd := range unbondingDelegation {
+	for _, ubd := range ubds {
 		for _, entry := range ubd.Entries {
 			unbondingDelegations = append(
 				unbondingDelegations,
@@ -136,6 +151,7 @@ func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAd
 }
 
 func (k Keeper) RedirectUnbondingEntryToShieldModule(ctx sdk.Context, ubd staking.UnbondingDelegation, endIndex int) {
+	// fmt.Printf("DEBUG RedirectUnbondingEntryToShieldModule\n")
 	delAddr := ubd.DelegatorAddress
 	valAddr := ubd.ValidatorAddress
 	shieldAddr := k.supplyKeeper.GetModuleAddress(types.ModuleName)
@@ -161,6 +177,7 @@ func (k Keeper) RedirectUnbondingEntryToShieldModule(ctx sdk.Context, ubd stakin
 
 // ClaimUnlock unlocks locked collaterals.
 func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, loss sdk.Coins) error {
+	// fmt.Printf("DEBUG ClaimUnlock\n")
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
 		return err
@@ -219,6 +236,7 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, pu
 
 // UndelegateCoinsToShieldModule undelegates delegations and send coins the the shield module.
 func (k Keeper) UndelegateCoinsToShieldModule(ctx sdk.Context, delAddr sdk.AccAddress, loss sdk.Int) error {
+	fmt.Printf(">> DEBUG UndelegateCoinsToShieldModule\n")
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
 	var totalDelAmountDec sdk.Dec
 	for _, del := range delegations {
@@ -231,15 +249,21 @@ func (k Keeper) UndelegateCoinsToShieldModule(ctx sdk.Context, delAddr sdk.AccAd
 
 	// start with bonded delegations
 	lossAmountDec := loss.ToDec()
-	for _, del := range delegations {
-		val, found := k.sk.GetValidator(ctx, del.GetValidatorAddr())
+	remainingDec := lossAmountDec
+	for i, _ := range delegations {
+		val, found := k.sk.GetValidator(ctx, delegations[i].GetValidatorAddr())
 		if !found {
 			panic("validator is not found")
 		}
-		delAmountDec := val.TokensFromShares(del.GetShares())
+		delAmountDec := val.TokensFromShares(delegations[i].GetShares())
 		var ubdAmountDec sdk.Dec
 		if totalDelAmountDec.GT(lossAmountDec) {
-			ubdAmountDec = lossAmountDec.Mul(delAmountDec).Quo(totalDelAmountDec)
+			if i == len(delegations) - 1 {
+				ubdAmountDec = remainingDec
+			} else {
+				ubdAmountDec = lossAmountDec.Mul(delAmountDec).Quo(totalDelAmountDec)
+				remainingDec = remainingDec.Sub(ubdAmountDec)
+			}
 		} else {
 			ubdAmountDec = delAmountDec
 		}
@@ -247,7 +271,7 @@ func (k Keeper) UndelegateCoinsToShieldModule(ctx sdk.Context, delAddr sdk.AccAd
 		if err != nil {
 			panic(err)
 		}
-		k.UndelegateShares(ctx, del.DelegatorAddress, del.ValidatorAddress, ubdShares)
+		k.UndelegateShares(ctx, delegations[i].DelegatorAddress, delegations[i].ValidatorAddress, ubdShares)
 	}
 	if totalDelAmountDec.GTE(lossAmountDec) {
 		return nil
@@ -255,33 +279,34 @@ func (k Keeper) UndelegateCoinsToShieldModule(ctx sdk.Context, delAddr sdk.AccAd
 
 	// if bonded delegations are not enough, track unbonding delegations
 	unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, delAddr)
-	shortDec := lossAmountDec.Sub(totalDelAmountDec)
 	for _, ubd := range unbondingDelegations {
 		entry := 0
-		if !shortDec.IsPositive() {
+		if !remainingDec.IsPositive() {
 			return nil
 		}
+		fmt.Printf(">> DEBUG UndelegateCoinsToShieldModule: shouldn't it always be one? %d\n", len(ubd.Entries))
 		for i := range ubd.Entries {
 			entry = i
 			ubdAmountDec := ubd.Entries[i].InitialBalance.ToDec()
-			if ubdAmountDec.GT(shortDec) {
+			if ubdAmountDec.GT(remainingDec) {
 				// FIXME not a good way to go maybe?
-				overflowCoins := sdk.NewDecCoins(sdk.NewDecCoin(k.sk.BondDenom(ctx), ubdAmountDec.Sub(shortDec).TruncateInt()))
+				overflowCoins := sdk.NewDecCoins(sdk.NewDecCoin(k.sk.BondDenom(ctx), ubdAmountDec.Sub(remainingDec).TruncateInt()))
 				overflowMixedCoins := types.MixedDecCoins{Native: overflowCoins}
 				k.AddRewards(ctx, delAddr, overflowMixedCoins)
 				break
 			}
-			shortDec = shortDec.Sub(ubdAmountDec)
+			remainingDec = remainingDec.Sub(ubdAmountDec)
 		}
 		k.RedirectUnbondingEntryToShieldModule(ctx, ubd, entry)
 	}
 
-	if shortDec.IsPositive() {
+	if remainingDec.IsPositive() {
 		panic("not enough bonded stake")
 	}
 	return nil
 }
 
+// TODO remove delegation or validator when it is possible
 // UndelegateShares undelegates delegations of a delegator to a validator by shares.
 func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdk.Dec) {
 	delegation, found := k.sk.GetDelegation(ctx, delAddr, valAddr)
@@ -291,11 +316,11 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	k.sk.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
 
 	// undelegate coins from the staking module account to the shield module account
-	val, found := k.sk.GetValidator(ctx, valAddr)
+	validator, found := k.sk.GetValidator(ctx, valAddr)
 	if !found {
 		panic("validator was not found")
 	}
-	ubdCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), val.TokensFromShares(shares).TruncateInt()))
+	ubdCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), validator.TokensFromShares(shares).TruncateInt()))
 	if err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, staking.BondedPoolName, types.ModuleName, ubdCoins); err != nil {
 		panic(err)
 	}
@@ -305,6 +330,8 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	k.sk.SetDelegation(ctx, delegation)
 
 	k.sk.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+
+	k.sk.RemoveValidatorTokensAndShares(ctx, validator, shares)
 }
 
 // SetReimbursement sets a reimbursement in store.
@@ -344,7 +371,7 @@ func (k Keeper) CreateReimbursement(
 	if err != nil {
 		return err
 	}
-	fmt.Printf(">> DEBUG before CreateReimbursement: pool %d, total collateral %s, total locked %s\n", pool.PoolID, pool.TotalCollateral, pool.TotalLocked)
+	// fmt.Printf(">> DEBUG before CreateReimbursement: pool %d, total collateral %s, total locked %s\n", pool.PoolID, pool.TotalCollateral, pool.TotalLocked)
 	pool.TotalLocked = pool.TotalLocked.Sub(rmb.AmountOf(k.BondDenom(ctx)))
 
 	// for each community member, get coins from delegations

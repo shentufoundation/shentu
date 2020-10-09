@@ -521,10 +521,7 @@ func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper)
 	return func(r *rand.Rand, ctx sdk.Context, accs []simulation.Account) govtypes.Content {
 		bondDenom := sk.BondDenom(ctx)
 		purchase, found := keeper.RandomPurchase(r, k, ctx)
-		if !found {
-			return nil
-		}
-		if purchase.ClaimPeriodEndTime.Before(ctx.BlockTime()) {
+		if !found || purchase.ClaimPeriodEndTime.Before(ctx.BlockTime()) {
 			return nil
 		}
 		lossAmount, err := simulation.RandPositiveInt(r, purchase.Shield.AmountOf(bondDenom))
