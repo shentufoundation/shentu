@@ -49,10 +49,10 @@ type Keeper struct {
 // - depositing funds into proposals, and activating upon sufficient funds being deposited
 // - users voting on proposals, with weight proportional to stake in the system
 // - and tallying the result of the vote.
-func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, paramsKeeper types.ParamsKeeper,
-	supplyKeeper govTypes.SupplyKeeper, stakingKeeper govTypes.StakingKeeper,
-	certKeeper types.CertKeeper, upgradeKeeper types.UpgradeKeeper, router govTypes.Router,
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, 
+	paramsKeeper types.ParamsKeeper, supplyKeeper govTypes.SupplyKeeper, 
+	stakingKeeper govTypes.StakingKeeper, certKeeper types.CertKeeper, shieldKeeper types.ShieldKeeper, 
+	upgradeKeeper types.UpgradeKeeper, router govTypes.Router,
 ) Keeper {
 	// ensure governance module account is set
 	if addr := supplyKeeper.GetModuleAddress(govTypes.ModuleName); addr == nil {
