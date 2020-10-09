@@ -65,10 +65,10 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) 
 
 	deltaAmount := totalStakedAmount.Sub(provider.DelegationBonded)
 	provider.DelegationBonded = totalStakedAmount
-	withdrawalAmount := sdk.ZeroInt()
+	withdrawAmount := sdk.ZeroInt()
 	if deltaAmount.IsNegative() {
 		if totalStakedAmount.LT(provider.Collateral.Sub(provider.Withdrawing)) {
-			withdrawalAmount = provider.Collateral.Sub(provider.Withdrawing).Sub(totalStakedAmount)
+			withdrawAmount = provider.Collateral.Sub(provider.Withdrawing).Sub(totalStakedAmount)
 		}
 		provider.Available = provider.Available.Sub(deltaAmount.Neg())
 	} else {
@@ -76,9 +76,9 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) 
 	}
 	k.SetProvider(ctx, delAddr, provider)
 
-	// save the change of provider before this because withdrawal also updates the provider
-	if withdrawalAmount.IsPositive() {
-		k.WithdrawFromPools(ctx, delAddr, withdrawalAmount)
+	// save the change of provider before this because withdraw also updates the provider
+	if withdrawAmount.IsPositive() {
+		k.WithdrawFromPools(ctx, delAddr, withdrawAmount)
 	}
 }
 
@@ -99,12 +99,12 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	deltaAmount := validator.TokensFromShares(delegation.Shares).TruncateInt()
 
 	provider.DelegationBonded = provider.DelegationBonded.Sub(deltaAmount)
-	withdrawalAmount := sdk.ZeroInt()
+	withdrawAmount := sdk.ZeroInt()
 	if deltaAmount.IsNegative() {
 		if provider.DelegationBonded.LT(
 			provider.Collateral.Sub(provider.Withdrawing),
 		) {
-			withdrawalAmount = provider.Collateral.Sub(
+			withdrawAmount = provider.Collateral.Sub(
 				provider.Withdrawing).Sub(provider.DelegationBonded)
 		}
 		provider.Available = provider.Available.Sub(deltaAmount.Neg())
@@ -114,8 +114,8 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	k.SetProvider(ctx, delAddr, provider)
 
 	// note that this will also be triggered by redelegations
-	if withdrawalAmount.IsPositive() {
-		k.WithdrawFromPools(ctx, delAddr, withdrawalAmount)
+	if withdrawAmount.IsPositive() {
+		k.WithdrawFromPools(ctx, delAddr, withdrawAmount)
 	}
 }
 
