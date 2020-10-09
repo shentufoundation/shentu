@@ -120,6 +120,7 @@ jobs:
       - make:
           target: test-sim-multi-seed-long
           description: "Test Shentu multi-seed simulation (long-lived)"
+
   test-cover:
     executor: golang
     parallelism: 4
@@ -145,6 +146,13 @@ jobs:
       - store_artifacts:
           path: /tmp/logs
 
+  lint:
+    executor: golang
+    steps:
+      - make:
+          target: lint
+          description: "Run linters"
+
   release:
     docker:
       - image: circleci/golang:1.14.7
@@ -156,6 +164,7 @@ jobs:
             export BUILD_TAGS="netgo ledger"
             export GOSUM=$(sha256sum go.sum | cut -d ' ' -f1)
             curl -sL https://git.io/goreleaser | bash
+
   upload-coverage:
     executor: golang
     steps:
