@@ -19,6 +19,21 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 	if err != nil {
 		return err
 	}
+	if !pool.Shield.IsAllGTE(loss) {
+		panic(types.ErrNotEnoughShield)
+	}
+
+	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
+	poolValidCollateral := sdk.ZeroInt()
+	collaterals := k.GetAllPoolCollaterals(ctx, pool)
+	for _, collateral := range collaterals {
+		if collateral.Amount.IsPositive() {
+			poolValidCollateral = poolValidCollateral.Add(collateral.Amount)
+		}
+	}
+	if poolValidCollateral.LT(lossAmt) {
+		panic(types.ErrNotEnoughCollateral)
+	}
 
 	// update shield of purchase
 	purchase, err := k.GetPurchase(ctx, purchaseTxHash)
@@ -35,25 +50,31 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64,
 	}
 	k.SetPurchase(ctx, purchase)
 
-	if !pool.Shield.IsAllGTE(loss) {
-		// TODO this should never happen?
-		return types.ErrNotEnoughShield
-	}
+	// fmt.Printf(">> DEBUG ClaimLock: lock %s in %s\n", lossAmt, poolValidCollateral)
 
 	// update locked collaterals for community
-	collaterals := k.GetAllPoolCollaterals(ctx, pool)
-	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
-	for _, collateral := range collaterals {
-		lockAmt := GetLockAmount(lossAmt, pool.TotalCollateral, collateral.Amount)
-		if lockAmt.IsZero() {
+	proportionDec := lossAmt.ToDec().Quo(poolValidCollateral.ToDec())
+	remaining := lossAmt
+	for i, _ := range collaterals {
+		if !collaterals[i].Amount.IsPositive() {
 			continue
 		}
+		var lockAmt sdk.Int
+		if i < len(collaterals) - 1 {
+			lockAmt = collaterals[i].Amount.ToDec().Mul(proportionDec).TruncateInt()
+			if lockAmt.LT(collaterals[i].Amount) && lockAmt.LT(remaining) {
+				lockAmt = lockAmt.Add(sdk.OneInt())
+			}
+			remaining = remaining.Sub(lockAmt)
+		} else {
+			lockAmt = remaining
+		}
 		lockedCollateral := types.NewLockedCollateral(proposalID, lockAmt)
-		collateral.LockedCollaterals = append(collateral.LockedCollaterals, lockedCollateral)
-		collateral.Amount = collateral.Amount.Sub(lockAmt)
-		collateral.TotalLocked = collateral.TotalLocked.Add(lockAmt)
-		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
-		k.LockProvider(ctx, collateral.Provider, lockAmt, lockPeriod)
+		collaterals[i].LockedCollaterals = append(collaterals[i].LockedCollaterals, lockedCollateral)
+		collaterals[i].Amount = collaterals[i].Amount.Sub(lockAmt)
+		collaterals[i].TotalLocked = collaterals[i].TotalLocked.Add(lockAmt)
+		k.SetCollateral(ctx, pool, collaterals[i].Provider, collaterals[i])
+		k.LockProvider(ctx, collaterals[i].Provider, lockAmt, lockPeriod)
 	}
 
 	// update pool
@@ -73,6 +94,7 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 	if !found {
 		panic(types.ErrProviderNotFound)
 	}
+	// fmt.Printf(">> DEBUG LockProvider: %s collateral %s, lock %s\n", delAddr, provider.Collateral, amount)
 	if !provider.Collateral.GTE(amount) {
 		panic(types.ErrNotEnoughCollateral)
 	}
