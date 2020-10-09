@@ -50,8 +50,7 @@ var (
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
-func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keeper.Keeper,
-	ak types.AccountKeeper, sk types.StakingKeeper) simulation.WeightedOperations {
+func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.WeightedOperations {
 	var weightMsgCreatePool int
 	appParams.GetOrGenerate(cdc, OpWeightMsgCreatePool, &weightMsgCreatePool, nil,
 		func(_ *rand.Rand) {
@@ -347,13 +346,13 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 		account := ak.GetAccount(ctx, simAccount.Address)
 
 		withdrawable := collateral.Amount.Sub(collateral.Withdrawing)
-		withdrawalAmount, err := simulation.RandPositiveInt(r, withdrawable)
+		withdrawAmount, err := simulation.RandPositiveInt(r, withdrawable)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		withdrawal := sdk.NewCoin(sk.BondDenom(ctx), withdrawalAmount)
+		withdraw := sdk.NewCoin(sk.BondDenom(ctx), withdrawAmount)
 
-		msg := types.NewMsgWithdrawCollateral(simAccount.Address, collateral.PoolID, withdrawal)
+		msg := types.NewMsgWithdrawCollateral(simAccount.Address, collateral.PoolID, withdraw)
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(

@@ -33,7 +33,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 		k.UpdateDelegationAmount(ctx, provider.Address)
 	}
 	for _, withdraw := range data.Withdraws {
-		k.InsertWithdrawalQueue(ctx, withdraw)
+		k.InsertWithdrawQueue(ctx, withdraw)
 	}
 
 	return []abci.ValidatorUpdate{}

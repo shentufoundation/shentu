@@ -17,14 +17,13 @@ type MsgCreatePool struct {
 }
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
-func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins,
-	sponsor string, timeOfCoverage int64) MsgCreatePool {
+func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, time int64) MsgCreatePool {
 	return MsgCreatePool{
 		From:           accAddr,
 		Shield:         shield,
 		Deposit:        deposit,
 		Sponsor:        sponsor,
-		TimeOfCoverage: timeOfCoverage,
+		TimeOfCoverage: time,
 	}
 }
 
@@ -78,15 +77,13 @@ type MsgUpdatePool struct {
 }
 
 // NewMsgUpdatePool creates a new MsgUpdatePool instance.
-func NewMsgUpdatePool(
-	accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, id uint64, additionalTime int64,
-) MsgUpdatePool {
+func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, id uint64, time int64) MsgUpdatePool {
 	return MsgUpdatePool{
 		From:           accAddr,
 		Shield:         shield,
 		Deposit:        deposit,
 		PoolID:         id,
-		AdditionalTime: additionalTime,
+		AdditionalTime: time,
 	}
 }
 
