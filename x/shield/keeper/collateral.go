@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
@@ -40,7 +39,6 @@ func (k Keeper) FreeCollaterals(ctx sdk.Context, pool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
 	k.IteratePoolCollaterals(ctx, pool, func(collateral types.Collateral) bool {
 		provider, _ := k.GetProvider(ctx, collateral.Provider)
-		fmt.Printf(">> DEBUG FreeCollaterals: provider %s, collateral %s --> %s\n", provider.Address, provider.Collateral, provider.Collateral.Sub(collateral.Amount))
 		provider.Collateral = provider.Collateral.Sub(collateral.Amount)
 		k.SetProvider(ctx, collateral.Provider, provider)
 		store.Delete(types.GetCollateralKey(pool.PoolID, collateral.Provider))
@@ -171,9 +169,6 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	poolParams := k.GetPoolParams(ctx)
 	completionTime := ctx.BlockHeader().Time.Add(poolParams.WithdrawPeriod)
 	withdraw := types.NewWithdraw(id, from, amount, completionTime)
-	if from.String() == "cosmos16cdyl2tl5zdl3mwll49gyekw230m7887x6pztd" {
-		fmt.Printf(">> DEBUG WithdrawCollateral: pool %d, provider %s, withdrawing %s\n", id, from, amount)
-	}
 	k.InsertWithdrawQueue(ctx, withdraw)
 
 	collateral.Withdrawing = collateral.Withdrawing.Add(amount)

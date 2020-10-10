@@ -88,7 +88,6 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 	if !found {
 		panic(types.ErrProviderNotFound)
 	}
-	// fmt.Printf(">> DEBUG LockProvider: provider %s, collateral %s, lock %s\n", delAddr, provider.Collateral, amount)
 
 	// update provider
 	provider.TotalLocked = provider.TotalLocked.Add(amount)

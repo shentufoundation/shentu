@@ -116,11 +116,6 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 			panic("provider not found but its collaterals are being withdrawn")
 		}
 
-		/*
-		if provider.Address.String() == "cosmos16cdyl2tl5zdl3mwll49gyekw230m7887x6pztd" {
-			fmt.Printf(">> DEBUG DequeueCompletedWithdrawQueue: pool %d, provider %s, collateral %s --> %s\n", pool.PoolID, provider.Address, provider.Collateral, provider.Collateral.Sub(withdraw.Amount))
-		}
-		 */
 		provider.Collateral = provider.Collateral.Sub(withdraw.Amount)
 		provider.Available = provider.Available.Add(withdraw.Amount)
 		provider.Withdrawing = provider.Withdrawing.Sub(withdraw.Amount)
