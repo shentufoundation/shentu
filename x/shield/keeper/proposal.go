@@ -104,10 +104,10 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 
 	// if there are not enough delegations, check unbondings
 	unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, delAddr)
-	short := provider.TotalLocked.Sub(provider.DelegationBonded)
+	remaining := provider.TotalLocked.Sub(provider.DelegationBonded)
 	endTime := ctx.BlockTime().Add(lockPeriod)
 	for _, ubd := range unbondingDelegations {
-		if !short.IsPositive() {
+		if !remaining.IsPositive() {
 			return
 		}
 		entry := ubd.Entries[0]
@@ -144,9 +144,9 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 			k.sk.SetUnbondingDelegation(ctx, unbonding)
 			k.sk.InsertUBDQueue(ctx, unbonding, endTime)
 		}
-		short = short.Sub(entry.Balance)
+		remaining = remaining.Sub(entry.Balance)
 	}
-	if short.IsPositive() {
+	if remaining.IsPositive() {
 		panic("not enough bonded and unbonding delegations")
 	}
 }
