@@ -10,6 +10,11 @@ func (k Keeper) SetProvider(ctx sdk.Context, delAddr sdk.AccAddress, provider ty
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(provider)
 	store.Set(types.GetProviderKey(delAddr), bz)
+	/*
+	if delAddr.String() == "cosmos16cdyl2tl5zdl3mwll49gyekw230m7887x6pztd" {
+		fmt.Printf(">> DEBUG SetProvider: %s, collateral %s\n", delAddr, provider.Collateral)
+	}
+	 */
 }
 
 func (k Keeper) GetProvider(ctx sdk.Context, delegator sdk.AccAddress) (dt types.Provider, found bool) {
@@ -135,7 +140,7 @@ func (k Keeper) IterateProviders(ctx sdk.Context, callback func(provider types.P
 	}
 }
 
-// GetAllProviders retrieves all providres.
+// GetAllProviders retrieves all providers.
 func (k Keeper) GetAllProviders(ctx sdk.Context) (providers []types.Provider) {
 	k.IterateProviders(ctx, func(provider types.Provider) bool {
 		providers = append(providers, provider)
