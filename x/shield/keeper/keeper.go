@@ -23,7 +23,7 @@ type Keeper struct {
 func NewKeeper(cdc *codec.Codec, shieldStoreKey, stakingStoreKey sdk.StoreKey, sk types.StakingKeeper, supplyKeeper types.SupplyKeeper, paramSpace params.Subspace) Keeper {
 	return Keeper{
 		storeKey:        shieldStoreKey,
-		stakingStoreKey: shieldStoreKey,
+		stakingStoreKey: stakingStoreKey,
 		cdc:             cdc,
 		sk:              sk,
 		supplyKeeper:    supplyKeeper,
