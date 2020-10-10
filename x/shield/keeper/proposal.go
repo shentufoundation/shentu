@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"sort"
 	"time"
 
@@ -107,7 +109,7 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 	unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, delAddr)
 	short := provider.TotalLocked.Sub(provider.DelegationBonded)
 	endTime := ctx.BlockTime().Add(lockPeriod)
-	// fmt.Printf(">> DEBUG LockProvider: end time %v, num of ubds %d, short %s\n%v\n", endTime, len(unbondingDelegations), short, unbondingDelegations)
+	fmt.Printf(">> DEBUG LockProvider: end time %v, num of ubds %d, short %s\n%v\n", endTime, len(unbondingDelegations), short, unbondingDelegations)
 	for _, ubd := range unbondingDelegations {
 		if !short.IsPositive() {
 			return
@@ -115,7 +117,6 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 		entry := ubd.Entries[0]
 		if entry.CompletionTime.Before(endTime) {
 			// change unbonding completion time
-			/*
 			timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, entry.CompletionTime)
 			// fmt.Printf(">> DEBUG LockProvider: timeSlice %v\n", timeSlice)
 			if len(timeSlice) > 1 {
@@ -129,13 +130,12 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 			} else {
 				ctx.KVStore(k.stakingStoreKey).Delete(stakingTypes.GetUnbondingDelegationTimeKey(entry.CompletionTime))
 			}
-			 */
 
 			unbonding, found := k.sk.GetUnbondingDelegation(ctx, ubd.DelegatorAddress, ubd.ValidatorAddress)
 			if !found {
 				panic("unbonding delegation was not found")
 			}
-			// fmt.Printf(">> DEBUG LockProvider: Before, unbonding %v\n", unbonding)
+			fmt.Printf(">> DEBUG LockProvider: Before, unbonding %v\n", unbonding)
 			found = false
 			for i := 0; i < len(unbonding.Entries); i++ {
 				if !found && unbonding.Entries[i].CreationHeight == entry.CreationHeight && unbonding.Entries[i].InitialBalance.Equal(entry.InitialBalance) {
@@ -147,7 +147,7 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 					break
 				}
 			}
-			// fmt.Printf(">> DEBUG LockProvider: After, unbonding %v\n", unbonding)
+			fmt.Printf(">> DEBUG LockProvider: After, unbonding %v\n", unbonding)
 			k.sk.SetUnbondingDelegation(ctx, unbonding)
 			k.sk.InsertUBDQueue(ctx, unbonding, endTime)
 		}
@@ -177,6 +177,7 @@ func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAd
 }
 
 func (k Keeper) RedirectUnbondingEntryToShieldModule(ctx sdk.Context, ubd staking.UnbondingDelegation, endIndex int) {
+	fmt.Printf(">> DEBUG RedirectUnbondingEntryToShieldModule\n")
 	delAddr := ubd.DelegatorAddress
 	valAddr := ubd.ValidatorAddress
 	shieldAddr := k.supplyKeeper.GetModuleAddress(types.ModuleName)
@@ -261,6 +262,7 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, pu
 
 // UndelegateCoinsToShieldModule undelegates delegations and send coins the the shield module.
 func (k Keeper) UndelegateCoinsToShieldModule(ctx sdk.Context, delAddr sdk.AccAddress, loss sdk.Int) error {
+	fmt.Printf(">> DEBUG UndelegateCoinsToShieldModule\n")
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
 	var totalDelAmountDec sdk.Dec
 	for _, del := range delegations {
@@ -388,6 +390,7 @@ func (k Keeper) DeleteReimbursement(ctx sdk.Context, proposalID uint64) error {
 
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID uint64, rmb sdk.Coins, beneficiary sdk.AccAddress, ) error {
+	fmt.Printf(">> DEBUG CreateReimbursement\n")
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
 		return err

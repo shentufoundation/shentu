@@ -54,10 +54,18 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 	case bytes.Equal(kvA.Key[:1], types.UnbondingQueueKey):
 		var ubdqA, ubdqB []types.DVPair
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &ubdqA)
-		fmt.Printf(">> DEBUG DecodeStore: %v\n", ubdqA)
+		fmt.Printf(">> DEBUG UnbondingQueueKey: A %v\n", ubdqA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &ubdqB)
-		fmt.Printf(">> DEBUG DecodeStore: %v\n", ubdqB)
+		fmt.Printf(">> DEBUG UnbondingQueueKey: B %v\n", ubdqB)
 		return fmt.Sprintf("%v\n%v", ubdqA, ubdqB)
+
+	case bytes.Equal(kvA.Key[:1], types.RedelegationQueueKey):
+		var redqA, redqB []types.DVVTriplet
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &redqA)
+		fmt.Printf(">> DEBUG RedelegationQueueKey: A %v\n", redqA)
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &redqB)
+		fmt.Printf(">> DEBUG RedelegationQueueKey: B %v\n", redqB)
+		return fmt.Sprintf("%v\n%v", redqA, redqB)
 
 	default:
 		panic(fmt.Sprintf("invalid staking key prefix %X", kvA.Key[:1]))
