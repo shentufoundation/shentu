@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -26,6 +27,60 @@ func RegisterTxRoutes(cliCtx context.CLIContext, r *mux.Router, storeName string
 	r.HandleFunc(fmt.Sprintf("/%s/respond-to-task", storeName), respondToTaskHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/inquiry-task", storeName), inquireTaskHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/delete-task", storeName), deleteTaskHandler(cliCtx)).Methods("POST")
+}
+
+func createTaskHandler(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req createTaskReq
+
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
+			return
+		}
+
+		baseReq := req.BaseReq.Sanitize()
+		if !baseReq.ValidateBasic(w) {
+			return
+		}
+
+		bounty, err := sdk.ParseCoins(req.Bounty)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		if !bounty[0].Amount.IsPositive() {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "bounty amount is required to be positive")
+			return
+		}
+
+		creator, err := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		wait, err := strconv.ParseInt(req.Wait, 10, 64)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		hours, err := strconv.ParseInt(req.ValidDuration, 10, 64)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		validDuration := time.Duration(hours) * time.Hour
+
+		msg := types.NewMsgCreateTask(req.Contract, req.Function, bounty, req.Description, creator, wait, time.Now(), validDuration)
+		if err = msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+	}
 }
 
 func inquireTaskHandler(cliCtx context.CLIContext) http.HandlerFunc {
@@ -257,7 +312,7 @@ func respondToTaskHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 func deleteTaskHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req DeleteTaskReq
+		var req deleteTaskReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return

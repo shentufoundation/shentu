@@ -178,8 +178,7 @@ func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 
 // RegisterStoreDecoder registers a decoder for staking module.
 func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	// sdr[StoreKey] = stakingSim.DecodeStore
-	sdr[StoreKey] = simulation.DecodeStore
+	sdr[StoreKey] = stakingSim.DecodeStore
 }
 
 // WeightedOperations returns staking operations for use in simulations.

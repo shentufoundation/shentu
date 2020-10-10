@@ -55,14 +55,13 @@ type AppModule struct {
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper,
-	stakingKeeper types.StakingKeeper, supplyKeeper types.SupplyKeeper) AppModule {
+func NewAppModule(keeper Keeper, ak types.AccountKeeper, stk types.StakingKeeper, sk types.SupplyKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
-		accountKeeper:  accountKeeper,
-		stakingKeeper:  stakingKeeper,
-		supplyKeeper:   supplyKeeper,
+		accountKeeper:  ak,
+		stakingKeeper:  stk,
+		supplyKeeper:   sk,
 	}
 }
 
@@ -128,8 +127,8 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.We
 
 // ProposalContents returns functions that generate gov proposals for the module.
 func (am AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-	return simulation.ProposalContents(am.keeper, am.stakingKeeper)
-	// return nil
+	// return simulation.ProposalContents(am.keeper, am.stakingKeeper)
+	return nil
 }
 
 // RandomizedParams returns functions that generate params for the module.

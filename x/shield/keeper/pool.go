@@ -24,8 +24,7 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, error) {
 	return pool, nil
 }
 
-func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins,
-	deposit types.MixedCoins, sponsor string, timeOfCoverage int64) (types.Pool, error) {
+func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, sponsor string, time int64) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !creator.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -35,7 +34,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 		return types.Pool{}, types.ErrSponsorAlreadyExists
 	}
 
-	if !k.ValidatePoolDuration(ctx, timeOfCoverage) {
+	if !k.ValidatePoolDuration(ctx, time) {
 		return types.Pool{}, types.ErrPoolLifeTooShort
 	}
 
@@ -52,7 +51,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 	}
 	provider.Available = provider.Available.Sub(shieldAmt)
 
-	endTime := ctx.BlockHeader().Time.Unix() + timeOfCoverage
+	endTime := ctx.BlockHeader().Time.Unix() + time
 	id := k.GetNextPoolID(ctx)
 	depositDec := types.MixedDecCoinsFromMixedCoins(deposit)
 
@@ -71,14 +70,13 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 	return pool, nil
 }
 
-func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.Coins,
-	deposit types.MixedCoins, id uint64, additionalTime int64) (types.Pool, error) {
+func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, id uint64, addTime int64) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
 	}
 
-	if !k.ValidatePoolDuration(ctx, additionalTime) {
+	if !k.ValidatePoolDuration(ctx, addTime) {
 		return types.Pool{}, types.ErrPoolLifeTooShort
 	}
 
@@ -99,7 +97,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	if err != nil {
 		return types.Pool{}, err
 	}
-	pool.EndTime = pool.EndTime + additionalTime
+	pool.EndTime = pool.EndTime + addTime
 	pool.TotalCollateral = pool.TotalCollateral.Add(shieldAmt)
 	poolCertiKCollateral, found := k.GetPoolCertiKCollateral(ctx, pool)
 	if !found {

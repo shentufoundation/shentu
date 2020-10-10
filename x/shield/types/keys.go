@@ -25,15 +25,15 @@ const (
 )
 
 var (
-	PoolKey            = []byte{0x0}
-	ShieldAdminKey     = []byte{0x1}
-	NextPoolIDKey      = []byte{0x2}
-	PurchaseKey        = []byte{0x3}
-	PurchaseQueueKey   = []byte{0x4}
-	ReimbursementKey   = []byte{0x5}
-	CollateralKey      = []byte{0x6}
-	ProviderKey        = []byte{0x7}
-	WithdrawalQueueKey = []byte{0x8}
+	PoolKey          = []byte{0x0}
+	ShieldAdminKey   = []byte{0x1}
+	NextPoolIDKey    = []byte{0x2}
+	PurchaseKey      = []byte{0x3}
+	PurchaseQueueKey = []byte{0x4}
+	ReimbursementKey = []byte{0x5}
+	CollateralKey    = []byte{0x6}
+	ProviderKey      = []byte{0x7}
+	WithdrawQueueKey = []byte{0x8}
 )
 
 // GetPoolKey gets the key for the pool identified by pool ID.
@@ -63,14 +63,14 @@ func GetProviderKey(addr sdk.AccAddress) []byte {
 	return append(ProviderKey, addr...)
 }
 
-// GetWithdrawalCompletionTimeKey gets a withdrawal queue key,
+// GetWithdrawCompletionTimeKey gets a withdraw queue key,
 // which is obtained from the completion time.
-func GetWithdrawalCompletionTimeKey(timestamp time.Time) []byte {
+func GetWithdrawCompletionTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
-	return append(WithdrawalQueueKey, bz...)
+	return append(WithdrawQueueKey, bz...)
 }
 
-// GetPurchaseCompletionTimeKey gets a withdrawal queue key,
+// GetPurchaseCompletionTimeKey gets a withdraw queue key,
 // which is obtained from the completion time.
 func GetPurchaseCompletionTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)

@@ -38,9 +38,7 @@ type ShieldClaimProposal struct {
 }
 
 // NewShieldClaimProposal creates a new shield claim proposal.
-func NewShieldClaimProposal(
-	poolID uint64, loss sdk.Coins, evidence, purchaseTxHash, description string, proposer sdk.AccAddress,
-) ShieldClaimProposal {
+func NewShieldClaimProposal(poolID uint64, loss sdk.Coins, evidence, purchaseTxHash, description string, proposer sdk.AccAddress) ShieldClaimProposal {
 	return ShieldClaimProposal{
 		PoolID:         poolID,
 		Loss:           loss,
@@ -106,9 +104,7 @@ func NewLockedCollateral(proposalID uint64, lockedAmt sdk.Int) LockedCollateral 
 }
 
 // NewUnbondingDelegation returns a new UnbondingDelegation instance.
-func NewUnbondingDelegation(
-	delAddr sdk.AccAddress, valAddr sdk.ValAddress, entry stakingTypes.UnbondingDelegationEntry,
-) staking.UnbondingDelegation {
+func NewUnbondingDelegation(delAddr sdk.AccAddress, valAddr sdk.ValAddress, entry stakingTypes.UnbondingDelegationEntry) staking.UnbondingDelegation {
 	return staking.UnbondingDelegation{
 		DelegatorAddress: delAddr,
 		ValidatorAddress: valAddr,

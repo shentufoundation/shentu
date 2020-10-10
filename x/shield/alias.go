@@ -34,5 +34,5 @@ var (
 
 	DefaultParamSpace       = types.DefaultParamspace
 	ProposalTypeShieldClaim = types.ProposalTypeShieldClaim
-	PurchaseQueueKey = types.PurchaseQueueKey
+	PurchaseQueueKey        = types.PurchaseQueueKey
 )

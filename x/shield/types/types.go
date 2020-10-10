@@ -19,9 +19,7 @@ type Pool struct {
 	EndTime         int64         `json:"end_time" yaml:"end_time"`
 }
 
-func NewPool(
-	shield sdk.Coins, totalCollateral sdk.Int, deposit MixedDecCoins, sponsor string, endTime int64, id uint64,
-) Pool {
+func NewPool(shield sdk.Coins, totalCollateral sdk.Int, deposit MixedDecCoins, sponsor string, endTime int64, id uint64) Pool {
 	return Pool{
 		Shield:          shield,
 		Premium:         deposit,
@@ -57,14 +55,14 @@ type Provider struct {
 	Address sdk.AccAddress `json:"address" yaml:"address"`
 	// bonded delegations
 	DelegationBonded sdk.Int `json:"delegation_bonded" yaml:"delegation_bonded"`
-	// collateral, including that in withdrawal queue and excluding that being locked
+	// collateral, including that in withdraw queue and excluding that being locked
 	Collateral sdk.Int `json:"collateral" yaml:"collateral"`
 	// coins locked because of claim proposals
 	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
 	// amount of coins staked but not in any pool
 	Available sdk.Int `json:"available" yaml:"available"`
 	// amount of collateral that is in withdraw queue
-	Withdrawing sdk.Int `json:"withrawal" yaml:"withdrawal"`
+	Withdrawing sdk.Int `json:"withrawal" yaml:"withdraw"`
 	// rewards to be claimed
 	Rewards MixedDecCoins `json:"rewards" yaml:"rewards"`
 }
@@ -96,10 +94,7 @@ type PurchaseTxHash struct {
 	TxHash []byte `json:"tx_hash" yaml:"tx_hash"`
 }
 
-func NewPurchase(
-	txhash []byte, poolID uint64, shield sdk.Coins, startBlockHeight int64,
-	protectionEndTime, claimPeriodEndTime, expirationTime time.Time, description string, purchaser sdk.AccAddress,
-) Purchase {
+func NewPurchase(txhash []byte, poolID uint64, shield sdk.Coins, startBlockHeight int64, protectionEndTime, claimPeriodEndTime, expirationTime time.Time, description string, purchaser sdk.AccAddress) Purchase {
 	return Purchase{
 		TxHash:             txhash,
 		PoolID:             poolID,
@@ -113,7 +108,7 @@ func NewPurchase(
 	}
 }
 
-// Withdraw stores an ongoing withdrawal of pool collateral.
+// Withdraw stores an ongoing withdraw of pool collateral.
 type Withdraw struct {
 	PoolID         uint64         `json:"pool_id" yaml:"pool_id"`
 	Address        sdk.AccAddress `json:"address" yaml:"address"`
