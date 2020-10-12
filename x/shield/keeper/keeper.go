@@ -12,22 +12,21 @@ import (
 )
 
 type Keeper struct {
-	storeKey, stakingStoreKey sdk.StoreKey
-	cdc                       *codec.Codec
-	sk                        types.StakingKeeper
-	supplyKeeper              types.SupplyKeeper
-	paramSpace                params.Subspace
+	storeKey     sdk.StoreKey
+	cdc          *codec.Codec
+	sk           types.StakingKeeper
+	supplyKeeper types.SupplyKeeper
+	paramSpace   params.Subspace
 }
 
 // NewKeeper creates a shield keeper.
-func NewKeeper(cdc *codec.Codec, shieldStoreKey, stakingStoreKey sdk.StoreKey, sk types.StakingKeeper, supplyKeeper types.SupplyKeeper, paramSpace params.Subspace) Keeper {
+func NewKeeper(cdc *codec.Codec, shieldStoreKey sdk.StoreKey, sk types.StakingKeeper, supplyKeeper types.SupplyKeeper, paramSpace params.Subspace) Keeper {
 	return Keeper{
-		storeKey:        shieldStoreKey,
-		stakingStoreKey: stakingStoreKey,
-		cdc:             cdc,
-		sk:              sk,
-		supplyKeeper:    supplyKeeper,
-		paramSpace:      paramSpace.WithKeyTable(types.ParamKeyTable()),
+		storeKey:     shieldStoreKey,
+		cdc:          cdc,
+		sk:           sk,
+		supplyKeeper: supplyKeeper,
+		paramSpace:   paramSpace.WithKeyTable(types.ParamKeyTable()),
 	}
 }
 
