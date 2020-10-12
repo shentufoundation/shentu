@@ -45,7 +45,7 @@ func (k Keeper) DeletePurchase(ctx sdk.Context, txhash []byte) error {
 func (k Keeper) DequeuePurchase(ctx sdk.Context, purchase types.Purchase) {
 	timeslice := k.GetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime)
 	for i, entry := range timeslice {
-		if bytes.Equal(entry.TxHash, purchase.TxHash) {
+		if bytes.Equal(entry, purchase.TxHash) {
 			timeslice = append(timeslice[:i], timeslice[i+1:]...)
 			break
 		}
@@ -143,7 +143,7 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 		var timeslice []types.PurchaseTxHash
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &timeslice)
 		for _, entry := range timeslice {
-			purchase, _ := k.GetPurchase(ctx, entry.TxHash)
+			purchase, _ := k.GetPurchase(ctx, entry)
 			pool, err := k.GetPool(ctx, purchase.PoolID)
 			if err == nil {
 				pool.Available = pool.Available.Add(purchase.Shield.AmountOf(k.sk.BondDenom(ctx)))
@@ -205,7 +205,7 @@ func (k Keeper) GetAllPurchases(ctx sdk.Context) (purchases []types.Purchase) {
 
 func (k Keeper) InsertPurchaseQueue(ctx sdk.Context, purchase types.Purchase) {
 	timeSlice := k.GetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime)
-	timeSlice = append(timeSlice, types.PurchaseTxHash{TxHash: purchase.TxHash})
+	timeSlice = append(timeSlice, purchase.TxHash)
 	k.SetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime, timeSlice)
 }
 

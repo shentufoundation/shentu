@@ -1,6 +1,8 @@
 package types
 
 import (
+	"encoding/hex"
+	"encoding/json"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -81,7 +83,7 @@ func NewProvider(addr sdk.AccAddress) Provider {
 }
 
 type Purchase struct {
-	TxHash             []byte         `json:"tx_hash" yaml:"tx_hash"`
+	TxHash             PurchaseTxHash `json:"tx_hash" yaml:"tx_hash"`
 	PoolID             uint64         `json:"pool_id" yaml:"pool_id"`
 	Shield             sdk.Coins      `json:"shield" yaml:"shield"`
 	StartBlockHeight   int64          `json:"start_block_height" yaml:"start_block_height"`
@@ -92,8 +94,10 @@ type Purchase struct {
 	Purchaser          sdk.AccAddress `json:"purchaser" yaml:"purchaser"`
 }
 
-type PurchaseTxHash struct {
-	TxHash []byte `json:"tx_hash" yaml:"tx_hash"`
+type PurchaseTxHash []byte
+
+func (p PurchaseTxHash) MarshalJSON() ([]byte, error) {
+	return json.Marshal(hex.EncodeToString(p))
 }
 
 func NewPurchase(txhash []byte, poolID uint64, shield sdk.Coins, startBlockHeight int64, protectionEndTime, claimPeriodEndTime, expirationTime time.Time, description string, purchaser sdk.AccAddress) Purchase {
