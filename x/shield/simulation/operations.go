@@ -175,8 +175,9 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 
 		// time of coverage
 		timeOfCoverage := int64(simulation.RandIntBetween(r, DefaultTimeOfCoverageMin, DefaultIntMax))
+		sponsorAcc, _ := simulation.RandomAcc(r, accs)
 
-		msg := types.NewMsgCreatePool(simAccount.Address, shield, deposit, sponsor, timeOfCoverage)
+		msg := types.NewMsgCreatePool(simAccount.Address, shield, deposit, sponsor, sponsorAcc.Address, timeOfCoverage)
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(

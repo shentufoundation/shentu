@@ -7,23 +7,25 @@ import (
 )
 
 type Pool struct {
-	PoolID          uint64        `json:"pool_id" yaml:"pool_id"`
-	Active          bool          `json:"active" yaml:"active"`
-	Description     string        `json:"description" yaml:"description"`
-	Sponsor         string        `json:"sponsor" yaml:"sponsor"`
-	Premium         MixedDecCoins `json:"premium" yaml:"premium"`
-	TotalCollateral sdk.Int       `json:"total_collateral" yaml:"total_collateral"`
-	Available       sdk.Int       `json:"available" yaml:"available"`
-	TotalLocked     sdk.Int       `json:"total_locked" yaml:"total_locked"`
-	Shield          sdk.Coins     `json:"shield" yaml:"shield"`
-	EndTime         int64         `json:"end_time" yaml:"end_time"`
+	PoolID          uint64         `json:"pool_id" yaml:"pool_id"`
+	Active          bool           `json:"active" yaml:"active"`
+	Description     string         `json:"description" yaml:"description"`
+	Sponsor         string         `json:"sponsor" yaml:"sponsor"`
+	SponsorAddr     sdk.AccAddress `json:"sponsor_address" yaml:"sponsor_address"`
+	Premium         MixedDecCoins  `json:"premium" yaml:"premium"`
+	TotalCollateral sdk.Int        `json:"total_collateral" yaml:"total_collateral"`
+	Available       sdk.Int        `json:"available" yaml:"available"`
+	TotalLocked     sdk.Int        `json:"total_locked" yaml:"total_locked"`
+	Shield          sdk.Coins      `json:"shield" yaml:"shield"`
+	EndTime         int64          `json:"end_time" yaml:"end_time"`
 }
 
-func NewPool(shield sdk.Coins, totalCollateral sdk.Int, deposit MixedDecCoins, sponsor string, endTime int64, id uint64) Pool {
+func NewPool(shield sdk.Coins, totalCollateral sdk.Int, deposit MixedDecCoins, sponsor string, sponsorAddr sdk.AccAddress, endTime int64, id uint64) Pool {
 	return Pool{
 		Shield:          shield,
 		Premium:         deposit,
 		Sponsor:         sponsor,
+		SponsorAddr:     sponsorAddr,
 		Active:          true,
 		TotalCollateral: totalCollateral,
 		EndTime:         endTime,

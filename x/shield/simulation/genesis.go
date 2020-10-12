@@ -35,10 +35,12 @@ func RandomizedGenState(simState *module.SimulationState) {
 	gs.PoolParams.WithdrawPeriod = ubdTime
 	gs.ClaimProposalParams.ClaimPeriod = gs.PoolParams.WithdrawPeriod
 	if gs.PoolParams.ProtectionPeriod >= gs.ClaimProposalParams.ClaimPeriod {
-		gs.PoolParams.ProtectionPeriod = gs.ClaimProposalParams.ClaimPeriod - 1
+		gs.PoolParams.ProtectionPeriod = time.Duration(sim.RandIntBetween(r,
+			int(gs.ClaimProposalParams.ClaimPeriod)/10, int(gs.ClaimProposalParams.ClaimPeriod)))
 	}
 	if gs.PoolParams.MinPoolLife < gs.PoolParams.WithdrawPeriod {
-		gs.PoolParams.MinPoolLife = gs.PoolParams.WithdrawPeriod + 1
+		gs.PoolParams.MinPoolLife = time.Duration(sim.RandIntBetween(r,
+			int(gs.PoolParams.WithdrawPeriod), int(gs.PoolParams.WithdrawPeriod)*3))
 	}
 
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(gs)
@@ -46,9 +48,9 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 // GenPoolParams returns a randomized PoolParams object.
 func GenPoolParams(r *rand.Rand) types.PoolParams {
-	protectionPeriod := time.Duration(sim.RandIntBetween(r, 60*60*24, 60*60*24*2)) * time.Second
-	withdrawPeriod := time.Duration(sim.RandIntBetween(r, 60*60*24, 60*60*24*3)) * time.Second
-	minPoolLife := time.Duration(sim.RandIntBetween(r, 60*60*24, 60*60*24*5)) * time.Second
+	protectionPeriod := time.Duration(sim.RandIntBetween(r, 60*1, 60*60*24*2)) * time.Second
+	withdrawPeriod := time.Duration(sim.RandIntBetween(r, 60*1, 60*60*24*3)) * time.Second
+	minPoolLife := time.Duration(sim.RandIntBetween(r, 60*1, 60*60*24*5)) * time.Second
 	shieldFeesRate := sdk.NewDecWithPrec(int64(sim.RandIntBetween(r, 0, 50)), 3)
 
 	return types.NewPoolParams(protectionPeriod, minPoolLife, withdrawPeriod, shieldFeesRate)
