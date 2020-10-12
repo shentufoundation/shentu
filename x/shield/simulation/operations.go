@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
@@ -45,8 +46,7 @@ var (
 	DefaultWeightMsgPurchaseShield         = 20
 	DefaultWeightShieldClaimProposal       = 5
 
-	DefaultIntMax            = 1000000000000
-	DefaultTimeOfCoverageMin = 4838401
+	DefaultIntMax = 100000000000
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
@@ -174,10 +174,14 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		deposit := types.MixedCoins{Native: nativeDeposit, Foreign: foreignDeposit}
 
 		// time of coverage
-		timeOfCoverage := int64(simulation.RandIntBetween(r, DefaultTimeOfCoverageMin, DefaultIntMax))
+		poolParams := k.GetPoolParams(ctx)
+		minPoolLife := int(poolParams.MinPoolLife)
+
+		timeOfCoverage := int64(simulation.RandIntBetween(r, minPoolLife, minPoolLife*10))
+		coverageDuration := time.Duration(timeOfCoverage)
 		sponsorAcc, _ := simulation.RandomAcc(r, accs)
 
-		msg := types.NewMsgCreatePool(simAccount.Address, shield, deposit, sponsor, sponsorAcc.Address, timeOfCoverage)
+		msg := types.NewMsgCreatePool(simAccount.Address, shield, deposit, sponsor, sponsorAcc.Address, coverageDuration)
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
@@ -248,9 +252,13 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		deposit := types.MixedCoins{Native: nativeDeposit, Foreign: foreignDeposit}
 
 		// time of coverage
-		timeOfCoverage := int64(simulation.RandIntBetween(r, DefaultTimeOfCoverageMin, DefaultIntMax))
+		poolParams := k.GetPoolParams(ctx)
+		minPoolLife := int(poolParams.MinPoolLife)
 
-		msg := types.NewMsgUpdatePool(simAccount.Address, shield, deposit, poolID, timeOfCoverage)
+		timeOfCoverage := int64(simulation.RandIntBetween(r, minPoolLife, minPoolLife*10))
+		coverageDuration := time.Duration(timeOfCoverage)
+
+		msg := types.NewMsgUpdatePool(simAccount.Address, shield, deposit, poolID, coverageDuration)
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
@@ -481,6 +489,11 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 		description := simulation.RandStringOfLength(r, 100)
+		claimParams := k.GetClaimProposalParams(ctx)
+		shieldEnd := ctx.BlockTime().Add(claimParams.ClaimPeriod)
+		if shieldEnd.After(pool.EndTime) {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 
 		msg := types.NewMsgPurchaseShield(poolID, sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount)), description, purchaser.Address)
 		msg.Simulate = true

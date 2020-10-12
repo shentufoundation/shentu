@@ -16,10 +16,10 @@ type Pool struct {
 	TotalCollateral sdk.Int        `json:"total_collateral" yaml:"total_collateral"`
 	Available       sdk.Int        `json:"available" yaml:"available"`
 	Shield          sdk.Coins      `json:"shield" yaml:"shield"`
-	EndTime         int64          `json:"end_time" yaml:"end_time"`
+	EndTime         time.Time      `json:"end_time" yaml:"end_time"`
 }
 
-func NewPool(shield sdk.Coins, totalCollateral sdk.Int, deposit MixedDecCoins, sponsor string, sponsorAddr sdk.AccAddress, endTime int64, id uint64) Pool {
+func NewPool(shield sdk.Coins, totalCollateral sdk.Int, deposit MixedDecCoins, sponsor string, sponsorAddr sdk.AccAddress, endTime time.Time, id uint64) Pool {
 	return Pool{
 		Shield:          shield,
 		Premium:         deposit,

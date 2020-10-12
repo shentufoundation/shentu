@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -166,8 +167,9 @@ $ %s tx shield create-pool <shield amount> <sponsor> --native-deposit <ctk depos
 			}
 
 			timeOfCoverage := viper.GetInt64(flagTimeOfCoverage)
+			coverageDuration := time.Duration(timeOfCoverage) * time.Second
 
-			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, timeOfCoverage)
+			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, coverageDuration)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -234,8 +236,9 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit
 			}
 
 			timeOfCoverage := viper.GetInt64(flagTimeOfCoverage)
+			coverageDuration := time.Duration(timeOfCoverage) * time.Second
 
-			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, timeOfCoverage)
+			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, coverageDuration)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

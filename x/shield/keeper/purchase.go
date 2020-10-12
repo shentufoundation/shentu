@@ -68,7 +68,7 @@ func (k Keeper) PurchaseShield(
 	if !pool.Active {
 		return types.Purchase{}, types.ErrPoolInactive
 	}
-	if pool.EndTime <= ctx.BlockTime().Unix()+claimParams.ClaimPeriod.Milliseconds()/1000 {
+	if pool.EndTime.Before(ctx.BlockTime().Add(claimParams.ClaimPeriod)) {
 		return types.Purchase{}, types.ErrPoolLifeTooShort
 	}
 	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
