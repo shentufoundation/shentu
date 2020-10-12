@@ -25,14 +25,14 @@ const (
 )
 
 var (
-	PoolKey            = []byte{0x0}
-	ShieldAdminKey     = []byte{0x1}
-	NextPoolIDKey      = []byte{0x2}
-	PurchaseKey        = []byte{0x3}
-	PurchaseQueueKey   = []byte{0x4}
-	ReimbursementKey   = []byte{0x5}
-	CollateralKey      = []byte{0x6}
-	ProviderKey        = []byte{0x7}
+	PoolKey          = []byte{0x0}
+	ShieldAdminKey   = []byte{0x1}
+	NextPoolIDKey    = []byte{0x2}
+	PurchaseKey      = []byte{0x3}
+	PurchaseQueueKey = []byte{0x4}
+	ReimbursementKey = []byte{0x5}
+	CollateralKey    = []byte{0x6}
+	ProviderKey      = []byte{0x7}
 	WithdrawQueueKey = []byte{0x8}
 )
 

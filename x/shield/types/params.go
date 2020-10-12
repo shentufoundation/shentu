@@ -16,7 +16,7 @@ var (
 	DefaultProtectionPeriod = time.Hour * 24 * 14      // 14 days
 	DefaultMinPoolLife      = time.Hour * 24 * 56      // 56 days
 	DefaultShieldFeesRate   = sdk.NewDecWithPrec(1, 2) // 1%
-	DefaultWithdrawPeriod = time.Hour * 24 * 21      // 21 days
+	DefaultWithdrawPeriod   = time.Hour * 24 * 21      // 21 days
 
 	// default values for Shield claim proposal's parameters
 	DefaultClaimPeriod              = time.Hour * 24 * 21                                                    // 21 days
@@ -45,7 +45,7 @@ type PoolParams struct {
 	ProtectionPeriod time.Duration `json:"protection_period" yaml:"protection_period"`
 	MinPoolLife      time.Duration `json:"min_pool_life" yaml:"min_pool_life"`
 	ShieldFeesRate   sdk.Dec       `json:"shield_fees_rate" yaml:"shield_fees_rate"`
-	WithdrawPeriod time.Duration `json:"withdraw_period" yaml:"withdraw_period"`
+	WithdrawPeriod   time.Duration `json:"withdraw_period" yaml:"withdraw_period"`
 }
 
 // NewPoolParams creates a new PoolParams object.
@@ -54,7 +54,7 @@ func NewPoolParams(protectionPeriod, minPoolLife, withdrawPeriod time.Duration, 
 		ProtectionPeriod: protectionPeriod,
 		MinPoolLife:      minPoolLife,
 		ShieldFeesRate:   shieldFeesRate,
-		WithdrawPeriod: withdrawPeriod,
+		WithdrawPeriod:   withdrawPeriod,
 	}
 }
 

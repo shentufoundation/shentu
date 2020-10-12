@@ -33,15 +33,14 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 		}
 
 		// distribute to A and C in proportion
-		totalCollateralAmount := pool.TotalCollateral
+		totalCollateralAmount := pool.TotalCollateral.Add(pool.TotalLocked)
 		recipients := k.GetAllPoolCollaterals(ctx, pool)
 		for _, recipient := range recipients {
-			stakeProportion := sdk.NewDecFromInt(recipient.Amount).QuoInt(totalCollateralAmount)
+			stakeProportion := sdk.NewDecFromInt(sdk.MaxInt(recipient.Amount.Add(recipient.TotalLocked), sdk.ZeroInt())).QuoInt(totalCollateralAmount)
 			nativePremium := currentBlockPremium.Native.MulDecTruncate(stakeProportion)
 			foreignPremium := currentBlockPremium.Foreign.MulDecTruncate(stakeProportion)
 
 			pool.Premium.Native = pool.Premium.Native.Sub(nativePremium)
-
 			pool.Premium.Foreign = pool.Premium.Foreign.Sub(foreignPremium)
 
 			rewards := types.NewMixedDecCoins(nativePremium, foreignPremium)
