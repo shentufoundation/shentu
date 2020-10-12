@@ -51,7 +51,6 @@ func SimulateMsgUnlock(k auth.AccountKeeper) simulation.Operation {
 				unlockAmount, err = simulation.RandomFees(r, ctx, mvacc.OriginalVesting.Sub(mvacc.VestedCoins))
 				if err != nil {
 					return simulation.NoOpMsg(types.ModuleName), nil, err
-
 				}
 			}
 
