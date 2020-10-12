@@ -20,7 +20,7 @@ import (
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
-	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/certikfoundation/shentu/common"
@@ -29,6 +29,7 @@ import (
 	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
 	"github.com/certikfoundation/shentu/x/shield"
+	"github.com/certikfoundation/shentu/x/staking"
 	"github.com/certikfoundation/shentu/x/upgrade"
 )
 
@@ -130,8 +131,8 @@ func createTestInput(t *testing.T) testInput {
 		supplyKeeper,
 		paramsKeeper.Subspace(staking.DefaultParamspace),
 	)
-	genesis := staking.DefaultGenesisState()
-	_ = staking.InitGenesis(ctx, stakingKeeper, accKeeper, supplyKeeper, genesis)
+	genesis := stakingTypes.DefaultGenesisState()
+	_ = staking.InitGenesis(ctx, stakingKeeper.Keeper, accKeeper, supplyKeeper, genesis)
 
 	distrKeeper := distr.NewKeeper(
 		cdc,

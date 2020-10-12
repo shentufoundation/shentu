@@ -50,8 +50,9 @@ type StakingKeeper interface {
 	GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (staking.Delegation, bool)
 	BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
 	AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
-	UBDQueueIterator(sdk.Context, time.Time) sdk.Iterator
+	UBDQueueIterator(ctx sdk.Context, timestamp time.Time) sdk.Iterator
 	RemoveValidatorTokensAndShares(ctx sdk.Context, validator staking.Validator, sharesToRemove sdk.Dec) (valOut staking.Validator, removedTokens sdk.Int)
+	RemoveUBDQueue(ctx sdk.Context, timestamp time.Time)
 
 	BondDenom(sdk.Context) string
 

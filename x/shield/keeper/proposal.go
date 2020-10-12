@@ -120,7 +120,7 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 					}
 				}
 			} else {
-				ctx.KVStore(k.stakingStoreKey).Delete(staking.GetUnbondingDelegationTimeKey(entry.CompletionTime))
+				k.sk.RemoveUBDQueue(ctx, entry.CompletionTime)
 			}
 
 			unbonding, found := k.sk.GetUnbondingDelegation(ctx, ubd.DelegatorAddress, ubd.ValidatorAddress)
