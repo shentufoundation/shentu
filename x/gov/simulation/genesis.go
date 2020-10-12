@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
 )
@@ -21,6 +22,15 @@ func RandomizedGenState(simState *module.SimulationState) {
 	gs.DepositParams = GenerateADepositParams(r)
 	gs.VotingParams = GenerateAVotingParams(r)
 	gs.TallyParams = GenerateTallyParams(r)
+
+	// For the shield module, locking period should be shorter than unbonding period.
+	stakingGenStatebz := simState.GenState[staking.ModuleName]
+	var stakingGenState staking.GenesisState
+	staking.ModuleCdc.MustUnmarshalJSON(stakingGenStatebz, &stakingGenState)
+	ubdTime := stakingGenState.Params.UnbondingTime
+	if 2*gs.VotingParams.VotingPeriod >= ubdTime {
+		gs.VotingParams.VotingPeriod = time.Duration(simulation.RandIntBetween(r, int(ubdTime)/10, int(ubdTime)/2))
+	}
 
 	simState.GenState[govTypes.ModuleName] = simState.Cdc.MustMarshalJSON(gs)
 }
