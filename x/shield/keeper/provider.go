@@ -135,7 +135,7 @@ func (k Keeper) IterateProviders(ctx sdk.Context, callback func(provider types.P
 	}
 }
 
-// GetAllProviders retrieves all providres.
+// GetAllProviders retrieves all providers.
 func (k Keeper) GetAllProviders(ctx sdk.Context) (providers []types.Provider) {
 	k.IterateProviders(ctx, func(provider types.Provider) bool {
 		providers = append(providers, provider)

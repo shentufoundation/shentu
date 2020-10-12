@@ -2,6 +2,8 @@ package staking
 
 import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
+
+	"github.com/certikfoundation/shentu/x/staking/internal/keeper"
 )
 
 const (
@@ -15,7 +17,7 @@ const (
 
 var (
 	// function aliases
-	NewKeeper            = staking.NewKeeper
+	NewKeeper            = keeper.NewKeeper
 	RegisterCodec        = staking.RegisterCodec
 	InitGenesis          = staking.InitGenesis
 	DefaultParams        = staking.DefaultParams
@@ -23,5 +25,5 @@ var (
 )
 
 type (
-	Keeper = staking.Keeper
+	Keeper = keeper.Keeper
 )

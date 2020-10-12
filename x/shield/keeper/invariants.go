@@ -12,8 +12,6 @@ import (
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "account-collaterals",
 		AccountCollateralsInvariants(k))
-	ir.RegisterRoute(types.ModuleName, "purchased-collaterals",
-		PurchasedCollateralsInvariants(k))
 	ir.RegisterRoute(types.ModuleName, "module-coins",
 		ModuleCoinsInvariants(k))
 	ir.RegisterRoute(types.ModuleName, "collateral-pool",
@@ -51,6 +49,7 @@ func AccountCollateralsInvariants(k Keeper) sdk.Invariant {
 	}
 }
 
+// This invariant no longer holds because the expiration time of a purchase can be delayed by voting period.
 // PurchasedCollateralsInvariants checks the total purchased amount is less than or equal to the pool's total collateral amount.
 func PurchasedCollateralsInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
@@ -65,13 +64,15 @@ func PurchasedCollateralsInvariants(k Keeper) sdk.Invariant {
 				purchased = purchased.Add(purchase.Shield...)
 			}
 			currentPool = pool
-			broken = pool.TotalCollateral.LT(purchased.AmountOf(denom))
+			// (total collateral) < (total purchase) could happen when withdraws are done but there are still locked coins
+			broken = pool.TotalCollateral.Add(pool.TotalLocked).LT(purchased.AmountOf(denom))
 			return broken
 		})
 		return sdk.FormatInvariant(types.ModuleName, "pool total collateral and total sum of purchased collateral",
 			fmt.Sprintf("\tPool ID: %v\n"+
 				"\tSum of purchased Shield: %v\n"+
-				"\tPool's total collaterals: %v\n", currentPool.PoolID, purchased, currentPool.TotalCollateral)), broken
+				"\tPool's total collaterals: %v\n"+
+				"\tPool's total locked: %v\n", currentPool.PoolID, purchased, currentPool.TotalCollateral, currentPool.TotalLocked)), broken
 	}
 }
 

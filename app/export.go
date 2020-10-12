@@ -27,7 +27,7 @@ func (app *CertiKApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteL
 	if err != nil {
 		return nil, nil, err
 	}
-	validators = staking.WriteValidators(ctx, app.stakingKeeper)
+	validators = staking.WriteValidators(ctx, app.stakingKeeper.Keeper)
 	return appState, validators, nil
 }
 

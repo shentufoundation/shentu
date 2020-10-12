@@ -123,7 +123,7 @@ func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[StoreKey] = simulation.DecodeStore
 }
 
-// WeightedOperations returns cert operations for use in simulations.
+// WeightedOperations returns oracle operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.keeper.GetAuthKeeper())
 }
