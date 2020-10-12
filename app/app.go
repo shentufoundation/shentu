@@ -303,7 +303,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	)
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference so that it will contain these hooks.
-	stakingKeeper.Keeper.SetHooks(
+	app.stakingKeeper.Keeper = *stakingKeeper.Keeper.SetHooks(
 		staking.NewMultiStakingHooks(
 			app.distrKeeper.Hooks(),
 			app.slashingKeeper.Hooks(),
@@ -338,7 +338,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper.Keeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper.Keeper),
-		staking.NewAppModule(app.stakingKeeper.Keeper, app.accountKeeper, app.supplyKeeper, app.certKeeper),
+		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper, app.certKeeper),
 		mint.NewAppModule(app.mintKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper.Keeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
@@ -404,7 +404,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper.Keeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper.Keeper),
 		params.NewAppModule(),
-		staking.NewAppModule(app.stakingKeeper.Keeper, app.accountKeeper, app.supplyKeeper, app.certKeeper),
+		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper, app.certKeeper),
 		mint.NewAppModule(app.mintKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		cvm.NewAppModule(app.cvmKeeper),
