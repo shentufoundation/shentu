@@ -69,7 +69,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 
 	// make a pseudo-purchase for B, equal to shield
 	txhash := tmhash.Sum(ctx.TxBytes())
-	purchase := types.NewPurchase(txhash, id, shield, ctx.BlockHeight(), endTime, endTime, "shield for sponsor", sponsorAddr)
+	purchase := types.NewPurchase(txhash, id, shield, ctx.BlockHeight(), endTime, endTime, endTime, "shield for sponsor", sponsorAddr)
 
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, id+1)

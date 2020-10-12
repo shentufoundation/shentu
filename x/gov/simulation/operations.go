@@ -130,6 +130,9 @@ func SimulateSubmitProposal(
 				}
 			}
 			account := ak.GetAccount(ctx, simAccount.Address)
+			if account.GetCoins() == nil {
+				return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			}
 			denom := account.GetCoins()[0].Denom
 			lossAmountDec := c.Loss.AmountOf(denom).ToDec()
 			claimProposalParams := k.ShieldKeeper.GetClaimProposalParams(ctx)

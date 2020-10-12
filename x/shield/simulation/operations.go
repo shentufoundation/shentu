@@ -305,10 +305,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		// collateral
 		provider, found := k.GetProvider(ctx, simAccount.Address)
 		if found {
-			delAmount = provider.DelegationBonded.Sub(provider.Collateral)
-			if !delAmount.IsPositive() {
-				return simulation.NoOpMsg(types.ModuleName), nil, nil
-			}
+			delAmount = provider.Available
 		}
 		collateralAmount, err := simulation.RandPositiveInt(r, delAmount)
 		if err != nil {
@@ -534,7 +531,7 @@ func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper)
 	return func(r *rand.Rand, ctx sdk.Context, accs []simulation.Account) govtypes.Content {
 		bondDenom := sk.BondDenom(ctx)
 		purchase, found := keeper.RandomPurchase(r, k, ctx)
-		if !found {
+		if !found || purchase.ClaimPeriodEndTime.Before(ctx.BlockTime()) {
 			return nil
 		}
 		lossAmount, err := simulation.RandPositiveInt(r, purchase.Shield.AmountOf(bondDenom))

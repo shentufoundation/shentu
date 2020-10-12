@@ -94,7 +94,8 @@ func (k Keeper) PurchaseShield(
 	txhash := tmhash.Sum(ctx.TxBytes())
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
 	claimPeriodEndTime := ctx.BlockTime().Add(claimParams.ClaimPeriod)
-	purchase := types.NewPurchase(txhash, poolID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, description, purchaser)
+	purchase := types.NewPurchase(txhash, poolID, shield, ctx.BlockHeight(), protectionEndTime,
+		claimPeriodEndTime, claimPeriodEndTime, description, purchaser)
 	k.SetPurchase(ctx, purchase)
 	k.InsertPurchaseQueue(ctx, purchase)
 
@@ -108,6 +109,10 @@ func (k Keeper) SimulatePurchaseShield(
 	if err != nil {
 		return types.Purchase{}, err
 	}
+	_ = k.DeletePurchase(ctx, purchase.TxHash)
+
+	purchase.TxHash = simTxHash
+	k.SetPurchase(ctx, purchase)
 	return purchase, nil
 }
 

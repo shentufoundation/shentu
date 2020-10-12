@@ -26,6 +26,7 @@ import (
 
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/staking/client/rest"
+	"github.com/certikfoundation/shentu/x/staking/internal/keeper"
 	"github.com/certikfoundation/shentu/x/staking/internal/types"
 	"github.com/certikfoundation/shentu/x/staking/simulation"
 )
@@ -106,19 +107,19 @@ type AppModule struct {
 	cosmosAppModule staking.AppModule
 	authKeeper      stakingTypes.AccountKeeper
 	certKeeper      types.CertKeeper
-	keeper          staking.Keeper
+	keeper          keeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
 func NewAppModule(
-	stakingKeeper staking.Keeper,
+	stakingKeeper keeper.Keeper,
 	accountKeeper stakingTypes.AccountKeeper,
 	supplyKeeper stakingTypes.SupplyKeeper,
 	certKeeper types.CertKeeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
-		cosmosAppModule: staking.NewAppModule(stakingKeeper, accountKeeper, supplyKeeper),
+		cosmosAppModule: staking.NewAppModule(stakingKeeper.Keeper, accountKeeper, supplyKeeper),
 		authKeeper:      accountKeeper,
 		certKeeper:      certKeeper,
 		keeper:          stakingKeeper,
@@ -142,7 +143,7 @@ func (am AppModule) Route() string {
 
 // NewHandler returns an sdk.Handler for the staking module.
 func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper, am.certKeeper)
+	return NewHandler(am.keeper.Keeper, am.certKeeper)
 }
 
 // QuerierRoute returns the staking module's querier route name.
@@ -183,7 +184,7 @@ func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 
 // WeightedOperations returns staking operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.certKeeper, am.keeper)
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.certKeeper, am.keeper.Keeper)
 }
 
 // ProposalContents returns functions that generate proposals for the module.
