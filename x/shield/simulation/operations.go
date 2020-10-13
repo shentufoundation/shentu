@@ -254,7 +254,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		timeOfCoverage := int64(simulation.RandIntBetween(r, minPoolLife, minPoolLife*10))
 		coverageDuration := time.Duration(timeOfCoverage)
 
-		msg := types.NewMsgUpdatePool(simAccount.Address, shield, deposit, poolID, coverageDuration)
+		msg := types.NewMsgUpdatePool(simAccount.Address, shield, deposit, poolID, coverageDuration, "")
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(

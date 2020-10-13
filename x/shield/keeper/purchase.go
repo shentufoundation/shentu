@@ -22,8 +22,9 @@ func (k Keeper) AddPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAdd
 	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
 	if !found {
 		purchaseList = types.NewPurchaseList(poolID, purchaser, []types.Purchase{purchase})
+	} else {
+		purchaseList.Entries = append(purchaseList.Entries, purchase)
 	}
-	purchaseList.Entries = append(purchaseList.Entries, purchase)
 	k.SetPurchaseList(ctx, purchaseList)
 }
 
@@ -64,7 +65,7 @@ func (k Keeper) DeletePurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk
 func (k Keeper) DequeuePurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchase types.Purchase) {
 	timeslice := k.GetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime)
 	for i, ppPair := range timeslice {
-		if !(poolID == ppPair.PoolID) || !purchaser.Equals(ppPair.Purchaser) {
+		if (poolID == ppPair.PoolID) && purchaser.Equals(ppPair.Purchaser) {
 			timeslice = append(timeslice[:i], timeslice[i+1:]...)
 			break
 		}
@@ -151,30 +152,46 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &timeslice)
 		for _, ppPair := range timeslice {
 			purchaseList, _ := k.GetPurchaseList(ctx, ppPair.PoolID, ppPair.Purchaser)
-			pool, err := k.GetPool(ctx, purchaseList.PoolID)
-			if err != nil {
-				panic(err)
-			}
 
 			for i := 0; i < len(purchaseList.Entries); i++ {
 				entry := purchaseList.Entries[i]
 				if entry.ExpirationTime.Before(ctx.BlockTime()) {
-					pool.Available = pool.Available.Add(entry.Shield.AmountOf(bondDenom))
-					pool.Shield = pool.Shield.Sub(entry.Shield)
+					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
+					pool, err := k.GetPool(ctx, purchaseList.PoolID)
+					if err != nil {
+						panic(err)
+					}
 					fmt.Println("\n")
+					fmt.Println(ctx.BlockHeight())
+					fmt.Println(pool.PoolID)
 					fmt.Println(entry.PurchaseID)
-					fmt.Println(entry.Shield)
+					fmt.Println(purchaseList)
 					fmt.Println(pool.Available)
 					fmt.Println(pool.Shield)
-					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
-					i--
+					fmt.Println(entry.Shield)
+					fmt.Println(pool)
+					pool.Available = pool.Available.Add(entry.Shield.AmountOf(bondDenom))
+					pool.Shield = pool.Shield.Sub(entry.Shield)
+					k.SetPool(ctx, pool)
 				}
 			}
-			k.SetPool(ctx, pool)
+			if len(purchaseList.Entries) == 0 {
+				k.DeletePurchaseList(ctx, purchaseList.PoolID, purchaseList.Purchaser)
+				continue
+			}
 			k.SetPurchaseList(ctx, purchaseList)
 		}
 		store.Delete(iterator.Key())
 	}
+}
+
+func processed(processed []types.PPPair, new types.PPPair) bool {
+	for _, entry := range processed {
+		if entry.PoolID == new.PoolID && entry.Purchaser.Equals(new.Purchaser) {
+			return true
+		}
+	}
+	return false
 }
 
 // GetOnesPurchases returns a purchaser's all purchases.

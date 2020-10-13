@@ -82,7 +82,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 	return pool, nil
 }
 
-func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, id uint64, addTime time.Duration) (types.Pool, error) {
+func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, id uint64, addTime time.Duration, description string) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -118,6 +118,9 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	poolCertiKCollateral.Amount = poolCertiKCollateral.Amount.Add(shieldAmt)
 	pool.Shield = pool.Shield.Add(shield...)
 	pool.Premium = pool.Premium.Add(types.MixedDecCoinsFromMixedCoins(deposit))
+	if description != "" {
+		pool.Description = description
+	}
 
 	// transfer deposit and store
 	err = k.DepositNativePremium(ctx, deposit.Native, admin)
@@ -126,26 +129,22 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	}
 
 	// update sponsor purchase
-	poolPurchases := k.GetPoolPurchaseLists(ctx, id)
-	var sponsorPurchase types.PurchaseList
-	for _, purchase := range poolPurchases {
-		if purchase.Purchaser.Equals(pool.SponsorAddr) {
-			sponsorPurchase = purchase
-			break
-		}
-	}
+	sponsorPurchase, _ := k.GetPurchaseList(ctx, id, pool.SponsorAddr)
+
 	// assume there is only one purchase from sponsor address
 	purchase := sponsorPurchase.Entries[0]
 	k.DequeuePurchase(ctx, id, pool.SponsorAddr, purchase)
+	purchase.ExpirationTime = pool.EndTime
 	purchase.ClaimPeriodEndTime = pool.EndTime
 	purchase.ProtectionEndTime = pool.EndTime
 	purchase.Shield = purchase.Shield.Add(shield...)
+	newPurchaseList := types.NewPurchaseList(id, pool.SponsorAddr, []types.Purchase{purchase})
 
 	k.SetCollateral(ctx, pool, k.GetAdmin(ctx), poolCertiKCollateral)
 	k.SetPool(ctx, pool)
 	k.SetProvider(ctx, admin, provider)
-	k.AddPurchase(ctx, id, pool.SponsorAddr, purchase)
-	k.InsertPurchaseQueue(ctx, sponsorPurchase, purchase.ClaimPeriodEndTime)
+	k.SetPurchaseList(ctx, newPurchaseList)
+	k.InsertPurchaseQueue(ctx, sponsorPurchase, purchase.ExpirationTime)
 	return pool, nil
 }
 

@@ -29,6 +29,7 @@ var (
 	flagShield         = "shield"
 	flagSponsor        = "sponsor"
 	flagTimeOfCoverage = "time-of-coverage"
+	flagDescription    = "description"
 )
 
 // GetTxCmd returns the transaction commands for this module.
@@ -238,7 +239,9 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit
 			timeOfCoverage := viper.GetInt64(flagTimeOfCoverage)
 			coverageDuration := time.Duration(timeOfCoverage) * time.Second
 
-			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, coverageDuration)
+			description := viper.GetString(flagDescription)
+
+			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, coverageDuration, description)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -250,6 +253,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit
 	cmd.Flags().String(flagShield, "", "CTK Shield amount")
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagForeignDeposit, "", "foreign coins deposit amount")
+	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().Int64(flagTimeOfCoverage, 0, "additional time of coverage")
 	return cmd
 }
