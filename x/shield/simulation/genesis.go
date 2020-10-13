@@ -33,7 +33,8 @@ func RandomizedGenState(simState *module.SimulationState) {
 	stakingTypes.ModuleCdc.MustUnmarshalJSON(stakingGenStatebz, &stakingGenState)
 	ubdTime := stakingGenState.Params.UnbondingTime
 	gs.PoolParams.WithdrawPeriod = ubdTime
-	gs.ClaimProposalParams.ClaimPeriod = gs.PoolParams.WithdrawPeriod
+	gs.ClaimProposalParams.ClaimPeriod = time.Duration(sim.RandIntBetween(r,
+		int(gs.PoolParams.WithdrawPeriod)/10, int(gs.PoolParams.WithdrawPeriod)))
 	if gs.PoolParams.ProtectionPeriod >= gs.ClaimProposalParams.ClaimPeriod {
 		gs.PoolParams.ProtectionPeriod = time.Duration(sim.RandIntBetween(r,
 			int(gs.ClaimProposalParams.ClaimPeriod)/10, int(gs.ClaimProposalParams.ClaimPeriod)))
