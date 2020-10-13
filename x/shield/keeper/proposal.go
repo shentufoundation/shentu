@@ -11,7 +11,7 @@ import (
 )
 
 // ClaimLock locks collaterals after a claim proposal is submitted.
-func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, loss sdk.Coins, purchaseTxHash []byte, lockPeriod time.Duration) error {
+func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, lockPeriod time.Duration) error {
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
 		return err
@@ -33,9 +33,16 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, los
 	}
 
 	// update shield of purchase
-	purchase, err := k.GetPurchase(ctx, purchaseTxHash)
-	if err != nil {
-		return err
+	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
+	if !found {
+		return types.ErrPurchaseNotFound
+	}
+	var purchase types.Purchase
+	for _, entry := range purchaseList.Entries {
+		if entry.PurchaseID == purchaseID {
+			purchase = entry
+			break
+		}
 	}
 	if !purchase.Shield.IsAllGTE(loss) {
 		return types.ErrNotEnoughShield
@@ -45,7 +52,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, los
 	if purchase.ExpirationTime.Before(votingEndTime) {
 		purchase.ExpirationTime = votingEndTime
 	}
-	k.SetPurchase(ctx, purchase)
+	k.AddPurchase(ctx, poolID, purchaser, purchase)
 
 	// update locked collaterals for community
 	proportionDec := lossAmt.ToDec().Quo(poolValidCollateral.ToDec())
@@ -228,7 +235,7 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 }
 
 // RestoreShield restores shield for proposer.
-func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash []byte) error {
+func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, id uint64, loss sdk.Coins) error {
 	// update shield of pool
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
@@ -237,14 +244,18 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, pu
 	pool.Shield = pool.Shield.Add(loss...)
 	k.SetPool(ctx, pool)
 
-	// update shield of purchase
-	purchase, err := k.GetPurchase(ctx, purchaseTxHash)
-	if err != nil {
-		return err
+	// update shield of purchaseList
+	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
+	if !found {
+		return types.ErrPurchaseNotFound
 	}
-	purchase.Shield = purchase.Shield.Add(loss...)
-	k.SetPurchase(ctx, purchase)
+	for _, entry := range purchaseList.Entries {
+		if entry.PurchaseID == id {
+			entry.Shield = entry.Shield.Add(loss...)
+		}
+	}
 
+	k.SetPurchaseList(ctx, purchaseList)
 	return nil
 }
 

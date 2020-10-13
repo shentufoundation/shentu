@@ -102,8 +102,8 @@ Where proposal.json contains:
 				return err
 			}
 			from := cliCtx.GetFromAddress()
-			content := types.NewShieldClaimProposal(proposal.PoolID, proposal.Loss, proposal.Evidence,
-				proposal.PurchaseTxHash, proposal.Description, from)
+			content := types.NewShieldClaimProposal(proposal.PoolID, proposal.Loss,
+				proposal.PurchaseID, proposal.Evidence, proposal.Description, from)
 
 			msg := gov.NewMsgSubmitProposal(content, proposal.Deposit, from)
 			if err := msg.ValidateBasic(); err != nil {
@@ -464,7 +464,7 @@ func GetCmdPurchaseShield(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(3),
 		Short: "purchase Shield",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Purchase Shield. Requires purchaser to provide descriptions of accounts to be protected.
+			fmt.Sprintf(`PurchaseLists Shield. Requires purchaser to provide descriptions of accounts to be protected.
 
 Example:
 $ %s tx shield purchase <pool id> <shield amount> <description>

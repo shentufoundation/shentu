@@ -99,11 +99,11 @@ func RandomCollateral(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Collateral
 	return collaterals[i], true
 }
 
-// RandomPurchase returns a random purchase given access to the keeper and ctx.
-func RandomPurchase(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Purchase, bool) {
-	purchases := k.GetAllPurchases(ctx)
+// RandomPurchaseList returns a random purchase given access to the keeper and ctx.
+func RandomPurchaseList(r *rand.Rand, k Keeper, ctx sdk.Context) (types.PurchaseList, bool) {
+	purchases := k.GetAllPurchaseLists(ctx)
 	if len(purchases) == 0 {
-		return types.Purchase{}, false
+		return types.PurchaseList{}, false
 	}
 	i := r.Intn(len(purchases))
 	return purchases[i], true

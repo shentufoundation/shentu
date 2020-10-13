@@ -61,7 +61,7 @@ func handleShieldClaimProposal(ctx sdk.Context, k Keeper, p types.ShieldClaimPro
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateCompensation,
-			sdk.NewAttribute(types.AttributeKeyPurchaseTxHash, p.PurchaseTxHash),
+			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(p.PurchaseID, 10)),
 			sdk.NewAttribute(types.AttributeKeyCompensationAmount, p.Loss.String()),
 			sdk.NewAttribute(types.AttributeKeyBeneficiary, p.Proposer.String()),
 		),
@@ -197,16 +197,9 @@ func handleMsgResumePool(ctx sdk.Context, msg types.MsgResumePool, k Keeper) (*s
 }
 
 func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Keeper) (*sdk.Result, error) {
-	if msg.Simulate {
-		_, err := k.SimulatePurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From, msg.SimTxHash)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
-		if err != nil {
-			return nil, err
-		}
+	_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
+	if err != nil {
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -275,7 +268,7 @@ func handleMsgWithdrawReimbursement(ctx sdk.Context, msg types.MsgWithdrawReimbu
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWithdrawReimbursement,
-			sdk.NewAttribute(types.AttributeKeyPurchaseTxHash, strconv.FormatUint(msg.ProposalID, 10)),
+			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(msg.ProposalID, 10)),
 			sdk.NewAttribute(types.AttributeKeyCompensationAmount, amount.String()),
 			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.From.String()),
 		),

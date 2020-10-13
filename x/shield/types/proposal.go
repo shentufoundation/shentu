@@ -28,24 +28,24 @@ func init() {
 
 // ShieldClaimProposal defines the data structure of a shield claim proposal.
 type ShieldClaimProposal struct {
-	ProposalID     uint64         `json:"proposal_id" yaml:"proposal_id"`
-	PoolID         uint64         `json:"pool_id" yaml:"pool_id"`
-	Loss           sdk.Coins      `json:"loss" yaml:"loss"`
-	Evidence       string         `json:"evidence" yaml:"evidence"`
-	PurchaseTxHash string         `json:"purchase_txash" yaml:"purchase_txash"`
-	Description    string         `json:"description" yaml:"description"`
-	Proposer       sdk.AccAddress `json:"proposer" yaml:"proposer"`
+	ProposalID  uint64         `json:"proposal_id" yaml:"proposal_id"`
+	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
+	PurchaseID  uint64         `json:"purchase_id" yaml:"purchase_id"`
+	Loss        sdk.Coins      `json:"loss" yaml:"loss"`
+	Evidence    string         `json:"evidence" yaml:"evidence"`
+	Description string         `json:"description" yaml:"description"`
+	Proposer    sdk.AccAddress `json:"proposer" yaml:"proposer"`
 }
 
 // NewShieldClaimProposal creates a new shield claim proposal.
-func NewShieldClaimProposal(poolID uint64, loss sdk.Coins, evidence, purchaseTxHash, description string, proposer sdk.AccAddress) ShieldClaimProposal {
+func NewShieldClaimProposal(poolID uint64, loss sdk.Coins, purchaseID uint64, evidence, description string, proposer sdk.AccAddress) ShieldClaimProposal {
 	return ShieldClaimProposal{
-		PoolID:         poolID,
-		Loss:           loss,
-		Evidence:       evidence,
-		PurchaseTxHash: purchaseTxHash,
-		Description:    description,
-		Proposer:       proposer,
+		PoolID:      poolID,
+		Loss:        loss,
+		Evidence:    evidence,
+		PurchaseID:  purchaseID,
+		Description: description,
+		Proposer:    proposer,
 	}
 }
 
@@ -82,10 +82,10 @@ func (scp ShieldClaimProposal) String() string {
   PoolID:         %d
   Loss:           %s
   Evidence:       %s
-  PurchaseTxHash: %s
+  PurchaseID:     %d
   Description:    %s
   Proposer:       %s
-`, scp.PoolID, scp.Loss, scp.Evidence, scp.PurchaseTxHash, scp.Description, scp.Proposer))
+`, scp.PoolID, scp.Loss, scp.Evidence, scp.PurchaseID, scp.Description, scp.Proposer))
 	return b.String()
 }
 

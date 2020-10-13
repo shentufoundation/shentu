@@ -12,6 +12,7 @@ import (
 func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorUpdate {
 	k.SetAdmin(ctx, data.ShieldAdmin)
 	k.SetNextPoolID(ctx, data.NextPoolID)
+	k.SetNextPurchaseID(ctx, data.NextPurchaseID)
 	k.SetPoolParams(ctx, data.PoolParams)
 	k.SetClaimProposalParams(ctx, data.ClaimProposalParams)
 	for _, pool := range data.Pools {
@@ -24,9 +25,11 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 		}
 		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 	}
-	for _, purchase := range data.Purchases {
-		k.SetPurchase(ctx, purchase)
-		k.InsertPurchaseQueue(ctx, purchase)
+	for _, purchaseList := range data.PurchaseLists {
+		k.SetPurchaseList(ctx, purchaseList)
+		for _, entry := range purchaseList.Entries {
+			k.InsertPurchaseQueue(ctx, purchaseList, entry.ExpirationTime)
+		}
 	}
 	for _, provider := range data.Providers {
 		k.SetProvider(ctx, provider.Address, provider)
@@ -43,13 +46,14 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	shieldAdmin := k.GetAdmin(ctx)
 	nextPoolID := k.GetNextPoolID(ctx)
+	nextPurchaseID := k.GetNextPurchaseID(ctx)
 	poolParams := k.GetPoolParams(ctx)
 	claimProposalParams := k.GetClaimProposalParams(ctx)
 	pools := k.GetAllPools(ctx)
 	collaterals := k.GetAllCollaterals(ctx)
 	providers := k.GetAllProviders(ctx)
-	purchases := k.GetAllPurchases(ctx)
+	purchases := k.GetAllPurchaseLists(ctx)
 	withdraws := k.GetAllWithdraws(ctx)
 
-	return types.NewGenesisState(shieldAdmin, nextPoolID, poolParams, claimProposalParams, pools, collaterals, providers, purchases, withdraws)
+	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, pools, collaterals, providers, purchases, withdraws)
 }

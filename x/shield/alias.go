@@ -20,6 +20,7 @@ type (
 	ClaimProposal       = types.ShieldClaimProposal
 	ClaimProposalParams = types.ClaimProposalParams
 	Purchase            = types.Purchase
+	PurchaseList        = types.PurchaseList
 )
 
 var (
@@ -31,7 +32,11 @@ var (
 	ProposalHandler             = client.ProposalHandler
 	GetGenesisStateFromAppState = types.GetGenesisStateFromAppState
 	ValidateGenesis             = types.ValidateGenesis
+	GetPurchase                 = keeper.GetPurchase
 
 	DefaultParamSpace       = types.DefaultParamspace
 	ProposalTypeShieldClaim = types.ProposalTypeShieldClaim
+
+	// variable aliases
+	ErrPurchaseNotFound = types.ErrPurchaseNotFound
 )

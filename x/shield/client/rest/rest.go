@@ -59,11 +59,11 @@ type purchaseReq struct {
 
 // ShieldClaimProposalReq defines a shield claim proposal request body.
 type ShieldClaimProposalReq struct {
-	BaseReq        rest.BaseReq `json:"base_req" yaml:"base_req"`
-	PoolID         uint64       `json:"pool_id" yaml:"pool_id"`
-	Loss           sdk.Coins    `json:"loss" yaml:"loss"`
-	Evidence       string       `json:"evidence" yaml:"evidence"`
-	PurchaseTxHash string       `json:"purchase_txhash" yaml:"purchase_txhash"`
-	Description    string       `json:"description" yaml:"description"`
-	Deposit        sdk.Coins    `json:"deposit" yaml:"deposit"`
+	BaseReq     rest.BaseReq `json:"base_req" yaml:"base_req"`
+	PoolID      uint64       `json:"pool_id" yaml:"pool_id"`
+	Loss        sdk.Coins    `json:"loss" yaml:"loss"`
+	Evidence    string       `json:"evidence" yaml:"evidence"`
+	PurchaseID  uint64       `json:"purchase_id" yaml:"purchase_id"`
+	Description string       `json:"description" yaml:"description"`
+	Deposit     sdk.Coins    `json:"deposit" yaml:"deposit"`
 }

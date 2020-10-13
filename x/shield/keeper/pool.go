@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -68,16 +67,17 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 	}
 
 	// make a pseudo-purchase for B, equal to shield
-	txhash := tmhash.Sum(ctx.TxBytes())
-	purchase := types.NewPurchase(txhash, id, shield, ctx.BlockHeight(), endTime, endTime, endTime, "shield for sponsor", sponsorAddr)
+	purchaseID := k.GetNextPurchaseID(ctx)
+	purchase := types.NewPurchase(purchaseID, shield, ctx.BlockHeight(), endTime, endTime, endTime, "shield for sponsor")
 
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, id+1)
 	k.SetProvider(ctx, admin, provider)
 	k.SetCollateral(ctx, pool, admin, types.NewCollateral(pool, admin, shieldAmt))
 
-	k.SetPurchase(ctx, purchase)
-	k.InsertPurchaseQueue(ctx, purchase)
+	k.AddPurchase(ctx, id, sponsorAddr, purchase)
+	k.InsertPurchaseQueue(ctx, types.NewPurchaseList(id, sponsorAddr, []types.Purchase{purchase}), endTime)
+	k.SetNextPurchaseID(ctx, purchaseID+1)
 
 	return pool, nil
 }
@@ -126,22 +126,26 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	}
 
 	// update sponsor purchase
-	poolPurchases := k.GetPoolPurchases(ctx, id)
-	var sponsorPurchase types.Purchase
+	poolPurchases := k.GetPoolPurchaseLists(ctx, id)
+	var sponsorPurchase types.PurchaseList
 	for _, purchase := range poolPurchases {
 		if purchase.Purchaser.Equals(pool.SponsorAddr) {
 			sponsorPurchase = purchase
 			break
 		}
 	}
-	sponsorPurchase.ClaimPeriodEndTime = pool.EndTime
-	sponsorPurchase.ProtectionEndTime = pool.EndTime
-	sponsorPurchase.Shield = sponsorPurchase.Shield.Add(shield...)
+	// assume there is only one purchase from sponsor address
+	purchase := sponsorPurchase.Entries[0]
+	k.DequeuePurchase(ctx, id, pool.SponsorAddr, purchase)
+	purchase.ClaimPeriodEndTime = pool.EndTime
+	purchase.ProtectionEndTime = pool.EndTime
+	purchase.Shield = purchase.Shield.Add(shield...)
 
 	k.SetCollateral(ctx, pool, k.GetAdmin(ctx), poolCertiKCollateral)
 	k.SetPool(ctx, pool)
 	k.SetProvider(ctx, admin, provider)
-	k.SetPurchase(ctx, sponsorPurchase)
+	k.AddPurchase(ctx, id, pool.SponsorAddr, purchase)
+	k.InsertPurchaseQueue(ctx, sponsorPurchase, purchase.ClaimPeriodEndTime)
 	return pool, nil
 }
 

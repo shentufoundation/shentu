@@ -81,33 +81,44 @@ func NewProvider(addr sdk.AccAddress) Provider {
 }
 
 type Purchase struct {
-	TxHash             []byte         `json:"tx_hash" yaml:"tx_hash"`
-	PoolID             uint64         `json:"pool_id" yaml:"pool_id"`
-	Shield             sdk.Coins      `json:"shield" yaml:"shield"`
-	StartBlockHeight   int64          `json:"start_block_height" yaml:"start_block_height"`
-	ProtectionEndTime  time.Time      `json:"protection_end_time" yaml:"protection_end_time"`
-	ClaimPeriodEndTime time.Time      `json:"claim_period_end_time" yaml:"claim_period_end_time"`
-	ExpirationTime     time.Time      `json:"expiration_time" yaml:"expiration_time"`
-	Description        string         `json:"description" yaml:"description"`
-	Purchaser          sdk.AccAddress `json:"purchaser" yaml:"purchaser"`
+	PurchaseID         uint64    `json:"purchase_id" yaml:"purchase_id"`
+	Shield             sdk.Coins `json:"shield" yaml:"shield"`
+	StartBlockHeight   int64     `json:"start_block_height" yaml:"start_block_height"`
+	ProtectionEndTime  time.Time `json:"protection_end_time" yaml:"protection_end_time"`
+	ClaimPeriodEndTime time.Time `json:"claim_period_end_time" yaml:"claim_period_end_time"`
+	ExpirationTime     time.Time `json:"expiration_time" yaml:"expiration_time"`
+	Description        string    `json:"description" yaml:"description"`
 }
 
-type PurchaseTxHash struct {
-	TxHash []byte `json:"tx_hash" yaml:"tx_hash"`
+type PurchaseList struct {
+	PoolID    uint64         `json:"pool_id" yaml:"pool_id"`
+	Purchaser sdk.AccAddress `json:"purchaser" yaml:"purchaser"`
+	Entries   []Purchase     `json:"entries" yaml:"entries"`
 }
 
-func NewPurchase(txhash []byte, poolID uint64, shield sdk.Coins, startBlockHeight int64,
-	protectionEndTime, claimPeriodEndTime, expirationTime time.Time, description string, purchaser sdk.AccAddress) Purchase {
+type PPPair struct {
+	PoolID    uint64
+	Purchaser sdk.AccAddress
+}
+
+func NewPurchaseList(poolID uint64, purchaser sdk.AccAddress, purchases []Purchase) PurchaseList {
+	return PurchaseList{
+		PoolID:    poolID,
+		Purchaser: purchaser,
+		Entries:   purchases,
+	}
+}
+
+func NewPurchase(purchaseID uint64, shield sdk.Coins, startBlockHeight int64,
+	protectionEndTime, claimPeriodEndTime, expirationTime time.Time, description string) Purchase {
 	return Purchase{
-		TxHash:             txhash,
-		PoolID:             poolID,
+		PurchaseID:         purchaseID,
 		Shield:             shield,
 		StartBlockHeight:   startBlockHeight,
 		ProtectionEndTime:  protectionEndTime,
 		ClaimPeriodEndTime: claimPeriodEndTime,
 		ExpirationTime:     expirationTime,
 		Description:        description,
-		Purchaser:          purchaser,
 	}
 }
 

@@ -30,7 +30,7 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &poolIDB)
 		return fmt.Sprintf("%v\n%v", poolIDA, poolIDB)
 
-	case bytes.Equal(kvA.Key[:1], types.PurchaseKey):
+	case bytes.Equal(kvA.Key[:1], types.PurchaseListKey):
 		var purchaseA, purchaseB types.Purchase
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &purchaseA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &purchaseB)

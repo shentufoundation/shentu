@@ -1,12 +1,9 @@
 package simulation
 
 import (
-	"encoding/hex"
 	"math/rand"
 	"strings"
 	"time"
-
-	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -182,7 +179,6 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		sponsorAcc, _ := simulation.RandomAcc(r, accs)
 
 		msg := types.NewMsgCreatePool(simAccount.Address, shield, deposit, sponsor, sponsorAcc.Address, coverageDuration)
-
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
@@ -493,8 +489,6 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		}
 
 		msg := types.NewMsgPurchaseShield(poolID, sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount)), description, purchaser.Address)
-		msg.Simulate = true
-		msg.SimTxHash = tmhash.Sum([]byte(description))
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
@@ -530,23 +524,27 @@ func ProposalContents(k keeper.Keeper, sk types.StakingKeeper) []simulation.Weig
 func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper) simulation.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simulation.Account) govtypes.Content {
 		bondDenom := sk.BondDenom(ctx)
-		purchase, found := keeper.RandomPurchase(r, k, ctx)
-		if !found || purchase.ClaimPeriodEndTime.Before(ctx.BlockTime()) {
+		purchaseList, found := keeper.RandomPurchaseList(r, k, ctx)
+		if !found {
 			return nil
 		}
-		lossAmount, err := simulation.RandPositiveInt(r, purchase.Shield.AmountOf(bondDenom))
+		entryIndex := r.Intn(len(purchaseList.Entries))
+		entry := purchaseList.Entries[entryIndex]
+		if entry.ClaimPeriodEndTime.Before(ctx.BlockTime()) {
+			return nil
+		}
+		lossAmount, err := simulation.RandPositiveInt(r, entry.Shield.AmountOf(bondDenom))
 		if err != nil {
 			return nil
 		}
-		txhash := hex.EncodeToString(purchase.TxHash)
 
 		return types.NewShieldClaimProposal(
-			purchase.PoolID,
+			purchaseList.PoolID,
 			sdk.NewCoins(sdk.NewCoin(bondDenom, lossAmount)),
+			entry.PurchaseID,
 			simulation.RandStringOfLength(r, 500),
-			txhash,
 			simulation.RandStringOfLength(r, 500),
-			purchase.Purchaser,
+			purchaseList.Purchaser,
 		)
 	}
 }
