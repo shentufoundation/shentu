@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"sort"
 	"time"
 
@@ -17,9 +16,6 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, pur
 	if err != nil {
 		return err
 	}
-	fmt.Println("\nWOWOWOWOWOW")
-	fmt.Println(pool.Shield)
-	fmt.Println(loss)
 	if !pool.Shield.IsAllGTE(loss) {
 		panic(types.ErrNotEnoughShield)
 	}

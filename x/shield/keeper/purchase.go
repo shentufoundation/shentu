@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"encoding/binary"
-	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -161,15 +160,6 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 					if err != nil {
 						panic(err)
 					}
-					fmt.Println("\n")
-					fmt.Println(ctx.BlockHeight())
-					fmt.Println(pool.PoolID)
-					fmt.Println(entry.PurchaseID)
-					fmt.Println(purchaseList)
-					fmt.Println(pool.Available)
-					fmt.Println(pool.Shield)
-					fmt.Println(entry.Shield)
-					fmt.Println(pool)
 					pool.Available = pool.Available.Add(entry.Shield.AmountOf(bondDenom))
 					pool.Shield = pool.Shield.Sub(entry.Shield)
 					k.SetPool(ctx, pool)
