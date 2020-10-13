@@ -13,25 +13,25 @@ import (
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
 
-func RegisterQueryRoutes(cliCtx context.CLIContext, r *mux.Router, storeName string) {
-	r.HandleFunc(fmt.Sprintf("/%s/operator/{address}", storeName), operatorHandler(cliCtx, storeName)).Methods("Get")
-	r.HandleFunc(fmt.Sprintf("/%s/operators", storeName), operatorsHandler(cliCtx, storeName)).Methods("Get")
-	r.HandleFunc(fmt.Sprintf("/%s/withdraws", storeName), withdrawsHandler(cliCtx, storeName)).Methods("Get")
+func RegisterQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
+	r.HandleFunc(fmt.Sprintf("/%s/operator/{address}", types.QuerierRoute), operatorHandler(cliCtx)).Methods("Get")
+	r.HandleFunc(fmt.Sprintf("/%s/operators", types.QuerierRoute), operatorsHandler(cliCtx)).Methods("Get")
+	r.HandleFunc(fmt.Sprintf("/%s/withdraws", types.QuerierRoute), withdrawsHandler(cliCtx)).Methods("Get")
 
-	r.HandleFunc(fmt.Sprintf("/%s/task", storeName), taskHandler(cliCtx, storeName)).Methods("Get")
-	r.HandleFunc(fmt.Sprintf("/%s/response", storeName), responseHandler(cliCtx, storeName)).Methods("Get")
+	r.HandleFunc(fmt.Sprintf("/%s/task", types.QuerierRoute), taskHandler(cliCtx)).Methods("Get")
+	r.HandleFunc(fmt.Sprintf("/%s/response", types.QuerierRoute), responseHandler(cliCtx)).Methods("Get")
 }
 
-func operatorHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
+func operatorHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
 
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/operator/%s", storeName, vars["address"]), nil)
+		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryOperator, types.QueryAddress)
+		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -42,14 +42,15 @@ func operatorHandler(cliCtx context.CLIContext, storeName string) http.HandlerFu
 	}
 }
 
-func operatorsHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
+func operatorsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/operators", storeName), nil)
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryOperators)
+		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -60,14 +61,15 @@ func operatorsHandler(cliCtx context.CLIContext, storeName string) http.HandlerF
 	}
 }
 
-func withdrawsHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
+func withdrawsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/withdraws", storeName), nil)
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryWithdrawals)
+		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -78,7 +80,7 @@ func withdrawsHandler(cliCtx context.CLIContext, storeName string) http.HandlerF
 	}
 }
 
-func taskHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
+func taskHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -101,7 +103,7 @@ func taskHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/task", storeName)
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryTask)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -112,7 +114,7 @@ func taskHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
 	}
 }
 
-func responseHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
+func responseHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -144,7 +146,7 @@ func responseHandler(cliCtx context.CLIContext, storeName string) http.HandlerFu
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/response", storeName)
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryResponse)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())

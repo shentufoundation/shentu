@@ -13,35 +13,35 @@ import (
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
 )
 
-func RegisterQueryRoutes(cliCtx context.CLIContext, r *mux.Router, storeName string) {
-	r.HandleFunc(fmt.Sprintf("/%s/certifier/{address}", storeName),
-		certifierHandler(cliCtx, storeName)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/certifiers", storeName),
-		certifiersHandler(cliCtx, storeName)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/certifieralias/{alias}", storeName),
-		certifierAliasHandler(cliCtx, storeName)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/validator/{pubkey}", storeName),
-		validatorHandler(cliCtx, storeName)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/validators", storeName),
-		validatorsHandler(cliCtx, storeName)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/platform/{pubkey}", storeName),
-		platformHandler(cliCtx, storeName)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/certificate/id/{certificateid}", storeName),
-		certificateHandler(cliCtx, storeName)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/certificates", storeName),
-		certificatesHandler(cliCtx, storeName)).Methods("GET")
+func RegisterQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
+	r.HandleFunc(fmt.Sprintf("/%s/certifier/{address}", types.QuerierRoute),
+		certifierHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/certifiers", types.QuerierRoute),
+		certifiersHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/certifieralias/{alias}", types.QuerierRoute),
+		certifierAliasHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/validator/{pubkey}", types.QuerierRoute),
+		validatorHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/validators", types.QuerierRoute),
+		validatorsHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/platform/{pubkey}", types.QuerierRoute),
+		platformHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/certificate/id/{certificateid}", types.QuerierRoute),
+		certificateHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/certificates", types.QuerierRoute),
+		certificatesHandler(cliCtx)).Methods("GET")
 }
 
-func certifierHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
+func certifierHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
 
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/certifier/%s", storeName, vars["address"]), nil)
+		route := fmt.Sprintf("custom/%s/certifier/%s", types.QuerierRoute, types.QueryAddress)
+		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -52,14 +52,15 @@ func certifierHandler(cliCtx context.CLIContext, storeName string) http.HandlerF
 	}
 }
 
-func certifiersHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
+func certifiersHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/certifiers", storeName), nil)
+		route := fmt.Sprintf("custom/%s/certifiers", types.QuerierRoute)
+		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -70,16 +71,16 @@ func certifiersHandler(cliCtx context.CLIContext, storeName string) http.Handler
 	}
 }
 
-func certifierAliasHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
+func certifierAliasHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
 
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/certifieralias/%s", storeName, vars["alias"]), nil)
+		route := fmt.Sprintf("custom/%s/certifieralias/%s", types.QuerierRoute, types.QueryAlias)
+		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -90,16 +91,16 @@ func certifierAliasHandler(cliCtx context.CLIContext, storeName string) http.Han
 	}
 }
 
-func validatorHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
+func validatorHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
 
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/validator/%s", storeName, vars["pubkey"]), nil)
+		route := fmt.Sprintf("custom/%s/validator/%s", types.QuerierRoute, types.QueryPubkey)
+		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -110,14 +111,15 @@ func validatorHandler(cliCtx context.CLIContext, storeName string) http.HandlerF
 	}
 }
 
-func validatorsHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
+func validatorsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/validators", storeName), nil)
+		route := fmt.Sprintf("custom/%s/validators", types.QuerierRoute)
+		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -128,16 +130,16 @@ func validatorsHandler(cliCtx context.CLIContext, storeName string) http.Handler
 	}
 }
 
-func certificateHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
+func certificateHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
 
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/certificate/%s", storeName, vars["certificateid"]), nil)
+		route := fmt.Sprintf("custom/%s/certificate/%s", types.QuerierRoute, types.QueryCertifyID)
+		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -148,7 +150,7 @@ func certificateHandler(cliCtx context.CLIContext, storeName string) http.Handle
 	}
 }
 
-func certificatesHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
+func certificatesHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -180,7 +182,7 @@ func certificatesHandler(cliCtx context.CLIContext, storeName string) http.Handl
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/certificates", storeName)
+		route := fmt.Sprintf("custom/%s/certificates", types.QuerierRoute)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -192,16 +194,16 @@ func certificatesHandler(cliCtx context.CLIContext, storeName string) http.Handl
 	}
 }
 
-func platformHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
+func platformHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
 
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/platform/%s", storeName, vars["pubkey"]), nil)
+		route := fmt.Sprintf("custom/%s/platform/%s", types.QuerierRoute, types.QueryPubkey)
+		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return

@@ -14,18 +14,18 @@ import (
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
 )
 
-func RegisterTxRoutes(cliCtx context.CLIContext, r *mux.Router, storeName string) {
-	r.HandleFunc(fmt.Sprintf("/%s/propose/certifier", storeName),
+func RegisterTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+	r.HandleFunc(fmt.Sprintf("/%s/propose/certifier", types.ModuleName),
 		proposeCertifierHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/certify/validator", storeName),
+	r.HandleFunc(fmt.Sprintf("/%s/certify/validator", types.ModuleName),
 		certifyValidatorHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/certify/platform", storeName),
+	r.HandleFunc(fmt.Sprintf("/%s/certify/platform", types.ModuleName),
 		certifyPlatformHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/certify", storeName),
+	r.HandleFunc(fmt.Sprintf("/%s/certify", types.ModuleName),
 		certifyGeneralHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/certify/compilation", storeName),
+	r.HandleFunc(fmt.Sprintf("/%s/certify/compilation", types.ModuleName),
 		certifyCompilationHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/revoke/certificate", storeName),
+	r.HandleFunc(fmt.Sprintf("/%s/revoke/certificate", types.ModuleName),
 		revokeCertificateHandler(cliCtx)).Methods("POST")
 }
 
