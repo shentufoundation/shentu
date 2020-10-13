@@ -7,7 +7,7 @@ SHASUM := $(shell which sha256sum)
 PKG_LIST := $(shell go list ./...)
 verbosity = 2
 
-build_tags =
+build_tags = ledger
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=certik \
 		  -X github.com/cosmos/cosmos-sdk/version.ServerName=certikd \
