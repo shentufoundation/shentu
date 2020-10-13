@@ -195,9 +195,8 @@ func processed(processed []types.PPPair, new types.PPPair) bool {
 }
 
 // GetOnesPurchases returns a purchaser's all purchases.
-func (k Keeper) GetOnesPurchases(ctx sdk.Context, address sdk.AccAddress) (purchases []types.PurchaseList) {
+func (k Keeper) GetOnesPurchases(ctx sdk.Context, address sdk.AccAddress) (res []types.PurchaseList) {
 	pools := k.GetAllPools(ctx)
-	var res []types.PurchaseList
 	for _, pool := range pools {
 		pList, found := k.GetPurchaseList(ctx, pool.PoolID, address)
 		if !found {
@@ -205,7 +204,7 @@ func (k Keeper) GetOnesPurchases(ctx sdk.Context, address sdk.AccAddress) (purch
 		}
 		res = append(res, pList)
 	}
-	return res
+	return
 }
 
 // GetPoolPurchaseLists returns a all purchases in a given pool.
@@ -272,7 +271,6 @@ func (k Keeper) InsertPurchaseQueue(ctx sdk.Context, purchaseList types.Purchase
 	}
 	timeSlice = append(timeSlice, ppPair)
 	k.SetPurchaseQueueTimeSlice(ctx, endTime, timeSlice)
-
 }
 
 // GetPurchaseQueueTimeSlice gets a specific purchase queue timeslice,

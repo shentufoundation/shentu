@@ -121,14 +121,13 @@ Where proposal.json contains:
 func GetCmdCreatePool(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-pool [shield amount] [sponsor] [sponsor-address]",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(3),
 		Short: "create new Shield pool initialized with an validator address",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Create a Shield pool. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield create-pool <shield amount> <sponsor> --native-deposit <ctk deposit> --foreign-deposit <external deposit>
---time-of-coverage <period in seconds>
+$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-deposit <ctk deposit> --foreign-deposit <external deposit> --time-of-coverage <period in seconds>
 `,
 				version.ClientName,
 			),
