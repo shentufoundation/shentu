@@ -68,9 +68,9 @@ func (k Keeper) DequeuePurchase(ctx sdk.Context, purchaseList types.PurchaseList
 			if len(timeslice) > 1 {
 				timeslice = append(timeslice[:i], timeslice[i+1:]...)
 				k.SetPurchaseQueueTimeSlice(ctx, endTime, timeslice)
-			} else {
-				ctx.KVStore(k.storeKey).Delete(types.GetPurchaseCompletionTimeKey(endTime))
+				return
 			}
+			ctx.KVStore(k.storeKey).Delete(types.GetPurchaseCompletionTimeKey(endTime))
 			return
 		}
 	}
@@ -156,11 +156,10 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 		for _, ppPair := range timeslice {
 			purchaseList, _ := k.GetPurchaseList(ctx, ppPair.PoolID, ppPair.Purchaser)
 
-			for i := 0; i < len(purchaseList.Entries); i++ {
+			for i := 0; i < len(purchaseList.Entries); {
 				entry := purchaseList.Entries[i]
 				if entry.ExpirationTime.Before(ctx.BlockTime()) {
 					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
-					i--
 					pool, err := k.GetPool(ctx, purchaseList.PoolID)
 					if err != nil {
 						panic(err)
@@ -168,13 +167,15 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 					pool.Available = pool.Available.Add(entry.Shield.AmountOf(bondDenom))
 					pool.Shield = pool.Shield.Sub(entry.Shield)
 					k.SetPool(ctx, pool)
+					continue
 				}
+				i++
 			}
 			if len(purchaseList.Entries) == 0 {
 				k.DeletePurchaseList(ctx, purchaseList.PoolID, purchaseList.Purchaser)
-				continue
+			} else {
+				k.SetPurchaseList(ctx, purchaseList)
 			}
-			k.SetPurchaseList(ctx, purchaseList)
 		}
 		store.Delete(iterator.Key())
 	}

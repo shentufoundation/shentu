@@ -255,6 +255,7 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 	for i := range purchaseList.Entries {
 		if purchaseList.Entries[i].PurchaseID == id {
 			purchaseList.Entries[i].Shield = purchaseList.Entries[i].Shield.Add(loss...)
+			break
 		}
 	}
 
