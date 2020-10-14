@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/hex"
 	"strconv"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -94,16 +93,20 @@ func queryPurchase(ctx sdk.Context, path []string, k Keeper) (res []byte, err er
 		return nil, err
 	}
 
-	txhash, err := hex.DecodeString(path[0])
+	poolID, err := strconv.ParseUint(path[0], 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	purchase, err := k.GetPurchase(ctx, txhash)
+	purchaser, err := sdk.AccAddressFromBech32(path[1])
 	if err != nil {
 		return nil, err
+	}
+	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
+	if !found {
+		return []byte{}, types.ErrPurchaseNotFound
 	}
 
-	res, err = codec.MarshalJSONIndent(k.cdc, purchase)
+	res, err = codec.MarshalJSONIndent(k.cdc, purchaseList)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -139,7 +142,7 @@ func queryPoolPurchases(ctx sdk.Context, path []string, k Keeper) (res []byte, e
 		return nil, err
 	}
 
-	res, err = codec.MarshalJSONIndent(k.cdc, k.GetPoolPurchases(ctx, id))
+	res, err = codec.MarshalJSONIndent(k.cdc, k.GetPoolPurchaseLists(ctx, id))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

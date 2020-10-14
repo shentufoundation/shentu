@@ -58,10 +58,12 @@ func PurchasedCollateralsInvariants(k Keeper) sdk.Invariant {
 		currentPool := types.Pool{}
 		purchased := sdk.Coins{}
 		k.IterateAllPools(ctx, func(pool types.Pool) bool {
-			purchases := k.GetPoolPurchases(ctx, pool.PoolID)
+			purchases := k.GetPoolPurchaseLists(ctx, pool.PoolID)
 			purchased = sdk.Coins{}
 			for _, purchase := range purchases {
-				purchased = purchased.Add(purchase.Shield...)
+				for _, entry := range purchase.Entries {
+					purchased = purchased.Add(entry.Shield...)
+				}
 			}
 			currentPool = pool
 			// (total collateral) < (total purchase) could happen when withdraws are done but there are still locked coins

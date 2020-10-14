@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -26,7 +28,7 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, error) {
 
 func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 	shield sdk.Coins, deposit types.MixedCoins, sponsor string,
-	sponsorAddr sdk.AccAddress, time int64) (types.Pool, error) {
+	sponsorAddr sdk.AccAddress, poolLifeTime time.Duration) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !creator.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -36,7 +38,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 		return types.Pool{}, types.ErrSponsorAlreadyExists
 	}
 
-	if !k.ValidatePoolDuration(ctx, time) {
+	if !k.ValidatePoolDuration(ctx, poolLifeTime) {
 		return types.Pool{}, types.ErrPoolLifeTooShort
 	}
 
@@ -53,7 +55,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 	}
 	provider.Available = provider.Available.Sub(shieldAmt)
 
-	endTime := ctx.BlockHeader().Time.Unix() + time
+	endTime := ctx.BlockTime().Add(poolLifeTime)
 	id := k.GetNextPoolID(ctx)
 	depositDec := types.MixedDecCoinsFromMixedCoins(deposit)
 
@@ -64,15 +66,23 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 		return types.Pool{}, err
 	}
 
+	// make a pseudo-purchase for B, equal to shield
+	purchaseID := k.GetNextPurchaseID(ctx)
+	purchase := types.NewPurchase(purchaseID, shield, ctx.BlockHeight(), endTime, endTime, endTime, "shield for sponsor")
+
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, id+1)
 	k.SetProvider(ctx, admin, provider)
 	k.SetCollateral(ctx, pool, admin, types.NewCollateral(pool, admin, shieldAmt))
 
+	k.AddPurchase(ctx, id, sponsorAddr, purchase)
+	k.InsertPurchaseQueue(ctx, types.NewPurchaseList(id, sponsorAddr, []types.Purchase{purchase}), endTime)
+	k.SetNextPurchaseID(ctx, purchaseID+1)
+
 	return pool, nil
 }
 
-func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, id uint64, addTime int64) (types.Pool, error) {
+func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, id uint64, addTime time.Duration, description string) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -99,7 +109,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	if err != nil {
 		return types.Pool{}, err
 	}
-	pool.EndTime = pool.EndTime + addTime
+	pool.EndTime = pool.EndTime.Add(addTime)
 	pool.TotalCollateral = pool.TotalCollateral.Add(shieldAmt)
 	poolCertiKCollateral, found := k.GetPoolCertiKCollateral(ctx, pool)
 	if !found {
@@ -108,6 +118,9 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	poolCertiKCollateral.Amount = poolCertiKCollateral.Amount.Add(shieldAmt)
 	pool.Shield = pool.Shield.Add(shield...)
 	pool.Premium = pool.Premium.Add(types.MixedDecCoinsFromMixedCoins(deposit))
+	if description != "" {
+		pool.Description = description
+	}
 
 	// transfer deposit and store
 	err = k.DepositNativePremium(ctx, deposit.Native, admin)
@@ -115,9 +128,23 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 		return types.Pool{}, err
 	}
 
+	// update sponsor purchase
+	sponsorPurchase, _ := k.GetPurchaseList(ctx, id, pool.SponsorAddr)
+
+	// assume there is only one purchase from sponsor address
+	purchase := sponsorPurchase.Entries[0]
+	k.DequeuePurchase(ctx, sponsorPurchase, purchase.ExpirationTime)
+	purchase.ExpirationTime = pool.EndTime
+	purchase.ClaimPeriodEndTime = pool.EndTime
+	purchase.ProtectionEndTime = pool.EndTime
+	purchase.Shield = purchase.Shield.Add(shield...)
+	newPurchaseList := types.NewPurchaseList(id, pool.SponsorAddr, []types.Purchase{purchase})
+
 	k.SetCollateral(ctx, pool, k.GetAdmin(ctx), poolCertiKCollateral)
 	k.SetPool(ctx, pool)
 	k.SetProvider(ctx, admin, provider)
+	k.SetPurchaseList(ctx, newPurchaseList)
+	k.InsertPurchaseQueue(ctx, newPurchaseList, purchase.ExpirationTime)
 	return pool, nil
 }
 
@@ -166,7 +193,7 @@ func (k Keeper) GetAllPools(ctx sdk.Context) (pools []types.Pool) {
 
 // PoolEnded returns if pool has reached ending time and block height
 func (k Keeper) PoolEnded(ctx sdk.Context, pool types.Pool) bool {
-	return ctx.BlockTime().Unix() > pool.EndTime
+	return ctx.BlockTime().After(pool.EndTime)
 }
 
 // ClosePool closes the pool
@@ -194,10 +221,10 @@ func (k Keeper) IterateAllPools(ctx sdk.Context, callback func(pool types.Pool) 
 }
 
 // ValidatePoolDuration validates new pool duration to be valid
-func (k Keeper) ValidatePoolDuration(ctx sdk.Context, timeDuration int64) bool {
+func (k Keeper) ValidatePoolDuration(ctx sdk.Context, timeDuration time.Duration) bool {
 	poolParams := k.GetPoolParams(ctx)
-	minPoolDuration := int64(poolParams.MinPoolLife.Seconds())
-	return timeDuration > minPoolDuration
+	minPoolDuration := poolParams.MinPoolLife
+	return timeDuration >= minPoolDuration
 }
 
 // WithdrawFromPools withdraws coins from all pools to match total collateral to be less than or equal to total delegation.

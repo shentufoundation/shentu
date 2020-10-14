@@ -1,56 +1,79 @@
 package keeper
 
 import (
-	"bytes"
+	"encoding/binary"
 	"time"
-
-	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-// SetPurchase sets a purchase of shield.
-func (k Keeper) SetPurchase(ctx sdk.Context, purchase types.Purchase) {
+// SetPurchaseList sets a purchase list.
+func (k Keeper) SetPurchaseList(ctx sdk.Context, purchaseList types.PurchaseList) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchase)
-	store.Set(types.GetPurchaseTxHashKey(purchase.TxHash), bz)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchaseList)
+	store.Set(types.GetPurchaseListKey(purchaseList.PoolID, purchaseList.Purchaser), bz)
 }
 
-// GetPurchase gets a purchase from store by txhash.
-func (k Keeper) GetPurchase(ctx sdk.Context, txhash []byte) (types.Purchase, error) {
+// AddPurchase sets a purchase of shield.
+func (k Keeper) AddPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchase types.Purchase) {
+	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
+	if !found {
+		purchaseList = types.NewPurchaseList(poolID, purchaser, []types.Purchase{purchase})
+	} else {
+		purchaseList.Entries = append(purchaseList.Entries, purchase)
+	}
+	k.SetPurchaseList(ctx, purchaseList)
+}
+
+// GetPurchaseList gets a purchase from store by txhash.
+func (k Keeper) GetPurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (types.PurchaseList, bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetPurchaseTxHashKey(txhash))
+	bz := store.Get(types.GetPurchaseListKey(poolID, purchaser))
 	if bz != nil {
-		var purchase types.Purchase
+		var purchase types.PurchaseList
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &purchase)
-		return purchase, nil
+		return purchase, true
 	}
-	return types.Purchase{}, types.ErrPurchaseNotFound
+	return types.PurchaseList{}, false
 }
 
-// DeletePurchase deletes a purchase of shield.
-func (k Keeper) DeletePurchase(ctx sdk.Context, txhash []byte) error {
-	store := ctx.KVStore(k.storeKey)
-	_, err := k.GetPurchase(ctx, txhash)
-	if err != nil {
-		return err
+// GetPurchase gets a purchase out of a purchase list
+func GetPurchase(purchaseList types.PurchaseList, purchaseID uint64) (types.Purchase, bool) {
+	for _, entry := range purchaseList.Entries {
+		if entry.PurchaseID == purchaseID {
+			return entry, true
+		}
 	}
-	store.Delete(types.GetPurchaseTxHashKey(txhash))
+	return types.Purchase{}, false
+}
+
+// DeletePurchaseList deletes a purchase of shield.
+func (k Keeper) DeletePurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) error {
+	store := ctx.KVStore(k.storeKey)
+	_, found := k.GetPurchaseList(ctx, poolID, purchaser)
+	if !found {
+		return types.ErrPurchaseNotFound
+	}
+	store.Delete(types.GetPurchaseListKey(poolID, purchaser))
 	return nil
 }
 
 // DequeuePurchase dequeues a purchase from the purchase queue
-func (k Keeper) DequeuePurchase(ctx sdk.Context, purchase types.Purchase) {
-	timeslice := k.GetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime)
-	for i, entry := range timeslice {
-		if bytes.Equal(entry, purchase.TxHash) {
-			timeslice = append(timeslice[:i], timeslice[i+1:]...)
-			break
+func (k Keeper) DequeuePurchase(ctx sdk.Context, purchaseList types.PurchaseList, endTime time.Time) {
+	timeslice := k.GetPurchaseQueueTimeSlice(ctx, endTime)
+	for i, ppPair := range timeslice {
+		if (purchaseList.PoolID == ppPair.PoolID) && purchaseList.Purchaser.Equals(ppPair.Purchaser) {
+			if len(timeslice) > 1 {
+				timeslice = append(timeslice[:i], timeslice[i+1:]...)
+				k.SetPurchaseQueueTimeSlice(ctx, endTime, timeslice)
+				return
+			}
+			ctx.KVStore(k.storeKey).Delete(types.GetPurchaseCompletionTimeKey(endTime))
+			return
 		}
 	}
-	k.SetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime, timeslice)
 }
 
 // PurchaseShield purchases shield of a pool.
@@ -68,7 +91,7 @@ func (k Keeper) PurchaseShield(
 	if !pool.Active {
 		return types.Purchase{}, types.ErrPoolInactive
 	}
-	if pool.EndTime <= ctx.BlockTime().Unix()+claimParams.ClaimPeriod.Milliseconds()/1000 {
+	if pool.EndTime.Before(ctx.BlockTime().Add(claimParams.ClaimPeriod)) {
 		return types.Purchase{}, types.ErrPoolLifeTooShort
 	}
 	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
@@ -91,35 +114,23 @@ func (k Keeper) PurchaseShield(
 	k.SetPool(ctx, pool)
 
 	// set purchase
-	txhash := tmhash.Sum(ctx.TxBytes())
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
 	claimPeriodEndTime := ctx.BlockTime().Add(claimParams.ClaimPeriod)
-	purchase := types.NewPurchase(txhash, poolID, shield, ctx.BlockHeight(), protectionEndTime,
-		claimPeriodEndTime, claimPeriodEndTime, description, purchaser)
-	k.SetPurchase(ctx, purchase)
-	k.InsertPurchaseQueue(ctx, purchase)
+	purchaseID := k.GetNextPurchaseID(ctx)
+	purchase := types.NewPurchase(purchaseID, shield, ctx.BlockHeight(), protectionEndTime,
+		claimPeriodEndTime, claimPeriodEndTime, description)
+	purchaseList := types.NewPurchaseList(poolID, purchaser, []types.Purchase{purchase})
+	k.AddPurchase(ctx, poolID, purchaser, purchase)
+	k.InsertPurchaseQueue(ctx, purchaseList, claimPeriodEndTime)
+	k.SetNextPurchaseID(ctx, purchaseID+1)
 
-	return purchase, nil
-}
-
-func (k Keeper) SimulatePurchaseShield(
-	ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress, simTxHash []byte,
-) (types.Purchase, error) {
-	purchase, err := k.PurchaseShield(ctx, poolID, shield, description, purchaser)
-	if err != nil {
-		return types.Purchase{}, err
-	}
-	_ = k.DeletePurchase(ctx, purchase.TxHash)
-
-	purchase.TxHash = simTxHash
-	k.SetPurchase(ctx, purchase)
 	return purchase, nil
 }
 
 // IterateAllPurchases iterates over the all the stored purchases and performs a callback function.
 func (k Keeper) IterateAllPurchases(ctx sdk.Context, callback func(purchase types.Purchase) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.PurchaseKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.PurchaseListKey)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -137,94 +148,134 @@ func (k Keeper) IterateAllPurchases(ctx sdk.Context, callback func(purchase type
 func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := k.PurchaseQueueIterator(ctx, ctx.BlockTime())
-
+	bondDenom := k.sk.BondDenom(ctx)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var timeslice []types.PurchaseTxHash
+		var timeslice []types.PPPair
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &timeslice)
-		for _, entry := range timeslice {
-			purchase, _ := k.GetPurchase(ctx, entry)
-			pool, err := k.GetPool(ctx, purchase.PoolID)
-			if err == nil {
-				pool.Available = pool.Available.Add(purchase.Shield.AmountOf(k.sk.BondDenom(ctx)))
-				pool.Shield = pool.Shield.Sub(purchase.Shield)
-				k.SetPool(ctx, pool)
+		for _, ppPair := range timeslice {
+			purchaseList, _ := k.GetPurchaseList(ctx, ppPair.PoolID, ppPair.Purchaser)
+
+			for i := 0; i < len(purchaseList.Entries); {
+				entry := purchaseList.Entries[i]
+				if entry.ExpirationTime.Before(ctx.BlockTime()) {
+					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
+					pool, err := k.GetPool(ctx, purchaseList.PoolID)
+					if err != nil {
+						panic(err)
+					}
+					pool.Available = pool.Available.Add(entry.Shield.AmountOf(bondDenom))
+					pool.Shield = pool.Shield.Sub(entry.Shield)
+					k.SetPool(ctx, pool)
+					continue
+				}
+				i++
 			}
-			k.DeletePurchase(ctx, purchase.TxHash)
+			if len(purchaseList.Entries) == 0 {
+				k.DeletePurchaseList(ctx, purchaseList.PoolID, purchaseList.Purchaser)
+			} else {
+				k.SetPurchaseList(ctx, purchaseList)
+			}
 		}
 		store.Delete(iterator.Key())
 	}
 }
 
 // GetOnesPurchases returns a purchaser's all purchases.
-func (k Keeper) GetOnesPurchases(ctx sdk.Context, address sdk.AccAddress) (purchases []types.Purchase) {
-	k.IterateAllPurchases(ctx, func(purchase types.Purchase) bool {
-		if purchase.Purchaser.Equals(address) {
-			purchases = append(purchases, purchase)
+func (k Keeper) GetOnesPurchases(ctx sdk.Context, address sdk.AccAddress) (res []types.PurchaseList) {
+	pools := k.GetAllPools(ctx)
+	for _, pool := range pools {
+		pList, found := k.GetPurchaseList(ctx, pool.PoolID, address)
+		if !found {
+			continue
+		}
+		res = append(res, pList)
+	}
+	return
+}
+
+// GetPoolPurchaseLists returns a all purchases in a given pool.
+func (k Keeper) GetPoolPurchaseLists(ctx sdk.Context, poolID uint64) (purchases []types.PurchaseList) {
+	k.IteratePoolPurchaseLists(ctx, poolID, func(purchaseList types.PurchaseList) bool {
+		if purchaseList.PoolID == poolID {
+			purchases = append(purchases, purchaseList)
 		}
 		return false
 	})
 	return purchases
 }
 
-// GetPoolPurchases returns a all purchases in a given pool.
-func (k Keeper) GetPoolPurchases(ctx sdk.Context, poolID uint64) (purchases []types.Purchase) {
-	k.IterateAllPurchases(ctx, func(purchase types.Purchase) bool {
-		if purchase.PoolID == poolID {
-			purchases = append(purchases, purchase)
-		}
-		return false
-	})
-	return purchases
-}
-
-// IteratePurchases iterates through purchases in a pool
-func (k Keeper) IteratePurchases(ctx sdk.Context, callback func(purchase types.Purchase) (stop bool)) {
+// IteratePurchaseLists iterates through purchase lists in a pool
+func (k Keeper) IteratePurchaseLists(ctx sdk.Context, callback func(purchase types.PurchaseList) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.PurchaseKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.PurchaseListKey)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var purchase types.Purchase
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchase)
+		var purchaseList types.PurchaseList
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchaseList)
 
-		if callback(purchase) {
+		if callback(purchaseList) {
 			break
 		}
 	}
 }
 
-// GetAllPurchases retrieves all purchases.
-func (k Keeper) GetAllPurchases(ctx sdk.Context) (purchases []types.Purchase) {
-	k.IteratePurchases(ctx, func(purchase types.Purchase) bool {
+// IteratePoolPurchaseLists iterates through purchases in a pool
+func (k Keeper) IteratePoolPurchaseLists(ctx sdk.Context, poolID uint64, callback func(purchaseList types.PurchaseList) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, poolID)
+	iterator := sdk.KVStorePrefixIterator(store, append(types.PurchaseListKey, bz...))
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var purchaseList types.PurchaseList
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchaseList)
+
+		if callback(purchaseList) {
+			break
+		}
+	}
+}
+
+// GetAllPurchaseLists retrieves all purchases.
+func (k Keeper) GetAllPurchaseLists(ctx sdk.Context) (purchases []types.PurchaseList) {
+	k.IteratePurchaseLists(ctx, func(purchase types.PurchaseList) bool {
 		purchases = append(purchases, purchase)
 		return false
 	})
 	return
 }
 
-func (k Keeper) InsertPurchaseQueue(ctx sdk.Context, purchase types.Purchase) {
-	timeSlice := k.GetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime)
-	timeSlice = append(timeSlice, purchase.TxHash)
-	k.SetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime, timeSlice)
+func (k Keeper) InsertPurchaseQueue(ctx sdk.Context, purchaseList types.PurchaseList, endTime time.Time) {
+	timeSlice := k.GetPurchaseQueueTimeSlice(ctx, endTime)
+
+	ppPair := types.PPPair{PoolID: purchaseList.PoolID, Purchaser: purchaseList.Purchaser}
+	if len(timeSlice) == 0 {
+		k.SetPurchaseQueueTimeSlice(ctx, endTime, []types.PPPair{ppPair})
+		return
+	}
+	timeSlice = append(timeSlice, ppPair)
+	k.SetPurchaseQueueTimeSlice(ctx, endTime, timeSlice)
 }
 
 // GetPurchaseQueueTimeSlice gets a specific purchase queue timeslice,
 // which is a slice of purchases corresponding to a given time.
-func (k Keeper) GetPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []types.PurchaseTxHash {
+func (k Keeper) GetPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []types.PPPair {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetPurchaseCompletionTimeKey(timestamp))
 	if bz == nil {
-		return []types.PurchaseTxHash{}
+		return []types.PPPair{}
 	}
-	var purchases []types.PurchaseTxHash
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &purchases)
-	return purchases
+	var ppPairs []types.PPPair
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ppPairs)
+	return ppPairs
 }
 
-func (k Keeper) SetPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time, purchases []types.PurchaseTxHash) {
+func (k Keeper) SetPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time, ppPairs []types.PPPair) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchases)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(ppPairs)
 	store.Set(types.GetPurchaseCompletionTimeKey(timestamp), bz)
 }
 
@@ -233,4 +284,19 @@ func (k Keeper) PurchaseQueueIterator(ctx sdk.Context, endTime time.Time) sdk.It
 	store := ctx.KVStore(k.storeKey)
 	return store.Iterator(types.PurchaseQueueKey,
 		sdk.InclusiveEndBytes(types.GetPurchaseCompletionTimeKey(endTime)))
+}
+
+// SetNextPurchaseID sets the latest pool ID to store.
+func (k Keeper) SetNextPurchaseID(ctx sdk.Context, id uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, id)
+	store.Set(types.GetNextPurchaseIDKey(), bz)
+}
+
+// GetNextPurchaseID gets the latest pool ID from store.
+func (k Keeper) GetNextPurchaseID(ctx sdk.Context) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	opBz := store.Get(types.GetNextPurchaseIDKey())
+	return binary.LittleEndian.Uint64(opBz)
 }
