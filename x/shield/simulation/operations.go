@@ -538,6 +538,13 @@ func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper)
 		if !found {
 			return nil
 		}
+		pool, err := k.GetPool(ctx, purchaseList.PoolID)
+		if err != nil {
+			return nil
+		}
+		if pool.SponsorAddr.Equals(purchaseList.Purchaser) {
+			return nil
+		}
 		entryIndex := r.Intn(len(purchaseList.Entries))
 		entry := purchaseList.Entries[entryIndex]
 		if entry.ClaimPeriodEndTime.Before(ctx.BlockTime()) {
