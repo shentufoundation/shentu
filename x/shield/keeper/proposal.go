@@ -209,7 +209,8 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64) e
 	 * A1 started withdrawing 150: pool.TotalCollateral 400; collateral.Amount 200; provider.Collateral 300.
 	 * Claim proposal 1 locked 200: pool.TotalCollateral 400 --> 200; collateral.Amount 200 --> 100; provider.Collateral 300 --> 200.
 	 * A1 finished withdrawing 150: pool.TotalCollateral 200 --> 100; collateral.Amount 100 --> 0; collateral.Overdraft 0 --> 50; provider.Collateral 200 --> 100.
-	 * Claim proposal 1 unlock 200: pool.TotalCollateral 100 --> 250; collateral.Amount 0 --> 50; collateral.Overdraft 50 --> 0; provider.Collateral 100 --> 150.
+	 * A1 deposited 50: pool.TotalCollateral 100 --> 150; collateral.Amount 0 --> 50; collateral.Overdraft 50; provider.Collateral 100 --> 150.
+	 * Claim proposal 1 unlock 200: pool.TotalCollateral 150 --> 300; collateral.Amount 50 --> 100; collateral.Overdraft 50 --> 0; provider.Collateral 150 --> 200.
 	 */
 	collaterals := k.GetAllPoolCollaterals(ctx, pool)
 	for _, collateral := range collaterals {
