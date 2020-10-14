@@ -33,11 +33,6 @@ const (
 
 	// QueryCertificates is the query endpoint for certificates.
 	QueryCertificates = "certificates"
-
-	QueryAddress   = "address"
-	QueryAlias     = "alias"
-	QueryPubkey    = "pubkey"
-	QueryCertifyID = "certificateid"
 )
 
 // QueryCertificatesParams is the type for parameters of querying certificates.
