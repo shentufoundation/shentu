@@ -334,7 +334,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		poolID, collateral, found := keeper.RandomCollateral(r, k, ctx)
+		collateral, found := keeper.RandomCollateral(r, k, ctx)
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
@@ -347,7 +347,7 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 		}
 		account := ak.GetAccount(ctx, simAccount.Address)
 
-		pool, _ := k.GetPool(ctx, poolID)
+		pool, _ := k.GetPool(ctx, collateral.PoolID)
 		denom := sk.BondDenom(ctx)
 		withdrawable := sdk.ZeroInt()
 		if !simAccount.Address.Equals(k.GetAdmin(ctx)) {
@@ -386,7 +386,7 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		_, collateral, found := keeper.RandomCollateral(r, k, ctx)
+		collateral, found := keeper.RandomCollateral(r, k, ctx)
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
@@ -424,7 +424,7 @@ func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper, sk type
 func SimulateMsgWithdrawForeignRewards(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		_, collateral, found := keeper.RandomCollateral(r, k, ctx)
+		collateral, found := keeper.RandomCollateral(r, k, ctx)
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
