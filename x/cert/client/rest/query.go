@@ -34,7 +34,6 @@ func RegisterQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 
 func certifierHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
@@ -73,7 +72,6 @@ func certifiersHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 func certifierAliasHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
@@ -93,7 +91,6 @@ func certifierAliasHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 func validatorHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
@@ -132,7 +129,6 @@ func validatorsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 func certificateHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
@@ -196,7 +192,6 @@ func certificatesHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 func platformHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return

@@ -26,7 +26,6 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 
 func queryPoolWithIDHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
@@ -46,7 +45,6 @@ func queryPoolWithIDHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryPoolWithSponsorHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
@@ -85,7 +83,6 @@ func queryPoolsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryCollateralsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
@@ -105,7 +102,6 @@ func queryCollateralsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryPoolCollateralsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
@@ -125,7 +121,6 @@ func queryPoolCollateralsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryPurchaseHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
@@ -145,7 +140,6 @@ func queryPurchaseHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryPurchasesHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
@@ -165,7 +159,6 @@ func queryPurchasesHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryPoolPurchasesHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
@@ -185,7 +178,6 @@ func queryPoolPurchasesHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryProviderHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
