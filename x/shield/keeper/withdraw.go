@@ -89,10 +89,16 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 
 	// for each completed withdraw, process adjustments.
 	for _, withdraw := range withdraws {
+		provider, found := k.GetProvider(ctx, withdraw.Address)
+		if !found {
+			panic("provider not found but its collaterals are being withdrawn")
+		}
+
 		// update pool community or CertiK first in case the pool is closed
 		pool, err := k.GetPool(ctx, withdraw.PoolID)
 		if err != nil {
-			// do not update provider if the pool has been closed
+			provider.Withdrawing = provider.Withdrawing.Sub(withdraw.Amount)
+			k.SetProvider(ctx, withdraw.Address, provider)
 			continue
 		}
 		pool.TotalCollateral = pool.TotalCollateral.Sub(withdraw.Amount)
@@ -111,11 +117,6 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 		k.SetPool(ctx, pool)
 
 		// update provider's collateral amount
-		provider, found := k.GetProvider(ctx, withdraw.Address)
-		if !found {
-			panic("provider not found but its collaterals are being withdrawn")
-		}
-
 		provider.Collateral = provider.Collateral.Sub(withdraw.Amount)
 		provider.Available = provider.Available.Add(withdraw.Amount)
 		provider.Withdrawing = provider.Withdrawing.Sub(withdraw.Amount)

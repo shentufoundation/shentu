@@ -40,6 +40,7 @@ func (k Keeper) FreeCollaterals(ctx sdk.Context, pool types.Pool) {
 	k.IteratePoolCollaterals(ctx, pool, func(collateral types.Collateral) bool {
 		provider, _ := k.GetProvider(ctx, collateral.Provider)
 		provider.Collateral = provider.Collateral.Sub(collateral.Amount)
+		provider.Available = provider.Available.Add(collateral.Amount)
 		k.SetProvider(ctx, collateral.Provider, provider)
 		store.Delete(types.GetCollateralKey(pool.PoolID, collateral.Provider))
 		return false
