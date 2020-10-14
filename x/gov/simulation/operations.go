@@ -212,11 +212,13 @@ func SimulateSubmitProposal(
 		votingPeriod := k.GetVotingParams(ctx).VotingPeriod
 
 		var fops []simulation.FutureOperation
+		doubleVotingTime := int64(1)
 
 		if content.ProposalType() == shield.ProposalTypeShieldClaim ||
 			content.ProposalType() == cert.ProposalTypeCertifierUpdate ||
 			content.ProposalType() == upgrade.ProposalTypeSoftwareUpgrade {
 			// certifier voting
+			doubleVotingTime = 2
 			for _, acc := range accs {
 				if ck.IsCertifier(ctx, acc.Address) {
 					whenVote := ctx.BlockHeader().Time.Add(time.Duration(r.Int63n(int64(votingPeriod.Seconds()))) * time.Second / 4)
@@ -230,7 +232,7 @@ func SimulateSubmitProposal(
 
 		// validator / delegator voting
 		for i := 0; i < numVotes; i++ {
-			whenVote := ctx.BlockHeader().Time.Add(time.Duration(r.Int63n(int64(votingPeriod.Seconds()))) * time.Second)
+			whenVote := ctx.BlockHeader().Time.Add(time.Duration(r.Int63n(int64(votingPeriod.Seconds()))*doubleVotingTime) * time.Second)
 			fops = append(fops, simulation.FutureOperation{
 				BlockTime: whenVote,
 				Op:        operationSimulateMsgVote(ak, k, accs[whoVotes[i]], int64(proposalID)),
