@@ -88,10 +88,10 @@ func (k Keeper) PurchaseShield(
 	claimParams := k.GetClaimProposalParams(ctx)
 
 	// check preconditions
-	err = k.PoolShieldAvailable(ctx, pool)
-	if err != nil {
-		return types.Purchase{}, nil
+	if err = k.PoolShieldAvailable(ctx, pool); err != nil {
+		return types.Purchase{}, err
 	}
+
 	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
 	if shieldAmt.GT(pool.Available) {
 		return types.Purchase{}, types.ErrNotEnoughShield

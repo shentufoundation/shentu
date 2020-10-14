@@ -130,7 +130,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	}
 
 	// update sponsor purchase
-	sponsorPurchase, _ := k.GetPurchaseList(ctx, id, pool.SponsorAddr)
+	sponsorPurchase, found := k.GetPurchaseList(ctx, id, pool.SponsorAddr)
 
 	purchaseEndTime := pool.EndTime.Add(-k.gk.GetVotingParams(ctx).VotingPeriod * 2)
 	if purchaseEndTime.Before(ctx.BlockTime()) {
@@ -138,16 +138,16 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	}
 	// assume there is only one purchase from sponsor address, and add in any if B's purchase expired.
 	var purchase types.Purchase
-	if len(sponsorPurchase.Entries) == 0 {
+	if !found {
 		purchaseID := k.GetNextPurchaseID(ctx)
-		purchase = types.NewPurchase(purchaseID, sdk.NewCoins(), ctx.BlockHeight(), purchaseEndTime, purchaseEndTime, purchaseEndTime, "sponsor shield")
+		purchase = types.NewPurchase(purchaseID, sdk.NewCoins(), ctx.BlockHeight(), purchaseEndTime, purchaseEndTime, purchaseEndTime, "shield for sponsor")
 		k.SetNextPurchaseID(ctx, purchaseID+1)
 	} else {
 		purchase = sponsorPurchase.Entries[0]
 		k.DequeuePurchase(ctx, sponsorPurchase, purchase.ExpirationTime)
 		purchase.ExpirationTime = purchaseEndTime
-		purchase.ClaimPeriodEndTime = purchase.ExpirationTime
-		purchase.ProtectionEndTime = purchase.ClaimPeriodEndTime
+		purchase.ClaimPeriodEndTime = purchaseEndTime
+		purchase.ProtectionEndTime = purchaseEndTime
 	}
 
 	purchase.Shield = purchase.Shield.Add(shield...)
@@ -157,7 +157,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	k.SetPool(ctx, pool)
 	k.SetProvider(ctx, admin, provider)
 	k.SetPurchaseList(ctx, newPurchaseList)
-	k.InsertPurchaseQueue(ctx, newPurchaseList, purchase.ExpirationTime)
+	k.InsertPurchaseQueue(ctx, newPurchaseList, purchaseEndTime)
 	return pool, nil
 }
 
