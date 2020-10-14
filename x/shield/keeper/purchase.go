@@ -65,8 +65,12 @@ func (k Keeper) DequeuePurchase(ctx sdk.Context, purchaseList types.PurchaseList
 	timeslice := k.GetPurchaseQueueTimeSlice(ctx, endTime)
 	for i, ppPair := range timeslice {
 		if (purchaseList.PoolID == ppPair.PoolID) && purchaseList.Purchaser.Equals(ppPair.Purchaser) {
-			timeslice = append(timeslice[:i], timeslice[i+1:]...)
-			k.SetPurchaseQueueTimeSlice(ctx, endTime, timeslice)
+			if len(timeslice) > 1 {
+				timeslice = append(timeslice[:i], timeslice[i+1:]...)
+				k.SetPurchaseQueueTimeSlice(ctx, endTime, timeslice)
+			} else {
+				ctx.KVStore(k.storeKey).Delete(types.GetPurchaseCompletionTimeKey(endTime))
+			}
 			return
 		}
 	}
