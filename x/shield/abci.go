@@ -1,6 +1,8 @@
 package shield
 
 import (
+	"time"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -23,12 +25,12 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 		}
 		// compute premiums for current block
 		var currentBlockPremium types.MixedDecCoins
-		timeUntilEnd := pool.EndTime.Sub(ctx.BlockTime())
-		blocksUntilEnd := sdk.MaxDec(sdk.NewDec(timeUntilEnd.Milliseconds()/1000).QuoInt64(int64(common.SecondsPerBlock)), sdk.OneDec())
 		if ctx.BlockTime().After(pool.EndTime) {
 			// must spend all premium
 			currentBlockPremium = pool.Premium
 		} else {
+			timeUntilEnd := pool.EndTime.Sub(ctx.BlockTime())
+			blocksUntilEnd := sdk.MaxDec(sdk.NewDec(int64(timeUntilEnd/time.Second)).QuoInt64(int64(common.SecondsPerBlock)), sdk.OneDec())
 			currentBlockPremium = pool.Premium.QuoDec(blocksUntilEnd)
 		}
 
@@ -45,6 +47,13 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 
 			rewards := types.NewMixedDecCoins(nativePremium, foreignPremium)
 			k.AddRewards(ctx, recipient.Provider, rewards)
+		}
+
+		// pass remaining to the pool admin if pool has ended
+		if pool.EndTime.Before(ctx.BlockTime()) {
+			k.AddRewards(ctx, k.GetAdmin(ctx), pool.Premium)
+			pool.Premium.Native = sdk.NewDecCoins()
+			pool.Premium.Foreign = sdk.NewDecCoins()
 		}
 
 		k.SetPool(ctx, pool)

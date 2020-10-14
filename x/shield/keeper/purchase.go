@@ -162,7 +162,8 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
 					pool, err := k.GetPool(ctx, purchaseList.PoolID)
 					if err != nil {
-						panic(err)
+						// skip purchases of closed pools
+						continue
 					}
 					pool.Available = pool.Available.Add(entry.Shield.AmountOf(bondDenom))
 					pool.Shield = pool.Shield.Sub(entry.Shield)
