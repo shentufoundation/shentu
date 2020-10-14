@@ -10,9 +10,6 @@ const (
 	QueryAddrMeta = "address-meta"
 	QueryMeta     = "meta"
 	QueryView     = "view"
-	QueryAddress  = "address"
-	QueryKey      = "key"
-	QueryHash     = "hash"
 )
 
 // QueryResView is the query result payload for a storage query.

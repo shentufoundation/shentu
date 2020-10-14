@@ -39,7 +39,10 @@ func certifierHandler(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/certifier/%s", types.QuerierRoute, types.QueryAddress)
+		vars := mux.Vars(r)
+		address := vars["address"]
+
+		route := fmt.Sprintf("custom/%s/certifier/%s", types.QuerierRoute, address)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -77,7 +80,10 @@ func certifierAliasHandler(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/certifieralias/%s", types.QuerierRoute, types.QueryAlias)
+		vars := mux.Vars(r)
+		alias := vars["alias"]
+
+		route := fmt.Sprintf("custom/%s/certifieralias/%s", types.QuerierRoute, alias)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -96,7 +102,10 @@ func validatorHandler(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/validator/%s", types.QuerierRoute, types.QueryPubkey)
+		vars := mux.Vars(r)
+		pubkey := vars["pubkey"]
+
+		route := fmt.Sprintf("custom/%s/validator/%s", types.QuerierRoute, pubkey)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -134,7 +143,10 @@ func certificateHandler(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/certificate/%s", types.QuerierRoute, types.QueryCertifyID)
+		vars := mux.Vars(r)
+		certID := vars["certificateid"]
+
+		route := fmt.Sprintf("custom/%s/certificate/%s", types.QuerierRoute, certID)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -197,7 +209,10 @@ func platformHandler(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/platform/%s", types.QuerierRoute, types.QueryPubkey)
+		vars := mux.Vars(r)
+		pubkey := vars["pubkey"]
+
+		route := fmt.Sprintf("custom/%s/platform/%s", types.QuerierRoute, pubkey)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())

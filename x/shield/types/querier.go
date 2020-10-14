@@ -9,8 +9,4 @@ const (
 	QueryOnesCollaterals = "collaterals"
 	QueryPoolCollaterals = "pool_collaterals"
 	QueryProvider        = "provider"
-	QueryPoolID          = "poolID"
-	QuerySponsor         = "sponsor"
-	QueryAddress         = "address"
-	QueryPurchaseTxHash  = "purchasetxhash"
 )
