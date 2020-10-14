@@ -33,7 +33,7 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak typ
 	var weightMsgCertifyPlatform int
 	appParams.GetOrGenerate(cdc, OpWeightMsgCertifyPlatform, &weightMsgCertifyPlatform, nil,
 		func(_ *rand.Rand) {
-			weightMsgCertifyPlatform = simappparams.DefaultWeightMsgSend
+			weightMsgCertifyPlatform = 0
 		})
 
 	var weightMsgCertifyAuditing int
