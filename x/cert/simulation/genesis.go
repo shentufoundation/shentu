@@ -16,9 +16,11 @@ func RandomizedGenState(simState *module.SimulationState) {
 	r := simState.Rand
 	gs := types.GenesisState{}
 
-	numOfCertifiers := r.Intn(100)
-	for i := 0; i < numOfCertifiers; i++ {
-		gs.Certifiers = append(gs.Certifiers, GenerateACertifier(r))
+	for _, simAcc := range simState.Accounts {
+		if r.Int31n(100) < 10 { // 10%
+			certifier := types.NewCertifier(simAcc.Address, "", nil, "")
+			gs.Certifiers = append(gs.Certifiers, certifier)
+		}
 	}
 
 	numOfValidators := r.Intn(10)
@@ -37,15 +39,6 @@ func RandomizedGenState(simState *module.SimulationState) {
 	}
 
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(gs)
-}
-
-// GenerateACertifier returns an object of Certifier with random field values.
-func GenerateACertifier(r *rand.Rand) types.Certifier {
-	return types.Certifier{
-		Address:     simulation.RandomAccounts(r, 1)[0].Address,
-		Proposer:    simulation.RandomAccounts(r, 1)[0].Address,
-		Description: simulation.RandStringOfLength(r, 50),
-	}
 }
 
 // GenerateAValidator returns an object of Validator with random field values.
