@@ -43,6 +43,7 @@ func NewAppModuleBasic(
 	amb.defaultGenesisState = defaultGenesisState
 	amb.validateGenesis = validateGenesis
 	amb.storeKey = storeKey
+	amb.registerRoutes = registerRoutes
 	amb.getQueryCmd = getQueryCmd
 	amb.getTxCmd = getTxCmd
 	return amb
