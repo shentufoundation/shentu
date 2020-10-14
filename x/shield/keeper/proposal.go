@@ -85,7 +85,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, pur
 	// update pool
 	pool.Shield = pool.Shield.Sub(loss)
 	pool.TotalCollateral = pool.TotalCollateral.Sub(lossAmt)
-	pool.TotalLocked = pool.TotalCollateral.Add(lossAmt)
+	pool.TotalLocked = pool.TotalLocked.Add(lossAmt)
 	k.SetPool(ctx, pool)
 
 	return nil
