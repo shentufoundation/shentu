@@ -12,7 +12,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
+	"github.com/certikfoundation/shentu/x/cert"
 	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
 	"github.com/certikfoundation/shentu/x/shield"
@@ -27,7 +29,7 @@ const (
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
-func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak govTypes.AccountKeeper,
+func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak govTypes.AccountKeeper, ck types.CertKeeper,
 	k keeper.Keeper, wContents []simulation.WeightedProposalContent) simulation.WeightedOperations {
 	var (
 		weightMsgDeposit int
@@ -59,7 +61,7 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak gov
 			wProposalOps,
 			simulation.NewWeightedOperation(
 				weight,
-				SimulateSubmitProposal(ak, k, wContent.ContentSimulatorFn),
+				SimulateSubmitProposal(ak, ck, k, wContent.ContentSimulatorFn),
 			),
 		)
 	}
@@ -82,7 +84,7 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak gov
 // voting on the proposal, and subsequently slashing the proposal. It is implemented using
 // future operations.
 func SimulateSubmitProposal(
-	ak govTypes.AccountKeeper, k keeper.Keeper, contentSim simulation.ContentSimulatorFn,
+	ak govTypes.AccountKeeper, ck types.CertKeeper, k keeper.Keeper, contentSim simulation.ContentSimulatorFn,
 ) simulation.Operation {
 	// The states are:
 	// column 1: All validators vote
@@ -157,8 +159,7 @@ func SimulateSubmitProposal(
 		minInitialDeposit := k.GetDepositParams(ctx).MinInitialDeposit
 		if deposit.AmountOf(sdk.DefaultBondDenom).LT(minInitialDeposit.AmountOf(sdk.DefaultBondDenom)) &&
 			!k.IsCouncilMember(ctx, simAccount.Address) {
-			return simulation.NewOperationMsgBasic(govTypes.ModuleName,
-				"NoOp: insufficient initial deposit amount, skip this tx", "", false, nil), nil, nil
+			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
 		msg := govTypes.NewMsgSubmitProposal(content, deposit, simAccount.Address)
@@ -210,13 +211,30 @@ func SimulateSubmitProposal(
 		whoVotes = whoVotes[:numVotes]
 		votingPeriod := k.GetVotingParams(ctx).VotingPeriod
 
-		fops := make([]simulation.FutureOperation, numVotes+1)
+		var fops []simulation.FutureOperation
+
+		if content.ProposalType() == shield.ProposalTypeShieldClaim ||
+			content.ProposalType() == cert.ProposalTypeCertifierUpdate ||
+			content.ProposalType() == upgrade.ProposalTypeSoftwareUpgrade {
+			// certifier voting
+			for _, acc := range accs {
+				if ck.IsCertifier(ctx, acc.Address) {
+					whenVote := ctx.BlockHeader().Time.Add(time.Duration(r.Int63n(int64(votingPeriod.Seconds()))) * time.Second / 4)
+					fops = append(fops, simulation.FutureOperation{
+						BlockTime: whenVote,
+						Op:        certifierSimulateMsgVote(ak, acc, proposalID),
+					})
+				}
+			}
+		}
+
+		// validator / delegator voting
 		for i := 0; i < numVotes; i++ {
 			whenVote := ctx.BlockHeader().Time.Add(time.Duration(r.Int63n(int64(votingPeriod.Seconds()))) * time.Second)
-			fops[i] = simulation.FutureOperation{
+			fops = append(fops, simulation.FutureOperation{
 				BlockTime: whenVote,
 				Op:        operationSimulateMsgVote(ak, k, accs[whoVotes[i]], int64(proposalID)),
-			}
+			})
 		}
 
 		return opMsg, fops, nil
@@ -232,13 +250,15 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper) simulation.O
 		simAccount, _ := simulation.RandomAcc(r, accs)
 		proposalID, ok := randomProposalID(r, k, ctx, types.StatusDepositPeriod)
 		if !ok {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			return simulation.NewOperationMsgBasic(govTypes.ModuleName,
+				"NoOp: randomly selected proposal not in deposit period, skip this tx", "", false, nil), nil, nil
 		}
 
 		deposit, skip, err := randomDeposit(r, ctx, ak, k, simAccount.Address)
 		switch {
 		case skip:
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			return simulation.NewOperationMsgBasic(govTypes.ModuleName,
+				"NoOp: zero balance, skip this tx", "", false, nil), nil, nil
 		case err != nil:
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
@@ -298,7 +318,8 @@ func operationSimulateMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 			var ok bool
 			proposalID, ok = randomProposalID(r, k, ctx, types.StatusValidatorVotingPeriod)
 			if !ok {
-				return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+				return simulation.NewOperationMsgBasic(govTypes.ModuleName,
+					"NoOp: randomly selected proposal not in validator voting period, skip this tx", "", false, nil), nil, nil
 			}
 		default:
 			proposalID = uint64(proposalIDInt)
@@ -322,6 +343,44 @@ func operationSimulateMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},
 			simAccount.PrivKey,
+		)
+
+		_, _, err = app.Deliver(tx)
+		if err != nil {
+			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+		}
+
+		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+	}
+}
+
+func certifierSimulateMsgVote(ak govTypes.AccountKeeper, certifier simulation.Account, proposalID uint64) simulation.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		var option govTypes.VoteOption
+
+		if simulation.RandIntBetween(r, 0, 100) < 75 {
+			option = govTypes.OptionYes
+		} else {
+			option = govTypes.OptionNo
+		}
+
+		msg := govTypes.NewMsgVote(certifier.Address, proposalID, option)
+
+		account := ak.GetAccount(ctx, certifier.Address)
+		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+		if err != nil {
+			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+		}
+
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{account.GetAccountNumber()},
+			[]uint64{account.GetSequence()},
+			certifier.PrivKey,
 		)
 
 		_, _, err = app.Deliver(tx)
@@ -379,11 +438,7 @@ func randomProposalID(r *rand.Rand, k keeper.Keeper,
 	switch {
 	case proposalID > initialProposalID:
 		// select a random ID between [initialProposalID, proposalID]
-		diff := int64(proposalID - initialProposalID)
-		if diff < 0 {
-			diff *= -1
-		}
-		proposalID = uint64(r.Int63n(diff)) + initialProposalID
+		proposalID = uint64(simulation.RandIntBetween(r, int(initialProposalID), int(proposalID)))
 
 	default:
 		// This is called on the first call to this funcion
