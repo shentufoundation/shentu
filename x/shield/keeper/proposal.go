@@ -19,16 +19,8 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, pur
 	if !pool.Shield.IsAllGTE(loss) {
 		panic(types.ErrNotEnoughShield)
 	}
-
 	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
-	poolValidCollateral := sdk.ZeroInt()
-	collaterals := k.GetAllPoolCollaterals(ctx, pool)
-	for _, collateral := range collaterals {
-		if collateral.Amount.IsPositive() {
-			poolValidCollateral = poolValidCollateral.Add(collateral.Amount)
-		}
-	}
-	if poolValidCollateral.LT(lossAmt) {
+	if pool.TotalCollateral.LT(lossAmt) {
 		panic(types.ErrNotEnoughCollateral)
 	}
 
@@ -58,7 +50,8 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, pur
 	k.InsertPurchaseQueue(ctx, purchaseList, purchaseList.Entries[index].ExpirationTime)
 
 	// update locked collaterals for community
-	proportionDec := lossAmt.ToDec().Quo(poolValidCollateral.ToDec())
+	collaterals := k.GetAllPoolCollaterals(ctx, pool)
+	proportionDec := lossAmt.ToDec().Quo(pool.TotalCollateral.ToDec())
 	remaining := lossAmt
 	for i := range collaterals {
 		if !collaterals[i].Amount.IsPositive() {
@@ -74,10 +67,9 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, pur
 		} else {
 			lockAmt = remaining
 		}
-		lockedCollateral := types.NewLockedCollateral(proposalID, lockAmt)
-		collaterals[i].LockedCollaterals = append(collaterals[i].LockedCollaterals, lockedCollateral)
 		collaterals[i].Amount = collaterals[i].Amount.Sub(lockAmt)
 		collaterals[i].TotalLocked = collaterals[i].TotalLocked.Add(lockAmt)
+		collaterals[i].LockedCollaterals = append(collaterals[i].LockedCollaterals, types.NewLockedCollateral(proposalID, lockAmt))
 		k.SetCollateral(ctx, pool, collaterals[i].Provider, collaterals[i])
 		k.LockProvider(ctx, collaterals[i].Provider, lockAmt, lockPeriod)
 	}
@@ -100,8 +92,11 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 	}
 
 	// update provider
-	provider.TotalLocked = provider.TotalLocked.Add(amount)
 	provider.Collateral = provider.Collateral.Sub(amount)
+	if provider.Collateral.IsNegative() {
+		panic("locking amount is greater than provider's collateral amount")
+	}
+	provider.TotalLocked = provider.TotalLocked.Add(amount)
 	k.SetProvider(ctx, delAddr, provider)
 
 	// if there are enough delegations, do nothing
@@ -201,38 +196,50 @@ func (k Keeper) RedirectUnbondingEntryToShieldModule(ctx sdk.Context, ubd stakin
 }
 
 // ClaimUnlock unlocks locked collaterals.
-func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, loss sdk.Coins) error {
+func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64) error {
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
 		return err
 	}
-	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
-	pool.TotalCollateral = pool.TotalCollateral.Add(lossAmt)
-	pool.TotalLocked = pool.TotalLocked.Sub(lossAmt)
-	k.SetPool(ctx, pool)
 
-	// update collaterals and providers
+	// Update pool, collaterals and providers.
+	// Take overdraft into considerations.
+	/*
+	 * Example:
+	 * A1 started withdrawing 150: pool.TotalCollateral 400; collateral.Amount 200; provider.Collateral 300.
+	 * Claim proposal 1 locked 200: pool.TotalCollateral 400 --> 200; collateral.Amount 200 --> 100; provider.Collateral 300 --> 200.
+	 * A1 finished withdrawing 150: pool.TotalCollateral 200 --> 100; collateral.Amount 100 --> 0; collateral.Overdraft 0 --> 50; provider.Collateral 200 --> 100.
+	 * Claim proposal 1 unlock 200: pool.TotalCollateral 100 --> 250; collateral.Amount 0 --> 50; collateral.Overdraft 50 --> 0; provider.Collateral 100 --> 150.
+	 */
 	collaterals := k.GetAllPoolCollaterals(ctx, pool)
 	for _, collateral := range collaterals {
 		for j := range collateral.LockedCollaterals {
 			if collateral.LockedCollaterals[j].ProposalID == proposalID {
 				lockedAmount := collateral.LockedCollaterals[j].Amount
+				restoredCollateralAmount := sdk.MaxInt(sdk.ZeroInt(), lockedAmount.Sub(collateral.Overdraft))
+				collateral.Overdraft = sdk.MaxInt(sdk.ZeroInt(), collateral.Overdraft.Sub(lockedAmount))
+
+				pool.TotalCollateral = pool.TotalCollateral.Add(restoredCollateralAmount)
+				pool.TotalLocked = pool.TotalLocked.Sub(lockedAmount)
+
+				collateral.Amount = collateral.Amount.Add(restoredCollateralAmount)
+				collateral.TotalLocked = collateral.TotalLocked.Sub(lockedAmount)
+				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1:]...)
+
 				provider, found := k.GetProvider(ctx, collateral.Provider)
 				if !found {
 					panic(types.ErrProviderNotFound)
 				}
-				provider.Collateral = provider.Collateral.Add(lockedAmount)
+				provider.Collateral = provider.Collateral.Add(restoredCollateralAmount)
 				provider.TotalLocked = provider.TotalLocked.Sub(lockedAmount)
-				k.SetProvider(ctx, collateral.Provider, provider)
 
-				collateral.Amount = collateral.Amount.Add(lockedAmount)
-				collateral.TotalLocked = collateral.TotalLocked.Sub(lockedAmount)
-				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1:]...)
 				k.SetCollateral(ctx, pool, collateral.Provider, collateral)
+				k.SetProvider(ctx, collateral.Provider, provider)
 				break
 			}
 		}
 	}
+	k.SetPool(ctx, pool)
 
 	return nil
 }
@@ -405,6 +412,11 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID u
 		for j := range collateral.LockedCollaterals {
 			if collateral.LockedCollaterals[j].ProposalID == proposalID {
 				lockedAmount := collateral.LockedCollaterals[j].Amount
+
+				if err := k.UndelegateCoinsToShieldModule(ctx, collateral.Provider, lockedAmount); err != nil {
+					panic(err)
+				}
+
 				provider, found := k.GetProvider(ctx, collateral.Provider)
 				if !found {
 					panic(types.ErrProviderNotFound)
@@ -412,13 +424,8 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID u
 				provider.TotalLocked = provider.TotalLocked.Sub(lockedAmount)
 				k.SetProvider(ctx, collateral.Provider, provider)
 
-				if err := k.UndelegateCoinsToShieldModule(ctx, collateral.Provider, lockedAmount); err != nil {
-					panic(err)
-				}
 				collateral.TotalLocked = collateral.TotalLocked.Sub(lockedAmount)
-				if collateral.Amount.Add(collateral.TotalLocked).IsPositive() {
-					poolTotal = poolTotal.Add(collateral.Amount.Add(collateral.TotalLocked))
-				}
+				collateral.Overdraft = sdk.MaxInt(sdk.ZeroInt(), collateral.Overdraft.Sub(lockedAmount))
 				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1])
 				k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 				break

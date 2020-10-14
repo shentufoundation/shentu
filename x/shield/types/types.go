@@ -38,6 +38,7 @@ type Collateral struct {
 	Provider          sdk.AccAddress     `json:"provider" yaml:"provider"`
 	Amount            sdk.Int            `json:"amount" yaml:"amount"`
 	Withdrawing       sdk.Int            `json:"withdrawing" yaml:"withdrawing"`
+	Overdraft         sdk.Int            `json:"overdraft" yaml:"overdraft"`
 	TotalLocked       sdk.Int            `json:"total_locked" yaml:"total_locked"`
 	LockedCollaterals []LockedCollateral `json:"locked_collaterals" yaml:"locked_collaterals"`
 }

@@ -73,7 +73,7 @@ func (k Keeper) GetAllWithdraws(ctx sdk.Context) (withdraws types.Withdraws) {
 // DequeueCompletedWithdrawQueue dequeues completed withdraws
 // and processes their completions.
 func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
-	// retrieve completed withdraws from the queue
+	// Retrieve completed withdraws from the queue.
 	store := ctx.KVStore(k.storeKey)
 	withdrawTimesliceIterator := k.WithdrawQueueIterator(ctx, ctx.BlockHeader().Time)
 	defer withdrawTimesliceIterator.Close()
@@ -87,39 +87,51 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 		store.Delete(withdrawTimesliceIterator.Key())
 	}
 
-	// for each completed withdraw, process adjustments.
 	for _, withdraw := range withdraws {
 		provider, found := k.GetProvider(ctx, withdraw.Address)
 		if !found {
 			panic("provider not found but its collaterals are being withdrawn")
 		}
-
-		// update pool community or CertiK first in case the pool is closed
 		pool, err := k.GetPool(ctx, withdraw.PoolID)
 		if err != nil {
-			provider.Withdrawing = provider.Withdrawing.Sub(withdraw.Amount)
-			k.SetProvider(ctx, withdraw.Address, provider)
+			// Pools, collaterals and providers have been updated for closed pools.
 			continue
 		}
-		pool.TotalCollateral = pool.TotalCollateral.Sub(withdraw.Amount)
 		collateral, found := k.GetCollateral(ctx, pool, withdraw.Address)
 		if !found {
 			panic("withdraw collateral not found")
 		}
-		// allow collateral amount to be negative, which could happen when it is locked
-		collateral.Amount = collateral.Amount.Sub(withdraw.Amount)
+
+		// Update withdrawing.
 		collateral.Withdrawing = collateral.Withdrawing.Sub(withdraw.Amount)
-		if collateral.Amount.IsNegative() && len(collateral.LockedCollaterals) == 0 {
+		provider.Withdrawing = provider.Withdrawing.Sub(withdraw.Amount)
+
+		// Update collateral.
+		// It is possible that the withdraw amount exceeds the collateral amount because of locking collaterals by claim proposals.
+		// Do not allow collateral amount to be negative. Set overdraft for this situation.
+		var validWithdrawAmount sdk.Int
+		if collateral.Amount.GTE(withdraw.Amount) {
+			validWithdrawAmount = withdraw.Amount
+		} else {
+			validWithdrawAmount = collateral.Amount
+			collateral.Overdraft = collateral.Overdraft.Add(withdraw.Amount.Sub(collateral.Amount))
+		}
+		if collateral.Overdraft.GT(collateral.TotalLocked) {
+			panic("overdraft amount is greater than locked amount")
+		}
+		pool.TotalCollateral = pool.TotalCollateral.Sub(validWithdrawAmount)
+		collateral.Amount = collateral.Amount.Sub(validWithdrawAmount)
+		provider.Collateral = provider.Collateral.Sub(validWithdrawAmount)
+
+		// Update provider's available delegations.
+		provider.Available = provider.Available.Add(validWithdrawAmount)
+
+		if collateral.Amount.IsZero() && len(collateral.LockedCollaterals) == 0 {
 			store.Delete(types.GetCollateralKey(pool.PoolID, collateral.Provider))
 		} else {
 			k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 		}
 		k.SetPool(ctx, pool)
-
-		// update provider's collateral amount
-		provider.Collateral = provider.Collateral.Sub(withdraw.Amount)
-		provider.Available = provider.Available.Add(withdraw.Amount)
-		provider.Withdrawing = provider.Withdrawing.Sub(withdraw.Amount)
 		k.SetProvider(ctx, withdraw.Address, provider)
 	}
 }
