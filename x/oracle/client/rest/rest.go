@@ -8,9 +8,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 )
 
-func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router, storeName string) {
-	RegisterTxRoutes(cliCtx, r, storeName)
-	RegisterQueryRoutes(cliCtx, r, storeName)
+func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
+	RegisterTxRoutes(cliCtx, r)
+	RegisterQueryRoutes(cliCtx, r)
 }
 
 type inquiryTaskReq struct {

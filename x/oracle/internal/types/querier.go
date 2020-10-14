@@ -2,6 +2,16 @@ package types
 
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
+// Querier routes for the oracle module
+const (
+	QueryAddress     = "address"
+	QueryOperator    = "operator"
+	QueryOperators   = "operators"
+	QueryWithdrawals = "withdrawals"
+	QueryTask        = "task"
+	QueryResponse    = "response"
+)
+
 type QueryTaskParams struct {
 	Contract string
 	Function string
