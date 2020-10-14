@@ -217,7 +217,7 @@ func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		content := types.NewShieldClaimProposal(req.PoolID, req.Loss, req.Evidence, req.PurchaseTxHash, req.Description, from)
+		content := types.NewShieldClaimProposal(req.PoolID, req.Loss, req.PurchaseID, req.Evidence, req.Description, from)
 
 		msg := gov.NewMsgSubmitProposal(content, req.Deposit, from)
 		if err := msg.ValidateBasic(); err != nil {

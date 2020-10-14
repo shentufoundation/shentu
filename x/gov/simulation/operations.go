@@ -58,7 +58,7 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak gov
 		wProposalOps = append(
 			wProposalOps,
 			simulation.NewWeightedOperation(
-				weight,
+				0,
 				SimulateSubmitProposal(ak, k, wContent.ContentSimulatorFn),
 			),
 		)

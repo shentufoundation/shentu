@@ -11,7 +11,7 @@ import (
 )
 
 // ClaimLock locks collaterals after a claim proposal is submitted.
-func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, loss sdk.Coins, purchaseTxHash []byte, lockPeriod time.Duration) error {
+func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, lockPeriod time.Duration) error {
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
 		return err
@@ -33,19 +33,29 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, los
 	}
 
 	// update shield of purchase
-	purchase, err := k.GetPurchase(ctx, purchaseTxHash)
-	if err != nil {
-		return err
+	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
+	if !found {
+		return types.ErrPurchaseNotFound
 	}
-	if !purchase.Shield.IsAllGTE(loss) {
+	var index int
+	for i, entry := range purchaseList.Entries {
+		if entry.PurchaseID == purchaseID {
+			index = i
+			break
+		}
+	}
+	k.DequeuePurchase(ctx, purchaseList, purchaseList.Entries[index].ExpirationTime)
+
+	if !purchaseList.Entries[index].Shield.IsAllGTE(loss) {
 		return types.ErrNotEnoughShield
 	}
-	purchase.Shield = purchase.Shield.Sub(loss)
+	purchaseList.Entries[index].Shield = purchaseList.Entries[index].Shield.Sub(loss)
 	votingEndTime := ctx.BlockTime().Add(lockPeriod)
-	if purchase.ExpirationTime.Before(votingEndTime) {
-		purchase.ExpirationTime = votingEndTime
+	if purchaseList.Entries[index].ExpirationTime.Before(votingEndTime) {
+		purchaseList.Entries[index].ExpirationTime = votingEndTime
 	}
-	k.SetPurchase(ctx, purchase)
+	k.SetPurchaseList(ctx, purchaseList)
+	k.InsertPurchaseQueue(ctx, purchaseList, purchaseList.Entries[index].ExpirationTime)
 
 	// update locked collaterals for community
 	proportionDec := lossAmt.ToDec().Quo(poolValidCollateral.ToDec())
@@ -228,7 +238,7 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 }
 
 // RestoreShield restores shield for proposer.
-func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash []byte) error {
+func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, id uint64, loss sdk.Coins) error {
 	// update shield of pool
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
@@ -237,14 +247,19 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, pu
 	pool.Shield = pool.Shield.Add(loss...)
 	k.SetPool(ctx, pool)
 
-	// update shield of purchase
-	purchase, err := k.GetPurchase(ctx, purchaseTxHash)
-	if err != nil {
-		return err
+	// update shield of purchaseList
+	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
+	if !found {
+		return types.ErrPurchaseNotFound
 	}
-	purchase.Shield = purchase.Shield.Add(loss...)
-	k.SetPurchase(ctx, purchase)
+	for i := range purchaseList.Entries {
+		if purchaseList.Entries[i].PurchaseID == id {
+			purchaseList.Entries[i].Shield = purchaseList.Entries[i].Shield.Add(loss...)
+			break
+		}
+	}
 
+	k.SetPurchaseList(ctx, purchaseList)
 	return nil
 }
 

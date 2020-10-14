@@ -2,6 +2,7 @@ package types
 
 import (
 	"strings"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -14,11 +15,11 @@ type MsgCreatePool struct {
 	Deposit        MixedCoins     `json:"deposit" yaml:"deposit"`
 	Sponsor        string         `json:"sponsor" yaml:"sponsor"`
 	SponsorAddr    sdk.AccAddress `json:"sponsor_addr" yaml:"sponsor_addr"`
-	TimeOfCoverage int64          `json:"time_of_coverage" yaml:"time_of_coverage"`
+	TimeOfCoverage time.Duration  `json:"time_of_coverage" yaml:"time_of_coverage"`
 }
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
-func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, time int64) MsgCreatePool {
+func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, time time.Duration) MsgCreatePool {
 	return MsgCreatePool{
 		From:           accAddr,
 		Shield:         shield,
@@ -75,17 +76,19 @@ type MsgUpdatePool struct {
 	Shield         sdk.Coins      `json:"Shield" yaml:"Shield"`
 	Deposit        MixedCoins     `json:"deposit" yaml:"deposit"`
 	PoolID         uint64         `json:"pool_id" yaml:"pool_id"`
-	AdditionalTime int64          `json:"additional_period" yaml:"additional_period"`
+	AdditionalTime time.Duration  `json:"additional_period" yaml:"additional_period"`
+	Description    string         `json:"description" yaml:"description"`
 }
 
 // NewMsgUpdatePool creates a new MsgUpdatePool instance.
-func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, id uint64, time int64) MsgUpdatePool {
+func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, id uint64, time time.Duration, description string) MsgUpdatePool {
 	return MsgUpdatePool{
 		From:           accAddr,
 		Shield:         shield,
 		Deposit:        deposit,
 		PoolID:         id,
 		AdditionalTime: time,
+		Description:    description,
 	}
 }
 
@@ -423,8 +426,6 @@ type MsgPurchaseShield struct {
 	Shield      sdk.Coins      `json:"shield" yaml:"shield"`
 	Description string         `json:"description" yaml:"description"`
 	From        sdk.AccAddress `json:"from" yaml:"from"`
-	Simulate    bool           `json:"simulate" yaml:"simulate"`
-	SimTxHash   []byte         `json:"sim_txhash" yaml:"sim_txhash"`
 }
 
 // NewMsgPurchaseShield creates a new MsgPurchaseShield instance.

@@ -25,15 +25,16 @@ const (
 )
 
 var (
-	PoolKey          = []byte{0x0}
-	ShieldAdminKey   = []byte{0x1}
-	NextPoolIDKey    = []byte{0x2}
-	PurchaseKey      = []byte{0x3}
-	PurchaseQueueKey = []byte{0x4}
-	ReimbursementKey = []byte{0x5}
-	CollateralKey    = []byte{0x6}
-	ProviderKey      = []byte{0x7}
-	WithdrawQueueKey = []byte{0x8}
+	PoolKey           = []byte{0x0}
+	ShieldAdminKey    = []byte{0x1}
+	NextPoolIDKey     = []byte{0x2}
+	NextPurchaseIDKey = []byte{0x3}
+	PurchaseListKey   = []byte{0x4}
+	PurchaseQueueKey  = []byte{0x5}
+	ReimbursementKey  = []byte{0x6}
+	CollateralKey     = []byte{0x7}
+	ProviderKey       = []byte{0x8}
+	WithdrawQueueKey  = []byte{0x9}
 )
 
 // GetPoolKey gets the key for the pool identified by pool ID.
@@ -53,9 +54,16 @@ func GetNextPoolIDKey() []byte {
 	return NextPoolIDKey
 }
 
+// GetNextPurchaseIDKey gets the key for the next pool ID.
+func GetNextPurchaseIDKey() []byte {
+	return NextPurchaseIDKey
+}
+
 // GetPurchaseTxHashKey gets the key for a purchase.
-func GetPurchaseTxHashKey(txhash []byte) []byte {
-	return append(PurchaseKey, txhash...)
+func GetPurchaseListKey(id uint64, purchaser sdk.AccAddress) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, id)
+	return append(PurchaseListKey, append(bz, purchaser.Bytes()...)...)
 }
 
 // GetProviderKey gets the key for the delegator's tracker.

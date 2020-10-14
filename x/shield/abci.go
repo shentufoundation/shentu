@@ -23,9 +23,9 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 		}
 		// compute premiums for current block
 		var currentBlockPremium types.MixedDecCoins
-		timeUntilEnd := pool.EndTime - ctx.BlockTime().Unix()
-		blocksUntilEnd := sdk.MaxDec(common.BlocksPerSecondDec.Mul(sdk.NewDec(timeUntilEnd)), sdk.OneDec())
-		if ctx.BlockTime().Unix() > pool.EndTime {
+		timeUntilEnd := pool.EndTime.Sub(ctx.BlockTime())
+		blocksUntilEnd := sdk.MaxDec(sdk.NewDec(timeUntilEnd.Milliseconds()/1000).QuoInt64(int64(common.SecondsPerBlock)), sdk.OneDec())
+		if ctx.BlockTime().After(pool.EndTime) {
 			// must spend all premium
 			currentBlockPremium = pool.Premium
 		} else {
