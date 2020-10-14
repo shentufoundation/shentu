@@ -95,8 +95,8 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 		}
 
 		// update pool community or CertiK first in case the pool is closed
-		pool, err := k.GetPool(ctx, withdraw.PoolID)
-		if err != nil {
+		pool, found := k.GetPool(ctx, withdraw.PoolID)
+		if !found {
 			provider.Withdrawing = provider.Withdrawing.Sub(withdraw.Amount)
 			k.SetProvider(ctx, withdraw.Address, provider)
 			continue

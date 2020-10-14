@@ -77,18 +77,16 @@ func (k Keeper) DequeuePurchase(ctx sdk.Context, purchaseList types.PurchaseList
 }
 
 // PurchaseShield purchases shield of a pool.
-func (k Keeper) PurchaseShield(
-	ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress,
-) (types.Purchase, error) {
-	pool, err := k.GetPool(ctx, poolID)
-	if err != nil {
-		return types.Purchase{}, err
+func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress) (types.Purchase, error) {
+	pool, found := k.GetPool(ctx, poolID)
+	if !found {
+		return types.Purchase{}, types.ErrNoPoolFound
 	}
 	poolParams := k.GetPoolParams(ctx)
 	claimParams := k.GetClaimProposalParams(ctx)
 
 	// check preconditions
-	if err = k.PoolShieldAvailable(ctx, pool); err != nil {
+	if err := k.PoolShieldAvailable(ctx, pool); err != nil {
 		return types.Purchase{}, err
 	}
 
@@ -161,8 +159,8 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 				entry := purchaseList.Entries[i]
 				if entry.ExpirationTime.Before(ctx.BlockTime()) {
 					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
-					pool, err := k.GetPool(ctx, purchaseList.PoolID)
-					if err != nil {
+					pool, found := k.GetPool(ctx, purchaseList.PoolID)
+					if !found {
 						// skip purchases of closed pools
 						continue
 					}

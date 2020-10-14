@@ -57,8 +57,8 @@ func queryPool(ctx sdk.Context, path []string, k Keeper) (res []byte, err error)
 		if err != nil {
 			return nil, err
 		}
-		pool, err = k.GetPool(ctx, id)
-		if err != nil {
+		pool, found = k.GetPool(ctx, id)
+		if !found {
 			return nil, err
 		}
 	}
@@ -177,9 +177,9 @@ func queryPoolCollaterals(ctx sdk.Context, path []string, k Keeper) (res []byte,
 	if err != nil {
 		return nil, err
 	}
-	pool, err := k.GetPool(ctx, id)
-	if err != nil {
-		return nil, err
+	pool, found := k.GetPool(ctx, id)
+	if !found {
+		return nil, types.ErrNoPoolFound
 	}
 
 	res, err = codec.MarshalJSONIndent(k.cdc, k.GetAllPoolCollaterals(ctx, pool))

@@ -15,15 +15,15 @@ func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
 	store.Set(types.GetPoolKey(pool.PoolID), bz)
 }
 
-func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, error) {
+func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetPoolKey(id))
 	if bz == nil {
-		return types.Pool{}, types.ErrNoPoolFound
+		return types.Pool{}, false
 	}
 	var pool types.Pool
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &pool)
-	return pool, nil
+	return pool, true
 }
 
 func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
@@ -106,9 +106,9 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	}
 	provider.Available = provider.Available.Sub(shieldAmt)
 
-	pool, err := k.GetPool(ctx, id)
-	if err != nil {
-		return types.Pool{}, err
+	pool, found := k.GetPool(ctx, id)
+	if !found {
+		return types.Pool{}, types.ErrNoPoolFound
 	}
 	pool.EndTime = pool.EndTime.Add(addTime)
 	pool.TotalCollateral = pool.TotalCollateral.Add(shieldAmt)
@@ -124,8 +124,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	}
 
 	// transfer deposit and store
-	err = k.DepositNativePremium(ctx, deposit.Native, admin)
-	if err != nil {
+	if err := k.DepositNativePremium(ctx, deposit.Native, admin); err != nil {
 		return types.Pool{}, err
 	}
 
@@ -166,9 +165,9 @@ func (k Keeper) PausePool(ctx sdk.Context, updater sdk.AccAddress, id uint64) (t
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
 	}
-	pool, err := k.GetPool(ctx, id)
-	if err != nil {
-		return types.Pool{}, err
+	pool, found := k.GetPool(ctx, id)
+	if !found {
+		return types.Pool{}, types.ErrNoPoolFound
 	}
 	if !pool.Active {
 		return types.Pool{}, types.ErrPoolAlreadyPaused
@@ -183,9 +182,9 @@ func (k Keeper) ResumePool(ctx sdk.Context, updater sdk.AccAddress, id uint64) (
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
 	}
-	pool, err := k.GetPool(ctx, id)
-	if err != nil {
-		return types.Pool{}, err
+	pool, found := k.GetPool(ctx, id)
+	if !found {
+		return types.Pool{}, types.ErrNoPoolFound
 	}
 	if pool.Active {
 		return types.Pool{}, types.ErrPoolAlreadyActive
