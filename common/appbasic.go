@@ -19,7 +19,7 @@ type AppModuleBasic struct {
 	defaultGenesisState interface{}
 	validateGenesis     func(data json.RawMessage) error
 	storeKey            string
-	registerRoutes      func(cliCtx context.CLIContext, r *mux.Router, storeName string)
+	registerRoutes      func(cliCtx context.CLIContext, r *mux.Router)
 	getQueryCmd         func(storeKey string, cdc *codec.Codec) *cobra.Command
 	getTxCmd            func(cdc *codec.Codec) *cobra.Command
 }
@@ -32,7 +32,7 @@ func NewAppModuleBasic(
 	defaultGenesisState interface{},
 	validateGenesis func(data json.RawMessage) error,
 	storeKey string,
-	registerRoutes func(cliCtx context.CLIContext, r *mux.Router, storeName string),
+	registerRoutes func(cliCtx context.CLIContext, r *mux.Router),
 	getQueryCmd func(storeKey string, cdc *codec.Codec) *cobra.Command,
 	getTxCmd func(cdc *codec.Codec) *cobra.Command,
 ) AppModuleBasic {
@@ -43,7 +43,6 @@ func NewAppModuleBasic(
 	amb.defaultGenesisState = defaultGenesisState
 	amb.validateGenesis = validateGenesis
 	amb.storeKey = storeKey
-	amb.registerRoutes = registerRoutes
 	amb.getQueryCmd = getQueryCmd
 	amb.getTxCmd = getTxCmd
 	return amb
@@ -66,7 +65,7 @@ func (amb AppModuleBasic) DefaultGenesis() json.RawMessage {
 
 // RegisterRESTRoutes registers REST routes for the module.
 func (amb AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
-	amb.registerRoutes(ctx, rtr, amb.storeKey)
+	amb.registerRoutes(ctx, rtr)
 }
 
 // GetQueryCmd gets the root query command of this module.
