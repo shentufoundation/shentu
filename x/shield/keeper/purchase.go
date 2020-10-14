@@ -88,15 +88,16 @@ func (k Keeper) PurchaseShield(
 	claimParams := k.GetClaimProposalParams(ctx)
 
 	// check preconditions
-	if !pool.Active {
-		return types.Purchase{}, types.ErrPoolInactive
+	if err = k.PoolShieldAvailable(ctx, pool); err != nil {
+		return types.Purchase{}, err
 	}
-	if pool.EndTime.Before(ctx.BlockTime().Add(claimParams.ClaimPeriod)) {
-		return types.Purchase{}, types.ErrPoolLifeTooShort
-	}
+
 	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
 	if shieldAmt.GT(pool.Available) {
 		return types.Purchase{}, types.ErrNotEnoughShield
+	}
+	if pool.SponsorAddr.Equals(purchaser) {
+		return types.Purchase{}, types.ErrSponsorPurchase
 	}
 
 	// send tokens to shield module account
@@ -300,4 +301,16 @@ func (k Keeper) GetNextPurchaseID(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	opBz := store.Get(types.GetNextPurchaseIDKey())
 	return binary.LittleEndian.Uint64(opBz)
+}
+
+// PoolShieldAvailable checks if there is enough time for a purchase.
+func (k Keeper) PoolShieldAvailable(ctx sdk.Context, pool types.Pool) error {
+	if !pool.Active {
+		return types.ErrPoolInactive
+	}
+	claimParams := k.GetClaimProposalParams(ctx)
+	if pool.EndTime.Before(ctx.BlockTime().Add(claimParams.ClaimPeriod).Add(k.GetVotingParams(ctx).VotingPeriod * 2)) {
+		return types.ErrPoolLifeTooShort
+	}
+	return nil
 }
