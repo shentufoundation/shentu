@@ -40,7 +40,8 @@ func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/gov/%s/%s", govTypes.QueryParams, paramType), nil)
+		route := fmt.Sprintf("custom/%s/%s/%s", govTypes.QuerierRoute, govTypes.QueryParams, paramType)
+		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -80,7 +81,8 @@ func queryProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData("custom/gov/proposal", bz)
+		route := fmt.Sprintf("custom/%s/%s", govTypes.QuerierRoute, govTypes.QueryProposal)
+		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -547,8 +549,8 @@ func queryTallyOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-
-		res, height, err := cliCtx.QueryWithData("custom/gov/tally", bz)
+		route := fmt.Sprintf("custom/%s/%s", govTypes.QuerierRoute, govTypes.QueryTally)
+		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return

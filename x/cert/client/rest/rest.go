@@ -17,9 +17,9 @@ import (
 )
 
 // RegisterRoutes registers the routes in main application.
-func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router, storeName string) {
-	RegisterTxRoutes(cliCtx, r, storeName)
-	RegisterQueryRoutes(cliCtx, r, storeName)
+func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
+	RegisterTxRoutes(cliCtx, r)
+	RegisterQueryRoutes(cliCtx, r)
 }
 
 type proposeCertifierReq struct {

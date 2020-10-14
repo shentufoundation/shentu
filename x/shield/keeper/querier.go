@@ -12,36 +12,25 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-const (
-	QueryPool            = "pool"
-	QueryPools           = "pools"
-	QueryPurchase        = "purchase"
-	QueryOnesPurchases   = "purchases"
-	QueryPoolPurchases   = "pool_purchases"
-	QueryOnesCollaterals = "collaterals"
-	QueryPoolCollaterals = "pool_collaterals"
-	QueryProvider        = "provider"
-)
-
 // NewQuerier creates a querier for shield module
 func NewQuerier(k Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
-		case QueryPool:
+		case types.QueryPool:
 			return queryPool(ctx, path[1:], k)
-		case QueryPools:
+		case types.QueryPools:
 			return queryPools(ctx, path[1:], k)
-		case QueryPurchase:
+		case types.QueryPurchase:
 			return queryPurchase(ctx, path[1:], k)
-		case QueryOnesPurchases:
+		case types.QueryOnesPurchases:
 			return queryOnesPurchases(ctx, path[1:], k)
-		case QueryPoolPurchases:
+		case types.QueryPoolPurchases:
 			return queryPoolPurchases(ctx, path[1:], k)
-		case QueryOnesCollaterals:
+		case types.QueryOnesCollaterals:
 			return queryOnesCollaterals(ctx, path[1:], k)
-		case QueryPoolCollaterals:
+		case types.QueryPoolCollaterals:
 			return queryPoolCollaterals(ctx, path[1:], k)
-		case QueryProvider:
+		case types.QueryProvider:
 			return queryProvider(ctx, path[1:], k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])

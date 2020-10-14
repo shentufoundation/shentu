@@ -16,17 +16,17 @@ import (
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
 
-func RegisterTxRoutes(cliCtx context.CLIContext, r *mux.Router, storeName string) {
-	r.HandleFunc(fmt.Sprintf("/%s/create-operator", storeName), createOperatorHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/remove-operator", storeName), removeOperatorHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/deposit-collateral", storeName), depositCollateralHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/withdraw-collateral", storeName), withdrawCollateralHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/claim-reward", storeName), claimRewardHandler(cliCtx)).Methods("POST")
+func RegisterTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+	r.HandleFunc(fmt.Sprintf("/%s/create-operator", types.ModuleName), createOperatorHandler(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/remove-operator", types.ModuleName), removeOperatorHandler(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/deposit-collateral", types.ModuleName), depositCollateralHandler(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/withdraw-collateral", types.ModuleName), withdrawCollateralHandler(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/claim-reward", types.ModuleName), claimRewardHandler(cliCtx)).Methods("POST")
 
-	r.HandleFunc(fmt.Sprintf("/%s/create-task", storeName), createTaskHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/respond-to-task", storeName), respondToTaskHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/inquiry-task", storeName), inquireTaskHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/delete-task", storeName), deleteTaskHandler(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/create-task", types.ModuleName), createTaskHandler(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/respond-to-task", types.ModuleName), respondToTaskHandler(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/inquiry-task", types.ModuleName), inquireTaskHandler(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/delete-task", types.ModuleName), deleteTaskHandler(cliCtx)).Methods("POST")
 }
 
 func createTaskHandler(cliCtx context.CLIContext) http.HandlerFunc {
