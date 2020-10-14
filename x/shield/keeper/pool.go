@@ -77,7 +77,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 	k.SetCollateral(ctx, pool, admin, types.NewCollateral(pool, admin, shieldAmt))
 
 	k.AddPurchase(ctx, id, sponsorAddr, purchase)
-	k.InsertPurchaseQueue(ctx, types.NewPurchaseList(id, sponsorAddr, []types.Purchase{purchase}), endTime)
+	k.InsertPurchaseQueue(ctx, types.NewPurchaseList(id, sponsorAddr, []types.Purchase{purchase}), expirationTime)
 	k.SetNextPurchaseID(ctx, purchaseID+1)
 
 	return pool, nil
