@@ -37,22 +37,25 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, pur
 	if !found {
 		return types.ErrPurchaseNotFound
 	}
-	var purchase types.Purchase
-	for _, entry := range purchaseList.Entries {
+	var index int
+	for i, entry := range purchaseList.Entries {
 		if entry.PurchaseID == purchaseID {
-			purchase = entry
+			index = i
 			break
 		}
 	}
-	if !purchase.Shield.IsAllGTE(loss) {
+	k.DequeuePurchase(ctx, purchaseList, purchaseList.Entries[index].ExpirationTime)
+
+	if !purchaseList.Entries[index].Shield.IsAllGTE(loss) {
 		return types.ErrNotEnoughShield
 	}
-	purchase.Shield = purchase.Shield.Sub(loss)
+	purchaseList.Entries[index].Shield = purchaseList.Entries[index].Shield.Sub(loss)
 	votingEndTime := ctx.BlockTime().Add(lockPeriod)
-	if purchase.ExpirationTime.Before(votingEndTime) {
-		purchase.ExpirationTime = votingEndTime
+	if purchaseList.Entries[index].ExpirationTime.Before(votingEndTime) {
+		purchaseList.Entries[index].ExpirationTime = votingEndTime
 	}
-	k.AddPurchase(ctx, poolID, purchaser, purchase)
+	k.SetPurchaseList(ctx, purchaseList)
+	k.InsertPurchaseQueue(ctx, purchaseList, purchaseList.Entries[index].ExpirationTime)
 
 	// update locked collaterals for community
 	proportionDec := lossAmt.ToDec().Quo(poolValidCollateral.ToDec())
@@ -249,9 +252,9 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 	if !found {
 		return types.ErrPurchaseNotFound
 	}
-	for _, entry := range purchaseList.Entries {
-		if entry.PurchaseID == id {
-			entry.Shield = entry.Shield.Add(loss...)
+	for i, _ := range purchaseList.Entries {
+		if purchaseList.Entries[i].PurchaseID == id {
+			purchaseList.Entries[i].Shield = purchaseList.Entries[i].Shield.Add(loss...)
 		}
 	}
 

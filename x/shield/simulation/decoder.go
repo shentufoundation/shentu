@@ -31,7 +31,7 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 		return fmt.Sprintf("%v\n%v", poolIDA, poolIDB)
 
 	case bytes.Equal(kvA.Key[:1], types.PurchaseListKey):
-		var purchaseA, purchaseB types.Purchase
+		var purchaseA, purchaseB types.PurchaseList
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &purchaseA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &purchaseB)
 		return fmt.Sprintf("%v\n%v", purchaseA, purchaseB)
@@ -55,10 +55,13 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 		return fmt.Sprintf("%v\n%v", providerA, providerB)
 
 	case bytes.Equal(kvA.Key[:1], types.PurchaseQueueKey):
-		var purchasesA, purchasesB []types.Purchase
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &purchasesA)
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &purchasesB)
-		return fmt.Sprintf("%v\n%v", purchasesA, purchasesB)
+		var ppPairA, ppPairB []types.PPPair
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &ppPairA)
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &ppPairB)
+		fmt.Println("values")
+		fmt.Println(ppPairA)
+		fmt.Println(ppPairB)
+		return fmt.Sprintf("%v\n%v", ppPairA, ppPairB)
 
 	default:
 		panic(fmt.Sprintf("invalid %s key prefix %X", types.ModuleName, kvA.Key[:1]))

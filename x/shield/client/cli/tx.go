@@ -467,7 +467,7 @@ func GetCmdPurchaseShield(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(3),
 		Short: "purchase Shield",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`PurchaseLists Shield. Requires purchaser to provide descriptions of accounts to be protected.
+			fmt.Sprintf(`Purchase Shield. Requires purchaser to provide descriptions of accounts to be protected.
 
 Example:
 $ %s tx shield purchase <pool id> <shield amount> <description>

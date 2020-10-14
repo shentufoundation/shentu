@@ -61,15 +61,15 @@ func (k Keeper) DeletePurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk
 }
 
 // DequeuePurchase dequeues a purchase from the purchase queue
-func (k Keeper) DequeuePurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchase types.Purchase) {
-	timeslice := k.GetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime)
+func (k Keeper) DequeuePurchase(ctx sdk.Context, purchaseList types.PurchaseList, endTime time.Time) {
+	timeslice := k.GetPurchaseQueueTimeSlice(ctx, endTime)
 	for i, ppPair := range timeslice {
-		if (poolID == ppPair.PoolID) && purchaser.Equals(ppPair.Purchaser) {
+		if (purchaseList.PoolID == ppPair.PoolID) && purchaseList.Purchaser.Equals(ppPair.Purchaser) {
 			timeslice = append(timeslice[:i], timeslice[i+1:]...)
-			break
+			k.SetPurchaseQueueTimeSlice(ctx, endTime, timeslice)
+			return
 		}
 	}
-	k.SetPurchaseQueueTimeSlice(ctx, purchase.ClaimPeriodEndTime, timeslice)
 }
 
 // PurchaseShield purchases shield of a pool.
@@ -173,15 +173,6 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 		}
 		store.Delete(iterator.Key())
 	}
-}
-
-func processed(processed []types.PPPair, new types.PPPair) bool {
-	for _, entry := range processed {
-		if entry.PoolID == new.PoolID && entry.Purchaser.Equals(new.Purchaser) {
-			return true
-		}
-	}
-	return false
 }
 
 // GetOnesPurchases returns a purchaser's all purchases.

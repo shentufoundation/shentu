@@ -133,7 +133,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 
 	// assume there is only one purchase from sponsor address
 	purchase := sponsorPurchase.Entries[0]
-	k.DequeuePurchase(ctx, id, pool.SponsorAddr, purchase)
+	k.DequeuePurchase(ctx, sponsorPurchase, purchase.ExpirationTime)
 	purchase.ExpirationTime = pool.EndTime
 	purchase.ClaimPeriodEndTime = pool.EndTime
 	purchase.ProtectionEndTime = pool.EndTime
@@ -144,7 +144,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	k.SetPool(ctx, pool)
 	k.SetProvider(ctx, admin, provider)
 	k.SetPurchaseList(ctx, newPurchaseList)
-	k.InsertPurchaseQueue(ctx, sponsorPurchase, purchase.ExpirationTime)
+	k.InsertPurchaseQueue(ctx, newPurchaseList, purchase.ExpirationTime)
 	return pool, nil
 }
 
