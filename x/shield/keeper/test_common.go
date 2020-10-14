@@ -82,21 +82,21 @@ func RandomPoolInfo(r *rand.Rand, k Keeper, ctx sdk.Context) (uint64, string, bo
 }
 
 // RandomCollateral returns a random collateral given access to the keeper and ctx.
-func RandomCollateral(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Collateral, bool) {
+func RandomCollateral(r *rand.Rand, k Keeper, ctx sdk.Context) (uint64, types.Collateral, bool) {
 	poolID, _, found := RandomPoolInfo(r, k, ctx)
 	if !found {
-		return types.Collateral{}, false
+		return 0, types.Collateral{}, false
 	}
 	pool, err := k.GetPool(ctx, poolID)
 	if err != nil {
-		return types.Collateral{}, false
+		return 0, types.Collateral{}, false
 	}
 	collaterals := k.GetAllPoolCollaterals(ctx, pool)
 	if len(collaterals) == 0 {
-		return types.Collateral{}, false
+		return 0, types.Collateral{}, false
 	}
 	i := r.Intn(len(collaterals))
-	return collaterals[i], true
+	return poolID, collaterals[i], true
 }
 
 // RandomPurchaseList returns a random purchase given access to the keeper and ctx.

@@ -334,7 +334,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		collateral, found := keeper.RandomCollateral(r, k, ctx)
+		poolID, collateral, found := keeper.RandomCollateral(r, k, ctx)
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
@@ -347,12 +347,19 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 		}
 		account := ak.GetAccount(ctx, simAccount.Address)
 
-		withdrawable := collateral.Amount.Sub(collateral.Withdrawing)
+		pool, _ := k.GetPool(ctx, poolID)
+		denom := sk.BondDenom(ctx)
+		withdrawable := sdk.ZeroInt()
+		if !simAccount.Address.Equals(k.GetAdmin(ctx)) {
+			withdrawable = collateral.Amount.Sub(collateral.Withdrawing)
+		} else if pool.TotalCollateral.GT(pool.Shield.AmountOf(denom)) {
+			withdrawable = sdk.MinInt(pool.TotalCollateral.Sub(pool.Shield.AmountOf(denom)), collateral.Amount.Sub(collateral.Withdrawing))
+		}
 		withdrawAmount, err := simulation.RandPositiveInt(r, withdrawable)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		withdraw := sdk.NewCoin(sk.BondDenom(ctx), withdrawAmount)
+		withdraw := sdk.NewCoin(denom, withdrawAmount)
 
 		msg := types.NewMsgWithdrawCollateral(simAccount.Address, collateral.PoolID, withdraw)
 
@@ -379,7 +386,7 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		collateral, found := keeper.RandomCollateral(r, k, ctx)
+		_, collateral, found := keeper.RandomCollateral(r, k, ctx)
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
@@ -417,7 +424,7 @@ func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper, sk type
 func SimulateMsgWithdrawForeignRewards(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		collateral, found := keeper.RandomCollateral(r, k, ctx)
+		_, collateral, found := keeper.RandomCollateral(r, k, ctx)
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
