@@ -490,11 +490,14 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		}
 		description := simulation.RandStringOfLength(r, 100)
 		claimParams := k.GetClaimProposalParams(ctx)
-		shieldEnd := ctx.BlockTime().Add(claimParams.ClaimPeriod)
+		shieldEnd := ctx.BlockTime().Add(claimParams.ClaimPeriod).Add(k.GetVotingParams(ctx).VotingPeriod * 2)
 		if shieldEnd.After(pool.EndTime) {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 
+		if purchaser.Address.Equals(pool.SponsorAddr) {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 		msg := types.NewMsgPurchaseShield(poolID, sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount)), description, purchaser.Address)
 
 		fees := sdk.Coins{}

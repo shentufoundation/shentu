@@ -68,7 +68,8 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 
 	// make a pseudo-purchase for B, equal to shield
 	purchaseID := k.GetNextPurchaseID(ctx)
-	purchase := types.NewPurchase(purchaseID, shield, ctx.BlockHeight(), endTime, endTime, endTime, "shield for sponsor")
+	expirationTime := pool.EndTime.Add(-k.gk.GetVotingParams(ctx).VotingPeriod * 2)
+	purchase := types.NewPurchase(purchaseID, shield, ctx.BlockHeight(), expirationTime, expirationTime, expirationTime, "shield for sponsor")
 
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, id+1)
@@ -131,12 +132,24 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	// update sponsor purchase
 	sponsorPurchase, _ := k.GetPurchaseList(ctx, id, pool.SponsorAddr)
 
-	// assume there is only one purchase from sponsor address
-	purchase := sponsorPurchase.Entries[0]
-	k.DequeuePurchase(ctx, sponsorPurchase, purchase.ExpirationTime)
-	purchase.ExpirationTime = pool.EndTime
-	purchase.ClaimPeriodEndTime = pool.EndTime
-	purchase.ProtectionEndTime = pool.EndTime
+	purchaseEndTime := pool.EndTime.Add(-k.gk.GetVotingParams(ctx).VotingPeriod * 2)
+	if purchaseEndTime.Before(ctx.BlockTime()) {
+		return types.Pool{}, types.ErrPoolLifeTooShort
+	}
+	// assume there is only one purchase from sponsor address, and add in any if B's purchase expired.
+	var purchase types.Purchase
+	if len(sponsorPurchase.Entries) == 0 {
+		purchaseID := k.GetNextPurchaseID(ctx)
+		purchase = types.NewPurchase(purchaseID, sdk.NewCoins(), ctx.BlockHeight(), purchaseEndTime, purchaseEndTime, purchaseEndTime, "sponsor shield")
+		k.SetNextPurchaseID(ctx, purchaseID+1)
+	} else {
+		purchase = sponsorPurchase.Entries[0]
+		k.DequeuePurchase(ctx, sponsorPurchase, purchase.ExpirationTime)
+		purchase.ExpirationTime = purchaseEndTime
+		purchase.ClaimPeriodEndTime = purchase.ExpirationTime
+		purchase.ProtectionEndTime = purchase.ClaimPeriodEndTime
+	}
+
 	purchase.Shield = purchase.Shield.Add(shield...)
 	newPurchaseList := types.NewPurchaseList(id, pool.SponsorAddr, []types.Purchase{purchase})
 

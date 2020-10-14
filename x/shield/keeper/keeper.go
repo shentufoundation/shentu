@@ -3,6 +3,8 @@ package keeper
 import (
 	"encoding/binary"
 
+	govTypes "github.com/cosmos/cosmos-sdk/x/gov"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -15,16 +17,18 @@ type Keeper struct {
 	storeKey     sdk.StoreKey
 	cdc          *codec.Codec
 	sk           types.StakingKeeper
+	gk           types.GovKeeper
 	supplyKeeper types.SupplyKeeper
 	paramSpace   params.Subspace
 }
 
 // NewKeeper creates a shield keeper.
-func NewKeeper(cdc *codec.Codec, shieldStoreKey sdk.StoreKey, sk types.StakingKeeper, supplyKeeper types.SupplyKeeper, paramSpace params.Subspace) Keeper {
+func NewKeeper(cdc *codec.Codec, shieldStoreKey sdk.StoreKey, sk types.StakingKeeper, gk types.GovKeeper, supplyKeeper types.SupplyKeeper, paramSpace params.Subspace) Keeper {
 	return Keeper{
 		storeKey:     shieldStoreKey,
 		cdc:          cdc,
 		sk:           sk,
+		gk:           gk,
 		supplyKeeper: supplyKeeper,
 		paramSpace:   paramSpace.WithKeyTable(types.ParamKeyTable()),
 	}
@@ -76,4 +80,9 @@ func (k Keeper) DepositNativePremium(ctx sdk.Context, premium sdk.Coins, from sd
 // BondDenom returns staking bond denomination
 func (k Keeper) BondDenom(ctx sdk.Context) string {
 	return k.sk.BondDenom(ctx)
+}
+
+// GetVotingParams returns gov keeper's voting params.
+func (k Keeper) GetVotingParams(ctx sdk.Context) govTypes.VotingParams {
+	return k.gk.GetVotingParams(ctx)
 }

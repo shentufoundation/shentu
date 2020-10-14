@@ -98,6 +98,9 @@ func (k Keeper) PurchaseShield(
 	if shieldAmt.GT(pool.Available) {
 		return types.Purchase{}, types.ErrNotEnoughShield
 	}
+	if pool.SponsorAddr.Equals(purchaser) {
+		return types.Purchase{}, types.ErrSponsorPurchase
+	}
 
 	// send tokens to shield module account
 	shieldDec := sdk.NewDecCoinsFromCoins(shield...)
