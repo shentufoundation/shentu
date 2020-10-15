@@ -61,14 +61,18 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak typ
 func SimulateMsgCertifyValidator(ak types.AccountKeeper, k keeper.Keeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		certifier, _ := simulation.RandomAcc(r, accs)
+		certifiers := k.GetAllCertifiers(ctx)
+		certifier := certifiers[r.Intn(len(certifiers))]
+		var certifierAcc simulation.Account
+		for _, acc := range accs {
+			if acc.Address.Equals(certifier.Address) {
+				certifierAcc = acc
+				break
+			}
+		}
 		validator := simulation.RandomAccounts(r, 1)[0]
 
 		msg := types.NewMsgCertifyValidator(certifier.Address, validator.PubKey)
-
-		if !k.IsCertifier(ctx, certifier.Address) {
-			return simulation.NewOperationMsgBasic(types.ModuleName, "NoOp: not a certifier", "", false, nil), nil, nil
-		}
 
 		account := ak.GetAccount(ctx, certifier.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
@@ -83,7 +87,7 @@ func SimulateMsgCertifyValidator(ak types.AccountKeeper, k keeper.Keeper) simula
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},
-			certifier.PrivKey,
+			certifierAcc.PrivKey,
 		)
 
 		_, _, err = app.Deliver(tx)
@@ -99,15 +103,19 @@ func SimulateMsgCertifyValidator(ak types.AccountKeeper, k keeper.Keeper) simula
 func SimulateMsgCertifyPlatform(ak types.AccountKeeper, k keeper.Keeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		certifier, _ := simulation.RandomAcc(r, accs)
+		certifiers := k.GetAllCertifiers(ctx)
+		certifier := certifiers[r.Intn(len(certifiers))]
+		var certifierAcc simulation.Account
+		for _, acc := range accs {
+			if acc.Address.Equals(certifier.Address) {
+				certifierAcc = acc
+				break
+			}
+		}
 		validator := simulation.RandomAccounts(r, 1)[0]
 		platform := simulation.RandStringOfLength(r, 10)
 
 		msg := types.NewMsgCertifyPlatform(certifier.Address, validator.PubKey, platform)
-
-		if !k.IsCertifier(ctx, certifier.Address) {
-			return simulation.NewOperationMsgBasic(types.ModuleName, "NoOp: not a certifier", "", false, nil), nil, nil
-		}
 
 		account := ak.GetAccount(ctx, certifier.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
@@ -122,7 +130,7 @@ func SimulateMsgCertifyPlatform(ak types.AccountKeeper, k keeper.Keeper) simulat
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},
-			certifier.PrivKey,
+			certifierAcc.PrivKey,
 		)
 
 		_, _, err = app.Deliver(tx)
@@ -138,15 +146,19 @@ func SimulateMsgCertifyPlatform(ak types.AccountKeeper, k keeper.Keeper) simulat
 func SimulateMsgCertifyAuditing(ak types.AccountKeeper, k keeper.Keeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account,
 		chainID string) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		certifier, _ := simulation.RandomAcc(r, accs)
+		certifiers := k.GetAllCertifiers(ctx)
+		certifier := certifiers[r.Intn(len(certifiers))]
+		var certifierAcc simulation.Account
+		for _, acc := range accs {
+			if acc.Address.Equals(certifier.Address) {
+				certifierAcc = acc
+				break
+			}
+		}
 		contract := simulation.RandomAccounts(r, 1)[0]
 		description := simulation.RandStringOfLength(r, 10)
 
 		msg := types.NewMsgCertifyGeneral("auditing", "address", contract.Address.String(), description, certifier.Address)
-
-		if !k.IsCertifier(ctx, certifier.Address) {
-			return simulation.NewOperationMsgBasic(types.ModuleName, "NoOp: not a certifier", "", false, nil), nil, nil
-		}
 
 		account := ak.GetAccount(ctx, certifier.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
@@ -161,7 +173,7 @@ func SimulateMsgCertifyAuditing(ak types.AccountKeeper, k keeper.Keeper) simulat
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},
-			certifier.PrivKey,
+			certifierAcc.PrivKey,
 		)
 
 		_, _, err = app.Deliver(tx)
@@ -177,15 +189,19 @@ func SimulateMsgCertifyAuditing(ak types.AccountKeeper, k keeper.Keeper) simulat
 func SimulateMsgCertifyProof(ak types.AccountKeeper, k keeper.Keeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		certifier, _ := simulation.RandomAcc(r, accs)
+		certifiers := k.GetAllCertifiers(ctx)
+		certifier := certifiers[r.Intn(len(certifiers))]
+		var certifierAcc simulation.Account
+		for _, acc := range accs {
+			if acc.Address.Equals(certifier.Address) {
+				certifierAcc = acc
+				break
+			}
+		}
 		contract := simulation.RandomAccounts(r, 1)[0]
 		description := simulation.RandStringOfLength(r, 10)
 
 		msg := types.NewMsgCertifyGeneral("proof", "address", contract.Address.String(), description, certifier.Address)
-
-		if !k.IsCertifier(ctx, certifier.Address) {
-			return simulation.NewOperationMsgBasic(types.ModuleName, "NoOp: not a certifier", "", false, nil), nil, nil
-		}
 
 		account := ak.GetAccount(ctx, certifier.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
@@ -200,7 +216,7 @@ func SimulateMsgCertifyProof(ak types.AccountKeeper, k keeper.Keeper) simulation
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},
-			certifier.PrivKey,
+			certifierAcc.PrivKey,
 		)
 
 		_, _, err = app.Deliver(tx)
