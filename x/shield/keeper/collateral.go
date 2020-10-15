@@ -41,7 +41,6 @@ func (k Keeper) FreeCollaterals(ctx sdk.Context, pool types.Pool) {
 		provider, _ := k.GetProvider(ctx, collateral.Provider)
 		provider.Collateral = provider.Collateral.Sub(collateral.Amount)
 		provider.Available = provider.Available.Add(collateral.Amount)
-		provider.Withdrawing = provider.Withdrawing.Sub(collateral.Withdrawing)
 		k.SetProvider(ctx, collateral.Provider, provider)
 		store.Delete(types.GetCollateralKey(pool.PoolID, collateral.Provider))
 		return false
@@ -169,7 +168,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 
 	// insert into withdraw queue
 	poolParams := k.GetPoolParams(ctx)
-	completionTime := ctx.BlockHeader().Time.Add(poolParams.WithdrawPeriod)
+	completionTime := ctx.BlockTime().Add(poolParams.WithdrawPeriod)
 	withdraw := types.NewWithdraw(id, from, amount, completionTime)
 	k.InsertWithdrawQueue(ctx, withdraw)
 
