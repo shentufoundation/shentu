@@ -113,9 +113,9 @@ func (k Keeper) GetAllPoolCollaterals(ctx sdk.Context, pool types.Pool) (collate
 
 // DepositCollateral deposits a community member's collateral for a pool.
 func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint64, amount sdk.Int) error {
-	pool, err := k.GetPool(ctx, id)
-	if err != nil {
-		return err
+	pool, found := k.GetPool(ctx, id)
+	if !found {
+		return types.ErrNoPoolFound
 	}
 
 	// check eligibility
@@ -150,9 +150,9 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 	if amount.IsZero() {
 		return nil
 	}
-	pool, err := k.GetPool(ctx, id)
-	if err != nil {
-		return err
+	pool, found := k.GetPool(ctx, id)
+	if !found {
+		return types.ErrNoPoolFound
 	}
 
 	// retrieve the particular collateral to ensure that

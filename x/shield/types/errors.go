@@ -38,4 +38,5 @@ var (
 	ErrNoPoolFoundForSponsor      = sdkerrors.Register(ModuleName, 133, "no pool found for the given sponsor")
 	ErrSponsorAlreadyExists       = sdkerrors.Register(ModuleName, 134, "a pool already exists under the given sponsor")
 	ErrCollateralBadDenom         = sdkerrors.Register(ModuleName, 135, "invalid coin denomination for collateral")
+	ErrSponsorPurchase            = sdkerrors.Register(ModuleName, 136, "pool sponsor cannot purchase shield")
 )

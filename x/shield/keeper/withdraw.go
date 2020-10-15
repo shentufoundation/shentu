@@ -92,8 +92,9 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 		if !found {
 			panic("provider not found but its collaterals are being withdrawn")
 		}
-		pool, err := k.GetPool(ctx, withdraw.PoolID)
-		if err != nil {
+
+		pool, found := k.GetPool(ctx, withdraw.PoolID)
+		if !found {
 			// Pools, collaterals and providers have been updated for closed pools.
 			continue
 		}

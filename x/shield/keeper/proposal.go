@@ -12,9 +12,9 @@ import (
 
 // ClaimLock locks collaterals after a claim proposal is submitted.
 func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, lockPeriod time.Duration) error {
-	pool, err := k.GetPool(ctx, poolID)
-	if err != nil {
-		return err
+	pool, found := k.GetPool(ctx, poolID)
+	if !found {
+		return types.ErrNoPoolFound
 	}
 	if !pool.Shield.IsAllGTE(loss) {
 		panic(types.ErrNotEnoughShield)
@@ -197,9 +197,9 @@ func (k Keeper) RedirectUnbondingEntryToShieldModule(ctx sdk.Context, ubd stakin
 
 // ClaimUnlock unlocks locked collaterals.
 func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64) error {
-	pool, err := k.GetPool(ctx, poolID)
-	if err != nil {
-		return err
+	pool, found := k.GetPool(ctx, poolID)
+	if !found {
+		return types.ErrNoPoolFound
 	}
 
 	// Update pool, collaterals and providers.
@@ -248,9 +248,9 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64) e
 // RestoreShield restores shield for proposer.
 func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, id uint64, loss sdk.Coins) error {
 	// update shield of pool
-	pool, err := k.GetPool(ctx, poolID)
-	if err != nil {
-		return err
+	pool, found := k.GetPool(ctx, poolID)
+	if !found {
+		return types.ErrNoPoolFound
 	}
 	pool.Shield = pool.Shield.Add(loss...)
 	k.SetPool(ctx, pool)
@@ -400,9 +400,9 @@ func (k Keeper) DeleteReimbursement(ctx sdk.Context, proposalID uint64) error {
 
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID uint64, rmb sdk.Coins, beneficiary sdk.AccAddress) error {
-	pool, err := k.GetPool(ctx, poolID)
-	if err != nil {
-		return err
+	pool, found := k.GetPool(ctx, poolID)
+	if !found {
+		return types.ErrNoPoolFound
 	}
 	pool.TotalLocked = pool.TotalLocked.Sub(rmb.AmountOf(k.BondDenom(ctx)))
 

@@ -190,8 +190,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 			simAccount.PrivKey,
 		)
 
-		_, _, err = app.Deliver(tx)
-		if err != nil {
+		if _, _, err := app.Deliver(tx); err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
@@ -267,8 +266,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 			simAccount.PrivKey,
 		)
 
-		_, _, err = app.Deliver(tx)
-		if err != nil {
+		if _, _, err := app.Deliver(tx); err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
@@ -322,8 +320,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 			simAccount.PrivKey,
 		)
 
-		_, _, err = app.Deliver(tx)
-		if err != nil {
+		if _, _, err := app.Deliver(tx); err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
@@ -374,8 +371,7 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 			simAccount.PrivKey,
 		)
 
-		_, _, err = app.Deliver(tx)
-		if err != nil {
+		if _, _, err := app.Deliver(tx); err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
@@ -412,8 +408,7 @@ func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper, sk type
 			simAccount.PrivKey,
 		)
 
-		_, _, err := app.Deliver(tx)
-		if err != nil {
+		if _, _, err := app.Deliver(tx); err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
@@ -437,8 +432,8 @@ func SimulateMsgWithdrawForeignRewards(k keeper.Keeper, ak types.AccountKeeper, 
 		}
 		account := ak.GetAccount(ctx, collateral.Provider)
 
-		pool, err := k.GetPool(ctx, collateral.PoolID)
-		if err != nil {
+		pool, found := k.GetPool(ctx, collateral.PoolID)
+		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 		toAddr := simulation.RandStringOfLength(r, 42)
@@ -459,8 +454,7 @@ func SimulateMsgWithdrawForeignRewards(k keeper.Keeper, ak types.AccountKeeper, 
 			simAccount.PrivKey,
 		)
 
-		_, _, err = app.Deliver(tx)
-		if err != nil {
+		if _, _, err := app.Deliver(tx); err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
@@ -479,8 +473,8 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		pool, err := k.GetPool(ctx, poolID)
-		if err != nil {
+		pool, found := k.GetPool(ctx, poolID)
+		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 		maxPurchaseAmount := sdk.MinInt(pool.Available, account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom))
@@ -490,11 +484,14 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		}
 		description := simulation.RandStringOfLength(r, 100)
 		claimParams := k.GetClaimProposalParams(ctx)
-		shieldEnd := ctx.BlockTime().Add(claimParams.ClaimPeriod)
+		shieldEnd := ctx.BlockTime().Add(claimParams.ClaimPeriod).Add(k.GetVotingParams(ctx).VotingPeriod * 2)
 		if shieldEnd.After(pool.EndTime) {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 
+		if purchaser.Address.Equals(pool.SponsorAddr) {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 		msg := types.NewMsgPurchaseShield(poolID, sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount)), description, purchaser.Address)
 
 		fees := sdk.Coins{}
@@ -508,8 +505,7 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 			purchaser.PrivKey,
 		)
 
-		_, _, err = app.Deliver(tx)
-		if err != nil {
+		if _, _, err := app.Deliver(tx); err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
@@ -533,6 +529,13 @@ func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper)
 		bondDenom := sk.BondDenom(ctx)
 		purchaseList, found := keeper.RandomPurchaseList(r, k, ctx)
 		if !found {
+			return nil
+		}
+		pool, found := k.GetPool(ctx, purchaseList.PoolID)
+		if !found {
+			return nil
+		}
+		if pool.SponsorAddr.Equals(purchaseList.Purchaser) {
 			return nil
 		}
 		entryIndex := r.Intn(len(purchaseList.Entries))
