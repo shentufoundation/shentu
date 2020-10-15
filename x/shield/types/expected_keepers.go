@@ -3,14 +3,12 @@ package types
 import (
 	"time"
 
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	"github.com/cosmos/cosmos-sdk/x/supply/exported"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
+	"github.com/cosmos/cosmos-sdk/x/supply/exported"
 )
 
 // AccountKeeper expected account keeper

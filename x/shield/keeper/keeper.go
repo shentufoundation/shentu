@@ -3,10 +3,9 @@ package keeper
 import (
 	"encoding/binary"
 
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govTypes "github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
