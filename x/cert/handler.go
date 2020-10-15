@@ -73,7 +73,7 @@ func handleMsgCertifyCompilation(ctx sdk.Context, k Keeper, msg types.MsgCertify
 }
 
 func handleMsgCertifyPlatform(ctx sdk.Context, k Keeper, msg types.MsgCertifyPlatform) (*sdk.Result, error) {
-	if err := k.CertifyPlatform(ctx, msg.Certifier, msg.Validator.Bytes(), msg.Platform); err != nil {
+	if err := k.CertifyPlatform(ctx, msg.Certifier, msg.Validator, msg.Platform); err != nil {
 		return nil, err
 	}
 	return &sdk.Result{}, nil
