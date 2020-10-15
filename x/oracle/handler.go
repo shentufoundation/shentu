@@ -43,42 +43,71 @@ func handleMsgCreateOperator(ctx sdk.Context, k Keeper, msg types.MsgCreateOpera
 	if err := k.CreateOperator(ctx, msg.Address, msg.Collateral, msg.Proposer, msg.Name); err != nil {
 		return nil, err
 	}
-	return &sdk.Result{}, nil
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeCreateOperator,
+			sdk.NewAttribute("operator", msg.Address.String()),
+			sdk.NewAttribute("operator_name", msg.Name),
+			sdk.NewAttribute("collateral", msg.Collateral.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgRemoveOperator(ctx sdk.Context, k Keeper, msg types.MsgRemoveOperator) (*sdk.Result, error) {
 	if err := k.RemoveOperator(ctx, msg.Address); err != nil {
 		return nil, err
 	}
-	return &sdk.Result{}, nil
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRemoveOperator,
+			sdk.NewAttribute("operator", msg.Address.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgAddCollateral(ctx sdk.Context, k Keeper, msg types.MsgAddCollateral) (*sdk.Result, error) {
 	if err := k.AddCollateral(ctx, msg.Address, msg.CollateralIncrement); err != nil {
 		return nil, err
 	}
-	return &sdk.Result{}, nil
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeAddCollateral,
+			sdk.NewAttribute("operator", msg.Address.String()),
+			sdk.NewAttribute("collateral_increment", msg.CollateralIncrement.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgReduceCollateral(ctx sdk.Context, k Keeper, msg types.MsgReduceCollateral) (*sdk.Result, error) {
 	if err := k.ReduceCollateral(ctx, msg.Address, msg.CollateralDecrement); err != nil {
 		return nil, err
 	}
-	return &sdk.Result{}, nil
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeReduceCollateral,
+			sdk.NewAttribute("operator", msg.Address.String()),
+			sdk.NewAttribute("collateral_decrement", msg.CollateralDecrement.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgWithdrawReward(ctx sdk.Context, k Keeper, msg types.MsgWithdrawReward) (*sdk.Result, error) {
-	if err := k.WithdrawAllReward(ctx, msg.Address); err != nil {
+	reward, err := k.WithdrawAllReward(ctx, msg.Address)
+	if err != nil {
 		return nil, err
 	}
-
-	WithdrawEvent := sdk.NewEvent(
-		types.EventTypeWithdraw,
-		sdk.NewAttribute("address", msg.Address.String()),
-	)
-	ctx.EventManager().EmitEvent(WithdrawEvent)
-
-	return &sdk.Result{}, nil
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeWithdrawReward,
+			sdk.NewAttribute("operator", msg.Address.String()),
+			sdk.NewAttribute("reward", reward.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgCreateTask(ctx sdk.Context, k Keeper, msg types.MsgCreateTask) (*sdk.Result, error) {
@@ -113,9 +142,7 @@ func handleMsgCreateTask(ctx sdk.Context, k Keeper, msg types.MsgCreateTask) (*s
 		sdk.NewAttribute("closingHeight", strconv.FormatInt(ctx.BlockHeight()+windowSize, 10)),
 	)
 	ctx.EventManager().EmitEvent(createTaskEvent)
-	return &sdk.Result{
-		Events: ctx.EventManager().Events(),
-	}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgTaskResponse(ctx sdk.Context, k Keeper, msg types.MsgTaskResponse) (*sdk.Result, error) {
@@ -130,9 +157,7 @@ func handleMsgTaskResponse(ctx sdk.Context, k Keeper, msg types.MsgTaskResponse)
 		sdk.NewAttribute("operator", msg.Operator.String()),
 	)
 	ctx.EventManager().EmitEvent(respondToTaskEvent)
-	return &sdk.Result{
-		Events: ctx.EventManager().Events(),
-	}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgInquiryTask(ctx sdk.Context, k Keeper, msg types.MsgInquiryTask) (*sdk.Result, error) {
@@ -150,9 +175,7 @@ func handleMsgInquiryTask(ctx sdk.Context, k Keeper, msg types.MsgInquiryTask) (
 		sdk.NewAttribute("expiration", task.Expiration.String()),
 	)
 	ctx.EventManager().EmitEvent(InquiryTaskEvent)
-	return &sdk.Result{
-		Events: ctx.EventManager().Events(),
-	}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgDeleteTask(ctx sdk.Context, k Keeper, msg types.MsgDeleteTask) (*sdk.Result, error) {
@@ -167,7 +190,5 @@ func handleMsgDeleteTask(ctx sdk.Context, k Keeper, msg types.MsgDeleteTask) (*s
 		sdk.NewAttribute("expired", strconv.FormatBool(msg.Force)),
 	)
 	ctx.EventManager().EmitEvent(DeleteTaskEvent)
-	return &sdk.Result{
-		Events: ctx.EventManager().Events(),
-	}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

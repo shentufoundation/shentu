@@ -168,21 +168,21 @@ func (k Keeper) AddReward(ctx sdk.Context, address sdk.AccAddress, increment sdk
 }
 
 // WithdrawAllReward gives back all rewards of an operator.
-func (k Keeper) WithdrawAllReward(ctx sdk.Context, address sdk.AccAddress) error {
+func (k Keeper) WithdrawAllReward(ctx sdk.Context, address sdk.AccAddress) (sdk.Coins, error) {
 	if !k.IsOperator(ctx, address) {
-		return types.ErrNoOperatorFound
+		return nil, types.ErrNoOperatorFound
 	}
 	operator, err := k.GetOperator(ctx, address)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, address,
-		operator.AccumulatedRewards); err != nil {
-		return err
+	reward := operator.AccumulatedRewards
+	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, address, reward); err != nil {
+		return nil, err
 	}
 	operator.AccumulatedRewards = nil
 	k.SetOperator(ctx, operator)
-	return nil
+	return reward, nil
 }
 
 // GetCollateralAmount gets an operator's collateral.
