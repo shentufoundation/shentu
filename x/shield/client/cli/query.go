@@ -26,12 +26,14 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	shieldQueryCmd.AddCommand(flags.GetCommands(
 		GetCmdPool(queryRoute, cdc),
 		GetCmdPools(queryRoute, cdc),
-		GetCmdPurchase(queryRoute, cdc),
-		GetCmdOnesPurchases(queryRoute, cdc),
+		GetCmdPurchaseList(queryRoute, cdc),
+		GetCmdPurchaserPurchases(queryRoute, cdc),
 		GetCmdPoolPurchases(queryRoute, cdc),
 		GetCmdPoolCollaterals(queryRoute, cdc),
 		GetCmdProvider(queryRoute, cdc),
 		GetCmdProviderCollaterals(queryRoute, cdc),
+		GetCmdPoolParams(queryRoute, cdc),
+		GetCmdClaimParams(queryRoute, cdc),
 	)...)
 
 	return shieldQueryCmd
@@ -40,15 +42,17 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdPool returns the command for querying the pool.
 func GetCmdPool(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pool [pool-id]",
+		Use:   "pool [pool_ID]",
 		Short: "query a pool",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
 			var res []byte
 			var err error
 			if len(args) == 1 {
-				res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/pool/id/%s", queryRoute, args[0]), nil)
+				route := fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryPoolByID, args[0])
+				res, _, err = cliCtx.QueryWithData(route, nil)
 				if err != nil {
 					return err
 				}
@@ -57,11 +61,14 @@ func GetCmdPool(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				if sponsor == "" {
 					return fmt.Errorf("either poolID or sponsor is required to query pool")
 				}
-				res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/pool/sponsor/%s", queryRoute, sponsor), nil)
+
+				route := fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryPoolBySponsor, sponsor)
+				res, _, err = cliCtx.QueryWithData(route, nil)
 				if err != nil {
 					return err
 				}
 			}
+
 			var out types.Pool
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
@@ -80,10 +87,12 @@ func GetCmdPools(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/pools", queryRoute), nil)
+
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryPools), nil)
 			if err != nil {
 				return err
 			}
+
 			var out []types.Pool
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
@@ -93,21 +102,23 @@ func GetCmdPools(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-// GetCmdPurchase returns the command for querying a purchase.
-func GetCmdPurchase(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// GetCmdPurchaseList returns the command for querying purchases
+// corresponding to a given pool-purchaser pair.
+func GetCmdPurchaseList(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "purchase [txhash]",
-		Short: "get purchase information",
-		Args:  cobra.ExactArgs(1),
+		Use:   "pool-purchaser [pool_ID] [purchaser_address]",
+		Short: "get purchases corresponding to a given pool-purchaser pair",
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/purchase/%s", queryRoute, args[0]), nil)
+			route := fmt.Sprintf("custom/%s/%s/%s/%s", queryRoute, types.QueryPurchaseList, args[0], args[1])
+			res, _, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
 			}
 
-			var out types.Purchase
+			var out types.PurchaseList
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},
@@ -116,22 +127,23 @@ func GetCmdPurchase(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-// GetCmdOnesPurchases returns the command for querying
+// GetCmdPurchaserPurchases returns the command for querying
 // purchases by a given address.
-func GetCmdOnesPurchases(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdPurchaserPurchases(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "purchases-by [address]",
+		Use:   "purchases-by [purchaser_address]",
 		Short: "query purchase information of a given account",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/purchases/%s", queryRoute, args[0]), nil)
+			route := fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryPurchaserPurchases, args[0])
+			res, _, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
 			}
 
-			var out []types.Purchase
+			var out []types.PurchaseList
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},
@@ -144,18 +156,19 @@ func GetCmdOnesPurchases(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // purchases in a given pool.
 func GetCmdPoolPurchases(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "purchases [pool_id]",
+		Use:   "purchases [pool_ID]",
 		Short: "query purchases in a given pool",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/pool_purchases/%s", queryRoute, args[0]), nil)
+			route := fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryPoolPurchases, args[0])
+			res, _, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
 			}
 
-			var out []types.Purchase
+			var out []types.PurchaseList
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},
@@ -167,13 +180,14 @@ func GetCmdPoolPurchases(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdProvider returns the command for querying a provider.
 func GetCmdProvider(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "provider [address]",
+		Use:   "provider [provider_address]",
 		Short: "get provider information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/provider/%s", queryRoute, args[0]), nil)
+			route := fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryProvider, args[0])
+			res, _, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
 			}
@@ -191,13 +205,14 @@ func GetCmdProvider(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // from a given provider.
 func GetCmdProviderCollaterals(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "collaterals-from [address]",
+		Use:   "collaterals-from [provider_address]",
 		Short: "query collaterals from a provider",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/collaterals/%s", queryRoute, args[0]), nil)
+			route := fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryProviderCollaterals, args[0])
+			res, _, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
 			}
@@ -221,7 +236,8 @@ func GetCmdPoolCollaterals(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/pool_collaterals/%s", queryRoute, args[0]), nil)
+			route := fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryPoolCollaterals, args[0])
+			res, _, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
 			}
@@ -232,5 +248,51 @@ func GetCmdPoolCollaterals(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		},
 	}
 
+	return cmd
+}
+
+// GetCmdPoolParams returns the command for querying pool parameters.
+func GetCmdPoolParams(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pool-params",
+		Short: "get pool parameters",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryPoolParams)
+			res, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			var out types.PoolParams
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
+	return cmd
+}
+
+// GetCmdClaimParams returns the command for querying claim parameters.
+func GetCmdClaimParams(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "claim-params",
+		Short: "get claim parameters",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryClaimParams)
+			res, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			var out types.ClaimProposalParams
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
 	return cmd
 }

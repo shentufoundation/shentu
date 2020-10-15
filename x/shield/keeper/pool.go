@@ -251,7 +251,7 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 	}
 
 	// initiate proportional withdraws from all of the address's collaterals.
-	addrCollaterals := k.GetOnesCollaterals(ctx, addr)
+	addrCollaterals := k.GetProviderCollaterals(ctx, addr)
 	remainingWithdraw := amount
 	for i, collateral := range addrCollaterals {
 		var withdrawAmt sdk.Int
