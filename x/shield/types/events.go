@@ -11,7 +11,7 @@ const (
 	EventTypeWithdrawRewards        = "withdraw_rewards"
 	EventTypeWithdrawForeignRewards = "withdraw_foreign_rewards"
 	EventTypeClearPayouts           = "clear_payouts"
-	EventTypeCreateReimbursement     = "create_reimbursement_no_action"
+	EventTypeCreateReimbursement    = "create_reimbursement_no_action"
 	EventTypeWithdrawReimbursement  = "withdraw_reimbursement_no_action"
 
 	AttributeKeyShield             = "shield"
