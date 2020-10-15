@@ -60,7 +60,7 @@ func handleShieldClaimProposal(ctx sdk.Context, k Keeper, p types.ShieldClaimPro
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeCreateCompensation,
+			types.EventTypeCreateReimbursement,
 			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(p.PurchaseID, 10)),
 			sdk.NewAttribute(types.AttributeKeyCompensationAmount, p.Loss.String()),
 			sdk.NewAttribute(types.AttributeKeyBeneficiary, p.Proposer.String()),
@@ -141,9 +141,10 @@ func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral,
 		return nil, types.ErrCollateralBadDenom
 	}
 
-	if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral.Amount); err != nil {
-		return nil, err
-	}
+	// disabled for mainnet release
+	// if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral.Amount); err != nil {
+	//	return nil, err
+	// }
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -157,8 +158,7 @@ func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral,
 }
 
 func handleMsgPausePool(ctx sdk.Context, msg types.MsgPausePool, k Keeper) (*sdk.Result, error) {
-	_, err := k.PausePool(ctx, msg.From, msg.PoolID)
-	if err != nil {
+	if _, err := k.PausePool(ctx, msg.From, msg.PoolID); err != nil {
 		return nil, err
 	}
 
@@ -177,8 +177,7 @@ func handleMsgPausePool(ctx sdk.Context, msg types.MsgPausePool, k Keeper) (*sdk
 }
 
 func handleMsgResumePool(ctx sdk.Context, msg types.MsgResumePool, k Keeper) (*sdk.Result, error) {
-	_, err := k.ResumePool(ctx, msg.From, msg.PoolID)
-	if err != nil {
+	if _, err := k.ResumePool(ctx, msg.From, msg.PoolID); err != nil {
 		return nil, err
 	}
 
@@ -197,10 +196,10 @@ func handleMsgResumePool(ctx sdk.Context, msg types.MsgResumePool, k Keeper) (*s
 }
 
 func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Keeper) (*sdk.Result, error) {
-	_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
-	if err != nil {
-		return nil, err
-	}
+	// disabled for mainnet release
+	// if _, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From); err != nil {
+	//	return nil, err
+	// }
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -260,16 +259,17 @@ func handleMsgWithdrawForeignRewards(ctx sdk.Context, msg types.MsgWithdrawForei
 }
 
 func handleMsgWithdrawReimbursement(ctx sdk.Context, msg types.MsgWithdrawReimbursement, k Keeper) (*sdk.Result, error) {
-	amount, err := k.WithdrawReimbursement(ctx, msg.ProposalID, msg.From)
-	if err != nil {
-		return &sdk.Result{Events: ctx.EventManager().Events()}, err
-	}
+	// disabled for mainnet release
+	// amount, err := k.WithdrawReimbursement(ctx, msg.ProposalID, msg.From)
+	// if err != nil {
+	//	return &sdk.Result{Events: ctx.EventManager().Events()}, err
+	// }
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWithdrawReimbursement,
 			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(msg.ProposalID, 10)),
-			sdk.NewAttribute(types.AttributeKeyCompensationAmount, amount.String()),
+			// sdk.NewAttribute(types.AttributeKeyCompensationAmount, amount.String()),
 			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.From.String()),
 		),
 	})
