@@ -15,7 +15,6 @@ import (
 )
 
 const (
-	OpWeightMsgProposeCertifier = "op_weight_msg_propose_certifier"
 	OpWeightMsgCertifyValidator = "op_weight_msg_certify_validator"
 	OpWeightMsgCertifyPlatform  = "op_weight_msg_certify_platform"
 	OpWeightMsgCertifyAuditing  = "op_weight_msg_certify_auditing"
@@ -25,12 +24,6 @@ const (
 // WeightedOperations creates an operation (with weight) for each type of message generators.
 func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak types.AccountKeeper,
 	k keeper.Keeper) simulation.WeightedOperations {
-	var weightMsgProposeCertifier int
-	appParams.GetOrGenerate(cdc, OpWeightMsgProposeCertifier, &weightMsgProposeCertifier, nil,
-		func(_ *rand.Rand) {
-			weightMsgProposeCertifier = simappparams.DefaultWeightMsgSend
-		})
-
 	var weightMsgCertifyValidator int
 	appParams.GetOrGenerate(cdc, OpWeightMsgCertifyValidator, &weightMsgCertifyValidator, nil,
 		func(_ *rand.Rand) {
@@ -56,50 +49,10 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak typ
 		})
 
 	return simulation.WeightedOperations{
-		simulation.NewWeightedOperation(weightMsgProposeCertifier, SimulateMsgProposeCertifier(k, ak)),
 		simulation.NewWeightedOperation(weightMsgCertifyValidator, SimulateMsgCertifyValidator(ak, k)),
 		simulation.NewWeightedOperation(weightMsgCertifyPlatform, SimulateMsgCertifyPlatform(ak, k)),
 		simulation.NewWeightedOperation(weightMsgCertifyAuditing, SimulateMsgCertifyAuditing(ak, k)),
 		simulation.NewWeightedOperation(weightMsgCertifyProof, SimulateMsgCertifyProof(ak, k)),
-	}
-}
-
-// SimulateMsgProposeCertifier generates a MsgProposeCertifier object with all of its fields randomized.
-func SimulateMsgProposeCertifier(k keeper.Keeper, ak types.AccountKeeper) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		proposer, _ := simulation.RandomAcc(r, accs)
-		certifier := simulation.RandomAccounts(r, 1)[0]
-		description := simulation.RandStringOfLength(r, 10)
-		alias := simulation.RandStringOfLength(r, 5)
-
-		msg := types.NewMsgProposeCertifier(proposer.Address, certifier.Address, alias, description)
-
-		if len(k.GetAllCertifiers(ctx)) > 0 {
-			return simulation.NewOperationMsgBasic(types.ModuleName, "NoOp: certifier already exists", "", false, nil), nil, nil
-		}
-
-		account := ak.GetAccount(ctx, proposer.Address)
-		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
-
-		tx := helpers.GenTx(
-			[]sdk.Msg{msg},
-			fees,
-			helpers.DefaultGenTxGas,
-			chainID,
-			[]uint64{account.GetAccountNumber()},
-			[]uint64{account.GetSequence()},
-			proposer.PrivKey,
-		)
-
-		_, _, err = app.Deliver(tx)
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
