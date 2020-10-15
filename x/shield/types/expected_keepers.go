@@ -3,12 +3,12 @@ package types
 import (
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/x/supply/exported"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
+	"github.com/cosmos/cosmos-sdk/x/supply/exported"
 )
 
 // AccountKeeper expected account keeper
@@ -77,4 +77,8 @@ type SupplyKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
+}
+
+type GovKeeper interface {
+	GetVotingParams(ctx sdk.Context) govTypes.VotingParams
 }
