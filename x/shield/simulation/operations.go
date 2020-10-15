@@ -36,12 +36,12 @@ const (
 var (
 	DefaultWeightMsgCreatePool             = 10
 	DefaultWeightMsgUpdatePool             = 10
-	DefaultWeightMsgDepositCollateral      = 20
-	DefaultWeightMsgWithdrawCollateral     = 20
+	DefaultWeightMsgDepositCollateral      = 0
+	DefaultWeightMsgWithdrawCollateral     = 0
 	DefaultWeightMsgWithdrawRewards        = 10
 	DefaultWeightMsgWithdrawForeignRewards = 10
-	DefaultWeightMsgPurchaseShield         = 20
-	DefaultWeightShieldClaimProposal       = 5
+	DefaultWeightMsgPurchaseShield         = 0
+	DefaultWeightShieldClaimProposal       = 0
 
 	DefaultIntMax = 100000000000
 )
