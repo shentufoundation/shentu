@@ -29,7 +29,7 @@ func NewMsgCreateOperator(address sdk.AccAddress, collateral sdk.Coins, proposer
 func (MsgCreateOperator) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgCreateOperator) Type() string { return "create_operator" }
+func (MsgCreateOperator) Type() string { return EventTypeCreateOperator }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgCreateOperator) ValidateBasic() error {
@@ -73,7 +73,7 @@ func NewMsgRemoveOperator(address sdk.AccAddress, proposer sdk.AccAddress) MsgRe
 func (MsgRemoveOperator) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgRemoveOperator) Type() string { return "remove_operator" }
+func (MsgRemoveOperator) Type() string { return EventTypeRemoveOperator }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgRemoveOperator) ValidateBasic() error {
@@ -114,7 +114,7 @@ func NewMsgAddCollateral(address sdk.AccAddress, increment sdk.Coins) MsgAddColl
 func (MsgAddCollateral) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgAddCollateral) Type() string { return "add_collateral" }
+func (MsgAddCollateral) Type() string { return EventTypeAddCollateral }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgAddCollateral) ValidateBasic() error {
@@ -158,7 +158,7 @@ func NewMsgReduceCollateral(address sdk.AccAddress, decrement sdk.Coins) MsgRedu
 func (MsgReduceCollateral) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgReduceCollateral) Type() string { return "reduce_collateral" }
+func (MsgReduceCollateral) Type() string { return EventTypeReduceCollateral }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgReduceCollateral) ValidateBasic() error {
@@ -200,7 +200,7 @@ func NewMsgWithdrawReward(address sdk.AccAddress) MsgWithdrawReward {
 func (MsgWithdrawReward) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgWithdrawReward) Type() string { return "withdraw_reward" }
+func (MsgWithdrawReward) Type() string { return EventTypeWithdrawReward }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgWithdrawReward) ValidateBasic() error {
@@ -255,7 +255,7 @@ func NewMsgCreateTask(contract, function string, bounty sdk.Coins, description s
 func (MsgCreateTask) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgCreateTask) Type() string { return "create_task" }
+func (MsgCreateTask) Type() string { return EventTypeCreateTask }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgCreateTask) ValidateBasic() error {
@@ -298,7 +298,7 @@ func NewMsgTaskResponse(contract, function string, score int64, operator sdk.Acc
 func (MsgTaskResponse) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgTaskResponse) Type() string { return "respond_to_task" }
+func (MsgTaskResponse) Type() string { return EventTypeRespondToTask }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgTaskResponse) ValidateBasic() error {
@@ -341,7 +341,7 @@ func NewMsgInquiryTask(contract, function, txhash string, inquirer sdk.AccAddres
 func (MsgInquiryTask) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgInquiryTask) Type() string { return "inquiry a task" }
+func (MsgInquiryTask) Type() string { return EventTypeInquireTask }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgInquiryTask) ValidateBasic() error {
@@ -384,7 +384,7 @@ func NewMsgDeleteTask(contract, function string, force bool, deleter sdk.AccAddr
 func (MsgDeleteTask) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgDeleteTask) Type() string { return "delete_task" }
+func (MsgDeleteTask) Type() string { return EventTypeDeleteTask }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgDeleteTask) ValidateBasic() error {
