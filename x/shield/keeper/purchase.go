@@ -77,26 +77,25 @@ func (k Keeper) DequeuePurchase(ctx sdk.Context, purchaseList types.PurchaseList
 }
 
 // PurchaseShield purchases shield of a pool.
-func (k Keeper) PurchaseShield(
-	ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress,
-) (types.Purchase, error) {
-	pool, err := k.GetPool(ctx, poolID)
-	if err != nil {
-		return types.Purchase{}, err
+func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress) (types.Purchase, error) {
+	pool, found := k.GetPool(ctx, poolID)
+	if !found {
+		return types.Purchase{}, types.ErrNoPoolFound
 	}
 	poolParams := k.GetPoolParams(ctx)
 	claimParams := k.GetClaimProposalParams(ctx)
 
 	// check preconditions
-	if !pool.Active {
-		return types.Purchase{}, types.ErrPoolInactive
+	if err := k.PoolShieldAvailable(ctx, pool); err != nil {
+		return types.Purchase{}, err
 	}
-	if pool.EndTime.Before(ctx.BlockTime().Add(claimParams.ClaimPeriod)) {
-		return types.Purchase{}, types.ErrPoolLifeTooShort
-	}
+
 	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
 	if shieldAmt.GT(pool.Available) {
 		return types.Purchase{}, types.ErrNotEnoughShield
+	}
+	if pool.SponsorAddr.Equals(purchaser) {
+		return types.Purchase{}, types.ErrSponsorPurchase
 	}
 
 	// send tokens to shield module account
@@ -160,9 +159,10 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 				entry := purchaseList.Entries[i]
 				if entry.ExpirationTime.Before(ctx.BlockTime()) {
 					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
-					pool, err := k.GetPool(ctx, purchaseList.PoolID)
-					if err != nil {
-						panic(err)
+					pool, found := k.GetPool(ctx, purchaseList.PoolID)
+					if !found {
+						// skip purchases of closed pools
+						continue
 					}
 					pool.Available = pool.Available.Add(entry.Shield.AmountOf(bondDenom))
 					pool.Shield = pool.Shield.Sub(entry.Shield)
@@ -299,4 +299,16 @@ func (k Keeper) GetNextPurchaseID(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	opBz := store.Get(types.GetNextPurchaseIDKey())
 	return binary.LittleEndian.Uint64(opBz)
+}
+
+// PoolShieldAvailable checks if there is enough time for a purchase.
+func (k Keeper) PoolShieldAvailable(ctx sdk.Context, pool types.Pool) error {
+	if !pool.Active {
+		return types.ErrPoolInactive
+	}
+	claimParams := k.GetClaimProposalParams(ctx)
+	if pool.EndTime.Before(ctx.BlockTime().Add(claimParams.ClaimPeriod).Add(k.GetVotingParams(ctx).VotingPeriod * 2)) {
+		return types.ErrPoolLifeTooShort
+	}
+	return nil
 }

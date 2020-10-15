@@ -130,8 +130,7 @@ func CollateralPoolInvariants(k Keeper) sdk.Invariant {
 		poolID := uint64(0)
 		currentCollateral := types.Collateral{}
 		for _, collateral := range collaterals {
-			_, err := k.GetPool(ctx, collateral.PoolID)
-			if err != nil {
+			if _, found := k.GetPool(ctx, collateral.PoolID); !found {
 				broken = true
 				poolID = collateral.PoolID
 				currentCollateral = collateral

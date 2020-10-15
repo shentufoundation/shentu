@@ -15,15 +15,15 @@ func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
 	store.Set(types.GetPoolKey(pool.PoolID), bz)
 }
 
-func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, error) {
+func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetPoolKey(id))
 	if bz == nil {
-		return types.Pool{}, types.ErrNoPoolFound
+		return types.Pool{}, false
 	}
 	var pool types.Pool
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &pool)
-	return pool, nil
+	return pool, true
 }
 
 func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
@@ -68,7 +68,8 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 
 	// make a pseudo-purchase for B, equal to shield
 	purchaseID := k.GetNextPurchaseID(ctx)
-	purchase := types.NewPurchase(purchaseID, shield, ctx.BlockHeight(), endTime, endTime, endTime, "shield for sponsor")
+	expirationTime := pool.EndTime.Add(-k.gk.GetVotingParams(ctx).VotingPeriod * 2)
+	purchase := types.NewPurchase(purchaseID, shield, ctx.BlockHeight(), expirationTime, expirationTime, expirationTime, "shield for sponsor")
 
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, id+1)
@@ -76,7 +77,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 	k.SetCollateral(ctx, pool, admin, types.NewCollateral(pool, admin, shieldAmt))
 
 	k.AddPurchase(ctx, id, sponsorAddr, purchase)
-	k.InsertPurchaseQueue(ctx, types.NewPurchaseList(id, sponsorAddr, []types.Purchase{purchase}), endTime)
+	k.InsertPurchaseQueue(ctx, types.NewPurchaseList(id, sponsorAddr, []types.Purchase{purchase}), expirationTime)
 	k.SetNextPurchaseID(ctx, purchaseID+1)
 
 	return pool, nil
@@ -105,9 +106,9 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	}
 	provider.Available = provider.Available.Sub(shieldAmt)
 
-	pool, err := k.GetPool(ctx, id)
-	if err != nil {
-		return types.Pool{}, err
+	pool, found := k.GetPool(ctx, id)
+	if !found {
+		return types.Pool{}, types.ErrNoPoolFound
 	}
 	pool.EndTime = pool.EndTime.Add(addTime)
 	pool.TotalCollateral = pool.TotalCollateral.Add(shieldAmt)
@@ -123,20 +124,31 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	}
 
 	// transfer deposit and store
-	err = k.DepositNativePremium(ctx, deposit.Native, admin)
-	if err != nil {
+	if err := k.DepositNativePremium(ctx, deposit.Native, admin); err != nil {
 		return types.Pool{}, err
 	}
 
 	// update sponsor purchase
-	sponsorPurchase, _ := k.GetPurchaseList(ctx, id, pool.SponsorAddr)
+	sponsorPurchase, found := k.GetPurchaseList(ctx, id, pool.SponsorAddr)
 
-	// assume there is only one purchase from sponsor address
-	purchase := sponsorPurchase.Entries[0]
-	k.DequeuePurchase(ctx, sponsorPurchase, purchase.ExpirationTime)
-	purchase.ExpirationTime = pool.EndTime
-	purchase.ClaimPeriodEndTime = pool.EndTime
-	purchase.ProtectionEndTime = pool.EndTime
+	purchaseEndTime := pool.EndTime.Add(-k.gk.GetVotingParams(ctx).VotingPeriod * 2)
+	if purchaseEndTime.Before(ctx.BlockTime()) {
+		return types.Pool{}, types.ErrPoolLifeTooShort
+	}
+	// assume there is only one purchase from sponsor address, and add in any if B's purchase expired.
+	var purchase types.Purchase
+	if !found {
+		purchaseID := k.GetNextPurchaseID(ctx)
+		purchase = types.NewPurchase(purchaseID, sdk.NewCoins(), ctx.BlockHeight(), purchaseEndTime, purchaseEndTime, purchaseEndTime, "shield for sponsor")
+		k.SetNextPurchaseID(ctx, purchaseID+1)
+	} else {
+		purchase = sponsorPurchase.Entries[0]
+		k.DequeuePurchase(ctx, sponsorPurchase, purchase.ExpirationTime)
+		purchase.ExpirationTime = purchaseEndTime
+		purchase.ClaimPeriodEndTime = purchaseEndTime
+		purchase.ProtectionEndTime = purchaseEndTime
+	}
+
 	purchase.Shield = purchase.Shield.Add(shield...)
 	newPurchaseList := types.NewPurchaseList(id, pool.SponsorAddr, []types.Purchase{purchase})
 
@@ -144,7 +156,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	k.SetPool(ctx, pool)
 	k.SetProvider(ctx, admin, provider)
 	k.SetPurchaseList(ctx, newPurchaseList)
-	k.InsertPurchaseQueue(ctx, newPurchaseList, purchase.ExpirationTime)
+	k.InsertPurchaseQueue(ctx, newPurchaseList, purchaseEndTime)
 	return pool, nil
 }
 
@@ -153,9 +165,9 @@ func (k Keeper) PausePool(ctx sdk.Context, updater sdk.AccAddress, id uint64) (t
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
 	}
-	pool, err := k.GetPool(ctx, id)
-	if err != nil {
-		return types.Pool{}, err
+	pool, found := k.GetPool(ctx, id)
+	if !found {
+		return types.Pool{}, types.ErrNoPoolFound
 	}
 	if !pool.Active {
 		return types.Pool{}, types.ErrPoolAlreadyPaused
@@ -170,9 +182,9 @@ func (k Keeper) ResumePool(ctx sdk.Context, updater sdk.AccAddress, id uint64) (
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
 	}
-	pool, err := k.GetPool(ctx, id)
-	if err != nil {
-		return types.Pool{}, err
+	pool, found := k.GetPool(ctx, id)
+	if !found {
+		return types.Pool{}, types.ErrNoPoolFound
 	}
 	if pool.Active {
 		return types.Pool{}, types.ErrPoolAlreadyActive

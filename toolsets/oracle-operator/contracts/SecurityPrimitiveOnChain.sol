@@ -37,9 +37,9 @@ contract SecurityPrimitiveOnChain is ISecurityPrimitive {
             let success := staticcall(0, 0x09, add(input, 0x20), len, add(result, 0x20), 0x01)
         }
         if (result[0] == 0x01) {
-            return (false, "255");
+            return (false, "100");
         } else {
-            return (false, "128");
+            return (false, "50");
         }
     }
 }
