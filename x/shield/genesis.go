@@ -19,9 +19,9 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 		k.SetPool(ctx, pool)
 	}
 	for _, collateral := range data.Collaterals {
-		pool, err := k.GetPool(ctx, collateral.PoolID)
-		if err != nil {
-			panic(err)
+		pool, found := k.GetPool(ctx, collateral.PoolID)
+		if !found {
+			panic(types.ErrNoPoolFound)
 		}
 		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 	}
