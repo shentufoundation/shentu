@@ -16,12 +16,15 @@ var (
 
 // Default parameters
 var (
+	MinScore                 = sdk.NewInt(100)
+	MaxScore                 = sdk.NewInt(0)
+	DefaultThresholdScore    = sdk.NewInt(50)
+	DefaultAggregationResult = sdk.NewInt(50)
+
 	DefaultExpirationDuration = time.Duration(24) * time.Hour
 	DefaultAggregationWindow  = int64(20)
-	DefaultAggregationResult  = sdk.NewInt(1)
 	DefaultEpsilon1           = sdk.NewInt(1)
 	DefaultEpsilon2           = sdk.NewInt(100)
-	DefaultThresholdScore     = sdk.NewInt(128)
 
 	DefaultLockedInBlocks    = int64(30)
 	DefaultMinimumCollateral = int64(50000)
@@ -70,7 +73,7 @@ func validateTaskParams(i interface{}) error {
 	}
 	if taskParams.ExpirationDuration < 0 ||
 		taskParams.AggregationWindow < 0 ||
-		taskParams.ThresholdScore.GT(sdk.NewInt(255)) ||
+		taskParams.ThresholdScore.GT(MaxScore) ||
 		taskParams.Epsilon1.LT(sdk.NewInt(0)) ||
 		taskParams.Epsilon2.LT(sdk.NewInt(0)) {
 		return ErrInvalidTaskParams
