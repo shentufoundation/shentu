@@ -27,10 +27,10 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 		return fmt.Sprintf("%v\n%v", validatorA, validatorB)
 
 	case bytes.Equal(kvA.Key[:1], types.PlatformsStoreKey()):
-		var descriptionA, descriptionB string
-		descriptionA = string(kvA.Value)
-		descriptionB = string(kvB.Value)
-		return fmt.Sprintf("%s\n%s", descriptionA, descriptionB)
+		var platformA, platformB types.Platform
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &platformA)
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &platformB)
+		return fmt.Sprintf("%v\n%v", platformA, platformB)
 
 	case bytes.Equal(kvA.Key[:1], types.CertificatesStoreKey()):
 		var certificateA, certificateB types.Certificate

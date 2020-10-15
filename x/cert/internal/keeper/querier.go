@@ -133,7 +133,7 @@ func queryPlatform(ctx sdk.Context, path []string, keeper Keeper) (res []byte, e
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, path[0])
 	}
 
-	platform, ok := keeper.GetPlatform(ctx, validator.Bytes())
+	platform, ok := keeper.GetPlatform(ctx, validator)
 	if !ok {
 		return nil, nil
 	}
