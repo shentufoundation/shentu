@@ -25,7 +25,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	if len(certifiers) > 0 {
 		cert := certifiers[0].Address
 		for _, platform := range platforms {
-			_ = k.CertifyPlatform(ctx, cert, platform.Address, platform.Description)
+			_ = k.CertifyPlatform(ctx, cert, platform.Validator, platform.Description)
 		}
 	}
 	for _, validator := range validators {
