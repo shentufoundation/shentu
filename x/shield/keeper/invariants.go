@@ -36,11 +36,13 @@ func AccountCollateralsInvariants(k Keeper) sdk.Invariant {
 			providerCollaterals := k.GetProviderCollaterals(ctx, provider.Address)
 			sum := sdk.ZeroInt()
 			for _, collateral := range providerCollaterals {
-				sum = sum.Add(collateral.Amount)
+				sum = sum.Add(collateral.Amount).Add(collateral.Withdrawing)
+				fmt.Println(collateral)
 			}
+			fmt.Println(provider)
 			providerCollateral = provider.Collateral
 			providerCollateralSum = sum
-			broken = !(sum.Equal(provider.Collateral))
+			broken = !(providerCollateralSum.Equal(providerCollateral))
 			return broken
 		})
 		return sdk.FormatInvariant(types.ModuleName, "account collateral and total sum of deposited collateral",
@@ -122,7 +124,7 @@ func ModuleCoinsInvariants(k Keeper) sdk.Invariant {
 	}
 }
 
-// CollateralPoolInvariants checks there is no dangling collateral not assigned to any pool.
+// CollateralPoolInvariants checks there is no dangling collateral not assigned to any pool that doesn't have any withdraws.
 func CollateralPoolInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		collaterals := k.GetAllCollaterals(ctx)
@@ -130,7 +132,7 @@ func CollateralPoolInvariants(k Keeper) sdk.Invariant {
 		poolID := uint64(0)
 		currentCollateral := types.Collateral{}
 		for _, collateral := range collaterals {
-			if _, found := k.GetPool(ctx, collateral.PoolID); !found {
+			if _, found := k.GetPool(ctx, collateral.PoolID); !found && collateral.Withdrawing.IsZero() {
 				broken = true
 				poolID = collateral.PoolID
 				currentCollateral = collateral

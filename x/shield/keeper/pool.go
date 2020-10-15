@@ -74,7 +74,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, id+1)
 	k.SetProvider(ctx, admin, provider)
-	k.SetCollateral(ctx, pool, admin, types.NewCollateral(pool, admin, shieldAmt))
+	k.SetCollateral(ctx, pool.PoolID, admin, types.NewCollateral(pool, admin, shieldAmt))
 
 	k.AddPurchase(ctx, id, sponsorAddr, purchase)
 	k.InsertPurchaseQueue(ctx, types.NewPurchaseList(id, sponsorAddr, []types.Purchase{purchase}), expirationTime)
@@ -152,7 +152,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	purchase.Shield = purchase.Shield.Add(shield...)
 	newPurchaseList := types.NewPurchaseList(id, pool.SponsorAddr, []types.Purchase{purchase})
 
-	k.SetCollateral(ctx, pool, k.GetAdmin(ctx), poolCertiKCollateral)
+	k.SetCollateral(ctx, pool.PoolID, k.GetAdmin(ctx), poolCertiKCollateral)
 	k.SetPool(ctx, pool)
 	k.SetProvider(ctx, admin, provider)
 	k.SetPurchaseList(ctx, newPurchaseList)

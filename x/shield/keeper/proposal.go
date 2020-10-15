@@ -78,7 +78,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, pur
 		collaterals[i].LockedCollaterals = append(collaterals[i].LockedCollaterals, lockedCollateral)
 		collaterals[i].Amount = collaterals[i].Amount.Sub(lockAmt)
 		collaterals[i].TotalLocked = collaterals[i].TotalLocked.Add(lockAmt)
-		k.SetCollateral(ctx, pool, collaterals[i].Provider, collaterals[i])
+		k.SetCollateral(ctx, pool.PoolID, collaterals[i].Provider, collaterals[i])
 		k.LockProvider(ctx, collaterals[i].Provider, lockAmt, lockPeriod)
 	}
 
@@ -228,7 +228,7 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 				collateral.Amount = collateral.Amount.Add(lockedAmount)
 				collateral.TotalLocked = collateral.TotalLocked.Sub(lockedAmount)
 				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1:]...)
-				k.SetCollateral(ctx, pool, collateral.Provider, collateral)
+				k.SetCollateral(ctx, pool.PoolID, collateral.Provider, collateral)
 				break
 			}
 		}
@@ -420,7 +420,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID u
 					poolTotal = poolTotal.Add(collateral.Amount.Add(collateral.TotalLocked))
 				}
 				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1])
-				k.SetCollateral(ctx, pool, collateral.Provider, collateral)
+				k.SetCollateral(ctx, pool.PoolID, collateral.Provider, collateral)
 				break
 			}
 		}

@@ -23,7 +23,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 		if !found {
 			panic(types.ErrNoPoolFound)
 		}
-		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
+		k.SetCollateral(ctx, pool.PoolID, collateral.Provider, collateral)
 	}
 	for _, purchaseList := range data.PurchaseLists {
 		k.SetPurchaseList(ctx, purchaseList)
