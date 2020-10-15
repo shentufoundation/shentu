@@ -83,8 +83,8 @@ func (k Keeper) IteratePoolCollaterals(ctx sdk.Context, pool types.Pool, callbac
 	}
 }
 
-// GetOnesCollaterals returns a community member's all collaterals.
-func (k Keeper) GetOnesCollaterals(ctx sdk.Context, address sdk.AccAddress) (collaterals []types.Collateral) {
+// GetProviderCollaterals returns a community member's all collaterals.
+func (k Keeper) GetProviderCollaterals(ctx sdk.Context, address sdk.AccAddress) (collaterals []types.Collateral) {
 	k.IterateAllPools(ctx, func(pool types.Pool) bool {
 		collateral, found := k.GetCollateral(ctx, pool, address)
 		if found {
