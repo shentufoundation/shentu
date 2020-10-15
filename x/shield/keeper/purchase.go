@@ -181,8 +181,8 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 	}
 }
 
-// GetOnesPurchases returns a purchaser's all purchases.
-func (k Keeper) GetOnesPurchases(ctx sdk.Context, address sdk.AccAddress) (res []types.PurchaseList) {
+// GetPurchaserPurchases returns all purchases by a given purchaser.
+func (k Keeper) GetPurchaserPurchases(ctx sdk.Context, address sdk.AccAddress) (res []types.PurchaseList) {
 	pools := k.GetAllPools(ctx)
 	for _, pool := range pools {
 		pList, found := k.GetPurchaseList(ctx, pool.PoolID, address)
@@ -194,7 +194,7 @@ func (k Keeper) GetOnesPurchases(ctx sdk.Context, address sdk.AccAddress) (res [
 	return
 }
 
-// GetPoolPurchaseLists returns a all purchases in a given pool.
+// GetPoolPurchaseLists returns all purchases in a given pool.
 func (k Keeper) GetPoolPurchaseLists(ctx sdk.Context, poolID uint64) (purchases []types.PurchaseList) {
 	k.IteratePoolPurchaseLists(ctx, poolID, func(purchaseList types.PurchaseList) bool {
 		if purchaseList.PoolID == poolID {

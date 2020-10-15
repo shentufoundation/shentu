@@ -33,7 +33,7 @@ func AccountCollateralsInvariants(k Keeper) sdk.Invariant {
 		providerCollateral := sdk.ZeroInt()
 		providerCollateralSum := sdk.ZeroInt()
 		k.IterateProviders(ctx, func(provider types.Provider) bool {
-			providerCollaterals := k.GetOnesCollaterals(ctx, provider.Address)
+			providerCollaterals := k.GetProviderCollaterals(ctx, provider.Address)
 			sum := sdk.ZeroInt()
 			for _, collateral := range providerCollaterals {
 				sum = sum.Add(collateral.Amount)
