@@ -20,20 +20,27 @@ func NewHandler(k keeper.Keeper, ck types.CertKeeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case stakingTypes.MsgCreateValidator:
 			return handleMsgCreateValidator(ctx, msg, ck, handler)
+		case stakingTypes.MsgEditValidator:
+			return handleMsgEditValidator(ctx, msg, handler)
 		default:
 			return handler(ctx, msg)
 		}
 	}
 }
 
-func handleMsgCreateValidator(
-	ctx sdk.Context,
-	msg stakingTypes.MsgCreateValidator,
-	ck types.CertKeeper,
-	handler sdk.Handler,
-) (*sdk.Result, error) {
+func handleMsgCreateValidator(ctx sdk.Context, msg stakingTypes.MsgCreateValidator, ck types.CertKeeper, handler sdk.Handler) (*sdk.Result, error) {
 	if _, ok := ck.GetValidator(ctx, msg.PubKey); !ok && ctx.BlockHeight() > 0 {
-		return nil, ErrUnauthorizedValidator
+		return &sdk.Result{Events: ctx.EventManager().Events()}, ErrUnauthorizedValidator
+	}
+	if msg.Commission.Rate.LT(sdk.OneDec()) {
+		return &sdk.Result{Events: ctx.EventManager().Events()}, sdkerrors.Register(stakingTypes.ModuleName, 99, "commission cannot be less than 100%")
+	}
+	return handler(ctx, msg)
+}
+
+func handleMsgEditValidator(ctx sdk.Context, msg stakingTypes.MsgEditValidator, handler sdk.Handler) (*sdk.Result, error) {
+	if msg.CommissionRate.LT(sdk.OneDec()) {
+		return &sdk.Result{Events: ctx.EventManager().Events()}, sdkerrors.Register(stakingTypes.ModuleName, 99, "commission cannot be less than 100%")
 	}
 	return handler(ctx, msg)
 }
