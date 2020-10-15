@@ -3,13 +3,15 @@ package types
 import (
 	"encoding/json"
 
+	"github.com/tendermint/tendermint/crypto"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Platform is a genesis type for certified platform of a validator
 type Platform struct {
-	Address     sdk.ConsAddress
+	Validator   crypto.PubKey
 	Description string
 }
 
