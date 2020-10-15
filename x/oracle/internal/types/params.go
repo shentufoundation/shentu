@@ -16,8 +16,8 @@ var (
 
 // Default parameters
 var (
-	MinScore                 = sdk.NewInt(100)
-	MaxScore                 = sdk.NewInt(0)
+	MinScore                 = sdk.NewInt(0)
+	MaxScore                 = sdk.NewInt(100)
 	DefaultThresholdScore    = sdk.NewInt(50)
 	DefaultAggregationResult = sdk.NewInt(50)
 
