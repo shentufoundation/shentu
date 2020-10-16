@@ -64,7 +64,7 @@ type Provider struct {
 	// amount of coins staked but not in any pool
 	Available sdk.Int `json:"available" yaml:"available"`
 	// amount of collateral that is in withdraw queue
-	Withdrawing sdk.Int `json:"withrawal" yaml:"withdraw"`
+	Withdrawing sdk.Int `json:"withdrawing" yaml:"withdrawing"`
 	// rewards to be claimed
 	Rewards MixedDecCoins `json:"rewards" yaml:"rewards"`
 }
