@@ -123,7 +123,7 @@ func (msg MsgUpdatePool) ValidateBasic() error {
 	if !msg.Shield.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid shield")
 	}
-	if msg.AdditionalTime <= 0 {
+	if msg.AdditionalTime < 0 {
 		return ErrInvalidDuration
 	}
 	return nil
