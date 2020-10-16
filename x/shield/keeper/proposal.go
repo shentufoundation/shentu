@@ -62,6 +62,8 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, pur
 			lockAmt = collaterals[i].Amount.ToDec().Mul(proportionDec).TruncateInt()
 			if lockAmt.LT(collaterals[i].Amount) && lockAmt.LT(remaining) {
 				lockAmt = lockAmt.Add(sdk.OneInt())
+			} else if lockAmt.GT(remaining) {
+				lockAmt = remaining
 			}
 			remaining = remaining.Sub(lockAmt)
 		} else {
