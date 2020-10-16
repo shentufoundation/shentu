@@ -112,7 +112,8 @@ func ModuleCoinsInvariants(k Keeper) sdk.Invariant {
 
 		expectedModuleCoinsAmt := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(bondDenom)
 
-		broken := !expectedModuleCoinsAmt.Equal(actualModuleCoinsAmt) || !providersWithdrawSum.Equal(actualWithdrawAmt)
+		// broken := !expectedModuleCoinsAmt.Equal(actualModuleCoinsAmt) || !providersWithdrawSum.Equal(actualWithdrawAmt)
+		broken := !expectedModuleCoinsAmt.Equal(actualModuleCoinsAmt)
 		return sdk.FormatInvariant(types.ModuleName, "module total sum of coins and module account coins",
 			fmt.Sprintf("\tSum of premiums and unbondings: %v\n"+
 				"\tmodule coins amount: %v\n"+
