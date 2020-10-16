@@ -173,7 +173,7 @@ func (k Keeper) IsValidResponse(ctx sdk.Context, task types.Task, response types
 			return types.ErrDuplicateResponse
 		}
 	}
-	if response.Score.Int64() < 0 || response.Score.Int64() > 255 {
+	if response.Score.LT(types.MinScore) || response.Score.GT(types.MaxScore) {
 		return types.ErrInvalidScore
 	}
 	return nil
@@ -216,7 +216,7 @@ func (k Keeper) Aggregate(ctx sdk.Context, contract, function string) error {
 
 	result := taskParams.AggregationResult
 	totalCollateral := sdk.NewInt(0)
-	zeroScoreCollateral := sdk.NewInt(0)
+	minScoreCollateral := sdk.NewInt(0)
 	for i, response := range task.Responses {
 		amount, err := k.GetCollateralAmount(ctx, response.Operator)
 		if err != nil {
@@ -225,16 +225,16 @@ func (k Keeper) Aggregate(ctx sdk.Context, contract, function string) error {
 		result = result.Add(response.Score.Mul(amount))
 		task.Responses[i].Weight = amount
 		totalCollateral = totalCollateral.Add(amount)
-		if response.Score.IsZero() {
-			zeroScoreCollateral = zeroScoreCollateral.Add(amount)
+		if response.Score.Equal(types.MinScore) {
+			minScoreCollateral = minScoreCollateral.Add(amount)
 		}
 	}
 
 	if totalCollateral.IsPositive() {
-		if zeroScoreCollateral.MulRaw(3).GTE(totalCollateral) {
-			result = sdk.NewInt(0)
+		if minScoreCollateral.MulRaw(3).GTE(totalCollateral) {
+			result = minScoreCollateral
 			for i, response := range task.Responses {
-				if !response.Score.IsZero() {
+				if !response.Score.Equal(types.MinScore) {
 					task.Responses[i].Weight = sdk.NewInt(0)
 				}
 			}
@@ -254,9 +254,9 @@ func (k Keeper) Aggregate(ctx sdk.Context, contract, function string) error {
 func (k Keeper) TotalValidTaskCollateral(ctx sdk.Context, task types.Task) sdk.Int {
 	taskParams := k.GetTaskParams(ctx)
 	totalValidTaskCollateral := sdk.NewInt(0)
-	if task.Result.IsZero() {
+	if task.Result.Equal(types.MinScore) {
 		for _, response := range task.Responses {
-			if response.Score.IsZero() {
+			if response.Score.Equal(types.MinScore) {
 				collateral, err := k.GetCollateralAmount(ctx, response.Operator)
 				if err != nil {
 					continue
@@ -264,9 +264,9 @@ func (k Keeper) TotalValidTaskCollateral(ctx sdk.Context, task types.Task) sdk.I
 				totalValidTaskCollateral = totalValidTaskCollateral.Add(collateral)
 			}
 		}
-	} else if task.Result.LTE(taskParams.ThresholdScore) {
+	} else if task.Result.LT(taskParams.ThresholdScore) {
 		for _, response := range task.Responses {
-			if response.Score.LTE(taskParams.ThresholdScore) {
+			if response.Score.LT(taskParams.ThresholdScore) {
 				collateral, err := k.GetCollateralAmount(ctx, response.Operator)
 				if err != nil {
 					continue
@@ -278,13 +278,13 @@ func (k Keeper) TotalValidTaskCollateral(ctx sdk.Context, task types.Task) sdk.I
 		}
 	} else {
 		for _, response := range task.Responses {
-			if response.Score.GT(taskParams.ThresholdScore) {
+			if response.Score.GTE(taskParams.ThresholdScore) {
 				collateral, err := k.GetCollateralAmount(ctx, response.Operator)
 				if err != nil {
 					continue
 				}
 				totalValidTaskCollateral = totalValidTaskCollateral.Add(
-					amplifier.Mul(collateral).Quo(sdk.NewInt(255).Sub(response.Score).Add(taskParams.Epsilon2)),
+					amplifier.Mul(collateral).Quo(types.MaxScore.Sub(response.Score).Add(taskParams.Epsilon2)),
 				)
 			}
 		}
@@ -302,9 +302,9 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.Task) error {
 	}
 
 	for _, bounty := range task.Bounty {
-		if task.Result.IsZero() {
+		if task.Result.Equal(types.MinScore) {
 			for i, response := range task.Responses {
-				if response.Score.IsZero() {
+				if response.Score.Equal(types.MinScore) {
 					collateral, err := k.GetCollateralAmount(ctx, response.Operator)
 					if err != nil {
 						continue
@@ -317,9 +317,9 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.Task) error {
 					task.Responses[i].Reward = reward
 				}
 			}
-		} else if task.Result.LTE(taskParams.ThresholdScore) {
+		} else if task.Result.LT(taskParams.ThresholdScore) {
 			for i, response := range task.Responses {
-				if response.Score.LTE(taskParams.ThresholdScore) {
+				if response.Score.LT(taskParams.ThresholdScore) {
 					collateral, err := k.GetCollateralAmount(ctx, response.Operator)
 					if err != nil {
 						continue
@@ -336,13 +336,13 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.Task) error {
 			}
 		} else {
 			for i, response := range task.Responses {
-				if response.Score.GT(taskParams.ThresholdScore) {
+				if response.Score.GTE(taskParams.ThresholdScore) {
 					collateral, err := k.GetCollateralAmount(ctx, response.Operator)
 					if err != nil {
 						continue
 					}
 					amount := bounty.Amount.Mul(
-						amplifier.Mul(collateral).Quo(sdk.NewInt(255).Sub(response.Score).Add(taskParams.Epsilon2)),
+						amplifier.Mul(collateral).Quo(types.MaxScore.Sub(response.Score).Add(taskParams.Epsilon2)),
 					).Quo(totalValidTaskCollateral)
 					reward := sdk.NewCoins(sdk.NewCoin(bounty.Denom, amount))
 					if err := k.AddReward(ctx, response.Operator, reward); err != nil {
