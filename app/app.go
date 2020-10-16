@@ -72,8 +72,6 @@ var (
 			upgrade.ProposalHandler,
 			cert.ProposalHandler,
 			paramsclient.ProposalHandler,
-			// disabled for mainnet release
-			// shield.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
