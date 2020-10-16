@@ -137,24 +137,25 @@ func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollatera
 }
 
 func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral, k Keeper) (*sdk.Result, error) {
-	if msg.Collateral.Denom != k.BondDenom(ctx) {
-		return nil, types.ErrCollateralBadDenom
-	}
+	// if msg.Collateral.Denom != k.BondDenom(ctx) {
+	//	return nil, types.ErrCollateralBadDenom
+	// }
 
 	// disabled for mainnet release
 	// if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral.Amount); err != nil {
 	//	return nil, err
 	// }
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeDepositCollateral,
-			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
-			sdk.NewAttribute(types.AttributeKeyCollateral, msg.Collateral.String()),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
-		),
-	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	// ctx.EventManager().EmitEvents(sdk.Events{
+	//	sdk.NewEvent(
+	//		types.EventTypeDepositCollateral,
+	//		sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
+	//		sdk.NewAttribute(types.AttributeKeyCollateral, msg.Collateral.String()),
+	//		sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+	//	),
+	// })
+	// return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{}, types.ErrOperationNotSupported
 }
 
 func handleMsgPausePool(ctx sdk.Context, msg types.MsgPausePool, k Keeper) (*sdk.Result, error) {
@@ -200,17 +201,17 @@ func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Kee
 	// if _, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From); err != nil {
 	//	return nil, err
 	// }
-	var _ = k // to avoid unused variable error
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypePurchaseShield,
-			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
-			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
-		),
-	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	// ctx.EventManager().EmitEvents(sdk.Events{
+	//	sdk.NewEvent(
+	//		types.EventTypePurchaseShield,
+	//		sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
+	//		sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
+	//		sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+	//	),
+	// })
+	// return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{}, types.ErrOperationNotSupported
 }
 
 func handleMsgWithdrawRewards(ctx sdk.Context, msg types.MsgWithdrawRewards, k Keeper) (*sdk.Result, error) {
@@ -265,15 +266,15 @@ func handleMsgWithdrawReimbursement(ctx sdk.Context, msg types.MsgWithdrawReimbu
 	// if err != nil {
 	//	return &sdk.Result{Events: ctx.EventManager().Events()}, err
 	// }
-	var _ = k // to avoid unused variable error
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeWithdrawReimbursement,
-			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(msg.ProposalID, 10)),
-			// sdk.NewAttribute(types.AttributeKeyCompensationAmount, amount.String()),
-			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.From.String()),
-		),
-	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	// ctx.EventManager().EmitEvents(sdk.Events{
+	//	sdk.NewEvent(
+	//		types.EventTypeWithdrawReimbursement,
+	//		sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(msg.ProposalID, 10)),
+	//		sdk.NewAttribute(types.AttributeKeyCompensationAmount, amount.String()),
+	//		sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.From.String()),
+	//	),
+	// })
+	// return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{}, types.ErrOperationNotSupported
 }
