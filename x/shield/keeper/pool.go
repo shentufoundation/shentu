@@ -89,10 +89,6 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 		return types.Pool{}, types.ErrNotShieldAdmin
 	}
 
-	if !k.ValidatePoolDuration(ctx, addTime) {
-		return types.Pool{}, types.ErrPoolLifeTooShort
-	}
-
 	// check if shield is backed by admin's delegations
 	provider, found := k.GetProvider(ctx, admin)
 	if !found {
