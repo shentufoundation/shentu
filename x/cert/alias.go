@@ -13,6 +13,7 @@ const (
 	Add                        = types.Add
 	Remove                     = types.Remove
 	CertificateTypeCompilation = types.CertificateTypeCompilation
+	MaxTimestamp               = keeper.MaxTimestamp
 )
 
 var (
