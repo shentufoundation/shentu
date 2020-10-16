@@ -203,20 +203,20 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64) e
 	}
 
 	// Update pool, collaterals and providers.
-	// Take overdraft into considerations.
+	// Take locked withdrawal into considerations.
 	// Example:
 	// A1 started withdrawing 150: pool.TotalCollateral 400; collateral.Amount 200; provider.Collateral 300.
 	// Claim proposal 1 locked 200: pool.TotalCollateral 400 --> 200; collateral.Amount 200 --> 100; provider.Collateral 300 --> 200.
-	// A1 finished withdrawing 150: pool.TotalCollateral 200 --> 100; collateral.Amount 100 --> 0; collateral.Overdraft 0 --> 50; provider.Collateral 200 --> 100.
-	// A1 deposited 50: pool.TotalCollateral 100 --> 150; collateral.Amount 0 --> 50; collateral.Overdraft 50; provider.Collateral 100 --> 150.
-	// Claim proposal 1 unlock 200: pool.TotalCollateral 150 --> 300; collateral.Amount 50 --> 100; collateral.Overdraft 50 --> 0; provider.Collateral 150 --> 200.
+	// A1 finished withdrawing 150: pool.TotalCollateral 200 --> 100; collateral.Amount 100 --> 0; collateral.LockedWithdrawal 0 --> 50; provider.Collateral 200 --> 100.
+	// A1 deposited 50: pool.TotalCollateral 100 --> 150; collateral.Amount 0 --> 50; collateral.LockedWithdrawal 50; provider.Collateral 100 --> 150.
+	// Claim proposal 1 unlock 200: pool.TotalCollateral 150 --> 300; collateral.Amount 50 --> 100; collateral.LockedWithdrawal 50 --> 0; provider.Collateral 150 --> 200.
 	collaterals := k.GetAllPoolCollaterals(ctx, pool)
 	for _, collateral := range collaterals {
 		for j := range collateral.LockedCollaterals {
 			if collateral.LockedCollaterals[j].ProposalID == proposalID {
 				lockedAmount := collateral.LockedCollaterals[j].Amount
-				restoredCollateralAmount := sdk.MaxInt(sdk.ZeroInt(), lockedAmount.Sub(collateral.Overdraft))
-				collateral.Overdraft = sdk.MaxInt(sdk.ZeroInt(), collateral.Overdraft.Sub(lockedAmount))
+				restoredCollateralAmount := sdk.MaxInt(sdk.ZeroInt(), lockedAmount.Sub(collateral.LockedWithdrawal))
+				collateral.LockedWithdrawal = sdk.MaxInt(sdk.ZeroInt(), collateral.LockedWithdrawal.Sub(lockedAmount))
 
 				pool.TotalCollateral = pool.TotalCollateral.Add(restoredCollateralAmount)
 				pool.TotalLocked = pool.TotalLocked.Sub(lockedAmount)
@@ -425,7 +425,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID u
 				k.SetProvider(ctx, collateral.Provider, provider)
 
 				collateral.TotalLocked = collateral.TotalLocked.Sub(lockedAmount)
-				collateral.Overdraft = sdk.MaxInt(sdk.ZeroInt(), collateral.Overdraft.Sub(lockedAmount))
+				collateral.LockedWithdrawal = sdk.MaxInt(sdk.ZeroInt(), collateral.LockedWithdrawal.Sub(lockedAmount))
 				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1])
 				k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 				break

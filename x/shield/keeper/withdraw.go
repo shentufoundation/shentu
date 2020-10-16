@@ -109,16 +109,16 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 
 		// Update collateral.
 		// It is possible that the withdraw amount exceeds the collateral amount because of locking collaterals by claim proposals.
-		// Do not allow collateral amount to be negative. Set overdraft for this situation.
+		// Do not allow collateral amount to be negative. Set locked withdrawal for this situation.
 		var validWithdrawAmount sdk.Int
 		if collateral.Amount.GTE(withdraw.Amount) {
 			validWithdrawAmount = withdraw.Amount
 		} else {
 			validWithdrawAmount = collateral.Amount
-			collateral.Overdraft = collateral.Overdraft.Add(withdraw.Amount.Sub(collateral.Amount))
+			collateral.LockedWithdrawal = collateral.LockedWithdrawal.Add(withdraw.Amount.Sub(collateral.Amount))
 		}
-		if collateral.Overdraft.GT(collateral.TotalLocked) {
-			panic("overdraft amount is greater than locked amount")
+		if collateral.LockedWithdrawal.GT(collateral.TotalLocked) {
+			panic("locked withdrawal amount is greater than locked amount")
 		}
 		pool.TotalCollateral = pool.TotalCollateral.Sub(validWithdrawAmount)
 		collateral.Amount = collateral.Amount.Sub(validWithdrawAmount)
