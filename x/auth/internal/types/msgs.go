@@ -13,7 +13,7 @@ const (
 
 // MsgUnlock unlocks the specified amount in a manual vesting account.
 type MsgUnlock struct {
-	Issuer       sdk.AccAddress `json:"certifier" yaml:"certifier"`
+	Issuer       sdk.AccAddress `json:"issuer" yaml:"issuer"`
 	Account      sdk.AccAddress `json:"account_address" yaml:"account_address"`
 	UnlockAmount sdk.Coins      `json:"unlock_amount" yaml:"unlock_amount"`
 }

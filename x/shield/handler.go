@@ -200,6 +200,7 @@ func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Kee
 	// if _, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From); err != nil {
 	//	return nil, err
 	// }
+	var _ = k // to avoid unused variable error
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -264,6 +265,7 @@ func handleMsgWithdrawReimbursement(ctx sdk.Context, msg types.MsgWithdrawReimbu
 	// if err != nil {
 	//	return &sdk.Result{Events: ctx.EventManager().Events()}, err
 	// }
+	var _ = k // to avoid unused variable error
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
