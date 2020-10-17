@@ -38,7 +38,7 @@ type Pool struct {
 	// Shiled is the amount of unused shield for the pool sponsor.
 	Shield sdk.Coins `json:"shield" yaml:"shield"`
 
-	// EndTime is the time pool maintainence ends.
+	// EndTime is the time pool maintenance ends.
 	EndTime time.Time `json:"end_time" yaml:"end_time"`
 }
 
@@ -134,7 +134,7 @@ type Purchase struct {
 	// Description is the information about the protected asset.
 	Description string `json:"description" yaml:"description"`
 
-	// Shield is the unused amount of sheild purchased.
+	// Shield is the unused amount of shield purchased.
 	Shield sdk.Coins `json:"shield" yaml:"shield"`
 
 	// StartBlockHeight is the purchasing block height.
