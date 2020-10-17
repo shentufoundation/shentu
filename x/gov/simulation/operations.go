@@ -12,7 +12,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
+	"github.com/certikfoundation/shentu/x/cert"
 	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
 	"github.com/certikfoundation/shentu/x/shield"
@@ -27,7 +29,7 @@ const (
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
-func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak govTypes.AccountKeeper,
+func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak govTypes.AccountKeeper, ck types.CertKeeper,
 	k keeper.Keeper, wContents []simulation.WeightedProposalContent) simulation.WeightedOperations {
 	var (
 		weightMsgDeposit int
@@ -59,7 +61,7 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak gov
 			wProposalOps,
 			simulation.NewWeightedOperation(
 				weight,
-				SimulateSubmitProposal(ak, k, wContent.ContentSimulatorFn),
+				SimulateSubmitProposal(ak, ck, k, wContent.ContentSimulatorFn),
 			),
 		)
 	}
@@ -82,7 +84,7 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak gov
 // voting on the proposal, and subsequently slashing the proposal. It is implemented using
 // future operations.
 func SimulateSubmitProposal(
-	ak govTypes.AccountKeeper, k keeper.Keeper, contentSim simulation.ContentSimulatorFn,
+	ak govTypes.AccountKeeper, ck types.CertKeeper, k keeper.Keeper, contentSim simulation.ContentSimulatorFn,
 ) simulation.Operation {
 	// The states are:
 	// column 1: All validators vote
@@ -198,25 +200,43 @@ func SimulateSubmitProposal(
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
-		// 2) Schedule operations for votes
-		// 2.1) first pick a number of people to vote.
+		// 2) Schedule operations for certifier voting
+		var fops []simulation.FutureOperation
+		votingPeriod := k.GetVotingParams(ctx).VotingPeriod
+		votingStart := int64(0)
+
+		if content.ProposalType() == shield.ProposalTypeShieldClaim ||
+			content.ProposalType() == cert.ProposalTypeCertifierUpdate ||
+			content.ProposalType() == upgrade.ProposalTypeSoftwareUpgrade {
+			for _, acc := range accs {
+				if ck.IsCertifier(ctx, acc.Address) {
+					whenVote := ctx.BlockHeader().Time.Add(time.Duration(r.Int63n(int64(votingPeriod.Seconds()))) * time.Second)
+					fops = append(fops, simulation.FutureOperation{
+						BlockTime: whenVote,
+						Op:        certifierSimulateMsgVote(ak, acc, proposalID),
+					})
+				}
+			}
+			votingStart = int64(votingPeriod.Seconds())
+		}
+
+		// 3) Schedule operations for validator/delegator voting
+		// 3.1) first pick a number of people to vote.
 		curNumVotesState = numVotesTransitionMatrix.NextState(r, curNumVotesState)
 		numVotes := int(math.Ceil(float64(len(accs)) * statePercentageArray[curNumVotesState]))
 
-		// 2.2) select who votes and when
+		// 3.2) select who votes and when
 		whoVotes := r.Perm(len(accs))
 
 		// didntVote := whoVotes[numVotes:]
 		whoVotes = whoVotes[:numVotes]
-		votingPeriod := k.GetVotingParams(ctx).VotingPeriod
 
-		fops := make([]simulation.FutureOperation, numVotes+1)
 		for i := 0; i < numVotes; i++ {
-			whenVote := ctx.BlockHeader().Time.Add(time.Duration(r.Int63n(int64(votingPeriod.Seconds()))) * time.Second)
-			fops[i] = simulation.FutureOperation{
+			whenVote := ctx.BlockHeader().Time.Add(time.Duration(votingStart+r.Int63n(int64(votingPeriod.Seconds()))) * time.Second)
+			fops = append(fops, simulation.FutureOperation{
 				BlockTime: whenVote,
 				Op:        operationSimulateMsgVote(ak, k, accs[whoVotes[i]], int64(proposalID)),
-			}
+			})
 		}
 
 		return opMsg, fops, nil
@@ -305,6 +325,51 @@ func operationSimulateMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 		}
 
 		option := randomVotingOption(r)
+
+		msg := govTypes.NewMsgVote(simAccount.Address, proposalID, option)
+
+		account := ak.GetAccount(ctx, simAccount.Address)
+		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+		if err != nil {
+			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+		}
+
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{account.GetAccountNumber()},
+			[]uint64{account.GetSequence()},
+			simAccount.PrivKey,
+		)
+
+		_, _, err = app.Deliver(tx)
+		if err != nil {
+			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+		}
+
+		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+	}
+}
+
+func certifierSimulateMsgVote(ak govTypes.AccountKeeper,
+	simAccount simulation.Account, proposalID uint64) simulation.Operation {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
+		accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		if simAccount.Equals(simulation.Account{}) {
+			simAccount, _ = simulation.RandomAcc(r, accs)
+		}
+
+		var option govTypes.VoteOption
+
+		if simulation.RandIntBetween(r, 0, 100) < 80 {
+			option = govTypes.OptionYes
+		} else {
+			option = govTypes.OptionNo
+		}
 
 		msg := govTypes.NewMsgVote(simAccount.Address, proposalID, option)
 

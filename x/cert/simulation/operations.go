@@ -1,7 +1,6 @@
 package simulation
 
 import (
-	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -76,7 +75,6 @@ func SimulateMsgCertifyValidator(ak types.AccountKeeper, k keeper.Keeper) simula
 		msg := types.NewMsgCertifyValidator(certifier.Address, validator.PubKey)
 
 		account := ak.GetAccount(ctx, certifier.Address)
-		fmt.Printf(">>>>>>>>>>>>> num of certifiers: %d\n", len(certifiers))
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
