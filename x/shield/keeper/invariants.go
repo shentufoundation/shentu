@@ -12,8 +12,11 @@ import (
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "account-collaterals",
 		AccountCollateralsInvariants(k))
-	ir.RegisterRoute(types.ModuleName, "module-coins",
-		ModuleCoinsInvariants(k))
+	// To be modified. Disabled checking this invariant for phase I.
+	// Some unbondings happen immediately, so they are not added into actualModuleCoinsAmt.
+	// Amounts of total withdraws could be different when closing pools.
+	// ir.RegisterRoute(types.ModuleName, "module-coins",
+	//	ModuleCoinsInvariants(k))
 	ir.RegisterRoute(types.ModuleName, "collateral-pool",
 		CollateralPoolInvariants(k))
 }
@@ -112,8 +115,7 @@ func ModuleCoinsInvariants(k Keeper) sdk.Invariant {
 
 		expectedModuleCoinsAmt := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(bondDenom)
 
-		// broken := !expectedModuleCoinsAmt.Equal(actualModuleCoinsAmt) || !providersWithdrawSum.Equal(actualWithdrawAmt)
-		broken := !expectedModuleCoinsAmt.Equal(actualModuleCoinsAmt)
+		broken := !expectedModuleCoinsAmt.Equal(actualModuleCoinsAmt) || !providersWithdrawSum.Equal(actualWithdrawAmt)
 		return sdk.FormatInvariant(types.ModuleName, "module total sum of coins and module account coins",
 			fmt.Sprintf("\tSum of premiums and unbondings: %v\n"+
 				"\tmodule coins amount: %v\n"+
