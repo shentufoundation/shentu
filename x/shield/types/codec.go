@@ -4,7 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 )
 
-// RegisterCodec registers the account types and interface
+// RegisterCodec registers the account types and interface.
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgCreatePool{}, "shield/MsgCreatePool", nil)
 	cdc.RegisterConcrete(MsgUpdatePool{}, "shield/MsgUpdatePool", nil)
@@ -20,7 +20,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgWithdrawReimbursement{}, "shield/MsgWithdrawReimbursement", nil)
 }
 
-// ModuleCdc generic sealed codec to be used throughout module
+// ModuleCdc is the generic sealed codec to be used throughout module.
 var ModuleCdc *codec.Codec
 
 func init() {
