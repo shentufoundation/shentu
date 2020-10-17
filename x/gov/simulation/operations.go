@@ -444,11 +444,7 @@ func randomProposalID(r *rand.Rand, k keeper.Keeper,
 	switch {
 	case proposalID > initialProposalID:
 		// select a random ID between [initialProposalID, proposalID]
-		diff := int64(proposalID - initialProposalID)
-		if diff < 0 {
-			diff *= -1
-		}
-		proposalID = uint64(r.Int63n(diff)) + initialProposalID
+		proposalID = uint64(simulation.RandIntBetween(r, int(initialProposalID), int(proposalID)))
 
 	default:
 		// This is called on the first call to this funcion
