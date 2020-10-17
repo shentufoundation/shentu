@@ -516,7 +516,7 @@ func GetCmdWithdrawReimbursement(cdc *codec.Codec) *cobra.Command {
 			fmt.Sprintf(`Withdraw reimbursement by proposal id.
 
 Example:
-$ %s tx shield withdraw-reimbursement <purchase txhash>
+$ %s tx shield withdraw-reimbursement <proposal id>
 `,
 				version.ClientName,
 			),

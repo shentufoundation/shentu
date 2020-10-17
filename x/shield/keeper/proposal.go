@@ -266,7 +266,7 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 // UndelegateCoinsToShieldModule undelegates delegations and send coins the the shield module.
 func (k Keeper) UndelegateCoinsToShieldModule(ctx sdk.Context, delAddr sdk.AccAddress, loss sdk.Int) error {
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
-	var totalDelAmountDec sdk.Dec
+	totalDelAmountDec := sdk.ZeroDec()
 	for _, del := range delegations {
 		val, found := k.sk.GetValidator(ctx, del.GetValidatorAddr())
 		if !found {
@@ -419,7 +419,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID u
 				if collateral.Amount.Add(collateral.TotalLocked).IsPositive() {
 					poolTotal = poolTotal.Add(collateral.Amount.Add(collateral.TotalLocked))
 				}
-				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1])
+				collateral.LockedCollaterals = append(collateral.LockedCollaterals[:j], collateral.LockedCollaterals[j+1:]...)
 				k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 				break
 			}
