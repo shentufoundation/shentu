@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	// ModuleName is the name of this module
+	// ModuleName is the name of this module.
 	ModuleName = "shield"
 
 	// RouterKey is used to route messages.
