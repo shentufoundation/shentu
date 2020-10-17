@@ -29,5 +29,5 @@ type PrimitivePayload struct {
 	Contract string `json:"contract"` // original requested contract in the event
 	Client   Client `json:"client"`   // contract client chain
 	Address  string `json:"address"`  // contract address
-	Function string `json:"function"` // contract address
+	Function string `json:"function"` // contract function
 }
