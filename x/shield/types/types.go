@@ -23,7 +23,7 @@ type Pool struct {
 	// Active means new purchases are allowed.
 	Active bool `json:"active" yaml:"active"`
 
-	// Premium is the undistributed pool
+	// Premium is the undistributed pool premium from the sponsor.
 	Premium MixedDecCoins `json:"premium" yaml:"premium"`
 
 	// TotalCollateral is the amount of all collaterals in the pool.
@@ -32,7 +32,7 @@ type Pool struct {
 	// Available is the amount of collaterals available to be purchased.
 	Available sdk.Int `json:"available" yaml:"available"`
 
-	// TotalLocked is the amount of
+	// TotalLocked is the amount of collaterals locked for pending claims.
 	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
 
 	// Shiled is the amount of unused shield for the pool sponsor.
@@ -64,7 +64,8 @@ type Collateral struct {
 	// Provider is the chain address of the provider.
 	Provider sdk.AccAddress `json:"provider" yaml:"provider"`
 
-	// Amount is the collateral amount, excluding withdrawing or locked.
+	// Amount is the collateral amount, including withdrawing but excluding
+	// locked.
 	Amount sdk.Int `json:"amount" yaml:"amount"`
 
 	// Withdrawing is the amount of collateral in withdrawing process.
