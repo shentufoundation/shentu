@@ -15,6 +15,7 @@ type GenesisState struct {
 	NextPurchaseID      uint64              `json:"next_purchase_id" yaml:"next_purchase_id"`
 	PoolParams          PoolParams          `json:"pool_params" yaml:"pool_params"`
 	ClaimProposalParams ClaimProposalParams `json:"claim_proposal_params" yaml:"claim_proposal_params"`
+	GlobalPool          GlobalPool          `json:"global_pool" yaml:"global_pool"`
 	Pools               []Pool              `json:"pools" yaml:"pools"`
 	Collaterals         []Collateral        `json:"collaterals" yaml:"collaterals"`
 	Providers           []Provider          `json:"providers" yaml:"providers"`
@@ -24,7 +25,7 @@ type GenesisState struct {
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
-	claimProposalParams ClaimProposalParams, pools []Pool, collaterals []Collateral,
+	claimProposalParams ClaimProposalParams, globalPool GlobalPool, pools []Pool, collaterals []Collateral,
 	providers []Provider, purchase []PurchaseList, withdraws Withdraws) GenesisState {
 	return GenesisState{
 		ShieldAdmin:         shieldAdmin,
@@ -32,6 +33,7 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		NextPurchaseID:      nextPurchaseID,
 		PoolParams:          poolParams,
 		ClaimProposalParams: claimProposalParams,
+		GlobalPool:          globalPool,
 		Pools:               pools,
 		Collaterals:         collaterals,
 		Providers:           providers,
@@ -47,6 +49,7 @@ func DefaultGenesisState() GenesisState {
 		NextPurchaseID:      uint64(1),
 		PoolParams:          DefaultPoolParams(),
 		ClaimProposalParams: DefaultClaimProposalParams(),
+		GlobalPool:          NewGlobalPool(),
 	}
 }
 

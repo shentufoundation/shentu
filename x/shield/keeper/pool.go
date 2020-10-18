@@ -9,6 +9,25 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
+// SetGlobalPool sets data of the global pool in kv-store.
+func (k Keeper) SetGlobalPool(ctx sdk.Context, globalPool types.GlobalPool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(globalPool)
+	store.Set(types.GetGlobalPoolKey(), bz)
+}
+
+// GetGlobalPool gets data of the shield global pool.
+func (k Keeper) GetGlobalPool(ctx sdk.Context) types.GlobalPool {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetGlobalPoolKey())
+	if bz == nil {
+		panic("global pool is not found")
+	}
+	var globalPool types.GlobalPool
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &globalPool)
+	return globalPool
+}
+
 // SetPool sets data of a pool in kv-store.
 func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
 	store := ctx.KVStore(k.storeKey)

@@ -25,17 +25,23 @@ const (
 )
 
 var (
-	PoolKey           = []byte{0x0}
-	ShieldAdminKey    = []byte{0x1}
-	NextPoolIDKey     = []byte{0x2}
-	NextPurchaseIDKey = []byte{0x3}
-	PurchaseListKey   = []byte{0x4}
-	PurchaseQueueKey  = []byte{0x5}
-	ReimbursementKey  = []byte{0x6}
-	CollateralKey     = []byte{0x7}
-	ProviderKey       = []byte{0x8}
-	WithdrawQueueKey  = []byte{0x9}
+	ShieldAdminKey    = []byte{0x0}
+	GlobalPoolKey     = []byte{0x1}
+	PoolKey           = []byte{0x2}
+	NextPoolIDKey     = []byte{0x3}
+	NextPurchaseIDKey = []byte{0x4}
+	PurchaseListKey   = []byte{0x5}
+	PurchaseQueueKey  = []byte{0x6}
+	ReimbursementKey  = []byte{0x7}
+	CollateralKey     = []byte{0x8}
+	ProviderKey       = []byte{0x9}
+	WithdrawQueueKey  = []byte{0xA}
 )
+
+// GetGlobalPoolKey gets the key for the shield global pool.
+func GetGlobalPoolKey() []byte {
+	return GlobalPoolKey
+}
 
 // GetPoolKey gets the key for the pool identified by pool ID.
 func GetPoolKey(id uint64) []byte {
@@ -44,7 +50,7 @@ func GetPoolKey(id uint64) []byte {
 	return append(PoolKey, b...)
 }
 
-// GetShieldadminKey gets the key for the shield admin.
+// GetShieldAdminKey gets the key for the shield admin.
 func GetShieldAdminKey() []byte {
 	return ShieldAdminKey
 }

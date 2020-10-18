@@ -6,6 +6,28 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// GlobalPool defines data struct for the shield global pool.
+type GlobalPool struct {
+	Collateral  sdk.Int      `json:"collateral" yaml:"collateral"`
+	Available   sdk.Int      `json:"available" yaml:"available"`
+	ServiceFees []ServiceFee `json:"service_fees" yaml:"service_fees"`
+}
+
+// NewGlobalPool creates an empty GlobalPool instance.
+func NewGlobalPool() GlobalPool {
+	return GlobalPool{
+		Collateral: sdk.ZeroInt(),
+		Available:  sdk.ZeroInt(),
+	}
+}
+
+// ServiceFee defines data struct for a service fee to be distributed.
+type ServiceFee struct {
+	Remaining sdk.DecCoin `json:"remaining" yaml:"remaining"`
+	StartTime time.Time   `json:"start_time" yaml:"start_time"`
+	EndTime   time.Time   `json:"end_time" yaml:"end_time"`
+}
+
 // Pool contains a shield pool's data.
 type Pool struct {
 	// PoolID is the id of the pool.
