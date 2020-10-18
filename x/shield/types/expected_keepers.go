@@ -29,16 +29,6 @@ type StakingKeeper interface {
 	// GetValidatorDelegations returna all delegations to a specific validator. Useful for querier.
 	GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) []staking.Delegation
 
-	// ValidatorByConsAddr gets a particular validator by consensus address.
-	ValidatorByConsAddr(sdk.Context, sdk.ConsAddress) stakingexported.ValidatorI
-
-	// Slash slashes the validator and delegators of the validator, specifying offense height, offense power, and slash fraction.
-	Slash(sdk.Context, sdk.ConsAddress, int64, int64, sdk.Dec)
-	// Jail jails a validator.
-	Jail(sdk.Context, sdk.ConsAddress)
-	// Unjail unjails a validator
-	Unjail(sdk.Context, sdk.ConsAddress)
-
 	// Delegation allows for getting a particular delegation for a given validator
 	// and delegator outside the scope of the staking module.
 	Delegation(sdk.Context, sdk.AccAddress, sdk.ValAddress) stakingexported.DelegationI
@@ -59,9 +49,6 @@ type StakingKeeper interface {
 	GetRedelegations(ctx sdk.Context, delegator sdk.AccAddress, maxRetrieve uint16) (redelegations []staking.Redelegation)
 
 	BondDenom(sdk.Context) string
-
-	// MaxValidators returns the maximum amount of bonded validators.
-	MaxValidators(sdk.Context) uint16
 }
 
 // BankKeeper defines the expected bank keeper.
