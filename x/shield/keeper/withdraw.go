@@ -37,7 +37,7 @@ func (k Keeper) GetWithdrawQueueTimeSlice(ctx sdk.Context, timestamp time.Time) 
 	return withdraws
 }
 
-// WithdrawQueueIterator returns all the withdraw queue timeslices from time 0 until endTime
+// WithdrawQueueIterator returns all the withdraw queue timeslices from time 0 until endTime.
 func (k Keeper) WithdrawQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
 	return store.Iterator(types.WithdrawQueueKey,
@@ -87,7 +87,7 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 		store.Delete(withdrawTimesliceIterator.Key())
 	}
 
-	// for each completed withdraw, process adjustments.
+	// For each completed withdraw, process adjustments.
 	for _, withdraw := range withdraws {
 		provider, found := k.GetProvider(ctx, withdraw.Address)
 		if !found {
@@ -114,7 +114,7 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 		}
 		k.SetPool(ctx, pool)
 
-		// update provider's collateral amount
+		// Update provider's collateral amount.
 		provider.Collateral = provider.Collateral.Sub(withdraw.Amount)
 		provider.Available = provider.Available.Add(withdraw.Amount)
 		provider.Withdrawing = provider.Withdrawing.Sub(withdraw.Amount)

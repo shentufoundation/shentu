@@ -156,7 +156,7 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 
 			for i := 0; i < len(purchaseList.Entries); {
 				entry := purchaseList.Entries[i]
-				if entry.ExpirationTime.Before(ctx.BlockTime()) {
+				if entry.DeleteTime.Before(ctx.BlockTime()) {
 					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
 					pool, found := k.GetPool(ctx, purchaseList.PoolID)
 					if !found {

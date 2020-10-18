@@ -12,6 +12,7 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
+// Keeper implements the shield keeper.
 type Keeper struct {
 	storeKey     sdk.StoreKey
 	cdc          *codec.Codec
@@ -33,6 +34,7 @@ func NewKeeper(cdc *codec.Codec, shieldStoreKey sdk.StoreKey, sk types.StakingKe
 	}
 }
 
+// GetValidator returns info of a validator given its operator address.
 func (k Keeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (staking.ValidatorI, bool) {
 	return k.sk.GetValidator(ctx, addr)
 }
@@ -76,7 +78,7 @@ func (k Keeper) DepositNativePremium(ctx sdk.Context, premium sdk.Coins, from sd
 	return k.supplyKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, premium)
 }
 
-// BondDenom returns staking bond denomination
+// BondDenom returns staking bond denomination.
 func (k Keeper) BondDenom(ctx sdk.Context) string {
 	return k.sk.BondDenom(ctx)
 }
