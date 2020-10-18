@@ -23,11 +23,11 @@ type UpgradeKeeper interface {
 }
 
 type ShieldKeeper interface {
-	GetPurchase(ctx sdk.Context, txhash []byte) (shield.Purchase, error)
+	GetPurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (shield.PurchaseList, bool)
 	GetClaimProposalParams(ctx sdk.Context) shield.ClaimProposalParams
-	ClaimLock(ctx sdk.Context, proposalID, poolID uint64, loss sdk.Coins, purchaseTxHash []byte, lockPeriod time.Duration) error
+	ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, lockPeriod time.Duration) error
 	ClaimUnlock(ctx sdk.Context, proposalID, poolID uint64, loss sdk.Coins) error
-	RestoreShield(ctx sdk.Context, poolID uint64, loss sdk.Coins, purchaseTxHash []byte) error
+	RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, id uint64, loss sdk.Coins) error
 }
 
 type ParamSubspace interface {

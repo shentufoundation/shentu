@@ -26,7 +26,7 @@ const (
 	AttributeKeyToAddr             = "to_address"
 	AttributeKeyAccountAddress     = "account_address"
 	AttributeKeyAmount             = "amount"
-	AttributeKeyPurchaseTxHash     = "purchase_txhash"
+	AttributeKeyPurchaseID         = "purchase_id"
 	AttributeKeyCompensationAmount = "compensation_amount"
 	AttributeKeyBeneficiary        = "beneficiary"
 	AttributeValueCategory         = ModuleName

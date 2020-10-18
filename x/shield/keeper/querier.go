@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/hex"
 	"strconv"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -17,6 +16,7 @@ import (
 func NewQuerier(k Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
+<<<<<<< HEAD
 		case types.QueryPool:
 			return queryPool(ctx, path[1:], k)
 		case types.QueryPools:
@@ -29,10 +29,30 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPoolPurchases(ctx, path[1:], k)
 		case types.QueryOnesCollaterals:
 			return queryOnesCollaterals(ctx, path[1:], k)
+=======
+		case types.QueryPoolByID:
+			return queryPoolByID(ctx, path[1:], k)
+		case types.QueryPoolBySponsor:
+			return queryPoolBySponsor(ctx, path[1:], k)
+		case types.QueryPools:
+			return queryPools(ctx, path[1:], k)
+		case types.QueryPurchaseList:
+			return queryPurchaseList(ctx, path[1:], k)
+		case types.QueryPurchaserPurchases:
+			return queryPurchaserPurchases(ctx, path[1:], k)
+		case types.QueryPoolPurchases:
+			return queryPoolPurchases(ctx, path[1:], k)
+		case types.QueryProviderCollaterals:
+			return queryProviderCollaterals(ctx, path[1:], k)
+>>>>>>> aec1be1eb7334c836d6078a8eb77e82d81a46a30
 		case types.QueryPoolCollaterals:
 			return queryPoolCollaterals(ctx, path[1:], k)
 		case types.QueryProvider:
 			return queryProvider(ctx, path[1:], k)
+		case types.QueryPoolParams:
+			return queryPoolParams(ctx, path[1:], k)
+		case types.QueryClaimParams:
+			return queryClaimParams(ctx, path[1:], k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
@@ -46,29 +66,37 @@ func validatePathLength(path []string, length int) error {
 	return nil
 }
 
-// queryPool returns information about the queried pool.
-func queryPool(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
-	if err := validatePathLength(path, 2); err != nil {
+func queryPoolByID(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 1); err != nil {
 		return nil, err
 	}
-	var pool types.Pool
-	var found bool
-	if path[0] == "id" {
-		id, err := strconv.ParseUint(path[1], 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		pool, err = k.GetPool(ctx, id)
-		if err != nil {
-			return nil, err
-		}
+
+	id, err := strconv.ParseUint(path[0], 10, 64)
+	if err != nil {
+		return nil, err
 	}
-	if path[0] == "sponsor" {
-		pool, found = k.GetPoolBySponsor(ctx, path[1])
-		if !found {
-			return nil, types.ErrNoPoolFoundForSponsor
-		}
+	pool, found := k.GetPool(ctx, id)
+	if !found {
+		return nil, err
 	}
+
+	res, err = codec.MarshalJSONIndent(k.cdc, pool)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+func queryPoolBySponsor(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 1); err != nil {
+		return nil, err
+	}
+
+	pool, found := k.GetPoolBySponsor(ctx, path[0])
+	if !found {
+		return nil, types.ErrNoPoolFoundForSponsor
+	}
+
 	res, err = codec.MarshalJSONIndent(k.cdc, pool)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
@@ -88,30 +116,33 @@ func queryPools(ctx sdk.Context, path []string, k Keeper) (res []byte, err error
 	return res, nil
 }
 
-// queryPurchase returns information about a queried purchase.
-func queryPurchase(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
-	if err := validatePathLength(path, 1); err != nil {
+func queryPurchaseList(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 2); err != nil {
 		return nil, err
 	}
 
-	txhash, err := hex.DecodeString(path[0])
+	poolID, err := strconv.ParseUint(path[0], 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	purchase, err := k.GetPurchase(ctx, txhash)
+	purchaser, err := sdk.AccAddressFromBech32(path[1])
 	if err != nil {
 		return nil, err
+	}
+	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
+	if !found {
+		return []byte{}, types.ErrPurchaseNotFound
 	}
 
-	res, err = codec.MarshalJSONIndent(k.cdc, purchase)
+	res, err = codec.MarshalJSONIndent(k.cdc, purchaseList)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return res, nil
 }
 
-// queryOnesPurchases returns information about a community member's purchases.
-func queryOnesPurchases(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+// queryPurchaserPurchases returns information about a community member's purchases.
+func queryPurchaserPurchases(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
 	if err := validatePathLength(path, 1); err != nil {
 		return nil, err
 	}
@@ -121,7 +152,7 @@ func queryOnesPurchases(ctx sdk.Context, path []string, k Keeper) (res []byte, e
 		return nil, err
 	}
 
-	res, err = codec.MarshalJSONIndent(k.cdc, k.GetOnesPurchases(ctx, address))
+	res, err = codec.MarshalJSONIndent(k.cdc, k.GetPurchaserPurchases(ctx, address))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -139,7 +170,7 @@ func queryPoolPurchases(ctx sdk.Context, path []string, k Keeper) (res []byte, e
 		return nil, err
 	}
 
-	res, err = codec.MarshalJSONIndent(k.cdc, k.GetPoolPurchases(ctx, id))
+	res, err = codec.MarshalJSONIndent(k.cdc, k.GetPoolPurchaseLists(ctx, id))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -147,7 +178,7 @@ func queryPoolPurchases(ctx sdk.Context, path []string, k Keeper) (res []byte, e
 }
 
 // queryOnesCollaterals returns information about one's collaterals.
-func queryOnesCollaterals(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+func queryProviderCollaterals(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
 	if err := validatePathLength(path, 1); err != nil {
 		return nil, err
 	}
@@ -157,7 +188,7 @@ func queryOnesCollaterals(ctx sdk.Context, path []string, k Keeper) (res []byte,
 		return nil, err
 	}
 
-	res, err = codec.MarshalJSONIndent(k.cdc, k.GetOnesCollaterals(ctx, address))
+	res, err = codec.MarshalJSONIndent(k.cdc, k.GetProviderCollaterals(ctx, address))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -174,9 +205,9 @@ func queryPoolCollaterals(ctx sdk.Context, path []string, k Keeper) (res []byte,
 	if err != nil {
 		return nil, err
 	}
-	pool, err := k.GetPool(ctx, id)
-	if err != nil {
-		return nil, err
+	pool, found := k.GetPool(ctx, id)
+	if !found {
+		return nil, types.ErrNoPoolFound
 	}
 
 	res, err = codec.MarshalJSONIndent(k.cdc, k.GetAllPoolCollaterals(ctx, pool))
@@ -202,6 +233,34 @@ func queryProvider(ctx sdk.Context, path []string, k Keeper) (res []byte, err er
 	}
 
 	res, err = codec.MarshalJSONIndent(k.cdc, provider)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+func queryPoolParams(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 0); err != nil {
+		return nil, err
+	}
+
+	params := k.GetPoolParams(ctx)
+
+	res, err = codec.MarshalJSONIndent(k.cdc, params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+func queryClaimParams(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 0); err != nil {
+		return nil, err
+	}
+
+	params := k.GetClaimProposalParams(ctx)
+
+	res, err = codec.MarshalJSONIndent(k.cdc, params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

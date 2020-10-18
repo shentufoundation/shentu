@@ -131,11 +131,7 @@ func updateAfterSubmitProposal(ctx sdk.Context, k keeper.Keeper, proposal types.
 	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
 		c := proposal.Content.(shield.ClaimProposal)
 		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
-		txhash, err := hex.DecodeString(c.PurchaseTxHash)
-		if err != nil {
-			return err
-		}
-		return k.ShieldKeeper.ClaimLock(ctx, c.ProposalID, c.PoolID, c.Loss, txhash, lockPeriod)
+		return k.ShieldKeeper.ClaimLock(ctx, c.ProposalID, c.PoolID, c.Proposer, c.PurchaseID, c.Loss, lockPeriod)
 	}
 	return nil
 }
@@ -166,19 +162,19 @@ func validateProposalByType(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmitP
 		}
 
 		// check shield >= loss
-		txhash, err := hex.DecodeString(c.PurchaseTxHash)
-		if err != nil {
-			return err
+		purchaseList, found := k.ShieldKeeper.GetPurchaseList(ctx, c.PoolID, c.Proposer)
+		if !found {
+			return shield.ErrPurchaseNotFound
 		}
-		purchase, err := k.ShieldKeeper.GetPurchase(ctx, txhash)
-		if err != nil {
-			return err
+		purchase, found := shield.GetPurchase(purchaseList, c.PurchaseID)
+		if !found {
+			return shield.ErrPurchaseNotFound
 		}
 		if !purchase.Shield.IsAllGTE(c.Loss) {
 			return fmt.Errorf("insufficient shield: %s, loss: %s", purchase.Shield, c.Loss)
 		}
 
-		// check the purchase is not expired
+		// check the purchaseList is not expired
 		if purchase.ClaimPeriodEndTime.Before(ctx.BlockTime()) {
 			return fmt.Errorf("after claim period end time: %s", purchase.ClaimPeriodEndTime)
 		}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -28,6 +29,7 @@ var (
 	flagShield         = "shield"
 	flagSponsor        = "sponsor"
 	flagTimeOfCoverage = "time-of-coverage"
+	flagDescription    = "description"
 )
 
 // GetTxCmd returns the transaction commands for this module.
@@ -101,8 +103,8 @@ Where proposal.json contains:
 				return err
 			}
 			from := cliCtx.GetFromAddress()
-			content := types.NewShieldClaimProposal(proposal.PoolID, proposal.Loss, proposal.Evidence,
-				proposal.PurchaseTxHash, proposal.Description, from)
+			content := types.NewShieldClaimProposal(proposal.PoolID, proposal.Loss,
+				proposal.PurchaseID, proposal.Evidence, proposal.Description, from)
 
 			msg := gov.NewMsgSubmitProposal(content, proposal.Deposit, from)
 			if err := msg.ValidateBasic(); err != nil {
@@ -165,8 +167,9 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 			}
 
 			timeOfCoverage := viper.GetInt64(flagTimeOfCoverage)
+			coverageDuration := time.Duration(timeOfCoverage) * time.Second
 
-			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, timeOfCoverage)
+			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, coverageDuration)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -233,8 +236,11 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit
 			}
 
 			timeOfCoverage := viper.GetInt64(flagTimeOfCoverage)
+			coverageDuration := time.Duration(timeOfCoverage) * time.Second
 
-			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, timeOfCoverage)
+			description := viper.GetString(flagDescription)
+
+			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, coverageDuration, description)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -246,6 +252,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit
 	cmd.Flags().String(flagShield, "", "CTK Shield amount")
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagForeignDeposit, "", "foreign coins deposit amount")
+	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().Int64(flagTimeOfCoverage, 0, "additional time of coverage")
 	return cmd
 }
@@ -509,7 +516,7 @@ func GetCmdWithdrawReimbursement(cdc *codec.Codec) *cobra.Command {
 			fmt.Sprintf(`Withdraw reimbursement by proposal id.
 
 Example:
-$ %s tx shield withdraw-reimbursement <purchase txhash>
+$ %s tx shield withdraw-reimbursement <proposal id>
 `,
 				version.ClientName,
 			),

@@ -4,7 +4,10 @@ import sdk "github.com/cosmos/cosmos-sdk/types"
 
 // Querier routes for the oracle module
 const (
+<<<<<<< HEAD
 	QueryAddress     = "address"
+=======
+>>>>>>> aec1be1eb7334c836d6078a8eb77e82d81a46a30
 	QueryOperator    = "operator"
 	QueryOperators   = "operators"
 	QueryWithdrawals = "withdrawals"

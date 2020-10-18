@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"math/rand"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,43 +8,6 @@ import (
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
-
-// PrintPoolInfo prints info of a pool.
-func PrintPoolInfo(k Keeper, ctx sdk.Context, poolID uint64, description string) {
-	pool, err := k.GetPool(ctx, poolID)
-	if err == nil {
-		fmt.Printf("%s: pool ID %d, total collateral %s, available %s, shield %s\n",
-			description, pool.PoolID, pool.TotalCollateral, pool.Available, pool.Shield)
-	} else {
-		fmt.Printf("%s error: pool is not found\n", description)
-	}
-}
-
-// PrintCollateralInfo prints info of a collateral.
-func PrintCollateralInfo(k Keeper, ctx sdk.Context, poolID uint64, addr sdk.AccAddress, description string) {
-	pool, err := k.GetPool(ctx, poolID)
-	if err != nil {
-		fmt.Printf("%s error: pool is not found\n", description)
-		return
-	}
-	collateral, found := k.GetCollateral(ctx, pool, addr)
-	if found {
-		fmt.Printf("%s: collateral of %s, pool ID %d, collateral %s\n", description, addr, pool.PoolID, collateral.Amount)
-	} else {
-		fmt.Printf("%s error: collateral is not found\n", description)
-	}
-}
-
-// PrintProviderInfo prints info of a provider.
-func PrintProviderInfo(k Keeper, ctx sdk.Context, addr sdk.AccAddress, description string) {
-	provider, found := k.GetProvider(ctx, addr)
-	if found {
-		fmt.Printf("%s: provider %s, delegation %s, collateral %s, available %s\n",
-			description, addr, provider.DelegationBonded, provider.Collateral, provider.Available)
-	} else {
-		fmt.Printf("%s error: provider is not found\n", description)
-	}
-}
 
 // RandomValidator returns a random validator given access to the keeper and ctx.
 func RandomValidator(r *rand.Rand, k Keeper, ctx sdk.Context) (staking.Validator, bool) {
@@ -87,8 +49,8 @@ func RandomCollateral(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Collateral
 	if !found {
 		return types.Collateral{}, false
 	}
-	pool, err := k.GetPool(ctx, poolID)
-	if err != nil {
+	pool, found := k.GetPool(ctx, poolID)
+	if !found {
 		return types.Collateral{}, false
 	}
 	collaterals := k.GetAllPoolCollaterals(ctx, pool)
@@ -99,11 +61,11 @@ func RandomCollateral(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Collateral
 	return collaterals[i], true
 }
 
-// RandomPurchase returns a random purchase given access to the keeper and ctx.
-func RandomPurchase(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Purchase, bool) {
-	purchases := k.GetAllPurchases(ctx)
+// RandomPurchaseList returns a random purchase given access to the keeper and ctx.
+func RandomPurchaseList(r *rand.Rand, k Keeper, ctx sdk.Context) (types.PurchaseList, bool) {
+	purchases := k.GetAllPurchaseLists(ctx)
 	if len(purchases) == 0 {
-		return types.Purchase{}, false
+		return types.PurchaseList{}, false
 	}
 	i := r.Intn(len(purchases))
 	return purchases[i], true

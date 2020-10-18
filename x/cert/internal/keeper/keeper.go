@@ -2,6 +2,8 @@
 package keeper
 
 import (
+	"github.com/tendermint/tendermint/crypto"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -27,16 +29,21 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, slashingKeeper types.Sla
 }
 
 // CertifyPlatform certifies a validator host platform by a certifier.
-func (k Keeper) CertifyPlatform(ctx sdk.Context, certifier sdk.AccAddress, validator []byte, description string) error {
+func (k Keeper) CertifyPlatform(ctx sdk.Context, certifier sdk.AccAddress, validator crypto.PubKey, description string) error {
 	if !k.IsCertifier(ctx, certifier) {
 		return types.ErrRejectedValidator
 	}
-	ctx.KVStore(k.storeKey).Set(types.PlatformStoreKey(validator), []byte(description))
+	platform := types.Platform{
+		Validator:   validator,
+		Description: description,
+	}
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(platform)
+	ctx.KVStore(k.storeKey).Set(types.PlatformStoreKey(validator), bz)
 	return nil
 }
 
 // GetPlatform returns the host platform of the validator.
-func (k Keeper) GetPlatform(ctx sdk.Context, validator []byte) (string, bool) {
+func (k Keeper) GetPlatform(ctx sdk.Context, validator crypto.PubKey) (string, bool) {
 	if platform := ctx.KVStore(k.storeKey).Get(types.PlatformStoreKey(validator)); platform != nil {
 		return string(platform), true
 	}
@@ -51,9 +58,9 @@ func (k Keeper) GetAllPlatforms(ctx sdk.Context) (platforms []types.Platform) {
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		address := iterator.Key()[len(types.PlatformsStoreKey()):]
-		description := iterator.Value()
-		platforms = append(platforms, types.Platform{Address: address, Description: string(description)})
+		var platform types.Platform
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &platform)
+		platforms = append(platforms, platform)
 	}
 	return platforms
 }

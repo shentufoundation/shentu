@@ -119,8 +119,8 @@ func LibrariesStoreKey() []byte {
 }
 
 // PlatformStoreKey returns the kv-store key for the validator host platform certificate.
-func PlatformStoreKey(validator []byte) []byte {
-	return append(platformStoreKeyPrefix, validator...)
+func PlatformStoreKey(validator crypto.PubKey) []byte {
+	return append(platformStoreKeyPrefix, validator.Bytes()...)
 }
 
 // PlatformsStoreKey returns the kv-store key for accessing all platform certificates.
