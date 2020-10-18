@@ -96,7 +96,7 @@ func DefaultLockedPoolParams() LockedPoolParams {
 	return NewLockedPoolParams(DefaultLockedInBlocks, DefaultMinimumCollateral)
 }
 
-func validatePoolParams(i interface{}) error {
+func ValidatePoolParams(i interface{}) error {
 	poolParams, ok := i.(LockedPoolParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

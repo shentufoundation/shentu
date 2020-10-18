@@ -57,7 +57,7 @@ func ValidateGenesis(bz json.RawMessage) error {
 	if data.NextPoolID < 1 {
 		return fmt.Errorf("failed to validate %s genesis state: NextPoolID must be positive ", ModuleName)
 	}
-	if err := validatePoolParams(data.PoolParams); err != nil {
+	if err := ValidatePoolParams(data.PoolParams); err != nil {
 		return fmt.Errorf("failed to validate %s pool params: %w", ModuleName, err)
 	}
 	if err := validateClaimProposalParams(data.ClaimProposalParams); err != nil {

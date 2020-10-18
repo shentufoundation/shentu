@@ -35,7 +35,7 @@ var (
 // ParamKeyTable is the key declaration for parameters.
 func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable(
-		params.NewParamSetPair(ParamStoreKeyPoolParams, PoolParams{}, validatePoolParams),
+		params.NewParamSetPair(ParamStoreKeyPoolParams, PoolParams{}, ValidatePoolParams),
 		params.NewParamSetPair(ParamStoreKeyClaimProposalParams, ClaimProposalParams{}, validateClaimProposalParams),
 	)
 }
@@ -63,7 +63,7 @@ func DefaultPoolParams() PoolParams {
 	return NewPoolParams(DefaultProtectionPeriod, DefaultMinPoolLife, DefaultWithdrawPeriod, DefaultShieldFeesRate)
 }
 
-func validatePoolParams(i interface{}) error {
+func ValidatePoolParams(i interface{}) error {
 	v, ok := i.(PoolParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
