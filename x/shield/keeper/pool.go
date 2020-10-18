@@ -9,12 +9,14 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
+// SetPool sets data of a pool in kv-store.
 func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(pool)
 	store.Set(types.GetPoolKey(pool.PoolID), bz)
 }
 
+// GetPool gets data of a pool given pool ID.
 func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetPoolKey(id))
@@ -26,6 +28,7 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
 	return pool, true
 }
 
+// CreatePool creates a pool and sponsor's shield.
 func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 	shield sdk.Coins, deposit types.MixedCoins, sponsor string,
 	sponsorAddr sdk.AccAddress, poolLifeTime time.Duration) (types.Pool, error) {
@@ -42,7 +45,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 		return types.Pool{}, types.ErrPoolLifeTooShort
 	}
 
-	// check if shield is backed by admin's delegations
+	// Check if shield is backed by admin's delegations.
 	provider, found := k.GetProvider(ctx, admin)
 	if !found {
 		provider = k.addProvider(ctx, admin)
@@ -61,12 +64,12 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 
 	pool := types.NewPool(shield, shieldAmt, depositDec, sponsor, sponsorAddr, endTime, id)
 
-	// transfer deposit
+	// Transfer deposit to the Shield module account.
 	if err := k.DepositNativePremium(ctx, deposit.Native, creator); err != nil {
 		return types.Pool{}, err
 	}
 
-	// make a pseudo-purchase for B, equal to shield
+	// Make a pseudo-purchase for B.
 	purchaseID := k.GetNextPurchaseID(ctx)
 	expirationTime := pool.EndTime.Add(-k.gk.GetVotingParams(ctx).VotingPeriod * 2)
 	purchase := types.NewPurchase(purchaseID, shield, ctx.BlockHeight(), expirationTime, expirationTime, expirationTime, "shield for sponsor")
@@ -83,13 +86,14 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress,
 	return pool, nil
 }
 
+// UpdatePool updates pool info and sponsor's shield.
 func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.Coins, deposit types.MixedCoins, id uint64, addTime time.Duration, description string) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
 	}
 
-	// check if shield is backed by admin's delegations
+	// Check if shield is backed by admin's delegations.
 	provider, found := k.GetProvider(ctx, admin)
 	if !found {
 		return types.Pool{}, types.ErrNoDelegationAmount
@@ -119,19 +123,19 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 		pool.Description = description
 	}
 
-	// transfer deposit and store
+	// Transfer deposit and store.
 	if err := k.DepositNativePremium(ctx, deposit.Native, admin); err != nil {
 		return types.Pool{}, err
 	}
 
-	// update sponsor purchase
+	// Update sponsor purchase.
 	sponsorPurchase, found := k.GetPurchaseList(ctx, id, pool.SponsorAddr)
 
 	purchaseEndTime := pool.EndTime.Add(-k.gk.GetVotingParams(ctx).VotingPeriod * 2)
 	if purchaseEndTime.Before(ctx.BlockTime()) {
 		return types.Pool{}, types.ErrPoolLifeTooShort
 	}
-	// assume there is only one purchase from sponsor address, and add in any if B's purchase expired.
+	// Assume there is only one purchase from sponsor address, and add in any if B's purchase expired.
 	var purchase types.Purchase
 	if !found {
 		purchaseID := k.GetNextPurchaseID(ctx)
@@ -139,8 +143,8 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 		k.SetNextPurchaseID(ctx, purchaseID+1)
 	} else {
 		purchase = sponsorPurchase.Entries[0]
-		k.DequeuePurchase(ctx, sponsorPurchase, purchase.ExpirationTime)
-		purchase.ExpirationTime = purchaseEndTime
+		k.DequeuePurchase(ctx, sponsorPurchase, purchase.DeleteTime)
+		purchase.DeleteTime = purchaseEndTime
 		purchase.ClaimPeriodEndTime = purchaseEndTime
 		purchase.ProtectionEndTime = purchaseEndTime
 	}
@@ -156,6 +160,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, updater sdk.AccAddress, shield sdk.C
 	return pool, nil
 }
 
+// PausePool sets an active pool to be inactive.
 func (k Keeper) PausePool(ctx sdk.Context, updater sdk.AccAddress, id uint64) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
@@ -173,6 +178,7 @@ func (k Keeper) PausePool(ctx sdk.Context, updater sdk.AccAddress, id uint64) (t
 	return pool, nil
 }
 
+// ResumePool sets an inactive pool to be active.
 func (k Keeper) ResumePool(ctx sdk.Context, updater sdk.AccAddress, id uint64) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
@@ -199,12 +205,12 @@ func (k Keeper) GetAllPools(ctx sdk.Context) (pools []types.Pool) {
 	return pools
 }
 
-// PoolEnded returns if pool has reached ending time and block height
+// PoolEnded returns if pool has reached ending time and block height.
 func (k Keeper) PoolEnded(ctx sdk.Context, pool types.Pool) bool {
 	return ctx.BlockTime().After(pool.EndTime)
 }
 
-// ClosePool closes the pool
+// ClosePool closes the pool.
 func (k Keeper) ClosePool(ctx sdk.Context, pool types.Pool) {
 	// TODO: make sure nothing else needs to be done
 	k.FreeCollaterals(ctx, pool)
@@ -228,7 +234,7 @@ func (k Keeper) IterateAllPools(ctx sdk.Context, callback func(pool types.Pool) 
 	}
 }
 
-// ValidatePoolDuration validates new pool duration to be valid
+// ValidatePoolDuration validates new pool duration to be valid.
 func (k Keeper) ValidatePoolDuration(ctx sdk.Context, timeDuration time.Duration) bool {
 	poolParams := k.GetPoolParams(ctx)
 	minPoolDuration := poolParams.MinPoolLife
@@ -246,7 +252,7 @@ func (k Keeper) WithdrawFromPools(ctx sdk.Context, addr sdk.AccAddress, amount s
 		panic(types.ErrNotEnoughCollateral)
 	}
 
-	// initiate proportional withdraws from all of the address's collaterals.
+	// Initiate proportional withdraws from all of the address's collaterals.
 	addrCollaterals := k.GetProviderCollaterals(ctx, addr)
 	remainingWithdraw := amount
 	for i, collateral := range addrCollaterals {
