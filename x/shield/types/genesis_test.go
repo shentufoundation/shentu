@@ -5,10 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/x/shield/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/certikfoundation/shentu/common"
+	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
 type GenesisTestSuite struct {
