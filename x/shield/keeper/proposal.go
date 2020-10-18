@@ -32,7 +32,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, pur
 		panic(types.ErrNotEnoughCollateral)
 	}
 
-	// update shield of purchase
+	// Update shield amount and delete time of the purchase.
 	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
 	if !found {
 		return types.ErrPurchaseNotFound
@@ -44,20 +44,20 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, pur
 			break
 		}
 	}
-	k.DequeuePurchase(ctx, purchaseList, purchaseList.Entries[index].ExpirationTime)
+	k.DequeuePurchase(ctx, purchaseList, purchaseList.Entries[index].DeleteTime)
 
 	if !purchaseList.Entries[index].Shield.IsAllGTE(loss) {
 		return types.ErrNotEnoughShield
 	}
 	purchaseList.Entries[index].Shield = purchaseList.Entries[index].Shield.Sub(loss)
 	votingEndTime := ctx.BlockTime().Add(lockPeriod)
-	if purchaseList.Entries[index].ExpirationTime.Before(votingEndTime) {
-		purchaseList.Entries[index].ExpirationTime = votingEndTime
+	if purchaseList.Entries[index].DeleteTime.Before(votingEndTime) {
+		purchaseList.Entries[index].DeleteTime = votingEndTime
 	}
 	k.SetPurchaseList(ctx, purchaseList)
-	k.InsertPurchaseQueue(ctx, purchaseList, purchaseList.Entries[index].ExpirationTime)
+	k.InsertPurchaseQueue(ctx, purchaseList, purchaseList.Entries[index].DeleteTime)
 
-	// update locked collaterals for community
+	// Update locked collaterals for community members and shield admin.
 	proportionDec := lossAmt.ToDec().Quo(poolValidCollateral.ToDec())
 	remaining := lossAmt
 	for i := range collaterals {
@@ -82,7 +82,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID uint64, poolID uint64, pur
 		k.LockProvider(ctx, collaterals[i].Provider, lockAmt, lockPeriod)
 	}
 
-	// update pool
+	// Update the pool.
 	pool.Shield = pool.Shield.Sub(loss)
 	pool.TotalCollateral = pool.TotalCollateral.Sub(lossAmt)
 	pool.TotalLocked = pool.TotalLocked.Add(lossAmt)
@@ -99,17 +99,17 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 		panic(types.ErrProviderNotFound)
 	}
 
-	// update provider
+	// Update the provider.
 	provider.TotalLocked = provider.TotalLocked.Add(amount)
 	provider.Collateral = provider.Collateral.Sub(amount)
 	k.SetProvider(ctx, delAddr, provider)
 
-	// if there are enough delegations, do nothing
+	// If there are enough delegations backing collaterals, do nothing.
 	if provider.DelegationBonded.GTE(provider.TotalLocked) {
 		return
 	}
 
-	// if there are not enough delegations, check unbondings
+	// If there are not enough delegations, extend unbondings.
 	unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, delAddr)
 	remaining := provider.TotalLocked.Sub(provider.DelegationBonded)
 	endTime := ctx.BlockTime().Add(lockPeriod)
@@ -119,7 +119,7 @@ func (k Keeper) LockProvider(ctx sdk.Context, delAddr sdk.AccAddress, amount sdk
 		}
 		entry := ubd.Entries[0]
 		if entry.CompletionTime.Before(endTime) {
-			// change unbonding completion time
+			// Change unbonding completion time.
 			timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, entry.CompletionTime)
 			if len(timeSlice) > 1 {
 				for i := 0; i < len(timeSlice); i++ {
@@ -176,12 +176,13 @@ func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAd
 	return unbondingDelegations
 }
 
+// RedirectUnbondingEntryToShieldModule changes the recipient of an unbonding delegation to the shield module.
 func (k Keeper) RedirectUnbondingEntryToShieldModule(ctx sdk.Context, ubd staking.UnbondingDelegation, endIndex int) {
 	delAddr := ubd.DelegatorAddress
 	valAddr := ubd.ValidatorAddress
 	shieldAddr := k.supplyKeeper.GetModuleAddress(types.ModuleName)
 
-	// iterate through entries and add it to shield unbonding entries
+	// Iterate through entries and add it to shield unbonding entries.
 	shieldUbd, _ := k.sk.GetUnbondingDelegation(ctx, shieldAddr, valAddr)
 	for _, entry := range ubd.Entries[:endIndex+1] {
 		shieldUbd.AddEntry(entry.CreationHeight, entry.CompletionTime, entry.Balance)
@@ -211,7 +212,7 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 	pool.TotalLocked = pool.TotalLocked.Sub(lossAmt)
 	k.SetPool(ctx, pool)
 
-	// update collaterals and providers
+	// Update collaterals and providers.
 	collaterals := k.GetAllPoolCollaterals(ctx, pool)
 	for _, collateral := range collaterals {
 		for j := range collateral.LockedCollaterals {
@@ -239,7 +240,7 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID uint64, poolID uint64, l
 
 // RestoreShield restores shield for proposer.
 func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, id uint64, loss sdk.Coins) error {
-	// update shield of pool
+	// Update shield of the pool.
 	pool, found := k.GetPool(ctx, poolID)
 	if !found {
 		return types.ErrNoPoolFound
@@ -247,7 +248,7 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 	pool.Shield = pool.Shield.Add(loss...)
 	k.SetPool(ctx, pool)
 
-	// update shield of purchaseList
+	// Update shield of the purchase.
 	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
 	if !found {
 		return types.ErrPurchaseNotFound
@@ -258,8 +259,8 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 			break
 		}
 	}
-
 	k.SetPurchaseList(ctx, purchaseList)
+
 	return nil
 }
 
@@ -275,7 +276,7 @@ func (k Keeper) UndelegateCoinsToShieldModule(ctx sdk.Context, delAddr sdk.AccAd
 		totalDelAmountDec = totalDelAmountDec.Add(val.TokensFromShares(del.GetShares()))
 	}
 
-	// start with bonded delegations
+	// Start with bonded delegations.
 	lossAmountDec := loss.ToDec()
 	remainingDec := lossAmountDec
 	for i := range delegations {
@@ -305,7 +306,7 @@ func (k Keeper) UndelegateCoinsToShieldModule(ctx sdk.Context, delAddr sdk.AccAd
 		return nil
 	}
 
-	// if bonded delegations are not enough, track unbonding delegations
+	// If bonded delegations are not enough, track unbonding delegations.
 	unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, delAddr)
 	for _, ubd := range unbondingDelegations {
 		entry := 0
@@ -333,7 +334,6 @@ func (k Keeper) UndelegateCoinsToShieldModule(ctx sdk.Context, delAddr sdk.AccAd
 	return nil
 }
 
-// TODO remove delegation or validator when it is possible
 // UndelegateShares undelegates delegations of a delegator to a validator by shares.
 func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdk.Dec) {
 	delegation, found := k.sk.GetDelegation(ctx, delAddr, valAddr)
@@ -342,7 +342,7 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	}
 	k.sk.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
 
-	// undelegate coins from the staking module account to the shield module account
+	// Undelegate coins from the staking module account to the shield module account.
 	validator, found := k.sk.GetValidator(ctx, valAddr)
 	if !found {
 		panic("validator was not found")
@@ -352,12 +352,12 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 		panic(err)
 	}
 
-	// update delegation records
+	// Update delegation records.
 	delegation.Shares = delegation.Shares.Sub(shares)
 	k.sk.SetDelegation(ctx, delegation)
-
 	k.sk.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 
+	// Update the validator.
 	k.sk.RemoveValidatorTokensAndShares(ctx, validator, shares)
 }
 
@@ -371,8 +371,7 @@ func (k Keeper) SetReimbursement(ctx sdk.Context, proposalID uint64, payout type
 // GetReimbursement get a reimbursement in store.
 func (k Keeper) GetReimbursement(ctx sdk.Context, proposalID uint64) (types.Reimbursement, error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetReimbursementKey(proposalID))
-	if bz != nil {
+	if bz := store.Get(types.GetReimbursementKey(proposalID)); bz != nil {
 		var reimbursement types.Reimbursement
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &reimbursement)
 		return reimbursement, nil
@@ -398,7 +397,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID u
 	}
 	pool.TotalLocked = pool.TotalLocked.Sub(rmb.AmountOf(k.BondDenom(ctx)))
 
-	// for each community member, get coins from delegations
+	// For each community member, get coins from delegations.
 	poolTotal := sdk.ZeroInt()
 	collaterals := k.GetAllPoolCollaterals(ctx, pool)
 	for _, collateral := range collaterals {
@@ -441,7 +440,7 @@ func (k Keeper) WithdrawReimbursement(ctx sdk.Context, proposalID uint64, benefi
 		return sdk.Coins{}, err
 	}
 
-	// check beneficiary and time
+	// Check beneficiary and time.
 	if !reimbursement.Beneficiary.Equals(beneficiary) {
 		return sdk.Coins{}, types.ErrInvalidBeneficiary
 	}

@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -18,12 +18,12 @@ const (
 	ProposalTypeShieldClaim = "ShieldClaim"
 )
 
-// Assert ShieldClaimProposal implements govtypes.Content at compile-time.
-var _ govtypes.Content = ShieldClaimProposal{}
+// Assert ShieldClaimProposal implements govTypes.Content at compile-time.
+var _ govTypes.Content = ShieldClaimProposal{}
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeShieldClaim)
-	govtypes.RegisterProposalTypeCodec(ShieldClaimProposal{}, "shield/ShieldClaimProposal")
+	govTypes.RegisterProposalType(ProposalTypeShieldClaim)
+	govTypes.RegisterProposalTypeCodec(ShieldClaimProposal{}, "shield/ShieldClaimProposal")
 }
 
 // ShieldClaimProposal defines the data structure of a shield claim proposal.

@@ -6,12 +6,14 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
+// SetProvider sets data of a provider in the kv-store.
 func (k Keeper) SetProvider(ctx sdk.Context, delAddr sdk.AccAddress, provider types.Provider) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(provider)
 	store.Set(types.GetProviderKey(delAddr), bz)
 }
 
+// GetProvider returns data of a provider given its address.
 func (k Keeper) GetProvider(ctx sdk.Context, delegator sdk.AccAddress) (dt types.Provider, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetProviderKey(delegator))
@@ -44,15 +46,16 @@ func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) types.Provider
 	return provider
 }
 
+// UpdateDelegationAmount updates the provider based on tha changes of its delegations.
 func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) {
-	// go through delAddr's delegations to recompute total amount of bonded delegation
-	// update or create a new entry
+	// Go through delAddr's delegations to recompute total amount of bonded delegation
+	// update or create a new entry.
 	provider, found := k.GetProvider(ctx, delAddr)
 	if !found {
 		return // ignore non-participating addr
 	}
 
-	// update delegations
+	// Calculate the amount of its total delegations.
 	totalStakedAmount := sdk.ZeroInt()
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
 	for _, del := range delegations {
@@ -63,6 +66,7 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) 
 		totalStakedAmount = totalStakedAmount.Add(val.TokensFromShares(del.GetShares()).TruncateInt())
 	}
 
+	// Update the provider.
 	deltaAmount := totalStakedAmount.Sub(provider.DelegationBonded)
 	provider.DelegationBonded = totalStakedAmount
 	withdrawAmount := sdk.ZeroInt()
@@ -76,12 +80,13 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) 
 	}
 	k.SetProvider(ctx, delAddr, provider)
 
-	// save the change of provider before this because withdraw also updates the provider
+	// Save the change of provider before this because withdraw also updates the provider.
 	if withdrawAmount.IsPositive() {
 		k.WithdrawFromPools(ctx, delAddr, withdrawAmount)
 	}
 }
 
+// RemoveDelegation updates the provider when its delegation is removed.
 func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
 	provider, found := k.GetProvider(ctx, delAddr)
 	if !found {
@@ -113,13 +118,12 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	}
 	k.SetProvider(ctx, delAddr, provider)
 
-	// note that this will also be triggered by redelegations
 	if withdrawAmount.IsPositive() {
 		k.WithdrawFromPools(ctx, delAddr, withdrawAmount)
 	}
 }
 
-// IterateProviders iterates through all providers
+// IterateProviders iterates through all providers.
 func (k Keeper) IterateProviders(ctx sdk.Context, callback func(provider types.Provider) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ProviderKey)

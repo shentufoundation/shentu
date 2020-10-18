@@ -4,11 +4,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// MixedCoins defines the struct for mixed coins with native and foreign coins.
 type MixedCoins struct {
 	Native  sdk.Coins
 	Foreign sdk.Coins
 }
 
+// Add implements the add method of MixedCoins.
 func (mc MixedCoins) Add(a MixedCoins) MixedCoins {
 	native := mc.Native.Add(a.Native...)
 	foreign := mc.Foreign.Add(a.Foreign...)
@@ -18,15 +20,18 @@ func (mc MixedCoins) Add(a MixedCoins) MixedCoins {
 	}
 }
 
+// String implements the Stringer for MixedCoins.
 func (mc MixedCoins) String() string {
 	return append(mc.Native, mc.Foreign...).String()
 }
 
+// MixedDecCoins defines the struct for mixed coins in decimal with native and foreign decimal coins.
 type MixedDecCoins struct {
 	Native  sdk.DecCoins `json:"native" yaml:"native"`
 	Foreign sdk.DecCoins `json:"foreign" yaml:"foreign"`
 }
 
+// InitMixedDecCoins initialize an empty mixed decimal coins instance.
 func InitMixedDecCoins() MixedDecCoins {
 	return MixedDecCoins{
 		Native:  sdk.DecCoins{},
@@ -34,6 +39,7 @@ func InitMixedDecCoins() MixedDecCoins {
 	}
 }
 
+// NewMixedDecCoins returns a new mixed decimal coins instance.
 func NewMixedDecCoins(native, foreign sdk.DecCoins) MixedDecCoins {
 	return MixedDecCoins{
 		Native:  native,
@@ -73,6 +79,7 @@ func (mdc MixedDecCoins) QuoDec(d sdk.Dec) MixedDecCoins {
 	}
 }
 
+// String implements the Stringer for MixedDecCoins.
 func (mdc MixedDecCoins) String() string {
 	return append(mdc.Native, mdc.Foreign...).String()
 }
