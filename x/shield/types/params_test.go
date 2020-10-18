@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
@@ -93,18 +92,6 @@ func (suite *ParamTestSuite) TestClaimProposalParamsValidation() {
 				FeesRate:     types.DefaultClaimProposalFeesRate,
 			},
 			expectPass:  true,
-			expectedErr: "",
-		},
-		{
-			name: "PayoutPeriod  <= ClaimPeriod",
-			args: args{
-				ClaimPeriod:  time.Hour * 24 * 21, // 21 days
-				PayoutPeriod: time.Hour * 24 * 14, // 14 days
-				MinDeposit:   sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100000000))),
-				DepositRate:  sdk.NewDecWithPrec(10, 2),
-				FeesRate:     sdk.NewDecWithPrec(1, 2),
-			},
-			expectPass:  false,
 			expectedErr: "",
 		},
 	}

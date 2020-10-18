@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
@@ -53,19 +52,6 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 				NextPurchaseID:      uint64(1),
 				PoolParams:          types.NewPoolParams(time.Hour*24*14, time.Hour*24*7, time.Hour*24*210, sdk.NewDecWithPrec(1, 2)),
 				ClaimProposalParams: types.DefaultClaimProposalParams(),
-			},
-			expectPass:  false,
-			expectedErr: "",
-		},
-		{
-			name: "PayoutPeriod  <= ClaimPeriod",
-			args: args{
-				NextPoolID:     uint64(1),
-				NextPurchaseID: uint64(1),
-				PoolParams:     types.DefaultPoolParams(),
-				ClaimProposalParams: types.NewClaimProposalParams(time.Hour*24*21, time.Hour*24*14,
-					sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100000000))), sdk.NewDecWithPrec(10, 2),
-					sdk.NewDecWithPrec(1, 2)),
 			},
 			expectPass:  false,
 			expectedErr: "",
