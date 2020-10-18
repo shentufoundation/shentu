@@ -164,11 +164,16 @@ func SimulateSubmitProposal(
 
 		var fops []simulation.FutureOperation
 
+		fops = append(fops, simulation.FutureOperation{
+			BlockHeight: int(ctx.BlockHeight()) + 2,
+			Op:          QueryProposal(k, proposalID),
+		})
+
 		// 2) Schedule deposit operations
 		if content.ProposalType() != "ShieldClaim" {
 			for i := 0; i < 5; i++ {
 				fops = append(fops, simulation.FutureOperation{
-					BlockHeight: int(ctx.BlockHeight()) + 3,
+					BlockHeight: int(ctx.BlockHeight()) + 5,
 					Op:          SimulateMsgDeposit(ak, k, proposalID),
 				})
 			}
@@ -181,7 +186,7 @@ func SimulateSubmitProposal(
 			for _, acc := range accs {
 				if ck.IsCertifier(ctx, acc.Address) {
 					fops = append(fops, simulation.FutureOperation{
-						BlockHeight: int(ctx.BlockHeight()) + 5,
+						BlockHeight: int(ctx.BlockHeight()) + 10,
 						Op:          SimulateCertifierMsgVote(ak, k, acc, proposalID),
 					})
 				}
@@ -198,12 +203,28 @@ func SimulateSubmitProposal(
 
 		for i := 0; i < numVotes; i++ {
 			fops = append(fops, simulation.FutureOperation{
-				BlockHeight: int(ctx.BlockHeight()) + 10,
+				BlockHeight: int(ctx.BlockHeight()) + 15,
 				Op:          SimulateMsgVote(ak, k, accs[whoVotes[i]], proposalID),
 			})
 		}
 
 		return opMsg, fops, nil
+	}
+}
+
+func QueryProposal(k keeper.Keeper, proposalID uint64) simulation.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
+		accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+
+		proposal, ok := k.GetProposal(ctx, proposalID)
+		if !ok {
+			fmt.Printf(">>>>>>>>>>>>>> proposal not found, id: %d <<<<<<<<<<<<<<<\n", proposalID)
+			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+		} else {
+			fmt.Printf(">>>>>>>>>>>>>> proposal id: %d, proposal status: %d <<<<<<<<<<<<<<<\n", proposalID, proposal.Status)
+			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+		}
 	}
 }
 
