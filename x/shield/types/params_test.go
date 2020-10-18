@@ -53,6 +53,7 @@ func (suite *ParamTestSuite) TestPoolParamsValidation() {
 		},
 	}
 	for _, tc := range testCases {
+		tc := tc // scopelint doesn't complain
 		suite.Run(tc.name, func() {
 			params := types.NewPoolParams(tc.args.ProtectionPeriod, tc.args.MinPoolLife, tc.args.WithdrawPeriod, tc.args.ShieldFeesRate)
 			err := types.ValidatePoolParams(params)
@@ -107,6 +108,7 @@ func (suite *ParamTestSuite) TestClaimProposalParamsValidation() {
 		},
 	}
 	for _, tc := range testCases {
+		tc := tc // scopelint doesn't complain
 		suite.Run(tc.name, func() {
 			params := types.NewClaimProposalParams(tc.args.ClaimPeriod, tc.args.PayoutPeriod, tc.args.MinDeposit, tc.args.DepositRate, tc.args.FeesRate)
 			err := types.ValidateClaimProposalParams(params)

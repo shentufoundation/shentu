@@ -71,6 +71,7 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 		},
 	}
 	for _, tc := range testCases {
+		tc := tc // scopelint doesn't complain
 		suite.Run(tc.name, func() {
 			gs := types.NewGenesisState(tc.args.ShieldAdmin, tc.args.NextPoolID, tc.args.NextPurchaseID, tc.args.PoolParams,
 				tc.args.ClaimProposalParams, tc.args.Pools, tc.args.Collaterals,

@@ -71,7 +71,6 @@ func ValidateGenesis(bz json.RawMessage) error {
 }
 
 func (gs GenesisState) Validate() error {
-
 	if gs.NextPoolID < 1 {
 		return fmt.Errorf("failed to validate %s genesis state: NextPoolID must be positive ", ModuleName)
 	}
