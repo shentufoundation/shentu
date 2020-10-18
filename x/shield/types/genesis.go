@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// GenesisState defines the shield genesis state.
 type GenesisState struct {
 	ShieldAdmin         sdk.AccAddress      `json:"shield_admin" yaml:"shield_admin"`
 	NextPoolID          uint64              `json:"next_pool_id" yaml:"next_pool_id"`
@@ -19,9 +20,6 @@ type GenesisState struct {
 	Providers           []Provider          `json:"providers" yaml:"providers"`
 	PurchaseLists       []PurchaseList      `json:"purchases" yaml:"purchases"`
 	Withdraws           Withdraws           `json:"withdraws" yaml:"withdraws"`
-}
-
-type WithdrawTimeSlice struct {
 }
 
 // NewGenesisState creates a new genesis state.
@@ -42,7 +40,7 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 	}
 }
 
-// DefaultGenesisState returns a default genesis state
+// DefaultGenesisState returns a default genesis state.
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
 		NextPoolID:          uint64(1),

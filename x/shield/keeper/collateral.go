@@ -64,7 +64,7 @@ func (k Keeper) IterateCollaterals(ctx sdk.Context, callback func(collateral typ
 	}
 }
 
-// IteratePoolCollaterals iterates through collaterals in a pool
+// IteratePoolCollaterals iterates through collaterals in a pool.
 func (k Keeper) IteratePoolCollaterals(ctx sdk.Context, pool types.Pool, callback func(collateral types.Collateral) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.GetPoolCollateralsKey(pool.PoolID))
@@ -115,7 +115,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 		return types.ErrNoPoolFound
 	}
 
-	// check eligibility
+	// Check eligibility.
 	provider, found := k.GetProvider(ctx, from)
 	if !found {
 		provider = k.addProvider(ctx, from)
@@ -126,7 +126,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, id uint6
 	}
 	provider.Available = provider.Available.Sub(amount)
 
-	// update the pool, collateral and provider
+	// Update the pool, collateral and provider.
 	collateral, found := k.GetCollateral(ctx, pool, from)
 	if !found {
 		collateral = types.NewCollateral(pool, from, amount)
@@ -152,8 +152,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 		return types.ErrNoPoolFound
 	}
 
-	// retrieve the particular collateral to ensure that
-	// amount is less than collateral minus collateral withdraw
+	// Retrieve the particular collateral to ensure that amount is less than collateral minus collateral withdraw.
 	collateral, found := k.GetCollateral(ctx, pool, from)
 	if !found {
 		return types.ErrNoCollateralFound
@@ -163,7 +162,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, id uint
 		return types.ErrOverWithdraw
 	}
 
-	// update the pool available coins, but not pool total collateral or community which should be updated 21 days later
+	// Update the pool available coins, but not pool total collateral or community which should be updated 21 days later.
 	pool.Available = pool.Available.Sub(amount)
 	k.SetPool(ctx, pool)
 

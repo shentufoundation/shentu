@@ -11,30 +11,33 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
 )
 
-// AccountKeeper expected account keeper
+// AccountKeeper defines the expected account keeper.
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
 	IterateAccounts(ctx sdk.Context, process func(authexported.Account) (stop bool))
 }
 
-// StakingKeeper expected staking keeper
+// StakingKeeper defines the expected staking keeper.
 type StakingKeeper interface {
-	// iterate through validators by admin address, execute func for each validator
+	// IterateValidators iterates through validators by admin address, execute func for each validator.
 	IterateValidators(sdk.Context, func(index int64, validator stakingexported.ValidatorI) (stop bool))
 
-	// get a particular validator by admin address with a found flag
+	// GetValidator gets a particular validator by admin address with a found flag.
 	GetValidator(sdk.Context, sdk.ValAddress) (staking.Validator, bool)
-	// get the set of all validators with no limits, used during genesis dump
+	// GetAllValidators gets the set of all validators with no limits, used during genesis dump.
 	GetAllValidators(ctx sdk.Context) []staking.Validator
-	// return all delegations to a specific validator. Useful for querier
+	// GetValidatorDelegations returna all delegations to a specific validator. Useful for querier.
 	GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) []staking.Delegation
 
-	ValidatorByConsAddr(sdk.Context, sdk.ConsAddress) stakingexported.ValidatorI // get a particular validator by consensus address
+	// ValidatorByConsAddr gets a particular validator by consensus address.
+	ValidatorByConsAddr(sdk.Context, sdk.ConsAddress) stakingexported.ValidatorI
 
-	// slash the validator and delegators of the validator, specifying offense height, offense power, and slash fraction
+	// Slash slashes the validator and delegators of the validator, specifying offense height, offense power, and slash fraction.
 	Slash(sdk.Context, sdk.ConsAddress, int64, int64, sdk.Dec)
-	Jail(sdk.Context, sdk.ConsAddress)   // jail a validator
-	Unjail(sdk.Context, sdk.ConsAddress) // unjail a validator
+	// Jail jails a validator.
+	Jail(sdk.Context, sdk.ConsAddress)
+	// Unjail unjails a validator
+	Unjail(sdk.Context, sdk.ConsAddress)
 
 	// Delegation allows for getting a particular delegation for a given validator
 	// and delegator outside the scope of the staking module.
@@ -57,11 +60,11 @@ type StakingKeeper interface {
 
 	BondDenom(sdk.Context) string
 
-	// MaxValidators returns the maximum amount of bonded validators
+	// MaxValidators returns the maximum amount of bonded validators.
 	MaxValidators(sdk.Context) uint16
 }
 
-// BankKeeper defines the expected bank keeper (noalias)
+// BankKeeper defines the expected bank keeper.
 type BankKeeper interface {
 	SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
 	DelegateCoins(ctx sdk.Context, fromAdd, toAddr sdk.AccAddress, amt sdk.Coins) error
@@ -71,6 +74,7 @@ type BankKeeper interface {
 	AddCoins(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coins) (sdk.Coins, error)
 }
 
+// SupplyKeeper defines the expected supply keeper.
 type SupplyKeeper interface {
 	GetModuleAddress(moduleName string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, moduleName string) exported.ModuleAccountI
@@ -79,6 +83,7 @@ type SupplyKeeper interface {
 	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
 }
 
+// GovKeeper defines the expected gov keeper.
 type GovKeeper interface {
 	GetVotingParams(ctx sdk.Context) govTypes.VotingParams
 }
