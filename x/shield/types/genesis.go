@@ -65,7 +65,22 @@ func ValidateGenesis(bz json.RawMessage) error {
 	if err := ValidatePoolParams(data.PoolParams); err != nil {
 		return fmt.Errorf("failed to validate %s pool params: %w", ModuleName, err)
 	}
-	if err := validateClaimProposalParams(data.ClaimProposalParams); err != nil {
+	if err := ValidateClaimProposalParams(data.ClaimProposalParams); err != nil {
+		return fmt.Errorf("failed to validate %s claim proposal params: %w", ModuleName, err)
+	}
+
+	return nil
+}
+
+func (gs GenesisState) Validate() error {
+
+	if gs.NextPoolID < 1 {
+		return fmt.Errorf("failed to validate %s genesis state: NextPoolID must be positive ", ModuleName)
+	}
+	if err := ValidatePoolParams(gs.PoolParams); err != nil {
+		return fmt.Errorf("failed to validate %s pool params: %w", ModuleName, err)
+	}
+	if err := ValidateClaimProposalParams(gs.ClaimProposalParams); err != nil {
 		return fmt.Errorf("failed to validate %s claim proposal params: %w", ModuleName, err)
 	}
 

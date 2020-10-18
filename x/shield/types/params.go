@@ -36,7 +36,7 @@ var (
 func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable(
 		params.NewParamSetPair(ParamStoreKeyPoolParams, PoolParams{}, ValidatePoolParams),
-		params.NewParamSetPair(ParamStoreKeyClaimProposalParams, ClaimProposalParams{}, validateClaimProposalParams),
+		params.NewParamSetPair(ParamStoreKeyClaimProposalParams, ClaimProposalParams{}, ValidateClaimProposalParams),
 	)
 }
 
@@ -79,6 +79,9 @@ func ValidatePoolParams(i interface{}) error {
 	if minPoolLife <= 0 {
 		return fmt.Errorf("minimum pool life must be positive: %s", minPoolLife)
 	}
+	if minPoolLife <= protectionPeriod {
+		return fmt.Errorf("MinPoolLife must be greater than or equal to ProtectionPeriod")
+	}
 	if shieldFeesRate.IsNegative() || shieldFeesRate.GT(sdk.OneDec()) {
 		return fmt.Errorf("shield fees rate should be positive and less or equal to one but is %s",
 			shieldFeesRate.String())
@@ -116,7 +119,7 @@ func DefaultClaimProposalParams() ClaimProposalParams {
 		DefaultMinClaimProposalDeposit, DefaultClaimProposalDepositRate, DefaultClaimProposalFeesRate)
 }
 
-func validateClaimProposalParams(i interface{}) error {
+func ValidateClaimProposalParams(i interface{}) error {
 	v, ok := i.(ClaimProposalParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -132,6 +135,9 @@ func validateClaimProposalParams(i interface{}) error {
 	}
 	if payoutPeriod <= 0 {
 		return fmt.Errorf("payout period must be positive: %s", payoutPeriod)
+	}
+	if payoutPeriod <= claimPeriod {
+		return fmt.Errorf("payout period must be greater than or equal to claim period")
 	}
 	if !minDeposit.IsValid() {
 		return fmt.Errorf("minimum deposit amount must be a valid sdk.Coins amount, is %s",

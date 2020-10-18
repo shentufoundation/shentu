@@ -34,7 +34,7 @@ var (
 func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable(
 		params.NewParamSetPair(ParamsStoreKeyTaskParams, TaskParams{}, validateTaskParams),
-		params.NewParamSetPair(ParamsStoreKeyPoolParams, LockedPoolParams{}, validatePoolParams),
+		params.NewParamSetPair(ParamsStoreKeyPoolParams, LockedPoolParams{}, ValidatePoolParams),
 	)
 }
 

@@ -1,20 +1,6 @@
 package types
 
 const (
-<<<<<<< HEAD
-	QueryPool            = "pool"
-	QueryPools           = "pools"
-	QueryPurchase        = "purchase"
-	QueryOnesPurchases   = "purchases"
-	QueryPoolPurchases   = "pool_purchases"
-	QueryOnesCollaterals = "collaterals"
-	QueryPoolCollaterals = "pool_collaterals"
-	QueryProvider        = "provider"
-	QueryPoolID          = "poolID"
-	QuerySponsor         = "sponsor"
-	QueryAddress         = "address"
-	QueryPurchaseTxHash  = "purchasetxhash"
-=======
 	QueryPoolByID            = "pool_id"
 	QueryPoolBySponsor       = "pool_sponsor"
 	QueryPools               = "pools"
@@ -27,5 +13,4 @@ const (
 	QueryProvider            = "provider"
 	QueryPoolParams          = "pool_params"
 	QueryClaimParams         = "claim_params"
->>>>>>> aec1be1eb7334c836d6078a8eb77e82d81a46a30
 )

@@ -16,20 +16,6 @@ import (
 func NewQuerier(k Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
-<<<<<<< HEAD
-		case types.QueryPool:
-			return queryPool(ctx, path[1:], k)
-		case types.QueryPools:
-			return queryPools(ctx, path[1:], k)
-		case types.QueryPurchase:
-			return queryPurchase(ctx, path[1:], k)
-		case types.QueryOnesPurchases:
-			return queryOnesPurchases(ctx, path[1:], k)
-		case types.QueryPoolPurchases:
-			return queryPoolPurchases(ctx, path[1:], k)
-		case types.QueryOnesCollaterals:
-			return queryOnesCollaterals(ctx, path[1:], k)
-=======
 		case types.QueryPoolByID:
 			return queryPoolByID(ctx, path[1:], k)
 		case types.QueryPoolBySponsor:
@@ -44,7 +30,6 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPoolPurchases(ctx, path[1:], k)
 		case types.QueryProviderCollaterals:
 			return queryProviderCollaterals(ctx, path[1:], k)
->>>>>>> aec1be1eb7334c836d6078a8eb77e82d81a46a30
 		case types.QueryPoolCollaterals:
 			return queryPoolCollaterals(ctx, path[1:], k)
 		case types.QueryProvider:
