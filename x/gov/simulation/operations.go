@@ -147,6 +147,12 @@ func SimulateSubmitProposal(
 			simAccount.PrivKey,
 		)
 
+		// get the submitted proposal ID
+		proposalID, err := k.GetProposalID(ctx)
+		if err != nil {
+			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+		}
+
 		_, _, err = app.Deliver(tx)
 		if err != nil {
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
@@ -154,20 +160,11 @@ func SimulateSubmitProposal(
 
 		opMsg := simulation.NewOperationMsg(msg, true, "")
 
-		// get the submitted proposal ID
-		proposalID, err := k.GetProposalID(ctx)
-		if err != nil {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
-		}
-
-		fmt.Printf(">>>>>>>>>>>>>>>> proposal id: %d, proposal type: %s\n", proposalID, content.ProposalType())
+		proposal, _ := k.GetProposal(ctx, proposalID)
+		fmt.Printf(">>>>>>>>>>>>>> proposal id: %d, type: %s, status: %d, init deposit: %s <<<<<<<<<<<<<<<\n",
+			proposalID, content.ProposalType(), proposal.Status, proposal.TotalDeposit)
 
 		var fops []simulation.FutureOperation
-
-		fops = append(fops, simulation.FutureOperation{
-			BlockHeight: int(ctx.BlockHeight()) + 2,
-			Op:          QueryProposal(k, proposalID),
-		})
 
 		// 2) Schedule deposit operations
 		if content.ProposalType() != "ShieldClaim" {
@@ -209,22 +206,6 @@ func SimulateSubmitProposal(
 		}
 
 		return opMsg, fops, nil
-	}
-}
-
-func QueryProposal(k keeper.Keeper, proposalID uint64) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
-		accs []simulation.Account, chainID string,
-	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-
-		proposal, ok := k.GetProposal(ctx, proposalID)
-		if !ok {
-			fmt.Printf(">>>>>>>>>>>>>> proposal not found, id: %d <<<<<<<<<<<<<<<\n", proposalID)
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
-		} else {
-			fmt.Printf(">>>>>>>>>>>>>> proposal id: %d, proposal status: %d <<<<<<<<<<<<<<<\n", proposalID, proposal.Status)
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
-		}
 	}
 }
 
@@ -272,7 +253,7 @@ func SimulateMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
-		fmt.Printf(">>>>>>>>>>>>>> validator vote success, id: %d\n", proposalID)
+		fmt.Printf(">>>>>>>>>>>>>> validator vote success, id: %d, option: %s\n", proposalID, option)
 
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
@@ -328,7 +309,7 @@ func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
-		fmt.Printf(">>>>>>>>>>>>>> certifier vote success, id: %d\n", proposalID)
+		fmt.Printf(">>>>>>>>>>>>>> certifier vote success, id: %d, option %d\n", proposalID, option)
 
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
@@ -358,9 +339,6 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper, proposalID u
 		if err != nil {
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
-		if deposit.AmountOf(sdk.DefaultBondDenom).LT(k.GetDepositParams(ctx).MinDeposit.AmountOf(sdk.DefaultBondDenom)) {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
-		}
 
 		msg := govTypes.NewMsgDeposit(simAcc.Address, proposalID, deposit)
 
@@ -384,7 +362,7 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper, proposalID u
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
-		fmt.Printf(">>>>>>>>>>>>>> deposit success, id: %d\n", proposalID)
+		fmt.Printf(">>>>>>>>>>>>>> deposit success, id: %d, amount: %s\n", proposalID, deposit)
 
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
