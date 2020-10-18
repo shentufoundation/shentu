@@ -6,6 +6,23 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// Global variables
+// 
+// 	// TotalCollateral is the amount of all collaterals in the pool.
+// 	TotalCollateral sdk.Int `json:"total_collateral" yaml:"total_collateral"`
+//
+//	// TotalWithdrawing is the amount of collateral in withdraw queues.
+//	TotalWithdrawing sdk.Int `json:"withdrawing" yaml:"withdrawing"`
+//
+//	// Shield is the amount of all active purchased shields.
+//	Shield sdk.Coins `json:"shield" yaml:"shield"`
+//
+//	// Premium is the undistributed pool premium from the sponsor.
+//	Premium MixedDecCoins `json:"premium" yaml:"premium"`
+//
+//	// TotalLocked is the amount of collaterals locked for pending claims.
+//	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
+
 // Pool contains a shield pool's data.
 type Pool struct {
 	// PoolID is the id of the pool.
@@ -23,23 +40,8 @@ type Pool struct {
 	// Active means new purchases are allowed.
 	Active bool `json:"active" yaml:"active"`
 
-	// Premium is the undistributed pool premium from the sponsor.
-	Premium MixedDecCoins `json:"premium" yaml:"premium"`
-
-	// TotalCollateral is the amount of all collaterals in the pool.
-	TotalCollateral sdk.Int `json:"total_collateral" yaml:"total_collateral"`
-
-	// Available is the amount of collaterals available to be purchased.
-	Available sdk.Int `json:"available" yaml:"available"`
-
-	// TotalLocked is the amount of collaterals locked for pending claims.
-	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
-
-	// Shield is the amount of unused shield for the pool sponsor.
+	// Shield is the amount of all active purchased shields.
 	Shield sdk.Coins `json:"shield" yaml:"shield"`
-
-	// EndTime is the time pool maintenance ends.
-	EndTime time.Time `json:"end_time" yaml:"end_time"`
 }
 
 // NewPool creates a new shield pool.
@@ -56,37 +58,24 @@ func NewPool(shield sdk.Coins, totalCollateral sdk.Int, deposit MixedDecCoins, s
 	}
 }
 
-// Collateral records the collaterals provided by a provider in a shield pool.
-type Collateral struct {
-	// PoolID is the id of the shield pool.
-	PoolID uint64 `json:"pool_id" yaml:"pool_id"`
+// To purchase
+//
+// SUM(Collateral) - SUM(Withdrawing) >= SHIELD
 
-	// Provider is the chain address of the provider.
-	Provider sdk.AccAddress `json:"provider" yaml:"provider"`
+// To withdraw
+//
+// Min(Collateral - Withdrawing, SUM(Collateral) - SUM(Withdrawing) - SUM(SHIELD)) >= WITHDRAW
 
-	// Amount is the collateral amount, including withdrawing but excluding
-	// locked.
-	Amount sdk.Int `json:"amount" yaml:"amount"`
-
-	// Withdrawing is the amount of collateral in withdrawing process.
-	Withdrawing sdk.Int `json:"withdrawing" yaml:"withdrawing"`
-
-	// TotalLocked is the amount of collateral locked up for pending claims.
-	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
-
-	// LockedCollaterals stores collaterals locked up for claims against the
-	// provider and the pool.
-	LockedCollaterals []LockedCollateral `json:"locked_collaterals" yaml:"locked_collaterals"`
-}
-
-// NewCollateral creates a new collateral object.
-func NewCollateral(pool Pool, provider sdk.AccAddress, amount sdk.Int) Collateral {
-	return Collateral{
-		PoolID:   pool.PoolID,
-		Provider: provider,
-		Amount:   amount,
-	}
-}
+// Pool 100 0  A1 50 0  A2 50 0 Shield 0
+// P1 => purchase 50
+// Pool 100 0  A1 50 0  A2 50 0 Shield 50 // A1 and A2 both get rewards from P1
+// Day 1 A1 withdraw from unbond 50
+// Pool 100 50 A1 50 50 A2 50 0 Shield 50
+// Day 21 P1 claims loss of 50
+// Day 22
+// Pool 50 0 A1 0 0 A2 50 0 Shield 0 Locked 50
+// Day 25 P1 claim of 50 passed
+// Pool 0 0 A1 0 0 A2 0 0 Shield 0 Locked 0
 
 // Provider tracks total delegation, total collateral, and rewards of a provider.
 type Provider struct {
@@ -96,19 +85,23 @@ type Provider struct {
 	// DelegationBonded is the amount of bonded delegation.
 	DelegationBonded sdk.Int `json:"delegation_bonded" yaml:"delegation_bonded"`
 
+	// B 100 UB 0 Collateral 100 Withdraw 0
+	// Redelegate 10
+	// N: Unbond 10
+	// B 90 UB 10 Collateral 100 Withdraw 10
+	// N: Bond 10
+	// B 100 UB 10 Collateral 100 Withdraw 10
+	
 	// Collateral is amount of all collaterals for the provider, including
 	// those in withdraw queue but excluding those currently locked, in all
 	// pools.
 	Collateral sdk.Int `json:"collateral" yaml:"collateral"`
 
-	// TotalLocked is the amount locked for pending claims.
-	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
-
-	// Available is the amount of staked CTK available to be deposited.
-	Available sdk.Int `json:"available" yaml:"available"`
-
 	// Withdrawing is the amount of collateral in withdraw queues.
 	Withdrawing sdk.Int `json:"withdrawing" yaml:"withdrawing"`
+
+	// TotalLocked is the amount locked for pending claims.
+	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
 
 	// Rewards is the pooling rewards to be collected.
 	Rewards MixedDecCoins `json:"rewards" yaml:"rewards"`
@@ -137,19 +130,8 @@ type Purchase struct {
 	// Shield is the unused amount of shield purchased.
 	Shield sdk.Coins `json:"shield" yaml:"shield"`
 
-	// StartBlockHeight is the purchasing block height.
-	StartBlockHeight int64 `json:"start_block_height" yaml:"start_block_height"`
-
 	// ProtectionEndTime is the time when the protection of the shield ends.
 	ProtectionEndTime time.Time `json:"protection_end_time" yaml:"protection_end_time"`
-
-	// ClaimPeriodEndTime is the time when any claims to the shield must be
-	// filed before.
-	ClaimPeriodEndTime time.Time `json:"claim_period_end_time" yaml:"claim_period_end_time"`
-
-	// DeleteTime is the time when the purchase is scheduled to be
-	// deleted.
-	DeleteTime time.Time `json:"delete_time" yaml:"delete_time"`
 }
 
 // NewPurchase creates a new purchase object.
@@ -186,7 +168,7 @@ func NewPurchaseList(poolID uint64, purchaser sdk.AccAddress, purchases []Purcha
 	}
 }
 
-// PoolPurchase is a pair of pool id and purchaser.
+// PoolPurchaser is a pair of pool id and purchaser.
 type PoolPurchaser struct {
 	// PoolID is the id of the shield pool.
 	PoolID uint64
@@ -197,17 +179,11 @@ type PoolPurchaser struct {
 
 // Withdraw stores an ongoing withdraw of pool collateral.
 type Withdraw struct {
-	// PoolID is the id of the shield withdrawing collateral from.
-	PoolID uint64 `json:"pool_id" yaml:"pool_id"`
-
 	// Address is the chain address of the provider withdrawing.
 	Address sdk.AccAddress `json:"address" yaml:"address"`
 
 	// Amount is the amount of withdraw.
 	Amount sdk.Int `json:"amount" yaml:"amount"`
-
-	// CompletionTime is the scheduled withdraw completion time.
-	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"`
 }
 
 // NewWithdraw creates a new withdraw object.
