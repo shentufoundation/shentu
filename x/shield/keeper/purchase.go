@@ -63,8 +63,8 @@ func (k Keeper) DeletePurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk
 // DequeuePurchase dequeues a purchase from the purchase queue
 func (k Keeper) DequeuePurchase(ctx sdk.Context, purchaseList types.PurchaseList, endTime time.Time) {
 	timeslice := k.GetPurchaseQueueTimeSlice(ctx, endTime)
-	for i, ppPair := range timeslice {
-		if (purchaseList.PoolID == ppPair.PoolID) && purchaseList.Purchaser.Equals(ppPair.Purchaser) {
+	for i, poolPurchaser := range timeslice {
+		if (purchaseList.PoolID == poolPurchaser.PoolID) && purchaseList.Purchaser.Equals(poolPurchaser.Purchaser) {
 			if len(timeslice) > 1 {
 				timeslice = append(timeslice[:i], timeslice[i+1:]...)
 				k.SetPurchaseQueueTimeSlice(ctx, endTime, timeslice)
@@ -116,8 +116,7 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
 	claimPeriodEndTime := ctx.BlockTime().Add(claimParams.ClaimPeriod)
 	purchaseID := k.GetNextPurchaseID(ctx)
-	purchase := types.NewPurchase(purchaseID, shield, ctx.BlockHeight(), protectionEndTime,
-		claimPeriodEndTime, claimPeriodEndTime, description)
+	purchase := types.NewPurchase(purchaseID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, claimPeriodEndTime, description)
 	purchaseList := types.NewPurchaseList(poolID, purchaser, []types.Purchase{purchase})
 	k.AddPurchase(ctx, poolID, purchaser, purchase)
 	k.InsertPurchaseQueue(ctx, purchaseList, claimPeriodEndTime)
@@ -150,14 +149,14 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 	bondDenom := k.sk.BondDenom(ctx)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var timeslice []types.PPPair
+		var timeslice []types.PoolPurchaser
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &timeslice)
-		for _, ppPair := range timeslice {
-			purchaseList, _ := k.GetPurchaseList(ctx, ppPair.PoolID, ppPair.Purchaser)
+		for _, poolPurchaser := range timeslice {
+			purchaseList, _ := k.GetPurchaseList(ctx, poolPurchaser.PoolID, poolPurchaser.Purchaser)
 
 			for i := 0; i < len(purchaseList.Entries); {
 				entry := purchaseList.Entries[i]
-				if entry.ExpirationTime.Before(ctx.BlockTime()) {
+				if entry.DeleteTime.Before(ctx.BlockTime()) {
 					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
 					pool, found := k.GetPool(ctx, purchaseList.PoolID)
 					if !found {
@@ -251,29 +250,29 @@ func (k Keeper) GetAllPurchaseLists(ctx sdk.Context) (purchases []types.Purchase
 func (k Keeper) InsertPurchaseQueue(ctx sdk.Context, purchaseList types.PurchaseList, endTime time.Time) {
 	timeSlice := k.GetPurchaseQueueTimeSlice(ctx, endTime)
 
-	ppPair := types.PPPair{PoolID: purchaseList.PoolID, Purchaser: purchaseList.Purchaser}
+	poolPurchaser := types.PoolPurchaser{PoolID: purchaseList.PoolID, Purchaser: purchaseList.Purchaser}
 	if len(timeSlice) == 0 {
-		k.SetPurchaseQueueTimeSlice(ctx, endTime, []types.PPPair{ppPair})
+		k.SetPurchaseQueueTimeSlice(ctx, endTime, []types.PoolPurchaser{poolPurchaser})
 		return
 	}
-	timeSlice = append(timeSlice, ppPair)
+	timeSlice = append(timeSlice, poolPurchaser)
 	k.SetPurchaseQueueTimeSlice(ctx, endTime, timeSlice)
 }
 
 // GetPurchaseQueueTimeSlice gets a specific purchase queue timeslice,
 // which is a slice of purchases corresponding to a given time.
-func (k Keeper) GetPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []types.PPPair {
+func (k Keeper) GetPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []types.PoolPurchaser {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetPurchaseCompletionTimeKey(timestamp))
 	if bz == nil {
-		return []types.PPPair{}
+		return []types.PoolPurchaser{}
 	}
-	var ppPairs []types.PPPair
+	var ppPairs []types.PoolPurchaser
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ppPairs)
 	return ppPairs
 }
 
-func (k Keeper) SetPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time, ppPairs []types.PPPair) {
+func (k Keeper) SetPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time, ppPairs []types.PoolPurchaser) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(ppPairs)
 	store.Set(types.GetPurchaseCompletionTimeKey(timestamp), bz)
