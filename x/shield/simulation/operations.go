@@ -36,7 +36,7 @@ var (
 	DefaultWeightMsgCreatePool             = 10
 	DefaultWeightMsgUpdatePool             = 10
 	DefaultWeightMsgDepositCollateral      = 20
-	DefaultWeightMsgWithdrawCollateral     = 0
+	DefaultWeightMsgWithdrawCollateral     = 20
 	DefaultWeightMsgWithdrawRewards        = 0
 	DefaultWeightMsgWithdrawForeignRewards = 0
 	DefaultWeightMsgPurchaseShield         = 0
@@ -86,8 +86,8 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(weightMsgCreatePool, SimulateMsgCreatePool(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgUpdatePool, SimulateMsgUpdatePool(k, ak, sk)),
-		//simulation.NewWeightedOperation(weightMsgDepositCollateral, SimulateMsgDepositCollateral(k, ak, sk)),
-		//simulation.NewWeightedOperation(weightMsgWithdrawCollateral, SimulateMsgWithdrawCollateral(k, ak, sk)),
+		simulation.NewWeightedOperation(weightMsgDepositCollateral, SimulateMsgDepositCollateral(k, ak, sk)),
+		simulation.NewWeightedOperation(weightMsgWithdrawCollateral, SimulateMsgWithdrawCollateral(k, ak, sk)),
 		//simulation.NewWeightedOperation(weightMsgWithdrawRewards, SimulateMsgWithdrawRewards(k, ak, sk)),
 		//simulation.NewWeightedOperation(weightMsgWithdrawForeignRewards, SimulateMsgWithdrawForeignRewards(k, ak, sk)),
 		//simulation.NewWeightedOperation(weightMsgPurchaseShield, SimulateMsgPurchaseShield(k, ak, sk)),
@@ -110,16 +110,16 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 			found      bool
 			simAccount simulation.Account
 		)
-		providers := k.GetAllProviders(ctx)
-		if len(providers) == 0 {
-			adminAddr, available, found = keeper.RandomDelegation(r, k, ctx)
-			if !found {
-				return simulation.NoOpMsg(types.ModuleName), nil, nil
-			}
-			k.SetAdmin(ctx, adminAddr)
-		} else {
-			adminAddr = k.GetAdmin(ctx)
+
+		adminAddr, available, found = keeper.RandomDelegation(r, k, ctx)
+		if !found {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
+		if available.LT(sdk.OneInt()) {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+		k.SetAdmin(ctx, adminAddr)
+		
 		for _, simAcc := range accs {
 			if simAcc.Address.Equals(adminAddr) {
 				simAccount = simAcc
@@ -274,7 +274,6 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 	}
 }
 
-/*
 // SimulateMsgDepositCollateral generates a MsgDepositCollateral object with all of its fields randomized.
 func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
@@ -292,13 +291,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		}
 		account := ak.GetAccount(ctx, simAccount.Address)
 
-		// poolID
-		poolID, _, found := keeper.RandomPoolInfo(r, k, ctx)
-		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
-		}
-
-		// collateral
+		// collateral coins
 		provider, found := k.GetProvider(ctx, simAccount.Address)
 		if found {
 			delAmount = provider.Available
@@ -309,7 +302,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		}
 		collateral := sdk.NewCoin(sk.BondDenom(ctx), collateralAmount)
 
-		msg := types.NewMsgDepositCollateral(simAccount.Address, poolID, collateral)
+		msg := types.NewMsgDepositCollateral(simAccount.Address, collateral)
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
@@ -337,6 +330,7 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
+
 		var simAccount simulation.Account
 		for _, simAcc := range accs {
 			if simAcc.Address.Equals(provider.Address) {
@@ -346,21 +340,15 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 		}
 		account := ak.GetAccount(ctx, simAccount.Address)
 
-		pool, _ := k.GetPool(ctx, collateral.PoolID)
-		denom := sk.BondDenom(ctx)
-		withdrawable := sdk.ZeroInt()
-		if !simAccount.Address.Equals(k.GetAdmin(ctx)) {
-			withdrawable = collateral.Amount.Sub(collateral.Withdrawing)
-		} else if pool.TotalCollateral.GT(pool.Shield.AmountOf(denom)) {
-			withdrawable = sdk.MinInt(pool.TotalCollateral.Sub(pool.Shield.AmountOf(denom)), collateral.Amount.Sub(collateral.Withdrawing))
-		}
+		// withdraw coins
+		withdrawable := provider.Collateral.Sub(provider.Withdrawing)
 		withdrawAmount, err := simulation.RandPositiveInt(r, withdrawable)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		withdraw := sdk.NewCoin(denom, withdrawAmount)
-
-		msg := types.NewMsgWithdrawCollateral(simAccount.Address, collateral.PoolID, withdraw)
+		withdraw := sdk.NewCoin(sk.BondDenom(ctx), withdrawAmount)
+		
+		msg := types.NewMsgWithdrawCollateral(simAccount.Address, withdraw)
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
@@ -380,6 +368,7 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 	}
 }
 
+/*
 // SimulateMsgWithdrawRewards generates a MsgWithdrawRewards object with all of its fields randomized.
 func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
