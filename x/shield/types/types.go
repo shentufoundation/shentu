@@ -11,6 +11,9 @@ import (
 // TotalCollateral is the amount of total collaterals in the shield module.
 type TotalCollateral sdk.Int
 
+// TotalWithdrawing is the amount of collaterals in the withdrawing queue.
+type TotalWithdrawing sdk.Int
+
 // TotalShield is the amount of all active purchased shields.
 type TotalShield sdk.Int
 
@@ -69,9 +72,6 @@ type Provider struct {
 	// TotalLocked is the amount locked for pending claims.
 	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
 
-	// Available is the amount of staked CTK available to be deposited.
-	Available sdk.Int `json:"available" yaml:"available"`
-
 	// Withdrawing is the amount of collateral in withdraw queues.
 	Withdrawing sdk.Int `json:"withdrawing" yaml:"withdrawing"`
 
@@ -86,7 +86,6 @@ func NewProvider(addr sdk.AccAddress) Provider {
 		DelegationBonded: sdk.ZeroInt(),
 		Collateral:       sdk.ZeroInt(),
 		TotalLocked:      sdk.ZeroInt(),
-		Available:        sdk.ZeroInt(),
 		Withdrawing:      sdk.ZeroInt(),
 	}
 }

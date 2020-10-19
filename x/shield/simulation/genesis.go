@@ -21,7 +21,8 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 	//gs := types.DefaultGenesisState()
 	gs := types.GenesisState{}
-	//gs.ShieldAdmin =
+	simAccount, _ := sim.RandomAcc(r, simState.Accounts)
+	gs.ShieldAdmin = simAccount.Address
 	gs.NextPoolID = 1
 	gs.PoolParams = GenPoolParams(r)
 	gs.ClaimProposalParams = GenClaimProposalParams(r)
@@ -51,8 +52,9 @@ func GenPoolParams(r *rand.Rand) types.PoolParams {
 	withdrawPeriod := time.Duration(sim.RandIntBetween(r, 60*1, 60*60*24*3)) * time.Second
 	minPoolLife := time.Duration(sim.RandIntBetween(r, 60*1, 60*60*24*5)) * time.Second
 	shieldFeesRate := sdk.NewDecWithPrec(int64(sim.RandIntBetween(r, 0, 50)), 3)
+	poolShieldLimit := sdk.NewDecWithPrec(int64(sim.RandIntBetween(r, 1, 20)), 2)
 
-	return types.NewPoolParams(protectionPeriod, minPoolLife, withdrawPeriod, shieldFeesRate)
+	return types.NewPoolParams(protectionPeriod, minPoolLife, withdrawPeriod, shieldFeesRate, poolShieldLimit)
 }
 
 // GenClaimProposalParams returns a randomized ClaimProposalParams object.

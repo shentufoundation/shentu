@@ -16,6 +16,7 @@ type GenesisState struct {
 	PoolParams          PoolParams          `json:"pool_params" yaml:"pool_params"`
 	ClaimProposalParams ClaimProposalParams `json:"claim_proposal_params" yaml:"claim_proposal_params"`
 	TotalCollateral     sdk.Int             `json:"total_collateral" yaml:"total_collateral"`
+	TotalWithdrawing    sdk.Int             `json:"total_withdrawing" yaml:"total_withdrawing"`
 	TotalShield         sdk.Int             `json:"total_shield" yaml:"total_shield"`
 	TotalLocked         sdk.Int             `json:"total_locked" yaml:"total_locked"`
 	ServiceFees         MixedDecCoins       `json:"service_fees" yaml:"service_fees"`
@@ -27,7 +28,7 @@ type GenesisState struct {
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
-	claimProposalParams ClaimProposalParams, totalCollateral, totalShield, totalLocked sdk.Int, serviceFees MixedDecCoins,
+	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked sdk.Int, serviceFees MixedDecCoins,
 	pools []Pool, providers []Provider, purchase []PurchaseList, withdraws Withdraws) GenesisState {
 	return GenesisState{
 		ShieldAdmin:         shieldAdmin,
@@ -36,6 +37,7 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		PoolParams:          poolParams,
 		ClaimProposalParams: claimProposalParams,
 		TotalCollateral:     totalCollateral,
+		TotalWithdrawing:    totalWithdrawing,
 		TotalShield:         totalShield,
 		TotalLocked:         totalLocked,
 		ServiceFees:         serviceFees,
@@ -54,6 +56,7 @@ func DefaultGenesisState() GenesisState {
 		PoolParams:          DefaultPoolParams(),
 		ClaimProposalParams: DefaultClaimProposalParams(),
 		TotalCollateral:     sdk.ZeroInt(),
+		TotalWithdrawing:    sdk.ZeroInt(),
 		TotalShield:         sdk.ZeroInt(),
 		TotalLocked:         sdk.ZeroInt(),
 		ServiceFees:         InitMixedDecCoins(),
