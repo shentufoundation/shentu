@@ -97,7 +97,7 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
 }
 
 // CreatePool creates a pool and sponsor's shield.
-func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, ProtectionPeriod time.Duration, description string) (types.Pool, error) {
+func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, protectionPeriod time.Duration, description string) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !creator.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -107,7 +107,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 		return types.Pool{}, types.ErrSponsorAlreadyExists
 	}
 
-	if !k.ValidatePoolDuration(ctx, ProtectionPeriod) {
+	if !k.ValidatePoolDuration(ctx, protectionPeriod) {
 		return types.Pool{}, types.ErrPoolLifeTooShort
 	}
 
@@ -141,19 +141,19 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 
 	// Make a pseudo-purchase for B.
 	purchaseID := k.GetNextPurchaseID(ctx)
-	protectionEndTime := ctx.BlockTime().Add(ProtectionPeriod)
-	votingPeriod := k.gk.GetVotingParams(ctx).VotingPeriod * 2
-	// FIXME +4 or +7+4?
-	deletionTime := protectionEndTime.Add(votingPeriod)
+	protectionEndTime := ctx.BlockTime().Add(protectionPeriod)
 	purchase := types.NewPurchase(purchaseID, protectionEndTime, "shield for sponsor", shieldAmt)
+	paramClimPeriodMs := k.GetClaimProposalParams(ctx).ClaimPeriod.Milliseconds()
+	paramProtectionPeriodMs := k.GetPoolParams(ctx).ProtectionPeriod.Milliseconds()
+	paramVotingPeriodMs := k.GetVotingParams(ctx).VotingPeriod.Milliseconds() * 2
+	deletionPeriod := time.Duration(paramClimPeriodMs-paramProtectionPeriodMs+paramVotingPeriodMs) * time.Millisecond
 
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, id+1)
 	k.SetProvider(ctx, admin, provider)
 	k.SetTotalCollateral(ctx, totalCollateral)
-
+	k.InsertPurchaseQueue(ctx, types.NewPurchaseList(id, sponsorAddr, []types.Purchase{purchase}), protectionEndTime.Add(deletionPeriod))
 	k.AddPurchase(ctx, id, sponsorAddr, purchase)
-	k.InsertPurchaseQueue(ctx, types.NewPurchaseList(id, sponsorAddr, []types.Purchase{purchase}), deletionTime)
 	k.SetNextPurchaseID(ctx, purchaseID+1)
 
 	return pool, nil
