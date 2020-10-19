@@ -143,7 +143,7 @@ func (am AppModule) Route() string {
 
 // NewHandler returns an sdk.Handler for the staking module.
 func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper.Keeper, am.certKeeper)
+	return staking.NewHandler(am.keeper.Keeper)
 }
 
 // QuerierRoute returns the staking module's querier route name.

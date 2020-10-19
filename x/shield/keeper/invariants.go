@@ -8,7 +8,7 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-// RegisterInvariants registers all shield invariants
+// RegisterInvariants registers all shield invariants.
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "account-collaterals",
 		AccountCollateralsInvariants(k))
@@ -26,7 +26,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 }
 
 // AccountCollateralInvariants checks that the total collaterals for an accounts has to equal the sum of
-// the account's registered collaterals
+// the account's registered collaterals.
 func AccountCollateralsInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		broken := false

@@ -11,7 +11,7 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-// BeginBlock executes logics to begin a block
+// BeginBlock executes logics to begin a block.
 func BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 }
 
@@ -23,10 +23,10 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 			k.ClosePool(ctx, pool)
 			continue
 		}
-		// compute premiums for current block
+		// Compute premiums for current block.
 		var currentBlockPremium types.MixedDecCoins
 		if ctx.BlockTime().After(pool.EndTime) {
-			// must spend all premium
+			// Must spend all premiums
 			currentBlockPremium = pool.Premium
 		} else {
 			timeUntilEnd := pool.EndTime.Sub(ctx.BlockTime())
@@ -34,7 +34,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 			currentBlockPremium = pool.Premium.QuoDec(blocksUntilEnd)
 		}
 
-		// distribute to A and C in proportion
+		// Distribute to A and C in proportion.
 		totalCollateralAmount := pool.TotalCollateral.Add(pool.TotalLocked)
 		recipients := k.GetAllPoolCollaterals(ctx, pool)
 		for _, recipient := range recipients {
@@ -49,7 +49,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 			k.AddRewards(ctx, recipient.Provider, rewards)
 		}
 
-		// pass remaining to the pool admin if pool has ended
+		// Pass remaining to the pool admin if pool has ended.
 		if pool.EndTime.Before(ctx.BlockTime()) {
 			k.AddRewards(ctx, k.GetAdmin(ctx), pool.Premium)
 			pool.Premium.Native = sdk.NewDecCoins()
@@ -59,9 +59,9 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 		k.SetPool(ctx, pool)
 	} // for each pool
 
-	// remove expired purchases
+	// Remove expired purchases.
 	k.RemoveExpiredPurchases(ctx)
 
-	// process completed withdraws
+	// Process completed withdraws.
 	k.DequeueCompletedWithdrawQueue(ctx)
 }

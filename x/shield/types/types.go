@@ -35,10 +35,10 @@ type Pool struct {
 	// TotalLocked is the amount of collaterals locked for pending claims.
 	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
 
-	// Shiled is the amount of unused shield for the pool sponsor.
+	// Shield is the amount of unused shield for the pool sponsor.
 	Shield sdk.Coins `json:"shield" yaml:"shield"`
 
-	// EndTime is the time pool maintainence ends.
+	// EndTime is the time pool maintenance ends.
 	EndTime time.Time `json:"end_time" yaml:"end_time"`
 }
 
@@ -108,7 +108,7 @@ type Provider struct {
 	Available sdk.Int `json:"available" yaml:"available"`
 
 	// Withdrawing is the amount of collateral in withdraw queues.
-	Withdrawing sdk.Int `json:"withrawal" yaml:"withdraw"`
+	Withdrawing sdk.Int `json:"withdrawing" yaml:"withdrawing"`
 
 	// Rewards is the pooling rewards to be collected.
 	Rewards MixedDecCoins `json:"rewards" yaml:"rewards"`
@@ -128,13 +128,13 @@ func NewProvider(addr sdk.AccAddress) Provider {
 
 // Purchase record an individual purchase.
 type Purchase struct {
-	// PurchaseID is the purchase_id
+	// PurchaseID is the purchase_id.
 	PurchaseID uint64 `json:"purchase_id" yaml:"purchase_id"`
 
 	// Description is the information about the protected asset.
 	Description string `json:"description" yaml:"description"`
 
-	// Shield is the unused amount of sheild purchased.
+	// Shield is the unused amount of shield purchased.
 	Shield sdk.Coins `json:"shield" yaml:"shield"`
 
 	// StartBlockHeight is the purchasing block height.
@@ -147,13 +147,13 @@ type Purchase struct {
 	// filed before.
 	ClaimPeriodEndTime time.Time `json:"claim_period_end_time" yaml:"claim_period_end_time"`
 
-	// ExpirationTime is the time when the purchase is scheduled to be
+	// DeleteTime is the time when the purchase is scheduled to be
 	// deleted.
-	ExpirationTime time.Time `json:"expiration_time" yaml:"expiration_time"`
+	DeleteTime time.Time `json:"delete_time" yaml:"delete_time"`
 }
 
-// NewPurchase creates a new purhase object.
-func NewPurchase(purchaseID uint64, shield sdk.Coins, startBlockHeight int64, protectionEndTime, claimPeriodEndTime, expirationTime time.Time, description string) Purchase {
+// NewPurchase creates a new purchase object.
+func NewPurchase(purchaseID uint64, shield sdk.Coins, startBlockHeight int64, protectionEndTime, claimPeriodEndTime, deleteTime time.Time, description string) Purchase {
 	return Purchase{
 		PurchaseID:         purchaseID,
 		Description:        description,
@@ -161,7 +161,7 @@ func NewPurchase(purchaseID uint64, shield sdk.Coins, startBlockHeight int64, pr
 		StartBlockHeight:   startBlockHeight,
 		ProtectionEndTime:  protectionEndTime,
 		ClaimPeriodEndTime: claimPeriodEndTime,
-		ExpirationTime:     expirationTime,
+		DeleteTime:         deleteTime,
 	}
 }
 
