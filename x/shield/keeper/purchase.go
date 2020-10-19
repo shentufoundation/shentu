@@ -82,7 +82,7 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	if !found {
 		return types.Purchase{}, types.ErrNoPoolFound
 	}
-	globalPool := k.GetGlobalPool(ctx)
+	totalShield := k.GetTotalShield(ctx)
 
 	// TODO check if the total shield of the pool exceeds the limit.
 
@@ -96,9 +96,9 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	}
 
 	// Update global pool and project pool's shield.
-	globalPool.TotalShield = globalPool.TotalShield.Add(shieldAmt)
+	totalShield = totalShield.Add(shieldAmt)
 	pool.Shield = pool.Shield.Add(shieldAmt)
-	k.SetGlobalPool(ctx, globalPool)
+	k.SetTotalShield(ctx, totalShield)
 	k.SetPool(ctx, pool)
 
 	// set purchase
@@ -137,7 +137,7 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 	protectionPeriod := k.GetPoolParams(ctx).ProtectionPeriod
 	claimPeriod := k.GetClaimProposalParams(ctx).ClaimPeriod
 	votingPeriod := k.gk.GetVotingParams(ctx).VotingPeriod * 2
-	globalPool := k.GetGlobalPool(ctx)
+	totalShield := k.GetTotalShield(ctx)
 
 	iterator := k.PurchaseQueueIterator(ctx, ctx.BlockTime())
 	defer iterator.Close()
@@ -156,7 +156,7 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 						// skip purchases of closed pools
 						continue
 					}
-					globalPool.TotalShield = globalPool.TotalShield.Sub(entry.Shield)
+					totalShield = totalShield.Sub(entry.Shield)
 					pool.Shield = pool.Shield.Sub(entry.Shield)
 					k.SetPool(ctx, pool)
 					continue
@@ -171,6 +171,8 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 		}
 		store.Delete(iterator.Key())
 	}
+
+	k.SetTotalShield(ctx, totalShield)
 }
 
 // GetPurchaserPurchases returns all purchases by a given purchaser.

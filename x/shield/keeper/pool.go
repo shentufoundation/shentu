@@ -9,23 +9,55 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-// SetGlobalPool sets data of the global pool in kv-store.
-func (k Keeper) SetGlobalPool(ctx sdk.Context, globalPool types.GlobalPool) {
+func (k Keeper) SetTotalCollateral(ctx sdk.Context, totalCollateral sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(globalPool)
-	store.Set(types.GetGlobalPoolKey(), bz)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalCollateral)
+	store.Set(types.GetTotalCollateralKey(), bz)
 }
 
-// GetGlobalPool gets data of the shield global pool.
-func (k Keeper) GetGlobalPool(ctx sdk.Context) types.GlobalPool {
+func (k Keeper) GetTotalCollateral(ctx sdk.Context) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetGlobalPoolKey())
+	bz := store.Get(types.GetTotalCollateralKey())
 	if bz == nil {
-		panic("global pool is not found")
+		panic("total collateral is not found")
 	}
-	var globalPool types.GlobalPool
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &globalPool)
-	return globalPool
+	var totalCollateral sdk.Int
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &totalCollateral)
+	return totalCollateral
+}
+
+func (k Keeper) SetTotalShield(ctx sdk.Context, totalCollateral sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalCollateral)
+	store.Set(types.GetTotalShieldKey(), bz)
+}
+
+func (k Keeper) GetTotalShield(ctx sdk.Context) sdk.Int {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetTotalShieldKey())
+	if bz == nil {
+		panic("total shield is not found")
+	}
+	var totalShield sdk.Int
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &totalShield)
+	return totalShield
+}
+
+func (k Keeper) SetServiceFees(ctx sdk.Context, totalCollateral types.MixedDecCoins) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalCollateral)
+	store.Set(types.GetServiceFeesKey(), bz)
+}
+
+func (k Keeper) GetServiceFees(ctx sdk.Context) types.MixedDecCoins {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetServiceFeesKey())
+	if bz == nil {
+		panic("service fees is not found")
+	}
+	var serviceFees types.MixedDecCoins
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &serviceFees)
+	return serviceFees
 }
 
 // SetPool sets data of a pool in kv-store.
@@ -83,9 +115,9 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 	}
 
 	// Update service fees in the global pool.
-	globalPool := k.GetGlobalPool(ctx)
-	globalPool.ServiceFees = globalPool.ServiceFees.Add(types.MixedDecCoinsFromMixedCoins(serviceFees))
-	k.SetGlobalPool(ctx, globalPool)
+	serviceFeesUpdate := k.GetServiceFees(ctx)
+	serviceFeesUpdate = serviceFeesUpdate.Add(types.MixedDecCoinsFromMixedCoins(serviceFees))
+	k.SetServiceFees(ctx, serviceFeesUpdate)
 
 	// Make a pseudo-purchase for B.
 	purchaseID := k.GetNextPurchaseID(ctx)

@@ -110,7 +110,7 @@ func (k Keeper) GetAllPoolCollaterals(ctx sdk.Context, pool types.Pool) (collate
 
 // DepositCollateral deposits a community member's collateral for a pool.
 func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) error {
-	globalPool := k.GetGlobalPool(ctx)
+	totalCollateral := k.GetTotalCollateral(ctx)
 
 	// Check eligibility.
 	provider, found := k.GetProvider(ctx, from)
@@ -123,8 +123,8 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, amount s
 	}
 	provider.Available = provider.Available.Sub(amount)
 
-	globalPool.TotalCollateral = globalPool.TotalCollateral.Add(amount)
-	k.SetGlobalPool(ctx, globalPool)
+	totalCollateral = totalCollateral.Add(amount)
+	k.SetTotalCollateral(ctx, totalCollateral)
 	k.SetProvider(ctx, from, provider)
 
 	return nil

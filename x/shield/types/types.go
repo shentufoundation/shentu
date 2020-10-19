@@ -6,25 +6,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// GlobalPool defines data struct for the shield global pool.
-type GlobalPool struct {
-	// TotalCollateral is the amount of total collaterals in the shield module.
-	TotalCollateral sdk.Int `json:"collateral" yaml:"collateral"`
+// Variables for the shield global pool
 
-	// TotalShield is the amount of all active purchased shields.
-	TotalShield sdk.Int `json:"shield" yaml:"shield"`
+// TotalCollateral is the amount of total collaterals in the shield module.
+type TotalCollateral sdk.Int
 
-	// ServiceFees are undistributed services fees from sponsors and purchasers.
-	ServiceFees MixedDecCoins `json:"service_fees" yaml:"service_fees"`
-}
+// TotalShield is the amount of all active purchased shields.
+type TotalShield sdk.Int
 
-// NewGlobalPool creates an empty GlobalPool instance.
-func NewGlobalPool() GlobalPool {
-	return GlobalPool{
-		TotalCollateral: sdk.ZeroInt(),
-		TotalShield:     sdk.ZeroInt(),
-	}
-}
+// ServiceFees are undistributed services fees from sponsors and purchasers.
+type ServiceFees MixedDecCoins
 
 // Pool contains a shield project pool's data.
 type Pool struct {
