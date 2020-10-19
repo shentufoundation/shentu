@@ -103,7 +103,7 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 
 	// set purchase
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
-	deletionTime := ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).ClaimPeriod).Add(k.gk.GetVotingParams(ctx).VotingPeriod)
+	deletionTime := ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).ClaimPeriod).Add(k.gk.GetVotingParams(ctx).VotingPeriod * 2)
 	purchaseID := k.GetNextPurchaseID(ctx)
 	purchase := types.NewPurchase(purchaseID, protectionEndTime, description, shieldAmt)
 	purchaseList := types.NewPurchaseList(poolID, purchaser, []types.Purchase{purchase})
@@ -130,7 +130,6 @@ func (k Keeper) IterateAllPurchases(ctx sdk.Context, callback func(purchase type
 	}
 }
 
-// TODO improve the performance
 // RemoveExpiredPurchases removes purchases whose claim period end time is before current block time.
 func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)

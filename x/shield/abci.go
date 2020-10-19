@@ -12,7 +12,7 @@ func BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 
 // EndBlocker processes premium payment at every block.
 func EndBlocker(ctx sdk.Context, k Keeper) {
-	// Distribte service fees to providers.
+	// Distribute service fees to providers.
 	k.DistributeFees(ctx)
 
 	// Remove expired purchases.
@@ -21,5 +21,3 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 	// Process completed withdraws.
 	k.DequeueCompletedWithdrawQueue(ctx)
 }
-
-

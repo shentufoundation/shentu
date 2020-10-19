@@ -12,11 +12,9 @@ import (
 
 // InitGenesis initialize store values with genesis states.
 func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorUpdate {
-	k.SetAdmin(ctx, data.ShieldAdmin)
-	k.SetNextPoolID(ctx, data.NextPoolID)
-	k.SetNextPurchaseID(ctx, data.NextPurchaseID)
 	k.SetPoolParams(ctx, data.PoolParams)
 	k.SetClaimProposalParams(ctx, data.ClaimProposalParams)
+	k.SetAdmin(ctx, data.ShieldAdmin)
 	k.SetTotalCollateral(ctx, data.TotalCollateral)
 	k.SetTotalShield(ctx, data.TotalShield)
 	k.SetTotalLocked(ctx, data.TotalLocked)
@@ -24,6 +22,8 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	for _, pool := range data.Pools {
 		k.SetPool(ctx, pool)
 	}
+	k.SetNextPoolID(ctx, data.NextPoolID)
+	k.SetNextPurchaseID(ctx, data.NextPurchaseID)
 	protectionPeriod := data.PoolParams.ProtectionPeriod
 	claimPeriod := data.ClaimProposalParams.ClaimPeriod
 	votingPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
@@ -47,18 +47,18 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 // ExportGenesis writes the current store values to a genesis file,
 // which can be imported again with InitGenesis.
 func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
-	shieldAdmin := k.GetAdmin(ctx)
-	nextPoolID := k.GetNextPoolID(ctx)
-	nextPurchaseID := k.GetNextPurchaseID(ctx)
 	poolParams := k.GetPoolParams(ctx)
 	claimProposalParams := k.GetClaimProposalParams(ctx)
+	shieldAdmin := k.GetAdmin(ctx)
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalShield := k.GetTotalShield(ctx)
 	totalLocked := k.GetTotalLocked(ctx)
 	serviceFees := k.GetServiceFees(ctx)
 	pools := k.GetAllPools(ctx)
-	providers := k.GetAllProviders(ctx)
+	nextPoolID := k.GetNextPoolID(ctx)
+	nextPurchaseID := k.GetNextPurchaseID(ctx)
 	purchaseLists := k.GetAllPurchaseLists(ctx)
+	providers := k.GetAllProviders(ctx)
 	withdraws := k.GetAllWithdraws(ctx)
 
 	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, totalCollateral, totalShield, totalLocked, serviceFees, pools, providers, purchaseLists, withdraws)
