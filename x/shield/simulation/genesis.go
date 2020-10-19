@@ -21,7 +21,8 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 	//gs := types.DefaultGenesisState()
 	gs := types.GenesisState{}
-	//gs.ShieldAdmin =
+	simAccount, _ := sim.RandomAcc(r, simState.Accounts)
+	gs.ShieldAdmin = simAccount.Address
 	gs.NextPoolID = 1
 	gs.PoolParams = GenPoolParams(r)
 	gs.ClaimProposalParams = GenClaimProposalParams(r)

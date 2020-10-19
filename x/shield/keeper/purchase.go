@@ -82,13 +82,21 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	if !found {
 		return types.Purchase{}, types.ErrNoPoolFound
 	}
-	totalShield := k.GetTotalShield(ctx)
 
-	// TODO check if the total shield of the pool exceeds the limit.
+	// Check if there are enough shield to be purchased and if the total shield of the pool exceeds the limit.
+	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
+	totalCollateral := k.GetTotalCollateral(ctx)
+	totalWithdrawing := k.GetTotalWithdrawing(ctx)
+	totalShield := k.GetTotalShield(ctx)
+	poolParams := k.GetPoolParams(ctx)
+	if totalShield.Add(shieldAmt).GT(totalCollateral.Sub(totalWithdrawing)) {
+		return types.Purchase{}, types.ErrNotEnoughCollateral
+	}
+	if pool.Shield.Add(shieldAmt).GT(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt()) {
+		return types.Purchase{}, types.ErrPoolShieldExceedsLimit
+	}
 
 	// Send tokens to shield module account.
-	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
-	poolParams := k.GetPoolParams(ctx)
 	serviceFeesAmount := shieldAmt.ToDec().Mul(poolParams.ShieldFeesRate).TruncateInt()
 	serviceFees := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), serviceFeesAmount))
 	if err := k.DepositNativeServiceFees(ctx, serviceFees, purchaser); err != nil {

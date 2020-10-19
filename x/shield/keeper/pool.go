@@ -139,7 +139,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 
 	// Check pool shield limit.
 	poolParams := k.GetPoolParams(ctx)
-	maxShield := totalCollateral.ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt()
+	maxShield := totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt()
 	if shieldAmt.GT(maxShield) {
 		return types.Pool{}, types.ErrPoolShieldExceedsLimit
 	}
