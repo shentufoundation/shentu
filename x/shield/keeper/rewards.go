@@ -41,6 +41,9 @@ func (k Keeper) AddRewards(ctx sdk.Context, provider sdk.AccAddress, earnings ty
 func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.Coins, error) {
 	rewards := k.GetRewards(ctx, addr)
 	ctkRewards, change := rewards.Native.TruncateDecimal()
+	if ctkRewards.IsZero() {
+		return nil, nil
+	}
 	rewards.Native = change
 	k.SetRewards(ctx, addr, rewards)
 	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, ctkRewards)
