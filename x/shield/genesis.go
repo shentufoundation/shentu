@@ -1,9 +1,9 @@
 package shield
 
 import (
-	"fmt"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"time"
+
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -60,7 +60,6 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	purchaseLists := k.GetAllPurchaseLists(ctx)
 	providers := k.GetAllProviders(ctx)
 	withdraws := k.GetAllWithdraws(ctx)
-	fmt.Printf(">> DEBUG ExportGenesis: now %s\npurchases %v\n", ctx.BlockTime(),purchaseLists)
 
 	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, totalCollateral, totalShield, totalLocked, serviceFees, pools, providers, purchaseLists, withdraws)
 }

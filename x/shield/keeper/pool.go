@@ -145,7 +145,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 	purchase := types.NewPurchase(purchaseID, protectionEndTime, "shield for sponsor", shieldAmt)
 	paramClimPeriodMs := k.GetClaimProposalParams(ctx).ClaimPeriod.Milliseconds()
 	paramProtectionPeriodMs := k.GetPoolParams(ctx).ProtectionPeriod.Milliseconds()
-	paramVotingPeriodMs := k.GetVotingParams(ctx).VotingPeriod.Milliseconds() * 2
+	paramVotingPeriodMs := (k.GetVotingParams(ctx).VotingPeriod * 2).Milliseconds()
 	deletionPeriod := time.Duration(paramClimPeriodMs-paramProtectionPeriodMs+paramVotingPeriodMs) * time.Millisecond
 
 	k.SetPool(ctx, pool)

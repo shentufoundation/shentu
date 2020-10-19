@@ -72,22 +72,6 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &providerB)
 		return fmt.Sprintf("%v\n%v", providerA, providerB)
 
-	case bytes.Equal(kvA.Key[:1], types.PurchaseQueueKey):
-		var pqA, pqB []types.PoolPurchaser
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &pqA)
-		fmt.Printf(">> DEBUG DecodeStore PurchaseQueueKey: key %v, pqA %v\n", kvA.Key, pqA)
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &pqB)
-		fmt.Printf(">> DEBUG DecodeStore PurchaseQueueKey: key %v, pqB %v\n", kvA.Key, pqB)
-		return fmt.Sprintf("%v\n%v", pqA, pqB)
-
-	case bytes.Equal(kvA.Key[:1], types.WithdrawQueueKey):
-		var wqA, wqB []types.Withdraw
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &wqA)
-		fmt.Printf(">> DEBUG DecodeStore WithdrawQueueKey: wqA %v\n", wqA)
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &wqB)
-		fmt.Printf(">> DEBUG DecodeStore WithdrawQueueKey: wqB %v\n", wqB)
-		return fmt.Sprintf("%v\n%v", wqA, wqB)
-
 	default:
 		panic(fmt.Sprintf("invalid %s key prefix %X", types.ModuleName, kvA.Key[:1]))
 	}
