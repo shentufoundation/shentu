@@ -82,7 +82,9 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) 
 
 	// Save the change of provider before this because withdraw also updates the provider.
 	if withdrawAmount.IsPositive() {
-		k.WithdrawFromPools(ctx, delAddr, withdrawAmount)
+		if err := k.WithdrawCollateral(ctx, delAddr, withdrawAmount); err != nil {
+			panic("failed to withdraw collateral from the shield global pool")
+		}
 	}
 }
 
@@ -119,7 +121,9 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	k.SetProvider(ctx, delAddr, provider)
 
 	if withdrawAmount.IsPositive() {
-		k.WithdrawFromPools(ctx, delAddr, withdrawAmount)
+		if err := k.WithdrawCollateral(ctx, delAddr, withdrawAmount); err != nil {
+			panic("failed to withdraw collateral from the shield global pool")
+		}
 	}
 }
 

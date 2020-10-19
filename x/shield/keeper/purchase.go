@@ -82,44 +82,33 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	if !found {
 		return types.Purchase{}, types.ErrNoPoolFound
 	}
-	poolParams := k.GetPoolParams(ctx)
-	claimParams := k.GetClaimProposalParams(ctx)
+	globalPool := k.GetGlobalPool(ctx)
 
-	// check preconditions
-	if err := k.PoolShieldAvailable(ctx, pool); err != nil {
-		return types.Purchase{}, err
-	}
+	// TODO check if the total shield of the pool exceeds the limit.
 
+	// Send tokens to shield module account.
 	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
-	if shieldAmt.GT(pool.Available) {
-		return types.Purchase{}, types.ErrNotEnoughShield
-	}
-	if pool.SponsorAddr.Equals(purchaser) {
-		return types.Purchase{}, types.ErrSponsorPurchase
-	}
-
-	// send tokens to shield module account
-	shieldDec := sdk.NewDecCoinsFromCoins(shield...)
-	premium, _ := shieldDec.MulDec(poolParams.ShieldFeesRate).TruncateDecimal()
-	if err := k.DepositNativePremium(ctx, premium, purchaser); err != nil {
+	poolParams := k.GetPoolParams(ctx)
+	serviceFeesAmount := shieldAmt.ToDec().Mul(poolParams.ShieldFeesRate).TruncateInt()
+	serviceFees := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), serviceFeesAmount))
+	if err := k.DepositNativeServiceFees(ctx, serviceFees, purchaser); err != nil {
 		return types.Purchase{}, err
 	}
 
-	// update pool premium, shield and available
-	premiumMixedDec := types.NewMixedDecCoins(sdk.NewDecCoinsFromCoins(premium...), sdk.DecCoins{})
-	pool.Premium = pool.Premium.Add(premiumMixedDec)
-	pool.Shield = pool.Shield.Add(shield...)
-	pool.Available = pool.Available.Sub(shieldAmt)
+	// Update global pool and project pool's shield.
+	globalPool.TotalShield = globalPool.TotalShield.Add(shieldAmt)
+	pool.Shield = pool.Shield.Add(shieldAmt)
+	k.SetGlobalPool(ctx, globalPool)
 	k.SetPool(ctx, pool)
 
 	// set purchase
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
-	claimPeriodEndTime := ctx.BlockTime().Add(claimParams.ClaimPeriod)
+	deletionTime := ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).ClaimPeriod).Add(k.gk.GetVotingParams(ctx).VotingPeriod)
 	purchaseID := k.GetNextPurchaseID(ctx)
-	purchase := types.NewPurchase(purchaseID, shield, ctx.BlockHeight(), protectionEndTime, claimPeriodEndTime, claimPeriodEndTime, description)
+	purchase := types.NewPurchase(purchaseID, protectionEndTime, description, shieldAmt)
 	purchaseList := types.NewPurchaseList(poolID, purchaser, []types.Purchase{purchase})
 	k.AddPurchase(ctx, poolID, purchaser, purchase)
-	k.InsertPurchaseQueue(ctx, purchaseList, claimPeriodEndTime)
+	k.InsertPurchaseQueue(ctx, purchaseList, deletionTime)
 	k.SetNextPurchaseID(ctx, purchaseID+1)
 
 	return purchase, nil
@@ -145,8 +134,12 @@ func (k Keeper) IterateAllPurchases(ctx sdk.Context, callback func(purchase type
 // RemoveExpiredPurchases removes purchases whose claim period end time is before current block time.
 func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
+	protectionPeriod := k.GetPoolParams(ctx).ProtectionPeriod
+	claimPeriod := k.GetClaimProposalParams(ctx).ClaimPeriod
+	votingPeriod := k.gk.GetVotingParams(ctx).VotingPeriod * 2
+	globalPool := k.GetGlobalPool(ctx)
+
 	iterator := k.PurchaseQueueIterator(ctx, ctx.BlockTime())
-	bondDenom := k.sk.BondDenom(ctx)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var timeslice []types.PoolPurchaser
@@ -156,14 +149,14 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 
 			for i := 0; i < len(purchaseList.Entries); {
 				entry := purchaseList.Entries[i]
-				if entry.DeleteTime.Before(ctx.BlockTime()) {
+				if entry.ProtectionEndTime.Add(claimPeriod).Add(votingPeriod).Before(ctx.BlockTime().Add(protectionPeriod)) {
 					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
 					pool, found := k.GetPool(ctx, purchaseList.PoolID)
 					if !found {
 						// skip purchases of closed pools
 						continue
 					}
-					pool.Available = pool.Available.Add(entry.Shield.AmountOf(bondDenom))
+					globalPool.TotalShield = globalPool.TotalShield.Sub(entry.Shield)
 					pool.Shield = pool.Shield.Sub(entry.Shield)
 					k.SetPool(ctx, pool)
 					continue
@@ -184,7 +177,7 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 func (k Keeper) GetPurchaserPurchases(ctx sdk.Context, address sdk.AccAddress) (res []types.PurchaseList) {
 	pools := k.GetAllPools(ctx)
 	for _, pool := range pools {
-		pList, found := k.GetPurchaseList(ctx, pool.PoolID, address)
+		pList, found := k.GetPurchaseList(ctx, pool.ID, address)
 		if !found {
 			continue
 		}
@@ -298,16 +291,4 @@ func (k Keeper) GetNextPurchaseID(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	opBz := store.Get(types.GetNextPurchaseIDKey())
 	return binary.LittleEndian.Uint64(opBz)
-}
-
-// PoolShieldAvailable checks if there is enough time for a purchase.
-func (k Keeper) PoolShieldAvailable(ctx sdk.Context, pool types.Pool) error {
-	if !pool.Active {
-		return types.ErrPoolInactive
-	}
-	claimParams := k.GetClaimProposalParams(ctx)
-	if pool.EndTime.Before(ctx.BlockTime().Add(claimParams.ClaimPeriod).Add(k.GetVotingParams(ctx).VotingPeriod * 2)) {
-		return types.ErrPoolLifeTooShort
-	}
-	return nil
 }

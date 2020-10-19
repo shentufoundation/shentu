@@ -1,6 +1,8 @@
 package shield
 
 import (
+	"time"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -26,10 +28,14 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 		}
 		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
 	}
+	protectionPeriod := data.PoolParams.ProtectionPeriod
+	claimPeriod := data.ClaimProposalParams.ClaimPeriod
+	votingPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
+	deletionPeriod := time.Duration(claimPeriod.Milliseconds()-protectionPeriod.Milliseconds()+votingPeriod.Milliseconds()) * time.Millisecond
 	for _, purchaseList := range data.PurchaseLists {
 		k.SetPurchaseList(ctx, purchaseList)
 		for _, entry := range purchaseList.Entries {
-			k.InsertPurchaseQueue(ctx, purchaseList, entry.DeleteTime)
+			k.InsertPurchaseQueue(ctx, purchaseList, entry.ProtectionEndTime.Add(deletionPeriod))
 		}
 	}
 	for _, provider := range data.Providers {

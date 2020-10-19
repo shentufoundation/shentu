@@ -8,30 +8,28 @@ import (
 
 // GlobalPool defines data struct for the shield global pool.
 type GlobalPool struct {
-	Collateral  sdk.Int      `json:"collateral" yaml:"collateral"`
-	Available   sdk.Int      `json:"available" yaml:"available"`
-	ServiceFees []ServiceFee `json:"service_fees" yaml:"service_fees"`
+	// TotalCollateral is the amount of total collaterals in the shield module.
+	TotalCollateral sdk.Int `json:"collateral" yaml:"collateral"`
+
+	// TotalShield is the amount of all active purchased shields.
+	TotalShield sdk.Int `json:"shield" yaml:"shield"`
+
+	// ServiceFees are undistributed services fees from sponsors and purchasers.
+	ServiceFees MixedDecCoins `json:"service_fees" yaml:"service_fees"`
 }
 
 // NewGlobalPool creates an empty GlobalPool instance.
 func NewGlobalPool() GlobalPool {
 	return GlobalPool{
-		Collateral: sdk.ZeroInt(),
-		Available:  sdk.ZeroInt(),
+		TotalCollateral: sdk.ZeroInt(),
+		TotalShield:     sdk.ZeroInt(),
 	}
 }
 
-// ServiceFee defines data struct for a service fee to be distributed.
-type ServiceFee struct {
-	Remaining sdk.DecCoin `json:"remaining" yaml:"remaining"`
-	StartTime time.Time   `json:"start_time" yaml:"start_time"`
-	EndTime   time.Time   `json:"end_time" yaml:"end_time"`
-}
-
-// Pool contains a shield pool's data.
+// Pool contains a shield project pool's data.
 type Pool struct {
-	// PoolID is the id of the pool.
-	PoolID uint64 `json:"pool_id" yaml:"pool_id"`
+	// ID is the id of the pool.
+	ID uint64 `json:"id" yaml:"id"`
 
 	// Description is the term of the pool.
 	Description string `json:"description" yaml:"description"`
@@ -39,42 +37,25 @@ type Pool struct {
 	// Sponsor is the project owner of the pool.
 	Sponsor string `json:"sponsor" yaml:"sponsor"`
 
-	// SponsorAddr is the CertiK Chain address of the sponsor.
-	SponsorAddr sdk.AccAddress `json:"sponsor_address" yaml:"sponsor_address"`
+	// SponsorAddress is the CertiK Chain address of the sponsor.
+	SponsorAddress sdk.AccAddress `json:"sponsor_address" yaml:"sponsor_address"`
 
 	// Active means new purchases are allowed.
 	Active bool `json:"active" yaml:"active"`
 
-	// Premium is the undistributed pool premium from the sponsor.
-	Premium MixedDecCoins `json:"premium" yaml:"premium"`
-
-	// TotalCollateral is the amount of all collaterals in the pool.
-	TotalCollateral sdk.Int `json:"total_collateral" yaml:"total_collateral"`
-
-	// Available is the amount of collaterals available to be purchased.
-	Available sdk.Int `json:"available" yaml:"available"`
-
-	// TotalLocked is the amount of collaterals locked for pending claims.
-	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
-
-	// Shield is the amount of unused shield for the pool sponsor.
-	Shield sdk.Coins `json:"shield" yaml:"shield"`
-
-	// EndTime is the time pool maintenance ends.
-	EndTime time.Time `json:"end_time" yaml:"end_time"`
+	// Shield is the amount of all active purchased shields.
+	Shield sdk.Int `json:"shield" yaml:"shield"`
 }
 
-// NewPool creates a new shield pool.
-func NewPool(shield sdk.Coins, totalCollateral sdk.Int, deposit MixedDecCoins, sponsor string, sponsorAddr sdk.AccAddress, endTime time.Time, id uint64) Pool {
+// NewPool creates a new project pool.
+func NewPool(id uint64, description, sponsor string, sponsorAddress sdk.AccAddress, shield sdk.Int) Pool {
 	return Pool{
-		Shield:          shield,
-		Premium:         deposit,
-		Sponsor:         sponsor,
-		SponsorAddr:     sponsorAddr,
-		Active:          true,
-		TotalCollateral: totalCollateral,
-		EndTime:         endTime,
-		PoolID:          id,
+		ID:             id,
+		Description:    description,
+		Sponsor:        sponsor,
+		SponsorAddress: sponsorAddress,
+		Active:         true,
+		Shield:         shield,
 	}
 }
 
@@ -104,7 +85,7 @@ type Collateral struct {
 // NewCollateral creates a new collateral object.
 func NewCollateral(pool Pool, provider sdk.AccAddress, amount sdk.Int) Collateral {
 	return Collateral{
-		PoolID:   pool.PoolID,
+		PoolID:   pool.ID,
 		Provider: provider,
 		Amount:   amount,
 	}
@@ -153,37 +134,23 @@ type Purchase struct {
 	// PurchaseID is the purchase_id.
 	PurchaseID uint64 `json:"purchase_id" yaml:"purchase_id"`
 
+	// ProtectionEndTime is the time when the protection of the shield ends.
+	ProtectionEndTime time.Time `json:"protection_end_time" yaml:"protection_end_time"`
+
 	// Description is the information about the protected asset.
 	Description string `json:"description" yaml:"description"`
 
 	// Shield is the unused amount of shield purchased.
-	Shield sdk.Coins `json:"shield" yaml:"shield"`
-
-	// StartBlockHeight is the purchasing block height.
-	StartBlockHeight int64 `json:"start_block_height" yaml:"start_block_height"`
-
-	// ProtectionEndTime is the time when the protection of the shield ends.
-	ProtectionEndTime time.Time `json:"protection_end_time" yaml:"protection_end_time"`
-
-	// ClaimPeriodEndTime is the time when any claims to the shield must be
-	// filed before.
-	ClaimPeriodEndTime time.Time `json:"claim_period_end_time" yaml:"claim_period_end_time"`
-
-	// DeleteTime is the time when the purchase is scheduled to be
-	// deleted.
-	DeleteTime time.Time `json:"delete_time" yaml:"delete_time"`
+	Shield sdk.Int `json:"shield" yaml:"shield"`
 }
 
 // NewPurchase creates a new purchase object.
-func NewPurchase(purchaseID uint64, shield sdk.Coins, startBlockHeight int64, protectionEndTime, claimPeriodEndTime, deleteTime time.Time, description string) Purchase {
+func NewPurchase(purchaseID uint64, protectionEndTime time.Time, description string, shield sdk.Int) Purchase {
 	return Purchase{
-		PurchaseID:         purchaseID,
-		Description:        description,
-		Shield:             shield,
-		StartBlockHeight:   startBlockHeight,
-		ProtectionEndTime:  protectionEndTime,
-		ClaimPeriodEndTime: claimPeriodEndTime,
-		DeleteTime:         deleteTime,
+		PurchaseID:        purchaseID,
+		ProtectionEndTime: protectionEndTime,
+		Description:       description,
+		Shield:            shield,
 	}
 }
 
@@ -219,9 +186,6 @@ type PoolPurchaser struct {
 
 // Withdraw stores an ongoing withdraw of pool collateral.
 type Withdraw struct {
-	// PoolID is the id of the shield withdrawing collateral from.
-	PoolID uint64 `json:"pool_id" yaml:"pool_id"`
-
 	// Address is the chain address of the provider withdrawing.
 	Address sdk.AccAddress `json:"address" yaml:"address"`
 
@@ -233,9 +197,8 @@ type Withdraw struct {
 }
 
 // NewWithdraw creates a new withdraw object.
-func NewWithdraw(poolID uint64, addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) Withdraw {
+func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) Withdraw {
 	return Withdraw{
-		PoolID:         poolID,
 		Address:        addr,
 		Amount:         amount,
 		CompletionTime: completionTime,

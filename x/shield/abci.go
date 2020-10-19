@@ -1,14 +1,9 @@
 package shield
 
 import (
-	"time"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // BeginBlock executes logics to begin a block.
@@ -17,47 +12,7 @@ func BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 
 // EndBlocker processes premium payment at every block.
 func EndBlocker(ctx sdk.Context, k Keeper) {
-	pools := k.GetAllPools(ctx)
-	for _, pool := range pools {
-		if k.PoolEnded(ctx, pool) && (pool.Premium.Native.Empty() && pool.Premium.Foreign.Empty()) {
-			k.ClosePool(ctx, pool)
-			continue
-		}
-		// Compute premiums for current block.
-		var currentBlockPremium types.MixedDecCoins
-		if ctx.BlockTime().After(pool.EndTime) {
-			// Must spend all premiums
-			currentBlockPremium = pool.Premium
-		} else {
-			timeUntilEnd := pool.EndTime.Sub(ctx.BlockTime())
-			blocksUntilEnd := sdk.MaxDec(sdk.NewDec(int64(timeUntilEnd/time.Second)).QuoInt64(int64(common.SecondsPerBlock)), sdk.OneDec())
-			currentBlockPremium = pool.Premium.QuoDec(blocksUntilEnd)
-		}
-
-		// Distribute to A and C in proportion.
-		totalCollateralAmount := pool.TotalCollateral.Add(pool.TotalLocked)
-		recipients := k.GetAllPoolCollaterals(ctx, pool)
-		for _, recipient := range recipients {
-			stakeProportion := sdk.NewDecFromInt(sdk.MaxInt(recipient.Amount.Add(recipient.TotalLocked), sdk.ZeroInt())).QuoInt(totalCollateralAmount)
-			nativePremium := currentBlockPremium.Native.MulDecTruncate(stakeProportion)
-			foreignPremium := currentBlockPremium.Foreign.MulDecTruncate(stakeProportion)
-
-			pool.Premium.Native = pool.Premium.Native.Sub(nativePremium)
-			pool.Premium.Foreign = pool.Premium.Foreign.Sub(foreignPremium)
-
-			rewards := types.NewMixedDecCoins(nativePremium, foreignPremium)
-			k.AddRewards(ctx, recipient.Provider, rewards)
-		}
-
-		// Pass remaining to the pool admin if pool has ended.
-		if pool.EndTime.Before(ctx.BlockTime()) {
-			k.AddRewards(ctx, k.GetAdmin(ctx), pool.Premium)
-			pool.Premium.Native = sdk.NewDecCoins()
-			pool.Premium.Foreign = sdk.NewDecCoins()
-		}
-
-		k.SetPool(ctx, pool)
-	} // for each pool
+	// TODO distribute global.ServiceFees to all providers
 
 	// Remove expired purchases.
 	k.RemoveExpiredPurchases(ctx)

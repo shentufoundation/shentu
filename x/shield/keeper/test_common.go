@@ -40,7 +40,7 @@ func RandomPoolInfo(r *rand.Rand, k Keeper, ctx sdk.Context) (uint64, string, bo
 		return 0, "", false
 	}
 	i := r.Intn(len(pools))
-	return pools[i].PoolID, pools[i].Sponsor, true
+	return pools[i].ID, pools[i].Sponsor, true
 }
 
 // RandomCollateral returns a random collateral given access to the keeper and ctx.

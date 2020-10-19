@@ -1,5 +1,6 @@
 package simulation
 
+/*
 import (
 	"math/rand"
 	"strings"
@@ -558,3 +559,4 @@ func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper)
 		)
 	}
 }
+*/

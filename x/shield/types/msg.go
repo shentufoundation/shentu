@@ -16,10 +16,11 @@ type MsgCreatePool struct {
 	Sponsor        string         `json:"sponsor" yaml:"sponsor"`
 	SponsorAddr    sdk.AccAddress `json:"sponsor_addr" yaml:"sponsor_addr"`
 	TimeOfCoverage time.Duration  `json:"time_of_coverage" yaml:"time_of_coverage"`
+	Description    string         `json:"description" yaml:"description"`
 }
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
-func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, time time.Duration) MsgCreatePool {
+func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, time time.Duration, description string) MsgCreatePool {
 	return MsgCreatePool{
 		From:           accAddr,
 		Shield:         shield,
@@ -27,6 +28,7 @@ func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoi
 		Sponsor:        sponsor,
 		SponsorAddr:    sponsorAddr,
 		TimeOfCoverage: time,
+		Description:    description,
 	}
 }
 

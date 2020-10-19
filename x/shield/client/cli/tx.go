@@ -169,7 +169,9 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 			timeOfCoverage := viper.GetInt64(flagTimeOfCoverage)
 			coverageDuration := time.Duration(timeOfCoverage) * time.Second
 
-			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, coverageDuration)
+			description := viper.GetString(flagDescription)
+
+			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, coverageDuration, description)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -177,6 +179,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagForeignDeposit, "", "foreign coins deposit amount")
 	cmd.Flags().Int64(flagTimeOfCoverage, 0, "time of coverage")
