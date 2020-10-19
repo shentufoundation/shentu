@@ -30,8 +30,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 		serviceFees.Foreign = serviceFees.Foreign.Sub(foreignFees)
 
 		rewards := types.NewMixedDecCoins(nativeFees, foreignFees)
-		provider.Rewards.Add(rewards)
-		k.SetProvider(ctx, provider.Address, provider)
+		k.AddRewards(ctx, provider.Address, rewards)
 	}
 	k.SetServiceFees(ctx, serviceFees)
 
