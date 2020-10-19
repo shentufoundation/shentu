@@ -119,7 +119,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 		k.SetAdmin(ctx, adminAddr)
-		
+
 		for _, simAcc := range accs {
 			if simAcc.Address.Equals(adminAddr) {
 				simAccount = simAcc
@@ -347,7 +347,7 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 		withdraw := sdk.NewCoin(sk.BondDenom(ctx), withdrawAmount)
-		
+
 		msg := types.NewMsgWithdrawCollateral(simAccount.Address, withdraw)
 
 		fees := sdk.Coins{}
@@ -367,7 +367,6 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
-
 
 // SimulateMsgWithdrawRewards generates a MsgWithdrawRewards object with all of its fields randomized.
 func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {

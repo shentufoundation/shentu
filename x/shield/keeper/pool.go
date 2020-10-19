@@ -4,7 +4,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -107,58 +106,54 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 		return types.Pool{}, types.ErrSponsorAlreadyExists
 	}
 
+	// FIXME: This is incorrect. Should make sure the protection period is 21x days.
 	if !k.ValidatePoolDuration(ctx, protectionPeriod) {
 		return types.Pool{}, types.ErrPoolLifeTooShort
 	}
 
-	// Check if shield is backed by admin's delegations.
-	provider, found := k.GetProvider(ctx, admin)
-	if !found {
-		provider = k.addProvider(ctx, admin)
-	}
+	// Check available collaterals.
 	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
-	provider.Collateral = provider.Collateral.Add(shieldAmt)
-	if shieldAmt.GT(provider.Available) {
-		return types.Pool{}, sdkerrors.Wrapf(types.ErrInsufficientStaking, "available %s, shield %s", provider.Available, shield)
-	}
-	provider.Available = provider.Available.Sub(shieldAmt)
-
 	totalCollateral := k.GetTotalCollateral(ctx)
-	totalCollateral = totalCollateral.Add(shieldAmt)
+	totalShield := k.GetTotalShield(ctx)
+	if totalShield.Add(shieldAmt).GT(totalCollateral) {
+		return types.Pool{}, types.ErrNotEnoughCollateral
+	}
 
-	id := k.GetNextPoolID(ctx)
-	pool := types.NewPool(id, description, sponsor, sponsorAddr, shieldAmt)
+	// Check pool shield limit.
+	poolParams := k.GetPoolParams(ctx)
+	maxShield := totalCollateral.ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt()
+	if shieldAmt.GT(maxShield) {
+		return types.Pool{}, types.ErrPoolShieldExceedsLimit
+	}
 
-	// Transfer deposit to the Shield module account.
+	// Transfer service fees to the Shield module account.
 	if err := k.DepositNativeServiceFees(ctx, serviceFees.Native, creator); err != nil {
 		return types.Pool{}, err
 	}
+
+	// Set the new project pool.
+	id := k.GetNextPoolID(ctx)
+	pool := types.NewPool(id, description, sponsor, sponsorAddr, shieldAmt)
+	k.SetPool(ctx, pool)
+	k.SetNextPoolID(ctx, id+1)
 
 	// Update service fees in the global pool.
 	serviceFeesUpdate := k.GetServiceFees(ctx)
 	serviceFeesUpdate = serviceFeesUpdate.Add(types.MixedDecCoinsFromMixedCoins(serviceFees))
 	k.SetServiceFees(ctx, serviceFeesUpdate)
 
-	// Make a pseudo-purchase for B.
+	// Make a purchase for B.
 	purchaseID := k.GetNextPurchaseID(ctx)
 	protectionEndTime := ctx.BlockTime().Add(protectionPeriod)
 	purchase := types.NewPurchase(purchaseID, protectionEndTime, "shield for sponsor", shieldAmt)
-	paramClimPeriodMs := k.GetClaimProposalParams(ctx).ClaimPeriod.Milliseconds()
-	paramProtectionPeriodMs := k.GetPoolParams(ctx).ProtectionPeriod.Milliseconds()
-	paramVotingPeriodMs := (k.GetVotingParams(ctx).VotingPeriod * 2).Milliseconds()
-	deletionPeriod := time.Duration(paramClimPeriodMs-paramProtectionPeriodMs+paramVotingPeriodMs) * time.Millisecond
-
-	k.SetPool(ctx, pool)
-	k.SetNextPoolID(ctx, id+1)
-	k.SetProvider(ctx, admin, provider)
-	k.SetTotalCollateral(ctx, totalCollateral)
-	k.InsertPurchaseQueue(ctx, types.NewPurchaseList(id, sponsorAddr, []types.Purchase{purchase}), protectionEndTime.Add(deletionPeriod))
+	k.InsertPurchaseQueue(ctx, types.NewPurchaseList(id, sponsorAddr, []types.Purchase{purchase}), protectionEndTime.Add(k.GetPurchaseDeletionPeriod(ctx)))
 	k.AddPurchase(ctx, id, sponsorAddr, purchase)
 	k.SetNextPurchaseID(ctx, purchaseID+1)
 
 	return pool, nil
 }
 
+// FIXME UpdatePool only updates descriptions now. Any other things to be updated?
 // UpdatePool updates pool info.
 func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
