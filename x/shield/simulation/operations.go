@@ -37,7 +37,7 @@ var (
 	DefaultWeightMsgUpdatePool             = 10
 	DefaultWeightMsgDepositCollateral      = 20
 	DefaultWeightMsgWithdrawCollateral     = 0
-	DefaultWeightMsgWithdrawRewards        = 0 
+	DefaultWeightMsgWithdrawRewards        = 0
 	DefaultWeightMsgWithdrawForeignRewards = 0
 	DefaultWeightMsgPurchaseShield         = 0
 	DefaultWeightShieldClaimProposal       = 0
@@ -178,7 +178,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		sponsorAcc, _ := simulation.RandomAcc(r, accs)
 
 		description := simulation.RandStringOfLength(r, 42)
-		
+
 		msg := types.NewMsgCreatePool(simAccount.Address, shield, deposit, sponsor, sponsorAcc.Address, coverageDuration, description)
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(

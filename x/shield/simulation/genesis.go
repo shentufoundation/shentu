@@ -19,8 +19,6 @@ const letters = "abcdefghijklmnopqrstuvwxyz"
 func RandomizedGenState(simState *module.SimulationState) {
 	r := simState.Rand
 
-	//numPools := uint64(sim.RandIntBetween(r, 10, 30))
-
 	//gs := types.DefaultGenesisState()
 	gs := types.GenesisState{}
 	//gs.ShieldAdmin =

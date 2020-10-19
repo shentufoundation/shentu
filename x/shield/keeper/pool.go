@@ -43,6 +43,23 @@ func (k Keeper) GetTotalShield(ctx sdk.Context) sdk.Int {
 	return totalShield
 }
 
+func (k Keeper) SetTotalLocked(ctx sdk.Context, totalLocked sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalLocked)
+	store.Set(types.GetTotalLockedKey(), bz)
+}
+
+func (k Keeper) GetTotalLocked(ctx sdk.Context) sdk.Int {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetTotalLockedKey())
+	if bz == nil {
+		panic("total shield is not found")
+	}
+	var totalLocked sdk.Int
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &totalLocked)
+	return totalLocked
+}
+
 func (k Keeper) SetServiceFees(ctx sdk.Context, totalCollateral types.MixedDecCoins) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalCollateral)
