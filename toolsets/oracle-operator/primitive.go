@@ -15,7 +15,7 @@ func getPrimitivePayload(msg oracle.MsgCreateTask) (types.PrimitivePayload, erro
 	if err != nil {
 		return types.PrimitivePayload{}, fmt.Errorf("wrong task contract format: %s", err.Error())
 	}
-	return types.PrimitivePayload{Client: client, Address: contract, Function: msg.Function}, nil
+	return types.PrimitivePayload{Client: client, Address: contract, Function: msg.Function, Contract: msg.Contract}, nil
 }
 
 // queryPrimitive gets score for each primitive.
@@ -32,7 +32,7 @@ func queryPrimitive(
 		ctx,
 		primitive.PrimitiveContractAddr,
 		types.PrimitiveContractFnName,
-		[]string{payload.Address, payload.Function},
+		[]string{payload.Contract, payload.Function},
 	)
 	if err != nil {
 		logger.Error(err.Error())
