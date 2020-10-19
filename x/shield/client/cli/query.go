@@ -29,9 +29,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdPurchaseList(queryRoute, cdc),
 		GetCmdPurchaserPurchases(queryRoute, cdc),
 		GetCmdPoolPurchases(queryRoute, cdc),
-		GetCmdPoolCollaterals(queryRoute, cdc),
 		GetCmdProvider(queryRoute, cdc),
-		GetCmdProviderCollaterals(queryRoute, cdc),
 		GetCmdPoolParams(queryRoute, cdc),
 		GetCmdClaimParams(queryRoute, cdc),
 	)...)
@@ -193,56 +191,6 @@ func GetCmdProvider(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			var out types.Provider
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
-		},
-	}
-
-	return cmd
-}
-
-// GetCmdProviderCollaterals returns the command for querying collaterals
-// from a given provider.
-func GetCmdProviderCollaterals(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "collaterals-from [provider_address]",
-		Short: "query collaterals from a provider",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			route := fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryProviderCollaterals, args[0])
-			res, _, err := cliCtx.QueryWithData(route, nil)
-			if err != nil {
-				return err
-			}
-
-			var out []types.Collateral
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
-		},
-	}
-
-	return cmd
-}
-
-// GetCmdPoolCollaterals returns the command for querying collaterals
-// for a given pool.
-func GetCmdPoolCollaterals(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "collaterals-for [pool_ID]",
-		Short: "query collaterals from a provider",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			route := fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryPoolCollaterals, args[0])
-			res, _, err := cliCtx.QueryWithData(route, nil)
-			if err != nil {
-				return err
-			}
-
-			var out []types.Collateral
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},

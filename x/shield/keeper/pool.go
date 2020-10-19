@@ -106,6 +106,9 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 	}
 	provider.Available = provider.Available.Sub(shieldAmt)
 
+	totalCollateral := k.GetTotalCollateral(ctx)
+	totalCollateral = totalCollateral.Add(shieldAmt)
+
 	id := k.GetNextPoolID(ctx)
 	pool := types.NewPool(id, description, sponsor, sponsorAddr, shieldAmt)
 
@@ -130,7 +133,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, id+1)
 	k.SetProvider(ctx, admin, provider)
-	k.SetCollateral(ctx, pool, admin, types.NewCollateral(pool, admin, shieldAmt))
+	k.SetTotalCollateral(ctx, totalCollateral)
 
 	k.AddPurchase(ctx, id, sponsorAddr, purchase)
 	k.InsertPurchaseQueue(ctx, types.NewPurchaseList(id, sponsorAddr, []types.Purchase{purchase}), deletionTime)

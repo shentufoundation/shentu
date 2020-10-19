@@ -23,13 +23,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	for _, pool := range data.Pools {
 		k.SetPool(ctx, pool)
 	}
-	for _, collateral := range data.Collaterals {
-		pool, found := k.GetPool(ctx, collateral.PoolID)
-		if !found {
-			panic(types.ErrNoPoolFound)
-		}
-		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
-	}
 	protectionPeriod := data.PoolParams.ProtectionPeriod
 	claimPeriod := data.ClaimProposalParams.ClaimPeriod
 	votingPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
@@ -61,10 +54,9 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	totalShield := k.GetTotalShield(ctx)
 	serviceFees := k.GetServiceFees(ctx)
 	pools := k.GetAllPools(ctx)
-	collaterals := k.GetAllCollaterals(ctx)
 	providers := k.GetAllProviders(ctx)
 	purchaseLists := k.GetAllPurchaseLists(ctx)
 	withdraws := k.GetAllWithdraws(ctx)
 
-	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, totalCollateral, totalShield, serviceFees, pools, collaterals, providers, purchaseLists, withdraws)
+	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, totalCollateral, totalShield, serviceFees, pools, providers, purchaseLists, withdraws)
 }

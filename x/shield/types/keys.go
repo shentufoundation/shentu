@@ -32,7 +32,6 @@ var (
 	PurchaseListKey    = []byte{0x5}
 	PurchaseQueueKey   = []byte{0x6}
 	ReimbursementKey   = []byte{0x7}
-	CollateralKey      = []byte{0x8}
 	ProviderKey        = []byte{0x9}
 	WithdrawQueueKey   = []byte{0xA}
 	TotalCollateralKey = []byte{0xB}
@@ -105,18 +104,4 @@ func GetReimbursementKey(proposalID uint64) []byte {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, proposalID)
 	return append(ReimbursementKey, bz...)
-}
-
-// GetCollateralKey gets the key for a collateral.
-func GetCollateralKey(poolID uint64, address sdk.AccAddress) []byte {
-	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, poolID)
-	return append(CollateralKey, append(bz, address...)...)
-}
-
-// GetPoolCollateralsKey gets the key for collaterals of a pool.
-func GetPoolCollateralsKey(poolID uint64) []byte {
-	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, poolID)
-	return append(CollateralKey, bz...)
 }

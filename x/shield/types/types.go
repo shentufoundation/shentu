@@ -17,6 +17,7 @@ type TotalShield sdk.Int
 // ServiceFees are undistributed services fees from sponsors and purchasers.
 type ServiceFees MixedDecCoins
 
+
 // Pool contains a shield project pool's data.
 type Pool struct {
 	// ID is the id of the pool.
@@ -47,38 +48,6 @@ func NewPool(id uint64, description, sponsor string, sponsorAddress sdk.AccAddre
 		SponsorAddress: sponsorAddress,
 		Active:         true,
 		Shield:         shield,
-	}
-}
-
-// Collateral records the collaterals provided by a provider in a shield pool.
-type Collateral struct {
-	// PoolID is the id of the shield pool.
-	PoolID uint64 `json:"pool_id" yaml:"pool_id"`
-
-	// Provider is the chain address of the provider.
-	Provider sdk.AccAddress `json:"provider" yaml:"provider"`
-
-	// Amount is the collateral amount, including withdrawing but excluding
-	// locked.
-	Amount sdk.Int `json:"amount" yaml:"amount"`
-
-	// Withdrawing is the amount of collateral in withdrawing process.
-	Withdrawing sdk.Int `json:"withdrawing" yaml:"withdrawing"`
-
-	// TotalLocked is the amount of collateral locked up for pending claims.
-	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
-
-	// LockedCollaterals stores collaterals locked up for claims against the
-	// provider and the pool.
-	LockedCollaterals []LockedCollateral `json:"locked_collaterals" yaml:"locked_collaterals"`
-}
-
-// NewCollateral creates a new collateral object.
-func NewCollateral(pool Pool, provider sdk.AccAddress, amount sdk.Int) Collateral {
-	return Collateral{
-		PoolID:   pool.ID,
-		Provider: provider,
-		Amount:   amount,
 	}
 }
 
