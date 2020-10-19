@@ -122,8 +122,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.V
 // TODO: Simulation functions
 // WeightedOperations returns shield operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	// return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.accountKeeper, am.stakingKeeper)
-	return nil
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.accountKeeper, am.stakingKeeper)
 }
 
 // ProposalContents returns functions that generate gov proposals for the module.

@@ -218,15 +218,13 @@ func (msg MsgResumePool) ValidateBasic() error {
 // MsgDepositCollateral defines the attributes of a depositing collaterals.
 type MsgDepositCollateral struct {
 	From       sdk.AccAddress `json:"sender" yaml:"sender"`
-	PoolID     uint64         `json:"pool_id" yaml:"pool_id"`
 	Collateral sdk.Coin       `json:"collateral" yaml:"collateral"`
 }
 
 // NewMsgDepositCollateral creates a new MsgDepositCollateral instance.
-func NewMsgDepositCollateral(sender sdk.AccAddress, id uint64, collateral sdk.Coin) MsgDepositCollateral {
+func NewMsgDepositCollateral(sender sdk.AccAddress, collateral sdk.Coin) MsgDepositCollateral {
 	return MsgDepositCollateral{
 		From:       sender,
-		PoolID:     id,
 		Collateral: collateral,
 	}
 }
@@ -253,9 +251,6 @@ func (msg MsgDepositCollateral) ValidateBasic() error {
 	if msg.From.Empty() {
 		return ErrEmptySender
 	}
-	if msg.PoolID == 0 {
-		return ErrInvalidPoolID
-	}
 	if !msg.Collateral.IsValid() || msg.Collateral.IsZero() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Collateral amount: %s", msg.Collateral)
 	}
@@ -265,15 +260,13 @@ func (msg MsgDepositCollateral) ValidateBasic() error {
 // NewMsgWithdrawCollateral defines the attributes of a withdrawing collaterals.
 type MsgWithdrawCollateral struct {
 	From       sdk.AccAddress `json:"sender" yaml:"sender"`
-	PoolID     uint64         `json:"pool_id" yaml:"pool_id"`
 	Collateral sdk.Coin       `json:"collateral" yaml:"collateral"`
 }
 
 // NewMsgDepositCollateral creates a new MsgDepositCollateral instance.
-func NewMsgWithdrawCollateral(sender sdk.AccAddress, id uint64, collateral sdk.Coin) MsgWithdrawCollateral {
+func NewMsgWithdrawCollateral(sender sdk.AccAddress, collateral sdk.Coin) MsgWithdrawCollateral {
 	return MsgWithdrawCollateral{
 		From:       sender,
-		PoolID:     id,
 		Collateral: collateral,
 	}
 }
@@ -297,8 +290,11 @@ func (msg MsgWithdrawCollateral) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgWithdrawCollateral) ValidateBasic() error {
-	if msg.PoolID == 0 {
-		return ErrInvalidPoolID
+	if msg.From.Empty() {
+		return ErrEmptySender
+	}
+	if !msg.Collateral.IsValid() || msg.Collateral.IsZero() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Collateral amount: %s", msg.Collateral)
 	}
 	return nil
 }

@@ -331,9 +331,9 @@ func pauseOrResume(cdc *codec.Codec, active bool) func(cmd *cobra.Command, args 
 // join a pool by depositing collateral.
 func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deposit-collateral [pool id] [collateral]",
+		Use:   "deposit-collateral [collateral]",
 		Short: "join a Shield pool as a community member by depositing collateral",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
@@ -341,17 +341,12 @@ func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			id, err := strconv.ParseUint(args[0], 10, 64)
+			collateral, err := sdk.ParseCoin(args[0])
 			if err != nil {
 				return err
 			}
 
-			collateral, err := sdk.ParseCoin(args[1])
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgDepositCollateral(fromAddr, id, collateral)
+			msg := types.NewMsgDepositCollateral(fromAddr, collateral)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -363,12 +358,12 @@ func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdWithdrawCollateral implements command for community member to
-// withdraw deposited collateral from a pool.
+// withdraw deposited collateral from Shield pool.
 func GetCmdWithdrawCollateral(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "withdraw-collateral [pool id] [collateral]",
-		Short: "withdraw deposited collateral from a Shield pool",
-		Args:  cobra.ExactArgs(2),
+		Use:   "withdraw-collateral [collateral]",
+		Short: "withdraw deposited collateral from Shield pool",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
@@ -376,17 +371,12 @@ func GetCmdWithdrawCollateral(cdc *codec.Codec) *cobra.Command {
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			id, err := strconv.ParseUint(args[0], 10, 64)
+			collateral, err := sdk.ParseCoin(args[0])
 			if err != nil {
 				return err
 			}
 
-			collateral, err := sdk.ParseCoin(args[1])
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgWithdrawCollateral(fromAddr, id, collateral)
+			msg := types.NewMsgWithdrawCollateral(fromAddr, collateral)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

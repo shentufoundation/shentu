@@ -113,7 +113,6 @@ func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollatera
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWithdrawCollateral,
-			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyCollateral, msg.Collateral.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
@@ -133,7 +132,6 @@ func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral,
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeDepositCollateral,
-			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyCollateral, msg.Collateral.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),

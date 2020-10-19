@@ -52,3 +52,14 @@ func RandomPurchaseList(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Purchase
 	i := r.Intn(len(purchases))
 	return purchases[i], true
 }
+
+// RandomProvider returns a random provider of collaterals.
+func RandomProvider(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Provider, bool) {
+	providers := k.GetAllProviders(ctx)
+	if len(providers) == 0 {
+		return types.Provider{}, false
+	}
+
+	i := r.Intn(len(providers))
+	return providers[i], true
+}

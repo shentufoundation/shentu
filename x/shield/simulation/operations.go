@@ -1,6 +1,5 @@
 package simulation
 
-/*
 import (
 	"math/rand"
 	"strings"
@@ -10,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/shield/keeper"
@@ -38,11 +36,11 @@ var (
 	DefaultWeightMsgCreatePool             = 10
 	DefaultWeightMsgUpdatePool             = 10
 	DefaultWeightMsgDepositCollateral      = 20
-	DefaultWeightMsgWithdrawCollateral     = 20
-	DefaultWeightMsgWithdrawRewards        = 10
-	DefaultWeightMsgWithdrawForeignRewards = 10
-	DefaultWeightMsgPurchaseShield         = 20
-	DefaultWeightShieldClaimProposal       = 5
+	DefaultWeightMsgWithdrawCollateral     = 0
+	DefaultWeightMsgWithdrawRewards        = 0 
+	DefaultWeightMsgWithdrawForeignRewards = 0
+	DefaultWeightMsgPurchaseShield         = 0
+	DefaultWeightShieldClaimProposal       = 0
 
 	DefaultIntMax = 100000000000
 )
@@ -88,11 +86,11 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(weightMsgCreatePool, SimulateMsgCreatePool(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgUpdatePool, SimulateMsgUpdatePool(k, ak, sk)),
-		simulation.NewWeightedOperation(weightMsgDepositCollateral, SimulateMsgDepositCollateral(k, ak, sk)),
-		simulation.NewWeightedOperation(weightMsgWithdrawCollateral, SimulateMsgWithdrawCollateral(k, ak, sk)),
-		simulation.NewWeightedOperation(weightMsgWithdrawRewards, SimulateMsgWithdrawRewards(k, ak, sk)),
-		simulation.NewWeightedOperation(weightMsgWithdrawForeignRewards, SimulateMsgWithdrawForeignRewards(k, ak, sk)),
-		simulation.NewWeightedOperation(weightMsgPurchaseShield, SimulateMsgPurchaseShield(k, ak, sk)),
+		//simulation.NewWeightedOperation(weightMsgDepositCollateral, SimulateMsgDepositCollateral(k, ak, sk)),
+		//simulation.NewWeightedOperation(weightMsgWithdrawCollateral, SimulateMsgWithdrawCollateral(k, ak, sk)),
+		//simulation.NewWeightedOperation(weightMsgWithdrawRewards, SimulateMsgWithdrawRewards(k, ak, sk)),
+		//simulation.NewWeightedOperation(weightMsgWithdrawForeignRewards, SimulateMsgWithdrawForeignRewards(k, ak, sk)),
+		//simulation.NewWeightedOperation(weightMsgPurchaseShield, SimulateMsgPurchaseShield(k, ak, sk)),
 	}
 }
 
@@ -179,7 +177,9 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		coverageDuration := time.Duration(timeOfCoverage)
 		sponsorAcc, _ := simulation.RandomAcc(r, accs)
 
-		msg := types.NewMsgCreatePool(simAccount.Address, shield, deposit, sponsor, sponsorAcc.Address, coverageDuration)
+		description := simulation.RandStringOfLength(r, 42)
+		
+		msg := types.NewMsgCreatePool(simAccount.Address, shield, deposit, sponsor, sponsorAcc.Address, coverageDuration, description)
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
@@ -274,6 +274,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 	}
 }
 
+/*
 // SimulateMsgDepositCollateral generates a MsgDepositCollateral object with all of its fields randomized.
 func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
@@ -332,13 +333,13 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		collateral, found := keeper.RandomCollateral(r, k, ctx)
+		provider, found := keeper.RandomProvider(r, k, ctx)
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 		var simAccount simulation.Account
 		for _, simAcc := range accs {
-			if simAcc.Address.Equals(collateral.Provider) {
+			if simAcc.Address.Equals(provider.Address) {
 				simAccount = simAcc
 				break
 			}
@@ -559,4 +560,5 @@ func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper)
 		)
 	}
 }
+
 */

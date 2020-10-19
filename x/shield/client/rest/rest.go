@@ -25,13 +25,11 @@ func ProposalRESTHandler(cliCtx context.CLIContext) govrest.ProposalRESTHandler 
 
 type depositCollateralReq struct {
 	BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
-	PoolID  uint64       `json:"pool_id" yaml:"pool_id"`
 	Amount  sdk.Coin     `json:"amount" yaml:"amount"`
 }
 
 type withdrawCollateralReq struct {
 	BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
-	PoolID  uint64       `json:"pool_id" yaml:"pool_id"`
 	Amount  sdk.Coin     `json:"amount" yaml:"amount"`
 }
 
