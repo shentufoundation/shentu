@@ -130,7 +130,6 @@ func (k Keeper) IterateAllPurchases(ctx sdk.Context, callback func(purchase type
 	}
 }
 
-// TODO improve the performance
 // RemoveExpiredPurchases removes purchases whose claim period end time is before current block time.
 func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
