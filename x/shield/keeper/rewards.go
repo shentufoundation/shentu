@@ -49,3 +49,28 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 	}
 	return ctkRewards, nil
 }
+
+// DistributeFees distributes service fees to all providers.
+func (k Keeper) DistributeFees(ctx sdk.Context) {
+	serviceFees := k.GetServiceFees(ctx)
+
+	totalCollateral := k.GetTotalCollateral(ctx)
+	totalLocked := k.GetTotalLocked(ctx)
+	totalCollateralAmount := totalCollateral.Add(totalLocked)
+
+	providers := k.GetAllProviders(ctx)
+	for _, provider := range providers {
+		proportion := sdk.NewDecFromInt(sdk.MaxInt(provider.Collateral.Add(provider.TotalLocked), sdk.ZeroInt())).QuoInt(totalCollateralAmount)
+		nativeFees := serviceFees.Native.MulDecTruncate(proportion)
+		foreignFees := serviceFees.Foreign.MulDecTruncate(proportion)
+
+		serviceFees.Native = serviceFees.Native.Sub(nativeFees)
+		serviceFees.Foreign = serviceFees.Foreign.Sub(foreignFees)
+
+		rewards := types.NewMixedDecCoins(nativeFees, foreignFees)
+		provider.Rewards = provider.Rewards.Add(rewards)
+		k.SetProvider(ctx, provider.Address, provider)
+	}
+
+	k.SetServiceFees(ctx, serviceFees)
+}
