@@ -13,15 +13,15 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, amount s
 	if !found {
 		provider = k.addProvider(ctx, from)
 	}
-	if amount.GT(provider.Available) {
+	if provider.DelegationBonded.LT(provider.Collateral.Add(amount).Sub(provider.Withdrawing)) {
 		return types.ErrInsufficientStaking
 	}
 
-	// Update states.
+	// Update provider.
 	provider.Collateral = provider.Collateral.Add(amount)
-	provider.Available = provider.Available.Sub(amount)
 	k.SetProvider(ctx, from, provider)
 
+	// Update total collateral.
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalCollateral = totalCollateral.Add(amount)
 	k.SetTotalCollateral(ctx, totalCollateral)
@@ -35,11 +35,11 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, amount 
 		return nil
 	}
 
+	// Check the collateral can be withdrew.
 	provider, found := k.GetProvider(ctx, from)
 	if !found {
 		return types.ErrProviderNotFound
 	}
-	// TODO: Consider locked collaterals after claim proposals are enabled.
 	withdrawable := provider.Collateral.Sub(provider.Withdrawing)
 	if amount.GT(withdrawable) {
 		return types.ErrOverWithdraw

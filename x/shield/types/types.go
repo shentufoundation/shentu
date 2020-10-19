@@ -72,9 +72,6 @@ type Provider struct {
 	// TotalLocked is the amount locked for pending claims.
 	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
 
-	// Available is the amount of staked CTK available to be deposited.
-	Available sdk.Int `json:"available" yaml:"available"`
-
 	// Withdrawing is the amount of collateral in withdraw queues.
 	Withdrawing sdk.Int `json:"withdrawing" yaml:"withdrawing"`
 
@@ -89,7 +86,6 @@ func NewProvider(addr sdk.AccAddress) Provider {
 		DelegationBonded: sdk.ZeroInt(),
 		Collateral:       sdk.ZeroInt(),
 		TotalLocked:      sdk.ZeroInt(),
-		Available:        sdk.ZeroInt(),
 		Withdrawing:      sdk.ZeroInt(),
 	}
 }

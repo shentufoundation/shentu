@@ -96,7 +96,6 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 			panic("provider not found but its collaterals are being withdrawn")
 		}
 		provider.Collateral = provider.Collateral.Sub(withdraw.Amount)
-		provider.Available = provider.Available.Add(withdraw.Amount)
 		provider.Withdrawing = provider.Withdrawing.Sub(withdraw.Amount)
 		k.SetProvider(ctx, withdraw.Address, provider)
 
