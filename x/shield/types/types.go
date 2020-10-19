@@ -11,6 +11,9 @@ import (
 // TotalCollateral is the amount of total collaterals in the shield module.
 type TotalCollateral sdk.Int
 
+// TotalWithdrawing is the amount of collaterals in the withdrawing queue.
+type TotalWithdrawing sdk.Int
+
 // TotalShield is the amount of all active purchased shields.
 type TotalShield sdk.Int
 

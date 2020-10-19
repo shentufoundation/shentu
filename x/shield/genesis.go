@@ -14,6 +14,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	k.SetClaimProposalParams(ctx, data.ClaimProposalParams)
 	k.SetAdmin(ctx, data.ShieldAdmin)
 	k.SetTotalCollateral(ctx, data.TotalCollateral)
+	k.SetTotalWithdrawing(ctx, data.TotalWithdrawing)
 	k.SetTotalShield(ctx, data.TotalShield)
 	k.SetTotalLocked(ctx, data.TotalLocked)
 	k.SetServiceFees(ctx, data.ServiceFees)
@@ -45,6 +46,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	claimProposalParams := k.GetClaimProposalParams(ctx)
 	shieldAdmin := k.GetAdmin(ctx)
 	totalCollateral := k.GetTotalCollateral(ctx)
+	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 	totalShield := k.GetTotalShield(ctx)
 	totalLocked := k.GetTotalLocked(ctx)
 	serviceFees := k.GetServiceFees(ctx)
@@ -55,5 +57,5 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	providers := k.GetAllProviders(ctx)
 	withdraws := k.GetAllWithdraws(ctx)
 
-	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, totalCollateral, totalShield, totalLocked, serviceFees, pools, providers, purchaseLists, withdraws)
+	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked, serviceFees, pools, providers, purchaseLists, withdraws)
 }

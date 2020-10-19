@@ -25,6 +25,23 @@ func (k Keeper) GetTotalCollateral(ctx sdk.Context) sdk.Int {
 	return totalCollateral
 }
 
+func (k Keeper) SetTotalWithdrawing(ctx sdk.Context, totalWithdrawing sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalWithdrawing)
+	store.Set(types.GetTotalWithdrawingKey(), bz)
+}
+
+func (k Keeper) GetTotalWithdrawing(ctx sdk.Context) sdk.Int {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetTotalWithdrawingKey())
+	if bz == nil {
+		panic("total withdrawing is not found")
+	}
+	var totalWithdrawing sdk.Int
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &totalWithdrawing)
+	return totalWithdrawing
+}
+
 func (k Keeper) SetTotalShield(ctx sdk.Context, totalCollateral sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalCollateral)
@@ -114,8 +131,9 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 	// Check available collaterals.
 	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
 	totalCollateral := k.GetTotalCollateral(ctx)
+	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 	totalShield := k.GetTotalShield(ctx)
-	if totalShield.Add(shieldAmt).GT(totalCollateral) {
+	if totalShield.Add(shieldAmt).GT(totalCollateral.Sub(totalWithdrawing)) {
 		return types.Pool{}, types.ErrNotEnoughCollateral
 	}
 

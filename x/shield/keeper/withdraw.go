@@ -89,6 +89,7 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 
 	// For each completed withdraw, process adjustments.
 	totalCollateral := k.GetTotalCollateral(ctx)
+	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 	for _, withdraw := range withdraws {
 		provider, found := k.GetProvider(ctx, withdraw.Address)
 		if !found {
@@ -100,6 +101,8 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 		k.SetProvider(ctx, withdraw.Address, provider)
 
 		totalCollateral = totalCollateral.Sub(withdraw.Amount)
+		totalWithdrawing = totalWithdrawing.Sub(withdraw.Amount)
 	}
 	k.SetTotalCollateral(ctx, totalCollateral)
+	k.SetTotalWithdrawing(ctx, totalWithdrawing)
 }

@@ -25,22 +25,27 @@ const (
 )
 
 var (
-	ShieldAdminKey     = []byte{0x0}
-	TotalCollateralKey = []byte{0x1}
-	TotalShieldKey     = []byte{0x2}
-	TotalLockedKey     = []byte{0x3}
-	ServiceFeesKey     = []byte{0x4}
-	PoolKey            = []byte{0x5}
-	NextPoolIDKey      = []byte{0x6}
-	NextPurchaseIDKey  = []byte{0x7}
-	PurchaseListKey    = []byte{0x8}
-	PurchaseQueueKey   = []byte{0x9}
-	ProviderKey        = []byte{0xA}
-	WithdrawQueueKey   = []byte{0xB}
+	ShieldAdminKey      = []byte{0x0}
+	TotalCollateralKey  = []byte{0x1}
+	TotalWithdrawingKey = []byte{0x2}
+	TotalShieldKey      = []byte{0x3}
+	TotalLockedKey      = []byte{0x4}
+	ServiceFeesKey      = []byte{0x5}
+	PoolKey             = []byte{0x6}
+	NextPoolIDKey       = []byte{0x7}
+	NextPurchaseIDKey   = []byte{0x8}
+	PurchaseListKey     = []byte{0x9}
+	PurchaseQueueKey    = []byte{0xA}
+	ProviderKey         = []byte{0xB}
+	WithdrawQueueKey    = []byte{0xC}
 )
 
 func GetTotalCollateralKey() []byte {
 	return TotalCollateralKey
+}
+
+func GetTotalWithdrawingKey() []byte {
+	return TotalWithdrawingKey
 }
 
 func GetTotalShieldKey() []byte {
