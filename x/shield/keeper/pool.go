@@ -142,7 +142,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 	serviceFeesUpdate = serviceFeesUpdate.Add(types.MixedDecCoinsFromMixedCoins(serviceFees))
 	k.SetServiceFees(ctx, serviceFeesUpdate)
 
-	// Make a purchase for B.
+	// Make a pseudo-purchase for B.
 	purchaseID := k.GetNextPurchaseID(ctx)
 	protectionEndTime := ctx.BlockTime().Add(protectionPeriod)
 	purchase := types.NewPurchase(purchaseID, protectionEndTime, "shield for sponsor", shieldAmt)

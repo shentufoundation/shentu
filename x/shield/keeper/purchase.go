@@ -101,14 +101,13 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	k.SetTotalShield(ctx, totalShield)
 	k.SetPool(ctx, pool)
 
-	// set purchase
+	// Set a new purchase.
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
-	deletionTime := ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).ClaimPeriod).Add(k.gk.GetVotingParams(ctx).VotingPeriod * 2)
 	purchaseID := k.GetNextPurchaseID(ctx)
 	purchase := types.NewPurchase(purchaseID, protectionEndTime, description, shieldAmt)
 	purchaseList := types.NewPurchaseList(poolID, purchaser, []types.Purchase{purchase})
 	k.AddPurchase(ctx, poolID, purchaser, purchase)
-	k.InsertPurchaseQueue(ctx, purchaseList, deletionTime)
+	k.InsertPurchaseQueue(ctx, purchaseList, protectionEndTime.Add(k.GetPurchaseDeletionPeriod(ctx)))
 	k.SetNextPurchaseID(ctx, purchaseID+1)
 
 	return purchase, nil
