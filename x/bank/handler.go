@@ -57,15 +57,17 @@ func handleMsgLockedSend(ctx sdk.Context, k Keeper, ak types.AccountKeeper, msg 
 	// add to receiver account as normally done
 	// but make the added amount vesting (OV := Vesting + Vested)
 	toAcc.OriginalVesting = toAcc.OriginalVesting.Add(msg.Amount...)
+	newCoins := toAcc.Coins.Add(msg.Amount...)
+	if newCoins.IsAnyNegative() {
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrInsufficientFunds, "insufficient account funds; %s < %s", toAcc.Coins, msg.Amount,
+		)
+	}
+	toAcc.Coins = newCoins
 	ak.SetAccount(ctx, toAcc)
 
 	// subtract from sender account (as normally done)
 	_, err := k.SubtractCoins(ctx, msg.From, msg.Amount)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = k.AddCoins(ctx, msg.To, msg.Amount)
 	if err != nil {
 		return nil, err
 	}

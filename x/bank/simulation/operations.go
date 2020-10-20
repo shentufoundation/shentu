@@ -54,11 +54,10 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simulation.
 			fromAcc := ak.GetAccount(ctx, from.Address)
 			spendableCoins := fromAcc.SpendableCoins(ctx.BlockTime())
 			sendCoins := simulation.RandSubsetCoins(r, spendableCoins)
-
-			spendableCoins = spendableCoins.Sub(sendCoins)
 			if sendCoins.Empty() {
 				return simulation.NoOpMsg(cosmosBank.ModuleName), nil, nil
 			}
+			spendableCoins = spendableCoins.Sub(sendCoins)
 
 			fees, err := simulation.RandomFees(r, ctx, spendableCoins)
 			if err != nil {
