@@ -86,7 +86,7 @@ func SimulateSubmitProposal(
 			err     error
 		)
 		var simAccount simulation.Account
-		if content.ProposalType() == "ShieldClaim" {
+		if content.ProposalType() == shield.ProposalTypeShieldClaim {
 			c := content.(shield.ClaimProposal)
 			for _, simAcc := range accs {
 				if simAcc.Address.Equals(c.Proposer) {
