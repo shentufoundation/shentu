@@ -1,7 +1,6 @@
 package simulation
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 
@@ -22,7 +21,6 @@ import (
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak govTypes.AccountKeeper, ck types.CertKeeper,
 	k keeper.Keeper, wContents []simulation.WeightedProposalContent) simulation.WeightedOperations {
-
 	// generate the weighted operations for the proposal contents
 	var wProposalOps simulation.WeightedOperations
 
@@ -167,10 +165,6 @@ func SimulateSubmitProposal(
 
 		opMsg := simulation.NewOperationMsg(msg, true, "")
 
-		proposal, _ := k.GetProposal(ctx, proposalID)
-		fmt.Printf(">>>>>>>>>>>>>> proposal id: %d, type: %s, status: %d, init deposit: %s <<<<<<<<<<<<<<<\n",
-			proposalID, content.ProposalType(), proposal.Status, proposal.TotalDeposit)
-
 		var fops []simulation.FutureOperation
 
 		// 2) Schedule deposit operations
@@ -223,15 +217,10 @@ func SimulateMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
 		accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-
-		fmt.Printf(">>>>>>>>>>>>>> validator vote, id: %d\n", proposalID)
-
 		proposal, ok := k.GetProposal(ctx, proposalID)
 		if !ok {
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
-
-		fmt.Printf(">>>>>>>>>>>>>> validator vote, status: %d\n", proposal.Status)
 
 		if proposal.Status != types.StatusValidatorVotingPeriod {
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
@@ -259,11 +248,8 @@ func SimulateMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			fmt.Printf("<<<<<<<<<<<< error: %s", err)
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
-
-		fmt.Printf(">>>>>>>>>>>>>> validator vote success, id: %d, option: %s\n", proposalID, option)
 
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
@@ -274,26 +260,20 @@ func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, ck types.CertKeeper, k 
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
 		accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-
 		if !ck.IsCertifier(ctx, simAccount.Address) {
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
-
-		fmt.Printf(">>>>>>>>>>>>>> certifier vote, id: %d\n", proposalID)
 
 		proposal, ok := k.GetProposal(ctx, proposalID)
 		if !ok {
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
-		fmt.Printf(">>>>>>>>>>>>>> certifier vote, status: %d\n", proposal.Status)
-
 		if proposal.Status != types.StatusCertifierVotingPeriod {
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
 		var option govTypes.VoteOption
-
 		if simulation.RandIntBetween(r, 0, 100) < 70 {
 			option = govTypes.OptionYes
 		} else {
@@ -320,11 +300,8 @@ func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, ck types.CertKeeper, k 
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			fmt.Printf("<<<<<<<<<<<< error: %s", err)
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
-
-		fmt.Printf(">>>>>>>>>>>>>> certifier vote success, id: %d, option %d\n", proposalID, option)
 
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
@@ -334,15 +311,10 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper, proposalID u
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
 		accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-
-		fmt.Printf(">>>>>>>>>>>>>> deposit, id: %d\n", proposalID)
-
 		proposal, ok := k.GetProposal(ctx, proposalID)
 		if !ok {
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
-
-		fmt.Printf(">>>>>>>>>>>>>> deposit, status: %d, total deposit: %s\n", proposal.Status, proposal.TotalDeposit)
 
 		if proposal.Status != types.StatusDepositPeriod {
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
@@ -360,7 +332,6 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper, proposalID u
 			deposit, err = simulation.RandomFees(r, ctx, minDeposit)
 		}
 		if err != nil {
-			fmt.Printf("<<<<<<<<<<<<<< error! %s", err)
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
@@ -383,11 +354,8 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper, proposalID u
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			fmt.Printf("<<<<<<<<<<<<<< error! %s, deposit: %s, spendable: %s", err, deposit, spendable)
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
-
-		fmt.Printf(">>>>>>>>>>>>>> deposit success, id: %d, amount: %s\n", proposalID, deposit)
 
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
