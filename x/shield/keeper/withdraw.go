@@ -105,3 +105,22 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 	k.SetTotalCollateral(ctx, totalCollateral)
 	k.SetTotalWithdrawing(ctx, totalWithdrawing)
 }
+
+// ComputeWithdrawAmount computes the amount of collaterals that
+// will be dequeued from the withdraw queue by a given time.
+func (k Keeper) ComputeWithdrawAmount(ctx sdk.Context, time time.Time) sdk.Int {
+	withdrawTimesliceIterator := k.WithdrawQueueIterator(ctx, time)
+	defer withdrawTimesliceIterator.Close()
+
+	amount := sdk.ZeroInt()
+	for ; withdrawTimesliceIterator.Valid(); withdrawTimesliceIterator.Next() {
+		timeslice := []types.Withdraw{}
+		value := withdrawTimesliceIterator.Value()
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
+
+		for _, withdraw := range(timeslice) {
+			amount = amount.Add(withdraw.Amount)
+		}
+	}
+	return amount
+}
