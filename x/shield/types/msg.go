@@ -2,7 +2,6 @@ package types
 
 import (
 	"strings"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -55,12 +54,6 @@ func (msg MsgCreatePool) ValidateBasic() error {
 	if strings.TrimSpace(msg.Sponsor) == "" {
 		return ErrEmptySponsor
 	}
-	if msg.Deposit.Native.IsZero() || !msg.Deposit.Native.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "native amount: %s", msg.Deposit.Native)
-	}
-	if msg.Deposit.Foreign.IsZero() || !msg.Deposit.Foreign.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "foreign amount %s", msg.Deposit.Foreign)
-	}
 	if !msg.Shield.IsValid() || msg.Shield.IsZero() {
 		return ErrNoShield
 	}
@@ -69,23 +62,21 @@ func (msg MsgCreatePool) ValidateBasic() error {
 
 // MsgUpdatePool defines the attributes of a shield pool update transaction.
 type MsgUpdatePool struct {
-	From           sdk.AccAddress `json:"from" yaml:"from"`
-	Shield         sdk.Coins      `json:"Shield" yaml:"Shield"`
-	ServiceFees    MixedCoins     `json:"service_fees" yaml:"service_fees"`
-	PoolID         uint64         `json:"pool_id" yaml:"pool_id"`
-	AdditionalTime time.Duration  `json:"additional_period" yaml:"additional_period"`
-	Description    string         `json:"description" yaml:"description"`
+	From        sdk.AccAddress `json:"from" yaml:"from"`
+	Shield      sdk.Coins      `json:"Shield" yaml:"Shield"`
+	ServiceFees MixedCoins     `json:"service_fees" yaml:"service_fees"`
+	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
+	Description string         `json:"description" yaml:"description"`
 }
 
 // NewMsgUpdatePool creates a new MsgUpdatePool instance.
-func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, serviceFees MixedCoins, id uint64, time time.Duration, description string) MsgUpdatePool {
+func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, serviceFees MixedCoins, id uint64, description string) MsgUpdatePool {
 	return MsgUpdatePool{
-		From:           accAddr,
-		Shield:         shield,
-		ServiceFees:    serviceFees,
-		PoolID:         id,
-		AdditionalTime: time,
-		Description:    description,
+		From:        accAddr,
+		Shield:      shield,
+		ServiceFees: serviceFees,
+		PoolID:      id,
+		Description: description,
 	}
 }
 
@@ -119,9 +110,6 @@ func (msg MsgUpdatePool) ValidateBasic() error {
 	}
 	if !msg.Shield.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid shield")
-	}
-	if msg.AdditionalTime < 0 {
-		return ErrInvalidDuration
 	}
 	return nil
 }

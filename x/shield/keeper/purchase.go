@@ -82,6 +82,9 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	if !found {
 		return types.Purchase{}, types.ErrNoPoolFound
 	}
+	if !pool.Active {
+		return types.Purchase{}, types.ErrPoolInactive
+	}
 
 	// Check available collaterals.
 	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
@@ -178,7 +181,7 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 				i++
 			}
 			if len(purchaseList.Entries) == 0 {
-				k.DeletePurchaseList(ctx, purchaseList.PoolID, purchaseList.Purchaser)
+				_ = k.DeletePurchaseList(ctx, purchaseList.PoolID, purchaseList.Purchaser)
 			} else {
 				k.SetPurchaseList(ctx, purchaseList)
 			}
