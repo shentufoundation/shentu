@@ -26,16 +26,12 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgResumePool(ctx, msg, k)
 		case types.MsgWithdrawRewards:
 			return handleMsgWithdrawRewards(ctx, msg, k)
-		case types.MsgWithdrawForeignRewards:
-			return handleMsgWithdrawForeignRewards()
 		case types.MsgDepositCollateral:
 			return handleMsgDepositCollateral(ctx, msg, k)
 		case types.MsgWithdrawCollateral:
 			return handleMsgWithdrawCollateral(ctx, msg, k)
 		case types.MsgPurchaseShield:
 			return handleMsgPurchaseShield(ctx, msg, k)
-		case types.MsgWithdrawReimbursement:
-			return handleMsgWithdrawReimbursement()
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -161,10 +157,6 @@ func handleMsgWithdrawRewards(ctx sdk.Context, msg types.MsgWithdrawRewards, k K
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgWithdrawForeignRewards() (*sdk.Result, error) {
-	return &sdk.Result{}, types.ErrOperationNotSupported
-}
-
 func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral, k Keeper) (*sdk.Result, error) {
 	if msg.Collateral.Denom != k.BondDenom(ctx) {
 		return nil, types.ErrCollateralBadDenom
@@ -218,8 +210,4 @@ func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Kee
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
-}
-
-func handleMsgWithdrawReimbursement() (*sdk.Result, error) {
-	return &sdk.Result{}, types.ErrOperationNotSupported
 }
