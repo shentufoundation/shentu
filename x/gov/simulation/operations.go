@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
+	"github.com/certikfoundation/shentu/x/cert"
 	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
 	"github.com/certikfoundation/shentu/x/shield"
@@ -173,24 +174,24 @@ func SimulateSubmitProposal(
 		var fops []simulation.FutureOperation
 
 		// 2) Schedule deposit operations
-		if content.ProposalType() != "ShieldClaim" {
-			for i := 0; i < 5; i++ {
+		if content.ProposalType() != shield.ProposalTypeShieldClaim {
+			for i := 0; i < 10; i++ {
 				fops = append(fops, simulation.FutureOperation{
-					BlockHeight: int(ctx.BlockHeight()) + 5,
+					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 1, 5),
 					Op:          SimulateMsgDeposit(ak, k, proposalID),
 				})
 			}
 		}
 
 		// 3) Schedule operations for certifier voting
-		if content.ProposalType() == "ShieldClaim" ||
-			content.ProposalType() == "CertifierUpdate" ||
+		if content.ProposalType() == shield.ProposalTypeShieldClaim ||
+			content.ProposalType() == cert.ProposalTypeCertifierUpdate ||
 			content.ProposalType() == upgrade.ProposalTypeSoftwareUpgrade {
 			for _, acc := range accs {
-				if ck.IsCertifier(ctx, acc.Address) {
+				if ck.IsCertifier(ctx, acc.Address) && simulation.RandIntBetween(r, 0, 100) < 50 {
 					fops = append(fops, simulation.FutureOperation{
-						BlockHeight: int(ctx.BlockHeight()) + 10,
-						Op:          SimulateCertifierMsgVote(ak, k, acc, proposalID),
+						BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 5, 10),
+						Op:          SimulateCertifierMsgVote(ak, ck, k, acc, proposalID),
 					})
 				}
 			}
@@ -205,10 +206,12 @@ func SimulateSubmitProposal(
 		whoVotes = whoVotes[:numVotes]
 
 		for i := 0; i < numVotes; i++ {
-			fops = append(fops, simulation.FutureOperation{
-				BlockHeight: int(ctx.BlockHeight()) + 15,
-				Op:          SimulateMsgVote(ak, k, accs[whoVotes[i]], proposalID),
-			})
+			if simulation.RandIntBetween(r, 0, 100) < 10 {
+				fops = append(fops, simulation.FutureOperation{
+					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 10, 15),
+					Op:          SimulateMsgVote(ak, k, accs[whoVotes[i]], proposalID),
+				})
+			}
 		}
 
 		return opMsg, fops, nil
@@ -256,6 +259,7 @@ func SimulateMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
+			fmt.Printf("<<<<<<<<<<<< error: %s", err)
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
@@ -265,11 +269,15 @@ func SimulateMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 	}
 }
 
-func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
+func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, ck types.CertKeeper, k keeper.Keeper,
 	simAccount simulation.Account, proposalID uint64) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
 		accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+
+		if !ck.IsCertifier(ctx, simAccount.Address) {
+			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+		}
 
 		fmt.Printf(">>>>>>>>>>>>>> certifier vote, id: %d\n", proposalID)
 
@@ -286,7 +294,7 @@ func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 
 		var option govTypes.VoteOption
 
-		if simulation.RandIntBetween(r, 0, 100) < 80 {
+		if simulation.RandIntBetween(r, 0, 100) < 50 {
 			option = govTypes.OptionYes
 		} else {
 			option = govTypes.OptionNo
@@ -312,6 +320,7 @@ func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
+			fmt.Printf("<<<<<<<<<<<< error: %s", err)
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
@@ -351,12 +360,13 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper, proposalID u
 			deposit, err = simulation.RandomFees(r, ctx, minDeposit)
 		}
 		if err != nil {
+			fmt.Printf("<<<<<<<<<<<<<< error! %s", err)
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
 		msg := govTypes.NewMsgDeposit(simAcc.Address, proposalID, deposit)
 
-		fees, err := simulation.RandomFees(r, ctx, acc.SpendableCoins(ctx.BlockTime()))
+		fees, err := simulation.RandomFees(r, ctx, acc.SpendableCoins(ctx.BlockTime()).Sub(deposit))
 		if err != nil {
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
@@ -373,6 +383,7 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper, proposalID u
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
+			fmt.Printf("<<<<<<<<<<<<<< error! %s, deposit: %s, spendable: %s", err, deposit, spendable)
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
