@@ -3,12 +3,12 @@ package simulation
 import (
 	"math/rand"
 
-	"github.com/certikfoundation/shentu/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	cosmosBank "github.com/cosmos/cosmos-sdk/x/bank"
 
+	"github.com/certikfoundation/shentu/x/auth/vesting"
 	"github.com/certikfoundation/shentu/x/bank/internal/keeper"
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -52,12 +52,15 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simulation.
 
 			from, _ := simulation.RandomAcc(r, accs)
 			fromAcc := ak.GetAccount(ctx, from.Address)
-			coins := fromAcc.SpendableCoins(ctx.BlockTime())
-			sendCoins := simulation.RandSubsetCoins(r, coins)
+			spendableCoins := fromAcc.SpendableCoins(ctx.BlockTime())
+			sendCoins := simulation.RandSubsetCoins(r, spendableCoins)
 
-			coins = coins.Sub(sendCoins)
+			spendableCoins = spendableCoins.Sub(sendCoins)
+			if sendCoins.Empty() {
+				return simulation.NoOpMsg(cosmosBank.ModuleName), nil, nil
+			}
 
-			fees, err := simulation.RandomFees(r, ctx, coins)
+			fees, err := simulation.RandomFees(r, ctx, spendableCoins)
 			if err != nil {
 				return simulation.NoOpMsg(cosmosBank.ModuleName), nil, err
 			}

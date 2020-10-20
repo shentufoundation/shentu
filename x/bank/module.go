@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"math/rand"
 
-	"github.com/certikfoundation/shentu/x/bank/simulation"
-
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
@@ -21,6 +19,7 @@ import (
 
 	"github.com/certikfoundation/shentu/x/bank/client/rest"
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
+	"github.com/certikfoundation/shentu/x/bank/simulation"
 )
 
 var (

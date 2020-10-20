@@ -75,6 +75,7 @@ func handleMsgLockedSend(ctx sdk.Context, k Keeper, ak types.AccountKeeper, msg 
 			types.EventTypeLockedSend,
 			sdk.NewAttribute(bank.AttributeKeyRecipient, msg.From.String()),
 			sdk.NewAttribute(bank.AttributeKeySender, msg.To.String()),
+			sdk.NewAttribute(types.AttributeKeyUnlocker, msg.Unlocker.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 		),
 	)
