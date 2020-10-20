@@ -31,21 +31,25 @@ func handleMsgLockedSend(ctx sdk.Context, k Keeper, ak types.AccountKeeper, msg 
 	}
 
 	acc = ak.GetAccount(ctx, msg.To)
+
+	var toAcc *vesting.ManualVestingAccount
 	if acc == nil {
 		acc = ak.NewAccountWithAddress(ctx, msg.To)
-	}
-
-	// ensure correct account type
-	toAcc, ok := acc.(*vesting.ManualVestingAccount)
-	if !ok {
-		baseAcc := auth.NewBaseAccount(msg.To, acc.GetCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
+		baseAcc := auth.NewBaseAccount(msg.To, sdk.NewCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
 		unlocker, err := sdk.AccAddressFromBech32(msg.Unlocker)
-		if err != nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "need to specify the unlocker when initializing a new vesting account")
+		if err != nil || msg.Unlocker == "" {
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid unlocker address provided")
 		}
-		toAcc = vesting.NewManualVestingAccount(baseAcc, acc.GetCoins(), unlocker)
-	} else if msg.Unlocker != "" {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "unlocker cannot be changed")
+		toAcc = vesting.NewManualVestingAccount(baseAcc, sdk.NewCoins(), unlocker)
+	} else {
+		var ok bool
+		toAcc, ok = acc.(*vesting.ManualVestingAccount)
+		if !ok {
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a ManualVestingAccount")
+		}
+		if msg.Unlocker != "" {
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "cannot change the unlocker for existing ManualVestingAccount")
+		}
 	}
 
 	// subtract from sender account (as normally done)
