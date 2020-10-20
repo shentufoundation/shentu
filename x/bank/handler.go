@@ -44,6 +44,8 @@ func handleMsgLockedSend(ctx sdk.Context, k Keeper, ak types.AccountKeeper, msg 
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "need to specify the unlocker when initializing a new vesting account")
 		}
 		toAcc = vesting.NewManualVestingAccount(baseAcc, acc.GetCoins(), unlocker)
+	} else if msg.Unlocker != "" {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "unlocker cannot be changed")
 	}
 
 	// subtract from sender account (as normally done)
