@@ -26,7 +26,8 @@ type PrimitiveScore struct {
 
 // PrimitivePayload specifies primitive query payload.
 type PrimitivePayload struct {
-	Client   Client `json:"client"`
-	Address  string `json:"address"`
-	Function string `json:"function"`
+	Contract string `json:"contract"` // original requested contract in the event
+	Client   Client `json:"client"`   // contract client chain
+	Address  string `json:"address"`  // contract address
+	Function string `json:"function"` // contract function
 }

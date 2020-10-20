@@ -55,6 +55,7 @@ func TestHandleRequest(t *testing.T) {
 				Client:   "eth",
 				Address:  "0xf3585fcd969502624c6a8acf73721d1fce214e83",
 				Function: "0x00000101",
+				Contract: "eth:0xf3585fcd969502624c6a8acf73721d1fce214e83",
 			}
 
 			resp, err := handleRequest(ctxForTest, fmt.Sprintf("http://localhost:%s/security/primitive", testPort), payload)
@@ -84,6 +85,7 @@ func TestPackRequest(t *testing.T) {
 				Client:   "eth",
 				Address:  "0xf3585fcd969502624c6a8acf73721d1fce214e83",
 				Function: "0x00000101",
+				Contract: "eth:0xf3585fcd969502624c6a8acf73721d1fce214e83",
 			}
 
 			v := url.Values{}
