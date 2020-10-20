@@ -177,7 +177,7 @@ func SimulateSubmitProposal(
 		if content.ProposalType() != shield.ProposalTypeShieldClaim {
 			for i := 0; i < 10; i++ {
 				fops = append(fops, simulation.FutureOperation{
-					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 1, 5),
+					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 1, 3),
 					Op:          SimulateMsgDeposit(ak, k, proposalID),
 				})
 			}
@@ -190,7 +190,7 @@ func SimulateSubmitProposal(
 			for _, acc := range accs {
 				if ck.IsCertifier(ctx, acc.Address) && simulation.RandIntBetween(r, 0, 100) < 50 {
 					fops = append(fops, simulation.FutureOperation{
-						BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 5, 10),
+						BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 3, 5),
 						Op:          SimulateCertifierMsgVote(ak, ck, k, acc, proposalID),
 					})
 				}
@@ -208,7 +208,7 @@ func SimulateSubmitProposal(
 		for i := 0; i < numVotes; i++ {
 			if simulation.RandIntBetween(r, 0, 100) < 10 {
 				fops = append(fops, simulation.FutureOperation{
-					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 10, 15),
+					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 5, 10),
 					Op:          SimulateMsgVote(ak, k, accs[whoVotes[i]], proposalID),
 				})
 			}
@@ -294,7 +294,7 @@ func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, ck types.CertKeeper, k 
 
 		var option govTypes.VoteOption
 
-		if simulation.RandIntBetween(r, 0, 100) < 50 {
+		if simulation.RandIntBetween(r, 0, 100) < 70 {
 			option = govTypes.OptionYes
 		} else {
 			option = govTypes.OptionNo
