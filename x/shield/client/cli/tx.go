@@ -125,7 +125,7 @@ func GetCmdCreatePool(cdc *codec.Codec) *cobra.Command {
 			fmt.Sprintf(`Create a Shield pool. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-deposit <ctk deposit> --foreign-deposit <external deposit> --time-of-coverage <period in seconds>
+$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-deposit <ctk deposit> --foreign-deposit <external deposit>
 `,
 				version.ClientName,
 			),
@@ -190,8 +190,7 @@ func GetCmdUpdatePool(cdc *codec.Codec) *cobra.Command {
 			fmt.Sprintf(`Update a Shield pool. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit <external deposit> --shield <shield amount> 
---time-of-coverage <additional period>
+$ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit <external deposit> --shield <shield amount>
 `,
 				version.ClientName,
 			),
