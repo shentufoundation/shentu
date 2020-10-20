@@ -13,3 +13,7 @@ var (
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
 )
+
+type (
+	Keeper = keeper.Keeper
+)

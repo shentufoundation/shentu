@@ -25,15 +25,15 @@ func NewHandler(k Keeper, ak types.AccountKeeper) sdk.Handler {
 
 func handleMsgLockedSend(ctx sdk.Context, k Keeper, ak types.AccountKeeper, msg types.MsgLockedSend) (*sdk.Result, error) {
 	// preliminary checks
-	acc := ak.GetAccount(ctx, msg.From)
-	if acc == nil {
+	from := ak.GetAccount(ctx, msg.From)
+	if from == nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "sender account %s does not exist", msg.From)
 	}
 	if msg.To.Equals(msg.Unlocker) {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "recipient cannot be the unlocker")
 	}
 
-	acc = ak.GetAccount(ctx, msg.To)
+	acc := ak.GetAccount(ctx, msg.To)
 
 	var toAcc *vesting.ManualVestingAccount
 	if acc == nil {
@@ -54,18 +54,20 @@ func handleMsgLockedSend(ctx sdk.Context, k Keeper, ak types.AccountKeeper, msg 
 		}
 	}
 
-	// subtract from sender account (as normally done)
-	_, err := k.SubtractCoins(ctx, msg.From, msg.Amount)
-	if err != nil {
-		return nil, err
-	}
-
 	// add to receiver account as normally done
 	// but make the added amount vesting (OV := Vesting + Vested)
 	toAcc.OriginalVesting = toAcc.OriginalVesting.Add(msg.Amount...)
+	newCoins := toAcc.Coins.Add(msg.Amount...)
+	if newCoins.IsAnyNegative() {
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrInsufficientFunds, "insufficient account funds; %s < %s", toAcc.Coins, msg.Amount,
+		)
+	}
+	toAcc.Coins = newCoins
 	ak.SetAccount(ctx, toAcc)
 
-	_, err = k.AddCoins(ctx, msg.To, msg.Amount)
+	// subtract from sender account (as normally done)
+	_, err := k.SubtractCoins(ctx, msg.From, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -75,6 +77,7 @@ func handleMsgLockedSend(ctx sdk.Context, k Keeper, ak types.AccountKeeper, msg 
 			types.EventTypeLockedSend,
 			sdk.NewAttribute(bank.AttributeKeyRecipient, msg.From.String()),
 			sdk.NewAttribute(bank.AttributeKeySender, msg.To.String()),
+			sdk.NewAttribute(types.AttributeKeyUnlocker, msg.Unlocker.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 		),
 	)
