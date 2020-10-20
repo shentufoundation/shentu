@@ -74,9 +74,9 @@ func (k Keeper) GetTotalLocked(ctx sdk.Context) sdk.Int {
 	return totalLocked
 }
 
-func (k Keeper) SetServiceFees(ctx sdk.Context, totalCollateral types.MixedDecCoins) {
+func (k Keeper) SetServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalCollateral)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(serviceFees)
 	store.Set(types.GetServiceFeesKey(), bz)
 }
 
@@ -111,37 +111,32 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
 }
 
 // CreatePool creates a pool and sponsor's shield.
-func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, description string) (types.Pool, error) {
+func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Coins) (uint64, error) {
 	admin := k.GetAdmin(ctx)
 	if !creator.Equals(admin) {
-		return types.Pool{}, types.ErrNotShieldAdmin
+		return 0, types.ErrNotShieldAdmin
 	}
 	if _, found := k.GetPoolBySponsor(ctx, sponsor); found {
-		return types.Pool{}, types.ErrSponsorAlreadyExists
+		return 0, types.ErrSponsorAlreadyExists
 	}
 
 	// Set the new project pool.
 	poolID := k.GetNextPoolID(ctx)
-	pool := types.NewPool(poolID, description, sponsor, sponsorAddr, sdk.ZeroInt())
+	pool := types.NewPool(poolID, description, sponsor, sponsorAddr, shieldLimit.AmountOf(k.BondDenom(ctx)), sdk.ZeroInt())
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, poolID+1)
 
 	// Pool is created before the purchase is made.
 	// The pool will still exist even if the purchase fails.
-	if _, err := k.PurchaseShield(ctx, poolID, shield, "shield for sponsor", creator, serviceFees.Native); err != nil {
-		return pool, err
+	if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", creator, serviceFees.Native); err != nil {
+		return poolID, err
 	}
 
-	// Update foreign service fees in the global pool.
-	totalServiceFees := k.GetServiceFees(ctx)
-	totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Foreign: sdk.NewDecCoinsFromCoins(serviceFees.Foreign...)})
-	k.SetServiceFees(ctx, totalServiceFees)
-
-	return pool, nil
+	return poolID, nil
 }
 
 // UpdatePool updates pool info and shield for B.
-func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins) (types.Pool, error) {
+func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins, shieldLimit sdk.Coins) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -155,22 +150,23 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 	if description != "" {
 		pool.Description = description
 	}
+	shieldLimitAmt := shieldLimit.AmountOf(k.BondDenom(ctx))
+	if shieldLimitAmt.IsPositive() {
+		pool.ShieldLimit = shieldLimitAmt
+	}
 	k.SetPool(ctx, pool)
 
 	// Update purchase and shield.
-	totalServiceFees := k.GetServiceFees(ctx)
 	if !shield.IsZero() {
-		if _, err := k.PurchaseShield(ctx, poolID, shield, "shield for sponsor", updater, serviceFees.Native); err != nil {
+		if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", updater, serviceFees.Native); err != nil {
 			return pool, err
 		}
 	} else if !serviceFees.Native.IsZero() {
 		// Allow adding service fees without purchasing more shield.
+		totalServiceFees := k.GetServiceFees(ctx)
 		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees.Native...)})
+		k.SetServiceFees(ctx, totalServiceFees)
 	}
-	if !serviceFees.Foreign.IsZero() {
-		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Foreign: sdk.NewDecCoinsFromCoins(serviceFees.Foreign...)})
-	}
-	k.SetServiceFees(ctx, totalServiceFees)
 
 	return pool, nil
 }

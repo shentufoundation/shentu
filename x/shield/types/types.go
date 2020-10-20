@@ -20,6 +20,9 @@ type Pool struct {
 	// SponsorAddress is the CertiK Chain address of the sponsor.
 	SponsorAddress sdk.AccAddress `json:"sponsor_address" yaml:"sponsor_address"`
 
+	// ShieldLimit is the maximum shield can be purchased for the pool.
+	ShieldLimit sdk.Int `json:"shield_limit" yaml:"shield_limit"`
+
 	// Active means new purchases are allowed.
 	Active bool `json:"active" yaml:"active"`
 
@@ -28,12 +31,13 @@ type Pool struct {
 }
 
 // NewPool creates a new project pool.
-func NewPool(id uint64, description, sponsor string, sponsorAddress sdk.AccAddress, shield sdk.Int) Pool {
+func NewPool(id uint64, description, sponsor string, sponsorAddress sdk.AccAddress, shieldLimit sdk.Int, shield sdk.Int) Pool {
 	return Pool{
 		ID:             id,
 		Description:    description,
 		Sponsor:        sponsor,
 		SponsorAddress: sponsorAddress,
+		ShieldLimit:    shieldLimit,
 		Active:         true,
 		Shield:         shield,
 	}

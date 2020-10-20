@@ -23,11 +23,11 @@ import (
 )
 
 var (
-	flagNativeDeposit  = "native-deposit"
-	flagForeignDeposit = "foreign-deposit"
-	flagShield         = "shield"
-	flagSponsor        = "sponsor"
-	flagDescription    = "description"
+	flagNativeDeposit = "native-deposit"
+	flagShield        = "shield"
+	flagSponsor       = "sponsor"
+	flagDescription   = "description"
+	flagShieldLimit   = "shield-limit"
 )
 
 // GetTxCmd returns the transaction commands for this module.
@@ -153,20 +153,16 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 			if err != nil {
 				return err
 			}
+			deposit := types.MixedCoins{Native: nativeDeposit}
 
-			foreignDeposit, err := sdk.ParseCoins(viper.GetString(flagForeignDeposit))
+			description := viper.GetString(flagDescription)
+
+			shieldLimit, err := sdk.ParseCoins(viper.GetString(flagShieldLimit))
 			if err != nil {
 				return err
 			}
 
-			deposit := types.MixedCoins{
-				Native:  nativeDeposit,
-				Foreign: foreignDeposit,
-			}
-
-			description := viper.GetString(flagDescription)
-
-			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, description)
+			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, description, shieldLimit)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -176,7 +172,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 	}
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
-	cmd.Flags().String(flagForeignDeposit, "", "foreign coins deposit amount")
+	cmd.Flags().String(flagShieldLimit, "", "maximum shield can be purchased")
 	return cmd
 }
 
@@ -212,24 +208,20 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit
 				return err
 			}
 
-			foreignDeposit, err := sdk.ParseCoins(viper.GetString(flagForeignDeposit))
-			if err != nil {
-				return err
-			}
-
 			shield, err := sdk.ParseCoins(viper.GetString(flagShield))
 			if err != nil {
 				return err
 			}
-
-			deposit := types.MixedCoins{
-				Native:  nativeDeposit,
-				Foreign: foreignDeposit,
-			}
+			deposit := types.MixedCoins{Native: nativeDeposit}
 
 			description := viper.GetString(flagDescription)
 
-			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, description)
+			shieldLimit, err := sdk.ParseCoins(viper.GetString(flagShieldLimit))
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, description, shieldLimit)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -240,8 +232,8 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit
 
 	cmd.Flags().String(flagShield, "", "CTK Shield amount")
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
-	cmd.Flags().String(flagForeignDeposit, "", "foreign coins deposit amount")
 	cmd.Flags().String(flagDescription, "", "description for the pool")
+	cmd.Flags().String(flagShieldLimit, "", "maximum shield can be purchased")
 	return cmd
 }
 

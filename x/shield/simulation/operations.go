@@ -126,6 +126,10 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
+		// shield limit
+		// No overflow would happen when converting int64 to int in this case.
+		shieldLimit := sdk.NewCoins(sdk.NewCoin(bondDenom, sdk.NewInt(int64(simulation.RandIntBetween(r, int(maxShield.Int64()), int(maxShield.Int64())*5)))))
+
 		// sponsor
 		sponsor := strings.ToLower(simulation.RandStringOfLength(r, 10))
 		if _, found := k.GetPoolBySponsor(ctx, sponsor); found {
@@ -151,7 +155,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		sponsorAcc, _ := simulation.RandomAcc(r, accs)
 		description := simulation.RandStringOfLength(r, 42)
 
-		msg := types.NewMsgCreatePool(simAccount.Address, shield, serviceFees, sponsor, sponsorAcc.Address, description)
+		msg := types.NewMsgCreatePool(simAccount.Address, shield, serviceFees, sponsor, sponsorAcc.Address, description, shieldLimit)
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
@@ -201,7 +205,11 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		totalWithdrawing := k.GetTotalWithdrawing(ctx)
 		totalShield := k.GetTotalShield(ctx)
 		poolParams := k.GetPoolParams(ctx)
-		maxShield := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield), totalCollateral.Sub(totalWithdrawing).Sub(totalShield))
+		maxShield := sdk.MinInt(pool.ShieldLimit.Sub(pool.Shield),
+			sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
+				totalCollateral.Sub(totalWithdrawing).Sub(totalShield),
+			),
+		)
 		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
@@ -227,7 +235,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		serviceFees := types.MixedCoins{Native: nativeServiceFees, Foreign: foreignServiceFees}
 		description := simulation.RandStringOfLength(r, 42)
 
-		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description)
+		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description, nil)
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
