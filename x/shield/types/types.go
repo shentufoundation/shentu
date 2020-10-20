@@ -6,8 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Variables for the shield global pool
-
 // TotalCollateral is the amount of total collaterals in the shield module.
 type TotalCollateral sdk.Int
 

@@ -81,7 +81,7 @@ func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*s
 }
 
 func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*sdk.Result, error) {
-	_, err := k.UpdatePool(ctx, msg.PoolID, msg.Description, msg.From)
+	_, err := k.UpdatePool(ctx, msg.PoolID, msg.Description, msg.From, msg.Shield, msg.ServiceFees)
 	if err != nil {
 		return &sdk.Result{Events: ctx.EventManager().Events()}, err
 	}
@@ -179,7 +179,7 @@ func handleMsgResumePool(ctx sdk.Context, msg types.MsgResumePool, k Keeper) (*s
 }
 
 func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Keeper) (*sdk.Result, error) {
-	_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
+	_, err := k.PurchaseShieldForP(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
 	if err != nil {
 		return nil, err
 	}

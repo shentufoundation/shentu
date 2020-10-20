@@ -77,28 +77,29 @@ func (k Keeper) DequeuePurchase(ctx sdk.Context, purchaseList types.PurchaseList
 }
 
 // PurchaseShield purchases shield of a pool.
-func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress) (types.Purchase, error) {
+func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress, serviceFees sdk.Coins) (types.Purchase, error) {
 	pool, found := k.GetPool(ctx, poolID)
 	if !found {
 		return types.Purchase{}, types.ErrNoPoolFound
 	}
 
-	// Check if there are enough shield to be purchased and if the total shield of the pool exceeds the limit.
+	// Check available collaterals.
 	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 	totalShield := k.GetTotalShield(ctx)
-	poolParams := k.GetPoolParams(ctx)
 	if totalShield.Add(shieldAmt).GT(totalCollateral.Sub(totalWithdrawing)) {
 		return types.Purchase{}, types.ErrNotEnoughCollateral
 	}
-	if pool.Shield.Add(shieldAmt).GT(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt()) {
+
+	// Check pool shield limit.
+	poolParams := k.GetPoolParams(ctx)
+	maxShield := totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt()
+	if shieldAmt.GT(maxShield) {
 		return types.Purchase{}, types.ErrPoolShieldExceedsLimit
 	}
 
-	// Send tokens to shield module account.
-	serviceFeesAmount := shieldAmt.ToDec().Mul(poolParams.ShieldFeesRate).TruncateInt()
-	serviceFees := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), serviceFeesAmount))
+	// Send service fees to the shield module account.
 	if err := k.DepositNativeServiceFees(ctx, serviceFees, purchaser); err != nil {
 		return types.Purchase{}, err
 	}
@@ -119,6 +120,13 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	k.SetNextPurchaseID(ctx, purchaseID+1)
 
 	return purchase, nil
+}
+
+// PurchaseShield purchases shield of a pool for P.
+func (k Keeper) PurchaseShieldForP(ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress) (types.Purchase, error) {
+	bondDenom := k.BondDenom(ctx)
+	serviceFees := sdk.NewCoins(sdk.NewCoin(bondDenom, shield.AmountOf(bondDenom).ToDec().Mul(k.GetPoolParams(ctx).ShieldFeesRate).TruncateInt()))
+	return k.PurchaseShield(ctx, poolID, shield, description, purchaser, serviceFees)
 }
 
 // IterateAllPurchases iterates over the all the stored purchases and performs a callback function.

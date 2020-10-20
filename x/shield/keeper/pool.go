@@ -120,57 +120,34 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 		return types.Pool{}, types.ErrSponsorAlreadyExists
 	}
 
-	// Check available collaterals.
-	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
-	totalCollateral := k.GetTotalCollateral(ctx)
-	totalWithdrawing := k.GetTotalWithdrawing(ctx)
-	totalShield := k.GetTotalShield(ctx)
-	if totalShield.Add(shieldAmt).GT(totalCollateral.Sub(totalWithdrawing)) {
-		return types.Pool{}, types.ErrNotEnoughCollateral
-	}
-
-	// Check pool shield limit.
-	poolParams := k.GetPoolParams(ctx)
-	maxShield := totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt()
-	if shieldAmt.GT(maxShield) {
-		return types.Pool{}, types.ErrPoolShieldExceedsLimit
-	}
-
-	// Transfer service fees to the Shield module account.
-	if err := k.DepositNativeServiceFees(ctx, serviceFees.Native, creator); err != nil {
-		return types.Pool{}, err
-	}
-
 	// Set the new project pool.
-	id := k.GetNextPoolID(ctx)
-	pool := types.NewPool(id, description, sponsor, sponsorAddr, shieldAmt)
+	poolID := k.GetNextPoolID(ctx)
+	pool := types.NewPool(poolID, description, sponsor, sponsorAddr, sdk.ZeroInt())
 	k.SetPool(ctx, pool)
-	k.SetNextPoolID(ctx, id+1)
+	k.SetNextPoolID(ctx, poolID+1)
 
-	// Update service fees in the global pool.
-	serviceFeesUpdate := k.GetServiceFees(ctx)
-	serviceFeesUpdate = serviceFeesUpdate.Add(types.MixedDecCoinsFromMixedCoins(serviceFees))
-	k.SetServiceFees(ctx, serviceFeesUpdate)
+	// Pool is created before the purchase is made.
+	// The pool will still exist even if the purchase fails.
+	if _, err := k.PurchaseShield(ctx, poolID, shield, "shield for sponsor", creator, serviceFees.Native); err != nil {
+		return pool, err
+	}
 
-	// Make a pseudo-purchase for B.
-	purchaseID := k.GetNextPurchaseID(ctx)
-	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
-	purchase := types.NewPurchase(purchaseID, protectionEndTime, "shield for sponsor", shieldAmt)
-	k.InsertPurchaseQueue(ctx, types.NewPurchaseList(id, sponsorAddr, []types.Purchase{purchase}), protectionEndTime.Add(k.GetPurchaseDeletionPeriod(ctx)))
-	k.AddPurchase(ctx, id, sponsorAddr, purchase)
-	k.SetNextPurchaseID(ctx, purchaseID+1)
+	// Update foreign service fees in the global pool.
+	totalServiceFees := k.GetServiceFees(ctx)
+	totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Foreign: sdk.NewDecCoinsFromCoins(serviceFees.Foreign...)})
+	k.SetServiceFees(ctx, totalServiceFees)
 
 	return pool, nil
 }
 
-// FIXME UpdatePool only updates descriptions now. Any other things to be updated?
-// UpdatePool updates pool info.
-func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress) (types.Pool, error) {
+// UpdatePool updates pool info and shield for B.
+func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
 	}
 
+	// Update pool info.
 	pool, found := k.GetPool(ctx, poolID)
 	if !found {
 		return types.Pool{}, types.ErrNoPoolFound
@@ -179,6 +156,22 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 		pool.Description = description
 	}
 	k.SetPool(ctx, pool)
+
+	// Update purchase and shield.
+	totalServiceFees := k.GetServiceFees(ctx)
+	if !shield.IsZero() {
+		if _, err := k.PurchaseShield(ctx, poolID, shield, "shield for sponsor", updater, serviceFees.Native); err != nil {
+			return pool, err
+		}
+	} else if !serviceFees.Native.IsZero() {
+		// Allow adding service fees without purchasing more shield.
+		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Foreign: sdk.NewDecCoinsFromCoins(serviceFees.Foreign...)})
+	}
+	if !serviceFees.Foreign.IsZero() {
+		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Foreign: sdk.NewDecCoinsFromCoins(serviceFees.Foreign...)})
+	}
+	k.SetServiceFees(ctx, totalServiceFees)
+
 	return pool, nil
 }
 

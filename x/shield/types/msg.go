@@ -71,18 +71,18 @@ func (msg MsgCreatePool) ValidateBasic() error {
 type MsgUpdatePool struct {
 	From           sdk.AccAddress `json:"from" yaml:"from"`
 	Shield         sdk.Coins      `json:"Shield" yaml:"Shield"`
-	Deposit        MixedCoins     `json:"deposit" yaml:"deposit"`
+	ServiceFees    MixedCoins     `json:"service_fees" yaml:"service_fees"`
 	PoolID         uint64         `json:"pool_id" yaml:"pool_id"`
 	AdditionalTime time.Duration  `json:"additional_period" yaml:"additional_period"`
 	Description    string         `json:"description" yaml:"description"`
 }
 
 // NewMsgUpdatePool creates a new MsgUpdatePool instance.
-func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, id uint64, time time.Duration, description string) MsgUpdatePool {
+func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, serviceFees MixedCoins, id uint64, time time.Duration, description string) MsgUpdatePool {
 	return MsgUpdatePool{
 		From:           accAddr,
 		Shield:         shield,
-		Deposit:        deposit,
+		ServiceFees:    serviceFees,
 		PoolID:         id,
 		AdditionalTime: time,
 		Description:    description,
@@ -114,7 +114,7 @@ func (msg MsgUpdatePool) ValidateBasic() error {
 	if msg.PoolID == 0 {
 		return ErrInvalidPoolID
 	}
-	if !(msg.Deposit.Native.IsValid() && msg.Deposit.Foreign.IsValid()) {
+	if !(msg.ServiceFees.Native.IsValid() && msg.ServiceFees.Foreign.IsValid()) {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid deposit")
 	}
 	if !msg.Shield.IsValid() {
