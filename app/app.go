@@ -72,7 +72,8 @@ var (
 			upgrade.ProposalHandler,
 			cert.ProposalHandler,
 			paramsclient.ProposalHandler,
-			shield.ProposalHandler,
+			// Disabled for phase I.
+			// shield.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},

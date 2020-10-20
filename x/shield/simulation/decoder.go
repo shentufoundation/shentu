@@ -15,14 +15,38 @@ import (
 // DecodeStore unmarshals the KVPair's Value to the corresponding type of shield module.
 func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 	switch {
+	case bytes.Equal(kvA.Key[:1], types.ShieldAdminKey):
+		return fmt.Sprintf("%v\n%v", sdk.AccAddress(kvA.Value), sdk.AccAddress(kvA.Value))
+
+	case bytes.Equal(kvA.Key[:1], types.TotalCollateralKey):
+		var totalCollateralA, totalCollateralB sdk.Int
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &totalCollateralA)
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &totalCollateralB)
+		return fmt.Sprintf("%v\n%v", totalCollateralA, totalCollateralB)
+
+	case bytes.Equal(kvA.Key[:1], types.TotalShieldKey):
+		var totalShieldA, totalShieldB sdk.Int
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &totalShieldA)
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &totalShieldB)
+		return fmt.Sprintf("%v\n%v", totalShieldA, totalShieldB)
+
+	case bytes.Equal(kvA.Key[:1], types.TotalLockedKey):
+		var totalLockedA, totalLockedB sdk.Int
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &totalLockedA)
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &totalLockedB)
+		return fmt.Sprintf("%v\n%v", totalLockedA, totalLockedB)
+
+	case bytes.Equal(kvA.Key[:1], types.ServiceFeesKey):
+		var serviceFeesA, serviceFeesB types.MixedDecCoins
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &serviceFeesA)
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &serviceFeesB)
+		return fmt.Sprintf("%v\n%v", serviceFeesA, serviceFeesB)
+
 	case bytes.Equal(kvA.Key[:1], types.PoolKey):
 		var poolA, poolB types.Pool
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &poolA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &poolB)
 		return fmt.Sprintf("%v\n%v", poolA, poolB)
-
-	case bytes.Equal(kvA.Key[:1], types.ShieldAdminKey):
-		return fmt.Sprintf("%v\n%v", sdk.AccAddress(kvA.Value), sdk.AccAddress(kvA.Value))
 
 	case bytes.Equal(kvA.Key[:1], types.NextPoolIDKey):
 		var poolIDA, poolIDB uint64
@@ -30,23 +54,17 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &poolIDB)
 		return fmt.Sprintf("%v\n%v", poolIDA, poolIDB)
 
+	case bytes.Equal(kvA.Key[:1], types.NextPurchaseIDKey):
+		var purchaseIDA, purchaseIDB uint64
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &purchaseIDA)
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &purchaseIDB)
+		return fmt.Sprintf("%v\n%v", purchaseIDA, purchaseIDB)
+
 	case bytes.Equal(kvA.Key[:1], types.PurchaseListKey):
 		var purchaseA, purchaseB types.PurchaseList
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &purchaseA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &purchaseB)
 		return fmt.Sprintf("%v\n%v", purchaseA, purchaseB)
-
-	case bytes.Equal(kvA.Key[:1], types.ReimbursementKey):
-		var reimbursementA, reimbursementB types.Reimbursement
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &reimbursementA)
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &reimbursementB)
-		return fmt.Sprintf("%v\n%v", reimbursementA, reimbursementB)
-
-	case bytes.Equal(kvA.Key[:1], types.CollateralKey):
-		var collateralA, collateralB types.Collateral
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &collateralA)
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &collateralB)
-		return fmt.Sprintf("%v\n%v", collateralA, collateralB)
 
 	case bytes.Equal(kvA.Key[:1], types.ProviderKey):
 		var providerA, providerB types.Provider

@@ -13,10 +13,10 @@ import (
 // default parameter values
 var (
 	// default values for Shield pool's parameters
-	DefaultProtectionPeriod = time.Hour * 24 * 14      // 14 days
-	DefaultMinPoolLife      = time.Hour * 24 * 56      // 56 days
-	DefaultShieldFeesRate   = sdk.NewDecWithPrec(1, 2) // 1%
-	DefaultWithdrawPeriod   = time.Hour * 24 * 21      // 21 days
+	DefaultProtectionPeriod = time.Hour * 24 * 21       // 21 days
+	DefaultShieldFeesRate   = sdk.NewDecWithPrec(1, 2)  // 1%
+	DefaultWithdrawPeriod   = time.Hour * 24 * 21       // 21 days
+	DefaultPoolShieldLimit  = sdk.NewDecWithPrec(10, 2) // 10%
 
 	// default values for Shield claim proposal's parameters
 	DefaultClaimPeriod              = time.Hour * 24 * 21                                                    // 21 days
@@ -43,24 +43,24 @@ func ParamKeyTable() params.KeyTable {
 // PoolParams defines the parameters for the shield pool.
 type PoolParams struct {
 	ProtectionPeriod time.Duration `json:"protection_period" yaml:"protection_period"`
-	MinPoolLife      time.Duration `json:"min_pool_life" yaml:"min_pool_life"`
 	ShieldFeesRate   sdk.Dec       `json:"shield_fees_rate" yaml:"shield_fees_rate"`
 	WithdrawPeriod   time.Duration `json:"withdraw_period" yaml:"withdraw_period"`
+	PoolShieldLimit  sdk.Dec       `json:"pool_shield_limit" yaml:"pool_shield_limit"`
 }
 
 // NewPoolParams creates a new PoolParams object.
-func NewPoolParams(protectionPeriod, minPoolLife, withdrawPeriod time.Duration, shieldFeesRate sdk.Dec) PoolParams {
+func NewPoolParams(protectionPeriod, withdrawPeriod time.Duration, shieldFeesRate sdk.Dec, poolShieldPercentageLimit sdk.Dec) PoolParams {
 	return PoolParams{
 		ProtectionPeriod: protectionPeriod,
-		MinPoolLife:      minPoolLife,
 		ShieldFeesRate:   shieldFeesRate,
 		WithdrawPeriod:   withdrawPeriod,
+		PoolShieldLimit:  poolShieldPercentageLimit,
 	}
 }
 
 // DefaultPoolParams returns a default PoolParams instance.
 func DefaultPoolParams() PoolParams {
-	return NewPoolParams(DefaultProtectionPeriod, DefaultMinPoolLife, DefaultWithdrawPeriod, DefaultShieldFeesRate)
+	return NewPoolParams(DefaultProtectionPeriod, DefaultWithdrawPeriod, DefaultShieldFeesRate, DefaultPoolShieldLimit)
 }
 
 func validatePoolParams(i interface{}) error {
@@ -69,22 +69,21 @@ func validatePoolParams(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	protectionPeriod := v.ProtectionPeriod
-	minPoolLife := v.MinPoolLife
 	shieldFeesRate := v.ShieldFeesRate
 	withdrawPeriod := v.WithdrawPeriod
+	poolShieldLimit := v.PoolShieldLimit
 
 	if protectionPeriod <= 0 {
 		return fmt.Errorf("protection period must be positive: %s", protectionPeriod)
 	}
-	if minPoolLife <= 0 {
-		return fmt.Errorf("minimum pool life must be positive: %s", minPoolLife)
-	}
 	if shieldFeesRate.IsNegative() || shieldFeesRate.GT(sdk.OneDec()) {
-		return fmt.Errorf("shield fees rate should be positive and less or equal to one but is %s",
-			shieldFeesRate.String())
+		return fmt.Errorf("shield fees rate should be positive and less or equal to one but is %s", shieldFeesRate)
 	}
 	if withdrawPeriod <= 0 {
 		return fmt.Errorf("withdraw period must be positive: %s", withdrawPeriod)
+	}
+	if poolShieldLimit.IsNegative() || poolShieldLimit.GT(sdk.OneDec()) {
+		return fmt.Errorf("pool shield limit should be positive and less or equal to one but is %s", poolShieldLimit)
 	}
 
 	return nil

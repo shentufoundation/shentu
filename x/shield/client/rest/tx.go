@@ -42,7 +42,7 @@ func depositCollateralHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgDepositCollateral(from, req.PoolID, req.Amount)
+		msg := types.NewMsgDepositCollateral(from, req.Amount)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -71,7 +71,7 @@ func withdrawCollateralHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgWithdrawCollateral(from, req.PoolID, req.Amount)
+		msg := types.NewMsgWithdrawCollateral(from, req.Amount)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

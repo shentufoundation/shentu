@@ -28,10 +28,6 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPurchaserPurchases(ctx, path[1:], k)
 		case types.QueryPoolPurchases:
 			return queryPoolPurchases(ctx, path[1:], k)
-		case types.QueryProviderCollaterals:
-			return queryProviderCollaterals(ctx, path[1:], k)
-		case types.QueryPoolCollaterals:
-			return queryPoolCollaterals(ctx, path[1:], k)
 		case types.QueryProvider:
 			return queryProvider(ctx, path[1:], k)
 		case types.QueryPoolParams:
@@ -156,46 +152,6 @@ func queryPoolPurchases(ctx sdk.Context, path []string, k Keeper) (res []byte, e
 	}
 
 	res, err = codec.MarshalJSONIndent(k.cdc, k.GetPoolPurchaseLists(ctx, id))
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-// queryOnesCollaterals returns information about one's collaterals.
-func queryProviderCollaterals(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
-	if err := validatePathLength(path, 1); err != nil {
-		return nil, err
-	}
-
-	address, err := sdk.AccAddressFromBech32(path[0])
-	if err != nil {
-		return nil, err
-	}
-
-	res, err = codec.MarshalJSONIndent(k.cdc, k.GetProviderCollaterals(ctx, address))
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-// queryPoolCollaterals queries a given pool's collaterals.
-func queryPoolCollaterals(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
-	if err := validatePathLength(path, 1); err != nil {
-		return nil, err
-	}
-
-	id, err := strconv.ParseUint(path[0], 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	pool, found := k.GetPool(ctx, id)
-	if !found {
-		return nil, types.ErrNoPoolFound
-	}
-
-	res, err = codec.MarshalJSONIndent(k.cdc, k.GetAllPoolCollaterals(ctx, pool))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

@@ -10,25 +10,23 @@ import (
 
 // InitGenesis initialize store values with genesis states.
 func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorUpdate {
-	k.SetAdmin(ctx, data.ShieldAdmin)
-	k.SetNextPoolID(ctx, data.NextPoolID)
-	k.SetNextPurchaseID(ctx, data.NextPurchaseID)
 	k.SetPoolParams(ctx, data.PoolParams)
 	k.SetClaimProposalParams(ctx, data.ClaimProposalParams)
+	k.SetAdmin(ctx, data.ShieldAdmin)
+	k.SetTotalCollateral(ctx, data.TotalCollateral)
+	k.SetTotalWithdrawing(ctx, data.TotalWithdrawing)
+	k.SetTotalShield(ctx, data.TotalShield)
+	k.SetTotalLocked(ctx, data.TotalLocked)
+	k.SetServiceFees(ctx, data.ServiceFees)
 	for _, pool := range data.Pools {
 		k.SetPool(ctx, pool)
 	}
-	for _, collateral := range data.Collaterals {
-		pool, found := k.GetPool(ctx, collateral.PoolID)
-		if !found {
-			panic(types.ErrNoPoolFound)
-		}
-		k.SetCollateral(ctx, pool, collateral.Provider, collateral)
-	}
+	k.SetNextPoolID(ctx, data.NextPoolID)
+	k.SetNextPurchaseID(ctx, data.NextPurchaseID)
 	for _, purchaseList := range data.PurchaseLists {
 		k.SetPurchaseList(ctx, purchaseList)
 		for _, entry := range purchaseList.Entries {
-			k.InsertPurchaseQueue(ctx, purchaseList, entry.DeleteTime)
+			k.InsertPurchaseQueue(ctx, purchaseList, entry.ProtectionEndTime.Add(k.GetPurchaseDeletionPeriod(ctx)))
 		}
 	}
 	for _, provider := range data.Providers {
@@ -41,18 +39,23 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	return []abci.ValidatorUpdate{}
 }
 
-// ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis.
+// ExportGenesis writes the current store values to a genesis file,
+// which can be imported again with InitGenesis.
 func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
-	shieldAdmin := k.GetAdmin(ctx)
-	nextPoolID := k.GetNextPoolID(ctx)
-	nextPurchaseID := k.GetNextPurchaseID(ctx)
 	poolParams := k.GetPoolParams(ctx)
 	claimProposalParams := k.GetClaimProposalParams(ctx)
+	shieldAdmin := k.GetAdmin(ctx)
+	totalCollateral := k.GetTotalCollateral(ctx)
+	totalWithdrawing := k.GetTotalWithdrawing(ctx)
+	totalShield := k.GetTotalShield(ctx)
+	totalLocked := k.GetTotalLocked(ctx)
+	serviceFees := k.GetServiceFees(ctx)
 	pools := k.GetAllPools(ctx)
-	collaterals := k.GetAllCollaterals(ctx)
-	providers := k.GetAllProviders(ctx)
+	nextPoolID := k.GetNextPoolID(ctx)
+	nextPurchaseID := k.GetNextPurchaseID(ctx)
 	purchaseLists := k.GetAllPurchaseLists(ctx)
+	providers := k.GetAllProviders(ctx)
 	withdraws := k.GetAllWithdraws(ctx)
 
-	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, pools, collaterals, providers, purchaseLists, withdraws)
+	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked, serviceFees, pools, providers, purchaseLists, withdraws)
 }

@@ -25,17 +25,40 @@ const (
 )
 
 var (
-	PoolKey           = []byte{0x0}
-	ShieldAdminKey    = []byte{0x1}
-	NextPoolIDKey     = []byte{0x2}
-	NextPurchaseIDKey = []byte{0x3}
-	PurchaseListKey   = []byte{0x4}
-	PurchaseQueueKey  = []byte{0x5}
-	ReimbursementKey  = []byte{0x6}
-	CollateralKey     = []byte{0x7}
-	ProviderKey       = []byte{0x8}
-	WithdrawQueueKey  = []byte{0x9}
+	ShieldAdminKey      = []byte{0x0}
+	TotalCollateralKey  = []byte{0x1}
+	TotalWithdrawingKey = []byte{0x2}
+	TotalShieldKey      = []byte{0x3}
+	TotalLockedKey      = []byte{0x4}
+	ServiceFeesKey      = []byte{0x5}
+	PoolKey             = []byte{0x6}
+	NextPoolIDKey       = []byte{0x7}
+	NextPurchaseIDKey   = []byte{0x8}
+	PurchaseListKey     = []byte{0x9}
+	PurchaseQueueKey    = []byte{0xA}
+	ProviderKey         = []byte{0xB}
+	WithdrawQueueKey    = []byte{0xC}
 )
+
+func GetTotalCollateralKey() []byte {
+	return TotalCollateralKey
+}
+
+func GetTotalWithdrawingKey() []byte {
+	return TotalWithdrawingKey
+}
+
+func GetTotalShieldKey() []byte {
+	return TotalShieldKey
+}
+
+func GetTotalLockedKey() []byte {
+	return TotalLockedKey
+}
+
+func GetServiceFeesKey() []byte {
+	return ServiceFeesKey
+}
 
 // GetPoolKey gets the key for the pool identified by pool ID.
 func GetPoolKey(id uint64) []byte {
@@ -44,7 +67,7 @@ func GetPoolKey(id uint64) []byte {
 	return append(PoolKey, b...)
 }
 
-// GetShieldadminKey gets the key for the shield admin.
+// GetShieldAdminKey gets the key for the shield admin.
 func GetShieldAdminKey() []byte {
 	return ShieldAdminKey
 }
@@ -83,25 +106,4 @@ func GetWithdrawCompletionTimeKey(timestamp time.Time) []byte {
 func GetPurchaseCompletionTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
 	return append(PurchaseQueueKey, bz...)
-}
-
-// GetReimbursement gets the key for a reimbursement.
-func GetReimbursementKey(proposalID uint64) []byte {
-	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, proposalID)
-	return append(ReimbursementKey, bz...)
-}
-
-// GetCollateralKey gets the key for a collateral.
-func GetCollateralKey(poolID uint64, address sdk.AccAddress) []byte {
-	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, poolID)
-	return append(CollateralKey, append(bz, address...)...)
-}
-
-// GetPoolCollateralsKey gets the key for collaterals of a pool.
-func GetPoolCollateralsKey(poolID uint64) []byte {
-	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, poolID)
-	return append(CollateralKey, bz...)
 }

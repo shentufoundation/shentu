@@ -147,37 +147,9 @@ func validateProposalByType(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmitP
 		return k.UpgradeKeeper.ValidatePlan(ctx, c.Plan)
 
 	case shield.ClaimProposal:
-		// check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit)
-		initialDepositAmount := msg.InitialDeposit.AmountOf(common.MicroCTKDenom).ToDec()
-		lossAmount := c.Loss.AmountOf(common.MicroCTKDenom).ToDec()
-		claimProposalParams := k.ShieldKeeper.GetClaimProposalParams(ctx)
-		depositRate := claimProposalParams.DepositRate
-		minDeposit := claimProposalParams.MinDeposit.AmountOf(common.MicroCTKDenom).ToDec()
-		if initialDepositAmount.LT(lossAmount.Mul(depositRate)) || initialDepositAmount.LT(minDeposit) {
-			return sdkerrors.Wrapf(
-				sdkerrors.ErrInsufficientFunds,
-				"insufficient initial deposits amount: %v, minimum: max(%v, %v)",
-				initialDepositAmount, lossAmount.Mul(depositRate), minDeposit,
-			)
-		}
-
-		// check shield >= loss
-		purchaseList, found := k.ShieldKeeper.GetPurchaseList(ctx, c.PoolID, c.Proposer)
-		if !found {
-			return shield.ErrPurchaseNotFound
-		}
-		purchase, found := shield.GetPurchase(purchaseList, c.PurchaseID)
-		if !found {
-			return shield.ErrPurchaseNotFound
-		}
-		if !purchase.Shield.IsAllGTE(c.Loss) {
-			return fmt.Errorf("insufficient shield: %s, loss: %s", purchase.Shield, c.Loss)
-		}
-
-		// check the purchaseList is not expired
-		if purchase.ClaimPeriodEndTime.Before(ctx.BlockTime()) {
-			return fmt.Errorf("after claim period end time: %s", purchase.ClaimPeriodEndTime)
-		}
+		// TODO Check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit).
+		// TODO Check shield >= loss.
+		// TODO Check the purchaseList is not expired.
 		return nil
 
 	default:
