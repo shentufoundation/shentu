@@ -2,6 +2,7 @@ package simulation
 
 import (
 	"math/rand"
+	"time"
 
 	"github.com/tendermint/tendermint/crypto"
 
@@ -18,6 +19,7 @@ import (
 
 const (
 	OpWeightMsgCreateOperator = "op_weight_msg_create_operator"
+	OpWeightMsgCreateTask     = "op_weight_msg_create_task"
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights.
@@ -30,10 +32,22 @@ func WeightedOperations(
 		},
 	)
 
+	var weightMsgCreateTask int
+	appParams.GetOrGenerate(cdc, OpWeightMsgCreateTask, &weightMsgCreateTask, nil,
+		func(_ *rand.Rand) {
+			weightMsgCreateTask = simappparams.DefaultWeightMsgSend
+		},
+	)
+
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(
 			weightMsgCreateOperator,
 			SimulateMsgCreateOperator(k, ak),
+		),
+
+		simulation.NewWeightedOperation(
+			weightMsgCreateTask,
+			SimulateMsgCreateTask(ak),
 		),
 	}
 }
@@ -51,10 +65,7 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 		}
 
 		operatorAcc := ak.GetAccount(ctx, operator.Address)
-		collateral, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()))
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
+		collateral := simulation.RandSubsetCoins(r, operatorAcc.SpendableCoins(ctx.BlockTime()))
 		if collateral.AmountOf(sdk.DefaultBondDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
 			return simulation.NewOperationMsgBasic(types.ModuleName,
 				"NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
@@ -85,15 +96,15 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 		stdOperator := types.NewOperator(operator.Address, operator.Address, collateral, nil, "an operator")
 		futureOperations := []simulation.FutureOperation{
 			{
-				BlockHeight: int(ctx.BlockHeight()) + 1,
+				BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 0, 10),
 				Op:          SimulateMsgAddCollateral(k, ak, &stdOperator, operator.PrivKey),
 			},
 			{
-				BlockHeight: int(ctx.BlockHeight()) + 2,
+				BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 0, 10),
 				Op:          SimulateMsgReduceCollateral(k, ak, &stdOperator, operator.PrivKey),
 			},
 			{
-				BlockHeight: int(ctx.BlockHeight()) + 3,
+				BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 10, 20),
 				Op:          SimulateMsgRemoveOperator(k, ak, &stdOperator, operator.PrivKey),
 			},
 		}
@@ -118,10 +129,7 @@ func SimulateMsgAddCollateral(
 		}
 
 		operatorAcc := ak.GetAccount(ctx, operator.Address)
-		collateralIncrement, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()))
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
+		collateralIncrement := simulation.RandSubsetCoins(r, operatorAcc.SpendableCoins(ctx.BlockTime()))
 		stdOperator.Collateral = stdOperator.Collateral.Add(collateralIncrement...)
 
 		fees, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()).Sub(collateralIncrement))
@@ -165,10 +173,7 @@ func SimulateMsgReduceCollateral(
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		collateralDecrement, err := simulation.RandomFees(r, ctx, operator.Collateral)
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
+		collateralDecrement := simulation.RandSubsetCoins(r, operator.Collateral)
 		newCollateral := operator.Collateral.Sub(collateralDecrement)
 		if newCollateral.AmountOf(sdk.DefaultBondDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
 			return simulation.NewOperationMsgBasic(types.ModuleName,
@@ -249,9 +254,85 @@ func checkConsistency(operator1, operator2 types.Operator) error {
 	if !operator1.Address.Equals(operator2.Address) ||
 		!operator1.Proposer.Equals(operator2.Proposer) ||
 		!operator1.Collateral.IsEqual(operator2.Collateral) ||
-		!operator1.AccumulatedRewards.IsEqual(operator2.AccumulatedRewards) ||
 		operator1.Name != operator2.Name {
 		return types.ErrInconsistentOperators
 	}
 	return nil
+}
+
+func SimulateMsgCreateTask(ak types.AuthKeeper) simulation.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
+		simulation.OperationMsg, []simulation.FutureOperation, error) {
+		contract := simulation.RandStringOfLength(r, 10)
+		function := simulation.RandStringOfLength(r, 10)
+		description := simulation.RandStringOfLength(r, 20)
+		creator, _ := simulation.RandomAcc(r, accs)
+		creatorAcc := ak.GetAccount(ctx, creator.Address)
+		bounty := simulation.RandSubsetCoins(r, creatorAcc.SpendableCoins(ctx.BlockTime()))
+
+		msg := types.NewMsgCreateTask(contract, function, bounty, description, creator.Address, 0, time.Now(), time.Duration(0))
+
+		fees, err := simulation.RandomFees(r, ctx, creatorAcc.SpendableCoins(ctx.BlockTime()).Sub(bounty))
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{creatorAcc.GetAccountNumber()},
+			[]uint64{creatorAcc.GetSequence()},
+			creator.PrivKey,
+		)
+
+		_, _, err = app.Deliver(tx)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		futureOperations := []simulation.FutureOperation{
+			{
+				BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 0, 20),
+				Op:          SimulateMsgInquiryTask(ak, contract, function),
+			},
+		}
+
+		return simulation.NewOperationMsg(msg, true, ""), futureOperations, nil
+	}
+}
+
+func SimulateMsgInquiryTask(ak types.AuthKeeper, contract, function string) simulation.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
+		simulation.OperationMsg, []simulation.FutureOperation, error) {
+
+		txHash := simulation.RandStringOfLength(r, 20)
+		inquirer, _ := simulation.RandomAcc(r, accs)
+
+		msg := types.NewMsgInquiryTask(contract, function, txHash, inquirer.Address)
+
+		inquirerAcc := ak.GetAccount(ctx, inquirer.Address)
+		fees, err := simulation.RandomFees(r, ctx, inquirerAcc.SpendableCoins(ctx.BlockTime()))
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{inquirerAcc.GetAccountNumber()},
+			[]uint64{inquirerAcc.GetSequence()},
+			inquirer.PrivKey,
+		)
+
+		_, _, err = app.Deliver(tx)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+	}
 }
