@@ -345,6 +345,10 @@ func SimulateMsgCreateTask(ak types.AuthKeeper, k keeper.Keeper) simulation.Oper
 				BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 0, 20),
 				Op:          SimulateMsgInquiryTask(ak, contract, function),
 			},
+			{
+				BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 20, 25),
+				Op:          SimulateMsgDeleteTask(ak, contract, function, creator),
+			},
 		}
 
 		for _, acc := range accs {
@@ -420,6 +424,37 @@ func SimulateMsgTaskResponse(ak types.AuthKeeper, k keeper.Keeper, contract, fun
 			[]uint64{operatorAcc.GetAccountNumber()},
 			[]uint64{operatorAcc.GetSequence()},
 			simAcc.PrivKey,
+		)
+
+		_, _, err = app.Deliver(tx)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+	}
+}
+
+func SimulateMsgDeleteTask(ak types.AuthKeeper, contract, function string, creator simulation.Account) simulation.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
+		simulation.OperationMsg, []simulation.FutureOperation, error) {
+
+		msg := types.NewMsgDeleteTask(contract, function, true, creator.Address)
+
+		creatorAcc := ak.GetAccount(ctx, creator.Address)
+		fees, err := simulation.RandomFees(r, ctx, creatorAcc.SpendableCoins(ctx.BlockTime()))
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{creatorAcc.GetAccountNumber()},
+			[]uint64{creatorAcc.GetSequence()},
+			creator.PrivKey,
 		)
 
 		_, _, err = app.Deliver(tx)
