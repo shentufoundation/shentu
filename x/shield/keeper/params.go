@@ -35,7 +35,7 @@ func (k Keeper) GetClaimProposalParams(ctx sdk.Context) types.ClaimProposalParam
 // GetPurchaseDeletionPeriod returns time duration from purchase protection end time to deletion time.
 func (k Keeper) GetPurchaseDeletionPeriod(ctx sdk.Context) time.Duration {
 	paramProtectionPeriodMs := k.GetPoolParams(ctx).ProtectionPeriod.Milliseconds()
-	paramClimPeriodMs := k.GetClaimProposalParams(ctx).ClaimPeriod.Milliseconds()
+	paramClaimPeriodMs := k.GetClaimProposalParams(ctx).ClaimPeriod.Milliseconds()
 	paramVotingPeriodMs := (k.GetVotingParams(ctx).VotingPeriod * 2).Milliseconds()
-	return time.Duration(paramClimPeriodMs-paramProtectionPeriodMs+paramVotingPeriodMs) * time.Millisecond
+	return time.Duration(paramClaimPeriodMs-paramProtectionPeriodMs+paramVotingPeriodMs) * time.Millisecond
 }
