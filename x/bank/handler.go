@@ -3,6 +3,7 @@ package bank
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 
 	"github.com/certikfoundation/shentu/x/auth/vesting"
@@ -31,13 +32,18 @@ func handleMsgLockedSend(ctx sdk.Context, k Keeper, ak types.AccountKeeper, msg 
 
 	acc = ak.GetAccount(ctx, msg.To)
 	if acc == nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "receiver account %s does not exist", msg.To)
+		acc = ak.NewAccountWithAddress(ctx, msg.To)
 	}
 
 	// ensure correct account type
 	toAcc, ok := acc.(*vesting.ManualVestingAccount)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a ManualVestingAccount")
+		baseAcc := auth.NewBaseAccount(msg.To, acc.GetCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
+		unlocker, err := sdk.AccAddressFromBech32(msg.Unlocker)
+		if err != nil {
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "need to specify the unlocker when initializing a new vesting account")
+		}
+		toAcc = vesting.NewManualVestingAccount(baseAcc, acc.GetCoins(), unlocker)
 	}
 
 	// subtract from sender account (as normally done)

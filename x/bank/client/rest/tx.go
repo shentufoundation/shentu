@@ -20,8 +20,9 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 
 // SendReq defines the properties of a send request's body.
 type SendReq struct {
-	BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
-	Amount  sdk.Coins    `json:"amount" yaml:"amount"`
+	BaseReq  rest.BaseReq `json:"base_req" yaml:"base_req"`
+	Amount   sdk.Coins    `json:"amount" yaml:"amount"`
+	Unlocker string       `json:"unlocker" yaml:"unlocker"`
 }
 
 // LockedSendRequestHandlerFn is an http request handler to send coins
@@ -53,7 +54,7 @@ func LockedSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgLockedSend(fromAddr, toAddr, req.Amount)
+		msg := types.NewMsgLockedSend(fromAddr, toAddr, req.Amount, req.Unlocker)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
 	}
 }
