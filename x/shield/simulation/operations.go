@@ -21,10 +21,9 @@ const (
 	OpWeightMsgUpdatePool = "op_weight_msg_update_pool"
 
 	// B and C's operations
-	OpWeightMsgDepositCollateral      = "op_weight_msg_deposit_collateral"
-	OpWeightMsgWithdrawCollateral     = "op_weight_msg_withdraw_collateral"
-	OpWeightMsgWithdrawRewards        = "op_weight_msg_withdraw_rewards"
-	OpWeightMsgWithdrawForeignRewards = "op_weight_msg_withdraw_foreign_rewards"
+	OpWeightMsgDepositCollateral  = "op_weight_msg_deposit_collateral"
+	OpWeightMsgWithdrawCollateral = "op_weight_msg_withdraw_collateral"
+	OpWeightMsgWithdrawRewards    = "op_weight_msg_withdraw_rewards"
 
 	// P's operations
 	OpWeightMsgPurchaseShield   = "op_weight_msg_purchase_shield"
@@ -32,14 +31,13 @@ const (
 )
 
 var (
-	DefaultWeightMsgCreatePool             = 10
-	DefaultWeightMsgUpdatePool             = 20
-	DefaultWeightMsgDepositCollateral      = 20
-	DefaultWeightMsgWithdrawCollateral     = 20
-	DefaultWeightMsgWithdrawRewards        = 10
-	DefaultWeightMsgWithdrawForeignRewards = 10
-	DefaultWeightMsgPurchaseShield         = 20
-	DefaultWeightShieldClaimProposal       = 0
+	DefaultWeightMsgCreatePool         = 10
+	DefaultWeightMsgUpdatePool         = 20
+	DefaultWeightMsgDepositCollateral  = 20
+	DefaultWeightMsgWithdrawCollateral = 20
+	DefaultWeightMsgWithdrawRewards    = 10
+	DefaultWeightMsgPurchaseShield     = 20
+	DefaultWeightShieldClaimProposal   = 0
 
 	DefaultIntMax = 100000000000
 )
@@ -71,11 +69,6 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 		func(_ *rand.Rand) {
 			weightMsgWithdrawRewards = DefaultWeightMsgWithdrawRewards
 		})
-	var weightMsgWithdrawForeignRewards int
-	appParams.GetOrGenerate(cdc, OpWeightMsgWithdrawForeignRewards, &weightMsgWithdrawForeignRewards, nil,
-		func(_ *rand.Rand) {
-			weightMsgWithdrawForeignRewards = DefaultWeightMsgWithdrawForeignRewards
-		})
 	var weightMsgPurchaseShield int
 	appParams.GetOrGenerate(cdc, OpWeightMsgPurchaseShield, &weightMsgPurchaseShield, nil,
 		func(_ *rand.Rand) {
@@ -88,7 +81,6 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 		simulation.NewWeightedOperation(weightMsgDepositCollateral, SimulateMsgDepositCollateral(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgWithdrawCollateral, SimulateMsgWithdrawCollateral(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgWithdrawRewards, SimulateMsgWithdrawRewards(k, ak)),
-		simulation.NewWeightedOperation(weightMsgWithdrawForeignRewards, SimulateMsgWithdrawForeignRewards(k, ak)),
 		simulation.NewWeightedOperation(weightMsgPurchaseShield, SimulateMsgPurchaseShield(k, ak, sk)),
 	}
 }
@@ -370,47 +362,6 @@ func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper) simulat
 		account := ak.GetAccount(ctx, simAccount.Address)
 
 		msg := types.NewMsgWithdrawRewards(simAccount.Address)
-
-		fees := sdk.Coins{}
-		tx := helpers.GenTx(
-			[]sdk.Msg{msg},
-			fees,
-			helpers.DefaultGenTxGas,
-			chainID,
-			[]uint64{account.GetAccountNumber()},
-			[]uint64{account.GetSequence()},
-			simAccount.PrivKey,
-		)
-
-		if _, _, err := app.Deliver(tx); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
-	}
-}
-
-// SimulateMsgWithdrawForeignRewards generates a MsgWithdrawForeignRewards object with all of its fields randomized.
-func SimulateMsgWithdrawForeignRewards(k keeper.Keeper, ak types.AccountKeeper) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
-	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		provider, found := keeper.RandomProvider(r, k, ctx)
-		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
-		}
-		var simAccount simulation.Account
-		for _, simAcc := range accs {
-			if simAcc.Address.Equals(provider.Address) {
-				simAccount = simAcc
-				break
-			}
-		}
-		account := ak.GetAccount(ctx, simAccount.Address)
-		toAddr := simulation.RandStringOfLength(r, 42)
-		if provider.Rewards.Foreign.Empty() {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
-		}
-		denom := provider.Rewards.Foreign[0].Denom
-		msg := types.NewMsgWithdrawForeignRewards(provider.Address, denom, toAddr)
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
