@@ -55,7 +55,13 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 
 // DistributeFees distributes service fees to all providers.
 func (k Keeper) DistributeFees(ctx sdk.Context) {
-	serviceFees := k.GetServiceFees(ctx)
+	secondsFromLastDistribution := sdk.NewDecFromInt(sdk.NewInt(int64(ctx.BlockTime().Sub(ctx.WithBlockHeight(ctx.BlockHeight()-1).BlockTime()).Seconds())))
+	serviceFees := k.GetServiceFeesPerSecond(ctx).MulDec(secondsFromLastDistribution)
+	remainingServiceFees := k.GetServiceFees(ctx)
+	bondDenom := k.BondDenom(ctx)
+	if remainingServiceFees.Native.AmountOf(bondDenom).LT(serviceFees.Native.AmountOf(bondDenom)) {
+		serviceFees.Native = remainingServiceFees.Native
+	}
 
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalLocked := k.GetTotalLocked(ctx)
@@ -64,16 +70,12 @@ func (k Keeper) DistributeFees(ctx sdk.Context) {
 	providers := k.GetAllProviders(ctx)
 	for _, provider := range providers {
 		proportion := sdk.NewDecFromInt(sdk.MaxInt(provider.Collateral.Add(provider.TotalLocked), sdk.ZeroInt())).QuoInt(totalCollateralAmount)
-		nativeFees := serviceFees.Native.MulDecTruncate(proportion)
-		foreignFees := serviceFees.Foreign.MulDecTruncate(proportion)
+		nativeFees := serviceFees.Native.MulDec(proportion)
 
-		serviceFees.Native = serviceFees.Native.Sub(nativeFees)
-		serviceFees.Foreign = serviceFees.Foreign.Sub(foreignFees)
+		remainingServiceFees.Native = remainingServiceFees.Native.Sub(nativeFees)
 
-		rewards := types.NewMixedDecCoins(nativeFees, foreignFees)
-		provider.Rewards = provider.Rewards.Add(rewards)
+		provider.Rewards = provider.Rewards.Add(types.MixedDecCoins{Native: nativeFees})
 		k.SetProvider(ctx, provider.Address, provider)
 	}
-
-	k.SetServiceFees(ctx, serviceFees)
+	k.SetServiceFees(ctx, remainingServiceFees)
 }
