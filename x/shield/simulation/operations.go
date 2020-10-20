@@ -3,7 +3,6 @@ package simulation
 import (
 	"math/rand"
 	"strings"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -146,19 +145,11 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 		foreignDeposit := sdk.NewCoins(sdk.NewCoin(sponsor, foreignAmount))
+
 		deposit := types.MixedCoins{Native: nativeDeposit, Foreign: foreignDeposit}
-
-		// time of coverage
-		// FIXME change to purchase periods
-		minPoolLife := int(poolParams.MinPoolLife)
-
-		timeOfCoverage := int64(simulation.RandIntBetween(r, minPoolLife, minPoolLife*10))
-		coverageDuration := time.Duration(timeOfCoverage)
 		sponsorAcc, _ := simulation.RandomAcc(r, accs)
-
 		description := simulation.RandStringOfLength(r, 42)
-
-		msg := types.NewMsgCreatePool(simAccount.Address, shield, deposit, sponsor, sponsorAcc.Address, coverageDuration, description)
+		msg := types.NewMsgCreatePool(simAccount.Address, shield, deposit, sponsor, sponsorAcc.Address, description)
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},

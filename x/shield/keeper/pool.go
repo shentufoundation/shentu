@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"time"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
@@ -113,19 +111,13 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
 }
 
 // CreatePool creates a pool and sponsor's shield.
-func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, protectionPeriod time.Duration, description string) (types.Pool, error) {
+func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, description string) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !creator.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
 	}
-
 	if _, found := k.GetPoolBySponsor(ctx, sponsor); found {
 		return types.Pool{}, types.ErrSponsorAlreadyExists
-	}
-
-	// FIXME: This is incorrect. Should make sure the protection period is 21x days.
-	if !k.ValidatePoolDuration(ctx, protectionPeriod) {
-		return types.Pool{}, types.ErrPoolLifeTooShort
 	}
 
 	// Check available collaterals.
@@ -162,7 +154,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 
 	// Make a pseudo-purchase for B.
 	purchaseID := k.GetNextPurchaseID(ctx)
-	protectionEndTime := ctx.BlockTime().Add(protectionPeriod)
+	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
 	purchase := types.NewPurchase(purchaseID, protectionEndTime, "shield for sponsor", shieldAmt)
 	k.InsertPurchaseQueue(ctx, types.NewPurchaseList(id, sponsorAddr, []types.Purchase{purchase}), protectionEndTime.Add(k.GetPurchaseDeletionPeriod(ctx)))
 	k.AddPurchase(ctx, id, sponsorAddr, purchase)
@@ -256,11 +248,4 @@ func (k Keeper) IterateAllPools(ctx sdk.Context, callback func(pool types.Pool) 
 			break
 		}
 	}
-}
-
-// ValidatePoolDuration validates new pool duration to be valid.
-func (k Keeper) ValidatePoolDuration(ctx sdk.Context, timeDuration time.Duration) bool {
-	poolParams := k.GetPoolParams(ctx)
-	minPoolDuration := poolParams.MinPoolLife
-	return timeDuration >= minPoolDuration
 }

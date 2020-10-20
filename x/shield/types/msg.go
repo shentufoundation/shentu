@@ -10,25 +10,23 @@ import (
 
 // MsgCreatePool defines the attributes of a create-pool transaction.
 type MsgCreatePool struct {
-	From           sdk.AccAddress `json:"from" yaml:"from"`
-	Shield         sdk.Coins      `json:"shield" yaml:"shield"`
-	Deposit        MixedCoins     `json:"deposit" yaml:"deposit"`
-	Sponsor        string         `json:"sponsor" yaml:"sponsor"`
-	SponsorAddr    sdk.AccAddress `json:"sponsor_addr" yaml:"sponsor_addr"`
-	TimeOfCoverage time.Duration  `json:"time_of_coverage" yaml:"time_of_coverage"`
-	Description    string         `json:"description" yaml:"description"`
+	From        sdk.AccAddress `json:"from" yaml:"from"`
+	Shield      sdk.Coins      `json:"shield" yaml:"shield"`
+	Deposit     MixedCoins     `json:"deposit" yaml:"deposit"`
+	Sponsor     string         `json:"sponsor" yaml:"sponsor"`
+	SponsorAddr sdk.AccAddress `json:"sponsor_addr" yaml:"sponsor_addr"`
+	Description string         `json:"description" yaml:"description"`
 }
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
-func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, time time.Duration, description string) MsgCreatePool {
+func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, description string) MsgCreatePool {
 	return MsgCreatePool{
-		From:           accAddr,
-		Shield:         shield,
-		Deposit:        deposit,
-		Sponsor:        sponsor,
-		SponsorAddr:    sponsorAddr,
-		TimeOfCoverage: time,
-		Description:    description,
+		From:        accAddr,
+		Shield:      shield,
+		Deposit:     deposit,
+		Sponsor:     sponsor,
+		SponsorAddr: sponsorAddr,
+		Description: description,
 	}
 }
 
@@ -65,9 +63,6 @@ func (msg MsgCreatePool) ValidateBasic() error {
 	}
 	if !msg.Shield.IsValid() || msg.Shield.IsZero() {
 		return ErrNoShield
-	}
-	if msg.TimeOfCoverage <= 0 {
-		return ErrInvalidDuration
 	}
 	return nil
 }

@@ -58,7 +58,7 @@ func handleShieldClaimProposal() error {
 }
 
 func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*sdk.Result, error) {
-	pool, err := k.CreatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.Sponsor, msg.SponsorAddr, msg.TimeOfCoverage, msg.Description)
+	pool, err := k.CreatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.Sponsor, msg.SponsorAddr, msg.Description)
 	if err != nil {
 		return &sdk.Result{Events: ctx.EventManager().Events()}, err
 	}
@@ -70,7 +70,6 @@ func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*s
 			sdk.NewAttribute(types.AttributeKeyDeposit, msg.Deposit.String()),
 			sdk.NewAttribute(types.AttributeKeySponsor, msg.Sponsor),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(pool.ID, 10)),
-			sdk.NewAttribute(types.AttributeKeyTimeOfCoverage, msg.TimeOfCoverage.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
