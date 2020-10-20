@@ -451,7 +451,11 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		totalWithdrawing := k.GetTotalWithdrawing(ctx)
 		totalShield := k.GetTotalShield(ctx)
 		poolParams := k.GetPoolParams(ctx)
-		maxShield := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield), totalCollateral.Sub(totalWithdrawing).Sub(totalShield))
+		maxShield := sdk.MinInt(pool.ShieldLimit.Sub(pool.Shield),
+			sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
+				totalCollateral.Sub(totalWithdrawing).Sub(totalShield),
+			),
+		)
 		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
