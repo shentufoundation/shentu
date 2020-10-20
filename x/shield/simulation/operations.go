@@ -21,7 +21,7 @@ const (
 	OpWeightMsgClearPayouts = "op_weight_msg_clear_payouts"
 
 	// B and C's operations
-	OpWeightMsgDepositCollateral      = "op_weight_msg_deposit_collateral"
+	OpWeightMsgServiceFeesCollateral  = "op_weight_msg_serviceFees_collateral"
 	OpWeightMsgWithdrawCollateral     = "op_weight_msg_withdraw_collateral"
 	OpWeightMsgWithdrawRewards        = "op_weight_msg_withdraw_rewards"
 	OpWeightMsgWithdrawForeignRewards = "op_weight_msg_withdraw_foreign_rewards"
@@ -34,7 +34,7 @@ const (
 var (
 	DefaultWeightMsgCreatePool             = 10
 	DefaultWeightMsgUpdatePool             = 10
-	DefaultWeightMsgDepositCollateral      = 20
+	DefaultWeightMsgServiceFeesCollateral  = 20
 	DefaultWeightMsgWithdrawCollateral     = 20
 	DefaultWeightMsgWithdrawRewards        = 10
 	DefaultWeightMsgWithdrawForeignRewards = 10
@@ -56,10 +56,10 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 		func(_ *rand.Rand) {
 			weightMsgUpdatePool = DefaultWeightMsgUpdatePool
 		})
-	var weightMsgDepositCollateral int
-	appParams.GetOrGenerate(cdc, OpWeightMsgDepositCollateral, &weightMsgDepositCollateral, nil,
+	var weightMsgServiceFeesCollateral int
+	appParams.GetOrGenerate(cdc, OpWeightMsgServiceFeesCollateral, &weightMsgServiceFeesCollateral, nil,
 		func(_ *rand.Rand) {
-			weightMsgDepositCollateral = DefaultWeightMsgDepositCollateral
+			weightMsgServiceFeesCollateral = DefaultWeightMsgServiceFeesCollateral
 		})
 	var weightMsgWithdrawCollateral int
 	appParams.GetOrGenerate(cdc, OpWeightMsgWithdrawCollateral, &weightMsgWithdrawCollateral, nil,
@@ -84,7 +84,7 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(weightMsgCreatePool, SimulateMsgCreatePool(k, ak, sk)),
-		simulation.NewWeightedOperation(weightMsgDepositCollateral, SimulateMsgDepositCollateral(k, ak, sk)),
+		simulation.NewWeightedOperation(weightMsgServiceFeesCollateral, SimulateMsgServiceFeesCollateral(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgWithdrawCollateral, SimulateMsgWithdrawCollateral(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgWithdrawRewards, SimulateMsgWithdrawRewards(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgWithdrawForeignRewards, SimulateMsgWithdrawForeignRewards(k, ak, sk)),
@@ -118,7 +118,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		totalWithdrawing := k.GetTotalWithdrawing(ctx)
 		totalShield := k.GetTotalShield(ctx)
 		poolParams := k.GetPoolParams(ctx)
-		maxShield := sdk.MinInt(totalCollateral.ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt(), totalCollateral.Sub(totalWithdrawing).Sub(totalShield))
+		maxShield := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt(), totalCollateral.Sub(totalWithdrawing).Sub(totalShield))
 		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
@@ -130,7 +130,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		if _, found := k.GetPoolBySponsor(ctx, sponsor); found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		// deposit
+		// serviceFees
 		nativeAmount := account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom)
 		if !nativeAmount.IsPositive() {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
@@ -139,17 +139,19 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		nativeDeposit := sdk.NewCoins(sdk.NewCoin(bondDenom, nativeAmount))
+		nativeServiceFees := sdk.NewCoins(sdk.NewCoin(bondDenom, nativeAmount))
 		foreignAmount, err := simulation.RandPositiveInt(r, sdk.NewInt(int64(DefaultIntMax)))
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		foreignDeposit := sdk.NewCoins(sdk.NewCoin(sponsor, foreignAmount))
+		foreignServiceFees := sdk.NewCoins(sdk.NewCoin(sponsor, foreignAmount))
 
-		deposit := types.MixedCoins{Native: nativeDeposit, Foreign: foreignDeposit}
+		serviceFees := types.MixedCoins{Native: nativeServiceFees, Foreign: foreignServiceFees}
 		sponsorAcc, _ := simulation.RandomAcc(r, accs)
 		description := simulation.RandStringOfLength(r, 42)
-		msg := types.NewMsgCreatePool(simAccount.Address, shield, deposit, sponsor, sponsorAcc.Address, description)
+
+		msg := types.NewMsgCreatePool(simAccount.Address, shield, serviceFees, sponsor, sponsorAcc.Address, description)
+
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
@@ -168,8 +170,8 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 	}
 }
 
-// SimulateMsgDepositCollateral generates a MsgDepositCollateral object with all of its fields randomized.
-func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
+// SimulateMsgServiceFeesCollateral generates a MsgServiceFeesCollateral object with all of its fields randomized.
+func SimulateMsgServiceFeesCollateral(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 		delAddr, available, found := keeper.RandomDelegation(r, k, ctx)
@@ -235,7 +237,10 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 		account := ak.GetAccount(ctx, simAccount.Address)
 
 		// withdraw coins
-		withdrawable := provider.Collateral.Sub(provider.Withdrawing)
+		totalCollateral := k.GetTotalCollateral(ctx)
+		totalWithdrawing := k.GetTotalWithdrawing(ctx)
+		totalShield := k.GetTotalShield(ctx)
+		withdrawable := sdk.MinInt(provider.Collateral.Sub(provider.Withdrawing), totalCollateral.Sub(totalWithdrawing).Sub(totalShield))
 		withdrawAmount, err := simulation.RandPositiveInt(r, withdrawable)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
