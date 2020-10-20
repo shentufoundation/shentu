@@ -44,10 +44,15 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 	if ctkRewards.IsZero() {
 		return nil, nil
 	}
-	rewards.Native = change
+	rewards.Native = sdk.DecCoins{}
 	k.SetRewards(ctx, addr, rewards)
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, ctkRewards)
-	if err != nil {
+
+	// Add leftovers as service fees.
+	serviceFees := k.GetServiceFees(ctx)
+	serviceFees.Native = serviceFees.Native.Add(change...)
+	k.SetServiceFees(ctx, serviceFees)
+
+	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, ctkRewards); err != nil {
 		return sdk.Coins{}, err
 	}
 	return ctkRewards, nil
@@ -56,22 +61,16 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 // DistributeFees distributes service fees to all providers.
 func (k Keeper) DistributeFees(ctx sdk.Context) {
 	serviceFees := k.GetServiceFees(ctx)
-
 	totalCollateral := k.GetTotalCollateral(ctx)
-	totalLocked := k.GetTotalLocked(ctx)
-	totalCollateralAmount := totalCollateral.Add(totalLocked)
 
 	providers := k.GetAllProviders(ctx)
 	for _, provider := range providers {
-		proportion := sdk.NewDecFromInt(sdk.MaxInt(provider.Collateral.Add(provider.TotalLocked), sdk.ZeroInt())).QuoInt(totalCollateralAmount)
+		proportion := sdk.NewDecFromInt(sdk.MaxInt(provider.Collateral, sdk.ZeroInt())).QuoInt(totalCollateral)
 		nativeFees := serviceFees.Native.MulDecTruncate(proportion)
-		foreignFees := serviceFees.Foreign.MulDecTruncate(proportion)
 
 		serviceFees.Native = serviceFees.Native.Sub(nativeFees)
-		serviceFees.Foreign = serviceFees.Foreign.Sub(foreignFees)
 
-		rewards := types.NewMixedDecCoins(nativeFees, foreignFees)
-		provider.Rewards = provider.Rewards.Add(rewards)
+		provider.Rewards = provider.Rewards.Add(types.MixedDecCoins{Native: nativeFees})
 		k.SetProvider(ctx, provider.Address, provider)
 	}
 
