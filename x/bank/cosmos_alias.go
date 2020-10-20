@@ -21,7 +21,6 @@ var (
 
 type (
 	BaseKeeper           = bank.BaseKeeper // ibc module depends on this
-	Keeper               = bank.Keeper
 	MsgSend              = bank.MsgSend
 	MsgMultiSend         = bank.MsgMultiSend
 	Input                = bank.Input

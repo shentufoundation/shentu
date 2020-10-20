@@ -105,8 +105,10 @@ func CreateTestInput(t *testing.T) TestInput {
 	)
 	distrKeeper := TestDistrKeeper{&sdk.Coins{}}
 
-	bankKeeper := bank.NewBaseKeeper(
+	var cvmKeeper Keeper
+	bankKeeper := bank.NewKeeper(
 		accKeeper,
+		&cvmKeeper,
 		paramsKeeper.Subspace(bank.DefaultParamspace),
 		blacklistedAddrs,
 	)
@@ -127,7 +129,7 @@ func CreateTestInput(t *testing.T) TestInput {
 	certKeeper := cert.NewKeeper(cdc, keys[cert.StoreKey], slashingKeeper, stakingKeeper)
 	cert.InitDefaultGenesis(ctx, certKeeper)
 
-	cvmKeeper := NewKeeper(cdc, keys[types.StoreKey], accKeeper, &distrKeeper, certKeeper, paramsKeeper.Subspace(types.DefaultParamspace))
+	cvmKeeper = NewKeeper(cdc, keys[types.StoreKey], accKeeper, &distrKeeper, certKeeper, paramsKeeper.Subspace(types.DefaultParamspace))
 
 	for _, addr := range Addrs {
 		_, err := bankKeeper.AddCoins(ctx, addr,

@@ -2,6 +2,9 @@ package bank
 
 import (
 	"encoding/json"
+	"math/rand"
+
+	"github.com/certikfoundation/shentu/x/bank/simulation"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -13,6 +16,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/bank/client/cli"
+	cosmosSim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
+	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/bank/client/rest"
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
@@ -127,4 +132,33 @@ func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
 // EndBlock returns the end blocker for the bank module.
 func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return am.cosmosAppModule.EndBlock(ctx, rbb)
+}
+
+//____________________________________________________________________________
+
+// AppModuleSimulation functions
+
+// GenerateGenesisState creates a randomized GenState of the bank module.
+func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
+	cosmosSim.RandomizedGenState(simState)
+}
+
+// ProposalContents doesn't return any content functions for governance proposals.
+func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
+	return nil
+}
+
+// RandomizedParams creates randomized bank param changes for the simulator.
+func (AppModule) RandomizedParams(r *rand.Rand) []sim.ParamChange {
+	return cosmosSim.ParamChanges(r)
+}
+
+// RegisterStoreDecoder performs a no-op.
+func (AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
+
+// WeightedOperations returns the all the gov module operations with their respective weights.
+func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
+	return simulation.WeightedOperations(
+		simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper,
+	)
 }
