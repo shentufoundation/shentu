@@ -251,7 +251,7 @@ func SimulateMsgRemoveOperator(k keeper.Keeper, ak types.AuthKeeper, stdOperator
 	}
 }
 
-// SimulateMsgWithdrawReward generates a MsgRemoveOperator object with all of its fields randomized.
+// SimulateMsgWithdrawReward generates a MsgWithdrawReward object with all of its fields randomized.
 func SimulateMsgWithdrawReward(k keeper.Keeper, ak types.AuthKeeper, stdOperator *types.Operator,
 	operatorPrivKey crypto.PrivKey) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
@@ -302,7 +302,7 @@ func checkConsistency(operator1, operator2 types.Operator) error {
 	return nil
 }
 
-// SimulateMsgCreateTask generates a MsgRemoveOperator object with all of its fields randomized.
+// SimulateMsgCreateTask generates a MsgCreateTask object with all of its fields randomized.
 // This operation leads a series of future operations.
 func SimulateMsgCreateTask(ak types.AuthKeeper, k keeper.Keeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
@@ -362,7 +362,7 @@ func SimulateMsgCreateTask(ak types.AuthKeeper, k keeper.Keeper) simulation.Oper
 	}
 }
 
-// SimulateMsgInquiryTask generates a MsgRemoveOperator object with all of its fields randomized.
+// SimulateMsgInquiryTask generates a MsgInquiryTask object with all of its fields randomized.
 func SimulateMsgInquiryTask(ak types.AuthKeeper, contract, function string) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
@@ -396,7 +396,7 @@ func SimulateMsgInquiryTask(ak types.AuthKeeper, contract, function string) simu
 	}
 }
 
-// SimulateMsgTaskResponse generates a MsgRemoveOperator object with all of its fields randomized.
+// SimulateMsgTaskResponse generates a MsgTaskResponse object with all of its fields randomized.
 func SimulateMsgTaskResponse(ak types.AuthKeeper, k keeper.Keeper, contract, function string,
 	simAcc simulation.Account) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
@@ -434,7 +434,7 @@ func SimulateMsgTaskResponse(ak types.AuthKeeper, k keeper.Keeper, contract, fun
 	}
 }
 
-// SimulateMsgDeleteTask generates a MsgRemoveOperator object with all of its fields randomized.
+// SimulateMsgDeleteTask generates a MsgDeleteTask object with all of its fields randomized.
 func SimulateMsgDeleteTask(ak types.AuthKeeper, contract, function string, creator simulation.Account) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
