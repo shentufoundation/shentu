@@ -29,6 +29,7 @@ func (k Keeper) GetProvider(ctx sdk.Context, delegator sdk.AccAddress) (dt types
 func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) types.Provider {
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, addr)
 
+	// Track provider's total stakings.
 	totalStaked := sdk.ZeroInt()
 	for _, del := range delegations {
 		val, found := k.sk.GetValidator(ctx, del.GetValidatorAddr())
@@ -40,8 +41,6 @@ func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) types.Provider
 
 	provider := types.NewProvider(addr)
 	provider.DelegationBonded = totalStaked
-	provider.Available = totalStaked
-
 	k.SetProvider(ctx, addr, provider)
 	return provider
 }
@@ -70,19 +69,16 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) 
 	deltaAmount := totalStakedAmount.Sub(provider.DelegationBonded)
 	provider.DelegationBonded = totalStakedAmount
 	withdrawAmount := sdk.ZeroInt()
-	if deltaAmount.IsNegative() {
-		if totalStakedAmount.LT(provider.Collateral.Sub(provider.Withdrawing)) {
-			withdrawAmount = provider.Collateral.Sub(provider.Withdrawing).Sub(totalStakedAmount)
-		}
-		provider.Available = provider.Available.Sub(deltaAmount.Neg())
-	} else {
-		provider.Available = provider.Available.Add(deltaAmount)
+	if deltaAmount.IsNegative() && totalStakedAmount.LT(provider.Collateral.Sub(provider.Withdrawing)) {
+		withdrawAmount = provider.Collateral.Sub(provider.Withdrawing).Sub(totalStakedAmount)
 	}
 	k.SetProvider(ctx, delAddr, provider)
 
 	// Save the change of provider before this because withdraw also updates the provider.
 	if withdrawAmount.IsPositive() {
-		k.WithdrawFromPools(ctx, delAddr, withdrawAmount)
+		if err := k.WithdrawCollateral(ctx, delAddr, withdrawAmount); err != nil {
+			panic("failed to withdraw collateral from the shield global pool")
+		}
 	}
 }
 
@@ -105,21 +101,15 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 
 	provider.DelegationBonded = provider.DelegationBonded.Sub(deltaAmount)
 	withdrawAmount := sdk.ZeroInt()
-	if deltaAmount.IsNegative() {
-		if provider.DelegationBonded.LT(
-			provider.Collateral.Sub(provider.Withdrawing),
-		) {
-			withdrawAmount = provider.Collateral.Sub(
-				provider.Withdrawing).Sub(provider.DelegationBonded)
-		}
-		provider.Available = provider.Available.Sub(deltaAmount.Neg())
-	} else {
-		provider.Available = provider.Available.Add(deltaAmount)
+	if deltaAmount.IsNegative() && provider.DelegationBonded.LT(provider.Collateral.Sub(provider.Withdrawing)) {
+		withdrawAmount = provider.Collateral.Sub(provider.Withdrawing).Sub(provider.DelegationBonded)
 	}
 	k.SetProvider(ctx, delAddr, provider)
 
 	if withdrawAmount.IsPositive() {
-		k.WithdrawFromPools(ctx, delAddr, withdrawAmount)
+		if err := k.WithdrawCollateral(ctx, delAddr, withdrawAmount); err != nil {
+			panic("failed to withdraw collateral from the shield global pool")
+		}
 	}
 }
 

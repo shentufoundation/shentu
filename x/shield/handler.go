@@ -35,7 +35,7 @@ func NewHandler(k Keeper) sdk.Handler {
 		case types.MsgPurchaseShield:
 			return handleMsgPurchaseShield(ctx, msg, k)
 		case types.MsgWithdrawReimbursement:
-			return handleMsgWithdrawReimbursement(ctx, msg, k)
+			return handleMsgWithdrawReimbursement()
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -46,31 +46,19 @@ func NewShieldClaimProposalHandler(k Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
 		case types.ShieldClaimProposal:
-			return handleShieldClaimProposal(ctx, k, c)
+			return handleShieldClaimProposal()
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized shield proposal content type: %T", c)
 		}
 	}
 }
 
-func handleShieldClaimProposal(ctx sdk.Context, k Keeper, p types.ShieldClaimProposal) error {
-	if err := k.CreateReimbursement(ctx, p.ProposalID, p.PoolID, p.Loss, p.Proposer); err != nil {
-		return err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeCreateCompensation,
-			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(p.PurchaseID, 10)),
-			sdk.NewAttribute(types.AttributeKeyCompensationAmount, p.Loss.String()),
-			sdk.NewAttribute(types.AttributeKeyBeneficiary, p.Proposer.String()),
-		),
-	})
-	return nil
+func handleShieldClaimProposal() error {
+	return types.ErrOperationNotSupported
 }
 
 func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*sdk.Result, error) {
-	pool, err := k.CreatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.Sponsor, msg.SponsorAddr, msg.TimeOfCoverage)
+	pool, err := k.CreatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.Sponsor, msg.SponsorAddr, msg.Description)
 	if err != nil {
 		return &sdk.Result{Events: ctx.EventManager().Events()}, err
 	}
@@ -81,8 +69,7 @@ func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*s
 			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
 			sdk.NewAttribute(types.AttributeKeyDeposit, msg.Deposit.String()),
 			sdk.NewAttribute(types.AttributeKeySponsor, msg.Sponsor),
-			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(pool.PoolID, 10)),
-			sdk.NewAttribute(types.AttributeKeyTimeOfCoverage, msg.TimeOfCoverage.String()),
+			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(pool.ID, 10)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -94,7 +81,7 @@ func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*s
 }
 
 func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*sdk.Result, error) {
-	_, err := k.UpdatePool(ctx, msg.From, msg.Shield, msg.Deposit, msg.PoolID, msg.AdditionalTime, msg.Description)
+	_, err := k.UpdatePool(ctx, msg.PoolID, msg.Description, msg.From, msg.Shield, msg.ServiceFees)
 	if err != nil {
 		return &sdk.Result{Events: ctx.EventManager().Events()}, err
 	}
@@ -102,10 +89,7 @@ func handleMsgUpdatePool(ctx sdk.Context, msg types.MsgUpdatePool, k Keeper) (*s
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpdatePool,
-			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
-			sdk.NewAttribute(types.AttributeKeyDeposit, msg.Deposit.String()),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
-			sdk.NewAttribute(types.AttributeKeyAdditionalTime, msg.AdditionalTime.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -121,14 +105,13 @@ func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollatera
 		return nil, types.ErrCollateralBadDenom
 	}
 
-	if err := k.WithdrawCollateral(ctx, msg.From, msg.PoolID, msg.Collateral.Amount); err != nil {
+	if err := k.WithdrawCollateral(ctx, msg.From, msg.Collateral.Amount); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWithdrawCollateral,
-			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyCollateral, msg.Collateral.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
@@ -141,14 +124,13 @@ func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral,
 		return nil, types.ErrCollateralBadDenom
 	}
 
-	if err := k.DepositCollateral(ctx, msg.From, msg.PoolID, msg.Collateral.Amount); err != nil {
+	if err := k.DepositCollateral(ctx, msg.From, msg.Collateral.Amount); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeDepositCollateral,
-			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyCollateral, msg.Collateral.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
@@ -197,7 +179,7 @@ func handleMsgResumePool(ctx sdk.Context, msg types.MsgResumePool, k Keeper) (*s
 }
 
 func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Keeper) (*sdk.Result, error) {
-	_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
+	_, err := k.PurchaseShieldForP(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
 	if err != nil {
 		return nil, err
 	}
@@ -259,19 +241,6 @@ func handleMsgWithdrawForeignRewards(ctx sdk.Context, msg types.MsgWithdrawForei
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgWithdrawReimbursement(ctx sdk.Context, msg types.MsgWithdrawReimbursement, k Keeper) (*sdk.Result, error) {
-	amount, err := k.WithdrawReimbursement(ctx, msg.ProposalID, msg.From)
-	if err != nil {
-		return &sdk.Result{Events: ctx.EventManager().Events()}, err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeWithdrawReimbursement,
-			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(msg.ProposalID, 10)),
-			sdk.NewAttribute(types.AttributeKeyCompensationAmount, amount.String()),
-			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.From.String()),
-		),
-	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+func handleMsgWithdrawReimbursement() (*sdk.Result, error) {
+	return &sdk.Result{}, types.ErrOperationNotSupported
 }

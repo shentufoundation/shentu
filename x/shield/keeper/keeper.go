@@ -56,9 +56,7 @@ func (k Keeper) GetNextPoolID(ctx sdk.Context) uint64 {
 
 // GetPoolBySponsor search store for a pool object with given pool ID.
 func (k Keeper) GetPoolBySponsor(ctx sdk.Context, sponsor string) (types.Pool, bool) {
-	ret := types.Pool{
-		PoolID: 0,
-	}
+	ret := types.Pool{}
 	k.IterateAllPools(ctx, func(pool types.Pool) bool {
 		if pool.Sponsor == sponsor {
 			ret = pool
@@ -67,15 +65,15 @@ func (k Keeper) GetPoolBySponsor(ctx sdk.Context, sponsor string) (types.Pool, b
 			return false
 		}
 	})
-	if ret.PoolID == 0 {
+	if ret.ID == 0 {
 		return ret, false
 	}
 	return ret, true
 }
 
-// DepositNativePremium deposits premium in native tokens from the shield admin or purchasers.
-func (k Keeper) DepositNativePremium(ctx sdk.Context, premium sdk.Coins, from sdk.AccAddress) error {
-	return k.supplyKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, premium)
+// DepositNativeServiceFees deposits service fees in native tokens from the shield admin or purchasers.
+func (k Keeper) DepositNativeServiceFees(ctx sdk.Context, serviceFees sdk.Coins, from sdk.AccAddress) error {
+	return k.supplyKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, serviceFees)
 }
 
 // BondDenom returns staking bond denomination.
