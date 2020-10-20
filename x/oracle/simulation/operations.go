@@ -405,7 +405,7 @@ func SimulateMsgTaskResponse(ak types.AuthKeeper, k keeper.Keeper, contract, fun
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 
-		score := r.Int63n(100)
+		score := r.Int63n(100) + 1
 
 		msg := types.NewMsgTaskResponse(contract, function, score, simAcc.Address)
 
