@@ -4,16 +4,16 @@ import (
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	cosmosBank "github.com/cosmos/cosmos-sdk/x/bank"
+	sim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
+	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/auth/vesting"
 	"github.com/certikfoundation/shentu/x/bank/internal/keeper"
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
 )
 
 const (
