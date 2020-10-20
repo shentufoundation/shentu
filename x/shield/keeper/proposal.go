@@ -37,51 +37,62 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 		}
 	}
 	
-	// Update shield amount and delete time of the purchase.
-	/*
-	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
-	if !found {
-		return types.ErrPurchaseNotFound
-	}
-	var index int
-	for i, entry := range purchaseList.Entries {
-		if entry.PurchaseID == purchaseID {
-			index = i
-			break
-		}
-	}
-	k.DequeuePurchase(ctx, purchaseList, purchaseList.Entries[index].DeleteTime)
-
-	if !purchaseList.Entries[index].Shield.IsAllGTE(loss) {
-		return types.ErrNotEnoughShield
-	}
-	purchaseList.Entries[index].Shield = purchaseList.Entries[index].Shield.Sub(loss)
-	votingEndTime := ctx.BlockTime().Add(lockPeriod)
-	if purchaseList.Entries[index].DeleteTime.Before(votingEndTime) {
-		purchaseList.Entries[index].DeleteTime = votingEndTime
-	}
-	k.SetPurchaseList(ctx, purchaseList)
-	k.InsertPurchaseQueue(ctx, purchaseList, purchaseList.Entries[index].DeleteTime)
-	*/
-
+	// TODO: Update purchase
+	
 	// Update the pool.
 	pool.Shield = pool.Shield.Sub(lossAmt)
 	k.SetPool(ctx, pool)
 
-	// Update the global pool.
+	// Update global pool.
 	totalShield := k.GetTotalShield(ctx)
+
 	totalShield = totalShield.Sub(lossAmt)
 	totalLocked = totalLocked.Sub(lossAmt)
+	totalCollateral = totalCollateral.Sub(lossAmt)
 	k.SetTotalShield(ctx, totalShield)
 	k.SetTotalLocked(ctx, totalLocked)
+	k.SetTotalCollateral(ctx, totalCollateral)
 
 	return nil
 }
 
 func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID, poolID uint64, loss sdk.Coins) error {
+ 	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
+	 
+	totalCollateral := k.GetTotalCollateral(ctx)
+	totalLocked := k.GetTotalLocked(ctx)
+	
+	totalCollateral = totalCollateral.Sub(lossAmt)
+	totalLocked = totalLocked.Sub(lossAmt)
+	k.SetTotalCollateral(ctx, totalCollateral)
+	k.SetTotalLocked(ctx, totalLocked)
+
 	return nil
 }
 
 func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, id uint64, loss sdk.Coins) error {
+	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
+
+	// Update shield of the pool.
+	pool, found := k.GetPool(ctx, poolID)
+	if !found {
+		return types.ErrNoPoolFound
+	}
+	pool.Shield = pool.Shield.Add(lossAmt)
+	k.SetPool(ctx, pool)
+
+	// Update shield of the purchase.
+	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
+	if !found {
+		return types.ErrPurchaseNotFound
+	}
+	for i := range purchaseList.Entries {
+		if purchaseList.Entries[i].PurchaseID == id {
+			purchaseList.Entries[i].Shield = purchaseList.Entries[i].Shield.Add(lossAmt)
+			break
+		}
+	}
+	k.SetPurchaseList(ctx, purchaseList)
+
 	return nil
 }
