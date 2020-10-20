@@ -165,7 +165,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 		}
 	} else if !serviceFees.Native.IsZero() {
 		// Allow adding service fees without purchasing more shield.
-		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Foreign: sdk.NewDecCoinsFromCoins(serviceFees.Foreign...)})
+		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees.Native...)})
 	}
 	if !serviceFees.Foreign.IsZero() {
 		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Foreign: sdk.NewDecCoinsFromCoins(serviceFees.Foreign...)})
