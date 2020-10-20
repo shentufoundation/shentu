@@ -37,7 +37,6 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 		}
 	}
 	
-	// TODO: Update purchase
 	// Update shield amount and delete time of the purchase.
 	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
 	if !found {
@@ -73,7 +72,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 	totalShield := k.GetTotalShield(ctx)
 
 	totalShield = totalShield.Sub(lossAmt)
-	totalLocked = totalLocked.Sub(lossAmt)
+	totalLocked = totalLocked.Add(lossAmt)
 	totalCollateral = totalCollateral.Sub(lossAmt)
 	k.SetTotalShield(ctx, totalShield)
 	k.SetTotalLocked(ctx, totalLocked)
@@ -88,7 +87,7 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID, poolID uint64, loss sdk
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalLocked := k.GetTotalLocked(ctx)
 	
-	totalCollateral = totalCollateral.Sub(lossAmt)
+	totalCollateral = totalCollateral.Add(lossAmt)
 	totalLocked = totalLocked.Sub(lossAmt)
 	k.SetTotalCollateral(ctx, totalCollateral)
 	k.SetTotalLocked(ctx, totalLocked)
