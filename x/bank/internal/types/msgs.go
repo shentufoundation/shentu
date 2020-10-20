@@ -14,8 +14,8 @@ const RouterKey = bank.ModuleName
 type MsgLockedSend struct {
 	From     sdk.AccAddress `json:"from" yaml:"from"`
 	To       sdk.AccAddress `json:"to" yaml:"to"`
-	Amount   sdk.Coins      `json:"amount" yaml:"amount"`
 	Unlocker sdk.AccAddress `json:"unlocker" yaml:"unlocker"`
+	Amount   sdk.Coins      `json:"amount" yaml:"amount"`
 }
 
 var _ sdk.Msg = MsgLockedSend{}
@@ -25,8 +25,8 @@ func NewMsgLockedSend(from, to, unlocker sdk.AccAddress, amount sdk.Coins) MsgLo
 	return MsgLockedSend{
 		From:     from,
 		To:       to,
-		Amount:   amount,
 		Unlocker: unlocker,
+		Amount:   amount,
 	}
 }
 
