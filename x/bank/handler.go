@@ -3,6 +3,7 @@ package bank
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 
 	"github.com/certikfoundation/shentu/x/auth/vesting"
@@ -28,16 +29,29 @@ func handleMsgLockedSend(ctx sdk.Context, k Keeper, ak types.AccountKeeper, msg 
 	if acc == nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "sender account %s does not exist", msg.From)
 	}
-
-	acc = ak.GetAccount(ctx, msg.To)
-	if acc == nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "receiver account %s does not exist", msg.To)
+	if msg.To.Equals(msg.Unlocker) {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "recipient cannot be the unlocker")
 	}
 
-	// ensure correct account type
-	toAcc, ok := acc.(*vesting.ManualVestingAccount)
-	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a ManualVestingAccount")
+	acc = ak.GetAccount(ctx, msg.To)
+
+	var toAcc *vesting.ManualVestingAccount
+	if acc == nil {
+		acc = ak.NewAccountWithAddress(ctx, msg.To)
+		baseAcc := auth.NewBaseAccount(msg.To, sdk.NewCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
+		if msg.Unlocker.Empty() {
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid unlocker address provided")
+		}
+		toAcc = vesting.NewManualVestingAccount(baseAcc, sdk.NewCoins(), msg.Unlocker)
+	} else {
+		var ok bool
+		toAcc, ok = acc.(*vesting.ManualVestingAccount)
+		if !ok {
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a ManualVestingAccount")
+		}
+		if !msg.Unlocker.Empty() {
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "cannot change the unlocker for existing ManualVestingAccount")
+		}
 	}
 
 	// subtract from sender account (as normally done)
