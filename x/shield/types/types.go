@@ -6,21 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// TotalCollateral is the amount of total collaterals in the shield module.
-type TotalCollateral sdk.Int
-
-// TotalWithdrawing is the amount of collaterals in the withdrawing queue.
-type TotalWithdrawing sdk.Int
-
-// TotalShield is the amount of all active purchased shields.
-type TotalShield sdk.Int
-
-// TotalLocked is the amount of collaterals locked for pending claims.
-type TotalLocked sdk.Int
-
-// ServiceFees are undistributed services fees from sponsors and purchasers.
-type ServiceFees MixedDecCoins
-
 // Pool contains a shield project pool's data.
 type Pool struct {
 	// ID is the id of the pool.

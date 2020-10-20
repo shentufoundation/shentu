@@ -151,10 +151,8 @@ func (k Keeper) IterateAllPurchases(ctx sdk.Context, callback func(purchase type
 // RemoveExpiredPurchases removes purchases whose claim period end time is before current block time.
 func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
-	protectionPeriod := k.GetPoolParams(ctx).ProtectionPeriod
-	claimPeriod := k.GetClaimProposalParams(ctx).ClaimPeriod
-	votingPeriod := k.gk.GetVotingParams(ctx).VotingPeriod * 2
 	totalShield := k.GetTotalShield(ctx)
+	deletionPeriod := k.GetPurchaseDeletionPeriod(ctx)
 
 	iterator := k.PurchaseQueueIterator(ctx, ctx.BlockTime())
 	defer iterator.Close()
@@ -166,19 +164,20 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 
 			for i := 0; i < len(purchaseList.Entries); {
 				entry := purchaseList.Entries[i]
-				if entry.ProtectionEndTime.Add(claimPeriod).Add(votingPeriod).Before(ctx.BlockTime().Add(protectionPeriod)) {
-					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
-					pool, found := k.GetPool(ctx, purchaseList.PoolID)
-					if !found {
-						// skip purchases of closed pools
-						continue
-					}
+				// DeletionTime = ProtectionEndTime - ProtectionPeriod + ClaimPeriod + VotingPeriod
+				// If DeletionTime > Now, skip.
+				if entry.ProtectionEndTime.Add(deletionPeriod).After(ctx.BlockTime()) {
+					i++
+					continue
+				}
+				// If DeletionTime <= Now, remove purchase and update shield.
+				purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
+				pool, found := k.GetPool(ctx, purchaseList.PoolID)
+				if found {
 					totalShield = totalShield.Sub(entry.Shield)
 					pool.Shield = pool.Shield.Sub(entry.Shield)
 					k.SetPool(ctx, pool)
-					continue
 				}
-				i++
 			}
 			if len(purchaseList.Entries) == 0 {
 				_ = k.DeletePurchaseList(ctx, purchaseList.PoolID, purchaseList.Purchaser)
