@@ -112,12 +112,9 @@ func SimulateSubmitProposal(
 			spendable := account.SpendableCoins(ctx.BlockTime())
 			minDeposit := k.GetDepositParams(ctx).MinDeposit
 			if spendable.AmountOf(sdk.DefaultBondDenom).LT(minDeposit.AmountOf(sdk.DefaultBondDenom)) {
-				deposit, err = simulation.RandomFees(r, ctx, spendable)
+				deposit = simulation.RandSubsetCoins(r, spendable)
 			} else {
-				deposit, err = simulation.RandomFees(r, ctx, minDeposit)
-			}
-			if err != nil {
-				return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+				deposit = simulation.RandSubsetCoins(r, minDeposit)
 			}
 		}
 
@@ -325,14 +322,10 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper, proposalID u
 		spendable := acc.SpendableCoins(ctx.BlockTime())
 		minDeposit := k.GetDepositParams(ctx).MinDeposit
 		var deposit sdk.Coins
-		var err error
 		if spendable.AmountOf(sdk.DefaultBondDenom).LT(minDeposit.AmountOf(sdk.DefaultBondDenom)) {
-			deposit, err = simulation.RandomFees(r, ctx, spendable)
+			deposit = simulation.RandSubsetCoins(r, spendable)
 		} else {
-			deposit, err = simulation.RandomFees(r, ctx, minDeposit)
-		}
-		if err != nil {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+			deposit = simulation.RandSubsetCoins(r, minDeposit)
 		}
 
 		msg := govTypes.NewMsgDeposit(simAcc.Address, proposalID, deposit)
