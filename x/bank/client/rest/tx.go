@@ -18,8 +18,8 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/bank/accounts/{address}/locked_transfers", LockedSendRequestHandlerFn(cliCtx)).Methods("POST")
 }
 
-// SendReq defines the properties of a send request's body.
-type SendReq struct {
+// LockedSendReq defines the properties of a send request's body.
+type LockedSendReq struct {
 	BaseReq  rest.BaseReq `json:"base_req" yaml:"base_req"`
 	Amount   sdk.Coins    `json:"amount" yaml:"amount"`
 	Unlocker string       `json:"unlocker" yaml:"unlocker"`
@@ -38,7 +38,7 @@ func LockedSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		var req SendReq
+		var req LockedSendReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
 			return
 		}
@@ -54,7 +54,13 @@ func LockedSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgLockedSend(fromAddr, toAddr, req.Amount, req.Unlocker)
+		unlocker, err := sdk.AccAddressFromBech32(req.Unlocker)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		msg := types.NewMsgLockedSend(fromAddr, toAddr, unlocker, req.Amount)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
 	}
 }

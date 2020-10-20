@@ -42,9 +42,12 @@ func LockedSendTxCmd(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			unlocker := viper.GetString(FlagUnlocker)
+			unlocker, err := sdk.AccAddressFromBech32(viper.GetString(FlagUnlocker))
+			if err != nil {
+				return err
+			}
 
-			msg := types.NewMsgLockedSend(cliCtx.GetFromAddress(), to, coins, unlocker)
+			msg := types.NewMsgLockedSend(cliCtx.GetFromAddress(), to, unlocker, coins)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
