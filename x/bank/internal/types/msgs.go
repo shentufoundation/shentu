@@ -12,19 +12,21 @@ const RouterKey = bank.ModuleName
 // MsgLockedSend transfers coins and have them vesting
 // in the receiver's manual vesting account.
 type MsgLockedSend struct {
-	From   sdk.AccAddress `json:"from" yaml:"from"`
-	To     sdk.AccAddress `json:"to" yaml:"to"`
-	Amount sdk.Coins      `json:"amount" yaml:"amount"`
+	From     sdk.AccAddress `json:"from" yaml:"from"`
+	To       sdk.AccAddress `json:"to" yaml:"to"`
+	Amount   sdk.Coins      `json:"amount" yaml:"amount"`
+	Unlocker sdk.AccAddress `json:"unlocker" yaml:"unlocker"`
 }
 
 var _ sdk.Msg = MsgLockedSend{}
 
 // NewMsgLockedSend returns a MsgLockedSend object.
-func NewMsgLockedSend(from, to sdk.AccAddress, amount sdk.Coins) MsgLockedSend {
+func NewMsgLockedSend(from, to, unlocker sdk.AccAddress, amount sdk.Coins) MsgLockedSend {
 	return MsgLockedSend{
-		From:   from,
-		To:     to,
-		Amount: amount,
+		From:     from,
+		To:       to,
+		Amount:   amount,
+		Unlocker: unlocker,
 	}
 }
 

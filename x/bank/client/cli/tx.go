@@ -4,6 +4,7 @@ import (
 	"bufio"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -13,6 +14,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
+)
+
+const (
+	FlagUnlocker = "unlocker"
 )
 
 // LockedSendTxCmd sends coins to a manual vesting account
@@ -37,11 +42,17 @@ func LockedSendTxCmd(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgLockedSend(cliCtx.GetFromAddress(), to, coins)
+			unlocker, err := sdk.AccAddressFromBech32(viper.GetString(FlagUnlocker))
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgLockedSend(cliCtx.GetFromAddress(), to, unlocker, coins)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 
 	cmd = flags.PostCommands(cmd)[0]
+	cmd.Flags().String(FlagUnlocker, "", "unlocker when initializing a new manual vesting account")
 	return cmd
 }
