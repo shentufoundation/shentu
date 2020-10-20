@@ -204,7 +204,7 @@ func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollatera
 }
 
 func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Keeper) (*sdk.Result, error) {
-	_, err := k.PurchaseShieldWithStandardFees(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
+	_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
 	if err != nil {
 		return nil, err
 	}

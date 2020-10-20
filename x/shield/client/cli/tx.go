@@ -125,7 +125,7 @@ func GetCmdCreatePool(cdc *codec.Codec) *cobra.Command {
 			fmt.Sprintf(`Create a Shield pool. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-deposit <ctk deposit> --foreign-deposit <external deposit>
+$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-deposit <ctk deposit> --shield-limit <shield limit>
 `,
 				version.ClientName,
 			),
@@ -172,7 +172,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 	}
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
-	cmd.Flags().String(flagShieldLimit, "", "maximum shield can be purchased")
+	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
 	return cmd
 }
 
@@ -186,7 +186,7 @@ func GetCmdUpdatePool(cdc *codec.Codec) *cobra.Command {
 			fmt.Sprintf(`Update a Shield pool. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit <external deposit> --shield <shield amount>
+$ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield amount> --shield-limit <shield limit>
 `,
 				version.ClientName,
 			),
@@ -233,7 +233,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --foreign-deposit
 	cmd.Flags().String(flagShield, "", "CTK Shield amount")
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagDescription, "", "description for the pool")
-	cmd.Flags().String(flagShieldLimit, "", "maximum shield can be purchased")
+	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
 	return cmd
 }
 
