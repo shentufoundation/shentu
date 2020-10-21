@@ -177,7 +177,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 
 				// If purchaseProtectionEndTime > previousBlockTime, update service fees.
 				// Otherwise services fees were updated in the last block.
-				if entry.ProtectionEndTime.After(previousBlockTime) {
+				if entry.ProtectionEndTime.After(previousBlockTime) && entry.ServiceFees.Native.IsAllPositive() {
 					// Add purchaseServiceFees * (purchaseProtectionEndTime - previousBlockTime) / protectionPeriod.
 					serviceFees = serviceFees.Add(entry.ServiceFees.MulDec(
 						sdk.NewDec(int64(entry.ProtectionEndTime.Sub(previousBlockTime).Seconds())).Quo(
@@ -210,10 +210,15 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 				k.SetPurchaseList(ctx, purchaseList)
 			}
 		}
-		store.Delete(iterator.Key())
 	}
 	k.SetServiceFees(ctx, totalServiceFees)
 	k.SetTotalShield(ctx, totalShield)
+
+	// Remove time slices which are expired for more than deletion period.
+	iterator = k.ExpiringPurchaseQueueIterator(ctx, time.Unix(0, ctx.BlockTime().UnixNano()-k.GetPurchaseDeletionPeriod(ctx).Nanoseconds()))
+	for ; iterator.Valid(); iterator.Next() {
+		store.Delete(iterator.Key())
+	}
 
 	// Add service fees for this block from unexpired purchases.
 	// totalServiceFees * (currentBlockSecond - previousBlockSecond) / protectionPeriodSeconds
