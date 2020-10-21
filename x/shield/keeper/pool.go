@@ -126,8 +126,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, poolID+1)
 
-	// Pool is created before the purchase is made.
-	// The pool will still exist even if the purchase fails.
+	// Purchase shield for the pool.
 	if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", creator, serviceFees.Native); err != nil {
 		return poolID, err
 	}
