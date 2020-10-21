@@ -61,11 +61,14 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 // DistributeFees distributes service fees to all providers.
 func (k Keeper) DistributeFees(ctx sdk.Context) {
 	secondsFromLastDistribution := sdk.NewDecFromInt(sdk.NewInt(int64(ctx.BlockTime().Sub(ctx.WithBlockHeight(ctx.BlockHeight() - 1).BlockTime()).Seconds())))
-	serviceFees := k.GetServiceFeesPerSecond(ctx).MulDec(secondsFromLastDistribution)
+	serviceFeesPerSecond := k.GetServiceFeesPerSecond(ctx)
+	serviceFees := serviceFeesPerSecond.MulDec(secondsFromLastDistribution)
 	remainingServiceFees := k.GetServiceFees(ctx)
 	bondDenom := k.BondDenom(ctx)
 	if remainingServiceFees.Native.AmountOf(bondDenom).LT(serviceFees.Native.AmountOf(bondDenom)) {
 		serviceFees.Native = remainingServiceFees.Native
+		serviceFeesPerSecond.Native = sdk.DecCoins{}
+		k.SetServiceFeesPerSecond(ctx, serviceFeesPerSecond)
 	}
 
 	totalCollateral := k.GetTotalCollateral(ctx)
