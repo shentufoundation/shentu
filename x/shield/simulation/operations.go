@@ -120,7 +120,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 
 		// shield limit
 		// No overflow would happen when converting int64 to int in this case.
-		shieldLimit := sdk.NewCoins(sdk.NewCoin(bondDenom, sdk.NewInt(int64(simulation.RandIntBetween(r, int(maxShield.Int64()), int(maxShield.Int64())*5)))))
+		shieldLimit := sdk.NewInt(int64(simulation.RandIntBetween(r, int(maxShield.Int64()), int(maxShield.Int64())*5)))
 
 		// sponsor
 		sponsor := strings.ToLower(simulation.RandStringOfLength(r, 10))
@@ -227,7 +227,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		serviceFees := types.MixedCoins{Native: nativeServiceFees, Foreign: foreignServiceFees}
 		description := simulation.RandStringOfLength(r, 42)
 
-		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description, nil)
+		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description, sdk.ZeroInt())
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
