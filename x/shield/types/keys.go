@@ -38,6 +38,7 @@ var (
 	PurchaseQueueKey    = []byte{0xA}
 	ProviderKey         = []byte{0xB}
 	WithdrawQueueKey    = []byte{0xC}
+	ReimbursementKey    = []byte{0xD}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -106,4 +107,11 @@ func GetWithdrawCompletionTimeKey(timestamp time.Time) []byte {
 func GetPurchaseCompletionTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
 	return append(PurchaseQueueKey, bz...)
+}
+
+// GetReimbursementKey gets the key for a reimbursement.
+func GetReimbursementKey(proposalID uint64) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, proposalID)
+	return append(ReimbursementKey, bz...)
 }
