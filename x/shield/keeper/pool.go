@@ -218,9 +218,18 @@ func (k Keeper) GetAllPools(ctx sdk.Context) (pools []types.Pool) {
 
 // ClosePool closes the pool.
 func (k Keeper) ClosePool(ctx sdk.Context, pool types.Pool) {
-	// TODO: make sure nothing else needs to be done
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetPoolKey(pool.ID))
+}
+
+// ClosePools closes pools when both of the pool's shield and shield limit is non-positive.
+func (k Keeper) ClosePools(ctx sdk.Context) {
+	k.IterateAllPools(ctx, func(pool types.Pool) bool {
+		if !pool.Shield.IsPositive() && !pool.ShieldLimit.IsPositive() {
+			k.ClosePool(ctx, pool)
+		}
+		return false
+	})
 }
 
 // IterateAllPools iterates over the all the stored pools and performs a callback function.
