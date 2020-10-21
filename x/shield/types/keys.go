@@ -106,9 +106,9 @@ func GetWithdrawCompletionTimeKey(timestamp time.Time) []byte {
 	return append(WithdrawQueueKey, bz...)
 }
 
-// GetPurchaseCompletionTimeKey gets a withdraw queue key,
-// which is obtained from the completion time.
-func GetPurchaseCompletionTimeKey(timestamp time.Time) []byte {
+// GetPurchaseExpirationTimeKey gets a withdraw queue key,
+// which is obtained from the expiration time.
+func GetPurchaseExpirationTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
 	return append(PurchaseQueueKey, bz...)
 }
