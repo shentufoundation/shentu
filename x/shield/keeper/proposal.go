@@ -25,15 +25,22 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 	totalLocked := k.GetTotalLocked(ctx)
-	// No need to check if TotalCollateral - TotalWithdrawing > lossAmt + TotalLocked(ReservedCollaterals)
-	if totalLocked.Add(lossAmt).GT(totalCollateral.Sub(totalWithdrawing)) {
-		// (1) Compute collaterals NOT expiring within 4 days.
-		impendingWithdrawAmount := k.ComputeWithdrawAmount(ctx, ctx.BlockHeader().Time.Add(k.gk.GetVotingParams(ctx).VotingPeriod * 2))
-		lockableCollateral := totalCollateral.Sub(impendingWithdrawAmount)
+	newLockAmt := totalLocked.Add(lossAmt)
 
-		// (2) Verify that amount from (1) >= lossAmt + TotalLocked
-		if lossAmt.Add(totalLocked).GT(lockableCollateral) {
-			return types.ErrNotEnoughCollateral
+	// Ensure that total collateral (withdrawing and non-withdrawing)
+	// can cover the new lock amount.
+	if newLockAmt.GT(totalCollateral) {
+		return types.ErrNotEnoughCollateral
+	}
+
+	// Check withdrawing collaterals if necessary.
+	if newLockAmt.GT(totalCollateral.Sub(totalWithdrawing)) {	
+		// If there are not enough collaterals in the
+		// next 4 days, delay some withdrawals.
+		impendingWithdrawAmount := k.ComputeWithdrawAmountByTime(ctx, ctx.BlockHeader().Time.Add(k.gk.GetVotingParams(ctx).VotingPeriod * 2))
+		if newLockAmt.GT(totalCollateral.Sub(impendingWithdrawAmount)) {
+			newWithdrawAmt := totalCollateral.Sub(newLockAmt)
+			k.DelayWithdraws(ctx, totalWithdrawing.Sub(newWithdrawAmt))
 		}
 	}
 	
@@ -59,7 +66,8 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 	purchase.Shield = purchase.Shield.Sub(lossAmt)
 	votingEndTime := ctx.BlockTime().Add(lockPeriod)
 	if purchaseDeleteTime.Before(votingEndTime) {
-		// TODO: update delete time & protection end time?
+		// TODO: correctly update delete time & protection end time
+		purchaseDeleteTime = votingEndTime // temp
 	}
 	k.SetPurchaseList(ctx, purchaseList)
 	k.InsertPurchaseQueue(ctx, purchaseList, purchaseDeleteTime)

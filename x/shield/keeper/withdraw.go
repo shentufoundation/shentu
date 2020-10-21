@@ -106,9 +106,9 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 	k.SetTotalWithdrawing(ctx, totalWithdrawing)
 }
 
-// ComputeWithdrawAmount computes the amount of collaterals that
-// will be dequeued from the withdraw queue by a given time.
-func (k Keeper) ComputeWithdrawAmount(ctx sdk.Context, time time.Time) sdk.Int {
+// ComputeWithdrawAmountByTime computes the amount of collaterals 
+// that will be dequeued from the withdraw queue by a given time.
+func (k Keeper) ComputeWithdrawAmountByTime(ctx sdk.Context, time time.Time) sdk.Int {
 	withdrawTimesliceIterator := k.WithdrawQueueIterator(ctx, time)
 	defer withdrawTimesliceIterator.Close()
 
@@ -121,6 +121,17 @@ func (k Keeper) ComputeWithdrawAmount(ctx sdk.Context, time time.Time) sdk.Int {
 		for _, withdraw := range(timeslice) {
 			amount = amount.Add(withdraw.Amount)
 		}
-	}
+	}	
 	return amount
+}
+
+// DelayWithdraws 
+func (k Keeper) DelayWithdraws(ctx sdk.Context, amount sdk.Int) error {
+	// Iterate through withdraw queue and extend 
+	// withdraws until the specified amount is reached.
+
+	// If corresponding unbonding is found (how to find?),
+	// extend it as well.
+
+	return nil
 }
