@@ -110,10 +110,9 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	totalServiceFees := k.GetServiceFees(ctx)
 	totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
 	k.SetServiceFees(ctx, totalServiceFees)
-	totalServiceFeesPerSec := k.GetServiceFeesPerSec(ctx)
-	serviceFeesPerSec := k.getFeesPerSecFromFees(ctx, serviceFees)
-	totalServiceFeesPerSec = totalServiceFeesPerSec.Add(serviceFeesPerSec)
-	k.SetServiceFeesPerSec(ctx, totalServiceFeesPerSec)
+	totalServiceFeesLeft := k.GetServiceFeesLeft(ctx)
+	totalServiceFeesLeft = totalServiceFeesLeft.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
+	k.SetServiceFeesLeft(ctx, totalServiceFeesLeft)
 
 	// Update global pool and project pool's shield.
 	totalShield = totalShield.Add(shieldAmt)
@@ -124,7 +123,7 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	// Set a new purchase.
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
 	purchaseID := k.GetNextPurchaseID(ctx)
-	purchase := types.NewPurchase(purchaseID, protectionEndTime, description, shieldAmt, serviceFeesPerSec)
+	purchase := types.NewPurchase(purchaseID, protectionEndTime, description, shieldAmt, types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
 	purchaseList := k.AddPurchase(ctx, poolID, purchaser, purchase)
 	k.InsertPurchaseQueue(ctx, purchaseList, protectionEndTime.Add(k.GetPurchaseDeletionPeriod(ctx)))
 	k.SetNextPurchaseID(ctx, purchaseID+1)
@@ -316,10 +315,4 @@ func (k Keeper) GetNextPurchaseID(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	opBz := store.Get(types.GetNextPurchaseIDKey())
 	return binary.LittleEndian.Uint64(opBz)
-}
-
-func (k Keeper) getFeesPerSecFromFees(ctx sdk.Context, fees sdk.Coins) types.MixedDecCoins {
-	// Fees / ProtectionPeriod.Second
-	fpsNative := sdk.NewDecCoinsFromCoins(fees...).QuoDec(sdk.NewDecFromInt(sdk.NewInt(int64(k.GetPoolParams(ctx).ProtectionPeriod.Seconds()))))
-	return types.MixedDecCoins{Native: fpsNative}
 }

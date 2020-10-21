@@ -18,7 +18,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	k.SetTotalShield(ctx, data.TotalShield)
 	k.SetTotalLocked(ctx, data.TotalLocked)
 	k.SetServiceFees(ctx, data.ServiceFees)
-	k.SetServiceFeesPerSec(ctx, data.ServiceFeesPerSec)
+	k.SetServiceFeesLeft(ctx, data.ServiceFeesLeft)
 	for _, pool := range data.Pools {
 		k.SetPool(ctx, pool)
 	}
@@ -51,7 +51,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	totalShield := k.GetTotalShield(ctx)
 	totalLocked := k.GetTotalLocked(ctx)
 	serviceFees := k.GetServiceFees(ctx)
-	serviceFeesPerSec := k.GetServiceFeesPerSec(ctx)
+	serviceFeesPerSec := k.GetServiceFeesLeft(ctx)
 	pools := k.GetAllPools(ctx)
 	nextPoolID := k.GetNextPoolID(ctx)
 	nextPurchaseID := k.GetNextPurchaseID(ctx)

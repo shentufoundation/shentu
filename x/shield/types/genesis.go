@@ -20,7 +20,7 @@ type GenesisState struct {
 	TotalShield         sdk.Int             `json:"total_shield" yaml:"total_shield"`
 	TotalLocked         sdk.Int             `json:"total_locked" yaml:"total_locked"`
 	ServiceFees         MixedDecCoins       `json:"service_fees" yaml:"service_fees"`
-	ServiceFeesPerSec   MixedDecCoins       `json:"service_fees_per_second" yaml:"service_fees_per_second"`
+	ServiceFeesLeft     MixedDecCoins       `json:"service_fees_left" yaml:"service_fees_left"`
 	Pools               []Pool              `json:"pools" yaml:"pools"`
 	Providers           []Provider          `json:"providers" yaml:"providers"`
 	PurchaseLists       []PurchaseList      `json:"purchases" yaml:"purchases"`
@@ -29,7 +29,7 @@ type GenesisState struct {
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
-	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked sdk.Int, serviceFees, serviceFeesPerSec MixedDecCoins,
+	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked sdk.Int, serviceFees, serviceFeesLeft MixedDecCoins,
 	pools []Pool, providers []Provider, purchase []PurchaseList, withdraws Withdraws) GenesisState {
 	return GenesisState{
 		ShieldAdmin:         shieldAdmin,
@@ -42,7 +42,7 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		TotalShield:         totalShield,
 		TotalLocked:         totalLocked,
 		ServiceFees:         serviceFees,
-		ServiceFeesPerSec:   serviceFeesPerSec,
+		ServiceFeesLeft:     serviceFeesLeft,
 		Pools:               pools,
 		Providers:           providers,
 		PurchaseLists:       purchase,
@@ -62,7 +62,7 @@ func DefaultGenesisState() GenesisState {
 		TotalShield:         sdk.ZeroInt(),
 		TotalLocked:         sdk.ZeroInt(),
 		ServiceFees:         InitMixedDecCoins(),
-		ServiceFeesPerSec:   InitMixedDecCoins(),
+		ServiceFeesLeft:     InitMixedDecCoins(),
 	}
 }
 

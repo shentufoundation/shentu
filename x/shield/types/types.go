@@ -91,18 +91,18 @@ type Purchase struct {
 	// Shield is the unused amount of shield purchased.
 	Shield sdk.Int `json:"shield" yaml:"shield"`
 
-	// ServiceFeesPerSec is the service fees paid by this purchase per second.
-	ServiceFeesPerSec MixedDecCoins `json:"service_fees_per_second" yaml:"service_fees_per_second"`
+	// ServiceFees is the service fees paid by this purchase.
+	ServiceFees MixedDecCoins `json:"service_fees" yaml:"service_fees"`
 }
 
 // NewPurchase creates a new purchase object.
-func NewPurchase(purchaseID uint64, protectionEndTime time.Time, description string, shield sdk.Int, serviceFeesPerSec MixedDecCoins) Purchase {
+func NewPurchase(purchaseID uint64, protectionEndTime time.Time, description string, shield sdk.Int, serviceFees MixedDecCoins) Purchase {
 	return Purchase{
 		PurchaseID:        purchaseID,
 		ProtectionEndTime: protectionEndTime,
 		Description:       description,
 		Shield:            shield,
-		ServiceFeesPerSec: serviceFeesPerSec,
+		ServiceFees:       serviceFees,
 	}
 }
 

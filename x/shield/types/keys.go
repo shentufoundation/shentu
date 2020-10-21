@@ -25,20 +25,20 @@ const (
 )
 
 var (
-	ShieldAdminKey       = []byte{0x0}
-	TotalCollateralKey   = []byte{0x1}
-	TotalWithdrawingKey  = []byte{0x2}
-	TotalShieldKey       = []byte{0x3}
-	TotalLockedKey       = []byte{0x4}
-	ServiceFeesKey       = []byte{0x5}
-	ServiceFeesPerSecKey = []byte{0x6}
-	PoolKey              = []byte{0x7}
-	NextPoolIDKey        = []byte{0x8}
-	NextPurchaseIDKey    = []byte{0x9}
-	PurchaseListKey      = []byte{0xA}
-	PurchaseQueueKey     = []byte{0xB}
-	ProviderKey          = []byte{0xC}
-	WithdrawQueueKey     = []byte{0xD}
+	ShieldAdminKey      = []byte{0x0}
+	TotalCollateralKey  = []byte{0x1}
+	TotalWithdrawingKey = []byte{0x2}
+	TotalShieldKey      = []byte{0x3}
+	TotalLockedKey      = []byte{0x4}
+	ServiceFeesKey      = []byte{0x5}
+	ServiceFeesLeftKey  = []byte{0x6}
+	PoolKey             = []byte{0x7}
+	NextPoolIDKey       = []byte{0x8}
+	NextPurchaseIDKey   = []byte{0x9}
+	PurchaseListKey     = []byte{0xA}
+	PurchaseQueueKey    = []byte{0xB}
+	ProviderKey         = []byte{0xC}
+	WithdrawQueueKey    = []byte{0xD}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -61,8 +61,8 @@ func GetServiceFeesKey() []byte {
 	return ServiceFeesKey
 }
 
-func GetServiceFeesPerSecKey() []byte {
-	return ServiceFeesPerSecKey
+func GetServiceFeesLeftKey() []byte {
+	return ServiceFeesLeftKey
 }
 
 // GetPoolKey gets the key for the pool identified by pool ID.

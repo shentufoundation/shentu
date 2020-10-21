@@ -91,15 +91,15 @@ func (k Keeper) GetServiceFees(ctx sdk.Context) types.MixedDecCoins {
 	return serviceFees
 }
 
-func (k Keeper) SetServiceFeesPerSec(ctx sdk.Context, serviceFees types.MixedDecCoins) {
+func (k Keeper) SetServiceFeesLeft(ctx sdk.Context, serviceFees types.MixedDecCoins) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(serviceFees)
-	store.Set(types.GetServiceFeesPerSecKey(), bz)
+	store.Set(types.GetServiceFeesLeftKey(), bz)
 }
 
-func (k Keeper) GetServiceFeesPerSec(ctx sdk.Context) types.MixedDecCoins {
+func (k Keeper) GetServiceFeesLeft(ctx sdk.Context) types.MixedDecCoins {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetServiceFeesPerSecKey())
+	bz := store.Get(types.GetServiceFeesLeftKey())
 	if bz == nil {
 		panic("service fees per second is not found")
 	}
@@ -183,9 +183,9 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 		totalServiceFees := k.GetServiceFees(ctx)
 		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees.Native...)})
 		k.SetServiceFees(ctx, totalServiceFees)
-		totalServiceFeesPerSec := k.GetServiceFeesPerSec(ctx)
-		totalServiceFeesPerSec = totalServiceFeesPerSec.Add(k.getFeesPerSecFromFees(ctx, serviceFees.Native))
-		k.SetServiceFeesPerSec(ctx, totalServiceFeesPerSec)
+		totalServiceFeesLeft := k.GetServiceFeesLeft(ctx)
+		totalServiceFeesLeft = totalServiceFeesLeft.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees.Native...)})
+		k.SetServiceFeesLeft(ctx, totalServiceFeesLeft)
 	}
 
 	return pool, nil

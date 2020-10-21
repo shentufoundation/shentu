@@ -62,39 +62,34 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 
 // DistributeFees distributes service fees to all providers.
 func (k Keeper) DistributeFees(ctx sdk.Context) {
+	totalServiceFees := k.GetServiceFees(ctx)
+	serviceFeesLeft := k.GetServiceFeesLeft(ctx)
+	// currentBlockSecond - previousBlockSecond
 	secondsFromLastDistribution := sdk.NewDecFromInt(sdk.NewInt(int64(ctx.BlockTime().Sub(ctx.WithBlockHeight(ctx.BlockHeight() - 1).BlockTime()).Seconds())))
-	serviceFeesPerSec := k.GetServiceFeesPerSec(ctx)
-	serviceFees := serviceFeesPerSec.MulDec(secondsFromLastDistribution)
-	remainingServiceFees := k.GetServiceFees(ctx)
+	// (currentBlockSecond - previousBlockSecond) * totalServiceFees / protectionPeriodSeconds
+	serviceFees := totalServiceFees.MulDec(secondsFromLastDistribution).QuoDec(sdk.NewDecFromInt(sdk.NewInt(int64(k.GetPoolParams(ctx).ProtectionPeriod.Seconds()))))
 	bondDenom := k.BondDenom(ctx)
-	if remainingServiceFees.Native.AmountOf(bondDenom).LT(serviceFees.Native.AmountOf(bondDenom)) {
-		serviceFees.Native = remainingServiceFees.Native
-		serviceFeesPerSec.Native = sdk.DecCoins{}
-		k.SetServiceFeesPerSec(ctx, serviceFeesPerSec)
+	if serviceFeesLeft.Native.AmountOf(bondDenom).LT(serviceFees.Native.AmountOf(bondDenom)) {
+		serviceFees.Native = serviceFeesLeft.Native
 	}
 
 	totalCollateral := k.GetTotalCollateral(ctx)
-
 	providers := k.GetAllProviders(ctx)
 	for _, provider := range providers {
-		proportion := sdk.NewDecFromInt(sdk.MaxInt(provider.Collateral, sdk.ZeroInt())).QuoInt(totalCollateral)
-		nativeFees := serviceFees.Native.MulDec(proportion)
-
-		remainingServiceFees.Native = remainingServiceFees.Native.Sub(nativeFees)
-
+		// fees * providerCollateral / totalCollateral
+		nativeFees := serviceFees.Native.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
 		provider.Rewards = provider.Rewards.Add(types.MixedDecCoins{Native: nativeFees})
 		k.SetProvider(ctx, provider.Address, provider)
+
+		serviceFeesLeft.Native = serviceFeesLeft.Native.Sub(nativeFees)
 	}
-	k.SetServiceFees(ctx, remainingServiceFees)
+	k.SetServiceFeesLeft(ctx, serviceFeesLeft)
+	k.UpdateServiceFees(ctx)
 }
 
-// UpdateServiceFeesPerSec update service fees per second based on purchases' completion time.
-func (k Keeper) UpdateServiceFeesPerSec(ctx sdk.Context) {
-	serviceFeesPerSec := k.GetServiceFeesPerSec(ctx)
-	if !serviceFeesPerSec.Native.IsAllPositive() {
-		return
-	}
-
+// UpdateServiceFees update service fees based on purchases' completion time.
+func (k Keeper) UpdateServiceFees(ctx sdk.Context) {
+	totalServiceFees := k.GetServiceFees(ctx)
 	deletionPeriod := k.GetPurchaseDeletionPeriod(ctx)
 	startTime := ctx.WithBlockHeight(ctx.BlockHeight() - 1).BlockTime().Add(deletionPeriod)
 	endTime := ctx.BlockTime().Add(deletionPeriod)
@@ -110,16 +105,16 @@ func (k Keeper) UpdateServiceFeesPerSec(ctx sdk.Context) {
 			purchaseList, _ := k.GetPurchaseList(ctx, poolPurchaser.PoolID, poolPurchaser.Purchaser)
 			for _, entry := range purchaseList.Entries {
 				if entry.ProtectionEndTime.After(ctx.WithBlockHeight(ctx.BlockHeight()-1).BlockTime()) && !entry.ProtectionEndTime.After(ctx.BlockTime()) {
-					if !serviceFeesPerSec.Native.IsAllPositive() {
-						serviceFeesPerSec.Native = sdk.DecCoins{}
-						k.SetServiceFeesPerSec(ctx, serviceFeesPerSec)
+					if !totalServiceFees.Native.IsAllPositive() {
+						totalServiceFees.Native = sdk.DecCoins{}
+						k.SetServiceFees(ctx, totalServiceFees)
 						return
 					}
-					serviceFeesPerSec = serviceFeesPerSec.Sub(entry.ServiceFeesPerSec)
+					totalServiceFees = totalServiceFees.Sub(entry.ServiceFees)
 				}
 			}
 		}
 	}
 
-	k.SetServiceFeesPerSec(ctx, serviceFeesPerSec)
+	k.SetServiceFees(ctx, totalServiceFees)
 }
