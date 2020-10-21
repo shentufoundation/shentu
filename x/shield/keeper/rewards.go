@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
@@ -84,4 +86,40 @@ func (k Keeper) DistributeFees(ctx sdk.Context) {
 		k.SetProvider(ctx, provider.Address, provider)
 	}
 	k.SetServiceFees(ctx, remainingServiceFees)
+}
+
+// UpdateServiceFeesPerSecond update service fees per second based on purchases' completion time.
+func (k Keeper) UpdateServiceFeesPerSecond(ctx sdk.Context) {
+	serviceFeesPerSecond := k.GetServiceFeesPerSecond(ctx)
+	if !serviceFeesPerSecond.Native.IsAllPositive() {
+		return
+	}
+
+	deletionPeriod := k.GetPurchaseDeletionPeriod(ctx)
+	startTime := ctx.WithBlockHeight(ctx.BlockHeight() - 1).BlockTime().Add(deletionPeriod)
+	endTime := ctx.BlockTime().Add(deletionPeriod)
+	// (startTime, endTime]
+	iterator := ctx.KVStore(k.storeKey).Iterator(types.GetPurchaseCompletionTimeKey(startTime.Add(time.Nanosecond)), sdk.InclusiveEndBytes(types.GetPurchaseCompletionTimeKey(endTime)))
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var timeSlice []types.PoolPurchaser
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &timeSlice)
+		for _, poolPurchaser := range timeSlice {
+			purchaseList, _ := k.GetPurchaseList(ctx, poolPurchaser.PoolID, poolPurchaser.Purchaser)
+			for _, entry := range purchaseList.Entries {
+				if entry.ProtectionEndTime.After(ctx.WithBlockHeight(ctx.BlockHeight()-1).BlockTime()) && !entry.ProtectionEndTime.After(ctx.BlockTime()) {
+					if !serviceFeesPerSecond.Native.IsAllPositive() {
+						serviceFeesPerSecond.Native = sdk.DecCoins{}
+						k.SetServiceFeesPerSecond(ctx, serviceFeesPerSecond)
+						return
+					}
+					serviceFeesPerSecond = serviceFeesPerSecond.Sub(entry.ServiceFeesPerSecond)
+				}
+			}
+		}
+	}
+
+	k.SetServiceFeesPerSecond(ctx, serviceFeesPerSecond)
 }

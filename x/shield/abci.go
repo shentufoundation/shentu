@@ -15,6 +15,9 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 	// Distribute service fees to providers.
 	k.DistributeFees(ctx)
 
+	// Update service fees to be distributed per second.
+	k.UpdateServiceFeesPerSecond(ctx)
+
 	// Remove expired purchases.
 	k.RemoveExpiredPurchases(ctx)
 
