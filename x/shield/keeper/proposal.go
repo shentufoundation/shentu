@@ -32,17 +32,21 @@ func (k Keeper) SetReimbursement(ctx sdk.Context, proposalID uint64, payout type
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID uint64, rmb sdk.Coins, beneficiary sdk.AccAddress) error {
 	totalCollateral := k.GetTotalCollateral(ctx)
+	// FIXME: Should use provider.TotalLocked instead of totalLocked.
 	totalLocked := k.GetTotalLocked(ctx)
 	bondDenom := k.BondDenom(ctx)
 	rmbAmt := rmb.AmountOf(bondDenom)
 	// FIXME: Consider leftovers.
 	// FIXME: Accumulative errors could be large when the number of providers is large.
 	for _, provider := range k.GetAllProviders(ctx) {
+		// FIXME: Check HY's implementations to decide the way of calculating losses.
 		proportion := provider.Collateral.ToDec().Quo(totalCollateral.Add(totalLocked).ToDec())
 		payoutAmt := rmbAmt.ToDec().Mul(proportion).TruncateInt()
 		provider.Collateral = provider.Collateral.Sub(payoutAmt)
 		k.SetProvider(ctx, provider.Address, provider)
 
+		// FIXME: Check withdraws.
+		// FIXME: HY: will set mapping between withdraws and delegations.
 		if err := k.UndelegateCoinsToShieldModule(ctx, provider.Address, payoutAmt); err != nil {
 			panic(err)
 		}
