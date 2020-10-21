@@ -103,10 +103,17 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 		return types.Purchase{}, types.ErrPoolShieldExceedsLimit
 	}
 
-	// Send service fees to the shield module account.
+	// Send service fees to the shield module account and update service fees.
 	if err := k.DepositNativeServiceFees(ctx, serviceFees, purchaser); err != nil {
 		return types.Purchase{}, err
 	}
+	totalServiceFees := k.GetServiceFees(ctx)
+	totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
+	k.SetServiceFees(ctx, totalServiceFees)
+	totalServiceFeesPerSecond := k.GetServiceFeesPerSecond(ctx)
+	serviceFeesPerSecond := sdk.NewDecCoinsFromCoins(serviceFees...).QuoDec(sdk.NewDecFromInt(sdk.NewInt(int64(poolParams.ProtectionPeriod.Seconds()))))
+	totalServiceFeesPerSecond = totalServiceFeesPerSecond.Add(types.MixedDecCoins{Native: serviceFeesPerSecond})
+	k.SetServiceFeesPerSecond(ctx, totalServiceFeesPerSecond)
 
 	// Update global pool and project pool's shield.
 	totalShield = totalShield.Add(shieldAmt)

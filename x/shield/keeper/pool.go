@@ -183,6 +183,10 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 		totalServiceFees := k.GetServiceFees(ctx)
 		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees.Native...)})
 		k.SetServiceFees(ctx, totalServiceFees)
+		totalServiceFeesPerSecond := k.GetServiceFeesPerSecond(ctx)
+		serviceFeesPerSecond := sdk.NewDecCoinsFromCoins(serviceFees.Native...).QuoDec(sdk.NewDecFromInt(sdk.NewInt(int64(k.GetPoolParams(ctx).ProtectionPeriod.Seconds()))))
+		totalServiceFeesPerSecond = totalServiceFeesPerSecond.Add(types.MixedDecCoins{Native: serviceFeesPerSecond})
+		k.SetServiceFeesPerSecond(ctx, totalServiceFeesPerSecond)
 	}
 
 	return pool, nil
