@@ -51,7 +51,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	totalShield := k.GetTotalShield(ctx)
 	totalLocked := k.GetTotalLocked(ctx)
 	serviceFees := k.GetServiceFees(ctx)
-	serviceFeesPerSec := k.GetServiceFeesLeft(ctx)
+	serviceFeesLeft := k.GetServiceFeesLeft(ctx)
 	pools := k.GetAllPools(ctx)
 	nextPoolID := k.GetNextPoolID(ctx)
 	nextPurchaseID := k.GetNextPurchaseID(ctx)
@@ -59,5 +59,5 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	providers := k.GetAllProviders(ctx)
 	withdraws := k.GetAllWithdraws(ctx)
 
-	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked, serviceFees, serviceFeesPerSec, pools, providers, purchaseLists, withdraws)
+	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked, serviceFees, serviceFeesLeft, pools, providers, purchaseLists, withdraws)
 }
