@@ -20,4 +20,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 
 	// Process completed withdraws.
 	k.DequeueCompletedWithdrawQueue(ctx)
+
+	// Close pools who do not have any shield and shield limits are set to zero.
+	k.ClosePools(ctx)
 }

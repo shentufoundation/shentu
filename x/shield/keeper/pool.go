@@ -111,7 +111,7 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
 }
 
 // CreatePool creates a pool and sponsor's shield.
-func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Coins) (uint64, error) {
+func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) (uint64, error) {
 	admin := k.GetAdmin(ctx)
 	if !creator.Equals(admin) {
 		return 0, types.ErrNotShieldAdmin
@@ -122,12 +122,11 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 
 	// Set the new project pool.
 	poolID := k.GetNextPoolID(ctx)
-	pool := types.NewPool(poolID, description, sponsor, sponsorAddr, shieldLimit.AmountOf(k.BondDenom(ctx)), sdk.ZeroInt())
+	pool := types.NewPool(poolID, description, sponsor, sponsorAddr, shieldLimit, sdk.ZeroInt())
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, poolID+1)
 
-	// Pool is created before the purchase is made.
-	// The pool will still exist even if the purchase fails.
+	// Purchase shield for the pool.
 	if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", creator, serviceFees.Native); err != nil {
 		return poolID, err
 	}
@@ -136,7 +135,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 }
 
 // UpdatePool updates pool info and shield for B.
-func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins, shieldLimit sdk.Coins) (types.Pool, error) {
+func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins, shieldLimit sdk.Int) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -150,9 +149,8 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 	if description != "" {
 		pool.Description = description
 	}
-	shieldLimitAmt := shieldLimit.AmountOf(k.BondDenom(ctx))
-	if shieldLimitAmt.IsPositive() {
-		pool.ShieldLimit = shieldLimitAmt
+	if !shieldLimit.IsZero() {
+		pool.ShieldLimit = shieldLimit
 	}
 	k.SetPool(ctx, pool)
 
@@ -218,9 +216,18 @@ func (k Keeper) GetAllPools(ctx sdk.Context) (pools []types.Pool) {
 
 // ClosePool closes the pool.
 func (k Keeper) ClosePool(ctx sdk.Context, pool types.Pool) {
-	// TODO: make sure nothing else needs to be done
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetPoolKey(pool.ID))
+}
+
+// ClosePools closes pools when both of the pool's shield and shield limit is non-positive.
+func (k Keeper) ClosePools(ctx sdk.Context) {
+	k.IterateAllPools(ctx, func(pool types.Pool) bool {
+		if !pool.Shield.IsPositive() && !pool.ShieldLimit.IsPositive() {
+			k.ClosePool(ctx, pool)
+		}
+		return false
+	})
 }
 
 // IterateAllPools iterates over the all the stored pools and performs a callback function.
