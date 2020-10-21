@@ -157,9 +157,9 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 
 			description := viper.GetString(flagDescription)
 
-			shieldLimit, err := sdk.ParseCoins(viper.GetString(flagShieldLimit))
-			if err != nil {
-				return err
+			shieldLimit, ok := sdk.NewIntFromString(viper.GetString(flagShieldLimit))
+			if !ok {
+				return fmt.Errorf("invalid input for shield limit")
 			}
 
 			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, description, shieldLimit)
@@ -216,9 +216,9 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 
 			description := viper.GetString(flagDescription)
 
-			shieldLimit, err := sdk.ParseCoins(viper.GetString(flagShieldLimit))
-			if err != nil {
-				return err
+			shieldLimit, ok := sdk.NewIntFromString(viper.GetString(flagShieldLimit))
+			if !ok {
+				return fmt.Errorf("invalid input for shield limit")
 			}
 
 			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, description, shieldLimit)

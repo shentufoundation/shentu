@@ -15,11 +15,11 @@ type MsgCreatePool struct {
 	Sponsor     string         `json:"sponsor" yaml:"sponsor"`
 	SponsorAddr sdk.AccAddress `json:"sponsor_addr" yaml:"sponsor_addr"`
 	Description string         `json:"description" yaml:"description"`
-	ShieldLimit sdk.Coins      `json:"shield_limit" yaml:"shield_limit"`
+	ShieldLimit sdk.Int        `json:"shield_limit" yaml:"shield_limit"`
 }
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
-func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Coins) MsgCreatePool {
+func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) MsgCreatePool {
 	return MsgCreatePool{
 		From:        accAddr,
 		Shield:      shield,
@@ -69,11 +69,11 @@ type MsgUpdatePool struct {
 	ServiceFees MixedCoins     `json:"service_fees" yaml:"service_fees"`
 	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
 	Description string         `json:"description" yaml:"description"`
-	ShieldLimit sdk.Coins      `json:"shield_limit" yaml:"shield_limit"`
+	ShieldLimit sdk.Int        `json:"shield_limit" yaml:"shield_limit"`
 }
 
 // NewMsgUpdatePool creates a new MsgUpdatePool instance.
-func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, serviceFees MixedCoins, id uint64, description string, shieldLimit sdk.Coins) MsgUpdatePool {
+func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, serviceFees MixedCoins, id uint64, description string, shieldLimit sdk.Int) MsgUpdatePool {
 	return MsgUpdatePool{
 		From:        accAddr,
 		Shield:      shield,
