@@ -63,7 +63,7 @@ func (k Keeper) DistributeFees(ctx sdk.Context) {
 
 	providers := k.GetAllProviders(ctx)
 	for _, provider := range providers {
-		proportion := sdk.NewDecFromInt(sdk.MaxInt(provider.Collateral.Add(provider.TotalLocked), sdk.ZeroInt())).QuoInt(totalCollateralAmount)
+		proportion := sdk.NewDecFromInt(sdk.MaxInt(provider.Collateral.Add(provider.Locked), sdk.ZeroInt())).QuoInt(totalCollateralAmount)
 		nativeFees := serviceFees.Native.MulDecTruncate(proportion)
 		foreignFees := serviceFees.Foreign.MulDecTruncate(proportion)
 

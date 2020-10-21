@@ -67,8 +67,8 @@ type Provider struct {
 	// pools.
 	Collateral sdk.Int `json:"collateral" yaml:"collateral"`
 
-	// TotalLocked is the amount locked for pending claims.
-	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
+	// Locked is the amount locked for pending claims.
+	Locked sdk.Int `json:"total_locked" yaml:"total_locked"`
 
 	// Withdrawing is the amount of collateral in withdraw queues.
 	Withdrawing sdk.Int `json:"withdrawing" yaml:"withdrawing"`
@@ -83,7 +83,7 @@ func NewProvider(addr sdk.AccAddress) Provider {
 		Address:          addr,
 		DelegationBonded: sdk.ZeroInt(),
 		Collateral:       sdk.ZeroInt(),
-		TotalLocked:      sdk.ZeroInt(),
+		Locked:           sdk.ZeroInt(),
 		Withdrawing:      sdk.ZeroInt(),
 	}
 }

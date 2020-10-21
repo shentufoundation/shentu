@@ -106,7 +106,7 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 	k.SetTotalWithdrawing(ctx, totalWithdrawing)
 }
 
-// ComputeWithdrawAmountByTime computes the amount of collaterals 
+// ComputeWithdrawAmountByTime computes the amount of collaterals
 // that will be dequeued from the withdraw queue by a given time.
 func (k Keeper) ComputeWithdrawAmountByTime(ctx sdk.Context, time time.Time) sdk.Int {
 	withdrawTimesliceIterator := k.WithdrawQueueIterator(ctx, time)
@@ -118,20 +118,118 @@ func (k Keeper) ComputeWithdrawAmountByTime(ctx sdk.Context, time time.Time) sdk
 		value := withdrawTimesliceIterator.Value()
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
 
-		for _, withdraw := range(timeslice) {
+		for _, withdraw := range timeslice {
 			amount = amount.Add(withdraw.Amount)
 		}
-	}	
+	}
 	return amount
 }
 
-// DelayWithdraws 
-func (k Keeper) DelayWithdraws(ctx sdk.Context, amount sdk.Int) error {
-	// Iterate through withdraw queue and extend 
-	// withdraws until the specified amount is reached.
+// DelayWithdraws looks at withdraws from now ~ now + delay
+// and delays "amount" until now + delay
+func (k Keeper) DelayWithdraws(ctx sdk.Context, delay time.Duration, amount sdk.Int, provider sdk.AccAddress) error {
+	// Retrieve provider's withdraws ending before delayedTime.
+	delayedTime := ctx.BlockTime().Add(delay)
+	withdrawTimesliceIterator := k.WithdrawQueueIterator(ctx, delayedTime)
+	defer withdrawTimesliceIterator.Close()
 
-	// If corresponding unbonding is found (how to find?),
-	// extend it as well.
+	withdraws := []types.Withdraw{}
+	for ; withdrawTimesliceIterator.Valid(); withdrawTimesliceIterator.Next() {
+		timeslice := []types.Withdraw{}
+		value := withdrawTimesliceIterator.Value()
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
+
+		for _, withdraw := range timeslice {
+			if withdraw.Address.Equals(provider) {
+				withdraws = append(withdraws, withdraw)
+			}
+		}
+	}
+
+	// Delay withdrawals.
+	// TODO: Withdraw the exact amount?
+	poolParams := k.GetPoolParams(ctx)
+	withdrawPeriod := poolParams.WithdrawPeriod
+	unbondingPeriod := k.sk.UnbondingTime(ctx)
+
+	remaining := amount
+	for _, w := range withdraws {
+		if !remaining.IsPositive() {
+			break
+		}
+
+		// Remove from withdraw queue.
+		originalCompletionTime := w.CompletionTime
+		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, w.CompletionTime)
+		if len(timeSlice) > 1 {
+			for i := 0; i < len(timeSlice); i++ {
+				if timeSlice[i].Address.Equals(provider) {
+					timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
+					k.SetWithdrawQueueTimeSlice(ctx, w.CompletionTime, timeSlice)
+					break
+				}
+			}
+		} else {
+			k.sk.RemoveUBDQueue(ctx, w.CompletionTime)
+		}
+
+		w.CompletionTime = delayedTime
+		k.InsertWithdrawQueue(ctx, w)
+
+		// Delay corresponding unbonding, if exists.
+		// TODO: only works if withdraw period == unbonding period?
+		withdrawBegin := originalCompletionTime.Add(-withdrawPeriod)
+		UBDCompletionTime := withdrawBegin.Add(unbondingPeriod)
+		k.DelayUnbonding(ctx, UBDCompletionTime, provider, w.Amount, delayedTime)
+
+		remaining = remaining.Sub(w.Amount)
+	}
+
+	if !remaining.IsPositive() {
+		panic("failed to delay enough withdraws") // TODO
+	}
 
 	return nil
+}
+
+// DelayUnbonding delays the completion time of an unbonding identified
+// by provider, timestamp, and amount of corresponding withdrawal.
+func (k Keeper) DelayUnbonding(ctx sdk.Context, timestamp time.Time, provider sdk.AccAddress, amount sdk.Int, delayedTime time.Time) {
+	timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, timestamp)
+	if len(timeSlice) == 0 {
+		return
+	}
+
+	for i := 0; i < len(timeSlice); i++ {
+		if timeSlice[i].DelegatorAddress.Equals(provider) {
+			unbonding, found := k.sk.GetUnbondingDelegation(ctx, provider, timeSlice[i].ValidatorAddress)
+			if !found {
+				panic("unbonding delegation was not found")
+			}
+
+			found = false
+			for i := 0; i < len(unbonding.Entries); i++ {
+				if !found && unbonding.Entries[i].InitialBalance.Equal(amount) {
+					unbonding.Entries[i].CompletionTime = delayedTime
+					found = true
+				} else if found && unbonding.Entries[i].CompletionTime.Before(unbonding.Entries[i-1].CompletionTime) {
+					unbonding.Entries[i-1], unbonding.Entries[i] = unbonding.Entries[i], unbonding.Entries[i-1]
+				} else if found {
+					break
+				}
+			}
+
+			if found {
+				if len(timeSlice) > 1 {
+					timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
+					k.sk.SetUBDQueueTimeSlice(ctx, timestamp, timeSlice)
+				} else {
+					k.sk.RemoveUBDQueue(ctx, timestamp)
+				}
+				k.sk.InsertUBDQueue(ctx, unbonding, delayedTime)
+				k.sk.SetUnbondingDelegation(ctx, unbonding)
+				break
+			}
+		}
+	}
 }
