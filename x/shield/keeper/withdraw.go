@@ -125,10 +125,10 @@ func (k Keeper) ComputeWithdrawAmountByTime(ctx sdk.Context, time time.Time) sdk
 	return amount
 }
 
-// DelayWithdraws looks at withdraws from now ~ now + delay
-// and delays "amount" until now + delay
+// DelayWithdraws looks at the provider's withdraws ending before the delay
+// duration from now and delays the given amount of withdraws by the specified
+// delay duration.
 func (k Keeper) DelayWithdraws(ctx sdk.Context, delay time.Duration, amount sdk.Int, provider sdk.AccAddress) error {
-	// Retrieve provider's withdraws ending before delayedTime.
 	delayedTime := ctx.BlockTime().Add(delay)
 	withdrawTimesliceIterator := k.WithdrawQueueIterator(ctx, delayedTime)
 	defer withdrawTimesliceIterator.Close()
@@ -151,38 +151,38 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, delay time.Duration, amount sdk.
 	poolParams := k.GetPoolParams(ctx)
 	withdrawPeriod := poolParams.WithdrawPeriod
 	unbondingPeriod := k.sk.UnbondingTime(ctx)
-
 	remaining := amount
-	for _, w := range withdraws {
+	for _, withdraw := range withdraws {
 		if !remaining.IsPositive() {
 			break
 		}
 
 		// Remove from withdraw queue.
-		originalCompletionTime := w.CompletionTime
-		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, w.CompletionTime)
+		originalCompletionTime := withdraw.CompletionTime
+		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraw.CompletionTime)
 		if len(timeSlice) > 1 {
 			for i := 0; i < len(timeSlice); i++ {
 				if timeSlice[i].Address.Equals(provider) {
 					timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
-					k.SetWithdrawQueueTimeSlice(ctx, w.CompletionTime, timeSlice)
+					k.SetWithdrawQueueTimeSlice(ctx, withdraw.CompletionTime, timeSlice)
 					break
 				}
 			}
 		} else {
-			k.sk.RemoveUBDQueue(ctx, w.CompletionTime)
+			k.sk.RemoveUBDQueue(ctx, withdraw.CompletionTime)
 		}
 
-		w.CompletionTime = delayedTime
-		k.InsertWithdrawQueue(ctx, w)
+		// Adjust the withdraw end time and re-insert.
+		withdraw.CompletionTime = delayedTime
+		k.InsertWithdrawQueue(ctx, withdraw)
 
 		// Delay corresponding unbonding, if exists.
 		// TODO: only works if withdraw period == unbonding period?
 		withdrawBegin := originalCompletionTime.Add(-withdrawPeriod)
 		UBDCompletionTime := withdrawBegin.Add(unbondingPeriod)
-		k.DelayUnbonding(ctx, UBDCompletionTime, provider, w.Amount, delayedTime)
+		k.DelayUnbonding(ctx, UBDCompletionTime, provider, withdraw.Amount, delayedTime)
 
-		remaining = remaining.Sub(w.Amount)
+		remaining = remaining.Sub(withdraw.Amount)
 	}
 
 	if !remaining.IsPositive() {
@@ -196,20 +196,26 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, delay time.Duration, amount sdk.
 // by provider, timestamp, and amount of corresponding withdrawal.
 func (k Keeper) DelayUnbonding(ctx sdk.Context, timestamp time.Time, provider sdk.AccAddress, amount sdk.Int, delayedTime time.Time) {
 	timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, timestamp)
-	if len(timeSlice) == 0 {
+	timeSliceLength := len(timeSlice)
+	if timeSliceLength == 0 {
 		return
 	}
 
-	for i := 0; i < len(timeSlice); i++ {
+	for i := 0; i < timeSliceLength; i++ {
 		if timeSlice[i].DelegatorAddress.Equals(provider) {
+			// Retrieve unbonding delegation given the delegator-validator 
+			// pair of possibly corresponding unbonding.
 			unbonding, found := k.sk.GetUnbondingDelegation(ctx, provider, timeSlice[i].ValidatorAddress)
 			if !found {
 				panic("unbonding delegation was not found")
 			}
 
+			// Search for unbonding entry 
 			found = false
 			for i := 0; i < len(unbonding.Entries); i++ {
-				if !found && unbonding.Entries[i].InitialBalance.Equal(amount) {
+				// TODO: How to correctly identify corresponding unbonding?
+				// unbonding.Entries[i].InitialBalance.Equal(amount)
+				if !found && unbonding.Entries[i].CompletionTime.Equal(timestamp) {
 					unbonding.Entries[i].CompletionTime = delayedTime
 					found = true
 				} else if found && unbonding.Entries[i].CompletionTime.Before(unbonding.Entries[i-1].CompletionTime) {
@@ -220,7 +226,7 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, timestamp time.Time, provider sd
 			}
 
 			if found {
-				if len(timeSlice) > 1 {
+				if timeSliceLength > 1 {
 					timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
 					k.sk.SetUBDQueueTimeSlice(ctx, timestamp, timeSlice)
 				} else {

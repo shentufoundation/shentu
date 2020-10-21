@@ -148,12 +148,13 @@ func validateProposalByType(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmitP
 
 	case shield.ClaimProposal:
 		// check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit)
-		initialDepositAmount := msg.InitialDeposit.AmountOf(common.MicroCTKDenom).ToDec()
-		lossAmount := c.Loss.AmountOf(common.MicroCTKDenom)
-		lossAmountDec := c.Loss.AmountOf(common.MicroCTKDenom).ToDec()
+		denom := common.MicroCTKDenom
+		initialDepositAmount := msg.InitialDeposit.AmountOf(denom).ToDec()
+		lossAmount := c.Loss.AmountOf(denom)
+		lossAmountDec := lossAmount.ToDec()
 		claimProposalParams := k.ShieldKeeper.GetClaimProposalParams(ctx)
 		depositRate := claimProposalParams.DepositRate
-		minDeposit := claimProposalParams.MinDeposit.AmountOf(common.MicroCTKDenom).ToDec()
+		minDeposit := claimProposalParams.MinDeposit.AmountOf(denom).ToDec()
 		if initialDepositAmount.LT(lossAmountDec.Mul(depositRate)) || initialDepositAmount.LT(minDeposit) {
 			return sdkerrors.Wrapf(
 				sdkerrors.ErrInsufficientFunds,

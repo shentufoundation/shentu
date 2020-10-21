@@ -27,7 +27,7 @@ type AppModuleBasic struct {
 	common.AppModuleBasic
 }
 
-// NewAppModuleBasic creates a new AppModuleBasic object in cert module.
+// NewAppModuleBasic creates a new AppModuleBasic object in shield module.
 func NewAppModuleBasic() AppModuleBasic {
 	return AppModuleBasic{
 		common.NewAppModuleBasic(
@@ -44,7 +44,7 @@ func NewAppModuleBasic() AppModuleBasic {
 	}
 }
 
-// AppModule implements an application module for the slashing module.
+// AppModule implements an application module for the shield module.
 type AppModule struct {
 	AppModuleBasic
 
