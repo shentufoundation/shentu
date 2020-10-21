@@ -210,15 +210,11 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 				k.SetPurchaseList(ctx, purchaseList)
 			}
 		}
+		// TODO: For phase I only. Need to modify the logic here after claims are enabled.
+		store.Delete(iterator.Key())
 	}
 	k.SetServiceFees(ctx, totalServiceFees)
 	k.SetTotalShield(ctx, totalShield)
-
-	// Remove time slices which are expired for more than deletion period.
-	iterator = k.ExpiringPurchaseQueueIterator(ctx, time.Unix(0, ctx.BlockTime().UnixNano()-k.GetPurchaseDeletionPeriod(ctx).Nanoseconds()))
-	for ; iterator.Valid(); iterator.Next() {
-		store.Delete(iterator.Key())
-	}
 
 	// Add service fees for this block from unexpired purchases.
 	// totalServiceFees * (currentBlockSecond - previousBlockSecond) / protectionPeriodSeconds
