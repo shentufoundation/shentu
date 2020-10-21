@@ -154,12 +154,35 @@ func (k Keeper) IterateAllPurchases(ctx sdk.Context, callback func(purchase type
 	}
 }
 
-// RemoveExpiredPurchases removes purchases whose claim period end time is before current block time.
-func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
+// RemoveExpiredPurchasesAndDistributeFees removes expired purchases and distributes fees for current block.
+func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
+	// Remove expired services and get service fees they should pay.
+	serviceFees := k.removeExpiredPurchases(ctx)
+
+	// Add service fees for this block from unexpired purchases.
+	serviceFees = serviceFees.Add(k.getServiceFeesForBlock(ctx))
+
+	// Limit service fees by service fees left.
+	serviceFeesLeft := k.GetServiceFeesLeft(ctx)
+	bondDenom := k.BondDenom(ctx)
+	if serviceFeesLeft.Native.AmountOf(bondDenom).LT(serviceFees.Native.AmountOf(bondDenom)) {
+		serviceFees.Native = serviceFeesLeft.Native
+	}
+
+	// Distribute and update service fees.
+	k.distributeFees(ctx, serviceFees)
+	k.updateServiceFees(ctx)
+}
+
+// removeExpiredPurchases removes expired purchases and return remaining fees
+func (k Keeper) removeExpiredPurchases(ctx sdk.Context) types.MixedDecCoins {
 	store := ctx.KVStore(k.storeKey)
+	totalServiceFees := k.GetServiceFees(ctx)
 	totalShield := k.GetTotalShield(ctx)
 	deletionPeriod := k.GetPurchaseDeletionPeriod(ctx)
+	previousBlockTime := ctx.WithBlockHeight(ctx.BlockHeight() - 1).BlockTime()
 
+	serviceFees := types.InitMixedDecCoins()
 	iterator := k.PurchaseQueueIterator(ctx, ctx.BlockTime())
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -171,12 +194,22 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 			for i := 0; i < len(purchaseList.Entries); {
 				entry := purchaseList.Entries[i]
 				// DeletionTime = ProtectionEndTime - ProtectionPeriod + ClaimPeriod + VotingPeriod
-				// If DeletionTime > Now, skip.
+				// If DeletionTime > currentBlockTime, skip.
 				if entry.ProtectionEndTime.Add(deletionPeriod).After(ctx.BlockTime()) {
 					i++
 					continue
 				}
-				// If DeletionTime <= Now, remove purchase and update shield.
+				// If previousBlockTime < ProtectionTime <= DeletionTime <= currentBlockTime,
+				// calculate remaining service fees to be distributed.
+				if entry.ProtectionEndTime.After(previousBlockTime) {
+					// Add purchaseServiceFees * (purchaseProtectionEndTime - previousBlockTime) / protectionPeriod.
+					serviceFees = serviceFees.Add(entry.ServiceFees.MulDec(
+						sdk.NewDec(int64(entry.ProtectionEndTime.Sub(previousBlockTime).Seconds())).Quo(
+							sdk.NewDec(int64(k.GetPoolParams(ctx).ProtectionPeriod.Seconds())))))
+					// Remove purchaseServiceFees from total service fees.
+					totalServiceFees = totalServiceFees.Sub(entry.ServiceFees)
+				}
+				// If DeletionTime <= currentBlockTime, remove purchase and update shield.
 				purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
 				pool, found := k.GetPool(ctx, purchaseList.PoolID)
 				if found {
@@ -193,8 +226,9 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 		}
 		store.Delete(iterator.Key())
 	}
-
+	k.SetServiceFees(ctx, totalServiceFees)
 	k.SetTotalShield(ctx, totalShield)
+	return serviceFees
 }
 
 // GetPurchaserPurchases returns all purchases by a given purchaser.

@@ -101,7 +101,7 @@ func (k Keeper) GetServiceFeesLeft(ctx sdk.Context) types.MixedDecCoins {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetServiceFeesLeftKey())
 	if bz == nil {
-		panic("service fees per second is not found")
+		panic("service fees left is not found")
 	}
 	var serviceFees types.MixedDecCoins
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &serviceFees)

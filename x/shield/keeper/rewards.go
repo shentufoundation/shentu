@@ -60,19 +60,19 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 	return ctkRewards, nil
 }
 
-// DistributeFees distributes service fees to all providers.
-func (k Keeper) DistributeFees(ctx sdk.Context) {
+// getServiceFeesForBlock calculates service fees for current block.
+func (k Keeper) getServiceFeesForBlock(ctx sdk.Context) types.MixedDecCoins {
 	totalServiceFees := k.GetServiceFees(ctx)
-	serviceFeesLeft := k.GetServiceFeesLeft(ctx)
 	// currentBlockSecond - previousBlockSecond
 	secondsFromLastDistribution := sdk.NewDecFromInt(sdk.NewInt(int64(ctx.BlockTime().Sub(ctx.WithBlockHeight(ctx.BlockHeight() - 1).BlockTime()).Seconds())))
 	// (currentBlockSecond - previousBlockSecond) * totalServiceFees / protectionPeriodSeconds
 	serviceFees := totalServiceFees.MulDec(secondsFromLastDistribution).QuoDec(sdk.NewDecFromInt(sdk.NewInt(int64(k.GetPoolParams(ctx).ProtectionPeriod.Seconds()))))
-	bondDenom := k.BondDenom(ctx)
-	if serviceFeesLeft.Native.AmountOf(bondDenom).LT(serviceFees.Native.AmountOf(bondDenom)) {
-		serviceFees.Native = serviceFeesLeft.Native
-	}
+	return serviceFees
+}
 
+// DistributeFees distributes service fees to all providers.
+func (k Keeper) distributeFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
+	serviceFeesLeft := k.GetServiceFeesLeft(ctx)
 	totalCollateral := k.GetTotalCollateral(ctx)
 	providers := k.GetAllProviders(ctx)
 	for _, provider := range providers {
@@ -84,11 +84,10 @@ func (k Keeper) DistributeFees(ctx sdk.Context) {
 		serviceFeesLeft.Native = serviceFeesLeft.Native.Sub(nativeFees)
 	}
 	k.SetServiceFeesLeft(ctx, serviceFeesLeft)
-	k.UpdateServiceFees(ctx)
 }
 
 // UpdateServiceFees update service fees based on purchases' completion time.
-func (k Keeper) UpdateServiceFees(ctx sdk.Context) {
+func (k Keeper) updateServiceFees(ctx sdk.Context) {
 	totalServiceFees := k.GetServiceFees(ctx)
 	deletionPeriod := k.GetPurchaseDeletionPeriod(ctx)
 	startTime := ctx.WithBlockHeight(ctx.BlockHeight() - 1).BlockTime().Add(deletionPeriod)
