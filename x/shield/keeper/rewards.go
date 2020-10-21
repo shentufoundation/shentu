@@ -63,14 +63,14 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 // DistributeFees distributes service fees to all providers.
 func (k Keeper) DistributeFees(ctx sdk.Context) {
 	secondsFromLastDistribution := sdk.NewDecFromInt(sdk.NewInt(int64(ctx.BlockTime().Sub(ctx.WithBlockHeight(ctx.BlockHeight() - 1).BlockTime()).Seconds())))
-	serviceFeesPerSecond := k.GetServiceFeesPerSecond(ctx)
-	serviceFees := serviceFeesPerSecond.MulDec(secondsFromLastDistribution)
+	serviceFeesPerSec := k.GetServiceFeesPerSec(ctx)
+	serviceFees := serviceFeesPerSec.MulDec(secondsFromLastDistribution)
 	remainingServiceFees := k.GetServiceFees(ctx)
 	bondDenom := k.BondDenom(ctx)
 	if remainingServiceFees.Native.AmountOf(bondDenom).LT(serviceFees.Native.AmountOf(bondDenom)) {
 		serviceFees.Native = remainingServiceFees.Native
-		serviceFeesPerSecond.Native = sdk.DecCoins{}
-		k.SetServiceFeesPerSecond(ctx, serviceFeesPerSecond)
+		serviceFeesPerSec.Native = sdk.DecCoins{}
+		k.SetServiceFeesPerSec(ctx, serviceFeesPerSec)
 	}
 
 	totalCollateral := k.GetTotalCollateral(ctx)
@@ -88,10 +88,10 @@ func (k Keeper) DistributeFees(ctx sdk.Context) {
 	k.SetServiceFees(ctx, remainingServiceFees)
 }
 
-// UpdateServiceFeesPerSecond update service fees per second based on purchases' completion time.
-func (k Keeper) UpdateServiceFeesPerSecond(ctx sdk.Context) {
-	serviceFeesPerSecond := k.GetServiceFeesPerSecond(ctx)
-	if !serviceFeesPerSecond.Native.IsAllPositive() {
+// UpdateServiceFeesPerSec update service fees per second based on purchases' completion time.
+func (k Keeper) UpdateServiceFeesPerSec(ctx sdk.Context) {
+	serviceFeesPerSec := k.GetServiceFeesPerSec(ctx)
+	if !serviceFeesPerSec.Native.IsAllPositive() {
 		return
 	}
 
@@ -110,16 +110,16 @@ func (k Keeper) UpdateServiceFeesPerSecond(ctx sdk.Context) {
 			purchaseList, _ := k.GetPurchaseList(ctx, poolPurchaser.PoolID, poolPurchaser.Purchaser)
 			for _, entry := range purchaseList.Entries {
 				if entry.ProtectionEndTime.After(ctx.WithBlockHeight(ctx.BlockHeight()-1).BlockTime()) && !entry.ProtectionEndTime.After(ctx.BlockTime()) {
-					if !serviceFeesPerSecond.Native.IsAllPositive() {
-						serviceFeesPerSecond.Native = sdk.DecCoins{}
-						k.SetServiceFeesPerSecond(ctx, serviceFeesPerSecond)
+					if !serviceFeesPerSec.Native.IsAllPositive() {
+						serviceFeesPerSec.Native = sdk.DecCoins{}
+						k.SetServiceFeesPerSec(ctx, serviceFeesPerSec)
 						return
 					}
-					serviceFeesPerSecond = serviceFeesPerSecond.Sub(entry.ServiceFeesPerSecond)
+					serviceFeesPerSec = serviceFeesPerSec.Sub(entry.ServiceFeesPerSec)
 				}
 			}
 		}
 	}
 
-	k.SetServiceFeesPerSecond(ctx, serviceFeesPerSecond)
+	k.SetServiceFeesPerSec(ctx, serviceFeesPerSec)
 }
