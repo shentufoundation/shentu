@@ -17,7 +17,7 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 // deposit amounts held on store
 func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		total := keeper.GetServiceFees(ctx)
+		total := keeper.GetRemainingServiceFees(ctx)
 		providers := keeper.GetAllProviders(ctx)
 
 		for _, prov := range providers {
