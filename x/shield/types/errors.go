@@ -42,4 +42,5 @@ var (
 	ErrOperationNotSupported      = sdkerrors.Register(ModuleName, 137, "operation is currently not supported")
 	ErrPoolShieldExceedsLimit     = sdkerrors.Register(ModuleName, 138, "pool shield exceeds limit")
 	ErrShieldAdminNotActive       = sdkerrors.Register(ModuleName, 139, "shield admin is not activated")
+	ErrPurchaseTooSmall           = sdkerrors.Register(ModuleName, 140, "purchase amount is too small")
 )
