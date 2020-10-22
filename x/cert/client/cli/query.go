@@ -147,7 +147,7 @@ func GetCmdCertificate(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			var certificate types.Certificate
+			var certificate keeper.QueryResCertificate
 			cdc.MustUnmarshalJSON(res, &certificate)
 			return cliCtx.PrintOutput(certificate)
 		},

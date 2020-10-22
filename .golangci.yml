@@ -62,7 +62,6 @@ linters:
     - bodyclose
     - depguard
     - dogsled
-    - goconst
     - gofmt
     - goimports
     - gosimple
@@ -78,6 +77,7 @@ linters:
     - unparam
     - varcheck
     - whitespace
+    # - goconst
     # - lll
     # - dupl
     # - gochecknoglobals
