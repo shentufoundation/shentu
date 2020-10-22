@@ -156,10 +156,15 @@ func (k Keeper) IterateAllPurchases(ctx sdk.Context, callback func(purchase type
 
 // RemoveExpiredPurchasesAndDistributeFees removes expired purchases and distributes fees for current block.
 func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
+	lastUpdateTime, found := k.GetLastUpdateTime(ctx)
+	if !found || lastUpdateTime.IsZero() {
+		k.SetLastUpdateTime(ctx, ctx.BlockTime())
+		return
+	}
+
 	store := ctx.KVStore(k.storeKey)
 	totalServiceFees := k.GetServiceFees(ctx)
 	totalShield := k.GetTotalShield(ctx)
-	previousBlockTime := ctx.WithBlockHeight(ctx.BlockHeight() - 1).BlockTime()
 	serviceFees := types.InitMixedDecCoins()
 
 	// Check all purchases whose protection end time is before current block time.
@@ -177,10 +182,10 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 
 				// If purchaseProtectionEndTime > previousBlockTime, update service fees.
 				// Otherwise services fees were updated in the last block.
-				if entry.ProtectionEndTime.After(previousBlockTime) && entry.ServiceFees.Native.IsAllPositive() {
+				if entry.ProtectionEndTime.After(lastUpdateTime) && entry.ServiceFees.Native.IsAllPositive() {
 					// Add purchaseServiceFees * (purchaseProtectionEndTime - previousBlockTime) / protectionPeriod.
 					serviceFees = serviceFees.Add(entry.ServiceFees.MulDec(
-						sdk.NewDec(int64(entry.ProtectionEndTime.Sub(previousBlockTime).Seconds())).Quo(
+						sdk.NewDec(int64(entry.ProtectionEndTime.Sub(lastUpdateTime).Seconds())).Quo(
 							sdk.NewDec(int64(k.GetPoolParams(ctx).ProtectionPeriod.Seconds())))))
 					// Remove purchaseServiceFees from total service fees.
 					totalServiceFees = totalServiceFees.Sub(entry.ServiceFees)
@@ -219,7 +224,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 	// Add service fees for this block from unexpired purchases.
 	// totalServiceFees * (currentBlockSecond - previousBlockSecond) / protectionPeriodSeconds
 	serviceFees = serviceFees.Add(totalServiceFees.MulDec(
-		sdk.NewDec(int64(ctx.BlockTime().Sub(previousBlockTime).Seconds()))).QuoDec(
+		sdk.NewDec(int64(ctx.BlockTime().Sub(lastUpdateTime).Seconds()))).QuoDec(
 		sdk.NewDec(int64(k.GetPoolParams(ctx).ProtectionPeriod.Seconds()))))
 
 	// Limit service fees by service fees left.

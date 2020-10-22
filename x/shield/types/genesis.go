@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,12 +26,13 @@ type GenesisState struct {
 	Providers           []Provider          `json:"providers" yaml:"providers"`
 	PurchaseLists       []PurchaseList      `json:"purchases" yaml:"purchases"`
 	Withdraws           Withdraws           `json:"withdraws" yaml:"withdraws"`
+	LastUpdateTime      time.Time           `json:"last_update_time" yaml:"last_update_time"`
 }
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
 	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked sdk.Int, serviceFees, serviceFeesLeft MixedDecCoins,
-	pools []Pool, providers []Provider, purchase []PurchaseList, withdraws Withdraws) GenesisState {
+	pools []Pool, providers []Provider, purchase []PurchaseList, withdraws Withdraws, lastUpdateTime time.Time) GenesisState {
 	return GenesisState{
 		ShieldAdmin:         shieldAdmin,
 		NextPoolID:          nextPoolID,
@@ -47,6 +49,7 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		Providers:           providers,
 		PurchaseLists:       purchase,
 		Withdraws:           withdraws,
+		LastUpdateTime:      lastUpdateTime,
 	}
 }
 

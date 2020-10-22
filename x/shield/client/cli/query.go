@@ -32,6 +32,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdProvider(queryRoute, cdc),
 		GetCmdPoolParams(queryRoute, cdc),
 		GetCmdClaimParams(queryRoute, cdc),
+		GetCmdShieldState(queryRoute, cdc),
 	)...)
 
 	return shieldQueryCmd

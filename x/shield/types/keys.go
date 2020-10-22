@@ -39,6 +39,7 @@ var (
 	PurchaseQueueKey    = []byte{0xB}
 	ProviderKey         = []byte{0xC}
 	WithdrawQueueKey    = []byte{0xD}
+	LastUpdateTimeKey   = []byte{0xE}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -111,4 +112,9 @@ func GetWithdrawCompletionTimeKey(timestamp time.Time) []byte {
 func GetPurchaseExpirationTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
 	return append(PurchaseQueueKey, bz...)
+}
+
+// GetLastUpdateTimeKey gets the key for the last update time.
+func GetLastUpdateTimeKey() []byte {
+	return LastUpdateTimeKey
 }
