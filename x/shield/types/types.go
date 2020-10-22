@@ -153,6 +153,17 @@ type Withdraw struct {
 
 	// CompletionTime is the scheduled withdraw completion time.
 	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"`
+
+	// Unbonding stores information about the corresponding
+	// unbonding, which may or may not exist.
+	CorrespondingUnbonding []UnbondingInfo `json:"corresponding_unbonding" yaml:"corresponding_unbonding"`
+}
+
+type UnbondingInfo struct {
+	DelegatorAddress sdk.AccAddress `json:"delegator_address" yaml:"delegator_address"`
+	ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"`
+	CreationHeight   int64          `json:"creation_height" yaml:"creation_height"`
+	Confirmed        bool           `json:"confirmed" yaml:"confirmed"`
 }
 
 // NewWithdraw creates a new withdraw object.

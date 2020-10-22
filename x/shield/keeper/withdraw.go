@@ -213,8 +213,7 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, timestamp time.Time, provider sd
 			// Search for unbonding entry 
 			found = false
 			for i := 0; i < len(unbonding.Entries); i++ {
-				// TODO: How to correctly identify corresponding unbonding?
-				// unbonding.Entries[i].InitialBalance.Equal(amount)
+				// TODO: Correctly identify corresponding unbonding
 				if !found && unbonding.Entries[i].CompletionTime.Equal(timestamp) {
 					unbonding.Entries[i].CompletionTime = delayedTime
 					found = true

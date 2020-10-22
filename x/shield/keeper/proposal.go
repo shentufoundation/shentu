@@ -32,7 +32,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 		return types.ErrNotEnoughCollateral
 	}
 
-	// Ensure the proportion is locked (reserved) in each provider.
+	// Lock proportional amount from each provider.
 	providers := k.GetAllProviders(ctx)
 	proportion := newLockAmt.ToDec().Quo(totalCollateral.ToDec())
 	//lockPeriod := k.gk.GetVotingParams(ctx).VotingPeriod * 2
@@ -48,7 +48,6 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 		} else {
 			lockAmt = remaining
 		}
-
 		k.LockProvider(ctx, providers[i], lockAmt, lockPeriod)
 	}
 
@@ -68,7 +67,6 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 	if lossAmt.GT(purchase.Shield) {
 		return types.ErrNotEnoughShield
 	}
-
 	purchaseDeleteTime := purchase.ProtectionEndTime.Add(k.GetPurchaseDeletionPeriod(ctx))
 	k.DequeuePurchase(ctx, purchaseList, purchaseDeleteTime)
 	purchase.Shield = purchase.Shield.Sub(lossAmt)
@@ -80,47 +78,43 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 	k.SetPurchaseList(ctx, purchaseList)
 	k.InsertPurchaseQueue(ctx, purchaseList, purchaseDeleteTime)
 
-	// Update the pool.
+	// Update pool and global pool states
 	pool.Shield = pool.Shield.Sub(lossAmt)
 	k.SetPool(ctx, pool)
 
-	// Update global pool.
-	totalShield := k.GetTotalShield(ctx)
-
-	totalShield = totalShield.Sub(lossAmt)
-	totalLocked = totalLocked.Add(lossAmt)
+	totalLocked = newLockAmt // totalLocked.Add(lossAmt)
 	totalCollateral = totalCollateral.Sub(lossAmt)
-	k.SetTotalShield(ctx, totalShield)
+	totalShield := k.GetTotalShield(ctx)
+	totalShield = totalShield.Sub(lossAmt)
 	k.SetTotalLocked(ctx, totalLocked)
 	k.SetTotalCollateral(ctx, totalCollateral)
+	k.SetTotalShield(ctx, totalShield)
 
 	return nil
 }
 
-// LockProvider locks the specified amount of collaterals. If necessary,
-// it extends withdrawing collaterals and, if exist, their corresponding
-// unbondings.
+// LockProvider locks the specified amount of collaterals from a provider.
+// If necessary, it extends withdrawing collaterals and, if exist, their
+// corresponding unbondings.
 func (k Keeper) LockProvider(ctx sdk.Context, provider types.Provider, amount sdk.Int, lockPeriod time.Duration) {
-	// Update the provider.
 	provider.Locked = provider.Locked.Add(amount)
 	provider.Collateral = provider.Collateral.Sub(amount)
 
-	// If there are enough delegations backing collaterals, do nothing.
+	// If there are enough delegations backing locked collaterals,
+	// we are done.
 	if provider.DelegationBonded.GTE(provider.Locked) {
-		if !provider.Collateral.GTE(provider.Locked) {
-			panic("a provider's bonded delegation is greater than his or her collateral")
-		}
 		k.SetProvider(ctx, provider.Address, provider)
 		return
 	}
 
-	// Check if enough collaterals in the next 4 days
-	//lockPeriod := k.gk.GetVotingParams(ctx).VotingPeriod * 2
-	endTime := ctx.BlockTime().Add(lockPeriod) //TODO: rename?
-
-	// lenient check
+	// Lenient check:
+	// Consider the amount of non-withdrawing collateral.
 	if provider.Locked.GT(provider.Collateral.Sub(provider.Withdrawing)) {
-		// stricter check
+		// Stricter check:
+		// Consider the amount of non-withdrawing and withdrawing
+		// collaterals 4 days from now.
+		//lockPeriod := k.gk.GetVotingParams(ctx).VotingPeriod * 2
+		endTime := ctx.BlockTime().Add(lockPeriod)
 		impendingWithdrawAmount := k.ComputeWithdrawAmountByTime(ctx, endTime)
 		applicableCollateralAmt := provider.Collateral.Sub(impendingWithdrawAmount)
 		if provider.Locked.GT(applicableCollateralAmt) {
