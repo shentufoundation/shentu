@@ -84,24 +84,24 @@ func (k Keeper) GetServiceFees(ctx sdk.Context) types.MixedDecCoins {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetServiceFeesKey())
 	if bz == nil {
-		panic("service fees is not found")
+		panic("service fees are not found")
 	}
 	var serviceFees types.MixedDecCoins
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &serviceFees)
 	return serviceFees
 }
 
-func (k Keeper) SetServiceFeesLeft(ctx sdk.Context, serviceFees types.MixedDecCoins) {
+func (k Keeper) SetRemainingServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(serviceFees)
-	store.Set(types.GetServiceFeesLeftKey(), bz)
+	store.Set(types.GetRemainingServiceFeesKey(), bz)
 }
 
-func (k Keeper) GetServiceFeesLeft(ctx sdk.Context) types.MixedDecCoins {
+func (k Keeper) GetRemainingServiceFees(ctx sdk.Context) types.MixedDecCoins {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetServiceFeesLeftKey())
+	bz := store.Get(types.GetRemainingServiceFeesKey())
 	if bz == nil {
-		panic("service fees left is not found")
+		panic("remaining service fees are not found")
 	}
 	var serviceFees types.MixedDecCoins
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &serviceFees)
@@ -181,9 +181,9 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 		totalServiceFees := k.GetServiceFees(ctx)
 		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees.Native...)})
 		k.SetServiceFees(ctx, totalServiceFees)
-		totalServiceFeesLeft := k.GetServiceFeesLeft(ctx)
-		totalServiceFeesLeft = totalServiceFeesLeft.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees.Native...)})
-		k.SetServiceFeesLeft(ctx, totalServiceFeesLeft)
+		totalRemainingServiceFees := k.GetRemainingServiceFees(ctx)
+		totalRemainingServiceFees = totalRemainingServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees.Native...)})
+		k.SetRemainingServiceFees(ctx, totalRemainingServiceFees)
 	}
 
 	return pool, nil
