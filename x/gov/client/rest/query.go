@@ -365,7 +365,7 @@ func queryVotesOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		params := govTypes.NewQueryProposalVotesParams(proposalID, page, limit+1)
+		params := govTypes.NewQueryProposalVotesParams(proposalID, page, limit)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
@@ -403,14 +403,7 @@ func queryVotesOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		votesWithPower, w := getVotesWithPower(cliCtx, w, res)
 
-		nextPgExists := false
-		if len(votesWithPower) == limit+1 {
-			nextPgExists = true
-			votesWithPower = votesWithPower[:limit]
-		}
-
-		withNextPg := VotesWithPowerAndNextPage{nextPgExists, votesWithPower}
-		rest.PostProcessResponse(w, cliCtx, withNextPg)
+		rest.PostProcessResponse(w, cliCtx, votesWithPower)
 	}
 }
 

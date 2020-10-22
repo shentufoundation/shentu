@@ -138,22 +138,6 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	return k.purchaseShield(ctx, poolID, shield, description, purchaser, serviceFees)
 }
 
-// IterateAllPurchases iterates over the all the stored purchases and performs a callback function.
-func (k Keeper) IterateAllPurchases(ctx sdk.Context, callback func(purchase types.Purchase) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.PurchaseListKey)
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var purchase types.Purchase
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchase)
-
-		if callback(purchase) {
-			break
-		}
-	}
-}
-
 // RemoveExpiredPurchasesAndDistributeFees removes expired purchases and distributes fees for current block.
 func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
@@ -301,7 +285,7 @@ func (k Keeper) IteratePoolPurchaseLists(ctx sdk.Context, poolID uint64, callbac
 	}
 }
 
-// GetAllPurchaseLists retrieves all purchases.
+// GetAllPurchaseLists retrieves all purchase lists.
 func (k Keeper) GetAllPurchaseLists(ctx sdk.Context) (purchases []types.PurchaseList) {
 	k.IteratePurchaseLists(ctx, func(purchase types.PurchaseList) bool {
 		purchases = append(purchases, purchase)
@@ -310,7 +294,7 @@ func (k Keeper) GetAllPurchaseLists(ctx sdk.Context) (purchases []types.Purchase
 	return
 }
 
-// InsertExpiredPurchaseQueue inserts a purchase into the expired purchase queue.
+// InsertExpiringPurchaseQueue inserts a purchase into the expired purchase queue.
 func (k Keeper) InsertExpiringPurchaseQueue(ctx sdk.Context, purchaseList types.PurchaseList, endTime time.Time) {
 	timeSlice := k.GetExpiringPurchaseQueueTimeSlice(ctx, endTime)
 
@@ -363,4 +347,32 @@ func (k Keeper) GetNextPurchaseID(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	opBz := store.Get(types.GetNextPurchaseIDKey())
 	return binary.LittleEndian.Uint64(opBz)
+}
+
+// GetAllPurchases retrieves all purchases.
+func (k Keeper) GetAllPurchases(ctx sdk.Context) (purchases []types.Purchase) {
+	k.IteratePurchaseListEntries(ctx, func(purchase types.Purchase) bool {
+		purchases = append(purchases, purchase)
+		return false
+	})
+	return
+}
+
+// IteratePurchaseListEntries iterates through entries of
+// all purchase lists.
+func (k Keeper) IteratePurchaseListEntries(ctx sdk.Context, callback func(purchase types.Purchase) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.PurchaseListKey)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var purchaseList types.PurchaseList
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchaseList)
+
+		for _, entry := range purchaseList.Entries {
+			if callback(entry) {
+				break
+			}
+		}
+	}
 }
