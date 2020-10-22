@@ -35,7 +35,7 @@ func WeightedOperations(
 	var weightMsgCreateTask int
 	appParams.GetOrGenerate(cdc, OpWeightMsgCreateTask, &weightMsgCreateTask, nil,
 		func(_ *rand.Rand) {
-			weightMsgCreateTask = simappparams.DefaultWeightMsgSend
+			weightMsgCreateTask = 0
 		},
 	)
 
