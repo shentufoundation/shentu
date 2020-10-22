@@ -12,6 +12,7 @@ import (
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "module-account", ModuleAccountInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "withdraw", ProviderInvariant(k))
+	ir.RegisterRoute(types.ModuleName, "withdraw", ShieldInvariant(k))
 }
 
 // ModuleAccountInvariant checks that the module account coins reflects the sum of
