@@ -31,13 +31,14 @@ var (
 	TotalShieldKey      = []byte{0x3}
 	TotalLockedKey      = []byte{0x4}
 	ServiceFeesKey      = []byte{0x5}
-	PoolKey             = []byte{0x6}
-	NextPoolIDKey       = []byte{0x7}
-	NextPurchaseIDKey   = []byte{0x8}
-	PurchaseListKey     = []byte{0x9}
-	PurchaseQueueKey    = []byte{0xA}
-	ProviderKey         = []byte{0xB}
-	WithdrawQueueKey    = []byte{0xC}
+	ServiceFeesLeftKey  = []byte{0x6}
+	PoolKey             = []byte{0x7}
+	NextPoolIDKey       = []byte{0x8}
+	NextPurchaseIDKey   = []byte{0x9}
+	PurchaseListKey     = []byte{0xA}
+	PurchaseQueueKey    = []byte{0xB}
+	ProviderKey         = []byte{0xC}
+	WithdrawQueueKey    = []byte{0xD}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -58,6 +59,10 @@ func GetTotalLockedKey() []byte {
 
 func GetServiceFeesKey() []byte {
 	return ServiceFeesKey
+}
+
+func GetServiceFeesLeftKey() []byte {
+	return ServiceFeesLeftKey
 }
 
 // GetPoolKey gets the key for the pool identified by pool ID.
@@ -101,9 +106,9 @@ func GetWithdrawCompletionTimeKey(timestamp time.Time) []byte {
 	return append(WithdrawQueueKey, bz...)
 }
 
-// GetPurchaseCompletionTimeKey gets a withdraw queue key,
-// which is obtained from the completion time.
-func GetPurchaseCompletionTimeKey(timestamp time.Time) []byte {
+// GetPurchaseExpirationTimeKey gets a withdraw queue key,
+// which is obtained from the expiration time.
+func GetPurchaseExpirationTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
 	return append(PurchaseQueueKey, bz...)
 }

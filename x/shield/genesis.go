@@ -18,6 +18,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	k.SetTotalShield(ctx, data.TotalShield)
 	k.SetTotalLocked(ctx, data.TotalLocked)
 	k.SetServiceFees(ctx, data.ServiceFees)
+	k.SetServiceFeesLeft(ctx, data.ServiceFeesLeft)
 	for _, pool := range data.Pools {
 		k.SetPool(ctx, pool)
 	}
@@ -26,7 +27,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	for _, purchaseList := range data.PurchaseLists {
 		k.SetPurchaseList(ctx, purchaseList)
 		for _, entry := range purchaseList.Entries {
-			k.InsertPurchaseQueue(ctx, purchaseList, entry.ProtectionEndTime.Add(k.GetPurchaseDeletionPeriod(ctx)))
+			k.InsertExpiringPurchaseQueue(ctx, purchaseList, entry.ProtectionEndTime)
 		}
 	}
 	for _, provider := range data.Providers {
@@ -50,6 +51,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	totalShield := k.GetTotalShield(ctx)
 	totalLocked := k.GetTotalLocked(ctx)
 	serviceFees := k.GetServiceFees(ctx)
+	serviceFeesLeft := k.GetServiceFeesLeft(ctx)
 	pools := k.GetAllPools(ctx)
 	nextPoolID := k.GetNextPoolID(ctx)
 	nextPurchaseID := k.GetNextPurchaseID(ctx)
@@ -57,5 +59,5 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	providers := k.GetAllProviders(ctx)
 	withdraws := k.GetAllWithdraws(ctx)
 
-	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked, serviceFees, pools, providers, purchaseLists, withdraws)
+	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked, serviceFees, serviceFeesLeft, pools, providers, purchaseLists, withdraws)
 }

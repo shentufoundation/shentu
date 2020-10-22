@@ -85,20 +85,28 @@ type Purchase struct {
 	// ProtectionEndTime is the time when the protection of the shield ends.
 	ProtectionEndTime time.Time `json:"protection_end_time" yaml:"protection_end_time"`
 
+	// DeletionTime is the time when the purchase should be deleted.
+	DeletionTime time.Time `json:"deletion_time" yaml:"deletion_time"`
+
 	// Description is the information about the protected asset.
 	Description string `json:"description" yaml:"description"`
 
 	// Shield is the unused amount of shield purchased.
 	Shield sdk.Int `json:"shield" yaml:"shield"`
+
+	// ServiceFees is the service fees paid by this purchase.
+	ServiceFees MixedDecCoins `json:"service_fees" yaml:"service_fees"`
 }
 
 // NewPurchase creates a new purchase object.
-func NewPurchase(purchaseID uint64, protectionEndTime time.Time, description string, shield sdk.Int) Purchase {
+func NewPurchase(purchaseID uint64, protectionEndTime, deletionTime time.Time, description string, shield sdk.Int, serviceFees MixedDecCoins) Purchase {
 	return Purchase{
 		PurchaseID:        purchaseID,
 		ProtectionEndTime: protectionEndTime,
+		DeletionTime:      deletionTime,
 		Description:       description,
 		Shield:            shield,
+		ServiceFees:       serviceFees,
 	}
 }
 

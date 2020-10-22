@@ -40,9 +40,9 @@ func (k Keeper) GetTotalWithdrawing(ctx sdk.Context) sdk.Int {
 	return totalWithdrawing
 }
 
-func (k Keeper) SetTotalShield(ctx sdk.Context, totalCollateral sdk.Int) {
+func (k Keeper) SetTotalShield(ctx sdk.Context, totalShield sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalCollateral)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalShield)
 	store.Set(types.GetTotalShieldKey(), bz)
 }
 
@@ -85,6 +85,23 @@ func (k Keeper) GetServiceFees(ctx sdk.Context) types.MixedDecCoins {
 	bz := store.Get(types.GetServiceFeesKey())
 	if bz == nil {
 		panic("service fees is not found")
+	}
+	var serviceFees types.MixedDecCoins
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &serviceFees)
+	return serviceFees
+}
+
+func (k Keeper) SetServiceFeesLeft(ctx sdk.Context, serviceFees types.MixedDecCoins) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(serviceFees)
+	store.Set(types.GetServiceFeesLeftKey(), bz)
+}
+
+func (k Keeper) GetServiceFeesLeft(ctx sdk.Context) types.MixedDecCoins {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetServiceFeesLeftKey())
+	if bz == nil {
+		panic("service fees left is not found")
 	}
 	var serviceFees types.MixedDecCoins
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &serviceFees)
@@ -164,6 +181,9 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 		totalServiceFees := k.GetServiceFees(ctx)
 		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees.Native...)})
 		k.SetServiceFees(ctx, totalServiceFees)
+		totalServiceFeesLeft := k.GetServiceFeesLeft(ctx)
+		totalServiceFeesLeft = totalServiceFeesLeft.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees.Native...)})
+		k.SetServiceFeesLeft(ctx, totalServiceFeesLeft)
 	}
 
 	return pool, nil

@@ -61,17 +61,17 @@ func (k Keeper) DeletePurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk
 	return nil
 }
 
-// DequeuePurchase dequeues a purchase from the purchase queue
+// DequeuePurchase dequeues a purchase from the purchase queue.
 func (k Keeper) DequeuePurchase(ctx sdk.Context, purchaseList types.PurchaseList, endTime time.Time) {
-	timeslice := k.GetPurchaseQueueTimeSlice(ctx, endTime)
+	timeslice := k.GetExpiringPurchaseQueueTimeSlice(ctx, endTime)
 	for i, poolPurchaser := range timeslice {
 		if (purchaseList.PoolID == poolPurchaser.PoolID) && purchaseList.Purchaser.Equals(poolPurchaser.Purchaser) {
 			if len(timeslice) > 1 {
 				timeslice = append(timeslice[:i], timeslice[i+1:]...)
-				k.SetPurchaseQueueTimeSlice(ctx, endTime, timeslice)
+				k.SetExpiringPurchaseQueueTimeSlice(ctx, endTime, timeslice)
 				return
 			}
-			ctx.KVStore(k.storeKey).Delete(types.GetPurchaseCompletionTimeKey(endTime))
+			ctx.KVStore(k.storeKey).Delete(types.GetPurchaseExpirationTimeKey(endTime))
 			return
 		}
 	}
@@ -103,10 +103,16 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 		return types.Purchase{}, types.ErrPoolShieldExceedsLimit
 	}
 
-	// Send service fees to the shield module account.
+	// Send service fees to the shield module account and update service fees.
 	if err := k.DepositNativeServiceFees(ctx, serviceFees, purchaser); err != nil {
 		return types.Purchase{}, err
 	}
+	totalServiceFees := k.GetServiceFees(ctx)
+	totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
+	k.SetServiceFees(ctx, totalServiceFees)
+	totalServiceFeesLeft := k.GetServiceFeesLeft(ctx)
+	totalServiceFeesLeft = totalServiceFeesLeft.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
+	k.SetServiceFeesLeft(ctx, totalServiceFeesLeft)
 
 	// Update global pool and project pool's shield.
 	totalShield = totalShield.Add(shieldAmt)
@@ -117,9 +123,9 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	// Set a new purchase.
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
 	purchaseID := k.GetNextPurchaseID(ctx)
-	purchase := types.NewPurchase(purchaseID, protectionEndTime, description, shieldAmt)
+	purchase := types.NewPurchase(purchaseID, protectionEndTime, protectionEndTime, description, shieldAmt, types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
 	purchaseList := k.AddPurchase(ctx, poolID, purchaser, purchase)
-	k.InsertPurchaseQueue(ctx, purchaseList, protectionEndTime.Add(k.GetPurchaseDeletionPeriod(ctx)))
+	k.InsertExpiringPurchaseQueue(ctx, purchaseList, protectionEndTime)
 	k.SetNextPurchaseID(ctx, purchaseID+1)
 
 	return purchase, nil
@@ -148,35 +154,54 @@ func (k Keeper) IterateAllPurchases(ctx sdk.Context, callback func(purchase type
 	}
 }
 
-// RemoveExpiredPurchases removes purchases whose claim period end time is before current block time.
-func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
+// RemoveExpiredPurchasesAndDistributeFees removes expired purchases and distributes fees for current block.
+func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
+	totalServiceFees := k.GetServiceFees(ctx)
 	totalShield := k.GetTotalShield(ctx)
-	deletionPeriod := k.GetPurchaseDeletionPeriod(ctx)
+	previousBlockTime := ctx.WithBlockHeight(ctx.BlockHeight() - 1).BlockTime()
+	serviceFees := types.InitMixedDecCoins()
 
-	iterator := k.PurchaseQueueIterator(ctx, ctx.BlockTime())
+	// Check all purchases whose protection end time is before current block time.
+	// 1) Update service fees for purchases whose protection end time is before current block time.
+	// 2) Remove purchases whose deletion time is before current block time.
+	iterator := k.ExpiringPurchaseQueueIterator(ctx, ctx.BlockTime())
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var timeslice []types.PoolPurchaser
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &timeslice)
 		for _, poolPurchaser := range timeslice {
 			purchaseList, _ := k.GetPurchaseList(ctx, poolPurchaser.PoolID, poolPurchaser.Purchaser)
-
-			for i := 0; i < len(purchaseList.Entries); {
+			for i := 0; i < len(purchaseList.Entries); i++ {
 				entry := purchaseList.Entries[i]
-				// DeletionTime = ProtectionEndTime - ProtectionPeriod + ClaimPeriod + VotingPeriod
-				// If DeletionTime > Now, skip.
-				if entry.ProtectionEndTime.Add(deletionPeriod).After(ctx.BlockTime()) {
-					i++
-					continue
+
+				// If purchaseProtectionEndTime > previousBlockTime, update service fees.
+				// Otherwise services fees were updated in the last block.
+				if entry.ProtectionEndTime.After(previousBlockTime) && entry.ServiceFees.Native.IsAllPositive() {
+					// Add purchaseServiceFees * (purchaseProtectionEndTime - previousBlockTime) / protectionPeriod.
+					serviceFees = serviceFees.Add(entry.ServiceFees.MulDec(
+						sdk.NewDec(int64(entry.ProtectionEndTime.Sub(previousBlockTime).Seconds())).Quo(
+							sdk.NewDec(int64(k.GetPoolParams(ctx).ProtectionPeriod.Seconds())))))
+					// Remove purchaseServiceFees from total service fees.
+					totalServiceFees = totalServiceFees.Sub(entry.ServiceFees)
+					// Set purchaseServiceFees to zero because it can be reached again.
+					purchaseList.Entries[i].ServiceFees = types.InitMixedDecCoins()
 				}
-				// If DeletionTime <= Now, remove purchase and update shield.
-				purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
-				pool, found := k.GetPool(ctx, purchaseList.PoolID)
-				if found {
+
+				// If purchaseDeletionTime < currentBlockTime, remove the purchase.
+				if entry.DeletionTime.Before(ctx.BlockTime()) {
+					// If purchaseProtectionEndTime > previousBlockTime, calculate and set service fees before removing the purchase.
+					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
+					// Update pool shield and total shield.
+					pool, found := k.GetPool(ctx, purchaseList.PoolID)
+					if !found {
+						panic("cannot find the pool for an expired purchase")
+					}
 					totalShield = totalShield.Sub(entry.Shield)
 					pool.Shield = pool.Shield.Sub(entry.Shield)
 					k.SetPool(ctx, pool)
+					// Minus one because the current entry is deleted.
+					i--
 				}
 			}
 			if len(purchaseList.Entries) == 0 {
@@ -185,10 +210,37 @@ func (k Keeper) RemoveExpiredPurchases(ctx sdk.Context) {
 				k.SetPurchaseList(ctx, purchaseList)
 			}
 		}
+		// TODO: For phase I only. Need to modify the logic here after claims are enabled.
 		store.Delete(iterator.Key())
 	}
-
+	k.SetServiceFees(ctx, totalServiceFees)
 	k.SetTotalShield(ctx, totalShield)
+
+	// Add service fees for this block from unexpired purchases.
+	// totalServiceFees * (currentBlockSecond - previousBlockSecond) / protectionPeriodSeconds
+	serviceFees = serviceFees.Add(totalServiceFees.MulDec(
+		sdk.NewDec(int64(ctx.BlockTime().Sub(previousBlockTime).Seconds()))).QuoDec(
+		sdk.NewDec(int64(k.GetPoolParams(ctx).ProtectionPeriod.Seconds()))))
+
+	// Limit service fees by service fees left.
+	serviceFeesLeft := k.GetServiceFeesLeft(ctx)
+	bondDenom := k.BondDenom(ctx)
+	if serviceFeesLeft.Native.AmountOf(bondDenom).LT(serviceFees.Native.AmountOf(bondDenom)) {
+		serviceFees.Native = serviceFeesLeft.Native
+	}
+
+	// Distribute service fees.
+	totalCollateral := k.GetTotalCollateral(ctx)
+	providers := k.GetAllProviders(ctx)
+	for _, provider := range providers {
+		// fees * providerCollateral / totalCollateral
+		nativeFees := serviceFees.Native.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
+		provider.Rewards = provider.Rewards.Add(types.MixedDecCoins{Native: nativeFees})
+		k.SetProvider(ctx, provider.Address, provider)
+
+		serviceFeesLeft.Native = serviceFeesLeft.Native.Sub(nativeFees)
+	}
+	k.SetServiceFeesLeft(ctx, serviceFeesLeft)
 }
 
 // GetPurchaserPurchases returns all purchases by a given purchaser.
@@ -258,23 +310,24 @@ func (k Keeper) GetAllPurchaseLists(ctx sdk.Context) (purchases []types.Purchase
 	return
 }
 
-func (k Keeper) InsertPurchaseQueue(ctx sdk.Context, purchaseList types.PurchaseList, endTime time.Time) {
-	timeSlice := k.GetPurchaseQueueTimeSlice(ctx, endTime)
+// InsertExpiredPurchaseQueue inserts a purchase into the expired purchase queue.
+func (k Keeper) InsertExpiringPurchaseQueue(ctx sdk.Context, purchaseList types.PurchaseList, endTime time.Time) {
+	timeSlice := k.GetExpiringPurchaseQueueTimeSlice(ctx, endTime)
 
 	poolPurchaser := types.PoolPurchaser{PoolID: purchaseList.PoolID, Purchaser: purchaseList.Purchaser}
 	if len(timeSlice) == 0 {
-		k.SetPurchaseQueueTimeSlice(ctx, endTime, []types.PoolPurchaser{poolPurchaser})
+		k.SetExpiringPurchaseQueueTimeSlice(ctx, endTime, []types.PoolPurchaser{poolPurchaser})
 		return
 	}
 	timeSlice = append(timeSlice, poolPurchaser)
-	k.SetPurchaseQueueTimeSlice(ctx, endTime, timeSlice)
+	k.SetExpiringPurchaseQueueTimeSlice(ctx, endTime, timeSlice)
 }
 
-// GetPurchaseQueueTimeSlice gets a specific purchase queue timeslice,
+// GetExpiringPurchaseQueueTimeSlice gets a specific purchase queue timeslice,
 // which is a slice of purchases corresponding to a given time.
-func (k Keeper) GetPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []types.PoolPurchaser {
+func (k Keeper) GetExpiringPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []types.PoolPurchaser {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetPurchaseCompletionTimeKey(timestamp))
+	bz := store.Get(types.GetPurchaseExpirationTimeKey(timestamp))
 	if bz == nil {
 		return []types.PoolPurchaser{}
 	}
@@ -283,17 +336,18 @@ func (k Keeper) GetPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time) 
 	return ppPairs
 }
 
-func (k Keeper) SetPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time, ppPairs []types.PoolPurchaser) {
+// SetExpiringPurchaseQueueTimeSlice sets a time slice for a purchase expiring at give time.
+func (k Keeper) SetExpiringPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time, ppPairs []types.PoolPurchaser) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(ppPairs)
-	store.Set(types.GetPurchaseCompletionTimeKey(timestamp), bz)
+	store.Set(types.GetPurchaseExpirationTimeKey(timestamp), bz)
 }
 
-// PurchaseQueueIterator returns all the purchase queue timeslices from time 0 until endTime
-func (k Keeper) PurchaseQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
+// ExpiringPurchaseQueueIterator returns a iterator of purchases expiring before endTime
+func (k Keeper) ExpiringPurchaseQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
 	return store.Iterator(types.PurchaseQueueKey,
-		sdk.InclusiveEndBytes(types.GetPurchaseCompletionTimeKey(endTime)))
+		sdk.InclusiveEndBytes(types.GetPurchaseExpirationTimeKey(endTime)))
 }
 
 // SetNextPurchaseID sets the latest pool ID to store.
