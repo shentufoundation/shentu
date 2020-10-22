@@ -273,7 +273,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		collateral := sdk.NewCoin(sk.BondDenom(ctx), collateralAmount)
+		collateral := sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), collateralAmount))
 
 		msg := types.NewMsgDepositCollateral(simAccount.Address, collateral)
 
@@ -322,7 +322,7 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		withdraw := sdk.NewCoin(sk.BondDenom(ctx), withdrawAmount)
+		withdraw := sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), withdrawAmount))
 
 		msg := types.NewMsgWithdrawCollateral(simAccount.Address, withdraw)
 

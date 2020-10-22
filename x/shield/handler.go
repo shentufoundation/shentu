@@ -158,18 +158,22 @@ func handleMsgWithdrawRewards(ctx sdk.Context, msg types.MsgWithdrawRewards, k K
 }
 
 func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral, k Keeper) (*sdk.Result, error) {
-	if msg.Collateral.Denom != k.BondDenom(ctx) {
-		return nil, types.ErrCollateralBadDenom
+	bondDenom := k.BondDenom(ctx)
+	for _, coin := range msg.Collateral {
+		if coin.Denom != bondDenom {
+			return nil, types.ErrCollateralBadDenom
+		}
 	}
-
-	if err := k.DepositCollateral(ctx, msg.From, msg.Collateral.Amount); err != nil {
+	amount := msg.Collateral.AmountOf(bondDenom)
+	
+	if err := k.DepositCollateral(ctx, msg.From, amount); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeDepositCollateral,
-			sdk.NewAttribute(types.AttributeKeyCollateral, msg.Collateral.String()),
+			sdk.NewAttribute(types.AttributeKeyCollateral, amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
 	})
@@ -177,18 +181,21 @@ func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral,
 }
 
 func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollateral, k Keeper) (*sdk.Result, error) {
-	if msg.Collateral.Denom != k.BondDenom(ctx) {
-		return nil, types.ErrCollateralBadDenom
+	bondDenom := k.BondDenom(ctx)
+	for _, coin := range msg.Collateral {
+		if coin.Denom != bondDenom {
+			return nil, types.ErrCollateralBadDenom
+		}
 	}
-
-	if err := k.WithdrawCollateral(ctx, msg.From, msg.Collateral.Amount); err != nil {
+	amount := msg.Collateral.AmountOf(bondDenom)
+	if err := k.WithdrawCollateral(ctx, msg.From, amount); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWithdrawCollateral,
-			sdk.NewAttribute(types.AttributeKeyCollateral, msg.Collateral.String()),
+			sdk.NewAttribute(types.AttributeKeyCollateral, amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
 	})
