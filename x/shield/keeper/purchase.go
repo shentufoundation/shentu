@@ -138,6 +138,10 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 
 // PurchaseShield purchases shield of a pool with standard fee rate.
 func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress) (types.Purchase, error) {
+	poolParams := k.GetPoolParams(ctx)
+	if poolParams.MinShieldPurchase.IsAnyGT(shield) {
+		return types.Purchase{}, types.ErrPurchaseTooSmall
+	}
 	bondDenom := k.BondDenom(ctx)
 	serviceFees := sdk.NewCoins(sdk.NewCoin(bondDenom, shield.AmountOf(bondDenom).ToDec().Mul(k.GetPoolParams(ctx).ShieldFeesRate).TruncateInt()))
 	return k.purchaseShield(ctx, poolID, shield, description, purchaser, serviceFees)
