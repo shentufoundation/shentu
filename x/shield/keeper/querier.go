@@ -34,6 +34,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPoolParams(ctx, path[1:], k)
 		case types.QueryClaimParams:
 			return queryClaimParams(ctx, path[1:], k)
+		case types.QueryShieldState:
+			return queryShieldState(ctx, path[1:], k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
@@ -202,6 +204,26 @@ func queryClaimParams(ctx sdk.Context, path []string, k Keeper) (res []byte, err
 	params := k.GetClaimProposalParams(ctx)
 
 	res, err = codec.MarshalJSONIndent(k.cdc, params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+func queryShieldState(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 0); err != nil {
+		return nil, err
+	}
+
+	shieldState := types.NewQueryResShieldState(
+		k.GetTotalCollateral(ctx),
+		k.GetTotalShield(ctx),
+		k.GetTotalWithdrawing(ctx),
+		k.GetServiceFees(ctx),
+		k.GetServiceFeesLeft(ctx),
+	)
+
+	res, err = codec.MarshalJSONIndent(k.cdc, shieldState)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

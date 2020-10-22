@@ -244,3 +244,26 @@ func GetCmdClaimParams(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 	return cmd
 }
+
+// GetCmdShieldState returns the command for querying shield state.
+func GetCmdShieldState(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "shield-state",
+		Short: "get shield-state",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryShieldState)
+			res, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			var out types.QueryResShieldState
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
+	return cmd
+}
