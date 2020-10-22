@@ -49,8 +49,7 @@ func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) types.Provider
 func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) {
 	// Go through delAddr's delegations to recompute total amount of bonded delegation
 	// update or create a new entry.
-	provider, found := k.GetProvider(ctx, delAddr)
-	if !found {
+	if _, found := k.GetProvider(ctx, delAddr); !found {
 		return // ignore non-participating addr
 	}
 
@@ -65,21 +64,7 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) 
 		totalStakedAmount = totalStakedAmount.Add(val.TokensFromShares(del.GetShares()).TruncateInt())
 	}
 
-	// Update the provider.
-	deltaAmount := totalStakedAmount.Sub(provider.DelegationBonded)
-	provider.DelegationBonded = totalStakedAmount
-	withdrawAmount := sdk.ZeroInt()
-	if deltaAmount.IsNegative() && totalStakedAmount.LT(provider.Collateral.Sub(provider.Withdrawing)) {
-		withdrawAmount = provider.Collateral.Sub(provider.Withdrawing).Sub(totalStakedAmount)
-	}
-	k.SetProvider(ctx, delAddr, provider)
-
-	// Save the change of provider before this because withdraw also updates the provider.
-	if withdrawAmount.IsPositive() {
-		if err := k.WithdrawCollateral(ctx, delAddr, withdrawAmount); err != nil {
-			panic("failed to withdraw collateral from the shield global pool")
-		}
-	}
+	k.updateProviderForDelegationChanges(ctx, delAddr, totalStakedAmount)
 }
 
 // RemoveDelegation updates the provider when its delegation is removed.
@@ -99,13 +84,22 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	}
 	deltaAmount := validator.TokensFromShares(delegation.Shares).TruncateInt()
 
-	provider.DelegationBonded = provider.DelegationBonded.Sub(deltaAmount)
-	withdrawAmount := sdk.ZeroInt()
-	if deltaAmount.IsNegative() && provider.DelegationBonded.LT(provider.Collateral.Sub(provider.Withdrawing)) {
-		withdrawAmount = provider.Collateral.Sub(provider.Withdrawing).Sub(provider.DelegationBonded)
+	k.updateProviderForDelegationChanges(ctx, delAddr, provider.DelegationBonded.Sub(deltaAmount))
+}
+
+// updateProviderForDelegationChanges updates provider based on delegation changes.
+func (k Keeper) updateProviderForDelegationChanges(ctx sdk.Context, delAddr sdk.AccAddress, stakedAmt sdk.Int) {
+	provider, found := k.GetProvider(ctx, delAddr)
+	if !found {
+		return
 	}
+
+	// Update the provider.
+	provider.DelegationBonded = stakedAmt
 	k.SetProvider(ctx, delAddr, provider)
 
+	// Withdraw collaterals when the delegations are not enough to back collaterals.
+	withdrawAmount := provider.Collateral.Sub(provider.Withdrawing).Sub(stakedAmt)
 	if withdrawAmount.IsPositive() {
 		if err := k.WithdrawCollateral(ctx, delAddr, withdrawAmount); err != nil {
 			panic("failed to withdraw collateral from the shield global pool")
@@ -136,4 +130,36 @@ func (k Keeper) GetAllProviders(ctx sdk.Context) (providers []types.Provider) {
 		return false
 	})
 	return
+}
+
+// GetProvidersPaginated performs paginated query of providers.
+func (k Keeper) GetProvidersPaginated(ctx sdk.Context, page, limit uint) (providers []types.Provider) {
+	k.IterateProvidersPaginated(ctx, page, limit, func(provider types.Provider) bool {
+		providers = append(providers, provider)
+		return false
+	})
+	return
+}
+
+// IterateProvidersPaginated iterates over providers based on
+// pagination parameters and performs a callback function.
+func (k Keeper) IterateProvidersPaginated(ctx sdk.Context, page, limit uint, cb func(vote types.Provider) (stop bool)) {
+	iterator := k.GetProvidersIteratorPaginated(ctx, page, limit)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var provider types.Provider
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &provider)
+
+		if cb(provider) {
+			break
+		}
+	}
+}
+
+// GetProvidersIteratorPaginated returns an iterator to go over
+// providers based on pagination parameters.
+func (k Keeper) GetProvidersIteratorPaginated(ctx sdk.Context, page, limit uint) sdk.Iterator {
+	store := ctx.KVStore(k.storeKey)
+	return sdk.KVStorePrefixIteratorPaginated(store, types.ProviderKey, page, limit)
 }

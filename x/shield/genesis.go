@@ -18,6 +18,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	k.SetTotalShield(ctx, data.TotalShield)
 	k.SetTotalLocked(ctx, data.TotalLocked)
 	k.SetServiceFees(ctx, data.ServiceFees)
+	k.SetRemainingServiceFees(ctx, data.RemainingServiceFees)
 	for _, pool := range data.Pools {
 		k.SetPool(ctx, pool)
 	}
@@ -26,7 +27,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	for _, purchaseList := range data.PurchaseLists {
 		k.SetPurchaseList(ctx, purchaseList)
 		for _, entry := range purchaseList.Entries {
-			k.InsertPurchaseQueue(ctx, purchaseList, entry.ProtectionEndTime.Add(k.GetPurchaseDeletionPeriod(ctx)))
+			k.InsertExpiringPurchaseQueue(ctx, purchaseList, entry.ProtectionEndTime)
 		}
 	}
 	for _, provider := range data.Providers {
@@ -35,6 +36,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	for _, withdraw := range data.Withdraws {
 		k.InsertWithdrawQueue(ctx, withdraw)
 	}
+	k.SetLastUpdateTime(ctx, data.LastUpdateTime)
 
 	return []abci.ValidatorUpdate{}
 }
@@ -50,12 +52,14 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	totalShield := k.GetTotalShield(ctx)
 	totalLocked := k.GetTotalLocked(ctx)
 	serviceFees := k.GetServiceFees(ctx)
+	remainingServiceFees := k.GetRemainingServiceFees(ctx)
 	pools := k.GetAllPools(ctx)
 	nextPoolID := k.GetNextPoolID(ctx)
 	nextPurchaseID := k.GetNextPurchaseID(ctx)
 	purchaseLists := k.GetAllPurchaseLists(ctx)
 	providers := k.GetAllProviders(ctx)
 	withdraws := k.GetAllWithdraws(ctx)
+	lastUpdateTime, _ := k.GetLastUpdateTime(ctx)
 
-	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked, serviceFees, pools, providers, purchaseLists, withdraws)
+	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked, serviceFees, remainingServiceFees, pools, providers, purchaseLists, withdraws, lastUpdateTime)
 }

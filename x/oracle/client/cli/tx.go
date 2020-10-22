@@ -246,7 +246,7 @@ func GetCmdCreateTask(cdc *codec.Codec) *cobra.Command {
 			hours := viper.GetInt64(FlagValidDuration)
 			validDuration := time.Duration(hours) * time.Hour
 
-			msg := types.NewMsgCreateTask(contract, function, bounty, description, cliCtx.GetFromAddress(), wait, time.Now().UTC(), validDuration)
+			msg := types.NewMsgCreateTask(contract, function, bounty, description, cliCtx.GetFromAddress(), wait, validDuration)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

@@ -21,10 +21,9 @@ const (
 	OpWeightMsgUpdatePool = "op_weight_msg_update_pool"
 
 	// B and C's operations
-	OpWeightMsgDepositCollateral      = "op_weight_msg_deposit_collateral"
-	OpWeightMsgWithdrawCollateral     = "op_weight_msg_withdraw_collateral"
-	OpWeightMsgWithdrawRewards        = "op_weight_msg_withdraw_rewards"
-	OpWeightMsgWithdrawForeignRewards = "op_weight_msg_withdraw_foreign_rewards"
+	OpWeightMsgDepositCollateral  = "op_weight_msg_deposit_collateral"
+	OpWeightMsgWithdrawCollateral = "op_weight_msg_withdraw_collateral"
+	OpWeightMsgWithdrawRewards    = "op_weight_msg_withdraw_rewards"
 
 	// P's operations
 	OpWeightMsgPurchaseShield   = "op_weight_msg_purchase_shield"
@@ -32,14 +31,13 @@ const (
 )
 
 var (
-	DefaultWeightMsgCreatePool             = 10
-	DefaultWeightMsgUpdatePool             = 20
-	DefaultWeightMsgDepositCollateral      = 20
-	DefaultWeightMsgWithdrawCollateral     = 20
-	DefaultWeightMsgWithdrawRewards        = 10
-	DefaultWeightMsgWithdrawForeignRewards = 10
-	DefaultWeightMsgPurchaseShield         = 20
-	DefaultWeightShieldClaimProposal       = 0
+	DefaultWeightMsgCreatePool         = 10
+	DefaultWeightMsgUpdatePool         = 20
+	DefaultWeightMsgDepositCollateral  = 20
+	DefaultWeightMsgWithdrawCollateral = 20
+	DefaultWeightMsgWithdrawRewards    = 10
+	DefaultWeightMsgPurchaseShield     = 20
+	DefaultWeightShieldClaimProposal   = 0
 
 	DefaultIntMax = 100000000000
 )
@@ -71,11 +69,6 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 		func(_ *rand.Rand) {
 			weightMsgWithdrawRewards = DefaultWeightMsgWithdrawRewards
 		})
-	var weightMsgWithdrawForeignRewards int
-	appParams.GetOrGenerate(cdc, OpWeightMsgWithdrawForeignRewards, &weightMsgWithdrawForeignRewards, nil,
-		func(_ *rand.Rand) {
-			weightMsgWithdrawForeignRewards = DefaultWeightMsgWithdrawForeignRewards
-		})
 	var weightMsgPurchaseShield int
 	appParams.GetOrGenerate(cdc, OpWeightMsgPurchaseShield, &weightMsgPurchaseShield, nil,
 		func(_ *rand.Rand) {
@@ -88,7 +81,6 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 		simulation.NewWeightedOperation(weightMsgDepositCollateral, SimulateMsgDepositCollateral(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgWithdrawCollateral, SimulateMsgWithdrawCollateral(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgWithdrawRewards, SimulateMsgWithdrawRewards(k, ak)),
-		simulation.NewWeightedOperation(weightMsgWithdrawForeignRewards, SimulateMsgWithdrawForeignRewards(k, ak)),
 		simulation.NewWeightedOperation(weightMsgPurchaseShield, SimulateMsgPurchaseShield(k, ak, sk)),
 	}
 }
@@ -126,6 +118,10 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
+		// shield limit
+		// No overflow would happen when converting int64 to int in this case.
+		shieldLimit := sdk.NewInt(int64(simulation.RandIntBetween(r, int(maxShield.Int64()), int(maxShield.Int64())*5)))
+
 		// sponsor
 		sponsor := strings.ToLower(simulation.RandStringOfLength(r, 10))
 		if _, found := k.GetPoolBySponsor(ctx, sponsor); found {
@@ -151,7 +147,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		sponsorAcc, _ := simulation.RandomAcc(r, accs)
 		description := simulation.RandStringOfLength(r, 42)
 
-		msg := types.NewMsgCreatePool(simAccount.Address, shield, serviceFees, sponsor, sponsorAcc.Address, description)
+		msg := types.NewMsgCreatePool(simAccount.Address, shield, serviceFees, sponsor, sponsorAcc.Address, description, shieldLimit)
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
@@ -201,7 +197,11 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		totalWithdrawing := k.GetTotalWithdrawing(ctx)
 		totalShield := k.GetTotalShield(ctx)
 		poolParams := k.GetPoolParams(ctx)
-		maxShield := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield), totalCollateral.Sub(totalWithdrawing).Sub(totalShield))
+		maxShield := sdk.MinInt(pool.ShieldLimit.Sub(pool.Shield),
+			sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
+				totalCollateral.Sub(totalWithdrawing).Sub(totalShield),
+			),
+		)
 		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
@@ -227,7 +227,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		serviceFees := types.MixedCoins{Native: nativeServiceFees, Foreign: foreignServiceFees}
 		description := simulation.RandStringOfLength(r, 42)
 
-		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description)
+		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description, sdk.ZeroInt())
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
@@ -273,7 +273,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		collateral := sdk.NewCoin(sk.BondDenom(ctx), collateralAmount)
+		collateral := sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), collateralAmount))
 
 		msg := types.NewMsgDepositCollateral(simAccount.Address, collateral)
 
@@ -322,7 +322,7 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		withdraw := sdk.NewCoin(sk.BondDenom(ctx), withdrawAmount)
+		withdraw := sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), withdrawAmount))
 
 		msg := types.NewMsgWithdrawCollateral(simAccount.Address, withdraw)
 
@@ -381,47 +381,6 @@ func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper) simulat
 	}
 }
 
-// SimulateMsgWithdrawForeignRewards generates a MsgWithdrawForeignRewards object with all of its fields randomized.
-func SimulateMsgWithdrawForeignRewards(k keeper.Keeper, ak types.AccountKeeper) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
-	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		provider, found := keeper.RandomProvider(r, k, ctx)
-		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
-		}
-		var simAccount simulation.Account
-		for _, simAcc := range accs {
-			if simAcc.Address.Equals(provider.Address) {
-				simAccount = simAcc
-				break
-			}
-		}
-		account := ak.GetAccount(ctx, simAccount.Address)
-		toAddr := simulation.RandStringOfLength(r, 42)
-		if provider.Rewards.Foreign.Empty() {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
-		}
-		denom := provider.Rewards.Foreign[0].Denom
-		msg := types.NewMsgWithdrawForeignRewards(provider.Address, denom, toAddr)
-
-		fees := sdk.Coins{}
-		tx := helpers.GenTx(
-			[]sdk.Msg{msg},
-			fees,
-			helpers.DefaultGenTxGas,
-			chainID,
-			[]uint64{account.GetAccountNumber()},
-			[]uint64{account.GetSequence()},
-			simAccount.PrivKey,
-		)
-
-		if _, _, err := app.Deliver(tx); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
-	}
-}
-
 // SimulateMsgPurchaseShield generates a MsgPurchaseShield object with all of its fields randomized.
 func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
@@ -443,7 +402,11 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		totalWithdrawing := k.GetTotalWithdrawing(ctx)
 		totalShield := k.GetTotalShield(ctx)
 		poolParams := k.GetPoolParams(ctx)
-		maxShield := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield), totalCollateral.Sub(totalWithdrawing).Sub(totalShield))
+		maxShield := sdk.MinInt(pool.ShieldLimit.Sub(pool.Shield),
+			sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
+				totalCollateral.Sub(totalWithdrawing).Sub(totalShield),
+			),
+		)
 		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil

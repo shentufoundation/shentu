@@ -8,11 +8,12 @@ import (
 
 // DepositCollateral deposits a community member's collateral for a pool.
 func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) error {
-	// Check eligibility.
 	provider, found := k.GetProvider(ctx, from)
 	if !found {
 		provider = k.addProvider(ctx, from)
 	}
+	// Check if there are enough delegations backing collaterals.
+	// DelegationBonded >= Collateral - Withdrawing + amount
 	if provider.DelegationBonded.LT(provider.Collateral.Add(amount).Sub(provider.Withdrawing)) {
 		return types.ErrInsufficientStaking
 	}
@@ -40,6 +41,9 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, amount 
 	if !found {
 		return types.ErrProviderNotFound
 	}
+
+	// Do not need to consider shield for withdrawable amount
+	// because the withdraw period is the same as the shield protection period.
 	withdrawable := provider.Collateral.Sub(provider.Withdrawing)
 	if amount.GT(withdrawable) {
 		return types.ErrOverWithdraw
