@@ -165,10 +165,7 @@ func handleMsgDepositCollateral(ctx sdk.Context, msg types.MsgDepositCollateral,
 		}
 	}
 	amount := msg.Collateral.AmountOf(bondDenom)
-	if err := k.WithdrawCollateral(ctx, msg.From, amount); err != nil {
-		return nil, err
-	}
-
+	
 	if err := k.DepositCollateral(ctx, msg.From, amount); err != nil {
 		return nil, err
 	}
