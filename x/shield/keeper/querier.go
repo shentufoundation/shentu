@@ -30,6 +30,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPoolPurchases(ctx, path[1:], k)
 		case types.QueryProvider:
 			return queryProvider(ctx, path[1:], k)
+		case types.QueryProviders:
+			return queryProviders(ctx, req, k)
 		case types.QueryPoolParams:
 			return queryPoolParams(ctx, path[1:], k)
 		case types.QueryClaimParams:
@@ -174,6 +176,22 @@ func queryProvider(ctx sdk.Context, path []string, k Keeper) (res []byte, err er
 	}
 
 	res, err = codec.MarshalJSONIndent(k.cdc, provider)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+func queryProviders(ctx sdk.Context, req abci.RequestQuery, k Keeper) (res []byte, err error) {
+	var params types.QueryPaginationParams
+	err = k.cdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	providers := k.GetProvidersPaginated(ctx, uint(params.Page), uint(params.Limit))
+
+	res, err = codec.MarshalJSONIndent(k.cdc, providers)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
