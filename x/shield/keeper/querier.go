@@ -28,8 +28,12 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPurchaserPurchases(ctx, path[1:], k)
 		case types.QueryPoolPurchases:
 			return queryPoolPurchases(ctx, path[1:], k)
+		case types.QueryPurchases:
+			return queryPurchases(ctx, path[1:], k)
 		case types.QueryProvider:
 			return queryProvider(ctx, path[1:], k)
+		case types.QueryProviders:
+			return queryProviders(ctx, req, k)
 		case types.QueryPoolParams:
 			return queryPoolParams(ctx, path[1:], k)
 		case types.QueryClaimParams:
@@ -158,6 +162,19 @@ func queryPoolPurchases(ctx sdk.Context, path []string, k Keeper) (res []byte, e
 	return res, nil
 }
 
+// queryPurchases queries all purchases.
+func queryPurchases(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 0); err != nil {
+		return nil, err
+	}
+
+	res, err = codec.MarshalJSONIndent(k.cdc, k.GetAllPurchases(ctx))
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
 // queryProvider returns information about a provider.
 func queryProvider(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
 	if err := validatePathLength(path, 1); err != nil {
@@ -174,6 +191,22 @@ func queryProvider(ctx sdk.Context, path []string, k Keeper) (res []byte, err er
 	}
 
 	res, err = codec.MarshalJSONIndent(k.cdc, provider)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+func queryProviders(ctx sdk.Context, req abci.RequestQuery, k Keeper) (res []byte, err error) {
+	var params types.QueryPaginationParams
+	err = k.cdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	providers := k.GetProvidersPaginated(ctx, uint(params.Page), uint(params.Limit))
+
+	res, err = codec.MarshalJSONIndent(k.cdc, providers)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

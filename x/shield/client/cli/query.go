@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -10,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -29,7 +31,9 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdPurchaseList(queryRoute, cdc),
 		GetCmdPurchaserPurchases(queryRoute, cdc),
 		GetCmdPoolPurchases(queryRoute, cdc),
+		GetCmdPurchases(queryRoute, cdc),
 		GetCmdProvider(queryRoute, cdc),
+		GetCmdProviders(queryRoute, cdc),
 		GetCmdPoolParams(queryRoute, cdc),
 		GetCmdClaimParams(queryRoute, cdc),
 	)...)
@@ -154,7 +158,7 @@ func GetCmdPurchaserPurchases(queryRoute string, cdc *codec.Codec) *cobra.Comman
 // purchases in a given pool.
 func GetCmdPoolPurchases(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "purchases [pool_ID]",
+		Use:   "pool-purchases [pool_ID]",
 		Short: "query purchases in a given pool",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -167,6 +171,30 @@ func GetCmdPoolPurchases(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			var out []types.PurchaseList
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
+
+	return cmd
+}
+
+// GetCmdPurchases returns the command for querying all purchases.
+func GetCmdPurchases(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "purchases",
+		Short: "query all purchases",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryPurchases)
+			res, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			var out []types.Purchase
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},
@@ -196,6 +224,50 @@ func GetCmdProvider(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		},
 	}
 
+	return cmd
+}
+
+// GetCmdProviders returns the command for querying all providers.
+func GetCmdProviders(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "providers",
+		Args:  cobra.ExactArgs(0),
+		Short: "query all providers",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query providers with pagination parameters
+
+Example:
+$ %[1]s query shield providers
+$ %[1]s query shield providers --page=2 --limit=100
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			page := viper.GetInt(flags.FlagPage)
+			limit := viper.GetInt(flags.FlagLimit)
+
+			params := types.NewQueryPaginationParams(page, limit)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryProviders)
+			res, _, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+
+			var out []types.Provider
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
+	cmd.Flags().Int(flags.FlagPage, 1, "pagination page of providers to to query for")
+	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit of providers to query for")
 	return cmd
 }
 
