@@ -15,7 +15,7 @@ const (
 	QueryProvider            = "provider"
 	QueryPoolParams          = "pool_params"
 	QueryClaimParams         = "claim_params"
-	QueryShieldState         = "shield_state"
+	QueryGlobalState         = "global_state"
 )
 
 type QueryResShieldState struct {

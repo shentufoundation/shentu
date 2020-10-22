@@ -34,8 +34,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPoolParams(ctx, path[1:], k)
 		case types.QueryClaimParams:
 			return queryClaimParams(ctx, path[1:], k)
-		case types.QueryShieldState:
-			return queryShieldState(ctx, path[1:], k)
+		case types.QueryGlobalState:
+			return queryGlobalState(ctx, path[1:], k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
@@ -210,7 +210,7 @@ func queryClaimParams(ctx sdk.Context, path []string, k Keeper) (res []byte, err
 	return res, nil
 }
 
-func queryShieldState(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+func queryGlobalState(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
 	if err := validatePathLength(path, 0); err != nil {
 		return nil, err
 	}

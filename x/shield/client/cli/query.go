@@ -32,7 +32,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdProvider(queryRoute, cdc),
 		GetCmdPoolParams(queryRoute, cdc),
 		GetCmdClaimParams(queryRoute, cdc),
-		GetCmdShieldState(queryRoute, cdc),
+		GetCmdGlobalState(queryRoute, cdc),
 	)...)
 
 	return shieldQueryCmd
@@ -246,16 +246,16 @@ func GetCmdClaimParams(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-// GetCmdShieldState returns the command for querying shield state.
-func GetCmdShieldState(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// GetCmdGlobalState returns the command for querying shield state.
+func GetCmdGlobalState(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "shield-state",
-		Short: "get shield-state",
+		Use:   "global-state",
+		Short: "get global-state",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryShieldState)
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGlobalState)
 			res, _, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
