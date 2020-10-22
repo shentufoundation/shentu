@@ -21,7 +21,7 @@ type GenesisState struct {
 	TotalShield          sdk.Int             `json:"total_shield" yaml:"total_shield"`
 	TotalLocked          sdk.Int             `json:"total_locked" yaml:"total_locked"`
 	ServiceFees          MixedDecCoins       `json:"service_fees" yaml:"service_fees"`
-	RemainingServiceFees MixedDecCoins       `json:"service_fees_left" yaml:"service_fees_left"`
+	RemainingServiceFees MixedDecCoins       `json:"remaining_service_fees" yaml:"remaining_service_fees"`
 	Pools                []Pool              `json:"pools" yaml:"pools"`
 	Providers            []Provider          `json:"providers" yaml:"providers"`
 	PurchaseLists        []PurchaseList      `json:"purchases" yaml:"purchases"`

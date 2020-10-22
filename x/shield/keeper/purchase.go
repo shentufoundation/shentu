@@ -232,11 +232,11 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 		sdk.NewDec(int64(ctx.BlockTime().Sub(lastUpdateTime).Seconds()))).QuoDec(
 		sdk.NewDec(int64(k.GetPoolParams(ctx).ProtectionPeriod.Seconds()))))
 
-	// Limit service fees by service fees left.
-	serviceFeesLeft := k.GetRemainingServiceFees(ctx)
+	// Limit service fees by remaining service fees.
+	remainingServiceFees := k.GetRemainingServiceFees(ctx)
 	bondDenom := k.BondDenom(ctx)
-	if serviceFeesLeft.Native.AmountOf(bondDenom).LT(serviceFees.Native.AmountOf(bondDenom)) {
-		serviceFees.Native = serviceFeesLeft.Native
+	if remainingServiceFees.Native.AmountOf(bondDenom).LT(serviceFees.Native.AmountOf(bondDenom)) {
+		serviceFees.Native = remainingServiceFees.Native
 	}
 
 	// Distribute service fees.
@@ -245,15 +245,15 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 	for _, provider := range providers {
 		// fees * providerCollateral / totalCollateral
 		nativeFees := serviceFees.Native.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
-		if nativeFees.AmountOf(bondDenom).GT(serviceFeesLeft.Native.AmountOf(bondDenom)) {
-			nativeFees = serviceFeesLeft.Native
+		if nativeFees.AmountOf(bondDenom).GT(remainingServiceFees.Native.AmountOf(bondDenom)) {
+			nativeFees = remainingServiceFees.Native
 		}
 		provider.Rewards = provider.Rewards.Add(types.MixedDecCoins{Native: nativeFees})
 		k.SetProvider(ctx, provider.Address, provider)
 
-		serviceFeesLeft.Native = serviceFeesLeft.Native.Sub(nativeFees)
+		remainingServiceFees.Native = remainingServiceFees.Native.Sub(nativeFees)
 	}
-	k.SetRemainingServiceFees(ctx, serviceFeesLeft)
+	k.SetRemainingServiceFees(ctx, remainingServiceFees)
 	k.SetLastUpdateTime(ctx, ctx.BlockTime())
 }
 
