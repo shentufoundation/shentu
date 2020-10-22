@@ -10,9 +10,11 @@ const (
 	QueryPurchaseList        = "purchase_list"
 	QueryPurchaserPurchases  = "purchaser_purchases"
 	QueryPoolPurchases       = "pool_purchases"
+	QueryPurchases           = "purchases"
 	QueryProviderCollaterals = "provider_collaterals"
 	QueryPoolCollaterals     = "pool_collaterals"
 	QueryProvider            = "provider"
+	QueryProviders           = "providers"
 	QueryPoolParams          = "pool_params"
 	QueryClaimParams         = "claim_params"
 	QueryStatus              = "status"
@@ -33,5 +35,21 @@ func NewQueryResStatus(totalCollateral, totalShield, totalWithdrawing sdk.Int, c
 		TotalWithdrawing:     totalWithdrawing,
 		CurrentServiceFees:   currentServiceFees,
 		RemainingServiceFees: remainingServiceFees,
+	}
+}
+
+// QueryPaginationParams provides basic pagination parameters
+// for queries in shield module.
+type QueryPaginationParams struct {
+	Page  int
+	Limit int
+}
+
+// NewQueryPaginationParams creates new instance of the
+// QueryPaginationParams.
+func NewQueryPaginationParams(page, limit int) QueryPaginationParams {
+	return QueryPaginationParams{
+		Page:  page,
+		Limit: limit,
 	}
 }
