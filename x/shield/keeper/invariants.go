@@ -52,7 +52,7 @@ func ProviderInvariant(keeper Keeper) sdk.Invariant {
 		totalCollateral := keeper.GetTotalCollateral(ctx)
 		broken := !totalWithdraw.Equal(withdrawSum) || !totalCollateral.Equal(collateralSum)
 
-		return sdk.FormatInvariant(types.ModuleName, "module-account",
+		return sdk.FormatInvariant(types.ModuleName, "provider",
 			fmt.Sprintf("\n\ttotal withdraw amount: %s"+
 				"\n\tsum of providers' withdrawing amount:  %s"+
 				"\n\ttotal collateral amount: %s"+
@@ -70,15 +70,12 @@ func ShieldInvariant(keeper Keeper) sdk.Invariant {
 			shieldSum = shieldSum.Add(pool.Shield)
 		}
 
-		totalWithdraw := keeper.GetTotalWithdrawing(ctx)
-		totalCollateral := keeper.GetTotalCollateral(ctx)
-		broken := !totalWithdraw.Equal(shieldSum)
+		totalShield := keeper.GetTotalShield(ctx)
+		broken := !totalShield.Equal(shieldSum)
 
-		return sdk.FormatInvariant(types.ModuleName, "module-account",
-			fmt.Sprintf("\n\ttotal withdraw amount: %s"+
-				"\n\tsum of providers' withdrawing amount:  %s"+
-				"\n\ttotal collateral amount: %s"+
-				"\n\tsum of providers' collateral amount: %s\bn",
-				totalWithdraw, withdrawSum, totalCollateral, collateralSum)), broken
+		return sdk.FormatInvariant(types.ModuleName, "shield",
+			fmt.Sprintf("\n\ttotal shield amount: %s"+
+				"\n\tsum of providers' withdrawing amount:  %s\n",
+				totalShield, shieldSum)), broken
 	}
 }
