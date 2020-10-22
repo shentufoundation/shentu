@@ -87,12 +87,6 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 		return types.Purchase{}, types.ErrPoolInactive
 	}
 
-	// Check if the amount of purchased shield is to small.
-	poolParams := k.GetPoolParams(ctx)
-	if poolParams.MinShieldPurchase.IsAnyGT(shield) {
-		return types.Purchase{}, types.ErrPurchaseTooSmall
-	}
-
 	// Check available collaterals.
 	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
 	totalCollateral := k.GetTotalCollateral(ctx)
@@ -103,6 +97,7 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	}
 
 	// Check pool shield limit.
+	poolParams := k.GetPoolParams(ctx)
 	maxShield := sdk.MinInt(pool.ShieldLimit, totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt())
 	if shieldAmt.Add(pool.Shield).GT(maxShield) {
 		return types.Purchase{}, types.ErrPoolShieldExceedsLimit
@@ -143,6 +138,10 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 
 // PurchaseShield purchases shield of a pool with standard fee rate.
 func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress) (types.Purchase, error) {
+	poolParams := k.GetPoolParams(ctx)
+	if poolParams.MinShieldPurchase.IsAnyGT(shield) {
+		return types.Purchase{}, types.ErrPurchaseTooSmall
+	}
 	bondDenom := k.BondDenom(ctx)
 	serviceFees := sdk.NewCoins(sdk.NewCoin(bondDenom, shield.AmountOf(bondDenom).ToDec().Mul(k.GetPoolParams(ctx).ShieldFeesRate).TruncateInt()))
 	return k.purchaseShield(ctx, poolID, shield, description, purchaser, serviceFees)
