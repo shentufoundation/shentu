@@ -28,7 +28,7 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 		return fmt.Sprintf("%v\n%v", totalA, totalB)
 
 	case bytes.Equal(kvA.Key[:1], types.ServiceFeesKey),
-		bytes.Equal(kvA.Key[:1], types.ServiceFeesLeftKey):
+		bytes.Equal(kvA.Key[:1], types.RemainingServiceFeesKey):
 		var serviceFeesA, serviceFeesB types.MixedDecCoins
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &serviceFeesA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &serviceFeesB)

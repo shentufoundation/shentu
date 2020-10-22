@@ -32,7 +32,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdProvider(queryRoute, cdc),
 		GetCmdPoolParams(queryRoute, cdc),
 		GetCmdClaimParams(queryRoute, cdc),
-		GetCmdGlobalState(queryRoute, cdc),
+		GetCmdStatus(queryRoute, cdc),
 	)...)
 
 	return shieldQueryCmd
@@ -246,22 +246,22 @@ func GetCmdClaimParams(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-// GetCmdGlobalState returns the command for querying shield state.
-func GetCmdGlobalState(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// GetCmdStatus returns the command for querying shield status.
+func GetCmdStatus(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "global-state",
-		Short: "get global-state",
+		Use:   "status",
+		Short: "get shield status",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGlobalState)
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryStatus)
 			res, _, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
 			}
 
-			var out types.QueryResShieldState
+			var out types.QueryResStatus
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},

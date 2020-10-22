@@ -34,7 +34,7 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPoolParams(ctx, path[1:], k)
 		case types.QueryClaimParams:
 			return queryClaimParams(ctx, path[1:], k)
-		case types.QueryGlobalState:
+		case types.QueryStatus:
 			return queryGlobalState(ctx, path[1:], k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
@@ -215,12 +215,12 @@ func queryGlobalState(ctx sdk.Context, path []string, k Keeper) (res []byte, err
 		return nil, err
 	}
 
-	shieldState := types.NewQueryResShieldState(
+	shieldState := types.NewQueryResStatus(
 		k.GetTotalCollateral(ctx),
 		k.GetTotalShield(ctx),
 		k.GetTotalWithdrawing(ctx),
 		k.GetServiceFees(ctx),
-		k.GetServiceFeesLeft(ctx),
+		k.GetRemainingServiceFees(ctx),
 	)
 
 	res, err = codec.MarshalJSONIndent(k.cdc, shieldState)

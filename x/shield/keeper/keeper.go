@@ -88,13 +88,14 @@ func (k Keeper) GetVotingParams(ctx sdk.Context) govTypes.VotingParams {
 }
 
 // SetLastUpdateTime sets the last update time.
+// Last update time will be set when the first purchase is made or distributing service fees.
 func (k Keeper) SetLastUpdateTime(ctx sdk.Context, prevUpdateTime time.Time) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(prevUpdateTime)
 	store.Set(types.GetLastUpdateTimeKey(), bz)
 }
 
-// GetLastUpdateTime returns the last update time
+// GetLastUpdateTime returns the last update time.
 func (k Keeper) GetLastUpdateTime(ctx sdk.Context) (time.Time, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetLastUpdateTimeKey())

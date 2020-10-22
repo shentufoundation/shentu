@@ -11,61 +11,61 @@ import (
 
 // GenesisState defines the shield genesis state.
 type GenesisState struct {
-	ShieldAdmin         sdk.AccAddress      `json:"shield_admin" yaml:"shield_admin"`
-	NextPoolID          uint64              `json:"next_pool_id" yaml:"next_pool_id"`
-	NextPurchaseID      uint64              `json:"next_purchase_id" yaml:"next_purchase_id"`
-	PoolParams          PoolParams          `json:"pool_params" yaml:"pool_params"`
-	ClaimProposalParams ClaimProposalParams `json:"claim_proposal_params" yaml:"claim_proposal_params"`
-	TotalCollateral     sdk.Int             `json:"total_collateral" yaml:"total_collateral"`
-	TotalWithdrawing    sdk.Int             `json:"total_withdrawing" yaml:"total_withdrawing"`
-	TotalShield         sdk.Int             `json:"total_shield" yaml:"total_shield"`
-	TotalLocked         sdk.Int             `json:"total_locked" yaml:"total_locked"`
-	ServiceFees         MixedDecCoins       `json:"service_fees" yaml:"service_fees"`
-	ServiceFeesLeft     MixedDecCoins       `json:"service_fees_left" yaml:"service_fees_left"`
-	Pools               []Pool              `json:"pools" yaml:"pools"`
-	Providers           []Provider          `json:"providers" yaml:"providers"`
-	PurchaseLists       []PurchaseList      `json:"purchases" yaml:"purchases"`
-	Withdraws           Withdraws           `json:"withdraws" yaml:"withdraws"`
-	LastUpdateTime      time.Time           `json:"last_update_time" yaml:"last_update_time"`
+	ShieldAdmin          sdk.AccAddress      `json:"shield_admin" yaml:"shield_admin"`
+	NextPoolID           uint64              `json:"next_pool_id" yaml:"next_pool_id"`
+	NextPurchaseID       uint64              `json:"next_purchase_id" yaml:"next_purchase_id"`
+	PoolParams           PoolParams          `json:"pool_params" yaml:"pool_params"`
+	ClaimProposalParams  ClaimProposalParams `json:"claim_proposal_params" yaml:"claim_proposal_params"`
+	TotalCollateral      sdk.Int             `json:"total_collateral" yaml:"total_collateral"`
+	TotalWithdrawing     sdk.Int             `json:"total_withdrawing" yaml:"total_withdrawing"`
+	TotalShield          sdk.Int             `json:"total_shield" yaml:"total_shield"`
+	TotalLocked          sdk.Int             `json:"total_locked" yaml:"total_locked"`
+	ServiceFees          MixedDecCoins       `json:"service_fees" yaml:"service_fees"`
+	RemainingServiceFees MixedDecCoins       `json:"service_fees_left" yaml:"service_fees_left"`
+	Pools                []Pool              `json:"pools" yaml:"pools"`
+	Providers            []Provider          `json:"providers" yaml:"providers"`
+	PurchaseLists        []PurchaseList      `json:"purchases" yaml:"purchases"`
+	Withdraws            Withdraws           `json:"withdraws" yaml:"withdraws"`
+	LastUpdateTime       time.Time           `json:"last_update_time" yaml:"last_update_time"`
 }
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
-	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked sdk.Int, serviceFees, serviceFeesLeft MixedDecCoins,
+	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked sdk.Int, serviceFees, remainingServiceFees MixedDecCoins,
 	pools []Pool, providers []Provider, purchase []PurchaseList, withdraws Withdraws, lastUpdateTime time.Time) GenesisState {
 	return GenesisState{
-		ShieldAdmin:         shieldAdmin,
-		NextPoolID:          nextPoolID,
-		NextPurchaseID:      nextPurchaseID,
-		PoolParams:          poolParams,
-		ClaimProposalParams: claimProposalParams,
-		TotalCollateral:     totalCollateral,
-		TotalWithdrawing:    totalWithdrawing,
-		TotalShield:         totalShield,
-		TotalLocked:         totalLocked,
-		ServiceFees:         serviceFees,
-		ServiceFeesLeft:     serviceFeesLeft,
-		Pools:               pools,
-		Providers:           providers,
-		PurchaseLists:       purchase,
-		Withdraws:           withdraws,
-		LastUpdateTime:      lastUpdateTime,
+		ShieldAdmin:          shieldAdmin,
+		NextPoolID:           nextPoolID,
+		NextPurchaseID:       nextPurchaseID,
+		PoolParams:           poolParams,
+		ClaimProposalParams:  claimProposalParams,
+		TotalCollateral:      totalCollateral,
+		TotalWithdrawing:     totalWithdrawing,
+		TotalShield:          totalShield,
+		TotalLocked:          totalLocked,
+		ServiceFees:          serviceFees,
+		RemainingServiceFees: remainingServiceFees,
+		Pools:                pools,
+		Providers:            providers,
+		PurchaseLists:        purchase,
+		Withdraws:            withdraws,
+		LastUpdateTime:       lastUpdateTime,
 	}
 }
 
 // DefaultGenesisState returns a default genesis state.
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		NextPoolID:          uint64(1),
-		NextPurchaseID:      uint64(1),
-		PoolParams:          DefaultPoolParams(),
-		ClaimProposalParams: DefaultClaimProposalParams(),
-		TotalCollateral:     sdk.ZeroInt(),
-		TotalWithdrawing:    sdk.ZeroInt(),
-		TotalShield:         sdk.ZeroInt(),
-		TotalLocked:         sdk.ZeroInt(),
-		ServiceFees:         InitMixedDecCoins(),
-		ServiceFeesLeft:     InitMixedDecCoins(),
+		NextPoolID:           uint64(1),
+		NextPurchaseID:       uint64(1),
+		PoolParams:           DefaultPoolParams(),
+		ClaimProposalParams:  DefaultClaimProposalParams(),
+		TotalCollateral:      sdk.ZeroInt(),
+		TotalWithdrawing:     sdk.ZeroInt(),
+		TotalShield:          sdk.ZeroInt(),
+		TotalLocked:          sdk.ZeroInt(),
+		ServiceFees:          InitMixedDecCoins(),
+		RemainingServiceFees: InitMixedDecCoins(),
 	}
 }
 
