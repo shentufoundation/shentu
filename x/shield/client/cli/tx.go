@@ -318,7 +318,7 @@ func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			collateral, err := sdk.ParseCoin(args[0])
+			collateral, err := sdk.ParseCoins(args[0])
 			if err != nil {
 				return err
 			}
@@ -348,7 +348,7 @@ func GetCmdWithdrawCollateral(cdc *codec.Codec) *cobra.Command {
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			collateral, err := sdk.ParseCoin(args[0])
+			collateral, err := sdk.ParseCoins(args[0])
 			if err != nil {
 				return err
 			}
