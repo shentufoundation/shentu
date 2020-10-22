@@ -131,35 +131,3 @@ func (k Keeper) GetAllProviders(ctx sdk.Context) (providers []types.Provider) {
 	})
 	return
 }
-
-// GetProvidersPaginated performs paginated query of providers.
-func (k Keeper) GetProvidersPaginated(ctx sdk.Context, page, limit uint) (providers []types.Provider) {
-	k.IterateProvidersPaginated(ctx, page, limit, func(provider types.Provider) bool {
-		providers = append(providers, provider)
-		return false
-	})
-	return
-}
-
-// IterateProvidersPaginated iterates over providers based on
-// pagination parameters and performs a callback function.
-func (k Keeper) IterateProvidersPaginated(ctx sdk.Context, page, limit uint, cb func(vote types.Provider) (stop bool)) {
-	iterator := k.GetProvidersIteratorPaginated(ctx, page, limit)
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var provider types.Provider
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &provider)
-
-		if cb(provider) {
-			break
-		}
-	}
-}
-
-// GetProvidersIteratorPaginated returns an iterator to go over
-// providers based on pagination parameters.
-func (k Keeper) GetProvidersIteratorPaginated(ctx sdk.Context, page, limit uint) sdk.Iterator {
-	store := ctx.KVStore(k.storeKey)
-	return sdk.KVStorePrefixIteratorPaginated(store, types.ProviderKey, page, limit)
-}

@@ -20,9 +20,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/pool/{poolID}/purchases", types.QuerierRoute), queryPoolPurchasesHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/pool/{poolID}/purchaser/{address}/purchases", types.QuerierRoute), queryPurchaseListHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/provider/{address}", types.QuerierRoute), queryProviderHandler(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/providers", types.QuerierRoute), queryProvidersHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/purchaser/{address}/purchases", types.QuerierRoute), queryPurchaserPurchasesHandler(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/purchases", types.QuerierRoute), queryPurchasesHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/collaterals/{address}", types.QuerierRoute), queryProviderCollateralsHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/pool_params", types.QuerierRoute), queryPoolParamsHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/claim_params", types.QuerierRoute), queryClaimParamsHandler(cliCtx)).Methods("GET")
@@ -202,25 +200,6 @@ func queryPoolPurchasesHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryPurchasesHandler(cliCtx context.CLIContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-		if !ok {
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryPurchases)
-		res, height, err := cliCtx.QueryWithData(route, nil)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
-			return
-		}
-
-		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
-	}
-}
-
 func queryProviderHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
@@ -233,39 +212,6 @@ func queryProviderHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryProvider, address)
 		res, height, err := cliCtx.QueryWithData(route, nil)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
-			return
-		}
-
-		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
-	}
-}
-
-func queryProvidersHandler(cliCtx context.CLIContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		params := types.NewQueryPaginationParams(page, limit)
-
-		bz, err := cliCtx.Codec.MarshalJSON(params)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-		if !ok {
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryProviders)
-		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
