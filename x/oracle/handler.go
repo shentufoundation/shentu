@@ -120,9 +120,9 @@ func handleMsgCreateTask(ctx sdk.Context, k Keeper, msg types.MsgCreateTask) (*s
 	}
 	var expiration time.Time
 	if msg.ValidDuration.Microseconds() == 0 {
-		expiration = msg.Now.Add(taskParams.ExpirationDuration)
+		expiration = ctx.BlockTime().Add(taskParams.ExpirationDuration)
 	} else {
-		expiration = msg.Now.Add(msg.ValidDuration)
+		expiration = ctx.BlockTime().Add(msg.ValidDuration)
 	}
 
 	if err := k.CreateTask(ctx, msg.Contract, msg.Function, msg.Bounty, msg.Description,

@@ -315,8 +315,7 @@ func SimulateMsgCreateTask(ak types.AuthKeeper, k keeper.Keeper) simulation.Oper
 		bounty := simulation.RandSubsetCoins(r, creatorAcc.SpendableCoins(ctx.BlockTime()))
 		wait := simulation.RandIntBetween(r, 5, 20)
 
-		msg := types.NewMsgCreateTask(contract, function, bounty, description, creator.Address,
-			int64(wait), time.Now(), time.Duration(0))
+		msg := types.NewMsgCreateTask(contract, function, bounty, description, creator.Address, int64(wait), time.Duration(0))
 
 		fees, err := simulation.RandomFees(r, ctx, creatorAcc.SpendableCoins(ctx.BlockTime()).Sub(bounty))
 		if err != nil {

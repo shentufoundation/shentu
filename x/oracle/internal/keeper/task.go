@@ -66,11 +66,6 @@ func (k Keeper) DeleteClosingTaskIDs(ctx sdk.Context, closingBlock int64) {
 	ctx.KVStore(k.storeKey).Delete(types.ClosingTaskIDsStoreKey(closingBlock))
 }
 
-// CheckExpiration checks whether a task is expired.
-func (k Keeper) IsExpired(task types.Task) bool {
-	return task.Expiration.Before(time.Now().UTC())
-}
-
 // CreateTask creates a new task.
 func (k Keeper) CreateTask(ctx sdk.Context, contract string, function string, bounty sdk.Coins,
 	description string, expiration time.Time, creator sdk.AccAddress, waitingBlocks int64) error {
@@ -99,7 +94,7 @@ func (k Keeper) RemoveTask(ctx sdk.Context, contract, function string, force boo
 	if err != nil {
 		return err
 	}
-	if !force && !k.IsExpired(task) {
+	if !force && !task.Expiration.Before(ctx.BlockTime()) {
 		return types.ErrNotExpired
 	}
 
