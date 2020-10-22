@@ -28,6 +28,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPurchaserPurchases(ctx, path[1:], k)
 		case types.QueryPoolPurchases:
 			return queryPoolPurchases(ctx, path[1:], k)
+		case types.QueryPurchases:
+			return queryPurchases(ctx, path[1:], k)
 		case types.QueryProvider:
 			return queryProvider(ctx, path[1:], k)
 		case types.QueryProviders:
@@ -154,6 +156,19 @@ func queryPoolPurchases(ctx sdk.Context, path []string, k Keeper) (res []byte, e
 	}
 
 	res, err = codec.MarshalJSONIndent(k.cdc, k.GetPoolPurchaseLists(ctx, id))
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+// queryPurchases queries all purchases.
+func queryPurchases(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 0); err != nil {
+		return nil, err
+	}
+
+	res, err = codec.MarshalJSONIndent(k.cdc, k.GetAllPurchases(ctx))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

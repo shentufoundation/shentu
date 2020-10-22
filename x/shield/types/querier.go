@@ -8,6 +8,7 @@ const (
 	QueryPurchaseList        = "purchase_list"
 	QueryPurchaserPurchases  = "purchaser_purchases"
 	QueryPoolPurchases       = "pool_purchases"
+	QueryPurchases           = "purchases"
 	QueryProviderCollaterals = "provider_collaterals"
 	QueryPoolCollaterals     = "pool_collaterals"
 	QueryProvider            = "provider"
