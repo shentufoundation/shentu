@@ -68,6 +68,13 @@ func (sh *Helper) Delegate(delegator sdk.AccAddress, val sdk.ValAddress, amount 
 	sh.Handle(msg, true)
 }
 
+// Redelegate calls handler to begin redelegation.
+func (sh *Helper) Redelegate(delegator sdk.AccAddress, srcVal, dstVal sdk.ValAddress, amount int64, ok bool) {
+	coin := sdk.NewCoin(sh.Denom, sdk.NewInt(amount))
+	msg := stakingtypes.NewMsgBeginRedelegate(delegator, srcVal, dstVal, coin)
+	sh.Handle(msg, ok)
+}
+
 // DelegateWithPower calls handler to delegate stake for a validator
 func (sh *Helper) DelegateWithPower(delegator sdk.AccAddress, val sdk.ValAddress, power int64) {
 	coin := sdk.NewCoin(sh.Denom, sdk.TokensFromConsensusPower(power))
