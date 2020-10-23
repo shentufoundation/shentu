@@ -38,7 +38,14 @@ func SimulateCertifierUpdateProposalContent(k keeper.Keeper) simulation.ContentS
 		switch r.Intn(2) {
 		case 0:
 			addorremove = types.Add
-			certifier = simulation.RandomAccounts(r, 1)[0].Address
+			for _, acc := range accs {
+				if k.IsCertifier(ctx, acc.Address) {
+					continue
+				} else {
+					certifier = acc.Address
+					break
+				}
+			}
 		case 1:
 			addorremove = types.Remove
 			certifier_index := r.Intn(len(certifiers))
