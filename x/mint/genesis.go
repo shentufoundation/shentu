@@ -10,7 +10,7 @@ import (
 // DefaultGenesisState creates a default GenesisState object.
 func DefaultGenesisState() mint.GenesisState {
 	return mint.GenesisState{
-		Minter: mint.InitialMinter(sdk.NewDecWithPrec(7, 2)),
+		Minter: mint.InitialMinter(sdk.NewDecWithPrec(4, 2)),
 		Params: mint.NewParams(
 			common.MicroCTKDenom,
 			sdk.NewDecWithPrec(10, 2), // max inflation rate change

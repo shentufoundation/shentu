@@ -56,7 +56,7 @@ func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
 	defaultGenesisState := staking.DefaultGenesisState()
 	defaultGenesisState.Params.BondDenom = common.MicroCTKDenom
-	defaultGenesisState.Params.UnbondingTime = time.Hour * 24 * 7 * 2
+	defaultGenesisState.Params.UnbondingTime = time.Hour * 24 * 7 * 3
 	defaultGenesisState.Params.MaxValidators = 125
 
 	return staking.ModuleCdc.MustMarshalJSON(defaultGenesisState)

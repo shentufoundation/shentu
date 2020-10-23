@@ -43,6 +43,7 @@ func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
 // DefaultGenesis returns default genesis state as raw bytes for the slashing module.
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
 	defGenState := slashing.DefaultGenesisState()
+	defGenState.Params.SignedBlocksWindow = 10000
 	defGenState.Params.SlashFractionDoubleSign = sdk.ZeroDec()
 	defGenState.Params.SlashFractionDowntime = sdk.ZeroDec()
 	return ModuleCdc.MustMarshalJSON(defGenState)
