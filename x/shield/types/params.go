@@ -16,7 +16,7 @@ var (
 	DefaultProtectionPeriod  = time.Hour * 24 * 21                                                   // 21 days
 	DefaultShieldFeesRate    = sdk.NewDecWithPrec(769, 5)                                            // 0.769%
 	DefaultWithdrawPeriod    = time.Hour * 24 * 21                                                   // 21 days
-	DefaultPoolShieldLimit   = sdk.NewDecWithPrec(10, 2)                                             // 10%
+	DefaultPoolShieldLimit   = sdk.NewDecWithPrec(50, 2)                                             // 50%
 	DefaultMinShieldPurchase = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(50000000))) // 50 CTK
 
 	// default values for Shield claim proposal's parameters
