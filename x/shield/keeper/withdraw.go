@@ -44,6 +44,22 @@ func (k Keeper) WithdrawQueueIterator(ctx sdk.Context, endTime time.Time) sdk.It
 		sdk.InclusiveEndBytes(types.GetWithdrawCompletionTimeKey(endTime)))
 }
 
+func (k Keeper) GetAllWithdrawsRevised(ctx sdk.Context) (withdraws types.Withdraws) {
+	//store := ctx.KVStore(k.storeKey)
+	// gets an iterator for all timeslices from time 0 until the current Blockheader time
+	endTime := ctx.BlockHeader().Time.Add(time.Duration(time.Hour*720))
+	withdrawTimesliceIterator := k.WithdrawQueueIterator(ctx, endTime)
+	defer withdrawTimesliceIterator.Close()
+
+	for ; withdrawTimesliceIterator.Valid(); withdrawTimesliceIterator.Next() {
+		timeslice := types.Withdraws{}
+		value := withdrawTimesliceIterator.Value()
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
+		withdraws = append(withdraws, timeslice...)
+	}
+	return
+}
+
 // IterateWithdraws iterates through all ongoing withdraws.
 func (k Keeper) IterateWithdraws(ctx sdk.Context, callback func(withdraw types.Withdraws) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
