@@ -28,14 +28,15 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 
 	// create and add addresses
 	delAddr := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(2e8))[0]
+
 	delAddr2 := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(2e8))[0]
 
 	accAddr := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(2e8))[0]
 	valAddr := sdk.ValAddress(accAddr)
+	pubKey := tests.MakeTestPubKey()
+	
 	accAddr2 := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(2e8))[0]
 	valAddr2 := sdk.ValAddress(accAddr2)
-
-	pubKey := tests.MakeTestPubKey()
 	pubKey2 := tests.MakeTestPubKey()
 
 	// get testing helpers - no need?
@@ -91,17 +92,14 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 
 	withdraws := app.ShieldKeeper.GetAllWithdraws(ctx)
-	fmt.Printf("\n jhgjk %v \n", withdraws)
+	numWithdraws := len(withdraws)
+
 	require.True(t, withdraws[0].Amount.Equal(sdk.NewInt(5)))
 	require.True(t, withdraws[0].Address.Equals(delAddr))
-
 	require.True(t, withdraws[1].Amount.Equal(sdk.NewInt(20)))
 	require.True(t, withdraws[1].Address.Equals(delAddr))
-
 	require.True(t, withdraws[2].Amount.Equal(sdk.NewInt(25)))
 	require.True(t, withdraws[2].Address.Equals(delAddr2))
-
-	numWithdraws := len(withdraws)
 
 	// Undelegate 5 and trigger another withdrawal of 5.
 	tstaking.Undelegate(delAddr, valAddr, sdk.NewInt(5), true)
@@ -150,10 +148,10 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 
 	accAddr := simapp.AddTestAddrs(app, ctx, 1, sdk.TokensFromConsensusPower(200))[0]
 	valAddr := sdk.ValAddress(accAddr)
+	pubKey := tests.MakeTestPubKey()
+
 	accAddr2 := simapp.AddTestAddrs(app, ctx, 1, sdk.TokensFromConsensusPower(200))[0]
 	valAddr2 := sdk.ValAddress(accAddr2)
-
-	pubKey := tests.MakeTestPubKey()
 	pubKey2 := tests.MakeTestPubKey()
 
 	// get testing helpers
