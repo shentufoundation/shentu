@@ -82,7 +82,7 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	if !found {
 		panic("validator is not found")
 	}
-	deltaAmount := validator.TokensFromShares(delegation.Shares).TruncateInt()
+	deltaAmount := validator.TokensFromShares(delegation.Shares).TruncateInt().Neg()
 
 	k.updateProviderForDelegationChanges(ctx, delAddr, provider.DelegationBonded.Sub(deltaAmount))
 }
