@@ -188,7 +188,7 @@ func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollatera
 		}
 	}
 	amount := msg.Collateral.AmountOf(bondDenom)
-	if err := k.WithdrawCollateral(ctx, msg.From, amount); err != nil {
+	if err := k.WithdrawCollateral(ctx, msg.From, amount, nil); err != nil {
 		return nil, err
 	}
 

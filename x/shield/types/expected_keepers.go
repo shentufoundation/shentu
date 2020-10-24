@@ -49,6 +49,7 @@ type StakingKeeper interface {
 	GetRedelegations(ctx sdk.Context, delegator sdk.AccAddress, maxRetrieve uint16) (redelegations []staking.Redelegation)
 
 	BondDenom(sdk.Context) string
+	UnbondingTime(sdk.Context) time.Duration
 }
 
 // BankKeeper defines the expected bank keeper.

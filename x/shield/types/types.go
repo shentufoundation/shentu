@@ -56,8 +56,8 @@ type Provider struct {
 	// pools.
 	Collateral sdk.Int `json:"collateral" yaml:"collateral"`
 
-	// TotalLocked is the amount locked for pending claims.
-	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
+	// Locked is the amount locked for pending claims.
+	Locked sdk.Int `json:"total_locked" yaml:"total_locked"`
 
 	// Withdrawing is the amount of collateral in withdraw queues.
 	Withdrawing sdk.Int `json:"withdrawing" yaml:"withdrawing"`
@@ -72,7 +72,7 @@ func NewProvider(addr sdk.AccAddress) Provider {
 		Address:          addr,
 		DelegationBonded: sdk.ZeroInt(),
 		Collateral:       sdk.ZeroInt(),
-		TotalLocked:      sdk.ZeroInt(),
+		Locked:           sdk.ZeroInt(),
 		Withdrawing:      sdk.ZeroInt(),
 	}
 }
@@ -150,16 +150,35 @@ type Withdraw struct {
 
 	// CompletionTime is the scheduled withdraw completion time.
 	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"`
+
+	// LinkedUnbonding stores information about the unbonding that
+	// triggered the withdraw, which may or may not exist.
+	LinkedUnbonding *UnbondingInfo `json:"linked_unbonding" yaml:"linked_unbonding"`
 }
 
 // NewWithdraw creates a new withdraw object.
-func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) Withdraw {
+func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time, ubdInfo *UnbondingInfo) Withdraw {
 	return Withdraw{
-		Address:        addr,
-		Amount:         amount,
-		CompletionTime: completionTime,
+		Address:         addr,
+		Amount:          amount,
+		CompletionTime:  completionTime,
+		LinkedUnbonding: ubdInfo,
 	}
 }
 
 // Withdraws contains multiple withdraws.
 type Withdraws []Withdraw
+
+type UnbondingInfo struct {
+	ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"`
+	CompletionTime   time.Time      `json:"completion_time" yaml:"completion_time"`
+	Confirmed        bool           `json:"confirmed" yaml:"confirmed"`
+}
+
+func NewUnbondingInfo(valAddr sdk.ValAddress, completionTime time.Time, confirmed bool) UnbondingInfo {
+	return UnbondingInfo{
+		ValidatorAddress: valAddr,
+		CompletionTime:   completionTime,
+		Confirmed:        confirmed,
+	}
+}
