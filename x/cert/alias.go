@@ -7,13 +7,14 @@ import (
 )
 
 const (
-	RouterKey                  = types.RouterKey
-	StoreKey                   = types.StoreKey
-	ModuleName                 = types.ModuleName
-	Add                        = types.Add
-	Remove                     = types.Remove
-	CertificateTypeCompilation = types.CertificateTypeCompilation
-	MaxTimestamp               = keeper.MaxTimestamp
+	RouterKey                   = types.RouterKey
+	StoreKey                    = types.StoreKey
+	ModuleName                  = types.ModuleName
+	Add                         = types.Add
+	Remove                      = types.Remove
+	CertificateTypeCompilation  = types.CertificateTypeCompilation
+	MaxTimestamp                = keeper.MaxTimestamp
+	ProposalTypeCertifierUpdate = types.ProposalTypeCertifierUpdate
 )
 
 var (

@@ -15,10 +15,11 @@ type MsgCreatePool struct {
 	Sponsor     string         `json:"sponsor" yaml:"sponsor"`
 	SponsorAddr sdk.AccAddress `json:"sponsor_addr" yaml:"sponsor_addr"`
 	Description string         `json:"description" yaml:"description"`
+	ShieldLimit sdk.Int        `json:"shield_limit" yaml:"shield_limit"`
 }
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
-func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, description string) MsgCreatePool {
+func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) MsgCreatePool {
 	return MsgCreatePool{
 		From:        accAddr,
 		Shield:      shield,
@@ -26,6 +27,7 @@ func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoi
 		Sponsor:     sponsor,
 		SponsorAddr: sponsorAddr,
 		Description: description,
+		ShieldLimit: shieldLimit,
 	}
 }
 
@@ -67,16 +69,18 @@ type MsgUpdatePool struct {
 	ServiceFees MixedCoins     `json:"service_fees" yaml:"service_fees"`
 	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
 	Description string         `json:"description" yaml:"description"`
+	ShieldLimit sdk.Int        `json:"shield_limit" yaml:"shield_limit"`
 }
 
 // NewMsgUpdatePool creates a new MsgUpdatePool instance.
-func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, serviceFees MixedCoins, id uint64, description string) MsgUpdatePool {
+func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, serviceFees MixedCoins, id uint64, description string, shieldLimit sdk.Int) MsgUpdatePool {
 	return MsgUpdatePool{
 		From:        accAddr,
 		Shield:      shield,
 		ServiceFees: serviceFees,
 		PoolID:      id,
 		Description: description,
+		ShieldLimit: shieldLimit,
 	}
 }
 
@@ -104,9 +108,6 @@ func (msg MsgUpdatePool) ValidateBasic() error {
 	}
 	if msg.PoolID == 0 {
 		return ErrInvalidPoolID
-	}
-	if !(msg.ServiceFees.Native.IsValid() && msg.ServiceFees.Foreign.IsValid()) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid deposit")
 	}
 	if !msg.Shield.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid shield")
@@ -201,11 +202,11 @@ func (msg MsgResumePool) ValidateBasic() error {
 // MsgDepositCollateral defines the attributes of a depositing collaterals.
 type MsgDepositCollateral struct {
 	From       sdk.AccAddress `json:"sender" yaml:"sender"`
-	Collateral sdk.Coin       `json:"collateral" yaml:"collateral"`
+	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
 }
 
 // NewMsgDepositCollateral creates a new MsgDepositCollateral instance.
-func NewMsgDepositCollateral(sender sdk.AccAddress, collateral sdk.Coin) MsgDepositCollateral {
+func NewMsgDepositCollateral(sender sdk.AccAddress, collateral sdk.Coins) MsgDepositCollateral {
 	return MsgDepositCollateral{
 		From:       sender,
 		Collateral: collateral,
@@ -243,11 +244,11 @@ func (msg MsgDepositCollateral) ValidateBasic() error {
 // NewMsgWithdrawCollateral defines the attributes of a withdrawing collaterals.
 type MsgWithdrawCollateral struct {
 	From       sdk.AccAddress `json:"sender" yaml:"sender"`
-	Collateral sdk.Coin       `json:"collateral" yaml:"collateral"`
+	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
 }
 
 // NewMsgDepositCollateral creates a new MsgDepositCollateral instance.
-func NewMsgWithdrawCollateral(sender sdk.AccAddress, collateral sdk.Coin) MsgWithdrawCollateral {
+func NewMsgWithdrawCollateral(sender sdk.AccAddress, collateral sdk.Coins) MsgWithdrawCollateral {
 	return MsgWithdrawCollateral{
 		From:       sender,
 		Collateral: collateral,

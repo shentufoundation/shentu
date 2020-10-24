@@ -6,21 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// TotalCollateral is the amount of total collaterals in the shield module.
-type TotalCollateral sdk.Int
-
-// TotalWithdrawing is the amount of collaterals in the withdrawing queue.
-type TotalWithdrawing sdk.Int
-
-// TotalShield is the amount of all active purchased shields.
-type TotalShield sdk.Int
-
-// TotalLocked is the amount of collaterals locked for pending claims.
-type TotalLocked sdk.Int
-
-// ServiceFees are undistributed services fees from sponsors and purchasers.
-type ServiceFees MixedDecCoins
-
 // Pool contains a shield project pool's data.
 type Pool struct {
 	// ID is the id of the pool.
@@ -35,6 +20,9 @@ type Pool struct {
 	// SponsorAddress is the CertiK Chain address of the sponsor.
 	SponsorAddress sdk.AccAddress `json:"sponsor_address" yaml:"sponsor_address"`
 
+	// ShieldLimit is the maximum shield can be purchased for the pool.
+	ShieldLimit sdk.Int `json:"shield_limit" yaml:"shield_limit"`
+
 	// Active means new purchases are allowed.
 	Active bool `json:"active" yaml:"active"`
 
@@ -43,12 +31,13 @@ type Pool struct {
 }
 
 // NewPool creates a new project pool.
-func NewPool(id uint64, description, sponsor string, sponsorAddress sdk.AccAddress, shield sdk.Int) Pool {
+func NewPool(id uint64, description, sponsor string, sponsorAddress sdk.AccAddress, shieldLimit sdk.Int, shield sdk.Int) Pool {
 	return Pool{
 		ID:             id,
 		Description:    description,
 		Sponsor:        sponsor,
 		SponsorAddress: sponsorAddress,
+		ShieldLimit:    shieldLimit,
 		Active:         true,
 		Shield:         shield,
 	}
@@ -96,20 +85,28 @@ type Purchase struct {
 	// ProtectionEndTime is the time when the protection of the shield ends.
 	ProtectionEndTime time.Time `json:"protection_end_time" yaml:"protection_end_time"`
 
+	// DeletionTime is the time when the purchase should be deleted.
+	DeletionTime time.Time `json:"deletion_time" yaml:"deletion_time"`
+
 	// Description is the information about the protected asset.
 	Description string `json:"description" yaml:"description"`
 
 	// Shield is the unused amount of shield purchased.
 	Shield sdk.Int `json:"shield" yaml:"shield"`
+
+	// ServiceFees is the service fees paid by this purchase.
+	ServiceFees MixedDecCoins `json:"service_fees" yaml:"service_fees"`
 }
 
 // NewPurchase creates a new purchase object.
-func NewPurchase(purchaseID uint64, protectionEndTime time.Time, description string, shield sdk.Int) Purchase {
+func NewPurchase(purchaseID uint64, protectionEndTime, deletionTime time.Time, description string, shield sdk.Int, serviceFees MixedDecCoins) Purchase {
 	return Purchase{
 		PurchaseID:        purchaseID,
 		ProtectionEndTime: protectionEndTime,
+		DeletionTime:      deletionTime,
 		Description:       description,
 		Shield:            shield,
+		ServiceFees:       serviceFees,
 	}
 }
 

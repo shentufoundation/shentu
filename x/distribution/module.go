@@ -44,9 +44,7 @@ func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
 // DefaultGenesis returns default genesis state as raw bytes for the distribution module.
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
 	defaultGenesisState := distribution.DefaultGenesisState()
-	defaultGenesisState.Params.CommunityTax = sdk.NewDecWithPrec(0, 2)        // 0%
-	defaultGenesisState.Params.BaseProposerReward = sdk.NewDecWithPrec(5, 2)  // 5%
-	defaultGenesisState.Params.BonusProposerReward = sdk.NewDecWithPrec(0, 2) // 0%
+	defaultGenesisState.Params.CommunityTax = sdk.NewDecWithPrec(0, 2) // 0%
 
 	return distribution.ModuleCdc.MustMarshalJSON(defaultGenesisState)
 }

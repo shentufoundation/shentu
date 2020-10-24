@@ -67,16 +67,15 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 	if lossAmt.GT(purchase.Shield) {
 		return types.ErrNotEnoughShield
 	}
-	purchaseDeleteTime := purchase.ProtectionEndTime.Add(k.GetPurchaseDeletionPeriod(ctx))
-	k.DequeuePurchase(ctx, purchaseList, purchaseDeleteTime)
+	k.DequeuePurchase(ctx, purchaseList, purchase.DeletionTime)
 	purchase.Shield = purchase.Shield.Sub(lossAmt)
 	votingEndTime := ctx.BlockTime().Add(lockPeriod)
-	if purchaseDeleteTime.Before(votingEndTime) {
+	if purchase.DeletionTime.Before(votingEndTime) {
 		// TODO: correctly update delete time & protection end time
-		purchaseDeleteTime = votingEndTime // temp
+		purchase.DeletionTime = votingEndTime // temp
 	}
 	k.SetPurchaseList(ctx, purchaseList)
-	k.InsertPurchaseQueue(ctx, purchaseList, purchaseDeleteTime)
+	k.InsertExpiringPurchaseQueue(ctx, purchaseList, purchase.DeletionTime)
 
 	// Update pool and global pool states
 	pool.Shield = pool.Shield.Sub(lossAmt)

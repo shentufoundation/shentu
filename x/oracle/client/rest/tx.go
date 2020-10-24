@@ -73,7 +73,7 @@ func createTaskHandler(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 		validDuration := time.Duration(hours) * time.Hour
 
-		msg := types.NewMsgCreateTask(req.Contract, req.Function, bounty, req.Description, creator, wait, time.Now(), validDuration)
+		msg := types.NewMsgCreateTask(req.Contract, req.Function, bounty, req.Description, creator, wait, validDuration)
 		if err = msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
