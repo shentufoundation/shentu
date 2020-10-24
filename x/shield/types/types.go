@@ -151,26 +151,34 @@ type Withdraw struct {
 	// CompletionTime is the scheduled withdraw completion time.
 	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"`
 
-	// Unbonding stores information about the corresponding
-	// unbonding, which may or may not exist.
-	CorrespondingUnbonding []UnbondingInfo `json:"corresponding_unbonding" yaml:"corresponding_unbonding"`
-}
-
-type UnbondingInfo struct {
-	DelegatorAddress sdk.AccAddress `json:"delegator_address" yaml:"delegator_address"`
-	ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"`
-	CreationHeight   int64          `json:"creation_height" yaml:"creation_height"`
-	Confirmed        bool           `json:"confirmed" yaml:"confirmed"`
+	// LinkedUnbonding stores information about the unbonding that
+	// triggered the withdraw, which may or may not exist.
+	LinkedUnbonding *UnbondingInfo `json:"linked_unbonding" yaml:"linked_unbonding"`
 }
 
 // NewWithdraw creates a new withdraw object.
-func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) Withdraw {
+func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time, ubdInfo *UnbondingInfo) Withdraw {
 	return Withdraw{
-		Address:        addr,
-		Amount:         amount,
-		CompletionTime: completionTime,
+		Address:         addr,
+		Amount:          amount,
+		CompletionTime:  completionTime,
+		LinkedUnbonding: ubdInfo,
 	}
 }
 
 // Withdraws contains multiple withdraws.
 type Withdraws []Withdraw
+
+type UnbondingInfo struct {
+	ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"`
+	CompletionTime   time.Time      `json:"completion_time" yaml:"completion_time"`
+	Confirmed        bool           `json:"confirmed" yaml:"confirmed"`
+}
+
+func NewUnbondingInfo(valAddr sdk.ValAddress, completionTime time.Time, confirmed bool) UnbondingInfo {
+	return UnbondingInfo{
+		ValidatorAddress: valAddr,
+		CompletionTime:   completionTime,
+		Confirmed:        confirmed,
+	}
+}

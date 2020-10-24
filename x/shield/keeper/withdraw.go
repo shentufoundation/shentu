@@ -203,14 +203,14 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, timestamp time.Time, provider sd
 
 	for i := 0; i < timeSliceLength; i++ {
 		if timeSlice[i].DelegatorAddress.Equals(provider) {
-			// Retrieve unbonding delegation given the delegator-validator 
+			// Retrieve unbonding delegation given the delegator-validator
 			// pair of possibly corresponding unbonding.
 			unbonding, found := k.sk.GetUnbondingDelegation(ctx, provider, timeSlice[i].ValidatorAddress)
 			if !found {
 				panic("unbonding delegation was not found")
 			}
 
-			// Search for unbonding entry 
+			// Search for unbonding entry
 			found = false
 			for i := 0; i < len(unbonding.Entries); i++ {
 				// TODO: Correctly identify corresponding unbonding

@@ -64,7 +64,10 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress, 
 		totalStakedAmount = totalStakedAmount.Add(val.TokensFromShares(del.GetShares()).TruncateInt())
 	}
 
-	k.updateProviderForDelegationChanges(ctx, delAddr, totalStakedAmount)
+	ubdCompletionTime := ctx.BlockHeader().Time.Add(k.sk.UnbondingTime(ctx))
+	ubdInfo := types.NewUnbondingInfo(valAddr, ubdCompletionTime, false)
+	 
+	k.updateProviderForDelegationChanges(ctx, delAddr, totalStakedAmount, &ubdInfo)
 }
 
 // RemoveDelegation updates the provider when its delegation is removed.
@@ -84,11 +87,14 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	}
 	deltaAmount := validator.TokensFromShares(delegation.Shares).TruncateInt()
 
-	k.updateProviderForDelegationChanges(ctx, delAddr, provider.DelegationBonded.Sub(deltaAmount))
+	ubdCompletionTime := ctx.BlockHeader().Time.Add(k.sk.UnbondingTime(ctx))
+	ubdInfo := types.NewUnbondingInfo(valAddr, ubdCompletionTime, false)
+
+	k.updateProviderForDelegationChanges(ctx, delAddr, provider.DelegationBonded.Sub(deltaAmount), &ubdInfo)
 }
 
 // updateProviderForDelegationChanges updates provider based on delegation changes.
-func (k Keeper) updateProviderForDelegationChanges(ctx sdk.Context, delAddr sdk.AccAddress, stakedAmt sdk.Int) {
+func (k Keeper) updateProviderForDelegationChanges(ctx sdk.Context, delAddr sdk.AccAddress, stakedAmt sdk.Int, ubdInfo *types.UnbondingInfo) {
 	provider, found := k.GetProvider(ctx, delAddr)
 	if !found {
 		return
@@ -101,7 +107,7 @@ func (k Keeper) updateProviderForDelegationChanges(ctx sdk.Context, delAddr sdk.
 	// Withdraw collaterals when the delegations are not enough to back collaterals.
 	withdrawAmount := provider.Collateral.Sub(provider.Withdrawing).Sub(stakedAmt)
 	if withdrawAmount.IsPositive() {
-		if err := k.WithdrawCollateral(ctx, delAddr, withdrawAmount); err != nil {
+		if err := k.WithdrawCollateral(ctx, delAddr, withdrawAmount, ubdInfo); err != nil {
 			panic("failed to withdraw collateral from the shield global pool")
 		}
 	}
