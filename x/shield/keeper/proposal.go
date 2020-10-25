@@ -10,6 +10,9 @@ import (
 
 // ClaimLock locks collaterals after a claim proposal is submitted.
 func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, lockPeriod time.Duration) error {
+	// TODO: proposalID not being used
+	//
+	
 	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
 
 	// Verify shield.
@@ -93,8 +96,8 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 }
 
 // LockProvider locks the specified amount of collaterals from a provider.
-// If necessary, it extends withdrawing collaterals and, if exist, their
-// corresponding unbondings.
+// If necessary, it extends withdrawing collaterals and, if their exist, their
+// linked unbondings as well.
 func (k Keeper) LockProvider(ctx sdk.Context, provider types.Provider, amount sdk.Int, lockPeriod time.Duration) {
 	provider.Locked = provider.Locked.Add(amount)
 	provider.Collateral = provider.Collateral.Sub(amount)

@@ -153,11 +153,11 @@ type Withdraw struct {
 
 	// LinkedUnbonding stores information about the unbonding that
 	// triggered the withdraw, which may or may not exist.
-	LinkedUnbonding *UnbondingInfo `json:"linked_unbonding" yaml:"linked_unbonding"`
+	LinkedUnbonding UnbondingInfo `json:"linked_unbonding" yaml:"linked_unbonding"`
 }
 
 // NewWithdraw creates a new withdraw object.
-func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time, ubdInfo *UnbondingInfo) Withdraw {
+func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time, ubdInfo UnbondingInfo) Withdraw {
 	return Withdraw{
 		Address:         addr,
 		Amount:          amount,
