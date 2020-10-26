@@ -66,7 +66,7 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress, 
 
 	ubdCompletionTime := ctx.BlockHeader().Time.Add(k.sk.UnbondingTime(ctx))
 	ubdInfo := types.NewUnbondingInfo(valAddr, ubdCompletionTime)
-	 
+
 	k.updateProviderForDelegationChanges(ctx, delAddr, totalStakedAmount, &ubdInfo)
 }
 

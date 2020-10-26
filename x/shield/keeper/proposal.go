@@ -26,16 +26,16 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 	totalCollateral := k.GetTotalCollateral(ctx)
 	//totalWithdrawing := k.GetTotalWithdrawing(ctx) //TODO: No need for this variable?
 	totalLocked := k.GetTotalLocked(ctx)
-	newLockAmt := totalLocked.Add(lossAmt)
+
 	// Ensure that total collateral (withdrawing and non-withdrawing)
 	// can cover the new total lock amount.
-	if newLockAmt.GT(totalCollateral) {
+	if totalLocked.Add(lossAmt).GT(totalCollateral) {
 		return types.ErrNotEnoughCollateral
 	}
 
 	// Lock proportional amount from each provider.
 	providers := k.GetAllProviders(ctx)
-	proportion := newLockAmt.ToDec().Quo(totalCollateral.ToDec())
+	proportion := lossAmt.ToDec().Quo(totalCollateral.ToDec())
 	remaining := lossAmt
 	for i := range providers {
 		var lockAmt sdk.Int
@@ -81,7 +81,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 	pool.Shield = pool.Shield.Sub(lossAmt)
 	k.SetPool(ctx, pool)
 
-	totalLocked = newLockAmt // totalLocked.Add(lossAmt)
+	totalLocked = totalLocked.Add(lossAmt)
 	totalCollateral = totalCollateral.Sub(lossAmt)
 	totalShield := k.GetTotalShield(ctx)
 	totalShield = totalShield.Sub(lossAmt)
@@ -96,11 +96,12 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 // If necessary, it extends withdrawing collaterals and, if exist, their
 // linked unbondings as well.
 func (k Keeper) LockProvider(ctx sdk.Context, provider types.Provider, newLock types.LockedCollateral, lockPeriod time.Duration) {
+	originalCollateral := provider.Collateral
 	provider.Locked = provider.Locked.Add(newLock.Amount)
 	provider.Collateral = provider.Collateral.Sub(newLock.Amount)
 	provider.LockedCollaterals = append(provider.LockedCollaterals, newLock)
 
-	// If there are enough bonded delegations backing 
+	// If there are enough bonded delegations backing
 	// locked collaterals, we are done.
 	if provider.DelegationBonded.GTE(provider.Locked) {
 		k.SetProvider(ctx, provider.Address, provider)
@@ -115,10 +116,10 @@ func (k Keeper) LockProvider(ctx sdk.Context, provider types.Provider, newLock t
 		// collaterals 4 days from now.
 		endTime := ctx.BlockTime().Add(lockPeriod)
 		impendingWithdrawAmount := k.ComputeWithdrawAmountByTime(ctx, endTime)
-		applicableCollateralAmt := provider.Collateral.Sub(impendingWithdrawAmount)
-		if provider.Locked.GT(applicableCollateralAmt) {
+		availableCollateral := originalCollateral.Sub(impendingWithdrawAmount)
+		if provider.Locked.GT(availableCollateral) {
 			// Delay some withdrawals among the ones expiring within 4 days.
-			amountToDelay := provider.Locked.Sub(applicableCollateralAmt)
+			amountToDelay := provider.Locked.Sub(availableCollateral)
 			k.DelayWithdraws(ctx, lockPeriod, amountToDelay, provider.Address)
 		}
 	}

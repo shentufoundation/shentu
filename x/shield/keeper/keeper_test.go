@@ -22,10 +22,6 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
 
-	//p := app.StakingKeeper.GetParams(ctx)
-	//p.MaxValidators = 5
-	//app.StakingKeeper.SetParams(ctx, p)
-
 	// create and add addresses
 	delAddr := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(2e8))[0]
 
@@ -34,12 +30,12 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 	accAddr := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(2e8))[0]
 	valAddr := sdk.ValAddress(accAddr)
 	pubKey := tests.MakeTestPubKey()
-	
+
 	accAddr2 := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(2e8))[0]
 	valAddr2 := sdk.ValAddress(accAddr2)
 	pubKey2 := tests.MakeTestPubKey()
 
-	// get testing helpers - no need?
+	// get testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
 
 	// Set up validators
@@ -54,7 +50,6 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 	tstaking.CheckValidator(valAddr2, sdk.Bonded, false)
 
 	// Attempt depositing collateral
-	// TODO: Create shield test helper
 	err := app.ShieldKeeper.DepositCollateral(ctx, delAddr, sdk.NewInt(75))
 	require.Error(t, err)
 
@@ -81,9 +76,8 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 
 	err = app.ShieldKeeper.DepositCollateral(ctx, delAddr2, sdk.NewInt(75))
 	require.Nil(t, err)
-	
+
 	// Undelegate total 50 to trigger total withdrawal of 25
-	//tstaking.Undelegate(sdk.AccAddress(valAddr), valAddr, sdk.TokensFromConsensusPower(1), true)
 	tstaking.Undelegate(delAddr, valAddr, sdk.NewInt(30), true)
 	tstaking.Undelegate(delAddr2, valAddr2, sdk.NewInt(10), true)
 	tstaking.Undelegate(delAddr, valAddr2, sdk.NewInt(20), true)
@@ -178,7 +172,7 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 	// Deposit collateral of amount 75
 	err = app.ShieldKeeper.DepositCollateral(ctx, delAddr, sdk.NewInt(75))
 	require.Nil(t, err)
-	
+
 	// Redelegate 50 to trigger withdrawal of 25
 	// Remaining staking: 100, remaining deposit: 50
 	tstaking.Redelegate(delAddr, valAddr, valAddr2, 50, true)
@@ -191,7 +185,7 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 
 	// Redelegation hopping must fail
 	tstaking.Redelegate(delAddr, valAddr2, valAddr, 10, false)
-	
+
 	// Redelegate 30 but do not trigger withdrawal
 	// Remaining staking: 100, remaining deposit: 50
 	tstaking.Redelegate(delAddr, valAddr, valAddr2, 30, true)
@@ -240,17 +234,14 @@ func TestDelayWithdrawAndUBD(t *testing.T) {
 	tstaking.CheckValidator(valAddr, sdk.Bonded, false)
 
 	// Shield admin and depositor delegate
-	// certikcli tx staking delegate certikvaloper1dpual36d6jgjj84wxvn0tdder5439w04qaam7a 200000000000uctk --from shield0 --fees 5000uctk -y -b block
 	tstaking.Delegate(shieldAddr, valAddr, 200000000000)
 	tstaking.Delegate(delAddr, valAddr, 125000000000)
 
 	// Shield admin deposits collateral. 200,000 CTK
-	// certikcli tx shield deposit-collateral 200000000000uctk --from shield0 --fees 5000uctk -y -b block
 	err := shieldKeeper.DepositCollateral(ctx, shieldAddr, sdk.NewInt(200000000000))
 	require.Nil(t, err)
 
 	// ShieldAdmin creates CTK Pool with Shield = 100,000 CTK, limit = 500,000 CTK, serviceFees = 200 CTK
-	// certikcli tx shield create-pool 100000000000uctk CertiK certik1r039vfm9w7j934l38c6chqr60yal32anaud7hd --native-deposit 200000000uctk --shield-limit 500000000000 --from shield0 --fees 5000uctk -y -b block
 	shield := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, 100000000000))
 	deposit := types.MixedCoins{Native: sdk.NewCoins(sdk.NewInt64Coin(bondDenom, 200000000))}
 	shieldLimit := sdk.NewInt(500000000000)
@@ -263,13 +254,11 @@ func TestDelayWithdrawAndUBD(t *testing.T) {
 	err = shieldKeeper.DepositCollateral(ctx, delAddr, sdk.NewInt(125000000000))
 	require.Nil(t, err)
 
-	// Purhcase shield
+	// Purchase shield
 	var shieldAmt int64 = 50000000000
 	purchaseShield := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, shieldAmt))
 	purchase, err := shieldKeeper.PurchaseShield(ctx, poolID, purchaseShield, "fake_purchase_description", purchaser)
 	require.Nil(t, err)
-	
-	//fmt.Printf("\n\nPURCHASE: %+v\n\n", purchase)
 
 	// Delegator undelegates all and triggers complete withdrawal
 	tstaking.Undelegate(delAddr, valAddr, sdk.NewInt(125000000000), true)
@@ -285,18 +274,13 @@ func TestDelayWithdrawAndUBD(t *testing.T) {
 	timeSlice := stakingKeeper.GetUBDQueueTimeSlice(ctx, originalUBDTime)
 	require.True(t, len(timeSlice) == 1)
 
-	//fmt.Printf("\nTOTAL COLLATERAL: %v", shieldKeeper.GetTotalCollateral(ctx))
-	//fmt.Printf("\nTOTAL SHIELD: %v", shieldKeeper.GetTotalShield(ctx))
-
 	// 20 days later...
-	//var height int64 = 5000
-	//ctx = ctx.WithBlockHeight(height)
-	curTime = curTime.Add(time.Hour*24*20)
+	curTime = curTime.Add(time.Hour * 24 * 20)
 	ctx = ctx.WithBlockTime(curTime)
 
-	// Claim lock 
+	// Claim lock
 	lockPeriod := govKeeper.GetVotingParams(ctx).VotingPeriod * 2
-	lossAmt := shieldAmt/2
+	lossAmt := shieldAmt / 2
 	loss := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, lossAmt))
 	err = shieldKeeper.ClaimLock(ctx, 0, poolID, purchaser, purchase.PurchaseID, loss, lockPeriod)
 	require.Nil(t, err)
@@ -309,9 +293,10 @@ func TestDelayWithdrawAndUBD(t *testing.T) {
 	require.True(t, w.LinkedUnbonding.CompletionTime.Equal(delayedTime))
 
 	unbonding, found := stakingKeeper.GetUnbondingDelegation(ctx, w.Address, w.LinkedUnbonding.ValidatorAddress)
+	require.True(t, found)
 	require.True(t, unbonding.Entries[0].CompletionTime.Equal(originalUBDTime)) // old entry
-	require.True(t, unbonding.Entries[1].CompletionTime.Equal(delayedTime)) // new entry
-	
+	require.True(t, unbonding.Entries[1].CompletionTime.Equal(delayedTime))     // new entry
+
 	// check original and new time slices
 	timeSlice = stakingKeeper.GetUBDQueueTimeSlice(ctx, originalUBDTime)
 	require.True(t, len(timeSlice) == 1)
@@ -320,4 +305,8 @@ func TestDelayWithdrawAndUBD(t *testing.T) {
 	require.True(t, len(timeSlice) == 1)
 	require.True(t, timeSlice[0].DelegatorAddress.Equals(w.Address))
 	require.True(t, timeSlice[0].ValidatorAddress.Equals(w.LinkedUnbonding.ValidatorAddress))
+
+	p, found := shieldKeeper.GetProvider(ctx, delAddr)
+	require.True(t, found)
+	require.True(t, p.Locked.Equal(unbonding.Entries[1].Balance))
 }

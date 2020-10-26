@@ -4,9 +4,9 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
-	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 // InsertWithdrawQueue prepares a withdraw queue timeslice
@@ -159,7 +159,7 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, delay time.Duration, amount sdk.
 		if !remaining.IsPositive() {
 			break
 		}
-		
+
 		// Obtain the time slice and the index.
 		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraw.CompletionTime)
 		index := 0
@@ -169,7 +169,7 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, delay time.Duration, amount sdk.
 			}
 		}
 
-		// 
+		//
 		delayedAmt := withdraw.Amount
 		if withdraw.Amount.GT(remaining) {
 			timeSlice[index].Amount = withdraw.Amount.Sub(remaining)
@@ -185,7 +185,7 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, delay time.Duration, amount sdk.
 
 		// Delay linked unbonding, if exists.
 		if !withdraw.LinkedUnbonding.CompletionTime.IsZero() {
-			k.DelayUnbonding(ctx, provider, withdraw.LinkedUnbonding, delayedAmt, delayedTime)	
+			k.DelayUnbonding(ctx, provider, withdraw.LinkedUnbonding, delayedAmt, delayedTime)
 		}
 
 		// Insert the delayed withdrawal to the queue.
@@ -238,11 +238,11 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, delAddr sdk.AccAddress, ubdInfo 
 						unbonding.Entries = append(unbonding.Entries[:j+1], unbonding.Entries[j:]...)
 						unbonding.Entries[j] = entry
 						break
-					}					
+					}
 				}
 			} else {
 				// Percolate up the existing entry.
-				for j := i+1; j < len(unbonding.Entries); j++ {
+				for j := i + 1; j < len(unbonding.Entries); j++ {
 					if unbonding.Entries[j].CompletionTime.Before(unbonding.Entries[j-1].CompletionTime) {
 						unbonding.Entries[j-1], unbonding.Entries[j] = unbonding.Entries[j], unbonding.Entries[j-1]
 					} else {
