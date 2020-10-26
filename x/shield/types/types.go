@@ -59,6 +59,9 @@ type Provider struct {
 	// Locked is the amount locked for pending claims.
 	Locked sdk.Int `json:"total_locked" yaml:"total_locked"`
 
+	// LockedCollaterals are collaterals locked for different proposals.
+	LockedCollaterals []LockedCollateral `json:"locked_collaterals" yaml:"locked_collaterals"`
+
 	// Withdrawing is the amount of collateral in withdraw queues.
 	Withdrawing sdk.Int `json:"withdrawing" yaml:"withdrawing"`
 
@@ -74,6 +77,20 @@ func NewProvider(addr sdk.AccAddress) Provider {
 		Collateral:       sdk.ZeroInt(),
 		Locked:           sdk.ZeroInt(),
 		Withdrawing:      sdk.ZeroInt(),
+	}
+}
+
+// LockedCollateral defines the data type of locked collateral for a claim proposal.
+type LockedCollateral struct {
+	ProposalID uint64  `json:"proposal_id" yaml:"proposal_id"`
+	Amount     sdk.Int `json:"locked_coins" yaml:"locked_coins"`
+}
+
+// NewLockedCollateral returns a new LockedCollateral instance.
+func NewLockedCollateral(proposalID uint64, lockedAmt sdk.Int) LockedCollateral {
+	return LockedCollateral{
+		ProposalID: proposalID,
+		Amount:     lockedAmt,
 	}
 }
 
@@ -153,11 +170,11 @@ type Withdraw struct {
 
 	// LinkedUnbonding stores information about the unbonding that
 	// triggered the withdraw, which may or may not exist.
-	LinkedUnbonding *UnbondingInfo `json:"linked_unbonding" yaml:"linked_unbonding"`
+	LinkedUnbonding UnbondingInfo `json:"linked_unbonding" yaml:"linked_unbonding"`
 }
 
 // NewWithdraw creates a new withdraw object.
-func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time, ubdInfo *UnbondingInfo) Withdraw {
+func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time, ubdInfo UnbondingInfo) Withdraw {
 	return Withdraw{
 		Address:         addr,
 		Amount:          amount,

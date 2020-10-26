@@ -48,7 +48,7 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 		} else {
 			lockAmt = remaining
 		}
-		k.LockProvider(ctx, providers[i], lockAmt, lockPeriod)
+		k.LockProvider(ctx, providers[i], types.NewLockedCollateral(proposalID, lockAmt), lockPeriod)
 	}
 
 	// Update shield amount and delete time of the purchase.
@@ -94,10 +94,11 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 
 // LockProvider locks the specified amount of collaterals from a provider.
 // If necessary, it extends withdrawing collaterals and, if exist, their
-// corresponding unbondings.
-func (k Keeper) LockProvider(ctx sdk.Context, provider types.Provider, amount sdk.Int, lockPeriod time.Duration) {
-	provider.Locked = provider.Locked.Add(amount)
-	provider.Collateral = provider.Collateral.Sub(amount)
+// linked unbondings as well.
+func (k Keeper) LockProvider(ctx sdk.Context, provider types.Provider, newLock types.LockedCollateral, lockPeriod time.Duration) {
+	provider.Locked = provider.Locked.Add(newLock.Amount)
+	provider.Collateral = provider.Collateral.Sub(newLock.Amount)
+	provider.LockedCollaterals = append(provider.LockedCollaterals, newLock)
 
 	// If there are enough delegations backing locked collaterals,
 	// we are done.
@@ -135,6 +136,23 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID, poolID uint64, loss sdk
 	totalLocked = totalLocked.Sub(lossAmt)
 	k.SetTotalCollateral(ctx, totalCollateral)
 	k.SetTotalLocked(ctx, totalLocked)
+
+	// update providers
+	providers := k.GetAllProviders(ctx)
+	for i := range providers {
+		for j := range providers[i].LockedCollaterals {
+			provider := providers[i]
+			lockedCollateral := providers[i].LockedCollaterals[j]
+
+			if lockedCollateral.ProposalID == proposalID {
+				provider.Locked = provider.Locked.Sub(lockedCollateral.Amount)
+				provider.Collateral = provider.Collateral.Add(lockedCollateral.Amount)
+				provider.LockedCollaterals = append(provider.LockedCollaterals[:j], provider.LockedCollaterals[j+1:]...)
+				k.SetProvider(ctx, provider.Address, provider)
+				break
+			}
+		}
+	} // for each provider
 
 	return nil
 }
