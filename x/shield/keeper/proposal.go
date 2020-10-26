@@ -10,6 +10,7 @@ import (
 
 // ClaimLock locks collaterals after a claim proposal is submitted.
 func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, lockPeriod time.Duration) error {
+	// Provider.Locked unnecessary?
 	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
 
 	// Verify shield.
@@ -35,7 +36,6 @@ func (k Keeper) ClaimLock(ctx sdk.Context, proposalID, poolID uint64, purchaser 
 	// Lock proportional amount from each provider.
 	providers := k.GetAllProviders(ctx)
 	proportion := newLockAmt.ToDec().Quo(totalCollateral.ToDec())
-	//lockPeriod := k.gk.GetVotingParams(ctx).VotingPeriod * 2
 	remaining := lossAmt
 	for i := range providers {
 		var lockAmt sdk.Int
@@ -100,8 +100,8 @@ func (k Keeper) LockProvider(ctx sdk.Context, provider types.Provider, newLock t
 	provider.Collateral = provider.Collateral.Sub(newLock.Amount)
 	provider.LockedCollaterals = append(provider.LockedCollaterals, newLock)
 
-	// If there are enough delegations backing locked collaterals,
-	// we are done.
+	// If there are enough bonded delegations backing 
+	// locked collaterals, we are done.
 	if provider.DelegationBonded.GTE(provider.Locked) {
 		k.SetProvider(ctx, provider.Address, provider)
 		return
@@ -113,7 +113,6 @@ func (k Keeper) LockProvider(ctx sdk.Context, provider types.Provider, newLock t
 		// Stricter check:
 		// Consider the amount of non-withdrawing and withdrawing
 		// collaterals 4 days from now.
-		//lockPeriod := k.gk.GetVotingParams(ctx).VotingPeriod * 2
 		endTime := ctx.BlockTime().Add(lockPeriod)
 		impendingWithdrawAmount := k.ComputeWithdrawAmountByTime(ctx, endTime)
 		applicableCollateralAmt := provider.Collateral.Sub(impendingWithdrawAmount)

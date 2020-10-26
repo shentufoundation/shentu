@@ -189,13 +189,11 @@ type Withdraws []Withdraw
 type UnbondingInfo struct {
 	ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"`
 	CompletionTime   time.Time      `json:"completion_time" yaml:"completion_time"`
-	Confirmed        bool           `json:"confirmed" yaml:"confirmed"`
 }
 
-func NewUnbondingInfo(valAddr sdk.ValAddress, completionTime time.Time, confirmed bool) UnbondingInfo {
+func NewUnbondingInfo(valAddr sdk.ValAddress, completionTime time.Time) UnbondingInfo {
 	return UnbondingInfo{
 		ValidatorAddress: valAddr,
 		CompletionTime:   completionTime,
-		Confirmed:        confirmed,
 	}
 }

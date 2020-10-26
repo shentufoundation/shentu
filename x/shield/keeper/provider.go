@@ -65,7 +65,7 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress, 
 	}
 
 	ubdCompletionTime := ctx.BlockHeader().Time.Add(k.sk.UnbondingTime(ctx))
-	ubdInfo := types.NewUnbondingInfo(valAddr, ubdCompletionTime, false)
+	ubdInfo := types.NewUnbondingInfo(valAddr, ubdCompletionTime)
 	 
 	k.updateProviderForDelegationChanges(ctx, delAddr, totalStakedAmount, &ubdInfo)
 }
@@ -88,7 +88,7 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	deltaAmount := validator.TokensFromShares(delegation.Shares).TruncateInt()
 
 	ubdCompletionTime := ctx.BlockHeader().Time.Add(k.sk.UnbondingTime(ctx))
-	ubdInfo := types.NewUnbondingInfo(valAddr, ubdCompletionTime, false)
+	ubdInfo := types.NewUnbondingInfo(valAddr, ubdCompletionTime)
 
 	k.updateProviderForDelegationChanges(ctx, delAddr, provider.DelegationBonded.Sub(deltaAmount), &ubdInfo)
 }
