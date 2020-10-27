@@ -37,7 +37,7 @@ var (
 	DefaultWeightMsgWithdrawCollateral = 20
 	DefaultWeightMsgWithdrawRewards    = 10
 	DefaultWeightMsgPurchaseShield     = 20
-	DefaultWeightShieldClaimProposal   = 0
+	DefaultWeightShieldClaimProposal   = 5
 
 	DefaultIntMax = 100000000000
 )
