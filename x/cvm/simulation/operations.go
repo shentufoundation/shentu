@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/rand"
+	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -30,19 +31,21 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployHello55(k)),
+		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeploySimple(k)),
 	}
 }
 
 // SimulateMsgCall creates a message operation of MsgCall with randomized field values.
-func SimulateMsgCall(k keeper.Keeper) simulation.Operation {
+func SimulateMsgCall(k keeper.Keeper, contractAddr sdk.AccAddress, value uint64, data string) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		caller, _ := simulation.RandomAcc(r, accs)
-		callee, _ := simulation.RandomAcc(r, accs)
-		value := uint64(0)
-		var data []byte
+		data, err := hex.DecodeString(data)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
 
-		msg := types.NewMsgCall(caller.Address, callee.Address, value, data)
+		msg := types.NewMsgCall(caller.Address, contractAddr, value, data)
 
 		account := k.AuthKeeper().GetAccount(ctx, caller.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
@@ -62,8 +65,12 @@ func SimulateMsgCall(k keeper.Keeper) simulation.Operation {
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
+			fmt.Printf("<<<<<<<<< call error: %s\n", err)
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
+
+		// call contract and check ret
+
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
@@ -101,13 +108,71 @@ func SimulateMsgDeployHello55(k keeper.Keeper) simulation.Operation {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		contractAddr, err := sdk.AccAddressFromBech32(string(res.Events.ToABCIEvents()[2].Attributes[0].Value))
+		// check pure/view function ret
+		data, err := hex.DecodeString(Hello55SayHiData)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+		ret, err := k.Call(ctx, caller.Address, res.Data, 0, data, nil, true, false, false)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+		value, err := strconv.ParseInt(hex.EncodeToString(ret), 16, 32)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		fmt.Printf("<<<<<<<<<<<<<< Contract addr: %s\n", contractAddr)
+		fmt.Printf("<<<<<<<<< hello55 ret: %d\n", value)
+		if value != 55 {
+			panic("return value incorrect")
+		}
 
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+	}
+}
+
+// SimulateMsgDeploySimple creates a massage operation of MsgDeploy with randomized field values.
+func SimulateMsgDeploySimple(k keeper.Keeper) simulation.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
+		simulation.OperationMsg, []simulation.FutureOperation, error) {
+		caller, _ := simulation.RandomAcc(r, accs)
+		code, err := hex.DecodeString(SimpleCode)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		msg := types.NewMsgDeploy(caller.Address, uint64(0), code, SimpleAbi, nil, false, false)
+
+		account := k.AuthKeeper().GetAccount(ctx, caller.Address)
+		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{account.GetAccountNumber()},
+			[]uint64{account.GetSequence()},
+			caller.PrivKey,
+		)
+
+		_, res, err := app.Deliver(tx)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		fmt.Printf("<<<<<<<<< simple addr: %s\n", sdk.AccAddress(res.Data))
+
+		futureOperations := []simulation.FutureOperation{
+			{
+				BlockHeight: int(ctx.BlockHeight()) + 1,
+				Op:          SimulateMsgCall(k, res.Data, 0, SimpleSetData),
+			},
+		}
+
+		return simulation.NewOperationMsg(msg, true, ""), futureOperations, nil
 	}
 }
