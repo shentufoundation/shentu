@@ -11,8 +11,8 @@ import (
 // RegisterInvariants registers all shield invariants.
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "module-account", ModuleAccountInvariant(k))
-	ir.RegisterRoute(types.ModuleName, "withdraw", ProviderInvariant(k))
-	ir.RegisterRoute(types.ModuleName, "withdraw", ShieldInvariant(k))
+	ir.RegisterRoute(types.ModuleName, "provider", ProviderInvariant(k))
+	ir.RegisterRoute(types.ModuleName, "shield", ShieldInvariant(k))
 }
 
 // ModuleAccountInvariant checks that the module account coins reflects the sum of
@@ -62,7 +62,8 @@ func ProviderInvariant(keeper Keeper) sdk.Invariant {
 	}
 }
 
-// ShieldInvariant checks that the providers' coin amounts equal to the tracked value.
+// ShieldInvariant checks that the sum of individual pools' shield is
+// equal to the total shield.
 func ShieldInvariant(keeper Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		pools := keeper.GetAllPools(ctx)
@@ -76,7 +77,7 @@ func ShieldInvariant(keeper Keeper) sdk.Invariant {
 
 		return sdk.FormatInvariant(types.ModuleName, "shield",
 			fmt.Sprintf("\n\ttotal shield amount: %s"+
-				"\n\tsum of providers' withdrawing amount:  %s\n",
+				"\n\tsum of individual pools' shield:  %s\n",
 				totalShield, shieldSum)), broken
 	}
 }

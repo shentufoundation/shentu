@@ -115,7 +115,7 @@ func (k Keeper) LockProvider(ctx sdk.Context, provider types.Provider, newLock t
 		// Consider the amount of non-withdrawing and withdrawing
 		// collaterals 4 days from now.
 		endTime := ctx.BlockTime().Add(lockPeriod)
-		impendingWithdrawAmount := k.ComputeWithdrawAmountByTime(ctx, endTime)
+		impendingWithdrawAmount := k.ComputeWithdrawAmountByTime(ctx, provider.Address, endTime)
 		availableCollateral := originalCollateral.Sub(impendingWithdrawAmount)
 		if provider.Locked.GT(availableCollateral) {
 			// Delay some withdrawals among the ones expiring within 4 days.
@@ -159,6 +159,11 @@ func (k Keeper) ClaimUnlock(ctx sdk.Context, proposalID, poolID uint64, loss sdk
 
 func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, id uint64, loss sdk.Coins) error {
 	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
+
+	// Update the total shield.
+	totalShield := k.GetTotalShield(ctx)
+	totalShield = totalShield.Add(lossAmt)
+	k.SetTotalShield(ctx, totalShield)
 
 	// Update shield of the pool.
 	pool, found := k.GetPool(ctx, poolID)

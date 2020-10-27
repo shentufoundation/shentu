@@ -45,12 +45,12 @@ func RandomPoolInfo(r *rand.Rand, k Keeper, ctx sdk.Context) (uint64, string, bo
 
 // RandomPurchaseList returns a random purchase given access to the keeper and ctx.
 func RandomPurchaseList(r *rand.Rand, k Keeper, ctx sdk.Context) (types.PurchaseList, bool) {
-	purchases := k.GetAllPurchaseLists(ctx)
-	if len(purchases) == 0 {
+	purchaseLists := k.GetAllPurchaseLists(ctx)
+	if len(purchaseLists) == 0 {
 		return types.PurchaseList{}, false
 	}
-	i := r.Intn(len(purchases))
-	return purchases[i], true
+	i := r.Intn(len(purchaseLists))
+	return purchaseLists[i], true
 }
 
 // RandomProvider returns a random provider of collaterals.
