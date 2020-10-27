@@ -203,7 +203,7 @@ func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollatera
 }
 
 func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Keeper) (*sdk.Result, error) {
-	_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
+	purchase, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
 	if err != nil {
 		return nil, err
 	}
@@ -211,10 +211,19 @@ func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Kee
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePurchaseShield,
+			sdk.NewAttribute(types.AttributeKeyPurchaseID, string(purchase.PurchaseID)),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
-			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
+			sdk.NewAttribute(types.AttributeKeyProtectionEndTime, purchase.ProtectionEndTime.String()),
+			sdk.NewAttribute(types.AttributeKeyPurchaseDescription, purchase.Description),
+			sdk.NewAttribute(types.AttributeKeyShield, purchase.Shield.String()),
+			sdk.NewAttribute(types.AttributeKeyServiceFees, purchase.ServiceFees.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
 	})
+
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
