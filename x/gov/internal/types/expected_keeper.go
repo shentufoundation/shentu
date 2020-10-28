@@ -27,6 +27,7 @@ type ShieldKeeper interface {
 	GetClaimProposalParams(ctx sdk.Context) shield.ClaimProposalParams
 	SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, lockPeriod time.Duration) error
 	RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, id uint64, loss sdk.Coins) error
+	ClaimEnd(ctx sdk.Context, id, poolID uint64, loss sdk.Coins)
 }
 
 type ParamSubspace interface {

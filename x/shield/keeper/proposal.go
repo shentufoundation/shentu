@@ -75,6 +75,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	totalShield := k.GetTotalShield(ctx)
 	totalShield = totalShield.Sub(lossAmt)
 	k.SetTotalShield(ctx, totalShield)
+	k.SetTotalClaimed(ctx, totalClaimed)
 
 	return nil
 }
@@ -106,6 +107,13 @@ func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amo
 		}
 	}
 	k.SetProvider(ctx, provider.Address, provider)
+}
+
+func (k Keeper) ClaimEnd(ctx sdk.Context, id, poolID uint64, loss sdk.Coins) {
+	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
+	totalClaimed := k.GetTotalClaimed(ctx)
+	totalClaimed = totalClaimed.Sub(lossAmt)
+	k.SetTotalClaimed(ctx, totalClaimed)
 }
 
 func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, id uint64, loss sdk.Coins) error {

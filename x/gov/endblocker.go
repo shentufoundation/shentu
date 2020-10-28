@@ -31,10 +31,18 @@ func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 	})
 }
 
+func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
+	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
+		c := proposal.Content.(shield.ClaimProposal)
+		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalID, c.PoolID, c.Loss)
+	}
+}
+
 func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
 		c := proposal.Content.(shield.ClaimProposal)
 		_ = k.ShieldKeeper.RestoreShield(ctx, c.PoolID, proposal.ProposerAddress, c.PurchaseID, c.Loss)
+		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalID, c.PoolID, c.Loss)
 	}
 }
 
@@ -61,6 +69,7 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal types.Prop
 
 	if veto {
 		k.DeleteDepositsByProposalID(ctx, proposal.ProposalID)
+		updateVeto(ctx, k, proposal)
 	} else {
 		k.RefundDepositsByProposalID(ctx, proposal.ProposalID)
 		if !pass {
