@@ -16,4 +16,11 @@ const (
 	SimpleeventSetPrefix = "60fe47b1"
 	SimpleeventSetSample = "60fe47b100000000000000000000000000000000000000000000000000000000000003e8" // hex for 1000
 	SimpleeventGet       = "6d4ce63c"
+
+	StorageCode        = "608060405234801561001057600080fd5b50610121806100206000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c80632e64cec11460415780636057361d14605d5780638f3eff7b146088575b600080fd5b604760d0565b6040518082815260200191505060405180910390f35b608660048036036020811015607157600080fd5b810190808035906020019092919050505060d9565b005b608e60e3565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b60008054905090565b8060008190555050565b60003390509056fea2646970667358221220870d6416d9143f210b232ec3a5a9df94095b8ee3803922bab202cf85f2e6a46264736f6c634300060a0033"
+	StorageAbi         = "[{\"inputs\":[],\"name\":\"retrieve\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sayMyAddres\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"num\",\"type\":\"uint256\"}],\"name\":\"store\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+	StorageStorePrefix = "6057361d"
+	StorageStoreSample = "6057361d0000000000000000000000000000000000000000000000000000000000000225" // hex for 549
+	StorageRetrieve    = "2e64cec1"
+	StorageSayMyAddres = "8f3eff7b"
 )
