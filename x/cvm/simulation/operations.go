@@ -41,40 +41,19 @@ func SimulateMsgDeployHello55(k keeper.Keeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		caller, _ := simulation.RandomAcc(r, accs)
-		code, err := hex.DecodeString(Hello55Code)
+
+		// deploy hello55.sol
+		msg, contractAddr, err := DeployContract(caller, Hello55Code, Hello55Abi, k, r, ctx, chainID, app)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		msg := types.NewMsgDeploy(caller.Address, uint64(0), code, Hello55Abi, nil, false, false)
-
-		account := k.AuthKeeper().GetAccount(ctx, caller.Address)
-		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
-
-		tx := helpers.GenTx(
-			[]sdk.Msg{msg},
-			fees,
-			helpers.DefaultGenTxGas,
-			chainID,
-			[]uint64{account.GetAccountNumber()},
-			[]uint64{account.GetSequence()},
-			caller.PrivKey,
-		)
-
-		_, res, err := app.Deliver(tx)
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
-
-		// check pure/view function ret
+		// check sayHi() ret
 		data, err := hex.DecodeString(Hello55SayHi)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, res.Data, 0, data, nil, true, false, false)
+		ret, err := k.Call(ctx, caller.Address, contractAddr, 0, data, nil, true, false, false)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
@@ -95,40 +74,19 @@ func SimulateMsgDeploySimple(k keeper.Keeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		caller, _ := simulation.RandomAcc(r, accs)
-		code, err := hex.DecodeString(SimpleCode)
+
+		// deploy simple.sol
+		msg, contractAddr, err := DeployContract(caller, SimpleCode, SimpleAbi, k, r, ctx, chainID, app)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		msg := types.NewMsgDeploy(caller.Address, uint64(0), code, SimpleAbi, nil, false, false)
-
-		account := k.AuthKeeper().GetAccount(ctx, caller.Address)
-		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
-
-		tx := helpers.GenTx(
-			[]sdk.Msg{msg},
-			fees,
-			helpers.DefaultGenTxGas,
-			chainID,
-			[]uint64{account.GetAccountNumber()},
-			[]uint64{account.GetSequence()},
-			caller.PrivKey,
-		)
-
-		_, res, err := app.Deliver(tx)
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
-
-		// check pure/view function ret
+		// check get() ret
 		data, err := hex.DecodeString(SimpleGet)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, res.Data, 0, data, nil, true, false, false)
+		ret, err := k.Call(ctx, caller.Address, contractAddr, 0, data, nil, true, false, false)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
@@ -143,7 +101,7 @@ func SimulateMsgDeploySimple(k keeper.Keeper) simulation.Operation {
 		futureOperations := []simulation.FutureOperation{
 			{
 				BlockHeight: int(ctx.BlockHeight()) + r.Intn(10),
-				Op:          SimulateMsgCallSimpleSet(k, res.Data, int(r.Uint32())),
+				Op:          SimulateMsgCallSimpleSet(k, contractAddr, int(r.Uint32())),
 			},
 		}
 
@@ -211,45 +169,28 @@ func SimulateMsgCallSimpleSet(k keeper.Keeper, contractAddr sdk.AccAddress, varV
 	}
 }
 
+func callFunction() {
+
+}
+
 // SimulateMsgDeploySimpleEvent creates a massage deploying /tests/simpleevent.sol contract.
 func SimulateMsgDeploySimpleEvent(k keeper.Keeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		caller, _ := simulation.RandomAcc(r, accs)
-		code, err := hex.DecodeString(SimpleeventCode)
+
+		// deploy simpleevent.sol
+		msg, contractAddr, err := DeployContract(caller, SimpleeventCode, SimpleeventAbi, k, r, ctx, chainID, app)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		msg := types.NewMsgDeploy(caller.Address, uint64(0), code, SimpleeventAbi, nil, false, false)
-
-		account := k.AuthKeeper().GetAccount(ctx, caller.Address)
-		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
-
-		tx := helpers.GenTx(
-			[]sdk.Msg{msg},
-			fees,
-			helpers.DefaultGenTxGas,
-			chainID,
-			[]uint64{account.GetAccountNumber()},
-			[]uint64{account.GetSequence()},
-			caller.PrivKey,
-		)
-
-		_, res, err := app.Deliver(tx)
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
-
-		// check pure/view function ret
+		// check get() ret
 		data, err := hex.DecodeString(SimpleeventGet)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, res.Data, 0, data, nil, true, false, false)
+		ret, err := k.Call(ctx, caller.Address, contractAddr, 0, data, nil, true, false, false)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
@@ -264,7 +205,7 @@ func SimulateMsgDeploySimpleEvent(k keeper.Keeper) simulation.Operation {
 		futureOperations := []simulation.FutureOperation{
 			{
 				BlockHeight: int(ctx.BlockHeight()) + r.Intn(10),
-				Op:          SimulateMsgCallSimpleEventSet(k, res.Data, int(r.Uint32())),
+				Op:          SimulateMsgCallSimpleEventSet(k, contractAddr, int(r.Uint32())),
 			},
 		}
 
@@ -337,40 +278,19 @@ func SimulateMsgDeployStorage(k keeper.Keeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		caller, _ := simulation.RandomAcc(r, accs)
-		code, err := hex.DecodeString(StorageCode)
+
+		// deploy storage.sol
+		msg, contractAddr, err := DeployContract(caller, StorageCode, StorageAbi, k, r, ctx, chainID, app)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		msg := types.NewMsgDeploy(caller.Address, uint64(0), code, StorageAbi, nil, false, false)
-
-		account := k.AuthKeeper().GetAccount(ctx, caller.Address)
-		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
-
-		tx := helpers.GenTx(
-			[]sdk.Msg{msg},
-			fees,
-			helpers.DefaultGenTxGas,
-			chainID,
-			[]uint64{account.GetAccountNumber()},
-			[]uint64{account.GetSequence()},
-			caller.PrivKey,
-		)
-
-		_, res, err := app.Deliver(tx)
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
-
-		// check pure/view function ret
+		// check retrieve() ret
 		data, err := hex.DecodeString(StorageRetrieve)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, res.Data, 0, data, nil, true, false, false)
+		ret, err := k.Call(ctx, caller.Address, contractAddr, 0, data, nil, true, false, false)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
@@ -382,12 +302,12 @@ func SimulateMsgDeployStorage(k keeper.Keeper) simulation.Operation {
 			panic("return value incorrect")
 		}
 
-		// check pure/view function ret
+		// check sayMyAddres() ret
 		data, err = hex.DecodeString(StorageSayMyAddres)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-		ret, err = k.Call(ctx, caller.Address, res.Data, 0, data, nil, true, false, false)
+		ret, err = k.Call(ctx, caller.Address, contractAddr, 0, data, nil, true, false, false)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
@@ -399,7 +319,7 @@ func SimulateMsgDeployStorage(k keeper.Keeper) simulation.Operation {
 		futureOperations := []simulation.FutureOperation{
 			{
 				BlockHeight: int(ctx.BlockHeight()) + r.Intn(10),
-				Op:          SimulateMsgCallStorageStore(k, res.Data, int(r.Uint32())),
+				Op:          SimulateMsgCallStorageStore(k, contractAddr, int(r.Uint32())),
 			},
 		}
 

@@ -1,5 +1,18 @@
 package simulation
 
+import (
+	"encoding/hex"
+	"math/rand"
+
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/simapp/helpers"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/simulation"
+
+	"github.com/certikfoundation/shentu/x/cvm/internal/keeper"
+	"github.com/certikfoundation/shentu/x/cvm/internal/types"
+)
+
 const (
 	Hello55Code  = "6080604052348015600f57600080fd5b5060888061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80630c49c36c14602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000603790509056fea2646970667358221220be801fb2205f223dcf6751ff8f3d1996fa2aa8bd72fec7015b75e7c4826e09a264736f6c634300060a0033"
 	Hello55Abi   = "[{\"inputs\":[],\"name\":\"sayHi\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}]"
@@ -24,3 +37,37 @@ const (
 	StorageRetrieve    = "2e64cec1"
 	StorageSayMyAddres = "8f3eff7b"
 )
+
+// DeployContract delivers a deploy tx and returns msg, contract address and error.
+func DeployContract(caller simulation.Account, contractCode string, contractAbi string, k keeper.Keeper, r *rand.Rand,
+	ctx sdk.Context, chainID string, app *baseapp.BaseApp) (msg types.MsgDeploy, contractAddr sdk.AccAddress, err error) {
+	code, err := hex.DecodeString(contractCode)
+	if err != nil {
+		return msg, nil, err
+	}
+
+	msg = types.NewMsgDeploy(caller.Address, uint64(0), code, contractAbi, nil, false, false)
+
+	account := k.AuthKeeper().GetAccount(ctx, caller.Address)
+	fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+	if err != nil {
+		return msg, nil, err
+	}
+
+	tx := helpers.GenTx(
+		[]sdk.Msg{msg},
+		fees,
+		helpers.DefaultGenTxGas,
+		chainID,
+		[]uint64{account.GetAccountNumber()},
+		[]uint64{account.GetSequence()},
+		caller.PrivKey,
+	)
+
+	_, res, err := app.Deliver(tx)
+	if err != nil {
+		return msg, nil, err
+	}
+
+	return msg, res.Data, nil
+}
