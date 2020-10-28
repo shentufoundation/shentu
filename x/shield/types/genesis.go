@@ -19,7 +19,7 @@ type GenesisState struct {
 	TotalCollateral      sdk.Int             `json:"total_collateral" yaml:"total_collateral"`
 	TotalWithdrawing     sdk.Int             `json:"total_withdrawing" yaml:"total_withdrawing"`
 	TotalShield          sdk.Int             `json:"total_shield" yaml:"total_shield"`
-	TotalLocked          sdk.Int             `json:"total_locked" yaml:"total_locked"`
+	TotalClaimed         sdk.Int             `json:"total_claimed" yaml:"total_claimed"`
 	ServiceFees          MixedDecCoins       `json:"service_fees" yaml:"service_fees"`
 	RemainingServiceFees MixedDecCoins       `json:"remaining_service_fees" yaml:"remaining_service_fees"`
 	Pools                []Pool              `json:"pools" yaml:"pools"`
@@ -31,7 +31,7 @@ type GenesisState struct {
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
-	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked sdk.Int, serviceFees, remainingServiceFees MixedDecCoins,
+	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, serviceFees, remainingServiceFees MixedDecCoins,
 	pools []Pool, providers []Provider, purchase []PurchaseList, withdraws Withdraws, lastUpdateTime time.Time) GenesisState {
 	return GenesisState{
 		ShieldAdmin:          shieldAdmin,
@@ -42,7 +42,7 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		TotalCollateral:      totalCollateral,
 		TotalWithdrawing:     totalWithdrawing,
 		TotalShield:          totalShield,
-		TotalLocked:          totalLocked,
+		TotalClaimed:         totalClaimed,
 		ServiceFees:          serviceFees,
 		RemainingServiceFees: remainingServiceFees,
 		Pools:                pools,
@@ -63,7 +63,7 @@ func DefaultGenesisState() GenesisState {
 		TotalCollateral:      sdk.ZeroInt(),
 		TotalWithdrawing:     sdk.ZeroInt(),
 		TotalShield:          sdk.ZeroInt(),
-		TotalLocked:          sdk.ZeroInt(),
+		TotalClaimed:         sdk.ZeroInt(),
 		ServiceFees:          InitMixedDecCoins(),
 		RemainingServiceFees: InitMixedDecCoins(),
 	}

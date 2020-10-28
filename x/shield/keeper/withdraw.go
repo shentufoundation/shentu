@@ -4,7 +4,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -134,11 +133,11 @@ func (k Keeper) ComputeWithdrawAmountByTime(ctx sdk.Context, provider sdk.AccAdd
 	return amount
 }
 
-// DelayWithdraws looks at the provider's withdraws ending before the delay
-// duration from now and delays the given amount of withdraws by the specified
-// delay duration.
-func (k Keeper) DelayWithdraws(ctx sdk.Context, delay time.Duration, amount sdk.Int, provider sdk.AccAddress) error {
-	// Retrieve all withdrawals ending before the delay duration from now.
+// DelayWithdraws delays the given amount of withdraws maturing
+// before the delay duration until the end of the delay duration.
+func (k Keeper) DelayWithdraws(ctx sdk.Context, provider sdk.AccAddress, amount sdk.Int, delay time.Duration) error {
+	// Retrieve delay candidates, which are withdraws
+	// ending before the delay duration from now.
 	delayedTime := ctx.BlockTime().Add(delay)
 	withdrawTimesliceIterator := k.WithdrawQueueIterator(ctx, delayedTime)
 	defer withdrawTimesliceIterator.Close()
@@ -156,48 +155,39 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, delay time.Duration, amount sdk.
 		}
 	}
 
-	// Delay withdrawals.
+	// Delay withdraws, starting with the candidates 
+	// with the oldest withdraw completion time. 
 	remaining := amount
-	for _, withdraw := range withdraws {
+	for i := len(withdraws)-1; i >= 0; i-- {
 		if !remaining.IsPositive() {
 			break
 		}
-
-		// Obtain the time slice and the index.
-		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraw.CompletionTime)
-		index := 0
-		for ; index < len(timeSlice); index++ {
-			if timeSlice[index].Address.Equals(provider) {
-				break
+		// Remove from withdraw queue.
+		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime)
+		if len(timeSlice) > 1 {
+			for i := 0; i < len(timeSlice); i++ {
+				if timeSlice[i].Address.Equals(provider) {
+					timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
+					k.SetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime, timeSlice)
+					break
+				}
 			}
-		}
-
-		//
-		delayedAmt := withdraw.Amount
-		if withdraw.Amount.GT(remaining) {
-			timeSlice[index].Amount = withdraw.Amount.Sub(remaining)
-			delayedAmt = remaining
 		} else {
-			timeSlice = append(timeSlice[:index], timeSlice[index+1:]...)
-		}
-		if len(timeSlice) == 0 {
-			k.RemoveTimeSliceFromWithdrawQueue(ctx, withdraw.CompletionTime)
-		} else {
-			k.SetWithdrawQueueTimeSlice(ctx, withdraw.CompletionTime, timeSlice)
+			k.RemoveTimeSliceFromWithdrawQueue(ctx, withdraws[i].CompletionTime)
 		}
 
 		// Delay linked unbonding, if exists.
-		if !withdraw.LinkedUnbonding.CompletionTime.IsZero() {
-			k.DelayUnbonding(ctx, provider, withdraw.LinkedUnbonding, delayedAmt, delayedTime)
+		if !withdraws[i].LinkedUnbonding.CompletionTime.IsZero() {
+			k.DelayUnbonding(ctx, provider, withdraws[i].LinkedUnbonding, delayedTime)
 		}
 
-		// Insert the delayed withdrawal to the queue.
-		ubdInfo := types.NewUnbondingInfo(withdraw.LinkedUnbonding.ValidatorAddress, delayedTime)
-		withdraw := types.NewWithdraw(withdraw.Address, delayedAmt, delayedTime, ubdInfo)
-		k.InsertWithdrawQueue(ctx, withdraw)
+		// Adjust the withdraw end time and re-insert.
+		withdraws[i].CompletionTime = delayedTime
+		withdraws[i].LinkedUnbonding.CompletionTime = delayedTime
+		k.InsertWithdrawQueue(ctx, withdraws[i])
 
-		remaining = remaining.Sub(delayedAmt)
-	} // for each withdraw
+		remaining = remaining.Sub(withdraws[i].Amount)
+	}
 
 	if remaining.IsPositive() {
 		panic("failed to delay enough withdraws") // TODO
@@ -208,8 +198,7 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, delay time.Duration, amount sdk.
 
 // DelayUnbonding delays the completion time of an unbonding identified
 // by provider (delegator) and timestamp (unbonding completion time).
-func (k Keeper) DelayUnbonding(ctx sdk.Context, delAddr sdk.AccAddress, ubdInfo types.UnbondingInfo, amount sdk.Int, completionTime time.Time) {
-	partial := false
+func (k Keeper) DelayUnbonding(ctx sdk.Context, delAddr sdk.AccAddress, ubdInfo types.UnbondingInfo, delayedTime time.Time) {
 	valAddr := ubdInfo.ValidatorAddress
 	timestamp := ubdInfo.CompletionTime
 
@@ -221,64 +210,39 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, delAddr sdk.AccAddress, ubdInfo 
 	// Identify the particular unbonding entry from the unbonding list.
 	// TODO: Can we identify the particular UnbondingDelegationEntry with completionTime?
 	// That is, there can be no unbonding entry with the same completionTime?
-	i := 0
 	found = false
-	for ; i < len(unbonding.Entries); i++ {
-		if unbonding.Entries[i].CompletionTime.Equal(timestamp) {
+	for i := 0; i < len(unbonding.Entries); i++ {
+		if !found && unbonding.Entries[i].CompletionTime.Equal(timestamp) {
+			unbonding.Entries[i].CompletionTime = delayedTime
 			found = true
-			if unbonding.Entries[i].Balance.GT(amount) {
-				// Partial delay of an unbonding entry
-				partial = true
-				unbonding.Entries[i].Balance = unbonding.Entries[i].Balance.Sub(amount)
-
-				// Add a new entry at the right position.
-				entry := stakingTypes.NewUnbondingDelegationEntry(unbonding.Entries[i].CreationHeight, completionTime, amount)
-				for j := i; ; j++ {
-					if j+1 == len(unbonding.Entries) {
-						unbonding.Entries = append(unbonding.Entries, entry)
-						break
-					} else if entry.CompletionTime.Before(unbonding.Entries[j+1].CompletionTime) {
-						unbonding.Entries = append(unbonding.Entries[:j+1], unbonding.Entries[j:]...)
-						unbonding.Entries[j] = entry
-						break
-					}
-				}
-			} else {
-				// Percolate up the existing entry.
-				for j := i + 1; j < len(unbonding.Entries); j++ {
-					if unbonding.Entries[j].CompletionTime.Before(unbonding.Entries[j-1].CompletionTime) {
-						unbonding.Entries[j-1], unbonding.Entries[j] = unbonding.Entries[j], unbonding.Entries[j-1]
-					} else {
-						break
-					}
-				}
-			}
+		} else if found && unbonding.Entries[i].CompletionTime.Before(unbonding.Entries[i-1].CompletionTime) {
+			unbonding.Entries[i-1], unbonding.Entries[i] = unbonding.Entries[i], unbonding.Entries[i-1]
+		} else if found {
 			break
 		}
 	}
 	if !found {
 		panic("particular unbonding entry not found for the given timestamp")
 	}
-	k.sk.SetUnbondingDelegation(ctx, unbonding)
 
-	// Update the unbonding queue.
+	// Update the stores.
 	timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, timestamp)
 	timeSliceLength := len(timeSlice)
 	if timeSliceLength == 0 {
 		panic("unbonding was not found from the unbonding queue")
 	}
-	// Remove entry from queue only in case of complete delay of an entry.
-	if !partial {
-		for i := 0; i < timeSliceLength; i++ {
-			if timeSlice[i].DelegatorAddress.Equals(delAddr) {
-				if timeSliceLength > 1 {
-					timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
-					k.sk.SetUBDQueueTimeSlice(ctx, timestamp, timeSlice)
-				} else {
-					k.sk.RemoveUBDQueue(ctx, timestamp)
-				}
+	for i := 0; i < timeSliceLength; i++ {
+		if timeSlice[i].DelegatorAddress.Equals(delAddr) {
+			if timeSliceLength > 1 {
+				timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
+				k.sk.SetUBDQueueTimeSlice(ctx, timestamp, timeSlice)
+			} else {
+				k.sk.RemoveUBDQueue(ctx, timestamp)
 			}
+			k.sk.InsertUBDQueue(ctx, unbonding, delayedTime)
+			k.sk.SetUnbondingDelegation(ctx, unbonding)
+			return
 		}
 	}
-	k.sk.InsertUBDQueue(ctx, unbonding, completionTime)
+	panic("particular unbonding entry not found from the unbonding queue")
 }

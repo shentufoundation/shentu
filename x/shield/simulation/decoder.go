@@ -21,7 +21,7 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 
 	case bytes.Equal(kvA.Key[:1], types.TotalCollateralKey),
 		bytes.Equal(kvA.Key[:1], types.TotalShieldKey),
-		bytes.Equal(kvA.Key[:1], types.TotalLockedKey):
+		bytes.Equal(kvA.Key[:1], types.TotalClaimedKey):
 		var totalA, totalB sdk.Int
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &totalA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &totalB)

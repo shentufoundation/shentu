@@ -204,7 +204,7 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 	require.Nil(t, err)
 }
 
-func TestDelayWithdrawAndUBD(t *testing.T) {
+func TestSecureCollaterals(t *testing.T) {
 	// Test setup
 	app := simapp.Setup(false)
 	curTime := time.Now().UTC()
@@ -278,35 +278,30 @@ func TestDelayWithdrawAndUBD(t *testing.T) {
 	curTime = curTime.Add(time.Hour * 24 * 20)
 	ctx = ctx.WithBlockTime(curTime)
 
-	// Claim lock
-	lockPeriod := govKeeper.GetVotingParams(ctx).VotingPeriod * 2
+	// Secure collaterals
+	claimDuration := govKeeper.GetVotingParams(ctx).VotingPeriod * 2
 	lossAmt := shieldAmt / 2
 	loss := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, lossAmt))
-	err = shieldKeeper.ClaimLock(ctx, 0, poolID, purchaser, purchase.PurchaseID, loss, lockPeriod)
+	err = shieldKeeper.SecureCollaterals(ctx, poolID, purchaser, purchase.PurchaseID, loss, claimDuration)
 	require.Nil(t, err)
 
-	// confirm withdraw & unbonding extensions (split withdraw & unbonding)
+	// confirm withdraw & unbonding extensions (no splitting)
 	withdraws = shieldKeeper.GetAllWithdraws(ctx)
-	w := withdraws[1] // newly created withdrawal for delayed unbonding
-	delayedTime := curTime.Add(lockPeriod)
+	w := withdraws[0]
+	delayedTime := curTime.Add(claimDuration)
 	require.True(t, w.CompletionTime.Equal(delayedTime))
 	require.True(t, w.LinkedUnbonding.CompletionTime.Equal(delayedTime))
 
 	unbonding, found := stakingKeeper.GetUnbondingDelegation(ctx, w.Address, w.LinkedUnbonding.ValidatorAddress)
 	require.True(t, found)
-	require.True(t, unbonding.Entries[0].CompletionTime.Equal(originalUBDTime)) // old entry
-	require.True(t, unbonding.Entries[1].CompletionTime.Equal(delayedTime))     // new entry
+	require.True(t, unbonding.Entries[0].CompletionTime.Equal(delayedTime))
 
 	// check original and new time slices
 	timeSlice = stakingKeeper.GetUBDQueueTimeSlice(ctx, originalUBDTime)
-	require.True(t, len(timeSlice) == 1)
+	require.True(t, len(timeSlice) == 0)
 
 	timeSlice = stakingKeeper.GetUBDQueueTimeSlice(ctx, delayedTime)
 	require.True(t, len(timeSlice) == 1)
 	require.True(t, timeSlice[0].DelegatorAddress.Equals(w.Address))
 	require.True(t, timeSlice[0].ValidatorAddress.Equals(w.LinkedUnbonding.ValidatorAddress))
-
-	p, found := shieldKeeper.GetProvider(ctx, delAddr)
-	require.True(t, found)
-	require.True(t, p.Locked.Equal(unbonding.Entries[1].Balance))
 }
