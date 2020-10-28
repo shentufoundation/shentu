@@ -10,6 +10,7 @@ const (
 	QueryAddrMeta = "address-meta"
 	QueryMeta     = "meta"
 	QueryView     = "view"
+	QueryAccount  = "account"
 )
 
 // QueryResView is the query result payload for a storage query.
@@ -47,7 +48,7 @@ func (q QueryResAbi) String() string {
 	return string(q.Abi)
 }
 
-// QueryResAbi is the query result payload for a contract code ABI query.
+// QueryResAddrMeta is the query result payload for a contract code ABI query.
 type QueryResAddrMeta struct {
 	Metahash string `json:"metahash"`
 }
@@ -57,7 +58,7 @@ func (q QueryResAddrMeta) String() string {
 	return q.Metahash
 }
 
-// QueryResAbi is the query result payload for a contract code ABI query.
+// QueryResMeta is the query result payload for a contract code ABI query.
 type QueryResMeta struct {
 	Meta string `json:"meta"`
 }
