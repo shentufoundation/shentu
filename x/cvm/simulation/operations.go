@@ -2,7 +2,6 @@ package simulation
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math/rand"
 	"strconv"
 
@@ -67,7 +66,6 @@ func SimulateMsgDeployHello55(k keeper.Keeper) simulation.Operation {
 
 		_, res, err := app.Deliver(tx)
 		if err != nil {
-			fmt.Printf("<<<<<<<<< hello55 deploy error: %s\n", err)
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
@@ -122,7 +120,6 @@ func SimulateMsgDeploySimple(k keeper.Keeper) simulation.Operation {
 
 		_, res, err := app.Deliver(tx)
 		if err != nil {
-			fmt.Printf("<<<<<<<<< simple deploy error: %s\n", err)
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
@@ -154,7 +151,7 @@ func SimulateMsgDeploySimple(k keeper.Keeper) simulation.Operation {
 	}
 }
 
-// SimulateMsgCallSimpleSet creates a message calling set func in /tests/simple.sol contract.
+// SimulateMsgCallSimpleSet creates a message calling set() in /tests/simple.sol contract.
 func SimulateMsgCallSimpleSet(k keeper.Keeper, contractAddr sdk.AccAddress, varValue int) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
@@ -244,7 +241,6 @@ func SimulateMsgDeploySimpleEvent(k keeper.Keeper) simulation.Operation {
 
 		_, res, err := app.Deliver(tx)
 		if err != nil {
-			fmt.Printf("<<<<<<<<< simpleevent deploy error: %s\n", err)
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
@@ -276,7 +272,7 @@ func SimulateMsgDeploySimpleEvent(k keeper.Keeper) simulation.Operation {
 	}
 }
 
-// SimulateMsgCallSimpleEventSet creates a message calling set func in /tests/simpleevent.sol contract.
+// SimulateMsgCallSimpleEventSet creates a message calling set() in /tests/simpleevent.sol contract.
 func SimulateMsgCallSimpleEventSet(k keeper.Keeper, contractAddr sdk.AccAddress, varValue int) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
@@ -366,7 +362,6 @@ func SimulateMsgDeployStorage(k keeper.Keeper) simulation.Operation {
 
 		_, res, err := app.Deliver(tx)
 		if err != nil {
-			fmt.Printf("<<<<<<<<< storage deploy error: %s\n", err)
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
@@ -412,7 +407,7 @@ func SimulateMsgDeployStorage(k keeper.Keeper) simulation.Operation {
 	}
 }
 
-// SimulateMsgCallStorageStore creates a message calling store func in /tests/storage.sol contract.
+// SimulateMsgCallStorageStore creates a message calling store() in /tests/storage.sol contract.
 func SimulateMsgCallStorageStore(k keeper.Keeper, contractAddr sdk.AccAddress, varValue int) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
