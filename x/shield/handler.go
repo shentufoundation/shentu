@@ -32,6 +32,8 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgWithdrawCollateral(ctx, msg, k)
 		case types.MsgPurchaseShield:
 			return handleMsgPurchaseShield(ctx, msg, k)
+		case types.MsgWithdrawReimbursement:
+			return handleMsgWithdrawReimbursement(ctx, msg, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -219,6 +221,23 @@ func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Kee
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgWithdrawReimbursement(ctx sdk.Context, msg types.MsgWithdrawReimbursement, k Keeper) (*sdk.Result, error) {
+	amount, err := k.WithdrawReimbursement(ctx, msg.ProposalID, msg.From)
+	if err != nil {
+		return &sdk.Result{Events: ctx.EventManager().Events()}, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeWithdrawReimbursement,
+			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(msg.ProposalID, 10)),
+			sdk.NewAttribute(types.AttributeKeyCompensationAmount, amount.String()),
+			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.From.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil

@@ -29,6 +29,28 @@ func (k Keeper) SetReimbursement(ctx sdk.Context, proposalID uint64, payout type
 	store.Set(types.GetReimbursementKey(proposalID), bz)
 }
 
+// GetReimbursement get a reimbursement in store.
+func (k Keeper) GetReimbursement(ctx sdk.Context, proposalID uint64) (types.Reimbursement, error) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetReimbursementKey(proposalID))
+	if bz != nil {
+		var reimbursement types.Reimbursement
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &reimbursement)
+		return reimbursement, nil
+	}
+	return types.Reimbursement{}, types.ErrCompensationNotFound
+}
+
+// DeleteReimbursement deletes a reimbursement.
+func (k Keeper) DeleteReimbursement(ctx sdk.Context, proposalID uint64) error {
+	store := ctx.KVStore(k.storeKey)
+	if _, err := k.GetReimbursement(ctx, proposalID); err != nil {
+		return err
+	}
+	store.Delete(types.GetReimbursementKey(proposalID))
+	return nil
+}
+
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID uint64, rmb sdk.Coins, beneficiary sdk.AccAddress) error {
 	totalCollateral := k.GetTotalCollateral(ctx)
@@ -193,4 +215,28 @@ func (k Keeper) RedirectUnbondingEntryToShieldModule(ctx sdk.Context, ubd stakin
 	ubd.Entries = ubd.Entries[endIndex+1:]
 	k.sk.SetUnbondingDelegation(ctx, ubd)
 	k.sk.SetUnbondingDelegation(ctx, shieldUbd)
+}
+
+// WithdrawReimbursement withdraws a reimbursement made for a beneficiary.
+func (k Keeper) WithdrawReimbursement(ctx sdk.Context, proposalID uint64, beneficiary sdk.AccAddress) (sdk.Coins, error) {
+	reimbursement, err := k.GetReimbursement(ctx, proposalID)
+	if err != nil {
+		return sdk.Coins{}, err
+	}
+
+	// check beneficiary and time
+	if !reimbursement.Beneficiary.Equals(beneficiary) {
+		return sdk.Coins{}, types.ErrInvalidBeneficiary
+	}
+	if reimbursement.PayoutTime.After(ctx.BlockTime()) {
+		return sdk.Coins{}, types.ErrNotPayoutTime
+	}
+
+	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, beneficiary, reimbursement.Amount); err != nil {
+		return sdk.Coins{}, types.ErrNotPayoutTime
+	}
+	if err := k.DeleteReimbursement(ctx, proposalID); err != nil {
+		return sdk.Coins{}, err
+	}
+	return reimbursement.Amount, nil
 }
