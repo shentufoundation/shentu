@@ -32,6 +32,8 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgWithdrawCollateral(ctx, msg, k)
 		case types.MsgPurchaseShield:
 			return handleMsgPurchaseShield(ctx, msg, k)
+		case types.MsgStakingPurchase:
+			return handleMsgStakingPurchase(ctx, msg, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -203,6 +205,23 @@ func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollatera
 }
 
 func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Keeper) (*sdk.Result, error) {
+	_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypePurchaseShield,
+			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
+			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgStakingPurchase(ctx sdk.Context, msg types.MsgStakingPurchase, k Keeper) (*sdk.Result, error) {
 	_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
 	if err != nil {
 		return nil, err

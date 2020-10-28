@@ -103,16 +103,21 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 		return types.Purchase{}, types.ErrPoolShieldExceedsLimit
 	}
 
-	// Send service fees to the shield module account and update service fees.
-	if err := k.DepositNativeServiceFees(ctx, serviceFees, purchaser); err != nil {
-		return types.Purchase{}, err
+	if !serviceFees.Empty() {
+		// Send service fees to the shield module account and update service fees.
+		if err := k.DepositNativeServiceFees(ctx, serviceFees, purchaser); err != nil {
+			return types.Purchase{}, err
+		}
+		totalServiceFees := k.GetServiceFees(ctx)
+		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
+		k.SetServiceFees(ctx, totalServiceFees)
+		totalRemainingServiceFees := k.GetRemainingServiceFees(ctx)
+		totalRemainingServiceFees = totalRemainingServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
+		k.SetRemainingServiceFees(ctx, totalRemainingServiceFees)
+	} else {
+		// stake to the staking purchase pool
+
 	}
-	totalServiceFees := k.GetServiceFees(ctx)
-	totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
-	k.SetServiceFees(ctx, totalServiceFees)
-	totalRemainingServiceFees := k.GetRemainingServiceFees(ctx)
-	totalRemainingServiceFees = totalRemainingServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
-	k.SetRemainingServiceFees(ctx, totalRemainingServiceFees)
 
 	// Update global pool and project pool's shield.
 	totalShield = totalShield.Add(shieldAmt)
@@ -137,13 +142,16 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 }
 
 // PurchaseShield purchases shield of a pool with standard fee rate.
-func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress) (types.Purchase, error) {
+func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress, staking bool) (types.Purchase, error) {
 	poolParams := k.GetPoolParams(ctx)
 	if poolParams.MinShieldPurchase.IsAnyGT(shield) {
 		return types.Purchase{}, types.ErrPurchaseTooSmall
 	}
 	bondDenom := k.BondDenom(ctx)
-	serviceFees := sdk.NewCoins(sdk.NewCoin(bondDenom, shield.AmountOf(bondDenom).ToDec().Mul(k.GetPoolParams(ctx).ShieldFeesRate).TruncateInt()))
+	serviceFees := sdk.NewCoins()
+	if staking {
+		serviceFees = sdk.NewCoins(sdk.NewCoin(bondDenom, shield.AmountOf(bondDenom).ToDec().Mul(k.GetPoolParams(ctx).ShieldFeesRate).TruncateInt()))
+	}
 	return k.purchaseShield(ctx, poolID, shield, description, purchaser, serviceFees)
 }
 

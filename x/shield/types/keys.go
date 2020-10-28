@@ -40,6 +40,7 @@ var (
 	ProviderKey             = []byte{0xC}
 	WithdrawQueueKey        = []byte{0xD}
 	LastUpdateTimeKey       = []byte{0xE}
+	PurchaseStakingPoolKey  = []byte{0xF}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -64,6 +65,9 @@ func GetServiceFeesKey() []byte {
 
 func GetRemainingServiceFeesKey() []byte {
 	return RemainingServiceFeesKey
+}
+func GetPurchaseStakingPoolKey() []byte {
+	return PurchaseStakingPoolKey
 }
 
 // GetPoolKey gets the key for the pool identified by pool ID.

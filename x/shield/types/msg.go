@@ -493,3 +493,44 @@ func (msg MsgWithdrawReimbursement) GetSignBytes() []byte {
 func (msg MsgWithdrawReimbursement) ValidateBasic() error {
 	return nil
 }
+
+// TODO: eliminate this msg type
+// MsgStakingPurchase defines the attributes of staking for purchase transaction.
+type MsgStakingPurchase struct {
+	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
+	Shield      sdk.Coins      `json:"shield" yaml:"shield"`
+	Description string         `json:"description" yaml:"description"`
+	From        sdk.AccAddress `json:"from" yaml:"from"`
+}
+
+// NewMsgStakingPurchase creates a new MsgPurchaseShield instance.
+func NewMsgStakingPurchase(poolID uint64, shield sdk.Coins, description string, from sdk.AccAddress) MsgPurchaseShield {
+	return MsgPurchaseShield{
+		PoolID:      poolID,
+		Shield:      shield,
+		Description: description,
+		From:        from,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgStakingPurchase) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgStakingPurchase) Type() string { return EventTypeWithdrawReimbursement }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgStakingPurchase) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgStakingPurchase) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgStakingPurchase) ValidateBasic() error {
+	return nil
+}
