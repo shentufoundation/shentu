@@ -165,9 +165,9 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, provider sdk.AccAddress, amount 
 		// Remove from withdraw queue.
 		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime)
 		if len(timeSlice) > 1 {
-			for i := 0; i < len(timeSlice); i++ {
-				if timeSlice[i].Address.Equals(provider) {
-					timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
+			for j := 0; j < len(timeSlice); j++ {
+				if timeSlice[j].Address.Equals(provider) {
+					timeSlice = append(timeSlice[:j], timeSlice[j+1:]...)
 					k.SetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime, timeSlice)
 					break
 				}
