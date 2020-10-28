@@ -8,7 +8,6 @@ import (
 
 // RandomizedGenState creates a random genesis state for module simulation.
 func RandomizedGenState(simState *module.SimulationState) {
-	// r := simState.Rand
 	gs := types.GenesisState{}
 
 	gs.GasRate = 1
