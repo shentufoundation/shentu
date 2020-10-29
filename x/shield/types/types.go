@@ -169,11 +169,11 @@ type GlobalStakingPool struct {
 }
 
 type StakingPurchase struct {
-	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
-	Purchaser   sdk.AccAddress `json:"purchaser" yaml:"purchaser"`
-	Amount      sdk.Int        `json:"amount" yaml:"amount"`
-	Locked      sdk.Int        `json:"locked" yaml:"locked"`
-	Expirations []Expiration   `json:"expirations" yaml:"expirations"`
+	PoolID      uint64              `json:"pool_id" yaml:"pool_id"`
+	Purchaser   sdk.AccAddress      `json:"purchaser" yaml:"purchaser"`
+	Amount      sdk.Int             `json:"amount" yaml:"amount"`
+	Locked      sdk.Int             `json:"locked" yaml:"locked"`
+	Expirations []StakingExpiration `json:"expirations" yaml:"expirations"`
 }
 
 func NewStakingPurchase(poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) StakingPurchase {
@@ -185,7 +185,14 @@ func NewStakingPurchase(poolID uint64, purchaser sdk.AccAddress, amount sdk.Int)
 	}
 }
 
-type Expiration struct {
+type StakingExpiration struct {
 	Time   time.Time `json:"time" yaml:"time"`
 	Amount sdk.Int   `json:"amount" yaml:"amount"`
+}
+
+func NewStakingExpiration(time time.Time, amount sdk.Int) StakingExpiration {
+	return StakingExpiration{
+		Time:   time,
+		Amount: amount,
+	}
 }

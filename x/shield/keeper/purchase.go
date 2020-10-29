@@ -99,6 +99,7 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 
 	// Check pool shield limit.
 	poolParams := k.GetPoolParams(ctx)
+	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
 	maxShield := sdk.MinInt(pool.ShieldLimit, totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt())
 	if shieldAmt.Add(pool.Shield).GT(maxShield) {
 		return types.Purchase{}, types.ErrPoolShieldExceedsLimit
@@ -122,7 +123,7 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 		if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, stakingCoins); err != nil {
 			return types.Purchase{}, err
 		}
-		k.AddStaking(ctx, poolID, purchaser, stakingAmt)
+		k.AddStaking(ctx, poolID, purchaser, stakingAmt, protectionEndTime)
 	}
 
 	// Update global pool and project pool's shield.
@@ -132,7 +133,6 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	k.SetPool(ctx, pool)
 
 	// Set a new purchase.
-	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
 	purchaseID := k.GetNextPurchaseID(ctx)
 	purchase := types.NewPurchase(purchaseID, protectionEndTime, protectionEndTime, description, shieldAmt, types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
 	purchaseList := k.AddPurchase(ctx, poolID, purchaser, purchase)

@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
@@ -51,7 +53,7 @@ func (k Keeper) SubGlobalStakingPurchasePool(ctx sdk.Context, amount sdk.Int) {
 	k.SetGlobalStakingPurchasePool(ctx, pool)
 }
 
-func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) {
+func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int, endTime time.Time) {
 	k.AddGlobalStakingPurchasePool(ctx, amount)
 	sp, found := k.GetStakingPurchase(ctx, poolID, purchaser)
 	if !found {
@@ -59,6 +61,8 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	}
 	sp.Locked = sp.Locked.Add(amount)
 	sp.Amount = sp.Amount.Add(amount)
+	newExpiration := types.NewStakingExpiration(endTime, amount)
+	sp.Expirations = append(sp.Expirations, newExpiration)
 	k.SetStakingPurchase(ctx, poolID, purchaser, sp)
 }
 
@@ -70,6 +74,10 @@ func (k Keeper) WithdrawStaking(ctx sdk.Context, poolID uint64, purchaser sdk.Ac
 	newAmt := sp.Amount.Sub(amount)
 	if newAmt.LT(sp.Locked) {
 		return types.ErrNotEnoughStaked
+	}
+	if newAmt.IsZero() {
+		store := ctx.KVStore(k.storeKey)
+		store.Delete(types.GetStakingPurchaseKey(poolID, purchaser))
 	}
 	sp.Amount = newAmt
 	k.SetStakingPurchase(ctx, poolID, purchaser, sp)
