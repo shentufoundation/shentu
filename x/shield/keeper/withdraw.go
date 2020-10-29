@@ -40,8 +40,7 @@ func (k Keeper) GetWithdrawQueueTimeSlice(ctx sdk.Context, timestamp time.Time) 
 // WithdrawQueueIterator returns all the withdraw queue timeslices from time 0 until endTime.
 func (k Keeper) WithdrawQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
-	return store.Iterator(types.WithdrawQueueKey,
-		sdk.InclusiveEndBytes(types.GetWithdrawCompletionTimeKey(endTime)))
+	return store.Iterator(types.WithdrawQueueKey, sdk.InclusiveEndBytes(types.GetWithdrawCompletionTimeKey(endTime)))
 }
 
 // IterateWithdraws iterates through all ongoing withdraws.
@@ -181,7 +180,7 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, provider sdk.AccAddress, amount 
 			k.DelayUnbonding(ctx, provider, withdraws[i].LinkedUnbonding, delayedTime)
 		}
 
-		// Adjust the withdraw end time and re-insert.
+		// Adjust the withdraw completion time and re-insert.
 		withdraws[i].CompletionTime = delayedTime
 		withdraws[i].LinkedUnbonding.CompletionTime = delayedTime
 		k.InsertWithdrawQueue(ctx, withdraws[i])
@@ -190,7 +189,7 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, provider sdk.AccAddress, amount 
 	}
 
 	if remaining.IsPositive() {
-		panic("failed to delay enough withdraws") // TODO
+		panic("failed to delay enough withdraws")
 	}
 
 	return nil

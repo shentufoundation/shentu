@@ -314,9 +314,22 @@ func TestSecureCollaterals(t *testing.T) {
 	require.True(t, w.LinkedUnbonding.CompletionTime.Equal(delayedTime))
 	require.True(t, unbonding.Entries[1].CompletionTime.Equal(delayedTime))
 
-	// UBD queue
+	// check UBD queue
 	timeSlice = stakingKeeper.GetUBDQueueTimeSlice(ctx, ubdTime1)
 	require.True(t, len(timeSlice) == 1)
 	timeSlice = stakingKeeper.GetUBDQueueTimeSlice(ctx, delayedTime)
 	require.True(t, len(timeSlice) == 1)
+
+	// check the purchase
+	purchaseList, found := shieldKeeper.GetPurchaseList(ctx, poolID, purchaser)
+	require.True(t, found)
+	var index int
+	for i, entry := range purchaseList.Entries {
+		if entry.PurchaseID == purchase.PurchaseID {
+			index = i
+			break
+		}
+	}
+	purchase = purchaseList.Entries[index]
+	require.True(t, purchase.Shield.Equal(sdk.NewInt(25000000000)))
 }
