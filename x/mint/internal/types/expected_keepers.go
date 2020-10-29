@@ -2,10 +2,11 @@
 package types
 
 import (
-	"github.com/certikfoundation/shentu/x/shield"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
+
+	"github.com/certikfoundation/shentu/x/shield"
 )
 
 // StakingKeeper defines the expected staking keeper.

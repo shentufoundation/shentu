@@ -5,14 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/certikfoundation/shentu/x/cert"
-	"github.com/certikfoundation/shentu/x/slashing"
-	"github.com/certikfoundation/shentu/x/upgrade"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	"github.com/certikfoundation/shentu/x/shield"
-
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -25,14 +17,20 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	cosmosDistr "github.com/cosmos/cosmos-sdk/x/distribution"
+	govTypes "github.com/cosmos/cosmos-sdk/x/gov"
+	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/certikfoundation/shentu/x/bank"
+	"github.com/certikfoundation/shentu/x/cert"
 	"github.com/certikfoundation/shentu/x/distribution"
 	"github.com/certikfoundation/shentu/x/gov"
+	"github.com/certikfoundation/shentu/x/shield"
+	"github.com/certikfoundation/shentu/x/slashing"
 	"github.com/certikfoundation/shentu/x/staking"
+	"github.com/certikfoundation/shentu/x/upgrade"
 )
 
 var (
