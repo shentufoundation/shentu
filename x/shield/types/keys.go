@@ -25,25 +25,25 @@ const (
 )
 
 var (
-	ShieldAdminKey          = []byte{0x00}
-	TotalCollateralKey      = []byte{0x01}
-	TotalWithdrawingKey     = []byte{0x02}
-	TotalShieldKey          = []byte{0x03}
-	TotalLockedKey          = []byte{0x04}
-	ServiceFeesKey          = []byte{0x05}
-	RemainingServiceFeesKey = []byte{0x06}
-	PoolKey                 = []byte{0x07}
-	NextPoolIDKey           = []byte{0x08}
-	NextPurchaseIDKey       = []byte{0x09}
-	PurchaseListKey         = []byte{0x0A}
-	PurchaseQueueKey        = []byte{0x0B}
-	ProviderKey             = []byte{0x0C}
-	WithdrawQueueKey        = []byte{0x0D}
-	LastUpdateTimeKey       = []byte{0x0E}
-	StakingPurchasePoolKey  = []byte{0x0F}
-	StakingPurchaseRateKey  = []byte{0x10}
-	StakingPurchaseKey      = []byte{0x11}
-	BlockServiceFeesKey     = []byte{0x12}
+	ShieldAdminKey               = []byte{0x00}
+	TotalCollateralKey           = []byte{0x01}
+	TotalWithdrawingKey          = []byte{0x02}
+	TotalShieldKey               = []byte{0x03}
+	TotalLockedKey               = []byte{0x04}
+	ServiceFeesKey               = []byte{0x05}
+	RemainingServiceFeesKey      = []byte{0x06}
+	PoolKey                      = []byte{0x07}
+	NextPoolIDKey                = []byte{0x08}
+	NextPurchaseIDKey            = []byte{0x09}
+	PurchaseListKey              = []byte{0x0A}
+	PurchaseQueueKey             = []byte{0x0B}
+	ProviderKey                  = []byte{0x0C}
+	WithdrawQueueKey             = []byte{0x0D}
+	LastUpdateTimeKey            = []byte{0x0E}
+	GlobalStakingPurchasePoolKey = []byte{0x0F}
+	StakingPurchaseRateKey       = []byte{0x10}
+	StakingPurchaseKey           = []byte{0x11}
+	BlockServiceFeesKey          = []byte{0x12}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -127,8 +127,8 @@ func GetLastUpdateTimeKey() []byte {
 	return LastUpdateTimeKey
 }
 
-func GetStakingPurchasePoolKey() []byte {
-	return StakingPurchasePoolKey
+func GetGlobalStakingPurchasePoolKey() []byte {
+	return GlobalStakingPurchasePoolKey
 }
 
 func GetStakingPurchaseRateKey() []byte {

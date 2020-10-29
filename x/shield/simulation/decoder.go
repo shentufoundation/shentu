@@ -65,6 +65,30 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &timeB)
 		return fmt.Sprintf("%v\n%v", timeA, timeB)
 
+	case bytes.Equal(kvA.Key[:1], types.GlobalStakingPurchasePoolKey):
+		var gSPPA, gSPPB types.GlobalStakingPool
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &gSPPA)
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &gSPPB)
+		return fmt.Sprintf("%v\n%v", gSPPA, gSPPB)
+
+	case bytes.Equal(kvA.Key[:1], types.StakingPurchaseRateKey):
+		var sPRA, sPRB sdk.Dec
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &sPRA)
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &sPRB)
+		return fmt.Sprintf("%v\n%v", sPRA, sPRB)
+
+	case bytes.Equal(kvA.Key[:1], types.StakingPurchaseKey):
+		var sPA, spB types.StakingPurchase
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &sPA)
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &spB)
+		return fmt.Sprintf("%v\n%v", sPA, spB)
+
+	case bytes.Equal(kvA.Key[:1], types.BlockServiceFeesKey):
+		var blockFeesA, blockFeesB types.MixedDecCoins
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &blockFeesA)
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &blockFeesB)
+		return fmt.Sprintf("%v\n%v", blockFeesA, blockFeesB)
+
 	default:
 		panic(fmt.Sprintf("invalid %s key prefix %X", types.ModuleName, kvA.Key[:1]))
 	}

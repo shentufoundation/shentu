@@ -162,7 +162,7 @@ func TestAppImportExport(t *testing.T) {
 		{app.keys[gov.StoreKey], newApp.keys[gov.StoreKey], [][]byte{}},
 		{app.keys[cert.StoreKey], newApp.keys[cert.StoreKey], [][]byte{}},
 		{app.keys[cvm.StoreKey], newApp.keys[cvm.StoreKey], [][]byte{}},
-		{app.keys[shield.StoreKey], newApp.keys[shield.StoreKey], [][]byte{shield.WithdrawQueueKey, shield.PurchaseQueueKey}},
+		{app.keys[shield.StoreKey], newApp.keys[shield.StoreKey], [][]byte{shield.WithdrawQueueKey, shield.PurchaseQueueKey, shield.BlockServiceFeesKey}},
 	}
 
 	for _, skp := range storeKeysPrefixes {
