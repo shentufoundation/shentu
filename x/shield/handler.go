@@ -209,7 +209,7 @@ func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollatera
 }
 
 func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Keeper) (*sdk.Result, error) {
-	_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From, false)
+	purchase, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From, false)
 	if err != nil {
 		return nil, err
 	}
@@ -217,8 +217,16 @@ func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Kee
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePurchaseShield,
+			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(purchase.PurchaseID, 10)),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
-			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
+			sdk.NewAttribute(types.AttributeKeyProtectionEndTime, purchase.ProtectionEndTime.String()),
+			sdk.NewAttribute(types.AttributeKeyPurchaseDescription, purchase.Description),
+			sdk.NewAttribute(types.AttributeKeyShield, purchase.Shield.String()),
+			sdk.NewAttribute(types.AttributeKeyServiceFees, purchase.ServiceFees.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
 	})
@@ -229,19 +237,28 @@ func handleMsgStakingPurchase(ctx sdk.Context, msg types.MsgStakingPurchase, k K
 	if ctx.BlockHeight() < common.UpdateHeight {
 		return nil, types.ErrBeforeUpdate
 	}
-	_, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From, true)
+	purchase, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From, true)
 	if err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypePurchaseShield,
+			types.EventTypeStakingPurchase,
+			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(purchase.PurchaseID, 10)),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
-			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
+			sdk.NewAttribute(types.AttributeKeyProtectionEndTime, purchase.ProtectionEndTime.String()),
+			sdk.NewAttribute(types.AttributeKeyPurchaseDescription, purchase.Description),
+			sdk.NewAttribute(types.AttributeKeyShield, purchase.Shield.String()),
+			sdk.NewAttribute(types.AttributeKeyServiceFees, purchase.ServiceFees.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
 	})
+
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
@@ -249,16 +266,17 @@ func handleMsgWithdrawStaking(ctx sdk.Context, msg types.MsgWithdrawStaking, k K
 	if ctx.BlockHeight() < common.UpdateHeight {
 		return nil, types.ErrBeforeUpdate
 	}
-	err := k.WithdrawStaking(ctx, msg.PoolID, msg.From, msg.Shield.AmountOf(k.BondDenom(ctx)))
+	amount := msg.Shield.AmountOf(k.BondDenom(ctx))
+	err := k.WithdrawStaking(ctx, msg.PoolID, msg.From, amount)
 	if err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypePurchaseShield,
+			types.EventTypeWithdrawStaking,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
-			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
+			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
 	})
