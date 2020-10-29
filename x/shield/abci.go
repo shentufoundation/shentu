@@ -3,8 +3,9 @@ package shield
 import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/certikfoundation/shentu/common"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/certikfoundation/shentu/common"
 )
 
 // BeginBlock executes logics to begin a block.

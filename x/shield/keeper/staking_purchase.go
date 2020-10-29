@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"github.com/certikfoundation/shentu/x/shield/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
 func (k Keeper) GetGlobalStakingPurchasePool(ctx sdk.Context) (pool types.GlobalStakingPool) {
@@ -18,7 +19,6 @@ func (k Keeper) SetGlobalStakingPurchasePool(ctx sdk.Context, pool types.GlobalS
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(pool)
 	store.Set(types.GetStakingPurchasePoolKey(), bz)
-	return
 }
 
 func (k Keeper) GetStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (purchase types.StakingPurchase) {
