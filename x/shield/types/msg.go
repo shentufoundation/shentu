@@ -517,7 +517,7 @@ func NewMsgStakingPurchase(poolID uint64, shield sdk.Coins, description string, 
 func (msg MsgStakingPurchase) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgStakingPurchase) Type() string { return EventTypeWithdrawReimbursement }
+func (msg MsgStakingPurchase) Type() string { return EventTypeStakingPurchase }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgStakingPurchase) GetSigners() []sdk.AccAddress {
@@ -532,5 +532,46 @@ func (msg MsgStakingPurchase) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgStakingPurchase) ValidateBasic() error {
+	return nil
+}
+
+// TODO: eliminate this msg type
+// MsgWithdrawStaking defines the attributes of staking for purchase transaction.
+type MsgWithdrawStaking struct {
+	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
+	Shield      sdk.Coins      `json:"shield" yaml:"shield"`
+	Description string         `json:"description" yaml:"description"`
+	From        sdk.AccAddress `json:"from" yaml:"from"`
+}
+
+// NewMsgWithdrawStaking creates a new MsgPurchaseShield instance.
+func NewMsgWithdrawStaking(poolID uint64, shield sdk.Coins, description string, from sdk.AccAddress) MsgWithdrawStaking {
+	return MsgWithdrawStaking{
+		PoolID:      poolID,
+		Shield:      shield,
+		Description: description,
+		From:        from,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgWithdrawStaking) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgWithdrawStaking) Type() string { return EventTypeWithdrawStaking }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgWithdrawStaking) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgWithdrawStaking) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgWithdrawStaking) ValidateBasic() error {
 	return nil
 }

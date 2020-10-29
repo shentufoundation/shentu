@@ -163,3 +163,19 @@ func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) 
 
 // Withdraws contains multiple withdraws.
 type Withdraws []Withdraw
+
+type GlobalStakingPool struct {
+	Amount sdk.Int
+}
+
+type StakingPurchase struct {
+	PoolID      uint64       `json:"pool_id" yaml:"pool_id"`
+	Amount      sdk.Int      `json:"amount" yaml:"amount"`
+	Locked      sdk.Int      `json:"locked" yaml:"locked"`
+	Expirations []Expiration `json:"expirations" yaml:"expirations"`
+}
+
+type Expiration struct {
+	Time   time.Time `json:"time" yaml:"time"`
+	Amount sdk.Int   `json:"amount" yaml:"amount"`
+}

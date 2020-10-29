@@ -40,7 +40,9 @@ var (
 	ProviderKey             = []byte{0xC}
 	WithdrawQueueKey        = []byte{0xD}
 	LastUpdateTimeKey       = []byte{0xE}
-	PurchaseStakingPoolKey  = []byte{0xF}
+	StakingPurchasePoolKey  = []byte{0xF}
+	StakingPurchaseRateKey  = []byte{0x10}
+	StakingPurchaseKey      = []byte{0x11}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -65,9 +67,6 @@ func GetServiceFeesKey() []byte {
 
 func GetRemainingServiceFeesKey() []byte {
 	return RemainingServiceFeesKey
-}
-func GetPurchaseStakingPoolKey() []byte {
-	return PurchaseStakingPoolKey
 }
 
 // GetPoolKey gets the key for the pool identified by pool ID.
@@ -121,4 +120,18 @@ func GetPurchaseExpirationTimeKey(timestamp time.Time) []byte {
 // GetLastUpdateTimeKey gets the key for the last update time.
 func GetLastUpdateTimeKey() []byte {
 	return LastUpdateTimeKey
+}
+
+func GetStakingPurchasePoolKey() []byte {
+	return StakingPurchasePoolKey
+}
+
+func GetStakingPurchaseRateKey() []byte {
+	return StakingPurchaseRateKey
+}
+
+func GetStakingPurchaseKey(poolID uint64, purchaser sdk.AccAddress) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, poolID)
+	return append(bz, purchaser...)
 }

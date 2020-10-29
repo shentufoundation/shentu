@@ -88,7 +88,8 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	}
 
 	// Check available collaterals.
-	shieldAmt := shield.AmountOf(k.sk.BondDenom(ctx))
+	bondDenom := k.sk.BondDenom(ctx)
+	shieldAmt := shield.AmountOf(bondDenom)
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 	totalShield := k.GetTotalShield(ctx)
@@ -116,7 +117,12 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 		k.SetRemainingServiceFees(ctx, totalRemainingServiceFees)
 	} else {
 		// stake to the staking purchase pool
-
+		stakingAmt := k.GetStakingPurchaseRate(ctx).MulInt(shieldAmt).TruncateInt()
+		stakingCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, stakingAmt))
+		if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, stakingCoins); err != nil {
+			return types.Purchase{}, err
+		}
+		k.AddStaking(ctx, poolID, purchaser, stakingAmt)
 	}
 
 	// Update global pool and project pool's shield.
@@ -149,7 +155,7 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	}
 	bondDenom := k.BondDenom(ctx)
 	serviceFees := sdk.NewCoins()
-	if staking {
+	if !staking {
 		serviceFees = sdk.NewCoins(sdk.NewCoin(bondDenom, shield.AmountOf(bondDenom).ToDec().Mul(k.GetPoolParams(ctx).ShieldFeesRate).TruncateInt()))
 	}
 	return k.purchaseShield(ctx, poolID, shield, description, purchaser, serviceFees)
@@ -178,6 +184,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &timeslice)
 		for _, poolPurchaser := range timeslice {
 			purchaseList, _ := k.GetPurchaseList(ctx, poolPurchaser.PoolID, poolPurchaser.Purchaser)
+			entryDeleted := false
 			for i := 0; i < len(purchaseList.Entries); i++ {
 				entry := purchaseList.Entries[i]
 
@@ -207,8 +214,20 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 					pool.Shield = pool.Shield.Sub(entry.Shield)
 					k.SetPool(ctx, pool)
 					// Minus one because the current entry is deleted.
+					entryDeleted = true
 					i--
 				}
+			}
+
+			if entryDeleted {
+				stakingPurchase := k.GetStakingPurchase(ctx, poolPurchaser.PoolID, poolPurchaser.Purchaser)
+				for i := 0; i < len(stakingPurchase.Expirations); i++ {
+					if stakingPurchase.Expirations[i].Time.Before(ctx.BlockTime()) {
+						stakingPurchase.Locked = stakingPurchase.Locked.Sub(stakingPurchase.Expirations[i].Amount)
+						stakingPurchase.Expirations = append(stakingPurchase.Expirations[:i], stakingPurchase.Expirations[i+1:]...)
+					}
+				}
+				k.SetStakingPurchase(ctx, poolPurchaser.PoolID, poolPurchaser.Purchaser, stakingPurchase)
 			}
 			if len(purchaseList.Entries) == 0 {
 				_ = k.DeletePurchaseList(ctx, purchaseList.PoolID, purchaseList.Purchaser)

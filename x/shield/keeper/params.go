@@ -29,3 +29,18 @@ func (k Keeper) GetClaimProposalParams(ctx sdk.Context) types.ClaimProposalParam
 	k.paramSpace.Get(ctx, types.ParamStoreKeyClaimProposalParams, &claimProposalParams)
 	return claimProposalParams
 }
+
+// GetStakingPurchaseRate returns shield to staked rate.
+func (k Keeper) GetStakingPurchaseRate(ctx sdk.Context) (rate sdk.Dec) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetStakingPurchaseRateKey())
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &rate)
+	return
+}
+
+// SetStakingPurchaseRate sets shield to staked rate.
+func (k Keeper) SetStakingPurchaseRate(ctx sdk.Context, rate sdk.Dec) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(rate)
+	store.Set(types.GetStakingPurchaseRateKey(), bz)
+}
