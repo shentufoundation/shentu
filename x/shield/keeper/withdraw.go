@@ -70,6 +70,19 @@ func (k Keeper) GetAllWithdraws(ctx sdk.Context) (withdraws types.Withdraws) {
 	return withdraws
 }
 
+// GetWithdrawsByProvider gets all withdraws of a provider.
+func (k Keeper) GetWithdrawsByProvider(ctx sdk.Context, providerAddr sdk.AccAddress) (withdraws types.Withdraws) {
+	k.IterateWithdraws(ctx, func(timeSlice types.Withdraws) bool {
+		for _, withdraw := range timeSlice {
+			if withdraw.Address.Equals(providerAddr) {
+				withdraws = append(withdraws, withdraw)
+			}
+		}
+		return false
+	})
+	return withdraws
+}
+
 // DequeueCompletedWithdrawQueue dequeues completed withdraws
 // and processes their completions.
 func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
