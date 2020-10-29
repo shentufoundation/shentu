@@ -186,13 +186,17 @@ func NewStakingPurchase(poolID uint64, purchaser sdk.AccAddress, amount sdk.Int)
 }
 
 type StakingExpiration struct {
-	Time   time.Time `json:"time" yaml:"time"`
-	Amount sdk.Int   `json:"amount" yaml:"amount"`
+	PurchaseID        uint64    `json:"purchase_id" yaml:"purchase_id"`
+	Time              time.Time `json:"time" yaml:"time"`
+	Amount            sdk.Int   `json:"amount" yaml:"amount"`
+	WithdrawRequested sdk.Int   `json:"withdraw_requested" yaml:"withdraw_requested"`
 }
 
-func NewStakingExpiration(time time.Time, amount sdk.Int) StakingExpiration {
+func NewStakingExpiration(time time.Time, amount sdk.Int, purchaseID uint64) StakingExpiration {
 	return StakingExpiration{
-		Time:   time,
-		Amount: amount,
+		Time:              time,
+		Amount:            amount,
+		PurchaseID:        purchaseID,
+		WithdrawRequested: sdk.NewInt(0),
 	}
 }

@@ -266,7 +266,7 @@ func handleMsgWithdrawStaking(ctx sdk.Context, msg types.MsgWithdrawStaking, k K
 		return nil, types.ErrBeforeUpdate
 	}
 	amount := msg.Shield.AmountOf(k.BondDenom(ctx))
-	err := k.WithdrawStaking(ctx, msg.PoolID, msg.From, amount)
+	err := k.WithdrawStaking(ctx, msg.PoolID, msg.From, msg.PurchaseID, amount)
 	if err != nil {
 		return nil, err
 	}

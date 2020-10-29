@@ -279,7 +279,7 @@ func withdrawStakingHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgWithdrawStaking(req.PoolID, req.Amount, from)
+		msg := types.NewMsgWithdrawStaking(req.PoolID, req.Amount, req.PurchaseID, from)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

@@ -591,12 +591,12 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 			if err != nil {
 				return err
 			}
-			description := args[2]
-			if description == "" {
-				return types.ErrPurchaseMissingDescription
+			purchaseID, err := strconv.ParseUint(args[2], 10, 64)
+			if err != nil {
+				return err
 			}
 
-			msg := types.NewMsgStakingPurchase(poolID, shield, description, fromAddr)
+			msg := types.NewMsgWithdrawStaking(poolID, shield, purchaseID, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

@@ -161,7 +161,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 	k.SetNextPoolID(ctx, poolID+1)
 
 	// Purchase shield for the pool.
-	if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", creator, serviceFees.Native); err != nil {
+	if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", creator, serviceFees.Native, false); err != nil {
 		return poolID, err
 	}
 
@@ -190,7 +190,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 
 	// Update purchase and shield.
 	if !shield.IsZero() {
-		if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", updater, serviceFees.Native); err != nil {
+		if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", updater, serviceFees.Native, false); err != nil {
 			return pool, err
 		}
 	} else if !serviceFees.Native.IsZero() {

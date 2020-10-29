@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -53,7 +54,7 @@ func (k Keeper) SubGlobalStakingPurchasePool(ctx sdk.Context, amount sdk.Int) {
 	k.SetGlobalStakingPurchasePool(ctx, pool)
 }
 
-func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int, endTime time.Time) error {
+func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, amount sdk.Int, endTime time.Time) error {
 	k.AddGlobalStakingPurchasePool(ctx, amount)
 	sp, found := k.GetStakingPurchase(ctx, poolID, purchaser)
 	if !found {
@@ -61,7 +62,7 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	}
 	sp.Locked = sp.Locked.Add(amount)
 	sp.Amount = sp.Amount.Add(amount)
-	newExpiration := types.NewStakingExpiration(endTime, amount)
+	newExpiration := types.NewStakingExpiration(endTime, amount, purchaseID)
 	sp.Expirations = append(sp.Expirations, newExpiration)
 	err := k.supplyKeeper.SendCoinsFromAccountToModule(
 		ctx, purchaser, types.ModuleName, sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), amount)))
@@ -72,23 +73,19 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	return nil
 }
 
-func (k Keeper) WithdrawStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) error {
+func (k Keeper) WithdrawStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, amount sdk.Int) error {
 	sp, found := k.GetStakingPurchase(ctx, poolID, purchaser)
 	if !found {
 		return types.ErrPurchaseNotFound
 	}
-	newAmt := sp.Amount.Sub(amount)
-	if newAmt.LT(sp.Locked) {
-		return types.ErrNotEnoughStaked
-	}
-	if newAmt.IsZero() {
-		store := ctx.KVStore(k.storeKey)
-		store.Delete(types.GetStakingPurchaseKey(poolID, purchaser))
-	}
-	sp.Amount = newAmt
-	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(
-		ctx, types.ModuleName, purchaser, sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), amount))); err != nil {
-		return err
+	for i, exp := range sp.Expirations {
+		if exp.PurchaseID != purchaseID {
+			continue
+		}
+		if exp.WithdrawRequested.Add(amount).GT(exp.Amount) {
+			return types.ErrNotEnoughStaked
+		}
+		sp.Expirations[i].WithdrawRequested = sp.Expirations[i].WithdrawRequested.Add(amount)
 	}
 	k.SetStakingPurchase(ctx, poolID, purchaser, sp)
 	return nil
@@ -126,4 +123,36 @@ func (k Keeper) IterateStakingPurchases(ctx sdk.Context, callback func(purchase 
 			break
 		}
 	}
+}
+
+func (k Keeper) ProcessStakingPurchaseExpiration(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, bondDenom string, sPRate sdk.Dec) error {
+	stakingPurchase, spFound := k.GetStakingPurchase(ctx, poolID, purchaser)
+	if spFound {
+		for i := 0; i < len(stakingPurchase.Expirations); i++ {
+			if stakingPurchase.Expirations[i].Time.Before(ctx.BlockTime()) {
+				withdrawAmt := stakingPurchase.Expirations[i].WithdrawRequested
+				k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName,
+					stakingPurchase.Purchaser, sdk.NewCoins(sdk.NewCoin(bondDenom, withdrawAmt)))
+				remaining := stakingPurchase.Expirations[i].Amount.Sub(withdrawAmt)
+
+				if withdrawAmt.LT(stakingPurchase.Expirations[i].Amount) {
+					desc := fmt.Sprint("renewed from PurchaseID %d", stakingPurchase.Expirations[i].PurchaseID)
+					shieldInt := remaining.ToDec().Quo(sPRate).TruncateInt()
+					shieldCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldInt))
+					defer func() {
+						if _, err := k.purchaseShield(ctx, poolID, shieldCoins, desc, purchaser,
+							sdk.NewCoins(sdk.NewCoin(bondDenom, remaining)), true); err != nil {
+							panic(err)
+						}
+					}()
+				}
+
+				stakingPurchase.Locked = stakingPurchase.Locked.Sub(stakingPurchase.Expirations[i].Amount)
+				stakingPurchase.Expirations = append(stakingPurchase.Expirations[:i], stakingPurchase.Expirations[i+1:]...)
+				i--
+			}
+		}
+		k.SetStakingPurchase(ctx, poolID, purchaser, stakingPurchase)
+	}
+	return nil
 }

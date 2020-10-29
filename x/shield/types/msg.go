@@ -538,17 +538,19 @@ func (msg MsgStakingPurchase) ValidateBasic() error {
 // TODO: eliminate this msg type
 // MsgWithdrawStaking defines the attributes of staking for purchase transaction.
 type MsgWithdrawStaking struct {
-	PoolID uint64         `json:"pool_id" yaml:"pool_id"`
-	Shield sdk.Coins      `json:"shield" yaml:"shield"`
-	From   sdk.AccAddress `json:"from" yaml:"from"`
+	PoolID     uint64         `json:"pool_id" yaml:"pool_id"`
+	Shield     sdk.Coins      `json:"shield" yaml:"shield"`
+	PurchaseID uint64         `json:"purchase_id" yaml:"purchase_id"`
+	From       sdk.AccAddress `json:"from" yaml:"from"`
 }
 
 // NewMsgWithdrawStaking creates a new MsgPurchaseShield instance.
-func NewMsgWithdrawStaking(poolID uint64, shield sdk.Coins, from sdk.AccAddress) MsgWithdrawStaking {
+func NewMsgWithdrawStaking(poolID uint64, shield sdk.Coins, purchaseID uint64, from sdk.AccAddress) MsgWithdrawStaking {
 	return MsgWithdrawStaking{
-		PoolID: poolID,
-		Shield: shield,
-		From:   from,
+		PoolID:     poolID,
+		Shield:     shield,
+		PurchaseID: purchaseID,
+		From:       from,
 	}
 }
 
