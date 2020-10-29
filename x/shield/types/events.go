@@ -27,10 +27,10 @@ const (
 	AttributeKeyAccountAddress      = "account_address"
 	AttributeKeyAmount              = "amount"
 	AttributeKeyPurchaseID          = "purchase_id"
+	AttributeKeyCompensationAmount  = "compensation_amount"
+	AttributeKeyBeneficiary         = "beneficiary"
 	AttributeKeyPurchaseDescription = "purchase_description"
 	AttributeKeyServiceFees         = "service_fees"
 	AttributeKeyProtectionEndTime   = "protection_end_time"
-	AttributeKeyCompensationAmount  = "compensation_amount"
-	AttributeKeyBeneficiary         = "beneficiary"
 	AttributeValueCategory          = ModuleName
 )

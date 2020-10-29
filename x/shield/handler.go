@@ -211,7 +211,7 @@ func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Kee
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePurchaseShield,
-			sdk.NewAttribute(types.AttributeKeyPurchaseID, string(purchase.PurchaseID)),
+			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(purchase.PurchaseID, 10)),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyProtectionEndTime, purchase.ProtectionEndTime.String()),
 			sdk.NewAttribute(types.AttributeKeyPurchaseDescription, purchase.Description),
