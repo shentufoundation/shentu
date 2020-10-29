@@ -121,7 +121,7 @@ func SimulateMsgCallSimpleSet(k keeper.Keeper, contractAddr sdk.AccAddress, varV
 			hexStr = "0" + hexStr
 		}
 
-		// call store()
+		// call set()
 		msg, _, err := CallFunction(caller, SimpleSetPrefix, hexStr, contractAddr, k, ctx, r, chainID, app)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
