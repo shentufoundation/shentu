@@ -58,7 +58,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	if lossAmt.GT(purchase.Shield) {
 		return types.ErrNotEnoughShield
 	}
-	k.DequeuePurchase(ctx, purchaseList, purchase.DeletionTime) // IS THIS CORRECT? DEQUEUE THE WHOLE PURCHASE LIST?
+	k.DequeuePurchase(ctx, purchaseList, purchase.DeletionTime)
 	purchase.Shield = purchase.Shield.Sub(lossAmt)
 	votingEndTime := ctx.BlockTime().Add(duration)
 	if purchase.DeletionTime.Before(votingEndTime) {
