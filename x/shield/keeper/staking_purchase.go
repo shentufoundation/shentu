@@ -103,3 +103,27 @@ func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender
 	k.SetBlockServiceFees(ctx, blockServiceFee)
 	return nil
 }
+
+func (k Keeper) GetAllStakingPurchases(ctx sdk.Context) (purchases []types.StakingPurchase) {
+	k.IterateStakingPurchases(ctx, func(purchase types.StakingPurchase) bool {
+		purchases = append(purchases, purchase)
+		return false
+	})
+	return
+}
+
+// IterateStakingPurchases iterates through purchase lists in a pool
+func (k Keeper) IterateStakingPurchases(ctx sdk.Context, callback func(purchase types.StakingPurchase) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.PurchaseListKey)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var purchase types.StakingPurchase
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchase)
+
+		if callback(purchase) {
+			break
+		}
+	}
+}
