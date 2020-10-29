@@ -123,7 +123,9 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 		if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, stakingCoins); err != nil {
 			return types.Purchase{}, err
 		}
-		k.AddStaking(ctx, poolID, purchaser, stakingAmt, protectionEndTime)
+		if err := k.AddStaking(ctx, poolID, purchaser, stakingAmt, protectionEndTime); err != nil {
+			return types.Purchase{}, err
+		}
 	}
 
 	// Update global pool and project pool's shield.

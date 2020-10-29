@@ -53,7 +53,7 @@ func (k Keeper) SubGlobalStakingPurchasePool(ctx sdk.Context, amount sdk.Int) {
 	k.SetGlobalStakingPurchasePool(ctx, pool)
 }
 
-func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int, endTime time.Time) {
+func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int, endTime time.Time) error {
 	k.AddGlobalStakingPurchasePool(ctx, amount)
 	sp, found := k.GetStakingPurchase(ctx, poolID, purchaser)
 	if !found {
@@ -63,7 +63,13 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	sp.Amount = sp.Amount.Add(amount)
 	newExpiration := types.NewStakingExpiration(endTime, amount)
 	sp.Expirations = append(sp.Expirations, newExpiration)
+	err := k.supplyKeeper.SendCoinsFromAccountToModule(
+		ctx, purchaser, types.ModuleName, sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), amount)))
+	if err != nil {
+		return err
+	}
 	k.SetStakingPurchase(ctx, poolID, purchaser, sp)
+	return nil
 }
 
 func (k Keeper) WithdrawStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) error {
@@ -80,6 +86,10 @@ func (k Keeper) WithdrawStaking(ctx sdk.Context, poolID uint64, purchaser sdk.Ac
 		store.Delete(types.GetStakingPurchaseKey(poolID, purchaser))
 	}
 	sp.Amount = newAmt
+	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(
+		ctx, types.ModuleName, purchaser, sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), amount))); err != nil {
+		return err
+	}
 	k.SetStakingPurchase(ctx, poolID, purchaser, sp)
 	return nil
 }

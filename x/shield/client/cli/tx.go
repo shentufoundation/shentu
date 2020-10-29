@@ -52,6 +52,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetCmdClearPayouts(cdc),
 		GetCmdPurchaseShield(cdc),
 		GetCmdWithdrawReimbursement(cdc),
+		GetCmdStakingPurchase(cdc),
+		GetCmdWithdrawStaking(cdc),
 	)...)
 
 	return shieldTxCmd
@@ -518,7 +520,53 @@ func GetCmdStakingPurchase(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "staking-purchase [pool id] [shield amount] [description]",
 		Args:  cobra.ExactArgs(3),
-		Short: "purchase Shield",
+		Short: "purchase Shield through staking",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Purchase Shield. Requires purchaser to provide descriptions of accounts to be protected.
+
+Example:
+$ %s tx shield purchase <pool id> <shield amount> <description>
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			fromAddr := cliCtx.GetFromAddress()
+
+			poolID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+			shield, err := sdk.ParseCoins(args[1])
+			if err != nil {
+				return err
+			}
+			description := args[2]
+			if description == "" {
+				return types.ErrPurchaseMissingDescription
+			}
+
+			msg := types.NewMsgStakingPurchase(poolID, shield, description, fromAddr)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	return cmd
+}
+
+// GetCmdWithdrawStaking implements the command for purchasing Shield.
+func GetCmdWithdrawStaking(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "withdraw-staking [pool id] [amount] ",
+		Args:  cobra.ExactArgs(3),
+		Short: "purchase Shield through staking",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Purchase Shield. Requires purchaser to provide descriptions of accounts to be protected.
 
