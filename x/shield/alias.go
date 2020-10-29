@@ -21,6 +21,7 @@ type (
 	ClaimProposalParams = types.ClaimProposalParams
 	Purchase            = types.Purchase
 	PurchaseList        = types.PurchaseList
+	GlobalStakingPool   = types.GlobalStakingPool
 )
 
 var (

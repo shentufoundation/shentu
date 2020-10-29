@@ -35,8 +35,11 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	communityPoolRatio := k.GetCommunityPoolRatio(ctx)
-	communityPoolCoins := k.GetCommunityPoolMint(ctx, communityPoolRatio, mintedCoin)
-	collectedFeesCoins := mintedCoins.Sub(communityPoolCoins)
+	communityPoolCoins := k.GetPoolMint(ctx, communityPoolRatio, mintedCoin)
+
+	shieldStakingPurchasePoolRatio := k.GetShieldStakingPurchasePoolRatio(ctx)
+	SPPCoins := k.GetPoolMint(ctx, shieldStakingPurchasePoolRatio, mintedCoin)
+	collectedFeesCoins := mintedCoins.Sub(communityPoolCoins).Sub(SPPCoins)
 
 	// send the minted coins to the fee collector account
 	if err := k.AddCollectedFees(ctx, collectedFeesCoins); err != nil {
@@ -44,6 +47,10 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	if err = k.SendToCommunityPool(ctx, communityPoolCoins); err != nil {
+		panic(err)
+	}
+
+	if err = k.SendToShieldRewards(ctx, SPPCoins); err != nil {
 		panic(err)
 	}
 

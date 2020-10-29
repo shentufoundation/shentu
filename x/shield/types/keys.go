@@ -43,6 +43,7 @@ var (
 	StakingPurchasePoolKey  = []byte{0x0F}
 	StakingPurchaseRateKey  = []byte{0x10}
 	StakingPurchaseKey      = []byte{0x11}
+	BlockServiceFeesKey     = []byte{0x12}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -63,6 +64,10 @@ func GetTotalLockedKey() []byte {
 
 func GetServiceFeesKey() []byte {
 	return ServiceFeesKey
+}
+
+func GetBlockServiceFeesKey() []byte {
+	return BlockServiceFeesKey
 }
 
 func GetRemainingServiceFeesKey() []byte {

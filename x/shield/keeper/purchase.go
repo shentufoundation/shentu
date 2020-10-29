@@ -219,8 +219,8 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 				}
 			}
 
-			if entryDeleted {
-				stakingPurchase := k.GetStakingPurchase(ctx, poolPurchaser.PoolID, poolPurchaser.Purchaser)
+			stakingPurchase, spFound := k.GetStakingPurchase(ctx, poolPurchaser.PoolID, poolPurchaser.Purchaser)
+			if entryDeleted && spFound {
 				for i := 0; i < len(stakingPurchase.Expirations); i++ {
 					if stakingPurchase.Expirations[i].Time.Before(ctx.BlockTime()) {
 						stakingPurchase.Locked = stakingPurchase.Locked.Sub(stakingPurchase.Expirations[i].Amount)
@@ -247,6 +247,9 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 		sdk.NewDec(ctx.BlockTime().Sub(lastUpdateTime).Nanoseconds())).QuoDec(
 		sdk.NewDec(k.GetPoolParams(ctx).ProtectionPeriod.Nanoseconds())))
 
+	// Add block service fees that need to be distributed for this block
+	serviceFees = serviceFees.Add(k.GetBlockServiceFees(ctx))
+
 	// Limit service fees by remaining service fees.
 	remainingServiceFees := k.GetRemainingServiceFees(ctx)
 	bondDenom := k.BondDenom(ctx)
@@ -268,6 +271,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 
 		remainingServiceFees.Native = remainingServiceFees.Native.Sub(nativeFees)
 	}
+	k.SetBlockServiceFees(ctx, types.InitMixedDecCoins())
 	k.SetRemainingServiceFees(ctx, remainingServiceFees)
 	k.SetLastUpdateTime(ctx, ctx.BlockTime())
 }

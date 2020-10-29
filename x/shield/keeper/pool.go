@@ -91,6 +91,23 @@ func (k Keeper) GetServiceFees(ctx sdk.Context) types.MixedDecCoins {
 	return serviceFees
 }
 
+func (k Keeper) SetBlockServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(serviceFees)
+	store.Set(types.GetBlockServiceFeesKey(), bz)
+}
+
+func (k Keeper) GetBlockServiceFees(ctx sdk.Context) types.MixedDecCoins {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetBlockServiceFeesKey())
+	if bz == nil {
+		return types.InitMixedDecCoins()
+	}
+	var serviceFees types.MixedDecCoins
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &serviceFees)
+	return serviceFees
+}
+
 func (k Keeper) SetRemainingServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(serviceFees)

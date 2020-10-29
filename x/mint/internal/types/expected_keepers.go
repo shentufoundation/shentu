@@ -2,6 +2,7 @@
 package types
 
 import (
+	"github.com/certikfoundation/shentu/x/shield"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
@@ -30,4 +31,9 @@ type SupplyKeeper interface {
 type DistributionKeeper interface {
 	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 	GetFeePool(ctx sdk.Context) distribution.FeePool
+}
+
+type ShieldKeeper interface {
+	GetGlobalStakingPurchasePool(ctx sdk.Context) shield.GlobalStakingPool
+	FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 }

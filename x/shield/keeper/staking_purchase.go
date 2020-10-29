@@ -12,7 +12,9 @@ func (k Keeper) GetGlobalStakingPurchasePool(ctx sdk.Context) (pool types.Global
 	if bz != nil {
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &pool)
 	}
-	return
+	return types.GlobalStakingPool{
+		Amount: sdk.NewInt(0),
+	}
 }
 
 func (k Keeper) SetGlobalStakingPurchasePool(ctx sdk.Context, pool types.GlobalStakingPool) {
@@ -21,11 +23,12 @@ func (k Keeper) SetGlobalStakingPurchasePool(ctx sdk.Context, pool types.GlobalS
 	store.Set(types.GetStakingPurchasePoolKey(), bz)
 }
 
-func (k Keeper) GetStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (purchase types.StakingPurchase) {
+func (k Keeper) GetStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (purchase types.StakingPurchase, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetStakingPurchaseKey(poolID, purchaser))
 	if bz != nil {
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &purchase)
+		found = true
 	}
 	return
 }
@@ -50,19 +53,35 @@ func (k Keeper) SubGlobalStakingPurchasePool(ctx sdk.Context, amount sdk.Int) {
 
 func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) {
 	k.AddGlobalStakingPurchasePool(ctx, amount)
-	sp := k.GetStakingPurchase(ctx, poolID, purchaser)
+	sp, found := k.GetStakingPurchase(ctx, poolID, purchaser)
+	if !found {
+		sp = types.NewStakingPurchase(poolID, purchaser, amount)
+	}
 	sp.Locked = sp.Locked.Add(amount)
 	sp.Amount = sp.Amount.Add(amount)
 	k.SetStakingPurchase(ctx, poolID, purchaser, sp)
 }
 
 func (k Keeper) WithdrawStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) error {
-	sp := k.GetStakingPurchase(ctx, poolID, purchaser)
+	sp, found := k.GetStakingPurchase(ctx, poolID, purchaser)
+	if !found {
+		return types.ErrPurchaseNotFound
+	}
 	newAmt := sp.Amount.Sub(amount)
 	if newAmt.LT(sp.Locked) {
 		return types.ErrNotEnoughStaked
 	}
 	sp.Amount = newAmt
 	k.SetStakingPurchase(ctx, poolID, purchaser, sp)
+	return nil
+}
+
+func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error {
+	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount); err != nil {
+		return err
+	}
+	blockServiceFee := k.GetBlockServiceFees(ctx)
+	blockServiceFee = blockServiceFee.Add(types.NewMixedDecCoins(sdk.NewDecCoinsFromCoins(amount...), sdk.NewDecCoins()))
+	k.SetBlockServiceFees(ctx, blockServiceFee)
 	return nil
 }
