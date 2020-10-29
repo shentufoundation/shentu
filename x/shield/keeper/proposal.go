@@ -72,7 +72,69 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID u
 
 // PayByCollateral reduce provider's delegations and transfer tokens to the shield module account.
 func (k Keeper) PayByCollateral(ctx sdk.Context, providerAddr sdk.AccAddress, payout sdk.Int) {
-	// TODO
+	delegations := k.sk.GetAllDelegatorDelegations(ctx, providerAddr)
+	totalDelAmountDec := sdk.ZeroDec()
+	for _, del := range delegations {
+		val, found := k.sk.GetValidator(ctx, del.GetValidatorAddr())
+		if !found {
+			panic("validator is not found")
+		}
+		totalDelAmountDec = totalDelAmountDec.Add(val.TokensFromShares(del.GetShares()))
+	}
+
+	payoutDec := payout.ToDec()
+	remainingDec := payoutDec
+	for i := range delegations {
+		val, found := k.sk.GetValidator(ctx, delegations[i].GetValidatorAddr())
+		if !found {
+			panic("validator is not found")
+		}
+		delAmountDec := val.TokensFromShares(delegations[i].GetShares())
+		var ubdAmountDec sdk.Dec
+		if totalDelAmountDec.GT(payoutDec) {
+			// FIXME: Corner case: not enough amount in the last delegation.
+			if i == len(delegations)-1 {
+				ubdAmountDec = remainingDec
+			} else {
+				ubdAmountDec = payoutDec.Mul(delAmountDec).Quo(totalDelAmountDec)
+				remainingDec = remainingDec.Sub(ubdAmountDec)
+			}
+		} else {
+			ubdAmountDec = delAmountDec
+		}
+		ubdShares, err := val.SharesFromTokens(ubdAmountDec.TruncateInt())
+		if err != nil {
+			panic(err)
+		}
+		k.UndelegateShares(ctx, delegations[i].DelegatorAddress, delegations[i].ValidatorAddress, ubdShares)
+	}
+}
+
+// UndelegateShares undelegates delegations of a delegator to a validator by shares.
+func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdk.Dec) {
+	delegation, found := k.sk.GetDelegation(ctx, delAddr, valAddr)
+	if !found {
+		panic("delegation is not found")
+	}
+	k.sk.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
+
+	// Undelegate coins from the staking module account to the shield module account.
+	validator, found := k.sk.GetValidator(ctx, valAddr)
+	if !found {
+		panic("validator was not found")
+	}
+	ubdCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), validator.TokensFromShares(shares).TruncateInt()))
+	if err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, staking.BondedPoolName, types.ModuleName, ubdCoins); err != nil {
+		panic(err)
+	}
+
+	// Update delegation records.
+	delegation.Shares = delegation.Shares.Sub(shares)
+	k.sk.SetDelegation(ctx, delegation)
+	k.sk.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+
+	// Update the validator.
+	k.sk.RemoveValidatorTokensAndShares(ctx, validator, shares)
 }
 
 func (k Keeper) PayByWithdraw(ctx sdk.Context, withdraw types.Withdraw, payout sdk.Int) {
@@ -207,33 +269,6 @@ func (k Keeper) MakePayoutByProvider(ctx sdk.Context, providerAddr sdk.AccAddres
 		}
 	*/
 	return nil
-}
-
-// UndelegateShares undelegates delegations of a delegator to a validator by shares.
-func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdk.Dec) {
-	delegation, found := k.sk.GetDelegation(ctx, delAddr, valAddr)
-	if !found {
-		panic("delegation is not found")
-	}
-	k.sk.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
-
-	// Undelegate coins from the staking module account to the shield module account.
-	validator, found := k.sk.GetValidator(ctx, valAddr)
-	if !found {
-		panic("validator was not found")
-	}
-	ubdCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), validator.TokensFromShares(shares).TruncateInt()))
-	if err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, staking.BondedPoolName, types.ModuleName, ubdCoins); err != nil {
-		panic(err)
-	}
-
-	// Update delegation records.
-	delegation.Shares = delegation.Shares.Sub(shares)
-	k.sk.SetDelegation(ctx, delegation)
-	k.sk.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
-
-	// Update the validator.
-	k.sk.RemoveValidatorTokensAndShares(ctx, validator, shares)
 }
 
 // GetSortedUnbondingDelegations gets unbonding delegations sorted by completion time.
