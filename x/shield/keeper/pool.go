@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
@@ -245,7 +243,6 @@ func (k Keeper) ClosePool(ctx sdk.Context, pool types.Pool) {
 // ClosePools closes pools when both of the pool's shield and shield limit is non-positive.
 func (k Keeper) ClosePools(ctx sdk.Context) {
 	k.IterateAllPools(ctx, func(pool types.Pool) bool {
-		fmt.Println(pool)
 		if !pool.Shield.IsPositive() && !pool.ShieldLimit.IsPositive() {
 			k.ClosePool(ctx, pool)
 		}
