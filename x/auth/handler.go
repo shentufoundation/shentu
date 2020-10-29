@@ -42,6 +42,11 @@ func handleMsgUnlock(ctx sdk.Context, ak AccountKeeper, msg types.MsgUnlock) (*s
 
 	// update vested coins
 	mvacc.VestedCoins = mvacc.VestedCoins.Add(msg.UnlockAmount...)
+	if mvacc.DelegatedVesting.IsAllGT(mvacc.OriginalVesting.Sub(mvacc.VestedCoins)) {
+		unlockedDelegated := mvacc.DelegatedVesting.Sub(mvacc.OriginalVesting.Sub(mvacc.VestedCoins))
+		mvacc.DelegatedVesting = mvacc.DelegatedVesting.Sub(unlockedDelegated)
+		mvacc.DelegatedFree = mvacc.DelegatedFree.Add(unlockedDelegated...)
+	}
 	ak.SetAccount(ctx, mvacc)
 
 	ctx.EventManager().EmitEvent(
