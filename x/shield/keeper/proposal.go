@@ -54,22 +54,15 @@ func (k Keeper) DeleteReimbursement(ctx sdk.Context, proposalID uint64) error {
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID uint64, rmb sdk.Coins, beneficiary sdk.AccAddress) error {
 	totalCollateral := k.GetTotalCollateral(ctx)
-	// FIXME: Should use provider.TotalLocked instead of totalLocked.
-	totalLocked := k.GetTotalLocked(ctx)
-	bondDenom := k.BondDenom(ctx)
-	rmbAmt := rmb.AmountOf(bondDenom)
+	rmbAmt := rmb.AmountOf(k.BondDenom(ctx))
+	payoutRatio := rmbAmt.ToDec().Quo(totalCollateral.ToDec())
 	// FIXME: Consider leftovers.
 	// FIXME: Accumulative errors could be large when the number of providers is large.
 	for _, provider := range k.GetAllProviders(ctx) {
-		// FIXME: Check HY's implementations to decide the way of calculating losses.
-		proportion := provider.Collateral.ToDec().Quo(totalCollateral.Add(totalLocked).ToDec())
-		payoutAmt := rmbAmt.ToDec().Mul(proportion).TruncateInt()
-		provider.Collateral = provider.Collateral.Sub(payoutAmt)
-		k.SetProvider(ctx, provider.Address, provider)
+		// FIXME: Use truncate int or dec?
+		payoutAmt := provider.Collateral.ToDec().Mul(payoutRatio).TruncateInt()
 
-		// FIXME: Check withdraws.
-		// FIXME: HY: will set mapping between withdraws and delegations.
-		if err := k.UndelegateCoinsToShieldModule(ctx, provider.Address, payoutAmt); err != nil {
+		if err := k.PayoutByProvider(ctx, provider.Address, payoutAmt); err != nil {
 			panic(err)
 		}
 	}
@@ -78,8 +71,8 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID u
 	return nil
 }
 
-// UndelegateCoinsToShieldModule undelegates delegations and send coins the the shield module.
-func (k Keeper) UndelegateCoinsToShieldModule(ctx sdk.Context, delAddr sdk.AccAddress, loss sdk.Int) error {
+// PayoutByProvider undelegates delegations and send coins the the shield module.
+func (k Keeper) PayoutByProvider(ctx sdk.Context, delAddr sdk.AccAddress, loss sdk.Int) error {
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
 	totalDelAmountDec := sdk.ZeroDec()
 	for _, del := range delegations {
