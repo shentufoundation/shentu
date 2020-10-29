@@ -54,15 +54,14 @@ func (k Keeper) DeleteReimbursement(ctx sdk.Context, proposalID uint64) error {
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID uint64, rmb sdk.Coins, beneficiary sdk.AccAddress) error {
 	totalCollateral := k.GetTotalCollateral(ctx)
-	rmbAmt := rmb.AmountOf(k.BondDenom(ctx))
-	payoutRatio := rmbAmt.ToDec().Quo(totalCollateral.ToDec())
+	payoutRatio := rmb.AmountOf(k.BondDenom(ctx)).ToDec().Quo(totalCollateral.ToDec())
+	purchaseRatio := k.GetTotalShield(ctx).ToDec().Quo(totalCollateral.ToDec())
 	// FIXME: Consider leftovers.
 	// FIXME: Accumulative errors could be large when the number of providers is large.
 	for _, provider := range k.GetAllProviders(ctx) {
-		// FIXME: Use truncate int or dec?
-		payoutAmt := provider.Collateral.ToDec().Mul(payoutRatio).TruncateInt()
-
-		if err := k.PayoutByProvider(ctx, provider.Address, payoutAmt); err != nil {
+		payout := provider.Collateral.ToDec().Mul(payoutRatio).TruncateInt()
+		purchased := provider.Collateral.ToDec().Mul(purchaseRatio).TruncateInt()
+		if err := k.MakePayoutByProvider(ctx, provider.Address, purchased, payout); err != nil {
 			panic(err)
 		}
 	}
@@ -71,8 +70,23 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID u
 	return nil
 }
 
-// PayoutByProvider undelegates delegations and send coins the the shield module.
-func (k Keeper) PayoutByProvider(ctx sdk.Context, delAddr sdk.AccAddress, loss sdk.Int) error {
+// PayFromDelegations reduce provider's delegations and transfer tokens to the shield module account.
+func (k Keeper) PayFromDelegations(ctx sdk.Context, providerAddr sdk.AccAddress, payout sdk.Int) {}
+
+// MakePayoutByProvider undelegates delegations and send coins the the shield module.
+func (k Keeper) MakePayoutByProvider(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout sdk.Int) error {
+	provider, found := k.GetProvider(ctx, providerAddr)
+	if !found {
+		return types.ErrProviderNotFound
+	}
+
+	// collateral - withdrawing >= purchased + payout
+	if provider.Collateral.Sub(provider.Withdrawing).GTE(purchased.Add(payout)) {
+		k.PayFromDelegations(ctx, providerAddr, payout)
+		return nil
+	}
+
+	/*
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
 	totalDelAmountDec := sdk.ZeroDec()
 	for _, del := range delegations {
@@ -137,6 +151,7 @@ func (k Keeper) PayoutByProvider(ctx sdk.Context, delAddr sdk.AccAddress, loss s
 	if remainingDec.IsPositive() {
 		panic("not enough bonded stake")
 	}
+	 */
 	return nil
 }
 
