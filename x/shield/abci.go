@@ -1,9 +1,9 @@
 package shield
 
 import (
-	"github.com/certikfoundation/shentu/common"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/certikfoundation/shentu/common"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
