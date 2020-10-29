@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -136,7 +137,7 @@ func (k Keeper) ProcessStakingPurchaseExpiration(ctx sdk.Context, poolID uint64,
 				remaining := stakingPurchase.Expirations[i].Amount.Sub(withdrawAmt)
 
 				if withdrawAmt.LT(stakingPurchase.Expirations[i].Amount) {
-					desc := fmt.Sprint("renewed from PurchaseID %d", stakingPurchase.Expirations[i].PurchaseID)
+					desc := fmt.Sprintf(`renewed from PurchaseID %s`, strconv.FormatUint(stakingPurchase.Expirations[i].PurchaseID, 10))
 					shieldInt := remaining.ToDec().Quo(sPRate).TruncateInt()
 					shieldCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldInt))
 					defer func() {
