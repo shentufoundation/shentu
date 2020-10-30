@@ -121,7 +121,7 @@ func (k Keeper) IterateStakingPurchases(ctx sdk.Context, callback func(purchase 
 	}
 }
 
-func (k Keeper) ProcessStakingPurchaseExpiration(ctx sdk.Context, poolID, purchaseID uint64, bondDenom string, purchaser sdk.AccAddress, sPRate sdk.Dec) error {
+func (k Keeper) ProcessStakingPurchaseExpiration(ctx sdk.Context, poolID, purchaseID uint64, bondDenom string, purchaser sdk.AccAddress) error {
 	stakingPurchase, found := k.GetStakingPurchase(ctx, poolID, purchaser)
 	if !found {
 		return nil
@@ -141,6 +141,7 @@ func (k Keeper) ProcessStakingPurchaseExpiration(ctx sdk.Context, poolID, purcha
 		return nil
 	}
 
+	sPRate := k.GetStakingPurchaseRate(ctx)
 	renewShieldInt := sPRate.QuoInt(amount).TruncateInt()
 	renewShield := sdk.NewCoins(sdk.NewCoin(bondDenom, renewShieldInt))
 	desc := fmt.Sprintf(`renewed from PurchaseID %s`, strconv.FormatUint(purchaseID, 10))

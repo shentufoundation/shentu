@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"time"
 
+	"github.com/certikfoundation/shentu/common"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
@@ -179,7 +181,6 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 	totalShield := k.GetTotalShield(ctx)
 	serviceFees := types.InitMixedDecCoins()
 	bondDenom := k.BondDenom(ctx)
-	sPRate := k.GetStakingPurchaseRate(ctx)
 
 	// Check all purchases whose protection end time is before current block time.
 	// 1) Update service fees for purchases whose protection end time is before current block time.
@@ -197,9 +198,9 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 				// If purchaseProtectionEndTime > previousBlockTime, update service fees.
 				// Otherwise services fees were updated in the last block.
 				if entry.ProtectionEndTime.After(lastUpdateTime) && entry.ServiceFees.Native.IsAllPositive() {
-					if entry.ServiceFees.Native.IsZero() {
+					if entry.ServiceFees.Native.IsZero() && ctx.BlockHeight() > common.UpdateHeight {
 						k.ProcessStakingPurchaseExpiration(ctx, poolPurchaser.PoolID, entry.PurchaseID, bondDenom,
-							poolPurchaser.Purchaser, sPRate)
+							poolPurchaser.Purchaser)
 					}
 					// Add purchaseServiceFees * (purchaseProtectionEndTime - previousBlockTime) / protectionPeriod.
 					serviceFees = serviceFees.Add(entry.ServiceFees.MulDec(

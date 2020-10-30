@@ -1,6 +1,7 @@
 package shield
 
 import (
+	"github.com/certikfoundation/shentu/x/shield/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,7 +12,7 @@ import (
 // BeginBlock executes logics to begin a block.
 func BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 	if ctx.BlockHeight() == common.UpdateHeight {
-		k.SetStakingPurchaseRate(ctx, sdk.NewDec(2))
+		k.SetStakingPurchaseRate(ctx, types.DefaultStakingShieldRate)
 	}
 }
 
