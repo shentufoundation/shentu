@@ -70,8 +70,8 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID u
 	return nil
 }
 
-// PayByCollateral reduce provider's delegations and transfer tokens to the shield module account.
-func (k Keeper) PayByCollateral(ctx sdk.Context, providerAddr sdk.AccAddress, payout sdk.Int) {
+// PayFromDelegation reduce provider's delegations and transfer tokens to the shield module account.
+func (k Keeper) PayFromDelegation(ctx sdk.Context, providerAddr sdk.AccAddress, payout sdk.Int) {
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, providerAddr)
 	totalDelAmountDec := sdk.ZeroDec()
 	for _, del := range delegations {
@@ -110,6 +110,9 @@ func (k Keeper) PayByCollateral(ctx sdk.Context, providerAddr sdk.AccAddress, pa
 	}
 }
 
+// PayFromUnbonding reduce provider's unbonding delegation and transfer tokens to the shield module account.
+func (k Keeper) PayFromUnbonding(ctx sdk.Context, ubd staking.UnbondingDelegation, payout sdk.Int) {}
+
 // UndelegateShares undelegates delegations of a delegator to a validator by shares.
 func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdk.Dec) {
 	delegation, found := k.sk.GetDelegation(ctx, delAddr, valAddr)
@@ -137,8 +140,104 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	k.sk.RemoveValidatorTokensAndShares(ctx, validator, shares)
 }
 
-func (k Keeper) PayByWithdraw(ctx sdk.Context, withdraw types.Withdraw, payout sdk.Int) {
-	// TODO
+func (k Keeper) PayFromWithdraw(ctx sdk.Context, withdraw types.Withdraw, payout, purchased sdk.Int) {
+	provider, found := k.GetProvider(ctx, withdraw.Address)
+	if !found {
+		panic(types.ErrProviderNotFound)
+	}
+
+	payoutFromDelegation := sdk.ZeroInt()
+	payoutFromUnbonding := sdk.ZeroInt()
+	if provider.DelegationBonded.GTE(purchased.Add(payout)) {
+		// If delegation >= purchased + payout.
+		//        |        withdraw      |
+		//     purchased     | payout |
+		//   -----|----------'--------'--|-----
+		//            delegations                     unbondings
+		// -------------------------------|---------------------------------
+		payoutFromDelegation = payout
+	} else if provider.DelegationBonded.GTE(purchased) {
+		// If purchased <= delegation < purchased + payout.
+		//                  |        withdraw      |
+		//               purchased     | payout |
+		//             -----|----------'--------'--|-----
+		//            delegations                     unbondings
+		// -------------------------------|---------------------------------
+		payoutFromDelegation = provider.DelegationBonded.Sub(purchased)
+		payoutFromUnbonding = payout.Sub(payoutFromDelegation)
+	} else {
+		// If delegation < purchased.
+		//                         |        withdraw      |
+		//                      purchased     | payout |
+		//                    -----|----------'--------'--|-----
+		//            delegations                     unbondings
+		// -------------------------------|---------------------------------
+		// or
+		//                                   |        withdraw      |
+		//                                purchased     | payout |
+		//                              -----|----------'--------'--|-----
+		//            delegations                     unbondings
+		// -------------------------------|---------------------------------
+		payoutFromUnbonding = payout
+	}
+
+	if payoutFromDelegation.IsPositive() {
+		k.PayFromDelegation(ctx, provider.Address, payoutFromDelegation)
+	}
+
+	if payoutFromUnbonding.IsPositive() {
+		uncoveredPurchase := sdk.MaxInt(sdk.ZeroInt(), purchased.Sub(provider.DelegationBonded))
+		unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, provider.Address)
+		for _, ubd := range unbondingDelegations {
+			entry := ubd.Entries[0]
+			// If purchased is not fully covered, cover purchased first.
+			remainingUbd := entry.Balance
+			if uncoveredPurchase.IsPositive() {
+				if uncoveredPurchase.GTE(entry.Balance) {
+					uncoveredPurchase = uncoveredPurchase.Sub(entry.Balance)
+					remainingUbd = sdk.ZeroInt()
+				} else {
+					remainingUbd = entry.Balance.Sub(uncoveredPurchase)
+					uncoveredPurchase = sdk.ZeroInt()
+				}
+			}
+
+			// Make payout after purchased is fully covered.
+			if remainingUbd.IsPositive() {
+				if remainingUbd.GTE(payout) {
+					k.PayFromUnbonding(ctx, ubd, payout)
+					return
+				}
+				k.PayFromUnbonding(ctx, ubd, remainingUbd)
+				payoutFromUnbonding = payoutFromUnbonding.Sub(remainingUbd)
+			}
+		}
+	}
+
+	// Update collateral and withdraw.
+	provider.Collateral = provider.Collateral.Sub(payout)
+	provider.Withdrawing = provider.Withdrawing.Sub(payout)
+	k.SetProvider(ctx, provider.Address, provider)
+
+	// Update withdraw queue.
+}
+
+// GetSortedUnbondingDelegations gets unbonding delegations sorted by completion time from latest to earliest.
+func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAddress) []staking.UnbondingDelegation {
+	ubds := k.sk.GetAllUnbondingDelegations(ctx, delAddr)
+	var unbondingDelegations []staking.UnbondingDelegation
+	for _, ubd := range ubds {
+		for _, entry := range ubd.Entries {
+			unbondingDelegations = append(
+				unbondingDelegations,
+				types.NewUnbondingDelegation(ubd.DelegatorAddress, ubd.ValidatorAddress, entry),
+			)
+		}
+	}
+	sort.SliceStable(unbondingDelegations, func(i, j int) bool {
+		return unbondingDelegations[i].Entries[0].CompletionTime.After(unbondingDelegations[j].Entries[0].CompletionTime)
+	})
+	return unbondingDelegations
 }
 
 // MakePayoutByProvider undelegates delegations and send coins the the shield module.
@@ -148,9 +247,9 @@ func (k Keeper) MakePayoutByProvider(ctx sdk.Context, providerAddr sdk.AccAddres
 		return types.ErrProviderNotFound
 	}
 
-	// If collateral - withdrawing >= purchased + payout, make payouts from collateral - withdrawing.
-	// If purchased <= collateral - withdrawing < purchased + payout, make payouts from collateral - withdrawing and withdrawing.
-	// Otherwise, make payouts from withdrawing.
+	// If collateral - withdraw >= purchased + payout, make payouts from collateral - withdraw.
+	// If purchased <= collateral - withdraw < purchased + payout, make payouts from collateral - withdraw and withdraw.
+	// Otherwise, make payouts from withdraw.
 	uncoveredPurchase := sdk.ZeroInt()
 	payoutFromCollateral := sdk.ZeroInt()
 	if provider.Collateral.Sub(provider.Withdrawing).GTE(purchased.Add(payout)) {
@@ -162,17 +261,17 @@ func (k Keeper) MakePayoutByProvider(ctx sdk.Context, providerAddr sdk.AccAddres
 	}
 	payoutFromWithdraw := payout.Sub(payoutFromCollateral)
 
-	// Make payout from collateral - withdrawing.
+	// Make payout from collateral - withdraw.
 	if payoutFromCollateral.IsPositive() {
-		k.PayByCollateral(ctx, providerAddr, payoutFromCollateral)
+		k.PayFromDelegation(ctx, providerAddr, payoutFromCollateral)
 	}
 
-	// If no payout needs to be made from withdrawing, finish payout.
+	// If no payout needs to be made from withdraw, finish payout.
 	if payoutFromWithdraw.IsZero() {
 		return nil
 	}
 
-	// Make payout from withdrawing.
+	// Make payout from withdraw.
 	withdraws := k.GetWithdrawsByProvider(ctx, providerAddr)
 	// From latest to oldest.
 	for i := len(withdraws) - 1; i >= 0; i-- {
@@ -183,17 +282,17 @@ func (k Keeper) MakePayoutByProvider(ctx sdk.Context, providerAddr sdk.AccAddres
 				uncoveredPurchase = uncoveredPurchase.Sub(withdraws[i].Amount)
 				remainingWithdraw = sdk.ZeroInt()
 			} else {
-				uncoveredPurchase = sdk.ZeroInt()
 				remainingWithdraw = withdraws[i].Amount.Sub(uncoveredPurchase)
+				uncoveredPurchase = sdk.ZeroInt()
 			}
 		}
 		// Make payout after purchased is fully covered.
 		if remainingWithdraw.IsPositive() {
 			if remainingWithdraw.GTE(payoutFromWithdraw) {
-				k.PayByWithdraw(ctx, withdraws[i], payoutFromWithdraw)
+				k.PayFromWithdraw(ctx, withdraws[i], payoutFromWithdraw, purchased)
 				return nil
 			}
-			k.PayByWithdraw(ctx, withdraws[i], remainingWithdraw)
+			k.PayFromWithdraw(ctx, withdraws[i], remainingWithdraw, purchased)
 			payoutFromWithdraw = payoutFromCollateral.Sub(remainingWithdraw)
 		}
 	}
@@ -203,46 +302,6 @@ func (k Keeper) MakePayoutByProvider(ctx sdk.Context, providerAddr sdk.AccAddres
 	return nil
 
 	/*
-		delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
-		totalDelAmountDec := sdk.ZeroDec()
-		for _, del := range delegations {
-			val, found := k.sk.GetValidator(ctx, del.GetValidatorAddr())
-			if !found {
-				panic("validator is not found")
-			}
-			totalDelAmountDec = totalDelAmountDec.Add(val.TokensFromShares(del.GetShares()))
-		}
-
-		// Start with bonded delegations.
-		lossAmountDec := loss.ToDec()
-		remainingDec := lossAmountDec
-		for i := range delegations {
-			val, found := k.sk.GetValidator(ctx, delegations[i].GetValidatorAddr())
-			if !found {
-				panic("validator is not found")
-			}
-			delAmountDec := val.TokensFromShares(delegations[i].GetShares())
-			var ubdAmountDec sdk.Dec
-			if totalDelAmountDec.GT(lossAmountDec) {
-				if i == len(delegations)-1 {
-					ubdAmountDec = remainingDec
-				} else {
-					ubdAmountDec = lossAmountDec.Mul(delAmountDec).Quo(totalDelAmountDec)
-					remainingDec = remainingDec.Sub(ubdAmountDec)
-				}
-			} else {
-				ubdAmountDec = delAmountDec
-			}
-			ubdShares, err := val.SharesFromTokens(ubdAmountDec.TruncateInt())
-			if err != nil {
-				panic(err)
-			}
-			k.UndelegateShares(ctx, delegations[i].DelegatorAddress, delegations[i].ValidatorAddress, ubdShares)
-		}
-		if totalDelAmountDec.GTE(lossAmountDec) {
-			return nil
-		}
-
 		// If bonded delegations are not enough, track unbonding delegations.
 		unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, delAddr)
 		for _, ubd := range unbondingDelegations {
@@ -268,25 +327,6 @@ func (k Keeper) MakePayoutByProvider(ctx sdk.Context, providerAddr sdk.AccAddres
 			panic("not enough bonded stake")
 		}
 	*/
-	return nil
-}
-
-// GetSortedUnbondingDelegations gets unbonding delegations sorted by completion time.
-func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAddress) []staking.UnbondingDelegation {
-	ubds := k.sk.GetAllUnbondingDelegations(ctx, delAddr)
-	var unbondingDelegations []staking.UnbondingDelegation
-	for _, ubd := range ubds {
-		for _, entry := range ubd.Entries {
-			unbondingDelegations = append(
-				unbondingDelegations,
-				types.NewUnbondingDelegation(ubd.DelegatorAddress, ubd.ValidatorAddress, entry),
-			)
-		}
-	}
-	sort.SliceStable(unbondingDelegations, func(i, j int) bool {
-		return unbondingDelegations[i].Entries[0].CompletionTime.After(unbondingDelegations[j].Entries[0].CompletionTime)
-	})
-	return unbondingDelegations
 }
 
 // RedirectUnbondingEntryToShieldModule changes the recipient of an unbonding delegation to the shield module.
