@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmkv "github.com/tendermint/tendermint/libs/kv"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
@@ -30,6 +32,7 @@ import (
 	distr "github.com/certikfoundation/shentu/x/distribution"
 	"github.com/certikfoundation/shentu/x/gov"
 	"github.com/certikfoundation/shentu/x/mint"
+	"github.com/certikfoundation/shentu/x/oracle"
 	"github.com/certikfoundation/shentu/x/shield"
 	"github.com/certikfoundation/shentu/x/staking"
 )
@@ -162,6 +165,7 @@ func TestAppImportExport(t *testing.T) {
 		{app.keys[gov.StoreKey], newApp.keys[gov.StoreKey], [][]byte{}},
 		{app.keys[cert.StoreKey], newApp.keys[cert.StoreKey], [][]byte{}},
 		{app.keys[cvm.StoreKey], newApp.keys[cvm.StoreKey], [][]byte{}},
+		{app.keys[oracle.StoreKey], newApp.keys[oracle.StoreKey], [][]byte{oracle.TaskStoreKeyPrefix, oracle.ClosingTaskStoreKeyPrefix}},
 		{app.keys[shield.StoreKey], newApp.keys[shield.StoreKey], [][]byte{shield.WithdrawQueueKey, shield.PurchaseQueueKey}},
 	}
 
@@ -170,6 +174,22 @@ func TestAppImportExport(t *testing.T) {
 		storeB := ctxB.KVStore(skp.B)
 
 		failedKVAs, failedKVBs := sdk.DiffKVStores(storeA, storeB, skp.Prefixes)
+
+		// remove oracle's withdraw pairs if any.
+		if skp.A.Name() == oracle.StoreKey {
+			var kvAs, kvBs []tmkv.Pair
+			prefix := oracle.WithdrawStoreKeyPrefix
+			for i := 0; i < len(failedKVAs); i++ {
+				if !bytes.Equal(failedKVAs[i].Key[:len(prefix)], prefix) ||
+					!bytes.Equal(failedKVBs[i].Key[:len(prefix)], prefix) {
+					kvAs = append(kvAs, failedKVAs[i])
+					kvBs = append(kvBs, failedKVBs[i])
+				}
+			}
+			failedKVAs = kvAs
+			failedKVBs = kvBs
+		}
+
 		require.Equal(t, len(failedKVAs), len(failedKVBs), "unequal sets of key-values to compare")
 		if len(failedKVAs) != 0 {
 			fmt.Printf("found %d non-equal key/value pairs between %s and %s\n", len(failedKVAs), skp.A.Name(), skp.B.Name())

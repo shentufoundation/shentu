@@ -29,7 +29,9 @@ func (k Keeper) DeleteTask(ctx sdk.Context, task types.Task) error {
 func (k Keeper) UpdateAndSetTask(ctx sdk.Context, task types.Task) {
 	task.ClosingBlock = ctx.BlockHeight() + task.WaitingBlocks
 	k.SetTask(ctx, task)
-	k.SetClosingBlockStore(ctx, task)
+	if task.WaitingBlocks > 0 {
+		k.SetClosingBlockStore(ctx, task)
+	}
 }
 
 // SetClosingBlockStore sets the store of the aggregation block for a task.
@@ -151,7 +153,8 @@ func (k Keeper) GetAllTasks(ctx sdk.Context) (tasks []types.Task) {
 // UpdateAndGetAllTasks updates all tasks and returns them.
 func (k Keeper) UpdateAndGetAllTasks(ctx sdk.Context) (tasks []types.Task) {
 	k.IteratorAllTasks(ctx, func(task types.Task) bool {
-		_ = k.UpdateWaitingBlocks(ctx, task)
+		// _ = k.UpdateWaitingBlocks(ctx, task)
+		task.WaitingBlocks = task.ClosingBlock - ctx.BlockHeight()
 		tasks = append(tasks, task)
 		return false
 	})
