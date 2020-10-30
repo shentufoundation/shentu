@@ -1,10 +1,4 @@
-# CertiK Chain Documentation
+# Documents
 
-## Client Endpoints
-
-- [CLI Endpoints](cli/README.md)
-- [API Endpoints](api/README.md)
-
-## Module Documentation
-
-For module documentation, please see [`x/`](../x/).
+- [CLI Commands](cli/README.md)
+- [REST API Spec](../client/lcd/swagger-ui/index.html)
