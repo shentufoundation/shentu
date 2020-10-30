@@ -149,5 +149,8 @@ func (k Keeper) ProcessStakingPurchaseExpiration(ctx sdk.Context, poolID, purcha
 		sdk.NewCoins(), sdk.NewCoins(sdk.NewCoin(bondDenom, renew))); err != nil {
 		panic(err)
 	}
+	withdrawAmt := amount.Sub(renew)
+	withdrawCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, withdrawAmt))
+	k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, withdrawCoins)
 	return nil
 }
