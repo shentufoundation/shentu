@@ -133,11 +133,14 @@ func (k Keeper) ProcessStakingPurchaseExpiration(ctx sdk.Context, poolID, purcha
 		return nil
 	}
 	amount := k.GetOriginalStaking(ctx, purchaseID)
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetOriginalStakingKey(purchaseID))
+
 	renew := amount.Sub(stakingPurchase.WithdrawRequested)
 	if renew.IsNegative() {
 		renew = sdk.NewInt(0)
 	}
-	stakingPurchase.WithdrawRequested = stakingPurchase.WithdrawRequested.Sub(amount)
+	stakingPurchase.WithdrawRequested = sdk.MaxInt(sdk.ZeroInt(), stakingPurchase.WithdrawRequested.Sub(amount))
 	stakingPurchase.Amount = stakingPurchase.Amount.Sub(amount)
 	k.SetStakingPurchase(ctx, poolID, purchaser, stakingPurchase)
 	if renew.IsZero() {
