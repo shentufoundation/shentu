@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	auth_types "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 
 	"github.com/hyperledger/burrow/execution/evm/abi"
 
@@ -326,19 +326,19 @@ func GetAccountCmd(cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			address := args[0]
 
-			var baseAcc *auth_types.BaseAccount
+			var account exported.Account
 			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cvm/account/%s", address), nil)
 			if err != nil {
 				return err
 			}
-			cdc.MustUnmarshalJSON(res, &baseAcc)
+			cdc.MustUnmarshalJSON(res, &account)
 
-			cvmAcc, err := utils.QueryCVMAccount(cliCtx, address, baseAcc)
+			cvmAcc, err := utils.QueryCVMAccount(cliCtx, address, account)
 			if err == nil {
 				return cliCtx.PrintOutput(cvmAcc)
 			}
 
-			return cliCtx.PrintOutput(baseAcc)
+			return cliCtx.PrintOutput(account)
 		},
 	}
 

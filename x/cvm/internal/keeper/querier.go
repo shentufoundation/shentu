@@ -221,7 +221,6 @@ func queryAccount(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 		panic("Could not parse address " + path[0])
 	}
 
-	// account := keeper.getAccount(ctx, crypto.MustAddressFromBytes(addr))
 	account := keeper.AuthKeeper().GetAccount(ctx, addr)
 	if account == nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, path[0])

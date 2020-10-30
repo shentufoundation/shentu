@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	auth_types "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/certikfoundation/shentu/x/cvm/internal/types"
 )
 
 // QueryCVMAccount is to query the cvm contract related info by addresss
-func QueryCVMAccount(cliCtx context.CLIContext, address string, baseAcc *auth_types.BaseAccount) (*types.CVMAccount, error) {
+func QueryCVMAccount(cliCtx context.CLIContext, address string, account exported.Account) (*types.CVMAccount, error) {
 	cvmCodeRes, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cvm/code/%s", address), nil)
 	if err != nil {
 		return nil, err
@@ -31,6 +32,11 @@ func QueryCVMAccount(cliCtx context.CLIContext, address string, baseAcc *auth_ty
 	cvmAbi := string(cvmAbiOut.Abi)
 	if cvmAbi == "" {
 		return nil, ErrEmptyCVMAbi
+	}
+
+	baseAcc, ok := account.(*auth_types.BaseAccount)
+	if !ok {
+		return nil, ErrBaseAccount
 	}
 
 	cvmAcc := types.NewCVMAccount(
