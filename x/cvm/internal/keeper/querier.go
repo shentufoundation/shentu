@@ -35,6 +35,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryMeta(ctx, path[1:], req, keeper)
 		case types.QueryView:
 			return queryView(ctx, path[1:], req, keeper)
+		case types.QueryAccount:
+			return queryAccount(ctx, path[1:], req, keeper)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown cvm query endpoint "+strings.Join(path, "/"))
 		}
@@ -207,4 +209,27 @@ func queryMeta(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 	}
 	res, err = codec.MarshalJSONIndent(keeper.cdc, types.QueryResMeta{Meta: meta})
 	return
+}
+
+func queryAccount(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
+	if len(path) != 1 {
+		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 1 args. Found %d.", len(path))
+	}
+
+	addr, err := sdk.AccAddressFromBech32(path[0])
+	if err != nil {
+		panic("Could not parse address " + path[0])
+	}
+
+	account := keeper.AuthKeeper().GetAccount(ctx, addr)
+	if account == nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, path[0])
+	}
+
+	res, err = codec.MarshalJSONIndent(keeper.cdc, account)
+	if err != nil {
+		panic("could not marshal result to JSON")
+	}
+
+	return res, nil
 }

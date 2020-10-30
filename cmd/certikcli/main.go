@@ -108,6 +108,7 @@ func queryCmd(cdc *amino.Codec) *cobra.Command {
 		cvmcli.QueryTxCmd(cdc),
 		flags.LineBreak,
 		authcli.GetAccountCmd(cdc),
+		cvmcli.GetAccountCmd(cdc),
 	)
 
 	// add modules' query commands
