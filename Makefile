@@ -39,7 +39,7 @@ update-swagger-docs: statik
     else \
     	echo "\033[92mSwagger docs are in sync\033[0m";\
     fi
-	# @cp -r client/lcd/swagger-ui docs/swagger
+	@cp -r client/lcd/swagger-ui docs/swagger
 
 update-cli-docs: install
 	certikd --doc docs/cli/certikd

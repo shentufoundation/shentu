@@ -1,4 +1,4 @@
-# Documents
+# Documentation
 
-- [CLI Commands](cli/README.md)
-- [REST API Spec](../client/lcd/swagger-ui/index.html)
+- [CLI Documentation](cli/README.md)
+- [REST API Spec](swagger/index.html)
