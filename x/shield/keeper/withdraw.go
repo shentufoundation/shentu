@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -132,6 +133,86 @@ func (k Keeper) ComputeWithdrawAmountByTime(ctx sdk.Context, provider sdk.AccAdd
 	return amount
 }
 
+func (k Keeper) ComputeTotalUnbondingAmount(ctx sdk.Context, provider sdk.AccAddress) sdk.Int {
+	unbondings := k.sk.GetAllUnbondingDelegations(ctx, provider)
+
+	sum := sdk.ZeroInt()
+	for _, ubd := range unbondings {
+		for i := 0; i < len(ubd.Entries); i++ {
+			sum = sum.Add(ubd.Entries[i].Balance)
+		}
+	}
+	return sum
+}
+
+func (k Keeper) ComputeUnbondingAmountByTime(ctx sdk.Context, provider sdk.AccAddress, time time.Time) sdk.Int {
+	dvPairs := k.GetUnbondingsByProviderMaturingByTime(ctx, provider, time)
+
+	sum := sdk.ZeroInt()
+	var seen []sdk.ValAddress
+	for _, dvPair := range dvPairs {
+		valAddr := dvPair.Validator
+		if find(seen, valAddr) {
+			continue
+		}
+		seen = append(seen, valAddr)
+
+		// obtain unbonding entries and iterate through them
+		ubd, found := k.sk.GetUnbondingDelegation(ctx, provider, valAddr)
+		if !found {
+			continue //TODO
+		}
+		for i := 0; i < len(ubd.Entries); i++ {
+			entry := ubd.Entries[i]
+			if entry.IsMature(time) {
+				sum = sum.Add(entry.Balance)
+			} else {
+				break
+			}
+		}
+	}
+	return sum
+}
+
+func find(list []sdk.ValAddress, item sdk.ValAddress) bool {
+	for _, val := range list {
+		if val.Equals(item) {
+			return true
+		}
+	}
+	return false
+}
+
+type UnbondingInfo struct {
+	Delegator sdk.AccAddress 
+	Validator sdk.ValAddress
+	CompletionTime time.Time
+}
+
+func (k Keeper) GetUnbondingsByProviderMaturingByTime(ctx sdk.Context, provider sdk.AccAddress, time time.Time) (results []UnbondingInfo) {
+	unbondingTimesliceIterator := k.sk.UBDQueueIterator(ctx, ctx.BlockHeader().Time)
+	defer unbondingTimesliceIterator.Close()
+
+	for ; unbondingTimesliceIterator.Valid(); unbondingTimesliceIterator.Next() {
+		timeslice := []staking.DVPair{}
+		value := unbondingTimesliceIterator.Value()
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
+
+		for _, ubd := range timeslice {
+			if ubd.DelegatorAddress.Equals(provider) {
+				completionTime, _ := sdk.ParseTimeBytes(unbondingTimesliceIterator.Key())
+				ubdInfo := UnbondingInfo {
+					Delegator: ubd.DelegatorAddress,
+					Validator: ubd.ValidatorAddress,
+					CompletionTime: completionTime,
+				} 
+				results = append(results, ubdInfo)
+			}
+		}
+	}
+	return results
+}
+
 // DelayWithdraws delays the given amount of withdraws maturing
 // before the delay duration until the end of the delay duration.
 func (k Keeper) DelayWithdraws(ctx sdk.Context, provider sdk.AccAddress, amount sdk.Int, delay time.Duration) error {
@@ -175,14 +256,8 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, provider sdk.AccAddress, amount 
 			k.RemoveTimeSliceFromWithdrawQueue(ctx, withdraws[i].CompletionTime)
 		}
 
-		// Delay linked unbonding, if exists.
-		if !withdraws[i].LinkedUnbonding.CompletionTime.IsZero() {
-			k.DelayUnbonding(ctx, provider, withdraws[i].LinkedUnbonding, delayedTime)
-		}
-
 		// Adjust the withdraw completion time and re-insert.
 		withdraws[i].CompletionTime = delayedTime
-		withdraws[i].LinkedUnbonding.CompletionTime = delayedTime
 		k.InsertWithdrawQueue(ctx, withdraws[i])
 
 		remaining = remaining.Sub(withdraws[i].Amount)
@@ -195,53 +270,65 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, provider sdk.AccAddress, amount 
 	return nil
 }
 
-// DelayUnbonding delays the completion time of an unbonding identified
-// by provider (delegator) and timestamp (unbonding completion time).
-func (k Keeper) DelayUnbonding(ctx sdk.Context, delAddr sdk.AccAddress, ubdInfo types.UnbondingInfo, delayedTime time.Time) {
-	valAddr := ubdInfo.ValidatorAddress
-	timestamp := ubdInfo.CompletionTime
-
-	unbonding, found := k.sk.GetUnbondingDelegation(ctx, delAddr, valAddr)
-	if !found {
-		panic("unbonding list was not found for the given delegator-validator pair")
-	}
-
-	// Identify the particular unbonding entry from the unbonding list.
-	// TODO: Can we identify the particular UnbondingDelegationEntry with completionTime?
-	// That is, there can be no unbonding entry with the same completionTime?
-	found = false
-	for i := 0; i < len(unbonding.Entries); i++ {
-		if !found && unbonding.Entries[i].CompletionTime.Equal(timestamp) {
-			unbonding.Entries[i].CompletionTime = delayedTime
-			found = true
-		} else if found && unbonding.Entries[i].CompletionTime.Before(unbonding.Entries[i-1].CompletionTime) {
-			unbonding.Entries[i-1], unbonding.Entries[i] = unbonding.Entries[i], unbonding.Entries[i-1]
-		} else if found {
+func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount sdk.Int, delay time.Duration) error {
+	// Retrieve delay candidates, which are unbondings
+	// ending before the delay duration from now.
+	delayedTime := ctx.BlockTime().Add(delay)
+	ubds := k.GetUnbondingsByProviderMaturingByTime(ctx, provider, delayedTime)
+	
+	// Delay unbondings, starting with the candidates 
+	// with the oldest withdraw completion time. 
+	remaining := amount
+	for i := len(ubds)-1; i >= 0; i-- {
+		if !remaining.IsPositive() {
 			break
 		}
-	}
-	if !found {
-		panic("particular unbonding entry not found for the given timestamp")
+		// Remove from unbonding queue.
+		timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, ubds[i].CompletionTime)
+		if len(timeSlice) > 1 {
+			for j := 0; j < len(timeSlice); j++ {
+				if timeSlice[j].DelegatorAddress.Equals(provider) && timeSlice[j].ValidatorAddress.Equals(ubds[i].Validator) {
+					timeSlice = append(timeSlice[:j], timeSlice[j+1:]...)
+					k.sk.SetUBDQueueTimeSlice(ctx, ubds[i].CompletionTime, timeSlice)
+					break
+				}
+			}
+		} else {
+			k.sk.RemoveUBDQueue(ctx, ubds[i].CompletionTime)
+		}
+
+
+		unbondingDels, found := k.sk.GetUnbondingDelegation(ctx, provider, ubds[i].Validator)
+		if !found {
+			panic("unbonding list was not found for the given provider-validator pair")
+		}
+
+		found = false
+		amount := sdk.ZeroInt()
+		for i := 0; i < len(unbondingDels.Entries); i++ {
+			if !found && unbondingDels.Entries[i].CompletionTime.Equal(ubds[i].CompletionTime) {
+				unbondingDels.Entries[i].CompletionTime = delayedTime
+				found = true
+				amount = unbondingDels.Entries[i].Balance
+			} else if found && unbondingDels.Entries[i].CompletionTime.Before(unbondingDels.Entries[i-1].CompletionTime) {
+				unbondingDels.Entries[i-1], unbondingDels.Entries[i] = unbondingDels.Entries[i], unbondingDels.Entries[i-1]
+			} else if found {
+				break
+			}
+		}
+		if !found {
+			panic("particular unbonding entry not found for the given timestamp")
+		}
+
+		k.sk.InsertUBDQueue(ctx, unbondingDels, delayedTime)
+		k.sk.SetUnbondingDelegation(ctx, unbondingDels)
+
+		remaining = remaining.Sub(amount)
 	}
 
-	// Update the stores.
-	timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, timestamp)
-	timeSliceLength := len(timeSlice)
-	if timeSliceLength == 0 {
-		panic("unbonding was not found from the unbonding queue")
+	if remaining.IsPositive() {
+		panic("failed to delay enough unbondings")
 	}
-	for i := 0; i < timeSliceLength; i++ {
-		if timeSlice[i].DelegatorAddress.Equals(delAddr) {
-			if timeSliceLength > 1 {
-				timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
-				k.sk.SetUBDQueueTimeSlice(ctx, timestamp, timeSlice)
-			} else {
-				k.sk.RemoveUBDQueue(ctx, timestamp)
-			}
-			k.sk.InsertUBDQueue(ctx, unbonding, delayedTime)
-			k.sk.SetUnbondingDelegation(ctx, unbonding)
-			return
-		}
-	}
-	panic("particular unbonding entry not found from the unbonding queue")
+
+	return nil
 }

@@ -65,7 +65,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 		// TODO: confirm this is correct
 		purchase.DeletionTime = votingEndTime
 	}
-	k.SetPurchaseList(ctx, purchaseList) 
+	k.SetPurchaseList(ctx, purchaseList)
 	k.InsertExpiringPurchaseQueue(ctx, purchaseList, purchase.DeletionTime)
 
 	// Update pool and global pool states.
@@ -92,18 +92,28 @@ func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amo
 	}
 
 	// Lenient check:
-	// Check if non-withdrawing collaterals can cover the amount.
-	if amount.GT(provider.Collateral.Sub(provider.Withdrawing)) {
-		// Stricter check:
-		// Consider the amount of all collaterals that would
-		// remain deposited until the lock period ends.
+	// Check if non-withdrawing, bonded delegation-backed collaterals
+	// cannot cover the amount.
+	if amount.GT(provider.Collateral.Sub(provider.Withdrawing)) || amount.GT(provider.DelegationBonded) {
+		// Stricter checks:
+		// amount of collaterals that won't be withdrawn by the
+		// end of the lock period.
 		endTime := ctx.BlockTime().Add(duration)
 		upcomingWithdrawAmount := k.ComputeWithdrawAmountByTime(ctx, provider.Address, endTime)
-		availableCollateral := provider.Collateral.Sub(upcomingWithdrawAmount)
-		if amount.GT(availableCollateral) {
-			// Delay some withdrawals to cover the amount.
-			delayAmt := amount.Sub(availableCollateral)
-			k.DelayWithdraws(ctx, provider.Address, delayAmt, duration)
+		notWithdrawnSoon := provider.Collateral.Sub(upcomingWithdrawAmount)
+
+		// amount of collaterals that won't be unbonded by the
+		// end of the lock period.
+		totalUnbondingAmount := k.ComputeTotalUnbondingAmount(ctx, provider.Address)
+		upcomingUnbondingAmount := k.ComputeUnbondingAmountByTime(ctx, provider.Address, endTime)
+		notUnbondedSoon := provider.DelegationBonded.Add(totalUnbondingAmount.Sub(upcomingUnbondingAmount))
+
+		if amount.GT(notWithdrawnSoon) || amount.GT(notUnbondedSoon) {
+			withdrawDelayAmt := amount.Sub(notWithdrawnSoon)
+			k.DelayWithdraws(ctx, provider.Address, withdrawDelayAmt, duration)
+
+			unbondingDelayAmt := amount.Sub(notUnbondedSoon)
+			k.DelayUnbonding(ctx, provider.Address, unbondingDelayAmt, duration)
 		}
 	}
 	k.SetProvider(ctx, provider.Address, provider)

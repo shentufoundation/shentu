@@ -33,7 +33,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, amount s
 // WithdrawCollateral withdraws a community member's collateral for a pool.
 // In case of unbonding-initiated withdraw, store the validator address and
 // the creation height.
-func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int, ubdInfo *types.UnbondingInfo) error {
+func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) error {
 	if amount.IsZero() {
 		return nil
 	}
@@ -54,12 +54,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, amount 
 	// Insert into withdraw queue.
 	poolParams := k.GetPoolParams(ctx)
 	completionTime := ctx.BlockHeader().Time.Add(poolParams.WithdrawPeriod)
-	var withdraw types.Withdraw
-	if ubdInfo == nil {
-		withdraw = types.NewWithdraw(from, amount, completionTime, types.UnbondingInfo{})
-	} else {
-		withdraw = types.NewWithdraw(from, amount, completionTime, *ubdInfo)
-	}
+	withdraw := types.NewWithdraw(from, amount, completionTime)
 	k.InsertWithdrawQueue(ctx, withdraw)
 
 	// Update provider's withdrawing.
