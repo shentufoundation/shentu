@@ -66,7 +66,7 @@ func (k Keeper) GetCommunityPoolRatio(ctx sdk.Context) sdk.Dec {
 func (k Keeper) GetShieldStakingPurchasePoolRatio(ctx sdk.Context) sdk.Dec {
 	pool := k.shieldKeeper.GetGlobalStakingPurchasePool(ctx)
 	totalBondedTokensDec := k.StakingTokenSupply(ctx).ToDec()
-	return pool.Amount.ToDec().Quo(totalBondedTokensDec)
+	return pool.ToDec().Quo(totalBondedTokensDec)
 }
 
 // GetPoolMint returns Coins that are about to be minted towards the community pool.

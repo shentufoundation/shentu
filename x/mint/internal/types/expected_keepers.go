@@ -5,8 +5,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
-
-	"github.com/certikfoundation/shentu/x/shield"
 )
 
 // StakingKeeper defines the expected staking keeper.
@@ -35,6 +33,6 @@ type DistributionKeeper interface {
 }
 
 type ShieldKeeper interface {
-	GetGlobalStakingPurchasePool(ctx sdk.Context) shield.GlobalStakingPool
+	GetGlobalStakingPurchasePool(ctx sdk.Context) sdk.Int
 	FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 }

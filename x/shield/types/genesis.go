@@ -28,14 +28,14 @@ type GenesisState struct {
 	Withdraws            Withdraws           `json:"withdraws" yaml:"withdraws"`
 	LastUpdateTime       time.Time           `json:"last_update_time" yaml:"last_update_time"`
 	StakingPurchaseRate  sdk.Dec             `json:"staking_purchase_rate" yaml:"staking_purchase_rate"`
-	GlobalStakingPool    GlobalStakingPool   `json:"global_staking_pool" yaml:"global_staking_pool"`
+	GlobalStakingPool    sdk.Int             `json:"global_staking_pool" yaml:"global_staking_pool"`
 	StakingPurchases     []StakingPurchase   `json:"staking_purchases" yaml:"staking_purchases"`
 }
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
 	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked sdk.Int, serviceFees, remainingServiceFees MixedDecCoins,
-	pools []Pool, providers []Provider, purchase []PurchaseList, withdraws Withdraws, lastUpdateTime time.Time, sPRate sdk.Dec, globalStakingPool GlobalStakingPool,
+	pools []Pool, providers []Provider, purchase []PurchaseList, withdraws Withdraws, lastUpdateTime time.Time, sPRate sdk.Dec, globalStakingPool sdk.Int,
 	stakingPurchases []StakingPurchase) GenesisState {
 	return GenesisState{
 		ShieldAdmin:          shieldAdmin,

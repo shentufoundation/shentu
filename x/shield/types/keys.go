@@ -44,6 +44,7 @@ var (
 	StakingPurchaseRateKey       = []byte{0x10}
 	StakingPurchaseKey           = []byte{0x11}
 	BlockServiceFeesKey          = []byte{0x12}
+	OriginalStakingKey           = []byte{0x13}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -139,4 +140,10 @@ func GetStakingPurchaseKey(poolID uint64, purchaser sdk.AccAddress) []byte {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, poolID)
 	return append(StakingPurchaseKey, append(bz, purchaser...)...)
+}
+
+func GetOriginalStakingKey(purchaseID uint64) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, purchaseID)
+	return append(OriginalStakingKey, bz...)
 }

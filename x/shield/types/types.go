@@ -164,39 +164,18 @@ func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) 
 // Withdraws contains multiple withdraws.
 type Withdraws []Withdraw
 
-type GlobalStakingPool struct {
-	Amount sdk.Int
-}
-
 type StakingPurchase struct {
-	PoolID      uint64              `json:"pool_id" yaml:"pool_id"`
-	Purchaser   sdk.AccAddress      `json:"purchaser" yaml:"purchaser"`
-	Amount      sdk.Int             `json:"amount" yaml:"amount"`
-	Locked      sdk.Int             `json:"locked" yaml:"locked"`
-	Expirations []StakingExpiration `json:"expirations" yaml:"expirations"`
+	PoolID            uint64         `json:"pool_id" yaml:"pool_id"`
+	Purchaser         sdk.AccAddress `json:"purchaser" yaml:"purchaser"`
+	Amount            sdk.Int        `json:"amount" yaml:"amount"`
+	WithdrawRequested sdk.Int        `json:"withdraw_requested" yaml:"withdraw_requested"`
 }
 
 func NewStakingPurchase(poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) StakingPurchase {
 	return StakingPurchase{
-		PoolID:    poolID,
-		Purchaser: purchaser,
-		Amount:    amount,
-		Locked:    sdk.NewInt(0),
-	}
-}
-
-type StakingExpiration struct {
-	PurchaseID        uint64    `json:"purchase_id" yaml:"purchase_id"`
-	Time              time.Time `json:"time" yaml:"time"`
-	Amount            sdk.Int   `json:"amount" yaml:"amount"`
-	WithdrawRequested sdk.Int   `json:"withdraw_requested" yaml:"withdraw_requested"`
-}
-
-func NewStakingExpiration(time time.Time, amount sdk.Int, purchaseID uint64) StakingExpiration {
-	return StakingExpiration{
-		Time:              time,
+		PoolID:            poolID,
+		Purchaser:         purchaser,
 		Amount:            amount,
-		PurchaseID:        purchaseID,
 		WithdrawRequested: sdk.NewInt(0),
 	}
 }

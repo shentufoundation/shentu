@@ -65,12 +65,6 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &timeB)
 		return fmt.Sprintf("%v\n%v", timeA, timeB)
 
-	case bytes.Equal(kvA.Key[:1], types.GlobalStakingPurchasePoolKey):
-		var gSPPA, gSPPB types.GlobalStakingPool
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &gSPPA)
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &gSPPB)
-		return fmt.Sprintf("%v\n%v", gSPPA, gSPPB)
-
 	case bytes.Equal(kvA.Key[:1], types.StakingPurchaseRateKey):
 		var sPRA, sPRB sdk.Dec
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &sPRA)
