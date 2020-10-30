@@ -247,7 +247,10 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 		sdk.NewDec(k.GetPoolParams(ctx).ProtectionPeriod.Nanoseconds())))
 
 	// Add block service fees that need to be distributed for this block
-	serviceFees = serviceFees.Add(k.GetBlockServiceFees(ctx))
+	if ctx.BlockHeight() > common.UpdateHeight {
+		serviceFees = serviceFees.Add(k.GetBlockServiceFees(ctx))
+		k.SetBlockServiceFees(ctx, types.InitMixedDecCoins())
+	}
 
 	// Limit service fees by remaining service fees.
 	remainingServiceFees := k.GetRemainingServiceFees(ctx)
@@ -269,7 +272,6 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 
 		remainingServiceFees.Native = remainingServiceFees.Native.Sub(nativeFees)
 	}
-	k.SetBlockServiceFees(ctx, types.InitMixedDecCoins())
 	k.SetRemainingServiceFees(ctx, remainingServiceFees)
 	k.SetLastUpdateTime(ctx, ctx.BlockTime())
 }
