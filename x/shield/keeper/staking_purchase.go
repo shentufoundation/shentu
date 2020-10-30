@@ -126,8 +126,15 @@ func (k Keeper) IterateStakingPurchases(ctx sdk.Context, callback func(purchase 
 	}
 }
 
+type renewQueue struct {
+	amt       sdk.Coins
+	desc      string
+	remaining sdk.Int
+}
+
 func (k Keeper) ProcessStakingPurchaseExpiration(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, bondDenom string, sPRate sdk.Dec) error {
 	stakingPurchase, spFound := k.GetStakingPurchase(ctx, poolID, purchaser)
+	renew := []renewQueue{}
 	if spFound {
 		for i := 0; i < len(stakingPurchase.Expirations); i++ {
 			if stakingPurchase.Expirations[i].Time.Before(ctx.BlockTime()) {
@@ -140,12 +147,7 @@ func (k Keeper) ProcessStakingPurchaseExpiration(ctx sdk.Context, poolID uint64,
 					desc := fmt.Sprintf(`renewed from PurchaseID %s`, strconv.FormatUint(stakingPurchase.Expirations[i].PurchaseID, 10))
 					shieldInt := remaining.ToDec().Quo(sPRate).TruncateInt()
 					shieldCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldInt))
-					defer func() {
-						if _, err := k.purchaseShield(ctx, poolID, shieldCoins, desc, purchaser,
-							sdk.NewCoins(sdk.NewCoin(bondDenom, remaining)), true); err != nil {
-							panic(err)
-						}
-					}()
+					renew = append(renew, renewQueue{shieldCoins, desc, remaining})
 				}
 
 				stakingPurchase.Locked = stakingPurchase.Locked.Sub(stakingPurchase.Expirations[i].Amount)
@@ -154,6 +156,12 @@ func (k Keeper) ProcessStakingPurchaseExpiration(ctx sdk.Context, poolID uint64,
 			}
 		}
 		k.SetStakingPurchase(ctx, poolID, purchaser, stakingPurchase)
+	}
+	for _, renew := range renew {
+		if _, err := k.purchaseShield(ctx, poolID, renew.amt, renew.desc, purchaser,
+			sdk.NewCoins(sdk.NewCoin(bondDenom, renew.remaining)), true); err != nil {
+			panic(err)
+		}
 	}
 	return nil
 }
