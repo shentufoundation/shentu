@@ -522,7 +522,7 @@ func GetCmdStakingPurchase(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(3),
 		Short: "purchase Shield through staking",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Purchase Shield. Requires purchaser to provide descriptions of accounts to be protected.
+			fmt.Sprintf(`Purchase Shield through staking. Requires purchaser to provide descriptions of accounts to be protected.
 
 Example:
 $ %s tx shield purchase <pool id> <shield amount> <description>
@@ -566,12 +566,12 @@ func GetCmdWithdrawStaking(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "withdraw-staking [pool id] [amount] ",
 		Args:  cobra.ExactArgs(3),
-		Short: "purchase Shield through staking",
+		Short: "withdraw staked-for-shield coins",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Purchase Shield. Requires purchaser to provide descriptions of accounts to be protected.
+			fmt.Sprintf(`Withdraw staking. Requires existing shield purchase through staking.
 
 Example:
-$ %s tx shield purchase <pool id> <shield amount> <description>
+$ %s tx shield withdraw-staking <pool id> <shield amount> 
 `,
 				version.ClientName,
 			),
