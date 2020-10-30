@@ -121,12 +121,6 @@ func (k Keeper) IterateStakingPurchases(ctx sdk.Context, callback func(purchase 
 	}
 }
 
-type renewQueue struct {
-	amt       sdk.Coins
-	desc      string
-	remaining sdk.Int
-}
-
 func (k Keeper) ProcessStakingPurchaseExpiration(ctx sdk.Context, poolID, purchaseID uint64, bondDenom string, purchaser sdk.AccAddress, sPRate sdk.Dec) error {
 	stakingPurchase, found := k.GetStakingPurchase(ctx, poolID, purchaser)
 	if !found {
