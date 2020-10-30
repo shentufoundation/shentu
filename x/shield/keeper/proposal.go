@@ -111,7 +111,31 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, providerAddr sdk.AccAddress, 
 }
 
 // PayFromUnbonding reduce provider's unbonding delegation and transfer tokens to the shield module account.
-func (k Keeper) PayFromUnbonding(ctx sdk.Context, ubd staking.UnbondingDelegation, payout sdk.Int) {}
+func (k Keeper) PayFromUnbonding(ctx sdk.Context, ubd staking.UnbondingDelegation, payout sdk.Int) {
+	delAddr := ubd.DelegatorAddress
+	valAddr := ubd.ValidatorAddress
+	unbonding, found := k.sk.GetUnbondingDelegation(ctx, delAddr, valAddr)
+	if !found {
+		panic("unbonding delegation is not found")
+	}
+
+	// Update unbonding delegations between the delegator and the validator.
+	for i := range unbonding.Entries {
+		if unbonding.Entries[i].Balance.Equal(ubd.Entries[0].Balance) && unbonding.Entries[i].CompletionTime.Equal(ubd.Entries[0].CompletionTime) {
+			unbonding.Entries[i].Balance = unbonding.Entries[i].Balance.Sub(payout)
+			k.sk.SetUnbondingDelegation(ctx, unbonding)
+			break
+		}
+	}
+
+	// FIXME: Update the unbonding queue only if entry is removed.
+
+	// Transfer tokens from the staking module to the shield module.
+	payoutCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), payout))
+	if err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, staking.NotBondedPoolName, types.ModuleName, payoutCoins); err != nil {
+		panic(err)
+	}
+}
 
 // UndelegateShares undelegates delegations of a delegator to a validator by shares.
 func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdk.Dec) {
@@ -149,7 +173,7 @@ func (k Keeper) PayFromWithdraw(ctx sdk.Context, withdraw types.Withdraw, payout
 	payoutFromDelegation := sdk.ZeroInt()
 	payoutFromUnbonding := sdk.ZeroInt()
 	if provider.DelegationBonded.GTE(purchased.Add(payout)) {
-		// If delegation >= purchased + payout.
+		// If delegation >= purchased + payout:
 		//        |        withdraw      |
 		//     purchased     | payout |
 		//   -----|----------'--------'--|-----
@@ -157,7 +181,7 @@ func (k Keeper) PayFromWithdraw(ctx sdk.Context, withdraw types.Withdraw, payout
 		// -------------------------------|---------------------------------
 		payoutFromDelegation = payout
 	} else if provider.DelegationBonded.GTE(purchased) {
-		// If purchased <= delegation < purchased + payout.
+		// If purchased <= delegation < purchased + payout:
 		//                  |        withdraw      |
 		//               purchased     | payout |
 		//             -----|----------'--------'--|-----
@@ -166,7 +190,7 @@ func (k Keeper) PayFromWithdraw(ctx sdk.Context, withdraw types.Withdraw, payout
 		payoutFromDelegation = provider.DelegationBonded.Sub(purchased)
 		payoutFromUnbonding = payout.Sub(payoutFromDelegation)
 	} else {
-		// If delegation < purchased.
+		// If delegation < purchased:
 		//                         |        withdraw      |
 		//                      purchased     | payout |
 		//                    -----|----------'--------'--|-----
@@ -220,6 +244,14 @@ func (k Keeper) PayFromWithdraw(ctx sdk.Context, withdraw types.Withdraw, payout
 	k.SetProvider(ctx, provider.Address, provider)
 
 	// Update withdraw queue.
+	withdraws := k.GetWithdrawQueueTimeSlice(ctx, withdraw.CompletionTime)
+	for i := range withdraws {
+		if withdraws[i].Address.Equals(withdraw.Address) && withdraws[i].Amount.Equal(withdraw.Amount) {
+			withdraws[i].Amount = withdraws[i].Amount.Sub(payout)
+			break
+		}
+	}
+	k.SetWithdrawQueueTimeSlice(ctx, withdraw.CompletionTime, withdraws)
 }
 
 // GetSortedUnbondingDelegations gets unbonding delegations sorted by completion time from latest to earliest.
@@ -300,58 +332,6 @@ func (k Keeper) MakePayoutByProvider(ctx sdk.Context, providerAddr sdk.AccAddres
 		panic("payout is not covered")
 	}
 	return nil
-
-	/*
-		// If bonded delegations are not enough, track unbonding delegations.
-		unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, delAddr)
-		for _, ubd := range unbondingDelegations {
-			entry := 0
-			if !remainingDec.IsPositive() {
-				return nil
-			}
-			for i := range ubd.Entries {
-				entry = i
-				ubdAmountDec := ubd.Entries[i].InitialBalance.ToDec()
-				if ubdAmountDec.GT(remainingDec) {
-					overflowCoins := sdk.NewDecCoins(sdk.NewDecCoin(k.sk.BondDenom(ctx), ubdAmountDec.Sub(remainingDec).TruncateInt()))
-					overflowMixedCoins := types.MixedDecCoins{Native: overflowCoins}
-					k.AddRewards(ctx, delAddr, overflowMixedCoins)
-					break
-				}
-				remainingDec = remainingDec.Sub(ubdAmountDec)
-			}
-			k.RedirectUnbondingEntryToShieldModule(ctx, ubd, entry)
-		}
-
-		if remainingDec.IsPositive() {
-			panic("not enough bonded stake")
-		}
-	*/
-}
-
-// RedirectUnbondingEntryToShieldModule changes the recipient of an unbonding delegation to the shield module.
-func (k Keeper) RedirectUnbondingEntryToShieldModule(ctx sdk.Context, ubd staking.UnbondingDelegation, endIndex int) {
-	delAddr := ubd.DelegatorAddress
-	valAddr := ubd.ValidatorAddress
-	shieldAddr := k.supplyKeeper.GetModuleAddress(types.ModuleName)
-
-	// Iterate through entries and add it to shield unbonding entries.
-	shieldUbd, _ := k.sk.GetUnbondingDelegation(ctx, shieldAddr, valAddr)
-	for _, entry := range ubd.Entries[:endIndex+1] {
-		shieldUbd.AddEntry(entry.CreationHeight, entry.CompletionTime, entry.Balance)
-		timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, entry.CompletionTime)
-		for i := 0; i < len(timeSlice); i++ {
-			if timeSlice[i].DelegatorAddress.Equals(delAddr) && timeSlice[i].ValidatorAddress.Equals(valAddr) {
-				timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
-				k.sk.SetUBDQueueTimeSlice(ctx, entry.CompletionTime, timeSlice)
-				break
-			}
-		}
-		k.sk.InsertUBDQueue(ctx, shieldUbd, entry.CompletionTime)
-	}
-	ubd.Entries = ubd.Entries[endIndex+1:]
-	k.sk.SetUnbondingDelegation(ctx, ubd)
-	k.sk.SetUnbondingDelegation(ctx, shieldUbd)
 }
 
 // WithdrawReimbursement withdraws a reimbursement made for a beneficiary.
