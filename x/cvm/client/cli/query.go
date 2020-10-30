@@ -13,10 +13,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 
 	"github.com/hyperledger/burrow/execution/evm/abi"
 
 	"github.com/certikfoundation/shentu/common"
+	"github.com/certikfoundation/shentu/x/cvm/client/utils"
 	"github.com/certikfoundation/shentu/x/cvm/internal/types"
 )
 
@@ -252,7 +254,7 @@ func GetCmdAddressTranslate(queryRoute string, cdc *codec.Codec) *cobra.Command 
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			addr := args[0]
-			errorMsg := `Address is not in a readable format. 
+			errorMsg := `Address is not in a readable format.
 			Please supply either a Bech32 address ("certik1...", "certikvaloper1...")
 			or a 20-byte hex address ("0x" prefix not necessary).`
 
@@ -310,4 +312,35 @@ func GetCmdAddressTranslate(queryRoute string, cdc *codec.Codec) *cobra.Command 
 			}
 		},
 	}
+}
+
+// GetAccountCmd returns a query account that will display the state of the
+// account at a given address.
+func GetAccountCmd(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "contract [address]",
+		Short: "Query contract info",
+		Long:  "Query contract info by address, revert to query normal account info if the address is not a contract",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			address := args[0]
+
+			var account exported.Account
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cvm/account/%s", address), nil)
+			if err != nil {
+				return err
+			}
+			cdc.MustUnmarshalJSON(res, &account)
+
+			cvmAcc, err := utils.QueryCVMAccount(cliCtx, address, account)
+			if err == nil {
+				return cliCtx.PrintOutput(cvmAcc)
+			}
+
+			return cliCtx.PrintOutput(account)
+		},
+	}
+
+	return flags.GetCommands(cmd)[0]
 }
