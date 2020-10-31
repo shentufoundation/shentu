@@ -304,13 +304,13 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount 
 
 		found = false
 		amount := sdk.ZeroInt()
-		for i := 0; i < len(unbondingDels.Entries); i++ {
-			if !found && unbondingDels.Entries[i].CompletionTime.Equal(ubds[i].CompletionTime) {
-				unbondingDels.Entries[i].CompletionTime = delayedTime
+		for j := 0; j < len(unbondingDels.Entries); j++ {
+			if !found && unbondingDels.Entries[j].CompletionTime.Equal(ubds[i].CompletionTime) {
+				unbondingDels.Entries[j].CompletionTime = delayedTime
 				found = true
-				amount = unbondingDels.Entries[i].Balance
-			} else if found && unbondingDels.Entries[i].CompletionTime.Before(unbondingDels.Entries[i-1].CompletionTime) {
-				unbondingDels.Entries[i-1], unbondingDels.Entries[i] = unbondingDels.Entries[i], unbondingDels.Entries[i-1]
+				amount = unbondingDels.Entries[j].Balance
+			} else if found && unbondingDels.Entries[j].CompletionTime.Before(unbondingDels.Entries[j-1].CompletionTime) {
+				unbondingDels.Entries[j-1], unbondingDels.Entries[j] = unbondingDels.Entries[j], unbondingDels.Entries[j-1]
 			} else if found {
 				break
 			}
