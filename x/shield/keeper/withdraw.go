@@ -9,6 +9,12 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
+type UnbondingInfo struct {
+	Delegator      sdk.AccAddress
+	Validator      sdk.ValAddress
+	CompletionTime time.Time
+}
+
 // InsertWithdrawQueue prepares a withdraw queue timeslice
 // for insertion into the queue.
 func (k Keeper) InsertWithdrawQueue(ctx sdk.Context, withdraw types.Withdraw) {
@@ -149,7 +155,7 @@ func (k Keeper) ComputeUnbondingAmountByTime(ctx sdk.Context, provider sdk.AccAd
 	dvPairs := k.GetUnbondingsByProviderMaturingByTime(ctx, provider, time)
 
 	sum := sdk.ZeroInt()
-	var seen []sdk.ValAddress
+	seen := make([]sdk.ValAddress, 0, len(dvPairs))
 	for _, dvPair := range dvPairs {
 		valAddr := dvPair.Validator
 		if find(seen, valAddr) {
@@ -183,14 +189,8 @@ func find(list []sdk.ValAddress, item sdk.ValAddress) bool {
 	return false
 }
 
-type UnbondingInfo struct {
-	Delegator sdk.AccAddress 
-	Validator sdk.ValAddress
-	CompletionTime time.Time
-}
-
 func (k Keeper) GetUnbondingsByProviderMaturingByTime(ctx sdk.Context, provider sdk.AccAddress, time time.Time) (results []UnbondingInfo) {
-	unbondingTimesliceIterator := k.sk.UBDQueueIterator(ctx, ctx.BlockHeader().Time)
+	unbondingTimesliceIterator := k.sk.UBDQueueIterator(ctx, time)
 	defer unbondingTimesliceIterator.Close()
 
 	for ; unbondingTimesliceIterator.Valid(); unbondingTimesliceIterator.Next() {
@@ -200,12 +200,12 @@ func (k Keeper) GetUnbondingsByProviderMaturingByTime(ctx sdk.Context, provider 
 
 		for _, ubd := range timeslice {
 			if ubd.DelegatorAddress.Equals(provider) {
-				completionTime, _ := sdk.ParseTimeBytes(unbondingTimesliceIterator.Key())
-				ubdInfo := UnbondingInfo {
-					Delegator: ubd.DelegatorAddress,
-					Validator: ubd.ValidatorAddress,
+				completionTime, _ := sdk.ParseTimeBytes(unbondingTimesliceIterator.Key()[1:])
+				ubdInfo := UnbondingInfo{
+					Delegator:      ubd.DelegatorAddress,
+					Validator:      ubd.ValidatorAddress,
 					CompletionTime: completionTime,
-				} 
+				}
 				results = append(results, ubdInfo)
 			}
 		}
@@ -235,10 +235,10 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, provider sdk.AccAddress, amount 
 		}
 	}
 
-	// Delay withdraws, starting with the candidates 
-	// with the oldest withdraw completion time. 
+	// Delay withdraws, starting with the candidates
+	// with the oldest withdraw completion time.
 	remaining := amount
-	for i := len(withdraws)-1; i >= 0; i-- {
+	for i := len(withdraws) - 1; i >= 0; i-- {
 		if !remaining.IsPositive() {
 			break
 		}
@@ -275,11 +275,11 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount 
 	// ending before the delay duration from now.
 	delayedTime := ctx.BlockTime().Add(delay)
 	ubds := k.GetUnbondingsByProviderMaturingByTime(ctx, provider, delayedTime)
-	
-	// Delay unbondings, starting with the candidates 
-	// with the oldest withdraw completion time. 
+
+	// Delay unbondings, starting with the candidates
+	// with the oldest unbonding completion time.
 	remaining := amount
-	for i := len(ubds)-1; i >= 0; i-- {
+	for i := len(ubds) - 1; i >= 0; i-- {
 		if !remaining.IsPositive() {
 			break
 		}
@@ -296,7 +296,6 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount 
 		} else {
 			k.sk.RemoveUBDQueue(ctx, ubds[i].CompletionTime)
 		}
-
 
 		unbondingDels, found := k.sk.GetUnbondingDelegation(ctx, provider, ubds[i].Validator)
 		if !found {
