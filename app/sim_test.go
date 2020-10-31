@@ -1,7 +1,6 @@
 package app
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -10,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	tmkv "github.com/tendermint/tendermint/libs/kv"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
@@ -174,21 +172,6 @@ func TestAppImportExport(t *testing.T) {
 		storeB := ctxB.KVStore(skp.B)
 
 		failedKVAs, failedKVBs := sdk.DiffKVStores(storeA, storeB, skp.Prefixes)
-
-		// remove oracle's withdraw pairs if any.
-		if skp.A.Name() == oracle.StoreKey {
-			var kvAs, kvBs []tmkv.Pair
-			prefix := oracle.WithdrawStoreKeyPrefix
-			for i := 0; i < len(failedKVAs); i++ {
-				if !bytes.Equal(failedKVAs[i].Key[:len(prefix)], prefix) ||
-					!bytes.Equal(failedKVBs[i].Key[:len(prefix)], prefix) {
-					kvAs = append(kvAs, failedKVAs[i])
-					kvBs = append(kvBs, failedKVBs[i])
-				}
-			}
-			failedKVAs = kvAs
-			failedKVBs = kvBs
-		}
 
 		require.Equal(t, len(failedKVAs), len(failedKVBs), "unequal sets of key-values to compare")
 		if len(failedKVAs) != 0 {
