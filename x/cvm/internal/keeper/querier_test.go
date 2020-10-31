@@ -48,6 +48,12 @@ func TestNewQuerier(t *testing.T) {
 	bz, err = querier(ctx, path, query)
 	require.NoError(t, err)
 	require.NotNil(t, bz)
+
+	path = []string{"account", Addrs[0].String()}
+
+	bz, err = querier(ctx, path, query)
+	require.NoError(t, err)
+	require.NotNil(t, bz)
 }
 
 func TestViewQuery(t *testing.T) {
