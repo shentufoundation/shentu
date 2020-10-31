@@ -115,16 +115,6 @@ func (k Keeper) RemoveTask(ctx sdk.Context, contract, function string, force boo
 	return nil
 }
 
-// UpdateWaitingBlocks updates the number of blocks before aggregating results.
-func (k Keeper) UpdateWaitingBlocks(ctx sdk.Context, task types.Task) error {
-	if task.ClosingBlock < ctx.BlockHeight() {
-		return types.ErrTaskClosed
-	}
-	task.WaitingBlocks = task.ClosingBlock - ctx.BlockHeight()
-	k.SetTask(ctx, task)
-	return nil
-}
-
 // IteratorAllTasks iterates over all the stored tasks and performs a callback function.
 func (k Keeper) IteratorAllTasks(ctx sdk.Context, callback func(task types.Task) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
@@ -153,7 +143,6 @@ func (k Keeper) GetAllTasks(ctx sdk.Context) (tasks []types.Task) {
 // UpdateAndGetAllTasks updates all tasks and returns them.
 func (k Keeper) UpdateAndGetAllTasks(ctx sdk.Context) (tasks []types.Task) {
 	k.IteratorAllTasks(ctx, func(task types.Task) bool {
-		// _ = k.UpdateWaitingBlocks(ctx, task)
 		task.WaitingBlocks = task.ClosingBlock - ctx.BlockHeight()
 		tasks = append(tasks, task)
 		return false
