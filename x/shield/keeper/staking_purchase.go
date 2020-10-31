@@ -72,6 +72,7 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 		return err
 	}
 	k.SetStakingPurchase(ctx, poolID, purchaser, sp)
+	k.SetOriginalStaking(ctx, purchaseID, amount)
 	return nil
 }
 
