@@ -54,16 +54,35 @@ func (k Keeper) DeleteReimbursement(ctx sdk.Context, proposalID uint64) error {
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID uint64, rmb sdk.Coins, beneficiary sdk.AccAddress) error {
 	totalCollateral := k.GetTotalCollateral(ctx)
-	payoutRatio := rmb.AmountOf(k.BondDenom(ctx)).ToDec().Quo(totalCollateral.ToDec())
-	purchaseRatio := k.GetTotalShield(ctx).ToDec().Quo(totalCollateral.ToDec())
-	// FIXME: Consider leftovers.
-	// FIXME: Accumulative errors could be large when the number of providers is large.
+	totalPurchased := k.GetTotalShield(ctx)
+	totalPayout := rmb.AmountOf(k.BondDenom(ctx))
+	purchaseRatio := totalPurchased.ToDec().Quo(totalCollateral.ToDec())
+	payoutRatio := totalPayout.ToDec().Quo(totalCollateral.ToDec())
 	for _, provider := range k.GetAllProviders(ctx) {
-		payout := provider.Collateral.ToDec().Mul(payoutRatio).TruncateInt()
+		if !totalPayout.IsPositive() {
+			break
+		}
 		purchased := provider.Collateral.ToDec().Mul(purchaseRatio).TruncateInt()
+		if purchased.GT(totalPurchased) {
+			purchased = totalPurchased
+		}
+		payout := provider.Collateral.ToDec().Mul(payoutRatio).TruncateInt()
+		if payout.GT(totalPayout) {
+			payout = totalPayout
+		}
+		// Require providers to cover (purchased + 1) and (payout + 1) if it's possible,
+		// so that the last provider will not be asked to cover all truncated amount.
+		if purchased.LT(totalPurchased) && provider.Collateral.GT(payout.Add(purchased)) {
+			purchased = purchased.Add(sdk.OneInt())
+		}
+		if payout.LT(totalPayout) && provider.Collateral.GT(payout.Add(purchased)) {
+			payout = payout.Add(sdk.OneInt())
+		}
 		if err := k.MakePayoutByProvider(ctx, provider.Address, purchased, payout); err != nil {
 			panic(err)
 		}
+		totalPurchased = totalPurchased.Sub(purchased)
+		totalPayout = totalPayout.Sub(payout)
 	}
 	reimbursement := types.NewReimbursement(rmb, beneficiary, ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).PayoutPeriod))
 	k.SetReimbursement(ctx, proposalID, reimbursement)
