@@ -208,8 +208,11 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 				k.SetPurchaseList(ctx, purchaseList)
 			}
 		}
-		// TODO: For phase I only. Need to modify the logic here after claims are enabled.
-		store.Delete(iterator.Key())
+		protectionEndTime, _ := sdk.ParseTimeBytes(iterator.Key()[1:])
+		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
+		if protectionEndTime.Add(lockPeriod).Before(ctx.BlockTime()) {
+			store.Delete(iterator.Key())
+		}
 	}
 	k.SetServiceFees(ctx, totalServiceFees)
 	k.SetTotalShield(ctx, totalShield)
