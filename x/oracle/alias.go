@@ -13,10 +13,12 @@ const (
 )
 
 var (
-	NewKeeper           = keeper.NewKeeper
-	NewQuerier          = keeper.NewQuerier
-	NewMsgTaskResponse  = types.NewMsgTaskResponse
-	DefaultGenesisState = types.DefaultGenesisState
+	NewKeeper                 = keeper.NewKeeper
+	NewQuerier                = keeper.NewQuerier
+	NewMsgTaskResponse        = types.NewMsgTaskResponse
+	DefaultGenesisState       = types.DefaultGenesisState
+	TaskStoreKeyPrefix        = types.TaskStoreKeyPrefix
+	ClosingTaskStoreKeyPrefix = types.ClosingTaskStoreKeyPrefix
 )
 
 type (
