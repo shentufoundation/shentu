@@ -171,8 +171,7 @@ func validateStakingShieldRateParams(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if v.LTE(sdk.ZeroDec()) {
-		return fmt.Errorf("staking shield rate should be greater than 0",
-			v.String())
+		return fmt.Errorf("staking shield rate should be greater than 0")
 	}
 	return nil
 }
