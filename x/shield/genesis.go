@@ -27,7 +27,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	for _, purchaseList := range data.PurchaseLists {
 		k.SetPurchaseList(ctx, purchaseList)
 		for _, entry := range purchaseList.Entries {
-			k.InsertExpiringPurchaseQueue(ctx, purchaseList, entry.DeletionTime)
+			k.InsertExpiringPurchaseQueue(ctx, purchaseList, entry.ProtectionEndTime)
 		}
 	}
 	for _, provider := range data.Providers {
