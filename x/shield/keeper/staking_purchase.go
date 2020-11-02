@@ -67,9 +67,8 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 
 	sp.Amount = sp.Amount.Add(amount)
 
-	err := k.supplyKeeper.SendCoinsFromAccountToModule(
-		ctx, purchaser, types.ModuleName, sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), amount)))
-	if err != nil {
+	if err := k.supplyKeeper.SendCoinsFromAccountToModule(
+		ctx, purchaser, types.ModuleName, sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), amount))); err != nil {
 		return err
 	}
 	k.SetStakeForShield(ctx, poolID, purchaser, sp)

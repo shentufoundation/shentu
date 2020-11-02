@@ -41,7 +41,6 @@ var (
 	WithdrawQueueKey            = []byte{0x0D}
 	LastUpdateTimeKey           = []byte{0x0E}
 	GlobalStakeForShieldPoolKey = []byte{0x0F}
-	StakeForShieldRateKey       = []byte{0x10}
 	StakeForShieldKey           = []byte{0x11}
 	BlockServiceFeesKey         = []byte{0x12}
 	OriginalStakingKey          = []byte{0x13}
@@ -130,10 +129,6 @@ func GetLastUpdateTimeKey() []byte {
 
 func GetGlobalStakeForShieldPoolKey() []byte {
 	return GlobalStakeForShieldPoolKey
-}
-
-func GetStakeForShieldRateKey() []byte {
-	return StakeForShieldRateKey
 }
 
 func GetStakeForShieldKey(poolID uint64, purchaser sdk.AccAddress) []byte {

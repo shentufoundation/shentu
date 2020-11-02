@@ -346,7 +346,7 @@ func GetCmdStatus(queryRoute string, cdc *codec.Codec) *cobra.Command {
 func GetCmdStaking(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "staking [pool_ID] [purchaser_address]",
-		Short: "get staked purchases corresponding to a given pool-purchaser pair",
+		Short: "get staked CTK for shield corresponding to a given pool-purchaser pair",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
