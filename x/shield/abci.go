@@ -11,8 +11,8 @@ import (
 
 // BeginBlock executes logics to begin a block.
 func BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
-	if ctx.BlockHeight() == common.UpdateHeight {
-		k.SetStakingPurchaseRate(ctx, types.DefaultStakingShieldRate)
+	if ctx.BlockHeight() == common.Update1Height {
+		k.SetShieldStakingRate(ctx, types.DefaultStakingShieldRate)
 	}
 }
 

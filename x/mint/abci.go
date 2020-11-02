@@ -37,8 +37,8 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	communityPoolRatio := k.GetCommunityPoolRatio(ctx)
 	communityPoolCoins := k.GetPoolMint(ctx, communityPoolRatio, mintedCoin)
 
-	shieldStakingPurchasePoolRatio := k.GetShieldStakingPurchasePoolRatio(ctx)
-	SPPCoins := k.GetPoolMint(ctx, shieldStakingPurchasePoolRatio, mintedCoin)
+	shieldStakeForShieldPoolRatio := k.GetShieldStakeForShieldPoolRatio(ctx)
+	SPPCoins := k.GetPoolMint(ctx, shieldStakeForShieldPoolRatio, mintedCoin)
 	collectedFeesCoins := mintedCoins.Sub(communityPoolCoins).Sub(SPPCoins)
 
 	// send the minted coins to the fee collector account
@@ -54,7 +54,6 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		panic(err)
 	}
 
-	mintedCoins = mintedCoins.Add(communityPoolCoins...)
 	for _, coin := range mintedCoins {
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(

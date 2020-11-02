@@ -33,6 +33,6 @@ type DistributionKeeper interface {
 }
 
 type ShieldKeeper interface {
-	GetGlobalStakingPurchasePool(ctx sdk.Context) sdk.Int
+	GetGlobalStakeForShieldPool(ctx sdk.Context) sdk.Int
 	FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 }

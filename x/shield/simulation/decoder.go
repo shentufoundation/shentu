@@ -65,14 +65,14 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &timeB)
 		return fmt.Sprintf("%v\n%v", timeA, timeB)
 
-	case bytes.Equal(kvA.Key[:1], types.StakingPurchaseRateKey):
+	case bytes.Equal(kvA.Key[:1], types.StakeForShieldRateKey):
 		var sPRA, sPRB sdk.Dec
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &sPRA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &sPRB)
 		return fmt.Sprintf("%v\n%v", sPRA, sPRB)
 
-	case bytes.Equal(kvA.Key[:1], types.StakingPurchaseKey):
-		var sPA, spB types.StakingPurchase
+	case bytes.Equal(kvA.Key[:1], types.StakeForShieldKey):
+		var sPA, spB types.StakeForShield
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &sPA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &spB)
 		return fmt.Sprintf("%v\n%v", sPA, spB)
@@ -82,6 +82,12 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &blockFeesA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &blockFeesB)
 		return fmt.Sprintf("%v\n%v", blockFeesA, blockFeesB)
+
+	case bytes.Equal(kvA.Key[:1], types.OriginalStakingKey):
+		var rateA, rateB sdk.Int
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &rateA)
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &rateB)
+		return fmt.Sprintf("%v\n%v", rateA, rateB)
 
 	default:
 		panic(fmt.Sprintf("invalid %s key prefix %X", types.ModuleName, kvA.Key[:1]))

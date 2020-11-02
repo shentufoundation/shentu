@@ -159,7 +159,7 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 		serviceFees = sdk.NewCoins(sdk.NewCoin(bondDenom, shield.AmountOf(bondDenom).ToDec().Mul(k.GetPoolParams(ctx).ShieldFeesRate).TruncateInt()))
 	} else {
 		// stake to the staking purchase pool
-		stakingAmt := k.GetStakingPurchaseRate(ctx).MulInt(shield.AmountOf(bondDenom)).TruncateInt()
+		stakingAmt := k.GetStakeForShieldRate(ctx).MulInt(shield.AmountOf(bondDenom)).TruncateInt()
 		stakingCoins = sdk.NewCoins(sdk.NewCoin(bondDenom, stakingAmt))
 		if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, stakingCoins); err != nil {
 			return types.Purchase{}, err
@@ -198,8 +198,8 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 				// If purchaseProtectionEndTime > previousBlockTime, update service fees.
 				// Otherwise services fees were updated in the last block.
 				if entry.ProtectionEndTime.After(lastUpdateTime) && entry.ServiceFees.Native.IsAllPositive() {
-					if entry.ServiceFees.Native.IsZero() && ctx.BlockHeight() > common.UpdateHeight {
-						k.ProcessStakingPurchaseExpiration(ctx, poolPurchaser.PoolID, entry.PurchaseID, bondDenom,
+					if entry.ServiceFees.Native.IsZero() && ctx.BlockHeight() > common.Update1Height {
+						k.ProcessStakeForShieldExpiration(ctx, poolPurchaser.PoolID, entry.PurchaseID, bondDenom,
 							poolPurchaser.Purchaser)
 					}
 					// Add purchaseServiceFees * (purchaseProtectionEndTime - previousBlockTime) / protectionPeriod.
@@ -247,7 +247,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 		sdk.NewDec(k.GetPoolParams(ctx).ProtectionPeriod.Nanoseconds())))
 
 	// Add block service fees that need to be distributed for this block
-	if ctx.BlockHeight() > common.UpdateHeight {
+	if ctx.BlockHeight() > common.Update1Height {
 		serviceFees = serviceFees.Add(k.GetBlockServiceFees(ctx))
 		k.SetBlockServiceFees(ctx, types.InitMixedDecCoins())
 	}

@@ -33,10 +33,10 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgWithdrawCollateral(ctx, msg, k)
 		case types.MsgPurchaseShield:
 			return handleMsgPurchaseShield(ctx, msg, k)
-		case types.MsgStakingPurchase:
-			return handleMsgStakingPurchase(ctx, msg, k)
-		case types.MsgWithdrawStaking:
-			return handleMsgWithdrawStaking(ctx, msg, k)
+		case types.MsgStakeForShield:
+			return handleMsgStakeForShield(ctx, msg, k)
+		case types.MsgUnstakeFromShield:
+			return handleMsgUnstakeFromShield(ctx, msg, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -232,8 +232,8 @@ func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Kee
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgStakingPurchase(ctx sdk.Context, msg types.MsgStakingPurchase, k Keeper) (*sdk.Result, error) {
-	if ctx.BlockHeight() < common.UpdateHeight {
+func handleMsgStakeForShield(ctx sdk.Context, msg types.MsgStakeForShield, k Keeper) (*sdk.Result, error) {
+	if ctx.BlockHeight() < common.Update1Height {
 		return nil, types.ErrBeforeUpdate
 	}
 	purchase, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From, true)
@@ -243,7 +243,7 @@ func handleMsgStakingPurchase(ctx sdk.Context, msg types.MsgStakingPurchase, k K
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeStakingPurchase,
+			types.EventTypeStakeForShield,
 			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(purchase.PurchaseID, 10)),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyProtectionEndTime, purchase.ProtectionEndTime.String()),
@@ -261,19 +261,19 @@ func handleMsgStakingPurchase(ctx sdk.Context, msg types.MsgStakingPurchase, k K
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgWithdrawStaking(ctx sdk.Context, msg types.MsgWithdrawStaking, k Keeper) (*sdk.Result, error) {
-	if ctx.BlockHeight() < common.UpdateHeight {
+func handleMsgUnstakeFromShield(ctx sdk.Context, msg types.MsgUnstakeFromShield, k Keeper) (*sdk.Result, error) {
+	if ctx.BlockHeight() < common.Update1Height {
 		return nil, types.ErrBeforeUpdate
 	}
 	amount := msg.Shield.AmountOf(k.BondDenom(ctx))
-	err := k.WithdrawStaking(ctx, msg.PoolID, msg.From, msg.PurchaseID, amount)
+	err := k.UnstakeFromShield(ctx, msg.PoolID, msg.From, msg.PurchaseID, amount)
 	if err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeWithdrawStaking,
+			types.EventTypeUnstakeFromShield,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),

@@ -25,6 +25,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/pool_params", types.QuerierRoute), queryPoolParamsHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/claim_params", types.QuerierRoute), queryClaimParamsHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/status", types.QuerierRoute), queryStatusHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/pool/{poolID}/staking_purchase", types.QuerierRoute), queryStakeForShieldHandler(cliCtx)).Methods("GET")
 }
 
 func queryPoolWithIDHandler(cliCtx context.CLIContext) http.HandlerFunc {
@@ -280,6 +281,29 @@ func queryStatusHandler(cliCtx context.CLIContext) http.HandlerFunc {
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryStakeForShieldHandler(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		vars := mux.Vars(r)
+		poolID := vars["poolID"]
+		address := vars["address"]
+
+		route := fmt.Sprintf("custom/%s/%s/%s/%s", types.QuerierRoute, types.QueryStakeForShield, poolID, address)
+		res, height, err := cliCtx.QueryWithData(route, nil)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
 		}
 

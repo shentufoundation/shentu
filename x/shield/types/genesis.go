@@ -27,16 +27,17 @@ type GenesisState struct {
 	PurchaseLists        []PurchaseList      `json:"purchases" yaml:"purchases"`
 	Withdraws            Withdraws           `json:"withdraws" yaml:"withdraws"`
 	LastUpdateTime       time.Time           `json:"last_update_time" yaml:"last_update_time"`
-	StakingPurchaseRate  sdk.Dec             `json:"staking_purchase_rate" yaml:"staking_purchase_rate"`
+	ShieldStakingRate    sdk.Dec             `json:"shield_staking_rate" yaml:"shield_staking_rate"`
 	GlobalStakingPool    sdk.Int             `json:"global_staking_pool" yaml:"global_staking_pool"`
-	StakingPurchases     []StakingPurchase   `json:"staking_purchases" yaml:"staking_purchases"`
+	StakeForShields      []StakeForShield    `json:"staking_purchases" yaml:"staking_purchases"`
+	OriginalStakings     []OriginalStaking   `json:"original_stakings" yaml:"original_stakings"`
 }
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
 	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalLocked sdk.Int, serviceFees, remainingServiceFees MixedDecCoins,
-	pools []Pool, providers []Provider, purchase []PurchaseList, withdraws Withdraws, lastUpdateTime time.Time, sPRate sdk.Dec, globalStakingPool sdk.Int,
-	stakingPurchases []StakingPurchase) GenesisState {
+	pools []Pool, providers []Provider, purchase []PurchaseList, withdraws Withdraws, lastUpdateTime time.Time, sSRate sdk.Dec, globalStakingPool sdk.Int,
+	stakingPurchases []StakeForShield, originalStaking []OriginalStaking) GenesisState {
 	return GenesisState{
 		ShieldAdmin:          shieldAdmin,
 		NextPoolID:           nextPoolID,
@@ -54,9 +55,10 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		PurchaseLists:        purchase,
 		Withdraws:            withdraws,
 		LastUpdateTime:       lastUpdateTime,
-		StakingPurchaseRate:  sPRate,
+		ShieldStakingRate:    sSRate,
 		GlobalStakingPool:    globalStakingPool,
-		StakingPurchases:     stakingPurchases,
+		StakeForShields:      stakingPurchases,
+		OriginalStakings:     originalStaking,
 	}
 }
 
@@ -73,7 +75,7 @@ func DefaultGenesisState() GenesisState {
 		TotalLocked:          sdk.ZeroInt(),
 		ServiceFees:          InitMixedDecCoins(),
 		RemainingServiceFees: InitMixedDecCoins(),
-		StakingPurchaseRate:  sdk.NewDec(2),
+		ShieldStakingRate:    sdk.NewDec(2),
 	}
 }
 
@@ -104,4 +106,16 @@ func GetGenesisStateFromAppState(cdc *codec.Codec, appState map[string]json.RawM
 		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
 	}
 	return genesisState
+}
+
+type OriginalStaking struct {
+	PurchaseID uint64
+	Amount     sdk.Int
+}
+
+func NewOriginalStaking(purchaser uint64, amount sdk.Int) OriginalStaking {
+	return OriginalStaking{
+		PurchaseID: purchaser,
+		Amount:     amount,
+	}
 }

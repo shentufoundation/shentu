@@ -37,6 +37,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdPoolParams(queryRoute, cdc),
 		GetCmdClaimParams(queryRoute, cdc),
 		GetCmdStatus(queryRoute, cdc),
+		GetCmdStaking(queryRoute, cdc),
 	)...)
 
 	return shieldQueryCmd
@@ -126,7 +127,6 @@ func GetCmdPurchaseList(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			return cliCtx.PrintOutput(out)
 		},
 	}
-
 	return cmd
 }
 
@@ -334,6 +334,30 @@ func GetCmdStatus(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			var out types.QueryResStatus
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
+	return cmd
+}
+
+// GetCmdStakeForShield returns the command for querying purchases
+// corresponding to a given pool-purchaser pair.
+func GetCmdStaking(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "staking [pool_ID] [purchaser_address]",
+		Short: "get staked purchases corresponding to a given pool-purchaser pair",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			route := fmt.Sprintf("custom/%s/%s/%s/%s", queryRoute, types.QueryStakeForShield, args[0], args[1])
+			res, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			var out types.StakeForShield
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},

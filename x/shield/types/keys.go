@@ -25,26 +25,26 @@ const (
 )
 
 var (
-	ShieldAdminKey               = []byte{0x00}
-	TotalCollateralKey           = []byte{0x01}
-	TotalWithdrawingKey          = []byte{0x02}
-	TotalShieldKey               = []byte{0x03}
-	TotalLockedKey               = []byte{0x04}
-	ServiceFeesKey               = []byte{0x05}
-	RemainingServiceFeesKey      = []byte{0x06}
-	PoolKey                      = []byte{0x07}
-	NextPoolIDKey                = []byte{0x08}
-	NextPurchaseIDKey            = []byte{0x09}
-	PurchaseListKey              = []byte{0x0A}
-	PurchaseQueueKey             = []byte{0x0B}
-	ProviderKey                  = []byte{0x0C}
-	WithdrawQueueKey             = []byte{0x0D}
-	LastUpdateTimeKey            = []byte{0x0E}
-	GlobalStakingPurchasePoolKey = []byte{0x0F}
-	StakingPurchaseRateKey       = []byte{0x10}
-	StakingPurchaseKey           = []byte{0x11}
-	BlockServiceFeesKey          = []byte{0x12}
-	OriginalStakingKey           = []byte{0x13}
+	ShieldAdminKey              = []byte{0x00}
+	TotalCollateralKey          = []byte{0x01}
+	TotalWithdrawingKey         = []byte{0x02}
+	TotalShieldKey              = []byte{0x03}
+	TotalLockedKey              = []byte{0x04}
+	ServiceFeesKey              = []byte{0x05}
+	RemainingServiceFeesKey     = []byte{0x06}
+	PoolKey                     = []byte{0x07}
+	NextPoolIDKey               = []byte{0x08}
+	NextPurchaseIDKey           = []byte{0x09}
+	PurchaseListKey             = []byte{0x0A}
+	PurchaseQueueKey            = []byte{0x0B}
+	ProviderKey                 = []byte{0x0C}
+	WithdrawQueueKey            = []byte{0x0D}
+	LastUpdateTimeKey           = []byte{0x0E}
+	GlobalStakeForShieldPoolKey = []byte{0x0F}
+	StakeForShieldRateKey       = []byte{0x10}
+	StakeForShieldKey           = []byte{0x11}
+	BlockServiceFeesKey         = []byte{0x12}
+	OriginalStakingKey          = []byte{0x13}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -128,18 +128,18 @@ func GetLastUpdateTimeKey() []byte {
 	return LastUpdateTimeKey
 }
 
-func GetGlobalStakingPurchasePoolKey() []byte {
-	return GlobalStakingPurchasePoolKey
+func GetGlobalStakeForShieldPoolKey() []byte {
+	return GlobalStakeForShieldPoolKey
 }
 
-func GetStakingPurchaseRateKey() []byte {
-	return StakingPurchaseRateKey
+func GetStakeForShieldRateKey() []byte {
+	return StakeForShieldRateKey
 }
 
-func GetStakingPurchaseKey(poolID uint64, purchaser sdk.AccAddress) []byte {
+func GetStakeForShieldKey(poolID uint64, purchaser sdk.AccAddress) []byte {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, poolID)
-	return append(StakingPurchaseKey, append(bz, purchaser...)...)
+	return append(StakeForShieldKey, append(bz, purchaser...)...)
 }
 
 func GetOriginalStakingKey(purchaseID uint64) []byte {

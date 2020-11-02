@@ -55,7 +55,7 @@ type purchaseReq struct {
 	Description string       `json:"description" yaml:"description"`
 }
 
-type withdrawStakingReq struct {
+type withdrawFromShieldReq struct {
 	BaseReq    rest.BaseReq `json:"base_req" yaml:"base_req"`
 	PoolID     uint64       `json:"pool_id" yaml:"pool_id"`
 	PurchaseID uint64       `json:"purchase_id" yaml:"purchase_id"`

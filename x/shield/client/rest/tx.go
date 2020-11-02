@@ -21,8 +21,8 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/shield/withdraw_foreign_rewards", withdrawForeignRewardsHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/shield/withdraw_reimbursement", withdrawReimbursementHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/shield/purchase", purchaseHandlerFn(cliCtx)).Methods("POST")
-	r.HandleFunc("/shield/staking_purchase", stakingPurchaseHandlerFn(cliCtx)).Methods("POST")
-	r.HandleFunc("/shield/withdraw_staking", withdrawStakingHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/shield/stake_for_shield", stakeForShieldHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/shield/withdraw_from_shield", withdrawFromShieldHandlerFn(cliCtx)).Methods("POST")
 }
 
 func depositCollateralHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -231,7 +231,7 @@ func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func stakingPurchaseHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func stakeForShieldHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req purchaseReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -250,7 +250,7 @@ func stakingPurchaseHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgStakingPurchase(req.PoolID, req.Shield, req.Description, from)
+		msg := types.NewMsgStakeForShield(req.PoolID, req.Shield, req.Description, from)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -260,9 +260,9 @@ func stakingPurchaseHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func withdrawStakingHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func withdrawFromShieldHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req withdrawStakingReq
+		var req withdrawFromShieldReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
@@ -279,7 +279,7 @@ func withdrawStakingHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgWithdrawStaking(req.PoolID, req.Amount, req.PurchaseID, from)
+		msg := types.NewMsgUnstakeFromShield(req.PoolID, req.Amount, req.PurchaseID, from)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

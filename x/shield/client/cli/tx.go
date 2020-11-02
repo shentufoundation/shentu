@@ -52,8 +52,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetCmdClearPayouts(cdc),
 		GetCmdPurchaseShield(cdc),
 		GetCmdWithdrawReimbursement(cdc),
-		GetCmdStakingPurchase(cdc),
-		GetCmdWithdrawStaking(cdc),
+		GetCmdStakeForShield(cdc),
+		GetCmdUnstakeFromShield(cdc),
 	)...)
 
 	return shieldTxCmd
@@ -515,17 +515,17 @@ $ %s tx shield withdraw-reimbursement <proposal id>
 	return cmd
 }
 
-// GetCmdStakingPurchase implements the command for purchasing Shield.
-func GetCmdStakingPurchase(cdc *codec.Codec) *cobra.Command {
+// GetCmdStakeForShield implements the command for purchasing Shield.
+func GetCmdStakeForShield(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "staking-purchase [pool id] [shield amount] [description]",
+		Use:   "stake-for-shield [pool id] [shield amount] [description]",
 		Args:  cobra.ExactArgs(3),
-		Short: "purchase Shield through staking",
+		Short: "obtain shield through staking CTK",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Purchase Shield through staking. Requires purchaser to provide descriptions of accounts to be protected.
+			fmt.Sprintf(`Obtain shield through staking. Requires purchaser to provide descriptions of accounts to be protected.
 
 Example:
-$ %s tx shield purchase <pool id> <shield amount> <description>
+$ %s tx shield stake-for-shield <pool id> <shield amount> <description>
 `,
 				version.ClientName,
 			),
@@ -550,7 +550,7 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 				return types.ErrPurchaseMissingDescription
 			}
 
-			msg := types.NewMsgStakingPurchase(poolID, shield, description, fromAddr)
+			msg := types.NewMsgStakeForShield(poolID, shield, description, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -561,14 +561,14 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 	return cmd
 }
 
-// GetCmdWithdrawStaking implements the command for purchasing Shield.
-func GetCmdWithdrawStaking(cdc *codec.Codec) *cobra.Command {
+// GetCmdUnstakeFromShield implements the command for purchasing Shield.
+func GetCmdUnstakeFromShield(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "withdraw-staking [pool id] [amount] ",
+		Use:   "unstake_from_shield [pool id] [amount] ",
 		Args:  cobra.ExactArgs(3),
-		Short: "withdraw staked-for-shield coins",
+		Short: "unstake staked-for-shield coins",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Withdraw staking. Requires existing shield purchase through staking.
+			fmt.Sprintf(`Withdraw staking from shield. Requires existing shield purchase through staking.
 
 Example:
 $ %s tx shield withdraw-staking <pool id> <shield amount> 
@@ -596,7 +596,7 @@ $ %s tx shield withdraw-staking <pool id> <shield amount>
 				return err
 			}
 
-			msg := types.NewMsgWithdrawStaking(poolID, shield, purchaseID, fromAddr)
+			msg := types.NewMsgUnstakeFromShield(poolID, shield, purchaseID, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

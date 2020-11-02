@@ -19,8 +19,8 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	k.SetTotalLocked(ctx, data.TotalLocked)
 	k.SetServiceFees(ctx, data.ServiceFees)
 	k.SetRemainingServiceFees(ctx, data.RemainingServiceFees)
-	k.SetGlobalStakingPurchasePool(ctx, data.GlobalStakingPool)
-	k.SetStakingPurchaseRate(ctx, data.StakingPurchaseRate)
+	k.SetGlobalShieldStakingPool(ctx, data.GlobalStakingPool)
+	k.SetShieldStakingRate(ctx, data.ShieldStakingRate)
 	for _, pool := range data.Pools {
 		k.SetPool(ctx, pool)
 	}
@@ -32,8 +32,11 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 			k.InsertExpiringPurchaseQueue(ctx, purchaseList, entry.ProtectionEndTime)
 		}
 	}
-	for _, purchase := range data.StakingPurchases {
-		k.SetStakingPurchase(ctx, purchase.PoolID, purchase.Purchaser, purchase)
+	for _, purchase := range data.StakeForShields {
+		k.SetStakeForShield(ctx, purchase.PoolID, purchase.Purchaser, purchase)
+	}
+	for _, originalStaking := range data.OriginalStakings {
+		k.SetOriginalStaking(ctx, originalStaking.PurchaseID, originalStaking.Amount)
 	}
 	for _, provider := range data.Providers {
 		k.SetProvider(ctx, provider.Address, provider)
@@ -65,11 +68,12 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	providers := k.GetAllProviders(ctx)
 	withdraws := k.GetAllWithdraws(ctx)
 	lastUpdateTime, _ := k.GetLastUpdateTime(ctx)
-	stakingPurchaseRate := k.GetStakingPurchaseRate(ctx)
-	globalStakingPool := k.GetGlobalStakingPurchasePool(ctx)
-	stakingPurchases := k.GetAllStakingPurchases(ctx)
+	stakingPurchaseRate := k.GetStakeForShieldRate(ctx)
+	globalStakingPool := k.GetGlobalStakeForShieldPool(ctx)
+	stakingPurchases := k.GetAllStakeForShields(ctx)
+	originalStaking := k.GetAllOriginalStakings(ctx)
 
 	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams,
 		totalCollateral, totalWithdrawing, totalShield, totalLocked, serviceFees, remainingServiceFees, pools,
-		providers, purchaseLists, withdraws, lastUpdateTime, stakingPurchaseRate, globalStakingPool, stakingPurchases)
+		providers, purchaseLists, withdraws, lastUpdateTime, stakingPurchaseRate, globalStakingPool, stakingPurchases, originalStaking)
 }

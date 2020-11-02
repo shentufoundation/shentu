@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strconv"
 
@@ -9,19 +10,19 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-func (k Keeper) GetGlobalStakingPurchasePool(ctx sdk.Context) (pool sdk.Int) {
+func (k Keeper) GetGlobalStakeForShieldPool(ctx sdk.Context) (pool sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetGlobalStakingPurchasePoolKey())
+	bz := store.Get(types.GetGlobalStakeForShieldPoolKey())
 	if bz != nil {
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &pool)
 	}
 	return sdk.NewInt(0)
 }
 
-func (k Keeper) SetGlobalStakingPurchasePool(ctx sdk.Context, pool sdk.Int) {
+func (k Keeper) SetGlobalShieldStakingPool(ctx sdk.Context, pool sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(pool)
-	store.Set(types.GetGlobalStakingPurchasePoolKey(), bz)
+	store.Set(types.GetGlobalStakeForShieldPoolKey(), bz)
 }
 
 func (k Keeper) GetOriginalStaking(ctx sdk.Context, purchaseID uint64) (amount sdk.Int) {
@@ -39,9 +40,9 @@ func (k Keeper) SetOriginalStaking(ctx sdk.Context, purchaseID uint64, amount sd
 	store.Set(types.GetOriginalStakingKey(purchaseID), bz)
 }
 
-func (k Keeper) GetStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (purchase types.StakingPurchase, found bool) {
+func (k Keeper) GetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (purchase types.StakeForShield, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetStakingPurchaseKey(poolID, purchaser))
+	bz := store.Get(types.GetStakeForShieldKey(poolID, purchaser))
 	if bz != nil {
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &purchase)
 		found = true
@@ -49,19 +50,19 @@ func (k Keeper) GetStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk
 	return
 }
 
-func (k Keeper) SetStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchase types.StakingPurchase) {
+func (k Keeper) SetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchase types.StakeForShield) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchase)
-	store.Set(types.GetStakingPurchaseKey(poolID, purchaser), bz)
+	store.Set(types.GetStakeForShieldKey(poolID, purchaser), bz)
 }
 
 func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, amount sdk.Int) error {
-	pool := k.GetGlobalStakingPurchasePool(ctx)
+	pool := k.GetGlobalStakeForShieldPool(ctx)
 	pool = pool.Add(amount)
-	k.SetGlobalStakingPurchasePool(ctx, pool)
-	sp, found := k.GetStakingPurchase(ctx, poolID, purchaser)
+	k.SetGlobalShieldStakingPool(ctx, pool)
+	sp, found := k.GetStakeForShield(ctx, poolID, purchaser)
 	if !found {
-		sp = types.NewStakingPurchase(poolID, purchaser, amount)
+		sp = types.NewStakeForShield(poolID, purchaser, amount)
 	}
 
 	sp.Amount = sp.Amount.Add(amount)
@@ -71,20 +72,20 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	if err != nil {
 		return err
 	}
-	k.SetStakingPurchase(ctx, poolID, purchaser, sp)
+	k.SetStakeForShield(ctx, poolID, purchaser, sp)
 	k.SetOriginalStaking(ctx, purchaseID, amount)
 	return nil
 }
 
-func (k Keeper) WithdrawStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, amount sdk.Int) error {
-	sp, found := k.GetStakingPurchase(ctx, poolID, purchaser)
+func (k Keeper) UnstakeFromShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, amount sdk.Int) error {
+	sp, found := k.GetStakeForShield(ctx, poolID, purchaser)
 	if !found {
 		return types.ErrPurchaseNotFound
 	}
 	if sp.WithdrawRequested.Add(amount).GT(sp.Amount) {
 		return types.ErrNotEnoughStaked
 	}
-	k.SetStakingPurchase(ctx, poolID, purchaser, sp)
+	k.SetStakeForShield(ctx, poolID, purchaser, sp)
 	return nil
 }
 
@@ -98,22 +99,22 @@ func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender
 	return nil
 }
 
-func (k Keeper) GetAllStakingPurchases(ctx sdk.Context) (purchases []types.StakingPurchase) {
-	k.IterateStakingPurchases(ctx, func(purchase types.StakingPurchase) bool {
+func (k Keeper) GetAllStakeForShields(ctx sdk.Context) (purchases []types.StakeForShield) {
+	k.IterateStakeForShields(ctx, func(purchase types.StakeForShield) bool {
 		purchases = append(purchases, purchase)
 		return false
 	})
 	return
 }
 
-// IterateStakingPurchases iterates through purchase lists in a pool
-func (k Keeper) IterateStakingPurchases(ctx sdk.Context, callback func(purchase types.StakingPurchase) (stop bool)) {
+// IterateStakeForShields iterates through purchase lists in a pool
+func (k Keeper) IterateStakeForShields(ctx sdk.Context, callback func(purchase types.StakeForShield) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.StakingPurchaseKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.StakeForShieldKey)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var purchase types.StakingPurchase
+		var purchase types.StakeForShield
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchase)
 
 		if callback(purchase) {
@@ -122,8 +123,35 @@ func (k Keeper) IterateStakingPurchases(ctx sdk.Context, callback func(purchase 
 	}
 }
 
-func (k Keeper) ProcessStakingPurchaseExpiration(ctx sdk.Context, poolID, purchaseID uint64, bondDenom string, purchaser sdk.AccAddress) error {
-	stakingPurchase, found := k.GetStakingPurchase(ctx, poolID, purchaser)
+func (k Keeper) GetAllOriginalStakings(ctx sdk.Context) (originalStakings []types.OriginalStaking) {
+	k.IterateOriginalStakings(ctx, func(newOS types.OriginalStaking) bool {
+		originalStakings = append(originalStakings, newOS)
+		return false
+	})
+	return
+}
+
+// IterateStakeForShields iterates through purchase lists in a pool
+func (k Keeper) IterateOriginalStakings(ctx sdk.Context, callback func(original types.OriginalStaking) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.OriginalStakingKey)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var amount sdk.Int
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &amount)
+		bz := iterator.Key()[1:]
+		id := binary.LittleEndian.Uint64(bz)
+		newOS := types.NewOriginalStaking(id, amount)
+
+		if callback(newOS) {
+			break
+		}
+	}
+}
+
+func (k Keeper) ProcessStakeForShieldExpiration(ctx sdk.Context, poolID, purchaseID uint64, bondDenom string, purchaser sdk.AccAddress) error {
+	stakingPurchase, found := k.GetStakeForShield(ctx, poolID, purchaser)
 	if !found {
 		return nil
 	}
@@ -137,12 +165,12 @@ func (k Keeper) ProcessStakingPurchaseExpiration(ctx sdk.Context, poolID, purcha
 	}
 	stakingPurchase.WithdrawRequested = sdk.MaxInt(sdk.ZeroInt(), stakingPurchase.WithdrawRequested.Sub(amount))
 	stakingPurchase.Amount = stakingPurchase.Amount.Sub(amount)
-	k.SetStakingPurchase(ctx, poolID, purchaser, stakingPurchase)
+	k.SetStakeForShield(ctx, poolID, purchaser, stakingPurchase)
 	if renew.IsZero() {
 		return nil
 	}
 
-	sPRate := k.GetStakingPurchaseRate(ctx)
+	sPRate := k.GetStakeForShieldRate(ctx)
 	renewShieldInt := sPRate.QuoInt(amount).TruncateInt()
 	renewShield := sdk.NewCoins(sdk.NewCoin(bondDenom, renewShieldInt))
 	desc := fmt.Sprintf(`renewed from PurchaseID %s`, strconv.FormatUint(purchaseID, 10))

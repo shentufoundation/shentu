@@ -18,6 +18,7 @@ const (
 	QueryPoolParams          = "pool_params"
 	QueryClaimParams         = "claim_params"
 	QueryStatus              = "status"
+	QueryStakeForShield      = "staking_purchase"
 )
 
 type QueryResStatus struct {
