@@ -28,6 +28,11 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 
 		moduleCoins := keeper.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins()
 		totalInt, change := total.Native.TruncateDecimal()
+		for _, staked := range keeper.GetAllStakeForShields(ctx) {
+			stakedCoins := sdk.NewCoin(keeper.BondDenom(ctx), staked.Amount)
+			totalInt = totalInt.Add(stakedCoins)
+		}
+		totalInt = totalInt.Add()
 		broken := !totalInt.IsEqual(moduleCoins) || !change.Empty()
 
 		return sdk.FormatInvariant(types.ModuleName, "module-account",

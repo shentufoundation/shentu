@@ -565,7 +565,7 @@ $ %s tx shield stake-for-shield <pool id> <shield amount> <description>
 func GetCmdUnstakeFromShield(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unstake_from_shield [pool id] [amount] ",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(2),
 		Short: "unstake staked-for-shield coins",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Withdraw staking from shield. Requires existing shield purchase through staking.
@@ -591,12 +591,8 @@ $ %s tx shield withdraw-staking <pool id> <shield amount>
 			if err != nil {
 				return err
 			}
-			purchaseID, err := strconv.ParseUint(args[2], 10, 64)
-			if err != nil {
-				return err
-			}
 
-			msg := types.NewMsgUnstakeFromShield(poolID, shield, purchaseID, fromAddr)
+			msg := types.NewMsgUnstakeFromShield(poolID, shield, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

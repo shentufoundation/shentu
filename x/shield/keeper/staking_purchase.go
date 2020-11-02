@@ -76,7 +76,7 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	return nil
 }
 
-func (k Keeper) UnstakeFromShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, amount sdk.Int) error {
+func (k Keeper) UnstakeFromShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) error {
 	sp, found := k.GetStakeForShield(ctx, poolID, purchaser)
 	if !found {
 		return types.ErrPurchaseNotFound
@@ -84,6 +84,7 @@ func (k Keeper) UnstakeFromShield(ctx sdk.Context, poolID uint64, purchaser sdk.
 	if sp.WithdrawRequested.Add(amount).GT(sp.Amount) {
 		return types.ErrNotEnoughStaked
 	}
+	sp.WithdrawRequested = sp.WithdrawRequested.Add(amount)
 	k.SetStakeForShield(ctx, poolID, purchaser, sp)
 	return nil
 }

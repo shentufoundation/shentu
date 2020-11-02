@@ -538,19 +538,17 @@ func (msg MsgStakeForShield) ValidateBasic() error {
 // TODO: eliminate this msg type
 // MsgUnstakeFromShield defines the attributes of staking for purchase transaction.
 type MsgUnstakeFromShield struct {
-	PoolID     uint64         `json:"pool_id" yaml:"pool_id"`
-	Shield     sdk.Coins      `json:"shield" yaml:"shield"`
-	PurchaseID uint64         `json:"purchase_id" yaml:"purchase_id"`
-	From       sdk.AccAddress `json:"from" yaml:"from"`
+	PoolID uint64         `json:"pool_id" yaml:"pool_id"`
+	Shield sdk.Coins      `json:"shield" yaml:"shield"`
+	From   sdk.AccAddress `json:"from" yaml:"from"`
 }
 
 // NewMsgUnstakeFromShield creates a new MsgPurchaseShield instance.
-func NewMsgUnstakeFromShield(poolID uint64, shield sdk.Coins, purchaseID uint64, from sdk.AccAddress) MsgUnstakeFromShield {
+func NewMsgUnstakeFromShield(poolID uint64, shield sdk.Coins, from sdk.AccAddress) MsgUnstakeFromShield {
 	return MsgUnstakeFromShield{
-		PoolID:     poolID,
-		Shield:     shield,
-		PurchaseID: purchaseID,
-		From:       from,
+		PoolID: poolID,
+		Shield: shield,
+		From:   from,
 	}
 }
 

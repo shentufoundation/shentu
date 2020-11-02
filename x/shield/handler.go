@@ -266,7 +266,7 @@ func handleMsgUnstakeFromShield(ctx sdk.Context, msg types.MsgUnstakeFromShield,
 		return nil, types.ErrBeforeUpdate
 	}
 	amount := msg.Shield.AmountOf(k.BondDenom(ctx))
-	err := k.UnstakeFromShield(ctx, msg.PoolID, msg.From, msg.PurchaseID, amount)
+	err := k.UnstakeFromShield(ctx, msg.PoolID, msg.From, amount)
 	if err != nil {
 		return nil, err
 	}

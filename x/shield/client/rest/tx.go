@@ -279,7 +279,7 @@ func withdrawFromShieldHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgUnstakeFromShield(req.PoolID, req.Amount, req.PurchaseID, from)
+		msg := types.NewMsgUnstakeFromShield(req.PoolID, req.Amount, from)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
