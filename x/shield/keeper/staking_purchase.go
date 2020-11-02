@@ -40,7 +40,7 @@ func (k Keeper) SetOriginalStaking(ctx sdk.Context, purchaseID uint64, amount sd
 	store.Set(types.GetOriginalStakingKey(purchaseID), bz)
 }
 
-func (k Keeper) GetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (purchase types.StakeForShield, found bool) {
+func (k Keeper) GetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (purchase types.ShieldStaking, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetStakeForShieldKey(poolID, purchaser))
 	if bz != nil {
@@ -50,7 +50,7 @@ func (k Keeper) GetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.
 	return
 }
 
-func (k Keeper) SetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchase types.StakeForShield) {
+func (k Keeper) SetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchase types.ShieldStaking) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchase)
 	store.Set(types.GetStakeForShieldKey(poolID, purchaser), bz)
@@ -62,7 +62,7 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	k.SetGlobalShieldStakingPool(ctx, pool)
 	sp, found := k.GetStakeForShield(ctx, poolID, purchaser)
 	if !found {
-		sp = types.NewStakeForShield(poolID, purchaser, amount)
+		sp = types.NewShieldStaking(poolID, purchaser, amount)
 	}
 
 	sp.Amount = sp.Amount.Add(amount)
@@ -98,8 +98,8 @@ func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender
 	return nil
 }
 
-func (k Keeper) GetAllStakeForShields(ctx sdk.Context) (purchases []types.StakeForShield) {
-	k.IterateStakeForShields(ctx, func(purchase types.StakeForShield) bool {
+func (k Keeper) GetAllStakeForShields(ctx sdk.Context) (purchases []types.ShieldStaking) {
+	k.IterateStakeForShields(ctx, func(purchase types.ShieldStaking) bool {
 		purchases = append(purchases, purchase)
 		return false
 	})
@@ -107,13 +107,13 @@ func (k Keeper) GetAllStakeForShields(ctx sdk.Context) (purchases []types.StakeF
 }
 
 // IterateStakeForShields iterates through purchase lists in a pool
-func (k Keeper) IterateStakeForShields(ctx sdk.Context, callback func(purchase types.StakeForShield) (stop bool)) {
+func (k Keeper) IterateStakeForShields(ctx sdk.Context, callback func(purchase types.ShieldStaking) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.StakeForShieldKey)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var purchase types.StakeForShield
+		var purchase types.ShieldStaking
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchase)
 
 		if callback(purchase) {

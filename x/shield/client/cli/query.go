@@ -357,7 +357,7 @@ func GetCmdStaking(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			var out types.StakeForShield
+			var out types.ShieldStaking
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},

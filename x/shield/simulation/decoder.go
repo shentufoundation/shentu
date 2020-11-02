@@ -66,7 +66,7 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 		return fmt.Sprintf("%v\n%v", timeA, timeB)
 
 	case bytes.Equal(kvA.Key[:1], types.StakeForShieldKey):
-		var sPA, spB types.StakeForShield
+		var sPA, spB types.ShieldStaking
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &sPA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &spB)
 		return fmt.Sprintf("%v\n%v", sPA, spB)
