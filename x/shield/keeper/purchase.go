@@ -155,11 +155,9 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 		return
 	}
 
-	store := ctx.KVStore(k.storeKey)
 	totalServiceFees := k.GetServiceFees(ctx)
 	totalShield := k.GetTotalShield(ctx)
 	serviceFees := types.InitMixedDecCoins()
-	lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
 
 	// Check all purchases whose protection end time is before current block time.
 	// 1) Update service fees for purchases whose protection end time is before current block time.
@@ -189,6 +187,8 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 
 				// If purchaseDeletionTime < currentBlockTime, remove the purchase.
 				if entry.DeletionTime.Before(ctx.BlockTime()) {
+					k.DequeuePurchase(ctx, purchaseList, entry.ProtectionEndTime)
+
 					// If purchaseProtectionEndTime > previousBlockTime, calculate and set service fees before removing the purchase.
 					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
 					// Update pool shield and total shield.
@@ -208,10 +208,6 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 			} else {
 				k.SetPurchaseList(ctx, purchaseList)
 			}
-		}
-		protectionEndTime, _ := sdk.ParseTimeBytes(iterator.Key()[1:])
-		if protectionEndTime.Add(lockPeriod).Before(ctx.BlockTime()) {
-			store.Delete(iterator.Key())
 		}
 	}
 	k.SetServiceFees(ctx, totalServiceFees)
