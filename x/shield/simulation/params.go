@@ -28,7 +28,7 @@ func ParamChanges(_ *rand.Rand) []simulation.ParamChange {
 
 		simulation.NewSimParamChange(types.ModuleName, string(types.ParamStoreKeyStakingShieldRate),
 			func(r *rand.Rand) string {
-				bz, _ := json.Marshal(GenStakingShieldRateParam(r))
+				bz, _ := json.Marshal(GenShieldStakingRateParam(r))
 				return string(bz)
 			},
 		),

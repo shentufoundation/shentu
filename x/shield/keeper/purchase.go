@@ -161,7 +161,7 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 		serviceFees = sdk.NewCoins(sdk.NewCoin(bondDenom, shield.AmountOf(bondDenom).ToDec().Mul(k.GetPoolParams(ctx).ShieldFeesRate).TruncateInt()))
 	} else {
 		// stake to the staking purchase pool
-		stakingAmt := k.GetStakeForShieldRate(ctx).MulInt(shield.AmountOf(bondDenom)).TruncateInt()
+		stakingAmt := k.GetShieldStakingRate(ctx).MulInt(shield.AmountOf(bondDenom)).TruncateInt()
 		stakingCoins = sdk.NewCoins(sdk.NewCoin(bondDenom, stakingAmt))
 	}
 	return k.purchaseShield(ctx, poolID, shield, description, purchaser, serviceFees, stakingCoins)

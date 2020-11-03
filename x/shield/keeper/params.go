@@ -30,8 +30,8 @@ func (k Keeper) GetClaimProposalParams(ctx sdk.Context) types.ClaimProposalParam
 	return claimProposalParams
 }
 
-// GetStakeForShieldRate returns shield to staked rate.
-func (k Keeper) GetStakeForShieldRate(ctx sdk.Context) (rate sdk.Dec) {
+// GetShieldStakingRate returns shield to staked rate.
+func (k Keeper) GetShieldStakingRate(ctx sdk.Context) (rate sdk.Dec) {
 	k.paramSpace.Get(ctx, types.ParamStoreKeyStakingShieldRate, &rate)
 	return
 }

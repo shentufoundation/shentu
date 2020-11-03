@@ -175,7 +175,7 @@ func (k Keeper) ProcessStakeForShieldExpiration(ctx sdk.Context, poolID, purchas
 		return nil
 	}
 
-	sPRate := k.GetStakeForShieldRate(ctx)
+	sPRate := k.GetShieldStakingRate(ctx)
 	renewShieldInt := sPRate.QuoInt(amount).TruncateInt()
 	renewShield := sdk.NewCoins(sdk.NewCoin(bondDenom, renewShieldInt))
 	desc := fmt.Sprintf(`renewed from PurchaseID %s`, strconv.FormatUint(purchaseID, 10))

@@ -4,6 +4,8 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/certikfoundation/shentu/common"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
@@ -478,6 +480,9 @@ func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper)
 func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		if ctx.BlockHeight() < common.Update1Height {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 		purchaser, _ := simulation.RandomAcc(r, accs)
 		account := ak.GetAccount(ctx, purchaser.Address)
 		bondDenom := sk.BondDenom(ctx)
@@ -500,13 +505,13 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 				totalCollateral.Sub(totalWithdrawing).Sub(totalShield),
 			),
 		)
-		accountMax := sdk.OneDec().Quo(k.GetStakeForShieldRate(ctx)).MulInt(account.GetCoins().AmountOf(k.BondDenom(ctx))).TruncateInt()
+		accountMax := sdk.OneDec().Quo(k.GetShieldStakingRate(ctx)).MulInt(account.GetCoins().AmountOf(k.BondDenom(ctx))).TruncateInt()
 		max := sdk.MinInt(accountMax, maxShield)
 		shieldAmount, err := simulation.RandPositiveInt(r, max)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		rate := k.GetStakeForShieldRate(ctx)
+		rate := k.GetShieldStakingRate(ctx)
 		maxShieldAmt := account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom).ToDec().Quo(rate).TruncateInt()
 		if shieldAmount.GT(maxShieldAmt) {
 			shieldAmount = maxShieldAmt
@@ -541,6 +546,9 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		if ctx.BlockHeight() < common.Update1Height {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 		purchaser, _ := simulation.RandomAcc(r, accs)
 		account := ak.GetAccount(ctx, purchaser.Address)
 		bondDenom := sk.BondDenom(ctx)

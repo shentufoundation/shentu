@@ -68,7 +68,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	providers := k.GetAllProviders(ctx)
 	withdraws := k.GetAllWithdraws(ctx)
 	lastUpdateTime, _ := k.GetLastUpdateTime(ctx)
-	stakingPurchaseRate := k.GetStakeForShieldRate(ctx)
+	stakingPurchaseRate := k.GetShieldStakingRate(ctx)
 	globalStakingPool := k.GetGlobalStakeForShieldPool(ctx)
 	stakingPurchases := k.GetAllStakeForShields(ctx)
 	originalStaking := k.GetAllOriginalStakings(ctx)
