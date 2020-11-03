@@ -4,12 +4,10 @@ import (
 	"encoding/binary"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/certikfoundation/shentu/common"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 

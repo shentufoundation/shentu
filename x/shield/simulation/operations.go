@@ -430,6 +430,9 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		if shieldAmount.ToDec().Mul(poolParams.ShieldFeesRate).GT(account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom).ToDec()) {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
+		if shieldAmount.ToDec().Mul(poolParams.ShieldFeesRate).TruncateInt().IsZero() {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
 		description := simulation.RandStringOfLength(r, 100)
@@ -504,8 +507,9 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 		rate := k.GetStakeForShieldRate(ctx)
-		if shieldAmount.GT(account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom).ToDec().Quo(rate).TruncateInt()) {
-			shieldAmount = account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom).ToDec().Quo(rate).TruncateInt()
+		maxShieldAmt := account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom).ToDec().Quo(rate).TruncateInt()
+		if shieldAmount.GT(maxShieldAmt) {
+			shieldAmount = maxShieldAmt
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 		if shield.Empty() {
@@ -533,7 +537,7 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 	}
 }
 
-// SimulateMsgUnstakeFromShield generates a MsgPurchaseShield object with all of its fields randomized.
+// SimulateMsgUnstakeFromShield generates a MsgUnstakeFromShield object with all of its fields randomized.
 func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
