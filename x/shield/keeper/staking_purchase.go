@@ -13,10 +13,11 @@ import (
 func (k Keeper) GetGlobalStakeForShieldPool(ctx sdk.Context) (pool sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetGlobalStakeForShieldPoolKey())
-	if bz != nil {
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &pool)
+	if bz == nil {
+		return sdk.NewInt(0)
 	}
-	return sdk.NewInt(0)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &pool)
+	return
 }
 
 func (k Keeper) SetGlobalShieldStakingPool(ctx sdk.Context, pool sdk.Int) {
