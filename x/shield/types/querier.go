@@ -19,6 +19,7 @@ const (
 	QueryClaimParams         = "claim_params"
 	QueryStatus              = "status"
 	QueryStakedForShield     = "staked_for_shield"
+	QueryShieldStakingRate   = "shield_staking_rate"
 )
 
 type QueryResStatus struct {
