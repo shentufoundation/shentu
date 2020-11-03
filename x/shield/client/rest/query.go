@@ -25,7 +25,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/pool_params", types.QuerierRoute), queryPoolParamsHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/claim_params", types.QuerierRoute), queryClaimParamsHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/status", types.QuerierRoute), queryStatusHandler(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/pool/{poolID}/staking_purchase", types.QuerierRoute), queryStakeForShieldHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/staked_for_shield/{poolID}/{address}", types.QuerierRoute), queryStakeForShieldHandler(cliCtx)).Methods("GET")
 }
 
 func queryPoolWithIDHandler(cliCtx context.CLIContext) http.HandlerFunc {
@@ -300,7 +300,7 @@ func queryStakeForShieldHandler(cliCtx context.CLIContext) http.HandlerFunc {
 		poolID := vars["poolID"]
 		address := vars["address"]
 
-		route := fmt.Sprintf("custom/%s/%s/%s/%s", types.QuerierRoute, types.QueryStakeForShield, poolID, address)
+		route := fmt.Sprintf("custom/%s/%s/%s/%s", types.QuerierRoute, types.QueryStakedForShield, poolID, address)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())

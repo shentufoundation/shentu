@@ -40,7 +40,7 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryClaimParams(ctx, path[1:], k)
 		case types.QueryStatus:
 			return queryGlobalState(ctx, path[1:], k)
-		case types.QueryStakeForShield:
+		case types.QueryStakedForShield:
 			return queryStakeForShield(ctx, path[1:], k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
@@ -256,6 +256,7 @@ func queryGlobalState(ctx sdk.Context, path []string, k Keeper) (res []byte, err
 		k.GetTotalWithdrawing(ctx),
 		k.GetServiceFees(ctx),
 		k.GetRemainingServiceFees(ctx),
+		k.GetGlobalStakeForShieldPool(ctx),
 	)
 
 	res, err = codec.MarshalJSONIndent(k.cdc, shieldState)
@@ -265,7 +266,7 @@ func queryGlobalState(ctx sdk.Context, path []string, k Keeper) (res []byte, err
 	return res, nil
 }
 
-// queryPurchase queries all purchases.
+// queryPurchase queries staked-for-shield for pool-purchaser pair.
 func queryStakeForShield(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
 	if err := validatePathLength(path, 2); err != nil {
 		return nil, err
