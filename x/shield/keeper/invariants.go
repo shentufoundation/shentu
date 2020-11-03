@@ -19,6 +19,7 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 // remaining services and rewards held on store
 func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
+		moduleCoins := keeper.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins()
 		total := keeper.GetRemainingServiceFees(ctx)
 		providers := keeper.GetAllProviders(ctx)
 
@@ -26,20 +27,21 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 			total = total.Add(prov.Rewards)
 		}
 
-		moduleCoins := keeper.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins()
 		totalInt, change := total.Native.TruncateDecimal()
+		stakedCoin := sdk.NewCoin(keeper.BondDenom(ctx), sdk.ZeroInt())
 		for _, staked := range keeper.GetAllStakeForShields(ctx) {
-			stakedCoins := sdk.NewCoin(keeper.BondDenom(ctx), staked.Amount)
-			totalInt = totalInt.Add(stakedCoins)
+			stakedCoin = stakedCoin.Add(sdk.NewCoin(keeper.BondDenom(ctx), staked.Amount))
 		}
-		totalInt = totalInt.Add()
+		totalInt = totalInt.Add(stakedCoin)
+		globalStakingPool := keeper.GetGlobalStakeForShieldPool(ctx)
 		broken := !totalInt.IsEqual(moduleCoins) || !change.Empty()
 
 		return sdk.FormatInvariant(types.ModuleName, "module-account",
 			fmt.Sprintf("\n\tshield ModuleAccount coins: %s"+
-				"\n\tsum of remaining service fees & rewards amount:  %s"+
-				"\n\tremaining change amount: %s\n",
-				moduleCoins, totalInt, change)), broken
+				"\n\tsum of remaining service fees & rewards & staked amount:  %s"+
+				"\n\tremaining change amount: %s"+
+				"\n\tglobal staking pool amount: %s",
+				moduleCoins, totalInt, change, globalStakingPool.String())), broken
 	}
 }
 

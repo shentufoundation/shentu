@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"time"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/certikfoundation/shentu/common"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -110,9 +112,9 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	// get next purchase ID and set purchase ID after that
 	purchaseID := k.GetNextPurchaseID(ctx)
 	k.SetNextPurchaseID(ctx, purchaseID+1)
-	if !serviceFees.IsZero() {
+	if !serviceFees.Empty() {
 		// Send service fees to the shield module account and update service fees.
-		if err := k.DepositNativeServiceFees(ctx, serviceFees, purchaser); err != nil {
+		if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, serviceFees); err != nil {
 			return types.Purchase{}, err
 		}
 		totalServiceFees := k.GetServiceFees(ctx)
@@ -121,10 +123,12 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 		totalRemainingServiceFees := k.GetRemainingServiceFees(ctx)
 		totalRemainingServiceFees = totalRemainingServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
 		k.SetRemainingServiceFees(ctx, totalRemainingServiceFees)
-	} else {
+	} else if !stakingCoins.Empty() {
 		if err := k.AddStaking(ctx, poolID, purchaser, purchaseID, stakingCoins.AmountOf(bondDenom)); err != nil {
 			return types.Purchase{}, err
 		}
+	} else {
+		return types.Purchase{}, sdkerrors.ErrInvalidCoins
 	}
 
 	// Update global pool and project pool's shield.
@@ -161,9 +165,6 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 		// stake to the staking purchase pool
 		stakingAmt := k.GetStakeForShieldRate(ctx).MulInt(shield.AmountOf(bondDenom)).TruncateInt()
 		stakingCoins = sdk.NewCoins(sdk.NewCoin(bondDenom, stakingAmt))
-		if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, stakingCoins); err != nil {
-			return types.Purchase{}, err
-		}
 	}
 	return k.purchaseShield(ctx, poolID, shield, description, purchaser, serviceFees, stakingCoins)
 }

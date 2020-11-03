@@ -39,7 +39,7 @@ var (
 	DefaultWeightMsgWithdrawCollateral = 20
 	DefaultWeightMsgWithdrawRewards    = 10
 	DefaultWeightMsgPurchaseShield     = 20
-	DefaultWeightMsgStakeForShield     = 40
+	DefaultWeightMsgStakeForShield     = 20
 	DefaultWeightMsgUnstakeFromShield  = 15
 	DefaultWeightShieldClaimProposal   = 0
 
@@ -79,14 +79,14 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 			weightMsgPurchaseShield = DefaultWeightMsgPurchaseShield
 		})
 	var weightMsgStakeForShield int
-	appParams.GetOrGenerate(cdc, OpWeightStakeForShield, &weightMsgPurchaseShield, nil,
+	appParams.GetOrGenerate(cdc, OpWeightStakeForShield, &weightMsgStakeForShield, nil,
 		func(_ *rand.Rand) {
-			weightMsgPurchaseShield = DefaultWeightMsgStakeForShield
+			weightMsgStakeForShield = DefaultWeightMsgStakeForShield
 		})
 	var weightMsgUnstakeFromShield int
 	appParams.GetOrGenerate(cdc, OpWeightUnstakeFromShield, &weightMsgUnstakeFromShield, nil,
 		func(_ *rand.Rand) {
-			weightMsgPurchaseShield = DefaultWeightMsgUnstakeFromShield
+			weightMsgUnstakeFromShield = DefaultWeightMsgUnstakeFromShield
 		})
 
 	return simulation.WeightedOperations{
@@ -497,14 +497,19 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 				totalCollateral.Sub(totalWithdrawing).Sub(totalShield),
 			),
 		)
-		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)
+		accountMax := sdk.OneDec().Quo(k.GetStakeForShieldRate(ctx)).MulInt(account.GetCoins().AmountOf(k.BondDenom(ctx))).TruncateInt()
+		max := sdk.MinInt(accountMax, maxShield)
+		shieldAmount, err := simulation.RandPositiveInt(r, max)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		if shieldAmount.ToDec().Mul(poolParams.ShieldFeesRate).GT(account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom).ToDec()) {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		if shieldAmount.GT(account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom)) {
+			shieldAmount = account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom).Quo(sdk.NewInt(2))
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
+		if shield.Empty() {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 
 		description := simulation.RandStringOfLength(r, 100)
 		msg := types.NewMsgStakeForShield(poolID, shield, description, purchaser.Address)
