@@ -535,7 +535,6 @@ func (msg MsgStakeForShield) ValidateBasic() error {
 	return nil
 }
 
-// TODO: eliminate this msg type
 // MsgUnstakeFromShield defines the attributes of staking for purchase transaction.
 type MsgUnstakeFromShield struct {
 	PoolID uint64         `json:"pool_id" yaml:"pool_id"`

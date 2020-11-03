@@ -22,7 +22,7 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/shield/withdraw_reimbursement", withdrawReimbursementHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/shield/purchase", purchaseHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/shield/stake_for_shield", stakeForShieldHandlerFn(cliCtx)).Methods("POST")
-	r.HandleFunc("/shield/withdraw_from_shield", withdrawFromShieldHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/shield/unstake_from_shield", withdrawFromShieldHandlerFn(cliCtx)).Methods("POST")
 }
 
 func depositCollateralHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {

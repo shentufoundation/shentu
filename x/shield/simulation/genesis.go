@@ -63,6 +63,11 @@ func GenClaimProposalParams(r *rand.Rand) types.ClaimProposalParams {
 	return types.NewClaimProposalParams(claimPeriod, payoutPeriod, minDeposit, depositRate, feesRate)
 }
 
+// GenStakingShieldRateParam returns a randomized staking-shield rate.
+func GenStakingShieldRateParam(r *rand.Rand) sdk.Dec {
+	return sim.RandomDecAmount(r, sdk.NewDec(10))
+}
+
 // GetRandDenom generates a random coin denom.
 func GetRandDenom(r *rand.Rand) string {
 	length := sim.RandIntBetween(r, 3, 8)

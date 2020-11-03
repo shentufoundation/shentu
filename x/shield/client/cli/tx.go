@@ -564,7 +564,7 @@ $ %s tx shield stake-for-shield <pool id> <shield amount> <description>
 // GetCmdUnstakeFromShield implements the command for purchasing Shield.
 func GetCmdUnstakeFromShield(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "unstake_from_shield [pool id] [amount] ",
+		Use:   "unstake-from-shield [pool id] [amount] ",
 		Args:  cobra.ExactArgs(2),
 		Short: "unstake staked-for-shield coins",
 		Long: strings.TrimSpace(
