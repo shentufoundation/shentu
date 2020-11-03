@@ -265,3 +265,23 @@ func (k Keeper) IterateAllPools(ctx sdk.Context, callback func(pool types.Pool) 
 		}
 	}
 }
+
+// UpdateSponsor updates the sponsor information of a given pool.
+func (k Keeper) UpdateSponsor(ctx sdk.Context, poolID uint64, newSponsor string, newSponsorAddr, updater sdk.AccAddress) (types.Pool, error) {
+	// Check admin status of the updater.
+	admin := k.GetAdmin(ctx)
+	if !updater.Equals(admin) {
+		return types.Pool{}, types.ErrNotShieldAdmin
+	}
+
+	// Retrieve the pool and update its sponsor information.
+	pool, found := k.GetPool(ctx, poolID)
+	if !found {
+		return types.Pool{}, types.ErrNoPoolFound
+	}
+	pool.Sponsor = newSponsor
+	pool.SponsorAddress = newSponsorAddr
+	k.SetPool(ctx, pool)
+
+	return pool, nil
+}

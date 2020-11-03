@@ -32,6 +32,8 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgWithdrawCollateral(ctx, msg, k)
 		case types.MsgPurchaseShield:
 			return handleMsgPurchaseShield(ctx, msg, k)
+		case types.MsgUpdateSponsor:
+			return handleMsgUpdateSponsor(ctx, msg, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -225,5 +227,27 @@ func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Kee
 		),
 	})
 
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgUpdateSponsor(ctx sdk.Context, msg types.MsgUpdateSponsor, k Keeper) (*sdk.Result, error) {
+	pool, err := k.UpdateSponsor(ctx, msg.PoolID, msg.Sponsor, msg.SponsorAddr, msg.FromAddr)
+	if err != nil {
+		return &sdk.Result{Events: ctx.EventManager().Events()}, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUpdateSponsor,
+			sdk.NewAttribute(types.AttributeKeySponsor, pool.Sponsor),
+			sdk.NewAttribute(types.AttributeKeySponsor, pool.SponsorAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(pool.ID, 10)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.FromAddr.String()),
+		),
+	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
