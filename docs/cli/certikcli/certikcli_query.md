@@ -30,6 +30,7 @@ Querying subcommands
 * [certikcli query auth](certikcli_query_auth.md)	 - Querying commands for the auth module
 * [certikcli query block](certikcli_query_block.md)	 - Get verified data for a the block at given height
 * [certikcli query cert](certikcli_query_cert.md)	 - Querying commands for the certification module
+* [certikcli query contract](certikcli_query_contract.md)	 - Query contract info
 * [certikcli query cvm](certikcli_query_cvm.md)	 - Querying commands for the CVM module
 * [certikcli query distribution](certikcli_query_distribution.md)	 - Querying commands for the distribution module
 * [certikcli query gov](certikcli_query_gov.md)	 - Querying commands for the governance module
