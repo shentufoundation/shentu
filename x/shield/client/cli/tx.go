@@ -524,7 +524,7 @@ func GetCmdUpdateSponsor(cdc *codec.Codec) *cobra.Command {
 			fmt.Sprintf(`Update a pool's sponsor. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address>
+$ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address> --from=<key_or_address>
 `,
 				version.ClientName,
 			),
