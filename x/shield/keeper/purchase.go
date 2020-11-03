@@ -61,9 +61,8 @@ func (k Keeper) DeletePurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk
 	return nil
 }
 
-// DequeuePoolPurchaser dequeues a pool-purchaser pair at a given
-// timestamp of the purchase queue.
-func (k Keeper) DequeuePoolPurchaser(ctx sdk.Context, purchaseList types.PurchaseList, timestamp time.Time) {
+// DequeuePurchase removes a pool-purchaser pair at a given timestamp of the purchase queue.
+func (k Keeper) DequeuePurchase(ctx sdk.Context, purchaseList types.PurchaseList, timestamp time.Time) {
 	timeslice := k.GetExpiringPurchaseQueueTimeSlice(ctx, timestamp)
 	for i, poolPurchaser := range timeslice {
 		if (purchaseList.PoolID == poolPurchaser.PoolID) && purchaseList.Purchaser.Equals(poolPurchaser.Purchaser) {
@@ -188,7 +187,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 
 				// If purchaseDeletionTime < currentBlockTime, remove the purchase.
 				if entry.DeletionTime.Before(ctx.BlockTime()) {
-					k.DequeuePoolPurchaser(ctx, purchaseList, entry.ProtectionEndTime)
+					k.DequeuePurchase(ctx, purchaseList, entry.ProtectionEndTime)
 
 					// If purchaseProtectionEndTime > previousBlockTime, calculate and set service fees before removing the purchase.
 					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
