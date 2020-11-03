@@ -240,7 +240,7 @@ func handleMsgUpdateSponsor(ctx sdk.Context, msg types.MsgUpdateSponsor, k Keepe
 		sdk.NewEvent(
 			types.EventTypeUpdateSponsor,
 			sdk.NewAttribute(types.AttributeKeySponsor, pool.Sponsor),
-			sdk.NewAttribute(types.AttributeKeySponsor, pool.SponsorAddress.String()),
+			sdk.NewAttribute(types.AttributeKeySponsorAddress, pool.SponsorAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(pool.ID, 10)),
 		),
 		sdk.NewEvent(
