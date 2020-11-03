@@ -503,8 +503,9 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		if shieldAmount.GT(account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom)) {
-			shieldAmount = account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom).Quo(sdk.NewInt(2))
+		rate := k.GetStakeForShieldRate(ctx)
+		if shieldAmount.GT(account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom).ToDec().Quo(rate).TruncateInt()) {
+			shieldAmount = account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom).ToDec().Quo(rate).TruncateInt()
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 		if shield.Empty() {
