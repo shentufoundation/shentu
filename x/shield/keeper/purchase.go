@@ -61,27 +61,18 @@ func (k Keeper) DeletePurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk
 	return nil
 }
 
-// DequeuePurchase dequeues a purchase from the purchase queue.
-func (k Keeper) DequeuePurchase(ctx sdk.Context, purchaseList types.PurchaseList, purchase types.Purchase, curTime time.Time) {
-	queueTimestamp := purchase.ProtectionEndTime
-	
-	// Do not dequeue if there is another purchase in the purchase list with the
-	// same protection end time but a deletion time that has not yet come.
-	for _, entry := range purchaseList.Entries {
-		if entry.ProtectionEndTime.Equal(queueTimestamp) && entry.DeletionTime.After(curTime) && entry.PurchaseID != purchase.PurchaseID {
-			return
-		}
-	}
-
-	timeslice := k.GetExpiringPurchaseQueueTimeSlice(ctx, queueTimestamp)
+// DequeuePoolPurchaser dequeues a pool-purchaser pair at a given
+// timestamp of the purchase queue.
+func (k Keeper) DequeuePoolPurchaser(ctx sdk.Context, purchaseList types.PurchaseList, timestamp time.Time) {
+	timeslice := k.GetExpiringPurchaseQueueTimeSlice(ctx, timestamp)
 	for i, poolPurchaser := range timeslice {
 		if (purchaseList.PoolID == poolPurchaser.PoolID) && purchaseList.Purchaser.Equals(poolPurchaser.Purchaser) {
 			if len(timeslice) > 1 {
 				timeslice = append(timeslice[:i], timeslice[i+1:]...)
-				k.SetExpiringPurchaseQueueTimeSlice(ctx, queueTimestamp, timeslice)
+				k.SetExpiringPurchaseQueueTimeSlice(ctx, timestamp, timeslice)
 				return
 			}
-			ctx.KVStore(k.storeKey).Delete(types.GetPurchaseExpirationTimeKey(queueTimestamp))
+			ctx.KVStore(k.storeKey).Delete(types.GetPurchaseExpirationTimeKey(timestamp))
 			return
 		}
 	}
@@ -197,7 +188,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 
 				// If purchaseDeletionTime < currentBlockTime, remove the purchase.
 				if entry.DeletionTime.Before(ctx.BlockTime()) {
-					k.DequeuePurchase(ctx, purchaseList, entry, ctx.BlockTime())
+					k.DequeuePoolPurchaser(ctx, purchaseList, entry.ProtectionEndTime)
 
 					// If purchaseProtectionEndTime > previousBlockTime, calculate and set service fees before removing the purchase.
 					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
