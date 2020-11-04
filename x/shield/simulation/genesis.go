@@ -38,7 +38,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 		gs.PoolParams.ProtectionPeriod = time.Duration(sim.RandIntBetween(r,
 			int(gs.ClaimProposalParams.ClaimPeriod)/10, int(gs.ClaimProposalParams.ClaimPeriod)))
 	}
-
+	gs.ShieldStakingRate = GenShieldStakingRateParam(r)
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(gs)
 }
 
@@ -61,6 +61,15 @@ func GenClaimProposalParams(r *rand.Rand) types.ClaimProposalParams {
 	feesRate := sdk.NewDecWithPrec(int64(sim.RandIntBetween(r, 0, 50)), 3)
 
 	return types.NewClaimProposalParams(claimPeriod, payoutPeriod, minDeposit, depositRate, feesRate)
+}
+
+// GenShieldStakingRateParam returns a randomized staking-shield rate.
+func GenShieldStakingRateParam(r *rand.Rand) sdk.Dec {
+	random := sim.RandomDecAmount(r, sdk.NewDec(10))
+	if random.Equal(sdk.ZeroDec()) {
+		return sdk.NewDec(2)
+	}
+	return random
 }
 
 // GetRandDenom generates a random coin denom.

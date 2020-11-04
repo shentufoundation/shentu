@@ -21,6 +21,8 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/shield/withdraw_foreign_rewards", withdrawForeignRewardsHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/shield/withdraw_reimbursement", withdrawReimbursementHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/shield/purchase", purchaseHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/shield/stake_for_shield", stakeForShieldHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/shield/unstake_from_shield", unstakeFromShieldHandlerFn(cliCtx)).Methods("POST")
 }
 
 func depositCollateralHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -220,6 +222,64 @@ func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		content := types.NewShieldClaimProposal(req.PoolID, req.Loss, req.PurchaseID, req.Evidence, req.Description, from)
 
 		msg := gov.NewMsgSubmitProposal(content, req.Deposit, from)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func stakeForShieldHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req purchaseReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		from, err := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		msg := types.NewMsgStakeForShield(req.PoolID, req.Shield, req.Description, from)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func unstakeFromShieldHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req withdrawFromShieldReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		from, err := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		msg := types.NewMsgUnstakeFromShield(req.PoolID, req.Amount, from)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
