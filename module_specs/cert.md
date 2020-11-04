@@ -164,7 +164,6 @@ type MsgCertifyPlatform struct {
 	Platform  string         `json:"platform" yaml:"platform"`
 }
 ```
-
-## Events
-
 ## Parameters
+
+There are currently no parameters specific to the `cert` module.
