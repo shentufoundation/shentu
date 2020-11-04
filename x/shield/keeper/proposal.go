@@ -189,6 +189,31 @@ func (k Keeper) DeleteReimbursement(ctx sdk.Context, proposalID uint64) error {
 	return nil
 }
 
+// IterateReimbursements iterates through all reimbursements.
+func (k Keeper) IterateReimbursements(ctx sdk.Context, callback func(rmb types.Reimbursement) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.RemainingServiceFeesKey)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var rmb types.Reimbursement
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &rmb)
+
+		if callback(rmb) {
+			break
+		}
+	}
+}
+
+// GetAllReimbursements retrieves all reimbursements.
+func (k Keeper) GetAllReimbursements(ctx sdk.Context) (rmbs []types.Reimbursement) {
+	k.IterateReimbursements(ctx, func(rmb types.Reimbursement) bool {
+		rmbs = append(rmbs, rmb)
+		return false
+	})
+	return
+}
+
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID uint64, rmb sdk.Coins, beneficiary sdk.AccAddress) error {
 	totalCollateral := k.GetTotalCollateral(ctx)

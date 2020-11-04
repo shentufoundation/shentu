@@ -28,17 +28,22 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 			total = total.Add(prov.Rewards)
 		}
 
+		bondDenom := keeper.BondDenom(ctx)
 		totalInt, change := total.Native.TruncateDecimal()
-		stakedCoin := sdk.NewCoin(keeper.BondDenom(ctx), sdk.ZeroInt())
+		stakedCoin := sdk.NewCoin(bondDenom, sdk.ZeroInt())
 		for _, staked := range keeper.GetAllStakeForShields(ctx) {
-			stakedCoin = stakedCoin.Add(sdk.NewCoin(keeper.BondDenom(ctx), staked.Amount))
+			stakedCoin = stakedCoin.Add(sdk.NewCoin(bondDenom, staked.Amount))
 		}
 		totalInt = totalInt.Add(stakedCoin)
 
-		blockServiceFees := keeper.GetBlockServiceFees(ctx).Native.AmountOf(keeper.BondDenom(ctx)).TruncateInt()
-		blockFeesCoin := sdk.NewCoin(keeper.BondDenom(ctx), blockServiceFees)
-
+		blockServiceFees := keeper.GetBlockServiceFees(ctx).Native.AmountOf(bondDenom).TruncateInt()
+		blockFeesCoin := sdk.NewCoin(bondDenom, blockServiceFees)
 		totalInt = totalInt.Add(blockFeesCoin)
+
+		for _, rmb := range keeper.GetAllReimbursements(ctx) {
+			totalInt = totalInt.Add(sdk.NewCoin(bondDenom, rmb.Amount.AmountOf(bondDenom)))
+		}
+
 		broken := !totalInt.IsEqual(moduleCoins) || !change.Empty()
 
 		return sdk.FormatInvariant(types.ModuleName, "module-account",
