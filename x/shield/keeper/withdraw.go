@@ -9,7 +9,7 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-type UnbondingInfo struct {
+type unbondingInfo struct {
 	Delegator      sdk.AccAddress
 	Validator      sdk.ValAddress
 	CompletionTime time.Time
@@ -152,7 +152,7 @@ func (k Keeper) ComputeTotalUnbondingAmount(ctx sdk.Context, provider sdk.AccAdd
 }
 
 func (k Keeper) ComputeUnbondingAmountByTime(ctx sdk.Context, provider sdk.AccAddress, time time.Time) sdk.Int {
-	dvPairs := k.GetUnbondingsByProviderMaturingByTime(ctx, provider, time)
+	dvPairs := k.getUnbondingsByProviderMaturingByTime(ctx, provider, time)
 
 	sum := sdk.ZeroInt()
 	seen := make([]sdk.ValAddress, 0, len(dvPairs))
@@ -189,7 +189,7 @@ func find(list []sdk.ValAddress, item sdk.ValAddress) bool {
 	return false
 }
 
-func (k Keeper) GetUnbondingsByProviderMaturingByTime(ctx sdk.Context, provider sdk.AccAddress, time time.Time) (results []UnbondingInfo) {
+func (k Keeper) getUnbondingsByProviderMaturingByTime(ctx sdk.Context, provider sdk.AccAddress, time time.Time) (results []unbondingInfo) {
 	unbondingTimesliceIterator := k.sk.UBDQueueIterator(ctx, time)
 	defer unbondingTimesliceIterator.Close()
 
@@ -201,7 +201,7 @@ func (k Keeper) GetUnbondingsByProviderMaturingByTime(ctx sdk.Context, provider 
 		for _, ubd := range timeslice {
 			if ubd.DelegatorAddress.Equals(provider) {
 				completionTime, _ := sdk.ParseTimeBytes(unbondingTimesliceIterator.Key()[1:])
-				ubdInfo := UnbondingInfo{
+				ubdInfo := unbondingInfo{
 					Delegator:      ubd.DelegatorAddress,
 					Validator:      ubd.ValidatorAddress,
 					CompletionTime: completionTime,
@@ -274,7 +274,7 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount 
 	// Retrieve delay candidates, which are unbondings
 	// ending before the delay duration from now.
 	delayedTime := ctx.BlockTime().Add(delay)
-	ubds := k.GetUnbondingsByProviderMaturingByTime(ctx, provider, delayedTime)
+	ubds := k.getUnbondingsByProviderMaturingByTime(ctx, provider, delayedTime)
 
 	// Delay unbondings, starting with the candidates
 	// with the oldest unbonding completion time.
