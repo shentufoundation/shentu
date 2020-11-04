@@ -244,37 +244,36 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 
 // PayFromDelegation reduce provider's delegations and transfer tokens to the shield module account.
 func (k Keeper) PayFromDelegation(ctx sdk.Context, providerAddr sdk.AccAddress, payout sdk.Int) {
-	delegations := k.sk.GetAllDelegatorDelegations(ctx, providerAddr)
-	totalDelAmountDec := sdk.ZeroDec()
-	for _, del := range delegations {
-		val, found := k.sk.GetValidator(ctx, del.GetValidatorAddr())
-		if !found {
-			panic("validator is not found")
-		}
-		totalDelAmountDec = totalDelAmountDec.Add(val.TokensFromShares(del.GetShares()))
+	provider, found := k.GetProvider(ctx, providerAddr)
+	if !found {
+		panic(types.ErrProviderNotFound)
 	}
+	totalDelAmount := provider.DelegationBonded
 
-	payoutDec := payout.ToDec()
-	remainingDec := payoutDec
+	delegations := k.sk.GetAllDelegatorDelegations(ctx, providerAddr)
+	payoutRatio := payout.ToDec().Quo(totalDelAmount.ToDec())
+	remaining := payout
 	for i := range delegations {
+		if !remaining.IsPositive() {
+			return
+		}
+
 		val, found := k.sk.GetValidator(ctx, delegations[i].GetValidatorAddr())
 		if !found {
 			panic("validator is not found")
 		}
-		delAmountDec := val.TokensFromShares(delegations[i].GetShares())
-		var ubdAmountDec sdk.Dec
-		if totalDelAmountDec.GT(payoutDec) {
-			// FIXME: Corner case: not enough amount in the last delegation.
-			if i == len(delegations)-1 {
-				ubdAmountDec = remainingDec
-			} else {
-				ubdAmountDec = payoutDec.Mul(delAmountDec).Quo(totalDelAmountDec)
-				remainingDec = remainingDec.Sub(ubdAmountDec)
-			}
+		delAmount := val.TokensFromShares(delegations[i].GetShares()).TruncateInt()
+		var ubdAmount sdk.Int
+		if i == len(delegations)-1 {
+			ubdAmount = remaining
 		} else {
-			ubdAmountDec = delAmountDec
+			ubdAmount = payoutRatio.MulInt(delAmount).TruncateInt()
+			if ubdAmount.LT(remaining) && ubdAmount.LT(delAmount) {
+				ubdAmount = ubdAmount.Add(sdk.OneInt())
+			}
+			remaining = remaining.Sub(ubdAmount)
 		}
-		ubdShares, err := val.SharesFromTokens(ubdAmountDec.TruncateInt())
+		ubdShares, err := val.SharesFromTokens(ubdAmount)
 		if err != nil {
 			panic(err)
 		}
@@ -290,7 +289,7 @@ func (k Keeper) PayFromUnbonding(ctx sdk.Context, ubd staking.UnbondingDelegatio
 	}
 
 	// Update unbonding delegations between the delegator and the validator.
-	// Do not need to update the unbonding queue even if the entry is removed.
+	// FIXME: leaving the removed entry in the unbonding queue is ok in real runs, but might lead to errors in import/export simulations.
 	for i := range unbonding.Entries {
 		if unbonding.Entries[i].Balance.Equal(ubd.Entries[0].Balance) && unbonding.Entries[i].CompletionTime.Equal(ubd.Entries[0].CompletionTime) {
 			if unbonding.Entries[i].Balance.Equal(payout) {
