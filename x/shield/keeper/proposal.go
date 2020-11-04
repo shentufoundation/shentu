@@ -192,7 +192,7 @@ func (k Keeper) DeleteReimbursement(ctx sdk.Context, proposalID uint64) error {
 // IterateReimbursements iterates through all reimbursements.
 func (k Keeper) IterateReimbursements(ctx sdk.Context, callback func(rmb types.Reimbursement) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.RemainingServiceFeesKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ReimbursementKey)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
