@@ -289,10 +289,22 @@ func (k Keeper) PayFromUnbonding(ctx sdk.Context, ubd staking.UnbondingDelegatio
 	}
 
 	// Update unbonding delegations between the delegator and the validator.
-	// FIXME: leaving the removed entry in the unbonding queue is ok in real runs, but might lead to errors in import/export simulations.
 	for i := range unbonding.Entries {
 		if unbonding.Entries[i].Balance.Equal(ubd.Entries[0].Balance) && unbonding.Entries[i].CompletionTime.Equal(ubd.Entries[0].CompletionTime) {
 			if unbonding.Entries[i].Balance.Equal(payout) {
+				// Update the unbonding queue and remove the entry.
+				timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, unbonding.Entries[i].CompletionTime)
+				if len(timeSlice) > 1 {
+					for i := 0; i < len(timeSlice); i++ {
+						if timeSlice[i].DelegatorAddress.Equals(ubd.DelegatorAddress) && timeSlice[i].ValidatorAddress.Equals(ubd.ValidatorAddress) {
+							timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
+							k.sk.SetUBDQueueTimeSlice(ctx, unbonding.Entries[i].CompletionTime, timeSlice)
+							break
+						}
+					}
+				} else {
+					k.sk.RemoveUBDQueue(ctx, unbonding.Entries[i].CompletionTime)
+				}
 				unbonding.RemoveEntry(int64(i))
 			} else {
 				unbonding.Entries[i].Balance = unbonding.Entries[i].Balance.Sub(payout)
