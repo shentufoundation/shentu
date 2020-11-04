@@ -493,3 +493,82 @@ func (msg MsgWithdrawReimbursement) GetSignBytes() []byte {
 func (msg MsgWithdrawReimbursement) ValidateBasic() error {
 	return nil
 }
+
+// TODO: eliminate this msg type
+// MsgStakeForShield defines the attributes of staking for purchase transaction.
+type MsgStakeForShield struct {
+	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
+	Shield      sdk.Coins      `json:"shield" yaml:"shield"`
+	Description string         `json:"description" yaml:"description"`
+	From        sdk.AccAddress `json:"from" yaml:"from"`
+}
+
+// NewMsgStakeForShield creates a new MsgPurchaseShield instance.
+func NewMsgStakeForShield(poolID uint64, shield sdk.Coins, description string, from sdk.AccAddress) MsgStakeForShield {
+	return MsgStakeForShield{
+		PoolID:      poolID,
+		Shield:      shield,
+		Description: description,
+		From:        from,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgStakeForShield) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgStakeForShield) Type() string { return EventTypeStakeForShield }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgStakeForShield) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgStakeForShield) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgStakeForShield) ValidateBasic() error {
+	return nil
+}
+
+// MsgUnstakeFromShield defines the attributes of staking for purchase transaction.
+type MsgUnstakeFromShield struct {
+	PoolID uint64         `json:"pool_id" yaml:"pool_id"`
+	Shield sdk.Coins      `json:"shield" yaml:"shield"`
+	From   sdk.AccAddress `json:"from" yaml:"from"`
+}
+
+// NewMsgUnstakeFromShield creates a new MsgPurchaseShield instance.
+func NewMsgUnstakeFromShield(poolID uint64, shield sdk.Coins, from sdk.AccAddress) MsgUnstakeFromShield {
+	return MsgUnstakeFromShield{
+		PoolID: poolID,
+		Shield: shield,
+		From:   from,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgUnstakeFromShield) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgUnstakeFromShield) Type() string { return EventTypeUnstakeFromShield }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgUnstakeFromShield) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgUnstakeFromShield) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgUnstakeFromShield) ValidateBasic() error {
+	return nil
+}

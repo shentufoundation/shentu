@@ -72,11 +72,6 @@ func (k Keeper) GetPoolBySponsor(ctx sdk.Context, sponsor string) (types.Pool, b
 	return ret, true
 }
 
-// DepositNativeServiceFees deposits service fees in native tokens from the shield admin or purchasers.
-func (k Keeper) DepositNativeServiceFees(ctx sdk.Context, serviceFees sdk.Coins, from sdk.AccAddress) error {
-	return k.supplyKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, serviceFees)
-}
-
 // BondDenom returns staking bond denomination.
 func (k Keeper) BondDenom(ctx sdk.Context) string {
 	return k.sk.BondDenom(ctx)

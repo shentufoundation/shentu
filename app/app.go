@@ -265,6 +265,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		&stakingKeeper,
 		app.supplyKeeper,
 		app.distrKeeper,
+		&app.shieldKeeper,
 		auth.FeeCollectorName,
 	)
 	app.slashingKeeper = slashing.NewKeeper(

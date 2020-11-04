@@ -25,12 +25,16 @@ var (
 	DefaultMinClaimProposalDeposit  = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100000000))) // 100 CTK
 	DefaultClaimProposalDepositRate = sdk.NewDecWithPrec(10, 2)                                              // 10%
 	DefaultClaimProposalFeesRate    = sdk.NewDecWithPrec(1, 2)                                               // 1%
+
+	// default value for staking-shield rate parameter
+	DefaultStakingShieldRate = sdk.NewDec(2)
 )
 
 // parameter keys
 var (
 	ParamStoreKeyPoolParams          = []byte("shieldpoolparams")
 	ParamStoreKeyClaimProposalParams = []byte("claimproposalparams")
+	ParamStoreKeyStakingShieldRate   = []byte("stakingshieldrateparams")
 )
 
 // ParamKeyTable is the key declaration for parameters.
@@ -38,6 +42,7 @@ func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable(
 		params.NewParamSetPair(ParamStoreKeyPoolParams, PoolParams{}, validatePoolParams),
 		params.NewParamSetPair(ParamStoreKeyClaimProposalParams, ClaimProposalParams{}, validateClaimProposalParams),
+		params.NewParamSetPair(ParamStoreKeyStakingShieldRate, sdk.Dec{}, validateStakingShieldRateParams),
 	)
 }
 
@@ -152,5 +157,21 @@ func validateClaimProposalParams(i interface{}) error {
 			feesRate.String())
 	}
 
+	return nil
+}
+
+// DefaultStakingShieldRateParams returns a default DefaultStakingShieldRateParams.
+func DefaultStakingShieldRateParams() sdk.Dec {
+	return sdk.NewDec(2)
+}
+
+func validateStakingShieldRateParams(i interface{}) error {
+	v, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v.LTE(sdk.ZeroDec()) {
+		return fmt.Errorf("staking shield rate should be greater than 0")
+	}
 	return nil
 }

@@ -48,7 +48,7 @@ certikd start [flags]
   -h, --help                                            help for start
       --inter-block-cache                               Enable inter-block caching (default true)
       --minimum-gas-prices string                       Minimum gas prices to accept for transactions; Any fee in a tx must meet this minimum (e.g. 0.01photino;0.0001stake)
-      --moniker string                                  Node Name (default "MBP-15.local")
+      --moniker string                                  Node Name (default "DESKTOP-11O44BA")
       --p2p.laddr string                                Node listen address. (0.0.0.0:0 means any interface, any port) (default "tcp://0.0.0.0:26656")
       --p2p.persistent_peers string                     Comma-delimited ID@host:port persistent peers
       --p2p.pex                                         Enable/disable Peer-Exchange (default true)
