@@ -22,7 +22,7 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/shield/withdraw_reimbursement", withdrawReimbursementHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/shield/purchase", purchaseHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/shield/stake_for_shield", stakeForShieldHandlerFn(cliCtx)).Methods("POST")
-	r.HandleFunc("/shield/unstake_from_shield", withdrawFromShieldHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/shield/unstake_from_shield", unstakeFromShieldHandlerFn(cliCtx)).Methods("POST")
 }
 
 func depositCollateralHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -260,7 +260,7 @@ func stakeForShieldHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func withdrawFromShieldHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func unstakeFromShieldHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req withdrawFromShieldReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {

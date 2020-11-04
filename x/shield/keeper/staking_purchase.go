@@ -29,8 +29,9 @@ func (k Keeper) SetGlobalShieldStakingPool(ctx sdk.Context, pool sdk.Int) {
 func (k Keeper) GetOriginalStaking(ctx sdk.Context, purchaseID uint64) (amount sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetOriginalStakingKey(purchaseID))
-	if bz != nil {
+	if bz == nil {
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &amount)
+		return
 	}
 	return sdk.NewInt(0)
 }
