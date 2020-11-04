@@ -276,11 +276,11 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.cdc,
 		keys[oracle.StoreKey],
 		app.accountKeeper,
+		app.certKeeper,
 		app.distrKeeper,
 		&app.stakingKeeper,
 		app.supplyKeeper,
 		oracleSubspace,
-		app.certKeeper,
 	)
 	app.authKeeper = auth.NewKeeper(
 		app.certKeeper,
