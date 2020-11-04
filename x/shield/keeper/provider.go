@@ -46,7 +46,7 @@ func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) types.Provider
 }
 
 // UpdateDelegationAmount updates the provider based on tha changes of its delegations.
-func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) {
 	// Go through delAddr's delegations to recompute total amount of bonded delegation
 	// update or create a new entry.
 	if _, found := k.GetProvider(ctx, delAddr); !found {

@@ -36,9 +36,6 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	lossRatio := totalClaimed.ToDec().Quo(totalCollateral.ToDec())
 	for i := range providers {
 		lockAmt := providers[i].Collateral.ToDec().Mul(lossRatio).TruncateInt()
-		if lockAmt.LT(providers[i].Collateral) {
-			lockAmt = lockAmt.Add(sdk.OneInt())
-		}
 		k.SecureFromProvider(ctx, providers[i], lockAmt, duration)
 	}
 
@@ -81,13 +78,6 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 // the provider for the duration. If necessary, it extends withdrawing
 // collaterals and, if exist, their linked unbondings as well.
 func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amount sdk.Int, duration time.Duration) {
-	// If there are enough bonded delegations backing
-	// locked collaterals, we are done.
-	if provider.DelegationBonded.GTE(amount) {
-		k.SetProvider(ctx, provider.Address, provider)
-		return
-	}
-
 	// Lenient check:
 	// Check if non-withdrawing, bonded delegation-backed collaterals
 	// cannot cover the amount.

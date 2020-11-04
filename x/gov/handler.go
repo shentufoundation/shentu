@@ -148,7 +148,7 @@ func validateProposalByType(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmitP
 
 	case shield.ClaimProposal:
 		// check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit)
-		denom := common.MicroCTKDenom
+		denom := k.BondDenom(ctx)
 		initialDepositAmount := msg.InitialDeposit.AmountOf(denom).ToDec()
 		lossAmount := c.Loss.AmountOf(denom)
 		lossAmountDec := lossAmount.ToDec()

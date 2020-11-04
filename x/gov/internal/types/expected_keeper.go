@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	"github.com/certikfoundation/shentu/x/cert"
@@ -34,4 +35,11 @@ type ParamSubspace interface {
 	Get(ctx sdk.Context, key []byte, ptr interface{})
 	Set(ctx sdk.Context, key []byte, param interface{})
 	WithKeyTable(table subspace.KeyTable) subspace.Subspace
+}
+
+type StakingKeeper interface {
+	IterateBondedValidatorsByPower(sdk.Context, func(index int64, validator stakingexported.ValidatorI) (stop bool))
+	TotalBondedTokens(sdk.Context) sdk.Int
+	IterateDelegations(ctx sdk.Context, delegator sdk.AccAddress, fn func(index int64, delegation stakingexported.DelegationI) (stop bool))
+	BondDenom(sdk.Context) string
 }

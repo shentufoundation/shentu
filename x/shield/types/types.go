@@ -58,7 +58,7 @@ type Provider struct {
 
 	// TotalLocked is the amount locked for pending claims.
 	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
-	
+
 	// Withdrawing is the amount of collateral in withdraw queues.
 	Withdrawing sdk.Int `json:"withdrawing" yaml:"withdrawing"`
 
