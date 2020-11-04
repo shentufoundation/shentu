@@ -37,6 +37,8 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgStakeForShield(ctx, msg, k)
 		case types.MsgUnstakeFromShield:
 			return handleMsgUnstakeFromShield(ctx, msg, k)
+		case types.MsgWithdrawReimbursement:
+			return handleMsgWithdrawReimbursement(ctx, msg, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -47,15 +49,27 @@ func NewShieldClaimProposalHandler(k Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
 		case types.ShieldClaimProposal:
-			return handleShieldClaimProposal()
+			return handleShieldClaimProposal(ctx, k, c)
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized shield proposal content type: %T", c)
 		}
 	}
 }
 
-func handleShieldClaimProposal() error {
-	return types.ErrOperationNotSupported
+func handleShieldClaimProposal(ctx sdk.Context, k Keeper, p types.ShieldClaimProposal) error {
+	if err := k.CreateReimbursement(ctx, p.ProposalID, p.PoolID, p.Loss, p.Proposer); err != nil {
+		return err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeCreateReimbursement,
+			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(p.PurchaseID, 10)),
+			sdk.NewAttribute(types.AttributeKeyCompensationAmount, p.Loss.String()),
+			sdk.NewAttribute(types.AttributeKeyBeneficiary, p.Proposer.String()),
+		),
+	})
+	return nil
 }
 
 func handleMsgCreatePool(ctx sdk.Context, msg types.MsgCreatePool, k Keeper) (*sdk.Result, error) {
@@ -277,6 +291,23 @@ func handleMsgUnstakeFromShield(ctx sdk.Context, msg types.MsgUnstakeFromShield,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
 			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgWithdrawReimbursement(ctx sdk.Context, msg types.MsgWithdrawReimbursement, k Keeper) (*sdk.Result, error) {
+	amount, err := k.WithdrawReimbursement(ctx, msg.ProposalID, msg.From)
+	if err != nil {
+		return &sdk.Result{Events: ctx.EventManager().Events()}, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeWithdrawReimbursement,
+			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(msg.ProposalID, 10)),
+			sdk.NewAttribute(types.AttributeKeyCompensationAmount, amount.String()),
+			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.From.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil

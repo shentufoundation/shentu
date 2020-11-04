@@ -8,6 +8,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 const (
@@ -84,6 +86,29 @@ func (scp ShieldClaimProposal) String() string {
   Proposer:       %s
 `, scp.PoolID, scp.Loss, scp.Evidence, scp.PurchaseID, scp.Description, scp.Proposer))
 	return b.String()
+}
+
+// LockedCollateral defines the data type of locked collateral for a claim proposal.
+type LockedCollateral struct {
+	ProposalID uint64  `json:"proposal_id" yaml:"proposal_id"`
+	Amount     sdk.Int `json:"locked_coins" yaml:"locked_coins"`
+}
+
+// NewLockedCollateral returns a new LockedCollateral instance.
+func NewLockedCollateral(proposalID uint64, lockedAmt sdk.Int) LockedCollateral {
+	return LockedCollateral{
+		ProposalID: proposalID,
+		Amount:     lockedAmt,
+	}
+}
+
+// NewUnbondingDelegation returns a new UnbondingDelegation instance.
+func NewUnbondingDelegation(delAddr sdk.AccAddress, valAddr sdk.ValAddress, entry stakingTypes.UnbondingDelegationEntry) staking.UnbondingDelegation {
+	return staking.UnbondingDelegation{
+		DelegatorAddress: delAddr,
+		ValidatorAddress: valAddr,
+		Entries:          []stakingTypes.UnbondingDelegationEntry{entry},
+	}
 }
 
 // Reimbursement stores information of a reimbursement.

@@ -76,6 +76,20 @@ func (k Keeper) GetAllWithdraws(ctx sdk.Context) (withdraws types.Withdraws) {
 	return withdraws
 }
 
+// GetWithdrawsByProvider gets all withdraws of a provider.
+func (k Keeper) GetWithdrawsByProvider(ctx sdk.Context, providerAddr sdk.AccAddress) (withdraws types.Withdraws) {
+	k.IterateWithdraws(ctx, func(timeSlice types.Withdraws) bool {
+		for _, withdraw := range timeSlice {
+			if withdraw.Address.Equals(providerAddr) {
+				withdraws = append(withdraws, withdraw)
+			}
+		}
+		return false
+	})
+	return withdraws
+}
+
+// RemoveTimeSliceFromWithdrawQueue removes a time slice from the withdraw queue.
 func (k Keeper) RemoveTimeSliceFromWithdrawQueue(ctx sdk.Context, timestamp time.Time) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetWithdrawCompletionTimeKey(timestamp))
