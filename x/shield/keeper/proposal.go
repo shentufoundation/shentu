@@ -36,6 +36,9 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	lossRatio := totalClaimed.ToDec().Quo(totalCollateral.ToDec())
 	for i := range providers {
 		secureAmt := providers[i].Collateral.ToDec().Mul(lossRatio).TruncateInt()
+		if secureAmt.GT(totalClaimed) {
+			secureAmt = totalClaimed
+		}
 		// Require each provider to secure one more unit, if possible,
 		// so that the last provider does not have to cover combined 
 		// truncated amounts.
