@@ -13,6 +13,8 @@ import (
 // module states accordingly.
 func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, duration time.Duration) error {
 	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
+	totalShield := k.GetTotalShield(ctx)
+	totalShield = totalShield.Sub(lossAmt)
 
 	// Verify shield.
 	pool, found := k.GetPool(ctx, poolID)
@@ -34,9 +36,11 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	// Secure the updated loss ratio from each provider.
 	providers := k.GetAllProviders(ctx)
 	lossRatio := totalClaimed.ToDec().Quo(totalCollateral.ToDec())
+	purchasedRatio := totalShield.ToDec().Quo(totalCollateral.ToDec())
+	secureRatio := lossRatio.Add(purchasedRatio)
 	for i := range providers {
-		lockAmt := providers[i].Collateral.ToDec().Mul(lossRatio).TruncateInt()
-		k.SecureFromProvider(ctx, providers[i], lockAmt, duration)
+		secureAmt := providers[i].Collateral.ToDec().Mul(secureRatio).TruncateInt()
+		k.SecureFromProvider(ctx, providers[i], secureAmt, duration)
 	}
 
 	// Update purchase states.
@@ -66,8 +70,6 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	pool.Shield = pool.Shield.Sub(lossAmt)
 	k.SetPool(ctx, pool)
 
-	totalShield := k.GetTotalShield(ctx)
-	totalShield = totalShield.Sub(lossAmt)
 	k.SetTotalShield(ctx, totalShield)
 	k.SetTotalClaimed(ctx, totalClaimed)
 
