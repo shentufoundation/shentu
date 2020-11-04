@@ -8,12 +8,13 @@ import (
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	"github.com/cosmos/cosmos-sdk/x/supply/exported"
 )
 
 // AccountKeeper defines the expected account keeper.
 type AccountKeeper interface {
 	GetAccount(sdk.Context, sdk.AccAddress) authexported.Account
+	IterateAccounts(ctx sdk.Context, process func(authexported.Account) (stop bool))
 }
 
 // StakingKeeper defines the expected staking keeper.
@@ -69,7 +70,7 @@ type BankKeeper interface {
 // SupplyKeeper defines the expected supply keeper.
 type SupplyKeeper interface {
 	GetModuleAddress(moduleName string) sdk.AccAddress
-	GetModuleAccount(ctx sdk.Context, moduleName string) supplyexported.ModuleAccountI
+	GetModuleAccount(ctx sdk.Context, moduleName string) exported.ModuleAccountI
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
