@@ -85,20 +85,28 @@ type Purchase struct {
 	// ProtectionEndTime is the time when the protection of the shield ends.
 	ProtectionEndTime time.Time `json:"protection_end_time" yaml:"protection_end_time"`
 
+	// DeletionTime is the time when the purchase should be deleted.
+	DeletionTime time.Time `json:"deletion_time" yaml:"deletion_time"`
+
 	// Description is the information about the protected asset.
 	Description string `json:"description" yaml:"description"`
 
 	// Shield is the unused amount of shield purchased.
 	Shield sdk.Int `json:"shield" yaml:"shield"`
+
+	// ServiceFees is the service fees paid by this purchase.
+	ServiceFees MixedDecCoins `json:"service_fees" yaml:"service_fees"`
 }
 
 // NewPurchase creates a new purchase object.
-func NewPurchase(purchaseID uint64, protectionEndTime time.Time, description string, shield sdk.Int) Purchase {
+func NewPurchase(purchaseID uint64, protectionEndTime, deletionTime time.Time, description string, shield sdk.Int, serviceFees MixedDecCoins) Purchase {
 	return Purchase{
 		PurchaseID:        purchaseID,
 		ProtectionEndTime: protectionEndTime,
+		DeletionTime:      deletionTime,
 		Description:       description,
 		Shield:            shield,
+		ServiceFees:       serviceFees,
 	}
 }
 
@@ -155,3 +163,19 @@ func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) 
 
 // Withdraws contains multiple withdraws.
 type Withdraws []Withdraw
+
+type ShieldStaking struct {
+	PoolID            uint64         `json:"pool_id" yaml:"pool_id"`
+	Purchaser         sdk.AccAddress `json:"purchaser" yaml:"purchaser"`
+	Amount            sdk.Int        `json:"amount" yaml:"amount"`
+	WithdrawRequested sdk.Int        `json:"withdraw_requested" yaml:"withdraw_requested"`
+}
+
+func NewShieldStaking(poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) ShieldStaking {
+	return ShieldStaking{
+		PoolID:            poolID,
+		Purchaser:         purchaser,
+		Amount:            amount,
+		WithdrawRequested: sdk.NewInt(0),
+	}
+}

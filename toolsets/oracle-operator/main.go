@@ -81,10 +81,9 @@ func serve(ctx types.Context) error {
 
 	server.TrapSignal(func() {
 		done <- struct{}{}
-		ctx.Logger().Error("Stopping oracle-operator...")
 	})
 
-	ctx.Logger().Info("Starting oracle-operator...")
+	ctx.Logger().Info("Starting Oracle Operator...")
 	go func() {
 		defer func() {
 			if p := recover(); p != nil {
@@ -99,9 +98,9 @@ func serve(ctx types.Context) error {
 	case p := <-panicChan:
 		panic(p)
 	case <-done:
-		ctx.Logger().Info("Stopping oracle-operator...")
+		ctx.Logger().Info("Shutting Down Oracle Operator...")
 	case <-ctx.Context().Done():
-		ctx.Logger().Info("Stopping oracle-operator...")
+		ctx.Logger().Info("Ending Oracle Operator...")
 	}
 	return nil
 }

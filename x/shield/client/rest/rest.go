@@ -25,12 +25,12 @@ func ProposalRESTHandler(cliCtx context.CLIContext) govrest.ProposalRESTHandler 
 
 type depositCollateralReq struct {
 	BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
-	Amount  sdk.Coin     `json:"amount" yaml:"amount"`
+	Amount  sdk.Coins    `json:"amount" yaml:"amount"`
 }
 
 type withdrawCollateralReq struct {
 	BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
-	Amount  sdk.Coin     `json:"amount" yaml:"amount"`
+	Amount  sdk.Coins    `json:"amount" yaml:"amount"`
 }
 
 type withdrawRewardsReq struct {
@@ -53,6 +53,12 @@ type purchaseReq struct {
 	PoolID      uint64       `json:"pool_id" yaml:"pool_id"`
 	Shield      sdk.Coins    `json:"shield" yaml:"shield"`
 	Description string       `json:"description" yaml:"description"`
+}
+
+type withdrawFromShieldReq struct {
+	BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
+	PoolID  uint64       `json:"pool_id" yaml:"pool_id"`
+	Amount  sdk.Coins    `json:"shield" yaml:"shield"`
 }
 
 // ShieldClaimProposalReq defines a shield claim proposal request body.

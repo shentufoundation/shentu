@@ -181,7 +181,7 @@ func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.keeper, simState.Contents)
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.keeper.CertKeeper, am.keeper, simState.Contents)
 }
 
 // RandomizedParams creates randomized gov param changes for the simulator.

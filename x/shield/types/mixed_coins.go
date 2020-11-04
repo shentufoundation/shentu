@@ -63,6 +63,14 @@ func (mdc MixedDecCoins) Add(a MixedDecCoins) MixedDecCoins {
 	}
 }
 
+// Sub calculates the difference between two mixed dec coins.
+func (mdc MixedDecCoins) Sub(a MixedDecCoins) MixedDecCoins {
+	return MixedDecCoins{
+		Native:  mdc.Native.Sub(a.Native),
+		Foreign: mdc.Foreign.Sub(a.Foreign),
+	}
+}
+
 // MulDec multiplies native and foreign coins by a decimal.
 func (mdc MixedDecCoins) MulDec(d sdk.Dec) MixedDecCoins {
 	return MixedDecCoins{

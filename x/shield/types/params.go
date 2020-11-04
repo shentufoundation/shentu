@@ -13,10 +13,11 @@ import (
 // default parameter values
 var (
 	// default values for Shield pool's parameters
-	DefaultProtectionPeriod = time.Hour * 24 * 21       // 21 days
-	DefaultShieldFeesRate   = sdk.NewDecWithPrec(1, 2)  // 1%
-	DefaultWithdrawPeriod   = time.Hour * 24 * 21       // 21 days
-	DefaultPoolShieldLimit  = sdk.NewDecWithPrec(10, 2) // 10%
+	DefaultProtectionPeriod  = time.Hour * 24 * 21                                                   // 21 days
+	DefaultShieldFeesRate    = sdk.NewDecWithPrec(769, 5)                                            // 0.769%
+	DefaultWithdrawPeriod    = time.Hour * 24 * 21                                                   // 21 days
+	DefaultPoolShieldLimit   = sdk.NewDecWithPrec(50, 2)                                             // 50%
+	DefaultMinShieldPurchase = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(50000000))) // 50 CTK
 
 	// default values for Shield claim proposal's parameters
 	DefaultClaimPeriod              = time.Hour * 24 * 21                                                    // 21 days
@@ -24,12 +25,16 @@ var (
 	DefaultMinClaimProposalDeposit  = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100000000))) // 100 CTK
 	DefaultClaimProposalDepositRate = sdk.NewDecWithPrec(10, 2)                                              // 10%
 	DefaultClaimProposalFeesRate    = sdk.NewDecWithPrec(1, 2)                                               // 1%
+
+	// default value for staking-shield rate parameter
+	DefaultStakingShieldRate = sdk.NewDec(2)
 )
 
 // parameter keys
 var (
 	ParamStoreKeyPoolParams          = []byte("shieldpoolparams")
 	ParamStoreKeyClaimProposalParams = []byte("claimproposalparams")
+	ParamStoreKeyStakingShieldRate   = []byte("stakingshieldrateparams")
 )
 
 // ParamKeyTable is the key declaration for parameters.
@@ -37,30 +42,33 @@ func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable(
 		params.NewParamSetPair(ParamStoreKeyPoolParams, PoolParams{}, validatePoolParams),
 		params.NewParamSetPair(ParamStoreKeyClaimProposalParams, ClaimProposalParams{}, validateClaimProposalParams),
+		params.NewParamSetPair(ParamStoreKeyStakingShieldRate, sdk.Dec{}, validateStakingShieldRateParams),
 	)
 }
 
 // PoolParams defines the parameters for the shield pool.
 type PoolParams struct {
-	ProtectionPeriod time.Duration `json:"protection_period" yaml:"protection_period"`
-	ShieldFeesRate   sdk.Dec       `json:"shield_fees_rate" yaml:"shield_fees_rate"`
-	WithdrawPeriod   time.Duration `json:"withdraw_period" yaml:"withdraw_period"`
-	PoolShieldLimit  sdk.Dec       `json:"pool_shield_limit" yaml:"pool_shield_limit"`
+	ProtectionPeriod  time.Duration `json:"protection_period" yaml:"protection_period"`
+	ShieldFeesRate    sdk.Dec       `json:"shield_fees_rate" yaml:"shield_fees_rate"`
+	WithdrawPeriod    time.Duration `json:"withdraw_period" yaml:"withdraw_period"`
+	PoolShieldLimit   sdk.Dec       `json:"pool_shield_limit" yaml:"pool_shield_limit"`
+	MinShieldPurchase sdk.Coins     `json:"min_shield_purchase" yaml:"min_shield_purchase"`
 }
 
 // NewPoolParams creates a new PoolParams object.
-func NewPoolParams(protectionPeriod, withdrawPeriod time.Duration, shieldFeesRate sdk.Dec, poolShieldPercentageLimit sdk.Dec) PoolParams {
+func NewPoolParams(protectionPeriod, withdrawPeriod time.Duration, shieldFeesRate sdk.Dec, poolShieldLimit sdk.Dec, minShieldPurchase sdk.Coins) PoolParams {
 	return PoolParams{
-		ProtectionPeriod: protectionPeriod,
-		ShieldFeesRate:   shieldFeesRate,
-		WithdrawPeriod:   withdrawPeriod,
-		PoolShieldLimit:  poolShieldPercentageLimit,
+		ProtectionPeriod:  protectionPeriod,
+		ShieldFeesRate:    shieldFeesRate,
+		WithdrawPeriod:    withdrawPeriod,
+		PoolShieldLimit:   poolShieldLimit,
+		MinShieldPurchase: minShieldPurchase,
 	}
 }
 
 // DefaultPoolParams returns a default PoolParams instance.
 func DefaultPoolParams() PoolParams {
-	return NewPoolParams(DefaultProtectionPeriod, DefaultWithdrawPeriod, DefaultShieldFeesRate, DefaultPoolShieldLimit)
+	return NewPoolParams(DefaultProtectionPeriod, DefaultWithdrawPeriod, DefaultShieldFeesRate, DefaultPoolShieldLimit, DefaultMinShieldPurchase)
 }
 
 func validatePoolParams(i interface{}) error {
@@ -72,6 +80,7 @@ func validatePoolParams(i interface{}) error {
 	shieldFeesRate := v.ShieldFeesRate
 	withdrawPeriod := v.WithdrawPeriod
 	poolShieldLimit := v.PoolShieldLimit
+	minShieldPurchase := v.MinShieldPurchase
 
 	if protectionPeriod <= 0 {
 		return fmt.Errorf("protection period must be positive: %s", protectionPeriod)
@@ -84,6 +93,9 @@ func validatePoolParams(i interface{}) error {
 	}
 	if poolShieldLimit.IsNegative() || poolShieldLimit.GT(sdk.OneDec()) {
 		return fmt.Errorf("pool shield limit should be positive and less or equal to one but is %s", poolShieldLimit)
+	}
+	if !minShieldPurchase.IsValid() {
+		return fmt.Errorf("minimum shield purchase must be a valid sdk.Coins, is %s", minShieldPurchase.String())
 	}
 
 	return nil
@@ -145,5 +157,21 @@ func validateClaimProposalParams(i interface{}) error {
 			feesRate.String())
 	}
 
+	return nil
+}
+
+// DefaultStakingShieldRateParams returns a default DefaultStakingShieldRateParams.
+func DefaultStakingShieldRateParams() sdk.Dec {
+	return sdk.NewDec(2)
+}
+
+func validateStakingShieldRateParams(i interface{}) error {
+	v, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v.LTE(sdk.ZeroDec()) {
+		return fmt.Errorf("staking shield rate should be greater than 0")
+	}
 	return nil
 }

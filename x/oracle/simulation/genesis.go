@@ -49,11 +49,11 @@ func GenPoolParams(r *rand.Rand) types.LockedPoolParams {
 // GenTaskParams returns a randomized TaskParams object.
 func GenTaskParams(r *rand.Rand) types.TaskParams {
 	return types.TaskParams{
-		ExpirationDuration: time.Duration(r.Int63n(1000 * 1000 * 1000 * 60 * 60 * 48)),
+		ExpirationDuration: time.Duration(48) * time.Hour,
 		AggregationWindow:  r.Int63n(40),
-		AggregationResult:  sdk.NewInt(r.Int63n(3)),
-		ThresholdScore:     sdk.NewInt(r.Int63n(257)),
-		Epsilon1:           sdk.NewInt(r.Int63n(3)),
-		Epsilon2:           sdk.NewInt(r.Int63n(201)),
+		AggregationResult:  sdk.NewInt(r.Int63n(100)),
+		ThresholdScore:     sdk.NewInt(r.Int63n(100)),
+		Epsilon1:           sdk.NewInt(r.Int63n(10)),
+		Epsilon2:           sdk.NewInt(r.Int63n(10) + 90),
 	}
 }

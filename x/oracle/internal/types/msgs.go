@@ -232,13 +232,12 @@ type MsgCreateTask struct {
 	Description   string
 	Creator       sdk.AccAddress
 	Wait          int64
-	Now           time.Time
 	ValidDuration time.Duration
 }
 
 // NewMsgCreateTask returns a new message for creating a task.
 func NewMsgCreateTask(contract, function string, bounty sdk.Coins, description string,
-	creator sdk.AccAddress, wait int64, now time.Time, validDuration time.Duration) MsgCreateTask {
+	creator sdk.AccAddress, wait int64, validDuration time.Duration) MsgCreateTask {
 	return MsgCreateTask{
 		Contract:      contract,
 		Function:      function,
@@ -246,7 +245,6 @@ func NewMsgCreateTask(contract, function string, bounty sdk.Coins, description s
 		Description:   description,
 		Creator:       creator,
 		Wait:          wait,
-		Now:           now,
 		ValidDuration: validDuration,
 	}
 }

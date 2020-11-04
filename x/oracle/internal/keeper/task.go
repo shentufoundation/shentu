@@ -29,7 +29,9 @@ func (k Keeper) DeleteTask(ctx sdk.Context, task types.Task) error {
 func (k Keeper) UpdateAndSetTask(ctx sdk.Context, task types.Task) {
 	task.ClosingBlock = ctx.BlockHeight() + task.WaitingBlocks
 	k.SetTask(ctx, task)
-	k.SetClosingBlockStore(ctx, task)
+	if task.WaitingBlocks > 0 {
+		k.SetClosingBlockStore(ctx, task)
+	}
 }
 
 // SetClosingBlockStore sets the store of the aggregation block for a task.
@@ -66,11 +68,6 @@ func (k Keeper) DeleteClosingTaskIDs(ctx sdk.Context, closingBlock int64) {
 	ctx.KVStore(k.storeKey).Delete(types.ClosingTaskIDsStoreKey(closingBlock))
 }
 
-// CheckExpiration checks whether a task is expired.
-func (k Keeper) IsExpired(task types.Task) bool {
-	return task.Expiration.Before(time.Now().UTC())
-}
-
 // CreateTask creates a new task.
 func (k Keeper) CreateTask(ctx sdk.Context, contract string, function string, bounty sdk.Coins,
 	description string, expiration time.Time, creator sdk.AccAddress, waitingBlocks int64) error {
@@ -99,7 +96,7 @@ func (k Keeper) RemoveTask(ctx sdk.Context, contract, function string, force boo
 	if err != nil {
 		return err
 	}
-	if !force && !k.IsExpired(task) {
+	if !force && !task.Expiration.Before(ctx.BlockTime()) {
 		return types.ErrNotExpired
 	}
 
@@ -115,16 +112,6 @@ func (k Keeper) RemoveTask(ctx sdk.Context, contract, function string, force boo
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-// UpdateWaitingBlocks updates the number of blocks before aggregating results.
-func (k Keeper) UpdateWaitingBlocks(ctx sdk.Context, task types.Task) error {
-	if task.ClosingBlock < ctx.BlockHeight() {
-		return types.ErrTaskClosed
-	}
-	task.WaitingBlocks = task.ClosingBlock - ctx.BlockHeight()
-	k.SetTask(ctx, task)
 	return nil
 }
 
@@ -156,7 +143,7 @@ func (k Keeper) GetAllTasks(ctx sdk.Context) (tasks []types.Task) {
 // UpdateAndGetAllTasks updates all tasks and returns them.
 func (k Keeper) UpdateAndGetAllTasks(ctx sdk.Context) (tasks []types.Task) {
 	k.IteratorAllTasks(ctx, func(task types.Task) bool {
-		_ = k.UpdateWaitingBlocks(ctx, task)
+		task.WaitingBlocks = task.ClosingBlock - ctx.BlockHeight()
 		tasks = append(tasks, task)
 		return false
 	})

@@ -1,7 +1,7 @@
 package types
 
 const (
-	EventTypeLockedSend = "locked_send"
+	EventTypeLockedSendToVestingAccount = "locked_send_to_vesting_account"
 
 	AttributeKeyUnlocker = "unlocker"
 )

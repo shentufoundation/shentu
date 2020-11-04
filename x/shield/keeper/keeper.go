@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/binary"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -73,11 +74,6 @@ func (k Keeper) GetPoolBySponsor(ctx sdk.Context, sponsor string) (types.Pool, b
 	return ret, true
 }
 
-// DepositNativeServiceFees deposits service fees in native tokens from the shield admin or purchasers.
-func (k Keeper) DepositNativeServiceFees(ctx sdk.Context, serviceFees sdk.Coins, from sdk.AccAddress) error {
-	return k.supplyKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, serviceFees)
-}
-
 // BondDenom returns staking bond denomination.
 func (k Keeper) BondDenom(ctx sdk.Context) string {
 	return k.sk.BondDenom(ctx)
@@ -86,4 +82,24 @@ func (k Keeper) BondDenom(ctx sdk.Context) string {
 // GetVotingParams returns gov keeper's voting params.
 func (k Keeper) GetVotingParams(ctx sdk.Context) govTypes.VotingParams {
 	return k.gk.GetVotingParams(ctx)
+}
+
+// SetLastUpdateTime sets the last update time.
+// Last update time will be set when the first purchase is made or distributing service fees.
+func (k Keeper) SetLastUpdateTime(ctx sdk.Context, prevUpdateTime time.Time) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(prevUpdateTime)
+	store.Set(types.GetLastUpdateTimeKey(), bz)
+}
+
+// GetLastUpdateTime returns the last update time.
+func (k Keeper) GetLastUpdateTime(ctx sdk.Context) (time.Time, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetLastUpdateTimeKey())
+	if bz == nil {
+		return time.Time{}, false
+	}
+	var lastUpdateTime time.Time
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &lastUpdateTime)
+	return lastUpdateTime, true
 }

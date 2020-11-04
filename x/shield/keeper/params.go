@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"time"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
@@ -32,10 +30,13 @@ func (k Keeper) GetClaimProposalParams(ctx sdk.Context) types.ClaimProposalParam
 	return claimProposalParams
 }
 
-// GetPurchaseDeletionPeriod returns time duration from purchase protection end time to deletion time.
-func (k Keeper) GetPurchaseDeletionPeriod(ctx sdk.Context) time.Duration {
-	paramProtectionPeriodMs := k.GetPoolParams(ctx).ProtectionPeriod.Milliseconds()
-	paramClaimPeriodMs := k.GetClaimProposalParams(ctx).ClaimPeriod.Milliseconds()
-	paramVotingPeriodMs := (k.GetVotingParams(ctx).VotingPeriod * 2).Milliseconds()
-	return time.Duration(paramClaimPeriodMs-paramProtectionPeriodMs+paramVotingPeriodMs) * time.Millisecond
+// GetShieldStakingRate returns shield to staked rate.
+func (k Keeper) GetShieldStakingRate(ctx sdk.Context) (rate sdk.Dec) {
+	k.paramSpace.Get(ctx, types.ParamStoreKeyStakingShieldRate, &rate)
+	return
+}
+
+// SetShieldStakingRate sets shield to staked rate.
+func (k Keeper) SetShieldStakingRate(ctx sdk.Context, rate sdk.Dec) {
+	k.paramSpace.Set(ctx, types.ParamStoreKeyStakingShieldRate, &rate)
 }

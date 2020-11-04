@@ -20,6 +20,8 @@ const (
 	CertificateTypeProof
 	CertificateTypeOracleOperator
 	CertificateTypeShieldPoolCreator
+	CertificateTypeIdentity
+	CertificateTypeGeneral
 )
 
 // CertificateTypes is an array of all certificate types.
@@ -30,6 +32,8 @@ var CertificateTypes = [...]CertificateType{
 	CertificateTypeProof,
 	CertificateTypeOracleOperator,
 	CertificateTypeShieldPoolCreator,
+	CertificateTypeIdentity,
+	CertificateTypeGeneral,
 }
 
 // Bytes returns the byte array for a certificate type.
@@ -50,6 +54,10 @@ func (c CertificateType) String() string {
 		return "OracleOperator"
 	case CertificateTypeShieldPoolCreator:
 		return "ShieldPoolCreator"
+	case CertificateTypeIdentity:
+		return "Identity"
+	case CertificateTypeGeneral:
+		return "General"
 	default:
 		return "UnknownCertificateType"
 	}
@@ -68,6 +76,10 @@ func CertificateTypeFromString(s string) CertificateType {
 		return CertificateTypeOracleOperator
 	case "SHIELDPOOLCREATOR":
 		return CertificateTypeShieldPoolCreator
+	case "IDENTITY":
+		return CertificateTypeIdentity
+	case "GENERAL":
+		return CertificateTypeGeneral
 	default:
 		return CertificateTypeNil
 	}

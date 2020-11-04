@@ -25,6 +25,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	k.SetTaskParams(ctx, taskParams)
 
 	for _, withdraw := range withdraws {
+		withdraw.DueBlock += ctx.BlockHeight()
 		k.SetWithdraw(ctx, withdraw)
 	}
 

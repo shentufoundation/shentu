@@ -41,4 +41,5 @@ var (
 	ErrPurchaseNotFound = types.ErrPurchaseNotFound
 	PurchaseQueueKey    = types.PurchaseQueueKey
 	WithdrawQueueKey    = types.WithdrawQueueKey
+	BlockServiceFeesKey = types.BlockServiceFeesKey
 )
