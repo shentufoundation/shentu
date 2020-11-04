@@ -284,23 +284,28 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, providerAddr sdk.AccAddress, 
 
 // PayFromUnbonding reduce provider's unbonding delegation and transfer tokens to the shield module account.
 func (k Keeper) PayFromUnbonding(ctx sdk.Context, ubd staking.UnbondingDelegation, payout sdk.Int) {
-	delAddr := ubd.DelegatorAddress
-	valAddr := ubd.ValidatorAddress
-	unbonding, found := k.sk.GetUnbondingDelegation(ctx, delAddr, valAddr)
+	unbonding, found := k.sk.GetUnbondingDelegation(ctx, ubd.DelegatorAddress, ubd.ValidatorAddress)
 	if !found {
 		panic("unbonding delegation is not found")
 	}
 
 	// Update unbonding delegations between the delegator and the validator.
+	// Do not need to update the unbonding queue even if the entry is removed.
 	for i := range unbonding.Entries {
 		if unbonding.Entries[i].Balance.Equal(ubd.Entries[0].Balance) && unbonding.Entries[i].CompletionTime.Equal(ubd.Entries[0].CompletionTime) {
-			unbonding.Entries[i].Balance = unbonding.Entries[i].Balance.Sub(payout)
-			k.sk.SetUnbondingDelegation(ctx, unbonding)
+			if unbonding.Entries[i].Balance.Equal(payout) {
+				unbonding.RemoveEntry(int64(i))
+			} else {
+				unbonding.Entries[i].Balance = unbonding.Entries[i].Balance.Sub(payout)
+			}
+			if len(ubd.Entries) == 0 {
+				k.sk.RemoveUnbondingDelegation(ctx, ubd)
+			} else {
+				k.sk.SetUnbondingDelegation(ctx, ubd)
+			}
 			break
 		}
 	}
-
-	// FIXME: Update the unbonding queue only if entry is removed.
 
 	// Transfer tokens from the staking module to the shield module.
 	payoutCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), payout))

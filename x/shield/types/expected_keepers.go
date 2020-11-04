@@ -36,6 +36,7 @@ type StakingKeeper interface {
 	GetAllUnbondingDelegations(ctx sdk.Context, delegator sdk.AccAddress) []staking.UnbondingDelegation
 	GetUnbondingDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (staking.UnbondingDelegation, bool)
 	SetUnbondingDelegation(ctx sdk.Context, ubd staking.UnbondingDelegation)
+	RemoveUnbondingDelegation(ctx sdk.Context, ubd staking.UnbondingDelegation)
 	GetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (dvPairs []staking.DVPair)
 	SetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time, timeslice []staking.DVPair)
 	InsertUBDQueue(ctx sdk.Context, ubd staking.UnbondingDelegation, completionTime time.Time)
