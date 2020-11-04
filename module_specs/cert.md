@@ -80,7 +80,99 @@ type Validator struct {
 }
 ```
 
+## Stores
+
+`Certifier`s are stored both by their address (in `certifierStore`) and their alias (in `certifierAliasStore`).
+
+```go
+var (
+	certifierStoreKeyPrefix      = []byte{0x0}
+	validatorStoreKeyPrefix      = []byte{0x1}
+	platformStoreKeyPrefix       = []byte{0x2}
+	certificateStoreKeyPrefix    = []byte{0x5}
+	libraryStoreKeyPrefix        = []byte{0x6}
+	certifierAliasStoreKeyPrefix = []byte{0x7}
+)
+```
+
 ## Messages
+
+`MsgProposeCertifier` must be proposed by a current certifier. It is first handled by the governance module for voting.
+
+```go
+type MsgProposeCertifier struct {
+	Proposer    sdk.AccAddress `json:"proposer" yaml:"proposer"`
+	Alias       string         `json:"alias" yaml:"alias"`
+	Certifier   sdk.AccAddress `json:"certifier" yaml:"certifier"`
+	Description string         `json:"description" yaml:"description"`
+}
+```
+
+```go
+type MsgCertifyValidator struct {
+	Certifier sdk.AccAddress `json:"certifier" yaml:"certifier"`
+	Validator crypto.PubKey  `json:"validator" yaml:"validator"`
+}
+```
+
+```go
+type MsgDecertifyValidator struct {
+	Decertifier sdk.AccAddress `json:"decertifier" yaml:"decertifier"`
+	Validator   crypto.PubKey  `json:"validator" yaml:"validator"`
+}
+```
+
+```go
+type msgDecertifyValidatorPretty struct {
+	Decertifier sdk.AccAddress `json:"decertifier" yaml:"decertifier"`
+	Validator   string         `json:"validator" yaml:"validator"`
+}
+```
+
+```go
+type MsgCertifyGeneral struct {
+	CertificateType    string         `json:"certificate_type" yaml:"certificate_type"`
+	RequestContentType string         `json:"request_content_type" yaml:"request_content_type"`
+	RequestContent     string         `json:"request_content" yaml:"request_content"`
+	Description        string         `json:"description" yaml:"description"`
+	Certifier          sdk.AccAddress `json:"certifier" yaml:"certiifer"`
+}
+```
+
+```go
+type MsgRevokeCertificate struct {
+	Revoker     sdk.AccAddress `json:"revoker" yaml:"revoker"`
+	ID          CertificateID  `json:"id" yaml:"id"`
+	Description string         `json:"description" yaml:"description"`
+}
+```
+
+```go
+type MsgCertifyCompilation struct {
+	SourceCodeHash string         `json:"sourcecodehash" yaml:"sourcecodehash"`
+	Compiler       string         `json:"compiler" yaml:"compiler"`
+	BytecodeHash   string         `json:"bytecodehash" yaml:"bytecodehash"`
+	Description    string         `json:"description" yaml:"description"`
+	Certifier      sdk.AccAddress `json:"certifier" yaml:"certifier"`
+}
+```
+
+```go
+type MsgCertifyPlatform struct {
+	Certifier sdk.AccAddress `json:"certifier" yaml:"certifier"`
+	Validator crypto.PubKey  `json:"validator" yaml:"validator"`
+	Platform  string         `json:"platform" yaml:"platform"`
+}
+```
+
+```go
+type msgCertifyPlatformPretty struct {
+	Certifier sdk.AccAddress `json:"certifier" yaml:"certifier"`
+	Validator string         `json:"validator" yaml:"validator"`
+	Platform  string         `json:"platform" yaml:"platform"`
+}
+```
+
 
 ## Events
 
