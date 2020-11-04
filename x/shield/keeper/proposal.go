@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
@@ -338,7 +339,7 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	// Undelegate coins from the staking module account to the shield module account.
 	validator, found := k.sk.GetValidator(ctx, valAddr)
 	if !found {
-		panic("validator was not found")
+		panic("validator is not found")
 	}
 	ubdCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), validator.TokensFromShares(shares).TruncateInt()))
 
@@ -348,11 +349,30 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 
 	// Update delegation records.
 	delegation.Shares = delegation.Shares.Sub(shares)
-	k.sk.SetDelegation(ctx, delegation)
-	k.sk.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 
-	// Update the validator.
+	isValidatorOperator := delegation.DelegatorAddress.Equals(validator.OperatorAddress)
+	if isValidatorOperator && !validator.Jailed && validator.TokensFromShares(delegation.Shares).TruncateInt().LT(validator.MinSelfDelegation) {
+		validator.Jailed = true
+		k.sk.SetValidator(ctx, validator)
+		k.sk.DeleteValidatorByPowerIndex(ctx, validator)
+		validator, found = k.sk.GetValidator(ctx, valAddr)
+		if !found {
+			panic(fmt.Sprintf("validator record not found for address: %X\n", valAddr))
+		}
+	}
+
+	if delegation.Shares.IsZero() {
+		k.sk.RemoveDelegation(ctx, delegation)
+	} else {
+		k.sk.SetDelegation(ctx, delegation)
+		k.sk.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+	}
+
 	k.sk.RemoveValidatorTokensAndShares(ctx, validator, shares)
+
+	if validator.DelegatorShares.IsZero() && validator.IsUnbonded() {
+		k.sk.RemoveValidator(ctx, validator.OperatorAddress)
+	}
 }
 
 // UndelegateFromAccountToShieldModule performs undelegations from a delegator's staking to the shield module.

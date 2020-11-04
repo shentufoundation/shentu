@@ -47,6 +47,10 @@ type StakingKeeper interface {
 	RemoveValidatorTokensAndShares(ctx sdk.Context, validator staking.Validator, sharesToRemove sdk.Dec) (valOut staking.Validator, removedTokens sdk.Int)
 	RemoveUBDQueue(ctx sdk.Context, timestamp time.Time)
 	GetRedelegations(ctx sdk.Context, delegator sdk.AccAddress, maxRetrieve uint16) (redelegations []staking.Redelegation)
+	SetValidator(ctx sdk.Context, validator staking.Validator)
+	DeleteValidatorByPowerIndex(ctx sdk.Context, validator staking.Validator)
+	RemoveDelegation(ctx sdk.Context, delegation staking.Delegation)
+	RemoveValidator(ctx sdk.Context, address sdk.ValAddress)
 
 	BondDenom(sdk.Context) string
 }
