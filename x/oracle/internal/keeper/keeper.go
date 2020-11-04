@@ -18,8 +18,8 @@ type Keeper struct {
 	paramSpace    types.ParamSubspace
 }
 
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, authKeeper types.AuthKeeper, distriKeeper types.DistrKeeper,
-	stakingKeeper types.StakingKeeper, supplyKeeper types.SupplyKeeper, paramSpace types.ParamSubspace, certKeeper types.CertKeeper) Keeper {
+func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, authKeeper types.AuthKeeper, certKeeper types.CertKeeper, distriKeeper types.DistrKeeper,
+	stakingKeeper types.StakingKeeper, supplyKeeper types.SupplyKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
 		cdc:           cdc,
 		paramSpace:    paramSpace.WithKeyTable(types.ParamKeyTable()),
