@@ -297,6 +297,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.shieldKeeper = shield.NewKeeper(
 		app.cdc,
 		keys[shield.StoreKey],
+		app.accountKeeper,
 		&stakingKeeper,
 		&app.govKeeper,
 		app.supplyKeeper,

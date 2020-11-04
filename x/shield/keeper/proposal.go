@@ -5,6 +5,8 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
@@ -243,14 +245,14 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 }
 
 // PayFromDelegation reduce provider's delegations and transfer tokens to the shield module account.
-func (k Keeper) PayFromDelegation(ctx sdk.Context, providerAddr sdk.AccAddress, payout sdk.Int) {
-	provider, found := k.GetProvider(ctx, providerAddr)
+func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payout sdk.Int) {
+	provider, found := k.GetProvider(ctx, delAddr)
 	if !found {
 		panic(types.ErrProviderNotFound)
 	}
 	totalDelAmount := provider.DelegationBonded
 
-	delegations := k.sk.GetAllDelegatorDelegations(ctx, providerAddr)
+	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
 	payoutRatio := payout.ToDec().Quo(totalDelAmount.ToDec())
 	remaining := payout
 	for i := range delegations {
@@ -320,7 +322,7 @@ func (k Keeper) PayFromUnbonding(ctx sdk.Context, ubd staking.UnbondingDelegatio
 
 	// Transfer tokens from the staking module to the shield module.
 	payoutCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), payout))
-	if err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, staking.NotBondedPoolName, types.ModuleName, payoutCoins); err != nil {
+	if err := k.UndelegateFromAccountToShieldModule(ctx, staking.NotBondedPoolName, ubd.DelegatorAddress, payoutCoins); err != nil {
 		panic(err)
 	}
 }
@@ -339,7 +341,8 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 		panic("validator was not found")
 	}
 	ubdCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), validator.TokensFromShares(shares).TruncateInt()))
-	if err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, staking.BondedPoolName, types.ModuleName, ubdCoins); err != nil {
+
+	if err := k.UndelegateFromAccountToShieldModule(ctx, staking.BondedPoolName, delAddr, ubdCoins); err != nil {
 		panic(err)
 	}
 
@@ -350,6 +353,26 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 
 	// Update the validator.
 	k.sk.RemoveValidatorTokensAndShares(ctx, validator, shares)
+}
+
+// UndelegateFromAccountToShieldModule performs undelegations from a delegator's staking to the shield module.
+func (k Keeper) UndelegateFromAccountToShieldModule(ctx sdk.Context, senderModule string, delAddr sdk.AccAddress, amt sdk.Coins) error {
+	delAcc := k.ak.GetAccount(ctx, delAddr)
+	if delAcc == nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "account %s does not exist", delAddr)
+	}
+
+	vacc, ok := delAcc.(vestexported.VestingAccount)
+	if ok {
+		vacc.TrackUndelegation(amt)
+	}
+	_ = delAcc.SetCoins(delAcc.GetCoins().Add(amt...))
+
+	if err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, senderModule, types.ModuleName, amt); err != nil {
+		panic(err)
+	}
+
+	return nil
 }
 
 // GetSortedUnbondingDelegations gets unbonding delegations sorted by completion time from latest to earliest.
