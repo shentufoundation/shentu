@@ -70,6 +70,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID u
 		if payout.GT(totalPayout) {
 			payout = totalPayout
 		}
+
 		// Require providers to cover (purchased + 1) and (payout + 1) if it's possible,
 		// so that the last provider will not be asked to cover all truncated amount.
 		if purchased.LT(totalPurchased) && provider.Collateral.GT(payout.Add(purchased)) {
@@ -78,14 +79,166 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID u
 		if payout.LT(totalPayout) && provider.Collateral.GT(payout.Add(purchased)) {
 			payout = payout.Add(sdk.OneInt())
 		}
-		if err := k.MakePayoutByProvider(ctx, provider.Address, purchased, payout); err != nil {
+
+		if err := k.UpdateProviderCollateralForPayout(ctx, provider.Address, purchased, payout); err != nil {
 			panic(err)
 		}
+
+		if err := k.MakePayoutByProviderDelegations(ctx, provider.Address, purchased, payout); err != nil {
+			panic(err)
+		}
+
 		totalPurchased = totalPurchased.Sub(purchased)
 		totalPayout = totalPayout.Sub(payout)
 	}
 	reimbursement := types.NewReimbursement(rmb, beneficiary, ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).PayoutPeriod))
 	k.SetReimbursement(ctx, proposalID, reimbursement)
+	return nil
+}
+
+// UpdateProviderCollateralForPayout updates a provider's collateral and withdraws according to the payout.
+func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout sdk.Int) error {
+	provider, found := k.GetProvider(ctx, providerAddr)
+	if !found {
+		return types.ErrProviderNotFound
+	}
+
+	uncoveredPurchase := sdk.ZeroInt()
+	payoutFromCollateral := sdk.ZeroInt()
+	if provider.Collateral.Sub(provider.Withdrawing).GTE(purchased.Add(payout)) {
+		// If collateral - withdraw >= purchased + payout:
+		//     purchased       payout
+		//   ----------------|--------|
+		//       collateral - withdraw                withdraw
+		// -------------------------------|---------------------------------
+		payoutFromCollateral = payout
+	} else if provider.Collateral.Sub(provider.Withdrawing).GTE(purchased) {
+		// If purchased <= collateral - withdraw < purchased + payout:
+		//               purchased       payout
+		//             ----------------|--------|
+		//       collateral - withdraw                withdraw
+		// -------------------------------|---------------------------------
+		payoutFromCollateral = provider.Collateral.Sub(provider.Withdrawing).Sub(purchased)
+	} else {
+		// If collateral - withdraw < purchased:
+		//                      purchased       payout
+		//                    ----------------|--------|
+		//       collateral - withdraw                withdraw
+		// -------------------------------|---------------------------------
+		uncoveredPurchase = purchased.Sub(provider.Collateral.Sub(provider.Withdrawing))
+	}
+	payoutFromWithdraw := payout.Sub(payoutFromCollateral)
+
+	// Update provider's collateral and total withdraw.
+	provider.Collateral = provider.Collateral.Sub(payout)
+	provider.Withdrawing = provider.Withdrawing.Sub(payoutFromWithdraw)
+
+	// Update provider's withdraws from latest to oldest.
+	withdraws := k.GetWithdrawsByProvider(ctx, providerAddr)
+	for i := len(withdraws) - 1; i >= 0; i-- {
+		if !payoutFromWithdraw.IsPositive() {
+			break
+		}
+
+		// If purchased is not fully covered, cover purchased first.
+		remainingWithdraw := sdk.MaxInt(withdraws[i].Amount.Sub(uncoveredPurchase), sdk.ZeroInt())
+		uncoveredPurchase = sdk.MaxInt(uncoveredPurchase.Sub(withdraws[i].Amount), sdk.ZeroInt())
+		if remainingWithdraw.IsZero() {
+			continue
+		}
+
+		// Update the withdraw based on payout after purchased is fully covered.
+		payoutFromThisWithdraw := sdk.MinInt(payoutFromWithdraw, remainingWithdraw)
+		payoutFromWithdraw = payoutFromCollateral.Sub(payoutFromThisWithdraw)
+		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime)
+		for i := range timeSlice {
+			if timeSlice[i].Address.Equals(withdraws[i].Address) && timeSlice[i].Amount.Equal(withdraws[i].Amount) {
+				if remainingWithdraw.Equal(payoutFromThisWithdraw) {
+					if len(timeSlice) == 1 {
+						k.RemoveTimeSliceFromWithdrawQueue(ctx, withdraws[i].CompletionTime)
+					} else {
+						timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
+						k.SetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime, timeSlice)
+					}
+				} else {
+					timeSlice[i].Amount = withdraws[i].Amount.Sub(payoutFromThisWithdraw)
+					k.SetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime, timeSlice)
+				}
+				break
+			}
+		}
+	}
+	if payoutFromWithdraw.IsPositive() {
+		panic("payout is not covered")
+	}
+
+	k.SetProvider(ctx, provider.Address, provider)
+
+	return nil
+}
+
+// MakePayoutByProviderDelegations undelegates the provider's delegations and transfers tokens from the staking module account to the shield module account.
+func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sdk.AccAddress, payout, purchased sdk.Int) error {
+	provider, found := k.GetProvider(ctx, providerAddr)
+	if !found {
+		return types.ErrProviderNotFound
+	}
+
+	uncoveredPurchase := sdk.ZeroInt()
+	payoutFromDelegation := sdk.ZeroInt()
+	if provider.DelegationBonded.GTE(purchased.Add(payout)) {
+		// If delegation >= purchased + payout:
+		//     purchased       payout
+		//   ----------------|--------|
+		//            delegations                     unbondings
+		// -------------------------------|---------------------------------
+		payoutFromDelegation = payout
+	} else if provider.DelegationBonded.GTE(purchased) {
+		// If purchased <= delegation < purchased + payout:
+		//               purchased       payout
+		//             ----------------|--------|
+		//            delegations                     unbondings
+		// -------------------------------|---------------------------------
+		payoutFromDelegation = provider.DelegationBonded.Sub(purchased)
+	} else {
+		// If delegation < purchased:
+		//                      purchased       payout
+		//                    ----------------|--------|
+		//            delegations                     unbondings
+		// -------------------------------|---------------------------------
+		uncoveredPurchase = purchased.Sub(provider.DelegationBonded)
+	}
+	payoutFromUnbonding := payout.Sub(payoutFromDelegation)
+
+	if payoutFromDelegation.IsPositive() {
+		k.PayFromDelegation(ctx, provider.Address, payoutFromDelegation)
+	}
+
+	if payoutFromUnbonding.IsZero() {
+		return nil
+	}
+
+	unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, provider.Address)
+	for _, ubd := range unbondingDelegations {
+		if !payoutFromUnbonding.IsPositive() {
+			break
+		}
+		entry := ubd.Entries[0]
+
+		// If purchased is not fully covered, cover purchased first.
+		remainingUbd := sdk.MaxInt(entry.Balance.Sub(uncoveredPurchase), sdk.ZeroInt())
+		uncoveredPurchase = sdk.MaxInt(uncoveredPurchase.Sub(entry.Balance), sdk.ZeroInt())
+		if remainingUbd.IsZero() {
+			continue
+		}
+
+		// Make payout after purchased is fully covered.
+		payoutFromThisUbd := sdk.MinInt(payoutFromUnbonding, remainingUbd)
+		k.PayFromUnbonding(ctx, ubd, payoutFromThisUbd)
+
+		payoutFromUnbonding = payoutFromUnbonding.Sub(payoutFromThisUbd)
+	}
+
 	return nil
 }
 
@@ -183,96 +336,6 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	k.sk.RemoveValidatorTokensAndShares(ctx, validator, shares)
 }
 
-func (k Keeper) PayFromWithdraw(ctx sdk.Context, withdraw types.Withdraw, payout, purchased sdk.Int) {
-	provider, found := k.GetProvider(ctx, withdraw.Address)
-	if !found {
-		panic(types.ErrProviderNotFound)
-	}
-
-	payoutFromDelegation := sdk.ZeroInt()
-	payoutFromUnbonding := sdk.ZeroInt()
-	if provider.DelegationBonded.GTE(purchased.Add(payout)) {
-		// If delegation >= purchased + payout:
-		//        |        withdraw      |
-		//     purchased     | payout |
-		//   -----|----------'--------'--|-----
-		//            delegations                     unbondings
-		// -------------------------------|---------------------------------
-		payoutFromDelegation = payout
-	} else if provider.DelegationBonded.GTE(purchased) {
-		// If purchased <= delegation < purchased + payout:
-		//                  |        withdraw      |
-		//               purchased     | payout |
-		//             -----|----------'--------'--|-----
-		//            delegations                     unbondings
-		// -------------------------------|---------------------------------
-		payoutFromDelegation = provider.DelegationBonded.Sub(purchased)
-		payoutFromUnbonding = payout.Sub(payoutFromDelegation)
-	} else {
-		// If delegation < purchased:
-		//                         |        withdraw      |
-		//                      purchased     | payout |
-		//                    -----|----------'--------'--|-----
-		//            delegations                     unbondings
-		// -------------------------------|---------------------------------
-		// or
-		//                                   |        withdraw      |
-		//                                purchased     | payout |
-		//                              -----|----------'--------'--|-----
-		//            delegations                     unbondings
-		// -------------------------------|---------------------------------
-		payoutFromUnbonding = payout
-	}
-
-	if payoutFromDelegation.IsPositive() {
-		k.PayFromDelegation(ctx, provider.Address, payoutFromDelegation)
-	}
-
-	if payoutFromUnbonding.IsPositive() {
-		uncoveredPurchase := sdk.MaxInt(sdk.ZeroInt(), purchased.Sub(provider.DelegationBonded))
-		unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, provider.Address)
-		for _, ubd := range unbondingDelegations {
-			entry := ubd.Entries[0]
-			// If purchased is not fully covered, cover purchased first.
-			remainingUbd := entry.Balance
-			if uncoveredPurchase.IsPositive() {
-				if uncoveredPurchase.GTE(entry.Balance) {
-					uncoveredPurchase = uncoveredPurchase.Sub(entry.Balance)
-					remainingUbd = sdk.ZeroInt()
-				} else {
-					remainingUbd = entry.Balance.Sub(uncoveredPurchase)
-					uncoveredPurchase = sdk.ZeroInt()
-				}
-			}
-
-			// Make payout after purchased is fully covered.
-			if remainingUbd.IsPositive() {
-				if remainingUbd.GTE(payout) {
-					k.PayFromUnbonding(ctx, ubd, payout)
-					return
-				}
-				k.PayFromUnbonding(ctx, ubd, remainingUbd)
-				payoutFromUnbonding = payoutFromUnbonding.Sub(remainingUbd)
-			}
-		}
-	}
-
-	// Update collateral and withdraw.
-	provider.Collateral = provider.Collateral.Sub(payout)
-	provider.Withdrawing = provider.Withdrawing.Sub(payout)
-	k.SetProvider(ctx, provider.Address, provider)
-
-	// Update withdraw queue.
-	withdraws := k.GetWithdrawQueueTimeSlice(ctx, withdraw.CompletionTime)
-	for i := range withdraws {
-		if withdraws[i].Address.Equals(withdraw.Address) && withdraws[i].Amount.Equal(withdraw.Amount) {
-			withdraws[i].Amount = withdraws[i].Amount.Sub(payout)
-			break
-		}
-	}
-	k.SetWithdrawQueueTimeSlice(ctx, withdraw.CompletionTime, withdraws)
-}
-
 // GetSortedUnbondingDelegations gets unbonding delegations sorted by completion time from latest to earliest.
 func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAddress) []staking.UnbondingDelegation {
 	ubds := k.sk.GetAllUnbondingDelegations(ctx, delAddr)
@@ -289,68 +352,6 @@ func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAd
 		return unbondingDelegations[i].Entries[0].CompletionTime.After(unbondingDelegations[j].Entries[0].CompletionTime)
 	})
 	return unbondingDelegations
-}
-
-// MakePayoutByProvider undelegates delegations and send coins the the shield module.
-func (k Keeper) MakePayoutByProvider(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout sdk.Int) error {
-	provider, found := k.GetProvider(ctx, providerAddr)
-	if !found {
-		return types.ErrProviderNotFound
-	}
-
-	// If collateral - withdraw >= purchased + payout, make payouts from collateral - withdraw.
-	// If purchased <= collateral - withdraw < purchased + payout, make payouts from collateral - withdraw and withdraw.
-	// Otherwise, make payouts from withdraw.
-	uncoveredPurchase := sdk.ZeroInt()
-	payoutFromCollateral := sdk.ZeroInt()
-	if provider.Collateral.Sub(provider.Withdrawing).GTE(purchased.Add(payout)) {
-		payoutFromCollateral = payout
-	} else if provider.Collateral.Sub(provider.Withdrawing).GTE(purchased) {
-		payoutFromCollateral = provider.Collateral.Sub(provider.Withdrawing).Sub(purchased)
-	} else {
-		uncoveredPurchase = purchased.Sub(provider.Collateral.Sub(provider.Withdrawing))
-	}
-	payoutFromWithdraw := payout.Sub(payoutFromCollateral)
-
-	// Make payout from collateral - withdraw.
-	if payoutFromCollateral.IsPositive() {
-		k.PayFromDelegation(ctx, providerAddr, payoutFromCollateral)
-	}
-
-	// If no payout needs to be made from withdraw, finish payout.
-	if payoutFromWithdraw.IsZero() {
-		return nil
-	}
-
-	// Make payout from withdraw.
-	withdraws := k.GetWithdrawsByProvider(ctx, providerAddr)
-	// From latest to oldest.
-	for i := len(withdraws) - 1; i >= 0; i-- {
-		// If purchased is not fully covered, cover purchased first.
-		remainingWithdraw := withdraws[i].Amount
-		if uncoveredPurchase.IsPositive() {
-			if uncoveredPurchase.GTE(withdraws[i].Amount) {
-				uncoveredPurchase = uncoveredPurchase.Sub(withdraws[i].Amount)
-				remainingWithdraw = sdk.ZeroInt()
-			} else {
-				remainingWithdraw = withdraws[i].Amount.Sub(uncoveredPurchase)
-				uncoveredPurchase = sdk.ZeroInt()
-			}
-		}
-		// Make payout after purchased is fully covered.
-		if remainingWithdraw.IsPositive() {
-			if remainingWithdraw.GTE(payoutFromWithdraw) {
-				k.PayFromWithdraw(ctx, withdraws[i], payoutFromWithdraw, purchased)
-				return nil
-			}
-			k.PayFromWithdraw(ctx, withdraws[i], remainingWithdraw, purchased)
-			payoutFromWithdraw = payoutFromCollateral.Sub(remainingWithdraw)
-		}
-	}
-	if payoutFromWithdraw.IsPositive() {
-		panic("payout is not covered")
-	}
-	return nil
 }
 
 // WithdrawReimbursement withdraws a reimbursement made for a beneficiary.

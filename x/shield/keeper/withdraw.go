@@ -83,6 +83,12 @@ func (k Keeper) GetWithdrawsByProvider(ctx sdk.Context, providerAddr sdk.AccAddr
 	return withdraws
 }
 
+// RemoveTimeSliceFromWithdrawQueue removes a time slice from the withdraw queue.
+func (k Keeper) RemoveTimeSliceFromWithdrawQueue(ctx sdk.Context, timestamp time.Time) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetWithdrawCompletionTimeKey(timestamp))
+}
+
 // DequeueCompletedWithdrawQueue dequeues completed withdraws
 // and processes their completions.
 func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
