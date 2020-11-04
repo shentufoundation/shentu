@@ -7,6 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
@@ -32,6 +33,10 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgWithdrawCollateral(ctx, msg, k)
 		case types.MsgPurchaseShield:
 			return handleMsgPurchaseShield(ctx, msg, k)
+		case types.MsgStakeForShield:
+			return handleMsgStakeForShield(ctx, msg, k)
+		case types.MsgUnstakeFromShield:
+			return handleMsgUnstakeFromShield(ctx, msg, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -203,7 +208,7 @@ func handleMsgWithdrawCollateral(ctx sdk.Context, msg types.MsgWithdrawCollatera
 }
 
 func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Keeper) (*sdk.Result, error) {
-	purchase, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From)
+	purchase, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From, false)
 	if err != nil {
 		return nil, err
 	}
@@ -224,6 +229,55 @@ func handleMsgPurchaseShield(ctx sdk.Context, msg types.MsgPurchaseShield, k Kee
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
 	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
 
+func handleMsgStakeForShield(ctx sdk.Context, msg types.MsgStakeForShield, k Keeper) (*sdk.Result, error) {
+	if ctx.BlockHeight() < common.Update1Height {
+		return nil, types.ErrBeforeUpdate
+	}
+	purchase, err := k.PurchaseShield(ctx, msg.PoolID, msg.Shield, msg.Description, msg.From, true)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeStakeForShield,
+			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(purchase.PurchaseID, 10)),
+			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
+			sdk.NewAttribute(types.AttributeKeyProtectionEndTime, purchase.ProtectionEndTime.String()),
+			sdk.NewAttribute(types.AttributeKeyPurchaseDescription, purchase.Description),
+			sdk.NewAttribute(types.AttributeKeyShield, purchase.Shield.String()),
+			sdk.NewAttribute(types.AttributeKeyServiceFees, purchase.ServiceFees.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	})
+
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgUnstakeFromShield(ctx sdk.Context, msg types.MsgUnstakeFromShield, k Keeper) (*sdk.Result, error) {
+	if ctx.BlockHeight() < common.Update1Height {
+		return nil, types.ErrBeforeUpdate
+	}
+	amount := msg.Shield.AmountOf(k.BondDenom(ctx))
+	err := k.UnstakeFromShield(ctx, msg.PoolID, msg.From, amount)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUnstakeFromShield,
+			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolID, 10)),
+			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

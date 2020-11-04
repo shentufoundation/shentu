@@ -8,6 +8,8 @@ const (
 	EventTypeDepositCollateral      = "deposit_collateral"
 	EventTypeWithdrawCollateral     = "withdraw_collateral"
 	EventTypePurchaseShield         = "purchase_shield"
+	EventTypeStakeForShield         = "stake_for_shield"
+	EventTypeUnstakeFromShield      = "unstake_from_shield"
 	EventTypeWithdrawRewards        = "withdraw_rewards"
 	EventTypeWithdrawForeignRewards = "withdraw_foreign_rewards"
 	EventTypeClearPayouts           = "clear_payouts"

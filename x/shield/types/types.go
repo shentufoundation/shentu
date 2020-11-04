@@ -163,3 +163,19 @@ func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) 
 
 // Withdraws contains multiple withdraws.
 type Withdraws []Withdraw
+
+type ShieldStaking struct {
+	PoolID            uint64         `json:"pool_id" yaml:"pool_id"`
+	Purchaser         sdk.AccAddress `json:"purchaser" yaml:"purchaser"`
+	Amount            sdk.Int        `json:"amount" yaml:"amount"`
+	WithdrawRequested sdk.Int        `json:"withdraw_requested" yaml:"withdraw_requested"`
+}
+
+func NewShieldStaking(poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) ShieldStaking {
+	return ShieldStaking{
+		PoolID:            poolID,
+		Purchaser:         purchaser,
+		Amount:            amount,
+		WithdrawRequested: sdk.NewInt(0),
+	}
+}

@@ -31,7 +31,7 @@ certikd testnet [flags]
       --node-dir-prefix string      Prefix the directory name for each node with (node results in node0, node1, ...) (default "node")
   -o, --output-dir string           Directory to store initialization data for the testnet (default "./mytestnet")
       --port-increment int           (default 100)
-      --server-ip-address string    Server IP Address (default "192.168.0.227")
+      --server-ip-address string    Server IP Address (default "192.168.253.177")
       --v int                       Number of validators to initialize the testnet with (default 4)
 ```
 

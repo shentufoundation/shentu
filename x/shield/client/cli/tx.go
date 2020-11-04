@@ -52,6 +52,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetCmdClearPayouts(cdc),
 		GetCmdPurchaseShield(cdc),
 		GetCmdWithdrawReimbursement(cdc),
+		GetCmdStakeForShield(cdc),
+		GetCmdUnstakeFromShield(cdc),
 	)...)
 
 	return shieldTxCmd
@@ -503,6 +505,94 @@ $ %s tx shield withdraw-reimbursement <proposal id>
 			}
 
 			msg := types.NewMsgWithdrawReimbursement(proposalID, fromAddr)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	return cmd
+}
+
+// GetCmdStakeForShield implements the command for purchasing Shield.
+func GetCmdStakeForShield(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "stake-for-shield [pool id] [shield amount] [description]",
+		Args:  cobra.ExactArgs(3),
+		Short: "obtain shield through staking CTK",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Obtain shield through staking. Requires purchaser to provide descriptions of accounts to be protected.
+
+Example:
+$ %s tx shield stake-for-shield <pool id> <shield amount> <description>
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			fromAddr := cliCtx.GetFromAddress()
+
+			poolID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+			shield, err := sdk.ParseCoins(args[1])
+			if err != nil {
+				return err
+			}
+			description := args[2]
+			if description == "" {
+				return types.ErrPurchaseMissingDescription
+			}
+
+			msg := types.NewMsgStakeForShield(poolID, shield, description, fromAddr)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	return cmd
+}
+
+// GetCmdUnstakeFromShield implements the command for purchasing Shield.
+func GetCmdUnstakeFromShield(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "unstake-from-shield [pool id] [amount] ",
+		Args:  cobra.ExactArgs(2),
+		Short: "unstake staked-for-shield coins",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Withdraw staking from shield. Requires existing shield purchase through staking.
+
+Example:
+$ %s tx shield withdraw-staking <pool id> <shield amount> 
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			fromAddr := cliCtx.GetFromAddress()
+
+			poolID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+			shield, err := sdk.ParseCoins(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUnstakeFromShield(poolID, shield, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

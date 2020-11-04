@@ -40,6 +40,10 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryClaimParams(ctx, path[1:], k)
 		case types.QueryStatus:
 			return queryGlobalState(ctx, path[1:], k)
+		case types.QueryStakedForShield:
+			return queryStakeForShield(ctx, path[1:], k)
+		case types.QueryShieldStakingRate:
+			return queryShieldStakingRate(ctx, path[1:], k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
@@ -254,9 +258,50 @@ func queryGlobalState(ctx sdk.Context, path []string, k Keeper) (res []byte, err
 		k.GetTotalWithdrawing(ctx),
 		k.GetServiceFees(ctx),
 		k.GetRemainingServiceFees(ctx),
+		k.GetGlobalStakeForShieldPool(ctx),
 	)
 
 	res, err = codec.MarshalJSONIndent(k.cdc, shieldState)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+// queryPurchase queries staked-for-shield for pool-purchaser pair.
+func queryStakeForShield(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 2); err != nil {
+		return nil, err
+	}
+
+	poolID, err := strconv.ParseUint(path[0], 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	purchaser, err := sdk.AccAddressFromBech32(path[1])
+	if err != nil {
+		return nil, err
+	}
+	purchaseList, found := k.GetStakeForShield(ctx, poolID, purchaser)
+	if !found {
+		return []byte{}, types.ErrPurchaseNotFound
+	}
+
+	res, err = codec.MarshalJSONIndent(k.cdc, purchaseList)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+// queryShieldStakingRate queries the shield staking rate for shield.
+func queryShieldStakingRate(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 0); err != nil {
+		return nil, err
+	}
+
+	rate := k.GetShieldStakingRate(ctx)
+	res, err = codec.MarshalJSONIndent(k.cdc, rate)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
