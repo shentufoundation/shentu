@@ -250,15 +250,6 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		&app.certKeeper,
 		cvmSubspace,
 	)
-	app.oracleKeeper = oracle.NewKeeper(
-		app.cdc,
-		keys[oracle.StoreKey],
-		app.accountKeeper,
-		app.distrKeeper,
-		&app.stakingKeeper,
-		app.supplyKeeper,
-		oracleSubspace,
-	)
 	app.mintKeeper = mint.NewKeeper(
 		app.cdc,
 		keys[mint.StoreKey],
@@ -279,6 +270,16 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		keys[cert.StoreKey],
 		app.slashingKeeper,
 		stakingKeeper,
+	)
+	app.oracleKeeper = oracle.NewKeeper(
+		app.cdc,
+		keys[oracle.StoreKey],
+		app.accountKeeper,
+		app.distrKeeper,
+		&app.stakingKeeper,
+		app.supplyKeeper,
+		oracleSubspace,
+		app.certKeeper,
 	)
 	app.authKeeper = auth.NewKeeper(
 		app.certKeeper,

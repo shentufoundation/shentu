@@ -5,6 +5,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 )
 
+type CertKeeper interface {
+	IsCertified(ctx sdk.Context, requestContentType string, content string, certType string) bool
+}
+
 type AuthKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) exported.Account
 }

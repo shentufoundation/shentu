@@ -14,6 +14,7 @@ var (
 	ErrNoEnoughCollateral      = sdkerrors.Register(ModuleName, 107, "collateral not enough")
 	ErrInvalidPoolParams       = sdkerrors.Register(ModuleName, 108, "invalid pool params")
 	ErrInvalidTaskParams       = sdkerrors.Register(ModuleName, 109, "invalid task params")
+	ErrNotCertified            = sdkerrors.Register(ModuleName, 110, "The address has to be certified before creating operator")
 
 	ErrTaskNotExists       = sdkerrors.Register(ModuleName, 201, "task does not exist")
 	ErrUnqualifiedOperator = sdkerrors.Register(ModuleName, 202, "operator is not qualified")

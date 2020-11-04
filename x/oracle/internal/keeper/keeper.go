@@ -14,11 +14,12 @@ type Keeper struct {
 	distrKeeper   types.DistrKeeper
 	stakingKeeper types.StakingKeeper
 	supplyKeeper  types.SupplyKeeper
+	certKeeper    types.CertKeeper
 	paramSpace    types.ParamSubspace
 }
 
 func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, authKeeper types.AuthKeeper, distriKeeper types.DistrKeeper,
-	stakingKeeper types.StakingKeeper, supplyKeeper types.SupplyKeeper, paramSpace types.ParamSubspace) Keeper {
+	stakingKeeper types.StakingKeeper, supplyKeeper types.SupplyKeeper, paramSpace types.ParamSubspace, certKeeper types.CertKeeper) Keeper {
 	return Keeper{
 		cdc:           cdc,
 		paramSpace:    paramSpace.WithKeyTable(types.ParamKeyTable()),
@@ -27,6 +28,7 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, authKeeper types.AuthKee
 		distrKeeper:   distriKeeper,
 		stakingKeeper: stakingKeeper,
 		supplyKeeper:  supplyKeeper,
+		certKeeper:    certKeeper,
 	}
 }
 
