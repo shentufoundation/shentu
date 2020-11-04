@@ -108,12 +108,16 @@ type MsgProposeCertifier struct {
 }
 ```
 
+`MsgCertifyValidator` lets a certifier add a new validator.
+
 ```go
 type MsgCertifyValidator struct {
 	Certifier sdk.AccAddress `json:"certifier" yaml:"certifier"`
 	Validator crypto.PubKey  `json:"validator" yaml:"validator"`
 }
 ```
+
+`MsgDecertifyValidator` lets a certifier remove an existing validator.
 
 ```go
 type MsgDecertifyValidator struct {
@@ -122,12 +126,7 @@ type MsgDecertifyValidator struct {
 }
 ```
 
-```go
-type msgDecertifyValidatorPretty struct {
-	Decertifier sdk.AccAddress `json:"decertifier" yaml:"decertifier"`
-	Validator   string         `json:"validator" yaml:"validator"`
-}
-```
+The following two messages create a new general or compilation certificate, respectively.
 
 ```go
 type MsgCertifyGeneral struct {
@@ -137,17 +136,6 @@ type MsgCertifyGeneral struct {
 	Description        string         `json:"description" yaml:"description"`
 	Certifier          sdk.AccAddress `json:"certifier" yaml:"certiifer"`
 }
-```
-
-```go
-type MsgRevokeCertificate struct {
-	Revoker     sdk.AccAddress `json:"revoker" yaml:"revoker"`
-	ID          CertificateID  `json:"id" yaml:"id"`
-	Description string         `json:"description" yaml:"description"`
-}
-```
-
-```go
 type MsgCertifyCompilation struct {
 	SourceCodeHash string         `json:"sourcecodehash" yaml:"sourcecodehash"`
 	Compiler       string         `json:"compiler" yaml:"compiler"`
@@ -157,6 +145,18 @@ type MsgCertifyCompilation struct {
 }
 ```
 
+`MsgRevokeCertificate` removes a certificate from the store.
+
+```go
+type MsgRevokeCertificate struct {
+	Revoker     sdk.AccAddress `json:"revoker" yaml:"revoker"`
+	ID          CertificateID  `json:"id" yaml:"id"`
+	Description string         `json:"description" yaml:"description"`
+}
+```
+
+`MsgCertifyPlatform` certifies a validator's host platform.
+
 ```go
 type MsgCertifyPlatform struct {
 	Certifier sdk.AccAddress `json:"certifier" yaml:"certifier"`
@@ -164,15 +164,6 @@ type MsgCertifyPlatform struct {
 	Platform  string         `json:"platform" yaml:"platform"`
 }
 ```
-
-```go
-type msgCertifyPlatformPretty struct {
-	Certifier sdk.AccAddress `json:"certifier" yaml:"certifier"`
-	Validator string         `json:"validator" yaml:"validator"`
-	Platform  string         `json:"platform" yaml:"platform"`
-}
-```
-
 
 ## Events
 
