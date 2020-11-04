@@ -237,7 +237,7 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 
 		// Make payout after purchased is fully covered.
 		payoutFromThisUbd := sdk.MinInt(payoutFromUnbonding, remainingUbd)
-		k.PayFromUnbonding(ctx, ubd, payoutFromThisUbd)
+		k.PayFromUnbondings(ctx, ubd, payoutFromThisUbd)
 
 		payoutFromUnbonding = payoutFromUnbonding.Sub(payoutFromThisUbd)
 	}
@@ -284,8 +284,8 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payou
 	}
 }
 
-// PayFromUnbonding reduce provider's unbonding delegation and transfer tokens to the shield module account.
-func (k Keeper) PayFromUnbonding(ctx sdk.Context, ubd staking.UnbondingDelegation, payout sdk.Int) {
+// PayFromUnbondings reduce provider's unbonding delegations and transfer tokens to the shield module account.
+func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd staking.UnbondingDelegation, payout sdk.Int) {
 	unbonding, found := k.sk.GetUnbondingDelegation(ctx, ubd.DelegatorAddress, ubd.ValidatorAddress)
 	if !found {
 		panic("unbonding delegation is not found")
