@@ -16,7 +16,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	k.SetTotalCollateral(ctx, data.TotalCollateral)
 	k.SetTotalWithdrawing(ctx, data.TotalWithdrawing)
 	k.SetTotalShield(ctx, data.TotalShield)
-	k.SetTotalLocked(ctx, data.TotalLocked)
+	k.SetTotalClaimed(ctx, data.TotalClaimed)
 	k.SetServiceFees(ctx, data.ServiceFees)
 	k.SetRemainingServiceFees(ctx, data.RemainingServiceFees)
 	k.SetGlobalShieldStakingPool(ctx, data.GlobalStakingPool)
@@ -58,7 +58,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 	totalShield := k.GetTotalShield(ctx)
-	totalLocked := k.GetTotalLocked(ctx)
+	totalClaimed := k.GetTotalClaimed(ctx)
 	serviceFees := k.GetServiceFees(ctx)
 	remainingServiceFees := k.GetRemainingServiceFees(ctx)
 	pools := k.GetAllPools(ctx)
@@ -74,6 +74,6 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	originalStaking := k.GetAllOriginalStakings(ctx)
 
 	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams,
-		totalCollateral, totalWithdrawing, totalShield, totalLocked, serviceFees, remainingServiceFees, pools,
+		totalCollateral, totalWithdrawing, totalShield, totalClaimed, serviceFees, remainingServiceFees, pools,
 		providers, purchaseLists, withdraws, lastUpdateTime, stakingPurchaseRate, globalStakingPool, stakingPurchases, originalStaking)
 }

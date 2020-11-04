@@ -53,6 +53,7 @@ type StakingKeeper interface {
 	RemoveValidator(ctx sdk.Context, address sdk.ValAddress)
 
 	BondDenom(sdk.Context) string
+	UnbondingTime(sdk.Context) time.Duration
 }
 
 // BankKeeper defines the expected bank keeper.

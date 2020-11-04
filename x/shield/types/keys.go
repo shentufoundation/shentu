@@ -29,7 +29,7 @@ var (
 	TotalCollateralKey          = []byte{0x01}
 	TotalWithdrawingKey         = []byte{0x02}
 	TotalShieldKey              = []byte{0x03}
-	TotalLockedKey              = []byte{0x04}
+	TotalClaimedKey             = []byte{0x04}
 	ServiceFeesKey              = []byte{0x05}
 	RemainingServiceFeesKey     = []byte{0x06}
 	PoolKey                     = []byte{0x07}
@@ -59,8 +59,8 @@ func GetTotalShieldKey() []byte {
 	return TotalShieldKey
 }
 
-func GetTotalLockedKey() []byte {
-	return TotalLockedKey
+func GetTotalClaimedKey() []byte {
+	return TotalClaimedKey
 }
 
 func GetServiceFeesKey() []byte {

@@ -73,7 +73,8 @@ func ProviderInvariant(keeper Keeper) sdk.Invariant {
 	}
 }
 
-// ShieldInvariant checks that the providers' coin amounts equal to the tracked value.
+// ShieldInvariant checks that the sum of individual pools' shield is
+// equal to the total shield.
 func ShieldInvariant(keeper Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		pools := keeper.GetAllPools(ctx)
@@ -87,7 +88,7 @@ func ShieldInvariant(keeper Keeper) sdk.Invariant {
 
 		return sdk.FormatInvariant(types.ModuleName, "shield",
 			fmt.Sprintf("\n\ttotal shield amount: %s"+
-				"\n\tsum of providers' withdrawing amount:  %s\n",
+				"\n\tsum of individual pools' shield:  %s\n",
 				totalShield, shieldSum)), broken
 	}
 }

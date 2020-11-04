@@ -6,10 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/x/staking"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 

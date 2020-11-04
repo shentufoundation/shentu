@@ -31,6 +31,8 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, amount s
 }
 
 // WithdrawCollateral withdraws a community member's collateral for a pool.
+// In case of unbonding-initiated withdraw, store the validator address and
+// the creation height.
 func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) error {
 	if amount.IsZero() {
 		return nil

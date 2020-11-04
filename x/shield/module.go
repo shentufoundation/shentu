@@ -27,7 +27,7 @@ type AppModuleBasic struct {
 	common.AppModuleBasic
 }
 
-// NewAppModuleBasic creates a new AppModuleBasic object in cert module.
+// NewAppModuleBasic creates a new AppModuleBasic object in shield module.
 func NewAppModuleBasic() AppModuleBasic {
 	return AppModuleBasic{
 		common.NewAppModuleBasic(
@@ -44,7 +44,7 @@ func NewAppModuleBasic() AppModuleBasic {
 	}
 }
 
-// AppModule implements an application module for the slashing module.
+// AppModule implements an application module for the shield module.
 type AppModule struct {
 	AppModuleBasic
 
@@ -127,8 +127,7 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.We
 
 // ProposalContents returns functions that generate gov proposals for the module.
 func (am AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-	// return simulation.ProposalContents(am.keeper, am.stakingKeeper)
-	return nil
+	return simulation.ProposalContents(am.keeper, am.stakingKeeper)
 }
 
 // RandomizedParams returns functions that generate params for the module.

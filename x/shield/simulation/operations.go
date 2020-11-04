@@ -43,7 +43,7 @@ var (
 	DefaultWeightMsgPurchaseShield     = 20
 	DefaultWeightMsgStakeForShield     = 20
 	DefaultWeightMsgUnstakeFromShield  = 15
-	DefaultWeightShieldClaimProposal   = 0
+	DefaultWeightShieldClaimProposal   = 5
 
 	DefaultIntMax = 100000000000
 )
@@ -472,7 +472,30 @@ func ProposalContents(k keeper.Keeper, sk types.StakingKeeper) []simulation.Weig
 // SimulateShieldClaimProposalContent generates random shield claim proposal content
 func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper) simulation.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simulation.Account) govtypes.Content {
-		return types.ShieldClaimProposal{}
+		bondDenom := sk.BondDenom(ctx)
+		purchaseList, found := keeper.RandomPurchaseList(r, k, ctx)
+		if len(purchaseList.Entries) == 0 {
+			return nil
+		}
+		i := r.Intn(len(purchaseList.Entries))
+		poolID := purchaseList.PoolID
+		purchaser := purchaseList.Purchaser
+		purchase := purchaseList.Entries[i]
+		if !found || purchase.ProtectionEndTime.Before(ctx.BlockTime()) {
+			return nil
+		}
+		lossAmount, err := simulation.RandPositiveInt(r, purchase.Shield)
+		if err != nil {
+			return nil
+		}
+		return types.NewShieldClaimProposal(
+			poolID,
+			sdk.NewCoins(sdk.NewCoin(bondDenom, lossAmount)),
+			purchase.PurchaseID,
+			simulation.RandStringOfLength(r, 500),
+			simulation.RandStringOfLength(r, 500),
+			purchaser,
+		)
 	}
 }
 
