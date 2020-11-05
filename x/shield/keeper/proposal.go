@@ -486,10 +486,10 @@ func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd staking.UnbondingDelegati
 			} else {
 				unbonding.Entries[i].Balance = unbonding.Entries[i].Balance.Sub(payout)
 			}
-			if len(ubd.Entries) == 0 {
-				k.sk.RemoveUnbondingDelegation(ctx, ubd)
+			if len(unbonding.Entries) == 0 {
+				k.sk.RemoveUnbondingDelegation(ctx, unbonding)
 			} else {
-				k.sk.SetUnbondingDelegation(ctx, ubd)
+				k.sk.SetUnbondingDelegation(ctx, unbonding)
 			}
 			break
 		}
