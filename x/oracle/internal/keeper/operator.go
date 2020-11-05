@@ -67,7 +67,7 @@ func (k Keeper) CreateOperator(ctx sdk.Context, address sdk.AccAddress, collater
 	if k.IsBelowMinCollateral(ctx, collateral) {
 		return types.ErrNoEnoughCollateral
 	}
-	if !k.certKeeper.IsCertified(ctx, "Address", address.String(), "ORACLEOPERATOR") {
+	if !k.CertKeeper.IsCertified(ctx, "Address", address.String(), "ORACLEOPERATOR") {
 		return types.ErrNotCertified
 	}
 	operator := types.NewOperator(address, proposer, collateral, nil, name)

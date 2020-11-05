@@ -14,7 +14,7 @@ type Keeper struct {
 	distrKeeper   types.DistrKeeper
 	stakingKeeper types.StakingKeeper
 	supplyKeeper  types.SupplyKeeper
-	certKeeper    types.CertKeeper
+	CertKeeper    types.CertKeeper
 	paramSpace    types.ParamSubspace
 }
 
@@ -28,7 +28,7 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, authKeeper types.AuthKee
 		distrKeeper:   distriKeeper,
 		stakingKeeper: stakingKeeper,
 		supplyKeeper:  supplyKeeper,
-		certKeeper:    certKeeper,
+		CertKeeper:    certKeeper,
 	}
 }
 
