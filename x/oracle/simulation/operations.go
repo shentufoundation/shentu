@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
+	"github.com/certikfoundation/shentu/x/cert"
 	"github.com/certikfoundation/shentu/x/oracle/internal/keeper"
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
@@ -57,45 +58,54 @@ func WeightedOperations(
 func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		certificates := k.CertKeeper.GetAllCertificates(ctx)
-		var accAddrs []sdk.AccAddress
-		for i := 0; i < len(certificates); i++ {
-			certificate := certificates[i]
-			if certificate.Type().String() == "OracleOperator" &&
-				certificate.RequestContent().RequestContentType.String() == "Address" {
-				accAddr, err := sdk.AccAddressFromHex(certificate.RequestContent().RequestContent)
-				if err != nil {
-					return simulation.NewOperationMsgBasic(types.ModuleName,
-						"NoOp: cannot get address, skip this tx", "", false, nil), nil, nil
-				}
-				accAddrs = append(accAddrs, accAddr)
-			}
-		}
-		if len(accAddrs) <= 0 {
-			return simulation.NewOperationMsgBasic(types.ModuleName,
-				"NoOp: no certifier oracle operator address, skip this tx", "", false, nil), nil, nil
-		}
-		operator := accAddrs[rand.Intn(len(accAddrs))]
-		operatorAcc := ak.GetAccount(ctx, operator)
-		proposer, _ := simulation.RandomAcc(r, accs)
-		proposerAcc := ak.GetAccount(ctx, proposer.Address)
+		operator, _ := simulation.RandomAcc(r, accs)
+		operatorAcc := ak.GetAccount(ctx, operator.Address)
 		if k.IsOperator(ctx, operatorAcc.GetAddress()) {
 			return simulation.NewOperationMsgBasic(types.ModuleName,
 				"NoOp: operator already exists, skip this tx", "", false, nil), nil, nil
 		}
 
-		collateral := simulation.RandSubsetCoins(r, proposerAcc.SpendableCoins(ctx.BlockTime()))
+		certifiers := k.CertKeeper.GetAllCertifiers(ctx)
+		certifier := certifiers[r.Intn(len(certifiers))]
+
+		var certifierSAcc simulation.Account
+		for _, acc := range accs {
+			if acc.Address.Equals(certifier.Address) {
+				certifierSAcc = acc
+				break
+			}
+		}
+
+		certifierAcc := ak.GetAccount(ctx, certifier.Address)
+		certifyMsg := cert.NewMsgCertifyGeneral("ORACLEOPERATOR", "ADDRESS", operator.Address.String(), "", certifier.Address)
+		certFees := sdk.Coins{}
+		certifyTx := helpers.GenTx(
+			[]sdk.Msg{certifyMsg},
+			certFees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{certifierAcc.GetAccountNumber()},
+			[]uint64{certifierAcc.GetSequence()},
+			certifierSAcc.PrivKey,
+		)
+
+		_, _, err := app.Deliver(certifyTx)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		collateral := simulation.RandSubsetCoins(r, operatorAcc.SpendableCoins(ctx.BlockTime()))
 		if collateral.AmountOf(sdk.DefaultBondDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
 			return simulation.NewOperationMsgBasic(types.ModuleName,
 				"NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
 		}
 
-		fees, err := simulation.RandomFees(r, ctx, proposerAcc.SpendableCoins(ctx.BlockTime()).Sub(collateral))
+		fees, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()).Sub(collateral))
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		msg := types.NewMsgCreateOperator(operatorAcc.GetAddress(), collateral, proposer.Address, "an operator")
+		msg := types.NewMsgCreateOperator(operatorAcc.GetAddress(), collateral, operator.Address, "an operator")
 
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
@@ -104,7 +114,7 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 			chainID,
 			[]uint64{operatorAcc.GetAccountNumber()},
 			[]uint64{operatorAcc.GetSequence()},
-			proposer.PrivKey,
+			operator.PrivKey,
 		)
 
 		_, _, err = app.Deliver(tx)
@@ -112,23 +122,23 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		stdOperator := types.NewOperator(operatorAcc.GetAddress(), proposerAcc.GetAddress(), collateral, nil, "an operator")
+		stdOperator := types.NewOperator(operatorAcc.GetAddress(), operatorAcc.GetAddress(), collateral, nil, "an operator")
 		futureOperations := []simulation.FutureOperation{
 			{
 				BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 0, 20),
-				Op:          SimulateMsgAddCollateral(k, ak, &stdOperator, proposer.PrivKey),
+				Op:          SimulateMsgAddCollateral(k, ak, &stdOperator, operator.PrivKey),
 			},
 			{
 				BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 0, 20),
-				Op:          SimulateMsgReduceCollateral(k, ak, &stdOperator, proposer.PrivKey),
+				Op:          SimulateMsgReduceCollateral(k, ak, &stdOperator, operator.PrivKey),
 			},
 			{
 				BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 0, 20),
-				Op:          SimulateMsgWithdrawReward(k, ak, &stdOperator, proposer.PrivKey),
+				Op:          SimulateMsgWithdrawReward(k, ak, &stdOperator, operator.PrivKey),
 			},
 			{
 				BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 20, 25),
-				Op:          SimulateMsgRemoveOperator(k, ak, &stdOperator, proposer.PrivKey),
+				Op:          SimulateMsgRemoveOperator(k, ak, &stdOperator, operator.PrivKey),
 			},
 		}
 

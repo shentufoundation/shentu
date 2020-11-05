@@ -9,7 +9,7 @@ import (
 
 type CertKeeper interface {
 	IsCertified(ctx sdk.Context, requestContentType string, content string, certType string) bool
-	GetAllCertificates(ctx sdk.Context) []cert.Certificate
+	GetAllCertifiers(ctx sdk.Context) cert.Certifiers
 }
 
 type AuthKeeper interface {

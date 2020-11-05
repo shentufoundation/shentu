@@ -27,6 +27,7 @@ var (
 	NewGeneralCertificate       = types.NewGeneralCertificate
 	NewCompilationCertificate   = types.NewCompilationCertificate
 	NewCertifierUpdateProposal  = types.NewCertifierUpdateProposal
+	NewMsgCertifyGeneral        = types.NewMsgCertifyGeneral
 
 	// variable aliases
 	ProposalHandler           = client.ProposalHandler
@@ -46,5 +47,4 @@ type (
 	Platform                = types.Platform
 	Library                 = types.Library
 	AddOrRemove             = types.AddOrRemove
-	MsgCertifyGeneral       = types.MsgCertifyGeneral
 )
