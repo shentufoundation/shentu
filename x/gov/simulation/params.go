@@ -35,7 +35,7 @@ func ParamChanges(r *rand.Rand) []simulation.ParamChange {
 		),
 		simulation.NewSimParamChange(govTypes.ModuleName, keyTallyParams,
 			func(r *rand.Rand) string {
-				bz, _ := json.Marshal(GenerateAVotingParams(r))
+				bz, _ := json.Marshal(GenerateTallyParams(r))
 				return string(bz)
 			},
 		),
