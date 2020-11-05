@@ -73,7 +73,7 @@ func ProviderInvariant(keeper Keeper) sdk.Invariant {
 			fmt.Sprintf("\n\ttotal withdraw amount: %s"+
 				"\n\tsum of providers' withdrawing amount:  %s"+
 				"\n\ttotal collateral amount: %s"+
-				"\n\tsum of providers' collateral amount: %s\bn",
+				"\n\tsum of providers' collateral amount: %s\n",
 				totalWithdraw, withdrawSum, totalCollateral, collateralSum)), broken
 	}
 }

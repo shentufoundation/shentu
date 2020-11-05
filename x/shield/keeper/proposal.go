@@ -276,6 +276,7 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 	if !found {
 		return types.ErrProviderNotFound
 	}
+	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 
 	uncoveredPurchase := sdk.ZeroInt()
 	payoutFromCollateral := sdk.ZeroInt()
@@ -306,6 +307,7 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 	// Update provider's collateral and total withdraw.
 	provider.Collateral = provider.Collateral.Sub(payout)
 	provider.Withdrawing = provider.Withdrawing.Sub(payoutFromWithdraw)
+	totalWithdrawing = totalWithdrawing.Sub(payoutFromWithdraw)
 
 	// Update provider's withdraws from latest to oldest.
 	withdraws := k.GetWithdrawsByProvider(ctx, providerAddr)
@@ -346,6 +348,7 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 		panic("payout is not covered")
 	}
 
+	k.SetTotalWithdrawing(ctx, totalWithdrawing)
 	k.SetProvider(ctx, provider.Address, provider)
 
 	return nil
