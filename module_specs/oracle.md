@@ -112,3 +112,4 @@ type LockedPoolParams struct {
 	LockedInBlocks    int64 `json:"locked_in_blocks"`
 	MinimumCollateral int64 `json:"minimum_collateral"`
 }
+

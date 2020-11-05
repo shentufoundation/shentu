@@ -1,9 +1,8 @@
 # Cert
 
-CertiK Chain has two governing bodies that make decisions for the chain. First, validators are chain users that stake tokens as part of CertiK Chain's Delegated Proof-of-Stake consensus protocol. A validator's voting is proportional to their amount staked. Second, certifiers are responsible for security-related votes. Each certifier gets one equally-weighted vote.
-
 The `cert` module handles most of the certifier-related logic, include adding and removing certifiers, certifying validators, and issuing certificates.
 
+Certifiers are chain users that are responsible for overseeing the chain's security. CertiK Chain has two governing bodies that make decisions for the chain. First, validators are chain users that stake tokens as part of CertiK Chain's Delegated Proof-of-Stake consensus protocol. A validator's voting is proportional to their amount staked. Second, certifiers are responsible for security-related votes. Each certifier gets one equally-weighted vote. That being said, many of the certifier commands (see [Messages](#messages) below) do not require a voting process.
 
 ## State
 
