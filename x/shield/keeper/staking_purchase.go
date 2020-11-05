@@ -10,7 +10,7 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-func (k Keeper) GetGlobalStakeForShieldPool(ctx sdk.Context) (pool sdk.Int) {
+func (k Keeper) GetGlobalShieldStakingPool(ctx sdk.Context) (pool sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetGlobalStakeForShieldPoolKey())
 	if bz == nil {
@@ -30,10 +30,10 @@ func (k Keeper) GetOriginalStaking(ctx sdk.Context, purchaseID uint64) (amount s
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetOriginalStakingKey(purchaseID))
 	if bz == nil {
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &amount)
-		return
+		return sdk.NewInt(0)
 	}
-	return sdk.NewInt(0)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &amount)
+	return
 }
 
 func (k Keeper) SetOriginalStaking(ctx sdk.Context, purchaseID uint64, amount sdk.Int) {
@@ -64,7 +64,7 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 		return err
 	}
 
-	pool := k.GetGlobalStakeForShieldPool(ctx)
+	pool := k.GetGlobalShieldStakingPool(ctx)
 	pool = pool.Add(stakingAmt)
 	k.SetGlobalShieldStakingPool(ctx, pool)
 
@@ -159,6 +159,9 @@ func (k Keeper) ProcessStakeForShieldExpiration(ctx sdk.Context, poolID, purchas
 		return nil
 	}
 	amount := k.GetOriginalStaking(ctx, purchaseID)
+	if amount.IsZero() {
+		return nil
+	}
 	withdrawCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, amount))
 	k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, withdrawCoins)
 
@@ -176,12 +179,20 @@ func (k Keeper) ProcessStakeForShieldExpiration(ctx sdk.Context, poolID, purchas
 		return nil
 	}
 
+	pool := k.GetGlobalShieldStakingPool(ctx)
+	pool = pool.Sub(amount)
+	k.SetGlobalShieldStakingPool(ctx, pool)
+
 	sPRate := k.GetShieldStakingRate(ctx)
-	renewShieldInt := sPRate.QuoInt(amount).TruncateInt()
+	renewShieldInt := amount.ToDec().Quo(sPRate).TruncateInt()
+	if renewShieldInt.IsZero() {
+		return nil
+	}
 	renewShield := sdk.NewCoins(sdk.NewCoin(bondDenom, renewShieldInt))
 	desc := fmt.Sprintf(`renewed from PurchaseID %s`, strconv.FormatUint(purchaseID, 10))
 	if _, err := k.purchaseShield(ctx, poolID, renewShield, desc, purchaser,
 		sdk.NewCoins(), sdk.NewCoins(sdk.NewCoin(bondDenom, renew))); err != nil {
 	}
+
 	return nil
 }

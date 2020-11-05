@@ -87,7 +87,7 @@ func ShieldInvariant(keeper Keeper) sdk.Invariant {
 
 		return sdk.FormatInvariant(types.ModuleName, "shield",
 			fmt.Sprintf("\n\ttotal shield amount: %s"+
-				"\n\tsum of providers' withdrawing amount:  %s\n",
+				"\n\tsum of pools' shield amount:  %s\n",
 				totalShield, shieldSum)), broken
 	}
 }
@@ -100,12 +100,12 @@ func GlobalStakingPoolInvariant(keeper Keeper) sdk.Invariant {
 			stakedCoin = stakedCoin.Add(sdk.NewCoin(keeper.BondDenom(ctx), staked.Amount))
 		}
 		stakedInt := stakedCoin.Amount
-		globalStakingPool := keeper.GetGlobalStakeForShieldPool(ctx)
+		globalStakingPool := keeper.GetGlobalShieldStakingPool(ctx)
 		broken := !stakedInt.Equal(globalStakingPool)
 
 		return sdk.FormatInvariant(types.ModuleName, "global-staking-pool",
 			fmt.Sprintf("\n\tsum of staked amount:  %s"+
-				"\n\tglobal staking pool amount: %s",
+				"\n\tglobal staking pool amount: %s\n",
 				stakedInt, globalStakingPool.String())), broken
 	}
 }
