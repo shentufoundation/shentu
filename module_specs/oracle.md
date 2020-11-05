@@ -1,5 +1,11 @@
 # Oracle
 
+The `oracle` module facilitates real-time security checks by providing on-chain security scores from audited smart contracts that can be queried by a Security Oracle on any chain.
+CertiK Chain users can serve as `Operator`s, which provide queriers with security scores for audited smart contracts and earn rewards for doing so. The reward an operator receives is proportional to the amount of collateral the operator locks up. Also, operators' security scores for a given smart contract are weighted by their collateral. In this way, the `oracle` module serves as the Oracle Combinator, which combines the various results from each operator into a composite score.
+
+See the [whitepaper](https://www.certik.foundation/whitepaper#2-CertiK-Security-Oracle) for more information on the CertiK Security Oracle.
+
+
 ## State
 
 type Withdraw struct {
@@ -7,6 +13,7 @@ type Withdraw struct {
 	Amount   sdk.Coins      `json:"amount"`
 	DueBlock int64          `json:"due_block"`
 }
+
 
 type Operator struct {
 	Address            sdk.AccAddress `json:"address"`
@@ -46,6 +53,7 @@ type Response struct {
 
 ## Messages
 
+`MsgCreateOperator` adds `Address` as a new operator, with 
 type MsgCreateOperator struct {
 	Address    sdk.AccAddress
 	Collateral sdk.Coins
@@ -95,8 +103,6 @@ type MsgDeleteTask struct {
 	Force    bool
 	Deleter  sdk.AccAddress
 }
-
-## Events
 
 ## Parameters
 
