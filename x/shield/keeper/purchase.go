@@ -9,6 +9,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+type pPPTriplet struct {
+	poolID     uint64
+	purchaseID uint64
+	purchaser  sdk.AccAddress
+}
+
 // SetPurchaseList sets a purchase list.
 func (k Keeper) SetPurchaseList(ctx sdk.Context, purchaseList types.PurchaseList) {
 	store := ctx.KVStore(k.storeKey)
@@ -181,6 +187,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 	totalServiceFees := k.GetServiceFees(ctx)
 	serviceFees := types.InitMixedDecCoins()
 	bondDenom := k.BondDenom(ctx)
+	var stakeForShieldUpdateList []pPPTriplet
 
 	// Check all purchases whose protection end time is before current block time.
 	// 1) Update service fees for purchases whose protection end time is before current block time.
@@ -225,14 +232,19 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 					// Minus one because the current entry is deleted.
 					i--
 
-					if entry.ServiceFees.Native.Empty() {
-						if entry.ServiceFees.Native.Empty() && ctx.BlockHeight() > common.Update1Height {
-							k.ProcessStakeForShieldExpiration(ctx, poolPurchaser.PoolID, entry.PurchaseID, bondDenom,
-								poolPurchaser.Purchaser)
-						}
+					originalStaking := k.GetOriginalStaking(ctx, entry.PurchaseID)
+					if !originalStaking.IsZero() && ctx.BlockHeight() > common.Update1Height {
+						// keep track of the list to be updated to avoid overwriting the purchase list
+						stakeForShieldUpdateList = append(stakeForShieldUpdateList, pPPTriplet{
+							poolID:     poolPurchaser.PoolID,
+							purchaseID: entry.PurchaseID,
+							purchaser:  poolPurchaser.Purchaser,
+						})
 					}
 				}
 			}
+
+			// purchaseList might have been updated in the loop.
 			if len(purchaseList.Entries) == 0 {
 				_ = k.DeletePurchaseList(ctx, purchaseList.PoolID, purchaseList.Purchaser)
 			} else {
@@ -243,6 +255,10 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 		store.Delete(iterator.Key())
 	}
 	k.SetServiceFees(ctx, totalServiceFees)
+	for _, ppp := range stakeForShieldUpdateList {
+		k.ProcessStakeForShieldExpiration(ctx, ppp.poolID, ppp.purchaseID, bondDenom,
+			ppp.purchaser)
+	}
 
 	// Add service fees for this block from unexpired purchases.
 	// totalServiceFees * (currentBlockTime - previousBlockTime) / protectionPeriodTime
