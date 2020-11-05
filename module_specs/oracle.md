@@ -99,7 +99,7 @@ type MsgReduceCollateral struct {
 }
 ```
 
-MsgWithdrawReward transfers the accumulated rewards to the operator at `Address`.
+`MsgWithdrawReward` transfers the accumulated rewards to the operator at `Address`.
 
 ```go
 type MsgWithdrawReward struct {
@@ -109,7 +109,7 @@ type MsgWithdrawReward struct {
 
 ### Tasks
 
-MsgCreateTask creates a new `Task`. After the `ValidDuration` has passed, it can be removed with `MsgDeleteTask` by its `Creator`. It is not removed automatically.
+`MsgCreateTask` creates a new `Task`. After the `ValidDuration` has passed, it can be removed with `MsgDeleteTask` by its `Creator`. It is not removed automatically.
 
 ```go
 type MsgCreateTask struct {
@@ -150,18 +150,13 @@ type MsgInquiryTask struct {
 
 ## Parameters
 
-
-
-```go
-type TaskParams struct {
-	ExpirationDuration time.Duration `json:"task_expiration_duration"`
-	AggregationWindow  int64         `json:"task_aggregation_window"`
-	AggregationResult  sdk.Int       `json:"task_aggregation_result"`
-	ThresholdScore     sdk.Int       `json:"task_threshold_score"`
-	Epsilon1           sdk.Int       `json:"task_epsilon1"`
-	Epsilon2           sdk.Int       `json:"task_epsilon2"`
-}
-```
+The following are `TaskParams`:
+- ExpirationDuration - the default task duration, used for tasks with unspecified durations.
+- AggregationWindow -
+- AggregationResult -
+- ThresholdScore -
+- Epsilon1 -
+- Epsilon2 -
 
 ```go
 type LockedPoolParams struct {

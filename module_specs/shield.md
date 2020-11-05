@@ -1,14 +1,16 @@
 # Shield
 
+CertiKShield is a decentralized pool of CTK that uses CertiK Chain on-chain governance system to reimburse lost, stolen, or inaccessible assets from any blockchain network. There are two members of the CertiKShield system: Collateral Providers and Shield Purchasers. Providers contribute cryptocurrency as collateral to fill the CertiKShield Pool. In return, they receive a portion of the fees paid by Purchasers, in addition to the usual staking rewards. Purchasers pay a recurring fee, based on their riskiness as determined by their CertiK Security Oracle score, that entitles them to submit a Claim Proposal to be reimbursed from the pool for stolen assets.
+
+See the [whitepaper](https://www.certik.foundation/whitepaper#3-CertiKShield) for more information on CertiKShield.
+
 ## State
+```go
 type MixedCoins struct {
 	Native  sdk.Coins
 	Foreign sdk.Coins
 }
-type MixedDecCoins struct {
-	Native  sdk.DecCoins `json:"native" yaml:"native"`
-	Foreign sdk.DecCoins `json:"foreign" yaml:"foreign"`
-}
+```
 
 // Pool contains a shield project pool's data.
 type Pool struct {
@@ -220,4 +222,3 @@ var (
 	// default value for staking-shield rate parameter
 	DefaultStakingShieldRate = sdk.NewDec(2)
 )
-
