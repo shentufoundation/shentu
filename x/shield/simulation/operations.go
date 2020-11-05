@@ -128,8 +128,9 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		totalCollateral := k.GetTotalCollateral(ctx)
 		totalWithdrawing := k.GetTotalWithdrawing(ctx)
 		totalShield := k.GetTotalShield(ctx)
+		totalClaimed := k.GetTotalClaimed(ctx)
 		poolParams := k.GetPoolParams(ctx)
-		maxShield := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt(), totalCollateral.Sub(totalWithdrawing).Sub(totalShield))
+		maxShield := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt(), totalCollateral.Sub(totalWithdrawing).Sub(totalShield))
 		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
@@ -419,10 +420,11 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		totalCollateral := k.GetTotalCollateral(ctx)
 		totalWithdrawing := k.GetTotalWithdrawing(ctx)
 		totalShield := k.GetTotalShield(ctx)
+		totalClaimed := k.GetTotalClaimed(ctx)
 		poolParams := k.GetPoolParams(ctx)
 		maxShield := sdk.MinInt(pool.ShieldLimit.Sub(pool.Shield),
-			sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
-				totalCollateral.Sub(totalWithdrawing).Sub(totalShield),
+			sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
+				totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).Sub(totalShield),
 			),
 		)
 		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)

@@ -95,14 +95,15 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 	totalShield := k.GetTotalShield(ctx)
-	if totalShield.Add(shieldAmt).GT(totalCollateral.Sub(totalWithdrawing)) {
+	totalClaimed := k.GetTotalClaimed(ctx)
+	if totalShield.Add(shieldAmt).GT(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed)) {
 		return types.Purchase{}, types.ErrNotEnoughCollateral
 	}
 
 	// Check pool shield limit.
 	poolParams := k.GetPoolParams(ctx)
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
-	maxShield := sdk.MinInt(pool.ShieldLimit, totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt())
+	maxShield := sdk.MinInt(pool.ShieldLimit, totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt())
 	if shieldAmt.Add(pool.Shield).GT(maxShield) {
 		return types.Purchase{}, types.ErrPoolShieldExceedsLimit
 	}

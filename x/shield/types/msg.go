@@ -572,3 +572,49 @@ func (msg MsgUnstakeFromShield) GetSignBytes() []byte {
 func (msg MsgUnstakeFromShield) ValidateBasic() error {
 	return nil
 }
+
+// MsgUpdateSponsor defines the attributes of a update-sponsor transaction.
+type MsgUpdateSponsor struct {
+	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
+	Sponsor     string         `json:"sponsor" yaml:"sponsor"`
+	SponsorAddr sdk.AccAddress `json:"sponsor_addr" yaml:"sponsor_addr"`
+	FromAddr    sdk.AccAddress `json:"from" yaml:"from"`
+}
+
+// NewMsgUpdateSponsor creates a new NewMsgUpdateSponsor instance.
+func NewMsgUpdateSponsor(poolID uint64, sponsor string, sponsorAddr, fromAddr sdk.AccAddress) MsgUpdateSponsor {
+	return MsgUpdateSponsor{
+		PoolID:      poolID,
+		Sponsor:     sponsor,
+		SponsorAddr: sponsorAddr,
+		FromAddr:    fromAddr,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgUpdateSponsor) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgUpdateSponsor) Type() string { return EventTypeUpdateSponsor }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgUpdateSponsor) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.FromAddr}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgUpdateSponsor) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgUpdateSponsor) ValidateBasic() error {
+	if msg.FromAddr.Empty() {
+		return ErrEmptySender
+	}
+	if strings.TrimSpace(msg.Sponsor) == "" || msg.SponsorAddr.Empty() {
+		return ErrEmptySponsor
+	}
+	return nil
+}
