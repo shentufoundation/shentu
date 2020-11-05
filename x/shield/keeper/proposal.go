@@ -343,7 +343,7 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 
 		// Update the withdraw based on payout after purchased is fully covered.
 		payoutFromThisWithdraw := sdk.MinInt(payoutFromWithdraw, remainingWithdraw)
-		payoutFromWithdraw = payoutFromCollateral.Sub(payoutFromThisWithdraw)
+		payoutFromWithdraw = payoutFromWithdraw.Sub(payoutFromThisWithdraw)
 		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime)
 		for j := range timeSlice {
 			if timeSlice[j].Address.Equals(withdraws[i].Address) && timeSlice[j].Amount.Equal(withdraws[i].Amount) {
