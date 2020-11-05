@@ -1,6 +1,7 @@
 package simulation
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 
@@ -17,6 +18,8 @@ import (
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
 	"github.com/certikfoundation/shentu/x/shield"
 )
+
+const pType = "ShieldClaim"
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak govTypes.AccountKeeper, ck types.CertKeeper,
@@ -162,6 +165,15 @@ func SimulateSubmitProposal(
 
 		opMsg := simulation.NewOperationMsg(msg, true, "")
 
+		proposal, ok := k.GetProposal(ctx, proposalID)
+		if !ok {
+			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+		}
+
+		if proposal.ProposalType() == pType {
+			fmt.Printf("<<<<< DEBUG: Proposed | id: %d, status: %d\n", proposalID, proposal.Status)
+		}
+
 		var fops []simulation.FutureOperation
 
 		// 2) Schedule deposit operations
@@ -219,6 +231,9 @@ func SimulateMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
+			fmt.Printf("<<<<< DEBUG: Val vote | id: %d, status: %d\n", proposalID, proposal.Status)
+		}
+
 		if proposal.Status != types.StatusValidatorVotingPeriod {
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
@@ -266,6 +281,10 @@ func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, ck types.CertKeeper, k 
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
+		if proposal.ProposalType() == pType {
+			fmt.Printf("<<<<< DEBUG: Cert vote | id: %d, status: %d\n", proposalID, proposal.Status)
+		}
+
 		if proposal.Status != types.StatusCertifierVotingPeriod {
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
@@ -311,6 +330,10 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper, proposalID u
 		proposal, ok := k.GetProposal(ctx, proposalID)
 		if !ok {
 			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+		}
+
+		if proposal.ProposalType() == pType {
+			fmt.Printf("<<<<< DEBUG: Deposit | id: %d, status: %d\n", proposalID, proposal.Status)
 		}
 
 		if proposal.Status != types.StatusDepositPeriod {
