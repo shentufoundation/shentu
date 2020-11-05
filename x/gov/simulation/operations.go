@@ -168,7 +168,7 @@ func SimulateSubmitProposal(
 		if content.ProposalType() != shield.ProposalTypeShieldClaim {
 			for i := 0; i < 10; i++ {
 				fops = append(fops, simulation.FutureOperation{
-					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 1, 3),
+					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 1, 5),
 					Op:          SimulateMsgDeposit(ak, k, proposalID),
 				})
 			}
@@ -179,9 +179,9 @@ func SimulateSubmitProposal(
 			content.ProposalType() == cert.ProposalTypeCertifierUpdate ||
 			content.ProposalType() == upgrade.ProposalTypeSoftwareUpgrade {
 			for _, acc := range accs {
-				if ck.IsCertifier(ctx, acc.Address) && simulation.RandIntBetween(r, 0, 100) < 50 {
+				if ck.IsCertifier(ctx, acc.Address) {
 					fops = append(fops, simulation.FutureOperation{
-						BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 3, 5),
+						BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 5, 10),
 						Op:          SimulateCertifierMsgVote(ak, ck, k, acc, proposalID),
 					})
 				}
@@ -197,12 +197,10 @@ func SimulateSubmitProposal(
 		whoVotes = whoVotes[:numVotes]
 
 		for i := 0; i < numVotes; i++ {
-			if simulation.RandIntBetween(r, 0, 100) < 10 {
-				fops = append(fops, simulation.FutureOperation{
-					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 5, 10),
-					Op:          SimulateMsgVote(ak, k, accs[whoVotes[i]], proposalID),
-				})
-			}
+			fops = append(fops, simulation.FutureOperation{
+				BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 10, 15),
+				Op:          SimulateMsgVote(ak, k, accs[whoVotes[i]], proposalID),
+			})
 		}
 
 		return opMsg, fops, nil
@@ -356,16 +354,14 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper, proposalID u
 
 // Pick a random voting option
 func randomVotingOption(r *rand.Rand) govTypes.VoteOption {
-	switch r.Intn(4) {
+	switch r.Intn(12) {
 	case 0:
-		return govTypes.OptionYes
-	case 1:
 		return govTypes.OptionAbstain
-	case 2:
+	case 1:
 		return govTypes.OptionNo
-	case 3:
+	case 2:
 		return govTypes.OptionNoWithVeto
 	default:
-		panic("invalid vote option")
+		return govTypes.OptionYes
 	}
 }
