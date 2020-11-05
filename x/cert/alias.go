@@ -46,4 +46,5 @@ type (
 	Platform                = types.Platform
 	Library                 = types.Library
 	AddOrRemove             = types.AddOrRemove
+	MsgCertifyGeneral       = types.MsgCertifyGeneral
 )

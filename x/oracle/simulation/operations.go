@@ -62,8 +62,8 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 		for i := 0; i < len(certificates); i++ {
 			certificate := certificates[i]
 			if certificate.Type().String() == "OracleOperator" &&
-				certificate.RequestContent().RequestContentType.String() == "Address"{
-				accAddr, err:= sdk.AccAddressFromHex(certificate.RequestContent().RequestContent)
+				certificate.RequestContent().RequestContentType.String() == "Address" {
+				accAddr, err := sdk.AccAddressFromHex(certificate.RequestContent().RequestContent)
 				if err != nil {
 					return simulation.NewOperationMsgBasic(types.ModuleName,
 						"NoOp: cannot get address, skip this tx", "", false, nil), nil, nil
@@ -71,7 +71,7 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 				accAddrs = append(accAddrs, accAddr)
 			}
 		}
-		if len(accAddrs) <= 0{
+		if len(accAddrs) <= 0 {
 			return simulation.NewOperationMsgBasic(types.ModuleName,
 				"NoOp: no certifier oracle operator address, skip this tx", "", false, nil), nil, nil
 		}

@@ -1,9 +1,10 @@
 package types
 
 import (
-	"github.com/certikfoundation/shentu/x/cert"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
+
+	"github.com/certikfoundation/shentu/x/cert"
 )
 
 type CertKeeper interface {
