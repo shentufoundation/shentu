@@ -168,6 +168,10 @@ func (k Keeper) ProcessStakeForShieldExpiration(ctx sdk.Context, poolID, purchas
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetOriginalStakingKey(purchaseID))
 
+	pool := k.GetGlobalShieldStakingPool(ctx)
+	pool = pool.Sub(amount)
+	k.SetGlobalShieldStakingPool(ctx, pool)
+
 	renew := amount.Sub(stakingPurchase.WithdrawRequested)
 	if renew.IsNegative() {
 		renew = sdk.NewInt(0)
@@ -179,16 +183,13 @@ func (k Keeper) ProcessStakeForShieldExpiration(ctx sdk.Context, poolID, purchas
 		return nil
 	}
 
-	pool := k.GetGlobalShieldStakingPool(ctx)
-	pool = pool.Sub(amount)
-	k.SetGlobalShieldStakingPool(ctx, pool)
-
 	sPRate := k.GetShieldStakingRate(ctx)
 	renewShieldInt := amount.ToDec().Quo(sPRate).TruncateInt()
+	renewShield := sdk.NewCoins(sdk.NewCoin(bondDenom, renewShieldInt))
 	if renewShieldInt.IsZero() {
 		return nil
 	}
-	renewShield := sdk.NewCoins(sdk.NewCoin(bondDenom, renewShieldInt))
+
 	desc := fmt.Sprintf(`renewed from PurchaseID %s`, strconv.FormatUint(purchaseID, 10))
 	if _, err := k.purchaseShield(ctx, poolID, renewShield, desc, purchaser,
 		sdk.NewCoins(), sdk.NewCoins(sdk.NewCoin(bondDenom, renew))); err != nil {
