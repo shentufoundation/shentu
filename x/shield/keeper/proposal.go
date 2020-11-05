@@ -215,10 +215,11 @@ func (k Keeper) GetAllReimbursements(ctx sdk.Context) (rmbs []types.Reimbursemen
 }
 
 // CreateReimbursement creates a reimbursement.
-func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID uint64, rmb sdk.Coins, beneficiary sdk.AccAddress) error {
+func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, rmb sdk.Coins, beneficiary sdk.AccAddress) error {
+	bondDenom := k.BondDenom(ctx)
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalPurchased := k.GetTotalShield(ctx)
-	totalPayout := rmb.AmountOf(k.BondDenom(ctx))
+	totalPayout := rmb.AmountOf(bondDenom)
 	purchaseRatio := totalPurchased.ToDec().Quo(totalCollateral.ToDec())
 	payoutRatio := totalPayout.ToDec().Quo(totalCollateral.ToDec())
 	for _, provider := range k.GetAllProviders(ctx) {
@@ -254,12 +255,16 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, poolID u
 		totalPurchased = totalPurchased.Sub(purchased)
 		totalPayout = totalPayout.Sub(payout)
 	}
+	if totalPayout.IsPositive() {
+		panic("not enough payout made")
+	}
 	reimbursement := types.NewReimbursement(rmb, beneficiary, ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).PayoutPeriod))
 	k.SetReimbursement(ctx, proposalID, reimbursement)
 
-
+	totalCollateral = totalCollateral.Sub(rmb.AmountOf(bondDenom))
 	totalClaimed := k.GetTotalClaimed(ctx)
-	totalClaimed = totalClaimed.Sub(totalPayout)
+	totalClaimed = totalClaimed.Sub(rmb.AmountOf(bondDenom))
+	k.SetTotalCollateral(ctx, totalCollateral)
 	k.SetTotalClaimed(ctx, totalClaimed)
 
 	return nil
@@ -347,7 +352,7 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 }
 
 // MakePayoutByProviderDelegations undelegates the provider's delegations and transfers tokens from the staking module account to the shield module account.
-func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sdk.AccAddress, payout, purchased sdk.Int) error {
+func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout sdk.Int) error {
 	provider, found := k.GetProvider(ctx, providerAddr)
 	if !found {
 		return types.ErrProviderNotFound

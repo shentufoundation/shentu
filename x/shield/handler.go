@@ -57,7 +57,7 @@ func NewShieldClaimProposalHandler(k Keeper) govtypes.Handler {
 }
 
 func handleShieldClaimProposal(ctx sdk.Context, k Keeper, p types.ShieldClaimProposal) error {
-	if err := k.CreateReimbursement(ctx, p.ProposalID, p.PoolID, p.Loss, p.Proposer); err != nil {
+	if err := k.CreateReimbursement(ctx, p.ProposalID, p.Loss, p.Proposer); err != nil {
 		return err
 	}
 

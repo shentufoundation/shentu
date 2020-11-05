@@ -95,7 +95,8 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 	totalShield := k.GetTotalShield(ctx)
-	if totalShield.Add(shieldAmt).GT(totalCollateral.Sub(totalWithdrawing)) {
+	totalClaimed := k.GetTotalClaimed(ctx)
+	if totalShield.Add(shieldAmt).GT(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed)) {
 		return types.Purchase{}, types.ErrNotEnoughCollateral
 	}
 
