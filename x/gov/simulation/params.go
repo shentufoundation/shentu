@@ -39,35 +39,35 @@ func ParamChanges(r *rand.Rand) []simulation.ParamChange {
 			},
 		),
 		/*
-		simulation.NewSimParamChange(govTypes.ModuleName, keyTallyParams,
-			func(r *rand.Rand) string {
-				changes := []struct {
-					key   string
-					value sdk.Dec
-				}{
-					{subkeyQuorum, tallyParams.Quorum},
-					{subkeyThreshold, tallyParams.Threshold},
-					{subkeyVeto, tallyParams.Veto},
-				}
-
-				pc := make(map[string]string)
-				numChanges := simulation.RandIntBetween(r, 1, len(changes))
-				for i := 0; i < numChanges; i++ {
-					c := changes[r.Intn(len(changes))]
-
-					_, ok := pc[c.key]
-					for ok {
-						c := changes[r.Intn(len(changes))]
-						_, ok = pc[c.key]
+			simulation.NewSimParamChange(govTypes.ModuleName, keyTallyParams,
+				func(r *rand.Rand) string {
+					changes := []struct {
+						key   string
+						value sdk.Dec
+					}{
+						{subkeyQuorum, tallyParams.Quorum},
+						{subkeyThreshold, tallyParams.Threshold},
+						{subkeyVeto, tallyParams.Veto},
 					}
 
-					pc[c.key] = c.value.String()
-				}
+					pc := make(map[string]string)
+					numChanges := simulation.RandIntBetween(r, 1, len(changes))
+					for i := 0; i < numChanges; i++ {
+						c := changes[r.Intn(len(changes))]
 
-				bz, _ := json.Marshal(pc)
-				return string(bz)
-			},
-		),
-		 */
+						_, ok := pc[c.key]
+						for ok {
+							c := changes[r.Intn(len(changes))]
+							_, ok = pc[c.key]
+						}
+
+						pc[c.key] = c.value.String()
+					}
+
+					bz, _ := json.Marshal(pc)
+					return string(bz)
+				},
+			),
+		*/
 	}
 }

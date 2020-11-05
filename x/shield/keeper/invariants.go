@@ -14,6 +14,7 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "provider", ProviderInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "shield", ShieldInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "global-staking-pool", GlobalStakingPoolInvariant(k))
+	ir.RegisterRoute(types.ModuleName, "original-global-staking", StakingForShieldPurchaseInvariant(k))
 }
 
 // ModuleAccountInvariant checks that the module account coins reflects the sum of
@@ -93,7 +94,7 @@ func ShieldInvariant(keeper Keeper) sdk.Invariant {
 
 		return sdk.FormatInvariant(types.ModuleName, "shield",
 			fmt.Sprintf("\n\ttotal shield amount: %s"+
-				"\n\tsum of individual pools' shield:  %s\n",
+				"\n\tsum of pools' shield amount:  %s\n",
 				totalShield, shieldSum)), broken
 	}
 }
@@ -106,12 +107,31 @@ func GlobalStakingPoolInvariant(keeper Keeper) sdk.Invariant {
 			stakedCoin = stakedCoin.Add(sdk.NewCoin(keeper.BondDenom(ctx), staked.Amount))
 		}
 		stakedInt := stakedCoin.Amount
-		globalStakingPool := keeper.GetGlobalStakeForShieldPool(ctx)
+		globalStakingPool := keeper.GetGlobalShieldStakingPool(ctx)
 		broken := !stakedInt.Equal(globalStakingPool)
 
 		return sdk.FormatInvariant(types.ModuleName, "global-staking-pool",
 			fmt.Sprintf("\n\tsum of staked amount:  %s"+
-				"\n\tglobal staking pool amount: %s",
+				"\n\tglobal staking pool amount: %s\n",
 				stakedInt, globalStakingPool.String())), broken
+	}
+}
+
+// SFSPurchaseInvariant checks that sum of original staked shield equals to the total.
+func StakingForShieldPurchaseInvariant(keeper Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		globalStakingPool := keeper.GetGlobalShieldStakingPool(ctx)
+
+		sum := sdk.ZeroInt()
+		for _, os := range keeper.GetAllOriginalStakings(ctx) {
+			sum = sum.Add(os.Amount)
+		}
+
+		broken := !globalStakingPool.Equal(sum)
+
+		return sdk.FormatInvariant(types.ModuleName, "global-staking-pool",
+			fmt.Sprintf("\n\tsum of originally staked amount:  %s"+
+				"\n\tglobal staking pool amount: %s\n",
+				sum, globalStakingPool.String())), broken
 	}
 }
