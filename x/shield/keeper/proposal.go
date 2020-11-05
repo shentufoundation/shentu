@@ -444,7 +444,7 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payou
 		if i == len(delegations)-1 {
 			ubdAmount = remaining
 		} else {
-			ubdAmount = payoutRatio.MulInt(delAmount).TruncateInt()
+			ubdAmount = sdk.MinInt(payoutRatio.MulInt(delAmount).TruncateInt(), remaining)
 			if ubdAmount.LT(remaining) && ubdAmount.LT(delAmount) {
 				ubdAmount = ubdAmount.Add(sdk.OneInt())
 			}
@@ -495,7 +495,7 @@ func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd staking.UnbondingDelegati
 		}
 	}
 
-	// Transfer tokens from the staking module to the shield module.
+	// Transfer tokens from staking module's not bonded pool.
 	payoutCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), payout))
 	if err := k.UndelegateFromAccountToShieldModule(ctx, staking.NotBondedPoolName, ubd.DelegatorAddress, payoutCoins); err != nil {
 		panic(err)
@@ -514,11 +514,6 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	validator, found := k.sk.GetValidator(ctx, valAddr)
 	if !found {
 		panic("validator is not found")
-	}
-	ubdCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), validator.TokensFromShares(shares).TruncateInt()))
-
-	if err := k.UndelegateFromAccountToShieldModule(ctx, staking.BondedPoolName, delAddr, ubdCoins); err != nil {
-		panic(err)
 	}
 
 	// Update delegation records.
@@ -542,10 +537,19 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 		k.sk.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 	}
 
-	k.sk.RemoveValidatorTokensAndShares(ctx, validator, shares)
-
+	validator, amount := k.sk.RemoveValidatorTokensAndShares(ctx, validator, shares)
 	if validator.DelegatorShares.IsZero() && validator.IsUnbonded() {
 		k.sk.RemoveValidator(ctx, validator.OperatorAddress)
+	}
+
+	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), amount))
+	srcPool := staking.NotBondedPoolName
+	if validator.IsBonded() {
+		srcPool = staking.BondedPoolName
+	}
+	err := k.UndelegateFromAccountToShieldModule(ctx, srcPool, delAddr, coins)
+	if err != nil {
+		panic(err)
 	}
 }
 
