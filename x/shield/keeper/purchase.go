@@ -186,6 +186,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 
 	store := ctx.KVStore(k.storeKey)
 	totalServiceFees := k.GetServiceFees(ctx)
+	totalShield := k.GetTotalShield(ctx)
 	serviceFees := types.InitMixedDecCoins()
 	bondDenom := k.BondDenom(ctx)
 	var stakeForShieldUpdateList []pPPTriplet
@@ -225,9 +226,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 					if !found {
 						panic("cannot find the pool for an expired purchase")
 					}
-					totalShield := k.GetTotalShield(ctx)
 					totalShield = totalShield.Sub(entry.Shield)
-					k.SetTotalShield(ctx, totalShield)
 					pool.Shield = pool.Shield.Sub(entry.Shield)
 					k.SetPool(ctx, pool)
 					// Minus one because the current entry is deleted.
@@ -255,6 +254,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 		// TODO: For phase I only. Need to modify the logic here after claims are enabled.
 		store.Delete(iterator.Key())
 	}
+	k.SetTotalShield(ctx, totalShield)
 	k.SetServiceFees(ctx, totalServiceFees)
 	for _, ppp := range stakeForShieldUpdateList {
 		k.ProcessStakeForShieldExpiration(ctx, ppp.poolID, ppp.purchaseID, bondDenom,
