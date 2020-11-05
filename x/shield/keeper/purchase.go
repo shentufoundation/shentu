@@ -215,6 +215,16 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 					totalServiceFees = totalServiceFees.Sub(entry.ServiceFees)
 					// Set purchaseServiceFees to zero because it can be reached again.
 					purchaseList.Entries[i].ServiceFees = types.InitMixedDecCoins()
+
+					originalStaking := k.GetOriginalStaking(ctx, entry.PurchaseID)
+					if !originalStaking.IsZero() && ctx.BlockHeight() > common.Update1Height {
+						// keep track of the list to be updated to avoid overwriting the purchase list
+						stakeForShieldUpdateList = append(stakeForShieldUpdateList, pPPTriplet{
+							poolID:     poolPurchaser.PoolID,
+							purchaseID: entry.PurchaseID,
+							purchaser:  poolPurchaser.Purchaser,
+						})
+					}
 				}
 
 				// If purchaseDeletionTime < currentBlockTime, remove the purchase.
@@ -231,16 +241,6 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 					k.SetPool(ctx, pool)
 					// Minus one because the current entry is deleted.
 					i--
-
-					originalStaking := k.GetOriginalStaking(ctx, entry.PurchaseID)
-					if !originalStaking.IsZero() && ctx.BlockHeight() > common.Update1Height {
-						// keep track of the list to be updated to avoid overwriting the purchase list
-						stakeForShieldUpdateList = append(stakeForShieldUpdateList, pPPTriplet{
-							poolID:     poolPurchaser.PoolID,
-							purchaseID: entry.PurchaseID,
-							purchaser:  poolPurchaser.Purchaser,
-						})
-					}
 				}
 			}
 
