@@ -185,7 +185,6 @@ func SimulateSubmitProposal(
 						Op:          SimulateCertifierMsgVote(ak, ck, k, acc, proposalID),
 					})
 				}
-
 			}
 		}
 
@@ -202,7 +201,6 @@ func SimulateSubmitProposal(
 				BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 10, 15),
 				Op:          SimulateMsgVote(ak, k, accs[whoVotes[i]], proposalID),
 			})
-
 		}
 
 		return opMsg, fops, nil
