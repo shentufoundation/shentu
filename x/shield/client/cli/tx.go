@@ -527,7 +527,6 @@ func GetCmdStakeForShield(cdc *codec.Codec) *cobra.Command {
 
 Example:
 $ %s tx shield stake-for-shield <pool id> <shield amount> <description>
->>>>>>> master
 `,
 				version.ClientName,
 			),
