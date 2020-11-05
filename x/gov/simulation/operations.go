@@ -179,10 +179,12 @@ func SimulateSubmitProposal(
 			content.ProposalType() == cert.ProposalTypeCertifierUpdate ||
 			content.ProposalType() == upgrade.ProposalTypeSoftwareUpgrade {
 			for _, acc := range accs {
-				fops = append(fops, simulation.FutureOperation{
-					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 5, 10),
-					Op:          SimulateCertifierMsgVote(ak, ck, k, acc, proposalID),
-				})
+				if ck.IsCertifier(ctx, acc.Address) {
+					fops = append(fops, simulation.FutureOperation{
+						BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 5, 10),
+						Op:          SimulateCertifierMsgVote(ak, ck, k, acc, proposalID),
+					})
+				}
 
 			}
 		}
