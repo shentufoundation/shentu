@@ -1,0 +1,5 @@
+Running quick simulation. This may take several minutes...
+# github.com/keybase/go-keychain
+cgo-gcc-prolog:203:11: warning: 'SecTrustedApplicationCreateFromPath' is deprecated: first deprecated in macOS 10.15 - No longer supported [-Wdeprecated-declarations]
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Security.framework/Headers/SecTrustedApplication.h:59:10: note: 'SecTrustedApplicationCreateFromPath' has been explicitly marked deprecated here
+make: *** [test-sim-fast] Interrupt: 2
