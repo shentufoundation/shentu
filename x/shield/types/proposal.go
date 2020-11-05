@@ -126,3 +126,17 @@ func NewReimbursement(amount sdk.Coins, beneficiary sdk.AccAddress, payoutTime t
 		PayoutTime:  payoutTime,
 	}
 }
+
+// ProposalIDReimbursementPair stores information of a reimbursement and corresponding proposal ID.
+type ProposalIDReimbursementPair struct {
+	ProposalID    uint64
+	Reimbursement Reimbursement
+}
+
+// NewProposalIDReimbursementPair returns a new ProposalIDReimbursementPair instance.
+func NewProposalIDReimbursementPair(proposalID uint64, reimbursement Reimbursement) ProposalIDReimbursementPair {
+	return ProposalIDReimbursementPair{
+		ProposalID:    proposalID,
+		Reimbursement: reimbursement,
+	}
+}

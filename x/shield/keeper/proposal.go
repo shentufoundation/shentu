@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"fmt"
 	"sort"
 	"time"
@@ -212,6 +213,23 @@ func (k Keeper) GetAllReimbursements(ctx sdk.Context) (rmbs []types.Reimbursemen
 		return false
 	})
 	return
+}
+
+// GetAllProposalIDReimbursementPairs retrieves all proposal ID and reimbursement pairs.
+func (k Keeper) GetAllProposalIDReimbursementPairs(ctx sdk.Context) []types.ProposalIDReimbursementPair {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ReimbursementKey)
+
+	var pRPairs []types.ProposalIDReimbursementPair
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		proposalID := binary.LittleEndian.Uint64(iterator.Key()[len(types.ReimbursementKey):])
+		var reimbursement types.Reimbursement
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &reimbursement)
+
+		pRPairs = append(pRPairs, types.NewProposalIDReimbursementPair(proposalID, reimbursement))
+	}
+	return pRPairs
 }
 
 // CreateReimbursement creates a reimbursement.
