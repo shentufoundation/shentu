@@ -1,12 +1,10 @@
 package simulation
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/rand"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 )
@@ -25,7 +23,7 @@ const (
 func ParamChanges(r *rand.Rand) []simulation.ParamChange {
 	votingPeriod := time.Duration(simulation.RandIntBetween(r, 1, 2*60*60*24*2)) * time.Second
 	depositPeriod := time.Duration(simulation.RandIntBetween(r, 1, 2*60*60*24*2)) * time.Second
-	tallyParams := GenerateATallyParams(r)
+	// tallyParams := GenerateATallyParams(r)
 
 	return []simulation.ParamChange{
 		simulation.NewSimParamChange(govTypes.ModuleName, keyVotingParams,
@@ -38,6 +36,7 @@ func ParamChanges(r *rand.Rand) []simulation.ParamChange {
 				return fmt.Sprintf(`{"max_deposit_period": "%d"}`, depositPeriod)
 			},
 		),
+		/*
 		simulation.NewSimParamChange(govTypes.ModuleName, keyTallyParams,
 			func(r *rand.Rand) string {
 				changes := []struct {
@@ -67,5 +66,6 @@ func ParamChanges(r *rand.Rand) []simulation.ParamChange {
 				return string(bz)
 			},
 		),
+		*/
 	}
 }
