@@ -52,6 +52,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetCmdClearPayouts(cdc),
 		GetCmdPurchaseShield(cdc),
 		GetCmdWithdrawReimbursement(cdc),
+		GetCmdUpdateSponsor(cdc),
 		GetCmdStakeForShield(cdc),
 		GetCmdUnstakeFromShield(cdc),
 	)...)
@@ -597,6 +598,46 @@ $ %s tx shield withdraw-staking <pool id> <shield amount>
 				return err
 			}
 
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	return cmd
+}
+
+// GetCmdUpdateSponsor implements the command for updating a pool's sponsor.
+func GetCmdUpdateSponsor(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-sponsor [pool id] [new_sponsor] [new_sponsor_address]",
+		Args:  cobra.ExactArgs(3),
+		Short: "update the sponsor of an existing pool",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Update a pool's sponsor. Can only be executed from the Shield admin address.
+Example:
+$ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address> --from=<key_or_address>
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			fromAddr := cliCtx.GetFromAddress()
+
+			poolID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+			sponsorAddr, err := sdk.AccAddressFromBech32(args[2])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdateSponsor(poolID, args[1], sponsorAddr, fromAddr)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
