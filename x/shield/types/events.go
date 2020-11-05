@@ -15,10 +15,12 @@ const (
 	EventTypeClearPayouts           = "clear_payouts"
 	EventTypeCreateReimbursement    = "create_reimbursement"
 	EventTypeWithdrawReimbursement  = "withdraw_reimbursement"
+	EventTypeUpdateSponsor          = "update_sponsor"
 
 	AttributeKeyShield              = "shield"
 	AttributeKeyDeposit             = "deposit"
 	AttributeKeySponsor             = "sponsor"
+	AttributeKeySponsorAddress      = "sponsor_address"
 	AttributeKeyPoolID              = "pool_id"
 	AttributeKeyAdditionalTime      = "additional_time"
 	AttributeKeyTimeOfCoverage      = "time_of_coverage"
