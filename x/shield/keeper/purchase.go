@@ -177,7 +177,6 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 
 	store := ctx.KVStore(k.storeKey)
 	totalServiceFees := k.GetServiceFees(ctx)
-	totalShield := k.GetTotalShield(ctx)
 	serviceFees := types.InitMixedDecCoins()
 	bondDenom := k.BondDenom(ctx)
 
@@ -197,10 +196,6 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 				// If purchaseProtectionEndTime > previousBlockTime, update service fees.
 				// Otherwise services fees were updated in the last block.
 				if entry.ProtectionEndTime.After(lastUpdateTime) && entry.ServiceFees.Native.IsAllPositive() {
-					if entry.ServiceFees.Native.IsZero() && ctx.BlockHeight() > common.Update1Height {
-						k.ProcessStakeForShieldExpiration(ctx, poolPurchaser.PoolID, entry.PurchaseID, bondDenom,
-							poolPurchaser.Purchaser)
-					}
 					// Add purchaseServiceFees * (purchaseProtectionEndTime - previousBlockTime) / protectionPeriod.
 					serviceFees = serviceFees.Add(entry.ServiceFees.MulDec(
 						sdk.NewDec(entry.ProtectionEndTime.Sub(lastUpdateTime).Nanoseconds()).Quo(
@@ -220,11 +215,20 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 					if !found {
 						panic("cannot find the pool for an expired purchase")
 					}
+					totalShield := k.GetTotalShield(ctx)
 					totalShield = totalShield.Sub(entry.Shield)
+					k.SetTotalShield(ctx, totalShield)
 					pool.Shield = pool.Shield.Sub(entry.Shield)
 					k.SetPool(ctx, pool)
 					// Minus one because the current entry is deleted.
 					i--
+
+					if entry.ServiceFees.Native.Empty() {
+						if entry.ServiceFees.Native.Empty() && ctx.BlockHeight() > common.Update1Height {
+							k.ProcessStakeForShieldExpiration(ctx, poolPurchaser.PoolID, entry.PurchaseID, bondDenom,
+								poolPurchaser.Purchaser)
+						}
+					}
 				}
 			}
 			if len(purchaseList.Entries) == 0 {
@@ -237,7 +241,6 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 		store.Delete(iterator.Key())
 	}
 	k.SetServiceFees(ctx, totalServiceFees)
-	k.SetTotalShield(ctx, totalShield)
 
 	// Add service fees for this block from unexpired purchases.
 	// totalServiceFees * (currentBlockTime - previousBlockTime) / protectionPeriodTime

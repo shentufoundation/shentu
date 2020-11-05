@@ -258,7 +258,7 @@ func queryGlobalState(ctx sdk.Context, path []string, k Keeper) (res []byte, err
 		k.GetTotalWithdrawing(ctx),
 		k.GetServiceFees(ctx),
 		k.GetRemainingServiceFees(ctx),
-		k.GetGlobalStakeForShieldPool(ctx),
+		k.GetGlobalShieldStakingPool(ctx),
 	)
 
 	res, err = codec.MarshalJSONIndent(k.cdc, shieldState)
