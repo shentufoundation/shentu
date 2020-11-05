@@ -8,13 +8,19 @@ See the [whitepaper](https://www.certik.foundation/whitepaper#2-CertiK-Security-
 
 ## State
 
+`Withdraw` stores a withdraw of `Amount`scheduled for a given `DueBlock`. A withdraw is scheduled when `ReduceCollateral` or `RemoveOperator` is called.
+
+```go
 type Withdraw struct {
 	Address  sdk.AccAddress `json:"address"`
 	Amount   sdk.Coins      `json:"amount"`
 	DueBlock int64          `json:"due_block"`
 }
+```
 
+`Operator` is a chain operator, which can be added by `CreateOperator`.
 
+```go
 type Operator struct {
 	Address            sdk.AccAddress `json:"address"`
 	Proposer           sdk.AccAddress `json:"proposer"`
@@ -22,7 +28,11 @@ type Operator struct {
 	AccumulatedRewards sdk.Coins      `json:"accumulated_rewards"`
 	Name               string         `json:"name"`
 }
+```
 
+`Task` stores a requrest to generate a score for a given smart contract.
+
+```go
 type Task struct {
 	Contract      string         `json:"contract"`
 	Function      string         `json:"function"`
@@ -42,39 +52,66 @@ type TaskID struct {
 	Contract string `json:"contract"`
 	Function string `json:"function"`
 }
+```
 
+`Response` contains the score from an operator, which will be combined with other responses to yield the aggregate score for a smart contract.
+
+```go
 type Response struct {
 	Operator sdk.AccAddress `json:"operator"`
 	Score    sdk.Int        `json:"score"`
 	Weight   sdk.Int        `json:"weight"`
 	Reward   sdk.Coins      `json:"reward"`
 }
-
+```
 
 ## Messages
 
-`MsgCreateOperator` adds `Address` as a new operator, with 
+### Operators
+
+`MsgCreateOperator` adds `Address` as a new `Operator` and adds their `Collateral` to the collateral pool. Likewise, `MsgRemoveOperator` removes an operator.
+
+```go
 type MsgCreateOperator struct {
 	Address    sdk.AccAddress
 	Collateral sdk.Coins
 	Proposer   sdk.AccAddress
 	Name       string
 }
+
 type MsgRemoveOperator struct {
 	Address  sdk.AccAddress
 	Proposer sdk.AccAddress
 }
+```
+
+`MsgAddCollateral` and `MsgReduceCollateral` increase or decreace collateral for a given operator at `Address`.
+
+```go
 type MsgAddCollateral struct {
 	Address             sdk.AccAddress
 	CollateralIncrement sdk.Coins
 }
+
 type MsgReduceCollateral struct {
 	Address             sdk.AccAddress
 	CollateralDecrement sdk.Coins
 }
+```
+
+MsgWithdrawReward transfers the accumulated rewards to the operator at `Address`.
+
+```go
 type MsgWithdrawReward struct {
 	Address sdk.AccAddress
 }
+```
+
+### Tasks
+
+MsgCreateTask creates a new `Task`. After the `ValidDuration` has passed, it can be removed with `MsgDeleteTask` by its `Creator`. It is not removed automatically.
+
+```go
 type MsgCreateTask struct {
 	Contract      string
 	Function      string
@@ -84,18 +121,6 @@ type MsgCreateTask struct {
 	Wait          int64
 	ValidDuration time.Duration
 }
-type MsgTaskResponse struct {
-	Contract string
-	Function string
-	Score    int64
-	Operator sdk.AccAddress
-}
-type MsgInquiryTask struct {
-	Contract string
-	Function string
-	TxHash   string
-	Inquirer sdk.AccAddress
-}
 
 type MsgDeleteTask struct {
 	Contract string
@@ -103,9 +128,31 @@ type MsgDeleteTask struct {
 	Force    bool
 	Deleter  sdk.AccAddress
 }
+```
+
+While a `Task` is active, operators can submit scores for the task's contract. The task's `Result` can be queried with `MsgInquiryTask`.
+
+```go
+type MsgTaskResponse struct {
+	Contract string
+	Function string
+	Score    int64
+	Operator sdk.AccAddress
+}
+
+type MsgInquiryTask struct {
+	Contract string
+	Function string
+	TxHash   string
+	Inquirer sdk.AccAddress
+}
+```
 
 ## Parameters
 
+
+
+```go
 type TaskParams struct {
 	ExpirationDuration time.Duration `json:"task_expiration_duration"`
 	AggregationWindow  int64         `json:"task_aggregation_window"`
@@ -114,8 +161,11 @@ type TaskParams struct {
 	Epsilon1           sdk.Int       `json:"task_epsilon1"`
 	Epsilon2           sdk.Int       `json:"task_epsilon2"`
 }
+```
+
+```go
 type LockedPoolParams struct {
 	LockedInBlocks    int64 `json:"locked_in_blocks"`
 	MinimumCollateral int64 `json:"minimum_collateral"`
 }
-
+```
