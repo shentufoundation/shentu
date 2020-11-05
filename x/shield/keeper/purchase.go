@@ -4,11 +4,9 @@ import (
 	"encoding/binary"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // SetPurchaseList sets a purchase list.
@@ -88,6 +86,12 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	if !pool.Active {
 		return types.Purchase{}, types.ErrPoolInactive
 	}
+	if shield.Empty() {
+		return types.Purchase{}, types.ErrNoShield
+	}
+	if serviceFees.Empty() && stakingCoins.Empty() {
+		return types.Purchase{}, types.ErrNoShield
+	}
 
 	// Check available collaterals.
 	bondDenom := k.sk.BondDenom(ctx)
@@ -121,12 +125,10 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 		totalRemainingServiceFees := k.GetRemainingServiceFees(ctx)
 		totalRemainingServiceFees = totalRemainingServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
 		k.SetRemainingServiceFees(ctx, totalRemainingServiceFees)
-	} else if !stakingCoins.Empty() {
+	} else {
 		if err := k.AddStaking(ctx, poolID, purchaser, purchaseID, stakingCoins.AmountOf(bondDenom)); err != nil {
 			return types.Purchase{}, err
 		}
-	} else {
-		return types.Purchase{}, sdkerrors.ErrInvalidCoins
 	}
 
 	// Update global pool and project pool's shield.

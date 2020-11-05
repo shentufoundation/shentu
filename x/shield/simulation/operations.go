@@ -4,17 +4,15 @@ import (
 	"math/rand"
 	"strings"
 
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-
-	"github.com/certikfoundation/shentu/common"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/keeper"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
