@@ -4,15 +4,15 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/certikfoundation/shentu/common"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/keeper"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -549,23 +549,30 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		if ctx.BlockHeight() < common.Update1Height {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		purchaser, _ := simulation.RandomAcc(r, accs)
-		account := ak.GetAccount(ctx, purchaser.Address)
 		bondDenom := sk.BondDenom(ctx)
-
-		poolID, _, found := keeper.RandomPoolInfo(r, k, ctx)
-		if !found {
+		stakeForShields := k.GetAllStakeForShields(ctx)
+		if len(stakeForShields) == 0 {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
-		stake, found := k.GetStakeForShield(ctx, poolID, purchaser.Address)
-		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
-		}
+		index := simulation.RandIntBetween(r, 0, len(stakeForShields))
+		sfs := stakeForShields[index]
 
-		withdrawable := stake.Amount.Sub(stake.WithdrawRequested)
+		withdrawable := sfs.Amount.Sub(sfs.WithdrawRequested)
 		withdrawableCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, withdrawable))
 		shield := simulation.RandSubsetCoins(r, withdrawableCoins)
-		msg := types.NewMsgUnstakeFromShield(poolID, shield, purchaser.Address)
+		msg := types.NewMsgUnstakeFromShield(sfs.PoolID, shield, sfs.Purchaser)
+
+		var account authexported.Account
+		var simAcc simulation.Account
+		for _, acc := range accs {
+			if acc.Address.Equals(sfs.Purchaser) {
+				account = ak.GetAccount(ctx, acc.Address)
+				simAcc = acc
+			}
+		}
+		if account == nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 
 		fees := sdk.Coins{}
 		tx := helpers.GenTx(
@@ -575,7 +582,7 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, sk ty
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},
-			purchaser.PrivKey,
+			simAcc.PrivKey,
 		)
 
 		if _, _, err := app.Deliver(tx); err != nil {

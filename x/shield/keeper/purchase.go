@@ -5,11 +5,16 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
+
+type pPPTriplet struct {
+	poolID     uint64
+	purchaseID uint64
+	purchaser  sdk.AccAddress
+}
 
 // SetPurchaseList sets a purchase list.
 func (k Keeper) SetPurchaseList(ctx sdk.Context, purchaseList types.PurchaseList) {
@@ -88,6 +93,12 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	if !pool.Active {
 		return types.Purchase{}, types.ErrPoolInactive
 	}
+	if shield.Empty() {
+		return types.Purchase{}, types.ErrNoShield
+	}
+	if serviceFees.Empty() && stakingCoins.Empty() {
+		return types.Purchase{}, types.ErrNoShield
+	}
 
 	// Check available collaterals.
 	bondDenom := k.sk.BondDenom(ctx)
@@ -121,12 +132,10 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 		totalRemainingServiceFees := k.GetRemainingServiceFees(ctx)
 		totalRemainingServiceFees = totalRemainingServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
 		k.SetRemainingServiceFees(ctx, totalRemainingServiceFees)
-	} else if !stakingCoins.Empty() {
+	} else {
 		if err := k.AddStaking(ctx, poolID, purchaser, purchaseID, stakingCoins.AmountOf(bondDenom)); err != nil {
 			return types.Purchase{}, err
 		}
-	} else {
-		return types.Purchase{}, sdkerrors.ErrInvalidCoins
 	}
 
 	// Update global pool and project pool's shield.
@@ -180,6 +189,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 	totalShield := k.GetTotalShield(ctx)
 	serviceFees := types.InitMixedDecCoins()
 	bondDenom := k.BondDenom(ctx)
+	var stakeForShieldUpdateList []pPPTriplet
 
 	// Check all purchases whose protection end time is before current block time.
 	// 1) Update service fees for purchases whose protection end time is before current block time.
@@ -197,10 +207,6 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 				// If purchaseProtectionEndTime > previousBlockTime, update service fees.
 				// Otherwise services fees were updated in the last block.
 				if entry.ProtectionEndTime.After(lastUpdateTime) && entry.ServiceFees.Native.IsAllPositive() {
-					if entry.ServiceFees.Native.IsZero() && ctx.BlockHeight() > common.Update1Height {
-						k.ProcessStakeForShieldExpiration(ctx, poolPurchaser.PoolID, entry.PurchaseID, bondDenom,
-							poolPurchaser.Purchaser)
-					}
 					// Add purchaseServiceFees * (purchaseProtectionEndTime - previousBlockTime) / protectionPeriod.
 					serviceFees = serviceFees.Add(entry.ServiceFees.MulDec(
 						sdk.NewDec(entry.ProtectionEndTime.Sub(lastUpdateTime).Nanoseconds()).Quo(
@@ -209,6 +215,16 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 					totalServiceFees = totalServiceFees.Sub(entry.ServiceFees)
 					// Set purchaseServiceFees to zero because it can be reached again.
 					purchaseList.Entries[i].ServiceFees = types.InitMixedDecCoins()
+
+					originalStaking := k.GetOriginalStaking(ctx, entry.PurchaseID)
+					if !originalStaking.IsZero() && ctx.BlockHeight() > common.Update1Height {
+						// keep track of the list to be updated to avoid overwriting the purchase list
+						stakeForShieldUpdateList = append(stakeForShieldUpdateList, pPPTriplet{
+							poolID:     poolPurchaser.PoolID,
+							purchaseID: entry.PurchaseID,
+							purchaser:  poolPurchaser.Purchaser,
+						})
+					}
 				}
 
 				// If purchaseDeletionTime < currentBlockTime, remove the purchase.
@@ -227,6 +243,8 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 					i--
 				}
 			}
+
+			// purchaseList might have been updated in the loop.
 			if len(purchaseList.Entries) == 0 {
 				_ = k.DeletePurchaseList(ctx, purchaseList.PoolID, purchaseList.Purchaser)
 			} else {
@@ -236,8 +254,12 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 		// TODO: For phase I only. Need to modify the logic here after claims are enabled.
 		store.Delete(iterator.Key())
 	}
-	k.SetServiceFees(ctx, totalServiceFees)
 	k.SetTotalShield(ctx, totalShield)
+	k.SetServiceFees(ctx, totalServiceFees)
+	for _, ppp := range stakeForShieldUpdateList {
+		k.ProcessStakeForShieldExpiration(ctx, ppp.poolID, ppp.purchaseID, bondDenom,
+			ppp.purchaser)
+	}
 
 	// Add service fees for this block from unexpired purchases.
 	// totalServiceFees * (currentBlockTime - previousBlockTime) / protectionPeriodTime
