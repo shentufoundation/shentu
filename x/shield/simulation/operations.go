@@ -4,6 +4,8 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/certikfoundation/shentu/common"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
@@ -28,6 +30,8 @@ const (
 	// P's operations
 	OpWeightMsgPurchaseShield   = "op_weight_msg_purchase_shield"
 	OpWeightShieldClaimProposal = "op_weight_msg_submit_claim_proposal"
+	OpWeightStakeForShield      = "op_weight_msg_stake_for_shield"
+	OpWeightUnstakeFromShield   = "op_weight_msg_unstake_from_shield"
 )
 
 var (
@@ -37,6 +41,8 @@ var (
 	DefaultWeightMsgWithdrawCollateral = 20
 	DefaultWeightMsgWithdrawRewards    = 10
 	DefaultWeightMsgPurchaseShield     = 20
+	DefaultWeightMsgStakeForShield     = 20
+	DefaultWeightMsgUnstakeFromShield  = 15
 	DefaultWeightShieldClaimProposal   = 0
 
 	DefaultIntMax = 100000000000
@@ -74,6 +80,16 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 		func(_ *rand.Rand) {
 			weightMsgPurchaseShield = DefaultWeightMsgPurchaseShield
 		})
+	var weightMsgStakeForShield int
+	appParams.GetOrGenerate(cdc, OpWeightStakeForShield, &weightMsgStakeForShield, nil,
+		func(_ *rand.Rand) {
+			weightMsgStakeForShield = DefaultWeightMsgStakeForShield
+		})
+	var weightMsgUnstakeFromShield int
+	appParams.GetOrGenerate(cdc, OpWeightUnstakeFromShield, &weightMsgUnstakeFromShield, nil,
+		func(_ *rand.Rand) {
+			weightMsgUnstakeFromShield = DefaultWeightMsgUnstakeFromShield
+		})
 
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(weightMsgCreatePool, SimulateMsgCreatePool(k, ak, sk)),
@@ -82,6 +98,8 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 		simulation.NewWeightedOperation(weightMsgWithdrawCollateral, SimulateMsgWithdrawCollateral(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgWithdrawRewards, SimulateMsgWithdrawRewards(k, ak)),
 		simulation.NewWeightedOperation(weightMsgPurchaseShield, SimulateMsgPurchaseShield(k, ak, sk)),
+		simulation.NewWeightedOperation(weightMsgStakeForShield, SimulateMsgStakeForShield(k, ak, sk)),
+		simulation.NewWeightedOperation(weightMsgUnstakeFromShield, SimulateMsgUnstakeFromShield(k, ak, sk)),
 	}
 }
 
@@ -414,6 +432,9 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		if shieldAmount.ToDec().Mul(poolParams.ShieldFeesRate).GT(account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom).ToDec()) {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
+		if shieldAmount.ToDec().Mul(poolParams.ShieldFeesRate).TruncateInt().IsZero() {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
 		description := simulation.RandStringOfLength(r, 100)
@@ -452,5 +473,114 @@ func ProposalContents(k keeper.Keeper, sk types.StakingKeeper) []simulation.Weig
 func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper) simulation.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simulation.Account) govtypes.Content {
 		return types.ShieldClaimProposal{}
+	}
+}
+
+// SimulateMsgStakeForShield generates a MsgPurchaseShield object with all of its fields randomized.
+func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		if ctx.BlockHeight() < common.Update1Height {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+		purchaser, _ := simulation.RandomAcc(r, accs)
+		account := ak.GetAccount(ctx, purchaser.Address)
+		bondDenom := sk.BondDenom(ctx)
+
+		poolID, _, found := keeper.RandomPoolInfo(r, k, ctx)
+		if !found {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+		pool, found := k.GetPool(ctx, poolID)
+		if !found {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+
+		totalCollateral := k.GetTotalCollateral(ctx)
+		totalWithdrawing := k.GetTotalWithdrawing(ctx)
+		totalShield := k.GetTotalShield(ctx)
+		poolParams := k.GetPoolParams(ctx)
+		maxShield := sdk.MinInt(pool.ShieldLimit.Sub(pool.Shield),
+			sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
+				totalCollateral.Sub(totalWithdrawing).Sub(totalShield),
+			),
+		)
+		accountMax := sdk.OneDec().Quo(k.GetShieldStakingRate(ctx)).MulInt(account.GetCoins().AmountOf(k.BondDenom(ctx))).TruncateInt()
+		max := sdk.MinInt(accountMax, maxShield)
+		shieldAmount, err := simulation.RandPositiveInt(r, max)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+		rate := k.GetShieldStakingRate(ctx)
+		maxShieldAmt := account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom).ToDec().Quo(rate).TruncateInt()
+		if shieldAmount.GT(maxShieldAmt) {
+			shieldAmount = maxShieldAmt
+		}
+		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
+		if shield.Empty() {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+
+		description := simulation.RandStringOfLength(r, 100)
+		msg := types.NewMsgStakeForShield(poolID, shield, description, purchaser.Address)
+
+		fees := sdk.Coins{}
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{account.GetAccountNumber()},
+			[]uint64{account.GetSequence()},
+			purchaser.PrivKey,
+		)
+
+		if _, _, err := app.Deliver(tx); err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+	}
+}
+
+// SimulateMsgUnstakeFromShield generates a MsgUnstakeFromShield object with all of its fields randomized.
+func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		if ctx.BlockHeight() < common.Update1Height {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+		purchaser, _ := simulation.RandomAcc(r, accs)
+		account := ak.GetAccount(ctx, purchaser.Address)
+		bondDenom := sk.BondDenom(ctx)
+
+		poolID, _, found := keeper.RandomPoolInfo(r, k, ctx)
+		if !found {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+		stake, found := k.GetStakeForShield(ctx, poolID, purchaser.Address)
+		if !found {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+
+		withdrawable := stake.Amount.Sub(stake.WithdrawRequested)
+		withdrawableCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, withdrawable))
+		shield := simulation.RandSubsetCoins(r, withdrawableCoins)
+		msg := types.NewMsgUnstakeFromShield(poolID, shield, purchaser.Address)
+
+		fees := sdk.Coins{}
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{account.GetAccountNumber()},
+			[]uint64{account.GetSequence()},
+			purchaser.PrivKey,
+		)
+
+		if _, _, err := app.Deliver(tx); err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }

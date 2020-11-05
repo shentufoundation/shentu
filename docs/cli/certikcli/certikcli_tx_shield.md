@@ -35,6 +35,8 @@ certikcli tx shield [flags]
 * [certikcli tx shield pause-pool](certikcli_tx_shield_pause-pool.md)	 - pause a Shield pool to disallow further Shield purchase.
 * [certikcli tx shield purchase](certikcli_tx_shield_purchase.md)	 - purchase Shield
 * [certikcli tx shield resume-pool](certikcli_tx_shield_resume-pool.md)	 - resume a Shield pool to allow Shield purchase.
+* [certikcli tx shield stake-for-shield](certikcli_tx_shield_stake-for-shield.md)	 - obtain shield through staking CTK
+* [certikcli tx shield unstake-from-shield](certikcli_tx_shield_unstake-from-shield.md)	 - unstake staked-for-shield coins
 * [certikcli tx shield update-pool](certikcli_tx_shield_update-pool.md)	 - update an existing Shield pool by adding more deposit or updating Shield amount.
 * [certikcli tx shield withdraw-collateral](certikcli_tx_shield_withdraw-collateral.md)	 - withdraw deposited collateral from Shield pool
 * [certikcli tx shield withdraw-foreign-rewards](certikcli_tx_shield_withdraw-foreign-rewards.md)	 - withdraw foreign rewards coins to their original chain

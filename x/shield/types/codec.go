@@ -19,6 +19,8 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgPurchaseShield{}, "shield/MsgPurchaseShield", nil)
 	cdc.RegisterConcrete(MsgWithdrawReimbursement{}, "shield/MsgWithdrawReimbursement", nil)
 	cdc.RegisterConcrete(MsgUpdateSponsor{}, "shield/MsgUpdateSponsor", nil)
+	cdc.RegisterConcrete(MsgStakeForShield{}, "shield/MsgStakeForShield", nil)
+	cdc.RegisterConcrete(MsgUnstakeFromShield{}, "shield/MsgUnstakeFromShield", nil)
 }
 
 // ModuleCdc is the generic sealed codec to be used throughout module.

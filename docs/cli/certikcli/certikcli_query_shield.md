@@ -39,6 +39,7 @@ certikcli query shield [flags]
 * [certikcli query shield providers](certikcli_query_shield_providers.md)	 - query all providers
 * [certikcli query shield purchases](certikcli_query_shield_purchases.md)	 - query all purchases
 * [certikcli query shield purchases-by](certikcli_query_shield_purchases-by.md)	 - query purchase information of a given account
+* [certikcli query shield staking](certikcli_query_shield_staking.md)	 - get staked CTK for shield corresponding to a given pool-purchaser pair
 * [certikcli query shield status](certikcli_query_shield_status.md)	 - get shield status
 
 

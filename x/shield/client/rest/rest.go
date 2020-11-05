@@ -55,6 +55,12 @@ type purchaseReq struct {
 	Description string       `json:"description" yaml:"description"`
 }
 
+type withdrawFromShieldReq struct {
+	BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
+	PoolID  uint64       `json:"pool_id" yaml:"pool_id"`
+	Amount  sdk.Coins    `json:"shield" yaml:"shield"`
+}
+
 // ShieldClaimProposalReq defines a shield claim proposal request body.
 type ShieldClaimProposalReq struct {
 	BaseReq     rest.BaseReq `json:"base_req" yaml:"base_req"`
