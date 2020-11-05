@@ -325,17 +325,17 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 		payoutFromThisWithdraw := sdk.MinInt(payoutFromWithdraw, remainingWithdraw)
 		payoutFromWithdraw = payoutFromCollateral.Sub(payoutFromThisWithdraw)
 		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime)
-		for i := range timeSlice {
-			if timeSlice[i].Address.Equals(withdraws[i].Address) && timeSlice[i].Amount.Equal(withdraws[i].Amount) {
+		for j := range timeSlice {
+			if timeSlice[j].Address.Equals(withdraws[i].Address) && timeSlice[j].Amount.Equal(withdraws[i].Amount) {
 				if remainingWithdraw.Equal(payoutFromThisWithdraw) {
 					if len(timeSlice) == 1 {
 						k.RemoveTimeSliceFromWithdrawQueue(ctx, withdraws[i].CompletionTime)
 					} else {
-						timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
+						timeSlice = append(timeSlice[:j], timeSlice[j+1:]...)
 						k.SetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime, timeSlice)
 					}
 				} else {
-					timeSlice[i].Amount = withdraws[i].Amount.Sub(payoutFromThisWithdraw)
+					timeSlice[j].Amount = withdraws[i].Amount.Sub(payoutFromThisWithdraw)
 					k.SetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime, timeSlice)
 				}
 				break
