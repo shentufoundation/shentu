@@ -170,13 +170,13 @@ func (k Keeper) ComputeUnbondingAmountByTime(ctx sdk.Context, provider sdk.AccAd
 	dvPairs := k.getUnbondingsByProviderMaturingByTime(ctx, provider, time)
 
 	sum := sdk.ZeroInt()
-	seen := make([]sdk.ValAddress, 0, len(dvPairs))
+	seen := make(map[string]bool)
 	for _, dvPair := range dvPairs {
 		valAddr := dvPair.validator
-		if find(seen, valAddr) {
+		if seen[valAddr.String()] {
 			continue
 		}
-		seen = append(seen, valAddr)
+		seen[valAddr.String()] = true
 
 		// obtain unbonding entries and iterate through them
 		ubd, found := k.sk.GetUnbondingDelegation(ctx, provider, valAddr)
@@ -192,15 +192,6 @@ func (k Keeper) ComputeUnbondingAmountByTime(ctx sdk.Context, provider sdk.AccAd
 		}
 	}
 	return sum
-}
-
-func find(list []sdk.ValAddress, item sdk.ValAddress) bool {
-	for _, val := range list {
-		if val.Equals(item) {
-			return true
-		}
-	}
-	return false
 }
 
 func (k Keeper) getUnbondingsByProviderMaturingByTime(ctx sdk.Context, provider sdk.AccAddress, time time.Time) (results []unbondingInfo) {
@@ -257,9 +248,8 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, provider sdk.AccAddress, amount 
 		}
 		// Remove from withdraw queue.
 		if timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime); len(timeSlice) > 1 {
-			//for j := 0; j < len(timeSlice); j++ {
 			for j := len(timeSlice) - 1; j >= 0; j-- {
-				if timeSlice[j].Address.Equals(provider) {
+				if timeSlice[j].Address.Equals(provider) && timeSlice[j].Amount.Equal(withdraws[i].Amount) {
 					timeSlice = append(timeSlice[:j], timeSlice[j+1:]...)
 					k.SetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime, timeSlice)
 					break
@@ -297,7 +287,6 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount 
 		}
 		// Remove from unbonding queue.
 		if timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, ubds[i].completionTime); len(timeSlice) > 1 {
-			//for j := 0; j < len(timeSlice); j++ {
 			for j := len(timeSlice) - 1; j >= 0; j-- {
 				if timeSlice[j].DelegatorAddress.Equals(provider) && timeSlice[j].ValidatorAddress.Equals(ubds[i].validator) {
 					timeSlice = append(timeSlice[:j], timeSlice[j+1:]...)

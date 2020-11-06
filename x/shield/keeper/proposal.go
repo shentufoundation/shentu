@@ -102,19 +102,25 @@ func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amo
 		return
 	}
 
+	ws := k.GetWithdrawsByProvider(ctx, provider.Address)
+	if provider.Address.String() == "cosmos1cjxdnwmvl5c9apyjp52j2euqyquce8plyv7g0v" {
+		fmt.Printf("herheere with %d", len(ws))
+	}
 	// Secure the given amount of collaterals until the end of the
 	// lock period by delaying withdrawals, if necessary.
+	// NotWithdrawnSoon = ProviderTotalCollateral - WithdrawnByEndTime
 	endTime := ctx.BlockTime().Add(duration)
 	notWithdrawnSoon := provider.Collateral.Sub(k.ComputeWithdrawAmountByTime(ctx, provider.Address, endTime))
 
 	// Secure the given amount of staking (bonded or unbonding) until
 	// the end of the lock period by delaying unbondings, if necessary.
-	upcomingUnbondingAmount := k.ComputeUnbondingAmountByTime(ctx, provider.Address, endTime)
-	notUnbondedSoon := provider.DelegationBonded.Add(k.ComputeTotalUnbondingAmount(ctx, provider.Address).Sub(upcomingUnbondingAmount))
+	// NotBondedSoon = Bonded + Unbonding - UnbondedByEndTime
+	notUnbondedSoon := provider.DelegationBonded.Add(k.ComputeTotalUnbondingAmount(ctx, provider.Address).Sub(k.ComputeUnbondingAmountByTime(ctx, provider.Address, endTime)))
 
-	// notWithdrawnSoon < notUnbondedSoon
-	if notWithdrawnSoon.GT(notUnbondedSoon) {
-		panic("notWithdrawnSoon should be less than or equal to notUnbondedSoon")
+	// Collaterals that won't be withdrawn until the end time must be 
+	// backed by staking that won't be unbonded until the end time.
+	if !notWithdrawnSoon.LTE(notUnbondedSoon) {
+		panic("notWithdrawnSoon must be less than or equal to notUnbondedSoon")
 	}
 
 	if amount.GT(notWithdrawnSoon) {
