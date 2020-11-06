@@ -149,18 +149,12 @@ type MsgInquiryTask struct {
 ```
 
 ## Parameters
-
-The following are `TaskParams`:
-- ExpirationDuration - the default task duration, used for tasks with unspecified durations.
-- AggregationWindow -
-- AggregationResult -
-- ThresholdScore -
-- Epsilon1 -
-- Epsilon2 -
-
-```go
-type LockedPoolParams struct {
-	LockedInBlocks    int64 `json:"locked_in_blocks"`
-	MinimumCollateral int64 `json:"minimum_collateral"`
-}
-```
+| Parameter          | Info                                                                          | Default  |
+|--------------------|-------------------------------------------------------------------------------|----------|
+| ExpirationDuration | default task duration, for tasks with unspecified durations                   | 24 hours |
+| AggregationWindow  | number of blocks between task creation and calculation of final score         | 20       |
+| AggregationResult  | aggregation result for a task with no responses                               | 50       |
+| ThresholdScore     | threshold above/below which a contract is considered secure/insecure          | 50       |
+| Epsilon1           | distribution curve parameter                                                  | 1        |
+| Epsilon2           | distribution curve parameter                                                  | 100      |
+| LockedInBlocks     | number of blocks operators need to wait before getting their collaterals back | 30       |
