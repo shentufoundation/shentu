@@ -43,6 +43,7 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 
 		for _, rmb := range keeper.GetAllReimbursements(ctx) {
 			totalInt = totalInt.Add(sdk.NewCoin(bondDenom, rmb.Amount.AmountOf(bondDenom)))
+			fmt.Printf(">>> ModuleAccountInvariant: reimbursement %s\n", rmb.Amount.AmountOf(bondDenom))
 		}
 
 		broken := !totalInt.IsEqual(moduleCoins) || !change.Empty()

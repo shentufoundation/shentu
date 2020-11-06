@@ -14,6 +14,9 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
+// FIXME >>> DEBUG
+var debugAmt sdk.Int
+
 // SecureCollaterals is called after a claim is submitted to secure
 // the given amount of collaterals for the duration and adjust shield
 // module states accordingly.
@@ -234,6 +237,8 @@ func (k Keeper) GetAllProposalIDReimbursementPairs(ctx sdk.Context) []types.Prop
 
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, rmb sdk.Coins, beneficiary sdk.AccAddress) error {
+	fmt.Printf("\n\n>>> CreateReimbursement: %s\n", rmb)
+	debugAmt = sdk.ZeroInt()
 	bondDenom := k.BondDenom(ctx)
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalPurchased := k.GetTotalShield(ctx)
@@ -284,6 +289,10 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, rmb sdk.
 	totalClaimed = totalClaimed.Sub(rmb.AmountOf(bondDenom))
 	k.SetTotalCollateral(ctx, totalCollateral)
 	k.SetTotalClaimed(ctx, totalClaimed)
+
+	if !debugAmt.Equal(rmb.AmountOf(k.BondDenom(ctx))) {
+		panic("broken invariant")
+	}
 
 	return nil
 }
@@ -433,6 +442,9 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 
 		payoutFromUnbonding = payoutFromUnbonding.Sub(payoutFromThisUbd)
 	}
+	if payoutFromUnbonding.IsPositive() {
+		panic("not enough payout made from unbondings")
+	}
 
 	return nil
 }
@@ -518,6 +530,7 @@ func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd staking.UnbondingDelegati
 	if err := k.UndelegateFromAccountToShieldModule(ctx, staking.NotBondedPoolName, ubd.DelegatorAddress, payoutCoins); err != nil {
 		panic(err)
 	}
+	debugAmt = debugAmt.Add(payout)
 }
 
 // UndelegateShares undelegates delegations of a delegator to a validator by shares.
@@ -569,6 +582,7 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	if err != nil {
 		panic(err)
 	}
+	debugAmt = debugAmt.Add(amount)
 }
 
 // UndelegateFromAccountToShieldModule performs undelegations from a delegator's staking to the shield module.
@@ -581,8 +595,13 @@ func (k Keeper) UndelegateFromAccountToShieldModule(ctx sdk.Context, senderModul
 	vacc, ok := delAcc.(vestexported.VestingAccount)
 	if ok {
 		vacc.TrackUndelegation(amt)
+		k.ak.SetAccount(ctx, delAcc)
+		// FIXME DEBUG
+		if vacc.SpendableCoins(ctx.BlockTime()).AmountOf(k.BondDenom(ctx)).IsNegative() {
+			fmt.Printf("\n%v\n", vacc)
+			panic(fmt.Sprintf("negative vacc spendable coins %s", vacc.SpendableCoins(ctx.BlockTime())))
+		}
 	}
-	_ = delAcc.SetCoins(delAcc.GetCoins().Add(amt...))
 
 	if err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, senderModule, types.ModuleName, amt); err != nil {
 		panic(err)
