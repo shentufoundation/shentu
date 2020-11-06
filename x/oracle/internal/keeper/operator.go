@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
 
@@ -67,7 +68,8 @@ func (k Keeper) CreateOperator(ctx sdk.Context, address sdk.AccAddress, collater
 	if k.IsBelowMinCollateral(ctx, collateral) {
 		return types.ErrNoEnoughCollateral
 	}
-	if !k.CertKeeper.IsCertified(ctx, "Address", address.String(), "ORACLEOPERATOR") {
+	if ctx.BlockHeight() > common.Update1Height &&
+		!k.CertKeeper.IsCertified(ctx, "Address", address.String(), "ORACLEOPERATOR") {
 		return types.ErrNotCertified
 	}
 	operator := types.NewOperator(address, proposer, collateral, nil, name)
