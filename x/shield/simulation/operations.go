@@ -28,22 +28,24 @@ const (
 	OpWeightMsgWithdrawRewards    = "op_weight_msg_withdraw_rewards"
 
 	// P's operations
-	OpWeightMsgPurchaseShield   = "op_weight_msg_purchase_shield"
-	OpWeightShieldClaimProposal = "op_weight_msg_submit_claim_proposal"
-	OpWeightStakeForShield      = "op_weight_msg_stake_for_shield"
-	OpWeightUnstakeFromShield   = "op_weight_msg_unstake_from_shield"
+	OpWeightMsgPurchaseShield     = "op_weight_msg_purchase_shield"
+	OpWeightShieldClaimProposal   = "op_weight_msg_submit_claim_proposal"
+	OpWeightStakeForShield        = "op_weight_msg_stake_for_shield"
+	OpWeightUnstakeFromShield     = "op_weight_msg_unstake_from_shield"
+	OpWeightWithdrawReimbursement = "op_weight_msg_withdraw_reimbursement"
 )
 
 var (
-	DefaultWeightMsgCreatePool         = 10
-	DefaultWeightMsgUpdatePool         = 20
-	DefaultWeightMsgDepositCollateral  = 20
-	DefaultWeightMsgWithdrawCollateral = 20
-	DefaultWeightMsgWithdrawRewards    = 10
-	DefaultWeightMsgPurchaseShield     = 20
-	DefaultWeightMsgStakeForShield     = 20
-	DefaultWeightMsgUnstakeFromShield  = 15
-	DefaultWeightShieldClaimProposal   = 0
+	DefaultWeightMsgCreatePool            = 10
+	DefaultWeightMsgUpdatePool            = 20
+	DefaultWeightMsgDepositCollateral     = 20
+	DefaultWeightMsgWithdrawCollateral    = 20
+	DefaultWeightMsgWithdrawRewards       = 10
+	DefaultWeightMsgPurchaseShield        = 20
+	DefaultWeightMsgStakeForShield        = 20
+	DefaultWeightMsgUnstakeFromShield     = 15
+	DefaultWeightShieldClaimProposal      = 5
+	DefaultWeightMsgWithdrawReimbursement = 5
 
 	DefaultIntMax = 100000000000
 )
@@ -90,6 +92,11 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 		func(_ *rand.Rand) {
 			weightMsgUnstakeFromShield = DefaultWeightMsgUnstakeFromShield
 		})
+	var weightMsgWithdrawReimbursement int
+	appParams.GetOrGenerate(cdc, OpWeightWithdrawReimbursement, &weightMsgWithdrawReimbursement, nil,
+		func(_ *rand.Rand) {
+			weightMsgWithdrawReimbursement = DefaultWeightMsgWithdrawReimbursement
+		})
 
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(weightMsgCreatePool, SimulateMsgCreatePool(k, ak, sk)),
@@ -100,6 +107,7 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 		simulation.NewWeightedOperation(weightMsgPurchaseShield, SimulateMsgPurchaseShield(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgStakeForShield, SimulateMsgStakeForShield(k, ak, sk)),
 		simulation.NewWeightedOperation(weightMsgUnstakeFromShield, SimulateMsgUnstakeFromShield(k, ak, sk)),
+		simulation.NewWeightedOperation(weightMsgWithdrawReimbursement, SimulateMsgWithdrawReimbursement(k, ak, sk)),
 	}
 }
 
@@ -128,8 +136,9 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		totalCollateral := k.GetTotalCollateral(ctx)
 		totalWithdrawing := k.GetTotalWithdrawing(ctx)
 		totalShield := k.GetTotalShield(ctx)
+		totalClaimed := k.GetTotalClaimed(ctx)
 		poolParams := k.GetPoolParams(ctx)
-		maxShield := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt(), totalCollateral.Sub(totalWithdrawing).Sub(totalShield))
+		maxShield := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt(), totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).Sub(totalShield))
 		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
@@ -214,12 +223,9 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		totalCollateral := k.GetTotalCollateral(ctx)
 		totalWithdrawing := k.GetTotalWithdrawing(ctx)
 		totalShield := k.GetTotalShield(ctx)
+		totalClaimed := k.GetTotalClaimed(ctx)
 		poolParams := k.GetPoolParams(ctx)
-		maxShield := sdk.MinInt(pool.ShieldLimit.Sub(pool.Shield),
-			sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
-				totalCollateral.Sub(totalWithdrawing).Sub(totalShield),
-			),
-		)
+		maxShield := computeMaxShield(pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield, poolParams)
 		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
@@ -419,12 +425,9 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		totalCollateral := k.GetTotalCollateral(ctx)
 		totalWithdrawing := k.GetTotalWithdrawing(ctx)
 		totalShield := k.GetTotalShield(ctx)
+		totalClaimed := k.GetTotalClaimed(ctx)
 		poolParams := k.GetPoolParams(ctx)
-		maxShield := sdk.MinInt(pool.ShieldLimit.Sub(pool.Shield),
-			sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
-				totalCollateral.Sub(totalWithdrawing).Sub(totalShield),
-			),
-		)
+		maxShield := computeMaxShield(pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield, poolParams)
 		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
@@ -472,7 +475,30 @@ func ProposalContents(k keeper.Keeper, sk types.StakingKeeper) []simulation.Weig
 // SimulateShieldClaimProposalContent generates random shield claim proposal content
 func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper) simulation.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simulation.Account) govtypes.Content {
-		return types.ShieldClaimProposal{}
+		bondDenom := sk.BondDenom(ctx)
+		purchaseList, found := keeper.RandomPurchaseList(r, k, ctx)
+		if len(purchaseList.Entries) == 0 {
+			return nil
+		}
+		i := r.Intn(len(purchaseList.Entries))
+		poolID := purchaseList.PoolID
+		purchaser := purchaseList.Purchaser
+		purchase := purchaseList.Entries[i]
+		if !found || purchase.ProtectionEndTime.Before(ctx.BlockTime()) {
+			return nil
+		}
+		lossAmount, err := simulation.RandPositiveInt(r, purchase.Shield)
+		if err != nil {
+			return nil
+		}
+		return types.NewShieldClaimProposal(
+			poolID,
+			sdk.NewCoins(sdk.NewCoin(bondDenom, lossAmount)),
+			purchase.PurchaseID,
+			simulation.RandStringOfLength(r, 500),
+			simulation.RandStringOfLength(r, 500),
+			purchaser,
+		)
 	}
 }
 
@@ -499,12 +525,9 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		totalCollateral := k.GetTotalCollateral(ctx)
 		totalWithdrawing := k.GetTotalWithdrawing(ctx)
 		totalShield := k.GetTotalShield(ctx)
+		totalClaimed := k.GetTotalClaimed(ctx)
 		poolParams := k.GetPoolParams(ctx)
-		maxShield := sdk.MinInt(pool.ShieldLimit.Sub(pool.Shield),
-			sdk.MinInt(totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
-				totalCollateral.Sub(totalWithdrawing).Sub(totalShield),
-			),
-		)
+		maxShield := computeMaxShield(pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield, poolParams)
 		accountMax := sdk.OneDec().Quo(k.GetShieldStakingRate(ctx)).MulInt(account.GetCoins().AmountOf(k.BondDenom(ctx))).TruncateInt()
 		max := sdk.MinInt(accountMax, maxShield)
 		shieldAmount, err := simulation.RandPositiveInt(r, max)
@@ -590,4 +613,49 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		}
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
+}
+
+// SimulateMsgWithdrawReimbursement generates a MsgWithdrawReimbursement object with randomized fields.
+func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		prPair, found := keeper.RandomMaturedProposalIDReimbursementPair(r, k, ctx)
+		if !found {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+
+		var simAccount simulation.Account
+		for _, simAcc := range accs {
+			if simAcc.Address.Equals(prPair.Reimbursement.Beneficiary) {
+				simAccount = simAcc
+				break
+			}
+		}
+		account := ak.GetAccount(ctx, simAccount.Address)
+
+		msg := types.NewMsgWithdrawReimbursement(prPair.ProposalID, simAccount.Address)
+
+		fees := sdk.Coins{}
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{account.GetAccountNumber()},
+			[]uint64{account.GetSequence()},
+			simAccount.PrivKey,
+		)
+
+		if _, _, err := app.Deliver(tx); err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+	}
+}
+
+func computeMaxShield(pool types.Pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield sdk.Int, poolParams types.PoolParams) sdk.Int {
+	poolLimit := pool.ShieldLimit.Sub(pool.Shield)
+	globalLimit := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
+		totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).Sub(totalShield))
+	return sdk.MinInt(poolLimit, globalLimit)
 }
