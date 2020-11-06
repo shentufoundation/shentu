@@ -249,38 +249,16 @@ type MsgUnstakeFromShield struct {
 ```
 
 ## Parameters
-// PoolParams defines the parameters for the shield pool.
-type PoolParams struct {
-	ProtectionPeriod  time.Duration `json:"protection_period" yaml:"protection_period"`
-	ShieldFeesRate    sdk.Dec       `json:"shield_fees_rate" yaml:"shield_fees_rate"`
-	WithdrawPeriod    time.Duration `json:"withdraw_period" yaml:"withdraw_period"`
-	PoolShieldLimit   sdk.Dec       `json:"pool_shield_limit" yaml:"pool_shield_limit"`
-	MinShieldPurchase sdk.Coins     `json:"min_shield_purchase" yaml:"min_shield_purchase"`
-}
-// ClaimProposalParams defines the parameters for the shield claim proposals.
-type ClaimProposalParams struct {
-	ClaimPeriod  time.Duration `json:"claim_period" yaml:"claim_period"`
-	PayoutPeriod time.Duration `json:"payout_period" yaml:"payout_period"`
-	MinDeposit   sdk.Coins     `json:"min_deposit" json:"min_deposit"`
-	DepositRate  sdk.Dec       `json:"deposit_rate" yaml:"deposit_rate"`
-	FeesRate     sdk.Dec       `json:"fees_rate" yaml:"fees_rate"`
-}
-
-var (
-	// default values for Shield pool's parameters
-	DefaultProtectionPeriod  = time.Hour * 24 * 21                                                   // 21 days
-	DefaultShieldFeesRate    = sdk.NewDecWithPrec(769, 5)                                            // 0.769%
-	DefaultWithdrawPeriod    = time.Hour * 24 * 21                                                   // 21 days
-	DefaultPoolShieldLimit   = sdk.NewDecWithPrec(50, 2)                                             // 50%
-	DefaultMinShieldPurchase = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(50000000))) // 50 CTK
-
-	// default values for Shield claim proposal's parameters
-	DefaultClaimPeriod              = time.Hour * 24 * 21                                                    // 21 days
-	DefaultPayoutPeriod             = time.Hour * 24 * 56                                                    // 56 days
-	DefaultMinClaimProposalDeposit  = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100000000))) // 100 CTK
-	DefaultClaimProposalDepositRate = sdk.NewDecWithPrec(10, 2)                                              // 10%
-	DefaultClaimProposalFeesRate    = sdk.NewDecWithPrec(1, 2)                                               // 1%
-
-	// default value for staking-shield rate parameter
-	DefaultStakingShieldRate = sdk.NewDec(2)
-)
+| Parameter           | Info                                                                          | Default |
+|---------------------|-------------------------------------------------------------------------------|---------|
+| `ProtectionPeriod`  | how long a Shield lasts                                                       | 21 days |
+| `ShieldFeesRate`    | percentage of protected assets to be paid as fee                              | 0.769%  |
+| `WithdrawPeriod`    | how long a pending withdraw sits in the queue                                 | 21 days |
+| `PoolShieldLimit`   | percentage of total collateral that a single Shield can protect               | 50%     |
+| `MinShieldPurchase` | smallest allowed Shield purchase amount                                       | 50 CTK  |
+| `ClaimPeriod`       |                              _(currently unused)_                             | 21 days |
+| `PayoutPeriod`      |                              _(currently unused)_                             | 56 days |
+| `MinDeposit`        |                              _(currently unused)_                             | 100 CTK |
+| `DepositRate`       |                              _(currently unused)_                             | 10%     |
+| `FeesRate`          |                              _(currently unused)_                             | 1%      |
+| `StakingShieldRate` | multiple of Shield's protected assets that purchaser can stake in lieu of fee | 2       |
