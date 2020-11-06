@@ -20,6 +20,8 @@ const (
 	QueryStatus              = "status"
 	QueryStakedForShield     = "staked_for_shield"
 	QueryShieldStakingRate   = "shield_staking_rate"
+	QueryReimbursement       = "reimbursement"
+	QueryReimbursements      = "reimbursements"
 )
 
 type QueryResStatus struct {

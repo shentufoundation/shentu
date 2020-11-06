@@ -131,7 +131,7 @@ func updateAfterSubmitProposal(ctx sdk.Context, k keeper.Keeper, proposal types.
 	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
 		c := proposal.Content.(shield.ClaimProposal)
 		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
-		return k.ShieldKeeper.ClaimLock(ctx, c.ProposalID, c.PoolID, c.Proposer, c.PurchaseID, c.Loss, lockPeriod)
+		return k.ShieldKeeper.SecureCollaterals(ctx, c.PoolID, c.Proposer, c.PurchaseID, c.Loss, lockPeriod)
 	}
 	return nil
 }
@@ -147,9 +147,39 @@ func validateProposalByType(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmitP
 		return k.UpgradeKeeper.ValidatePlan(ctx, c.Plan)
 
 	case shield.ClaimProposal:
-		// TODO Check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit).
-		// TODO Check shield >= loss.
-		// TODO Check the purchaseList is not expired.
+		// check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit)
+		denom := k.BondDenom(ctx)
+		initialDepositAmount := msg.InitialDeposit.AmountOf(denom).ToDec()
+		lossAmount := c.Loss.AmountOf(denom)
+		lossAmountDec := lossAmount.ToDec()
+		claimProposalParams := k.ShieldKeeper.GetClaimProposalParams(ctx)
+		depositRate := claimProposalParams.DepositRate
+		minDeposit := claimProposalParams.MinDeposit.AmountOf(denom).ToDec()
+		if initialDepositAmount.LT(lossAmountDec.Mul(depositRate)) || initialDepositAmount.LT(minDeposit) {
+			return sdkerrors.Wrapf(
+				sdkerrors.ErrInsufficientFunds,
+				"insufficient initial deposits amount: %v, minimum: max(%v, %v)",
+				initialDepositAmount, lossAmountDec.Mul(depositRate), minDeposit,
+			)
+		}
+
+		// check shield >= loss
+		purchaseList, found := k.ShieldKeeper.GetPurchaseList(ctx, c.PoolID, c.Proposer)
+		if !found {
+			return shield.ErrPurchaseNotFound
+		}
+		purchase, found := shield.GetPurchase(purchaseList, c.PurchaseID)
+		if !found {
+			return shield.ErrPurchaseNotFound
+		}
+		if !purchase.Shield.GTE(lossAmount) {
+			return fmt.Errorf("insufficient shield: %s, loss: %s", purchase.Shield, c.Loss)
+		}
+
+		// check the purchaseList is not expired
+		if purchase.ProtectionEndTime.Before(ctx.BlockTime()) {
+			return fmt.Errorf("after protection end time: %s", purchase.ProtectionEndTime)
+		}
 		return nil
 
 	default:

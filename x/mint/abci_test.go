@@ -158,7 +158,7 @@ func createTestInput(t *testing.T) testInput {
 	slashingKeeper := slashing.NewKeeper(cdc, keySlashing, stakingKeeper, paramsKeeper.Subspace(slashing.DefaultParamspace))
 	certKeeper := cert.NewKeeper(cdc, keyCert, slashingKeeper, stakingKeeper)
 	govKeeper := gov.Keeper{}
-	shieldKeeper := shield.NewKeeper(cdc, keyShield, stakingKeeper, &govKeeper, supplyKeeper, paramsKeeper.Subspace(shield.DefaultParamSpace))
+	shieldKeeper := shield.NewKeeper(cdc, keyShield, accKeeper, stakingKeeper, &govKeeper, supplyKeeper, paramsKeeper.Subspace(shield.DefaultParamSpace))
 
 	upgradeKeeper := upgrade.NewKeeper(map[int64]bool{}, fillerStoreKey(""), cdc)
 	rtr := govTypes.NewRouter().
