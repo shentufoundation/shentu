@@ -32,9 +32,9 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 
 	// Verify collateral availability.
 	totalCollateral := k.GetTotalCollateral(ctx)
-	totalClaimed := k.GetTotalClaimed(ctx).Add(lossAmt)
-	if totalClaimed.GT(totalCollateral) {
-		panic("total claimed surpassed total collateral")
+	totalSecureAmt := k.GetTotalClaimed(ctx).Add(lossAmt)
+	if totalSecureAmt.GT(totalCollateral) {
+		panic("total secure amount surpassed total collateral")
 	}
 
 	// Verify purchase.
@@ -56,8 +56,8 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 
 	// Secure the updated loss ratio from each provider to cover total claimed.
 	providers := k.GetAllProviders(ctx)
-	claimedRatio := totalClaimed.ToDec().Quo(totalCollateral.ToDec())
-	remaining := totalClaimed
+	claimedRatio := totalSecureAmt.ToDec().Quo(totalCollateral.ToDec())
+	remaining := totalSecureAmt
 	for i := range providers {
 		secureAmt := sdk.MinInt(providers[i].Collateral.ToDec().Mul(claimedRatio).TruncateInt(), remaining)
 
@@ -86,7 +86,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	totalShield := k.GetTotalShield(ctx)
 	totalShield = totalShield.Sub(lossAmt)
 	k.SetTotalShield(ctx, totalShield)
-	k.SetTotalClaimed(ctx, totalClaimed)
+	k.SetTotalClaimed(ctx, totalSecureAmt)
 
 	return nil
 }
@@ -104,26 +104,26 @@ func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amo
 
 	// Secure the given amount of collaterals until the end of the
 	// lock period by delaying withdrawals, if necessary.
-	// NotWithdrawnSoon = ProviderTotalCollateral - WithdrawnByEndTime
+	// availableCollateralByEndTime = ProviderTotalCollateral - WithdrawnByEndTime
 	endTime := ctx.BlockTime().Add(duration)
-	notWithdrawnSoon := provider.Collateral.Sub(k.ComputeWithdrawAmountByTime(ctx, provider.Address, endTime))
+	availableCollateralByEndTime := provider.Collateral.Sub(k.ComputeWithdrawAmountByTime(ctx, provider.Address, endTime))
 
 	// Secure the given amount of staking (bonded or unbonding) until
 	// the end of the lock period by delaying unbondings, if necessary.
-	// NotBondedSoon = Bonded + Unbonding - UnbondedByEndTime
-	notUnbondedSoon := provider.DelegationBonded.Add(k.ComputeTotalUnbondingAmount(ctx, provider.Address).Sub(k.ComputeUnbondingAmountByTime(ctx, provider.Address, endTime)))
+	// availableDelegationByEndTime = Bonded + Unbonding - UnbondedByEndTime
+	availableDelegationByEndTime := provider.DelegationBonded.Add(k.ComputeTotalUnbondingAmount(ctx, provider.Address).Sub(k.ComputeUnbondingAmountByTime(ctx, provider.Address, endTime)))
 
 	// Collaterals that won't be withdrawn until the end time must be
 	// backed by staking that won't be unbonded until the end time.
-	if !notWithdrawnSoon.LTE(notUnbondedSoon) {
+	if !availableCollateralByEndTime.LTE(availableDelegationByEndTime) {
 		panic("notWithdrawnSoon must be less than or equal to notUnbondedSoon")
 	}
 
-	if amount.GT(notWithdrawnSoon) {
-		withdrawDelayAmt := amount.Sub(notWithdrawnSoon)
+	if amount.GT(availableCollateralByEndTime) {
+		withdrawDelayAmt := amount.Sub(availableCollateralByEndTime)
 		k.DelayWithdraws(ctx, provider.Address, withdrawDelayAmt, endTime)
-		if amount.GT(notUnbondedSoon) {
-			unbondingDelayAmt := amount.Sub(notUnbondedSoon)
+		if amount.GT(availableDelegationByEndTime) {
+			unbondingDelayAmt := amount.Sub(availableDelegationByEndTime)
 			k.DelayUnbonding(ctx, provider.Address, unbondingDelayAmt, endTime)
 		}
 	}
