@@ -14,6 +14,7 @@ import (
 // AccountKeeper defines the expected account keeper.
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
+	SetAccount(ctx sdk.Context, acc authexported.Account)
 	IterateAccounts(ctx sdk.Context, process func(authexported.Account) (stop bool))
 }
 
@@ -26,7 +27,7 @@ type StakingKeeper interface {
 	GetValidator(sdk.Context, sdk.ValAddress) (staking.Validator, bool)
 	// GetAllValidators gets the set of all validators with no limits, used during genesis dump.
 	GetAllValidators(ctx sdk.Context) []staking.Validator
-	// GetValidatorDelegations returna all delegations to a specific validator. Useful for querier.
+	// GetValidatorDelegations returns all delegations to a specific validator. Useful for querier.
 	GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) []staking.Delegation
 
 	// Delegation allows for getting a particular delegation for a given validator
@@ -36,6 +37,7 @@ type StakingKeeper interface {
 	GetAllUnbondingDelegations(ctx sdk.Context, delegator sdk.AccAddress) []staking.UnbondingDelegation
 	GetUnbondingDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (staking.UnbondingDelegation, bool)
 	SetUnbondingDelegation(ctx sdk.Context, ubd staking.UnbondingDelegation)
+	RemoveUnbondingDelegation(ctx sdk.Context, ubd staking.UnbondingDelegation)
 	GetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (dvPairs []staking.DVPair)
 	SetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time, timeslice []staking.DVPair)
 	InsertUBDQueue(ctx sdk.Context, ubd staking.UnbondingDelegation, completionTime time.Time)
@@ -47,8 +49,13 @@ type StakingKeeper interface {
 	RemoveValidatorTokensAndShares(ctx sdk.Context, validator staking.Validator, sharesToRemove sdk.Dec) (valOut staking.Validator, removedTokens sdk.Int)
 	RemoveUBDQueue(ctx sdk.Context, timestamp time.Time)
 	GetRedelegations(ctx sdk.Context, delegator sdk.AccAddress, maxRetrieve uint16) (redelegations []staking.Redelegation)
+	SetValidator(ctx sdk.Context, validator staking.Validator)
+	DeleteValidatorByPowerIndex(ctx sdk.Context, validator staking.Validator)
+	RemoveDelegation(ctx sdk.Context, delegation staking.Delegation)
+	RemoveValidator(ctx sdk.Context, address sdk.ValAddress)
 
 	BondDenom(sdk.Context) string
+	UnbondingTime(sdk.Context) time.Duration
 }
 
 // BankKeeper defines the expected bank keeper.

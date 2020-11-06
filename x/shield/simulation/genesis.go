@@ -19,7 +19,6 @@ const letters = "abcdefghijklmnopqrstuvwxyz"
 func RandomizedGenState(simState *module.SimulationState) {
 	r := simState.Rand
 
-	//gs := types.DefaultGenesisState()
 	gs := types.GenesisState{}
 	simAccount, _ := sim.RandomAcc(r, simState.Accounts)
 	gs.ShieldAdmin = simAccount.Address
@@ -27,11 +26,11 @@ func RandomizedGenState(simState *module.SimulationState) {
 	gs.PoolParams = GenPoolParams(r)
 	gs.ClaimProposalParams = GenClaimProposalParams(r)
 
-	stakingGenStatebz := simState.GenState[staking.ModuleName]
 	var stakingGenState stakingTypes.GenesisState
+	stakingGenStatebz := simState.GenState[staking.ModuleName]
 	stakingTypes.ModuleCdc.MustUnmarshalJSON(stakingGenStatebz, &stakingGenState)
-	ubdTime := stakingGenState.Params.UnbondingTime
-	gs.PoolParams.WithdrawPeriod = ubdTime
+	gs.PoolParams.WithdrawPeriod = stakingGenState.Params.UnbondingTime
+
 	gs.ClaimProposalParams.ClaimPeriod = time.Duration(sim.RandIntBetween(r,
 		int(gs.PoolParams.WithdrawPeriod)/10, int(gs.PoolParams.WithdrawPeriod)))
 	if gs.PoolParams.ProtectionPeriod >= gs.ClaimProposalParams.ClaimPeriod {
