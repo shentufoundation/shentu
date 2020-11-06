@@ -36,6 +36,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 # Changelog
 
 ## [Unreleased] - TBD
+* (specs) [\#149](https://github.com/certikfoundation/shentu/pull/149) Add module specs.
 
 ### Client Breaking Changes
 
