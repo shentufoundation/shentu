@@ -8,7 +8,7 @@ See the [whitepaper](https://www.certik.foundation/whitepaper#2-CertiK-Security-
 
 ## State
 
-`Withdraw` stores a withdraw of `Amount`scheduled for a given `DueBlock`. A withdraw is scheduled when `ReduceCollateral` or `RemoveOperator` is called.
+`Withdraw` stores a withdraw of `Amount` scheduled for a given `DueBlock`. A withdraw is scheduled when `ReduceCollateral` or `RemoveOperator` is called.
 
 ```go
 type Withdraw struct {
@@ -149,12 +149,12 @@ type MsgInquiryTask struct {
 ```
 
 ## Parameters
-| Parameter          | Info                                                                          | Default  |
-|--------------------|-------------------------------------------------------------------------------|----------|
-| ExpirationDuration | default task duration, for tasks with unspecified durations                   | 24 hours |
-| AggregationWindow  | number of blocks between task creation and calculation of final score         | 20       |
-| AggregationResult  | aggregation result for a task with no responses                               | 50       |
-| ThresholdScore     | threshold above/below which a contract is considered secure/insecure          | 50       |
-| Epsilon1           | distribution curve parameter                                                  | 1        |
-| Epsilon2           | distribution curve parameter                                                  | 100      |
-| LockedInBlocks     | number of blocks operators need to wait before getting their collaterals back | 30       |
+| Parameter            | Info                                                                          | Default  |
+|----------------------|-------------------------------------------------------------------------------|----------|
+| `ExpirationDuration` | default task duration, for tasks with unspecified durations                   | 24 hours |
+| `AggregationWindow`  | number of blocks between task creation and calculation of final score         | 20       |
+| `AggregationResult`  | aggregation result for a task with no responses                               | 50       |
+| `ThresholdScore`     | threshold above/below which a contract is considered secure/insecure          | 50       |
+| `Epsilon1`           | distribution curve parameter                                                  | 1        |
+| `Epsilon2`           | distribution curve parameter                                                  | 100      |
+| `LockedInBlocks`     | number of blocks operators need to wait before getting their collaterals back | 30       |

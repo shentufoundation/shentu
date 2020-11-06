@@ -23,6 +23,6 @@ The following modules largely inherit from Cosmos SDK. Please see [Cosmos's modu
 These modules are unique to CertiK Chain.
 
 - [Cert](cert.md) - Validator certification and certificate issuance
-- [Cvm](cvm.md) - CertiK Virtual Machine: smart contract execution
+- [CVM](cvm.md) - CertiK Virtual Machine: smart contract deployment and execution
 - [Oracle](oracle.md) - CertiK Security Oracle: on-chain scores for real-time security checks
 - [Shield](shield.md) - CertiKShield: collateral pool to reimburse stolen assets
