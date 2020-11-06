@@ -291,7 +291,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		// collateral coins
 		provider, found := k.GetProvider(ctx, simAccount.Address)
 		if found {
-			available = provider.DelegationBonded.Sub(provider.Collateral.Sub(provider.Withdrawing))
+			available = provider.DelegationBonded.Sub(provider.Collateral)
 		}
 		collateralAmount, err := simulation.RandPositiveInt(r, available)
 		if err != nil {
