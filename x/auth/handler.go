@@ -1,10 +1,10 @@
 package auth
 
 import (
-	"github.com/certikfoundation/shentu/common"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/auth/internal/types"
 	"github.com/certikfoundation/shentu/x/auth/vesting"
 )
