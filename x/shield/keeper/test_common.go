@@ -63,3 +63,15 @@ func RandomProvider(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Provider, bo
 	i := r.Intn(len(providers))
 	return providers[i], true
 }
+
+// RandomProposalIDReimbursementPair returns a random proposal ID - 
+// reimbursement pair.
+func RandomProposalIDReimbursementPair(r *rand.Rand, k Keeper, ctx sdk.Context) (types.ProposalIDReimbursementPair, bool) {
+	prPairs := k.GetAllProposalIDReimbursementPairs(ctx)
+	if len(prPairs) == 0 {
+		return types.ProposalIDReimbursementPair{}, false
+	}
+
+	i := r.Intn(len(prPairs))
+	return prPairs[i], true
+}
