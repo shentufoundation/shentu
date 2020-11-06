@@ -64,34 +64,36 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 			return simulation.NewOperationMsgBasic(types.ModuleName,
 				"NoOp: operator already exists, skip this tx", "", false, nil), nil, nil
 		}
-
-		certifiers := k.CertKeeper.GetAllCertifiers(ctx)
-		certifier := certifiers[r.Intn(len(certifiers))]
-
-		var certifierSAcc simulation.Account
-		for _, acc := range accs {
-			if acc.Address.Equals(certifier.Address) {
-				certifierSAcc = acc
-				break
+		if !k.CertKeeper.IsCertified(ctx, "ADDRESS", operator.Address.String(), "ORACLEOPERATOR") {
+			certifiers := k.CertKeeper.GetAllCertifiers(ctx)
+			if len(certifiers) < 1 {
+				return simulation.NewOperationMsgBasic(types.ModuleName,
+					"NoOp: no qualified certifier, skip this tx", "", false, nil), nil, nil
 			}
-		}
-
-		certifierAcc := ak.GetAccount(ctx, certifier.Address)
-		certifyMsg := cert.NewMsgCertifyGeneral("ORACLEOPERATOR", "ADDRESS", operator.Address.String(), "", certifier.Address)
-		certFees := sdk.Coins{}
-		certifyTx := helpers.GenTx(
-			[]sdk.Msg{certifyMsg},
-			certFees,
-			helpers.DefaultGenTxGas,
-			chainID,
-			[]uint64{certifierAcc.GetAccountNumber()},
-			[]uint64{certifierAcc.GetSequence()},
-			certifierSAcc.PrivKey,
-		)
-
-		_, _, err := app.Deliver(certifyTx)
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			certifier := certifiers[r.Intn(len(certifiers))]
+			var certifierSAcc simulation.Account
+			for _, acc := range accs {
+				if acc.Address.Equals(certifier.Address) {
+					certifierSAcc = acc
+					break
+				}
+			}
+			certifierAcc := ak.GetAccount(ctx, certifier.Address)
+			certifyMsg := cert.NewMsgCertifyGeneral("ORACLEOPERATOR", "ADDRESS", operator.Address.String(), "", certifier.Address)
+			certFees := sdk.Coins{}
+			certifyTx := helpers.GenTx(
+				[]sdk.Msg{certifyMsg},
+				certFees,
+				helpers.DefaultGenTxGas,
+				chainID,
+				[]uint64{certifierAcc.GetAccountNumber()},
+				[]uint64{certifierAcc.GetSequence()},
+				certifierSAcc.PrivKey,
+			)
+			_, _, err := app.Deliver(certifyTx)
+			if err != nil {
+				return simulation.NoOpMsg(types.ModuleName), nil, err
+			}
 		}
 
 		collateral := simulation.RandSubsetCoins(r, operatorAcc.SpendableCoins(ctx.BlockTime()))
@@ -106,7 +108,6 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 		}
 
 		msg := types.NewMsgCreateOperator(operatorAcc.GetAddress(), collateral, operator.Address, "an operator")
-
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
 			fees,
@@ -141,7 +142,6 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 				Op:          SimulateMsgRemoveOperator(k, ak, &stdOperator, operator.PrivKey),
 			},
 		}
-
 		return simulation.NewOperationMsg(msg, true, ""), futureOperations, nil
 	}
 }
