@@ -34,15 +34,15 @@ func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
 		c := proposal.Content.(shield.ClaimProposal)
-		_ = k.ShieldKeeper.ClaimUnlock(ctx, c.ProposalID, c.PoolID, c.Loss)
+		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalID, c.PoolID, c.Loss)
 	}
 }
 
 func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
 		c := proposal.Content.(shield.ClaimProposal)
-		_ = k.ShieldKeeper.ClaimUnlock(ctx, c.ProposalID, c.PoolID, c.Loss)
-		_ = k.ShieldKeeper.RestoreShield(ctx, c.PoolID, proposal.ProposerAddress, c.PurchaseID, c.Loss)
+		k.ShieldKeeper.RestoreShield(ctx, c.PoolID, proposal.ProposerAddress, c.PurchaseID, c.Loss)
+		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalID, c.PoolID, c.Loss)
 	}
 }
 
