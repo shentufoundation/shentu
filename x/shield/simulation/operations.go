@@ -619,7 +619,7 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, sk ty
 func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		prPair, found := keeper.RandomProposalIDReimbursementPair(r, k, ctx)
+		prPair, found := keeper.RandomMaturedProposalIDReimbursementPair(r, k, ctx)
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
@@ -632,7 +632,7 @@ func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, s
 			}
 		}
 		account := ak.GetAccount(ctx, simAccount.Address)
-		
+
 		msg := types.NewMsgWithdrawReimbursement(prPair.ProposalID, simAccount.Address)
 
 		fees := sdk.Coins{}
@@ -652,7 +652,6 @@ func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, s
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
-
 
 func computeMaxShield(pool types.Pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield sdk.Int, poolParams types.PoolParams) sdk.Int {
 	poolLimit := pool.ShieldLimit.Sub(pool.Shield)

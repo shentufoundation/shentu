@@ -113,7 +113,7 @@ func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amo
 	// NotBondedSoon = Bonded + Unbonding - UnbondedByEndTime
 	notUnbondedSoon := provider.DelegationBonded.Add(k.ComputeTotalUnbondingAmount(ctx, provider.Address).Sub(k.ComputeUnbondingAmountByTime(ctx, provider.Address, endTime)))
 
-	// Collaterals that won't be withdrawn until the end time must be 
+	// Collaterals that won't be withdrawn until the end time must be
 	// backed by staking that won't be unbonded until the end time.
 	if !notWithdrawnSoon.LTE(notUnbondedSoon) {
 		panic("notWithdrawnSoon must be less than or equal to notUnbondedSoon")
