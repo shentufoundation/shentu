@@ -35,31 +35,12 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 
 	// Verify collateral availability.
 	totalCollateral := k.GetTotalCollateral(ctx)
-	totalClaimed := k.GetTotalClaimed(ctx)
-	totalClaimed = totalClaimed.Add(lossAmt)
+	totalClaimed := k.GetTotalClaimed(ctx).Add(lossAmt)
 	if totalClaimed.GT(totalCollateral) {
 		panic("total claimed surpassed total collateral")
 	}
 
-	// Secure the updated loss ratio from each provider to cover total claimed.
-	providers := k.GetAllProviders(ctx)
-	lossRatio := totalClaimed.ToDec().Quo(totalCollateral.ToDec())
-	for i := range providers {
-		secureAmt := providers[i].Collateral.ToDec().Mul(lossRatio).TruncateInt()
-		if secureAmt.GT(totalClaimed) {
-			secureAmt = totalClaimed
-		}
-		// Require each provider to secure one more unit, if possible,
-		// so that the last provider does not have to cover combined
-		// truncated amounts.
-		if secureAmt.LT(totalClaimed) && secureAmt.LT(providers[i].Collateral) {
-			secureAmt = secureAmt.Add(sdk.OneInt())
-		}
-		k.SecureFromProvider(ctx, providers[i], secureAmt, duration)
-		totalClaimed = totalClaimed.Sub(secureAmt)
-	}
-
-	// Update purchase states.
+	// Verify purchase.
 	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
 	if !found {
 		return types.ErrPurchaseNotFound
@@ -75,6 +56,25 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	if lossAmt.GT(purchase.Shield) {
 		return types.ErrNotEnoughShield
 	}
+
+	// Secure the updated loss ratio from each provider to cover total claimed.
+	providers := k.GetAllProviders(ctx)
+	claimedRatio := totalClaimed.ToDec().Quo(totalCollateral.ToDec())
+	remaining := totalClaimed
+	for i := range providers {
+		secureAmt := sdk.MinInt(providers[i].Collateral.ToDec().Mul(claimedRatio).TruncateInt(), remaining)
+
+		// Require each provider to secure one more unit, if possible,
+		// so that the last provider does not have to cover combined
+		// truncated amounts.
+		if secureAmt.LT(remaining) && secureAmt.LT(providers[i].Collateral) {
+			secureAmt = secureAmt.Add(sdk.OneInt())
+		}
+		k.SecureFromProvider(ctx, providers[i], secureAmt, duration)
+		remaining = remaining.Sub(secureAmt)
+	}
+
+	// Update purchase states.
 	purchase.Shield = purchase.Shield.Sub(lossAmt)
 	votingEndTime := ctx.BlockTime().Add(duration)
 	if purchase.DeletionTime.Before(votingEndTime) {
@@ -99,46 +99,45 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 // collaterals and, if exist, their linked unbondings as well.
 func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amount sdk.Int, duration time.Duration) {
 	// Lenient check:
-	// Check if non-withdrawing, bonded delegation-backed collaterals
-	// cannot cover the amount.
-	if provider.Collateral.Sub(provider.Withdrawing).GTE(amount) && provider.DelegationBonded.GTE(provider.DelegationBonded) {
+	// We are done if non-withdrawing, bonded delegation-backed
+	// collaterals can cover the amount.
+	if provider.Collateral.Sub(provider.Withdrawing).GTE(amount) && provider.DelegationBonded.GTE(amount) {
 		return
 	}
 
 	// Secure the given amount of collaterals until the end of the
 	// lock period by delaying withdrawals, if necessary.
 	endTime := ctx.BlockTime().Add(duration)
-	upcomingWithdrawAmount := k.ComputeWithdrawAmountByTime(ctx, provider.Address, endTime)
-	notWithdrawnSoon := provider.Collateral.Sub(upcomingWithdrawAmount)
+	notWithdrawnSoon := provider.Collateral.Sub(k.ComputeWithdrawAmountByTime(ctx, provider.Address, endTime))
 
 	// Secure the given amount of staking (bonded or unbonding) until
 	// the end of the lock period by delaying unbondings, if necessary.
-	totalUnbondingAmount := k.ComputeTotalUnbondingAmount(ctx, provider.Address)
 	upcomingUnbondingAmount := k.ComputeUnbondingAmountByTime(ctx, provider.Address, endTime)
-	notUnbondedSoon := provider.DelegationBonded.Add(totalUnbondingAmount.Sub(upcomingUnbondingAmount))
+	notUnbondedSoon := provider.DelegationBonded.Add(k.ComputeTotalUnbondingAmount(ctx, provider.Address).Sub(upcomingUnbondingAmount))
 
 	if amount.GT(notWithdrawnSoon) || amount.GT(notUnbondedSoon) {
 		withdrawDelayAmt := amount.Sub(notWithdrawnSoon)
-		k.DelayWithdraws(ctx, provider.Address, withdrawDelayAmt, duration)
+		k.DelayWithdraws(ctx, provider.Address, withdrawDelayAmt, endTime)
 
 		unbondingDelayAmt := amount.Sub(notUnbondedSoon)
-		k.DelayUnbonding(ctx, provider.Address, unbondingDelayAmt, duration)
+		k.DelayUnbonding(ctx, provider.Address, unbondingDelayAmt, endTime)
 	}
 }
 
+// ClaimEnd ends a claim process by updating the total claimed amount.
 func (k Keeper) ClaimEnd(ctx sdk.Context, id, poolID uint64, loss sdk.Coins) {
 	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
-	totalClaimed := k.GetTotalClaimed(ctx)
-	totalClaimed = totalClaimed.Sub(lossAmt)
+	totalClaimed := k.GetTotalClaimed(ctx).Sub(lossAmt)
 	k.SetTotalClaimed(ctx, totalClaimed)
 }
 
+// RestoreShield restores shield-related states as they were prior to
+// the claim proposal submission.
 func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, id uint64, loss sdk.Coins) error {
 	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
 
 	// Update the total shield.
-	totalShield := k.GetTotalShield(ctx)
-	totalShield = totalShield.Add(lossAmt)
+	totalShield := k.GetTotalShield(ctx).Add(lossAmt)
 	k.SetTotalShield(ctx, totalShield)
 
 	// Update shield of the pool.
@@ -237,13 +236,13 @@ func (k Keeper) GetAllProposalIDReimbursementPairs(ctx sdk.Context) []types.Prop
 }
 
 // CreateReimbursement creates a reimbursement.
-func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, rmb sdk.Coins, beneficiary sdk.AccAddress) error {
-	fmt.Printf("\n\n>>> CreateReimbursement: %s\n", rmb)
+func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount sdk.Coins, beneficiary sdk.AccAddress) error {
+	fmt.Printf("\n\n>>> CreateReimbursement: %s\n", amount)
 	debugAmt = sdk.ZeroInt()
 	bondDenom := k.BondDenom(ctx)
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalPurchased := k.GetTotalShield(ctx)
-	totalPayout := rmb.AmountOf(bondDenom)
+	totalPayout := amount.AmountOf(bondDenom)
 	purchaseRatio := totalPurchased.ToDec().Quo(totalCollateral.ToDec())
 	payoutRatio := totalPayout.ToDec().Quo(totalCollateral.ToDec())
 	for _, provider := range k.GetAllProviders(ctx) {
@@ -282,16 +281,16 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, rmb sdk.
 	if totalPayout.IsPositive() {
 		panic("not enough payout made")
 	}
-	reimbursement := types.NewReimbursement(rmb, beneficiary, ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).PayoutPeriod))
+	reimbursement := types.NewReimbursement(amount, beneficiary, ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).PayoutPeriod))
 	k.SetReimbursement(ctx, proposalID, reimbursement)
 
-	totalCollateral = totalCollateral.Sub(rmb.AmountOf(bondDenom))
+	totalCollateral = totalCollateral.Sub(amount.AmountOf(bondDenom))
 	totalClaimed := k.GetTotalClaimed(ctx)
-	totalClaimed = totalClaimed.Sub(rmb.AmountOf(bondDenom))
+	totalClaimed = totalClaimed.Sub(amount.AmountOf(bondDenom))
 	k.SetTotalCollateral(ctx, totalCollateral)
 	k.SetTotalClaimed(ctx, totalClaimed)
 
-	if !debugAmt.Equal(rmb.AmountOf(k.BondDenom(ctx))) {
+	if !debugAmt.Equal(amount.AmountOf(k.BondDenom(ctx))) {
 		panic("broken invariant")
 	}
 
@@ -339,11 +338,7 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 
 	// Update provider's withdraws from latest to oldest.
 	withdraws := k.GetWithdrawsByProvider(ctx, providerAddr)
-	for i := len(withdraws) - 1; i >= 0; i-- {
-		if !payoutFromWithdraw.IsPositive() {
-			break
-		}
-
+	for i := len(withdraws) - 1; i >= 0 && payoutFromWithdraw.IsPositive(); i-- {
 		// If purchased is not fully covered, cover purchased first.
 		remainingWithdraw := sdk.MaxInt(withdraws[i].Amount.Sub(uncoveredPurchase), sdk.ZeroInt())
 		uncoveredPurchase = sdk.MaxInt(uncoveredPurchase.Sub(withdraws[i].Amount), sdk.ZeroInt())
@@ -356,24 +351,26 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 		payoutFromWithdraw = payoutFromWithdraw.Sub(payoutFromThisWithdraw)
 		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime)
 		for j := range timeSlice {
-			if timeSlice[j].Address.Equals(withdraws[i].Address) && timeSlice[j].Amount.Equal(withdraws[i].Amount) {
-				if remainingWithdraw.Equal(payoutFromThisWithdraw) {
-					if len(timeSlice) == 1 {
-						k.RemoveTimeSliceFromWithdrawQueue(ctx, withdraws[i].CompletionTime)
-					} else {
-						timeSlice = append(timeSlice[:j], timeSlice[j+1:]...)
-						k.SetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime, timeSlice)
-					}
+			if !timeSlice[j].Address.Equals(withdraws[i].Address) || !timeSlice[j].Amount.Equal(withdraws[i].Amount) {
+				continue
+			}
+
+			if remainingWithdraw.Equal(payoutFromThisWithdraw) {
+				if len(timeSlice) == 1 {
+					k.RemoveTimeSliceFromWithdrawQueue(ctx, withdraws[i].CompletionTime)
 				} else {
-					timeSlice[j].Amount = withdraws[i].Amount.Sub(payoutFromThisWithdraw)
+					timeSlice = append(timeSlice[:j], timeSlice[j+1:]...)
 					k.SetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime, timeSlice)
 				}
-				break
+			} else {
+				timeSlice[j].Amount = withdraws[i].Amount.Sub(payoutFromThisWithdraw)
+				k.SetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime, timeSlice)
 			}
+			break
 		}
 	}
-	if payoutFromWithdraw.IsPositive() {
-		panic("payout is not covered")
+	if !payoutFromWithdraw.IsZero() {
+		panic("exact payout was not made from withdrawals")
 	}
 
 	k.SetTotalWithdrawing(ctx, totalWithdrawing)
@@ -443,8 +440,8 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 
 		payoutFromUnbonding = payoutFromUnbonding.Sub(payoutFromThisUbd)
 	}
-	if payoutFromUnbonding.IsPositive() {
-		panic("not enough payout made from unbondings")
+	if !payoutFromUnbonding.IsZero() {
+		panic("exact pay out was not made from unbondings")
 	}
 
 	return nil
@@ -498,32 +495,34 @@ func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd staking.UnbondingDelegati
 
 	// Update unbonding delegations between the delegator and the validator.
 	for i := range unbonding.Entries {
-		if unbonding.Entries[i].Balance.Equal(ubd.Entries[0].Balance) && unbonding.Entries[i].CompletionTime.Equal(ubd.Entries[0].CompletionTime) {
-			if unbonding.Entries[i].Balance.Equal(payout) {
-				// Update the unbonding queue and remove the entry.
-				timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, unbonding.Entries[i].CompletionTime)
-				if len(timeSlice) > 1 {
-					for i := 0; i < len(timeSlice); i++ {
-						if timeSlice[i].DelegatorAddress.Equals(ubd.DelegatorAddress) && timeSlice[i].ValidatorAddress.Equals(ubd.ValidatorAddress) {
-							timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
-							k.sk.SetUBDQueueTimeSlice(ctx, unbonding.Entries[i].CompletionTime, timeSlice)
-							break
-						}
-					}
-				} else {
-					k.sk.RemoveUBDQueue(ctx, unbonding.Entries[i].CompletionTime)
-				}
-				unbonding.RemoveEntry(int64(i))
-			} else {
-				unbonding.Entries[i].Balance = unbonding.Entries[i].Balance.Sub(payout)
-			}
-			if len(unbonding.Entries) == 0 {
-				k.sk.RemoveUnbondingDelegation(ctx, unbonding)
-			} else {
-				k.sk.SetUnbondingDelegation(ctx, unbonding)
-			}
-			break
+		if !unbonding.Entries[i].Balance.Equal(ubd.Entries[0].Balance) || !unbonding.Entries[i].CompletionTime.Equal(ubd.Entries[0].CompletionTime) {
+			continue
 		}
+
+		if unbonding.Entries[i].Balance.Equal(payout) {
+			// Update the unbonding queue and remove the entry.
+			timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, unbonding.Entries[i].CompletionTime)
+			if len(timeSlice) > 1 {
+				for i := 0; i < len(timeSlice); i++ {
+					if timeSlice[i].DelegatorAddress.Equals(ubd.DelegatorAddress) && timeSlice[i].ValidatorAddress.Equals(ubd.ValidatorAddress) {
+						timeSlice = append(timeSlice[:i], timeSlice[i+1:]...)
+						k.sk.SetUBDQueueTimeSlice(ctx, unbonding.Entries[i].CompletionTime, timeSlice)
+						break
+					}
+				}
+			} else {
+				k.sk.RemoveUBDQueue(ctx, unbonding.Entries[i].CompletionTime)
+			}
+			unbonding.RemoveEntry(int64(i))
+		} else {
+			unbonding.Entries[i].Balance = unbonding.Entries[i].Balance.Sub(payout)
+		}
+		if len(unbonding.Entries) == 0 {
+			k.sk.RemoveUnbondingDelegation(ctx, unbonding)
+		} else {
+			k.sk.SetUnbondingDelegation(ctx, unbonding)
+		}
+		break
 	}
 
 	// Transfer tokens from staking module's not bonded pool.
