@@ -71,6 +71,9 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 					"NoOp: no qualified certifier, skip this tx", "", false, nil), nil, nil
 			}
 			certifier := certifiers[r.Intn(len(certifiers))]
+			for certifier.Address.Equals(operator.Address) {
+				certifier = certifiers[r.Intn(len(certifiers))]
+			}
 			var certifierSAcc simulation.Account
 			for _, acc := range accs {
 				if acc.Address.Equals(certifier.Address) {
