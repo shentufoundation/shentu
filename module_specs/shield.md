@@ -140,7 +140,7 @@ type Withdraw struct {
 
 ### Pools
 
-MsgCreatePool creates a new pool for a project. Once created, the project can purchase Shields via `MsgPurchaseShield`. The pool can be updated with `MsgUpdatePool`--for example, a project's `ShieldLimit` could be increased.
+`MsgCreatePool` creates a new pool for a project. Once created, the project can purchase Shields via `MsgPurchaseShield`. The pool can be updated with `MsgUpdatePool`--for example, a project's `ShieldLimit` could be increased.
 
 ```go
 // MsgCreatePool defines the attributes of a create-pool transaction.

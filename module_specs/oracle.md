@@ -30,7 +30,7 @@ type Operator struct {
 }
 ```
 
-`Task` stores a requrest to generate a score for a given smart contract.
+`Task` stores a request to generate a score for a given smart contract.
 
 ```go
 type Task struct {
@@ -85,7 +85,7 @@ type MsgRemoveOperator struct {
 }
 ```
 
-`MsgAddCollateral` and `MsgReduceCollateral` increase or decreace collateral for a given operator at `Address`.
+`MsgAddCollateral` and `MsgReduceCollateral` increase or decrease collateral for a given operator at `Address`.
 
 ```go
 type MsgAddCollateral struct {
@@ -149,12 +149,12 @@ type MsgInquiryTask struct {
 ```
 
 ## Parameters
-| Parameter            | Info                                                                          | Default  |
-|----------------------|-------------------------------------------------------------------------------|----------|
-| `ExpirationDuration` | default task duration, for tasks with unspecified durations                   | 24 hours |
-| `AggregationWindow`  | number of blocks between task creation and calculation of final score         | 20       |
-| `AggregationResult`  | aggregation result for a task with no responses                               | 50       |
-| `ThresholdScore`     | threshold above/below which a contract is considered secure/insecure          | 50       |
-| `Epsilon1`           | distribution curve parameter                                                  | 1        |
-| `Epsilon2`           | distribution curve parameter                                                  | 100      |
-| `LockedInBlocks`     | number of blocks operators need to wait before getting their collaterals back | 30       |
+| Parameter            | Info                                                                         | Default  |
+|----------------------|------------------------------------------------------------------------------|----------|
+| `ExpirationDuration` | default task duration, for tasks with unspecified durations                  | 24 hours |
+| `AggregationWindow`  | number of blocks between task creation and calculation of final score        | 20       |
+| `AggregationResult`  | aggregation result for a task with no responses                              | 50       |
+| `ThresholdScore`     | threshold above/below which a contract is considered secure/insecure         | 50       |
+| `Epsilon1`           | distribution curve parameter                                                 | 1        |
+| `Epsilon2`           | distribution curve parameter                                                 | 100      |
+| `LockedInBlocks`     | number of blocks operators need to wait before getting their collateral back | 30       |
