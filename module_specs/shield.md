@@ -138,6 +138,7 @@ type Withdraw struct {
 
 ## Messages
 
+### Pools
 
 MsgCreatePool creates a new pool for a project. Once created, the project can purchase Shields via `MsgPurchaseShield`. The pool can be updated with `MsgUpdatePool`--for example, a project's `ShieldLimit` could be increased.
 
@@ -180,6 +181,20 @@ type MsgResumePool struct {
 }
 ```
 
+Projects with a `Pool` can use `MsgPurchaseShield` to purchase a new Shield.
+
+```go
+// MsgPurchaseShield defines the attributes of purchase shield transaction.
+type MsgPurchaseShield struct {
+	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
+	Shield      sdk.Coins      `json:"shield" yaml:"shield"`
+	Description string         `json:"description" yaml:"description"`
+	From        sdk.AccAddress `json:"from" yaml:"from"`
+}
+```
+
+### Deposits
+
 `MsgDepositCollateral` creates a new provider with the given `Collateral`, or it adds `Collateral` to an existing provider's collateral. There's no `MsgCreateProvider` because this message has that functionality.
 
 ```go
@@ -189,6 +204,8 @@ type MsgDepositCollateral struct {
 	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
 }
 ```
+
+### Rewards and Reimbursements
 
 `MsgWithdrawRewards` pays out pending CTK rewards. Currently, `MsgWithdrawForeignRewards` and `MsgClearPayouts` are not callable or implemented.
 
@@ -212,24 +229,24 @@ type MsgClearPayouts struct {
 }
 ```
 
-// MsgPurchaseShield defines the attributes of purchase shield transaction.
-type MsgPurchaseShield struct {
-	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
-	Shield      sdk.Coins      `json:"shield" yaml:"shield"`
-	Description string         `json:"description" yaml:"description"`
-	From        sdk.AccAddress `json:"from" yaml:"from"`
-}
-// MsgWithdrawReimburse defines the attributes of withdraw reimbursement transaction.
+Currently, `MsgWithdrawReimbursement` is not callable or implemented.
+
+```go
+// MsgWithdrawReimbursement defines the attributes of withdraw reimbursement transaction.
 type MsgWithdrawReimbursement struct {
 	ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"`
 	From       sdk.AccAddress `json:"from" yaml:"from"`
 }
+```
+
+```go
 // MsgUnstakeFromShield defines the attributes of staking for purchase transaction.
 type MsgUnstakeFromShield struct {
 	PoolID uint64         `json:"pool_id" yaml:"pool_id"`
 	Shield sdk.Coins      `json:"shield" yaml:"shield"`
 	From   sdk.AccAddress `json:"from" yaml:"from"`
 }
+```
 
 ## Parameters
 // PoolParams defines the parameters for the shield pool.
