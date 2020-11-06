@@ -40,6 +40,8 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdStatus(queryRoute, cdc),
 		GetCmdStaking(queryRoute, cdc),
 		GetCmdShieldStakingRate(queryRoute, cdc),
+		GetCmdReimbursement(queryRoute, cdc),
+		GetCmdReimbursements(queryRoute, cdc),
 	)...)
 
 	return shieldQueryCmd
@@ -387,5 +389,52 @@ func GetCmdShieldStakingRate(queryRoute string, cdc *codec.Codec) *cobra.Command
 			return cliCtx.PrintOutput(out)
 		},
 	}
+	return cmd
+}
+
+// GetCmdReimbursement returns the command for querying a reimbursement.
+func GetCmdReimbursement(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "reimbursement [proposal ID]",
+		Short: "query a reimbursement",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			route := fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryReimbursement, args[0])
+			res, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			var out types.Reimbursement
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
+
+	return cmd
+}
+
+// GetCmdReimbursements returns the command for querying reimbursements.
+func GetCmdReimbursements(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "reimbursement",
+		Short: "query all reimbursements",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryReimbursements), nil)
+			if err != nil {
+				return err
+			}
+
+			var out []types.Reimbursement
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
+
 	return cmd
 }

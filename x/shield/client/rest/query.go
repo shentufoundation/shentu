@@ -27,6 +27,8 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/status", types.QuerierRoute), queryStatusHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/staked_for_shield/{poolID}/{address}", types.QuerierRoute), queryStakeForShieldHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/shield_staking_rate", types.QuerierRoute), queryShieldStakingRateHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/reimbursement/{proposalID}", types.QuerierRoute), queryReimbursementHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/reimbursements", types.QuerierRoute), queryReimbursementsHandler(cliCtx)).Methods("GET")
 }
 
 func queryPoolWithIDHandler(cliCtx context.CLIContext) http.HandlerFunc {
@@ -324,6 +326,47 @@ func queryShieldStakingRateHandler(cliCtx context.CLIContext) http.HandlerFunc {
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryReimbursementHandler(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		vars := mux.Vars(r)
+		proposalID := vars["proposalID"]
+
+		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryReimbursement, proposalID)
+		res, height, err := cliCtx.QueryWithData(route, nil)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryReimbursementsHandler(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryReimbursements)
+		res, height, err := cliCtx.QueryWithData(route, nil)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
 		}
 
