@@ -597,7 +597,7 @@ func (k Keeper) UndelegateFromAccountToShieldModule(ctx sdk.Context, senderModul
 		originalDelegatedVesting := vacc.GetDelegatedVesting()
 		vacc.TrackUndelegation(amt)
 		updatedDelegatedVesting := vacc.GetDelegatedVesting()
-		if mvacc, ok := delAcc.(vesting.ManualVestingAccount); ok {
+		if mvacc, ok := delAcc.(*vesting.ManualVestingAccount); ok {
 			mvacc.VestedCoins = mvacc.VestedCoins.Add(originalDelegatedVesting.Sub(updatedDelegatedVesting)...)
 		}
 		k.ak.SetAccount(ctx, delAcc)
