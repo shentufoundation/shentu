@@ -71,8 +71,7 @@ var (
 			upgrade.ProposalHandler,
 			cert.ProposalHandler,
 			paramsclient.ProposalHandler,
-			// Disabled for phase I.
-			// shield.ProposalHandler,
+			shield.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -298,6 +297,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.shieldKeeper = shield.NewKeeper(
 		app.cdc,
 		keys[shield.StoreKey],
+		app.accountKeeper,
 		&stakingKeeper,
 		&app.govKeeper,
 		app.supplyKeeper,

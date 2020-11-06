@@ -29,7 +29,7 @@ var (
 	TotalCollateralKey          = []byte{0x01}
 	TotalWithdrawingKey         = []byte{0x02}
 	TotalShieldKey              = []byte{0x03}
-	TotalLockedKey              = []byte{0x04}
+	TotalClaimedKey             = []byte{0x04}
 	ServiceFeesKey              = []byte{0x05}
 	RemainingServiceFeesKey     = []byte{0x06}
 	PoolKey                     = []byte{0x07}
@@ -44,6 +44,7 @@ var (
 	StakeForShieldKey           = []byte{0x11}
 	BlockServiceFeesKey         = []byte{0x12}
 	OriginalStakingKey          = []byte{0x13}
+	ReimbursementKey            = []byte{0x14}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -58,8 +59,8 @@ func GetTotalShieldKey() []byte {
 	return TotalShieldKey
 }
 
-func GetTotalLockedKey() []byte {
-	return TotalLockedKey
+func GetTotalClaimedKey() []byte {
+	return TotalClaimedKey
 }
 
 func GetServiceFeesKey() []byte {
@@ -141,4 +142,11 @@ func GetOriginalStakingKey(purchaseID uint64) []byte {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, purchaseID)
 	return append(OriginalStakingKey, bz...)
+}
+
+// GetReimbursementKey gets the key for a reimbursement.
+func GetReimbursementKey(proposalID uint64) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, proposalID)
+	return append(ReimbursementKey, bz...)
 }

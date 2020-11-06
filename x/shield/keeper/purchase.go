@@ -68,17 +68,17 @@ func (k Keeper) DeletePurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk
 	return nil
 }
 
-// DequeuePurchase dequeues a purchase from the purchase queue.
-func (k Keeper) DequeuePurchase(ctx sdk.Context, purchaseList types.PurchaseList, endTime time.Time) {
-	timeslice := k.GetExpiringPurchaseQueueTimeSlice(ctx, endTime)
+// DequeuePurchase removes a pool-purchaser pair at a given timestamp of the purchase queue.
+func (k Keeper) DequeuePurchase(ctx sdk.Context, purchaseList types.PurchaseList, timestamp time.Time) {
+	timeslice := k.GetExpiringPurchaseQueueTimeSlice(ctx, timestamp)
 	for i, poolPurchaser := range timeslice {
 		if (purchaseList.PoolID == poolPurchaser.PoolID) && purchaseList.Purchaser.Equals(poolPurchaser.Purchaser) {
 			if len(timeslice) > 1 {
 				timeslice = append(timeslice[:i], timeslice[i+1:]...)
-				k.SetExpiringPurchaseQueueTimeSlice(ctx, endTime, timeslice)
+				k.SetExpiringPurchaseQueueTimeSlice(ctx, timestamp, timeslice)
 				return
 			}
-			ctx.KVStore(k.storeKey).Delete(types.GetPurchaseExpirationTimeKey(endTime))
+			ctx.KVStore(k.storeKey).Delete(types.GetPurchaseExpirationTimeKey(timestamp))
 			return
 		}
 	}
@@ -106,14 +106,15 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 	totalShield := k.GetTotalShield(ctx)
-	if totalShield.Add(shieldAmt).GT(totalCollateral.Sub(totalWithdrawing)) {
+	totalClaimed := k.GetTotalClaimed(ctx)
+	if totalShield.Add(shieldAmt).GT(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed)) {
 		return types.Purchase{}, types.ErrNotEnoughCollateral
 	}
 
 	// Check pool shield limit.
 	poolParams := k.GetPoolParams(ctx)
 	protectionEndTime := ctx.BlockTime().Add(poolParams.ProtectionPeriod)
-	maxShield := sdk.MinInt(pool.ShieldLimit, totalCollateral.Sub(totalWithdrawing).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt())
+	maxShield := sdk.MinInt(pool.ShieldLimit, totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt())
 	if shieldAmt.Add(pool.Shield).GT(maxShield) {
 		return types.Purchase{}, types.ErrPoolShieldExceedsLimit
 	}
@@ -184,7 +185,6 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 		return
 	}
 
-	store := ctx.KVStore(k.storeKey)
 	totalServiceFees := k.GetServiceFees(ctx)
 	totalShield := k.GetTotalShield(ctx)
 	serviceFees := types.InitMixedDecCoins()
@@ -229,6 +229,8 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 
 				// If purchaseDeletionTime < currentBlockTime, remove the purchase.
 				if entry.DeletionTime.Before(ctx.BlockTime()) {
+					k.DequeuePurchase(ctx, purchaseList, entry.ProtectionEndTime)
+
 					// If purchaseProtectionEndTime > previousBlockTime, calculate and set service fees before removing the purchase.
 					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
 					// Update pool shield and total shield.
@@ -251,8 +253,6 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 				k.SetPurchaseList(ctx, purchaseList)
 			}
 		}
-		// TODO: For phase I only. Need to modify the logic here after claims are enabled.
-		store.Delete(iterator.Key())
 	}
 	k.SetTotalShield(ctx, totalShield)
 	k.SetServiceFees(ctx, totalServiceFees)

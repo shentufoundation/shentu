@@ -29,22 +29,27 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 			total = total.Add(prov.Rewards)
 		}
 
+		bondDenom := keeper.BondDenom(ctx)
 		totalInt, change := total.Native.TruncateDecimal()
-		stakedCoin := sdk.NewCoin(keeper.BondDenom(ctx), sdk.ZeroInt())
+		stakedCoin := sdk.NewCoin(bondDenom, sdk.ZeroInt())
 		for _, staked := range keeper.GetAllStakeForShields(ctx) {
-			stakedCoin = stakedCoin.Add(sdk.NewCoin(keeper.BondDenom(ctx), staked.Amount))
+			stakedCoin = stakedCoin.Add(sdk.NewCoin(bondDenom, staked.Amount))
 		}
 		totalInt = totalInt.Add(stakedCoin)
 
-		blockServiceFees := keeper.GetBlockServiceFees(ctx).Native.AmountOf(keeper.BondDenom(ctx)).TruncateInt()
-		blockFeesCoin := sdk.NewCoin(keeper.BondDenom(ctx), blockServiceFees)
-
+		blockServiceFees := keeper.GetBlockServiceFees(ctx).Native.AmountOf(bondDenom).TruncateInt()
+		blockFeesCoin := sdk.NewCoin(bondDenom, blockServiceFees)
 		totalInt = totalInt.Add(blockFeesCoin)
+
+		for _, rmb := range keeper.GetAllReimbursements(ctx) {
+			totalInt = totalInt.Add(sdk.NewCoin(bondDenom, rmb.Amount.AmountOf(bondDenom)))
+		}
+
 		broken := !totalInt.IsEqual(moduleCoins) || !change.Empty()
 
 		return sdk.FormatInvariant(types.ModuleName, "module-account",
 			fmt.Sprintf("\n\tshield ModuleAccount coins: %s"+
-				"\n\tsum of remaining service fees & rewards & staked amount:  %s"+
+				"\n\tsum of remaining service fees & rewards & staked & reimbursement amount:  %s"+
 				"\n\tremaining change amount: %s\n",
 				moduleCoins, totalInt, change)), broken
 	}
@@ -69,12 +74,13 @@ func ProviderInvariant(keeper Keeper) sdk.Invariant {
 			fmt.Sprintf("\n\ttotal withdraw amount: %s"+
 				"\n\tsum of providers' withdrawing amount:  %s"+
 				"\n\ttotal collateral amount: %s"+
-				"\n\tsum of providers' collateral amount: %s\bn",
+				"\n\tsum of providers' collateral amount: %s\n",
 				totalWithdraw, withdrawSum, totalCollateral, collateralSum)), broken
 	}
 }
 
-// ShieldInvariant checks that the providers' coin amounts equal to the tracked value.
+// ShieldInvariant checks that the sum of individual pools' shield is
+// equal to the total shield.
 func ShieldInvariant(keeper Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		pools := keeper.GetAllPools(ctx)
