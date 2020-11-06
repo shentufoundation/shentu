@@ -31,7 +31,7 @@ var (
 	ErrPurchaseNotFound           = sdkerrors.Register(ModuleName, 126, "purchase is not found")
 	ErrProviderNotFound           = sdkerrors.Register(ModuleName, 127, "provider is not found")
 	ErrNotEnoughCollateral        = sdkerrors.Register(ModuleName, 128, "not enough collateral")
-	ErrReimbursementNotFound       = sdkerrors.Register(ModuleName, 129, "reimbursement is not found")
+	ErrReimbursementNotFound      = sdkerrors.Register(ModuleName, 129, "reimbursement is not found")
 	ErrInvalidBeneficiary         = sdkerrors.Register(ModuleName, 130, "invalid beneficiary")
 	ErrNotPayoutTime              = sdkerrors.Register(ModuleName, 131, "has not reached payout time yet")
 	ErrOverWithdraw               = sdkerrors.Register(ModuleName, 132, "too much withdraw initiated")
