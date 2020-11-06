@@ -44,6 +44,10 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryStakeForShield(ctx, path[1:], k)
 		case types.QueryShieldStakingRate:
 			return queryShieldStakingRate(ctx, path[1:], k)
+		case types.QueryReimbursement:
+			return queryReimbursement(ctx, path[1:], k)
+		case types.QueryReimbursements:
+			return queryReimbursements(ctx, path[1:], k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
@@ -302,6 +306,40 @@ func queryShieldStakingRate(ctx sdk.Context, path []string, k Keeper) (res []byt
 
 	rate := k.GetShieldStakingRate(ctx)
 	res, err = codec.MarshalJSONIndent(k.cdc, rate)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+// queryReimbursement queries a reimbursement by proposal ID.
+func queryReimbursement(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 1); err != nil {
+		return nil, err
+	}
+
+	proposalID, err := strconv.ParseUint(path[0], 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	pool, err := k.GetReimbursement(ctx, proposalID)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err = codec.MarshalJSONIndent(k.cdc, pool)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+// queryReimbursements returns information about all the reimbursements.
+func queryReimbursements(ctx sdk.Context, path []string, k Keeper) (res []byte, err error) {
+	if err := validatePathLength(path, 0); err != nil {
+		return nil, err
+	}
+	res, err = codec.MarshalJSONIndent(k.cdc, k.GetAllProposalIDReimbursementPairs(ctx))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

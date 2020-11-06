@@ -183,7 +183,7 @@ func (k Keeper) GetReimbursement(ctx sdk.Context, proposalID uint64) (types.Reim
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &reimbursement)
 		return reimbursement, nil
 	}
-	return types.Reimbursement{}, types.ErrCompensationNotFound
+	return types.Reimbursement{}, types.ErrReimbursementNotFound
 }
 
 // DeleteReimbursement deletes a reimbursement.
