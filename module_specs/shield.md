@@ -5,6 +5,9 @@ CertiKShield is a decentralized pool of CTK that uses CertiK Chain on-chain gove
 See the [whitepaper](https://www.certik.foundation/whitepaper#3-CertiKShield) for more information on CertiKShield.
 
 ## State
+
+`MixedCoins` keeps track of native and foreign tokens together.
+
 ```go
 type MixedCoins struct {
 	Native  sdk.Coins
@@ -12,6 +15,9 @@ type MixedCoins struct {
 }
 ```
 
+Every project that wants to buy a Shield needs to have a `Pool` created. Then, a project can purchase Shields (a.k.a. `Purchase`s) up to their `ShieldLimit`.
+
+```go
 // Pool contains a shield project pool's data.
 type Pool struct {
 	// ID is the id of the pool.
@@ -35,8 +41,12 @@ type Pool struct {
 	// Shield is the amount of all active purchased shields.
 	Shield sdk.Int `json:"shield" yaml:"shield"`
 }
+```
 
-// Provider tracks total delegation, total collateral, and rewards of a provider.
+
+`Provider` tracks total delegation, total collateral, and rewards of a provider.
+
+```go
 type Provider struct {
 	// Address is the address of the provider.
 	Address sdk.AccAddress `json:"address" yaml:"address"`
@@ -58,8 +68,11 @@ type Provider struct {
 	// Rewards is the pooling rewards to be collected.
 	Rewards MixedDecCoins `json:"rewards" yaml:"rewards"`
 }
+```
 
-// Purchase record an individual purchase.
+`Purchase` records an individual purchase.
+
+```go
 type Purchase struct {
 	// PurchaseID is the purchase_id.
 	PurchaseID uint64 `json:"purchase_id" yaml:"purchase_id"`
@@ -79,8 +92,11 @@ type Purchase struct {
 	// ServiceFees is the service fees paid by this purchase.
 	ServiceFees MixedDecCoins `json:"service_fees" yaml:"service_fees"`
 }
+```
 
-// PurchaseList is a collection of purchase.
+`PurchaseList` is a collection of `Purchase`s.
+
+```go
 type PurchaseList struct {
 	// PoolID is the id of the shield of the purchase.
 	PoolID uint64 `json:"pool_id" yaml:"pool_id"`
@@ -91,7 +107,11 @@ type PurchaseList struct {
 	// Entries stores all purchases by the purchaser in the pool.
 	Entries []Purchase `json:"entries" yaml:"entries"`
 }
-// PoolPurchase is a pair of pool id and purchaser.
+```
+
+`PoolPurchase` is a pair of pool id and purchaser.
+
+```go
 type PoolPurchaser struct {
 	// PoolID is the id of the shield pool.
 	PoolID uint64
@@ -99,8 +119,11 @@ type PoolPurchaser struct {
 	// Purchaser is the chain address of the purchaser.
 	Purchaser sdk.AccAddress
 }
+```
 
-// Withdraw stores an ongoing withdraw of pool collateral.
+`Withdraw` stores an ongoing withdraw of pool collateral.
+
+```go
 type Withdraw struct {
 	// Address is the chain address of the provider withdrawing.
 	Address sdk.AccAddress `json:"address" yaml:"address"`
@@ -111,8 +134,14 @@ type Withdraw struct {
 	// CompletionTime is the scheduled withdraw completion time.
 	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"`
 }
+```
 
 ## Messages
+
+
+MsgCreatePool creates a new pool for a project. Once created, the project can purchase Shields via `MsgPurchaseShield`. The pool can be updated with `MsgUpdatePool`--for example, a project's `ShieldLimit` could be increased.
+
+```go
 // MsgCreatePool defines the attributes of a create-pool transaction.
 type MsgCreatePool struct {
 	From        sdk.AccAddress `json:"from" yaml:"from"`
@@ -123,6 +152,7 @@ type MsgCreatePool struct {
 	Description string         `json:"description" yaml:"description"`
 	ShieldLimit sdk.Int        `json:"shield_limit" yaml:"shield_limit"`
 }
+
 // MsgUpdatePool defines the attributes of a shield pool update transaction.
 type MsgUpdatePool struct {
 	From        sdk.AccAddress `json:"from" yaml:"from"`
@@ -132,41 +162,56 @@ type MsgUpdatePool struct {
 	Description string         `json:"description" yaml:"description"`
 	ShieldLimit sdk.Int        `json:"shield_limit" yaml:"shield_limit"`
 }
+```
+
+`MsgPausePool` sets the pool's `Active` to `false`; `MsgResumePool` sets it to `true`. While inactive, new Shields cannot be purchased.
+
+```go
 // MsgPausePool defines the attributes of a pausing a shield pool.
 type MsgPausePool struct {
 	From   sdk.AccAddress `json:"from" yaml:"from"`
 	PoolID uint64         `json:"pool_id" yaml:"pool_id"`
 }
+
 // MsgResumePool defines the attributes of a resuming a shield pool.
 type MsgResumePool struct {
 	From   sdk.AccAddress `json:"from" yaml:"from"`
 	PoolID uint64         `json:"pool_id" yaml:"pool_id"`
 }
+```
+
+`MsgDepositCollateral` creates a new provider with the given `Collateral`, or it adds `Collateral` to an existing provider's collateral. There's no `MsgCreateProvider` because this message has that functionality.
+
+```go
 // MsgDepositCollateral defines the attributes of a depositing collaterals.
 type MsgDepositCollateral struct {
 	From       sdk.AccAddress `json:"sender" yaml:"sender"`
 	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
 }
-// MsgDepositCollateral defines the attributes of a depositing collaterals.
-type MsgDepositCollateral struct {
-	From       sdk.AccAddress `json:"sender" yaml:"sender"`
-	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
-}
-// MsgWithdrawForeignRewards defines attribute of withdraw rewards transaction.
+```
+
+`MsgWithdrawRewards` pays out pending CTK rewards. Currently, `MsgWithdrawForeignRewards` and `MsgClearPayouts` are not callable or implemented.
+
+```go
+// MsgWithdrawRewards defines attribute of withdraw rewards transaction.
 type MsgWithdrawRewards struct {
 	From sdk.AccAddress `json:"sender" yaml:"sender"`
 }
+
 // MsgWithdrawForeignRewards defines attributes of withdraw foreign rewards transaction.
 type MsgWithdrawForeignRewards struct {
 	From   sdk.AccAddress `json:"sender" yaml:"sender"`
 	Denom  string         `json:"denom" yaml:"denom"`
 	ToAddr string         `json:"to_addr" yaml:"to_addr"`
 }
+
 // MsgClearPayouts defines attributes of clear payouts transaction.
 type MsgClearPayouts struct {
 	From  sdk.AccAddress `json:"sender" yaml:"sender"`
 	Denom string         `json:"denom" yaml:"denom"`
 }
+```
+
 // MsgPurchaseShield defines the attributes of purchase shield transaction.
 type MsgPurchaseShield struct {
 	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
