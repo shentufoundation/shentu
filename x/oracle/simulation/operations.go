@@ -70,9 +70,9 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 				return simulation.NewOperationMsgBasic(types.ModuleName,
 					"NoOp: no qualified certifier, skip this tx", "", false, nil), nil, nil
 			}
-			var certifier cert.Certifier
+			certifier := certifiers[0]
 			var found bool
-			for i := 0; i < len(certifiers); i++ {
+			for i := 1; i < len(certifiers); i++ {
 				if !certifier.Address.Equals(operator.Address) {
 					certifier = certifiers[i]
 					found = true
