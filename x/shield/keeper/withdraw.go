@@ -159,7 +159,7 @@ func (k Keeper) ComputeTotalUnbondingAmount(ctx sdk.Context, provider sdk.AccAdd
 
 	sum := sdk.ZeroInt()
 	for _, ubd := range unbondings {
-		for _, entry := range(ubd.Entries) {
+		for _, entry := range ubd.Entries {
 			sum = sum.Add(entry.Balance)
 		}
 	}
@@ -323,12 +323,12 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount 
 				}
 				continue
 			}
-			
+
 			if unbondingDels.Entries[j].CompletionTime.Before(unbondingDels.Entries[j-1].CompletionTime) {
 				unbondingDels.Entries[j-1], unbondingDels.Entries[j] = unbondingDels.Entries[j], unbondingDels.Entries[j-1]
 				continue
 			}
-			
+
 			break
 		}
 		if !found {

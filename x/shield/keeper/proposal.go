@@ -15,9 +15,6 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-// FIXME >>> DEBUG
-var debugAmt sdk.Int
-
 // SecureCollaterals is called after a claim is submitted to secure
 // the given amount of collaterals for the duration and adjust shield
 // module states accordingly.
@@ -237,8 +234,6 @@ func (k Keeper) GetAllProposalIDReimbursementPairs(ctx sdk.Context) []types.Prop
 
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount sdk.Coins, beneficiary sdk.AccAddress) error {
-	fmt.Printf("\n\n>>> CreateReimbursement: %s\n", amount)
-	debugAmt = sdk.ZeroInt()
 	bondDenom := k.BondDenom(ctx)
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalPurchased := k.GetTotalShield(ctx)
@@ -289,10 +284,6 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 	totalClaimed = totalClaimed.Sub(amount.AmountOf(bondDenom))
 	k.SetTotalCollateral(ctx, totalCollateral)
 	k.SetTotalClaimed(ctx, totalClaimed)
-
-	if !debugAmt.Equal(amount.AmountOf(k.BondDenom(ctx))) {
-		panic("broken invariant")
-	}
 
 	return nil
 }
@@ -530,7 +521,6 @@ func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd staking.UnbondingDelegati
 	if err := k.UndelegateFromAccountToShieldModule(ctx, staking.NotBondedPoolName, ubd.DelegatorAddress, payoutCoins); err != nil {
 		panic(err)
 	}
-	debugAmt = debugAmt.Add(payout)
 }
 
 // UndelegateShares undelegates delegations of a delegator to a validator by shares.
@@ -582,7 +572,6 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	if err != nil {
 		panic(err)
 	}
-	debugAmt = debugAmt.Add(amount)
 }
 
 // UndelegateFromAccountToShieldModule performs undelegations from a delegator's staking to the shield module.
