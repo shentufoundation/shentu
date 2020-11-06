@@ -10,9 +10,9 @@ import (
 )
 
 type unbondingInfo struct {
-	Delegator      sdk.AccAddress
-	Validator      sdk.ValAddress
-	CompletionTime time.Time
+	delegator      sdk.AccAddress
+	validator      sdk.ValAddress
+	completionTime time.Time
 }
 
 // InsertWithdrawQueue prepares a withdraw queue timeslice
@@ -77,7 +77,8 @@ func (k Keeper) GetAllWithdraws(ctx sdk.Context) (withdraws types.Withdraws) {
 }
 
 // GetWithdrawsByProvider gets all withdraws of a provider.
-func (k Keeper) GetWithdrawsByProvider(ctx sdk.Context, providerAddr sdk.AccAddress) (withdraws types.Withdraws) {
+func (k Keeper) GetWithdrawsByProvider(ctx sdk.Context, providerAddr sdk.AccAddress) types.Withdraws {
+	var withdraws types.Withdraws
 	k.IterateWithdraws(ctx, func(timeSlice types.Withdraws) bool {
 		for _, withdraw := range timeSlice {
 			if withdraw.Address.Equals(providerAddr) {
@@ -158,8 +159,8 @@ func (k Keeper) ComputeTotalUnbondingAmount(ctx sdk.Context, provider sdk.AccAdd
 
 	sum := sdk.ZeroInt()
 	for _, ubd := range unbondings {
-		for i := 0; i < len(ubd.Entries); i++ {
-			sum = sum.Add(ubd.Entries[i].Balance)
+		for _, entry := range(ubd.Entries) {
+			sum = sum.Add(entry.Balance)
 		}
 	}
 	return sum
@@ -171,7 +172,7 @@ func (k Keeper) ComputeUnbondingAmountByTime(ctx sdk.Context, provider sdk.AccAd
 	sum := sdk.ZeroInt()
 	seen := make([]sdk.ValAddress, 0, len(dvPairs))
 	for _, dvPair := range dvPairs {
-		valAddr := dvPair.Validator
+		valAddr := dvPair.validator
 		if find(seen, valAddr) {
 			continue
 		}
@@ -184,11 +185,10 @@ func (k Keeper) ComputeUnbondingAmountByTime(ctx sdk.Context, provider sdk.AccAd
 		}
 		for i := 0; i < len(ubd.Entries); i++ {
 			entry := ubd.Entries[i]
-			if entry.IsMature(time) {
-				sum = sum.Add(entry.Balance)
-			} else {
+			if !entry.IsMature(time) {
 				break
 			}
+			sum = sum.Add(entry.Balance)
 		}
 	}
 	return sum
@@ -216,9 +216,9 @@ func (k Keeper) getUnbondingsByProviderMaturingByTime(ctx sdk.Context, provider 
 			if ubd.DelegatorAddress.Equals(provider) {
 				completionTime, _ := sdk.ParseTimeBytes(unbondingTimesliceIterator.Key()[1:])
 				ubdInfo := unbondingInfo{
-					Delegator:      ubd.DelegatorAddress,
-					Validator:      ubd.ValidatorAddress,
-					CompletionTime: completionTime,
+					delegator:      ubd.DelegatorAddress,
+					validator:      ubd.ValidatorAddress,
+					completionTime: completionTime,
 				}
 				results = append(results, ubdInfo)
 			}
@@ -229,10 +229,9 @@ func (k Keeper) getUnbondingsByProviderMaturingByTime(ctx sdk.Context, provider 
 
 // DelayWithdraws delays the given amount of withdraws maturing
 // before the delay duration until the end of the delay duration.
-func (k Keeper) DelayWithdraws(ctx sdk.Context, provider sdk.AccAddress, amount sdk.Int, delay time.Duration) error {
+func (k Keeper) DelayWithdraws(ctx sdk.Context, provider sdk.AccAddress, amount sdk.Int, delayedTime time.Time) error {
 	// Retrieve delay candidates, which are withdraws
 	// ending before the delay duration from now.
-	delayedTime := ctx.BlockTime().Add(delay)
 	withdrawTimesliceIterator := k.WithdrawQueueIterator(ctx, delayedTime)
 	defer withdrawTimesliceIterator.Close()
 
@@ -257,8 +256,7 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, provider sdk.AccAddress, amount 
 			break
 		}
 		// Remove from withdraw queue.
-		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime)
-		if len(timeSlice) > 1 {
+		if timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime); len(timeSlice) > 1 {
 			for j := 0; j < len(timeSlice); j++ {
 				if timeSlice[j].Address.Equals(provider) {
 					timeSlice = append(timeSlice[:j], timeSlice[j+1:]...)
@@ -284,10 +282,9 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, provider sdk.AccAddress, amount 
 	return nil
 }
 
-func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount sdk.Int, delay time.Duration) error {
+func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount sdk.Int, delayedTime time.Time) error {
 	// Retrieve delay candidates, which are unbondings
 	// ending before the delay duration from now.
-	delayedTime := ctx.BlockTime().Add(delay)
 	ubds := k.getUnbondingsByProviderMaturingByTime(ctx, provider, delayedTime)
 
 	// Delay unbondings, starting with the candidates
@@ -298,20 +295,19 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount 
 			break
 		}
 		// Remove from unbonding queue.
-		timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, ubds[i].CompletionTime)
-		if len(timeSlice) > 1 {
+		if timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, ubds[i].completionTime); len(timeSlice) > 1 {
 			for j := 0; j < len(timeSlice); j++ {
-				if timeSlice[j].DelegatorAddress.Equals(provider) && timeSlice[j].ValidatorAddress.Equals(ubds[i].Validator) {
+				if timeSlice[j].DelegatorAddress.Equals(provider) && timeSlice[j].ValidatorAddress.Equals(ubds[i].validator) {
 					timeSlice = append(timeSlice[:j], timeSlice[j+1:]...)
-					k.sk.SetUBDQueueTimeSlice(ctx, ubds[i].CompletionTime, timeSlice)
+					k.sk.SetUBDQueueTimeSlice(ctx, ubds[i].completionTime, timeSlice)
 					break
 				}
 			}
 		} else {
-			k.sk.RemoveUBDQueue(ctx, ubds[i].CompletionTime)
+			k.sk.RemoveUBDQueue(ctx, ubds[i].completionTime)
 		}
 
-		unbondingDels, found := k.sk.GetUnbondingDelegation(ctx, provider, ubds[i].Validator)
+		unbondingDels, found := k.sk.GetUnbondingDelegation(ctx, provider, ubds[i].validator)
 		if !found {
 			panic("unbonding list was not found for the given provider-validator pair")
 		}
@@ -319,15 +315,21 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount 
 		found = false
 		amount := sdk.ZeroInt()
 		for j := 0; j < len(unbondingDels.Entries); j++ {
-			if !found && unbondingDels.Entries[j].CompletionTime.Equal(ubds[i].CompletionTime) {
-				unbondingDels.Entries[j].CompletionTime = delayedTime
-				found = true
-				amount = unbondingDels.Entries[j].Balance
-			} else if found && unbondingDels.Entries[j].CompletionTime.Before(unbondingDels.Entries[j-1].CompletionTime) {
-				unbondingDels.Entries[j-1], unbondingDels.Entries[j] = unbondingDels.Entries[j], unbondingDels.Entries[j-1]
-			} else if found {
-				break
+			if !found {
+				if unbondingDels.Entries[j].CompletionTime.Equal(ubds[i].completionTime) {
+					unbondingDels.Entries[j].CompletionTime = delayedTime
+					found = true
+					amount = unbondingDels.Entries[j].Balance
+				}
+				continue
 			}
+			
+			if unbondingDels.Entries[j].CompletionTime.Before(unbondingDels.Entries[j-1].CompletionTime) {
+				unbondingDels.Entries[j-1], unbondingDels.Entries[j] = unbondingDels.Entries[j], unbondingDels.Entries[j-1]
+				continue
+			}
+			
+			break
 		}
 		if !found {
 			panic("particular unbonding entry not found for the given timestamp")
