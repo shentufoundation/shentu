@@ -11,6 +11,7 @@ import (
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
+	"github.com/certikfoundation/shentu/x/auth/vesting"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
@@ -592,15 +593,14 @@ func (k Keeper) UndelegateFromAccountToShieldModule(ctx sdk.Context, senderModul
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "account %s does not exist", delAddr)
 	}
 
-	vacc, ok := delAcc.(vestexported.VestingAccount)
-	if ok {
+	if vacc, ok := delAcc.(vestexported.VestingAccount); ok {
+		originalDelegatedVesting := vacc.GetDelegatedVesting()
 		vacc.TrackUndelegation(amt)
-		k.ak.SetAccount(ctx, delAcc)
-		// FIXME DEBUG
-		if vacc.SpendableCoins(ctx.BlockTime()).AmountOf(k.BondDenom(ctx)).IsNegative() {
-			fmt.Printf("\n%v\n", vacc)
-			panic(fmt.Sprintf("negative vacc spendable coins %s", vacc.SpendableCoins(ctx.BlockTime())))
+		updatedDelegatedVesting := vacc.GetDelegatedVesting()
+		if mvacc, ok := delAcc.(vesting.ManualVestingAccount); ok {
+			mvacc.VestedCoins = mvacc.VestedCoins.Add(originalDelegatedVesting.Sub(updatedDelegatedVesting)...)
 		}
+		k.ak.SetAccount(ctx, delAcc)
 	}
 
 	if err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, senderModule, types.ModuleName, amt); err != nil {
