@@ -419,7 +419,7 @@ func GetCmdReimbursement(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdReimbursements returns the command for querying reimbursements.
 func GetCmdReimbursements(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "reimbursement",
+		Use:   "reimbursements",
 		Short: "query all reimbursements",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -430,7 +430,7 @@ func GetCmdReimbursements(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			var out []types.Reimbursement
+			var out []types.ProposalIDReimbursementPair
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},
