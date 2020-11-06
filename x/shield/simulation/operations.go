@@ -130,7 +130,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		totalShield := k.GetTotalShield(ctx)
 		totalClaimed := k.GetTotalClaimed(ctx)
 		poolParams := k.GetPoolParams(ctx)
-		maxShield := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt(), totalCollateral.Sub(totalWithdrawing).Sub(totalShield))
+		maxShield := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt(), totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).Sub(totalShield))
 		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
