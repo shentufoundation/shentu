@@ -102,10 +102,6 @@ func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amo
 		return
 	}
 
-	ws := k.GetWithdrawsByProvider(ctx, provider.Address)
-	if provider.Address.String() == "cosmos1cjxdnwmvl5c9apyjp52j2euqyquce8plyv7g0v" {
-		fmt.Printf("herheere with %d", len(ws))
-	}
 	// Secure the given amount of collaterals until the end of the
 	// lock period by delaying withdrawals, if necessary.
 	// NotWithdrawnSoon = ProviderTotalCollateral - WithdrawnByEndTime
