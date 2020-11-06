@@ -111,12 +111,12 @@ func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amo
 	// the end of the lock period by delaying unbondings, if necessary.
 	upcomingUnbondingAmount := k.ComputeUnbondingAmountByTime(ctx, provider.Address, endTime)
 	notUnbondedSoon := provider.DelegationBonded.Add(k.ComputeTotalUnbondingAmount(ctx, provider.Address).Sub(upcomingUnbondingAmount))
-	
-	// notWithdrawnSoon <= notUnbondedSoon
+
+	// notWithdrawnSoon < notUnbondedSoon
 	if notWithdrawnSoon.GT(notUnbondedSoon) {
 		panic("notWithdrawnSoon should be less than or equal to notUnbondedSoon")
 	}
-	
+
 	if amount.GT(notWithdrawnSoon) {
 		withdrawDelayAmt := amount.Sub(notWithdrawnSoon)
 		k.DelayWithdraws(ctx, provider.Address, withdrawDelayAmt, endTime)
