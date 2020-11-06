@@ -257,7 +257,8 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, provider sdk.AccAddress, amount 
 		}
 		// Remove from withdraw queue.
 		if timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime); len(timeSlice) > 1 {
-			for j := 0; j < len(timeSlice); j++ {
+			//for j := 0; j < len(timeSlice); j++ {
+			for j := len(timeSlice) - 1; j >= 0; j-- {
 				if timeSlice[j].Address.Equals(provider) {
 					timeSlice = append(timeSlice[:j], timeSlice[j+1:]...)
 					k.SetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime, timeSlice)
@@ -296,7 +297,8 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount 
 		}
 		// Remove from unbonding queue.
 		if timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, ubds[i].completionTime); len(timeSlice) > 1 {
-			for j := 0; j < len(timeSlice); j++ {
+			//for j := 0; j < len(timeSlice); j++ {
+			for j := len(timeSlice) - 1; j >= 0; j-- {
 				if timeSlice[j].DelegatorAddress.Equals(provider) && timeSlice[j].ValidatorAddress.Equals(ubds[i].validator) {
 					timeSlice = append(timeSlice[:j], timeSlice[j+1:]...)
 					k.sk.SetUBDQueueTimeSlice(ctx, ubds[i].completionTime, timeSlice)
