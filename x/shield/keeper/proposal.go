@@ -601,12 +601,7 @@ func (k Keeper) UndelegateFromAccountToShieldModule(ctx sdk.Context, senderModul
 			} else {
 				unlockAmt = mvacc.OriginalVesting.Sub(mvacc.VestedCoins)
 			}
-			fmt.Println(amt.String())
-			fmt.Println(mvacc.String())
 			mvacc.VestedCoins = mvacc.VestedCoins.Add(unlockAmt...)
-			if mvacc.VestedCoins.IsAllGT(mvacc.OriginalVesting) {
-				panic("wowowow")
-			}
 		}
 		k.ak.SetAccount(ctx, delAcc)
 	}
