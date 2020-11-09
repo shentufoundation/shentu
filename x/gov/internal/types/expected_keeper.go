@@ -17,6 +17,7 @@ type CertKeeper interface {
 	GetAllCertifiers(ctx sdk.Context) (certifiers cert.Certifiers)
 	GetCertifier(ctx sdk.Context, certifierAddress sdk.AccAddress) (cert.Certifier, error)
 	HasCertifierAlias(ctx sdk.Context, alias string) bool
+	IsCertified(ctx sdk.Context, requestContentType string, content string, certType string) bool
 }
 
 type UpgradeKeeper interface {

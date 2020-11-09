@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/certikfoundation/shentu/x/shield"
 
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
@@ -38,6 +39,12 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 
 	if proposal.Status == types.StatusCertifierVotingPeriod && !k.IsCertifier(ctx, voterAddr) {
 		return sdkerrors.Wrapf(govTypes.ErrInvalidVote, "'%s' is not a certifier.", voterAddr)
+	}
+
+	if proposal.Content.ProposalType() == shield.ProposalTypeShieldClaim &&
+		proposal.Status == types.StatusValidatorVotingPeriod &&
+		!k.IsCertifiedIdentity(ctx, voterAddr) {
+		return sdkerrors.Wrapf(govTypes.ErrInvalidVote, "'%s' is not a certified identity", voterAddr)
 	}
 
 	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))

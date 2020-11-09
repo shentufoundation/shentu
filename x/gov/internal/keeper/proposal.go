@@ -70,6 +70,11 @@ func (k Keeper) IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool {
 	return k.CertKeeper.IsCertifier(ctx, addr)
 }
 
+// IsCertifiedIdentity checks if the input address is a certified identity.
+func (k Keeper) IsCertifiedIdentity(ctx sdk.Context, addr sdk.AccAddress) bool {
+	return k.CertKeeper.IsCertified(ctx, "general", addr.String(), "identity")
+}
+
 // IsCouncilMember checks if the address is either a validator or a certifier.
 func (k Keeper) IsCouncilMember(ctx sdk.Context, addr sdk.AccAddress) bool {
 	return k.isValidator(ctx, addr) || k.IsCertifier(ctx, addr)
