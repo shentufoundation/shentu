@@ -273,8 +273,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 	}
 
 	// Add block service fees that need to be distributed for this block
-	blockServiceFees := types.InitMixedDecCoins()
-	blockServiceFees = k.GetBlockServiceFees(ctx)
+	blockServiceFees := k.GetBlockServiceFees(ctx)
 	serviceFees = serviceFees.Add(blockServiceFees)
 	k.SetBlockServiceFees(ctx, types.InitMixedDecCoins())
 
