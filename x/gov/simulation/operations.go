@@ -189,18 +189,29 @@ func SimulateSubmitProposal(
 		}
 
 		// 4) Schedule operations for validator/delegator voting
-		// 4.1) first pick a number of people to vote.
-		curNumVotesState = numVotesTransitionMatrix.NextState(r, curNumVotesState)
-		numVotes := int(math.Ceil(float64(len(accs)) * statePercentageArray[curNumVotesState]))
-		// 4.2) select who votes and when
-		whoVotes := r.Perm(len(accs))
-		whoVotes = whoVotes[:numVotes]
+		if content.ProposalType() == shield.ProposalTypeShieldClaim {
+			for _, acc := range accs {
+				if k.IsCertifiedIdentity(ctx, acc.Address) {
+					fops = append(fops, simulation.FutureOperation{
+						BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 10, 15),
+						Op:          SimulateCertifierMsgVote(ak, ck, k, acc, proposalID),
+					})
+				}
+			}
+		} else {
+			// 4.1) first pick a number of people to vote.
+			curNumVotesState = numVotesTransitionMatrix.NextState(r, curNumVotesState)
+			numVotes := int(math.Ceil(float64(len(accs)) * statePercentageArray[curNumVotesState]))
+			// 4.2) select who votes and when
+			whoVotes := r.Perm(len(accs))
+			whoVotes = whoVotes[:numVotes]
 
-		for i := 0; i < numVotes; i++ {
-			fops = append(fops, simulation.FutureOperation{
-				BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 10, 15),
-				Op:          SimulateMsgVote(ak, k, accs[whoVotes[i]], proposalID),
-			})
+			for i := 0; i < numVotes; i++ {
+				fops = append(fops, simulation.FutureOperation{
+					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 10, 15),
+					Op:          SimulateMsgVote(ak, k, accs[whoVotes[i]], proposalID),
+				})
+			}
 		}
 
 		return opMsg, fops, nil
