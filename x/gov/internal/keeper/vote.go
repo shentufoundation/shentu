@@ -3,7 +3,6 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/certikfoundation/shentu/x/shield"
 
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
@@ -12,6 +11,7 @@ import (
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/shield"
 )
 
 // AddVote Adds a vote on a specific proposal.
