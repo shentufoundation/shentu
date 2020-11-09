@@ -59,6 +59,9 @@ func NewShieldClaimProposalHandler(k Keeper) govtypes.Handler {
 }
 
 func handleShieldClaimProposal(ctx sdk.Context, k Keeper, p types.ShieldClaimProposal) error {
+	if ctx.BlockHeight() < common.Update1Height {
+		return types.ErrBeforeUpdate
+	}
 	if err := k.CreateReimbursement(ctx, p.ProposalID, p.Loss, p.Proposer); err != nil {
 		return err
 	}
@@ -299,6 +302,9 @@ func handleMsgUnstakeFromShield(ctx sdk.Context, msg types.MsgUnstakeFromShield,
 }
 
 func handleMsgUpdateSponsor(ctx sdk.Context, msg types.MsgUpdateSponsor, k Keeper) (*sdk.Result, error) {
+	if ctx.BlockHeight() < common.Update1Height {
+		return nil, types.ErrBeforeUpdate
+	}
 	pool, err := k.UpdateSponsor(ctx, msg.PoolID, msg.Sponsor, msg.SponsorAddr, msg.FromAddr)
 	if err != nil {
 		return &sdk.Result{Events: ctx.EventManager().Events()}, err
@@ -321,6 +327,9 @@ func handleMsgUpdateSponsor(ctx sdk.Context, msg types.MsgUpdateSponsor, k Keepe
 }
 
 func handleMsgWithdrawReimbursement(ctx sdk.Context, msg types.MsgWithdrawReimbursement, k Keeper) (*sdk.Result, error) {
+	if ctx.BlockHeight() < common.Update1Height {
+		return nil, types.ErrBeforeUpdate
+	}
 	amount, err := k.WithdrawReimbursement(ctx, msg.ProposalID, msg.From)
 	if err != nil {
 		return &sdk.Result{Events: ctx.EventManager().Events()}, err
