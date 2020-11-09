@@ -45,7 +45,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 		k.InsertWithdrawQueue(ctx, withdraw)
 	}
 	k.SetLastUpdateTime(ctx, data.LastUpdateTime)
-	k.SetBlockServiceFees(ctx, types.InitMixedDecCoins())
 	for _, pRPair := range data.ProposalIDReimbursementPairs {
 		k.SetReimbursement(ctx, pRPair.ProposalID, pRPair.Reimbursement)
 	}
