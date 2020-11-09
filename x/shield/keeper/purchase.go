@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
@@ -217,7 +216,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 					purchaseList.Entries[i].ServiceFees = types.InitMixedDecCoins()
 
 					originalStaking := k.GetOriginalStaking(ctx, entry.PurchaseID)
-					if !originalStaking.IsZero() && ctx.BlockHeight() > common.Update1Height {
+					if !originalStaking.IsZero() {
 						// keep track of the list to be updated to avoid overwriting the purchase list
 						stakeForShieldUpdateList = append(stakeForShieldUpdateList, pPPTriplet{
 							poolID:     poolPurchaser.PoolID,
