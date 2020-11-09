@@ -205,7 +205,17 @@ type MsgDepositCollateral struct {
 }
 ```
 
-### Rewards and Reimbursements
+### Withdraws
+
+`MsgWithdrawCollateral` inserts a collateral withdraw to the withdraw queue.
+
+```go
+// MsgWithdrawCollateral defines the attributes of a withdrawing collaterals.
+type MsgWithdrawCollateral struct {
+	From       sdk.AccAddress `json:"sender" yaml:"sender"`
+	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
+}
+```
 
 `MsgWithdrawRewards` pays out pending CTK rewards. Currently, `MsgWithdrawForeignRewards` and `MsgClearPayouts` are not callable or implemented.
 
@@ -229,7 +239,7 @@ type MsgClearPayouts struct {
 }
 ```
 
-Currently, `MsgWithdrawReimbursement` is not callable or implemented.
+`MsgWithdrawReimbursement` withdraws a reimbursement made for a beneficiary.
 
 ```go
 // MsgWithdrawReimbursement defines the attributes of withdraw reimbursement transaction.
@@ -239,12 +249,33 @@ type MsgWithdrawReimbursement struct {
 }
 ```
 
+`MsgStakeForShield` purchases a Shield and pays for the fees using staking.
+
 ```go
+// MsgStakeForShield defines the attributes of staking for purchase transaction.
+type MsgStakeForShield struct {
+	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
+	Shield      sdk.Coins      `json:"shield" yaml:"shield"`
+	Description string         `json:"description" yaml:"description"`
+	From        sdk.AccAddress `json:"from" yaml:"from"`
+}
+
 // MsgUnstakeFromShield defines the attributes of staking for purchase transaction.
 type MsgUnstakeFromShield struct {
 	PoolID uint64         `json:"pool_id" yaml:"pool_id"`
 	Shield sdk.Coins      `json:"shield" yaml:"shield"`
 	From   sdk.AccAddress `json:"from" yaml:"from"`
+}
+```
+
+`MsgUpdateSponsor` updates the sponsor information of a given pool specified by `PoolID`.
+```go
+// MsgUpdateSponsor defines the attributes of a update-sponsor transaction.
+type MsgUpdateSponsor struct {
+	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
+	Sponsor     string         `json:"sponsor" yaml:"sponsor"`
+	SponsorAddr sdk.AccAddress `json:"sponsor_addr" yaml:"sponsor_addr"`
+	FromAddr    sdk.AccAddress `json:"from" yaml:"from"`
 }
 ```
 
