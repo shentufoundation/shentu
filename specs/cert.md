@@ -68,16 +68,6 @@ type Certifier struct {
 }
 ```
 
-### Validators
-
-A validator's public key and the certifier that added the validator are stored in a `Validator` object.
-
-```go
-type Validator struct {
-	PubKey    crypto.PubKey
-	Certifier sdk.AccAddress
-}
-```
 
 ## Stores
 
@@ -107,24 +97,6 @@ type MsgProposeCertifier struct {
 }
 ```
 
-`MsgCertifyValidator` lets a certifier add a new validator.
-
-```go
-type MsgCertifyValidator struct {
-	Certifier sdk.AccAddress `json:"certifier" yaml:"certifier"`
-	Validator crypto.PubKey  `json:"validator" yaml:"validator"`
-}
-```
-
-`MsgDecertifyValidator` lets a certifier remove an existing validator.
-
-```go
-type MsgDecertifyValidator struct {
-	Decertifier sdk.AccAddress `json:"decertifier" yaml:"decertifier"`
-	Validator   crypto.PubKey  `json:"validator" yaml:"validator"`
-}
-```
-
 The following two messages create a new general or compilation certificate, respectively.
 
 ```go
@@ -151,16 +123,6 @@ type MsgRevokeCertificate struct {
 	Revoker     sdk.AccAddress `json:"revoker" yaml:"revoker"`
 	ID          CertificateID  `json:"id" yaml:"id"`
 	Description string         `json:"description" yaml:"description"`
-}
-```
-
-`MsgCertifyPlatform` certifies a validator's host platform.
-
-```go
-type MsgCertifyPlatform struct {
-	Certifier sdk.AccAddress `json:"certifier" yaml:"certifier"`
-	Validator crypto.PubKey  `json:"validator" yaml:"validator"`
-	Platform  string         `json:"platform" yaml:"platform"`
 }
 ```
 ## Parameters
