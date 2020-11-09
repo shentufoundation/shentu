@@ -108,6 +108,11 @@ func (k Keeper) GetBlockServiceFees(ctx sdk.Context) types.MixedDecCoins {
 	return serviceFees
 }
 
+func (k Keeper) DeleteBlockServiceFees(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetBlockServiceFeesKey())
+}
+
 func (k Keeper) SetRemainingServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(serviceFees)
