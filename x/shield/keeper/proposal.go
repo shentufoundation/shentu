@@ -595,7 +595,7 @@ func (k Keeper) UndelegateFromAccountToShieldModule(ctx sdk.Context, senderModul
 		updatedDelegatedVesting := vacc.GetDelegatedVesting()
 		updateAmt := originalDelegatedVesting.Sub(updatedDelegatedVesting)
 		if mvacc, ok := delAcc.(*vesting.ManualVestingAccount); ok {
-			unlockAmt := sdk.NewCoins()
+			var unlockAmt sdk.Coins
 			if mvacc.OriginalVesting.Sub(mvacc.VestedCoins).IsAllGT(updateAmt) {
 				unlockAmt = updateAmt
 			} else {
