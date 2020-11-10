@@ -139,15 +139,13 @@ func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.V
 func (am AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	am.cosmosAppModule.GenerateGenesisState(simState)
 
+	// Turn off slashing.
 	var genesisState GenesisState
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[ModuleName], &genesisState)
 	genesisState.Params.SlashFractionDoubleSign = sdk.ZeroDec()
 	genesisState.Params.SlashFractionDowntime = sdk.ZeroDec()
-
 	codec.MustMarshalJSONIndent(simState.Cdc, genesisState.Params)
 	simState.GenState[ModuleName] = simState.Cdc.MustMarshalJSON(genesisState)
-
-	simState.Cdc.MustUnmarshalJSON(simState.GenState[ModuleName], &genesisState)
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
