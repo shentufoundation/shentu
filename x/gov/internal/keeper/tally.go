@@ -7,6 +7,7 @@ import (
 
 	"github.com/certikfoundation/shentu/x/cert"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/shield"
 )
 
 // validatorGovInfo used for tallying
@@ -71,7 +72,11 @@ func Tally(ctx sdk.Context, k Keeper, proposal types.Proposal) (pass bool, veto 
 		tp,
 		results,
 	}
-	pass, veto = passAndVetoStakeResult(k, ctx, th)
+	if proposal.Content.ProposalType() == shield.ProposalTypeShieldClaim {
+		pass, veto = passAndVetoStakeResultForShieldClaim(k, ctx, th)
+	} else {
+		pass, veto = passAndVetoStakeResult(k, ctx, th)
+	}
 
 	return pass, veto, tallyResults
 }
@@ -146,6 +151,39 @@ func passAndVetoStakeResult(k Keeper, ctx sdk.Context, th TallyHelper) (pass boo
 
 	// If there is not enough quorum of votes, the proposal fails.
 	percentVoting := th.totalVotingPower.Quo(k.stakingKeeper.TotalBondedTokens(ctx).ToDec())
+	if percentVoting.LT(th.tallyParams.Quorum) {
+		return false, false
+	}
+
+	// If no one votes (everyone abstains), proposal fails.
+	if th.totalVotingPower.Sub(th.results[govTypes.OptionAbstain]).Equal(sdk.ZeroDec()) {
+		return false, false
+	}
+
+	// If more than 1/3 of voters veto, proposal fails.
+	if th.results[govTypes.OptionNoWithVeto].Quo(th.totalVotingPower).GT(th.tallyParams.Veto) {
+		return false, true
+	}
+
+	// If more than 1/2 of non-abstaining voters vote Yes, proposal passes.
+	if th.results[govTypes.OptionYes].Quo(th.totalVotingPower.Sub(th.results[govTypes.OptionAbstain])).
+		GT(th.tallyParams.Threshold) {
+		return true, false
+	}
+
+	// If more than 1/2 of non-abstaining voters vote No, proposal fails.
+	return false, false
+}
+
+func passAndVetoStakeResultForShieldClaim(k Keeper, ctx sdk.Context, th TallyHelper) (pass bool, veto bool) {
+	totalBondedByCertifiedIdentities := k.TotalBondedByCertifiedIdentities(ctx)
+	// If there is no staked coins, the proposal fails.
+	if totalBondedByCertifiedIdentities.IsZero() {
+		return false, false
+	}
+
+	// If there is not enough quorum of votes, the proposal fails.
+	percentVoting := th.totalVotingPower.Quo(totalBondedByCertifiedIdentities.ToDec())
 	if percentVoting.LT(th.tallyParams.Quorum) {
 		return false, false
 	}
