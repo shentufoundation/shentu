@@ -194,7 +194,7 @@ func SimulateSubmitProposal(
 				if k.IsCertifiedIdentity(ctx, acc.Address) {
 					fops = append(fops, simulation.FutureOperation{
 						BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 10, 15),
-						Op:          SimulateCertifierMsgVote(ak, ck, k, acc, proposalID),
+						Op:          SimulateMsgVote(ak, k, acc, proposalID),
 					})
 				}
 			}

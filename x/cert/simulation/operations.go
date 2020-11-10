@@ -252,8 +252,12 @@ func SimulateMsgCertifyIdentity(ak types.AccountKeeper, k keeper.Keeper) simulat
 				break
 			}
 		}
-		identitySimAcc, _ := simulation.RandomAcc(r, accs)
-		identityAcc := ak.GetAccount(ctx, identitySimAcc.Address)
+
+		delAddr, found := keeper.RandomDelegator(r, k, ctx)
+		if !found {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+		identityAcc := ak.GetAccount(ctx, delAddr)
 
 		msg := types.NewMsgCertifyGeneral("identity", "address", identityAcc.GetAddress().String(), "", certifier.Address)
 
