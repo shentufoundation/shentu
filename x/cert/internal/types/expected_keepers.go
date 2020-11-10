@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
 )
 
@@ -15,6 +16,8 @@ type (
 
 	StakingKeeper interface {
 		ValidatorByConsAddr(sdk.Context, sdk.ConsAddress) stakingexported.ValidatorI
+		GetAllValidators(ctx sdk.Context) []staking.Validator
+		GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) []staking.Delegation
 	}
 
 	SlashingKeeper interface {

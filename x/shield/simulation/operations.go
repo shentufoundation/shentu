@@ -543,7 +543,7 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 			shieldAmount = maxShieldAmt
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
-		if shield.Empty() {
+		if shield.IsZero() || k.GetShieldStakingRate(ctx).MulInt(shield.AmountOf(bondDenom)).TruncateInt().IsZero() {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 
