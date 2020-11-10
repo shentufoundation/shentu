@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
@@ -17,6 +18,8 @@ type CertKeeper interface {
 	GetAllCertifiers(ctx sdk.Context) (certifiers cert.Certifiers)
 	GetCertifier(ctx sdk.Context, certifierAddress sdk.AccAddress) (cert.Certifier, error)
 	HasCertifierAlias(ctx sdk.Context, alias string) bool
+	IsCertified(ctx sdk.Context, requestContentType string, content string, certType string) bool
+	GetCertifiedIdentities(ctx sdk.Context) []sdk.AccAddress
 }
 
 type UpgradeKeeper interface {
@@ -42,4 +45,5 @@ type StakingKeeper interface {
 	TotalBondedTokens(sdk.Context) sdk.Int
 	IterateDelegations(ctx sdk.Context, delegator sdk.AccAddress, fn func(index int64, delegation stakingexported.DelegationI) (stop bool))
 	BondDenom(sdk.Context) string
+	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator staking.Validator, found bool)
 }

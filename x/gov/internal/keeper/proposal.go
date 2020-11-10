@@ -75,6 +75,27 @@ func (k Keeper) IsCouncilMember(ctx sdk.Context, addr sdk.AccAddress) bool {
 	return k.isValidator(ctx, addr) || k.IsCertifier(ctx, addr)
 }
 
+// IsCertifiedIdentity checks if the input address is a certified identity.
+func (k Keeper) IsCertifiedIdentity(ctx sdk.Context, addr sdk.AccAddress) bool {
+	return k.CertKeeper.IsCertified(ctx, "address", addr.String(), "identity")
+}
+
+// TotalBondedByCertifiedIdentities calculates the amount of total bonded stakes by certified identities.
+func (k Keeper) TotalBondedByCertifiedIdentities(ctx sdk.Context) sdk.Int {
+	bonded := sdk.ZeroInt()
+	for _, identity := range k.CertKeeper.GetCertifiedIdentities(ctx) {
+		k.stakingKeeper.IterateDelegations(ctx, identity, func(index int64, delegation staking.DelegationI) (stop bool) {
+			val, found := k.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
+			if !found {
+				return false
+			}
+			bonded = bonded.Add(delegation.GetShares().Quo(val.GetDelegatorShares()).MulInt(val.GetBondedTokens()).TruncateInt())
+			return false
+		})
+	}
+	return bonded
+}
+
 // SubmitProposal creates a new proposal with given content.
 func (k Keeper) SubmitProposal(ctx sdk.Context, content govTypes.Content, addr sdk.AccAddress) (types.Proposal, error) {
 	proposalID, err := k.GetProposalID(ctx)

@@ -354,7 +354,7 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 				continue
 			}
 
-			if remainingWithdraw.Equal(payoutFromThisWithdraw) {
+			if withdraws[i].Amount.Equal(payoutFromThisWithdraw) {
 				if len(timeSlice) == 1 {
 					k.RemoveTimeSliceFromWithdrawQueue(ctx, withdraws[i].CompletionTime)
 				} else {
