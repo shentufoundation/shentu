@@ -21,6 +21,11 @@ const (
 	OpWeightMsgCertifyProof     = "op_weight_msg_certify_proof"
 )
 
+// Default simulation operation weights for messages.
+const (
+	DefaultWeightMsgCertify int = 20
+)
+
 // WeightedOperations creates an operation (with weight) for each type of message generators.
 func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak types.AccountKeeper,
 	k keeper.Keeper) simulation.WeightedOperations {
@@ -48,11 +53,18 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak typ
 			weightMsgCertifyProof = simappparams.DefaultWeightMsgSend
 		})
 
+	var weightMsgCertifyIdentity int
+	appParams.GetOrGenerate(cdc, OpWeightMsgCertifyProof, &weightMsgCertifyIdentity, nil,
+		func(_ *rand.Rand) {
+			weightMsgCertifyIdentity = DefaultWeightMsgCertify
+		})
+
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(weightMsgCertifyValidator, SimulateMsgCertifyValidator(ak, k)),
 		simulation.NewWeightedOperation(weightMsgCertifyPlatform, SimulateMsgCertifyPlatform(ak, k)),
 		simulation.NewWeightedOperation(weightMsgCertifyAuditing, SimulateMsgCertifyAuditing(ak, k)),
 		simulation.NewWeightedOperation(weightMsgCertifyProof, SimulateMsgCertifyProof(ak, k)),
+		simulation.NewWeightedOperation(weightMsgCertifyIdentity, SimulateMsgCertifyIdentity(ak, k)),
 	}
 }
 
@@ -202,6 +214,52 @@ func SimulateMsgCertifyProof(ak types.AccountKeeper, k keeper.Keeper) simulation
 		description := simulation.RandStringOfLength(r, 10)
 
 		msg := types.NewMsgCertifyGeneral("proof", "address", contract.Address.String(), description, certifier.Address)
+
+		account := ak.GetAccount(ctx, certifier.Address)
+		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{account.GetAccountNumber()},
+			[]uint64{account.GetSequence()},
+			certifierAcc.PrivKey,
+		)
+
+		_, _, err = app.Deliver(tx)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+	}
+}
+
+// SimulateMsgCertifyIdentity generates a MsgCertifyGeneral object to certify a random account address.
+func SimulateMsgCertifyIdentity(ak types.AccountKeeper, k keeper.Keeper) simulation.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
+		simulation.OperationMsg, []simulation.FutureOperation, error) {
+		certifiers := k.GetAllCertifiers(ctx)
+		certifier := certifiers[r.Intn(len(certifiers))]
+		var certifierAcc simulation.Account
+		for _, acc := range accs {
+			if acc.Address.Equals(certifier.Address) {
+				certifierAcc = acc
+				break
+			}
+		}
+
+		delAddr, found := keeper.RandomDelegator(r, k, ctx)
+		if !found {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+		identityAcc := ak.GetAccount(ctx, delAddr)
+
+		msg := types.NewMsgCertifyGeneral("identity", "address", identityAcc.GetAddress().String(), "", certifier.Address)
 
 		account := ak.GetAccount(ctx, certifier.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))

@@ -475,6 +475,9 @@ func ProposalContents(k keeper.Keeper, sk types.StakingKeeper) []simulation.Weig
 // SimulateShieldClaimProposalContent generates random shield claim proposal content
 func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper) simulation.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simulation.Account) govtypes.Content {
+		if ctx.BlockHeight() < common.Update1Height {
+			return nil
+		}
 		bondDenom := sk.BondDenom(ctx)
 		purchaseList, found := keeper.RandomPurchaseList(r, k, ctx)
 		if len(purchaseList.Entries) == 0 {
@@ -540,7 +543,7 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 			shieldAmount = maxShieldAmt
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
-		if shield.Empty() {
+		if shield.IsZero() || k.GetShieldStakingRate(ctx).MulInt(shield.AmountOf(bondDenom)).TruncateInt().IsZero() {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 
@@ -619,6 +622,9 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, sk ty
 func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		if ctx.BlockHeight() < common.Update1Height {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 		prPair, found := keeper.RandomMaturedProposalIDReimbursementPair(r, k, ctx)
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
