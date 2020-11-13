@@ -51,13 +51,11 @@ func (sh *Helper) CreateValidatorWithValPower(addr sdk.ValAddress, pk crypto.Pub
 func (sh *Helper) CreateValidatorMsg(addr sdk.ValAddress, pk crypto.PubKey, stakeAmount int64) *stakingtypes.MsgCreateValidator {
 	coin := sdk.NewCoin(sh.Denom, sdk.NewInt(stakeAmount))
 	msg := stakingtypes.NewMsgCreateValidator(addr, pk, coin, stakingtypes.Description{}, sh.Commission, sdk.OneInt())
-	//require.NoError(sh.t, err)
 	return &msg
 }
 
 func (sh *Helper) createValidator(addr sdk.ValAddress, pk crypto.PubKey, coin sdk.Coin, ok bool) {
 	msg := stakingtypes.NewMsgCreateValidator(addr, pk, coin, stakingtypes.Description{}, sh.Commission, sdk.OneInt())
-	//require.NoError(sh.t, err)
 	sh.Handle(msg, ok)
 }
 
@@ -83,8 +81,8 @@ func (sh *Helper) DelegateWithPower(delegator sdk.AccAddress, val sdk.ValAddress
 }
 
 // Undelegate calls handler to unbound some stake from a validator.
-func (sh *Helper) Undelegate(delegator sdk.AccAddress, val sdk.ValAddress, amount sdk.Int, ok bool) *sdk.Result {
-	unbondAmt := sdk.NewCoin(sh.Denom, amount)
+func (sh *Helper) Undelegate(delegator sdk.AccAddress, val sdk.ValAddress, amount int64, ok bool) *sdk.Result {
+	unbondAmt := sdk.NewInt64Coin(sh.Denom, amount)
 	msg := stakingtypes.NewMsgUndelegate(delegator, val, unbondAmt)
 	return sh.Handle(msg, ok)
 }
