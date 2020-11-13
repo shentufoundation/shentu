@@ -65,6 +65,9 @@ func handleMsgDeposit(ctx sdk.Context, k keeper.Keeper, msg gov.MsgDeposit) (*sd
 }
 
 func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmitProposal) (*sdk.Result, error) {
+	if _, ok := msg.Content.(shield.ClaimProposal); ok && ctx.BlockHeight() < common.Update1Height {
+		return nil, shield.ErrBeforeUpdate
+	}
 	var initialDepositAmount = msg.InitialDeposit.AmountOf(common.MicroCTKDenom)
 	var depositParams = k.GetDepositParams(ctx)
 	var minimalInitialDepositAmount = depositParams.MinInitialDeposit.AmountOf(common.MicroCTKDenom)
@@ -131,7 +134,7 @@ func updateAfterSubmitProposal(ctx sdk.Context, k keeper.Keeper, proposal types.
 	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
 		c := proposal.Content.(shield.ClaimProposal)
 		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
-		return k.ShieldKeeper.ClaimLock(ctx, c.ProposalID, c.PoolID, c.Proposer, c.PurchaseID, c.Loss, lockPeriod)
+		return k.ShieldKeeper.SecureCollaterals(ctx, c.PoolID, c.Proposer, c.PurchaseID, c.Loss, lockPeriod)
 	}
 	return nil
 }
@@ -148,7 +151,7 @@ func validateProposalByType(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmitP
 
 	case shield.ClaimProposal:
 		// check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit)
-		denom := common.MicroCTKDenom
+		denom := k.BondDenom(ctx)
 		initialDepositAmount := msg.InitialDeposit.AmountOf(denom).ToDec()
 		lossAmount := c.Loss.AmountOf(denom)
 		lossAmountDec := lossAmount.ToDec()

@@ -31,3 +31,8 @@ type DistributionKeeper interface {
 	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 	GetFeePool(ctx sdk.Context) distribution.FeePool
 }
+
+type ShieldKeeper interface {
+	GetGlobalShieldStakingPool(ctx sdk.Context) sdk.Int
+	FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
+}

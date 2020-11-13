@@ -17,13 +17,20 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	cosmosDistr "github.com/cosmos/cosmos-sdk/x/distribution"
+	govTypes "github.com/cosmos/cosmos-sdk/x/gov"
+	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/certikfoundation/shentu/x/bank"
+	"github.com/certikfoundation/shentu/x/cert"
 	"github.com/certikfoundation/shentu/x/distribution"
+	"github.com/certikfoundation/shentu/x/gov"
+	"github.com/certikfoundation/shentu/x/shield"
+	"github.com/certikfoundation/shentu/x/slashing"
 	"github.com/certikfoundation/shentu/x/staking"
+	"github.com/certikfoundation/shentu/x/upgrade"
 )
 
 var (
@@ -73,11 +80,25 @@ func (tdk *TestDistrKeeper) GetFeePool(ctx sdk.Context) cosmosDistr.FeePool {
 	return cosmosDistr.FeePool{commPool}
 }
 
+type fillerStoreKey string
+
+func (sk fillerStoreKey) String() string {
+	return string(sk)
+}
+
+func (sk fillerStoreKey) Name() string {
+	return string(sk)
+}
+
 func createTestInput(t *testing.T) testInput {
 	keyParams := sdk.NewKVStoreKey(params.StoreKey)
 	tKeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
 	keyStaking := sdk.NewKVStoreKey(staking.StoreKey)
+	keyCert := sdk.NewKVStoreKey(cert.StoreKey)
 	keySupp := sdk.NewKVStoreKey(supply.StoreKey)
+	keyShield := sdk.NewKVStoreKey(shield.StoreKey)
+	keySlashing := sdk.NewKVStoreKey(slashing.StoreKey)
+	keyGov := sdk.NewKVStoreKey(gov.StoreKey)
 	keyMint := sdk.NewKVStoreKey(StoreKey)
 
 	cdc := newTestCodec()
@@ -90,6 +111,10 @@ func createTestInput(t *testing.T) testInput {
 	ms.MountStoreWithDB(tKeyParams, sdk.StoreTypeTransient, db)
 	ms.MountStoreWithDB(keyParams, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(keyMint, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyCert, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keySlashing, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyShield, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyGov, sdk.StoreTypeIAVL, db)
 	require.NoError(t, ms.LoadLatestVersion())
 
 	// module account permissions
@@ -99,6 +124,8 @@ func createTestInput(t *testing.T) testInput {
 		mint.ModuleName:           {supply.Minter},
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
+		shield.ModuleName:         {supply.Burner},
+		gov.ModuleName:            {supply.Burner, supply.Minter},
 	}
 
 	blacklistedAddrs := map[string]bool{
@@ -128,6 +155,25 @@ func createTestInput(t *testing.T) testInput {
 	require.Nil(t, err)
 	supplyKeeper.SetModuleAccount(ctx, bondedPool)
 	distrKeeper := TestDistrKeeper{&sdk.Coins{}}
+	slashingKeeper := slashing.NewKeeper(cdc, keySlashing, stakingKeeper, paramsKeeper.Subspace(slashing.DefaultParamspace))
+	certKeeper := cert.NewKeeper(cdc, keyCert, slashingKeeper, stakingKeeper)
+	govKeeper := gov.Keeper{}
+	shieldKeeper := shield.NewKeeper(cdc, keyShield, accKeeper, stakingKeeper, &govKeeper, supplyKeeper, paramsKeeper.Subspace(shield.DefaultParamSpace))
+
+	upgradeKeeper := upgrade.NewKeeper(map[int64]bool{}, fillerStoreKey(""), cdc)
+	rtr := govTypes.NewRouter().
+		AddRoute(gov.RouterKey, types.ProposalHandler)
+	govKeeper = gov.NewKeeper(
+		cdc,
+		keyGov,
+		paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable()),
+		supplyKeeper,
+		stakingKeeper,
+		certKeeper,
+		shieldKeeper,
+		upgradeKeeper,
+		rtr,
+	)
 	Keeper := NewKeeper(
 		cdc,
 		keyMint,
@@ -135,6 +181,7 @@ func createTestInput(t *testing.T) testInput {
 		stakingKeeper,
 		&supplyKeeper,
 		&distrKeeper,
+		shieldKeeper,
 		auth.FeeCollectorName,
 	)
 

@@ -168,7 +168,7 @@ func SimulateSubmitProposal(
 		if content.ProposalType() != shield.ProposalTypeShieldClaim {
 			for i := 0; i < 10; i++ {
 				fops = append(fops, simulation.FutureOperation{
-					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 1, 3),
+					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 1, 5),
 					Op:          SimulateMsgDeposit(ak, k, proposalID),
 				})
 			}
@@ -179,9 +179,9 @@ func SimulateSubmitProposal(
 			content.ProposalType() == cert.ProposalTypeCertifierUpdate ||
 			content.ProposalType() == upgrade.ProposalTypeSoftwareUpgrade {
 			for _, acc := range accs {
-				if ck.IsCertifier(ctx, acc.Address) && simulation.RandIntBetween(r, 0, 100) < 50 {
+				if ck.IsCertifier(ctx, acc.Address) {
 					fops = append(fops, simulation.FutureOperation{
-						BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 3, 5),
+						BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 5, 10),
 						Op:          SimulateCertifierMsgVote(ak, ck, k, acc, proposalID),
 					})
 				}
@@ -189,17 +189,26 @@ func SimulateSubmitProposal(
 		}
 
 		// 4) Schedule operations for validator/delegator voting
-		// 4.1) first pick a number of people to vote.
-		curNumVotesState = numVotesTransitionMatrix.NextState(r, curNumVotesState)
-		numVotes := int(math.Ceil(float64(len(accs)) * statePercentageArray[curNumVotesState]))
-		// 4.2) select who votes and when
-		whoVotes := r.Perm(len(accs))
-		whoVotes = whoVotes[:numVotes]
+		if content.ProposalType() == shield.ProposalTypeShieldClaim {
+			for _, acc := range accs {
+				if k.IsCertifiedIdentity(ctx, acc.Address) {
+					fops = append(fops, simulation.FutureOperation{
+						BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 10, 15),
+						Op:          SimulateMsgVote(ak, k, acc, proposalID),
+					})
+				}
+			}
+		} else {
+			// 4.1) first pick a number of people to vote.
+			curNumVotesState = numVotesTransitionMatrix.NextState(r, curNumVotesState)
+			numVotes := int(math.Ceil(float64(len(accs)) * statePercentageArray[curNumVotesState]))
+			// 4.2) select who votes and when
+			whoVotes := r.Perm(len(accs))
+			whoVotes = whoVotes[:numVotes]
 
-		for i := 0; i < numVotes; i++ {
-			if simulation.RandIntBetween(r, 0, 100) < 10 {
+			for i := 0; i < numVotes; i++ {
 				fops = append(fops, simulation.FutureOperation{
-					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 5, 10),
+					BlockHeight: int(ctx.BlockHeight()) + simulation.RandIntBetween(r, 10, 15),
 					Op:          SimulateMsgVote(ak, k, accs[whoVotes[i]], proposalID),
 				})
 			}
@@ -356,16 +365,14 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper, proposalID u
 
 // Pick a random voting option
 func randomVotingOption(r *rand.Rand) govTypes.VoteOption {
-	switch r.Intn(4) {
+	switch r.Intn(12) {
 	case 0:
-		return govTypes.OptionYes
-	case 1:
 		return govTypes.OptionAbstain
-	case 2:
+	case 1:
 		return govTypes.OptionNo
-	case 3:
+	case 2:
 		return govTypes.OptionNoWithVeto
 	default:
-		panic("invalid vote option")
+		return govTypes.OptionYes
 	}
 }

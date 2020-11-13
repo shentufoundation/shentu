@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/auth/vesting"
@@ -108,26 +107,7 @@ func RandomGenesisAccounts(simState *module.SimulationState) (genesisAccs export
 		// Only consider making a vesting account once the initial bonded validator
 		// set is exhausted due to needing to track DelegatedVesting.
 		if int64(i) > simState.NumBonded && simState.Rand.Intn(100) < 50 {
-			var endTime int64
-
-			startTime := simState.GenTimestamp.Unix()
-
-			// Allow for some vesting accounts to vest very quickly while others very slowly.
-			if simState.Rand.Intn(100) < 50 {
-				endTime = int64(simulation.RandIntBetween(simState.Rand, int(startTime)+1, int(startTime+(60*60*24*30))))
-			} else {
-				endTime = int64(simulation.RandIntBetween(simState.Rand, int(startTime)+1, int(startTime+(60*60*12))))
-			}
-
-			if simState.Rand.Intn(100) < 50 {
-				if simState.Rand.Intn(100) < 50 {
-					gacc = vestingtypes.NewContinuousVestingAccount(&bacc, startTime, endTime)
-				} else {
-					gacc = vestingtypes.NewDelayedVestingAccount(&bacc, endTime)
-				}
-			} else {
-				gacc = vesting.NewManualVestingAccount(&bacc, nil, bacc.Address)
-			}
+			gacc = vesting.NewManualVestingAccount(&bacc, nil, bacc.Address)
 		}
 		genesisAccs = append(genesisAccs, gacc)
 	}

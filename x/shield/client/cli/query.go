@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
@@ -37,6 +38,10 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdPoolParams(queryRoute, cdc),
 		GetCmdClaimParams(queryRoute, cdc),
 		GetCmdStatus(queryRoute, cdc),
+		GetCmdStaking(queryRoute, cdc),
+		GetCmdShieldStakingRate(queryRoute, cdc),
+		GetCmdReimbursement(queryRoute, cdc),
+		GetCmdReimbursements(queryRoute, cdc),
 	)...)
 
 	return shieldQueryCmd
@@ -126,7 +131,6 @@ func GetCmdPurchaseList(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			return cliCtx.PrintOutput(out)
 		},
 	}
-
 	return cmd
 }
 
@@ -338,5 +342,99 @@ func GetCmdStatus(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			return cliCtx.PrintOutput(out)
 		},
 	}
+	return cmd
+}
+
+// GetCmdStaking returns the command for querying staked-for-shield amounts
+// corresponding to a given pool-purchaser pair.
+func GetCmdStaking(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "staked-for-shield [pool_ID] [purchaser_address]",
+		Short: "get staked CTK for shield corresponding to a given pool-purchaser pair",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			route := fmt.Sprintf("custom/%s/%s/%s/%s", queryRoute, types.QueryStakedForShield, args[0], args[1])
+			res, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			var out types.ShieldStaking
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
+	return cmd
+}
+
+// GetCmdShieldStakingRate returns the shield-staking rate for stake-for-shield
+func GetCmdShieldStakingRate(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "shield-staking-rate",
+		Short: "get shield staking rate for stake-for-shield",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryShieldStakingRate)
+			res, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			var out sdk.Dec
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
+	return cmd
+}
+
+// GetCmdReimbursement returns the command for querying a reimbursement.
+func GetCmdReimbursement(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "reimbursement [proposal ID]",
+		Short: "query a reimbursement",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			route := fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryReimbursement, args[0])
+			res, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			var out types.Reimbursement
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
+
+	return cmd
+}
+
+// GetCmdReimbursements returns the command for querying reimbursements.
+func GetCmdReimbursements(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "reimbursements",
+		Short: "query all reimbursements",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryReimbursements), nil)
+			if err != nil {
+				return err
+			}
+
+			var out []types.ProposalIDReimbursementPair
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
+
 	return cmd
 }

@@ -11,6 +11,7 @@ import (
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/shield"
 )
 
 // AddVote Adds a vote on a specific proposal.
@@ -38,6 +39,12 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 
 	if proposal.Status == types.StatusCertifierVotingPeriod && !k.IsCertifier(ctx, voterAddr) {
 		return sdkerrors.Wrapf(govTypes.ErrInvalidVote, "'%s' is not a certifier.", voterAddr)
+	}
+
+	if proposal.Content.ProposalType() == shield.ProposalTypeShieldClaim &&
+		proposal.Status == types.StatusValidatorVotingPeriod &&
+		!k.IsCertifiedIdentity(ctx, voterAddr) {
+		return sdkerrors.Wrapf(govTypes.ErrInvalidVote, "'%s' is not a certified identity", voterAddr)
 	}
 
 	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))

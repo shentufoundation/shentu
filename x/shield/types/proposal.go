@@ -6,10 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/x/staking"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -125,5 +124,19 @@ func NewReimbursement(amount sdk.Coins, beneficiary sdk.AccAddress, payoutTime t
 		Amount:      amount,
 		Beneficiary: beneficiary,
 		PayoutTime:  payoutTime,
+	}
+}
+
+// ProposalIDReimbursementPair stores information of a reimbursement and corresponding proposal ID.
+type ProposalIDReimbursementPair struct {
+	ProposalID    uint64
+	Reimbursement Reimbursement
+}
+
+// NewProposalIDReimbursementPair returns a new ProposalIDReimbursementPair instance.
+func NewProposalIDReimbursementPair(proposalID uint64, reimbursement Reimbursement) ProposalIDReimbursementPair {
+	return ProposalIDReimbursementPair{
+		ProposalID:    proposalID,
+		Reimbursement: reimbursement,
 	}
 }
