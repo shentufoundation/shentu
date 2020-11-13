@@ -2,7 +2,6 @@ package teststaking
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
@@ -21,7 +20,7 @@ type Helper struct {
 	h sdk.Handler
 	k customStaking.Keeper
 
-	Ctx        sdk.Context
+	ctx        sdk.Context
 	Commission stakingtypes.CommissionRates
 	// Coin Denomination
 	Denom string
@@ -47,13 +46,6 @@ func (sh *Helper) CreateValidatorWithValPower(addr sdk.ValAddress, pk crypto.Pub
 	return amount
 }
 
-// CreateValidatorMsg returns a message used to create validator in this service.
-func (sh *Helper) CreateValidatorMsg(addr sdk.ValAddress, pk crypto.PubKey, stakeAmount int64) *stakingtypes.MsgCreateValidator {
-	coin := sdk.NewCoin(sh.Denom, sdk.NewInt(stakeAmount))
-	msg := stakingtypes.NewMsgCreateValidator(addr, pk, coin, stakingtypes.Description{}, sh.Commission, sdk.OneInt())
-	return &msg
-}
-
 func (sh *Helper) createValidator(addr sdk.ValAddress, pk crypto.PubKey, coin sdk.Coin, ok bool) {
 	msg := stakingtypes.NewMsgCreateValidator(addr, pk, coin, stakingtypes.Description{}, sh.Commission, sdk.OneInt())
 	sh.Handle(msg, ok)
@@ -73,13 +65,6 @@ func (sh *Helper) Redelegate(delegator sdk.AccAddress, srcVal, dstVal sdk.ValAdd
 	sh.Handle(msg, ok)
 }
 
-// DelegateWithPower calls handler to delegate stake for a validator
-func (sh *Helper) DelegateWithPower(delegator sdk.AccAddress, val sdk.ValAddress, power int64) {
-	coin := sdk.NewCoin(sh.Denom, sdk.TokensFromConsensusPower(power))
-	msg := stakingtypes.NewMsgDelegate(delegator, val, coin)
-	sh.Handle(msg, true)
-}
-
 // Undelegate calls handler to unbound some stake from a validator.
 func (sh *Helper) Undelegate(delegator sdk.AccAddress, val sdk.ValAddress, amount int64, ok bool) *sdk.Result {
 	unbondAmt := sdk.NewInt64Coin(sh.Denom, amount)
@@ -89,7 +74,7 @@ func (sh *Helper) Undelegate(delegator sdk.AccAddress, val sdk.ValAddress, amoun
 
 // Handle calls staking handler on a given message
 func (sh *Helper) Handle(msg sdk.Msg, ok bool) *sdk.Result {
-	res, err := sh.h(sh.Ctx, msg)
+	res, err := sh.h(sh.ctx, msg)
 	if ok {
 		require.NoError(sh.t, err)
 		require.NotNil(sh.t, res)
@@ -103,7 +88,7 @@ func (sh *Helper) Handle(msg sdk.Msg, ok bool) *sdk.Result {
 // CheckValidator asserts that a validor exists and has a given status (if status!="")
 // and if has a right jailed flag.
 func (sh *Helper) CheckValidator(addr sdk.ValAddress, status sdk.BondStatus, jailed bool) stakingtypes.Validator {
-	v, ok := sh.k.GetValidator(sh.Ctx, addr)
+	v, ok := sh.k.GetValidator(sh.ctx, addr)
 	require.True(sh.t, ok)
 	require.Equal(sh.t, jailed, v.Jailed, "wrong Jalied status")
 	if status >= 0 {
@@ -114,23 +99,14 @@ func (sh *Helper) CheckValidator(addr sdk.ValAddress, status sdk.BondStatus, jai
 
 // CheckDelegator asserts that a delegator exists
 func (sh *Helper) CheckDelegator(delegator sdk.AccAddress, val sdk.ValAddress, found bool) {
-	_, ok := sh.k.GetDelegation(sh.Ctx, delegator, val)
+	_, ok := sh.k.GetDelegation(sh.ctx, delegator, val)
 	require.Equal(sh.t, ok, found)
 }
 
-// TurnBlock calls EndBlocker and updates the block time
-func (sh *Helper) TurnBlock(newTime time.Time) sdk.Context {
-	sh.Ctx = sh.Ctx.WithBlockTime(newTime)
-	staking.EndBlocker(sh.Ctx, sh.k.Keeper)
-	return sh.Ctx
-}
-
-// TurnBlockTimeDiff calls EndBlocker and updates the block time by adding the
-// duration to the current block time
-func (sh *Helper) TurnBlockTimeDiff(diff time.Duration) sdk.Context {
-	sh.Ctx = sh.Ctx.WithBlockTime(sh.Ctx.BlockHeader().Time.Add(diff))
-	staking.EndBlocker(sh.Ctx, sh.k.Keeper)
-	return sh.Ctx
+// TurnBlock updates context and calls endblocker.
+func (sh *Helper) TurnBlock(ctx sdk.Context) {
+	sh.ctx = ctx
+	staking.EndBlocker(sh.ctx, sh.k.Keeper)
 }
 
 // ZeroCommission constructs a commission rates with all zeros.

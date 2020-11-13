@@ -10,29 +10,43 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/common/tests"
 	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/shield/testshield"
 
-	//"github.com/certikfoundation/shentu/x/shield/types"
+	"github.com/certikfoundation/shentu/x/gov/testgov"
+	"github.com/certikfoundation/shentu/x/shield/testshield"
 	"github.com/certikfoundation/shentu/x/staking/teststaking"
 )
 
-func nextBlock(ctx sdk.Context, curTime time.Time, tstaking *teststaking.Helper) (sdk.Context, time.Time) {
-	newTime := curTime.Add(time.Second*5)
-	tstaking.TurnBlock(newTime)
-	// shield endblocker?
+// nextBlock calls staking, shield, and gov endblockers and updates
+// their test helpers' contexts.
+func nextBlock(ctx sdk.Context, tstaking *teststaking.Helper, tshield *testshield.Helper, tgov *testgov.Helper) sdk.Context {
+	newTime := ctx.BlockTime().Add(time.Second * time.Duration(int64(common.SecondsPerBlock)))
+	ctx = ctx.WithBlockTime(newTime).WithBlockHeight(ctx.BlockHeight() + 1)
+	
+	tstaking.TurnBlock(ctx)
+	tshield.TurnBlock(ctx)
+	tgov.TurnBlock(ctx)
 
-	return ctx.WithBlockTime(newTime).WithBlockHeight(ctx.BlockHeight() + 1), newTime
+	return ctx
 }
 
+func skipBlocks(ctx sdk.Context, numBlocks int64, tstaking *teststaking.Helper, tshield *testshield.Helper, tgov *testgov.Helper) sdk.Context {
+	newTime := ctx.BlockTime().Add(time.Second * time.Duration(int64(common.SecondsPerBlock) * numBlocks))
+	ctx = ctx.WithBlockTime(newTime).WithBlockHeight(ctx.BlockHeight() + 1)
 
+	tstaking.TurnBlock(ctx)
+	tshield.TurnBlock(ctx)
+	tgov.TurnBlock(ctx)
+
+	return ctx
+}
 
 // TestWithdraw tests withdraws triggered by staking undelegation.
 func TestWithdrawsByUndelegate(t *testing.T) {
 	app := simapp.Setup(false)
-	curTime := time.Now().UTC()
-	ctx := app.BaseApp.NewContext(false, abci.Header{Time: curTime})
+	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
 
 	// create and add addresses
 	addresses := simapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(2e8))
@@ -46,14 +60,15 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
 	tshield := testshield.NewHelper(t, ctx, app.ShieldKeeper, tstaking.Denom)
+	tgov := testgov.NewHelper(t, ctx, app.GovKeeper, tstaking.Denom)
 
 	// set up two validators
 	tstaking.CreateValidatorWithValPower(valAddr, pubKey, 100, true)
-	ctx, curTime = nextBlock(ctx, curTime, tstaking)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr, sdk.Bonded, false)
 
 	tstaking.CreateValidatorWithValPower(valAddr2, pubKey2, 100, true)
-	ctx, curTime = nextBlock(ctx, curTime, tstaking)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr2, sdk.Bonded, false)
 
 	// attempt depositing collateral
@@ -77,14 +92,14 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 	// both delegators deposit collateral of amount 75
 	tshield.DepositCollateral(delAddr, 75, true)
 	tshield.DepositCollateral(delAddr2, 75, true)
-	
+
 	// undelegate total 50 to trigger total withdrawal of 25
 	tstaking.Undelegate(delAddr, valAddr, 30, true)
 	tstaking.Undelegate(delAddr2, valAddr2, 10, true)
 	tstaking.Undelegate(delAddr, valAddr2, 20, true)
 	tstaking.Undelegate(delAddr2, valAddr2, 40, true)
 
-	ctx, curTime = nextBlock(ctx, curTime, tstaking)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 
 	withdraws := app.ShieldKeeper.GetAllWithdraws(ctx)
 	numWithdraws := len(withdraws)
@@ -108,7 +123,7 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 
 	// delegate 25
 	tstaking.Delegate(delAddr, valAddr, 25)
-	ctx, curTime = nextBlock(ctx, curTime, tstaking)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 
 	// withdraw 5
 	tshield.WithdrawCollateral(delAddr, 5, true)
@@ -118,7 +133,7 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 
 	// undelegate 25 without triggering withdrawal
 	tstaking.Undelegate(delAddr, valAddr, 25, true)
-	ctx, curTime = nextBlock(ctx, curTime, tstaking)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	withdraws = app.ShieldKeeper.GetAllWithdraws(ctx)
 	require.True(t, len(withdraws) == numWithdraws)
 }
@@ -126,8 +141,7 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 // TestWithdraw tests withdraws triggered by staking redelegation.
 func TestWithdrawsByRedelegate(t *testing.T) {
 	app := simapp.Setup(false)
-	curTime := time.Now().UTC()
-	ctx := app.BaseApp.NewContext(false, abci.Header{Time: curTime})
+	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
 
 	// create and add addresses
 	addresses := simapp.AddTestAddrs(app, ctx, 3, sdk.NewInt(2e8))
@@ -141,14 +155,15 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
 	tshield := testshield.NewHelper(t, ctx, app.ShieldKeeper, tstaking.Denom)
+	tgov := testgov.NewHelper(t, ctx, app.GovKeeper, tstaking.Denom)
 
 	// set up two validators
 	tstaking.CreateValidatorWithValPower(valAddr, pubKey, 100, true)
-	ctx, curTime = nextBlock(ctx, curTime, tstaking)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr, sdk.Bonded, false)
 
 	tstaking.CreateValidatorWithValPower(valAddr2, pubKey2, 100, true)
-	ctx, curTime = nextBlock(ctx, curTime, tstaking)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr2, sdk.Bonded, false)
 
 	// must fail at depositing collateral
@@ -161,22 +176,22 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 
 	// deposit collateral of amount 75
 	tshield.DepositCollateral(delAddr, 75, true)
-	
+
 	// redelegate 50 to trigger withdrawal of 25
 	// remaining staking: 100, remaining deposit: 50
 	tstaking.Redelegate(delAddr, valAddr, valAddr2, 50, true)
-	ctx, curTime = nextBlock(ctx, curTime, tstaking)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	withdraws := app.ShieldKeeper.GetAllWithdraws(ctx)
 	require.True(t, withdraws[0].Amount.Equal(sdk.NewInt(25)))
 	numWithdraws := len(withdraws)
 
 	// Redelegation hopping must fail
 	tstaking.Redelegate(delAddr, valAddr2, valAddr, 10, false)
-	
+
 	// Redelegate 30 but do not trigger withdrawal
 	// Remaining staking: 100, remaining deposit: 50
 	tstaking.Redelegate(delAddr, valAddr, valAddr2, 30, true)
-	ctx, curTime = nextBlock(ctx, curTime, tstaking)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	withdraws = app.ShieldKeeper.GetAllWithdraws(ctx)
 	require.True(t, len(withdraws) == numWithdraws)
 
@@ -189,14 +204,13 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 
 func TestDelayWithdrawAndUBD(t *testing.T) {
 	app := simapp.Setup(false)
-	curTime := time.Now().UTC()
-	ctx := app.BaseApp.NewContext(false, abci.Header{Time: curTime})
+	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC(), Height: common.Update1Height})
 
 	// create and add addresses
 	shieldAdmin := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(250e9))[0]
 	app.ShieldKeeper.SetAdmin(ctx, shieldAdmin)
 	sponsorAddr := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(1))[0]
-	//purchaser := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(2e9))[0]
+	purchaser := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10e9))[0]
 	delAddr := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(125e9))[0]
 
 	// validator addresses
@@ -205,25 +219,25 @@ func TestDelayWithdrawAndUBD(t *testing.T) {
 
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
-	bondDenom := tstaking.Denom
-	tshield := testshield.NewHelper(t, ctx, app.ShieldKeeper, bondDenom)
+	tshield := testshield.NewHelper(t, ctx, app.ShieldKeeper, tstaking.Denom)
+	tgov := testgov.NewHelper(t, ctx, app.GovKeeper, tstaking.Denom)
 
 	// set up a validator
 	tstaking.CreateValidatorWithValPower(valAddr, pubKey, 100, true)
-	ctx, curTime = nextBlock(ctx, curTime, tstaking)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr, sdk.Bonded, false)
 
 	// shield admin deposit and create pool
 	// $BondDenom pool with shield = 100,000 $BondDenom, limit = 500,000 $BondDenom, serviceFees = 200 $BondDenom
 	tstaking.Delegate(shieldAdmin, valAddr, 200e9)
 	tshield.DepositCollateral(shieldAdmin, 200e9, true)
-	tshield.CreatePool(shieldAdmin, sponsorAddr, 200e6, 100e9, 500e9, "CertiK", "fake_description", bondDenom)
-	
+	tshield.CreatePool(shieldAdmin, sponsorAddr, 200e6, 100e9, 500e9, "CertiK", "fake_description")
+
 	pools := app.ShieldKeeper.GetAllPools(ctx)
 	require.True(t, len(pools) == 1)
-    require.True(t, pools[0].SponsorAddress.Equals(sponsorAddr))
+	require.True(t, pools[0].SponsorAddress.Equals(sponsorAddr))
 	poolID := pools[0].ID
-	
+
 	// delegator deposits
 	tstaking.CheckDelegator(delAddr, valAddr, false)
 	tstaking.Delegate(delAddr, valAddr, 125e9)
@@ -235,26 +249,24 @@ func TestDelayWithdrawAndUBD(t *testing.T) {
 	tshield.PurchaseShield(purchaser, shield, poolID, true)
 
 	// delegator undelegates all delegations, triggering a withdrawal
-	tstaking.Undelegate(delAddr, valAddr, sdk.NewInt(125e9), true)
-	ctx, curTime = nextBlock(ctx, curTime, tstaking)
-/*
+	tstaking.Undelegate(delAddr, valAddr, 125e9, true)
 	withdraws := app.ShieldKeeper.GetAllWithdraws(ctx)
 	require.True(t, len(withdraws) == 1)
 	require.True(t, withdraws[0].Amount.Equal(sdk.NewInt(125e9)))
+	withdrawDuration := app.ShieldKeeper.GetPoolParams(ctx).WithdrawPeriod
+	require.True(t, withdraws[0].CompletionTime.Equal(ctx.BlockTime().Add(withdrawDuration)))
 
 	// 20 days later (345,600 blocks)
-	for i := 0; i < 345600; i++ {
-		ctx, curTime = nextBlock(ctx, curTime, tstaking)
-	}
+	ctx = skipBlocks(ctx, 345600, tstaking, tshield, tgov)
 
-	// claim lock 
-	lockPeriod := app.GovKeeper.GetVotingParams(ctx).VotingPeriod * 2
-	lossAmt := shield/2
-	loss := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, lossAmt))
-	err = app.ShieldKeeper.ClaimLock(ctx, 0, poolID, purchaser, purchase.PurchaseID, loss, lockPeriod)
-	require.Nil(t, err)
+	// the purchaser submits a claim proposal
+	tgov.ShieldClaimProposal(purchaser, shield, poolID, 2, true)
 
+	// verify that the withdrawal and unbonding have been delayed
 	withdraws = app.ShieldKeeper.GetAllWithdraws(ctx)
-	fmt.Printf("\n WITHDRAWS: %+v\n", withdraws)
-*/
+	claimDuration := app.GovKeeper.GetVotingParams(ctx).VotingPeriod * 2
+	require.True(t, withdraws[0].CompletionTime.Equal(ctx.BlockTime().Add(claimDuration)))
+	
+	unbondings := app.StakingKeeper.GetAllUnbondingDelegations(ctx, delAddr)
+	require.True(t, unbondings[0].Entries[0].CompletionTime.Equal(ctx.BlockTime().Add(claimDuration)))
 }

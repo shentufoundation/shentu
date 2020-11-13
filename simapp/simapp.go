@@ -268,6 +268,7 @@ func NewSimApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bo
 		&stakingKeeper,
 		app.SupplyKeeper,
 		app.DistrKeeper,
+		&app.ShieldKeeper,
 		auth.FeeCollectorName,
 	)
 	app.slashingKeeper = slashing.NewKeeper(
@@ -299,6 +300,7 @@ func NewSimApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bo
 	app.ShieldKeeper = shield.NewKeeper(
 		app.cdc,
 		keys[shield.StoreKey],
+		app.AccountKeeper,
 		&stakingKeeper,
 		&app.GovKeeper,
 		app.SupplyKeeper,
