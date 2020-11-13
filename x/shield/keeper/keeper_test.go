@@ -24,7 +24,7 @@ import (
 func nextBlock(ctx sdk.Context, tstaking *teststaking.Helper, tshield *testshield.Helper, tgov *testgov.Helper) sdk.Context {
 	newTime := ctx.BlockTime().Add(time.Second * time.Duration(int64(common.SecondsPerBlock)))
 	ctx = ctx.WithBlockTime(newTime).WithBlockHeight(ctx.BlockHeight() + 1)
-	
+
 	tstaking.TurnBlock(ctx)
 	tshield.TurnBlock(ctx)
 	tgov.TurnBlock(ctx)
@@ -33,7 +33,7 @@ func nextBlock(ctx sdk.Context, tstaking *teststaking.Helper, tshield *testshiel
 }
 
 func skipBlocks(ctx sdk.Context, numBlocks int64, tstaking *teststaking.Helper, tshield *testshield.Helper, tgov *testgov.Helper) sdk.Context {
-	newTime := ctx.BlockTime().Add(time.Second * time.Duration(int64(common.SecondsPerBlock) * numBlocks))
+	newTime := ctx.BlockTime().Add(time.Second * time.Duration(int64(common.SecondsPerBlock)*numBlocks))
 	ctx = ctx.WithBlockTime(newTime).WithBlockHeight(ctx.BlockHeight() + 1)
 
 	tstaking.TurnBlock(ctx)
@@ -266,7 +266,7 @@ func TestDelayWithdrawAndUBD(t *testing.T) {
 	withdraws = app.ShieldKeeper.GetAllWithdraws(ctx)
 	claimDuration := app.GovKeeper.GetVotingParams(ctx).VotingPeriod * 2
 	require.True(t, withdraws[0].CompletionTime.Equal(ctx.BlockTime().Add(claimDuration)))
-	
+
 	unbondings := app.StakingKeeper.GetAllUnbondingDelegations(ctx, delAddr)
 	require.True(t, unbondings[0].Entries[0].CompletionTime.Equal(ctx.BlockTime().Add(claimDuration)))
 }
