@@ -38,6 +38,22 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [Unreleased] - TBD
 
 ### Client Breaking Changes
+### API Breaking Changes
+### State Machine Breaking Changes
+* (assets) [\#131](https://github.com/certikfoundation/shentu/pull/131) Added height checks for newly added tx routes
+
+### Features
+* (x/shield) [\#132](https://github.com/certikfoundation/shentu/pull/132) Enabled Shield claim proposals for reimbursements
+* (x/shield) [\#131](https://github.com/certikfoundation/shentu/pull/131) Enabled Staking for Shield
+### Improvements
+* (x/cvm) [\#129](https://github.com/certikfoundation/shentu/pull/129) Integrated CVM info to account query
+### Bug Fixes
+* (x/auth) [\#124](https://github.com/certikfoundation/shentu/pull/124) Fixed locked send event output
+* (x/gov) [\#145](https://github.com/certikfoundation/shentu/pull/145) Fixed param change proposal for simulations
+
+## v1.0.0 - 10-24-2020
+
+### Client Breaking Changes
 
 ### API Breaking Changes
 * (x/oracle) [\#6](https://github.com/certikfoundation/shentu/pull/6) Updated the `aggregate_task` event.
