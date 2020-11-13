@@ -55,12 +55,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, amount 
 	// Insert into withdraw queue.
 	poolParams := k.GetPoolParams(ctx)
 	completionTime := ctx.BlockHeader().Time.Add(poolParams.WithdrawPeriod)
-	var withdraw types.Withdraw
-	if ubdInfo == nil {
-		withdraw = types.NewWithdraw(from, amount, completionTime, types.UnbondingInfo{})	
-	} else {
-		withdraw = types.NewWithdraw(from, amount, completionTime, *ubdInfo)
-	}
+	withdraw := types.NewWithdraw(from, amount, completionTime)
 	k.InsertWithdrawQueue(ctx, withdraw)
 
 	// Update provider's withdrawing.

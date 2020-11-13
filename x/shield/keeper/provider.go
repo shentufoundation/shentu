@@ -46,7 +46,7 @@ func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) types.Provider
 }
 
 // UpdateDelegationAmount updates the provider based on tha changes of its delegations.
-func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress) {
 	// Go through delAddr's delegations to recompute total amount of bonded delegation
 	// update or create a new entry.
 	if _, found := k.GetProvider(ctx, delAddr); !found {
@@ -64,10 +64,7 @@ func (k Keeper) UpdateDelegationAmount(ctx sdk.Context, delAddr sdk.AccAddress, 
 		totalStakedAmount = totalStakedAmount.Add(val.TokensFromShares(del.GetShares()).TruncateInt())
 	}
 
-	ubdCompletionTime := ctx.BlockHeader().Time.Add(k.sk.UnbondingTime(ctx))
-	ubdInfo := types.NewUnbondingInfo(valAddr, ubdCompletionTime, false)
-	 
-	k.updateProviderForDelegationChanges(ctx, delAddr, totalStakedAmount, &ubdInfo)
+	k.updateProviderForDelegationChanges(ctx, delAddr, totalStakedAmount)
 }
 
 // RemoveDelegation updates the provider when its delegation is removed.
@@ -87,14 +84,11 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	}
 	deltaAmount := validator.TokensFromShares(delegation.Shares).TruncateInt()
 
-	ubdCompletionTime := ctx.BlockHeader().Time.Add(k.sk.UnbondingTime(ctx))
-	ubdInfo := types.NewUnbondingInfo(valAddr, ubdCompletionTime, false)
-
-	k.updateProviderForDelegationChanges(ctx, delAddr, provider.DelegationBonded.Sub(deltaAmount), &ubdInfo)
+	k.updateProviderForDelegationChanges(ctx, delAddr, provider.DelegationBonded.Sub(deltaAmount))
 }
 
 // updateProviderForDelegationChanges updates provider based on delegation changes.
-func (k Keeper) updateProviderForDelegationChanges(ctx sdk.Context, delAddr sdk.AccAddress, stakedAmt sdk.Int, ubdInfo *types.UnbondingInfo) {
+func (k Keeper) updateProviderForDelegationChanges(ctx sdk.Context, delAddr sdk.AccAddress, stakedAmt sdk.Int) {
 	provider, found := k.GetProvider(ctx, delAddr)
 	if !found {
 		return
@@ -107,7 +101,7 @@ func (k Keeper) updateProviderForDelegationChanges(ctx sdk.Context, delAddr sdk.
 	// Withdraw collaterals when the delegations are not enough to back collaterals.
 	withdrawAmount := provider.Collateral.Sub(provider.Withdrawing).Sub(stakedAmt)
 	if withdrawAmount.IsPositive() {
-		if err := k.WithdrawCollateral(ctx, delAddr, withdrawAmount, ubdInfo); err != nil {
+		if err := k.WithdrawCollateral(ctx, delAddr, withdrawAmount); err != nil {
 			panic("failed to withdraw collateral from the shield global pool")
 		}
 	}
