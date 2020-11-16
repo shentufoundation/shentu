@@ -58,7 +58,7 @@ func AddTestAddrs(app *SimApp, ctx sdk.Context, accNum int, accAmt sdk.Int) []sd
 	return testAddrs
 }
 
-// AddCoins adds coins to an account and increments the total supply accordingly. 
+// AddCoins adds coins to an account and increments the total supply accordingly.
 func AddCoinsToAcc(app *SimApp, ctx sdk.Context, addr sdk.AccAddress, toAdd sdk.Coins) {
 	prevSupply := app.SupplyKeeper.GetSupply(ctx)
 	app.SupplyKeeper.SetSupply(ctx, supply.NewSupply(prevSupply.GetTotal().Add(toAdd...)))
