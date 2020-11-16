@@ -24,7 +24,6 @@ import (
 
 // Proposal flags
 const (
-	FlagDeposit   = "deposit"
 	flagVoter     = "voter"
 	flagDepositor = "depositor"
 	flagStatus    = "status"

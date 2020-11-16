@@ -20,16 +20,6 @@ type GenesisState struct {
 	TallyParams        TallyParams           `json:"tally_params" yaml:"tally_params"`
 }
 
-// NewGenesisState creates a new GenesisState object.
-func NewGenesisState(startingProposalID uint64, dp DepositParams, vp govTypes.VotingParams, tp TallyParams) GenesisState {
-	return GenesisState{
-		StartingProposalID: startingProposalID,
-		DepositParams:      dp,
-		VotingParams:       vp,
-		TallyParams:        tp,
-	}
-}
-
 // DefaultGenesisState creates a default GenesisState object.
 func DefaultGenesisState() GenesisState {
 	minInitialDepositTokens := sdk.TokensFromConsensusPower(0)
