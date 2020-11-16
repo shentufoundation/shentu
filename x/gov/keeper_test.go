@@ -105,8 +105,7 @@ func TestKeeper_AddDeposit(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
 	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(10000))
 
-	err := app.BankKeeper.SetCoins(ctx, addrs[1], sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 80000*1e6)))
-	require.Equal(t, nil, err)
+	simapp.AddCoinsToAcc(app, ctx, addrs[1], sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 80000*1e6)))
 
 	tp := gov.TextProposal{Title: "title0", Description: "desc0"}
 
