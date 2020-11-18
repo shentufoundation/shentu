@@ -1,12 +1,18 @@
-package cert
+package cert_test
 
 import (
 	"math/rand"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
+	abci "github.com/tendermint/tendermint/abci/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/certikfoundation/shentu/simapp"
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
 )
 
@@ -35,21 +41,23 @@ func Test_GetCertificateID(t *testing.T) {
 
 func Test_GetNewCertificateID(t *testing.T) {
 	t.Run("Testing GetNewCertificateID", func(t *testing.T) {
-		input := createTestInput(t)
+		app := simapp.Setup(false)
+		ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
+		addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
 
 		// Set and Get a certificate
 		c1 := types.NewCompilationCertificate(types.CertificateTypeCompilation, "sourcodehash0",
 			"compiler1", "bytecodehash1", "", addrs[0])
 
-		id1, err := input.certKeeper.GetNewCertificateID(input.ctx, c1.Type(), c1.RequestContent())
+		id1, err := app.CertKeeper.GetNewCertificateID(ctx, c1.Type(), c1.RequestContent())
 		if err != nil {
 			t.Errorf(err.Error())
 		}
 
 		c1.SetCertificateID(id1)
-		input.certKeeper.SetCertificate(input.ctx, c1)
+		app.CertKeeper.SetCertificate(ctx, c1)
 
-		data, err := input.certKeeper.GetCertificateByID(input.ctx, id1)
+		data, err := app.CertKeeper.GetCertificateByID(ctx, id1)
 		if data == nil {
 			t.Errorf("Could not retrieve data from the store")
 		}
@@ -60,14 +68,14 @@ func Test_GetNewCertificateID(t *testing.T) {
 		// Set an identical certificate
 		c2 := types.NewCompilationCertificate(types.CertificateTypeCompilation, "sourcodehash0",
 			"compiler1", "bytecodehash1", "", addrs[0])
-		id2, err := input.certKeeper.GetNewCertificateID(input.ctx, c2.Type(), c2.RequestContent())
+		id2, err := app.CertKeeper.GetNewCertificateID(ctx, c2.Type(), c2.RequestContent())
 		if err != nil {
 			t.Errorf(err.Error())
 		}
 		c2.SetCertificateID(id2)
-		input.certKeeper.SetCertificate(input.ctx, c2)
+		app.CertKeeper.SetCertificate(ctx, c2)
 
-		data, err = input.certKeeper.GetCertificateByID(input.ctx, id2)
+		data, err = app.CertKeeper.GetCertificateByID(ctx, id2)
 		if data == nil {
 			t.Errorf("Could not retrieve data from the store")
 		}
@@ -77,20 +85,20 @@ func Test_GetNewCertificateID(t *testing.T) {
 
 		// Delete the first certificate and add the third certificate
 		id := c1.ID()
-		input.certKeeper.DeleteCertificate(input.ctx, c1)
+		app.CertKeeper.DeleteCertificate(ctx, c1)
 
 		c3 := types.NewCompilationCertificate(types.CertificateTypeCompilation, "sourcodehash0",
 			"compiler1", "bytecodehash1", "", addrs[0])
-		id3, err := input.certKeeper.GetNewCertificateID(input.ctx, c3.Type(), c3.RequestContent())
+		id3, err := app.CertKeeper.GetNewCertificateID(ctx, c3.Type(), c3.RequestContent())
 		if err != nil {
 			t.Errorf(err.Error())
 		}
 		require.Equal(t, id, id3)
 
 		c3.SetCertificateID(id3)
-		input.certKeeper.SetCertificate(input.ctx, c3)
+		app.CertKeeper.SetCertificate(ctx, c3)
 
-		data, err = input.certKeeper.GetCertificateByID(input.ctx, id3)
+		data, err = app.CertKeeper.GetCertificateByID(ctx, id3)
 		if data == nil {
 			t.Errorf("Could not retrieve data from the store")
 		}
@@ -108,7 +116,12 @@ func randomString(length int) string {
 
 func Test_IterationByCertifier(t *testing.T) {
 	t.Run("Testing certifier-based iteration", func(t *testing.T) {
-		input := createTestInput(t)
+		app := simapp.Setup(false)
+		ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
+		addrs := simapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(10000))
+		for _, addr := range addrs {
+			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, "", addr, ""))
+		}
 
 		// Store certificates
 		addr0Count := 0
@@ -124,21 +137,26 @@ func Test_IterationByCertifier(t *testing.T) {
 			s := randomString(length)
 			cert := types.NewCompilationCertificate(types.CertificateTypeCompilation, s,
 				"compiler1", "bytecodehash1", "", addrs[index])
-			_, err := input.certKeeper.IssueCertificate(input.ctx, cert)
+			_, err := app.CertKeeper.IssueCertificate(ctx, cert)
 			require.NoError(t, err)
 		}
 
-		certs := input.certKeeper.GetCertificatesByCertifier(input.ctx, addrs[0])
+		certs := app.CertKeeper.GetCertificatesByCertifier(ctx, addrs[0])
 		require.Equal(t, addr0Count, len(certs))
 
-		certs = input.certKeeper.GetCertificatesByCertifier(input.ctx, addrs[2])
+		certs = app.CertKeeper.GetCertificatesByCertifier(ctx, addrs[2])
 		require.Equal(t, addr2Count, len(certs))
 	})
 }
 
 func Test_CertificateQueries(t *testing.T) {
 	t.Run("Testing various queries on certifications", func(t *testing.T) {
-		input := createTestInput(t)
+		app := simapp.Setup(false)
+		ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
+		addrs := simapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(10000))
+		for _, addr := range addrs {
+			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, "", addr, ""))
+		}
 
 		// Store certificates
 		count := 0
@@ -168,33 +186,33 @@ func Test_CertificateQueries(t *testing.T) {
 					count3++
 				}
 			}
-			_, err := input.certKeeper.IssueCertificate(input.ctx, cert)
+			_, err := app.CertKeeper.IssueCertificate(ctx, cert)
 			require.NoError(t, err)
 		}
 
 		// Test GetCertificatesByContent()
 		contentToFind, _ := types.NewRequestContent("sourcecodehash", dupContent)
-		certs := input.certKeeper.GetCertificatesByContent(input.ctx, contentToFind)
+		certs := app.CertKeeper.GetCertificatesByContent(ctx, contentToFind)
 		require.Equal(t, count, len(certs))
 
 		// Test GetCertificatesFiltered()
 		// Query by content only
 		queryParams := types.NewQueryCertificatesParams(1, totalCerts, nil, "sourcecodehash", dupContent)
-		total, certs, err := input.certKeeper.GetCertificatesFiltered(input.ctx, queryParams)
+		total, certs, err := app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
 		require.Equal(t, uint64(count), total)
 		require.Equal(t, count, len(certs))
 
 		// Query by content and certifier
 		queryParams = types.NewQueryCertificatesParams(1, totalCerts, addrs[0], "sourcecodehash", dupContent)
-		total, certs, err = input.certKeeper.GetCertificatesFiltered(input.ctx, queryParams)
+		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
 		require.Equal(t, uint64(count2), total)
 		require.Equal(t, count2, len(certs))
 
 		// Query by certifier only
 		queryParams = types.NewQueryCertificatesParams(1, totalCerts, addrs[0], "", "")
-		total, certs, err = input.certKeeper.GetCertificatesFiltered(input.ctx, queryParams)
+		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
 		require.Equal(t, uint64(count3), total)
 		require.Equal(t, count3, len(certs))
@@ -203,23 +221,26 @@ func Test_CertificateQueries(t *testing.T) {
 
 func Test_IsCertified(t *testing.T) {
 	t.Run("Testing the function IsCertified", func(t *testing.T) {
-		input := createTestInput(t)
+		app := simapp.Setup(false)
+		ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
+		addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
+		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "", addrs[0], ""))
 
 		certType := "auditing"
 		contentTypeStr := "address"
 		contentStr := "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag"
 
-		isCertified := input.certKeeper.IsCertified(input.ctx, contentTypeStr, contentStr, certType)
+		isCertified := app.CertKeeper.IsCertified(ctx, contentTypeStr, contentStr, certType)
 		require.Equal(t, false, isCertified)
 
 		cert, err := types.NewGeneralCertificate(certType, contentTypeStr, contentStr,
 			"Audited by CertiK", addrs[0])
 		require.NoError(t, err)
 
-		_, err = input.certKeeper.IssueCertificate(input.ctx, cert)
+		_, err = app.CertKeeper.IssueCertificate(ctx, cert)
 		require.NoError(t, err)
 
-		isCertified = input.certKeeper.IsCertified(input.ctx, contentTypeStr, contentStr, certType)
+		isCertified = app.CertKeeper.IsCertified(ctx, contentTypeStr, contentStr, certType)
 		require.Equal(t, true, isCertified)
 	})
 }

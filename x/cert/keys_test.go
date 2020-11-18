@@ -1,4 +1,4 @@
-package cert
+package cert_test
 
 import (
 	"testing"
