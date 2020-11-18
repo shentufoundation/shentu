@@ -23,7 +23,7 @@ type AllValidatorsResult struct {
 // HTTP request handler to query complete list of validators
 func allValidatorsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, _, _, err := rest.ParseHTTPArgsWithLimit(r, 0)
+		_, _, _, err := rest.ParseHTTPArgsWithLimit(r, 100)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
