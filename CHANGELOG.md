@@ -36,7 +36,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 # Changelog
 
 ## [Unreleased] - TBD
-* (specs) [\#149](https://github.com/certikfoundation/shentu/pull/149) Add module specs.
+
+### Client Breaking Changes
+### API Breaking Changes
+### State Machine Breaking Changes
+### Features
+### Improvements
+### Bug Fixes
+
+## [v1.1.0] - 11-11-2020
 
 ### Client Breaking Changes
 ### API Breaking Changes
@@ -48,6 +56,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (x/shield) [\#131](https://github.com/certikfoundation/shentu/pull/131) Enabled Staking for Shield
 ### Improvements
 * (x/cvm) [\#129](https://github.com/certikfoundation/shentu/pull/129) Integrated CVM info to account query
+* (specs) [\#149](https://github.com/certikfoundation/shentu/pull/149) Add module specs.
+
 ### Bug Fixes
 * (x/auth) [\#124](https://github.com/certikfoundation/shentu/pull/124) Fixed locked send event output
 * (x/gov) [\#145](https://github.com/certikfoundation/shentu/pull/145) Fixed param change proposal for simulations

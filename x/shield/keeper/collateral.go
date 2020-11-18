@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
@@ -16,9 +14,6 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, amount s
 	}
 	// Check if there are enough delegations backing collaterals.
 	if provider.DelegationBonded.LT(provider.Collateral.Add(amount)) {
-		fmt.Println(provider.DelegationBonded)
-		fmt.Println(provider.Collateral)
-		fmt.Println(provider.Withdrawing)
 		return types.ErrInsufficientStaking
 	}
 
