@@ -42,8 +42,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking Changes
 ### Features
 ### Improvements
-### Bug Fixes
 * (rest) [\#131](https://github.com/certikfoundation/shentu/pull/171) Set default query limit to 100.
+
+### Bug Fixes
 
 ## v1.1.0 - 11-11-2020
 
@@ -55,14 +56,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 * (x/shield) [\#132](https://github.com/certikfoundation/shentu/pull/132) Enabled Shield claim proposals for reimbursements.
 * (x/shield) [\#131](https://github.com/certikfoundation/shentu/pull/131) Enabled Staking for Shield.
-* (specs) [\#149](https://github.com/certikfoundation/shentu/pull/149) Add module specs.
 
 ### Improvements
-* (x/cvm) [\#129](https://github.com/certikfoundation/shentu/pull/129) Integrated CVM info to account query
+* (x/cvm) [\#129](https://github.com/certikfoundation/shentu/pull/129) Integrated CVM info to account query.
+* (specs) [\#149](https://github.com/certikfoundation/shentu/pull/149) Add module specs.
 
 ### Bug Fixes
-* (x/auth) [\#124](https://github.com/certikfoundation/shentu/pull/124) Fixed locked send event output
-* (x/gov) [\#145](https://github.com/certikfoundation/shentu/pull/145) Fixed param change proposal for simulations
+* (x/auth) [\#124](https://github.com/certikfoundation/shentu/pull/124) Fixed locked send event output.
+* (x/gov) [\#145](https://github.com/certikfoundation/shentu/pull/145) Fixed param change proposal for simulations.
 
 ## v1.0.0 - 10-24-2020
 
