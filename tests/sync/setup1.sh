@@ -18,7 +18,7 @@ PROJ_ROOT=$(git rev-parse --show-toplevel)
 cd $PROJ_ROOT
 make install
 
-# set up a non-validator node on port 20057 using current binary
+# set up a non-validator node on port 20156 using current binary
 certikd unsafe-reset-all --home $DIR_D
 rm -rf $DIR/$NODE
 certikd init node1 --chain-id certikchain --home $DIR_D
