@@ -13,7 +13,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, amount s
 		provider = k.addProvider(ctx, from)
 	}
 	// Check if there are enough delegations backing collaterals.
-	if provider.DelegationBonded.LT(provider.Collateral.Add(amount)) {
+	if provider.DelegationBonded.LT(provider.Collateral.Add(amount).Sub(provider.Withdrawing)) {
 		return types.ErrInsufficientStaking
 	}
 
