@@ -65,7 +65,7 @@ func handleMsgDeposit(ctx sdk.Context, k keeper.Keeper, msg gov.MsgDeposit) (*sd
 }
 
 func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg gov.MsgSubmitProposal) (*sdk.Result, error) {
-	if _, ok := msg.Content.(shield.ClaimProposal); ok && ctx.BlockHeight() < common.Update1Height {
+	if _, ok := msg.Content.(shield.ClaimProposal); ok {
 		return nil, shield.ErrBeforeUpdate
 	}
 	var initialDepositAmount = msg.InitialDeposit.AmountOf(common.MicroCTKDenom)
