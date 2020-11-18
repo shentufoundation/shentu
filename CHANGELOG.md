@@ -45,6 +45,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (rest) [\#131](https://github.com/certikfoundation/shentu/pull/171) Set default query limit to 100.
 
 ### Bug Fixes
+* (x/shield) [\#173](https://github.com/certikfoundation/shentu/pull/173) Fixed indexing problem when paying out from unbonding delegations
+
 
 ## v1.1.0 - 11-11-2020
 
@@ -64,7 +66,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 * (x/auth) [\#124](https://github.com/certikfoundation/shentu/pull/124) Fixed locked send event output.
 * (x/gov) [\#145](https://github.com/certikfoundation/shentu/pull/145) Fixed param change proposal for simulations.
-* (x/shield)
+
 ## v1.0.0 - 10-24-2020
 
 ### Client Breaking Changes
