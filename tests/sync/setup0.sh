@@ -9,9 +9,8 @@ set -x
 
 # node directory
 DIR=~/.synctest
-NODE="node0"
-DIR_D=$DIR/$NODE/certikd
-DIR_CLI=$DIR/$NODE/certikcli
+DIR_D=$DIR/node0/certikd
+DIR_CLI=$DIR/node0/certikcli
 
 # binary paths
 PROJ_ROOT=$(git rev-parse --show-toplevel)
@@ -20,10 +19,11 @@ CERTIKCLI=$PROJ_ROOT/tests/sync/certikcli
 
 # set up a validator node on port 20056
 $CERTIKD unsafe-reset-all --home $DIR_D
-rm -rf $DIR/$NODE
+rm -rf $DIR/node0
 $CERTIKD init node0 --chain-id certikchain --home $DIR_D
 sed -i "" 's/26656/20056/g' $DIR_D/config/config.toml  # p2p port
 sed -i "" 's/26657/20057/g' $DIR_D/config/config.toml  # rpc port
+sed -i "" 's/addr_book_strict = true/addr_book_strict = false/g' $DIR_D/config/config.toml
 $CERTIKCLI config chain-id certikchain --home $DIR_CLI
 $CERTIKCLI config keyring-backend test --home $DIR_CLI
 $CERTIKCLI keys add jack --home $DIR_CLI
