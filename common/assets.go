@@ -7,8 +7,6 @@ import (
 const (
 	MicroCTKDenom = "uctk"
 	MicroUnit     = int64(1e6)
-
-	Update1Height = 100
 )
 
 // GetCoinPercentage returns a certain percentage of coins.
