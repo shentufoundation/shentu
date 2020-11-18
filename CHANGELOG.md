@@ -64,7 +64,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 * (x/auth) [\#124](https://github.com/certikfoundation/shentu/pull/124) Fixed locked send event output.
 * (x/gov) [\#145](https://github.com/certikfoundation/shentu/pull/145) Fixed param change proposal for simulations.
-
+* (x/shield)
 ## v1.0.0 - 10-24-2020
 
 ### Client Breaking Changes
