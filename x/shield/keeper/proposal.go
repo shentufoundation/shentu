@@ -503,7 +503,7 @@ func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd staking.UnbondingDelegati
 			timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, unbonding.Entries[i].CompletionTime)
 			if len(timeSlice) > 1 {
 				for j := 0; j < len(timeSlice); j++ {
-					if timeSlice[j].DelegatorAddress.Equals(ubd.DelegatorAddress) && timeSlice[i].ValidatorAddress.Equals(ubd.ValidatorAddress) {
+					if timeSlice[j].DelegatorAddress.Equals(ubd.DelegatorAddress) && timeSlice[j].ValidatorAddress.Equals(ubd.ValidatorAddress) {
 						timeSlice = append(timeSlice[:j], timeSlice[j+1:]...)
 						k.sk.SetUBDQueueTimeSlice(ctx, unbonding.Entries[i].CompletionTime, timeSlice)
 						break
