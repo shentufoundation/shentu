@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"fmt"
+	"encoding/hex"
 	"math"
 	"testing"
 	"time"
@@ -295,7 +295,6 @@ func TestClaimProposal(t *testing.T) {
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, loss))
 	err := app.ShieldKeeper.CreateReimbursement(ctx, proposalID, lossCoins, purchaser)
 	require.NoError(t, err)
-
 	reimbursement, err := app.ShieldKeeper.GetReimbursement(ctx, proposalID)
 	require.NoError(t, err)
 	require.True(t, reimbursement.Amount.IsEqual(lossCoins))
@@ -303,26 +302,25 @@ func TestClaimProposal(t *testing.T) {
 	// confirm admin delegation reduction
 	lossRatio := float64(loss) / float64(totalDeposit)
 	expected := adminDeposit - int64(math.Round(float64(adminDeposit) * lossRatio))
+	if hex.EncodeToString(shieldAdmin) < hex.EncodeToString(delAddr) {
+		expected -= 1 // adjust for discrepancy due to sorting
+	}
 
 	adminDels := app.StakingKeeper.GetAllDelegatorDelegations(ctx, shieldAdmin)
 	validator, _ := app.StakingKeeper.GetValidator(ctx, valAddr)
-	fmt.Println(validator.TokensFromShares(adminDels[0].Shares).String())
-	fmt.Println(sdk.NewDec(expected).String())
-	//fmt.Println(app.SlashingKeeper.SlashFractionDoubleSign(ctx).String())
-	//fmt.Println(app.SlashingKeeper.SlashFractionDowntime(ctx).String())
-	fmt.Printf("\nPARAMS %+v\n", app.SlashingKeeper.GetParams(ctx))
-
 	require.True(t, validator.TokensFromShares(adminDels[0].Shares).Equal(sdk.NewDec(expected)))
-
 
 	// confirm delegator unbonding reduction	
 	expected = 90e9 - int64(math.Round(float64(125e9) * lossRatio))
+	if hex.EncodeToString(shieldAdmin) < hex.EncodeToString(delAddr) {
+		expected += 1 // adjust for discrepancy due to sorting
+	}
 
 	delUBD = app.StakingKeeper.GetAllUnbondingDelegations(ctx, delAddr)[0]
 	require.True(t, delUBD.Entries[0].Balance.Equal(sdk.NewInt(25e9)))
 	require.True(t, delUBD.Entries[1].Balance.Equal(sdk.NewInt(10e9)))
 	require.True(t, delUBD.Entries[2].Balance.Equal(sdk.NewInt(expected)))
-	
+
 	withdraws = app.ShieldKeeper.GetAllWithdraws(ctx)
 	require.True(t, withdraws[0].Amount.Equal(sdk.NewInt(25e9)))
 	require.True(t, withdraws[1].Amount.Equal(sdk.NewInt(10e9)))
