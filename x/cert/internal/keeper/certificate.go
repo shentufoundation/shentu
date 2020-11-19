@@ -1,9 +1,9 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"encoding/hex"
-	"errors"
-	"math"
+	"strconv"
 	"strings"
 
 	"github.com/tendermint/tendermint/crypto/tmhash"
@@ -48,25 +48,19 @@ func (k Keeper) GetCertificateByID(ctx sdk.Context, id types.CertificateID) (typ
 	return certificate, nil
 }
 
-// GetNewCertificateID gets an unused certificate ID for a new certificate.
-func (k Keeper) GetNewCertificateID(ctx sdk.Context, certType types.CertificateType,
-	certContent types.RequestContent) (types.CertificateID, error) {
-	var i uint8
-	var certID types.CertificateID
-	var err error
-	// Find an unoccupied key
-	for {
-		certID = types.GetCertificateID(certType, certContent, i)
-		_, err = k.GetCertificateByID(ctx, certID)
-		if err == types.ErrCertificateNotExists {
-			break
-		}
-		if i == math.MaxUint8 {
-			return "", errors.New("index overflow")
-		}
-		i++
-	}
-	return certID, nil
+// GetNextCertificateID gets the next unused certificate ID.
+func (k Keeper) GetNextCertificateID(ctx sdk.Context) types.CertificateID {
+	store := ctx.KVStore(k.storeKey)
+	opBz := store.Get(types.GetNextCertificateIDKey())
+	return strconv.FormatUint(binary.LittleEndian.Uint64(opBz), 10)
+}
+
+// SetNextCertificateID stores the latest certificate ID.
+func (k Keeper) SetNextCertificateID(ctx sdk.Context, id uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, id)
+	store.Set(types.GetNextCertificateIDKey(), bz)
 }
 
 // GetCertificateType gets type of a certificate by certificate ID.
@@ -89,6 +83,7 @@ func (k Keeper) IsCertified(ctx sdk.Context, requestContentType string, content 
 	return len(certificates) > 0
 }
 
+// TODO
 // IsContentCertified checks if a certificate of given content exists.
 func (k Keeper) IsContentCertified(ctx sdk.Context, requestContent string) bool {
 	for _, requestContentType := range types.RequestContentTypes {
@@ -100,17 +95,96 @@ func (k Keeper) IsContentCertified(ctx sdk.Context, requestContent string) bool 
 	return false
 }
 
+func (k Keeper) AddCertIDToCertifier(ctx sdk.Context, certifier sdk.AccAddress, id types.CertificateID) {
+	ids := k.GetCertifierCertIDs(ctx, certifier)
+	ids = append(ids, id)
+	k.SetCertifierCertIDs(ctx, certifier, ids)
+}
+
+func (k Keeper) SetCertifierCertIDs(ctx sdk.Context, certifier sdk.AccAddress, ids []types.CertificateID) {	
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(ids)
+	store.Set(types.CertifierCertIDsKey(certifier), bz)
+}
+
+func (k Keeper) GetCertifierCertIDs(ctx sdk.Context, certifier sdk.AccAddress) []types.CertificateID {	
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.CertifierCertIDsKey(certifier))
+	if bz != nil {
+		var ids []types.CertificateID
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ids)
+		return ids
+	}
+	return []types.CertificateID{}
+}
+
+func (k Keeper) SetContentCertID(ctx sdk.Context, certType types.CertificateType, content types.RequestContent, certID types.CertificateID) {
+	// TODO: Cannot assume unique content?
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.ContentCertIDKey(certType, content.RequestContentType, content.RequestContent), certID.Bytes())
+}
+
+func (k Keeper) GetContentCertID(ctx sdk.Context, certType types.CertificateType, content types.RequestContent) (types.CertificateID, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ContentCertIDKey(certType, content.RequestContentType, content.RequestContent))
+	var id types.CertificateID
+	if bz == nil {
+		return id, false
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &id)
+	return id, true
+}
+
+// GetCertificatesByCertifier gets certificates certified by a given certifier.
+func (k Keeper) GetCertificatesByCertifier(ctx sdk.Context, certifier sdk.AccAddress) []types.Certificate {
+	ids := k.GetCertifierCertIDs(ctx, certifier)
+	
+	certificates := []types.Certificate{}
+	for _, id := range ids {
+		certificate, err := k.GetCertificateByID(ctx, id)
+		if err != nil {
+			panic(err)
+		}
+		certificates = append(certificates, certificate)
+	}
+	return certificates
+}
+
+// GetCertificatesByContent retrieves all certificates with given content.
+func (k Keeper) GetCertificatesByContent(ctx sdk.Context, requestContent types.RequestContent) []types.Certificate {
+}
+
+// GetCertificateByTypeAndContent retrieves all certificates with given certificate type and content.
+func (k Keeper) GetCertificateByTypeAndContent(ctx sdk.Context, certType types.CertificateType,
+	requestContent types.RequestContent) []types.Certificate {
+	certificates := []types.Certificate{}
+	k.IterateCertificatesByContent(
+		ctx,
+		certType,
+		requestContent,
+		func(certificate types.Certificate) bool {
+			if certificate.RequestContent() == requestContent &&
+				certificate.Type() == certType {
+				certificates = append(certificates, certificate)
+			}
+			return false
+		},
+	)
+	return certificates
+}
+
 // IssueCertificate issues a certificate.
 func (k Keeper) IssueCertificate(ctx sdk.Context, c types.Certificate) (types.CertificateID, error) {
 	if !k.IsCertifier(ctx, c.Certifier()) {
 		return "", types.ErrUnqualifiedCertifier
 	}
+	// TODO IsContentCertified?
 
-	certificateID, err := k.GetNewCertificateID(ctx, c.Type(), c.RequestContent())
-	if err != nil {
-		return "", err
-	}
+	certificateID := k.GetNextCertificateID(ctx)
 	c.SetCertificateID(certificateID)
+
+	k.AddCertIDToCertifier(ctx, c.Certifier(), certificateID)
+	k.SetContentCertID(ctx, c.Type(), c.RequestContent(), certificateID)
 
 	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
 	c.SetTxHash(txhash)
@@ -180,57 +254,6 @@ func (k Keeper) GetAllCertificates(ctx sdk.Context) (certificates []types.Certif
 		certificates = append(certificates, certificate)
 		return false
 	})
-	return certificates
-}
-
-// GetCertificatesByCertifier gets certificates certified by a given certifier.
-func (k Keeper) GetCertificatesByCertifier(ctx sdk.Context, certifier sdk.AccAddress) []types.Certificate {
-	certificates := []types.Certificate{}
-	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
-		if certificate.Certifier().Equals(certifier) {
-			certificates = append(certificates, certificate)
-		}
-		return false
-	})
-	return certificates
-}
-
-// GetCertificatesByContent retrieves all certificates with given content.
-func (k Keeper) GetCertificatesByContent(ctx sdk.Context, requestContent types.RequestContent) []types.Certificate {
-	certificates := []types.Certificate{}
-	for _, certType := range types.CertificateTypes {
-		k.IterateCertificatesByContent(
-			ctx,
-			certType,
-			requestContent,
-			func(certificate types.Certificate) bool {
-				if certificate.RequestContent() == requestContent {
-					certificates = append(certificates, certificate)
-				}
-				return false
-			},
-		)
-	} // for each certificate type
-
-	return certificates
-}
-
-// GetCertificatesByTypeAndContent retrieves all certificates with given certificate type and content.
-func (k Keeper) GetCertificatesByTypeAndContent(ctx sdk.Context, certType types.CertificateType,
-	requestContent types.RequestContent) []types.Certificate {
-	certificates := []types.Certificate{}
-	k.IterateCertificatesByContent(
-		ctx,
-		certType,
-		requestContent,
-		func(certificate types.Certificate) bool {
-			if certificate.RequestContent() == requestContent &&
-				certificate.Type() == certType {
-				certificates = append(certificates, certificate)
-			}
-			return false
-		},
-	)
 	return certificates
 }
 

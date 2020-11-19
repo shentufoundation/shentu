@@ -35,6 +35,10 @@ var (
 
 	// certifierAliasStoreKeyPrefix is the prefix of certifier alias kv-store keys.
 	certifierAliasStoreKeyPrefix = []byte{0x7}
+
+	nextCertificateIDKey = []byte{0x8}
+	certifierCertIDsStoreKeyPrefix = []byte{0x9}
+	contentCertIDStoreKeyPrefix = []byte{0xA}
 )
 
 // CertifierStoreKey returns the kv-store key for the certifier registration.
@@ -72,16 +76,14 @@ func CertificateStoreKey(bz []byte) []byte {
 	return concat(certificateStoreKeyPrefix, bz)
 }
 
-// CertificateStoreContentKey gets the prefix for certificate key of given certifier, certificate type,
-// content type, and content.
-func CertificateStoreContentKey(certType CertificateType, reqContentType RequestContentType, reqContent string) []byte {
+func CertifierCertIDsKey(certifier sdk.AccAddress) []byte {
+	return concat(certifierCertIDsStoreKeyPrefix, certifier)
+}
+
+func ContentCertIDKey(certType CertificateType, reqContentType RequestContentType, reqContent string) []byte {
 	content := concat(reqContentType.Bytes(), []byte(reqContent))
 	contentHash := sha256.Sum224(content)
-	return concat(
-		certificateStoreKeyPrefix,
-		certType.Bytes(),
-		contentHash[:],
-	)
+	return concat(contentCertIDStoreKeyPrefix, certType.Bytes(), contentHash[:])
 }
 
 // GetCertificateID constructs CertificateID (hex string) given certificate information.
@@ -101,6 +103,11 @@ func GetCertificateID(certType CertificateType, reqContent RequestContent, i uin
 		bz,
 	)
 	return CertificateID(hex.EncodeToString(keyWoPrefix))
+}
+
+// GetNextCertificateIDKey gets the key for the next certificate ID.
+func GetNextCertificateIDKey() []byte {
+	return nextCertificateIDKey
 }
 
 // CertificatesStoreKey returns the kv-store key for accessing all certificates.
