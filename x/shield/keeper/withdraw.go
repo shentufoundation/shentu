@@ -305,22 +305,21 @@ func (k Keeper) DelayUnbonding(ctx sdk.Context, provider sdk.AccAddress, amount 
 
 		found = false
 		amount := sdk.ZeroInt()
-		for j := 0; j < len(unbondingDels.Entries); j++ {
-			if !found {
-				if unbondingDels.Entries[j].CompletionTime.Equal(ubds[i].completionTime) {
-					unbondingDels.Entries[j].CompletionTime = delayedTime
-					found = true
-					amount = unbondingDels.Entries[j].Balance
+		for j := len(unbondingDels.Entries) - 1; j >= 0; j-- {
+			if unbondingDels.Entries[j].CompletionTime.Equal(ubds[i].completionTime) {
+				unbondingDels.Entries[j].CompletionTime = delayedTime
+				found = true
+				amount = unbondingDels.Entries[j].Balance
+				
+				// Percolate up to keep the entries sorted.
+				for z := j; z < len(unbondingDels.Entries) - 1; z++ {
+					if !unbondingDels.Entries[z+1].CompletionTime.After(unbondingDels.Entries[z].CompletionTime) {
+						unbondingDels.Entries[z], unbondingDels.Entries[z+1] = unbondingDels.Entries[z+1], unbondingDels.Entries[z]
+					}
+					break
 				}
-				continue
+				break
 			}
-
-			if unbondingDels.Entries[j].CompletionTime.Before(unbondingDels.Entries[j-1].CompletionTime) {
-				unbondingDels.Entries[j-1], unbondingDels.Entries[j] = unbondingDels.Entries[j], unbondingDels.Entries[j-1]
-				continue
-			}
-
-			break
 		}
 		if !found {
 			panic("particular unbonding entry not found for the given timestamp")
