@@ -1304,7 +1304,7 @@ paths:
       parameters:
         - in: path
           name: address
-          description: Code address
+          description: contract address
           required: true
           type: string
           x-example: "certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0"
