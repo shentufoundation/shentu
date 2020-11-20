@@ -208,7 +208,7 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 // withdrawal and unbonding delays.
 func TestClaimProposal(t *testing.T) {
 	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC(), Height: common.Update1Height})
+	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
 
 	// create and add addresses
 	shieldAdmin := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(250e9))[0]
