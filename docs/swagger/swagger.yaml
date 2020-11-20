@@ -4519,10 +4519,10 @@ paths:
           description: Invalid query parameters
         500:
           description: Internal Server Error
-  /gov/proposals/param_change:
+
+  /gov/proposals/community_pool_spend:
     post:
-      summary: Generate a parameter change proposal transaction
-      description: Generate a parameter change proposal transaction
+      summary: Generate a community pool spend proposal transaction
       consumes:
         - application/json
       produces:
@@ -4530,40 +4530,535 @@ paths:
       tags:
         - Governance
       parameters:
-        - description: The parameter change proposal body that contains all parameter changes
-          name: post_proposal_body
+        - description: Request type to generate community pool spend proposal
+          name: CommunityPoolSpendProposalReq
           in: body
           required: true
           schema:
             type: object
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/CertikBaseReq"
               title:
                 type: string
-                x-example: "Param Change"
+                example: "Community pool spend"
               description:
                 type: string
-                x-example: "Update max validators"
+                example: "this is a description"
+              recipient:
+                type: string
+                example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+              amount:
+                $ref: "#/definitions/CertikCoins"
               proposer:
-                $ref: "#/definitions/Address"
+                type: string
+                example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
               deposit:
-                type: array
-                items:
-                  $ref: "#/definitions/Coin"
+                $ref: "#/definitions/CertikCoins"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "cosmos-sdk/MsgSubmitProposal"
+                        value:
+                          type: object
+                          properties:
+                            content:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  example: "cosmos-sdk/CommunityPoolSpendProposal"
+                                value:
+                                  type: object
+                                  properties:
+                                    title:
+                                      type: string
+                                      example: "Community pool spend"
+                                    description:
+                                      type: string
+                                      example: "this is a description"
+                                    recipient:
+                                      type: string
+                                      example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                                    amount:
+                                      $ref: "#/definitions/CertikCoins"
+                            initial+deposit:
+                              $ref: "#/definitions/CertikCoins"
+                            proposer:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Invalid proposal body
+
+  /gov/proposals/upgrade:
+    post:
+      summary: Generate an upgrade proposal transaction
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Governance
+      parameters:
+        - description: Request type to generate upgrade proposal
+          name: PlanReq
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              title:
+                type: string
+                example: "Upgrade"
+              description:
+                type: string
+                example: "this is a description"
+              deposit:
+                $ref: "#/definitions/CertikCoins"
+              UpgradeName:
+                type: string
+                example: "this is a name"
+              UpgradeHeight:
+                type: string
+                example: "10000"
+              UpgradeTime:
+                type: string
+                example: "2020-10-27T20:29:34.755279Z"
+              UpgradeInfo:
+                type: string
+                example: "this is an info"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "cosmos-sdk/MsgSubmitProposal"
+                        value:
+                          type: object
+                          properties:
+                            content:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  example: "cosmos-sdk/SoftwareUpgradeProposal"
+                                value:
+                                  type: object
+                                  properties:
+                                    title:
+                                      type: string
+                                      example: "Upgrade"
+                                    description:
+                                      type: string
+                                      example: "this is a description"
+                                    plan:
+                                      type: object
+                                      properties:
+                                        name:
+                                          type: string
+                                          example: "this is a name"
+                                        time:
+                                          type: string
+                                          example: "2020-10-27T20:29:34.755279Z"
+                                        height:
+                                          type: string
+                                          example: "10000"
+                                        info:
+                                          type: string
+                                          example: "this is an info"
+                            initial+deposit:
+                              $ref: "#/definitions/CertikCoins"
+                            proposer:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Invalid proposal body
+
+  /gov/proposals/certifier_update:
+    post:
+      summary: Generate a certifier update spend proposal transaction
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Governance
+      parameters:
+        - description: Request type to generate certifier update proposal
+          name: CertifierUpdateProposalReq
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              title:
+                type: string
+                example: "Certifier update"
+              description:
+                type: string
+                example: "this is a description"
+              certifier:
+                type: string
+                example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+              alias:
+                type: string
+                example: "a certifier"
+              add_or_remove:
+                type: boolean
+                example: true
+              deposit:
+                $ref: "#/definitions/CertikCoins"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "cosmos-sdk/MsgSubmitProposal"
+                        value:
+                          type: object
+                          properties:
+                            content:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  example: "cert/CertifierUpdateProposal"
+                                value:
+                                  type: object
+                                  properties:
+                                    title:
+                                      type: string
+                                      example: "Certifier update"
+                                    description:
+                                      type: string
+                                      example: "this is a description"
+                                    certifier:
+                                      type: string
+                                      example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                                    alias:
+                                      type: string
+                                      example: "a certifier"
+                                    from:
+                                      type: string
+                                      example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                                    add_or_remove:
+                                      type: boolean
+                                      example: true
+                            initial+deposit:
+                              $ref: "#/definitions/CertikCoins"
+                            proposer:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Invalid proposal body
+
+
+  /gov/proposals/param_change:
+    post:
+      summary: Generate a parameter change proposal transaction
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Governance
+      parameters:
+        - description: Request type to generate parameter change proposal
+          name: ParamChangeProposalReq
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              title:
+                type: string
+                example: "Param Change"
+              description:
+                type: string
+                example: "Update max validators"
+              proposer:
+                type: string
+                example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+              deposit:
+                $ref: "#/definitions/CertiikCoins"
               changes:
                 type: array
                 items:
                   $ref: "#/definitions/ParamChange"
       responses:
         200:
-          description: The transaction was succesfully generated
+          description: Successfully parsed request
           schema:
-            $ref: "#/definitions/StdTx"
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "cosmos-sdk/MsgSubmitProposal"
+                        value:
+                          type: object
+                          properties:
+                            content:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  example: "cosmos-sdk/ParameterChangeProposal"
+                                value:
+                                  type: object
+                                  properties:
+                                    title:
+                                      type: string
+                                      example: "Param Change"
+                                    description:
+                                      type: string
+                                      example: "Update max validators"
+                                    changes:
+                                      $ref: "#/definitions/ParamChange"
+                            initial+deposit:
+                              $ref: "#/definitions/CertikCoins"
+                            proposer:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
         400:
           description: Invalid proposal body
-        500:
-          description: Internal Server Error
+
+  /gov/proposals/shield_claim:
+    post:
+      summary: Generate a shield claim proposal transaction
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Governance
+      parameters:
+        - description: Request type to generate shield claim proposal
+          name: ShieldClaimProposalReq
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              pool_id:
+                type: string
+                example: "1"
+              loss:
+                $ref: "#/definitions/CertikCoins"
+              evidence:
+                type: string
+                example: "an evidence"
+              purchase_id:
+                type: string
+                example: "1290843"
+              description:
+                type: string
+                example: "this is a description"
+              deposit:
+                $ref: "#/definitions/CertikCoins"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "cosmos-sdk/MsgSubmitProposal"
+                        value:
+                          type: object
+                          properties:
+                            content:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  example: "shield/ShieldClaimProposal"
+                                value:
+                                  type: object
+                                  properties:
+                                    proposal_id:
+                                      type: string
+                                      example: null
+                                    pool_id:
+                                      type: string
+                                      example: "1"
+                                    purchase_id:
+                                      type: string
+                                      example: "1290843"
+                                    loss:
+                                      $ref: "#/definitions/CertikCoins"
+                                    evidence:
+                                      type: string
+                                      example: "an evidence"
+                                    description:
+                                      type: string
+                                      example: "this is a description"
+                                    proposer:
+                                      type: string
+                                      example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                            initial+deposit:
+                              $ref: "#/definitions/CertikCoins"
+                            proposer:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Invalid proposal body
+
+
   /gov/proposals/{proposalId}:
     get:
       summary: Query a proposal
@@ -4846,6 +5341,8 @@ paths:
           schema:
             type: object
             properties:
+              min_initial_deposit:
+                $ref: "#/definitions/CertikCoins"
               min_deposit:
                 type: array
                 items:
@@ -4872,15 +5369,42 @@ paths:
           description: OK
           schema:
             properties:
-              threshold:
-                type: string
-                example: "0.5000000000"
-              veto:
-                type: string
-                example: "0.3340000000"
-              governance_penalty:
-                type: string
-                example: "0.0100000000"
+              DefaultTally:
+                type: object
+                properties:
+                  threshold:
+                    type: string
+                    example: "0.5000000000"
+                  veto:
+                    type: string
+                    example: "0.3340000000"
+                  governance_penalty:
+                    type: string
+                    example: "0.0100000000"
+              CertifierUpdateSecurityVoteTally:
+                type: object
+                properties:
+                  threshold:
+                    type: string
+                    example: "0.5000000000"
+                  veto:
+                    type: string
+                    example: "0.3340000000"
+                  governance_penalty:
+                    type: string
+                    example: "0.0100000000"
+              CertifierUpdateStakeVoteTally:
+                type: object
+                properties:
+                  threshold:
+                    type: string
+                    example: "0.5000000000"
+                  veto:
+                    type: string
+                    example: "0.3340000000"
+                  governance_penalty:
+                    type: string
+                    example: "0.0100000000"
         400:
           description: <other_path> is not a valid query request path
         404:
