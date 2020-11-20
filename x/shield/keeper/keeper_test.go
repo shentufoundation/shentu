@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"encoding/hex"
+	"math"
 	"testing"
 	"time"
 
@@ -202,7 +204,9 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 	tshield.DepositCollateral(delAddr, 50, true)
 }
 
-func TestDelayWithdrawAndUBD(t *testing.T) {
+// TestClaimProposal tests a claim proposal process that involves
+// withdrawal and unbonding delays.
+func TestClaimProposal(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC(), Height: common.Update1Height})
 
@@ -213,14 +217,19 @@ func TestDelayWithdrawAndUBD(t *testing.T) {
 	purchaser := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10e9))[0]
 	delAddr := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(125e9))[0]
 
+	var adminDeposit int64 = 200e9
+	var delegatorDeposit int64 = 125e9
+	totalDeposit := adminDeposit + delegatorDeposit
+
 	// validator addresses
 	valAddr := sdk.ValAddress(simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(100e6))[0])
 	pubKey := tests.MakeTestPubKey()
 
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
-	tshield := testshield.NewHelper(t, ctx, app.ShieldKeeper, tstaking.Denom)
-	tgov := testgov.NewHelper(t, ctx, app.GovKeeper, tstaking.Denom)
+	bondDenom := tstaking.Denom
+	tshield := testshield.NewHelper(t, ctx, app.ShieldKeeper, bondDenom)
+	tgov := testgov.NewHelper(t, ctx, app.GovKeeper, bondDenom)
 
 	// set up a validator
 	tstaking.CreateValidatorWithValPower(valAddr, pubKey, 100, true)
@@ -229,8 +238,8 @@ func TestDelayWithdrawAndUBD(t *testing.T) {
 
 	// shield admin deposit and create pool
 	// $BondDenom pool with shield = 100,000 $BondDenom, limit = 500,000 $BondDenom, serviceFees = 200 $BondDenom
-	tstaking.Delegate(shieldAdmin, valAddr, 200e9)
-	tshield.DepositCollateral(shieldAdmin, 200e9, true)
+	tstaking.Delegate(shieldAdmin, valAddr, adminDeposit)
+	tshield.DepositCollateral(shieldAdmin, adminDeposit, true)
 	tshield.CreatePool(shieldAdmin, sponsorAddr, 200e6, 100e9, 500e9, "CertiK", "fake_description")
 
 	pools := app.ShieldKeeper.GetAllPools(ctx)
@@ -240,33 +249,97 @@ func TestDelayWithdrawAndUBD(t *testing.T) {
 
 	// delegator deposits
 	tstaking.CheckDelegator(delAddr, valAddr, false)
-	tstaking.Delegate(delAddr, valAddr, 125e9)
+	tstaking.Delegate(delAddr, valAddr, delegatorDeposit)
 	tstaking.CheckDelegator(delAddr, valAddr, true)
-	tshield.DepositCollateral(delAddr, 125e9, true)
+	tshield.DepositCollateral(delAddr, delegatorDeposit, true)
 
 	// purchaser purhcases a shield
 	var shield int64 = 50e9
 	tshield.PurchaseShield(purchaser, shield, poolID, true)
 
 	// delegator undelegates all delegations, triggering a withdrawal
-	tstaking.Undelegate(delAddr, valAddr, 125e9, true)
-	withdraws := app.ShieldKeeper.GetAllWithdraws(ctx)
-	require.True(t, len(withdraws) == 1)
-	require.True(t, withdraws[0].Amount.Equal(sdk.NewInt(125e9)))
-	withdrawDuration := app.ShieldKeeper.GetPoolParams(ctx).WithdrawPeriod
-	require.True(t, withdraws[0].CompletionTime.Equal(ctx.BlockTime().Add(withdrawDuration)))
+	tstaking.Undelegate(delAddr, valAddr, 25e9, true)
+	withdraw1End := ctx.BlockTime().Add(app.ShieldKeeper.GetPoolParams(ctx).WithdrawPeriod)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
+	tstaking.Undelegate(delAddr, valAddr, 90e9, true)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
+	tstaking.Undelegate(delAddr, valAddr, 10e9, true)
 
+	withdraws := app.ShieldKeeper.GetAllWithdraws(ctx)
+	require.True(t, len(withdraws) == 3)
+	require.True(t, withdraws[0].Amount.Equal(sdk.NewInt(25e9)))
+	require.True(t, withdraws[1].Amount.Equal(sdk.NewInt(90e9)))
+	require.True(t, withdraws[2].Amount.Equal(sdk.NewInt(10e9)))
+
+	delUBD := app.StakingKeeper.GetAllUnbondingDelegations(ctx, delAddr)[0]
+	require.True(t, delUBD.Entries[0].Balance.Equal(sdk.NewInt(25e9)))
+	require.True(t, delUBD.Entries[1].Balance.Equal(sdk.NewInt(90e9)))
+	require.True(t, delUBD.Entries[2].Balance.Equal(sdk.NewInt(10e9)))
+
+	
 	// 20 days later (345,600 blocks)
 	ctx = skipBlocks(ctx, 345600, tstaking, tshield, tgov)
 
 	// the purchaser submits a claim proposal
-	tgov.ShieldClaimProposal(purchaser, shield, poolID, 2, true)
+	loss := shield
+	tgov.ShieldClaimProposal(purchaser, loss, poolID, 2, true)
+	var proposalID uint64 = 1 // TODO: unmarshal sdk.Result to obtain proposal ID
 
 	// verify that the withdrawal and unbonding have been delayed
+	// about 19e9 must be secured (two of three withdraws & ubds are delayed)
 	withdraws = app.ShieldKeeper.GetAllWithdraws(ctx)
-	claimDuration := app.GovKeeper.GetVotingParams(ctx).VotingPeriod * 2
-	require.True(t, withdraws[0].CompletionTime.Equal(ctx.BlockTime().Add(claimDuration)))
+	delayedWithdrawEnd := ctx.BlockTime().Add(app.GovKeeper.GetVotingParams(ctx).VotingPeriod * 2)
+	require.True(t, withdraws[0].Amount.Equal(sdk.NewInt(25e9)))
+	require.True(t, withdraws[0].CompletionTime.Equal(withdraw1End)) //25e9 not delayed
+	require.True(t, withdraws[1].Amount.Equal(sdk.NewInt(10e9)))
+	require.True(t, withdraws[1].CompletionTime.Equal(delayedWithdrawEnd)) // 10e9 delayed
+	require.True(t, withdraws[2].Amount.Equal(sdk.NewInt(90e9)))
+	require.True(t, withdraws[2].CompletionTime.Equal(delayedWithdrawEnd)) // 90e9 delayed
 
-	unbondings := app.StakingKeeper.GetAllUnbondingDelegations(ctx, delAddr)
-	require.True(t, unbondings[0].Entries[0].CompletionTime.Equal(ctx.BlockTime().Add(claimDuration)))
+	delUBD = app.StakingKeeper.GetAllUnbondingDelegations(ctx, delAddr)[0]
+	require.True(t, delUBD.Entries[0].Balance.Equal(sdk.NewInt(25e9)))
+	require.True(t, delUBD.Entries[0].CompletionTime.Equal(withdraw1End)) //25e9 not delayed
+	require.True(t, delUBD.Entries[1].Balance.Equal(sdk.NewInt(90e9)))
+	require.True(t, delUBD.Entries[1].CompletionTime.Equal(delayedWithdrawEnd)) // 90e9 delayed
+	require.True(t, delUBD.Entries[2].Balance.Equal(sdk.NewInt(10e9)))
+	require.True(t, delUBD.Entries[2].CompletionTime.Equal(delayedWithdrawEnd)) // 10e9 delayed
+
+
+	// create reimbursement
+	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, loss))
+	err := app.ShieldKeeper.CreateReimbursement(ctx, proposalID, lossCoins, purchaser)
+	require.NoError(t, err)
+	reimbursement, err := app.ShieldKeeper.GetReimbursement(ctx, proposalID)
+	require.NoError(t, err)
+	require.True(t, reimbursement.Amount.IsEqual(lossCoins))
+
+	// confirm admin delegation reduction
+	lossRatio := float64(loss) / float64(totalDeposit)
+	expected := adminDeposit - int64(math.Round(float64(adminDeposit) * lossRatio))
+	if hex.EncodeToString(shieldAdmin) < hex.EncodeToString(delAddr) {
+		expected -= 1 // adjust for discrepancy due to sorting
+	}
+
+	adminDels := app.StakingKeeper.GetAllDelegatorDelegations(ctx, shieldAdmin)
+	validator, _ := app.StakingKeeper.GetValidator(ctx, valAddr)
+	require.True(t, validator.TokensFromShares(adminDels[0].Shares).Equal(sdk.NewDec(expected)))
+
+	// confirm delegator unbonding reduction	
+	expected = 25e9 + 10e9 + 90e9 - int64(math.Round(float64(125e9) * lossRatio))
+	if hex.EncodeToString(shieldAdmin) < hex.EncodeToString(delAddr) {
+		expected += 1 // adjust for discrepancy due to sorting
+	}
+	withdraws = app.ShieldKeeper.GetAllWithdraws(ctx)
+	require.True(t, withdraws[0].Amount.Add(withdraws[1].Amount.Add(withdraws[2].Amount)).Equal(sdk.NewInt(expected)))
+	delUBD = app.StakingKeeper.GetAllUnbondingDelegations(ctx, delAddr)[0]
+	require.True(t, delUBD.Entries[0].Balance.Add(delUBD.Entries[1].Balance.Add(delUBD.Entries[2].Balance)).Equal(sdk.NewInt(expected)))
+
+	// test withdraw reimbursement
+	// 56 days later (967,680 blocks)
+	ctx = skipBlocks(ctx, 967680, tstaking, tshield, tgov)
+
+	beforeInt := app.BankKeeper.GetCoins(ctx, purchaser).AmountOf(bondDenom)
+	tshield.WithdrawReimbursement(purchaser, proposalID, true)
+	afterInt := app.BankKeeper.GetCoins(ctx, purchaser).AmountOf(bondDenom)
+	require.True(t, beforeInt.Add(sdk.NewInt(loss)).Equal(afterInt))
 }
