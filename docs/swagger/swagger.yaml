@@ -376,84 +376,6 @@ paths:
                     example: "This is a memo!"
         400:
           description: Failed to parse request
-  /cert/certify/proof:
-    post:
-      tags:
-        - Certification
-      summary: Certify proof
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          name: certifyProofReq
-          description: Request type to certify proof
-          required: true
-          schema:
-            type: object
-            properties:
-              base_req:
-                $ref: "#/definitions/CertikBaseReq"
-              certifier:
-                type: string
-                example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
-              contract:
-                type: string
-                example: "certik1sy0psa68ucnle4jnrr4e8u9x0zmva3ppqxalkz"
-              description:
-                type: string
-                example: "a description for the contract"
-      responses:
-        200:
-          description: Successfully parsed request
-          schema:
-            type: object
-            properties:
-              type:
-                type: string
-                example: "cosmos-sdk/StdTx"
-              value:
-                type: object
-                properties:
-                  msg:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        type:
-                          type: string
-                          example: "cert/CertifyProof"
-                        value:
-                          type: object
-                          properties:
-                            Certifier:
-                              type: string
-                              example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
-                            Contract:
-                              type: string
-                              example: "certik1sy0psa68ucnle4jnrr4e8u9x0zmva3ppqxalkz"
-                            Description:
-                              type: string
-                              example: "a description for the contract"
-                  fee:
-                    type: object
-                    properties:
-                      amount:
-                        $ref: "#/definitions/CertikCoins"
-                      gas:
-                        type: string
-                        example: "200000"
-                  signatures:
-                    type: array
-                    items:
-                      type: object
-                    example: null
-                  memo:
-                    type: string
-                    example: "This is a memo!"
-        400:
-          description: Failed to parse request
   /cert/certify/compilation:
     post:
       tags:
@@ -986,9 +908,6 @@ paths:
             properties:
               base_req:
                 $ref: "#/definitions/CertikBaseReq"
-              caller:
-                type: string
-                example: "certik1g6xuz868kxnqhfudwqueacvkc6w9wr8t2dlx7a"
               callee:
                 type: string
                 example: "certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0"
@@ -1023,7 +942,7 @@ paths:
                           properties:
                             Caller:
                               type: string
-                              example: "certik1g6xuz868kxnqhfudwqueacvkc6w9wr8t2dlx7a"
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
                             Callee:
                               type: string
                               example: "certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0"
@@ -1090,6 +1009,12 @@ paths:
                 items:
                   type: string
                   example: "7b22436f6e74726163744e616d65223a2248656c6c6f3535222c22536f7572636546696c65223a2268656c6c6f35352e736f6c222c22436f6d70696c657256657273696f6e223a22302e362e322b636f6d6d69742e6261636462653537222c22416269223a5b7b22696e70757473223a5b5d2c226e616d65223a227361794869222c226f757470757473223a5b7b22696e7465726e616c54797065223a2275696e74323536222c226e616d65223a22222c2274797065223a2275696e74323536227d5d2c2273746174654d75746162696c697479223a2270757265222c2274797065223a2266756e6374696f6e227d5d7d"
+              is_ewasm:
+                type: boolean
+                example: false
+              is_runtime:
+                type: boolean
+                example: false
       responses:
         200:
           description: Successfully parsed request
@@ -1136,6 +1061,12 @@ paths:
                                   Meta:
                                     type: string
                                     example: "{\"ContractName\":\"Hello55\",\"SourceFile\":\"hello55.sol\",\"CompilerVersion\":\"0.6.2+commit.bacdbe57\",\"Abi\":[{\"inputs\":[],\"name\":\"sayHi\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}]}"
+                            IsEWASM:
+                              type: boolean
+                              example: false
+                            IsRuntime:
+                              type: boolean
+                              example: false
                   fee:
                     type: object
                     properties:
@@ -1154,6 +1085,53 @@ paths:
                     example: "This is a memo!"
         400:
           description: Failed to parse request
+
+  /cvm/view:
+    post:
+      tags:
+        - CVM
+      summary: Get contract function return value
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: viewReq
+          description: Request type to view CVM contract
+          required: true
+          schema:
+            type: object
+            properties:
+              caller:
+                type: string
+                example: "certik1g6xuz868kxnqhfudwqueacvkc6w9wr8t2dlx7a"
+              callee:
+                type: string
+                example: "certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0"
+              data:
+                type: string
+                example: "0c49c36c"
+      responses:
+        200:
+          description: Successfully parsed request and found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: object
+                properties:
+                  ret:
+                    type: string
+                    example: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADc="
+        400:
+          description: Failed to parse request
+        404:
+          description: Failed to find result
+
   /cvm/code/{address}:
     get:
       summary: Query contract code by address
@@ -1315,35 +1293,24 @@ paths:
                     example: "{\"ContractName\":\"Simple\",\"SourceFile\":\"simple.sol\",\"CompilerVersion\":\"0.6.2+commit.bacdbe57\",\"Abi\":[{\"inputs\":[],\"name\":\"get\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"x\",\"type\":\"uint256\"}],\"name\":\"set\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]}"
         404:
           description: Failed to find result
-  /cvm/view:
-    post:
+
+  /cvm/contract/{address}:
+    get:
+      summary: Query contract account information
       tags:
         - CVM
-      summary: Get contract function return value
-      consumes:
-        - application/json
       produces:
         - application/json
       parameters:
-        - in: body
-          name: viewReq
-          description: Request type to view CVM contract
+        - in: path
+          name: address
+          description: Code address
           required: true
-          schema:
-            type: object
-            properties:
-              caller:
-                type: string
-                example: "certik1g6xuz868kxnqhfudwqueacvkc6w9wr8t2dlx7a"
-              callee:
-                type: string
-                example: "certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0"
-              data:
-                type: string
-                example: "0c49c36c"
+          type: string
+          x-example: "certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0"
       responses:
         200:
-          description: Successfully parsed request and found result
+          description: Successfully found result
           schema:
             type: object
             properties:
@@ -1353,11 +1320,25 @@ paths:
               result:
                 type: object
                 properties:
-                  ret:
+                  address:
                     type: string
-                    example: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADc="
-        400:
-          description: Failed to parse request
+                    example: "certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0"
+                  coins:
+                    $ref: "#/definitions/CertikCoins"
+                  public_key:
+                    example: null
+                  account_number:
+                    type: string
+                    example: "9"
+                  sequence:
+                    type: string
+                    example: "0"
+                  code:
+                    type: string
+                    example: "6080604052348015600F57600080FD5B506004361060285760003560E01C80630C49C36C14602D575B600080FD5B60336049565B6040518082815260200191505060405180910390F35B6000603790509056FEA2646970667358221220B186AF84263D62E4CE7A1E4AAD7CC2203112EA9BCD0967C33D611C4D7850107364736F6C63430006020033"
+                  abi:
+                    type: string
+                    example: "[{\"inputs\":[],\"name\":\"sayHi\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}]"
         404:
           description: Failed to find result
 
