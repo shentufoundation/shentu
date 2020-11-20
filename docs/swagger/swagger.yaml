@@ -3673,6 +3673,90 @@ paths:
           description: Invalid request
         500:
           description: Server internal error
+
+  /bank/accounts/{address}/locked_transfers:
+    post:
+      summary: send locked coins to a manual vesting account
+      tags:
+        - Bank
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: address
+          description: address
+          required: true
+          type: string
+          x-example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+        - in: body
+          name: LockedSendReq
+          description: Request type to send locked coins
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              amount:
+                $ref: "#/definitions/CertikCoins"
+              unlocker:
+                type: string
+                example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "bank/MsgLockedSend"
+                        value:
+                          type: object
+                          properties:
+                            from:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                            to:
+                              type: string
+                              example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                            unlocker:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                            amount:
+                              $ref: "#/definitions/CertikCoins"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
   /auth/accounts/{address}:
     get:
       summary: Get the account information on blockchain
@@ -3712,6 +3796,84 @@ paths:
                     type: string
         500:
           description: Server internel error
+
+  /txs/{address}/unlock:
+    post:
+      summary: unlock coins for manual vesting account
+      tags:
+        - Auth
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: address
+          description: address
+          required: true
+          type: string
+          x-example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+        - in: body
+          name: UnlockReq
+          description: Request type to unlock
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              amount:
+                $ref: "#/definitions/CertikCoins"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "auth/MsgUnlock"
+                        value:
+                          type: object
+                          properties:
+                            certifier:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                            account_address:
+                              type: string
+                              example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                            unlock_amount:
+                              $ref: "#/definitions/CertikCoins"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
   /staking/delegators/{delegatorAddr}/delegations:
     parameters:
       - in: path
