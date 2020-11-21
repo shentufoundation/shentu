@@ -5395,7 +5395,7 @@ paths:
                 type: string
                 example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
               deposit:
-                $ref: "#/definitions/CertiikCoins"
+                $ref: "#/definitions/CertikCoins"
               changes:
                 type: array
                 items:
