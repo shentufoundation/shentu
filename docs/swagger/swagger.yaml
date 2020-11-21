@@ -4770,6 +4770,100 @@ paths:
   #          description: Invalid validator public key
   #        500:
   #          description: Internal Server Error
+
+  /staking/all_validators:
+    get:
+      summary: Query all validators
+      tags:
+        - Staking
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: object
+                properties:
+                  Count:
+                    type: string
+                    example: "1"
+                  Validators:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        operator_address:
+                          type: string
+                          example: "certikvaloper18knfymnl2hhy83yj7ndwszt5gdluh823egtnx3"
+                        consensus_pubkey:
+                          type: string
+                          example: "certikvalconspub1zcjduepq969kzmatne84am2jpfdtkcrvh8fnt6skgs63dkc4s4dnp69rshhqlu8vpd"
+                        jailed:
+                          type: boolean
+                          example: false
+                        status:
+                          type: integer
+                          example: 2
+                        tokens:
+                          type: string
+                          example: "2000000"
+                        delegator_shares:
+                          type: string
+                          example: "2000000.000000000000000000"
+                        description:
+                          type: object
+                          properties:
+                            moniker:
+                              type: string
+                              example: "node0"
+                            identity:
+                              type: string
+                              example: ""
+                            website:
+                              type: string
+                              example: ""
+                            security_contact:
+                              type: string
+                              example: ""
+                            details:
+                              type: string
+                              example: ""
+                        unbonding_height:
+                          type: string
+                          example: "0"
+                        unbonding_time:
+                          type: string
+                          example: "1970-01-01T00:00:00Z"
+                        commission:
+                          type: object
+                          properties:
+                            commission_rates:
+                              type: object
+                              properties:
+                                rate:
+                                  type: string
+                                  example: "0.100000000000000000"
+                                max_rate:
+                                  type: string
+                                  example: "0.200000000000000000"
+                                max_change_rate:
+                                  type: string
+                                  example: "0.010000000000000000"
+                            update_time:
+                              type: string
+                              example: "2020-11-21T00:37:21.085463Z"
+                        min_self_delegation:
+                          type: string
+                          example: "1"
+        404:
+          description: Failed to find result
+
   /slashing/signing_infos:
     get:
       summary: Get sign info of given all validators
