@@ -12,7 +12,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/keeper"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -475,9 +474,6 @@ func ProposalContents(k keeper.Keeper, sk types.StakingKeeper) []simulation.Weig
 // SimulateShieldClaimProposalContent generates random shield claim proposal content
 func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper) simulation.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simulation.Account) govtypes.Content {
-		if ctx.BlockHeight() < common.Update1Height {
-			return nil
-		}
 		bondDenom := sk.BondDenom(ctx)
 		purchaseList, found := keeper.RandomPurchaseList(r, k, ctx)
 		if len(purchaseList.Entries) == 0 {
@@ -509,9 +505,6 @@ func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper)
 func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		if ctx.BlockHeight() < common.Update1Height {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
-		}
 		purchaser, _ := simulation.RandomAcc(r, accs)
 		account := ak.GetAccount(ctx, purchaser.Address)
 		bondDenom := sk.BondDenom(ctx)
@@ -572,9 +565,6 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		if ctx.BlockHeight() < common.Update1Height {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
-		}
 		bondDenom := sk.BondDenom(ctx)
 		stakeForShields := k.GetAllStakeForShields(ctx)
 		if len(stakeForShields) == 0 {
@@ -622,9 +612,6 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, sk ty
 func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		if ctx.BlockHeight() < common.Update1Height {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
-		}
 		prPair, found := keeper.RandomMaturedProposalIDReimbursementPair(r, k, ctx)
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil

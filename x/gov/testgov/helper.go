@@ -28,12 +28,12 @@ func NewHelper(t *testing.T, ctx sdk.Context, k gov.Keeper, denom string) *Helpe
 	return &Helper{t, gov.NewHandler(k), k, ctx, denom}
 }
 
-func (gh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID, purchaseID uint64, ok bool) {
+func (gh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID, purchaseID uint64, ok bool) *sdk.Result {
 	initDeposit := sdk.NewCoins(sdk.NewInt64Coin(gh.denom, 5000e6))
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(gh.denom, loss))
 	content := shieldTypes.NewShieldClaimProposal(poolID, lossCoins, purchaseID, "test_claim_evidence", "test_claim_description", proposer)
 	proposal := cosmosGov.NewMsgSubmitProposal(content, initDeposit, proposer)
-	gh.Handle(proposal, ok)
+	return gh.Handle(proposal, ok)
 }
 
 // TurnBlock updates context and calls endblocker.

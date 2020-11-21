@@ -249,12 +249,12 @@ func SecurityTally(ctx sdk.Context, k Keeper, proposal types.Proposal) (bool, bo
 	results := newResults()
 	totalHeadCounts := sdk.ZeroDec()
 
-	currVotes := k.GetAllVotes(ctx)
-	for _, val := range currVotes {
-		if val.Option == govTypes.OptionEmpty {
+	currVotes := k.GetVotes(ctx, proposal.ProposalID)
+	for _, vote := range currVotes {
+		if vote.Option == govTypes.OptionEmpty {
 			continue
 		}
-		results[val.Option] = results[val.Option].Add(sdk.NewDec(1))
+		results[vote.Option] = results[vote.Option].Add(sdk.NewDec(1))
 		totalHeadCounts = totalHeadCounts.Add(sdk.NewDec(1))
 	}
 	tallyParams := k.GetTallyParams(ctx)

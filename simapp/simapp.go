@@ -121,7 +121,7 @@ type SimApp struct {
 	AccountKeeper  auth.AccountKeeper
 	BankKeeper     bank.Keeper
 	StakingKeeper  staking.Keeper
-	slashingKeeper slashing.Keeper
+	SlashingKeeper slashing.Keeper
 	MintKeeper     mint.Keeper
 	DistrKeeper    distr.Keeper
 	CrisisKeeper   crisis.Keeper
@@ -271,7 +271,7 @@ func NewSimApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bo
 		&app.ShieldKeeper,
 		auth.FeeCollectorName,
 	)
-	app.slashingKeeper = slashing.NewKeeper(
+	app.SlashingKeeper = slashing.NewKeeper(
 		app.cdc,
 		keys[slashing.StoreKey],
 		&stakingKeeper,
@@ -280,7 +280,7 @@ func NewSimApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bo
 	app.CertKeeper = cert.NewKeeper(
 		app.cdc,
 		keys[cert.StoreKey],
-		app.slashingKeeper,
+		app.SlashingKeeper,
 		stakingKeeper,
 	)
 	app.AuthKeeper = auth.NewKeeper(
@@ -311,7 +311,7 @@ func NewSimApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bo
 	app.StakingKeeper.Keeper = *stakingKeeper.Keeper.SetHooks(
 		staking.NewMultiStakingHooks(
 			app.DistrKeeper.Hooks(),
-			app.slashingKeeper.Hooks(),
+			app.SlashingKeeper.Hooks(),
 			app.ShieldKeeper.Hooks(),
 		),
 	)
@@ -342,7 +342,7 @@ func NewSimApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bo
 		crisis.NewAppModule(&app.CrisisKeeper),
 		supply.NewAppModule(app.SupplyKeeper, app.AccountKeeper),
 		distr.NewAppModule(app.DistrKeeper, app.AccountKeeper, app.SupplyKeeper, app.StakingKeeper.Keeper),
-		slashing.NewAppModule(app.slashingKeeper, app.AccountKeeper, app.StakingKeeper.Keeper),
+		slashing.NewAppModule(app.SlashingKeeper, app.AccountKeeper, app.StakingKeeper.Keeper),
 		staking.NewAppModule(app.StakingKeeper, app.AccountKeeper, app.SupplyKeeper, app.CertKeeper),
 		mint.NewAppModule(app.MintKeeper),
 		upgrade.NewAppModule(app.UpgradeKeeper.Keeper),
@@ -407,7 +407,7 @@ func NewSimApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bo
 		cosmosBank.NewAppModule(app.BankKeeper, app.AccountKeeper),
 		supply.NewAppModule(app.SupplyKeeper, app.AccountKeeper),
 		distr.NewAppModule(app.DistrKeeper, app.AccountKeeper, app.SupplyKeeper, app.StakingKeeper.Keeper),
-		slashing.NewAppModule(app.slashingKeeper, app.AccountKeeper, app.StakingKeeper.Keeper),
+		slashing.NewAppModule(app.SlashingKeeper, app.AccountKeeper, app.StakingKeeper.Keeper),
 		params.NewAppModule(),
 		staking.NewAppModule(app.StakingKeeper, app.AccountKeeper, app.SupplyKeeper, app.CertKeeper),
 		mint.NewAppModule(app.MintKeeper),
