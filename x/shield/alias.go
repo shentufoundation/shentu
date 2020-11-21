@@ -39,7 +39,6 @@ var (
 
 	// variable aliases
 	ErrPurchaseNotFound = types.ErrPurchaseNotFound
-	ErrBeforeUpdate     = types.ErrBeforeUpdate
 	PurchaseQueueKey    = types.PurchaseQueueKey
 	WithdrawQueueKey    = types.WithdrawQueueKey
 	BlockServiceFeesKey = types.BlockServiceFeesKey

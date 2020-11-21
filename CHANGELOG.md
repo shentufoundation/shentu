@@ -42,10 +42,21 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking Changes
 ### Features
 ### Improvements
+### Bug Fixes
+
+
+## [v1.2.0] - 11-20-2020
+
+### Client Breaking Changes
+### API Breaking Changes
+### State Machine Breaking Changes
+### Features
+### Improvements
 * (rest) [\#131](https://github.com/certikfoundation/shentu/pull/171) Set default query limit to 100.
 
 ### Bug Fixes
 * (x/shield) [\#173](https://github.com/certikfoundation/shentu/pull/173) Fixed indexing problem when paying out from unbonding delegations
+* (x/shield) [\#170](https://github.com/certikfoundation/shentu/pull/170) Fixed conditional check for depositing collateral
 
 
 ## v1.1.0 - 11-11-2020
