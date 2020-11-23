@@ -35,7 +35,7 @@ tags:
     description: Minting module APIs
 schemes:
   - https
-host: api.certik.foundation
+host: azuredragon.noopsbycertik.com
 securityDefinitions:
   kms:
     type: basic
