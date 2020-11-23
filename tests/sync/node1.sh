@@ -32,6 +32,8 @@ sed -i "" 's/persistent_peers = ""/persistent_peers = "'$PEER'"/g' $DIR_D1/confi
 cp $GENESIS $DIR_D1/config/genesis.json
 certikcli config chain-id certikchain --home $DIR_CLI1
 certikcli config keyring-backend test --home $DIR_CLI1
+
 certikcli keys add mary --home $DIR_CLI1
 export mary=$(certikcli keys show mary -a --home $DIR_CLI1)
+
 certikd start --home $DIR_D1 >$DIR/node1/log.txt 2>&1 &

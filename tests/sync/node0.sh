@@ -26,9 +26,16 @@ rm -rf $DIR/node0
 $CERTIKD init node0 --chain-id certikchain --home $DIR_D0
 $CERTIKCLI config chain-id certikchain --home $DIR_CLI0
 $CERTIKCLI config keyring-backend test --home $DIR_CLI0
+
 $CERTIKCLI keys add jack --home $DIR_CLI0
 export jack=$($CERTIKCLI keys show jack -a --home $DIR_CLI0)
-$CERTIKD add-genesis-account $jack 1000000000uctk --home $DIR_D0
+$CERTIKCLI keys add bob --home $DIR_CLI0
+export bob=$($CERTIKCLI keys show bob -a --home $DIR_CLI0)
+$CERTIKD add-genesis-account $jack 1000000000uctk --vesting-amount=1000000uctk --manual --unlocker $bob --home $DIR_D0
+$CERTIKD add-genesis-account $bob 1000000000uctk --home $DIR_D0
+$CERTIKD add-genesis-certifier $bob
+
 $CERTIKD gentx --name jack --amount 2000000uctk --home-client $DIR_CLI0 --keyring-backend test --home $DIR_D0
 $CERTIKD collect-gentxs --home $DIR_D0
+
 $CERTIKD start --home $DIR_D0 >$DIR/node0/log.txt 2>&1 &
