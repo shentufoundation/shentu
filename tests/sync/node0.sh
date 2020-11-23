@@ -3,9 +3,12 @@
 set -e
 set -x
 
-# -----------------------------------------
-# Set up validator node running old binary
-# -----------------------------------------
+# ------------------------------------------
+#  Set up validator node running old binary
+#
+#  p2p port: 26656 (Cosmos default)
+#  rpc port: 26657 (Cosmos default)
+# ------------------------------------------
 
 # node directory
 # DIR=~/.synctest
@@ -21,9 +24,6 @@ export CERTIKCLI=$PROJ_ROOT/tests/sync/certikcli
 $CERTIKD unsafe-reset-all --home $DIR_D
 rm -rf $DIR/node0
 $CERTIKD init node0 --chain-id certikchain --home $DIR_D
-sed -i "" 's/26656/20056/g' $DIR_D/config/config.toml # p2p port
-sed -i "" 's/26657/20057/g' $DIR_D/config/config.toml # rpc port
-sed -i "" 's/addr_book_strict = true/addr_book_strict = false/g' $DIR_D/config/config.toml
 $CERTIKCLI config chain-id certikchain --home $DIR_CLI
 $CERTIKCLI config keyring-backend test --home $DIR_CLI
 $CERTIKCLI keys add jack --home $DIR_CLI
