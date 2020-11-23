@@ -15,7 +15,7 @@ DIR_CLI=$DIR/node0/certikcli
 # binary
 PROJ_ROOT=$(git rev-parse --show-toplevel)
 CERTIKD=$PROJ_ROOT/tests/sync/certikd
-CERTIKCLI=$PROJ_ROOT/tests/sync/certikcli
+export CERTIKCLI=$PROJ_ROOT/tests/sync/certikcli
 
 # set up a validator node on port 20056
 $CERTIKD unsafe-reset-all --home $DIR_D

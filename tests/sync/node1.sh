@@ -11,6 +11,7 @@ set -x
 # DIR=~/.synctest
 DIR_D=$DIR/node1/certikd
 DIR_CLI=$DIR/node1/certikcli
+
 GENESIS=$DIR/node0/certikd/config/genesis.json
 PEERID=$(ls $DIR/node0/certikd/config/gentx/)
 PEER=${PEERID:6:40}"@127.0.0.1:20056"
