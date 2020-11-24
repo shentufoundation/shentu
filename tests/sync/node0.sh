@@ -16,30 +16,32 @@ set -x
 # node directory
 # DIR=~/.synctest
 DIR_D0=$DIR/node0/certikd
-export DIR_CLI0=$DIR/node0/certikcli
+DIR_CLI0=$DIR/node0/certikcli
 
 # binary
 # PROJ_ROOT=$(git rev-parse --show-toplevel)
 CERTIKD=$PROJ_ROOT/tests/sync/certikd
-export CERTIKCLI=$PROJ_ROOT/tests/sync/certikcli
+CERTIKD0=$CERTIKD" --home $DIR_D0"
+CERTIKCLI=$PROJ_ROOT/tests/sync/certikcli
+export CERTIKCLI0=$CERTIKCLI" --home $DIR_CLI0"
 
 # set up a validator node on port 20056
-$CERTIKD unsafe-reset-all --home $DIR_D0
+$CERTIKD0 unsafe-reset-all
 rm -rf $DIR/node0
-$CERTIKD init node0 --chain-id certikchain --home $DIR_D0
+$CERTIKD0 init node0 --chain-id certikchain
 sed -i "" 's/26657/20057/g' $DIR_D0/config/config.toml # rpc port
-$CERTIKCLI config chain-id certikchain --home $DIR_CLI0
-$CERTIKCLI config keyring-backend test --home $DIR_CLI0
+$CERTIKCLI0 config chain-id certikchain
+$CERTIKCLI0 config keyring-backend test
 
-$CERTIKCLI keys add jack --home $DIR_CLI0
-export jack=$($CERTIKCLI keys show jack -a --home $DIR_CLI0)
-$CERTIKCLI keys add bob --home $DIR_CLI0
-export bob=$($CERTIKCLI keys show bob -a --home $DIR_CLI0)
-$CERTIKD add-genesis-account $jack 1000000000uctk --vesting-amount=1000000uctk --manual --unlocker $bob --home $DIR_D0
-$CERTIKD add-genesis-account $bob 1000000000uctk --home $DIR_D0
-$CERTIKD add-genesis-certifier $bob --home $DIR_D0
+$CERTIKCLI0 keys add jack
+export jack=$($CERTIKCLI0 keys show jack -a)
+$CERTIKCLI0 keys add bob
+export bob=$($CERTIKCLI0 keys show bob -a)
+$CERTIKD0 add-genesis-account $jack 1000000000uctk --vesting-amount=1000000uctk --manual --unlocker $bob
+$CERTIKD0 add-genesis-account $bob 1000000000uctk
+$CERTIKD0 add-genesis-certifier $bob
 
-$CERTIKD gentx --name jack --amount 2000000uctk --home-client $DIR_CLI0 --keyring-backend test --home $DIR_D0
-$CERTIKD collect-gentxs --home $DIR_D0
+$CERTIKD0 gentx --name jack --amount 2000000uctk --home-client $DIR_CLI0 --keyring-backend test
+$CERTIKD0 collect-gentxs
 
-$CERTIKD start --home $DIR_D0 >$DIR/node0/log.txt 2>&1 &
+$CERTIKD0 start >$DIR/node0/log.txt 2>&1 &

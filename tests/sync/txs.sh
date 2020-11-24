@@ -3,56 +3,70 @@
 set -e
 set -x
 
-# ---------------------
+# ---------------------------------------------------------------
 # Transaction sequence
-# ---------------------
+#
+# use `$CERTIKCLI0` to send txs from jack or bob
+# use `$CERTIKCLI1` to send txs from mary
+# ---------------------------------------------------------------
 
 # Add tokens to mary
-$CERTIKCLI tx send $jack $mary 100000000uctk --from $jack -y --home $DIR_CLI0
+$CERTIKCLI0 tx send $jack $mary 100000000uctk --from $jack -y
 sleep 6
-certikcli query account $jack --home $DIR_CLI1
-certikcli query account $bob --home $DIR_CLI1
-certikcli query account $mary --home $DIR_CLI1
+$CERTIKCLI1 query account $jack
+$CERTIKCLI1 query account $bob
+$CERTIKCLI1 query account $mary
 
 # auth
-$CERTIKCLI tx unlock $jack 500000uctk --from $bob -y --home $DIR_CLI0
+$CERTIKCLI0 tx unlock $jack 500000uctk --from $bob -y
 sleep 6
-certikcli query account $jack --home $DIR_CLI1
+$CERTIKCLI1 query account $jack
 
 # bank
-certikcli tx locked-send $mary $jack 500000uctk --from $mary -y --home $DIR_CLI1
+$CERTIKCLI1 tx locked-send $mary $jack 500000uctk --from $mary -y
 sleep 6
-certikcli query account $jack --home $DIR_CLI1
-certikcli query account $mary --home $DIR_CLI1
+$CERTIKCLI1 query account $jack
+$CERTIKCLI1 query account $mary
 
 # cert
-certikcli query cert certifiers --home $DIR_CLI1
+$CERTIKCLI1 query cert certifiers
 
-$CERTIKCLI tx cert certify-validator certikvalconspub1zcjduepqff623akv26we89w9qz6nk7yq66ms5tlhmn5p7v8rqv4z2ur9puhqmxvkpk --from $bob -y --home $DIR_CLI0
+$CERTIKCLI0 tx cert certify-validator certikvalconspub1zcjduepqff623akv26we89w9qz6nk7yq66ms5tlhmn5p7v8rqv4z2ur9puhqmxvkpk --from $bob -y
 sleep 6
-certikcli query cert validators --home $DIR_CLI1
+$CERTIKCLI1 query cert validators
 
-$CERTIKCLI tx cert certify-platform certikvalconspub1zcjduepqff623akv26we89w9qz6nk7yq66ms5tlhmn5p7v8rqv4z2ur9puhqmxvkpk xxxx --from $bob -y --home $DIR_CLI0
+$CERTIKCLI0 tx cert certify-platform certikvalconspub1zcjduepqff623akv26we89w9qz6nk7yq66ms5tlhmn5p7v8rqv4z2ur9puhqmxvkpk xxxx --from $bob -y
 sleep 6
-certikcli query cert platform certikvalconspub1zcjduepqff623akv26we89w9qz6nk7yq66ms5tlhmn5p7v8rqv4z2ur9puhqmxvkpk --home $DIR_CLI1
+$CERTIKCLI1 query cert platform certikvalconspub1zcjduepqff623akv26we89w9qz6nk7yq66ms5tlhmn5p7v8rqv4z2ur9puhqmxvkpk
 
-$CERTIKCLI tx cert issue-certificate AUDITING ADDRESS C --from $bob -y --home $DIR_CLI0
+$CERTIKCLI0 tx cert issue-certificate AUDITING ADDRESS C --from $bob -y
 sleep 6
-$CERTIKCLI tx cert issue-certificate COMPILATION SOURCECODEHASH C --compiler A --bytecode-hash B --from $bob -y --home $DIR_CLI0
+$CERTIKCLI0 tx cert issue-certificate COMPILATION SOURCECODEHASH C --compiler A --bytecode-hash B --from $bob -y
 sleep 6
-certikcli query cert certificates --home $DIR_CLI1
-id=$(certikcli query cert certificates --home $DIR_CLI1 | grep certificateid)
+$CERTIKCLI1 query cert certificates
+id=$($CERTIKCLI1 query cert certificates | grep certificateid)
 id=${id:17:60}
 
-$CERTIKCLI tx cert decertify-validator certikvalconspub1zcjduepqff623akv26we89w9qz6nk7yq66ms5tlhmn5p7v8rqv4z2ur9puhqmxvkpk --from $bob -y --home $DIR_CLI0
+$CERTIKCLI0 tx cert decertify-validator certikvalconspub1zcjduepqff623akv26we89w9qz6nk7yq66ms5tlhmn5p7v8rqv4z2ur9puhqmxvkpk --from $bob -y
 sleep 6
-certikcli query cert validators --home $DIR_CLI1
+$CERTIKCLI1 query cert validators
 
-$CERTIKCLI tx cert revoke-certificate $id --from $bob -y --home $DIR_CLI0
+$CERTIKCLI0 tx cert revoke-certificate $id --from $bob -y
 sleep 6
-certikcli query cert certificates --home $DIR_CLI1
+$CERTIKCLI1 query cert certificates
 
 # cvm
-# gov
+txhash=$($CERTIKCLI1 tx cvm deploy $PROJ_ROOT/tests/simple.sol --from $mary -y | grep txhash)
+txhash=${txhash:8}
+sleep 6
+addr=$($CERTIKCLI1 query tx $txhash | grep value | sed -n '2p')
+addr=${addr:13}
+
+$CERTIKCLI1 tx cvm call $addr set 123 --from $mary -y
+sleep 6
+
+$CERTIKCLI1 tx cvm call $addr get --from $mary -y
+sleep 6
+
 # oracle
 # shield
