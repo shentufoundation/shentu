@@ -8,6 +8,8 @@ set -x
 #
 #  p2p port: 27756
 #  rpc port: 26657 (Cosmos default)
+#
+#  mary: a normal account
 # -------------------------------------------------
 
 # node directory
@@ -25,7 +27,7 @@ make install
 CERTIKD1=certikd" --home $DIR_D1"
 export CERTIKCLI1=certikcli" --home $DIR_CLI1"
 
-# set up a non-validator node on port 20156 using current binary
+# set up a non-validator node
 $CERTIKD1 unsafe-reset-all
 rm -rf $DIR/node1
 $CERTIKD1 init node1 --chain-id certikchain

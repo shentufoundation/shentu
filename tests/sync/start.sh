@@ -12,8 +12,10 @@ DIR=~/.synctest
 
 # start the nodes
 PROJ_ROOT=$(git rev-parse --show-toplevel)
+
 . $PROJ_ROOT/tests/sync/node0.sh
-sleep 3
+sleep 6
+
 . $PROJ_ROOT/tests/sync/node1.sh
 sleep 6
 

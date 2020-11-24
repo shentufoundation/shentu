@@ -3,12 +3,12 @@
 set -e
 set -x
 
-# ---------------------------------------------------------------
+# ------------------------------------------------------------------
 # Transaction sequence
 #
-# use `$CERTIKCLI0` to send txs from jack or bob
-# use `$CERTIKCLI1` to send txs from mary
-# ---------------------------------------------------------------
+# use `$CERTIKCLI0` to send txs from jack or bob running old binary
+# use `$CERTIKCLI1` to send txs from mary running latest binary
+# ------------------------------------------------------------------
 
 # Add tokens to mary
 $CERTIKCLI0 tx send $jack $mary 100000000uctk --from $jack -y
@@ -30,7 +30,6 @@ $CERTIKCLI1 query account $mary
 
 # cert
 $CERTIKCLI1 query cert certifiers
-
 $CERTIKCLI0 tx cert certify-validator certikvalconspub1zcjduepqff623akv26we89w9qz6nk7yq66ms5tlhmn5p7v8rqv4z2ur9puhqmxvkpk --from $bob -y
 sleep 6
 $CERTIKCLI1 query cert validators
@@ -69,4 +68,36 @@ $CERTIKCLI1 tx cvm call $addr get --from $mary -y
 sleep 6
 
 # oracle
+$CERTIKCLI1 tx oracle create-operator $mary 100000uctk --from $mary -y
+sleep 6
+$CERTIKCLI1 query oracle operators
+
+$CERTIKCLI0 tx oracle create-task --contract A --function B --bounty 10000uctk --wait 4 --from $bob -y
+sleep 6
+$CERTIKCLI1 query oracle task --contract A --function B
+
+$CERTIKCLI1 tx oracle deposit-collateral $mary 30000uctk --from $mary -y
+sleep 6
+
+$CERTIKCLI1 tx oracle withdraw-collateral $mary 10000uctk --from $mary -y
+sleep 6
+$CERTIKCLI1 query oracle operators
+
+$CERTIKCLI1 tx oracle respond-to-task --contract A --function B --score 99 --from $mary -y
+sleep 6
+$CERTIKCLI1 query oracle response --contract A --function B --operator $mary
+$CERTIKCLI1 query oracle operator $mary
+
+$CERTIKCLI1 tx oracle claim-reward $mary --from $mary -y
+sleep 6
+$CERTIKCLI1 query oracle operator $mary
+
+$CERTIKCLI0 tx oracle delete-task --contract A --function B --force=true --from $bob -y
+sleep 6
+
+$CERTIKCLI1 tx oracle remove-operator $mary --from $mary -y
+sleep 6
+$CERTIKCLI1 query oracle operators
+$CERTIKCLI1 query oracle withdraws
+
 # shield

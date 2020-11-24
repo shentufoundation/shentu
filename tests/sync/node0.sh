@@ -25,7 +25,7 @@ CERTIKD0=$CERTIKD" --home $DIR_D0"
 CERTIKCLI=$PROJ_ROOT/tests/sync/certikcli
 export CERTIKCLI0=$CERTIKCLI" --home $DIR_CLI0"
 
-# set up a validator node on port 20056
+# set up a validator node
 $CERTIKD0 unsafe-reset-all
 rm -rf $DIR/node0
 $CERTIKD0 init node0 --chain-id certikchain
