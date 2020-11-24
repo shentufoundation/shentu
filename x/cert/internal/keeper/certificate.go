@@ -149,8 +149,6 @@ func (k Keeper) GetCertificatesByCertifier(ctx sdk.Context, certifier sdk.AccAdd
 //
 // cert_type | content -> CertID
 //
-// TODO: IterateCertificatesByContent replaced with GetCertificatesByContent?
-// can assume unique cert_type | content ?
 
 // SetContentCertID stores the certificate ID corresponding to the given
 // content.
@@ -263,6 +261,7 @@ func (k Keeper) IssueCertificate(ctx sdk.Context, c types.Certificate) (uint64, 
 	k.SetContentCertID(ctx, c.Type(), c.RequestContent(), c.ID())
 	k.SetCertificate(ctx, c)
 
+	k.SetNextCertificateID(ctx, c.ID() + 1)
 	return c.ID(), nil
 }
 
