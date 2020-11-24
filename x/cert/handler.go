@@ -1,6 +1,8 @@
 package cert
 
 import (
+	"strconv"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -60,7 +62,7 @@ func handleMsgCertifyCompilation(ctx sdk.Context, k Keeper, msg types.MsgCertify
 	}
 	certEvent := sdk.NewEvent(
 		types.EventTypeCertifyCompilation,
-		sdk.NewAttribute("certificate_id", certificateID.String()),
+		sdk.NewAttribute("certificate_id", strconv.FormatUint(certificateID, 10)),
 		sdk.NewAttribute("source_code_hash", msg.SourceCodeHash),
 		sdk.NewAttribute("compiler", msg.Compiler),
 		sdk.NewAttribute("bytecode_hash", msg.BytecodeHash),
@@ -96,7 +98,7 @@ func handleMsgCertifyGeneral(ctx sdk.Context, k Keeper, msg types.MsgCertifyGene
 	}
 	certEvent := sdk.NewEvent(
 		types.EventTypeCertify,
-		sdk.NewAttribute("certificate_id", certificateID.String()),
+		sdk.NewAttribute("certificate_id", strconv.FormatUint(certificateID, 10)),
 		sdk.NewAttribute("certificate_type", msg.CertificateType),
 		sdk.NewAttribute("request_content_type", msg.RequestContentType),
 		sdk.NewAttribute("request_content", msg.RequestContent),

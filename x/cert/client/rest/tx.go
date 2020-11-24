@@ -210,7 +210,7 @@ func revokeCertificateHandler(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgRevokeCertificate(revoker, types.CertificateID(req.CertificateID), req.Description)
+		msg := types.NewMsgRevokeCertificate(revoker, req.CertificateID, req.Description)
 		if err = msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

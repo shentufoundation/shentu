@@ -37,7 +37,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	for _, library := range libraries {
 		k.SetLibrary(ctx, library.Address, library.Publisher)
 	}
-	k.SetNextPoolID(ctx, data.NextCertificateID)
+	k.SetNextCertificateID(ctx, data.NextCertificateID)
 }
 
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis.
@@ -50,11 +50,11 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	nextCertID := k.GetNextCertificateID(ctx)
 
 	return GenesisState{
-		Certifiers:   certifiers,
-		Validators:   validators,
-		Platforms:    platforms,
-		Certificates: certificates,
-		Libraries:    libraries,
+		Certifiers:        certifiers,
+		Validators:        validators,
+		Platforms:         platforms,
+		Certificates:      certificates,
+		Libraries:         libraries,
 		NextCertificateID: nextCertID,
 	}
 }

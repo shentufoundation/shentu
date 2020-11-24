@@ -27,14 +27,14 @@ type GenesisState struct {
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(constantFee sdk.Coin, startingCertificateID CertificateID) GenesisState {
+func NewGenesisState(constantFee sdk.Coin, startingCertificateID uint64) GenesisState {
 	return GenesisState{}
 }
 
 // DefaultGenesisState creates a default GenesisState object
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		NextCertificateID:           uint64(1),
+		NextCertificateID: uint64(1),
 	}
 }
 
@@ -45,10 +45,10 @@ func ValidateGenesis(bz json.RawMessage) error {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", ModuleName, err)
 	}
 
-	if data.NextPoolID < 1 {
-		return fmt.Errorf("failed to validate %s genesis state: NextPoolID must be positive ", ModuleName)
+	if data.NextCertificateID < 1 {
+		return fmt.Errorf("failed to validate %s genesis state: NextCertificateID must be positive ", ModuleName)
 	}
-	
+
 	return nil
 }
 
