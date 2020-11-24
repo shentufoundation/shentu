@@ -204,7 +204,7 @@ func queryProviderHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryProvidersHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
+		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 100)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
