@@ -13,6 +13,7 @@ set -x
 # -------------------------------------------------
 
 # node directory
+
 # DIR=~/.synctest
 DIR_D1=$DIR/node1/certikd
 DIR_CLI1=$DIR/node1/certikcli
@@ -22,12 +23,14 @@ FILE=$(ls $DIR/node0/certikd/config/gentx/)
 PEER=${FILE:6:40}"@127.0.0.1:26656"
 
 # binary
+
 cd $PROJ_ROOT
 make install
 CERTIKD1=certikd" --home $DIR_D1"
 export CERTIKCLI1=certikcli" --home $DIR_CLI1"
 
 # set up a non-validator node
+
 $CERTIKD1 unsafe-reset-all
 rm -rf $DIR/node1
 $CERTIKD1 init node1 --chain-id certikchain

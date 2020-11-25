@@ -14,11 +14,13 @@ set -x
 # ------------------------------------------
 
 # node directory
+
 # DIR=~/.synctest
 DIR_D0=$DIR/node0/certikd
 DIR_CLI0=$DIR/node0/certikcli
 
 # binary
+
 # PROJ_ROOT=$(git rev-parse --show-toplevel)
 CERTIKD=$PROJ_ROOT/tests/sync/certikd
 CERTIKD0=$CERTIKD" --home $DIR_D0"
@@ -26,6 +28,7 @@ CERTIKCLI=$PROJ_ROOT/tests/sync/certikcli
 export CERTIKCLI0=$CERTIKCLI" --home $DIR_CLI0"
 
 # set up a validator node
+
 $CERTIKD0 unsafe-reset-all
 rm -rf $DIR/node0
 $CERTIKD0 init node0 --chain-id certikchain

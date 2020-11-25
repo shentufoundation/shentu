@@ -3,6 +3,14 @@
 set -e
 set -x
 
+checkConsensus() {
+  if grep -q "CONSENSUS FAILURE" $DIR/node1/log.txt; then
+    killall certikd
+    echo "CONSENSUS FAILURE!"
+    exit 1
+  fi
+}
+
 # ------------------------------------------------------------------
 # Transaction sequence
 #
@@ -17,16 +25,22 @@ $CERTIKCLI1 query account $jack
 $CERTIKCLI1 query account $bob
 $CERTIKCLI1 query account $mary
 
+checkConsensus
+
 # auth
 $CERTIKCLI0 tx unlock $jack 500000uctk --from $bob -y
 sleep 6
 $CERTIKCLI1 query account $jack
+
+checkConsensus
 
 # bank
 $CERTIKCLI1 tx locked-send $mary $jack 500000uctk --from $mary -y
 sleep 6
 $CERTIKCLI1 query account $jack
 $CERTIKCLI1 query account $mary
+
+checkConsensus
 
 # cert
 $CERTIKCLI1 query cert certifiers
@@ -54,6 +68,8 @@ $CERTIKCLI0 tx cert revoke-certificate $id --from $bob -y
 sleep 6
 $CERTIKCLI1 query cert certificates
 
+checkConsensus
+
 # cvm
 txhash=$($CERTIKCLI1 tx cvm deploy $PROJ_ROOT/tests/simple.sol --from $mary -y | grep txhash)
 txhash=${txhash:8}
@@ -66,6 +82,8 @@ sleep 6
 
 $CERTIKCLI1 tx cvm call $addr get --from $mary -y
 sleep 6
+
+checkConsensus
 
 # oracle
 $CERTIKCLI1 tx oracle create-operator $mary 100000uctk --from $mary -y
@@ -99,5 +117,7 @@ $CERTIKCLI1 tx oracle remove-operator $mary --from $mary -y
 sleep 6
 $CERTIKCLI1 query oracle operators
 $CERTIKCLI1 query oracle withdraws
+
+checkConsensus
 
 # shield
