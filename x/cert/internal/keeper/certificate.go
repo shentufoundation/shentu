@@ -205,7 +205,7 @@ func (k Keeper) GetCertificatesByContent(ctx sdk.Context, requestContent types.R
 }
 
 // IterateCertificatesByType iterates over certificates with identical given certificate type.
-func (k Keeper) IterateCertificatesByType(ctx sdk.Context, certType types.CertificateType, callback func(certificate types.Certificate) (stop bool)) {
+func (k Keeper) IterateCertificatesByType(ctx sdk.Context, certType types.CertificateType, callback func(id uint64) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 
 	prefix := append(types.ContentCertIDStoreKeyPrefix, certType.Bytes()...)
@@ -213,10 +213,7 @@ func (k Keeper) IterateCertificatesByType(ctx sdk.Context, certType types.Certif
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var certificate types.Certificate
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &certificate)
-
-		if callback(certificate) {
+		if callback(binary.LittleEndian.Uint64(iterator.Value())) {
 			break
 		}
 	}
@@ -366,11 +363,20 @@ func (k Keeper) RevokeCertificate(ctx sdk.Context, certificate types.Certificate
 
 // GetCertifiedIdentities returns a list of addresses certified as identities.
 func (k Keeper) GetCertifiedIdentities(ctx sdk.Context) []sdk.AccAddress {
-	identities := []sdk.AccAddress{}
-	k.IterateCertificatesByType(ctx, types.CertificateTypeIdentity, func(certificate types.Certificate) (stop bool) {
-		addr, _ := sdk.AccAddressFromBech32(certificate.RequestContent().RequestContent)
-		identities = append(identities, addr)
+	var ids []uint64
+	k.IterateCertificatesByType(ctx, types.CertificateTypeIdentity, func(id uint64) (stop bool) {
+		ids = append(ids, id)
 		return false
 	})
+
+	identities := []sdk.AccAddress{}
+	for _, id := range ids {
+		certificate, err := k.GetCertificateByID(ctx, id)
+		if err != nil {
+			panic(err)
+		}
+		addr, _ := sdk.AccAddressFromBech32(certificate.RequestContent().RequestContent)
+		identities = append(identities, addr)	
+	}
 	return identities
 }

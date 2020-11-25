@@ -171,6 +171,9 @@ func SimulateMsgCertifyAuditing(ak types.AccountKeeper, k keeper.Keeper) simulat
 		description := simulation.RandStringOfLength(r, 10)
 
 		msg := types.NewMsgCertifyGeneral("auditing", "address", contract.Address.String(), description, certifier.Address)
+		if k.IsCertified(ctx, "address", contract.Address.String(), "auditing") {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 
 		account := ak.GetAccount(ctx, certifier.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
@@ -214,6 +217,9 @@ func SimulateMsgCertifyProof(ak types.AccountKeeper, k keeper.Keeper) simulation
 		description := simulation.RandStringOfLength(r, 10)
 
 		msg := types.NewMsgCertifyGeneral("proof", "address", contract.Address.String(), description, certifier.Address)
+		if k.IsCertified(ctx, "address", contract.Address.String(), "proof") {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 
 		account := ak.GetAccount(ctx, certifier.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
@@ -260,6 +266,9 @@ func SimulateMsgCertifyIdentity(ak types.AccountKeeper, k keeper.Keeper) simulat
 		identityAcc := ak.GetAccount(ctx, delAddr)
 
 		msg := types.NewMsgCertifyGeneral("identity", "address", identityAcc.GetAddress().String(), "", certifier.Address)
+		if k.IsCertified(ctx, "address", identityAcc.GetAddress().String(), "identity") {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
 
 		account := ak.GetAccount(ctx, certifier.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
