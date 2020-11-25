@@ -43,6 +43,5 @@ var (
 	ErrPoolShieldExceedsLimit     = sdkerrors.Register(ModuleName, 138, "pool shield exceeds limit")
 	ErrShieldAdminNotActive       = sdkerrors.Register(ModuleName, 139, "shield admin is not activated")
 	ErrPurchaseTooSmall           = sdkerrors.Register(ModuleName, 140, "purchase amount is too small")
-	ErrBeforeUpdate               = sdkerrors.Register(ModuleName, 141, "upgrade not yet enabled")
 	ErrNotEnoughStaked            = sdkerrors.Register(ModuleName, 142, "not enough unlocked staking to be withdrawn")
 )
