@@ -1,6 +1,8 @@
 package cert
 
 import (
+	"sort"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/cert/internal/keeper"
@@ -31,7 +33,13 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	for _, validator := range validators {
 		k.SetValidator(ctx, validator.PubKey, validator.Certifier)
 	}
+	
+	sort.Slice(certificates, func(i, j int) bool { 
+		return certificates[i].ID() < certificates[j].ID()
+	})
 	for _, certificate := range certificates {
+		k.AddCertIDToCertifier(ctx, certificate.Certifier(), certificate.ID())
+		k.SetContentCertID(ctx, certificate.Type(), certificate.RequestContent(), certificate.ID())
 		k.SetCertificate(ctx, certificate)
 	}
 	for _, library := range libraries {

@@ -54,7 +54,7 @@ func (k Keeper) GetCertificateByID(ctx sdk.Context, id uint64) (types.Certificat
 // GetNextCertificateID gets the next unused certificate ID.
 func (k Keeper) GetNextCertificateID(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	opBz := store.Get(types.GetNextCertificateIDKey())
+	opBz := store.Get(types.NextCertificateIDKey())
 	return binary.LittleEndian.Uint64(opBz)
 }
 
@@ -63,7 +63,7 @@ func (k Keeper) SetNextCertificateID(ctx sdk.Context, id uint64) {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, id)
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetNextCertificateIDKey(), bz)
+	store.Set(types.NextCertificateIDKey(), bz)
 }
 
 // GetCertificateType gets type of a certificate by certificate ID.

@@ -36,8 +36,9 @@ var (
 	// certifierAliasStoreKeyPrefix is the prefix of certifier alias kv-store keys.
 	certifierAliasStoreKeyPrefix = []byte{0x7}
 
-	nextCertificateIDKey           = []byte{0x8}
-	certifierCertIDsStoreKeyPrefix = []byte{0x9}
+	nextCertificateIDKeyPrefix = []byte{0x8}
+	
+	CertifierCertIDsStoreKeyPrefix = []byte{0x9}
 	ContentCertIDStoreKeyPrefix    = []byte{0xA}
 )
 
@@ -79,7 +80,7 @@ func CertificateStoreKey(id uint64) []byte {
 }
 
 func CertifierCertIDsKey(certifier sdk.AccAddress) []byte {
-	return concat(certifierCertIDsStoreKeyPrefix, certifier)
+	return concat(CertifierCertIDsStoreKeyPrefix, certifier)
 }
 
 func ContentCertIDKey(certType CertificateType, reqContentType RequestContentType, reqContent string) []byte {
@@ -87,9 +88,9 @@ func ContentCertIDKey(certType CertificateType, reqContentType RequestContentTyp
 	return concat(ContentCertIDStoreKeyPrefix, certType.Bytes(), contentHash[:])
 }
 
-// GetNextCertificateIDKey gets the key for the next certificate ID.
-func GetNextCertificateIDKey() []byte {
-	return nextCertificateIDKey
+// NextCertificateIDKey gets the key for the next certificate ID.
+func NextCertificateIDKey() []byte {
+	return nextCertificateIDKeyPrefix
 }
 
 // CertificatesStoreKey returns the kv-store key for accessing all certificates.
