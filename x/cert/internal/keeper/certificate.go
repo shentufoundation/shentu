@@ -252,7 +252,9 @@ func (k Keeper) IssueCertificate(ctx sdk.Context, c types.Certificate) (uint64, 
 	if !k.IsCertifier(ctx, c.Certifier()) {
 		return 0, types.ErrUnqualifiedCertifier
 	}
-	// TODO IsContentCertified?
+	if k.IsCertified(ctx, c.RequestContent().RequestContentType.String(), c.RequestContent().RequestContent, c.Type().String()) {
+		return 0, types.ErrDuplicateCertificate
+	}
 
 	c.SetCertificateID(k.GetNextCertificateID(ctx))
 	c.SetTxHash(hex.EncodeToString(tmhash.Sum(ctx.TxBytes())))
