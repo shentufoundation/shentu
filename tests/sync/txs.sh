@@ -28,6 +28,7 @@ $CERTIKCLI1 query account $mary
 checkConsensus
 
 # auth
+
 $CERTIKCLI0 tx unlock $jack 500000uctk --from $bob -y
 sleep 6
 $CERTIKCLI1 query account $jack
@@ -35,6 +36,7 @@ $CERTIKCLI1 query account $jack
 checkConsensus
 
 # bank
+
 $CERTIKCLI1 tx locked-send $mary $jack 500000uctk --from $mary -y
 sleep 6
 $CERTIKCLI1 query account $jack
@@ -43,6 +45,7 @@ $CERTIKCLI1 query account $mary
 checkConsensus
 
 # cert
+
 $CERTIKCLI1 query cert certifiers
 $CERTIKCLI0 tx cert certify-validator certikvalconspub1zcjduepqff623akv26we89w9qz6nk7yq66ms5tlhmn5p7v8rqv4z2ur9puhqmxvkpk --from $bob -y
 sleep 6
@@ -71,6 +74,7 @@ $CERTIKCLI1 query cert certificates
 checkConsensus
 
 # cvm
+
 txhash=$($CERTIKCLI1 tx cvm deploy $PROJ_ROOT/tests/simple.sol --from $mary -y | grep txhash)
 txhash=${txhash:8}
 sleep 6
@@ -86,6 +90,7 @@ sleep 6
 checkConsensus
 
 # oracle
+
 $CERTIKCLI1 tx oracle create-operator $mary 100000uctk --from $mary -y
 sleep 6
 $CERTIKCLI1 query oracle operators
@@ -121,3 +126,18 @@ $CERTIKCLI1 query oracle withdraws
 checkConsensus
 
 # shield
+
+# gov
+
+$CERTIKCLI1 tx gov submit-proposal certifier-update $PROJ_ROOT/tests/sync/certifier_update.json --from $mary -y
+sleep 6
+$CERTIKCLI1 query gov proposal 1
+
+$CERTIKCLI0 tx gov deposit 1 520000000uctk --from $bob -y
+sleep 6
+$CERTIKCLI1 query gov proposal 1
+
+$CERTIKCLI0 tx gov vote 1 yes --from $bob -y
+sleep 6
+$CERTIKCLI1 query gov proposal 1
+$CERTIKCLI1 query cert certifiers
