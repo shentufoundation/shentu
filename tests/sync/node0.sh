@@ -43,6 +43,7 @@ export bob=$($CERTIKCLI0 keys show bob -a)
 $CERTIKD0 add-genesis-account $jack 1000000000uctk --vesting-amount=1000000uctk --manual --unlocker $bob
 $CERTIKD0 add-genesis-account $bob 1000000000uctk
 $CERTIKD0 add-genesis-certifier $bob
+$CERTIKD0 add-genesis-shield-admin $bob
 
 $CERTIKD0 gentx --name jack --amount 2000000uctk --home-client $DIR_CLI0 --keyring-backend test
 $CERTIKD0 collect-gentxs

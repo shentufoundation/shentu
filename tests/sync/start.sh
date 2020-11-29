@@ -27,6 +27,6 @@ sleep 6
 
 # exiting
 
-killall certikd
+# killall certikd
 echo "Compatibility check passed!"
 exit 0

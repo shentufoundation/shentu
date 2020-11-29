@@ -125,8 +125,6 @@ $CERTIKCLI1 query oracle withdraws
 
 checkConsensus
 
-# shield
-
 # gov
 
 $CERTIKCLI1 tx gov submit-proposal certifier-update $PROJ_ROOT/tests/sync/certifier_update.json --from $mary -y
@@ -141,3 +139,35 @@ $CERTIKCLI0 tx gov vote 1 yes --from $bob -y
 sleep 6
 $CERTIKCLI1 query gov proposal 1
 $CERTIKCLI1 query cert certifiers
+
+# shield
+
+val=$($CERTIKCLI1 query staking validators | grep operatoraddress)
+val=${val:19}
+$CERTIKCLI1 tx staking delegate $val 1000000uctk --from $mary -y
+sleep 6
+$CERTIKCLI1 query account $mary
+
+$CERTIKCLI1 tx shield deposit-collateral 1000000uctk --from $mary -y
+sleep 6
+$CERTIKCLI1 query shield provider $mary
+
+$CERTIKCLI1 tx shield withdraw-collateral 100000uctk --from $mary -y
+sleep 6
+$CERTIKCLI1 query shield provider $mary
+
+$CERTIKCLI0 tx shield create-pool 100000uctk bob $bob --native-deposit 110000uctk --shield-limit 10000000 --from $bob -y
+sleep 6
+$CERTIKCLI1 query shield pool 1
+
+$CERTIKCLI0 tx shield update-pool 1 --native-deposit 120000uctk --shield 30000uctk --shield-limit 1100000 --from $bob -y
+sleep 6
+$CERTIKCLI1 query shield pool 1
+
+$CERTIKCLI0 tx shield pause-pool 1 --from $bob -y
+sleep 6
+$CERTIKCLI1 query shield pool 1
+
+$CERTIKCLI0 tx shield resume-pool 1 --from $bob -y
+sleep 6
+$CERTIKCLI1 query shield pool 1
