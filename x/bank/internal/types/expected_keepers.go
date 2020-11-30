@@ -10,14 +10,22 @@ import (
 
 // AccountKeeper defines the account contract that must be fulfilled when creating a x/bank keeper.
 type AccountKeeper interface {
-	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) exported.Account
-	NewAccount(ctx sdk.Context, acc exported.Account) exported.Account
+	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
+	NewAccount(ctx sdk.Context, acc types.AccountI) types.AccountI
 
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) exported.Account
-	GetAllAccounts(ctx sdk.Context) []exported.Account
-	SetAccount(ctx sdk.Context, acc exported.Account)
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
+	GetAllAccounts(ctx sdk.Context) []types.AccountI
+	SetAccount(ctx sdk.Context, acc types.AccountI)
 
-	IterateAccounts(ctx sdk.Context, process func(exported.Account) bool)
+	IterateAccounts(ctx sdk.Context, process func(types.AccountI) bool)
+
+	ValidatePermissions(macc types.ModuleAccountI) error
+
+	GetModuleAddress(moduleName string) sdk.AccAddress
+	GetModuleAddressAndPermissions(moduleName string) (addr sdk.AccAddress, permissions []string)
+	GetModuleAccountAndPermissions(ctx sdk.Context, moduleName string) (types.ModuleAccountI, []string)
+	GetModuleAccount(ctx sdk.Context, moduleName string) types.ModuleAccountI
+	SetModuleAccount(ctx sdk.Context, macc types.ModuleAccountI)
 }
 
 // CVMKeeper defines the CVM interface that must be fulfilled when wrapping the basekeeper.

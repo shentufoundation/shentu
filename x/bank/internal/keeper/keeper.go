@@ -3,7 +3,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/bank"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/cosmos/cosmos-sdk/x/params"
 
 	"github.com/hyperledger/burrow/crypto"
@@ -13,7 +13,7 @@ import (
 
 // Keeper is a wrapper of the basekeeper with CVM keeper.
 type Keeper struct {
-	bank.BaseKeeper
+	bankKeeper.BaseKeeper
 	cvmk types.CVMKeeper
 }
 
@@ -21,7 +21,7 @@ type Keeper struct {
 func NewKeeper(
 	ak types.AccountKeeper, cvmk types.CVMKeeper, paramSpace params.Subspace, blacklistedAddrs map[string]bool,
 ) Keeper {
-	bk := bank.NewBaseKeeper(ak, paramSpace, blacklistedAddrs)
+	bk := bankKeeper.NewBaseKeeper(ak, paramSpace, blacklistedAddrs)
 	return Keeper{
 		BaseKeeper: bk,
 		cvmk:       cvmk,

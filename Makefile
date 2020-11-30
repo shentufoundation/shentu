@@ -5,6 +5,8 @@ GOBIN ?= $(GOPATH)/bin
 STATIK = $(GOBIN)/statik
 SHASUM := $(shell which sha256sum)
 PKG_LIST := $(shell go list ./...)
+DOCKER := $(shell which docker)
+DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf
 verbosity = 2
 
 build_tags =

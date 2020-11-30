@@ -15,7 +15,7 @@ func NewHandler(k Keeper, ak types.AccountKeeper) sdk.Handler {
 	cosmosHandler := bank.NewHandler(k)
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		switch msg := msg.(type) {
-		case types.MsgLockedSend:
+		case *types.MsgLockedSend:
 			return handleMsgLockedSend(ctx, k, ak, msg)
 		default:
 			return cosmosHandler(ctx, msg)

@@ -1,8 +1,13 @@
 package bank
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"math/rand"
+
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -11,10 +16,13 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	simTypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	cosmosSim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/bank/client/rest"
@@ -35,36 +43,52 @@ func (AppModuleBasic) Name() string {
 	return CosmosAppModuleBasic{}.Name()
 }
 
-// RegisterCodec registers the bank module's types for the given codec.
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	RegisterCodec(cdc)
+// RegisterLegacyAminoCodec registers the bank module's types on the LegacyAmino codec.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	bankTypes.RegisterLegacyAminoCodec(cdc)
 	*CosmosModuleCdc = *ModuleCdc // nolint
 }
 
-// DefaultGenesis returns default genesis state as raw bytes for the bank module.
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return CosmosAppModuleBasic{}.DefaultGenesis()
+// DefaultGenesis returns default genesis state as raw bytes for the bank
+// module.
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+	return cdc.MustMarshalJSON(bankTypes.DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the bank module.
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	return CosmosAppModuleBasic{}.ValidateGenesis(bz)
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
+	var data bankTypes.GenesisState
+	if err := cdc.UnmarshalJSON(bz, &data); err != nil {
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", bankTypes.ModuleName, err)
+	}
+
+	return bankTypes.ValidateGenesis(data)
 }
 
 // RegisterRESTRoutes registers the REST routes for the bank module.
-func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.CLIContext, route *mux.Router) {
+func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.Context, route *mux.Router) {
 	rest.RegisterRoutes(cliCtx, route)
 	CosmosAppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
 }
 
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the bank module.
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	bankTypes.RegisterQueryHandlerClient(context.Background(), mux, bankTypes.NewQueryClient(clientCtx))
+}
+
 // GetTxCmd returns the root tx command for the bank module.
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetTxCmd(cdc)
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.NewTxCmd()
 }
 
 // GetQueryCmd returns the root query command for the bank module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return CosmosAppModuleBasic{}.GetQueryCmd(cdc)
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
+}
+
+// RegisterInterfaces registers interfaces and implementations of the bank module.
+func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	bankTypes.RegisterInterfaces(registry)
 }
 
 // ___________________________
@@ -77,11 +101,17 @@ type AppModule struct {
 	accountKeeper   types.AccountKeeper
 }
 
+// RegisterServices registers module services.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	bankTypes.RegisterMsgServer(cfg.MsgServer(), bankKeeper.NewMsgServerImpl(am.keeper))
+	bankTypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+}
+
 // NewAppModule creates a new AppModule object.
-func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper) AppModule {
+func NewAppModule(cdc codec.Marshaler, keeper Keeper, accountKeeper types.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
-		cosmosAppModule: NewCosmosAppModule(keeper, accountKeeper),
+		cosmosAppModule: NewCosmosAppModule(cdc, keeper, accountKeeper),
 		keeper:          keeper,
 		accountKeeper:   accountKeeper,
 	}
@@ -98,7 +128,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 }
 
 // Route returns the message routing key for the bank module.
-func (am AppModule) Route() string {
+func (am AppModule) Route() sdk.Route {
 	return am.cosmosAppModule.Route()
 }
 
@@ -110,17 +140,19 @@ func (am AppModule) NewHandler() sdk.Handler {
 // QuerierRoute returns the bank module's querier route name.
 func (am AppModule) QuerierRoute() string { return am.cosmosAppModule.QuerierRoute() }
 
-// NewQuerierHandler returns the bank module sdk.Querier.
-func (am AppModule) NewQuerierHandler() sdk.Querier { return am.cosmosAppModule.NewQuerierHandler() }
+// LegacyQuerierHandler returns the bank module sdk.Querier.
+func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+	return bankKeeper.NewQuerier(am.keeper.BaseKeeper, legacyQuerierCdc)
+}
 
 // InitGenesis performs genesis initialization for the bank module.
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.InitGenesis(ctx, data)
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+	return am.cosmosAppModule.InitGenesis(ctx, cdc, data)
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the bank module.
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
-	return am.cosmosAppModule.ExportGenesis(ctx)
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
+	return am.cosmosAppModule.ExportGenesis(ctx, cdc)
 }
 
 // BeginBlock returns the begin blocker for the bank module.
@@ -148,7 +180,7 @@ func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedPropos
 }
 
 // RandomizedParams creates randomized bank param changes for the simulator.
-func (AppModule) RandomizedParams(r *rand.Rand) []sim.ParamChange {
+func (AppModule) RandomizedParams(r *rand.Rand) []simTypes.ParamChange {
 	return cosmosSim.ParamChanges(r)
 }
 
@@ -156,7 +188,7 @@ func (AppModule) RandomizedParams(r *rand.Rand) []sim.ParamChange {
 func (AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
 
 // WeightedOperations returns the all the gov module operations with their respective weights.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simTypes.WeightedOperation {
 	return simulation.WeightedOperations(
 		simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper,
 	)

@@ -3,13 +3,18 @@ module github.com/certikfoundation/shentu
 go 1.15
 
 require (
+	github.com/armon/go-metrics v0.3.4
 	github.com/cosmos/cosmos-sdk v0.40.0-rc3
+	github.com/gogo/protobuf v1.3.1
 	github.com/gorilla/mux v1.8.0
+	github.com/grpc-ecosystem/grpc-gateway v1.15.2
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.0.1
 	github.com/hyperledger/burrow v0.30.5
 	github.com/magiconair/properties v1.8.4
 	github.com/pkg/errors v0.9.1
 	github.com/rakyll/statik v0.1.7
 	github.com/smartystreets/goconvey v1.6.4
+	github.com/spf13/afero v1.3.4 // indirect
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
@@ -20,7 +25,11 @@ require (
 	github.com/tendermint/tm-db v0.6.2
 	github.com/tendermint/tmlibs v0.9.0
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc
-	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
+	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392
+	google.golang.org/genproto v0.0.0-20201119123407-9b1e624d6bc4 // indirect
+	google.golang.org/grpc v1.33.2
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.0.1
+	google.golang.org/protobuf v1.25.0
 	gopkg.in/yaml.v2 v2.3.0
 )
 

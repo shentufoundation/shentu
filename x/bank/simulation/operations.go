@@ -3,10 +3,13 @@ package simulation
 import (
 	"math/rand"
 
+	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	simTypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	cosmosBank "github.com/cosmos/cosmos-sdk/x/bank"
 	sim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
@@ -21,7 +24,7 @@ const (
 	DefaultWeightMsgLockedSend = 10
 )
 
-func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak types.AccountKeeper, bk keeper.Keeper) simulation.WeightedOperations {
+func WeightedOperations(appParams simTypes.AppParams, cdc codec.JSONMarshaler, ak types.AccountKeeper, bk keeper.Keeper) simulation.WeightedOperations {
 	cosmosOps := sim.WeightedOperations(appParams, cdc, ak, bk)
 
 	var weightMsgLockedSend int
@@ -38,11 +41,11 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak typ
 // SimulateMsgLockedSend tests and runs a single msg send where both
 // accounts already exist.
 // nolint: funlen
-func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simulation.Operation {
+func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simTypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
-		accs []simulation.Account, chainID string,
-	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		accs []simTypes.Account, chainID string,
+	) (simTypes.OperationMsg, []simTypes.FutureOperation, error) {
 		for _, acc := range accs {
 			account := ak.GetAccount(ctx, acc.Address)
 			mvacc, ok := account.(*vesting.ManualVestingAccount)
@@ -50,23 +53,23 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simulation.
 				continue
 			}
 
-			from, _ := simulation.RandomAcc(r, accs)
+			from, _ := simTypes.RandomAcc(r, accs)
 			fromAcc := ak.GetAccount(ctx, from.Address)
 			spendableCoins := fromAcc.SpendableCoins(ctx.BlockTime())
-			sendCoins := simulation.RandSubsetCoins(r, spendableCoins)
+			sendCoins := simTypes.RandSubsetCoins(r, spendableCoins)
 			if sendCoins.Empty() {
-				return simulation.NoOpMsg(cosmosBank.ModuleName), nil, nil
+				return simTypes.NoOpMsg(cosmosBank.ModuleName), nil, nil
 			}
 			spendableCoins = spendableCoins.Sub(sendCoins)
 
-			fees, err := simulation.RandomFees(r, ctx, spendableCoins)
+			fees, err := simTypes.RandomFees(r, ctx, spendableCoins)
 			if err != nil {
-				return simulation.NoOpMsg(cosmosBank.ModuleName), nil, err
+				return simTypes.NoOpMsg(cosmosBank.ModuleName), nil, err
 			}
 
 			msg := types.NewMsgLockedSend(fromAcc.GetAddress(), mvacc.Address, sdk.AccAddress{}, sendCoins)
 
-			tx := helpers.GenTx(
+			tx, err := helpers.GenTx(
 				[]sdk.Msg{msg},
 				fees,
 				helpers.DefaultGenTxGas,
@@ -75,15 +78,19 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simulation.
 				[]uint64{fromAcc.GetSequence()},
 				from.PrivKey,
 			)
-
-			_, _, err = app.Deliver(tx)
 			if err != nil {
-				return simulation.NoOpMsg(cosmosBank.ModuleName), nil, err
+				return simTypes.NoOpMsg(cosmosBank.ModuleName), nil, err
 			}
 
-			return simulation.NewOperationMsg(msg, true, ""), nil, nil
+			txGen := simappparams.MakeTestEncodingConfig().TxConfig
+			_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+			if err != nil {
+				return simTypes.NoOpMsg(cosmosBank.ModuleName), nil, err
+			}
+
+			return simTypes.NewOperationMsg(msg, true, ""), nil, nil
 		}
-		return simulation.NewOperationMsgBasic(cosmosBank.ModuleName,
+		return simTypes.NewOperationMsgBasic(cosmosBank.ModuleName,
 			"NoOp: no available manual-vesting account found, skip this tx", "", false, nil), nil, nil
 	}
 }
