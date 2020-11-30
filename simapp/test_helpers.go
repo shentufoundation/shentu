@@ -9,9 +9,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+
+	"github.com/certikfoundation/shentu/common"
 )
 
 func Setup(isCheckTx bool) *SimApp {
+	config := sdk.GetConfig()
+	config.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
+	config.SetBech32PrefixForValidator(common.Bech32PrefixValAddr, common.Bech32PrefixValPub)
+	config.SetBech32PrefixForConsensusNode(common.Bech32PrefixConsAddr, common.Bech32PrefixConsPub)
+
 	db := dbm.NewMemDB()
 	app := NewSimApp(tmlog.NewNopLogger(), db, nil, true, map[int64]bool{}, 0)
 
