@@ -508,5 +508,5 @@ func (app *SimApp) GetKey(storeKey string) types.StoreKey {
 }
 
 func (app *SimApp) GetAppModuleGenesis(ctx sdk.Context, moduleName string) module.AppModule {
-	return app.mm.Modules[moduleName]	
+	return app.mm.Modules[moduleName]
 }

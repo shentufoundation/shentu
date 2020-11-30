@@ -270,7 +270,6 @@ func TestClaimProposal(t *testing.T) {
 	require.True(t, delUBD.Entries[1].Balance.Equal(sdk.NewInt(90e9)))
 	require.True(t, delUBD.Entries[2].Balance.Equal(sdk.NewInt(10e9)))
 
-	
 	// 20 days later (345,600 blocks)
 	ctx = skipBlocks(ctx, 345600, tstaking, tshield, tgov)
 
@@ -298,7 +297,6 @@ func TestClaimProposal(t *testing.T) {
 	require.True(t, delUBD.Entries[2].Balance.Equal(sdk.NewInt(10e9)))
 	require.True(t, delUBD.Entries[2].CompletionTime.Equal(delayedWithdrawEnd)) // 10e9 delayed
 
-
 	// create reimbursement
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, loss))
 	err := app.ShieldKeeper.CreateReimbursement(ctx, proposalID, lossCoins, purchaser)
@@ -309,7 +307,7 @@ func TestClaimProposal(t *testing.T) {
 
 	// confirm admin delegation reduction
 	lossRatio := float64(loss) / float64(totalDeposit)
-	expected := adminDeposit - int64(math.Round(float64(adminDeposit) * lossRatio))
+	expected := adminDeposit - int64(math.Round(float64(adminDeposit)*lossRatio))
 	if hex.EncodeToString(shieldAdmin) < hex.EncodeToString(delAddr) {
 		expected -= 1 // adjust for discrepancy due to sorting
 	}
@@ -318,8 +316,8 @@ func TestClaimProposal(t *testing.T) {
 	validator, _ := app.StakingKeeper.GetValidator(ctx, valAddr)
 	require.True(t, validator.TokensFromShares(adminDels[0].Shares).Equal(sdk.NewDec(expected)))
 
-	// confirm delegator unbonding reduction	
-	expected = 25e9 + 10e9 + 90e9 - int64(math.Round(float64(125e9) * lossRatio))
+	// confirm delegator unbonding reduction
+	expected = 25e9 + 10e9 + 90e9 - int64(math.Round(float64(125e9)*lossRatio))
 	if hex.EncodeToString(shieldAdmin) < hex.EncodeToString(delAddr) {
 		expected += 1 // adjust for discrepancy due to sorting
 	}

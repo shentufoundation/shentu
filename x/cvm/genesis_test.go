@@ -28,9 +28,9 @@ func TestExportGenesis(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()}).WithGasMeter(NewGasMeter(10000000000000))
 	addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
 	cvmk := app.CvmKeeper
-	
+
 	code, err := hex.DecodeString(basicTestsBytecodeString)
-	require.Nil(t, err) 
+	require.Nil(t, err)
 	_, _ = cvmk.Call(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 
 	m := app.GetAppModuleGenesis(ctx, types.ModuleName)
