@@ -9,11 +9,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/common/tests"
 	"github.com/certikfoundation/shentu/simapp"
 
 	"github.com/certikfoundation/shentu/x/gov/testgov"
@@ -56,8 +56,8 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 
 	// validator addresses
 	valAddr, valAddr2 := sdk.ValAddress(accAddr), sdk.ValAddress(accAddr2)
-	pubKey := tests.MakeTestPubKey()
-	pubKey2 := tests.MakeTestPubKey()
+	pubKey := ed25519.GenPrivKey().PubKey()
+	pubKey2 := ed25519.GenPrivKey().PubKey()
 
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
@@ -151,8 +151,8 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 
 	// validator addresses
 	valAddr, valAddr2 := sdk.ValAddress(accAddr), sdk.ValAddress(accAddr2)
-	pubKey := tests.MakeTestPubKey()
-	pubKey2 := tests.MakeTestPubKey()
+	pubKey := ed25519.GenPrivKey().PubKey()
+	pubKey2 := ed25519.GenPrivKey().PubKey()
 
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
@@ -223,7 +223,7 @@ func TestClaimProposal(t *testing.T) {
 
 	// validator addresses
 	valAddr := sdk.ValAddress(simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(100e6))[0])
-	pubKey := tests.MakeTestPubKey()
+	pubKey := ed25519.GenPrivKey().PubKey()
 
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
