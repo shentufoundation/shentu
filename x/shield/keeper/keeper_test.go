@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -56,8 +55,6 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 
 	// validator addresses
 	valAddr, valAddr2 := sdk.ValAddress(accAddr), sdk.ValAddress(accAddr2)
-	pubKey := ed25519.GenPrivKey().PubKey()
-	pubKey2 := ed25519.GenPrivKey().PubKey()
 
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
@@ -65,11 +62,11 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 	tgov := testgov.NewHelper(t, ctx, app.GovKeeper, tstaking.Denom)
 
 	// set up two validators
-	tstaking.CreateValidatorWithValPower(valAddr, pubKey, 100, true)
+	tstaking.CreateValidatorWithValPower(valAddr, 100, true)
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr, sdk.Bonded, false)
 
-	tstaking.CreateValidatorWithValPower(valAddr2, pubKey2, 100, true)
+	tstaking.CreateValidatorWithValPower(valAddr2, 100, true)
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr2, sdk.Bonded, false)
 
@@ -151,8 +148,6 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 
 	// validator addresses
 	valAddr, valAddr2 := sdk.ValAddress(accAddr), sdk.ValAddress(accAddr2)
-	pubKey := ed25519.GenPrivKey().PubKey()
-	pubKey2 := ed25519.GenPrivKey().PubKey()
 
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
@@ -160,11 +155,11 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 	tgov := testgov.NewHelper(t, ctx, app.GovKeeper, tstaking.Denom)
 
 	// set up two validators
-	tstaking.CreateValidatorWithValPower(valAddr, pubKey, 100, true)
+	tstaking.CreateValidatorWithValPower(valAddr, 100, true)
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr, sdk.Bonded, false)
 
-	tstaking.CreateValidatorWithValPower(valAddr2, pubKey2, 100, true)
+	tstaking.CreateValidatorWithValPower(valAddr2, 100, true)
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr2, sdk.Bonded, false)
 
@@ -223,7 +218,6 @@ func TestClaimProposal(t *testing.T) {
 
 	// validator addresses
 	valAddr := sdk.ValAddress(simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(100e6))[0])
-	pubKey := ed25519.GenPrivKey().PubKey()
 
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
@@ -232,7 +226,7 @@ func TestClaimProposal(t *testing.T) {
 	tgov := testgov.NewHelper(t, ctx, app.GovKeeper, bondDenom)
 
 	// set up a validator
-	tstaking.CreateValidatorWithValPower(valAddr, pubKey, 100, true)
+	tstaking.CreateValidatorWithValPower(valAddr, 100, true)
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr, sdk.Bonded, false)
 
