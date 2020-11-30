@@ -125,6 +125,64 @@ $CERTIKCLI1 query oracle withdraws
 
 checkConsensus
 
+# shield
+
+val=$($CERTIKCLI1 query staking validators | grep operatoraddress)
+val=${val:19}
+$CERTIKCLI0 tx staking delegate $val 100000000uctk --from $jack -y
+$CERTIKCLI0 tx staking delegate $val 100000000uctk --from $bob -y
+$CERTIKCLI1 tx staking delegate $val 50000000uctk --from $mary -y
+sleep 6
+$CERTIKCLI1 query account $jack
+$CERTIKCLI1 query account $bob
+$CERTIKCLI1 query account $mary
+
+$CERTIKCLI0 tx shield deposit-collateral 100000000uctk --from $jack -y
+$CERTIKCLI0 tx shield deposit-collateral 100000000uctk --from $bob -y
+$CERTIKCLI1 tx shield deposit-collateral 50000000uctk --from $mary -y
+sleep 6
+$CERTIKCLI1 query shield provider $jack
+$CERTIKCLI1 query shield provider $bob
+$CERTIKCLI1 query shield provider $mary
+
+$CERTIKCLI0 tx shield withdraw-collateral 1000000uctk --from $bob -y
+sleep 6
+$CERTIKCLI1 query shield provider $bob
+
+$CERTIKCLI0 tx shield create-pool 1000000uctk bob $bob --native-deposit 110000uctk --shield-limit 100000000 --from $bob -y
+sleep 6
+$CERTIKCLI1 query shield pool 1
+
+$CERTIKCLI0 tx shield update-pool 1 --shield 4000000uctk --native-deposit 120000uctk --shield-limit 150000000 --from $bob -y
+sleep 6
+$CERTIKCLI1 query shield pool 1
+
+$CERTIKCLI0 tx shield pause-pool 1 --from $bob -y
+sleep 6
+$CERTIKCLI1 query shield pool 1
+
+$CERTIKCLI0 tx shield resume-pool 1 --from $bob -y
+sleep 6
+$CERTIKCLI1 query shield pool 1
+
+$CERTIKCLI1 tx shield purchase 1 50000000uctk haha --from $mary -y
+sleep 6
+$CERTIKCLI1 query shield pool-purchaser 1 $mary
+
+$CERTIKCLI0 tx shield update-sponsor 1 mary $mary --from $bob -y
+sleep 6
+$CERTIKCLI1 query shield pool 1
+
+$CERTIKCLI0 tx shield stake-for-shield 1 50000000uctk haha --from $jack -y
+sleep 6
+$CERTIKCLI1 query shield staked-for-shield 1 $jack
+
+$CERTIKCLI0 tx shield unstake-from-shield 1 30000000uctk --from $jack -y
+sleep 6
+$CERTIKCLI1 query shield staked-for-shield 1 $jack
+
+checkConsensus
+
 # gov
 
 $CERTIKCLI1 tx gov submit-proposal certifier-update $PROJ_ROOT/tests/sync/certifier_update.json --from $mary -y
@@ -140,34 +198,14 @@ sleep 6
 $CERTIKCLI1 query gov proposal 1
 $CERTIKCLI1 query cert certifiers
 
-# shield
-
-val=$($CERTIKCLI1 query staking validators | grep operatoraddress)
-val=${val:19}
-$CERTIKCLI1 tx staking delegate $val 1000000uctk --from $mary -y
-sleep 6
+$CERTIKCLI1 query account $jack
+$CERTIKCLI1 query account $bob
 $CERTIKCLI1 query account $mary
 
-$CERTIKCLI1 tx shield deposit-collateral 1000000uctk --from $mary -y
-sleep 6
-$CERTIKCLI1 query shield provider $mary
+# TODO: acquire purchase txhash
 
-$CERTIKCLI1 tx shield withdraw-collateral 100000uctk --from $mary -y
+$CERTIKCLI0 tx gov submit-proposal shield-claim $PROJ_ROOT/tests/sync/shield_claim.json --from $jack -y
 sleep 6
-$CERTIKCLI1 query shield provider $mary
+$CERTIKCLI1 query gov proposal 2
 
-$CERTIKCLI0 tx shield create-pool 100000uctk bob $bob --native-deposit 110000uctk --shield-limit 10000000 --from $bob -y
-sleep 6
-$CERTIKCLI1 query shield pool 1
-
-$CERTIKCLI0 tx shield update-pool 1 --native-deposit 120000uctk --shield 30000uctk --shield-limit 1100000 --from $bob -y
-sleep 6
-$CERTIKCLI1 query shield pool 1
-
-$CERTIKCLI0 tx shield pause-pool 1 --from $bob -y
-sleep 6
-$CERTIKCLI1 query shield pool 1
-
-$CERTIKCLI0 tx shield resume-pool 1 --from $bob -y
-sleep 6
-$CERTIKCLI1 query shield pool 1
+checkConsensus
