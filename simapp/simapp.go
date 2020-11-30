@@ -30,7 +30,6 @@ import (
 	"github.com/certikfoundation/shentu/x/cert"
 	"github.com/certikfoundation/shentu/x/crisis"
 	"github.com/certikfoundation/shentu/x/cvm"
-
 	distr "github.com/certikfoundation/shentu/x/distribution"
 	"github.com/certikfoundation/shentu/x/gov"
 	"github.com/certikfoundation/shentu/x/mint"

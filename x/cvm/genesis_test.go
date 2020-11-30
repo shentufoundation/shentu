@@ -6,12 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyperledger/burrow/txs/payload"
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/hyperledger/burrow/txs/payload"
 
 	"github.com/certikfoundation/shentu/simapp"
 	"github.com/certikfoundation/shentu/x/cvm/internal/types"
