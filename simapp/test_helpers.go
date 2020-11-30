@@ -1,6 +1,7 @@
 package simapp
 
 import (
+	"github.com/certikfoundation/shentu/common"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmlog "github.com/tendermint/tendermint/libs/log"
@@ -12,9 +13,14 @@ import (
 )
 
 func Setup(isCheckTx bool) *SimApp {
+	config := sdk.GetConfig()
+	config.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
+	config.SetBech32PrefixForValidator(common.Bech32PrefixValAddr, common.Bech32PrefixValPub)
+	config.SetBech32PrefixForConsensusNode(common.Bech32PrefixConsAddr, common.Bech32PrefixConsPub)
+	
 	db := dbm.NewMemDB()
 	app := NewSimApp(tmlog.NewNopLogger(), db, nil, true, map[int64]bool{}, 0)
-
+	
 	if !isCheckTx {
 		// init chain must be called to stop deliverState from being nil
 		genesisState := ModuleBasics.DefaultGenesis()
