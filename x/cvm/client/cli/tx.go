@@ -13,11 +13,11 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/cosmos/cosmos-sdk/x/auth/client"
 	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/hyperledger/burrow/crypto"
@@ -145,7 +145,7 @@ func GetCmdCall(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-func parseCallCmd(cliCtx context.CLIContext, calleeString string, calleeAddr sdk.AccAddress, function string, args []string) ([]byte, []byte, error) {
+func parseCallCmd(cliCtx client.CLIContext, calleeString string, calleeAddr sdk.AccAddress, function string, args []string) ([]byte, []byte, error) {
 	accGetter := authtxb.NewAccountRetriever(cliCtx)
 	if err := accGetter.EnsureExists(calleeAddr); err != nil {
 		return nil, nil, err
@@ -201,7 +201,7 @@ func GetCmdDeploy(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-func appendDeployMsgs(cmd *cobra.Command, cliCtx context.CLIContext, msgs []sdk.Msg, fileName string) ([]sdk.Msg, error) {
+func appendDeployMsgs(cmd *cobra.Command, cliCtx client.CLIContext, msgs []sdk.Msg, fileName string) ([]sdk.Msg, error) {
 	argumentsRaw := viper.GetString(FlagArgs)
 	arguments := strings.Split(argumentsRaw, ",")
 	deployContract := viper.GetString(FlagContract)

@@ -6,7 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govRest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
 
@@ -30,7 +30,7 @@ type ProposalRESTHandler struct {
 }
 
 // RegisterRoutes is the central function to define routes that get registered by the main application.
-func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router, phs []govRest.ProposalRESTHandler) {
+func RegisterRoutes(cliCtx client.CLIContext, r *mux.Router, phs []govRest.ProposalRESTHandler) {
 	registerQueryRoutes(cliCtx, r)
 	registerTxRoutes(cliCtx, r, phs)
 }

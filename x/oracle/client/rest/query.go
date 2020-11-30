@@ -6,14 +6,14 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
 
-func RegisterQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func RegisterQueryRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/operator/{address}", types.QuerierRoute), operatorHandler(cliCtx)).Methods("Get")
 	r.HandleFunc(fmt.Sprintf("/%s/operators", types.QuerierRoute), operatorsHandler(cliCtx)).Methods("Get")
 	r.HandleFunc(fmt.Sprintf("/%s/withdraws", types.QuerierRoute), withdrawsHandler(cliCtx)).Methods("Get")
@@ -22,7 +22,7 @@ func RegisterQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/response", types.QuerierRoute), responseHandler(cliCtx)).Methods("Get")
 }
 
-func operatorHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func operatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -44,7 +44,7 @@ func operatorHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func operatorsHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func operatorsHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -63,7 +63,7 @@ func operatorsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func withdrawsHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func withdrawsHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -82,7 +82,7 @@ func withdrawsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func taskHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func taskHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -116,7 +116,7 @@ func taskHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func responseHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func responseHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {

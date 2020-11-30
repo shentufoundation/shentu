@@ -5,16 +5,16 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
 )
 
 // RegisterRoutes registers custom REST routes.
-func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func RegisterRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	r.HandleFunc("/bank/accounts/{address}/locked_transfers", LockedSendRequestHandlerFn(cliCtx)).Methods("POST")
 }
 
@@ -27,7 +27,7 @@ type LockedSendReq struct {
 
 // LockedSendRequestHandlerFn is an http request handler to send coins
 // to a manual vesting account and have them locked (vesting).
-func LockedSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func LockedSendRequestHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		bech32Addr := vars["address"]

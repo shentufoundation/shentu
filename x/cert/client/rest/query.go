@@ -6,14 +6,14 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
 )
 
-func RegisterQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func RegisterQueryRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/certifier/{address}", types.QuerierRoute),
 		certifierHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/certifiers", types.QuerierRoute),
@@ -32,7 +32,7 @@ func RegisterQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 		certificatesHandler(cliCtx)).Methods("GET")
 }
 
-func certifierHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func certifierHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -54,7 +54,7 @@ func certifierHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func certifiersHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func certifiersHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -73,7 +73,7 @@ func certifiersHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func certifierAliasHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func certifierAliasHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -95,7 +95,7 @@ func certifierAliasHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func validatorHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func validatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -117,7 +117,7 @@ func validatorHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func validatorsHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func validatorsHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -136,7 +136,7 @@ func validatorsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func certificateHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func certificateHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -158,7 +158,7 @@ func certificateHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func certificatesHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func certificatesHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 100)
 		if err != nil {
@@ -202,7 +202,7 @@ func certificatesHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func platformHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func platformHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {

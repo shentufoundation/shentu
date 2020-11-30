@@ -5,16 +5,16 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	"github.com/certikfoundation/shentu/x/auth/internal/types"
 )
 
 // RegisterRoutes registers custom REST routes.
-func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func RegisterRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	r.HandleFunc("/txs/{address}/unlock", UnlockRequestHandlerFn(cliCtx)).Methods("POST")
 }
 
@@ -26,7 +26,7 @@ type UnlockReq struct {
 
 // UnlockRequestHandlerFn handles a request sent by an unlocker
 // to unlock coins from a manual vesting account
-func UnlockRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func UnlockRequestHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		bech32Addr := vars["address"]

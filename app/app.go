@@ -21,7 +21,7 @@ import (
 	cosmosGov "github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 
 	"github.com/certikfoundation/shentu/x/auth"
 	"github.com/certikfoundation/shentu/x/auth/vesting"

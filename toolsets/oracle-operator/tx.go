@@ -9,12 +9,12 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/cosmos/cosmos-sdk/x/auth/client"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/hyperledger/burrow/crypto"
@@ -28,7 +28,7 @@ import (
 )
 
 // CompleteAndBroadcastTx is adopted from auth.CompleteAndBroadcastTxCLI. The original function prints out response.
-func CompleteAndBroadcastTx(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, msgs []sdk.Msg) (sdk.TxResponse, error) {
+func CompleteAndBroadcastTx(cliCtx client.CLIContext, txBldr authtypes.TxBuilder, msgs []sdk.Msg) (sdk.TxResponse, error) {
 	txBldr, err := utils.PrepareTxBuilder(txBldr, cliCtx)
 	if err != nil {
 		return sdk.TxResponse{}, err

@@ -15,10 +15,10 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmrpcserver "github.com/tendermint/tendermint/rpc/jsonrpc/server"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
-	keybase "github.com/cosmos/cosmos-sdk/crypto/keys"
+	keybase "github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 
 	// unnamed import of statik for swagger UI support
@@ -28,7 +28,7 @@ import (
 // RestServer represents the Light Client Rest server
 type RestServer struct {
 	Mux     *mux.Router
-	CliCtx  context.CLIContext
+	CliCtx  client.CLIContext
 	KeyBase keybase.Keybase
 
 	log      log.Logger

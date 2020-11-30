@@ -8,15 +8,15 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	clientrest "github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	clientrest "github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
 
-func RegisterTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func RegisterTxRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/create-operator", types.ModuleName), createOperatorHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/remove-operator", types.ModuleName), removeOperatorHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/deposit-collateral", types.ModuleName), depositCollateralHandler(cliCtx)).Methods("POST")
@@ -29,7 +29,7 @@ func RegisterTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/delete-task", types.ModuleName), deleteTaskHandler(cliCtx)).Methods("POST")
 }
 
-func createTaskHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func createTaskHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req createTaskReq
 
@@ -83,7 +83,7 @@ func createTaskHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func inquireTaskHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func inquireTaskHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req inquiryTaskReq
 
@@ -113,7 +113,7 @@ func inquireTaskHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func createOperatorHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func createOperatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req createOperatorReq
 
@@ -149,7 +149,7 @@ func createOperatorHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func removeOperatorHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func removeOperatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req removeOperatorReq
 
@@ -185,7 +185,7 @@ func removeOperatorHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func depositCollateralHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func depositCollateralHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req depositCollateralReq
 
@@ -215,7 +215,7 @@ func depositCollateralHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func withdrawCollateralHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func withdrawCollateralHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req withdrawCollateralReq
 
@@ -245,7 +245,7 @@ func withdrawCollateralHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func claimRewardHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func claimRewardHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req claimRewardReq
 
@@ -275,7 +275,7 @@ func claimRewardHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func respondToTaskHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func respondToTaskHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req respondToTaskReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -310,7 +310,7 @@ func respondToTaskHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func deleteTaskHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func deleteTaskHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req deleteTaskReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {

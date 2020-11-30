@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 )
 
@@ -19,7 +19,7 @@ type AppModuleBasic struct {
 	defaultGenesisState interface{}
 	validateGenesis     func(data json.RawMessage) error
 	storeKey            string
-	registerRoutes      func(cliCtx context.CLIContext, r *mux.Router)
+	registerRoutes      func(cliCtx client.CLIContext, r *mux.Router)
 	getQueryCmd         func(storeKey string, cdc *codec.Codec) *cobra.Command
 	getTxCmd            func(cdc *codec.Codec) *cobra.Command
 }
@@ -32,7 +32,7 @@ func NewAppModuleBasic(
 	defaultGenesisState interface{},
 	validateGenesis func(data json.RawMessage) error,
 	storeKey string,
-	registerRoutes func(cliCtx context.CLIContext, r *mux.Router),
+	registerRoutes func(cliCtx client.CLIContext, r *mux.Router),
 	getQueryCmd func(storeKey string, cdc *codec.Codec) *cobra.Command,
 	getTxCmd func(cdc *codec.Codec) *cobra.Command,
 ) AppModuleBasic {
@@ -65,7 +65,7 @@ func (amb AppModuleBasic) DefaultGenesis() json.RawMessage {
 }
 
 // RegisterRESTRoutes registers REST routes for the module.
-func (amb AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
+func (amb AppModuleBasic) RegisterRESTRoutes(ctx client.CLIContext, rtr *mux.Router) {
 	amb.registerRoutes(ctx, rtr)
 }
 

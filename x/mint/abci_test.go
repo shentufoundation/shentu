@@ -21,7 +21,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 
 	"github.com/certikfoundation/shentu/x/bank"
 	"github.com/certikfoundation/shentu/x/cert"

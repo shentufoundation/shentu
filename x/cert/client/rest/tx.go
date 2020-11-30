@@ -6,15 +6,15 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	clientrest "github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	clientrest "github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
 )
 
-func RegisterTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func RegisterTxRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/propose/certifier", types.ModuleName),
 		proposeCertifierHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/certify/validator", types.ModuleName),
@@ -29,7 +29,7 @@ func RegisterTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 		revokeCertificateHandler(cliCtx)).Methods("POST")
 }
 
-func proposeCertifierHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func proposeCertifierHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req proposeCertifierReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -64,7 +64,7 @@ func proposeCertifierHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func certifyValidatorHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func certifyValidatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req certifyValidatorReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -99,7 +99,7 @@ func certifyValidatorHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func certifyGeneralHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func certifyGeneralHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req certifyGeneralReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -128,7 +128,7 @@ func certifyGeneralHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func certifyCompilationHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func certifyCompilationHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req certifyCompilationReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -156,7 +156,7 @@ func certifyCompilationHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func certifyPlatformHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func certifyPlatformHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req certifyPlatformReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -191,7 +191,7 @@ func certifyPlatformHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func revokeCertificateHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func revokeCertificateHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req revokeCertificateReq
 

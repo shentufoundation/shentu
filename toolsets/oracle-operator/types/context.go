@@ -6,7 +6,7 @@ import (
 	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/libs/log"
 
-	clientcontext "github.com/cosmos/cosmos-sdk/client/context"
+	clientcontext "github.com/cosmos/cosmos-sdk/client"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 

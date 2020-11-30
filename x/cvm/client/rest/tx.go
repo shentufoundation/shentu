@@ -6,23 +6,23 @@ import (
 	"net/http"
 
 	"github.com/certikfoundation/shentu/x/cvm/internal/types"
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	clientrest "github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	clientrest "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/gorilla/mux"
 	"github.com/hyperledger/burrow/acm/acmstate"
 	"github.com/hyperledger/burrow/txs/payload"
 	"github.com/tendermint/crypto/sha3"
 )
 
-func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerTxRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/call", types.QuerierRoute), callHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/deploy", types.QuerierRoute), deployHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/view", types.QuerierRoute), viewHandler(cliCtx)).Methods("POST")
 }
 
-func callHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func callHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req callReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -67,7 +67,7 @@ func callHandler(cliCtx context.CLIContext) http.HandlerFunc {
 		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
 }
-func deployHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func deployHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req deployReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -149,7 +149,7 @@ func deployHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func viewHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func viewHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req viewReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {

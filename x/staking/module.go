@@ -14,7 +14,7 @@ import (
 	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -68,7 +68,7 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 }
 
 // RegisterRESTRoutes registers the REST routes for the staking module.
-func (AppModuleBasic) RegisterRESTRoutes(cliCtx context.CLIContext, route *mux.Router) {
+func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.CLIContext, route *mux.Router) {
 	rest.RegisterRoutes(cliCtx, route)
 	staking.AppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
 }
@@ -96,7 +96,7 @@ func (AppModuleBasic) PrepareFlagsForTxCreateValidator(cfg *config.Config, nodeI
 }
 
 // BuildCreateValidatorMsg is used for gen-tx.
-func (AppModuleBasic) BuildCreateValidatorMsg(cliCtx context.CLIContext,
+func (AppModuleBasic) BuildCreateValidatorMsg(cliCtx client.CLIContext,
 	txBldr authtypes.TxBuilder) (authtypes.TxBuilder, sdk.Msg, error) {
 	return staking.AppModuleBasic{}.BuildCreateValidatorMsg(cliCtx, txBldr)
 }

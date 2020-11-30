@@ -6,16 +6,16 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/cosmos/cosmos-sdk/x/auth/client"
 	govRest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
 	govUtils "github.com/cosmos/cosmos-sdk/x/gov/client/utils"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
-func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router, phs []govRest.ProposalRESTHandler) {
+func registerTxRoutes(cliCtx client.CLIContext, r *mux.Router, phs []govRest.ProposalRESTHandler) {
 	propSubRtr := r.PathPrefix("/gov/proposals").Subrouter()
 	for _, ph := range phs {
 		propSubRtr.HandleFunc(fmt.Sprintf("/%s", ph.SubRoute), ph.Handler).Methods("POST")
@@ -26,7 +26,7 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router, phs []govRest.Pr
 	r.HandleFunc(fmt.Sprintf("/gov/proposals/{%s}/votes", RestProposalID), voteHandlerFn(cliCtx)).Methods("POST")
 }
 
-func proposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func proposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req govRest.PostProposalReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -51,7 +51,7 @@ func proposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func depositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func depositHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		strProposalID := vars[RestProposalID]
@@ -87,7 +87,7 @@ func depositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func voteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func voteHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		strProposalID := vars[RestProposalID]

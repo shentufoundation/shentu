@@ -9,11 +9,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/hyperledger/burrow/execution/evm/abi"
 
@@ -89,7 +89,7 @@ func GetCmdView(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 // Query CVM contract code based on ABI spec and print function output.
-func queryContractAndPrint(cliCtx context.CLIContext, cdc *codec.Codec, queryPath, fname string, abiSpec, data []byte) error {
+func queryContractAndPrint(cliCtx client.CLIContext, cdc *codec.Codec, queryPath, fname string, abiSpec, data []byte) error {
 	res, _, err := cliCtx.QueryWithData(queryPath, data)
 	if err != nil {
 		return fmt.Errorf("querying CVM contract code: %v", err)
@@ -179,7 +179,7 @@ func GetCmdAbi(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-func queryAbi(cliCtx context.CLIContext, queryRoute string, addr string) ([]byte, error) {
+func queryAbi(cliCtx client.CLIContext, queryRoute string, addr string) ([]byte, error) {
 	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/abi/%s", queryRoute, addr), nil)
 	if err != nil {
 		return nil, err
@@ -223,7 +223,7 @@ func GetCmdMeta(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-func queryAddrMeta(cliCtx context.CLIContext, queryRoute string, addr string) (string, error) {
+func queryAddrMeta(cliCtx client.CLIContext, queryRoute string, addr string) (string, error) {
 	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/address-meta/%s", queryRoute, addr), nil)
 	if err != nil {
 		return "", err
@@ -234,7 +234,7 @@ func queryAddrMeta(cliCtx context.CLIContext, queryRoute string, addr string) (s
 	return out.Metahash, err
 }
 
-func queryMeta(cliCtx context.CLIContext, queryRoute string, addr string) (string, error) {
+func queryMeta(cliCtx client.CLIContext, queryRoute string, addr string) (string, error) {
 	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/meta/%s", queryRoute, addr), nil)
 	if err != nil {
 		return "", err

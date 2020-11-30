@@ -5,12 +5,12 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	// Get validator count
 	r.HandleFunc("/staking/all_validators", allValidatorsHandlerFn(cliCtx)).Methods("GET")
 }
@@ -21,7 +21,7 @@ type AllValidatorsResult struct {
 }
 
 // HTTP request handler to query complete list of validators
-func allValidatorsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func allValidatorsHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, _, _, err := rest.ParseHTTPArgsWithLimit(r, 100)
 		if err != nil {

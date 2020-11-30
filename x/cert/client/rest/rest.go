@@ -6,10 +6,10 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govrest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
 
@@ -17,7 +17,7 @@ import (
 )
 
 // RegisterRoutes registers the routes in main application.
-func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func RegisterRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	RegisterTxRoutes(cliCtx, r)
 	RegisterQueryRoutes(cliCtx, r)
 }
@@ -68,14 +68,14 @@ type revokeCertificateReq struct {
 }
 
 // ProposalRESTHandler returns a ProposalRESTHandler that exposes the community pool spend REST handler with a given sub-route.
-func ProposalRESTHandler(cliCtx context.CLIContext) govrest.ProposalRESTHandler {
+func ProposalRESTHandler(cliCtx client.CLIContext) govrest.ProposalRESTHandler {
 	return govrest.ProposalRESTHandler{
 		SubRoute: "certifier_update",
 		Handler:  postProposalHandlerFn(cliCtx),
 	}
 }
 
-func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postProposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req CertifierUpdateProposalReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {

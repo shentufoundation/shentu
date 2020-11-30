@@ -7,13 +7,13 @@ import (
 
 	"github.com/hyperledger/burrow/execution/evm/abi"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 
 	"github.com/certikfoundation/shentu/x/cvm"
 )
 
 // queryAbi queries ABI from certik chain
-func queryAbi(cliCtx context.CLIContext, queryRoute string, addr string) ([]byte, error) {
+func queryAbi(cliCtx client.CLIContext, queryRoute string, addr string) ([]byte, error) {
 	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/abi/%s", queryRoute, addr), nil)
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func queryAbi(cliCtx context.CLIContext, queryRoute string, addr string) ([]byte
 
 // queryContract queries contract on certik-chain.
 func queryContract(
-	cliCtx context.CLIContext,
+	cliCtx client.CLIContext,
 	queryPath, fname string,
 	abiSpec, data []byte,
 ) (bool, string, error) {

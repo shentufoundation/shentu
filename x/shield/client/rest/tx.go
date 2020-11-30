@@ -5,16 +5,16 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerTxRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	r.HandleFunc("/shield/deposit_collateral", depositCollateralHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/shield/withdraw_collateral", withdrawCollateralHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/shield/withdraw_rewards", withdrawRewardsHandlerFn(cliCtx)).Methods("POST")
@@ -25,7 +25,7 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/shield/unstake_from_shield", unstakeFromShieldHandlerFn(cliCtx)).Methods("POST")
 }
 
-func depositCollateralHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func depositCollateralHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req depositCollateralReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -54,7 +54,7 @@ func depositCollateralHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func withdrawCollateralHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func withdrawCollateralHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req withdrawCollateralReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -83,7 +83,7 @@ func withdrawCollateralHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func withdrawRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func withdrawRewardsHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req withdrawRewardsReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -112,7 +112,7 @@ func withdrawRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func withdrawForeignRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func withdrawForeignRewardsHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req withdrawForeignRewardsReq
 
@@ -142,7 +142,7 @@ func withdrawForeignRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 	}
 }
 
-func withdrawReimbursementHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func withdrawReimbursementHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req withdrawReimbursementReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -171,7 +171,7 @@ func withdrawReimbursementHandlerFn(cliCtx context.CLIContext) http.HandlerFunc 
 	}
 }
 
-func purchaseHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func purchaseHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req purchaseReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -200,7 +200,7 @@ func purchaseHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postProposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req ShieldClaimProposalReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -231,7 +231,7 @@ func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func stakeForShieldHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func stakeForShieldHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req purchaseReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
@@ -260,7 +260,7 @@ func stakeForShieldHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func unstakeFromShieldHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func unstakeFromShieldHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req withdrawFromShieldReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {

@@ -9,12 +9,12 @@ import (
 
 	tmconfig "github.com/tendermint/tendermint/config"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/cosmos/cosmos-sdk/x/auth/client"
 	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/certikfoundation/shentu/toolsets/oracle-operator/types"

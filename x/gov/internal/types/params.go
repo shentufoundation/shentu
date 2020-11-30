@@ -7,7 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	params "github.com/cosmos/cosmos-sdk/x/params/subspace"
+	params "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // parameter store keys

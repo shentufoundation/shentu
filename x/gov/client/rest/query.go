@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	govUtils "github.com/cosmos/cosmos-sdk/x/gov/client/utils"
@@ -18,7 +18,7 @@ import (
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
 )
 
-func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/gov/parameters/{%s}", RestParamsType), queryParamsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/gov/proposals", queryProposalsWithParameterFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/gov/proposals/{%s}", RestProposalID), queryProposalHandlerFn(cliCtx)).Methods("GET")
@@ -30,7 +30,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/gov/proposals/{%s}/votes/{%s}", RestProposalID, RestVoter), queryVoteHandlerFn(cliCtx)).Methods("GET")
 }
 
-func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryParamsHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		paramType := vars[RestParamsType]
@@ -52,7 +52,7 @@ func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryProposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		strProposalID := vars[RestProposalID]
@@ -93,7 +93,7 @@ func queryProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryDepositsHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		strProposalID := vars[RestProposalID]
@@ -148,7 +148,7 @@ func queryDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryProposerHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryProposerHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		strProposalID := vars[RestProposalID]
@@ -173,7 +173,7 @@ func queryProposerHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryDepositHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		strProposalID := vars[RestProposalID]
@@ -255,7 +255,7 @@ func queryDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryVoteHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		strProposalID := vars[RestProposalID]
@@ -338,7 +338,7 @@ func queryVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 }
 
 // todo: Split this functionality into helper functions to remove the above
-func queryVotesOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryVotesOnProposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 100)
 		if err != nil {
@@ -407,7 +407,7 @@ func queryVotesOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func getVotesWithPower(cliCtx context.CLIContext, w http.ResponseWriter, res []byte) (VotesWithPower, http.ResponseWriter) {
+func getVotesWithPower(cliCtx client.CLIContext, w http.ResponseWriter, res []byte) (VotesWithPower, http.ResponseWriter) {
 	votes := types.Votes{}
 	err := cliCtx.Codec.UnmarshalJSON(res, &votes)
 	if err != nil {
@@ -451,7 +451,7 @@ func getVotesWithPower(cliCtx context.CLIContext, w http.ResponseWriter, res []b
 }
 
 // HTTP request handler to query list of governance proposals
-func queryProposalsWithParameterFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryProposalsWithParameterFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 100)
 		if err != nil {
@@ -514,7 +514,7 @@ func queryProposalsWithParameterFn(cliCtx context.CLIContext) http.HandlerFunc {
 }
 
 // todo: Split this functionality into helper functions to remove the above
-func queryTallyOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryTallyOnProposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		strProposalID := vars[RestProposalID]

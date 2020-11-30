@@ -3,15 +3,15 @@ package utils
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	auth_types "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/certikfoundation/shentu/x/cvm/internal/types"
 )
 
 // QueryCVMAccount is to query the cvm contract related info by addresss
-func QueryCVMAccount(cliCtx context.CLIContext, address string, account exported.Account) (*types.CVMAccount, error) {
+func QueryCVMAccount(cliCtx client.CLIContext, address string, account exported.Account) (*types.CVMAccount, error) {
 	cvmCodeRes, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cvm/code/%s", address), nil)
 	if err != nil {
 		return nil, err
