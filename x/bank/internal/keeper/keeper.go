@@ -15,6 +15,7 @@ import (
 type Keeper struct {
 	bankKeeper.BaseKeeper
 	cvmk types.CVMKeeper
+	ak   types.AccountKeeper
 }
 
 // NewKeeper returns a new Keeper.
@@ -25,6 +26,7 @@ func NewKeeper(
 	return Keeper{
 		BaseKeeper: bk,
 		cvmk:       cvmk,
+		ak:         ak,
 	}
 }
 

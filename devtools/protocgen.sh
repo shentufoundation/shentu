@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-set -eo pipefail
+set +e
+set -o pipefail
 
 protoc_gen_gocosmos() {
   if ! grep "github.com/gogo/protobuf => github.com/regen-network/protobuf" go.mod &>/dev/null ; then
@@ -25,11 +26,11 @@ for dir in $proto_dirs; do
   -I "proto" \
   -I "third_party/proto" \
   --gocosmos_out=plugins=grpc,\
-Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,\
-Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,\
-Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,\
-Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types,\
-Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types:. \
+google/protobuf/duration.proto=github.com/gogo/protobuf/types,\
+google/protobuf/struct.proto=github.com/gogo/protobuf/types,\
+google/protobuf/timestamp.proto=github.com/gogo/protobuf/types,\
+google/protobuf/wrappers.proto=github.com/gogo/protobuf/types,\
+google/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types:. \
   $(find "${dir}" -maxdepth 1 -name '*.proto')
 
   # command to generate gRPC gateway (*.pb.gw.go in respective modules) files
@@ -39,16 +40,6 @@ Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types:. \
   --grpc-gateway_out=logtostderr=true:. \
   $(find "${dir}" -maxdepth 1 -name '*.proto')
 
-  # get the module name, e.g. from "./proto/regen/data/v1alpha1", extract "data"
-  module=$(basename $(dirname $dir))
-  # command to generate docs using protoc-gen-doc
-  buf protoc \
-  -I "proto" \
-  -I "third_party/proto" \
-  --doc_out=./docs/modules/${module} \
-  --doc_opt=docs/markdown.tmpl,protobuf.md \
-  $(find "${dir}" -maxdepth 1 -name '*.proto')
-
 done
 
 # generate codec/testdata proto code
@@ -56,5 +47,5 @@ buf protoc -I "proto" -I "third_party/proto" -I "testutil/testdata" --gocosmos_o
 Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types:. ./testutil/testdata/*.proto
 
 # move proto files to the right places
-cp -r github.com/regen-network/regen-ledger/* ./
-rm -rf github.com
+cp -r github.com/certikfoundation/shentu/* ./
+# rm -rf github.com

@@ -42,8 +42,10 @@ message MsgSendResponse {}
 message MsgMultiSend {
   option (gogoproto.equal) = false;
 
-  repeated cosmos.bank.v1beta1.Input inputs = 1 [ (gogoproto.nullable) = false ];
-  repeated cosmos.bank.v1beta1.Output outputs = 2 [ (gogoproto.nullable) = false ];
+  repeated cosmos.bank.v1beta1.Input inputs = 1
+      [ (gogoproto.nullable) = false ];
+  repeated cosmos.bank.v1beta1.Output outputs = 2
+      [ (gogoproto.nullable) = false ];
 }
 
 // MsgMultiSendResponse defines the Msg/MultiSend response type.
@@ -57,7 +59,7 @@ message MsgLockedSend {
 
   string from_address = 1 [ (gogoproto.moretags) = "yaml:\"from_address\"" ];
   string to_address = 2 [ (gogoproto.moretags) = "yaml:\"to_address\"" ];
-  string locker_address = 3
+  string unlocker_address = 3
       [ (gogoproto.moretags) = "yaml:\"unlocker_address\"" ];
   repeated cosmos.base.v1beta1.Coin amount = 4 [
     (gogoproto.nullable) = false,
