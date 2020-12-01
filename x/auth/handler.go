@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/certikfoundation/shentu/x/auth/internal/keeper"
+	"github.com/certikfoundation/shentu/x/auth/keeper"
 	"github.com/certikfoundation/shentu/x/auth/types"
 )
 

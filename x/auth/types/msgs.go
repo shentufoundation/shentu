@@ -8,6 +8,8 @@ import (
 
 const (
 	ModuleName = types.ModuleName
+	RouterKey = ModuleName
+	
 	TypeMsgUnlock      = "unlock"	
 )
 

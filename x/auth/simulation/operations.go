@@ -12,7 +12,6 @@ import (
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/x/auth"
 	"github.com/certikfoundation/shentu/x/auth/types"
 	"github.com/certikfoundation/shentu/x/auth/vesting"
 )
@@ -20,7 +19,7 @@ import (
 const OpWeightMsgUnlock = "op_weight_msg_create_operator"
 
 // WeightedOperations returns all the operations from the module with their respective weights
-func WeightedOperations(appParams simTypes.AppParams, cdc codec.JSONMarshaler, k auth.AccountKeeper) simulation.WeightedOperations {
+func WeightedOperations(appParams simTypes.AppParams, cdc codec.JSONMarshaler, k types.AccountKeeper) simulation.WeightedOperations {
 	var weightMsgUnlock int
 	appParams.GetOrGenerate(cdc, OpWeightMsgUnlock, &weightMsgUnlock, nil,
 		func(_ *rand.Rand) {
@@ -36,7 +35,7 @@ func WeightedOperations(appParams simTypes.AppParams, cdc codec.JSONMarshaler, k
 	}
 }
 
-func SimulateMsgUnlock(k auth.AccountKeeper) simTypes.Operation {
+func SimulateMsgUnlock(k types.AccountKeeper) simTypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simTypes.Account, chainID string) (
 		simTypes.OperationMsg, []simTypes.FutureOperation, error) {
 		for _, acc := range accs {
@@ -56,8 +55,10 @@ func SimulateMsgUnlock(k auth.AccountKeeper) simTypes.Operation {
 					return simTypes.NoOpMsg(authTypes.ModuleName, types.TypeMsgUnlock, err.Error()), nil, err
 				}
 			}
-
-			fees, err := simTypes.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+			
+			//fees, err := simTypes.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+			spendable := mvacc.OriginalVesting.Sub(mvacc.VestedCoins) //FIXME
+			fees, err := simTypes.RandomFees(r, ctx, spendable)
 			if err != nil {
 				return simTypes.NoOpMsg(authTypes.ModuleName, types.TypeMsgUnlock, err.Error()), nil, err
 			}
