@@ -14,14 +14,14 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	vesttypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-
-	customauth "github.com/certikfoundation/shentu/x/auth/internal/types"
 )
 
 // Compile-time type assertions
 var _ vestexported.VestingAccount = (*ManualVestingAccount)(nil)
 var _ authexported.GenesisAccount = (*ManualVestingAccount)(nil)
+
+/*
+import customauth "github.com/certikfoundation/shentu/x/auth/types"
 
 func init() {
 	customauth.RegisterAccountTypeCodec(&vesttypes.BaseVestingAccount{}, "cosmos-sdk/BaseVestingAccount")
@@ -33,6 +33,7 @@ func init() {
 
 	authtypes.RegisterAccountTypeCodec(&ManualVestingAccount{}, "auth/ManualVestingAccount")
 }
+*/
 
 //-----------------------------------------------------------------------------
 // Manual Vesting Account
@@ -81,9 +82,9 @@ func (mva ManualVestingAccount) GetVestingCoins(blockTime time.Time) sdk.Coins {
 	return mva.OriginalVesting.Sub(mva.GetVestedCoins(blockTime))
 }
 
-// SpendableCoins returns the total number of spendable coins per denom.
-func (mva ManualVestingAccount) SpendableCoins(blockTime time.Time) sdk.Coins {
-	return mva.BaseVestingAccount.SpendableCoinsVestingAccount(mva.GetVestingCoins(blockTime))
+// LockedCoins returns the set of coins that are not spendable.
+func (mva ManualVestingAccount) LockedCoins(blockTime time.Time) sdk.Coins {
+	return mva.BaseVestingAccount.LockedCoinsFromVesting(mva.GetVestingCoins(blockTime))
 }
 
 // TrackDelegation tracks a desired delegation amount by setting the appropriate

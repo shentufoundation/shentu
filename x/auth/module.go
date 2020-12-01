@@ -17,17 +17,21 @@ import (
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/auth/client/cli"
-	"github.com/certikfoundation/shentu/x/auth/internal/types"
+	"github.com/certikfoundation/shentu/x/auth/internal/keeper"
 	"github.com/certikfoundation/shentu/x/auth/simulation"
+	"github.com/certikfoundation/shentu/x/auth/types"
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the auth module.
-type AppModuleBasic struct{}
+type AppModuleBasic struct {
+	cdc codec.Marshaler
+}
 
 // Name returns the auth module's name.
 func (AppModuleBasic) Name() string {
@@ -35,35 +39,41 @@ func (AppModuleBasic) Name() string {
 }
 
 // RegisterCodec registers the auth module's types for the given codec.
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	RegisterCodec(cdc)
-	*CosmosModuleCdc = *ModuleCdc // nolint
-}
+//func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
+//	RegisterCodec(cdc)
+//	*CosmosModuleCdc = *ModuleCdc // nolint
+//}
 
 // DefaultGenesis returns default genesis state as raw bytes for the auth module.
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return CosmosAppModuleBasic{}.DefaultGenesis()
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+	return CosmosAppModuleBasic{}.DefaultGenesis(cdc)
 }
 
 // ValidateGenesis performs genesis state validation for the auth module.
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	return CosmosAppModuleBasic{}.ValidateGenesis(bz)
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
+	return CosmosAppModuleBasic{}.ValidateGenesis(cdc, config, bz)
 }
 
 // RegisterRESTRoutes registers the REST routes for the auth module.
-func (AppModuleBasic) RegisterRESTRoutes(ctx client.CLIContext, rtr *mux.Router) {
+func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
 	RegisterRoutes(ctx, rtr)
 	CosmosAppModuleBasic{}.RegisterRESTRoutes(ctx, rtr)
 }
 
+// TODO
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the staking module.
+//func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+//	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+//}
+
 // GetTxCmd returns the root tx command for the auth module.
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetTxCmd(cdc)
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.NewTxCmd()
 }
 
 // GetQueryCmd returns the root query command for the auth module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return CosmosAppModuleBasic{}.GetQueryCmd(cdc)
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return CosmosAppModuleBasic{}.GetQueryCmd()
 }
 
 //____________________________________________________________________________
@@ -72,15 +82,18 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 	cosmosAppModule CosmosAppModule
-	authKeeper      AccountKeeper
-	certKeeper      types.CertKeeper
+
+	keeper     keeper.Keeper
+	authKeeper AccountKeeper
+	certKeeper types.CertKeeper
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(ak AccountKeeper, ck types.CertKeeper) AppModule {
+func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, ak AccountKeeper, ck types.CertKeeper) AppModule {
 	return AppModule{
-		AppModuleBasic:  AppModuleBasic{},
-		cosmosAppModule: NewCosmosAppModule(ak),
+		AppModuleBasic:  AppModuleBasic{cdc: cdc},
+		cosmosAppModule: NewCosmosAppModule(cdc, ak),
+		keeper:          keeper,
 		authKeeper:      ak,
 		certKeeper:      ck,
 	}
@@ -97,8 +110,8 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 }
 
 // Route returns the message routing key for the auth module.
-func (am AppModule) Route() string {
-	return RouterKey
+func (am AppModule) Route() sdk.Route {
+	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
 }
 
 // NewHandler returns an sdk.Handler for the auth module.
@@ -116,14 +129,21 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 	return am.cosmosAppModule.NewQuerierHandler()
 }
 
+// RegisterServices registers module services.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	querier := keeper.Querier{Keeper: am.keeper}
+	types.RegisterQueryServer(cfg.QueryServer(), querier)
+}
+
 // InitGenesis performs genesis initialization for the auth module. It returns no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.InitGenesis(ctx, data)
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+	return am.cosmosAppModule.InitGenesis(ctx, cdc, data)
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the auth module.
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
-	return am.cosmosAppModule.ExportGenesis(ctx)
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
+	return am.cosmosAppModule.ExportGenesis(ctx, cdc)
 }
 
 // BeginBlock returns the begin blocker for the auth module.
