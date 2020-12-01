@@ -19,7 +19,7 @@ checkConsensus() {
 # ------------------------------------------------------------------
 
 # Add tokens to mary
-$CERTIKCLI0 tx send $jack $mary 100000000uctk --from $jack -y
+$CERTIKCLI0 tx send $jack $mary 200000000uctk --from $jack -y
 sleep 6
 $CERTIKCLI1 query account $jack
 $CERTIKCLI1 query account $bob
@@ -47,13 +47,15 @@ checkConsensus
 # cert
 
 $CERTIKCLI1 query cert certifiers
-$CERTIKCLI0 tx cert certify-validator certikvalconspub1zcjduepqff623akv26we89w9qz6nk7yq66ms5tlhmn5p7v8rqv4z2ur9puhqmxvkpk --from $bob -y
+validator=$($CERTIKCLI1 query staking validators | grep conspubkey)
+validator=${validator:14}
+$CERTIKCLI0 tx cert certify-validator $validator --from $bob -y
 sleep 6
-$CERTIKCLI1 query cert validators
+$CERTIKCLI1 query cert validator $validator
 
-$CERTIKCLI0 tx cert certify-platform certikvalconspub1zcjduepqff623akv26we89w9qz6nk7yq66ms5tlhmn5p7v8rqv4z2ur9puhqmxvkpk xxxx --from $bob -y
+$CERTIKCLI0 tx cert certify-platform $validator xxxx --from $bob -y
 sleep 6
-$CERTIKCLI1 query cert platform certikvalconspub1zcjduepqff623akv26we89w9qz6nk7yq66ms5tlhmn5p7v8rqv4z2ur9puhqmxvkpk
+$CERTIKCLI1 query cert platform $validator
 
 $CERTIKCLI0 tx cert issue-certificate AUDITING ADDRESS C --from $bob -y
 sleep 6
@@ -62,10 +64,6 @@ sleep 6
 $CERTIKCLI1 query cert certificates
 id=$($CERTIKCLI1 query cert certificates | grep certificateid)
 id=${id:17:60}
-
-$CERTIKCLI0 tx cert decertify-validator certikvalconspub1zcjduepqff623akv26we89w9qz6nk7yq66ms5tlhmn5p7v8rqv4z2ur9puhqmxvkpk --from $bob -y
-sleep 6
-$CERTIKCLI1 query cert validators
 
 $CERTIKCLI0 tx cert revoke-certificate $id --from $bob -y
 sleep 6
@@ -198,13 +196,29 @@ sleep 6
 $CERTIKCLI1 query gov proposal 1
 $CERTIKCLI1 query cert certifiers
 
-$CERTIKCLI1 query account $jack
-$CERTIKCLI1 query account $bob
-$CERTIKCLI1 query account $mary
+$CERTIKCLI1 tx gov submit-proposal shield-claim $PROJ_ROOT/tests/sync/shield_claim.json --from $mary -y
+sleep 6
+$CERTIKCLI1 query gov proposal 2
 
-# TODO: acquire purchase txhash
+$CERTIKCLI0 tx gov vote 2 yes --from $bob -y
+sleep 6
+$CERTIKCLI1 query gov proposal 2
 
-$CERTIKCLI0 tx gov submit-proposal shield-claim $PROJ_ROOT/tests/sync/shield_claim.json --from $jack -y
+$CERTIKCLI0 tx cert issue-certificate IDENTITY ADDRESS $jack --from $bob -y
+sleep 6
+$CERTIKCLI1 query cert certificates
+
+$CERTIKCLI0 tx cert issue-certificate IDENTITY ADDRESS $bob --from $bob -y
+sleep 6
+$CERTIKCLI1 query cert certificates
+
+$CERTIKCLI0 tx cert issue-certificate IDENTITY ADDRESS $mary --from $bob -y
+sleep 6
+$CERTIKCLI1 query cert certificates
+
+$CERTIKCLI0 tx gov vote 2 yes --from $jack -y
+$CERTIKCLI0 tx gov vote 2 yes --from $bob -y
+$CERTIKCLI1 tx gov vote 2 yes --from $mary -y
 sleep 6
 $CERTIKCLI1 query gov proposal 2
 

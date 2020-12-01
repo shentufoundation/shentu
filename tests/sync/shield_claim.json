@@ -7,7 +7,7 @@
     }
   ],
   "evidence": "Attack happened on <time> caused loss of <amount> to <account> by <txhashes>",
-  "purchase_txhash": "7D5C90FBD3082D2CD763FA1580BBA29568D0749D76C7CD627B841F2FAB22BBEA",
+  "purchase_id": "3",
   "description": "Details of the attack",
   "deposit": [
     {
