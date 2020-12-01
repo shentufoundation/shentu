@@ -6,13 +6,6 @@ import (
 	"io"
 	"os"
 
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
-
-	appparams "github.com/certikfoundation/shentu/app/params"
-
-	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -25,12 +18,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	cosmosGov "github.com/cosmos/cosmos-sdk/x/gov"
+	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramsKeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	appparams "github.com/certikfoundation/shentu/app/params"
 	"github.com/certikfoundation/shentu/x/auth"
 	"github.com/certikfoundation/shentu/x/auth/vesting"
 	"github.com/certikfoundation/shentu/x/bank"
