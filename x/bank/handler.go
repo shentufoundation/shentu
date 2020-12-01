@@ -1,10 +1,11 @@
 package bank
 
 import (
-	"github.com/certikfoundation/shentu/x/bank/internal/keeper"
-	"github.com/certikfoundation/shentu/x/bank/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+
+	"github.com/certikfoundation/shentu/x/bank/internal/keeper"
+	"github.com/certikfoundation/shentu/x/bank/internal/types"
 )
 
 // NewHandler returns a handler for "auth" type messages.

@@ -6,13 +6,8 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/certikfoundation/shentu/x/bank/internal/keeper"
-
-	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-
 	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -24,11 +19,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simTypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/bank/client/cli"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	cosmosSim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/bank/client/rest"
+	"github.com/certikfoundation/shentu/x/bank/internal/keeper"
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
 	"github.com/certikfoundation/shentu/x/bank/simulation"
 )
