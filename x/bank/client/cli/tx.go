@@ -1,17 +1,14 @@
 package cli
 
 import (
-	"bufio"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
 )
@@ -22,15 +19,16 @@ const (
 
 // LockedSendTxCmd sends coins to a manual vesting account
 // and have them vesting.
-func LockedSendTxCmd(cdc *codec.Codec) *cobra.Command {
+func LockedSendTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "locked-send [from_key_or_address] [to_address] [amount]",
 		Short: "Send coins and have them locked (vesting).",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
+			cmd.Flags().Set(flags.FlagFrom, args[0])
+
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
 
 			to, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {
@@ -48,11 +46,11 @@ func LockedSendTxCmd(cdc *codec.Codec) *cobra.Command {
 			}
 
 			msg := types.NewMsgLockedSend(cliCtx.GetFromAddress(), to, unlocker, coins)
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
 
-	cmd = flags.PostCommands(cmd)[0]
+	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().String(FlagUnlocker, "", "unlocker when initializing a new manual vesting account")
 	return cmd
 }
