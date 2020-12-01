@@ -1,10 +1,11 @@
 #!/bin/bash
 
-set -e
+set +e
 set -x
 
 checkConsensus() {
   if grep -q "CONSENSUS FAILURE" $DIR/node1/log.txt; then
+    set -e
     killall certikd
     echo "CONSENSUS FAILURE!"
     exit 1
@@ -223,3 +224,7 @@ sleep 6
 $CERTIKCLI1 query gov proposal 2
 
 checkConsensus
+
+# exiting without consensus failure
+
+set -e

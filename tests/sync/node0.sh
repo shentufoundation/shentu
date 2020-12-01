@@ -13,7 +13,7 @@ set -x
 #  bob: jack's unlocker, certifier
 # ------------------------------------------
 
-# node directory
+# directory
 
 # DIR=~/.synctest
 DIR_D0=$DIR/node0/certikd
