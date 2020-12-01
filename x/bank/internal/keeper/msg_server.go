@@ -20,11 +20,11 @@ type msgServer struct {
 
 // NewMsgServerImpl returns an implementation of the bank MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) bankTypes.MsgServer {
+func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 	return &msgServer{Keeper: keeper}
 }
 
-var _ bankTypes.MsgServer = msgServer{}
+var _ types.MsgServer = msgServer{}
 
 func (k msgServer) Send(goCtx context.Context, msg *bankTypes.MsgSend) (*bankTypes.MsgSendResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
