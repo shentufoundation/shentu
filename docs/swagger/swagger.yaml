@@ -35,7 +35,7 @@ tags:
     description: Minting module APIs
 schemes:
   - https
-host: api.certik.foundation
+host: azuredragon.noopsbycertik.com
 securityDefinitions:
   kms:
     type: basic
@@ -358,84 +358,6 @@ paths:
                             Certifier:
                               type: string
                               example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
-                  fee:
-                    type: object
-                    properties:
-                      amount:
-                        $ref: "#/definitions/CertikCoins"
-                      gas:
-                        type: string
-                        example: "200000"
-                  signatures:
-                    type: array
-                    items:
-                      type: object
-                    example: null
-                  memo:
-                    type: string
-                    example: "This is a memo!"
-        400:
-          description: Failed to parse request
-  /cert/certify/proof:
-    post:
-      tags:
-        - Certification
-      summary: Certify proof
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          name: certifyProofReq
-          description: Request type to certify proof
-          required: true
-          schema:
-            type: object
-            properties:
-              base_req:
-                $ref: "#/definitions/CertikBaseReq"
-              certifier:
-                type: string
-                example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
-              contract:
-                type: string
-                example: "certik1sy0psa68ucnle4jnrr4e8u9x0zmva3ppqxalkz"
-              description:
-                type: string
-                example: "a description for the contract"
-      responses:
-        200:
-          description: Successfully parsed request
-          schema:
-            type: object
-            properties:
-              type:
-                type: string
-                example: "cosmos-sdk/StdTx"
-              value:
-                type: object
-                properties:
-                  msg:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        type:
-                          type: string
-                          example: "cert/CertifyProof"
-                        value:
-                          type: object
-                          properties:
-                            Certifier:
-                              type: string
-                              example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
-                            Contract:
-                              type: string
-                              example: "certik1sy0psa68ucnle4jnrr4e8u9x0zmva3ppqxalkz"
-                            Description:
-                              type: string
-                              example: "a description for the contract"
                   fee:
                     type: object
                     properties:
@@ -986,9 +908,6 @@ paths:
             properties:
               base_req:
                 $ref: "#/definitions/CertikBaseReq"
-              caller:
-                type: string
-                example: "certik1g6xuz868kxnqhfudwqueacvkc6w9wr8t2dlx7a"
               callee:
                 type: string
                 example: "certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0"
@@ -1023,7 +942,7 @@ paths:
                           properties:
                             Caller:
                               type: string
-                              example: "certik1g6xuz868kxnqhfudwqueacvkc6w9wr8t2dlx7a"
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
                             Callee:
                               type: string
                               example: "certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0"
@@ -1090,6 +1009,12 @@ paths:
                 items:
                   type: string
                   example: "7b22436f6e74726163744e616d65223a2248656c6c6f3535222c22536f7572636546696c65223a2268656c6c6f35352e736f6c222c22436f6d70696c657256657273696f6e223a22302e362e322b636f6d6d69742e6261636462653537222c22416269223a5b7b22696e70757473223a5b5d2c226e616d65223a227361794869222c226f757470757473223a5b7b22696e7465726e616c54797065223a2275696e74323536222c226e616d65223a22222c2274797065223a2275696e74323536227d5d2c2273746174654d75746162696c697479223a2270757265222c2274797065223a2266756e6374696f6e227d5d7d"
+              is_ewasm:
+                type: boolean
+                example: false
+              is_runtime:
+                type: boolean
+                example: false
       responses:
         200:
           description: Successfully parsed request
@@ -1136,6 +1061,12 @@ paths:
                                   Meta:
                                     type: string
                                     example: "{\"ContractName\":\"Hello55\",\"SourceFile\":\"hello55.sol\",\"CompilerVersion\":\"0.6.2+commit.bacdbe57\",\"Abi\":[{\"inputs\":[],\"name\":\"sayHi\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}]}"
+                            IsEWASM:
+                              type: boolean
+                              example: false
+                            IsRuntime:
+                              type: boolean
+                              example: false
                   fee:
                     type: object
                     properties:
@@ -1154,6 +1085,53 @@ paths:
                     example: "This is a memo!"
         400:
           description: Failed to parse request
+
+  /cvm/view:
+    post:
+      tags:
+        - CVM
+      summary: Get contract function return value
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: viewReq
+          description: Request type to view CVM contract
+          required: true
+          schema:
+            type: object
+            properties:
+              caller:
+                type: string
+                example: "certik1g6xuz868kxnqhfudwqueacvkc6w9wr8t2dlx7a"
+              callee:
+                type: string
+                example: "certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0"
+              data:
+                type: string
+                example: "0c49c36c"
+      responses:
+        200:
+          description: Successfully parsed request and found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: object
+                properties:
+                  ret:
+                    type: string
+                    example: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADc="
+        400:
+          description: Failed to parse request
+        404:
+          description: Failed to find result
+
   /cvm/code/{address}:
     get:
       summary: Query contract code by address
@@ -1315,35 +1293,24 @@ paths:
                     example: "{\"ContractName\":\"Simple\",\"SourceFile\":\"simple.sol\",\"CompilerVersion\":\"0.6.2+commit.bacdbe57\",\"Abi\":[{\"inputs\":[],\"name\":\"get\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"x\",\"type\":\"uint256\"}],\"name\":\"set\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]}"
         404:
           description: Failed to find result
-  /cvm/view:
-    post:
+
+  /cvm/contract/{address}:
+    get:
+      summary: Query contract account information
       tags:
         - CVM
-      summary: Get contract function return value
-      consumes:
-        - application/json
       produces:
         - application/json
       parameters:
-        - in: body
-          name: viewReq
-          description: Request type to view CVM contract
+        - in: path
+          name: address
+          description: contract address
           required: true
-          schema:
-            type: object
-            properties:
-              caller:
-                type: string
-                example: "certik1g6xuz868kxnqhfudwqueacvkc6w9wr8t2dlx7a"
-              callee:
-                type: string
-                example: "certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0"
-              data:
-                type: string
-                example: "0c49c36c"
+          type: string
+          x-example: "certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0"
       responses:
         200:
-          description: Successfully parsed request and found result
+          description: Successfully found result
           schema:
             type: object
             properties:
@@ -1353,11 +1320,25 @@ paths:
               result:
                 type: object
                 properties:
-                  ret:
+                  address:
                     type: string
-                    example: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADc="
-        400:
-          description: Failed to parse request
+                    example: "certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0"
+                  coins:
+                    $ref: "#/definitions/CertikCoins"
+                  public_key:
+                    example: null
+                  account_number:
+                    type: string
+                    example: "9"
+                  sequence:
+                    type: string
+                    example: "0"
+                  code:
+                    type: string
+                    example: "6080604052348015600F57600080FD5B506004361060285760003560E01C80630C49C36C14602D575B600080FD5B60336049565B6040518082815260200191505060405180910390F35B6000603790509056FEA2646970667358221220B186AF84263D62E4CE7A1E4AAD7CC2203112EA9BCD0967C33D611C4D7850107364736F6C63430006020033"
+                  abi:
+                    type: string
+                    example: "[{\"inputs\":[],\"name\":\"sayHi\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}]"
         404:
           description: Failed to find result
 
@@ -1913,7 +1894,7 @@ paths:
         400:
           description: Failed to parse request
 
-  /oracle/inquire-task:
+  /oracle/inquiry-task:
     post:
       tags:
         - Oracle
@@ -2310,10 +2291,7 @@ paths:
             properties:
               base_req:
                 $ref: "#/definitions/CertikBaseReq"
-              pool_id:
-                type: string
-                example: "1"
-              collateral:
+              amount:
                 $ref: "#/definitions/CertikCoins"
       responses:
         200:
@@ -2341,9 +2319,6 @@ paths:
                             sender:
                               type: string
                               example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
-                            pool_id:
-                              type: string
-                              example: "1"
                             collateral:
                               $ref: "#/definitions/CertikCoins"
                   fee:
@@ -2384,9 +2359,6 @@ paths:
             properties:
               base_req:
                 $ref: "#/definitions/CertikBaseReq"
-              pool_id:
-                type: string
-                example: "1"
               amount:
                 $ref: "#/definitions/CertikCoins"
       responses:
@@ -2415,9 +2387,6 @@ paths:
                             sender:
                               type: string
                               example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
-                            pool_id:
-                              type: string
-                              example: "1"
                             collateral:
                               $ref: "#/definitions/CertikCoins"
                   fee:
@@ -2547,7 +2516,7 @@ paths:
                       properties:
                         type:
                           type: string
-                          example: "shield/MsgDepositCollateral"
+                          example: "shield/MsgWithdrawForeignRewards"
                         value:
                           type: object
                           properties:
@@ -2620,7 +2589,7 @@ paths:
                       properties:
                         type:
                           type: string
-                          example: "shield/MsgDepositCollateral"
+                          example: "shield/MsgWithdrawReimbursement"
                         value:
                           type: object
                           properties:
@@ -2695,7 +2664,7 @@ paths:
                       properties:
                         type:
                           type: string
-                          example: "shield/MsgDepositCollateral"
+                          example: "shield/MsgPurchaseShield"
                         value:
                           type: object
                           properties:
@@ -2710,6 +2679,160 @@ paths:
                             description:
                               type: string
                               example: "This is a description"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
+  /shield/stake_for_shield:
+    post:
+      tags:
+        - Shield
+      summary: Stake for shield
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: purchaseReq
+          description: Request type to stake for shield
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              pool_id:
+                type: string
+                example: "1"
+              shield:
+                $ref: "#/definitions/CertikCoins"
+              description:
+                type: string
+                example: "This is a description"
+      responses:
+        200:
+          description: Successfully parsed request and found result
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "shield/MsgStakeForShield"
+                        value:
+                          type: object
+                          properties:
+                            pool_id:
+                              type: string
+                              example: "1"
+                            shield:
+                              $ref: "#/definitions/CertikCoins"
+                            description:
+                              type: string
+                              example: "This is a description"
+                            from:
+                              type: string
+                              example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
+  /shield/unstake_from_shield:
+    post:
+      tags:
+        - Shield
+      summary: Unstake from shield
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: withdrawFromShieldReq
+          description: Request type to unstake from shield
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              pool_id:
+                type: string
+                example: "1"
+              amount:
+                $ref: "#/definitions/CertikCoins"
+      responses:
+        200:
+          description: Successfully parsed request and found result
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "shield/MsgUnstakeFromShield"
+                        value:
+                          type: object
+                          properties:
+                            pool_id:
+                              type: string
+                              example: "1"
+                            shield:
+                              $ref: "#/definitions/CertikCoins"
+                            from:
+                              type: string
+                              example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
                   fee:
                     type: object
                     properties:
@@ -2750,50 +2873,27 @@ paths:
                 items:
                   type: object
                   properties:
-                    pool_id:
+                    id:
                       type: string
                       example: "1"
-                    active:
-                      type: boolean
-                      example: true
                     description:
                       type: string
                       example: "this is a description"
                     sponsor:
                       type: string
                       example: "abc"
-                    premium:
-                      type: object
-                      properties:
-                        native:
-                          $ref: "#/definitions/CertikCoins"
-                        foreign:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              denom:
-                                type: string
-                                example: "xxx"
-                              amount:
-                                type: string
-                                example: "50000"
-                    start_block_height:
+                    sponsor_address:
                       type: string
-                      example: "4"
-                    total_collataral:
-                      $ref: "#/definitions/CertikCoins"
-                    available:
+                      example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
+                    shield_limit:
                       type: string
-                      example: "1000000"
+                      example: "100000"
+                    active:
+                      type: boolean
+                      example: true
                     shield:
-                      $ref: "#/definitions/CertikCoins"
-                    end_time:
                       type: string
-                      example: "10001602012301"
-                    end_block_height:
-                      type: string
-                      example: "0"
+                      example: "10000"
         404:
           description: Failed to find result
 
@@ -2823,50 +2923,27 @@ paths:
               result:
                 type: object
                 properties:
-                  pool_id:
+                  id:
                     type: string
                     example: "1"
-                  active:
-                    type: boolean
-                    example: true
                   description:
                     type: string
                     example: "this is a description"
                   sponsor:
                     type: string
                     example: "abc"
-                  premium:
-                    type: object
-                    properties:
-                      native:
-                        $ref: "#/definitions/CertikCoins"
-                      foreign:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            denom:
-                              type: string
-                              example: "xxx"
-                            amount:
-                              type: string
-                              example: "50000"
-                  start_block_height:
+                  sponsor_address:
                     type: string
-                    example: "4"
-                  total_collataral:
-                    $ref: "#/definitions/CertikCoins"
-                  available:
+                    example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
+                  shield_limit:
                     type: string
-                    example: "1000000"
+                    example: "100000"
+                  active:
+                    type: boolean
+                    example: true
                   shield:
-                    $ref: "#/definitions/CertikCoins"
-                  end_time:
                     type: string
-                    example: "10001602012301"
-                  end_block_height:
-                    type: string
-                    example: "0"
+                    example: "10000"
         404:
           description: Failed to find result
 
@@ -2880,7 +2957,7 @@ paths:
       parameters:
         - in: path
           name: sponsor
-          description: sponsor name
+          description: Sponsor name
           required: true
           type: string
           x-example: "abc"
@@ -2896,101 +2973,27 @@ paths:
               result:
                 type: object
                 properties:
-                  pool_id:
+                  id:
                     type: string
                     example: "1"
-                  active:
-                    type: boolean
-                    example: true
                   description:
                     type: string
                     example: "this is a description"
                   sponsor:
                     type: string
                     example: "abc"
-                  premium:
-                    type: object
-                    properties:
-                      native:
-                        $ref: "#/definitions/CertikCoins"
-                      foreign:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            denom:
-                              type: string
-                              example: "xxx"
-                            amount:
-                              type: string
-                              example: "50000"
-                  start_block_height:
+                  sponsor_address:
                     type: string
-                    example: "4"
-                  total_collataral:
-                    $ref: "#/definitions/CertikCoins"
-                  available:
+                    example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
+                  shield_limit:
                     type: string
-                    example: "1000000"
+                    example: "100000"
+                  active:
+                    type: boolean
+                    example: true
                   shield:
-                    $ref: "#/definitions/CertikCoins"
-                  end_time:
                     type: string
-                    example: "10001602012301"
-                  end_block_height:
-                    type: string
-                    example: "0"
-        404:
-          description: Failed to find result
-
-  /shield/pool/{poolID}/collaterals:
-    get:
-      summary: Query collaterals in a pool
-      tags:
-        - Shield
-      produces:
-        - application/json
-      parameters:
-        - in: path
-          name: poolID
-          description: Pool ID
-          required: true
-          type: string
-          x-example: "1"
-      responses:
-        200:
-          description: Successfully found result
-          schema:
-            type: object
-            properties:
-              height:
-                type: string
-                example: "0"
-              result:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    pool_id:
-                      type: string
-                      example: "1"
-                    provider:
-                      type: string
-                      example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
-                    amount:
-                      $ref: "#/definitions/CertikCoins"
-                    withdrawal:
-                      $ref: "#/definitions/CertikCoins"
-                    locked_collaterals:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          proposal_id:
-                            type: string
-                            example: "1"
-                          locked_coins:
-                            $ref: "#/definitions/CertikCoins"
+                    example: "10000"
         404:
           description: Failed to find result
 
@@ -3022,148 +3025,68 @@ paths:
                 items:
                   type: object
                   properties:
-                    tx_hash:
-                      type: string
-                      example: "37E4F407FB0B3BD81E6B970D86E618A7F903B1BA40CE87B9B6C6DA4F13C1E47C"
                     pool_id:
                       type: string
                       example: "1"
-                    shield:
-                      $ref: "#/definitions/CertikCoins"
-                    start_block_height:
-                      type: string
-                      example: "8"
-                    protection_end_time:
-                      type: string
-                      example: "2020-10-20T20:29:34.755279Z"
-                    claim_period_end_time:
-                      type: string
-                      example: "2020-10-27T20:29:34.755279Z"
-                    description:
-                      type: string
-                      example: "This is a description"
                     purchaser:
                       type: string
                       example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
-        404:
-          description: Failed to find result
-
-  /shield/collaterals/{address}:
-    get:
-      summary: Query collaterals by address
-      tags:
-        - Shield
-      produces:
-        - application/json
-      parameters:
-        - in: path
-          name: address
-          description: address
-          required: true
-          type: string
-          x-example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
-      responses:
-        200:
-          description: Successfully found result
-          schema:
-            type: object
-            properties:
-              height:
-                type: string
-                example: "0"
-              result:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    pool_id:
-                      type: string
-                      example: "1"
-                    provider:
-                      type: string
-                      example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
-                    amount:
-                      $ref: "#/definitions/CertikCoins"
-                    withdrawal:
-                      $ref: "#/definitions/CertikCoins"
-                    locked_collaterals:
+                    entries:
                       type: array
                       items:
                         type: object
                         properties:
-                          proposal_id:
+                          purchase_id:
                             type: string
                             example: "1"
-                          locked_coins:
-                            $ref: "#/definitions/CertikCoins"
+                          protection_end_time:
+                            type: string
+                            example: "2020-10-20T20:29:34.755279Z"
+                          deletion_time:
+                            type: string
+                            example: "2020-11-20T20:29:34.755279Z"
+                          description:
+                            type: string
+                            example: "This is a description"
+                          shield:
+                            type: string
+                            example: "10000"
+                          service_fees:
+                            type: object
+                            properties:
+                              native:
+                                $ref: "#/definitions/CertikDecCoin"
+                              foreign:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    denom:
+                                      type: string
+                                      example: "abc"
+                                    amount:
+                                      type: string
+                                      example: "0.9"
         404:
           description: Failed to find result
 
-  /shield/purchases/{address}:
+  /shield/pool/{poolID}/purchaser/{address}/purchases:
     get:
-      summary: Query purchases by address
+      summary: Query an account's all purchases in a pool
       tags:
         - Shield
       produces:
         - application/json
       parameters:
         - in: path
-          name: address
-          description: address
+          name: poolID
+          description: Pool ID
           required: true
           type: string
-          x-example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
-      responses:
-        200:
-          description: Successfully found result
-          schema:
-            type: object
-            properties:
-              height:
-                type: string
-                example: "0"
-              result:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    tx_hash:
-                      type: string
-                      example: "37E4F407FB0B3BD81E6B970D86E618A7F903B1BA40CE87B9B6C6DA4F13C1E47C"
-                    pool_id:
-                      type: string
-                      example: "1"
-                    shield:
-                      $ref: "#/definitions/CertikCoins"
-                    start_block_height:
-                      type: string
-                      example: "8"
-                    protection_end_time:
-                      type: string
-                      example: "2020-10-20T20:29:34.755279Z"
-                    claim_period_end_time:
-                      type: string
-                      example: "2020-10-27T20:29:34.755279Z"
-                    description:
-                      type: string
-                      example: "This is a description"
-                    purchaser:
-                      type: string
-                      example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
-        404:
-          description: Failed to find result
-
-  /shield/purchase/{purchaseTxHash}:
-    get:
-      summary: Query a purchase by txhash
-      tags:
-        - Shield
-      produces:
-        - application/json
-      parameters:
+          x-example: "1"
         - in: path
           name: address
-          description: address
+          description: Address
           required: true
           type: string
           x-example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
@@ -3179,29 +3102,48 @@ paths:
               result:
                 type: object
                 properties:
-                  tx_hash:
-                    type: string
-                    example: "37E4F407FB0B3BD81E6B970D86E618A7F903B1BA40CE87B9B6C6DA4F13C1E47C"
                   pool_id:
                     type: string
                     example: "1"
-                  shield:
-                    $ref: "#/definitions/CertikCoins"
-                  start_block_height:
-                    type: string
-                    example: "8"
-                  protection_end_time:
-                    type: string
-                    example: "2020-10-20T20:29:34.755279Z"
-                  claim_period_end_time:
-                    type: string
-                    example: "2020-10-27T20:29:34.755279Z"
-                  description:
-                    type: string
-                    example: "This is a description"
                   purchaser:
                     type: string
                     example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
+                  entries:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        purchase_id:
+                          type: string
+                          example: "1"
+                        protection_end_time:
+                          type: string
+                          example: "2020-10-20T20:29:34.755279Z"
+                        deletion_time:
+                          type: string
+                          example: "2020-11-20T20:29:34.755279Z"
+                        description:
+                          type: string
+                          example: "This is a description"
+                        shield:
+                          type: string
+                          example: "10000"
+                        service_fees:
+                          type: object
+                          properties:
+                            native:
+                              $ref: "#/definitions/CertikDecCoin"
+                            foreign:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  denom:
+                                    type: string
+                                    example: "abc"
+                                  amount:
+                                    type: string
+                                    example: "0.9"
         404:
           description: Failed to find result
 
@@ -3215,7 +3157,7 @@ paths:
       parameters:
         - in: path
           name: address
-          description: address
+          description: Address
           required: true
           type: string
           x-example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
@@ -3243,17 +3185,14 @@ paths:
                   total_locked:
                     type: string
                     example: "0"
-                  available:
-                    type: string
-                    example: "9000000"
-                  withrawal:
+                  withrawing:
                     type: string
                     example: "0"
                   rewards:
                     type: object
                     properties:
                       native:
-                        $ref: "#/definitions/CertikCoins"
+                        $ref: "#/definitions/CertikDecCoin"
                       foreign:
                         type: array
                         items:
@@ -3265,6 +3204,471 @@ paths:
                             amount:
                               type: string
                               example: "0.9"
+        404:
+          description: Failed to find result
+
+  /shield/providers:
+    get:
+      summary: Query all providers
+      tags:
+        - Shield
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    address:
+                      type: string
+                      example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
+                    delegation_bonded:
+                      type: string
+                      example: "10000000"
+                    collateral:
+                      type: string
+                      example: "1000000"
+                    total_locked:
+                      type: string
+                      example: "0"
+                    withrawing:
+                      type: string
+                      example: "0"
+                    rewards:
+                      type: object
+                      properties:
+                        native:
+                          $ref: "#/definitions/CertikDecCoin"
+                        foreign:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                                example: "abc"
+                              amount:
+                                type: string
+                                example: "0.9"
+        404:
+          description: Failed to find result
+
+  /shield/purchaser/{address}/purchases:
+    get:
+      summary: Query a purchaser's purchases
+      tags:
+        - Shield
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: address
+          description: Address
+          required: true
+          type: string
+          x-example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    pool_id:
+                      type: string
+                      example: "1"
+                    purchaser:
+                      type: string
+                      example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
+                    entries:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          purchase_id:
+                            type: string
+                            example: "1"
+                          protection_end_time:
+                            type: string
+                            example: "2020-10-20T20:29:34.755279Z"
+                          deletion_time:
+                            type: string
+                            example: "2020-11-20T20:29:34.755279Z"
+                          description:
+                            type: string
+                            example: "This is a description"
+                          shield:
+                            type: string
+                            example: "10000"
+                          service_fees:
+                            type: object
+                            properties:
+                              native:
+                                $ref: "#/definitions/CertikDecCoin"
+                              foreign:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    denom:
+                                      type: string
+                                      example: "abc"
+                                    amount:
+                                      type: string
+                                      example: "0.9"
+        404:
+          description: Failed to find result
+
+  /shield/purchases:
+    get:
+      summary: Query all purchases
+      tags:
+        - Shield
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    purchase_id:
+                      type: string
+                      example: "1"
+                    protection_end_time:
+                      type: string
+                      example: "2020-10-20T20:29:34.755279Z"
+                    deletion_time:
+                      type: string
+                      example: "2020-11-20T20:29:34.755279Z"
+                    description:
+                      type: string
+                      example: "This is a description"
+                    shield:
+                      type: string
+                      example: "10000"
+                    service_fees:
+                      type: object
+                      properties:
+                        native:
+                          $ref: "#/definitions/CertikDecCoin"
+                        foreign:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                                example: "abc"
+                              amount:
+                                type: string
+                                example: "0.9"
+        404:
+          description: Failed to find result
+
+  /shield/pool_params:
+    get:
+      summary: Query pool parameters
+      tags:
+        - Shield
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: object
+                properties:
+                  protection_period:
+                    type: string
+                    example: "1814400000000000"
+                  shield_fees_rate:
+                    type: string
+                    example: "0.007690000000000000"
+                  withdraw_period:
+                    type: string
+                    example: "1814400000000000"
+                  pool_shield_limit:
+                    type: string
+                    example: "0.500000000000000000"
+                  min_shield_purchase:
+                    $ref: "#/definitions/CertikCoins"
+        404:
+          description: Failed to find result
+
+  /shield/claim_params:
+    get:
+      summary: Query claim parameters
+      tags:
+        - Shield
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: object
+                properties:
+                  claim_period:
+                    type: string
+                    example: "1814400000000000"
+                  payout_period:
+                    type: string
+                    example: "4838400000000000"
+                  min_deposit:
+                    $ref: "#/definitions/CertikCoins"
+                  deposit_rate:
+                    type: string
+                    example: "0.100000000000000000"
+                  fees_rate:
+                    type: string
+                    example: "0.010000000000000000"
+        404:
+          description: Failed to find result
+
+  /shield/status:
+    get:
+      summary: Query global status
+      tags:
+        - Shield
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: object
+                properties:
+                  total_collateral:
+                    type: string
+                    example: "1814400"
+                  total_shield:
+                    type: string
+                    example: "48384000"
+                  total_withdrawing:
+                    type: string
+                    example: "0"
+                  current_service_fees:
+                    type: object
+                    properties:
+                      native:
+                        $ref: "#/definitions/CertikDecCoin"
+                      foreign:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            denom:
+                              type: string
+                              example: "abc"
+                            amount:
+                              type: string
+                              example: "0.9"
+                  remaining_service_fees:
+                    type: object
+                    properties:
+                      native:
+                        $ref: "#/definitions/CertikDecCoin"
+                      foreign:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            denom:
+                              type: string
+                              example: "abc"
+                            amount:
+                              type: string
+                              example: "0.9"
+                  global_shield_staking_pool:
+                    type: string
+                    example: "18344400"
+        404:
+          description: Failed to find result
+
+  /shield/staked_for_shield/{poolID}/{address}:
+    get:
+      summary: Query stake for shield
+      tags:
+        - Shield
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: poolID
+          description: Pool ID
+          required: true
+          type: string
+          x-example: "1"
+        - in: path
+          name: address
+          description: Address
+          required: true
+          type: string
+          x-example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: object
+                properties:
+                  pool_id:
+                    type: string
+                    example: "1"
+                  purchaser:
+                    type: string
+                    example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
+                  amount:
+                    type: string
+                    example: "10000"
+                  withdraw_requested:
+                    type: string
+                    example: "1000"
+        404:
+          description: Failed to find result
+
+  /shield/shield_staking_rate:
+    get:
+      summary: Query shield staking rate
+      tags:
+        - Shield
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: string
+                example: "2.000000000000000000"
+        404:
+          description: Failed to find result
+
+  /shield/reimbursement/{proposalID}:
+    get:
+      summary: Query reimbursement by proposal ID
+      tags:
+        - Shield
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: proposalID
+          description: Proposal ID
+          required: true
+          type: string
+          x-example: "1"
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: object
+                properties:
+                  amount:
+                    $ref: "#/definitions/CertikCoins"
+                  beneficiary:
+                    type: string
+                    example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
+                  payout_time:
+                    type: string
+                    example: "2020-11-20T20:29:34.755279Z"
+        404:
+          description: Failed to find result
+
+  /shield/reimbursements:
+    get:
+      summary: Query all reimbursement
+      tags:
+        - Shield
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ProposaoID:
+                      type: string
+                      example: "1"
+                    Reimbursement:
+                      type: object
+                      properties:
+                        amount:
+                          $ref: "#/definitions/CertikCoins"
+                        beneficiary:
+                          type: string
+                          example: "certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7"
+                        payout_time:
+                          type: string
+                          example: "2020-11-20T20:29:34.755279Z"
         404:
           description: Failed to find result
 
@@ -3673,6 +4077,90 @@ paths:
           description: Invalid request
         500:
           description: Server internal error
+
+  /bank/accounts/{address}/locked_transfers:
+    post:
+      summary: send locked coins to a manual vesting account
+      tags:
+        - Bank
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: address
+          description: address
+          required: true
+          type: string
+          x-example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+        - in: body
+          name: LockedSendReq
+          description: Request type to send locked coins
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              amount:
+                $ref: "#/definitions/CertikCoins"
+              unlocker:
+                type: string
+                example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "bank/MsgLockedSend"
+                        value:
+                          type: object
+                          properties:
+                            from:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                            to:
+                              type: string
+                              example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                            unlocker:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                            amount:
+                              $ref: "#/definitions/CertikCoins"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
   /auth/accounts/{address}:
     get:
       summary: Get the account information on blockchain
@@ -3712,6 +4200,84 @@ paths:
                     type: string
         500:
           description: Server internel error
+
+  /txs/{address}/unlock:
+    post:
+      summary: unlock coins for manual vesting account
+      tags:
+        - Auth
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: address
+          description: address
+          required: true
+          type: string
+          x-example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+        - in: body
+          name: UnlockReq
+          description: Request type to unlock
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              amount:
+                $ref: "#/definitions/CertikCoins"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "auth/MsgUnlock"
+                        value:
+                          type: object
+                          properties:
+                            certifier:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                            account_address:
+                              type: string
+                              example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                            unlock_amount:
+                              $ref: "#/definitions/CertikCoins"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Failed to parse request
+
   /staking/delegators/{delegatorAddr}/delegations:
     parameters:
       - in: path
@@ -4204,6 +4770,100 @@ paths:
   #          description: Invalid validator public key
   #        500:
   #          description: Internal Server Error
+
+  /staking/all_validators:
+    get:
+      summary: Query all validators
+      tags:
+        - Staking
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successfully found result
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "0"
+              result:
+                type: object
+                properties:
+                  Count:
+                    type: string
+                    example: "1"
+                  Validators:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        operator_address:
+                          type: string
+                          example: "certikvaloper18knfymnl2hhy83yj7ndwszt5gdluh823egtnx3"
+                        consensus_pubkey:
+                          type: string
+                          example: "certikvalconspub1zcjduepq969kzmatne84am2jpfdtkcrvh8fnt6skgs63dkc4s4dnp69rshhqlu8vpd"
+                        jailed:
+                          type: boolean
+                          example: false
+                        status:
+                          type: integer
+                          example: 2
+                        tokens:
+                          type: string
+                          example: "2000000"
+                        delegator_shares:
+                          type: string
+                          example: "2000000.000000000000000000"
+                        description:
+                          type: object
+                          properties:
+                            moniker:
+                              type: string
+                              example: "node0"
+                            identity:
+                              type: string
+                              example: ""
+                            website:
+                              type: string
+                              example: ""
+                            security_contact:
+                              type: string
+                              example: ""
+                            details:
+                              type: string
+                              example: ""
+                        unbonding_height:
+                          type: string
+                          example: "0"
+                        unbonding_time:
+                          type: string
+                          example: "1970-01-01T00:00:00Z"
+                        commission:
+                          type: object
+                          properties:
+                            commission_rates:
+                              type: object
+                              properties:
+                                rate:
+                                  type: string
+                                  example: "0.100000000000000000"
+                                max_rate:
+                                  type: string
+                                  example: "0.200000000000000000"
+                                max_change_rate:
+                                  type: string
+                                  example: "0.010000000000000000"
+                            update_time:
+                              type: string
+                              example: "2020-11-21T00:37:21.085463Z"
+                        min_self_delegation:
+                          type: string
+                          example: "1"
+        404:
+          description: Failed to find result
+
   /slashing/signing_infos:
     get:
       summary: Get sign info of given all validators
@@ -4376,10 +5036,10 @@ paths:
           description: Invalid query parameters
         500:
           description: Internal Server Error
-  /gov/proposals/param_change:
+
+  /gov/proposals/community_pool_spend:
     post:
-      summary: Generate a parameter change proposal transaction
-      description: Generate a parameter change proposal transaction
+      summary: Generate a community pool spend proposal transaction
       consumes:
         - application/json
       produces:
@@ -4387,40 +5047,535 @@ paths:
       tags:
         - Governance
       parameters:
-        - description: The parameter change proposal body that contains all parameter changes
-          name: post_proposal_body
+        - description: Request type to generate community pool spend proposal
+          name: CommunityPoolSpendProposalReq
           in: body
           required: true
           schema:
             type: object
             properties:
               base_req:
-                $ref: "#/definitions/BaseReq"
+                $ref: "#/definitions/CertikBaseReq"
               title:
                 type: string
-                x-example: "Param Change"
+                example: "Community pool spend"
               description:
                 type: string
-                x-example: "Update max validators"
+                example: "this is a description"
+              recipient:
+                type: string
+                example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+              amount:
+                $ref: "#/definitions/CertikCoins"
               proposer:
-                $ref: "#/definitions/Address"
+                type: string
+                example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
               deposit:
-                type: array
-                items:
-                  $ref: "#/definitions/Coin"
+                $ref: "#/definitions/CertikCoins"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "cosmos-sdk/MsgSubmitProposal"
+                        value:
+                          type: object
+                          properties:
+                            content:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  example: "cosmos-sdk/CommunityPoolSpendProposal"
+                                value:
+                                  type: object
+                                  properties:
+                                    title:
+                                      type: string
+                                      example: "Community pool spend"
+                                    description:
+                                      type: string
+                                      example: "this is a description"
+                                    recipient:
+                                      type: string
+                                      example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                                    amount:
+                                      $ref: "#/definitions/CertikCoins"
+                            initial+deposit:
+                              $ref: "#/definitions/CertikCoins"
+                            proposer:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Invalid proposal body
+
+  /gov/proposals/upgrade:
+    post:
+      summary: Generate an upgrade proposal transaction
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Governance
+      parameters:
+        - description: Request type to generate upgrade proposal
+          name: PlanReq
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              title:
+                type: string
+                example: "Upgrade"
+              description:
+                type: string
+                example: "this is a description"
+              deposit:
+                $ref: "#/definitions/CertikCoins"
+              UpgradeName:
+                type: string
+                example: "this is a name"
+              UpgradeHeight:
+                type: string
+                example: "10000"
+              UpgradeTime:
+                type: string
+                example: "2020-10-27T20:29:34.755279Z"
+              UpgradeInfo:
+                type: string
+                example: "this is an info"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "cosmos-sdk/MsgSubmitProposal"
+                        value:
+                          type: object
+                          properties:
+                            content:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  example: "cosmos-sdk/SoftwareUpgradeProposal"
+                                value:
+                                  type: object
+                                  properties:
+                                    title:
+                                      type: string
+                                      example: "Upgrade"
+                                    description:
+                                      type: string
+                                      example: "this is a description"
+                                    plan:
+                                      type: object
+                                      properties:
+                                        name:
+                                          type: string
+                                          example: "this is a name"
+                                        time:
+                                          type: string
+                                          example: "2020-10-27T20:29:34.755279Z"
+                                        height:
+                                          type: string
+                                          example: "10000"
+                                        info:
+                                          type: string
+                                          example: "this is an info"
+                            initial+deposit:
+                              $ref: "#/definitions/CertikCoins"
+                            proposer:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Invalid proposal body
+
+  /gov/proposals/certifier_update:
+    post:
+      summary: Generate a certifier update spend proposal transaction
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Governance
+      parameters:
+        - description: Request type to generate certifier update proposal
+          name: CertifierUpdateProposalReq
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              title:
+                type: string
+                example: "Certifier update"
+              description:
+                type: string
+                example: "this is a description"
+              certifier:
+                type: string
+                example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+              alias:
+                type: string
+                example: "a certifier"
+              add_or_remove:
+                type: boolean
+                example: true
+              deposit:
+                $ref: "#/definitions/CertikCoins"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "cosmos-sdk/MsgSubmitProposal"
+                        value:
+                          type: object
+                          properties:
+                            content:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  example: "cert/CertifierUpdateProposal"
+                                value:
+                                  type: object
+                                  properties:
+                                    title:
+                                      type: string
+                                      example: "Certifier update"
+                                    description:
+                                      type: string
+                                      example: "this is a description"
+                                    certifier:
+                                      type: string
+                                      example: "certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4"
+                                    alias:
+                                      type: string
+                                      example: "a certifier"
+                                    from:
+                                      type: string
+                                      example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                                    add_or_remove:
+                                      type: boolean
+                                      example: true
+                            initial+deposit:
+                              $ref: "#/definitions/CertikCoins"
+                            proposer:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Invalid proposal body
+
+
+  /gov/proposals/param_change:
+    post:
+      summary: Generate a parameter change proposal transaction
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Governance
+      parameters:
+        - description: Request type to generate parameter change proposal
+          name: ParamChangeProposalReq
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              title:
+                type: string
+                example: "Param Change"
+              description:
+                type: string
+                example: "Update max validators"
+              proposer:
+                type: string
+                example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+              deposit:
+                $ref: "#/definitions/CertikCoins"
               changes:
                 type: array
                 items:
                   $ref: "#/definitions/ParamChange"
       responses:
         200:
-          description: The transaction was succesfully generated
+          description: Successfully parsed request
           schema:
-            $ref: "#/definitions/StdTx"
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "cosmos-sdk/MsgSubmitProposal"
+                        value:
+                          type: object
+                          properties:
+                            content:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  example: "cosmos-sdk/ParameterChangeProposal"
+                                value:
+                                  type: object
+                                  properties:
+                                    title:
+                                      type: string
+                                      example: "Param Change"
+                                    description:
+                                      type: string
+                                      example: "Update max validators"
+                                    changes:
+                                      $ref: "#/definitions/ParamChange"
+                            initial+deposit:
+                              $ref: "#/definitions/CertikCoins"
+                            proposer:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
         400:
           description: Invalid proposal body
-        500:
-          description: Internal Server Error
+
+  /gov/proposals/shield_claim:
+    post:
+      summary: Generate a shield claim proposal transaction
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Governance
+      parameters:
+        - description: Request type to generate shield claim proposal
+          name: ShieldClaimProposalReq
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              base_req:
+                $ref: "#/definitions/CertikBaseReq"
+              pool_id:
+                type: string
+                example: "1"
+              loss:
+                $ref: "#/definitions/CertikCoins"
+              evidence:
+                type: string
+                example: "an evidence"
+              purchase_id:
+                type: string
+                example: "1290843"
+              description:
+                type: string
+                example: "this is a description"
+              deposit:
+                $ref: "#/definitions/CertikCoins"
+      responses:
+        200:
+          description: Successfully parsed request
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "cosmos-sdk/StdTx"
+              value:
+                type: object
+                properties:
+                  msg:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: "cosmos-sdk/MsgSubmitProposal"
+                        value:
+                          type: object
+                          properties:
+                            content:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  example: "shield/ShieldClaimProposal"
+                                value:
+                                  type: object
+                                  properties:
+                                    proposal_id:
+                                      type: string
+                                      example: null
+                                    pool_id:
+                                      type: string
+                                      example: "1"
+                                    purchase_id:
+                                      type: string
+                                      example: "1290843"
+                                    loss:
+                                      $ref: "#/definitions/CertikCoins"
+                                    evidence:
+                                      type: string
+                                      example: "an evidence"
+                                    description:
+                                      type: string
+                                      example: "this is a description"
+                                    proposer:
+                                      type: string
+                                      example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                            initial+deposit:
+                              $ref: "#/definitions/CertikCoins"
+                            proposer:
+                              type: string
+                              example: "certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh"
+                  fee:
+                    type: object
+                    properties:
+                      amount:
+                        $ref: "#/definitions/CertikCoins"
+                      gas:
+                        type: string
+                        example: "200000"
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                    example: null
+                  memo:
+                    type: string
+                    example: "This is a memo!"
+        400:
+          description: Invalid proposal body
+
+
   /gov/proposals/{proposalId}:
     get:
       summary: Query a proposal
@@ -4703,6 +5858,8 @@ paths:
           schema:
             type: object
             properties:
+              min_initial_deposit:
+                $ref: "#/definitions/CertikCoins"
               min_deposit:
                 type: array
                 items:
@@ -4729,15 +5886,42 @@ paths:
           description: OK
           schema:
             properties:
-              threshold:
-                type: string
-                example: "0.5000000000"
-              veto:
-                type: string
-                example: "0.3340000000"
-              governance_penalty:
-                type: string
-                example: "0.0100000000"
+              DefaultTally:
+                type: object
+                properties:
+                  threshold:
+                    type: string
+                    example: "0.5000000000"
+                  veto:
+                    type: string
+                    example: "0.3340000000"
+                  governance_penalty:
+                    type: string
+                    example: "0.0100000000"
+              CertifierUpdateSecurityVoteTally:
+                type: object
+                properties:
+                  threshold:
+                    type: string
+                    example: "0.5000000000"
+                  veto:
+                    type: string
+                    example: "0.3340000000"
+                  governance_penalty:
+                    type: string
+                    example: "0.0100000000"
+              CertifierUpdateStakeVoteTally:
+                type: object
+                properties:
+                  threshold:
+                    type: string
+                    example: "0.5000000000"
+                  veto:
+                    type: string
+                    example: "0.3340000000"
+                  governance_penalty:
+                    type: string
+                    example: "0.0100000000"
         400:
           description: <other_path> is not a valid query request path
         404:

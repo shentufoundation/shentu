@@ -13,7 +13,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/common/tests"
 	"github.com/certikfoundation/shentu/simapp"
 
 	"github.com/certikfoundation/shentu/x/gov/testgov"
@@ -56,8 +55,6 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 
 	// validator addresses
 	valAddr, valAddr2 := sdk.ValAddress(accAddr), sdk.ValAddress(accAddr2)
-	pubKey := tests.MakeTestPubKey()
-	pubKey2 := tests.MakeTestPubKey()
 
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
@@ -65,11 +62,11 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 	tgov := testgov.NewHelper(t, ctx, app.GovKeeper, tstaking.Denom)
 
 	// set up two validators
-	tstaking.CreateValidatorWithValPower(valAddr, pubKey, 100, true)
+	tstaking.CreateValidatorWithValPower(valAddr, 100, true)
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr, sdk.Bonded, false)
 
-	tstaking.CreateValidatorWithValPower(valAddr2, pubKey2, 100, true)
+	tstaking.CreateValidatorWithValPower(valAddr2, 100, true)
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr2, sdk.Bonded, false)
 
@@ -151,8 +148,6 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 
 	// validator addresses
 	valAddr, valAddr2 := sdk.ValAddress(accAddr), sdk.ValAddress(accAddr2)
-	pubKey := tests.MakeTestPubKey()
-	pubKey2 := tests.MakeTestPubKey()
 
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
@@ -160,11 +155,11 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 	tgov := testgov.NewHelper(t, ctx, app.GovKeeper, tstaking.Denom)
 
 	// set up two validators
-	tstaking.CreateValidatorWithValPower(valAddr, pubKey, 100, true)
+	tstaking.CreateValidatorWithValPower(valAddr, 100, true)
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr, sdk.Bonded, false)
 
-	tstaking.CreateValidatorWithValPower(valAddr2, pubKey2, 100, true)
+	tstaking.CreateValidatorWithValPower(valAddr2, 100, true)
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr2, sdk.Bonded, false)
 
@@ -223,7 +218,6 @@ func TestClaimProposal(t *testing.T) {
 
 	// validator addresses
 	valAddr := sdk.ValAddress(simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(100e6))[0])
-	pubKey := tests.MakeTestPubKey()
 
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
@@ -232,7 +226,7 @@ func TestClaimProposal(t *testing.T) {
 	tgov := testgov.NewHelper(t, ctx, app.GovKeeper, bondDenom)
 
 	// set up a validator
-	tstaking.CreateValidatorWithValPower(valAddr, pubKey, 100, true)
+	tstaking.CreateValidatorWithValPower(valAddr, 100, true)
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	tstaking.CheckValidator(valAddr, sdk.Bonded, false)
 
@@ -276,7 +270,6 @@ func TestClaimProposal(t *testing.T) {
 	require.True(t, delUBD.Entries[1].Balance.Equal(sdk.NewInt(90e9)))
 	require.True(t, delUBD.Entries[2].Balance.Equal(sdk.NewInt(10e9)))
 
-	
 	// 20 days later (345,600 blocks)
 	ctx = skipBlocks(ctx, 345600, tstaking, tshield, tgov)
 
@@ -304,7 +297,6 @@ func TestClaimProposal(t *testing.T) {
 	require.True(t, delUBD.Entries[2].Balance.Equal(sdk.NewInt(10e9)))
 	require.True(t, delUBD.Entries[2].CompletionTime.Equal(delayedWithdrawEnd)) // 10e9 delayed
 
-
 	// create reimbursement
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, loss))
 	err := app.ShieldKeeper.CreateReimbursement(ctx, proposalID, lossCoins, purchaser)
@@ -315,7 +307,7 @@ func TestClaimProposal(t *testing.T) {
 
 	// confirm admin delegation reduction
 	lossRatio := float64(loss) / float64(totalDeposit)
-	expected := adminDeposit - int64(math.Round(float64(adminDeposit) * lossRatio))
+	expected := adminDeposit - int64(math.Round(float64(adminDeposit)*lossRatio))
 	if hex.EncodeToString(shieldAdmin) < hex.EncodeToString(delAddr) {
 		expected -= 1 // adjust for discrepancy due to sorting
 	}
@@ -324,8 +316,8 @@ func TestClaimProposal(t *testing.T) {
 	validator, _ := app.StakingKeeper.GetValidator(ctx, valAddr)
 	require.True(t, validator.TokensFromShares(adminDels[0].Shares).Equal(sdk.NewDec(expected)))
 
-	// confirm delegator unbonding reduction	
-	expected = 25e9 + 10e9 + 90e9 - int64(math.Round(float64(125e9) * lossRatio))
+	// confirm delegator unbonding reduction
+	expected = 25e9 + 10e9 + 90e9 - int64(math.Round(float64(125e9)*lossRatio))
 	if hex.EncodeToString(shieldAdmin) < hex.EncodeToString(delAddr) {
 		expected += 1 // adjust for discrepancy due to sorting
 	}

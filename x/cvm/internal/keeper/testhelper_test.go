@@ -1,4 +1,4 @@
-package keeper
+package keeper_test
 
 import (
 	"github.com/hyperledger/burrow/execution/errors"
