@@ -119,7 +119,7 @@ func (k msgServer) LockedSend(goCtx context.Context, msg *types.MsgLockedSend) (
 	if err != nil {
 		return nil, err
 	}
-	locker, err := sdk.AccAddressFromBech32(msg.LockerAddress)
+	unlocker, err := sdk.AccAddressFromBech32(msg.UnlockerAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -129,27 +129,27 @@ func (k msgServer) LockedSend(goCtx context.Context, msg *types.MsgLockedSend) (
 	if from == nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "sender account %s does not exist", msg.FromAddress)
 	}
-	if msg.ToAddress.Equals(msg.LockerAddress) {
+	if toAddr.Equals(unlocker) {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "recipient cannot be the unlocker")
 	}
 
-	acc := k.ak.GetAccount(ctx, msg.ToAddress)
+	acc := k.ak.GetAccount(ctx, toAddr)
 
 	var toAcc *vesting.ManualVestingAccount
 	if acc == nil {
-		acc = k.ak.NewAccountWithAddress(ctx, msg.ToAddress)
+		acc = k.ak.NewAccountWithAddress(ctx, toAddr)
 		baseAcc := auth.NewBaseAccount(msg.ToAddress, sdk.NewCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
-		if msg.LockerAddress.Empty() {
+		if unlocker.Empty() {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid unlocker address provided")
 		}
-		toAcc = vesting.NewManualVestingAccount(baseAcc, sdk.NewCoins(), msg.LockerAddress)
+		toAcc = vesting.NewManualVestingAccount(baseAcc, sdk.NewCoins(), unlocker)
 	} else {
 		var ok bool
 		toAcc, ok = acc.(*vesting.ManualVestingAccount)
 		if !ok {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a ManualVestingAccount")
 		}
-		if !msg.LockerAddress.Empty() {
+		if !unlocker.Empty() {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "cannot change the unlocker for existing ManualVestingAccount")
 		}
 	}
@@ -167,19 +167,19 @@ func (k msgServer) LockedSend(goCtx context.Context, msg *types.MsgLockedSend) (
 	k.ak.SetAccount(ctx, toAcc)
 
 	// subtract from sender account (as normally done)
-	_, err := k.SubtractCoins(ctx, msg.FromAddress, msg.Amount)
+	err = k.SubtractCoins(ctx, fromAddr, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			bankTypes.EventTypeLockedSendToVestingAccount,
-			sdk.NewAttribute(bank.AttributeKeySender, msg.FromAddress.String()),
-			sdk.NewAttribute(bank.AttributeKeyRecipient, msg.ToAddress.String()),
-			sdk.NewAttribute(bankTypes.AttributeKeyUnlocker, msg.LockerAddress.String()),
+			types.EventTypeLockedSendToVestingAccount,
+			sdk.NewAttribute(bankTypes.AttributeKeySender, msg.FromAddress),
+			sdk.NewAttribute(bankTypes.AttributeKeyRecipient, msg.ToAddress),
+			sdk.NewAttribute(types.AttributeKeyUnlocker, msg.UnlockerAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 		),
 	)
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &types.MsgLockedSendResponse{}, nil
 }
