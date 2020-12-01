@@ -55,7 +55,7 @@ func SimulateMsgUnlock(k types.AccountKeeper) simTypes.Operation {
 					return simTypes.NoOpMsg(authTypes.ModuleName, types.TypeMsgUnlock, err.Error()), nil, err
 				}
 			}
-			
+
 			//fees, err := simTypes.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
 			spendable := mvacc.OriginalVesting.Sub(mvacc.VestedCoins) //FIXME
 			fees, err := simTypes.RandomFees(r, ctx, spendable)

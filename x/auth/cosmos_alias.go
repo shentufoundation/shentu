@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	ModuleName        = types.ModuleName
-	StoreKey          = types.StoreKey
-	FeeCollectorName  = types.FeeCollectorName
+	ModuleName       = types.ModuleName
+	StoreKey         = types.StoreKey
+	FeeCollectorName = types.FeeCollectorName
 	//DefaultParamspace = types.DefaultParamspace
 )
 

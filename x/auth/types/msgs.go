@@ -8,9 +8,9 @@ import (
 
 const (
 	ModuleName = types.ModuleName
-	RouterKey = ModuleName
-	
-	TypeMsgUnlock      = "unlock"	
+	RouterKey  = ModuleName
+
+	TypeMsgUnlock = "unlock"
 )
 
 // NewMsgUnlock returns a MsgUnlock object.

@@ -9,9 +9,9 @@ import (
 
 var (
 	// function aliases
-	GetCmdUnlock             = cli.GetCmdUnlock
-	NewKeeper                = keeper.NewKeeper
-	RegisterRoutes           = rest.RegisterRoutes
+	GetCmdUnlock   = cli.GetCmdUnlock
+	NewKeeper      = keeper.NewKeeper
+	RegisterRoutes = rest.RegisterRoutes
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc

@@ -49,8 +49,6 @@ func init() {
 	amino.Seal()
 }
 
-
-
 /* TODO
 func RegisterAccountTypeCodec(o interface{}, name string) {
 	ModuleCdc.RegisterConcrete(o, name, nil)
