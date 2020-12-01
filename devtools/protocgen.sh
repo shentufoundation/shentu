@@ -48,4 +48,4 @@ Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types:. ./testutil
 
 # move proto files to the right places
 cp -r github.com/certikfoundation/shentu/* ./
-# rm -rf github.com
+rm -rf github.com
