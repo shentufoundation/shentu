@@ -7,8 +7,8 @@ import (
 )
 
 // NewMsgLockedSend returns a MsgLockedSend object.
-func NewMsgLockedSend(from, to, unlocker sdk.AccAddress, amount sdk.Coins) MsgLockedSend {
-	return MsgLockedSend{
+func NewMsgLockedSend(from, to, unlocker sdk.AccAddress, amount sdk.Coins) *MsgLockedSend {
+	return &MsgLockedSend{
 		FromAddress:     from.String(),
 		ToAddress:       to.String(),
 		UnlockerAddress: unlocker.String(),

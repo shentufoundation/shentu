@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"math/rand"
 
-	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-
 	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -21,11 +19,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simTypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/bank/client/cli"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	cosmosSim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/bank/client/rest"
+	"github.com/certikfoundation/shentu/x/bank/internal/keeper"
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
 	"github.com/certikfoundation/shentu/x/bank/simulation"
 )
@@ -45,8 +45,8 @@ func (AppModuleBasic) Name() string {
 
 // RegisterLegacyAminoCodec registers the bank module's types on the LegacyAmino codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	bankTypes.RegisterLegacyAminoCodec(cdc)
-	*CosmosModuleCdc = *ModuleCdc // nolint
+	types.RegisterLegacyAminoCodec(cdc)
+	*CosmosModuleCdc = *types.ModuleCdc // nolint
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the bank
@@ -88,7 +88,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 
 // RegisterInterfaces registers interfaces and implementations of the bank module.
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	bankTypes.RegisterInterfaces(registry)
+	types.RegisterInterfaces(registry)
 }
 
 // ___________________________
@@ -97,7 +97,7 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 type AppModule struct {
 	AppModuleBasic
 	cosmosAppModule CosmosAppModule
-	keeper          Keeper
+	keeper          keeper.Keeper
 	accountKeeper   types.AccountKeeper
 }
 
@@ -108,7 +108,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(cdc codec.Marshaler, keeper Keeper, accountKeeper types.AccountKeeper) AppModule {
+func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, accountKeeper types.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
 		cosmosAppModule: NewCosmosAppModule(cdc, keeper, accountKeeper),
@@ -134,7 +134,7 @@ func (am AppModule) Route() sdk.Route {
 
 // NewHandler returns an sdk.Handler for the bank module.
 func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper, am.accountKeeper)
+	return NewHandler(am.keeper)
 }
 
 // QuerierRoute returns the bank module's querier route name.
