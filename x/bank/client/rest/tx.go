@@ -6,15 +6,15 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
 )
 
 // RegisterRoutes registers custom REST routes.
-func RegisterRoutes(cliCtx client.CLIContext, r *mux.Router) {
+func RegisterRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/bank/accounts/{address}/locked_transfers", LockedSendRequestHandlerFn(cliCtx)).Methods("POST")
 }
 
@@ -27,7 +27,7 @@ type LockedSendReq struct {
 
 // LockedSendRequestHandlerFn is an http request handler to send coins
 // to a manual vesting account and have them locked (vesting).
-func LockedSendRequestHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
+func LockedSendRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		bech32Addr := vars["address"]
@@ -39,7 +39,7 @@ func LockedSendRequestHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 		}
 
 		var req LockedSendReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -61,6 +61,6 @@ func LockedSendRequestHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 		}
 
 		msg := types.NewMsgLockedSend(fromAddr, toAddr, unlocker, req.Amount)
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }

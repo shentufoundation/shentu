@@ -2,29 +2,31 @@ package bank
 
 import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 const (
-	ModuleName        = bank.ModuleName
-	RouterKey         = bank.RouterKey
-	DefaultParamspace = bank.DefaultParamspace
+	ModuleName        = bankTypes.ModuleName
+	RouterKey         = bankTypes.RouterKey
+	DefaultParamspace = bankTypes.ModuleName
 )
 
 var (
 	// functions aliases
-	NewBaseKeeper      = bank.NewBaseKeeper
+	NewBaseKeeper      = bankKeeper.NewBaseKeeper
 	NewCosmosAppModule = bank.NewAppModule
 
 	// variable aliases
-	CosmosModuleCdc = bank.ModuleCdc
+	CosmosModuleCdc = bankTypes.ModuleCdc
 )
 
 type (
-	BaseKeeper           = bank.BaseKeeper // ibc module depends on this
-	MsgSend              = bank.MsgSend
-	MsgMultiSend         = bank.MsgMultiSend
-	Input                = bank.Input
-	Output               = bank.Output
+	BaseKeeper           = bankKeeper.BaseKeeper // ibc module depends on this
+	MsgSend              = bankTypes.MsgSend
+	MsgMultiSend         = bankTypes.MsgMultiSend
+	Input                = bankTypes.Input
+	Output               = bankTypes.Output
 	CosmosAppModule      = bank.AppModule
 	CosmosAppModuleBasic = bank.AppModuleBasic
 )

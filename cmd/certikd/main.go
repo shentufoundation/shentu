@@ -87,7 +87,7 @@ func main() {
 }
 
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {
-	return app.NewCertiKApp(logger, db, traceStore, true, map[int64]bool{}, uint(1),
+	return app.NewCertiKApp(logger, db, traceStore, true, map[int64]bool{}, uint(10000),
 		baseapp.SetPruning(storetypes.NewPruningOptionsFromString(viper.GetString("pruning"))),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(uint64(viper.GetInt(server.FlagHaltHeight))),
@@ -98,13 +98,13 @@ func exportAppStateAndValidators(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailWhiteList []string,
 ) (json.RawMessage, []tmtypes.GenesisValidator, error) {
 	if height != -1 {
-		cApp := app.NewCertiKApp(logger, db, traceStore, false, map[int64]bool{}, uint(1))
+		cApp := app.NewCertiKApp(logger, db, traceStore, false, map[int64]bool{}, uint(1), app.MakeEncodingConfig())
 		err := cApp.LoadHeight(height)
 		if err != nil {
 			return nil, nil, err
 		}
 		return cApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
-	cApp := app.NewCertiKApp(logger, db, traceStore, true, map[int64]bool{}, uint(1))
+	cApp := app.NewCertiKApp(logger, db, traceStore, true, map[int64]bool{}, uint(1), app.MakeEncodingConfig())
 	return cApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }

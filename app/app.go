@@ -13,16 +13,21 @@ import (
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	cosmosGov "github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	"github.com/cosmos/cosmos-sdk/x/bank"
+	paramsKeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	appparams "github.com/certikfoundation/shentu/app/params"
 	"github.com/certikfoundation/shentu/x/auth"
 	"github.com/certikfoundation/shentu/x/auth/vesting"
 	"github.com/certikfoundation/shentu/x/bank"
@@ -76,7 +81,6 @@ var (
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
-		supply.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		cvm.NewAppModuleBasic(),
 		cert.NewAppModuleBasic(),
@@ -88,12 +92,12 @@ var (
 	maccPerms = map[string][]string{
 		auth.FeeCollectorName:     nil,
 		distr.ModuleName:          nil,
-		mint.ModuleName:           {supply.Minter},
-		staking.BondedPoolName:    {supply.Burner, supply.Staking},
-		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
-		gov.ModuleName:            {supply.Burner},
-		oracle.ModuleName:         {supply.Burner},
-		shield.ModuleName:         {supply.Burner},
+		mint.ModuleName:           {authtypes.Minter},
+		staking.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
+		staking.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
+		gov.ModuleName:            {authtypes.Burner},
+		oracle.ModuleName:         {authtypes.Burner},
+		shield.ModuleName:         {authtypes.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -116,13 +120,12 @@ type CertiKApp struct {
 	tkeys map[string]*sdk.TransientStoreKey
 
 	accountKeeper  auth.AccountKeeper
-	bankKeeper     bank.Keeper
+	bankKeeper     bankKeeper.Keeper
 	stakingKeeper  staking.Keeper
 	slashingKeeper slashing.Keeper
 	mintKeeper     mint.Keeper
 	distrKeeper    distr.Keeper
 	crisisKeeper   crisis.Keeper
-	supplyKeeper   supply.Keeper
 	paramsKeeper   params.Keeper
 	upgradeKeeper  upgrade.Keeper
 	govKeeper      gov.Keeper
@@ -141,12 +144,14 @@ type CertiKApp struct {
 
 // NewCertiKApp returns a reference to an initialized CertiKApp.
 func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool,
-	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *CertiKApp {
+	invCheckPeriod uint, encodingConfig appparams.EncodingConfig, baseAppOptions ...func(*bam.BaseApp)) *CertiKApp {
 	// define top-level codec that will be shared between modules
-	cdc := MakeCodec()
+	appCodec := encodingConfig.Marshaler
+	legacyAmino := encodingConfig.Amino
+	interfaceRegistry := encodingConfig.InterfaceRegistry
 
 	// BaseApp handles interactions with Tendermint through the ABCI protocol.
-	bApp := bam.NewBaseApp(AppName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
+	bApp := bam.NewBaseApp(AppName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
 
@@ -158,7 +163,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		distr.StoreKey,
 		mint.StoreKey,
 		slashing.StoreKey,
-		params.StoreKey,
+		paramsTypes.StoreKey,
 		upgrade.StoreKey,
 		gov.StoreKey,
 		cert.StoreKey,
@@ -193,7 +198,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		tkeys:          tkeys,
 	}
 	// initialize params keeper and subspaces
-	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey])
+	app.paramsKeeper = paramsKeeper.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey])
 	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
 	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
@@ -335,7 +340,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper, app.certKeeper),
-		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper.Keeper),

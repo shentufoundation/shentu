@@ -15,10 +15,11 @@ import (
 )
 
 func TestSimAppExport(t *testing.T) {
+	encodingConfig := MakeEncodingConfig()
 	db := dbm.NewMemDB()
-	app := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, 1)
+	app := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, 1, encodingConfig)
 
-	genesisState := ModuleBasics.DefaultGenesis()
+	genesisState := ModuleBasics.DefaultGenesis(encodingConfig.Marshaler)
 	stateBytes, err := codec.MarshalJSONIndent(app.cdc, genesisState)
 	require.NoError(t, err)
 
@@ -32,7 +33,7 @@ func TestSimAppExport(t *testing.T) {
 	app.Commit()
 
 	// make a new app object with the db so that initchain hasn't been called
-	app2 := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, 1)
+	app2 := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, 1, encodingConfig)
 	_, _, err = app2.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 	_, _, err = app2.ExportAppStateAndValidators(true, []string{})
@@ -42,11 +43,11 @@ func TestSimAppExport(t *testing.T) {
 // ensure that blacklisted addresses are properly set in bank keeper
 func TestBlackListedAddrs(t *testing.T) {
 	db := dbm.NewMemDB()
-	app := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, 1)
+	app := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, 1, MakeEncodingConfig())
 
 	for acc := range maccPerms {
 		fmt.Println(acc)
-		require.Equal(t, !allowedReceivingModAcc[acc], app.bankKeeper.BlacklistedAddr(app.supplyKeeper.GetModuleAddress(acc)))
+		require.Equal(t, !allowedReceivingModAcc[acc], app.bankKeeper.BlacklistedAddr(app.accountKeeper.GetModuleAddress(acc)))
 	}
 }
 
