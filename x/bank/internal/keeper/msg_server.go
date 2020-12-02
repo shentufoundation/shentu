@@ -142,7 +142,7 @@ func (k msgServer) LockedSend(goCtx context.Context, msg *types.MsgLockedSend) (
 		if msg.LockerAddress.Empty() {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid unlocker address provided")
 		}
-		toAcc = vesting.NewManualVestingAccount(baseAcc, sdk.NewCoins(), msg.LockerAddress)
+		toAcc = vesting.NewManualVestingAccount(baseAcc, sdk.NewCoins(), sdk.NewCoins(), msg.LockerAddress)
 	} else {
 		var ok bool
 		toAcc, ok = acc.(*vesting.ManualVestingAccount)
@@ -156,14 +156,12 @@ func (k msgServer) LockedSend(goCtx context.Context, msg *types.MsgLockedSend) (
 
 	// add to receiver account as normally done
 	// but make the added amount vesting (OV := Vesting + Vested)
-	toAcc.OriginalVesting = toAcc.OriginalVesting.Add(msg.Amount...)
-	newCoins := toAcc.Coins.Add(msg.Amount...)
-	if newCoins.IsAnyNegative() {
-		return nil, sdkerrors.Wrapf(
-			sdkerrors.ErrInsufficientFunds, "insufficient account funds; %s < %s", toAcc.Coins, msg.Amount,
-		)
+	err = k.AddCoins(ctx, toAddr, msg.Amount)
+	if err != nil {
+		return err
 	}
-	toAcc.Coins = newCoins
+
+	toAcc.OriginalVesting = toAcc.OriginalVesting.Add(msg.Amount...)
 	k.ak.SetAccount(ctx, toAcc)
 
 	// subtract from sender account (as normally done)
