@@ -53,10 +53,10 @@ func NewManualVestingAccountRaw(bva *vesttypes.BaseVestingAccount, vestedCoins s
 	}
 }
 
-func NewManualVestingAccount(baseAcc *authtypes.BaseAccount, vestedCoins sdk.Coins, unlocker sdk.AccAddress) *ManualVestingAccount {
+func NewManualVestingAccount(baseAcc *authtypes.BaseAccount, origVesting, vestedCoins sdk.Coins, unlocker sdk.AccAddress) *ManualVestingAccount {
 	baseVestingAcc := &vesttypes.BaseVestingAccount{
 		BaseAccount:     baseAcc,
-		OriginalVesting: vestedCoins, //FIXME: baseAcc.Coins,
+		OriginalVesting: origVesting,
 		EndTime:         0,
 	}
 	return &ManualVestingAccount{

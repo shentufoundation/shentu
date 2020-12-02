@@ -115,7 +115,7 @@ func RandomGenesisAccounts(simState *module.SimulationState) (genesisAccs types.
 			if err != nil {
 				panic(err)
 			}
-			gacc = vesting.NewManualVestingAccount(bacc, nil, addr)
+			gacc = vesting.NewManualVestingAccount(bacc, sdk.NewCoins(), sdk.NewCoins(), addr)
 		}
 		genesisAccs = append(genesisAccs, gacc)
 	}
