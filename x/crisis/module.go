@@ -2,18 +2,26 @@ package crisis
 
 import (
 	"encoding/json"
+	"fmt"
+	"time"
+
+	"github.com/certikfoundation/shentu/common"
+	"github.com/cosmos/cosmos-sdk/x/crisis"
 
 	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-
-	"github.com/certikfoundation/shentu/common"
+	"github.com/cosmos/cosmos-sdk/x/crisis/client/cli"
+	"github.com/cosmos/cosmos-sdk/x/crisis/keeper"
+	"github.com/cosmos/cosmos-sdk/x/crisis/types"
 )
 
 var (
@@ -21,105 +29,146 @@ var (
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
+// Module init related flags
+const (
+	FlagSkipGenesisInvariants = "x-crisis-skip-assert-invariants"
+)
+
 // AppModuleBasic defines the basic application module used by the crisis module.
 type AppModuleBasic struct{}
 
 // Name returns the crisis module's name.
 func (AppModuleBasic) Name() string {
-	return CosmosAppModuleBasic{}.Name()
+	return types.ModuleName
 }
 
-// RegisterCodec registers the crisis module's types for the given codec.
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	RegisterCodec(cdc)
-	*CosmosModuleCdc = *ModuleCdc
+// RegisterLegacyAminoCodec registers the crisis module's types on the given LegacyAmino codec.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterLegacyAminoCodec(cdc)
 }
 
-// DefaultGenesis returns default genesis state as raw bytes for the crisis module.
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	// customize to set default genesis state constant fee denom to uctk
-	defaultGenesisState := DefaultGenesisState()
+// DefaultGenesis returns default genesis state as raw bytes for the crisis
+// module.
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+	defaultGenesisState := types.DefaultGenesisState()
 	defaultGenesisState.ConstantFee.Denom = common.MicroCTKDenom
-
-	return ModuleCdc.MustMarshalJSON(defaultGenesisState)
+	return cdc.MustMarshalJSON(defaultGenesisState)
 }
 
 // ValidateGenesis performs genesis state validation for the crisis module.
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	return CosmosAppModuleBasic{}.ValidateGenesis(bz)
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
+	var data types.GenesisState
+	if err := cdc.UnmarshalJSON(bz, &data); err != nil {
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
+	}
+
+	return types.ValidateGenesis(&data)
 }
 
-// RegisterRESTRoutes registers the REST routes for the crisis module.
-func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.CLIContext, route *mux.Router) {
-	CosmosAppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
-}
+// RegisterRESTRoutes registers no REST routes for the crisis module.
+func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
+
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the capability module.
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
 // GetTxCmd returns the root tx command for the crisis module.
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return CosmosAppModuleBasic{}.GetTxCmd(cdc)
+func (b AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.NewTxCmd()
 }
 
-// GetQueryCmd returns the root query command for the crisis module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return CosmosAppModuleBasic{}.GetQueryCmd(cdc)
+// GetQueryCmd returns no root query command for the crisis module.
+func (AppModuleBasic) GetQueryCmd() *cobra.Command { return nil }
+
+// RegisterInterfaces registers interfaces and implementations of the crisis
+// module.
+func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
 }
+
+//____________________________________________________________________________
 
 // AppModule implements an application module for the crisis module.
 type AppModule struct {
 	AppModuleBasic
-	cosmosAppModule CosmosAppModule
+
+	// NOTE: We store a reference to the keeper here so that after a module
+	// manager is created, the invariants can be properly registered and
+	// executed.
+	keeper *keeper.Keeper
+
+	skipGenesisInvariants bool
 }
 
-// NewAppModule creates a new AppModule object.
-func NewAppModule(keeper *Keeper) AppModule {
+// NewAppModule creates a new AppModule object. If initChainAssertInvariants is set,
+// we will call keeper.AssertInvariants during InitGenesis (it may take a significant time)
+// - which doesn't impact the chain security unless 66+% of validators have a wrongly
+// modified genesis file.
+func NewAppModule(keeper *keeper.Keeper, skipGenesisInvariants bool) AppModule {
 	return AppModule{
-		AppModuleBasic:  AppModuleBasic{},
-		cosmosAppModule: NewCosmosAppModule(keeper),
+		AppModuleBasic: AppModuleBasic{},
+		keeper:         keeper,
+
+		skipGenesisInvariants: skipGenesisInvariants,
 	}
 }
 
-// Name returns the crisis module's name.
-func (am AppModule) Name() string {
-	return am.cosmosAppModule.Name()
+// AddModuleInitFlags implements servertypes.ModuleInitFlags interface.
+func AddModuleInitFlags(startCmd *cobra.Command) {
+	startCmd.Flags().Bool(FlagSkipGenesisInvariants, false, "Skip x/crisis invariants check on startup")
 }
 
-// RegisterInvariants registers the crisis module invariants.
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	am.cosmosAppModule.RegisterInvariants(ir)
+// Name returns the crisis module's name.
+func (AppModule) Name() string {
+	return types.ModuleName
 }
+
+// RegisterInvariants performs a no-op.
+func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Route returns the message routing key for the crisis module.
-func (am AppModule) Route() string {
-	return am.cosmosAppModule.Route()
+func (am AppModule) Route() sdk.Route {
+	return sdk.NewRoute(crisis.RouterKey, crisis.NewHandler(*am.keeper))
 }
 
-// NewHandler returns an sdk.Handler for the crisis module.
-func (am AppModule) NewHandler() sdk.Handler {
-	return am.cosmosAppModule.NewHandler()
+// QuerierRoute returns no querier route.
+func (AppModule) QuerierRoute() string { return "" }
+
+// LegacyQuerierHandler returns no sdk.Querier.
+func (AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier { return nil }
+
+// RegisterServices registers module services.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 }
 
-// QuerierRoute returns the crisis module's querier route name.
-func (am AppModule) QuerierRoute() string { return am.cosmosAppModule.QuerierRoute() }
+// InitGenesis performs genesis initialization for the crisis module. It returns
+// no validator updates.
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+	start := time.Now()
+	var genesisState types.GenesisState
+	cdc.MustUnmarshalJSON(data, &genesisState)
+	telemetry.MeasureSince(start, "InitGenesis", "crisis", "unmarshal")
 
-// NewQuerierHandler returns the crisis module sdk.Querier.
-func (am AppModule) NewQuerierHandler() sdk.Querier { return am.cosmosAppModule.NewQuerierHandler() }
-
-// InitGenesis performs genesis initialization for the crisis module.
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.InitGenesis(ctx, data)
+	am.keeper.InitGenesis(ctx, &genesisState)
+	if !am.skipGenesisInvariants {
+		am.keeper.AssertInvariants(ctx)
+	}
+	return []abci.ValidatorUpdate{}
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the crisis module.
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
-	return am.cosmosAppModule.ExportGenesis(ctx)
+// ExportGenesis returns the exported genesis state as raw bytes for the crisis
+// module.
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
+	gs := am.keeper.ExportGenesis(ctx)
+	return cdc.MustMarshalJSON(gs)
 }
 
-// BeginBlock returns the begin blocker for the crisis module.
-func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
-	am.cosmosAppModule.BeginBlock(ctx, rbb)
-}
+// BeginBlock performs a no-op.
+func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
-// EndBlock returns the end blocker for the crisis module.
-func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.EndBlock(ctx, rbb)
+// EndBlock returns the end blocker for the crisis module. It returns no validator
+// updates.
+func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+	crisis.EndBlocker(ctx, *am.keeper)
+	return []abci.ValidatorUpdate{}
 }
