@@ -1,0 +1,13 @@
+{
+  "title": "New Certifier, Joe Shmoe",
+  "description": "Why we should make Joe Shmoe a certifier",
+  "certifier": "certik1fdqkh6v4d09hq7hu8xq8gl9zr2zm0azydcpq0d",
+  "add_or_remove": "add",
+  "alias": "joe",
+  "deposit": [
+    {
+      "denom": "uctk",
+      "amount": "100"
+    }
+  ]
+}
