@@ -1,0 +1,31 @@
+syntax = "proto3";
+package shentu.auth.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/auth/types";
+
+// Msg defines the auth Msg service.
+service Msg {
+  // Unlock defines a method for unlocking coins from a manual vesting
+  // account.
+  rpc Unlock(MsgUnlock) returns (MsgUnlockResponse);
+}
+
+// MsgUnlock defines a message for unlocking coins from a manual vesting
+// account.
+message MsgUnlock {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string issuer = 1 [ (gogoproto.moretags) = "yaml:\"issuer\"" ];
+  string account = 2 [ (gogoproto.moretags) = "yaml:\"account_address\"" ];
+  repeated cosmos.base.v1beta1.Coin unlock_amount = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+// MsgUnlockResponse defines the Msg/Unlock response type.
+message MsgUnlockResponse {}

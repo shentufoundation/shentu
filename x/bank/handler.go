@@ -8,7 +8,7 @@ import (
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
 )
 
-// NewHandler returns a handler for "auth" type messages.
+// NewHandler returns a handler for "bank" type messages.
 func NewHandler(k keeper.Keeper) sdk.Handler {
 	msgServer := keeper.NewMsgServerImpl(k)
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {

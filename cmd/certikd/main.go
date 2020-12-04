@@ -59,7 +59,7 @@ func main() {
 
 	rootCmd.AddCommand(genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome))
 	rootCmd.AddCommand(genutilcli.CollectGenTxsCmd(ctx, cdc, auth.GenesisAccountIterator{}, app.DefaultNodeHome))
-	rootCmd.AddCommand(AddGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome))
+	rootCmd.AddCommand(AddGenesisAccountCmd(app.DefaultNodeHome))
 	rootCmd.AddCommand(AddGenesisCertifierCmd(ctx, cdc))
 	rootCmd.AddCommand(AddGenesisShieldAdminCmd(ctx, cdc))
 	rootCmd.AddCommand(MigrateGenesisCmd(ctx, cdc))
