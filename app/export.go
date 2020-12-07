@@ -84,7 +84,7 @@ func (app *CertiKApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 	})
 
 	// withdraw all delegator rewards
-	dels := app.StakingKeeper.GetAllDelegations(ctx)
+	dels := app.stakingKeeper.GetAllDelegations(ctx)
 	for _, delegation := range dels {
 		_, err := app.distrKeeper.WithdrawDelegationRewards(ctx, delegation.GetDelegatorAddr(), delegation.GetValidatorAddr())
 		if err != nil {
@@ -176,7 +176,7 @@ func (app *CertiKApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 		ctx,
 		func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) (stop bool) {
 			info.StartHeight = 0
-			app.SlashingKeeper.SetValidatorSigningInfo(ctx, addr, info)
+			app.slashingKeeper.SetValidatorSigningInfo(ctx, addr, info)
 			return false
 		},
 	)
