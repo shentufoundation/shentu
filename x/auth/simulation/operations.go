@@ -6,18 +6,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
+	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
+	simTypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/x/auth/internal/types"
+	"github.com/certikfoundation/shentu/x/auth/types"
 	"github.com/certikfoundation/shentu/x/auth/vesting"
 )
 
 const OpWeightMsgUnlock = "op_weight_msg_create_operator"
 
 // WeightedOperations returns all the operations from the module with their respective weights
-func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k auth.AccountKeeper) simulation.WeightedOperations {
+func WeightedOperations(appParams simTypes.AppParams, cdc codec.JSONMarshaler, k types.AccountKeeper) simulation.WeightedOperations {
 	var weightMsgUnlock int
 	appParams.GetOrGenerate(cdc, OpWeightMsgUnlock, &weightMsgUnlock, nil,
 		func(_ *rand.Rand) {
@@ -33,9 +35,9 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k auth
 	}
 }
 
-func SimulateMsgUnlock(k auth.AccountKeeper) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
+func SimulateMsgUnlock(k types.AccountKeeper) simTypes.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simTypes.Account, chainID string) (
+		simTypes.OperationMsg, []simTypes.FutureOperation, error) {
 		for _, acc := range accs {
 			account := k.GetAccount(ctx, acc.Address)
 			mvacc, ok := account.(*vesting.ManualVestingAccount)
@@ -45,23 +47,26 @@ func SimulateMsgUnlock(k auth.AccountKeeper) simulation.Operation {
 
 			var unlockAmount sdk.Coins
 			var err error
-			if simulation.RandIntBetween(r, 0, 100) < 50 {
+			if simTypes.RandIntBetween(r, 0, 100) < 50 {
 				unlockAmount = mvacc.OriginalVesting.Sub(mvacc.VestedCoins)
 			} else {
-				unlockAmount, err = simulation.RandomFees(r, ctx, mvacc.OriginalVesting.Sub(mvacc.VestedCoins))
+				unlockAmount, err = simTypes.RandomFees(r, ctx, mvacc.OriginalVesting.Sub(mvacc.VestedCoins))
 				if err != nil {
-					return simulation.NoOpMsg(types.ModuleName), nil, err
+					return simTypes.NoOpMsg(authTypes.ModuleName, types.TypeMsgUnlock, err.Error()), nil, err
 				}
 			}
 
-			fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+			//fees, err := simTypes.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+			spendable := mvacc.OriginalVesting.Sub(mvacc.VestedCoins) //FIXME
+			fees, err := simTypes.RandomFees(r, ctx, spendable)
 			if err != nil {
-				return simulation.NoOpMsg(auth.ModuleName), nil, err
+				return simTypes.NoOpMsg(authTypes.ModuleName, types.TypeMsgUnlock, err.Error()), nil, err
 			}
 
 			msg := types.NewMsgUnlock(acc.Address, acc.Address, unlockAmount)
-
-			tx := helpers.GenTx(
+			txGen := simappparams.MakeTestEncodingConfig().TxConfig
+			tx, err := helpers.GenTx(
+				txGen,
 				[]sdk.Msg{msg},
 				fees,
 				helpers.DefaultGenTxGas,
@@ -70,15 +75,18 @@ func SimulateMsgUnlock(k auth.AccountKeeper) simulation.Operation {
 				[]uint64{account.GetSequence()},
 				acc.PrivKey,
 			)
-
-			_, _, err = app.Deliver(tx)
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, err
+				return simTypes.NoOpMsg(authTypes.ModuleName, msg.Type(), err.Error()), nil, err
 			}
 
-			return simulation.NewOperationMsg(msg, true, ""), nil, nil
+			_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+			if err != nil {
+				return simTypes.NoOpMsg(authTypes.ModuleName, msg.Type(), err.Error()), nil, err
+			}
+
+			return simTypes.NewOperationMsg(msg, true, ""), nil, nil
 		}
-		return simulation.NewOperationMsgBasic(types.ModuleName,
+		return simTypes.NewOperationMsgBasic(authTypes.ModuleName,
 			"NoOp: no available manual-vesting account found, skip this tx", "", false, nil), nil, nil
 	}
 }

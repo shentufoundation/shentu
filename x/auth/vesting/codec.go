@@ -5,18 +5,18 @@ import (
 	vtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 )
 
-var ModuleCdc *codec.Codec
-
-func init() {
-	ModuleCdc = codec.New()
-	RegisterCodec(ModuleCdc)
-	ModuleCdc.Seal()
+// RegisterLegacyAminoCodec registers the vesting interfaces and concrete types on the
+// provided LegacyAmino codec. These types are used for Amino JSON serialization
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	vtypes.RegisterLegacyAminoCodec(cdc)
+	cdc.RegisterConcrete(&ManualVestingAccount{}, "auth/ManualVestingAccount", nil)
 }
 
-func RegisterCodec(cdc *codec.Codec) {
-	// Register Cosmos types
-	vtypes.RegisterCodec(cdc)
+// TODO RegisterInterface?
 
-	// Register custom types
-	cdc.RegisterConcrete(&ManualVestingAccount{}, "auth/ManualVestingAccount", nil)
+var amino = codec.NewLegacyAmino()
+
+func init() {
+	RegisterLegacyAminoCodec(amino)
+	amino.Seal()
 }

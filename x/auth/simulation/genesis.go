@@ -1,15 +1,14 @@
 package simulation
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/auth/vesting"
 )
@@ -89,25 +88,34 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 	authGenesis := types.NewGenesisState(params, genesisAccs)
 
-	fmt.Printf("Selected randomly generated auth parameters:\n%s\n", codec.MustMarshalJSONIndent(simState.Cdc, authGenesis.Params))
+	bz, err := json.MarshalIndent(&authGenesis.Params, "", " ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Selected randomly generated staking parameters:\n%s\n", bz)
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(authGenesis)
 }
 
 // RandomGenesisAccounts returns randomly generated genesis accounts
-func RandomGenesisAccounts(simState *module.SimulationState) (genesisAccs exported.GenesisAccounts) {
+func RandomGenesisAccounts(simState *module.SimulationState) (genesisAccs types.GenesisAccounts) {
 	for i, acc := range simState.Accounts {
-		coins := sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(simState.InitialStake))}
+		//coins := sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(simState.InitialStake))}
 		bacc := types.NewBaseAccountWithAddress(acc.Address)
-		if err := bacc.SetCoins(coins); err != nil {
-			panic(err)
-		}
+		// TODO in x/bank RandomGenesisBalances
+		//if err := bacc.SetCoins(coins); err != nil {
+		//	panic(err)
+		//}
 
-		var gacc exported.GenesisAccount = &bacc
+		var gacc types.GenesisAccount = bacc
 
 		// Only consider making a vesting account once the initial bonded validator
 		// set is exhausted due to needing to track DelegatedVesting.
 		if int64(i) > simState.NumBonded && simState.Rand.Intn(100) < 50 {
-			gacc = vesting.NewManualVestingAccount(&bacc, nil, bacc.Address)
+			addr, err := sdk.AccAddressFromBech32(bacc.Address)
+			if err != nil {
+				panic(err)
+			}
+			gacc = vesting.NewManualVestingAccount(bacc, sdk.NewCoins(), sdk.NewCoins(), addr)
 		}
 		genesisAccs = append(genesisAccs, gacc)
 	}

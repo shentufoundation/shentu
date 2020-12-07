@@ -6,65 +6,40 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/tendermint/tendermint/crypto"
-
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	vesttypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-
-	customauth "github.com/certikfoundation/shentu/x/auth/internal/types"
 )
 
 // Compile-time type assertions
 var _ vestexported.VestingAccount = (*ManualVestingAccount)(nil)
 var _ authexported.GenesisAccount = (*ManualVestingAccount)(nil)
 
-func init() {
-	customauth.RegisterAccountTypeCodec(&vesttypes.BaseVestingAccount{}, "cosmos-sdk/BaseVestingAccount")
-	customauth.RegisterAccountTypeCodec(&vesttypes.ContinuousVestingAccount{}, "cosmos-sdk/ContinuousVestingAccount")
-	customauth.RegisterAccountTypeCodec(&vesttypes.DelayedVestingAccount{}, "cosmos-sdk/DelayedVestingAccount")
-	customauth.RegisterAccountTypeCodec(&vesttypes.PeriodicVestingAccount{}, "cosmos-sdk/PeriodicVestingAccount")
-	customauth.RegisterAccountTypeCodec(&ManualVestingAccount{}, "auth/ManualVestingAccount")
-	customauth.RegisterAccountTypeCodec(&supply.ModuleAccount{}, "cosmos-sdk/ModuleAccount")
-
-	authtypes.RegisterAccountTypeCodec(&ManualVestingAccount{}, "auth/ManualVestingAccount")
-}
-
 //-----------------------------------------------------------------------------
 // Manual Vesting Account
 //
-
-// ManualVestingAccount implements the VestingAccount interface.
-type ManualVestingAccount struct {
-	*vesttypes.BaseVestingAccount
-
-	VestedCoins sdk.Coins      `json:"vested_coins" yaml:"vested_coins"`
-	Unlocker    sdk.AccAddress `json:"unlocker" yaml:"unlocker"`
-}
 
 // NewManualVestingAccountRaw creates a new ManualVestingAccount object from BaseVestingAccount.
 func NewManualVestingAccountRaw(bva *vesttypes.BaseVestingAccount, vestedCoins sdk.Coins, unlocker sdk.AccAddress) *ManualVestingAccount {
 	return &ManualVestingAccount{
 		BaseVestingAccount: bva,
 		VestedCoins:        vestedCoins,
-		Unlocker:           unlocker,
+		Unlocker:           unlocker.String(),
 	}
 }
 
-func NewManualVestingAccount(baseAcc *authtypes.BaseAccount, vestedCoins sdk.Coins, unlocker sdk.AccAddress) *ManualVestingAccount {
+func NewManualVestingAccount(baseAcc *authtypes.BaseAccount, origVesting, vestedCoins sdk.Coins, unlocker sdk.AccAddress) *ManualVestingAccount {
 	baseVestingAcc := &vesttypes.BaseVestingAccount{
 		BaseAccount:     baseAcc,
-		OriginalVesting: baseAcc.Coins,
+		OriginalVesting: origVesting,
 		EndTime:         0,
 	}
 	return &ManualVestingAccount{
 		BaseVestingAccount: baseVestingAcc,
 		VestedCoins:        vestedCoins,
-		Unlocker:           unlocker,
+		Unlocker:           unlocker.String(),
 	}
 }
 
@@ -81,16 +56,16 @@ func (mva ManualVestingAccount) GetVestingCoins(blockTime time.Time) sdk.Coins {
 	return mva.OriginalVesting.Sub(mva.GetVestedCoins(blockTime))
 }
 
-// SpendableCoins returns the total number of spendable coins per denom.
-func (mva ManualVestingAccount) SpendableCoins(blockTime time.Time) sdk.Coins {
-	return mva.BaseVestingAccount.SpendableCoinsVestingAccount(mva.GetVestingCoins(blockTime))
+// LockedCoins returns the set of coins that are not spendable.
+func (mva ManualVestingAccount) LockedCoins(blockTime time.Time) sdk.Coins {
+	return mva.BaseVestingAccount.LockedCoinsFromVesting(mva.GetVestingCoins(blockTime))
 }
 
 // TrackDelegation tracks a desired delegation amount by setting the appropriate
 // values for the amount of delegated vesting, delegated free, and reducing the
 // overall amount of base coins.
-func (mva *ManualVestingAccount) TrackDelegation(blockTime time.Time, amount sdk.Coins) {
-	mva.BaseVestingAccount.TrackDelegation(mva.GetVestingCoins(blockTime), amount)
+func (mva *ManualVestingAccount) TrackDelegation(blockTime time.Time, balance, amount sdk.Coins) {
+	mva.BaseVestingAccount.TrackDelegation(mva.GetVestingCoins(blockTime), balance, amount)
 }
 
 // GetStartTime returns zero since a manual vesting account has no start time.
@@ -108,7 +83,6 @@ func (mva ManualVestingAccount) Validate() error {
 
 type manualVestingAccountYAML struct {
 	Address          sdk.AccAddress `json:"address" yaml:"address"`
-	Coins            sdk.Coins      `json:"coins" yaml:"coins"`
 	PubKey           string         `json:"public_key" yaml:"public_key"`
 	AccountNumber    uint64         `json:"account_number" yaml:"account_number"`
 	Sequence         uint64         `json:"sequence" yaml:"sequence"`
@@ -120,66 +94,23 @@ type manualVestingAccountYAML struct {
 	Unlocker         sdk.AccAddress `json:"unlocker" yaml:"unlocker"`
 }
 
-type manualVestingAccountJSON struct {
-	Address          sdk.AccAddress `json:"address" yaml:"address"`
-	Coins            sdk.Coins      `json:"coins" yaml:"coins"`
-	PubKey           crypto.PubKey  `json:"public_key" yaml:"public_key"`
-	AccountNumber    uint64         `json:"account_number" yaml:"account_number"`
-	Sequence         uint64         `json:"sequence" yaml:"sequence"`
-	OriginalVesting  sdk.Coins      `json:"original_vesting" yaml:"original_vesting"`
-	DelegatedFree    sdk.Coins      `json:"delegated_free" yaml:"delegated_free"`
-	DelegatedVesting sdk.Coins      `json:"delegated_vesting" yaml:"delegated_vesting"`
-	EndTime          int64          `json:"end_time" yaml:"end_time"`
-	VestedCoins      sdk.Coins      `json:"vested_coins" yaml:"vested_coins"`
-	Unlocker         sdk.AccAddress `json:"unlocker" yaml:"unlocker"`
-}
-
-func (mva ManualVestingAccount) MarshalJSON() ([]byte, error) {
-	alias := manualVestingAccountJSON{
-		Address:          mva.Address,
-		Coins:            mva.Coins,
-		PubKey:           mva.GetPubKey(),
-		AccountNumber:    mva.AccountNumber,
-		Sequence:         mva.Sequence,
-		OriginalVesting:  mva.OriginalVesting,
-		DelegatedFree:    mva.DelegatedFree,
-		DelegatedVesting: mva.DelegatedVesting,
-		EndTime:          mva.EndTime,
-		VestedCoins:      mva.VestedCoins,
-		Unlocker:         mva.Unlocker,
-	}
-
-	return codec.Cdc.MarshalJSON(alias)
-}
-
-func (mva *ManualVestingAccount) UnmarshalJSON(bz []byte) error {
-	var alias manualVestingAccountJSON
-	if err := codec.Cdc.UnmarshalJSON(bz, &alias); err != nil {
-		return err
-	}
-
-	mva.BaseVestingAccount = &vesttypes.BaseVestingAccount{
-		BaseAccount:      authtypes.NewBaseAccount(alias.Address, alias.Coins, alias.PubKey, alias.AccountNumber, alias.Sequence),
-		OriginalVesting:  alias.OriginalVesting,
-		DelegatedFree:    alias.DelegatedFree,
-		DelegatedVesting: alias.DelegatedVesting,
-		EndTime:          alias.EndTime,
-	}
-	mva.VestedCoins = alias.VestedCoins
-	mva.Unlocker = alias.Unlocker
-
-	return nil
-}
-
 func (mva ManualVestingAccount) String() string {
 	out, _ := mva.MarshalYAML()
 	return out.(string)
 }
 
 func (mva ManualVestingAccount) MarshalYAML() (interface{}, error) {
+	accAddr, err := sdk.AccAddressFromBech32(mva.Address)
+	if err != nil {
+		return nil, err
+	}
+	unlocker, err := sdk.AccAddressFromBech32(mva.Unlocker)
+	if err != nil {
+		return nil, err
+	}
+
 	alias := manualVestingAccountYAML{
-		Address:          mva.Address,
-		Coins:            mva.Coins,
+		Address:          accAddr,
 		AccountNumber:    mva.AccountNumber,
 		Sequence:         mva.Sequence,
 		OriginalVesting:  mva.OriginalVesting,
@@ -187,11 +118,12 @@ func (mva ManualVestingAccount) MarshalYAML() (interface{}, error) {
 		DelegatedVesting: mva.DelegatedVesting,
 		EndTime:          mva.EndTime,
 		VestedCoins:      mva.VestedCoins,
-		Unlocker:         mva.Unlocker,
+		Unlocker:         unlocker,
 	}
 
-	if mva.PubKey != nil {
-		pks, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, mva.PubKey)
+	pk := mva.GetPubKey()
+	if pk != nil {
+		pks, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, pk)
 		if err != nil {
 			return nil, err
 		}
