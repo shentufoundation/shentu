@@ -12,13 +12,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	govUtils "github.com/cosmos/cosmos-sdk/x/gov/client/utils"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/gov/client/utils"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
 )
 
-func registerQueryRoutes(cliCtx client.CLIContext, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/gov/parameters/{%s}", RestParamsType), queryParamsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/gov/proposals", queryProposalsWithParameterFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/gov/proposals/{%s}", RestProposalID), queryProposalHandlerFn(cliCtx)).Methods("GET")
@@ -30,7 +30,7 @@ func registerQueryRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/gov/proposals/{%s}/votes/{%s}", RestProposalID, RestVoter), queryVoteHandlerFn(cliCtx)).Methods("GET")
 }
 
-func queryParamsHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
+func queryParamsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		paramType := vars[RestParamsType]
@@ -52,7 +52,7 @@ func queryParamsHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryProposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
+func queryProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		strProposalID := vars[RestProposalID]
@@ -75,7 +75,7 @@ func queryProposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 
 		params := govTypes.NewQueryProposalParams(proposalID)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -93,7 +93,7 @@ func queryProposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryDepositsHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
+func queryDepositsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		strProposalID := vars[RestProposalID]
@@ -110,7 +110,7 @@ func queryDepositsHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 
 		params := govTypes.NewQueryProposalParams(proposalID)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -123,7 +123,7 @@ func queryDepositsHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 		}
 
 		var proposal types.Proposal
-		if err := cliCtx.Codec.UnmarshalJSON(res, &proposal); err != nil {
+		if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &proposal); err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -148,7 +148,7 @@ func queryDepositsHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryProposerHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
+func queryProposerHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		strProposalID := vars[RestProposalID]
@@ -173,7 +173,7 @@ func queryProposerHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryDepositHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
+func queryDepositHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		strProposalID := vars[RestProposalID]
@@ -209,7 +209,7 @@ func queryDepositHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 
 		params := govTypes.NewQueryDepositParams(proposalID, depositorAddr)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -222,7 +222,7 @@ func queryDepositHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 		}
 
 		var deposit types.Deposit
-		if err := cliCtx.Codec.UnmarshalJSON(res, &deposit); err != nil {
+		if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &deposit); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -231,7 +231,7 @@ func queryDepositHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 		// which case the deposit would be removed from state and should be queried
 		// for directly via a txs query.
 		if deposit.Empty() {
-			bz, err := cliCtx.Codec.MarshalJSON(govTypes.NewQueryProposalParams(proposalID))
+			bz, err := cliCtx.LegacyAmino.MarshalJSON(govTypes.NewQueryProposalParams(proposalID))
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 				return
@@ -255,7 +255,7 @@ func queryDepositHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryVoteHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
+func queryVoteHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		strProposalID := vars[RestProposalID]
@@ -291,7 +291,7 @@ func queryVoteHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 
 		params := govTypes.NewQueryVoteParams(proposalID, voterAddr)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -304,7 +304,7 @@ func queryVoteHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 		}
 
 		var vote types.Vote
-		if err := cliCtx.Codec.UnmarshalJSON(res, &vote); err != nil {
+		if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &vote); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -313,7 +313,7 @@ func queryVoteHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 		// which case the vote would be removed from state and should be queried for
 		// directly via a txs query.
 		if vote.Empty() {
-			bz, err := cliCtx.Codec.MarshalJSON(govTypes.NewQueryProposalParams(proposalID))
+			bz, err := cliCtx.LegacyAmino.MarshalJSON(govTypes.NewQueryProposalParams(proposalID))
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 				return
@@ -338,7 +338,7 @@ func queryVoteHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 }
 
 // todo: Split this functionality into helper functions to remove the above
-func queryVotesOnProposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
+func queryVotesOnProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 100)
 		if err != nil {
@@ -367,7 +367,7 @@ func queryVotesOnProposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 
 		params := govTypes.NewQueryProposalVotesParams(proposalID, page, limit)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -380,7 +380,7 @@ func queryVotesOnProposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 		}
 
 		var proposal types.Proposal
-		if err := cliCtx.Codec.UnmarshalJSON(res, &proposal); err != nil {
+		if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &proposal); err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -407,9 +407,9 @@ func queryVotesOnProposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func getVotesWithPower(cliCtx client.CLIContext, w http.ResponseWriter, res []byte) (VotesWithPower, http.ResponseWriter) {
+func getVotesWithPower(cliCtx client.Context, w http.ResponseWriter, res []byte) (VotesWithPower, http.ResponseWriter) {
 	votes := types.Votes{}
-	err := cliCtx.Codec.UnmarshalJSON(res, &votes)
+	err := cliCtx.LegacyAmino.UnmarshalJSON(res, &votes)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return VotesWithPower{}, w
@@ -417,16 +417,20 @@ func getVotesWithPower(cliCtx client.CLIContext, w http.ResponseWriter, res []by
 
 	votesWithPower := VotesWithPower{}
 	for _, vote := range votes {
-		params := staking.NewQueryDelegatorParams(vote.Voter)
+		voter, err := sdk.AccAddressFromBech32(vote.Voter)
+		if err != nil {
+			panic(err)
+		}
+		params := stakingtypes.NewQueryDelegatorParams(voter)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return VotesWithPower{}, w
 		}
 
 		res, _, err := cliCtx.QueryWithData(
-			fmt.Sprintf("custom/%s/%s", staking.QuerierRoute, staking.QueryDelegatorDelegations),
+			fmt.Sprintf("custom/%s/%s", stakingtypes.QuerierRoute, stakingtypes.QueryDelegatorDelegations),
 			bz,
 		)
 		if err != nil {
@@ -434,8 +438,8 @@ func getVotesWithPower(cliCtx client.CLIContext, w http.ResponseWriter, res []by
 			return VotesWithPower{}, w
 		}
 
-		var resp staking.DelegationResponses
-		if err := cliCtx.Codec.UnmarshalJSON(res, &resp); err != nil {
+		var resp stakingtypes.DelegationResponses
+		if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &resp); err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return VotesWithPower{}, w
 		}
@@ -451,7 +455,7 @@ func getVotesWithPower(cliCtx client.CLIContext, w http.ResponseWriter, res []by
 }
 
 // HTTP request handler to query list of governance proposals
-func queryProposalsWithParameterFn(cliCtx client.CLIContext) http.HandlerFunc {
+func queryProposalsWithParameterFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 100)
 		if err != nil {
@@ -495,7 +499,7 @@ func queryProposalsWithParameterFn(cliCtx client.CLIContext) http.HandlerFunc {
 		}
 
 		params := types.NewQueryProposalsParams(page, limit, proposalStatus, voterAddr, depositorAddr)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -514,7 +518,7 @@ func queryProposalsWithParameterFn(cliCtx client.CLIContext) http.HandlerFunc {
 }
 
 // todo: Split this functionality into helper functions to remove the above
-func queryTallyOnProposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
+func queryTallyOnProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		strProposalID := vars[RestProposalID]
@@ -537,7 +541,7 @@ func queryTallyOnProposalHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 
 		params := govTypes.NewQueryProposalParams(proposalID)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

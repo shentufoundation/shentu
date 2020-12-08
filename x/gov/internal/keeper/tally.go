@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/exported"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/cert"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
@@ -28,17 +28,23 @@ func Tally(ctx sdk.Context, k Keeper, proposal types.Proposal) (pass bool, veto 
 
 	fetchBondedValidators(ctx, k, currValidators)
 
-	k.IterateVotes(ctx, proposal.ProposalID, func(vote types.Vote) bool {
+	k.IterateVotes(ctx, proposal.ProposalId, func(vote types.Vote) bool {
+		voter, err := sdk.AccAddressFromBech32(vote.Voter)
+		if err != nil {
+			panic(err)
+		}
+
 		// if validator, just record it in the map
 		// if delegator tally voting power
-		valAddrStr := sdk.ValAddress(vote.Voter).String()
+		valAddrStr := sdk.ValAddress(voter.Bytes()).String()
 		if val, ok := currValidators[valAddrStr]; ok {
 			val.Vote = vote.Option
 			currValidators[valAddrStr] = val
 		} else {
 			delegatorVoting(ctx, k, vote, currValidators, results, &totalVotingPower)
 		}
-		k.deleteVote(ctx, vote.ProposalID, vote.Voter)
+
+		k.deleteVote(ctx, vote.ProposalId, voter)
 		return false
 	})
 
@@ -60,11 +66,11 @@ func Tally(ctx sdk.Context, k Keeper, proposal types.Proposal) (pass bool, veto 
 	tallyResults = govTypes.NewTallyResultFromMap(results)
 
 	var tp govTypes.TallyParams
-	switch proposal.Content.(type) {
+	switch proposal.GetContent().(type) {
 	case cert.CertifierUpdateProposal:
-		tp = tallyParams.CertifierUpdateStakeVoteTally
+		tp = *tallyParams.CertifierUpdateStakeVoteTally
 	default:
-		tp = tallyParams.DefaultTally
+		tp = *tallyParams.DefaultTally
 	}
 
 	th := TallyHelper{
@@ -110,7 +116,7 @@ func newValidatorGovInfo(address sdk.ValAddress, bondedTokens sdk.Int, delegator
 
 // fetchBondedValidators fetches all the bonded validators, insert them into currValidators.
 func fetchBondedValidators(ctx sdk.Context, k Keeper, validators map[string]*validatorGovInfo) {
-	k.stakingKeeper.IterateBondedValidatorsByPower(ctx, func(index int64, validator exported.ValidatorI) (stop bool) {
+	k.stakingKeeper.IterateBondedValidatorsByPower(ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
 		validators[validator.GetOperator().String()] = newValidatorGovInfo(
 			validator.GetOperator(),
 			validator.GetBondedTokens(),
@@ -122,10 +128,14 @@ func fetchBondedValidators(ctx sdk.Context, k Keeper, validators map[string]*val
 	})
 }
 
-func delegatorVoting(ctx sdk.Context, k Keeper, vote types.Vote, validators map[string]*validatorGovInfo,
-	results map[govTypes.VoteOption]sdk.Dec, totalVotingPower *sdk.Dec) {
+func delegatorVoting(ctx sdk.Context, k Keeper, vote types.Vote, validators map[string]*validatorGovInfo, results map[govTypes.VoteOption]sdk.Dec, totalVotingPower *sdk.Dec) {
+	voter, err := sdk.AccAddressFromBech32(vote.Voter)
+	if err != nil {
+		panic(err)
+	}
+	
 	// iterate over all delegations from voter, deduct from any delegated-to validators
-	k.stakingKeeper.IterateDelegations(ctx, vote.Voter, func(index int64, delegation exported.DelegationI) (stop bool) {
+	k.stakingKeeper.IterateDelegations(ctx, voter, func(index int64, delegation stakingtypes.DelegationI) (stop bool) {
 		valAddrStr := delegation.GetValidatorAddr().String()
 
 		if val, ok := validators[valAddrStr]; ok {
@@ -161,7 +171,7 @@ func passAndVetoStakeResult(k Keeper, ctx sdk.Context, th TallyHelper) (pass boo
 	}
 
 	// If more than 1/3 of voters veto, proposal fails.
-	if th.results[govTypes.OptionNoWithVeto].Quo(th.totalVotingPower).GT(th.tallyParams.Veto) {
+	if th.results[govTypes.OptionNoWithVeto].Quo(th.totalVotingPower).GT(th.tallyParams.VetoThreshold) {
 		return false, true
 	}
 
@@ -194,7 +204,7 @@ func passAndVetoStakeResultForShieldClaim(k Keeper, ctx sdk.Context, th TallyHel
 	}
 
 	// If more than 1/3 of voters veto, proposal fails.
-	if th.results[govTypes.OptionNoWithVeto].Quo(th.totalVotingPower).GT(th.tallyParams.Veto) {
+	if th.results[govTypes.OptionNoWithVeto].Quo(th.totalVotingPower).GT(th.tallyParams.VetoThreshold) {
 		return false, true
 	}
 
@@ -249,7 +259,7 @@ func SecurityTally(ctx sdk.Context, k Keeper, proposal types.Proposal) (bool, bo
 	results := newResults()
 	totalHeadCounts := sdk.ZeroDec()
 
-	currVotes := k.GetVotes(ctx, proposal.ProposalID)
+	currVotes := k.GetVotes(ctx, proposal.ProposalId)
 	for _, vote := range currVotes {
 		if vote.Option == govTypes.OptionEmpty {
 			continue
@@ -262,7 +272,7 @@ func SecurityTally(ctx sdk.Context, k Keeper, proposal types.Proposal) (bool, bo
 
 	th := TallyHelper{
 		totalHeadCounts,
-		tallyParams.CertifierUpdateSecurityVoteTally,
+		*tallyParams.CertifierUpdateSecurityVoteTally,
 		results,
 	}
 	pass := passAndVetoSecurityResult(k, ctx, th)

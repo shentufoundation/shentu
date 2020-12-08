@@ -6,91 +6,76 @@ import (
 	"strings"
 	"time"
 
+	yaml "gopkg.in/yaml.v2"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/upgrade"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/certikfoundation/shentu/x/cert"
-	"github.com/certikfoundation/shentu/x/shield"
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
-// Proposal defines a struct used by the governance module to allow for voting
-// on network changes.
-type Proposal struct {
-	// proposal content interface
-	types.Content `json:"content" yaml:"content"`
-
-	// ID of the proposal
-	ProposalID uint64 `json:"id" yaml:"id"`
-	// status of the Proposal {Pending, Active, Passed, Rejected}
-	Status ProposalStatus `json:"proposal_status" yaml:"proposal_status"`
-	// whether or not the proposer is a council member (validator or certifier)
-	IsProposerCouncilMember bool `json:"is_proposer_council_member" yaml:"is_proposer_council_member"`
-	// proposer address
-	ProposerAddress sdk.AccAddress `json:"proposer_address" yaml:"proposer_address"`
-	// result of Tally
-	FinalTallyResult gov.TallyResult `json:"final_tally_result" yaml:"final_tally_result"`
-
-	// time of the block where TxGovSubmitProposal was included
-	SubmitTime time.Time `json:"submit_time" yaml:"submit_time"`
-	// time that the Proposal would expire if deposit amount isn't met
-	DepositEndTime time.Time `json:"deposit_end_time" yaml:"deposit_end_time"`
-	// current deposit on this proposal
-	TotalDeposit sdk.Coins `json:"total_deposit" yaml:"total_deposit"`
-
-	// VotingStartTime is the time of the block where MinDeposit was reached.
-	// It is set to -1 if MinDeposit is not reached.
-	VotingStartTime time.Time `json:"voting_start_time" yaml:"voting_start_time"`
-	// time that the VotingPeriodString for this proposal will end and votes will be tallied
-	VotingEndTime time.Time `json:"voting_end_time" yaml:"voting_end_time"`
-}
-
 // NewProposal returns a new proposal.
-func NewProposal(content types.Content,
-	id uint64,
-	proposerAddress sdk.AccAddress,
-	isProposerCouncilMember bool,
-	submitTime time.Time,
-	depositEndTime time.Time) Proposal {
+func NewProposal(content types.Content, id uint64, proposerAddress sdk.AccAddress, isProposerCouncilMember bool, submitTime time.Time, depositEndTime time.Time) Proposal {
 	return Proposal{
 		Content:                 content,
-		ProposalID:              id,
+		ProposalId:              id,
 		Status:                  StatusDepositPeriod,
 		IsProposerCouncilMember: isProposerCouncilMember,
-		ProposerAddress:         proposerAddress,
-		FinalTallyResult:        gov.EmptyTallyResult(),
+		ProposerAddress:         proposerAddress.String(),
+		FinalTallyResult:        types.EmptyTallyResult(),
 		TotalDeposit:            sdk.NewCoins(),
 		SubmitTime:              submitTime,
 		DepositEndTime:          depositEndTime,
 	}
 }
 
-// String returns proposal struct in string type.
+// GetContent returns the proposal Content
+func (p Proposal) GetContent() types.Content {
+	content, ok := p.Content.GetCachedValue().(Content)
+	if !ok {
+		return nil
+	}
+	return content
+}
+
+// String implements stringer interface
 func (p Proposal) String() string {
-	return fmt.Sprintf(`Proposal %d:
-  Title:              %s
-  Type:               %s
-  Status:             %s
-  Is Council Member:  %t
-  Proposer Address:   %s
-  Submit Time:        %s
-  Deposit End Time:   %s
-  Total Deposit:      %s
-  Voting Start Time:  %s
-  Voting End Time:    %s
-  Description:        %s`,
-		p.ProposalID, p.GetTitle(), p.ProposalType(), p.Status, p.IsProposerCouncilMember, p.ProposerAddress, p.SubmitTime, p.DepositEndTime,
-		p.TotalDeposit, p.VotingStartTime, p.VotingEndTime, p.GetDescription(),
-	)
+	out, _ := yaml.Marshal(p)
+	return string(out)
+}
+
+func (p Proposal) GetTitle() string {
+	content := p.GetContent()
+	if content == nil {
+		return ""
+	}
+	return content.GetTitle()
+}
+
+func (p Proposal) ProposalType() string {
+	content := p.GetContent()
+	if content == nil {
+		return ""
+	}
+	return content.ProposalType()
+}
+
+func (p Proposal) ProposalRoute() string {
+	content := p.GetContent()
+	if content == nil {
+		return ""
+	}
+	return content.ProposalRoute()
 }
 
 // HasSecurityVoting returns true if the proposal needs to go through security
 // (certifier) voting before stake (validator) voting.
 func (p Proposal) HasSecurityVoting() bool {
 	switch p.Content.(type) {
-	case upgrade.SoftwareUpgradeProposal, cert.CertifierUpdateProposal, shield.ClaimProposal:
+	case upgradetypes.SoftwareUpgradeProposal, cert.CertifierUpdateProposal, shieldtypes.ShieldClaimProposal:
 		return true
 	default:
 		return false
@@ -105,7 +90,7 @@ func (p Proposals) String() string {
 	out := "ID - (Status) [Type] Title\n"
 	for _, prop := range p {
 		out += fmt.Sprintf("%d - (%s) [%s] %s\n",
-			prop.ProposalID, prop.Status,
+			prop.ProposalId, prop.Status,
 			prop.ProposalType(), prop.GetTitle())
 	}
 	return strings.TrimSpace(out)
@@ -114,68 +99,15 @@ func (p Proposals) String() string {
 type (
 	// ProposalQueue is a type alias that represents a list of proposal IDs.
 	ProposalQueue []uint64
-
-	// ProposalStatus is a type alias that represents a proposal status as a byte
-	ProposalStatus byte
-)
-
-const (
-	// StatusNil is the nil status.
-	StatusNil ProposalStatus = iota
-	// StatusDepositPeriod is the deposit period status.
-	StatusDepositPeriod
-	// StatusCertifierVotingPeriod is the certifier voting period status.
-	StatusCertifierVotingPeriod
-	// StatusValidatorVotingPeriod is the validator voting period status.
-	StatusValidatorVotingPeriod
-	// StatusPassed is the passed status.
-	StatusPassed
-	// StatusRejected is the rejected status.
-	StatusRejected
-	// StatusFailed is the failed status.
-	StatusFailed
-
-	// DepositPeriod is the string of DepositPeriod.
-	DepositPeriod = "DepositPeriod"
-	// CertifierVotingPeriod is the string of CertifierVotingPeriod.
-	CertifierVotingPeriod = "CertifierVotingPeriod"
-	// ValidatorVotingPeriod is the string of ValidatorVotingPeriod.
-	ValidatorVotingPeriod = "ValidatorVotingPeriod"
-	// Passed is the string of Passed.
-	Passed = "Passed"
-	// Rejected is the string of Rejected.
-	Rejected = "Rejected"
-	// Failed is the string of Failed.
-	Failed = "Failed"
 )
 
 // ProposalStatusFromString turns a string into a ProposalStatus.
 func ProposalStatusFromString(str string) (ProposalStatus, error) {
-	switch str {
-	case DepositPeriod:
-		return StatusDepositPeriod, nil
-
-	case CertifierVotingPeriod:
-		return StatusCertifierVotingPeriod, nil
-
-	case Passed:
-		return StatusPassed, nil
-
-	case Rejected:
-		return StatusRejected, nil
-
-	case Failed:
-		return StatusFailed, nil
-
-	case "":
-		return StatusNil, nil
-
-	case ValidatorVotingPeriod:
-		return StatusValidatorVotingPeriod, nil
-
-	default:
-		return ProposalStatus(0xff), fmt.Errorf("'%s' is not a valid proposal status", str)
+	num, ok := ProposalStatus_value[str]
+	if !ok {
+		return StatusNil, fmt.Errorf("'%s' is not a valid proposal status", str)
 	}
+	return ProposalStatus(num), nil
 }
 
 // ValidProposalStatus returns true if the proposal status is valid and false otherwise.
@@ -222,32 +154,6 @@ func (status *ProposalStatus) UnmarshalJSON(data []byte) error {
 
 	*status = bz2
 	return nil
-}
-
-// String implements the Stringer interface.
-func (status ProposalStatus) String() string {
-	switch status {
-	case StatusDepositPeriod:
-		return DepositPeriod
-
-	case StatusCertifierVotingPeriod:
-		return CertifierVotingPeriod
-
-	case StatusPassed:
-		return Passed
-
-	case StatusRejected:
-		return Rejected
-
-	case StatusFailed:
-		return Failed
-
-	case StatusValidatorVotingPeriod:
-		return ValidatorVotingPeriod
-
-	default:
-		return ""
-	}
 }
 
 // Format implements the fmt.Formatter interface.

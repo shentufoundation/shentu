@@ -11,8 +11,8 @@ import (
 )
 
 // InitGenesis stores genesis parameters.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper govTypes.SupplyKeeper, data types.GenesisState) {
-	k.SetProposalID(ctx, data.StartingProposalID)
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govTypes.AccountKeeper, bk govTypes.BankKeeper, data types.GenesisState) {
+	k.SetProposalID(ctx, data.StartingProposalId)
 	k.SetDepositParams(ctx, data.DepositParams)
 	k.SetVotingParams(ctx, data.VotingParams)
 	k.SetTallyParams(ctx, data.TallyParams)
@@ -36,27 +36,28 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper govTypes.SupplyK
 	for _, proposal := range data.Proposals {
 		switch proposal.Status {
 		case types.StatusDepositPeriod:
-			k.InsertInactiveProposalQueue(ctx, proposal.ProposalID, proposal.DepositEndTime)
+			k.InsertInactiveProposalQueue(ctx, proposal.ProposalId, proposal.DepositEndTime)
 		case types.StatusCertifierVotingPeriod:
-			k.InsertActiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingEndTime)
+			k.InsertActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
 		case types.StatusValidatorVotingPeriod:
-			k.InsertActiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingEndTime)
+			k.InsertActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
 		}
 		k.SetProposal(ctx, proposal)
 	}
 
 	// add coins if not provided on genesis
-	if moduleAcc.GetCoins().IsZero() {
-		if err := moduleAcc.SetCoins(totalDeposits); err != nil {
+	if bk.GetAllBalances(ctx, moduleAcc.GetAddress()).IsZero() {
+		if err := bk.SetBalances(ctx, moduleAcc.GetAddress(), totalDeposits); err != nil {
 			panic(err)
 		}
-		supplyKeeper.SetModuleAccount(ctx, moduleAcc)
+
+		ak.SetModuleAccount(ctx, moduleAcc)
 	}
 }
 
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) (data types.GenesisState) {
-	startingProposalID, _ := k.GetProposalID(ctx)
+	startingProposalId, _ := k.GetProposalID(ctx)
 	depositParams := k.GetDepositParams(ctx)
 	votingParams := k.GetVotingParams(ctx)
 	tallyParams := k.GetTallyParams(ctx)
@@ -66,15 +67,15 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) (data types.GenesisState) {
 	var proposalsVotes types.Votes
 
 	for _, proposal := range proposals {
-		deposits := k.GetDepositsByProposalID(ctx, proposal.ProposalID)
+		deposits := k.GetDepositsByProposalID(ctx, proposal.ProposalId)
 		proposalsDeposits = append(proposalsDeposits, deposits...)
 
-		votes := k.GetVotes(ctx, proposal.ProposalID)
+		votes := k.GetVotes(ctx, proposal.ProposalId)
 		proposalsVotes = append(proposalsVotes, votes...)
 	}
 
 	return types.GenesisState{
-		StartingProposalID: startingProposalID,
+		StartingProposalId: startingProposalId,
 		Deposits:           proposalsDeposits,
 		Votes:              proposalsVotes,
 		Proposals:          proposals,

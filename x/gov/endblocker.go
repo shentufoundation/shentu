@@ -15,13 +15,13 @@ import (
 
 func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 	k.IterateInactiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal types.Proposal) bool {
-		k.DeleteProposalByProposalID(ctx, proposal.ProposalID)
-		k.RefundDepositsByProposalID(ctx, proposal.ProposalID)
+		k.DeleteProposalByProposalID(ctx, proposal.ProposalId)
+		k.RefundDepositsByProposalID(ctx, proposal.ProposalId)
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				govTypes.EventTypeInactiveProposal,
-				sdk.NewAttribute(govTypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalID)),
+				sdk.NewAttribute(govTypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
 				sdk.NewAttribute(govTypes.AttributeKeyProposalResult, govTypes.AttributeValueProposalDropped),
 			),
 		)
@@ -41,7 +41,11 @@ func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
 		c := proposal.Content.(shield.ClaimProposal)
-		k.ShieldKeeper.RestoreShield(ctx, c.PoolID, proposal.ProposerAddress, c.PurchaseID, c.Loss)
+		proposer, err := sdk.AccAddressFromBech32(proposal.ProposerAddress)
+		if err != nil {
+			panic(err)
+		}
+		k.ShieldKeeper.RestoreShield(ctx, c.PoolID, proposer, c.PurchaseID, c.Loss)
 		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalID, c.PoolID, c.Loss)
 	}
 }
@@ -59,7 +63,7 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal types.Prop
 		if !endVoting {
 			// Skip the rest of this iteration, because the proposal needs to go
 			// through the validator voting period now.
-			k.DeleteAllVotes(ctx, proposal.ProposalID)
+			k.DeleteAllVotes(ctx, proposal.ProposalId)
 			k.ActivateVotingPeriod(ctx, proposal)
 			return false
 		}
@@ -68,10 +72,10 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal types.Prop
 	}
 
 	if veto {
-		k.DeleteDepositsByProposalID(ctx, proposal.ProposalID)
+		k.DeleteDepositsByProposalID(ctx, proposal.ProposalId)
 		updateVeto(ctx, k, proposal)
 	} else {
-		k.RefundDepositsByProposalID(ctx, proposal.ProposalID)
+		k.RefundDepositsByProposalID(ctx, proposal.ProposalId)
 		if !pass {
 			updateAbstain(ctx, k, proposal)
 		}
@@ -103,14 +107,14 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal types.Prop
 	proposal.FinalTallyResult = tallyResults
 
 	k.SetProposal(ctx, proposal)
-	k.RemoveFromActiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingEndTime)
+	k.RemoveFromActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
 
 	// TODO log tallying result
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			govTypes.EventTypeActiveProposal,
-			sdk.NewAttribute(govTypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalID)),
+			sdk.NewAttribute(govTypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
 			sdk.NewAttribute(govTypes.AttributeKeyProposalResult, tagValue),
 		),
 	)
@@ -160,20 +164,20 @@ func processSecurityVote(ctx sdk.Context, k keeper.Keeper, proposal types.Propos
 		proposal.FinalTallyResult = tallyResults
 
 		k.SetProposal(ctx, proposal)
-		k.RemoveFromActiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingEndTime)
+		k.RemoveFromActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
 
 		// TODO log tallying result
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				govTypes.EventTypeActiveProposal,
-				sdk.NewAttribute(govTypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalID)),
+				sdk.NewAttribute(govTypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
 				sdk.NewAttribute(govTypes.AttributeKeyProposalResult, tagValue),
 			),
 		)
 	} else {
 		// Activate validator voting period
-		k.DeleteAllVotes(ctx, proposal.ProposalID)
+		k.DeleteAllVotes(ctx, proposal.ProposalId)
 		k.ActivateVotingPeriod(ctx, proposal)
 	}
 	return false

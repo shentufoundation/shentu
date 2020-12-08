@@ -106,8 +106,12 @@ func (k Keeper) GetVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 // setVote set a vote.
 func (k Keeper) setVote(ctx sdk.Context, vote types.Vote) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(vote)
-	store.Set(govTypes.VoteKey(vote.ProposalID, vote.Voter), bz)
+	bz := k.cdc.MustMarshalBinaryBare(&vote)
+	addr, err := sdk.AccAddressFromBech32(vote.Voter)
+	if err != nil {
+		panic(err)
+	}
+	store.Set(govTypes.VoteKey(vote.ProposalId, addr), bz)
 }
 
 // SetVote set a vote.
@@ -137,7 +141,11 @@ func (k Keeper) deleteVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.Acc
 // DeleteAllVotes deletes all votes for a proposal.
 func (k Keeper) DeleteAllVotes(ctx sdk.Context, proposalID uint64) {
 	k.IterateVotes(ctx, proposalID, func(vote types.Vote) bool {
-		k.deleteVote(ctx, proposalID, vote.Voter)
+		addr, err := sdk.AccAddressFromBech32(vote.Voter)
+		if err != nil {
+			panic(err)
+		}
+		k.deleteVote(ctx, proposalID, addr)
 		return false
 	})
 }
