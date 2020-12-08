@@ -24,9 +24,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCall{},
 		&MsgDeploy{},
-		&acm.Bytecode{},
-		&binary.Word256{},
-		&[]acm.ContractMeta{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

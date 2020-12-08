@@ -15,14 +15,14 @@ message GenesisState {
 
 message Contract {
   bytes Address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
-  CVMCode    CVMCode = 2 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"code\""];
+  CVMCode    code = 2 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"code\""];
   repeated Storage storage = 3    [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"storage\""];
   bytes     abi = 4        [(gogoproto.moretags) = "yaml:\"abi\""];
-  repeated ContractMeta contract_meta = 5    [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"contract_meta\""];
+  repeated ContractMeta meta = 5    [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"contract_meta\""];
 }
 
 message CVMCode {
-  int64 codetype = 1 [(gogoproto.moretags) = "yaml:\"code_type\""];
+  int64 code_type = 1 [(gogoproto.moretags) = "yaml:\"code_type\""];
   bytes code = 2 [(gogoproto.moretags) = "yaml:\"code\""];
 }
 
@@ -33,7 +33,7 @@ message Storage {
 
 message ContractMeta {
   bytes code_hash = 1 [(gogoproto.moretags) = "yaml:\"code_hash\""];
-  bytes metadatahash = 2 [(gogoproto.moretags) = "yaml:\"metadata_hash\""];
+  bytes metadata_hash = 2 [(gogoproto.moretags) = "yaml:\"metadata_hash\""];
 }
 
 message Metadata {

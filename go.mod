@@ -3,26 +3,14 @@ module github.com/certikfoundation/shentu
 go 1.15
 
 require (
-	github.com/Masterminds/goutils v1.1.0 // indirect
-	github.com/Masterminds/semver v1.5.0 // indirect
-	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
-	github.com/aokoli/goutils v1.1.0 // indirect
 	github.com/armon/go-metrics v0.3.4
 	github.com/cosmos/cosmos-sdk v0.40.0-rc3
-	github.com/envoyproxy/protoc-gen-validate v0.4.1 // indirect
 	github.com/gogo/protobuf v1.3.1
-	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.15.2
-	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/hyperledger/burrow v0.30.5
-	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/magiconair/properties v1.8.4
-	github.com/mitchellh/copystructure v1.0.0 // indirect
-	github.com/mitchellh/reflectwalk v1.0.1 // indirect
-	github.com/mwitkow/go-proto-validators v0.3.2 // indirect
-	github.com/pseudomuto/protoc-gen-doc v1.3.2 // indirect
 	github.com/rakyll/statik v0.1.7
 	github.com/regen-network/cosmos-proto v0.3.0
 	github.com/smartystreets/goconvey v1.6.4
@@ -38,7 +26,7 @@ require (
 	github.com/tendermint/tm-db v0.6.2
 	github.com/tendermint/tmlibs v0.9.0
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc
-	golang.org/x/crypto v0.0.0-20201203163018-be400aefbc4c
+	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/genproto v0.0.0-20201207150747-9ee31aac76e7 // indirect
 	google.golang.org/grpc v1.33.2

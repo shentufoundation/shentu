@@ -2,47 +2,11 @@ package types
 
 import (
 	"encoding/json"
-
-	"github.com/hyperledger/burrow/acm/acmstate"
-	"github.com/hyperledger/burrow/binary"
-	"github.com/hyperledger/burrow/crypto"
 )
-
-type Contract struct {
-	Address crypto.Address `json:"address"`
-	Code    CVMCode        `json:"code"`
-	Storage []Storage      `json:"storage"`
-	Abi     []byte         `json:"abi"`
-	Meta    []ContractMeta `json:"meta"`
-}
 
 type Contracts = []Contract
 
-type ContractMeta struct {
-	CodeHash     []byte
-	MetadataHash []byte
-}
-
-type Storage struct {
-	Key   binary.Word256 `json:"key"`
-	Value []byte         `json:"value"`
-}
-
-type Metadata struct {
-	Hash     acmstate.MetadataHash `json:"hash"`
-	Metadata string                `json:"metadata"`
-}
-
 type Metadatas = []Metadata
-
-// GenesisState is a cvm genesis state.
-type GenesisState struct {
-	// GasRate defines the gas exchange rate between Cosmos gas and CVM gas.
-	// CVM gas equals to Cosmos Gas * gasRate.
-	GasRate   uint64     `json:"gas_rate"`
-	Contracts []Contract `json:"contracts"`
-	Metadata  []Metadata `json:"metadatas"`
-}
 
 // NewGenesisState creates a new GenesisState object.
 func NewGenesisState(rate uint64) GenesisState {

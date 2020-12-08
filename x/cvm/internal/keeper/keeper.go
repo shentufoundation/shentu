@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/params"
 
 	"github.com/hyperledger/burrow/acm"
 	"github.com/hyperledger/burrow/acm/acmstate"
@@ -33,25 +32,26 @@ const TransactionGasLimit = uint64(5000000)
 
 // Keeper implements SDK Keeper.
 type Keeper struct {
-	cdc        *codec.Codec
+	cdc        codec.BinaryMarshaler
 	key        sdk.StoreKey
 	ak         types.AccountKeeper
+	bk         types.BankKeeper
 	dk         types.DistributionKeeper
 	ck         types.CertKeeper
-	paramSpace params.Subspace
+	paramSpace types.ParamSubspace
 }
 
 // NewKeeper creates a new instance of the CVM keeper.
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, ak types.AccountKeeper, dk types.DistributionKeeper,
-	ck types.CertKeeper, paramSpace params.Subspace) Keeper {
+	cdc codec.BinaryMarshaler, key sdk.StoreKey, ak types.AccountKeeper, dk types.DistributionKeeper,
+	ck types.CertKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
 		cdc:        cdc,
 		key:        key,
 		ak:         ak,
 		dk:         dk,
 		ck:         ck,
-		paramSpace: paramSpace.WithKeyTable(types.ParamKeyTable()),
+		paramSpace: paramSpace,
 	}
 }
 
@@ -284,11 +284,7 @@ func (k Keeper) getAccountSeqNum(ctx sdk.Context, address sdk.AccAddress) []byte
 // RecycleCoins transfers tokens from the zero address to the community pool.
 func (k Keeper) RecycleCoins(ctx sdk.Context) error {
 	zeroAddrBytes := crypto.ZeroAddress.Bytes()
-	acc := k.ak.GetAccount(ctx, zeroAddrBytes)
-	if acc == nil {
-		return nil
-	}
-	coins := acc.GetCoins()
+	coins := k.bk.GetAllBalances(ctx, zeroAddrBytes)
 	if coins.IsZero() {
 		return nil
 	}
@@ -328,11 +324,11 @@ func (k Keeper) GetAllContracts(ctx sdk.Context) []types.Contract {
 			keyBytes := storeIterator.Key()[prefixAddrLen:]
 			var key binary.Word256
 			copy(key[:], keyBytes)
-			storage = append(storage, types.Storage{Key: key, Value: storeIterator.Value()})
+			storage = append(storage, types.Storage{Key: key.Bytes(), Value: storeIterator.Value()})
 		}
 		storeIterator.Close()
 		contracts = append(contracts, types.Contract{
-			Address: address,
+			Address: address.Bytes(),
 			Code:    code,
 			Storage: storage,
 			Abi:     abi,
@@ -358,7 +354,7 @@ func (k Keeper) GetAllMetas(ctx sdk.Context) []types.Metadata {
 		if err != nil {
 			panic(err)
 		}
-		contracts = append(contracts, types.Metadata{Hash: metahash, Metadata: meta})
+		contracts = append(contracts, types.Metadata{Hash: metahash.Bytes(), Metadata: meta})
 	}
 	return contracts
 }

@@ -1,6 +1,8 @@
 package cvm
 
 import (
+	"github.com/hyperledger/burrow/binary"
+	"github.com/hyperledger/burrow/crypto"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,35 +24,40 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 	cache := callframe.Cache
 
 	for _, contract := range data.Contracts {
+		cryptoAddr, err := crypto.AddressFromBytes(contract.Address)
+		if err != nil {
+			panic(err)
+		}
 		if contract.Abi != nil {
-			k.SetAbi(ctx, contract.Address, contract.Abi)
+			k.SetAbi(ctx, cryptoAddr, contract.Abi)
 		}
 
 		for _, kv := range contract.Storage {
-			if err := state.SetStorage(contract.Address, kv.Key, kv.Value); err != nil {
+			key := binary.LeftPadWord256(kv.Key)
+			if err := state.SetStorage(cryptoAddr, key, kv.Value); err != nil {
 				panic(err)
 			}
 		}
 
 		// Address Metadata is stored separately.
 		var addrMetas []*acm.ContractMeta
-		for _, addrMeta := range contract.Meta {
+		for _, addrMeta := range contract.ContractMeta {
 			newMeta := acm.ContractMeta{
 				CodeHash:     addrMeta.CodeHash,
-				MetadataHash: addrMeta.MetadataHash,
+				MetadataHash: addrMeta.Metadatahash,
 			}
 			addrMetas = append(addrMetas, &newMeta)
 		}
 
 		if len(addrMetas) > 0 {
-			if err := state.SetAddressMeta(contract.Address, addrMetas); err != nil {
+			if err := state.SetAddressMeta(cryptoAddr, addrMetas); err != nil {
 				panic(err)
 			}
 		}
 
 		// Register contract account. Since account can already exist from Account InitGenesis,
 		// we need to import those first.
-		account, err := state.GetAccount(contract.Address)
+		account, err := state.GetAccount(cryptoAddr)
 		if err != nil {
 			panic(err)
 		}
@@ -61,13 +68,13 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 			balance = account.Balance
 		}
 		var evmCode, wasmCode acm.Bytecode
-		if contract.Code.CodeType == types.CVMCodeTypeEVMCode {
-			evmCode = contract.Code.Code
+		if contract.CVMCode.CodeType == types.CVMCodeTypeEVMCode {
+			evmCode = contract.CVMCode.Code
 		} else {
-			wasmCode = contract.Code.Code
+			wasmCode = contract.CVMCode.Code
 		}
 		newAccount := acm.Account{
-			Address:  contract.Address,
+			Address:  cryptoAddr,
 			Balance:  balance,
 			EVMCode:  evmCode,
 			WASMCode: wasmCode,
@@ -87,8 +94,13 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 	if err := cache.Sync(state); err != nil {
 		panic(err)
 	}
-	for _, metadata := range data.Metadata {
-		if err := state.SetMetadata(metadata.Hash, metadata.Metadata); err != nil {
+	for _, metadata := range data.Metadatas {
+		if len(metadata.Hash) != 32 {
+			panic("metadata hash is not 256 bits")
+		}
+		var metahash acmstate.MetadataHash
+		copy(metahash[:], metadata.Hash[:32])
+		if err := state.SetMetadata(metahash, metadata.Metadata); err != nil {
 			panic(err)
 		}
 	}
@@ -105,6 +117,6 @@ func ExportGenesis(ctx sdk.Context, k Keeper) types.GenesisState {
 	return GenesisState{
 		GasRate:   gasRate,
 		Contracts: contracts,
-		Metadata:  metadatas,
+		Metadatas: metadatas,
 	}
 }

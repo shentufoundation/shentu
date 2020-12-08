@@ -3,6 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/certikfoundation/shentu/common"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -19,8 +21,9 @@ import (
 type State struct {
 	ctx   sdk.Context
 	ak    types.AccountKeeper
+	bk    types.BankKeeper
 	store sdk.KVStore
-	cdc   *codec.Codec
+	cdc   codec.BinaryMarshaler
 }
 
 // NewState returns a new instance of State type data.
@@ -28,6 +31,7 @@ func (k Keeper) NewState(ctx sdk.Context) *State {
 	return &State{
 		ctx:   ctx,
 		ak:    k.ak,
+		bk:    k.bk,
 		store: ctx.KVStore(k.key),
 		cdc:   k.cdc,
 	}
@@ -41,7 +45,7 @@ func (s *State) GetAccount(address crypto.Address) (*acm.Account, error) {
 	if account == nil {
 		return nil, nil
 	}
-	balance := account.GetCoins().AmountOf("uctk").Uint64()
+	balance := s.bk.GetBalance(s.ctx, addr, common.MicroCTKDenom).Amount.Uint64()
 	contMeta, err := s.GetAddressMeta(address)
 	if err != nil {
 		return nil, err
@@ -91,8 +95,8 @@ func (s *State) UpdateAccount(updatedAccount *acm.Account) error {
 	} else {
 		cvmCode = types.NewCVMCode(types.CVMCodeTypeEVMCode, updatedAccount.EVMCode)
 	}
-	s.store.Set(types.CodeStoreKey(updatedAccount.Address), s.cdc.MustMarshalBinaryLengthPrefixed(cvmCode))
-	err := account.SetCoins(sdk.Coins{sdk.NewInt64Coin("uctk", int64(updatedAccount.Balance))})
+	s.store.Set(types.CodeStoreKey(updatedAccount.Address), s.cdc.MustMarshalBinaryLengthPrefixed(&cvmCode))
+	err := s.bk.SetBalances(s.ctx, address, sdk.Coins{sdk.NewInt64Coin("uctk", int64(updatedAccount.Balance))})
 	if err != nil {
 		return err
 	}
@@ -182,7 +186,7 @@ func (s *State) GetAddressMeta(address crypto.Address) ([]*acm.ContractMeta, err
 
 // SetAddressMeta sets the metadata hash for an address
 func (s *State) SetAddressMeta(address crypto.Address, contMeta []*acm.ContractMeta) error {
-	var metadata []acm.ContractMeta
+	var metadata types.ContractMetas
 	for _, meta := range contMeta {
 		metadata = append(metadata, *meta)
 	}
