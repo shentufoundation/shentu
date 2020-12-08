@@ -36,7 +36,6 @@ import (
 	"github.com/certikfoundation/shentu/x/shield"
 	"github.com/certikfoundation/shentu/x/slashing"
 	"github.com/certikfoundation/shentu/x/staking"
-	"github.com/certikfoundation/shentu/x/upgrade"
 )
 
 const (

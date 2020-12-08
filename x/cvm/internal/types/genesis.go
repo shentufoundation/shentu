@@ -16,6 +16,8 @@ type Contract struct {
 	Meta    []ContractMeta `json:"meta"`
 }
 
+type Contracts = []Contract
+
 type ContractMeta struct {
 	CodeHash     []byte
 	MetadataHash []byte
@@ -31,13 +33,15 @@ type Metadata struct {
 	Metadata string                `json:"metadata"`
 }
 
+type Metadatas = []Metadata
+
 // GenesisState is a cvm genesis state.
 type GenesisState struct {
 	// GasRate defines the gas exchange rate between Cosmos gas and CVM gas.
 	// CVM gas equals to Cosmos Gas * gasRate.
-	GasRate   uint64     `json:"gasrate"`
+	GasRate   uint64     `json:"gas_rate"`
 	Contracts []Contract `json:"contracts"`
-	Metadata  []Metadata `json:"metadata"`
+	Metadata  []Metadata `json:"metadatas"`
 }
 
 // NewGenesisState creates a new GenesisState object.
