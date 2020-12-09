@@ -446,7 +446,7 @@ func getVotesWithPower(cliCtx client.Context, w http.ResponseWriter, res []byte)
 
 		power := sdk.NewDec(0)
 		for _, response := range resp {
-			power = power.Add(response.Shares)
+			power = power.Add(response.Delegation.Shares)
 		}
 
 		votesWithPower = append(votesWithPower, VoteWithPower{vote, power})

@@ -137,7 +137,7 @@ $ %[1]s query gov proposals --page=2 --limit=100
 			}
 
 			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err = client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
@@ -208,7 +208,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 			}
 
 			// check to see if the proposal is in the store
-			_, err = queryClient.Proposal(
+			proposalRes, err := queryClient.Proposal(
 				context.Background(),
 				&types.QueryProposalRequest{ProposalId: proposalID},
 			)
@@ -217,6 +217,23 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 			}
 
 			// TODO Query tx depending on proposal status?
+			propStatus := proposalRes.GetProposal().Status
+			if !(propStatus == types.StatusCertifierVotingPeriod || propStatus == types.StatusValidatorVotingPeriod || propStatus == types.StatusDepositPeriod) {
+				page, _ := cmd.Flags().GetInt(flags.FlagPage)
+				limit, _ := cmd.Flags().GetInt(flags.FlagLimit)
+
+				params := govTypes.NewQueryProposalVotesParams(proposalID, page, limit)
+				resByTxQuery, err := govUtils.QueryVotesByTxQuery(cliCtx, params)
+				if err != nil {
+					return err
+				}
+
+				var votes types.Votes
+				// TODO migrate to use JSONMarshaler (implement MarshalJSONArray
+				// or wrap lists of proto.Message in some other message)
+				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &votes)
+				return cliCtx.PrintOutputLegacy(votes)
+			}
 
 			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {
@@ -272,12 +289,6 @@ $ %[1]s query gov deposits 1
 				return fmt.Errorf("proposal-id %s is not a valid uint, please input a valid proposal-id", args[0])
 			}
 
-			// params := govTypes.NewQueryProposalParams(proposalID)
-			// bz, err := cdc.MarshalJSON(params)
-			// if err != nil {
-			// 	return err
-			// }
-
 			// check to see if the proposal is in the store
 			proposalRes, err := queryClient.Proposal(
 				context.Background(),
@@ -287,15 +298,21 @@ $ %[1]s query gov deposits 1
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
 			}
 
-			// TODO
-			//propStatus := proposalRes.GetProposal().Status
-			// if !(propStatus == types.StatusCertifierVotingPeriod ||
-			// 	propStatus == types.StatusValidatorVotingPeriod ||
-			// 	propStatus == types.StatusDepositPeriod) {
-			// 	res, err = govUtils.QueryDepositsByTxQuery(cliCtx, params)
-			// } else {
-			//	res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/deposits", queryRoute), bz)
-			// }
+			propStatus := proposalRes.GetProposal().Status
+			if !(propStatus == types.StatusCertifierVotingPeriod || propStatus == types.StatusValidatorVotingPeriod || propStatus == types.StatusDepositPeriod) {
+				params := govTypes.NewQueryProposalParams(proposalID)
+				resByTxQuery, err := govUtils.QueryDepositsByTxQuery(cliCtx, params)
+				if err != nil {
+					return err
+				}
+
+				var dep types.Deposits
+				// TODO migrate to use JSONMarshaler (implement MarshalJSONArray
+				// or wrap lists of proto.Message in some other message)
+				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &dep)
+
+				return cliCtx.PrintOutputLegacy(dep)
+			}
 
 			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {
