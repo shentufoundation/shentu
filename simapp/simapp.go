@@ -13,6 +13,7 @@ import (
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp"
+	"github.com/cosmos/cosmos-sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -498,4 +499,13 @@ func (app *SimApp) Codec() *codec.Codec {
 // SimulationManager returns app.sm.
 func (app *SimApp) SimulationManager() *module.SimulationManager {
 	return app.sm
+}
+
+// GetKey returns the corresponding store key.
+func (app *SimApp) GetKey(storeKey string) types.StoreKey {
+	return app.keys[storeKey]
+}
+
+func (app *SimApp) GetAppModuleGenesis(ctx sdk.Context, moduleName string) module.AppModule {
+	return app.mm.Modules[moduleName]
 }
