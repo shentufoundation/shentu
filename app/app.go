@@ -10,14 +10,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 
-	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
-	bam "github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -28,8 +26,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
+	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crisisKeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisisTypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	"github.com/cosmos/cosmos-sdk/x/evidence"
@@ -38,10 +38,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutilTypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	cosmosGov "github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	paramsKeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
-	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	paramclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	paramKeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	paramTypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	paramProposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	slashingTypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeKeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradeTypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -93,7 +97,7 @@ var (
 			distr.ProposalHandler,
 			upgrade.NewSoftwareUpgradeProposalHandler,
 			cert.ProposalHandler,
-			paramsclient.ProposalHandler,
+			paramclient.ProposalHandler,
 			shield.ProposalHandler,
 		),
 		params.AppModuleBasic{},
@@ -129,7 +133,7 @@ var (
 
 // CertiKApp is the main CertiK Chain application type.
 type CertiKApp struct {
-	*bam.BaseApp
+	*baseapp.BaseApp
 	cdc      *codec.LegacyAmino
 	appCodec codec.Marshaler
 
@@ -146,7 +150,7 @@ type CertiKApp struct {
 	mintKeeper     mint.Keeper
 	distrKeeper    distr.Keeper
 	crisisKeeper   crisisKeeper.Keeper
-	paramsKeeper   params.Keeper
+	paramsKeeper   paramKeeper.Keeper
 	upgradeKeeper  upgradeKeeper.Keeper
 	govKeeper      gov.Keeper
 	certKeeper     cert.Keeper
@@ -172,18 +176,18 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 
 	// BaseApp handles interactions with Tendermint through the ABCI protocol.
-	bApp := bam.NewBaseApp(AppName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
+	bApp := baseapp.NewBaseApp(AppName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
+	bApp.GRPCQueryRouter().SetInterfaceRegistry(interfaceRegistry)
 
 	ks := []string{
-		bam.MainStoreKey,
 		auth.StoreKey,
 		staking.StoreKey,
 		distr.StoreKey,
 		mint.StoreKey,
 		slashing.StoreKey,
-		paramsTypes.StoreKey,
+		paramTypes.StoreKey,
 		upgradeTypes.StoreKey,
 		gov.StoreKey,
 		cert.StoreKey,
@@ -200,8 +204,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	keys := sdk.NewKVStoreKeys(ks...)
 
 	tks := []string{
-		staking.TStoreKey,
-		paramsTypes.TStoreKey,
+		paramTypes.TStoreKey,
 	}
 
 	for i := 0; i < tkeysReserved; i++ {
@@ -219,18 +222,10 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		tkeys:          tkeys,
 	}
 	// initialize params keeper and subspaces
-	app.paramsKeeper = paramsKeeper.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey])
-	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
-	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
-	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
-	mintSubspace := app.paramsKeeper.Subspace(mint.DefaultParamspace)
-	distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
-	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
-	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
-	app.paramsKeeper.Subspace(crisisTypes.ModuleName)
-	oracleSubspace := app.paramsKeeper.Subspace(oracle.DefaultParamSpace)
-	cvmSubspace := app.paramsKeeper.Subspace(cvm.DefaultParamSpace)
-	shieldSubspace := app.paramsKeeper.Subspace(shield.DefaultParamSpace)
+	app.paramsKeeper = initParamsKeeper(appCodec, legacyAmino, keys[paramTypes.StoreKey], tkeys[paramTypes.TStoreKey])
+
+	// set the BaseApp's parameter store
+	bApp.SetParamStore(app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramKeeper.ConsensusParamsKeyTable()))
 
 	// initialize keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -346,7 +341,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 			AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 			AddRoute(cert.RouterKey, cert.NewCertifierUpdateProposalHandler(app.certKeeper)).
 			AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper.Keeper)).
-			AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+			AddRoute(paramProposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 			AddRoute(shield.RouterKey, shield.NewShieldClaimProposalHandler(app.shieldKeeper)),
 	)
 
@@ -516,7 +511,7 @@ func (app *CertiKApp) BlockedAddrs() map[string]bool {
 // GetSubspace returns a param subspace for a given module name.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *CertiKApp) GetSubspace(moduleName string) paramsTypes.Subspace {
+func (app *CertiKApp) GetSubspace(moduleName string) paramTypes.Subspace {
 	subspace, _ := app.paramsKeeper.GetSubspace(moduleName)
 	return subspace
 }
@@ -529,6 +524,23 @@ func (app *CertiKApp) Codec() *codec.LegacyAmino {
 // SimulationManager returns app.sm.
 func (app *CertiKApp) SimulationManager() *module.SimulationManager {
 	return app.sm
+}
+
+// initParamsKeeper init params keeper and its subspaces
+func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramKeeper.Keeper {
+	keeper := paramKeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
+
+	keeper.Subspace(authtypes.ModuleName)
+	keeper.Subspace(bankTypes.ModuleName)
+	keeper.Subspace(stakingtypes.ModuleName)
+	keeper.Subspace(mintTypes.ModuleName)
+	keeper.Subspace(distrTypes.ModuleName)
+	keeper.Subspace(slashingTypes.ModuleName)
+	keeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
+	keeper.Subspace(crisisTypes.ModuleName)
+	keeper.Subspace(ibctransferTypes.ModuleName)
+
+	return keeper
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server

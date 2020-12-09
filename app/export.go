@@ -30,6 +30,7 @@ func (app *CertiKApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteL
 
 	genState := app.mm.ExportGenesis(ctx, app.appCodec)
 	appState, err := json.MarshalIndent(genState, "", "  ")
+
 	if err != nil {
 		return servertypes.ExportedApp{}, err
 	}
@@ -38,6 +39,7 @@ func (app *CertiKApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteL
 	if err != nil {
 		return servertypes.ExportedApp{}, err
 	}
+
 	return servertypes.ExportedApp{
 		AppState:        appState,
 		Validators:      validators,
