@@ -4,7 +4,13 @@ package app
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"os"
+
+	"github.com/gorilla/mux"
+	"github.com/rakyll/statik/fs"
+
+	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -12,7 +18,11 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/server/api"
+	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,12 +30,21 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	crisisKeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
+	crisisTypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+	"github.com/cosmos/cosmos-sdk/x/evidence"
+	evidenceKeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
+	evidenceTypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutilTypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	cosmosGov "github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramsKeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
+	upgradeKeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
+	upgradeTypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	appparams "github.com/certikfoundation/shentu/app/params"
 	"github.com/certikfoundation/shentu/x/auth"
@@ -41,7 +60,6 @@ import (
 	"github.com/certikfoundation/shentu/x/shield"
 	"github.com/certikfoundation/shentu/x/slashing"
 	"github.com/certikfoundation/shentu/x/staking"
-	"github.com/certikfoundation/shentu/x/upgrade"
 )
 
 const (
@@ -73,7 +91,7 @@ var (
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(
 			distr.ProposalHandler,
-			upgrade.ProposalHandler,
+			upgrade.NewSoftwareUpgradeProposalHandler,
 			cert.ProposalHandler,
 			paramsclient.ProposalHandler,
 			shield.ProposalHandler,
@@ -86,6 +104,7 @@ var (
 		cert.NewAppModuleBasic(),
 		oracle.NewAppModuleBasic(),
 		shield.NewAppModuleBasic(),
+		evidence.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -111,7 +130,8 @@ var (
 // CertiKApp is the main CertiK Chain application type.
 type CertiKApp struct {
 	*bam.BaseApp
-	cdc *codec.Codec
+	cdc      *codec.LegacyAmino
+	appCodec codec.Marshaler
 
 	invCheckPeriod uint
 
@@ -125,15 +145,16 @@ type CertiKApp struct {
 	slashingKeeper slashing.Keeper
 	mintKeeper     mint.Keeper
 	distrKeeper    distr.Keeper
-	crisisKeeper   crisis.Keeper
+	crisisKeeper   crisisKeeper.Keeper
 	paramsKeeper   params.Keeper
-	upgradeKeeper  upgrade.Keeper
+	upgradeKeeper  upgradeKeeper.Keeper
 	govKeeper      gov.Keeper
 	certKeeper     cert.Keeper
 	cvmKeeper      cvm.Keeper
 	authKeeper     auth.Keeper
 	oracleKeeper   oracle.Keeper
 	shieldKeeper   shield.Keeper
+	evidenceKeeper evidenceKeeper.Keeper
 
 	// module manager
 	mm *module.Manager
@@ -143,7 +164,7 @@ type CertiKApp struct {
 }
 
 // NewCertiKApp returns a reference to an initialized CertiKApp.
-func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool,
+func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool, homePath string,
 	invCheckPeriod uint, encodingConfig appparams.EncodingConfig, baseAppOptions ...func(*bam.BaseApp)) *CertiKApp {
 	// define top-level codec that will be shared between modules
 	appCodec := encodingConfig.Marshaler
@@ -159,17 +180,17 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		bam.MainStoreKey,
 		auth.StoreKey,
 		staking.StoreKey,
-		supply.StoreKey,
 		distr.StoreKey,
 		mint.StoreKey,
 		slashing.StoreKey,
 		paramsTypes.StoreKey,
-		upgrade.StoreKey,
+		upgradeTypes.StoreKey,
 		gov.StoreKey,
 		cert.StoreKey,
 		cvm.StoreKey,
 		oracle.StoreKey,
 		shield.StoreKey,
+		evidenceTypes.StoreKey,
 	}
 
 	for i := 0; i < keysReserved; i++ {
@@ -180,7 +201,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	tks := []string{
 		staking.TStoreKey,
-		params.TStoreKey,
+		paramsTypes.TStoreKey,
 	}
 
 	for i := 0; i < tkeysReserved; i++ {
@@ -192,7 +213,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// initialize application with its store keys
 	var app = &CertiKApp{
 		BaseApp:        bApp,
-		cdc:            cdc,
+		cdc:            legacyAmino,
 		invCheckPeriod: invCheckPeriod,
 		keys:           keys,
 		tkeys:          tkeys,
@@ -206,7 +227,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
 	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
-	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
+	app.paramsKeeper.Subspace(crisisTypes.ModuleName)
 	oracleSubspace := app.paramsKeeper.Subspace(oracle.DefaultParamSpace)
 	cvmSubspace := app.paramsKeeper.Subspace(cvm.DefaultParamSpace)
 	shieldSubspace := app.paramsKeeper.Subspace(shield.DefaultParamSpace)
@@ -223,13 +244,6 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		&app.cvmKeeper,
 		bankSubspace,
 		app.BlacklistedAccAddrs(),
-	)
-	app.supplyKeeper = supply.NewKeeper(
-		app.cdc,
-		keys[supply.StoreKey],
-		app.accountKeeper,
-		app.bankKeeper,
-		maccPerms,
 	)
 	stakingKeeper := staking.NewKeeper(
 		app.cdc,
@@ -288,16 +302,17 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.authKeeper = auth.NewKeeper(
 		app.certKeeper,
 	)
-	app.crisisKeeper = crisis.NewKeeper(
-		crisisSubspace,
+	app.crisisKeeper = crisisKeeper.NewKeeper(
+		app.GetSubspace(crisisTypes.ModuleName),
 		invCheckPeriod,
-		app.supplyKeeper,
-		auth.FeeCollectorName,
+		app.bankKeeper,
+		authtypes.FeeCollectorName,
 	)
-	app.upgradeKeeper = upgrade.NewKeeper(
+	app.upgradeKeeper = upgradeKeeper.NewKeeper(
 		skipUpgradeHeights,
-		keys[upgrade.StoreKey],
-		app.cdc,
+		keys[upgradeTypes.StoreKey],
+		appCodec,
+		DefaultNodeHome,
 	)
 	app.shieldKeeper = shield.NewKeeper(
 		app.cdc,
@@ -335,6 +350,13 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 			AddRoute(shield.RouterKey, shield.NewShieldClaimProposalHandler(app.shieldKeeper)),
 	)
 
+	// create evidence keeper with router
+	evidenceKeeper := evidenceKeeper.NewKeeper(
+		appCodec, keys[evidenceTypes.StoreKey], &app.stakingKeeper.Keeper, app.slashingKeeper,
+	)
+	// If evidence needs to be handled for the app, set routes in router here and seal
+	app.evidenceKeeper = *evidenceKeeper
+
 	// NOTE: Any module instantiated in the module manager that is
 	// later modified must be passed by reference here.
 	app.mm = module.NewManager(
@@ -342,12 +364,12 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		auth.NewAppModule(app.accountKeeper, app.certKeeper),
 		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
-		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper.Keeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper.Keeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper, app.certKeeper),
 		mint.NewAppModule(app.mintKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper.Keeper),
+		evidence.NewAppModule(app.evidenceKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		cvm.NewAppModule(app.cvmKeeper),
 		cert.NewAppModule(app.certKeeper, app.accountKeeper),
@@ -358,8 +380,8 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// NOTE: During BeginBlocker, slashing comes after distr so that
 	// there is nothing left over in the validator fee pool, so as to
 	// keep the CanWithdrawInvariant invariant.
-	app.mm.SetOrderBeginBlockers(upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
-		supply.ModuleName, oracle.ModuleName, cvm.ModuleName, shield.ModuleName)
+	app.mm.SetOrderBeginBlockers(upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName, evidenceTypes.ModuleName,
+		oracle.ModuleName, cvm.ModuleName, shield.ModuleName)
 
 	// NOTE: Shield endblocker comes before staking because it queries
 	// unbonding delegations that staking endblocker deletes.
@@ -375,12 +397,12 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashing.ModuleName,
 		gov.ModuleName,
 		mint.ModuleName,
-		supply.ModuleName,
 		cvm.ModuleName,
 		shield.ModuleName,
-		crisis.ModuleName,
+		crisisTypes.ModuleName,
 		cert.ModuleName,
-		genutil.ModuleName,
+		genutilTypes.ModuleName,
+		evidenceTypes.ModuleName,
 		oracle.ModuleName,
 	)
 
@@ -392,11 +414,10 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashing.ModuleName,
 		gov.ModuleName,
 		mint.ModuleName,
-		supply.ModuleName,
 		cvm.ModuleName,
-		crisis.ModuleName,
+		crisisTypes.ModuleName,
 		cert.ModuleName,
-		genutil.ModuleName,
+		genutilTypes.ModuleName,
 		oracle.ModuleName,
 		shield.ModuleName,
 	)
@@ -407,10 +428,10 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.sm = module.NewSimulationManager(
 		auth.NewAppModule(app.accountKeeper, app.certKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
-		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper.Keeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper.Keeper),
-		params.NewAppModule(),
+		params.NewAppModule(app.paramsKeeper),
+		evidence.NewAppModule(app.evidenceKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper, app.certKeeper),
 		mint.NewAppModule(app.mintKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
@@ -469,35 +490,81 @@ func MakeCodec() *codec.Codec {
 
 // LoadHeight loads a particular height
 func (app *CertiKApp) LoadHeight(height int64) error {
-	return app.LoadVersion(height, app.keys[bam.MainStoreKey])
+	return app.LoadVersion(height)
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
 func (app *CertiKApp) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
-		modAccAddrs[supply.NewModuleAddress(acc).String()] = true
+		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
 	return modAccAddrs
 }
 
 // BlacklistedAccAddrs returns all the app's module account addresses black listed for receiving tokens.
-func (app *CertiKApp) BlacklistedAccAddrs() map[string]bool {
-	blacklistedAddrs := make(map[string]bool)
+func (app *CertiKApp) BlockedAddrs() map[string]bool {
+	blockedAddrs := make(map[string]bool)
 	for acc := range maccPerms {
-		blacklistedAddrs[supply.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
+		blockedAddrs[authtypes.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
 	}
 
-	return blacklistedAddrs
+	return blockedAddrs
+}
+
+// GetSubspace returns a param subspace for a given module name.
+//
+// NOTE: This is solely to be used for testing purposes.
+func (app *CertiKApp) GetSubspace(moduleName string) paramsTypes.Subspace {
+	subspace, _ := app.paramsKeeper.GetSubspace(moduleName)
+	return subspace
 }
 
 // Codec returns app.cdc.
-func (app *CertiKApp) Codec() *codec.Codec {
+func (app *CertiKApp) Codec() *codec.LegacyAmino {
 	return app.cdc
 }
 
 // SimulationManager returns app.sm.
 func (app *CertiKApp) SimulationManager() *module.SimulationManager {
 	return app.sm
+}
+
+// RegisterSwaggerAPI registers swagger route with API Server
+func RegisterSwaggerAPI(ctx client.Context, rtr *mux.Router) {
+	statikFS, err := fs.New()
+	if err != nil {
+		panic(err)
+	}
+
+	staticServer := http.FileServer(statikFS)
+	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
+}
+
+// RegisterAPIRoutes registers all application module routes with the provided
+// API server.
+func (app *CertiKApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+	clientCtx := apiSvr.ClientCtx
+	rpc.RegisterRoutes(clientCtx, apiSvr.Router)
+	// Register legacy tx routes.
+	authrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
+	// Register new tx routes from grpc-gateway.
+	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCRouter)
+	// Register new tendermint queries routes from grpc-gateway.
+	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCRouter)
+
+	// Register legacy and grpc-gateway routes for all modules.
+	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
+	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCRouter)
+
+	// register swagger API from root so that other applications can override easily
+	if apiConfig.Swagger {
+		RegisterSwaggerAPI(clientCtx, apiSvr.Router)
+	}
+}
+
+// RegisterTxService implements the Application.RegisterTxService method.
+func (app *CertiKApp) RegisterTxService(clientCtx client.Context) {
+	authtx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
 }
