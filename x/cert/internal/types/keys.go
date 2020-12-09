@@ -2,7 +2,7 @@ package types
 
 import (
 	"crypto/sha256"
-	"encoding/hex"
+	"encoding/binary"
 
 	"github.com/tendermint/tendermint/crypto"
 
@@ -35,6 +35,11 @@ var (
 
 	// certifierAliasStoreKeyPrefix is the prefix of certifier alias kv-store keys.
 	certifierAliasStoreKeyPrefix = []byte{0x7}
+
+	nextCertificateIDKeyPrefix = []byte{0x8}
+	
+	CertifierCertIDsStoreKeyPrefix = []byte{0x9}
+	ContentCertIDStoreKeyPrefix    = []byte{0xA}
 )
 
 // CertifierStoreKey returns the kv-store key for the certifier registration.
@@ -68,39 +73,24 @@ func ValidatorsStoreKey() []byte {
 }
 
 // CertificateStoreKey returns the kv-store key for accessing a given certificate (ID).
-func CertificateStoreKey(bz []byte) []byte {
+func CertificateStoreKey(id uint64) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, id)
 	return concat(certificateStoreKeyPrefix, bz)
 }
 
-// CertificateStoreContentKey gets the prefix for certificate key of given certifier, certificate type,
-// content type, and content.
-func CertificateStoreContentKey(certType CertificateType, reqContentType RequestContentType, reqContent string) []byte {
-	content := concat(reqContentType.Bytes(), []byte(reqContent))
-	contentHash := sha256.Sum224(content)
-	return concat(
-		certificateStoreKeyPrefix,
-		certType.Bytes(),
-		contentHash[:],
-	)
+func CertifierCertIDsKey(certifier sdk.AccAddress) []byte {
+	return concat(CertifierCertIDsStoreKeyPrefix, certifier)
 }
 
-// GetCertificateID constructs CertificateID (hex string) given certificate information.
-// Its binary representation is the certificate store key without prefix.
-func GetCertificateID(certType CertificateType, reqContent RequestContent, i uint8) CertificateID {
-	// Construct certificate store key (without prefix):
-	// certificate type | sha224(request content type | request content) | uint8
-	bz := make([]byte, 1)
-	bz[0] = i
+func ContentCertIDKey(certType CertificateType, reqContentType RequestContentType, reqContent string) []byte {
+	contentHash := sha256.Sum224(concat(reqContentType.Bytes(), []byte(reqContent)))
+	return concat(ContentCertIDStoreKeyPrefix, certType.Bytes(), contentHash[:])
+}
 
-	content := concat(reqContent.RequestContentType.Bytes(), []byte(reqContent.RequestContent))
-	contentHash := sha256.Sum224(content)
-
-	keyWoPrefix := concat(
-		certType.Bytes(),
-		contentHash[:],
-		bz,
-	)
-	return CertificateID(hex.EncodeToString(keyWoPrefix))
+// NextCertificateIDKey gets the key for the next certificate ID.
+func NextCertificateIDKey() []byte {
+	return nextCertificateIDKeyPrefix
 }
 
 // CertificatesStoreKey returns the kv-store key for accessing all certificates.
