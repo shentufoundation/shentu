@@ -46,7 +46,11 @@ func (k msgServer) Unlock(goCtx context.Context, msg *types.MsgUnlock) (*types.M
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a manual vesting account")
 	}
 
-	if !issuerAddr.Equals(mvacc.Unlocker) {
+	unlocker, err := sdk.AccAddressFromBech32(mvacc.Unlocker)
+	if err != nil {
+		return nil, err
+	}
+	if !issuerAddr.Equals(unlocker) {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "sender of this transaction is not the designated unlocker")
 	}
 

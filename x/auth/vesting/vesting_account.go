@@ -17,39 +17,16 @@ import (
 var _ vestexported.VestingAccount = (*ManualVestingAccount)(nil)
 var _ authexported.GenesisAccount = (*ManualVestingAccount)(nil)
 
-/* TODO
-import customauth "github.com/certikfoundation/shentu/x/auth/types"
-
-func init() {
-	customauth.RegisterAccountTypeCodec(&vesttypes.BaseVestingAccount{}, "cosmos-sdk/BaseVestingAccount")
-	customauth.RegisterAccountTypeCodec(&vesttypes.ContinuousVestingAccount{}, "cosmos-sdk/ContinuousVestingAccount")
-	customauth.RegisterAccountTypeCodec(&vesttypes.DelayedVestingAccount{}, "cosmos-sdk/DelayedVestingAccount")
-	customauth.RegisterAccountTypeCodec(&vesttypes.PeriodicVestingAccount{}, "cosmos-sdk/PeriodicVestingAccount")
-	customauth.RegisterAccountTypeCodec(&ManualVestingAccount{}, "auth/ManualVestingAccount")
-	customauth.RegisterAccountTypeCodec(&supply.ModuleAccount{}, "cosmos-sdk/ModuleAccount")
-
-	authtypes.RegisterAccountTypeCodec(&ManualVestingAccount{}, "auth/ManualVestingAccount")
-}
-*/
-
 //-----------------------------------------------------------------------------
 // Manual Vesting Account
 //
-
-// ManualVestingAccount implements the VestingAccount interface.
-type ManualVestingAccount struct {
-	*vesttypes.BaseVestingAccount
-
-	VestedCoins sdk.Coins      `json:"vested_coins" yaml:"vested_coins"`
-	Unlocker    sdk.AccAddress `json:"unlocker" yaml:"unlocker"`
-}
 
 // NewManualVestingAccountRaw creates a new ManualVestingAccount object from BaseVestingAccount.
 func NewManualVestingAccountRaw(bva *vesttypes.BaseVestingAccount, vestedCoins sdk.Coins, unlocker sdk.AccAddress) *ManualVestingAccount {
 	return &ManualVestingAccount{
 		BaseVestingAccount: bva,
 		VestedCoins:        vestedCoins,
-		Unlocker:           unlocker,
+		Unlocker:           unlocker.String(),
 	}
 }
 
@@ -62,7 +39,7 @@ func NewManualVestingAccount(baseAcc *authtypes.BaseAccount, origVesting, vested
 	return &ManualVestingAccount{
 		BaseVestingAccount: baseVestingAcc,
 		VestedCoins:        vestedCoins,
-		Unlocker:           unlocker,
+		Unlocker:           unlocker.String(),
 	}
 }
 
@@ -127,6 +104,10 @@ func (mva ManualVestingAccount) MarshalYAML() (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+	unlocker, err := sdk.AccAddressFromBech32(mva.Unlocker)
+	if err != nil {
+		return nil, err
+	}
 
 	alias := manualVestingAccountYAML{
 		Address:          accAddr,
@@ -137,7 +118,7 @@ func (mva ManualVestingAccount) MarshalYAML() (interface{}, error) {
 		DelegatedVesting: mva.DelegatedVesting,
 		EndTime:          mva.EndTime,
 		VestedCoins:      mva.VestedCoins,
-		Unlocker:         mva.Unlocker,
+		Unlocker:         unlocker,
 	}
 
 	pk := mva.GetPubKey()
