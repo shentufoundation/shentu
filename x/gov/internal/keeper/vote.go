@@ -41,7 +41,7 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 		return sdkerrors.Wrapf(govTypes.ErrInvalidVote, "'%s' is not a certifier.", voterAddr)
 	}
 
-	if proposal.Content.ProposalType() == shield.ProposalTypeShieldClaim &&
+	if proposal.GetContent().ProposalType() == shield.ProposalTypeShieldClaim &&
 		proposal.Status == types.StatusValidatorVotingPeriod &&
 		!k.IsCertifiedIdentity(ctx, voterAddr) {
 		return sdkerrors.Wrapf(govTypes.ErrInvalidVote, "'%s' is not a certified identity", voterAddr)

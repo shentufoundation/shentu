@@ -87,6 +87,10 @@ proto-all: proto-format proto-lint proto-check-breaking proto-gen
 proto-gen:
 	@./devtools/protocgen.sh
 
+proto-gen-docker:
+	@echo "Generating Protobuf files"
+	$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace tendermintdev/sdk-proto-gen sh ./devtools/protocgen.sh
+
 proto-format:
 	find ./ -not -path "./third_party/*" -name *.proto -exec clang-format -i {} \;
 

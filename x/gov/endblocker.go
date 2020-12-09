@@ -33,14 +33,14 @@ func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 
 func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
-		c := proposal.Content.(shield.ClaimProposal)
+		c := proposal.GetContent().(shield.ClaimProposal)
 		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalID, c.PoolID, c.Loss)
 	}
 }
 
 func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
-		c := proposal.Content.(shield.ClaimProposal)
+		c := proposal.GetContent().(shield.ClaimProposal)
 		proposer, err := sdk.AccAddressFromBech32(proposal.ProposerAddress)
 		if err != nil {
 			panic(err)
@@ -88,7 +88,7 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal types.Prop
 		// The proposal handler may execute state mutating logic depending on the
 		// proposal content. If the handler fails, no state mutation is written and
 		// the error message is logged.
-		err := handler(cacheCtx, proposal.Content)
+		err := handler(cacheCtx, proposal.GetContent())
 		if err == nil {
 			proposal.Status = types.StatusPassed
 			tagValue = govTypes.AttributeValueProposalPassed
@@ -149,7 +149,7 @@ func processSecurityVote(ctx sdk.Context, k keeper.Keeper, proposal types.Propos
 		// The proposal handler may execute state mutating logic depending on the
 		// proposal content. If the handler fails, no state mutation is written and
 		// the error message is logged.
-		err := handler(cacheCtx, proposal.Content)
+		err := handler(cacheCtx, proposal.GetContent())
 		if err == nil {
 			proposal.Status = types.StatusPassed
 			tagValue = govTypes.AttributeValueProposalPassed

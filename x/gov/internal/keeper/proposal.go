@@ -110,11 +110,14 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govTypes.Content, addr s
 	if content.ProposalType() == shield.ProposalTypeShieldClaim {
 		c := content.(shield.ClaimProposal)
 		c.ProposalID = proposalID
-		proposal = types.NewProposal(c, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
+		proposal, err = types.NewProposal(c, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
 	} else {
-		proposal = types.NewProposal(content, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
+		proposal, err = types.NewProposal(content, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
 	}
-
+	if err != nil {
+		return types.Proposal{}, err
+	}
+	
 	k.SetProposal(ctx, proposal)
 	k.InsertInactiveProposalQueue(ctx, proposalID, proposal.DepositEndTime)
 	k.SetProposalID(ctx, proposalID+1)

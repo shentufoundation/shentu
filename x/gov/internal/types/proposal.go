@@ -8,33 +8,48 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
+	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	proto "github.com/gogo/protobuf/proto"
 
 	"github.com/certikfoundation/shentu/x/cert"
 	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // NewProposal returns a new proposal.
-func NewProposal(content types.Content, id uint64, proposerAddress sdk.AccAddress, isProposerCouncilMember bool, submitTime time.Time, depositEndTime time.Time) Proposal {
-	return Proposal{
-		Content:                 content,
+func NewProposal(content govtypes.Content, id uint64, proposerAddress sdk.AccAddress, isProposerCouncilMember bool, submitTime time.Time, depositEndTime time.Time) (Proposal, error) {
+	p := Proposal{
 		ProposalId:              id,
 		Status:                  StatusDepositPeriod,
 		IsProposerCouncilMember: isProposerCouncilMember,
 		ProposerAddress:         proposerAddress.String(),
-		FinalTallyResult:        types.EmptyTallyResult(),
+		FinalTallyResult:        govtypes.EmptyTallyResult(),
 		TotalDeposit:            sdk.NewCoins(),
 		SubmitTime:              submitTime,
 		DepositEndTime:          depositEndTime,
 	}
+
+	msg, ok := content.(proto.Message)
+	if !ok {
+		return Proposal{}, fmt.Errorf("%T does not implement proto.Message", content)
+	}
+
+	any, err := types.NewAnyWithValue(msg)
+	if err != nil {
+		return Proposal{}, err
+	}
+
+	p.Content = any
+
+	return p, nil
 }
 
 // GetContent returns the proposal Content
-func (p Proposal) GetContent() types.Content {
-	content, ok := p.Content.GetCachedValue().(Content)
+func (p Proposal) GetContent() govtypes.Content {
+	content, ok := p.Content.GetCachedValue().(govtypes.Content)
 	if !ok {
 		return nil
 	}
@@ -74,8 +89,8 @@ func (p Proposal) ProposalRoute() string {
 // HasSecurityVoting returns true if the proposal needs to go through security
 // (certifier) voting before stake (validator) voting.
 func (p Proposal) HasSecurityVoting() bool {
-	switch p.Content.(type) {
-	case upgradetypes.SoftwareUpgradeProposal, cert.CertifierUpdateProposal, shieldtypes.ShieldClaimProposal:
+	switch p.GetContent().(type) {
+	case *upgradetypes.SoftwareUpgradeProposal, cert.CertifierUpdateProposal, shieldtypes.ShieldClaimProposal:
 		return true
 	default:
 		return false
@@ -177,7 +192,7 @@ const (
 // proposals (ie. TextProposal and SoftwareUpgradeProposal). Since these are
 // merely signaling mechanisms at the moment and do not affect state, it
 // performs a no-op.
-func ProposalHandler(_ sdk.Context, c types.Content) error {
+func ProposalHandler(_ sdk.Context, c govtypes.Content) error {
 	switch c.ProposalType() {
 	case ProposalTypeText, ProposalTypeSoftwareUpgrade:
 		// both proposal types do not change state so this performs a no-op

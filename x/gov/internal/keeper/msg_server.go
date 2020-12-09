@@ -108,7 +108,7 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 			return cert.ErrRepeatedAlias
 		}
 
-	case upgrade.SoftwareUpgradeProposal:
+	case *upgrade.SoftwareUpgradeProposal:
 		return k.UpgradeKeeper.ValidatePlan(ctx, c.Plan)
 
 	case shield.ClaimProposal:
@@ -155,7 +155,7 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 
 func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, proposal types.Proposal) error {
 	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
-		c := proposal.Content.(shield.ClaimProposal)
+		c := proposal.GetContent().(shield.ClaimProposal)
 		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
 		return k.ShieldKeeper.SecureCollaterals(ctx, c.PoolID, c.Proposer, c.PurchaseID, c.Loss, lockPeriod)
 	}

@@ -78,7 +78,7 @@ func Tally(ctx sdk.Context, k Keeper, proposal types.Proposal) (pass bool, veto 
 		tp,
 		results,
 	}
-	if proposal.Content.ProposalType() == shield.ProposalTypeShieldClaim {
+	if proposal.GetContent().ProposalType() == shield.ProposalTypeShieldClaim {
 		pass, veto = passAndVetoStakeResultForShieldClaim(k, ctx, th)
 	} else {
 		pass, veto = passAndVetoStakeResult(k, ctx, th)
@@ -284,7 +284,7 @@ func SecurityTally(ctx sdk.Context, k Keeper, proposal types.Proposal) (bool, bo
 	//
 	// For other proposal types (SoftwareUpgrade, etc.): Only continue to stake
 	// round if security round passed (must pass both rounds).
-	_, isCert := proposal.Content.(cert.CertifierUpdateProposal)
+	_, isCert := proposal.GetContent().(cert.CertifierUpdateProposal)
 	endVoting = (pass && isCert) || (!pass && !isCert)
 
 	return pass, endVoting, tallyResults

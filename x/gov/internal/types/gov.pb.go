@@ -5,6 +5,7 @@ package types
 
 import (
 	fmt "fmt"
+	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types1 "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -14,7 +15,6 @@ import (
 	_ "github.com/golang/protobuf/ptypes/duration"
 	_ "github.com/golang/protobuf/ptypes/timestamp"
 	_ "github.com/regen-network/cosmos-proto"
-	//protobuf "google/protobuf"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -258,7 +258,7 @@ func (m *TallyParams) XXX_DiscardUnknown() {
 var xxx_messageInfo_TallyParams proto.InternalMessageInfo
 
 type Proposal struct {
-	Content                 *protobuf.Any                            `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
+	Content                 *types2.Any                              `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
 	ProposalId              uint64                                   `protobuf:"varint,2,opt,name=proposal_id,json=proposalId,proto3" json:"id" yaml:"id"`
 	Status                  ProposalStatus                           `protobuf:"varint,3,opt,name=status,proto3,enum=shentu.gov.v1alpha1.ProposalStatus" json:"status,omitempty" yaml:"proposal_status"`
 	IsProposerCouncilMember bool                                     `protobuf:"varint,4,opt,name=is_proposer_council_member,json=isProposerCouncilMember,proto3" json:"is_proposer_council_member,omitempty" yaml:"is_proposer_council_member"`
@@ -1871,7 +1871,7 @@ func (m *Proposal) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Content == nil {
-				m.Content = &protobuf.Any{}
+				m.Content = &types2.Any{}
 			}
 			if err := m.Content.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
