@@ -50,7 +50,7 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &certifierB)
 		return fmt.Sprintf("%v\n%v", certifierA, certifierB)
 
-	case bytes.Equal(kvA.Key[:1], types.NextCertificateIDKey()):
+	case bytes.Equal(kvA.Key[:1], types.NextCertificateIDKey()), bytes.Equal(kvA.Key[:1], types.ContentCertIDStoreKeyPrefix):
 		var idA, idB uint64
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &idA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &idB)
@@ -61,12 +61,6 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &idsA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &idsB)
 		return fmt.Sprintf("%v\n%v", idsA, idsB)
-
-	case bytes.Equal(kvA.Key[:1], types.ContentCertIDStoreKeyPrefix):
-		var idA, idB uint64
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &idA)
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &idB)
-		return fmt.Sprintf("%v\n%v", idA, idB)
 
 	default:
 		panic(fmt.Sprintf("invalid %s key prefix %X", types.ModuleName, kvA.Key[:1]))
