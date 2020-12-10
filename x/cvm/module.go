@@ -22,6 +22,7 @@ import (
 
 	"github.com/certikfoundation/shentu/x/cvm/client/cli"
 	"github.com/certikfoundation/shentu/x/cvm/client/rest"
+	"github.com/certikfoundation/shentu/x/cvm/internal/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/internal/types"
 	"github.com/certikfoundation/shentu/x/cvm/simulation"
 )
@@ -79,12 +80,7 @@ func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux 
 
 // GetTxCmd returns the root tx command for the gov module.
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
-	proposalCLIHandlers := make([]*cobra.Command, 0, len(a.proposalHandlers))
-	for _, proposalHandler := range a.proposalHandlers {
-		proposalCLIHandlers = append(proposalCLIHandlers, proposalHandler.CLIHandler())
-	}
-
-	return cli.NewTxCmd(proposalCLIHandlers)
+	return cli.NewTxCmd()
 }
 
 // GetQueryCmd returns the root query command for the gov module.
@@ -146,8 +142,15 @@ func (am AppModule) NewHandler() sdk.Handler {
 }
 
 // NewQuerierHandler returns a new querier module handler.
-func (am AppModule) NewQuerierHandler() sdk.Querier {
+func (am AppModule) LegacyQuerierHandler() sdk.Querier {
 	return NewQuerier(am.keeper)
+}
+
+// RegisterServices registers module services.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	querier := keeper.Querier{Keeper: am.keeper}
+	types.RegisterQueryServer(cfg.QueryServer(), querier)
 }
 
 // QuerierRoute returns the module querier route name.

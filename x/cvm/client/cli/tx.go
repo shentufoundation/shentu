@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/client/tx"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -51,29 +53,35 @@ type abiEntry struct {
 }
 
 // GetTxCmd returns the transaction commands for this module
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+func NewTxCmd() *cobra.Command {
 	ctkTxCmd := &cobra.Command{
 		Use:   "cvm",
 		Short: "CVM transactions subcommands",
 	}
 
 	ctkTxCmd.AddCommand(
-		GetCmdCall(cdc),
-		GetCmdDeploy(cdc),
+		GetCmdCall(),
+		GetCmdDeploy(),
 	)
 
 	return ctkTxCmd
 }
 
 // GetCmdCall returns the CVM contract call transaction command.
-func GetCmdCall(cdc *codec.Codec) *cobra.Command {
+func GetCmdCall() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "call <address> <function> [<params>...]",
 		Short: "Call CVM contract",
 		Args:  cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.ReadTxCommandFlags(clientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+
 			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			from := cliCtx.GetFromAddress()
@@ -127,15 +135,15 @@ func GetCmdCall(cdc *codec.Codec) *cobra.Command {
 					}
 					fmt.Println(args[1] + " is a " + entry.Type + " function - Attempting to re-route to query")
 					queryPath := fmt.Sprintf("custom/%s/view/%s/%s", types.QuerierRoute, from, callee)
-					return queryContractAndPrint(cliCtx, cdc, queryPath, args[1], abiSpec, data)
+					return queryContractAndPrint(clientCtx, , queryPath, args[1], abiSpec, data)
 				}
 			}
 			value := viper.GetUint64(FlagValue)
-			msg := types.NewMsgCall(from, callee, value, data)
+			msg := types.NewMsgCall(from, callee.String(), value, data)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, &msg)
 		},
 	}
 	cmd.Flags().Bool(FlagRaw, false,
@@ -145,7 +153,7 @@ func GetCmdCall(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-func parseCallCmd(cliCtx client.CLIContext, calleeString string, calleeAddr sdk.AccAddress, function string, args []string) ([]byte, []byte, error) {
+func parseCallCmd(cliCtx client.Context, calleeString string, calleeAddr sdk.AccAddress, function string, args []string) ([]byte, []byte, error) {
 	accGetter := authtxb.NewAccountRetriever(cliCtx)
 	if err := accGetter.EnsureExists(calleeAddr); err != nil {
 		return nil, nil, err
@@ -165,7 +173,7 @@ func parseCallCmd(cliCtx client.CLIContext, calleeString string, calleeAddr sdk.
 }
 
 // GetCmdDeploy returns the CVM contract deploy transaction command.
-func GetCmdDeploy(cdc *codec.Codec) *cobra.Command {
+func GetCmdDeploy() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deploy <filename> <flags>..",
 		Short: "Deploy CVM contract(s)",
@@ -201,7 +209,7 @@ func GetCmdDeploy(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-func appendDeployMsgs(cmd *cobra.Command, cliCtx client.CLIContext, msgs []sdk.Msg, fileName string) ([]sdk.Msg, error) {
+func appendDeployMsgs(cmd *cobra.Command, cliCtx client.Context, msgs []sdk.Msg, fileName string) ([]sdk.Msg, error) {
 	argumentsRaw := viper.GetString(FlagArgs)
 	arguments := strings.Split(argumentsRaw, ",")
 	deployContract := viper.GetString(FlagContract)
@@ -346,7 +354,7 @@ func callEVM(cmd *cobra.Command, filename string) (*evm.Response, error) {
 }
 
 // QueryTxCmd implements the default command for a tx query.
-func QueryTxCmd(cdc *codec.Codec) *cobra.Command {
+func QueryTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "tx [hash]",
 		Short: "Query for a transaction by hash in a committed block",
