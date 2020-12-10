@@ -90,11 +90,11 @@ func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 // AppModule specifies the app module object.
 type AppModule struct {
 	AppModuleBasic
-	keeper Keeper
+	keeper keeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k Keeper) AppModule {
+func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(),
 		keeper:         k,
@@ -103,7 +103,7 @@ func NewAppModule(k Keeper) AppModule {
 
 // Route returns the module's route key.
 func (AppModule) Route() string {
-	return RouterKey
+	return types.RouterKey
 }
 
 // BeginBlock implements the Cosmos SDK BeginBlock module function.
@@ -137,7 +137,7 @@ func (am AppModule) NewHandler() sdk.Handler {
 
 // NewQuerierHandler returns a new querier module handler.
 func (am AppModule) LegacyQuerierHandler() sdk.Querier {
-	return NewQuerier(am.keeper)
+	return keeper.NewQuerier(am.keeper)
 }
 
 // RegisterServices registers module services.
@@ -149,7 +149,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // QuerierRoute returns the module querier route name.
 func (AppModule) QuerierRoute() string {
-	return QuerierRoute
+	return types.QuerierRoute
 }
 
 // RegisterInvariants registers the module invariants.
@@ -162,7 +162,7 @@ func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 
 // RegisterStoreDecoder registers a decoder for cvm module.
 func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[StoreKey] = simulation.NewDecodeStore(am.cdc)
+	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations returns cvm operations for use in simulations.

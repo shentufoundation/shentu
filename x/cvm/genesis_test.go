@@ -21,13 +21,13 @@ func TestExportGenesis(t *testing.T) {
 	code, err := hex.DecodeString(keeper.BasicTestsBytecodeString)
 	require.Nil(t, err)
 
-	_, _ = k.Call(ctx, keeper.Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
+	_, _ = k.Tx(ctx, keeper.Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 	exported := ExportGenesis(ctx, k)
 
 	testInput2 := keeper.CreateTestInput(t)
 	ctx2 := testInput2.Ctx
 	k2 := testInput2.CvmKeeper
-	InitGenesis(ctx2, k2, exported)
+	InitGenesis(ctx2, k2, *exported)
 	exported2 := ExportGenesis(ctx, k)
 
 	fmt.Println(exported)

@@ -10,7 +10,7 @@ import (
 )
 
 // NewHandler returns a handler for "cvm" type messages.
-func NewHandler(k Keeper) sdk.Handler {
+func NewHandler(k keeper.Keeper) sdk.Handler {
 	msgServer := keeper.NewMsgServerImpl(k)
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		switch msg := msg.(type) {

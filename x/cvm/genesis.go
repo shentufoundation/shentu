@@ -16,7 +16,7 @@ import (
 	"github.com/certikfoundation/shentu/x/cvm/internal/types"
 )
 
-func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.ValidatorUpdate {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []abci.ValidatorUpdate {
 	k.SetGasRate(ctx, data.GasRate)
 	state := k.NewState(ctx)
 
@@ -109,12 +109,12 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 	return []abci.ValidatorUpdate{}
 }
 
-func ExportGenesis(ctx sdk.Context, k Keeper) *types.GenesisState {
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	gasRate := k.GetGasRate(ctx)
 	contracts := k.GetAllContracts(ctx)
 	metadatas := k.GetAllMetas(ctx)
 
-	return &GenesisState{
+	return &types.GenesisState{
 		GasRate:   gasRate,
 		Contracts: contracts,
 		Metadatas: metadatas,
