@@ -2,7 +2,6 @@ package oracle
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -22,8 +21,6 @@ import (
 	"github.com/hyperledger/burrow/logging"
 
 	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/toolsets/oracle-operator/types"
-	"github.com/certikfoundation/shentu/x/cvm"
 	"github.com/certikfoundation/shentu/x/cvm/compile"
 )
 
@@ -89,49 +86,6 @@ func CompleteAndBroadcastTx(cliCtx context.CLIContext, txBldr authtypes.TxBuilde
 	}
 
 	return res, nil
-}
-
-// callContract calls contract on certik-chain.
-func callContract(ctx types.Context, calleeString string, function string, args []string) (bool, string, error) {
-	cliCtx := ctx.ClientContext()
-
-	calleeAddr, err := sdk.AccAddressFromBech32(calleeString)
-	if err != nil {
-		return false, "", err
-	}
-	accGetter := authtypes.NewAccountRetriever(cliCtx)
-	if err := accGetter.EnsureExists(calleeAddr); err != nil {
-		return false, "", err
-	}
-
-	abiSpec, err := queryAbi(cliCtx, cvm.QuerierRoute, calleeString)
-	if err != nil {
-		return false, "", err
-	}
-
-	data, err := parseData(function, abiSpec, args, logging.NewNoopLogger())
-	if err != nil {
-		return false, "", err
-	}
-
-	// Decode abiSpec to check if the called function's type is view or pure.
-	// If it is, reroute to query.
-	var abiEntries []types.ABIEntry
-	err = json.Unmarshal(abiSpec, &abiEntries)
-	if err != nil {
-		return false, "", err
-	}
-	for _, entry := range abiEntries {
-		if entry.Name != function {
-			continue
-		}
-		if entry.Type != "view" && entry.Type != "pure" {
-			return false, "", fmt.Errorf("getInsight function should be view or pure function")
-		}
-		queryPath := fmt.Sprintf("custom/%s/view/%s/%s", cvm.QuerierRoute, cliCtx.GetFromAddress(), calleeAddr)
-		return queryContract(cliCtx, queryPath, function, abiSpec, data)
-	}
-	return false, "", fmt.Errorf("function %s was not found in abi", function)
 }
 
 // parseData parses Data for contract on certik chain

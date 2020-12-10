@@ -14,8 +14,8 @@ type Strategy struct {
 
 // Primitive specifies primitive configuration.
 type Primitive struct {
-	PrimitiveContractAddr string  `mapstructure:"primitive_contract_address"`
-	Weight                float32 `mapstructure:"weight"`
+	PrimitiveType string  `mapstructure:"primitive_type"`
+	Weight        float32 `mapstructure:"weight"`
 }
 
 // PrimitiveScore groups returned score and related info from primitive.

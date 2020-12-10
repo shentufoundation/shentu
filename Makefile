@@ -68,8 +68,8 @@ build-linux:
 	mkdir -p ./build
 	docker build --tag shentu ./
 	docker create --name temp shentu:latest
-	docker cp temp:/usr/local/bin/certikd ./build/
-	docker cp temp:/usr/local/bin/certikcli ./build/
+	docker cp temp:/shentu/build/certikd ./build/
+	docker cp temp:/shentu/build/certikcli ./build/
 	docker rm temp
 
 ########## Tools ##########
