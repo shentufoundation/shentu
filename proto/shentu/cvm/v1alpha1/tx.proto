@@ -10,6 +10,7 @@ option go_package = "github.com/certikfoundation/shentu/x/cvm/internal/types";
 service Msg {
   rpc Call(MsgCall) returns (MsgCallResponse);
   rpc Deploy(MsgDeploy) returns (MsgDeployResponse);
+  rpc View(MsgView) returns (MsgViewResponse);
 }
 
 message MsgCall {
@@ -47,5 +48,15 @@ message MsgDeploy {
 }
 
 message MsgDeployResponse {
+  bytes result = 1;
+}
+
+message MsgView {
+  string caller = 1;
+  string callee = 2;
+  string data = 3;
+}
+
+message MsgViewResponse {
   bytes result = 1;
 }

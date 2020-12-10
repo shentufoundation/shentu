@@ -4,20 +4,19 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	auth_types "github.com/cosmos/cosmos-sdk/x/auth/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/certikfoundation/shentu/x/cvm/internal/types"
 )
 
 // QueryCVMAccount is to query the cvm contract related info by addresss
-func QueryCVMAccount(cliCtx client.CLIContext, address string, account exported.Account) (*types.CVMAccount, error) {
+func QueryCVMAccount(cliCtx client.Context, address string, account *authtypes.AccountI) (*types.CVMAccount, error) {
 	cvmCodeRes, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cvm/code/%s", address), nil)
 	if err != nil {
 		return nil, err
 	}
 	var cvmCodeOut types.QueryResCode
-	cliCtx.Codec.MustUnmarshalJSON(cvmCodeRes, &cvmCodeOut)
+	cliCtx.LegacyAmino.MustUnmarshalJSON(cvmCodeRes, &cvmCodeOut)
 	cvmCode := cvmCodeOut.Code
 	if cvmCode.String() == "" {
 		return nil, ErrEmptyCVMCode
@@ -28,22 +27,22 @@ func QueryCVMAccount(cliCtx client.CLIContext, address string, account exported.
 		return nil, err
 	}
 	var cvmAbiOut types.QueryResAbi
-	cliCtx.Codec.MustUnmarshalJSON(cvmAbiRes, &cvmAbiOut)
+	cliCtx.LegacyAmino.MustUnmarshalJSON(cvmAbiRes, &cvmAbiOut)
 	cvmAbi := string(cvmAbiOut.Abi)
 	if cvmAbi == "" {
 		return nil, ErrEmptyCVMAbi
 	}
 
-	baseAcc, ok := account.(*auth_types.BaseAccount)
+	baseAcc, ok := account.(*authtypes.BaseAccount)
 	if !ok {
 		return nil, ErrBaseAccount
 	}
 
-	cvmAcc := types.NewCVMAccount(
-		baseAcc,
-		cvmCodeOut.Code,
-		cvmAbi,
-	)
+	cvmAcc := types.CVMAccount{
+		BaseAccount: baseAcc,
+		Code:        string(cvmCodeOut.Code),
+		Abi:         cvmAbi,
+	}
 
-	return cvmAcc, nil
+	return &cvmAcc, nil
 }

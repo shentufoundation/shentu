@@ -41,10 +41,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 
 		// Address Metadata is stored separately.
 		var addrMetas []*acm.ContractMeta
-		for _, addrMeta := range contract.ContractMeta {
+		for _, addrMeta := range contract.Meta {
 			newMeta := acm.ContractMeta{
 				CodeHash:     addrMeta.CodeHash,
-				MetadataHash: addrMeta.Metadatahash,
+				MetadataHash: addrMeta.MetadataHash,
 			}
 			addrMetas = append(addrMetas, &newMeta)
 		}
@@ -68,10 +68,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 			balance = account.Balance
 		}
 		var evmCode, wasmCode acm.Bytecode
-		if contract.CVMCode.CodeType == types.CVMCodeTypeEVMCode {
-			evmCode = contract.CVMCode.Code
+		if contract.Code.CodeType == types.CVMCodeTypeEVMCode {
+			evmCode = contract.Code.Code
 		} else {
-			wasmCode = contract.CVMCode.Code
+			wasmCode = contract.Code.Code
 		}
 		newAccount := acm.Account{
 			Address:  cryptoAddr,
