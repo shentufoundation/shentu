@@ -10,7 +10,7 @@ Oracle Operator listens to the `creat_task` event from CertiK Chain, queries the
   ```
 2. Create the oracle operator configuration file in `certikcli` home (default `.certikcli/config/oracle-operator.toml`). See template at [oracle-operator.toml](oracle-operator.toml):
   - `type`: Aggregation type, e.g. `linear`. Check [Strategy](STRATEGY.md).
-  - `primitive_contract_address`: security primitive contract address.
+  - `primitive_type`: security primitive contract type.
   - `weight`: the weight of the result from the corresponding primitive to the final result.
 3. Run the oracle operator by the following command.
   ```bash
@@ -32,37 +32,21 @@ Contract addresses in security oracle tasks are prefixed with the chain identifi
 [strategy.eth]
 type = "linear"
 [[stragety.eth.primitive]]
-primitive_contract_address = "certik111..."
+primitive_type = "whitelist"
 weight = 0.1
 [[stragety.eth.primitive]]
-primitive_contract_address = "certik222..."
+primitive_type = "bytecode"
 weight = 0.1
 
 [strategy.bsc]
 type = "linear"
 [[stragety.bsc.primitive]]
-primitive_contract_address = "certik333..."
+primitive_type = "sourcecode"
 weight = 0.1
 [[stragety.bsc.primitive]]
-primitive_contract_address = "certik444..."
+primitive_type = "blacklist"
 weight = 0.1
 ```
-
-### How to Deploy SecurityPrimitive Contract on CertiK Chain
-
-Security Primitive Contract wraps a security endpoint to chain.
-
-1. Set function `getEndpointUrl` based on template at [SecurityPrimtive.sol](contracts/SecurityPrimitive.sol).
-2. Deploy your SecurityPrimitive Contract on CertiK Chain
-  ```bash
-  certikcli tx cvm deploy SecurityPrimitive.sol --args <security-primitive-endpoint> --from <account> --gas-prices 0.025uctk --gas-adjustment 2.0 --gas auto -y -b block
-  ```
-3. Record your SecurityPrimitive Contract's address `new-contract-address` from screen output.
-4. Check your PrimitivePrimitive Contract by querying `getInsight` function.
-  ```bash
-  certikcli tx cvm call <primitive-contract-address> "getInsight" "0x00000000000000000000" "0x0100" --from <account> --gas-prices 0.025uctk --gas-adjustment 2.0 --gas auto -y -b block
-  ```
-5. Set your contract address in the oracle-operator configuration file (`~/.certikcli/config/oracle-operator.toml`).
 
 ## Modules
 
