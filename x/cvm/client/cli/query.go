@@ -10,14 +10,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/hyperledger/burrow/execution/evm/abi"
 
-	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/x/cvm/client/utils"
 	"github.com/certikfoundation/shentu/x/cvm/internal/types"
 )
 
@@ -92,7 +89,7 @@ func GetCmdView() *cobra.Command {
 }
 
 // Query CVM contract code based on ABI spec and print function output.
-func queryContractAndPrint(cliCtx client.Context, cdc *codec.Codec, queryPath, fname string, abiSpec, data []byte) error {
+func queryContractAndPrint(cliCtx client.Context, cdc *codec.LegacyAmino, queryPath, fname string, abiSpec, data []byte) error {
 	res, _, err := cliCtx.QueryWithData(queryPath, data)
 	if err != nil {
 		return fmt.Errorf("querying CVM contract code: %v", err)
@@ -103,15 +100,11 @@ func queryContractAndPrint(cliCtx client.Context, cdc *codec.Codec, queryPath, f
 	if err != nil {
 		return fmt.Errorf("decoding function return: %v", err)
 	}
-	err = cliCtx.PrintOutput(ret)
-	if err != nil {
-		return fmt.Errorf("printing output: %v", err)
-	}
-	return nil
+	return cliCtx.PrintOutput(ret)
 }
 
 // GetCmdCode returns the CVM code query command.
-func GetCmdCode(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
+func GetCmdCode() *cobra.Command {
 	return &cobra.Command{
 		Use:   "code <address>",
 		Short: "Get CVM contract code",
@@ -122,23 +115,26 @@ func GetCmdCode(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			queryClient := types.NewQueryClient(clientCtx)
 			addr := args[0]
 
-			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/code/%s", queryRoute, addr), nil)
-			if err != nil {
-				fmt.Printf("could not get CVM contract code\n" + err.Error() + "\n")
-				return nil
+			req := &types.QueryCodeRequest{
+				Address: addr,
 			}
 
-			var out types.QueryResCode
-			cdc.MustUnmarshalJSON(res, &out)
-			return clientCtx.PrintOutput(out)
+			res, err := queryClient.Code(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintOutput(res)
 		},
 	}
 }
 
 // GetCmdStorage returns the CVM storage query command.
-func GetCmdStorage(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
+func GetCmdStorage() *cobra.Command {
 	return &cobra.Command{
 		Use:   "storage <address> <key>",
 		Short: "Get CVM storage data",
@@ -149,24 +145,29 @@ func GetCmdStorage(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			queryClient := types.NewQueryClient(clientCtx)
 			addr := args[0]
 			key := args[1]
 
-			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/storage/%s/%s", queryRoute, addr, key), nil)
+			req := &types.QueryStorageRequest{
+				Address: addr,
+				Key:     key,
+			}
+
+			res, err := queryClient.Storage(cmd.Context(), req)
 			if err != nil {
 				fmt.Printf("could not get CVM storage\n" + err.Error() + "\n")
 				return nil
 			}
 
-			var out types.QueryResStorage
-			cdc.MustUnmarshalJSON(res, &out)
-			return clientCtx.PrintOutput(out)
+			return clientCtx.PrintOutput(res)
 		},
 	}
 }
 
 // GetCmdAbi returns the CVM code ABI query command.
-func GetCmdAbi(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
+func GetCmdAbi() *cobra.Command {
 	return &cobra.Command{
 		Use:   "abi <address>",
 		Short: "Get CVM contract code ABI",
@@ -177,36 +178,31 @@ func GetCmdAbi(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			queryClient := types.NewQueryClient(clientCtx)
 			addr := args[0]
 
-			bytes, err := queryAbi(clientCtx, queryRoute, addr)
+			req := &types.QueryAbiRequest{
+				Address: addr,
+			}
+
+			addrAbi, err := queryClient.Abi(cmd.Context(), req)
 			if err != nil {
 				fmt.Printf("could not get CVM contract code ABI\n" + err.Error() + "\n")
 				return nil
 			}
-			if bytes == nil {
+			if addrAbi == nil {
 				fmt.Printf("cannot find CVM contract code ABI\n")
 				return nil
 			}
-			fmt.Printf("%s\n", string(bytes))
-			return nil
+
+			return clientCtx.PrintOutput(addrAbi)
 		},
 	}
 }
 
-func queryAbi(cliCtx client.Context, queryRoute string, addr string) ([]byte, error) {
-	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/abi/%s", queryRoute, addr), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var out types.QueryResAbi
-	cliCtx.LegacyAmino.MustUnmarshalJSON(res, &out)
-	return out.Abi, nil
-}
-
 // GetCmdMeta returns the CVM metadata query command.
-func GetCmdMeta(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
+func GetCmdMeta() *cobra.Command {
 	return &cobra.Command{
 		Use:   "meta <address,hash>",
 		Short: "Get CVM Metadata hash for an address or Metadata for a hash",
@@ -217,21 +213,23 @@ func GetCmdMeta(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			addrPrefix := sdk.GetConfig().GetBech32AccountAddrPrefix()
+
+			queryClient := types.NewQueryClient(clientCtx)
 			input := args[0]
 
-			var meta string
-			if strings.HasPrefix(input, common.Bech32PrefixAccAddr) {
-				meta, err = queryAddrMeta(clientCtx, queryRoute, input)
+			var meta interface{}
+			if strings.HasPrefix(input, addrPrefix) {
+				request := &types.QueryAddressMetaRequest{Address: input}
+				meta, err = queryClient.AddressMeta(cmd.Context(), request)
 			} else {
-				meta, err = queryMeta(clientCtx, queryRoute, input)
+				request := &types.QueryMetaRequest{Hash: input}
+				meta, err = queryClient.Meta(cmd.Context(), request)
 			}
 
 			if err != nil {
 				fmt.Printf("could not get CVM Metadata\n" + err.Error() + "\n")
-				return nil
-			}
-			if len(meta) == 0 {
-				fmt.Printf("cannot find CVM Metadata\n")
 				return nil
 			}
 
@@ -241,31 +239,9 @@ func GetCmdMeta(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	}
 }
 
-func queryAddrMeta(cliCtx client.Context, queryRoute string, addr string) (string, error) {
-	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/address-meta/%s", queryRoute, addr), nil)
-	if err != nil {
-		return "", err
-	}
-
-	var out types.QueryResAddrMeta
-	err = cliCtx.LegacyAmino.UnmarshalJSON(res, &out)
-	return out.Metahash, err
-}
-
-func queryMeta(cliCtx client.Context, queryRoute string, addr string) (string, error) {
-	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/meta/%s", queryRoute, addr), nil)
-	if err != nil {
-		return "", err
-	}
-
-	var out types.QueryResMeta
-	err = cliCtx.LegacyAmino.UnmarshalJSON(res, &out)
-	return out.Meta, err
-}
-
 // GetCmdAddressTranslate is a utility query to translate Bech32 addresses to hex and vice versa.
 // It is a pure function and does not interact with the handler or keeper.
-func GetCmdAddressTranslate(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
+func GetCmdAddressTranslate() *cobra.Command {
 	return &cobra.Command{
 		Use:   "address-translate <address>",
 		Short: "Translate a Bech32 address to hex and vice versa",
@@ -334,7 +310,7 @@ func GetCmdAddressTranslate(queryRoute string, cdc *codec.LegacyAmino) *cobra.Co
 
 // GetAccountCmd returns a query account that will display the state of the
 // account at a given address.
-func GetAccountCmd(cdc *codec.LegacyAmino) *cobra.Command {
+func GetAccountCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "contract [address]",
 		Short: "Query contract info",
@@ -348,28 +324,15 @@ func GetAccountCmd(cdc *codec.LegacyAmino) *cobra.Command {
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)
-
-			address, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
-
-			queryAccount := &types.QueryAccountRequest{Address: address}
+			queryAccount := &types.QueryAccountRequest{Address: args[0]}
 			res, err := queryClient.Account(cmd.Context(), queryAccount)
-
 			if err != nil {
 				return err
 			}
-			clientCtx.LegacyAmino.MustUnmarshalJSON(res, &account)
 
-			cvmAcc, err := utils.QueryCVMAccount(clientCtx, address, &account)
-			if err == nil {
-				return clientCtx.PrintOutput(cvmAcc)
-			}
-
-			return clientCtx.PrintOutput(account)
+			return clientCtx.PrintOutput(res)
 		},
 	}
 
-	return flags.GetCommands(cmd)[0]
+	return cmd
 }

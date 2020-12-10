@@ -32,13 +32,14 @@ const TransactionGasLimit = uint64(5000000)
 
 // Keeper implements SDK Keeper.
 type Keeper struct {
-	cdc        codec.BinaryMarshaler
-	key        sdk.StoreKey
-	ak         types.AccountKeeper
-	bk         types.BankKeeper
-	dk         types.DistributionKeeper
-	ck         types.CertKeeper
-	paramSpace types.ParamSubspace
+	cdc         codec.BinaryMarshaler
+	legacyAmino *codec.LegacyAmino
+	key         sdk.StoreKey
+	ak          types.AccountKeeper
+	bk          types.BankKeeper
+	dk          types.DistributionKeeper
+	ck          types.CertKeeper
+	paramSpace  types.ParamSubspace
 }
 
 // NewKeeper creates a new instance of the CVM keeper.

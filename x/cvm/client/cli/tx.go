@@ -172,6 +172,17 @@ func parseCallCmd(cliCtx client.Context, calleeString string, calleeAddr sdk.Acc
 	return abiSpec, data, nil
 }
 
+func queryAbi(cliCtx client.Context, queryRoute string, addr string) ([]byte, error) {
+	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/abi/%s", queryRoute, addr), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var out types.QueryResAbi
+	cliCtx.LegacyAmino.MustUnmarshalJSON(res, &out)
+	return out.Abi, nil
+}
+
 // GetCmdDeploy returns the CVM contract deploy transaction command.
 func GetCmdDeploy() *cobra.Command {
 	cmd := &cobra.Command{

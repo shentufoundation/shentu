@@ -19,11 +19,12 @@ import (
 
 // State is the CVM state object. It implements acmstate.ReaderWriter.
 type State struct {
-	ctx   sdk.Context
-	ak    types.AccountKeeper
-	bk    types.BankKeeper
-	store sdk.KVStore
-	cdc   codec.BinaryMarshaler
+	ctx         sdk.Context
+	ak          types.AccountKeeper
+	bk          types.BankKeeper
+	store       sdk.KVStore
+	cdc         codec.BinaryMarshaler
+	legacyAmino *codec.LegacyAmino
 }
 
 // NewState returns a new instance of State type data.
@@ -176,7 +177,7 @@ func (s *State) GetAddressMeta(address crypto.Address) ([]*acm.ContractMeta, err
 		return []*acm.ContractMeta{}, nil
 	}
 	var metaList []acm.ContractMeta
-	err := s.cdc.UnmarshalBinaryLengthPrefixed(bz, &metaList)
+	err := s.legacyAmino.UnmarshalBinaryLengthPrefixed(bz, &metaList)
 	var res []*acm.ContractMeta
 	for i := range metaList {
 		res = append(res, &metaList[i])
@@ -190,7 +191,7 @@ func (s *State) SetAddressMeta(address crypto.Address, contMeta []*acm.ContractM
 	for _, meta := range contMeta {
 		metadata = append(metadata, *meta)
 	}
-	bz, err := s.cdc.MarshalBinaryLengthPrefixed(metadata)
+	bz, err := s.legacyAmino.MarshalBinaryLengthPrefixed(metadata)
 	s.store.Set(types.AddressMetaStoreKey(address), bz)
 	return err
 }

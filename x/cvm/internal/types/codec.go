@@ -15,6 +15,7 @@ import (
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgCall{}, "cvm/Call", nil)
 	cdc.RegisterConcrete(MsgDeploy{}, "cvm/Deploy", nil)
+	cdc.RegisterConcrete(acm.Account{}, "cvm/Account", nil)
 	cdc.RegisterConcrete(acm.Bytecode{}, "acm/Bytecode", nil)
 	cdc.RegisterConcrete(binary.Word256{}, "binary/Word256", nil)
 	cdc.RegisterConcrete([]acm.ContractMeta{}, "cvm/ContractMeta", nil)
@@ -24,6 +25,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCall{},
 		&MsgDeploy{},
+		&acm.Account{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
