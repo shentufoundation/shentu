@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	staking "github.com/cosmos/cosmos-sdk/x/staking/exported"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
 	"github.com/certikfoundation/shentu/x/shield"
@@ -29,8 +29,8 @@ func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (proposal types.
 // SetProposal sets a proposal to store.
 func (k Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(proposal)
-	store.Set(ProposalKey(proposal.ProposalID), bz)
+	bz := k.cdc.MustMarshalBinaryBare(&proposal)
+	store.Set(ProposalKey(proposal.ProposalId), bz)
 }
 
 // DeleteProposalByProposalID deletes a proposal from store.
@@ -55,7 +55,7 @@ func ProposalKey(proposalID uint64) []byte {
 // isValidator checks if the input address is a validator.
 func (k Keeper) isValidator(ctx sdk.Context, addr sdk.AccAddress) bool {
 	isValidator := false
-	k.stakingKeeper.IterateBondedValidatorsByPower(ctx, func(index int64, validator staking.ValidatorI) (stop bool) {
+	k.stakingKeeper.IterateBondedValidatorsByPower(ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
 		if validator.GetOperator().Equals(addr) {
 			isValidator = true
 			return true
@@ -84,7 +84,7 @@ func (k Keeper) IsCertifiedIdentity(ctx sdk.Context, addr sdk.AccAddress) bool {
 func (k Keeper) TotalBondedByCertifiedIdentities(ctx sdk.Context) sdk.Int {
 	bonded := sdk.ZeroInt()
 	for _, identity := range k.CertKeeper.GetCertifiedIdentities(ctx) {
-		k.stakingKeeper.IterateDelegations(ctx, identity, func(index int64, delegation staking.DelegationI) (stop bool) {
+		k.stakingKeeper.IterateDelegations(ctx, identity, func(index int64, delegation stakingtypes.DelegationI) (stop bool) {
 			val, found := k.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
 			if !found {
 				return false
@@ -110,11 +110,14 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govTypes.Content, addr s
 	if content.ProposalType() == shield.ProposalTypeShieldClaim {
 		c := content.(shield.ClaimProposal)
 		c.ProposalID = proposalID
-		proposal = types.NewProposal(c, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
+		proposal, err = types.NewProposal(c, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
 	} else {
-		proposal = types.NewProposal(content, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
+		proposal, err = types.NewProposal(content, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
 	}
-
+	if err != nil {
+		return types.Proposal{}, err
+	}
+	
 	k.SetProposal(ctx, proposal)
 	k.InsertInactiveProposalQueue(ctx, proposalID, proposal.DepositEndTime)
 	k.SetProposalID(ctx, proposalID+1)
@@ -163,7 +166,7 @@ func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal types.Proposal) {
 		// and second round of software upgrade, certifier update and shield claim
 		// proposals.
 		if proposal.Status == types.StatusCertifierVotingPeriod {
-			k.RemoveFromActiveProposalQueue(ctx, proposal.ProposalID, oldVotingEndTime)
+			k.RemoveFromActiveProposalQueue(ctx, proposal.ProposalId, oldVotingEndTime)
 		} else {
 			proposal.DepositEndTime = ctx.BlockHeader().Time
 		}
@@ -171,8 +174,8 @@ func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal types.Proposal) {
 	}
 
 	k.SetProposal(ctx, proposal)
-	k.RemoveFromInactiveProposalQueue(ctx, proposal.ProposalID, oldDepositEndTime)
-	k.InsertActiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingEndTime)
+	k.RemoveFromInactiveProposalQueue(ctx, proposal.ProposalId, oldDepositEndTime)
+	k.InsertActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
 }
 
 // ActivateCouncilProposalVotingPeriod only switches proposals of council members.
@@ -199,12 +202,12 @@ func (k Keeper) GetProposalsFiltered(ctx sdk.Context, params types.QueryProposal
 
 		// match voter address (if supplied)
 		if len(params.Voter) > 0 {
-			_, matchVoter = k.GetVote(ctx, p.ProposalID, params.Voter)
+			_, matchVoter = k.GetVote(ctx, p.ProposalId, params.Voter)
 		}
 
 		// match depositor (if supplied)
 		if len(params.Depositor) > 0 {
-			_, matchDepositor = k.GetDeposit(ctx, p.ProposalID, params.Depositor)
+			_, matchDepositor = k.GetDeposit(ctx, p.ProposalId, params.Depositor)
 		}
 
 		if matchVoter && matchDepositor && matchStatus {

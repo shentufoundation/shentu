@@ -26,16 +26,6 @@ func ParamKeyTable() params.KeyTable {
 	)
 }
 
-// DepositParams struct around deposits for governance
-type DepositParams struct {
-	// Minimum initial deposit when users submitting a proposal
-	MinInitialDeposit sdk.Coins `json:"min_initial_deposit,omitempty" yaml:"min_initial_deposit,omitempty"`
-	// Minimum deposit for a proposal to enter voting period.
-	MinDeposit sdk.Coins `json:"min_deposit,omitempty" yaml:"min_deposit,omitempty"`
-	// Maximum period for CTK holders to deposit on a proposal. Initial value: 2 months
-	MaxDepositPeriod time.Duration `json:"max_deposit_period,omitempty" yaml:"max_deposit_period,omitempty"`
-}
-
 // NewDepositParams creates a new DepositParams object
 func NewDepositParams(minInitialDeposit, minDeposit sdk.Coins, maxDepositPeriod time.Duration) DepositParams {
 	return DepositParams{
@@ -96,12 +86,6 @@ func NewParams(vp govTypes.VotingParams, tp TallyParams, dp DepositParams) Param
 	}
 }
 
-type TallyParams struct {
-	DefaultTally                     govTypes.TallyParams
-	CertifierUpdateSecurityVoteTally govTypes.TallyParams
-	CertifierUpdateStakeVoteTally    govTypes.TallyParams
-}
-
 func (tp TallyParams) String() string {
 	b, err := json.MarshalIndent(tp, "", " ")
 	if err != nil {
@@ -116,13 +100,13 @@ func validateTally(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if err := validateTallyParams(v.CertifierUpdateSecurityVoteTally); err != nil {
+	if err := validateTallyParams(*v.CertifierUpdateSecurityVoteTally); err != nil {
 		return err
 	}
-	if err := validateTallyParams(v.CertifierUpdateStakeVoteTally); err != nil {
+	if err := validateTallyParams(*v.CertifierUpdateStakeVoteTally); err != nil {
 		return err
 	}
-	if err := validateTallyParams(v.DefaultTally); err != nil {
+	if err := validateTallyParams(*v.DefaultTally); err != nil {
 		return err
 	}
 	return nil
@@ -141,10 +125,10 @@ func validateTallyParams(tallyParams govTypes.TallyParams) error {
 	if tallyParams.Threshold.GT(sdk.OneDec()) {
 		return fmt.Errorf("vote threshold too large: %s", tallyParams)
 	}
-	if !tallyParams.Veto.IsPositive() {
+	if !tallyParams.VetoThreshold.IsPositive() {
 		return fmt.Errorf("veto threshold must be positive: %s", tallyParams.Threshold)
 	}
-	if tallyParams.Veto.GT(sdk.OneDec()) {
+	if tallyParams.VetoThreshold.GT(sdk.OneDec()) {
 		return fmt.Errorf("veto threshold too large: %s", tallyParams)
 	}
 
