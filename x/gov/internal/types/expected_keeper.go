@@ -4,10 +4,9 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
-	"github.com/cosmos/cosmos-sdk/x/upgrade"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/certikfoundation/shentu/x/cert"
 	"github.com/certikfoundation/shentu/x/shield"
@@ -23,7 +22,7 @@ type CertKeeper interface {
 }
 
 type UpgradeKeeper interface {
-	ValidatePlan(ctx sdk.Context, plan upgrade.Plan) error
+	ValidatePlan(ctx sdk.Context, plan upgradetypes.Plan) error
 }
 
 type ShieldKeeper interface {
@@ -37,13 +36,13 @@ type ShieldKeeper interface {
 type ParamSubspace interface {
 	Get(ctx sdk.Context, key []byte, ptr interface{})
 	Set(ctx sdk.Context, key []byte, param interface{})
-	WithKeyTable(table subspace.KeyTable) subspace.Subspace
+	WithKeyTable(table paramtypes.KeyTable) paramtypes.Subspace
 }
 
 type StakingKeeper interface {
-	IterateBondedValidatorsByPower(sdk.Context, func(index int64, validator stakingexported.ValidatorI) (stop bool))
+	IterateBondedValidatorsByPower(sdk.Context, func(index int64, validator stakingtypes.ValidatorI) (stop bool))
 	TotalBondedTokens(sdk.Context) sdk.Int
-	IterateDelegations(ctx sdk.Context, delegator sdk.AccAddress, fn func(index int64, delegation stakingexported.DelegationI) (stop bool))
+	IterateDelegations(ctx sdk.Context, delegator sdk.AccAddress, fn func(index int64, delegation stakingtypes.DelegationI) (stop bool))
 	BondDenom(sdk.Context) string
-	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator staking.Validator, found bool)
+	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
 }

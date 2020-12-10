@@ -10,7 +10,7 @@ import (
 )
 
 // QueryProposerByTxQuery will query for a proposer of a governance proposal by ID.
-func QueryProposerByTxQuery(cliCtx client.CLIContext, proposalID uint64, queryRoute string) (utils.Proposer, error) {
+func QueryProposerByTxQuery(cliCtx client.Context, proposalID uint64, queryRoute string) (utils.Proposer, error) {
 	res, err := utils.QueryProposalByID(proposalID, cliCtx, queryRoute)
 	if err != nil {
 		return utils.Proposer{}, err
@@ -21,7 +21,7 @@ func QueryProposerByTxQuery(cliCtx client.CLIContext, proposalID uint64, queryRo
 		return utils.Proposer{}, err
 	}
 
-	proposer := utils.NewProposer(proposalID, proposal.ProposerAddress.String())
+	proposer := utils.NewProposer(proposalID, proposal.ProposerAddress)
 
 	return proposer, nil
 }

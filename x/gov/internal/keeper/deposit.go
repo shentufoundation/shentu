@@ -29,8 +29,12 @@ func (k Keeper) GetDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk
 // SetDeposit sets the deposit to KVStore.
 func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(deposit)
-	store.Set(govTypes.DepositKey(deposit.ProposalID, deposit.Depositor), bz)
+	bz := k.cdc.MustMarshalBinaryBare(&deposit)
+	depositor, err := sdk.AccAddressFromBech32(deposit.Depositor)
+	if err != nil {
+		panic(err)
+	}
+	store.Set(govTypes.DepositKey(deposit.ProposalId, depositor), bz)
 }
 
 // AddDeposit adds or updates a deposit of a specific depositor on a specific proposal.
@@ -48,7 +52,7 @@ func (k Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk
 	}
 
 	// update the governance module's account coins pool
-	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositorAddr, govTypes.ModuleName, depositAmount)
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, depositorAddr, govTypes.ModuleName, depositAmount)
 	if err != nil {
 		return false, err
 	}
@@ -120,12 +124,17 @@ func (k Keeper) RefundDepositsByProposalID(ctx sdk.Context, proposalID uint64) {
 	store := ctx.KVStore(k.storeKey)
 
 	k.IterateDeposits(ctx, proposalID, func(deposit types.Deposit) bool {
-		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, govTypes.ModuleName, deposit.Depositor, deposit.Amount)
+		depositor, err := sdk.AccAddressFromBech32(deposit.Depositor)
 		if err != nil {
 			panic(err)
 		}
 
-		store.Delete(govTypes.DepositKey(proposalID, deposit.Depositor))
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, govTypes.ModuleName, depositor, deposit.Amount)
+		if err != nil {
+			panic(err)
+		}
+
+		store.Delete(govTypes.DepositKey(proposalID, depositor))
 		return false
 	})
 }
@@ -135,12 +144,17 @@ func (k Keeper) DeleteDepositsByProposalID(ctx sdk.Context, proposalID uint64) {
 	store := ctx.KVStore(k.storeKey)
 
 	k.IterateDeposits(ctx, proposalID, func(deposit types.Deposit) bool {
-		err := k.supplyKeeper.BurnCoins(ctx, govTypes.ModuleName, deposit.Amount)
+		err := k.bankKeeper.BurnCoins(ctx, govTypes.ModuleName, deposit.Amount)
 		if err != nil {
 			panic(err)
 		}
 
-		store.Delete(govTypes.DepositKey(proposalID, deposit.Depositor))
+		depositor, err := sdk.AccAddressFromBech32(deposit.Depositor)
+		if err != nil {
+			panic(err)
+		}
+
+		store.Delete(govTypes.DepositKey(proposalID, depositor))
 		return false
 	})
 }

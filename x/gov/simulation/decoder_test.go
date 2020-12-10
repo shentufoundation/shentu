@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -50,10 +49,10 @@ func TestDecodeStore(t *testing.T) {
 	vote := types.NewVote(proposalID, voter.Address, govTypes.OptionYes, txhash)
 
 	kvPairs := tmkv.Pairs{
-		tmkv.Pair{Key: govTypes.ProposalKey(proposalID), Value: cdc.MustMarshalBinaryLengthPrefixed(&proposal)},
+		tmkv.Pair{Key: govTypes.ProposalKey(proposalID), Value: cdc.MustMarshalBinaryBare(&proposal)},
 		tmkv.Pair{Key: govTypes.InactiveProposalQueueKey(proposalID, endTime), Value: proposalIDBz},
-		tmkv.Pair{Key: govTypes.DepositKey(proposalID, depositor.Address), Value: cdc.MustMarshalBinaryLengthPrefixed(&deposit)},
-		tmkv.Pair{Key: govTypes.VoteKey(proposalID, voter.Address), Value: cdc.MustMarshalBinaryLengthPrefixed(&vote)},
+		tmkv.Pair{Key: govTypes.DepositKey(proposalID, depositor.Address), Value: cdc.MustMarshalBinaryBare(&deposit)},
+		tmkv.Pair{Key: govTypes.VoteKey(proposalID, voter.Address), Value: cdc.MustMarshalBinaryBare(&vote)},
 		tmkv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 

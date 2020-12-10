@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	cosmosGov "github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/x/gov"
 	shieldTypes "github.com/certikfoundation/shentu/x/shield/types"
@@ -32,7 +32,8 @@ func (gh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolI
 	initDeposit := sdk.NewCoins(sdk.NewInt64Coin(gh.denom, 5000e6))
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(gh.denom, loss))
 	content := shieldTypes.NewShieldClaimProposal(poolID, lossCoins, purchaseID, "test_claim_evidence", "test_claim_description", proposer)
-	proposal := cosmosGov.NewMsgSubmitProposal(content, initDeposit, proposer)
+	proposal, err := govtypes.NewMsgSubmitProposal(content, initDeposit, proposer)
+	require.NoError(gh.t, err)
 	return gh.Handle(proposal, ok)
 }
 

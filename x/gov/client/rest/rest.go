@@ -30,7 +30,7 @@ type ProposalRESTHandler struct {
 }
 
 // RegisterRoutes is the central function to define routes that get registered by the main application.
-func RegisterRoutes(cliCtx client.CLIContext, r *mux.Router, phs []govRest.ProposalRESTHandler) {
+func RegisterRoutes(cliCtx client.Context, r *mux.Router, phs []govRest.ProposalRESTHandler) {
 	registerQueryRoutes(cliCtx, r)
 	registerTxRoutes(cliCtx, r, phs)
 }

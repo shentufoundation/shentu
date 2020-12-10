@@ -4,8 +4,10 @@ go 1.15
 
 require (
 	github.com/armon/go-metrics v0.3.4
-	github.com/cosmos/cosmos-sdk v0.40.0-rc3
+	github.com/cosmos/cosmos-sdk v0.40.0-rc4
 	github.com/gogo/protobuf v1.3.1
+	github.com/golang/protobuf v1.4.3
+	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.15.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.0.1
@@ -27,7 +29,8 @@ require (
 	github.com/tendermint/tmlibs v0.9.0
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc
 	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9
-	google.golang.org/genproto v0.0.0-20201209185603-f92720507ed4
+	google.golang.org/appengine v1.6.6 // indirect
+	google.golang.org/genproto v0.0.0-20201207150747-9ee31aac76e7
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/yaml.v2 v2.3.0
