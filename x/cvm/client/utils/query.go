@@ -10,7 +10,7 @@ import (
 )
 
 // QueryCVMAccount is to query the cvm contract related info by addresss
-func QueryCVMAccount(cliCtx client.Context, address string, account *authtypes.AccountI) (*types.CVMAccount, error) {
+func QueryCVMAccount(cliCtx client.Context, address string, account *authtypes.BaseAccount) (*types.CVMAccount, error) {
 	cvmCodeRes, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cvm/code/%s", address), nil)
 	if err != nil {
 		return nil, err
@@ -33,13 +33,8 @@ func QueryCVMAccount(cliCtx client.Context, address string, account *authtypes.A
 		return nil, ErrEmptyCVMAbi
 	}
 
-	baseAcc, ok := account.(*authtypes.BaseAccount)
-	if !ok {
-		return nil, ErrBaseAccount
-	}
-
 	cvmAcc := types.CVMAccount{
-		BaseAccount: baseAcc,
+		BaseAccount: account,
 		Code:        string(cvmCodeOut.Code),
 		Abi:         cvmAbi,
 	}

@@ -16,8 +16,8 @@ func NewGenesisState(rate uint64) GenesisState {
 }
 
 // DefaultGenesisState creates a default GenesisState object.
-func DefaultGenesisState() GenesisState {
-	return GenesisState{
+func DefaultGenesisState() *GenesisState {
+	return &GenesisState{
 		GasRate: DefaultGasRate,
 	}
 }

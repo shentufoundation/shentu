@@ -4,13 +4,14 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	clientrest "github.com/cosmos/cosmos-sdk/client/rest"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 )
 
-// RegisterRoutes registers the routes in main application.
-func RegisterRoutes(cliCtx client.CLIContext, r *mux.Router) {
-	registerQueryRoutes(cliCtx, r)
-	registerTxRoutes(cliCtx, r)
+func RegisterHandlers(clientCtx client.Context, rtr *mux.Router) {
+	r := clientrest.WithHTTPDeprecationHeaders(rtr)
+	registerQueryRoutes(clientCtx, r)
+	registerTxHandlers(clientCtx, r)
 }
 
 type callReq struct {

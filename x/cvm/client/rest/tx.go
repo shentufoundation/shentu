@@ -5,45 +5,38 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/certikfoundation/shentu/x/cvm/internal/types"
+	"github.com/cosmos/cosmos-sdk/client/tx"
+
+	"github.com/gorilla/mux"
+
+	"github.com/tendermint/crypto/sha3"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	clientrest "github.com/cosmos/cosmos-sdk/x/auth/client"
-	"github.com/gorilla/mux"
+
 	"github.com/hyperledger/burrow/acm/acmstate"
 	"github.com/hyperledger/burrow/txs/payload"
-	"github.com/tendermint/crypto/sha3"
+
+	"github.com/certikfoundation/shentu/x/cvm/internal/types"
 )
 
-func registerTxRoutes(cliCtx client.CLIContext, r *mux.Router) {
+func registerTxHandlers(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/call", types.QuerierRoute), callHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/deploy", types.QuerierRoute), deployHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/view", types.QuerierRoute), viewHandler(cliCtx)).Methods("POST")
 }
 
-func callHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func callHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req callReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
 
 		baseReq := req.BaseReq.Sanitize()
 		if !baseReq.ValidateBasic(w) {
-			return
-		}
-
-		caller, err := sdk.AccAddressFromBech32(req.BaseReq.From)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		callee, err := sdk.AccAddressFromBech32(req.Callee)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -58,32 +51,25 @@ func callHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "cannot decode call data")
 		}
 
-		msg := types.NewMsgCall(caller, callee, value.Uint64(), data)
+		msg := types.NewMsgCall(req.BaseReq.From, req.Callee, value.Uint64(), data)
 		if err = msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, &msg)
 	}
 }
-func deployHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func deployHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req deployReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
 
 		baseReq := req.BaseReq.Sanitize()
 		if !baseReq.ValidateBasic(w) {
-			return
-		}
-
-		caller, err := sdk.AccAddressFromBech32(req.BaseReq.From)
-
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -139,13 +125,13 @@ func deployHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			})
 		}
 
-		msg := types.NewMsgDeploy(caller, value.Uint64(), code, string(abi), metas, req.IsEWASM, req.IsRuntime)
+		msg := types.NewMsgDeploy(req.BaseReq.From, value.Uint64(), code, string(abi), metas, req.IsEWASM, req.IsRuntime)
 		if err = msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, &msg)
 	}
 }
 

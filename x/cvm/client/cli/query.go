@@ -55,6 +55,8 @@ func GetCmdView() *cobra.Command {
 				return err
 			}
 
+			queryClient := types.NewQueryClient(clientCtx)
+
 			// Caller is an optional flag. If not set it becomes the zero address.
 			var callerString string
 			callerString, err = cmd.Flags().GetString(FlagCaller)
