@@ -14,7 +14,7 @@ import (
 	"github.com/certikfoundation/shentu/x/cvm/internal/types"
 )
 
-func registerQueryRoutes(cliCtx client.CLIContext, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/code/{address}", types.QuerierRoute), codeHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/storage/{address}/{key}", types.QuerierRoute), storageHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/abi/{address}", types.QuerierRoute), abiHandler(cliCtx)).Methods("GET")
@@ -23,7 +23,7 @@ func registerQueryRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/contract/{address}", types.QuerierRoute), contractHandler(cliCtx)).Methods("GET")
 }
 
-func codeHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func codeHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -45,7 +45,7 @@ func codeHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func storageHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func storageHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -68,7 +68,7 @@ func storageHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func abiHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func abiHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -90,7 +90,7 @@ func abiHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func addressMetaHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func addressMetaHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -112,7 +112,7 @@ func addressMetaHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func metaHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func metaHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -134,7 +134,7 @@ func metaHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func contractHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func contractHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		bech32addr := vars["address"]
@@ -150,7 +150,7 @@ func contractHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		cliCtx.Codec.MustUnmarshalJSON(res, &baseAcc)
+		cliCtx.LegacyAmino.MustUnmarshalJSON(res, &baseAcc)
 
 		cvmAcc, err := utils.QueryCVMAccount(cliCtx, bech32addr, baseAcc)
 		if err == nil {

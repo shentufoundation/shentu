@@ -27,37 +27,41 @@ const (
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group cvm queries under a subcommand
 	cvmQueryCmd := &cobra.Command{
 		Use:   "cvm",
 		Short: "Querying commands for the CVM module",
 	}
 
-	cvmQueryCmd.AddCommand(flags.GetCommands(
-		GetCmdCode(queryRoute, cdc),
-		GetCmdStorage(queryRoute, cdc),
-		GetCmdAbi(queryRoute, cdc),
-		GetCmdMeta(queryRoute, cdc),
-		GetCmdView(queryRoute, cdc),
-		GetCmdAddressTranslate(queryRoute, cdc),
-	)...)
+	cvmQueryCmd.AddCommand(
+		GetCmdCode(),
+		GetCmdStorage(),
+		GetCmdAbi(),
+		GetCmdMeta(),
+		GetCmdView(),
+		GetCmdAddressTranslate(),
+	)
 
 	return cvmQueryCmd
 }
 
 // GetCmdView returns the CVM contract view transaction command.
-func GetCmdView(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdView() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "view <address> <function> [<params>...]",
 		Short: "View CVM contract",
 		Args:  cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.ReadQueryCommandFlags(clientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
 
 			// Caller is an optional flag. If not set it becomes the zero address.
 			var callerString string
-			callerString, err := cmd.Flags().GetString(FlagCaller)
+			callerString, err = cmd.Flags().GetString(FlagCaller)
 			if err != nil {
 				return err
 			}
@@ -74,13 +78,13 @@ func GetCmdView(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			abiSpec, data, err := parseCallCmd(cliCtx, args[0], callee, args[1], args[2:])
+			abiSpec, data, err := parseCallCmd(clientCtx, args[0], callee, args[1], args[2:])
 			if err != nil {
 				return err
 			}
 
 			queryPath := fmt.Sprintf("custom/%s/view/%s/%s", queryRoute, callerString, callee)
-			return queryContractAndPrint(cliCtx, cdc, queryPath, args[1], abiSpec, data)
+			return queryContractAndPrint(clientCtx, cdc, queryPath, args[1], abiSpec, data)
 		},
 	}
 	cmd.Flags().String(FlagCaller, "", "optional caller parameter to run the view function with")

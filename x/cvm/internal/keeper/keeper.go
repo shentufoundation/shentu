@@ -55,8 +55,31 @@ func NewKeeper(
 	}
 }
 
+func (k Keeper) Deploy(ctx sdk.Context, msg *types.MsgDeploy) ([]byte, error) {
+	callerAddr, err := sdk.AccAddressFromBech32(msg.Caller)
+	if err != nil {
+		return []byte{}, err
+	}
+	res, err := k.Tx(ctx, callerAddr, nil, msg.Value, msg.Code, msg.Meta, false, msg.IsEWASM, msg.IsRuntime)
+	return res, nil
+}
+
+func (k Keeper) Call(ctx sdk.Context, msg *types.MsgCall) ([]byte, error) {
+	callerAddr, err := sdk.AccAddressFromBech32(msg.Caller)
+	if err != nil {
+		return []byte{}, err
+	}
+	calleeAddr, err := sdk.AccAddressFromBech32(msg.Callee)
+	if err != nil {
+		return []byte{}, err
+	}
+	res, err := k.Tx(ctx, callerAddr, calleeAddr, msg.Value, msg.Data, []*payload.ContractMeta{}, false, false, false)
+	return res, nil
+
+}
+
 // Call executes the CVM call from caller to callee with the given data and gas limit.
-func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64, data []byte, payloadMeta []*payload.ContractMeta,
+func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64, data []byte, payloadMeta []*payload.ContractMeta,
 	view, isEWASM, isRuntime bool) ([]byte, error) {
 	state := k.NewState(ctx)
 
@@ -118,7 +141,7 @@ func (k *Keeper) Call(ctx sdk.Context, caller, callee sdk.AccAddress, value uint
 	registerCVMNative(&options, cc)
 
 	newCVM := vm.NewCVM(options)
-	bc := NewBlockChain(ctx, *k)
+	bc := NewBlockChain(ctx, k)
 
 	var ret []byte
 	if isEWASM {
@@ -168,7 +191,7 @@ func (k Keeper) Send(ctx sdk.Context, caller, callee sdk.AccAddress, coins sdk.C
 	if value <= 0 {
 		return sdkerrors.ErrInvalidCoins
 	}
-	_, err := k.Call(ctx, caller, callee, value, nil, nil, false, false, false)
+	_, err := k.Tx(ctx, caller, callee, value, nil, nil, false, false, false)
 	return err
 }
 

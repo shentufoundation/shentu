@@ -8,13 +8,12 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 // Compile-time type assertions
 var (
-	_ authexported.Account = (*CVMAccount)(nil)
+	_ authtypes.AccountI = (*CVMAccount)(nil)
 )
 
 //-----------------------------------------------------------------------------
@@ -68,9 +67,9 @@ func (ca CVMAccount) String() string {
 
 // MarshalYAML returns the YAML representation of a CVMAccount.
 func (ca CVMAccount) MarshalYAML() (interface{}, error) {
+	addr, _ := sdk.AccAddressFromBech32(ca.Address)
 	alias := cvmAccountYAML{
-		Address:       ca.Address,
-		Coins:         ca.Coins,
+		Address:       addr,
 		AccountNumber: ca.AccountNumber,
 		Sequence:      ca.Sequence,
 
@@ -97,9 +96,9 @@ func (ca CVMAccount) MarshalYAML() (interface{}, error) {
 
 // MarshalJSON returns the JSON representation of a CVMAccount.
 func (ca CVMAccount) MarshalJSON() ([]byte, error) {
+	addr, _ := sdk.AccAddressFromBech32(ca.Address)
 	alias := cvmAccountJSON{
-		Address:       ca.Address,
-		Coins:         ca.Coins,
+		Address:       addr,
 		AccountNumber: ca.AccountNumber,
 		Sequence:      ca.Sequence,
 
@@ -107,7 +106,7 @@ func (ca CVMAccount) MarshalJSON() ([]byte, error) {
 		Abi:  ca.Abi,
 	}
 
-	return codec.Cdc.MarshalJSON(alias)
+	return ModuleCdc.MarshalJSON(alias)
 }
 
 // UnmarshalJSON unmarshals raw JSON bytes into a CVMAccount.

@@ -13,20 +13,22 @@ service Msg {
 }
 
 message MsgCall {
-  bytes caller = 1;
-  bytes callee = 2;
+  string caller = 1;
+  string callee = 2;
   uint64 value = 3;
   bytes data = 4;
 }
 
-message MsgCallResponse {}
+message MsgCallResponse {
+  bytes result = 1;
+}
 
 message MsgDeploy {
   // Caller is the sender of the CVM-message.
-  bytes Caller = 1;
+  string Caller = 1;
 
   // Value is the amount of CTK transferred with the call.
-  uint64 balue = 2;
+  uint64 value = 2;
 
   // Code is the contract byte code.
   bytes code = 3;
@@ -44,4 +46,6 @@ message MsgDeploy {
   bool isRuntime = 7;
 }
 
-message MsgDeployResponse {}
+message MsgDeployResponse {
+  bytes result = 1;
+}
