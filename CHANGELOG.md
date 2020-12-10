@@ -38,6 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [Unreleased] - TBD
 
 ### Client Breaking Changes
+* (toolsets/oracle-operator) [\#192](https://github.com/certikfoundation/shentu/pull/192) Update oracle operators to switch over to new primitive API version
 ### API Breaking Changes
 ### State Machine Breaking Changes
 ### Features
