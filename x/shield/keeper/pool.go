@@ -8,70 +8,78 @@ import (
 
 func (k Keeper) SetTotalCollateral(ctx sdk.Context, totalCollateral sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalCollateral)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&sdk.IntProto{Int: totalCollateral})
 	store.Set(types.GetTotalCollateralKey(), bz)
 }
 
 func (k Keeper) GetTotalCollateral(ctx sdk.Context) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
+
 	bz := store.Get(types.GetTotalCollateralKey())
 	if bz == nil {
 		panic("total collateral is not found")
 	}
-	var totalCollateral sdk.Int
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &totalCollateral)
-	return totalCollateral
+
+	ip := sdk.IntProto{}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ip)
+	return ip.Int
 }
 
 func (k Keeper) SetTotalWithdrawing(ctx sdk.Context, totalWithdrawing sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalWithdrawing)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&sdk.IntProto{Int: totalWithdrawing})
 	store.Set(types.GetTotalWithdrawingKey(), bz)
 }
 
 func (k Keeper) GetTotalWithdrawing(ctx sdk.Context) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
+
 	bz := store.Get(types.GetTotalWithdrawingKey())
 	if bz == nil {
 		panic("total withdrawing is not found")
 	}
-	var totalWithdrawing sdk.Int
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &totalWithdrawing)
-	return totalWithdrawing
+
+	ip := sdk.IntProto{}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ip)
+	return ip.Int
 }
 
 func (k Keeper) SetTotalShield(ctx sdk.Context, totalShield sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalShield)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&sdk.IntProto{Int: totalShield})
 	store.Set(types.GetTotalShieldKey(), bz)
 }
 
 func (k Keeper) GetTotalShield(ctx sdk.Context) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
+
 	bz := store.Get(types.GetTotalShieldKey())
 	if bz == nil {
 		panic("total shield is not found")
 	}
-	var totalShield sdk.Int
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &totalShield)
-	return totalShield
+
+	ip := sdk.IntProto{}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ip)
+	return ip.Int
 }
 
 func (k Keeper) SetTotalClaimed(ctx sdk.Context, totalClaimed sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalClaimed)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&sdk.IntProto{Int: totalClaimed})
 	store.Set(types.GetTotalClaimedKey(), bz)
 }
 
 func (k Keeper) GetTotalClaimed(ctx sdk.Context) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
+
 	bz := store.Get(types.GetTotalClaimedKey())
 	if bz == nil {
 		panic("total shield is not found")
 	}
-	var totalClaimed sdk.Int
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &totalClaimed)
-	return totalClaimed
+
+	ip := sdk.IntProto{}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ip)
+	return ip.Int
 }
 
 func (k Keeper) SetServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {

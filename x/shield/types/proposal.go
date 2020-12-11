@@ -8,7 +8,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -103,10 +102,10 @@ func NewLockedCollateral(proposalID uint64, lockedAmt sdk.Int) LockedCollateral 
 }
 
 // NewUnbondingDelegation returns a new UnbondingDelegation instance.
-func NewUnbondingDelegation(delAddr sdk.AccAddress, valAddr sdk.ValAddress, entry stakingTypes.UnbondingDelegationEntry) staking.UnbondingDelegation {
-	return staking.UnbondingDelegation{
-		DelegatorAddress: delAddr,
-		ValidatorAddress: valAddr,
+func NewUnbondingDelegation(delAddr sdk.AccAddress, valAddr sdk.ValAddress, entry stakingTypes.UnbondingDelegationEntry) stakingTypes.UnbondingDelegation {
+	return stakingTypes.UnbondingDelegation{
+		DelegatorAddress: delAddr.String(),
+		ValidatorAddress: valAddr.String(),
 		Entries:          []stakingTypes.UnbondingDelegationEntry{entry},
 	}
 }

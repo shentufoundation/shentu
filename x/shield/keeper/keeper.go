@@ -6,9 +6,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -16,7 +16,7 @@ import (
 // Keeper implements the shield keeper.
 type Keeper struct {
 	storeKey     sdk.StoreKey
-	cdc          *codec.Codec
+	cdc          codec.BinaryMarshaler
 	ak           types.AccountKeeper
 	sk           types.StakingKeeper
 	gk           types.GovKeeper
@@ -25,7 +25,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a shield keeper.
-func NewKeeper(cdc *codec.Codec, shieldStoreKey sdk.StoreKey, ak types.AccountKeeper, sk types.StakingKeeper, gk types.GovKeeper, supplyKeeper types.SupplyKeeper, paramSpace params.Subspace) Keeper {
+func NewKeeper(cdc codec.BinaryMarshaler, shieldStoreKey sdk.StoreKey, ak types.AccountKeeper, sk types.StakingKeeper, gk types.GovKeeper, supplyKeeper types.SupplyKeeper, paramSpace params.Subspace) Keeper {
 	return Keeper{
 		storeKey:     shieldStoreKey,
 		cdc:          cdc,
@@ -38,7 +38,7 @@ func NewKeeper(cdc *codec.Codec, shieldStoreKey sdk.StoreKey, ak types.AccountKe
 }
 
 // GetValidator returns info of a validator given its operator address.
-func (k Keeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (staking.ValidatorI, bool) {
+func (k Keeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (stakingtypes.ValidatorI, bool) {
 	return k.sk.GetValidator(ctx, addr)
 }
 
@@ -80,7 +80,7 @@ func (k Keeper) BondDenom(ctx sdk.Context) string {
 }
 
 // GetVotingParams returns gov keeper's voting params.
-func (k Keeper) GetVotingParams(ctx sdk.Context) govTypes.VotingParams {
+func (k Keeper) GetVotingParams(ctx sdk.Context) govtypes.VotingParams {
 	return k.gk.GetVotingParams(ctx)
 }
 

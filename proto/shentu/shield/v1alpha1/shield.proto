@@ -1,0 +1,40 @@
+syntax = "proto3";
+package shentu.shield.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/shield/types";
+
+// MixedCoins defines the struct for mixed coins with native and foreign coins.
+message MixedCoins {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    repeated cosmos.base.v1beta1.Coin native = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    repeated cosmos.base.v1beta1.Coin foreign = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+}
+
+// MixedDecCoins defines the struct for mixed coins in decimal with native and foreign decimal coins.
+message MixedDecCoins {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    repeated cosmos.base.v1beta1.DecCoin native = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
+    repeated cosmos.base.v1beta1.DecCoin foreign = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
+}
+
+// Pool contains a shield project pool's data.
+message Pool {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    uint64 id = 1 [ (gogoproto.moretags) = "yaml:\"id\"" ];
+    string description = 2 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string sponsor = 3 [ (gogoproto.moretags) = "yaml:\"sponsor\"" ];
+    string sponsor_addr = 4 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
+    string shield_limit = 5 [ (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    bool active = 6 [ (gogoproto.moretags) = "yaml:\"active\"" ];
+    string shield = 7 [ (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+}
