@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bufio"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -10,16 +9,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/client/tx"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/client"
+	authcli "github.com/cosmos/cosmos-sdk/x/auth/client"
 	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/hyperledger/burrow/crypto"
@@ -82,11 +79,9 @@ func GetCmdCall() *cobra.Command {
 
 			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
 
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-
-			from := cliCtx.GetFromAddress()
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-			if err := accGetter.EnsureExists(from); err != nil {
+			from := clientCtx.GetFromAddress()
+			accGetter := authtxb.AccountRetriever{}
+			if err := accGetter.EnsureExists(clientCtx, from); err != nil {
 				return err
 			}
 
@@ -114,7 +109,7 @@ func GetCmdCall() *cobra.Command {
 			} else {
 				var err error
 				var abiSpec []byte
-				abiSpec, data, err = parseCallCmd(cliCtx, args[0], callee, args[1], args[2:])
+				abiSpec, data, err = parseCallCmd(clientCtx, args[0], callee, args[1], args[2:])
 				if err != nil {
 					return err
 				}
@@ -135,11 +130,11 @@ func GetCmdCall() *cobra.Command {
 					}
 					fmt.Println(args[1] + " is a " + entry.Type + " function - Attempting to re-route to query")
 					queryPath := fmt.Sprintf("custom/%s/view/%s/%s", types.QuerierRoute, from, callee)
-					return queryContractAndPrint(clientCtx, , queryPath, args[1], abiSpec, data)
+					return queryContractAndPrint(clientCtx, queryPath, args[1], abiSpec, data)
 				}
 			}
 			value := viper.GetUint64(FlagValue)
-			msg := types.NewMsgCall(from, callee.String(), value, data)
+			msg := types.NewMsgCall(from.String(), callee.String(), value, data)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -149,13 +144,12 @@ func GetCmdCall() *cobra.Command {
 	cmd.Flags().Bool(FlagRaw, false,
 		"set this flag to submit raw calldata, otherwise it takes function name and parameters as args")
 	cmd.Flags().Uint64(FlagValue, 0, "Value sent with transaction")
-	cmd = flags.PostCommands(cmd)[0]
 	return cmd
 }
 
 func parseCallCmd(cliCtx client.Context, calleeString string, calleeAddr sdk.AccAddress, function string, args []string) ([]byte, []byte, error) {
-	accGetter := authtxb.NewAccountRetriever(cliCtx)
-	if err := accGetter.EnsureExists(calleeAddr); err != nil {
+	accGetter := authtxb.AccountRetriever{}
+	if err := accGetter.EnsureExists(cliCtx, calleeAddr); err != nil {
 		return nil, nil, err
 	}
 
@@ -190,23 +184,26 @@ func GetCmdDeploy() *cobra.Command {
 		Short: "Deploy CVM contract(s)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, file []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.ReadTxCommandFlags(clientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
 
-			from := cliCtx.GetFromAddress()
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-			if err := accGetter.EnsureExists(from); err != nil {
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+
+			from := clientCtx.GetFromAddress()
+			accGetter := authtxb.AccountRetriever{}
+			if err := accGetter.EnsureExists(clientCtx, from); err != nil {
 				return err
 			}
 
 			var msgs []sdk.Msg
-			var err error
-			msgs, err = appendDeployMsgs(cmd, cliCtx, msgs, file[0])
+			msgs, err = appendDeployMsgs(cmd, clientCtx, msgs, file[0])
 			if err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, msgs)
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msgs...)
 		},
 	}
 	cmd.Flags().String(FlagABI, "", "name of ABI file (when deploying bytecode)")
@@ -215,12 +212,17 @@ func GetCmdDeploy() *cobra.Command {
 	cmd.Flags().String(FlagContract, "", "the name of the contract to be deployed")
 	cmd.Flags().Bool(FlagEWASM, false, "compile solidity contract to EWASM")
 	cmd.Flags().Bool(FlagRuntime, false, "runtime code")
-	cmd = flags.PostCommands(cmd)[0]
 
 	return cmd
 }
 
 func appendDeployMsgs(cmd *cobra.Command, cliCtx client.Context, msgs []sdk.Msg, fileName string) ([]sdk.Msg, error) {
+	clientCtx := client.GetClientContextFromCmd(cmd)
+	clientCtx, err := client.ReadTxCommandFlags(clientCtx, cmd.Flags())
+	if err != nil {
+		return []sdk.Msg{}, err
+	}
+
 	argumentsRaw := viper.GetString(FlagArgs)
 	arguments := strings.Split(argumentsRaw, ",")
 	deployContract := viper.GetString(FlagContract)
@@ -273,11 +275,11 @@ func appendDeployMsgs(cmd *cobra.Command, cliCtx client.Context, msgs []sdk.Msg,
 			}
 			isEWASM := viper.GetBool(FlagEWASM)
 			isRuntime := viper.GetBool(FlagRuntime)
-			msg := types.NewMsgDeploy(cliCtx.GetFromAddress(), value, code, string(object.Contract.Abi), metas, isEWASM, isRuntime)
+			msg := types.NewMsgDeploy(clientCtx.GetFromAddress().String(), value, code, string(object.Contract.Abi), metas, isEWASM, isRuntime)
 			if err := msg.ValidateBasic(); err != nil {
 				return msgs, err
 			}
-			msgs = append(msgs, msg)
+			msgs = append(msgs, &msg)
 		}
 	}
 	if !fileNameMatch {
@@ -371,9 +373,13 @@ func QueryTxCmd() *cobra.Command {
 		Short: "Query for a transaction by hash in a committed block",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.ReadTxCommandFlags(clientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
 
-			output, err := utils.QueryTx(cliCtx, args[0])
+			output, err := authcli.QueryTx(clientCtx, args[0])
 			if err != nil {
 				return err
 			}
@@ -382,14 +388,12 @@ func QueryTxCmd() *cobra.Command {
 				return fmt.Errorf("no transaction found with hash %s", args[0])
 			}
 
-			return cliCtx.PrintOutput(output)
+			return clientCtx.PrintOutput(output)
 		},
 	}
 
 	cmd.Flags().StringP(flags.FlagNode, "n", "tcp://localhost:26657", "Node to connect to")
 	viper.BindPFlag(flags.FlagNode, cmd.Flags().Lookup(flags.FlagNode))
-	cmd.Flags().Bool(flags.FlagTrustNode, false, "Trust connected full node (don't verify proofs for responses)")
-	viper.BindPFlag(flags.FlagTrustNode, cmd.Flags().Lookup(flags.FlagTrustNode))
 
 	return cmd
 }

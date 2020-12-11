@@ -4,14 +4,12 @@ import (
 	"context"
 	"encoding/hex"
 
-	"github.com/hyperledger/burrow/binary"
-
+	"github.com/hyperledger/burrow/acm"
 	"github.com/hyperledger/burrow/acm/acmstate"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
 
-	"github.com/hyperledger/burrow/acm"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/cvm/internal/types"
 )

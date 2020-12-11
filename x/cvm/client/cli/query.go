@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/hyperledger/burrow/execution/evm/abi"
@@ -82,7 +81,7 @@ func GetCmdView() *cobra.Command {
 			}
 
 			queryPath := fmt.Sprintf("custom/%s/view/%s/%s", queryRoute, callerString, callee)
-			return queryContractAndPrint(clientCtx, cdc, queryPath, args[1], abiSpec, data)
+			return queryContractAndPrint(clientCtx, queryPath, args[1], abiSpec, data)
 		},
 	}
 	cmd.Flags().String(FlagCaller, "", "optional caller parameter to run the view function with")
@@ -91,7 +90,7 @@ func GetCmdView() *cobra.Command {
 }
 
 // Query CVM contract code based on ABI spec and print function output.
-func queryContractAndPrint(cliCtx client.Context, cdc *codec.LegacyAmino, queryPath, fname string, abiSpec, data []byte) error {
+func queryContractAndPrint(cliCtx client.Context, queryPath, fname string, abiSpec, data []byte) error {
 	res, _, err := cliCtx.QueryWithData(queryPath, data)
 	if err != nil {
 		return fmt.Errorf("querying CVM contract code: %v", err)
