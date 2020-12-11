@@ -1,6 +1,6 @@
 # Oracle Operator
 
-Oracle Operator listens to the `creat_task` event from CertiK Chain, queries the primitives and pushes the result back to CertiK Chain.
+Oracle Operator listens to the `creat_task` event from CertiK Chain, queries the primitive APIs and pushes the aggregated result back to CertiK Chain.
 
 ## How to Config and Run
 
@@ -10,7 +10,7 @@ Oracle Operator listens to the `creat_task` event from CertiK Chain, queries the
   ```
 2. Create the oracle operator configuration file in `certikcli` home (default `.certikcli/config/oracle-operator.toml`). See template at [oracle-operator.toml](oracle-operator.toml):
   - `type`: Aggregation type, e.g. `linear`. Check [Strategy](STRATEGY.md).
-  - `primitive_type`: security primitive contract type.
+  - `primitive_type`: security primitive type.
   - `weight`: the weight of the result from the corresponding primitive to the final result.
 3. Run the oracle operator by the following command.
   ```bash
