@@ -3,8 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/params/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // Default parameter values
@@ -17,7 +16,7 @@ var (
 	ParamStoreKeyGasRate = []byte("GasRate")
 )
 
-var _ subspace.ParamSet = &Params{}
+var _ paramtypes.ParamSet = &Params{}
 
 // Params defines the parameters for the cvm module.
 type Params struct {
@@ -32,9 +31,9 @@ func NewParams(gasRate uint64) Params {
 }
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs pairs of cvm module's parameters.
-func (p *Params) ParamSetPairs() subspace.ParamSetPairs {
-	return subspace.ParamSetPairs{
-		params.NewParamSetPair(ParamStoreKeyGasRate, &p.GasRate, validateGasRate),
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(ParamStoreKeyGasRate, &p.GasRate, validateGasRate),
 	}
 }
 
@@ -58,6 +57,6 @@ func validateGasRate(i interface{}) error {
 }
 
 // ParamKeyTable for auth module
-func ParamKeyTable() subspace.KeyTable {
-	return subspace.NewKeyTable().RegisterParamSet(&Params{})
+func ParamKeyTable() paramtypes.KeyTable {
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }

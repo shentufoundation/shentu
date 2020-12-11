@@ -2,18 +2,28 @@
 package cvm
 
 import (
+	"context"
 	"encoding/json"
 	"math/rand"
 
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+
+	"github.com/gorilla/mux"
+	"github.com/spf13/cobra"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/cvm/client/cli"
 	"github.com/certikfoundation/shentu/x/cvm/client/rest"
+	"github.com/certikfoundation/shentu/x/cvm/internal/keeper"
+	"github.com/certikfoundation/shentu/x/cvm/internal/types"
 	"github.com/certikfoundation/shentu/x/cvm/simulation"
 )
 
@@ -24,34 +34,68 @@ var (
 
 // AppModuleBasic specifies the app module basics object.
 type AppModuleBasic struct {
-	common.AppModuleBasic
+	cdc codec.Marshaler
 }
 
 // NewAppModuleBasic create a new AppModuleBasic object in cvm module.
 func NewAppModuleBasic() AppModuleBasic {
-	return AppModuleBasic{
-		common.NewAppModuleBasic(
-			ModuleName,
-			RegisterCodec,
-			ModuleCdc,
-			DefaultGenesisState(),
-			ValidateGenesis,
-			StoreKey,
-			rest.RegisterRoutes,
-			cli.GetQueryCmd,
-			cli.GetTxCmd,
-		),
-	}
+	return AppModuleBasic{}
+}
+
+// Name returns the gov module's name.
+func (AppModuleBasic) Name() string {
+	return types.ModuleName
+}
+
+// RegisterLegacyAminoCodec registers the gov module's types for the given codec.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterLegacyAminoCodec(cdc)
+}
+
+// DefaultGenesis returns default genesis state as raw bytes for the gov
+// module.
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+	return cdc.MustMarshalJSON(types.DefaultGenesisState())
+}
+
+// ValidateGenesis performs genesis state validation for the gov module.
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
+	return types.ValidateGenesis(bz)
+}
+
+// RegisterRESTRoutes registers the REST routes for the cvm module.
+func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
+	rest.RegisterHandlers(clientCtx, rtr)
+}
+
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+}
+
+// GetTxCmd returns the root tx command for the gov module.
+func (a AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.NewTxCmd()
+}
+
+// GetQueryCmd returns the root query command for the gov module.
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
+}
+
+// RegisterInterfaces implements InterfaceModule.RegisterInterfaces
+func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
 }
 
 // AppModule specifies the app module object.
 type AppModule struct {
 	AppModuleBasic
-	keeper Keeper
+	keeper keeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k Keeper) AppModule {
+func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(),
 		keeper:         k,
@@ -60,7 +104,7 @@ func NewAppModule(k Keeper) AppModule {
 
 // Route returns the module's route key.
 func (AppModule) Route() string {
-	return RouterKey
+	return types.RouterKey
 }
 
 // BeginBlock implements the Cosmos SDK BeginBlock module function.
@@ -75,16 +119,16 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 }
 
 // InitGenesis initializes the module genesis.
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState GenesisState
-	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+	var genesisState types.GenesisState
+	cdc.MustUnmarshalJSON(data, &genesisState)
 	return InitGenesis(ctx, am.keeper, genesisState)
 }
 
 // ExportGenesis initializes the module export genesis.
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
-	return ModuleCdc.MustMarshalJSON(gs)
+	return cdc.MustMarshalJSON(gs)
 }
 
 // NewHandler returns a new module handler.
@@ -93,13 +137,20 @@ func (am AppModule) NewHandler() sdk.Handler {
 }
 
 // NewQuerierHandler returns a new querier module handler.
-func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return NewQuerier(am.keeper)
+func (am AppModule) LegacyQuerierHandler() sdk.Querier {
+	return keeper.NewQuerier(am.keeper)
+}
+
+// RegisterServices registers module services.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	querier := keeper.Querier{Keeper: am.keeper}
+	types.RegisterQueryServer(cfg.QueryServer(), querier)
 }
 
 // QuerierRoute returns the module querier route name.
 func (AppModule) QuerierRoute() string {
-	return QuerierRoute
+	return types.QuerierRoute
 }
 
 // RegisterInvariants registers the module invariants.
@@ -111,13 +162,13 @@ func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // RegisterStoreDecoder registers a decoder for cvm module.
-func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[StoreKey] = simulation.DecodeStore
+func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations returns cvm operations for use in simulations.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper)
+func (am AppModule) WeightedOperations(simState module.SimulationState) sim.WeightedOperations {
+	return simulation.WeightedOperations(simState.AppParams, simState, am.keeper)
 }
 
 // ProposalContents returns functions that generate gov proposals for the module.

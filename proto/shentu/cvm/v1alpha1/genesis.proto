@@ -1,0 +1,42 @@
+syntax = "proto3";
+package shentu.cvm.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "shentu/cvm/v1alpha1/cvm.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/cvm/internal/types";
+
+// GenesisState defines the gov module's genesis state.
+message GenesisState {
+  uint64 gas_rate = 1 [(gogoproto.moretags) = "yaml:\"gas_rate\""];
+  repeated Contract contracts = 2 [(gogoproto.castrepeated) = "Contracts", (gogoproto.nullable) = false];
+  repeated Metadata metadatas = 3 [(gogoproto.castrepeated) = "Metadatas", (gogoproto.nullable) = false];
+}
+
+message Contract {
+  bytes Address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+  CVMCode    code = 2 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"code\""];
+  repeated Storage storage = 3    [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"storage\""];
+  bytes     abi = 4        [(gogoproto.moretags) = "yaml:\"abi\""];
+  repeated ContractMeta meta = 5    [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"contract_meta\""];
+}
+
+message CVMCode {
+  int64 code_type = 1 [(gogoproto.moretags) = "yaml:\"code_type\""];
+  bytes code = 2 [(gogoproto.moretags) = "yaml:\"code\""];
+}
+
+message Storage {
+  bytes key = 1 [(gogoproto.moretags) = "yaml:\"key\""];
+  bytes value = 2 [(gogoproto.moretags) = "yaml:\"value\""];
+}
+
+message ContractMeta {
+  bytes code_hash = 1 [(gogoproto.moretags) = "yaml:\"code_hash\""];
+  bytes metadata_hash = 2 [(gogoproto.moretags) = "yaml:\"metadata_hash\""];
+}
+
+message Metadata {
+  bytes hash = 1 [(gogoproto.moretags) = "yaml:\"hash\""];
+  string metadata =2 [(gogoproto.moretags) = "yaml:\"metadata\""];
+}

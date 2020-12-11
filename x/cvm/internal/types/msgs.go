@@ -10,23 +10,8 @@ import (
 	"github.com/hyperledger/burrow/txs/payload"
 )
 
-// MsgCall is the CVM call message.
-type MsgCall struct {
-	// Caller is the sender of the CVM-message.
-	Caller sdk.AccAddress
-
-	// Callee is the recipient of the CVM-message.
-	Callee sdk.AccAddress
-
-	// Value is the amount of CTK transferred with the call.
-	Value uint64
-
-	// Data is the binary call data.
-	Data acm.Bytecode
-}
-
 // NewMsgCall returns a new CVM call message.
-func NewMsgCall(caller, callee sdk.AccAddress, value uint64, data []byte) MsgCall {
+func NewMsgCall(caller, callee string, value uint64, data []byte) MsgCall {
 	return MsgCall{
 		Caller: caller,
 		Callee: callee,
@@ -43,8 +28,16 @@ func (m MsgCall) Type() string { return "call" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgCall) ValidateBasic() error {
-	if m.Caller.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Caller.String())
+	_, err := sdk.AccAddressFromBech32(m.Callee)
+	_, err2 := sdk.AccAddressFromBech32(m.Caller)
+	if m.Caller == "" || m.Callee == "" {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Caller)
+	}
+	if err != nil || err2 != nil {
+		if err != nil {
+			return err
+		}
+		return err2
 	}
 	return nil
 }
@@ -60,35 +53,12 @@ func (m MsgCall) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgCall) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{m.Caller}
-}
-
-// MsgDeploy is the CVM deploy message.
-type MsgDeploy struct {
-	// Caller is the sender of the CVM-message.
-	Caller sdk.AccAddress
-
-	// Value is the amount of CTK transferred with the call.
-	Value uint64
-
-	// Code is the contract byte code.
-	Code acm.Bytecode
-
-	// Abi is the Solidity ABI bytes for the contract code.
-	Abi string
-
-	// Meta is the metadata for the contract.
-	Meta []*payload.ContractMeta
-
-	// IsEWASM is true if the code is EWASM code.
-	IsEWASM bool
-
-	// IsRuntime is true if the code is runtime code.
-	IsRuntime bool
+	addr, _ := sdk.AccAddressFromBech32(m.Caller)
+	return []sdk.AccAddress{addr}
 }
 
 // NewMsgDeploy returns a new CVM deploy message.
-func NewMsgDeploy(caller sdk.AccAddress, value uint64, code acm.Bytecode, abi string, meta []*payload.ContractMeta, isEWASM, isRuntime bool) MsgDeploy {
+func NewMsgDeploy(caller string, value uint64, code acm.Bytecode, abi string, meta []*payload.ContractMeta, isEWASM, isRuntime bool) MsgDeploy {
 	return MsgDeploy{
 		Caller:    caller,
 		Value:     value,
@@ -108,8 +78,9 @@ func (m MsgDeploy) Type() string { return "deploy" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgDeploy) ValidateBasic() error {
-	if m.Caller.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Caller.String())
+	_, err := sdk.AccAddressFromBech32(m.Caller)
+	if m.Caller == "" || err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Caller)
 	}
 	return nil
 }
@@ -125,5 +96,6 @@ func (m MsgDeploy) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgDeploy) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{m.Caller}
+	addr, _ := sdk.AccAddressFromBech32(m.Caller)
+	return []sdk.AccAddress{addr}
 }

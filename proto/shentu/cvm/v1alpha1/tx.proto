@@ -1,0 +1,62 @@
+syntax = "proto3";
+package shentu.cvm.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "shentu/cvm/v1alpha1/cvm.proto";
+import "burrow/payload.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/cvm/internal/types";
+
+service Msg {
+  rpc Call(MsgCall) returns (MsgCallResponse);
+  rpc Deploy(MsgDeploy) returns (MsgDeployResponse);
+  rpc View(MsgView) returns (MsgViewResponse);
+}
+
+message MsgCall {
+  string caller = 1;
+  string callee = 2;
+  uint64 value = 3;
+  bytes data = 4;
+}
+
+message MsgCallResponse {
+  bytes result = 1;
+}
+
+message MsgDeploy {
+  // Caller is the sender of the CVM-message.
+  string Caller = 1;
+
+  // Value is the amount of CTK transferred with the call.
+  uint64 value = 2;
+
+  // Code is the contract byte code.
+  bytes code = 3;
+
+  // Abi is the Solidity ABI bytes for the contract code.
+  string abi = 4;
+
+  // Meta is the metadata for the contract.
+  repeated  payload.ContractMeta  meta = 5;
+
+  // IsEWASM is true if the code is EWASM code.
+  bool isEWASM = 6;
+
+  // IsRuntime is true if the code is runtime code.
+  bool isRuntime = 7;
+}
+
+message MsgDeployResponse {
+  bytes result = 1;
+}
+
+message MsgView {
+  string caller = 1;
+  string callee = 2;
+  string data = 3;
+}
+
+message MsgViewResponse {
+  bytes result = 1;
+}

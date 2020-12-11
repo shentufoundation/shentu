@@ -65,13 +65,13 @@ func queryView(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 		panic("could not parse address " + path[1])
 	}
 
-	value, err := keeper.Call(ctx, caller, callee, 0, req.Data, []*payload.ContractMeta{}, true, false, false)
+	value, err := keeper.Tx(ctx, caller, callee, 0, req.Data, []*payload.ContractMeta{}, true, false, false)
 
 	if err != nil {
 		panic("failed to get storage at address " + path[0])
 	}
 
-	res, err = codec.MarshalJSONIndent(keeper.cdc, types.QueryResView{Ret: value})
+	res, err = codec.MarshalJSONIndent(keeper.legacyAmino, types.QueryResView{Ret: value})
 	if err != nil {
 		panic("could not marshal result to JSON")
 	}
@@ -95,12 +95,12 @@ func queryCode(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 	}
 
 	if len(account.EVMCode) != 0 {
-		res, err = codec.MarshalJSONIndent(keeper.cdc, types.QueryResCode{Code: account.EVMCode})
+		res, err = codec.MarshalJSONIndent(keeper.legacyAmino, types.QueryResCode{Code: account.EVMCode})
 		if err != nil {
 			panic("could not marshal result to JSON")
 		}
 	} else {
-		res, err = codec.MarshalJSONIndent(keeper.cdc, types.QueryResCode{Code: account.WASMCode})
+		res, err = codec.MarshalJSONIndent(keeper.legacyAmino, types.QueryResCode{Code: account.WASMCode})
 		if err != nil {
 			panic("could not marshal result to JSON")
 		}
@@ -135,7 +135,7 @@ func queryStorage(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 		panic("failed to get storage at address " + path[0] + " key " + path[1])
 	}
 
-	res, err3 := codec.MarshalJSONIndent(keeper.cdc, types.QueryResStorage{Value: value})
+	res, err3 := codec.MarshalJSONIndent(keeper.legacyAmino, types.QueryResStorage{Value: value})
 	if err3 != nil {
 		panic("could not marshal result to JSON")
 	}
@@ -154,7 +154,7 @@ func queryAbi(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keep
 	}
 
 	abi := keeper.getAbi(ctx, crypto.MustAddressFromBytes(addr))
-	res, err2 := codec.MarshalJSONIndent(keeper.cdc, types.QueryResAbi{Abi: abi})
+	res, err2 := codec.MarshalJSONIndent(keeper.legacyAmino, types.QueryResAbi{Abi: abi})
 	if err2 != nil {
 		panic("could not marshal result to JSON")
 	}
@@ -184,7 +184,7 @@ func queryAddrMeta(ctx sdk.Context, path []string, req abci.RequestQuery, keeper
 		resString += contMeta[i].String()
 	}
 
-	res, err = codec.MarshalJSONIndent(keeper.cdc, types.QueryResAddrMeta{Metahash: resString})
+	res, err = codec.MarshalJSONIndent(keeper.legacyAmino, types.QueryResAddrMeta{Metahash: resString})
 	if err != nil {
 		panic("could not marshal result to JSON")
 	}
@@ -207,7 +207,7 @@ func queryMeta(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 	if err != nil {
 		panic("could not get metadata for the address")
 	}
-	res, err = codec.MarshalJSONIndent(keeper.cdc, types.QueryResMeta{Meta: meta})
+	res, err = codec.MarshalJSONIndent(keeper.legacyAmino, types.QueryResMeta{Meta: meta})
 	return
 }
 
@@ -226,7 +226,7 @@ func queryAccount(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, path[0])
 	}
 
-	res, err = codec.MarshalJSONIndent(keeper.cdc, account)
+	res, err = codec.MarshalJSONIndent(keeper.legacyAmino, account)
 	if err != nil {
 		panic("could not marshal result to JSON")
 	}

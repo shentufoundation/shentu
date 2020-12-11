@@ -1,6 +1,8 @@
 package cvm
 
 import (
+	"github.com/hyperledger/burrow/binary"
+	"github.com/hyperledger/burrow/crypto"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,7 +16,7 @@ import (
 	"github.com/certikfoundation/shentu/x/cvm/internal/types"
 )
 
-func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.ValidatorUpdate {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []abci.ValidatorUpdate {
 	k.SetGasRate(ctx, data.GasRate)
 	state := k.NewState(ctx)
 
@@ -22,12 +24,17 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 	cache := callframe.Cache
 
 	for _, contract := range data.Contracts {
+		cryptoAddr, err := crypto.AddressFromBytes(contract.Address)
+		if err != nil {
+			panic(err)
+		}
 		if contract.Abi != nil {
-			k.SetAbi(ctx, contract.Address, contract.Abi)
+			k.SetAbi(ctx, cryptoAddr, contract.Abi)
 		}
 
 		for _, kv := range contract.Storage {
-			if err := state.SetStorage(contract.Address, kv.Key, kv.Value); err != nil {
+			key := binary.LeftPadWord256(kv.Key)
+			if err := state.SetStorage(cryptoAddr, key, kv.Value); err != nil {
 				panic(err)
 			}
 		}
@@ -43,14 +50,14 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 		}
 
 		if len(addrMetas) > 0 {
-			if err := state.SetAddressMeta(contract.Address, addrMetas); err != nil {
+			if err := state.SetAddressMeta(cryptoAddr, addrMetas); err != nil {
 				panic(err)
 			}
 		}
 
 		// Register contract account. Since account can already exist from Account InitGenesis,
 		// we need to import those first.
-		account, err := state.GetAccount(contract.Address)
+		account, err := state.GetAccount(cryptoAddr)
 		if err != nil {
 			panic(err)
 		}
@@ -67,7 +74,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 			wasmCode = contract.Code.Code
 		}
 		newAccount := acm.Account{
-			Address:  contract.Address,
+			Address:  cryptoAddr,
 			Balance:  balance,
 			EVMCode:  evmCode,
 			WASMCode: wasmCode,
@@ -87,8 +94,13 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 	if err := cache.Sync(state); err != nil {
 		panic(err)
 	}
-	for _, metadata := range data.Metadata {
-		if err := state.SetMetadata(metadata.Hash, metadata.Metadata); err != nil {
+	for _, metadata := range data.Metadatas {
+		if len(metadata.Hash) != 32 {
+			panic("metadata hash is not 256 bits")
+		}
+		var metahash acmstate.MetadataHash
+		copy(metahash[:], metadata.Hash[:32])
+		if err := state.SetMetadata(metahash, metadata.Metadata); err != nil {
 			panic(err)
 		}
 	}
@@ -97,14 +109,14 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 	return []abci.ValidatorUpdate{}
 }
 
-func ExportGenesis(ctx sdk.Context, k Keeper) types.GenesisState {
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	gasRate := k.GetGasRate(ctx)
 	contracts := k.GetAllContracts(ctx)
 	metadatas := k.GetAllMetas(ctx)
 
-	return GenesisState{
+	return &types.GenesisState{
 		GasRate:   gasRate,
 		Contracts: contracts,
-		Metadata:  metadatas,
+		Metadatas: metadatas,
 	}
 }
