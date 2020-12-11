@@ -12,8 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/hyperledger/burrow/execution/evm/abi"
-
 	"github.com/certikfoundation/shentu/x/cvm/internal/types"
 )
 
@@ -80,28 +78,24 @@ func GetCmdView() *cobra.Command {
 				return err
 			}
 
-			queryPath := fmt.Sprintf("custom/%s/view/%s/%s", queryRoute, callerString, callee)
-			return queryContractAndPrint(clientCtx, queryPath, args[1], abiSpec, data)
+			req := &types.QueryViewRequest{
+				Caller:       callerString,
+				Callee:       args[0],
+				AbiSpec:      abiSpec,
+				FunctionName: args[1],
+				Data:         data,
+			}
+			out, err := queryClient.View(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintOutput(out)
 		},
 	}
 	cmd.Flags().String(FlagCaller, "", "optional caller parameter to run the view function with")
 
 	return cmd
-}
-
-// Query CVM contract code based on ABI spec and print function output.
-func queryContractAndPrint(cliCtx client.Context, queryPath, fname string, abiSpec, data []byte) error {
-	res, _, err := cliCtx.QueryWithData(queryPath, data)
-	if err != nil {
-		return fmt.Errorf("querying CVM contract code: %v", err)
-	}
-	var out types.QueryResView
-	cliCtx.LegacyAmino.MustUnmarshalJSON(res, &out)
-	ret, err := abi.DecodeFunctionReturn(string(abiSpec), fname, out.Ret)
-	if err != nil {
-		return fmt.Errorf("decoding function return: %v", err)
-	}
-	return cliCtx.PrintOutput(ret)
 }
 
 // GetCmdCode returns the CVM code query command.

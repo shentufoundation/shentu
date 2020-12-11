@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/hex"
 
+	"github.com/hyperledger/burrow/execution/evm/abi"
+
 	"github.com/hyperledger/burrow/acm"
 	"github.com/hyperledger/burrow/acm/acmstate"
 	"github.com/hyperledger/burrow/binary"
@@ -129,6 +131,34 @@ func (q Querier) Account(c context.Context, request *types.QueryAccountRequest) 
 	account, err := state.GetAccount(vmAddr)
 
 	return account, nil
+}
+
+func (q Querier) View(c context.Context, request *types.QueryViewRequest) (*types.QueryViewResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	caller, err := sdk.AccAddressFromBech32(request.Caller)
+	if err != nil {
+		return nil, err
+	}
+	callee, err := sdk.AccAddressFromBech32(request.Callee)
+	if err != nil {
+		return nil, err
+	}
+	ret, err := q.Tx(ctx, caller, callee, 0, request.Data, nil, true, false, false)
+
+	out, err := abi.DecodeFunctionReturn(string(request.AbiSpec), request.FunctionName, ret)
+	if err != nil {
+		return nil, err
+	}
+	result := []*types.ReturnVars{}
+	for _, v := range out {
+		result = append(result, &types.ReturnVars{
+			Name:  v.Name,
+			Value: v.Value,
+		})
+	}
+	return &types.QueryViewResponse{
+		ReturnVars: result,
+	}, nil
 }
 
 var _ types.QueryServer = Querier{}

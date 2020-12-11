@@ -129,8 +129,20 @@ func GetCmdCall() *cobra.Command {
 						break
 					}
 					fmt.Println(args[1] + " is a " + entry.Type + " function - Attempting to re-route to query")
-					queryPath := fmt.Sprintf("custom/%s/view/%s/%s", types.QuerierRoute, from, callee)
-					return queryContractAndPrint(clientCtx, queryPath, args[1], abiSpec, data)
+					queryClient := types.NewQueryClient(clientCtx)
+					req := &types.QueryViewRequest{
+						Caller:       from.String(),
+						Callee:       args[0],
+						AbiSpec:      abiSpec,
+						FunctionName: args[1],
+						Data:         data,
+					}
+					out, err := queryClient.View(cmd.Context(), req)
+					if err != nil {
+						return err
+					}
+
+					return clientCtx.PrintOutput(out)
 				}
 			}
 			value := viper.GetUint64(FlagValue)
