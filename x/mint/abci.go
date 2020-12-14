@@ -2,6 +2,8 @@ package mint
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/certikfoundation/shentu/x/mint/internal/keeper"
 )
 
 // Minting module event types
@@ -14,7 +16,7 @@ const (
 )
 
 // BeginBlocker mints new tokens for the previous block.
-func BeginBlocker(ctx sdk.Context, k Keeper) {
+func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	// fetch stored minter & params
 	minter := k.GetMinter(ctx)
 	params := k.GetParams(ctx)
