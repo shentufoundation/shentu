@@ -86,7 +86,6 @@ $ %[1]s query gov proposal 1
 				return err
 			}
 			return cliCtx.PrintOutput(&res.Proposal)
-
 		},
 	}
 }

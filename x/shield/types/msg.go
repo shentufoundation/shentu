@@ -113,8 +113,8 @@ func (msg MsgUpdatePool) ValidateBasic() error {
 }
 
 // NewMsgPausePool creates a new NewMsgPausePool instance.
-func NewMsgPausePool(accAddr sdk.AccAddress, id uint64) MsgPausePool {
-	return MsgPausePool{
+func NewMsgPausePool(accAddr sdk.AccAddress, id uint64) *MsgPausePool {
+	return &MsgPausePool{
 		From:   accAddr.String(),
 		PoolId: id,
 	}
@@ -157,8 +157,8 @@ func (msg MsgPausePool) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgResumePool(accAddr sdk.AccAddress, id uint64) MsgResumePool {
-	return MsgResumePool{
+func NewMsgResumePool(accAddr sdk.AccAddress, id uint64) *MsgResumePool {
+	return &MsgResumePool{
 		From:   accAddr.String(),
 		PoolId: id,
 	}
@@ -375,6 +375,14 @@ func (msg MsgWithdrawForeignRewards) ValidateBasic() error {
 		return ErrInvalidToAddr
 	}
 	return nil
+}
+
+// NewMsgClearPayouts creates a new MsgClearPayouts instance.
+func NewMsgClearPayouts(sender sdk.AccAddress, denom string) MsgClearPayouts {
+	return MsgClearPayouts{
+		From:  sender.String(),
+		Denom: denom,
+	}
 }
 
 // Route implements the sdk.Msg interface.

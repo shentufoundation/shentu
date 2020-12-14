@@ -1,23 +1,15 @@
 package cli
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	shieldQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Querying commands for the shield module",
@@ -25,41 +17,59 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	shieldQueryCmd.AddCommand(flags.GetCommands(
-		GetCmdPool(queryRoute, cdc),
-		GetCmdPools(queryRoute, cdc),
-		GetCmdPurchaseList(queryRoute, cdc),
-		GetCmdPurchaserPurchases(queryRoute, cdc),
-		GetCmdPoolPurchases(queryRoute, cdc),
-		GetCmdPurchases(queryRoute, cdc),
-		GetCmdProvider(queryRoute, cdc),
-		GetCmdProviders(queryRoute, cdc),
-		GetCmdPoolParams(queryRoute, cdc),
-		GetCmdClaimParams(queryRoute, cdc),
-		GetCmdStatus(queryRoute, cdc),
-		GetCmdStaking(queryRoute, cdc),
-		GetCmdShieldStakingRate(queryRoute, cdc),
-		GetCmdReimbursement(queryRoute, cdc),
-		GetCmdReimbursements(queryRoute, cdc),
-	)...)
+	shieldQueryCmd.AddCommand(
+		//GetCmdPool(),
+		//GetCmdPools(),
+		// GetCmdPurchaseList(),
+		// GetCmdPurchaserPurchases(),
+		// GetCmdPoolPurchases(),
+		// GetCmdPurchases(),
+		// GetCmdProvider(),
+		// GetCmdProviders(),
+		// GetCmdPoolParams(),
+		// GetCmdClaimParams(),
+		// GetCmdStatus(),
+		// GetCmdStaking(),
+		// GetCmdShieldStakingRate(),
+		// GetCmdReimbursement(),
+		// GetCmdReimbursements(),
+	)
 
 	return shieldQueryCmd
 }
 
+/*
 // GetCmdPool returns the command for querying the pool.
-func GetCmdPool(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdPool() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pool [pool_ID]",
 		Short: "query a pool",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+
+
+			res, err := queryClient.Pool(
+				context.Background(),
+				&types.QueryPoolRequest{PoolId: args[0],  },
+			)
+			if err != nil {
+				return err
+			}
+			return cliCtx.PrintOutput(&res.Proposal)
+
+
 
 			var res []byte
-			var err error
 			if len(args) == 1 {
 				route := fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryPoolByID, args[0])
 				res, _, err = cliCtx.QueryWithData(route, nil)
+				
 				if err != nil {
 					return err
 				}
@@ -87,7 +97,7 @@ func GetCmdPool(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdPools returns the command for querying a complete list of pools.
-func GetCmdPools(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdPools() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pools",
 		Short: "query a complete list of pools",
@@ -109,9 +119,11 @@ func GetCmdPools(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
+
+
 // GetCmdPurchaseList returns the command for querying purchases
 // corresponding to a given pool-purchaser pair.
-func GetCmdPurchaseList(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdPurchaseList() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pool-purchaser [pool_ID] [purchaser_address]",
 		Short: "get purchases corresponding to a given pool-purchaser pair",
@@ -135,7 +147,7 @@ func GetCmdPurchaseList(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 // GetCmdPurchaserPurchases returns the command for querying
 // purchases by a given address.
-func GetCmdPurchaserPurchases(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdPurchaserPurchases() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "purchases-by [purchaser_address]",
 		Short: "query purchase information of a given account",
@@ -160,7 +172,7 @@ func GetCmdPurchaserPurchases(queryRoute string, cdc *codec.Codec) *cobra.Comman
 
 // GetCmdPoolPurchases returns the command for querying
 // purchases in a given pool.
-func GetCmdPoolPurchases(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdPoolPurchases() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pool-purchases [pool_ID]",
 		Short: "query purchases in a given pool",
@@ -184,7 +196,7 @@ func GetCmdPoolPurchases(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdPurchases returns the command for querying all purchases.
-func GetCmdPurchases(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdPurchases() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "purchases",
 		Short: "query all purchases",
@@ -208,7 +220,7 @@ func GetCmdPurchases(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdProvider returns the command for querying a provider.
-func GetCmdProvider(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdProvider() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "provider [provider_address]",
 		Short: "get provider information",
@@ -232,7 +244,7 @@ func GetCmdProvider(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdProviders returns the command for querying all providers.
-func GetCmdProviders(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdProviders() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "providers",
 		Args:  cobra.ExactArgs(0),
@@ -276,7 +288,7 @@ $ %[1]s query shield providers --page=2 --limit=100
 }
 
 // GetCmdPoolParams returns the command for querying pool parameters.
-func GetCmdPoolParams(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdPoolParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pool-params",
 		Short: "get pool parameters",
@@ -299,7 +311,7 @@ func GetCmdPoolParams(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdClaimParams returns the command for querying claim parameters.
-func GetCmdClaimParams(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdClaimParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "claim-params",
 		Short: "get claim parameters",
@@ -322,7 +334,7 @@ func GetCmdClaimParams(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdStatus returns the command for querying shield status.
-func GetCmdStatus(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdStatus() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status",
 		Short: "get shield status",
@@ -346,7 +358,7 @@ func GetCmdStatus(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 // GetCmdStaking returns the command for querying staked-for-shield amounts
 // corresponding to a given pool-purchaser pair.
-func GetCmdStaking(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdStaking() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "staked-for-shield [pool_ID] [purchaser_address]",
 		Short: "get staked CTK for shield corresponding to a given pool-purchaser pair",
@@ -369,7 +381,7 @@ func GetCmdStaking(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdShieldStakingRate returns the shield-staking rate for stake-for-shield
-func GetCmdShieldStakingRate(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdShieldStakingRate() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "shield-staking-rate",
 		Short: "get shield staking rate for stake-for-shield",
@@ -392,7 +404,7 @@ func GetCmdShieldStakingRate(queryRoute string, cdc *codec.Codec) *cobra.Command
 }
 
 // GetCmdReimbursement returns the command for querying a reimbursement.
-func GetCmdReimbursement(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdReimbursement() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "reimbursement [proposal ID]",
 		Short: "query a reimbursement",
@@ -416,7 +428,7 @@ func GetCmdReimbursement(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdReimbursements returns the command for querying reimbursements.
-func GetCmdReimbursements(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdReimbursements() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "reimbursements",
 		Short: "query all reimbursements",
@@ -437,3 +449,4 @@ func GetCmdReimbursements(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 	return cmd
 }
+*/
