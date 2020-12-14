@@ -1,8 +1,13 @@
 package slashing
 
 import (
+	"context"
 	"encoding/json"
 	"math/rand"
+
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -15,9 +20,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
+	"github.com/cosmos/cosmos-sdk/x/slashing/keeper"
+	"github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-
-	"github.com/certikfoundation/shentu/x/slashing/internal/types"
 )
 
 var (
@@ -31,42 +36,51 @@ type AppModuleBasic struct{}
 
 // Name returns the slashing module's name.
 func (AppModuleBasic) Name() string {
-	return CosmosAppModuleBasic{}.Name()
+	return slashing.AppModuleBasic{}.Name()
 }
 
 // RegisterCodec registers the slashing module's types for the given codec.
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	RegisterCodec(cdc)
-	*CosmosModuleCdc = *ModuleCdc // nolint
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterLegacyAminoCodec(cdc)
+}
+
+// RegisterInterfaces registers the module's interface types
+func (b AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the slashing module.
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	defGenState := slashing.DefaultGenesisState()
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+	defGenState := types.DefaultGenesisState()
 	defGenState.Params.SignedBlocksWindow = 10000
 	defGenState.Params.SlashFractionDoubleSign = sdk.ZeroDec()
 	defGenState.Params.SlashFractionDowntime = sdk.ZeroDec()
-	return ModuleCdc.MustMarshalJSON(defGenState)
+	return cdc.MustMarshalJSON(defGenState)
 }
 
 // ValidateGenesis performs genesis state validation for the slashing module.
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	return CosmosAppModuleBasic{}.ValidateGenesis(bz)
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
+	return slashing.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
 }
 
 // RegisterRESTRoutes registers the REST routes for the slashing module.
-func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.CLIContext, route *mux.Router) {
-	CosmosAppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
+func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.Context, route *mux.Router) {
+	slashing.AppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
+}
+
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the slashig module.
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 }
 
 // GetTxCmd returns the root tx command for the slashing module.
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return CosmosAppModuleBasic{}.GetTxCmd(cdc)
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
+	return slashing.AppModuleBasic{}.GetTxCmd()
 }
 
 // GetQueryCmd returns the root query command for the slashing module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return CosmosAppModuleBasic{}.GetQueryCmd(cdc)
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return slashing.AppModuleBasic{}.GetQueryCmd()
 }
 
 //___________________________
@@ -74,14 +88,14 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 // AppModule implements an application module for the slashing module.
 type AppModule struct {
 	AppModuleBasic
-	cosmosAppModule CosmosAppModule
+	cosmosAppModule slashing.AppModule
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper, stakingKeeper stakingkeeper.Keeper) AppModule {
+func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, sk stakingkeeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
-		cosmosAppModule: NewCosmosAppModule(keeper, accountKeeper, stakingKeeper),
+		cosmosAppModule: slashing.NewAppModule(cdc, keeper, ak, bk, sk),
 	}
 }
 
@@ -96,29 +110,31 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 }
 
 // Route returns the message routing key for the slashing module.
-func (am AppModule) Route() string {
+func (am AppModule) Route() sdk.Route {
 	return am.cosmosAppModule.Route()
-}
-
-// NewHandler returns an sdk.Handler for the slashing module.
-func (am AppModule) NewHandler() sdk.Handler {
-	return am.cosmosAppModule.NewHandler()
 }
 
 // QuerierRoute returns the slashing module's querier route name.
 func (am AppModule) QuerierRoute() string { return am.cosmosAppModule.QuerierRoute() }
 
-// NewQuerierHandler returns the slashing module sdk.Querier.
-func (am AppModule) NewQuerierHandler() sdk.Querier { return am.cosmosAppModule.NewQuerierHandler() }
+// LegacyQuerierHandler returns the slashing module sdk.Querier.
+func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+	return am.cosmosAppModule.LegacyQuerierHandler(legacyQuerierCdc)
+}
+
+// RegisterServices registers module services.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	am.cosmosAppModule.RegisterServices(cfg)
+}
 
 // InitGenesis performs genesis initialization for the slashing module.
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.InitGenesis(ctx, data)
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+	return am.cosmosAppModule.InitGenesis(ctx, cdc, data)
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the slashing module.
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
-	return am.cosmosAppModule.ExportGenesis(ctx)
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
+	return am.cosmosAppModule.ExportGenesis(ctx, cdc)
 }
 
 // BeginBlock returns the begin blocker for the slashing module.
@@ -140,12 +156,11 @@ func (am AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	am.cosmosAppModule.GenerateGenesisState(simState)
 
 	// Turn off slashing.
-	var genesisState GenesisState
-	simState.Cdc.MustUnmarshalJSON(simState.GenState[ModuleName], &genesisState)
+	var genesisState *types.GenesisState
+	simState.Cdc.MustUnmarshalJSON(simState.GenState[types.ModuleName], genesisState)
 	genesisState.Params.SlashFractionDoubleSign = sdk.ZeroDec()
 	genesisState.Params.SlashFractionDowntime = sdk.ZeroDec()
-	codec.MustMarshalJSONIndent(simState.Cdc, genesisState.Params)
-	simState.GenState[ModuleName] = simState.Cdc.MustMarshalJSON(genesisState)
+	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(genesisState)
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
