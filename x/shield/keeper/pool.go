@@ -84,7 +84,7 @@ func (k Keeper) GetTotalClaimed(ctx sdk.Context) sdk.Int {
 
 func (k Keeper) SetServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(serviceFees)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&serviceFees)
 	store.Set(types.GetServiceFeesKey(), bz)
 }
 
@@ -101,7 +101,7 @@ func (k Keeper) GetServiceFees(ctx sdk.Context) types.MixedDecCoins {
 
 func (k Keeper) SetBlockServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(serviceFees)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&serviceFees)
 	store.Set(types.GetBlockServiceFeesKey(), bz)
 }
 
@@ -123,7 +123,7 @@ func (k Keeper) DeleteBlockServiceFees(ctx sdk.Context) {
 
 func (k Keeper) SetRemainingServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(serviceFees)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&serviceFees)
 	store.Set(types.GetRemainingServiceFeesKey(), bz)
 }
 
@@ -141,8 +141,8 @@ func (k Keeper) GetRemainingServiceFees(ctx sdk.Context) types.MixedDecCoins {
 // SetPool sets data of a pool in kv-store.
 func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(pool)
-	store.Set(types.GetPoolKey(pool.ID), bz)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&pool)
+	store.Set(types.GetPoolKey(pool.Id), bz)
 }
 
 // GetPool gets data of a pool given pool ID.
@@ -267,7 +267,7 @@ func (k Keeper) GetAllPools(ctx sdk.Context) (pools []types.Pool) {
 // ClosePool closes the pool.
 func (k Keeper) ClosePool(ctx sdk.Context, pool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetPoolKey(pool.ID))
+	store.Delete(types.GetPoolKey(pool.Id))
 }
 
 // ClosePools closes pools when both of the pool's shield and shield limit is non-positive.
@@ -310,7 +310,7 @@ func (k Keeper) UpdateSponsor(ctx sdk.Context, poolID uint64, newSponsor string,
 		return types.Pool{}, types.ErrNoPoolFound
 	}
 	pool.Sponsor = newSponsor
-	pool.SponsorAddress = newSponsorAddr
+	pool.SponsorAddr = newSponsorAddr.String()
 	k.SetPool(ctx, pool)
 
 	return pool, nil

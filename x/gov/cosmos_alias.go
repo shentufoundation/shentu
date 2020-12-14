@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	ModuleName        = types.ModuleName
-	StoreKey          = types.StoreKey
-	RouterKey         = types.RouterKey
-	QuerierRoute      = types.QuerierRoute
+	ModuleName   = types.ModuleName
+	StoreKey     = types.StoreKey
+	RouterKey    = types.RouterKey
+	QuerierRoute = types.QuerierRoute
 )

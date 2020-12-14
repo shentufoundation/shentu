@@ -249,7 +249,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)				
+			return cliCtx.PrintOutput(res)
 		},
 	}
 

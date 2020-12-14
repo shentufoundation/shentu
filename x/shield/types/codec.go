@@ -27,7 +27,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgUnstakeFromShield{}, "shield/MsgUnstakeFromShield", nil)
 }
 
-
 // RegisterInterfaces registers the x/shield interfaces types with the interface registry
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),

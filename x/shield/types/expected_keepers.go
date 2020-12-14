@@ -9,6 +9,12 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
+// ParamSubspace defines the expected Subspace interface for parameters (noalias)
+type ParamSubspace interface {
+	Get(ctx sdk.Context, key []byte, ptr interface{})
+	Set(ctx sdk.Context, key []byte, param interface{})
+}
+
 // AccountKeeper defines the expected account keeper.
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
@@ -66,6 +72,8 @@ type BankKeeper interface {
 
 	SubtractCoins(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coins) (sdk.Coins, error)
 	AddCoins(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coins) (sdk.Coins, error)
+
+	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 }
 
 // SupplyKeeper defines the expected supply keeper.

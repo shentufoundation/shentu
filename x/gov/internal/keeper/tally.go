@@ -133,7 +133,7 @@ func delegatorVoting(ctx sdk.Context, k Keeper, vote types.Vote, validators map[
 	if err != nil {
 		panic(err)
 	}
-	
+
 	// iterate over all delegations from voter, deduct from any delegated-to validators
 	k.stakingKeeper.IterateDelegations(ctx, voter, func(index int64, delegation stakingtypes.DelegationI) (stop bool) {
 		valAddrStr := delegation.GetValidatorAddr().String()

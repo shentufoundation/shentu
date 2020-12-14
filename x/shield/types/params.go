@@ -46,15 +46,6 @@ func ParamKeyTable() paramtypes.KeyTable {
 	)
 }
 
-// PoolParams defines the parameters for the shield pool.
-type PoolParams struct {
-	ProtectionPeriod  time.Duration `json:"protection_period" yaml:"protection_period"`
-	ShieldFeesRate    sdk.Dec       `json:"shield_fees_rate" yaml:"shield_fees_rate"`
-	WithdrawPeriod    time.Duration `json:"withdraw_period" yaml:"withdraw_period"`
-	PoolShieldLimit   sdk.Dec       `json:"pool_shield_limit" yaml:"pool_shield_limit"`
-	MinShieldPurchase sdk.Coins     `json:"min_shield_purchase" yaml:"min_shield_purchase"`
-}
-
 // NewPoolParams creates a new PoolParams object.
 func NewPoolParams(protectionPeriod, withdrawPeriod time.Duration, shieldFeesRate sdk.Dec, poolShieldLimit sdk.Dec, minShieldPurchase sdk.Coins) PoolParams {
 	return PoolParams{
@@ -99,15 +90,6 @@ func validatePoolParams(i interface{}) error {
 	}
 
 	return nil
-}
-
-// ClaimProposalParams defines the parameters for the shield claim proposals.
-type ClaimProposalParams struct {
-	ClaimPeriod  time.Duration `json:"claim_period" yaml:"claim_period"`
-	PayoutPeriod time.Duration `json:"payout_period" yaml:"payout_period"`
-	MinDeposit   sdk.Coins     `json:"min_deposit" json:"min_deposit"`
-	DepositRate  sdk.Dec       `json:"deposit_rate" yaml:"deposit_rate"`
-	FeesRate     sdk.Dec       `json:"fees_rate" yaml:"fees_rate"`
 }
 
 // NewClaimProposalParams creates a new ClaimProposalParams instance.

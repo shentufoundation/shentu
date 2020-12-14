@@ -12,7 +12,11 @@ import (
 func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorUpdate {
 	k.SetPoolParams(ctx, data.PoolParams)
 	k.SetClaimProposalParams(ctx, data.ClaimProposalParams)
-	k.SetAdmin(ctx, data.ShieldAdmin)
+	adminAddr, err := sdk.AccAddressFromBech32(data.ShieldAdmin)
+	if err != nil {
+		panic(err)
+	}
+	k.SetAdmin(ctx, adminAddr)
 	k.SetTotalCollateral(ctx, data.TotalCollateral)
 	k.SetTotalWithdrawing(ctx, data.TotalWithdrawing)
 	k.SetTotalShield(ctx, data.TotalShield)
@@ -24,8 +28,8 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 	for _, pool := range data.Pools {
 		k.SetPool(ctx, pool)
 	}
-	k.SetNextPoolID(ctx, data.NextPoolID)
-	k.SetNextPurchaseID(ctx, data.NextPurchaseID)
+	k.SetNextPoolID(ctx, data.NextPoolId)
+	k.SetNextPurchaseID(ctx, data.NextPurchaseId)
 	for _, purchaseList := range data.PurchaseLists {
 		k.SetPurchaseList(ctx, purchaseList)
 		for _, entry := range purchaseList.Entries {
@@ -33,20 +37,28 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 		}
 	}
 	for _, purchase := range data.StakeForShields {
-		k.SetStakeForShield(ctx, purchase.PoolID, purchase.Purchaser, purchase)
+		purchaserAddr, err := sdk.AccAddressFromBech32(purchase.Purchaser)
+		if err != nil {
+			panic(err)
+		}
+		k.SetStakeForShield(ctx, purchase.PoolId, purchaserAddr, purchase)
 	}
 	for _, originalStaking := range data.OriginalStakings {
-		k.SetOriginalStaking(ctx, originalStaking.PurchaseID, originalStaking.Amount)
+		k.SetOriginalStaking(ctx, originalStaking.PurchaseId, originalStaking.Amount)
 	}
 	for _, provider := range data.Providers {
-		k.SetProvider(ctx, provider.Address, provider)
+		providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
+		if err != nil {
+			panic(err)
+		}
+		k.SetProvider(ctx, providerAddr, provider)
 	}
 	for _, withdraw := range data.Withdraws {
 		k.InsertWithdrawQueue(ctx, withdraw)
 	}
 	k.SetLastUpdateTime(ctx, data.LastUpdateTime)
 	for _, pRPair := range data.ProposalIDReimbursementPairs {
-		k.SetReimbursement(ctx, pRPair.ProposalID, pRPair.Reimbursement)
+		k.SetReimbursement(ctx, pRPair.ProposalId, pRPair.Reimbursement)
 	}
 	return []abci.ValidatorUpdate{}
 }

@@ -58,7 +58,11 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, amount 
 
 	// Update provider's withdrawing.
 	provider.Withdrawing = provider.Withdrawing.Add(amount)
-	k.SetProvider(ctx, provider.Address, provider)
+	providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
+	if err != nil {
+		panic(err)
+	}
+	k.SetProvider(ctx, providerAddr, provider)
 
 	// Update total withdrawing.
 	totalWithdrawing := k.GetTotalWithdrawing(ctx)

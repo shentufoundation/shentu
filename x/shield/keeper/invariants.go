@@ -21,7 +21,7 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 // remaining services and rewards held on store
 func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		moduleCoins := keeper.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins()
+		moduleCoins := keeper.ak.GetModuleAccount(ctx, types.ModuleName).GetCoins()
 		total := keeper.GetRemainingServiceFees(ctx)
 		providers := keeper.GetAllProviders(ctx)
 

@@ -69,8 +69,3 @@ func (mdc MixedDecCoins) QuoDec(d sdk.Dec) MixedDecCoins {
 		Foreign: mdc.Foreign.QuoDec(d),
 	}
 }
-
-// String implements the Stringer for MixedDecCoins.
-func (mdc MixedDecCoins) String() string {
-	return append(mdc.Native, mdc.Foreign...).String()
-}

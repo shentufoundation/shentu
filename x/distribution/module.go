@@ -95,7 +95,7 @@ func NewAppModule(
 	bankKeeper types.BankKeeper, stakingKeeper stakingkeeper.Keeper,
 ) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{cdc: cdc},
+		AppModuleBasic:  AppModuleBasic{cdc: cdc},
 		cosmosAppModule: distribution.NewAppModule(cdc, keeper, accountKeeper, bankKeeper, stakingKeeper),
 	}
 }

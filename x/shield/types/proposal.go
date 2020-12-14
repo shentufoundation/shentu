@@ -102,40 +102,27 @@ func NewLockedCollateral(proposalID uint64, lockedAmt sdk.Int) LockedCollateral 
 }
 
 // NewUnbondingDelegation returns a new UnbondingDelegation instance.
-func NewUnbondingDelegation(delAddr sdk.AccAddress, valAddr sdk.ValAddress, entry stakingTypes.UnbondingDelegationEntry) stakingTypes.UnbondingDelegation {
+func NewUnbondingDelegation(delAddr, valAddr string, entry stakingTypes.UnbondingDelegationEntry) stakingTypes.UnbondingDelegation {
 	return stakingTypes.UnbondingDelegation{
-		DelegatorAddress: delAddr.String(),
-		ValidatorAddress: valAddr.String(),
+		DelegatorAddress: delAddr,
+		ValidatorAddress: valAddr,
 		Entries:          []stakingTypes.UnbondingDelegationEntry{entry},
 	}
-}
-
-// Reimbursement stores information of a reimbursement.
-type Reimbursement struct {
-	Amount      sdk.Coins      `json:"amount" yaml:"amount"`
-	Beneficiary sdk.AccAddress `json:"beneficiary" yaml:"beneficiary"`
-	PayoutTime  time.Time      `json:"payout_time" yaml:"payout_time"`
 }
 
 // NewReimbursement returns a new Reimbursement instance.
 func NewReimbursement(amount sdk.Coins, beneficiary sdk.AccAddress, payoutTime time.Time) Reimbursement {
 	return Reimbursement{
 		Amount:      amount,
-		Beneficiary: beneficiary,
+		Beneficiary: beneficiary.String(),
 		PayoutTime:  payoutTime,
 	}
-}
-
-// ProposalIDReimbursementPair stores information of a reimbursement and corresponding proposal ID.
-type ProposalIDReimbursementPair struct {
-	ProposalID    uint64
-	Reimbursement Reimbursement
 }
 
 // NewProposalIDReimbursementPair returns a new ProposalIDReimbursementPair instance.
 func NewProposalIDReimbursementPair(proposalID uint64, reimbursement Reimbursement) ProposalIDReimbursementPair {
 	return ProposalIDReimbursementPair{
-		ProposalID:    proposalID,
+		ProposalId:    proposalID,
 		Reimbursement: reimbursement,
 	}
 }

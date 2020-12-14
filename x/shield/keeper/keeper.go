@@ -4,10 +4,11 @@ import (
 	"encoding/binary"
 	"time"
 
+	gogotypes "github.com/gogo/protobuf/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
@@ -18,22 +19,25 @@ type Keeper struct {
 	storeKey     sdk.StoreKey
 	cdc          codec.BinaryMarshaler
 	ak           types.AccountKeeper
+	bk           types.BankKeeper
 	sk           types.StakingKeeper
 	gk           types.GovKeeper
 	supplyKeeper types.SupplyKeeper
-	paramSpace   params.Subspace
+	paramSpace   types.ParamSubspace
 }
 
 // NewKeeper creates a shield keeper.
-func NewKeeper(cdc codec.BinaryMarshaler, shieldStoreKey sdk.StoreKey, ak types.AccountKeeper, sk types.StakingKeeper, gk types.GovKeeper, supplyKeeper types.SupplyKeeper, paramSpace params.Subspace) Keeper {
+func NewKeeper(cdc codec.BinaryMarshaler, shieldStoreKey sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
+	sk types.StakingKeeper, gk types.GovKeeper, supplyKeeper types.SupplyKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
 		storeKey:     shieldStoreKey,
 		cdc:          cdc,
 		ak:           ak,
+		bk:           bk,
 		sk:           sk,
 		gk:           gk,
 		supplyKeeper: supplyKeeper,
-		paramSpace:   paramSpace.WithKeyTable(types.ParamKeyTable()),
+		paramSpace:   paramSpace,
 	}
 }
 
@@ -68,7 +72,7 @@ func (k Keeper) GetPoolBySponsor(ctx sdk.Context, sponsor string) (types.Pool, b
 			return false
 		}
 	})
-	if ret.ID == 0 {
+	if ret.Id == 0 {
 		return ret, false
 	}
 	return ret, true
@@ -88,7 +92,12 @@ func (k Keeper) GetVotingParams(ctx sdk.Context) govtypes.VotingParams {
 // Last update time will be set when the first purchase is made or distributing service fees.
 func (k Keeper) SetLastUpdateTime(ctx sdk.Context, prevUpdateTime time.Time) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(prevUpdateTime)
+
+	timeProto, err := gogotypes.TimestampProto(prevUpdateTime)
+	if err != nil {
+		panic(err)
+	}
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(timeProto)
 	store.Set(types.GetLastUpdateTimeKey(), bz)
 }
 
@@ -99,7 +108,11 @@ func (k Keeper) GetLastUpdateTime(ctx sdk.Context) (time.Time, bool) {
 	if bz == nil {
 		return time.Time{}, false
 	}
-	var lastUpdateTime time.Time
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &lastUpdateTime)
-	return lastUpdateTime, true
+
+	var protoTimestamp *gogotypes.Timestamp
+	timestamp, err := gogotypes.TimestampFromProto(protoTimestamp)
+	if err != nil {
+		panic(err)
+	}
+	return timestamp, true
 }
