@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
-	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/auth/vesting"
 	"github.com/certikfoundation/shentu/x/shield/types"
@@ -44,7 +44,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	}
 	var index int
 	for i, entry := range purchaseList.Entries {
-		if entry.PurchaseID == purchaseID {
+		if entry.PurchaseId == purchaseID {
 			index = i
 			break
 		}
@@ -95,6 +95,11 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 // the provider for the duration. If necessary, it extends withdrawing
 // collaterals and, if exist, their linked unbondings as well.
 func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amount sdk.Int, duration time.Duration) {
+	providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
+	if err != nil {
+		panic(err)
+	}
+
 	// Lenient check:
 	// We are done if non-withdrawing, bonded delegation-backed
 	// collaterals can cover the amount.
@@ -111,7 +116,7 @@ func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amo
 	// Secure the given amount of staking (bonded or unbonding) until
 	// the end of the lock period by delaying unbondings, if necessary.
 	// availableDelegationByEndTime = Bonded + Unbonding - UnbondedByEndTime
-	availableDelegationByEndTime := provider.DelegationBonded.Add(k.ComputeTotalUnbondingAmount(ctx, provider.Address).Sub(k.ComputeUnbondingAmountByTime(ctx, provider.Address, endTime)))
+	availableDelegationByEndTime := provider.DelegationBonded.Add(k.ComputeTotalUnbondingAmount(ctx, providerAddr).Sub(k.ComputeUnbondingAmountByTime(ctx, providerAddr, endTime)))
 
 	// Collaterals that won't be withdrawn until the end time must be
 	// backed by staking that won't be unbonded until the end time.
@@ -124,7 +129,7 @@ func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amo
 		k.DelayWithdraws(ctx, provider.Address, withdrawDelayAmt, endTime)
 		if amount.GT(availableDelegationByEndTime) {
 			unbondingDelayAmt := amount.Sub(availableDelegationByEndTime)
-			k.DelayUnbonding(ctx, provider.Address, unbondingDelayAmt, endTime)
+			k.DelayUnbonding(ctx, providerAddr, unbondingDelayAmt, endTime)
 		}
 	}
 }
@@ -159,7 +164,7 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 		return types.ErrPurchaseNotFound
 	}
 	for i := range purchaseList.Entries {
-		if purchaseList.Entries[i].PurchaseID == id {
+		if purchaseList.Entries[i].PurchaseId == id {
 			purchaseList.Entries[i].Shield = purchaseList.Entries[i].Shield.Add(lossAmt)
 			break
 		}
@@ -172,7 +177,7 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 // SetReimbursement sets a reimbursement in store.
 func (k Keeper) SetReimbursement(ctx sdk.Context, proposalID uint64, payout types.Reimbursement) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(payout)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&payout)
 	store.Set(types.GetReimbursementKey(proposalID), bz)
 }
 
@@ -252,6 +257,12 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 		if !totalPayout.IsPositive() {
 			break
 		}
+
+		providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
+		if err != nil {
+			panic(err)
+		}
+
 		purchased := provider.Collateral.ToDec().Mul(purchaseRatio).TruncateInt()
 		if purchased.GT(totalPurchased) {
 			purchased = totalPurchased
@@ -270,11 +281,11 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 			payout = payout.Add(sdk.OneInt())
 		}
 
-		if err := k.UpdateProviderCollateralForPayout(ctx, provider.Address, purchased, payout); err != nil {
+		if err := k.UpdateProviderCollateralForPayout(ctx, providerAddr, purchased, payout); err != nil {
 			panic(err)
 		}
 
-		if err := k.MakePayoutByProviderDelegations(ctx, provider.Address, purchased, payout); err != nil {
+		if err := k.MakePayoutByProviderDelegations(ctx, providerAddr, purchased, payout); err != nil {
 			panic(err)
 		}
 
@@ -336,7 +347,7 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 	totalWithdrawing = totalWithdrawing.Sub(payoutFromWithdraw)
 
 	// Update provider's withdraws from latest to oldest.
-	withdraws := k.GetWithdrawsByProvider(ctx, providerAddr)
+	withdraws := k.GetWithdrawsByProvider(ctx, provider.Address)
 	for i := len(withdraws) - 1; i >= 0 && payoutFromWithdraw.IsPositive(); i-- {
 		// If purchased is not fully covered, cover purchased first.
 		remainingWithdraw := sdk.MaxInt(withdraws[i].Amount.Sub(uncoveredPurchase), sdk.ZeroInt())
@@ -350,7 +361,7 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 		payoutFromWithdraw = payoutFromWithdraw.Sub(payoutFromThisWithdraw)
 		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime)
 		for j := range timeSlice {
-			if !timeSlice[j].Address.Equals(withdraws[i].Address) || !timeSlice[j].Amount.Equal(withdraws[i].Amount) {
+			if timeSlice[j].Address != withdraws[i].Address || !timeSlice[j].Amount.Equal(withdraws[i].Amount) {
 				continue
 			}
 
@@ -373,7 +384,7 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 	}
 
 	k.SetTotalWithdrawing(ctx, totalWithdrawing)
-	k.SetProvider(ctx, provider.Address, provider)
+	k.SetProvider(ctx, providerAddr, provider)
 
 	return nil
 }
@@ -412,14 +423,14 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 	payoutFromUnbonding := payout.Sub(payoutFromDelegation)
 
 	if payoutFromDelegation.IsPositive() {
-		k.PayFromDelegation(ctx, provider.Address, payoutFromDelegation)
+		k.PayFromDelegation(ctx, providerAddr, payoutFromDelegation)
 	}
 
 	if payoutFromUnbonding.IsZero() {
 		return nil
 	}
 
-	unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, provider.Address)
+	unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, providerAddr)
 	for _, ubd := range unbondingDelegations {
 		if !payoutFromUnbonding.IsPositive() {
 			break
@@ -481,13 +492,30 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payou
 		if err != nil {
 			panic(err)
 		}
-		k.UndelegateShares(ctx, delegations[i].DelegatorAddress, delegations[i].ValidatorAddress, ubdShares)
+
+		delAddr, err := sdk.AccAddressFromBech32(delegations[i].DelegatorAddress)
+		if err != nil {
+			panic(err)
+		}
+		valAddr, err := sdk.ValAddressFromBech32(delegations[i].ValidatorAddress)
+		if err != nil {
+			panic(err)
+		}
+		k.UndelegateShares(ctx, delAddr, valAddr, ubdShares)
 	}
 }
 
 // PayFromUnbondings reduce provider's unbonding delegations and transfer tokens to the shield module account.
-func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd staking.UnbondingDelegation, payout sdk.Int) {
-	unbonding, found := k.sk.GetUnbondingDelegation(ctx, ubd.DelegatorAddress, ubd.ValidatorAddress)
+func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd stakingtypes.UnbondingDelegation, payout sdk.Int) {
+	delAddr, err := sdk.AccAddressFromBech32(ubd.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	valAddr, err := sdk.ValAddressFromBech32(ubd.ValidatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	unbonding, found := k.sk.GetUnbondingDelegation(ctx, delAddr, valAddr)
 	if !found {
 		panic("unbonding delegation is not found")
 	}
@@ -503,7 +531,7 @@ func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd staking.UnbondingDelegati
 			timeSlice := k.sk.GetUBDQueueTimeSlice(ctx, unbonding.Entries[i].CompletionTime)
 			if len(timeSlice) > 1 {
 				for j, slice := range timeSlice {
-					if slice.DelegatorAddress.Equals(ubd.DelegatorAddress) && slice.ValidatorAddress.Equals(ubd.ValidatorAddress) {
+					if slice.DelegatorAddress == ubd.DelegatorAddress && slice.ValidatorAddress == ubd.ValidatorAddress {
 						timeSlice = append(timeSlice[:j], timeSlice[j+1:]...)
 						k.sk.SetUBDQueueTimeSlice(ctx, unbonding.Entries[i].CompletionTime, timeSlice)
 						break
@@ -526,7 +554,7 @@ func (k Keeper) PayFromUnbondings(ctx sdk.Context, ubd staking.UnbondingDelegati
 
 	// Transfer tokens from staking module's not bonded pool.
 	payoutCoins := sdk.NewCoins(sdk.NewCoin(k.sk.BondDenom(ctx), payout))
-	if err := k.UndelegateFromAccountToShieldModule(ctx, staking.NotBondedPoolName, ubd.DelegatorAddress, payoutCoins); err != nil {
+	if err := k.UndelegateFromAccountToShieldModule(ctx, stakingtypes.NotBondedPoolName, delAddr, payoutCoins); err != nil {
 		panic(err)
 	}
 }
@@ -548,7 +576,7 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	// Update delegation records.
 	delegation.Shares = delegation.Shares.Sub(shares)
 
-	isValidatorOperator := delegation.DelegatorAddress.Equals(validator.OperatorAddress)
+	isValidatorOperator := delegation.GetDelegatorAddr().Equals(validator.GetOperator())
 	if isValidatorOperator && !validator.Jailed && validator.TokensFromShares(delegation.Shares).TruncateInt().LT(validator.MinSelfDelegation) {
 		validator.Jailed = true
 		k.sk.SetValidator(ctx, validator)
@@ -563,18 +591,18 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 		k.sk.RemoveDelegation(ctx, delegation)
 	} else {
 		k.sk.SetDelegation(ctx, delegation)
-		k.sk.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+		k.sk.AfterDelegationModified(ctx, delegation.GetDelegatorAddr(), delegation.GetValidatorAddr())
 	}
 
 	validator, amount := k.sk.RemoveValidatorTokensAndShares(ctx, validator, shares)
 	if validator.DelegatorShares.IsZero() && validator.IsUnbonded() {
-		k.sk.RemoveValidator(ctx, validator.OperatorAddress)
+		k.sk.RemoveValidator(ctx, validator.GetOperator())
 	}
 
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), amount))
-	srcPool := staking.NotBondedPoolName
+	srcPool := stakingtypes.NotBondedPoolName
 	if validator.IsBonded() {
-		srcPool = staking.BondedPoolName
+		srcPool = stakingtypes.BondedPoolName
 	}
 	err := k.UndelegateFromAccountToShieldModule(ctx, srcPool, delAddr, coins)
 	if err != nil {
@@ -614,9 +642,9 @@ func (k Keeper) UndelegateFromAccountToShieldModule(ctx sdk.Context, senderModul
 }
 
 // GetSortedUnbondingDelegations gets unbonding delegations sorted by completion time from latest to earliest.
-func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAddress) []staking.UnbondingDelegation {
+func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAddress) []stakingtypes.UnbondingDelegation {
 	ubds := k.sk.GetAllUnbondingDelegations(ctx, delAddr)
-	var unbondingDelegations []staking.UnbondingDelegation
+	var unbondingDelegations []stakingtypes.UnbondingDelegation
 	for _, ubd := range ubds {
 		for _, entry := range ubd.Entries {
 			unbondingDelegations = append(
@@ -639,7 +667,7 @@ func (k Keeper) WithdrawReimbursement(ctx sdk.Context, proposalID uint64, benefi
 	}
 
 	// check beneficiary and time
-	if !reimbursement.Beneficiary.Equals(beneficiary) {
+	if reimbursement.Beneficiary != beneficiary.String() {
 		return sdk.Coins{}, types.ErrInvalidBeneficiary
 	}
 	if reimbursement.PayoutTime.After(ctx.BlockTime()) {

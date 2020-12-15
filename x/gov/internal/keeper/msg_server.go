@@ -36,7 +36,7 @@ var _ govtypes.MsgServer = msgServer{}
 
 func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmitProposal) (*govtypes.MsgSubmitProposalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	
+
 	var initialDepositAmount = msg.InitialDeposit.AmountOf(common.MicroCTKDenom)
 	var depositParams = k.GetDepositParams(ctx)
 	var minimalInitialDepositAmount = depositParams.MinInitialDeposit.AmountOf(common.MicroCTKDenom)
@@ -49,7 +49,7 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmit
 			minimalInitialDepositAmount,
 		)
 	}
-	
+
 	err := validateProposalByType(ctx, k.Keeper, msg)
 	if err != nil {
 		return nil, err

@@ -61,7 +61,7 @@ func NewKeeper(
 		Keeper:        cosmosKeeper,
 		storeKey:      key,
 		paramSpace:    paramSpace,
-		bankKeeper:  bankKeeper,
+		bankKeeper:    bankKeeper,
 		stakingKeeper: stakingKeeper,
 		CertKeeper:    certKeeper,
 		ShieldKeeper:  shieldKeeper,

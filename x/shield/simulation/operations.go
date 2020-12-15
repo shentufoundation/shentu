@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
@@ -50,7 +51,7 @@ var (
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
-func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.WeightedOperations {
+func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.WeightedOperations {
 	var weightMsgCreatePool int
 	appParams.GetOrGenerate(cdc, OpWeightMsgCreatePool, &weightMsgCreatePool, nil,
 		func(_ *rand.Rand) {
@@ -461,13 +462,13 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 }
 
 // ProposalContents defines the module weighted proposals' contents
-func ProposalContents(k keeper.Keeper, sk types.StakingKeeper) []simulation.WeightedProposalContent {
-	return []simulation.WeightedProposalContent{
-		{
-			AppParamsKey:       OpWeightShieldClaimProposal,
-			DefaultWeight:      DefaultWeightShieldClaimProposal,
-			ContentSimulatorFn: SimulateShieldClaimProposalContent(k, sk),
-		},
+func ProposalContents(k keeper.Keeper, sk types.StakingKeeper) []simtypes.WeightedProposalContent {
+	return []simtypes.WeightedProposalContent{
+		simulation.NewWeightedProposalContent(
+			OpWeightShieldClaimProposal,
+			DefaultWeightShieldClaimProposal,
+			SimulateShieldClaimProposalContent(k, sk),
+		),
 	}
 }
 

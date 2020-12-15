@@ -1,0 +1,196 @@
+syntax = "proto3";
+package shentu.shield.v1alpha1;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "shentu/shield/v1alpha1/shield.proto";
+import "shentu/shield/v1alpha1/genesis.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/shield/types";
+
+// Query defines the gRPC querier service for shield module
+service Query {
+  rpc Pool(QueryPoolRequest) returns (QueryPoolResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/pool/{pool_id}/sponsor/{sponsor}";
+  }
+
+  rpc Pools(QueryPoolsRequest) returns (QueryPoolsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/pools";
+  }
+
+  rpc PurchaseList(QueryPurchaseListRequest) returns (QueryPurchaseListResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/pool/{pool_id}/purchaser/{purchaser}/purchase_list";
+  }
+
+  rpc PurchaseLists(QueryPurchaseListsRequest) returns (QueryPurchaseListsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/pool/{pool_id}/purchaser/{purchaser}/purchase_lists";
+  }
+
+  rpc Purchases(QueryPurchasesRequest) returns (QueryPurchasesResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/purchases";
+  }
+
+  rpc Provider(QueryProviderRequest) returns (QueryProviderResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/provider/{address}";
+  }
+
+  rpc Providers(QueryProvidersRequest) returns (QueryProvidersResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/providers";
+  }
+
+  rpc PoolParams(QueryPoolParamsRequest) returns (QueryPoolParamsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/pool_params";
+  }
+
+  rpc ClaimParams(QueryClaimParamsRequest) returns (QueryClaimParamsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/claim_params";
+  }
+
+  rpc ShieldStatus(QueryShieldStatusRequest) returns (QueryShieldStatusResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/status";
+  }
+
+  rpc ShieldStaking(QueryShieldStakingRequest) returns (QueryShieldStakingResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/pool/{pool_id}/purchaser/{purchaser}/shield_staking";
+  }
+
+  rpc ShieldStakingRate(QueryShieldStakingRateRequest) returns (QueryShieldStakingRateResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/shield_staking_rate";
+  }
+
+  rpc Reimbursement(QueryReimbursementRequest) returns (QueryReimbursementResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/proposal/{proposal_id}/reimbursement";
+  }
+
+  rpc Reimbursements(QueryReimbursementsRequest) returns (QueryReimbursementsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/reimbursements";
+  }
+}
+
+
+message QueryPoolRequest {
+  uint64 pool_id = 1;
+  string sponsor = 2;
+}
+
+message QueryPoolResponse {
+  Pool pool = 1 [(gogoproto.nullable) = false];
+}
+
+
+message QueryPoolsRequest {
+}
+
+message QueryPoolsResponse {
+  repeated Pool pools = 1 [(gogoproto.nullable) = false];
+}
+
+
+message QueryPurchaseListRequest {
+  uint64 pool_id = 1;
+  string purchaser = 2;
+}
+
+message QueryPurchaseListResponse {
+  PurchaseList purchase_list = 1 [(gogoproto.nullable) = false];
+}
+
+
+message QueryPurchaseListsRequest {
+  uint64 pool_id = 1;
+  string purchaser = 2;
+}
+
+message QueryPurchaseListsResponse {
+  repeated PurchaseList purchase_lists = 1 [(gogoproto.nullable) = false];
+}
+
+
+message QueryPurchasesRequest {
+}
+
+message QueryPurchasesResponse {
+  repeated Purchase purchases = 1 [(gogoproto.nullable) = false];
+}
+
+
+message QueryProviderRequest {
+  string address = 1;
+}
+
+message QueryProviderResponse {
+  Provider provider = 1 [(gogoproto.nullable) = false];
+}
+
+
+message QueryProvidersRequest {
+}
+
+message QueryProvidersResponse {
+  repeated Provider providers = 1 [(gogoproto.nullable) = false];
+}
+
+
+message QueryPoolParamsRequest {
+}
+
+message QueryPoolParamsResponse {
+  PoolParams params = 1 [(gogoproto.nullable) = false];
+}
+
+
+message QueryClaimParamsRequest {
+}
+
+message QueryClaimParamsResponse {
+  ClaimProposalParams params = 1 [(gogoproto.nullable) = false];
+}
+
+
+message QueryShieldStatusRequest {
+}
+
+message QueryShieldStatusResponse {
+  string total_collateral = 1 [ (gogoproto.moretags) = "yaml:\"total_collateral\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+  string total_shield = 2 [ (gogoproto.moretags) = "yaml:\"total_shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+  string total_withdrawing = 3 [ (gogoproto.moretags) = "yaml:\"total_withdrawing\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+  MixedDecCoins current_service_fees = 4 [ (gogoproto.moretags) = "yaml:\"current_service_fees\"", (gogoproto.nullable) = false ];
+  MixedDecCoins remaining_service_fees = 5 [ (gogoproto.moretags) = "yaml:\"remaining_service_fees\"", (gogoproto.nullable) = false ];
+  string global_shield_staking_pool = 6 [ (gogoproto.moretags) = "yaml:\"global_shield_staking_pool\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+}
+
+
+message QueryShieldStakingRequest {
+  uint64 pool_id = 1;
+  string purchaser = 2;
+}
+
+message QueryShieldStakingResponse {
+  ShieldStaking shield_staking = 1 [(gogoproto.nullable) = false];
+}
+
+
+message QueryShieldStakingRateRequest {
+}
+
+message QueryShieldStakingRateResponse {
+  string rate = 1 [ (gogoproto.moretags) = "yaml:\"rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+}
+
+
+message QueryReimbursementRequest {
+  uint64 proposal_id = 1;
+}
+
+message QueryReimbursementResponse {
+  Reimbursement reimbursement = 1 [ (gogoproto.nullable) = false ];
+}
+
+
+message QueryReimbursementsRequest {
+}
+
+message QueryReimbursementsResponse {
+  repeated ProposalIDReimbursementPair pairs = 1 [ (gogoproto.nullable) = false ];
+}

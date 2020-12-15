@@ -1,9 +1,9 @@
 package cli
 
 import (
+	"encoding/json"
 	"io/ioutil"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -18,7 +18,7 @@ type ShieldClaimProposalJSON struct {
 }
 
 // ParseShieldClaimProposalJSON reads and parses a ShieldClaimProposalJSON from a file.
-func ParseShieldClaimProposalJSON(cdc *codec.Codec, proposalFile string) (ShieldClaimProposalJSON, error) {
+func ParseShieldClaimProposalJSON(proposalFile string) (ShieldClaimProposalJSON, error) {
 	proposal := ShieldClaimProposalJSON{}
 
 	contents, err := ioutil.ReadFile(proposalFile)
@@ -26,7 +26,7 @@ func ParseShieldClaimProposalJSON(cdc *codec.Codec, proposalFile string) (Shield
 		return proposal, err
 	}
 
-	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
+	if err := json.Unmarshal(contents, &proposal); err != nil {
 		return proposal, err
 	}
 

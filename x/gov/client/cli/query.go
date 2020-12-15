@@ -86,7 +86,6 @@ $ %[1]s query gov proposal 1
 				return err
 			}
 			return cliCtx.PrintOutput(&res.Proposal)
-
 		},
 	}
 }
@@ -249,7 +248,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)				
+			return cliCtx.PrintOutput(res)
 		},
 	}
 

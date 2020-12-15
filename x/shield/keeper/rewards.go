@@ -26,7 +26,7 @@ func (k Keeper) SetRewards(ctx sdk.Context, addr sdk.AccAddress, earnings types.
 	}
 	provider.Rewards = earnings
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(provider)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&provider)
 	store.Set(types.GetProviderKey(addr), bz)
 }
 

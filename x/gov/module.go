@@ -112,9 +112,9 @@ func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 type AppModule struct {
 	AppModuleBasic
 
-	keeper       keeper.Keeper
-	accountKeeper   govtypes.AccountKeeper
-	bankKeeper govtypes.BankKeeper
+	keeper        keeper.Keeper
+	accountKeeper govtypes.AccountKeeper
+	bankKeeper    govtypes.BankKeeper
 }
 
 // NewAppModule creates a new AppModule object.
@@ -122,8 +122,8 @@ func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, ak govtypes.Account
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
-		accountKeeper:     ak,
-		bankKeeper:   bk,
+		accountKeeper:  ak,
+		bankKeeper:     bk,
 	}
 }
 
