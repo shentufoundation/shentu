@@ -5,17 +5,24 @@ import (
 	"math/rand"
 
 	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/mint"
+	"github.com/cosmos/cosmos-sdk/x/mint/client/cli"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	"github.com/cosmos/cosmos-sdk/x/mint/simulation"
+	"github.com/cosmos/cosmos-sdk/x/mint/types"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
+
+	"github.com/certikfoundation/shentu/x/mint/internal/keeper"
 )
 
 var (
@@ -24,91 +31,109 @@ var (
 )
 
 // AppModuleBasic is the basic app module.
-type AppModuleBasic struct{}
+type AppModuleBasic struct {
+	cdc codec.Marshaler
+}
 
 // Name returns the staking module's name.
 func (AppModuleBasic) Name() string {
-	return CosmosAppModuleBasic{}.Name()
+	return mint.AppModuleBasic{}.Name()
 }
 
 // RegisterCodec registers the staking module's types for the given codec.
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {}
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
+
+// RegisterInterfaces registers the module's interface types
+func (b AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
 
 // DefaultGenesis returns default genesis state as raw bytes for the mint module.
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+	return cdc.MustMarshalJSON(DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the mint module.
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	return CosmosAppModuleBasic{}.ValidateGenesis(bz)
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
+	return mint.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
 }
 
 // RegisterRESTRoutes registers the REST routes for the mint module.
-func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.CLIContext, route *mux.Router) {
-	CosmosAppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
+func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.Context, route *mux.Router) {
+	mint.AppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
 }
 
-// GetTxCmd returns the root tx command for the mint module.
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return CosmosAppModuleBasic{}.GetTxCmd(cdc)
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the mint module.
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	mint.AppModuleBasic{}.RegisterGRPCGatewayRoutes(clientCtx, mux)
+
 }
+
+// GetTxCmd returns no root tx command for the mint module.
+func (AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
 
 // GetQueryCmd returns the root query command for the mint module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return CosmosAppModuleBasic{}.GetQueryCmd(cdc)
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
 }
 
 // AppModule implements an application module for the mint module.
 type AppModule struct {
 	AppModuleBasic
-	keeper Keeper
+
+	keeper     keeper.Keeper
+	authKeeper types.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(keeper Keeper) AppModule {
+func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, authKeeper types.AccountKeeper) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{},
+		AppModuleBasic: AppModuleBasic{cdc: cdc},
 		keeper:         keeper,
+		authKeeper:     authKeeper,
 	}
 }
 
 // Name returns the module name.
 func (AppModule) Name() string {
-	return ModuleName
+	return types.ModuleName
 }
 
 // RegisterInvariants registers module invariants.
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Route routes message routes.
-func (AppModule) Route() string { return "" }
+func (AppModule) Route() sdk.Route { return sdk.Route{} }
 
 // NewHandler creates new module handler.
 func (am AppModule) NewHandler() sdk.Handler { return nil }
 
 // QuerierRoute returns the module query route.
 func (AppModule) QuerierRoute() string {
-	return mint.QuerierRoute
+	return types.QuerierRoute
 }
 
 // NewQuerierHandler create new query handler.
-func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return NewQuerier(am.keeper.Keeper)
+func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+	return mintkeeper.NewQuerier(am.keeper.Keeper, legacyQuerierCdc)
+}
+
+// RegisterServices registers a gRPC query service to respond to the
+// module-specific gRPC queries.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
 // InitGenesis initializes genesis state from data.
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState GenesisState
-	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper.Keeper, genesisState)
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+	var genesisState types.GenesisState
+	cdc.MustUnmarshalJSON(data, &genesisState)
+	mint.InitGenesis(ctx, am.keeper.Keeper, am.authKeeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis exports genesis state data.
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
-	gs := ExportGenesis(ctx, am.keeper.Keeper)
-	return ModuleCdc.MustMarshalJSON(gs)
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
+	gs := mint.ExportGenesis(ctx, am.keeper.Keeper)
+	return cdc.MustMarshalJSON(gs)
 }
 
 // BeginBlock processes module beginblock.
@@ -137,8 +162,8 @@ func (AppModule) RandomizedParams(r *rand.Rand) []sim.ParamChange {
 }
 
 // RegisterStoreDecoder registers a decoder for mint module's types.
-func (AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[StoreKey] = simulation.DecodeStore
+func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations doesn't return any mint module operation.
