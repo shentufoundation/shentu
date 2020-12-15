@@ -40,8 +40,8 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 }
 
 // DefaultGenesisState returns a default genesis state.
-func DefaultGenesisState() GenesisState {
-	return GenesisState{
+func DefaultGenesisState() *GenesisState {
+	return &GenesisState{
 		NextPoolId:           uint64(1),
 		NextPurchaseId:       uint64(1),
 		PoolParams:           DefaultPoolParams(),

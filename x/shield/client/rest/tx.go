@@ -14,7 +14,7 @@ import (
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-func registerTxRoutes(cliCtx client.Context, r *mux.Router) {
+func registerTxHandlers(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/shield/deposit_collateral", depositCollateralHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/shield/withdraw_collateral", withdrawCollateralHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/shield/withdraw_rewards", withdrawRewardsHandlerFn(cliCtx)).Methods("POST")
