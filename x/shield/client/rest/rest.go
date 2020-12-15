@@ -10,13 +10,13 @@ import (
 )
 
 // RegisterRoutes registers staking-related REST handlers to a router
-func RegisterRoutes(cliCtx client.CLIContext, r *mux.Router) {
+func RegisterRoutes(cliCtx client.Context, r *mux.Router) {
 	registerQueryRoutes(cliCtx, r)
 	registerTxRoutes(cliCtx, r)
 }
 
 // ProposalRESTHandler returns a ProposalRESTHandler that exposes the shield claim REST handler with a given sub-route.
-func ProposalRESTHandler(cliCtx client.CLIContext) govrest.ProposalRESTHandler {
+func ProposalRESTHandler(cliCtx client.Context) govrest.ProposalRESTHandler {
 	return govrest.ProposalRESTHandler{
 		SubRoute: "shield_claim",
 		Handler:  postProposalHandlerFn(cliCtx),

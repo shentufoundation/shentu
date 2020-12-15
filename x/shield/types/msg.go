@@ -8,8 +8,8 @@ import (
 )
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
-func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) MsgCreatePool {
-	return MsgCreatePool{
+func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) *MsgCreatePool {
+	return &MsgCreatePool{
 		From:        accAddr.String(),
 		Shield:      shield,
 		Deposit:     deposit,
@@ -61,8 +61,8 @@ func (msg MsgCreatePool) ValidateBasic() error {
 }
 
 // NewMsgUpdatePool creates a new MsgUpdatePool instance.
-func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, serviceFees MixedCoins, id uint64, description string, shieldLimit sdk.Int) MsgUpdatePool {
-	return MsgUpdatePool{
+func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, serviceFees MixedCoins, id uint64, description string, shieldLimit sdk.Int) *MsgUpdatePool {
+	return &MsgUpdatePool{
 		From:        accAddr.String(),
 		Shield:      shield,
 		ServiceFees: serviceFees,
@@ -202,8 +202,8 @@ func (msg MsgResumePool) ValidateBasic() error {
 }
 
 // NewMsgDepositCollateral creates a new MsgDepositCollateral instance.
-func NewMsgDepositCollateral(sender sdk.AccAddress, collateral sdk.Coins) MsgDepositCollateral {
-	return MsgDepositCollateral{
+func NewMsgDepositCollateral(sender sdk.AccAddress, collateral sdk.Coins) *MsgDepositCollateral {
+	return &MsgDepositCollateral{
 		From:       sender.String(),
 		Collateral: collateral,
 	}
@@ -247,8 +247,8 @@ func (msg MsgDepositCollateral) ValidateBasic() error {
 }
 
 // NewMsgDepositCollateral creates a new MsgDepositCollateral instance.
-func NewMsgWithdrawCollateral(sender sdk.AccAddress, collateral sdk.Coins) MsgWithdrawCollateral {
-	return MsgWithdrawCollateral{
+func NewMsgWithdrawCollateral(sender sdk.AccAddress, collateral sdk.Coins) *MsgWithdrawCollateral {
+	return &MsgWithdrawCollateral{
 		From:       sender.String(),
 		Collateral: collateral,
 	}
@@ -292,8 +292,8 @@ func (msg MsgWithdrawCollateral) ValidateBasic() error {
 }
 
 // NewMsgWithdrawRewards creates a new MsgWithdrawRewards instance.
-func NewMsgWithdrawRewards(sender sdk.AccAddress) MsgWithdrawRewards {
-	return MsgWithdrawRewards{
+func NewMsgWithdrawRewards(sender sdk.AccAddress) *MsgWithdrawRewards {
+	return &MsgWithdrawRewards{
 		From: sender.String(),
 	}
 }
@@ -333,8 +333,8 @@ func (msg MsgWithdrawRewards) ValidateBasic() error {
 }
 
 // NewMsgWithdrawForeignRewards creates a new MsgWithdrawForeignRewards instance.
-func NewMsgWithdrawForeignRewards(sender sdk.AccAddress, denom, toAddr string) MsgWithdrawForeignRewards {
-	return MsgWithdrawForeignRewards{
+func NewMsgWithdrawForeignRewards(sender sdk.AccAddress, denom, toAddr string) *MsgWithdrawForeignRewards {
+	return &MsgWithdrawForeignRewards{
 		From:   sender.String(),
 		Denom:  denom,
 		ToAddr: toAddr,
@@ -378,8 +378,8 @@ func (msg MsgWithdrawForeignRewards) ValidateBasic() error {
 }
 
 // NewMsgClearPayouts creates a new MsgClearPayouts instance.
-func NewMsgClearPayouts(sender sdk.AccAddress, denom string) MsgClearPayouts {
-	return MsgClearPayouts{
+func NewMsgClearPayouts(sender sdk.AccAddress, denom string) *MsgClearPayouts {
+	return &MsgClearPayouts{
 		From:  sender.String(),
 		Denom: denom,
 	}
@@ -423,8 +423,8 @@ func (msg MsgClearPayouts) ValidateBasic() error {
 }
 
 // NewMsgPurchaseShield creates a new MsgPurchaseShield instance.
-func NewMsgPurchaseShield(poolID uint64, shield sdk.Coins, description string, from sdk.AccAddress) MsgPurchaseShield {
-	return MsgPurchaseShield{
+func NewMsgPurchaseShield(poolID uint64, shield sdk.Coins, description string, from sdk.AccAddress) *MsgPurchaseShield {
+	return &MsgPurchaseShield{
 		PoolId:      poolID,
 		Shield:      shield,
 		Description: description,
@@ -476,8 +476,8 @@ func (msg MsgPurchaseShield) ValidateBasic() error {
 }
 
 // NewMsgWithdrawReimbursement creates a new MsgWithdrawReimbursement instance.
-func NewMsgWithdrawReimbursement(proposalID uint64, from sdk.AccAddress) MsgWithdrawReimbursement {
-	return MsgWithdrawReimbursement{
+func NewMsgWithdrawReimbursement(proposalID uint64, from sdk.AccAddress) *MsgWithdrawReimbursement {
+	return &MsgWithdrawReimbursement{
 		ProposalId: proposalID,
 		From:       from.String(),
 	}
@@ -510,8 +510,8 @@ func (msg MsgWithdrawReimbursement) ValidateBasic() error {
 }
 
 // NewMsgStakeForShield creates a new MsgPurchaseShield instance.
-func NewMsgStakeForShield(poolID uint64, shield sdk.Coins, description string, from sdk.AccAddress) MsgStakeForShield {
-	return MsgStakeForShield{
+func NewMsgStakeForShield(poolID uint64, shield sdk.Coins, description string, from sdk.AccAddress) *MsgStakeForShield {
+	return &MsgStakeForShield{
 		PoolId:      poolID,
 		Shield:      shield,
 		Description: description,
@@ -546,8 +546,8 @@ func (msg MsgStakeForShield) ValidateBasic() error {
 }
 
 // NewMsgUnstakeFromShield creates a new MsgPurchaseShield instance.
-func NewMsgUnstakeFromShield(poolID uint64, shield sdk.Coins, from sdk.AccAddress) MsgUnstakeFromShield {
-	return MsgUnstakeFromShield{
+func NewMsgUnstakeFromShield(poolID uint64, shield sdk.Coins, from sdk.AccAddress) *MsgUnstakeFromShield {
+	return &MsgUnstakeFromShield{
 		PoolId: poolID,
 		Shield: shield,
 		From:   from.String(),
@@ -581,8 +581,8 @@ func (msg MsgUnstakeFromShield) ValidateBasic() error {
 }
 
 // NewMsgUpdateSponsor creates a new NewMsgUpdateSponsor instance.
-func NewMsgUpdateSponsor(poolID uint64, sponsor string, sponsorAddr, fromAddr sdk.AccAddress) MsgUpdateSponsor {
-	return MsgUpdateSponsor{
+func NewMsgUpdateSponsor(poolID uint64, sponsor string, sponsorAddr, fromAddr sdk.AccAddress) *MsgUpdateSponsor {
+	return &MsgUpdateSponsor{
 		PoolId:      poolID,
 		Sponsor:     sponsor,
 		SponsorAddr: sponsorAddr.String(),

@@ -171,7 +171,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, &msg)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 
@@ -234,7 +234,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, &msg)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 
@@ -342,7 +342,7 @@ func GetCmdDepositCollateral() *cobra.Command {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, &msg)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	return cmd
@@ -375,7 +375,7 @@ func GetCmdWithdrawCollateral() *cobra.Command {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, &msg)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	return cmd
@@ -399,7 +399,7 @@ func GetCmdWithdrawRewards() *cobra.Command {
 
 			msg := types.NewMsgWithdrawRewards(fromAddr)
 
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, &msg)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	return cmd
@@ -425,7 +425,7 @@ func GetCmdWithdrawForeignRewards() *cobra.Command {
 
 			msg := types.NewMsgWithdrawForeignRewards(fromAddr, denom, addr)
 
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, &msg)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	return cmd
@@ -450,7 +450,7 @@ func GetCmdClearPayouts() *cobra.Command {
 
 			msg := types.NewMsgClearPayouts(fromAddr, denom)
 
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, &msg)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	return cmd
@@ -499,7 +499,7 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, &msg)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	return cmd
@@ -539,7 +539,7 @@ $ %s tx shield withdraw-reimbursement <proposal id>
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, &msg)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	return cmd
@@ -588,7 +588,7 @@ $ %s tx shield stake-for-shield <pool id> <shield amount> <description>
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, &msg)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	return cmd
@@ -633,7 +633,7 @@ $ %s tx shield withdraw-staking <pool id> <shield amount>
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, &msg)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	return cmd
@@ -676,7 +676,7 @@ $ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address> --fr
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, &msg)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	return cmd
