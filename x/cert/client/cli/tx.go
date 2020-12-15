@@ -3,7 +3,6 @@ package cli
 import (
 	"bufio"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -222,11 +221,6 @@ func GetCmdRevokeCertificate(cdc *codec.Codec) *cobra.Command {
 			accGetter := authtxb.NewAccountRetriever(cliCtx)
 			description := ""
 
-			id, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
-
 			if len(args) > 1 {
 				description = args[1]
 			}
@@ -235,7 +229,7 @@ func GetCmdRevokeCertificate(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgRevokeCertificate(cliCtx.GetFromAddress(), id, description)
+			msg := types.NewMsgRevokeCertificate(cliCtx.GetFromAddress(), types.CertificateID(args[0]), description)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

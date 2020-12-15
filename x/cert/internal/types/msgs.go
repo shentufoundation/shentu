@@ -309,12 +309,12 @@ func (m MsgCertifyGeneral) GetSigners() []sdk.AccAddress {
 // MsgRevokeCertificate returns a certificate revoking operation.
 type MsgRevokeCertificate struct {
 	Revoker     sdk.AccAddress `json:"revoker" yaml:"revoker"`
-	ID          uint64         `json:"id" yaml:"id"`
+	ID          CertificateID  `json:"id" yaml:"id"`
 	Description string         `json:"description" yaml:"description"`
 }
 
 // NewMsgRevokeCertificate creates a new instance of MsgRevokeCertificate.
-func NewMsgRevokeCertificate(revoker sdk.AccAddress, id uint64, description string) MsgRevokeCertificate {
+func NewMsgRevokeCertificate(revoker sdk.AccAddress, id CertificateID, description string) MsgRevokeCertificate {
 	return MsgRevokeCertificate{
 		Revoker:     revoker,
 		ID:          id,

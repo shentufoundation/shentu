@@ -1,8 +1,8 @@
 package types
 
 import (
+	"encoding/hex"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -85,9 +85,25 @@ func CertificateTypeFromString(s string) CertificateType {
 	}
 }
 
+// CertificateID is the type for the ID of a certificate.
+type CertificateID string
+
+// Bytes returns the byte array for a certificate ID.
+func (id CertificateID) Bytes() []byte {
+	decoded, err := hex.DecodeString(id.String())
+	if err != nil {
+		panic(err)
+	}
+	return decoded
+}
+
+func (id CertificateID) String() string {
+	return string(id)
+}
+
 // Certificate is the interface for all kinds of certificate
 type Certificate interface {
-	ID() uint64
+	ID() CertificateID
 	Type() CertificateType
 	Certifier() sdk.AccAddress
 	RequestContent() RequestContent
@@ -99,7 +115,7 @@ type Certificate interface {
 	Bytes(*codec.Codec) []byte
 	String() string
 
-	SetCertificateID(uint64)
+	SetCertificateID(CertificateID)
 	SetTxHash(string)
 }
 
@@ -181,7 +197,7 @@ func NewRequestContent(
 
 // GeneralCertificate defines the type for general certificate.
 type GeneralCertificate struct {
-	CertID          uint64          `json:"certificate_id"`
+	CertID          CertificateID   `json:"certificate_id"`
 	CertType        CertificateType `json:"certificate_type"`
 	ReqContent      RequestContent  `json:"request_content"`
 	CertDescription string          `json:"description"`
@@ -210,7 +226,7 @@ func NewGeneralCertificate(
 }
 
 // ID returns ID of the certificate.
-func (c *GeneralCertificate) ID() uint64 {
+func (c *GeneralCertificate) ID() CertificateID {
 	return c.CertID
 }
 
@@ -263,11 +279,11 @@ func (c *GeneralCertificate) String() string {
 		"Description: %s\n"+
 		"Certifier: %s\n"+
 		"TxHash: %s\n",
-		strconv.FormatUint(c.CertID, 10), c.CertType.String(), c.ReqContent.RequestContent, c.CertDescription, c.CertCertifier.String(), c.CertTxHash)
+		c.CertID.String(), c.CertType.String(), c.ReqContent.RequestContent, c.CertDescription, c.CertCertifier.String(), c.CertTxHash)
 }
 
 // SetCertificateID provides a method to set an ID for the certificate.
-func (c *GeneralCertificate) SetCertificateID(id uint64) {
+func (c *GeneralCertificate) SetCertificateID(id CertificateID) {
 	c.CertID = id
 }
 
@@ -309,7 +325,7 @@ func NewKVPair(key string, value string) KVPair {
 // CompilationCertificate defines type for the compilation certificate.
 type CompilationCertificate struct {
 	IssueBlockHeight int64                         `json:"time_issued"`
-	CertID           uint64                        `json:"certificate_id"`
+	CertID           CertificateID                 `json:"certificate_id"`
 	CertType         CertificateType               `json:"certificate_type"`
 	ReqContent       RequestContent                `json:"request_content"`
 	CertContent      CompilationCertificateContent `json:"certificate_content"`
@@ -339,7 +355,7 @@ func NewCompilationCertificate(
 }
 
 // ID returns ID of the certificate.
-func (c *CompilationCertificate) ID() uint64 {
+func (c *CompilationCertificate) ID() CertificateID {
 	return c.CertID
 }
 
@@ -396,12 +412,12 @@ func (c *CompilationCertificate) String() string {
 		"Description: %s\n"+
 		"Certifier: %s\n"+
 		"TxHash: %s\n",
-		strconv.FormatUint(c.CertID, 10), c.ReqContent.RequestContent, c.CertificateContent(),
+		c.CertID.String(), c.ReqContent.RequestContent, c.CertificateContent(),
 		c.Description(), c.CertCertifier.String(), c.CertTxHash)
 }
 
 // SetCertificateID provides a method to set an ID for the certificate.
-func (c *CompilationCertificate) SetCertificateID(id uint64) {
+func (c *CompilationCertificate) SetCertificateID(id CertificateID) {
 	c.CertID = id
 }
 

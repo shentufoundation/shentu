@@ -40,8 +40,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Client Breaking Changes
 ### API Breaking Changes
 ### State Machine Breaking Changes
-* (x/cert) [\#179](https://github.com/certikfoundation/shentu/pull/179) Divide store key mapping into simpler ones.
-
 ### Features
 ### Improvements
 ### Bug Fixes

@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/tendermint/tendermint/crypto"
 
@@ -18,37 +17,25 @@ type Platform struct {
 
 // GenesisState - crisis genesis state
 type GenesisState struct {
-	Certifiers        []Certifier   `json:"certifiers"`
-	Validators        []Validator   `json:"validators"`
-	Platforms         []Platform    `json:"platforms"`
-	Certificates      []Certificate `json:"certificates"`
-	Libraries         []Library     `json:"libraries"`
-	NextCertificateID uint64        `json:"next_certificate_id" yaml:"next_certificate_id"`
+	Certifiers   []Certifier   `json:"certifiers"`
+	Validators   []Validator   `json:"validators"`
+	Platforms    []Platform    `json:"platforms"`
+	Certificates []Certificate `json:"certificates"`
+	Libraries    []Library     `json:"libraries"`
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(constantFee sdk.Coin, startingCertificateID uint64) GenesisState {
+func NewGenesisState(constantFee sdk.Coin, startingCertificateID CertificateID) GenesisState {
 	return GenesisState{}
 }
 
 // DefaultGenesisState creates a default GenesisState object
 func DefaultGenesisState() GenesisState {
-	return GenesisState{
-		NextCertificateID: uint64(1),
-	}
+	return GenesisState{}
 }
 
 // ValidateGenesis - validate crisis genesis data
 func ValidateGenesis(bz json.RawMessage) error {
-	var data GenesisState
-	if err := ModuleCdc.UnmarshalJSON(bz, &data); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", ModuleName, err)
-	}
-
-	if data.NextCertificateID < 1 {
-		return fmt.Errorf("failed to validate %s genesis state: NextCertificateID must be positive ", ModuleName)
-	}
-
 	return nil
 }
 
