@@ -26,7 +26,7 @@ func ParseShieldClaimProposalJSON(proposalFile string) (ShieldClaimProposalJSON,
 		return proposal, err
 	}
 
-	if err := json.UnmarshalJSON(contents, &proposal); err != nil {
+	if err := json.Unmarshal(contents, &proposal); err != nil {
 		return proposal, err
 	}
 
