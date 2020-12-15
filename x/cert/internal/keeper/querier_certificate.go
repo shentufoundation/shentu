@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"strconv"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -70,16 +68,12 @@ func queryCertificate(ctx sdk.Context, path []string, keeper Keeper) ([]byte, er
 		return nil, err
 	}
 
-	id, err := strconv.ParseUint(path[0], 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	certificate, err := keeper.GetCertificateByID(ctx, id)
+	certificate, err := keeper.GetCertificateByID(ctx, types.CertificateID(path[0]))
 	if err != nil {
 		return nil, err
 	}
 	resCertificate := NewQueryResCertificate(
-		strconv.FormatUint(certificate.ID(), 10),
+		certificate.ID().String(),
 		certificate.Type().String(),
 		certificate.RequestContent(),
 		certificate.FormattedCertificateContent(),
@@ -116,7 +110,7 @@ func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 	resCertificates := []QueryResCertificate{}
 	for _, certificate := range certificates {
 		resCertificate := NewQueryResCertificate(
-			strconv.FormatUint(certificate.ID(), 10),
+			certificate.ID().String(),
 			certificate.Type().String(),
 			certificate.RequestContent(),
 			certificate.FormattedCertificateContent(),

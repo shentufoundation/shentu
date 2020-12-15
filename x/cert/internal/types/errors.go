@@ -36,7 +36,6 @@ var (
 	ErrBytecodeHash              = sdkerrors.Register(ModuleName, 306, "invalid bytecode hash")
 	ErrInvalidRequestContentType = sdkerrors.Register(ModuleName, 307, "invalid request content type")
 	ErrUnqualifiedRevoker        = sdkerrors.Register(ModuleName, 308, "only certifiers can revoke this certificate")
-	ErrDuplicateCertificate      = sdkerrors.Register(ModuleName, 309, "certificate of the same type and content already exists")
 )
 
 // [4xx] Library
