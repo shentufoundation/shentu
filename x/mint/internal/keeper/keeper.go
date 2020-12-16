@@ -1,17 +1,17 @@
 package keeper
 
 import (
-	"github.com/certikfoundation/shentu/x/mint"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	mintKeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/certikfoundation/shentu/x/mint/internal/types"
 )
 
 type Keeper struct {
-	mintKeeper.Keeper
+	mintkeeper.Keeper
 	dk            types.DistributionKeeper
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
@@ -25,7 +25,7 @@ func NewKeeper(
 	sk types.StakingKeeper, ak types.AccountKeeper, bk types.BankKeeper, distributionKeeper types.DistributionKeeper, shieldKeeper types.ShieldKeeper,
 	feeCollectorName string) Keeper {
 	return Keeper{
-		Keeper:        mintKeeper.NewKeeper(cdc, key, paramSpace, sk, ak, bk, feeCollectorName),
+		Keeper:        mintkeeper.NewKeeper(cdc, key, paramSpace, sk, ak, bk, feeCollectorName),
 		dk:            distributionKeeper,
 		accountKeeper: ak,
 		stakingKeeper: sk,
@@ -38,7 +38,7 @@ func (k Keeper) SendToCommunityPool(ctx sdk.Context, amount sdk.Coins) error {
 	if amount.AmountOf(k.stakingKeeper.BondDenom(ctx)).Equal(sdk.ZeroInt()) {
 		return nil
 	}
-	mintAddress := k.accountKeeper.GetModuleAddress(mint.ModuleName)
+	mintAddress := k.accountKeeper.GetModuleAddress(minttypes.ModuleName)
 	return k.dk.FundCommunityPool(ctx, amount, mintAddress)
 }
 
@@ -47,7 +47,7 @@ func (k Keeper) SendToShieldRewards(ctx sdk.Context, amount sdk.Coins) error {
 	if amount.AmountOf(k.stakingKeeper.BondDenom(ctx)).Equal(sdk.ZeroInt()) {
 		return nil
 	}
-	mintAddress := k.accountKeeper.GetModuleAddress(mint.ModuleName)
+	mintAddress := k.accountKeeper.GetModuleAddress(minttypes.ModuleName)
 	return k.shieldKeeper.FundShieldBlockRewards(ctx, amount, mintAddress)
 }
 
