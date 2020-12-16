@@ -9,7 +9,7 @@ require (
 	github.com/golang/protobuf v1.4.3
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.15.2
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.0.1
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.0.1 // indirect
 	github.com/hyperledger/burrow v0.30.5
 	github.com/magiconair/properties v1.8.4
 	github.com/rakyll/statik v0.1.7
@@ -30,7 +30,7 @@ require (
 	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9
 	google.golang.org/genproto v0.0.0-20201207150747-9ee31aac76e7
 	google.golang.org/grpc v1.33.2
-	google.golang.org/protobuf v1.25.0
+	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 )
 

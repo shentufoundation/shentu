@@ -11,8 +11,12 @@ import (
 // SetWithdraw sets a withdrawal in store.
 func (k Keeper) SetWithdraw(ctx sdk.Context, withdraw types.Withdraw) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(withdraw)
-	store.Set(types.WithdrawStoreKey(withdraw.Address, withdraw.DueBlock), bz)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&withdraw)
+	withdrawAddr, err := sdk.AccAddressFromBech32(withdraw.Address)
+	if err != nil {
+		panic(err)
+	}
+	store.Set(types.WithdrawStoreKey(withdrawAddr, withdraw.DueBlock), bz)
 }
 
 // DeleteWithdraw deletes a withdrawal from store.

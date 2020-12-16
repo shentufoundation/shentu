@@ -9,8 +9,12 @@ import (
 // SetOperator sets an operator to store.
 func (k Keeper) SetOperator(ctx sdk.Context, operator types.Operator) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(operator)
-	store.Set(types.OperatorStoreKey(operator.Address), bz)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&operator)
+	addr, err := sdk.AccAddressFromBech32(operator.Address)
+	if err != nil {
+		panic(err)
+	}
+	store.Set(types.OperatorStoreKey(addr), bz)
 }
 
 // GetOperator gets an operator from store.
@@ -90,7 +94,11 @@ func (k Keeper) RemoveOperator(ctx sdk.Context, address sdk.AccAddress) error {
 	if err := k.ReduceTotalCollateral(ctx, operator.Collateral); err != nil {
 		return err
 	}
-	if err := k.CreateWithdraw(ctx, operator.Address, operator.Collateral); err != nil {
+	operatorAddr, err := sdk.AccAddressFromBech32(operator.Address)
+	if err != nil {
+		panic(err)
+	}
+	if err := k.CreateWithdraw(ctx, operatorAddr, operator.Collateral); err != nil {
 		return err
 	}
 	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, address,
@@ -147,7 +155,11 @@ func (k Keeper) ReduceCollateral(ctx sdk.Context, address sdk.AccAddress, decrem
 	if err := k.ReduceTotalCollateral(ctx, decrement); err != nil {
 		return err
 	}
-	if err := k.CreateWithdraw(ctx, operator.Address, decrement); err != nil {
+	operatorAddr, err := sdk.AccAddressFromBech32(operator.Address)
+	if err != nil {
+		panic(err)
+	}
+	if err := k.CreateWithdraw(ctx, operatorAddr, decrement); err != nil {
 		return err
 	}
 	return nil
