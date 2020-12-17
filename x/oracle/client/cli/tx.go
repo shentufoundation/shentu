@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bufio"
 	"fmt"
 	"time"
 
@@ -9,11 +8,8 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/client"
-	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
@@ -32,43 +28,47 @@ const (
 
 var FlagForce bool
 
-// GetTxCmd returns the transaction commands for this module.
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+// NewTxCmd returns the transaction commands for this module.
+func NewTxCmd() *cobra.Command {
 	oracleTxCmds := &cobra.Command{
 		Use:   types.ModuleName,
 		Short: "Oracle staking subcommands",
 	}
 
-	oracleTxCmds.AddCommand(flags.PostCommands(
-		GetCmdCreateOperator(cdc),
-		GetCmdRemoveOperator(cdc),
-		GetCmdDepositCollateral(cdc),
-		GetCmdWithdrawCollateral(cdc),
-		GetCmdClaimReward(cdc),
-		GetCmdCreateTask(cdc),
-		GetCmdRespondToTask(cdc),
-		GetCmdInquiry(cdc),
-		GetCmdDeleteTask(cdc),
-	)...)
+	oracleTxCmds.AddCommand(
+		GetCmdCreateOperator(),
+		GetCmdRemoveOperator(),
+		GetCmdDepositCollateral(),
+		GetCmdWithdrawCollateral(),
+		GetCmdClaimReward(),
+		GetCmdCreateTask(),
+		GetCmdRespondToTask(),
+		GetCmdInquiry(),
+		GetCmdDeleteTask(),
+	)
 
 	return oracleTxCmds
 }
 
 // GetCmdCreateOperator returns command to create on operator.
-func GetCmdCreateOperator(cdc *codec.Codec) *cobra.Command {
+func GetCmdCreateOperator() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-operator <address> <collateral>",
 		Short: "Create an operator and deposit collateral",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-
-			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
 				return err
 			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
+				return err
+			}
+
 			address, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
@@ -78,11 +78,12 @@ func GetCmdCreateOperator(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 			name := viper.GetString(FlagName)
-			msg := types.NewMsgCreateOperator(address, collateral, cliCtx.GetFromAddress(), name)
+			msg := types.NewMsgCreateOperator(address, collateral, from, name)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 
@@ -92,44 +93,52 @@ func GetCmdCreateOperator(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdRemoveOperator returns command to remove an operator.
-func GetCmdRemoveOperator(cdc *codec.Codec) *cobra.Command {
+func GetCmdRemoveOperator() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "remove-operator <address>",
 		Short: "Remove an operator and withdraw collateral & rewards",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-
-			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
 				return err
 			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
+				return err
+			}
+
 			address, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
-			msg := types.NewMsgRemoveOperator(address, cliCtx.GetFromAddress())
+			msg := types.NewMsgRemoveOperator(address, from)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	return cmd
 }
 
 // GetCmdDepositCollateral returns command to increase an operator's collateral.
-func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
+func GetCmdDepositCollateral() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deposit-collateral <address> <amount>",
 		Short: "Increase an operator's collateral",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			address, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -143,22 +152,26 @@ func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	return cmd
 }
 
 // GetCmdWithdrawCollateral returns command to reduce an operator's collateral.
-func GetCmdWithdrawCollateral(cdc *codec.Codec) *cobra.Command {
+func GetCmdWithdrawCollateral() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "withdraw-collateral <address> <amount>",
 		Short: "Reduce an operator's collateral",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			address, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -172,22 +185,26 @@ func GetCmdWithdrawCollateral(cdc *codec.Codec) *cobra.Command {
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	return cmd
 }
 
 // GetCmdClaimReward returns command to claim (withdraw) an operator's accumulated rewards.
-func GetCmdClaimReward(cdc *codec.Codec) *cobra.Command {
+func GetCmdClaimReward() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "claim-reward <address>",
 		Short: "Withdraw all of an operator's accumulated rewards",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			address, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -197,25 +214,29 @@ func GetCmdClaimReward(cdc *codec.Codec) *cobra.Command {
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)			
 		},
 	}
 	return cmd
 }
 
 // GetCmdCreateTask returns command to create a task.
-func GetCmdCreateTask(cdc *codec.Codec) *cobra.Command {
+func GetCmdCreateTask() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-task <flags>",
 		Short: "Create a task",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
 				return err
 			}
 
@@ -246,11 +267,12 @@ func GetCmdCreateTask(cdc *codec.Codec) *cobra.Command {
 			hours := viper.GetInt64(FlagValidDuration)
 			validDuration := time.Duration(hours) * time.Hour
 
-			msg := types.NewMsgCreateTask(contract, function, bounty, description, cliCtx.GetFromAddress(), wait, validDuration)
+			msg := types.NewMsgCreateTask(contract, function, bounty, description, from, wait, validDuration)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)			
 		},
 	}
 
@@ -265,18 +287,21 @@ func GetCmdCreateTask(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdRespondToTask returns command to respond to a task.
-func GetCmdRespondToTask(cdc *codec.Codec) *cobra.Command {
+func GetCmdRespondToTask() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "respond-to-task <flags>",
 		Short: "Respond to a task",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
 				return err
 			}
 
@@ -294,11 +319,12 @@ func GetCmdRespondToTask(cdc *codec.Codec) *cobra.Command {
 			}
 			score := viper.GetInt64(FlagScore)
 
-			msg := types.NewMsgTaskResponse(contract, function, score, cliCtx.GetFromAddress())
+			msg := types.NewMsgTaskResponse(contract, function, score, from)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 
@@ -310,18 +336,21 @@ func GetCmdRespondToTask(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdInquiry returns a inquiry-task command.
-func GetCmdInquiry(cdc *codec.Codec) *cobra.Command {
+func GetCmdInquiry() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "inquiry-task <flags>",
 		Short: "Inquiry a task",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
 				return err
 			}
 
@@ -340,11 +369,12 @@ func GetCmdInquiry(cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("txhash is required to inquiry a task")
 			}
 
-			msg := types.NewMsgInquiryTask(contract, function, txhash, cliCtx.GetFromAddress())
+			msg := types.NewMsgInquiryTask(contract, function, txhash, from)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	cmd.Flags().String(FlagContract, "", "contract address")
@@ -354,18 +384,21 @@ func GetCmdInquiry(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdDeleteTask returns a delete-task command.
-func GetCmdDeleteTask(cdc *codec.Codec) *cobra.Command {
+func GetCmdDeleteTask() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete-task <flags>",
 		Short: "delete a finished task",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
 				return err
 			}
 
@@ -379,11 +412,12 @@ func GetCmdDeleteTask(cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("function is required to delete a task")
 			}
 			force := FlagForce
-			msg := types.NewMsgDeleteTask(contract, function, force, cliCtx.GetFromAddress())
+			msg := types.NewMsgDeleteTask(contract, function, force, from)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 	cmd.Flags().String(FlagContract, "", "contract address")

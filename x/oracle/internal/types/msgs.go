@@ -9,8 +9,8 @@ import (
 )
 
 // NewMsgCreateOperator returns the message for creating an operator.
-func NewMsgCreateOperator(address sdk.AccAddress, collateral sdk.Coins, proposer sdk.AccAddress, name string) MsgCreateOperator {
-	return MsgCreateOperator{
+func NewMsgCreateOperator(address sdk.AccAddress, collateral sdk.Coins, proposer sdk.AccAddress, name string) *MsgCreateOperator {
+	return &MsgCreateOperator{
 		Address:    address.String(),
 		Collateral: collateral,
 		Proposer:   proposer.String(),
@@ -58,8 +58,8 @@ func (m MsgCreateOperator) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgRemoveOperator returns the message for removing an operator.
-func NewMsgRemoveOperator(address sdk.AccAddress, proposer sdk.AccAddress) MsgRemoveOperator {
-	return MsgRemoveOperator{
+func NewMsgRemoveOperator(address sdk.AccAddress, proposer sdk.AccAddress) *MsgRemoveOperator {
+	return &MsgRemoveOperator{
 		Address:  address.String(),
 		Proposer: proposer.String(),
 	}
@@ -102,8 +102,8 @@ func (m MsgRemoveOperator) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgAddCollateral returns the message for adding collateral.
-func NewMsgAddCollateral(address sdk.AccAddress, increment sdk.Coins) MsgAddCollateral {
-	return MsgAddCollateral{
+func NewMsgAddCollateral(address sdk.AccAddress, increment sdk.Coins) *MsgAddCollateral {
+	return &MsgAddCollateral{
 		Address:             address.String(),
 		CollateralIncrement: increment,
 	}
@@ -149,8 +149,8 @@ func (m MsgAddCollateral) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgReduceCollateral returns the message for reducing collateral.
-func NewMsgReduceCollateral(address sdk.AccAddress, decrement sdk.Coins) MsgReduceCollateral {
-	return MsgReduceCollateral{
+func NewMsgReduceCollateral(address sdk.AccAddress, decrement sdk.Coins) *MsgReduceCollateral {
+	return &MsgReduceCollateral{
 		Address:             address.String(),
 		CollateralDecrement: decrement,
 	}
@@ -196,8 +196,8 @@ func (m MsgReduceCollateral) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgWithdrawReward returns the message for withdrawing reward.
-func NewMsgWithdrawReward(address sdk.AccAddress) MsgWithdrawReward {
-	return MsgWithdrawReward{
+func NewMsgWithdrawReward(address sdk.AccAddress) *MsgWithdrawReward {
+	return &MsgWithdrawReward{
 		Address: address.String(),
 	}
 }
@@ -240,8 +240,8 @@ func (m MsgWithdrawReward) GetSigners() []sdk.AccAddress {
 
 // NewMsgCreateTask returns a new message for creating a task.
 func NewMsgCreateTask(contract, function string, bounty sdk.Coins, description string,
-	creator sdk.AccAddress, wait int64, validDuration time.Duration) MsgCreateTask {
-	return MsgCreateTask{
+	creator sdk.AccAddress, wait int64, validDuration time.Duration) *MsgCreateTask {
+	return &MsgCreateTask{
 		Contract:      contract,
 		Function:      function,
 		Bounty:        bounty,
@@ -282,8 +282,8 @@ func (m MsgCreateTask) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgTaskResponse returns a new message for responding to a task.
-func NewMsgTaskResponse(contract, function string, score int64, operator sdk.AccAddress) MsgTaskResponse {
-	return MsgTaskResponse{
+func NewMsgTaskResponse(contract, function string, score int64, operator sdk.AccAddress) *MsgTaskResponse {
+	return &MsgTaskResponse{
 		Contract: contract,
 		Function: function,
 		Score:    score,
@@ -321,8 +321,8 @@ func (m MsgTaskResponse) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgInquiryTask returns a new MsgInquiryTask instance.
-func NewMsgInquiryTask(contract, function, txhash string, inquirer sdk.AccAddress) MsgInquiryTask {
-	return MsgInquiryTask{
+func NewMsgInquiryTask(contract, function, txhash string, inquirer sdk.AccAddress) *MsgInquiryTask {
+	return &MsgInquiryTask{
 		Contract: contract,
 		Function: function,
 		TxHash:   txhash,
@@ -360,8 +360,8 @@ func (m MsgInquiryTask) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgDeleteTask returns a new MsgDeleteTask instance.
-func NewMsgDeleteTask(contract, function string, force bool, deleter sdk.AccAddress) MsgDeleteTask {
-	return MsgDeleteTask{
+func NewMsgDeleteTask(contract, function string, force bool, deleter sdk.AccAddress) *MsgDeleteTask {
+	return &MsgDeleteTask{
 		Contract: contract,
 		Function: function,
 		Force:    force,

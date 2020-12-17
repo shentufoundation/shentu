@@ -9,14 +9,14 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	clientrest "github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
 
-func RegisterTxRoutes(cliCtx client.CLIContext, r *mux.Router) {
+func RegisterTxRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/create-operator", types.ModuleName), createOperatorHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/remove-operator", types.ModuleName), removeOperatorHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/deposit-collateral", types.ModuleName), depositCollateralHandler(cliCtx)).Methods("POST")
@@ -29,11 +29,11 @@ func RegisterTxRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/delete-task", types.ModuleName), deleteTaskHandler(cliCtx)).Methods("POST")
 }
 
-func createTaskHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func createTaskHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req createTaskReq
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -79,15 +79,15 @@ func createTaskHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
 	}
 }
 
-func inquireTaskHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func inquireTaskHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req inquiryTaskReq
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -109,15 +109,15 @@ func inquireTaskHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
 	}
 }
 
-func createOperatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func createOperatorHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req createOperatorReq
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -145,15 +145,15 @@ func createOperatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
 	}
 }
 
-func removeOperatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func removeOperatorHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req removeOperatorReq
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -181,15 +181,15 @@ func removeOperatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
 	}
 }
 
-func depositCollateralHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func depositCollateralHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req depositCollateralReq
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -211,15 +211,15 @@ func depositCollateralHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
 	}
 }
 
-func withdrawCollateralHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func withdrawCollateralHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req withdrawCollateralReq
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -241,15 +241,15 @@ func withdrawCollateralHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
 	}
 }
 
-func claimRewardHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func claimRewardHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req claimRewardReq
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -271,14 +271,14 @@ func claimRewardHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
 	}
 }
 
-func respondToTaskHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func respondToTaskHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req respondToTaskReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -306,14 +306,14 @@ func respondToTaskHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
 	}
 }
 
-func deleteTaskHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func deleteTaskHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req deleteTaskReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -340,6 +340,6 @@ func deleteTaskHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
 	}
 }
