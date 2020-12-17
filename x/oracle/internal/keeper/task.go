@@ -59,7 +59,7 @@ func (k Keeper) SetClosingBlockStore(ctx sdk.Context, task types.Task) {
 // GetClosingTaskIDs returns a list of task IDs by the closing block.
 func (k Keeper) GetClosingTaskIDs(ctx sdk.Context, closingBlock int64) []types.TaskID {
 	closingTaskIDsData := ctx.KVStore(k.storeKey).Get(types.ClosingTaskIDsStoreKey(closingBlock))
-	
+
 	var taskIDsProto types.TaskIDs
 	if closingTaskIDsData != nil {
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(closingTaskIDsData, &taskIDsProto)

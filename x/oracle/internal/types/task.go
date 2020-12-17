@@ -7,19 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// func (t TaskStatus) String() string {
-// 	switch t {
-// 	case TaskStatusPending:
-// 		return "pending"
-// 	case TaskStatusSucceeded:
-// 		return "succeeded"
-// 	case TaskStatusFailed:
-// 		return "failed"
-// 	default:
-// 		return "unknown task status"
-// 	}
-// }
-
 // NewTask returns a new task.
 func NewTask(
 	contract string,
@@ -44,12 +31,6 @@ func NewTask(
 		WaitingBlocks: waitingBlocks,
 		Status:        TaskStatusPending,
 	}
-}
-
-// TaskID defines the data structure of the ID of a task.
-type TaskID struct {
-	Contract string `json:"contract"`
-	Function string `json:"function"`
 }
 
 // NewResponse returns a new response.

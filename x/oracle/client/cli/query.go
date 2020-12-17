@@ -53,7 +53,7 @@ func GetCmdOperator() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			
+
 			res, err := queryClient.Operator(
 				context.Background(),
 				&types.QueryOperatorRequest{Address: address.String()},
@@ -143,7 +143,7 @@ func GetCmdTask() *cobra.Command {
 			if function == "" {
 				return fmt.Errorf("function is required")
 			}
-			
+
 			res, err := queryClient.Task(
 				context.Background(),
 				&types.QueryTaskRequest{Contract: contract, Function: function},

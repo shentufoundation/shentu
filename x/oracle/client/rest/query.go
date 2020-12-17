@@ -13,7 +13,7 @@ import (
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
 
-func RegisterQueryRoutes(cliCtx client.Context, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/operator/{address}", types.QuerierRoute), operatorHandler(cliCtx)).Methods("Get")
 	r.HandleFunc(fmt.Sprintf("/%s/operators", types.QuerierRoute), operatorsHandler(cliCtx)).Methods("Get")
 	r.HandleFunc(fmt.Sprintf("/%s/withdraws", types.QuerierRoute), withdrawsHandler(cliCtx)).Methods("Get")

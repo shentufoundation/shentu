@@ -10,7 +10,7 @@ import (
 type Keeper struct {
 	cdc           codec.BinaryMarshaler
 	storeKey      sdk.StoreKey
-	authKeeper    types.AccountKeeper
+	accountKeeper types.AccountKeeper
 	distrKeeper   types.DistrKeeper
 	stakingKeeper types.StakingKeeper
 	supplyKeeper  types.SupplyKeeper
@@ -23,14 +23,14 @@ func NewKeeper(cdc codec.BinaryMarshaler, storeKey sdk.StoreKey, authKeeper type
 		cdc:           cdc,
 		paramSpace:    paramSpace,
 		storeKey:      storeKey,
-		authKeeper:    authKeeper,
+		accountKeeper: authKeeper,
 		distrKeeper:   distriKeeper,
 		stakingKeeper: stakingKeeper,
 		supplyKeeper:  supplyKeeper,
 	}
 }
 
-// GetAuthKeeper returns the auth keeper wrapped in module keeper.
-func (k Keeper) GetAuthKeeper() types.AccountKeeper {
-	return k.authKeeper
+// GetAccountKeeper returns the auth keeper wrapped in module keeper.
+func (k Keeper) GetAccountKeeper() types.AccountKeeper {
+	return k.accountKeeper
 }

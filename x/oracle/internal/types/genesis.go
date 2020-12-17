@@ -21,15 +21,9 @@ func NewGenesisState(operators []Operator, totalCollateral sdk.Coins, poolParams
 }
 
 // DefaultGenesisState creates a default GenesisState object.
-func DefaultGenesisState() GenesisState {
-	return NewGenesisState(
-		nil,
-		nil,
-		DefaultLockedPoolParams(),
-		DefaultTaskParams(),
-		nil,
-		nil,
-	)
+func DefaultGenesisState() *GenesisState {
+	state := NewGenesisState(nil, nil, DefaultLockedPoolParams(), DefaultTaskParams(), nil, nil)
+	return &state
 }
 
 // ValidateGenesis validates oracle genesis data.
