@@ -4,28 +4,24 @@ package staking
 import (
 	"encoding/json"
 	"math/rand"
-	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	stakingSim "github.com/cosmos/cosmos-sdk/x/staking/simulation"
+	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/x/staking/client/rest"
 	"github.com/certikfoundation/shentu/x/staking/internal/keeper"
 	"github.com/certikfoundation/shentu/x/staking/internal/types"
 	"github.com/certikfoundation/shentu/x/staking/simulation"
@@ -36,10 +32,10 @@ var (
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
-// AppModuleBasic defines the basic application module used by the staking module.
-type AppModuleBasic struct{}
-
-var _ module.AppModuleBasic = AppModuleBasic{}
+// AppModuleBasic is the basic app module.
+type AppModuleBasic struct {
+	cdc codec.Marshaler
+}
 
 // Name returns the staking module's name.
 func (AppModuleBasic) Name() string {
@@ -47,58 +43,38 @@ func (AppModuleBasic) Name() string {
 }
 
 // RegisterCodec registers the staking module's types for the given codec.
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	staking.RegisterCodec(cdc)
-	// *staking.ModuleCdc = *ModuleCdc
-}
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
+
+// RegisterInterfaces registers the module's interface types
+func (b AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
 
 // DefaultGenesis returns default genesis state as raw bytes for the staking module.
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	defaultGenesisState := staking.DefaultGenesisState()
-	defaultGenesisState.Params.BondDenom = common.MicroCTKDenom
-	defaultGenesisState.Params.UnbondingTime = time.Hour * 24 * 7 * 3
-	defaultGenesisState.Params.MaxValidators = 125
-
-	return staking.ModuleCdc.MustMarshalJSON(defaultGenesisState)
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+	return cdc.MustMarshalJSON(stakingTypes.DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the staking module.
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	return staking.AppModuleBasic{}.ValidateGenesis(bz)
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
+	return staking.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
 }
 
 // RegisterRESTRoutes registers the REST routes for the staking module.
-func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.CLIContext, route *mux.Router) {
-	rest.RegisterRoutes(cliCtx, route)
+func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.Context, route *mux.Router) {
 	staking.AppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
 }
 
-// GetTxCmd returns the root tx command for the staking module.
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return staking.AppModuleBasic{}.GetTxCmd(cdc)
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the staking module.
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	staking.AppModuleBasic{}.RegisterGRPCGatewayRoutes(clientCtx, mux)
+
 }
+
+// GetTxCmd returns no root tx command for the staking module.
+func (AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
 
 // GetQueryCmd returns the root query command for the staking module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return staking.AppModuleBasic{}.GetQueryCmd(cdc)
-}
-
-// CreateValidatorMsgHelpers is used for gen-tx.
-func (AppModuleBasic) CreateValidatorMsgHelpers(ipDefault string) (
-	fs *pflag.FlagSet, nodeIDFlag, pubkeyFlag, amountFlag, defaultsDesc string) {
-	return staking.AppModuleBasic{}.CreateValidatorMsgHelpers(ipDefault)
-}
-
-// PrepareFlagsForTxCreateValidator is used for gen-tx.
-func (AppModuleBasic) PrepareFlagsForTxCreateValidator(cfg *config.Config, nodeID,
-	chainID string, valPubKey crypto.PubKey) {
-	staking.AppModuleBasic{}.PrepareFlagsForTxCreateValidator(cfg, nodeID, chainID, valPubKey)
-}
-
-// BuildCreateValidatorMsg is used for gen-tx.
-func (AppModuleBasic) BuildCreateValidatorMsg(cliCtx client.CLIContext,
-	txBldr authtypes.TxBuilder) (authtypes.TxBuilder, sdk.Msg, error) {
-	return staking.AppModuleBasic{}.BuildCreateValidatorMsg(cliCtx, txBldr)
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
 }
 
 // AppModule implements an application module for the staking module.
@@ -111,55 +87,44 @@ type AppModule struct {
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(
-	stakingKeeper keeper.Keeper,
-	accountKeeper stakingTypes.AccountKeeper,
-	supplyKeeper stakingTypes.SupplyKeeper,
-	certKeeper types.CertKeeper,
-) AppModule {
+func NewAppModule(cdc codec.Marshaler, stakingKeeper keeper.Keeper, ak stakingTypes.AccountKeeper, bk stakingTypes.BankKeeper, certKeeper types.CertKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
-		cosmosAppModule: staking.NewAppModule(stakingKeeper.Keeper, accountKeeper, supplyKeeper),
-		authKeeper:      accountKeeper,
+		cosmosAppModule: staking.NewAppModule(cdc, stakingKeeper.Keeper, ak, bk),
+		authKeeper:      ak,
 		certKeeper:      certKeeper,
 		keeper:          stakingKeeper,
 	}
 }
 
-// Name returns the staking module's name.
-func (am AppModule) Name() string {
-	return am.cosmosAppModule.Name()
+// Name returns the module name.
+func (AppModule) Name() string {
+	return stakingTypes.ModuleName
 }
 
-// RegisterInvariants registers the staking module invariants.
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	am.cosmosAppModule.RegisterInvariants(ir)
+// RegisterInvariants registers module invariants.
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+
+// Route routes message routes.
+func (AppModule) Route() sdk.Route { return sdk.Route{} }
+
+// NewHandler creates new module handler.
+func (am AppModule) NewHandler() sdk.Handler { return nil }
+
+// QuerierRoute returns the module query route.
+func (AppModule) QuerierRoute() string {
+	return stakingTypes.QuerierRoute
 }
 
-// Route returns the message routing key for the staking module.
-func (am AppModule) Route() string {
-	return am.cosmosAppModule.Route()
+// NewQuerierHandler create new query handler.
+func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+	return stakingkeeper.NewQuerier(am.keeper.Keeper, legacyQuerierCdc)
 }
 
-// NewHandler returns an sdk.Handler for the staking module.
-func (am AppModule) NewHandler() sdk.Handler {
-	return staking.NewHandler(am.keeper.Keeper)
-}
-
-// QuerierRoute returns the staking module's querier route name.
-func (am AppModule) QuerierRoute() string { return am.cosmosAppModule.QuerierRoute() }
-
-// NewQuerierHandler returns the staking module sdk.Querier.
-func (am AppModule) NewQuerierHandler() sdk.Querier { return am.cosmosAppModule.NewQuerierHandler() }
-
-// InitGenesis performs genesis initialization for the staking module.
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.InitGenesis(ctx, data)
-}
-
-// ExportGenesis returns the exported genesis state as raw bytes for the staking module.
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
-	return am.cosmosAppModule.ExportGenesis(ctx)
+// RegisterServices registers a gRPC query service to respond to the
+// module-specific gRPC queries.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	am.cosmosAppModule.RegisterServices(cfg)
 }
 
 // BeginBlock implements the Cosmos SDK BeginBlock module function.
@@ -167,27 +132,29 @@ func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
 	am.cosmosAppModule.BeginBlock(ctx, rbb)
 }
 
-// EndBlock implements the Cosmos SDK EndBlock module function.
-func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.EndBlock(ctx, rbb)
+// InitGenesis performs genesis initialization for the staking module. It returns
+// no validator updates.
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+	return am.cosmosAppModule.InitGenesis(ctx, cdc, data)
 }
 
-// GenerateGenesisState creates a randomized GenState of this module.
-func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-	stakingSim.RandomizedGenState(simState)
+// ExportGenesis exports genesis state data.
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
+	gs := staking.ExportGenesis(ctx, am.keeper.Keeper)
+	return cdc.MustMarshalJSON(gs)
 }
 
-// RegisterStoreDecoder registers a decoder for staking module.
-func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[StoreKey] = stakingSim.DecodeStore
+// EndBlock processes module beginblock.
+func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return []abci.ValidatorUpdate{}
 }
 
 // WeightedOperations returns staking operations for use in simulations.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
+func (am AppModule) WeightedOperations(simState module.SimulationState) sim.WeightedOperations {
 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.certKeeper, am.keeper.Keeper)
 }
 
-// ProposalContents returns functions that generate proposals for the module.
+// ProposalContents doesn't return any content functions for governance proposals.
 func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
 	return nil
 }
