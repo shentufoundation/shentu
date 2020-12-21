@@ -9,9 +9,13 @@ import (
 // SetCertifier sets a certifier.
 func (k Keeper) SetCertifier(ctx sdk.Context, certifier types.Certifier) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.CertifierStoreKey(certifier.Address), k.cdc.MustMarshalBinaryLengthPrefixed(certifier))
+	certifierAddr, err := sdk.AccAddressFromBech32(certifier.Address)
+	if err != nil {
+		panic(err)
+	}
+	store.Set(types.CertifierStoreKey(certifierAddr), k.cdc.MustMarshalBinaryLengthPrefixed(&certifier))
 	if certifier.Alias != "" {
-		store.Set(types.CertifierAliasStoreKey(certifier.Alias), k.cdc.MustMarshalBinaryLengthPrefixed(certifier))
+		store.Set(types.CertifierAliasStoreKey(certifier.Alias), k.cdc.MustMarshalBinaryLengthPrefixed(&certifier))
 	}
 }
 

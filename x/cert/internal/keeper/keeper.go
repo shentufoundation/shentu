@@ -2,9 +2,14 @@
 package keeper
 
 import (
+	"fmt"
+
+	"github.com/gogo/protobuf/proto"
+
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
@@ -13,13 +18,13 @@ import (
 // Keeper manages certifier & security council related logics.
 type Keeper struct {
 	storeKey       sdk.StoreKey
-	cdc            *codec.Codec
+	cdc            codec.BinaryMarshaler
 	slashingKeeper types.SlashingKeeper
 	stakingKeeper  types.StakingKeeper
 }
 
 // NewKeeper creates a new instance of the certifier keeper.
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, slashingKeeper types.SlashingKeeper, stakingKeeper types.StakingKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryMarshaler, storeKey sdk.StoreKey, slashingKeeper types.SlashingKeeper, stakingKeeper types.StakingKeeper) Keeper {
 	return Keeper{
 		cdc:            cdc,
 		storeKey:       storeKey,
@@ -34,10 +39,20 @@ func (k Keeper) CertifyPlatform(ctx sdk.Context, certifier sdk.AccAddress, valid
 		return types.ErrRejectedValidator
 	}
 	platform := types.Platform{
-		Validator:   validator,
 		Description: description,
 	}
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(platform)
+
+	msg, ok := validator.(proto.Message)
+	if !ok {
+		return fmt.Errorf("%T does not implement proto.Message", validator)
+	}
+	any, err := codectypes.NewAnyWithValue(msg)
+	if err != nil {
+		return err
+	}
+	platform.Validator = any
+
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&platform)
 	ctx.KVStore(k.storeKey).Set(types.PlatformStoreKey(validator), bz)
 	return nil
 }

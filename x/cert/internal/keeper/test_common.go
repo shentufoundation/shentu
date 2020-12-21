@@ -4,7 +4,7 @@ import (
 	"math/rand"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
+	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 // RandomValidator returns a random validator given access to the keeper and ctx.
@@ -25,8 +25,16 @@ func RandomDelegator(r *rand.Rand, k Keeper, ctx sdk.Context) (sdk.AccAddress, b
 		return nil, false
 	}
 
-	dels := k.stakingKeeper.GetValidatorDelegations(ctx, val.OperatorAddress)
+	valAddr, err := sdk.ValAddressFromBech32(val.OperatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	dels := k.stakingKeeper.GetValidatorDelegations(ctx, valAddr)
 
 	i := r.Intn(len(dels))
-	return dels[i].DelegatorAddress, true
+	delAddr, err := sdk.AccAddressFromBech32(dels[i].DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return delAddr, true
 }

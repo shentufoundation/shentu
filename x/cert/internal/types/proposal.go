@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,21 +14,11 @@ const (
 )
 
 // Assert CertifierUpdateProposal implements govtypes.Content at compile-time
-var _ govtypes.Content = CertifierUpdateProposal{}
+var _ govtypes.Content = &CertifierUpdateProposal{}
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeCertifierUpdate)
 	govtypes.RegisterProposalTypeCodec(CertifierUpdateProposal{}, "cosmos-sdk/CertifierUpdateProposal")
-}
-
-// CertifierUpdateProposal adds or removes a certifier
-type CertifierUpdateProposal struct {
-	Title       string         `json:"title" yaml:"title"`
-	Proposer    sdk.AccAddress `json:"proposer" yaml:"proposer"`
-	Alias       string         `json:"alias" yaml:"alias"`
-	Certifier   sdk.AccAddress `json:"certifier" yaml:"certifier"`
-	Description string         `json:"description" yaml:"description"`
-	AddOrRemove AddOrRemove    `json:"add_or_remove" yaml:"add_or_remove"`
 }
 
 // NewCertifierUpdateProposal creates a new certifier update proposal.
@@ -39,12 +28,12 @@ func NewCertifierUpdateProposal(title,
 	alias string,
 	proposer sdk.AccAddress,
 	addorremove AddOrRemove,
-) CertifierUpdateProposal {
-	return CertifierUpdateProposal{
+) *CertifierUpdateProposal {
+	return &CertifierUpdateProposal{
 		Title:       title,
-		Proposer:    proposer,
+		Proposer:    proposer.String(),
 		Alias:       alias,
-		Certifier:   certifier,
+		Certifier:   certifier.String(),
 		Description: description,
 		AddOrRemove: addorremove,
 	}
@@ -56,7 +45,7 @@ func (cup CertifierUpdateProposal) GetTitle() string { return cup.Title }
 // GetDescription returns the description of a certifier update proposal.
 func (cup CertifierUpdateProposal) GetDescription() string { return cup.Description }
 
-// GetDescription returns the routing key of a certifier update proposal.
+// ProposalRoute returns the routing key of a certifier update proposal.
 func (cup CertifierUpdateProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a certifier update proposal.
@@ -64,27 +53,20 @@ func (cup CertifierUpdateProposal) ProposalType() string { return ProposalTypeCe
 
 // ValidateBasic runs basic stateless validity checks
 func (cup CertifierUpdateProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(cup)
+	err := govtypes.ValidateAbstract(&cup)
 	if err != nil {
 		return err
 	}
-	if cup.Certifier.Empty() {
+
+	certifierAddr, err := sdk.AccAddressFromBech32(cup.Certifier)
+	if err != nil {
+		panic(err)
+	}
+	if certifierAddr.Empty() {
 		return ErrEmptyCertifier
 	}
 
 	return nil
-}
-
-// String implements the Stringer interface.
-func (cup CertifierUpdateProposal) String() string {
-	var b strings.Builder
-	b.WriteString(fmt.Sprintf(`Certifier Update Proposal:
-  Title:       %s
-  Description: %s
-  Certifier:   %s
-  AddOrRemove: %s
-`, cup.Title, cup.Description, cup.Certifier, cup.AddOrRemove))
-	return b.String()
 }
 
 type AddOrRemove bool

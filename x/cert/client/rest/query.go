@@ -13,7 +13,7 @@ import (
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
 )
 
-func RegisterQueryRoutes(cliCtx client.CLIContext, r *mux.Router) {
+func RegisterQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/certifier/{address}", types.QuerierRoute),
 		certifierHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/certifiers", types.QuerierRoute),
@@ -32,7 +32,7 @@ func RegisterQueryRoutes(cliCtx client.CLIContext, r *mux.Router) {
 		certificatesHandler(cliCtx)).Methods("GET")
 }
 
-func certifierHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func certifierHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -54,7 +54,7 @@ func certifierHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func certifiersHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func certifiersHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -73,7 +73,7 @@ func certifiersHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func certifierAliasHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func certifierAliasHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -95,7 +95,7 @@ func certifierAliasHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func validatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func validatorHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -117,7 +117,7 @@ func validatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func validatorsHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func validatorsHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -136,7 +136,7 @@ func validatorsHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func certificateHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func certificateHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -158,7 +158,7 @@ func certificateHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func certificatesHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func certificatesHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 100)
 		if err != nil {
@@ -184,7 +184,7 @@ func certificatesHandler(cliCtx client.CLIContext) http.HandlerFunc {
 		content := r.URL.Query().Get("requestcontent")
 
 		params := types.NewQueryCertificatesParams(page, limit, certifierAddress, contentType, content)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -202,7 +202,7 @@ func certificatesHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func platformHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func platformHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {

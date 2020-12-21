@@ -7,14 +7,14 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	clientrest "github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
 )
 
-func RegisterTxRoutes(cliCtx client.CLIContext, r *mux.Router) {
+func RegisterTxRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/propose/certifier", types.ModuleName),
 		proposeCertifierHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/certify/validator", types.ModuleName),
@@ -29,10 +29,10 @@ func RegisterTxRoutes(cliCtx client.CLIContext, r *mux.Router) {
 		revokeCertificateHandler(cliCtx)).Methods("POST")
 }
 
-func proposeCertifierHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func proposeCertifierHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req proposeCertifierReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -60,14 +60,14 @@ func proposeCertifierHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func certifyValidatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func certifyValidatorHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req certifyValidatorReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -89,20 +89,24 @@ func certifyValidatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgCertifyValidator(certifier, validator)
+		msg, err := types.NewMsgCertifyValidator(certifier, validator)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 		if err = msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func certifyGeneralHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func certifyGeneralHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req certifyGeneralReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -124,14 +128,14 @@ func certifyGeneralHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func certifyCompilationHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func certifyCompilationHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req certifyCompilationReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -152,14 +156,14 @@ func certifyCompilationHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func certifyPlatformHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func certifyPlatformHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req certifyPlatformReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -181,21 +185,25 @@ func certifyPlatformHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgCertifyPlatform(certifier, validator, req.Platform)
+		msg, err := types.NewMsgCertifyPlatform(certifier, validator, req.Platform)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 		if err = msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func revokeCertificateHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func revokeCertificateHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req revokeCertificateReq
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -215,6 +223,6 @@ func revokeCertificateHandler(cliCtx client.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		clientrest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
