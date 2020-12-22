@@ -23,7 +23,7 @@ func (k Keeper) SetValidator(ctx sdk.Context, validator crypto.PubKey, certifier
 	if err != nil {
 		panic(err)
 	}
-	validatorData := types.Validator{PubKey: pkAny, Certifier: certifier.String()}
+	validatorData := types.Validator{Pubkey: pkAny, Certifier: certifier.String()}
 	store.Set(types.ValidatorStoreKey(validator), k.cdc.MustMarshalBinaryLengthPrefixed(&validatorData))
 }
 

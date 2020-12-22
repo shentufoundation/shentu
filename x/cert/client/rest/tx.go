@@ -14,7 +14,7 @@ import (
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
 )
 
-func RegisterTxRoutes(cliCtx client.Context, r *mux.Router) {
+func registerTxHandlers(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/propose/certifier", types.ModuleName),
 		proposeCertifierHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/certify/validator", types.ModuleName),

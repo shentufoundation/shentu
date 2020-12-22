@@ -1,0 +1,114 @@
+syntax = "proto3";
+package shentu.cert.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "google/api/annotations.proto";
+import "shentu/cert/v1alpha1/cert.proto";
+import "shentu/cert/v1alpha1/genesis.proto";
+import "google/protobuf/any.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/cert/internal/types";
+
+// Query defines the gRPC querier service for cert module.
+service Query {
+    rpc Certifier(QueryCertifierRequest) returns (QueryCertifierResponse) {
+        option (google.api.http).get = "/shentu/cert/v1alpha1/certifier/{address}/alias/{alias}";
+    }
+
+    rpc Certifiers(QueryCertifiersRequest) returns (QueryCertifiersResponse) {
+        option (google.api.http).get = "/shentu/cert/v1alpha1/certifiers";
+    }
+
+    rpc Validator(QueryValidatorRequest) returns (QueryValidatorResponse) {
+        option (google.api.http).get = "/shentu/cert/v1alpha1/validator";
+    }
+
+    rpc Validators(QueryValidatorsRequest) returns (QueryValidatorsResponse) {
+        option (google.api.http).get = "/shentu/cert/v1alpha1/validators";
+    }
+
+    rpc Platform(QueryPlatformRequest) returns (QueryPlatformResponse) {
+        option (google.api.http).get = "/shentu/cert/v1alpha1/platform";
+    }
+
+    rpc Certificate(QueryCertificateRequest) returns (QueryCertificateResponse) {
+        option (google.api.http).get = "/shentu/cert/v1alpha1/certificates/{certificate_id}";
+    }
+
+    rpc Certificates(QueryCertificatesRequest) returns (QueryCertificatesResponse) {
+        option (google.api.http).get = "/shentu/cert/v1alpha1/certificates";
+    }
+}
+
+message QueryCertifierRequest {
+    string address = 1;
+    string alias = 2;
+}
+
+message QueryCertifierResponse {
+    Certifier certifier = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryCertifiersRequest {
+}
+
+message QueryCertifiersResponse {
+    repeated Certifier certifiers = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryValidatorRequest {
+    google.protobuf.Any pubkey = 1 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+}
+
+message QueryValidatorResponse {
+    string certifier = 1;
+}
+
+message QueryValidatorsRequest {
+}
+
+message QueryValidatorsResponse {
+    repeated string pubkeys = 1;
+}
+
+message QueryPlatformRequest {
+    google.protobuf.Any pubkey = 1 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+}
+
+message QueryPlatformResponse {
+    string platform = 1;
+}
+
+message QueryCertificateRequest {
+    string certificate_id = 1;
+}
+
+message QueryCertificateResponse {
+    string certificate_id = 1;
+    string certificate_type = 2;
+    RequestContent request_content = 3;
+    repeated KVPair certificate_content = 4 [ (gogoproto.nullable) = false ];
+    string description = 5;
+    string certifier = 6;
+    string tx_hash = 7;
+
+}
+
+message QueryCertificatesRequest {
+    string certifier = 1;
+    string content = 2;
+    string content_type = 3;
+
+    // pagination defines an optional pagination for the request.
+    cosmos.base.query.v1beta1.PageRequest pagination = 4;
+}
+
+message QueryCertificatesResponse {
+    uint64 total = 1;
+    repeated QueryCertificateResponse certificates = 2 [(gogoproto.nullable) = false];
+
+    // pagination defines the pagination in the response.
+    //cosmos.base.query.v1beta1.PageResponse pagination = 3;
+}

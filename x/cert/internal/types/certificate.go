@@ -97,7 +97,6 @@ type Certificate interface {
 	Description() string
 	TxHash() string
 
-	Bytes(codec.BinaryMarshaler) []byte
 	String() string
 
 	SetCertificateID(CertificateID)
@@ -245,12 +244,6 @@ func (c *GeneralCertificate) SetTxHash(txhash string) {
 // NewCompilationCertificateContent returns a new compilation certificate content.
 func NewCompilationCertificateContent(compiler, bytecodeHash string) CompilationCertificateContent {
 	return CompilationCertificateContent{Compiler: compiler, BytecodeHash: bytecodeHash}
-}
-
-// KVPair defines type for the key-value pair.
-type KVPair struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
 }
 
 // NewKVPair returns a new key-value pair.

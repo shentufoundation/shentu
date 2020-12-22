@@ -22,7 +22,7 @@ type (
 )
 
 // ParseCertifierUpdateProposalJSON reads and parses a CertifierUpdateProposalJSON from a file.
-func ParseCertifierUpdateProposalJSON(cdc *codec.Codec, proposalFile string) (CertifierUpdateProposalJSON, error) {
+func ParseCertifierUpdateProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (CertifierUpdateProposalJSON, error) {
 	proposal := CertifierUpdateProposalJSON{}
 
 	contents, err := ioutil.ReadFile(proposalFile)

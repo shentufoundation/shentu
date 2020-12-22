@@ -25,7 +25,7 @@ message Platform {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
     
-    google.protobuf.Any validator = 1 [ (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey" ];
+    google.protobuf.Any validator_pubkey = 1 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
     string description = 2;
 
 }

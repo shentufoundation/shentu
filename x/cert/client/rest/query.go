@@ -13,7 +13,7 @@ import (
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
 )
 
-func RegisterQueryRoutes(cliCtx client.Context, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/certifier/{address}", types.QuerierRoute),
 		certifierHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/certifiers", types.QuerierRoute),

@@ -2,14 +2,10 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
-
-	"github.com/gogo/protobuf/proto"
-	"gopkg.in/yaml.v2"
 
 	"github.com/tendermint/tendermint/crypto"
 
-	types "github.com/cosmos/cosmos-sdk/codec/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -66,17 +62,13 @@ type msgCertifyValidatorPretty struct {
 }
 
 // NewMsgCertifyValidator returns a new validator node certification message.
-func NewMsgCertifyValidator(certifier sdk.AccAddress, validator crypto.PubKey) (*MsgCertifyValidator, error) {
-	msg, ok := validator.(proto.Message)
-	if !ok {
-		return nil, fmt.Errorf("cannot proto marshal %T", validator)
-	}
-	any, err := types.NewAnyWithValue(msg)
+func NewMsgCertifyValidator(certifier sdk.AccAddress, pk crypto.PubKey) (*MsgCertifyValidator, error) {
+	pkAny, err := codectypes.PackAny(pk)
 	if err != nil {
 		return nil, err
 	}
 		
-	return &MsgCertifyValidator{Certifier: certifier.String(), Validator: any}, nil
+	return &MsgCertifyValidator{Certifier: certifier.String(), Pubkey: pkAny}, nil
 }
 
 // Route returns the module name.
@@ -87,9 +79,18 @@ func (m MsgCertifyValidator) Type() string { return "certify_validator" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgCertifyValidator) ValidateBasic() error {
-	if m.Validator == nil {
+	if m.Pubkey == nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "<empty>")
+	}
+
+	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
+	if err != nil {
+		panic(err)
+	}
+	if certifierAddr.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
 	}
+
 	return nil
 }
 
@@ -111,102 +112,19 @@ func (m MsgCertifyValidator) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{certifierAddr}
 }
 
-// MarshalYAML implements a custom marshal yaml function due to consensus pubkey.
-func (m MsgCertifyValidator) MarshalYAML() (interface{}, error) {
-	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
-	if err != nil {
-		panic(err)
-	}
-
-	d, err := yaml.Marshal(struct {
-		Certifier sdk.AccAddress
-		Validator string
-	}{
-		Certifier: certifierAddr,
-		Validator: sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, m.GetValidator()),
-	})
-	if err != nil {
-		return nil, err
-	}
-	return string(d), nil
-}
-
-// Custom implementation due to the pubkey.
-func (m MsgCertifyValidator) MarshalJSON() ([]byte, error) {
-	var pk string
-	var err error
-	if m.Validator != nil {
-		pk, err = sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, m.GetValidator())
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
-	if err != nil {
-		panic(err)
-	}
-
-	return json.Marshal(struct {
-		Certifier sdk.AccAddress
-		Validator string
-	}{
-		certifierAddr,
-		pk,
-	})
-}
-
-// Custom implementation due to the pubkey.
-func (m *MsgCertifyValidator) UnmarshalJSON(bz []byte) error {
-	var alias msgCertifyValidatorPretty
-	if err := json.Unmarshal(bz, &alias); err != nil {
-		return err
-	}
-	if alias.Validator != "" {
-		pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, alias.Validator)
-		if err != nil {
-			return err
-		}
-
-		msg, ok := pk.(proto.Message)
-		if !ok {
-			panic(fmt.Errorf("cannot proto marshal %T", pk))
-		}
-		any, err := types.NewAnyWithValue(msg)
-		if err != nil {
-			panic(err)
-		}
-		m.Validator = any
-	}
-	m.Certifier = alias.Certifier.String()
-	return nil
-}
-
-func (m MsgCertifyValidator) GetValidator() crypto.PubKey {
-	pk, ok := m.Validator.GetCachedValue().(crypto.PubKey)
-	if !ok {
-		return nil
-	}
-	return pk
-}
-
 type msgDecertifyValidatorPretty struct {
 	Decertifier sdk.AccAddress `json:"decertifier" yaml:"decertifier"`
 	Validator   string         `json:"validator" yaml:"validator"`
 }
 
 // NewMsgDecertifyValidator returns a new validator node de-certification message.
-func NewMsgDecertifyValidator(decertifier sdk.AccAddress, validator crypto.PubKey) (*MsgDecertifyValidator, error) {
-	msg, ok := validator.(proto.Message)
-	if !ok {
-		return nil, fmt.Errorf("cannot proto marshal %T", validator)
-	}
-	any, err := types.NewAnyWithValue(msg)
+func NewMsgDecertifyValidator(decertifier sdk.AccAddress, pk crypto.PubKey) (*MsgDecertifyValidator, error) {
+	pkAny, err := codectypes.PackAny(pk)
 	if err != nil {
 		return nil, err
 	}
 	
-	return &MsgDecertifyValidator{Decertifier: decertifier.String(), Validator: any}, nil
+	return &MsgDecertifyValidator{Decertifier: decertifier.String(), Pubkey: pkAny}, nil
 }
 
 // Route returns the module name.
@@ -217,9 +135,18 @@ func (m MsgDecertifyValidator) Type() string { return "decertify_validator" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgDecertifyValidator) ValidateBasic() error {
-	if m.Validator == nil {
+	if m.Pubkey == nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "<empty>")
+	}
+
+	certifierAddr, err := sdk.AccAddressFromBech32(m.Decertifier)
+	if err != nil {
+		panic(err)
+	}
+	if certifierAddr.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
 	}
+
 	return nil
 }
 
@@ -239,85 +166,6 @@ func (m MsgDecertifyValidator) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{decertifierAddr}
-}
-
-// MarshalYAML implements a custom marshal yaml function due to consensus pubkey.
-func (m MsgDecertifyValidator) MarshalYAML() (interface{}, error) {
-	decertifierAddr, err := sdk.AccAddressFromBech32(m.Decertifier)
-	if err != nil {
-		panic(err)
-	}
-
-	d, err := yaml.Marshal(struct {
-		Decertifier sdk.AccAddress
-		Validator   string
-	}{
-		Decertifier: decertifierAddr,
-		Validator:   sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, m.GetValidator()),
-	})
-	if err != nil {
-		return nil, err
-	}
-	return string(d), nil
-}
-
-// Custom implementation due to the pubkey.
-func (m MsgDecertifyValidator) MarshalJSON() ([]byte, error) {
-	var pk string
-	var err error
-	if m.Validator != nil {
-		pk, err = sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, m.GetValidator())
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	decertifierAddr, err := sdk.AccAddressFromBech32(m.Decertifier)
-	if err != nil {
-		panic(err)
-	}
-
-	return json.Marshal(struct {
-		Decertifier sdk.AccAddress
-		Validator   string
-	}{
-		decertifierAddr,
-		pk,
-	})
-}
-
-// Custom implementation due to the pubkey.
-func (m *MsgDecertifyValidator) UnmarshalJSON(bz []byte) error {
-	var alias msgDecertifyValidatorPretty
-	if err := json.Unmarshal(bz, &alias); err != nil {
-		return err
-	}
-	if alias.Validator != "" {
-		pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, alias.Validator)
-		if err != nil {
-			return err
-		}
-
-		msg, ok := pk.(proto.Message)
-		if !ok {
-			panic(fmt.Errorf("cannot proto marshal %T", pk))
-		}
-		any, err := types.NewAnyWithValue(msg)
-		if err != nil {
-			panic(err)
-		}
-		m.Validator = any
-	}
-	m.Decertifier = alias.Decertifier.String()
-	return nil
-}
-
-func (m MsgDecertifyValidator) GetValidator() crypto.PubKey {
-	pk, ok := m.Validator.GetCachedValue().(crypto.PubKey)
-	if !ok {
-		return nil
-	}
-	return pk
 }
 
 // NewMsgCertifyGeneral returns a new general certification message.
@@ -470,17 +318,13 @@ type msgCertifyPlatformPretty struct {
 
 // NewMsgCertifyPlatform returns a new validator host platform certification
 // message.
-func NewMsgCertifyPlatform(certifier sdk.AccAddress, validator crypto.PubKey, platform string) (*MsgCertifyPlatform, error) {
-	msg, ok := validator.(proto.Message)
-	if !ok {
-		return nil, fmt.Errorf("cannot proto marshal %T", validator)
-	}
-	any, err := types.NewAnyWithValue(msg)
+func NewMsgCertifyPlatform(certifier sdk.AccAddress, pk crypto.PubKey, platform string) (*MsgCertifyPlatform, error) {
+	pkAny, err := codectypes.PackAny(pk)
 	if err != nil {
 		return nil, err
 	}
 	
-	return &MsgCertifyPlatform{Certifier: certifier.String(), Validator: any, Platform:  platform}, nil
+	return &MsgCertifyPlatform{Certifier: certifier.String(), ValidatorPubkey: pkAny, Platform:  platform}, nil
 }
 
 // Route returns the module name.
@@ -491,7 +335,15 @@ func (m MsgCertifyPlatform) Type() string { return "certify_platform" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgCertifyPlatform) ValidateBasic() error {
-	if m.Validator == nil {
+	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
+	if err != nil {
+		panic(err)
+	}
+	if certifierAddr.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+	}
+
+	if m.ValidatorPubkey == nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
 	}
 	return nil
@@ -513,88 +365,4 @@ func (m MsgCertifyPlatform) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{certifierAddr}
-}
-
-// MarshalYAML implements a custom marshal yaml function due to consensus pubkey.
-func (m MsgCertifyPlatform) MarshalYAML() (interface{}, error) {
-	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
-	if err != nil {
-		panic(err)
-	}
-
-	d, err := yaml.Marshal(struct {
-		Certifier sdk.AccAddress
-		Validator string
-		Platform  string
-	}{
-		Certifier: certifierAddr,
-		Validator: sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, m.GetValidator()),
-		Platform:  m.Platform,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return string(d), nil
-}
-
-// Custom implementation due to the pubkey.
-func (m MsgCertifyPlatform) MarshalJSON() ([]byte, error) {
-	var pk string
-	var err error
-	if m.Validator != nil {
-		pk, err = sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, m.GetValidator())
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
-	if err != nil {
-		panic(err)
-	}
-
-	return json.Marshal(struct {
-		Certifier sdk.AccAddress
-		Validator string
-		Platform  string
-	}{
-		certifierAddr,
-		pk,
-		m.Platform,
-	})
-}
-
-// Custom implementation due to the pubkey.
-func (m *MsgCertifyPlatform) UnmarshalJSON(bz []byte) error {
-	var alias msgCertifyPlatformPretty
-	if err := json.Unmarshal(bz, &alias); err != nil {
-		return err
-	}
-	if alias.Validator != "" {
-		pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, alias.Validator)
-		if err != nil {
-			return err
-		}
-		
-		msg, ok := pk.(proto.Message)
-		if !ok {
-			panic(fmt.Errorf("cannot proto marshal %T", pk))
-		}
-		any, err := types.NewAnyWithValue(msg)
-		if err != nil {
-			panic(err)
-		}
-		m.Validator = any
-	}
-	m.Certifier = alias.Certifier.String()
-	m.Platform = alias.Platform
-	return nil
-}
-
-func (m MsgCertifyPlatform) GetValidator() crypto.PubKey {
-	pk, ok := m.Validator.GetCachedValue().(crypto.PubKey)
-	if !ok {
-		return nil
-	}
-	return pk
 }

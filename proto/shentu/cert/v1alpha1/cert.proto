@@ -88,7 +88,7 @@ message Validator {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
     
-    google.protobuf.Any pub_key = 1 [ (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey" ];
+    google.protobuf.Any pubkey = 1 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
     string certifier = 2;
 }
 
@@ -120,4 +120,9 @@ message CertifierUpdateProposal {
     string certifier = 4 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
     string description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     bool add_or_remove = 6 [ (gogoproto.moretags) = "yaml:\"add_or_remove\"", (gogoproto.casttype) = "AddOrRemove" ];
+}
+
+message KVPair {
+    string key = 1;
+    string value = 2;
 }

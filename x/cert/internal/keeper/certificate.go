@@ -44,18 +44,8 @@ func ProtoUnwrapCertificate(certificateProto types.CertificateProto) (types.Cert
 // SetCertificate stores a certificate using its ID field.
 func (k Keeper) SetCertificate(ctx sdk.Context, certificate types.Certificate) {
 	store := ctx.KVStore(k.storeKey)
-
-	// certificateProto, err := ProtoWrapCertificate(certificate)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// bz := k.cdc.MustMarshalBinaryLengthPrefixed(&certificateProto)
-
 	bz := k.MustMarshalCertificate(certificate)
-
 	store.Set(types.CertificateStoreKey(certificate.ID().Bytes()), bz)
-	//store.Set(types.CertificateStoreKey(certificate.ID().Bytes()), certificate.Bytes(k.cdc))
 }
 
 // MustMarshalCertificate attempts to encode a Certificate object and returns the

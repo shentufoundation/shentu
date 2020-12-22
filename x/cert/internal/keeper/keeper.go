@@ -2,10 +2,6 @@
 package keeper
 
 import (
-	"fmt"
-
-	"github.com/gogo/protobuf/proto"
-
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -38,21 +34,13 @@ func (k Keeper) CertifyPlatform(ctx sdk.Context, certifier sdk.AccAddress, valid
 	if !k.IsCertifier(ctx, certifier) {
 		return types.ErrRejectedValidator
 	}
-	platform := types.Platform{
-		Description: description,
-	}
 
-	msg, ok := validator.(proto.Message)
-	if !ok {
-		return fmt.Errorf("%T does not implement proto.Message", validator)
-	}
-	any, err := codectypes.NewAnyWithValue(msg)
+	pkAny, err := codectypes.PackAny(validator)
 	if err != nil {
 		return err
 	}
-	platform.Validator = any
 
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&platform)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&types.Platform{ValidatorPubkey: pkAny, Description: description})
 	ctx.KVStore(k.storeKey).Set(types.PlatformStoreKey(validator), bz)
 	return nil
 }
