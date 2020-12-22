@@ -2,11 +2,16 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
-type AuthKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) exported.Account
+type ParamSubspace interface {
+	Get(ctx sdk.Context, key []byte, ptr interface{})
+	Set(ctx sdk.Context, key []byte, param interface{})
+}
+
+type AccountKeeper interface {
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 }
 
 type DistrKeeper interface {

@@ -21,19 +21,19 @@ const (
 )
 
 // NewQuerier is the module level router for state queries.
-func NewQuerier(keeper Keeper) sdk.Querier {
+func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case QueryOperator:
-			return queryOperator(ctx, path[1:], keeper)
+			return queryOperator(ctx, path[1:], keeper, legacyQuerierCdc)
 		case QueryOperators:
-			return queryOperators(ctx, path[1:], keeper)
+			return queryOperators(ctx, path[1:], keeper, legacyQuerierCdc)
 		case QueryWithdraws:
-			return queryWithdraws(ctx, path[1:], keeper)
+			return queryWithdraws(ctx, path[1:], keeper, legacyQuerierCdc)
 		case QueryTask:
-			return queryTask(ctx, path[1:], req, keeper)
+			return queryTask(ctx, path[1:], req, keeper, legacyQuerierCdc)
 		case QueryResponse:
-			return queryResponse(ctx, path[1:], req, keeper)
+			return queryResponse(ctx, path[1:], req, keeper, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
@@ -49,7 +49,7 @@ func validatePathLength(path []string, length int) error {
 }
 
 // queryOperator returns information of an operator.
-func queryOperator(ctx sdk.Context, path []string, keeper Keeper) (res []byte, err error) {
+func queryOperator(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if err := validatePathLength(path, 1); err != nil {
 		return nil, err
 	}
@@ -57,11 +57,11 @@ func queryOperator(ctx sdk.Context, path []string, keeper Keeper) (res []byte, e
 	if err != nil {
 		return nil, err
 	}
-	operator, err := keeper.GetOperator(ctx, address)
+	operator, err := k.GetOperator(ctx, address)
 	if err != nil {
 		return nil, err
 	}
-	res, err = codec.MarshalJSONIndent(keeper.cdc, operator)
+	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, operator)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -69,11 +69,11 @@ func queryOperator(ctx sdk.Context, path []string, keeper Keeper) (res []byte, e
 }
 
 // queryOperators returns information of all operators.
-func queryOperators(ctx sdk.Context, path []string, keeper Keeper) (res []byte, err error) {
+func queryOperators(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if err := validatePathLength(path, 0); err != nil {
 		return nil, err
 	}
-	res, err = codec.MarshalJSONIndent(keeper.cdc, keeper.GetAllOperators(ctx))
+	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, k.GetAllOperators(ctx))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -81,11 +81,11 @@ func queryOperators(ctx sdk.Context, path []string, keeper Keeper) (res []byte, 
 }
 
 // queryWithdraws returns information of all withdrawals.
-func queryWithdraws(ctx sdk.Context, path []string, keeper Keeper) (res []byte, err error) {
+func queryWithdraws(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if err := validatePathLength(path, 0); err != nil {
 		return nil, err
 	}
-	res, err = codec.MarshalJSONIndent(keeper.cdc, keeper.GetAllWithdraws(ctx))
+	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, k.GetAllWithdraws(ctx))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -93,22 +93,26 @@ func queryWithdraws(ctx sdk.Context, path []string, keeper Keeper) (res []byte, 
 }
 
 // queryResponse returns information of a response.
-func queryResponse(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
+func queryResponse(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if err := validatePathLength(path, 0); err != nil {
 		return nil, err
 	}
 	var params types.QueryResponseParams
-	err = keeper.cdc.UnmarshalJSON(req.Data, &params)
+	err = legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	task, err := keeper.GetTask(ctx, params.Contract, params.Function)
+	task, err := k.GetTask(ctx, params.Contract, params.Function)
 	if err != nil {
 		return nil, err
 	}
 	for i := 0; i < len(task.Responses); i++ {
-		if task.Responses[i].Operator.Equals(params.Operator) {
-			res, err = codec.MarshalJSONIndent(keeper.cdc, task.Responses[i])
+		operatorAddr, err := sdk.AccAddressFromBech32(task.Responses[i].Operator)
+		if err != nil {
+			panic(err)
+		}
+		if operatorAddr.Equals(params.Operator) {
+			res, err = codec.MarshalJSONIndent(legacyQuerierCdc, task.Responses[i])
 			if err != nil {
 				return nil, err
 			}
@@ -122,20 +126,20 @@ func queryResponse(ctx sdk.Context, path []string, req abci.RequestQuery, keeper
 }
 
 // queryTask returns information of a task.
-func queryTask(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
+func queryTask(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if err := validatePathLength(path, 0); err != nil {
 		return nil, err
 	}
 	var params types.QueryTaskParams
-	err = keeper.cdc.UnmarshalJSON(req.Data, &params)
+	err = legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	task, err := keeper.GetTask(ctx, params.Contract, params.Function)
+	task, err := k.GetTask(ctx, params.Contract, params.Function)
 	if err != nil {
 		return nil, err
 	}
-	res, err = codec.MarshalJSONIndent(keeper.cdc, task)
+	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, task)
 	if err != nil {
 		return nil, err
 	}

@@ -13,7 +13,7 @@ import (
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
 )
 
-func RegisterQueryRoutes(cliCtx client.CLIContext, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/operator/{address}", types.QuerierRoute), operatorHandler(cliCtx)).Methods("Get")
 	r.HandleFunc(fmt.Sprintf("/%s/operators", types.QuerierRoute), operatorsHandler(cliCtx)).Methods("Get")
 	r.HandleFunc(fmt.Sprintf("/%s/withdraws", types.QuerierRoute), withdrawsHandler(cliCtx)).Methods("Get")
@@ -22,7 +22,7 @@ func RegisterQueryRoutes(cliCtx client.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/response", types.QuerierRoute), responseHandler(cliCtx)).Methods("Get")
 }
 
-func operatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func operatorHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -44,7 +44,7 @@ func operatorHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func operatorsHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func operatorsHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -63,7 +63,7 @@ func operatorsHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func withdrawsHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func withdrawsHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -82,7 +82,7 @@ func withdrawsHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func taskHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func taskHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -99,7 +99,7 @@ func taskHandler(cliCtx client.CLIContext) http.HandlerFunc {
 		}
 
 		params := types.NewQueryTaskParams(contract, function)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -116,7 +116,7 @@ func taskHandler(cliCtx client.CLIContext) http.HandlerFunc {
 	}
 }
 
-func responseHandler(cliCtx client.CLIContext) http.HandlerFunc {
+func responseHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -142,7 +142,7 @@ func responseHandler(cliCtx client.CLIContext) http.HandlerFunc {
 		}
 
 		params := types.NewQueryResponseParams(contract, function, operatorAddress)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

@@ -21,8 +21,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	}
 
 	k.SetTotalCollateral(ctx, totalCollateral)
-	k.SetLockedPoolParams(ctx, poolParams)
-	k.SetTaskParams(ctx, taskParams)
+	k.SetLockedPoolParams(ctx, *poolParams)
+	k.SetTaskParams(ctx, *taskParams)
 
 	for _, withdraw := range withdraws {
 		withdraw.DueBlock += ctx.BlockHeight()

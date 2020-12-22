@@ -15,7 +15,7 @@ var (
 // SetTask sets a task in KVStore.
 func (k Keeper) SetTask(ctx sdk.Context, task types.Task) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.TaskStoreKey(task.Contract, task.Function), k.cdc.MustMarshalBinaryLengthPrefixed(task))
+	store.Set(types.TaskStoreKey(task.Contract, task.Function), k.cdc.MustMarshalBinaryLengthPrefixed(&task))
 }
 
 // DeleteTask deletes a task from KVStore.
@@ -34,14 +34,6 @@ func (k Keeper) UpdateAndSetTask(ctx sdk.Context, task types.Task) {
 	}
 }
 
-// SetClosingBlockStore sets the store of the aggregation block for a task.
-func (k Keeper) SetClosingBlockStore(ctx sdk.Context, task types.Task) {
-	store := ctx.KVStore(k.storeKey)
-	taskIDs := k.GetClosingTaskIDs(ctx, task.ClosingBlock)
-	taskIDs = append(taskIDs, types.TaskID{Contract: task.Contract, Function: task.Function})
-	store.Set(types.ClosingTaskIDsStoreKey(task.ClosingBlock), k.cdc.MustMarshalBinaryLengthPrefixed(taskIDs))
-}
-
 // GetTask returns a task given contract and function.
 func (k Keeper) GetTask(ctx sdk.Context, contract, function string) (types.Task, error) {
 	TaskData := ctx.KVStore(k.storeKey).Get(types.TaskStoreKey(contract, function))
@@ -53,14 +45,26 @@ func (k Keeper) GetTask(ctx sdk.Context, contract, function string) (types.Task,
 	return task, nil
 }
 
+// SetClosingBlockStore sets the store of the aggregation block for a task.
+func (k Keeper) SetClosingBlockStore(ctx sdk.Context, task types.Task) {
+	store := ctx.KVStore(k.storeKey)
+
+	newTaskID := types.TaskID{Contract: task.Contract, Function: task.Function}
+	taskIDs := append(k.GetClosingTaskIDs(ctx, task.ClosingBlock), newTaskID)
+
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})
+	store.Set(types.ClosingTaskIDsStoreKey(task.ClosingBlock), bz)
+}
+
 // GetClosingTaskIDs returns a list of task IDs by the closing block.
 func (k Keeper) GetClosingTaskIDs(ctx sdk.Context, closingBlock int64) []types.TaskID {
 	closingTaskIDsData := ctx.KVStore(k.storeKey).Get(types.ClosingTaskIDsStoreKey(closingBlock))
-	var closingTaskIDs []types.TaskID
+
+	var taskIDsProto types.TaskIDs
 	if closingTaskIDsData != nil {
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(closingTaskIDsData, &closingTaskIDs)
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(closingTaskIDsData, &taskIDsProto)
 	}
-	return closingTaskIDs
+	return taskIDsProto.TaskIds
 }
 
 // DeleteClosingTaskIDs deletes stores for task IDs closed at given block.
@@ -105,7 +109,11 @@ func (k Keeper) RemoveTask(ctx sdk.Context, contract, function string, force boo
 	}
 
 	// TODO: only creator can delete the task for now
-	if !task.Creator.Equals(creator) {
+	creatorAddr, err := sdk.AccAddressFromBech32(task.Creator)
+	if err != nil {
+		panic(err)
+	}
+	if !creatorAddr.Equals(creator) {
 		return types.ErrNotCreator
 	}
 	err = k.DeleteTask(ctx, task)
@@ -156,7 +164,7 @@ func (k Keeper) IsValidResponse(ctx sdk.Context, task types.Task, response types
 		return types.ErrTaskClosed
 	}
 	for _, r := range task.Responses {
-		if r.Operator.Equals(response.Operator) {
+		if r.Operator == response.Operator {
 			return types.ErrDuplicateResponse
 		}
 	}
@@ -205,7 +213,11 @@ func (k Keeper) Aggregate(ctx sdk.Context, contract, function string) error {
 	totalCollateral := sdk.NewInt(0)
 	minScoreCollateral := sdk.NewInt(0)
 	for i, response := range task.Responses {
-		amount, err := k.GetCollateralAmount(ctx, response.Operator)
+		operatorAddr, err := sdk.AccAddressFromBech32(response.Operator)
+		if err != nil {
+			panic(err)
+		}
+		amount, err := k.GetCollateralAmount(ctx, operatorAddr)
 		if err != nil {
 			continue
 		}
@@ -244,7 +256,11 @@ func (k Keeper) TotalValidTaskCollateral(ctx sdk.Context, task types.Task) sdk.I
 	if task.Result.Equal(types.MinScore) {
 		for _, response := range task.Responses {
 			if response.Score.Equal(types.MinScore) {
-				collateral, err := k.GetCollateralAmount(ctx, response.Operator)
+				operatorAddr, err := sdk.AccAddressFromBech32(response.Operator)
+				if err != nil {
+					panic(err)
+				}
+				collateral, err := k.GetCollateralAmount(ctx, operatorAddr)
 				if err != nil {
 					continue
 				}
@@ -254,7 +270,11 @@ func (k Keeper) TotalValidTaskCollateral(ctx sdk.Context, task types.Task) sdk.I
 	} else if task.Result.LT(taskParams.ThresholdScore) {
 		for _, response := range task.Responses {
 			if response.Score.LT(taskParams.ThresholdScore) {
-				collateral, err := k.GetCollateralAmount(ctx, response.Operator)
+				operatorAddr, err := sdk.AccAddressFromBech32(response.Operator)
+				if err != nil {
+					panic(err)
+				}
+				collateral, err := k.GetCollateralAmount(ctx, operatorAddr)
 				if err != nil {
 					continue
 				}
@@ -266,7 +286,11 @@ func (k Keeper) TotalValidTaskCollateral(ctx sdk.Context, task types.Task) sdk.I
 	} else {
 		for _, response := range task.Responses {
 			if response.Score.GTE(taskParams.ThresholdScore) {
-				collateral, err := k.GetCollateralAmount(ctx, response.Operator)
+				operatorAddr, err := sdk.AccAddressFromBech32(response.Operator)
+				if err != nil {
+					panic(err)
+				}
+				collateral, err := k.GetCollateralAmount(ctx, operatorAddr)
 				if err != nil {
 					continue
 				}
@@ -280,6 +304,7 @@ func (k Keeper) TotalValidTaskCollateral(ctx sdk.Context, task types.Task) sdk.I
 }
 
 // TODO: this is a simplified version (without confidence calculation)
+
 // DistributeBounty distributes bounty to operators based on responses and the aggregation result.
 func (k Keeper) DistributeBounty(ctx sdk.Context, task types.Task) error {
 	taskParams := k.GetTaskParams(ctx)
@@ -292,13 +317,17 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.Task) error {
 		if task.Result.Equal(types.MinScore) {
 			for i, response := range task.Responses {
 				if response.Score.Equal(types.MinScore) {
-					collateral, err := k.GetCollateralAmount(ctx, response.Operator)
+					operatorAddr, err := sdk.AccAddressFromBech32(response.Operator)
+					if err != nil {
+						panic(err)
+					}
+					collateral, err := k.GetCollateralAmount(ctx, operatorAddr)
 					if err != nil {
 						continue
 					}
 					amount := bounty.Amount.Mul(collateral).Quo(totalValidTaskCollateral)
 					reward := sdk.NewCoins(sdk.NewCoin(bounty.Denom, amount))
-					if err := k.AddReward(ctx, response.Operator, reward); err != nil {
+					if err := k.AddReward(ctx, operatorAddr, reward); err != nil {
 						continue
 					}
 					task.Responses[i].Reward = reward
@@ -307,7 +336,11 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.Task) error {
 		} else if task.Result.LT(taskParams.ThresholdScore) {
 			for i, response := range task.Responses {
 				if response.Score.LT(taskParams.ThresholdScore) {
-					collateral, err := k.GetCollateralAmount(ctx, response.Operator)
+					operatorAddr, err := sdk.AccAddressFromBech32(response.Operator)
+					if err != nil {
+						panic(err)
+					}
+					collateral, err := k.GetCollateralAmount(ctx, operatorAddr)
 					if err != nil {
 						continue
 					}
@@ -315,7 +348,7 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.Task) error {
 						amplifier.Mul(collateral).Quo(response.Score.Add(taskParams.Epsilon1)),
 					).Quo(totalValidTaskCollateral)
 					reward := sdk.NewCoins(sdk.NewCoin(task.Bounty[0].Denom, amount))
-					if err := k.AddReward(ctx, response.Operator, reward); err != nil {
+					if err := k.AddReward(ctx, operatorAddr, reward); err != nil {
 						continue
 					}
 					task.Responses[i].Reward = reward
@@ -324,7 +357,11 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.Task) error {
 		} else {
 			for i, response := range task.Responses {
 				if response.Score.GTE(taskParams.ThresholdScore) {
-					collateral, err := k.GetCollateralAmount(ctx, response.Operator)
+					operatorAddr, err := sdk.AccAddressFromBech32(response.Operator)
+					if err != nil {
+						panic(err)
+					}
+					collateral, err := k.GetCollateralAmount(ctx, operatorAddr)
 					if err != nil {
 						continue
 					}
@@ -332,7 +369,7 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.Task) error {
 						amplifier.Mul(collateral).Quo(types.MaxScore.Sub(response.Score).Add(taskParams.Epsilon2)),
 					).Quo(totalValidTaskCollateral)
 					reward := sdk.NewCoins(sdk.NewCoin(bounty.Denom, amount))
-					if err := k.AddReward(ctx, response.Operator, reward); err != nil {
+					if err := k.AddReward(ctx, operatorAddr, reward); err != nil {
 						continue
 					}
 					task.Responses[i].Reward = reward

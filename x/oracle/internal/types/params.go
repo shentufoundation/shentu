@@ -5,7 +5,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/types"
 	params "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -36,15 +35,6 @@ func ParamKeyTable() params.KeyTable {
 		params.NewParamSetPair(ParamsStoreKeyTaskParams, TaskParams{}, validateTaskParams),
 		params.NewParamSetPair(ParamsStoreKeyPoolParams, LockedPoolParams{}, validatePoolParams),
 	)
-}
-
-type TaskParams struct {
-	ExpirationDuration time.Duration `json:"task_expiration_duration"`
-	AggregationWindow  int64         `json:"task_aggregation_window"`
-	AggregationResult  sdk.Int       `json:"task_aggregation_result"`
-	ThresholdScore     sdk.Int       `json:"task_threshold_score"`
-	Epsilon1           sdk.Int       `json:"task_epsilon1"`
-	Epsilon2           sdk.Int       `json:"task_epsilon2"`
 }
 
 // NewTaskParams returns a TaskParams object.
@@ -81,11 +71,6 @@ func validateTaskParams(i interface{}) error {
 	return nil
 }
 
-type LockedPoolParams struct {
-	LockedInBlocks    int64 `json:"locked_in_blocks"`
-	MinimumCollateral int64 `json:"minimum_collateral"`
-}
-
 // NewLockedPoolParams returns a LockedPoolParams object.
 func NewLockedPoolParams(lockedInBlocks, minimumCollateral int64) LockedPoolParams {
 	return LockedPoolParams{
@@ -111,10 +96,4 @@ func validatePoolParams(i interface{}) error {
 		return ErrInvalidPoolParams
 	}
 	return nil
-}
-
-type ParamSubspace interface {
-	Get(ctx sdk.Context, key []byte, ptr interface{})
-	Set(ctx sdk.Context, key []byte, param interface{})
-	WithKeyTable(table subspace.KeyTable) subspace.Subspace
 }

@@ -1,14 +1,13 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/oracle/internal/types"
@@ -19,94 +18,122 @@ const (
 )
 
 // GetQueryCmd returns the cli query commands for this module.
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	oracleQueryCmds := &cobra.Command{
 		Use:   types.ModuleName,
 		Short: "Oracle staking subcommands",
 	}
 
-	oracleQueryCmds.AddCommand(flags.GetCommands(
-		GetCmdOperator(queryRoute, cdc),
-		GetCmdOperators(queryRoute, cdc),
-		GetCmdWithdraws(queryRoute, cdc),
-		GetCmdTask(queryRoute, cdc),
-		GetCmdResponse(queryRoute, cdc),
-	)...)
+	oracleQueryCmds.AddCommand(
+		GetCmdOperator(),
+		GetCmdOperators(),
+		GetCmdWithdraws(),
+		GetCmdTask(),
+		GetCmdResponse(),
+	)
 
 	return oracleQueryCmds
 }
 
 // GetCmdOperator returns the operator query command.
-func GetCmdOperator(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdOperator() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "operator <address>",
 		Short: "Get operator information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/operator/%s", queryRoute, args[0]), nil)
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
-			var out types.Operator
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			queryClient := types.NewQueryClient(cliCtx)
+
+			address, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.Operator(
+				context.Background(),
+				&types.QueryOperatorRequest{Address: address.String()},
+			)
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintOutput(res)
 		},
 	}
 	return cmd
 }
 
 // GetCmdOperators returns the operators query command.
-func GetCmdOperators(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdOperators() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "operators",
 		Short: "Get operators information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/operators", queryRoute), nil)
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
-			var out types.Operators
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			queryClient := types.NewQueryClient(cliCtx)
+
+			res, err := queryClient.Operators(context.Background(), &types.QueryOperatorsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintOutput(res)
 		},
 	}
 	return cmd
 }
 
 // GetCmdWithdraws returns the withdrawals query command.
-func GetCmdWithdraws(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdWithdraws() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "withdraws",
 		Short: "Get all withdrawals",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/withdraws", queryRoute), nil)
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
-			var out types.Withdraws
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			queryClient := types.NewQueryClient(cliCtx)
+
+			res, err := queryClient.Withdraws(
+				context.Background(),
+				&types.QueryWithdrawsRequest{},
+			)
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintOutput(res)
 		},
 	}
 	return cmd
 }
 
 // GetCmdTask returns the task query command.
-func GetCmdTask(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdTask() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "task <flags>",
 		Short: "Get task information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
 
 			contract := viper.GetString(FlagContract)
 			if contract == "" {
@@ -117,18 +144,15 @@ func GetCmdTask(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("function is required")
 			}
 
-			params := types.NewQueryTaskParams(contract, function)
-			bz, err := cdc.MarshalJSON(params)
+			res, err := queryClient.Task(
+				context.Background(),
+				&types.QueryTaskRequest{Contract: contract, Function: function},
+			)
 			if err != nil {
 				return err
 			}
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/task", queryRoute), bz)
-			if err != nil {
-				return err
-			}
-			var out types.Task
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+
+			return cliCtx.PrintOutput(res)
 		},
 	}
 	cmd.Flags().String(FlagContract, "", "Provide the contract address")
@@ -137,13 +161,18 @@ func GetCmdTask(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdResponse returns the response query command.
-func GetCmdResponse(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdResponse() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "response <flags>",
 		Short: "Get response information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
 
 			contract := viper.GetString(FlagContract)
 			if contract == "" {
@@ -161,18 +190,16 @@ func GetCmdResponse(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			params := types.NewQueryResponseParams(contract, function, operatorAddress)
-			bz, err := cdc.MarshalJSON(params)
+
+			res, err := queryClient.Response(
+				context.Background(),
+				&types.QueryResponseRequest{Contract: contract, Function: function, OperatorAddress: operatorAddress.String()},
+			)
 			if err != nil {
 				return err
 			}
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/response", queryRoute), bz)
-			if err != nil {
-				return err
-			}
-			var out types.Response
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+
+			return cliCtx.PrintOutput(res)
 		},
 	}
 	cmd.Flags().String(FlagContract, "", "Provide the contract address")
