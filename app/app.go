@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 
+	ibc "github.com/cosmos/cosmos-sdk/x/ibc/core"
+
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer"
@@ -104,6 +106,7 @@ var (
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
+		capability.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
@@ -123,18 +126,21 @@ var (
 		oracle.NewAppModuleBasic(),
 		shield.NewAppModuleBasic(),
 		evidence.AppModuleBasic{},
+		ibc.AppModuleBasic{},
+		transfer.AppModuleBasic{},
 	)
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName:     nil,
-		distr.ModuleName:          nil,
-		mint.ModuleName:           {authtypes.Minter},
-		staking.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
-		staking.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
-		gov.ModuleName:            {authtypes.Burner},
-		oracle.ModuleName:         {authtypes.Burner},
-		shield.ModuleName:         {authtypes.Burner},
+		auth.FeeCollectorName:       nil,
+		distr.ModuleName:            nil,
+		mint.ModuleName:             {authtypes.Minter},
+		staking.BondedPoolName:      {authtypes.Burner, authtypes.Staking},
+		staking.NotBondedPoolName:   {authtypes.Burner, authtypes.Staking},
+		gov.ModuleName:              {authtypes.Burner},
+		oracle.ModuleName:           {authtypes.Burner},
+		shield.ModuleName:           {authtypes.Burner},
+		ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
