@@ -5,6 +5,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
@@ -13,13 +14,13 @@ import (
 // Keeper manages certifier & security council related logics.
 type Keeper struct {
 	storeKey       sdk.StoreKey
-	cdc            *codec.Codec
+	cdc            codec.BinaryMarshaler
 	slashingKeeper types.SlashingKeeper
 	stakingKeeper  types.StakingKeeper
 }
 
 // NewKeeper creates a new instance of the certifier keeper.
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, slashingKeeper types.SlashingKeeper, stakingKeeper types.StakingKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryMarshaler, storeKey sdk.StoreKey, slashingKeeper types.SlashingKeeper, stakingKeeper types.StakingKeeper) Keeper {
 	return Keeper{
 		cdc:            cdc,
 		storeKey:       storeKey,
@@ -33,11 +34,13 @@ func (k Keeper) CertifyPlatform(ctx sdk.Context, certifier sdk.AccAddress, valid
 	if !k.IsCertifier(ctx, certifier) {
 		return types.ErrRejectedValidator
 	}
-	platform := types.Platform{
-		Validator:   validator,
-		Description: description,
+
+	pkAny, err := codectypes.PackAny(validator)
+	if err != nil {
+		return err
 	}
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(platform)
+
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&types.Platform{ValidatorPubkey: pkAny, Description: description})
 	ctx.KVStore(k.storeKey).Set(types.PlatformStoreKey(validator), bz)
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
@@ -17,8 +18,13 @@ const MaxTimestamp = 253402300799
 // SetValidator sets a certified validator.
 func (k Keeper) SetValidator(ctx sdk.Context, validator crypto.PubKey, certifier sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	validatorData := types.Validator{PubKey: validator, Certifier: certifier}
-	store.Set(types.ValidatorStoreKey(validator), k.cdc.MustMarshalBinaryLengthPrefixed(validatorData))
+
+	pkAny, err := codectypes.PackAny(validator)
+	if err != nil {
+		panic(err)
+	}
+	validatorData := types.Validator{Pubkey: pkAny, Certifier: certifier.String()}
+	store.Set(types.ValidatorStoreKey(validator), k.cdc.MustMarshalBinaryLengthPrefixed(&validatorData))
 }
 
 // deleteValidator removes a validator from being certified.
@@ -39,7 +45,12 @@ func (k Keeper) GetValidatorCertifier(ctx sdk.Context, validator crypto.PubKey) 
 	if validatorData := store.Get(types.ValidatorStoreKey(validator)); validatorData != nil {
 		var validator types.Validator
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(validatorData, &validator)
-		return validator.Certifier, nil
+
+		certifierAddr, err := sdk.AccAddressFromBech32(validator.Certifier)
+		if err != nil {
+			panic(err)
+		}
+		return certifierAddr, nil
 	}
 	return nil, types.ErrValidatorUncertified
 }
@@ -125,7 +136,11 @@ func (k Keeper) GetAllValidators(ctx sdk.Context) (validators types.Validators) 
 // GetAllValidatorPubkeys gets all validator pubkeys.
 func (k Keeper) GetAllValidatorPubkeys(ctx sdk.Context) (validatorAddresses []string) {
 	k.IterateAllValidators(ctx, func(validator types.Validator) bool {
-		validatorAddresses = append(validatorAddresses, sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, validator.PubKey))
+		pk, err := validator.TmConsPubKey()
+		if err != nil {
+			panic(err)
+		}
+		validatorAddresses = append(validatorAddresses, sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, pk))
 		return false
 	})
 	return

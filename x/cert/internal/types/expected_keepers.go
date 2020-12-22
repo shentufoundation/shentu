@@ -4,20 +4,19 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 type (
 	AccountKeeper interface {
-		GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
+		GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 	}
 
 	StakingKeeper interface {
-		ValidatorByConsAddr(sdk.Context, sdk.ConsAddress) stakingexported.ValidatorI
-		GetAllValidators(ctx sdk.Context) []staking.Validator
-		GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) []staking.Delegation
+		ValidatorByConsAddr(sdk.Context, sdk.ConsAddress) stakingtypes.ValidatorI
+		GetAllValidators(ctx sdk.Context) []stakingtypes.Validator
+		GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) []stakingtypes.Delegation
 	}
 
 	SlashingKeeper interface {

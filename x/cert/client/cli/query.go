@@ -2,73 +2,63 @@
 package cli
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/cert/internal/keeper"
 	"github.com/certikfoundation/shentu/x/cert/internal/types"
 )
 
 // GetQueryCmd returns the cli query commands for the certification module.
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group cert queries under a subcommand.
 	certQueryCmds := &cobra.Command{
 		Use:   "cert",
 		Short: "Querying commands for the certification module",
 	}
 
-	certQueryCmds.AddCommand(flags.GetCommands(
-		GetCmdCertifier(queryRoute, cdc),
-		GetCmdCertifiers(queryRoute, cdc),
-		GetCmdValidator(queryRoute, cdc),
-		GetCmdValidators(queryRoute, cdc),
-		GetCmdPlatform(queryRoute, cdc),
-		GetCmdCertificate(queryRoute, cdc),
-		GetCmdCertificates(queryRoute, cdc),
-	)...)
+	certQueryCmds.AddCommand(
+		GetCmdCertifier(),
+		GetCmdCertifiers(),
+		GetCmdValidator(),
+		GetCmdValidators(),
+		GetCmdPlatform(),
+		GetCmdCertificate(),
+		GetCmdCertificates(),
+	)
 
 	return certQueryCmds
 }
 
 // GetCmdCertifier returns the certifier query command.
-func GetCmdCertifier(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdCertifier() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "certifier <address>",
 		Short: "Get certifier information",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
 
-			var addr string
-			var res []byte
-			var err error
-			if len(args) > 0 {
-				addr = args[0]
-				res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/certifier/%s", queryRoute, addr), nil)
-				if err != nil {
-					return err
-				}
-			} else {
-				alias := viper.GetString(FlagAlias)
-				if alias == "" {
-					return fmt.Errorf("require address or alias to query certifiers")
-				}
-				res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/certifieralias/%s", queryRoute, alias), nil)
-				if err != nil {
-					return err
-				}
+			res, err := queryClient.Certifier(
+				context.Background(),
+				&types.QueryCertifierRequest{Address: args[0], Alias: viper.GetString(FlagAlias)},
+			)
+			if err != nil {
+				return err
 			}
 
-			var out types.Certifier
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			return cliCtx.PrintOutput(res)
 		},
 	}
 	cmd.Flags().String(FlagAlias, "", "use alias to query the certifier info")
@@ -76,154 +66,180 @@ func GetCmdCertifier(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdCertifiers returns all certifier query command
-func GetCmdCertifiers(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdCertifiers() *cobra.Command {
 	return &cobra.Command{
 		Use:   "certifiers",
 		Short: "Get certifiers information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/certifiers", queryRoute), nil)
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
-			var out types.QueryResCertifiers
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			queryClient := types.NewQueryClient(cliCtx)
+
+			res, err := queryClient.Certifiers(context.Background(), &types.QueryCertifiersRequest{})
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintOutput(res)
 		},
 	}
 }
 
 // GetCmdValidator returns the validator certification query command.
-func GetCmdValidator(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdValidator() *cobra.Command {
 	return &cobra.Command{
 		Use:   "validator <pubkey>",
 		Short: "Get validator certification information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			key := args[0]
-
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/validator/%s", queryRoute, key), nil)
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
-			var out types.QueryResValidator
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			queryClient := types.NewQueryClient(cliCtx)
+
+			pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
+			if err != nil {
+				return err
+			}
+			pkAny, err := codectypes.PackAny(pk)
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.Validator(context.Background(), &types.QueryValidatorRequest{Pubkey: pkAny})
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintOutput(res)
 		},
 	}
 }
 
 // GetCmdValidators returns all validators certification query command
-func GetCmdValidators(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdValidators() *cobra.Command {
 	return &cobra.Command{
 		Use:   "validators",
 		Short: "Get validators certification information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/validators", queryRoute), nil)
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
-			var out types.QueryResValidators
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			queryClient := types.NewQueryClient(cliCtx)
+
+			res, err := queryClient.Validators(context.Background(), &types.QueryValidatorsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintOutput(res)
 		},
 	}
 }
 
 // GetCmdCertificate returns the certificate query command.
-func GetCmdCertificate(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdCertificate() *cobra.Command {
 	return &cobra.Command{
 		Use:   "certificate <certificate id>",
 		Short: "Get certificate information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			certificateID := args[0]
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/certificate/%s", queryRoute, certificateID), nil)
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
-			var certificate keeper.QueryResCertificate
-			cdc.MustUnmarshalJSON(res, &certificate)
-			return cliCtx.PrintOutput(certificate)
+			queryClient := types.NewQueryClient(cliCtx)
+
+			res, err := queryClient.Certificate(context.Background(), &types.QueryCertificateRequest{CertificateId: args[0]})
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintOutput(res)
 		},
 	}
 }
 
 // GetCmdCertificates returns certificates query command
-func GetCmdCertificates(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdCertificates() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "certificates [<flags>]",
 		Short: "Get certificates information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			var (
-				err              error
-				certifierAddress sdk.AccAddress
-			)
-
-			if certifier := viper.GetString(FlagCertifier); certifier != "" {
-				certifierAddress, err = sdk.AccAddressFromBech32(certifier)
-				if err != nil {
-					return err
-				}
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
 			}
+			queryClient := types.NewQueryClient(cliCtx)
 
-			contentTypeString := viper.GetString(FlagContentType)
-			content := viper.GetString(FlagContent)
-
-			page := viper.GetInt(FlagPage)
-			limit := viper.GetInt(FlagLimit)
-			params := types.NewQueryCertificatesParams(page, limit, certifierAddress, contentTypeString, content)
-			bz, err := cdc.MarshalJSON(params)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/certificates", queryRoute), bz)
+			res, err := queryClient.Certificates(
+				context.Background(), 
+				&types.QueryCertificatesRequest{
+					Certifier: viper.GetString(FlagCertifier),
+					Content: viper.GetString(FlagContent),
+					ContentType: viper.GetString(FlagContentType),
+					Pagination: pageReq,
+				})
 			if err != nil {
 				return err
 			}
-			var out keeper.QueryResCertificates
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+
+			return cliCtx.PrintOutput(res)
 		},
 	}
 	cmd.Flags().String(FlagCertifier, "", "certificates issued by certifier")
 	cmd.Flags().String(FlagContent, "", "certificates by request content")
 	cmd.Flags().String(FlagContentType, "", "type of request content")
-	cmd.Flags().Int(FlagPage, 1, "pagination page of certificates to to query for")
-	cmd.Flags().Int(FlagLimit, 100, "pagination limit of certificates to query for")
+	flags.AddPaginationFlagsToCmd(cmd, "votes")
 	return cmd
 }
 
 // GetCmdPlatform returns the validator host platform certification query command.
-func GetCmdPlatform(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdPlatform() *cobra.Command {
 	return &cobra.Command{
 		Use:   "platform <pubkey>",
 		Short: "Get validator host platform certification information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			key := args[0]
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/platform/%s", queryRoute, key), nil)
+			cliCtx := client.GetClientContextFromCmd(cmd)
+			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+
+			pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
+			if err != nil {
+				return err
+			}
+			pkAny, err := codectypes.PackAny(pk)
 			if err != nil {
 				return err
 			}
 
-			if res == nil {
-				return fmt.Errorf("this platform is not certified")
+			res, err := queryClient.Platform(context.Background(), &types.QueryPlatformRequest{Pubkey: pkAny})
+			if err != nil {
+				return err
 			}
 
-			var out types.QueryResPlatform
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			return cliCtx.PrintOutput(res)
 		},
 	}
 }

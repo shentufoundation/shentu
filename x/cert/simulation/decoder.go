@@ -12,7 +12,9 @@ import (
 )
 
 // DecodeStore unmarshals the KVPair's Value to the corresponding type of cert module.
-func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
+//func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
+func NewDecodeStore(cdc codec.Marshaler) func(kvA, kvB kv.Pair) string {
+
 	switch {
 	case bytes.Equal(kvA.Key[:1], types.CertifiersStoreKey()):
 		var certifierA, certifierB types.Certifier

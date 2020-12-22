@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/cert/internal/keeper"
@@ -27,7 +28,7 @@ const (
 )
 
 // WeightedOperations creates an operation (with weight) for each type of message generators.
-func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak types.AccountKeeper,
+func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, ak types.AccountKeeper,
 	k keeper.Keeper) simulation.WeightedOperations {
 	var weightMsgCertifyValidator int
 	appParams.GetOrGenerate(cdc, OpWeightMsgCertifyValidator, &weightMsgCertifyValidator, nil,
