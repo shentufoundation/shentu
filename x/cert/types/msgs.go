@@ -67,7 +67,7 @@ func NewMsgCertifyValidator(certifier sdk.AccAddress, pk crypto.PubKey) (*MsgCer
 	if err != nil {
 		return nil, err
 	}
-		
+
 	return &MsgCertifyValidator{Certifier: certifier.String(), Pubkey: pkAny}, nil
 }
 
@@ -123,7 +123,7 @@ func NewMsgDecertifyValidator(decertifier sdk.AccAddress, pk crypto.PubKey) (*Ms
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &MsgDecertifyValidator{Decertifier: decertifier.String(), Pubkey: pkAny}, nil
 }
 
@@ -323,8 +323,8 @@ func NewMsgCertifyPlatform(certifier sdk.AccAddress, pk crypto.PubKey, platform 
 	if err != nil {
 		return nil, err
 	}
-	
-	return &MsgCertifyPlatform{Certifier: certifier.String(), ValidatorPubkey: pkAny, Platform:  platform}, nil
+
+	return &MsgCertifyPlatform{Certifier: certifier.String(), ValidatorPubkey: pkAny, Platform: platform}, nil
 }
 
 // Route returns the module name.

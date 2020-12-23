@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/certikfoundation/shentu/x/cert/internal/types"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 type msgServer struct {
@@ -22,10 +22,9 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-
 func (k msgServer) ProposeCertifier(goCtx context.Context, msg *types.MsgProposeCertifier) (*types.MsgProposeCertifierResponse, error) {
 	//ctx := sdk.UnwrapSDKContext(goCtx)
-	
+
 	return &types.MsgProposeCertifierResponse{}, nil
 }
 
@@ -56,7 +55,7 @@ func (k msgServer) DecertifyValidator(goCtx context.Context, msg *types.MsgDecer
 	if !ok {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting crypto.PubKey, got %T", valPubKey)
 	}
-	
+
 	decertifierAddr, err := sdk.AccAddressFromBech32(msg.Decertifier)
 	if err != nil {
 		return nil, err

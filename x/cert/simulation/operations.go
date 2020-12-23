@@ -11,8 +11,8 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/x/cert/internal/keeper"
-	"github.com/certikfoundation/shentu/x/cert/internal/types"
+	"github.com/certikfoundation/shentu/x/cert/keeper"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 const (

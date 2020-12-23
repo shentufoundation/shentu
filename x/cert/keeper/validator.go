@@ -8,7 +8,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/cert/internal/types"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 // Max timestamp supported by Amino.

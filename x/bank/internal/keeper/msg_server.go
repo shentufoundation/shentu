@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/certikfoundation/shentu/x/auth/vesting"
@@ -138,11 +139,16 @@ func (k msgServer) LockedSend(goCtx context.Context, msg *types.MsgLockedSend) (
 	var toAcc *vesting.ManualVestingAccount
 	if acc == nil {
 		acc = k.ak.NewAccountWithAddress(ctx, toAddr)
-		baseAcc := auth.NewBaseAccount(msg.ToAddress, sdk.NewCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
+		toAddr, err := sdk.AccAddressFromBech32(msg.ToAddress)
+		if err != nil {
+			panic(err)
+		}
+
+		baseAcc := authtypes.NewBaseAccount(toAddr, acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
 		if unlocker.Empty() {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid unlocker address provided")
 		}
-		toAcc = vesting.NewManualVestingAccount(baseAcc, sdk.NewCoins(), unlocker)
+		toAcc = vesting.NewManualVestingAccount(baseAcc, sdk.NewCoins(), sdk.NewCoins(), unlocker)
 	} else {
 		var ok bool
 		toAcc, ok = acc.(*vesting.ManualVestingAccount)
@@ -158,7 +164,7 @@ func (k msgServer) LockedSend(goCtx context.Context, msg *types.MsgLockedSend) (
 	// but make the added amount vesting (OV := Vesting + Vested)
 	err = k.AddCoins(ctx, toAddr, msg.Amount)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	toAcc.OriginalVesting = toAcc.OriginalVesting.Add(msg.Amount...)

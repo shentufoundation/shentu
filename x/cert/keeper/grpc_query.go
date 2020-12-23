@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/certikfoundation/shentu/x/cert/internal/types"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -120,14 +120,14 @@ func (q Keeper) Certificate(c context.Context, req *types.QueryCertificateReques
 	reqContent := certificate.RequestContent()
 
 	return &types.QueryCertificateResponse{
-			CertificateId: certificate.ID().String(),
-			CertificateType: certificate.Type().String(),
-			RequestContent: &reqContent,
-			CertificateContent: certificate.FormattedCertificateContent(),
-			Description: certificate.Description(),
-			Certifier: certificate.Certifier().String(),
-			TxHash: certificate.TxHash(),
-		}, nil
+		CertificateId:      certificate.ID().String(),
+		CertificateType:    certificate.Type().String(),
+		RequestContent:     &reqContent,
+		CertificateContent: certificate.FormattedCertificateContent(),
+		Description:        certificate.Description(),
+		Certifier:          certificate.Certifier().String(),
+		TxHash:             certificate.TxHash(),
+	}, nil
 }
 
 func (q Keeper) Certificates(c context.Context, req *types.QueryCertificatesRequest) (*types.QueryCertificatesResponse, error) {
@@ -142,34 +142,33 @@ func (q Keeper) Certificates(c context.Context, req *types.QueryCertificatesRequ
 	}
 
 	// TODO Use new cosmos pagniation mechanism
-	params := types.QueryCertificatesParams {
-		Page: int(req.Pagination.Offset),
-		Limit: int(req.Pagination.Limit),
-		Certifier: certifierAddr,
+	params := types.QueryCertificatesParams{
+		Page:        int(req.Pagination.Offset),
+		Limit:       int(req.Pagination.Limit),
+		Certifier:   certifierAddr,
 		ContentType: req.ContentType,
-		Content: req.Content,
+		Content:     req.Content,
 	}
 
 	total, certificates, err := q.GetCertificatesFiltered(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var results []types.QueryCertificateResponse
 	for _, certificate := range certificates {
 		reqContent := certificate.RequestContent()
 
-		results = append(results, 
+		results = append(results,
 			types.QueryCertificateResponse{
 				CertificateId: certificate.ID().String(), CertificateType: certificate.Type().String(),
-				RequestContent: &reqContent,
+				RequestContent:     &reqContent,
 				CertificateContent: certificate.FormattedCertificateContent(),
-				Description: certificate.Description(),
-				Certifier: certificate.Certifier().String(),
-				TxHash: certificate.TxHash(),
+				Description:        certificate.Description(),
+				Certifier:          certificate.Certifier().String(),
+				TxHash:             certificate.TxHash(),
 			})
 	}
 
-	
 	return &types.QueryCertificatesResponse{Total: total, Certificates: results}, nil
 }

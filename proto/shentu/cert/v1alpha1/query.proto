@@ -9,7 +9,7 @@ import "shentu/cert/v1alpha1/genesis.proto";
 import "google/protobuf/any.proto";
 import "cosmos_proto/cosmos.proto";
 
-option go_package = "github.com/certikfoundation/shentu/x/cert/internal/types";
+option go_package = "github.com/certikfoundation/shentu/x/cert/types";
 
 // Query defines the gRPC querier service for cert module.
 service Query {

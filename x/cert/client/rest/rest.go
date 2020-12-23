@@ -14,7 +14,7 @@ import (
 	govrest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/x/cert/internal/types"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 func RegisterHandlers(cliCtx client.Context, rtr *mux.Router) {
@@ -25,47 +25,47 @@ func RegisterHandlers(cliCtx client.Context, rtr *mux.Router) {
 
 type proposeCertifierReq struct {
 	BaseReq     resttypes.BaseReq `json:"base_req"`
-	Proposer    string       `json:"proposer"`
-	Certifier   string       `json:"certifier"`
-	Alias       string       `json:"alias"`
-	Description string       `json:"description"`
+	Proposer    string            `json:"proposer"`
+	Certifier   string            `json:"certifier"`
+	Alias       string            `json:"alias"`
+	Description string            `json:"description"`
 }
 
 type certifyValidatorReq struct {
 	BaseReq   resttypes.BaseReq `json:"base_req"`
-	Certifier string       `json:"certifier"`
-	Validator string       `json:"validator"`
+	Certifier string            `json:"certifier"`
+	Validator string            `json:"validator"`
 }
 
 type certifyGeneralReq struct {
 	BaseReq         resttypes.BaseReq `json:"base_req"`
-	CertificateType string       `json:"certificate_type"`
-	ContentType     string       `json:"content_type"`
-	Content         string       `json:"content"`
-	Description     string       `json:"description"`
-	Certifier       string       `json:"certifier"`
+	CertificateType string            `json:"certificate_type"`
+	ContentType     string            `json:"content_type"`
+	Content         string            `json:"content"`
+	Description     string            `json:"description"`
+	Certifier       string            `json:"certifier"`
 }
 
 type certifyCompilationReq struct {
 	BaseReq        resttypes.BaseReq `json:"base_req"`
-	SourceCodeHash string       `json:"source_code_hash"`
-	Compiler       string       `json:"compiler"`
-	BytecodeHash   string       `json:"bytecode_hash"`
-	Description    string       `json:"description"`
+	SourceCodeHash string            `json:"source_code_hash"`
+	Compiler       string            `json:"compiler"`
+	BytecodeHash   string            `json:"bytecode_hash"`
+	Description    string            `json:"description"`
 }
 
 type certifyPlatformReq struct {
 	BaseReq   resttypes.BaseReq `json:"base_req"`
-	Certifier string       `json:"certifier"`
-	Validator string       `json:"validator"`
-	Platform  string       `json:"platform"`
+	Certifier string            `json:"certifier"`
+	Validator string            `json:"validator"`
+	Platform  string            `json:"platform"`
 }
 
 type revokeCertificateReq struct {
 	BaseReq       resttypes.BaseReq `json:"base_req"`
-	Revoker       string       `json:"revoker"`
-	CertificateID string       `json:"certificate_id"`
-	Description   string       `json:"description"`
+	Revoker       string            `json:"revoker"`
+	CertificateID string            `json:"certificate_id"`
+	Description   string            `json:"description"`
 }
 
 // ProposalRESTHandler returns a ProposalRESTHandler that exposes the community pool spend REST handler with a given sub-route.

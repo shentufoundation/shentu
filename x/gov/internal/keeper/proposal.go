@@ -10,7 +10,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
-	"github.com/certikfoundation/shentu/x/shield"
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // Proposal
@@ -107,8 +107,8 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govTypes.Content, addr s
 	depositPeriod := k.GetDepositParams(ctx).MaxDepositPeriod
 
 	var proposal types.Proposal
-	if content.ProposalType() == shield.ProposalTypeShieldClaim {
-		c := content.(shield.ClaimProposal)
+	if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
+		c := content.(shieldtypes.ShieldClaimProposal)
 		c.ProposalID = proposalID
 		proposal, err = types.NewProposal(c, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
 	} else {

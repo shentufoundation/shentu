@@ -12,7 +12,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/cert/internal/types"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 // GetQueryCmd returns the cli query commands for the certification module.
@@ -190,12 +190,12 @@ func GetCmdCertificates() *cobra.Command {
 			}
 
 			res, err := queryClient.Certificates(
-				context.Background(), 
+				context.Background(),
 				&types.QueryCertificatesRequest{
-					Certifier: viper.GetString(FlagCertifier),
-					Content: viper.GetString(FlagContent),
+					Certifier:   viper.GetString(FlagCertifier),
+					Content:     viper.GetString(FlagContent),
 					ContentType: viper.GetString(FlagContentType),
-					Pagination: pageReq,
+					Pagination:  pageReq,
 				})
 			if err != nil {
 				return err

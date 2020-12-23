@@ -16,7 +16,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/cert/internal/types"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 // ProtoWrapCertificate wraps a certificate in a proto-enabled certificate wrapper.
@@ -86,7 +86,7 @@ func (k Keeper) GetCertificateByID(ctx sdk.Context, id types.CertificateID) (typ
 	}
 	var certificateProto types.CertificateProto
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(certificateData, &certificateProto)
-	
+
 	certificate, err := ProtoUnwrapCertificate(certificateProto)
 	if err != nil {
 		panic(err)
@@ -175,7 +175,7 @@ func (k Keeper) IterateAllCertificate(ctx sdk.Context, callback func(certificate
 	for ; iterator.Valid(); iterator.Next() {
 		var certificateProto types.CertificateProto
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &certificateProto)
-		
+
 		certificate, err := ProtoUnwrapCertificate(certificateProto)
 		if err != nil {
 			panic(err)
@@ -200,7 +200,7 @@ func (k Keeper) IterateCertificatesByContent(ctx sdk.Context, certType types.Cer
 	for ; iterator.Valid(); iterator.Next() {
 		var certificateProto types.CertificateProto
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &certificateProto)
-		
+
 		certificate, err := ProtoUnwrapCertificate(certificateProto)
 		if err != nil {
 			panic(err)
@@ -223,7 +223,7 @@ func (k Keeper) IterateCertificatesByType(ctx sdk.Context, certType types.Certif
 	for ; iterator.Valid(); iterator.Next() {
 		var certificateProto types.CertificateProto
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &certificateProto)
-		
+
 		certificate, err := ProtoUnwrapCertificate(certificateProto)
 		if err != nil {
 			panic(err)

@@ -9,8 +9,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/certikfoundation/shentu/x/cert/internal/keeper"
-	"github.com/certikfoundation/shentu/x/cert/internal/types"
+	"github.com/certikfoundation/shentu/x/cert/keeper"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 func InitDefaultGenesis(ctx sdk.Context, k keeper.Keeper) {
@@ -51,7 +51,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 		if err != nil {
 			panic(err)
 		}
-	
+
 		k.SetValidator(ctx, pk, certifierAddr)
 	}
 	for _, certificateAny := range certificates {

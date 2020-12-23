@@ -14,12 +14,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/x/cert"
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
-	"github.com/certikfoundation/shentu/x/shield"
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 type msgServer struct {
@@ -103,15 +103,15 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmit
 
 func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitProposal) error {
 	switch c := msg.GetContent().(type) {
-	case cert.CertifierUpdateProposal:
+	case *certtypes.CertifierUpdateProposal:
 		if c.Alias != "" && k.CertKeeper.HasCertifierAlias(ctx, c.Alias) {
-			return cert.ErrRepeatedAlias
+			return certtypes.ErrRepeatedAlias
 		}
 
-	case *upgrade.SoftwareUpgradeProposal:
+	case *upgradetypes.SoftwareUpgradeProposal:
 		return k.UpgradeKeeper.ValidatePlan(ctx, c.Plan)
 
-	case shield.ClaimProposal:
+	case shieldtypes.ShieldClaimProposal:
 		// check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit)
 		denom := k.BondDenom(ctx)
 		initialDepositAmount := msg.InitialDeposit.AmountOf(denom).ToDec()
@@ -131,11 +131,11 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 		// check shield >= loss
 		purchaseList, found := k.ShieldKeeper.GetPurchaseList(ctx, c.PoolID, c.Proposer)
 		if !found {
-			return shield.ErrPurchaseNotFound
+			return shieldtypes.ErrPurchaseNotFound
 		}
-		purchase, found := shield.GetPurchase(purchaseList, c.PurchaseID)
+		purchase, found := k.ShieldKeeper.GetPurchase(purchaseList, c.PurchaseID)
 		if !found {
-			return shield.ErrPurchaseNotFound
+			return shieldtypes.ErrPurchaseNotFound
 		}
 		if !purchase.Shield.GTE(lossAmount) {
 			return fmt.Errorf("insufficient shield: %s, loss: %s", purchase.Shield, c.Loss)
@@ -154,8 +154,8 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 }
 
 func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, proposal types.Proposal) error {
-	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
-		c := proposal.GetContent().(shield.ClaimProposal)
+	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
+		c := proposal.GetContent().(shieldtypes.ShieldClaimProposal)
 		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
 		return k.ShieldKeeper.SecureCollaterals(ctx, c.PoolID, c.Proposer, c.PurchaseID, c.Loss, lockPeriod)
 	}

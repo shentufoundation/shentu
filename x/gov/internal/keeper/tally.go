@@ -5,9 +5,9 @@ import (
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/certikfoundation/shentu/x/cert"
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
-	"github.com/certikfoundation/shentu/x/shield"
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // validatorGovInfo used for tallying
@@ -67,7 +67,7 @@ func Tally(ctx sdk.Context, k Keeper, proposal types.Proposal) (pass bool, veto 
 
 	var tp govTypes.TallyParams
 	switch proposal.GetContent().(type) {
-	case cert.CertifierUpdateProposal:
+	case *certtypes.CertifierUpdateProposal:
 		tp = *tallyParams.CertifierUpdateStakeVoteTally
 	default:
 		tp = *tallyParams.DefaultTally
@@ -78,7 +78,7 @@ func Tally(ctx sdk.Context, k Keeper, proposal types.Proposal) (pass bool, veto 
 		tp,
 		results,
 	}
-	if proposal.GetContent().ProposalType() == shield.ProposalTypeShieldClaim {
+	if proposal.GetContent().ProposalType() == shieldtypes.ProposalTypeShieldClaim {
 		pass, veto = passAndVetoStakeResultForShieldClaim(k, ctx, th)
 	} else {
 		pass, veto = passAndVetoStakeResult(k, ctx, th)
@@ -284,7 +284,7 @@ func SecurityTally(ctx sdk.Context, k Keeper, proposal types.Proposal) (bool, bo
 	//
 	// For other proposal types (SoftwareUpgrade, etc.): Only continue to stake
 	// round if security round passed (must pass both rounds).
-	_, isCert := proposal.GetContent().(cert.CertifierUpdateProposal)
+	_, isCert := proposal.GetContent().(*certtypes.CertifierUpdateProposal)
 	endVoting = (pass && isCert) || (!pass && !isCert)
 
 	return pass, endVoting, tallyResults

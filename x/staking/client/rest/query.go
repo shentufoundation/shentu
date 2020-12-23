@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -10,18 +11,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-func registerQueryRoutes(cliCtx client.CLIContext, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	// Get validator count
 	r.HandleFunc("/staking/all_validators", allValidatorsHandlerFn(cliCtx)).Methods("GET")
 }
 
-type AllValidatorsResult struct {
+type allValidatorsResult struct {
 	Count int
 	types.Validators
 }
 
 // HTTP request handler to query complete list of validators
-func allValidatorsHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
+func allValidatorsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, _, _, err := rest.ParseHTTPArgsWithLimit(r, 100)
 		if err != nil {
@@ -34,18 +35,16 @@ func allValidatorsHandlerFn(cliCtx client.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		resKVs, height, err := cliCtx.QuerySubspace(types.ValidatorsKey, types.StoreKey)
+		queryClient := types.NewQueryClient(cliCtx)
+
+		result, err := queryClient.Validators(context.Background(), &types.QueryValidatorsRequest{
+			// Leaving status and pageReq empty on purpose to query all validators.
+		})
 		if err != nil {
-			return
+			panic(err)
 		}
 
-		var validators types.Validators
-		for _, kv := range resKVs {
-			validators = append(validators, types.MustUnmarshalValidator(cliCtx.Codec, kv.Value))
-		}
-
-		res := AllValidatorsResult{len(resKVs), validators}
-		cliCtx = cliCtx.WithHeight(height)
+		res := allValidatorsResult{len(result.Validators), result.Validators}
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }

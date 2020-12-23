@@ -8,8 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/app/params"
-	"github.com/certikfoundation/shentu/x/cert/internal/keeper"
-	"github.com/certikfoundation/shentu/x/cert/internal/types"
+	"github.com/certikfoundation/shentu/x/cert/keeper"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 // OpWeightSubmitCertifierUpdateProposal app params key for certifier update proposal

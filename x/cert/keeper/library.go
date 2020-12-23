@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/cert/internal/types"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 // SetLibrary sets a new Certificate library registry.
@@ -31,7 +31,7 @@ func (k Keeper) getLibraryPublisher(ctx sdk.Context, library sdk.AccAddress) (sd
 	if bPublisher := store.Get(types.LibraryStoreKey(library)); bPublisher != nil {
 		var libraryData types.Library
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(bPublisher, &libraryData)
-		
+
 		publisherAddr, err := sdk.AccAddressFromBech32(libraryData.Publisher)
 		if err != nil {
 			panic(err)

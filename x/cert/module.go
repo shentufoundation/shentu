@@ -21,9 +21,9 @@ import (
 
 	"github.com/certikfoundation/shentu/x/cert/client/cli"
 	"github.com/certikfoundation/shentu/x/cert/client/rest"
-	"github.com/certikfoundation/shentu/x/cert/internal/keeper"
-	"github.com/certikfoundation/shentu/x/cert/internal/types"
+	"github.com/certikfoundation/shentu/x/cert/keeper"
 	"github.com/certikfoundation/shentu/x/cert/simulation"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 var (
@@ -111,6 +111,7 @@ func (am AppModule) Name() string {
 // RegisterInvariants registers the module invariants.
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
 }
+
 // Route returns the module's route key.
 func (am AppModule) Route() sdk.Route {
 	return sdk.NewRoute(types.RouterKey, NewHandler(am.moduleKeeper))
@@ -161,8 +162,8 @@ func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // RegisterStoreDecoder registers a decoder for cert module.
-func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = simulation.DecodeStore
+func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations returns cert operations for use in simulations.

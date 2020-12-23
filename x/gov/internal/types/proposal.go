@@ -15,7 +15,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	proto "github.com/gogo/protobuf/proto"
 
-	"github.com/certikfoundation/shentu/x/cert"
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
@@ -90,7 +90,7 @@ func (p Proposal) ProposalRoute() string {
 // (certifier) voting before stake (validator) voting.
 func (p Proposal) HasSecurityVoting() bool {
 	switch p.GetContent().(type) {
-	case *upgradetypes.SoftwareUpgradeProposal, cert.CertifierUpdateProposal, shieldtypes.ShieldClaimProposal:
+	case *upgradetypes.SoftwareUpgradeProposal, *certtypes.CertifierUpdateProposal, shieldtypes.ShieldClaimProposal:
 		return true
 	default:
 		return false

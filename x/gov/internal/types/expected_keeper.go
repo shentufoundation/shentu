@@ -8,14 +8,14 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/certikfoundation/shentu/x/cert"
-	"github.com/certikfoundation/shentu/x/shield"
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 type CertKeeper interface {
 	IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool
-	GetAllCertifiers(ctx sdk.Context) (certifiers cert.Certifiers)
-	GetCertifier(ctx sdk.Context, certifierAddress sdk.AccAddress) (cert.Certifier, error)
+	GetAllCertifiers(ctx sdk.Context) (certifiers certtypes.Certifiers)
+	GetCertifier(ctx sdk.Context, certifierAddress sdk.AccAddress) (certtypes.Certifier, error)
 	HasCertifierAlias(ctx sdk.Context, alias string) bool
 	IsCertified(ctx sdk.Context, requestContentType string, content string, certType string) bool
 	GetCertifiedIdentities(ctx sdk.Context) []sdk.AccAddress
@@ -26,8 +26,9 @@ type UpgradeKeeper interface {
 }
 
 type ShieldKeeper interface {
-	GetPurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (shield.PurchaseList, bool)
-	GetClaimProposalParams(ctx sdk.Context) shield.ClaimProposalParams
+	GetPurchase(purchaseList shieldtypes.PurchaseList, purchaseID uint64) (shieldtypes.Purchase, bool)
+	GetPurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (shieldtypes.PurchaseList, bool)
+	GetClaimProposalParams(ctx sdk.Context) shieldtypes.ClaimProposalParams
 	SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, lockPeriod time.Duration) error
 	RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, id uint64, loss sdk.Coins) error
 	ClaimEnd(ctx sdk.Context, id, poolID uint64, loss sdk.Coins)

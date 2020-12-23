@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/certikfoundation/shentu/x/cert/internal/keeper"
-	"github.com/certikfoundation/shentu/x/cert/internal/types"
+	"github.com/certikfoundation/shentu/x/cert/keeper"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 // NewHandler returns a handler for "cert" type messages.
@@ -19,7 +19,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgCertifyValidator:
 			res, err := msgServer.CertifyValidator(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-			
+
 		case *types.MsgDecertifyValidator:
 			res, err := msgServer.DecertifyValidator(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)

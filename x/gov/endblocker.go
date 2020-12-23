@@ -7,10 +7,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/x/cert"
+	certkeeper "github.com/certikfoundation/shentu/x/cert/keeper"
 	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
 	"github.com/certikfoundation/shentu/x/gov/internal/types"
-	"github.com/certikfoundation/shentu/x/shield"
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
@@ -32,15 +32,15 @@ func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 }
 
 func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
-	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
-		c := proposal.GetContent().(shield.ClaimProposal)
+	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
+		c := proposal.GetContent().(shieldtypes.ShieldClaimProposal)
 		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalID, c.PoolID, c.Loss)
 	}
 }
 
 func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
-	if proposal.ProposalType() == shield.ProposalTypeShieldClaim {
-		c := proposal.GetContent().(shield.ClaimProposal)
+	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
+		c := proposal.GetContent().(shieldtypes.ShieldClaimProposal)
 		proposer, err := sdk.AccAddressFromBech32(proposal.ProposerAddress)
 		if err != nil {
 			panic(err)
@@ -198,7 +198,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 	// Iterate over all active proposals, regardless of end time, so that
 	// security voting can end as soon as a passing threshold is met.
-	k.IterateActiveProposalsQueue(ctx, time.Unix(cert.MaxTimestamp, 0), func(proposal types.Proposal) bool {
+	k.IterateActiveProposalsQueue(ctx, time.Unix(certkeeper.MaxTimestamp, 0), func(proposal types.Proposal) bool {
 		return processSecurityVote(ctx, k, proposal)
 	})
 }

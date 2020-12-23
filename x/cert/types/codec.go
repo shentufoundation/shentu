@@ -54,7 +54,6 @@ var (
 	ModuleCdc = codec.NewAminoCodec(amino)
 )
 
-
 // // ModuleCdc defines the cert codec.
 // var ModuleCdc *codec.Codec
 
