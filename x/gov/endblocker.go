@@ -8,8 +8,8 @@ import (
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	certkeeper "github.com/certikfoundation/shentu/x/cert/keeper"
-	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
-	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/gov/keeper"
+	"github.com/certikfoundation/shentu/x/gov/types"
 	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 

@@ -24,8 +24,8 @@ import (
 
 	"github.com/certikfoundation/shentu/x/gov/client/cli"
 	"github.com/certikfoundation/shentu/x/gov/client/rest"
-	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
-	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/gov/keeper"
+	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
 var (
@@ -67,7 +67,7 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var data types.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &data); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", ModuleName, err)
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", govtypes.ModuleName, err)
 	}
 
 	return types.ValidateGenesis(&data)

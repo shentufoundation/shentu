@@ -634,7 +634,7 @@ func (k Keeper) UndelegateFromAccountToShieldModule(ctx sdk.Context, senderModul
 		k.ak.SetAccount(ctx, delAcc)
 	}
 
-	if err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, senderModule, types.ModuleName, amt); err != nil {
+	if err := k.bk.SendCoinsFromModuleToModule(ctx, senderModule, types.ModuleName, amt); err != nil {
 		panic(err)
 	}
 
@@ -674,7 +674,7 @@ func (k Keeper) WithdrawReimbursement(ctx sdk.Context, proposalID uint64, benefi
 		return sdk.Coins{}, types.ErrNotPayoutTime
 	}
 
-	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, beneficiary, reimbursement.Amount); err != nil {
+	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, beneficiary, reimbursement.Amount); err != nil {
 		return sdk.Coins{}, types.ErrNotPayoutTime
 	}
 	if err := k.DeleteReimbursement(ctx, proposalID); err != nil {

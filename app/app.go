@@ -7,24 +7,22 @@ import (
 	"net/http"
 	"os"
 
-	ibc "github.com/cosmos/cosmos-sdk/x/ibc/core"
-
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
-	"github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer"
-
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
+	"github.com/spf13/cast"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -32,54 +30,79 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
+	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	sdkbanktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	crisisKeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
-	crisisTypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+	sdkdistr "github.com/cosmos/cosmos-sdk/x/distribution"
+	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/evidence"
-	evidenceKeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
-	evidenceTypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
+	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
+	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-	genutilTypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	cosmosGov "github.com/cosmos/cosmos-sdk/x/gov"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	transfer "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer"
 	ibctransferkeeper "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
+	ibc "github.com/cosmos/cosmos-sdk/x/ibc/core"
+	ibcclient "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client"
 	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/05-port/types"
 	ibchost "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
 	ibckeeper "github.com/cosmos/cosmos-sdk/x/ibc/core/keeper"
 	ibcmock "github.com/cosmos/cosmos-sdk/x/ibc/testing/mock"
+	sdkminttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	paramclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	paramKeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
-	paramTypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	paramProposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	slashingTypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
-	upgradeKeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
-	upgradeTypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	appparams "github.com/certikfoundation/shentu/app/params"
 	"github.com/certikfoundation/shentu/x/auth"
-	"github.com/certikfoundation/shentu/x/auth/vesting"
+	authkeeper "github.com/certikfoundation/shentu/x/auth/keeper"
 	"github.com/certikfoundation/shentu/x/bank"
+	bankkeeper "github.com/certikfoundation/shentu/x/bank/keeper"
 	"github.com/certikfoundation/shentu/x/cert"
+	certclient "github.com/certikfoundation/shentu/x/cert/client"
+	certkeeper "github.com/certikfoundation/shentu/x/cert/keeper"
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/crisis"
 	"github.com/certikfoundation/shentu/x/cvm"
+	cvmkeeper "github.com/certikfoundation/shentu/x/cvm/keeper"
+	cvmtypes "github.com/certikfoundation/shentu/x/cvm/types"
 	distr "github.com/certikfoundation/shentu/x/distribution"
 	"github.com/certikfoundation/shentu/x/gov"
+	govkeeper "github.com/certikfoundation/shentu/x/gov/keeper"
+	govtypes "github.com/certikfoundation/shentu/x/gov/types"
 	"github.com/certikfoundation/shentu/x/mint"
+	mintkeeper "github.com/certikfoundation/shentu/x/mint/keeper"
 	"github.com/certikfoundation/shentu/x/oracle"
+	oraclekeeper "github.com/certikfoundation/shentu/x/oracle/keeper"
+	oracletypes "github.com/certikfoundation/shentu/x/oracle/types"
 	"github.com/certikfoundation/shentu/x/shield"
+	shieldclient "github.com/certikfoundation/shentu/x/shield/client"
+	shieldkeeper "github.com/certikfoundation/shentu/x/shield/keeper"
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 	"github.com/certikfoundation/shentu/x/slashing"
 	"github.com/certikfoundation/shentu/x/staking"
+	stakingkeeper "github.com/certikfoundation/shentu/x/staking/keeper"
 )
 
 const (
@@ -111,11 +134,12 @@ var (
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(
-			distr.ProposalHandler,
-			upgrade.NewSoftwareUpgradeProposalHandler,
-			cert.ProposalHandler,
-			paramclient.ProposalHandler,
-			shield.ProposalHandler,
+			paramsclient.ProposalHandler,
+			distrclient.ProposalHandler,
+			upgradeclient.ProposalHandler,
+			upgradeclient.CancelProposalHandler,
+			certclient.ProposalHandler,
+			shieldclient.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -132,30 +156,31 @@ var (
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName:       nil,
-		distr.ModuleName:            nil,
-		mint.ModuleName:             {authtypes.Minter},
-		staking.BondedPoolName:      {authtypes.Burner, authtypes.Staking},
-		staking.NotBondedPoolName:   {authtypes.Burner, authtypes.Staking},
-		gov.ModuleName:              {authtypes.Burner},
-		oracle.ModuleName:           {authtypes.Burner},
-		shield.ModuleName:           {authtypes.Burner},
-		ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		auth.FeeCollectorName:          nil,
+		distrtypes.ModuleName:          nil,
+		sdkminttypes.ModuleName:        {authtypes.Minter},
+		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
+		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
+		sdkgovtypes.ModuleName:         {authtypes.Burner},
+		oracletypes.ModuleName:         {authtypes.Burner},
+		shieldtypes.ModuleName:         {authtypes.Burner},
+		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
 	allowedReceivingModAcc = map[string]bool{
-		distr.ModuleName:  true,
-		oracle.ModuleName: true,
-		shield.ModuleName: true,
+		distrtypes.ModuleName:  true,
+		oracletypes.ModuleName: true,
+		shieldtypes.ModuleName: true,
 	}
 )
 
 // CertiKApp is the main CertiK Chain application type.
 type CertiKApp struct {
 	*baseapp.BaseApp
-	cdc      *codec.LegacyAmino
-	appCodec codec.Marshaler
+	cdc               *codec.LegacyAmino
+	appCodec          codec.Marshaler
+	interfaceRegistry types.InterfaceRegistry
 
 	invCheckPeriod uint
 
@@ -164,24 +189,24 @@ type CertiKApp struct {
 	tkeys map[string]*sdk.TransientStoreKey
 
 	accountKeeper    auth.AccountKeeper
-	bankKeeper       bankKeeper.Keeper
-	stakingKeeper    staking.Keeper
-	slashingKeeper   slashing.Keeper
-	mintKeeper       mint.Keeper
-	distrKeeper      distr.Keeper
+	bankKeeper       bankkeeper.Keeper
+	stakingKeeper    stakingkeeper.Keeper
+	slashingKeeper   slashingkeeper.Keeper
+	mintKeeper       mintkeeper.Keeper
+	distrKeeper      distrkeeper.Keeper
 	crisisKeeper     crisisKeeper.Keeper
-	paramsKeeper     paramKeeper.Keeper
-	upgradeKeeper    upgradeKeeper.Keeper
-	govKeeper        gov.Keeper
-	certKeeper       cert.Keeper
+	paramsKeeper     paramskeeper.Keeper
+	upgradeKeeper    upgradekeeper.Keeper
+	govKeeper        govkeeper.Keeper
+	certKeeper       certkeeper.Keeper
 	authKeeper       auth.Keeper
-	evidenceKeeper   evidenceKeeper.Keeper
+	evidenceKeeper   evidencekeeper.Keeper
 	ibcKeeper        *ibckeeper.Keeper
 	transferKeeper   ibctransferkeeper.Keeper
-	capabilityKeeper capabilitykeeper.Keeper
-	cvmKeeper        cvm.Keeper
-	oracleKeeper     oracle.Keeper
-	shieldKeeper     shield.Keeper
+	capabilityKeeper *capabilitykeeper.Keeper
+	cvmKeeper        cvmkeeper.Keeper
+	oracleKeeper     oraclekeeper.Keeper
+	shieldKeeper     shieldkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	scopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -197,7 +222,7 @@ type CertiKApp struct {
 
 // NewCertiKApp returns a reference to an initialized CertiKApp.
 func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool, homePath string,
-	invCheckPeriod uint, encodingConfig appparams.EncodingConfig, baseAppOptions ...func(*bam.BaseApp)) *CertiKApp {
+	invCheckPeriod uint, encodingConfig appparams.EncodingConfig, appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp)) *CertiKApp {
 	// define top-level codec that will be shared between modules
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
@@ -211,18 +236,18 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	ks := []string{
 		auth.StoreKey,
-		staking.StoreKey,
-		distr.StoreKey,
-		mint.StoreKey,
-		slashing.StoreKey,
-		paramTypes.StoreKey,
-		upgradeTypes.StoreKey,
-		gov.StoreKey,
-		cert.StoreKey,
-		cvm.StoreKey,
-		oracle.StoreKey,
-		shield.StoreKey,
-		evidenceTypes.StoreKey,
+		stakingtypes.StoreKey,
+		distrtypes.StoreKey,
+		sdkminttypes.StoreKey,
+		slashingtypes.StoreKey,
+		paramstypes.StoreKey,
+		upgradetypes.StoreKey,
+		sdkgovtypes.StoreKey,
+		certtypes.StoreKey,
+		cvmtypes.StoreKey,
+		oracletypes.StoreKey,
+		shieldtypes.StoreKey,
+		evidencetypes.StoreKey,
 		ibchost.StoreKey,
 		ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey,
@@ -235,7 +260,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	keys := sdk.NewKVStoreKeys(ks...)
 
 	tks := []string{
-		paramTypes.TStoreKey,
+		paramstypes.TStoreKey,
 	}
 
 	for i := 0; i < tkeysReserved; i++ {
@@ -243,6 +268,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	}
 
 	tkeys := sdk.NewTransientStoreKeys(tks...)
+	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	// initialize application with its store keys
 	var app = &CertiKApp{
@@ -253,10 +279,10 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		tkeys:          tkeys,
 	}
 	// initialize params keeper and subspaces
-	app.paramsKeeper = initParamsKeeper(appCodec, legacyAmino, keys[paramTypes.StoreKey], tkeys[paramTypes.TStoreKey])
+	app.paramsKeeper = initParamsKeeper(appCodec, legacyAmino, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
 	// set the BaseApp's parameter store
-	bApp.SetParamStore(app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramKeeper.ConsensusParamsKeyTable()))
+	bApp.SetParamStore(app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()))
 
 	// add capability keeper and ScopeToModule for ibc module
 	app.capabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
@@ -268,99 +294,92 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	// initialize keepers
 	app.accountKeeper = auth.NewAccountKeeper(
-		app.cdc,
-		keys[auth.StoreKey],
-		authSubspace,
-		auth.ProtoBaseAccount,
+		appCodec,
+		keys[authtypes.StoreKey],
+		app.GetSubspace(authtypes.ModuleName),
+		authtypes.ProtoBaseAccount, maccPerms,
 	)
-	app.bankKeeper = bank.NewKeeper(
+	app.bankKeeper = bankkeeper.NewKeeper(
+		appCodec,
+		keys[sdkbanktypes.StoreKey],
 		app.accountKeeper,
 		&app.cvmKeeper,
-		bankSubspace,
-		app.BlacklistedAccAddrs(),
+		app.GetSubspace(sdkbanktypes.ModuleName),
+		app.BlockedAddrs(),
 	)
-	stakingKeeper := staking.NewKeeper(
-		app.cdc,
-		keys[staking.StoreKey],
-		&app.supplyKeeper,
-		stakingSubspace,
+	stakingKeeper := stakingkeeper.NewKeeper(
+		appCodec,
+		keys[stakingtypes.StoreKey],
+		app.accountKeeper,
+		app.bankKeeper,
+		app.GetSubspace(stakingtypes.ModuleName),
 	)
-	app.distrKeeper = distr.NewKeeper(
-		app.cdc,
-		keys[distr.StoreKey],
-		distrSubspace,
-		&stakingKeeper,
-		&app.supplyKeeper,
-		auth.FeeCollectorName,
-		app.ModuleAccountAddrs(),
+	app.distrKeeper = distrkeeper.NewKeeper(
+		appCodec, keys[distrtypes.StoreKey], app.GetSubspace(distrtypes.ModuleName), app.accountKeeper, app.bankKeeper,
+		&stakingKeeper, authtypes.FeeCollectorName, app.ModuleAccountAddrs(),
 	)
-	app.cvmKeeper = cvm.NewKeeper(
-		app.cdc,
-		keys[cvm.StoreKey],
+	app.cvmKeeper = cvmkeeper.NewKeeper(
+		appCodec,
+		keys[cvmtypes.StoreKey],
 		app.accountKeeper,
 		app.distrKeeper,
 		&app.certKeeper,
-		cvmSubspace,
+		app.GetSubspace(cvmtypes.ModuleName),
 	)
-	app.oracleKeeper = oracle.NewKeeper(
-		app.cdc,
-		keys[oracle.StoreKey],
+	app.oracleKeeper = oraclekeeper.NewKeeper(
+		appCodec,
+		keys[oracletypes.StoreKey],
 		app.accountKeeper,
 		app.distrKeeper,
 		&app.stakingKeeper,
-		app.supplyKeeper,
-		oracleSubspace,
+		app.bankKeeper,
+		app.GetSubspace(oracletypes.ModuleName),
 	)
-	app.mintKeeper = mint.NewKeeper(
-		app.cdc,
-		keys[mint.StoreKey],
-		mintSubspace,
+	app.mintKeeper = mintkeeper.NewKeeper(
+		appCodec, keys[sdkminttypes.StoreKey], app.GetSubspace(sdkminttypes.ModuleName), &stakingKeeper,
+		app.accountKeeper, app.bankKeeper, app.distrKeeper, app.shieldKeeper, authtypes.FeeCollectorName,
+	)
+	app.slashingKeeper = slashingkeeper.NewKeeper(
+		appCodec,
+		keys[slashingtypes.StoreKey],
 		&stakingKeeper,
-		app.supplyKeeper,
-		app.distrKeeper,
-		&app.shieldKeeper,
-		auth.FeeCollectorName,
+		app.GetSubspace(slashingtypes.ModuleName),
 	)
-	app.slashingKeeper = slashing.NewKeeper(
-		app.cdc,
-		keys[slashing.StoreKey],
-		&stakingKeeper,
-		slashingSubspace,
-	)
-	app.certKeeper = cert.NewKeeper(
-		app.cdc,
-		keys[cert.StoreKey],
+	app.certKeeper = certkeeper.NewKeeper(
+		appCodec,
+		keys[certtypes.StoreKey],
 		app.slashingKeeper,
 		stakingKeeper,
 	)
-	app.authKeeper = auth.NewKeeper(
+	app.authKeeper = authkeeper.NewKeeper(
+		app.accountKeeper,
 		app.certKeeper,
 	)
 	app.crisisKeeper = crisisKeeper.NewKeeper(
-		app.GetSubspace(crisisTypes.ModuleName),
+		app.GetSubspace(crisistypes.ModuleName),
 		invCheckPeriod,
 		app.bankKeeper,
 		authtypes.FeeCollectorName,
 	)
-	app.upgradeKeeper = upgradeKeeper.NewKeeper(
+	app.upgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,
-		keys[upgradeTypes.StoreKey],
+		keys[upgradetypes.StoreKey],
 		appCodec,
 		DefaultNodeHome,
 	)
-	app.shieldKeeper = shield.NewKeeper(
-		app.cdc,
-		keys[shield.StoreKey],
+	app.shieldKeeper = shieldkeeper.NewKeeper(
+		appCodec,
+		keys[shieldtypes.StoreKey],
 		app.accountKeeper,
+		app.bankKeeper,
 		&stakingKeeper,
 		&app.govKeeper,
-		app.supplyKeeper,
-		shieldSubspace,
+		app.GetSubspace(shieldtypes.ModuleName),
 	)
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference so that it will contain these hooks.
 	app.stakingKeeper.Keeper = *stakingKeeper.Keeper.SetHooks(
-		staking.NewMultiStakingHooks(
+		stakingtypes.NewMultiStakingHooks(
 			app.distrKeeper.Hooks(),
 			app.slashingKeeper.Hooks(),
 			app.shieldKeeper.Hooks(),
@@ -369,25 +388,25 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	// Create IBC Keeper
 	app.ibcKeeper = ibckeeper.NewKeeper(
-		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.stakingKeeper, scopedIBCKeeper,
+		appCodec, keys[ibchost.StoreKey], app.stakingKeeper, scopedIBCKeeper,
 	)
 
-	app.govKeeper = gov.NewKeeper(
-		app.cdc,
-		keys[gov.StoreKey],
-		govSubspace,
-		app.supplyKeeper,
+	govRouter := sdkgovtypes.NewRouter()
+	govRouter.AddRoute(sdkgovtypes.RouterKey, govtypes.ProposalHandler).
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(distrtypes.RouterKey, sdkdistr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
+		AddRoute(ibchost.RouterKey, ibcclient.NewClientUpdateProposalHandler(app.ibcKeeper.ClientKeeper))
+	app.govKeeper = govkeeper.NewKeeper(
+		appCodec,
+		keys[sdkgovtypes.StoreKey],
+		app.GetSubspace(sdkgovtypes.ModuleName),
+		app.bankKeeper,
 		app.stakingKeeper,
 		app.certKeeper,
 		app.shieldKeeper,
-		app.upgradeKeeper,
-		cosmosGov.NewRouter().
-			AddRoute(gov.RouterKey, gov.ProposalHandler).
-			AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
-			AddRoute(cert.RouterKey, cert.NewCertifierUpdateProposalHandler(app.certKeeper)).
-			AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper.Keeper)).
-			AddRoute(paramProposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-			AddRoute(shield.RouterKey, shield.NewShieldClaimProposalHandler(app.shieldKeeper)),
+		app.accountKeeper,
+		govRouter,
 	)
 
 	// Create Transfer Keepers
@@ -409,94 +428,112 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.ibcKeeper.SetRouter(ibcRouter)
 
 	// create evidence keeper with router
-	evidenceKeeper := evidenceKeeper.NewKeeper(
-		appCodec, keys[evidenceTypes.StoreKey], &app.stakingKeeper.Keeper, app.slashingKeeper,
+	evidenceKeeper := evidencekeeper.NewKeeper(
+		appCodec, keys[evidencetypes.StoreKey], &app.stakingKeeper.Keeper, app.slashingKeeper,
 	)
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.evidenceKeeper = *evidenceKeeper
 
+	/****  Module Options ****/
+
+	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
+	// we prefer to be more strict in what arguments the modules expect.
+	var skipGenesisInvariants = cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
+
 	// NOTE: Any module instantiated in the module manager that is
 	// later modified must be passed by reference here.
 	app.mm = module.NewManager(
-		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
-		auth.NewAppModule(app.accountKeeper, app.certKeeper),
+		genutil.NewAppModule(
+			app.accountKeeper,
+			app.stakingKeeper,
+			app.BaseApp.DeliverTx,
+			encodingConfig.TxConfig,
+		),
+		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
 		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
-		crisis.NewAppModule(&app.crisisKeeper),
-		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper.Keeper),
-		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper.Keeper),
-		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper, app.certKeeper),
-		mint.NewAppModule(app.mintKeeper),
-		upgrade.NewAppModule(app.upgradeKeeper.Keeper),
+		crisis.NewAppModule(&app.crisisKeeper, skipGenesisInvariants),
+		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
+		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
+		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper),
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
+		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
 		cvm.NewAppModule(app.cvmKeeper),
 		cert.NewAppModule(app.certKeeper, app.accountKeeper),
 		oracle.NewAppModule(app.oracleKeeper),
-		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper, app.supplyKeeper),
+		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper),
 	)
 
 	// NOTE: During BeginBlocker, slashing comes after distr so that
 	// there is nothing left over in the validator fee pool, so as to
 	// keep the CanWithdrawInvariant invariant.
-	app.mm.SetOrderBeginBlockers(upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName, evidenceTypes.ModuleName,
-		oracle.ModuleName, cvm.ModuleName, shield.ModuleName)
+	app.mm.SetOrderBeginBlockers(upgradetypes.ModuleName, sdkminttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, evidencetypes.ModuleName,
+		oracletypes.ModuleName, cvmtypes.ModuleName, shieldtypes.ModuleName)
 
 	// NOTE: Shield endblocker comes before staking because it queries
 	// unbonding delegations that staking endblocker deletes.
-	app.mm.SetOrderEndBlockers(crisis.ModuleName, cvm.ModuleName, shield.ModuleName, staking.ModuleName, gov.ModuleName, oracle.ModuleName)
+	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, cvmtypes.ModuleName, shieldtypes.ModuleName, stakingtypes.ModuleName, sdkgovtypes.ModuleName, oracletypes.ModuleName)
 
 	// NOTE: genutil moodule must occur after staking so that pools
 	// are properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
-		auth.ModuleName,
-		distr.ModuleName,
-		staking.ModuleName,
-		bank.ModuleName,
-		slashing.ModuleName,
-		gov.ModuleName,
-		mint.ModuleName,
-		cvm.ModuleName,
-		shield.ModuleName,
-		crisisTypes.ModuleName,
-		cert.ModuleName,
-		genutilTypes.ModuleName,
-		evidenceTypes.ModuleName,
-		oracle.ModuleName,
+		authtypes.ModuleName,
+		distrtypes.ModuleName,
+		stakingtypes.ModuleName,
+		sdkbanktypes.ModuleName,
+		slashingtypes.ModuleName,
+		sdkgovtypes.ModuleName,
+		sdkminttypes.ModuleName,
+		cvmtypes.ModuleName,
+		shieldtypes.ModuleName,
+		crisistypes.ModuleName,
+		certtypes.ModuleName,
+		genutiltypes.ModuleName,
+		evidencetypes.ModuleName,
+		oracletypes.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
-		auth.ModuleName,
-		distr.ModuleName,
-		staking.ModuleName,
-		bank.ModuleName,
-		slashing.ModuleName,
-		gov.ModuleName,
-		mint.ModuleName,
-		cvm.ModuleName,
-		crisisTypes.ModuleName,
-		cert.ModuleName,
-		genutilTypes.ModuleName,
-		oracle.ModuleName,
-		shield.ModuleName,
+		authtypes.ModuleName,
+		distrtypes.ModuleName,
+		stakingtypes.ModuleName,
+		sdkbanktypes.ModuleName,
+		slashingtypes.ModuleName,
+		sdkgovtypes.ModuleName,
+		sdkminttypes.ModuleName,
+		cvmtypes.ModuleName,
+		crisistypes.ModuleName,
+		certtypes.ModuleName,
+		genutiltypes.ModuleName,
+		oracletypes.ModuleName,
+		shieldtypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
 
 	app.sm = module.NewSimulationManager(
-		auth.NewAppModule(app.accountKeeper, app.certKeeper),
-		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
-		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper.Keeper),
-		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper.Keeper),
-		params.NewAppModule(app.paramsKeeper),
+		genutil.NewAppModule(
+			app.accountKeeper,
+			app.stakingKeeper,
+			app.BaseApp.DeliverTx,
+			encodingConfig.TxConfig,
+		),
+		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
+		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
+		crisis.NewAppModule(&app.crisisKeeper, skipGenesisInvariants),
+		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
+		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
+		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper),
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
+		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper, app.certKeeper),
-		mint.NewAppModule(app.mintKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
 		cvm.NewAppModule(app.cvmKeeper),
 		cert.NewAppModule(app.certKeeper, app.accountKeeper),
 		oracle.NewAppModule(app.oracleKeeper),
-		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper, app.supplyKeeper),
+		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
@@ -507,11 +544,16 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	// The AnteHandler handles signature verification and transaction pre-processing
-	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer))
+	app.SetAnteHandler(
+		ante.NewAnteHandler(
+			app.accountKeeper, app.bankKeeper, ante.DefaultSigVerificationGasConsumer,
+			encodingConfig.TxConfig.SignModeHandler(),
+		),
+	)
 	app.SetEndBlocker(app.EndBlocker)
 
 	if loadLatest {
-		if err := app.LoadLatestVersion(app.keys[bam.MainStoreKey]); err != nil {
+		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
 		}
 
@@ -548,19 +590,18 @@ func (app *CertiKApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci
 // InitChainer defines application update at chain initialization
 func (app *CertiKApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState simapp.GenesisState
-	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
-	return app.mm.InitGenesis(ctx, genesisState)
+	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
+		panic(err)
+	}
+	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
-// MakeCodec generates the necessary codecs for Amino
-func MakeCodec() *codec.Codec {
-	var cdc = codec.New()
-	ModuleBasics.RegisterCodec(cdc)
-	sdk.RegisterCodec(cdc)
-	vesting.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	codec.RegisterEvidences(cdc)
-	return cdc
+// MakeCodecs constructs the *std.Codec and *codec.LegacyAmino instances used by
+// app. It is useful for tests and clients who do not want to construct the
+// full app
+func MakeCodecs() (codec.Marshaler, *codec.LegacyAmino) {
+	config := MakeEncodingConfig()
+	return config.Marshaler, config.Amino
 }
 
 // LoadHeight loads a particular height
@@ -591,7 +632,7 @@ func (app *CertiKApp) BlockedAddrs() map[string]bool {
 // GetSubspace returns a param subspace for a given module name.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *CertiKApp) GetSubspace(moduleName string) paramTypes.Subspace {
+func (app *CertiKApp) GetSubspace(moduleName string) paramstypes.Subspace {
 	subspace, _ := app.paramsKeeper.GetSubspace(moduleName)
 	return subspace
 }
@@ -607,17 +648,17 @@ func (app *CertiKApp) SimulationManager() *module.SimulationManager {
 }
 
 // initParamsKeeper init params keeper and its subspaces
-func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramKeeper.Keeper {
-	paramsKeeper := paramKeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
+func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramskeeper.Keeper {
+	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
 	paramsKeeper.Subspace(authtypes.ModuleName)
-	paramsKeeper.Subspace(bankTypes.ModuleName)
+	paramsKeeper.Subspace(sdkbanktypes.ModuleName)
 	paramsKeeper.Subspace(stakingtypes.ModuleName)
-	paramsKeeper.Subspace(mintTypes.ModuleName)
-	paramsKeeper.Subspace(distrTypes.ModuleName)
-	paramsKeeper.Subspace(slashingTypes.ModuleName)
-	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
-	paramsKeeper.Subspace(crisisTypes.ModuleName)
+	paramsKeeper.Subspace(sdkminttypes.ModuleName)
+	paramsKeeper.Subspace(distrtypes.ModuleName)
+	paramsKeeper.Subspace(slashingtypes.ModuleName)
+	paramsKeeper.Subspace(sdkgovtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
+	paramsKeeper.Subspace(crisistypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 
@@ -644,8 +685,6 @@ func (app *CertiKApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 	authrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCRouter)
-	// Register new tendermint queries routes from grpc-gateway.
-	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCRouter)
 
 	// Register legacy and grpc-gateway routes for all modules.
 	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)

@@ -13,8 +13,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	"github.com/certikfoundation/shentu/x/cert"
-	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
-	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/gov/keeper"
+	"github.com/certikfoundation/shentu/x/gov/types"
 	"github.com/certikfoundation/shentu/x/shield"
 )
 

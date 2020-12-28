@@ -22,9 +22,9 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/certikfoundation/shentu/x/staking/internal/keeper"
-	"github.com/certikfoundation/shentu/x/staking/internal/types"
+	"github.com/certikfoundation/shentu/x/staking/keeper"
 	"github.com/certikfoundation/shentu/x/staking/simulation"
+	"github.com/certikfoundation/shentu/x/staking/types"
 )
 
 var (
