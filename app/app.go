@@ -7,6 +7,12 @@ import (
 	"net/http"
 	"os"
 
+	ibc "github.com/cosmos/cosmos-sdk/x/ibc/core"
+
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer"
+
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 
@@ -30,6 +36,9 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/cosmos-sdk/x/capability"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	crisisKeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisisTypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	"github.com/cosmos/cosmos-sdk/x/evidence"
@@ -39,6 +48,13 @@ import (
 	genutilTypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	cosmosGov "github.com/cosmos/cosmos-sdk/x/gov"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	transfer "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer"
+	ibctransferkeeper "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
+	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/05-port/types"
+	ibchost "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
+	ibckeeper "github.com/cosmos/cosmos-sdk/x/ibc/core/keeper"
+	ibcmock "github.com/cosmos/cosmos-sdk/x/ibc/testing/mock"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramKeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
@@ -90,6 +106,7 @@ var (
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
+		capability.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
@@ -109,18 +126,21 @@ var (
 		oracle.NewAppModuleBasic(),
 		shield.NewAppModuleBasic(),
 		evidence.AppModuleBasic{},
+		ibc.AppModuleBasic{},
+		transfer.AppModuleBasic{},
 	)
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName:     nil,
-		distr.ModuleName:          nil,
-		mint.ModuleName:           {authtypes.Minter},
-		staking.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
-		staking.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
-		gov.ModuleName:            {authtypes.Burner},
-		oracle.ModuleName:         {authtypes.Burner},
-		shield.ModuleName:         {authtypes.Burner},
+		auth.FeeCollectorName:       nil,
+		distr.ModuleName:            nil,
+		mint.ModuleName:             {authtypes.Minter},
+		staking.BondedPoolName:      {authtypes.Burner, authtypes.Staking},
+		staking.NotBondedPoolName:   {authtypes.Burner, authtypes.Staking},
+		gov.ModuleName:              {authtypes.Burner},
+		oracle.ModuleName:           {authtypes.Burner},
+		shield.ModuleName:           {authtypes.Burner},
+		ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -143,22 +163,30 @@ type CertiKApp struct {
 	keys  map[string]*sdk.KVStoreKey
 	tkeys map[string]*sdk.TransientStoreKey
 
-	accountKeeper  auth.AccountKeeper
-	bankKeeper     bankKeeper.Keeper
-	stakingKeeper  staking.Keeper
-	slashingKeeper slashing.Keeper
-	mintKeeper     mint.Keeper
-	distrKeeper    distr.Keeper
-	crisisKeeper   crisisKeeper.Keeper
-	paramsKeeper   paramKeeper.Keeper
-	upgradeKeeper  upgradeKeeper.Keeper
-	govKeeper      gov.Keeper
-	certKeeper     cert.Keeper
-	cvmKeeper      cvm.Keeper
-	authKeeper     auth.Keeper
-	oracleKeeper   oracle.Keeper
-	shieldKeeper   shield.Keeper
-	evidenceKeeper evidenceKeeper.Keeper
+	accountKeeper    auth.AccountKeeper
+	bankKeeper       bankKeeper.Keeper
+	stakingKeeper    staking.Keeper
+	slashingKeeper   slashing.Keeper
+	mintKeeper       mint.Keeper
+	distrKeeper      distr.Keeper
+	crisisKeeper     crisisKeeper.Keeper
+	paramsKeeper     paramKeeper.Keeper
+	upgradeKeeper    upgradeKeeper.Keeper
+	govKeeper        gov.Keeper
+	certKeeper       cert.Keeper
+	authKeeper       auth.Keeper
+	evidenceKeeper   evidenceKeeper.Keeper
+	ibcKeeper        *ibckeeper.Keeper
+	transferKeeper   ibctransferkeeper.Keeper
+	capabilityKeeper capabilitykeeper.Keeper
+	cvmKeeper        cvm.Keeper
+	oracleKeeper     oracle.Keeper
+	shieldKeeper     shield.Keeper
+
+	// make scoped keepers public for test purposes
+	scopedIBCKeeper      capabilitykeeper.ScopedKeeper
+	scopedTransferKeeper capabilitykeeper.ScopedKeeper
+	scopedIBCMockKeeper  capabilitykeeper.ScopedKeeper
 
 	// module manager
 	mm *module.Manager
@@ -195,6 +223,9 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		oracle.StoreKey,
 		shield.StoreKey,
 		evidenceTypes.StoreKey,
+		ibchost.StoreKey,
+		ibctransfertypes.StoreKey,
+		capabilitytypes.StoreKey,
 	}
 
 	for i := 0; i < keysReserved; i++ {
@@ -226,6 +257,14 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	// set the BaseApp's parameter store
 	bApp.SetParamStore(app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramKeeper.ConsensusParamsKeyTable()))
+
+	// add capability keeper and ScopeToModule for ibc module
+	app.capabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
+	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.ModuleName)
+	scopedTransferKeeper := app.capabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
+	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
+	// note replicate if you do not need to test core IBC or light clients.
+	scopedIBCMockKeeper := app.capabilityKeeper.ScopeToModule(ibcmock.ModuleName)
 
 	// initialize keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -327,6 +366,12 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 			app.shieldKeeper.Hooks(),
 		),
 	)
+
+	// Create IBC Keeper
+	app.ibcKeeper = ibckeeper.NewKeeper(
+		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.stakingKeeper, scopedIBCKeeper,
+	)
+
 	app.govKeeper = gov.NewKeeper(
 		app.cdc,
 		keys[gov.StoreKey],
@@ -344,6 +389,24 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 			AddRoute(paramProposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 			AddRoute(shield.RouterKey, shield.NewShieldClaimProposalHandler(app.shieldKeeper)),
 	)
+
+	// Create Transfer Keepers
+	app.transferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
+		app.ibcKeeper.ChannelKeeper, &app.ibcKeeper.PortKeeper,
+		app.accountKeeper, app.bankKeeper, scopedTransferKeeper,
+	)
+	transferModule := transfer.NewAppModule(app.transferKeeper)
+
+	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
+	// note replicate if you do not need to test core IBC or light clients.
+	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper)
+
+	// Create static IBC router, add transfer route, then set and seal it
+	ibcRouter := porttypes.NewRouter()
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
+	ibcRouter.AddRoute(ibcmock.ModuleName, mockModule)
+	app.ibcKeeper.SetRouter(ibcRouter)
 
 	// create evidence keeper with router
 	evidenceKeeper := evidenceKeeper.NewKeeper(
@@ -451,7 +514,24 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		if err := app.LoadLatestVersion(app.keys[bam.MainStoreKey]); err != nil {
 			tmos.Exit(err.Error())
 		}
+
+		// Initialize and seal the capability keeper so all persistent capabilities
+		// are loaded in-memory and prevent any further modules from creating scoped
+		// sub-keepers.
+		// This must be done during creation of baseapp rather than in InitChain so
+		// that in-memory capabilities get regenerated on app restart.
+		// Note that since this reads from the store, we can only perform it when
+		// `loadLatest` is set to true.
+		ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
+		app.capabilityKeeper.InitializeAndSeal(ctx)
 	}
+	app.scopedIBCKeeper = scopedIBCKeeper
+	app.scopedTransferKeeper = scopedTransferKeeper
+
+	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
+	// note replicate if you do not need to test core IBC or light clients.
+	app.scopedIBCMockKeeper = scopedIBCMockKeeper
+
 	return app
 }
 
@@ -528,19 +608,20 @@ func (app *CertiKApp) SimulationManager() *module.SimulationManager {
 
 // initParamsKeeper init params keeper and its subspaces
 func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramKeeper.Keeper {
-	keeper := paramKeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
+	paramsKeeper := paramKeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
-	keeper.Subspace(authtypes.ModuleName)
-	keeper.Subspace(bankTypes.ModuleName)
-	keeper.Subspace(stakingtypes.ModuleName)
-	keeper.Subspace(mintTypes.ModuleName)
-	keeper.Subspace(distrTypes.ModuleName)
-	keeper.Subspace(slashingTypes.ModuleName)
-	keeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
-	keeper.Subspace(crisisTypes.ModuleName)
-	keeper.Subspace(ibctransferTypes.ModuleName)
+	paramsKeeper.Subspace(authtypes.ModuleName)
+	paramsKeeper.Subspace(bankTypes.ModuleName)
+	paramsKeeper.Subspace(stakingtypes.ModuleName)
+	paramsKeeper.Subspace(mintTypes.ModuleName)
+	paramsKeeper.Subspace(distrTypes.ModuleName)
+	paramsKeeper.Subspace(slashingTypes.ModuleName)
+	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
+	paramsKeeper.Subspace(crisisTypes.ModuleName)
+	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
+	paramsKeeper.Subspace(ibchost.ModuleName)
 
-	return keeper
+	return paramsKeeper
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
