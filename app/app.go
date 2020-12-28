@@ -608,19 +608,20 @@ func (app *CertiKApp) SimulationManager() *module.SimulationManager {
 
 // initParamsKeeper init params keeper and its subspaces
 func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramKeeper.Keeper {
-	keeper := paramKeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
+	paramsKeeper := paramKeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
-	keeper.Subspace(authtypes.ModuleName)
-	keeper.Subspace(bankTypes.ModuleName)
-	keeper.Subspace(stakingtypes.ModuleName)
-	keeper.Subspace(mintTypes.ModuleName)
-	keeper.Subspace(distrTypes.ModuleName)
-	keeper.Subspace(slashingTypes.ModuleName)
-	keeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
-	keeper.Subspace(crisisTypes.ModuleName)
-	keeper.Subspace(ibctransferTypes.ModuleName)
+	paramsKeeper.Subspace(authtypes.ModuleName)
+	paramsKeeper.Subspace(bankTypes.ModuleName)
+	paramsKeeper.Subspace(stakingtypes.ModuleName)
+	paramsKeeper.Subspace(mintTypes.ModuleName)
+	paramsKeeper.Subspace(distrTypes.ModuleName)
+	paramsKeeper.Subspace(slashingTypes.ModuleName)
+	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
+	paramsKeeper.Subspace(crisisTypes.ModuleName)
+	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
+	paramsKeeper.Subspace(ibchost.ModuleName)
 
-	return keeper
+	return paramsKeeper
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
