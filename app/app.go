@@ -297,7 +297,8 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		appCodec,
 		keys[authtypes.StoreKey],
 		app.GetSubspace(authtypes.ModuleName),
-		authtypes.ProtoBaseAccount, maccPerms,
+		authtypes.ProtoBaseAccount,
+		maccPerms,
 	)
 	app.bankKeeper = bankkeeper.NewKeeper(
 		appCodec,
