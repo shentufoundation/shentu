@@ -2,7 +2,6 @@
 package app
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -39,7 +38,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	crisisKeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
+	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	sdkdistr "github.com/cosmos/cosmos-sdk/x/distribution"
 	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
@@ -111,9 +110,6 @@ const (
 
 	// DefaultKeyPass for certikd node daemon.
 	DefaultKeyPass = "12345678"
-
-	keysReserved  = 100
-	tkeysReserved = 10
 )
 
 var (
@@ -194,7 +190,7 @@ type CertiKApp struct {
 	slashingKeeper   slashingkeeper.Keeper
 	mintKeeper       mintkeeper.Keeper
 	distrKeeper      distrkeeper.Keeper
-	crisisKeeper     crisisKeeper.Keeper
+	crisisKeeper     crisiskeeper.Keeper
 	paramsKeeper     paramskeeper.Keeper
 	upgradeKeeper    upgradekeeper.Keeper
 	govKeeper        govkeeper.Keeper
@@ -253,20 +249,11 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		capabilitytypes.StoreKey,
 	}
 
-	for i := 0; i < keysReserved; i++ {
-		ks = append(ks, fmt.Sprintf("reserved%d", i))
-	}
-
 	keys := sdk.NewKVStoreKeys(ks...)
 
 	tks := []string{
 		paramstypes.TStoreKey,
 	}
-
-	for i := 0; i < tkeysReserved; i++ {
-		tks = append(tks, fmt.Sprintf("reservedT%d", i))
-	}
-
 	tkeys := sdk.NewTransientStoreKeys(tks...)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
@@ -356,7 +343,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.accountKeeper,
 		app.certKeeper,
 	)
-	app.crisisKeeper = crisisKeeper.NewKeeper(
+	app.crisisKeeper = crisiskeeper.NewKeeper(
 		app.GetSubspace(crisistypes.ModuleName),
 		invCheckPeriod,
 		app.bankKeeper,
@@ -512,7 +499,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
-	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
+	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 
 	app.sm = module.NewSimulationManager(
 		genutil.NewAppModule(
