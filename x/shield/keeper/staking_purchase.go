@@ -64,7 +64,7 @@ func (k Keeper) SetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.
 
 func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, stakingAmt sdk.Int) error {
 	stakingCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), stakingAmt))
-	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, stakingCoins); err != nil {
+	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, stakingCoins); err != nil {
 		return err
 	}
 
@@ -97,7 +97,7 @@ func (k Keeper) UnstakeFromShield(ctx sdk.Context, poolID uint64, purchaser sdk.
 }
 
 func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error {
-	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount); err != nil {
+	if err := k.bk.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount); err != nil {
 		return err
 	}
 	blockServiceFee := k.GetBlockServiceFees(ctx)
@@ -167,7 +167,7 @@ func (k Keeper) ProcessStakeForShieldExpiration(ctx sdk.Context, poolID, purchas
 		return nil
 	}
 	refundCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, amount))
-	k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, refundCoins)
+	k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, refundCoins)
 
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetOriginalStakingKey(purchaseID))

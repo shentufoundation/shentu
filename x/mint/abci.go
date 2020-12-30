@@ -3,7 +3,7 @@ package mint
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/mint/internal/keeper"
+	"github.com/certikfoundation/shentu/x/mint/keeper"
 )
 
 // Minting module event types

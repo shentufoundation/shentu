@@ -70,14 +70,11 @@ type BankKeeper interface {
 	DelegateCoins(ctx sdk.Context, fromAdd, toAddr sdk.AccAddress, amt sdk.Coins) error
 	UndelegateCoins(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amt sdk.Coins) error
 
-	SubtractCoins(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coins) (sdk.Coins, error)
-	AddCoins(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coins) (sdk.Coins, error)
+	SubtractCoins(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coins) error
+	AddCoins(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coins) error
 
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
-}
 
-// SupplyKeeper defines the expected supply keeper.
-type SupplyKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error

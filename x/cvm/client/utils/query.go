@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/certikfoundation/shentu/x/cvm/internal/types"
+	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
 // QueryCVMAccount is to query the cvm contract related info by addresss

@@ -22,9 +22,9 @@ import (
 
 	"github.com/certikfoundation/shentu/x/cvm/client/cli"
 	"github.com/certikfoundation/shentu/x/cvm/client/rest"
-	"github.com/certikfoundation/shentu/x/cvm/internal/keeper"
-	"github.com/certikfoundation/shentu/x/cvm/internal/types"
+	"github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/simulation"
+	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
 var (
@@ -103,8 +103,8 @@ func NewAppModule(k keeper.Keeper) AppModule {
 }
 
 // Route returns the module's route key.
-func (AppModule) Route() string {
-	return types.RouterKey
+func (am AppModule) Route() sdk.Route {
+	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
 }
 
 // BeginBlock implements the Cosmos SDK BeginBlock module function.
@@ -137,8 +137,8 @@ func (am AppModule) NewHandler() sdk.Handler {
 }
 
 // NewQuerierHandler returns a new querier module handler.
-func (am AppModule) LegacyQuerierHandler() sdk.Querier {
-	return keeper.NewQuerier(am.keeper)
+func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }
 
 // RegisterServices registers module services.

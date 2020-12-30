@@ -1,12 +1,12 @@
 package cvm
 
 import (
-	"github.com/certikfoundation/shentu/x/cvm/internal/keeper"
+	"github.com/certikfoundation/shentu/x/cvm/keeper"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/certikfoundation/shentu/x/cvm/internal/types"
+	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
 // NewHandler returns a handler for "cvm" type messages.

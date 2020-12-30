@@ -25,9 +25,9 @@ import (
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/bank/client/rest"
-	"github.com/certikfoundation/shentu/x/bank/internal/keeper"
-	"github.com/certikfoundation/shentu/x/bank/internal/types"
+	"github.com/certikfoundation/shentu/x/bank/keeper"
 	"github.com/certikfoundation/shentu/x/bank/simulation"
+	"github.com/certikfoundation/shentu/x/bank/types"
 )
 
 var (

@@ -16,8 +16,8 @@ import (
 
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
-	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/gov/keeper"
+	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
 func TestKeeper_ProposeAndVote(t *testing.T) {

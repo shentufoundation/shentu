@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govRest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
 
-	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
 // REST Variable names

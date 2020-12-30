@@ -10,7 +10,7 @@ import (
 
 	"github.com/hyperledger/burrow/txs/payload"
 
-	"github.com/certikfoundation/shentu/x/cvm/internal/keeper"
+	"github.com/certikfoundation/shentu/x/cvm/keeper"
 )
 
 func TestExportGenesis(t *testing.T) {
