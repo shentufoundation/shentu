@@ -4,6 +4,7 @@ import (
 	"math/rand"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
@@ -53,10 +54,10 @@ func SimulateCertifierUpdateProposalContent(k keeper.Keeper) simulation.ContentS
 		}
 
 		return types.NewCertifierUpdateProposal(
-			simulation.RandStringOfLength(r, 140),
-			simulation.RandStringOfLength(r, 5000),
+			simtypes.RandStringOfLength(r, 140),
+			simtypes.RandStringOfLength(r, 5000),
 			certifier,
-			simulation.RandStringOfLength(r, 30),
+			simtypes.RandStringOfLength(r, 30),
 			certifiers[proposer_index].Address,
 			addorremove,
 		)

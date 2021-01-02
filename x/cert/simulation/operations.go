@@ -90,7 +90,7 @@ func SimulateMsgCertifyValidator(ak types.AccountKeeper, k keeper.Keeper) simula
 		account := ak.GetAccount(ctx, certifier.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -105,9 +105,9 @@ func SimulateMsgCertifyValidator(ak types.AccountKeeper, k keeper.Keeper) simula
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -126,14 +126,14 @@ func SimulateMsgCertifyPlatform(ak types.AccountKeeper, k keeper.Keeper) simulat
 			}
 		}
 		validator := simulation.RandomAccounts(r, 1)[0]
-		platform := simulation.RandStringOfLength(r, 10)
+		platform := simtypes.RandStringOfLength(r, 10)
 
 		msg := types.NewMsgCertifyPlatform(certifier.Address, validator.PubKey, platform)
 
 		account := ak.GetAccount(ctx, certifier.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -148,9 +148,9 @@ func SimulateMsgCertifyPlatform(ak types.AccountKeeper, k keeper.Keeper) simulat
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -169,14 +169,14 @@ func SimulateMsgCertifyAuditing(ak types.AccountKeeper, k keeper.Keeper) simulat
 			}
 		}
 		contract := simulation.RandomAccounts(r, 1)[0]
-		description := simulation.RandStringOfLength(r, 10)
+		description := simtypes.RandStringOfLength(r, 10)
 
 		msg := types.NewMsgCertifyGeneral("auditing", "address", contract.Address.String(), description, certifier.Address)
 
 		account := ak.GetAccount(ctx, certifier.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -191,9 +191,9 @@ func SimulateMsgCertifyAuditing(ak types.AccountKeeper, k keeper.Keeper) simulat
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -212,14 +212,14 @@ func SimulateMsgCertifyProof(ak types.AccountKeeper, k keeper.Keeper) simulation
 			}
 		}
 		contract := simulation.RandomAccounts(r, 1)[0]
-		description := simulation.RandStringOfLength(r, 10)
+		description := simtypes.RandStringOfLength(r, 10)
 
 		msg := types.NewMsgCertifyGeneral("proof", "address", contract.Address.String(), description, certifier.Address)
 
 		account := ak.GetAccount(ctx, certifier.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -234,9 +234,9 @@ func SimulateMsgCertifyProof(ak types.AccountKeeper, k keeper.Keeper) simulation
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -256,7 +256,7 @@ func SimulateMsgCertifyIdentity(ak types.AccountKeeper, k keeper.Keeper) simulat
 
 		delAddr, found := keeper.RandomDelegator(r, k, ctx)
 		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		identityAcc := ak.GetAccount(ctx, delAddr)
 
@@ -265,7 +265,7 @@ func SimulateMsgCertifyIdentity(ak types.AccountKeeper, k keeper.Keeper) simulat
 		account := ak.GetAccount(ctx, certifier.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -280,8 +280,8 @@ func SimulateMsgCertifyIdentity(ak types.AccountKeeper, k keeper.Keeper) simulat
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }

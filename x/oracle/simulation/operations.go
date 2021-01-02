@@ -57,7 +57,7 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, k
 func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		operator, _ := simulation.RandomAcc(r, accs)
+		operator, _ := simtypes.RandomAcc(r, accs)
 
 		if k.IsOperator(ctx, operator.Address) {
 			return simulation.NewOperationMsgBasic(types.ModuleName,
@@ -73,7 +73,7 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 
 		fees, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()).Sub(collateral))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		msg := types.NewMsgCreateOperator(operator.Address, collateral, operator.Address, "an operator")
@@ -90,7 +90,7 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		stdOperator := types.NewOperator(operator.Address, operator.Address, collateral, nil, "an operator")
@@ -113,7 +113,7 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AuthKeeper) simulation.
 			},
 		}
 
-		return simulation.NewOperationMsg(msg, true, ""), futureOperations, nil
+		return simtypes.NewOperationMsg(msg, true, ""), futureOperations, nil
 	}
 }
 
@@ -124,11 +124,11 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperator 
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		operator, err := k.GetOperator(ctx, stdOperator.Address)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		if err := checkConsistency(operator, *stdOperator); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		operatorAcc := ak.GetAccount(ctx, operator.Address)
@@ -137,7 +137,7 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperator 
 
 		fees, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()).Sub(collateralIncrement))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		msg := types.NewMsgAddCollateral(operator.Address, collateralIncrement)
@@ -154,10 +154,10 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperator 
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -168,11 +168,11 @@ func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperat
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		operator, err := k.GetOperator(ctx, stdOperator.Address)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		if err := checkConsistency(operator, *stdOperator); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		collateralDecrement := simulation.RandSubsetCoins(r, operator.Collateral)
@@ -186,7 +186,7 @@ func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperat
 		operatorAcc := ak.GetAccount(ctx, operator.Address)
 		fees, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		msg := types.NewMsgReduceCollateral(operator.Address, collateralDecrement)
@@ -203,10 +203,10 @@ func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AuthKeeper, stdOperat
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -217,17 +217,17 @@ func SimulateMsgRemoveOperator(k keeper.Keeper, ak types.AuthKeeper, stdOperator
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		operator, err := k.GetOperator(ctx, stdOperator.Address)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		if err := checkConsistency(operator, *stdOperator); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		operatorAcc := ak.GetAccount(ctx, operator.Address)
 		fees, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		msg := types.NewMsgRemoveOperator(operator.Address, operator.Address)
@@ -244,10 +244,10 @@ func SimulateMsgRemoveOperator(k keeper.Keeper, ak types.AuthKeeper, stdOperator
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -258,11 +258,11 @@ func SimulateMsgWithdrawReward(k keeper.Keeper, ak types.AuthKeeper, stdOperator
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		operator, err := k.GetOperator(ctx, stdOperator.Address)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		if err := checkConsistency(operator, *stdOperator); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		msg := types.NewMsgWithdrawReward(operator.Address)
@@ -270,7 +270,7 @@ func SimulateMsgWithdrawReward(k keeper.Keeper, ak types.AuthKeeper, stdOperator
 		operatorAcc := ak.GetAccount(ctx, operator.Address)
 		fees, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -285,10 +285,10 @@ func SimulateMsgWithdrawReward(k keeper.Keeper, ak types.AuthKeeper, stdOperator
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -307,10 +307,10 @@ func checkConsistency(operator1, operator2 types.Operator) error {
 func SimulateMsgCreateTask(ak types.AuthKeeper, k keeper.Keeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		contract := simulation.RandStringOfLength(r, 10)
-		function := simulation.RandStringOfLength(r, 10)
-		description := simulation.RandStringOfLength(r, 20)
-		creator, _ := simulation.RandomAcc(r, accs)
+		contract := simtypes.RandStringOfLength(r, 10)
+		function := simtypes.RandStringOfLength(r, 10)
+		description := simtypes.RandStringOfLength(r, 20)
+		creator, _ := simtypes.RandomAcc(r, accs)
 		creatorAcc := ak.GetAccount(ctx, creator.Address)
 		bounty := simulation.RandSubsetCoins(r, creatorAcc.SpendableCoins(ctx.BlockTime()))
 		wait := simulation.RandIntBetween(r, 5, 20)
@@ -319,7 +319,7 @@ func SimulateMsgCreateTask(ak types.AuthKeeper, k keeper.Keeper) simulation.Oper
 
 		fees, err := simulation.RandomFees(r, ctx, creatorAcc.SpendableCoins(ctx.BlockTime()).Sub(bounty))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -334,7 +334,7 @@ func SimulateMsgCreateTask(ak types.AuthKeeper, k keeper.Keeper) simulation.Oper
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		futureOperations := []simulation.FutureOperation{
@@ -357,7 +357,7 @@ func SimulateMsgCreateTask(ak types.AuthKeeper, k keeper.Keeper) simulation.Oper
 			}
 		}
 
-		return simulation.NewOperationMsg(msg, true, ""), futureOperations, nil
+		return simtypes.NewOperationMsg(msg, true, ""), futureOperations, nil
 	}
 }
 
@@ -365,15 +365,15 @@ func SimulateMsgCreateTask(ak types.AuthKeeper, k keeper.Keeper) simulation.Oper
 func SimulateMsgInquiryTask(ak types.AuthKeeper, contract, function string) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		txHash := simulation.RandStringOfLength(r, 20)
-		inquirer, _ := simulation.RandomAcc(r, accs)
+		txHash := simtypes.RandStringOfLength(r, 20)
+		inquirer, _ := simtypes.RandomAcc(r, accs)
 
 		msg := types.NewMsgInquiryTask(contract, function, txHash, inquirer.Address)
 
 		inquirerAcc := ak.GetAccount(ctx, inquirer.Address)
 		fees, err := simulation.RandomFees(r, ctx, inquirerAcc.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -388,10 +388,10 @@ func SimulateMsgInquiryTask(ak types.AuthKeeper, contract, function string) simu
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -401,7 +401,7 @@ func SimulateMsgTaskResponse(ak types.AuthKeeper, k keeper.Keeper, contract, fun
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 		if !k.IsOperator(ctx, simAcc.Address) {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 
 		score := r.Int63n(100) + 1
@@ -411,7 +411,7 @@ func SimulateMsgTaskResponse(ak types.AuthKeeper, k keeper.Keeper, contract, fun
 		operatorAcc := ak.GetAccount(ctx, simAcc.Address)
 		fees, err := simulation.RandomFees(r, ctx, operatorAcc.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -426,10 +426,10 @@ func SimulateMsgTaskResponse(ak types.AuthKeeper, k keeper.Keeper, contract, fun
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -442,7 +442,7 @@ func SimulateMsgDeleteTask(ak types.AuthKeeper, contract, function string, creat
 		creatorAcc := ak.GetAccount(ctx, creator.Address)
 		fees, err := simulation.RandomFees(r, ctx, creatorAcc.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -457,9 +457,9 @@ func SimulateMsgDeleteTask(ak types.AuthKeeper, contract, function string, creat
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }

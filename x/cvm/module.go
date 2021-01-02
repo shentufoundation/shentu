@@ -4,7 +4,6 @@ package cvm
 import (
 	"context"
 	"encoding/json"
-	"math/rand"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
@@ -18,13 +17,11 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/cvm/client/cli"
 	"github.com/certikfoundation/shentu/x/cvm/client/rest"
 	"github.com/certikfoundation/shentu/x/cvm/internal/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/internal/types"
-	"github.com/certikfoundation/shentu/x/cvm/simulation"
 )
 
 var (
@@ -103,8 +100,8 @@ func NewAppModule(k keeper.Keeper) AppModule {
 }
 
 // Route returns the module's route key.
-func (AppModule) Route() string {
-	return types.RouterKey
+func (am AppModule) Route() sdk.Route {
+	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
 }
 
 // BeginBlock implements the Cosmos SDK BeginBlock module function.
@@ -136,8 +133,8 @@ func (am AppModule) NewHandler() sdk.Handler {
 	return NewHandler(am.keeper)
 }
 
-// NewQuerierHandler returns a new querier module handler.
-func (am AppModule) LegacyQuerierHandler() sdk.Querier {
+// LegacyQuerierHandler returns a new querier module handler.
+func (am AppModule) LegacyQuerierHandler(_ *codec.LegacyAmino) sdk.Querier {
 	return keeper.NewQuerier(am.keeper)
 }
 
@@ -156,27 +153,30 @@ func (AppModule) QuerierRoute() string {
 // RegisterInvariants registers the module invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
-// GenerateGenesisState creates a randomized GenState of this module.
-func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
-}
 
-// RegisterStoreDecoder registers a decoder for cvm module.
-func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
-}
+// TODO Simulation
 
-// WeightedOperations returns cvm operations for use in simulations.
-func (am AppModule) WeightedOperations(simState module.SimulationState) sim.WeightedOperations {
-	return simulation.WeightedOperations(simState.AppParams, simState, am.keeper)
-}
+// // GenerateGenesisState creates a randomized GenState of this module.
+// func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+// 	simulation.RandomizedGenState(simState)
+// }
 
-// ProposalContents returns functions that generate gov proposals for the module.
-func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-	return nil
-}
+// // RegisterStoreDecoder registers a decoder for cvm module.
+// func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+// 	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
+// }
 
-// RandomizedParams returns functions that generate params for the module.
-func (AppModuleBasic) RandomizedParams(_ *rand.Rand) []sim.ParamChange {
-	return nil
-}
+// // WeightedOperations returns cvm operations for use in simulations.
+// func (am AppModule) WeightedOperations(simState module.SimulationState) sim.WeightedOperations {
+// 	return simulation.WeightedOperations(simState.AppParams, simState, am.keeper)
+// }
+
+// // ProposalContents returns functions that generate gov proposals for the module.
+// func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
+// 	return nil
+// }
+
+// // RandomizedParams returns functions that generate params for the module.
+// func (AppModuleBasic) RandomizedParams(_ *rand.Rand) []sim.ParamChange {
+// 	return nil
+// }

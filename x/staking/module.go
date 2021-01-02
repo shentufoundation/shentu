@@ -3,7 +3,6 @@ package staking
 
 import (
 	"encoding/json"
-	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -16,7 +15,6 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
@@ -24,7 +22,7 @@ import (
 
 	"github.com/certikfoundation/shentu/x/staking/internal/keeper"
 	"github.com/certikfoundation/shentu/x/staking/internal/types"
-	"github.com/certikfoundation/shentu/x/staking/simulation"
+	//"github.com/certikfoundation/shentu/x/staking/simulation"
 )
 
 var (
@@ -149,18 +147,18 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 	return []abci.ValidatorUpdate{}
 }
 
-// WeightedOperations returns staking operations for use in simulations.
-func (am AppModule) WeightedOperations(simState module.SimulationState) sim.WeightedOperations {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.certKeeper, am.keeper.Keeper)
-}
+// // WeightedOperations returns staking operations for use in simulations.
+// func (am AppModule) WeightedOperations(simState module.SimulationState) sim.WeightedOperations {
+// 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.certKeeper, am.keeper.Keeper)
+// }
 
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-	return nil
-}
+// // ProposalContents doesn't return any content functions for governance proposals.
+// func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
+// 	return nil
+// }
 
-// RandomizedParams returns functions that generate params for the module.
-func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-	return []sim.ParamChange{}
-	//return stakingSim.ParamChanges(r)
-}
+// // RandomizedParams returns functions that generate params for the module.
+// func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
+// 	return []sim.ParamChange{}
+// 	//return stakingSim.ParamChanges(r)
+// }

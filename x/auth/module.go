@@ -2,7 +2,6 @@ package auth
 
 import (
 	"encoding/json"
-	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -15,20 +14,18 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	simTypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	authSim "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/certikfoundation/shentu/x/auth/client/cli"
 	"github.com/certikfoundation/shentu/x/auth/keeper"
-	"github.com/certikfoundation/shentu/x/auth/simulation"
 	"github.com/certikfoundation/shentu/x/auth/types"
 )
 
 var (
 	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.AppModuleSimulation = AppModule{}
+	//TODO Simulation
+	//_ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the auth module.
@@ -152,31 +149,31 @@ func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.V
 	return am.cosmosAppModule.EndBlock(ctx, rbb)
 }
 
-//____________________________________________________________________________
+// //____________________________________________________________________________
 
-// AppModuleSimulation functions
+// // AppModuleSimulation functions
 
-// GenerateGenesisState creates a randomized GenState of the auth module.
-func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
-}
+// // GenerateGenesisState creates a randomized GenState of the auth module.
+// func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
+// 	simulation.RandomizedGenState(simState)
+// }
 
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simTypes.WeightedProposalContent {
-	return nil
-}
+// // ProposalContents doesn't return any content functions for governance proposals.
+// func (AppModule) ProposalContents(_ module.SimulationState) []simTypes.WeightedProposalContent {
+// 	return nil
+// }
 
-// RandomizedParams creates randomized auth param changes for the simulator.
-func (AppModule) RandomizedParams(r *rand.Rand) []simTypes.ParamChange {
-	return authSim.ParamChanges(r)
-}
+// // RandomizedParams creates randomized auth param changes for the simulator.
+// func (AppModule) RandomizedParams(r *rand.Rand) []simTypes.ParamChange {
+// 	return authSim.ParamChanges(r)
+// }
 
-// RegisterStoreDecoder registers a decoder for auth module's types.
-func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	am.cosmosAppModule.RegisterStoreDecoder(sdr)
-}
+// // RegisterStoreDecoder registers a decoder for auth module's types.
+// func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+// 	am.cosmosAppModule.RegisterStoreDecoder(sdr)
+// }
 
-// WeightedOperations returns auth operations for use in simulations.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []simTypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper)
-}
+// // WeightedOperations returns auth operations for use in simulations.
+// func (am AppModule) WeightedOperations(simState module.SimulationState) []simTypes.WeightedOperation {
+// 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper)
+// }

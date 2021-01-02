@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -17,17 +16,13 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	simTypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	cosmosSim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/bank/client/rest"
 	"github.com/certikfoundation/shentu/x/bank/internal/keeper"
 	"github.com/certikfoundation/shentu/x/bank/internal/types"
-	"github.com/certikfoundation/shentu/x/bank/simulation"
 )
 
 var (
@@ -165,31 +160,31 @@ func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.V
 	return am.cosmosAppModule.EndBlock(ctx, rbb)
 }
 
-//____________________________________________________________________________
+// //____________________________________________________________________________
 
-// AppModuleSimulation functions
+// // AppModuleSimulation functions
 
-// GenerateGenesisState creates a randomized GenState of the bank module.
-func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	cosmosSim.RandomizedGenState(simState)
-}
+// // GenerateGenesisState creates a randomized GenState of the bank module.
+// func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
+// 	cosmosSim.RandomizedGenState(simState)
+// }
 
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-	return nil
-}
+// // ProposalContents doesn't return any content functions for governance proposals.
+// func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
+// 	return nil
+// }
 
-// RandomizedParams creates randomized bank param changes for the simulator.
-func (AppModule) RandomizedParams(r *rand.Rand) []simTypes.ParamChange {
-	return cosmosSim.ParamChanges(r)
-}
+// // RandomizedParams creates randomized bank param changes for the simulator.
+// func (AppModule) RandomizedParams(r *rand.Rand) []simTypes.ParamChange {
+// 	return cosmosSim.ParamChanges(r)
+// }
 
-// RegisterStoreDecoder performs a no-op.
-func (AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
+// // RegisterStoreDecoder performs a no-op.
+// func (AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
 
-// WeightedOperations returns the all the gov module operations with their respective weights.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []simTypes.WeightedOperation {
-	return simulation.WeightedOperations(
-		simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper,
-	)
-}
+// // WeightedOperations returns the all the gov module operations with their respective weights.
+// func (am AppModule) WeightedOperations(simState module.SimulationState) []simTypes.WeightedOperation {
+// 	return simulation.WeightedOperations(
+// 		simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper,
+// 	)
+// }

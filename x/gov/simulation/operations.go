@@ -76,7 +76,7 @@ func SimulateSubmitProposal(
 		// 1) submit proposal now
 		content := contentSim(r, ctx, accs)
 		if content == nil {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
 		var (
@@ -94,7 +94,7 @@ func SimulateSubmitProposal(
 			}
 			account := ak.GetAccount(ctx, simAccount.Address)
 			if account.GetCoins() == nil {
-				return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+				return simtypes.NoOpMsg(govTypes.ModuleName), nil, nil
 			}
 			denom := account.GetCoins()[0].Denom
 			lossAmountDec := c.Loss.AmountOf(denom).ToDec()
@@ -103,11 +103,11 @@ func SimulateSubmitProposal(
 			minDepositAmountDec := sdk.MaxDec(claimProposalParams.MinDeposit.AmountOf(denom).ToDec(), lossAmountDec.Mul(depositRate))
 			minDepositAmount := minDepositAmountDec.Ceil().RoundInt()
 			if minDepositAmount.GT(account.SpendableCoins(ctx.BlockTime()).AmountOf(denom)) {
-				return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+				return simtypes.NoOpMsg(govTypes.ModuleName), nil, nil
 			}
 			deposit = sdk.NewCoins(sdk.NewCoin(denom, minDepositAmount))
 		} else {
-			simAccount, _ = simulation.RandomAcc(r, accs)
+			simAccount, _ = simtypes.RandomAcc(r, accs)
 			account := ak.GetAccount(ctx, simAccount.Address)
 			spendable := account.SpendableCoins(ctx.BlockTime())
 			minDeposit := k.GetDepositParams(ctx).MinDeposit
@@ -135,7 +135,7 @@ func SimulateSubmitProposal(
 		if !hasNeg {
 			fees, err = simulation.RandomFees(r, ctx, coins)
 			if err != nil {
-				return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+				return simtypes.NoOpMsg(govTypes.ModuleName), nil, err
 			}
 		}
 
@@ -152,15 +152,15 @@ func SimulateSubmitProposal(
 		// get the submitted proposal ID
 		proposalID, err := k.GetProposalID(ctx)
 		if err != nil {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
-		opMsg := simulation.NewOperationMsg(msg, true, "")
+		opMsg := simtypes.NewOperationMsg(msg, true, "")
 
 		var fops []simulation.FutureOperation
 
@@ -225,11 +225,11 @@ func SimulateMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 		proposal, ok := k.GetProposal(ctx, proposalID)
 		if !ok {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
 		if proposal.Status != types.StatusValidatorVotingPeriod {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
 		option := randomVotingOption(r)
@@ -239,7 +239,7 @@ func SimulateMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 		account := ak.GetAccount(ctx, simAccount.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -254,10 +254,10 @@ func SimulateMsgVote(ak govTypes.AccountKeeper, k keeper.Keeper,
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -267,16 +267,16 @@ func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, ck types.CertKeeper, k 
 		accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 		if !ck.IsCertifier(ctx, simAccount.Address) {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
 		proposal, ok := k.GetProposal(ctx, proposalID)
 		if !ok {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
 		if proposal.Status != types.StatusCertifierVotingPeriod {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
 		var option govTypes.VoteOption
@@ -291,7 +291,7 @@ func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, ck types.CertKeeper, k 
 		account := ak.GetAccount(ctx, simAccount.Address)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -306,10 +306,10 @@ func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, ck types.CertKeeper, k 
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -319,14 +319,14 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper, proposalID u
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 		proposal, ok := k.GetProposal(ctx, proposalID)
 		if !ok {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
 		if proposal.Status != types.StatusDepositPeriod {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, nil
 		}
 
-		simAcc, _ := simulation.RandomAcc(r, accs)
+		simAcc, _ := simtypes.RandomAcc(r, accs)
 		acc := ak.GetAccount(ctx, simAcc.Address)
 		spendable := acc.SpendableCoins(ctx.BlockTime())
 		minDeposit := k.GetDepositParams(ctx).MinDeposit
@@ -341,7 +341,7 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper, proposalID u
 
 		fees, err := simulation.RandomFees(r, ctx, acc.SpendableCoins(ctx.BlockTime()).Sub(deposit))
 		if err != nil {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -356,10 +356,10 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, k keeper.Keeper, proposalID u
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(govTypes.ModuleName), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName), nil, err
 		}
 
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
