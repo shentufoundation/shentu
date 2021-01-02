@@ -15,7 +15,7 @@ import (
 	stakingSim "github.com/cosmos/cosmos-sdk/x/staking/simulation"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/certikfoundation/shentu/x/staking/internal/types"
+	"github.com/certikfoundation/shentu/x/staking/types"
 )
 
 const (

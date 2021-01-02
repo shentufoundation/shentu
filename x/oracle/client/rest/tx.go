@@ -13,7 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
-	"github.com/certikfoundation/shentu/x/oracle/internal/types"
+	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
 func registerTxHandlers(cliCtx client.Context, r *mux.Router) {

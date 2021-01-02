@@ -5,12 +5,10 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/types/kv"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
 // DecodeStore unmarshals the KVPair's Value to the corresponding gov type

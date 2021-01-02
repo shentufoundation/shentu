@@ -52,7 +52,7 @@ func (k Keeper) GetPurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk.Ac
 }
 
 // GetPurchase gets a purchase out of a purchase list
-func GetPurchase(purchaseList types.PurchaseList, purchaseID uint64) (types.Purchase, bool) {
+func (Keeper) GetPurchase(purchaseList types.PurchaseList, purchaseID uint64) (types.Purchase, bool) {
 	for _, entry := range purchaseList.Entries {
 		if entry.PurchaseId == purchaseID {
 			return entry, true
@@ -128,7 +128,7 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	k.SetNextPurchaseID(ctx, purchaseID+1)
 	if !serviceFees.Empty() {
 		// Send service fees to the shield module account and update service fees.
-		if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, serviceFees); err != nil {
+		if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, serviceFees); err != nil {
 			return types.Purchase{}, err
 		}
 		totalServiceFees := k.GetServiceFees(ctx)

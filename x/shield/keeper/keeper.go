@@ -16,28 +16,26 @@ import (
 
 // Keeper implements the shield keeper.
 type Keeper struct {
-	storeKey     sdk.StoreKey
-	cdc          codec.BinaryMarshaler
-	ak           types.AccountKeeper
-	bk           types.BankKeeper
-	sk           types.StakingKeeper
-	gk           types.GovKeeper
-	supplyKeeper types.SupplyKeeper
-	paramSpace   types.ParamSubspace
+	storeKey   sdk.StoreKey
+	cdc        codec.BinaryMarshaler
+	ak         types.AccountKeeper
+	bk         types.BankKeeper
+	sk         types.StakingKeeper
+	gk         types.GovKeeper
+	paramSpace types.ParamSubspace
 }
 
 // NewKeeper creates a shield keeper.
 func NewKeeper(cdc codec.BinaryMarshaler, shieldStoreKey sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
-	sk types.StakingKeeper, gk types.GovKeeper, supplyKeeper types.SupplyKeeper, paramSpace types.ParamSubspace) Keeper {
+	sk types.StakingKeeper, gk types.GovKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
-		storeKey:     shieldStoreKey,
-		cdc:          cdc,
-		ak:           ak,
-		bk:           bk,
-		sk:           sk,
-		gk:           gk,
-		supplyKeeper: supplyKeeper,
-		paramSpace:   paramSpace,
+		storeKey:   shieldStoreKey,
+		cdc:        cdc,
+		ak:         ak,
+		bk:         bk,
+		sk:         sk,
+		gk:         gk,
+		paramSpace: paramSpace,
 	}
 }
 

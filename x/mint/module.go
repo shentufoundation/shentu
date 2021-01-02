@@ -22,7 +22,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/mint/types"
 	//sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/x/mint/internal/keeper"
+	"github.com/certikfoundation/shentu/x/mint/keeper"
 )
 
 var (

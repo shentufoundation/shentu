@@ -20,8 +20,8 @@ import (
 
 	"github.com/certikfoundation/shentu/x/cvm/client/cli"
 	"github.com/certikfoundation/shentu/x/cvm/client/rest"
-	"github.com/certikfoundation/shentu/x/cvm/internal/keeper"
-	"github.com/certikfoundation/shentu/x/cvm/internal/types"
+	"github.com/certikfoundation/shentu/x/cvm/keeper"
+	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
 var (
@@ -133,9 +133,15 @@ func (am AppModule) NewHandler() sdk.Handler {
 	return NewHandler(am.keeper)
 }
 
+<<<<<<< HEAD
 // LegacyQuerierHandler returns a new querier module handler.
 func (am AppModule) LegacyQuerierHandler(_ *codec.LegacyAmino) sdk.Querier {
 	return keeper.NewQuerier(am.keeper)
+=======
+// NewQuerierHandler returns a new querier module handler.
+func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
+>>>>>>> cosmos-update
 }
 
 // RegisterServices registers module services.

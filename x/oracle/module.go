@@ -19,9 +19,8 @@ import (
 
 	"github.com/certikfoundation/shentu/x/oracle/client/cli"
 	"github.com/certikfoundation/shentu/x/oracle/client/rest"
-	"github.com/certikfoundation/shentu/x/oracle/internal/keeper"
-	"github.com/certikfoundation/shentu/x/oracle/internal/types"
-	//"github.com/certikfoundation/shentu/x/oracle/simulation"
+	"github.com/certikfoundation/shentu/x/oracle/keeper"
+	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
 var (
