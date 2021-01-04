@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
-
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"

@@ -4,16 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 
-	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-	"github.com/spf13/cobra"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // AddGenesisShieldAdminCmd returns add-genesis-shield-admin cobra Command.
