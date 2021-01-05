@@ -1,31 +1,36 @@
-package main
+package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
-	"github.com/tendermint/tendermint/libs/cli"
-
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
-	"github.com/certikfoundation/shentu/x/cert"
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 )
 
 // AddGenesisCertifierCmd returns add-genesis-certifier cobra Command.
-func AddGenesisCertifierCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
+func AddGenesisCertifierCmd(defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-genesis-certifier [address]",
 		Short: "Add a genesis certifier to genesis.json",
 		Long:  `Add a genesis certifier to genesis.json. The provided certifier must specify the account address. `,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			config := ctx.Config
-			config.SetRoot(viper.GetString(cli.HomeFlag))
+			ctx := client.GetClientContextFromCmd(cmd)
+			depCdc := ctx.JSONMarshaler
+			cdc := depCdc.(codec.Marshaler)
+
+			config := server.GetServerContextFromCmd(cmd).Config
+			config.SetRoot(ctx.HomeDir)
 
 			addr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -33,21 +38,21 @@ func AddGenesisCertifierCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Comman
 			}
 
 			genFile := config.GenesisFile()
-			appState, genDoc, err := genutil.GenesisStateFromGenFile(cdc, genFile)
+			appState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFile)
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal genesis state: %w", err)
 			}
-			certGenState := cert.GetGenesisStateFromAppState(cdc, appState)
+			certGenState := certtypes.GetGenesisStateFromAppState(cdc, appState)
 
 			certGenState.Certifiers = append(certGenState.Certifiers,
-				cert.NewCertifier(addr, "", nil, ""))
+				certtypes.NewCertifier(addr, "", nil, ""))
 
-			certGenStateBz, err := cdc.MarshalJSON(certGenState)
+			certGenStateBz, err := json.Marshal(certGenState)
 			if err != nil {
 				return fmt.Errorf("failed to marshal auth genesis state: %w", err)
 			}
-			appState[cert.ModuleName] = certGenStateBz
-			appStateJSON, err := cdc.MarshalJSON(appState)
+			appState[certtypes.ModuleName] = certGenStateBz
+			appStateJSON, err := json.Marshal(appState)
 			if err != nil {
 				return fmt.Errorf("failed to marshal application genesis state: %w", err)
 			}
@@ -55,5 +60,7 @@ func AddGenesisCertifierCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Comman
 			return genutil.ExportGenesisFile(genDoc, genFile)
 		},
 	}
+
+	cmd.Flags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
 	return cmd
 }
