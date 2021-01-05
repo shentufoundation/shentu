@@ -133,15 +133,9 @@ func (am AppModule) NewHandler() sdk.Handler {
 	return NewHandler(am.keeper)
 }
 
-<<<<<<< HEAD
 // LegacyQuerierHandler returns a new querier module handler.
-func (am AppModule) LegacyQuerierHandler(_ *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.keeper)
-=======
-// NewQuerierHandler returns a new querier module handler.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
->>>>>>> cosmos-update
 }
 
 // RegisterServices registers module services.

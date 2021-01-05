@@ -4,9 +4,9 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/hyperledger/burrow/crypto"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/hyperledger/burrow/crypto"
 )
 
 type msgServer struct {
@@ -21,6 +21,11 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
+// TODO
+func (k msgServer) View(goCtx context.Context, msg *types.MsgView) (*types.MsgViewResponse, error) {
+	return &types.MsgViewResponse{}, nil
+}
+ 
 func (k msgServer) Deploy(goCtx context.Context, msg *types.MsgDeploy) (*types.MsgDeployResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	result, err := k.Keeper.Deploy(ctx, msg)

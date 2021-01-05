@@ -8,11 +8,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
+	"github.com/certikfoundation/shentu/x/cert/keeper"
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
-// DecodeStore unmarshals the KVPair's Value to the corresponding type of cert module.
-//func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
+// NewDecodeStore unmarshals the KVPair's Value to the corresponding type of cert module.
 func NewDecodeStore(cdc codec.Marshaler) func(kvA, kvB kv.Pair) string {
 	return func(kvA, kvB kv.Pair) string {
 		switch {
@@ -35,10 +35,19 @@ func NewDecodeStore(cdc codec.Marshaler) func(kvA, kvB kv.Pair) string {
 			return fmt.Sprintf("%v\n%v", platformA, platformB)
 
 		case bytes.Equal(kvA.Key[:1], types.CertificatesStoreKey()):
-			var certificateA, certificateB types.Certificate
-			cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &certificateA)
-			cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &certificateB)
-			return fmt.Sprintf("%v\n%v", certificateA, certificateB)
+			var certProtoA, certProtoB types.CertificateProto
+			cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &certProtoA)
+			cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &certProtoB)
+			
+			certA, err := keeper.ProtoUnwrapCertificate(certProtoA)
+			if err != nil {
+				panic(err)
+			}
+			certB, err := keeper.ProtoUnwrapCertificate(certProtoB)
+			if err != nil {
+				panic(err)
+			}
+			return fmt.Sprintf("%v\n%v", certA, certB)
 
 		case bytes.Equal(kvA.Key[:1], types.LibrariesStoreKey()):
 			var libraryA, libraryB types.Library

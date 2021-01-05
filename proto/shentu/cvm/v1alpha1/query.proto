@@ -7,7 +7,7 @@ import "shentu/cvm/v1alpha1/cvm.proto";
 import "cosmos/auth/v1beta1/auth.proto";
 import "burrow/acm.proto";
 
-option go_package = "github.com/certikfoundation/shentu/x/cvm/internal/types";
+option go_package = "github.com/certikfoundation/shentu/x/cvm/types";
 
 service Query {
   rpc Code(QueryCodeRequest) returns (QueryCodeResponse) {

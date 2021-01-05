@@ -10,6 +10,16 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+const (
+	TypeMsgProposeCertifier        = "propose_certifier"
+	TypeMsgCertifyValidator           = "certify_validator"
+	TypeMsgDecertifyValidator           = "decertify_validator"
+	TypeMsgCertifyGeneral = "certify_general"
+	TypeMsgRevokeCertificate = "revoke_certificate"
+	TypeMsgCertifyCompilation = "certify_compilation"
+	TypeMsgCertifyPlatform = "certify_platform"
+)
+
 // NewMsgProposeCertifier returns a new certifier proposal message.
 func NewMsgProposeCertifier(proposer, certifier sdk.AccAddress, alias string, description string) *MsgProposeCertifier {
 	return &MsgProposeCertifier{

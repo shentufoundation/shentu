@@ -4,6 +4,7 @@ package cert
 import (
 	"context"
 	"encoding/json"
+	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -15,16 +16,19 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/certikfoundation/shentu/x/cert/client/cli"
 	"github.com/certikfoundation/shentu/x/cert/client/rest"
 	"github.com/certikfoundation/shentu/x/cert/keeper"
+	"github.com/certikfoundation/shentu/x/cert/simulation"
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic specifies the app module basics object.
@@ -88,14 +92,16 @@ type AppModule struct {
 	AppModuleBasic
 	moduleKeeper keeper.Keeper
 	authKeeper   types.AccountKeeper
+	bankKeeper   types.BankKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k keeper.Keeper, ak types.AccountKeeper) AppModule {
+func NewAppModule(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(),
 		moduleKeeper:   k,
 		authKeeper:     ak,
+		bankKeeper:     bk,
 	}
 }
 
@@ -118,7 +124,7 @@ func (AppModule) QuerierRoute() string {
 	return types.QuerierRoute
 }
 
-// NewQuerierHandler returns a new querier module handler.
+// LegacyQuerierHandler returns a new querier module handler.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return keeper.NewQuerier(am.moduleKeeper, legacyQuerierCdc)
 }
@@ -153,29 +159,31 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 }
 
 
-// TODO Simulation
+//____________________________________________________________________________
 
-// // GenerateGenesisState creates a randomized GenState of this module.
-// func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-// 	simulation.RandomizedGenState(simState)
-// }
+// AppModuleSimulation functions
 
-// // RegisterStoreDecoder registers a decoder for cert module.
-// func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-// 	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
-// }
+// GenerateGenesisState creates a randomized GenState of this module.
+func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
 
-// // WeightedOperations returns cert operations for use in simulations.
-// func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-// 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.moduleKeeper)
-// }
+// RegisterStoreDecoder registers a decoder for cert module.
+func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
+}
 
-// // ProposalContents returns functions that generate gov proposals for the module
-// func (am AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-// 	return simulation.ProposalContents(am.moduleKeeper)
-// }
+// WeightedOperations returns cert operations for use in simulations.
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper, am.moduleKeeper)
+}
 
-// // RandomizedParams returns functions that generate params for the module
-// func (AppModuleBasic) RandomizedParams(_ *rand.Rand) []sim.ParamChange {
-// 	return nil
-// }
+// ProposalContents returns functions that generate gov proposals for the module
+func (am AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+	return simulation.ProposalContents(am.moduleKeeper)
+}
+
+// RandomizedParams returns functions that generate params for the module
+func (AppModuleBasic) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
+	return nil
+}

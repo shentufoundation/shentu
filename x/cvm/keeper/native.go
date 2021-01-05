@@ -10,7 +10,7 @@ import (
 	"github.com/hyperledger/burrow/permission"
 
 	"github.com/certikfoundation/shentu/vm"
-	"github.com/certikfoundation/shentu/x/cert"
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
@@ -90,7 +90,7 @@ func (cc CertificateCallable) certifyValidator(ctx native.Context) (output []byt
 		*ctx.Gas -= gasRequired
 	}
 	if !cc.certKeeper.IsCertifier(cc.ctx, ctx.Origin.Bytes()) {
-		return nil, cert.ErrUnqualifiedCertifier
+		return nil, certtypes.ErrUnqualifiedCertifier
 	}
 	input := string(ctx.Input)
 	pubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, input)

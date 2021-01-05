@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -14,18 +15,22 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	cosmosauth "github.com/cosmos/cosmos-sdk/x/auth"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	authsim "github.com/cosmos/cosmos-sdk/x/auth/simulation"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/certikfoundation/shentu/x/auth/client/cli"
 	"github.com/certikfoundation/shentu/x/auth/keeper"
+	"github.com/certikfoundation/shentu/x/auth/simulation"
 	"github.com/certikfoundation/shentu/x/auth/types"
 )
 
 var (
 	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
-	//TODO Simulation
-	//_ module.AppModuleSimulation = AppModule{}
+	_ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the auth module.
@@ -35,13 +40,13 @@ type AppModuleBasic struct {
 
 // Name returns the auth module's name.
 func (AppModuleBasic) Name() string {
-	return ModuleName
+	return authtypes.ModuleName
 }
 
 // RegisterLegacyAminoCodec registers the module's types with the given codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
-	*CosmosModuleCdc = *ModuleCdc // nolint
+	*authtypes.ModuleCdc = *ModuleCdc // nolint
 }
 
 // RegisterInterfaces registers the module's interfaces and implementations with
@@ -52,23 +57,23 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 
 // DefaultGenesis returns default genesis state as raw bytes for the auth module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
-	return CosmosAppModuleBasic{}.DefaultGenesis(cdc)
+	return cosmosauth.AppModuleBasic{}.DefaultGenesis(cdc)
 }
 
 // ValidateGenesis performs genesis state validation for the auth module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
-	return CosmosAppModuleBasic{}.ValidateGenesis(cdc, config, bz)
+	return cosmosauth.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
 }
 
 // RegisterRESTRoutes registers the REST routes for the auth module.
 func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
 	RegisterRoutes(ctx, rtr)
-	CosmosAppModuleBasic{}.RegisterRESTRoutes(ctx, rtr)
+	cosmosauth.AppModuleBasic{}.RegisterRESTRoutes(ctx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the auth module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	CosmosAppModuleBasic{}.RegisterGRPCGatewayRoutes(clientCtx, mux)
+	cosmosauth.AppModuleBasic{}.RegisterGRPCGatewayRoutes(clientCtx, mux)
 }
 
 // GetTxCmd returns the root tx command for the auth module.
@@ -78,7 +83,7 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 
 // GetQueryCmd returns the root query command for the auth module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return CosmosAppModuleBasic{}.GetQueryCmd()
+	return cosmosauth.AppModuleBasic{}.GetQueryCmd()
 }
 
 //____________________________________________________________________________
@@ -86,18 +91,18 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule implements an application module for the auth module.
 type AppModule struct {
 	AppModuleBasic
-	cosmosAppModule CosmosAppModule
+	cosmosAppModule cosmosauth.AppModule
 
 	keeper     keeper.Keeper
-	authKeeper AccountKeeper
+	authKeeper authkeeper.AccountKeeper
 	certKeeper types.CertKeeper
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, ak AccountKeeper, ck types.CertKeeper, randGenAccountsFn authTypes.RandomGenesisAccountsFn) AppModule {
+func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, ak authkeeper.AccountKeeper, ck types.CertKeeper, randGenAccountsFn authtypes.RandomGenesisAccountsFn) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{cdc: cdc},
-		cosmosAppModule: NewCosmosAppModule(cdc, ak, randGenAccountsFn),
+		cosmosAppModule: cosmosauth.NewAppModule(cdc, ak, randGenAccountsFn),
 		keeper:          keeper,
 		authKeeper:      ak,
 		certKeeper:      ck,
@@ -149,31 +154,31 @@ func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.V
 	return am.cosmosAppModule.EndBlock(ctx, rbb)
 }
 
-// //____________________________________________________________________________
+//____________________________________________________________________________
 
-// // AppModuleSimulation functions
+// AppModuleSimulation functions
 
-// // GenerateGenesisState creates a randomized GenState of the auth module.
-// func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-// 	simulation.RandomizedGenState(simState)
-// }
+// GenerateGenesisState creates a randomized GenState of the auth module.
+func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
 
-// // ProposalContents doesn't return any content functions for governance proposals.
-// func (AppModule) ProposalContents(_ module.SimulationState) []simTypes.WeightedProposalContent {
-// 	return nil
-// }
+// ProposalContents doesn't return any content functions for governance proposals.
+func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+	return nil
+}
 
-// // RandomizedParams creates randomized auth param changes for the simulator.
-// func (AppModule) RandomizedParams(r *rand.Rand) []simTypes.ParamChange {
-// 	return authSim.ParamChanges(r)
-// }
+// RandomizedParams creates randomized auth param changes for the simulator.
+func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	return authsim.ParamChanges(r)
+}
 
-// // RegisterStoreDecoder registers a decoder for auth module's types.
-// func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-// 	am.cosmosAppModule.RegisterStoreDecoder(sdr)
-// }
+// RegisterStoreDecoder registers a decoder for auth module's types.
+func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	am.cosmosAppModule.RegisterStoreDecoder(sdr)
+}
 
-// // WeightedOperations returns auth operations for use in simulations.
-// func (am AppModule) WeightedOperations(simState module.SimulationState) []simTypes.WeightedOperation {
-// 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper)
-// }
+// WeightedOperations returns auth operations for use in simulations.
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper)
+}

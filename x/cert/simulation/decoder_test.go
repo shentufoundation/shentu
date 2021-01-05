@@ -11,58 +11,68 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
+	"github.com/certikfoundation/shentu/simapp"
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
-func makeTestCodec() (cdc *codec.Codec) {
-	cdc = codec.New()
-	sdk.RegisterCodec(cdc)
-	types.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	return cdc
-}
-
 func TestDecodeStore(t *testing.T) {
-	cdc := makeTestCodec()
+	app := simapp.Setup(false)
+	cdc := app.AppCodec()
+
 	rand.Seed(time.Now().UnixNano())
 
 	certifier := types.Certifier{
-		Address:     RandomAccount().Address,
-		Proposer:    RandomAccount().Address,
+		Address:     RandomAccount().Address.String(),
+		Proposer:    RandomAccount().Address.String(),
 		Description: "this is a test case.",
 	}
 
+	validatorPubKey := RandomAccount().PubKey
+	pkAny, err := codectypes.PackAny(validatorPubKey)
+	if err != nil {
+		panic(err)
+	}
 	validator := types.Validator{
-		PubKey:    RandomAccount().PubKey,
-		Certifier: RandomAccount().Address,
+		Pubkey:    pkAny,
+		Certifier: RandomAccount().Address.String(),
 	}
 
+	platformPubKey := RandomAccount().PubKey
+	pkAny, err = codectypes.PackAny(platformPubKey)
+	if err != nil {
+		panic(err)
+	}
 	platform := types.Platform{
-		Validator:   RandomAccount().PubKey,
+		ValidatorPubkey:   pkAny,
 		Description: "This is a test case.",
 	}
 
 	library := types.Library{
-		Address:   sdk.AccAddress("f23908hf932"),
-		Publisher: sdk.AccAddress("0092uf32"),
+		Address:   sdk.AccAddress("f23908hf932").String(),
+		Publisher: sdk.AccAddress("0092uf32").String(),
 	}
 
 	aliasCertifier := types.Certifier{
-		Address:     RandomAccount().Address,
+		Address:     RandomAccount().Address.String(),
 		Alias:       "Alice",
-		Proposer:    RandomAccount().Address,
+		Proposer:    RandomAccount().Address.String(),
 		Description: "this is a test case.",
 	}
 
-	KVPairs := kv.Pairs{
-		kv.Pair{Key: types.CertifierStoreKey(certifier.Address), Value: cdc.MustMarshalBinaryLengthPrefixed(&certifier)},
-		kv.Pair{Key: types.ValidatorStoreKey(validator.PubKey), Value: cdc.MustMarshalBinaryLengthPrefixed(&validator)},
-		kv.Pair{Key: types.PlatformStoreKey(platform.Validator), Value: cdc.MustMarshalBinaryLengthPrefixed(&platform)},
-		kv.Pair{Key: types.LibraryStoreKey(library.Address), Value: cdc.MustMarshalBinaryLengthPrefixed(&library)},
+	certifierAddr, err := sdk.AccAddressFromBech32(certifier.Address)
+	require.NoError(t, err)
+	libraryAddr, err := sdk.AccAddressFromBech32(library.Address)
+	require.NoError(t, err)
+	
+	kvPairs := []kv.Pair{
+		kv.Pair{Key: types.CertifierStoreKey(certifierAddr), Value: cdc.MustMarshalBinaryLengthPrefixed(&certifier)},
+		kv.Pair{Key: types.ValidatorStoreKey(validatorPubKey), Value: cdc.MustMarshalBinaryLengthPrefixed(&validator)},
+		kv.Pair{Key: types.PlatformStoreKey(platformPubKey), Value: cdc.MustMarshalBinaryLengthPrefixed(&platform)},
+		kv.Pair{Key: types.LibraryStoreKey(libraryAddr), Value: cdc.MustMarshalBinaryLengthPrefixed(&library)},
 		kv.Pair{Key: types.CertifierAliasStoreKey(aliasCertifier.Alias), Value: cdc.MustMarshalBinaryLengthPrefixed(&aliasCertifier)},
 	}
 
@@ -78,19 +88,21 @@ func TestDecodeStore(t *testing.T) {
 		{"other", ""},
 	}
 
+	decoder := NewDecodeStore(cdc)
+	
 	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if i == len(tests)-1 { // nolint
-				require.Panics(t, func() { DecodeStore(cdc, KVPairs[i], KVPairs[i]) }, tt.name) // nolint
+			if i == len(tests)-1 {
+				require.Panics(t, func() { decoder(kvPairs[i], kvPairs[i]) }, tt.name)
 			} else {
-				require.Equal(t, tt.expectedLog, DecodeStore(cdc, KVPairs[i], KVPairs[i]), tt.name) // nolint
+				require.Equal(t, tt.expectedLog, decoder(kvPairs[i], kvPairs[i]), tt.name)
 			}
 		})
 	}
 }
 
 // RandomAccount generates a random Account object.
-func RandomAccount() simulation.Account {
+func RandomAccount() simtypes.Account {
 	privkeySeed := make([]byte, 15)
 	rand.Read(privkeySeed)
 
@@ -98,7 +110,7 @@ func RandomAccount() simulation.Account {
 	pubKey := privKey.PubKey()
 	address := sdk.AccAddress(pubKey.Address())
 
-	return simulation.Account{
+	return simtypes.Account{
 		PrivKey: privKey,
 		PubKey:  pubKey,
 		Address: address,

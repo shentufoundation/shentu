@@ -31,6 +31,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
+	cosmosauthkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -152,7 +153,7 @@ var (
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName:          nil,
+		authtypes.FeeCollectorName:          nil,
 		distrtypes.ModuleName:          nil,
 		sdkminttypes.ModuleName:        {authtypes.Minter},
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
@@ -184,7 +185,7 @@ type CertiKApp struct {
 	keys  map[string]*sdk.KVStoreKey
 	tkeys map[string]*sdk.TransientStoreKey
 
-	accountKeeper    auth.AccountKeeper
+	accountKeeper    cosmosauthkeeper.AccountKeeper
 	bankKeeper       bankkeeper.Keeper
 	stakingKeeper    stakingkeeper.Keeper
 	slashingKeeper   slashingkeeper.Keeper
@@ -231,7 +232,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	bApp.GRPCQueryRouter().SetInterfaceRegistry(interfaceRegistry)
 
 	ks := []string{
-		auth.StoreKey,
+		authtypes.StoreKey,
 		stakingtypes.StoreKey,
 		distrtypes.StoreKey,
 		sdkminttypes.StoreKey,
@@ -280,7 +281,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	scopedIBCMockKeeper := app.capabilityKeeper.ScopeToModule(ibcmock.ModuleName)
 
 	// initialize keepers
-	app.accountKeeper = auth.NewAccountKeeper(
+	app.accountKeeper = cosmosauthkeeper.NewAccountKeeper(
 		appCodec,
 		keys[authtypes.StoreKey],
 		app.GetSubspace(authtypes.ModuleName),
@@ -501,30 +502,31 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.RegisterInvariants(&app.crisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 
-	app.sm = module.NewSimulationManager(
-		genutil.NewAppModule(
-			app.accountKeeper,
-			app.stakingKeeper,
-			app.BaseApp.DeliverTx,
-			encodingConfig.TxConfig,
-		),
-		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
-		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
-		crisis.NewAppModule(&app.crisisKeeper, skipGenesisInvariants),
-		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
-		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
-		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper),
-		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
-		upgrade.NewAppModule(app.upgradeKeeper),
-		evidence.NewAppModule(app.evidenceKeeper),
-		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
-		cvm.NewAppModule(app.cvmKeeper),
-		cert.NewAppModule(app.certKeeper, app.accountKeeper),
-		oracle.NewAppModule(app.oracleKeeper),
-		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper),
-	)
+	// TODO Reactivate sim
+	// app.sm = module.NewSimulationManager(
+	// 	genutil.NewAppModule(
+	// 		app.accountKeeper,
+	// 		app.stakingKeeper,
+	// 		app.BaseApp.DeliverTx,
+	// 		encodingConfig.TxConfig,
+	// 	),
+	// 	auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
+	// 	bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
+	// 	crisis.NewAppModule(&app.crisisKeeper, skipGenesisInvariants),
+	// 	distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
+	// 	slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
+	// 	staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper),
+	// 	mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
+	// 	upgrade.NewAppModule(app.upgradeKeeper),
+	// 	evidence.NewAppModule(app.evidenceKeeper),
+	// 	gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
+	// 	cvm.NewAppModule(app.cvmKeeper),
+	// 	cert.NewAppModule(app.certKeeper, app.accountKeeper),
+	// 	oracle.NewAppModule(app.oracleKeeper),
+	// 	shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper),
+	// )
 
-	app.sm.RegisterStoreDecoders()
+	// app.sm.RegisterStoreDecoders()
 
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)

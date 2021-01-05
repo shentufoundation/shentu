@@ -6,6 +6,13 @@ import (
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
+// bank message types
+const (
+	TypeMsgLockedSend = "locked_send"
+)
+
+var _ sdk.Msg = &MsgLockedSend{}
+
 // NewMsgLockedSend returns a MsgLockedSend object.
 func NewMsgLockedSend(from, to, unlocker sdk.AccAddress, amount sdk.Coins) *MsgLockedSend {
 	return &MsgLockedSend{
@@ -20,7 +27,7 @@ func NewMsgLockedSend(from, to, unlocker sdk.AccAddress, amount sdk.Coins) *MsgL
 func (m MsgLockedSend) Route() string { return bankTypes.RouterKey }
 
 // Type returns a human-readable string for the message.
-func (m MsgLockedSend) Type() string { return "locked_send" }
+func (m MsgLockedSend) Type() string { return TypeMsgLockedSend }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgLockedSend) ValidateBasic() error {
