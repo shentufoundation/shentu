@@ -354,7 +354,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		skipUpgradeHeights,
 		keys[upgradetypes.StoreKey],
 		appCodec,
-		DefaultNodeHome,
+		homePath,
 	)
 	app.shieldKeeper = shieldkeeper.NewKeeper(
 		appCodec,
