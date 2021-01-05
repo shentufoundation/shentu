@@ -65,7 +65,7 @@ func NewMsgDeploy(caller string, value uint64, code acm.Bytecode, abi string, me
 		Code:      code,
 		Abi:       abi,
 		Meta:      meta,
-		IsEWASM:   isEWASM,
+		Is_EWASM:  isEWASM,
 		IsRuntime: isRuntime,
 	}
 }

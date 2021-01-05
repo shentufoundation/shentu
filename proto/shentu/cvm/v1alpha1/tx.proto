@@ -40,10 +40,10 @@ message MsgDeploy {
   // Meta is the metadata for the contract.
   repeated  payload.ContractMeta  meta = 5 [(gogoproto.moretags) = "yaml:\"meta\""];
 
-  // IsEWASM is true if the code is EWASM code.
-  bool is_EWASM = 6 [(gogoproto.moretags) = "yaml:\"is_EWASM\""];
+  // is_eWASM is true if the code is EWASM code.
+  bool is_eWASM = 6 [(gogoproto.moretags) = "yaml:\"is_EWASM\""];
 
-  // IsRuntime is true if the code is runtime code.
+  // is_runtime is true if the code is runtime code.
   bool is_runtime = 7 [(gogoproto.moretags) = "yaml:\"is_runtime\""];
 }
 
