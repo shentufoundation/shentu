@@ -1,4 +1,4 @@
-package vesting
+package types
 
 import (
 	"errors"

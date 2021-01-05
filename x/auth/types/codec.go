@@ -6,26 +6,37 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	//"github.com/cosmos/cosmos-sdk/x/auth/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 )
-
-// TODO
-//var ModuleCdc = codec.New()
 
 // RegisterLegacyAminoCodec registers the necessary x/auth interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	// TODO
-	// Register Cosmos types
-	//types.RegisterCodec(cdc)
-
 	cdc.RegisterConcrete(&MsgUnlock{}, "auth/MsgUnlock", nil)
+	cdc.RegisterConcrete(&ManualVestingAccount{}, "auth/ManualVestingAccount", nil)
 }
 
 // RegisterInterfaces registers the x/auth interfaces types with the interface registry
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgUnlock{},
+	)
+
+	registry.RegisterInterface(
+		"cosmos.vesting.v1beta1.VestingAccount",
+		(*exported.VestingAccount)(nil),
+		&ManualVestingAccount{},
+	)
+
+	registry.RegisterImplementations(
+		(*authtypes.AccountI)(nil),
+		&ManualVestingAccount{},
+	)
+
+	registry.RegisterImplementations(
+		(*authtypes.GenesisAccount)(nil),
+		&ManualVestingAccount{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
@@ -48,14 +59,3 @@ func init() {
 	cryptocodec.RegisterCrypto(amino)
 	amino.Seal()
 }
-
-/* TODO
-func RegisterAccountTypeCodec(o interface{}, name string) {
-	ModuleCdc.RegisterConcrete(o, name, nil)
-}
-
-func init() {
-	RegisterCodec(ModuleCdc)
-	codec.RegisterCrypto(ModuleCdc)
-}
-*/

@@ -24,7 +24,7 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/x/auth/vesting"
+	"github.com/certikfoundation/shentu/x/auth/types"
 )
 
 const (
@@ -197,7 +197,7 @@ func getVestedAccountFromFlags(baseAccount *authtypes.BaseAccount, coins sdk.Coi
 		if err != nil || unlocker.Empty() {
 			return nil, errors.New("unlocker address is in incorrect format")
 		}
-		return vesting.NewManualVestingAccountRaw(baseVestingAccount, sdk.NewCoins(), unlocker), nil
+		return types.NewManualVestingAccountRaw(baseVestingAccount, sdk.NewCoins(), unlocker), nil
 
 	case period != 0:
 		periods := authvesting.Periods{}

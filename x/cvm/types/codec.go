@@ -11,7 +11,6 @@ import (
 	"github.com/hyperledger/burrow/binary"
 )
 
-// RegisterCodec registers concrete types on the Amino codec
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgCall{}, "cvm/Call", nil)
 	cdc.RegisterConcrete(MsgDeploy{}, "cvm/Deploy", nil)
@@ -25,7 +24,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCall{},
 		&MsgDeploy{},
-		&acm.Account{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
@@ -34,11 +32,11 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 var (
 	amino = codec.NewLegacyAmino()
 
-	// ModuleCdc references the global x/gov module codec. Note, the codec should
+	// ModuleCdc references the global x/cvm module codec. Note, the codec should
 	// ONLY be used in certain instances of tests and for JSON encoding as Amino is
 	// still used for that purpose.
 	//
-	// The actual codec used for serialization should be provided to x/gov and
+	// The actual codec used for serialization should be provided to x/cvm and
 	// defined at the application level.
 	ModuleCdc = codec.NewAminoCodec(amino)
 )
@@ -46,4 +44,5 @@ var (
 func init() {
 	RegisterLegacyAminoCodec(amino)
 	cryptocodec.RegisterCrypto(amino)
+	amino.Seal()
 }

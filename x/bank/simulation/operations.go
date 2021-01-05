@@ -14,7 +14,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/x/auth/vesting"
+	vesting "github.com/certikfoundation/shentu/x/auth/types"
 	"github.com/certikfoundation/shentu/x/bank/keeper"
 	"github.com/certikfoundation/shentu/x/bank/types"
 )

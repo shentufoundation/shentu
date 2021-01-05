@@ -196,7 +196,7 @@ type CertiKApp struct {
 	upgradeKeeper    upgradekeeper.Keeper
 	govKeeper        govkeeper.Keeper
 	certKeeper       certkeeper.Keeper
-	authKeeper       auth.Keeper
+	authKeeper       authkeeper.Keeper
 	evidenceKeeper   evidencekeeper.Keeper
 	ibcKeeper        *ibckeeper.Keeper
 	transferKeeper   ibctransferkeeper.Keeper
@@ -438,7 +438,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 			app.BaseApp.DeliverTx,
 			encodingConfig.TxConfig,
 		),
-		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
+		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
 		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
 		crisis.NewAppModule(&app.crisisKeeper, skipGenesisInvariants),
 		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
@@ -449,7 +449,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		evidence.NewAppModule(app.evidenceKeeper),
 		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
 		cvm.NewAppModule(app.cvmKeeper),
-		cert.NewAppModule(app.certKeeper, app.accountKeeper),
+		cert.NewAppModule(app.certKeeper, app.accountKeeper, app.bankKeeper),
 		oracle.NewAppModule(app.oracleKeeper),
 		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper),
 	)

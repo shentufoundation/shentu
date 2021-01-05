@@ -22,6 +22,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/certikfoundation/shentu/x/auth/client/cli"
+	"github.com/certikfoundation/shentu/x/auth/client/rest"
 	"github.com/certikfoundation/shentu/x/auth/keeper"
 	"github.com/certikfoundation/shentu/x/auth/simulation"
 	"github.com/certikfoundation/shentu/x/auth/types"
@@ -46,7 +47,7 @@ func (AppModuleBasic) Name() string {
 // RegisterLegacyAminoCodec registers the module's types with the given codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
-	*authtypes.ModuleCdc = *ModuleCdc // nolint
+	*authtypes.ModuleCdc = *types.ModuleCdc // nolint
 }
 
 // RegisterInterfaces registers the module's interfaces and implementations with
@@ -67,7 +68,7 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxE
 
 // RegisterRESTRoutes registers the REST routes for the auth module.
 func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
-	RegisterRoutes(ctx, rtr)
+	rest.RegisterRoutes(ctx, rtr)
 	cosmosauth.AppModuleBasic{}.RegisterRESTRoutes(ctx, rtr)
 }
 
@@ -95,16 +96,18 @@ type AppModule struct {
 
 	keeper     keeper.Keeper
 	authKeeper authkeeper.AccountKeeper
+	bankKeeper types.BankKeeper
 	certKeeper types.CertKeeper
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, ak authkeeper.AccountKeeper, ck types.CertKeeper, randGenAccountsFn authtypes.RandomGenesisAccountsFn) AppModule {
+func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, ak authkeeper.AccountKeeper, bk types.BankKeeper, ck types.CertKeeper, randGenAccountsFn authtypes.RandomGenesisAccountsFn) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{cdc: cdc},
 		cosmosAppModule: cosmosauth.NewAppModule(cdc, ak, randGenAccountsFn),
 		keeper:          keeper,
 		authKeeper:      ak,
+		bankKeeper:      bk,
 		certKeeper:      ck,
 	}
 }
@@ -180,5 +183,5 @@ func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 
 // WeightedOperations returns auth operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper)
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper)
 }

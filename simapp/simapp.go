@@ -31,6 +31,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
+	cosmosauthkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -187,7 +188,7 @@ type SimApp struct {
 	tkeys   map[string]*sdk.TransientStoreKey
 	memKeys map[string]*sdk.MemoryStoreKey
 
-	AccountKeeper    auth.AccountKeeper
+	AccountKeeper    cosmosauthkeeper.AccountKeeper
 	BankKeeper       bankkeeper.Keeper
 	CapabilityKeeper *capabilitykeeper.Keeper
 	StakingKeeper    stakingkeeper.Keeper
@@ -237,7 +238,7 @@ func NewSimApp(
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
 	ks := []string{
-		auth.StoreKey,
+		authtypes.StoreKey,
 		stakingtypes.StoreKey,
 		distrtypes.StoreKey,
 		sdkminttypes.StoreKey,
@@ -289,7 +290,7 @@ func NewSimApp(
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
 
 	// initialize keepers
-	app.AccountKeeper = auth.NewAccountKeeper(
+	app.AccountKeeper = cosmosauthkeeper.NewAccountKeeper(
 		appCodec,
 		keys[authtypes.StoreKey],
 		app.GetSubspace(authtypes.ModuleName),
@@ -446,7 +447,7 @@ func NewSimApp(
 			app.BaseApp.DeliverTx,
 			encodingConfig.TxConfig,
 		),
-		auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
+		auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
 		crisis.NewAppModule(&app.CrisisKeeper, skipGenesisInvariants),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
@@ -457,7 +458,7 @@ func NewSimApp(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
 		cvm.NewAppModule(app.CVMKeeper),
-		cert.NewAppModule(app.CertKeeper, app.AccountKeeper),
+		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.StakingKeeper),
 	)
@@ -510,30 +511,30 @@ func NewSimApp(
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 
-	app.sm = module.NewSimulationManager(
-		genutil.NewAppModule(
-			app.AccountKeeper,
-			app.StakingKeeper,
-			app.BaseApp.DeliverTx,
-			encodingConfig.TxConfig,
-		),
-		auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
-		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
-		crisis.NewAppModule(&app.CrisisKeeper, skipGenesisInvariants),
-		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
-		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
-		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper),
-		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
-		upgrade.NewAppModule(app.UpgradeKeeper),
-		evidence.NewAppModule(app.EvidenceKeeper),
-		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
-		cvm.NewAppModule(app.CVMKeeper),
-		cert.NewAppModule(app.CertKeeper, app.AccountKeeper),
-		oracle.NewAppModule(app.OracleKeeper),
-		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.StakingKeeper),
-	)
-
-	app.sm.RegisterStoreDecoders()
+	// app.sm = module.NewSimulationManager(
+	// 	genutil.NewAppModule(
+	// 		app.AccountKeeper,
+	// 		app.StakingKeeper,
+	// 		app.BaseApp.DeliverTx,
+	// 		encodingConfig.TxConfig,
+	// 	),
+	// 	auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
+	// 	bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
+	// 	crisis.NewAppModule(&app.CrisisKeeper, skipGenesisInvariants),
+	// 	distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+	// 	slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+	// 	staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper),
+	// 	mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
+	// 	upgrade.NewAppModule(app.UpgradeKeeper),
+	// 	evidence.NewAppModule(app.EvidenceKeeper),
+	// 	gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
+	// 	cvm.NewAppModule(app.CVMKeeper),
+	// 	cert.NewAppModule(app.CertKeeper, app.AccountKeeper),
+	// 	oracle.NewAppModule(app.OracleKeeper),
+	// 	shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.StakingKeeper),
+	// )
+	//
+	//app.sm.RegisterStoreDecoders()
 
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)

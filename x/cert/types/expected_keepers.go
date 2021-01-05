@@ -16,6 +16,7 @@ type (
 	BankKeeper interface {
 		SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	}
+
 	StakingKeeper interface {
 		ValidatorByConsAddr(sdk.Context, sdk.ConsAddress) stakingtypes.ValidatorI
 		GetAllValidators(ctx sdk.Context) []stakingtypes.Validator
