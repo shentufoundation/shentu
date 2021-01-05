@@ -44,6 +44,6 @@ message ContractMeta {
 }
 
 message Metadata {
-  bytes hash = 1 [(gogoproto.moretags) = "yaml:\"hash\""];
+  bytes hash = 1 [(gogoproto.customtype) = "github.com/hyperledger/burrow/binary.HexBytes", (gogoproto.moretags) = "yaml:\"hash\"", (gogoproto.nullable) = false];
   string metadata =2 [(gogoproto.moretags) = "yaml:\"metadata\""];
 }
