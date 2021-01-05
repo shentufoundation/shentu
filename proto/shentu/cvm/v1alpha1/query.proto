@@ -40,69 +40,69 @@ service Query {
 }
 
 message QueryCodeRequest {
-  string address = 1;
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
 }
 
 message QueryCodeResponse {
-  bytes code = 1;
+  bytes code = 1 [(gogoproto.moretags) = "yaml:\"code\""];
 }
 
 message QueryAbiRequest {
-  string address = 1 ;
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
 }
 
 message QueryAbiResponse {
-  bytes abi = 1;
+  bytes abi = 1 [(gogoproto.moretags) = "yaml:\"abi\""];
 }
 
 message QueryStorageRequest {
-  string address = 1;
-  string key = 2;
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+  string key = 2 [(gogoproto.moretags) = "yaml:\"key\""];
 }
 
 message QueryStorageResponse {
-  bytes value = 1;
+  bytes value = 1 [(gogoproto.moretags) = "yaml:\"value\""];
 }
 
 message QueryAddressMetaRequest {
-  string address = 1;
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
 }
 
 message QueryAddressMetaResponse {
-  string MetaHash = 1;
+  string meta_hash = 1 [(gogoproto.moretags) = "yaml:\"metaHash\""];
 }
 
 message QueryMetaRequest {
-  string hash = 1;
+  string hash = 1 [(gogoproto.moretags) = "yaml:\"hash\""];
 }
 
 message QueryMetaResponse {
-  string meta = 1;
+  string meta = 1 [(gogoproto.moretags) = "yaml:\"meta\""];
 }
 
 message QueryAccountRequest {
-  string address = 1;
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
 }
 
 message CVMAccount {
-  cosmos.auth.v1beta1.BaseAccount base_account = 1 [(gogoproto.embed) = true];
-  string code = 2;
-  string abi = 3;
+  cosmos.auth.v1beta1.BaseAccount base_account = 1 [(gogoproto.embed) = true, (gogoproto.moretags) = "yaml:\"base_account\""];
+  string code = 2 [(gogoproto.moretags) = "yaml:\"code\""];
+  string abi = 3 [(gogoproto.moretags) = "yaml:\"abi\""];
 }
 
 message QueryViewRequest {
-  string caller = 1;
-  string callee = 2;
-  bytes abi_spec = 3;
-  string function_name = 4;
-  bytes data = 5;
+  string caller = 1 [(gogoproto.moretags) = "yaml:\"caller\""];
+  string callee = 2 [(gogoproto.moretags) = "yaml:\"callee\""];
+  bytes abi_spec = 3 [(gogoproto.moretags) = "yaml:\"abi_spec\""];
+  string function_name = 4 [(gogoproto.moretags) = "yaml:\"function_name\""];
+  bytes data = 5 [(gogoproto.moretags) = "yaml:\"data\""];
 }
 
 message QueryViewResponse {
-  repeated ReturnVars return_vars = 1;
+  repeated ReturnVars return_vars = 1 [(gogoproto.moretags) = "yaml:\"return_vars\""];
 }
 
 message ReturnVars {
-  string name = 1;
-  string value = 2;
+  string name = 1 [(gogoproto.moretags) = "yaml:\"name\""];
+  string value = 2 [(gogoproto.moretags) = "yaml:\"value\""];
 }
