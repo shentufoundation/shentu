@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "shentu/cvm/v1alpha1/cvm.proto";
 import "burrow/payload.proto";
 
-option go_package = "github.com/certikfoundation/shentu/x/cvm/internal/types";
+option go_package = "github.com/certikfoundation/shentu/x/cvm/types";
 
 service Msg {
   rpc Call(MsgCall) returns (MsgCallResponse);

@@ -4,7 +4,7 @@ package shentu.cvm.v1alpha1;
 import "gogoproto/gogo.proto";
 import "shentu/cvm/v1alpha1/cvm.proto";
 
-option go_package = "github.com/certikfoundation/shentu/x/cvm/internal/types";
+option go_package = "github.com/certikfoundation/shentu/x/cvm/types";
 
 // GenesisState defines the gov module's genesis state.
 message GenesisState {
