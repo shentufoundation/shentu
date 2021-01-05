@@ -31,7 +31,6 @@ all: install release lint test
 
 install: go.sum
 	go install $(BUILD_FLAGS) ./cmd/certikd
-	go install $(BUILD_FLAGS) ./cmd/certikcli
 
 update-swagger-docs: statik
 	$(GOBIN)/statik -src=client/lcd/swagger-ui -dest=client/lcd -f -m
@@ -50,20 +49,15 @@ update-cli-docs: install
 	@perl -pi -e "s|$$HOME|~|" docs/cli/**/*.md
 
 release: go.sum
-	GOOS=linux go build $(BUILD_FLAGS) -o build/certikcli ./cmd/certikcli
 	GOOS=linux go build $(BUILD_FLAGS) -o build/certikd ./cmd/certikd
-	GOOS=windows go build $(BUILD_FLAGS) -o build/certikcli.exe ./cmd/certikcli
 	GOOS=windows go build $(BUILD_FLAGS) -o build/certikd.exe ./cmd/certikd
-	GOOS=darwin go build $(BUILD_FLAGS) -o build/certikcli-macos ./cmd/certikcli
 	GOOS=darwin go build $(BUILD_FLAGS) -o build/certikd-macos ./cmd/certikd
 
 build: go.sum
 ifeq ($(OS),Windows_NT)
 	go build -mod=readonly $(BUILD_FLAGS) -o build/certikd.exe ./cmd/certikd
-	go build -mod=readonly $(BUILD_FLAGS) -o build/certikcli.exe ./cmd/certikcli
 else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/certikd ./cmd/certikd
-	go build -mod=readonly $(BUILD_FLAGS) -o build/certikcli ./cmd/certikcli
 endif
 
 build-linux:
@@ -71,7 +65,6 @@ build-linux:
 	docker build --tag shentu ./
 	docker create --name temp shentu:latest
 	docker cp temp:/usr/local/bin/certikd ./build/
-	docker cp temp:/usr/local/bin/certikcli ./build/
 	docker rm temp
 
 ########## Tools ##########
