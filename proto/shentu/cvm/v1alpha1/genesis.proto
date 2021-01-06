@@ -5,8 +5,6 @@ import "gogoproto/gogo.proto";
 import "shentu/cvm/v1alpha1/cvm.proto";
 
 option go_package = "github.com/certikfoundation/shentu/x/cvm/types";
-<<<<<<< HEAD
-=======
 
 option (gogoproto.stable_marshaler_all) = true;
 option (gogoproto.marshaler_all) = true;
@@ -14,7 +12,6 @@ option (gogoproto.unmarshaler_all) = true;
 option (gogoproto.sizer_all) = true;
 option (gogoproto.goproto_registration) = true;
 option (gogoproto.messagename_all) = true;
->>>>>>> cosmos-update
 
 // GenesisState defines the gov module's genesis state.
 message GenesisState {
