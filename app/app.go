@@ -153,7 +153,7 @@ var (
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		authtypes.FeeCollectorName:          nil,
+		authtypes.FeeCollectorName:     nil,
 		distrtypes.ModuleName:          nil,
 		sdkminttypes.ModuleName:        {authtypes.Minter},
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
@@ -182,8 +182,8 @@ type CertiKApp struct {
 	invCheckPeriod uint
 
 	// keys to access the substores
-	keys  map[string]*sdk.KVStoreKey
-	tkeys map[string]*sdk.TransientStoreKey
+	keys    map[string]*sdk.KVStoreKey
+	tkeys   map[string]*sdk.TransientStoreKey
 	memKeys map[string]*sdk.MemoryStoreKey
 
 	accountKeeper    sdkauthkeeper.AccountKeeper
@@ -217,7 +217,7 @@ type CertiKApp struct {
 	// simulation manager
 	sm *module.SimulationManager
 }
-		
+
 // NewCertiKApp returns a reference to an initialized CertiKApp.
 func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool, homePath string,
 	invCheckPeriod uint, encodingConfig appparams.EncodingConfig, appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp)) *CertiKApp {
@@ -262,13 +262,13 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	// initialize application with its store keys
 	var app = &CertiKApp{
-		BaseApp:        bApp,
-		cdc:            legacyAmino,
-		appCodec:       appCodec,
+		BaseApp:           bApp,
+		cdc:               legacyAmino,
+		appCodec:          appCodec,
 		interfaceRegistry: interfaceRegistry,
-		invCheckPeriod: invCheckPeriod,
-		keys:           keys,
-		tkeys:          tkeys,
+		invCheckPeriod:    invCheckPeriod,
+		keys:              keys,
+		tkeys:             tkeys,
 		memKeys:           memKeys,
 	}
 	// initialize params keeper and subspaces

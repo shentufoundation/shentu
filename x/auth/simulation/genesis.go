@@ -110,7 +110,7 @@ func RandomGenesisAccounts(simState *module.SimulationState) (genesisAccs authty
 			if err != nil {
 				panic(err)
 			}
-	
+
 			initialVesting := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, simState.Rand.Int63n(simState.InitialStake)))
 
 			gacc = types.NewManualVestingAccount(bacc, initialVesting, sdk.NewCoins(), addr)

@@ -47,8 +47,8 @@ func TestDecodeStore(t *testing.T) {
 		panic(err)
 	}
 	platform := types.Platform{
-		ValidatorPubkey:   pkAny,
-		Description: "This is a test case.",
+		ValidatorPubkey: pkAny,
+		Description:     "This is a test case.",
 	}
 
 	library := types.Library{
@@ -67,13 +67,13 @@ func TestDecodeStore(t *testing.T) {
 	require.NoError(t, err)
 	libraryAddr, err := sdk.AccAddressFromBech32(library.Address)
 	require.NoError(t, err)
-	
+
 	kvPairs := []kv.Pair{
-		kv.Pair{Key: types.CertifierStoreKey(certifierAddr), Value: cdc.MustMarshalBinaryLengthPrefixed(&certifier)},
-		kv.Pair{Key: types.ValidatorStoreKey(validatorPubKey), Value: cdc.MustMarshalBinaryLengthPrefixed(&validator)},
-		kv.Pair{Key: types.PlatformStoreKey(platformPubKey), Value: cdc.MustMarshalBinaryLengthPrefixed(&platform)},
-		kv.Pair{Key: types.LibraryStoreKey(libraryAddr), Value: cdc.MustMarshalBinaryLengthPrefixed(&library)},
-		kv.Pair{Key: types.CertifierAliasStoreKey(aliasCertifier.Alias), Value: cdc.MustMarshalBinaryLengthPrefixed(&aliasCertifier)},
+		{Key: types.CertifierStoreKey(certifierAddr), Value: cdc.MustMarshalBinaryLengthPrefixed(&certifier)},
+		{Key: types.ValidatorStoreKey(validatorPubKey), Value: cdc.MustMarshalBinaryLengthPrefixed(&validator)},
+		{Key: types.PlatformStoreKey(platformPubKey), Value: cdc.MustMarshalBinaryLengthPrefixed(&platform)},
+		{Key: types.LibraryStoreKey(libraryAddr), Value: cdc.MustMarshalBinaryLengthPrefixed(&library)},
+		{Key: types.CertifierAliasStoreKey(aliasCertifier.Alias), Value: cdc.MustMarshalBinaryLengthPrefixed(&aliasCertifier)},
 	}
 
 	tests := []struct {
@@ -89,7 +89,7 @@ func TestDecodeStore(t *testing.T) {
 	}
 
 	decoder := NewDecodeStore(cdc)
-	
+
 	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if i == len(tests)-1 {

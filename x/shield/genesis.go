@@ -15,7 +15,7 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []abci.ValidatorUpdate {
 	k.SetPoolParams(ctx, data.PoolParams)
 	k.SetClaimProposalParams(ctx, data.ClaimProposalParams)
-	
+
 	adminAddr := sdk.AccAddress{}
 	var err error
 	if len(strings.TrimSpace(data.ShieldAdmin)) != 0 {
