@@ -1,8 +1,12 @@
-package keeper_test
+package keeper
 
 import (
 	"fmt"
 	"testing"
+	"time"
+
+	"github.com/certikfoundation/shentu/simapp"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/stretchr/testify/require"
 
@@ -17,9 +21,9 @@ import (
 )
 
 func TestState_NewState(t *testing.T) {
-	testInput := CreateTestInput(t)
-	ctx := testInput.Ctx
-	cvmk := testInput.CvmKeeper
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cvmk := app.CVMKeeper
 	state := cvmk.NewState(ctx)
 
 	callframe := engine.NewCallFrame(state, acmstate.Named("TxCache"))
@@ -32,10 +36,10 @@ func TestState_NewState(t *testing.T) {
 }
 
 func TestState_UpdateAccount(t *testing.T) {
-	testInput := CreateTestInput(t)
-	ctx := testInput.Ctx
-	cvmk := testInput.CvmKeeper
-	ak := testInput.AccountKeeper
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cvmk := app.CVMKeeper
+	ak := app.AccountKeeper
 	state := cvmk.NewState(ctx)
 
 	addr, err := crypto.AddressFromBytes(Addrs[0].Bytes())
@@ -47,12 +51,12 @@ func TestState_UpdateAccount(t *testing.T) {
 	require.Nil(t, err)
 
 	sdkAcc := ak.GetAccount(ctx, Addrs[0])
-	err = sdkAcc.SetCoins(sdk.Coins{sdk.NewInt64Coin("uctk", 1234)})
+	err = app.BankKeeper.SetBalances(ctx, Addrs[0], sdk.Coins{sdk.NewInt64Coin("uctk", 1234)})
 	require.Nil(t, err)
 	ak.SetAccount(ctx, sdkAcc)
 	sdkAcc = ak.GetAccount(ctx, Addrs[0])
 	acc, err = state.GetAccount(addr)
-	sdkCoins := sdkAcc.GetCoins().AmountOf("uctk").Uint64()
+	sdkCoins := app.BankKeeper.GetAllBalances(ctx, addr.Bytes()).AmountOf("uctk").Uint64()
 	accAddressHex, err := sdk.AccAddressFromHex(addr.String())
 	require.Nil(t, err)
 	require.Equal(t, Addrs[0], accAddressHex)
@@ -69,15 +73,14 @@ func TestState_UpdateAccount(t *testing.T) {
 	err = state.UpdateAccount(acc)
 	require.Nil(t, err)
 	accAddressHex, err = sdk.AccAddressFromHex(acc.Address.String())
-	newsdkAcc := ak.GetAccount(ctx, accAddressHex)
-	sdkCoins = newsdkAcc.GetCoins().AmountOf("uctk").Uint64()
+	sdkCoins = app.BankKeeper.GetAllBalances(ctx, accAddressHex.Bytes()).AmountOf("uctk").Uint64()
 	require.Equal(t, sdkCoins, acc.Balance)
 }
 
 func TestState_RemoveAccount(t *testing.T) {
-	testInput := CreateTestInput(t)
-	ctx := testInput.Ctx
-	cvmk := testInput.CvmKeeper
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cvmk := app.CVMKeeper
 	state := cvmk.NewState(ctx)
 
 	addr, err := crypto.AddressFromBytes(Addrs[0].Bytes())

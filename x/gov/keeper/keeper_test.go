@@ -1,4 +1,4 @@
-package gov_test
+package keeper
 
 import (
 	"fmt"
@@ -16,7 +16,6 @@ import (
 
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/gov/keeper"
 	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
@@ -28,7 +27,7 @@ func TestKeeper_ProposeAndVote(t *testing.T) {
 
 	tp := govtypes.TextProposal{Title: "title0", Description: "desc0"}
 	t.Run("Test submitting a proposal and adding a vote with yes", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, tp, addrs[0])
+		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
 		require.Equal(t, nil, err)
 		vote := govtypes.NewVote(pp.ProposalId, addrs[0], govtypes.OptionYes)
 
@@ -52,7 +51,7 @@ func TestKeeper_ProposeAndVote(t *testing.T) {
 			govtypes.OptionNoWithVeto: sdk.ZeroDec(),
 		}
 
-		pass, veto, res := keeper.Tally(ctx, app.GovKeeper, pp)
+		pass, veto, res := Tally(ctx, app.GovKeeper, pp)
 		require.Equal(t, false, pass)
 		require.Equal(t, false, veto)
 		require.Equal(t, govtypes.NewTallyResultFromMap(results), res)
@@ -69,7 +68,7 @@ func TestKeeper_GetVotes(t *testing.T) {
 
 	tp := govtypes.TextProposal{Title: "title0", Description: "desc0"}
 	t.Run("Test adding a lot of votes and retrieving them", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, tp, addrs[0])
+		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
 		require.Equal(t, nil, err)
 		coins700 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 700*1e6))
 		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[0], coins700)
@@ -116,7 +115,7 @@ func TestKeeper_AddDeposit(t *testing.T) {
 	tp := govtypes.TextProposal{Title: "title0", Description: "desc0"}
 
 	t.Run("adding deposit and proposal doesn't exist", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, tp, addrs[0])
+		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
 		require.Equal(t, nil, err)
 		coins100 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 100*1e6))
 
@@ -127,7 +126,7 @@ func TestKeeper_AddDeposit(t *testing.T) {
 	})
 
 	t.Run("adding deposit not enough balance", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, tp, addrs[0])
+		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
 		require.Equal(t, nil, err)
 		coins15000 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 15000*1e6))
 
@@ -138,7 +137,7 @@ func TestKeeper_AddDeposit(t *testing.T) {
 	})
 
 	t.Run("adding deposit and waiting for more deposits", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, tp, addrs[0])
+		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
 		require.Equal(t, nil, err)
 		coins100 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 100*1e6))
 
@@ -148,7 +147,7 @@ func TestKeeper_AddDeposit(t *testing.T) {
 	})
 
 	t.Run("adding more deposit and still waiting for more", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, tp, addrs[0])
+		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
 		require.Equal(t, nil, err)
 		coins100 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 100*1e6))
 		coins200 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 200*1e6))
@@ -163,7 +162,7 @@ func TestKeeper_AddDeposit(t *testing.T) {
 	})
 
 	t.Run("adding deposit and entering votingPeriod", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, tp, addrs[0])
+		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
 		require.Equal(t, nil, err)
 		coins700 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 700*1e6))
 
@@ -173,7 +172,7 @@ func TestKeeper_AddDeposit(t *testing.T) {
 	})
 
 	t.Run("entering votingPeriod and trying to add more deposit", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, tp, addrs[0])
+		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
 		require.Equal(t, nil, err)
 		coins700 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 700*1e6))
 		coinsAfterAvtivated := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 1))
@@ -198,7 +197,7 @@ func TestKeeper_DepositOperation(t *testing.T) {
 	tp := govtypes.TextProposal{Title: "title0", Description: "desc0"}
 
 	t.Run("refund all deposits in a specific proposal", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, tp, addrs[0])
+		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
 		require.Equal(t, nil, err)
 		coins100 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 100*1e6))
 		coins50 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 50*1e6))
@@ -210,9 +209,9 @@ func TestKeeper_DepositOperation(t *testing.T) {
 		require.Equal(t, nil, err)
 		require.Equal(t, false, votingPeriodActivated)
 
-		addr1Amount := app.BankKeeper.GetCoins(ctx, addrs[1])
-		addr2Amount := app.BankKeeper.GetCoins(ctx, addrs[2])
-		addr3Amount := app.BankKeeper.GetCoins(ctx, addrs[3])
+		addr1Amount := app.BankKeeper.GetAllBalances(ctx, addrs[1])
+		addr2Amount := app.BankKeeper.GetAllBalances(ctx, addrs[2])
+		addr3Amount := app.BankKeeper.GetAllBalances(ctx, addrs[3])
 		require.Equal(t, sdk.NewInt(79900*1e6).Int64(), addr1Amount.AmountOf(common.MicroCTKDenom).Int64())
 		require.Equal(t, sdk.NewInt(79950*1e6).Int64(), addr2Amount.AmountOf(common.MicroCTKDenom).Int64())
 		require.Equal(t, sdk.NewInt(79980*1e6).Int64(), addr3Amount.AmountOf(common.MicroCTKDenom).Int64())
@@ -220,15 +219,15 @@ func TestKeeper_DepositOperation(t *testing.T) {
 		app.GovKeeper.RefundDepositsByProposalID(ctx, pp.ProposalId)
 		depositsRemaining := app.GovKeeper.GetAllDeposits(ctx)
 		require.Equal(t, types.Deposits(nil), depositsRemaining)
-		addr1Amount = app.BankKeeper.GetCoins(ctx, addrs[1])
-		addr2Amount = app.BankKeeper.GetCoins(ctx, addrs[2])
-		addr3Amount = app.BankKeeper.GetCoins(ctx, addrs[3])
+		addr1Amount = app.BankKeeper.GetAllBalances(ctx, addrs[1])
+		addr2Amount = app.BankKeeper.GetAllBalances(ctx, addrs[2])
+		addr3Amount = app.BankKeeper.GetAllBalances(ctx, addrs[3])
 		require.Equal(t, sdk.NewInt(80000*1e6).Int64(), addr1Amount.AmountOf(common.MicroCTKDenom).Int64())
 		require.Equal(t, sdk.NewInt(80000*1e6).Int64(), addr2Amount.AmountOf(common.MicroCTKDenom).Int64())
 		require.Equal(t, sdk.NewInt(80000*1e6).Int64(), addr3Amount.AmountOf(common.MicroCTKDenom).Int64())
 	})
 	t.Run("delete all deposits in a specific proposal", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, tp, addrs[0])
+		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
 		require.Equal(t, nil, err)
 		coins10 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 10*1e6))
 		coins50 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 50*1e6))
@@ -240,9 +239,9 @@ func TestKeeper_DepositOperation(t *testing.T) {
 		require.Equal(t, nil, err)
 		require.Equal(t, false, votingPeriodActivated)
 
-		addr1Amount := app.BankKeeper.GetCoins(ctx, addrs[1])
-		addr2Amount := app.BankKeeper.GetCoins(ctx, addrs[2])
-		addr3Amount := app.BankKeeper.GetCoins(ctx, addrs[3])
+		addr1Amount := app.BankKeeper.GetAllBalances(ctx, addrs[1])
+		addr2Amount := app.BankKeeper.GetAllBalances(ctx, addrs[2])
+		addr3Amount := app.BankKeeper.GetAllBalances(ctx, addrs[3])
 		require.Equal(t, sdk.NewInt(79990*1e6).Int64(), addr1Amount.AmountOf(common.MicroCTKDenom).Int64())
 		require.Equal(t, sdk.NewInt(79980*1e6).Int64(), addr2Amount.AmountOf(common.MicroCTKDenom).Int64())
 		require.Equal(t, sdk.NewInt(79950*1e6).Int64(), addr3Amount.AmountOf(common.MicroCTKDenom).Int64())
@@ -251,9 +250,9 @@ func TestKeeper_DepositOperation(t *testing.T) {
 		depositsRemaining := app.GovKeeper.GetAllDeposits(ctx)
 		require.Equal(t, types.Deposits(nil), depositsRemaining)
 
-		addr1Amount = app.BankKeeper.GetCoins(ctx, addrs[1])
-		addr2Amount = app.BankKeeper.GetCoins(ctx, addrs[2])
-		addr3Amount = app.BankKeeper.GetCoins(ctx, addrs[3])
+		addr1Amount = app.BankKeeper.GetAllBalances(ctx, addrs[1])
+		addr2Amount = app.BankKeeper.GetAllBalances(ctx, addrs[2])
+		addr3Amount = app.BankKeeper.GetAllBalances(ctx, addrs[3])
 		require.Equal(t, sdk.NewInt(79990*1e6).Int64(), addr1Amount.AmountOf(common.MicroCTKDenom).Int64())
 		require.Equal(t, sdk.NewInt(79980*1e6).Int64(), addr2Amount.AmountOf(common.MicroCTKDenom).Int64())
 		require.Equal(t, sdk.NewInt(79950*1e6).Int64(), addr3Amount.AmountOf(common.MicroCTKDenom).Int64())
