@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -42,7 +42,7 @@ func Test_GetCertificateID(t *testing.T) {
 func Test_GetNewCertificateID(t *testing.T) {
 	t.Run("Testing GetNewCertificateID", func(t *testing.T) {
 		app := simapp.Setup(false)
-		ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
+		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 		addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
 
 		// Set and Get a certificate
@@ -117,7 +117,7 @@ func randomString(length int) string {
 func Test_IterationByCertifier(t *testing.T) {
 	t.Run("Testing certifier-based iteration", func(t *testing.T) {
 		app := simapp.Setup(false)
-		ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
+		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 		addrs := simapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(10000))
 		for _, addr := range addrs {
 			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, "", addr, ""))
@@ -152,7 +152,7 @@ func Test_IterationByCertifier(t *testing.T) {
 func Test_CertificateQueries(t *testing.T) {
 	t.Run("Testing various queries on certifications", func(t *testing.T) {
 		app := simapp.Setup(false)
-		ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
+		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 		addrs := simapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(10000))
 		for _, addr := range addrs {
 			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, "", addr, ""))
@@ -222,7 +222,7 @@ func Test_CertificateQueries(t *testing.T) {
 func Test_IsCertified(t *testing.T) {
 	t.Run("Testing the function IsCertified", func(t *testing.T) {
 		app := simapp.Setup(false)
-		ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
+		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 		addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
 		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "", addrs[0], ""))
 

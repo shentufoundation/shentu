@@ -117,22 +117,21 @@ func (c RequestContentType) Bytes() []byte {
 	return []byte{byte(c)}
 }
 
-// TODO
-// // String returns string of the request content type.
-// func (c RequestContentType) String() string {
-// 	switch c {
-// 	case RequestContentTypeSourceCodeHash:
-// 		return "SourceCodeHash"
-// 	case RequestContentTypeAddress:
-// 		return "Address"
-// 	case RequestContentTypeBytecodeHash:
-// 		return "BytecodeHash"
-// 	case RequestContentTypeGeneral:
-// 		return "General"
-// 	default:
-// 		return "UnknownRequestContentType"
-// 	}
-// }
+// String returns string of the request content type.
+func (c RequestContentType) String() string {
+	switch c {
+	case RequestContentTypeSourceCodeHash:
+		return "SourceCodeHash"
+	case RequestContentTypeAddress:
+		return "Address"
+	case RequestContentTypeBytecodeHash:
+		return "BytecodeHash"
+	case RequestContentTypeGeneral:
+		return "General"
+	default:
+		return "UnknownRequestContentType"
+	}
+}
 
 // RequestContentTypeFromString returns the request content type by parsing a string.
 func RequestContentTypeFromString(s string) RequestContentType {

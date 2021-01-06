@@ -8,7 +8,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/certikfoundation/shentu/x/cert/keeper"
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
@@ -35,15 +34,12 @@ func NewDecodeStore(cdc codec.Marshaler) func(kvA, kvB kv.Pair) string {
 			return fmt.Sprintf("%v\n%v", platformA, platformB)
 
 		case bytes.Equal(kvA.Key[:1], types.CertificatesStoreKey()):
-			var certProtoA, certProtoB types.CertificateProto
-			cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &certProtoA)
-			cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &certProtoB)
-			
-			certA, err := keeper.ProtoUnwrapCertificate(certProtoA)
+			var certA, certB types.Certificate
+			err := codec.UnmarshalAny(cdc, &certA, kvA.Value)
 			if err != nil {
 				panic(err)
 			}
-			certB, err := keeper.ProtoUnwrapCertificate(certProtoB)
+			err = codec.UnmarshalAny(cdc, &certB, kvB.Value)
 			if err != nil {
 				panic(err)
 			}
