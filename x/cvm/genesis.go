@@ -1,8 +1,6 @@
 package cvm
 
 import (
-	"github.com/hyperledger/burrow/binary"
-	"github.com/hyperledger/burrow/crypto"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,17 +22,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 	cache := callframe.Cache
 
 	for _, contract := range data.Contracts {
-		cryptoAddr, err := crypto.AddressFromBytes(contract.Address)
-		if err != nil {
-			panic(err)
-		}
 		if contract.Abi != nil {
-			k.SetAbi(ctx, cryptoAddr, contract.Abi)
+			k.SetAbi(ctx, contract.Address, contract.Abi)
 		}
 
 		for _, kv := range contract.Storage {
-			key := binary.LeftPadWord256(kv.Key)
-			if err := state.SetStorage(cryptoAddr, key, kv.Value); err != nil {
+			if err := state.SetStorage(contract.Address, kv.Key, kv.Value); err != nil {
 				panic(err)
 			}
 		}
@@ -50,14 +43,14 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 		}
 
 		if len(addrMetas) > 0 {
-			if err := state.SetAddressMeta(cryptoAddr, addrMetas); err != nil {
+			if err := state.SetAddressMeta(contract.Address, addrMetas); err != nil {
 				panic(err)
 			}
 		}
 
 		// Register contract account. Since account can already exist from Account InitGenesis,
 		// we need to import those first.
-		account, err := state.GetAccount(cryptoAddr)
+		account, err := state.GetAccount(contract.Address)
 		if err != nil {
 			panic(err)
 		}
@@ -74,7 +67,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 			wasmCode = contract.Code.Code
 		}
 		newAccount := acm.Account{
-			Address:  cryptoAddr,
+			Address:  contract.Address,
 			Balance:  balance,
 			EVMCode:  evmCode,
 			WASMCode: wasmCode,

@@ -5,58 +5,47 @@ import "gogoproto/gogo.proto";
 import "shentu/cvm/v1alpha1/cvm.proto";
 import "burrow/payload.proto";
 
-option go_package = "github.com/certikfoundation/shentu/x/cvm/internal/types";
+option go_package = "github.com/certikfoundation/shentu/x/cvm/types";
 
 service Msg {
   rpc Call(MsgCall) returns (MsgCallResponse);
   rpc Deploy(MsgDeploy) returns (MsgDeployResponse);
-  rpc View(MsgView) returns (MsgViewResponse);
 }
 
 message MsgCall {
-  string caller = 1;
-  string callee = 2;
-  uint64 value = 3;
-  bytes data = 4;
+  string caller = 1 [(gogoproto.moretags) = "yaml:\"caller\""];
+  string callee = 2 [(gogoproto.moretags) = "yaml:\"callee\""];
+  uint64 value = 3 [(gogoproto.moretags) = "yaml:\"value\""];
+  bytes data = 4 [(gogoproto.moretags) = "yaml:\"data\""];
 }
 
 message MsgCallResponse {
-  bytes result = 1;
+  bytes result = 1 [(gogoproto.moretags) = "yaml:\"result\""];
 }
 
 message MsgDeploy {
   // Caller is the sender of the CVM-message.
-  string Caller = 1;
+  string caller = 1 [(gogoproto.moretags) = "yaml:\"caller\""];
 
   // Value is the amount of CTK transferred with the call.
-  uint64 value = 2;
+  uint64 value = 2 [(gogoproto.moretags) = "yaml:\"value\""];
 
   // Code is the contract byte code.
-  bytes code = 3;
+  bytes code = 3 [(gogoproto.moretags) = "yaml:\"code\""];
 
   // Abi is the Solidity ABI bytes for the contract code.
-  string abi = 4;
+  string abi = 4 [(gogoproto.moretags) = "yaml:\"abi\""];
 
   // Meta is the metadata for the contract.
-  repeated  payload.ContractMeta  meta = 5;
+  repeated  payload.ContractMeta  meta = 5 [(gogoproto.moretags) = "yaml:\"meta\""];
 
-  // IsEWASM is true if the code is EWASM code.
-  bool isEWASM = 6;
+  // is_eWASM is true if the code is EWASM code.
+  bool is_eWASM = 6 [(gogoproto.moretags) = "yaml:\"is_EWASM\""];
 
-  // IsRuntime is true if the code is runtime code.
-  bool isRuntime = 7;
+  // is_runtime is true if the code is runtime code.
+  bool is_runtime = 7 [(gogoproto.moretags) = "yaml:\"is_runtime\""];
 }
 
 message MsgDeployResponse {
-  bytes result = 1;
-}
-
-message MsgView {
-  string caller = 1;
-  string callee = 2;
-  string data = 3;
-}
-
-message MsgViewResponse {
-  bytes result = 1;
+  bytes result = 1 [(gogoproto.moretags) = "yaml:\"result\""];
 }

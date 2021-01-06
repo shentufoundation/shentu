@@ -52,7 +52,7 @@ func (k msgServer) Deploy(goCtx context.Context, msg *types.MsgDeploy) (*types.M
 
 func (k msgServer) Call(goCtx context.Context, msg *types.MsgCall) (*types.MsgCallResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	result, err := k.Keeper.Call(ctx, msg)
+	result, err := k.Keeper.Call(ctx, msg, false)
 	if err != nil {
 		return nil, err
 	}

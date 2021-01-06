@@ -64,7 +64,7 @@ func (k Keeper) Deploy(ctx sdk.Context, msg *types.MsgDeploy) ([]byte, error) {
 	return res, nil
 }
 
-func (k Keeper) Call(ctx sdk.Context, msg *types.MsgCall) ([]byte, error) {
+func (k Keeper) Call(ctx sdk.Context, msg *types.MsgCall, view bool) ([]byte, error) {
 	callerAddr, err := sdk.AccAddressFromBech32(msg.Caller)
 	if err != nil {
 		return []byte{}, err
@@ -73,9 +73,8 @@ func (k Keeper) Call(ctx sdk.Context, msg *types.MsgCall) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	res, err := k.Tx(ctx, callerAddr, calleeAddr, msg.Value, msg.Data, []*payload.ContractMeta{}, false, false, false)
+	res, err := k.Tx(ctx, callerAddr, calleeAddr, msg.Value, msg.Data, []*payload.ContractMeta{}, view, false, false)
 	return res, nil
-
 }
 
 // Call executes the CVM call from caller to callee with the given data and gas limit.
@@ -347,11 +346,11 @@ func (k Keeper) GetAllContracts(ctx sdk.Context) []types.Contract {
 			keyBytes := storeIterator.Key()[prefixAddrLen:]
 			var key binary.Word256
 			copy(key[:], keyBytes)
-			storage = append(storage, types.Storage{Key: key.Bytes(), Value: storeIterator.Value()})
+			storage = append(storage, types.Storage{Key: key, Value: storeIterator.Value()})
 		}
 		storeIterator.Close()
 		contracts = append(contracts, types.Contract{
-			Address: address.Bytes(),
+			Address: address,
 			Code:    code,
 			Storage: storage,
 			Abi:     abi,
