@@ -7,6 +7,10 @@ import (
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
+	golang_proto "github.com/golang/protobuf/proto"
+	github_com_hyperledger_burrow_acm "github.com/hyperledger/burrow/acm"
+	github_com_hyperledger_burrow_binary "github.com/hyperledger/burrow/binary"
+	github_com_hyperledger_burrow_crypto "github.com/hyperledger/burrow/crypto"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -14,6 +18,7 @@ import (
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
+var _ = golang_proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
@@ -40,16 +45,12 @@ func (m *GenesisState) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *GenesisState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_GenesisState.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
+	b = b[:cap(b)]
+	n, err := m.MarshalToSizedBuffer(b)
+	if err != nil {
+		return nil, err
 	}
+	return b[:n], nil
 }
 func (m *GenesisState) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_GenesisState.Merge(m, src)
@@ -84,12 +85,16 @@ func (m *GenesisState) GetMetadatas() Metadatas {
 	return nil
 }
 
+func (*GenesisState) XXX_MessageName() string {
+	return "shentu.cvm.v1alpha1.GenesisState"
+}
+
 type Contract struct {
-	Address []byte         `protobuf:"bytes,1,opt,name=Address,proto3" json:"Address,omitempty" yaml:"address"`
-	Code    CVMCode        `protobuf:"bytes,2,opt,name=code,proto3" json:"code" yaml:"code"`
-	Storage []Storage      `protobuf:"bytes,3,rep,name=storage,proto3" json:"storage" yaml:"storage"`
-	Abi     []byte         `protobuf:"bytes,4,opt,name=abi,proto3" json:"abi,omitempty" yaml:"abi"`
-	Meta    []ContractMeta `protobuf:"bytes,5,rep,name=meta,proto3" json:"meta" yaml:"contract_meta"`
+	Address github_com_hyperledger_burrow_crypto.Address `protobuf:"bytes,1,opt,name=Address,proto3,customtype=github.com/hyperledger/burrow/crypto.Address" json:"Address" yaml:"address"`
+	Code    CVMCode                                      `protobuf:"bytes,2,opt,name=code,proto3" json:"code" yaml:"code"`
+	Storage []Storage                                    `protobuf:"bytes,3,rep,name=storage,proto3" json:"storage" yaml:"storage"`
+	Abi     []byte                                       `protobuf:"bytes,4,opt,name=abi,proto3" json:"abi,omitempty" yaml:"abi"`
+	Meta    []ContractMeta                               `protobuf:"bytes,5,rep,name=meta,proto3" json:"meta" yaml:"contract_meta"`
 }
 
 func (m *Contract) Reset()         { *m = Contract{} }
@@ -102,16 +107,12 @@ func (m *Contract) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *Contract) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_Contract.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
+	b = b[:cap(b)]
+	n, err := m.MarshalToSizedBuffer(b)
+	if err != nil {
+		return nil, err
 	}
+	return b[:n], nil
 }
 func (m *Contract) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Contract.Merge(m, src)
@@ -124,13 +125,6 @@ func (m *Contract) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_Contract proto.InternalMessageInfo
-
-func (m *Contract) GetAddress() []byte {
-	if m != nil {
-		return m.Address
-	}
-	return nil
-}
 
 func (m *Contract) GetCode() CVMCode {
 	if m != nil {
@@ -160,9 +154,13 @@ func (m *Contract) GetMeta() []ContractMeta {
 	return nil
 }
 
+func (*Contract) XXX_MessageName() string {
+	return "shentu.cvm.v1alpha1.Contract"
+}
+
 type CVMCode struct {
-	CodeType int64  `protobuf:"varint,1,opt,name=code_type,json=codeType,proto3" json:"code_type,omitempty" yaml:"code_type"`
-	Code     []byte `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty" yaml:"code"`
+	CodeType int64                                      `protobuf:"varint,1,opt,name=code_type,json=codeType,proto3" json:"code_type,omitempty" yaml:"code_type"`
+	Code     github_com_hyperledger_burrow_acm.Bytecode `protobuf:"bytes,2,opt,name=code,proto3,customtype=github.com/hyperledger/burrow/acm.Bytecode" json:"code" yaml:"code"`
 }
 
 func (m *CVMCode) Reset()         { *m = CVMCode{} }
@@ -175,16 +173,12 @@ func (m *CVMCode) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *CVMCode) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_CVMCode.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
+	b = b[:cap(b)]
+	n, err := m.MarshalToSizedBuffer(b)
+	if err != nil {
+		return nil, err
 	}
+	return b[:n], nil
 }
 func (m *CVMCode) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_CVMCode.Merge(m, src)
@@ -205,16 +199,13 @@ func (m *CVMCode) GetCodeType() int64 {
 	return 0
 }
 
-func (m *CVMCode) GetCode() []byte {
-	if m != nil {
-		return m.Code
-	}
-	return nil
+func (*CVMCode) XXX_MessageName() string {
+	return "shentu.cvm.v1alpha1.CVMCode"
 }
 
 type Storage struct {
-	Key   []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty" yaml:"key"`
-	Value []byte `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty" yaml:"value"`
+	Key   github_com_hyperledger_burrow_binary.Word256 `protobuf:"bytes,1,opt,name=key,proto3,customtype=github.com/hyperledger/burrow/binary.Word256" json:"key" yaml:"key"`
+	Value []byte                                       `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty" yaml:"value"`
 }
 
 func (m *Storage) Reset()         { *m = Storage{} }
@@ -227,16 +218,12 @@ func (m *Storage) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *Storage) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_Storage.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
+	b = b[:cap(b)]
+	n, err := m.MarshalToSizedBuffer(b)
+	if err != nil {
+		return nil, err
 	}
+	return b[:n], nil
 }
 func (m *Storage) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Storage.Merge(m, src)
@@ -250,13 +237,6 @@ func (m *Storage) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Storage proto.InternalMessageInfo
 
-func (m *Storage) GetKey() []byte {
-	if m != nil {
-		return m.Key
-	}
-	return nil
-}
-
 func (m *Storage) GetValue() []byte {
 	if m != nil {
 		return m.Value
@@ -264,9 +244,13 @@ func (m *Storage) GetValue() []byte {
 	return nil
 }
 
+func (*Storage) XXX_MessageName() string {
+	return "shentu.cvm.v1alpha1.Storage"
+}
+
 type ContractMeta struct {
-	CodeHash     []byte `protobuf:"bytes,1,opt,name=code_hash,json=codeHash,proto3" json:"code_hash,omitempty" yaml:"code_hash"`
-	MetadataHash []byte `protobuf:"bytes,2,opt,name=metadata_hash,json=metadataHash,proto3" json:"metadata_hash,omitempty" yaml:"metadata_hash"`
+	CodeHash     github_com_hyperledger_burrow_binary.HexBytes `protobuf:"bytes,1,opt,name=code_hash,json=codeHash,proto3,customtype=github.com/hyperledger/burrow/binary.HexBytes" json:"code_hash" yaml:"code_hash"`
+	MetadataHash github_com_hyperledger_burrow_binary.HexBytes `protobuf:"bytes,2,opt,name=metadata_hash,json=metadataHash,proto3,customtype=github.com/hyperledger/burrow/binary.HexBytes" json:"metadata_hash" yaml:"metadata_hash"`
 }
 
 func (m *ContractMeta) Reset()         { *m = ContractMeta{} }
@@ -279,16 +263,12 @@ func (m *ContractMeta) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *ContractMeta) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ContractMeta.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
+	b = b[:cap(b)]
+	n, err := m.MarshalToSizedBuffer(b)
+	if err != nil {
+		return nil, err
 	}
+	return b[:n], nil
 }
 func (m *ContractMeta) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_ContractMeta.Merge(m, src)
@@ -302,23 +282,13 @@ func (m *ContractMeta) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ContractMeta proto.InternalMessageInfo
 
-func (m *ContractMeta) GetCodeHash() []byte {
-	if m != nil {
-		return m.CodeHash
-	}
-	return nil
-}
-
-func (m *ContractMeta) GetMetadataHash() []byte {
-	if m != nil {
-		return m.MetadataHash
-	}
-	return nil
+func (*ContractMeta) XXX_MessageName() string {
+	return "shentu.cvm.v1alpha1.ContractMeta"
 }
 
 type Metadata struct {
-	Hash     []byte `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty" yaml:"hash"`
-	Metadata string `protobuf:"bytes,2,opt,name=metadata,proto3" json:"metadata,omitempty" yaml:"metadata"`
+	Hash     github_com_hyperledger_burrow_binary.HexBytes `protobuf:"bytes,1,opt,name=hash,proto3,customtype=github.com/hyperledger/burrow/binary.HexBytes" json:"hash" yaml:"hash"`
+	Metadata string                                        `protobuf:"bytes,2,opt,name=metadata,proto3" json:"metadata,omitempty" yaml:"metadata"`
 }
 
 func (m *Metadata) Reset()         { *m = Metadata{} }
@@ -331,16 +301,12 @@ func (m *Metadata) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *Metadata) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_Metadata.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
+	b = b[:cap(b)]
+	n, err := m.MarshalToSizedBuffer(b)
+	if err != nil {
+		return nil, err
 	}
+	return b[:n], nil
 }
 func (m *Metadata) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Metadata.Merge(m, src)
@@ -354,13 +320,6 @@ func (m *Metadata) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Metadata proto.InternalMessageInfo
 
-func (m *Metadata) GetHash() []byte {
-	if m != nil {
-		return m.Hash
-	}
-	return nil
-}
-
 func (m *Metadata) GetMetadata() string {
 	if m != nil {
 		return m.Metadata
@@ -368,56 +327,75 @@ func (m *Metadata) GetMetadata() string {
 	return ""
 }
 
+func (*Metadata) XXX_MessageName() string {
+	return "shentu.cvm.v1alpha1.Metadata"
+}
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "shentu.cvm.v1alpha1.GenesisState")
+	golang_proto.RegisterType((*GenesisState)(nil), "shentu.cvm.v1alpha1.GenesisState")
 	proto.RegisterType((*Contract)(nil), "shentu.cvm.v1alpha1.Contract")
+	golang_proto.RegisterType((*Contract)(nil), "shentu.cvm.v1alpha1.Contract")
 	proto.RegisterType((*CVMCode)(nil), "shentu.cvm.v1alpha1.CVMCode")
+	golang_proto.RegisterType((*CVMCode)(nil), "shentu.cvm.v1alpha1.CVMCode")
 	proto.RegisterType((*Storage)(nil), "shentu.cvm.v1alpha1.Storage")
+	golang_proto.RegisterType((*Storage)(nil), "shentu.cvm.v1alpha1.Storage")
 	proto.RegisterType((*ContractMeta)(nil), "shentu.cvm.v1alpha1.ContractMeta")
+	golang_proto.RegisterType((*ContractMeta)(nil), "shentu.cvm.v1alpha1.ContractMeta")
 	proto.RegisterType((*Metadata)(nil), "shentu.cvm.v1alpha1.Metadata")
+	golang_proto.RegisterType((*Metadata)(nil), "shentu.cvm.v1alpha1.Metadata")
 }
 
 func init() { proto.RegisterFile("shentu/cvm/v1alpha1/genesis.proto", fileDescriptor_d5bb28341b6a9214) }
+func init() {
+	golang_proto.RegisterFile("shentu/cvm/v1alpha1/genesis.proto", fileDescriptor_d5bb28341b6a9214)
+}
 
 var fileDescriptor_d5bb28341b6a9214 = []byte{
-	// 591 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x54, 0xcd, 0x6e, 0xd3, 0x4c,
-	0x14, 0x8d, 0x9b, 0xf4, 0x4b, 0x3a, 0xf5, 0xd7, 0x96, 0x69, 0x85, 0xac, 0xaa, 0xb5, 0xd3, 0x41,
-	0x42, 0x5d, 0x20, 0x5b, 0x2d, 0x3b, 0x24, 0x16, 0xb8, 0x42, 0x74, 0xd3, 0x2e, 0x26, 0x88, 0x05,
-	0x9b, 0x32, 0xb1, 0x07, 0xdb, 0x6a, 0x12, 0x47, 0x9e, 0x49, 0x44, 0x76, 0x3c, 0x02, 0xcf, 0xc1,
-	0x83, 0xa0, 0x2e, 0xbb, 0x64, 0x65, 0x50, 0xf2, 0x06, 0x7e, 0x02, 0x34, 0x7f, 0xb5, 0x41, 0x51,
-	0x77, 0xce, 0x9c, 0x73, 0xcf, 0xbd, 0xe7, 0xdc, 0xc9, 0x80, 0x13, 0x96, 0xd2, 0x09, 0x9f, 0x05,
-	0xd1, 0x7c, 0x1c, 0xcc, 0xcf, 0xc8, 0x68, 0x9a, 0x92, 0xb3, 0x20, 0xa1, 0x13, 0xca, 0x32, 0xe6,
-	0x4f, 0x8b, 0x9c, 0xe7, 0x70, 0x5f, 0x51, 0xfc, 0x68, 0x3e, 0xf6, 0x0d, 0xe5, 0xf0, 0x20, 0xc9,
-	0x93, 0x5c, 0xe2, 0x81, 0xf8, 0x52, 0xd4, 0xc3, 0xe3, 0x75, 0x6a, 0xa2, 0x4e, 0xc2, 0xa8, 0xb4,
-	0x80, 0xfd, 0x4e, 0x69, 0x0f, 0x38, 0xe1, 0x14, 0xfa, 0xa0, 0x97, 0x10, 0x76, 0x53, 0x10, 0x4e,
-	0x1d, 0xab, 0x6f, 0x9d, 0x76, 0xc2, 0xfd, 0xaa, 0xf4, 0x76, 0x17, 0x64, 0x3c, 0x7a, 0x85, 0x0c,
-	0x82, 0x70, 0x37, 0x21, 0x0c, 0x0b, 0xfe, 0x35, 0xd8, 0x8a, 0xf2, 0x09, 0x2f, 0x48, 0xc4, 0x99,
-	0xb3, 0xd1, 0x6f, 0x9f, 0x6e, 0x9f, 0x1f, 0xfb, 0x6b, 0xc6, 0xf3, 0x2f, 0x34, 0x2b, 0x7c, 0x72,
-	0x57, 0x7a, 0xad, 0xef, 0xbf, 0xbc, 0x2d, 0x73, 0xc2, 0x70, 0x2d, 0x21, 0xf4, 0xc6, 0x94, 0x93,
-	0x98, 0x70, 0xc2, 0x9c, 0xf6, 0x23, 0x7a, 0x57, 0x9a, 0x55, 0xeb, 0x99, 0x13, 0x86, 0x6b, 0x09,
-	0xf4, 0x63, 0x03, 0xf4, 0x4c, 0x23, 0xf8, 0x02, 0x74, 0xdf, 0xc4, 0x71, 0x41, 0x19, 0x93, 0xde,
-	0xec, 0x10, 0x56, 0xa5, 0xb7, 0xa3, 0xbc, 0x11, 0x05, 0x20, 0x6c, 0x28, 0xf0, 0x2d, 0xe8, 0x44,
-	0x79, 0x4c, 0x9d, 0x8d, 0xbe, 0x75, 0xba, 0x7d, 0x7e, 0xb4, 0xde, 0xd5, 0x87, 0xab, 0x8b, 0x3c,
-	0xa6, 0xe1, 0xbe, 0x18, 0xa2, 0x2a, 0xbd, 0x6d, 0x25, 0x26, 0xea, 0x10, 0x96, 0xe5, 0xf0, 0x1a,
-	0x74, 0x19, 0xcf, 0x0b, 0x92, 0x50, 0xed, 0x67, 0xbd, 0xd2, 0x40, 0x71, 0xc2, 0xa7, 0x5a, 0x49,
-	0x8f, 0xa5, 0x4b, 0x11, 0x36, 0x22, 0xb0, 0x0f, 0xda, 0x64, 0x98, 0x39, 0x1d, 0x69, 0x60, 0xa7,
-	0x2a, 0x3d, 0xa0, 0x0d, 0x0c, 0x33, 0x84, 0x05, 0x04, 0x07, 0xa0, 0x23, 0x02, 0x70, 0x36, 0x65,
-	0xbb, 0x93, 0x47, 0xd7, 0x21, 0x42, 0x0b, 0x8f, 0x74, 0xcf, 0x03, 0x33, 0xbd, 0xc2, 0x6e, 0x84,
-	0x0a, 0xc2, 0x52, 0x0c, 0x11, 0xd0, 0xd5, 0x66, 0xe1, 0x99, 0xd8, 0x79, 0x4c, 0x6f, 0xf8, 0x62,
-	0xaa, 0x2e, 0x49, 0x3b, 0x3c, 0xa8, 0x4a, 0x6f, 0xaf, 0xf6, 0x2e, 0x21, 0x84, 0x7b, 0xe2, 0xfb,
-	0xfd, 0x62, 0x4a, 0xe1, 0xb3, 0x46, 0x96, 0x76, 0xb8, 0xbb, 0x36, 0x29, 0x34, 0x00, 0xdd, 0x41,
-	0x6d, 0xf2, 0x96, 0x2e, 0xf4, 0x96, 0x1a, 0x26, 0x6f, 0xe9, 0x02, 0x61, 0x01, 0xc1, 0xe7, 0x60,
-	0x73, 0x4e, 0x46, 0x33, 0x23, 0xb9, 0x57, 0x95, 0x9e, 0xad, 0x38, 0xf2, 0x18, 0x61, 0x05, 0xa3,
-	0xaf, 0x16, 0xb0, 0x9b, 0x66, 0x1f, 0xa6, 0x4f, 0x09, 0x4b, 0x75, 0x83, 0x7f, 0xa7, 0x17, 0x90,
-	0x9e, 0xfe, 0x92, 0xb0, 0x14, 0xbe, 0x06, 0xff, 0x9b, 0x1b, 0xa5, 0xca, 0x54, 0x4f, 0xa7, 0x8e,
-	0xec, 0x2f, 0x18, 0x61, 0xdb, 0xfc, 0x16, 0xe5, 0xe8, 0x13, 0xe8, 0x99, 0xbb, 0x29, 0x82, 0x68,
-	0x34, 0x6e, 0x04, 0xa1, 0x0a, 0x25, 0x08, 0x03, 0xd0, 0x33, 0x02, 0xb2, 0xd5, 0x56, 0xf3, 0x4f,
-	0x68, 0x10, 0x84, 0x1f, 0x48, 0xe1, 0xe5, 0xdd, 0xd2, 0xb5, 0xee, 0x97, 0xae, 0xf5, 0x7b, 0xe9,
-	0x5a, 0xdf, 0x56, 0x6e, 0xeb, 0x7e, 0xe5, 0xb6, 0x7e, 0xae, 0xdc, 0xd6, 0x47, 0x3f, 0xc9, 0x78,
-	0x3a, 0x1b, 0xfa, 0x51, 0x3e, 0x0e, 0x22, 0x5a, 0xf0, 0xec, 0xf6, 0x73, 0x3e, 0x9b, 0xc4, 0x84,
-	0x67, 0xf9, 0x24, 0xd0, 0x6f, 0xc3, 0x17, 0xf9, 0x3a, 0x88, 0x95, 0xb1, 0xe1, 0x7f, 0xf2, 0x5d,
-	0x78, 0xf9, 0x27, 0x00, 0x00, 0xff, 0xff, 0xaf, 0x5b, 0xa4, 0x49, 0x86, 0x04, 0x00, 0x00,
+	// 699 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x94, 0xcf, 0x4f, 0x13, 0x41,
+	0x14, 0xc7, 0xbb, 0xb4, 0xd8, 0x32, 0x54, 0xc4, 0x81, 0x98, 0x86, 0xc0, 0x6e, 0x99, 0x83, 0x21,
+	0x46, 0x77, 0x03, 0x46, 0x0f, 0xde, 0x58, 0xfc, 0x81, 0x07, 0x38, 0x2c, 0xf8, 0x23, 0x5e, 0x70,
+	0xba, 0x3b, 0x6c, 0x37, 0xb4, 0x9d, 0x66, 0x66, 0x5a, 0xd9, 0xbf, 0xc0, 0xab, 0x89, 0xf1, 0x9f,
+	0xf0, 0xaf, 0xf0, 0xc8, 0x91, 0x23, 0xf1, 0xb0, 0x9a, 0xf6, 0xe6, 0xb1, 0x47, 0x4f, 0x66, 0x76,
+	0x66, 0x6c, 0x35, 0x0d, 0x21, 0xdc, 0xda, 0x79, 0xef, 0x7d, 0xbe, 0xef, 0x7d, 0xe7, 0xed, 0x80,
+	0x75, 0xde, 0x24, 0x1d, 0xd1, 0xf3, 0xc2, 0x7e, 0xdb, 0xeb, 0x6f, 0xe2, 0x56, 0xb7, 0x89, 0x37,
+	0xbd, 0x98, 0x74, 0x08, 0x4f, 0xb8, 0xdb, 0x65, 0x54, 0x50, 0xb8, 0xa4, 0x52, 0xdc, 0xb0, 0xdf,
+	0x76, 0x4d, 0xca, 0xca, 0x72, 0x4c, 0x63, 0x9a, 0xc7, 0x3d, 0xf9, 0x4b, 0xa5, 0xae, 0xac, 0x4d,
+	0xa3, 0xc9, 0xba, 0x3c, 0x8c, 0x32, 0x0b, 0x54, 0x5f, 0x28, 0xf6, 0x81, 0xc0, 0x82, 0x40, 0x17,
+	0x54, 0x62, 0xcc, 0x8f, 0x18, 0x16, 0xa4, 0x66, 0xd5, 0xad, 0x8d, 0x92, 0xbf, 0x34, 0xca, 0x9c,
+	0x5b, 0x29, 0x6e, 0xb7, 0x9e, 0x20, 0x13, 0x41, 0x41, 0x39, 0xc6, 0x3c, 0x90, 0xf9, 0xfb, 0x60,
+	0x2e, 0xa4, 0x1d, 0xc1, 0x70, 0x28, 0x78, 0x6d, 0xa6, 0x5e, 0xdc, 0x98, 0xdf, 0x5a, 0x73, 0xa7,
+	0xb4, 0xe7, 0xee, 0xe8, 0x2c, 0xff, 0xf6, 0x59, 0xe6, 0x14, 0xbe, 0xfe, 0x70, 0xe6, 0xcc, 0x09,
+	0x0f, 0xc6, 0x08, 0xc9, 0x6b, 0x13, 0x81, 0x23, 0x2c, 0x30, 0xaf, 0x15, 0x2f, 0xe1, 0xed, 0xe9,
+	0xac, 0x31, 0xcf, 0x9c, 0xf0, 0x60, 0x8c, 0x40, 0xbf, 0x67, 0x40, 0xc5, 0x08, 0xc1, 0xf7, 0xa0,
+	0xbc, 0x1d, 0x45, 0x8c, 0x70, 0x9e, 0xcf, 0x56, 0xf5, 0x9f, 0xcb, 0xda, 0xef, 0x99, 0x73, 0x3f,
+	0x4e, 0x44, 0xb3, 0xd7, 0x70, 0x43, 0xda, 0xf6, 0x9a, 0x69, 0x97, 0xb0, 0x16, 0x89, 0x62, 0xc2,
+	0xbc, 0x46, 0x8f, 0x31, 0xfa, 0xc1, 0x0b, 0x59, 0xda, 0x15, 0xd4, 0xd5, 0xb5, 0xa3, 0xcc, 0x59,
+	0x50, 0x7e, 0x60, 0x75, 0x80, 0x02, 0x83, 0x85, 0xcf, 0x40, 0x29, 0xa4, 0x11, 0xa9, 0xcd, 0xd4,
+	0xad, 0x8d, 0xf9, 0xad, 0xd5, 0xe9, 0x4e, 0xbc, 0xde, 0xdb, 0xa1, 0x11, 0xf1, 0x97, 0xa4, 0xf8,
+	0x28, 0x73, 0xe6, 0x15, 0x4c, 0xd6, 0xa1, 0x20, 0x2f, 0x87, 0xfb, 0xa0, 0xcc, 0x05, 0x65, 0x38,
+	0x26, 0xda, 0x83, 0xe9, 0xa4, 0x03, 0x95, 0xe3, 0xdf, 0xd1, 0x24, 0xdd, 0x96, 0x2e, 0x45, 0x81,
+	0x81, 0xc0, 0x3a, 0x28, 0xe2, 0x46, 0x52, 0x2b, 0xe5, 0x43, 0x2f, 0x8c, 0x32, 0x07, 0xe8, 0x01,
+	0x1a, 0x09, 0x0a, 0x64, 0x08, 0x1e, 0x80, 0x92, 0x34, 0xad, 0x36, 0x9b, 0xcb, 0xad, 0x5f, 0x7a,
+	0x85, 0xd2, 0x68, 0x7f, 0x55, 0x6b, 0x2e, 0x9b, 0xee, 0x55, 0xec, 0x48, 0x52, 0x50, 0x90, 0xc3,
+	0xd0, 0x67, 0x0b, 0x94, 0xf5, 0xb4, 0x70, 0x53, 0x2e, 0x4a, 0x44, 0x8e, 0x44, 0xda, 0x55, 0x9b,
+	0x55, 0xf4, 0x97, 0x47, 0x99, 0xb3, 0x38, 0x1e, 0x3e, 0x0f, 0xa1, 0xa0, 0x22, 0x7f, 0x1f, 0xa6,
+	0x5d, 0x02, 0x5f, 0x4d, 0x98, 0x59, 0xf5, 0xb7, 0xf5, 0x5d, 0xdd, 0xbb, 0xfc, 0xae, 0x70, 0xd8,
+	0x76, 0xfd, 0x54, 0x10, 0x59, 0x39, 0xd5, 0x5c, 0xf4, 0xd1, 0x02, 0x65, 0xed, 0x1c, 0x3c, 0x04,
+	0xc5, 0x13, 0x92, 0xea, 0x6d, 0xf0, 0xaf, 0xb6, 0x0d, 0x8d, 0xa4, 0x83, 0x59, 0xea, 0xbe, 0xa1,
+	0x2c, 0xda, 0x7a, 0xf4, 0x78, 0x6c, 0xe6, 0x09, 0x49, 0x51, 0x20, 0x71, 0xf0, 0x2e, 0x98, 0xed,
+	0xe3, 0x56, 0xcf, 0x74, 0xbe, 0x38, 0xca, 0x9c, 0xaa, 0xca, 0xc9, 0x8f, 0x51, 0xa0, 0xc2, 0xe8,
+	0x97, 0x05, 0xaa, 0x93, 0xa6, 0xc2, 0x63, 0x6d, 0x52, 0x13, 0xf3, 0xa6, 0x6e, 0xea, 0xa5, 0x6e,
+	0xea, 0xc1, 0x95, 0x9a, 0xda, 0x25, 0xa7, 0x72, 0x78, 0xfe, 0x9f, 0xb3, 0x92, 0xa7, 0x9d, 0xdd,
+	0xc5, 0xbc, 0x09, 0x19, 0xb8, 0x69, 0x3e, 0x11, 0xa5, 0xa5, 0x1a, 0xdd, 0xbb, 0xae, 0x96, 0x5e,
+	0x82, 0x7f, 0x98, 0x28, 0xa8, 0x9a, 0xff, 0x52, 0x13, 0x7d, 0xb1, 0x40, 0xc5, 0x7c, 0xa2, 0xf0,
+	0x2d, 0x28, 0x4d, 0xcc, 0xf8, 0xf4, 0xba, 0xba, 0xfa, 0x76, 0x95, 0x5c, 0x4e, 0x84, 0x1e, 0xa8,
+	0x18, 0xd9, 0x7c, 0xaa, 0xb9, 0xc9, 0x07, 0xcc, 0x44, 0x50, 0xf0, 0x37, 0xc9, 0x3f, 0x3c, 0x1b,
+	0xd8, 0xd6, 0xf9, 0xc0, 0xb6, 0x2e, 0x06, 0xb6, 0xf5, 0x73, 0x60, 0x5b, 0x9f, 0x86, 0x76, 0xe1,
+	0xdb, 0xd0, 0xb6, 0xce, 0x86, 0xb6, 0x75, 0x3e, 0xb4, 0x0b, 0x17, 0x43, 0xbb, 0xf0, 0xce, 0x9d,
+	0x68, 0x2d, 0x24, 0x4c, 0x24, 0x27, 0xc7, 0xb4, 0xd7, 0x89, 0xb0, 0x48, 0x68, 0xc7, 0xd3, 0x6f,
+	0xec, 0x69, 0xfe, 0xca, 0xca, 0x2d, 0xe6, 0x8d, 0x1b, 0xf9, 0xfb, 0xfa, 0xf0, 0x4f, 0x00, 0x00,
+	0x00, 0xff, 0xff, 0xf4, 0x45, 0x31, 0x64, 0xce, 0x05, 0x00, 0x00,
 }
 
 func (m *GenesisState) Marshal() (dAtA []byte, err error) {
@@ -541,13 +519,16 @@ func (m *Contract) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x12
-	if len(m.Address) > 0 {
-		i -= len(m.Address)
-		copy(dAtA[i:], m.Address)
-		i = encodeVarintGenesis(dAtA, i, uint64(len(m.Address)))
-		i--
-		dAtA[i] = 0xa
+	{
+		size := m.Address.Size()
+		i -= size
+		if _, err := m.Address.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -571,13 +552,16 @@ func (m *CVMCode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Code) > 0 {
-		i -= len(m.Code)
-		copy(dAtA[i:], m.Code)
-		i = encodeVarintGenesis(dAtA, i, uint64(len(m.Code)))
-		i--
-		dAtA[i] = 0x12
+	{
+		size := m.Code.Size()
+		i -= size
+		if _, err := m.Code.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0x12
 	if m.CodeType != 0 {
 		i = encodeVarintGenesis(dAtA, i, uint64(m.CodeType))
 		i--
@@ -613,13 +597,16 @@ func (m *Storage) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Key) > 0 {
-		i -= len(m.Key)
-		copy(dAtA[i:], m.Key)
-		i = encodeVarintGenesis(dAtA, i, uint64(len(m.Key)))
-		i--
-		dAtA[i] = 0xa
+	{
+		size := m.Key.Size()
+		i -= size
+		if _, err := m.Key.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -643,20 +630,26 @@ func (m *ContractMeta) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.MetadataHash) > 0 {
-		i -= len(m.MetadataHash)
-		copy(dAtA[i:], m.MetadataHash)
-		i = encodeVarintGenesis(dAtA, i, uint64(len(m.MetadataHash)))
-		i--
-		dAtA[i] = 0x12
+	{
+		size := m.MetadataHash.Size()
+		i -= size
+		if _, err := m.MetadataHash.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
 	}
-	if len(m.CodeHash) > 0 {
-		i -= len(m.CodeHash)
-		copy(dAtA[i:], m.CodeHash)
-		i = encodeVarintGenesis(dAtA, i, uint64(len(m.CodeHash)))
-		i--
-		dAtA[i] = 0xa
+	i--
+	dAtA[i] = 0x12
+	{
+		size := m.CodeHash.Size()
+		i -= size
+		if _, err := m.CodeHash.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -687,13 +680,16 @@ func (m *Metadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Hash) > 0 {
-		i -= len(m.Hash)
-		copy(dAtA[i:], m.Hash)
-		i = encodeVarintGenesis(dAtA, i, uint64(len(m.Hash)))
-		i--
-		dAtA[i] = 0xa
+	{
+		size := m.Hash.Size()
+		i -= size
+		if _, err := m.Hash.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -738,10 +734,8 @@ func (m *Contract) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Address)
-	if l > 0 {
-		n += 1 + l + sovGenesis(uint64(l))
-	}
+	l = m.Address.Size()
+	n += 1 + l + sovGenesis(uint64(l))
 	l = m.Code.Size()
 	n += 1 + l + sovGenesis(uint64(l))
 	if len(m.Storage) > 0 {
@@ -772,10 +766,8 @@ func (m *CVMCode) Size() (n int) {
 	if m.CodeType != 0 {
 		n += 1 + sovGenesis(uint64(m.CodeType))
 	}
-	l = len(m.Code)
-	if l > 0 {
-		n += 1 + l + sovGenesis(uint64(l))
-	}
+	l = m.Code.Size()
+	n += 1 + l + sovGenesis(uint64(l))
 	return n
 }
 
@@ -785,10 +777,8 @@ func (m *Storage) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Key)
-	if l > 0 {
-		n += 1 + l + sovGenesis(uint64(l))
-	}
+	l = m.Key.Size()
+	n += 1 + l + sovGenesis(uint64(l))
 	l = len(m.Value)
 	if l > 0 {
 		n += 1 + l + sovGenesis(uint64(l))
@@ -802,14 +792,10 @@ func (m *ContractMeta) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.CodeHash)
-	if l > 0 {
-		n += 1 + l + sovGenesis(uint64(l))
-	}
-	l = len(m.MetadataHash)
-	if l > 0 {
-		n += 1 + l + sovGenesis(uint64(l))
-	}
+	l = m.CodeHash.Size()
+	n += 1 + l + sovGenesis(uint64(l))
+	l = m.MetadataHash.Size()
+	n += 1 + l + sovGenesis(uint64(l))
 	return n
 }
 
@@ -819,10 +805,8 @@ func (m *Metadata) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Hash)
-	if l > 0 {
-		n += 1 + l + sovGenesis(uint64(l))
-	}
+	l = m.Hash.Size()
+	n += 1 + l + sovGenesis(uint64(l))
 	l = len(m.Metadata)
 	if l > 0 {
 		n += 1 + l + sovGenesis(uint64(l))
@@ -1034,9 +1018,8 @@ func (m *Contract) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Address = append(m.Address[:0], dAtA[iNdEx:postIndex]...)
-			if m.Address == nil {
-				m.Address = []byte{}
+			if err := m.Address.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		case 2:
@@ -1275,9 +1258,8 @@ func (m *CVMCode) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Code = append(m.Code[:0], dAtA[iNdEx:postIndex]...)
-			if m.Code == nil {
-				m.Code = []byte{}
+			if err := m.Code.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		default:
@@ -1362,9 +1344,8 @@ func (m *Storage) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Key = append(m.Key[:0], dAtA[iNdEx:postIndex]...)
-			if m.Key == nil {
-				m.Key = []byte{}
+			if err := m.Key.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		case 2:
@@ -1483,9 +1464,8 @@ func (m *ContractMeta) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.CodeHash = append(m.CodeHash[:0], dAtA[iNdEx:postIndex]...)
-			if m.CodeHash == nil {
-				m.CodeHash = []byte{}
+			if err := m.CodeHash.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		case 2:
@@ -1517,9 +1497,8 @@ func (m *ContractMeta) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.MetadataHash = append(m.MetadataHash[:0], dAtA[iNdEx:postIndex]...)
-			if m.MetadataHash == nil {
-				m.MetadataHash = []byte{}
+			if err := m.MetadataHash.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		default:
@@ -1604,9 +1583,8 @@ func (m *Metadata) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Hash = append(m.Hash[:0], dAtA[iNdEx:postIndex]...)
-			if m.Hash == nil {
-				m.Hash = []byte{}
+			if err := m.Hash.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		case 2:

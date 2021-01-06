@@ -53,7 +53,7 @@ func SimulateMsgDeployHello55(k keeper.Keeper) simulation.Operation {
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, contractAddr, 0, data, nil, true, false, false)
+		ret, err := k.Call(ctx, caller.Address, false)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
@@ -86,7 +86,7 @@ func SimulateMsgDeploySimple(k keeper.Keeper) simulation.Operation {
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, contractAddr, 0, data, nil, true, false, false)
+		ret, err := k.Call(ctx, caller.Address, false)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
@@ -132,7 +132,7 @@ func SimulateMsgCallSimpleSet(k keeper.Keeper, contractAddr sdk.AccAddress, varV
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, contractAddr, 0, data, nil, true, false, false)
+		ret, err := k.Call(ctx, caller.Address, false)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
@@ -165,7 +165,7 @@ func SimulateMsgDeploySimpleEvent(k keeper.Keeper) simulation.Operation {
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, contractAddr, 0, data, nil, true, false, false)
+		ret, err := k.Call(ctx, caller.Address, false)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
@@ -211,7 +211,7 @@ func SimulateMsgCallSimpleEventSet(k keeper.Keeper, contractAddr sdk.AccAddress,
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, contractAddr, 0, data, nil, true, false, false)
+		ret, err := k.Call(ctx, caller.Address, false)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
@@ -244,7 +244,7 @@ func SimulateMsgDeployStorage(k keeper.Keeper) simulation.Operation {
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, contractAddr, 0, data, nil, true, false, false)
+		ret, err := k.Call(ctx, caller.Address, false)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
@@ -261,7 +261,7 @@ func SimulateMsgDeployStorage(k keeper.Keeper) simulation.Operation {
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		ret, err = k.Call(ctx, caller.Address, contractAddr, 0, data, nil, true, false, false)
+		ret, err = k.Call(ctx, caller.Address, false)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
@@ -304,7 +304,7 @@ func SimulateMsgCallStorageStore(k keeper.Keeper, contractAddr sdk.AccAddress, v
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, contractAddr, 0, data, nil, true, false, false)
+		ret, err := k.Call(ctx, caller.Address, false)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
@@ -321,7 +321,7 @@ func SimulateMsgCallStorageStore(k keeper.Keeper, contractAddr sdk.AccAddress, v
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		ret, err = k.Call(ctx, caller.Address, contractAddr, 0, data, nil, true, false, false)
+		ret, err = k.Call(ctx, caller.Address, false)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
