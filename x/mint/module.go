@@ -146,7 +146,6 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 	return []abci.ValidatorUpdate{}
 }
 
-
 // // TODO Simulation
 // // GenerateGenesisState creates a randomized GenState of the mint module.
 // func (AppModule) GenerateGenesisState(simState *module.SimulationState) {

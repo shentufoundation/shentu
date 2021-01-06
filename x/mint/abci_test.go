@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/certikfoundation/shentu/x/mint/keeper"
+
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -45,7 +47,7 @@ var (
 
 type testInput struct {
 	ctx sdk.Context
-	k   Keeper
+	k   keeper.Keeper
 }
 
 func newTestCodec() *codec.Codec {

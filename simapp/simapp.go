@@ -156,7 +156,7 @@ var (
 		sdkminttypes.ModuleName:        {authtypes.Minter},
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
-		sdkgovtypes.ModuleName:            {authtypes.Burner},
+		sdkgovtypes.ModuleName:         {authtypes.Burner},
 		oracletypes.ModuleName:         {authtypes.Burner},
 		shieldtypes.ModuleName:         {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
@@ -534,7 +534,7 @@ func NewSimApp(
 	// 	shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.StakingKeeper),
 	//  transferModule,
 	// )
-	
+
 	// app.sm.RegisterStoreDecoders()
 
 	app.MountKVStores(keys)

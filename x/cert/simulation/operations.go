@@ -93,7 +93,7 @@ func SimulateMsgCertifyValidator(ak types.AccountKeeper, bk types.BankKeeper, k 
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCertifyValidator, err.Error()), nil, err
 		}
-	
+
 		account := ak.GetAccount(ctx, certifierAddr)
 		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
 		if err != nil {
@@ -102,7 +102,7 @@ func SimulateMsgCertifyValidator(ak types.AccountKeeper, bk types.BankKeeper, k 
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
 		tx, err := helpers.GenTx(
-            txGen,
+			txGen,
 			[]sdk.Msg{msg},
 			fees,
 			helpers.DefaultGenTxGas,
@@ -157,7 +157,7 @@ func SimulateMsgCertifyPlatform(ak types.AccountKeeper, bk types.BankKeeper, k k
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
 		tx, err := helpers.GenTx(
-            txGen,
+			txGen,
 			[]sdk.Msg{msg},
 			fees,
 			helpers.DefaultGenTxGas,
@@ -209,7 +209,7 @@ func SimulateMsgCertifyAuditing(ak types.AccountKeeper, bk types.BankKeeper, k k
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
 		tx, err := helpers.GenTx(
-            txGen,
+			txGen,
 			[]sdk.Msg{msg},
 			fees,
 			helpers.DefaultGenTxGas,
@@ -261,7 +261,7 @@ func SimulateMsgCertifyProof(ak types.AccountKeeper, bk types.BankKeeper, k keep
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
 		tx, err := helpers.GenTx(
-            txGen,
+			txGen,
 			[]sdk.Msg{msg},
 			fees,
 			helpers.DefaultGenTxGas,
@@ -317,7 +317,7 @@ func SimulateMsgCertifyIdentity(ak types.AccountKeeper, bk types.BankKeeper, k k
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
 		tx, err := helpers.GenTx(
-            txGen,
+			txGen,
 			[]sdk.Msg{msg},
 			fees,
 			helpers.DefaultGenTxGas,
@@ -330,7 +330,7 @@ func SimulateMsgCertifyIdentity(ak types.AccountKeeper, bk types.BankKeeper, k k
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
-		
+
 		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err

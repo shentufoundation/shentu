@@ -20,9 +20,9 @@ import (
 )
 
 var (
-	denom = "stake"
+	denom    = "stake"
 	unlocker = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	pubkeys = []crypto.PubKey{
+	pubkeys  = []crypto.PubKey{
 		secp256k1.GenPrivKey().PubKey(),
 		secp256k1.GenPrivKey().PubKey(),
 	}
@@ -34,7 +34,7 @@ func TestManualVestingAcc(t *testing.T) {
 
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	
+
 	// Account setup
 	simapp.AddTestAddrsFromPubKeys(app, ctx, pubkeys, origAmt)
 	ba := authtypes.NewBaseAccountWithAddress(sdk.AccAddress(pubkeys[0].Address()))
@@ -85,7 +85,6 @@ func TestManualVestingAcc(t *testing.T) {
 	spendableCoins = app.BankKeeper.SpendableCoins(ctx, mva2.GetAddress())
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 850)}, spendableCoins)
 
-
 	// spendableCoins := mva2.SpendableCoins(now)
 	// require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 700)}, spendableCoins)
 
@@ -97,4 +96,3 @@ func TestManualVestingAcc(t *testing.T) {
 
 	// TODO: Test delegation, undelegation, genesis validation
 }
-
