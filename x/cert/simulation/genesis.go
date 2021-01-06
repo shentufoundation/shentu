@@ -8,7 +8,7 @@ import (
 
 // RandomizedGenState creates a random genesis state for module simulation.
 func RandomizedGenState(simState *module.SimulationState) {
-	gs := types.GenesisState{}
+	gs := &types.GenesisState{}
 
 	for _, acc := range simState.Accounts {
 		if simState.Rand.Intn(100) < 10 {

@@ -11,7 +11,7 @@ import (
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/certikfoundation/shentu/x/auth/vesting"
+	vesting "github.com/certikfoundation/shentu/x/auth/types"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 

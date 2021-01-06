@@ -8,7 +8,6 @@ import (
 
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/auth/types"
-	"github.com/certikfoundation/shentu/x/auth/vesting"
 )
 
 type msgServer struct {
@@ -41,7 +40,7 @@ func (k msgServer) Unlock(goCtx context.Context, msg *types.MsgUnlock) (*types.M
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "account %s does not exist", accountAddr)
 	}
 
-	mvacc, ok := acc.(*vesting.ManualVestingAccount)
+	mvacc, ok := acc.(*types.ManualVestingAccount)
 	if !ok {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "receiver account is not a manual vesting account")
 	}

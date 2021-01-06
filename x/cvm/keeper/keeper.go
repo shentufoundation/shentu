@@ -43,12 +43,13 @@ type Keeper struct {
 
 // NewKeeper creates a new instance of the CVM keeper.
 func NewKeeper(
-	cdc codec.BinaryMarshaler, key sdk.StoreKey, ak types.AccountKeeper, dk types.DistributionKeeper,
-	ck types.CertKeeper, paramSpace types.ParamSubspace) Keeper {
+	cdc codec.BinaryMarshaler, key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
+	dk types.DistributionKeeper, ck types.CertKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
 		cdc:        cdc,
 		key:        key,
 		ak:         ak,
+		bk:         bk,
 		dk:         dk,
 		ck:         ck,
 		paramSpace: paramSpace,

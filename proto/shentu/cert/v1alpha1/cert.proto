@@ -20,7 +20,7 @@ message Certifier {
 
 enum CertificateType {
     option (gogoproto.goproto_enum_prefix) = false;
-  
+
     CERT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "CertificateTypeNil"];
     CERT_TYPE_COMPILATION = 1 [(gogoproto.enumvalue_customname) = "CertificateTypeCompilation"];
     CERT_TYPE_AUDITING = 2 [(gogoproto.enumvalue_customname) = "CertificateTypeAuditing"];
@@ -33,6 +33,7 @@ enum CertificateType {
 
 enum RequestContentType {
     option (gogoproto.goproto_enum_prefix) = false;
+    option (gogoproto.goproto_enum_stringer) = false;
   
     REQ_CONTENT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "RequestContentTypeNil"];
     REQ_CONTENT_TYPE_SOURCE_CODE_HASH = 1 [(gogoproto.enumvalue_customname) = "RequestContentTypeSourceCodeHash"];

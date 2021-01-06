@@ -10,6 +10,9 @@ import (
 	"github.com/hyperledger/burrow/txs/payload"
 )
 
+var _ sdk.Msg = &MsgCall{}
+var _ sdk.Msg = &MsgDeploy{}
+
 // NewMsgCall returns a new CVM call message.
 func NewMsgCall(caller, callee string, value uint64, data []byte) MsgCall {
 	return MsgCall{

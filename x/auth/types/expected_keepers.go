@@ -5,6 +5,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
+type BankKeeper interface {
+	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+}
+
 type CertKeeper interface {
 	IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool
 }

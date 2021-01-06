@@ -2,10 +2,12 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/codec/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 // RegisterLegacyAminoCodec registers concrete types on the LegacyAmino codec
@@ -25,7 +27,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 }
 
 // RegisterInterfaces registers the x/oracle interfaces types with the interface registry
-func RegisterInterfaces(registry types.InterfaceRegistry) {
+func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgProposeCertifier{},
 		&MsgCertifyValidator{},
@@ -33,8 +35,14 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgCertifyPlatform{},
 		&MsgCertifyGeneral{},
 		&MsgCertifyCompilation{},
-		&CertifierUpdateProposal{},
 		&MsgRevokeCertificate{},
+	)
+
+	registry.RegisterImplementations((*govtypes.Content)(nil),
+		&CertifierUpdateProposal{},
+	)
+
+	registry.RegisterImplementations((*Certificate)(nil),
 		&GeneralCertificate{},
 		&CompilationCertificate{},
 	)
@@ -45,24 +53,14 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 var (
 	amino = codec.NewLegacyAmino()
 
-	// ModuleCdc references the global x/oracle module codec. Note, the codec should
+	// ModuleCdc references the global x/cert module codec. Note, the codec should
 	// ONLY be used in certain instances of tests and for JSON encoding as Amino is
 	// still used for that purpose.
 	//
-	// The actual codec used for serialization should be provided to x/oracle and
+	// The actual codec used for serialization should be provided to x/cert and
 	// defined at the application level.
 	ModuleCdc = codec.NewAminoCodec(amino)
 )
-
-// // ModuleCdc defines the cert codec.
-// var ModuleCdc *codec.Codec
-
-// func init() {
-// 	ModuleCdc = codec.New()
-// 	RegisterCodec(ModuleCdc)
-// 	codec.RegisterCrypto(ModuleCdc)
-// 	ModuleCdc.Seal()
-// }
 
 func init() {
 	RegisterLegacyAminoCodec(amino)

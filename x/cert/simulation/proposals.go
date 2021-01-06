@@ -4,7 +4,7 @@ import (
 	"math/rand"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/app/params"
@@ -16,22 +16,26 @@ import (
 const OpWeightSubmitCertifierUpdateProposal = "op_weight_submit_certifier_update_proposal"
 
 // ProposalContents defines the module weighted proposals' contents
-func ProposalContents(k keeper.Keeper) []simulation.WeightedProposalContent {
-	return []simulation.WeightedProposalContent{
-		{
-			AppParamsKey:       OpWeightSubmitCertifierUpdateProposal,
-			DefaultWeight:      params.DefaultWeightCertifierUpdateProposal,
-			ContentSimulatorFn: SimulateCertifierUpdateProposalContent(k),
-		},
+func ProposalContents(k keeper.Keeper) []simtypes.WeightedProposalContent {
+	return []simtypes.WeightedProposalContent{
+		simulation.NewWeightedProposalContent(
+			OpWeightSubmitCertifierUpdateProposal,
+			params.DefaultWeightCertifierUpdateProposal,
+			SimulateCertifierUpdateProposalContent(k),
+		),
 	}
 }
 
 // SimulateCertifierUpdateProposalContent generates random certifier update proposal content
 // nolint: funlen
-func SimulateCertifierUpdateProposalContent(k keeper.Keeper) simulation.ContentSimulatorFn {
-	return func(r *rand.Rand, ctx sdk.Context, accs []simulation.Account) govtypes.Content {
+func SimulateCertifierUpdateProposalContent(k keeper.Keeper) simtypes.ContentSimulatorFn {
+	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 		certifiers := k.GetAllCertifiers(ctx)
 		proposer_index := r.Intn(len(certifiers))
+		proposerAddr, err := sdk.AccAddressFromBech32(certifiers[proposer_index].Address)
+		if err != nil {
+			panic(err)
+		}
 
 		var addorremove types.AddOrRemove
 		var certifier sdk.AccAddress
@@ -49,15 +53,21 @@ func SimulateCertifierUpdateProposalContent(k keeper.Keeper) simulation.ContentS
 		case 1:
 			addorremove = types.Remove
 			certifier_index := r.Intn(len(certifiers))
-			certifier = certifiers[certifier_index].Address
+
+			certifierAddr, err := sdk.AccAddressFromBech32(certifiers[certifier_index].Address)
+			if err != nil {
+				panic(err)
+			}
+
+			certifier = certifierAddr
 		}
 
 		return types.NewCertifierUpdateProposal(
-			simulation.RandStringOfLength(r, 140),
-			simulation.RandStringOfLength(r, 5000),
+			simtypes.RandStringOfLength(r, 140),
+			simtypes.RandStringOfLength(r, 5000),
 			certifier,
-			simulation.RandStringOfLength(r, 30),
-			certifiers[proposer_index].Address,
+			simtypes.RandStringOfLength(r, 30),
+			proposerAddr,
 			addorremove,
 		)
 	}

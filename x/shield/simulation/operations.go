@@ -118,7 +118,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		pools := k.GetAllPools(ctx)
 		// restrict number of pools to reduce gas consumptions for unbondings and redelegations
 		if len(pools) > 20 {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		// admin
 		adminAddr := k.GetAdmin(ctx)
@@ -139,9 +139,9 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		totalClaimed := k.GetTotalClaimed(ctx)
 		poolParams := k.GetPoolParams(ctx)
 		maxShield := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt(), totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).Sub(totalShield))
-		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)
+		shieldAmount, err := simtypes.RandPositiveInt(r, maxShield)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
@@ -150,29 +150,29 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		shieldLimit := sdk.NewInt(int64(simulation.RandIntBetween(r, int(maxShield.Int64()), int(maxShield.Int64())*5)))
 
 		// sponsor
-		sponsor := strings.ToLower(simulation.RandStringOfLength(r, 10))
+		sponsor := strings.ToLower(simtypes.RandStringOfLength(r, 10))
 		if _, found := k.GetPoolBySponsor(ctx, sponsor); found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		// serviceFees
 		nativeAmount := account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom)
 		if !nativeAmount.IsPositive() {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
-		nativeAmount, err = simulation.RandPositiveInt(r, nativeAmount)
+		nativeAmount, err = simtypes.RandPositiveInt(r, nativeAmount)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		nativeServiceFees := sdk.NewCoins(sdk.NewCoin(bondDenom, nativeAmount))
-		foreignAmount, err := simulation.RandPositiveInt(r, sdk.NewInt(int64(DefaultIntMax)))
+		foreignAmount, err := simtypes.RandPositiveInt(r, sdk.NewInt(int64(DefaultIntMax)))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		foreignServiceFees := sdk.NewCoins(sdk.NewCoin(sponsor, foreignAmount))
 
 		serviceFees := types.MixedCoins{Native: nativeServiceFees, Foreign: foreignServiceFees}
-		sponsorAcc, _ := simulation.RandomAcc(r, accs)
-		description := simulation.RandStringOfLength(r, 42)
+		sponsorAcc, _ := simtypes.RandomAcc(r, accs)
+		description := simtypes.RandStringOfLength(r, 42)
 
 		msg := types.NewMsgCreatePool(simAccount.Address, shield, serviceFees, sponsor, sponsorAcc.Address, description, shieldLimit)
 
@@ -188,9 +188,9 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		)
 
 		if _, _, err := app.Deliver(tx); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -212,11 +212,11 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		// pool
 		poolID, _, found := keeper.RandomPoolInfo(r, k, ctx)
 		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		pool, found := k.GetPool(ctx, poolID)
 		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 
 		// shield
@@ -226,30 +226,30 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		totalClaimed := k.GetTotalClaimed(ctx)
 		poolParams := k.GetPoolParams(ctx)
 		maxShield := computeMaxShield(pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield, poolParams)
-		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)
+		shieldAmount, err := simtypes.RandPositiveInt(r, maxShield)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
 		// serviceFees
 		nativeAmount := account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom)
 		if !nativeAmount.IsPositive() {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
-		nativeAmount, err = simulation.RandPositiveInt(r, nativeAmount)
+		nativeAmount, err = simtypes.RandPositiveInt(r, nativeAmount)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		nativeServiceFees := sdk.NewCoins(sdk.NewCoin(bondDenom, nativeAmount))
-		foreignAmount, err := simulation.RandPositiveInt(r, sdk.NewInt(int64(DefaultIntMax)))
+		foreignAmount, err := simtypes.RandPositiveInt(r, sdk.NewInt(int64(DefaultIntMax)))
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		foreignServiceFees := sdk.NewCoins(sdk.NewCoin(pool.Sponsor, foreignAmount))
 
 		serviceFees := types.MixedCoins{Native: nativeServiceFees, Foreign: foreignServiceFees}
-		description := simulation.RandStringOfLength(r, 42)
+		description := simtypes.RandStringOfLength(r, 42)
 
 		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description, sdk.ZeroInt())
 
@@ -265,9 +265,9 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, sk types.Sta
 		)
 
 		if _, _, err := app.Deliver(tx); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -277,7 +277,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 		delAddr, available, found := keeper.RandomDelegation(r, k, ctx)
 		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		var simAccount simulation.Account
 		for _, simAcc := range accs {
@@ -293,9 +293,9 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		if found {
 			available = provider.DelegationBonded.Sub(provider.Collateral)
 		}
-		collateralAmount, err := simulation.RandPositiveInt(r, available)
+		collateralAmount, err := simtypes.RandPositiveInt(r, available)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		collateral := sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), collateralAmount))
 
@@ -313,9 +313,9 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		)
 
 		if _, _, err := app.Deliver(tx); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -325,7 +325,7 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 		provider, found := keeper.RandomProvider(r, k, ctx)
 		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 
 		var simAccount simulation.Account
@@ -342,9 +342,9 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 		totalWithdrawing := k.GetTotalWithdrawing(ctx)
 		totalShield := k.GetTotalShield(ctx)
 		withdrawable := sdk.MinInt(provider.Collateral.Sub(provider.Withdrawing), totalCollateral.Sub(totalWithdrawing).Sub(totalShield))
-		withdrawAmount, err := simulation.RandPositiveInt(r, withdrawable)
+		withdrawAmount, err := simtypes.RandPositiveInt(r, withdrawable)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		withdraw := sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), withdrawAmount))
 
@@ -362,9 +362,9 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, sk t
 		)
 
 		if _, _, err := app.Deliver(tx); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -374,7 +374,7 @@ func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper) simulat
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 		provider, found := keeper.RandomProvider(r, k, ctx)
 		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		var simAccount simulation.Account
 		for _, simAcc := range accs {
@@ -399,9 +399,9 @@ func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper) simulat
 		)
 
 		if _, _, err := app.Deliver(tx); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -409,17 +409,17 @@ func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper) simulat
 func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		purchaser, _ := simulation.RandomAcc(r, accs)
+		purchaser, _ := simtypes.RandomAcc(r, accs)
 		account := ak.GetAccount(ctx, purchaser.Address)
 		bondDenom := sk.BondDenom(ctx)
 
 		poolID, _, found := keeper.RandomPoolInfo(r, k, ctx)
 		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		pool, found := k.GetPool(ctx, poolID)
 		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 
 		totalCollateral := k.GetTotalCollateral(ctx)
@@ -428,19 +428,19 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		totalClaimed := k.GetTotalClaimed(ctx)
 		poolParams := k.GetPoolParams(ctx)
 		maxShield := computeMaxShield(pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield, poolParams)
-		shieldAmount, err := simulation.RandPositiveInt(r, maxShield)
+		shieldAmount, err := simtypes.RandPositiveInt(r, maxShield)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		if shieldAmount.ToDec().Mul(poolParams.ShieldFeesRate).GT(account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom).ToDec()) {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		if shieldAmount.ToDec().Mul(poolParams.ShieldFeesRate).TruncateInt().IsZero() {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
-		description := simulation.RandStringOfLength(r, 100)
+		description := simtypes.RandStringOfLength(r, 100)
 		msg := types.NewMsgPurchaseShield(poolID, shield, description, purchaser.Address)
 
 		fees := sdk.Coins{}
@@ -455,9 +455,9 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		)
 
 		if _, _, err := app.Deliver(tx); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -487,7 +487,7 @@ func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper)
 		if !found || purchase.ProtectionEndTime.Before(ctx.BlockTime()) {
 			return nil
 		}
-		lossAmount, err := simulation.RandPositiveInt(r, purchase.Shield)
+		lossAmount, err := simtypes.RandPositiveInt(r, purchase.Shield)
 		if err != nil {
 			return nil
 		}
@@ -495,8 +495,8 @@ func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper)
 			poolID,
 			sdk.NewCoins(sdk.NewCoin(bondDenom, lossAmount)),
 			purchase.PurchaseID,
-			simulation.RandStringOfLength(r, 500),
-			simulation.RandStringOfLength(r, 500),
+			simtypes.RandStringOfLength(r, 500),
+			simtypes.RandStringOfLength(r, 500),
 			purchaser,
 		)
 	}
@@ -506,17 +506,17 @@ func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper)
 func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types.StakingKeeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-		purchaser, _ := simulation.RandomAcc(r, accs)
+		purchaser, _ := simtypes.RandomAcc(r, accs)
 		account := ak.GetAccount(ctx, purchaser.Address)
 		bondDenom := sk.BondDenom(ctx)
 
 		poolID, _, found := keeper.RandomPoolInfo(r, k, ctx)
 		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		pool, found := k.GetPool(ctx, poolID)
 		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 
 		totalCollateral := k.GetTotalCollateral(ctx)
@@ -527,9 +527,9 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		maxShield := computeMaxShield(pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield, poolParams)
 		accountMax := sdk.OneDec().Quo(k.GetShieldStakingRate(ctx)).MulInt(account.GetCoins().AmountOf(k.BondDenom(ctx))).TruncateInt()
 		max := sdk.MinInt(accountMax, maxShield)
-		shieldAmount, err := simulation.RandPositiveInt(r, max)
+		shieldAmount, err := simtypes.RandPositiveInt(r, max)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		rate := k.GetShieldStakingRate(ctx)
 		maxShieldAmt := account.SpendableCoins(ctx.BlockTime()).AmountOf(bondDenom).ToDec().Quo(rate).TruncateInt()
@@ -538,10 +538,10 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 		if shield.IsZero() || k.GetShieldStakingRate(ctx).MulInt(shield.AmountOf(bondDenom)).TruncateInt().IsZero() {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 
-		description := simulation.RandStringOfLength(r, 100)
+		description := simtypes.RandStringOfLength(r, 100)
 		msg := types.NewMsgStakeForShield(poolID, shield, description, purchaser.Address)
 
 		fees := sdk.Coins{}
@@ -556,9 +556,9 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, sk types
 		)
 
 		if _, _, err := app.Deliver(tx); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -569,7 +569,7 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		bondDenom := sk.BondDenom(ctx)
 		stakeForShields := k.GetAllStakeForShields(ctx)
 		if len(stakeForShields) == 0 {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 		index := simulation.RandIntBetween(r, 0, len(stakeForShields))
 		sfs := stakeForShields[index]
@@ -588,7 +588,7 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, sk ty
 			}
 		}
 		if account == nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 
 		fees := sdk.Coins{}
@@ -603,9 +603,9 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, sk ty
 		)
 
 		if _, _, err := app.Deliver(tx); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -615,7 +615,7 @@ func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, s
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 		prPair, found := keeper.RandomMaturedProposalIDReimbursementPair(r, k, ctx)
 		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 
 		var simAccount simulation.Account
@@ -641,9 +641,9 @@ func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, s
 		)
 
 		if _, _, err := app.Deliver(tx); err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 

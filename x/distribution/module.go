@@ -3,7 +3,6 @@ package distribution
 
 import (
 	"encoding/json"
-	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -16,7 +15,8 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+
+	//simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	"github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -148,31 +148,31 @@ func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.V
 	return am.cosmosAppModule.EndBlock(ctx, rbb)
 }
 
-//____________________________________________________________________________
+// //____________________________________________________________________________
 
-// AppModuleSimulation functions
+// // AppModuleSimulation functions
 
-// GenerateGenesisState creates a randomized GenState of the distribution module.
-func (am AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	am.cosmosAppModule.GenerateGenesisState(simState)
-}
+// // GenerateGenesisState creates a randomized GenState of the distribution module.
+// func (am AppModule) GenerateGenesisState(simState *module.SimulationState) {
+// 	am.cosmosAppModule.GenerateGenesisState(simState)
+// }
 
-// ProposalContents returns all the distribution content functions used to simulate governance proposals.
-func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
-	return am.cosmosAppModule.ProposalContents(simState)
-}
+// // ProposalContents returns all the distribution content functions used to simulate governance proposals.
+// func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
+// 	return am.cosmosAppModule.ProposalContents(simState)
+// }
 
-// RandomizedParams creates randomized distribution param changes for the simulator.
-func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return am.cosmosAppModule.RandomizedParams(r)
-}
+// // RandomizedParams creates randomized distribution param changes for the simulator.
+// func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+// 	return am.cosmosAppModule.RandomizedParams(r)
+// }
 
-// RegisterStoreDecoder registers a decoder for distribution module's types
-func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	am.cosmosAppModule.RegisterStoreDecoder(sdr)
-}
+// // RegisterStoreDecoder registers a decoder for distribution module's types
+// func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+// 	am.cosmosAppModule.RegisterStoreDecoder(sdr)
+// }
 
-// WeightedOperations returns the all the distribution module operations with their respective weights.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return am.cosmosAppModule.WeightedOperations(simState)
-}
+// // WeightedOperations returns the all the distribution module operations with their respective weights.
+// func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+// 	return am.cosmosAppModule.WeightedOperations(simState)
+// }

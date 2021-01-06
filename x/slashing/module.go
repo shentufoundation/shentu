@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"math/rand"
 
-	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
-
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/gorilla/mux"
@@ -16,9 +14,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	sim "github.com/cosmos/cosmos-sdk/x/simulation"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	"github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -39,7 +38,7 @@ func (AppModuleBasic) Name() string {
 	return slashing.AppModuleBasic{}.Name()
 }
 
-// RegisterCodec registers the slashing module's types for the given codec.
+// RegisterLegacyAminoCodec registers the slashing module's types for the given codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
 }
@@ -164,14 +163,13 @@ func (am AppModule) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
-func (am AppModule) ProposalContents(simState module.SimulationState) []sim.WeightedProposalContent {
+func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
 	return am.cosmosAppModule.ProposalContents(simState)
 }
 
 // RandomizedParams creates randomized slashing param changes for the simulator.
-func (am AppModule) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-	//return am.cosmosAppModule.RandomizedParams(r)
-	return []sim.ParamChange{}
+func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	return []simtypes.ParamChange{} // disable slashing param change
 }
 
 // RegisterStoreDecoder registers a decoder for slashing module's types.
@@ -180,6 +178,6 @@ func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 }
 
 // WeightedOperations doesn't return any slashing module operation.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	return am.cosmosAppModule.WeightedOperations(simState)
 }

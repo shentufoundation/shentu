@@ -7,39 +7,14 @@ import (
 	"math"
 	"strings"
 
-	"github.com/gogo/protobuf/proto"
-
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
-
-// ProtoWrapCertificate wraps a certificate in a proto-enabled certificate wrapper.
-func ProtoWrapCertificate(certificate types.Certificate) (types.CertificateProto, error) {
-	msg, ok := certificate.(proto.Message)
-	if !ok {
-		return types.CertificateProto{}, fmt.Errorf("%T does not implement proto.Message", certificate)
-	}
-	any, err := codectypes.NewAnyWithValue(msg)
-	if err != nil {
-		return types.CertificateProto{}, err
-	}
-	return types.CertificateProto{Certificate: any}, nil
-}
-
-// ProtoUnwrapCertificate unwraps a certificate from a proto-enabled certificate wrapper.
-func ProtoUnwrapCertificate(certificateProto types.CertificateProto) (types.Certificate, error) {
-	certificate, ok := certificateProto.Certificate.GetCachedValue().(types.Certificate)
-	if !ok {
-		return nil, fmt.Errorf("%T does not implement types.Certificate", certificate)
-	}
-	return certificate, nil
-}
 
 // SetCertificate stores a certificate using its ID field.
 func (k Keeper) SetCertificate(ctx sdk.Context, certificate types.Certificate) {
@@ -84,14 +59,13 @@ func (k Keeper) GetCertificateByID(ctx sdk.Context, id types.CertificateID) (typ
 	if certificateData == nil {
 		return nil, types.ErrCertificateNotExists
 	}
-	var certificateProto types.CertificateProto
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(certificateData, &certificateProto)
 
-	certificate, err := ProtoUnwrapCertificate(certificateProto)
+	var cert types.Certificate
+	err := codec.UnmarshalAny(k.cdc, &cert, certificateData)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return certificate, nil
+	return cert, nil
 }
 
 // GetNewCertificateID gets an unused certificate ID for a new certificate.
@@ -173,15 +147,13 @@ func (k Keeper) IterateAllCertificate(ctx sdk.Context, callback func(certificate
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var certificateProto types.CertificateProto
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &certificateProto)
-
-		certificate, err := ProtoUnwrapCertificate(certificateProto)
+		var cert types.Certificate
+		err := codec.UnmarshalAny(k.cdc, &cert, iterator.Value())
 		if err != nil {
 			panic(err)
 		}
 
-		if callback(certificate) {
+		if callback(cert) {
 			break
 		}
 	}
@@ -198,15 +170,13 @@ func (k Keeper) IterateCertificatesByContent(ctx sdk.Context, certType types.Cer
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var certificateProto types.CertificateProto
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &certificateProto)
-
-		certificate, err := ProtoUnwrapCertificate(certificateProto)
+		var cert types.Certificate
+		err := codec.UnmarshalAny(k.cdc, &cert, iterator.Value())
 		if err != nil {
 			panic(err)
 		}
 
-		if callback(certificate) {
+		if callback(cert) {
 			break
 		}
 	}
@@ -221,15 +191,13 @@ func (k Keeper) IterateCertificatesByType(ctx sdk.Context, certType types.Certif
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var certificateProto types.CertificateProto
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &certificateProto)
-
-		certificate, err := ProtoUnwrapCertificate(certificateProto)
+		var cert types.Certificate
+		err := codec.UnmarshalAny(k.cdc, &cert, iterator.Value())
 		if err != nil {
 			panic(err)
 		}
 
-		if callback(certificate) {
+		if callback(cert) {
 			break
 		}
 	}

@@ -9,12 +9,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	simTypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	cosmosBank "github.com/cosmos/cosmos-sdk/x/bank"
-	sim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	banksim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/x/auth/vesting"
+	vesting "github.com/certikfoundation/shentu/x/auth/types"
 	"github.com/certikfoundation/shentu/x/bank/keeper"
 	"github.com/certikfoundation/shentu/x/bank/types"
 )
@@ -24,8 +24,8 @@ const (
 	DefaultWeightMsgLockedSend = 10
 )
 
-func WeightedOperations(appParams simTypes.AppParams, cdc codec.JSONMarshaler, ak types.AccountKeeper, bk keeper.Keeper) simulation.WeightedOperations {
-	cosmosOps := sim.WeightedOperations(appParams, cdc, ak, bk)
+func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, ak types.AccountKeeper, bk keeper.Keeper) simulation.WeightedOperations {
+	cosmosOps := banksim.WeightedOperations(appParams, cdc, ak, bk)
 
 	var weightMsgLockedSend int
 	appParams.GetOrGenerate(cdc, OpWeightMsgLockedSend, &weightMsgLockedSend, nil,
@@ -41,11 +41,11 @@ func WeightedOperations(appParams simTypes.AppParams, cdc codec.JSONMarshaler, a
 // SimulateMsgLockedSend tests and runs a single msg send where both
 // accounts already exist.
 // nolint: funlen
-func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simTypes.Operation {
+func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
-		accs []simTypes.Account, chainID string,
-	) (simTypes.OperationMsg, []simTypes.FutureOperation, error) {
+		accs []simtypes.Account, chainID string,
+	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		for _, acc := range accs {
 			account := ak.GetAccount(ctx, acc.Address)
 			mvacc, ok := account.(*vesting.ManualVestingAccount)
@@ -53,23 +53,31 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simTypes.Op
 				continue
 			}
 
-			from, _ := simTypes.RandomAcc(r, accs)
+			from, _ := simtypes.RandomAcc(r, accs)
 			fromAcc := ak.GetAccount(ctx, from.Address)
-			spendableCoins := fromAcc.SpendableCoins(ctx.BlockTime())
-			sendCoins := simTypes.RandSubsetCoins(r, spendableCoins)
+			spendableCoins := bk.SpendableCoins(ctx, fromAcc.GetAddress())
+			sendCoins := simtypes.RandSubsetCoins(r, spendableCoins)
 			if sendCoins.Empty() {
-				return simTypes.NoOpMsg(cosmosBank.ModuleName), nil, nil
+				return simtypes.NoOpMsg(banktypes.ModuleName, types.TypeMsgLockedSend, "send coins empty"), nil, nil
 			}
 			spendableCoins = spendableCoins.Sub(sendCoins)
 
-			fees, err := simTypes.RandomFees(r, ctx, spendableCoins)
+			fees, err := simtypes.RandomFees(r, ctx, spendableCoins)
 			if err != nil {
-				return simTypes.NoOpMsg(cosmosBank.ModuleName), nil, err
+				return simtypes.NoOpMsg(banktypes.ModuleName, types.TypeMsgLockedSend, err.Error()), nil, err
 			}
 
-			msg := types.NewMsgLockedSend(fromAcc.GetAddress(), mvacc.Address, sdk.AccAddress{}, sendCoins)
+			toAddr, err := sdk.AccAddressFromBech32(mvacc.Address)
+			if err != nil {
+				return simtypes.NoOpMsg(banktypes.ModuleName, types.TypeMsgLockedSend, err.Error()), nil, err
+			}
+
+			msg := types.NewMsgLockedSend(fromAcc.GetAddress(), toAddr, sdk.AccAddress{}, sendCoins)
+
+			txGen := simappparams.MakeTestEncodingConfig().TxConfig
 
 			tx, err := helpers.GenTx(
+				txGen,
 				[]sdk.Msg{msg},
 				fees,
 				helpers.DefaultGenTxGas,
@@ -79,18 +87,17 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simTypes.Op
 				from.PrivKey,
 			)
 			if err != nil {
-				return simTypes.NoOpMsg(cosmosBank.ModuleName), nil, err
+				return simtypes.NoOpMsg(banktypes.ModuleName, msg.Type(), err.Error()), nil, err
 			}
 
-			txGen := simappparams.MakeTestEncodingConfig().TxConfig
 			_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 			if err != nil {
-				return simTypes.NoOpMsg(cosmosBank.ModuleName), nil, err
+				return simtypes.NoOpMsg(banktypes.ModuleName, msg.Type(), err.Error()), nil, err
 			}
 
-			return simTypes.NewOperationMsg(msg, true, ""), nil, nil
+			return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 		}
-		return simTypes.NewOperationMsgBasic(cosmosBank.ModuleName,
+		return simtypes.NewOperationMsgBasic(banktypes.ModuleName,
 			"NoOp: no available manual-vesting account found, skip this tx", "", false, nil), nil, nil
 	}
 }

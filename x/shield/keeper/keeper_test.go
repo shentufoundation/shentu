@@ -1,5 +1,6 @@
 package keeper_test
 
+/*
 import (
 	"encoding/hex"
 	"math"
@@ -341,3 +342,4 @@ func TestClaimProposal(t *testing.T) {
 	afterInt := app.BankKeeper.GetCoins(ctx, purchaser).AmountOf(bondDenom)
 	require.True(t, beforeInt.Add(sdk.NewInt(loss)).Equal(afterInt))
 }
+*/
