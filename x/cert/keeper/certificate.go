@@ -59,7 +59,7 @@ func (k Keeper) GetCertificateByID(ctx sdk.Context, id types.CertificateID) (typ
 	if certificateData == nil {
 		return nil, types.ErrCertificateNotExists
 	}
-	
+
 	var cert types.Certificate
 	err := codec.UnmarshalAny(k.cdc, &cert, certificateData)
 	if err != nil {
@@ -152,7 +152,7 @@ func (k Keeper) IterateAllCertificate(ctx sdk.Context, callback func(certificate
 		if err != nil {
 			panic(err)
 		}
-		
+
 		if callback(cert) {
 			break
 		}
@@ -175,7 +175,7 @@ func (k Keeper) IterateCertificatesByContent(ctx sdk.Context, certType types.Cer
 		if err != nil {
 			panic(err)
 		}
-		
+
 		if callback(cert) {
 			break
 		}
@@ -196,7 +196,7 @@ func (k Keeper) IterateCertificatesByType(ctx sdk.Context, certType types.Certif
 		if err != nil {
 			panic(err)
 		}
-		
+
 		if callback(cert) {
 			break
 		}
