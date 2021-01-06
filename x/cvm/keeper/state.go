@@ -189,9 +189,13 @@ func (s *State) GetAddressMeta(address crypto.Address) ([]*acm.ContractMeta, err
 func (s *State) SetAddressMeta(address crypto.Address, contMeta []*acm.ContractMeta) error {
 	var metadata types.ContractMetas
 	for _, meta := range contMeta {
-		metadata = append(metadata, *meta)
+		metadata.Metas = append(metadata.Metas, meta)
 	}
-	bz, err := s.legacyAmino.MarshalBinaryLengthPrefixed(metadata)
+	//bz, err := s.legacyAmino.MarshalBinaryLengthPrefixed(metadata)
+	bz, err := s.cdc.MarshalBinaryBare(&metadata)
+	if err != nil {
+		panic(err)
+	}
 	s.store.Set(types.AddressMetaStoreKey(address), bz)
 	return err
 }

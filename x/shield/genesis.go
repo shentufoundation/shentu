@@ -1,6 +1,8 @@
 package shield
 
 import (
+	"strings"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,10 +15,16 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []abci.ValidatorUpdate {
 	k.SetPoolParams(ctx, data.PoolParams)
 	k.SetClaimProposalParams(ctx, data.ClaimProposalParams)
-	adminAddr, err := sdk.AccAddressFromBech32(data.ShieldAdmin)
-	if err != nil {
-		panic(err)
+	
+	adminAddr := sdk.AccAddress{}
+	var err error
+	if len(strings.TrimSpace(data.ShieldAdmin)) != 0 {
+		adminAddr, err = sdk.AccAddressFromBech32(data.ShieldAdmin)
+		if err != nil {
+			panic(err)
+		}
 	}
+
 	k.SetAdmin(ctx, adminAddr)
 	k.SetTotalCollateral(ctx, data.TotalCollateral)
 	k.SetTotalWithdrawing(ctx, data.TotalWithdrawing)

@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	denom = "uctk"
+	denom = "stake"
 	unlocker = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	pubkeys = []crypto.PubKey{
 		secp256k1.GenPrivKey().PubKey(),

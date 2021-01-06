@@ -311,6 +311,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		appCodec,
 		keys[cvmtypes.StoreKey],
 		app.accountKeeper,
+		app.bankKeeper,
 		app.distrKeeper,
 		&app.certKeeper,
 		app.GetSubspace(cvmtypes.ModuleName),
