@@ -1,4 +1,4 @@
-package keeper
+package keeper_test
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ import (
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/execution/engine"
 
-	"github.com/certikfoundation/shentu/x/cvm/types"
+	. "github.com/certikfoundation/shentu/x/cvm/keeper"
 )
 
 func TestState_NewState(t *testing.T) {
@@ -94,9 +94,9 @@ func TestState_RemoveAccount(t *testing.T) {
 	err = state.RemoveAccount(acc.Address)
 	require.Nil(t, err)
 
-	require.Nil(t, state.store.Get(types.CodeStoreKey(acc.Address)))
-	require.Nil(t, state.store.Get(types.AbiStoreKey(acc.Address)))
-	require.Nil(t, state.store.Get(types.AddressMetaStoreKey(acc.Address)))
+	require.Nil(t, cvmk.GetAbi(ctx, acc.Address))
+	addrMetas, _ := state.GetAddressMeta(acc.Address)
+	require.Nil(t, addrMetas)
 
 	nilAddr := append([]byte{0x00}, acc.Address[1:]...)
 	addr, err = crypto.AddressFromBytes(nilAddr)

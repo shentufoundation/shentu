@@ -92,7 +92,7 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 		callframe.ReadOnly()
 		sequenceBytes = make([]byte, 1)
 	} else {
-		sequenceBytes = k.getAccountSeqNum(ctx, caller)
+		sequenceBytes = k.GetAccountSeqNum(ctx, caller)
 	}
 
 	var calleeAddr crypto.Address
@@ -250,8 +250,8 @@ func (k Keeper) SetAbi(ctx sdk.Context, address crypto.Address, abi []byte) {
 	ctx.KVStore(k.key).Set(types.AbiStoreKey(address), abi)
 }
 
-// getAbi returns the abi at the given address.
-func (k Keeper) getAbi(ctx sdk.Context, address crypto.Address) []byte {
+// GetAbi returns the abi at the given address.
+func (k Keeper) GetAbi(ctx sdk.Context, address crypto.Address) []byte {
 	return ctx.KVStore(k.key).Get(types.AbiStoreKey(address))
 }
 
@@ -295,8 +295,8 @@ func WrapLogger(l log.Logger) *logging.Logger {
 	return logging.NewLogger(&logger{l})
 }
 
-// getAccountSeqNum returns the account sequence number.
-func (k Keeper) getAccountSeqNum(ctx sdk.Context, address sdk.AccAddress) []byte {
+// GetAccountSeqNum returns the account sequence number.
+func (k Keeper) GetAccountSeqNum(ctx sdk.Context, address sdk.AccAddress) []byte {
 	callerAcc := k.ak.GetAccount(ctx, address)
 	callerSequence := callerAcc.GetSequence()
 	accountByte := make([]byte, 8)
@@ -329,7 +329,7 @@ func (k Keeper) GetAllContracts(ctx sdk.Context) []types.Contract {
 		}
 		var code types.CVMCode
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(contractIterator.Value(), &code)
-		abi := k.getAbi(ctx, address)
+		abi := k.GetAbi(ctx, address)
 		addrMeta, err := k.getAddrMeta(ctx, address)
 
 		var meta []types.ContractMeta

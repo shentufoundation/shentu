@@ -1,4 +1,4 @@
-package keeper
+package keeper_test
 
 import (
 	"encoding/hex"
@@ -22,6 +22,7 @@ import (
 	"github.com/hyperledger/burrow/execution/native"
 	"github.com/hyperledger/burrow/txs/payload"
 
+	. "github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 

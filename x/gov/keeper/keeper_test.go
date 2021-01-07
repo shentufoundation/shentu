@@ -1,4 +1,4 @@
-package keeper
+package keeper_test
 
 import (
 	"fmt"
@@ -16,6 +16,7 @@ import (
 
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/simapp"
+	. "github.com/certikfoundation/shentu/x/gov/keeper"
 	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
@@ -25,11 +26,17 @@ func TestKeeper_ProposeAndVote(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
-	tp := govtypes.TextProposal{Title: "title0", Description: "desc0"}
+	tp := govtypes.NewTextProposal("title0", "desc0")
 	t.Run("Test submitting a proposal and adding a vote with yes", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
+		pp, err := app.GovKeeper.SubmitProposal(ctx, tp, addrs[0])
 		require.Equal(t, nil, err)
+		fmt.Println(pp.GetContent().String())
+		p, ok := app.GovKeeper.GetProposal(ctx, pp.ProposalId)
+		require.Equal(t, true, ok)
+		fmt.Println(p.String())
+		fmt.Println(p.GetContent().String())
 		vote := govtypes.NewVote(pp.ProposalId, addrs[0], govtypes.OptionYes)
+		_ = app.BankKeeper.AddCoins(ctx, addrs[1], sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 700*1e6)))
 
 		coins700 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 700*1e6))
 		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coins700)
@@ -40,7 +47,7 @@ func TestKeeper_ProposeAndVote(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		err = app.GovKeeper.AddVote(ctx, vote.ProposalId, voter, vote.Option)
+		err = app.GovKeeper.AddVote(ctx, pp.ProposalId, voter, vote.Option)
 		require.Equal(t, nil, err)
 
 		// the vote does not count since addr[0] is not a validator

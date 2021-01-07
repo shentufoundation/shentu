@@ -19,7 +19,7 @@ import (
 	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
-// NewProposal returns a new proposal.
+// NewProposal creates a new Proposal instance
 func NewProposal(content govtypes.Content, id uint64, proposerAddress sdk.AccAddress, isProposerCouncilMember bool, submitTime time.Time, depositEndTime time.Time) (Proposal, error) {
 	p := Proposal{
 		ProposalId:              id,
@@ -182,19 +182,13 @@ func (status ProposalStatus) Format(s fmt.State, verb rune) {
 	}
 }
 
-// Proposal types
-const (
-	ProposalTypeText            string = "Text"
-	ProposalTypeSoftwareUpgrade string = "SoftwareUpgrade"
-)
-
 // ProposalHandler implements the Handler interface for governance module-based
 // proposals (ie. TextProposal and SoftwareUpgradeProposal). Since these are
 // merely signaling mechanisms at the moment and do not affect state, it
 // performs a no-op.
 func ProposalHandler(_ sdk.Context, c govtypes.Content) error {
 	switch c.ProposalType() {
-	case ProposalTypeText, ProposalTypeSoftwareUpgrade:
+	case govtypes.ProposalTypeText:
 		// both proposal types do not change state so this performs a no-op
 		return nil
 

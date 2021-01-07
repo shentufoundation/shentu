@@ -153,7 +153,7 @@ func queryAbi(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keep
 		panic("Could not parse address " + path[0])
 	}
 
-	abi := keeper.getAbi(ctx, crypto.MustAddressFromBytes(addr))
+	abi := keeper.GetAbi(ctx, crypto.MustAddressFromBytes(addr))
 	res, err2 := codec.MarshalJSONIndent(legacyQuerierCdc, types.QueryResAbi{Abi: abi})
 	if err2 != nil {
 		panic("could not marshal result to JSON")

@@ -1,4 +1,4 @@
-package keeper
+package keeper_test
 
 import (
 	"encoding/hex"
@@ -25,6 +25,7 @@ import (
 	"github.com/hyperledger/burrow/execution/evm/abi"
 
 	"github.com/certikfoundation/shentu/common"
+	. "github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
@@ -475,14 +476,16 @@ func TestZeroTransfer(t *testing.T) {
 func TestStoreLastBlockHash(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cvmk := app.CVMKeeper
+
+	blockChain := NewBlockChain(ctx, cvmk)
 
 	t.Run("store Ctx block hash", func(t *testing.T) {
 		ctx := ctx
-		cvmk := app.CVMKeeper
 
 		height1 := ctx.BlockHeight()
 		cvmk.StoreLastBlockHash(ctx)
-		hash1 := ctx.KVStore(cvmk.key).Get(types.BlockHashStoreKey(height1))
+		hash1, _ := blockChain.BlockHash(uint64(height1))
 
 		coins := sdk.NewCoins(sdk.NewCoin("uctk", sdk.NewInt(10)))
 		err := app.BankKeeper.SendCoins(ctx, Addrs[0], Addrs[1], coins)
@@ -491,13 +494,13 @@ func TestStoreLastBlockHash(t *testing.T) {
 		ctx = ctx.WithBlockHeader(tmproto.Header{LastBlockId: tmproto.BlockID{Hash: []byte{0x01}}})
 		ctx = ctx.WithBlockHeight(2)
 		cvmk.StoreLastBlockHash(ctx)
-		hash2 := ctx.KVStore(cvmk.key).Get(types.BlockHashStoreKey(2))
+		hash2, _ := blockChain.BlockHash(2)
 		require.NotEqual(t, hash1, hash2)
 
 		ctx = ctx.WithBlockHeader(tmproto.Header{LastBlockId: tmproto.BlockID{Hash: nil}})
 		ctx = ctx.WithBlockHeight(3)
 		cvmk.StoreLastBlockHash(ctx)
-		hash3 := ctx.KVStore(cvmk.key).Get(types.BlockHashStoreKey(3))
+		hash3, _ := blockChain.BlockHash(3)
 		require.Equal(t, []uint8(nil), hash3)
 	})
 }
@@ -514,7 +517,7 @@ func TestAbi(t *testing.T) {
 		addr, err := crypto.AddressFromBytes(Addrs[0].Bytes())
 		require.Nil(t, err)
 		cvmk.SetAbi(ctx, addr, oldAbi)
-		restoreAbi := cvmk.getAbi(ctx, addr)
+		restoreAbi := cvmk.GetAbi(ctx, addr)
 		require.Equal(t, oldAbi, restoreAbi)
 	})
 }
@@ -533,7 +536,7 @@ func TestCode(t *testing.T) {
 		_, err = cvmk.Tx(ctx, Addrs[0], nil, 0, bytecode, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 
-		seqNum := cvmk.getAccountSeqNum(ctx, Addrs[0])
+		seqNum := cvmk.GetAccountSeqNum(ctx, Addrs[0])
 		calleeAddr := crypto.NewContractAddress(addr, seqNum)
 
 		code, err := cvmk.GetCode(ctx, calleeAddr)
@@ -586,7 +589,7 @@ func TestPrecompiles(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	t.Run("deploy and call native contracts", func(t *testing.T) {
-		code, err := hex.DecodeString(testCheckBytecodeString)
+		code, err := hex.DecodeString(TestCheckBytecodeString)
 		require.Nil(t, err)
 
 		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
@@ -631,27 +634,27 @@ func TestPrecompiles(t *testing.T) {
 		}
 
 		callCheckCall, _, err := abi.EncodeFunctionCall(
-			testCheckAbiJsonString,
+			TestCheckAbiJsonString,
 			"callCheck",
 			WrapLogger(ctx.Logger()),
 		)
 		callCheckNotCertified, _, err := abi.EncodeFunctionCall(
-			testCheckAbiJsonString,
+			TestCheckAbiJsonString,
 			"callCheckNotCertified",
 			WrapLogger(ctx.Logger()),
 		)
 		proofCheck, _, err := abi.EncodeFunctionCall(
-			testCheckAbiJsonString,
+			TestCheckAbiJsonString,
 			"proofCheck",
 			WrapLogger(ctx.Logger()),
 		)
 		compCheck, _, err := abi.EncodeFunctionCall(
-			testCheckAbiJsonString,
+			TestCheckAbiJsonString,
 			"compilationCheck",
 			WrapLogger(ctx.Logger()),
 		)
 		bothCheck, _, err := abi.EncodeFunctionCall(
-			testCheckAbiJsonString,
+			TestCheckAbiJsonString,
 			"proofAndAuditingCheck",
 			WrapLogger(ctx.Logger()),
 		)
@@ -671,7 +674,7 @@ func TestPrecompiles(t *testing.T) {
 
 	t.Run("deploy and call certify validator native contract", func(t *testing.T) {
 		valStr := "certikvalconspub1zcjduepq32v65eegk2yvgzdya5dqnlnc063u7mt3dh66z2xyv9rddgm6t94s4pjeat"
-		code, err := hex.DecodeString(testCertifyValidatorString)
+		code, err := hex.DecodeString(TestCertifyValidatorString)
 		require.Nil(t, err)
 
 		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
@@ -687,7 +690,7 @@ func TestPrecompiles(t *testing.T) {
 		require.True(t, app.CertKeeper.IsCertifier(ctx, certAddr))
 
 		certifyValidator, _, err := abi.EncodeFunctionCall(
-			testCertifyValidatorAbiJsonString,
+			TestCertifyValidatorAbiJsonString,
 			"certifyValidator",
 			WrapLogger(ctx.Logger()),
 		)

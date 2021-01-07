@@ -13,7 +13,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/gov/types"
@@ -22,7 +22,7 @@ import (
 func makeTestCodec() *codec.Codec {
 	cdc := codec.New()
 	sdk.RegisterCodec(cdc)
-	govTypes.RegisterCodec(cdc)
+	govtypes.RegisterCodec(cdc)
 	return cdc
 }
 
@@ -33,7 +33,7 @@ func TestDecodeStore(t *testing.T) {
 
 	endTime := time.Now().UTC()
 
-	content := govTypes.ContentFromProposalType("test", "test", types.ProposalTypeText)
+	content := govtypes.ContentFromProposalType("test", "test", govtypes.ProposalTypeText)
 	proposalID := rand.Uint64()
 	proposer := RandomAccount()
 	isMember := 1 == rand.Intn(2)
@@ -46,13 +46,13 @@ func TestDecodeStore(t *testing.T) {
 	txhash := "2300092389009f098099"
 	deposit := types.NewDeposit(proposalID, depositor.Address, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.OneInt())), txhash)
 	voter := RandomAccount()
-	vote := types.NewVote(proposalID, voter.Address, govTypes.OptionYes, txhash)
+	vote := types.NewVote(proposalID, voter.Address, govtypes.OptionYes, txhash)
 
 	kvPairs := tmkv.Pairs{
-		tmkv.Pair{Key: govTypes.ProposalKey(proposalID), Value: cdc.MustMarshalBinaryBare(&proposal)},
-		tmkv.Pair{Key: govTypes.InactiveProposalQueueKey(proposalID, endTime), Value: proposalIDBz},
-		tmkv.Pair{Key: govTypes.DepositKey(proposalID, depositor.Address), Value: cdc.MustMarshalBinaryBare(&deposit)},
-		tmkv.Pair{Key: govTypes.VoteKey(proposalID, voter.Address), Value: cdc.MustMarshalBinaryBare(&vote)},
+		tmkv.Pair{Key: govtypes.ProposalKey(proposalID), Value: cdc.MustMarshalBinaryBare(&proposal)},
+		tmkv.Pair{Key: govtypes.InactiveProposalQueueKey(proposalID, endTime), Value: proposalIDBz},
+		tmkv.Pair{Key: govtypes.DepositKey(proposalID, depositor.Address), Value: cdc.MustMarshalBinaryBare(&deposit)},
+		tmkv.Pair{Key: govtypes.VoteKey(proposalID, voter.Address), Value: cdc.MustMarshalBinaryBare(&vote)},
 		tmkv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 

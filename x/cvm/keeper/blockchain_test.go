@@ -1,14 +1,15 @@
-package keeper
+package keeper_test
 
 import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/certikfoundation/shentu/simapp"
-
-	"github.com/stretchr/testify/require"
+	. "github.com/certikfoundation/shentu/x/cvm/keeper"
 )
 
 func TestNewBlockChain(t *testing.T) {
