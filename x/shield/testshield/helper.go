@@ -9,6 +9,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/x/shield"
+	"github.com/certikfoundation/shentu/x/shield/keeper"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
@@ -18,14 +19,14 @@ type Helper struct {
 	t  *testing.T
 	h  sdk.Handler
 	ph govtypes.Handler
-	k  shield.Keeper
+	k  keeper.Keeper
 
 	ctx   sdk.Context
 	denom string
 }
 
 // NewHelper creates staking Handler wrapper for tests
-func NewHelper(t *testing.T, ctx sdk.Context, k shield.Keeper, denom string) *Helper {
+func NewHelper(t *testing.T, ctx sdk.Context, k keeper.Keeper, denom string) *Helper {
 	return &Helper{t, shield.NewHandler(k), shield.NewShieldClaimProposalHandler(k), k, ctx, denom}
 }
 

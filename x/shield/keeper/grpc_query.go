@@ -26,7 +26,7 @@ func (q Keeper) Pool(c context.Context, req *types.QueryPoolRequest) (*types.Que
 		// query by sponsor
 		pool, found = q.GetPoolBySponsor(ctx, req.Sponsor)
 		if !found {
-			return nil, status.Errorf(codes.NotFound, "pool under sponsor %d doesn't exist", req.Sponsor)
+			return nil, status.Errorf(codes.NotFound, "pool under sponsor %s doesn't exist", req.Sponsor)
 		}
 	} else {
 		// query by ID

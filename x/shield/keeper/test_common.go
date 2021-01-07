@@ -1,10 +1,10 @@
-package keeper_test
+package keeper
 
 import (
 	"math/rand"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
+	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -27,10 +27,19 @@ func RandomDelegation(r *rand.Rand, k Keeper, ctx sdk.Context) (sdk.AccAddress, 
 		return nil, sdk.Int{}, false
 	}
 
-	dels := k.sk.GetValidatorDelegations(ctx, val.OperatorAddress)
+	valAddr, err := sdk.ValAddressFromBech32(val.OperatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	dels := k.sk.GetValidatorDelegations(ctx, valAddr)
 
 	i := r.Intn(len(dels))
-	return dels[i].DelegatorAddress, val.TokensFromShares(dels[i].Shares).TruncateInt(), true
+	delAddr, err := sdk.AccAddressFromBech32(dels[i].DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	
+	return delAddr, val.TokensFromShares(dels[i].Shares).TruncateInt(), true
 }
 
 // RandomPoolInfo returns info of a random pool given access to the keeper and ctx.
@@ -40,7 +49,7 @@ func RandomPoolInfo(r *rand.Rand, k Keeper, ctx sdk.Context) (uint64, string, bo
 		return 0, "", false
 	}
 	i := r.Intn(len(pools))
-	return pools[i].ID, pools[i].Sponsor, true
+	return pools[i].Id, pools[i].Sponsor, true
 }
 
 // RandomPurchaseList returns a random purchase given access to the keeper and ctx.
