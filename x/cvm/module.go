@@ -153,7 +153,6 @@ func (AppModule) QuerierRoute() string {
 // RegisterInvariants registers the module invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
-
 // TODO Simulation
 
 // // GenerateGenesisState creates a randomized GenState of this module.

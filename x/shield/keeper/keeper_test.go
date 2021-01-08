@@ -230,7 +230,6 @@ func TestClaimProposal(t *testing.T) {
 	del1addr := sdk.AccAddress(pks[3].Address())
 	simapp.AddCoinsToAcc(app, ctx, del1addr, sdk.NewInt(125e9))
 
-	
 	val1pk, val1addr := pks[4], sdk.ValAddress(pks[4].Address())
 	simapp.AddCoinsToAcc(app, ctx, sdk.AccAddress(pks[4].Address()), sdk.NewInt(100e6))
 

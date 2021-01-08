@@ -38,7 +38,7 @@ func RandomDelegation(r *rand.Rand, k Keeper, ctx sdk.Context) (sdk.AccAddress, 
 	if err != nil {
 		panic(err)
 	}
-	
+
 	return delAddr, val.TokensFromShares(dels[i].Shares).TruncateInt(), true
 }
 

@@ -3,6 +3,7 @@ package shield
 import (
 	"context"
 	"encoding/json"
+	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -14,17 +15,19 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/certikfoundation/shentu/x/shield/client/cli"
 	"github.com/certikfoundation/shentu/x/shield/client/rest"
 	"github.com/certikfoundation/shentu/x/shield/keeper"
+	"github.com/certikfoundation/shentu/x/shield/simulation"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
-	//_ module.AppModuleSimulation = AppModule{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic specifies the app module basics object.
@@ -89,15 +92,17 @@ type AppModule struct {
 
 	keeper        keeper.Keeper
 	accountKeeper types.AccountKeeper
+	bankKeeper    types.BankKeeper
 	stakingKeeper types.StakingKeeper
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(keeper keeper.Keeper, ak types.AccountKeeper, stk types.StakingKeeper) AppModule {
+func NewAppModule(keeper keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, stk types.StakingKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
 		accountKeeper:  ak,
+		bankKeeper:     bk,
 		stakingKeeper:  stk,
 	}
 }
@@ -157,29 +162,31 @@ func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.V
 	return []abci.ValidatorUpdate{}
 }
 
-// // TODO: Simulation functions
+//____________________________________________________________________________
 
-// // WeightedOperations returns shield operations for use in simulations.
-// func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-// 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.accountKeeper, am.stakingKeeper)
-// }
+// AppModuleSimulation functions
 
-// // ProposalContents returns functions that generate gov proposals for the module.
-// func (am AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-// 	return simulation.ProposalContents(am.keeper, am.stakingKeeper)
-// }
+// WeightedOperations returns shield operations for use in simulations.
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.accountKeeper, am.bankKeeper, am.stakingKeeper)
+}
 
-// // RandomizedParams returns functions that generate params for the module.
-// func (AppModuleBasic) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-// 	return simulation.ParamChanges(r)
-// }
+// ProposalContents returns functions that generate gov proposals for the module.
+func (am AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+	return simulation.ProposalContents(am.keeper, am.stakingKeeper)
+}
 
-// // GenerateGenesisState creates a randomized GenState of this module.
-// func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-// 	simulation.RandomizedGenState(simState)
-// }
+// RandomizedParams returns functions that generate params for the module.
+func (AppModuleBasic) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	return simulation.ParamChanges(r)
+}
 
-// // RegisterStoreDecoder registers a decoder for this module.
-// func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-// 	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
-// }
+// GenerateGenesisState creates a randomized GenState of this module.
+func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
+
+// RegisterStoreDecoder registers a decoder for this module.
+func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
+}
