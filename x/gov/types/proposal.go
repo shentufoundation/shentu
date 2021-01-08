@@ -19,6 +19,11 @@ import (
 	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
+// Proposal types implement UnpackInterfaceMessages to unpack
+// Content fields.
+var _ types.UnpackInterfacesMessage = Proposal{}
+var _ types.UnpackInterfacesMessage = Proposals{}
+
 // NewProposal creates a new Proposal instance
 func NewProposal(content govtypes.Content, id uint64, proposerAddress sdk.AccAddress, isProposerCouncilMember bool, submitTime time.Time, depositEndTime time.Time) (Proposal, error) {
 	p := Proposal{
@@ -60,6 +65,12 @@ func (p Proposal) GetContent() govtypes.Content {
 func (p Proposal) String() string {
 	out, _ := yaml.Marshal(p)
 	return string(out)
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (p Proposal) UnpackInterfaces(unpacker types.AnyUnpacker) error {
+	var content govtypes.Content
+	return unpacker.UnpackAny(p.Content, &content)
 }
 
 func (p Proposal) GetTitle() string {
@@ -109,6 +120,17 @@ func (p Proposals) String() string {
 			prop.ProposalType(), prop.GetTitle())
 	}
 	return strings.TrimSpace(out)
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (p Proposals) UnpackInterfaces(unpacker types.AnyUnpacker) error {
+	for _, x := range p {
+		err := x.UnpackInterfaces(unpacker)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 type (

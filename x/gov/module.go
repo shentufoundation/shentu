@@ -147,7 +147,7 @@ func (am AppModule) QuerierRoute() string {
 	return govtypes.QuerierRoute
 }
 
-// NewQuerierHandler returns the governance module sdk.Querier.
+// LegacyQuerierHandler returns the governance module sdk.Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }

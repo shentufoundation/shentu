@@ -32,17 +32,9 @@ func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (types.Proposal,
 
 // SetProposal sets a proposal to store.
 func (k Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
-	fmt.Println(proposal.Content.GetCachedValue())
-	fmt.Println(proposal.GetContent())
 	store := ctx.KVStore(k.storeKey)
 	bz := k.MustMarshalProposal(proposal)
 	store.Set(govtypes.ProposalKey(proposal.ProposalId), bz)
-
-	var newP types.Proposal
-	newP, _ = k.GetProposal(ctx, proposal.ProposalId)
-	fmt.Println("aaaaaaaaaaaaaaaaaaaaaaaaa")
-	fmt.Println(newP.Content.GetCachedValue())
-	fmt.Println(newP.GetContent())
 }
 
 // DeleteProposalByProposalID deletes a proposal from store.
@@ -133,8 +125,6 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govtypes.Content, addr s
 
 	var proposal types.Proposal
 	proposal, err = types.NewProposal(content, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
-	fmt.Println("asdoifsoadfijo")
-	fmt.Println(proposal.GetContent().String())
 	if err != nil {
 		return types.Proposal{}, err
 	}
