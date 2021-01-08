@@ -34,7 +34,7 @@ func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
 		c := proposal.GetContent().(shieldtypes.ShieldClaimProposal)
-		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalID, c.PoolID, c.Loss)
+		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalId, c.PoolId, c.Loss)
 	}
 }
 
@@ -45,8 +45,8 @@ func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 		if err != nil {
 			panic(err)
 		}
-		k.ShieldKeeper.RestoreShield(ctx, c.PoolID, proposer, c.PurchaseID, c.Loss)
-		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalID, c.PoolID, c.Loss)
+		k.ShieldKeeper.RestoreShield(ctx, c.PoolId, proposer, c.PurchaseId, c.Loss)
+		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalId, c.PoolId, c.Loss)
 	}
 }
 

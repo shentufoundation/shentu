@@ -1,14 +1,18 @@
 package simapp
 
 import (
+	"bytes"
+	"encoding/hex"
 	"encoding/json"
-
-	"github.com/cosmos/cosmos-sdk/simapp"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"strconv"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/simapp"
+	"github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	log "github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
@@ -44,8 +48,7 @@ func Setup(isCheckTx bool) *SimApp {
 func AddTestAddrs(app *SimApp, ctx sdk.Context, accNum int, accAmt sdk.Int) []sdk.AccAddress {
 	testAddrs := make([]sdk.AccAddress, accNum)
 	for i := 0; i < accNum; i++ {
-		pk := ed25519.GenPrivKey().PubKey()
-		testAddrs[i] = sdk.AccAddress(pk.Address())
+		testAddrs[i] = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
 	}
 
 	initCoins := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), accAmt))
@@ -60,16 +63,18 @@ func AddTestAddrs(app *SimApp, ctx sdk.Context, accNum int, accAmt sdk.Int) []sd
 	return testAddrs
 }
 
-// AddCoins adds coins to an account and increments the total supply accordingly.
-func AddCoinsToAcc(app *SimApp, ctx sdk.Context, addr sdk.AccAddress, toAdd sdk.Coins) {
-	prevSupply := app.BankKeeper.GetSupply(ctx)
-	app.BankKeeper.SetSupply(ctx, banktypes.NewSupply(prevSupply.GetTotal().Add(toAdd...)))
+// AddCoinsToAcc adds coins to an account and increments the total supply accordingly.
+func AddCoinsToAcc(app *SimApp, ctx sdk.Context, addr sdk.AccAddress, amt sdk.Int) {
+	amtCoins := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), amt))
 
-	_ = app.BankKeeper.AddCoins(ctx, addr, toAdd)
+	prevSupply := app.BankKeeper.GetSupply(ctx)
+	app.BankKeeper.SetSupply(ctx, banktypes.NewSupply(prevSupply.GetTotal().Add(amtCoins...)))
+
+	_ = app.BankKeeper.AddCoins(ctx, addr, amtCoins)
 }
 
 // AddTestAddrsFromPubKeys adds the addresses into the SimApp providing only the public keys.
-func AddTestAddrsFromPubKeys(app *SimApp, ctx sdk.Context, pubKeys []crypto.PubKey, accAmt sdk.Int) {
+func AddTestAddrsFromPubKeys(app *SimApp, ctx sdk.Context, pubKeys []cryptotypes.PubKey, accAmt sdk.Int) {
 	initCoins := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), accAmt))
 
 	setTotalSupply(app, ctx, accAmt, len(pubKeys))
@@ -78,6 +83,35 @@ func AddTestAddrsFromPubKeys(app *SimApp, ctx sdk.Context, pubKeys []crypto.PubK
 	for _, pubKey := range pubKeys {
 		saveAccount(app, ctx, sdk.AccAddress(pubKey.Address()), initCoins)
 	}
+}
+
+// CreateTestPubKeys returns a total of numPubKeys public keys in ascending order.
+func CreateTestPubKeys(numPubKeys int) []cryptotypes.PubKey {
+	var publicKeys []cryptotypes.PubKey
+	var buffer bytes.Buffer
+
+	// start at 10 to avoid changing 1 to 01, 2 to 02, etc
+	for i := 100; i < (numPubKeys + 100); i++ {
+		numString := strconv.Itoa(i)
+		buffer.WriteString("0B485CFC0EECC619440448436F8FC9DF40566F2369E72400281454CB552AF") // base pubkey string
+		buffer.WriteString(numString)                                                       // adding on final two digits to make pubkeys unique
+		publicKeys = append(publicKeys, NewPubKeyFromHex(buffer.String()))
+		buffer.Reset()
+	}
+
+	return publicKeys
+}
+
+// NewPubKeyFromHex returns a PubKey from a hex string.
+func NewPubKeyFromHex(pk string) (res cryptotypes.PubKey) {
+	pkBytes, err := hex.DecodeString(pk)
+	if err != nil {
+		panic(err)
+	}
+	if len(pkBytes) != ed25519.PubKeySize {
+		panic(errors.Wrap(errors.ErrInvalidPubKey, "invalid pubkey size"))
+	}
+	return &ed25519.PubKey{Key: pkBytes}
 }
 
 // setTotalSupply provides the total supply based on accAmt * totalAccounts.

@@ -85,16 +85,20 @@ func NewShieldClaimProposalHandler(k keeper.Keeper) govtypes.Handler {
 }
 
 func handleShieldClaimProposal(ctx sdk.Context, k keeper.Keeper, p *types.ShieldClaimProposal) error {
-	if err := k.CreateReimbursement(ctx, p.ProposalID, p.Loss, p.Proposer); err != nil {
+	proposerAddr, err := sdk.AccAddressFromBech32(p.Proposer)
+	if err != nil {
+		panic(err)
+	}
+	if err := k.CreateReimbursement(ctx, p.ProposalId, p.Loss, proposerAddr); err != nil {
 		return err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateReimbursement,
-			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(p.PurchaseID, 10)),
+			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(p.PurchaseId, 10)),
 			sdk.NewAttribute(types.AttributeKeyCompensationAmount, p.Loss.String()),
-			sdk.NewAttribute(types.AttributeKeyBeneficiary, p.Proposer.String()),
+			sdk.NewAttribute(types.AttributeKeyBeneficiary, p.Proposer),
 		),
 	})
 	return nil

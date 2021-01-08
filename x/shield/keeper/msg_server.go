@@ -40,7 +40,7 @@ func (k msgServer) CreatePool(goCtx context.Context, msg *types.MsgCreatePool) (
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeCreatePool,
+			types.TypeMsgCreatePool,
 			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
 			sdk.NewAttribute(types.AttributeKeyDeposit, msg.Deposit.String()),
 			sdk.NewAttribute(types.AttributeKeySponsor, msg.Sponsor),
@@ -71,7 +71,7 @@ func (k msgServer) UpdatePool(goCtx context.Context, msg *types.MsgUpdatePool) (
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeUpdatePool,
+			types.TypeMsgUpdatePool,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolId, 10)),
 		),
 		sdk.NewEvent(
@@ -99,7 +99,7 @@ func (k msgServer) PausePool(goCtx context.Context, msg *types.MsgPausePool) (*t
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypePausePool,
+			types.TypeMsgPausePool,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolId, 10)),
 		),
 		sdk.NewEvent(
@@ -127,7 +127,7 @@ func (k msgServer) ResumePool(goCtx context.Context, msg *types.MsgResumePool) (
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeResumePool,
+			types.TypeMsgResumePool,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolId, 10)),
 		),
 		sdk.NewEvent(
@@ -162,7 +162,7 @@ func (k msgServer) DepositCollateral(goCtx context.Context, msg *types.MsgDeposi
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeDepositCollateral,
+			types.TypeMsgDepositCollateral,
 			sdk.NewAttribute(types.AttributeKeyCollateral, amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
 		),
@@ -192,7 +192,7 @@ func (k msgServer) WithdrawCollateral(goCtx context.Context, msg *types.MsgWithd
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeWithdrawCollateral,
+			types.TypeMsgWithdrawCollateral,
 			sdk.NewAttribute(types.AttributeKeyCollateral, amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
 		),
@@ -215,7 +215,7 @@ func (k msgServer) WithdrawRewards(goCtx context.Context, msg *types.MsgWithdraw
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeWithdrawRewards,
+			types.TypeMsgWithdrawRewards,
 			sdk.NewAttribute(types.AttributeKeyAccountAddress, msg.From),
 			sdk.NewAttribute(types.AttributeKeyDenom, k.Keeper.BondDenom(ctx)),
 			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
@@ -249,7 +249,7 @@ func (k msgServer) UpdateSponsor(goCtx context.Context, msg *types.MsgUpdateSpon
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeUpdateSponsor,
+			types.TypeMsgUpdateSponsor,
 			sdk.NewAttribute(types.AttributeKeySponsor, pool.Sponsor),
 			sdk.NewAttribute(types.AttributeKeySponsorAddress, pool.SponsorAddr),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(pool.Id, 10)),
@@ -279,7 +279,7 @@ func (k msgServer) StakeForShield(goCtx context.Context, msg *types.MsgStakeForS
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeStakeForShield,
+			types.TypeMsgStakeForShield,
 			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(purchase.PurchaseId, 10)),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolId, 10)),
 			sdk.NewAttribute(types.AttributeKeyProtectionEndTime, purchase.ProtectionEndTime.String()),
@@ -313,7 +313,7 @@ func (k msgServer) UnstakeFromShield(goCtx context.Context, msg *types.MsgUnstak
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeUnstakeFromShield,
+			types.TypeMsgUnstakeFromShield,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolId, 10)),
 			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
@@ -338,7 +338,7 @@ func (k msgServer) PurchaseShield(goCtx context.Context, msg *types.MsgPurchaseS
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypePurchaseShield,
+			types.TypeMsgPurchaseShield,
 			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(purchase.PurchaseId, 10)),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolId, 10)),
 			sdk.NewAttribute(types.AttributeKeyProtectionEndTime, purchase.ProtectionEndTime.String()),
@@ -371,7 +371,7 @@ func (k msgServer) WithdrawReimbursement(goCtx context.Context, msg *types.MsgWi
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeWithdrawReimbursement,
+			types.TypeMsgWithdrawReimbursement,
 			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(msg.ProposalId, 10)),
 			sdk.NewAttribute(types.AttributeKeyCompensationAmount, amount.String()),
 			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.From),

@@ -53,6 +53,7 @@ func DefaultGenesisState() *GenesisState {
 		ServiceFees:          InitMixedDecCoins(),
 		RemainingServiceFees: InitMixedDecCoins(),
 		ShieldStakingRate:    sdk.NewDec(2),
+		LastUpdateTime:       time.Now(),
 	}
 }
 

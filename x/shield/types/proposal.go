@@ -24,32 +24,21 @@ func init() {
 	govTypes.RegisterProposalTypeCodec(ShieldClaimProposal{}, "shield/ShieldClaimProposal")
 }
 
-// ShieldClaimProposal defines the data structure of a shield claim proposal.
-type ShieldClaimProposal struct {
-	ProposalID  uint64         `json:"proposal_id" yaml:"proposal_id"`
-	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
-	PurchaseID  uint64         `json:"purchase_id" yaml:"purchase_id"`
-	Loss        sdk.Coins      `json:"loss" yaml:"loss"`
-	Evidence    string         `json:"evidence" yaml:"evidence"`
-	Description string         `json:"description" yaml:"description"`
-	Proposer    sdk.AccAddress `json:"proposer" yaml:"proposer"`
-}
-
 // NewShieldClaimProposal creates a new shield claim proposal.
-func NewShieldClaimProposal(poolID uint64, loss sdk.Coins, purchaseID uint64, evidence, description string, proposer sdk.AccAddress) ShieldClaimProposal {
-	return ShieldClaimProposal{
-		PoolID:      poolID,
+func NewShieldClaimProposal(poolID uint64, loss sdk.Coins, purchaseID uint64, evidence, description string, proposer sdk.AccAddress) *ShieldClaimProposal {
+	return &ShieldClaimProposal{
+		PoolId:      poolID,
 		Loss:        loss,
 		Evidence:    evidence,
-		PurchaseID:  purchaseID,
+		PurchaseId:  purchaseID,
 		Description: description,
-		Proposer:    proposer,
+		Proposer:    proposer.String(),
 	}
 }
 
 // GetTitle returns the title of a shield claim proposal.
 func (scp ShieldClaimProposal) GetTitle() string {
-	return fmt.Sprintf("%s:%s", strconv.FormatUint(scp.PoolID, 10), scp.Loss)
+	return fmt.Sprintf("%s:%s", strconv.FormatUint(scp.PoolId, 10), scp.Loss)
 }
 
 // GetDescription returns the description of a shield claim proposal.
@@ -83,7 +72,7 @@ func (scp ShieldClaimProposal) String() string {
   PurchaseID:     %d
   Description:    %s
   Proposer:       %s
-`, scp.PoolID, scp.Loss, scp.Evidence, scp.PurchaseID, scp.Description, scp.Proposer))
+`, scp.PoolId, scp.Loss, scp.Evidence, scp.PurchaseId, scp.Description, scp.Proposer))
 	return b.String()
 }
 

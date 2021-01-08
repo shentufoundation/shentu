@@ -22,7 +22,7 @@ func (k Keeper) GetDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk
 		return deposit, false
 	}
 
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &deposit)
+	k.cdc.MustUnmarshalBinaryBare(bz, &deposit)
 	return deposit, true
 }
 
@@ -175,7 +175,7 @@ func (k Keeper) IterateDeposits(ctx sdk.Context, proposalID uint64, cb func(depo
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit types.Deposit
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &deposit)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &deposit)
 
 		if cb(deposit) {
 			break

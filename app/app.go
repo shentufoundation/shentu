@@ -453,7 +453,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cvm.NewAppModule(app.cvmKeeper),
 		cert.NewAppModule(app.certKeeper, app.accountKeeper, app.bankKeeper),
 		oracle.NewAppModule(app.oracleKeeper),
-		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper),
+		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		transferModule,
 	)
 

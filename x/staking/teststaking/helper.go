@@ -3,14 +3,14 @@ package teststaking
 import (
 	"testing"
 
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	customStaking "github.com/certikfoundation/shentu/x/staking"
+	"github.com/certikfoundation/shentu/x/staking/keeper"
 )
 
 // Helper is a structure which wraps the staking handler
@@ -18,7 +18,7 @@ import (
 type Helper struct {
 	t *testing.T
 	h sdk.Handler
-	k customStaking.Keeper
+	k keeper.Keeper
 
 	ctx        sdk.Context
 	Commission stakingtypes.CommissionRates
@@ -27,27 +27,30 @@ type Helper struct {
 }
 
 // NewHelper creates staking Handler wrapper for tests
-func NewHelper(t *testing.T, ctx sdk.Context, k customStaking.Keeper) *Helper {
+func NewHelper(t *testing.T, ctx sdk.Context, k keeper.Keeper) *Helper {
 	return &Helper{t, staking.NewHandler(k.Keeper), k, ctx, ZeroCommission(), k.Keeper.BondDenom(ctx)}
 }
 
 // CreateValidator calls handler to create a new staking validator
-func (sh *Helper) CreateValidator(addr sdk.ValAddress, pk crypto.PubKey, stakeAmount int64, ok bool) {
+func (sh *Helper) CreateValidator(addr sdk.ValAddress, pk cryptotypes.PubKey, stakeAmount int64, ok bool) {
 	coin := sdk.NewCoin(sh.Denom, sdk.NewInt(stakeAmount))
 	sh.createValidator(addr, pk, coin, ok)
 }
 
 // CreateValidatorWithValPower calls handler to create a new staking validator with zero
 // commission
-func (sh *Helper) CreateValidatorWithValPower(addr sdk.ValAddress, pk crypto.PubKey, valPower int64, ok bool) sdk.Int {
+func (sh *Helper) CreateValidatorWithValPower(addr sdk.ValAddress, pk cryptotypes.PubKey, valPower int64, ok bool) sdk.Int {
 	amount := sdk.TokensFromConsensusPower(valPower)
 	coin := sdk.NewCoin(sh.Denom, amount)
 	sh.createValidator(addr, pk, coin, ok)
 	return amount
 }
 
-func (sh *Helper) createValidator(addr sdk.ValAddress, pk crypto.PubKey, coin sdk.Coin, ok bool) {
-	msg := stakingtypes.NewMsgCreateValidator(addr, pk, coin, stakingtypes.Description{}, sh.Commission, sdk.OneInt())
+func (sh *Helper) createValidator(addr sdk.ValAddress, pk cryptotypes.PubKey, coin sdk.Coin, ok bool) {
+	msg, err := stakingtypes.NewMsgCreateValidator(addr, pk, coin, stakingtypes.Description{}, sh.Commission, sdk.OneInt())
+	if err != nil {
+		panic(err)
+	}
 	sh.Handle(msg, ok)
 }
 
@@ -87,7 +90,7 @@ func (sh *Helper) Handle(msg sdk.Msg, ok bool) *sdk.Result {
 
 // CheckValidator asserts that a validor exists and has a given status (if status!="")
 // and if has a right jailed flag.
-func (sh *Helper) CheckValidator(addr sdk.ValAddress, status sdk.BondStatus, jailed bool) stakingtypes.Validator {
+func (sh *Helper) CheckValidator(addr sdk.ValAddress, status stakingtypes.BondStatus, jailed bool) stakingtypes.Validator {
 	v, ok := sh.k.GetValidator(sh.ctx, addr)
 	require.True(sh.t, ok)
 	require.Equal(sh.t, jailed, v.Jailed, "wrong Jalied status")

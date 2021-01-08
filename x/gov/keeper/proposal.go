@@ -22,7 +22,7 @@ func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (proposal types.
 	if bz == nil {
 		return
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &proposal)
+	k.cdc.MustUnmarshalBinaryBare(bz, &proposal)
 	return proposal, true
 }
 
@@ -108,8 +108,8 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govTypes.Content, addr s
 
 	var proposal types.Proposal
 	if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := content.(shieldtypes.ShieldClaimProposal)
-		c.ProposalID = proposalID
+		c := content.(*shieldtypes.ShieldClaimProposal)
+		c.ProposalId = proposalID
 		proposal, err = types.NewProposal(c, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
 	} else {
 		proposal, err = types.NewProposal(content, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))

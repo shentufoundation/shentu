@@ -210,7 +210,7 @@ func (k Keeper) getUnbondingsByProviderMaturingByTime(ctx sdk.Context, provider 
 	for ; unbondingTimesliceIterator.Valid(); unbondingTimesliceIterator.Next() {
 		var timeslice stakingtypes.DVPairs
 		value := unbondingTimesliceIterator.Value()
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
+		k.cdc.MustUnmarshalBinaryBare(value, &timeslice)
 
 		for _, ubd := range timeslice.Pairs {
 			if ubd.DelegatorAddress == provider {

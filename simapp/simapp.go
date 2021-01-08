@@ -458,7 +458,7 @@ func NewSimApp(
 		cvm.NewAppModule(app.CVMKeeper),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper),
-		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.StakingKeeper),
+		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		transferModule,
 	)
 

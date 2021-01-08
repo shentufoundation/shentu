@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"time"
 
-	gogotypes "github.com/gogo/protobuf/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -91,11 +89,10 @@ func (k Keeper) GetVotingParams(ctx sdk.Context) govtypes.VotingParams {
 func (k Keeper) SetLastUpdateTime(ctx sdk.Context, prevUpdateTime time.Time) {
 	store := ctx.KVStore(k.storeKey)
 
-	timeProto, err := gogotypes.TimestampProto(prevUpdateTime)
-	if err != nil {
-		panic(err)
-	}
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(timeProto)
+	var timeProto types.LastUpdateTime
+	timeProto.Time = &prevUpdateTime
+
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&timeProto)
 	store.Set(types.GetLastUpdateTimeKey(), bz)
 }
 
@@ -107,10 +104,7 @@ func (k Keeper) GetLastUpdateTime(ctx sdk.Context) (time.Time, bool) {
 		return time.Time{}, false
 	}
 
-	var protoTimestamp *gogotypes.Timestamp
-	timestamp, err := gogotypes.TimestampFromProto(protoTimestamp)
-	if err != nil {
-		panic(err)
-	}
-	return timestamp, true
+	var timeProto types.LastUpdateTime
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &timeProto)
+	return *timeProto.Time, true
 }

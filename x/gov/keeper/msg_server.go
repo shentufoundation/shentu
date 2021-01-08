@@ -124,11 +124,15 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 		}
 
 		// check shield >= loss
-		purchaseList, found := k.ShieldKeeper.GetPurchaseList(ctx, c.PoolID, c.Proposer)
+		proposerAddr, err := sdk.AccAddressFromBech32(c.Proposer)
+		if err != nil {
+			panic(err)
+		}
+		purchaseList, found := k.ShieldKeeper.GetPurchaseList(ctx, c.PoolId, proposerAddr)
 		if !found {
 			return shieldtypes.ErrPurchaseNotFound
 		}
-		purchase, found := k.ShieldKeeper.GetPurchase(purchaseList, c.PurchaseID)
+		purchase, found := k.ShieldKeeper.GetPurchase(purchaseList, c.PurchaseId)
 		if !found {
 			return shieldtypes.ErrPurchaseNotFound
 		}
@@ -150,9 +154,14 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 
 func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, proposal types.Proposal) error {
 	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := proposal.GetContent().(shieldtypes.ShieldClaimProposal)
+		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
 		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
-		return k.ShieldKeeper.SecureCollaterals(ctx, c.PoolID, c.Proposer, c.PurchaseID, c.Loss, lockPeriod)
+
+		proposerAddr, err := sdk.AccAddressFromBech32(c.Proposer)
+		if err != nil {
+			panic(err)
+		}
+		return k.ShieldKeeper.SecureCollaterals(ctx, c.PoolId, proposerAddr, c.PurchaseId, c.Loss, lockPeriod)
 	}
 	return nil
 }
