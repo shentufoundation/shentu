@@ -29,16 +29,10 @@ func TestKeeper_ProposeAndVote(t *testing.T) {
 	tp := govtypes.NewTextProposal("title0", "desc0")
 	t.Run("Test submitting a proposal and adding a vote with yes", func(t *testing.T) {
 		pp, err := app.GovKeeper.SubmitProposal(ctx, tp, addrs[0])
-		require.Equal(t, nil, err)
-		fmt.Println(pp.GetContent().String())
-		p, ok := app.GovKeeper.GetProposal(ctx, pp.ProposalId)
-		require.Equal(t, true, ok)
-		fmt.Println(p.String())
-		fmt.Println(p.GetContent().String())
 		vote := govtypes.NewVote(pp.ProposalId, addrs[0], govtypes.OptionYes)
-		_ = app.BankKeeper.AddCoins(ctx, addrs[1], sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 700*1e6)))
-
 		coins700 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 700*1e6))
+		_ = app.BankKeeper.AddCoins(ctx, addrs[1], coins700)
+
 		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coins700)
 		require.Equal(t, nil, err)
 		require.Equal(t, true, votingPeriodActivated)
@@ -72,6 +66,9 @@ func TestKeeper_GetVotes(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := simapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
+	for _, addr := range addrs {
+		fmt.Println(app.BankKeeper.GetAllBalances(ctx, addr))
+	}
 
 	tp := govtypes.TextProposal{Title: "title0", Description: "desc0"}
 	t.Run("Test adding a lot of votes and retrieving them", func(t *testing.T) {
@@ -127,7 +124,7 @@ func TestKeeper_AddDeposit(t *testing.T) {
 		coins100 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 100*1e6))
 
 		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId+1, addrs[1], coins100)
-		errString := fmt.Sprintf("unknown proposal: %d", pp.ProposalId+1)
+		errString := fmt.Sprintf("%d: unknown proposal", pp.ProposalId+1)
 		require.EqualError(t, err, errString)
 		require.Equal(t, false, votingPeriodActivated)
 	})
@@ -138,7 +135,7 @@ func TestKeeper_AddDeposit(t *testing.T) {
 		coins15000 := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 15000*1e6))
 
 		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[0], coins15000)
-		errString := "insufficient funds: insufficient account funds; 10000uctk < 15000000000uctk"
+		errString := "0uctk is smaller than 15000000000uctk: insufficient funds"
 		require.EqualError(t, err, errString)
 		require.Equal(t, false, votingPeriodActivated)
 	})
@@ -189,7 +186,7 @@ func TestKeeper_AddDeposit(t *testing.T) {
 		require.Equal(t, true, votingPeriodActivated)
 
 		votingPeriodActivated, err = app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coinsAfterAvtivated)
-		errString := fmt.Sprintf("proposal already active: %d", pp.ProposalId)
+		errString := fmt.Sprintf("%d: proposal already active", pp.ProposalId)
 		require.EqualError(t, err, errString)
 		require.Equal(t, false, votingPeriodActivated)
 	})
