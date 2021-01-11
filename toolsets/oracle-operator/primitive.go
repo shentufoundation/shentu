@@ -27,8 +27,8 @@ func queryPrimitive(
 ) {
 	logger := ctx.Logger()
 	logger.Debug("query primitive")
-	logger.Debug("contract", payload.Contract)
-	logger.Debug("function", payload.Function)
+	logger.Debug(payload.Contract)
+	logger.Debug(payload.Function)
 
 	endpoint := url.URL{
 		Scheme: "https",
