@@ -7,13 +7,9 @@ import (
 	"testing"
 	"time"
 
-	certtypes "github.com/certikfoundation/shentu/x/cert/types"
-	"github.com/hyperledger/burrow/txs/payload"
-
-	"github.com/certikfoundation/shentu/simapp"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
 	"github.com/stretchr/testify/require"
+
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -21,7 +17,10 @@ import (
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/execution/errors"
 	"github.com/hyperledger/burrow/execution/evm/abi"
+	"github.com/hyperledger/burrow/txs/payload"
 
+	"github.com/certikfoundation/shentu/simapp"
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	. "github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
