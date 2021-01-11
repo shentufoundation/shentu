@@ -3,6 +3,7 @@ package staking
 
 import (
 	"encoding/json"
+	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -15,18 +16,22 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	sdksimulation "github.com/cosmos/cosmos-sdk/x/staking/simulation"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/staking/keeper"
+	"github.com/certikfoundation/shentu/x/staking/simulation"
 	"github.com/certikfoundation/shentu/x/staking/types"
 )
 
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic is the basic app module.
@@ -47,7 +52,7 @@ func (b AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
 
 // DefaultGenesis returns default genesis state as raw bytes for the staking module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
-	return cdc.MustMarshalJSON(stakingTypes.DefaultGenesisState())
+	return cdc.MustMarshalJSON(stakingtypes.DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the staking module.
@@ -78,13 +83,13 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 	cosmosAppModule staking.AppModule
-	authKeeper      stakingTypes.AccountKeeper
+	authKeeper      stakingtypes.AccountKeeper
 	certKeeper      types.CertKeeper
 	keeper          keeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(cdc codec.Marshaler, stakingKeeper keeper.Keeper, ak stakingTypes.AccountKeeper, bk stakingTypes.BankKeeper, certKeeper types.CertKeeper) AppModule {
+func NewAppModule(cdc codec.Marshaler, stakingKeeper keeper.Keeper, ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper, certKeeper types.CertKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
 		cosmosAppModule: staking.NewAppModule(cdc, stakingKeeper.Keeper, ak, bk),
@@ -96,7 +101,7 @@ func NewAppModule(cdc codec.Marshaler, stakingKeeper keeper.Keeper, ak stakingTy
 
 // Name returns the module name.
 func (AppModule) Name() string {
-	return stakingTypes.ModuleName
+	return stakingtypes.ModuleName
 }
 
 // RegisterInvariants registers module invariants.
@@ -110,7 +115,7 @@ func (am AppModule) NewHandler() sdk.Handler { return nil }
 
 // QuerierRoute returns the module query route.
 func (AppModule) QuerierRoute() string {
-	return stakingTypes.QuerierRoute
+	return stakingtypes.QuerierRoute
 }
 
 // NewQuerierHandler create new query handler.
@@ -146,18 +151,32 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 	return []abci.ValidatorUpdate{}
 }
 
-// // WeightedOperations returns staking operations for use in simulations.
-// func (am AppModule) WeightedOperations(simState module.SimulationState) sim.WeightedOperations {
-// 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.certKeeper, am.keeper.Keeper)
-// }
+//____________________________________________________________________________
 
-// // ProposalContents doesn't return any content functions for governance proposals.
-// func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-// 	return nil
-// }
+// AppModuleSimulation functions
 
-// // RandomizedParams returns functions that generate params for the module.
-// func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-// 	return []sim.ParamChange{}
-// 	//return stakingSim.ParamChanges(r)
-// }
+// WeightedOperations returns staking operations for use in simulations.
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.certKeeper, am.keeper.Keeper)
+}
+
+// ProposalContents doesn't return any content functions for governance proposals.
+func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+	return nil
+}
+
+// RandomizedParams returns functions that generate params for the module.
+func (AppModuleBasic) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	return []simtypes.ParamChange{}
+	//return stakingSim.ParamChanges(r)
+}
+
+// GenerateGenesisState creates a randomized GenState of this module.
+func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+	sdksimulation.RandomizedGenState(simState)
+}
+
+// RegisterStoreDecoder registers a decoder for this module.
+func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[stakingtypes.StoreKey] = sdksimulation.NewDecodeStore(am.cdc)
+}

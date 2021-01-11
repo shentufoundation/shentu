@@ -193,7 +193,7 @@ func (k msgServer) TaskResponse(goCtx context.Context, msg *types.MsgTaskRespons
 	}
 
 	respondToTaskEvent := sdk.NewEvent(
-		types.TypeMsgTaskResponse,
+		types.TypeMsgRespondToTask,
 		sdk.NewAttribute("contract", msg.Contract),
 		sdk.NewAttribute("function", msg.Function),
 		sdk.NewAttribute("score", strconv.FormatInt(msg.Score, 10)),
