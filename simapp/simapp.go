@@ -324,6 +324,7 @@ func NewSimApp(
 		app.BankKeeper,
 		app.DistrKeeper,
 		&app.CertKeeper,
+		&app.StakingKeeper,
 		app.GetSubspace(cvmtypes.ModuleName),
 	)
 	app.OracleKeeper = oraclekeeper.NewKeeper(

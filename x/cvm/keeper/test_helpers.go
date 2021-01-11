@@ -31,7 +31,7 @@ package keeper
 // var (
 // 	uCTKAmount = sdk.NewInt(1005).MulRaw(common.MicroUnit)
 
-// 	Addrs = []sdk.AccAddress{
+// 	addrs = []sdk.AccAddress{
 // 		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
 // 		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
 // 		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
@@ -114,7 +114,7 @@ package keeper
 // 		blacklistedAddrs,
 // 	)
 // 	supplyKeeper := supply.NewKeeper(cdc, keys[supply.StoreKey], accKeeper, bankKeeper, maccPerms)
-// 	totalSupply := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, uCTKAmount.MulRaw(int64(len(Addrs)))))
+// 	totalSupply := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, uCTKAmount.MulRaw(int64(len(addrs)))))
 // 	supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
 
 // 	stakingKeeper := staking.NewKeeper(
@@ -132,14 +132,14 @@ package keeper
 
 // 	cvmKeeper = NewKeeper(cdc, keys[types.StoreKey], accKeeper, &distrKeeper, certKeeper, paramsKeeper.Subspace(types.DefaultParamspace))
 
-// 	for _, addr := range Addrs {
+// 	for _, addr := range addrs {
 // 		_, err := bankKeeper.AddCoins(ctx, addr,
 // 			sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(10000))})
 // 		require.NoError(t, err)
 // 	}
 
 // 	cvmKeeper.SetGasRate(ctx, 1)
-// 	for _, addr := range Addrs {
+// 	for _, addr := range addrs {
 // 		acc := accKeeper.GetAccount(ctx, addr)
 // 		_ = acc.SetSequence(1)
 // 		accKeeper.SetAccount(ctx, acc)

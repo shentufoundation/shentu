@@ -24,7 +24,6 @@ import (
 	"github.com/hyperledger/burrow/logging"
 	"github.com/hyperledger/burrow/txs/payload"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/vm"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
@@ -40,13 +39,14 @@ type Keeper struct {
 	bk         types.BankKeeper
 	dk         types.DistributionKeeper
 	ck         types.CertKeeper
+	sk         types.StakingKeeper
 	paramSpace types.ParamSubspace
 }
 
 // NewKeeper creates a new instance of the CVM keeper.
 func NewKeeper(
 	cdc codec.BinaryMarshaler, key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
-	dk types.DistributionKeeper, ck types.CertKeeper, paramSpace types.ParamSubspace) Keeper {
+	dk types.DistributionKeeper, ck types.CertKeeper, sk types.StakingKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
 		cdc:        cdc,
 		key:        key,
@@ -54,6 +54,7 @@ func NewKeeper(
 		bk:         bk,
 		dk:         dk,
 		ck:         ck,
+		sk:         sk,
 		paramSpace: paramSpace,
 	}
 }
@@ -189,7 +190,7 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 
 // Send executes the send transaction from caller to callee with the given amount of tokens.
 func (k Keeper) Send(ctx sdk.Context, caller, callee sdk.AccAddress, coins sdk.Coins) error {
-	value := coins.AmountOf(common.MicroCTKDenom).Uint64()
+	value := coins.AmountOf(k.sk.BondDenom(ctx)).Uint64()
 	if value <= 0 {
 		return sdkerrors.ErrInvalidCoins
 	}

@@ -21,13 +21,14 @@ import (
 func TestState_NewState(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
 	state := cvmk.NewState(ctx)
 
 	callframe := engine.NewCallFrame(state, acmstate.Named("TxCache"))
 	cache := callframe.Cache
 	fmt.Println(cache)
-	addr, err := crypto.AddressFromBytes(Addrs[0].Bytes())
+	addr, err := crypto.AddressFromBytes(addrs[0].Bytes())
 	require.Nil(t, err)
 	err = state.SetAddressMeta(addr, nil)
 	require.Nil(t, err)
@@ -36,11 +37,12 @@ func TestState_NewState(t *testing.T) {
 func TestState_UpdateAccount(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
 	ak := app.AccountKeeper
 	state := cvmk.NewState(ctx)
 
-	addr, err := crypto.AddressFromBytes(Addrs[0].Bytes())
+	addr, err := crypto.AddressFromBytes(addrs[0].Bytes())
 	require.Nil(t, err)
 	acc, err := state.GetAccount(addr)
 	require.Nil(t, err)
@@ -48,16 +50,16 @@ func TestState_UpdateAccount(t *testing.T) {
 	err = state.UpdateAccount(acc)
 	require.Nil(t, err)
 
-	sdkAcc := ak.GetAccount(ctx, Addrs[0])
-	err = app.BankKeeper.SetBalances(ctx, Addrs[0], sdk.Coins{sdk.NewInt64Coin("uctk", 1234)})
+	sdkAcc := ak.GetAccount(ctx, addrs[0])
+	err = app.BankKeeper.SetBalances(ctx, addrs[0], sdk.Coins{sdk.NewInt64Coin("uctk", 1234)})
 	require.Nil(t, err)
 	ak.SetAccount(ctx, sdkAcc)
-	sdkAcc = ak.GetAccount(ctx, Addrs[0])
+	sdkAcc = ak.GetAccount(ctx, addrs[0])
 	acc, err = state.GetAccount(addr)
 	sdkCoins := app.BankKeeper.GetAllBalances(ctx, addr.Bytes()).AmountOf("uctk").Uint64()
 	accAddressHex, err := sdk.AccAddressFromHex(addr.String())
 	require.Nil(t, err)
-	require.Equal(t, Addrs[0], accAddressHex)
+	require.Equal(t, addrs[0], accAddressHex)
 	require.Equal(t, sdkCoins, acc.Balance)
 	require.Less(t, len(acc.EVMCode), 1)
 	require.Nil(t, acc.ContractMeta)
@@ -78,10 +80,11 @@ func TestState_UpdateAccount(t *testing.T) {
 func TestState_RemoveAccount(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
 	state := cvmk.NewState(ctx)
 
-	addr, err := crypto.AddressFromBytes(Addrs[0].Bytes())
+	addr, err := crypto.AddressFromBytes(addrs[0].Bytes())
 	require.Nil(t, err)
 	acc, err := state.GetAccount(addr)
 	require.Nil(t, err)

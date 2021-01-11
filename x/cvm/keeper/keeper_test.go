@@ -10,8 +10,6 @@ import (
 	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/hyperledger/burrow/txs/payload"
 
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-
 	"github.com/certikfoundation/shentu/simapp"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
@@ -24,33 +22,23 @@ import (
 	"github.com/hyperledger/burrow/execution/errors"
 	"github.com/hyperledger/burrow/execution/evm/abi"
 
-	"github.com/certikfoundation/shentu/common"
 	. "github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
-)
-
-var (
-	Addrs = []sdk.AccAddress{
-		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
-		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
-		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
-		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
-		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
-	}
 )
 
 func TestContractCreation(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	t.Run("should allow call on a contract with no code when calling with empty data (transfer)", func(t *testing.T) {
-		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], Addrs[1], 10, []byte{}, []*payload.ContractMeta{}, false, false, false)
+		result, err := app.CVMKeeper.Tx(ctx, addrs[0], addrs[1], 10, []byte{}, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, result)
 		require.Nil(t, err)
 	})
 
 	t.Run("should not allow call on a contract with no code when calling with data (transfer)", func(t *testing.T) {
-		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], Addrs[1], 10, []byte{0x00}, []*payload.ContractMeta{}, false, false, false)
+		result, err := app.CVMKeeper.Tx(ctx, addrs[0], addrs[1], 10, []byte{0x00}, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, result)
 		require.NotNil(t, err)
 		require.Equal(t, types.ErrCodedError(errors.Codes.CodeOutOfBounds), err)
@@ -61,7 +49,7 @@ func TestContractCreation(t *testing.T) {
 
 		require.Nil(t, err)
 
-		result, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
+		result, err2 := app.CVMKeeper.Tx(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, result)
 		require.Nil(t, err2)
 
@@ -74,7 +62,7 @@ func TestContractCreation(t *testing.T) {
 
 		// call its function
 		newContractAddress := sdk.AccAddress(result)
-		result, err2 = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, sayHiCall, []*payload.ContractMeta{}, false, false, false)
+		result, err2 = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, sayHiCall, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(55))
 		require.Nil(t, err2)
 	})
@@ -84,13 +72,14 @@ func TestContractCreation(t *testing.T) {
 func TestProperExecution(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	var newContractAddress sdk.AccAddress
 	t.Run("deploy a contract with regular code", func(t *testing.T) {
 		code, err := hex.DecodeString(BasicTestsBytecodeString)
 		require.Nil(t, err)
 
-		result, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
+		result, err2 := app.CVMKeeper.Tx(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -101,10 +90,10 @@ func TestProperExecution(t *testing.T) {
 	t.Run("deploy second contract", func(t *testing.T) {
 		code, err2 := hex.DecodeString(Hello55BytecodeString)
 		require.Nil(t, err2)
-		acc := app.AccountKeeper.GetAccount(ctx, Addrs[0])
+		acc := app.AccountKeeper.GetAccount(ctx, addrs[0])
 		_ = acc.SetSequence(acc.GetSequence() + 1)
 		app.AccountKeeper.SetAccount(ctx, acc)
-		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
+		result, err := app.CVMKeeper.Tx(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 	})
@@ -117,7 +106,7 @@ func TestProperExecution(t *testing.T) {
 			7, 8,
 		)
 		require.Nil(t, err)
-		result, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, addSevenAndEightCall, []*payload.ContractMeta{}, false, false, false)
+		result, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, addSevenAndEightCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(15))
 	})
@@ -129,13 +118,13 @@ func TestProperExecution(t *testing.T) {
 			WrapLogger(ctx.Logger()),
 		)
 		require.Nil(t, err)
-		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, failureFunctionCall, []*payload.ContractMeta{}, false, false, false)
+		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, failureFunctionCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		require.Equal(t, types.ErrCodedError(errors.Codes.ExecutionReverted), err2)
 	})
 
 	t.Run("call a contract with junk callcode and ensure it reverts", func(t *testing.T) {
-		_, err := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, []byte("Kanye West"), []*payload.ContractMeta{}, false, false, false)
+		_, err := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, []byte("Kanye West"), []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err)
 		require.Equal(t, types.ErrCodedError(errors.Codes.ExecutionReverted), err)
 	})
@@ -148,7 +137,7 @@ func TestProperExecution(t *testing.T) {
 			777,
 		)
 		require.Nil(t, err2)
-		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, setMyFavoriteNumberCall, []*payload.ContractMeta{}, false, false, false)
+		result, err := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, setMyFavoriteNumberCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		result, err2 = app.CVMKeeper.GetStorage(ctx, crypto.MustAddressFromBytes(newContractAddress), binary.Int64ToWord256(0))
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(777))
@@ -158,13 +147,14 @@ func TestProperExecution(t *testing.T) {
 func TestView(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	var newContractAddress sdk.AccAddress
 	t.Run("deploy a contract with regular code", func(t *testing.T) {
 		code, err := hex.DecodeString(BasicTestsBytecodeString)
 		require.Nil(t, err)
 
-		result, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
+		result, err2 := app.CVMKeeper.Tx(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -178,7 +168,7 @@ func TestView(t *testing.T) {
 			777,
 		)
 		require.Nil(t, err2)
-		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, setMyFavoriteNumberCall, []*payload.ContractMeta{}, true, false, false)
+		result, err := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, setMyFavoriteNumberCall, []*payload.ContractMeta{}, true, false, false)
 		require.NotNil(t, err)
 		result, err2 = app.CVMKeeper.GetStorage(ctx, crypto.MustAddressFromBytes(newContractAddress), binary.Int64ToWord256(0))
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(34))
@@ -188,12 +178,13 @@ func TestView(t *testing.T) {
 func TestGasPrice(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	var newContractAddress sdk.AccAddress
 	t.Run("deploy contract", func(t *testing.T) {
 		code, err2 := hex.DecodeString(GasTestsBytecodeString)
 		require.Nil(t, err2)
-		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
+		result, err := app.CVMKeeper.Tx(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -214,14 +205,14 @@ func TestGasPrice(t *testing.T) {
 			}
 		}()
 		ctx = ctx.WithGasMeter(sdk.NewGasMeter(AddTwoNumbersGasCost - 5000))
-		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false, false, false)
+		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		require.Equal(t, err2.Error(), types.ErrCodedError(errors.Codes.InsufficientGas).Error())
 	})
 
 	t.Run("add two numbers with the right gas amount", func(t *testing.T) {
 		ctx = ctx.WithGasMeter(sdk.NewGasMeter(AddTwoNumbersGasCost + 50000))
-		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false, false, false)
+		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 	})
 
@@ -234,15 +225,15 @@ func TestGasPrice(t *testing.T) {
 
 	t.Run("hash some bytes with not enough gas and see it fail", func(t *testing.T) {
 		require.Nil(t, err)
-		ctx = ctx.WithGasMeter(sdk.NewGasMeter(HashMeGasCost - 4000))
-		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, hashMeCall, nil, false, false, false)
+		ctx = ctx.WithGasMeter(sdk.NewGasMeter(HashMeGasCost - 1500))
+		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, hashMeCall, nil, false, false, false)
 		require.NotNil(t, err2)
 		require.Equal(t, err2, types.ErrCodedError(errors.Codes.InsufficientGas))
 	})
 
 	t.Run("hash some bytes with the right gas amount", func(t *testing.T) {
 		ctx = ctx.WithGasMeter(sdk.NewGasMeter(HashMeGasCost + 50000))
-		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, hashMeCall, nil, false, false, false)
+		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, hashMeCall, nil, false, false, false)
 		require.Nil(t, err2)
 	})
 
@@ -256,14 +247,14 @@ func TestGasPrice(t *testing.T) {
 
 		require.Nil(t, err)
 		ctx = ctx.WithGasMeter(sdk.NewGasMeter(DeployAnotherContractGasCost - 150000)) //DeployAnotherContractGasCost - 20))
-		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, deployAnotherContractCall, []*payload.ContractMeta{}, false, false, false)
+		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, deployAnotherContractCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		require.Equal(t, err2, types.ErrCodedError(errors.Codes.InsufficientGas))
 	})
 
 	t.Run("deploy another contract with the right gas amount", func(t *testing.T) {
 		ctx = ctx.WithGasMeter(sdk.NewGasMeter(DeployAnotherContractGasCost))
-		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, deployAnotherContractCall, []*payload.ContractMeta{}, false, false, false)
+		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, deployAnotherContractCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 	})
 }
@@ -271,6 +262,7 @@ func TestGasPrice(t *testing.T) {
 func TestGasRefund(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	var newContractAddress sdk.AccAddress
 	fmt.Println("Deploy gas test contract")
@@ -279,7 +271,7 @@ func TestGasRefund(t *testing.T) {
 	t.Run("deploy gas test contract", func(t *testing.T) {
 		code, err2 := hex.DecodeString(GasTestsBytecodeString)
 		require.Nil(t, err2)
-		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
+		result, err := app.CVMKeeper.Tx(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -297,7 +289,7 @@ func TestGasRefund(t *testing.T) {
 			3, 5,
 		)
 		require.Nil(t, err)
-		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false, false, false)
+		_, err2 := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		/* TODO, check for gas refunded */
 	})
@@ -309,7 +301,7 @@ func TestGasRefund(t *testing.T) {
 	t.Run("deploy gas refund contract", func(t *testing.T) {
 		code, err2 := hex.DecodeString(GasRefundBytecodeString)
 		require.Nil(t, err2)
-		result, err := app.CVMKeeper.Tx(ctx, Addrs[1], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
+		result, err := app.CVMKeeper.Tx(ctx, addrs[1], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -327,7 +319,7 @@ func TestGasRefund(t *testing.T) {
 		)
 
 		require.Nil(t, err)
-		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[1], newContractAddress, 0, iWillRevertCall, []*payload.ContractMeta{}, false, false, false)
+		_, err2 := app.CVMKeeper.Tx(ctx, addrs[1], newContractAddress, 0, iWillRevertCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		/* TODO, check for gas refunded */
 	})
@@ -343,7 +335,7 @@ func TestGasRefund(t *testing.T) {
 			WrapLogger(ctx.Logger()),
 		)
 		require.Nil(t, err)
-		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[1], newContractAddress, 0, iWillFailCall, []*payload.ContractMeta{}, false, false, false)
+		_, err2 := app.CVMKeeper.Tx(ctx, addrs[1], newContractAddress, 0, iWillFailCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		/* TODO, ensure that no refund took place */
 	})
@@ -359,7 +351,7 @@ func TestGasRefund(t *testing.T) {
 			WrapLogger(ctx.Logger()),
 		)
 		require.Nil(t, err)
-		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[1], newContractAddress, 0, deleteFromStorageCall, []*payload.ContractMeta{}, false, false, false)
+		_, err2 := app.CVMKeeper.Tx(ctx, addrs[1], newContractAddress, 0, deleteFromStorageCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		/* TODO, ensure that refund took place (half the gas should be refunded) */
 	})
@@ -375,7 +367,7 @@ func TestGasRefund(t *testing.T) {
 			WrapLogger(ctx.Logger()),
 		)
 		require.Nil(t, err)
-		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[1], newContractAddress, 0, dieCall, []*payload.ContractMeta{}, false, false, false)
+		_, err2 := app.CVMKeeper.Tx(ctx, addrs[1], newContractAddress, 0, dieCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		/* TODO, ensure that refund took place (half the gas should be refunded) */
 	})
@@ -385,12 +377,13 @@ func TestGasRefund(t *testing.T) {
 func TestCTKTransfer(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	t.Run("check to ensure some account1 that has 10000 CTK", func(t *testing.T) {
-		balance := app.BankKeeper.GetAllBalances(ctx, Addrs[0]).AmountOf(common.MicroCTKDenom)
-		require.Equal(t, balance, sdk.NewInt(10000))
-		balance = app.BankKeeper.GetAllBalances(ctx, Addrs[1]).AmountOf(common.MicroCTKDenom)
-		require.Equal(t, balance, sdk.NewInt(10000))
+		balance := app.BankKeeper.GetAllBalances(ctx, addrs[0]).AmountOf(app.StakingKeeper.BondDenom(ctx))
+		require.Equal(t, balance, sdk.NewInt(80000000000))
+		balance = app.BankKeeper.GetAllBalances(ctx, addrs[1]).AmountOf(app.StakingKeeper.BondDenom(ctx))
+		require.Equal(t, balance, sdk.NewInt(80000000000))
 	})
 
 	var newContractAddress sdk.AccAddress
@@ -399,15 +392,15 @@ func TestCTKTransfer(t *testing.T) {
 		code, err2 := hex.DecodeString(CtkTransferTestBytecodeString)
 		require.Nil(t, err2)
 
-		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
+		result, err := app.CVMKeeper.Tx(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, result)
-		newContractAddress = sdk.AccAddress(result)
+		newContractAddress = result
 
 		require.Nil(t, err)
 	})
 
 	t.Run("send it to an smart contract that will send half to account2 and keep half (execute)", func(t *testing.T) {
-		bytesToArr, _ := Addrs[1].Marshal()
+		bytesToArr, _ := addrs[1].Marshal()
 
 		var toAddr crypto.Address
 		copy(toAddr[:], padOrTrim(bytesToArr, 32)[12:32])
@@ -420,24 +413,24 @@ func TestCTKTransfer(t *testing.T) {
 		)
 
 		require.Nil(t, err)
-		_, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress,
+		_, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress,
 			10000, sendToAFriendCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 	})
 
-	t.Run("check to ensure account1 has 0 CTK", func(t *testing.T) {
-		balance := app.BankKeeper.GetAllBalances(ctx, Addrs[0]).AmountOf(common.MicroCTKDenom)
-		require.Equal(t, balance, sdk.NewInt(0))
+	t.Run("check to ensure account1 has 0", func(t *testing.T) {
+		balance := app.BankKeeper.GetAllBalances(ctx, addrs[0]).AmountOf(app.StakingKeeper.BondDenom(ctx))
+		require.Equal(t, balance, sdk.NewInt(79999990000))
 	})
 
-	t.Run("check to ensure account2 has 15000 CTK", func(t *testing.T) {
-		balance := app.BankKeeper.GetAllBalances(ctx, Addrs[1]).AmountOf(common.MicroCTKDenom)
-		require.Equal(t, balance, sdk.NewInt(15000))
+	t.Run("check to ensure account2 has 15000", func(t *testing.T) {
+		balance := app.BankKeeper.GetAllBalances(ctx, addrs[1]).AmountOf(app.StakingKeeper.BondDenom(ctx))
+		require.Equal(t, balance, sdk.NewInt(80000005000))
 	})
 
-	t.Run("check to ensure the smart contract has 5000 CTK", func(t *testing.T) {
+	t.Run("check to ensure the smart contract has 5000", func(t *testing.T) {
 
-		balance := app.BankKeeper.GetAllBalances(ctx, newContractAddress).AmountOf(common.MicroCTKDenom)
+		balance := app.BankKeeper.GetAllBalances(ctx, newContractAddress).AmountOf(app.StakingKeeper.BondDenom(ctx))
 		require.Equal(t, balance, sdk.NewInt(5000))
 	})
 
@@ -448,7 +441,7 @@ func TestCTKTransfer(t *testing.T) {
 			WrapLogger(ctx.Logger()),
 		)
 		require.Nil(t, err)
-		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, whatsMyBalanceCall, []*payload.ContractMeta{}, false, false, false)
+		result, err := app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, whatsMyBalanceCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(5000))
 	})
@@ -457,10 +450,11 @@ func TestCTKTransfer(t *testing.T) {
 func TestZeroTransfer(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	t.Run("use recycle to send to the community pool", func(t *testing.T) {
-		coins := sdk.NewCoins(sdk.NewCoin("uctk", sdk.NewInt(10)))
-		err := app.BankKeeper.SendCoins(ctx, Addrs[0], Addrs[1], coins)
+		coins := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), sdk.NewInt(10)))
+		err := app.BankKeeper.SendCoins(ctx, addrs[0], crypto.ZeroAddress.Bytes(), coins)
 		require.Nil(t, err)
 		err = app.CVMKeeper.RecycleCoins(ctx)
 		require.Nil(t, err)
@@ -469,36 +463,36 @@ func TestZeroTransfer(t *testing.T) {
 		require.Nil(t, err)
 		app.AccountKeeper.SetAccount(ctx, zAcc)
 		require.Nil(t, err)
-		require.Equal(t, app.DistrKeeper.CommunityPool, coins)
+		commPool := app.DistrKeeper.GetFeePoolCommunityCoins(ctx)
+		require.Equal(t, commPool, sdk.NewDecCoinsFromCoins(coins...))
 	})
 }
 
 func TestStoreLastBlockHash(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
 
 	blockChain := NewBlockChain(ctx, cvmk)
 
 	t.Run("store Ctx block hash", func(t *testing.T) {
-		ctx := ctx
-
-		height1 := ctx.BlockHeight()
+		ctx = ctx.WithBlockHeader(tmproto.Header{LastBlockId: tmproto.BlockID{Hash: []byte{0x00}}, Height: 1})
 		cvmk.StoreLastBlockHash(ctx)
-		hash1, _ := blockChain.BlockHash(uint64(height1))
+		hash1, _ := blockChain.BlockHash(1)
 
-		coins := sdk.NewCoins(sdk.NewCoin("uctk", sdk.NewInt(10)))
-		err := app.BankKeeper.SendCoins(ctx, Addrs[0], Addrs[1], coins)
+		coins := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), sdk.NewInt(10)))
+		err := app.BankKeeper.SendCoins(ctx, addrs[0], addrs[1], coins)
 		require.Nil(t, err)
 
-		ctx = ctx.WithBlockHeader(tmproto.Header{LastBlockId: tmproto.BlockID{Hash: []byte{0x01}}})
-		ctx = ctx.WithBlockHeight(2)
+		ctx = ctx.WithBlockHeader(tmproto.Header{LastBlockId: tmproto.BlockID{Hash: []byte{0x01}}, Height: 2})
+		blockChain = NewBlockChain(ctx, cvmk)
 		cvmk.StoreLastBlockHash(ctx)
-		hash2, _ := blockChain.BlockHash(2)
+		hash2, err := blockChain.BlockHash(2)
+		require.Nil(t, err)
 		require.NotEqual(t, hash1, hash2)
 
-		ctx = ctx.WithBlockHeader(tmproto.Header{LastBlockId: tmproto.BlockID{Hash: nil}})
-		ctx = ctx.WithBlockHeight(3)
+		ctx = ctx.WithBlockHeader(tmproto.Header{LastBlockId: tmproto.BlockID{Hash: nil}, Height: 3})
 		cvmk.StoreLastBlockHash(ctx)
 		hash3, _ := blockChain.BlockHash(3)
 		require.Equal(t, []uint8(nil), hash3)
@@ -508,13 +502,14 @@ func TestStoreLastBlockHash(t *testing.T) {
 func TestAbi(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	t.Run("store Ctx block hash", func(t *testing.T) {
 		ctx := ctx
 		cvmk := app.CVMKeeper
 
 		oldAbi := []byte(Hello55AbiJsonString)
-		addr, err := crypto.AddressFromBytes(Addrs[0].Bytes())
+		addr, err := crypto.AddressFromBytes(addrs[0].Bytes())
 		require.Nil(t, err)
 		cvmk.SetAbi(ctx, addr, oldAbi)
 		restoreAbi := cvmk.GetAbi(ctx, addr)
@@ -525,18 +520,19 @@ func TestAbi(t *testing.T) {
 func TestCode(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	t.Run("deploy contract testCheck", func(t *testing.T) {
 		ctx := ctx
 		cvmk := app.CVMKeeper
 		bytecode, err := hex.DecodeString(Hello55BytecodeString)
 		require.Nil(t, err)
-		addr, err := crypto.AddressFromBytes(Addrs[0].Bytes())
+		addr, err := crypto.AddressFromBytes(addrs[0].Bytes())
 		require.Nil(t, err)
-		_, err = cvmk.Tx(ctx, Addrs[0], nil, 0, bytecode, []*payload.ContractMeta{}, false, false, false)
+		_, err = cvmk.Tx(ctx, addrs[0], nil, 0, bytecode, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 
-		seqNum := cvmk.GetAccountSeqNum(ctx, Addrs[0])
+		seqNum := cvmk.GetAccountSeqNum(ctx, addrs[0])
 		calleeAddr := crypto.NewContractAddress(addr, seqNum)
 
 		code, err := cvmk.GetCode(ctx, calleeAddr)
@@ -552,19 +548,21 @@ func TestCode(t *testing.T) {
 func TestSend(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
-	t.Run("store Ctx block hash", func(t *testing.T) {
+	t.Run("test sending through CVM", func(t *testing.T) {
 		ctx := ctx
 		cvmk := app.CVMKeeper
 
-		coins := app.BankKeeper.GetAllBalances(ctx, Addrs[0])
-		require.Greater(t, coins.AmountOf("uctk").Int64(), int64(9999))
-		err := cvmk.Send(ctx, Addrs[0], Addrs[1], sdk.Coins{sdk.NewInt64Coin("uctk", 100000)})
+		coins := app.BankKeeper.GetAllBalances(ctx, addrs[0])
+		fmt.Println(coins.String())
+		require.Greater(t, coins.AmountOf(app.StakingKeeper.BondDenom(ctx)).Int64(), int64(9999))
+		err := cvmk.Send(ctx, addrs[0], addrs[1], sdk.Coins{sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 80000000001)})
 		require.NotNil(t, err)
-		err = cvmk.Send(ctx, Addrs[0], Addrs[1], sdk.Coins{sdk.NewInt64Coin("uatk", 100000)})
+		err = cvmk.Send(ctx, addrs[0], addrs[1], sdk.Coins{sdk.NewInt64Coin("uatk", 100000)})
 		require.NotNil(t, err)
 
-		err = cvmk.Send(ctx, Addrs[0], Addrs[1], sdk.Coins{sdk.NewInt64Coin("uctk", 10)})
+		err = cvmk.Send(ctx, addrs[0], addrs[1], sdk.Coins{sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 10)})
 		require.Nil(t, err)
 	})
 }
@@ -587,19 +585,20 @@ func padOrTrim(bb []byte, size int) []byte {
 func TestPrecompiles(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 3, sdk.NewInt(80000*1e6))
 
 	t.Run("deploy and call native contracts", func(t *testing.T) {
 		code, err := hex.DecodeString(TestCheckBytecodeString)
 		require.Nil(t, err)
 
-		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
+		result, err := app.CVMKeeper.Tx(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress := sdk.AccAddress(result)
 
-		certAddr, err := sdk.AccAddressFromBech32("certik1q7h5e2gwpykq27etnd5k5fcvc2azpueujqcvap")
-		proofAddr, err := sdk.AccAddressFromBech32("certik1m95kfvajw5dmnu9e6h365tqcnazm9auddngklv")
-		everythingAddr, err := sdk.AccAddressFromBech32("certik1nzgvd4k34zzf6vk3qevuh5xx8xshg6uy0l8rd5")
+		certAddr, err := sdk.AccAddressFromBech32("cosmos17w5kw28te7r5vn4qu08hu6a4crcvwrrgzmsrrn")
+		proofAddr, err := sdk.AccAddressFromBech32("cosmos1r60hj2xaxn79qth4pkjm9t27l985xfsmnz9paw")
+		everythingAddr, err := sdk.AccAddressFromBech32("cosmos1xxkueklal9vejv9unqu80w9vptyepfa95pd53u")
 		if err != nil {
 			panic(err)
 		}
@@ -659,50 +658,46 @@ func TestPrecompiles(t *testing.T) {
 			WrapLogger(ctx.Logger()),
 		)
 		require.Nil(t, err)
-		result, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, callCheckCall, []*payload.ContractMeta{}, false, false, false)
+		result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, callCheckCall, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
-		result, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, callCheckNotCertified, []*payload.ContractMeta{}, false, false, false)
+		result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, callCheckNotCertified, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x00}, result)
-		result, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, proofCheck, []*payload.ContractMeta{}, false, false, false)
+		result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, proofCheck, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
-		result, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, compCheck, []*payload.ContractMeta{}, false, false, false)
+		result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, compCheck, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
-		result, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, bothCheck, []*payload.ContractMeta{}, false, false, false)
+		result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, bothCheck, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
 		require.Nil(t, err)
 	})
 
 	t.Run("deploy and call certify validator native contract", func(t *testing.T) {
-		valStr := "certikvalconspub1zcjduepq32v65eegk2yvgzdya5dqnlnc063u7mt3dh66z2xyv9rddgm6t94s4pjeat"
+		valStr := "cosmosvalconspub1zcjduepqxhy6865hf90lwmckjuegfdvqmyznhd6a4dkjr90pq0a82fxxg2qqcpfqat"
 		code, err := hex.DecodeString(TestCertifyValidatorString)
 		require.Nil(t, err)
 
-		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
+		result, err := app.CVMKeeper.Tx(ctx, addrs[1], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress := sdk.AccAddress(result)
 
-		certAddr, err := sdk.AccAddressFromBech32("certik1nzgvd4k34zzf6vk3qevuh5xx8xshg6uy0l8rd5")
-		if err != nil {
-			panic(err)
-		}
-		app.CertKeeper.SetCertifier(ctx, certtypes.Certifier{Address: certAddr.String()})
-		require.True(t, app.CertKeeper.IsCertifier(ctx, certAddr))
+		app.CertKeeper.SetCertifier(ctx, certtypes.Certifier{Address: addrs[2].String()})
+		require.True(t, app.CertKeeper.IsCertifier(ctx, addrs[2]))
 
 		certifyValidator, _, err := abi.EncodeFunctionCall(
 			TestCertifyValidatorAbiJsonString,
 			"certifyValidator",
 			WrapLogger(ctx.Logger()),
 		)
-		err = app.BankKeeper.AddCoins(ctx, certAddr, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 12345)})
+		err = app.BankKeeper.AddCoins(ctx, addrs[2], sdk.Coins{sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 12345)})
 		require.NoError(t, err)
-		certAcc := app.AccountKeeper.GetAccount(ctx, certAddr)
+		certAcc := app.AccountKeeper.GetAccount(ctx, addrs[2])
 		_ = certAcc.SetSequence(1)
 		app.AccountKeeper.SetAccount(ctx, certAcc)
 
-		result, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false, false, false)
+		result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x00}, result)
-		result, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false, false, false)
+		result, err = app.CVMKeeper.Tx(ctx, addrs[2], newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
 
 		validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, valStr)
