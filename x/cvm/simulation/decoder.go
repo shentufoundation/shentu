@@ -8,8 +8,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/hyperledger/burrow/acm"
-
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
@@ -48,7 +46,7 @@ func NewDecodeStore(cdc codec.Marshaler) func(kvA, kvB kv.Pair) string {
 			return fmt.Sprintf("%s\n%s", metadataA, metadataB)
 
 		case bytes.Equal(kvA.Key[:1], types.AddressMetaHashStoreKeyPrefix):
-			var metadataA, metadataB []acm.ContractMeta
+			var metadataA, metadataB types.ContractMetas
 			cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &metadataA)
 			cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &metadataB)
 			return fmt.Sprintf("%v\n%v", metadataA, metadataB)

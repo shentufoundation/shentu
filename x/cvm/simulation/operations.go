@@ -5,11 +5,15 @@ import (
 	"math/rand"
 	"strconv"
 
+	"github.com/hyperledger/burrow/txs/payload"
+
+	"github.com/cosmos/cosmos-sdk/x/simulation"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
+	sim "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
@@ -20,7 +24,7 @@ const (
 )
 
 // WeightedOperations creates an operation with a weight for each type of message generators.
-func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keeper.Keeper) simulation.WeightedOperations {
+func WeightedOperations(appParams sim.AppParams, cdc codec.JSONMarshaler, k keeper.Keeper, bk types.BankKeeper) simulation.WeightedOperations {
 	var weightMsgDeploy int
 	appParams.GetOrGenerate(cdc, OpWeightMsgDeploy, &weightMsgDeploy, nil,
 		func(_ *rand.Rand) {
@@ -28,92 +32,92 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, k keep
 		})
 
 	return simulation.WeightedOperations{
-		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployHello55(k)),
-		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeploySimple(k)),
-		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeploySimpleEvent(k)),
-		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployStorage(k)),
-		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployStringTest(k)),
+		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployHello55(k, bk)),
+		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeploySimple(k, bk)),
+		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeploySimpleEvent(k, bk)),
+		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployStorage(k, bk)),
+		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployStringTest(k, bk)),
 	}
 }
 
 // SimulateMsgDeployHello55 creates a massage deploying /tests/hello55.sol contract.
-func SimulateMsgDeployHello55(k keeper.Keeper) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		caller, _ := simtypes.RandomAcc(r, accs)
+func SimulateMsgDeployHello55(k keeper.Keeper, bk types.BankKeeper) sim.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []sim.Account, chainID string) (
+		sim.OperationMsg, []sim.FutureOperation, error) {
+		caller, _ := sim.RandomAcc(r, accs)
 
 		// deploy hello55.sol
-		msg, contractAddr, err := DeployContract(caller, Hello55Code, Hello55Abi, k, r, ctx, chainID, app)
+		msg, contractAddr, err := DeployContract(caller, Hello55Code, Hello55Abi, k, bk, r, ctx, chainID, app)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
 
 		// check sayHi() ret
 		data, err := hex.DecodeString(Hello55SayHi)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, false)
+		ret, err := k.Tx(ctx, caller.Address, contractAddr, 0, data, []*payload.ContractMeta{}, false, false, false)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
 		value, err := strconv.ParseInt(hex.EncodeToString(ret), 16, 32)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
 		if value != 55 {
 			panic("return value incorrect")
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, ""), nil, nil
 	}
 }
 
 // SimulateMsgDeploySimple creates a massage deploying /tests/simple.sol contract.
-func SimulateMsgDeploySimple(k keeper.Keeper) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		caller, _ := simtypes.RandomAcc(r, accs)
+func SimulateMsgDeploySimple(k keeper.Keeper, bk types.BankKeeper) sim.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []sim.Account, chainID string) (
+		sim.OperationMsg, []sim.FutureOperation, error) {
+		caller, _ := sim.RandomAcc(r, accs)
 
 		// deploy simple.sol
-		msg, contractAddr, err := DeployContract(caller, SimpleCode, SimpleAbi, k, r, ctx, chainID, app)
+		msg, contractAddr, err := DeployContract(caller, SimpleCode, SimpleAbi, k, bk, r, ctx, chainID, app)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
 
 		// check get() ret
 		data, err := hex.DecodeString(SimpleGet)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, false)
+		ret, err := k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
 		value, err := strconv.ParseInt(hex.EncodeToString(ret), 16, 64)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
 		if value != 0 {
 			panic("return value incorrect")
 		}
 
-		futureOperations := []simulation.FutureOperation{
+		futureOperations := []sim.FutureOperation{
 			{
 				BlockHeight: int(ctx.BlockHeight()) + r.Intn(10),
-				Op:          SimulateMsgCallSimpleSet(k, contractAddr, int(r.Uint32())),
+				Op:          SimulateMsgCallSimpleSet(k, bk, contractAddr, int(r.Uint32())),
 			},
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), futureOperations, nil
+		return sim.NewOperationMsg(&msg, true, ""), futureOperations, nil
 	}
 }
 
 // SimulateMsgCallSimpleSet creates a message calling set() in /tests/simple.sol contract.
-func SimulateMsgCallSimpleSet(k keeper.Keeper, contractAddr sdk.AccAddress, varValue int) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		caller, _ := simtypes.RandomAcc(r, accs)
+func SimulateMsgCallSimpleSet(k keeper.Keeper, bk types.BankKeeper, contractAddr sdk.AccAddress, varValue int) sim.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []sim.Account, chainID string) (
+		sim.OperationMsg, []sim.FutureOperation, error) {
+		caller, _ := sim.RandomAcc(r, accs)
 
 		hexStr := strconv.FormatInt(int64(varValue), 16)
 		length := len(hexStr)
@@ -122,77 +126,77 @@ func SimulateMsgCallSimpleSet(k keeper.Keeper, contractAddr sdk.AccAddress, varV
 		}
 
 		// call set()
-		msg, _, err := CallFunction(caller, SimpleSetPrefix, hexStr, contractAddr, k, ctx, r, chainID, app)
+		msg, _, err := CallFunction(caller, SimpleSetPrefix, hexStr, contractAddr, k, bk, ctx, r, chainID, app)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 
 		// check get() ret
 		data, err := hex.DecodeString(SimpleGet)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, false)
+		ret, err := k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 		value, err := strconv.ParseInt(hex.EncodeToString(ret), 16, 64)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 		if value != int64(varValue) {
 			panic("return value incorrect")
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, ""), nil, nil
 	}
 }
 
 // SimulateMsgDeploySimpleEvent creates a massage deploying /tests/simpleevent.sol contract.
-func SimulateMsgDeploySimpleEvent(k keeper.Keeper) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		caller, _ := simtypes.RandomAcc(r, accs)
+func SimulateMsgDeploySimpleEvent(k keeper.Keeper, bk types.BankKeeper) sim.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []sim.Account, chainID string) (
+		sim.OperationMsg, []sim.FutureOperation, error) {
+		caller, _ := sim.RandomAcc(r, accs)
 
 		// deploy simpleevent.sol
-		msg, contractAddr, err := DeployContract(caller, SimpleeventCode, SimpleeventAbi, k, r, ctx, chainID, app)
+		msg, contractAddr, err := DeployContract(caller, SimpleeventCode, SimpleeventAbi, k, bk, r, ctx, chainID, app)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
 
 		// check get() ret
 		data, err := hex.DecodeString(SimpleeventGet)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, false)
+		ret, err := k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
 		value, err := strconv.ParseInt(hex.EncodeToString(ret), 16, 64)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
 		if value != 0 {
 			panic("return value incorrect")
 		}
 
-		futureOperations := []simulation.FutureOperation{
+		futureOperations := []sim.FutureOperation{
 			{
 				BlockHeight: int(ctx.BlockHeight()) + r.Intn(10),
-				Op:          SimulateMsgCallSimpleEventSet(k, contractAddr, int(r.Uint32())),
+				Op:          SimulateMsgCallSimpleEventSet(k, bk, contractAddr, int(r.Uint32())),
 			},
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), futureOperations, nil
+		return sim.NewOperationMsg(&msg, true, ""), futureOperations, nil
 	}
 }
 
 // SimulateMsgCallSimpleEventSet creates a message calling set() in /tests/simpleevent.sol contract.
-func SimulateMsgCallSimpleEventSet(k keeper.Keeper, contractAddr sdk.AccAddress, varValue int) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		caller, _ := simtypes.RandomAcc(r, accs)
+func SimulateMsgCallSimpleEventSet(k keeper.Keeper, bk types.BankKeeper, contractAddr sdk.AccAddress, varValue int) sim.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []sim.Account, chainID string) (
+		sim.OperationMsg, []sim.FutureOperation, error) {
+		caller, _ := sim.RandomAcc(r, accs)
 
 		hexStr := strconv.FormatInt(int64(varValue), 16)
 		length := len(hexStr)
@@ -201,56 +205,56 @@ func SimulateMsgCallSimpleEventSet(k keeper.Keeper, contractAddr sdk.AccAddress,
 		}
 
 		// call set()
-		msg, _, err := CallFunction(caller, SimpleeventSetPrefix, hexStr, contractAddr, k, ctx, r, chainID, app)
+		msg, _, err := CallFunction(caller, SimpleeventSetPrefix, hexStr, contractAddr, k, bk, ctx, r, chainID, app)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 
 		// check get() ret
 		data, err := hex.DecodeString(SimpleeventGet)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, false)
+		ret, err := k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 		value, err := strconv.ParseInt(hex.EncodeToString(ret), 16, 64)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 		if value != int64(varValue) {
 			panic("return value incorrect")
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, ""), nil, nil
 	}
 }
 
 // SimulateMsgDeployStorage creates a massage deploying /tests/storage.sol contract.
-func SimulateMsgDeployStorage(k keeper.Keeper) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		caller, _ := simtypes.RandomAcc(r, accs)
+func SimulateMsgDeployStorage(k keeper.Keeper, bk types.BankKeeper) sim.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []sim.Account, chainID string) (
+		sim.OperationMsg, []sim.FutureOperation, error) {
+		caller, _ := sim.RandomAcc(r, accs)
 
 		// deploy storage.sol
-		msg, contractAddr, err := DeployContract(caller, StorageCode, StorageAbi, k, r, ctx, chainID, app)
+		msg, contractAddr, err := DeployContract(caller, StorageCode, StorageAbi, k, bk, r, ctx, chainID, app)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
 
 		// check retrieve() ret
 		data, err := hex.DecodeString(StorageRetrieve)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, false)
+		ret, err := k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
 		value, err := strconv.ParseInt(hex.EncodeToString(ret), 16, 64)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
 		if value != 0 {
 			panic("return value incorrect")
@@ -259,33 +263,33 @@ func SimulateMsgDeployStorage(k keeper.Keeper) simulation.Operation {
 		// check sayMyAddres() ret
 		data, err = hex.DecodeString(StorageSayMyAddres)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
-		ret, err = k.Call(ctx, caller.Address, false)
+		ret, err = k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
 		sender := sdk.AccAddress(ret[12:])
 		if !sender.Equals(caller.Address) {
 			panic("return value incorrect")
 		}
 
-		futureOperations := []simulation.FutureOperation{
+		futureOperations := []sim.FutureOperation{
 			{
 				BlockHeight: int(ctx.BlockHeight()) + r.Intn(10),
-				Op:          SimulateMsgCallStorageStore(k, contractAddr, int(r.Uint32())),
+				Op:          SimulateMsgCallStorageStore(k, bk, contractAddr, int(r.Uint32())),
 			},
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), futureOperations, nil
+		return sim.NewOperationMsg(&msg, true, ""), futureOperations, nil
 	}
 }
 
 // SimulateMsgCallStorageStore creates a message calling store() in /tests/storage.sol contract.
-func SimulateMsgCallStorageStore(k keeper.Keeper, contractAddr sdk.AccAddress, varValue int) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		caller, _ := simtypes.RandomAcc(r, accs)
+func SimulateMsgCallStorageStore(k keeper.Keeper, bk types.BankKeeper, contractAddr sdk.AccAddress, varValue int) sim.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []sim.Account, chainID string) (
+		sim.OperationMsg, []sim.FutureOperation, error) {
+		caller, _ := sim.RandomAcc(r, accs)
 
 		hexStr := strconv.FormatInt(int64(varValue), 16)
 		length := len(hexStr)
@@ -294,23 +298,23 @@ func SimulateMsgCallStorageStore(k keeper.Keeper, contractAddr sdk.AccAddress, v
 		}
 
 		// call store()
-		msg, _, err := CallFunction(caller, StorageStorePrefix, hexStr, contractAddr, k, ctx, r, chainID, app)
+		msg, _, err := CallFunction(caller, StorageStorePrefix, hexStr, contractAddr, k, bk, ctx, r, chainID, app)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 
 		// check retrieve() ret
 		data, err := hex.DecodeString(StorageRetrieve)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
-		ret, err := k.Call(ctx, caller.Address, false)
+		ret, err := k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 		value, err := strconv.ParseInt(hex.EncodeToString(ret), 16, 64)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 		if value != int64(varValue) {
 			panic("return value incorrect")
@@ -319,75 +323,75 @@ func SimulateMsgCallStorageStore(k keeper.Keeper, contractAddr sdk.AccAddress, v
 		// check sayMyAddres() ret
 		data, err = hex.DecodeString(StorageSayMyAddres)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
-		ret, err = k.Call(ctx, caller.Address, false)
+		ret, err = k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 		sender := sdk.AccAddress(ret[12:])
 		if !sender.Equals(caller.Address) {
 			panic("return value incorrect")
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, ""), nil, nil
 	}
 }
 
 // SimulateMsgDeployStringTest creates a massage deploying /tests/stringtest.sol contract.
-func SimulateMsgDeployStringTest(k keeper.Keeper) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		caller, _ := simtypes.RandomAcc(r, accs)
+func SimulateMsgDeployStringTest(k keeper.Keeper, bk types.BankKeeper) sim.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []sim.Account, chainID string) (
+		sim.OperationMsg, []sim.FutureOperation, error) {
+		caller, _ := sim.RandomAcc(r, accs)
 
 		// deploy stringtest.sol
-		msg, contractAddr, err := DeployContract(caller, StringtestCode, StringtestAbi, k, r, ctx, chainID, app)
+		msg, contractAddr, err := DeployContract(caller, StringtestCode, StringtestAbi, k, bk, r, ctx, chainID, app)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
 
 		var ref string // hex str shared among future operations for checking purpose
 
-		futureOperations := []simulation.FutureOperation{
+		futureOperations := []sim.FutureOperation{
 			{
 				BlockHeight: int(ctx.BlockHeight()) + 1,
-				Op:          SimulateMsgCallStringTestGetl(k, contractAddr, &ref),
+				Op:          SimulateMsgCallStringTestGetl(k, bk, contractAddr, &ref),
 			},
 			{
 				BlockHeight: int(ctx.BlockHeight()) + 1,
-				Op:          SimulateMsgCallStringTestGets(k, contractAddr, &ref),
+				Op:          SimulateMsgCallStringTestGets(k, bk, contractAddr, &ref),
 			},
 			{
 				BlockHeight: int(ctx.BlockHeight()) + 2,
-				Op:          SimulateMsgCallStringTestChangeString(k, contractAddr, &ref),
+				Op:          SimulateMsgCallStringTestChangeString(k, bk, contractAddr, &ref),
 			},
 			{
 				BlockHeight: int(ctx.BlockHeight()) + 3,
-				Op:          SimulateMsgCallStringTestGets(k, contractAddr, &ref),
+				Op:          SimulateMsgCallStringTestGets(k, bk, contractAddr, &ref),
 			},
 			{
 				BlockHeight: int(ctx.BlockHeight()) + 3,
-				Op:          SimulateMsgCallStringTestGetl(k, contractAddr, &ref),
+				Op:          SimulateMsgCallStringTestGetl(k, bk, contractAddr, &ref),
 			},
 			{
 				BlockHeight: int(ctx.BlockHeight()) + r.Intn(10),
-				Op:          SimulateMsgCallStringTestChangeGiven(k, contractAddr),
+				Op:          SimulateMsgCallStringTestChangeGiven(k, bk, contractAddr),
 			},
 			{
 				BlockHeight: int(ctx.BlockHeight()) + r.Intn(10),
-				Op:          SimulateMsgCallStringTestTestStuff(k, contractAddr),
+				Op:          SimulateMsgCallStringTestTestStuff(k, bk, contractAddr),
 			},
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), futureOperations, nil
+		return sim.NewOperationMsg(&msg, true, ""), futureOperations, nil
 	}
 }
 
 // SimulateMsgCallStringTestChangeString creates a message calling changeString() in /tests/stringtest.sol contract.
-func SimulateMsgCallStringTestChangeString(k keeper.Keeper, contractAddr sdk.AccAddress, ref *string) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		caller, _ := simtypes.RandomAcc(r, accs)
+func SimulateMsgCallStringTestChangeString(k keeper.Keeper, bk types.BankKeeper, contractAddr sdk.AccAddress, ref *string) sim.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []sim.Account, chainID string) (
+		sim.OperationMsg, []sim.FutureOperation, error) {
+		caller, _ := sim.RandomAcc(r, accs)
 
 		// turn length into a hex string of length 64
 		length := r.Intn(32) + 1
@@ -398,7 +402,7 @@ func SimulateMsgCallStringTestChangeString(k keeper.Keeper, contractAddr sdk.Acc
 		}
 
 		// turn string into a hex string of length 64
-		*ref = simtypes.RandStringOfLength(r, length)
+		*ref = sim.RandStringOfLength(r, length)
 		hexStr := hex.EncodeToString([]byte(*ref))
 		l = len(hexStr)
 		for i := 0; i < 64-l; i++ {
@@ -406,9 +410,9 @@ func SimulateMsgCallStringTestChangeString(k keeper.Keeper, contractAddr sdk.Acc
 		}
 
 		// call changeString()
-		msg, ret, err := CallFunction(caller, StringtestChangeStringPrefix, hexLen+hexStr, contractAddr, k, ctx, r, chainID, app)
+		msg, ret, err := CallFunction(caller, StringtestChangeStringPrefix, hexLen+hexStr, contractAddr, k, bk, ctx, r, chainID, app)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 
 		// check ret and update ref
@@ -417,15 +421,15 @@ func SimulateMsgCallStringTestChangeString(k keeper.Keeper, contractAddr sdk.Acc
 			panic("return value incorrect")
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, ""), nil, nil
 	}
 }
 
 // SimulateMsgCallStringTestChangeGiven creates a message calling changeGiven() in /tests/stringtest.sol contract.
-func SimulateMsgCallStringTestChangeGiven(k keeper.Keeper, contractAddr sdk.AccAddress) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		caller, _ := simtypes.RandomAcc(r, accs)
+func SimulateMsgCallStringTestChangeGiven(k keeper.Keeper, bk types.BankKeeper, contractAddr sdk.AccAddress) sim.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []sim.Account, chainID string) (
+		sim.OperationMsg, []sim.FutureOperation, error) {
+		caller, _ := sim.RandomAcc(r, accs)
 
 		// assemble length into a hex string of length 64
 		length := r.Intn(30) + 3
@@ -436,7 +440,7 @@ func SimulateMsgCallStringTestChangeGiven(k keeper.Keeper, contractAddr sdk.AccA
 		}
 
 		// assemble string into a hex string of length 64
-		str := simtypes.RandStringOfLength(r, length)
+		str := sim.RandStringOfLength(r, length)
 		hexStr := hex.EncodeToString([]byte(str))
 		l = len(hexStr)
 		for i := 0; i < 64-l; i++ {
@@ -444,9 +448,9 @@ func SimulateMsgCallStringTestChangeGiven(k keeper.Keeper, contractAddr sdk.AccA
 		}
 
 		// call changeGiven()
-		msg, ret, err := CallFunction(caller, StringtestChangeGivenPrefix, hexLen+hexStr, contractAddr, k, ctx, r, chainID, app)
+		msg, ret, err := CallFunction(caller, StringtestChangeGivenPrefix, hexLen+hexStr, contractAddr, k, bk, ctx, r, chainID, app)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 
 		// check ret
@@ -455,20 +459,20 @@ func SimulateMsgCallStringTestChangeGiven(k keeper.Keeper, contractAddr sdk.AccA
 			panic("return value incorrect")
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, ""), nil, nil
 	}
 }
 
 // SimulateMsgCallStringTestGets creates a message calling gets() in /tests/stringtest.sol contract.
-func SimulateMsgCallStringTestGets(k keeper.Keeper, contractAddr sdk.AccAddress, ref *string) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		caller, _ := simtypes.RandomAcc(r, accs)
+func SimulateMsgCallStringTestGets(k keeper.Keeper, bk types.BankKeeper, contractAddr sdk.AccAddress, ref *string) sim.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []sim.Account, chainID string) (
+		sim.OperationMsg, []sim.FutureOperation, error) {
+		caller, _ := sim.RandomAcc(r, accs)
 
 		// call gets()
-		msg, ret, err := CallFunction(caller, StringtestGets, "", contractAddr, k, ctx, r, chainID, app)
+		msg, ret, err := CallFunction(caller, StringtestGets, "", contractAddr, k, bk, ctx, r, chainID, app)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 
 		// check ret
@@ -479,26 +483,26 @@ func SimulateMsgCallStringTestGets(k keeper.Keeper, contractAddr sdk.AccAddress,
 			panic("return value incorrect")
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, ""), nil, nil
 	}
 }
 
 // SimulateMsgCallStringTestGetl creates a message calling getl() in /tests/stringtest.sol contract.
-func SimulateMsgCallStringTestGetl(k keeper.Keeper, contractAddr sdk.AccAddress, ref *string) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		caller, _ := simtypes.RandomAcc(r, accs)
+func SimulateMsgCallStringTestGetl(k keeper.Keeper, bk types.BankKeeper, contractAddr sdk.AccAddress, ref *string) sim.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []sim.Account, chainID string) (
+		sim.OperationMsg, []sim.FutureOperation, error) {
+		caller, _ := sim.RandomAcc(r, accs)
 
 		// call getl()
-		msg, ret, err := CallFunction(caller, StringtestGetl, "", contractAddr, k, ctx, r, chainID, app)
+		msg, ret, err := CallFunction(caller, StringtestGetl, "", contractAddr, k, bk, ctx, r, chainID, app)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 
 		// check ret
 		length, err := strconv.ParseInt(hex.EncodeToString(ret), 16, 32)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 		if *ref == "" && length != 0 {
 			panic("return value incorrect")
@@ -508,31 +512,31 @@ func SimulateMsgCallStringTestGetl(k keeper.Keeper, contractAddr sdk.AccAddress,
 			panic("return value incorrect")
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, ""), nil, nil
 	}
 }
 
 // SimulateMsgCallStringTestTestStuff creates a message calling testStuff() in /tests/stringtest.sol contract.
-func SimulateMsgCallStringTestTestStuff(k keeper.Keeper, contractAddr sdk.AccAddress) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
-		caller, _ := simtypes.RandomAcc(r, accs)
+func SimulateMsgCallStringTestTestStuff(k keeper.Keeper, bk types.BankKeeper, contractAddr sdk.AccAddress) sim.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []sim.Account, chainID string) (
+		sim.OperationMsg, []sim.FutureOperation, error) {
+		caller, _ := sim.RandomAcc(r, accs)
 
 		// call testStuff()
-		msg, ret, err := CallFunction(caller, StringtestTestStuff, "", contractAddr, k, ctx, r, chainID, app)
+		msg, ret, err := CallFunction(caller, StringtestTestStuff, "", contractAddr, k, bk, ctx, r, chainID, app)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 
 		// check ret
 		value, err := strconv.ParseInt(hex.EncodeToString(ret), 16, 32)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
 		if value != 123123 {
 			panic("return value incorrect")
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, ""), nil, nil
 	}
 }

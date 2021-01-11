@@ -5,13 +5,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/magiconair/properties/assert"
+	"github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/gogo/protobuf/proto"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/stretchr/testify/require"
 )
 
 var fakeProposerAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
@@ -24,36 +27,26 @@ var (
 		time.Date(2021, 1, 1, 1, 1, 1, 1, time.UTC),
 		time.Date(2022, 1, 1, 1, 1, 1, 1, time.UTC),
 	}
+	textProposal = govtypes.NewTextProposal("title0", "desc0")
+	msg, _       = textProposal.(proto.Message)
+
+	any, _    = types.NewAnyWithValue(msg)
 	proposals = []Proposal{
-		{govtypes.TextProposal{"title0", "desc0"}, 0, StatusDepositPeriod, false, fakeProposerAddress.String(),
+		{any, 0, StatusDepositPeriod, false, fakeProposerAddress.String(),
 			govtypes.EmptyTallyResult(), times[0], times[1],
 			sdk.NewCoins(), time.Time{}, time.Time{}},
 	}
-	strs = []string{
-		fmt.Sprintf(`Proposal %d:
-  Title:              %s
-  Type:               %s
-  Status:             %s
-  Is Council Member:  %t
-  Proposer Address:   %s
-  Submit Time:        %s
-  Deposit End Time:   %s
-  Total Deposit:      %s
-  Voting Start Time:  %s
-  Voting End Time:    %s
-  Description:        %s`, 0, "title0", govtypes.ProposalTypeText, StatusDepositPeriod, false, fakeProposerAddress, times[0], times[1],
-			testCoin, time.Time{}, time.Time{}, "desc0"),
-	}
+	strs = []string{proposals[0].String()}
 )
 
 func TestProposalStatus_Format(t *testing.T) {
-	statusDepositPeriod, _ := ProposalStatusFromString("DepositPeriod")
-	statusCertifierVotingPeriod, _ := ProposalStatusFromString("CertifierVotingPeriod")
-	statusPassed, _ := ProposalStatusFromString("Passed")
-	statusRejected, _ := ProposalStatusFromString("Rejected")
-	statusFailed, _ := ProposalStatusFromString("Failed")
-	statusNil, _ := ProposalStatusFromString("")
-	statusValidatorVotingPeriod, _ := ProposalStatusFromString("ValidatorVotingPeriod")
+	statusDepositPeriod, _ := ProposalStatusFromString("PROPOSAL_STATUS_DEPOSIT_PERIOD")
+	statusCertifierVotingPeriod, _ := ProposalStatusFromString("PROPOSAL_STATUS_CERTIFIER_VOTING_PERIOD")
+	statusPassed, _ := ProposalStatusFromString("PROPOSAL_STATUS_PASSED")
+	statusRejected, _ := ProposalStatusFromString("PROPOSAL_STATUS_REJECTED")
+	statusFailed, _ := ProposalStatusFromString("PROPOSAL_STATUS_FAILED")
+	statusNil, _ := ProposalStatusFromString("PROPOSAL_STATUS_UNSPECIFIED")
+	statusValidatorVotingPeriod, _ := ProposalStatusFromString("PROPOSAL_STATUS_VALIDATOR_VOTING_PERIOD")
 	statusDefault, _ := ProposalStatusFromString("asdasd")
 
 	tests := []struct {
@@ -61,14 +54,14 @@ func TestProposalStatus_Format(t *testing.T) {
 		sprintFArgs          string
 		expectedStringOutput string
 	}{
-		{statusDepositPeriod, "%s", "DepositPeriod"},
-		{statusCertifierVotingPeriod, "%s", "CertifierVotingPeriod"},
-		{statusPassed, "%s", "Passed"},
-		{statusRejected, "%s", "Rejected"},
-		{statusFailed, "%s", "Failed"},
-		{statusNil, "%s", ""},
-		{statusValidatorVotingPeriod, "%s", "ValidatorVotingPeriod"},
-		{statusDefault, "%s", ""},
+		{statusDepositPeriod, "%s", "PROPOSAL_STATUS_DEPOSIT_PERIOD"},
+		{statusCertifierVotingPeriod, "%s", "PROPOSAL_STATUS_CERTIFIER_VOTING_PERIOD"},
+		{statusPassed, "%s", "PROPOSAL_STATUS_PASSED"},
+		{statusRejected, "%s", "PROPOSAL_STATUS_REJECTED"},
+		{statusFailed, "%s", "PROPOSAL_STATUS_FAILED"},
+		{statusNil, "%s", "PROPOSAL_STATUS_UNSPECIFIED"},
+		{statusValidatorVotingPeriod, "%s", "PROPOSAL_STATUS_VALIDATOR_VOTING_PERIOD"},
+		{statusDefault, "%s", "PROPOSAL_STATUS_UNSPECIFIED"},
 
 		{statusNil, "%v", "0"},
 		{statusDepositPeriod, "%v", "1"},
@@ -104,9 +97,10 @@ func TestNewProposal(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewProposal(tt.args.content, tt.args.id, tt.args.proposerAddress,
+			got, err := NewProposal(tt.args.content, tt.args.id, tt.args.proposerAddress,
 				tt.args.isProposerCouncilMember, tt.args.submitTime, tt.args.depositEndTime)
 			assert.Equal(t, got, tt.want)
+			assert.Nil(t, err)
 		})
 	}
 }
@@ -138,8 +132,11 @@ func TestProposal_String(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			msg, _ = tt.fields.Content.(proto.Message)
+
+			any, _ = types.NewAnyWithValue(msg)
 			p := Proposal{
-				Content:                 tt.fields.Content,
+				Content:                 any,
 				ProposalId:              tt.fields.ProposalId,
 				Status:                  tt.fields.Status,
 				IsProposerCouncilMember: tt.fields.IsProposerCouncilMember,

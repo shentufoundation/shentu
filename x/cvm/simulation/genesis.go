@@ -12,5 +12,5 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 	gs.GasRate = 1
 
-	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(gs)
+	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&gs)
 }

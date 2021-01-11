@@ -3,6 +3,10 @@ package keeper_test
 import (
 	"encoding/hex"
 	"testing"
+	"time"
+
+	"github.com/certikfoundation/shentu/simapp"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/sha3"
@@ -18,20 +22,21 @@ import (
 	"github.com/hyperledger/burrow/execution/native"
 	"github.com/hyperledger/burrow/txs/payload"
 
+	. "github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
 func TestNewQuerier(t *testing.T) {
-	testInput := CreateTestInput(t)
-	ctx := testInput.Ctx
-	cvmk := testInput.CvmKeeper
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cvmk := app.CVMKeeper
 
 	query := abci.RequestQuery{
 		Path: "",
 		Data: []byte{},
 	}
 
-	querier := NewQuerier(cvmk)
+	querier := NewQuerier(cvmk, app.LegacyAmino())
 
 	bz, err := querier(ctx, []string{"other"}, query)
 	require.Error(t, err)
@@ -57,21 +62,21 @@ func TestNewQuerier(t *testing.T) {
 }
 
 func TestViewQuery(t *testing.T) {
-	testInput := CreateTestInput(t)
-	ctx := testInput.Ctx
-	cvmk := testInput.CvmKeeper
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cvmk := app.CVMKeeper
 
 	query := abci.RequestQuery{
 		Path: "",
 		Data: []byte{},
 	}
 
-	querier := NewQuerier(cvmk)
+	querier := NewQuerier(cvmk, app.LegacyAmino())
 
 	code, err := hex.DecodeString(Hello55BytecodeString)
 	require.Nil(t, err)
 
-	newContractAddress, err2 := cvmk.Call(ctx, Addrs[0], false)
+	newContractAddress, err2 := cvmk.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 	require.Nil(t, err2)
 	require.NotNil(t, newContractAddress)
 
@@ -95,22 +100,22 @@ func TestViewQuery(t *testing.T) {
 	bz, err = querier(ctx, path, query)
 
 	var res types.QueryResView
-	err = testInput.Cdc.UnmarshalJSON(bz, &res)
+	err = app.LegacyAmino().UnmarshalJSON(bz, &res)
 	require.Nil(t, err)
 	out, err := abi.DecodeFunctionReturn(Hello55AbiJsonString, "sayHi", res.Ret)
 	require.Equal(t, "55", out[0].Value)
 }
 
 func TestQueryMeta(t *testing.T) {
-	testInput := CreateTestInput(t)
-	ctx := testInput.Ctx
-	cvmk := testInput.CvmKeeper
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cvmk := app.CVMKeeper
 
 	query := abci.RequestQuery{
 		Path: "",
 		Data: []byte{},
 	}
-	querier := NewQuerier(cvmk)
+	querier := NewQuerier(cvmk, app.LegacyAmino())
 
 	state := cvmk.NewState(ctx)
 
@@ -149,7 +154,7 @@ func TestQueryMeta(t *testing.T) {
 	bz, err = querier(ctx, path, query)
 	require.Nil(t, err)
 	var meta types.QueryResMeta
-	err = cvmk.cdc.UnmarshalJSON(bz, &meta)
+	err = app.LegacyAmino().UnmarshalJSON(bz, &meta)
 	require.Nil(t, err)
 	require.Equal(t, meta.Meta, "")
 }

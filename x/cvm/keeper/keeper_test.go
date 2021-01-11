@@ -5,10 +5,17 @@ import (
 	"fmt"
 	"math/big"
 	"testing"
+	"time"
+
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
+	"github.com/hyperledger/burrow/txs/payload"
+
+	"github.com/tendermint/tendermint/crypto/secp256k1"
+
+	"github.com/certikfoundation/shentu/simapp"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/stretchr/testify/require"
-
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -18,21 +25,32 @@ import (
 	"github.com/hyperledger/burrow/execution/evm/abi"
 
 	"github.com/certikfoundation/shentu/common"
-	cert "github.com/certikfoundation/shentu/x/cert"
+	. "github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
+var (
+	Addrs = []sdk.AccAddress{
+		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
+		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
+		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
+		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
+		sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()),
+	}
+)
+
 func TestContractCreation(t *testing.T) {
-	input := CreateTestInput(t)
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	t.Run("should allow call on a contract with no code when calling with empty data (transfer)", func(t *testing.T) {
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], Addrs[1], 10, []byte{}, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, result)
 		require.Nil(t, err)
 	})
 
 	t.Run("should not allow call on a contract with no code when calling with data (transfer)", func(t *testing.T) {
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], Addrs[1], 10, []byte{0x00}, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, result)
 		require.NotNil(t, err)
 		require.Equal(t, types.ErrCodedError(errors.Codes.CodeOutOfBounds), err)
@@ -43,20 +61,20 @@ func TestContractCreation(t *testing.T) {
 
 		require.Nil(t, err)
 
-		result, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, result)
 		require.Nil(t, err2)
 
 		sayHiCall, _, err := abi.EncodeFunctionCall(
 			Hello55AbiJsonString,
 			"sayHi",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 		)
 		require.Nil(t, err)
 
 		// call its function
 		newContractAddress := sdk.AccAddress(result)
-		result, err2 = input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err2 = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, sayHiCall, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(55))
 		require.Nil(t, err2)
 	})
@@ -64,14 +82,15 @@ func TestContractCreation(t *testing.T) {
 }
 
 func TestProperExecution(t *testing.T) {
-	input := CreateTestInput(t)
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	var newContractAddress sdk.AccAddress
 	t.Run("deploy a contract with regular code", func(t *testing.T) {
 		code, err := hex.DecodeString(BasicTestsBytecodeString)
 		require.Nil(t, err)
 
-		result, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -82,10 +101,10 @@ func TestProperExecution(t *testing.T) {
 	t.Run("deploy second contract", func(t *testing.T) {
 		code, err2 := hex.DecodeString(Hello55BytecodeString)
 		require.Nil(t, err2)
-		acc := input.AccountKeeper.GetAccount(input.Ctx, Addrs[0])
+		acc := app.AccountKeeper.GetAccount(ctx, Addrs[0])
 		_ = acc.SetSequence(acc.GetSequence() + 1)
-		input.AccountKeeper.SetAccount(input.Ctx, acc)
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		app.AccountKeeper.SetAccount(ctx, acc)
+		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 	})
@@ -94,11 +113,11 @@ func TestProperExecution(t *testing.T) {
 		addSevenAndEightCall, _, err := abi.EncodeFunctionCall(
 			BasicTestsAbiJsonString,
 			"addTwoNumbers",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 			7, 8,
 		)
 		require.Nil(t, err)
-		result, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, addSevenAndEightCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(15))
 	})
@@ -107,16 +126,16 @@ func TestProperExecution(t *testing.T) {
 		failureFunctionCall, _, err := abi.EncodeFunctionCall(
 			BasicTestsAbiJsonString,
 			"failureFunction",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 		)
 		require.Nil(t, err)
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, failureFunctionCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		require.Equal(t, types.ErrCodedError(errors.Codes.ExecutionReverted), err2)
 	})
 
 	t.Run("call a contract with junk callcode and ensure it reverts", func(t *testing.T) {
-		_, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		_, err := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, []byte("Kanye West"), []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err)
 		require.Equal(t, types.ErrCodedError(errors.Codes.ExecutionReverted), err)
 	})
@@ -125,26 +144,27 @@ func TestProperExecution(t *testing.T) {
 		setMyFavoriteNumberCall, _, err2 := abi.EncodeFunctionCall(
 			BasicTestsAbiJsonString,
 			"setMyFavoriteNumber",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 			777,
 		)
 		require.Nil(t, err2)
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, setMyFavoriteNumberCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
-		result, err2 = input.CvmKeeper.GetStorage(input.Ctx, crypto.MustAddressFromBytes(newContractAddress), binary.Int64ToWord256(0))
+		result, err2 = app.CVMKeeper.GetStorage(ctx, crypto.MustAddressFromBytes(newContractAddress), binary.Int64ToWord256(0))
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(777))
 	})
 }
 
 func TestView(t *testing.T) {
-	input := CreateTestInput(t)
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	var newContractAddress sdk.AccAddress
 	t.Run("deploy a contract with regular code", func(t *testing.T) {
 		code, err := hex.DecodeString(BasicTestsBytecodeString)
 		require.Nil(t, err)
 
-		result, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -154,24 +174,26 @@ func TestView(t *testing.T) {
 		setMyFavoriteNumberCall, _, err2 := abi.EncodeFunctionCall(
 			BasicTestsAbiJsonString,
 			"setMyFavoriteNumber",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 			777,
 		)
 		require.Nil(t, err2)
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, setMyFavoriteNumberCall, []*payload.ContractMeta{}, true, false, false)
 		require.NotNil(t, err)
-		result, err2 = input.CvmKeeper.GetStorage(input.Ctx, crypto.MustAddressFromBytes(newContractAddress), binary.Int64ToWord256(0))
+		result, err2 = app.CVMKeeper.GetStorage(ctx, crypto.MustAddressFromBytes(newContractAddress), binary.Int64ToWord256(0))
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(34))
 	})
 }
 
 func TestGasPrice(t *testing.T) {
-	input := CreateTestInput(t)
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+
 	var newContractAddress sdk.AccAddress
 	t.Run("deploy contract", func(t *testing.T) {
 		code, err2 := hex.DecodeString(GasTestsBytecodeString)
 		require.Nil(t, err2)
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -180,7 +202,7 @@ func TestGasPrice(t *testing.T) {
 	addTwoNumbersCall, _, err := abi.EncodeFunctionCall(
 		GasTestsAbiJsonString,
 		"addTwoNumbers",
-		WrapLogger(input.Ctx.Logger()),
+		WrapLogger(ctx.Logger()),
 		3, 5,
 	)
 	require.Nil(t, err)
@@ -191,36 +213,36 @@ func TestGasPrice(t *testing.T) {
 				t.Errorf("The code did not panic")
 			}
 		}()
-		input.Ctx = input.Ctx.WithGasMeter(NewGasMeter(AddTwoNumbersGasCost - 5000))
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		ctx = ctx.WithGasMeter(sdk.NewGasMeter(AddTwoNumbersGasCost - 5000))
+		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		require.Equal(t, err2.Error(), types.ErrCodedError(errors.Codes.InsufficientGas).Error())
 	})
 
 	t.Run("add two numbers with the right gas amount", func(t *testing.T) {
-		input.Ctx = input.Ctx.WithGasMeter(NewGasMeter(AddTwoNumbersGasCost + 50000))
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		ctx = ctx.WithGasMeter(sdk.NewGasMeter(AddTwoNumbersGasCost + 50000))
+		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 	})
 
 	hashMeCall, _, err := abi.EncodeFunctionCall(
 		GasTestsAbiJsonString,
 		"hashMe",
-		WrapLogger(input.Ctx.Logger()),
+		WrapLogger(ctx.Logger()),
 		[]byte("abcdefghij"),
 	)
 
 	t.Run("hash some bytes with not enough gas and see it fail", func(t *testing.T) {
 		require.Nil(t, err)
-		input.Ctx = input.Ctx.WithGasMeter(NewGasMeter(HashMeGasCost - 4000))
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		ctx = ctx.WithGasMeter(sdk.NewGasMeter(HashMeGasCost - 4000))
+		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, hashMeCall, nil, false, false, false)
 		require.NotNil(t, err2)
 		require.Equal(t, err2, types.ErrCodedError(errors.Codes.InsufficientGas))
 	})
 
 	t.Run("hash some bytes with the right gas amount", func(t *testing.T) {
-		input.Ctx = input.Ctx.WithGasMeter(NewGasMeter(HashMeGasCost + 50000))
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		ctx = ctx.WithGasMeter(sdk.NewGasMeter(HashMeGasCost + 50000))
+		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, hashMeCall, nil, false, false, false)
 		require.Nil(t, err2)
 	})
 
@@ -229,40 +251,26 @@ func TestGasPrice(t *testing.T) {
 		deployAnotherContractCall, _, err = abi.EncodeFunctionCall(
 			GasTestsAbiJsonString,
 			"deployAnotherContract",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 		)
 
 		require.Nil(t, err)
-		input.Ctx = input.Ctx.WithGasMeter(NewGasMeter(DeployAnotherContractGasCost - 150000)) //DeployAnotherContractGasCost - 20))
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		ctx = ctx.WithGasMeter(sdk.NewGasMeter(DeployAnotherContractGasCost - 150000)) //DeployAnotherContractGasCost - 20))
+		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, deployAnotherContractCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		require.Equal(t, err2, types.ErrCodedError(errors.Codes.InsufficientGas))
 	})
 
 	t.Run("deploy another contract with the right gas amount", func(t *testing.T) {
-		input.Ctx = input.Ctx.WithGasMeter(NewGasMeter(DeployAnotherContractGasCost))
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		ctx = ctx.WithGasMeter(sdk.NewGasMeter(DeployAnotherContractGasCost))
+		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, deployAnotherContractCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 	})
 }
 
 func TestGasRefund(t *testing.T) {
-	input := CreateTestInput(t)
-	/*
-		Currently there is no way to actually test this because gas refunded has no effect,
-		ie no CTK will be deducted from or added to a user's wallet upon a CVM transaction
-		taking place.
-
-		So gas refunded is just an internal variable within the CVM module and we cannot check
-		a function's return value for it.
-
-		It seems writing an actual test for this will have to wait until the economic document is finalized
-
-		For now however we can run the requisite tests without `require` statements and use
-		Printlns to read what is going on internally
-	*/
-
-	// defer panic("pointless panic") // UNCOMMENT THIS LINE TO SEE PRINTLNS, they will not appear if all tests run successfully
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	var newContractAddress sdk.AccAddress
 	fmt.Println("Deploy gas test contract")
@@ -271,7 +279,7 @@ func TestGasRefund(t *testing.T) {
 	t.Run("deploy gas test contract", func(t *testing.T) {
 		code, err2 := hex.DecodeString(GasTestsBytecodeString)
 		require.Nil(t, err2)
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -285,11 +293,11 @@ func TestGasRefund(t *testing.T) {
 		addTwoNumbersCall, _, err := abi.EncodeFunctionCall(
 			GasTestsAbiJsonString,
 			"addTwoNumbers",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 			3, 5,
 		)
 		require.Nil(t, err)
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, addTwoNumbersCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		/* TODO, check for gas refunded */
 	})
@@ -301,7 +309,7 @@ func TestGasRefund(t *testing.T) {
 	t.Run("deploy gas refund contract", func(t *testing.T) {
 		code, err2 := hex.DecodeString(GasRefundBytecodeString)
 		require.Nil(t, err2)
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[1], false)
+		result, err := app.CVMKeeper.Tx(ctx, Addrs[1], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
@@ -315,27 +323,27 @@ func TestGasRefund(t *testing.T) {
 		iWillRevertCall, _, err := abi.EncodeFunctionCall(
 			GasRefundAbiJsonString,
 			"iWillRevert",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 		)
 
 		require.Nil(t, err)
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[1], false)
+		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[1], newContractAddress, 0, iWillRevertCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		/* TODO, check for gas refunded */
 	})
 
 	fmt.Println()
-	fmt.Println("Call that fails")
+	fmt.Println("Tx that fails")
 	fmt.Println("------------------------")
 
 	t.Run("run call that fails with wayyy too much gas, should not get a refund", func(t *testing.T) {
 		iWillFailCall, _, err := abi.EncodeFunctionCall(
 			GasRefundAbiJsonString,
 			"iWillFail",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 		)
 		require.Nil(t, err)
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[1], false)
+		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[1], newContractAddress, 0, iWillFailCall, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, err2)
 		/* TODO, ensure that no refund took place */
 	})
@@ -348,10 +356,10 @@ func TestGasRefund(t *testing.T) {
 		deleteFromStorageCall, _, err := abi.EncodeFunctionCall(
 			GasRefundAbiJsonString,
 			"deleteFromStorage",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 		)
 		require.Nil(t, err)
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[1], false)
+		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[1], newContractAddress, 0, deleteFromStorageCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		/* TODO, ensure that refund took place (half the gas should be refunded) */
 	})
@@ -364,10 +372,10 @@ func TestGasRefund(t *testing.T) {
 		dieCall, _, err := abi.EncodeFunctionCall(
 			GasRefundAbiJsonString,
 			"die",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 		)
 		require.Nil(t, err)
-		_, err2 := input.CvmKeeper.Call(input.Ctx, Addrs[1], false)
+		_, err2 := app.CVMKeeper.Tx(ctx, Addrs[1], newContractAddress, 0, dieCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err2)
 		/* TODO, ensure that refund took place (half the gas should be refunded) */
 	})
@@ -375,12 +383,13 @@ func TestGasRefund(t *testing.T) {
 }
 
 func TestCTKTransfer(t *testing.T) {
-	input := CreateTestInput(t)
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	t.Run("check to ensure some account1 that has 10000 CTK", func(t *testing.T) {
-		balance := input.AccountKeeper.GetAccount(input.Ctx, Addrs[0]).GetCoins().AmountOf(common.MicroCTKDenom)
+		balance := app.BankKeeper.GetAllBalances(ctx, Addrs[0]).AmountOf(common.MicroCTKDenom)
 		require.Equal(t, balance, sdk.NewInt(10000))
-		balance = input.AccountKeeper.GetAccount(input.Ctx, Addrs[1]).GetCoins().AmountOf(common.MicroCTKDenom)
+		balance = app.BankKeeper.GetAllBalances(ctx, Addrs[1]).AmountOf(common.MicroCTKDenom)
 		require.Equal(t, balance, sdk.NewInt(10000))
 	})
 
@@ -390,7 +399,7 @@ func TestCTKTransfer(t *testing.T) {
 		code, err2 := hex.DecodeString(CtkTransferTestBytecodeString)
 		require.Nil(t, err2)
 
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.NotNil(t, result)
 		newContractAddress = sdk.AccAddress(result)
 
@@ -406,27 +415,29 @@ func TestCTKTransfer(t *testing.T) {
 		sendToAFriendCall, _, err := abi.EncodeFunctionCall(
 			CtkTransferTestAbiJsonString,
 			"sendToAFriend",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 			toAddr,
 		)
 
 		require.Nil(t, err)
-		_, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		_, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress,
+			10000, sendToAFriendCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 	})
 
 	t.Run("check to ensure account1 has 0 CTK", func(t *testing.T) {
-		balance := input.AccountKeeper.GetAccount(input.Ctx, Addrs[0]).GetCoins().AmountOf(common.MicroCTKDenom)
+		balance := app.BankKeeper.GetAllBalances(ctx, Addrs[0]).AmountOf(common.MicroCTKDenom)
 		require.Equal(t, balance, sdk.NewInt(0))
 	})
 
 	t.Run("check to ensure account2 has 15000 CTK", func(t *testing.T) {
-		balance := input.AccountKeeper.GetAccount(input.Ctx, Addrs[1]).GetCoins().AmountOf(common.MicroCTKDenom)
+		balance := app.BankKeeper.GetAllBalances(ctx, Addrs[1]).AmountOf(common.MicroCTKDenom)
 		require.Equal(t, balance, sdk.NewInt(15000))
 	})
 
 	t.Run("check to ensure the smart contract has 5000 CTK", func(t *testing.T) {
-		balance := input.AccountKeeper.GetAccount(input.Ctx, newContractAddress).GetCoins().AmountOf(common.MicroCTKDenom)
+
+		balance := app.BankKeeper.GetAllBalances(ctx, newContractAddress).AmountOf(common.MicroCTKDenom)
 		require.Equal(t, balance, sdk.NewInt(5000))
 	})
 
@@ -434,91 +445,98 @@ func TestCTKTransfer(t *testing.T) {
 		whatsMyBalanceCall, _, err := abi.EncodeFunctionCall(
 			CtkTransferTestAbiJsonString,
 			"whatsMyBalance",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 		)
 		require.Nil(t, err)
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, whatsMyBalanceCall, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.Equal(t, new(big.Int).SetBytes(result).Int64(), int64(5000))
 	})
 }
 
 func TestZeroTransfer(t *testing.T) {
-	input := CreateTestInput(t)
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	t.Run("use recycle to send to the community pool", func(t *testing.T) {
 		coins := sdk.NewCoins(sdk.NewCoin("uctk", sdk.NewInt(10)))
-		err := input.BankKeeper.SendCoins(input.Ctx, Addrs[0], crypto.ZeroAddress.Bytes(), coins)
+		err := app.BankKeeper.SendCoins(ctx, Addrs[0], Addrs[1], coins)
 		require.Nil(t, err)
-		err = input.CvmKeeper.RecycleCoins(input.Ctx)
-		zAcc := input.AccountKeeper.GetAccount(input.Ctx, crypto.ZeroAddress.Bytes())
-		err = zAcc.SetCoins(sdk.Coins{})
+		err = app.CVMKeeper.RecycleCoins(ctx)
 		require.Nil(t, err)
-		input.AccountKeeper.SetAccount(input.Ctx, zAcc)
+		zAcc := app.AccountKeeper.GetAccount(ctx, crypto.ZeroAddress.Bytes())
+		err = app.BankKeeper.SetBalances(ctx, crypto.ZeroAddress.Bytes(), sdk.Coins{})
 		require.Nil(t, err)
-		require.Equal(t, *input.DistrKeeper.CommunityPool, coins)
+		app.AccountKeeper.SetAccount(ctx, zAcc)
+		require.Nil(t, err)
+		require.Equal(t, app.DistrKeeper.CommunityPool, coins)
 	})
 }
 
 func TestStoreLastBlockHash(t *testing.T) {
-	input := CreateTestInput(t)
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cvmk := app.CVMKeeper
+
+	blockChain := NewBlockChain(ctx, cvmk)
 
 	t.Run("store Ctx block hash", func(t *testing.T) {
-		ctx := input.Ctx
-		cvmk := input.CvmKeeper
+		ctx := ctx
 
 		height1 := ctx.BlockHeight()
 		cvmk.StoreLastBlockHash(ctx)
-		hash1 := ctx.KVStore(cvmk.key).Get(types.BlockHashStoreKey(height1))
+		hash1, _ := blockChain.BlockHash(uint64(height1))
 
 		coins := sdk.NewCoins(sdk.NewCoin("uctk", sdk.NewInt(10)))
-		err := input.BankKeeper.SendCoins(input.Ctx, Addrs[0], crypto.ZeroAddress.Bytes(), coins)
+		err := app.BankKeeper.SendCoins(ctx, Addrs[0], Addrs[1], coins)
 		require.Nil(t, err)
 
-		ctx = ctx.WithBlockHeader(abci.Header{LastBlockId: abci.BlockID{Hash: []byte{0x01}}})
+		ctx = ctx.WithBlockHeader(tmproto.Header{LastBlockId: tmproto.BlockID{Hash: []byte{0x01}}})
 		ctx = ctx.WithBlockHeight(2)
 		cvmk.StoreLastBlockHash(ctx)
-		hash2 := ctx.KVStore(cvmk.key).Get(types.BlockHashStoreKey(2))
+		hash2, _ := blockChain.BlockHash(2)
 		require.NotEqual(t, hash1, hash2)
 
-		ctx = ctx.WithBlockHeader(abci.Header{LastBlockId: abci.BlockID{Hash: nil}})
+		ctx = ctx.WithBlockHeader(tmproto.Header{LastBlockId: tmproto.BlockID{Hash: nil}})
 		ctx = ctx.WithBlockHeight(3)
 		cvmk.StoreLastBlockHash(ctx)
-		hash3 := ctx.KVStore(cvmk.key).Get(types.BlockHashStoreKey(3))
+		hash3, _ := blockChain.BlockHash(3)
 		require.Equal(t, []uint8(nil), hash3)
 	})
 }
 
 func TestAbi(t *testing.T) {
-	input := CreateTestInput(t)
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	t.Run("store Ctx block hash", func(t *testing.T) {
-		ctx := input.Ctx
-		cvmk := input.CvmKeeper
+		ctx := ctx
+		cvmk := app.CVMKeeper
 
 		oldAbi := []byte(Hello55AbiJsonString)
 		addr, err := crypto.AddressFromBytes(Addrs[0].Bytes())
 		require.Nil(t, err)
 		cvmk.SetAbi(ctx, addr, oldAbi)
-		restoreAbi := cvmk.getAbi(ctx, addr)
+		restoreAbi := cvmk.GetAbi(ctx, addr)
 		require.Equal(t, oldAbi, restoreAbi)
 	})
 }
 
 func TestCode(t *testing.T) {
-	input := CreateTestInput(t)
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	t.Run("deploy contract testCheck", func(t *testing.T) {
-		ctx := input.Ctx
-		cvmk := input.CvmKeeper
+		ctx := ctx
+		cvmk := app.CVMKeeper
 		bytecode, err := hex.DecodeString(Hello55BytecodeString)
 		require.Nil(t, err)
 		addr, err := crypto.AddressFromBytes(Addrs[0].Bytes())
 		require.Nil(t, err)
-		_, err = cvmk.Call(ctx, Addrs[0], false)
+		_, err = cvmk.Tx(ctx, Addrs[0], nil, 0, bytecode, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 
-		seqNum := cvmk.getAccountSeqNum(ctx, Addrs[0])
+		seqNum := cvmk.GetAccountSeqNum(ctx, Addrs[0])
 		calleeAddr := crypto.NewContractAddress(addr, seqNum)
 
 		code, err := cvmk.GetCode(ctx, calleeAddr)
@@ -532,13 +550,14 @@ func TestCode(t *testing.T) {
 }
 
 func TestSend(t *testing.T) {
-	input := CreateTestInput(t)
-	t.Run("store Ctx block hash", func(t *testing.T) {
-		ctx := input.Ctx
-		cvmk := input.CvmKeeper
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
-		acc := input.AccountKeeper.GetAccount(ctx, Addrs[0])
-		coins := acc.GetCoins()
+	t.Run("store Ctx block hash", func(t *testing.T) {
+		ctx := ctx
+		cvmk := app.CVMKeeper
+
+		coins := app.BankKeeper.GetAllBalances(ctx, Addrs[0])
 		require.Greater(t, coins.AmountOf("uctk").Int64(), int64(9999))
 		err := cvmk.Send(ctx, Addrs[0], Addrs[1], sdk.Coins{sdk.NewInt64Coin("uctk", 100000)})
 		require.NotNil(t, err)
@@ -566,12 +585,14 @@ func padOrTrim(bb []byte, size int) []byte {
 }
 
 func TestPrecompiles(t *testing.T) {
-	input := CreateTestInput(t)
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+
 	t.Run("deploy and call native contracts", func(t *testing.T) {
-		code, err := hex.DecodeString(testCheckBytecodeString)
+		code, err := hex.DecodeString(TestCheckBytecodeString)
 		require.Nil(t, err)
 
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress := sdk.AccAddress(result)
@@ -582,81 +603,81 @@ func TestPrecompiles(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		input.CertKeeper.SetCertifier(input.Ctx, cert.Certifier{Address: certAddr})
-		auditingCert1, err := cert.NewGeneralCertificate("auditing", "address", certAddr.String(), "WOW", certAddr)
+		app.CertKeeper.SetCertifier(ctx, certtypes.Certifier{Address: certAddr.String()})
+		auditingCert1, err := certtypes.NewGeneralCertificate("auditing", "address", certAddr.String(), "WOW", certAddr)
 		if err != nil {
 			panic(err)
 		}
-		auditingCert2, err := cert.NewGeneralCertificate("auditing", "address", everythingAddr.String(), "WOW", certAddr)
+		auditingCert2, err := certtypes.NewGeneralCertificate("auditing", "address", everythingAddr.String(), "WOW", certAddr)
 		if err != nil {
 			panic(err)
 		}
-		proofCert, err := cert.NewGeneralCertificate("proof", "address", proofAddr.String(), "testproof", certAddr)
+		proofCert, err := certtypes.NewGeneralCertificate("proof", "address", proofAddr.String(), "testproof", certAddr)
 		if err != nil {
 			panic(err)
 		}
-		proofCert2, err := cert.NewGeneralCertificate("proof", "address", everythingAddr.String(), "testproof", certAddr)
+		proofCert2, err := certtypes.NewGeneralCertificate("proof", "address", everythingAddr.String(), "testproof", certAddr)
 		if err != nil {
 			panic(err)
 		}
-		compCert := cert.NewCompilationCertificate(
-			cert.CertificateTypeCompilation, "dummysourcecodehash", "testproof",
+		compCert := certtypes.NewCompilationCertificate(
+			certtypes.CertificateTypeCompilation, "dummysourcecodehash", "testproof",
 			"bch", "dummydesc", certAddr)
 
-		_, err = input.CertKeeper.IssueCertificate(input.Ctx, auditingCert1)
-		_, err = input.CertKeeper.IssueCertificate(input.Ctx, auditingCert2)
-		_, err = input.CertKeeper.IssueCertificate(input.Ctx, proofCert)
-		_, err = input.CertKeeper.IssueCertificate(input.Ctx, proofCert2)
-		_, err = input.CertKeeper.IssueCertificate(input.Ctx, compCert)
+		_, err = app.CertKeeper.IssueCertificate(ctx, auditingCert1)
+		_, err = app.CertKeeper.IssueCertificate(ctx, auditingCert2)
+		_, err = app.CertKeeper.IssueCertificate(ctx, proofCert)
+		_, err = app.CertKeeper.IssueCertificate(ctx, proofCert2)
+		_, err = app.CertKeeper.IssueCertificate(ctx, compCert)
 		if err != nil {
 			panic(err)
 		}
 
 		callCheckCall, _, err := abi.EncodeFunctionCall(
-			testCheckAbiJsonString,
+			TestCheckAbiJsonString,
 			"callCheck",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 		)
 		callCheckNotCertified, _, err := abi.EncodeFunctionCall(
-			testCheckAbiJsonString,
+			TestCheckAbiJsonString,
 			"callCheckNotCertified",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 		)
 		proofCheck, _, err := abi.EncodeFunctionCall(
-			testCheckAbiJsonString,
+			TestCheckAbiJsonString,
 			"proofCheck",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 		)
 		compCheck, _, err := abi.EncodeFunctionCall(
-			testCheckAbiJsonString,
+			TestCheckAbiJsonString,
 			"compilationCheck",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 		)
 		bothCheck, _, err := abi.EncodeFunctionCall(
-			testCheckAbiJsonString,
+			TestCheckAbiJsonString,
 			"proofAndAuditingCheck",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 		)
 		require.Nil(t, err)
-		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, callCheckCall, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
-		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, callCheckNotCertified, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x00}, result)
-		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, proofCheck, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
-		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, compCheck, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
-		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, bothCheck, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
 		require.Nil(t, err)
 	})
 
 	t.Run("deploy and call certify validator native contract", func(t *testing.T) {
 		valStr := "certikvalconspub1zcjduepq32v65eegk2yvgzdya5dqnlnc063u7mt3dh66z2xyv9rddgm6t94s4pjeat"
-		code, err := hex.DecodeString(testCertifyValidatorString)
+		code, err := hex.DecodeString(TestCertifyValidatorString)
 		require.Nil(t, err)
 
-		result, err := input.CvmKeeper.Call(input.Ctx, Addrs[1], false)
+		result, err := app.CVMKeeper.Tx(ctx, Addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress := sdk.AccAddress(result)
@@ -665,29 +686,27 @@ func TestPrecompiles(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		input.CertKeeper.SetCertifier(input.Ctx, cert.Certifier{Address: certAddr})
-		require.True(t, input.CertKeeper.IsCertifier(input.Ctx, certAddr))
+		app.CertKeeper.SetCertifier(ctx, certtypes.Certifier{Address: certAddr.String()})
+		require.True(t, app.CertKeeper.IsCertifier(ctx, certAddr))
 
 		certifyValidator, _, err := abi.EncodeFunctionCall(
-			testCertifyValidatorAbiJsonString,
+			TestCertifyValidatorAbiJsonString,
 			"certifyValidator",
-			WrapLogger(input.Ctx.Logger()),
+			WrapLogger(ctx.Logger()),
 		)
-		_, err = input.BankKeeper.AddCoins(input.Ctx, certAddr, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 12345)})
+		err = app.BankKeeper.AddCoins(ctx, certAddr, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 12345)})
 		require.NoError(t, err)
-		certAcc := input.AccountKeeper.GetAccount(input.Ctx, certAddr)
+		certAcc := app.AccountKeeper.GetAccount(ctx, certAddr)
 		_ = certAcc.SetSequence(1)
-		input.AccountKeeper.SetAccount(input.Ctx, certAcc)
+		app.AccountKeeper.SetAccount(ctx, certAcc)
 
-		result, err = input.CvmKeeper.Call(input.Ctx, Addrs[0], false)
+		result, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x00}, result)
-		result, err = input.CvmKeeper.Call(input.Ctx, certAddr, false)
-		fmt.Println(result)
-		fmt.Println(err)
+		result, err = app.CVMKeeper.Tx(ctx, Addrs[0], newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
 
 		validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, valStr)
 		require.Nil(t, err)
-		require.True(t, input.CertKeeper.IsValidatorCertified(input.Ctx, validator))
+		require.True(t, app.CertKeeper.IsValidatorCertified(ctx, validator))
 	})
 }
