@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/spf13/viper"
 
@@ -15,13 +14,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	"github.com/hyperledger/burrow/crypto"
-	"github.com/hyperledger/burrow/execution/evm/abi"
-	"github.com/hyperledger/burrow/logging"
-
-	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/x/cvm/compile"
 )
 
 // CompleteAndBroadcastTx is adopted from auth.CompleteAndBroadcastTxCLI. The original function prints out response.
@@ -86,33 +78,4 @@ func CompleteAndBroadcastTx(cliCtx context.CLIContext, txBldr authtypes.TxBuilde
 	}
 
 	return res, nil
-}
-
-// parseData parses Data for contract on certik chain
-func parseData(function string, abiSpec []byte, args []string, logger *logging.Logger) ([]byte, error) {
-	params := make([]interface{}, 0)
-
-	if string(abiSpec) == compile.NoABI {
-		panic("No ABI registered for this contract. Use --raw flag to submit raw bytecode.")
-	}
-
-	for _, arg := range args {
-		var argi interface{}
-		argi = arg
-		for _, prefix := range []string{common.Bech32MainPrefix, common.Bech32PrefixConsAddr, common.Bech32PrefixAccAddr} {
-			if strings.HasPrefix(arg, prefix) && ((len(arg) - len(prefix)) == 39) {
-				data, _ := sdk.GetFromBech32(arg, prefix)
-				var err error
-				argi, err = crypto.AddressFromBytes(data)
-				if err != nil {
-					return nil, err
-				}
-				break
-			}
-		}
-		params = append(params, argi)
-	}
-
-	data, _, err := abi.EncodeFunctionCall(string(abiSpec), function, logger, params...)
-	return data, err
 }
