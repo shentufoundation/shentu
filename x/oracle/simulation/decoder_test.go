@@ -9,38 +9,33 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
+	"github.com/cosmos/cosmos-sdk/types/kv"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
+	"github.com/certikfoundation/shentu/simapp"
+	"github.com/certikfoundation/shentu/x/cvm/simulation"
 	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
-func makeTestCodec() (cdc *codec.Codec) {
-	cdc = codec.New()
-	sdk.RegisterCodec(cdc)
-	types.RegisterCodec(cdc)
-	return cdc
-}
-
 func TestDecodeStore(t *testing.T) {
-	cdc := makeTestCodec()
-
+	cdc, _ := simapp.MakeCodecs()
+	
+	dec := simulation.NewDecodeStore(cdc)
 	rand.Seed(time.Now().UnixNano())
 
 	operator := types.Operator{
-		Address:            RandomAccount().Address,
-		Proposer:           RandomAccount().Address,
+		Address:            RandomAccount().Address.String(),
+		Proposer:           RandomAccount().Address.String(),
 		Collateral:         RandomCoins(100000),
 		AccumulatedRewards: RandomCoins(100000),
 		Name:               RandomString(10),
 	}
 
 	withdraw := types.Withdraw{
-		Address:  RandomAccount().Address,
+		Address:  RandomAccount().Address.String(),
 		Amount:   RandomCoins(100000),
 		DueBlock: rand.Int63n(1000) + 1,
 	}
@@ -53,7 +48,7 @@ func TestDecodeStore(t *testing.T) {
 		Bounty:        RandomCoins(100000),
 		Description:   RandomString(10),
 		Expiration:    time.Time{},
-		Creator:       RandomAccount().Address,
+		Creator:       RandomAccount().Address.String(),
 		Responses:     []types.Response{RandomResponse()},
 		Result:        sdk.NewInt(rand.Int63n(256)),
 		ClosingBlock:  rand.Int63n(10000),
@@ -68,12 +63,18 @@ func TestDecodeStore(t *testing.T) {
 		},
 	}
 
+	operatorAddr, err := sdk.AccAddressFromBech32(operator.Address)
+	require.NoError(t, err)
+	withdrawAddr, err := sdk.AccAddressFromBech32(withdraw.Address)
+	require.NoError(t, err)
 	KVPairs := kv.Pairs{
-		kv.Pair{Key: types.OperatorStoreKey(operator.Address), Value: cdc.MustMarshalBinaryLengthPrefixed(&operator)},
-		kv.Pair{Key: types.WithdrawStoreKey(withdraw.Address, withdraw.DueBlock), Value: cdc.MustMarshalBinaryLengthPrefixed(&withdraw)},
-		kv.Pair{Key: types.TotalCollateralKey(), Value: cdc.MustMarshalBinaryLengthPrefixed(&totalCollateral)},
-		kv.Pair{Key: types.TaskStoreKey(task.Contract, task.Function), Value: cdc.MustMarshalBinaryLengthPrefixed(&task)},
-		kv.Pair{Key: types.ClosingTaskIDsStoreKey(task.ClosingBlock), Value: cdc.MustMarshalBinaryLengthPrefixed(&taskIDs)},
+		Pairs: []kv.Pair{
+			{Key: types.OperatorStoreKey(operatorAddr), Value: cdc.MustMarshalBinaryLengthPrefixed(&operator)},
+			{Key: types.WithdrawStoreKey(withdrawAddr, withdraw.DueBlock), Value: cdc.MustMarshalBinaryLengthPrefixed(&withdraw)},
+			{Key: types.TotalCollateralKey(), Value: cdc.MustMarshalBinaryLengthPrefixed(&types.CoinsProto{Coins: totalCollateral})},
+			{Key: types.TaskStoreKey(task.Contract, task.Function), Value: cdc.MustMarshalBinaryLengthPrefixed(&task)},
+			{Key: types.ClosingTaskIDsStoreKey(task.ClosingBlock), Value: cdc.MustMarshalBinaryLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})},
+		},
 	}
 
 	tests := []struct {
@@ -91,15 +92,15 @@ func TestDecodeStore(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if i == len(tests)-1 { // nolint
-				require.Panics(t, func() { DecodeStore(cdc, KVPairs[i], KVPairs[i]) }, tt.name) // nolint
+				require.Panics(t, func() { dec(KVPairs.Pairs[i], KVPairs.Pairs[i]) }, tt.name) // nolint
 			} else {
-				require.Equal(t, tt.expectedLog, DecodeStore(cdc, KVPairs[i], KVPairs[i]), tt.name) // nolint
+				require.Equal(t, tt.expectedLog, dec(KVPairs.Pairs[i], KVPairs.Pairs[i]), tt.name) // nolint
 			}
 		})
 	}
 }
 
-func RandomAccount() simulation.Account {
+func RandomAccount() simtypes.Account {
 	privkeySeed := make([]byte, 15)
 	rand.Read(privkeySeed)
 
@@ -107,7 +108,7 @@ func RandomAccount() simulation.Account {
 	pubKey := privKey.PubKey()
 	address := sdk.AccAddress(pubKey.Address())
 
-	return simulation.Account{
+	return simtypes.Account{
 		PrivKey: privKey,
 		PubKey:  pubKey,
 		Address: address,
@@ -133,7 +134,7 @@ func RandomString(n int) string {
 func RandomResponse() types.Response {
 	return types.Response{
 		Score:    sdk.NewInt(rand.Int63n(256)),
-		Operator: RandomAccount().Address,
+		Operator: RandomAccount().Address.String(),
 		Weight:   sdk.NewInt(rand.Int63n(256)),
 		Reward:   RandomCoins(100000),
 	}

@@ -3,6 +3,7 @@ package oracle
 import (
 	"context"
 	"encoding/json"
+	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -14,19 +15,19 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-
-	//simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/certikfoundation/shentu/x/oracle/client/cli"
 	"github.com/certikfoundation/shentu/x/oracle/client/rest"
 	"github.com/certikfoundation/shentu/x/oracle/keeper"
+	"github.com/certikfoundation/shentu/x/oracle/simulation"
 	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
-	//_ module.AppModuleSimulation = AppModule{}
+	_ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic specifies the app module basics object.
@@ -153,28 +154,31 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 	return []abci.ValidatorUpdate{}
 }
 
-// TODO Simulation
-// // GenerateGenesisState creates a randomized GenState of this module.
-// func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-// 	simulation.RandomizedGenState(simState)
-// }
+//____________________________________________________________________________
 
-// // RegisterStoreDecoder registers a decoder for oracle module.
-// func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-// 	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
-// }
+// AppModuleSimulation functions
 
-// // WeightedOperations returns oracle operations for use in simulations.
-// func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-// 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.keeper.GetAccountKeeper())
-// }
+// GenerateGenesisState creates a randomized GenState of this module.
+func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
 
-// // ProposalContents returns functions that generate gov proposals for the module.
-// func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-// 	return nil
-// }
+// RegisterStoreDecoder registers a decoder for oracle module.
+func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
+}
 
-// // RandomizedParams returns functions that generate params for the module.
-// func (AppModuleBasic) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-// 	return simulation.ParamChanges(r)
-// }
+// WeightedOperations returns oracle operations for use in simulations.
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.keeper.GetAccountKeeper())
+}
+
+// ProposalContents returns functions that generate gov proposals for the module.
+func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+	return nil
+}
+
+// RandomizedParams returns functions that generate params for the module.
+func (AppModuleBasic) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	return simulation.ParamChanges(r)
+}

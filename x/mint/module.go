@@ -2,6 +2,7 @@ package mint
 
 import (
 	"encoding/json"
+	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -14,15 +15,14 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/mint/client/cli"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
-
-	//"github.com/cosmos/cosmos-sdk/x/mint/simulation"
 	"github.com/cosmos/cosmos-sdk/x/mint/types"
-	//sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/mint/keeper"
+	"github.com/certikfoundation/shentu/x/oracle/simulation"
 )
 
 var (
@@ -146,28 +146,31 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 	return []abci.ValidatorUpdate{}
 }
 
-// // TODO Simulation
-// // GenerateGenesisState creates a randomized GenState of the mint module.
-// func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-// 	simulation.RandomizedGenState(simState)
-// }
+//____________________________________________________________________________
 
-// // ProposalContents doesn't return any content functions for governance proposals.
-// func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-// 	return nil
-// }
+// AppModuleSimulation functions
 
-// // RandomizedParams creates randomized mint param changes for the simulator.
-// func (AppModule) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-// 	return simulation.ParamChanges(r)
-// }
+// GenerateGenesisState creates a randomized GenState of the mint module.
+func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
 
-// // RegisterStoreDecoder registers a decoder for mint module's types.
-// func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-// 	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
-// }
+// ProposalContents doesn't return any content functions for governance proposals.
+func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+	return nil
+}
 
-// // WeightedOperations doesn't return any mint module operation.
-// func (AppModule) WeightedOperations(_ module.SimulationState) []sim.WeightedOperation {
-// 	return nil
-// }
+// RandomizedParams creates randomized mint param changes for the simulator.
+func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	return simulation.ParamChanges(r)
+}
+
+// RegisterStoreDecoder registers a decoder for mint module's types.
+func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
+}
+
+// WeightedOperations doesn't return any mint module operation.
+func (AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
+	return nil
+}
