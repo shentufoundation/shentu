@@ -5,6 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
+
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -20,11 +23,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govrest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
+	govsim "github.com/cosmos/cosmos-sdk/x/gov/simulation"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/x/gov/client/cli"
 	"github.com/certikfoundation/shentu/x/gov/client/rest"
 	"github.com/certikfoundation/shentu/x/gov/keeper"
+	"github.com/certikfoundation/shentu/x/gov/simulation"
 	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
@@ -147,7 +152,7 @@ func (am AppModule) QuerierRoute() string {
 	return govtypes.QuerierRoute
 }
 
-// NewQuerierHandler returns the governance module sdk.Querier.
+// LegacyQuerierHandler returns the governance module sdk.Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }
@@ -185,28 +190,28 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 
 // // AppModuleSimulation functions
 
-// // GenerateGenesisState creates a randomized GenState of this module.
-// func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-// 	simulation.RandomizedGenState(simState)
-// }
+// GenerateGenesisState creates a randomized GenState of this module.
+func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
 
-// // ProposalContents returns all the gov content functions used to
-// // simulate governance proposals.
-// func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-// 	return govSim.ProposalContents()
-// }
+// ProposalContents returns all the gov content functions used to
+// simulate governance proposals.
+func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+	return govsim.ProposalContents()
+}
 
-// // RandomizedParams creates randomized gov param changes for the simulator.
-// func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-// 	return simulation.ParamChanges(r)
-// }
+// RandomizedParams creates randomized gov param changes for the simulator.
+func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	return simulation.ParamChanges(r)
+}
 
-// // RegisterStoreDecoder registers a decoder for gov module.
-// func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-// 	sdr[govtypes.StoreKey] = simulation.DecodeStore
-// }
+// RegisterStoreDecoder registers a decoder for gov module.
+func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[govtypes.StoreKey] = simulation.NewDecodeStore(am.cdc)
+}
 
-// // WeightedOperations returns the all the gov module operations with their respective weights.
-// func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-// 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper.CertKeeper, am.keeper, simState.Contents)
-// }
+// WeightedOperations returns the all the gov module operations with their respective weights.
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.bankKeeper, am.keeper.CertKeeper, am.keeper, simState.Contents)
+}

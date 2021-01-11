@@ -1,7 +1,7 @@
-pragma solidity >=0.4.0 <0.7.0;
+pragma solidity >=0.4.0;
 
 contract CertifyValidator {
-    string valConsPub = "certikvalconspub1zcjduepq32v65eegk2yvgzdya5dqnlnc063u7mt3dh66z2xyv9rddgm6t94s4pjeat";
+    string valConsPub = "cosmosvalconspub1zcjduepqxhy6865hf90lwmckjuegfdvqmyznhd6a4dkjr90pq0a82fxxg2qqcpfqat";
 
     function certifyValidator() public returns (bytes memory) {
         bytes memory input = bytes(valConsPub);

@@ -6,31 +6,35 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/gov/types"
-	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // Proposal
 
 // GetProposal get Proposal from store by ProposalID.
-func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (proposal types.Proposal, ok bool) {
+func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (types.Proposal, bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(ProposalKey(proposalID))
+
+	bz := store.Get(govtypes.ProposalKey(proposalID))
 	if bz == nil {
-		return
+		return types.Proposal{}, false
 	}
-	k.cdc.MustUnmarshalBinaryBare(bz, &proposal)
+
+	var proposal types.Proposal
+	k.MustUnmarshalProposal(bz, &proposal)
+
 	return proposal, true
 }
 
 // SetProposal sets a proposal to store.
 func (k Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryBare(&proposal)
-	store.Set(ProposalKey(proposal.ProposalId), bz)
+	bz := k.MustMarshalProposal(proposal)
+	store.Set(govtypes.ProposalKey(proposal.ProposalId), bz)
 }
 
 // DeleteProposalByProposalID deletes a proposal from store.
@@ -49,7 +53,7 @@ func (k Keeper) DeleteProposalByProposalID(ctx sdk.Context, proposalID uint64) {
 func ProposalKey(proposalID uint64) []byte {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, proposalID)
-	return append(govTypes.ProposalsKeyPrefix, bz...)
+	return append(govtypes.ProposalsKeyPrefix, bz...)
 }
 
 // isValidator checks if the input address is a validator.
@@ -97,7 +101,20 @@ func (k Keeper) TotalBondedByCertifiedIdentities(ctx sdk.Context) sdk.Int {
 }
 
 // SubmitProposal creates a new proposal with given content.
-func (k Keeper) SubmitProposal(ctx sdk.Context, content govTypes.Content, addr sdk.AccAddress) (types.Proposal, error) {
+func (k Keeper) SubmitProposal(ctx sdk.Context, content govtypes.Content, addr sdk.AccAddress) (types.Proposal, error) {
+	if !k.router.HasRoute(content.ProposalRoute()) {
+		return types.Proposal{}, sdkerrors.Wrap(govtypes.ErrNoProposalHandlerExists, content.ProposalRoute())
+	}
+
+	// Execute the proposal content in a cache-wrapped context to validate the
+	// actual parameter changes before the proposal proceeds through the
+	// governance process. State is not persisted.
+	cacheCtx, _ := ctx.CacheContext()
+	handler := k.router.GetRoute(content.ProposalRoute())
+	if err := handler(cacheCtx, content); err != nil {
+		return types.Proposal{}, sdkerrors.Wrap(govtypes.ErrInvalidProposalContent, err.Error())
+	}
+
 	proposalID, err := k.GetProposalID(ctx)
 	if err != nil {
 		return types.Proposal{}, err
@@ -107,13 +124,7 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govTypes.Content, addr s
 	depositPeriod := k.GetDepositParams(ctx).MaxDepositPeriod
 
 	var proposal types.Proposal
-	if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := content.(*shieldtypes.ShieldClaimProposal)
-		c.ProposalId = proposalID
-		proposal, err = types.NewProposal(c, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
-	} else {
-		proposal, err = types.NewProposal(content, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
-	}
+	proposal, err = types.NewProposal(content, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
 	if err != nil {
 		return types.Proposal{}, err
 	}
@@ -128,7 +139,7 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govTypes.Content, addr s
 // IterateProposals iterates over the all the proposals and performs a callback function.
 func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Proposal) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, govTypes.ProposalsKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, govtypes.ProposalsKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -223,4 +234,35 @@ func (k Keeper) GetProposalsFiltered(ctx sdk.Context, params types.QueryProposal
 	}
 
 	return filteredProposals
+}
+
+func (keeper Keeper) MarshalProposal(proposal types.Proposal) ([]byte, error) {
+	bz, err := keeper.cdc.MarshalBinaryBare(&proposal)
+	if err != nil {
+		return nil, err
+	}
+	return bz, nil
+}
+
+func (keeper Keeper) UnmarshalProposal(bz []byte, proposal *types.Proposal) error {
+	err := keeper.cdc.UnmarshalBinaryBare(bz, proposal)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (keeper Keeper) MustMarshalProposal(proposal types.Proposal) []byte {
+	bz, err := keeper.MarshalProposal(proposal)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
+func (keeper Keeper) MustUnmarshalProposal(bz []byte, proposal *types.Proposal) {
+	err := keeper.UnmarshalProposal(bz, proposal)
+	if err != nil {
+		panic(err)
+	}
 }

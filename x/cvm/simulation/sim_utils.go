@@ -4,10 +4,13 @@ import (
 	"encoding/hex"
 	"math/rand"
 
+	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
+
+	sim "github.com/cosmos/cosmos-sdk/types/simulation"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
@@ -49,23 +52,26 @@ const (
 )
 
 // DeployContract delivers a deploy tx and returns msg, contract address and error.
-func DeployContract(caller simulation.Account, contractCode string, contractAbi string, k keeper.Keeper, r *rand.Rand,
+func DeployContract(caller sim.Account, contractCode string, contractAbi string, k keeper.Keeper, bk types.BankKeeper, r *rand.Rand,
 	ctx sdk.Context, chainID string, app *baseapp.BaseApp) (msg types.MsgDeploy, contractAddr sdk.AccAddress, err error) {
 	code, err := hex.DecodeString(contractCode)
 	if err != nil {
 		return msg, nil, err
 	}
 
-	msg = types.NewMsgDeploy(caller.Address, uint64(0), code, contractAbi, nil, false, false)
+	msg = types.NewMsgDeploy(caller.Address.String(), uint64(0), code, contractAbi, nil, false, false)
 
-	account := k.AuthKeeper().GetAccount(ctx, caller.Address)
-	fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+	account := k.GetAccount(ctx, caller.Address)
+	balance := bk.GetAllBalances(ctx, caller.Address)
+	fees, err := sim.RandomFees(r, ctx, balance)
 	if err != nil {
 		return msg, nil, err
 	}
 
-	tx := helpers.GenTx(
-		[]sdk.Msg{msg},
+	txGen := simappparams.MakeTestEncodingConfig().TxConfig
+	tx, err := helpers.GenTx(
+		txGen,
+		[]sdk.Msg{&msg},
 		fees,
 		helpers.DefaultGenTxGas,
 		chainID,
@@ -74,7 +80,7 @@ func DeployContract(caller simulation.Account, contractCode string, contractAbi 
 		caller.PrivKey,
 	)
 
-	_, res, err := app.Deliver(tx)
+	_, res, err := app.Deliver(txGen.TxEncoder(), tx)
 	if err != nil {
 		return msg, nil, err
 	}
@@ -83,23 +89,26 @@ func DeployContract(caller simulation.Account, contractCode string, contractAbi 
 }
 
 // CallFunction delivers a call tx and returns msg, contract address and error.
-func CallFunction(caller simulation.Account, prefix string, input string, contractAddr sdk.AccAddress, k keeper.Keeper,
+func CallFunction(caller sim.Account, prefix string, input string, contractAddr sdk.AccAddress, k keeper.Keeper, bk types.BankKeeper,
 	ctx sdk.Context, r *rand.Rand, chainID string, app *baseapp.BaseApp) (msg types.MsgCall, ret []byte, err error) {
 	data, err := hex.DecodeString(prefix + input)
 	if err != nil {
 		return msg, nil, err
 	}
 
-	msg = types.NewMsgCall(caller.Address, contractAddr, 0, data)
+	msg = types.NewMsgCall(caller.Address.String(), contractAddr.String(), 0, data)
 
-	account := k.AuthKeeper().GetAccount(ctx, caller.Address)
-	fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+	account := k.GetAccount(ctx, caller.Address)
+	balance := bk.GetAllBalances(ctx, caller.Address)
+	fees, err := sim.RandomFees(r, ctx, balance)
 	if err != nil {
 		return msg, nil, err
 	}
 
-	tx := helpers.GenTx(
-		[]sdk.Msg{msg},
+	txGen := simappparams.MakeTestEncodingConfig().TxConfig
+	tx, err := helpers.GenTx(
+		txGen,
+		[]sdk.Msg{&msg},
 		fees,
 		helpers.DefaultGenTxGas,
 		chainID,
@@ -108,7 +117,7 @@ func CallFunction(caller simulation.Account, prefix string, input string, contra
 		caller.PrivKey,
 	)
 
-	_, res, err := app.Deliver(tx)
+	_, res, err := app.Deliver(txGen.TxEncoder(), tx)
 	if err != nil {
 		return msg, nil, err
 	}

@@ -3,8 +3,6 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/certikfoundation/shentu/common"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -22,6 +20,7 @@ type State struct {
 	ctx         sdk.Context
 	ak          types.AccountKeeper
 	bk          types.BankKeeper
+	sk          types.StakingKeeper
 	store       sdk.KVStore
 	cdc         codec.BinaryMarshaler
 	legacyAmino *codec.LegacyAmino
@@ -33,6 +32,7 @@ func (k Keeper) NewState(ctx sdk.Context) *State {
 		ctx:   ctx,
 		ak:    k.ak,
 		bk:    k.bk,
+		sk:    k.sk,
 		store: ctx.KVStore(k.key),
 		cdc:   k.cdc,
 	}
@@ -46,7 +46,7 @@ func (s *State) GetAccount(address crypto.Address) (*acm.Account, error) {
 	if account == nil {
 		return nil, nil
 	}
-	balance := s.bk.GetBalance(s.ctx, addr, common.MicroCTKDenom).Amount.Uint64()
+	balance := s.bk.GetBalance(s.ctx, addr, s.sk.BondDenom(s.ctx)).Amount.Uint64()
 	contMeta, err := s.GetAddressMeta(address)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (s *State) UpdateAccount(updatedAccount *acm.Account) error {
 		cvmCode = types.NewCVMCode(types.CVMCodeTypeEVMCode, updatedAccount.EVMCode)
 	}
 	s.store.Set(types.CodeStoreKey(updatedAccount.Address), s.cdc.MustMarshalBinaryLengthPrefixed(&cvmCode))
-	err := s.bk.SetBalances(s.ctx, address, sdk.Coins{sdk.NewInt64Coin("uctk", int64(updatedAccount.Balance))})
+	err := s.bk.SetBalances(s.ctx, address, sdk.Coins{sdk.NewInt64Coin(s.sk.BondDenom(s.ctx), int64(updatedAccount.Balance))})
 	if err != nil {
 		return err
 	}

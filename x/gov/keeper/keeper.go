@@ -37,6 +37,9 @@ type Keeper struct {
 
 	// codec for binary encoding/decoding
 	cdc codec.BinaryMarshaler
+
+	// Proposal router
+	router govtypes.Router
 }
 
 // NewKeeper returns a governance keeper. It handles:
@@ -49,10 +52,6 @@ func NewKeeper(
 	stakingKeeper types.StakingKeeper, certKeeper types.CertKeeper, shieldKeeper types.ShieldKeeper,
 	authKeeper govtypes.AccountKeeper, router govtypes.Router,
 ) Keeper {
-	// ensure governance module account is set
-	if addr := authKeeper.GetModuleAddress(govtypes.ModuleName); addr == nil {
-		panic(fmt.Sprintf("%s module account has not been set", govtypes.ModuleName))
-	}
 	cosmosKeeper := govkeeper.NewKeeper(cdc, key, paramSpace, authKeeper, bankKeeper, stakingKeeper, router)
 	return Keeper{
 		Keeper:        cosmosKeeper,
@@ -63,6 +62,7 @@ func NewKeeper(
 		CertKeeper:    certKeeper,
 		ShieldKeeper:  shieldKeeper,
 		cdc:           cdc,
+		router:        router,
 	}
 }
 

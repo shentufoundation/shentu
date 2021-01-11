@@ -2,25 +2,29 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
+
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/certikfoundation/shentu/simapp"
+	. "github.com/certikfoundation/shentu/x/cvm/keeper"
 )
 
 func TestNewBlockChain(t *testing.T) {
-	testInput := CreateTestInput(t)
-
-	ctx := testInput.Ctx
-	cvmk := testInput.CvmKeeper
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cvmk := app.CVMKeeper
 
 	bc := NewBlockChain(ctx, cvmk)
 	require.NotNil(t, bc.LastBlockTime())
 }
 
 func TestBlockchain_BlockHash(t *testing.T) {
-	testInput := CreateTestInput(t)
-
-	ctx := testInput.Ctx
-	cvmk := testInput.CvmKeeper
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cvmk := app.CVMKeeper
 
 	bc := NewBlockChain(ctx, cvmk)
 	ctxHash := ctx.BlockHeader().LastBlockId.Hash
@@ -34,10 +38,9 @@ func TestBlockchain_BlockHash(t *testing.T) {
 }
 
 func TestBlockchain_LastBlockHeight(t *testing.T) {
-	testInput := CreateTestInput(t)
-
-	ctx := testInput.Ctx
-	cvmk := testInput.CvmKeeper
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cvmk := app.CVMKeeper
 	bc := NewBlockChain(ctx, cvmk)
 
 	ctxHeight := ctx.BlockHeader().Height
@@ -45,10 +48,9 @@ func TestBlockchain_LastBlockHeight(t *testing.T) {
 }
 
 func TestBlockchain_LastBlockTime(t *testing.T) {
-	testInput := CreateTestInput(t)
-
-	ctx := testInput.Ctx
-	cvmk := testInput.CvmKeeper
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cvmk := app.CVMKeeper
 	bc := NewBlockChain(ctx, cvmk)
 
 	ctxTime := ctx.BlockHeader().Time

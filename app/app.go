@@ -319,6 +319,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.bankKeeper,
 		app.distrKeeper,
 		&app.certKeeper,
+		&app.stakingKeeper,
 		app.GetSubspace(cvmtypes.ModuleName),
 	)
 	app.oracleKeeper = oraclekeeper.NewKeeper(
@@ -450,7 +451,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
-		cvm.NewAppModule(app.cvmKeeper),
+		cvm.NewAppModule(app.cvmKeeper, app.bankKeeper),
 		cert.NewAppModule(app.certKeeper, app.accountKeeper, app.bankKeeper),
 		oracle.NewAppModule(app.oracleKeeper),
 		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),

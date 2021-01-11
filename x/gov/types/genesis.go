@@ -3,10 +3,9 @@ package types
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	"github.com/certikfoundation/shentu/common"
 )
 
 // DefaultGenesisState creates a default GenesisState object.
@@ -22,8 +21,8 @@ func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		StartingProposalId: govTypes.DefaultStartingProposalID,
 		DepositParams: DepositParams{
-			MinInitialDeposit: sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minInitialDepositTokens)},
-			MinDeposit:        sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minDepositTokens)},
+			MinInitialDeposit: sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, minInitialDepositTokens)},
+			MinDeposit:        sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, minDepositTokens)},
 			MaxDepositPeriod:  govTypes.DefaultPeriod,
 		},
 		VotingParams: govTypes.DefaultVotingParams(),
@@ -55,5 +54,18 @@ func ValidateGenesis(data *GenesisState) error {
 			data.DepositParams.MinDeposit.String())
 	}
 
+	return nil
+}
+
+var _ types.UnpackInterfacesMessage = GenesisState{}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (data GenesisState) UnpackInterfaces(unpacker types.AnyUnpacker) error {
+	for _, p := range data.Proposals {
+		err := p.UnpackInterfaces(unpacker)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

@@ -47,3 +47,8 @@ type CertKeeper interface {
 	IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool
 	SetValidator(ctx sdk.Context, key crypto.PubKey, certifier sdk.AccAddress)
 }
+
+// StakingKeeper defines the expected staking keeper
+type StakingKeeper interface {
+	BondDenom(ctx sdk.Context) string
+}
