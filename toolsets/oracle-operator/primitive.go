@@ -26,9 +26,7 @@ func queryPrimitive(
 	wg *sync.WaitGroup,
 ) {
 	logger := ctx.Logger()
-	logger.Debug("query primitive")
-	logger.Debug(payload.Contract)
-	logger.Debug(payload.Function)
+	logger.Debug("query primitive", "contract", payload.Contract, "function", payload.Function)
 
 	endpoint := url.URL{
 		Scheme: "https",
