@@ -3,6 +3,8 @@ package testgov
 import (
 	"testing"
 
+	"github.com/certikfoundation/shentu/x/gov/keeper"
+
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,14 +19,14 @@ import (
 type Helper struct {
 	t *testing.T
 	h sdk.Handler
-	k gov.Keeper
+	k keeper.Keeper
 
 	ctx   sdk.Context
 	denom string
 }
 
 // NewHelper creates staking Handler wrapper for tests
-func NewHelper(t *testing.T, ctx sdk.Context, k gov.Keeper, denom string) *Helper {
+func NewHelper(t *testing.T, ctx sdk.Context, k keeper.Keeper, denom string) *Helper {
 	return &Helper{t, gov.NewHandler(k), k, ctx, denom}
 }
 

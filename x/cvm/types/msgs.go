@@ -10,6 +10,12 @@ import (
 	"github.com/hyperledger/burrow/txs/payload"
 )
 
+// Governance message types and routes
+const (
+	TypeMsgDeploy = "deploy"
+	TypeMsgCall   = "call"
+)
+
 var _ sdk.Msg = &MsgCall{}
 var _ sdk.Msg = &MsgDeploy{}
 

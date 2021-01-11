@@ -6,8 +6,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	"github.com/certikfoundation/shentu/common"
 )
 
 // DefaultGenesisState creates a default GenesisState object.
@@ -23,8 +21,8 @@ func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		StartingProposalId: govTypes.DefaultStartingProposalID,
 		DepositParams: DepositParams{
-			MinInitialDeposit: sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minInitialDepositTokens)},
-			MinDeposit:        sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minDepositTokens)},
+			MinInitialDeposit: sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, minInitialDepositTokens)},
+			MinDeposit:        sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, minDepositTokens)},
 			MaxDepositPeriod:  govTypes.DefaultPeriod,
 		},
 		VotingParams: govTypes.DefaultVotingParams(),

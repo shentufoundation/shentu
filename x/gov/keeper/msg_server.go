@@ -11,7 +11,6 @@ import (
 
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
-	"github.com/certikfoundation/shentu/common"
 	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/gov/types"
 	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
@@ -35,9 +34,9 @@ var _ govtypes.MsgServer = msgServer{}
 func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmitProposal) (*govtypes.MsgSubmitProposalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	var initialDepositAmount = msg.InitialDeposit.AmountOf(common.MicroCTKDenom)
+	var initialDepositAmount = msg.InitialDeposit.AmountOf(k.stakingKeeper.BondDenom(ctx))
 	var depositParams = k.GetDepositParams(ctx)
-	var minimalInitialDepositAmount = depositParams.MinInitialDeposit.AmountOf(common.MicroCTKDenom)
+	var minimalInitialDepositAmount = depositParams.MinInitialDeposit.AmountOf(k.stakingKeeper.BondDenom(ctx))
 	// Check if delegator proposal reach the bar, current bar is 0 ctk.
 	if initialDepositAmount.LT(minimalInitialDepositAmount) && !k.IsCouncilMember(ctx, msg.GetProposer()) {
 		return nil, sdkerrors.Wrapf(
