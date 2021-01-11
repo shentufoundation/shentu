@@ -455,7 +455,7 @@ func NewSimApp(
 		upgrade.NewAppModule(app.UpgradeKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
-		cvm.NewAppModule(app.CVMKeeper),
+		cvm.NewAppModule(app.CVMKeeper, app.BankKeeper),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
