@@ -6,6 +6,7 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 // RegisterLegacyAminoCodec registers concrete types on the LegacyAmino codec
@@ -45,7 +46,10 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgStakeForShield{},
 		&MsgUnstakeFromShield{},
 	)
-
+	registry.RegisterImplementations(
+		(*govtypes.Content)(nil),
+		&ShieldClaimProposal{},
+	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 

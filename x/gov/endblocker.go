@@ -40,7 +40,7 @@ func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 
 func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := proposal.GetContent().(shieldtypes.ShieldClaimProposal)
+		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
 		proposer, err := sdk.AccAddressFromBech32(proposal.ProposerAddress)
 		if err != nil {
 			panic(err)
