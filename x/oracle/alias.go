@@ -1,8 +1,8 @@
 package oracle
 
 import (
-	"github.com/certikfoundation/shentu/x/oracle/internal/keeper"
-	"github.com/certikfoundation/shentu/x/oracle/internal/types"
+	"github.com/certikfoundation/shentu/x/oracle/keeper"
+	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
 const (

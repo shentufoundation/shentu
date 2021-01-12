@@ -26,8 +26,8 @@ import (
 
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/staking/client/rest"
-	"github.com/certikfoundation/shentu/x/staking/internal/keeper"
-	"github.com/certikfoundation/shentu/x/staking/internal/types"
+	"github.com/certikfoundation/shentu/x/staking/keeper"
+	"github.com/certikfoundation/shentu/x/staking/types"
 	"github.com/certikfoundation/shentu/x/staking/simulation"
 )
 

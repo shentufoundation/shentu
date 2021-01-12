@@ -2,7 +2,7 @@ package upgrade
 
 import (
 	"github.com/certikfoundation/shentu/x/upgrade/client"
-	"github.com/certikfoundation/shentu/x/upgrade/internal/keeper"
+	"github.com/certikfoundation/shentu/x/upgrade/keeper"
 )
 
 var (

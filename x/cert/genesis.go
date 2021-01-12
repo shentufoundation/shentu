@@ -3,8 +3,8 @@ package cert
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/cert/internal/keeper"
-	"github.com/certikfoundation/shentu/x/cert/internal/types"
+	"github.com/certikfoundation/shentu/x/cert/keeper"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 func InitDefaultGenesis(ctx sdk.Context, k keeper.Keeper) {

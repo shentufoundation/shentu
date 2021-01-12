@@ -3,7 +3,7 @@ package staking
 import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
-	"github.com/certikfoundation/shentu/x/staking/internal/keeper"
+	"github.com/certikfoundation/shentu/x/staking/keeper"
 )
 
 const (

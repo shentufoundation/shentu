@@ -15,7 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
 	"github.com/certikfoundation/shentu/x/gov/client/utils"
-	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {

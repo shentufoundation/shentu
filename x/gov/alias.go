@@ -1,8 +1,8 @@
 package gov
 
 import (
-	"github.com/certikfoundation/shentu/x/gov/internal/keeper"
-	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/gov/keeper"
+	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
 const (

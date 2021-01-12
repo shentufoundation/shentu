@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/oracle/internal/keeper"
+	"github.com/certikfoundation/shentu/x/oracle/keeper"
 )
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {

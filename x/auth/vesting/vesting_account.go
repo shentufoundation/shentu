@@ -16,7 +16,7 @@ import (
 	vesttypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
-	customauth "github.com/certikfoundation/shentu/x/auth/internal/types"
+	customauth "github.com/certikfoundation/shentu/x/auth/types"
 )
 
 // Compile-time type assertions

@@ -8,7 +8,7 @@ import (
 
 	"github.com/hyperledger/burrow/crypto"
 
-	"github.com/certikfoundation/shentu/x/cvm/internal/types"
+	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
 // NewHandler returns a handler for "cvm" type messages.

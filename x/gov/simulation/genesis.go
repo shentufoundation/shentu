@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
-	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
 // RandomizedGenState creates a randomGenesis state for module simulation.

@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/certikfoundation/shentu/x/auth/internal/types"
+	"github.com/certikfoundation/shentu/x/auth/types"
 )
 
 // GetTxCmd returns the transaction commands for this module.
