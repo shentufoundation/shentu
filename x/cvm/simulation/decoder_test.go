@@ -1,4 +1,4 @@
-package simulation
+package simulation_test
 
 import (
 	gobin "encoding/binary"
@@ -6,8 +6,6 @@ import (
 	"math/rand"
 	"testing"
 	"time"
-
-	"github.com/certikfoundation/shentu/simapp"
 
 	"github.com/stretchr/testify/require"
 
@@ -18,6 +16,8 @@ import (
 	"github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
 
+	"github.com/certikfoundation/shentu/simapp"
+	. "github.com/certikfoundation/shentu/x/cvm/simulation"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
