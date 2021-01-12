@@ -1,4 +1,4 @@
-package simulation
+package simulation_test
 
 import (
 	"encoding/binary"
@@ -7,17 +7,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/certikfoundation/shentu/simapp"
-	"github.com/cosmos/cosmos-sdk/types/kv"
-	sim "github.com/cosmos/cosmos-sdk/types/simulation"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/certikfoundation/shentu/x/gov/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/kv"
+	sim "github.com/cosmos/cosmos-sdk/types/simulation"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/certikfoundation/shentu/simapp"
+	. "github.com/certikfoundation/shentu/x/gov/simulation"
+	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
 func TestDecodeStore(t *testing.T) {

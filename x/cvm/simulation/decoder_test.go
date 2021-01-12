@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/certikfoundation/shentu/simapp"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
@@ -18,7 +16,8 @@ import (
 	"github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
 
-	"github.com/certikfoundation/shentu/x/cvm/simulation"
+	"github.com/certikfoundation/shentu/simapp"
+	. "github.com/certikfoundation/shentu/x/cvm/simulation"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 

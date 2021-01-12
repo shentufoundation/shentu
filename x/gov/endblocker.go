@@ -33,14 +33,14 @@ func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 
 func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := proposal.GetContent().(shieldtypes.ShieldClaimProposal)
+		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
 		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalId, c.PoolId, c.Loss)
 	}
 }
 
 func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := proposal.GetContent().(shieldtypes.ShieldClaimProposal)
+		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
 		proposer, err := sdk.AccAddressFromBech32(proposal.ProposerAddress)
 		if err != nil {
 			panic(err)
