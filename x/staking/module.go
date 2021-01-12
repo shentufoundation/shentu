@@ -84,6 +84,7 @@ type AppModule struct {
 	AppModuleBasic
 	cosmosAppModule staking.AppModule
 	authKeeper      stakingtypes.AccountKeeper
+	bankKeeper      stakingtypes.BankKeeper
 	certKeeper      types.CertKeeper
 	keeper          keeper.Keeper
 }
@@ -94,6 +95,7 @@ func NewAppModule(cdc codec.Marshaler, stakingKeeper keeper.Keeper, ak stakingty
 		AppModuleBasic:  AppModuleBasic{},
 		cosmosAppModule: staking.NewAppModule(cdc, stakingKeeper.Keeper, ak, bk),
 		authKeeper:      ak,
+		bankKeeper:      bk,
 		certKeeper:      certKeeper,
 		keeper:          stakingKeeper,
 	}
@@ -157,7 +159,7 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 
 // WeightedOperations returns staking operations for use in simulations.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.certKeeper, am.keeper.Keeper)
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.authKeeper, am.bankKeeper, am.certKeeper, am.keeper.Keeper)
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
