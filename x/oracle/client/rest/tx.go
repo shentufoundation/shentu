@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	clientrest "github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
-	"github.com/certikfoundation/shentu/x/oracle/internal/types"
+	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
 func RegisterTxRoutes(cliCtx context.CLIContext, r *mux.Router) {

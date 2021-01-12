@@ -13,7 +13,7 @@ import (
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/oracle/client/cli"
 	"github.com/certikfoundation/shentu/x/oracle/client/rest"
-	"github.com/certikfoundation/shentu/x/oracle/internal/types"
+	"github.com/certikfoundation/shentu/x/oracle/types"
 	"github.com/certikfoundation/shentu/x/oracle/simulation"
 )
 

@@ -1,7 +1,7 @@
 package crisis
 
 import (
-	"github.com/certikfoundation/shentu/x/crisis/internal/types"
+	"github.com/certikfoundation/shentu/x/crisis/types"
 )
 
 var (

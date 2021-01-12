@@ -28,7 +28,7 @@ import (
 
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/cvm/compile"
-	"github.com/certikfoundation/shentu/x/cvm/internal/types"
+	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
 const (

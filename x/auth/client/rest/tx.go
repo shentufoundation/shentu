@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
-	"github.com/certikfoundation/shentu/x/auth/internal/types"
+	"github.com/certikfoundation/shentu/x/auth/types"
 )
 
 // RegisterRoutes registers custom REST routes.
