@@ -88,7 +88,7 @@ func SimulateSubmitProposal(
 		)
 		var simAccount sim.Account
 		if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-			c := content.(shieldtypes.ShieldClaimProposal)
+			c := content.(*shieldtypes.ShieldClaimProposal)
 			for _, simAcc := range accs {
 				proposerAddr, _ := sdk.AccAddressFromBech32(c.Proposer)
 				if simAcc.Address.Equals(proposerAddr) {

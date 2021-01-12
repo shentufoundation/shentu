@@ -153,7 +153,7 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 
 func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, proposal types.Proposal) error {
 	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := proposal.GetContent().(shieldtypes.ShieldClaimProposal)
+		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
 		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
 		proposerAddr, err := sdk.AccAddressFromBech32(c.Proposer)
 		if err != nil {
