@@ -3,13 +3,14 @@ package testgov
 import (
 	"testing"
 
+	"github.com/certikfoundation/shentu/x/gov/keeper"
+
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/x/gov"
-	"github.com/certikfoundation/shentu/x/gov/keeper"
 	shieldTypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 

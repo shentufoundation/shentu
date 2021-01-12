@@ -7,12 +7,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/certikfoundation/shentu/simapp"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
-
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/hyperledger/burrow/acm"
 	"github.com/hyperledger/burrow/acm/acmstate"
@@ -22,15 +21,9 @@ import (
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
-func makeTestCodec() (cdc *codec.Codec) {
-	cdc = codec.New()
-	sdk.RegisterCodec(cdc)
-	types.RegisterCodec(cdc)
-	return cdc
-}
-
 func TestDecodeStore(t *testing.T) {
-	cdc := makeTestCodec()
+	cdc := simapp.MakeTestEncodingConfig()
+	dec := NewDecodeStore(cdc.Marshaler)
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -69,24 +62,30 @@ func TestDecodeStore(t *testing.T) {
 
 	str := "odjfg0834u89f"
 
-	metadata := []acm.ContractMeta{
-		{
-			CodeHash:     bytes1,
-			MetadataHash: bytes2,
-		},
-		{
-			CodeHash:     bytes1,
-			MetadataHash: bytes3,
+	meta1 := acm.ContractMeta{
+		CodeHash:     bytes1,
+		MetadataHash: bytes2,
+	}
+	meta2 := acm.ContractMeta{
+		CodeHash:     bytes1,
+		MetadataHash: bytes3,
+	}
+	metadata := types.ContractMetas{
+		Metas: []*acm.ContractMeta{
+			&meta1,
+			&meta2,
 		},
 	}
 
 	KVPairs := kv.Pairs{
-		kv.Pair{Key: types.StorageStoreKey(address, key), Value: value1},
-		kv.Pair{Key: types.BlockHashStoreKey(int64(height)), Value: value2},
-		kv.Pair{Key: types.CodeStoreKey(address), Value: value3},
-		kv.Pair{Key: types.AbiStoreKey(address), Value: value4},
-		kv.Pair{Key: types.MetaHashStoreKey(metahash), Value: []byte(str)},
-		kv.Pair{Key: types.AddressMetaStoreKey(address), Value: cdc.MustMarshalBinaryLengthPrefixed(metadata)},
+		Pairs: []kv.Pair{
+			{Key: types.StorageStoreKey(address, key), Value: value1},
+			{Key: types.BlockHashStoreKey(int64(height)), Value: value2},
+			{Key: types.CodeStoreKey(address), Value: value3},
+			{Key: types.AbiStoreKey(address), Value: value4},
+			{Key: types.MetaHashStoreKey(metahash), Value: []byte(str)},
+			{Key: types.AddressMetaStoreKey(address), Value: cdc.Marshaler.MustMarshalBinaryLengthPrefixed(&metadata)},
+		},
 	}
 
 	tests := []struct {
@@ -105,9 +104,9 @@ func TestDecodeStore(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if i == len(tests)-1 { // nolint
-				require.Panics(t, func() { DecodeStore(cdc, KVPairs[i], KVPairs[i]) }, tt.name) // nolint
+				require.Panics(t, func() { dec(KVPairs.Pairs[i], KVPairs.Pairs[i]) }, tt.name) // nolint
 			} else {
-				require.Equal(t, tt.expectedLog, DecodeStore(cdc, KVPairs[i], KVPairs[i]), tt.name) // nolint
+				require.Equal(t, tt.expectedLog, dec(KVPairs.Pairs[i], KVPairs.Pairs[i]), tt.name) // nolint
 			}
 		})
 	}

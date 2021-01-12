@@ -158,7 +158,7 @@ func (k Keeper) IterateAllVotes(ctx sdk.Context, cb func(vote types.Vote) (stop 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types.Vote
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &vote)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &vote)
 
 		if cb(vote) {
 			break
@@ -173,7 +173,7 @@ func (k Keeper) IterateVotes(ctx sdk.Context, proposalID uint64, cb func(vote ty
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types.Vote
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &vote)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &vote)
 
 		if cb(vote) {
 			break
@@ -189,7 +189,7 @@ func (k Keeper) IterateVotesPaginated(ctx sdk.Context, proposalID uint64, page, 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types.Vote
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &vote)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &vote)
 
 		if cb(vote) {
 			break
