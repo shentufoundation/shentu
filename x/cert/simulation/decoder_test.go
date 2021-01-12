@@ -1,4 +1,4 @@
-package simulation
+package simulation_test
 
 import (
 	"fmt"
@@ -7,15 +7,19 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
+	//"github.com/tendermint/tendermint/crypto/secp256k1"
+
+	//"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/certikfoundation/shentu/simapp"
+	"github.com/certikfoundation/shentu/x/cert/simulation"
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
@@ -88,7 +92,7 @@ func TestDecodeStore(t *testing.T) {
 		{"other", ""},
 	}
 
-	decoder := NewDecodeStore(cdc)
+	decoder := simulation.NewDecodeStore(cdc)
 
 	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -106,7 +110,8 @@ func RandomAccount() simtypes.Account {
 	privkeySeed := make([]byte, 15)
 	rand.Read(privkeySeed)
 
-	privKey := secp256k1.GenPrivKeySecp256k1(privkeySeed)
+	privKey := ed25519.GenPrivKey()
+	//privKey := secp256k1.GenPrivKeySecp256k1(privkeySeed)
 	pubKey := privKey.PubKey()
 	address := sdk.AccAddress(pubKey.Address())
 

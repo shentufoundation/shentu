@@ -1,4 +1,4 @@
-package simulation
+package simulation_test
 
 import (
 	gobin "encoding/binary"
@@ -18,12 +18,13 @@ import (
 	"github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
 
+	"github.com/certikfoundation/shentu/x/cvm/simulation"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
 func TestDecodeStore(t *testing.T) {
 	cdc := simapp.MakeTestEncodingConfig()
-	dec := NewDecodeStore(cdc.Marshaler)
+	dec := simulation.NewDecodeStore(cdc.Marshaler)
 
 	rand.Seed(time.Now().UnixNano())
 

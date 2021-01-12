@@ -16,7 +16,7 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/cvm/simulation"
+	"github.com/certikfoundation/shentu/x/oracle/simulation"
 	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
