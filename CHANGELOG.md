@@ -42,6 +42,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking Changes
 ### Features
 ### Improvements
+* [\#219](https://github.com/certikfoundation/shentu/pull/219) Remove internal sub-packages.
+
 ### Bug Fixes
 
 
