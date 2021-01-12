@@ -7,12 +7,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/types/kv"
-	//"github.com/tendermint/tendermint/crypto/secp256k1"
-
-	//"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -55,8 +52,9 @@ func TestDecodeStore(t *testing.T) {
 		Description:     "This is a test case.",
 	}
 
+	libraryAddr := sdk.AccAddress("f23908hf932")
 	library := types.Library{
-		Address:   sdk.AccAddress("f23908hf932").String(),
+		Address:   libraryAddr.String(),
 		Publisher: sdk.AccAddress("0092uf32").String(),
 	}
 
@@ -68,8 +66,6 @@ func TestDecodeStore(t *testing.T) {
 	}
 
 	certifierAddr, err := sdk.AccAddressFromBech32(certifier.Address)
-	require.NoError(t, err)
-	libraryAddr, err := sdk.AccAddressFromBech32(library.Address)
 	require.NoError(t, err)
 
 	kvPairs := []kv.Pair{
