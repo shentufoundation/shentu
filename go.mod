@@ -23,5 +23,3 @@ require (
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
 	gopkg.in/yaml.v2 v2.3.0
 )
-
-replace github.com/hyperledger/burrow v0.30.5 => github.com/certikfoundation/burrow v0.1.0
