@@ -25,8 +25,8 @@ import (
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
 	_ module.AppModuleSimulation = AppModule{}
 )
 
@@ -89,7 +89,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule is the main ctk module app type.
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper     keeper.Keeper
 	bankKeeper types.BankKeeper
 }
 

@@ -331,10 +331,6 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.bankKeeper,
 		app.GetSubspace(oracletypes.ModuleName),
 	)
-	app.mintKeeper = mintkeeper.NewKeeper(
-		appCodec, keys[sdkminttypes.StoreKey], app.GetSubspace(sdkminttypes.ModuleName), &stakingKeeper,
-		app.accountKeeper, app.bankKeeper, app.distrKeeper, app.shieldKeeper, authtypes.FeeCollectorName,
-	)
 	app.slashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
 		keys[slashingtypes.StoreKey],
@@ -371,6 +367,10 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		&stakingKeeper,
 		&app.govKeeper,
 		app.GetSubspace(shieldtypes.ModuleName),
+	)
+	app.mintKeeper = mintkeeper.NewKeeper(
+		appCodec, keys[sdkminttypes.StoreKey], app.GetSubspace(sdkminttypes.ModuleName), &stakingKeeper,
+		app.accountKeeper, app.bankKeeper, app.distrKeeper, app.shieldKeeper, authtypes.FeeCollectorName,
 	)
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference so that it will contain these hooks.
@@ -625,6 +625,14 @@ func (app *CertiKApp) BlockedAddrs() map[string]bool {
 	return blockedAddrs
 }
 
+// LegacyAmino returns SimApp's amino codec.
+//
+// NOTE: This is solely to be used for testing purposes as it may be desirable
+// for modules to register their own custom testing types.
+func (app *CertiKApp) LegacyAmino() *codec.LegacyAmino {
+	return app.cdc
+}
+
 // GetSubspace returns a param subspace for a given module name.
 //
 // NOTE: This is solely to be used for testing purposes.
@@ -634,8 +642,8 @@ func (app *CertiKApp) GetSubspace(moduleName string) paramstypes.Subspace {
 }
 
 // Codec returns app.cdc.
-func (app *CertiKApp) Codec() *codec.LegacyAmino {
-	return app.cdc
+func (app *CertiKApp) Codec() codec.Marshaler {
+	return app.appCodec
 }
 
 // SimulationManager returns app.sm.

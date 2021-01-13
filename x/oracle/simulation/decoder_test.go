@@ -22,7 +22,7 @@ import (
 
 func TestDecodeStore(t *testing.T) {
 	cdc, _ := simapp.MakeCodecs()
-	
+
 	dec := simulation.NewDecodeStore(cdc)
 	rand.Seed(time.Now().UnixNano())
 
