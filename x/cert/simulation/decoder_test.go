@@ -33,9 +33,12 @@ func TestDecodeStore(t *testing.T) {
 	}
 
 	validatorPubKey := RandomAccount().PubKey
-	pkAny, err := codectypes.PackAny(validatorPubKey)
-	if err != nil {
-		panic(err)
+	var pkAny *codectypes.Any
+	if validatorPubKey != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(validatorPubKey); err != nil {
+			panic(err)
+		}
 	}
 	validator := types.Validator{
 		Pubkey:    pkAny,
@@ -43,9 +46,11 @@ func TestDecodeStore(t *testing.T) {
 	}
 
 	platformPubKey := RandomAccount().PubKey
-	pkAny, err = codectypes.PackAny(platformPubKey)
-	if err != nil {
-		panic(err)
+	if validatorPubKey != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(validatorPubKey); err != nil {
+			panic(err)
+		}
 	}
 	platform := types.Platform{
 		ValidatorPubkey: pkAny,

@@ -146,12 +146,12 @@ func TestAppImportExport(t *testing.T) {
 	require.Equal(t, AppName, newApp.Name())
 
 	var genesisState simapp.GenesisState
-	err = app.Codec().UnmarshalJSON(appState.AppState, &genesisState)
+	err = json.Unmarshal(appState.AppState, &genesisState)
 	require.NoError(t, err)
 
 	ctxA := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
 	ctxB := newApp.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
-	newApp.mm.InitGenesis(ctxB, genesisState)
+	newApp.mm.InitGenesis(ctxB, app.Codec(), genesisState)
 
 	fmt.Printf("comparing stores...\n")
 
@@ -224,7 +224,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 
 	fmt.Printf("exporting genesis...\n")
 
-	appState, _, err := app.ExportAppStateAndValidators(true, []string{})
+	appState, err := app.ExportAppStateAndValidators(true, []string{})
 	require.NoError(t, err)
 
 	fmt.Printf("importing genesis...\n")
@@ -241,13 +241,14 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	require.Equal(t, AppName, newApp.Name())
 
 	newApp.InitChain(abci.RequestInitChain{
-		AppStateBytes: appState,
+		AppStateBytes: appState.AppState,
 	})
 
 	_, _, err = simulation.SimulateFromSeed(
 		t, os.Stdout, newApp.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
+		simtypes.RandomAccounts, // Replace with own random account function if using keys other than secp256k1
 		simapp.SimulationOperations(newApp, newApp.Codec(), config),
-		newApp.ModuleAccountAddrs(), config,
+		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 	require.NoError(t, err)
 }
@@ -279,8 +280,9 @@ func TestAppStateDeterminism(t *testing.T) {
 
 		_, _, err := simulation.SimulateFromSeed(
 			t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
+			simtypes.RandomAccounts, // Replace with own random account function if using keys other than secp256k1
 			simapp.SimulationOperations(app, app.Codec(), config),
-			app.ModuleAccountAddrs(), config,
+			app.ModuleAccountAddrs(), config, app.Codec(),
 		)
 		require.NoError(t, err)
 
