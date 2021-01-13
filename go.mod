@@ -3,13 +3,13 @@ module github.com/certikfoundation/shentu
 go 1.15
 
 require (
-	github.com/armon/go-metrics v0.3.4
-	github.com/cosmos/cosmos-sdk v0.40.0-rc4
+	github.com/armon/go-metrics v0.3.5
+	github.com/cosmos/cosmos-sdk v0.40.0
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/gorilla/mux v1.8.0
-	github.com/grpc-ecosystem/grpc-gateway v1.15.2
+	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/hyperledger/burrow v0.30.5
 	github.com/magiconair/properties v1.8.4
 	github.com/rakyll/statik v0.1.7
@@ -22,15 +22,15 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15
 	github.com/tendermint/go-amino v0.16.0
-	github.com/tendermint/tendermint v0.34.0-rc6
+	github.com/tendermint/tendermint v0.34.1
 	github.com/tendermint/tm-db v0.6.3
 	github.com/tendermint/tmlibs v0.9.0
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc
-	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	google.golang.org/appengine v1.6.6 // indirect
-	google.golang.org/genproto v0.0.0-20201207150747-9ee31aac76e7
+	google.golang.org/genproto v0.0.0-20201214200347-8c77b98c765d
 	google.golang.org/grpc v1.33.2
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 replace (

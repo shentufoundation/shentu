@@ -1,17 +1,44 @@
 package app
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	dbm "github.com/tendermint/tm-db"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp"
+	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+
+	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
+	capability "github.com/cosmos/cosmos-sdk/x/capability/types"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	evidence "github.com/cosmos/cosmos-sdk/x/evidence/types"
+	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
+	ibctransfer "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
+	ibchost "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
+	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
+	params "github.com/cosmos/cosmos-sdk/x/params/types"
+	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
+	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
+	cert "github.com/certikfoundation/shentu/x/cert/types"
+	cvm "github.com/certikfoundation/shentu/x/cvm/types"
+	oracle "github.com/certikfoundation/shentu/x/oracle/types"
+	shield "github.com/certikfoundation/shentu/x/shield/types"
+	//"github.com/certikfoundation/shentu/x/staking"
 )
 
 type StoreKeysPrefixes struct {
@@ -68,7 +95,6 @@ func TestFullAppSimulation(t *testing.T) {
 	}
 }
 
-/*
 func TestAppImportExport(t *testing.T) {
 	config, db, dir, logger, skip, err := simapp.SetupSimulation("leveldb-app-sim", "Simulation")
 	if skip {
@@ -120,7 +146,7 @@ func TestAppImportExport(t *testing.T) {
 	require.Equal(t, AppName, newApp.Name())
 
 	var genesisState simapp.GenesisState
-	err = app.Codec().UnmarshalJSON(appState, &genesisState)
+	err = app.Codec().UnmarshalJSON(appState.AppState, &genesisState)
 	require.NoError(t, err)
 
 	ctxA := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
@@ -130,12 +156,11 @@ func TestAppImportExport(t *testing.T) {
 	fmt.Printf("comparing stores...\n")
 
 	storeKeysPrefixes := []StoreKeysPrefixes{
-		{app.keys[baseapp.MainStoreKey], newApp.keys[baseapp.MainStoreKey], [][]byte{}},
 		{app.keys[auth.StoreKey], newApp.keys[auth.StoreKey], [][]byte{}},
 		{app.keys[staking.StoreKey], newApp.keys[staking.StoreKey], [][]byte{
-			cosmosStaking.UnbondingQueueKey, cosmosStaking.RedelegationQueueKey, cosmosStaking.ValidatorQueueKey,
+			staking.UnbondingQueueKey, staking.RedelegationQueueKey, staking.ValidatorQueueKey,
+			staking.HistoricalInfoKey,
 		}},
-		{app.keys[supply.StoreKey], newApp.keys[supply.StoreKey], [][]byte{}},
 		{app.keys[distr.StoreKey], newApp.keys[distr.StoreKey], [][]byte{}},
 		{app.keys[mint.StoreKey], newApp.keys[mint.StoreKey], [][]byte{}},
 		{app.keys[slashing.StoreKey], newApp.keys[slashing.StoreKey], [][]byte{}},
@@ -146,6 +171,10 @@ func TestAppImportExport(t *testing.T) {
 		{app.keys[cvm.StoreKey], newApp.keys[cvm.StoreKey], [][]byte{}},
 		{app.keys[oracle.StoreKey], newApp.keys[oracle.StoreKey], [][]byte{oracle.TaskStoreKeyPrefix, oracle.ClosingTaskStoreKeyPrefix}},
 		{app.keys[shield.StoreKey], newApp.keys[shield.StoreKey], [][]byte{shield.WithdrawQueueKey, shield.PurchaseQueueKey, shield.BlockServiceFeesKey}},
+		{app.keys[evidence.StoreKey], newApp.keys[evidence.StoreKey], [][]byte{}},
+		{app.keys[capability.StoreKey], newApp.keys[capability.StoreKey], [][]byte{}},
+		{app.keys[ibchost.StoreKey], newApp.keys[ibchost.StoreKey], [][]byte{}},
+		{app.keys[ibctransfer.StoreKey], newApp.keys[ibctransfer.StoreKey], [][]byte{}},
 	}
 
 	for _, skp := range storeKeysPrefixes {
@@ -158,7 +187,7 @@ func TestAppImportExport(t *testing.T) {
 			fmt.Printf("found %d non-equal key/value pairs between %s and %s\n", len(failedKVAs), skp.A.Name(), skp.B.Name())
 		}
 		require.Equal(t, len(failedKVAs), 0, simapp.GetSimulationLog(skp.A.Name(),
-			app.SimulationManager().StoreDecoders, app.Codec(), failedKVAs, failedKVBs))
+			app.SimulationManager().StoreDecoders, failedKVAs, failedKVBs))
 	}
 }
 
@@ -266,4 +295,3 @@ func TestAppStateDeterminism(t *testing.T) {
 		}
 	}
 }
-*/

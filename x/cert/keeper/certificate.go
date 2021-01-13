@@ -10,7 +10,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/cert/types"
@@ -29,7 +28,7 @@ func (k Keeper) MustMarshalCertificate(certificate types.Certificate) []byte {
 	// marshals a Certificate interface. If the given type implements
 	// the Marshaler interface, it is treated as a Proto-defined message and
 	// serialized that way. Otherwise, it falls back on the internal Amino codec.
-	bz, err := codec.MarshalAny(k.cdc, certificate)
+	bz, err := k.cdc.MarshalInterface(certificate)
 	if err != nil {
 		panic(fmt.Errorf("failed to encode evidence: %w", err))
 	}
@@ -61,7 +60,7 @@ func (k Keeper) GetCertificateByID(ctx sdk.Context, id types.CertificateID) (typ
 	}
 
 	var cert types.Certificate
-	err := codec.UnmarshalAny(k.cdc, &cert, certificateData)
+	err := k.cdc.UnmarshalInterface(certificateData, &cert)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +147,7 @@ func (k Keeper) IterateAllCertificate(ctx sdk.Context, callback func(certificate
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var cert types.Certificate
-		err := codec.UnmarshalAny(k.cdc, &cert, iterator.Value())
+		err := k.cdc.UnmarshalInterface(iterator.Value(), &cert)
 		if err != nil {
 			panic(err)
 		}
@@ -171,7 +170,7 @@ func (k Keeper) IterateCertificatesByContent(ctx sdk.Context, certType types.Cer
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var cert types.Certificate
-		err := codec.UnmarshalAny(k.cdc, &cert, iterator.Value())
+		err := k.cdc.UnmarshalInterface(iterator.Value(), &cert)
 		if err != nil {
 			panic(err)
 		}
@@ -192,7 +191,7 @@ func (k Keeper) IterateCertificatesByType(ctx sdk.Context, certType types.Certif
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var cert types.Certificate
-		err := codec.UnmarshalAny(k.cdc, &cert, iterator.Value())
+		err := k.cdc.UnmarshalInterface(iterator.Value(), &cert)
 		if err != nil {
 			panic(err)
 		}

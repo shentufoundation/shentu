@@ -3,9 +3,8 @@ package cert
 import (
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/tendermint/tendermint/crypto"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -34,7 +33,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 			panic(err)
 		}
 		for _, platform := range platforms {
-			pk, ok := platform.ValidatorPubkey.GetCachedValue().(crypto.PubKey)
+			pk, ok := platform.ValidatorPubkey.GetCachedValue().(cryptotypes.PubKey)
 			if !ok {
 				panic(sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into cryto.PubKey %T", platform.ValidatorPubkey))
 			}
@@ -43,7 +42,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 		}
 	}
 	for _, validator := range validators {
-		pk, ok := validator.Pubkey.GetCachedValue().(crypto.PubKey)
+		pk, ok := validator.Pubkey.GetCachedValue().(cryptotypes.PubKey)
 		if !ok {
 			panic(sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into cryto.PubKey %T", validator.Pubkey))
 		}

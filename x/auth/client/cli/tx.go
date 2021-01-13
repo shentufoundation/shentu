@@ -36,8 +36,7 @@ func GetCmdUnlock() *cobra.Command {
 		Short: "Unlock the amount from a manual vesting account's vesting coins.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -46,7 +45,7 @@ func GetCmdUnlock() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			amount, err := sdk.ParseCoins(args[1])
+			amount, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return err
 			}

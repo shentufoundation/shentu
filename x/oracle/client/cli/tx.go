@@ -57,8 +57,7 @@ func GetCmdCreateOperator() *cobra.Command {
 		Short: "Create an operator and deposit collateral",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -73,7 +72,7 @@ func GetCmdCreateOperator() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			collateral, err := sdk.ParseCoins(args[1])
+			collateral, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -99,8 +98,7 @@ func GetCmdRemoveOperator() *cobra.Command {
 		Short: "Remove an operator and withdraw collateral & rewards",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -133,8 +131,7 @@ func GetCmdDepositCollateral() *cobra.Command {
 		Short: "Increase an operator's collateral",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -144,7 +141,7 @@ func GetCmdDepositCollateral() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			coins, err := sdk.ParseCoins(args[1])
+			coins, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -166,8 +163,7 @@ func GetCmdWithdrawCollateral() *cobra.Command {
 		Short: "Reduce an operator's collateral",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -177,7 +173,7 @@ func GetCmdWithdrawCollateral() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			coins, err := sdk.ParseCoins(args[1])
+			coins, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -199,8 +195,7 @@ func GetCmdClaimReward() *cobra.Command {
 		Short: "Withdraw all of an operator's accumulated rewards",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -228,8 +223,7 @@ func GetCmdCreateTask() *cobra.Command {
 		Short: "Create a task",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -253,7 +247,7 @@ func GetCmdCreateTask() *cobra.Command {
 			if bountyStr == "" {
 				return fmt.Errorf("bounty is required to submit a task")
 			}
-			bounty, err := sdk.ParseCoins(bountyStr)
+			bounty, err := sdk.ParseCoinsNormalized(bountyStr)
 			if err != nil {
 				return err
 			}
@@ -293,8 +287,7 @@ func GetCmdRespondToTask() *cobra.Command {
 		Short: "Respond to a task",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -342,8 +335,7 @@ func GetCmdInquiry() *cobra.Command {
 		Short: "Inquiry a task",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -390,8 +382,7 @@ func GetCmdDeleteTask() *cobra.Command {
 		Short: "delete a finished task",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}

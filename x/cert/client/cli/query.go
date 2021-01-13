@@ -43,8 +43,7 @@ func GetCmdCertifier() *cobra.Command {
 		Short: "Get certifier information",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -58,7 +57,7 @@ func GetCmdCertifier() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 	cmd.Flags().String(FlagAlias, "", "use alias to query the certifier info")
@@ -72,8 +71,7 @@ func GetCmdCertifiers() *cobra.Command {
 		Short: "Get certifiers information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -84,7 +82,7 @@ func GetCmdCertifiers() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 }
@@ -96,8 +94,7 @@ func GetCmdValidator() *cobra.Command {
 		Short: "Get validator certification information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -107,9 +104,12 @@ func GetCmdValidator() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			pkAny, err := codectypes.PackAny(pk)
-			if err != nil {
-				return err
+			var pkAny *codectypes.Any
+			if pk != nil {
+				var err error
+				if pkAny, err = codectypes.NewAnyWithValue(pk); err != nil {
+					return err
+				}
 			}
 
 			res, err := queryClient.Validator(context.Background(), &types.QueryValidatorRequest{Pubkey: pkAny})
@@ -117,7 +117,7 @@ func GetCmdValidator() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 }
@@ -129,8 +129,7 @@ func GetCmdValidators() *cobra.Command {
 		Short: "Get validators certification information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -141,7 +140,7 @@ func GetCmdValidators() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 }
@@ -153,8 +152,7 @@ func GetCmdCertificate() *cobra.Command {
 		Short: "Get certificate information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -165,7 +163,7 @@ func GetCmdCertificate() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 }
@@ -177,8 +175,7 @@ func GetCmdCertificates() *cobra.Command {
 		Short: "Get certificates information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -201,7 +198,7 @@ func GetCmdCertificates() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 	cmd.Flags().String(FlagCertifier, "", "certificates issued by certifier")
@@ -218,8 +215,7 @@ func GetCmdPlatform() *cobra.Command {
 		Short: "Get validator host platform certification information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -229,9 +225,12 @@ func GetCmdPlatform() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			pkAny, err := codectypes.PackAny(pk)
-			if err != nil {
-				return err
+			var pkAny *codectypes.Any
+			if pk != nil {
+				var err error
+				if pkAny, err = codectypes.NewAnyWithValue(pk); err != nil {
+					return err
+				}
 			}
 
 			res, err := queryClient.Platform(context.Background(), &types.QueryPlatformRequest{Pubkey: pkAny})
@@ -239,7 +238,7 @@ func GetCmdPlatform() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 }

@@ -3,9 +3,8 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/tendermint/tendermint/crypto"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -72,10 +71,13 @@ type msgCertifyValidatorPretty struct {
 }
 
 // NewMsgCertifyValidator returns a new validator node certification message.
-func NewMsgCertifyValidator(certifier sdk.AccAddress, pk crypto.PubKey) (*MsgCertifyValidator, error) {
-	pkAny, err := codectypes.PackAny(pk)
-	if err != nil {
-		return nil, err
+func NewMsgCertifyValidator(certifier sdk.AccAddress, pk cryptotypes.PubKey) (*MsgCertifyValidator, error) {
+	var pkAny *codectypes.Any
+	if pk != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(pk); err != nil {
+			return nil, err
+		}
 	}
 
 	return &MsgCertifyValidator{Certifier: certifier.String(), Pubkey: pkAny}, nil
@@ -128,10 +130,13 @@ type msgDecertifyValidatorPretty struct {
 }
 
 // NewMsgDecertifyValidator returns a new validator node de-certification message.
-func NewMsgDecertifyValidator(decertifier sdk.AccAddress, pk crypto.PubKey) (*MsgDecertifyValidator, error) {
-	pkAny, err := codectypes.PackAny(pk)
-	if err != nil {
-		return nil, err
+func NewMsgDecertifyValidator(decertifier sdk.AccAddress, pk cryptotypes.PubKey) (*MsgDecertifyValidator, error) {
+	var pkAny *codectypes.Any
+	if pk != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(pk); err != nil {
+			return nil, err
+		}
 	}
 
 	return &MsgDecertifyValidator{Decertifier: decertifier.String(), Pubkey: pkAny}, nil
@@ -328,10 +333,13 @@ type msgCertifyPlatformPretty struct {
 
 // NewMsgCertifyPlatform returns a new validator host platform certification
 // message.
-func NewMsgCertifyPlatform(certifier sdk.AccAddress, pk crypto.PubKey, platform string) (*MsgCertifyPlatform, error) {
-	pkAny, err := codectypes.PackAny(pk)
-	if err != nil {
-		return nil, err
+func NewMsgCertifyPlatform(certifier sdk.AccAddress, pk cryptotypes.PubKey, platform string) (*MsgCertifyPlatform, error) {
+	var pkAny *codectypes.Any
+	if pk != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(pk); err != nil {
+			return nil, err
+		}
 	}
 
 	return &MsgCertifyPlatform{Certifier: certifier.String(), ValidatorPubkey: pkAny, Platform: platform}, nil

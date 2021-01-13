@@ -26,15 +26,14 @@ func LockedSendTxCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.Flags().Set(flags.FlagFrom, args[0])
 
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 
 			to, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {
 				return err
 			}
 
-			coins, err := sdk.ParseCoins(args[2])
+			coins, err := sdk.ParseCoinsNormalized(args[2])
 			if err != nil {
 				return err
 			}

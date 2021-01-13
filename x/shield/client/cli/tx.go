@@ -90,8 +90,7 @@ Where proposal.json contains:
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -132,8 +131,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -141,7 +139,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			shield, err := sdk.ParseCoins(args[0])
+			shield, err := sdk.ParseCoinsNormalized(args[0])
 			if err != nil {
 				return err
 			}
@@ -153,7 +151,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 				return err
 			}
 
-			nativeDeposit, err := sdk.ParseCoins(viper.GetString(flagNativeDeposit))
+			nativeDeposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagNativeDeposit))
 			if err != nil {
 				return err
 			}
@@ -197,8 +195,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -211,12 +208,12 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				return err
 			}
 
-			nativeDeposit, err := sdk.ParseCoins(viper.GetString(flagNativeDeposit))
+			nativeDeposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagNativeDeposit))
 			if err != nil {
 				return err
 			}
 
-			shield, err := sdk.ParseCoins(viper.GetString(flagShield))
+			shield, err := sdk.ParseCoinsNormalized(viper.GetString(flagShield))
 			if err != nil {
 				return err
 			}
@@ -287,8 +284,7 @@ $ %s tx shield resume-pool <pool id>
 
 func pauseOrResume(active bool) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		cliCtx := client.GetClientContextFromCmd(cmd)
-		cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+		cliCtx, err := client.GetClientTxContext(cmd)
 		if err != nil {
 			return err
 		}
@@ -323,8 +319,7 @@ func GetCmdDepositCollateral() *cobra.Command {
 		Short: "join a Shield pool as a community member by depositing collateral",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -332,7 +327,7 @@ func GetCmdDepositCollateral() *cobra.Command {
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			collateral, err := sdk.ParseCoins(args[0])
+			collateral, err := sdk.ParseCoinsNormalized(args[0])
 			if err != nil {
 				return err
 			}
@@ -356,8 +351,7 @@ func GetCmdWithdrawCollateral() *cobra.Command {
 		Short: "withdraw deposited collateral from Shield pool",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -365,7 +359,7 @@ func GetCmdWithdrawCollateral() *cobra.Command {
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			collateral, err := sdk.ParseCoins(args[0])
+			collateral, err := sdk.ParseCoinsNormalized(args[0])
 			if err != nil {
 				return err
 			}
@@ -388,8 +382,7 @@ func GetCmdWithdrawRewards() *cobra.Command {
 		Short: "withdraw CTK rewards",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -412,8 +405,7 @@ func GetCmdWithdrawForeignRewards() *cobra.Command {
 		Short: "withdraw foreign rewards coins to their original chain",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -438,8 +430,7 @@ func GetCmdClearPayouts() *cobra.Command {
 		Short: "clear pending payouts after they have been distributed",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -472,8 +463,7 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -485,7 +475,7 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 			if err != nil {
 				return err
 			}
-			shield, err := sdk.ParseCoins(args[1])
+			shield, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -521,8 +511,7 @@ $ %s tx shield withdraw-reimbursement <proposal id>
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -561,8 +550,7 @@ $ %s tx shield stake-for-shield <pool id> <shield amount> <description>
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -574,7 +562,7 @@ $ %s tx shield stake-for-shield <pool id> <shield amount> <description>
 			if err != nil {
 				return err
 			}
-			shield, err := sdk.ParseCoins(args[1])
+			shield, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -610,8 +598,7 @@ $ %s tx shield withdraw-staking <pool id> <shield amount>
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -623,7 +610,7 @@ $ %s tx shield withdraw-staking <pool id> <shield amount>
 			if err != nil {
 				return err
 			}
-			shield, err := sdk.ParseCoins(args[1])
+			shield, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -654,8 +641,7 @@ $ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address> --fr
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadTxCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}

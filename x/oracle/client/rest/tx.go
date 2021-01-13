@@ -43,7 +43,7 @@ func createTaskHandler(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		bounty, err := sdk.ParseCoins(req.Bounty)
+		bounty, err := sdk.ParseCoinsNormalized(req.Bounty)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

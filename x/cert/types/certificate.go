@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	proto "github.com/gogo/protobuf/proto"
 )
 
 // CertificateTypes is an array of all certificate types.
@@ -88,6 +89,8 @@ func (id CertificateID) String() string {
 
 // Certificate is the interface for all kinds of certificate
 type Certificate interface {
+	proto.Message
+	
 	ID() CertificateID
 	Type() CertificateType
 	Certifier() sdk.AccAddress

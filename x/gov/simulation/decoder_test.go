@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
@@ -78,10 +78,7 @@ func TestDecodeStore(t *testing.T) {
 }
 
 func RandomAccount() sim.Account {
-	privkeySeed := make([]byte, 15)
-	rand.Read(privkeySeed)
-
-	privKey := secp256k1.GenPrivKeySecp256k1(privkeySeed)
+	privKey := secp256k1.GenPrivKey()
 	pubKey := privKey.PubKey()
 	address := sdk.AccAddress(pubKey.Address())
 

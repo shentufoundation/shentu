@@ -53,8 +53,7 @@ func GetCmdPool() *cobra.Command {
 		Short: "query a pool",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -77,7 +76,7 @@ func GetCmdPool() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -93,8 +92,7 @@ func GetCmdPools() *cobra.Command {
 		Short: "query a complete list of pools",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -105,7 +103,7 @@ func GetCmdPools() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -120,8 +118,7 @@ func GetCmdPurchaseList() *cobra.Command {
 		Short: "get purchases corresponding to a given pool-purchaser pair",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -144,7 +141,7 @@ func GetCmdPurchaseList() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -159,8 +156,7 @@ func GetCmdPurchaserPurchases() *cobra.Command {
 		Short: "query purchase information of a given account",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -179,7 +175,7 @@ func GetCmdPurchaserPurchases() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -194,8 +190,7 @@ func GetCmdPoolPurchases() *cobra.Command {
 		Short: "query purchases in a given pool",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -214,7 +209,7 @@ func GetCmdPoolPurchases() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -228,8 +223,7 @@ func GetCmdPurchases() *cobra.Command {
 		Short: "query all purchases",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -240,7 +234,7 @@ func GetCmdPurchases() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -254,8 +248,7 @@ func GetCmdProvider() *cobra.Command {
 		Short: "get provider information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -274,7 +267,7 @@ func GetCmdProvider() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -297,8 +290,7 @@ $ %[1]s query shield providers
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -309,7 +301,7 @@ $ %[1]s query shield providers
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -323,8 +315,7 @@ func GetCmdPoolParams() *cobra.Command {
 		Short: "get pool parameters",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -335,7 +326,7 @@ func GetCmdPoolParams() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 	return cmd
@@ -348,8 +339,7 @@ func GetCmdClaimParams() *cobra.Command {
 		Short: "get claim parameters",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -360,7 +350,7 @@ func GetCmdClaimParams() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 	return cmd
@@ -373,8 +363,7 @@ func GetCmdStatus() *cobra.Command {
 		Short: "get shield status",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -385,7 +374,7 @@ func GetCmdStatus() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 	return cmd
@@ -399,8 +388,7 @@ func GetCmdStaking() *cobra.Command {
 		Short: "get staked CTK for shield corresponding to a given pool-purchaser pair",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -423,7 +411,7 @@ func GetCmdStaking() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 	return cmd
@@ -436,8 +424,7 @@ func GetCmdShieldStakingRate() *cobra.Command {
 		Short: "get shield staking rate for stake-for-shield",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -448,7 +435,7 @@ func GetCmdShieldStakingRate() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 	return cmd
@@ -461,8 +448,7 @@ func GetCmdReimbursement() *cobra.Command {
 		Short: "query a reimbursement",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -481,7 +467,7 @@ func GetCmdReimbursement() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -495,8 +481,7 @@ func GetCmdReimbursements() *cobra.Command {
 		Short: "query all reimbursements",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -507,7 +492,7 @@ func GetCmdReimbursements() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 
