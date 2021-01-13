@@ -8,6 +8,18 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+const (
+	TypeMsgCreateOperator   = "create_operator"
+	TypeMsgRemoveOperator   = "remove_operator"
+	TypeMsgAddCollateral    = "add_collateral"
+	TypeMsgReduceCollateral = "reduce_collateral"
+	TypeMsgWithdrawReward   = "withdraw_reward"
+	TypeMsgCreateTask       = "create_task"
+	TypeMsgRespondToTask    = "respond_to_task"
+	TypeMsgInquireTask      = "inquire_task"
+	TypeMsgDeleteTask       = "delete_task"
+)
+
 // NewMsgCreateOperator returns the message for creating an operator.
 func NewMsgCreateOperator(address sdk.AccAddress, collateral sdk.Coins, proposer sdk.AccAddress, name string) *MsgCreateOperator {
 	return &MsgCreateOperator{
@@ -22,7 +34,7 @@ func NewMsgCreateOperator(address sdk.AccAddress, collateral sdk.Coins, proposer
 func (MsgCreateOperator) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgCreateOperator) Type() string { return EventTypeCreateOperator }
+func (MsgCreateOperator) Type() string { return TypeMsgCreateOperator }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgCreateOperator) ValidateBasic() error {
@@ -69,7 +81,7 @@ func NewMsgRemoveOperator(address sdk.AccAddress, proposer sdk.AccAddress) *MsgR
 func (MsgRemoveOperator) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgRemoveOperator) Type() string { return EventTypeRemoveOperator }
+func (MsgRemoveOperator) Type() string { return TypeMsgRemoveOperator }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgRemoveOperator) ValidateBasic() error {
@@ -113,7 +125,7 @@ func NewMsgAddCollateral(address sdk.AccAddress, increment sdk.Coins) *MsgAddCol
 func (MsgAddCollateral) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgAddCollateral) Type() string { return EventTypeAddCollateral }
+func (MsgAddCollateral) Type() string { return TypeMsgAddCollateral }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgAddCollateral) ValidateBasic() error {
@@ -160,7 +172,7 @@ func NewMsgReduceCollateral(address sdk.AccAddress, decrement sdk.Coins) *MsgRed
 func (MsgReduceCollateral) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgReduceCollateral) Type() string { return EventTypeReduceCollateral }
+func (MsgReduceCollateral) Type() string { return TypeMsgReduceCollateral }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgReduceCollateral) ValidateBasic() error {
@@ -206,7 +218,7 @@ func NewMsgWithdrawReward(address sdk.AccAddress) *MsgWithdrawReward {
 func (MsgWithdrawReward) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgWithdrawReward) Type() string { return EventTypeWithdrawReward }
+func (MsgWithdrawReward) Type() string { return TypeMsgWithdrawReward }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgWithdrawReward) ValidateBasic() error {
@@ -256,7 +268,7 @@ func NewMsgCreateTask(contract, function string, bounty sdk.Coins, description s
 func (MsgCreateTask) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgCreateTask) Type() string { return EventTypeCreateTask }
+func (MsgCreateTask) Type() string { return TypeMsgCreateTask }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgCreateTask) ValidateBasic() error {
@@ -295,7 +307,7 @@ func NewMsgTaskResponse(contract, function string, score int64, operator sdk.Acc
 func (MsgTaskResponse) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgTaskResponse) Type() string { return EventTypeRespondToTask }
+func (MsgTaskResponse) Type() string { return TypeMsgRespondToTask }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgTaskResponse) ValidateBasic() error {
@@ -334,7 +346,7 @@ func NewMsgInquiryTask(contract, function, txhash string, inquirer sdk.AccAddres
 func (MsgInquiryTask) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgInquiryTask) Type() string { return EventTypeInquireTask }
+func (MsgInquiryTask) Type() string { return TypeMsgInquireTask }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgInquiryTask) ValidateBasic() error {
@@ -373,7 +385,7 @@ func NewMsgDeleteTask(contract, function string, force bool, deleter sdk.AccAddr
 func (MsgDeleteTask) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgDeleteTask) Type() string { return EventTypeDeleteTask }
+func (MsgDeleteTask) Type() string { return TypeMsgDeleteTask }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgDeleteTask) ValidateBasic() error {

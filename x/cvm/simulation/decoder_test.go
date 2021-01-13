@@ -23,7 +23,7 @@ import (
 
 func TestDecodeStore(t *testing.T) {
 	cdc := simapp.MakeTestEncodingConfig()
-	dec := NewDecodeStore(cdc.Marshaler)
+	dec := simulation.NewDecodeStore(cdc.Marshaler)
 
 	rand.Seed(time.Now().UnixNano())
 

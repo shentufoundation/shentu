@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/types/kv"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -52,8 +52,9 @@ func TestDecodeStore(t *testing.T) {
 		Description:     "This is a test case.",
 	}
 
+	libraryAddr := sdk.AccAddress("f23908hf932")
 	library := types.Library{
-		Address:   sdk.AccAddress("f23908hf932").String(),
+		Address:   libraryAddr.String(),
 		Publisher: sdk.AccAddress("0092uf32").String(),
 	}
 
@@ -65,8 +66,6 @@ func TestDecodeStore(t *testing.T) {
 	}
 
 	certifierAddr, err := sdk.AccAddressFromBech32(certifier.Address)
-	require.NoError(t, err)
-	libraryAddr, err := sdk.AccAddressFromBech32(library.Address)
 	require.NoError(t, err)
 
 	kvPairs := []kv.Pair{
@@ -89,7 +88,7 @@ func TestDecodeStore(t *testing.T) {
 		{"other", ""},
 	}
 
-	decoder := NewDecodeStore(cdc)
+	decoder := simulation.NewDecodeStore(cdc)
 
 	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -107,7 +106,8 @@ func RandomAccount() simtypes.Account {
 	privkeySeed := make([]byte, 15)
 	rand.Read(privkeySeed)
 
-	privKey := secp256k1.GenPrivKeySecp256k1(privkeySeed)
+	privKey := ed25519.GenPrivKey()
+	//privKey := secp256k1.GenPrivKeySecp256k1(privkeySeed)
 	pubKey := privKey.PubKey()
 	address := sdk.AccAddress(pubKey.Address())
 

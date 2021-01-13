@@ -39,7 +39,7 @@ func (k msgServer) CreateOperator(goCtx context.Context, msg *types.MsgCreateOpe
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeCreateOperator,
+			types.TypeMsgCreateOperator,
 			sdk.NewAttribute("operator", msg.Address),
 			sdk.NewAttribute("operator_name", msg.Name),
 			sdk.NewAttribute("collateral", msg.Collateral.String()),
@@ -62,7 +62,7 @@ func (k msgServer) RemoveOperator(goCtx context.Context, msg *types.MsgRemoveOpe
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeRemoveOperator,
+			types.TypeMsgRemoveOperator,
 			sdk.NewAttribute("operator", msg.Address),
 		),
 	})
@@ -83,7 +83,7 @@ func (k msgServer) AddCollateral(goCtx context.Context, msg *types.MsgAddCollate
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeAddCollateral,
+			types.TypeMsgAddCollateral,
 			sdk.NewAttribute("operator", msg.Address),
 			sdk.NewAttribute("collateral_increment", msg.CollateralIncrement.String()),
 		),
@@ -105,7 +105,7 @@ func (k msgServer) ReduceCollateral(goCtx context.Context, msg *types.MsgReduceC
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeReduceCollateral,
+			types.TypeMsgReduceCollateral,
 			sdk.NewAttribute("operator", msg.Address),
 			sdk.NewAttribute("collateral_decrement", msg.CollateralDecrement.String()),
 		),
@@ -128,7 +128,7 @@ func (k msgServer) WithdrawReward(goCtx context.Context, msg *types.MsgWithdrawR
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeWithdrawReward,
+			types.TypeMsgWithdrawReward,
 			sdk.NewAttribute("operator", msg.Address),
 			sdk.NewAttribute("reward", reward.String()),
 		),
@@ -165,7 +165,7 @@ func (k msgServer) CreateTask(goCtx context.Context, msg *types.MsgCreateTask) (
 	}
 
 	createTaskEvent := sdk.NewEvent(
-		types.EventTypeCreateTask,
+		types.TypeMsgCreateTask,
 		sdk.NewAttribute("contract", msg.Contract),
 		sdk.NewAttribute("function", msg.Function),
 		sdk.NewAttribute("bounty", msg.Bounty.String()),
@@ -193,7 +193,7 @@ func (k msgServer) TaskResponse(goCtx context.Context, msg *types.MsgTaskRespons
 	}
 
 	respondToTaskEvent := sdk.NewEvent(
-		types.EventTypeRespondToTask,
+		types.TypeMsgRespondToTask,
 		sdk.NewAttribute("contract", msg.Contract),
 		sdk.NewAttribute("function", msg.Function),
 		sdk.NewAttribute("score", strconv.FormatInt(msg.Score, 10)),
@@ -213,7 +213,7 @@ func (k msgServer) InquiryTask(goCtx context.Context, msg *types.MsgInquiryTask)
 	}
 
 	InquiryTaskEvent := sdk.NewEvent(
-		types.EventTypeInquireTask,
+		types.TypeMsgInquireTask,
 		sdk.NewAttribute("contract", msg.Contract),
 		sdk.NewAttribute("function", msg.Function),
 		sdk.NewAttribute("txhash", msg.TxHash),
@@ -239,7 +239,7 @@ func (k msgServer) DeleteTask(goCtx context.Context, msg *types.MsgDeleteTask) (
 	}
 
 	DeleteTaskEvent := sdk.NewEvent(
-		types.EventTypeDeleteTask,
+		types.TypeMsgDeleteTask,
 		sdk.NewAttribute("contract", msg.Contract),
 		sdk.NewAttribute("function", msg.Function),
 		sdk.NewAttribute("creator", msg.Deleter),

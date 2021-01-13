@@ -26,8 +26,8 @@ const (
 	OpWeightMsgBeginRedelegate = "op_weight_msg_begin_redelegate"
 )
 
-func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, ak stakingtypes.AccountKeeper, ck types.CertKeeper,
-	k stakingkeeper.Keeper) simulation.WeightedOperations {
+func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper,
+	ck types.CertKeeper, k stakingkeeper.Keeper) simulation.WeightedOperations {
 	var (
 		weightMsgCreateValidator int
 		weightMsgEditValidator   int
@@ -69,28 +69,28 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, a
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(
 			weightMsgCreateValidator,
-			SimulateMsgCreateValidator(k, ak, ck),
+			SimulateMsgCreateValidator(k, ak, bk, ck),
 		),
 		simulation.NewWeightedOperation(
 			weightMsgEditValidator,
-			stakingSim.SimulateMsgEditValidator(ak, k),
+			stakingSim.SimulateMsgEditValidator(ak, bk, k),
 		),
 		simulation.NewWeightedOperation(
 			weightMsgDelegate,
-			stakingSim.SimulateMsgDelegate(ak, k),
+			stakingSim.SimulateMsgDelegate(ak, bk, k),
 		),
 		simulation.NewWeightedOperation(
 			weightMsgUndelegate,
-			SimulateMsgUndelegate(ak, k),
+			SimulateMsgUndelegate(ak, bk, k),
 		),
 		simulation.NewWeightedOperation(
 			weightMsgBeginRedelegate,
-			SimulateMsgBeginRedelegate(ak, k),
+			SimulateMsgBeginRedelegate(ak, bk, k),
 		),
 	}
 }
 
-func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountKeeper, ck types.CertKeeper) simtypes.Operation {
+func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper, ck types.CertKeeper) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
 		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
@@ -106,7 +106,7 @@ func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountK
 		}
 
 		denom := k.GetParams(ctx).BondDenom
-		amount := ak.GetAccount(ctx, simAccount.Address).GetCoins().AmountOf(denom)
+		amount := bk.GetBalance(ctx, simAccount.Address, denom).Amount
 		if !amount.IsPositive() {
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgCreateValidator, ""), nil, nil
 		}
@@ -119,12 +119,12 @@ func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountK
 		selfDelegation := sdk.NewCoin(denom, amount)
 
 		account := ak.GetAccount(ctx, simAccount.Address)
-		coins := account.SpendableCoins(ctx.BlockTime())
+		coins := bk.SpendableCoins(ctx, account.GetAddress())
 
 		var fees sdk.Coins
 		coins, hasNeg := coins.SafeSub(sdk.Coins{selfDelegation})
 		if !hasNeg {
-			fees, err = simulation.RandomFees(r, ctx, coins)
+			fees, err = simtypes.RandomFees(r, ctx, coins)
 			if err != nil {
 				return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgCreateValidator, ""), nil, err
 			}
@@ -138,15 +138,17 @@ func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountK
 			simtypes.RandStringOfLength(r, 10),
 		)
 
-		maxCommission := sdk.NewDecWithPrec(int64(simulation.RandIntBetween(r, 0, 100)), 2)
+		maxCommission := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 0, 100)), 2)
 		commission := stakingtypes.NewCommissionRates(
 			simtypes.RandomDecAmount(r, maxCommission),
 			maxCommission,
 			simtypes.RandomDecAmount(r, maxCommission),
 		)
 
-		msg := stakingtypes.NewMsgCreateValidator(address, simAccount.PubKey,
-			selfDelegation, description, commission, sdk.OneInt())
+		msg, err := stakingtypes.NewMsgCreateValidator(address, simAccount.PubKey, selfDelegation, description, commission, sdk.OneInt())
+		if err != nil {
+			return simtypes.NoOpMsg(stakingtypes.ModuleName, msg.Type(), "unable to create CreateValidator message"), nil, err
+		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
 		tx, err := helpers.GenTx(
@@ -163,7 +165,7 @@ func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountK
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, msg.Type(), "unable to generate mock tx"), nil, err
 		}
 
-		_, _, err = app.Deliver(tx)
+		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, msg.Type(), "unable to deliver tx"), nil, err
 		}
@@ -172,7 +174,7 @@ func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountK
 	}
 }
 
-func SimulateMsgUndelegate(ak stakingtypes.AccountKeeper, k stakingkeeper.Keeper) simtypes.Operation {
+func SimulateMsgUndelegate(ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper, k stakingkeeper.Keeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
@@ -183,7 +185,11 @@ func SimulateMsgUndelegate(ak stakingtypes.AccountKeeper, k stakingkeeper.Keeper
 		}
 		valAddr := validator.GetOperator()
 
-		delegations := k.GetValidatorDelegations(ctx, validator.OperatorAddress)
+		valOperAddr, err := sdk.ValAddressFromBech32(validator.OperatorAddress)
+		if err != nil {
+			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgUndelegate, err.Error()), nil, nil
+		}
+		delegations := k.GetValidatorDelegations(ctx, valOperAddr)
 
 		// get random delegator from validator
 		delegation := delegations[r.Intn(len(delegations))]
@@ -225,7 +231,7 @@ func SimulateMsgUndelegate(ak stakingtypes.AccountKeeper, k stakingkeeper.Keeper
 		}
 
 		account := ak.GetAccount(ctx, delAddr)
-		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
 		if err != nil {
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgUndelegate, ""), nil, err
 		}
@@ -245,7 +251,7 @@ func SimulateMsgUndelegate(ak stakingtypes.AccountKeeper, k stakingkeeper.Keeper
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgUndelegate, ""), nil, err
 		}
 
-		_, _, err = app.Deliver(tx)
+		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgUndelegate, ""), nil, err
 		}
@@ -254,7 +260,7 @@ func SimulateMsgUndelegate(ak stakingtypes.AccountKeeper, k stakingkeeper.Keeper
 	}
 }
 
-func SimulateMsgBeginRedelegate(ak stakingtypes.AccountKeeper, k stakingkeeper.Keeper) simtypes.Operation {
+func SimulateMsgBeginRedelegate(ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper, k stakingkeeper.Keeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
@@ -327,7 +333,7 @@ func SimulateMsgBeginRedelegate(ak stakingtypes.AccountKeeper, k stakingkeeper.K
 
 		// get tx fees
 		account := ak.GetAccount(ctx, delAddr)
-		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
+		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
 		if err != nil {
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgBeginRedelegate, ""), nil, err
 		}
@@ -352,7 +358,7 @@ func SimulateMsgBeginRedelegate(ak stakingtypes.AccountKeeper, k stakingkeeper.K
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgBeginRedelegate, ""), nil, err
 		}
 
-		_, _, err = app.Deliver(tx)
+		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgBeginRedelegate, ""), nil, err
 		}

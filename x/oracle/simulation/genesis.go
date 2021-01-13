@@ -35,7 +35,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 		nil,
 	)
 
-	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(gs)
+	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&gs)
 }
 
 // GenPoolParams returns a randomized LockedPoolParams object.
