@@ -36,8 +36,7 @@ import (
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
-	//TODO Reactivate simulation
-	//_ module.AppModuleSimulation = AppModule{}
+	_ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic is the app module basics object.

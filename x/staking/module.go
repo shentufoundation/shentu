@@ -45,10 +45,14 @@ func (AppModuleBasic) Name() string {
 }
 
 // RegisterCodec registers the staking module's types for the given codec.
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	stakingtypes.RegisterLegacyAminoCodec(cdc)
+}
 
 // RegisterInterfaces registers the module's interface types
-func (b AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
+func (b AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+	stakingtypes.RegisterInterfaces(registry)
+}
 
 // DefaultGenesis returns default genesis state as raw bytes for the staking module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
@@ -72,7 +76,9 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 }
 
 // GetTxCmd returns no root tx command for the staking module.
-func (AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
+func (AppModuleBasic) GetTxCmd() *cobra.Command { 
+	return cli.NewTxCmd()
+ }
 
 // GetQueryCmd returns the root query command for the staking module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
@@ -109,11 +115,10 @@ func (AppModule) Name() string {
 // RegisterInvariants registers module invariants.
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Route routes message routes.
-func (AppModule) Route() sdk.Route { return sdk.Route{} }
-
-// NewHandler creates new module handler.
-func (am AppModule) NewHandler() sdk.Handler { return nil }
+// Route returns the message routing key for the staking module.
+func (am AppModule) Route() sdk.Route {
+	return am.cosmosAppModule.Route()
+}
 
 // QuerierRoute returns the module query route.
 func (AppModule) QuerierRoute() string {

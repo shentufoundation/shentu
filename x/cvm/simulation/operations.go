@@ -32,11 +32,11 @@ func WeightedOperations(appParams sim.AppParams, cdc codec.JSONMarshaler, k keep
 		})
 
 	return simulation.WeightedOperations{
-		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployHello55(k, bk)),
-		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeploySimple(k, bk)),
-		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeploySimpleEvent(k, bk)),
-		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployStorage(k, bk)),
-		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployStringTest(k, bk)),
+		// simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployHello55(k, bk)),
+		// simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeploySimple(k, bk)),
+		// simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeploySimpleEvent(k, bk)),
+		// simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployStorage(k, bk)),
+		// simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployStringTest(k, bk)),
 	}
 }
 
@@ -57,7 +57,7 @@ func SimulateMsgDeployHello55(k keeper.Keeper, bk types.BankKeeper) sim.Operatio
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
-		ret, err := k.Tx(ctx, caller.Address, contractAddr, 0, data, []*payload.ContractMeta{}, false, false, false)
+		ret, err := k.Tx(ctx, caller.Address, contractAddr, 0, data, []*payload.ContractMeta{}, true, false, false)
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
@@ -90,7 +90,7 @@ func SimulateMsgDeploySimple(k keeper.Keeper, bk types.BankKeeper) sim.Operation
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
-		ret, err := k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
+		ret, err := k.Tx(ctx, caller.Address, contractAddr, 0, data, []*payload.ContractMeta{}, true, false, false)
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
@@ -136,7 +136,7 @@ func SimulateMsgCallSimpleSet(k keeper.Keeper, bk types.BankKeeper, contractAddr
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
-		ret, err := k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
+		ret, err := k.Tx(ctx, caller.Address, contractAddr, 0, data, []*payload.ContractMeta{}, true, false, false)
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
@@ -169,7 +169,7 @@ func SimulateMsgDeploySimpleEvent(k keeper.Keeper, bk types.BankKeeper) sim.Oper
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
-		ret, err := k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
+		ret, err := k.Tx(ctx, caller.Address, contractAddr, 0, data, []*payload.ContractMeta{}, true, false, false)
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
@@ -215,7 +215,7 @@ func SimulateMsgCallSimpleEventSet(k keeper.Keeper, bk types.BankKeeper, contrac
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
-		ret, err := k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
+		ret, err := k.Tx(ctx, caller.Address, contractAddr, 0, data, []*payload.ContractMeta{}, true, false, false)
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
@@ -248,7 +248,7 @@ func SimulateMsgDeployStorage(k keeper.Keeper, bk types.BankKeeper) sim.Operatio
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
-		ret, err := k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
+		ret, err := k.Tx(ctx, caller.Address, contractAddr, 0, data, []*payload.ContractMeta{}, true, false, false)
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
@@ -265,7 +265,7 @@ func SimulateMsgDeployStorage(k keeper.Keeper, bk types.BankKeeper) sim.Operatio
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
-		ret, err = k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
+		ret, err = k.Tx(ctx, caller.Address, contractAddr, 0, data, []*payload.ContractMeta{}, true, false, false)
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgDeploy, ""), nil, err
 		}
@@ -308,7 +308,7 @@ func SimulateMsgCallStorageStore(k keeper.Keeper, bk types.BankKeeper, contractA
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
-		ret, err := k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
+		ret, err := k.Tx(ctx, caller.Address, contractAddr, 0, data, []*payload.ContractMeta{}, true, false, false)
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
@@ -325,7 +325,7 @@ func SimulateMsgCallStorageStore(k keeper.Keeper, bk types.BankKeeper, contractA
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}
-		ret, err = k.Tx(ctx, caller.Address, nil, 0, data, []*payload.ContractMeta{}, false, false, false)
+		ret, err = k.Tx(ctx, caller.Address, contractAddr, 0, data, []*payload.ContractMeta{}, true, false, false)
 		if err != nil {
 			return sim.NoOpMsg(types.ModuleName, types.TypeMsgCall, ""), nil, err
 		}

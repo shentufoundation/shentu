@@ -394,7 +394,9 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		AddRoute(distrtypes.RouterKey, sdkdistr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
 		AddRoute(ibchost.RouterKey, ibcclient.NewClientUpdateProposalHandler(app.ibcKeeper.ClientKeeper)).
-		AddRoute(shieldtypes.RouterKey, shield.NewShieldClaimProposalHandler(app.shieldKeeper))
+		AddRoute(shieldtypes.RouterKey, shield.NewShieldClaimProposalHandler(app.shieldKeeper)).
+		AddRoute(certtypes.RouterKey, cert.NewCertifierUpdateProposalHandler(app.certKeeper))
+
 	app.govKeeper = govkeeper.NewKeeper(
 		appCodec,
 		keys[sdkgovtypes.StoreKey],

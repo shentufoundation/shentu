@@ -7,7 +7,7 @@ import (
 )
 
 // HandleCertifierUpdateProposal is a handler for executing a passed certifier update proposal
-func HandleCertifierUpdateProposal(ctx sdk.Context, k Keeper, p types.CertifierUpdateProposal) error {
+func HandleCertifierUpdateProposal(ctx sdk.Context, k Keeper, p *types.CertifierUpdateProposal) error {
 	certifierAddr, err := sdk.AccAddressFromBech32(p.Certifier)
 	if err != nil {
 		panic(err)
