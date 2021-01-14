@@ -5,12 +5,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto"
+
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -22,7 +23,7 @@ import (
 var (
 	denom    = "stake"
 	unlocker = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	pubkeys  = []crypto.PubKey{
+	pubkeys  = []cryptotypes.PubKey{
 		secp256k1.GenPrivKey().PubKey(),
 		secp256k1.GenPrivKey().PubKey(),
 	}

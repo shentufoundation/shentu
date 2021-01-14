@@ -1,8 +1,6 @@
 package types
 
 import (
-	"encoding/json"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -49,11 +47,8 @@ func (m MsgProposeCertifier) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing.
 func (m MsgProposeCertifier) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -108,11 +103,8 @@ func (m MsgCertifyValidator) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing.
 func (m MsgCertifyValidator) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -122,6 +114,12 @@ func (m MsgCertifyValidator) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{certifierAddr}
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (m MsgCertifyValidator) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(m.Pubkey, &pubKey)
 }
 
 type msgDecertifyValidatorPretty struct {
@@ -167,11 +165,8 @@ func (m MsgDecertifyValidator) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing.
 func (m MsgDecertifyValidator) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -181,6 +176,12 @@ func (m MsgDecertifyValidator) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{decertifierAddr}
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (m MsgDecertifyValidator) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(m.Pubkey, &pubKey)
 }
 
 // NewMsgCertifyGeneral returns a new general certification message.
@@ -215,11 +216,8 @@ func (m MsgCertifyGeneral) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing.
 func (m MsgCertifyGeneral) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -260,11 +258,8 @@ func (m MsgRevokeCertificate) Type() string { return "revoke_certificate" }
 
 // GetSignBytes encodes the message for signing.
 func (m MsgRevokeCertificate) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -309,11 +304,8 @@ func (m MsgCertifyCompilation) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing.
 func (m MsgCertifyCompilation) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -369,11 +361,8 @@ func (m MsgCertifyPlatform) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing.
 func (m MsgCertifyPlatform) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -383,4 +372,10 @@ func (m MsgCertifyPlatform) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{certifierAddr}
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (m MsgCertifyPlatform) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(m.ValidatorPubkey, &pubKey)
 }

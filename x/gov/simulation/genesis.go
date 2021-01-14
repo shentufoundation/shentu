@@ -26,7 +26,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	// For the shield module, locking period should be shorter than unbonding period.
 	stakingGenStatebz := simState.GenState[stakingtypes.ModuleName]
 	var stakingGenState stakingtypes.GenesisState
-	stakingtypes.ModuleCdc.MustUnmarshalJSON(stakingGenStatebz, &stakingGenState)
+	simState.Cdc.MustUnmarshalJSON(stakingGenStatebz, &stakingGenState)
 	ubdTime := stakingGenState.Params.UnbondingTime
 	if 2*gs.VotingParams.VotingPeriod >= ubdTime {
 		gs.VotingParams.VotingPeriod = time.Duration(sim.RandIntBetween(r, int(ubdTime)/10, int(ubdTime)/2))

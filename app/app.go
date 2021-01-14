@@ -508,31 +508,24 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.RegisterInvariants(&app.crisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 
-	// TODO Reactivate sim
-	// app.sm = module.NewSimulationManager(
-	// 	genutil.NewAppModule(
-	// 		app.accountKeeper,
-	// 		app.stakingKeeper,
-	// 		app.BaseApp.DeliverTx,
-	// 		encodingConfig.TxConfig,
-	// 	),
-	// 	auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
-	// 	bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
-	// 	crisis.NewAppModule(&app.crisisKeeper, skipGenesisInvariants),
-	// 	distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
-	// 	slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
-	// 	staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper),
-	// 	mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
-	// 	upgrade.NewAppModule(app.upgradeKeeper),
-	// 	evidence.NewAppModule(app.evidenceKeeper),
-	// 	gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
-	// 	cvm.NewAppModule(app.cvmKeeper),
-	// 	cert.NewAppModule(app.certKeeper, app.accountKeeper),
-	// 	oracle.NewAppModule(app.oracleKeeper),
-	// 	shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper),
-	// )
+	app.sm = module.NewSimulationManager(
+		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
+		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
+		capability.NewAppModule(appCodec, *app.capabilityKeeper),
+		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
+		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
+		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper),
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
+		evidence.NewAppModule(app.evidenceKeeper),
+		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
+		cvm.NewAppModule(app.cvmKeeper, app.bankKeeper),
+		cert.NewAppModule(app.certKeeper, app.accountKeeper, app.bankKeeper),
+		oracle.NewAppModule(app.oracleKeeper, app.bankKeeper),
+		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		transferModule,
+	)
 
-	// app.sm.RegisterStoreDecoders()
+	app.sm.RegisterStoreDecoders()
 
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)

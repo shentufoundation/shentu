@@ -155,11 +155,11 @@ func (am AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	am.cosmosAppModule.GenerateGenesisState(simState)
 
 	// Turn off slashing.
-	var genesisState *types.GenesisState
-	simState.Cdc.MustUnmarshalJSON(simState.GenState[types.ModuleName], genesisState)
+	var genesisState types.GenesisState
+	simState.Cdc.MustUnmarshalJSON(simState.GenState[types.ModuleName], &genesisState)
 	genesisState.Params.SlashFractionDoubleSign = sdk.ZeroDec()
 	genesisState.Params.SlashFractionDowntime = sdk.ZeroDec()
-	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(genesisState)
+	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&genesisState)
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
