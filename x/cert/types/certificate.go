@@ -90,7 +90,7 @@ func (id CertificateID) String() string {
 // Certificate is the interface for all kinds of certificate
 type Certificate interface {
 	proto.Message
-	
+
 	ID() CertificateID
 	Type() CertificateType
 	Certifier() sdk.AccAddress

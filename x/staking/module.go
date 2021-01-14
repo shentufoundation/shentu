@@ -76,9 +76,9 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 }
 
 // GetTxCmd returns no root tx command for the staking module.
-func (AppModuleBasic) GetTxCmd() *cobra.Command { 
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.NewTxCmd()
- }
+}
 
 // GetQueryCmd returns the root query command for the staking module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
