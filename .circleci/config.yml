@@ -13,7 +13,7 @@ executors:
       xcode: "10.3.0"
     working_directory: /Users/distiller/project/src/github.com/certikfoundation/shentu
     environment:
-      GO_VERSION: "1.14.7"
+      GO_VERSION: "1.15.5"
 commands:
   make:
     parameters:
@@ -159,7 +159,7 @@ jobs:
 
   release:
     docker:
-      - image: circleci/golang:1.14.7
+      - image: circleci/golang:1.15.5
     steps:
       - checkout
       - run:
@@ -197,7 +197,7 @@ jobs:
       GOPATH: /home/circleci/.go_workspace/
       GOOS: linux
       GOARCH: amd64
-      GO_VERSION: "1.13.1"
+      GO_VERSION: "1.15.5"
     parallelism: 1
     steps:
       - checkout
