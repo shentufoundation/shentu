@@ -220,13 +220,13 @@ func appendDeployMsgs(cmd *cobra.Command, cliCtx context.CLIContext, msgs []sdk.
 	value := viper.GetUint64(FlagValue)
 
 	fileNameMatch := false
+	logger := logging.NewNoopLogger()
 	for _, object := range resp.Objects {
 		code, err := hex.DecodeString(object.Contract.Code())
 		if err != nil {
 			return msgs, err
 		}
 
-		logger := logging.NewNoopLogger()
 		metadata, err := object.Contract.GetMetadata(logger)
 		if err != nil {
 			return msgs, err

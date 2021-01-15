@@ -7,6 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/certikfoundation/shentu/x/cvm/compile"
+	"github.com/hyperledger/burrow/logging"
+
 	"github.com/stretchr/testify/require"
 	"github.com/tmthrgd/go-hex"
 
@@ -751,5 +754,35 @@ func TestPrecompiles(t *testing.T) {
 		validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, valStr)
 		require.Nil(t, err)
 		require.True(t, app.CertKeeper.IsValidatorCertified(ctx, validator))
+	})
+}
+
+func TestEWASM(t *testing.T) {
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()}).WithGasMeter(NewGasMeter(10000000000000))
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(10000))
+
+	k := app.CvmKeeper
+
+	t.Run("test eWASM contracts", func(t *testing.T) {
+		basename, workDir, _ := compile.ResolveFilename("tests/for-r.wasm")
+		testeWASMForStringResp, err := compile.BytecodeEVM(basename, workDir, "tests/for.abi", logging.NewNoopLogger())
+		require.Nil(t, err)
+
+		code, err := hex.DecodeString(testeWASMForStringResp.Objects[0].Contract.Code())
+		require.Nil(t, err)
+
+		result, err := k.Call(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, true, true)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+
+		contractAddr := sdk.AccAddress(result)
+		fmt.Println(contractAddr.String())
+
+		logger := logging.NewNoopLogger()
+		callcode, _, err := abi.EncodeFunctionCall(testeWASMForAbiJsonString, "multiply", logger, "3", "2")
+		result, err = k.Call(ctx, addrs[0], contractAddr, 0, callcode, nil, false, false, false)
+		require.Nil(t, err)
+		fmt.Println(result)
 	})
 }
