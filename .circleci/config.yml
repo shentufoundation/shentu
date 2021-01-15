@@ -6,7 +6,7 @@ version: 2.1
 executors:
   golang:
     docker:
-      - image: circleci/golang:1.14.7
+      - image: circleci/golang:1.15.5
     working_directory: /go/src/github.com/certikfoundation/shentu
   mac:
     macos:
