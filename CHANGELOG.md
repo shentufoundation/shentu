@@ -42,6 +42,17 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking Changes
 ### Features
 ### Improvements
+### Tests
+### Bug Fixes
+
+
+## [v1.3.0] - 01-15-2021
+
+### Client Breaking Changes
+### API Breaking Changes
+### State Machine Breaking Changes
+### Features
+### Improvements
 * [\#219](https://github.com/certikfoundation/shentu/pull/219) Remove internal sub-packages.
 * [\#177](https://github.com/certikfoundation/shentu/pull/177) Updated Swagger docs.
 ### Tests
