@@ -7,10 +7,9 @@ import (
 	"math"
 	"strings"
 
-	"github.com/tendermint/tendermint/crypto/tmhash"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
@@ -30,7 +29,7 @@ func (k Keeper) MustMarshalCertificate(certificate types.Certificate) []byte {
 	// serialized that way. Otherwise, it falls back on the internal Amino codec.
 	bz, err := k.cdc.MarshalInterface(certificate)
 	if err != nil {
-		panic(fmt.Errorf("failed to encode evidence: %w", err))
+		panic(fmt.Errorf("failed to encode certificate: %w", err))
 	}
 	return bz
 }

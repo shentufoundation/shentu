@@ -144,7 +144,7 @@ func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Proposa
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var proposal types.Proposal
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &proposal)
+		k.cdc.UnmarshalBinaryBare(iterator.Value(), &proposal)
 
 		if cb(proposal) {
 			break

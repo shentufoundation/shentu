@@ -33,7 +33,6 @@ enum CertificateType {
 
 enum RequestContentType {
     option (gogoproto.goproto_enum_prefix) = false;
-    option (gogoproto.goproto_enum_stringer) = false;
   
     REQ_CONTENT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "RequestContentTypeNil"];
     REQ_CONTENT_TYPE_SOURCE_CODE_HASH = 1 [(gogoproto.enumvalue_customname) = "RequestContentTypeSourceCodeHash"];
@@ -53,6 +52,7 @@ message RequestContent {
 message GeneralCertificate {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
+    option (cosmos_proto.implements_interface) = "Certificate";
 
     string cert_id = 1 [ (gogoproto.moretags) = "yaml:\"certificate_id\"", (gogoproto.casttype) = "CertificateID" ];
     CertificateType cert_type = 2 [ (gogoproto.moretags) = "yaml:\"certificate_type\"" ];
@@ -114,6 +114,7 @@ message CertificateProto {
 message CertifierUpdateProposal {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
+    option (cosmos_proto.implements_interface) = "*github.com/cosmos/cosmos-sdk/x/gov/types.Content";
 
     string title = 1 [ (gogoproto.moretags) = "yaml:\"title\"" ];
     string proposer = 2 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];

@@ -120,32 +120,32 @@ func (c RequestContentType) Bytes() []byte {
 	return []byte{byte(c)}
 }
 
-// String returns string of the request content type.
-func (c RequestContentType) String() string {
-	switch c {
-	case RequestContentTypeSourceCodeHash:
-		return "SourceCodeHash"
-	case RequestContentTypeAddress:
-		return "Address"
-	case RequestContentTypeBytecodeHash:
-		return "BytecodeHash"
-	case RequestContentTypeGeneral:
-		return "General"
-	default:
-		return "UnknownRequestContentType"
-	}
-}
+// // String returns string of the request content type.
+// func (c RequestContentType) String() string {
+// 	switch c {
+// 	case RequestContentTypeSourceCodeHash:
+// 		return "SourceCodeHash"
+// 	case RequestContentTypeAddress:
+// 		return "Address"
+// 	case RequestContentTypeBytecodeHash:
+// 		return "BytecodeHash"
+// 	case RequestContentTypeGeneral:
+// 		return "General"
+// 	default:
+// 		return "UnknownRequestContentType"
+// 	}
+// }
 
 // RequestContentTypeFromString returns the request content type by parsing a string.
 func RequestContentTypeFromString(s string) RequestContentType {
 	switch strings.ToUpper(s) {
-	case "SOURCECODEHASH":
+	case "SOURCECODEHASH", "REQ_CONTENT_TYPE_SOURCE_CODE_HASH":
 		return RequestContentTypeSourceCodeHash
-	case "ADDRESS":
+	case "ADDRESS", "REQ_CONTENT_TYPE_ADDRESS":
 		return RequestContentTypeAddress
-	case "BYTECODEHASH":
+	case "BYTECODEHASH", "REQ_CONTENT_TYPE_BYTECODE_HASH":
 		return RequestContentTypeBytecodeHash
-	case "GENERAL":
+	case "GENERAL", "REQ_CONTENT_TYPE_GENERAL":
 		return RequestContentTypeGeneral
 	default:
 		return RequestContentTypeNil

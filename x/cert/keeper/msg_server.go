@@ -23,8 +23,6 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 var _ types.MsgServer = msgServer{}
 
 func (k msgServer) ProposeCertifier(goCtx context.Context, msg *types.MsgProposeCertifier) (*types.MsgProposeCertifierResponse, error) {
-	//ctx := sdk.UnwrapSDKContext(goCtx)
-
 	return &types.MsgProposeCertifierResponse{}, nil
 }
 

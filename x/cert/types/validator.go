@@ -1,6 +1,7 @@
 package types
 
 import (
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -35,3 +36,15 @@ func (v Validator) ConsPubKey() (cryptotypes.PubKey, error) {
 // 	}
 // 	return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "Logic error: ConsensusPubkey must be an SDK key and SDK PubKey types must be convertible to tendermint PubKey; got: %T", pk)
 // }
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (v Validator) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(v.Pubkey, &pubKey)
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (p Platform) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(p.ValidatorPubkey, &pubKey)
+}

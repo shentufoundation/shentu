@@ -502,11 +502,11 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, bk types
 // ProposalContents defines the module weighted proposals' contents
 func ProposalContents(k keeper.Keeper, sk types.StakingKeeper) []simtypes.WeightedProposalContent {
 	return []simtypes.WeightedProposalContent{
-		simulation.NewWeightedProposalContent(
-			OpWeightShieldClaimProposal,
-			DefaultWeightShieldClaimProposal,
-			SimulateShieldClaimProposalContent(k, sk),
-		),
+		// simulation.NewWeightedProposalContent(
+		// 	OpWeightShieldClaimProposal,
+		// 	DefaultWeightShieldClaimProposal,
+		// 	SimulateShieldClaimProposalContent(k, sk),
+		// ),
 	}
 }
 

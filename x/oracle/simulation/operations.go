@@ -39,15 +39,8 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, k
 	)
 
 	return simulation.WeightedOperations{
-		simulation.NewWeightedOperation(
-			weightMsgCreateOperator,
-			SimulateMsgCreateOperator(k, ak, bk),
-		),
-
-		simulation.NewWeightedOperation(
-			weightMsgCreateTask,
-			SimulateMsgCreateTask(ak, k, bk),
-		),
+		simulation.NewWeightedOperation(weightMsgCreateOperator, SimulateMsgCreateOperator(k, ak, bk)),
+		simulation.NewWeightedOperation(weightMsgCreateTask, SimulateMsgCreateTask(ak, k, bk)),
 	}
 }
 

@@ -54,7 +54,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 		k.SetValidator(ctx, pk, certifierAddr)
 	}
 	for _, certificateAny := range certificates {
-		certificate, _ := certificateAny.GetCachedValue().(types.Certificate)
+		certificate, ok := certificateAny.GetCachedValue().(types.Certificate)
+		if !ok {
+			panic(sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into Certificate %T", certificateAny))
+		}
 		k.SetCertificate(ctx, certificate)
 	}
 	for _, library := range libraries {
@@ -71,7 +74,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 }
 
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis.
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	certifiers := k.GetAllCertifiers(ctx)
 	validators := k.GetAllValidators(ctx)
 	platforms := k.GetAllPlatforms(ctx)
@@ -91,7 +94,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		certificateAnys[i] = *any
 	}
 
-	return types.GenesisState{
+	return &types.GenesisState{
 		Certifiers:   certifiers,
 		Validators:   validators,
 		Platforms:    platforms,

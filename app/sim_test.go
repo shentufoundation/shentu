@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"testing"
 
@@ -14,6 +15,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -81,7 +83,7 @@ func TestFullAppSimulation(t *testing.T) {
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
-		simtypes.RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
+		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
 		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 
@@ -113,7 +115,7 @@ func TestAppImportExport(t *testing.T) {
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
-		simtypes.RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
+		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
 		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 
@@ -209,7 +211,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
-		simtypes.RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
+		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
 		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 
@@ -246,7 +248,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 
 	_, _, err = simulation.SimulateFromSeed(
 		t, os.Stdout, newApp.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
-		simtypes.RandomAccounts, // Replace with own random account function if using keys other than secp256k1
+		RandomAccounts, // Replace with own random account function if using keys other than secp256k1
 		simapp.SimulationOperations(newApp, newApp.Codec(), config),
 		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
@@ -280,7 +282,7 @@ func TestAppStateDeterminism(t *testing.T) {
 
 		_, _, err := simulation.SimulateFromSeed(
 			t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
-			simtypes.RandomAccounts, // Replace with own random account function if using keys other than secp256k1
+			RandomAccounts, // Replace with own random account function if using keys other than secp256k1
 			simapp.SimulationOperations(app, app.Codec(), config),
 			app.ModuleAccountAddrs(), config, app.Codec(),
 		)
@@ -296,4 +298,23 @@ func TestAppStateDeterminism(t *testing.T) {
 			)
 		}
 	}
+}
+
+// RandomAccounts generates n random accounts
+func RandomAccounts(r *rand.Rand, n int) []simtypes.Account {
+	accs := make([]simtypes.Account, n)
+
+	for i := 0; i < n; i++ {
+		// don't need that much entropy for simulation
+		privkeySeed := make([]byte, 15)
+		r.Read(privkeySeed)
+
+		accs[i].PrivKey = secp256k1.GenPrivKeyFromSecret(privkeySeed)
+		accs[i].PubKey = accs[i].PrivKey.PubKey()
+		accs[i].Address = sdk.AccAddress(accs[i].PubKey.Address())
+
+		accs[i].ConsKey = secp256k1.GenPrivKeyFromSecret(privkeySeed)
+	}
+
+	return accs
 }
