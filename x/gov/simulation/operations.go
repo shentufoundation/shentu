@@ -26,20 +26,20 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, a
 	// generate the weighted operations for the proposal contents
 	var wProposalOps simulation.WeightedOperations
 
-	for _, wContent := range wContents {
-		wContent := wContent // pin variable
-		var weight int
-		appParams.GetOrGenerate(cdc, wContent.AppParamsKey(), &weight, nil,
-			func(_ *rand.Rand) { weight = wContent.DefaultWeight() })
+	// for _, wContent := range wContents {
+	// 	wContent := wContent // pin variable
+	// 	var weight int
+	// 	appParams.GetOrGenerate(cdc, wContent.AppParamsKey(), &weight, nil,
+	// 		func(_ *rand.Rand) { weight = wContent.DefaultWeight() })
 
-		wProposalOps = append(
-			wProposalOps,
-			simulation.NewWeightedOperation(
-				weight,
-				SimulateSubmitProposal(ak, bk, ck, k, wContent.ContentSimulatorFn()),
-			),
-		)
-	}
+	// 	wProposalOps = append(
+	// 		wProposalOps,
+	// 		simulation.NewWeightedOperation(
+	// 			weight,
+	// 			SimulateSubmitProposal(ak, bk, ck, k, wContent.ContentSimulatorFn()),
+	// 		),
+	// 	)
+	// }
 
 	return wProposalOps
 }
