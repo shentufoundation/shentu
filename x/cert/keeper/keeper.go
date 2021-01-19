@@ -39,7 +39,7 @@ func (k Keeper) CertifyPlatform(ctx sdk.Context, certifier sdk.AccAddress, valid
 		return err
 	}
 
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&types.Platform{ValidatorPubkey: pkAny, Description: description})
+	bz := k.cdc.MustMarshalBinaryBare(&types.Platform{ValidatorPubkey: pkAny, Description: description})
 	ctx.KVStore(k.storeKey).Set(types.PlatformStoreKey(validator), bz)
 	return nil
 }
@@ -61,7 +61,7 @@ func (k Keeper) GetAllPlatforms(ctx sdk.Context) (platforms []types.Platform) {
 
 	for ; iterator.Valid(); iterator.Next() {
 		var platform types.Platform
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &platform)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &platform)
 		platforms = append(platforms, platform)
 	}
 	return platforms

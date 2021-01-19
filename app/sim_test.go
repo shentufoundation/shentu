@@ -15,6 +15,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
@@ -316,7 +317,7 @@ func RandomAccounts(r *rand.Rand, n int) []simtypes.Account {
 		accs[i].PubKey = accs[i].PrivKey.PubKey()
 		accs[i].Address = sdk.AccAddress(accs[i].PubKey.Address())
 
-		accs[i].ConsKey = secp256k1.GenPrivKeyFromSecret(privkeySeed)
+		accs[i].ConsKey = ed25519.GenPrivKeyFromSecret(privkeySeed)
 	}
 
 	return accs

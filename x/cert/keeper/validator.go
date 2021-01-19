@@ -23,7 +23,7 @@ func (k Keeper) SetValidator(ctx sdk.Context, validator cryptotypes.PubKey, cert
 		panic(err)
 	}
 	validatorData := types.Validator{Pubkey: pkAny, Certifier: certifier.String()}
-	store.Set(types.ValidatorStoreKey(validator), k.cdc.MustMarshalBinaryLengthPrefixed(&validatorData))
+	store.Set(types.ValidatorStoreKey(validator), k.cdc.MustMarshalBinaryBare(&validatorData))
 }
 
 // deleteValidator removes a validator from being certified.
@@ -43,7 +43,7 @@ func (k Keeper) GetValidatorCertifier(ctx sdk.Context, validator cryptotypes.Pub
 	store := ctx.KVStore(k.storeKey)
 	if validatorData := store.Get(types.ValidatorStoreKey(validator)); validatorData != nil {
 		var validator types.Validator
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(validatorData, &validator)
+		k.cdc.MustUnmarshalBinaryBare(validatorData, &validator)
 
 		certifierAddr, err := sdk.AccAddressFromBech32(validator.Certifier)
 		if err != nil {
@@ -115,7 +115,7 @@ func (k Keeper) IterateAllValidators(ctx sdk.Context, callback func(validator ty
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var validator types.Validator
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &validator)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &validator)
 
 		if callback(validator) {
 			break

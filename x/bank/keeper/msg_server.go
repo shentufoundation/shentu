@@ -3,9 +3,6 @@ package keeper
 import (
 	"context"
 
-	"github.com/armon/go-metrics"
-
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -51,18 +48,6 @@ func (k msgServer) Send(goCtx context.Context, msg *bankTypes.MsgSend) (*bankTyp
 	if err != nil {
 		return nil, err
 	}
-
-	defer func() {
-		for _, a := range msg.Amount {
-			if a.Amount.IsInt64() {
-				telemetry.SetGaugeWithLabels(
-					[]string{"tx", "msg", "send"},
-					float32(a.Amount.Int64()),
-					[]metrics.Label{telemetry.NewLabel("denom", a.Denom)},
-				)
-			}
-		}
-	}()
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

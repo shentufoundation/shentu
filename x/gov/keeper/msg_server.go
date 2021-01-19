@@ -4,10 +4,6 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"strconv"
-
-	"github.com/armon/go-metrics"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
@@ -56,8 +52,6 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmit
 	if err != nil {
 		return nil, err
 	}
-
-	defer telemetry.IncrCounter(1, govtypes.ModuleName, "proposal")
 
 	// Skip deposit period for proposals of council members.
 	isVotingPeriodActivated := k.ActivateCouncilProposalVotingPeriod(ctx, proposal)
@@ -175,14 +169,6 @@ func (k msgServer) Vote(goCtx context.Context, msg *govtypes.MsgVote) (*govtypes
 		return nil, err
 	}
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{govtypes.ModuleName, "vote"},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
-		},
-	)
-
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -204,14 +190,6 @@ func (k msgServer) Deposit(goCtx context.Context, msg *govtypes.MsgDeposit) (*go
 	if err != nil {
 		return nil, err
 	}
-
-	defer telemetry.IncrCounterWithLabels(
-		[]string{govtypes.ModuleName, "deposit"},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
-		},
-	)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

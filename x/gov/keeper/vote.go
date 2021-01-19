@@ -99,7 +99,7 @@ func (k Keeper) GetVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 		return vote, false
 	}
 
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &vote)
+	k.cdc.MustUnmarshalBinaryBare(bz, &vote)
 	return vote, true
 }
 
