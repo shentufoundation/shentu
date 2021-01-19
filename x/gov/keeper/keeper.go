@@ -114,7 +114,7 @@ func (k Keeper) IterateAllDeposits(ctx sdk.Context, cb func(deposit types.Deposi
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit types.Deposit
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &deposit)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &deposit)
 
 		if cb(deposit) {
 			break

@@ -27,7 +27,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 }
 
 // RegisterInterfaces registers the x/cert interfaces types with the interface registry
-func RegisterInterfaces(registry codectypes.InterfaceRegistry) {	
+func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgProposeCertifier{},
 		&MsgCertifyValidator{},

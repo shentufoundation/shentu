@@ -17,6 +17,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/simapp"
+	"github.com/certikfoundation/shentu/x/gov/keeper"
 	. "github.com/certikfoundation/shentu/x/gov/simulation"
 	"github.com/certikfoundation/shentu/x/gov/types"
 )
@@ -46,7 +47,7 @@ func TestDecodeStore(t *testing.T) {
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{
-			{Key: govtypes.ProposalKey(proposalID), Value: cdc.Marshaler.MustMarshalBinaryBare(&proposal)},
+			{Key: keeper.ProposalKey(proposalID), Value: cdc.Marshaler.MustMarshalBinaryBare(&proposal)},
 			{Key: govtypes.InactiveProposalQueueKey(proposalID, endTime), Value: proposalIDBz},
 			{Key: govtypes.DepositKey(proposalID, depositor.Address), Value: cdc.Marshaler.MustMarshalBinaryBare(&deposit)},
 			{Key: govtypes.VoteKey(proposalID, voter.Address), Value: cdc.Marshaler.MustMarshalBinaryBare(&vote)},
