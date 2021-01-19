@@ -26,45 +26,22 @@ func (c CertificateType) Bytes() []byte {
 	return []byte{byte(c)}
 }
 
-// TODO
-// // String returns the string for a certificate type.
-// func (c CertificateType) String() string {
-// 	switch c {
-// 	case CertificateTypeCompilation:
-// 		return "Compilation"
-// 	case CertificateTypeAuditing:
-// 		return "Auditing"
-// 	case CertificateTypeProof:
-// 		return "Proof"
-// 	case CertificateTypeOracleOperator:
-// 		return "OracleOperator"
-// 	case CertificateTypeShieldPoolCreator:
-// 		return "ShieldPoolCreator"
-// 	case CertificateTypeIdentity:
-// 		return "Identity"
-// 	case CertificateTypeGeneral:
-// 		return "General"
-// 	default:
-// 		return "UnknownCertificateType"
-// 	}
-// }
-
 // CertificateTypeFromString returns a certificate type by parsing a string.
 func CertificateTypeFromString(s string) CertificateType {
 	switch strings.ToUpper(s) {
-	case "COMPILATION":
+	case "COMPILATION", "CERT_TYPE_COMPILATION":
 		return CertificateTypeCompilation
-	case "AUDITING":
+	case "AUDITING", "CERT_TYPE_AUDITING":
 		return CertificateTypeAuditing
-	case "PROOF":
+	case "PROOF", "CERT_TYPE_PROOF":
 		return CertificateTypeProof
-	case "ORACLEOPERATOR":
+	case "ORACLEOPERATOR", "CERT_TYPE_ORACLE_OPERATOR":
 		return CertificateTypeOracleOperator
-	case "SHIELDPOOLCREATOR":
+	case "SHIELDPOOLCREATOR", "CERT_TYPE_SHIELD_POOL_CREATOR":
 		return CertificateTypeShieldPoolCreator
-	case "IDENTITY":
+	case "IDENTITY", "CERT_TYPE_IDENTITY":
 		return CertificateTypeIdentity
-	case "GENERAL":
+	case "GENERAL", "CERT_TYPE_GENERAL":
 		return CertificateTypeGeneral
 	default:
 		return CertificateTypeNil
@@ -120,22 +97,6 @@ func (c RequestContentType) Bytes() []byte {
 	return []byte{byte(c)}
 }
 
-// // String returns string of the request content type.
-// func (c RequestContentType) String() string {
-// 	switch c {
-// 	case RequestContentTypeSourceCodeHash:
-// 		return "SourceCodeHash"
-// 	case RequestContentTypeAddress:
-// 		return "Address"
-// 	case RequestContentTypeBytecodeHash:
-// 		return "BytecodeHash"
-// 	case RequestContentTypeGeneral:
-// 		return "General"
-// 	default:
-// 		return "UnknownRequestContentType"
-// 	}
-// }
-
 // RequestContentTypeFromString returns the request content type by parsing a string.
 func RequestContentTypeFromString(s string) RequestContentType {
 	switch strings.ToUpper(s) {
@@ -157,7 +118,7 @@ func NewRequestContent(
 	requestContentTypeString string,
 	requestContent string,
 ) (RequestContent, error) {
-	requestContentType := RequestContentTypeFromString(requestContentTypeString)
+ 	requestContentType := RequestContentTypeFromString(requestContentTypeString)
 	if requestContentType == RequestContentTypeNil {
 		return RequestContent{}, ErrInvalidRequestContentType
 	}
