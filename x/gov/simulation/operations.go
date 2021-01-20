@@ -26,20 +26,20 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, a
 	// generate the weighted operations for the proposal contents
 	var wProposalOps simulation.WeightedOperations
 
-	// for _, wContent := range wContents {
-	// 	wContent := wContent // pin variable
-	// 	var weight int
-	// 	appParams.GetOrGenerate(cdc, wContent.AppParamsKey(), &weight, nil,
-	// 		func(_ *rand.Rand) { weight = wContent.DefaultWeight() })
+	for _, wContent := range wContents {
+		wContent := wContent // pin variable
+		var weight int
+		appParams.GetOrGenerate(cdc, wContent.AppParamsKey(), &weight, nil,
+			func(_ *rand.Rand) { weight = wContent.DefaultWeight() })
 
-	// 	wProposalOps = append(
-	// 		wProposalOps,
-	// 		simulation.NewWeightedOperation(
-	// 			weight,
-	// 			SimulateSubmitProposal(ak, bk, ck, k, wContent.ContentSimulatorFn()),
-	// 		),
-	// 	)
-	// }
+		wProposalOps = append(
+			wProposalOps,
+			simulation.NewWeightedOperation(
+				weight,
+				SimulateSubmitProposal(ak, bk, ck, k, wContent.ContentSimulatorFn()),
+			),
+		)
+	}
 
 	return wProposalOps
 }
@@ -78,7 +78,7 @@ func SimulateSubmitProposal(
 		// 1) submit proposal now
 		content := contentSim(r, ctx, accs)
 		if content == nil {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgSubmitProposal, ""), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgSubmitProposal, ""), nil, nil
 		}
 
 		var (
@@ -97,7 +97,7 @@ func SimulateSubmitProposal(
 			}
 			balance := bk.GetAllBalances(ctx, simAccount.Address)
 			if balance == nil {
-				return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgSubmitProposal, ""), nil, nil
+				return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgSubmitProposal, ""), nil, nil
 			}
 			denom := sdk.DefaultBondDenom
 			lossAmountDec := c.Loss.AmountOf(denom).ToDec()
@@ -106,7 +106,7 @@ func SimulateSubmitProposal(
 			minDepositAmountDec := sdk.MaxDec(claimProposalParams.MinDeposit.AmountOf(denom).ToDec(), lossAmountDec.Mul(depositRate))
 			minDepositAmount := minDepositAmountDec.Ceil().RoundInt()
 			if minDepositAmount.GT(balance.AmountOf(denom)) {
-				return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgSubmitProposal, ""), nil, nil
+				return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgSubmitProposal, ""), nil, nil
 			}
 			deposit = sdk.NewCoins(sdk.NewCoin(denom, minDepositAmount))
 		} else {
@@ -128,7 +128,7 @@ func SimulateSubmitProposal(
 				"NoOp: insufficient initial deposit amount, skip this tx", "", false, nil), nil, nil
 		}
 
-		msg, _ := govTypes.NewMsgSubmitProposal(content, deposit, simAccount.Address)
+		msg, _ := types.NewMsgSubmitProposal(content, deposit, simAccount.Address)
 
 		account := ak.GetAccount(ctx, simAccount.Address)
 		coins := bk.SpendableCoins(ctx, simAccount.Address)
@@ -138,7 +138,7 @@ func SimulateSubmitProposal(
 		if !hasNeg {
 			fees, err = simtypes.RandomFees(r, ctx, coins)
 			if err != nil {
-				return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgSubmitProposal, ""), nil, err
+				return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgSubmitProposal, ""), nil, err
 			}
 		}
 
@@ -160,12 +160,12 @@ func SimulateSubmitProposal(
 		// get the submitted proposal ID
 		proposalID, err := k.GetProposalID(ctx)
 		if err != nil {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgSubmitProposal, ""), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgSubmitProposal, ""), nil, err
 		}
 
 		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgSubmitProposal, ""), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgSubmitProposal, ""), nil, err
 		}
 
 		opMsg := simtypes.NewOperationMsg(msg, true, "")
@@ -233,22 +233,22 @@ func SimulateMsgVote(ak govTypes.AccountKeeper, bk govTypes.BankKeeper, k keeper
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		proposal, ok := k.GetProposal(ctx, proposalID)
 		if !ok {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgVote, ""), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgVote, ""), nil, nil
 		}
 
 		if proposal.Status != types.StatusValidatorVotingPeriod {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgVote, ""), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgVote, ""), nil, nil
 		}
 
 		option := randomVotingOption(r)
 
-		msg := govTypes.NewMsgVote(simAccount.Address, proposalID, option)
+		msg := types.NewMsgVote(simAccount.Address, proposalID, option)
 
 		account := ak.GetAccount(ctx, simAccount.Address)
 		balance := bk.GetAllBalances(ctx, simAccount.Address)
 		fees, err := simtypes.RandomFees(r, ctx, balance)
 		if err != nil {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgVote, ""), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgVote, ""), nil, err
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
@@ -268,7 +268,7 @@ func SimulateMsgVote(ak govTypes.AccountKeeper, bk govTypes.BankKeeper, k keeper
 
 		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgVote, ""), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgVote, ""), nil, err
 		}
 
 		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
@@ -281,16 +281,16 @@ func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, bk govTypes.BankKeeper,
 		accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		if !ck.IsCertifier(ctx, simAccount.Address) {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgVote, ""), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgVote, ""), nil, nil
 		}
 
 		proposal, ok := k.GetProposal(ctx, proposalID)
 		if !ok {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgVote, ""), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgVote, ""), nil, nil
 		}
 
 		if proposal.Status != types.StatusCertifierVotingPeriod {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgVote, ""), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgVote, ""), nil, nil
 		}
 
 		var option govTypes.VoteOption
@@ -300,13 +300,13 @@ func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, bk govTypes.BankKeeper,
 			option = govTypes.OptionNo
 		}
 
-		msg := govTypes.NewMsgVote(simAccount.Address, proposalID, option)
+		msg := types.NewMsgVote(simAccount.Address, proposalID, option)
 
 		account := ak.GetAccount(ctx, simAccount.Address)
 		balance := bk.GetAllBalances(ctx, simAccount.Address)
 		fees, err := simtypes.RandomFees(r, ctx, balance)
 		if err != nil {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgVote, ""), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgVote, ""), nil, err
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
@@ -326,7 +326,7 @@ func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, bk govTypes.BankKeeper,
 
 		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgVote, ""), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgVote, ""), nil, err
 		}
 
 		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
@@ -339,11 +339,11 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, bk govTypes.BankKeeper, k kee
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		proposal, ok := k.GetProposal(ctx, proposalID)
 		if !ok {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgDeposit, ""), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgDeposit, ""), nil, nil
 		}
 
 		if proposal.Status != types.StatusDepositPeriod {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgDeposit, ""), nil, nil
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgDeposit, ""), nil, nil
 		}
 
 		simAcc, _ := simtypes.RandomAcc(r, accs)
@@ -357,11 +357,11 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, bk govTypes.BankKeeper, k kee
 			deposit = simtypes.RandSubsetCoins(r, minDeposit)
 		}
 
-		msg := govTypes.NewMsgDeposit(simAcc.Address, proposalID, deposit)
+		msg := types.NewMsgDeposit(simAcc.Address, proposalID, deposit)
 
 		fees, err := simtypes.RandomFees(r, ctx, balance.Sub(deposit))
 		if err != nil {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgDeposit, ""), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgDeposit, ""), nil, err
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
@@ -381,7 +381,7 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, bk govTypes.BankKeeper, k kee
 
 		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
-			return simtypes.NoOpMsg(govTypes.ModuleName, govTypes.TypeMsgDeposit, ""), nil, err
+			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgDeposit, ""), nil, err
 		}
 
 		return simtypes.NewOperationMsg(msg, true, ""), nil, nil

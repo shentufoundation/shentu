@@ -2,10 +2,7 @@ package keeper
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
-
-	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/gov/types"
@@ -21,13 +18,13 @@ type msgServer struct {
 
 // NewMsgServerImpl returns an implementation of the gov MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) govtypes.MsgServer {
+func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 	return &msgServer{Keeper: keeper}
 }
 
-var _ govtypes.MsgServer = msgServer{}
+var _ types.MsgServer = msgServer{}
 
-func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmitProposal) (*govtypes.MsgSubmitProposalResponse, error) {
+func (k msgServer) SubmitProposal(goCtx context.Context, msg *types.MsgSubmitProposal) (*types.MsgSubmitProposalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var initialDepositAmount = msg.InitialDeposit.AmountOf(k.stakingKeeper.BondDenom(ctx))
@@ -87,12 +84,12 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmit
 	}
 
 	ctx.EventManager().EmitEvent(submitEvent)
-	return &govtypes.MsgSubmitProposalResponse{
+	return &types.MsgSubmitProposalResponse{
 		ProposalId: proposal.ProposalId,
 	}, nil
 }
 
-func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitProposal) error {
+func validateProposalByType(ctx sdk.Context, k Keeper, msg *types.MsgSubmitProposal) error {
 	switch c := msg.GetContent().(type) {
 	case *certtypes.CertifierUpdateProposal:
 		if c.Alias != "" && k.CertKeeper.HasCertifierAlias(ctx, c.Alias) {
@@ -158,7 +155,7 @@ func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, proposal types.Proposa
 	return nil
 }
 
-func (k msgServer) Vote(goCtx context.Context, msg *govtypes.MsgVote) (*govtypes.MsgVoteResponse, error) {
+func (k msgServer) Vote(goCtx context.Context, msg *types.MsgVote) (*types.MsgVoteResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	accAddr, accErr := sdk.AccAddressFromBech32(msg.Voter)
 	if accErr != nil {
@@ -177,10 +174,10 @@ func (k msgServer) Vote(goCtx context.Context, msg *govtypes.MsgVote) (*govtypes
 		),
 	)
 
-	return &govtypes.MsgVoteResponse{}, nil
+	return &types.MsgVoteResponse{}, nil
 }
 
-func (k msgServer) Deposit(goCtx context.Context, msg *govtypes.MsgDeposit) (*govtypes.MsgDepositResponse, error) {
+func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	accAddr, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
@@ -196,7 +193,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *govtypes.MsgDeposit) (*go
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor),
-			sdk.NewAttribute(types.AttributeTxHash, hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))),
+			//sdk.NewAttribute(types.AttributeTxHash, hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))),
 		),
 	)
 
@@ -209,5 +206,5 @@ func (k msgServer) Deposit(goCtx context.Context, msg *govtypes.MsgDeposit) (*go
 		)
 	}
 
-	return &govtypes.MsgDepositResponse{}, nil
+	return &types.MsgDepositResponse{}, nil
 }

@@ -7,13 +7,12 @@ import (
 
 	"github.com/hyperledger/burrow/txs/payload"
 
-	"github.com/cosmos/cosmos-sdk/x/simulation"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sim "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
@@ -32,11 +31,11 @@ func WeightedOperations(appParams sim.AppParams, cdc codec.JSONMarshaler, k keep
 		})
 
 	return simulation.WeightedOperations{
-		// simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployHello55(k, bk)),
-		// simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeploySimple(k, bk)),
-		// simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeploySimpleEvent(k, bk)),
-		// simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployStorage(k, bk)),
-		// simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployStringTest(k, bk)),
+		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployHello55(k, bk)),
+		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeploySimple(k, bk)),
+		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeploySimpleEvent(k, bk)),
+		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployStorage(k, bk)),
+		simulation.NewWeightedOperation(weightMsgDeploy, SimulateMsgDeployStringTest(k, bk)),
 	}
 }
 
