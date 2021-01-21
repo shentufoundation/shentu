@@ -36,7 +36,7 @@ func TestManualVestingAcc(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
-	// Account setup
+	// Set up an MVA with all its base coins vesting
 	simapp.AddTestAddrsFromPubKeys(app, ctx, pubkeys, origAmt)
 	ba := authtypes.NewBaseAccountWithAddress(sdk.AccAddress(pubkeys[0].Address()))
 	bva := authvesting.NewBaseVestingAccount(ba, origCoins, 0)
@@ -48,6 +48,8 @@ func TestManualVestingAcc(t *testing.T) {
 	require.Nil(t, vestedCoins)
 	vestingCoins := mva.GetVestingCoins(now)
 	require.Equal(t, origCoins, vestingCoins)
+	lockedCoins := mva.LockedCoins(now)
+	require.Equal(t, vestingCoins, lockedCoins)
 
 	coinToUnlock := sdk.NewCoin(denom, sdk.NewInt(700))
 	mva.VestedCoins = mva.VestedCoins.Add(coinToUnlock)
@@ -56,6 +58,8 @@ func TestManualVestingAcc(t *testing.T) {
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 700)}, vestedCoins)
 	vestingCoins = mva.GetVestingCoins(now)
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 300)}, vestingCoins)
+	lockedCoins = mva.LockedCoins(now)
+	require.Equal(t, vestingCoins, lockedCoins)
 
 	// Test JSON (un)marshal
 	bz, err := json.Marshal(mva)
@@ -65,35 +69,28 @@ func TestManualVestingAcc(t *testing.T) {
 	require.NoError(t, json.Unmarshal(bz, &a))
 	require.Equal(t, mva.String(), a.String())
 
-	// New account setup
+	// Set up an MVA with 700 out of 1000 base coin vesting
 	origCoins = sdk.Coins{sdk.NewInt64Coin(denom, 1000)}
 	origVesting := sdk.Coins{sdk.NewInt64Coin(denom, 300)}
 
-	//ba2 := authtypes.NewBaseAccount(addrs[0], origCoins, nil, 0, 0)
 	ba2 := authtypes.NewBaseAccountWithAddress(sdk.AccAddress(pubkeys[0].Address()))
 	bva2 := authvesting.NewBaseVestingAccount(ba2, origVesting, 0)
 	mva2 := types.NewManualVestingAccountRaw(bva2, sdk.NewCoins(), unlocker)
+	app.AccountKeeper.SetAccount(ctx, mva2)
+
+	lockedCoins = mva2.LockedCoins(now)
+	require.Equal(t, origVesting, lockedCoins)
 
 	// Test SpendableCoins
-	//spendableCoins := mva2.SpendableCoins(now)
 	spendableCoins := app.BankKeeper.SpendableCoins(ctx, mva2.GetAddress())
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 700)}, spendableCoins)
 
 	coinToUnlock = sdk.NewCoin(denom, sdk.NewInt(150))
 	mva2.VestedCoins = mva2.VestedCoins.Add(coinToUnlock)
+	app.AccountKeeper.SetAccount(ctx, mva2)
 
-	//spendableCoins = mva2.SpendableCoins(now)
 	spendableCoins = app.BankKeeper.SpendableCoins(ctx, mva2.GetAddress())
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 850)}, spendableCoins)
-
-	// spendableCoins := mva2.SpendableCoins(now)
-	// require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 700)}, spendableCoins)
-
-	// coinToUnlock = sdk.NewCoin(denom, sdk.NewInt(150))
-	// mva2.VestedCoins = mva2.VestedCoins.Add(coinToUnlock)
-
-	// spendableCoins = mva2.SpendableCoins(now)
-	// require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 850)}, spendableCoins)
 
 	// TODO: Test delegation, undelegation, genesis validation
 }

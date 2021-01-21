@@ -62,8 +62,7 @@ func DeployContract(caller sim.Account, contractCode string, contractAbi string,
 	msg = types.NewMsgDeploy(caller.Address.String(), uint64(0), code, contractAbi, nil, false, false)
 
 	account := k.GetAccount(ctx, caller.Address)
-	balance := bk.GetAllBalances(ctx, caller.Address)
-	fees, err := sim.RandomFees(r, ctx, balance)
+	fees, err := sim.RandomFees(r, ctx, bk.SpendableCoins(ctx, caller.Address))
 	if err != nil {
 		return msg, nil, err
 	}
@@ -112,8 +111,7 @@ func CallFunction(caller sim.Account, prefix string, input string, contractAddr 
 	msg = types.NewMsgCall(caller.Address.String(), contractAddr.String(), 0, data)
 
 	account := k.GetAccount(ctx, caller.Address)
-	balance := bk.GetAllBalances(ctx, caller.Address)
-	fees, err := sim.RandomFees(r, ctx, balance)
+	fees, err := sim.RandomFees(r, ctx, bk.SpendableCoins(ctx, caller.Address))
 	if err != nil {
 		return msg, nil, err
 	}

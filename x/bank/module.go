@@ -102,12 +102,6 @@ type AppModule struct {
 	accountKeeper   types.AccountKeeper
 }
 
-// RegisterServices registers module services.
-func (am AppModule) RegisterServices(cfg module.Configurator) {
-	banktypes.RegisterMsgServer(cfg.MsgServer(), bankkeeper.NewMsgServerImpl(am.keeper))
-	banktypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-}
-
 // NewAppModule creates a new AppModule object.
 func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, accountKeeper types.AccountKeeper) AppModule {
 	return AppModule{
@@ -116,6 +110,12 @@ func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, accountKeeper types
 		keeper:          keeper,
 		accountKeeper:   accountKeeper,
 	}
+}
+
+// RegisterServices registers module services.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	am.cosmosAppModule.RegisterServices(cfg)
 }
 
 // Name returns the bank module's name.
@@ -130,12 +130,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 
 // Route returns the message routing key for the bank module.
 func (am AppModule) Route() sdk.Route {
-	return am.cosmosAppModule.Route()
-}
-
-// NewHandler returns an sdk.Handler for the bank module.
-func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper)
+	return sdk.NewRoute(banktypes.RouterKey, NewHandler(am.keeper))
 }
 
 // QuerierRoute returns the bank module's querier route name.
@@ -190,7 +185,5 @@ func (AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
 
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(
-		simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper,
-	)
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
 }

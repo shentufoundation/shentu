@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"math/rand"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	"github.com/certikfoundation/shentu/x/auth/types"
 )
 
 // Simulation parameter constants
@@ -95,23 +98,23 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 // RandomGenesisAccounts returns randomly generated genesis accounts
 func RandomGenesisAccounts(simState *module.SimulationState) (genesisAccs authtypes.GenesisAccounts) {
-	for _, acc := range simState.Accounts {
+	for i, acc := range simState.Accounts {
 		bacc := authtypes.NewBaseAccountWithAddress(acc.Address)
 
 		var gacc authtypes.GenesisAccount = bacc
 
-		// // Only consider making a vesting account once the initial bonded validator
-		// // set is exhausted due to needing to track DelegatedVesting.
-		// if int64(i) > simState.NumBonded && simState.Rand.Intn(100) < 50 {
-		// 	addr, err := sdk.AccAddressFromBech32(bacc.Address)
-		// 	if err != nil {
-		// 		panic(err)
-		// 	}
+		// Only consider making a vesting account once the initial bonded validator
+		// set is exhausted due to needing to track DelegatedVesting.
+		if int64(i) > simState.NumBonded && simState.Rand.Intn(100) < 50 {
+			addr, err := sdk.AccAddressFromBech32(bacc.Address)
+			if err != nil {
+				panic(err)
+			}
 
-		// 	initialVesting := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, simState.Rand.Int63n(simState.InitialStake)))
+			initialVesting := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, simState.Rand.Int63n(simState.InitialStake)))
 
-		// 	gacc = types.NewManualVestingAccount(bacc, initialVesting, sdk.NewCoins(), addr)
-		// }
+			gacc = types.NewManualVestingAccount(bacc, initialVesting, sdk.NewCoins(), addr)
+		}
 
 		genesisAccs = append(genesisAccs, gacc)
 	}

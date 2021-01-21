@@ -24,76 +24,6 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-func (k msgServer) Send(goCtx context.Context, msg *bankTypes.MsgSend) (*bankTypes.MsgSendResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	if err := k.SendEnabledCoins(ctx, msg.Amount...); err != nil {
-		return nil, err
-	}
-
-	from, err := sdk.AccAddressFromBech32(msg.FromAddress)
-	if err != nil {
-		return nil, err
-	}
-	to, err := sdk.AccAddressFromBech32(msg.ToAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	if k.BlockedAddr(to) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", msg.ToAddress)
-	}
-
-	err = k.SendCoins(ctx, from, to, msg.Amount)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, bankTypes.AttributeValueCategory),
-		),
-	)
-
-	return &bankTypes.MsgSendResponse{}, nil
-}
-
-func (k msgServer) MultiSend(goCtx context.Context, msg *bankTypes.MsgMultiSend) (*bankTypes.MsgMultiSendResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	// NOTE: totalIn == totalOut should already have been checked
-	for _, in := range msg.Inputs {
-		if err := k.SendEnabledCoins(ctx, in.Coins...); err != nil {
-			return nil, err
-		}
-	}
-
-	for _, out := range msg.Outputs {
-		accAddr, err := sdk.AccAddressFromBech32(out.Address)
-		if err != nil {
-			panic(err)
-		}
-		if k.BlockedAddr(accAddr) {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive transactions", out.Address)
-		}
-	}
-
-	err := k.InputOutputCoins(ctx, msg.Inputs, msg.Outputs)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, bankTypes.AttributeValueCategory),
-		),
-	)
-
-	return &bankTypes.MsgMultiSendResponse{}, nil
-}
-
 func (k msgServer) LockedSend(goCtx context.Context, msg *types.MsgLockedSend) (*types.MsgLockedSendResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -105,9 +35,12 @@ func (k msgServer) LockedSend(goCtx context.Context, msg *types.MsgLockedSend) (
 	if err != nil {
 		return nil, err
 	}
-	unlocker, err := sdk.AccAddressFromBech32(msg.UnlockerAddress)
-	if err != nil {
-		return nil, err
+	var unlocker sdk.AccAddress
+	if msg.UnlockerAddress != "" {
+		unlocker, err = sdk.AccAddressFromBech32(msg.UnlockerAddress)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// preliminary checks
