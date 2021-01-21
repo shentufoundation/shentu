@@ -102,6 +102,14 @@ type AppModule struct {
 	accountKeeper   types.AccountKeeper
 }
 
+// RegisterServices registers module services.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	am.cosmosAppModule.RegisterServices(cfg)
+	//banktypes.RegisterMsgServer(cfg.MsgServer(), bankkeeper.NewMsgServerImpl(am.keeper))
+	//banktypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+}
+
 // NewAppModule creates a new AppModule object.
 func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, accountKeeper types.AccountKeeper) AppModule {
 	return AppModule{
@@ -110,12 +118,6 @@ func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, accountKeeper types
 		keeper:          keeper,
 		accountKeeper:   accountKeeper,
 	}
-}
-
-// RegisterServices registers module services.
-func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	am.cosmosAppModule.RegisterServices(cfg)
 }
 
 // Name returns the bank module's name.

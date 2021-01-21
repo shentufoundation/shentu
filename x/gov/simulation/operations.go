@@ -95,8 +95,8 @@ func SimulateSubmitProposal(
 					break
 				}
 			}
-			balance := bk.GetAllBalances(ctx, simAccount.Address)
-			if balance == nil {
+			spendable := bk.SpendableCoins(ctx, simAccount.Address)
+			if spendable == nil {
 				return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgSubmitProposal, ""), nil, nil
 			}
 			denom := sdk.DefaultBondDenom
@@ -105,14 +105,13 @@ func SimulateSubmitProposal(
 			depositRate := claimProposalParams.DepositRate
 			minDepositAmountDec := sdk.MaxDec(claimProposalParams.MinDeposit.AmountOf(denom).ToDec(), lossAmountDec.Mul(depositRate))
 			minDepositAmount := minDepositAmountDec.Ceil().RoundInt()
-			if minDepositAmount.GT(balance.AmountOf(denom)) {
+			if minDepositAmount.GT(spendable.AmountOf(denom)) {
 				return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgSubmitProposal, ""), nil, nil
 			}
 			deposit = sdk.NewCoins(sdk.NewCoin(denom, minDepositAmount))
 		} else {
 			simAccount, _ = simtypes.RandomAcc(r, accs)
-			balance := bk.GetAllBalances(ctx, simAccount.Address)
-			spendable := balance
+			spendable := bk.SpendableCoins(ctx, simAccount.Address)
 			minDeposit := k.GetDepositParams(ctx).MinDeposit
 			if spendable.AmountOf(sdk.DefaultBondDenom).LT(minDeposit.AmountOf(sdk.DefaultBondDenom)) {
 				deposit = simtypes.RandSubsetCoins(r, spendable)
@@ -245,8 +244,7 @@ func SimulateMsgVote(ak govTypes.AccountKeeper, bk govTypes.BankKeeper, k keeper
 		msg := types.NewMsgVote(simAccount.Address, proposalID, option)
 
 		account := ak.GetAccount(ctx, simAccount.Address)
-		balance := bk.GetAllBalances(ctx, simAccount.Address)
-		fees, err := simtypes.RandomFees(r, ctx, balance)
+		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, simAccount.Address))
 		if err != nil {
 			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgVote, ""), nil, err
 		}
@@ -303,8 +301,7 @@ func SimulateCertifierMsgVote(ak govTypes.AccountKeeper, bk govTypes.BankKeeper,
 		msg := types.NewMsgVote(simAccount.Address, proposalID, option)
 
 		account := ak.GetAccount(ctx, simAccount.Address)
-		balance := bk.GetAllBalances(ctx, simAccount.Address)
-		fees, err := simtypes.RandomFees(r, ctx, balance)
+		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, simAccount.Address))
 		if err != nil {
 			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgVote, ""), nil, err
 		}
@@ -348,18 +345,18 @@ func SimulateMsgDeposit(ak govTypes.AccountKeeper, bk govTypes.BankKeeper, k kee
 
 		simAcc, _ := simtypes.RandomAcc(r, accs)
 		acc := ak.GetAccount(ctx, simAcc.Address)
-		balance := bk.GetAllBalances(ctx, simAcc.Address)
+		spendable := bk.SpendableCoins(ctx, simAcc.Address)
 		minDeposit := k.GetDepositParams(ctx).MinDeposit
 		var deposit sdk.Coins
-		if balance.AmountOf(sdk.DefaultBondDenom).LT(minDeposit.AmountOf(sdk.DefaultBondDenom)) {
-			deposit = simtypes.RandSubsetCoins(r, balance)
+		if spendable.AmountOf(sdk.DefaultBondDenom).LT(minDeposit.AmountOf(sdk.DefaultBondDenom)) {
+			deposit = simtypes.RandSubsetCoins(r, spendable)
 		} else {
 			deposit = simtypes.RandSubsetCoins(r, minDeposit)
 		}
 
 		msg := types.NewMsgDeposit(simAcc.Address, proposalID, deposit)
 
-		fees, err := simtypes.RandomFees(r, ctx, balance.Sub(deposit))
+		fees, err := simtypes.RandomFees(r, ctx, spendable.Sub(deposit))
 		if err != nil {
 			return simtypes.NoOpMsg(govTypes.ModuleName, types.TypeMsgDeposit, ""), nil, err
 		}
