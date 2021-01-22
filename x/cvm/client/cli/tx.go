@@ -71,8 +71,7 @@ func GetCmdCall() *cobra.Command {
 		Short: "Call CVM contract",
 		Args:  cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			clientCtx, err := client.ReadTxCommandFlags(clientCtx, cmd.Flags())
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -142,7 +141,7 @@ func GetCmdCall() *cobra.Command {
 						return err
 					}
 
-					return clientCtx.PrintOutput(out)
+					return clientCtx.PrintProto(out)
 				}
 			}
 			value := viper.GetUint64(FlagValue)
@@ -196,8 +195,7 @@ func GetCmdDeploy() *cobra.Command {
 		Short: "Deploy CVM contract(s)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, file []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			clientCtx, err := client.ReadTxCommandFlags(clientCtx, cmd.Flags())
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -229,8 +227,7 @@ func GetCmdDeploy() *cobra.Command {
 }
 
 func appendDeployMsgs(cmd *cobra.Command, cliCtx client.Context, msgs []sdk.Msg, fileName string) ([]sdk.Msg, error) {
-	clientCtx := client.GetClientContextFromCmd(cmd)
-	clientCtx, err := client.ReadTxCommandFlags(clientCtx, cmd.Flags())
+	clientCtx, err := client.GetClientTxContext(cmd)
 	if err != nil {
 		return []sdk.Msg{}, err
 	}
@@ -385,8 +382,7 @@ func QueryTxCmd() *cobra.Command {
 		Short: "Query for a transaction by hash in a committed block",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			clientCtx, err := client.ReadTxCommandFlags(clientCtx, cmd.Flags())
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -400,7 +396,7 @@ func QueryTxCmd() *cobra.Command {
 				return fmt.Errorf("no transaction found with hash %s", args[0])
 			}
 
-			return clientCtx.PrintOutput(output)
+			return clientCtx.PrintProto(output)
 		},
 	}
 

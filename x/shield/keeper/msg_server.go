@@ -383,7 +383,6 @@ func (k msgServer) WithdrawReimbursement(goCtx context.Context, msg *types.MsgWi
 
 func (k msgServer) WithdrawForeignRewards(goCtx context.Context, msg *types.MsgWithdrawForeignRewards) (*types.MsgWithdrawForeignRewardsResponse, error) {
 	return &types.MsgWithdrawForeignRewardsResponse{}, nil
-
 }
 
 func (k msgServer) ClearPayouts(goCtx context.Context, msg *types.MsgClearPayouts) (*types.MsgClearPayoutsResponse, error) {

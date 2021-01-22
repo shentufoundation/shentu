@@ -1,10 +1,7 @@
 package keeper
 
 import (
-	"encoding/hex"
 	"fmt"
-
-	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -47,7 +44,8 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 		return sdkerrors.Wrapf(govTypes.ErrInvalidVote, "'%s' is not a certified identity", voterAddr)
 	}
 
-	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
+	//txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
+	txhash := "test"
 	vote := types.NewVote(proposalID, voterAddr, option, txhash)
 	k.setVote(ctx, vote)
 
@@ -99,7 +97,7 @@ func (k Keeper) GetVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 		return vote, false
 	}
 
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &vote)
+	k.cdc.MustUnmarshalBinaryBare(bz, &vote)
 	return vote, true
 }
 

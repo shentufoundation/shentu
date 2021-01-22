@@ -1,9 +1,9 @@
 package app
 
-/*
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"testing"
 
@@ -11,29 +11,38 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/cosmos/cosmos-sdk/x/slashing"
-	cosmosStaking "github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
-	"github.com/certikfoundation/shentu/x/cert"
-	"github.com/certikfoundation/shentu/x/cvm"
-	distr "github.com/certikfoundation/shentu/x/distribution"
-	"github.com/certikfoundation/shentu/x/gov"
-	"github.com/certikfoundation/shentu/x/mint"
-	"github.com/certikfoundation/shentu/x/oracle"
-	"github.com/certikfoundation/shentu/x/shield"
-	"github.com/certikfoundation/shentu/x/staking"
+	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
+	capability "github.com/cosmos/cosmos-sdk/x/capability/types"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	evidence "github.com/cosmos/cosmos-sdk/x/evidence/types"
+	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
+	ibctransfer "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
+	ibchost "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
+	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
+	params "github.com/cosmos/cosmos-sdk/x/params/types"
+	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
+	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
+	cert "github.com/certikfoundation/shentu/x/cert/types"
+	cvm "github.com/certikfoundation/shentu/x/cvm/types"
+	oracle "github.com/certikfoundation/shentu/x/oracle/types"
+	shield "github.com/certikfoundation/shentu/x/shield/types"
+	//"github.com/certikfoundation/shentu/x/staking"
 )
 
 type StoreKeysPrefixes struct {
@@ -70,14 +79,14 @@ func TestFullAppSimulation(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := NewCertiKApp(logger, db, nil, true, map[int64]bool{}, simapp.FlagPeriodValue, fauxMerkleModeOpt)
+	app := NewCertiKApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
-		simapp.SimulationOperations(app, app.Codec(), config),
-		app.ModuleAccountAddrs(), config,
+		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
+		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 
 	// export state and simParams before the simulation error is checked
@@ -102,14 +111,14 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := NewCertiKApp(logger, db, nil, true, map[int64]bool{}, simapp.FlagPeriodValue, fauxMerkleModeOpt)
+	app := NewCertiKApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
-		simapp.SimulationOperations(app, app.Codec(), config),
-		app.ModuleAccountAddrs(), config,
+		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
+		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 
 	// export state and simParams before the simulation error is checked
@@ -123,7 +132,7 @@ func TestAppImportExport(t *testing.T) {
 
 	fmt.Printf("exporting genesis...\n")
 
-	appState, _, err := app.ExportAppStateAndValidators(false, []string{})
+	appState, err := app.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err)
 
 	fmt.Printf("importing genesis...\n")
@@ -136,29 +145,31 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := NewCertiKApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, simapp.FlagPeriodValue, fauxMerkleModeOpt)
+	newApp := NewCertiKApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+
 	require.Equal(t, AppName, newApp.Name())
 
 	var genesisState simapp.GenesisState
-	err = app.Codec().UnmarshalJSON(appState, &genesisState)
+	err = json.Unmarshal(appState.AppState, &genesisState)
 	require.NoError(t, err)
 
-	ctxA := app.NewContext(true, abci.Header{Height: app.LastBlockHeight()})
-	ctxB := newApp.NewContext(true, abci.Header{Height: app.LastBlockHeight()})
-	newApp.mm.InitGenesis(ctxB, genesisState)
+	ctxA := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
+	ctxB := newApp.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
+	newApp.mm.InitGenesis(ctxB, app.Codec(), genesisState)
+	newApp.StoreConsensusParams(ctxB, appState.ConsensusParams)
 
 	fmt.Printf("comparing stores...\n")
 
 	storeKeysPrefixes := []StoreKeysPrefixes{
-		{app.keys[baseapp.MainStoreKey], newApp.keys[baseapp.MainStoreKey], [][]byte{}},
 		{app.keys[auth.StoreKey], newApp.keys[auth.StoreKey], [][]byte{}},
 		{app.keys[staking.StoreKey], newApp.keys[staking.StoreKey], [][]byte{
-			cosmosStaking.UnbondingQueueKey, cosmosStaking.RedelegationQueueKey, cosmosStaking.ValidatorQueueKey,
+			staking.UnbondingQueueKey, staking.RedelegationQueueKey, staking.ValidatorQueueKey,
+			staking.HistoricalInfoKey,
 		}},
-		{app.keys[supply.StoreKey], newApp.keys[supply.StoreKey], [][]byte{}},
 		{app.keys[distr.StoreKey], newApp.keys[distr.StoreKey], [][]byte{}},
 		{app.keys[mint.StoreKey], newApp.keys[mint.StoreKey], [][]byte{}},
 		{app.keys[slashing.StoreKey], newApp.keys[slashing.StoreKey], [][]byte{}},
+		{app.keys[bank.StoreKey], newApp.keys[bank.StoreKey], [][]byte{bank.BalancesPrefix}},
 		{app.keys[params.StoreKey], newApp.keys[params.StoreKey], [][]byte{}},
 		{app.keys[upgrade.StoreKey], newApp.keys[upgrade.StoreKey], [][]byte{}},
 		{app.keys[gov.StoreKey], newApp.keys[gov.StoreKey], [][]byte{}},
@@ -166,6 +177,10 @@ func TestAppImportExport(t *testing.T) {
 		{app.keys[cvm.StoreKey], newApp.keys[cvm.StoreKey], [][]byte{}},
 		{app.keys[oracle.StoreKey], newApp.keys[oracle.StoreKey], [][]byte{oracle.TaskStoreKeyPrefix, oracle.ClosingTaskStoreKeyPrefix}},
 		{app.keys[shield.StoreKey], newApp.keys[shield.StoreKey], [][]byte{shield.WithdrawQueueKey, shield.PurchaseQueueKey, shield.BlockServiceFeesKey}},
+		{app.keys[evidence.StoreKey], newApp.keys[evidence.StoreKey], [][]byte{}},
+		{app.keys[capability.StoreKey], newApp.keys[capability.StoreKey], [][]byte{}},
+		{app.keys[ibchost.StoreKey], newApp.keys[ibchost.StoreKey], [][]byte{}},
+		{app.keys[ibctransfer.StoreKey], newApp.keys[ibctransfer.StoreKey], [][]byte{}},
 	}
 
 	for _, skp := range storeKeysPrefixes {
@@ -178,7 +193,7 @@ func TestAppImportExport(t *testing.T) {
 			fmt.Printf("found %d non-equal key/value pairs between %s and %s\n", len(failedKVAs), skp.A.Name(), skp.B.Name())
 		}
 		require.Equal(t, len(failedKVAs), 0, simapp.GetSimulationLog(skp.A.Name(),
-			app.SimulationManager().StoreDecoders, app.Codec(), failedKVAs, failedKVBs))
+			app.SimulationManager().StoreDecoders, failedKVAs, failedKVBs))
 	}
 }
 
@@ -194,14 +209,14 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := NewCertiKApp(logger, db, nil, true, map[int64]bool{}, simapp.FlagPeriodValue, fauxMerkleModeOpt)
+	app := NewCertiKApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
-		simapp.SimulationOperations(app, app.Codec(), config),
-		app.ModuleAccountAddrs(), config,
+		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
+		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 
 	// export state and simParams before the simulation error is checked
@@ -215,7 +230,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 
 	fmt.Printf("exporting genesis...\n")
 
-	appState, _, err := app.ExportAppStateAndValidators(true, []string{})
+	appState, err := app.ExportAppStateAndValidators(true, []string{})
 	require.NoError(t, err)
 
 	fmt.Printf("importing genesis...\n")
@@ -228,17 +243,18 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := NewCertiKApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, simapp.FlagPeriodValue, fauxMerkleModeOpt)
+	newApp := NewCertiKApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, newApp.Name())
 
 	newApp.InitChain(abci.RequestInitChain{
-		AppStateBytes: appState,
+		AppStateBytes: appState.AppState,
 	})
 
 	_, _, err = simulation.SimulateFromSeed(
 		t, os.Stdout, newApp.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
+		RandomAccounts, // Replace with own random account function if using keys other than secp256k1
 		simapp.SimulationOperations(newApp, newApp.Codec(), config),
-		newApp.ModuleAccountAddrs(), config,
+		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 	require.NoError(t, err)
 }
@@ -261,7 +277,7 @@ func TestAppStateDeterminism(t *testing.T) {
 	for j := 0; j < numTimesToRunPerSeed; j++ {
 		logger := log.NewNopLogger()
 		db := dbm.NewMemDB()
-		app := NewCertiKApp(logger, db, nil, true, map[int64]bool{}, simapp.FlagPeriodValue, interBlockCacheOpt())
+		app := NewCertiKApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, interBlockCacheOpt())
 
 		fmt.Printf(
 			"running non-determinism simulation; seed %d: attempt: %d/%d\n",
@@ -270,8 +286,9 @@ func TestAppStateDeterminism(t *testing.T) {
 
 		_, _, err := simulation.SimulateFromSeed(
 			t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
+			RandomAccounts, // Replace with own random account function if using keys other than secp256k1
 			simapp.SimulationOperations(app, app.Codec(), config),
-			app.ModuleAccountAddrs(), config,
+			app.ModuleAccountAddrs(), config, app.Codec(),
 		)
 		require.NoError(t, err)
 
@@ -286,4 +303,22 @@ func TestAppStateDeterminism(t *testing.T) {
 		}
 	}
 }
-*/
+
+// RandomAccounts generates n random accounts
+func RandomAccounts(r *rand.Rand, n int) []simtypes.Account {
+	accs := make([]simtypes.Account, n)
+
+	for i := 0; i < n; i++ {
+		// don't need that much entropy for simulation
+		privkeySeed := make([]byte, 15)
+		r.Read(privkeySeed)
+
+		accs[i].PrivKey = secp256k1.GenPrivKeyFromSecret(privkeySeed)
+		accs[i].PubKey = accs[i].PrivKey.PubKey()
+		accs[i].Address = sdk.AccAddress(accs[i].PubKey.Address())
+
+		accs[i].ConsKey = ed25519.GenPrivKeyFromSecret(privkeySeed)
+	}
+
+	return accs
+}

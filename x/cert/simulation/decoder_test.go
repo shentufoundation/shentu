@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -33,9 +33,12 @@ func TestDecodeStore(t *testing.T) {
 	}
 
 	validatorPubKey := RandomAccount().PubKey
-	pkAny, err := codectypes.PackAny(validatorPubKey)
-	if err != nil {
-		panic(err)
+	var pkAny *codectypes.Any
+	if validatorPubKey != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(validatorPubKey); err != nil {
+			panic(err)
+		}
 	}
 	validator := types.Validator{
 		Pubkey:    pkAny,
@@ -43,9 +46,11 @@ func TestDecodeStore(t *testing.T) {
 	}
 
 	platformPubKey := RandomAccount().PubKey
-	pkAny, err = codectypes.PackAny(platformPubKey)
-	if err != nil {
-		panic(err)
+	if validatorPubKey != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(validatorPubKey); err != nil {
+			panic(err)
+		}
 	}
 	platform := types.Platform{
 		ValidatorPubkey: pkAny,
@@ -88,7 +93,7 @@ func TestDecodeStore(t *testing.T) {
 		{"other", ""},
 	}
 
-	decoder := simulation.NewDecodeStore(cdc)
+	decoder := NewDecodeStore(cdc)
 
 	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -106,8 +111,7 @@ func RandomAccount() simtypes.Account {
 	privkeySeed := make([]byte, 15)
 	rand.Read(privkeySeed)
 
-	privKey := ed25519.GenPrivKey()
-	//privKey := secp256k1.GenPrivKeySecp256k1(privkeySeed)
+	privKey := secp256k1.GenPrivKey()
 	pubKey := privKey.PubKey()
 	address := sdk.AccAddress(pubKey.Address())
 

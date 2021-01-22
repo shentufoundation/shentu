@@ -1,11 +1,8 @@
 package types
 
 import (
-	"encoding/json"
-
-	"github.com/tendermint/tendermint/crypto"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -50,11 +47,8 @@ func (m MsgProposeCertifier) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing.
 func (m MsgProposeCertifier) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -72,10 +66,13 @@ type msgCertifyValidatorPretty struct {
 }
 
 // NewMsgCertifyValidator returns a new validator node certification message.
-func NewMsgCertifyValidator(certifier sdk.AccAddress, pk crypto.PubKey) (*MsgCertifyValidator, error) {
-	pkAny, err := codectypes.PackAny(pk)
-	if err != nil {
-		return nil, err
+func NewMsgCertifyValidator(certifier sdk.AccAddress, pk cryptotypes.PubKey) (*MsgCertifyValidator, error) {
+	var pkAny *codectypes.Any
+	if pk != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(pk); err != nil {
+			return nil, err
+		}
 	}
 
 	return &MsgCertifyValidator{Certifier: certifier.String(), Pubkey: pkAny}, nil
@@ -106,11 +103,8 @@ func (m MsgCertifyValidator) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing.
 func (m MsgCertifyValidator) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -122,16 +116,25 @@ func (m MsgCertifyValidator) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{certifierAddr}
 }
 
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (m MsgCertifyValidator) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(m.Pubkey, &pubKey)
+}
+
 type msgDecertifyValidatorPretty struct {
 	Decertifier sdk.AccAddress `json:"decertifier" yaml:"decertifier"`
 	Validator   string         `json:"validator" yaml:"validator"`
 }
 
 // NewMsgDecertifyValidator returns a new validator node de-certification message.
-func NewMsgDecertifyValidator(decertifier sdk.AccAddress, pk crypto.PubKey) (*MsgDecertifyValidator, error) {
-	pkAny, err := codectypes.PackAny(pk)
-	if err != nil {
-		return nil, err
+func NewMsgDecertifyValidator(decertifier sdk.AccAddress, pk cryptotypes.PubKey) (*MsgDecertifyValidator, error) {
+	var pkAny *codectypes.Any
+	if pk != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(pk); err != nil {
+			return nil, err
+		}
 	}
 
 	return &MsgDecertifyValidator{Decertifier: decertifier.String(), Pubkey: pkAny}, nil
@@ -162,11 +165,8 @@ func (m MsgDecertifyValidator) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing.
 func (m MsgDecertifyValidator) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -176,6 +176,12 @@ func (m MsgDecertifyValidator) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{decertifierAddr}
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (m MsgDecertifyValidator) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(m.Pubkey, &pubKey)
 }
 
 // NewMsgCertifyGeneral returns a new general certification message.
@@ -210,11 +216,8 @@ func (m MsgCertifyGeneral) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing.
 func (m MsgCertifyGeneral) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -255,11 +258,8 @@ func (m MsgRevokeCertificate) Type() string { return "revoke_certificate" }
 
 // GetSignBytes encodes the message for signing.
 func (m MsgRevokeCertificate) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -304,11 +304,8 @@ func (m MsgCertifyCompilation) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing.
 func (m MsgCertifyCompilation) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -328,10 +325,13 @@ type msgCertifyPlatformPretty struct {
 
 // NewMsgCertifyPlatform returns a new validator host platform certification
 // message.
-func NewMsgCertifyPlatform(certifier sdk.AccAddress, pk crypto.PubKey, platform string) (*MsgCertifyPlatform, error) {
-	pkAny, err := codectypes.PackAny(pk)
-	if err != nil {
-		return nil, err
+func NewMsgCertifyPlatform(certifier sdk.AccAddress, pk cryptotypes.PubKey, platform string) (*MsgCertifyPlatform, error) {
+	var pkAny *codectypes.Any
+	if pk != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(pk); err != nil {
+			return nil, err
+		}
 	}
 
 	return &MsgCertifyPlatform{Certifier: certifier.String(), ValidatorPubkey: pkAny, Platform: platform}, nil
@@ -361,11 +361,8 @@ func (m MsgCertifyPlatform) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing.
 func (m MsgCertifyPlatform) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
@@ -375,4 +372,10 @@ func (m MsgCertifyPlatform) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{certifierAddr}
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (m MsgCertifyPlatform) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(m.ValidatorPubkey, &pubKey)
 }

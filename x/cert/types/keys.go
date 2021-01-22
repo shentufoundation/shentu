@@ -4,8 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 
-	"github.com/tendermint/tendermint/crypto"
-
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -58,7 +57,7 @@ func CertifierAliasesStoreKey() []byte {
 }
 
 // ValidatorStoreKey returns the kv-store key for the validator node certification.
-func ValidatorStoreKey(validator crypto.PubKey) []byte {
+func ValidatorStoreKey(validator cryptotypes.PubKey) []byte {
 	return concat(validatorStoreKeyPrefix, validator.Bytes())
 }
 
@@ -119,7 +118,7 @@ func LibrariesStoreKey() []byte {
 }
 
 // PlatformStoreKey returns the kv-store key for the validator host platform certificate.
-func PlatformStoreKey(validator crypto.PubKey) []byte {
+func PlatformStoreKey(validator cryptotypes.PubKey) []byte {
 	return append(platformStoreKeyPrefix, validator.Bytes()...)
 }
 

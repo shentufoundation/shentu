@@ -56,7 +56,7 @@ func (s *State) GetAccount(address crypto.Address) (*acm.Account, error) {
 	codeData := s.store.Get(types.CodeStoreKey(address))
 	if len(codeData) > 0 {
 		var cvmCode types.CVMCode
-		s.cdc.MustUnmarshalBinaryLengthPrefixed(codeData, &cvmCode)
+		s.cdc.MustUnmarshalBinaryBare(codeData, &cvmCode)
 		if cvmCode.CodeType == types.CVMCodeTypeEVMCode {
 			evmCode = cvmCode.Code
 		} else {
@@ -96,7 +96,7 @@ func (s *State) UpdateAccount(updatedAccount *acm.Account) error {
 	} else {
 		cvmCode = types.NewCVMCode(types.CVMCodeTypeEVMCode, updatedAccount.EVMCode)
 	}
-	s.store.Set(types.CodeStoreKey(updatedAccount.Address), s.cdc.MustMarshalBinaryLengthPrefixed(&cvmCode))
+	s.store.Set(types.CodeStoreKey(updatedAccount.Address), s.cdc.MustMarshalBinaryBare(&cvmCode))
 	err := s.bk.SetBalances(s.ctx, address, sdk.Coins{sdk.NewInt64Coin(s.sk.BondDenom(s.ctx), int64(updatedAccount.Balance))})
 	if err != nil {
 		return err
@@ -176,11 +176,16 @@ func (s *State) GetAddressMeta(address crypto.Address) ([]*acm.ContractMeta, err
 	if len(bz) == 0 {
 		return []*acm.ContractMeta{}, nil
 	}
-	var metaList []acm.ContractMeta
-	err := s.legacyAmino.UnmarshalBinaryLengthPrefixed(bz, &metaList)
+
+	var metaList types.ContractMetas
+	err := s.cdc.UnmarshalBinaryBare(bz, &metaList)
+	if err != nil {
+		return nil, err
+	}
+
 	var res []*acm.ContractMeta
-	for i := range metaList {
-		res = append(res, &metaList[i])
+	for i := range metaList.Metas {
+		res = append(res, metaList.Metas[i])
 	}
 	return res, err
 }
@@ -191,7 +196,6 @@ func (s *State) SetAddressMeta(address crypto.Address, contMeta []*acm.ContractM
 	for _, meta := range contMeta {
 		metadata.Metas = append(metadata.Metas, meta)
 	}
-	//bz, err := s.legacyAmino.MarshalBinaryLengthPrefixed(metadata)
 	bz, err := s.cdc.MarshalBinaryBare(&metadata)
 	if err != nil {
 		panic(err)

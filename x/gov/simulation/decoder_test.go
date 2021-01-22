@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
@@ -17,6 +17,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/simapp"
+	"github.com/certikfoundation/shentu/x/gov/keeper"
 	. "github.com/certikfoundation/shentu/x/gov/simulation"
 	"github.com/certikfoundation/shentu/x/gov/types"
 )
@@ -46,7 +47,7 @@ func TestDecodeStore(t *testing.T) {
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{
-			{Key: govtypes.ProposalKey(proposalID), Value: cdc.Marshaler.MustMarshalBinaryBare(&proposal)},
+			{Key: keeper.ProposalKey(proposalID), Value: cdc.Marshaler.MustMarshalBinaryBare(&proposal)},
 			{Key: govtypes.InactiveProposalQueueKey(proposalID, endTime), Value: proposalIDBz},
 			{Key: govtypes.DepositKey(proposalID, depositor.Address), Value: cdc.Marshaler.MustMarshalBinaryBare(&deposit)},
 			{Key: govtypes.VoteKey(proposalID, voter.Address), Value: cdc.Marshaler.MustMarshalBinaryBare(&vote)},
@@ -78,10 +79,7 @@ func TestDecodeStore(t *testing.T) {
 }
 
 func RandomAccount() sim.Account {
-	privkeySeed := make([]byte, 15)
-	rand.Read(privkeySeed)
-
-	privKey := secp256k1.GenPrivKeySecp256k1(privkeySeed)
+	privKey := secp256k1.GenPrivKey()
 	pubKey := privKey.PubKey()
 	address := sdk.AccAddress(pubKey.Address())
 

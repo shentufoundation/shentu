@@ -3,6 +3,7 @@ package cert
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/x/cert/keeper"
 	"github.com/certikfoundation/shentu/x/cert/types"
@@ -42,6 +43,17 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Unrecognized cert Msg type: %v", msg.Type())
+		}
+	}
+}
+
+func NewCertifierUpdateProposalHandler(k keeper.Keeper) govtypes.Handler {
+	return func(ctx sdk.Context, content govtypes.Content) error {
+		switch c := content.(type) {
+		case *types.CertifierUpdateProposal:
+			return keeper.HandleCertifierUpdateProposal(ctx, k, c)
+		default:
+			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized cert proposal content type: %T", c)
 		}
 	}
 }

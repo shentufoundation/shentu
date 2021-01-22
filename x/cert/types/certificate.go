@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	proto "github.com/gogo/protobuf/proto"
 )
 
 // CertificateTypes is an array of all certificate types.
@@ -25,45 +26,22 @@ func (c CertificateType) Bytes() []byte {
 	return []byte{byte(c)}
 }
 
-// TODO
-// // String returns the string for a certificate type.
-// func (c CertificateType) String() string {
-// 	switch c {
-// 	case CertificateTypeCompilation:
-// 		return "Compilation"
-// 	case CertificateTypeAuditing:
-// 		return "Auditing"
-// 	case CertificateTypeProof:
-// 		return "Proof"
-// 	case CertificateTypeOracleOperator:
-// 		return "OracleOperator"
-// 	case CertificateTypeShieldPoolCreator:
-// 		return "ShieldPoolCreator"
-// 	case CertificateTypeIdentity:
-// 		return "Identity"
-// 	case CertificateTypeGeneral:
-// 		return "General"
-// 	default:
-// 		return "UnknownCertificateType"
-// 	}
-// }
-
 // CertificateTypeFromString returns a certificate type by parsing a string.
 func CertificateTypeFromString(s string) CertificateType {
 	switch strings.ToUpper(s) {
-	case "COMPILATION":
+	case "COMPILATION", "CERT_TYPE_COMPILATION":
 		return CertificateTypeCompilation
-	case "AUDITING":
+	case "AUDITING", "CERT_TYPE_AUDITING":
 		return CertificateTypeAuditing
-	case "PROOF":
+	case "PROOF", "CERT_TYPE_PROOF":
 		return CertificateTypeProof
-	case "ORACLEOPERATOR":
+	case "ORACLEOPERATOR", "CERT_TYPE_ORACLE_OPERATOR":
 		return CertificateTypeOracleOperator
-	case "SHIELDPOOLCREATOR":
+	case "SHIELDPOOLCREATOR", "CERT_TYPE_SHIELD_POOL_CREATOR":
 		return CertificateTypeShieldPoolCreator
-	case "IDENTITY":
+	case "IDENTITY", "CERT_TYPE_IDENTITY":
 		return CertificateTypeIdentity
-	case "GENERAL":
+	case "GENERAL", "CERT_TYPE_GENERAL":
 		return CertificateTypeGeneral
 	default:
 		return CertificateTypeNil
@@ -88,6 +66,8 @@ func (id CertificateID) String() string {
 
 // Certificate is the interface for all kinds of certificate
 type Certificate interface {
+	proto.Message
+
 	ID() CertificateID
 	Type() CertificateType
 	Certifier() sdk.AccAddress
@@ -117,32 +97,16 @@ func (c RequestContentType) Bytes() []byte {
 	return []byte{byte(c)}
 }
 
-// String returns string of the request content type.
-func (c RequestContentType) String() string {
-	switch c {
-	case RequestContentTypeSourceCodeHash:
-		return "SourceCodeHash"
-	case RequestContentTypeAddress:
-		return "Address"
-	case RequestContentTypeBytecodeHash:
-		return "BytecodeHash"
-	case RequestContentTypeGeneral:
-		return "General"
-	default:
-		return "UnknownRequestContentType"
-	}
-}
-
 // RequestContentTypeFromString returns the request content type by parsing a string.
 func RequestContentTypeFromString(s string) RequestContentType {
 	switch strings.ToUpper(s) {
-	case "SOURCECODEHASH":
+	case "SOURCECODEHASH", "REQ_CONTENT_TYPE_SOURCE_CODE_HASH":
 		return RequestContentTypeSourceCodeHash
-	case "ADDRESS":
+	case "ADDRESS", "REQ_CONTENT_TYPE_ADDRESS":
 		return RequestContentTypeAddress
-	case "BYTECODEHASH":
+	case "BYTECODEHASH", "REQ_CONTENT_TYPE_BYTECODE_HASH":
 		return RequestContentTypeBytecodeHash
-	case "GENERAL":
+	case "GENERAL", "REQ_CONTENT_TYPE_GENERAL":
 		return RequestContentTypeGeneral
 	default:
 		return RequestContentTypeNil

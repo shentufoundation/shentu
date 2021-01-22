@@ -19,6 +19,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -331,10 +332,6 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.bankKeeper,
 		app.GetSubspace(oracletypes.ModuleName),
 	)
-	app.mintKeeper = mintkeeper.NewKeeper(
-		appCodec, keys[sdkminttypes.StoreKey], app.GetSubspace(sdkminttypes.ModuleName), &stakingKeeper,
-		app.accountKeeper, app.bankKeeper, app.distrKeeper, app.shieldKeeper, authtypes.FeeCollectorName,
-	)
 	app.slashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
 		keys[slashingtypes.StoreKey],
@@ -372,6 +369,10 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		&app.govKeeper,
 		app.GetSubspace(shieldtypes.ModuleName),
 	)
+	app.mintKeeper = mintkeeper.NewKeeper(
+		appCodec, keys[sdkminttypes.StoreKey], app.GetSubspace(sdkminttypes.ModuleName), &stakingKeeper,
+		app.accountKeeper, app.bankKeeper, app.distrKeeper, app.shieldKeeper, authtypes.FeeCollectorName,
+	)
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference so that it will contain these hooks.
 	app.stakingKeeper.Keeper = *stakingKeeper.Keeper.SetHooks(
@@ -384,7 +385,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	// Create IBC Keeper
 	app.ibcKeeper = ibckeeper.NewKeeper(
-		appCodec, keys[ibchost.StoreKey], app.stakingKeeper, scopedIBCKeeper,
+		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.stakingKeeper, scopedIBCKeeper,
 	)
 
 	govRouter := sdkgovtypes.NewRouter()
@@ -393,7 +394,9 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		AddRoute(distrtypes.RouterKey, sdkdistr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
 		AddRoute(ibchost.RouterKey, ibcclient.NewClientUpdateProposalHandler(app.ibcKeeper.ClientKeeper)).
-		AddRoute(shieldtypes.RouterKey, shield.NewShieldClaimProposalHandler(app.shieldKeeper))
+		AddRoute(shieldtypes.RouterKey, shield.NewShieldClaimProposalHandler(app.shieldKeeper)).
+		AddRoute(certtypes.RouterKey, cert.NewCertifierUpdateProposalHandler(app.certKeeper))
+
 	app.govKeeper = govkeeper.NewKeeper(
 		appCodec,
 		keys[sdkgovtypes.StoreKey],
@@ -507,31 +510,24 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.RegisterInvariants(&app.crisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 
-	// TODO Reactivate sim
-	// app.sm = module.NewSimulationManager(
-	// 	genutil.NewAppModule(
-	// 		app.accountKeeper,
-	// 		app.stakingKeeper,
-	// 		app.BaseApp.DeliverTx,
-	// 		encodingConfig.TxConfig,
-	// 	),
-	// 	auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
-	// 	bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
-	// 	crisis.NewAppModule(&app.crisisKeeper, skipGenesisInvariants),
-	// 	distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
-	// 	slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
-	// 	staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper),
-	// 	mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
-	// 	upgrade.NewAppModule(app.upgradeKeeper),
-	// 	evidence.NewAppModule(app.evidenceKeeper),
-	// 	gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
-	// 	cvm.NewAppModule(app.cvmKeeper),
-	// 	cert.NewAppModule(app.certKeeper, app.accountKeeper),
-	// 	oracle.NewAppModule(app.oracleKeeper),
-	// 	shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.stakingKeeper),
-	// )
+	app.sm = module.NewSimulationManager(
+		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
+		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
+		capability.NewAppModule(appCodec, *app.capabilityKeeper),
+		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
+		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
+		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper),
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
+		evidence.NewAppModule(app.evidenceKeeper),
+		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
+		cvm.NewAppModule(app.cvmKeeper, app.bankKeeper),
+		cert.NewAppModule(app.certKeeper, app.accountKeeper, app.bankKeeper),
+		oracle.NewAppModule(app.oracleKeeper, app.bankKeeper),
+		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		transferModule,
+	)
 
-	// app.sm.RegisterStoreDecoders()
+	app.sm.RegisterStoreDecoders()
 
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)
@@ -625,6 +621,14 @@ func (app *CertiKApp) BlockedAddrs() map[string]bool {
 	return blockedAddrs
 }
 
+// LegacyAmino returns SimApp's amino codec.
+//
+// NOTE: This is solely to be used for testing purposes as it may be desirable
+// for modules to register their own custom testing types.
+func (app *CertiKApp) LegacyAmino() *codec.LegacyAmino {
+	return app.cdc
+}
+
 // GetSubspace returns a param subspace for a given module name.
 //
 // NOTE: This is solely to be used for testing purposes.
@@ -634,8 +638,8 @@ func (app *CertiKApp) GetSubspace(moduleName string) paramstypes.Subspace {
 }
 
 // Codec returns app.cdc.
-func (app *CertiKApp) Codec() *codec.LegacyAmino {
-	return app.cdc
+func (app *CertiKApp) Codec() codec.Marshaler {
+	return app.appCodec
 }
 
 // SimulationManager returns app.sm.
@@ -683,11 +687,11 @@ func (app *CertiKApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 	// Register legacy tx routes.
 	authrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
 	// Register new tx routes from grpc-gateway.
-	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCRouter)
+	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register legacy and grpc-gateway routes for all modules.
 	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
-	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCRouter)
+	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
@@ -698,4 +702,9 @@ func (app *CertiKApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 // RegisterTxService implements the Application.RegisterTxService method.
 func (app *CertiKApp) RegisterTxService(clientCtx client.Context) {
 	authtx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
+}
+
+// RegisterTendermintService implements the Application.RegisterTendermintService method.
+func (app *CertiKApp) RegisterTendermintService(clientCtx client.Context) {
+	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
 }

@@ -46,8 +46,7 @@ func GetCmdView() *cobra.Command {
 		Short: "View CVM contract",
 		Args:  cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			clientCtx, err := client.ReadQueryCommandFlags(clientCtx, cmd.Flags())
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -90,7 +89,7 @@ func GetCmdView() *cobra.Command {
 				return err
 			}
 
-			return clientCtx.PrintOutput(out)
+			return clientCtx.PrintProto(out)
 		},
 	}
 	cmd.Flags().String(FlagCaller, "", "optional caller parameter to run the view function with")
@@ -105,8 +104,7 @@ func GetCmdCode() *cobra.Command {
 		Short: "Get CVM contract code",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			clientCtx, err := client.ReadQueryCommandFlags(clientCtx, cmd.Flags())
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -123,7 +121,7 @@ func GetCmdCode() *cobra.Command {
 				return err
 			}
 
-			return clientCtx.PrintOutput(res)
+			return clientCtx.PrintProto(res)
 		},
 	}
 }
@@ -135,8 +133,7 @@ func GetCmdStorage() *cobra.Command {
 		Short: "Get CVM storage data",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			clientCtx, err := client.ReadQueryCommandFlags(clientCtx, cmd.Flags())
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -156,7 +153,7 @@ func GetCmdStorage() *cobra.Command {
 				return nil
 			}
 
-			return clientCtx.PrintOutput(res)
+			return clientCtx.PrintProto(res)
 		},
 	}
 }
@@ -168,8 +165,7 @@ func GetCmdAbi() *cobra.Command {
 		Short: "Get CVM contract code ABI",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			clientCtx, err := client.ReadQueryCommandFlags(clientCtx, cmd.Flags())
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -191,7 +187,7 @@ func GetCmdAbi() *cobra.Command {
 				return nil
 			}
 
-			return clientCtx.PrintOutput(addrAbi)
+			return clientCtx.PrintProto(addrAbi)
 		},
 	}
 }
@@ -203,8 +199,7 @@ func GetCmdMeta() *cobra.Command {
 		Short: "Get CVM Metadata hash for an address or Metadata for a hash",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			clientCtx, err := client.ReadQueryCommandFlags(clientCtx, cmd.Flags())
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -312,8 +307,7 @@ func GetAccountCmd() *cobra.Command {
 		Long:  "Query contract info by address, revert to query normal account info if the address is not a contract",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			clientCtx, err := client.ReadQueryCommandFlags(clientCtx, cmd.Flags())
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -325,7 +319,7 @@ func GetAccountCmd() *cobra.Command {
 				return err
 			}
 
-			return clientCtx.PrintOutput(res)
+			return clientCtx.PrintProto(res)
 		},
 	}
 

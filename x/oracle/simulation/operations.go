@@ -4,10 +4,9 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/tendermint/tendermint/crypto"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,15 +39,8 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, k
 	)
 
 	return simulation.WeightedOperations{
-		simulation.NewWeightedOperation(
-			weightMsgCreateOperator,
-			SimulateMsgCreateOperator(k, ak, bk),
-		),
-
-		simulation.NewWeightedOperation(
-			weightMsgCreateTask,
-			SimulateMsgCreateTask(ak, k, bk),
-		),
+		simulation.NewWeightedOperation(weightMsgCreateOperator, SimulateMsgCreateOperator(k, ak, bk)),
+		simulation.NewWeightedOperation(weightMsgCreateTask, SimulateMsgCreateTask(ak, k, bk)),
 	}
 }
 
@@ -123,7 +115,7 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AccountKeeper, bk types
 
 // SimulateMsgAddCollateral generates a MsgAddCollateral object with all of its fields randomized.
 func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, stdOperator *types.Operator,
-	operatorPrivKey crypto.PrivKey) simtypes.Operation {
+	operatorPrivKey cryptotypes.PrivKey) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
 		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		stdOperatorAddr, err := sdk.AccAddressFromBech32(stdOperator.Address)
@@ -180,7 +172,7 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AccountKeeper, bk types.
 
 // SimulateMsgReduceCollateral generates a MsgReduceCollateral object with all of its fields randomized.
 func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, stdOperator *types.Operator,
-	operatorPrivKey crypto.PrivKey) simtypes.Operation {
+	operatorPrivKey cryptotypes.PrivKey) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
 		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		stdOperatorAddr, err := sdk.AccAddressFromBech32(stdOperator.Address)
@@ -242,7 +234,7 @@ func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AccountKeeper, bk typ
 
 // SimulateMsgRemoveOperator generates a MsgRemoveOperator object with all of its fields randomized.
 func SimulateMsgRemoveOperator(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper,
-	stdOperator *types.Operator, operatorPrivKey crypto.PrivKey) simtypes.Operation {
+	stdOperator *types.Operator, operatorPrivKey cryptotypes.PrivKey) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
 		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		stdOperatorAddr, err := sdk.AccAddressFromBech32(stdOperator.Address)
@@ -296,7 +288,7 @@ func SimulateMsgRemoveOperator(k keeper.Keeper, ak types.AccountKeeper, bk types
 
 // SimulateMsgWithdrawReward generates a MsgWithdrawReward object with all of its fields randomized.
 func SimulateMsgWithdrawReward(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper,
-	stdOperator *types.Operator, operatorPrivKey crypto.PrivKey) simtypes.Operation {
+	stdOperator *types.Operator, operatorPrivKey cryptotypes.PrivKey) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
 		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		stdOperatorAddr, err := sdk.AccAddressFromBech32(stdOperator.Address)

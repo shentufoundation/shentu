@@ -6,8 +6,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/tendermint/tendermint/crypto"
-
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -64,7 +63,7 @@ func (q Keeper) Validator(c context.Context, req *types.QueryValidatorRequest) (
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	pk, ok := req.Pubkey.GetCachedValue().(crypto.PubKey)
+	pk, ok := req.Pubkey.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
 		panic(sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into cryto.PubKey %T", req.Pubkey))
 	}
@@ -93,7 +92,7 @@ func (q Keeper) Platform(c context.Context, req *types.QueryPlatformRequest) (*t
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	pk, ok := req.Pubkey.GetCachedValue().(crypto.PubKey)
+	pk, ok := req.Pubkey.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
 		panic(sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into cryto.PubKey %T", req.Pubkey))
 	}
@@ -155,19 +154,18 @@ func (q Keeper) Certificates(c context.Context, req *types.QueryCertificatesRequ
 		return nil, err
 	}
 
-	var results []types.QueryCertificateResponse
-	for _, certificate := range certificates {
+	results := make([]types.QueryCertificateResponse, len(certificates))
+	for i, certificate := range certificates {
 		reqContent := certificate.RequestContent()
 
-		results = append(results,
-			types.QueryCertificateResponse{
-				CertificateId: certificate.ID().String(), CertificateType: certificate.Type().String(),
-				RequestContent:     &reqContent,
-				CertificateContent: certificate.FormattedCertificateContent(),
-				Description:        certificate.Description(),
-				Certifier:          certificate.Certifier().String(),
-				TxHash:             certificate.TxHash(),
-			})
+		results[i] = types.QueryCertificateResponse{
+			CertificateId: certificate.ID().String(), CertificateType: certificate.Type().String(),
+			RequestContent:     &reqContent,
+			CertificateContent: certificate.FormattedCertificateContent(),
+			Description:        certificate.Description(),
+			Certifier:          certificate.Certifier().String(),
+			TxHash:             certificate.TxHash(),
+		}
 	}
 
 	return &types.QueryCertificatesResponse{Total: total, Certificates: results}, nil

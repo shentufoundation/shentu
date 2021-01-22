@@ -19,7 +19,7 @@ import (
 func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (types.Proposal, bool) {
 	store := ctx.KVStore(k.storeKey)
 
-	bz := store.Get(govtypes.ProposalKey(proposalID))
+	bz := store.Get(ProposalKey(proposalID))
 	if bz == nil {
 		return types.Proposal{}, false
 	}
@@ -34,7 +34,7 @@ func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (types.Proposal,
 func (k Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.MustMarshalProposal(proposal)
-	store.Set(govtypes.ProposalKey(proposal.ProposalId), bz)
+	store.Set(ProposalKey(proposal.ProposalId), bz)
 }
 
 // DeleteProposalByProposalID deletes a proposal from store.
@@ -144,7 +144,7 @@ func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Proposa
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var proposal types.Proposal
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &proposal)
+		k.MustUnmarshalProposal(iterator.Value(), &proposal)
 
 		if cb(proposal) {
 			break

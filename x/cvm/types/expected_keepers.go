@@ -1,8 +1,7 @@
 package types
 
 import (
-	"github.com/tendermint/tendermint/crypto"
-
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
@@ -45,7 +44,7 @@ type CertKeeper interface {
 	IsCertified(ctx sdk.Context, contentType string, content string, certType string) bool
 	IsContentCertified(ctx sdk.Context, content string) bool
 	IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool
-	SetValidator(ctx sdk.Context, key crypto.PubKey, certifier sdk.AccAddress)
+	SetValidator(ctx sdk.Context, key cryptotypes.PubKey, certifier sdk.AccAddress)
 }
 
 // StakingKeeper defines the expected staking keeper

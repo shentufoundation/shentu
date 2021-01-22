@@ -64,7 +64,6 @@ func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.Context, route *mux.Route
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the mint module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	mint.AppModuleBasic{}.RegisterGRPCGatewayRoutes(clientCtx, mux)
-
 }
 
 // GetTxCmd returns no root tx command for the mint module.

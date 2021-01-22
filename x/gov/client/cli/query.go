@@ -64,8 +64,7 @@ $ %[1]s query gov proposal 1
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -85,7 +84,7 @@ $ %[1]s query gov proposal 1
 			if err != nil {
 				return err
 			}
-			return cliCtx.PrintOutput(&res.Proposal)
+			return cliCtx.PrintProto(res)
 		},
 	}
 }
@@ -135,8 +134,7 @@ $ %[1]s query gov proposals --page=2 --limit=100
 				}
 			}
 
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err = client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -164,7 +162,7 @@ $ %[1]s query gov proposals --page=2 --limit=100
 				return fmt.Errorf("no proposals found")
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -193,8 +191,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -231,7 +228,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 				// TODO migrate to use JSONMarshaler (implement MarshalJSONArray
 				// or wrap lists of proto.Message in some other message)
 				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &votes)
-				return cliCtx.PrintOutputLegacy(votes)
+				return cliCtx.PrintObjectLegacy(votes)
 			}
 
 			pageReq, err := client.ReadPageRequest(cmd.Flags())
@@ -248,7 +245,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -275,8 +272,7 @@ $ %[1]s query gov deposits 1
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -310,7 +306,7 @@ $ %[1]s query gov deposits 1
 				// or wrap lists of proto.Message in some other message)
 				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &dep)
 
-				return cliCtx.PrintOutputLegacy(dep)
+				return cliCtx.PrintObjectLegacy(dep)
 			}
 
 			pageReq, err := client.ReadPageRequest(cmd.Flags())
@@ -327,7 +323,7 @@ $ %[1]s query gov deposits 1
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -353,8 +349,7 @@ $ %s query gov params
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -391,7 +386,7 @@ $ %s query gov params
 				depositRes.GetDepositParams(),
 			)
 
-			return cliCtx.PrintOutputLegacy(params)
+			return cliCtx.PrintObjectLegacy(params)
 		},
 	}
 
@@ -418,8 +413,7 @@ $ %[1]s query gov param deposit
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -446,7 +440,7 @@ $ %[1]s query gov param deposit
 				return fmt.Errorf("argument must be one of (voting|tallying|deposit), was %s", args[0])
 			}
 
-			return cliCtx.PrintOutputLegacy(out)
+			return cliCtx.PrintObjectLegacy(out)
 		},
 	}
 }

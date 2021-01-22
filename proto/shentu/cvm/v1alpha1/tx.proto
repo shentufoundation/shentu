@@ -37,7 +37,7 @@ message MsgDeploy {
   string abi = 4 [(gogoproto.moretags) = "yaml:\"abi\""];
 
   // Meta is the metadata for the contract.
-  repeated  payload.ContractMeta  meta = 5 [(gogoproto.moretags) = "yaml:\"meta\""];
+  repeated payload.ContractMeta  meta = 5 [(gogoproto.moretags) = "yaml:\"meta\""];
 
   // is_eWASM is true if the code is EWASM code.
   bool is_eWASM = 6 [(gogoproto.moretags) = "yaml:\"is_EWASM\""];

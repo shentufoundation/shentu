@@ -26,7 +26,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*Certificate)(nil), nil)
 }
 
-// RegisterInterfaces registers the x/oracle interfaces types with the interface registry
+// RegisterInterfaces registers the x/cert interfaces types with the interface registry
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgProposeCertifier{},
@@ -43,6 +43,11 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	)
 
 	registry.RegisterImplementations((*Certificate)(nil),
+		&GeneralCertificate{},
+		&CompilationCertificate{},
+	)
+
+	registry.RegisterInterface("shentu.cert.v1alpha1.Certificate", (*Certificate)(nil),
 		&GeneralCertificate{},
 		&CompilationCertificate{},
 	)

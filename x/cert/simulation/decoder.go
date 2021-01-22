@@ -35,11 +35,11 @@ func NewDecodeStore(cdc codec.Marshaler) func(kvA, kvB kv.Pair) string {
 
 		case bytes.Equal(kvA.Key[:1], types.CertificatesStoreKey()):
 			var certA, certB types.Certificate
-			err := codec.UnmarshalAny(cdc, &certA, kvA.Value)
+			err := cdc.UnmarshalInterface(kvA.Value, &certA)
 			if err != nil {
 				panic(err)
 			}
-			err = codec.UnmarshalAny(cdc, &certB, kvB.Value)
+			err = cdc.UnmarshalInterface(kvB.Value, &certB)
 			if err != nil {
 				panic(err)
 			}

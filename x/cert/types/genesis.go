@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -30,4 +31,30 @@ func GetGenesisStateFromAppState(cdc codec.Marshaler, appState map[string]json.R
 		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
 	}
 	return genesisState
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (g GenesisState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	for i := 0; i < len(g.Certificates); i++ {
+		var cert Certificate
+		err := unpacker.UnpackAny(&g.Certificates[i], &cert)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, platform := range g.Platforms {
+		err := platform.UnpackInterfaces(unpacker)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, validator := range g.Validators {
+		err := validator.UnpackInterfaces(unpacker)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

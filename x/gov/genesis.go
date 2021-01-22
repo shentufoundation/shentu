@@ -37,9 +37,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govTypes.AccountKeeper, bk
 		switch proposal.Status {
 		case types.StatusDepositPeriod:
 			k.InsertInactiveProposalQueue(ctx, proposal.ProposalId, proposal.DepositEndTime)
-		case types.StatusCertifierVotingPeriod:
-			k.InsertActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
-		case types.StatusValidatorVotingPeriod:
+		case types.StatusCertifierVotingPeriod, types.StatusValidatorVotingPeriod:
 			k.InsertActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
 		}
 		k.SetProposal(ctx, proposal)
@@ -63,24 +61,17 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	tallyParams := k.GetTallyParams(ctx)
 	proposals := k.GetProposals(ctx)
 
-	var proposalsDeposits types.Deposits
-	var proposalsVotes types.Votes
+	var genState types.GenesisState
 
 	for _, proposal := range proposals {
-		deposits := k.GetDepositsByProposalID(ctx, proposal.ProposalId)
-		proposalsDeposits = append(proposalsDeposits, deposits...)
-
-		votes := k.GetVotes(ctx, proposal.ProposalId)
-		proposalsVotes = append(proposalsVotes, votes...)
+		genState.Deposits = append(genState.Deposits, k.GetDepositsByProposalID(ctx, proposal.ProposalId)...)
+		genState.Votes = append(genState.Votes, k.GetVotes(ctx, proposal.ProposalId)...)
 	}
+	genState.StartingProposalId = startingProposalID
+	genState.Proposals = proposals
+	genState.DepositParams = depositParams
+	genState.VotingParams = votingParams
+	genState.TallyParams = tallyParams
 
-	return &types.GenesisState{
-		StartingProposalId: startingProposalID,
-		Deposits:           proposalsDeposits,
-		Votes:              proposalsVotes,
-		Proposals:          proposals,
-		DepositParams:      depositParams,
-		VotingParams:       votingParams,
-		TallyParams:        tallyParams,
-	}
+	return &genState
 }

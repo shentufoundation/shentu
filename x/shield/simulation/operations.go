@@ -152,12 +152,12 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		// sponsor
 		sponsor := strings.ToLower(simtypes.RandStringOfLength(r, 10))
 		if _, found := k.GetPoolBySponsor(ctx, sponsor); found {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, err.Error()), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, "pool not found for given sponsor"), nil, nil
 		}
 		// serviceFees
 		nativeAmount := bk.SpendableCoins(ctx, account.GetAddress()).AmountOf(bondDenom)
 		if !nativeAmount.IsPositive() {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, err.Error()), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, ""), nil, nil
 		}
 		nativeAmount, err = simtypes.RandPositiveInt(r, nativeAmount)
 		if err != nil {
@@ -240,7 +240,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		// serviceFees
 		nativeAmount := bk.SpendableCoins(ctx, account.GetAddress()).AmountOf(bondDenom)
 		if !nativeAmount.IsPositive() {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, err.Error()), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, ""), nil, nil
 		}
 		nativeAmount, err = simtypes.RandPositiveInt(r, nativeAmount)
 		if err != nil {
@@ -466,10 +466,10 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, bk types
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgPurchaseShield, err.Error()), nil, nil
 		}
 		if shieldAmount.ToDec().Mul(poolParams.ShieldFeesRate).GT(bk.SpendableCoins(ctx, account.GetAddress()).AmountOf(bondDenom).ToDec()) {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgPurchaseShield, err.Error()), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgPurchaseShield, ""), nil, nil
 		}
 		if shieldAmount.ToDec().Mul(poolParams.ShieldFeesRate).TruncateInt().IsZero() {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgPurchaseShield, err.Error()), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgPurchaseShield, ""), nil, nil
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
@@ -580,7 +580,7 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, bk types
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 		if shield.IsZero() || k.GetShieldStakingRate(ctx).MulInt(shield.AmountOf(bondDenom)).TruncateInt().IsZero() {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgStakeForShield, err.Error()), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgStakeForShield, ""), nil, nil
 		}
 
 		description := simtypes.RandStringOfLength(r, 100)

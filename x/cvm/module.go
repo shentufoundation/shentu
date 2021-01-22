@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"math/rand"
 
-	sim "github.com/cosmos/cosmos-sdk/x/simulation"
-
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/gorilla/mux"
@@ -20,6 +18,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/certikfoundation/shentu/x/cvm/client/cli"
 	"github.com/certikfoundation/shentu/x/cvm/client/rest"
@@ -29,8 +28,9 @@ import (
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic specifies the app module basics object.
@@ -159,29 +159,31 @@ func (AppModule) QuerierRoute() string {
 // RegisterInvariants registers the module invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
-// TODO Simulation
+//____________________________________________________________________________
+
+// AppModuleSimulation functions
 
 // GenerateGenesisState creates a randomized GenState of this module.
-func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
 
 // RegisterStoreDecoder registers a decoder for cvm module.
-func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations returns cvm operations for use in simulations.
-func (am AppModule) WeightedOperations(simState module.SimulationState) sim.WeightedOperations {
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.bankkeeper)
 }
 
 // ProposalContents returns functions that generate gov proposals for the module.
-func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
+func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
 	return nil
 }
 
 // RandomizedParams returns functions that generate params for the module.
-func (AppModuleBasic) RandomizedParams(_ *rand.Rand) []sim.ParamChange {
+func (AppModuleBasic) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
 	return nil
 }

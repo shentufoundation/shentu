@@ -138,7 +138,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 // InitGenesis initializes the module genesis.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
-	types.ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	cdc.MustUnmarshalJSON(data, &genesisState)
 	InitGenesis(ctx, am.moduleKeeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
@@ -146,7 +146,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data j
 // ExportGenesis initializes the module export genesis.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
 	gs := ExportGenesis(ctx, am.moduleKeeper)
-	return types.ModuleCdc.MustMarshalJSON(&gs)
+	return cdc.MustMarshalJSON(gs)
 }
 
 // BeginBlock implements the Cosmos SDK BeginBlock module function.

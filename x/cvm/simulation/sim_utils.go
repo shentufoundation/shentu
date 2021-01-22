@@ -4,13 +4,13 @@ import (
 	"encoding/hex"
 	"math/rand"
 
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
-
-	sim "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
+	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sim "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
@@ -62,8 +62,7 @@ func DeployContract(caller sim.Account, contractCode string, contractAbi string,
 	msg = types.NewMsgDeploy(caller.Address.String(), uint64(0), code, contractAbi, nil, false, false)
 
 	account := k.GetAccount(ctx, caller.Address)
-	balance := bk.GetAllBalances(ctx, caller.Address)
-	fees, err := sim.RandomFees(r, ctx, balance)
+	fees, err := sim.RandomFees(r, ctx, bk.SpendableCoins(ctx, caller.Address))
 	if err != nil {
 		return msg, nil, err
 	}
@@ -85,7 +84,20 @@ func DeployContract(caller sim.Account, contractCode string, contractAbi string,
 		return msg, nil, err
 	}
 
-	return msg, res.Data, nil
+	// Unmarshal response
+	var msgData sdk.TxMsgData
+	err = proto.Unmarshal(res.Data, &msgData)
+	if err != nil {
+		panic(err)
+	}
+
+	var deployResponse types.MsgDeployResponse
+	err = proto.Unmarshal(msgData.Data[0].Data, &deployResponse)
+	if err != nil {
+		panic(err)
+	}
+
+	return msg, deployResponse.Result, nil
 }
 
 // CallFunction delivers a call tx and returns msg, contract address and error.
@@ -99,8 +111,7 @@ func CallFunction(caller sim.Account, prefix string, input string, contractAddr 
 	msg = types.NewMsgCall(caller.Address.String(), contractAddr.String(), 0, data)
 
 	account := k.GetAccount(ctx, caller.Address)
-	balance := bk.GetAllBalances(ctx, caller.Address)
-	fees, err := sim.RandomFees(r, ctx, balance)
+	fees, err := sim.RandomFees(r, ctx, bk.SpendableCoins(ctx, caller.Address))
 	if err != nil {
 		return msg, nil, err
 	}
@@ -122,5 +133,18 @@ func CallFunction(caller sim.Account, prefix string, input string, contractAddr 
 		return msg, nil, err
 	}
 
-	return msg, res.Data, nil
+	// Unmarshal response
+	var msgData sdk.TxMsgData
+	err = proto.Unmarshal(res.Data, &msgData)
+	if err != nil {
+		panic(err)
+	}
+
+	var callResponse types.MsgCallResponse
+	err = proto.Unmarshal(msgData.Data[0].Data, &callResponse)
+	if err != nil {
+		panic(err)
+	}
+
+	return msg, callResponse.Result, nil
 }

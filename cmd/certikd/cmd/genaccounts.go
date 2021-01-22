@@ -28,7 +28,6 @@ import (
 )
 
 const (
-	flagClientHome    = "home-client"
 	flagVestingStart  = "vesting-start-time"
 	flagVestingEnd    = "vesting-end-time"
 	flagVestingAmt    = "vesting-amount"
@@ -78,7 +77,7 @@ the precedence rule is period > continuous > endtime.
 				addr = info.GetAddress()
 			}
 
-			coins, err := sdk.ParseCoins(args[1])
+			coins, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return fmt.Errorf("failed to parse coins: %w", err)
 			}
@@ -167,7 +166,7 @@ the precedence rule is period > continuous > endtime.
 func getVestedAccountFromFlags(baseAccount *authtypes.BaseAccount, coins sdk.Coins) (authexported.GenesisAccount, error) {
 	vestingStart := viper.GetInt64(flagVestingStart)
 	vestingEnd := viper.GetInt64(flagVestingEnd)
-	vestingAmt, err := sdk.ParseCoins(viper.GetString(flagVestingAmt))
+	vestingAmt, err := sdk.ParseCoinsNormalized(viper.GetString(flagVestingAmt))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse vesting amount: %w", err)
 	}

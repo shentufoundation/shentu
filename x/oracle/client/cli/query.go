@@ -42,8 +42,7 @@ func GetCmdOperator() *cobra.Command {
 		Short: "Get operator information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -62,7 +61,7 @@ func GetCmdOperator() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 	return cmd
@@ -75,8 +74,7 @@ func GetCmdOperators() *cobra.Command {
 		Short: "Get operators information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -87,7 +85,7 @@ func GetCmdOperators() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 	return cmd
@@ -100,8 +98,7 @@ func GetCmdWithdraws() *cobra.Command {
 		Short: "Get all withdrawals",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -115,7 +112,7 @@ func GetCmdWithdraws() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 	return cmd
@@ -128,8 +125,7 @@ func GetCmdTask() *cobra.Command {
 		Short: "Get task information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -152,7 +148,7 @@ func GetCmdTask() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 	cmd.Flags().String(FlagContract, "", "Provide the contract address")
@@ -167,8 +163,7 @@ func GetCmdResponse() *cobra.Command {
 		Short: "Get response information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.GetClientContextFromCmd(cmd)
-			cliCtx, err := client.ReadQueryCommandFlags(cliCtx, cmd.Flags())
+			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -199,7 +194,7 @@ func GetCmdResponse() *cobra.Command {
 				return err
 			}
 
-			return cliCtx.PrintOutput(res)
+			return cliCtx.PrintProto(res)
 		},
 	}
 	cmd.Flags().String(FlagContract, "", "Provide the contract address")

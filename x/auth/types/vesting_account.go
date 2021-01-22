@@ -65,7 +65,7 @@ func (mva ManualVestingAccount) LockedCoins(blockTime time.Time) sdk.Coins {
 // values for the amount of delegated vesting, delegated free, and reducing the
 // overall amount of base coins.
 func (mva *ManualVestingAccount) TrackDelegation(blockTime time.Time, balance, amount sdk.Coins) {
-	mva.BaseVestingAccount.TrackDelegation(mva.GetVestingCoins(blockTime), balance, amount)
+	mva.BaseVestingAccount.TrackDelegation(balance, mva.GetVestingCoins(blockTime), amount)
 }
 
 // GetStartTime returns zero since a manual vesting account has no start time.

@@ -32,7 +32,6 @@ message MsgProposeCertifier {
 
 message MsgProposeCertifierResponse {}
 
-
 // MsgCertifyValidator is the message for certifying a validator node.
 message MsgCertifyValidator {
     option (gogoproto.equal) = false;
