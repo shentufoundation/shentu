@@ -331,7 +331,7 @@ func (k Keeper) GetAllContracts(ctx sdk.Context) []types.Contract {
 			panic(err)
 		}
 		var code types.CVMCode
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(contractIterator.Value(), &code)
+		k.cdc.MustUnmarshalBinaryBare(contractIterator.Value(), &code)
 		abi := k.GetAbi(ctx, address)
 		addrMeta, err := k.getAddrMeta(ctx, address)
 

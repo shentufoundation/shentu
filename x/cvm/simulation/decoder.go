@@ -47,8 +47,8 @@ func NewDecodeStore(cdc codec.Marshaler) func(kvA, kvB kv.Pair) string {
 
 		case bytes.Equal(kvA.Key[:1], types.AddressMetaHashStoreKeyPrefix):
 			var metadataA, metadataB types.ContractMetas
-			cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &metadataA)
-			cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &metadataB)
+			cdc.MustUnmarshalBinaryBare(kvA.Value, &metadataA)
+			cdc.MustUnmarshalBinaryBare(kvB.Value, &metadataB)
 			return fmt.Sprintf("%v\n%v", metadataA, metadataB)
 
 		default:
