@@ -1,8 +1,9 @@
 package keeper_test
 
 import (
-	"github.com/certikfoundation/shentu/x/cvm/types"
 	"github.com/hyperledger/burrow/execution/errors"
+
+	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
 var (
