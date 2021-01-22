@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/tmthrgd/go-hex"
@@ -66,20 +65,7 @@ func queryView(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 		panic("could not parse address " + path[1])
 	}
 
-	addr, err := crypto.AddressFromBytes(callee)
-	if err != nil {
-		return nil, err
-	}
-	acc := keeper.getAccount(ctx, addr)
-	var isEWASM bool
-	if acc.EVMCode == nil {
-		isEWASM = false
-	} else {
-		isEWASM = true
-		fmt.Println("asdfasdfasdf")
-	}
-
-	value, err := keeper.Call(ctx, caller, callee, 0, req.Data, []*payload.ContractMeta{}, true, isEWASM, false)
+	value, err := keeper.Call(ctx, caller, callee, 0, req.Data, []*payload.ContractMeta{}, true, false, false)
 
 	if err != nil {
 		panic("failed to get storage at address " + path[1])
