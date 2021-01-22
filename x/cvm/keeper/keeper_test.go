@@ -8,9 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/certikfoundation/shentu/x/cvm/compile"
-	"github.com/hyperledger/burrow/logging"
-
 	"github.com/stretchr/testify/require"
 	"github.com/tmthrgd/go-hex"
 
@@ -23,11 +20,13 @@ import (
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/execution/errors"
 	"github.com/hyperledger/burrow/execution/evm/abi"
+	"github.com/hyperledger/burrow/logging"
 	"github.com/hyperledger/burrow/txs/payload"
 
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/simapp"
 	"github.com/certikfoundation/shentu/x/cert"
+	"github.com/certikfoundation/shentu/x/cvm/compile"
 	"github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
