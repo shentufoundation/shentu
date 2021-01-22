@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/x/gov"
-	shieldTypes "github.com/certikfoundation/shentu/x/shield/types"
+	govtypes "github.com/certikfoundation/shentu/x/gov/types"
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // Helper is a structure which wraps the staking handler
@@ -33,7 +33,7 @@ func NewHelper(t *testing.T, ctx sdk.Context, k keeper.Keeper, denom string) *He
 func (gh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID, purchaseID uint64, ok bool) *sdk.Result {
 	initDeposit := sdk.NewCoins(sdk.NewInt64Coin(gh.denom, 5000e6))
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(gh.denom, loss))
-	content := shieldTypes.NewShieldClaimProposal(poolID, lossCoins, purchaseID, "test_claim_evidence", "test_claim_description", proposer)
+	content := shieldtypes.NewShieldClaimProposal(poolID, lossCoins, purchaseID, "test_claim_evidence", "test_claim_description", proposer)
 	proposal, err := govtypes.NewMsgSubmitProposal(content, initDeposit, proposer)
 	require.NoError(gh.t, err)
 	return gh.Handle(proposal, ok)
