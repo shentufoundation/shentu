@@ -14,7 +14,6 @@ type Keeper struct {
 	mintkeeper.Keeper
 	dk            types.DistributionKeeper
 	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
 	stakingKeeper types.StakingKeeper
 	shieldKeeper  types.ShieldKeeper
 }

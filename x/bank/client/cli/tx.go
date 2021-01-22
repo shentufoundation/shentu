@@ -27,6 +27,9 @@ func LockedSendTxCmd() *cobra.Command {
 			cmd.Flags().Set(flags.FlagFrom, args[0])
 
 			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			to, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {

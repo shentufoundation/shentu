@@ -53,6 +53,9 @@ func (k Keeper) SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.A
 func (k Keeper) InputOutputCoins(ctx sdk.Context, inputs []bankTypes.Input, outputs []bankTypes.Output) error {
 	for _, out := range outputs {
 		outAddr, err := sdk.AccAddressFromBech32(out.Address)
+		if err != nil {
+			return err
+		}
 		code, err := k.GetCode(ctx, outAddr)
 		if err != nil {
 			return err

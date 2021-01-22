@@ -119,6 +119,8 @@ issues:
         - gochecknoinits
         - gocyclo
         - funlen
+  exclude:
+    - Using the variable on range scope .* in function literal
 
 # golangci.com configuration
 # https://github.com/golangci/golangci/wiki/Configuration

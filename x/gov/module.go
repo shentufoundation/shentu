@@ -125,7 +125,7 @@ type AppModule struct {
 // NewAppModule creates a new AppModule object.
 func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, ak govtypes.AccountKeeper, bk govtypes.BankKeeper) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{},
+		AppModuleBasic: AppModuleBasic{cdc: cdc},
 		keeper:         keeper,
 		accountKeeper:  ak,
 		bankKeeper:     bk,

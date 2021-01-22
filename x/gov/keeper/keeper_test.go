@@ -28,6 +28,9 @@ func TestKeeper_ProposeAndVote(t *testing.T) {
 	tp := govtypes.NewTextProposal("title0", "desc0")
 	t.Run("Test submitting a proposal and adding a vote with yes", func(t *testing.T) {
 		pp, err := app.GovKeeper.SubmitProposal(ctx, tp, addrs[0])
+		if err != nil {
+			panic(err)
+		}
 		vote := govtypes.NewVote(pp.ProposalId, addrs[0], govtypes.OptionYes)
 		coins700 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 700*1e6))
 		_ = app.BankKeeper.AddCoins(ctx, addrs[1], coins700)

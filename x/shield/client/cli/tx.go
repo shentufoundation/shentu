@@ -105,6 +105,9 @@ Where proposal.json contains:
 				proposal.PurchaseID, proposal.Evidence, proposal.Description, from)
 
 			msg, err := govtypes.NewMsgSubmitProposal(content, proposal.Deposit, from)
+			if err != nil {
+				return err
+			}
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

@@ -72,7 +72,6 @@ func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.Context, route *mux.Route
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the staking module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	staking.AppModuleBasic{}.RegisterGRPCGatewayRoutes(clientCtx, mux)
-
 }
 
 // GetTxCmd returns no root tx command for the staking module.

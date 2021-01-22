@@ -118,7 +118,7 @@ func NewRequestContent(
 	requestContentTypeString string,
 	requestContent string,
 ) (RequestContent, error) {
- 	requestContentType := RequestContentTypeFromString(requestContentTypeString)
+	requestContentType := RequestContentTypeFromString(requestContentTypeString)
 	if requestContentType == RequestContentTypeNil {
 		return RequestContent{}, ErrInvalidRequestContentType
 	}

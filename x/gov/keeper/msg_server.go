@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	certtypes "github.com/certikfoundation/shentu/x/cert/types"
-	"github.com/certikfoundation/shentu/x/gov/types"
-	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
+	"github.com/certikfoundation/shentu/x/gov/types"
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 type msgServer struct {

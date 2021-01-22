@@ -154,19 +154,18 @@ func (q Keeper) Certificates(c context.Context, req *types.QueryCertificatesRequ
 		return nil, err
 	}
 
-	var results []types.QueryCertificateResponse
-	for _, certificate := range certificates {
+	results := make([]types.QueryCertificateResponse, len(certificates))
+	for i, certificate := range certificates {
 		reqContent := certificate.RequestContent()
 
-		results = append(results,
-			types.QueryCertificateResponse{
-				CertificateId: certificate.ID().String(), CertificateType: certificate.Type().String(),
-				RequestContent:     &reqContent,
-				CertificateContent: certificate.FormattedCertificateContent(),
-				Description:        certificate.Description(),
-				Certifier:          certificate.Certifier().String(),
-				TxHash:             certificate.TxHash(),
-			})
+		results[i] = types.QueryCertificateResponse{
+			CertificateId: certificate.ID().String(), CertificateType: certificate.Type().String(),
+			RequestContent:     &reqContent,
+			CertificateContent: certificate.FormattedCertificateContent(),
+			Description:        certificate.Description(),
+			Certifier:          certificate.Certifier().String(),
+			TxHash:             certificate.TxHash(),
+		}
 	}
 
 	return &types.QueryCertificatesResponse{Total: total, Certificates: results}, nil

@@ -69,11 +69,10 @@ func TestManualVestingAcc(t *testing.T) {
 	require.NoError(t, json.Unmarshal(bz, &a))
 	require.Equal(t, mva.String(), a.String())
 
-	// Set up an MVA with 700 out of 1000 base coin vesting
-	origCoins = sdk.Coins{sdk.NewInt64Coin(denom, 1000)}
+	// Set up an MVA with 300 out of 1000 base coin vesting
 	origVesting := sdk.Coins{sdk.NewInt64Coin(denom, 300)}
 
-	ba2 := authtypes.NewBaseAccountWithAddress(sdk.AccAddress(pubkeys[0].Address()))
+	ba2 := authtypes.NewBaseAccountWithAddress(sdk.AccAddress(pubkeys[1].Address()))
 	bva2 := authvesting.NewBaseVestingAccount(ba2, origVesting, 0)
 	mva2 := types.NewManualVestingAccountRaw(bva2, sdk.NewCoins(), unlocker)
 	app.AccountKeeper.SetAccount(ctx, mva2)
@@ -85,6 +84,7 @@ func TestManualVestingAcc(t *testing.T) {
 	spendableCoins := app.BankKeeper.SpendableCoins(ctx, mva2.GetAddress())
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 700)}, spendableCoins)
 
+	// Test SpendableCoins after unlocking 150
 	coinToUnlock = sdk.NewCoin(denom, sdk.NewInt(150))
 	mva2.VestedCoins = mva2.VestedCoins.Add(coinToUnlock)
 	app.AccountKeeper.SetAccount(ctx, mva2)

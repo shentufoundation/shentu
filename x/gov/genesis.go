@@ -54,7 +54,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govTypes.AccountKeeper, bk
 }
 
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis.
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {	
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	startingProposalID, _ := k.GetProposalID(ctx)
 	depositParams := k.GetDepositParams(ctx)
 	votingParams := k.GetVotingParams(ctx)
