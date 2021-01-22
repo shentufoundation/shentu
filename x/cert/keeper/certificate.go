@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -267,7 +266,7 @@ func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCerti
 			return false
 		}
 		if params.ContentType != "" &&
-			(strings.ToUpper(params.ContentType) != strings.ToUpper(certificate.RequestContent().RequestContentType.String()) ||
+			(types.RequestContentTypeFromString(params.ContentType) != certificate.RequestContent().RequestContentType ||
 				certificate.RequestContent().RequestContent != params.Content) {
 			return false
 		}
