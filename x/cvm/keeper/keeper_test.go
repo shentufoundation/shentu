@@ -3,6 +3,7 @@ package keeper_test
 import (
 	gobin "encoding/binary"
 	"fmt"
+	"io/ioutil"
 	"math/big"
 	"testing"
 	"time"
@@ -19,11 +20,13 @@ import (
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/execution/errors"
 	"github.com/hyperledger/burrow/execution/evm/abi"
+	"github.com/hyperledger/burrow/logging"
 	"github.com/hyperledger/burrow/txs/payload"
 
 	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/simapp"
 	"github.com/certikfoundation/shentu/x/cert"
+	"github.com/certikfoundation/shentu/x/cvm/compile"
 	"github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
@@ -751,5 +754,112 @@ func TestPrecompiles(t *testing.T) {
 		validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, valStr)
 		require.Nil(t, err)
 		require.True(t, app.CertKeeper.IsValidatorCertified(ctx, validator))
+	})
+}
+
+func TestEWASM(t *testing.T) {
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()}).WithGasMeter(NewGasMeter(10000000000000))
+	addrs := simapp.AddTestAddrs(app, ctx, 3, sdk.NewInt(10000))
+
+	k := app.CvmKeeper
+
+	t.Run("test basic eWASM contract", func(t *testing.T) {
+		basename, workDir, _ := compile.ResolveFilename("tests/for-r.wasm")
+		testeWASMForStringResp, err := compile.BytecodeEVM(basename, workDir, "tests/for.abi", logging.NewNoopLogger())
+		require.Nil(t, err)
+
+		content, err := ioutil.ReadFile("tests/for.abi")
+		stringabi := string(content)
+
+		code, err := hex.DecodeString(testeWASMForStringResp.Objects[0].Contract.Code())
+		require.Nil(t, err)
+
+		result, err := k.Call(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, true, true)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+
+		contractAddr := sdk.AccAddress(result)
+
+		logger := logging.NewNoopLogger()
+		callcode, _, err := abi.EncodeFunctionCall(stringabi, "setThenGet", logger, "10")
+		require.Nil(t, err)
+		result, err = k.Call(ctx, addrs[0], contractAddr, 0, callcode, nil, false, false, false)
+		require.Nil(t, err)
+		require.Equal(t, []byte{0xa, 0x0, 0x0, 0x0}, result)
+
+		callcode, _, err = abi.EncodeFunctionCall(stringabi, "multiply", logger, "2", "1")
+		require.Nil(t, err)
+		result, err = k.Call(ctx, addrs[0], contractAddr, 0, callcode, nil, false, false, false)
+		require.Nil(t, err)
+		require.Equal(t, []byte{0xc, 0x0, 0x0, 0x0}, result)
+	})
+
+	t.Run("test basic eWASM contract", func(t *testing.T) {
+		basename, workDir, _ := compile.ResolveFilename("tests/arith-r.wasm")
+		testeWASMForStringResp, err := compile.BytecodeEVM(basename, workDir, "tests/arith.abi", logging.NewNoopLogger())
+		require.Nil(t, err)
+		content, err := ioutil.ReadFile("tests/arith.abi")
+		stringabi := string(content)
+		require.Nil(t, err)
+
+		code, err := hex.DecodeString(testeWASMForStringResp.Objects[0].Contract.Code())
+		require.Nil(t, err)
+
+		result, err := k.Call(ctx, addrs[1], nil, 0, code, []*payload.ContractMeta{}, false, true, true)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+
+		contractAddr := sdk.AccAddress(result)
+
+		logger := logging.NewNoopLogger()
+		callcode, _, err := abi.EncodeFunctionCall(stringabi, "add", logger, "10", "10")
+		require.Nil(t, err)
+		result, err = k.Call(ctx, addrs[1], contractAddr, 0, callcode, nil, false, false, false)
+		require.Nil(t, err)
+		require.Equal(t, []byte{0x14, 0x0, 0x0, 0x0}, result)
+
+		callcode, _, err = abi.EncodeFunctionCall(stringabi, "div", logger, "11", "10")
+		require.Nil(t, err)
+		result, err = k.Call(ctx, addrs[1], contractAddr, 0, callcode, nil, false, false, false)
+		require.Nil(t, err)
+		require.Equal(t, []byte{0x1, 0x0, 0x0, 0x0}, result)
+	})
+
+	t.Run("test basic eWASM contract", func(t *testing.T) {
+		basename, workDir, _ := compile.ResolveFilename("tests/keccak256-r.wasm")
+		testeWASMForStringResp, err := compile.BytecodeEVM(basename, workDir, "tests/keccak256.abi", logging.NewNoopLogger())
+		require.Nil(t, err)
+		content, err := ioutil.ReadFile("tests/keccak256.abi")
+		stringabi := string(content)
+		require.Nil(t, err)
+
+		code, err := hex.DecodeString(testeWASMForStringResp.Objects[0].Contract.Code())
+		require.Nil(t, err)
+
+		result, err := k.Call(ctx, addrs[2], nil, 0, code, []*payload.ContractMeta{}, false, true, true)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+
+		contractAddr := sdk.AccAddress(result)
+
+		logger := logging.NewNoopLogger()
+		callcode, _, err := abi.EncodeFunctionCall(stringabi, "hash1", logger, "10")
+		require.Nil(t, err)
+		result, err = k.Call(ctx, addrs[2], contractAddr, 0, callcode, nil, false, false, false)
+		require.Nil(t, err)
+		require.Equal(t, []byte{0x2a, 0xe7, 0x9b, 0xe9}, result)
+
+		callcode, _, err = abi.EncodeFunctionCall(stringabi, "hash2", logger, "10", "11")
+		require.Nil(t, err)
+		result, err = k.Call(ctx, addrs[2], contractAddr, 0, callcode, nil, false, false, false)
+		require.Nil(t, err)
+		require.Equal(t, []byte{0x9a, 0x71, 0xa8, 0x3f}, result)
+
+		callcode, _, err = abi.EncodeFunctionCall(stringabi, "hash2_3", logger, "10", "11")
+		require.Nil(t, err)
+		result, err = k.Call(ctx, addrs[1], contractAddr, 0, callcode, nil, false, false, false)
+		require.Nil(t, err)
+		require.Equal(t, []byte{0x9a, 0x71, 0xa8, 0x3f}, result)
 	})
 }

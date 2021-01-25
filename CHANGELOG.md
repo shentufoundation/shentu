@@ -35,7 +35,19 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [v1.3.0] - TBD
+
+## [Unreleased] - TBD
+
+### Client Breaking Changes
+### API Breaking Changes
+### State Machine Breaking Changes
+### Features
+### Improvements
+### Tests
+### Bug Fixes
+* [\#224](https://github.com/certikfoundation/shentu/pull/224) Fixed EWASM support & added EWASM native hashing contracts
+
+## [v1.3.0] - 01-15-2021
 
 ### Client Breaking Changes
 ### API Breaking Changes
