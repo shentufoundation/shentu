@@ -173,8 +173,7 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 
 // ProposalContents returns functions that generate gov proposals for the module.
 func (am AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	//return simulation.ProposalContents(am.keeper, am.stakingKeeper)
-	return nil
+	return simulation.ProposalContents(am.keeper, am.stakingKeeper)
 }
 
 // RandomizedParams returns functions that generate params for the module.
