@@ -84,6 +84,8 @@ github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA
 github.com/cep21/xdgbasedir v0.0.0-20170329171747-21470bfc93b9/go.mod h1:6R3C29d3JonDKVjnlzFv5BGL/bfZP+0I7rKHKwiqKP8=
 github.com/certikfoundation/burrow v0.1.0 h1:Lr6Jd+M8FZl9+YjeJO2Wnbm0eaP3n5b1bbM5AX7DLJA=
 github.com/certikfoundation/burrow v0.1.0/go.mod h1:ll86BjptGSd24apjKypG189UBzkaw4GPVRKDWvoOkn0=
+github.com/certikfoundation/burrow v0.1.1 h1:wjEXXfDro17h1TWhMDay26K48gVnjZhSlVrxFfOjBSM=
+github.com/certikfoundation/burrow v0.1.1/go.mod h1:ll86BjptGSd24apjKypG189UBzkaw4GPVRKDWvoOkn0=
 github.com/cespare/xxhash v1.1.0 h1:a6HrQnmkObjyL+Gs60czilIUGqrzKutQD6XZog3p+ko=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
 github.com/cespare/xxhash/v2 v2.1.1 h1:6MnRN8NT7+YBpUIWxHtefFZOKTAPgGjpQSxqLNn0+qY=
