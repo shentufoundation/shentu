@@ -146,7 +146,7 @@ func SimulateSubmitProposal(
 			txGen,
 			[]sdk.Msg{msg},
 			fees,
-			helpers.DefaultGenTxGas*20,
+			helpers.DefaultGenTxGas*100,
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},
