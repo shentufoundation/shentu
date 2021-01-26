@@ -192,7 +192,7 @@ jobs:
   localnet:
     working_directory: /home/circleci/.go_workspace/src/github.com/certikfoundation/shentu
     machine:
-      image: circleci/classic:latest
+      image: circleci/shentu:latest
     environment:
       GOPATH: /home/circleci/.go_workspace/
       GOOS: linux
@@ -213,7 +213,7 @@ jobs:
             set -x
             make clean image image.update localnet
             sudo chmod 777 ./devtools/localnet/localnet-blocks-test.sh
-            ./devtools/localnet/localnet-blocks-test.sh 40 5 10 localhost
+            ./devtools/localnet/localnet-blocks-test.sh 100 5 50 localhost
 
   macos-ci:
     executor: mac
