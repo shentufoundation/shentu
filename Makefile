@@ -153,7 +153,7 @@ include .env
 
 localnet: localnet.down image.update docker-compose.yml ./devtools/localnet/localnet_client_setup.sh
 	@$(RM) -r ${LOCALNET_ROOT}
-	@docker run --volume $(abspath ${LOCALNET_ROOT}):/root --workdir /root -it shentu certikd testnet --keyring-backend test --v 4 --output-dir /root --starting-ip-address ${LOCALNET_START_IP} --chain-id shentu
+	@if ! [ -f build/node0/gaiad/config/genesis.json ]; then docker run --volume $(abspath ${LOCALNET_ROOT}):/root --workdir /root -it shentu certikd testnet --keyring-backend test --v 4 --output-dir /root --starting-ip-address ${LOCALNET_START_IP} --chain-id shentu
 	@docker-compose up -d
 	@docker exec $(shell basename $(CURDIR))_client_1 bash /shentu/devtools/localnet/localnet_client_setup.sh
 
