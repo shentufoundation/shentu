@@ -49,25 +49,6 @@ services:
         target: /root
     network_mode: "service:node0"
 
-  rpc-server:
-    restart: on-failure
-    image: shentu
-    command: [ "certikd", "rest-server", "--trust-node", "--laddr", "tcp://0.0.0.0:1317", "--home", "/root/certikcli", "--trace"]
-    volumes:
-      - type: bind
-        source: ${LOCALNET_ROOT}/node0
-        target: /root
-    network_mode: "service:node0"
-
-  client:
-    image: shentu
-    command: [ "tail", "-f", "/dev/null" ]
-    volumes:
-      - type: bind
-        source: ${LOCALNET_ROOT}
-        target: /root
-    network_mode: "service:node0"
-
 networks:
   localnet:
     driver: bridge
