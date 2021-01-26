@@ -192,7 +192,7 @@ jobs:
   localnet:
     working_directory: /home/circleci/.go_workspace/src/github.com/certikfoundation/shentu
     machine:
-      image: circleci/shentu:latest
+      image: circleci/classic:latest
     environment:
       GOPATH: /home/circleci/.go_workspace/
       GOOS: linux
