@@ -2,6 +2,7 @@ version: '3.2'
 
 services:
   node0:
+    container_name: node0
     restart: on-failure
     image: shentu
     command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
@@ -11,43 +12,54 @@ services:
         target: /root
     networks:
       localnet:
-        ipv4_address: ${LOCALNET_START_IP}
+        ipv4_address: 192.168.10.2
     ports:
       - "26656-26657:26656-26657"
-      - "26756-26757:26756-26757"
-      - "26856-26857:26856-26857"
-      - "26956-26957:26956-26957"
-      - "1317:1317"
 
   node1:
+    container_name: node1
     restart: on-failure
     image: shentu
     command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
+    ports:
+      - "26756-26757:26756-26757"
     volumes:
       - type: bind
         source: ${LOCALNET_ROOT}/node1
         target: /root
-    network_mode: "service:node0"
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.3
 
   node2:
+    container_name: node2
     restart: on-failure
     image: shentu
     command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
+    ports:
+      - "26856-26857:26856-26857"
     volumes:
       - type: bind
         source: ${LOCALNET_ROOT}/node2
         target: /root
-    network_mode: "service:node0"
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.4
 
   node3:
+    container_name: node3
     restart: on-failure
     image: shentu
     command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
+    ports:
+      - "26956-26957:26956-26957"
     volumes:
       - type: bind
         source: ${LOCALNET_ROOT}/node3
         target: /root
-    network_mode: "service:node0"
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.5
 
 networks:
   localnet:
@@ -55,4 +67,4 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: ${LOCALNET_SUBNET}
+        - subnet: 192.168.10.0/16
