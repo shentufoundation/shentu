@@ -30,5 +30,5 @@ require (
 
 replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
-	github.com/hyperledger/burrow => github.com/certikfoundation/burrow v0.2.0
+	github.com/hyperledger/burrow v0.30.5 => github.com/certikfoundation/burrow v0.2.1
 )
