@@ -52,7 +52,7 @@ services:
   rpc-server:
     restart: on-failure
     image: shentu
-    command: [ "certikcli", "rest-server", "--trust-node", "--laddr", "tcp://0.0.0.0:1317", "--home", "/root/certikcli", "--trace"]
+    command: [ "certikd", "rest-server", "--trust-node", "--laddr", "tcp://0.0.0.0:1317", "--home", "/root/certikcli", "--trace"]
     volumes:
       - type: bind
         source: ${LOCALNET_ROOT}/node0
