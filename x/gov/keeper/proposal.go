@@ -11,6 +11,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/gov/types"
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // Proposal
@@ -106,6 +107,15 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govtypes.Content, addr s
 		return types.Proposal{}, sdkerrors.Wrap(govtypes.ErrNoProposalHandlerExists, content.ProposalRoute())
 	}
 
+	proposalID, err := k.GetProposalID(ctx)
+	if err != nil {
+		return types.Proposal{}, err
+	}
+
+	if c, ok := content.(*shieldtypes.ShieldClaimProposal); ok {
+		c.ProposalId = proposalID
+	}
+	
 	// Execute the proposal content in a cache-wrapped context to validate the
 	// actual parameter changes before the proposal proceeds through the
 	// governance process. State is not persisted.
@@ -113,11 +123,6 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govtypes.Content, addr s
 	handler := k.router.GetRoute(content.ProposalRoute())
 	if err := handler(cacheCtx, content); err != nil {
 		return types.Proposal{}, sdkerrors.Wrap(govtypes.ErrInvalidProposalContent, err.Error())
-	}
-
-	proposalID, err := k.GetProposalID(ctx)
-	if err != nil {
-		return types.Proposal{}, err
 	}
 
 	submitTime := ctx.BlockHeader().Time
