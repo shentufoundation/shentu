@@ -23,6 +23,7 @@ import (
 	sdksimulation "github.com/cosmos/cosmos-sdk/x/staking/simulation"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/staking/keeper"
 	"github.com/certikfoundation/shentu/x/staking/simulation"
 	"github.com/certikfoundation/shentu/x/staking/types"
@@ -56,7 +57,9 @@ func (b AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) 
 
 // DefaultGenesis returns default genesis state as raw bytes for the staking module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
-	return cdc.MustMarshalJSON(stakingtypes.DefaultGenesisState())
+	defaultGenesis := stakingtypes.DefaultGenesisState()
+	defaultGenesis.Params.BondDenom = common.MicroCTKDenom
+	return cdc.MustMarshalJSON(defaultGenesis)
 }
 
 // ValidateGenesis performs genesis state validation for the staking module.

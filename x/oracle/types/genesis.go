@@ -1,9 +1,6 @@
 package types
 
 import (
-	"encoding/json"
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -27,11 +24,7 @@ func DefaultGenesisState() *GenesisState {
 }
 
 // ValidateGenesis validates oracle genesis data.
-func ValidateGenesis(bz json.RawMessage) error {
-	var gs GenesisState
-	if err := ModuleCdc.UnmarshalJSON(bz, &gs); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", ModuleName, err)
-	}
+func ValidateGenesis(gs GenesisState) error {
 	operators := gs.Operators
 	withdraws := gs.Withdraws
 	sum := sdk.NewCoins()

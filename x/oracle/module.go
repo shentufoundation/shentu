@@ -3,6 +3,7 @@ package oracle
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/rand"
 
 	"github.com/gorilla/mux"
@@ -63,7 +64,11 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
 
 // ValidateGenesis performs genesis state validation for the oracle module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
-	return types.ValidateGenesis(bz)
+	var gs types.GenesisState
+	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
+	}
+	return types.ValidateGenesis(gs)
 }
 
 // RegisterRESTRoutes registers the REST routes for the oracle module.
