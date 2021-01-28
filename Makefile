@@ -82,8 +82,8 @@ update-cli-docs: install
 	@perl -pi -e "s|$$HOME|~|" docs/cli/**/*.md
 
 release: go.sum
-	GOOS=linux go build $(BUILD_FLAGS) -o build/certikd ./cmd/certikd
-	GOOS=windows go build $(BUILD_FLAGS) -o build/certikd.exe ./cmd/certikd
+	#GOOS=linux go build $(BUILD_FLAGS) -o build/certikd ./cmd/certikd
+	#GOOS=windows go build $(BUILD_FLAGS) -o build/certikd.exe ./cmd/certikd
 	GOOS=darwin go build $(BUILD_FLAGS) -o build/certikd-macos ./cmd/certikd
 
 build: go.sum

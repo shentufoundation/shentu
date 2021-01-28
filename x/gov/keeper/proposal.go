@@ -115,7 +115,7 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govtypes.Content, addr s
 	if c, ok := content.(*shieldtypes.ShieldClaimProposal); ok {
 		c.ProposalId = proposalID
 	}
-	
+
 	// Execute the proposal content in a cache-wrapped context to validate the
 	// actual parameter changes before the proposal proceeds through the
 	// governance process. State is not persisted.

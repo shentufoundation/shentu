@@ -3,7 +3,6 @@ package bank
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"math/rand"
 
 	"github.com/gorilla/mux"
@@ -57,13 +56,8 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
 }
 
 // ValidateGenesis performs genesis state validation for the bank module.
-func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var data banktypes.GenesisState
-	if err := cdc.UnmarshalJSON(bz, &data); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", banktypes.ModuleName, err)
-	}
-
-	return banktypes.ValidateGenesis(data)
+func (am AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
+	return cosmosbank.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
 }
 
 // RegisterRESTRoutes registers the REST routes for the bank module.

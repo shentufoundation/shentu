@@ -41,7 +41,7 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 		for _, stake := range keeper.GetAllStakeForShields(ctx) {
 			shieldStake = shieldStake.Add(stake.Amount)
 		}
-		
+
 		// reimbursement
 		reimbursement := sdk.ZeroInt()
 		for _, rmb := range keeper.GetAllReimbursements(ctx) {

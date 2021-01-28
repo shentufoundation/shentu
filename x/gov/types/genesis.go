@@ -3,10 +3,11 @@ package types
 import (
 	"fmt"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/certikfoundation/shentu/common"
 )
 
 // DefaultGenesisState creates a default GenesisState object.
