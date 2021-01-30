@@ -18,6 +18,7 @@ require (
 	github.com/rakyll/statik v0.1.7
 	github.com/regen-network/cosmos-proto v0.3.1
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/rs/zerolog v1.20.0
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sirupsen/logrus v1.7.0 // indirect
 	github.com/spf13/cast v1.3.1
@@ -40,5 +41,5 @@ require (
 
 replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
-	github.com/hyperledger/burrow => github.com/certikfoundation/burrow v0.2.0
+	github.com/hyperledger/burrow v0.30.5 => github.com/certikfoundation/burrow v0.2.1
 )

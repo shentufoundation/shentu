@@ -28,6 +28,7 @@ fi
 
 while [ ${CNT} -lt $ITER ]; do
   var=$(curl -s $NODEADDR:26657/status | jq -r '.result.sync_info.latest_block_height')
+  echo "Status: $(curl -s $NODEADDR:26657/status)"
   echo "Number of Blocks: ${var}"
   if [ ! -z ${var} ] && [ ${var} -gt ${NUMBLOCKS} ]; then
     echo "Number of blocks reached, exiting success..."
