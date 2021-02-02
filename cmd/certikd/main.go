@@ -11,9 +11,6 @@ import (
 
 func main() {
 	rootCmd, _ := cmd.NewRootCmd()
-	// if err := cmd.Execute(rootCmd); err != nil {
-	// 	os.Exit(1)
-	// }
 
 	if err := cmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
 		switch e := err.(type) {

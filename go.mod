@@ -4,7 +4,6 @@ go 1.15
 
 require (
 	github.com/cosmos/cosmos-sdk v0.41.0
-	github.com/go-delve/delve v1.5.1 // indirect
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.2 // indirect

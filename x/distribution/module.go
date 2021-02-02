@@ -127,7 +127,7 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	am.RegisterServices(cfg)
+	am.cosmosAppModule.RegisterServices(cfg)
 }
 
 // InitGenesis performs genesis initialization for the distribution module.

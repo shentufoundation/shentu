@@ -198,6 +198,8 @@ github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-delve/delve v1.5.1 h1:TtnVoaHw8xyyZXsjiAtJjEzYYpQNuj/twZ/DcjDRFYs=
 github.com/go-delve/delve v1.5.1/go.mod h1:Gne5G0YHAbX+7bE5tvdSApTxUs6DtxjE14hVGgvkOD4=
+github.com/go-delve/delve v1.6.0 h1:NImdy7K9essqNU8sazLhbX/oCicpmlapmjgA3qL1LZM=
+github.com/go-delve/delve v1.6.0/go.mod h1:Gne5G0YHAbX+7bE5tvdSApTxUs6DtxjE14hVGgvkOD4=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200222043503-6f7a984d4dc4/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/go-interpreter/wagon v0.6.0 h1:BBxDxjiJiHgw9EdkYXAWs8NHhwnazZ5P2EWBW5hFNWw=
