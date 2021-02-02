@@ -56,6 +56,7 @@ import (
 	ibctransferkeeper "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
 	ibc "github.com/cosmos/cosmos-sdk/x/ibc/core"
+	ibcclient "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client"
 	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/05-port/types"
 	ibchost "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
 	ibckeeper "github.com/cosmos/cosmos-sdk/x/ibc/core/keeper"
@@ -389,7 +390,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distrtypes.RouterKey, sdkdistr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
-		// AddRoute(ibchost.RouterKey, ibcclient.NewClientUpdateProposalHandler(app.ibcKeeper.ClientKeeper)).
+		AddRoute(ibchost.RouterKey, ibcclient.NewClientUpdateProposalHandler(app.ibcKeeper.ClientKeeper)).
 		AddRoute(shieldtypes.RouterKey, shield.NewShieldClaimProposalHandler(app.shieldKeeper)).
 		AddRoute(certtypes.RouterKey, cert.NewCertifierUpdateProposalHandler(app.certKeeper))
 
