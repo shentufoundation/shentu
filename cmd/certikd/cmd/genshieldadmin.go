@@ -46,10 +46,8 @@ func AddGenesisShieldAdminCmd(defaultNodeHome string) *cobra.Command {
 
 			shieldGenState.ShieldAdmin = addr.String()
 
-			shieldGenStateBz, err := json.Marshal(shieldGenState)
-			if err != nil {
-				return fmt.Errorf("failed to marshal shield genesis state: %w", err)
-			}
+			shieldGenStateBz := cdc.MustMarshalJSON(&shieldGenState)
+
 			appState[shieldtypes.ModuleName] = shieldGenStateBz
 			appStateJSON, err := json.Marshal(appState)
 			if err != nil {
