@@ -58,12 +58,7 @@ func DefaultGenesisState() *GenesisState {
 }
 
 // ValidateGenesis validates shield genesis data.
-func ValidateGenesis(bz json.RawMessage) error {
-	var data GenesisState
-	if err := ModuleCdc.UnmarshalJSON(bz, &data); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", ModuleName, err)
-	}
-
+func ValidateGenesis(data GenesisState) error {
 	if data.NextPoolId < 1 {
 		return fmt.Errorf("failed to validate %s genesis state: NextPoolID must be positive ", ModuleName)
 	}

@@ -114,7 +114,6 @@ const (
 )
 
 var (
-	// DefaultCLIHome specifies where the node client data is stored.
 	DefaultCLIHome = os.ExpandEnv("$HOME/.certikcli")
 
 	// DefaultNodeHome specifies where the node daemon data is stored.

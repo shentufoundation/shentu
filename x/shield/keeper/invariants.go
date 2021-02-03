@@ -21,30 +21,37 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 // remaining services and rewards held on store
 func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
+		bondDenom := keeper.BondDenom(ctx)
+
 		moduleCoins := keeper.bk.GetAllBalances(ctx, keeper.ak.GetModuleAccount(ctx, types.ModuleName).GetAddress())
 
-		total := keeper.GetRemainingServiceFees(ctx)
-		providers := keeper.GetAllProviders(ctx)
+		// remaining service fees
+		remainingServiceFees := keeper.GetRemainingServiceFees(ctx)
 
-		for _, prov := range providers {
-			total = total.Add(prov.Rewards)
+		// rewards
+		var rewards types.MixedDecCoins
+		for _, provider := range keeper.GetAllProviders(ctx) {
+			rewards = rewards.Add(provider.Rewards)
 		}
 
-		bondDenom := keeper.BondDenom(ctx)
-		totalInt, change := total.Native.TruncateDecimal()
-		stakedCoin := sdk.NewCoin(bondDenom, sdk.ZeroInt())
-		for _, staked := range keeper.GetAllStakeForShields(ctx) {
-			stakedCoin = stakedCoin.Add(sdk.NewCoin(bondDenom, staked.Amount))
+		totalInt, change := remainingServiceFees.Add(rewards).Native.TruncateDecimal()
+
+		// shield stake
+		shieldStake := sdk.ZeroInt()
+		for _, stake := range keeper.GetAllStakeForShields(ctx) {
+			shieldStake = shieldStake.Add(stake.Amount)
 		}
-		totalInt = totalInt.Add(stakedCoin)
 
-		blockServiceFees := keeper.GetBlockServiceFees(ctx).Native.AmountOf(bondDenom).TruncateInt()
-		blockFeesCoin := sdk.NewCoin(bondDenom, blockServiceFees)
-		totalInt = totalInt.Add(blockFeesCoin)
-
+		// reimbursement
+		reimbursement := sdk.ZeroInt()
 		for _, rmb := range keeper.GetAllReimbursements(ctx) {
-			totalInt = totalInt.Add(sdk.NewCoin(bondDenom, rmb.Amount.AmountOf(bondDenom)))
+			reimbursement = reimbursement.Add(rmb.Amount.AmountOf(bondDenom))
 		}
+
+		// block service fees
+		blockServiceFees := keeper.GetBlockServiceFees(ctx).Native.AmountOf(bondDenom).TruncateInt()
+
+		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, reimbursement)).Add(sdk.NewCoin(bondDenom, blockServiceFees))
 
 		broken := !totalInt.IsEqual(moduleCoins) || !change.Empty()
 
@@ -118,7 +125,7 @@ func GlobalStakingPoolInvariant(keeper Keeper) sdk.Invariant {
 	}
 }
 
-// SFSPurchaseInvariant checks that sum of original staked shield equals to the total.
+// StakingForShieldPurchaseInvariant checks that sum of original staked shield equals to the total.
 func StakingForShieldPurchaseInvariant(keeper Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		globalStakingPool := keeper.GetGlobalShieldStakingPool(ctx)

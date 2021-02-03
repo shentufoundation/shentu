@@ -115,9 +115,6 @@ const (
 )
 
 var (
-	// DefaultCLIHome specifies where the node client data is stored.
-	DefaultCLIHome = os.ExpandEnv("$HOME/.certikcli")
-
 	// DefaultNodeHome specifies where the node daemon data is stored.
 	DefaultNodeHome = os.ExpandEnv("$HOME/.certikd")
 
@@ -231,7 +228,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	bApp := baseapp.NewBaseApp(AppName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
-	bApp.GRPCQueryRouter().SetInterfaceRegistry(interfaceRegistry)
+	bApp.SetInterfaceRegistry(interfaceRegistry)
 
 	ks := []string{
 		authtypes.StoreKey,
@@ -509,6 +506,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
+	app.mm.RegisterServices(module.NewConfigurator(app.MsgServiceRouter(), app.GRPCQueryRouter()))
 
 	app.sm = module.NewSimulationManager(
 		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
@@ -640,6 +638,11 @@ func (app *CertiKApp) GetSubspace(moduleName string) paramstypes.Subspace {
 // Codec returns app.cdc.
 func (app *CertiKApp) Codec() codec.Marshaler {
 	return app.appCodec
+}
+
+// InterfaceRegistry returns the app's InterfaceRegistry
+func (app *CertiKApp) InterfaceRegistry() types.InterfaceRegistry {
+	return app.interfaceRegistry
 }
 
 // SimulationManager returns app.sm.

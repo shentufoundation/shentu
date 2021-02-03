@@ -134,7 +134,7 @@ func TestKeeper_AddDeposit(t *testing.T) {
 		coins15000 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 15000*1e6))
 
 		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[0], coins15000)
-		errString := "10000stake is smaller than 15000000000stake: insufficient funds"
+		errString := "10000uctk is smaller than 15000000000uctk: insufficient funds"
 		require.EqualError(t, err, errString)
 		require.Equal(t, false, votingPeriodActivated)
 	})

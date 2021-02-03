@@ -6,5 +6,5 @@ import (
 )
 
 var (
-	ErrCodeExists = sdkerrors.Register(bankTypes.ModuleName, 6, "can't perform multisend to a contract address")
+	ErrCodeExists = sdkerrors.Register(bankTypes.ModuleName, 7, "can't perform multisend to a contract address")
 )

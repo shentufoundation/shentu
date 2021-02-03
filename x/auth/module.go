@@ -136,6 +136,7 @@ func (am AppModule) LegacyQuerierHandler(cdc *codec.LegacyAmino) sdk.Querier {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	authtypes.RegisterQueryServer(cfg.QueryServer(), am.authKeeper)
 }
 
 // InitGenesis performs genesis initialization for the auth module. It returns no validator updates.

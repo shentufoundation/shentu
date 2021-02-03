@@ -16,12 +16,13 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/simapp"
 	"github.com/certikfoundation/shentu/x/auth/types"
 )
 
 var (
-	denom    = "stake"
+	denom    = common.MicroCTKDenom
 	unlocker = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	pubkeys  = []cryptotypes.PubKey{
 		secp256k1.GenPrivKey().PubKey(),
