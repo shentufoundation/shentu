@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/utils"
 
-	"github.com/certikfoundation/shentu/x/gov/internal/types"
+	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
 // QueryProposerByTxQuery will query for a proposer of a governance proposal by ID.

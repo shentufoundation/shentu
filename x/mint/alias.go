@@ -1,7 +1,7 @@
 package mint
 
 import (
-	"github.com/certikfoundation/shentu/x/mint/internal/keeper"
+	"github.com/certikfoundation/shentu/x/mint/keeper"
 )
 
 var (

@@ -1,7 +1,7 @@
 package slashing
 
 import (
-	"github.com/certikfoundation/shentu/x/slashing/internal/types"
+	"github.com/certikfoundation/shentu/x/slashing/types"
 )
 
 var (

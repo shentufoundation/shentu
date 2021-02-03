@@ -1,8 +1,8 @@
 package bank
 
 import (
-	"github.com/certikfoundation/shentu/x/bank/internal/keeper"
-	"github.com/certikfoundation/shentu/x/bank/internal/types"
+	"github.com/certikfoundation/shentu/x/bank/keeper"
+	"github.com/certikfoundation/shentu/x/bank/types"
 )
 
 var (

@@ -2,8 +2,8 @@ package cert
 
 import (
 	"github.com/certikfoundation/shentu/x/cert/client"
-	"github.com/certikfoundation/shentu/x/cert/internal/keeper"
-	"github.com/certikfoundation/shentu/x/cert/internal/types"
+	"github.com/certikfoundation/shentu/x/cert/keeper"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 const (

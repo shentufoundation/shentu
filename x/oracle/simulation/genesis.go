@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/certikfoundation/shentu/x/oracle/internal/types"
+	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
 // RandomizedGenState creates a random genesis state for module simulation.

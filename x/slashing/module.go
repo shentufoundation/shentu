@@ -17,7 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
-	"github.com/certikfoundation/shentu/x/slashing/internal/types"
+	"github.com/certikfoundation/shentu/x/slashing/types"
 )
 
 var (

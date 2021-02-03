@@ -10,7 +10,7 @@ import (
 
 	"github.com/hyperledger/burrow/acm"
 
-	"github.com/certikfoundation/shentu/x/cvm/internal/types"
+	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
 // DecodeStore unmarshals the KVPair's value to the corresponding type of cvm module.

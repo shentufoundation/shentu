@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/x/auth/internal/types"
+	"github.com/certikfoundation/shentu/x/auth/types"
 	"github.com/certikfoundation/shentu/x/auth/vesting"
 )
 

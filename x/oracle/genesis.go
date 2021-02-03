@@ -3,8 +3,8 @@ package oracle
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/oracle/internal/keeper"
-	"github.com/certikfoundation/shentu/x/oracle/internal/types"
+	"github.com/certikfoundation/shentu/x/oracle/keeper"
+	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
 // InitGenesis puts all data from genesis state into store.
