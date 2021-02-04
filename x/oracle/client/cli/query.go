@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -54,7 +53,7 @@ func GetCmdOperator() *cobra.Command {
 			}
 
 			res, err := queryClient.Operator(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryOperatorRequest{Address: address.String()},
 			)
 			if err != nil {
@@ -80,7 +79,7 @@ func GetCmdOperators() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Operators(context.Background(), &types.QueryOperatorsRequest{})
+			res, err := queryClient.Operators(cmd.Context(), &types.QueryOperatorsRequest{})
 			if err != nil {
 				return err
 			}
@@ -105,7 +104,7 @@ func GetCmdWithdraws() *cobra.Command {
 			queryClient := types.NewQueryClient(cliCtx)
 
 			res, err := queryClient.Withdraws(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryWithdrawsRequest{},
 			)
 			if err != nil {
@@ -141,7 +140,7 @@ func GetCmdTask() *cobra.Command {
 			}
 
 			res, err := queryClient.Task(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryTaskRequest{Contract: contract, Function: function},
 			)
 			if err != nil {
@@ -187,7 +186,7 @@ func GetCmdResponse() *cobra.Command {
 			}
 
 			res, err := queryClient.Response(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryResponseRequest{Contract: contract, Function: function, OperatorAddress: operatorAddress.String()},
 			)
 			if err != nil {

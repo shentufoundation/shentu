@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -69,7 +68,7 @@ func GetCmdPool() *cobra.Command {
 			}
 
 			res, err := queryClient.Pool(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryPoolRequest{PoolId: id, Sponsor: sponsor},
 			)
 			if err != nil {
@@ -98,7 +97,7 @@ func GetCmdPools() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Pools(context.Background(), &types.QueryPoolsRequest{})
+			res, err := queryClient.Pools(cmd.Context(), &types.QueryPoolsRequest{})
 			if err != nil {
 				return err
 			}
@@ -134,7 +133,7 @@ func GetCmdPurchaseList() *cobra.Command {
 			}
 
 			res, err := queryClient.PurchaseList(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryPurchaseListRequest{PoolId: poolID, Purchaser: purchaser.String()},
 			)
 			if err != nil {
@@ -168,7 +167,7 @@ func GetCmdPurchaserPurchases() *cobra.Command {
 			}
 
 			res, err := queryClient.PurchaseLists(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryPurchaseListsRequest{Purchaser: purchaser.String()},
 			)
 			if err != nil {
@@ -202,7 +201,7 @@ func GetCmdPoolPurchases() *cobra.Command {
 			}
 
 			res, err := queryClient.PurchaseLists(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryPurchaseListsRequest{PoolId: poolID},
 			)
 			if err != nil {
@@ -229,7 +228,7 @@ func GetCmdPurchases() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Purchases(context.Background(), &types.QueryPurchasesRequest{})
+			res, err := queryClient.Purchases(cmd.Context(), &types.QueryPurchasesRequest{})
 			if err != nil {
 				return err
 			}
@@ -260,7 +259,7 @@ func GetCmdProvider() *cobra.Command {
 			}
 
 			res, err := queryClient.Provider(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryProviderRequest{Address: address.String()},
 			)
 			if err != nil {
@@ -296,7 +295,7 @@ $ %[1]s query shield providers
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Providers(context.Background(), &types.QueryProvidersRequest{})
+			res, err := queryClient.Providers(cmd.Context(), &types.QueryProvidersRequest{})
 			if err != nil {
 				return err
 			}
@@ -321,7 +320,7 @@ func GetCmdPoolParams() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.PoolParams(context.Background(), &types.QueryPoolParamsRequest{})
+			res, err := queryClient.PoolParams(cmd.Context(), &types.QueryPoolParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -345,7 +344,7 @@ func GetCmdClaimParams() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.ClaimParams(context.Background(), &types.QueryClaimParamsRequest{})
+			res, err := queryClient.ClaimParams(cmd.Context(), &types.QueryClaimParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -369,7 +368,7 @@ func GetCmdStatus() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.ShieldStatus(context.Background(), &types.QueryShieldStatusRequest{})
+			res, err := queryClient.ShieldStatus(cmd.Context(), &types.QueryShieldStatusRequest{})
 			if err != nil {
 				return err
 			}
@@ -404,7 +403,7 @@ func GetCmdStaking() *cobra.Command {
 			}
 
 			res, err := queryClient.ShieldStaking(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryShieldStakingRequest{PoolId: poolID, Purchaser: purchaser.String()},
 			)
 			if err != nil {
@@ -430,7 +429,7 @@ func GetCmdShieldStakingRate() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.ShieldStakingRate(context.Background(), &types.QueryShieldStakingRateRequest{})
+			res, err := queryClient.ShieldStakingRate(cmd.Context(), &types.QueryShieldStakingRateRequest{})
 			if err != nil {
 				return err
 			}
@@ -460,7 +459,7 @@ func GetCmdReimbursement() *cobra.Command {
 			}
 
 			res, err := queryClient.Reimbursement(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryReimbursementRequest{ProposalId: proposalID},
 			)
 			if err != nil {
@@ -487,7 +486,7 @@ func GetCmdReimbursements() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Reimbursements(context.Background(), &types.QueryReimbursementsRequest{})
+			res, err := queryClient.Reimbursements(cmd.Context(), &types.QueryReimbursementsRequest{})
 			if err != nil {
 				return err
 			}

@@ -121,7 +121,7 @@ func (am AppModule) Route() sdk.Route {
 
 // QuerierRoute returns the module querier route name.
 func (AppModule) QuerierRoute() string {
-	return types.QuerierRoute
+	return types.RouterKey
 }
 
 // LegacyQuerierHandler returns a new querier module handler.

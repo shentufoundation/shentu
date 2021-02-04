@@ -2,8 +2,6 @@
 package cli
 
 import (
-	"context"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -47,11 +45,17 @@ func GetCmdCertifier() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
 
+			var req types.QueryCertifierRequest
+			req.Alias = viper.GetString(FlagAlias)
+			if len(args) > 0 {
+				req.Address = args[0]
+			}
+
+			queryClient := types.NewQueryClient(cliCtx)
 			res, err := queryClient.Certifier(
-				context.Background(),
-				&types.QueryCertifierRequest{Address: args[0], Alias: viper.GetString(FlagAlias)},
+				cmd.Context(),
+				&req,
 			)
 			if err != nil {
 				return err
@@ -75,9 +79,9 @@ func GetCmdCertifiers() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Certifiers(context.Background(), &types.QueryCertifiersRequest{})
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.Certifiers(cmd.Context(), &types.QueryCertifiersRequest{})
 			if err != nil {
 				return err
 			}
@@ -112,7 +116,7 @@ func GetCmdValidator() *cobra.Command {
 				}
 			}
 
-			res, err := queryClient.Validator(context.Background(), &types.QueryValidatorRequest{Pubkey: pkAny})
+			res, err := queryClient.Validator(cmd.Context(), &types.QueryValidatorRequest{Pubkey: pkAny})
 			if err != nil {
 				return err
 			}
@@ -135,7 +139,7 @@ func GetCmdValidators() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Validators(context.Background(), &types.QueryValidatorsRequest{})
+			res, err := queryClient.Validators(cmd.Context(), &types.QueryValidatorsRequest{})
 			if err != nil {
 				return err
 			}
@@ -158,7 +162,7 @@ func GetCmdCertificate() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Certificate(context.Background(), &types.QueryCertificateRequest{CertificateId: args[0]})
+			res, err := queryClient.Certificate(cmd.Context(), &types.QueryCertificateRequest{CertificateId: args[0]})
 			if err != nil {
 				return err
 			}
@@ -187,7 +191,7 @@ func GetCmdCertificates() *cobra.Command {
 			}
 
 			res, err := queryClient.Certificates(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryCertificatesRequest{
 					Certifier:   viper.GetString(FlagCertifier),
 					Content:     viper.GetString(FlagContent),
@@ -233,7 +237,7 @@ func GetCmdPlatform() *cobra.Command {
 				}
 			}
 
-			res, err := queryClient.Platform(context.Background(), &types.QueryPlatformRequest{Pubkey: pkAny})
+			res, err := queryClient.Platform(cmd.Context(), &types.QueryPlatformRequest{Pubkey: pkAny})
 			if err != nil {
 				return err
 			}
