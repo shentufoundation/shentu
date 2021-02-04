@@ -266,7 +266,7 @@ $ %s tx shield pause-pool <pool id>
 		),
 		RunE: pauseOrResume(false),
 	}
-	
+
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }

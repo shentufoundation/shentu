@@ -454,7 +454,7 @@ func GetCmdShieldStakingRate() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
-	
+
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

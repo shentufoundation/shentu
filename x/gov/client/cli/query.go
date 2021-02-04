@@ -174,7 +174,7 @@ $ %[1]s query gov proposals --page=2 --limit=100
 	cmd.Flags().String(flagDepositor, "", "(optional) filter by proposals deposited on by depositor")
 	cmd.Flags().String(flagVoter, "", "(optional) filter by proposals voted on by voted")
 	cmd.Flags().String(flagStatus, "", "(optional) filter proposals by proposal status, status: deposit_period/voting_period/passed/rejected")
-	
+
 	return cmd
 }
 

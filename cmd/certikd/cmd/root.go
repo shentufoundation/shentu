@@ -37,6 +37,7 @@ import (
 
 	"github.com/certikfoundation/shentu/app"
 	"github.com/certikfoundation/shentu/app/params"
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/crisis"
 )
 
@@ -53,6 +54,12 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
 		WithHomeDir(app.DefaultNodeHome)
+
+	config := sdk.GetConfig()
+	config.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
+	config.SetBech32PrefixForValidator(common.Bech32PrefixValAddr, common.Bech32PrefixValPub)
+	config.SetBech32PrefixForConsensusNode(common.Bech32PrefixConsAddr, common.Bech32PrefixConsPub)
+	config.Seal()
 
 	rootCmd := &cobra.Command{
 		Use:   "certikd",

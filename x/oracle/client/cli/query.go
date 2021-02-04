@@ -205,7 +205,7 @@ func GetCmdResponse() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
-	
+
 	cmd.Flags().String(FlagContract, "", "Provide the contract address")
 	cmd.Flags().String(FlagFunction, "", "Provide the function")
 	cmd.Flags().String(FlagOperator, "", "Provide the operator")
