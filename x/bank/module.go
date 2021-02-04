@@ -17,12 +17,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	cosmosbank "github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/bank/client/cli"
+	sdkbank "github.com/cosmos/cosmos-sdk/x/bank"
+	bankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banksim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	"github.com/certikfoundation/shentu/x/bank/client/cli"
 	"github.com/certikfoundation/shentu/x/bank/client/rest"
 	"github.com/certikfoundation/shentu/x/bank/keeper"
 	"github.com/certikfoundation/shentu/x/bank/simulation"
@@ -40,7 +41,7 @@ type AppModuleBasic struct{}
 
 // Name returns the bank module's name.
 func (AppModuleBasic) Name() string {
-	return cosmosbank.AppModuleBasic{}.Name()
+	return sdkbank.AppModuleBasic{}.Name()
 }
 
 // RegisterLegacyAminoCodec registers the bank module's types on the LegacyAmino codec.
@@ -57,13 +58,13 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
 
 // ValidateGenesis performs genesis state validation for the bank module.
 func (am AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
-	return cosmosbank.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
+	return sdkbank.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
 }
 
 // RegisterRESTRoutes registers the REST routes for the bank module.
 func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.Context, route *mux.Router) {
 	rest.RegisterRoutes(cliCtx, route)
-	cosmosbank.AppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
+	sdkbank.AppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the bank module.
@@ -73,12 +74,14 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 
 // GetTxCmd returns the root tx command for the bank module.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.NewTxCmd()
+	cmds := bankcli.NewTxCmd()
+	cmds.AddCommand(cli.LockedSendTxCmd())
+	return cmds
 }
 
 // GetQueryCmd returns the root query command for the bank module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
+	return bankcli.GetQueryCmd()
 }
 
 // RegisterInterfaces registers interfaces and implementations of the bank module.
@@ -92,7 +95,7 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 // AppModule implements an application module for the bank module.
 type AppModule struct {
 	AppModuleBasic
-	cosmosAppModule cosmosbank.AppModule
+	cosmosAppModule sdkbank.AppModule
 	keeper          keeper.Keeper
 	accountKeeper   types.AccountKeeper
 }
@@ -107,7 +110,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, accountKeeper types.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
-		cosmosAppModule: cosmosbank.NewAppModule(cdc, keeper, accountKeeper),
+		cosmosAppModule: sdkbank.NewAppModule(cdc, keeper, accountKeeper),
 		keeper:          keeper,
 		accountKeeper:   accountKeeper,
 	}

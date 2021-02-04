@@ -53,14 +53,16 @@ func LockedSendRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-
-		unlocker, err := sdk.AccAddressFromBech32(req.Unlocker)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
+		
+		if req.Unlocker != "" {
+			_, err = sdk.AccAddressFromBech32(req.Unlocker)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+				return
+			}
 		}
 
-		msg := types.NewMsgLockedSend(fromAddr, toAddr, unlocker, req.Amount)
+		msg := types.NewMsgLockedSend(fromAddr, toAddr, req.Unlocker, req.Amount)
 		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }

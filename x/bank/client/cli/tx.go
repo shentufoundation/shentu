@@ -16,6 +16,21 @@ const (
 	FlagUnlocker = "unlocker"
 )
 
+// // NewTxCmd returns a root CLI command handler for all x/bank transaction commands.
+// func NewTxCmd() *cobra.Command {
+// 	txCmd := &cobra.Command{
+// 		Use:                        banktypes.ModuleName,
+// 		Short:                      "Bank transaction subcommands",
+// 		DisableFlagParsing:         true,
+// 		SuggestionsMinimumDistance: 2,
+// 		RunE:                       client.ValidateCmd,
+// 	}
+
+// 	txCmd.AddCommand(LockedSendTxCmd())
+
+// 	return txCmd
+// }
+
 // LockedSendTxCmd sends coins to a manual vesting account
 // and have them vesting.
 func LockedSendTxCmd() *cobra.Command {
@@ -41,9 +56,12 @@ func LockedSendTxCmd() *cobra.Command {
 				return err
 			}
 
-			unlocker, err := sdk.AccAddressFromBech32(viper.GetString(FlagUnlocker))
-			if err != nil {
-				return err
+			unlocker := viper.GetString(FlagUnlocker)
+			if unlocker != "" {
+				_, err = sdk.AccAddressFromBech32(unlocker)
+				if err != nil {
+					return err
+				}
 			}
 
 			msg := types.NewMsgLockedSend(cliCtx.GetFromAddress(), to, unlocker, coins)
