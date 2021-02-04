@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -115,6 +116,7 @@ Where proposal.json contains:
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
 	return cmd
 }
 
@@ -179,6 +181,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -242,6 +245,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -262,6 +266,8 @@ $ %s tx shield pause-pool <pool id>
 		),
 		RunE: pauseOrResume(false),
 	}
+	
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -282,6 +288,8 @@ $ %s tx shield resume-pool <pool id>
 		),
 		RunE: pauseOrResume(true),
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -343,6 +351,8 @@ func GetCmdDepositCollateral() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -375,6 +385,8 @@ func GetCmdWithdrawCollateral() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -398,6 +410,8 @@ func GetCmdWithdrawRewards() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -423,6 +437,8 @@ func GetCmdWithdrawForeignRewards() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -447,6 +463,8 @@ func GetCmdClearPayouts() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -495,6 +513,8 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -534,6 +554,8 @@ $ %s tx shield withdraw-reimbursement <proposal id>
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -582,6 +604,8 @@ $ %s tx shield stake-for-shield <pool id> <shield amount> <description>
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -626,6 +650,8 @@ $ %s tx shield withdraw-staking <pool id> <shield amount>
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -668,5 +694,7 @@ $ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address> --fr
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }

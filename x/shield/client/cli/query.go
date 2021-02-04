@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
@@ -80,6 +81,7 @@ func GetCmdPool() *cobra.Command {
 	}
 
 	cmd.Flags().String(flagSponsor, "", "use sponsor to query the pool info")
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -106,6 +108,7 @@ func GetCmdPools() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -144,6 +147,7 @@ func GetCmdPurchaseList() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -178,6 +182,7 @@ func GetCmdPurchaserPurchases() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -212,6 +217,7 @@ func GetCmdPoolPurchases() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -237,6 +243,7 @@ func GetCmdPurchases() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -270,6 +277,7 @@ func GetCmdProvider() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -304,6 +312,7 @@ $ %[1]s query shield providers
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -328,6 +337,8 @@ func GetCmdPoolParams() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -352,6 +363,8 @@ func GetCmdClaimParams() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -376,6 +389,8 @@ func GetCmdStatus() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -413,6 +428,8 @@ func GetCmdStaking() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -437,6 +454,8 @@ func GetCmdShieldStakingRate() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+	
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -470,6 +489,7 @@ func GetCmdReimbursement() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -495,5 +515,6 @@ func GetCmdReimbursements() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -48,7 +49,7 @@ func NewTxCmd() *cobra.Command {
 
 // GetCmdCertifyValidator returns the validator certification transaction command.
 func GetCmdCertifyValidator() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "certify-validator <validator pubkey>",
 		Short: "Certify a validator",
 		Args:  cobra.ExactArgs(1),
@@ -79,11 +80,14 @@ func GetCmdCertifyValidator() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdDecertifyValidator returns the validator de-certification tx command.
 func GetCmdDecertifyValidator() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "decertify-validator <validator pubkey>",
 		Short: "De-certify a validator",
 		Args:  cobra.ExactArgs(1),
@@ -114,6 +118,9 @@ func GetCmdDecertifyValidator() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdIssueCertificate returns the certificate transaction command.
@@ -165,6 +172,7 @@ func GetCmdIssueCertificate() *cobra.Command {
 	cmd.Flags().String(FlagCompiler, "", "compiler version")
 	cmd.Flags().String(FlagBytecodeHash, "", "bytecode hash")
 	cmd.Flags().String(FlagDescription, "", "description")
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -185,7 +193,7 @@ func parseCertifyCompilationFlags() (string, string, string, error) {
 
 // GetCmdCertifyPlatform returns the validator host platform certification transaction command.
 func GetCmdCertifyPlatform() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "certify-platform <validator pubkey> <platform>",
 		Short: "Certify a validator's host platform",
 		Args:  cobra.ExactArgs(2),
@@ -217,11 +225,14 @@ func GetCmdCertifyPlatform() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdRevokeCertificate returns the certificate revoke command
 func GetCmdRevokeCertificate() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "revoke-certificate <certificateID> [<description>]",
 		Short: "revoke a certificate",
 		Args:  cobra.RangeArgs(1, 2),
@@ -250,6 +261,9 @@ func GetCmdRevokeCertificate() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdSubmitProposal implements the command to submit a certifier-update proposal

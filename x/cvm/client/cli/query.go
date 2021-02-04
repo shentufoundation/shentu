@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/cvm/types"
@@ -92,14 +93,15 @@ func GetCmdView() *cobra.Command {
 			return clientCtx.PrintProto(out)
 		},
 	}
-	cmd.Flags().String(FlagCaller, "", "optional caller parameter to run the view function with")
 
+	cmd.Flags().String(FlagCaller, "", "optional caller parameter to run the view function with")
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdCode returns the CVM code query command.
 func GetCmdCode() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "code <address>",
 		Short: "Get CVM contract code",
 		Args:  cobra.ExactArgs(1),
@@ -124,11 +126,14 @@ func GetCmdCode() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdStorage returns the CVM storage query command.
 func GetCmdStorage() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "storage <address> <key>",
 		Short: "Get CVM storage data",
 		Args:  cobra.ExactArgs(2),
@@ -156,11 +161,14 @@ func GetCmdStorage() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdAbi returns the CVM code ABI query command.
 func GetCmdAbi() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "abi <address>",
 		Short: "Get CVM contract code ABI",
 		Args:  cobra.ExactArgs(1),
@@ -190,11 +198,14 @@ func GetCmdAbi() *cobra.Command {
 			return clientCtx.PrintProto(addrAbi)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdMeta returns the CVM metadata query command.
 func GetCmdMeta() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "meta <address,hash>",
 		Short: "Get CVM Metadata hash for an address or Metadata for a hash",
 		Args:  cobra.ExactArgs(1),
@@ -227,12 +238,15 @@ func GetCmdMeta() *cobra.Command {
 			return nil
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdAddressTranslate is a utility query to translate Bech32 addresses to hex and vice versa.
 // It is a pure function and does not interact with the handler or keeper.
 func GetCmdAddressTranslate() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "address-translate <address>",
 		Short: "Translate a Bech32 address to hex and vice versa",
 		Args:  cobra.ExactArgs(1),
@@ -296,6 +310,9 @@ func GetCmdAddressTranslate() *cobra.Command {
 			}
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetAccountCmd returns a query account that will display the state of the
@@ -323,5 +340,6 @@ func GetAccountCmd() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

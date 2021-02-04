@@ -155,6 +155,7 @@ func GetCmdCall() *cobra.Command {
 	cmd.Flags().Bool(FlagRaw, false,
 		"set this flag to submit raw calldata, otherwise it takes function name and parameters as args")
 	cmd.Flags().Uint64(FlagValue, 0, "Value sent with transaction")
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -222,6 +223,7 @@ func GetCmdDeploy() *cobra.Command {
 	cmd.Flags().String(FlagContract, "", "the name of the contract to be deployed")
 	cmd.Flags().Bool(FlagEWASM, false, "compile solidity contract to EWASM")
 	cmd.Flags().Bool(FlagRuntime, false, "runtime code")
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -402,6 +404,7 @@ func QueryTxCmd() *cobra.Command {
 
 	cmd.Flags().StringP(flags.FlagNode, "n", "tcp://localhost:26657", "Node to connect to")
 	viper.BindPFlag(flags.FlagNode, cmd.Flags().Lookup(flags.FlagNode))
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }

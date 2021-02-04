@@ -13,10 +13,15 @@ import (
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
-var _ types.QueryServer = Keeper{}
+var _ types.QueryServer = Querier{}
+
+// Querier is used as Keeper will have duplicate methods if used directly, and gRPC names take precedence over keeper
+type Querier struct {
+	Keeper
+}
 
 // Certifier queries a certifier given its address or alias.
-func (q Keeper) Certifier(c context.Context, req *types.QueryCertifierRequest) (*types.QueryCertifierResponse, error) {
+func (q Querier) Certifier(c context.Context, req *types.QueryCertifierRequest) (*types.QueryCertifierResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -47,7 +52,7 @@ func (q Keeper) Certifier(c context.Context, req *types.QueryCertifierRequest) (
 }
 
 // Certifiers queries all certifiers.
-func (q Keeper) Certifiers(c context.Context, req *types.QueryCertifiersRequest) (*types.QueryCertifiersResponse, error) {
+func (q Querier) Certifiers(c context.Context, req *types.QueryCertifiersRequest) (*types.QueryCertifiersResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -57,7 +62,7 @@ func (q Keeper) Certifiers(c context.Context, req *types.QueryCertifiersRequest)
 }
 
 // Validator queries the certifier of a certified validator.
-func (q Keeper) Validator(c context.Context, req *types.QueryValidatorRequest) (*types.QueryValidatorResponse, error) {
+func (q Querier) Validator(c context.Context, req *types.QueryValidatorRequest) (*types.QueryValidatorResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -77,7 +82,7 @@ func (q Keeper) Validator(c context.Context, req *types.QueryValidatorRequest) (
 }
 
 // Validators returns all validators' public keys.
-func (q Keeper) Validators(c context.Context, req *types.QueryValidatorsRequest) (*types.QueryValidatorsResponse, error) {
+func (q Querier) Validators(c context.Context, req *types.QueryValidatorsRequest) (*types.QueryValidatorsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -86,7 +91,7 @@ func (q Keeper) Validators(c context.Context, req *types.QueryValidatorsRequest)
 	return &types.QueryValidatorsResponse{Pubkeys: q.GetAllValidatorPubkeys(ctx)}, nil
 }
 
-func (q Keeper) Platform(c context.Context, req *types.QueryPlatformRequest) (*types.QueryPlatformResponse, error) {
+func (q Querier) Platform(c context.Context, req *types.QueryPlatformRequest) (*types.QueryPlatformResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -105,7 +110,7 @@ func (q Keeper) Platform(c context.Context, req *types.QueryPlatformRequest) (*t
 	return &types.QueryPlatformResponse{Platform: platform}, nil
 }
 
-func (q Keeper) Certificate(c context.Context, req *types.QueryCertificateRequest) (*types.QueryCertificateResponse, error) {
+func (q Querier) Certificate(c context.Context, req *types.QueryCertificateRequest) (*types.QueryCertificateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -129,7 +134,7 @@ func (q Keeper) Certificate(c context.Context, req *types.QueryCertificateReques
 	}, nil
 }
 
-func (q Keeper) Certificates(c context.Context, req *types.QueryCertificatesRequest) (*types.QueryCertificatesResponse, error) {
+func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesRequest) (*types.QueryCertificatesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}

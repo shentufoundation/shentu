@@ -2,6 +2,8 @@
 package cli
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -54,7 +56,7 @@ func GetCmdCertifier() *cobra.Command {
 
 			queryClient := types.NewQueryClient(cliCtx)
 			res, err := queryClient.Certifier(
-				cmd.Context(),
+				context.Background(),
 				&req,
 			)
 			if err != nil {
@@ -64,13 +66,15 @@ func GetCmdCertifier() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
 	cmd.Flags().String(FlagAlias, "", "use alias to query the certifier info")
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdCertifiers returns all certifier query command
 func GetCmdCertifiers() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "certifiers",
 		Short: "Get certifiers information",
 		Args:  cobra.NoArgs,
@@ -81,7 +85,7 @@ func GetCmdCertifiers() *cobra.Command {
 			}
 
 			queryClient := types.NewQueryClient(cliCtx)
-			res, err := queryClient.Certifiers(cmd.Context(), &types.QueryCertifiersRequest{})
+			res, err := queryClient.Certifiers(context.Background(), &types.QueryCertifiersRequest{})
 			if err != nil {
 				return err
 			}
@@ -89,11 +93,14 @@ func GetCmdCertifiers() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdValidator returns the validator certification query command.
 func GetCmdValidator() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "validator <pubkey>",
 		Short: "Get validator certification information",
 		Args:  cobra.ExactArgs(1),
@@ -116,7 +123,7 @@ func GetCmdValidator() *cobra.Command {
 				}
 			}
 
-			res, err := queryClient.Validator(cmd.Context(), &types.QueryValidatorRequest{Pubkey: pkAny})
+			res, err := queryClient.Validator(context.Background(), &types.QueryValidatorRequest{Pubkey: pkAny})
 			if err != nil {
 				return err
 			}
@@ -124,11 +131,14 @@ func GetCmdValidator() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdValidators returns all validators certification query command
 func GetCmdValidators() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "validators",
 		Short: "Get validators certification information",
 		Args:  cobra.NoArgs,
@@ -139,7 +149,7 @@ func GetCmdValidators() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Validators(cmd.Context(), &types.QueryValidatorsRequest{})
+			res, err := queryClient.Validators(context.Background(), &types.QueryValidatorsRequest{})
 			if err != nil {
 				return err
 			}
@@ -147,11 +157,14 @@ func GetCmdValidators() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdCertificate returns the certificate query command.
 func GetCmdCertificate() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "certificate <certificate id>",
 		Short: "Get certificate information",
 		Args:  cobra.ExactArgs(1),
@@ -162,7 +175,7 @@ func GetCmdCertificate() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Certificate(cmd.Context(), &types.QueryCertificateRequest{CertificateId: args[0]})
+			res, err := queryClient.Certificate(context.Background(), &types.QueryCertificateRequest{CertificateId: args[0]})
 			if err != nil {
 				return err
 			}
@@ -170,6 +183,9 @@ func GetCmdCertificate() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdCertificates returns certificates query command
@@ -191,7 +207,7 @@ func GetCmdCertificates() *cobra.Command {
 			}
 
 			res, err := queryClient.Certificates(
-				cmd.Context(),
+				context.Background(),
 				&types.QueryCertificatesRequest{
 					Certifier:   viper.GetString(FlagCertifier),
 					Content:     viper.GetString(FlagContent),
@@ -205,16 +221,18 @@ func GetCmdCertificates() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
 	cmd.Flags().String(FlagCertifier, "", "certificates issued by certifier")
 	cmd.Flags().String(FlagContent, "", "certificates by request content")
 	cmd.Flags().String(FlagContentType, "", "type of request content")
 	flags.AddPaginationFlagsToCmd(cmd, "votes")
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdPlatform returns the validator host platform certification query command.
 func GetCmdPlatform() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "platform <pubkey>",
 		Short: "Get validator host platform certification information",
 		Args:  cobra.ExactArgs(1),
@@ -237,7 +255,7 @@ func GetCmdPlatform() *cobra.Command {
 				}
 			}
 
-			res, err := queryClient.Platform(cmd.Context(), &types.QueryPlatformRequest{Pubkey: pkAny})
+			res, err := queryClient.Platform(context.Background(), &types.QueryPlatformRequest{Pubkey: pkAny})
 			if err != nil {
 				return err
 			}
@@ -245,4 +263,7 @@ func GetCmdPlatform() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }

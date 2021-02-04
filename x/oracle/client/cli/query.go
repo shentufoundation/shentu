@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/oracle/types"
@@ -63,6 +64,8 @@ func GetCmdOperator() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -87,6 +90,8 @@ func GetCmdOperators() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -114,6 +119,8 @@ func GetCmdWithdraws() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -150,8 +157,10 @@ func GetCmdTask() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
 	cmd.Flags().String(FlagContract, "", "Provide the contract address")
 	cmd.Flags().String(FlagFunction, "", "Provide the function")
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -196,8 +205,10 @@ func GetCmdResponse() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+	
 	cmd.Flags().String(FlagContract, "", "Provide the contract address")
 	cmd.Flags().String(FlagFunction, "", "Provide the function")
 	cmd.Flags().String(FlagOperator, "", "Provide the operator")
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

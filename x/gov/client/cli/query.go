@@ -48,7 +48,7 @@ func GetQueryCmd() *cobra.Command {
 
 // GetCmdQueryProposal implements the query proposal command.
 func GetCmdQueryProposal() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "proposal [proposal-id]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Query details of a single proposal",
@@ -86,6 +86,9 @@ $ %[1]s query gov proposal 1
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdQueryProposals implements a query proposals command.
@@ -166,10 +169,12 @@ $ %[1]s query gov proposals --page=2 --limit=100
 	}
 
 	flags.AddPaginationFlagsToCmd(cmd, "proposals")
+	flags.AddQueryFlagsToCmd(cmd)
+
 	cmd.Flags().String(flagDepositor, "", "(optional) filter by proposals deposited on by depositor")
 	cmd.Flags().String(flagVoter, "", "(optional) filter by proposals voted on by voted")
 	cmd.Flags().String(flagStatus, "", "(optional) filter proposals by proposal status, status: deposit_period/voting_period/passed/rejected")
-
+	
 	return cmd
 }
 
@@ -396,7 +401,7 @@ $ %s query gov params
 
 // GetCmdQueryParam implements the query param command.
 func GetCmdQueryParam() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "param [param-type]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Query the parameters (voting|tallying|deposit) of the governance process",
@@ -442,4 +447,7 @@ $ %[1]s query gov param deposit
 			return cliCtx.PrintObjectLegacy(out)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
