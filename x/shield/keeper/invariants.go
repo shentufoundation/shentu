@@ -114,7 +114,7 @@ func GlobalStakingPoolInvariant(keeper Keeper) sdk.Invariant {
 			sum = sum.Add(os.Amount)
 		}
 
-		broken = !globalStakingPool.Equal(sum)
+		broken = !globalStakingPool.Equal(sum) || broken
 
 		return sdk.FormatInvariant(types.ModuleName, "global-staking-pool",
 			fmt.Sprintf("\n\tsum of staked amount:  %s"+
