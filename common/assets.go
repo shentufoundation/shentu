@@ -8,9 +8,9 @@ const (
 	MicroCTKDenom = "uctk"
 	MicroUnit     = int64(1e6)
 
-	Update1Height = 100
+	Update1Height = 348000
 	// TODO: set to update height
-	Update2Height = 100
+	Update2Height = 1423600
 )
 
 // GetCoinPercentage returns a certain percentage of coins.
