@@ -45,7 +45,17 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#230](https://github.com/certikfoundation/shentu/pull/230) Optimized shield invariant & removed crisis module from endblocker
 ### Tests
 ### Bug Fixes
-* [\#224](https://github.com/certikfoundation/shentu/pull/224) Fixed EWASM support & added EWASM native hashing contracts
+
+## [v1.3.1] - 02-05-2021
+
+### Client Breaking Changes
+### API Breaking Changes
+### State Machine Breaking Changes
+### Features
+### Improvements
+* [\#230](https://github.com/certikfoundation/shentu/pull/230) Optimized shield invariant & removed crisis module from endblocker
+### Tests
+### Bug Fixes
 
 ## [v1.3.0] - 01-15-2021
 
