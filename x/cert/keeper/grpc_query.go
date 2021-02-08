@@ -164,7 +164,8 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 		reqContent := certificate.RequestContent()
 
 		results[i] = types.QueryCertificateResponse{
-			CertificateId: certificate.ID().String(), CertificateType: certificate.Type().String(),
+			CertificateId:      certificate.ID().String(),
+			CertificateType:    certificate.Type().String(),
 			RequestContent:     &reqContent,
 			CertificateContent: certificate.FormattedCertificateContent(),
 			Description:        certificate.Description(),

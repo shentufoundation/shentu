@@ -53,7 +53,7 @@ func LockedSendRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		
+
 		if req.Unlocker != "" {
 			_, err = sdk.AccAddressFromBech32(req.Unlocker)
 			if err != nil {

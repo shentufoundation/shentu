@@ -16,21 +16,6 @@ const (
 	FlagUnlocker = "unlocker"
 )
 
-// // NewTxCmd returns a root CLI command handler for all x/bank transaction commands.
-// func NewTxCmd() *cobra.Command {
-// 	txCmd := &cobra.Command{
-// 		Use:                        banktypes.ModuleName,
-// 		Short:                      "Bank transaction subcommands",
-// 		DisableFlagParsing:         true,
-// 		SuggestionsMinimumDistance: 2,
-// 		RunE:                       client.ValidateCmd,
-// 	}
-
-// 	txCmd.AddCommand(LockedSendTxCmd())
-
-// 	return txCmd
-// }
-
 // LockedSendTxCmd sends coins to a manual vesting account
 // and have them vesting.
 func LockedSendTxCmd() *cobra.Command {

@@ -32,12 +32,14 @@ import (
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingcli "github.com/cosmos/cosmos-sdk/x/auth/vesting/client/cli"
+	sdkbankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
 	"github.com/certikfoundation/shentu/app"
 	"github.com/certikfoundation/shentu/app/params"
 	"github.com/certikfoundation/shentu/common"
+	bankcli "github.com/certikfoundation/shentu/x/bank/client/cli"
 	"github.com/certikfoundation/shentu/x/crisis"
 )
 
@@ -177,6 +179,9 @@ func txCommand() *cobra.Command {
 		authcmd.GetDecodeCommand(),
 		flags.LineBreak,
 		vestingcli.GetTxCmd(),
+		flags.LineBreak,
+		sdkbankcli.NewSendTxCmd(),
+		bankcli.LockedSendTxCmd(),
 	)
 
 	app.ModuleBasics.AddTxCommands(cmd)
