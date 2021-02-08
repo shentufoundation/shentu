@@ -40,14 +40,14 @@ while [ ${CNT} -lt $ITER ]; do
     exit 0
   fi
 
-  # Emulate network chaos:
-  #
-  # Every 10 blocks, pick a random container and restart it.
-  if ! ((${CNT} % 10)); then
-    rand_container=${docker_containers["$[RANDOM % ${#docker_containers[@]}]"]};
-    echo "Restarting random docker container ${rand_container}"
-    docker restart ${rand_container} &>/dev/null &
-  fi
+  # # Emulate network chaos:
+  # #
+  # # Every 10 blocks, pick a random container and restart it.
+  # if ! ((${CNT} % 10)); then
+  #   rand_container=${docker_containers["$[RANDOM % ${#docker_containers[@]}]"]};
+  #   echo "Restarting random docker container ${rand_container}"
+  #   docker restart ${rand_container} &>/dev/null &
+  # fi
 
   let CNT=CNT+1
   sleep $SLEEP
