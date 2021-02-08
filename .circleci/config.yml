@@ -300,10 +300,10 @@ workflows:
   version: 2.1
   test-suite:
     jobs:
-     - docker-image:
+      - docker-image:
           requires:
            - setup-dependencies
-     - docker-tagged:
+      - docker-tagged:
           filters:
             tags:
               only:
