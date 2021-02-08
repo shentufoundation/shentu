@@ -114,7 +114,8 @@ go.sum: go.mod
 	go mod verify
 
 clean:
-	rm -rf snapcraft-local.yaml build/
+	#rm -rf snapcraft-local.yaml build/
+	rm -rf $(BUILDDIR)/ artifacts/
 
 distclean:
 	rm -rf \
@@ -166,6 +167,11 @@ localnet-start: build-linux localnet-stop
 	@if ! [ -f build/node0/certikd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/certikd:Z tendermint/certikdnode testnet --v 4 -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
 	docker-compose up -d
 
+# localnet: localnet.down image.update docker-compose.yml ./devtools/localnet/localnet_client_setup.sh
+# 	@$(RM) -r ${LOCALNET_ROOT}
+# 	@if ! [ -f build/node0/certikd/config/genesis.json ]; then docker run --volume $(abspath ${LOCALNET_ROOT}):/root --workdir /root -it shentu certikd testnet --keyring-backend test --v 4 --output-dir /root --starting-ip-address ${LOCALNET_START_IP} --chain-id shentu; fi
+# 	@docker-compose up -d
+
 # Stop testnet
 localnet-stop:
 	docker-compose down
@@ -187,11 +193,6 @@ test-docker-push: test-docker
 	benchmark \
 	build-docker-certikdnode localnet-start localnet-stop \
 	docker-single-node
-
-# localnet: localnet.down image.update docker-compose.yml ./devtools/localnet/localnet_client_setup.sh
-# 	@$(RM) -r ${LOCALNET_ROOT}
-# 	@if ! [ -f build/node0/certikd/config/genesis.json ]; then docker run --volume $(abspath ${LOCALNET_ROOT}):/root --workdir /root -it shentu certikd testnet --keyring-backend test --v 4 --output-dir /root --starting-ip-address ${LOCALNET_START_IP} --chain-id shentu; fi
-# 	@docker-compose up -d
 
 # build-docker-certikdnode: build-linux
 # 	$(MAKE) -C networks/local
