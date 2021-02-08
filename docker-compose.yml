@@ -4,7 +4,7 @@ services:
   node0:
     container_name: node0
     restart: on-failure
-    image: shentu
+    image: certikdnode
     command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
     volumes:
       - type: bind
@@ -19,7 +19,7 @@ services:
   node1:
     container_name: node1
     restart: on-failure
-    image: shentu
+    image: certikdnode
     command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
     ports:
       - "26756-26757:26756-26757"
@@ -34,7 +34,7 @@ services:
   node2:
     container_name: node2
     restart: on-failure
-    image: shentu
+    image: certikdnode
     command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
     ports:
       - "26856-26857:26856-26857"
@@ -49,7 +49,7 @@ services:
   node3:
     container_name: node3
     restart: on-failure
-    image: shentu
+    image: certikdnode
     command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
     ports:
       - "26956-26957:26956-26957"
