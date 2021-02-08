@@ -7,6 +7,8 @@ SHASUM := $(shell which sha256sum)
 PKG_LIST := $(shell go list ./...)
 DOCKER := $(shell which docker)
 DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf
+BUILDDIR ?= $(CURDIR)/build
+
 verbosity = 2
 
 build_tags = netgo
