@@ -40,6 +40,7 @@ while [ ${CNT} -lt $ITER ]; do
     exit 0
   fi
 
+  # NOTE: Deactivated due to division by zero error.
   # # Emulate network chaos:
   # #
   # # Every 10 blocks, pick a random container and restart it.
