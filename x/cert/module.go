@@ -15,8 +15,8 @@ import (
 	"github.com/certikfoundation/shentu/x/cert/client/cli"
 	"github.com/certikfoundation/shentu/x/cert/client/rest"
 	"github.com/certikfoundation/shentu/x/cert/keeper"
-	"github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/cert/simulation"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 var (

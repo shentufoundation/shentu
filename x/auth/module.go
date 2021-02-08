@@ -17,8 +17,8 @@ import (
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/x/auth/client/cli"
-	"github.com/certikfoundation/shentu/x/auth/types"
 	"github.com/certikfoundation/shentu/x/auth/simulation"
+	"github.com/certikfoundation/shentu/x/auth/types"
 )
 
 var (

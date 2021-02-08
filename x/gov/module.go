@@ -25,8 +25,8 @@ import (
 	"github.com/certikfoundation/shentu/x/gov/client/cli"
 	"github.com/certikfoundation/shentu/x/gov/client/rest"
 	"github.com/certikfoundation/shentu/x/gov/keeper"
-	"github.com/certikfoundation/shentu/x/gov/types"
 	"github.com/certikfoundation/shentu/x/gov/simulation"
+	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
 var (
