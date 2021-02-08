@@ -29,7 +29,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
-	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+	sdkauthcli "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingcli "github.com/cosmos/cosmos-sdk/x/auth/vesting/client/cli"
 	sdkbankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
@@ -39,8 +39,10 @@ import (
 	"github.com/certikfoundation/shentu/app"
 	"github.com/certikfoundation/shentu/app/params"
 	"github.com/certikfoundation/shentu/common"
+	authcli "github.com/certikfoundation/shentu/x/auth/client/cli"
 	bankcli "github.com/certikfoundation/shentu/x/bank/client/cli"
 	"github.com/certikfoundation/shentu/x/crisis"
+	cvmcli "github.com/certikfoundation/shentu/x/cvm/client/cli"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the
@@ -146,11 +148,11 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		authcmd.GetAccountCmd(),
+		sdkauthcli.GetAccountCmd(),
 		rpc.ValidatorCommand(),
 		rpc.BlockCommand(),
-		authcmd.QueryTxsByEventsCmd(),
-		authcmd.QueryTxCmd(),
+		sdkauthcli.QueryTxsByEventsCmd(),
+		sdkauthcli.QueryTxCmd(),
 	)
 
 	app.ModuleBasics.AddQueryCommands(cmd)
@@ -169,19 +171,23 @@ func txCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		authcmd.GetSignCommand(),
-		authcmd.GetSignBatchCommand(),
-		authcmd.GetMultiSignCommand(),
-		authcmd.GetValidateSignaturesCommand(),
+		bankcli.LockedSendTxCmd(),
+		sdkbankcli.NewSendTxCmd(),
 		flags.LineBreak,
-		authcmd.GetBroadcastCommand(),
-		authcmd.GetEncodeCommand(),
-		authcmd.GetDecodeCommand(),
+		sdkauthcli.GetSignCommand(),
+		sdkauthcli.GetSignBatchCommand(),
+		sdkauthcli.GetMultiSignCommand(),
+		sdkauthcli.GetValidateSignaturesCommand(),
+		sdkauthcli.GetBroadcastCommand(),
+		sdkauthcli.GetEncodeCommand(),
+		sdkauthcli.GetDecodeCommand(),
+		authcli.GetCmdUnlock(),
 		flags.LineBreak,
 		vestingcli.GetTxCmd(),
 		flags.LineBreak,
-		sdkbankcli.NewSendTxCmd(),
-		bankcli.LockedSendTxCmd(),
+		cvmcli.GetCmdCall(),
+		cvmcli.GetCmdDeploy(),
+		flags.LineBreak,
 	)
 
 	app.ModuleBasics.AddTxCommands(cmd)
