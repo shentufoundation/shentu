@@ -350,7 +350,7 @@ workflows:
       - test-cover:
           requires:
             - setup-dependencies
-      - localnet
+      - localnet:
           requires:
             - docker-tagged
       - upload-coverage:
