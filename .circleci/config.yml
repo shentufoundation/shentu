@@ -274,8 +274,6 @@ jobs:
           docker build -t shentu:$CIRCLE_TAG .
           docker login --password-stdin -u $DOCKER_USER \<<<$DOCKER_PASS
           docker push shentu:$CIRCLE_TAG
-          make networks/local
-          docker push tendermint/certikdnode
 
   reproducible-builds:
     executor: golang
