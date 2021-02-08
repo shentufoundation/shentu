@@ -166,7 +166,7 @@ build-docker-certikdnode:
 
 # Run a 4-node testnet locally
 localnet-start: build-linux localnet-stop
-	@if ! [ -f build/node0/certikd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/certikd:Z certikdnode testnet --v 4 -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
+	@if ! [ -f build/node0/certikd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/certikd:Z tendermint/certikdnode testnet --v 4 -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
 	docker-compose up -d
 
 # localnet: localnet.down image.update docker-compose.yml ./devtools/localnet/localnet_client_setup.sh
