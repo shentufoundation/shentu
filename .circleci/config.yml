@@ -351,6 +351,8 @@ workflows:
           requires:
             - setup-dependencies
       - localnet
+          requires:
+            - docker-tagged
       - upload-coverage:
           requires:
             - test-cover
