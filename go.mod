@@ -9,7 +9,7 @@ require (
 	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/hyperledger/burrow v0.30.5
+	github.com/hyperledger/burrow v0.30.6-0.20210205235125-5ec0c8b2fee8
 	github.com/magiconair/properties v1.8.4
 	github.com/rakyll/statik v0.1.7
 	github.com/regen-network/cosmos-proto v0.3.1
@@ -31,7 +31,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-replace (
-	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
-	github.com/hyperledger/burrow v0.30.5 => github.com/certikfoundation/burrow v0.2.1
-)
+replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
