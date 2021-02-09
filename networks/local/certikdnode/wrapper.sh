@@ -30,4 +30,3 @@ if [ -d "$(dirname "${CERTIKDHOME}"/"${LOG}")" ]; then
 else
   "${BINARY}" --home "${CERTIKDHOME}" "$@"
 fi
-

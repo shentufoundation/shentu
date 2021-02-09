@@ -95,13 +95,6 @@ else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/certikd ./cmd/certikd
 endif
 
-# build-linux:
-# 	mkdir -p ./build
-# 	docker build --tag shentu ./
-# 	docker create --name temp shentu:latest
-# 	docker cp temp:/usr/local/bin/certikd ./build/
-# 	docker rm temp
-
 build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
@@ -165,44 +158,13 @@ build-docker-certikdnode:
 	$(MAKE) -C networks/local
 
 # Run a 4-node testnet locally
-localnet-start: build-linux localnet-stop
-	@if ! [ -f build/node0/certikd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/certikd:Z certikdnode testnet --v 4 -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
+localnet-start: build-linux build-docker-certikdnode localnet-stop
+	@if ! [ -f build/node0/certikd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/certikd:Z certikfoundation/certikdnode testnet --v 4 -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
 	docker-compose up -d
-
-# localnet: localnet.down image.update docker-compose.yml ./devtools/localnet/localnet_client_setup.sh
-# 	@$(RM) -r ${LOCALNET_ROOT}
-# 	@if ! [ -f build/node0/certikd/config/genesis.json ]; then docker run --volume $(abspath ${LOCALNET_ROOT}):/root --workdir /root -it shentu certikd testnet --keyring-backend test --v 4 --output-dir /root --starting-ip-address ${LOCALNET_START_IP} --chain-id shentu; fi
-# 	@docker-compose up -d
 
 # Stop testnet
 localnet-stop:
 	docker-compose down
-
-# test-docker:
-# 	@docker build -f contrib/Dockerfile.test -t ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) .
-# 	@docker tag ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) ${TEST_DOCKER_REPO}:$(shell git rev-parse --abbrev-ref HEAD | sed 's#/#_#g')
-# 	@docker tag ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) ${TEST_DOCKER_REPO}:latest
-
-# test-docker-push: test-docker
-# 	@docker push ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD)
-# 	@docker push ${TEST_DOCKER_REPO}:$(shell git rev-parse --abbrev-ref HEAD | sed 's#/#_#g')
-# 	@docker push ${TEST_DOCKER_REPO}:latest
-
-# include simulations
-include sims.mk
-
-.PHONY: all build-linux install format lint \
-	go-mod-cache draw-deps clean build \
-	setup-transactions setup-contract-tests-data start-gaia run-lcd-contract-tests contract-tests \
-	test test-all test-build test-cover test-unit test-race \
-	benchmark \
-	build-docker-certikdnode localnet-start localnet-stop \
-	docker-single-node
-
-#.PHONY: all install release release32 fix lint test cov coverage coverage.out image image.update localnet localnet.client localnet.both localnet.down
-
-# build-docker-certikdnode: build-linux
-# 	$(MAKE) -C networks/local
 
 # localnet.client:
 # 	@docker exec -it $(shell basename $(CURDIR))_client_1 bash
@@ -211,3 +173,10 @@ include sims.mk
 
 # localnet.down:
 # 	@docker-compose down --remove-orphans
+
+# include simulations
+include sims.mk
+
+.PHONY: all build-linux install release release32 \
+	fix lint test cov coverage coverage.out image image.update \
+	build-docker-certikdnode localnet-start localnet-stop \

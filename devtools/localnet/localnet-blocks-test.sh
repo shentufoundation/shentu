@@ -26,10 +26,11 @@ if [ -z "$4" ]; then
   exit 1
 fi
 
-docker_containers=( $(docker ps -q -f name=gaia --format='{{.Names}}') )
+docker_containers=( $(docker ps -q -f name=certik --format='{{.Names}}') )
 
 while [ ${CNT} -lt $ITER ]; do
   curr_block=$(curl -s $NODEADDR:26657/status | jq -r '.result.sync_info.latest_block_height')
+  echo "Block number: ${curr_block}"
 
   if [ ! -z ${curr_block} ] ; then
     echo "Number of Blocks: ${curr_block}"
@@ -40,15 +41,14 @@ while [ ${CNT} -lt $ITER ]; do
     exit 0
   fi
 
-  # NOTE: Deactivated due to division by zero error.
-  # # Emulate network chaos:
-  # #
-  # # Every 10 blocks, pick a random container and restart it.
-  # if ! ((${CNT} % 10)); then
-  #   rand_container=${docker_containers["$[RANDOM % ${#docker_containers[@]}]"]};
-  #   echo "Restarting random docker container ${rand_container}"
-  #   docker restart ${rand_container} &>/dev/null &
-  # fi
+  # Emulate network chaos:
+  #
+  # Every 10 blocks, pick a random container and restart it.
+  if ! ((${CNT} % 10)); then
+    rand_container=${docker_containers["$[RANDOM % ${#docker_containers[@]}]"]};
+    echo "Restarting random docker container ${rand_container}"
+    docker restart ${rand_container} &>/dev/null &
+  fi
 
   let CNT=CNT+1
   sleep $SLEEP

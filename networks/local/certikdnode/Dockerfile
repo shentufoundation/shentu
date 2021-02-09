@@ -21,4 +21,3 @@ CMD ["start"]
 STOPSIGNAL SIGTERM
 
 COPY wrapper.sh /usr/bin/wrapper.sh
-
