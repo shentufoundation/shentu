@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -10,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
@@ -69,7 +69,7 @@ func GetCmdPool() *cobra.Command {
 			}
 
 			res, err := queryClient.Pool(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryPoolRequest{PoolId: id, Sponsor: sponsor},
 			)
 			if err != nil {
@@ -81,6 +81,7 @@ func GetCmdPool() *cobra.Command {
 	}
 
 	cmd.Flags().String(flagSponsor, "", "use sponsor to query the pool info")
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -98,7 +99,7 @@ func GetCmdPools() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Pools(context.Background(), &types.QueryPoolsRequest{})
+			res, err := queryClient.Pools(cmd.Context(), &types.QueryPoolsRequest{})
 			if err != nil {
 				return err
 			}
@@ -107,6 +108,7 @@ func GetCmdPools() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -134,7 +136,7 @@ func GetCmdPurchaseList() *cobra.Command {
 			}
 
 			res, err := queryClient.PurchaseList(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryPurchaseListRequest{PoolId: poolID, Purchaser: purchaser.String()},
 			)
 			if err != nil {
@@ -145,6 +147,7 @@ func GetCmdPurchaseList() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -168,7 +171,7 @@ func GetCmdPurchaserPurchases() *cobra.Command {
 			}
 
 			res, err := queryClient.PurchaseLists(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryPurchaseListsRequest{Purchaser: purchaser.String()},
 			)
 			if err != nil {
@@ -179,6 +182,7 @@ func GetCmdPurchaserPurchases() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -202,7 +206,7 @@ func GetCmdPoolPurchases() *cobra.Command {
 			}
 
 			res, err := queryClient.PurchaseLists(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryPurchaseListsRequest{PoolId: poolID},
 			)
 			if err != nil {
@@ -213,6 +217,7 @@ func GetCmdPoolPurchases() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -229,7 +234,7 @@ func GetCmdPurchases() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Purchases(context.Background(), &types.QueryPurchasesRequest{})
+			res, err := queryClient.Purchases(cmd.Context(), &types.QueryPurchasesRequest{})
 			if err != nil {
 				return err
 			}
@@ -238,6 +243,7 @@ func GetCmdPurchases() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -260,7 +266,7 @@ func GetCmdProvider() *cobra.Command {
 			}
 
 			res, err := queryClient.Provider(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryProviderRequest{Address: address.String()},
 			)
 			if err != nil {
@@ -271,6 +277,7 @@ func GetCmdProvider() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -296,7 +303,7 @@ $ %[1]s query shield providers
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Providers(context.Background(), &types.QueryProvidersRequest{})
+			res, err := queryClient.Providers(cmd.Context(), &types.QueryProvidersRequest{})
 			if err != nil {
 				return err
 			}
@@ -305,6 +312,7 @@ $ %[1]s query shield providers
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -321,7 +329,7 @@ func GetCmdPoolParams() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.PoolParams(context.Background(), &types.QueryPoolParamsRequest{})
+			res, err := queryClient.PoolParams(cmd.Context(), &types.QueryPoolParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -329,6 +337,8 @@ func GetCmdPoolParams() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -345,7 +355,7 @@ func GetCmdClaimParams() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.ClaimParams(context.Background(), &types.QueryClaimParamsRequest{})
+			res, err := queryClient.ClaimParams(cmd.Context(), &types.QueryClaimParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -353,6 +363,8 @@ func GetCmdClaimParams() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -369,7 +381,7 @@ func GetCmdStatus() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.ShieldStatus(context.Background(), &types.QueryShieldStatusRequest{})
+			res, err := queryClient.ShieldStatus(cmd.Context(), &types.QueryShieldStatusRequest{})
 			if err != nil {
 				return err
 			}
@@ -377,6 +389,8 @@ func GetCmdStatus() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -404,7 +418,7 @@ func GetCmdStaking() *cobra.Command {
 			}
 
 			res, err := queryClient.ShieldStaking(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryShieldStakingRequest{PoolId: poolID, Purchaser: purchaser.String()},
 			)
 			if err != nil {
@@ -414,6 +428,8 @@ func GetCmdStaking() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -430,7 +446,7 @@ func GetCmdShieldStakingRate() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.ShieldStakingRate(context.Background(), &types.QueryShieldStakingRateRequest{})
+			res, err := queryClient.ShieldStakingRate(cmd.Context(), &types.QueryShieldStakingRateRequest{})
 			if err != nil {
 				return err
 			}
@@ -438,6 +454,8 @@ func GetCmdShieldStakingRate() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -460,7 +478,7 @@ func GetCmdReimbursement() *cobra.Command {
 			}
 
 			res, err := queryClient.Reimbursement(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryReimbursementRequest{ProposalId: proposalID},
 			)
 			if err != nil {
@@ -471,6 +489,7 @@ func GetCmdReimbursement() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -487,7 +506,7 @@ func GetCmdReimbursements() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Reimbursements(context.Background(), &types.QueryReimbursementsRequest{})
+			res, err := queryClient.Reimbursements(cmd.Context(), &types.QueryReimbursementsRequest{})
 			if err != nil {
 				return err
 			}
@@ -496,5 +515,6 @@ func GetCmdReimbursements() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

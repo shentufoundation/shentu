@@ -14,11 +14,11 @@ const (
 var _ sdk.Msg = &MsgLockedSend{}
 
 // NewMsgLockedSend returns a MsgLockedSend object.
-func NewMsgLockedSend(from, to, unlocker sdk.AccAddress, amount sdk.Coins) *MsgLockedSend {
+func NewMsgLockedSend(from, to sdk.AccAddress, unlocker string, amount sdk.Coins) *MsgLockedSend {
 	return &MsgLockedSend{
 		FromAddress:     from.String(),
 		ToAddress:       to.String(),
-		UnlockerAddress: unlocker.String(),
+		UnlockerAddress: unlocker,
 		Amount:          amount,
 	}
 }

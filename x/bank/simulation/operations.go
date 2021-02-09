@@ -72,7 +72,7 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simtypes.Op
 				return simtypes.NoOpMsg(banktypes.ModuleName, types.TypeMsgLockedSend, err.Error()), nil, err
 			}
 
-			msg := types.NewMsgLockedSend(fromAcc.GetAddress(), toAddr, sdk.AccAddress{}, sendCoins)
+			msg := types.NewMsgLockedSend(fromAcc.GetAddress(), toAddr, "", sendCoins)
 
 			txGen := simappparams.MakeTestEncodingConfig().TxConfig
 

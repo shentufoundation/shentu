@@ -1,62 +1,58 @@
 version: '3.2'
 
 services:
-  node0:
-    container_name: node0
-    restart: on-failure
-    image: shentu
-    command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
+  certikdnode0:
+    container_name: certikdnode0
+    image: "certikfoundation/certikdnode"
+    ports:
+      - "26656-26657:26656-26657"
+    environment:
+      - ID=0
+      - LOG=${LOG:-certikd.log}
     volumes:
-      - type: bind
-        source: ${LOCALNET_ROOT}/node0
-        target: /root
+      - ./build:/certikd:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.2
-    ports:
-      - "26656-26657:26656-26657"
 
-  node1:
-    container_name: node1
-    restart: on-failure
-    image: shentu
-    command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
+  certikdnode1:
+    container_name: certikdnode1
+    image: "certikfoundation/certikdnode"
     ports:
-      - "26756-26757:26756-26757"
+      - "26659-26660:26656-26657"
+    environment:
+      - ID=1
+      - LOG=${LOG:-certikd.log}
     volumes:
-      - type: bind
-        source: ${LOCALNET_ROOT}/node1
-        target: /root
+      - ./build:/certikd:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.3
 
-  node2:
-    container_name: node2
-    restart: on-failure
-    image: shentu
-    command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
+  certikdnode2:
+    container_name: certikdnode2
+    image: "certikfoundation/certikdnode"
+    environment:
+      - ID=2
+      - LOG=${LOG:-certikd.log}
     ports:
-      - "26856-26857:26856-26857"
+      - "26661-26662:26656-26657"
     volumes:
-      - type: bind
-        source: ${LOCALNET_ROOT}/node2
-        target: /root
+      - ./build:/certikd:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.4
 
-  node3:
-    container_name: node3
-    restart: on-failure
-    image: shentu
-    command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
+  certikdnode3:
+    container_name: certikdnode3
+    image: "certikfoundation/certikdnode"
+    environment:
+      - ID=3
+      - LOG=${LOG:-certikd.log}
     ports:
-      - "26956-26957:26956-26957"
+      - "26663-26664:26656-26657"
     volumes:
-      - type: bind
-        source: ${LOCALNET_ROOT}/node3
-        target: /root
+      - ./build:/certikd:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.5
@@ -67,4 +63,5 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 192.168.10.0/16
+      -
+        subnet: 192.168.10.0/16

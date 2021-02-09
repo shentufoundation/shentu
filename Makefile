@@ -7,6 +7,8 @@ SHASUM := $(shell which sha256sum)
 PKG_LIST := $(shell go list ./...)
 DOCKER := $(shell which docker)
 DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf
+BUILDDIR ?= $(CURDIR)/build
+
 verbosity = 2
 
 build_tags = netgo
@@ -93,12 +95,8 @@ else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/certikd ./cmd/certikd
 endif
 
-build-linux:
-	mkdir -p ./build
-	docker build --tag shentu ./
-	docker create --name temp shentu:latest
-	docker cp temp:/usr/local/bin/certikd ./build/
-	docker rm temp
+build-linux: go.sum
+	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
 ########## Tools ##########
 
@@ -111,7 +109,8 @@ go.sum: go.mod
 	go mod verify
 
 clean:
-	rm -rf snapcraft-local.yaml build/
+	#rm -rf snapcraft-local.yaml build/
+	rm -rf $(BUILDDIR)/ artifacts/
 
 distclean:
 	rm -rf \
@@ -151,23 +150,33 @@ image.update: Dockerfile.update
 
 include .env
 
-localnet: localnet.down image.update docker-compose.yml ./devtools/localnet/localnet_client_setup.sh
-	@$(RM) -r ${LOCALNET_ROOT}
-	@if ! [ -f build/node0/gaiad/config/genesis.json ]; then docker run --volume $(abspath ${LOCALNET_ROOT}):/root --workdir /root -it shentu certikd testnet --keyring-backend test --v 4 --output-dir /root --starting-ip-address ${LOCALNET_START_IP} --chain-id shentu; fi
-	@docker-compose up -d
+###############################################################################
+###                                Localnet                                 ###
+###############################################################################
 
-build-docker-certikdnode: build-linux
+build-docker-certikdnode:
 	$(MAKE) -C networks/local
 
-localnet.client:
-	@docker exec -it $(shell basename $(CURDIR))_client_1 bash
+# Run a 4-node testnet locally
+localnet-start: build-linux build-docker-certikdnode localnet-stop
+	@if ! [ -f build/node0/certikd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/certikd:Z certikfoundation/certikdnode testnet --v 4 -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
+	docker-compose up -d
 
-localnet.both: localnet localnet.client
+# Stop testnet
+localnet-stop:
+	docker-compose down
 
-localnet.down:
-	@docker-compose down --remove-orphans
+# localnet.client:
+# 	@docker exec -it $(shell basename $(CURDIR))_client_1 bash
 
-.PHONY: all install release release32 fix lint test cov coverage coverage.out image image.update localnet localnet.client localnet.both localnet.down
+# localnet.both: localnet localnet.client
+
+# localnet.down:
+# 	@docker-compose down --remove-orphans
 
 # include simulations
 include sims.mk
+
+.PHONY: all build-linux install release release32 \
+	fix lint test cov coverage coverage.out image image.update \
+	build-docker-certikdnode localnet-start localnet-stop \

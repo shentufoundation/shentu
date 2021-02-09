@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -87,7 +88,7 @@ func GetCmdCreateOperator() *cobra.Command {
 	}
 
 	cmd.Flags().String(FlagName, "", "name of the operator")
-
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -121,6 +122,8 @@ func GetCmdRemoveOperator() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -153,6 +156,8 @@ func GetCmdDepositCollateral() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -185,6 +190,8 @@ func GetCmdWithdrawCollateral() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -213,6 +220,8 @@ func GetCmdClaimReward() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -276,6 +285,7 @@ func GetCmdCreateTask() *cobra.Command {
 	cmd.Flags().String(FlagDescription, "", "description of the task")
 	cmd.Flags().String(FlagWait, "0", "number of blocks between task creation and aggregation")
 	cmd.Flags().String(FlagValidDuration, "0", "valid duration of the task result")
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -324,6 +334,7 @@ func GetCmdRespondToTask() *cobra.Command {
 	cmd.Flags().String(FlagContract, "", "contract address")
 	cmd.Flags().String(FlagFunction, "", "function")
 	cmd.Flags().String(FlagScore, "", "score")
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -372,6 +383,8 @@ func GetCmdInquiry() *cobra.Command {
 	cmd.Flags().String(FlagContract, "", "contract address")
 	cmd.Flags().String(FlagFunction, "", "function")
 	cmd.Flags().String(FlagTxhash, "", "txhash")
+	flags.AddTxFlagsToCmd(cmd)
+
 	return cmd
 }
 
@@ -414,5 +427,7 @@ func GetCmdDeleteTask() *cobra.Command {
 	cmd.Flags().String(FlagContract, "", "contract address")
 	cmd.Flags().String(FlagFunction, "", "function")
 	cmd.Flags().BoolVarP(&FlagForce, "force", "f", false, "compulsory delete")
+	flags.AddTxFlagsToCmd(cmd)
+
 	return cmd
 }
