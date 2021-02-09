@@ -4,6 +4,7 @@ package keeper
 import (
 	"bytes"
 	gobin "encoding/binary"
+	"math/big"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -19,7 +20,6 @@ import (
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/execution/engine"
 	"github.com/hyperledger/burrow/execution/errors"
-	"github.com/hyperledger/burrow/execution/native"
 	"github.com/hyperledger/burrow/execution/wasm"
 	"github.com/hyperledger/burrow/logging"
 	"github.com/hyperledger/burrow/txs/payload"
@@ -103,11 +103,11 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 	var err error
 	if callee == nil {
 		calleeAddr = crypto.NewContractAddress(callerAddr, sequenceBytes)
-		if err = native.CreateAccount(cache, calleeAddr); err != nil {
+		if err = engine.CreateAccount(cache, calleeAddr); err != nil {
 			return nil, types.ErrCodedError(errors.GetCode(err))
 		}
 		code = data
-		err = native.UpdateContractMeta(cache, state, calleeAddr, payloadMeta)
+		err = engine.UpdateContractMeta(cache, state, calleeAddr, payloadMeta)
 	} else {
 		calleeAddr = crypto.MustAddressFromBytes(callee)
 		calleeAddr, code, isEWASM, err = getCallee(callee, cache)
@@ -131,10 +131,10 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 		Caller: callerAddr,
 		Callee: calleeAddr,
 		Input:  data,
-		Value:  value,
-		Gas:    &gasTracker,
+		Value:  *big.NewInt(int64(value)),
+		Gas:    big.NewInt(int64(gasTracker)),
 	}
-	options := vm.CVMOptions{
+	options := engine.Options{
 		Nonce: sequenceBytes,
 	}
 	cc := CertificateCallable{
@@ -151,7 +151,8 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 		if isRuntime {
 			ret = code
 		} else {
-			ret, err = wasm.RunWASM(cache, callParams, code)
+			wvm := wasm.New(options)
+			ret, err = wvm.Execute(cache, bc, NewEventSink(ctx), callParams, code)
 		}
 	} else {
 		ret, err = newCVM.Execute(cache, bc, NewEventSink(ctx), callParams, code)
@@ -172,9 +173,9 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 
 	if callee == nil {
 		if isEWASM {
-			err = native.InitWASMCode(cache, calleeAddr, ret)
+			err = engine.InitWASMCode(cache, calleeAddr, ret)
 		} else {
-			err = native.InitEVMCode(cache, calleeAddr, ret)
+			err = engine.InitEVMCode(cache, calleeAddr, ret)
 		}
 		if err != nil {
 			return nil, types.ErrCodedError(errors.GetCode(err))
@@ -403,7 +404,7 @@ func RegisterGlobalPermissionAcc(ctx sdk.Context, k Keeper) {
 		panic(err)
 	}
 	if gpacc == nil {
-		if err = native.CreateAccount(st.CallFrame, acm.GlobalPermissionsAddress); err != nil {
+		if err = engine.CreateAccount(st.CallFrame, acm.GlobalPermissionsAddress); err != nil {
 			panic(err)
 		}
 	}

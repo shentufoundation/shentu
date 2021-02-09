@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	"math/big"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/hyperledger/burrow/execution/engine"
 
 	"github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
@@ -9,7 +12,6 @@ import (
 	"github.com/hyperledger/burrow/execution/native"
 	"github.com/hyperledger/burrow/permission"
 
-	"github.com/certikfoundation/shentu/vm"
 	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
@@ -21,16 +23,16 @@ type CertificateCallable struct {
 
 const (
 	// TODO: consolidate native contract gas consumption
-	GasBase uint64 = 1000
+	GasBase int64 = 1000
 )
 
 // registerCVMNative registers precompile contracts in CVM.
-func registerCVMNative(options *vm.CVMOptions, cc CertificateCallable) {
+func registerCVMNative(options *engine.Options, cc CertificateCallable) {
 	options.Natives = native.MustDefaultNatives().
-		MustFunction("General", leftPadAddress(9), permission.None, cc.checkGeneral).
-		MustFunction("Proof", leftPadAddress(10), permission.None, cc.checkProof).
-		MustFunction("Compilation", leftPadAddress(11), permission.None, cc.checkCompilation).
-		MustFunction("CertifyValidator", leftPadAddress(12), permission.None, cc.certifyValidator)
+		MustFunction("General", leftPadAddress(101), permission.None, cc.checkGeneral).
+		MustFunction("Proof", leftPadAddress(102), permission.None, cc.checkProof).
+		MustFunction("Compilation", leftPadAddress(103), permission.None, cc.checkCompilation).
+		MustFunction("CertifyValidator", leftPadAddress(104), permission.None, cc.certifyValidator)
 }
 
 // checkGeneral checks if certificates for a given content exists.
@@ -49,11 +51,11 @@ func (cc CertificateCallable) checkProof(ctx native.Context) (output []byte, err
 
 // checkFunc checks if a certain type of certificates for a given content exists.
 func (cc CertificateCallable) checkFunc(ctx native.Context, certType string) ([]byte, error) {
-	gasRequired := GasBase
-	if *ctx.Gas < gasRequired {
+	gasRequired := big.NewInt(GasBase)
+	if ctx.Gas.Cmp(gasRequired) == -1 {
 		return nil, errors.Codes.InsufficientGas
 	} else {
-		*ctx.Gas -= gasRequired
+		*ctx.Gas = *ctx.Gas.Sub(ctx.Gas, gasRequired)
 	}
 	input := string(ctx.Input)
 	addr, err := sdk.AccAddressFromBech32(input)
@@ -68,11 +70,11 @@ func (cc CertificateCallable) checkFunc(ctx native.Context, certType string) ([]
 
 // checkCompilation checks if compilation certificates for a given content exists.
 func (cc CertificateCallable) checkCompilation(ctx native.Context) (output []byte, err error) {
-	gasRequired := GasBase
-	if *ctx.Gas < gasRequired {
+	gasRequired := big.NewInt(GasBase)
+	if ctx.Gas.Cmp(gasRequired) == -1 {
 		return nil, errors.Codes.InsufficientGas
 	} else {
-		*ctx.Gas -= gasRequired
+		*ctx.Gas = *ctx.Gas.Sub(ctx.Gas, gasRequired)
 	}
 	input := string(ctx.Input)
 	if cc.certKeeper.IsCertified(cc.ctx, "sourcecodehash", input, "compilation") {
@@ -83,11 +85,11 @@ func (cc CertificateCallable) checkCompilation(ctx native.Context) (output []byt
 
 // certifyValidator certifies a validator.
 func (cc CertificateCallable) certifyValidator(ctx native.Context) (output []byte, err error) {
-	gasRequired := GasBase
-	if *ctx.Gas < gasRequired {
+	gasRequired := big.NewInt(GasBase)
+	if ctx.Gas.Cmp(gasRequired) == -1 {
 		return nil, errors.Codes.InsufficientGas
 	} else {
-		*ctx.Gas -= gasRequired
+		*ctx.Gas = *ctx.Gas.Sub(ctx.Gas, gasRequired)
 	}
 	if !cc.certKeeper.IsCertifier(cc.ctx, ctx.Origin.Bytes()) {
 		return nil, certtypes.ErrUnqualifiedCertifier
