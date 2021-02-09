@@ -1,13 +1,13 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/oracle/types"
@@ -54,7 +54,7 @@ func GetCmdOperator() *cobra.Command {
 			}
 
 			res, err := queryClient.Operator(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryOperatorRequest{Address: address.String()},
 			)
 			if err != nil {
@@ -64,6 +64,8 @@ func GetCmdOperator() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -80,7 +82,7 @@ func GetCmdOperators() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Operators(context.Background(), &types.QueryOperatorsRequest{})
+			res, err := queryClient.Operators(cmd.Context(), &types.QueryOperatorsRequest{})
 			if err != nil {
 				return err
 			}
@@ -88,6 +90,8 @@ func GetCmdOperators() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -105,7 +109,7 @@ func GetCmdWithdraws() *cobra.Command {
 			queryClient := types.NewQueryClient(cliCtx)
 
 			res, err := queryClient.Withdraws(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryWithdrawsRequest{},
 			)
 			if err != nil {
@@ -115,6 +119,8 @@ func GetCmdWithdraws() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -141,7 +147,7 @@ func GetCmdTask() *cobra.Command {
 			}
 
 			res, err := queryClient.Task(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryTaskRequest{Contract: contract, Function: function},
 			)
 			if err != nil {
@@ -151,8 +157,10 @@ func GetCmdTask() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
 	cmd.Flags().String(FlagContract, "", "Provide the contract address")
 	cmd.Flags().String(FlagFunction, "", "Provide the function")
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -187,7 +195,7 @@ func GetCmdResponse() *cobra.Command {
 			}
 
 			res, err := queryClient.Response(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryResponseRequest{Contract: contract, Function: function, OperatorAddress: operatorAddress.String()},
 			)
 			if err != nil {
@@ -197,8 +205,10 @@ func GetCmdResponse() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+
 	cmd.Flags().String(FlagContract, "", "Provide the contract address")
 	cmd.Flags().String(FlagFunction, "", "Provide the function")
 	cmd.Flags().String(FlagOperator, "", "Provide the operator")
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

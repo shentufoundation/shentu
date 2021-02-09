@@ -121,7 +121,7 @@ func (am AppModule) Route() sdk.Route {
 
 // QuerierRoute returns the module querier route name.
 func (AppModule) QuerierRoute() string {
-	return types.QuerierRoute
+	return types.RouterKey
 }
 
 // LegacyQuerierHandler returns a new querier module handler.
@@ -132,7 +132,7 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.moduleKeeper))
-	types.RegisterQueryServer(cfg.QueryServer(), am.moduleKeeper)
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.Querier{Keeper: am.moduleKeeper})
 }
 
 // InitGenesis initializes the module genesis.
