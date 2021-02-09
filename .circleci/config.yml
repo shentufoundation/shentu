@@ -212,7 +212,7 @@ jobs:
             popd
             set -x
             make clean build-docker-certikdnode localnet-start
-            ./devtools/localnet/localnet-blocks-test.sh 40 5 10 localhost
+            ./devtools/localnet/localnet-blocks-test.sh 100 5 50 localhost
 
   macos-ci:
     executor: mac

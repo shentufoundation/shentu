@@ -30,7 +30,6 @@ docker_containers=( $(docker ps -q -f name=certik --format='{{.Names}}') )
 
 while [ ${CNT} -lt $ITER ]; do
   curr_block=$(curl -s $NODEADDR:26657/status | jq -r '.result.sync_info.latest_block_height')
-  echo "Block number: ${curr_block}"
 
   if [ ! -z ${curr_block} ] ; then
     echo "Number of Blocks: ${curr_block}"
