@@ -3,12 +3,11 @@ package vm
 import (
 	"fmt"
 
-	"github.com/hyperledger/burrow/execution/evm"
-
 	"github.com/hyperledger/burrow/acm"
 	"github.com/hyperledger/burrow/acm/acmstate"
 	"github.com/hyperledger/burrow/execution/engine"
 	"github.com/hyperledger/burrow/execution/errors"
+	"github.com/hyperledger/burrow/execution/evm"
 	"github.com/hyperledger/burrow/execution/exec"
 	"github.com/hyperledger/burrow/execution/native"
 	"github.com/hyperledger/burrow/logging"

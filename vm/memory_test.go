@@ -5,10 +5,9 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/hyperledger/burrow/execution/errors"
-
 	"github.com/stretchr/testify/assert"
 
+	"github.com/hyperledger/burrow/execution/errors"
 	"github.com/hyperledger/burrow/execution/evm"
 )
 

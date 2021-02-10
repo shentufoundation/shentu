@@ -8,8 +8,6 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/hyperledger/burrow/permission"
-
 	"github.com/hyperledger/burrow/acm"
 	. "github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
@@ -19,6 +17,7 @@ import (
 	"github.com/hyperledger/burrow/execution/evm/abi"
 	. "github.com/hyperledger/burrow/execution/evm/asm"
 	"github.com/hyperledger/burrow/execution/exec"
+	"github.com/hyperledger/burrow/permission"
 	"github.com/hyperledger/burrow/txs"
 )
 
@@ -79,7 +78,7 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 		// CVM GAS CONSUMPTION
 		// Look up an instruction's gas cost in op_table and consumes gas using useGasNegative() function.
 		// An instruction can have either static gas or dynamic gas.
-		gaserr := useGasNegative(params.Gas, big.NewInt(int64(gasLookUp(op, *st.CallFrame, params.Callee, stack, maybe, &gasMem))))
+		gaserr := engine.UseGasNegative(params.Gas, gasLookUp(op, *st.CallFrame, params.Callee, stack, maybe, &gasMem))
 		if gaserr != nil {
 			return nil, gaserr
 		}
@@ -784,13 +783,6 @@ func (c *CVMContract) jump(to uint64, pc *uint64) error {
 	}
 	c.debugf(" ~> %v\n", to)
 	*pc = to
-	return nil
-}
-
-// Try to deduct gasToUse from gasLeft.  If ok return false, otherwise
-// set err and return true.
-func useGasNegative(gasLeft *big.Int, gasToUse *big.Int) error {
-	gasLeft.Sub(gasLeft, gasToUse)
 	return nil
 }
 

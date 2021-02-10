@@ -6,15 +6,12 @@ import (
 	gobin "encoding/binary"
 	"math/big"
 
-	"github.com/hyperledger/burrow/permission"
-
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/hyperledger/burrow/acm"
 	"github.com/hyperledger/burrow/acm/acmstate"
@@ -24,6 +21,7 @@ import (
 	"github.com/hyperledger/burrow/execution/errors"
 	"github.com/hyperledger/burrow/execution/wasm"
 	"github.com/hyperledger/burrow/logging"
+	"github.com/hyperledger/burrow/permission"
 	"github.com/hyperledger/burrow/txs/payload"
 
 	"github.com/certikfoundation/shentu/vm"

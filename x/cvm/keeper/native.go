@@ -4,10 +4,10 @@ import (
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/hyperledger/burrow/execution/engine"
 
 	"github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
+	"github.com/hyperledger/burrow/execution/engine"
 	"github.com/hyperledger/burrow/execution/errors"
 	"github.com/hyperledger/burrow/execution/native"
 	"github.com/hyperledger/burrow/permission"
