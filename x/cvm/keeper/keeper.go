@@ -6,6 +6,8 @@ import (
 	gobin "encoding/binary"
 	"math/big"
 
+	"github.com/hyperledger/burrow/permission"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -134,14 +136,12 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 		Value:  *big.NewInt(int64(value)),
 		Gas:    big.NewInt(int64(gasTracker)),
 	}
-	options := engine.Options{
-		Nonce: sequenceBytes,
-	}
+
 	cc := CertificateCallable{
 		ctx:        ctx,
 		certKeeper: k.ck,
 	}
-	registerCVMNative(&options, cc)
+	options := registerCVMNative(cc, sequenceBytes)
 
 	newCVM := vm.NewCVM(options)
 	bc := NewBlockChain(ctx, k)
@@ -394,21 +394,15 @@ func (k Keeper) GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.Accou
 // RegisterGlobalPermissionAcc registers the zero address as the global permission account.
 func RegisterGlobalPermissionAcc(ctx sdk.Context, k Keeper) {
 	state := k.NewState(ctx)
-	st := engine.State{
-		CallFrame:  engine.NewCallFrame(state).WithMaxCallStackDepth(0),
-		Blockchain: NewBlockChain(ctx, k),
-		EventSink:  NewEventSink(ctx),
+
+	gpacc := &acm.Account{
+		Address:     acm.GlobalPermissionsAddress,
+		Balance:     0,
+		Permissions: permission.DefaultAccountPermissions,
 	}
-	gpacc, err := st.CallFrame.GetAccount(acm.GlobalPermissionsAddress)
+	gpacc.Permissions.Base.SetBit = permission.AllPermFlags
+	err := state.UpdateAccount(gpacc)
 	if err != nil {
-		panic(err)
-	}
-	if gpacc == nil {
-		if err = engine.CreateAccount(st.CallFrame, acm.GlobalPermissionsAddress); err != nil {
-			panic(err)
-		}
-	}
-	if err := st.Sync(); err != nil {
 		panic(err)
 	}
 }

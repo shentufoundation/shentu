@@ -17,7 +17,6 @@ import (
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/execution/engine"
 	"github.com/hyperledger/burrow/execution/errors"
-	"github.com/hyperledger/burrow/execution/evm"
 	"github.com/hyperledger/burrow/execution/evm/abi"
 	. "github.com/hyperledger/burrow/execution/evm/asm"
 	. "github.com/hyperledger/burrow/execution/evm/asm/bc"
@@ -34,13 +33,13 @@ import (
 //var logger, _, _ = lifecycle.NewStdErrLogger()
 
 // testDDMP is a test version of wrappedDDMP to reduce raw output and test gas accordingly
-func testDDMP(err errors.Sink) gasMemory {
-	return gasMemory{evm.NewDynamicMemory(0, 0x1000000, err), 0, 0}
+func testDDMP(err errors.Sink) engine.Memory {
+	return gasMemory{engine.NewDynamicMemory(0, 0x1000000, err), 0, 0}
 }
 
 // Runs a basic loop
 func TestVM(t *testing.T) {
-	vm := NewCVM(CVMOptions{
+	vm := NewCVM(engine.Options{
 		MemoryProvider: testDDMP,
 		Natives:        native.MustDefaultNatives(),
 	})
@@ -65,7 +64,7 @@ func TestVM(t *testing.T) {
 		output, err := vm.Execute(st, blockchain, eventSink, engine.CallParams{
 			Caller: account1,
 			Callee: account2,
-			Gas:    &gas,
+			Gas:    big.NewInt(int64(gas)),
 		}, bytecode)
 		t.Logf("Output: %v Error: %v\n", output, err)
 		t.Logf("Call took: %v", time.Since(start))
@@ -677,7 +676,7 @@ func TestVM(t *testing.T) {
 		var inOff, inSize, retOff, retSize byte
 
 		logDefault := MustSplice(PUSH1, inSize, PUSH1, inOff)
-		testRecipient := native.AddressFromName("1")
+		testRecipient := engine.AddressFromName("1")
 		// check all illegal state modifications in child staticcall frame
 		for _, illegalContractCode := range []acm.Bytecode{
 			MustSplice(PUSH9, "arbitrary", PUSH1, 0x00, SSTORE),
@@ -824,13 +823,13 @@ func TestVM(t *testing.T) {
 		callee := makeAccountWithCode(t, st, "callee", MustSplice(PUSH1, calleeReturnValue, PUSH1, 0, MSTORE, PUSH1, 32, PUSH1, 0, RETURN))
 
 		// 6 op codes total
-		baseOpsCost := native.GasBaseOp * 6
+		baseOpsCost := engine.GasBaseOp * 6
 		// 4 pushes
-		pushCost := native.GasStackOp * 4
+		pushCost := engine.GasStackOp * 4
 		// 2 pushes 2 pops
-		returnCost := native.GasStackOp * 4
+		returnCost := engine.GasStackOp * 4
 		// To push success/failure
-		resumeCost := native.GasStackOp
+		resumeCost := engine.GasStackOp
 
 		// Gas is not allowed to drop to 0 so we add resumecost
 		delegateCallCost := baseOpsCost + pushCost + returnCost + resumeCost
@@ -869,9 +868,9 @@ func TestVM(t *testing.T) {
 		st := acmstate.NewMemoryState()
 		blockchain := new(blockchain)
 		eventSink := exec.NewNoopEventSink()
-		vm := NewCVM(CVMOptions{
-			MemoryProvider: func(err errors.Sink) gasMemory {
-				return gasMemory{evm.NewDynamicMemory(1024, 2048, err), 0, 0}
+		vm := NewCVM(engine.Options{
+			MemoryProvider: func(err errors.Sink) engine.Memory {
+				return gasMemory{engine.NewDynamicMemory(1024, 2048, err), 0, 0}
 			},
 		})
 		caller := makeAccountWithCode(t, st, "caller", nil)
@@ -880,7 +879,7 @@ func TestVM(t *testing.T) {
 		word := One256
 		// This attempts to store a value at the memory boundary and return it
 		params := engine.CallParams{
-			Gas:    &gas,
+			Gas:    big.NewInt(int64(gas)),
 			Caller: caller,
 			Callee: callee,
 		}
@@ -951,7 +950,7 @@ func TestVM(t *testing.T) {
 
 		// Not needed for this test (since contract code is passed as argument to vm), but this is what an execution
 		// framework must do
-		err = native.InitEVMCode(st, account2, contractCode)
+		err = engine.InitEVMCode(st, account2, contractCode)
 		require.NoError(t, err)
 
 		// Input is the function hash of `get()`
@@ -1056,14 +1055,14 @@ func TestVM(t *testing.T) {
 		eventSink := exec.NewNoopEventSink()
 		account1 := newAccount(t, st, "1")
 		addToBalance(t, st, account1, 100000)
-		unknownAddress := native.AddressFromName("nonexistent")
+		unknownAddress := engine.AddressFromName("nonexistent")
 		var gas uint64
-		amt := uint64(100)
+		amt := big.NewInt(100)
 		params := engine.CallParams{
 			Caller: account1,
 			Callee: unknownAddress,
-			Value:  amt,
-			Gas:    &gas,
+			Value:  *amt,
+			Gas:    big.NewInt(int64(gas)),
 		}
 		_, ex := vm.Execute(st, blockchain, eventSink, params, nil)
 		require.Equal(t, errors.Codes.NonExistentAccount, errors.GetCode(ex),
@@ -1089,7 +1088,7 @@ func TestVM(t *testing.T) {
 		params := engine.CallParams{
 			Caller: account1,
 			Callee: account2,
-			Gas:    &gas,
+			Gas:    big.NewInt(int64(gas)),
 		}
 		// Non existing block
 		blockchain.blockHeight = 1
@@ -1233,9 +1232,9 @@ func TestVM(t *testing.T) {
 			Caller: account1,
 			Callee: account2,
 			Input:  code,
-			Gas:    &gas,
+			Gas:    big.NewInt(int64(gas)),
 		}
-		vm := NewCVM(CVMOptions{
+		vm := NewCVM(engine.Options{
 			DebugOpcodes:      true,
 			DataStackMaxDepth: 10, //4, TODO why does this need to change
 		})
@@ -1291,9 +1290,9 @@ func TestVM(t *testing.T) {
 			Caller: account1,
 			Callee: account2,
 			Input:  code,
-			Gas:    &gas,
+			Gas:    big.NewInt(int64(gas)),
 		}
-		options := CVMOptions{
+		options := engine.Options{
 			CallStackMaxDepth: 2,
 		}
 		vm := NewCVM(options)
@@ -1301,9 +1300,9 @@ func TestVM(t *testing.T) {
 		contractCode, err := vm.Execute(st, blockchain, eventSink, params, code)
 		require.NoError(t, err)
 
-		err = native.InitEVMCode(st, account1, contractCode)
+		err = engine.InitEVMCode(st, account1, contractCode)
 		require.NoError(t, err)
-		err = native.InitEVMCode(st, account2, contractCode)
+		err = engine.InitEVMCode(st, account2, contractCode)
 		require.NoError(t, err)
 
 		// keccak256 hash of 'callMeBack()'
@@ -1376,9 +1375,9 @@ func TestVM(t *testing.T) {
 		address1 := crypto.Address{1, 3, 5, 7, 9}
 		address2 := crypto.Address{2, 4, 6, 8, 10}
 
-		err := native.CreateAccount(st, address1)
+		err := engine.CreateAccount(st, address1)
 		require.NoError(t, err)
-		err = native.CreateAccount(st, address2)
+		err = engine.CreateAccount(st, address2)
 		require.NoError(t, err)
 
 		var gas uint64 = 100000
@@ -1407,7 +1406,7 @@ func TestVM(t *testing.T) {
 		params := engine.CallParams{
 			Caller: address1,
 			Callee: address2,
-			Gas:    &gas,
+			Gas:    big.NewInt(int64(gas)),
 		}
 		_, err = vm.Execute(st, blockchain, txe, params, code)
 		require.NoError(t, err)
@@ -2445,7 +2444,7 @@ func TestVM(t *testing.T) {
 			params := engine.CallParams{
 				Caller: account1,
 				Callee: account2,
-				Gas:    &gas,
+				Gas:    big.NewInt(int64(gas)),
 			}
 			if output, err := vm.Execute(st, blockchain, eventSink, params, tt.bytecode); err != nil || !bytes.Equal(output, tt.expected) {
 				t.Errorf("Reported error in %v.", tt.name)
@@ -3031,7 +3030,7 @@ func TestVM(t *testing.T) {
 			params := engine.CallParams{
 				Caller: account1,
 				Callee: account2,
-				Gas:    &gas,
+				Gas:    big.NewInt(int64(gas)),
 			}
 			if output, err := vm.Execute(st, blockchain, eventSink, params, tt.bytecode); err != nil || !bytes.Equal(output, tt.expected) {
 				t.Errorf("Reported error in %v.", tt.name)
@@ -3087,7 +3086,7 @@ func TestVM(t *testing.T) {
 			{
 				// "code": "0x44"
 				"difficulty",
-				MustSplice(DIFFICULTY_DEPRECATED, return1()),
+				MustSplice(DIFFICULTY, return1()),
 				[]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -3116,7 +3115,7 @@ func TestVM(t *testing.T) {
 			params := engine.CallParams{
 				Caller: account1,
 				Callee: account2,
-				Gas:    &gas,
+				Gas:    big.NewInt(int64(gas)),
 			}
 			if output, err := vm.Execute(st, blockchain, eventSink, params, tt.bytecode); err != nil || !bytes.Equal(output, tt.expected) {
 				t.Errorf("Reported error in %v.", tt.name)
@@ -3442,14 +3441,15 @@ func TestVM(t *testing.T) {
 			},
 		}
 		for _, tt := range tests {
+			value := big.NewInt(int64(tt.value))
 			addToBalance(t, st, account1, tt.value)
 			params := engine.CallParams{
 				Origin: tt.origin,
 				Caller: account1,
 				Callee: account2,
 				Input:  tt.input,
-				Value:  tt.value,
-				Gas:    &gas,
+				Value:  *value,
+				Gas:    big.NewInt(int64(gas)),
 			}
 			if output, err := vm.Execute(st, blockchain, eventSink, params, tt.bytecode); errors.GetCode(err) != tt.expected_err {
 				t.Errorf("FAIL: %v.", tt.name)
@@ -4811,19 +4811,20 @@ func TestVM(t *testing.T) {
 			params := engine.CallParams{
 				Caller: account1,
 				Callee: account2,
-				Gas:    &gas,
+				Gas:    big.NewInt(int64(gas)),
 			}
 			if _, err := vm.Execute(st, blockchain, eventSink, params, tt.pre); err != nil {
 				t.Errorf("FAIL: pre-%v.", tt.name)
 				assert.NoError(t, err)
 			}
+			value := big.NewInt(int64(tt.value))
 			params = engine.CallParams{
 				Origin: tt.origin,
 				Caller: account1,
 				Callee: account2,
 				Input:  tt.input,
-				Value:  tt.value,
-				Gas:    &gas,
+				Value:  *value,
+				Gas:    big.NewInt(int64(gas)),
 			}
 			if output, err := vm.Execute(st, blockchain, eventSink, params, tt.bytecode); errors.GetCode(err) != tt.expected_err {
 				t.Errorf("FAIL: %v.", tt.name)
@@ -4867,7 +4868,7 @@ func TestVM(t *testing.T) {
 			params := engine.CallParams{
 				Caller: account1,
 				Callee: account2,
-				Gas:    &tt.gas,
+				Gas:    big.NewInt(int64(tt.gas)),
 			}
 			if output, err := vm.Execute(st, blockchain, eventSink, params, tt.bytecode); errors.GetCode(err) != tt.expected_err {
 				t.Errorf("FAIL: %v.", tt.name)
@@ -4917,7 +4918,7 @@ func TestVM(t *testing.T) {
 					Callee: account2,
 					Input:	tt.input,
 					Value:	tt.value,
-					Gas:    &gas,
+					Gas:    big.NewInt(int64(gas)),
 				}
 				if output, err := vm.Execute(st, blockchain, eventSink, params, tt.bytecode); errors.GetCode(err) != tt.expected_err {
 					t.Errorf("FAIL: %v.", tt.name)
@@ -4958,7 +4959,7 @@ func TestVM(t *testing.T) {
 					Callee: account2,
 					Input:	tt.input,
 					Value:	tt.value,
-					Gas:    &gas,
+					Gas:    big.NewInt(int64(gas)),
 				}
 				if output, err := vm.Execute(st, blockchain, eventSink, params, tt.bytecode); errors.GetCode(err) != tt.expected_err {
 					t.Errorf("FAIL: %v.", tt.name)
@@ -5619,7 +5620,7 @@ func TestVM(t *testing.T) {
 			params := engine.CallParams{
 				Caller: account1,
 				Callee: account2,
-				Gas:    &gas,
+				Gas:    big.NewInt(int64(gas)),
 			}
 			if output, err := vm.Execute(st, blockchain, eventSink, params, tt.bytecode); errors.GetCode(err) != tt.expected_err {
 				t.Errorf("FAIL: %v.", tt.name)
@@ -5862,7 +5863,7 @@ func TestVM(t *testing.T) {
 			params := engine.CallParams{
 				Caller: account1,
 				Callee: account2,
-				Gas:    &gas,
+				Gas:    big.NewInt(int64(gas)),
 			}
 			if output, err := vm.Execute(st, blockchain, eventSink, params, tt.bytecode); errors.GetCode(err) != tt.expected_err {
 				t.Errorf("FAIL: %v.", tt.name)
@@ -5987,13 +5988,14 @@ func TestVM(t *testing.T) {
 			},
 		}
 		for _, tt := range tests {
+			value := big.NewInt(int64(tt.value))
 			params := engine.CallParams{
 				Origin: tt.origin,
 				Caller: account1,
 				Callee: account2,
 				Input:  tt.input,
-				Value:  tt.value,
-				Gas:    &gas,
+				Value:  *value,
+				Gas:    big.NewInt(int64(gas)),
 			}
 			if output, err := vm.Execute(st, blockchain, eventSink, params, tt.bytecode); errors.GetCode(err) != tt.expected_err {
 				t.Errorf("FAIL: %v.", tt.name)
@@ -6072,13 +6074,14 @@ func TestVM(t *testing.T) {
 			},
 		}
 		for _, tt := range tests {
+			value := big.NewInt(int64(tt.value))
 			params := engine.CallParams{
 				Origin: tt.origin,
 				Caller: account1,
 				Callee: account2,
 				Input:  tt.input,
-				Value:  tt.value,
-				Gas:    &gas,
+				Value:  *value,
+				Gas:    big.NewInt(int64(gas)),
 			}
 			if output, err := vm.Execute(st, blockchain, eventSink, params, tt.bytecode); errors.GetCode(err) != tt.expected_err {
 				t.Errorf("FAIL: %v.", tt.name)
@@ -6116,7 +6119,7 @@ func TestVM(t *testing.T) {
 			params := engine.CallParams{
 				Caller: account1,
 				Callee: account2,
-				Gas:    &gas,
+				Gas:    big.NewInt(int64(gas)),
 			}
 			if output, err := vm.Execute(st, blockchain, eventSink, params, tt.bytecode); errors.GetCode(err) != tt.expected_err {
 				t.Errorf("FAIL: %v.", tt.name)
@@ -6132,6 +6135,7 @@ func TestVM(t *testing.T) {
 type blockchain struct {
 	blockHeight uint64
 	blockTime   time.Time
+	chainid     string
 }
 
 func (b *blockchain) LastBlockHeight() uint64 {
@@ -6151,27 +6155,31 @@ func (b *blockchain) BlockHash(height uint64) ([]byte, error) {
 	return bs, nil
 }
 
+func (b *blockchain) ChainID() string {
+	return b.chainid
+}
+
 // helpers
 
 func newAccount(t testing.TB, st acmstate.ReaderWriter, name string) crypto.Address {
-	address := native.AddressFromName(name)
-	err := native.CreateAccount(st, address)
+	address := engine.AddressFromName(name)
+	err := engine.CreateAccount(st, address)
 	require.NoError(t, err)
 	return address
 }
 
 func makeAccountWithCode(t testing.TB, st acmstate.ReaderWriter, name string, code []byte) crypto.Address {
-	address := native.AddressFromName(name)
-	err := native.CreateAccount(st, address)
+	address := engine.AddressFromName(name)
+	err := engine.CreateAccount(st, address)
 	require.NoError(t, err)
-	err = native.InitEVMCode(st, address, code)
+	err = engine.InitEVMCode(st, address, code)
 	require.NoError(t, err)
 	addToBalance(t, st, address, 9999999)
 	return address
 }
 
 func addToBalance(t testing.TB, st acmstate.ReaderWriter, address crypto.Address, amount uint64) {
-	err := native.UpdateAccount(st, address, func(account *acm.Account) error {
+	err := engine.UpdateAccount(st, address, func(account *acm.Account) error {
 		return account.AddToBalance(amount)
 	})
 	require.NoError(t, err)
@@ -6185,7 +6193,7 @@ func call(vm *CVM, st acmstate.ReaderWriter, origin, callee crypto.Address, code
 		Caller: origin,
 		Callee: callee,
 		Input:  input,
-		Gas:    gas,
+		Gas:    big.NewInt(int64(*gas)),
 	}, code)
 
 	if err != nil {
@@ -6230,13 +6238,13 @@ func returnWord() []byte {
 func runVM(st acmstate.ReaderWriter, caller, callee crypto.Address, code []byte, gas uint64) *exec.TxExecution {
 	gasBefore := gas
 	txe := new(exec.TxExecution)
-	vm := NewCVM(CVMOptions{
+	vm := NewCVM(engine.Options{
 		DebugOpcodes: true,
 	})
 	params := engine.CallParams{
 		Caller: caller,
 		Callee: callee,
-		Gas:    &gas,
+		Gas:    big.NewInt(int64(gas)),
 	}
 	output, err := vm.Execute(st, new(blockchain), txe, params, code)
 	txe.PushError(err)

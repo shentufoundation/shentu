@@ -27,12 +27,15 @@ const (
 )
 
 // registerCVMNative registers precompile contracts in CVM.
-func registerCVMNative(options *engine.Options, cc CertificateCallable) {
-	options.Natives = native.MustDefaultNatives().
-		MustFunction("General", leftPadAddress(101), permission.None, cc.checkGeneral).
-		MustFunction("Proof", leftPadAddress(102), permission.None, cc.checkProof).
-		MustFunction("Compilation", leftPadAddress(103), permission.None, cc.checkCompilation).
-		MustFunction("CertifyValidator", leftPadAddress(104), permission.None, cc.certifyValidator)
+func registerCVMNative(cc CertificateCallable, nonce []byte) engine.Options {
+	return engine.Options{
+		Natives: native.MustDefaultNatives().
+			MustFunction("General", leftPadAddress(101), permission.None, cc.checkGeneral).
+			MustFunction("Proof", leftPadAddress(102), permission.None, cc.checkProof).
+			MustFunction("Compilation", leftPadAddress(103), permission.None, cc.checkCompilation).
+			MustFunction("CertifyValidator", leftPadAddress(104), permission.None, cc.certifyValidator),
+		Nonce: nonce,
+	}
 }
 
 // checkGeneral checks if certificates for a given content exists.

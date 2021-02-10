@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,7 +11,7 @@ import (
 
 func NewFakeStack() *evm.Stack {
 	var dummyGas uint64 = 18446744073709551615 // set it to MAX(uint64) since we don't care
-	stack := evm.NewStack(nil, 1024, 100000, &dummyGas)
+	stack := evm.NewStack(nil, 1024, 100000, big.NewInt(int64(dummyGas)))
 	return stack
 }
 
