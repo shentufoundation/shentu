@@ -695,7 +695,7 @@ func TestPrecompiles(t *testing.T) {
 		app.AccountKeeper.SetAccount(ctx, certAcc)
 
 		result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false, false, false)
-		require.Equal(t, []byte{0x00}, result)
+		require.NotNil(t, err)
 		result, err = app.CVMKeeper.Tx(ctx, addrs[2], newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false, false, false)
 		require.Equal(t, []byte{0x01}, result)
 
