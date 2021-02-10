@@ -53,7 +53,7 @@ func TestVM(t *testing.T) {
 		account1 := newAccount(t, st, "1")
 		account2 := newAccount(t, st, "101")
 
-		var gas uint64 = 300000 //TODO, why does gas need to be over twice the amount?
+		var gas uint64 = 400000 //TODO, why does gas need to be over twice the amount?
 		// var gas uint64 = 100000
 
 		bytecode := MustSplice(PUSH1, 0x00, PUSH1, 0x20, MSTORE, JUMPDEST, PUSH2, 0x0F, 0x0F, PUSH1, 0x20, MLOAD,
@@ -650,9 +650,9 @@ func TestVM(t *testing.T) {
 
 		//----------------------------------------------
 		// account2 has insufficient balance, should fail
-		txe := runVM(st, account1, account2, contractCode, 100000)
+		txe := runVM(st, account1, account2, contractCode, 200000)
 		exCalls := txe.ExceptionalCalls()
-		require.Len(t, exCalls, 1)
+		require.Len(t, exCalls, 2)
 		require.Equal(t, errors.Codes.InsufficientBalance, errors.GetCode(exCalls[0].Header.Exception))
 
 		//----------------------------------------------
@@ -1315,7 +1315,7 @@ func TestVM(t *testing.T) {
 		require.Error(t, err)
 		callError := txe.CallError()
 		require.Error(t, callError)
-		require.Equal(t, errors.Codes.ExecutionReverted, errors.GetCode(callError))
+		require.Equal(t, errors.Codes.CallStackOverflow, errors.GetCode(callError))
 		// Errors are post-order so first is deepest
 		require.True(t, len(callError.NestedErrors) > 0)
 		deepestErr := callError.NestedErrors[0]
@@ -3090,7 +3090,7 @@ func TestVM(t *testing.T) {
 				[]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01},
 			},
 			{
 				// "code": "0x60004513"
@@ -4431,7 +4431,7 @@ func TestVM(t *testing.T) {
 				expected_out: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01},
+					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 				expected_err: errors.Codes.None,
 			},
 			{
@@ -4493,7 +4493,7 @@ func TestVM(t *testing.T) {
 				// "code": "0x630fffffff51"
 				name:         "mload2_MemExp",
 				bytecode:     MustSplice(PUSH4, 0x0F, 0xFF, 0xFF, 0xFF, MLOAD, return1()),
-				expected_err: errors.Codes.InsufficientGas,
+				expected_err: errors.Codes.Generic,
 			},
 			{
 				// "code": "0x6272482551"
@@ -4579,7 +4579,7 @@ func TestVM(t *testing.T) {
 					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01},
-				expected_err: errors.Codes.InsufficientGas,
+				expected_err: errors.Codes.Generic,
 			},
 			{
 				// "code": "0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff600152600151"
@@ -4609,7 +4609,7 @@ func TestVM(t *testing.T) {
 				// "code": "0x60f1630fffffff53"
 				name:         "mstore8_0_MemExp",
 				bytecode:     MustSplice(PUSH1, 0xF1, PUSH4, 0x0F, 0xFF, 0xFF, 0xFF, MSTORE8, return1()),
-				expected_err: errors.Codes.InsufficientGas,
+				expected_err: errors.Codes.Generic,
 			},
 			{
 				// "code": "0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff600153600151"
@@ -4696,7 +4696,7 @@ func TestVM(t *testing.T) {
 				// "code": "0x60ff630fffffff20"
 				name:         "sha3_MemExp",
 				bytecode:     MustSplice(PUSH1, 0xFF, PUSH4, 0x0F, 0xFF, 0xFF, 0xFF, SHA3),
-				expected_err: errors.Codes.InsufficientGas,
+				expected_err: errors.Codes.Generic,
 			},
 			{
 				// "code": "0x60ff60005560ee600a55600054601455601454"

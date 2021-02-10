@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"math/big"
 	"strings"
 
@@ -57,9 +56,9 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 	maybe := new(errors.Maybe)
 
 	// Provide stack and memory storage - passing in the callState as an error provider
-	var dummyGas *big.Int = big.NewInt(math.MaxInt64) // set it to MAX(uint64) since we don't care about stack gas calculation
-	stack := NewStack(maybe, c.options.DataStackInitialCapacity, c.options.DataStackMaxDepth, dummyGas)
+	stack := NewStack(maybe, c.options.DataStackInitialCapacity, c.options.DataStackMaxDepth, params.Gas)
 	memory := c.options.MemoryProvider(maybe)
+	gasMem := memory.(gasMemory)
 
 	// TODO: enable refund
 	//defer func() {
@@ -75,7 +74,15 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 		var op = c.GetSymbol(pc)
 		c.debugf("(pc) %-3d (op) %-14s (st) %-4d (gas) %d", pc, op.String(), stack.Len(), params.Gas)
 		// Use BaseOp gas.
-		maybe.PushError(engine.UseGasNegative(params.Gas, engine.GasBaseOp))
+		// maybe.PushError(useGasNegative(params.Gas, native.GasBaseOp))
+
+		// CVM GAS CONSUMPTION
+		// Look up an instruction's gas cost in op_table and consumes gas using useGasNegative() function.
+		// An instruction can have either static gas or dynamic gas.
+		gaserr := useGasNegative(params.Gas, big.NewInt(int64(gasLookUp(op, *st.CallFrame, params.Callee, stack, maybe, &gasMem))))
+		if gaserr != nil {
+			return nil, gaserr
+		}
 
 		switch op {
 
@@ -778,6 +785,47 @@ func (c *CVMContract) jump(to uint64, pc *uint64) error {
 	c.debugf(" ~> %v\n", to)
 	*pc = to
 	return nil
+}
+
+// Try to deduct gasToUse from gasLeft.  If ok return false, otherwise
+// set err and return true.
+func useGasNegative(gasLeft *big.Int, gasToUse *big.Int) error {
+	gasLeft.Sub(gasLeft, gasToUse)
+	return nil
+}
+
+// gasLookup calculates the gas cost of a given opcode, based on the CVM state and stack values.
+func gasLookUp(op OpCode, state engine.CallFrame, addr crypto.Address, st *Stack, err *errors.Maybe, dynMem *gasMemory) uint64 {
+	gas := instructionSet[op].staticGas
+	if instructionSet[op].dynamicGas == nil {
+		return gas
+	}
+
+	var mem uint64
+	if instructionSet[op].memSize != 0 {
+		// memSizef := instructionSet[op].memSize
+		var of bool
+		if mem, of = calcMemSize(instructionSet[op].memSize, st); of {
+			err.PushError(errors.Codes.IntegerOverflow)
+		}
+
+		if mem, of = SafeMul(toWordSize(mem), 32); of {
+			err.PushError(errors.Codes.IntegerOverflow)
+		}
+	}
+	// else mem = 0 by declaration
+	dynGas, err2 := instructionSet[op].dynamicGas(state, addr, st, dynMem, mem)
+	if err2 != nil {
+		err.PushError(err2)
+	}
+	gas += dynGas
+	for mem > dynMem.Capacity().Uint64() {
+		dynMem.Write(dynMem.Capacity(), make([]byte, mem-(dynMem.Capacity().Uint64())))
+		if err.Error() != nil {
+			break
+		}
+	}
+	return gas
 }
 
 // Returns a subslice from offset of length length and a bool
