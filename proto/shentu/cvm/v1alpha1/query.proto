@@ -44,7 +44,7 @@ message QueryCodeRequest {
 }
 
 message QueryCodeResponse {
-  bytes code = 1 [(gogoproto.moretags) = "yaml:\"code\""];
+  string code = 1 [(gogoproto.moretags) = "yaml:\"code\""];
 }
 
 message QueryAbiRequest {
@@ -52,7 +52,7 @@ message QueryAbiRequest {
 }
 
 message QueryAbiResponse {
-  bytes abi = 1 [(gogoproto.moretags) = "yaml:\"abi\""];
+  string abi = 1 [(gogoproto.moretags) = "yaml:\"abi\""];
 }
 
 message QueryStorageRequest {

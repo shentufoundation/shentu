@@ -30,11 +30,12 @@ func (q Querier) Code(c context.Context, request *types.QueryCodeRequest) (*type
 	vmAddr := crypto.MustAddressFromBytes(addr)
 
 	code, err := q.GetCode(ctx, vmAddr)
+	codeString := hex.EncodeToString(code)
 	if err != nil {
 		return nil, err
 	}
 	return &types.QueryCodeResponse{
-		Code: code,
+		Code: codeString,
 	}, nil
 }
 
@@ -45,9 +46,9 @@ func (q Querier) Abi(c context.Context, request *types.QueryAbiRequest) (*types.
 		return nil, err
 	}
 	vmAddr, _ := crypto.AddressFromBytes(addr)
-	abi := q.GetAbi(ctx, vmAddr)
+	abiString := hex.EncodeToString(q.GetAbi(ctx, vmAddr))
 	return &types.QueryAbiResponse{
-		Abi: abi,
+		Abi: abiString,
 	}, nil
 }
 

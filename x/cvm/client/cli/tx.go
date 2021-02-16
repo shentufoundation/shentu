@@ -193,7 +193,7 @@ func queryAbi(cliCtx client.Context, queryRoute string, addr string) ([]byte, er
 // GetCmdDeploy returns the CVM contract deploy transaction command.
 func GetCmdDeploy() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deploy <filename> <flags>..",
+		Use:   "deploy <filename>",
 		Short: "Deploy CVM contract(s)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, file []string) error {
@@ -220,7 +220,6 @@ func GetCmdDeploy() *cobra.Command {
 	cmd.Flags().String(FlagABI, "", "name of ABI file (when deploying bytecode)")
 	cmd.Flags().Uint64(FlagValue, 0, "value sent with transaction")
 	cmd.Flags().String(FlagArgs, "", "constructor arguments")
-	cmd.Flags().String(FlagContract, "", "the name of the contract to be deployed")
 	cmd.Flags().Bool(FlagEWASM, false, "compile solidity contract to EWASM")
 	cmd.Flags().Bool(FlagRuntime, false, "runtime code")
 	cmd.Flags().String(FlagMetadata, "", "the metadata files to be deployed along with the contract")
@@ -236,9 +235,13 @@ func appendDeployMsgs(cmd *cobra.Command, fileName string) ([]sdk.Msg, error) {
 		return []sdk.Msg{}, err
 	}
 
-	arguments := strings.Split(viper.GetString(FlagArgs), ",")
-	deployContract := viper.GetString(FlagContract)
-	code, err := ioutil.ReadFile(deployContract)
+	argsRaw := viper.GetString(FlagArgs)
+	arguments := strings.Split(argsRaw, ",")
+	code, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return msgs, err
+	}
+	code, err = hex.DecodeString(string(code))
 	if err != nil {
 		return msgs, err
 	}
@@ -246,31 +249,35 @@ func appendDeployMsgs(cmd *cobra.Command, fileName string) ([]sdk.Msg, error) {
 
 	value := viper.GetUint64(FlagValue)
 	metadataFile := viper.GetString(FlagMetadata)
-	metadataBytes, err := ioutil.ReadFile(metadataFile)
-	if err != nil {
-		return msgs, err
+	var metas []*payload.ContractMeta
+	if metadataFile != "" {
+		metadataBytes, err := ioutil.ReadFile(metadataFile)
+		if err != nil {
+			return msgs, err
+		}
+		metadataString := string(metadataBytes)
+		metas = append(metas, &payload.ContractMeta{
+			CodeHash: codehash,
+			Meta:     metadataString,
+		})
 	}
-	metadataString := string(metadataBytes)
 
 	abiFile, err := cmd.Flags().GetString(FlagABI)
 	if err != nil {
 		return msgs, err
 	}
-	abi, err := ioutil.ReadFile(abiFile)
-	if err != nil {
-		return msgs, err
+	var abiBytes []byte
+	if abiFile != "" {
+		abiBytes, err = ioutil.ReadFile(abiFile)
+		if err != nil {
+			return msgs, err
+		}
 	}
 
 	logger := logging.NewNoopLogger()
 
-	var metas []*payload.ContractMeta
-	metas = append(metas, &payload.ContractMeta{
-		CodeHash: codehash,
-		Meta:     metadataString,
-	})
-
-	if len(arguments) > 0 {
-		callArgsBytes, err := parseData("", abi, arguments, logger)
+	if len(argsRaw) > 0 {
+		callArgsBytes, err := parseData("", abiBytes, arguments, logger)
 		if err != nil {
 			return msgs, err
 		}
@@ -278,7 +285,7 @@ func appendDeployMsgs(cmd *cobra.Command, fileName string) ([]sdk.Msg, error) {
 	}
 	isEWASM := viper.GetBool(FlagEWASM)
 	isRuntime := viper.GetBool(FlagRuntime)
-	msg := types.NewMsgDeploy(clientCtx.GetFromAddress().String(), value, code, string(abi), metas, isEWASM, isRuntime)
+	msg := types.NewMsgDeploy(clientCtx.GetFromAddress().String(), value, code, string(abiBytes), metas, isEWASM, isRuntime)
 	if err := msg.ValidateBasic(); err != nil {
 		return msgs, err
 	}

@@ -156,9 +156,6 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 	} else {
 		ret, err = newCVM.Execute(cache, bc, NewEventSink(ctx), callParams, code)
 	}
-	if len(ret) == 0 && err == nil {
-		ret = code
-	}
 	// Refund cannot exceed half of the total gas cost.
 	// Only refund when there is no error.
 	if err != nil {
