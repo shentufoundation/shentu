@@ -39,7 +39,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Client Breaking Changes
 ### API Breaking Changes
-* (CVM) [\#131](https://github.com/certikfoundation/shentu/pull/171) Remove direct solidity file deployment.
+* (CVM) [\#231](https://github.com/certikfoundation/shentu/pull/231) Remove direct solidity file deployment.
 ### State Machine Breaking Changes
 ### Features
 ### Improvements
