@@ -27,7 +27,7 @@ func (q Querier) Code(c context.Context, request *types.QueryCodeRequest) (*type
 	if err != nil {
 		return nil, err
 	}
-	vmAddr, _ := crypto.AddressFromBytes(addr)
+	vmAddr := crypto.MustAddressFromBytes(addr)
 
 	code, err := q.GetCode(ctx, vmAddr)
 	if err != nil {

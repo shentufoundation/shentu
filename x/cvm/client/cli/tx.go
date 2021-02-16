@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"path/filepath"
+	"io/ioutil"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -38,6 +38,7 @@ const (
 	FlagABI      = "abi"
 	FlagEWASM    = "ewasm"
 	FlagRuntime  = "runtime"
+	FlagMetadata = "metadata"
 )
 
 var (
@@ -209,8 +210,7 @@ func GetCmdDeploy() *cobra.Command {
 				return err
 			}
 
-			var msgs []sdk.Msg
-			msgs, err = appendDeployMsgs(cmd, clientCtx, msgs, file[0])
+			msgs, err := appendDeployMsgs(cmd, file[0])
 			if err != nil {
 				return err
 			}
@@ -223,79 +223,66 @@ func GetCmdDeploy() *cobra.Command {
 	cmd.Flags().String(FlagContract, "", "the name of the contract to be deployed")
 	cmd.Flags().Bool(FlagEWASM, false, "compile solidity contract to EWASM")
 	cmd.Flags().Bool(FlagRuntime, false, "runtime code")
+	cmd.Flags().String(FlagMetadata, "", "the metadata files to be deployed along with the contract")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
 
-func appendDeployMsgs(cmd *cobra.Command, cliCtx client.Context, msgs []sdk.Msg, fileName string) ([]sdk.Msg, error) {
+func appendDeployMsgs(cmd *cobra.Command, fileName string) ([]sdk.Msg, error) {
+	var msgs []sdk.Msg
 	clientCtx, err := client.GetClientTxContext(cmd)
 	if err != nil {
 		return []sdk.Msg{}, err
 	}
 
-	argumentsRaw := viper.GetString(FlagArgs)
-	arguments := strings.Split(argumentsRaw, ",")
+	arguments := strings.Split(viper.GetString(FlagArgs), ",")
 	deployContract := viper.GetString(FlagContract)
-
-	var target string
-	if len(deployContract) > 0 {
-		target = strings.ToUpper(deployContract)
-	} else {
-		target = strings.ToUpper(filepath.Base(fileName))
-	}
-
-	resp, err := callEVM(cmd, fileName)
+	code, err := ioutil.ReadFile(deployContract)
 	if err != nil {
 		return msgs, err
 	}
+	codehash := crypto.Keccak256(code)
+
 	value := viper.GetUint64(FlagValue)
+	metadataFile := viper.GetString(FlagMetadata)
+	metadataBytes, err := ioutil.ReadFile(metadataFile)
+	if err != nil {
+		return msgs, err
+	}
+	metadataString := string(metadataBytes)
 
-	fileNameMatch := false
-	for _, object := range resp.Objects {
-		code, err := hex.DecodeString(object.Contract.Code())
+	abiFile, err := cmd.Flags().GetString(FlagABI)
+	if err != nil {
+		return msgs, err
+	}
+	abi, err := ioutil.ReadFile(abiFile)
+	if err != nil {
+		return msgs, err
+	}
+
+	logger := logging.NewNoopLogger()
+
+	var metas []*payload.ContractMeta
+	metas = append(metas, &payload.ContractMeta{
+		CodeHash: codehash,
+		Meta:     metadataString,
+	})
+
+	if len(arguments) > 0 {
+		callArgsBytes, err := parseData("", abi, arguments, logger)
 		if err != nil {
 			return msgs, err
 		}
-
-		logger := logging.NewNoopLogger()
-		metadata, err := object.Contract.GetMetadata(logger)
-		if err != nil {
-			return msgs, err
-		}
-
-		var metas []*payload.ContractMeta
-		for codehash, metadata := range metadata {
-			metas = append(metas, &payload.ContractMeta{
-				CodeHash: codehash.Bytes(),
-				Meta:     metadata,
-			})
-		}
-
-		fileExtensionUpper := filepath.Ext(target)
-		fileNameUpper := strings.TrimSuffix(target, fileExtensionUpper)
-		objectNameUpper := strings.ToUpper(object.Objectname)
-		if fileNameUpper == objectNameUpper || fileExtensionUpper == ".BYTECODE" {
-			fileNameMatch = true
-			if len(argumentsRaw) > 0 {
-				callArgsBytes, err := parseData("", object.Contract.Abi, arguments, logger)
-				if err != nil {
-					return msgs, err
-				}
-				code = append(code, callArgsBytes...)
-			}
-			isEWASM := viper.GetBool(FlagEWASM)
-			isRuntime := viper.GetBool(FlagRuntime)
-			msg := types.NewMsgDeploy(clientCtx.GetFromAddress().String(), value, code, string(object.Contract.Abi), metas, isEWASM, isRuntime)
-			if err := msg.ValidateBasic(); err != nil {
-				return msgs, err
-			}
-			msgs = append(msgs, &msg)
-		}
+		code = append(code, callArgsBytes...)
 	}
-	if !fileNameMatch {
-		return msgs, errors.New("contract name does not match the file name")
+	isEWASM := viper.GetBool(FlagEWASM)
+	isRuntime := viper.GetBool(FlagRuntime)
+	msg := types.NewMsgDeploy(clientCtx.GetFromAddress().String(), value, code, string(abi), metas, isEWASM, isRuntime)
+	if err := msg.ValidateBasic(); err != nil {
+		return msgs, err
 	}
+	msgs = append(msgs, &msg)
 	return msgs, nil
 }
 

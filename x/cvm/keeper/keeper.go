@@ -101,14 +101,15 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 	var calleeAddr crypto.Address
 	var code acm.Bytecode
 	var err error
+	var input []byte
 	if callee == nil {
 		calleeAddr = crypto.NewContractAddress(callerAddr, sequenceBytes)
 		if err = engine.CreateAccount(cache, calleeAddr); err != nil {
 			return nil, types.ErrCodedError(errors.GetCode(err))
 		}
 		code = data
-		err = engine.UpdateContractMeta(cache, state, calleeAddr, payloadMeta)
 	} else {
+		input = data
 		calleeAddr = crypto.MustAddressFromBytes(callee)
 		calleeAddr, code, isEWASM, err = getCallee(callee, cache)
 		if len(code) == 0 && !bytes.Equal(data, []byte{}) {
@@ -130,7 +131,7 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 		Origin: callerAddr,
 		Caller: callerAddr,
 		Callee: calleeAddr,
-		Input:  data,
+		Input:  input,
 		Value:  *big.NewInt(int64(value)),
 		Gas:    big.NewInt(int64(gasTracker)),
 	}
@@ -155,7 +156,9 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 	} else {
 		ret, err = newCVM.Execute(cache, bc, NewEventSink(ctx), callParams, code)
 	}
-
+	if len(ret) == 0 && err == nil {
+		ret = code
+	}
 	// Refund cannot exceed half of the total gas cost.
 	// Only refund when there is no error.
 	if err != nil {
@@ -168,13 +171,16 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 	if err != nil {
 		return nil, types.ErrCodedError(errors.GetCode(err))
 	}
-
 	if callee == nil {
 		if isEWASM {
 			err = engine.InitWASMCode(cache, calleeAddr, ret)
 		} else {
 			err = engine.InitEVMCode(cache, calleeAddr, ret)
 		}
+		if err != nil {
+			return nil, types.ErrCodedError(errors.GetCode(err))
+		}
+		err = engine.UpdateContractMeta(cache, state, calleeAddr, payloadMeta)
 		if err != nil {
 			return nil, types.ErrCodedError(errors.GetCode(err))
 		}
@@ -200,14 +206,15 @@ func (k Keeper) Send(ctx sdk.Context, caller, callee sdk.AccAddress, coins sdk.C
 // GetCode returns the code at the given account address.
 func (k Keeper) GetCode(ctx sdk.Context, addr crypto.Address) ([]byte, error) {
 	state := k.NewState(ctx)
-	callframe := engine.NewCallFrame(state, acmstate.Named("TxCache"))
-	cache := callframe.Cache
-	acc, err := cache.GetAccount(addr)
+	acc, err := state.GetAccount(addr)
 	if err != nil {
 		return nil, err
 	}
 	if acc == nil {
 		return nil, nil
+	}
+	if len(acc.EVMCode) == 0 {
+		return acc.WASMCode, nil
 	}
 	return acc.EVMCode, nil
 }
