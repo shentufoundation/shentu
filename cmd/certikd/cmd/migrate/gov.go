@@ -140,7 +140,6 @@ const (
 
 func migrateProposalStatus(oldProposalStatus ProposalStatus) govtypes.ProposalStatus {
 	switch oldProposalStatus {
-
 	case StatusNil:
 		return govtypes.StatusNil
 
@@ -231,6 +230,7 @@ func migrateContent(oldContent v036gov.Content) *codectypes.Any {
 				Changes:     newChanges,
 			}
 		}
+	//TODO: shield proposal
 	default:
 		panic(fmt.Errorf("%T is not a valid proposal content type", oldContent))
 	}

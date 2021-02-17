@@ -38,7 +38,6 @@ func migrateGenutil(oldGenState v039genutil.GenesisState) *types.GenesisState {
 }
 
 func Migrate(appState types.AppMap, clientCtx client.Context) types.AppMap {
-
 	v039Codec := codec.NewLegacyAmino()
 	RegisterAuthLegacyAminoCodec(v039Codec)
 	v036gov.RegisterLegacyAminoCodec(v039Codec)
