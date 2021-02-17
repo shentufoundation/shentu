@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	tmconfig "github.com/tendermint/tendermint/config"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -44,7 +43,8 @@ var (
 	flagOutputDir         = "output-dir"
 	flagNodeDaemonHome    = "node-daemon-home"
 	flagNodeCLIHome       = "node-cli-home"
-	flagServerIPAddress = "server-ip-address"
+	flagServerIPAddress   = "server-ip-address"
+	flagStartingIPAddress = "starting-ip-address"
 )
 
 // get cmd to initialize all files for tendermint testnet and application
@@ -93,8 +93,16 @@ Example:
 				return err
 			}
 
-			serverAddrs := viper.GetString(flagServerIPAddress)
-			
+			serverAddrs, err := cmd.Flags().GetString(flagServerIPAddress)
+			if err != nil {
+				return err
+			}
+
+			startingIPAddress, err := cmd.Flags().GetString(flagStartingIPAddress)
+ 			if err != nil {
+ 				return err
+ 			}
+
 			numValidators, err := cmd.Flags().GetInt(flagNumValidators)
 			if err != nil {
 				return err
@@ -106,7 +114,8 @@ Example:
 
 			return InitTestnet(
 				clientCtx, cmd, config, mbm, genBalIterator, outputDir, chainID, minGasPrices,
-				nodeDirPrefix, nodeDaemonHome, nodeCLIHome, serverAddrs, keyringBackend, algo, numValidators,
+				nodeDirPrefix, nodeDaemonHome, nodeCLIHome, serverAddrs, startingIPAddress, 
+				keyringBackend, algo, numValidators,
 			)
 		},
 	}
@@ -123,9 +132,11 @@ Example:
 	}
 	cmd.Flags().String(flagServerIPAddress, ip, "Server IP Address")
 
+	cmd.Flags().String(flagStartingIPAddress, "", "Starting IP address (192.168.0.1 results in persistent peers list ID0@192.168.0.1:46656, ID1@192.168.0.2:46656, ...)")
+	
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
 	cmd.Flags().String(server.FlagMinGasPrices, fmt.Sprintf("0.000006%s", common.MicroCTKDenom), "Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum (e.g. 0.01photino,0.001stake)")
-	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|test)")
+	cmd.Flags().String(flags.FlagKeyringBackend, keyring.BackendTest, "Select keyring's backend (os|file|test)")
 	cmd.Flags().String(flags.FlagKeyAlgorithm, string(hd.Secp256k1Type), "Key signing algorithm to generate keys for")
 
 	return cmd
@@ -147,6 +158,7 @@ func InitTestnet(
 	nodeDaemonHome,
 	nodeCLIHome,
 	serverAddrs,
+	startingIPAddress,
 	keyringBackend,
 	algoStr string,
 	numValidators int,
@@ -158,9 +170,12 @@ func InitTestnet(
 	nodeIDs := make([]string, numValidators)
 	valPubKeys := make([]cryptotypes.PubKey, numValidators)
 
-	serverAddressList := strings.Split(serverAddrs, ",")
-	if len(serverAddressList) != numValidators {
-		return errors.New("address list length does not match --v")
+	var serverAddressList []string
+	if startingIPAddress == "" {
+		serverAddressList = strings.Split(serverAddrs, ",")
+		if len(serverAddressList) != numValidators {
+			return errors.New("address list length does not match --v")
+		}
 	}
 	
 	simappConfig := srvconfig.DefaultConfig()
@@ -200,7 +215,13 @@ func InitTestnet(
 
 		nodeConfig.Moniker = nodeDirName
 
-		ip, err := getIP(i, serverAddressList[i])
+		var ip string
+		var err error
+		if startingIPAddress != "" {
+			ip, err = getIP(i, startingIPAddress)
+		} else {
+			ip, err = getIP(i, serverAddressList[i])
+		}
 		if err != nil {
 			_ = os.RemoveAll(outputDir)
 			return err
