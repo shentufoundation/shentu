@@ -17,27 +17,32 @@ type Blockchain struct {
 }
 
 // NewBlockChain returns the pointer to a new BlockChain type data.
-func NewBlockChain(ctx sdk.Context, k Keeper) *Blockchain {
-	return &Blockchain{
+func NewBlockChain(ctx sdk.Context, k Keeper) Blockchain {
+	return Blockchain{
 		ctx: ctx,
 		k:   k,
 	}
 }
 
 // LastBlockHeight returns the last block height of the chain.
-func (bc *Blockchain) LastBlockHeight() uint64 {
+func (bc Blockchain) LastBlockHeight() uint64 {
 	return uint64(bc.ctx.BlockHeight())
 }
 
 // LastBlockTime return the unix Time type for the last block.
-func (bc *Blockchain) LastBlockTime() time.Time {
+func (bc Blockchain) LastBlockTime() time.Time {
 	return bc.ctx.BlockHeader().Time
 }
 
 // BlockHash returns the block's hash at the provided height.
-func (bc *Blockchain) BlockHash(height uint64) ([]byte, error) {
+func (bc Blockchain) BlockHash(height uint64) ([]byte, error) {
 	if height > uint64(bc.ctx.BlockHeight()) {
 		return nil, errors.Codes.InvalidBlockNumber
 	}
 	return bc.ctx.KVStore(bc.k.key).Get(types.BlockHashStoreKey(int64(height))), nil
+}
+
+// BlockHash returns the block's hash at the provided height.
+func (bc Blockchain) ChainID() string {
+	return bc.ctx.ChainID()
 }

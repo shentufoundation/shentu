@@ -19,7 +19,6 @@ import (
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/execution/engine"
 	"github.com/hyperledger/burrow/execution/evm/abi"
-	"github.com/hyperledger/burrow/execution/native"
 	"github.com/hyperledger/burrow/txs/payload"
 
 	. "github.com/certikfoundation/shentu/x/cvm/keeper"
@@ -136,7 +135,7 @@ func TestQueryMeta(t *testing.T) {
 	require.Nil(t, err)
 	addr, err := crypto.AddressFromBytes(addrs[0].Bytes())
 	require.Nil(t, err)
-	err = native.UpdateContractMeta(cache, state, addr, []*payload.ContractMeta{&payloadMeta})
+	err = engine.UpdateContractMeta(cache, state, addr, []*payload.ContractMeta{&payloadMeta})
 	require.Nil(t, err)
 	err = cache.Sync(state)
 	require.Nil(t, err)

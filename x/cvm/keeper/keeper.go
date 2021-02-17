@@ -4,14 +4,14 @@ package keeper
 import (
 	"bytes"
 	gobin "encoding/binary"
-
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"math/big"
 
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/hyperledger/burrow/acm"
 	"github.com/hyperledger/burrow/acm/acmstate"
@@ -19,9 +19,9 @@ import (
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/execution/engine"
 	"github.com/hyperledger/burrow/execution/errors"
-	"github.com/hyperledger/burrow/execution/native"
 	"github.com/hyperledger/burrow/execution/wasm"
 	"github.com/hyperledger/burrow/logging"
+	"github.com/hyperledger/burrow/permission"
 	"github.com/hyperledger/burrow/txs/payload"
 
 	"github.com/certikfoundation/shentu/vm"
@@ -101,14 +101,15 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 	var calleeAddr crypto.Address
 	var code acm.Bytecode
 	var err error
+	var input []byte
 	if callee == nil {
 		calleeAddr = crypto.NewContractAddress(callerAddr, sequenceBytes)
-		if err = native.CreateAccount(cache, calleeAddr); err != nil {
+		if err = engine.CreateAccount(cache, calleeAddr); err != nil {
 			return nil, types.ErrCodedError(errors.GetCode(err))
 		}
 		code = data
-		err = native.UpdateContractMeta(cache, state, calleeAddr, payloadMeta)
 	} else {
+		input = data
 		calleeAddr = crypto.MustAddressFromBytes(callee)
 		calleeAddr, code, isEWASM, err = getCallee(callee, cache)
 		if len(code) == 0 && !bytes.Equal(data, []byte{}) {
@@ -130,18 +131,16 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 		Origin: callerAddr,
 		Caller: callerAddr,
 		Callee: calleeAddr,
-		Input:  data,
-		Value:  value,
-		Gas:    &gasTracker,
+		Input:  input,
+		Value:  *big.NewInt(int64(value)),
+		Gas:    big.NewInt(int64(gasTracker)),
 	}
-	options := vm.CVMOptions{
-		Nonce: sequenceBytes,
-	}
+
 	cc := CertificateCallable{
 		ctx:        ctx,
 		certKeeper: k.ck,
 	}
-	registerCVMNative(&options, cc)
+	options := registerCVMNative(cc, sequenceBytes)
 
 	newCVM := vm.NewCVM(options)
 	bc := NewBlockChain(ctx, k)
@@ -151,12 +150,12 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 		if isRuntime {
 			ret = code
 		} else {
-			ret, err = wasm.RunWASM(cache, callParams, code)
+			wvm := wasm.New(options)
+			ret, err = wvm.Execute(cache, bc, NewEventSink(ctx), callParams, code)
 		}
 	} else {
 		ret, err = newCVM.Execute(cache, bc, NewEventSink(ctx), callParams, code)
 	}
-
 	// Refund cannot exceed half of the total gas cost.
 	// Only refund when there is no error.
 	if err != nil {
@@ -169,13 +168,16 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 	if err != nil {
 		return nil, types.ErrCodedError(errors.GetCode(err))
 	}
-
 	if callee == nil {
 		if isEWASM {
-			err = native.InitWASMCode(cache, calleeAddr, ret)
+			err = engine.InitWASMCode(cache, calleeAddr, ret)
 		} else {
-			err = native.InitEVMCode(cache, calleeAddr, ret)
+			err = engine.InitEVMCode(cache, calleeAddr, ret)
 		}
+		if err != nil {
+			return nil, types.ErrCodedError(errors.GetCode(err))
+		}
+		err = engine.UpdateContractMeta(cache, state, calleeAddr, payloadMeta)
 		if err != nil {
 			return nil, types.ErrCodedError(errors.GetCode(err))
 		}
@@ -201,14 +203,15 @@ func (k Keeper) Send(ctx sdk.Context, caller, callee sdk.AccAddress, coins sdk.C
 // GetCode returns the code at the given account address.
 func (k Keeper) GetCode(ctx sdk.Context, addr crypto.Address) ([]byte, error) {
 	state := k.NewState(ctx)
-	callframe := engine.NewCallFrame(state, acmstate.Named("TxCache"))
-	cache := callframe.Cache
-	acc, err := cache.GetAccount(addr)
+	acc, err := state.GetAccount(addr)
 	if err != nil {
 		return nil, err
 	}
 	if acc == nil {
 		return nil, nil
+	}
+	if len(acc.EVMCode) == 0 {
+		return acc.WASMCode, nil
 	}
 	return acc.EVMCode, nil
 }
@@ -393,21 +396,15 @@ func (k Keeper) GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.Accou
 // RegisterGlobalPermissionAcc registers the zero address as the global permission account.
 func RegisterGlobalPermissionAcc(ctx sdk.Context, k Keeper) {
 	state := k.NewState(ctx)
-	st := engine.State{
-		CallFrame:  engine.NewCallFrame(state).WithMaxCallStackDepth(0),
-		Blockchain: NewBlockChain(ctx, k),
-		EventSink:  NewEventSink(ctx),
+
+	gpacc := &acm.Account{
+		Address:     acm.GlobalPermissionsAddress,
+		Balance:     0,
+		Permissions: permission.DefaultAccountPermissions,
 	}
-	gpacc, err := st.CallFrame.GetAccount(acm.GlobalPermissionsAddress)
+	gpacc.Permissions.Base.SetBit = permission.AllPermFlags
+	err := state.UpdateAccount(gpacc)
 	if err != nil {
-		panic(err)
-	}
-	if gpacc == nil {
-		if err = native.CreateAccount(st.CallFrame, acm.GlobalPermissionsAddress); err != nil {
-			panic(err)
-		}
-	}
-	if err := st.Sync(); err != nil {
 		panic(err)
 	}
 }

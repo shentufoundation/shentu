@@ -71,7 +71,8 @@ func (s *State) GetAccount(address crypto.Address) (*acm.Account, error) {
 		WASMCode: wasmCode,
 		Permissions: permission.AccountPermissions{
 			Base: permission.BasePermissions{
-				Perms: permission.Call | permission.CreateContract,
+				Perms:  permission.Call | permission.CreateContract,
+				SetBit: permission.AllPermFlags,
 			},
 		},
 		ContractMeta: contMeta,

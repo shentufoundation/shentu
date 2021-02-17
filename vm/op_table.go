@@ -174,7 +174,7 @@ var instructionSet = [256]instruction{
 	BLOCKHEIGHT: {
 		staticGas: GasBase,
 	},
-	DIFFICULTY_DEPRECATED: {
+	DIFFICULTY: {
 		staticGas: GasBase,
 	},
 	GASLIMIT: {

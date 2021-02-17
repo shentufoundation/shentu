@@ -67,7 +67,7 @@ var errGasUintOverflow = errors.New("gas uint64 overflow")
 
 // gasMemory is a custom memory type, with track of last gas cost and refund counter.
 type gasMemory struct {
-	Memory
+	engine.Memory
 	lastGasCost uint64
 	refund      uint64
 }
