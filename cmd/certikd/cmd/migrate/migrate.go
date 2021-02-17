@@ -1,6 +1,7 @@
 package migrate
 
 import (
+	cvmtypes "github.com/certikfoundation/shentu/x/cvm/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	v039auth "github.com/cosmos/cosmos-sdk/x/auth/legacy/v039"
@@ -44,6 +45,7 @@ func Migrate(appState types.AppMap, clientCtx client.Context) types.AppMap {
 	v036distr.RegisterLegacyAminoCodec(v039Codec)
 	v036params.RegisterLegacyAminoCodec(v039Codec)
 	v038upgrade.RegisterLegacyAminoCodec(v039Codec)
+	RegisterCVMLegacyAminoCodec(v039Codec)
 
 	v040Codec := clientCtx.JSONMarshaler
 
@@ -198,6 +200,15 @@ func Migrate(appState types.AppMap, clientCtx client.Context) types.AppMap {
 	}
 
 	//Migrate CVM
+	if appState[cvmtypes.ModuleName] != nil {
+		var cvmGenState CVMGenesisState
+		v039Codec.MustUnmarshalJSON(appState[cvmtypes.ModuleName], &cvmGenState)
+
+		delete(appState, cvmtypes.ModuleName)
+
+		appState[genutiltypes.ModuleName] = v040Codec.MustMarshalJSON(migrateCVM(cvmGenState))
+	}
+
 	//Migrate Cert
 	//Migrate Oracle
 	//Migrate Shield
