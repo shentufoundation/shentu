@@ -5,12 +5,10 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"math/big"
 	"strings"
 
 	"github.com/hyperledger/burrow/acm"
-	"github.com/hyperledger/burrow/acm/acmstate"
 	. "github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/execution/engine"
@@ -19,32 +17,32 @@ import (
 	"github.com/hyperledger/burrow/execution/evm/abi"
 	. "github.com/hyperledger/burrow/execution/evm/asm"
 	"github.com/hyperledger/burrow/execution/exec"
-	"github.com/hyperledger/burrow/execution/native"
+	"github.com/hyperledger/burrow/permission"
 	"github.com/hyperledger/burrow/txs"
 )
 
 // CVMContract is the basic VM and code pair needed to make contract calls in CVM.
 type CVMContract struct {
 	*CVM
-	code acm.Bytecode
+	*Code
 }
 
 // Call executes the CVM contract call with the given state of the blockchain and parameters.
 func (c *CVMContract) Call(state engine.State, params engine.CallParams) ([]byte, error) {
-	return native.Call(state, params, c.execute)
+	return engine.Call(state, params, c.execute)
 }
 
 // execute executes the EVM code passed in the appropriate context.
 func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte, error) {
 	c.debugf("(%d) (%s) %s (code=%d) gas: %v (d) %X\n",
-		st.CallFrame.CallStackDepth(), params.Caller, params.Callee, len(c.code), *params.Gas, params.Input)
+		st.CallFrame.CallStackDepth(), params.Caller, params.Callee, c.Length(), *params.Gas, params.Input)
 
-	if len(c.code) == 0 {
+	if c.Length() == 0 {
 		return nil, nil
 	}
 
 	if c.options.DumpTokens {
-		dumpTokens(c.options.Nonce, params.Caller, params.Callee, c.code)
+		dumpTokens(c.options.Nonce, params.Caller, params.Callee, c.GetBytecode())
 	}
 
 	// Program counter - the index into code that tracks current instruction
@@ -57,13 +55,14 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 	maybe := new(errors.Maybe)
 
 	// Provide stack and memory storage - passing in the callState as an error provider
-	var dummyGas uint64 = math.MaxUint64 // set it to MAX(uint64) since we don't care about stack gas calculation
-	stack := NewStack(maybe, c.options.DataStackInitialCapacity, c.options.DataStackMaxDepth, &dummyGas)
+	stack := NewStack(maybe, c.options.DataStackInitialCapacity, c.options.DataStackMaxDepth, params.Gas)
 	memory := c.options.MemoryProvider(maybe)
+	gasMem := memory.(gasMemory)
 
-	defer func() {
-		c.refund = memory.refund
-	}()
+	// TODO: enable refund
+	//defer func() {
+	//	c.refund = memory.refund
+	//}()
 
 	for {
 		// Check for any error in this frame.
@@ -71,15 +70,15 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 			return nil, maybe.Error()
 		}
 
-		var op = codeGetOp(c.code, pc)
-		c.debugf("(pc) %-3d (op) %-14s (st) %-4d (gas) %d", pc, op.String(), stack.Len(), *params.Gas)
+		var op = c.GetSymbol(pc)
+		c.debugf("(pc) %-3d (op) %-14s (st) %-4d (gas) %d", pc, op.String(), stack.Len(), params.Gas)
 		// Use BaseOp gas.
 		// maybe.PushError(useGasNegative(params.Gas, native.GasBaseOp))
 
 		// CVM GAS CONSUMPTION
 		// Look up an instruction's gas cost in op_table and consumes gas using useGasNegative() function.
 		// An instruction can have either static gas or dynamic gas.
-		gaserr := useGasNegative(params.Gas, gasLookUp(op, *st.CallFrame, params.Callee, stack, maybe, &memory))
+		gaserr := engine.UseGasNegative(params.Gas, gasLookUp(op, *st.CallFrame, params.Callee, stack, maybe, &gasMem))
 		if gaserr != nil {
 			return nil, gaserr
 		}
@@ -181,7 +180,7 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 		case SIGNEXTEND: // 0x0B
 			back := stack.PopBigInt().Uint64()
 			if back < Word256Bytes-1 {
-				bits := uint(back*8 + 8)
+				bits := uint((back + 1) * 8)
 				stack.PushBigInt(SignExtend(stack.PopBigInt(), bits))
 			}
 			// Continue leaving the sign extension argument on the stack. This makes sign-extending a no-op if embedded
@@ -336,7 +335,7 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 			}
 
 		case SHA3: // 0x20
-			maybe.PushError(useGasNegative(params.Gas, native.GasSha3))
+			maybe.PushError(engine.UseGasNegative(params.Gas, engine.GasSha3))
 			offset, size := stack.PopBigInt(), stack.PopBigInt()
 			data := memory.Read(offset, size)
 			data = crypto.Keccak256(data)
@@ -349,8 +348,8 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 
 		case BALANCE: // 0x31
 			address := stack.PopAddress()
-			maybe.PushError(useGasNegative(params.Gas, native.GasGetAccount))
-			balance := mustGetAccount(st.CallFrame, maybe, address).Balance
+			maybe.PushError(engine.UseGasNegative(params.Gas, engine.GasGetAccount))
+			balance := engine.MustGetAccount(st.CallFrame, maybe, address).Balance
 			stack.Push64(balance)
 			c.debugf(" => %v (%v)\n", balance, address)
 
@@ -363,7 +362,7 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 			c.debugf(" => %v\n", params.Caller)
 
 		case CALLVALUE: // 0x34
-			stack.Push64(params.Value)
+			stack.PushBigInt(&params.Value)
 			c.debugf(" => %v\n", params.Value)
 
 		case CALLDATALOAD: // 0x35
@@ -386,7 +385,7 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 			c.debugf(" => [%v, %v, %v] %X\n", memOff, inputOff, length, data)
 
 		case CODESIZE: // 0x38
-			l := uint64(len(c.code))
+			l := uint64(c.Length())
 			stack.Push64(l)
 			c.debugf(" => %d\n", l)
 
@@ -394,7 +393,7 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 			memOff := stack.PopBigInt()
 			codeOff := stack.Pop64()
 			length := stack.Pop64()
-			data := maybe.Bytes(subslice(c.code, codeOff, length))
+			data := maybe.Bytes(subslice(c.GetBytecode(), codeOff, length))
 			memory.Write(memOff, data)
 			c.debugf(" => [%v, %v, %v] %X\n", memOff, codeOff, length, data)
 
@@ -404,20 +403,20 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 
 		case EXTCODESIZE: // 0x3B
 			address := stack.PopAddress()
-			maybe.PushError(useGasNegative(params.Gas, native.GasGetAccount))
-			acc := mustGetAccount(st.CallFrame, maybe, address)
+			maybe.PushError(engine.UseGasNegative(params.Gas, engine.GasGetAccount))
+			acc := engine.MustGetAccount(st.CallFrame, maybe, address)
 			if acc == nil {
 				stack.Push(Zero256)
 				c.debugf(" => 0\n")
 			} else {
-				length := uint64(len(acc.EVMCode))
+				length := uint64(len(acc.Code()))
 				stack.Push64(length)
 				c.debugf(" => %d\n", length)
 			}
 		case EXTCODECOPY: // 0x3C
 			address := stack.PopAddress()
-			maybe.PushError(useGasNegative(params.Gas, native.GasGetAccount))
-			acc := mustGetAccount(st.CallFrame, maybe, address)
+			maybe.PushError(engine.UseGasNegative(params.Gas, engine.GasGetAccount))
+			acc := engine.MustGetAccount(st.CallFrame, maybe, address)
 			if acc == nil {
 				maybe.PushError(errors.Codes.UnknownAddress)
 			} else {
@@ -449,7 +448,7 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 		case EXTCODEHASH: // 0x3F
 			address := stack.PopAddress()
 
-			acc := getAccount(st.CallFrame, maybe, address)
+			acc := engine.GetAccount(st.CallFrame, maybe, address)
 			if acc == nil {
 				// In case the account does not exist 0 is pushed to the stack.
 				stack.Push64(0)
@@ -484,7 +483,7 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 
 		case COINBASE: // 0x41
 			stack.Push(Zero256)
-			c.debugf(" => 0x%v\n", stack.Peek())
+			c.debugf(" => 0x%v (NOT SUPPORTED)\n", stack.Peek())
 
 		case TIMESTAMP: // 0x42
 			blockTime := st.Blockchain.LastBlockTime().Unix()
@@ -496,13 +495,19 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 			stack.Push64(number)
 			c.debugf(" => %d\n", number)
 
-		case DIFFICULTY_DEPRECATED: // 0x44
-			stack.Push(Zero256)
-			c.debugf(" => 0x%v\n", stack.Peek())
+		case DIFFICULTY: // 0x44
+			// ~ hashes per solution - by convention we'll use unity since there are no misses if you are proposer
+			stack.Push(One256)
+			c.debugf(" => %v\n", One256)
 
 		case GASLIMIT: // 0x45
-			stack.Push64(*params.Gas)
+			stack.PushBigInt(params.Gas)
 			c.debugf(" => %v\n", *params.Gas)
+
+		case CHAINID: // 0x46
+			id := crypto.GetEthChainID(st.Blockchain.ChainID())
+			stack.PushBigInt(id)
+			c.debugf(" => %X\n", id)
 
 		case POP: // 0x50
 			popped := stack.Pop()
@@ -534,20 +539,20 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 
 		case SSTORE: // 0x55
 			loc, data := stack.Pop(), stack.Pop()
-			maybe.PushError(useGasNegative(params.Gas, native.GasStorageUpdate))
+			maybe.PushError(engine.UseGasNegative(params.Gas, engine.GasStorageUpdate))
 			maybe.PushError(st.CallFrame.SetStorage(params.Callee, loc, data.Bytes()))
 			c.debugf("%v {%v := %v}\n", params.Callee, loc, data)
 
 		case JUMP: // 0x56
 			to := stack.Pop64()
-			maybe.PushError(c.jump(c.code, to, &pc))
+			maybe.PushError(c.jump(to, &pc))
 			continue
 
 		case JUMPI: // 0x57
 			pos := stack.Pop64()
 			cond := stack.Pop()
 			if !cond.IsZero() {
-				maybe.PushError(c.jump(c.code, pos, &pc))
+				maybe.PushError(c.jump(pos, &pc))
 				continue
 			} else {
 				c.debugf(" ~> false\n")
@@ -565,8 +570,8 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 			c.debugf(" => 0x%X\n", capacity)
 
 		case GAS: // 0x5A
-			stack.Push64(*params.Gas)
-			c.debugf(" => %X\n", *params.Gas)
+			stack.PushBigInt(params.Gas)
+			c.debugf(" => %X\n", params.Gas)
 
 		case JUMPDEST: // 0x5B
 			c.debugf("\n")
@@ -574,7 +579,7 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 
 		case PUSH1, PUSH2, PUSH3, PUSH4, PUSH5, PUSH6, PUSH7, PUSH8, PUSH9, PUSH10, PUSH11, PUSH12, PUSH13, PUSH14, PUSH15, PUSH16, PUSH17, PUSH18, PUSH19, PUSH20, PUSH21, PUSH22, PUSH23, PUSH24, PUSH25, PUSH26, PUSH27, PUSH28, PUSH29, PUSH30, PUSH31, PUSH32:
 			a := uint64(op - PUSH1 + 1)
-			codeSegment := maybe.Bytes(subslice(c.code, pc+1, a))
+			codeSegment := maybe.Bytes(subslice(c.GetBytecode(), pc+1, a))
 			res := LeftPadWord256(codeSegment)
 			stack.Push(res)
 			pc += a
@@ -607,12 +612,12 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 
 		case CREATE, CREATE2: // 0xF0, 0xFB
 			returnData = nil
-			contractValue := stack.Pop64()
+			contractValue := stack.PopBigInt()
 			offset, size := stack.PopBigInt(), stack.PopBigInt()
 			input := memory.Read(offset, size)
 
 			// TODO charge for gas to create account _ the code length * GasCreateByte
-			maybe.PushError(useGasNegative(params.Gas, native.GasCreateAccount))
+			maybe.PushError(engine.UseGasNegative(params.Gas, engine.GasCreateAccount))
 
 			var newAccountAddress crypto.Address
 			if op == CREATE {
@@ -623,14 +628,19 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 				newAccountAddress = crypto.NewContractAddress(params.Callee, nonce)
 			} else if op == CREATE2 {
 				salt := stack.Pop()
-				code := mustGetAccount(st.CallFrame, maybe, params.Callee).EVMCode
+				code := engine.MustGetAccount(st.CallFrame, maybe, params.Callee).EVMCode
 				newAccountAddress = crypto.NewContractAddress2(params.Callee, salt, code)
+			}
+
+			// Check the CreateContract permission for this account
+			if maybe.PushError(engine.EnsurePermission(st.CallFrame, params.Callee, permission.CreateContract)) {
+				continue
 			}
 
 			// Establish a frame in which the putative account exists
 			childCallFrame, err := st.CallFrame.NewFrame()
 			maybe.PushError(err)
-			maybe.PushError(native.CreateAccount(childCallFrame, newAccountAddress))
+			maybe.PushError(engine.CreateAccount(childCallFrame, newAccountAddress))
 
 			// Run the input to get the contract code.
 			// NOTE: no need to copy 'input' as per Call contract.
@@ -645,7 +655,7 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 					Caller: params.Callee,
 					Callee: newAccountAddress,
 					Input:  input,
-					Value:  contractValue,
+					Value:  *contractValue,
 					Gas:    params.Gas,
 				})
 			if callErr != nil {
@@ -655,7 +665,7 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 				returnData = ret
 			} else {
 				// Update the account with its initialised contract code
-				maybe.PushError(native.InitChildCode(childCallFrame, newAccountAddress, params.Callee, ret))
+				maybe.PushError(engine.InitChildCode(childCallFrame, newAccountAddress, params.Callee, ret))
 				maybe.PushError(childCallFrame.Sync())
 				stack.PushAddress(newAccountAddress)
 			}
@@ -663,8 +673,11 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 		case CALL, CALLCODE, DELEGATECALL, STATICCALL: // 0xF1, 0xF2, 0xF4, 0xFA
 			returnData = nil
 
+			if maybe.PushError(engine.EnsurePermission(st.CallFrame, params.Callee, permission.Call)) {
+				continue
+			}
 			// Pull arguments off stack:
-			gasLimit := stack.Pop64()
+			gasLimit := stack.PopBigInt()
 			target := stack.PopAddress()
 			value := params.Value
 			// NOTE: for DELEGATECALL value is preserved from the original
@@ -673,7 +686,7 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 			// caller value is used.  for CALL and CALLCODE value is stored
 			// on stack and needs to be overwritten from the given value.
 			if op != DELEGATECALL && op != STATICCALL {
-				value = stack.Pop64()
+				value = *stack.PopBigInt()
 			}
 			// inputs
 			inOffset, inSize := stack.PopBigInt(), stack.PopBigInt()
@@ -682,134 +695,34 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 			retSize := stack.Pop64()
 			c.debugf(" => %v\n", target)
 
-			// Get the arguments from the memory
-			// EVM contract
-			maybe.PushError(useGasNegative(params.Gas, native.GasGetAccount))
-			// since CALL is used also for sending funds,
-			// acc may not exist yet. This is an errors.CodedError for
-			// CALLCODE, but not for CALL, though I don't think
-			// ethereum actually cares
-			acc := getAccount(st.CallFrame, maybe, target)
-			if acc == nil {
-				if op != CALL {
-					maybe.PushError(errors.Codes.UnknownAddress)
-					continue
-				}
-				// We're sending funds to a new account so we must create it first
-				if maybe.PushError(createAccount(st.CallFrame, params.Callee, target)) {
-					continue
-				}
-				acc = mustGetAccount(st.CallFrame, maybe, target)
-			}
-
-			// Establish a stack frame and perform the call
-			childCallFrame, err := st.CallFrame.NewFrame()
-			if maybe.PushError(err) {
-				continue
-			}
-			childState := engine.State{
-				CallFrame:  childCallFrame,
-				Blockchain: st.Blockchain,
-				EventSink:  st.EventSink,
-			}
-			// Ensure that gasLimit is reasonable
-			if *params.Gas < gasLimit {
-				// EIP150 - the 63/64 rule - rather than errors.CodedError we pass this specified fraction of the total available gas
-				gasLimit = *params.Gas - *params.Gas/64
-			}
-			// NOTE: we will return any used gas later.
-			*params.Gas -= gasLimit
-
-			// Setup callee params for call type
-
-			calleeParams := engine.CallParams{
-				Origin: params.Origin,
-				Input:  memory.Read(inOffset, inSize),
-				Value:  value,
-				Gas:    &gasLimit,
-			}
-
-			// Set up the caller/callee context
-			switch op {
-			case CALL:
-				// Calls contract at target from this contract normally
-				// Value: transferred
-				// Caller: this contract
-				// Storage: target
-				// Code: from target
-
-				calleeParams.CallType = exec.CallTypeCall
-				calleeParams.Caller = params.Callee
-				calleeParams.Callee = target
-
-			case STATICCALL:
-				// Calls contract at target from this contract with no state mutation
-				// Value: not transferred
-				// Caller: this contract
-				// Storage: target (read-only)
-				// Code: from target
-
-				calleeParams.CallType = exec.CallTypeStatic
-				calleeParams.Caller = params.Callee
-				calleeParams.Callee = target
-
-				childState.CallFrame.ReadOnly()
-				childState.EventSink = exec.NewLogFreeEventSink(childState.EventSink)
-
-			case CALLCODE:
-				// Calling this contract from itself as if it had the code at target
-				// Value: transferred
-				// Caller: this contract
-				// Storage: this contract
-				// Code: from target
-
-				calleeParams.CallType = exec.CallTypeCode
-				calleeParams.Caller = params.Callee
-				calleeParams.Callee = params.Callee
-
-			case DELEGATECALL:
-				// Calling this contract from the original caller as if it had the code at target
-				// Value: not transferred
-				// Caller: original caller
-				// Storage: this contract
-				// Code: from target
-
-				calleeParams.CallType = exec.CallTypeDelegate
-				calleeParams.Caller = params.Caller
-				calleeParams.Callee = params.Callee
-
-			default:
-				panic(fmt.Errorf("switch statement should be exhaustive so this should not have been reached"))
-			}
-
-			var callErr error
-			returnData, callErr = c.Dispatch(acc).Call(childState, calleeParams)
-
-			if callErr == nil {
-				// Sync error is a hard stop
-				maybe.PushError(childState.CallFrame.Sync())
-			}
-
+			var err error
+			returnData, err = engine.CallFromSite(st, c.externalDispatcher, params, engine.CallParams{
+				CallType: callTypeFromOpCode(op),
+				Callee:   target,
+				Input:    memory.Read(inOffset, inSize),
+				Value:    value,
+				Gas:      gasLimit,
+			})
 			// Push result
-			if callErr != nil {
-				c.debugf("error from nested sub-call (depth: %v): %s\n", st.CallFrame.CallStackDepth(), callErr.Error())
+			if err != nil {
+				c.debugf("error from nested sub-call (depth: %v): %s\n", st.CallFrame.CallStackDepth(), err)
 				// So we can return nested errors.CodedError if the top level return is an errors.CodedError
 				stack.Push(Zero256)
 
-				if errors.GetCode(callErr) == errors.Codes.ExecutionReverted {
-					memory.Write(retOffset, RightPadBytes(returnData, int(retSize)))
-				}
 			} else {
 				stack.Push(One256)
-
-				// Should probably only be necessary when there is no return value and
-				// returnData is empty, but since EVM expects retSize to be respected this will
-				// defensively pad or truncate the portion of returnData to be returned.
-				memory.Write(retOffset, RightPadBytes(returnData, int(retSize)))
 			}
 
-			// Handle remaining gas.
-			*params.Gas += *calleeParams.Gas
+			code := errors.GetCode(err)
+			if code == errors.Codes.None || code == errors.Codes.ExecutionReverted {
+				memory.Write(retOffset, RightPadBytes(returnData, int(retSize)))
+			} else {
+				maybe.PushError(err)
+			}
+
+			// TODO: decide how to handle this
+			// Apply refund of any unused gas
+			params.Gas.Add(params.Gas, gasLimit)
 
 			c.debugf("resume %s (%v)\n", params.Callee, params.Gas)
 
@@ -832,19 +745,19 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 
 		case SELFDESTRUCT: // 0xFF
 			receiver := stack.PopAddress()
-			maybe.PushError(useGasNegative(params.Gas, native.GasGetAccount))
-			if getAccount(st.CallFrame, maybe, receiver) == nil {
+			maybe.PushError(engine.UseGasNegative(params.Gas, engine.GasGetAccount))
+			if engine.GetAccount(st.CallFrame, maybe, receiver) == nil {
 				// If receiver address doesn't exist, try to create it
-				maybe.PushError(useGasNegative(params.Gas, native.GasCreateAccount))
-				if maybe.PushError(createAccount(st.CallFrame, params.Callee, receiver)) {
+				maybe.PushError(engine.UseGasNegative(params.Gas, engine.GasCreateAccount))
+				if maybe.PushError(st.CallFrame.CreateAccount(params.Callee, receiver)) {
 					continue
 				}
 			}
-			balance := mustGetAccount(st.CallFrame, maybe, params.Callee).Balance
-			maybe.PushError(native.UpdateAccount(st.CallFrame, receiver, func(account *acm.Account) error {
+			balance := engine.MustGetAccount(st.CallFrame, maybe, params.Callee).Balance
+			maybe.PushError(engine.UpdateAccount(st.CallFrame, receiver, func(account *acm.Account) error {
 				return account.AddToBalance(balance)
 			}))
-			maybe.PushError(native.RemoveAccount(st.CallFrame, params.Callee))
+			maybe.PushError(engine.RemoveAccount(st.CallFrame, params.Callee))
 			c.debugf(" => (%X) %v\n", receiver[:4], balance)
 			return nil, maybe.Error()
 
@@ -862,65 +775,14 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 	return nil, maybe.Error()
 }
 
-func (c *CVMContract) jump(code []byte, to uint64, pc *uint64) error {
-	dest := codeGetOp(code, to)
-	if dest != JUMPDEST || isInsidePushData(code, to) {
+func (c *CVMContract) jump(to uint64, pc *uint64) error {
+	dest := c.GetSymbol(to)
+	if dest != JUMPDEST || c.IsPushData(to) {
 		c.debugf(" ~> %v invalid jump dest %v\n", to, dest)
 		return errors.Codes.InvalidJumpDest
 	}
 	c.debugf(" ~> %v\n", to)
 	*pc = to
-	return nil
-}
-
-// isInsidePushData checks if the operator code(n) is inside push data
-func isInsidePushData(code []byte, n uint64) bool {
-	if uint64(len(code)) <= n {
-		return false
-	}
-	i := uint64(0)
-	for i < n {
-		if op := OpCode(code[i]); op >= PUSH1 && op <= PUSH32 {
-			i += uint64(op - PUSH1 + 2)
-		} else {
-			i++
-		}
-	}
-	return i > n
-}
-
-func createAccount(callFrame *engine.CallFrame, creator, address crypto.Address) error {
-	return native.CreateAccount(callFrame, address)
-}
-
-func getAccount(st acmstate.Reader, m *errors.Maybe, address crypto.Address) *acm.Account {
-	acc, err := st.GetAccount(address)
-	if err != nil {
-		m.PushError(err)
-		return nil
-	}
-	return acc
-}
-
-// Guaranteed to return a non-nil account, if the account does not exist returns a pointer to the zero-value of Account
-// and pushes an error.
-func mustGetAccount(st acmstate.Reader, m *errors.Maybe, address crypto.Address) *acm.Account {
-	acc := getAccount(st, m, address)
-	if acc == nil {
-		m.PushError(errors.Errorf(errors.Codes.NonExistentAccount, "account %v does not exist", address))
-		return &acm.Account{}
-	}
-	return acc
-}
-
-// Try to deduct gasToUse from gasLeft.  If ok return false, otherwise
-// set err and return true.
-func useGasNegative(gasLeft *uint64, gasToUse uint64) error {
-	if *gasLeft >= gasToUse {
-		*gasLeft -= gasToUse
-	} else {
-		return errors.Codes.InsufficientGas
-	}
 	return nil
 }
 
@@ -978,14 +840,6 @@ func subslice(data []byte, offset, length uint64) ([]byte, error) {
 	return data[offset : offset+length], nil
 }
 
-func codeGetOp(code []byte, n uint64) OpCode {
-	if uint64(len(code)) <= n {
-		return OpCode(0) // stop
-	} else {
-		return OpCode(code[n])
-	}
-}
-
 // Dump the bytecode being sent to the EVM in the current working directory
 func dumpTokens(nonce []byte, caller, callee crypto.Address, code []byte) {
 	var tokensString string
@@ -1021,4 +875,19 @@ func newRevertException(ret []byte) errors.CodedError {
 		}
 	}
 	return code
+}
+
+func callTypeFromOpCode(o OpCode) exec.CallType {
+	switch o {
+	case CALL:
+		return exec.CallTypeCall
+	case CALLCODE:
+		return exec.CallTypeCode
+	case STATICCALL:
+		return exec.CallTypeStatic
+	case DELEGATECALL:
+		return exec.CallTypeDelegate
+	default:
+		return exec.CallTypeInvalid
+	}
 }

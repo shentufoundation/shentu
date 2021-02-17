@@ -9,7 +9,7 @@ require (
 	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/hyperledger/burrow v0.30.6-0.20210202164809-86b3b7b793d1
+	github.com/hyperledger/burrow v0.30.6-0.20210205235125-5ec0c8b2fee8
 	github.com/magiconair/properties v1.8.4
 	github.com/rakyll/statik v0.1.7
 	github.com/regen-network/cosmos-proto v0.3.1

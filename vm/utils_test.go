@@ -39,8 +39,8 @@ func TestStack_Get(t *testing.T) {
 
 func NewContentStack() *Stack {
 	err := new(errors.Maybe)
-	gaz := uint64(math.MaxUint64)
-	st := NewStack(err, 0, 0, &gaz)
+	gaz := big.NewInt(math.MaxInt64)
+	st := NewStack(err, 0, 0, gaz)
 	st.Push64(10)
 	st.Push64(20)
 	return st
