@@ -29,6 +29,7 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	cvmQueryCmd.AddCommand(
+		GetAccountCmd(),
 		GetCmdCode(),
 		GetCmdStorage(),
 		GetCmdAbi(),

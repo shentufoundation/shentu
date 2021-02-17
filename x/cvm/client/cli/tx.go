@@ -16,11 +16,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authcli "github.com/cosmos/cosmos-sdk/x/auth/client"
 	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/hyperledger/burrow/crypto"
-	evm "github.com/hyperledger/burrow/deploy/compile"
 	"github.com/hyperledger/burrow/execution/evm/abi"
 	"github.com/hyperledger/burrow/logging"
 	"github.com/hyperledger/burrow/txs/payload"
@@ -238,10 +236,11 @@ func appendDeployMsgs(cmd *cobra.Command, fileName string) ([]sdk.Msg, error) {
 	argsRaw := viper.GetString(FlagArgs)
 	arguments := strings.Split(argsRaw, ",")
 	code, err := ioutil.ReadFile(fileName)
+	codeStr := strings.Trim(string(code), "\n")
 	if err != nil {
 		return msgs, err
 	}
-	code, err = hex.DecodeString(string(code))
+	code, err = hex.DecodeString(codeStr)
 	if err != nil {
 		return msgs, err
 	}
@@ -319,86 +318,4 @@ func parseData(function string, abiSpec []byte, args []string, logger *logging.L
 
 	data, _, err := abi.EncodeFunctionCall(string(abiSpec), function, logger, params...)
 	return data, err
-}
-
-func callEVM(cmd *cobra.Command, filename string) (*evm.Response, error) {
-	logger := logging.NewNoopLogger()
-
-	basename, workDir, err := compile.ResolveFilename(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	basenameSplit := strings.Split(basename, ".")
-	if len(basenameSplit) < 2 {
-		return nil, errFileExt
-	}
-
-	var resp *evm.Response
-
-	switch fileExt := basenameSplit[len(basenameSplit)-1]; fileExt {
-	case "sol":
-		if viper.GetBool(FlagEWASM) {
-			resp, err = evm.WASM(basename, workDir, logger)
-		} else {
-			resp, err = evm.EVM(basename, false, workDir, nil, logger)
-		}
-	case "ds":
-		resp, err = compile.DeepseaEVM(basename, workDir, logger)
-	case "bc", "bytecode", "wasm":
-		abiFile, err := cmd.Flags().GetString(FlagABI)
-		if err != nil {
-			return nil, err
-		}
-		resp, err = compile.BytecodeEVM(basename, workDir, abiFile, logger)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, errFileExt
-	}
-	if err != nil {
-		return nil, err
-	}
-	if resp.Error != "" {
-		return nil, errors.New(resp.Error)
-	}
-	if len(resp.Objects) < 1 {
-		return nil, errors.New("compilation result must contain at least one object")
-	}
-
-	return resp, nil
-
-}
-
-// QueryTxCmd implements the default command for a tx query.
-func QueryTxCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "tx [hash]",
-		Short: "Query for a transaction by hash in a committed block",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			output, err := authcli.QueryTx(clientCtx, args[0])
-			if err != nil {
-				return err
-			}
-
-			if output.Empty() {
-				return fmt.Errorf("no transaction found with hash %s", args[0])
-			}
-
-			return clientCtx.PrintProto(output)
-		},
-	}
-
-	cmd.Flags().StringP(flags.FlagNode, "n", "tcp://localhost:26657", "Node to connect to")
-	viper.BindPFlag(flags.FlagNode, cmd.Flags().Lookup(flags.FlagNode))
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
 }

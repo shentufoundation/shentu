@@ -46,7 +46,7 @@ func (q Querier) Abi(c context.Context, request *types.QueryAbiRequest) (*types.
 		return nil, err
 	}
 	vmAddr, _ := crypto.AddressFromBytes(addr)
-	abiString := hex.EncodeToString(q.GetAbi(ctx, vmAddr))
+	abiString := string(q.GetAbi(ctx, vmAddr))
 	return &types.QueryAbiResponse{
 		Abi: abiString,
 	}, nil
