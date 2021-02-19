@@ -1,4 +1,4 @@
-pragma solidity >=0.4.0 <0.7.0;
+pragma solidity >0.7.0;
 
 contract Simple {
     uint storedData;

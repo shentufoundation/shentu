@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,15 +12,15 @@ import (
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
-type eventSink struct {
+type EventSink struct {
 	ctx sdk.Context
 }
 
-func NewEventSink(ctx sdk.Context) *eventSink {
-	return &eventSink{ctx}
+func NewEventSink(ctx sdk.Context) *EventSink {
+	return &EventSink{ctx}
 }
 
-func (es *eventSink) Call(call *exec.CallEvent, exception *errors.Exception) error {
+func (es *EventSink) Call(call *exec.CallEvent, exception *errors.Exception) error {
 	// do not log anything on the first call
 	if call.StackDepth == 0 {
 		return nil
@@ -52,7 +53,7 @@ func (es *eventSink) Call(call *exec.CallEvent, exception *errors.Exception) err
 			},
 			sdk.Attribute{
 				Key:   "value",
-				Value: strconv.FormatUint(call.CallData.Value, 10),
+				Value: hex.EncodeToString(call.CallData.Value),
 			},
 			sdk.Attribute{
 				Key:   "stack-depth",
@@ -63,7 +64,7 @@ func (es *eventSink) Call(call *exec.CallEvent, exception *errors.Exception) err
 	return nil
 }
 
-func (es *eventSink) Log(log *exec.LogEvent) error {
+func (es *EventSink) Log(log *exec.LogEvent) error {
 	topicsString := ""
 	for _, topic := range log.Topics {
 		topicsString += topic.String()
@@ -91,5 +92,9 @@ func (es *eventSink) Log(log *exec.LogEvent) error {
 			},
 		),
 	)
+	return nil
+}
+
+func (es *EventSink) Print(print *exec.PrintEvent) error {
 	return nil
 }

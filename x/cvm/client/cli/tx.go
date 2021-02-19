@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"path/filepath"
+	"io/ioutil"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -16,11 +16,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authcli "github.com/cosmos/cosmos-sdk/x/auth/client"
 	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/hyperledger/burrow/crypto"
-	evm "github.com/hyperledger/burrow/deploy/compile"
 	"github.com/hyperledger/burrow/execution/evm/abi"
 	"github.com/hyperledger/burrow/logging"
 	"github.com/hyperledger/burrow/txs/payload"
@@ -38,6 +36,7 @@ const (
 	FlagABI      = "abi"
 	FlagEWASM    = "ewasm"
 	FlagRuntime  = "runtime"
+	FlagMetadata = "metadata"
 )
 
 var (
@@ -192,7 +191,7 @@ func queryAbi(cliCtx client.Context, queryRoute string, addr string) ([]byte, er
 // GetCmdDeploy returns the CVM contract deploy transaction command.
 func GetCmdDeploy() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deploy <filename> <flags>..",
+		Use:   "deploy <filename>",
 		Short: "Deploy CVM contract(s)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, file []string) error {
@@ -209,8 +208,7 @@ func GetCmdDeploy() *cobra.Command {
 				return err
 			}
 
-			var msgs []sdk.Msg
-			msgs, err = appendDeployMsgs(cmd, clientCtx, msgs, file[0])
+			msgs, err := appendDeployMsgs(cmd, file[0])
 			if err != nil {
 				return err
 			}
@@ -220,82 +218,77 @@ func GetCmdDeploy() *cobra.Command {
 	cmd.Flags().String(FlagABI, "", "name of ABI file (when deploying bytecode)")
 	cmd.Flags().Uint64(FlagValue, 0, "value sent with transaction")
 	cmd.Flags().String(FlagArgs, "", "constructor arguments")
-	cmd.Flags().String(FlagContract, "", "the name of the contract to be deployed")
 	cmd.Flags().Bool(FlagEWASM, false, "compile solidity contract to EWASM")
 	cmd.Flags().Bool(FlagRuntime, false, "runtime code")
+	cmd.Flags().String(FlagMetadata, "", "the metadata files to be deployed along with the contract")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
 
-func appendDeployMsgs(cmd *cobra.Command, cliCtx client.Context, msgs []sdk.Msg, fileName string) ([]sdk.Msg, error) {
+func appendDeployMsgs(cmd *cobra.Command, fileName string) ([]sdk.Msg, error) {
+	var msgs []sdk.Msg
 	clientCtx, err := client.GetClientTxContext(cmd)
 	if err != nil {
 		return []sdk.Msg{}, err
 	}
 
-	argumentsRaw := viper.GetString(FlagArgs)
-	arguments := strings.Split(argumentsRaw, ",")
-	deployContract := viper.GetString(FlagContract)
-
-	var target string
-	if len(deployContract) > 0 {
-		target = strings.ToUpper(deployContract)
-	} else {
-		target = strings.ToUpper(filepath.Base(fileName))
-	}
-
-	resp, err := callEVM(cmd, fileName)
+	argsRaw := viper.GetString(FlagArgs)
+	arguments := strings.Split(argsRaw, ",")
+	code, err := ioutil.ReadFile(fileName)
+	codeStr := strings.Trim(string(code), "\n")
 	if err != nil {
 		return msgs, err
 	}
+	code, err = hex.DecodeString(codeStr)
+	if err != nil {
+		return msgs, err
+	}
+	codehash := crypto.Keccak256(code)
+
 	value := viper.GetUint64(FlagValue)
-
-	fileNameMatch := false
-	for _, object := range resp.Objects {
-		code, err := hex.DecodeString(object.Contract.Code())
+	metadataFile := viper.GetString(FlagMetadata)
+	var metas []*payload.ContractMeta
+	if metadataFile != "" {
+		metadataBytes, err := ioutil.ReadFile(metadataFile)
 		if err != nil {
 			return msgs, err
 		}
+		metadataString := string(metadataBytes)
+		metas = append(metas, &payload.ContractMeta{
+			CodeHash: codehash,
+			Meta:     metadataString,
+		})
+	}
 
-		logger := logging.NewNoopLogger()
-		metadata, err := object.Contract.GetMetadata(logger)
+	abiFile, err := cmd.Flags().GetString(FlagABI)
+	if err != nil {
+		return msgs, err
+	}
+	var abiBytes []byte
+	if abiFile != "" {
+		abiBytes, err = ioutil.ReadFile(abiFile)
 		if err != nil {
 			return msgs, err
 		}
-
-		var metas []*payload.ContractMeta
-		for codehash, metadata := range metadata {
-			metas = append(metas, &payload.ContractMeta{
-				CodeHash: codehash.Bytes(),
-				Meta:     metadata,
-			})
-		}
-
-		fileExtensionUpper := filepath.Ext(target)
-		fileNameUpper := strings.TrimSuffix(target, fileExtensionUpper)
-		objectNameUpper := strings.ToUpper(object.Objectname)
-		if fileNameUpper == objectNameUpper || fileExtensionUpper == ".BYTECODE" {
-			fileNameMatch = true
-			if len(argumentsRaw) > 0 {
-				callArgsBytes, err := parseData("", object.Contract.Abi, arguments, logger)
-				if err != nil {
-					return msgs, err
-				}
-				code = append(code, callArgsBytes...)
-			}
-			isEWASM := viper.GetBool(FlagEWASM)
-			isRuntime := viper.GetBool(FlagRuntime)
-			msg := types.NewMsgDeploy(clientCtx.GetFromAddress().String(), value, code, string(object.Contract.Abi), metas, isEWASM, isRuntime)
-			if err := msg.ValidateBasic(); err != nil {
-				return msgs, err
-			}
-			msgs = append(msgs, &msg)
-		}
 	}
-	if !fileNameMatch {
-		return msgs, errors.New("contract name does not match the file name")
+
+	logger := logging.NewNoopLogger()
+
+	if len(argsRaw) > 0 {
+		callArgsBytes, err := parseData("", abiBytes, arguments, logger)
+		if err != nil {
+			return msgs, err
+		}
+		code = append(code, callArgsBytes...)
 	}
+	isEWASM := viper.GetBool(FlagEWASM)
+	isRuntime := viper.GetBool(FlagRuntime)
+	msg := types.NewMsgDeploy(clientCtx.GetFromAddress().String(), value, code, string(abiBytes), metas, isEWASM, isRuntime)
+	if err := msg.ValidateBasic(); err != nil {
+		return msgs, err
+	}
+	msgs = append(msgs, &msg)
 	return msgs, nil
 }
 
@@ -325,86 +318,4 @@ func parseData(function string, abiSpec []byte, args []string, logger *logging.L
 
 	data, _, err := abi.EncodeFunctionCall(string(abiSpec), function, logger, params...)
 	return data, err
-}
-
-func callEVM(cmd *cobra.Command, filename string) (*evm.Response, error) {
-	logger := logging.NewNoopLogger()
-
-	basename, workDir, err := compile.ResolveFilename(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	basenameSplit := strings.Split(basename, ".")
-	if len(basenameSplit) < 2 {
-		return nil, errFileExt
-	}
-
-	var resp *evm.Response
-
-	switch fileExt := basenameSplit[len(basenameSplit)-1]; fileExt {
-	case "sol":
-		if viper.GetBool(FlagEWASM) {
-			resp, err = evm.WASM(basename, workDir, logger)
-		} else {
-			resp, err = evm.EVM(basename, false, workDir, nil, logger)
-		}
-	case "ds":
-		resp, err = compile.DeepseaEVM(basename, workDir, logger)
-	case "bc", "bytecode", "wasm":
-		abiFile, err := cmd.Flags().GetString(FlagABI)
-		if err != nil {
-			return nil, err
-		}
-		resp, err = compile.BytecodeEVM(basename, workDir, abiFile, logger)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, errFileExt
-	}
-	if err != nil {
-		return nil, err
-	}
-	if resp.Error != "" {
-		return nil, errors.New(resp.Error)
-	}
-	if len(resp.Objects) < 1 {
-		return nil, errors.New("compilation result must contain at least one object")
-	}
-
-	return resp, nil
-
-}
-
-// QueryTxCmd implements the default command for a tx query.
-func QueryTxCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "tx [hash]",
-		Short: "Query for a transaction by hash in a committed block",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			output, err := authcli.QueryTx(clientCtx, args[0])
-			if err != nil {
-				return err
-			}
-
-			if output.Empty() {
-				return fmt.Errorf("no transaction found with hash %s", args[0])
-			}
-
-			return clientCtx.PrintProto(output)
-		},
-	}
-
-	cmd.Flags().StringP(flags.FlagNode, "n", "tcp://localhost:26657", "Node to connect to")
-	viper.BindPFlag(flags.FlagNode, cmd.Flags().Lookup(flags.FlagNode))
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
 }
