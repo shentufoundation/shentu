@@ -1,13 +1,14 @@
-// Package init is used for initializing specialized chain state.
 package cmd
 
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -42,6 +43,7 @@ var (
 	flagOutputDir         = "output-dir"
 	flagNodeDaemonHome    = "node-daemon-home"
 	flagNodeCLIHome       = "node-cli-home"
+	flagServerIPAddress   = "server-ip-address"
 	flagStartingIPAddress = "starting-ip-address"
 )
 
@@ -90,10 +92,17 @@ Example:
 			if err != nil {
 				return err
 			}
-			startingIPAddress, err := cmd.Flags().GetString(flagStartingIPAddress)
+
+			serverAddrs, err := cmd.Flags().GetString(flagServerIPAddress)
 			if err != nil {
 				return err
 			}
+
+			startingIPAddress, err := cmd.Flags().GetString(flagStartingIPAddress)
+ 			if err != nil {
+ 				return err
+ 			}
+
 			numValidators, err := cmd.Flags().GetInt(flagNumValidators)
 			if err != nil {
 				return err
@@ -105,7 +114,8 @@ Example:
 
 			return InitTestnet(
 				clientCtx, cmd, config, mbm, genBalIterator, outputDir, chainID, minGasPrices,
-				nodeDirPrefix, nodeDaemonHome, nodeCLIHome, startingIPAddress, keyringBackend, algo, numValidators,
+				nodeDirPrefix, nodeDaemonHome, nodeCLIHome, serverAddrs, startingIPAddress, 
+				keyringBackend, algo, numValidators,
 			)
 		},
 	}
@@ -115,10 +125,18 @@ Example:
 	cmd.Flags().String(flagNodeDirPrefix, "node", "Prefix the directory name for each node with (node results in node0, node1, ...)")
 	cmd.Flags().String(flagNodeDaemonHome, "certikd", "Home directory of the node's daemon configuration")
 	cmd.Flags().String(flagNodeCLIHome, "certikd", "Home directory of the node's cli configuration")
-	cmd.Flags().String(flagStartingIPAddress, "192.168.0.1", "Starting IP address (192.168.0.1 results in persistent peers list ID0@192.168.0.1:46656, ID1@192.168.0.2:46656, ...)")
+	
+	ip, err := server.ExternalIP()
+	if err != nil {
+		panic(err)
+	}
+	cmd.Flags().String(flagServerIPAddress, ip, "Server IP Address")
+
+	cmd.Flags().String(flagStartingIPAddress, "", "Starting IP address (192.168.0.1 results in persistent peers list ID0@192.168.0.1:46656, ID1@192.168.0.2:46656, ...)")
+	
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
 	cmd.Flags().String(server.FlagMinGasPrices, fmt.Sprintf("0.000006%s", common.MicroCTKDenom), "Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum (e.g. 0.01photino,0.001stake)")
-	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|test)")
+	cmd.Flags().String(flags.FlagKeyringBackend, keyring.BackendTest, "Select keyring's backend (os|file|test)")
 	cmd.Flags().String(flags.FlagKeyAlgorithm, string(hd.Secp256k1Type), "Key signing algorithm to generate keys for")
 
 	return cmd
@@ -126,7 +144,7 @@ Example:
 
 const nodeDirPerm = 0755
 
-// Initialize the testnet
+// InitTestnet initializes the testnet.
 func InitTestnet(
 	clientCtx client.Context,
 	cmd *cobra.Command,
@@ -139,6 +157,7 @@ func InitTestnet(
 	nodeDirPrefix,
 	nodeDaemonHome,
 	nodeCLIHome,
+	serverAddrs,
 	startingIPAddress,
 	keyringBackend,
 	algoStr string,
@@ -151,6 +170,14 @@ func InitTestnet(
 	nodeIDs := make([]string, numValidators)
 	valPubKeys := make([]cryptotypes.PubKey, numValidators)
 
+	var serverAddressList []string
+	if startingIPAddress == "" {
+		serverAddressList = strings.Split(serverAddrs, ",")
+		if len(serverAddressList) != numValidators {
+			return errors.New("address list length does not match --v")
+		}
+	}
+	
 	simappConfig := srvconfig.DefaultConfig()
 	simappConfig.MinGasPrices = minGasPrices
 	simappConfig.API.Enable = true
@@ -188,7 +215,13 @@ func InitTestnet(
 
 		nodeConfig.Moniker = nodeDirName
 
-		ip, err := getIP(i, startingIPAddress)
+		var ip string
+		var err error
+		if startingIPAddress != "" {
+			ip, err = getIP(i, startingIPAddress)
+		} else {
+			ip, err = getIP(i, serverAddressList[i])
+		}
 		if err != nil {
 			_ = os.RemoveAll(outputDir)
 			return err
@@ -232,8 +265,8 @@ func InitTestnet(
 			return err
 		}
 
-		accTokens := sdk.TokensFromConsensusPower(1000)
-		accStakingTokens := sdk.TokensFromConsensusPower(500)
+		accTokens := sdk.TokensFromConsensusPower(int64(2000000 * (numValidators - i)))
+		accStakingTokens := sdk.TokensFromConsensusPower(int64(1000000 * (numValidators - i)))
 		coins := sdk.Coins{
 			sdk.NewCoin(fmt.Sprintf("%stoken", nodeDirName), accTokens),
 			sdk.NewCoin(common.MicroCTKDenom, accStakingTokens),
