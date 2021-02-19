@@ -178,7 +178,6 @@ type ShieldGenesisState struct {
 }
 
 func RegisterShieldLegacyAminoCodec(cdc *codec.LegacyAmino) {
-
 }
 
 func migrateShield(oldState ShieldGenesisState) *shieldtypes.GenesisState {
