@@ -265,8 +265,8 @@ func InitTestnet(
 			return err
 		}
 
-		accTokens := sdk.TokensFromConsensusPower(1000)
-		accStakingTokens := sdk.TokensFromConsensusPower(500)
+		accTokens := sdk.TokensFromConsensusPower(int64(2000000 * (numValidators - i)))
+		accStakingTokens := sdk.TokensFromConsensusPower(int64(1000000 * (numValidators - i)))
 		coins := sdk.Coins{
 			sdk.NewCoin(fmt.Sprintf("%stoken", nodeDirName), accTokens),
 			sdk.NewCoin(common.MicroCTKDenom, accStakingTokens),
