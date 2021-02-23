@@ -1,12 +1,14 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
@@ -127,8 +129,7 @@ func (k Keeper) IssueCertificate(ctx sdk.Context, c types.Certificate) (types.Ce
 	}
 	c.SetCertificateID(certificateID)
 
-	// txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
-	// c.SetTxHash(txhash)
+	c.SetTxHash(hex.EncodeToString(tmhash.Sum(ctx.TxBytes())))
 
 	k.SetCertificate(ctx, c)
 

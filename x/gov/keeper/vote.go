@@ -1,11 +1,13 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/certikfoundation/shentu/x/gov/types"
 	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
@@ -44,8 +46,7 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 		return sdkerrors.Wrapf(govTypes.ErrInvalidVote, "'%s' is not a certified identity", voterAddr)
 	}
 
-	//txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
-	txhash := "test"
+	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
 	vote := types.NewVote(proposalID, voterAddr, option, txhash)
 	k.setVote(ctx, vote)
 
