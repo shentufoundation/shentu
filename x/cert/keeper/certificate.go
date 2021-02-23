@@ -298,8 +298,6 @@ func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCerti
 	}
 
 	// Post-processing
-	total := uint64(len(filteredCertificates))
-
 	start, end := client.Paginate(len(filteredCertificates), params.Page, params.Limit, 100)
 	if start < 0 || end < 0 {
 		filteredCertificates = []types.Certificate{}
@@ -307,7 +305,7 @@ func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCerti
 		filteredCertificates = filteredCertificates[start:end]
 	}
 
-	return total, filteredCertificates, nil
+	return uint64(len(filteredCertificates)), filteredCertificates, nil
 }
 
 // RevokeCertificate revokes a certificate.
