@@ -1,8 +1,6 @@
 package cvm
 
 import (
-	"fmt"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -89,12 +87,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 	if err := cache.Sync(state); err != nil {
 		panic(err)
 	}
-	fmt.Println(len(data.Metadatas))
 	for _, metadata := range data.Metadatas {
-		fmt.Println(data.Metadatas)
 		if len(metadata.Hash) != 32 {
-			fmt.Println(metadata.Hash.String())
-			fmt.Println(len(metadata.Hash))
 			panic("metadata hash is not 256 bits")
 		}
 		var metahash acmstate.MetadataHash

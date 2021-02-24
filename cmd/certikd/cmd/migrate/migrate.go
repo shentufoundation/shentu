@@ -246,10 +246,6 @@ func Migrate(appState types.AppMap, clientCtx client.Context) types.AppMap {
 		appState[cvmtypes.ModuleName] = v040Codec.MustMarshalJSON(migrateCVM(cvmGenState))
 	}
 
-	var cvmGen cvmtypes.GenesisState
-	v040Codec.MustUnmarshalJSON(appState[cvmtypes.ModuleName], &cvmGen)
-	fmt.Println(cvmGen.Metadatas)
-
 	// Migrate x/cert
 	if appState[certtypes.ModuleName] != nil {
 		var certGenState CertGenesisState

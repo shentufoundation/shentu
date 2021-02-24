@@ -362,9 +362,9 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 
 	return &certtypes.GenesisState{
 		Certifiers:   newCertifiers,
-		Validators:   nil,
-		Platforms:    nil,
+		Validators:   newValidators,
+		Platforms:    newPlatforms,
 		Certificates: newCertificates,
-		Libraries:    nil,
+		Libraries:    newLibraries,
 	}
 }
