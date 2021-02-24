@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"time"
 
+	oracletypes "github.com/certikfoundation/shentu/x/oracle/types"
+
 	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 
 	"github.com/spf13/cobra"
@@ -34,7 +36,6 @@ import (
 	v038evidence "github.com/cosmos/cosmos-sdk/x/evidence/legacy/v038"
 	v040evidence "github.com/cosmos/cosmos-sdk/x/evidence/legacy/v040"
 	evtypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
-	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	v039genutil "github.com/cosmos/cosmos-sdk/x/genutil/legacy/v039"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -120,7 +121,7 @@ func Migrate(appState types.AppMap, clientCtx client.Context) types.AppMap {
 
 		// Migrate relative source genesis application state and marshal it into
 		// the respective key.
-		appState[v040auth.ModuleName] = v040Codec.MustMarshalJSON(v040auth.Migrate(authGenState))
+		appState[v040auth.ModuleName] = v040Codec.MustMarshalJSON(authMigrate(authGenState))
 	}
 
 	// Migrate x/crisis.
@@ -245,6 +246,10 @@ func Migrate(appState types.AppMap, clientCtx client.Context) types.AppMap {
 		appState[cvmtypes.ModuleName] = v040Codec.MustMarshalJSON(migrateCVM(cvmGenState))
 	}
 
+	var cvmGen cvmtypes.GenesisState
+	v040Codec.MustUnmarshalJSON(appState[cvmtypes.ModuleName], &cvmGen)
+	fmt.Println(cvmGen.Metadatas)
+
 	// Migrate x/cert
 	if appState[certtypes.ModuleName] != nil {
 		var certGenState CertGenesisState
@@ -256,6 +261,14 @@ func Migrate(appState types.AppMap, clientCtx client.Context) types.AppMap {
 	}
 
 	// Migrate x/oracle
+	if appState[oracletypes.ModuleName] != nil {
+		var oracleGenState OracleGenesisState
+		v039Codec.MustUnmarshalJSON(appState[oracletypes.ModuleName], &oracleGenState)
+
+		delete(appState, oracletypes.ModuleName)
+
+		appState[oracletypes.ModuleName] = v040Codec.MustMarshalJSON(migrateOracle(oracleGenState))
+	}
 
 	// Migrate x/shield
 	if appState[shieldtypes.ModuleName] != nil {
@@ -274,7 +287,7 @@ func Migrate(appState types.AppMap, clientCtx client.Context) types.AppMap {
 func MigrateGenesisCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "migrate [genesis-file]",
-		Short: "Migrate genesis to a specified target version",
+		Short: "Migrate 1.X.X genesis to 2.0.X",
 		Long: fmt.Sprintf(`Migrate the source genesis into the target version and print to STDOUT.
 
 Example:
@@ -286,19 +299,12 @@ $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04
 
 			var err error
 
-			firstMigration := "v0.38"
 			importGenesis := args[0]
 
 			jsonBlob, err := ioutil.ReadFile(importGenesis)
 
 			if err != nil {
 				return errors.Wrap(err, "failed to read provided genesis file")
-			}
-
-			jsonBlob, err = migrateTendermintGenesis(jsonBlob)
-
-			if err != nil {
-				return errors.Wrap(err, "failed to migration from 0.32 Tendermint params to 0.34 parms")
 			}
 
 			genDoc, err := tmtypes.GenesisDocFromJSON(jsonBlob)
@@ -311,33 +317,10 @@ $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04
 				return errors.Wrap(err, "failed to JSON unmarshal initial genesis state")
 			}
 
-			migrationFunc := cli.GetMigrationCallback(firstMigration)
-			if migrationFunc == nil {
-				return fmt.Errorf("unknown migration function for version: %s", firstMigration)
-			}
+			migrationFunc := Migrate
 
 			// TODO: handler error from migrationFunc call
 			newGenState := migrationFunc(initialState, clientCtx)
-
-			secondMigration := "v0.39"
-
-			migrationFunc = cli.GetMigrationCallback(secondMigration)
-			if migrationFunc == nil {
-				return fmt.Errorf("unknown migration function for version: %s", secondMigration)
-			}
-
-			// TODO: handler error from migrationFunc call
-			newGenState = migrationFunc(newGenState, clientCtx)
-
-			thirdMigration := "v0.40"
-
-			migrationFunc = Migrate
-			if migrationFunc == nil {
-				return fmt.Errorf("unknown migration function for version: %s", thirdMigration)
-			}
-
-			// TODO: handler error from migrationFunc call
-			newGenState = migrationFunc(newGenState, clientCtx)
 
 			var bankGenesis bank.GenesisState
 
@@ -345,14 +328,14 @@ $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04
 
 			bankGenesis.DenomMetadata = []bank.Metadata{
 				{
-					Description: "The native staking token of the Cosmos Hub.",
+					Description: "The native staking token of the CertiK Chain.",
 					DenomUnits: []*bank.DenomUnit{
-						{Denom: "uatom", Exponent: uint32(0), Aliases: []string{"microatom"}},
-						{Denom: "matom", Exponent: uint32(3), Aliases: []string{"milliatom"}},
-						{Denom: "atom", Exponent: uint32(6), Aliases: []string{}},
+						{Denom: "uctk", Exponent: uint32(0), Aliases: []string{"microctk"}},
+						{Denom: "mctk", Exponent: uint32(3), Aliases: []string{"millictk"}},
+						{Denom: "ctk", Exponent: uint32(6), Aliases: []string{}},
 					},
-					Base:    "uatom",
-					Display: "atom",
+					Base:    "uctk",
+					Display: "ctk",
 				},
 			}
 			newGenState[bank.ModuleName] = clientCtx.JSONMarshaler.MustMarshalJSON(&bankGenesis)

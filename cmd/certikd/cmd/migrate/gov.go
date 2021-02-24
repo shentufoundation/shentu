@@ -48,7 +48,7 @@ type Proposal struct {
 	// ID of the proposal
 	ProposalID uint64 `json:"id" yaml:"id"`
 	// status of the Proposal {Pending, Active, Passed, Rejected}
-	Status ProposalStatus `json:"proposal_status" yaml:"proposal_status"`
+	Status string `json:"proposal_status" yaml:"proposal_status"`
 	// whether or not the proposer is a council member (validator or certifier)
 	IsProposerCouncilMember bool `json:"is_proposer_council_member" yaml:"is_proposer_council_member"`
 	// proposer address
@@ -136,7 +136,49 @@ const (
 	StatusRejected
 	// StatusFailed is the failed status.
 	StatusFailed
+
+	// DepositPeriod is the string of DepositPeriod.
+	DepositPeriod = "DepositPeriod"
+	// CertifierVotingPeriod is the string of CertifierVotingPeriod.
+	CertifierVotingPeriod = "CertifierVotingPeriod"
+	// ValidatorVotingPeriod is the string of ValidatorVotingPeriod.
+	ValidatorVotingPeriod = "ValidatorVotingPeriod"
+	// Passed is the string of Passed.
+	Passed = "Passed"
+	// Rejected is the string of Rejected.
+	Rejected = "Rejected"
+	// Failed is the string of Failed.
+	Failed = "Failed"
 )
+
+// ProposalStatusFromString turns a string into a ProposalStatus.
+func ProposalStatusFromString(str string) (ProposalStatus, error) {
+	switch str {
+	case DepositPeriod:
+		return StatusDepositPeriod, nil
+
+	case CertifierVotingPeriod:
+		return StatusCertifierVotingPeriod, nil
+
+	case Passed:
+		return StatusPassed, nil
+
+	case Rejected:
+		return StatusRejected, nil
+
+	case Failed:
+		return StatusFailed, nil
+
+	case "":
+		return StatusNil, nil
+
+	case ValidatorVotingPeriod:
+		return StatusValidatorVotingPeriod, nil
+
+	default:
+		return ProposalStatus(0xff), fmt.Errorf("'%s' is not a valid proposal status", str)
+	}
+}
 
 func migrateProposalStatus(oldProposalStatus ProposalStatus) govtypes.ProposalStatus {
 	switch oldProposalStatus {
@@ -278,10 +320,14 @@ func govMigrate(oldGovState v131GovGenesisState) *govtypes.GenesisState {
 
 	newProposals := make([]govtypes.Proposal, len(oldGovState.Proposals))
 	for i, oldProposal := range oldGovState.Proposals {
+		stat, err := ProposalStatusFromString(oldProposal.Status)
+		if err != nil {
+			panic(err)
+		}
 		newProposals[i] = govtypes.Proposal{
 			ProposalId: oldProposal.ProposalID,
 			Content:    migrateContent(oldProposal.Content),
-			Status:     migrateProposalStatus(oldProposal.Status),
+			Status:     migrateProposalStatus(stat),
 			FinalTallyResult: v040gov.TallyResult{
 				Yes:        oldProposal.FinalTallyResult.Yes,
 				Abstain:    oldProposal.FinalTallyResult.Abstain,

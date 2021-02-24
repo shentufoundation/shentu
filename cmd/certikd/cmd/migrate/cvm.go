@@ -1,6 +1,8 @@
 package migrate
 
 import (
+	"fmt"
+
 	cvmtypes "github.com/certikfoundation/shentu/x/cvm/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/hyperledger/burrow/acm"
@@ -92,10 +94,16 @@ func migrateCVM(oldGenState CVMGenesisState) *cvmtypes.GenesisState {
 
 	newMetas := cvmtypes.Metadatas{}
 	for _, meta := range oldGenState.Metadata {
+		fmt.Println(meta.Hash)
+		fmt.Println(crypto.Keccak256([]byte(meta.Metadata)))
 		newMeta := cvmtypes.Metadata{
-			Hash:     meta.Hash[:],
+			Hash:     meta.Hash.Bytes(),
 			Metadata: meta.Metadata,
 		}
+		fmt.Println(newMeta.Hash)
+		fmt.Println(newMeta.Hash)
+		fmt.Println(len(newMeta.Hash))
+		fmt.Println(len(newMeta.Hash))
 		newMetas = append(newMetas, newMeta)
 	}
 	return &cvmtypes.GenesisState{

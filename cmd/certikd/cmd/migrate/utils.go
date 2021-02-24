@@ -18,40 +18,6 @@ import (
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-// MigrateTendermintGenesis makes sure a later version of Tendermint can parse
-// a JSON blob exported by an older version of Tendermint.
-func migrateTendermintGenesis(jsonBlob []byte) ([]byte, error) {
-	var jsonObj map[string]interface{}
-	err := json.Unmarshal(jsonBlob, &jsonObj)
-	if err != nil {
-		return nil, err
-	}
-
-	consensusParams, ok := jsonObj["consensus_params"].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("exported json does not contain consensus_params field")
-	}
-	evidenceParams, ok := consensusParams["evidence"].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("exported json does not contain consensus_params.evidence field")
-
-	}
-
-	evidenceParams["max_age_num_blocks"] = evidenceParams["max_age"]
-	delete(evidenceParams, "max_age")
-
-	evidenceParams["max_age_duration"] = "172800000000000"
-	evidenceParams["max_bytes"] = "50000"
-
-	jsonBlob, err = json.Marshal(jsonObj)
-
-	if err != nil {
-		return nil, errors.Wrapf(err, "Error resserializing JSON blob after tendermint migrations")
-	}
-
-	return jsonBlob, nil
-}
-
 type replacementConfigs []replacementConfig
 
 func (r *replacementConfigs) isReplacedValidator(validatorAddress string) (int, replacementConfig) {

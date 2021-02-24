@@ -4,6 +4,9 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/gogo/protobuf/proto"
+
 	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -170,7 +173,16 @@ func (c GeneralCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
 
 // String returns a human readable string representation of the certificate.
 func (c GeneralCertificate) String() string {
-	return ""
+	return fmt.Sprintf("Compilation certificate\n"+
+		"Certificate ID: %s\n"+
+		"Certificate type: compilation\n"+
+		"RequestContent:\n%s\n"+
+		"CertificateContent:\n%s\n"+
+		"Description: %s\n"+
+		"Certifier: %s\n"+
+		"TxHash: %s\n",
+		c.CertID.String(), c.ReqContent.RequestContent, c.CertificateContent(),
+		c.Description(), c.CertCertifier.String(), c.CertTxHash)
 }
 
 // SetCertificateID provides a method to set an ID for the certificate.
@@ -314,48 +326,30 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 		})
 	}
 
-	var newCertificates []codectypes.Any
+	var newCertificates []*codectypes.Any
 	for _, c := range oldGenState.Certificates {
 		var newCert certtypes.Certificate
-		switch certificate := c.(type) {
-		case GeneralCertificate:
-			{
-				reqContent := certtypes.RequestContent{
-					RequestContentType: certtypes.RequestContentTypeGeneral,
-					RequestContent:     c.RequestContent().RequestContent,
-				}
-				newCert = &certtypes.GeneralCertificate{
-					CertId:          certtypes.CertificateID(c.ID()),
-					CertType:        certtypes.CertificateTypeGeneral,
-					ReqContent:      &reqContent,
-					CertDescription: c.Description(),
-					CertCertifier:   c.Certifier().String(),
-					CertTxHash:      c.TxHash(),
-				}
-			}
-		case CompilationCertificate:
-			{
-				reqContent := certtypes.RequestContent{
-					RequestContentType: certtypes.RequestContentTypeSourceCodeHash,
-					RequestContent:     c.RequestContent().RequestContent,
-				}
-				newCert = &certtypes.CompilationCertificate{
-					IssueBlockHeight: certificate.IssueBlockHeight,
-					CertId:           certtypes.CertificateID(certificate.ID()),
-					CertType:         certtypes.CertificateTypeCompilation,
-					ReqContent:       &reqContent,
-					CertContent: &certtypes.CompilationCertificateContent{
-						Compiler:     certificate.CertContent.Compiler,
-						BytecodeHash: certificate.CertContent.BytecodeHash,
-					},
-					CertDescription: certificate.CertDescription,
-					CertCertifier:   certificate.Certifier().String(),
-					CertTxHash:      certificate.TxHash(),
-				}
-			}
+		reqContent := certtypes.RequestContent{
+			RequestContentType: certtypes.RequestContentType(c.RequestContent().RequestContentType),
+			RequestContent:     c.RequestContent().RequestContent,
 		}
-		certAny := codectypes.UnsafePackAny(newCert)
-		newCertificates = append(newCertificates, *certAny)
+		newCert = &certtypes.GeneralCertificate{
+			CertId:          certtypes.CertificateID(c.ID()),
+			CertType:        certtypes.CertificateType(c.Type()),
+			ReqContent:      &reqContent,
+			CertDescription: c.Description(),
+			CertCertifier:   c.Certifier().String(),
+			CertTxHash:      c.TxHash(),
+		}
+		msg, ok := newCert.(proto.Message)
+		if !ok {
+			panic(sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", newCert))
+		}
+		certAny, err := codectypes.NewAnyWithValue(msg)
+		if err != nil {
+			panic(err)
+		}
+		newCertificates = append(newCertificates, certAny)
 	}
 
 	var newLibraries []certtypes.Library
@@ -368,9 +362,9 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 
 	return &certtypes.GenesisState{
 		Certifiers:   newCertifiers,
-		Validators:   newValidators,
-		Platforms:    newPlatforms,
+		Validators:   nil,
+		Platforms:    nil,
 		Certificates: newCertificates,
-		Libraries:    newLibraries,
+		Libraries:    nil,
 	}
 }
