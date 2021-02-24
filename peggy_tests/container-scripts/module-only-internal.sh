@@ -5,7 +5,7 @@ set -eux
 NODES=$1
 
 # Stop any currently running peggy and eth processes
-pkill peggyd || true # allowed to fail
+pkill certikd || true # allowed to fail
 pkill geth || true # allowed to fail
 
 # Wipe filesystem changes
@@ -15,10 +15,10 @@ do
 done
 
 
-cd /peggy/module/
+cd /shentu/module/
 make
 make install
-cd /peggy/
+cd /shentu/
 tests/container-scripts/setup-validators.sh $NODES
 tests/container-scripts/run-testnet.sh $NODES
 tests/container-scripts/integration-tests.sh $NODES

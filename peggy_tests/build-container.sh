@@ -13,4 +13,4 @@ pushd $REPOFOLDER
 # Build base container
 git archive --format=tar.gz -o $DOCKERFOLDER/shentu.tar.gz --prefix=shentu/ HEAD
 pushd $DOCKERFOLDER
-docker build -t peggy-base .
+docker build -t shentu-base .

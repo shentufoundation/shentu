@@ -1,13 +1,14 @@
 #!/bin/bash
 set -eux
 # your gaiad binary name
-BIN=peggy
+BIN=certikd
 
 CHAIN_ID="peggy-test"
 
 NODES=$1
 
-ALLOCATION="10000000000stake,10000000000footoken"
+#ALLOCATION="10000000000stake,10000000000footoken"
+ALLOCATION="10000000000uctk,10000000000footoken"
 
 # first we start a genesis.json with validator 1
 # validator 1 will also collect the gentx's once gnerated
@@ -47,7 +48,7 @@ ARGS="$GAIA_HOME --keyring-backend test"
 # the /8 containing 7.7.7.7 is assigned to the DOD and never routable on the public internet
 # we're using it in private to prevent gaia from blacklisting it as unroutable
 # and allow local pex
-$BIN gentx $ARGS $GAIA_HOME --moniker validator$i --chain-id=$CHAIN_ID --ip 7.7.7.$i validator$i 500000000stake
+$BIN gentx $ARGS $GAIA_HOME --moniker validator$i --chain-id=$CHAIN_ID --ip 7.7.7.$i validator$i 500000000uctk
 # obviously we don't need to copy validator1's gentx to itself
 if [ $i -gt 1 ]; then
 cp /validator$i/config/gentx/* /validator1/config/gentx/
