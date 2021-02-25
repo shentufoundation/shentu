@@ -10,12 +10,27 @@ ADD https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.9.14-6d74d
 RUN cd /geth && tar -xvf * && mv /geth/**/geth /usr/bin/geth
 # rust for the testing suite and the relayers / validator daemons
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+
+# this is the Gravity bridge release, update it along with your go.mod entry
+ADD https://github.com/althea-net/cosmos-gravity-bridge/releases/download/v0.0.19/test-runner /usr/bin/test-runner
+RUN chmod +x /usr/bin/test-runner
+ADD https://github.com/althea-net/cosmos-gravity-bridge/releases/download/v0.0.19/Peggy.json /solidity/Peggy.json
+ADD https://github.com/althea-net/cosmos-gravity-bridge/releases/download/v0.0.19/TestERC20A.json /solidity/TestERC20A.json
+ADD https://github.com/althea-net/cosmos-gravity-bridge/releases/download/v0.0.19/TestERC20B.json /solidity/TestERC20B.json
+ADD https://github.com/althea-net/cosmos-gravity-bridge/releases/download/v0.0.19/TestERC20C.json /solidity/TestERC20C.json
+ADD https://github.com/althea-net/cosmos-gravity-bridge/releases/download/v0.0.19/contract-deployer /solidity/contract-deployer
+RUN chmod +x /solidity/contract-deployer
+
+
 # the actual source code for this repo, this **only** includes checked in files!
 # this is a bit of a pain but it does speed things up a lot
 ADD shentu.tar.gz /
 # this config file allows enablement of the legacy Amino api
 ADD legacy-api-enable /
+
+
 # build steps for all codebases in this repo, must be below the add statement
-RUN pushd /shentu/orchestrator/ && PATH=$PATH:$HOME/.cargo/bin cargo build --all --release
-RUN pushd /shentu/ && PATH=$PATH:/usr/local/go/bin GOPROXY=https://proxy.golang.org make && PATH=$PATH:/usr/local/go/bin make install
-RUN pushd /shentu/solidity/ && npm ci
+#RUN pushd /shentu/orchestrator/ && PATH=$PATH:$HOME/.cargo/bin cargo build --all --release
+RUN pushd /shentu/ && PATH=$PATH:/usr/local/go/bin GOPROXY=https://proxy.golang.org PATH=$PATH:/usr/local/go/bin make install
+#RUN pushd /shentu/solidity/ && npm ci

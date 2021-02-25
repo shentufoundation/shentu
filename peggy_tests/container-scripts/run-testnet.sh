@@ -39,5 +39,5 @@ done
 # consumes a lot of processing power
 sleep 10
 
-bash /shentu/peggy-tests/container-scripts/run-eth.sh &
+bash /shentu/peggy_tests/container-scripts/run-eth.sh &
 sleep 10

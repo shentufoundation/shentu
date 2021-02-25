@@ -62,8 +62,7 @@ include devtools/Makefile
 
 export GO111MODULE = on
 
-#all: install release lint test
-all: install
+all: install release lint test
 
 install: go.sum
 	go install $(BUILD_FLAGS) ./cmd/certikd

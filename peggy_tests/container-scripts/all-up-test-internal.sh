@@ -9,12 +9,12 @@ pushd /shentu/solidity/
 HUSKY_SKIP_INSTALL=1 npm install
 npm run typechain
 
-bash /shentu/peggy-tests/container-scripts/setup-validators.sh $NODES
+bash /shentu/peggy_tests/container-scripts/setup-validators.sh $NODES
 
-bash /shentu/peggy-tests/container-scripts/run-testnet.sh $NODES &
+bash /shentu/peggy_tests/container-scripts/run-testnet.sh $NODES &
 
 # deploy the ethereum contracts
 pushd /shentu/orchestrator/test_runner
 DEPLOY_CONTRACTS=1 RUST_BACKTRACE=full RUST_LOG=INFO PATH=$PATH:$HOME/.cargo/bin cargo run --release --bin test-runner
 
-bash /shentu/peggy-tests/container-scripts/integration-tests.sh $NODES $TEST_TYPE
+bash /shentu/peggy_tests/container-scripts/integration-tests.sh $NODES $TEST_TYPE

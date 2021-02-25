@@ -99,9 +99,9 @@ Example:
 			}
 
 			startingIPAddress, err := cmd.Flags().GetString(flagStartingIPAddress)
- 			if err != nil {
- 				return err
- 			}
+			if err != nil {
+				return err
+			}
 
 			numValidators, err := cmd.Flags().GetInt(flagNumValidators)
 			if err != nil {
@@ -114,7 +114,7 @@ Example:
 
 			return InitTestnet(
 				clientCtx, cmd, config, mbm, genBalIterator, outputDir, chainID, minGasPrices,
-				nodeDirPrefix, nodeDaemonHome, nodeCLIHome, serverAddrs, startingIPAddress, 
+				nodeDirPrefix, nodeDaemonHome, nodeCLIHome, serverAddrs, startingIPAddress,
 				keyringBackend, algo, numValidators,
 			)
 		},
@@ -125,7 +125,7 @@ Example:
 	cmd.Flags().String(flagNodeDirPrefix, "node", "Prefix the directory name for each node with (node results in node0, node1, ...)")
 	cmd.Flags().String(flagNodeDaemonHome, "certikd", "Home directory of the node's daemon configuration")
 	cmd.Flags().String(flagNodeCLIHome, "certikd", "Home directory of the node's cli configuration")
-	
+
 	ip, err := server.ExternalIP()
 	if err != nil {
 		panic(err)
@@ -133,7 +133,7 @@ Example:
 	cmd.Flags().String(flagServerIPAddress, ip, "Server IP Address")
 
 	cmd.Flags().String(flagStartingIPAddress, "", "Starting IP address (192.168.0.1 results in persistent peers list ID0@192.168.0.1:46656, ID1@192.168.0.2:46656, ...)")
-	
+
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
 	cmd.Flags().String(server.FlagMinGasPrices, fmt.Sprintf("0.000006%s", common.MicroCTKDenom), "Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum (e.g. 0.01photino,0.001stake)")
 	cmd.Flags().String(flags.FlagKeyringBackend, keyring.BackendTest, "Select keyring's backend (os|file|test)")
@@ -177,7 +177,7 @@ func InitTestnet(
 			return errors.New("address list length does not match --v")
 		}
 	}
-	
+
 	simappConfig := srvconfig.DefaultConfig()
 	simappConfig.MinGasPrices = minGasPrices
 	simappConfig.API.Enable = true
