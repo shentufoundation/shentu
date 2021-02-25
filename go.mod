@@ -32,4 +32,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
+replace (
+	github.com/althea-net/peggy/module => github.com/certikfoundation/cosmos-gravity-bridge/module v0.0.0-20210225053158-b5e91074e057
+	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
+)
