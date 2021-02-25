@@ -4,9 +4,9 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Withdraw stores an ongoing withdraw of pool collateral.
@@ -178,6 +178,7 @@ type ShieldGenesisState struct {
 }
 
 func RegisterShieldLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	cdc.RegisterConcrete(ShieldClaimProposal{}, "shield/ShieldClaimProposal", nil)
 }
 
 func migrateShield(oldState ShieldGenesisState) *shieldtypes.GenesisState {
@@ -207,9 +208,9 @@ func migrateShield(oldState ShieldGenesisState) *shieldtypes.GenesisState {
 		Foreign: oldState.RemainingServiceFees.Foreign,
 	}
 
-	var newPools []shieldtypes.Pool
-	for _, pool := range oldState.Pools {
-		newPools = append(newPools, shieldtypes.Pool{
+	newPools := make([]shieldtypes.Pool, len(oldState.Pools))
+	for i, pool := range oldState.Pools {
+		newPools[i] = shieldtypes.Pool{
 			Id:          pool.ID,
 			Description: pool.Description,
 			Sponsor:     pool.Sponsor,
@@ -217,12 +218,12 @@ func migrateShield(oldState ShieldGenesisState) *shieldtypes.GenesisState {
 			ShieldLimit: pool.ShieldLimit,
 			Active:      pool.Active,
 			Shield:      pool.Shield,
-		})
+		}
 	}
 
-	var newProviders []shieldtypes.Provider
-	for _, prov := range oldState.Providers {
-		newProviders = append(newProviders, shieldtypes.Provider{
+	newProviders := make([]shieldtypes.Provider, len(oldState.Providers))
+	for i, prov := range oldState.Providers {
+		newProviders[i] = shieldtypes.Provider{
 			Address:          prov.Address.String(),
 			DelegationBonded: prov.DelegationBonded,
 			Collateral:       prov.Collateral,
@@ -232,11 +233,11 @@ func migrateShield(oldState ShieldGenesisState) *shieldtypes.GenesisState {
 				Native:  prov.Rewards.Native,
 				Foreign: prov.Rewards.Foreign,
 			},
-		})
+		}
 	}
 
-	var newPurchaseLists []shieldtypes.PurchaseList
-	for _, pl := range oldState.PurchaseLists {
+	newPurchaseLists := make([]shieldtypes.PurchaseList, len(oldState.PurchaseLists))
+	for i, pl := range oldState.PurchaseLists {
 		var newEntries []shieldtypes.Purchase
 		for _, entry := range pl.Entries {
 			newEntries = append(newEntries, shieldtypes.Purchase{
@@ -251,50 +252,50 @@ func migrateShield(oldState ShieldGenesisState) *shieldtypes.GenesisState {
 				},
 			})
 		}
-		newPurchaseLists = append(newPurchaseLists, shieldtypes.PurchaseList{
+		newPurchaseLists[i] = shieldtypes.PurchaseList{
 			PoolId:    pl.PoolID,
 			Purchaser: pl.Purchaser.String(),
 			Entries:   newEntries,
-		})
+		}
 	}
 
-	var newWithdraws []shieldtypes.Withdraw
-	for _, wd := range oldState.Withdraws {
-		newWithdraws = append(newWithdraws, shieldtypes.Withdraw{
+	newWithdraws := make([]shieldtypes.Withdraw, len(oldState.Withdraws))
+	for i, wd := range oldState.Withdraws {
+		newWithdraws[i] = shieldtypes.Withdraw{
 			Address:        wd.Address.String(),
 			Amount:         wd.Amount,
 			CompletionTime: wd.CompletionTime,
-		})
+		}
 	}
 
-	var newStakeForShields []shieldtypes.ShieldStaking
-	for _, ss := range oldState.StakeForShields {
-		newStakeForShields = append(newStakeForShields, shieldtypes.ShieldStaking{
+	newStakeForShields := make([]shieldtypes.ShieldStaking, len(oldState.StakeForShields))
+	for i, ss := range oldState.StakeForShields {
+		newStakeForShields[i] = shieldtypes.ShieldStaking{
 			PoolId:            ss.PoolID,
 			Purchaser:         ss.Purchaser.String(),
 			Amount:            ss.Amount,
 			WithdrawRequested: ss.WithdrawRequested,
-		})
+		}
 	}
 
-	var newOriginalStakings []shieldtypes.OriginalStaking
-	for _, os := range oldState.OriginalStakings {
-		newOriginalStakings = append(newOriginalStakings, shieldtypes.OriginalStaking{
+	newOriginalStakings := make([]shieldtypes.OriginalStaking, len(oldState.OriginalStakings))
+	for i, os := range oldState.OriginalStakings {
+		newOriginalStakings[i] = shieldtypes.OriginalStaking{
 			PurchaseId: os.PurchaseID,
 			Amount:     os.Amount,
-		})
+		}
 	}
 
-	var newProposalIDReimbursementPairs []shieldtypes.ProposalIDReimbursementPair
-	for _, prp := range oldState.ProposalIDReimbursementPairs {
-		newProposalIDReimbursementPairs = append(newProposalIDReimbursementPairs, shieldtypes.ProposalIDReimbursementPair{
+	newProposalIDReimbursementPairs := make([]shieldtypes.ProposalIDReimbursementPair, len(oldState.ProposalIDReimbursementPairs))
+	for i, prp := range oldState.ProposalIDReimbursementPairs {
+		newProposalIDReimbursementPairs[i] = shieldtypes.ProposalIDReimbursementPair{
 			ProposalId: prp.ProposalID,
 			Reimbursement: shieldtypes.Reimbursement{
 				Amount:      prp.Reimbursement.Amount,
 				Beneficiary: prp.Reimbursement.Beneficiary.String(),
 				PayoutTime:  prp.Reimbursement.PayoutTime,
 			},
-		})
+		}
 	}
 
 	return &shieldtypes.GenesisState{

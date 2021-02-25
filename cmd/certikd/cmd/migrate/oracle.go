@@ -82,28 +82,28 @@ type OracleGenesisState struct {
 }
 
 func migrateOracle(oldState OracleGenesisState) *oracletypes.GenesisState {
-	var newOperators oracletypes.Operators
-	for _, o := range oldState.Operators {
-		newOperators = append(newOperators, oracletypes.Operator{
+	newOperators := make(oracletypes.Operators, len(oldState.Operators))
+	for i, o := range oldState.Operators {
+		newOperators[i] = oracletypes.Operator{
 			Address:            o.Address.String(),
 			Proposer:           o.Proposer.String(),
 			Collateral:         o.Collateral,
 			AccumulatedRewards: o.AccumulatedRewards,
 			Name:               o.Name,
-		})
+		}
 	}
 
-	var newWithdraws oracletypes.Withdraws
-	for _, w := range oldState.Withdraws {
-		newWithdraws = append(newWithdraws, oracletypes.Withdraw{
+	newWithdraws := make(oracletypes.Withdraws, len(oldState.Withdraws))
+	for i, w := range oldState.Withdraws {
+		newWithdraws[i] = oracletypes.Withdraw{
 			Address:  w.Address.String(),
 			Amount:   w.Amount,
 			DueBlock: w.DueBlock,
-		})
+		}
 	}
 
-	var newTasks []oracletypes.Task
-	for _, t := range oldState.Tasks {
+	newTasks := make([]oracletypes.Task, len(oldState.Tasks))
+	for i, t := range oldState.Tasks {
 		var newResponses oracletypes.Responses
 		for _, r := range t.Responses {
 			newResponses = append(newResponses, oracletypes.Response{
@@ -114,7 +114,7 @@ func migrateOracle(oldState OracleGenesisState) *oracletypes.GenesisState {
 			})
 		}
 
-		newTasks = append(newTasks, oracletypes.Task{
+		newTasks[i] = oracletypes.Task{
 			Contract:      t.Contract,
 			Function:      t.Function,
 			BeginBlock:    t.BeginBlock,
@@ -127,7 +127,7 @@ func migrateOracle(oldState OracleGenesisState) *oracletypes.GenesisState {
 			ClosingBlock:  t.ClosingBlock,
 			WaitingBlocks: t.WaitingBlocks,
 			Status:        oracletypes.TaskStatus(t.Status),
-		})
+		}
 	}
 
 	return &oracletypes.GenesisState{

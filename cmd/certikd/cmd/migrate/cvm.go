@@ -1,14 +1,14 @@
 package migrate
 
 import (
-	"fmt"
-
-	cvmtypes "github.com/certikfoundation/shentu/x/cvm/types"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/hyperledger/burrow/acm"
 	"github.com/hyperledger/burrow/acm/acmstate"
 	"github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+
+	cvmtypes "github.com/certikfoundation/shentu/x/cvm/types"
 )
 
 // CVMCodeType is the type for code in CVM.
@@ -65,8 +65,8 @@ func RegisterCVMLegacyAminoCodec(cdc *codec.LegacyAmino) {
 }
 
 func migrateCVM(oldGenState CVMGenesisState) *cvmtypes.GenesisState {
-	newContracts := cvmtypes.Contracts{}
-	for _, cont := range oldGenState.Contracts {
+	newContracts := make(cvmtypes.Contracts, len(oldGenState.Contracts))
+	for i, cont := range oldGenState.Contracts {
 		var storages []cvmtypes.Storage
 		for _, s := range cont.Storage {
 			storages = append(storages, cvmtypes.Storage{
@@ -89,22 +89,16 @@ func migrateCVM(oldGenState CVMGenesisState) *cvmtypes.GenesisState {
 			Abi:     cont.Abi,
 			Meta:    metas,
 		}
-		newContracts = append(newContracts, addContract)
+		newContracts[i] = addContract
 	}
 
-	newMetas := cvmtypes.Metadatas{}
-	for _, meta := range oldGenState.Metadata {
-		fmt.Println(meta.Hash)
-		fmt.Println(crypto.Keccak256([]byte(meta.Metadata)))
+	newMetas := make(cvmtypes.Metadatas, len(oldGenState.Metadata))
+	for i, meta := range oldGenState.Metadata {
 		newMeta := cvmtypes.Metadata{
 			Hash:     meta.Hash.Bytes(),
 			Metadata: meta.Metadata,
 		}
-		fmt.Println(newMeta.Hash)
-		fmt.Println(newMeta.Hash)
-		fmt.Println(len(newMeta.Hash))
-		fmt.Println(len(newMeta.Hash))
-		newMetas = append(newMetas, newMeta)
+		newMetas[i] = newMeta
 	}
 	return &cvmtypes.GenesisState{
 		GasRate:   oldGenState.GasRate,

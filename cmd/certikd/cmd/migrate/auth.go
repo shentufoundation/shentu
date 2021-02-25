@@ -281,7 +281,6 @@ func authMigrate(authGenState v039auth.GenesisState) *v040auth.GenesisState {
 		default:
 			panic(sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "got invalid type %T", v039Account))
 		}
-
 	}
 
 	// Convert v0.40 accounts into Anys.

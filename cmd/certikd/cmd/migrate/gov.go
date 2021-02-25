@@ -2,7 +2,13 @@ package migrate
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
+
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
+
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 
 	proto "github.com/gogo/protobuf/proto"
 
@@ -208,6 +214,102 @@ func migrateProposalStatus(oldProposalStatus ProposalStatus) govtypes.ProposalSt
 	}
 }
 
+// CertifierUpdateProposal adds or removes a certifier
+type CertifierUpdateProposal struct {
+	Title       string         `json:"title" yaml:"title"`
+	Proposer    sdk.AccAddress `json:"proposer" yaml:"proposer"`
+	Alias       string         `json:"alias" yaml:"alias"`
+	Certifier   sdk.AccAddress `json:"certifier" yaml:"certifier"`
+	Description string         `json:"description" yaml:"description"`
+	AddOrRemove string         `json:"add_or_remove" yaml:"add_or_remove"`
+}
+
+// GetTitle returns the title of a certifier update proposal.
+func (cup CertifierUpdateProposal) GetTitle() string { return cup.Title }
+
+// GetDescription returns the description of a certifier update proposal.
+func (cup CertifierUpdateProposal) GetDescription() string { return cup.Description }
+
+// GetDescription returns the routing key of a certifier update proposal.
+func (cup CertifierUpdateProposal) ProposalRoute() string { return certtypes.RouterKey }
+
+// ProposalType returns the type of a certifier update proposal.
+func (cup CertifierUpdateProposal) ProposalType() string {
+	return certtypes.ProposalTypeCertifierUpdate
+}
+
+// ValidateBasic runs basic stateless validity checks
+func (cup CertifierUpdateProposal) ValidateBasic() error {
+	return nil
+}
+
+// String implements the Stringer interface.
+func (cup CertifierUpdateProposal) String() string {
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf(`Certifier Update Proposal:
+  Title:       %s
+  Description: %s
+  Certifier:   %s
+  AddOrRemove: %s
+`, cup.Title, cup.Description, cup.Certifier, cup.AddOrRemove))
+	return b.String()
+}
+
+func updateOptiontoBool(opt string) bool {
+	return opt == "add"
+}
+
+// ShieldClaimProposal defines the data structure of a shield claim proposal.
+type ShieldClaimProposal struct {
+	ProposalID  uint64         `json:"proposal_id" yaml:"proposal_id"`
+	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
+	PurchaseID  uint64         `json:"purchase_id" yaml:"purchase_id"`
+	Loss        sdk.Coins      `json:"loss" yaml:"loss"`
+	Evidence    string         `json:"evidence" yaml:"evidence"`
+	Description string         `json:"description" yaml:"description"`
+	Proposer    sdk.AccAddress `json:"proposer" yaml:"proposer"`
+}
+
+// GetTitle returns the title of a shield claim proposal.
+func (scp ShieldClaimProposal) GetTitle() string {
+	return fmt.Sprintf("%s:%s", strconv.FormatUint(scp.PoolID, 10), scp.Loss)
+}
+
+// GetDescription returns the description of a shield claim proposal.
+func (scp ShieldClaimProposal) GetDescription() string {
+	return scp.Description
+}
+
+// GetDescription returns the routing key of a shield claim proposal.
+func (scp ShieldClaimProposal) ProposalRoute() string {
+	return shieldtypes.RouterKey
+}
+
+// ProposalType returns the type of a shield claim proposal.
+func (scp ShieldClaimProposal) ProposalType() string {
+	return shieldtypes.ProposalTypeShieldClaim
+}
+
+// ValidateBasic runs basic stateless validity checks.
+func (scp ShieldClaimProposal) ValidateBasic() error {
+	// TODO
+	return nil
+}
+
+// String implements the Stringer interface.
+func (scp ShieldClaimProposal) String() string {
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf(`Shield Claim Proposal:
+  PoolID:         %d
+  Loss:           %s
+  Evidence:       %s
+  PurchaseID:     %d
+  Description:    %s
+  Proposer:       %s
+`, scp.PoolID, scp.Loss, scp.Evidence, scp.PurchaseID, scp.Description, scp.Proposer))
+	return b.String()
+}
+
 func migrateContent(oldContent v036gov.Content) *codectypes.Any {
 	var protoProposal proto.Message
 
@@ -272,7 +374,32 @@ func migrateContent(oldContent v036gov.Content) *codectypes.Any {
 				Changes:     newChanges,
 			}
 		}
-	//TODO: shield proposal
+
+	// TODO: cert proposal
+	case CertifierUpdateProposal:
+		{
+			protoProposal = &certtypes.CertifierUpdateProposal{
+				Title:       oldContent.Title,
+				Proposer:    oldContent.Proposer.String(),
+				Alias:       oldContent.Alias,
+				Certifier:   oldContent.Certifier.String(),
+				Description: oldContent.Description,
+				AddOrRemove: certtypes.AddOrRemove(updateOptiontoBool(oldContent.AddOrRemove)),
+			}
+		}
+	// TODO: shield proposal
+	case ShieldClaimProposal:
+		{
+			protoProposal = &shieldtypes.ShieldClaimProposal{
+				ProposalId:  oldContent.ProposalID,
+				PoolId:      oldContent.PoolID,
+				PurchaseId:  oldContent.PurchaseID,
+				Loss:        oldContent.Loss,
+				Evidence:    oldContent.Evidence,
+				Description: oldContent.Description,
+				Proposer:    oldContent.Proposer.String(),
+			}
+		}
 	default:
 		panic(fmt.Errorf("%T is not a valid proposal content type", oldContent))
 	}

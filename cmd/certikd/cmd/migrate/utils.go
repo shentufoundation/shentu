@@ -21,7 +21,6 @@ import (
 type replacementConfigs []replacementConfig
 
 func (r *replacementConfigs) isReplacedValidator(validatorAddress string) (int, replacementConfig) {
-
 	for i, replacement := range *r {
 		if replacement.ValidatorAddress == validatorAddress {
 			return i, replacement
@@ -66,7 +65,6 @@ func loadKeydataFromFile(clientCtx client.Context, replacementrJSON string, genD
 		idx, replacement := replacementKeys.isReplacedValidator(val.OperatorAddress)
 
 		if idx != -1 {
-
 			toReplaceValConsAddress, _ := val.GetConsAddr()
 
 			consPubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, replacement.ConsensusPubkey)
@@ -101,13 +99,10 @@ func loadKeydataFromFile(clientCtx client.Context, replacementrJSON string, genD
 				if tmval.Address.String() == replaceValConsAddress.String() {
 					genDoc.Validators[tmIdx].Address = replaceValConsAddress.Bytes()
 					genDoc.Validators[tmIdx].PubKey = replaceValConsPubKey
-
 				}
 			}
 			stakingGenesis.Validators[i] = val
-
 		}
-
 	}
 	state[staking.ModuleName] = clientCtx.JSONMarshaler.MustMarshalJSON(&stakingGenesis)
 	state[slashing.ModuleName] = clientCtx.JSONMarshaler.MustMarshalJSON(&slashingGenesis)

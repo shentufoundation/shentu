@@ -4,15 +4,16 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/gogo/protobuf/proto"
 
-	certtypes "github.com/certikfoundation/shentu/x/cert/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/tendermint/tendermint/crypto"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 )
 
 // CertificateType is the type for the type of a certificate.
@@ -295,39 +296,40 @@ func RegisterCertLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*Certificate)(nil), nil)
 	cdc.RegisterConcrete(&GeneralCertificate{}, "cert/GeneralCertificate", nil)
 	cdc.RegisterConcrete(&CompilationCertificate{}, "cert/CompilationCertificate", nil)
+	cdc.RegisterConcrete(CertifierUpdateProposal{}, "cosmos-sdk/CertifierUpdateProposal", nil)
 }
 
 func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
-	var newCertifiers []certtypes.Certifier
-	for _, c := range oldGenState.Certifiers {
-		newCertifiers = append(newCertifiers, certtypes.Certifier{
+	newCertifiers := make([]certtypes.Certifier, len(oldGenState.Certifiers))
+	for i, c := range oldGenState.Certifiers {
+		newCertifiers[i] = certtypes.Certifier{
 			Alias:       c.Alias,
 			Address:     c.Address.String(),
 			Description: c.Description,
 			Proposer:    c.Proposer.String(),
-		})
+		}
 	}
 
-	var newValidators []certtypes.Validator
-	for _, v := range oldGenState.Validators {
+	newValidators := make([]certtypes.Validator, len(oldGenState.Validators))
+	for i, v := range oldGenState.Validators {
 		pkAny := codectypes.UnsafePackAny(v.PubKey)
-		newValidators = append(newValidators, certtypes.Validator{
+		newValidators[i] = certtypes.Validator{
 			Pubkey:    pkAny,
 			Certifier: v.Certifier.String(),
-		})
+		}
 	}
 
-	var newPlatforms []certtypes.Platform
-	for _, p := range oldGenState.Platforms {
+	newPlatforms := make([]certtypes.Platform, len(oldGenState.Platforms))
+	for i, p := range oldGenState.Platforms {
 		valPkAny := codectypes.UnsafePackAny(p.Validator)
-		newPlatforms = append(newPlatforms, certtypes.Platform{
+		newPlatforms[i] = certtypes.Platform{
 			ValidatorPubkey: valPkAny,
 			Description:     p.Description,
-		})
+		}
 	}
 
-	var newCertificates []*codectypes.Any
-	for _, c := range oldGenState.Certificates {
+	newCertificates := make([]*codectypes.Any, len(oldGenState.Certificates))
+	for i, c := range oldGenState.Certificates {
 		var newCert certtypes.Certificate
 		reqContent := certtypes.RequestContent{
 			RequestContentType: certtypes.RequestContentType(c.RequestContent().RequestContentType),
@@ -349,15 +351,15 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 		if err != nil {
 			panic(err)
 		}
-		newCertificates = append(newCertificates, certAny)
+		newCertificates[i] = certAny
 	}
 
-	var newLibraries []certtypes.Library
-	for _, l := range oldGenState.Libraries {
-		newLibraries = append(newLibraries, certtypes.Library{
+	newLibraries := make([]certtypes.Library, len(oldGenState.Libraries))
+	for i, l := range oldGenState.Libraries {
+		newLibraries[i] = certtypes.Library{
 			Address:   l.Address.String(),
 			Publisher: l.Publisher.String(),
-		})
+		}
 	}
 
 	return &certtypes.GenesisState{
