@@ -38,6 +38,7 @@ import (
 
 	"github.com/certikfoundation/shentu/app"
 	"github.com/certikfoundation/shentu/app/params"
+	"github.com/certikfoundation/shentu/cmd/certikd/cmd/migrate"
 	"github.com/certikfoundation/shentu/common"
 	authcli "github.com/certikfoundation/shentu/x/auth/client/cli"
 	bankcli "github.com/certikfoundation/shentu/x/bank/client/cli"
@@ -111,9 +112,9 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
-		genutilcli.MigrateGenesisCmd(),
 		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
+		migrate.MigrateGenesisCmd(),
 		AddGenesisAccountCmd(app.DefaultNodeHome),
 		AddGenesisCertifierCmd(app.DefaultNodeHome),
 		AddGenesisShieldAdminCmd(app.DefaultNodeHome),

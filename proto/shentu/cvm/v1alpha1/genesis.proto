@@ -40,8 +40,8 @@ message Storage {
 }
 
 message ContractMeta {
-  bytes code_hash = 1 [(gogoproto.customtype) = "github.com/hyperledger/burrow/binary.HexBytes", (gogoproto.moretags) = "yaml:\"code_hash\"", (gogoproto.nullable) = false];
-  bytes metadata_hash = 2 [(gogoproto.customtype) = "github.com/hyperledger/burrow/binary.HexBytes", (gogoproto.moretags) = "yaml:\"metadata_hash\"", (gogoproto.nullable) = false];
+  bytes code_hash = 1 [(gogoproto.moretags) = "yaml:\"code_hash\""];
+  bytes metadata_hash = 2 [(gogoproto.moretags) = "yaml:\"metadata_hash\""];
 }
 
 message ContractMetas {
@@ -49,6 +49,6 @@ message ContractMetas {
 }
 
 message Metadata {
-  bytes hash = 1 [(gogoproto.customtype) = "github.com/hyperledger/burrow/binary.HexBytes", (gogoproto.moretags) = "yaml:\"hash\"", (gogoproto.nullable) = false];
+  bytes hash = 1 [(gogoproto.moretags) = "yaml:\"hash\""];
   string metadata = 2 [(gogoproto.moretags) = "yaml:\"metadata\""];
 }

@@ -81,7 +81,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	certificates := k.GetAllCertificates(ctx)
 	libraries := k.GetAllLibraries(ctx)
 
-	certificateAnys := make([]codectypes.Any, len(certificates))
+	certificateAnys := make([]*codectypes.Any, len(certificates))
 	for i, certificate := range certificates {
 		msg, ok := certificate.(proto.Message)
 		if !ok {
@@ -91,7 +91,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		if err != nil {
 			panic(err)
 		}
-		certificateAnys[i] = *any
+		certificateAnys[i] = any
 	}
 
 	return &types.GenesisState{
