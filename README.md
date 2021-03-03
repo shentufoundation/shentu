@@ -133,25 +133,25 @@ Please see e2e/README.md for instructions.
 Recommend the use of the provided Docker containers for simplicity, but here are instructions for manually setting up a single node chain for testing purposes.
 
 ```bash
-$ certikd unsafe-reset-all
-$ rm -rf ~/.certikd
+$ certik unsafe-reset-all
+$ rm -rf ~/.certik
 $ rm -rf ~/.certikcli
 
-$ certikd init node0 --chain-id certikchain
+$ certik init node0 --chain-id certikchain
 
 $ certikcli config chain-id certikchain
 $ certikcli keys add jack
 
-$ certikd add-genesis-account $(certikcli keys show jack -a) 200000000uctk
+$ certik add-genesis-account $(certikcli keys show jack -a) 200000000uctk
 ```
 
 Notification: Every transaction will need 5000uctk (certik token), so you'd better start with more than 5000uctk here.
 
 ```bash
-$ certikd gentx --name jack --amount 100000000uctk
-$ certikd collect-gentxs
+$ certik gentx --name jack --amount 100000000uctk
+$ certik collect-gentxs
 
-$ certikd start
+$ certik start
 
 $ certikcli query account $(certikcli keys show jack -a)
 
@@ -196,7 +196,7 @@ Response:
   TxHash: 8067DBC001BE239E5A44843CCEF4C71A87B802352989F97664AF8F265E7B888E
 ```
 
-Printed on the certikd node server terminals
+Printed on the certik node server terminals
 
 ```bash
 I[2019-06-27|09:05:33.281] CVM Start                                    module=main txHash=8067dbc001be239e5a44843ccef4c71a87b802352989f97664af8f265e7b888e
@@ -283,7 +283,7 @@ Response:
 ```
 
 We can inspect and verify the read out value is indeed 123 (0x7b) by either
-looking at the certikd node server terminal
+looking at the certik node server terminal
 
 ```bash
 I[2019-06-27|09:20:44.674] CVM Stop                                     module=main result=000000000000000000000000000000000000000000000000000000000000007b

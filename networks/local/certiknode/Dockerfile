@@ -20,4 +20,5 @@ ENTRYPOINT ["/usr/bin/wrapper.sh"]
 CMD ["start"]
 STOPSIGNAL SIGTERM
 
+RUN chmod +x wrapper.sh
 COPY wrapper.sh /usr/bin/wrapper.sh
