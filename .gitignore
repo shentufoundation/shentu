@@ -11,10 +11,8 @@ __pycache__
 *.pyc
 
 # Generated binaries & files
-certikcli
-certikd
-!cmd/certikd
-!cmd/certikcli
+certik
+!app/certik
 
 # Test
 coverage.out

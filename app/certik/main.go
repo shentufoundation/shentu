@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 
 	"github.com/certikfoundation/shentu/app"
-	"github.com/certikfoundation/shentu/cmd/certikd/cmd"
+	"github.com/certikfoundation/shentu/app/certik/cmd"
 )
 
 func main() {

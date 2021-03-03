@@ -37,8 +37,9 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
 	"github.com/certikfoundation/shentu/app"
+	"github.com/certikfoundation/shentu/app/certik/cmd/migrate"
+	certikinit "github.com/certikfoundation/shentu/app/certik/init"
 	"github.com/certikfoundation/shentu/app/params"
-	"github.com/certikfoundation/shentu/cmd/certikd/cmd/migrate"
 	"github.com/certikfoundation/shentu/common"
 	authcli "github.com/certikfoundation/shentu/x/auth/client/cli"
 	bankcli "github.com/certikfoundation/shentu/x/bank/client/cli"
@@ -67,7 +68,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	config.Seal()
 
 	rootCmd := &cobra.Command{
-		Use:   "certikd",
+		Use:   "certik",
 		Short: "Stargate CosmosHub App",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
@@ -75,6 +76,14 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 			}
 
 			return server.InterceptConfigsPreRunHandler(cmd)
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			docDir, err := cmd.Flags().GetString(certikinit.DocFlag)
+			if err == nil && docDir != "" {
+				certikinit.GenDoc(cmd, docDir)
+			} else if err = cmd.Help(); err != nil {
+				panic(err)
+			}
 		},
 	}
 
@@ -122,6 +131,8 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
 	)
+
+	rootCmd.Flags().StringP(certikinit.DocFlag, certikinit.DocFlagAbbr, "", certikinit.DocFlagUsage)
 
 	server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, createSimappAndExport, addModuleInitFlags)
 

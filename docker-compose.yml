@@ -1,58 +1,58 @@
 version: '3.2'
 
 services:
-  certikdnode0:
-    container_name: certikdnode0
-    image: "certikfoundation/certikdnode"
+  certiknode0:
+    container_name: certiknode0
+    image: "certikfoundation/certiknode"
     ports:
       - "26656-26657:26656-26657"
     environment:
       - ID=0
-      - LOG=${LOG:-certikd.log}
+      - LOG=${LOG:-certik.log}
     volumes:
-      - ./build:/certikd:Z
+      - ./build:/certik:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.2
 
-  certikdnode1:
-    container_name: certikdnode1
-    image: "certikfoundation/certikdnode"
+  certiknode1:
+    container_name: certiknode1
+    image: "certikfoundation/certiknode"
     ports:
       - "26659-26660:26656-26657"
     environment:
       - ID=1
-      - LOG=${LOG:-certikd.log}
+      - LOG=${LOG:-certik.log}
     volumes:
-      - ./build:/certikd:Z
+      - ./build:/certik:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.3
 
-  certikdnode2:
-    container_name: certikdnode2
-    image: "certikfoundation/certikdnode"
+  certiknode2:
+    container_name: certiknode2
+    image: "certikfoundation/certiknode"
     environment:
       - ID=2
-      - LOG=${LOG:-certikd.log}
+      - LOG=${LOG:-certik.log}
     ports:
       - "26661-26662:26656-26657"
     volumes:
-      - ./build:/certikd:Z
+      - ./build:/certik:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.4
 
-  certikdnode3:
-    container_name: certikdnode3
-    image: "certikfoundation/certikdnode"
+  certiknode3:
+    container_name: certiknode3
+    image: "certikfoundation/certiknode"
     environment:
       - ID=3
-      - LOG=${LOG:-certikd.log}
+      - LOG=${LOG:-certik.log}
     ports:
       - "26663-26664:26656-26657"
     volumes:
-      - ./build:/certikd:Z
+      - ./build:/certik:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.5
