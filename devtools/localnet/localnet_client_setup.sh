@@ -1,7 +1,7 @@
 #!/bin/bash
 
-rm -rf ~/.certikd
-ln -s ~/node0/certikd  ~/.certikd
+rm -rf ~/.certik
+ln -s ~/node0/certik  ~/.certik
 
 ### public keys
 #echo 'export NODE0_KEY=$(certikcli keys show node0 -a --home /root/node0/certikd)' >> ~/.bashrc

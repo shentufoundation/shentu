@@ -3,9 +3,9 @@
 ##
 ## Input parameters
 ##
-BINARY=/certikd/${BINARY:-certikd}
+BINARY=/certik/${BINARY:-certik}
 ID=${ID:-0}
-LOG=${LOG:-certikd.log}
+LOG=${LOG:-certik.log}
 
 ##
 ## Assert linux binary
@@ -23,10 +23,10 @@ fi
 ##
 ## Run binary with all parameters
 ##
-export CERTIKDHOME="/certikd/node${ID}/certikd"
+export CERTIKHOME="/certik/node${ID}/certik"
 
-if [ -d "$(dirname "${CERTIKDHOME}"/"${LOG}")" ]; then
-  "${BINARY}" --home "${CERTIKDHOME}" "$@" | tee "${CERTIKDHOME}/${LOG}"
+if [ -d "$(dirname "${CERTIKHOME}"/"${LOG}")" ]; then
+  "${BINARY}" --home "${CERTIKHOME}" "$@" | tee "${CERTIKHOME}/${LOG}"
 else
-  "${BINARY}" --home "${CERTIKDHOME}" "$@"
+  "${BINARY}" --home "${CERTIKHOME}" "$@"
 fi

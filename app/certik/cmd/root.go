@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/rs/zerolog"
-
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
