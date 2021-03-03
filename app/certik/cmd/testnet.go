@@ -41,8 +41,7 @@ var (
 	flagNodeDirPrefix     = "node-dir-prefix"
 	flagNumValidators     = "v"
 	flagOutputDir         = "output-dir"
-	flagNodeDaemonHome    = "node-daemon-home"
-	flagNodeCLIHome       = "node-cli-home"
+	flagNodeHome          = "node-home"
 	flagServerIPAddress   = "server-ip-address"
 	flagStartingIPAddress = "starting-ip-address"
 )
@@ -84,15 +83,10 @@ Example:
 			if err != nil {
 				return err
 			}
-			nodeDaemonHome, err := cmd.Flags().GetString(flagNodeDaemonHome)
+			nodeDaemonHome, err := cmd.Flags().GetString(flagNodeHome)
 			if err != nil {
 				return err
 			}
-			nodeCLIHome, err := cmd.Flags().GetString(flagNodeCLIHome)
-			if err != nil {
-				return err
-			}
-
 			serverAddrs, err := cmd.Flags().GetString(flagServerIPAddress)
 			if err != nil {
 				return err
@@ -114,7 +108,7 @@ Example:
 
 			return InitTestnet(
 				clientCtx, cmd, config, mbm, genBalIterator, outputDir, chainID, minGasPrices,
-				nodeDirPrefix, nodeDaemonHome, nodeCLIHome, serverAddrs, startingIPAddress,
+				nodeDirPrefix, nodeDaemonHome, serverAddrs, startingIPAddress,
 				keyringBackend, algo, numValidators,
 			)
 		},
@@ -123,7 +117,7 @@ Example:
 	cmd.Flags().Int(flagNumValidators, 4, "Number of validators to initialize the testnet with")
 	cmd.Flags().StringP(flagOutputDir, "o", "./mytestnet", "Directory to store initialization data for the testnet")
 	cmd.Flags().String(flagNodeDirPrefix, "node", "Prefix the directory name for each node with (node results in node0, node1, ...)")
-	cmd.Flags().String(flagNodeDaemonHome, "certik", "Home directory of the node's daemon configuration")
+	cmd.Flags().String(flagNodeHome, "certik", "Home directory of the node's daemon configuration")
 
 	ip, err := server.ExternalIP()
 	if err != nil {
@@ -141,7 +135,7 @@ Example:
 	return cmd
 }
 
-const nodeDirPerm = 0755
+const appPerm = 0755
 
 // InitTestnet initializes the testnet.
 func InitTestnet(
@@ -154,8 +148,7 @@ func InitTestnet(
 	chainID,
 	minGasPrices,
 	nodeDirPrefix,
-	nodeDaemonHome,
-	nodeCLIHome,
+	nodeHome,
 	serverAddrs,
 	startingIPAddress,
 	keyringBackend,
@@ -195,19 +188,18 @@ func InitTestnet(
 	// generate private keys, node IDs, and initial transactions
 	for i := 0; i < numValidators; i++ {
 		nodeDirName := fmt.Sprintf("%s%d", nodeDirPrefix, i)
-		nodeDir := filepath.Join(outputDir, nodeDirName, nodeDaemonHome)
-		clientDir := filepath.Join(outputDir, nodeDirName, nodeCLIHome)
+		appDir := filepath.Join(outputDir, nodeDirName, nodeHome)
 		gentxsDir := filepath.Join(outputDir, "gentxs")
 
-		nodeConfig.SetRoot(nodeDir)
+		nodeConfig.SetRoot(appDir)
 		nodeConfig.RPC.ListenAddress = "tcp://0.0.0.0:26657"
 
-		if err := os.MkdirAll(filepath.Join(nodeDir, "config"), nodeDirPerm); err != nil {
+		if err := os.MkdirAll(filepath.Join(appDir, "config"), appPerm); err != nil {
 			_ = os.RemoveAll(outputDir)
 			return err
 		}
 
-		if err := os.MkdirAll(clientDir, nodeDirPerm); err != nil {
+		if err := os.MkdirAll(appDir, appPerm); err != nil {
 			_ = os.RemoveAll(outputDir)
 			return err
 		}
@@ -235,7 +227,7 @@ func InitTestnet(
 		memo := fmt.Sprintf("%s@%s:26656", nodeIDs[i], ip)
 		genFiles = append(genFiles, nodeConfig.GenesisFile())
 
-		kb, err := keyring.New(sdk.KeyringServiceName(), keyringBackend, clientDir, inBuf)
+		kb, err := keyring.New(sdk.KeyringServiceName(), keyringBackend, appDir, inBuf)
 		if err != nil {
 			return err
 		}
@@ -260,7 +252,7 @@ func InitTestnet(
 		}
 
 		// save private key seed words
-		if err := writeFile(fmt.Sprintf("%v.json", "key_seed"), clientDir, cliPrint); err != nil {
+		if err := writeFile(fmt.Sprintf("%v.json", "key_seed"), appDir, cliPrint); err != nil {
 			return err
 		}
 
@@ -311,7 +303,7 @@ func InitTestnet(
 			return err
 		}
 
-		srvconfig.WriteConfigFile(filepath.Join(nodeDir, "config/app.toml"), simappConfig)
+		srvconfig.WriteConfigFile(filepath.Join(appDir, "config/app.toml"), simappConfig)
 	}
 
 	if err := initGenFiles(clientCtx, mbm, chainID, genAccounts, genBalances, genFiles, numValidators); err != nil {
@@ -320,7 +312,7 @@ func InitTestnet(
 
 	err := collectGenFiles(
 		clientCtx, nodeConfig, chainID, nodeIDs, valPubKeys, numValidators,
-		outputDir, nodeDirPrefix, nodeDaemonHome, genBalIterator,
+		outputDir, nodeDirPrefix, nodeHome, genBalIterator,
 	)
 	if err != nil {
 		return err
