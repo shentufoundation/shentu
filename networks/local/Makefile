@@ -1,6 +1,6 @@
-# Makefile for the "certikdnode" docker image.
+# Makefile for the "certiknode" docker image.
 
 all:
-	docker build --tag certikfoundation/certikdnode certikdnode
+	docker build --tag certikfoundation/certiknode certiknode
 
 .PHONY: all

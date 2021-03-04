@@ -5,47 +5,15 @@ before:
     - go mod tidy
 builds:
   -
-    id: "certikcli"
+    id: "certik"
 
-    main: ./cmd/certikcli
+    main: ./app/certik
 
-    binary: certikcli
-
-    ldflags: |
-      -X github.com/cosmos/cosmos-sdk/version.Name=certik
-      -X github.com/cosmos/cosmos-sdk/version.ServerName=certikd
-      -X github.com/cosmos/cosmos-sdk/version.ClientName=certikcli
-      -X github.com/certikfoundation/shentu/version.Version={{ .Version }}
-      -X github.com/certikfoundation/shentu/version.Commit={{ .FullCommit }}
-      -X github.com/certikfoundation/shentu/version.BuildTags={{ .Tag }}
-
-    goos:
-      - linux
-      - windows
-      - darwin
-
-    goarch:
-      - amd64
-      # - 386
-
-    ignore:
-      # - goos: windows
-      #   goarch: 386
-      # - goos: darwin
-      #   goarch: 386
-
-
-  -
-    id: "certikd"
-
-    main: ./cmd/certikd
-
-    binary: certikd
+    binary: certik
 
     ldflags: |
       -X github.com/cosmos/cosmos-sdk/version.Name=certik
-      -X github.com/cosmos/cosmos-sdk/version.ServerName=certikd
-      -X github.com/cosmos/cosmos-sdk/version.ClientName=certikcli
+      -X github.com/cosmos/cosmos-sdk/version.AppName=certik
       -X github.com/certikfoundation/shentu/version.Version={{ .Version }}
       -X github.com/certikfoundation/shentu/version.Commit={{ .FullCommit }}
       -X github.com/certikfoundation/shentu/version.BuildTags={{ .Tag }}
@@ -66,11 +34,10 @@ builds:
       #   goarch: 386
 archives:
   - 
-    id: certikcli-archives
+    id: certik-archives
 
-    builds: 
-      - certikcli
-      - certikd
+    builds:
+      - certik
 
     name_template: "{{ .Binary }}-{{ .Os }}"
     replacements:

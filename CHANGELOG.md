@@ -35,11 +35,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased] - TBD
+## [2.0.0] - TBD
 
 ### Client Breaking Changes
+* (APP) [\#231](https://github.com/certikfoundation/shentu/pull/231) rename default binary name to `certik`
+
 ### API Breaking Changes
 * (CVM) [\#231](https://github.com/certikfoundation/shentu/pull/231) Remove direct solidity file deployment.
+
 ### State Machine Breaking Changes
 ### Features
 ### Improvements
