@@ -111,15 +111,15 @@ $ make localnet.both
 Run the scripts for testing:
 
 ```bash
-$ certikcli query account $NODE0_KEY
-$ certikcli query supply total uctk
+$ certik query account $NODE0_KEY
+$ certik query supply total uctk
 
 # Create a new account
-$ certikcli keys add jack
-$ JACK_KEY=$(certikcli keys show jack -a)
+$ certik keys add jack
+$ JACK_KEY=$(certik keys show jack -a)
 # default password = jkljkljkl
-$ certikcli tx send node0 $JACK_KEY 100000uctk --gas-prices=0.025uctk --from node0
-$ certikcli query account $JACK_KEY
+$ certik tx send node0 $JACK_KEY 100000uctk --gas-prices=0.025uctk --from node0
+$ certik query account $JACK_KEY
 ```
 
 Finally, run `make localnet.down` to shutdown the localnet.
@@ -135,14 +135,14 @@ Recommend the use of the provided Docker containers for simplicity, but here are
 ```bash
 $ certik unsafe-reset-all
 $ rm -rf ~/.certik
-$ rm -rf ~/.certikcli
+$ rm -rf ~/.certik
 
 $ certik init node0 --chain-id certikchain
 
-$ certikcli config chain-id certikchain
-$ certikcli keys add jack
+$ certik config chain-id certikchain
+$ certik keys add jack
 
-$ certik add-genesis-account $(certikcli keys show jack -a) 200000000uctk
+$ certik add-genesis-account $(certik keys show jack -a) 200000000uctk
 ```
 
 Notification: Every transaction will need 5000uctk (certik token), so you'd better start with more than 5000uctk here.
@@ -153,12 +153,12 @@ $ certik collect-gentxs
 
 $ certik start
 
-$ certikcli query account $(certikcli keys show jack -a)
+$ certik query account $(certik keys show jack -a)
 
-$ certikcli keys add alice
-$ certikcli tx send jack $(certikcli keys show alice -a) 70000uctk --gas-prices=0.025uctk --from jack
-$ certikcli query account $(certikcli keys show jack -a)
-$ certikcli query account $(certikcli keys show alice -a)
+$ certik keys add alice
+$ certik tx send jack $(certik keys show alice -a) 70000uctk --gas-prices=0.025uctk --from jack
+$ certik query account $(certik keys show jack -a)
+$ certik query account $(certik keys show alice -a)
 ```
 
 # CVM module test commands
@@ -182,11 +182,12 @@ contract SimpleStorage {
 }
 ```
 
-To deploy `tests/simple.sol` contract (be sure to have `solc` installed)
+To deploy `tests/simple.sol` contract (be sure to have `solc` installed), first compile it into a bytecode and abi.
 
+Assuming you have `simple.sol` compiled into `simple.bytecode` and `simple.abi`
 ```bash
 $ cd tests
-$ certikcli tx cvm deploy simple.sol --from node0
+$ certik tx cvm deploy simple.bytecode --abi simple.abi --from node0
 ```
 
 Printed on the main terminal
@@ -241,7 +242,7 @@ I[2019-06-27|09:05:33.287] CVM Stop                                     module=m
 To inspect deploy transaction details and to obtain Bech32 contract address
 
 ```bash
-$ certikcli query tx 8067DBC001BE239E5A44843CCEF4C71A87B802352989F97664AF8F265E7B888E
+$ certik query tx 8067DBC001BE239E5A44843CCEF4C71A87B802352989F97664AF8F265E7B888E
 Response:
   Height: 169
   TxHash: 8067DBC001BE239E5A44843CCEF4C71A87B802352989F97664AF8F265E7B888E
@@ -259,7 +260,7 @@ Response:
 To inspect contract code bytes deployed at `certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy`
 
 ```bash
-$ certikcli query cvm code certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy
+$ certik query cvm code certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy
 6080604052348015600F57600080FD5B506004361060325760003560E01C806360FE47B114603757
 80636D4CE63C146062575B600080FD5B606060048036036020811015604B57600080FD5B81019080
 80359060200190929190505050607E565B005B60686088565B604051808281526020019150506040
@@ -270,14 +271,14 @@ $ certikcli query cvm code certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy
 To call `SimpleStorage.set(123)` at the contract
 
 ```bash
-$ certikcli tx cvm call certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy set 123 --from node0
+$ certik tx cvm call certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy set 123 --from node0
 ```
 
 Then we can verify the storage setting by calling `SimpleStorage.get()` at the
 contract
 
 ```bash
-$ certikcli tx cvm call certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy get --from node0
+$ certik tx cvm call certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy get --from node0
 Response:
   TxHash: 6EAABFDF5022F21F88D9DBBE8A0837F3CF6819F06F801BEF301188F22DF16C9B
 ```
@@ -292,7 +293,7 @@ I[2019-06-27|09:20:44.674] CVM Stop                                     module=m
 or query the get call transaction
 
 ```bash
-$ certikcli query tx 6EAABFDF5022F21F88D9DBBE8A0837F3CF6819F06F801BEF301188F22DF16C9B
+$ certik query tx 6EAABFDF5022F21F88D9DBBE8A0837F3CF6819F06F801BEF301188F22DF16C9B
 Response:
   Height: 333
   TxHash: 6EAABFDF5022F21F88D9DBBE8A0837F3CF6819F06F801BEF301188F22DF16C9B
@@ -312,7 +313,7 @@ Response:
 Analogous to the steps above, a DeepSEA contract `contract.ds` can be deployed with:
 
 ```bash
-$ certikcli tx cvm deploy contract.ds --from node0
+$ certik tx cvm deploy contract.ds --from node0
 ```
 
 Make sure that `dsc` (DeepSEA compiler) is in your `PATH`.
@@ -322,7 +323,7 @@ Make sure that `dsc` (DeepSEA compiler) is in your `PATH`.
 Start the `rest-server` in another terminal window:
 
 ```bash
-$ certikcli rest-server --trust-node
+$ certik rest-server --trust-node
 ```
 
 Back to the previous terminal window where `NODE0_KEY` is defined:
@@ -333,10 +334,10 @@ $ curl -XPOST -s http://localhost:1317/ctk/burn --data-binary '{"base_req":{"fro
 
 # Sign Transaction
 # Note: sequence and account-number can be found in account information
-$ certikcli tx sign unsignedTx.json --from $NODE0_KEY --offline --chain-id certikchain --sequence 5 --account-number 0 > signedTx.json
+$ certik tx sign unsignedTx.json --from $NODE0_KEY --offline --chain-id certikchain --sequence 5 --account-number 0 > signedTx.json
 
 # Broadcast Transaction
-$ certikcli tx broadcast signedTx.json
+$ certik tx broadcast signedTx.json
 
 # Check the balance of node0
 $ curl -s http:/localhost:1317/ctk/balance/$NODE0_KEY
