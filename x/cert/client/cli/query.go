@@ -225,7 +225,7 @@ func GetCmdCertificates() *cobra.Command {
 	cmd.Flags().String(FlagCertifier, "", "certificates issued by certifier")
 	cmd.Flags().String(FlagContent, "", "certificates by request content")
 	cmd.Flags().String(FlagContentType, "", "type of request content")
-	flags.AddPaginationFlagsToCmd(cmd, "votes")
+	flags.AddPaginationFlagsToCmd(cmd, "certificates")
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

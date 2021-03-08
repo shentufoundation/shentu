@@ -1,11 +1,13 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/certikfoundation/shentu/x/gov/types"
 	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
@@ -86,9 +88,7 @@ func (k Keeper) upsertDeposit(ctx sdk.Context, proposalID uint64, depositorAddr 
 	if found {
 		deposit.Amount = deposit.Amount.Add(depositAmount...)
 	} else {
-		//txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
-		txhash := "test"
-		deposit = types.NewDeposit(proposalID, depositorAddr, depositAmount, txhash)
+		deposit = types.NewDeposit(proposalID, depositorAddr, depositAmount, hex.EncodeToString(tmhash.Sum(ctx.TxBytes())))
 	}
 
 	k.SetDeposit(ctx, deposit)

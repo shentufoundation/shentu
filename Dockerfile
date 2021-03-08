@@ -11,4 +11,4 @@ WORKDIR /shentu
 
 RUN make install
 
-CMD ["certikd"]
+CMD ["certik"]

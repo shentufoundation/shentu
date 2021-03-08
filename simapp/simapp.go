@@ -109,15 +109,13 @@ const (
 	// AppName specifies the global application name.
 	appName = "CertiK"
 
-	// DefaultKeyPass for certikd node daemon.
+	// DefaultKeyPass for certik node daemon.
 	DefaultKeyPass = "12345678"
 )
 
 var (
-	DefaultCLIHome = os.ExpandEnv("$HOME/.certikcli")
-
 	// DefaultNodeHome specifies where the node daemon data is stored.
-	DefaultNodeHome = os.ExpandEnv("$HOME/.certikd")
+	DefaultNodeHome = os.ExpandEnv("$HOME/.certik")
 
 	// ModuleBasics is in charge of setting up basic, non-dependant module
 	// elements, such as codec registration and genesis verification.

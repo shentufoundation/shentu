@@ -33,6 +33,7 @@ require (
 )
 
 replace (
+	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 	github.com/althea-net/peggy/module => github.com/certikfoundation/cosmos-gravity-bridge/module v0.0.0-20210225053158-b5e91074e057
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
 )

@@ -9,6 +9,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	qtypes "github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
@@ -145,10 +146,13 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 		panic(err)
 	}
 
-	// TODO Use new cosmos pagniation mechanism
+	page, limit, err := qtypes.ParsePagination(req.Pagination)
+	if err != nil {
+		return nil, err
+	}
 	params := types.QueryCertificatesParams{
-		Page:        int(req.Pagination.Offset),
-		Limit:       int(req.Pagination.Limit),
+		Page:        page,
+		Limit:       limit,
 		Certifier:   certifierAddr,
 		ContentType: req.ContentType,
 		Content:     req.Content,
@@ -159,7 +163,7 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 		return nil, err
 	}
 
-	results := make([]types.QueryCertificateResponse, len(certificates))
+	results := make([]types.QueryCertificateResponse, total)
 	for i, certificate := range certificates {
 		reqContent := certificate.RequestContent()
 

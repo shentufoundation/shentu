@@ -37,7 +37,7 @@ func GetGenesisStateFromAppState(cdc codec.Marshaler, appState map[string]json.R
 func (g GenesisState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	for i := 0; i < len(g.Certificates); i++ {
 		var cert Certificate
-		err := unpacker.UnpackAny(&g.Certificates[i], &cert)
+		err := unpacker.UnpackAny(g.Certificates[i], &cert)
 		if err != nil {
 			return err
 		}
