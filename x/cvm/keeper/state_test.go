@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/certikfoundation/shentu/simapp"
+	"github.com/certikfoundation/shentu/x/cvm/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/stretchr/testify/require"
@@ -92,6 +93,10 @@ func TestState_RemoveAccount(t *testing.T) {
 	acc.Balance = 123
 	err = state.UpdateAccount(acc)
 	require.Nil(t, err)
+
+	require.Nil(t, getAbi(ctx, app.GetKey(types.StoreKey), addr))
+	require.NotNil(t, getCode(ctx, app.GetKey(types.StoreKey), addr))
+	require.NotNil(t, getAddressMeta(ctx, app.GetKey(types.StoreKey), addr))
 
 	err = state.RemoveAccount(acc.Address)
 	require.Nil(t, err)

@@ -68,7 +68,7 @@ func queryView(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 	value, err := keeper.Tx(ctx, caller, callee, 0, req.Data, []*payload.ContractMeta{}, true, false, false)
 
 	if err != nil {
-		panic("failed to get storage at address " + path[0])
+		panic("failed to get storage at address " + path[1])
 	}
 
 	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, types.QueryResView{Ret: value})

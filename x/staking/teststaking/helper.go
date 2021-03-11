@@ -5,6 +5,7 @@ import (
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
@@ -41,8 +42,9 @@ func (sh *Helper) CreateValidator(addr sdk.ValAddress, pk cryptotypes.PubKey, st
 // commission
 func (sh *Helper) CreateValidatorWithValPower(addr sdk.ValAddress, pk cryptotypes.PubKey, valPower int64, ok bool) sdk.Int {
 	amount := sdk.TokensFromConsensusPower(valPower)
+	pubKey := ed25519.GenPrivKey().PubKey()
 	coin := sdk.NewCoin(sh.Denom, amount)
-	sh.createValidator(addr, pk, coin, ok)
+	sh.createValidator(addr, pubKey, coin, ok)
 	return amount
 }
 

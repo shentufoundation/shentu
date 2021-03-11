@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/certikfoundation/shentu/common"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -42,6 +43,11 @@ var DefaultConsensusParams = &abci.ConsensusParams{
 }
 
 func Setup(isCheckTx bool) *SimApp {
+	config := sdk.GetConfig()
+	config.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
+	config.SetBech32PrefixForValidator(common.Bech32PrefixValAddr, common.Bech32PrefixValPub)
+	config.SetBech32PrefixForConsensusNode(common.Bech32PrefixConsAddr, common.Bech32PrefixConsPub)
+
 	db := dbm.NewMemDB()
 	app := NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, MakeTestEncodingConfig(), simapp.EmptyAppOptions{})
 	if !isCheckTx {
