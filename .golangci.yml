@@ -10,12 +10,11 @@ linters-settings:
           - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
     disable:
       - shadow
+      - composites
   golint:
     min-confidence: 0.3
   gocyclo:
     min-complexity: 15
-  maligned:
-    suggest-new: true
   dupl:
     threshold: 100
   goconst:
@@ -66,7 +65,6 @@ linters:
     - goimports
     - gosimple
     - ineffassign
-    - maligned
     - misspell
     - nakedret
     - prealloc
@@ -83,7 +81,7 @@ linters:
     # - gochecknoglobals
     # - godox
     # - golint
-    # - govet
+    - govet
     # - interfacer
     # - stylecheck
     # - funlen

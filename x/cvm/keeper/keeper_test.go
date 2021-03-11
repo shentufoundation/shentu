@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	gobin "encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -11,19 +12,64 @@ import (
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/execution/errors"
 	"github.com/hyperledger/burrow/execution/evm/abi"
 	"github.com/hyperledger/burrow/txs/payload"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/simapp"
 	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	. "github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
+
+var (
+	uCTKAmount = sdk.NewInt(1005).MulRaw(common.MicroUnit)
+)
+
+// getAbi returns the abi at the given address.
+// NOTE: Emulates the unexported function in the module.
+func getAbi(ctx sdk.Context, key sdk.StoreKey, address crypto.Address) []byte {
+	return ctx.KVStore(key).Get(types.AbiStoreKey(address))
+}
+
+func getCode(ctx sdk.Context, key sdk.StoreKey, address crypto.Address) []byte {
+	return ctx.KVStore(key).Get(types.CodeStoreKey(address))
+}
+
+func getAddressMeta(ctx sdk.Context, key sdk.StoreKey, address crypto.Address) []byte {
+	return ctx.KVStore(key).Get(types.AddressMetaStoreKey(address))
+}
+
+// getAccountSeqNum returns the account sequence number.
+// NOTE: Emulates the unexported function in the module.
+func getAccountSeqNum(ctx sdk.Context, ak authKeeper.AccountKeeper, address sdk.AccAddress) []byte {
+	callerAcc := ak.GetAccount(ctx, address)
+	callerSequence := callerAcc.GetSequence()
+	accountByte := make([]byte, 8)
+	gobin.LittleEndian.PutUint64(accountByte, callerSequence)
+	return accountByte
+}
+
+// padOrTrim returns (size) bytes from app (bb)
+// Short bb gets zeros prefixed, Long bb gets left/MSB bits trimmed
+func padOrTrim(bb []byte, size int) []byte {
+	l := len(bb)
+	if l == size {
+		return bb
+	}
+	if l > size {
+		return bb[l-size:]
+	}
+	tmp := make([]byte, size)
+	copy(tmp[size-l:], bb)
+	return tmp
+}
 
 func TestContractCreation(t *testing.T) {
 	app := simapp.Setup(false)
@@ -564,21 +610,6 @@ func TestSend(t *testing.T) {
 		err = cvmk.Send(ctx, addrs[0], addrs[1], sdk.Coins{sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 10)})
 		require.Nil(t, err)
 	})
-}
-
-// padOrTrim returns (size) bytes from input (bb)
-// Short bb gets zeros prefixed, Long bb gets left/MSB bits trimmed
-func padOrTrim(bb []byte, size int) []byte {
-	l := len(bb)
-	if l == size {
-		return bb
-	}
-	if l > size {
-		return bb[l-size:]
-	}
-	tmp := make([]byte, size)
-	copy(tmp[size-l:], bb)
-	return tmp
 }
 
 func TestPrecompiles(t *testing.T) {
