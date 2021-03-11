@@ -21,7 +21,6 @@ import (
 	"github.com/hyperledger/burrow/execution/evm/abi"
 	"github.com/hyperledger/burrow/txs/payload"
 
-	"github.com/certikfoundation/shentu/x/cvm/keeper"
 	. "github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
@@ -93,7 +92,7 @@ func TestViewQuery(t *testing.T) {
 	getMyFavoriteNumberCall, _, err := abi.EncodeFunctionCall(
 		Hello55AbiJsonString,
 		"sayHi",
-		keeper.WrapLogger(ctx.Logger()),
+		WrapLogger(ctx.Logger()),
 	)
 	require.Nil(t, err)
 
