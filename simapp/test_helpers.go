@@ -19,8 +19,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	"github.com/certikfoundation/shentu/common"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
@@ -43,11 +41,6 @@ var DefaultConsensusParams = &abci.ConsensusParams{
 }
 
 func Setup(isCheckTx bool) *SimApp {
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
-	config.SetBech32PrefixForValidator(common.Bech32PrefixValAddr, common.Bech32PrefixValPub)
-	config.SetBech32PrefixForConsensusNode(common.Bech32PrefixConsAddr, common.Bech32PrefixConsPub)
-
 	db := dbm.NewMemDB()
 	app := NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, MakeTestEncodingConfig(), simapp.EmptyAppOptions{})
 	if !isCheckTx {
