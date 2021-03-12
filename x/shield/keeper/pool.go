@@ -163,7 +163,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 	if !creator.Equals(admin) {
 		return 0, types.ErrNotShieldAdmin
 	}
-	if _, found := k.GetPoolBySponsor(ctx, sponsor); found {
+	if _, found := k.GetPoolsBySponsor(ctx, sponsor); found {
 		return 0, types.ErrSponsorAlreadyExists
 	}
 

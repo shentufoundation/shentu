@@ -87,7 +87,7 @@ func queryPoolBySponsor(ctx sdk.Context, path []string, k Keeper, legacyQuerierC
 		return nil, err
 	}
 
-	pool, found := k.GetPoolBySponsor(ctx, path[0])
+	pool, found := k.GetPoolsBySponsor(ctx, path[0])
 	if !found {
 		return nil, types.ErrNoPoolFoundForSponsor
 	}

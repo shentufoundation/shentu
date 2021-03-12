@@ -27,6 +27,7 @@ func GetQueryCmd() *cobra.Command {
 	}
 	shieldQueryCmd.AddCommand(
 		GetCmdPool(),
+		GetCmdSponsor(),
 		GetCmdPools(),
 		GetCmdPurchaseList(),
 		GetCmdPurchaserPurchases(),
@@ -70,7 +71,7 @@ func GetCmdPool() *cobra.Command {
 
 			res, err := queryClient.Pool(
 				cmd.Context(),
-				&types.QueryPoolRequest{PoolId: id, Sponsor: sponsor},
+				&types.QueryPoolRequest{PoolId: id},
 			)
 			if err != nil {
 				return err
@@ -79,8 +80,36 @@ func GetCmdPool() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
 
-	cmd.Flags().String(flagSponsor, "", "use sponsor to query the pool info")
+	return cmd
+}
+
+// GetCmdSponsor returns the command for querying the pools for a sponsor address.
+func GetCmdSponsor() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "sponsor [pool_ID]",
+		Short: "query pools for a sponsor",
+		Args:  cobra.RangeArgs(0, 1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+
+			sponsor := args[0]
+			res, err := queryClient.Sponsor(
+				cmd.Context(),
+				&types.QuerySponsorRequest{Sponsor: sponsor},
+			)
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintProto(res)
+		},
+	}
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd

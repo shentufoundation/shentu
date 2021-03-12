@@ -57,21 +57,18 @@ func (k Keeper) GetNextPoolID(ctx sdk.Context) uint64 {
 	return binary.LittleEndian.Uint64(opBz)
 }
 
-// GetPoolBySponsor search store for a pool object with given pool ID.
-func (k Keeper) GetPoolBySponsor(ctx sdk.Context, sponsor string) (types.Pool, bool) {
-	ret := types.Pool{}
+// GetPoolsBySponsor search store for a pool object with given pool ID.
+func (k Keeper) GetPoolsBySponsor(ctx sdk.Context, sponsorAddr string) ([]types.Pool, bool) {
+	var ret []types.Pool
+	found := false
 	k.IterateAllPools(ctx, func(pool types.Pool) bool {
-		if pool.Sponsor == sponsor {
-			ret = pool
-			return true
-		} else {
-			return false
+		if pool.SponsorAddr == sponsorAddr {
+			ret = append(ret, pool)
+			found = true
 		}
+		return false
 	})
-	if ret.Id == 0 {
-		return ret, false
-	}
-	return ret, true
+	return ret, found
 }
 
 // BondDenom returns staking bond denomination.
