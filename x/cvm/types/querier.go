@@ -48,7 +48,7 @@ func (q QueryResAbi) String() string {
 	return string(q.Abi)
 }
 
-// QueryResAddrMeta is the query result payload for a contract code ABI query.
+// QueryResAddrMeta is the query result payload for a contract address meta query.
 type QueryResAddrMeta struct {
 	Metahash string `json:"metahash"`
 }

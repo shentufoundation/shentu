@@ -9,7 +9,7 @@ import (
 // SetProvider sets data of a provider in the kv-store.
 func (k Keeper) SetProvider(ctx sdk.Context, delAddr sdk.AccAddress, provider types.Provider) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(provider)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&provider)
 	store.Set(types.GetProviderKey(delAddr), bz)
 }
 

@@ -1,29 +1,37 @@
 package types
 
 import (
-	"github.com/tendermint/tendermint/crypto"
-
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
+
+// ParamSubspace defines the expected Subspace interface for parameters (noalias)
+type ParamSubspace interface {
+	Get(ctx sdk.Context, key []byte, ptr interface{})
+	Set(ctx sdk.Context, key []byte, param interface{})
+}
 
 // AccountKeeper defines the expected account keeper (noalias)
 type AccountKeeper interface {
-	IterateAccounts(ctx sdk.Context, process func(exported.Account) (stop bool))
-	GetAccount(sdk.Context, sdk.AccAddress) exported.Account
-	SetAccount(sdk.Context, exported.Account)
-	NewAccount(sdk.Context, exported.Account) exported.Account
-	NewAccountWithAddress(sdk.Context, sdk.AccAddress) exported.Account
+	IterateAccounts(ctx sdk.Context, process func(i authtypes.AccountI) (stop bool))
+	GetAccount(ctx sdk.Context, address sdk.AccAddress) authtypes.AccountI
+	SetAccount(ctx sdk.Context, account authtypes.AccountI)
+	NewAccount(ctx sdk.Context, account authtypes.AccountI) authtypes.AccountI
+	NewAccountWithAddress(sdk.Context, sdk.AccAddress) authtypes.AccountI
 }
 
 // BankKeeper defines the expected bank keeper (noalias)
 type BankKeeper interface {
-	SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
-	DelegateCoins(ctx sdk.Context, fromAdd, toAddr sdk.AccAddress, amt sdk.Coins) error
-	UndelegateCoins(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amt sdk.Coins) error
+	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
+	SetBalances(ctx sdk.Context, addr sdk.AccAddress, balances sdk.Coins) error
+	LockedCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 
-	SubtractCoins(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coins) (sdk.Coins, error)
-	AddCoins(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coins) (sdk.Coins, error)
+	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 }
 
 // DistributionKeeper defines the expected distribution keeper (noalias)
@@ -36,5 +44,10 @@ type CertKeeper interface {
 	IsCertified(ctx sdk.Context, contentType string, content string, certType string) bool
 	IsContentCertified(ctx sdk.Context, content string) bool
 	IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool
-	SetValidator(ctx sdk.Context, key crypto.PubKey, certifier sdk.AccAddress)
+	SetValidator(ctx sdk.Context, key cryptotypes.PubKey, certifier sdk.AccAddress)
+}
+
+// StakingKeeper defines the expected staking keeper
+type StakingKeeper interface {
+	BondDenom(ctx sdk.Context) string
 }

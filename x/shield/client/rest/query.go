@@ -6,13 +6,13 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
-func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/pools", types.QuerierRoute), queryPoolsHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/pool/id/{poolID}", types.QuerierRoute), queryPoolWithIDHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/pool/sponsor/{sponsor}", types.QuerierRoute), queryPoolWithSponsorHandler(cliCtx)).Methods("GET")
@@ -31,7 +31,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/reimbursements", types.QuerierRoute), queryReimbursementsHandler(cliCtx)).Methods("GET")
 }
 
-func queryPoolWithIDHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryPoolWithIDHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -53,7 +53,7 @@ func queryPoolWithIDHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryPoolWithSponsorHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryPoolWithSponsorHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -75,7 +75,7 @@ func queryPoolWithSponsorHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryPoolsHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryPoolsHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -94,7 +94,7 @@ func queryPoolsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryPurchaseListHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryPurchaseListHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -117,7 +117,7 @@ func queryPurchaseListHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryPurchaserPurchasesHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryPurchaserPurchasesHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -139,7 +139,7 @@ func queryPurchaserPurchasesHandler(cliCtx context.CLIContext) http.HandlerFunc 
 	}
 }
 
-func queryPoolPurchasesHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryPoolPurchasesHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -161,7 +161,7 @@ func queryPoolPurchasesHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryPurchasesHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryPurchasesHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -180,7 +180,7 @@ func queryPurchasesHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryProviderHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryProviderHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -202,7 +202,7 @@ func queryProviderHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryProvidersHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryProvidersHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 100)
 		if err != nil {
@@ -212,7 +212,7 @@ func queryProvidersHandler(cliCtx context.CLIContext) http.HandlerFunc {
 
 		params := types.NewQueryPaginationParams(page, limit)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -235,7 +235,7 @@ func queryProvidersHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryPoolParamsHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryPoolParamsHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -254,7 +254,7 @@ func queryPoolParamsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryClaimParamsHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryClaimParamsHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -273,7 +273,7 @@ func queryClaimParamsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryStatusHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryStatusHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -292,7 +292,7 @@ func queryStatusHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryStakeForShieldHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryStakeForShieldHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -315,7 +315,7 @@ func queryStakeForShieldHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryShieldStakingRateHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryShieldStakingRateHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -334,7 +334,7 @@ func queryShieldStakingRateHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryReimbursementHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryReimbursementHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -356,7 +356,7 @@ func queryReimbursementHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryReimbursementsHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryReimbursementsHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {

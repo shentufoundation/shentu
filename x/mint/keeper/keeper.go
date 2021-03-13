@@ -3,31 +3,32 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/mint"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/certikfoundation/shentu/x/mint/types"
 )
 
 type Keeper struct {
-	mint.Keeper
+	mintkeeper.Keeper
 	dk            types.DistributionKeeper
-	supplyKeeper  types.SupplyKeeper
+	accountKeeper types.AccountKeeper
 	stakingKeeper types.StakingKeeper
 	shieldKeeper  types.ShieldKeeper
 }
 
 // NewKeeper implements the wrapper newkeeper on top of the original newkeeper with distribution, supply and staking keeper.
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace,
-	sk types.StakingKeeper, supplyKeeper types.SupplyKeeper, distributionKeeper types.DistributionKeeper, shieldKeeper types.ShieldKeeper,
+	cdc codec.BinaryMarshaler, key sdk.StoreKey, paramSpace paramtypes.Subspace,
+	sk types.StakingKeeper, ak types.AccountKeeper, bk types.BankKeeper, distributionKeeper types.DistributionKeeper, shieldKeeper types.ShieldKeeper,
 	feeCollectorName string) Keeper {
 	return Keeper{
-		mint.NewKeeper(cdc, key, paramSpace, sk, supplyKeeper, feeCollectorName),
-		distributionKeeper,
-		supplyKeeper,
-		sk,
-		shieldKeeper,
+		Keeper:        mintkeeper.NewKeeper(cdc, key, paramSpace, sk, ak, bk, feeCollectorName),
+		dk:            distributionKeeper,
+		accountKeeper: ak,
+		stakingKeeper: sk,
+		shieldKeeper:  shieldKeeper,
 	}
 }
 
@@ -36,7 +37,7 @@ func (k Keeper) SendToCommunityPool(ctx sdk.Context, amount sdk.Coins) error {
 	if amount.AmountOf(k.stakingKeeper.BondDenom(ctx)).Equal(sdk.ZeroInt()) {
 		return nil
 	}
-	mintAddress := k.supplyKeeper.GetModuleAddress(mint.ModuleName)
+	mintAddress := k.accountKeeper.GetModuleAddress(minttypes.ModuleName)
 	return k.dk.FundCommunityPool(ctx, amount, mintAddress)
 }
 
@@ -45,7 +46,7 @@ func (k Keeper) SendToShieldRewards(ctx sdk.Context, amount sdk.Coins) error {
 	if amount.AmountOf(k.stakingKeeper.BondDenom(ctx)).Equal(sdk.ZeroInt()) {
 		return nil
 	}
-	mintAddress := k.supplyKeeper.GetModuleAddress(mint.ModuleName)
+	mintAddress := k.accountKeeper.GetModuleAddress(minttypes.ModuleName)
 	return k.shieldKeeper.FundShieldBlockRewards(ctx, amount, mintAddress)
 }
 
@@ -62,10 +63,14 @@ func (k Keeper) GetCommunityPoolRatio(ctx sdk.Context) sdk.Dec {
 	return sdk.NewDec(0)
 }
 
-// GetShieldStakeForShieldPoolRatio returns the current ratio of the community pool compared to the total supply.
+// GetShieldStakeForShieldPoolRatio returns the current ratio of
+// shield staking pool compared to the total supply.
 func (k Keeper) GetShieldStakeForShieldPoolRatio(ctx sdk.Context) sdk.Dec {
 	pool := k.shieldKeeper.GetGlobalShieldStakingPool(ctx)
 	totalBondedTokensDec := k.StakingTokenSupply(ctx).ToDec()
+	if totalBondedTokensDec.IsZero() {
+		return sdk.ZeroDec()
+	}
 	return pool.ToDec().Quo(totalBondedTokensDec)
 }
 

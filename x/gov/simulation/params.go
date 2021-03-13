@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"time"
 
+	sim "github.com/cosmos/cosmos-sdk/types/simulation"
+
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 )
@@ -18,11 +20,11 @@ const (
 
 // ParamChanges defines the parameters that can be modified by param change proposals
 // on the simulation
-func ParamChanges(r *rand.Rand) []simulation.ParamChange {
-	votingPeriod := time.Duration(simulation.RandIntBetween(r, 1, 2*60*60*24*2)) * time.Second
-	depositPeriod := time.Duration(simulation.RandIntBetween(r, 1, 2*60*60*24*2)) * time.Second
+func ParamChanges(r *rand.Rand) []sim.ParamChange {
+	votingPeriod := time.Duration(sim.RandIntBetween(r, 1, 2*60*60*24*2)) * time.Second
+	depositPeriod := time.Duration(sim.RandIntBetween(r, 1, 2*60*60*24*2)) * time.Second
 
-	return []simulation.ParamChange{
+	return []sim.ParamChange{
 		simulation.NewSimParamChange(govTypes.ModuleName, keyVotingParams,
 			func(r *rand.Rand) string {
 				return fmt.Sprintf(`{"voting_period": "%d"}`, votingPeriod)

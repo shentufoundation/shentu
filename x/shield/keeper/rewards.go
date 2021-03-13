@@ -26,7 +26,7 @@ func (k Keeper) SetRewards(ctx sdk.Context, addr sdk.AccAddress, earnings types.
 	}
 	provider.Rewards = earnings
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(provider)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&provider)
 	store.Set(types.GetProviderKey(addr), bz)
 }
 
@@ -52,7 +52,7 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 	remainingServiceFees.Native = remainingServiceFees.Native.Add(change...)
 	k.SetRemainingServiceFees(ctx, remainingServiceFees)
 
-	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, ctkRewards); err != nil {
+	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, ctkRewards); err != nil {
 		return sdk.Coins{}, err
 	}
 	return ctkRewards, nil

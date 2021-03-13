@@ -63,7 +63,7 @@ func NewQueryResCertificate(
 	}
 }
 
-func queryCertificate(ctx sdk.Context, path []string, keeper Keeper) ([]byte, error) {
+func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	if err := validatePathLength(path, 1); err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func queryCertificate(ctx sdk.Context, path []string, keeper Keeper) ([]byte, er
 		certificate.Certifier().String(),
 		certificate.TxHash(),
 	)
-	res, err := codec.MarshalJSONIndent(keeper.cdc, resCertificate)
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, resCertificate)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -93,12 +93,12 @@ type QueryResCertificates struct {
 	Certificates []QueryResCertificate `json:"certificates"`
 }
 
-func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	if err := validatePathLength(path, 0); err != nil {
 		return nil, err
 	}
 	var params types.QueryCertificatesParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -120,7 +120,7 @@ func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 		)
 		resCertificates = append(resCertificates, resCertificate)
 	}
-	res, err := codec.MarshalJSONIndent(keeper.cdc, QueryResCertificates{Total: total, Certificates: resCertificates})
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, QueryResCertificates{Total: total, Certificates: resCertificates})
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

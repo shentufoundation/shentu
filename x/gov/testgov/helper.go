@@ -3,13 +3,15 @@ package testgov
 import (
 	"testing"
 
+	"github.com/certikfoundation/shentu/x/gov/keeper"
+
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	cosmosGov "github.com/cosmos/cosmos-sdk/x/gov"
 
 	"github.com/certikfoundation/shentu/x/gov"
-	shieldTypes "github.com/certikfoundation/shentu/x/shield/types"
+	govtypes "github.com/certikfoundation/shentu/x/gov/types"
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // Helper is a structure which wraps the staking handler
@@ -17,22 +19,23 @@ import (
 type Helper struct {
 	t *testing.T
 	h sdk.Handler
-	k gov.Keeper
+	k keeper.Keeper
 
 	ctx   sdk.Context
 	denom string
 }
 
 // NewHelper creates staking Handler wrapper for tests
-func NewHelper(t *testing.T, ctx sdk.Context, k gov.Keeper, denom string) *Helper {
+func NewHelper(t *testing.T, ctx sdk.Context, k keeper.Keeper, denom string) *Helper {
 	return &Helper{t, gov.NewHandler(k), k, ctx, denom}
 }
 
 func (gh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID, purchaseID uint64, ok bool) *sdk.Result {
 	initDeposit := sdk.NewCoins(sdk.NewInt64Coin(gh.denom, 5000e6))
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(gh.denom, loss))
-	content := shieldTypes.NewShieldClaimProposal(poolID, lossCoins, purchaseID, "test_claim_evidence", "test_claim_description", proposer)
-	proposal := cosmosGov.NewMsgSubmitProposal(content, initDeposit, proposer)
+	content := shieldtypes.NewShieldClaimProposal(poolID, lossCoins, purchaseID, "test_claim_evidence", "test_claim_description", proposer)
+	proposal, err := govtypes.NewMsgSubmitProposal(content, initDeposit, proposer)
+	require.NoError(gh.t, err)
 	return gh.Handle(proposal, ok)
 }
 

@@ -3,13 +3,12 @@ package keeper
 import (
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"math"
-	"strings"
-
-	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
@@ -17,7 +16,21 @@ import (
 // SetCertificate stores a certificate using its ID field.
 func (k Keeper) SetCertificate(ctx sdk.Context, certificate types.Certificate) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.CertificateStoreKey(certificate.ID().Bytes()), certificate.Bytes(k.cdc))
+	bz := k.MustMarshalCertificate(certificate)
+	store.Set(types.CertificateStoreKey(certificate.ID().Bytes()), bz)
+}
+
+// MustMarshalCertificate attempts to encode a Certificate object and returns the
+// raw encoded bytes. It panics on error.
+func (k Keeper) MustMarshalCertificate(certificate types.Certificate) []byte {
+	// marshals a Certificate interface. If the given type implements
+	// the Marshaler interface, it is treated as a Proto-defined message and
+	// serialized that way. Otherwise, it falls back on the internal Amino codec.
+	bz, err := k.cdc.MarshalInterface(certificate)
+	if err != nil {
+		panic(fmt.Errorf("failed to encode certificate: %w", err))
+	}
+	return bz
 }
 
 // DeleteCertificate deletes a certificate using its ID field.
@@ -43,9 +56,13 @@ func (k Keeper) GetCertificateByID(ctx sdk.Context, id types.CertificateID) (typ
 	if certificateData == nil {
 		return nil, types.ErrCertificateNotExists
 	}
-	var certificate types.Certificate
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(certificateData, &certificate)
-	return certificate, nil
+
+	var cert types.Certificate
+	err := k.cdc.UnmarshalInterface(certificateData, &cert)
+	if err != nil {
+		return nil, err
+	}
+	return cert, nil
 }
 
 // GetNewCertificateID gets an unused certificate ID for a new certificate.
@@ -112,8 +129,7 @@ func (k Keeper) IssueCertificate(ctx sdk.Context, c types.Certificate) (types.Ce
 	}
 	c.SetCertificateID(certificateID)
 
-	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
-	c.SetTxHash(txhash)
+	c.SetTxHash(hex.EncodeToString(tmhash.Sum(ctx.TxBytes())))
 
 	k.SetCertificate(ctx, c)
 
@@ -127,10 +143,13 @@ func (k Keeper) IterateAllCertificate(ctx sdk.Context, callback func(certificate
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var certificate types.Certificate
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &certificate)
+		var cert types.Certificate
+		err := k.cdc.UnmarshalInterface(iterator.Value(), &cert)
+		if err != nil {
+			panic(err)
+		}
 
-		if callback(certificate) {
+		if callback(cert) {
 			break
 		}
 	}
@@ -147,10 +166,13 @@ func (k Keeper) IterateCertificatesByContent(ctx sdk.Context, certType types.Cer
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var certificate types.Certificate
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &certificate)
+		var cert types.Certificate
+		err := k.cdc.UnmarshalInterface(iterator.Value(), &cert)
+		if err != nil {
+			panic(err)
+		}
 
-		if callback(certificate) {
+		if callback(cert) {
 			break
 		}
 	}
@@ -165,10 +187,13 @@ func (k Keeper) IterateCertificatesByType(ctx sdk.Context, certType types.Certif
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var certificate types.Certificate
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &certificate)
+		var cert types.Certificate
+		err := k.cdc.UnmarshalInterface(iterator.Value(), &cert)
+		if err != nil {
+			panic(err)
+		}
 
-		if callback(certificate) {
+		if callback(cert) {
 			break
 		}
 	}
@@ -242,7 +267,7 @@ func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCerti
 			return false
 		}
 		if params.ContentType != "" &&
-			(strings.ToUpper(params.ContentType) != strings.ToUpper(certificate.RequestContent().RequestContentType.String()) ||
+			(types.RequestContentTypeFromString(params.ContentType) != certificate.RequestContent().RequestContentType ||
 				certificate.RequestContent().RequestContent != params.Content) {
 			return false
 		}
@@ -274,8 +299,6 @@ func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCerti
 	}
 
 	// Post-processing
-	total := uint64(len(filteredCertificates))
-
 	start, end := client.Paginate(len(filteredCertificates), params.Page, params.Limit, 100)
 	if start < 0 || end < 0 {
 		filteredCertificates = []types.Certificate{}
@@ -283,7 +306,7 @@ func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCerti
 		filteredCertificates = filteredCertificates[start:end]
 	}
 
-	return total, filteredCertificates, nil
+	return uint64(len(filteredCertificates)), filteredCertificates, nil
 }
 
 // RevokeCertificate revokes a certificate.

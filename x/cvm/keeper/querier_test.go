@@ -5,6 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/certikfoundation/shentu/simapp"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/sha3"
 
@@ -16,26 +19,24 @@ import (
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/execution/engine"
 	"github.com/hyperledger/burrow/execution/evm/abi"
-	"github.com/hyperledger/burrow/execution/native"
 	"github.com/hyperledger/burrow/txs/payload"
 
-	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/cvm/keeper"
+	. "github.com/certikfoundation/shentu/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
 func TestNewQuerier(t *testing.T) {
 	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
-	cvmk := app.CvmKeeper
-	addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cvmk := app.CVMKeeper
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	query := abci.RequestQuery{
 		Path: "",
 		Data: []byte{},
 	}
 
-	querier := keeper.NewQuerier(cvmk)
+	querier := NewQuerier(cvmk, app.LegacyAmino())
 
 	bz, err := querier(ctx, []string{"other"}, query)
 	require.Error(t, err)
@@ -62,21 +63,21 @@ func TestNewQuerier(t *testing.T) {
 
 func TestViewQuery(t *testing.T) {
 	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
-	cvmk := app.CvmKeeper
-	addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	cvmk := app.CVMKeeper
 
 	query := abci.RequestQuery{
 		Path: "",
 		Data: []byte{},
 	}
 
-	querier := keeper.NewQuerier(cvmk)
+	querier := NewQuerier(cvmk, app.LegacyAmino())
 
 	code, err := hex.DecodeString(Hello55BytecodeString)
 	require.Nil(t, err)
 
-	newContractAddress, err2 := cvmk.Call(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
+	newContractAddress, err2 := cvmk.Tx(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 	require.Nil(t, err2)
 	require.NotNil(t, newContractAddress)
 
@@ -91,7 +92,7 @@ func TestViewQuery(t *testing.T) {
 	getMyFavoriteNumberCall, _, err := abi.EncodeFunctionCall(
 		Hello55AbiJsonString,
 		"sayHi",
-		keeper.WrapLogger(ctx.Logger()),
+		WrapLogger(ctx.Logger()),
 	)
 	require.Nil(t, err)
 
@@ -100,7 +101,7 @@ func TestViewQuery(t *testing.T) {
 	bz, err = querier(ctx, path, query)
 
 	var res types.QueryResView
-	err = app.Codec().UnmarshalJSON(bz, &res)
+	err = app.LegacyAmino().UnmarshalJSON(bz, &res)
 	require.Nil(t, err)
 	out, err := abi.DecodeFunctionReturn(Hello55AbiJsonString, "sayHi", res.Ret)
 	require.Equal(t, "55", out[0].Value)
@@ -108,15 +109,15 @@ func TestViewQuery(t *testing.T) {
 
 func TestQueryMeta(t *testing.T) {
 	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()})
-	cvmk := app.CvmKeeper
-	addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	cvmk := app.CVMKeeper
 
 	query := abci.RequestQuery{
 		Path: "",
 		Data: []byte{},
 	}
-	querier := keeper.NewQuerier(cvmk)
+	querier := NewQuerier(cvmk, app.LegacyAmino())
 
 	state := cvmk.NewState(ctx)
 
@@ -134,7 +135,7 @@ func TestQueryMeta(t *testing.T) {
 	require.Nil(t, err)
 	addr, err := crypto.AddressFromBytes(addrs[0].Bytes())
 	require.Nil(t, err)
-	err = native.UpdateContractMeta(cache, state, addr, []*payload.ContractMeta{&payloadMeta})
+	err = engine.UpdateContractMeta(cache, state, addr, []*payload.ContractMeta{&payloadMeta})
 	require.Nil(t, err)
 	err = cache.Sync(state)
 	require.Nil(t, err)
@@ -155,7 +156,7 @@ func TestQueryMeta(t *testing.T) {
 	bz, err = querier(ctx, path, query)
 	require.Nil(t, err)
 	var meta types.QueryResMeta
-	err = app.Codec().UnmarshalJSON(bz, &meta)
+	err = app.LegacyAmino().UnmarshalJSON(bz, &meta)
 	require.Nil(t, err)
 	require.Equal(t, meta.Meta, "")
 }

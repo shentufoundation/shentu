@@ -7,20 +7,21 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
 // Keeper implements keeper for the governance module.
 type Keeper struct {
-	gov.Keeper
+	govkeeper.Keeper
+
 	// the reference to the ParamSpace to get and set gov specific params
 	paramSpace types.ParamSubspace
 
 	// the SupplyKeeper to reduce the supply of the network
-	supplyKeeper govTypes.SupplyKeeper
+	bankKeeper govtypes.BankKeeper
 
 	// the reference to the DelegationSet and ValidatorSet to get information about validators and delegators
 	stakingKeeper types.StakingKeeper
@@ -31,14 +32,14 @@ type Keeper struct {
 	// the reference to get claim proposal parameters
 	ShieldKeeper types.ShieldKeeper
 
-	// for ValidatePlan
-	UpgradeKeeper types.UpgradeKeeper
-
 	// the (unexposed) keys used to access the stores from the Context
 	storeKey sdk.StoreKey
 
 	// codec for binary encoding/decoding
-	cdc *codec.Codec
+	cdc codec.BinaryMarshaler
+
+	// Proposal router
+	router govtypes.Router
 }
 
 // NewKeeper returns a governance keeper. It handles:
@@ -47,25 +48,21 @@ type Keeper struct {
 // - users voting on proposals, with weight proportional to stake in the system
 // - and tallying the result of the vote.
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, supplyKeeper govTypes.SupplyKeeper,
+	cdc codec.BinaryMarshaler, key sdk.StoreKey, paramSpace types.ParamSubspace, bankKeeper govtypes.BankKeeper,
 	stakingKeeper types.StakingKeeper, certKeeper types.CertKeeper, shieldKeeper types.ShieldKeeper,
-	upgradeKeeper types.UpgradeKeeper, router govTypes.Router,
+	authKeeper govtypes.AccountKeeper, router govtypes.Router,
 ) Keeper {
-	// ensure governance module account is set
-	if addr := supplyKeeper.GetModuleAddress(govTypes.ModuleName); addr == nil {
-		panic(fmt.Sprintf("%s module account has not been set", govTypes.ModuleName))
-	}
-	cosmosKeeper := gov.NewKeeper(cdc, key, paramSpace, supplyKeeper, stakingKeeper, router)
+	cosmosKeeper := govkeeper.NewKeeper(cdc, key, paramSpace, authKeeper, bankKeeper, stakingKeeper, router)
 	return Keeper{
 		Keeper:        cosmosKeeper,
 		storeKey:      key,
 		paramSpace:    paramSpace,
-		supplyKeeper:  supplyKeeper,
+		bankKeeper:    bankKeeper,
 		stakingKeeper: stakingKeeper,
 		CertKeeper:    certKeeper,
 		ShieldKeeper:  shieldKeeper,
-		UpgradeKeeper: upgradeKeeper,
 		cdc:           cdc,
+		router:        router,
 	}
 }
 
@@ -78,7 +75,7 @@ func (k Keeper) IterateActiveProposalsQueue(ctx sdk.Context, endTime time.Time, 
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		proposalID, _ := govTypes.SplitActiveProposalQueueKey(iterator.Key())
+		proposalID, _ := govtypes.SplitActiveProposalQueueKey(iterator.Key())
 		proposal, found := k.GetProposal(ctx, proposalID)
 		if !found {
 			panic(fmt.Sprintf("proposal %d does not exist", proposalID))
@@ -97,7 +94,7 @@ func (k Keeper) IterateInactiveProposalsQueue(ctx sdk.Context, endTime time.Time
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		proposalID, _ := govTypes.SplitInactiveProposalQueueKey(iterator.Key())
+		proposalID, _ := govtypes.SplitInactiveProposalQueueKey(iterator.Key())
 		proposal, found := k.GetProposal(ctx, proposalID)
 		if !found {
 			panic(fmt.Sprintf("proposal %d does not exist", proposalID))
@@ -112,12 +109,12 @@ func (k Keeper) IterateInactiveProposalsQueue(ctx sdk.Context, endTime time.Time
 // IterateAllDeposits iterates over the all the stored deposits and performs a callback function.
 func (k Keeper) IterateAllDeposits(ctx sdk.Context, cb func(deposit types.Deposit) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, govTypes.DepositsKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, govtypes.DepositsKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit types.Deposit
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &deposit)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &deposit)
 
 		if cb(deposit) {
 			break
@@ -126,7 +123,7 @@ func (k Keeper) IterateAllDeposits(ctx sdk.Context, cb func(deposit types.Deposi
 }
 
 // Tally counts the votes and returns whether the proposal passes and/or if tokens should be burned.
-func (k Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes bool, burnDeposits bool, tallyResults gov.TallyResult) {
+func (k Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes bool, burnDeposits bool, tallyResults govtypes.TallyResult) {
 	return Tally(ctx, k, proposal)
 }
 

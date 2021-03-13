@@ -77,3 +77,44 @@ tools-clean:
 	rm -f tools-stamp
 
 .PHONY: all tools tools-clean golangci-lint
+
+##################################################################################
+###                                 Protobuf                                   ###
+##################################################################################
+
+proto-all: proto-format proto-lint proto-check-breaking proto-gen
+
+proto-gen:
+	@./devtools/protocgen.sh
+
+proto-gen-docker:
+	@echo "Generating Protobuf files"
+	$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace tendermintdev/sdk-proto-gen sh ./devtools/protocgen.sh
+
+proto-format:
+	find ./ -not -path "./third_party/*" -name *.proto -exec clang-format -i {} \;
+
+proto-lint:
+	@buf check lint --error-format=json
+
+proto-check-breaking:
+	@buf check breaking --against '.git#branch=master'
+
+proto-lint-docker:
+	@$(DOCKER_BUF) check lint --error-format=json
+
+proto-check-breaking-docker:
+	@$(DOCKER_BUF) check breaking --against-input $(HTTPS_GIT)#branch=master
+
+GOGO_PROTO_URL   = https://raw.githubusercontent.com/regen-network/protobuf/cosmos
+COSMOS_PROTO_URL   = https://raw.githubusercontent.com/cosmos/cosmos-sdk/master/proto/cosmos
+
+GOGO_PROTO_TYPES    = third_party/proto/gogoproto
+COSMOS_PROTO_TYPES    = third_party/proto/cosmos
+
+proto-update-deps:
+	@mkdir -p $(GOGO_PROTO_TYPES)
+	@curl -sSL $(GOGO_PROTO_URL)/gogoproto/gogo.proto > $(GOGO_PROTO_TYPES)/gogo.proto
+
+	@mkdir -p $(COSMOS_PROTO_TYPES)/base/query/v1beta1/
+	@curl -sSL $(COSMOS_PROTO_URL)/base/query/v1beta1/pagination.proto > $(COSMOS_PROTO_TYPES)/base/query/v1beta1/pagination.proto

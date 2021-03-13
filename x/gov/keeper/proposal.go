@@ -6,31 +6,36 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	staking "github.com/cosmos/cosmos-sdk/x/staking/exported"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/x/gov/types"
-	"github.com/certikfoundation/shentu/x/shield"
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // Proposal
 
 // GetProposal get Proposal from store by ProposalID.
-func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (proposal types.Proposal, ok bool) {
+func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (types.Proposal, bool) {
 	store := ctx.KVStore(k.storeKey)
+
 	bz := store.Get(ProposalKey(proposalID))
 	if bz == nil {
-		return
+		return types.Proposal{}, false
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &proposal)
+
+	var proposal types.Proposal
+	k.MustUnmarshalProposal(bz, &proposal)
+
 	return proposal, true
 }
 
 // SetProposal sets a proposal to store.
 func (k Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(proposal)
-	store.Set(ProposalKey(proposal.ProposalID), bz)
+	bz := k.MustMarshalProposal(proposal)
+	store.Set(ProposalKey(proposal.ProposalId), bz)
 }
 
 // DeleteProposalByProposalID deletes a proposal from store.
@@ -49,13 +54,13 @@ func (k Keeper) DeleteProposalByProposalID(ctx sdk.Context, proposalID uint64) {
 func ProposalKey(proposalID uint64) []byte {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, proposalID)
-	return append(govTypes.ProposalsKeyPrefix, bz...)
+	return append(govtypes.ProposalsKeyPrefix, bz...)
 }
 
 // isValidator checks if the input address is a validator.
 func (k Keeper) isValidator(ctx sdk.Context, addr sdk.AccAddress) bool {
 	isValidator := false
-	k.stakingKeeper.IterateBondedValidatorsByPower(ctx, func(index int64, validator staking.ValidatorI) (stop bool) {
+	k.stakingKeeper.IterateBondedValidatorsByPower(ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
 		if validator.GetOperator().Equals(addr) {
 			isValidator = true
 			return true
@@ -84,7 +89,7 @@ func (k Keeper) IsCertifiedIdentity(ctx sdk.Context, addr sdk.AccAddress) bool {
 func (k Keeper) TotalBondedByCertifiedIdentities(ctx sdk.Context) sdk.Int {
 	bonded := sdk.ZeroInt()
 	for _, identity := range k.CertKeeper.GetCertifiedIdentities(ctx) {
-		k.stakingKeeper.IterateDelegations(ctx, identity, func(index int64, delegation staking.DelegationI) (stop bool) {
+		k.stakingKeeper.IterateDelegations(ctx, identity, func(index int64, delegation stakingtypes.DelegationI) (stop bool) {
 			val, found := k.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
 			if !found {
 				return false
@@ -97,22 +102,36 @@ func (k Keeper) TotalBondedByCertifiedIdentities(ctx sdk.Context) sdk.Int {
 }
 
 // SubmitProposal creates a new proposal with given content.
-func (k Keeper) SubmitProposal(ctx sdk.Context, content govTypes.Content, addr sdk.AccAddress) (types.Proposal, error) {
+func (k Keeper) SubmitProposal(ctx sdk.Context, content govtypes.Content, addr sdk.AccAddress) (types.Proposal, error) {
+	if !k.router.HasRoute(content.ProposalRoute()) {
+		return types.Proposal{}, sdkerrors.Wrap(govtypes.ErrNoProposalHandlerExists, content.ProposalRoute())
+	}
+
 	proposalID, err := k.GetProposalID(ctx)
 	if err != nil {
 		return types.Proposal{}, err
+	}
+
+	if c, ok := content.(*shieldtypes.ShieldClaimProposal); ok {
+		c.ProposalId = proposalID
+	}
+
+	// Execute the proposal content in a cache-wrapped context to validate the
+	// actual parameter changes before the proposal proceeds through the
+	// governance process. State is not persisted.
+	cacheCtx, _ := ctx.CacheContext()
+	handler := k.router.GetRoute(content.ProposalRoute())
+	if err := handler(cacheCtx, content); err != nil {
+		return types.Proposal{}, sdkerrors.Wrap(govtypes.ErrInvalidProposalContent, err.Error())
 	}
 
 	submitTime := ctx.BlockHeader().Time
 	depositPeriod := k.GetDepositParams(ctx).MaxDepositPeriod
 
 	var proposal types.Proposal
-	if content.ProposalType() == shield.ProposalTypeShieldClaim {
-		c := content.(shield.ClaimProposal)
-		c.ProposalID = proposalID
-		proposal = types.NewProposal(c, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
-	} else {
-		proposal = types.NewProposal(content, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
+	proposal, err = types.NewProposal(content, proposalID, addr, k.IsCouncilMember(ctx, addr), submitTime, submitTime.Add(depositPeriod))
+	if err != nil {
+		return types.Proposal{}, err
 	}
 
 	k.SetProposal(ctx, proposal)
@@ -125,12 +144,12 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govTypes.Content, addr s
 // IterateProposals iterates over the all the proposals and performs a callback function.
 func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Proposal) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, govTypes.ProposalsKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, govtypes.ProposalsKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var proposal types.Proposal
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &proposal)
+		k.MustUnmarshalProposal(iterator.Value(), &proposal)
 
 		if cb(proposal) {
 			break
@@ -163,7 +182,7 @@ func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal types.Proposal) {
 		// and second round of software upgrade, certifier update and shield claim
 		// proposals.
 		if proposal.Status == types.StatusCertifierVotingPeriod {
-			k.RemoveFromActiveProposalQueue(ctx, proposal.ProposalID, oldVotingEndTime)
+			k.RemoveFromActiveProposalQueue(ctx, proposal.ProposalId, oldVotingEndTime)
 		} else {
 			proposal.DepositEndTime = ctx.BlockHeader().Time
 		}
@@ -171,8 +190,8 @@ func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal types.Proposal) {
 	}
 
 	k.SetProposal(ctx, proposal)
-	k.RemoveFromInactiveProposalQueue(ctx, proposal.ProposalID, oldDepositEndTime)
-	k.InsertActiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingEndTime)
+	k.RemoveFromInactiveProposalQueue(ctx, proposal.ProposalId, oldDepositEndTime)
+	k.InsertActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
 }
 
 // ActivateCouncilProposalVotingPeriod only switches proposals of council members.
@@ -199,12 +218,12 @@ func (k Keeper) GetProposalsFiltered(ctx sdk.Context, params types.QueryProposal
 
 		// match voter address (if supplied)
 		if len(params.Voter) > 0 {
-			_, matchVoter = k.GetVote(ctx, p.ProposalID, params.Voter)
+			_, matchVoter = k.GetVote(ctx, p.ProposalId, params.Voter)
 		}
 
 		// match depositor (if supplied)
 		if len(params.Depositor) > 0 {
-			_, matchDepositor = k.GetDeposit(ctx, p.ProposalID, params.Depositor)
+			_, matchDepositor = k.GetDeposit(ctx, p.ProposalId, params.Depositor)
 		}
 
 		if matchVoter && matchDepositor && matchStatus {
@@ -220,4 +239,35 @@ func (k Keeper) GetProposalsFiltered(ctx sdk.Context, params types.QueryProposal
 	}
 
 	return filteredProposals
+}
+
+func (keeper Keeper) MarshalProposal(proposal types.Proposal) ([]byte, error) {
+	bz, err := keeper.cdc.MarshalBinaryBare(&proposal)
+	if err != nil {
+		return nil, err
+	}
+	return bz, nil
+}
+
+func (keeper Keeper) UnmarshalProposal(bz []byte, proposal *types.Proposal) error {
+	err := keeper.cdc.UnmarshalBinaryBare(bz, proposal)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (keeper Keeper) MustMarshalProposal(proposal types.Proposal) []byte {
+	bz, err := keeper.MarshalProposal(proposal)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
+func (keeper Keeper) MustUnmarshalProposal(bz []byte, proposal *types.Proposal) {
+	err := keeper.UnmarshalProposal(bz, proposal)
+	if err != nil {
+		panic(err)
+	}
 }

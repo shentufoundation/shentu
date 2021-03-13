@@ -3,8 +3,8 @@ package keeper
 import (
 	"time"
 
-	"github.com/tendermint/tendermint/crypto"
-
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/cert/types"
@@ -15,37 +15,47 @@ import (
 const MaxTimestamp = 253402300799
 
 // SetValidator sets a certified validator.
-func (k Keeper) SetValidator(ctx sdk.Context, validator crypto.PubKey, certifier sdk.AccAddress) {
+func (k Keeper) SetValidator(ctx sdk.Context, validator cryptotypes.PubKey, certifier sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	validatorData := types.Validator{PubKey: validator, Certifier: certifier}
-	store.Set(types.ValidatorStoreKey(validator), k.cdc.MustMarshalBinaryLengthPrefixed(validatorData))
+
+	pkAny, err := codectypes.NewAnyWithValue(validator)
+	if err != nil {
+		panic(err)
+	}
+	validatorData := types.Validator{Pubkey: pkAny, Certifier: certifier.String()}
+	store.Set(types.ValidatorStoreKey(validator), k.cdc.MustMarshalBinaryBare(&validatorData))
 }
 
 // deleteValidator removes a validator from being certified.
-func (k Keeper) deleteValidator(ctx sdk.Context, validator crypto.PubKey) {
+func (k Keeper) deleteValidator(ctx sdk.Context, validator cryptotypes.PubKey) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.ValidatorStoreKey(validator))
 }
 
 // IsValidatorCertified checks if the validator is current certified.
-func (k Keeper) IsValidatorCertified(ctx sdk.Context, validator crypto.PubKey) bool {
+func (k Keeper) IsValidatorCertified(ctx sdk.Context, validator cryptotypes.PubKey) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.ValidatorStoreKey(validator))
 }
 
 // GetValidatorCertifier gets the original certifier of the validator.
-func (k Keeper) GetValidatorCertifier(ctx sdk.Context, validator crypto.PubKey) (sdk.AccAddress, error) {
+func (k Keeper) GetValidatorCertifier(ctx sdk.Context, validator cryptotypes.PubKey) (sdk.AccAddress, error) {
 	store := ctx.KVStore(k.storeKey)
 	if validatorData := store.Get(types.ValidatorStoreKey(validator)); validatorData != nil {
 		var validator types.Validator
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(validatorData, &validator)
-		return validator.Certifier, nil
+		k.cdc.MustUnmarshalBinaryBare(validatorData, &validator)
+
+		certifierAddr, err := sdk.AccAddressFromBech32(validator.Certifier)
+		if err != nil {
+			panic(err)
+		}
+		return certifierAddr, nil
 	}
 	return nil, types.ErrValidatorUncertified
 }
 
 // GetValidator returns the validator.
-func (k Keeper) GetValidator(ctx sdk.Context, validator crypto.PubKey) ([]byte, bool) {
+func (k Keeper) GetValidator(ctx sdk.Context, validator cryptotypes.PubKey) ([]byte, bool) {
 	if validatorData := ctx.KVStore(k.storeKey).Get(types.ValidatorStoreKey(validator)); validatorData != nil {
 		return validatorData, true
 	}
@@ -53,7 +63,7 @@ func (k Keeper) GetValidator(ctx sdk.Context, validator crypto.PubKey) ([]byte, 
 }
 
 // CertifyValidator certifies a validator.
-func (k Keeper) CertifyValidator(ctx sdk.Context, validator crypto.PubKey, certifier sdk.AccAddress) error {
+func (k Keeper) CertifyValidator(ctx sdk.Context, validator cryptotypes.PubKey, certifier sdk.AccAddress) error {
 	if !k.IsCertifier(ctx, certifier) {
 		return types.ErrUnqualifiedCertifier
 	}
@@ -65,7 +75,7 @@ func (k Keeper) CertifyValidator(ctx sdk.Context, validator crypto.PubKey, certi
 }
 
 // DecertifyValidator de-certifies a certified validator.
-func (k Keeper) DecertifyValidator(ctx sdk.Context, valPubKey crypto.PubKey, decertifier sdk.AccAddress) error {
+func (k Keeper) DecertifyValidator(ctx sdk.Context, valPubKey cryptotypes.PubKey, decertifier sdk.AccAddress) error {
 	if !k.IsCertifier(ctx, decertifier) {
 		return types.ErrUnqualifiedCertifier
 	}
@@ -105,7 +115,7 @@ func (k Keeper) IterateAllValidators(ctx sdk.Context, callback func(validator ty
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var validator types.Validator
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &validator)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &validator)
 
 		if callback(validator) {
 			break
@@ -125,7 +135,11 @@ func (k Keeper) GetAllValidators(ctx sdk.Context) (validators types.Validators) 
 // GetAllValidatorPubkeys gets all validator pubkeys.
 func (k Keeper) GetAllValidatorPubkeys(ctx sdk.Context) (validatorAddresses []string) {
 	k.IterateAllValidators(ctx, func(validator types.Validator) bool {
-		validatorAddresses = append(validatorAddresses, sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, validator.PubKey))
+		pk, err := validator.ConsPubKey()
+		if err != nil {
+			panic(err)
+		}
+		validatorAddresses = append(validatorAddresses, sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, pk))
 		return false
 	})
 	return

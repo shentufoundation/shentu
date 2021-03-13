@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
@@ -19,8 +18,13 @@ type pPPTriplet struct {
 // SetPurchaseList sets a purchase list.
 func (k Keeper) SetPurchaseList(ctx sdk.Context, purchaseList types.PurchaseList) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchaseList)
-	store.Set(types.GetPurchaseListKey(purchaseList.PoolID, purchaseList.Purchaser), bz)
+
+	purchaser, err := sdk.AccAddressFromBech32(purchaseList.Purchaser)
+	if err != nil {
+		panic(err)
+	}
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&purchaseList)
+	store.Set(types.GetPurchaseListKey(purchaseList.PoolId, purchaser), bz)
 }
 
 // AddPurchase sets a purchase of shield.
@@ -48,9 +52,9 @@ func (k Keeper) GetPurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk.Ac
 }
 
 // GetPurchase gets a purchase out of a purchase list
-func GetPurchase(purchaseList types.PurchaseList, purchaseID uint64) (types.Purchase, bool) {
+func (Keeper) GetPurchase(purchaseList types.PurchaseList, purchaseID uint64) (types.Purchase, bool) {
 	for _, entry := range purchaseList.Entries {
-		if entry.PurchaseID == purchaseID {
+		if entry.PurchaseId == purchaseID {
 			return entry, true
 		}
 	}
@@ -72,7 +76,7 @@ func (k Keeper) DeletePurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk
 func (k Keeper) DequeuePurchase(ctx sdk.Context, purchaseList types.PurchaseList, timestamp time.Time) {
 	timeslice := k.GetExpiringPurchaseQueueTimeSlice(ctx, timestamp)
 	for i, poolPurchaser := range timeslice {
-		if (purchaseList.PoolID == poolPurchaser.PoolID) && purchaseList.Purchaser.Equals(poolPurchaser.Purchaser) {
+		if (purchaseList.PoolId == poolPurchaser.PoolId) && purchaseList.Purchaser == poolPurchaser.Purchaser {
 			if len(timeslice) > 1 {
 				timeslice = append(timeslice[:i], timeslice[i+1:]...)
 				k.SetExpiringPurchaseQueueTimeSlice(ctx, timestamp, timeslice)
@@ -124,7 +128,7 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	k.SetNextPurchaseID(ctx, purchaseID+1)
 	if !serviceFees.Empty() {
 		// Send service fees to the shield module account and update service fees.
-		if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, serviceFees); err != nil {
+		if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, serviceFees); err != nil {
 			return types.Purchase{}, err
 		}
 		totalServiceFees := k.GetServiceFees(ctx)
@@ -197,17 +201,22 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 	iterator := k.ExpiringPurchaseQueueIterator(ctx, ctx.BlockTime())
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var timeslice []types.PoolPurchaser
+		var timeslice types.PoolPurchaserPairs
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &timeslice)
-		for _, poolPurchaser := range timeslice {
-			purchaseList, _ := k.GetPurchaseList(ctx, poolPurchaser.PoolID, poolPurchaser.Purchaser)
+		for _, poolPurchaser := range timeslice.Pairs {
+			purchaser, err := sdk.AccAddressFromBech32(poolPurchaser.Purchaser)
+			if err != nil {
+				panic(err)
+			}
+
+			purchaseList, _ := k.GetPurchaseList(ctx, poolPurchaser.PoolId, purchaser)
 			for i := 0; i < len(purchaseList.Entries); i++ {
 				entry := purchaseList.Entries[i]
 
-				// Skip entries that has not expired yet.
-				if ctx.BlockHeight() >= common.Update2Height && entry.ProtectionEndTime.After(ctx.BlockTime()) {
-					continue
-				}
+				// // Skip entries that has not expired yet.
+				// if ctx.BlockHeight() >= common.Update2Height && entry.ProtectionEndTime.After(ctx.BlockTime()) {
+				// 	continue
+				// }
 
 				// If purchaseProtectionEndTime > previousBlockTime, update service fees.
 				// Otherwise services fees were updated in the last block.
@@ -221,13 +230,13 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 					// Set purchaseServiceFees to zero because it can be reached again.
 					purchaseList.Entries[i].ServiceFees = types.InitMixedDecCoins()
 
-					originalStaking := k.GetOriginalStaking(ctx, entry.PurchaseID)
+					originalStaking := k.GetOriginalStaking(ctx, entry.PurchaseId)
 					if !originalStaking.IsZero() {
 						// keep track of the list to be updated to avoid overwriting the purchase list
 						stakeForShieldUpdateList = append(stakeForShieldUpdateList, pPPTriplet{
-							poolID:     poolPurchaser.PoolID,
-							purchaseID: entry.PurchaseID,
-							purchaser:  poolPurchaser.Purchaser,
+							poolID:     poolPurchaser.PoolId,
+							purchaseID: entry.PurchaseId,
+							purchaser:  purchaser,
 						})
 					}
 				}
@@ -239,7 +248,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 					// If purchaseProtectionEndTime > previousBlockTime, calculate and set service fees before removing the purchase.
 					purchaseList.Entries = append(purchaseList.Entries[:i], purchaseList.Entries[i+1:]...)
 					// Update pool shield and total shield.
-					pool, found := k.GetPool(ctx, purchaseList.PoolID)
+					pool, found := k.GetPool(ctx, purchaseList.PoolId)
 					if !found {
 						panic("cannot find the pool for an expired purchase")
 					}
@@ -253,7 +262,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 
 			// purchaseList might have been updated in the loop.
 			if len(purchaseList.Entries) == 0 {
-				_ = k.DeletePurchaseList(ctx, purchaseList.PoolID, purchaseList.Purchaser)
+				_ = k.DeletePurchaseList(ctx, purchaseList.PoolId, purchaser)
 			} else {
 				k.SetPurchaseList(ctx, purchaseList)
 			}
@@ -287,13 +296,18 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 	totalCollateral := k.GetTotalCollateral(ctx)
 	providers := k.GetAllProviders(ctx)
 	for _, provider := range providers {
+		providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
+		if err != nil {
+			panic(err)
+		}
+
 		// fees * providerCollateral / totalCollateral
 		nativeFees := serviceFees.Native.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
 		if nativeFees.AmountOf(bondDenom).GT(remainingServiceFees.Native.AmountOf(bondDenom)) {
 			nativeFees = remainingServiceFees.Native
 		}
 		provider.Rewards = provider.Rewards.Add(types.MixedDecCoins{Native: nativeFees})
-		k.SetProvider(ctx, provider.Address, provider)
+		k.SetProvider(ctx, providerAddr, provider)
 
 		remainingServiceFees.Native = remainingServiceFees.Native.Sub(nativeFees)
 	}
@@ -307,7 +321,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 func (k Keeper) GetPurchaserPurchases(ctx sdk.Context, address sdk.AccAddress) (res []types.PurchaseList) {
 	pools := k.GetAllPools(ctx)
 	for _, pool := range pools {
-		pList, found := k.GetPurchaseList(ctx, pool.ID, address)
+		pList, found := k.GetPurchaseList(ctx, pool.Id, address)
 		if !found {
 			continue
 		}
@@ -319,7 +333,7 @@ func (k Keeper) GetPurchaserPurchases(ctx sdk.Context, address sdk.AccAddress) (
 // GetPoolPurchaseLists returns all purchases in a given pool.
 func (k Keeper) GetPoolPurchaseLists(ctx sdk.Context, poolID uint64) (purchases []types.PurchaseList) {
 	k.IteratePoolPurchaseLists(ctx, poolID, func(purchaseList types.PurchaseList) bool {
-		if purchaseList.PoolID == poolID {
+		if purchaseList.PoolId == poolID {
 			purchases = append(purchases, purchaseList)
 		}
 		return false
@@ -374,7 +388,7 @@ func (k Keeper) GetAllPurchaseLists(ctx sdk.Context) (purchases []types.Purchase
 func (k Keeper) InsertExpiringPurchaseQueue(ctx sdk.Context, purchaseList types.PurchaseList, endTime time.Time) {
 	timeSlice := k.GetExpiringPurchaseQueueTimeSlice(ctx, endTime)
 
-	poolPurchaser := types.PoolPurchaser{PoolID: purchaseList.PoolID, Purchaser: purchaseList.Purchaser}
+	poolPurchaser := types.PoolPurchaser{PoolId: purchaseList.PoolId, Purchaser: purchaseList.Purchaser}
 	if len(timeSlice) == 0 {
 		k.SetExpiringPurchaseQueueTimeSlice(ctx, endTime, []types.PoolPurchaser{poolPurchaser})
 		return
@@ -391,15 +405,15 @@ func (k Keeper) GetExpiringPurchaseQueueTimeSlice(ctx sdk.Context, timestamp tim
 	if bz == nil {
 		return []types.PoolPurchaser{}
 	}
-	var ppPairs []types.PoolPurchaser
+	var ppPairs types.PoolPurchaserPairs
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ppPairs)
-	return ppPairs
+	return ppPairs.Pairs
 }
 
 // SetExpiringPurchaseQueueTimeSlice sets a time slice for a purchase expiring at give time.
 func (k Keeper) SetExpiringPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time, ppPairs []types.PoolPurchaser) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(ppPairs)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&types.PoolPurchaserPairs{Pairs: ppPairs})
 	store.Set(types.GetPurchaseExpirationTimeKey(timestamp), bz)
 }
 

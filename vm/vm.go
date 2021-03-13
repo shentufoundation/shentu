@@ -14,10 +14,11 @@ import (
 )
 
 type CVM struct {
-	options  CVMOptions
+	options  engine.Options
 	sequence uint64
 	// Provide any foreign dispatchers to allow calls between VMs
-	externals engine.Dispatcher
+	engine.Externals
+	externalDispatcher engine.Dispatcher
 	// User dispatcher.CallableProvider to get access to other VMs
 	logger *logging.Logger
 
@@ -25,21 +26,7 @@ type CVM struct {
 	refund uint64
 }
 
-// CVMOptions are parameters that are generally stable across a burrow configuration.
-// Defaults will be used for any zero values.
-type CVMOptions struct {
-	MemoryProvider           func(errors.Sink) gasMemory
-	Natives                  *native.Natives
-	Nonce                    []byte
-	DebugOpcodes             bool
-	DumpTokens               bool
-	CallStackMaxDepth        uint64
-	DataStackInitialCapacity uint64
-	DataStackMaxDepth        uint64
-	Logger                   *logging.Logger
-}
-
-func NewCVM(options CVMOptions) *CVM {
+func NewCVM(options engine.Options) *CVM {
 	// Set defaults
 	if options.MemoryProvider == nil {
 		options.MemoryProvider = wrappedDDMP
@@ -53,17 +40,15 @@ func NewCVM(options CVMOptions) *CVM {
 	vm := &CVM{
 		options: options,
 	}
-	// TODO: ultimately this wiring belongs a level up, but for the time being it is convenient to handle it here
-	// since we need to both intercept backend state to serve up natives AND connect the external dispatchers
-	engine.Connect(vm, options.Natives)
 	vm.logger = options.Logger.WithScope("NewVM").With("evm_nonce", options.Nonce)
+	vm.externalDispatcher = engine.Dispatchers{&vm.Externals, options.Natives, vm}
 	return vm
 }
 
 // wrappedDDMP is a wrapper for DefaultDynamicMemoryProvider, to wrap the new MemoryProvider into a gasMemory
-func wrappedDDMP(err errors.Sink) gasMemory {
+func wrappedDDMP(err errors.Sink) engine.Memory {
 	memory := gasMemory{
-		Memory:      evm.NewDynamicMemory(0, 0x1000000, err),
+		Memory:      engine.NewDynamicMemory(0, 0x1000000, err),
 		lastGasCost: 0,
 		refund:      0,
 	}
@@ -108,25 +93,18 @@ func (vm *CVM) SetLogger(logger *logging.Logger) {
 
 // Dispatch dispatches an account to be used externally from another engine.
 func (vm *CVM) Dispatch(acc *acm.Account) engine.Callable {
-	// Try external calls then fallback to EVM
-	callable := vm.externals.Dispatch(acc)
-	if callable != nil {
-		return callable
+	// Let the EVM handle code-less (e.g. those created by a call) contracts (so only return nil if there is _other_ non-EVM code)
+	if len(acc.EVMCode) == 0 && len(acc.Code()) != 0 {
+		return nil
 	}
-	// This supports empty code calls
 	return vm.Contract(acc.EVMCode)
-}
-
-// SetExternals sets external callables to be added to the engine for mutual contract calling.
-func (vm *CVM) SetExternals(externals engine.Dispatcher) {
-	vm.externals = externals
 }
 
 // Contract returns a CVMContract with the provided CVM and code.
 func (vm *CVM) Contract(code []byte) *CVMContract {
 	return &CVMContract{
 		CVM:  vm,
-		code: code,
+		Code: evm.NewCode(code),
 	}
 }
 

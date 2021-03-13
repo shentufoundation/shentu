@@ -5,9 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
+	"github.com/certikfoundation/shentu/simapp"
+	"github.com/certikfoundation/shentu/x/cvm/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -15,16 +17,13 @@ import (
 	"github.com/hyperledger/burrow/acm/acmstate"
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/execution/engine"
-
-	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
 func TestState_NewState(t *testing.T) {
 	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()}).WithGasMeter(NewGasMeter(10000000000000))
-	addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
-	cvmk := app.CvmKeeper
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	cvmk := app.CVMKeeper
 	state := cvmk.NewState(ctx)
 
 	callframe := engine.NewCallFrame(state, acmstate.Named("TxCache"))
@@ -38,9 +37,12 @@ func TestState_NewState(t *testing.T) {
 
 func TestState_UpdateAccount(t *testing.T) {
 	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()}).WithGasMeter(NewGasMeter(10000000000000))
-	addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
-	ak, cvmk := app.AccountKeeper, app.CvmKeeper
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	bondDenom := app.StakingKeeper.BondDenom(ctx)
+
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	cvmk := app.CVMKeeper
+	ak := app.AccountKeeper
 	state := cvmk.NewState(ctx)
 
 	addr, err := crypto.AddressFromBytes(addrs[0].Bytes())
@@ -52,21 +54,20 @@ func TestState_UpdateAccount(t *testing.T) {
 	require.Nil(t, err)
 
 	sdkAcc := ak.GetAccount(ctx, addrs[0])
-	err = sdkAcc.SetCoins(sdk.Coins{sdk.NewInt64Coin("uctk", 1234)})
+	err = app.BankKeeper.SetBalances(ctx, addrs[0], sdk.Coins{sdk.NewInt64Coin("uctk", 1234)})
 	require.Nil(t, err)
 	ak.SetAccount(ctx, sdkAcc)
-	sdkAcc = ak.GetAccount(ctx, addrs[0])
+
 	acc, err = state.GetAccount(addr)
-	sdkCoins := sdkAcc.GetCoins().AmountOf("uctk").Uint64()
+	sdkCoins := app.BankKeeper.GetAllBalances(ctx, addr.Bytes()).AmountOf(bondDenom).Uint64()
 	accAddressHex, err := sdk.AccAddressFromHex(addr.String())
 	require.Nil(t, err)
 	require.Equal(t, addrs[0], accAddressHex)
 	require.Equal(t, sdkCoins, acc.Balance)
 	require.Less(t, len(acc.EVMCode), 1)
-	require.Nil(t, acc.ContractMeta)
+	require.Len(t, acc.ContractMeta, 0)
 
 	var nilAcc *acm.Account
-	fmt.Println(nilAcc)
 	err = state.UpdateAccount(nilAcc)
 	require.NotNil(t, err)
 
@@ -74,16 +75,15 @@ func TestState_UpdateAccount(t *testing.T) {
 	err = state.UpdateAccount(acc)
 	require.Nil(t, err)
 	accAddressHex, err = sdk.AccAddressFromHex(acc.Address.String())
-	newsdkAcc := ak.GetAccount(ctx, accAddressHex)
-	sdkCoins = newsdkAcc.GetCoins().AmountOf("uctk").Uint64()
+	sdkCoins = app.BankKeeper.GetAllBalances(ctx, accAddressHex.Bytes()).AmountOf("uctk").Uint64()
 	require.Equal(t, sdkCoins, acc.Balance)
 }
 
 func TestState_RemoveAccount(t *testing.T) {
 	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, abci.Header{Time: time.Now().UTC()}).WithGasMeter(NewGasMeter(10000000000000))
-	addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
-	cvmk := app.CvmKeeper
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	cvmk := app.CVMKeeper
 	state := cvmk.NewState(ctx)
 
 	addr, err := crypto.AddressFromBytes(addrs[0].Bytes())
@@ -101,12 +101,9 @@ func TestState_RemoveAccount(t *testing.T) {
 	err = state.RemoveAccount(acc.Address)
 	require.Nil(t, err)
 
-	acc, err = state.GetAccount(acc.Address)
-	require.Nil(t, err)
-
-	require.Nil(t, getAbi(ctx, app.GetKey(types.StoreKey), addr))
-	require.Nil(t, getCode(ctx, app.GetKey(types.StoreKey), addr))
-	require.Nil(t, getAddressMeta(ctx, app.GetKey(types.StoreKey), addr))
+	require.Nil(t, cvmk.GetAbi(ctx, acc.Address))
+	addrMetas, _ := state.GetAddressMeta(acc.Address)
+	require.Len(t, addrMetas, 0)
 
 	nilAddr := append([]byte{0x00}, acc.Address[1:]...)
 	addr, err = crypto.AddressFromBytes(nilAddr)

@@ -1,0 +1,54 @@
+syntax = "proto3";
+package shentu.cvm.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "shentu/cvm/v1alpha1/cvm.proto";
+import "burrow/acm.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/cvm/types";
+
+option (gogoproto.stable_marshaler_all) = true;
+option (gogoproto.marshaler_all) = true;
+option (gogoproto.unmarshaler_all) = true;
+option (gogoproto.sizer_all) = true;
+option (gogoproto.goproto_registration) = true;
+option (gogoproto.messagename_all) = true;
+
+// GenesisState defines the gov module's genesis state.
+message GenesisState {
+  uint64 gas_rate = 1 [(gogoproto.moretags) = "yaml:\"gas_rate\""];
+  repeated Contract contracts = 2 [(gogoproto.castrepeated) = "Contracts", (gogoproto.nullable) = false];
+  repeated Metadata metadatas = 3 [(gogoproto.castrepeated) = "Metadatas", (gogoproto.nullable) = false];
+}
+
+message Contract {
+  bytes Address = 1 [(gogoproto.customtype) = "github.com/hyperledger/burrow/crypto.Address", (gogoproto.moretags) = "yaml:\"address\"", (gogoproto.nullable) = false];
+  CVMCode    code = 2 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"code\""];
+  repeated Storage storage = 3    [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"storage\""];
+  bytes     abi = 4        [(gogoproto.moretags) = "yaml:\"abi\""];
+  repeated ContractMeta meta = 5    [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"contract_meta\""];
+}
+
+message CVMCode {
+  int64 code_type = 1 [(gogoproto.moretags) = "yaml:\"code_type\""];
+  bytes code = 2 [(gogoproto.customtype) = "github.com/hyperledger/burrow/acm.Bytecode", (gogoproto.moretags) = "yaml:\"code\"", (gogoproto.nullable) = false];
+}
+
+message Storage {
+  bytes key = 1 [(gogoproto.customtype) = "github.com/hyperledger/burrow/binary.Word256", (gogoproto.moretags) = "yaml:\"key\"", (gogoproto.nullable) = false];
+  bytes value = 2 [(gogoproto.moretags) = "yaml:\"value\""];
+}
+
+message ContractMeta {
+  bytes code_hash = 1 [(gogoproto.moretags) = "yaml:\"code_hash\""];
+  bytes metadata_hash = 2 [(gogoproto.moretags) = "yaml:\"metadata_hash\""];
+}
+
+message ContractMetas {
+  repeated acm.ContractMeta metas = 1;
+}
+
+message Metadata {
+  bytes hash = 1 [(gogoproto.moretags) = "yaml:\"hash\""];
+  string metadata = 2 [(gogoproto.moretags) = "yaml:\"metadata\""];
+}

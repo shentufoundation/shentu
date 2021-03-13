@@ -1,22 +1,18 @@
 package cli
 
 import (
-	"bufio"
 	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
@@ -33,37 +29,39 @@ const (
 	FlagLimit        = "limit"
 )
 
-// GetTxCmd returns the transaction commands for the certification module.
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+// NewTxCmd returns the transaction commands for the certification module.
+func NewTxCmd() *cobra.Command {
 	certTxCmds := &cobra.Command{
 		Use:   "cert",
 		Short: "Certification transactions subcommands",
 	}
 
-	certTxCmds.AddCommand(flags.PostCommands(
-		GetCmdCertifyValidator(cdc),
-		GetCmdDecertifyValidator(cdc),
-		GetCmdCertifyPlatform(cdc),
-		GetCmdIssueCertificate(cdc),
-		GetCmdRevokeCertificate(cdc),
-	)...)
+	certTxCmds.AddCommand(
+		GetCmdCertifyValidator(),
+		GetCmdDecertifyValidator(),
+		GetCmdCertifyPlatform(),
+		GetCmdIssueCertificate(),
+		GetCmdRevokeCertificate(),
+	)
 
 	return certTxCmds
 }
 
 // GetCmdCertifyValidator returns the validator certification transaction command.
-func GetCmdCertifyValidator(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+func GetCmdCertifyValidator() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "certify-validator <validator pubkey>",
 		Short: "Certify a validator",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
-			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
 				return err
 			}
 
@@ -71,29 +69,37 @@ func GetCmdCertifyValidator(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			msg := types.NewMsgCertifyValidator(cliCtx.GetFromAddress(), validator)
+			msg, err := types.NewMsgCertifyValidator(from, validator)
+			if err != nil {
+				return err
+			}
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdDecertifyValidator returns the validator de-certification tx command.
-func GetCmdDecertifyValidator(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+func GetCmdDecertifyValidator() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "decertify-validator <validator pubkey>",
 		Short: "De-certify a validator",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
-			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
 				return err
 			}
 
@@ -101,30 +107,37 @@ func GetCmdDecertifyValidator(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			msg := types.NewMsgDecertifyValidator(cliCtx.GetFromAddress(), validator)
+			msg, err := types.NewMsgDecertifyValidator(from, validator)
+			if err != nil {
+				return err
+			}
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdIssueCertificate returns the certificate transaction command.
-func GetCmdIssueCertificate(cdc *codec.Codec) *cobra.Command {
+func GetCmdIssueCertificate() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "issue-certificate <certificate type> <request content type> <request content> [<flags>]",
 		Short: "Issue a certificate",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			from := cliCtx.GetFromAddress()
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-			if err := accGetter.EnsureExists(from); err != nil {
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
 				return err
 			}
 
@@ -143,7 +156,7 @@ func GetCmdIssueCertificate(cdc *codec.Codec) *cobra.Command {
 				if err := msg.ValidateBasic(); err != nil {
 					return err
 				}
-				return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+				return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 
 			default:
 				description := viper.GetString(FlagDescription)
@@ -151,7 +164,7 @@ func GetCmdIssueCertificate(cdc *codec.Codec) *cobra.Command {
 				if err := msg.ValidateBasic(); err != nil {
 					return err
 				}
-				return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+				return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 			}
 		},
 	}
@@ -159,6 +172,7 @@ func GetCmdIssueCertificate(cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().String(FlagCompiler, "", "compiler version")
 	cmd.Flags().String(FlagBytecodeHash, "", "bytecode hash")
 	cmd.Flags().String(FlagDescription, "", "description")
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -178,18 +192,20 @@ func parseCertifyCompilationFlags() (string, string, string, error) {
 }
 
 // GetCmdCertifyPlatform returns the validator host platform certification transaction command.
-func GetCmdCertifyPlatform(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+func GetCmdCertifyPlatform() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "certify-platform <validator pubkey> <platform>",
 		Short: "Certify a validator's host platform",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
 				return err
 			}
 
@@ -198,49 +214,60 @@ func GetCmdCertifyPlatform(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCertifyPlatform(cliCtx.GetFromAddress(), validator, args[1])
+			msg, err := types.NewMsgCertifyPlatform(from, validator, args[1])
+			if err != nil {
+				return err
+			}
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdRevokeCertificate returns the certificate revoke command
-func GetCmdRevokeCertificate(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+func GetCmdRevokeCertificate() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "revoke-certificate <certificateID> [<description>]",
 		Short: "revoke a certificate",
 		Args:  cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-			description := ""
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
+				return err
+			}
+
+			var description string
 			if len(args) > 1 {
 				description = args[1]
 			}
 
-			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
-				return err
-			}
-
-			msg := types.NewMsgRevokeCertificate(cliCtx.GetFromAddress(), types.CertificateID(args[0]), description)
+			msg := types.NewMsgRevokeCertificate(from, types.CertificateID(args[0]), description)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdSubmitProposal implements the command to submit a certifier-update proposal
-func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
+func GetCmdSubmitProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "certifier-update [proposal-file]",
 		Args:  cobra.ExactArgs(1),
@@ -265,20 +292,26 @@ Where proposal.json contains:
   ]
 }
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
-			proposal, err := ParseCertifierUpdateProposalJSON(cdc, args[0])
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
+				return err
+			}
+
+			proposal, err := ParseCertifierUpdateProposalJSON(cliCtx.LegacyAmino, args[0])
 			if err != nil {
 				return err
 			}
 
-			from := cliCtx.GetFromAddress()
 			content := types.NewCertifierUpdateProposal(
 				proposal.Title,
 				proposal.Description,
@@ -288,12 +321,15 @@ Where proposal.json contains:
 				proposal.AddOrRemove,
 			)
 
-			msg := gov.NewMsgSubmitProposal(content, proposal.Deposit, from)
+			msg, err := govtypes.NewMsgSubmitProposal(content, proposal.Deposit, from)
+			if err != nil {
+				return err
+			}
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 

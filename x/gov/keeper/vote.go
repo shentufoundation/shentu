@@ -4,14 +4,13 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/tendermint/tendermint/crypto/tmhash"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/certikfoundation/shentu/x/gov/types"
-	"github.com/certikfoundation/shentu/x/shield"
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // AddVote Adds a vote on a specific proposal.
@@ -41,7 +40,7 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 		return sdkerrors.Wrapf(govTypes.ErrInvalidVote, "'%s' is not a certifier.", voterAddr)
 	}
 
-	if proposal.Content.ProposalType() == shield.ProposalTypeShieldClaim &&
+	if proposal.GetContent().ProposalType() == shieldtypes.ProposalTypeShieldClaim &&
 		proposal.Status == types.StatusValidatorVotingPeriod &&
 		!k.IsCertifiedIdentity(ctx, voterAddr) {
 		return sdkerrors.Wrapf(govTypes.ErrInvalidVote, "'%s' is not a certified identity", voterAddr)
@@ -99,15 +98,19 @@ func (k Keeper) GetVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 		return vote, false
 	}
 
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &vote)
+	k.cdc.MustUnmarshalBinaryBare(bz, &vote)
 	return vote, true
 }
 
 // setVote set a vote.
 func (k Keeper) setVote(ctx sdk.Context, vote types.Vote) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(vote)
-	store.Set(govTypes.VoteKey(vote.ProposalID, vote.Voter), bz)
+	bz := k.cdc.MustMarshalBinaryBare(&vote)
+	addr, err := sdk.AccAddressFromBech32(vote.Voter)
+	if err != nil {
+		panic(err)
+	}
+	store.Set(govTypes.VoteKey(vote.ProposalId, addr), bz)
 }
 
 // SetVote set a vote.
@@ -137,7 +140,11 @@ func (k Keeper) deleteVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.Acc
 // DeleteAllVotes deletes all votes for a proposal.
 func (k Keeper) DeleteAllVotes(ctx sdk.Context, proposalID uint64) {
 	k.IterateVotes(ctx, proposalID, func(vote types.Vote) bool {
-		k.deleteVote(ctx, proposalID, vote.Voter)
+		addr, err := sdk.AccAddressFromBech32(vote.Voter)
+		if err != nil {
+			panic(err)
+		}
+		k.deleteVote(ctx, proposalID, addr)
 		return false
 	})
 }
@@ -150,7 +157,7 @@ func (k Keeper) IterateAllVotes(ctx sdk.Context, cb func(vote types.Vote) (stop 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types.Vote
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &vote)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &vote)
 
 		if cb(vote) {
 			break
@@ -165,7 +172,7 @@ func (k Keeper) IterateVotes(ctx sdk.Context, proposalID uint64, cb func(vote ty
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types.Vote
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &vote)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &vote)
 
 		if cb(vote) {
 			break
@@ -181,7 +188,7 @@ func (k Keeper) IterateVotesPaginated(ctx sdk.Context, proposalID uint64, page, 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types.Vote
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &vote)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &vote)
 
 		if cb(vote) {
 			break

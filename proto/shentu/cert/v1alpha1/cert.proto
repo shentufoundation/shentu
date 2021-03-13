@@ -1,0 +1,130 @@
+syntax = "proto3";
+package shentu.cert.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/protobuf/any.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/cert/types";
+
+message Certifier {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+    string alias = 2 [ (gogoproto.moretags) = "yaml:\"alias\"" ];
+    string proposer = 3 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
+    string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+}
+
+enum CertificateType {
+    option (gogoproto.goproto_enum_prefix) = false;
+
+    CERT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "CertificateTypeNil"];
+    CERT_TYPE_COMPILATION = 1 [(gogoproto.enumvalue_customname) = "CertificateTypeCompilation"];
+    CERT_TYPE_AUDITING = 2 [(gogoproto.enumvalue_customname) = "CertificateTypeAuditing"];
+    CERT_TYPE_PROOF = 3 [(gogoproto.enumvalue_customname) = "CertificateTypeProof"];
+    CERT_TYPE_ORACLE_OPERATOR = 4 [(gogoproto.enumvalue_customname) = "CertificateTypeOracleOperator"];
+    CERT_TYPE_SHIELD_POOL_CREATOR = 5 [(gogoproto.enumvalue_customname) = "CertificateTypeShieldPoolCreator"];
+    CERT_TYPE_IDENTITY = 6 [(gogoproto.enumvalue_customname) = "CertificateTypeIdentity"];
+    CERT_TYPE_GENERAL = 7 [(gogoproto.enumvalue_customname) = "CertificateTypeGeneral"];
+}
+
+enum RequestContentType {
+    option (gogoproto.goproto_enum_prefix) = false;
+  
+    REQ_CONTENT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "RequestContentTypeNil"];
+    REQ_CONTENT_TYPE_SOURCE_CODE_HASH = 1 [(gogoproto.enumvalue_customname) = "RequestContentTypeSourceCodeHash"];
+    REQ_CONTENT_TYPE_ADDRESS = 2 [(gogoproto.enumvalue_customname) = "RequestContentTypeAddress"];
+    REQ_CONTENT_TYPE_BYTECODE_HASH = 3 [(gogoproto.enumvalue_customname) = "RequestContentTypeBytecodeHash"];
+    REQ_CONTENT_TYPE_GENERAL = 4 [(gogoproto.enumvalue_customname) = "RequestContentTypeGeneral"];
+}
+
+message RequestContent {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    RequestContentType request_content_type = 1 [ (gogoproto.moretags) = "yaml:\"request_content_type\"" ];
+    string request_content = 2 [ (gogoproto.moretags) = "yaml:\"request_content\"" ];
+}
+
+message GeneralCertificate {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+    option (cosmos_proto.implements_interface) = "Certificate";
+
+    string cert_id = 1 [ (gogoproto.moretags) = "yaml:\"certificate_id\"", (gogoproto.casttype) = "CertificateID" ];
+    CertificateType cert_type = 2 [ (gogoproto.moretags) = "yaml:\"certificate_type\"" ];
+    RequestContent req_content = 3 [ (gogoproto.moretags) = "yaml:\"request_content\"" ];
+    string cert_description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string cert_certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
+    string cert_tx_hash = 6 [ (gogoproto.moretags) = "yaml:\"txhash\"" ];
+}
+
+message CompilationCertificateContent {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string compiler = 1 [ (gogoproto.moretags) = "yaml:\"compiler\"" ];
+    string bytecode_hash = 2 [ (gogoproto.moretags) = "yaml:\"bytecode_hash\"" ];
+}
+
+message CompilationCertificate {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    int64 issue_block_height = 1 [ (gogoproto.moretags) = "yaml:\"time_issued\"" ];
+    string cert_id = 2 [ (gogoproto.moretags) = "yaml:\"certificate_id\"", (gogoproto.casttype) = "CertificateID" ];
+    CertificateType cert_type = 3 [ (gogoproto.moretags) = "yaml:\"certificate_type\"" ];
+    RequestContent req_content = 4 [ (gogoproto.moretags) = "yaml:\"request_content\"" ];
+    CompilationCertificateContent cert_content = 5 [ (gogoproto.moretags) = "yaml:\"certificate_content\"" ];
+    string cert_description = 6 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string cert_certifier = 7 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
+    string cert_tx_hash = 8 [ (gogoproto.moretags) = "yaml:\"txhash\"" ];
+}
+
+// Validator is a type for certified validator.
+message Validator {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+    
+    google.protobuf.Any pubkey = 1 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+    string certifier = 2;
+}
+
+// Library is a type for certified libraries.
+message Library {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+    
+    string address = 1;
+    string publisher = 2;
+}
+
+// CertificateProto is a proto wrapper for Certificate interface.
+message CertificateProto {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+    
+    google.protobuf.Any certificate = 1 [ (cosmos_proto.accepts_interface) = "Certificate" ];
+}
+
+// CertifierUpdateProposal adds or removes a certifier
+message CertifierUpdateProposal {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+    option (cosmos_proto.implements_interface) = "*github.com/cosmos/cosmos-sdk/x/gov/types.Content";
+
+    string title = 1 [ (gogoproto.moretags) = "yaml:\"title\"" ];
+    string proposer = 2 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
+    string alias = 3 [ (gogoproto.moretags) = "yaml:\"alias\"" ];
+    string certifier = 4 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
+    string description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    bool add_or_remove = 6 [ (gogoproto.moretags) = "yaml:\"add_or_remove\"", (gogoproto.casttype) = "AddOrRemove" ];
+}
+
+message KVPair {
+    string key = 1;
+    string value = 2;
+}

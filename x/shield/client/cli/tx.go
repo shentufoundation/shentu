@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bufio"
 	"fmt"
 	"strconv"
 	"strings"
@@ -10,14 +9,11 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
@@ -30,8 +26,8 @@ var (
 	flagShieldLimit   = "shield-limit"
 )
 
-// GetTxCmd returns the transaction commands for this module.
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+// NewTxCmd returns the transaction commands for this module.
+func NewTxCmd() *cobra.Command {
 	shieldTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Shield transaction subcommands",
@@ -40,28 +36,28 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	shieldTxCmd.AddCommand(flags.PostCommands(
-		GetCmdCreatePool(cdc),
-		GetCmdUpdatePool(cdc),
-		GetCmdPausePool(cdc),
-		GetCmdResumePool(cdc),
-		GetCmdDepositCollateral(cdc),
-		GetCmdWithdrawCollateral(cdc),
-		GetCmdWithdrawRewards(cdc),
-		GetCmdWithdrawForeignRewards(cdc),
-		GetCmdClearPayouts(cdc),
-		GetCmdPurchaseShield(cdc),
-		GetCmdWithdrawReimbursement(cdc),
-		GetCmdUpdateSponsor(cdc),
-		GetCmdStakeForShield(cdc),
-		GetCmdUnstakeFromShield(cdc),
-	)...)
+	shieldTxCmd.AddCommand(
+		GetCmdCreatePool(),
+		GetCmdUpdatePool(),
+		GetCmdPausePool(),
+		GetCmdResumePool(),
+		GetCmdDepositCollateral(),
+		GetCmdWithdrawCollateral(),
+		GetCmdWithdrawRewards(),
+		GetCmdWithdrawForeignRewards(),
+		GetCmdClearPayouts(),
+		GetCmdPurchaseShield(),
+		GetCmdWithdrawReimbursement(),
+		GetCmdUpdateSponsor(),
+		GetCmdStakeForShield(),
+		GetCmdUnstakeFromShield(),
+	)
 
 	return shieldTxCmd
 }
 
 // GetCmdSubmitProposal implements the command for submitting a Shield claim proposal.
-func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
+func GetCmdSubmitProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "shield-claim [proposal file]",
 		Args:  cobra.ExactArgs(1),
@@ -91,15 +87,17 @@ Where proposal.json contains:
   ]
 }
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
-			proposal, err := ParseShieldClaimProposalJSON(cdc, args[0])
+			proposal, err := ParseShieldClaimProposalJSON(args[0])
 			if err != nil {
 				return err
 			}
@@ -107,19 +105,23 @@ Where proposal.json contains:
 			content := types.NewShieldClaimProposal(proposal.PoolID, proposal.Loss,
 				proposal.PurchaseID, proposal.Evidence, proposal.Description, from)
 
-			msg := gov.NewMsgSubmitProposal(content, proposal.Deposit, from)
+			msg, err := govtypes.NewMsgSubmitProposal(content, proposal.Deposit, from)
+			if err != nil {
+				return err
+			}
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
 	return cmd
 }
 
 // GetCmdCreatePool implements the command for creating a Shield pool.
-func GetCmdCreatePool(cdc *codec.Codec) *cobra.Command {
+func GetCmdCreatePool() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-pool [shield amount] [sponsor] [sponsor-address]",
 		Args:  cobra.ExactArgs(3),
@@ -130,17 +132,19 @@ func GetCmdCreatePool(cdc *codec.Codec) *cobra.Command {
 Example:
 $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-deposit <ctk deposit> --shield-limit <shield limit>
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			shield, err := sdk.ParseCoins(args[0])
+			shield, err := sdk.ParseCoinsNormalized(args[0])
 			if err != nil {
 				return err
 			}
@@ -152,7 +156,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 				return err
 			}
 
-			nativeDeposit, err := sdk.ParseCoins(viper.GetString(flagNativeDeposit))
+			nativeDeposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagNativeDeposit))
 			if err != nil {
 				return err
 			}
@@ -170,17 +174,19 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdUpdatePool implements the command for updating an existing Shield pool.
-func GetCmdUpdatePool(cdc *codec.Codec) *cobra.Command {
+func GetCmdUpdatePool() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-pool [pool id]",
 		Args:  cobra.ExactArgs(1),
@@ -191,13 +197,15 @@ func GetCmdUpdatePool(cdc *codec.Codec) *cobra.Command {
 Example:
 $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield amount> --shield-limit <shield limit>
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			fromAddr := cliCtx.GetFromAddress()
 
@@ -206,12 +214,12 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				return err
 			}
 
-			nativeDeposit, err := sdk.ParseCoins(viper.GetString(flagNativeDeposit))
+			nativeDeposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagNativeDeposit))
 			if err != nil {
 				return err
 			}
 
-			shield, err := sdk.ParseCoins(viper.GetString(flagShield))
+			shield, err := sdk.ParseCoinsNormalized(viper.GetString(flagShield))
 			if err != nil {
 				return err
 			}
@@ -229,7 +237,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 
@@ -237,11 +245,12 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdPausePool implements the command for pausing a pool.
-func GetCmdPausePool(cdc *codec.Codec) *cobra.Command {
+func GetCmdPausePool() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pause-pool [pool id]",
 		Args:  cobra.ExactArgs(1),
@@ -252,16 +261,18 @@ func GetCmdPausePool(cdc *codec.Codec) *cobra.Command {
 Example:
 $ %s tx shield pause-pool <pool id>
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
-		RunE: pauseOrResume(cdc, false),
+		RunE: pauseOrResume(false),
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdResumePool implements the command for resuming a pool.
-func GetCmdResumePool(cdc *codec.Codec) *cobra.Command {
+func GetCmdResumePool() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "resume-pool [pool id]",
 		Args:  cobra.ExactArgs(1),
@@ -272,19 +283,23 @@ func GetCmdResumePool(cdc *codec.Codec) *cobra.Command {
 Example:
 $ %s tx shield resume-pool <pool id>
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
-		RunE: pauseOrResume(cdc, true),
+		RunE: pauseOrResume(true),
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
-func pauseOrResume(cdc *codec.Codec, active bool) func(cmd *cobra.Command, args []string) error {
+func pauseOrResume(active bool) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		inBuf := bufio.NewReader(cmd.InOrStdin())
-		txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-		cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+		cliCtx, err := client.GetClientTxContext(cmd)
+		if err != nil {
+			return err
+		}
+		txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 		fromAddr := cliCtx.GetFromAddress()
 
@@ -303,25 +318,27 @@ func pauseOrResume(cdc *codec.Codec, active bool) func(cmd *cobra.Command, args 
 			return err
 		}
 
-		return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 	}
 }
 
 // GetCmdDepositCollateral implements command for community member to
 // join a pool by depositing collateral.
-func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
+func GetCmdDepositCollateral() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deposit-collateral [collateral]",
 		Short: "join a Shield pool as a community member by depositing collateral",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			collateral, err := sdk.ParseCoins(args[0])
+			collateral, err := sdk.ParseCoinsNormalized(args[0])
 			if err != nil {
 				return err
 			}
@@ -331,27 +348,31 @@ func GetCmdDepositCollateral(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdWithdrawCollateral implements command for community member to
 // withdraw deposited collateral from Shield pool.
-func GetCmdWithdrawCollateral(cdc *codec.Codec) *cobra.Command {
+func GetCmdWithdrawCollateral() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "withdraw-collateral [collateral]",
 		Short: "withdraw deposited collateral from Shield pool",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			collateral, err := sdk.ParseCoins(args[0])
+			collateral, err := sdk.ParseCoinsNormalized(args[0])
 			if err != nil {
 				return err
 			}
@@ -361,43 +382,51 @@ func GetCmdWithdrawCollateral(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdWithdrawRewards implements command for requesting to withdraw native tokens rewards.
-func GetCmdWithdrawRewards(cdc *codec.Codec) *cobra.Command {
+func GetCmdWithdrawRewards() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "withdraw-rewards",
 		Short: "withdraw CTK rewards",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			fromAddr := cliCtx.GetFromAddress()
 
 			msg := types.NewMsgWithdrawRewards(fromAddr)
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdWithdrawForeignRewards implements command for requesting to withdraw foreign tokens rewards.
-func GetCmdWithdrawForeignRewards(cdc *codec.Codec) *cobra.Command {
+func GetCmdWithdrawForeignRewards() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "withdraw-foreign-rewards [denom] [address]",
 		Short: "withdraw foreign rewards coins to their original chain",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			fromAddr := cliCtx.GetFromAddress()
 			denom := args[0]
@@ -405,36 +434,42 @@ func GetCmdWithdrawForeignRewards(cdc *codec.Codec) *cobra.Command {
 
 			msg := types.NewMsgWithdrawForeignRewards(fromAddr, denom, addr)
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdClearPayouts implements command for requesting to clear out pending payouts.
-func GetCmdClearPayouts(cdc *codec.Codec) *cobra.Command {
+func GetCmdClearPayouts() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "clear-payouts [denom]",
 		Short: "clear pending payouts after they have been distributed",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			fromAddr := cliCtx.GetFromAddress()
 			denom := args[0]
 
 			msg := types.NewMsgClearPayouts(fromAddr, denom)
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdPurchaseShield implements the command for purchasing Shield.
-func GetCmdPurchaseShield(cdc *codec.Codec) *cobra.Command {
+func GetCmdPurchaseShield() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "purchase [pool id] [shield amount] [description]",
 		Args:  cobra.ExactArgs(3),
@@ -445,13 +480,15 @@ func GetCmdPurchaseShield(cdc *codec.Codec) *cobra.Command {
 Example:
 $ %s tx shield purchase <pool id> <shield amount> <description>
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			fromAddr := cliCtx.GetFromAddress()
 
@@ -459,7 +496,7 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 			if err != nil {
 				return err
 			}
-			shield, err := sdk.ParseCoins(args[1])
+			shield, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -473,14 +510,16 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdWithdrawReimbursement the command for withdrawing reimbursement.
-func GetCmdWithdrawReimbursement(cdc *codec.Codec) *cobra.Command {
+func GetCmdWithdrawReimbursement() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "withdraw-reimbursement [proposal id]",
 		Args:  cobra.ExactArgs(1),
@@ -491,13 +530,15 @@ func GetCmdWithdrawReimbursement(cdc *codec.Codec) *cobra.Command {
 Example:
 $ %s tx shield withdraw-reimbursement <proposal id>
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			fromAddr := cliCtx.GetFromAddress()
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -510,14 +551,16 @@ $ %s tx shield withdraw-reimbursement <proposal id>
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdStakeForShield implements the command for purchasing Shield.
-func GetCmdStakeForShield(cdc *codec.Codec) *cobra.Command {
+func GetCmdStakeForShield() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "stake-for-shield [pool id] [shield amount] [description]",
 		Args:  cobra.ExactArgs(3),
@@ -528,13 +571,15 @@ func GetCmdStakeForShield(cdc *codec.Codec) *cobra.Command {
 Example:
 $ %s tx shield stake-for-shield <pool id> <shield amount> <description>
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			fromAddr := cliCtx.GetFromAddress()
 
@@ -542,7 +587,7 @@ $ %s tx shield stake-for-shield <pool id> <shield amount> <description>
 			if err != nil {
 				return err
 			}
-			shield, err := sdk.ParseCoins(args[1])
+			shield, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -556,14 +601,16 @@ $ %s tx shield stake-for-shield <pool id> <shield amount> <description>
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdUnstakeFromShield implements the command for purchasing Shield.
-func GetCmdUnstakeFromShield(cdc *codec.Codec) *cobra.Command {
+func GetCmdUnstakeFromShield() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unstake-from-shield [pool id] [amount] ",
 		Args:  cobra.ExactArgs(2),
@@ -574,13 +621,15 @@ func GetCmdUnstakeFromShield(cdc *codec.Codec) *cobra.Command {
 Example:
 $ %s tx shield withdraw-staking <pool id> <shield amount> 
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			fromAddr := cliCtx.GetFromAddress()
 
@@ -588,7 +637,7 @@ $ %s tx shield withdraw-staking <pool id> <shield amount>
 			if err != nil {
 				return err
 			}
-			shield, err := sdk.ParseCoins(args[1])
+			shield, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -598,14 +647,16 @@ $ %s tx shield withdraw-staking <pool id> <shield amount>
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
 // GetCmdUpdateSponsor implements the command for updating a pool's sponsor.
-func GetCmdUpdateSponsor(cdc *codec.Codec) *cobra.Command {
+func GetCmdUpdateSponsor() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-sponsor [pool id] [new_sponsor] [new_sponsor_address]",
 		Args:  cobra.ExactArgs(3),
@@ -615,13 +666,15 @@ func GetCmdUpdateSponsor(cdc *codec.Codec) *cobra.Command {
 Example:
 $ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address> --from=<key_or_address>
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
 
 			fromAddr := cliCtx.GetFromAddress()
 
@@ -638,8 +691,10 @@ $ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address> --fr
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }

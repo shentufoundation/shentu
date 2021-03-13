@@ -6,14 +6,14 @@ version: 2.1
 executors:
   golang:
     docker:
-      - image: circleci/golang:1.14.7
+      - image: circleci/golang:1.15.5
     working_directory: /go/src/github.com/certikfoundation/shentu
   mac:
     macos:
       xcode: "10.3.0"
     working_directory: /Users/distiller/project/src/github.com/certikfoundation/shentu
     environment:
-      GO_VERSION: "1.14.7"
+      GO_VERSION: "1.15.5"
 commands:
   make:
     parameters:
@@ -159,7 +159,7 @@ jobs:
 
   release:
     docker:
-      - image: circleci/golang:1.14.7
+      - image: circleci/golang:1.15.5
     steps:
       - checkout
       - run:
@@ -197,12 +197,12 @@ jobs:
       GOPATH: /home/circleci/.go_workspace/
       GOOS: linux
       GOARCH: amd64
-      GO_VERSION: "1.13.1"
+      GO_VERSION: "1.15.5"
     parallelism: 1
     steps:
       - checkout
       - run:
-          name: run localnet and exit on failure
+          name: Run a localnet and test liveness
           command: |
             pushd /tmp
             wget https://dl.google.com/go/go$GO_VERSION.linux-amd64.tar.gz
@@ -211,9 +211,8 @@ jobs:
             sudo mv go /usr/local
             popd
             set -x
-            make clean image image.update localnet
-            sudo chmod 777 ./devtools/localnet/localnet-blocks-test.sh
-            ./devtools/localnet/localnet-blocks-test.sh 40 5 10 localhost
+            make clean build-docker-certiknode localnet-start
+            ./devtools/localnet/localnet-blocks-test.sh 100 5 50 localhost
 
   macos-ci:
     executor: mac
@@ -299,6 +298,19 @@ workflows:
   version: 2.1
   test-suite:
     jobs:
+      - docker-image:
+          requires:
+           - setup-dependencies
+      - docker-tagged:
+          filters:
+            tags:
+              only:
+               - /^v.*/
+            branches:
+              ignore:
+               - /.*/
+          requires:
+           - setup-dependencies
       - macos-ci:
           filters:
             branches:
@@ -341,16 +353,3 @@ workflows:
           requires:
             - test-cover
       - lint
-#      - docker-image:
-#          requires:
-#            - setup-dependencies
-#      - docker-tagged:
-#          filters:
-#            tags:
-#              only:
-#                - /^v.*/
-#            branches:
-#              ignore:
-#                - /.*/
-#          requires:
-#            - setup-dependencies

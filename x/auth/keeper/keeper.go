@@ -5,11 +5,13 @@ import (
 )
 
 type Keeper struct {
+	ak types.AccountKeeper
 	ck types.CertKeeper
 }
 
-func NewKeeper(ck types.CertKeeper) Keeper {
+func NewKeeper(ak types.AccountKeeper, ck types.CertKeeper) Keeper {
 	return Keeper{
+		ak: ak,
 		ck: ck,
 	}
 }

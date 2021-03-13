@@ -17,10 +17,13 @@ import (
 
 // State is the CVM state object. It implements acmstate.ReaderWriter.
 type State struct {
-	ctx   sdk.Context
-	ak    types.AccountKeeper
-	store sdk.KVStore
-	cdc   *codec.Codec
+	ctx         sdk.Context
+	ak          types.AccountKeeper
+	bk          types.BankKeeper
+	sk          types.StakingKeeper
+	store       sdk.KVStore
+	cdc         codec.BinaryMarshaler
+	legacyAmino *codec.LegacyAmino
 }
 
 // NewState returns a new instance of State type data.
@@ -28,6 +31,8 @@ func (k Keeper) NewState(ctx sdk.Context) *State {
 	return &State{
 		ctx:   ctx,
 		ak:    k.ak,
+		bk:    k.bk,
+		sk:    k.sk,
 		store: ctx.KVStore(k.key),
 		cdc:   k.cdc,
 	}
@@ -41,7 +46,7 @@ func (s *State) GetAccount(address crypto.Address) (*acm.Account, error) {
 	if account == nil {
 		return nil, nil
 	}
-	balance := account.GetCoins().AmountOf("uctk").Uint64()
+	balance := s.bk.GetBalance(s.ctx, addr, s.sk.BondDenom(s.ctx)).Amount.Uint64()
 	contMeta, err := s.GetAddressMeta(address)
 	if err != nil {
 		return nil, err
@@ -51,7 +56,7 @@ func (s *State) GetAccount(address crypto.Address) (*acm.Account, error) {
 	codeData := s.store.Get(types.CodeStoreKey(address))
 	if len(codeData) > 0 {
 		var cvmCode types.CVMCode
-		s.cdc.MustUnmarshalBinaryLengthPrefixed(codeData, &cvmCode)
+		s.cdc.MustUnmarshalBinaryBare(codeData, &cvmCode)
 		if cvmCode.CodeType == types.CVMCodeTypeEVMCode {
 			evmCode = cvmCode.Code
 		} else {
@@ -66,7 +71,8 @@ func (s *State) GetAccount(address crypto.Address) (*acm.Account, error) {
 		WASMCode: wasmCode,
 		Permissions: permission.AccountPermissions{
 			Base: permission.BasePermissions{
-				Perms: permission.Call | permission.CreateContract,
+				Perms:  permission.Call | permission.CreateContract,
+				SetBit: permission.AllPermFlags,
 			},
 		},
 		ContractMeta: contMeta,
@@ -91,8 +97,8 @@ func (s *State) UpdateAccount(updatedAccount *acm.Account) error {
 	} else {
 		cvmCode = types.NewCVMCode(types.CVMCodeTypeEVMCode, updatedAccount.EVMCode)
 	}
-	s.store.Set(types.CodeStoreKey(updatedAccount.Address), s.cdc.MustMarshalBinaryLengthPrefixed(cvmCode))
-	err := account.SetCoins(sdk.Coins{sdk.NewInt64Coin("uctk", int64(updatedAccount.Balance))})
+	s.store.Set(types.CodeStoreKey(updatedAccount.Address), s.cdc.MustMarshalBinaryBare(&cvmCode))
+	err := s.bk.SetBalances(s.ctx, address, sdk.Coins{sdk.NewInt64Coin(s.sk.BondDenom(s.ctx), int64(updatedAccount.Balance))})
 	if err != nil {
 		return err
 	}
@@ -171,22 +177,30 @@ func (s *State) GetAddressMeta(address crypto.Address) ([]*acm.ContractMeta, err
 	if len(bz) == 0 {
 		return []*acm.ContractMeta{}, nil
 	}
-	var metaList []acm.ContractMeta
-	err := s.cdc.UnmarshalBinaryLengthPrefixed(bz, &metaList)
+
+	var metaList types.ContractMetas
+	err := s.cdc.UnmarshalBinaryBare(bz, &metaList)
+	if err != nil {
+		return nil, err
+	}
+
 	var res []*acm.ContractMeta
-	for i := range metaList {
-		res = append(res, &metaList[i])
+	for i := range metaList.Metas {
+		res = append(res, metaList.Metas[i])
 	}
 	return res, err
 }
 
 // SetAddressMeta sets the metadata hash for an address
 func (s *State) SetAddressMeta(address crypto.Address, contMeta []*acm.ContractMeta) error {
-	var metadata []acm.ContractMeta
+	var metadata types.ContractMetas
 	for _, meta := range contMeta {
-		metadata = append(metadata, *meta)
+		metadata.Metas = append(metadata.Metas, meta)
 	}
-	bz, err := s.cdc.MarshalBinaryLengthPrefixed(metadata)
+	bz, err := s.cdc.MarshalBinaryBare(&metadata)
+	if err != nil {
+		panic(err)
+	}
 	s.store.Set(types.AddressMetaStoreKey(address), bz)
 	return err
 }

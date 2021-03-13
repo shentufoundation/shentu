@@ -1,0 +1,105 @@
+syntax = "proto3";
+package shentu.oracle.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/oracle/types";
+
+
+// Withdraw stores a withdraw of "Amount" scheduled for a given "DueBlock." 
+message Withdraw {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+    repeated cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    int64 due_block = 3 [ (gogoproto.moretags) = "yaml:\"due_block\"" ];
+}
+
+message Task {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string contract = 1 [ (gogoproto.moretags) = "yaml:\"contract\"" ];
+    string function = 2 [ (gogoproto.moretags) = "yaml:\"function\"" ];
+    int64 begin_block = 3 [ (gogoproto.moretags) = "yaml:\"begin_block\"" ];
+    repeated cosmos.base.v1beta1.Coin bounty = 4 [ (gogoproto.moretags) = "yaml:\"bounty\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    string description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    google.protobuf.Timestamp expiration = 6 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"expiration\""];
+    string creator = 7 [ (gogoproto.moretags) = "yaml:\"creator\"" ];
+    repeated Response responses = 8 [ (gogoproto.moretags) = "yaml:\"responses\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "Responses" ];
+    string result = 9 [ (gogoproto.moretags) = "yaml:\"result\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    int64 closing_block = 10 [ (gogoproto.moretags) = "yaml:\"closing_block\"" ];
+    int64 waiting_blocks = 11 [ (gogoproto.moretags) = "yaml:\"waiting_blocks\"" ];
+    TaskStatus status = 12 [(gogoproto.moretags) = "yaml:\"status\""];
+}
+
+message Response {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string operator = 1 [ (gogoproto.moretags) = "yaml:\"operator\"" ];
+    string score = 2 [ (gogoproto.moretags) = "yaml:\"score\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    string weight = 3 [ (gogoproto.moretags) = "yaml:\"weight\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.Coin reward = 4 [ (gogoproto.moretags) = "yaml:\"reward\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+}
+
+message Operator {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+    string proposer = 2 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
+    repeated cosmos.base.v1beta1.Coin collateral = 3 [ (gogoproto.moretags) = "yaml:\"collateral\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    repeated cosmos.base.v1beta1.Coin accumulated_rewards = 4 [ (gogoproto.moretags) = "yaml:\"accumulated_rewards\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    string name = 5 [ (gogoproto.moretags) = "yaml:\"name\"" ];
+}
+
+// TaskStatus enumerates the valid statuses of a task.
+enum TaskStatus {
+    option (gogoproto.goproto_enum_prefix) = false;
+  
+    TASK_STATUS_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "TaskStatusNil"];
+    TASK_STATUS_PENDING = 1 [(gogoproto.enumvalue_customname) = "TaskStatusPending"];
+    TASK_STATUS_SUCCEEDED = 2 [(gogoproto.enumvalue_customname) = "TaskStatusSucceeded"];
+    TASK_STATUS_FAILED = 3 [(gogoproto.enumvalue_customname) = "TaskStatusFailed"];
+}
+
+message TaskParams {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    google.protobuf.Duration expiration_duration = 1 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"task_expiration_duration\"" ];
+    int64 aggregation_window = 2 [ (gogoproto.moretags) = "yaml:\"task_aggregation_window\"" ];
+    string aggregation_result = 3 [ (gogoproto.moretags) = "yaml:\"task_aggregation_result\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    string threshold_score = 4 [ (gogoproto.moretags) = "yaml:\"task_threshold_score\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    string epsilon1 = 5 [ (gogoproto.moretags) = "yaml:\"task_epsilon1\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    string epsilon2 = 6 [ (gogoproto.moretags) = "yaml:\"task_epsilon2\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+}
+
+message LockedPoolParams {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    int64 locked_in_blocks = 1 [ (gogoproto.moretags) = "yaml:\"locked_in_blocks\"" ];
+    int64 minimum_collateral = 2 [ (gogoproto.moretags) = "yaml:\"minimum_collateral\"" ];
+}
+
+message TaskID {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string contract = 1 [ (gogoproto.moretags) = "yaml:\"contract\"" ];
+    string function = 2 [ (gogoproto.moretags) = "yaml:\"function\"" ];
+}
+
+message TaskIDs {
+    repeated TaskID task_ids = 1 [(gogoproto.nullable) = false];
+}
+
+message CoinsProto {
+    repeated cosmos.base.v1beta1.Coin coins = 1 [ (gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+}

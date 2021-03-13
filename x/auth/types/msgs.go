@@ -3,28 +3,21 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 const (
-	ModuleName = auth.ModuleName
+	ModuleName = types.ModuleName
 	RouterKey  = ModuleName
+
+	TypeMsgUnlock = "unlock"
 )
 
-// MsgUnlock unlocks the specified amount in a manual vesting account.
-type MsgUnlock struct {
-	Issuer       sdk.AccAddress `json:"certifier" yaml:"certifier"`
-	Account      sdk.AccAddress `json:"account_address" yaml:"account_address"`
-	UnlockAmount sdk.Coins      `json:"unlock_amount" yaml:"unlock_amount"`
-}
-
-var _ sdk.Msg = MsgUnlock{}
-
 // NewMsgUnlock returns a MsgUnlock object.
-func NewMsgUnlock(issuer, account sdk.AccAddress, unlockAmount sdk.Coins) MsgUnlock {
-	return MsgUnlock{
-		Issuer:       issuer,
-		Account:      account,
+func NewMsgUnlock(issuer, account sdk.AccAddress, unlockAmount sdk.Coins) *MsgUnlock {
+	return &MsgUnlock{
+		Issuer:       issuer.String(),
+		Account:      account.String(),
 		UnlockAmount: unlockAmount,
 	}
 }
@@ -37,21 +30,29 @@ func (m MsgUnlock) Type() string { return "unlock" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgUnlock) ValidateBasic() error {
-	if m.Issuer.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing from address")
+	_, err := sdk.AccAddressFromBech32(m.Issuer)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err)
 	}
-	if m.Account.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing account address")
+
+	_, err = sdk.AccAddressFromBech32(m.Account)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid account address (%s)", err)
 	}
+
 	return nil
 }
 
 // GetSignBytes encodes the message for signing.
 func (m MsgUnlock) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&m))
 }
 
 // GetSigners defines whose signature is required.
 func (m MsgUnlock) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{m.Issuer}
+	issuer, err := sdk.AccAddressFromBech32(m.Issuer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{issuer}
 }

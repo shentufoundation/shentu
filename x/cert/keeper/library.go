@@ -9,8 +9,8 @@ import (
 // SetLibrary sets a new Certificate library registry.
 func (k Keeper) SetLibrary(ctx sdk.Context, library sdk.AccAddress, publisher sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	libraryData := types.Library{Address: library, Publisher: publisher}
-	store.Set(types.LibraryStoreKey(library), k.cdc.MustMarshalBinaryLengthPrefixed(libraryData))
+	libraryData := types.Library{Address: library.String(), Publisher: publisher.String()}
+	store.Set(types.LibraryStoreKey(library), k.cdc.MustMarshalBinaryLengthPrefixed(&libraryData))
 }
 
 // deleteLibrary deletes a Certificate library registry.
@@ -31,7 +31,12 @@ func (k Keeper) getLibraryPublisher(ctx sdk.Context, library sdk.AccAddress) (sd
 	if bPublisher := store.Get(types.LibraryStoreKey(library)); bPublisher != nil {
 		var libraryData types.Library
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(bPublisher, &libraryData)
-		return libraryData.Publisher, nil
+
+		publisherAddr, err := sdk.AccAddressFromBech32(libraryData.Publisher)
+		if err != nil {
+			panic(err)
+		}
+		return publisherAddr, nil
 	}
 	return nil, types.ErrLibraryNotExists
 }
@@ -90,7 +95,11 @@ func (k Keeper) GetAllLibraries(ctx sdk.Context) (libraries types.Libraries) {
 // GetAllLibraryAddresses gets all library addresses.
 func (k Keeper) GetAllLibraryAddresses(ctx sdk.Context) (libraryAddresses []sdk.AccAddress) {
 	k.IterateAllLibraries(ctx, func(library types.Library) bool {
-		libraryAddresses = append(libraryAddresses, library.Address)
+		publisherAddr, err := sdk.AccAddressFromBech32(library.Publisher)
+		if err != nil {
+			panic(err)
+		}
+		libraryAddresses = append(libraryAddresses, publisherAddr)
 		return false
 	})
 	return

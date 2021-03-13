@@ -2,11 +2,23 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
-type AuthKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) exported.Account
+type ParamSubspace interface {
+	Get(ctx sdk.Context, key []byte, ptr interface{})
+	Set(ctx sdk.Context, key []byte, param interface{})
+}
+
+type AccountKeeper interface {
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	GetModuleAddress(moduleName string) sdk.AccAddress
+}
+
+type BankKeeper interface {
+	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 }
 
 type DistrKeeper interface {
@@ -15,12 +27,4 @@ type DistrKeeper interface {
 
 type StakingKeeper interface {
 	BondDenom(ctx sdk.Context) (res string)
-}
-
-type SupplyKeeper interface {
-	GetModuleAddress(moduleName string) sdk.AccAddress
-	SendCoinsFromAccountToModule(
-		ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
-	SendCoinsFromModuleToAccount(
-		ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 }

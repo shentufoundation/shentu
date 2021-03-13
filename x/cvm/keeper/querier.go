@@ -20,30 +20,30 @@ import (
 )
 
 // NewQuerier is the module level router for state queries.
-func NewQuerier(keeper Keeper) sdk.Querier {
+func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case types.QueryCode:
-			return queryCode(ctx, path[1:], req, keeper)
+			return queryCode(ctx, path[1:], req, keeper, legacyQuerierCdc)
 		case types.QueryStorage:
-			return queryStorage(ctx, path[1:], req, keeper)
+			return queryStorage(ctx, path[1:], req, keeper, legacyQuerierCdc)
 		case types.QueryAbi:
-			return queryAbi(ctx, path[1:], req, keeper)
+			return queryAbi(ctx, path[1:], req, keeper, legacyQuerierCdc)
 		case types.QueryAddrMeta:
-			return queryAddrMeta(ctx, path[1:], req, keeper)
+			return queryAddrMeta(ctx, path[1:], req, keeper, legacyQuerierCdc)
 		case types.QueryMeta:
-			return queryMeta(ctx, path[1:], req, keeper)
+			return queryMeta(ctx, path[1:], req, keeper, legacyQuerierCdc)
 		case types.QueryView:
-			return queryView(ctx, path[1:], req, keeper)
+			return queryView(ctx, path[1:], req, keeper, legacyQuerierCdc)
 		case types.QueryAccount:
-			return queryAccount(ctx, path[1:], req, keeper)
+			return queryAccount(ctx, path[1:], req, keeper, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown cvm query endpoint "+strings.Join(path, "/"))
 		}
 	}
 }
 
-func queryView(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
+func queryView(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if len(path) != 2 {
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 2 args. Found %d.", len(path))
 	}
@@ -65,13 +65,13 @@ func queryView(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 		panic("could not parse address " + path[1])
 	}
 
-	value, err := keeper.Call(ctx, caller, callee, 0, req.Data, []*payload.ContractMeta{}, true, false, false)
+	value, err := keeper.Tx(ctx, caller, callee, 0, req.Data, []*payload.ContractMeta{}, true, false, false)
 
 	if err != nil {
 		panic("failed to get storage at address " + path[1])
 	}
 
-	res, err = codec.MarshalJSONIndent(keeper.cdc, types.QueryResView{Ret: value})
+	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, types.QueryResView{Ret: value})
 	if err != nil {
 		panic("could not marshal result to JSON")
 	}
@@ -79,7 +79,7 @@ func queryView(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 	return res, nil
 }
 
-func queryCode(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
+func queryCode(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if len(path) != 1 {
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 1 args. Found %d.", len(path))
 	}
@@ -95,12 +95,12 @@ func queryCode(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 	}
 
 	if len(account.EVMCode) != 0 {
-		res, err = codec.MarshalJSONIndent(keeper.cdc, types.QueryResCode{Code: account.EVMCode})
+		res, err = codec.MarshalJSONIndent(legacyQuerierCdc, types.QueryResCode{Code: account.EVMCode})
 		if err != nil {
 			panic("could not marshal result to JSON")
 		}
 	} else {
-		res, err = codec.MarshalJSONIndent(keeper.cdc, types.QueryResCode{Code: account.WASMCode})
+		res, err = codec.MarshalJSONIndent(legacyQuerierCdc, types.QueryResCode{Code: account.WASMCode})
 		if err != nil {
 			panic("could not marshal result to JSON")
 		}
@@ -109,7 +109,7 @@ func queryCode(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 	return res, nil
 }
 
-func queryStorage(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
+func queryStorage(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if len(path) != 2 {
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 2 args. Found %d.", len(path))
 	}
@@ -135,7 +135,7 @@ func queryStorage(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 		panic("failed to get storage at address " + path[0] + " key " + path[1])
 	}
 
-	res, err3 := codec.MarshalJSONIndent(keeper.cdc, types.QueryResStorage{Value: value})
+	res, err3 := codec.MarshalJSONIndent(legacyQuerierCdc, types.QueryResStorage{Value: value})
 	if err3 != nil {
 		panic("could not marshal result to JSON")
 	}
@@ -143,7 +143,7 @@ func queryStorage(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 	return res, nil
 }
 
-func queryAbi(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
+func queryAbi(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if len(path) != 1 {
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 1 args. Found %d.", len(path))
 	}
@@ -153,8 +153,8 @@ func queryAbi(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keep
 		panic("Could not parse address " + path[0])
 	}
 
-	abi := keeper.getAbi(ctx, crypto.MustAddressFromBytes(addr))
-	res, err2 := codec.MarshalJSONIndent(keeper.cdc, types.QueryResAbi{Abi: abi})
+	abi := keeper.GetAbi(ctx, crypto.MustAddressFromBytes(addr))
+	res, err2 := codec.MarshalJSONIndent(legacyQuerierCdc, types.QueryResAbi{Abi: abi})
 	if err2 != nil {
 		panic("could not marshal result to JSON")
 	}
@@ -162,7 +162,7 @@ func queryAbi(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keep
 	return res, nil
 }
 
-func queryAddrMeta(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
+func queryAddrMeta(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if len(path) != 1 {
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 1 args. Found %d.", len(path))
 	}
@@ -184,14 +184,14 @@ func queryAddrMeta(ctx sdk.Context, path []string, req abci.RequestQuery, keeper
 		resString += contMeta[i].String()
 	}
 
-	res, err = codec.MarshalJSONIndent(keeper.cdc, types.QueryResAddrMeta{Metahash: resString})
+	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, types.QueryResAddrMeta{Metahash: resString})
 	if err != nil {
 		panic("could not marshal result to JSON")
 	}
 	return
 }
 
-func queryMeta(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
+func queryMeta(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if len(path) != 1 {
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 1 args. Found %d.", len(path))
 	}
@@ -207,11 +207,11 @@ func queryMeta(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 	if err != nil {
 		panic("could not get metadata for the address")
 	}
-	res, err = codec.MarshalJSONIndent(keeper.cdc, types.QueryResMeta{Meta: meta})
+	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, types.QueryResMeta{Meta: meta})
 	return
 }
 
-func queryAccount(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
+func queryAccount(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if len(path) != 1 {
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 1 args. Found %d.", len(path))
 	}
@@ -221,12 +221,12 @@ func queryAccount(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 		panic("Could not parse address " + path[0])
 	}
 
-	account := keeper.AuthKeeper().GetAccount(ctx, addr)
+	account := keeper.GetAccount(ctx, addr)
 	if account == nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, path[0])
 	}
 
-	res, err = codec.MarshalJSONIndent(keeper.cdc, account)
+	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, account)
 	if err != nil {
 		panic("could not marshal result to JSON")
 	}

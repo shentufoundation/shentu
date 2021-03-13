@@ -1,0 +1,108 @@
+syntax = "proto3";
+package shentu.cert.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "cosmos_proto/cosmos.proto";
+import "shentu/cert/v1alpha1/cert.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/cert/types";
+
+// Msg defines the shield Msg service.
+service Msg {
+    rpc ProposeCertifier(MsgProposeCertifier) returns (MsgProposeCertifierResponse);
+    rpc CertifyValidator(MsgCertifyValidator) returns (MsgCertifyValidatorResponse);
+    rpc DecertifyValidator(MsgDecertifyValidator) returns (MsgDecertifyValidatorResponse);
+    rpc CertifyGeneral(MsgCertifyGeneral) returns (MsgCertifyGeneralResponse);
+    rpc RevokeCertificate(MsgRevokeCertificate) returns (MsgRevokeCertificateResponse);
+    rpc CertifyCompilation(MsgCertifyCompilation) returns (MsgCertifyCompilationResponse);
+    rpc CertifyPlatform(MsgCertifyPlatform) returns (MsgCertifyPlatformResponse);
+}
+
+// MsgProposeCertifier is the message for proposing new certifier.
+message MsgProposeCertifier {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string proposer = 1 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
+    string alias = 2 [ (gogoproto.moretags) = "yaml:\"alias\"" ];
+    string certifier = 3 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
+    string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+}
+
+message MsgProposeCertifierResponse {}
+
+// MsgCertifyValidator is the message for certifying a validator node.
+message MsgCertifyValidator {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string certifier = 1 [(gogoproto.moretags) = "yaml:\"certifier\""];
+    google.protobuf.Any pubkey = 2 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+}
+
+message MsgCertifyValidatorResponse {}
+
+// MsgDecertifyValidator is the message for de-certifying a validator node.
+message MsgDecertifyValidator {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string decertifier = 1 [ (gogoproto.moretags) = "yaml:\"decertifier\"" ];
+    google.protobuf.Any pubkey = 2 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+}
+
+message MsgDecertifyValidatorResponse {}
+
+// MsgCertifyGeneral is the message for issuing a general certificate.
+message MsgCertifyGeneral {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string certificate_type = 1 [ (gogoproto.moretags) = "yaml:\"certificate_type\"" ];
+    string request_content_type = 2 [ (gogoproto.moretags) = "yaml:\"request_content_type\"" ];
+    string request_content = 3 [ (gogoproto.moretags) = "yaml:\"request_content\"" ];
+    string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
+}
+
+message MsgCertifyGeneralResponse {}
+
+// MsgRevokeCertificate returns a certificate revoking operation.
+message MsgRevokeCertificate {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string revoker = 1 [ (gogoproto.moretags) = "yaml:\"revoker\"" ];
+    string id = 2 [ (gogoproto.moretags) = "yaml:\"id\"", (gogoproto.casttype) = "CertificateID" ];
+    string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+}
+
+message MsgRevokeCertificateResponse {}
+
+// MsgCertifyCompilation is the message for certifying a compilation.
+message MsgCertifyCompilation {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string source_code_hash = 1 [ (gogoproto.moretags) = "yaml:\"sourcecodehash\"" ];
+    string compiler = 2 [ (gogoproto.moretags) = "yaml:\"compiler\"" ];
+    string bytecode_hash = 3 [ (gogoproto.moretags) = "yaml:\"bytecodehash\"" ];
+    string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
+}
+
+message MsgCertifyCompilationResponse {}
+
+
+// MsgCertifyPlatform is the message for certifying a validator's host platform.
+message MsgCertifyPlatform {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string certifier = 1 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
+    google.protobuf.Any validator_pubkey = 2 [ (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey" ];
+    string platform = 3 [ (gogoproto.moretags) = "yaml:\"platform\"" ];
+}
+
+message MsgCertifyPlatformResponse {}

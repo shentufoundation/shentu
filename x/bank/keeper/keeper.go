@@ -2,9 +2,11 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/hyperledger/burrow/crypto"
 
@@ -13,18 +15,19 @@ import (
 
 // Keeper is a wrapper of the basekeeper with CVM keeper.
 type Keeper struct {
-	bank.BaseKeeper
+	bankKeeper.BaseKeeper
 	cvmk types.CVMKeeper
+	ak   types.AccountKeeper
 }
 
 // NewKeeper returns a new Keeper.
-func NewKeeper(
-	ak types.AccountKeeper, cvmk types.CVMKeeper, paramSpace params.Subspace, blacklistedAddrs map[string]bool,
-) Keeper {
-	bk := bank.NewBaseKeeper(ak, paramSpace, blacklistedAddrs)
+func NewKeeper(cdc codec.BinaryMarshaler, storeKey sdk.StoreKey, ak types.AccountKeeper, cvmk types.CVMKeeper, paramSpace paramsTypes.Subspace,
+	blockedAddrs map[string]bool) Keeper {
+	bk := bankKeeper.NewBaseKeeper(cdc, storeKey, ak, paramSpace, blockedAddrs)
 	return Keeper{
 		BaseKeeper: bk,
 		cvmk:       cvmk,
+		ak:         ak,
 	}
 }
 
@@ -44,4 +47,22 @@ func (k Keeper) SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.A
 		return k.cvmk.Send(ctx, fromAddr, toAddr, amt)
 	}
 	return k.BaseKeeper.SendCoins(ctx, fromAddr, toAddr, amt)
+}
+
+// InputOutputCoins handles multisend logic.
+func (k Keeper) InputOutputCoins(ctx sdk.Context, inputs []bankTypes.Input, outputs []bankTypes.Output) error {
+	for _, out := range outputs {
+		outAddr, err := sdk.AccAddressFromBech32(out.Address)
+		if err != nil {
+			return err
+		}
+		code, err := k.GetCode(ctx, outAddr)
+		if err != nil {
+			return err
+		}
+		if len(code) > 0 {
+			return types.ErrCodeExists
+		}
+	}
+	return k.BaseKeeper.InputOutputCoins(ctx, inputs, outputs)
 }

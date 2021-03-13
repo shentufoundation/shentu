@@ -8,7 +8,7 @@ import (
 
 // CollectBounty collects task bounty from the operator.
 func (k Keeper) CollectBounty(ctx sdk.Context, value sdk.Coins, creator sdk.AccAddress) error {
-	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, value); err != nil {
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, value); err != nil {
 		return err
 	}
 	return nil
@@ -17,7 +17,7 @@ func (k Keeper) CollectBounty(ctx sdk.Context, value sdk.Coins, creator sdk.AccA
 // SetTotalCollateral sets total collateral to store.
 func (k Keeper) SetTotalCollateral(ctx sdk.Context, collateral sdk.Coins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(collateral)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&types.CoinsProto{Coins: collateral})
 	store.Set(types.TotalCollateralKey(), bz)
 }
 
@@ -26,9 +26,9 @@ func (k Keeper) GetTotalCollateral(ctx sdk.Context) (sdk.Coins, error) {
 	store := ctx.KVStore(k.storeKey)
 	opBz := store.Get(types.TotalCollateralKey())
 	if opBz != nil {
-		var collateral sdk.Coins
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(opBz, &collateral)
-		return collateral, nil
+		var coinsProto types.CoinsProto
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(opBz, &coinsProto)
+		return coinsProto.Coins, nil
 	}
 	return sdk.Coins{}, types.ErrNoTotalCollateralFound
 }
@@ -60,18 +60,21 @@ func (k Keeper) ReduceTotalCollateral(ctx sdk.Context, decrement sdk.Coins) erro
 
 // FundCommunityPool transfers money from module account to community pool.
 func (k Keeper) FundCommunityPool(ctx sdk.Context, amount sdk.Coins) error {
-	macc := k.supplyKeeper.GetModuleAddress(types.ModuleName)
+	macc := k.accountKeeper.GetModuleAddress(types.ModuleName)
 	return k.distrKeeper.FundCommunityPool(ctx, amount, macc)
 }
 
 // FinalizeMatureWithdraws finishes mature (unlocked) withdrawals and removes them.
 func (k Keeper) FinalizeMatureWithdraws(ctx sdk.Context) {
 	k.IterateMatureWithdraws(ctx, func(withdraw types.Withdraw) bool {
-		if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName,
-			withdraw.Address, withdraw.Amount); err != nil {
+		withdrawAddr, err := sdk.AccAddressFromBech32(withdraw.Address)
+		if err != nil {
 			panic(err)
 		}
-		if err := k.DeleteWithdraw(ctx, withdraw.Address, withdraw.DueBlock); err != nil {
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, withdrawAddr, withdraw.Amount); err != nil {
+			panic(err)
+		}
+		if err := k.DeleteWithdraw(ctx, withdrawAddr, withdraw.DueBlock); err != nil {
 			panic(err)
 		}
 		return false

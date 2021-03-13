@@ -1,0 +1,34 @@
+syntax = "proto3";
+package shentu.bank.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/bank/v1beta1/bank.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/bank/types";
+
+// Msg defines the bank Msg service.
+service Msg {
+  // LockedSend defines a method for sending coins and locking them from one
+  // account to another account.
+  rpc LockedSend(MsgLockedSend) returns (MsgLockedSendResponse);
+}
+
+// MsgLockedSend represents a message to send and lock coins from one account to
+// another.
+message MsgLockedSend {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string from_address = 1 [ (gogoproto.moretags) = "yaml:\"from_address\"" ];
+  string to_address = 2 [ (gogoproto.moretags) = "yaml:\"to_address\"" ];
+  string unlocker_address = 3
+      [ (gogoproto.moretags) = "yaml:\"unlocker_address\"" ];
+  repeated cosmos.base.v1beta1.Coin amount = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+// MsgLockedSendResponse defines the Msg/LockedSend response type.
+message MsgLockedSendResponse {}

@@ -1,0 +1,108 @@
+syntax = "proto3";
+package shentu.cvm.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "shentu/cvm/v1alpha1/cvm.proto";
+import "cosmos/auth/v1beta1/auth.proto";
+import "burrow/acm.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/cvm/types";
+
+service Query {
+  rpc Code(QueryCodeRequest) returns (QueryCodeResponse) {
+    option (google.api.http).get = "/shentu/cvm/v1alpha1/contracts/{address}/code";
+  }
+
+  rpc Abi(QueryAbiRequest) returns (QueryAbiResponse) {
+    option (google.api.http).get = "/shentu/cvm/v1alpha1/contracts/{address}/abi";
+  }
+
+  rpc Storage(QueryStorageRequest) returns (QueryStorageResponse) {
+    option (google.api.http).get = "/shentu/cvm/v1alpha1/contracts/{address}/storage";
+  }
+
+  rpc AddressMeta(QueryAddressMetaRequest) returns (QueryAddressMetaResponse) {
+    option (google.api.http).get = "/shentu/cvm/v1alpha1/contracts/{address}/meta";
+  }
+
+  rpc Meta(QueryMetaRequest) returns (QueryMetaResponse) {
+    option (google.api.http).get = "/shentu/cvm/v1alpha1/meta/{hash}";
+  }
+
+  rpc Account(QueryAccountRequest) returns(acm.Account) {
+    option (google.api.http).get = "/shentu/cvm/v1alpha1/account/{address}";
+  }
+
+  rpc View(QueryViewRequest) returns (QueryViewResponse) {
+    option (google.api.http).get = "/shentu/cvm/v1alpha1/view/{caller}/{callee}";
+  }
+}
+
+message QueryCodeRequest {
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+}
+
+message QueryCodeResponse {
+  string code = 1 [(gogoproto.moretags) = "yaml:\"code\""];
+}
+
+message QueryAbiRequest {
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+}
+
+message QueryAbiResponse {
+  string abi = 1 [(gogoproto.moretags) = "yaml:\"abi\""];
+}
+
+message QueryStorageRequest {
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+  string key = 2 [(gogoproto.moretags) = "yaml:\"key\""];
+}
+
+message QueryStorageResponse {
+  bytes value = 1 [(gogoproto.moretags) = "yaml:\"value\""];
+}
+
+message QueryAddressMetaRequest {
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+}
+
+message QueryAddressMetaResponse {
+  string meta_hash = 1 [(gogoproto.moretags) = "yaml:\"metaHash\""];
+}
+
+message QueryMetaRequest {
+  string hash = 1 [(gogoproto.moretags) = "yaml:\"hash\""];
+}
+
+message QueryMetaResponse {
+  string meta = 1 [(gogoproto.moretags) = "yaml:\"meta\""];
+}
+
+message QueryAccountRequest {
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+}
+
+message CVMAccount {
+  cosmos.auth.v1beta1.BaseAccount base_account = 1 [(gogoproto.embed) = true, (gogoproto.moretags) = "yaml:\"base_account\""];
+  string code = 2 [(gogoproto.moretags) = "yaml:\"code\""];
+  string abi = 3 [(gogoproto.moretags) = "yaml:\"abi\""];
+}
+
+message QueryViewRequest {
+  string caller = 1 [(gogoproto.moretags) = "yaml:\"caller\""];
+  string callee = 2 [(gogoproto.moretags) = "yaml:\"callee\""];
+  bytes abi_spec = 3 [(gogoproto.moretags) = "yaml:\"abi_spec\""];
+  string function_name = 4 [(gogoproto.moretags) = "yaml:\"function_name\""];
+  bytes data = 5 [(gogoproto.moretags) = "yaml:\"data\""];
+}
+
+message QueryViewResponse {
+  repeated ReturnVars return_vars = 1 [(gogoproto.moretags) = "yaml:\"return_vars\""];
+}
+
+message ReturnVars {
+  string name = 1 [(gogoproto.moretags) = "yaml:\"name\""];
+  string value = 2 [(gogoproto.moretags) = "yaml:\"value\""];
+}

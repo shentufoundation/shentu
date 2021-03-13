@@ -5,16 +5,16 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	"github.com/certikfoundation/shentu/x/bank/types"
 )
 
 // RegisterRoutes registers custom REST routes.
-func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func RegisterRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/bank/accounts/{address}/locked_transfers", LockedSendRequestHandlerFn(cliCtx)).Methods("POST")
 }
 
@@ -27,7 +27,7 @@ type LockedSendReq struct {
 
 // LockedSendRequestHandlerFn is an http request handler to send coins
 // to a manual vesting account and have them locked (vesting).
-func LockedSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func LockedSendRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		bech32Addr := vars["address"]
@@ -39,7 +39,7 @@ func LockedSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		var req LockedSendReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -54,13 +54,15 @@ func LockedSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		unlocker, err := sdk.AccAddressFromBech32(req.Unlocker)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
+		if req.Unlocker != "" {
+			_, err = sdk.AccAddressFromBech32(req.Unlocker)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+				return
+			}
 		}
 
-		msg := types.NewMsgLockedSend(fromAddr, toAddr, unlocker, req.Amount)
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		msg := types.NewMsgLockedSend(fromAddr, toAddr, req.Unlocker, req.Amount)
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }

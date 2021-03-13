@@ -9,8 +9,12 @@ import (
 // SetOperator sets an operator to store.
 func (k Keeper) SetOperator(ctx sdk.Context, operator types.Operator) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(operator)
-	store.Set(types.OperatorStoreKey(operator.Address), bz)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&operator)
+	addr, err := sdk.AccAddressFromBech32(operator.Address)
+	if err != nil {
+		panic(err)
+	}
+	store.Set(types.OperatorStoreKey(addr), bz)
 }
 
 // GetOperator gets an operator from store.
@@ -72,7 +76,7 @@ func (k Keeper) CreateOperator(ctx sdk.Context, address sdk.AccAddress, collater
 	if err := k.AddTotalCollateral(ctx, collateral); err != nil {
 		return err
 	}
-	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, address, types.ModuleName, collateral); err != nil {
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, address, types.ModuleName, collateral); err != nil {
 		return err
 	}
 	return nil
@@ -90,10 +94,14 @@ func (k Keeper) RemoveOperator(ctx sdk.Context, address sdk.AccAddress) error {
 	if err := k.ReduceTotalCollateral(ctx, operator.Collateral); err != nil {
 		return err
 	}
-	if err := k.CreateWithdraw(ctx, operator.Address, operator.Collateral); err != nil {
+	operatorAddr, err := sdk.AccAddressFromBech32(operator.Address)
+	if err != nil {
+		panic(err)
+	}
+	if err := k.CreateWithdraw(ctx, operatorAddr, operator.Collateral); err != nil {
 		return err
 	}
-	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, address,
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, address,
 		operator.AccumulatedRewards); err != nil {
 		return err
 	}
@@ -124,7 +132,7 @@ func (k Keeper) AddCollateral(ctx sdk.Context, address sdk.AccAddress, increment
 	if err := k.AddTotalCollateral(ctx, increment); err != nil {
 		return err
 	}
-	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, address, types.ModuleName, increment); err != nil {
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, address, types.ModuleName, increment); err != nil {
 		return err
 	}
 	return nil
@@ -147,7 +155,11 @@ func (k Keeper) ReduceCollateral(ctx sdk.Context, address sdk.AccAddress, decrem
 	if err := k.ReduceTotalCollateral(ctx, decrement); err != nil {
 		return err
 	}
-	if err := k.CreateWithdraw(ctx, operator.Address, decrement); err != nil {
+	operatorAddr, err := sdk.AccAddressFromBech32(operator.Address)
+	if err != nil {
+		panic(err)
+	}
+	if err := k.CreateWithdraw(ctx, operatorAddr, decrement); err != nil {
 		return err
 	}
 	return nil
@@ -177,7 +189,7 @@ func (k Keeper) WithdrawAllReward(ctx sdk.Context, address sdk.AccAddress) (sdk.
 		return nil, err
 	}
 	reward := operator.AccumulatedRewards
-	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, address, reward); err != nil {
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, address, reward); err != nil {
 		return nil, err
 	}
 	operator.AccumulatedRewards = nil

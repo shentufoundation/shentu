@@ -1,0 +1,124 @@
+syntax = "proto3";
+package shentu.oracle.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/duration.proto";
+
+
+option go_package = "github.com/certikfoundation/shentu/x/oracle/types";
+
+// Msg defines the shield Msg service.
+service Msg {
+    rpc CreateOperator(MsgCreateOperator) returns (MsgCreateOperatorResponse);
+    rpc RemoveOperator(MsgRemoveOperator) returns (MsgRemoveOperatorResponse);
+    rpc AddCollateral(MsgAddCollateral) returns (MsgAddCollateralResponse);
+    rpc ReduceCollateral(MsgReduceCollateral) returns (MsgReduceCollateralResponse);
+    rpc WithdrawReward(MsgWithdrawReward) returns (MsgWithdrawRewardResponse);
+    rpc CreateTask(MsgCreateTask) returns (MsgCreateTaskResponse);
+    rpc TaskResponse(MsgTaskResponse) returns (MsgTaskResponseResponse);
+    rpc InquiryTask(MsgInquiryTask) returns (MsgInquiryTaskResponse);
+    rpc DeleteTask(MsgDeleteTask) returns (MsgDeleteTaskResponse);
+}
+
+message MsgCreateOperator {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+    repeated cosmos.base.v1beta1.Coin collateral = 2 [ (gogoproto.moretags) = "yaml:\"collateral\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    string proposer = 3 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
+    string name = 4 [ (gogoproto.moretags) = "yaml:\"name\"" ];
+}
+
+message MsgCreateOperatorResponse {}
+
+message MsgRemoveOperator {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+    string proposer = 2 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
+}
+
+message MsgRemoveOperatorResponse {}
+
+message MsgAddCollateral {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+    repeated cosmos.base.v1beta1.Coin collateral_increment = 2 [ (gogoproto.moretags) = "yaml:\"collateral_increment\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+}
+
+message MsgAddCollateralResponse {}
+
+message MsgReduceCollateral {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+    repeated cosmos.base.v1beta1.Coin collateral_decrement = 2 [ (gogoproto.moretags) = "yaml:\"collateral_decrement\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+}
+
+message MsgReduceCollateralResponse {}
+
+message MsgWithdrawReward {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+}
+
+message MsgWithdrawRewardResponse {}
+
+message MsgCreateTask {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string contract = 1 [ (gogoproto.moretags) = "yaml:\"contract\"" ];
+    string function = 2 [ (gogoproto.moretags) = "yaml:\"function\"" ];
+    repeated cosmos.base.v1beta1.Coin bounty = 3 [ (gogoproto.moretags) = "yaml:\"bounty\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string creator = 5 [ (gogoproto.moretags) = "yaml:\"creator\"" ];
+    int64 wait = 6 [ (gogoproto.moretags) = "yaml:\"wait\"" ];
+    google.protobuf.Duration valid_duration = 7 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"valid_duration\"" ];
+}
+
+message MsgCreateTaskResponse {}
+
+message MsgTaskResponse {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string contract = 1 [ (gogoproto.moretags) = "yaml:\"contract\"" ];
+    string function = 2 [ (gogoproto.moretags) = "yaml:\"function\"" ];
+    int64 score = 3 [ (gogoproto.moretags) = "yaml:\"score\"" ];
+    string operator = 4 [ (gogoproto.moretags) = "yaml:\"operator\"" ];
+}
+
+message MsgTaskResponseResponse {}
+
+message MsgInquiryTask {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string contract = 1 [ (gogoproto.moretags) = "yaml:\"contract\"" ];
+    string function = 2 [ (gogoproto.moretags) = "yaml:\"function\"" ];
+    string tx_hash = 3 [ (gogoproto.moretags) = "yaml:\"tx_hash\"" ];
+    string inquirer = 4 [ (gogoproto.moretags) = "yaml:\"inquirer\"" ];
+}
+
+message MsgInquiryTaskResponse {}
+
+message MsgDeleteTask {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string contract = 1 [ (gogoproto.moretags) = "yaml:\"contract\"" ];
+    string function = 2 [ (gogoproto.moretags) = "yaml:\"function\"" ];
+    bool force = 3 [ (gogoproto.moretags) = "yaml:\"force\"" ];
+    string deleter = 4 [ (gogoproto.moretags) = "yaml:\"deleter\"" ];
+}
+
+message MsgDeleteTaskResponse {}

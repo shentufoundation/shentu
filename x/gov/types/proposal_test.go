@@ -5,14 +5,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/magiconair/properties/assert"
+	"github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/gogo/protobuf/proto"
 
-	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/stretchr/testify/require"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 var fakeProposerAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
@@ -25,36 +27,26 @@ var (
 		time.Date(2021, 1, 1, 1, 1, 1, 1, time.UTC),
 		time.Date(2022, 1, 1, 1, 1, 1, 1, time.UTC),
 	}
+	textProposal = govtypes.NewTextProposal("title0", "desc0")
+	msg, _       = textProposal.(proto.Message)
+
+	any, _    = types.NewAnyWithValue(msg)
 	proposals = []Proposal{
-		{gov.TextProposal{"title0", "desc0"}, 0, StatusDepositPeriod, false, fakeProposerAddress,
-			gov.EmptyTallyResult(), times[0], times[1],
+		{any, 0, StatusDepositPeriod, false, fakeProposerAddress.String(),
+			govtypes.EmptyTallyResult(), times[0], times[1],
 			sdk.NewCoins(), time.Time{}, time.Time{}},
 	}
-	strs = []string{
-		fmt.Sprintf(`Proposal %d:
-  Title:              %s
-  Type:               %s
-  Status:             %s
-  Is Council Member:  %t
-  Proposer Address:   %s
-  Submit Time:        %s
-  Deposit End Time:   %s
-  Total Deposit:      %s
-  Voting Start Time:  %s
-  Voting End Time:    %s
-  Description:        %s`, 0, "title0", types.ProposalTypeText, StatusDepositPeriod, false, fakeProposerAddress, times[0], times[1],
-			testCoin, time.Time{}, time.Time{}, "desc0"),
-	}
+	strs = []string{proposals[0].String()}
 )
 
 func TestProposalStatus_Format(t *testing.T) {
-	statusDepositPeriod, _ := ProposalStatusFromString("DepositPeriod")
-	statusCertifierVotingPeriod, _ := ProposalStatusFromString("CertifierVotingPeriod")
-	statusPassed, _ := ProposalStatusFromString("Passed")
-	statusRejected, _ := ProposalStatusFromString("Rejected")
-	statusFailed, _ := ProposalStatusFromString("Failed")
-	statusNil, _ := ProposalStatusFromString("")
-	statusValidatorVotingPeriod, _ := ProposalStatusFromString("ValidatorVotingPeriod")
+	statusDepositPeriod, _ := ProposalStatusFromString("PROPOSAL_STATUS_DEPOSIT_PERIOD")
+	statusCertifierVotingPeriod, _ := ProposalStatusFromString("PROPOSAL_STATUS_CERTIFIER_VOTING_PERIOD")
+	statusPassed, _ := ProposalStatusFromString("PROPOSAL_STATUS_PASSED")
+	statusRejected, _ := ProposalStatusFromString("PROPOSAL_STATUS_REJECTED")
+	statusFailed, _ := ProposalStatusFromString("PROPOSAL_STATUS_FAILED")
+	statusNil, _ := ProposalStatusFromString("PROPOSAL_STATUS_UNSPECIFIED")
+	statusValidatorVotingPeriod, _ := ProposalStatusFromString("PROPOSAL_STATUS_VALIDATOR_VOTING_PERIOD")
 	statusDefault, _ := ProposalStatusFromString("asdasd")
 
 	tests := []struct {
@@ -62,14 +54,14 @@ func TestProposalStatus_Format(t *testing.T) {
 		sprintFArgs          string
 		expectedStringOutput string
 	}{
-		{statusDepositPeriod, "%s", "DepositPeriod"},
-		{statusCertifierVotingPeriod, "%s", "CertifierVotingPeriod"},
-		{statusPassed, "%s", "Passed"},
-		{statusRejected, "%s", "Rejected"},
-		{statusFailed, "%s", "Failed"},
-		{statusNil, "%s", ""},
-		{statusValidatorVotingPeriod, "%s", "ValidatorVotingPeriod"},
-		{statusDefault, "%s", ""},
+		{statusDepositPeriod, "%s", "PROPOSAL_STATUS_DEPOSIT_PERIOD"},
+		{statusCertifierVotingPeriod, "%s", "PROPOSAL_STATUS_CERTIFIER_VOTING_PERIOD"},
+		{statusPassed, "%s", "PROPOSAL_STATUS_PASSED"},
+		{statusRejected, "%s", "PROPOSAL_STATUS_REJECTED"},
+		{statusFailed, "%s", "PROPOSAL_STATUS_FAILED"},
+		{statusNil, "%s", "PROPOSAL_STATUS_UNSPECIFIED"},
+		{statusValidatorVotingPeriod, "%s", "PROPOSAL_STATUS_VALIDATOR_VOTING_PERIOD"},
+		{statusDefault, "%s", "PROPOSAL_STATUS_UNSPECIFIED"},
 
 		{statusNil, "%v", "0"},
 		{statusDepositPeriod, "%v", "1"},
@@ -87,7 +79,7 @@ func TestProposalStatus_Format(t *testing.T) {
 
 func TestNewProposal(t *testing.T) {
 	type args struct {
-		content                 types.Content
+		content                 govtypes.Content
 		id                      uint64
 		isProposerCouncilMember bool
 		proposerAddress         sdk.AccAddress
@@ -99,27 +91,28 @@ func TestNewProposal(t *testing.T) {
 		args args
 		want Proposal
 	}{
-		{"proposal 0", args{gov.TextProposal{"title0", "desc0"}, 0, false, fakeProposerAddress,
+		{"proposal 0", args{&govtypes.TextProposal{"title0", "desc0"}, 0, false, fakeProposerAddress,
 			times[0], times[1]}, proposals[0]},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewProposal(tt.args.content, tt.args.id, tt.args.proposerAddress,
+			got, err := NewProposal(tt.args.content, tt.args.id, tt.args.proposerAddress,
 				tt.args.isProposerCouncilMember, tt.args.submitTime, tt.args.depositEndTime)
 			assert.Equal(t, got, tt.want)
+			assert.Nil(t, err)
 		})
 	}
 }
 
 func TestProposal_String(t *testing.T) {
 	type fields struct {
-		Content                 types.Content
-		ProposalID              uint64
+		Content                 govtypes.Content
+		ProposalId              uint64
 		Status                  ProposalStatus
 		IsProposerCouncilMember bool
 		ProposerAddress         sdk.AccAddress
-		FinalTallyResult        gov.TallyResult
+		FinalTallyResult        govtypes.TallyResult
 		SubmitTime              time.Time
 		DepositEndTime          time.Time
 		TotalDeposit            sdk.Coins
@@ -131,20 +124,23 @@ func TestProposal_String(t *testing.T) {
 		fields fields
 		want   string
 	}{
-		{"proposal0", fields{gov.TextProposal{"title0", "desc0"}, 0,
+		{"proposal0", fields{&govtypes.TextProposal{"title0", "desc0"}, 0,
 			StatusDepositPeriod, false, fakeProposerAddress,
-			gov.EmptyTallyResult(), times[0],
+			govtypes.EmptyTallyResult(), times[0],
 			times[1], testCoin, time.Time{}, time.Time{}}, strs[0]},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			msg, _ = tt.fields.Content.(proto.Message)
+
+			any, _ = types.NewAnyWithValue(msg)
 			p := Proposal{
-				Content:                 tt.fields.Content,
-				ProposalID:              tt.fields.ProposalID,
+				Content:                 any,
+				ProposalId:              tt.fields.ProposalId,
 				Status:                  tt.fields.Status,
 				IsProposerCouncilMember: tt.fields.IsProposerCouncilMember,
-				ProposerAddress:         tt.fields.ProposerAddress,
+				ProposerAddress:         tt.fields.ProposerAddress.String(),
 				FinalTallyResult:        tt.fields.FinalTallyResult,
 				SubmitTime:              tt.fields.SubmitTime,
 				DepositEndTime:          tt.fields.DepositEndTime,
@@ -297,16 +293,16 @@ func TestNewTallyResult(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want gov.TallyResult
+		want govtypes.TallyResult
 	}{
 		{"10,10,10,10", args{sdk.NewInt(10), sdk.NewInt(20), sdk.NewInt(30),
-			sdk.NewInt(40)}, gov.TallyResult{sdk.NewInt(10), sdk.NewInt(20),
+			sdk.NewInt(40)}, govtypes.TallyResult{sdk.NewInt(10), sdk.NewInt(20),
 			sdk.NewInt(30), sdk.NewInt(40)}},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			got := gov.NewTallyResult(tt.args.yes, tt.args.abstain, tt.args.no, tt.args.noWithVeto)
+			got := govtypes.NewTallyResult(tt.args.yes, tt.args.abstain, tt.args.no, tt.args.noWithVeto)
 			assert.Equal(t, got, tt.want)
 		})
 	}
@@ -320,7 +316,7 @@ func TestTallyResult_Equals(t *testing.T) {
 		NoWithVeto sdk.Int
 	}
 	type args struct {
-		comp gov.TallyResult
+		comp govtypes.TallyResult
 	}
 	tests := []struct {
 		name   string
@@ -329,16 +325,16 @@ func TestTallyResult_Equals(t *testing.T) {
 		want   bool
 	}{
 		{"equal", fields{sdk.NewInt(10), sdk.NewInt(20), sdk.NewInt(30),
-			sdk.NewInt(40)}, args{gov.TallyResult{sdk.NewInt(10), sdk.NewInt(20),
+			sdk.NewInt(40)}, args{govtypes.TallyResult{sdk.NewInt(10), sdk.NewInt(20),
 			sdk.NewInt(30), sdk.NewInt(40)}}, true},
 		{"not equal", fields{sdk.NewInt(10), sdk.NewInt(20), sdk.NewInt(30),
-			sdk.NewInt(40)}, args{gov.TallyResult{sdk.NewInt(96), sdk.NewInt(97),
+			sdk.NewInt(40)}, args{govtypes.TallyResult{sdk.NewInt(96), sdk.NewInt(97),
 			sdk.NewInt(98), sdk.NewInt(99)}}, false},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			tr := gov.TallyResult{
+			tr := govtypes.TallyResult{
 				Yes:        tt.fields.Yes,
 				Abstain:    tt.fields.Abstain,
 				No:         tt.fields.No,

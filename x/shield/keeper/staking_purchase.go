@@ -16,29 +16,33 @@ func (k Keeper) GetGlobalShieldStakingPool(ctx sdk.Context) (pool sdk.Int) {
 	if bz == nil {
 		return sdk.NewInt(0)
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &pool)
-	return
+
+	ip := sdk.IntProto{}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ip)
+	return ip.Int
 }
 
-func (k Keeper) SetGlobalShieldStakingPool(ctx sdk.Context, pool sdk.Int) {
+func (k Keeper) SetGlobalShieldStakingPool(ctx sdk.Context, value sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(pool)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&sdk.IntProto{Int: value})
 	store.Set(types.GetGlobalStakeForShieldPoolKey(), bz)
 }
 
-func (k Keeper) GetOriginalStaking(ctx sdk.Context, purchaseID uint64) (amount sdk.Int) {
+func (k Keeper) GetOriginalStaking(ctx sdk.Context, purchaseID uint64) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetOriginalStakingKey(purchaseID))
 	if bz == nil {
 		return sdk.NewInt(0)
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &amount)
-	return
+
+	ip := sdk.IntProto{}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ip)
+	return ip.Int
 }
 
 func (k Keeper) SetOriginalStaking(ctx sdk.Context, purchaseID uint64, amount sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(amount)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&sdk.IntProto{Int: amount})
 	store.Set(types.GetOriginalStakingKey(purchaseID), bz)
 }
 
@@ -54,13 +58,13 @@ func (k Keeper) GetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.
 
 func (k Keeper) SetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchase types.ShieldStaking) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(purchase)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&purchase)
 	store.Set(types.GetStakeForShieldKey(poolID, purchaser), bz)
 }
 
 func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, stakingAmt sdk.Int) error {
 	stakingCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), stakingAmt))
-	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, stakingCoins); err != nil {
+	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, stakingCoins); err != nil {
 		return err
 	}
 
@@ -93,7 +97,7 @@ func (k Keeper) UnstakeFromShield(ctx sdk.Context, poolID uint64, purchaser sdk.
 }
 
 func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error {
-	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount); err != nil {
+	if err := k.bk.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount); err != nil {
 		return err
 	}
 	blockServiceFee := k.GetBlockServiceFees(ctx)
@@ -141,11 +145,11 @@ func (k Keeper) IterateOriginalStakings(ctx sdk.Context, callback func(original 
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var amount sdk.Int
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &amount)
+		var ip sdk.IntProto
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &ip)
 		bz := iterator.Key()[1:]
 		id := binary.LittleEndian.Uint64(bz)
-		newOS := types.NewOriginalStaking(id, amount)
+		newOS := types.NewOriginalStaking(id, ip.Int)
 
 		if callback(newOS) {
 			break
@@ -163,7 +167,7 @@ func (k Keeper) ProcessStakeForShieldExpiration(ctx sdk.Context, poolID, purchas
 		return nil
 	}
 	refundCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, amount))
-	k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, refundCoins)
+	k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, refundCoins)
 
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetOriginalStakingKey(purchaseID))

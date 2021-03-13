@@ -1,44 +1,43 @@
 package cli
 
 import (
-	"bufio"
-
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/cli"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
+	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/certikfoundation/shentu/x/auth/types"
 )
 
-// GetTxCmd returns the transaction commands for this module.
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	txCmd := cli.GetTxCmd(cdc)
+// NewTxCmd returns the transaction commands for this module.
+func NewTxCmd() *cobra.Command {
+	txCmd := &cobra.Command{
+		Use:                        authTypes.ModuleName,
+		Short:                      "Auth transaction subcommands",
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE:                       client.ValidateCmd,
+	}
+
 	txCmd.AddCommand(
-		GetCmdUnlock(cdc),
+		GetCmdUnlock(),
 	)
 	return txCmd
 }
 
 // GetCmdUnlock implements the command for unlocking
 // the specified amount in a manual vesting account.
-func GetCmdUnlock(cdc *codec.Codec) *cobra.Command {
+func GetCmdUnlock() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unlock [address] [amount]",
 		Short: "Unlock the amount from a manual vesting account's vesting coins.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-
-			if _, err := accGetter.GetAccount(cliCtx.GetFromAddress()); err != nil {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
 				return err
 			}
 
@@ -46,17 +45,21 @@ func GetCmdUnlock(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			amount, err := sdk.ParseCoins(args[1])
+			amount, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return err
 			}
 
 			msg := types.NewMsgUnlock(cliCtx.GetFromAddress(), addr, amount)
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
 
-	cmd = flags.PostCommands(cmd)[0]
+	flags.AddTxFlagsToCmd(cmd)
+
 	return cmd
 }

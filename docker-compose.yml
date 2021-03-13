@@ -1,72 +1,61 @@
 version: '3.2'
 
 services:
-  node0:
-    restart: on-failure
-    image: shentu
-    command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
-    volumes:
-      - type: bind
-        source: ${LOCALNET_ROOT}/node0
-        target: /root
-    networks:
-      localnet:
-        ipv4_address: ${LOCALNET_START_IP}
+  certiknode0:
+    container_name: certiknode0
+    image: "certikfoundation/certiknode"
     ports:
       - "26656-26657:26656-26657"
-      - "26756-26757:26756-26757"
-      - "26856-26857:26856-26857"
-      - "26956-26957:26956-26957"
-      - "1317:1317"
-
-  node1:
-    restart: on-failure
-    image: shentu
-    command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
+    environment:
+      - ID=0
+      - LOG=${LOG:-certik.log}
     volumes:
-      - type: bind
-        source: ${LOCALNET_ROOT}/node1
-        target: /root
-    network_mode: "service:node0"
+      - ./build:/certik:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.2
 
-  node2:
-    restart: on-failure
-    image: shentu
-    command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
+  certiknode1:
+    container_name: certiknode1
+    image: "certikfoundation/certiknode"
+    ports:
+      - "26659-26660:26656-26657"
+    environment:
+      - ID=1
+      - LOG=${LOG:-certik.log}
     volumes:
-      - type: bind
-        source: ${LOCALNET_ROOT}/node2
-        target: /root
-    network_mode: "service:node0"
+      - ./build:/certik:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.3
 
-  node3:
-    restart: on-failure
-    image: shentu
-    command: [ "certikd", "start", "--home", "/root/certikd", "--trace" ]
+  certiknode2:
+    container_name: certiknode2
+    image: "certikfoundation/certiknode"
+    environment:
+      - ID=2
+      - LOG=${LOG:-certik.log}
+    ports:
+      - "26661-26662:26656-26657"
     volumes:
-      - type: bind
-        source: ${LOCALNET_ROOT}/node3
-        target: /root
-    network_mode: "service:node0"
+      - ./build:/certik:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.4
 
-  rpc-server:
-    restart: on-failure
-    image: shentu
-    command: [ "certikcli", "rest-server", "--trust-node", "--laddr", "tcp://0.0.0.0:1317", "--home", "/root/certikcli", "--trace"]
+  certiknode3:
+    container_name: certiknode3
+    image: "certikfoundation/certiknode"
+    environment:
+      - ID=3
+      - LOG=${LOG:-certik.log}
+    ports:
+      - "26663-26664:26656-26657"
     volumes:
-      - type: bind
-        source: ${LOCALNET_ROOT}/node0
-        target: /root
-    network_mode: "service:node0"
-
-  client:
-    image: shentu
-    command: [ "tail", "-f", "/dev/null" ]
-    volumes:
-      - type: bind
-        source: ${LOCALNET_ROOT}
-        target: /root
-    network_mode: "service:node0"
+      - ./build:/certik:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.5
 
 networks:
   localnet:
@@ -74,4 +63,4 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: ${LOCALNET_SUBNET}
+      - subnet: 192.168.10.0/16

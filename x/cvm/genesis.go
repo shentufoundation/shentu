@@ -14,7 +14,7 @@ import (
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
-func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.ValidatorUpdate {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []abci.ValidatorUpdate {
 	k.SetGasRate(ctx, data.GasRate)
 	state := k.NewState(ctx)
 
@@ -87,8 +87,13 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 	if err := cache.Sync(state); err != nil {
 		panic(err)
 	}
-	for _, metadata := range data.Metadata {
-		if err := state.SetMetadata(metadata.Hash, metadata.Metadata); err != nil {
+	for _, metadata := range data.Metadatas {
+		if len(metadata.Hash) != 32 {
+			panic("metadata hash is not 256 bits")
+		}
+		var metahash acmstate.MetadataHash
+		copy(metahash[:], metadata.Hash[:32])
+		if err := state.SetMetadata(metahash, metadata.Metadata); err != nil {
 			panic(err)
 		}
 	}
@@ -97,14 +102,14 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 	return []abci.ValidatorUpdate{}
 }
 
-func ExportGenesis(ctx sdk.Context, k Keeper) types.GenesisState {
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	gasRate := k.GetGasRate(ctx)
 	contracts := k.GetAllContracts(ctx)
 	metadatas := k.GetAllMetas(ctx)
 
-	return GenesisState{
+	return &types.GenesisState{
 		GasRate:   gasRate,
 		Contracts: contracts,
-		Metadata:  metadatas,
+		Metadatas: metadatas,
 	}
 }

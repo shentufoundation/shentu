@@ -1,0 +1,73 @@
+syntax = "proto3";
+package shentu.oracle.v1alpha1;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "shentu/oracle/v1alpha1/oracle.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/oracle/types";
+
+// Query defines the gRPC querier service for oracle module.
+service Query {
+    rpc Operator(QueryOperatorRequest) returns (QueryOperatorResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/operator/{address}";
+    }
+
+    rpc Operators(QueryOperatorsRequest) returns (QueryOperatorsResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/operators";
+    }
+
+    rpc Withdraws(QueryWithdrawsRequest) returns (QueryWithdrawsResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/withdraws";
+    }
+
+    rpc Task(QueryTaskRequest) returns (QueryTaskResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/contract/{contract}/function/{function}/task";
+    }
+
+    rpc Response(QueryResponseRequest) returns (QueryResponseResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/contract/{contract}/function/{function}/operator/{operator_address}/Response";
+    }
+}
+
+message QueryOperatorRequest {
+    string address = 1;
+}
+
+message QueryOperatorResponse {
+    Operator operator = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryOperatorsRequest {
+}
+
+message QueryOperatorsResponse {
+    repeated Operator operators = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryWithdrawsRequest {
+}
+
+message QueryWithdrawsResponse {
+    repeated Withdraw withdraws = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryTaskRequest {
+    string contract = 1;
+    string function = 2;
+}
+
+message QueryTaskResponse {
+    Task task = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryResponseRequest {
+    string contract = 1;
+    string function = 2;
+    string operator_address = 3;
+}
+
+message QueryResponseResponse {
+    Response response = 1 [(gogoproto.nullable) = false];
+}

@@ -1,27 +1,24 @@
 package cli
 
 import (
-	"bufio"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"path/filepath"
+	"io/ioutil"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/hyperledger/burrow/crypto"
-	evm "github.com/hyperledger/burrow/deploy/compile"
 	"github.com/hyperledger/burrow/execution/evm/abi"
 	"github.com/hyperledger/burrow/logging"
 	"github.com/hyperledger/burrow/txs/payload"
@@ -39,6 +36,7 @@ const (
 	FlagABI      = "abi"
 	FlagEWASM    = "ewasm"
 	FlagRuntime  = "runtime"
+	FlagMetadata = "metadata"
 )
 
 var (
@@ -51,34 +49,37 @@ type abiEntry struct {
 }
 
 // GetTxCmd returns the transaction commands for this module
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+func NewTxCmd() *cobra.Command {
 	ctkTxCmd := &cobra.Command{
 		Use:   "cvm",
 		Short: "CVM transactions subcommands",
 	}
 
 	ctkTxCmd.AddCommand(
-		GetCmdCall(cdc),
-		GetCmdDeploy(cdc),
+		GetCmdCall(),
+		GetCmdDeploy(),
 	)
 
 	return ctkTxCmd
 }
 
 // GetCmdCall returns the CVM contract call transaction command.
-func GetCmdCall(cdc *codec.Codec) *cobra.Command {
+func GetCmdCall() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "call <address> <function> [<params>...]",
 		Short: "Call CVM contract",
 		Args:  cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			from := cliCtx.GetFromAddress()
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-			if err := accGetter.EnsureExists(from); err != nil {
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+
+			from := clientCtx.GetFromAddress()
+			accGetter := authtxb.AccountRetriever{}
+			if err := accGetter.EnsureExists(clientCtx, from); err != nil {
 				return err
 			}
 
@@ -106,7 +107,7 @@ func GetCmdCall(cdc *codec.Codec) *cobra.Command {
 			} else {
 				var err error
 				var abiSpec []byte
-				abiSpec, data, err = parseCallCmd(cliCtx, args[0], callee, args[1], args[2:])
+				abiSpec, data, err = parseCallCmd(clientCtx, args[0], callee, args[1], args[2:])
 				if err != nil {
 					return err
 				}
@@ -126,28 +127,40 @@ func GetCmdCall(cdc *codec.Codec) *cobra.Command {
 						break
 					}
 					fmt.Println(args[1] + " is a " + entry.Type + " function - Attempting to re-route to query")
-					queryPath := fmt.Sprintf("custom/%s/view/%s/%s", types.QuerierRoute, from, callee)
-					return queryContractAndPrint(cliCtx, cdc, queryPath, args[1], abiSpec, data)
+					queryClient := types.NewQueryClient(clientCtx)
+					req := &types.QueryViewRequest{
+						Caller:       from.String(),
+						Callee:       args[0],
+						AbiSpec:      abiSpec,
+						FunctionName: args[1],
+						Data:         data,
+					}
+					out, err := queryClient.View(cmd.Context(), req)
+					if err != nil {
+						return err
+					}
+
+					return clientCtx.PrintProto(out)
 				}
 			}
 			value := viper.GetUint64(FlagValue)
-			msg := types.NewMsgCall(from, callee, value, data)
+			msg := types.NewMsgCall(from.String(), callee.String(), value, data)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, &msg)
 		},
 	}
 	cmd.Flags().Bool(FlagRaw, false,
 		"set this flag to submit raw calldata, otherwise it takes function name and parameters as args")
 	cmd.Flags().Uint64(FlagValue, 0, "Value sent with transaction")
-	cmd = flags.PostCommands(cmd)[0]
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
-func parseCallCmd(cliCtx context.CLIContext, calleeString string, calleeAddr sdk.AccAddress, function string, args []string) ([]byte, []byte, error) {
-	accGetter := authtxb.NewAccountRetriever(cliCtx)
-	if err := accGetter.EnsureExists(calleeAddr); err != nil {
+func parseCallCmd(cliCtx client.Context, calleeString string, calleeAddr sdk.AccAddress, function string, args []string) ([]byte, []byte, error) {
+	accGetter := authtxb.AccountRetriever{}
+	if err := accGetter.EnsureExists(cliCtx, calleeAddr); err != nil {
 		return nil, nil, err
 	}
 
@@ -164,106 +177,118 @@ func parseCallCmd(cliCtx context.CLIContext, calleeString string, calleeAddr sdk
 	return abiSpec, data, nil
 }
 
+func queryAbi(cliCtx client.Context, queryRoute string, addr string) ([]byte, error) {
+	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/abi/%s", queryRoute, addr), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var out types.QueryResAbi
+	cliCtx.LegacyAmino.MustUnmarshalJSON(res, &out)
+	return out.Abi, nil
+}
+
 // GetCmdDeploy returns the CVM contract deploy transaction command.
-func GetCmdDeploy(cdc *codec.Codec) *cobra.Command {
+func GetCmdDeploy() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deploy <filename> <flags>..",
+		Use:   "deploy <filename>",
 		Short: "Deploy CVM contract(s)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, file []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-
-			from := cliCtx.GetFromAddress()
-			accGetter := authtxb.NewAccountRetriever(cliCtx)
-			if err := accGetter.EnsureExists(from); err != nil {
-				return err
-			}
-
-			var msgs []sdk.Msg
-			var err error
-			msgs, err = appendDeployMsgs(cmd, cliCtx, msgs, file[0])
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, msgs)
+
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+
+			from := clientCtx.GetFromAddress()
+			accGetter := authtxb.AccountRetriever{}
+			if err := accGetter.EnsureExists(clientCtx, from); err != nil {
+				return err
+			}
+
+			msgs, err := appendDeployMsgs(cmd, file[0])
+			if err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msgs...)
 		},
 	}
 	cmd.Flags().String(FlagABI, "", "name of ABI file (when deploying bytecode)")
 	cmd.Flags().Uint64(FlagValue, 0, "value sent with transaction")
 	cmd.Flags().String(FlagArgs, "", "constructor arguments")
-	cmd.Flags().String(FlagContract, "", "the name of the contract to be deployed")
 	cmd.Flags().Bool(FlagEWASM, false, "compile solidity contract to EWASM")
 	cmd.Flags().Bool(FlagRuntime, false, "runtime code")
-	cmd = flags.PostCommands(cmd)[0]
+	cmd.Flags().String(FlagMetadata, "", "the metadata files to be deployed along with the contract")
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
 
-func appendDeployMsgs(cmd *cobra.Command, cliCtx context.CLIContext, msgs []sdk.Msg, fileName string) ([]sdk.Msg, error) {
-	argumentsRaw := viper.GetString(FlagArgs)
-	arguments := strings.Split(argumentsRaw, ",")
-	deployContract := viper.GetString(FlagContract)
-
-	var target string
-	if len(deployContract) > 0 {
-		target = strings.ToUpper(deployContract)
-	} else {
-		target = strings.ToUpper(filepath.Base(fileName))
+func appendDeployMsgs(cmd *cobra.Command, fileName string) ([]sdk.Msg, error) {
+	var msgs []sdk.Msg
+	clientCtx, err := client.GetClientTxContext(cmd)
+	if err != nil {
+		return []sdk.Msg{}, err
 	}
 
-	resp, err := callEVM(cmd, fileName)
+	argsRaw := viper.GetString(FlagArgs)
+	arguments := strings.Split(argsRaw, ",")
+	code, err := ioutil.ReadFile(fileName)
+	codeStr := strings.Trim(string(code), "\n")
 	if err != nil {
 		return msgs, err
 	}
+	code, err = hex.DecodeString(codeStr)
+	if err != nil {
+		return msgs, err
+	}
+	codehash := crypto.Keccak256(code)
+
 	value := viper.GetUint64(FlagValue)
+	metadataFile := viper.GetString(FlagMetadata)
+	var metas []*payload.ContractMeta
+	if metadataFile != "" {
+		metadataBytes, err := ioutil.ReadFile(metadataFile)
+		if err != nil {
+			return msgs, err
+		}
+		metadataString := string(metadataBytes)
+		metas = append(metas, &payload.ContractMeta{
+			CodeHash: codehash,
+			Meta:     metadataString,
+		})
+	}
 
-	fileNameMatch := false
+	abiFile, err := cmd.Flags().GetString(FlagABI)
+	if err != nil {
+		return msgs, err
+	}
+	var abiBytes []byte
+	if abiFile != "" {
+		abiBytes, err = ioutil.ReadFile(abiFile)
+		if err != nil {
+			return msgs, err
+		}
+	}
+
 	logger := logging.NewNoopLogger()
-	for _, object := range resp.Objects {
-		code, err := hex.DecodeString(object.Contract.Code())
+
+	if len(argsRaw) > 0 {
+		callArgsBytes, err := parseData("", abiBytes, arguments, logger)
 		if err != nil {
 			return msgs, err
 		}
-
-		metadata, err := object.Contract.GetMetadata(logger)
-		if err != nil {
-			return msgs, err
-		}
-
-		var metas []*payload.ContractMeta
-		for codehash, metadata := range metadata {
-			metas = append(metas, &payload.ContractMeta{
-				CodeHash: codehash.Bytes(),
-				Meta:     metadata,
-			})
-		}
-
-		fileExtensionUpper := filepath.Ext(target)
-		fileNameUpper := strings.TrimSuffix(target, fileExtensionUpper)
-		objectNameUpper := strings.ToUpper(object.Objectname)
-		if fileNameUpper == objectNameUpper || fileExtensionUpper == ".BYTECODE" {
-			fileNameMatch = true
-			if len(argumentsRaw) > 0 {
-				callArgsBytes, err := parseData("", object.Contract.Abi, arguments, logger)
-				if err != nil {
-					return msgs, err
-				}
-				code = append(code, callArgsBytes...)
-			}
-			isEWASM := viper.GetBool(FlagEWASM)
-			isRuntime := viper.GetBool(FlagRuntime)
-			msg := types.NewMsgDeploy(cliCtx.GetFromAddress(), value, code, string(object.Contract.Abi), metas, isEWASM, isRuntime)
-			if err := msg.ValidateBasic(); err != nil {
-				return msgs, err
-			}
-			msgs = append(msgs, msg)
-		}
+		code = append(code, callArgsBytes...)
 	}
-	if !fileNameMatch {
-		return msgs, errors.New("contract name does not match the file name")
+	isEWASM := viper.GetBool(FlagEWASM)
+	isRuntime := viper.GetBool(FlagRuntime)
+	msg := types.NewMsgDeploy(clientCtx.GetFromAddress().String(), value, code, string(abiBytes), metas, isEWASM, isRuntime)
+	if err := msg.ValidateBasic(); err != nil {
+		return msgs, err
 	}
+	msgs = append(msgs, &msg)
 	return msgs, nil
 }
 
@@ -293,84 +318,4 @@ func parseData(function string, abiSpec []byte, args []string, logger *logging.L
 
 	data, _, err := abi.EncodeFunctionCall(string(abiSpec), function, logger, params...)
 	return data, err
-}
-
-func callEVM(cmd *cobra.Command, filename string) (*evm.Response, error) {
-	logger := logging.NewNoopLogger()
-
-	basename, workDir, err := compile.ResolveFilename(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	basenameSplit := strings.Split(basename, ".")
-	if len(basenameSplit) < 2 {
-		return nil, errFileExt
-	}
-
-	var resp *evm.Response
-
-	switch fileExt := basenameSplit[len(basenameSplit)-1]; fileExt {
-	case "sol":
-		if viper.GetBool(FlagEWASM) {
-			resp, err = evm.WASM(basename, workDir, logger)
-		} else {
-			resp, err = evm.EVM(basename, false, workDir, nil, logger)
-		}
-	case "ds":
-		resp, err = compile.DeepseaEVM(basename, workDir, logger)
-	case "bc", "bytecode", "wasm":
-		abiFile, err := cmd.Flags().GetString(FlagABI)
-		if err != nil {
-			return nil, err
-		}
-		resp, err = compile.BytecodeEVM(basename, workDir, abiFile, logger)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, errFileExt
-	}
-	if err != nil {
-		return nil, err
-	}
-	if resp.Error != "" {
-		return nil, errors.New(resp.Error)
-	}
-	if len(resp.Objects) < 1 {
-		return nil, errors.New("compilation result must contain at least one object")
-	}
-
-	return resp, nil
-
-}
-
-// QueryTxCmd implements the default command for a tx query.
-func QueryTxCmd(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "tx [hash]",
-		Short: "Query for a transaction by hash in a committed block",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			output, err := utils.QueryTx(cliCtx, args[0])
-			if err != nil {
-				return err
-			}
-
-			if output.Empty() {
-				return fmt.Errorf("no transaction found with hash %s", args[0])
-			}
-
-			return cliCtx.PrintOutput(output)
-		},
-	}
-
-	cmd.Flags().StringP(flags.FlagNode, "n", "tcp://localhost:26657", "Node to connect to")
-	viper.BindPFlag(flags.FlagNode, cmd.Flags().Lookup(flags.FlagNode))
-	cmd.Flags().Bool(flags.FlagTrustNode, false, "Trust connected full node (don't verify proofs for responses)")
-	viper.BindPFlag(flags.FlagTrustNode, cmd.Flags().Lookup(flags.FlagTrustNode))
-
-	return cmd
 }

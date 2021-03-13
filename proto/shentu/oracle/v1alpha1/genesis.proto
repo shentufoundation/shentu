@@ -1,0 +1,20 @@
+syntax = "proto3";
+package shentu.oracle.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "shentu/oracle/v1alpha1/oracle.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/oracle/types";
+
+message GenesisState {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    repeated Operator operators = 1 [ (gogoproto.moretags) = "yaml:\"operators\"", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.Coin total_collateral = 2 [ (gogoproto.moretags) = "yaml:\"total_collateral\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    LockedPoolParams pool_params = 3 [ (gogoproto.moretags) = "yaml:\"pool_params\"" ];
+    TaskParams task_params = 4 [ (gogoproto.moretags) = "yaml:\"task_params\"" ];
+    repeated Withdraw withdraws = 5 [ (gogoproto.moretags) = "yaml:\"withdraws\"", (gogoproto.nullable) = false ];
+    repeated Task tasks = 6 [ (gogoproto.moretags) = "yaml:\"tasks\"", (gogoproto.nullable) = false ];
+}

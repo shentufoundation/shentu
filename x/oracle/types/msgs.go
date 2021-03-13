@@ -8,19 +8,24 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-type MsgCreateOperator struct {
-	Address    sdk.AccAddress
-	Collateral sdk.Coins
-	Proposer   sdk.AccAddress
-	Name       string
-}
+const (
+	TypeMsgCreateOperator   = "create_operator"
+	TypeMsgRemoveOperator   = "remove_operator"
+	TypeMsgAddCollateral    = "add_collateral"
+	TypeMsgReduceCollateral = "reduce_collateral"
+	TypeMsgWithdrawReward   = "withdraw_reward"
+	TypeMsgCreateTask       = "create_task"
+	TypeMsgRespondToTask    = "respond_to_task"
+	TypeMsgInquireTask      = "inquire_task"
+	TypeMsgDeleteTask       = "delete_task"
+)
 
 // NewMsgCreateOperator returns the message for creating an operator.
-func NewMsgCreateOperator(address sdk.AccAddress, collateral sdk.Coins, proposer sdk.AccAddress, name string) MsgCreateOperator {
-	return MsgCreateOperator{
-		Address:    address,
+func NewMsgCreateOperator(address sdk.AccAddress, collateral sdk.Coins, proposer sdk.AccAddress, name string) *MsgCreateOperator {
+	return &MsgCreateOperator{
+		Address:    address.String(),
 		Collateral: collateral,
-		Proposer:   proposer,
+		Proposer:   proposer.String(),
 		Name:       name,
 	}
 }
@@ -29,12 +34,16 @@ func NewMsgCreateOperator(address sdk.AccAddress, collateral sdk.Coins, proposer
 func (MsgCreateOperator) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgCreateOperator) Type() string { return EventTypeCreateOperator }
+func (MsgCreateOperator) Type() string { return TypeMsgCreateOperator }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgCreateOperator) ValidateBasic() error {
-	if m.Address == nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, string(m.Address.Bytes()))
+	addr, err := sdk.AccAddressFromBech32(m.Address)
+	if err != nil {
+		panic(err)
+	}
+	if addr.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, string(addr.Bytes()))
 	}
 	if m.Collateral.IsAnyNegative() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.Collateral.String())
@@ -53,19 +62,18 @@ func (m MsgCreateOperator) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgCreateOperator) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{m.Address}
-}
-
-type MsgRemoveOperator struct {
-	Address  sdk.AccAddress
-	Proposer sdk.AccAddress
+	addr, err := sdk.AccAddressFromBech32(m.Address)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
 }
 
 // NewMsgRemoveOperator returns the message for removing an operator.
-func NewMsgRemoveOperator(address sdk.AccAddress, proposer sdk.AccAddress) MsgRemoveOperator {
-	return MsgRemoveOperator{
-		Address:  address,
-		Proposer: proposer,
+func NewMsgRemoveOperator(address sdk.AccAddress, proposer sdk.AccAddress) *MsgRemoveOperator {
+	return &MsgRemoveOperator{
+		Address:  address.String(),
+		Proposer: proposer.String(),
 	}
 }
 
@@ -73,12 +81,16 @@ func NewMsgRemoveOperator(address sdk.AccAddress, proposer sdk.AccAddress) MsgRe
 func (MsgRemoveOperator) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgRemoveOperator) Type() string { return EventTypeRemoveOperator }
+func (MsgRemoveOperator) Type() string { return TypeMsgRemoveOperator }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgRemoveOperator) ValidateBasic() error {
-	if m.Address == nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, string(m.Address.Bytes()))
+	addr, err := sdk.AccAddressFromBech32(m.Address)
+	if err != nil {
+		panic(err)
+	}
+	if addr.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, string(addr.Bytes()))
 	}
 	return nil
 }
@@ -94,18 +106,17 @@ func (m MsgRemoveOperator) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgRemoveOperator) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{m.Proposer}
-}
-
-type MsgAddCollateral struct {
-	Address             sdk.AccAddress
-	CollateralIncrement sdk.Coins
+	addr, err := sdk.AccAddressFromBech32(m.Proposer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
 }
 
 // NewMsgAddCollateral returns the message for adding collateral.
-func NewMsgAddCollateral(address sdk.AccAddress, increment sdk.Coins) MsgAddCollateral {
-	return MsgAddCollateral{
-		Address:             address,
+func NewMsgAddCollateral(address sdk.AccAddress, increment sdk.Coins) *MsgAddCollateral {
+	return &MsgAddCollateral{
+		Address:             address.String(),
 		CollateralIncrement: increment,
 	}
 }
@@ -114,12 +125,16 @@ func NewMsgAddCollateral(address sdk.AccAddress, increment sdk.Coins) MsgAddColl
 func (MsgAddCollateral) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgAddCollateral) Type() string { return EventTypeAddCollateral }
+func (MsgAddCollateral) Type() string { return TypeMsgAddCollateral }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgAddCollateral) ValidateBasic() error {
-	if m.Address == nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, string(m.Address.Bytes()))
+	addr, err := sdk.AccAddressFromBech32(m.Address)
+	if err != nil {
+		panic(err)
+	}
+	if addr.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, string(addr.Bytes()))
 	}
 	if m.CollateralIncrement.IsAnyNegative() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.CollateralIncrement.String())
@@ -138,18 +153,17 @@ func (m MsgAddCollateral) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgAddCollateral) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{m.Address}
-}
-
-type MsgReduceCollateral struct {
-	Address             sdk.AccAddress
-	CollateralDecrement sdk.Coins
+	addr, err := sdk.AccAddressFromBech32(m.Address)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
 }
 
 // NewMsgReduceCollateral returns the message for reducing collateral.
-func NewMsgReduceCollateral(address sdk.AccAddress, decrement sdk.Coins) MsgReduceCollateral {
-	return MsgReduceCollateral{
-		Address:             address,
+func NewMsgReduceCollateral(address sdk.AccAddress, decrement sdk.Coins) *MsgReduceCollateral {
+	return &MsgReduceCollateral{
+		Address:             address.String(),
 		CollateralDecrement: decrement,
 	}
 }
@@ -158,12 +172,16 @@ func NewMsgReduceCollateral(address sdk.AccAddress, decrement sdk.Coins) MsgRedu
 func (MsgReduceCollateral) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgReduceCollateral) Type() string { return EventTypeReduceCollateral }
+func (MsgReduceCollateral) Type() string { return TypeMsgReduceCollateral }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgReduceCollateral) ValidateBasic() error {
-	if m.Address == nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, string(m.Address.Bytes()))
+	addr, err := sdk.AccAddressFromBech32(m.Address)
+	if err != nil {
+		panic(err)
+	}
+	if addr.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, string(addr.Bytes()))
 	}
 	if m.CollateralDecrement.IsAnyNegative() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.CollateralDecrement.String())
@@ -182,17 +200,17 @@ func (m MsgReduceCollateral) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgReduceCollateral) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{m.Address}
-}
-
-type MsgWithdrawReward struct {
-	Address sdk.AccAddress
+	addr, err := sdk.AccAddressFromBech32(m.Address)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
 }
 
 // NewMsgWithdrawReward returns the message for withdrawing reward.
-func NewMsgWithdrawReward(address sdk.AccAddress) MsgWithdrawReward {
-	return MsgWithdrawReward{
-		Address: address,
+func NewMsgWithdrawReward(address sdk.AccAddress) *MsgWithdrawReward {
+	return &MsgWithdrawReward{
+		Address: address.String(),
 	}
 }
 
@@ -200,12 +218,16 @@ func NewMsgWithdrawReward(address sdk.AccAddress) MsgWithdrawReward {
 func (MsgWithdrawReward) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgWithdrawReward) Type() string { return EventTypeWithdrawReward }
+func (MsgWithdrawReward) Type() string { return TypeMsgWithdrawReward }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgWithdrawReward) ValidateBasic() error {
-	if m.Address == nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, string(m.Address.Bytes()))
+	addr, err := sdk.AccAddressFromBech32(m.Address)
+	if err != nil {
+		panic(err)
+	}
+	if addr.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, string(addr.Bytes()))
 	}
 	return nil
 }
@@ -221,29 +243,22 @@ func (m MsgWithdrawReward) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgWithdrawReward) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{m.Address}
-}
-
-// MsgCreateTask is the message for creating a task.
-type MsgCreateTask struct {
-	Contract      string
-	Function      string
-	Bounty        sdk.Coins
-	Description   string
-	Creator       sdk.AccAddress
-	Wait          int64
-	ValidDuration time.Duration
+	addr, err := sdk.AccAddressFromBech32(m.Address)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
 }
 
 // NewMsgCreateTask returns a new message for creating a task.
 func NewMsgCreateTask(contract, function string, bounty sdk.Coins, description string,
-	creator sdk.AccAddress, wait int64, validDuration time.Duration) MsgCreateTask {
-	return MsgCreateTask{
+	creator sdk.AccAddress, wait int64, validDuration time.Duration) *MsgCreateTask {
+	return &MsgCreateTask{
 		Contract:      contract,
 		Function:      function,
 		Bounty:        bounty,
 		Description:   description,
-		Creator:       creator,
+		Creator:       creator.String(),
 		Wait:          wait,
 		ValidDuration: validDuration,
 	}
@@ -253,7 +268,7 @@ func NewMsgCreateTask(contract, function string, bounty sdk.Coins, description s
 func (MsgCreateTask) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgCreateTask) Type() string { return EventTypeCreateTask }
+func (MsgCreateTask) Type() string { return TypeMsgCreateTask }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgCreateTask) ValidateBasic() error {
@@ -271,24 +286,20 @@ func (m MsgCreateTask) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgCreateTask) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{m.Creator}
-}
-
-// MsgTaskResponse is the message for responding to a task.
-type MsgTaskResponse struct {
-	Contract string
-	Function string
-	Score    int64
-	Operator sdk.AccAddress
+	addr, err := sdk.AccAddressFromBech32(m.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
 }
 
 // NewMsgTaskResponse returns a new message for responding to a task.
-func NewMsgTaskResponse(contract, function string, score int64, operator sdk.AccAddress) MsgTaskResponse {
-	return MsgTaskResponse{
+func NewMsgTaskResponse(contract, function string, score int64, operator sdk.AccAddress) *MsgTaskResponse {
+	return &MsgTaskResponse{
 		Contract: contract,
 		Function: function,
 		Score:    score,
-		Operator: operator,
+		Operator: operator.String(),
 	}
 }
 
@@ -296,7 +307,7 @@ func NewMsgTaskResponse(contract, function string, score int64, operator sdk.Acc
 func (MsgTaskResponse) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgTaskResponse) Type() string { return EventTypeRespondToTask }
+func (MsgTaskResponse) Type() string { return TypeMsgRespondToTask }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgTaskResponse) ValidateBasic() error {
@@ -314,24 +325,20 @@ func (m MsgTaskResponse) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgTaskResponse) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{m.Operator}
-}
-
-// MsgInquiryTask is the message for inquiry a task.
-type MsgInquiryTask struct {
-	Contract string
-	Function string
-	TxHash   string
-	Inquirer sdk.AccAddress
+	addr, err := sdk.AccAddressFromBech32(m.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
 }
 
 // NewMsgInquiryTask returns a new MsgInquiryTask instance.
-func NewMsgInquiryTask(contract, function, txhash string, inquirer sdk.AccAddress) MsgInquiryTask {
-	return MsgInquiryTask{
+func NewMsgInquiryTask(contract, function, txhash string, inquirer sdk.AccAddress) *MsgInquiryTask {
+	return &MsgInquiryTask{
 		Contract: contract,
 		Function: function,
 		TxHash:   txhash,
-		Inquirer: inquirer,
+		Inquirer: inquirer.String(),
 	}
 }
 
@@ -339,7 +346,7 @@ func NewMsgInquiryTask(contract, function, txhash string, inquirer sdk.AccAddres
 func (MsgInquiryTask) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgInquiryTask) Type() string { return EventTypeInquireTask }
+func (MsgInquiryTask) Type() string { return TypeMsgInquireTask }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgInquiryTask) ValidateBasic() error {
@@ -357,24 +364,20 @@ func (m MsgInquiryTask) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgInquiryTask) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{m.Inquirer}
-}
-
-// MsgDeleteTask is the msg type for delete a task.
-type MsgDeleteTask struct {
-	Contract string
-	Function string
-	Force    bool
-	Deleter  sdk.AccAddress
+	addr, err := sdk.AccAddressFromBech32(m.Inquirer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
 }
 
 // NewMsgDeleteTask returns a new MsgDeleteTask instance.
-func NewMsgDeleteTask(contract, function string, force bool, deleter sdk.AccAddress) MsgDeleteTask {
-	return MsgDeleteTask{
+func NewMsgDeleteTask(contract, function string, force bool, deleter sdk.AccAddress) *MsgDeleteTask {
+	return &MsgDeleteTask{
 		Contract: contract,
 		Function: function,
 		Force:    force,
-		Deleter:  deleter,
+		Deleter:  deleter.String(),
 	}
 }
 
@@ -382,7 +385,7 @@ func NewMsgDeleteTask(contract, function string, force bool, deleter sdk.AccAddr
 func (MsgDeleteTask) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (MsgDeleteTask) Type() string { return EventTypeDeleteTask }
+func (MsgDeleteTask) Type() string { return TypeMsgDeleteTask }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgDeleteTask) ValidateBasic() error {
@@ -400,5 +403,9 @@ func (m MsgDeleteTask) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgDeleteTask) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{m.Deleter}
+	addr, err := sdk.AccAddressFromBech32(m.Deleter)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
 }

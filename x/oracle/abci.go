@@ -8,7 +8,7 @@ import (
 	"github.com/certikfoundation/shentu/x/oracle/keeper"
 )
 
-func BeginBlocker(ctx sdk.Context, k Keeper) {
+func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	k.FinalizeMatureWithdraws(ctx)
 }
 
@@ -38,7 +38,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 				sdk.NewAttribute("bounty", task.Bounty.String()),
 				sdk.NewAttribute("description", task.Description),
 				sdk.NewAttribute("expiration", task.Expiration.String()),
-				sdk.NewAttribute("creator", task.Creator.String()),
+				sdk.NewAttribute("creator", task.Creator),
 				sdk.NewAttribute("responses", task.Responses.String()),
 				sdk.NewAttribute("result", task.Result.String()),
 				sdk.NewAttribute("end_block_height", strconv.FormatInt(task.ClosingBlock, 10)),

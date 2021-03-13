@@ -1,4 +1,4 @@
-FROM golang:1.14
+FROM golang:1.15
 
 LABEL name="CertiK Chain"
 LABEL maintainer="CertiK"
@@ -11,4 +11,4 @@ WORKDIR /shentu
 
 RUN make install
 
-CMD ["certikd"]
+CMD ["certik"]

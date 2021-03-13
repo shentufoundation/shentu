@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
@@ -10,16 +11,15 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
-
-	"github.com/cosmos/cosmos-sdk/codec"
 )
 
 func TestSimAppExport(t *testing.T) {
+	encodingConfig := MakeEncodingConfig()
 	db := dbm.NewMemDB()
-	app := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, 1)
+	app := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, DefaultNodeHome, 1, encodingConfig, EmptyAppOptions{})
 
-	genesisState := ModuleBasics.DefaultGenesis()
-	stateBytes, err := codec.MarshalJSONIndent(app.cdc, genesisState)
+	genesisState := ModuleBasics.DefaultGenesis(encodingConfig.Marshaler)
+	stateBytes, err := json.MarshalIndent(genesisState, "", "  ")
 	require.NoError(t, err)
 
 	// initialize the chain
@@ -32,21 +32,21 @@ func TestSimAppExport(t *testing.T) {
 	app.Commit()
 
 	// make a new app object with the db so that initchain hasn't been called
-	app2 := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, 1)
-	_, _, err = app2.ExportAppStateAndValidators(false, []string{})
+	app2 := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, DefaultNodeHome, 1, encodingConfig, EmptyAppOptions{})
+	_, err = app2.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
-	_, _, err = app2.ExportAppStateAndValidators(true, []string{})
+	_, err = app2.ExportAppStateAndValidators(true, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators for zero height should not have an error")
 }
 
 // ensure that blacklisted addresses are properly set in bank keeper
 func TestBlackListedAddrs(t *testing.T) {
 	db := dbm.NewMemDB()
-	app := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, 1)
+	app := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, DefaultNodeHome, 1, MakeEncodingConfig(), EmptyAppOptions{})
 
 	for acc := range maccPerms {
 		fmt.Println(acc)
-		require.Equal(t, !allowedReceivingModAcc[acc], app.bankKeeper.BlacklistedAddr(app.supplyKeeper.GetModuleAddress(acc)))
+		require.Equal(t, !allowedReceivingModAcc[acc], app.bankKeeper.BlockedAddr(app.accountKeeper.GetModuleAddress(acc)))
 	}
 }
 
@@ -56,4 +56,12 @@ func TestGetMaccPerms(t *testing.T) {
 		dup[k] = v
 	}
 	require.Equal(t, maccPerms, dup, "duplicated module account permissions differed from actual module account permissions")
+}
+
+// EmptyAppOptions is a stub implementing AppOptions
+type EmptyAppOptions struct{}
+
+// Get implements AppOptions
+func (ao EmptyAppOptions) Get(o string) interface{} {
+	return nil
 }
