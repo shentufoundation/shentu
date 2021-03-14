@@ -110,8 +110,8 @@ func GetCmdSponsor() *cobra.Command {
 			return cliCtx.PrintProto(res)
 		},
 	}
-	flags.AddQueryFlagsToCmd(cmd)
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 

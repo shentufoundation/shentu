@@ -2,17 +2,14 @@ package app
 
 import (
 	"encoding/json"
-
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-
 	"log"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
@@ -37,12 +34,16 @@ func (app *CertiKApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteL
 	}
 
 	validators, err := staking.WriteValidators(ctx, app.stakingKeeper.Keeper)
+	if err != nil {
+		return servertypes.ExportedApp{}, err
+	}
+
 	return servertypes.ExportedApp{
 		AppState:        appState,
 		Validators:      validators,
 		Height:          height,
 		ConsensusParams: app.BaseApp.GetConsensusParams(ctx),
-	}, err
+	}, nil
 }
 
 // prepForZeroHeightGenesis prepares for fresh start at zero height.
