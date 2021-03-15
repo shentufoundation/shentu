@@ -38,12 +38,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [2.0.0] - TBD
 
 ### Client Breaking Changes
-* (APP) [\#231](https://github.com/certikfoundation/shentu/pull/231) rename default binary name to `certik`
+* (app) [\#241](https://github.com/certikfoundation/shentu/pull/241) Rename default binary name to `certik`
 
 ### API Breaking Changes
-* (CVM) [\#231](https://github.com/certikfoundation/shentu/pull/231) Remove direct solidity file deployment.
+* (cvm) [\#231](https://github.com/certikfoundation/shentu/pull/231) Remove direct solidity file deployment.
 
 ### State Machine Breaking Changes
+* (x/shield) [\#244](https://github.com/certikfoundation/shentu/pull/244) Fix shield query & state export
 ### Features
 ### Improvements
 * [\#230](https://github.com/certikfoundation/shentu/pull/230) Optimized shield invariant & removed crisis module from endblocker

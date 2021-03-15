@@ -2,15 +2,14 @@ package app
 
 import (
 	"encoding/json"
-
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-
 	"log"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
@@ -30,7 +29,6 @@ func (app *CertiKApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteL
 
 	genState := app.mm.ExportGenesis(ctx, app.appCodec)
 	appState, err := json.MarshalIndent(genState, "", "  ")
-
 	if err != nil {
 		return servertypes.ExportedApp{}, err
 	}
@@ -77,7 +75,7 @@ func (app *CertiKApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 	// withdraw all validator commission
 	app.stakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
 		_, err := app.distrKeeper.WithdrawValidatorCommission(ctx, val.GetOperator())
-		if err != nil {
+		if err != distrtypes.ErrNoValidatorCommission && err != nil {
 			panic(err)
 		}
 		return false

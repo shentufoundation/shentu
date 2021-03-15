@@ -151,7 +151,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 
 		// sponsor
 		sponsor := strings.ToLower(simtypes.RandStringOfLength(r, 10))
-		if _, found := k.GetPoolBySponsor(ctx, sponsor); found {
+		if _, found := k.GetPoolsBySponsor(ctx, sponsor); found {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, "pool not found for given sponsor"), nil, nil
 		}
 		// serviceFees

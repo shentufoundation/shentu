@@ -20,23 +20,29 @@ func (q Keeper) Pool(c context.Context, req *types.QueryPoolRequest) (*types.Que
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	var pool types.Pool
-	var found bool
-	if req.Sponsor != "" {
-		// query by sponsor
-		pool, found = q.GetPoolBySponsor(ctx, req.Sponsor)
-		if !found {
-			return nil, status.Errorf(codes.NotFound, "pool under sponsor %s doesn't exist", req.Sponsor)
-		}
-	} else {
-		// query by ID
-		pool, found = q.GetPool(ctx, req.PoolId)
-		if !found {
-			return nil, status.Errorf(codes.NotFound, "pool under ID %d doesn't exist", req.PoolId)
-		}
+	// query by ID
+	pool, found := q.GetPool(ctx, req.PoolId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "pool under ID %d doesn't exist", req.PoolId)
 	}
 
 	return &types.QueryPoolResponse{Pool: pool}, nil
+}
+
+// Pool queries a pool based on the ID or sponsor.
+func (q Keeper) Sponsor(c context.Context, req *types.QuerySponsorRequest) (*types.QuerySponsorResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	// query by ID
+	pool, found := q.GetPoolsBySponsor(ctx, req.Sponsor)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "there is no pool with sponsor %s", req.Sponsor)
+	}
+
+	return &types.QuerySponsorResponse{Pools: pool}, nil
 }
 
 // Pools queries all pools.

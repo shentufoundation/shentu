@@ -12,7 +12,11 @@ option go_package = "github.com/certikfoundation/shentu/x/shield/types";
 // Query defines the gRPC querier service for shield module
 service Query {
   rpc Pool(QueryPoolRequest) returns (QueryPoolResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/pool/{pool_id}/sponsor/{sponsor}";
+    option (google.api.http).get = "/shentu/shield/v1alpha1/pool/{pool_id}";
+  }
+
+  rpc Sponsor(QuerySponsorRequest) returns (QuerySponsorResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/sponsor/{sponsor}";
   }
 
   rpc Pools(QueryPoolsRequest) returns (QueryPoolsResponse) {
@@ -71,13 +75,19 @@ service Query {
 
 message QueryPoolRequest {
   uint64 pool_id = 1;
-  string sponsor = 2;
 }
 
 message QueryPoolResponse {
-  Pool pool = 1 [(gogoproto.nullable) = false];
+ Pool pool = 1 [(gogoproto.nullable) = false];
 }
 
+message QuerySponsorRequest {
+  string sponsor = 1;
+}
+
+message QuerySponsorResponse {
+  repeated Pool pools = 1 [(gogoproto.nullable) = false];
+}
 
 message QueryPoolsRequest {
 }
