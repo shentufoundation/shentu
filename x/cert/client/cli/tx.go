@@ -249,7 +249,7 @@ func GetCmdRevokeCertificate() *cobra.Command {
 				return err
 			}
 
-			certificateID, err := strconv.ParseUint(args[0],10, 64)
+			certificateID, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				return err
 			}
