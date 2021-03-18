@@ -15,7 +15,7 @@ func NewGenesisState(constantFee sdk.Coin, startingCertificateID CertificateID) 
 
 // DefaultGenesisState creates a default GenesisState object
 func DefaultGenesisState() *GenesisState {
-	return &GenesisState{}
+	return &GenesisState{NextCertificateId: 1}
 }
 
 // ValidateGenesis - validate crisis genesis data

@@ -259,11 +259,12 @@ func (c CompilationCertificate) SetCertificateID(id CertificateID) {
 
 // CertGenesisState - cert genesis state
 type CertGenesisState struct {
-	Certifiers   []Certifier   `json:"certifiers"`
-	Validators   []Validator   `json:"validators"`
-	Platforms    []Platform    `json:"platforms"`
-	Certificates []Certificate `json:"certificates"`
-	Libraries    []Library     `json:"libraries"`
+	Certifiers        []Certifier   `json:"certifiers"`
+	Validators        []Validator   `json:"validators"`
+	Platforms         []Platform    `json:"platforms"`
+	Certificates      []Certificate `json:"certificates"`
+	Libraries         []Library     `json:"libraries"`
+	NextCertificateId uint64        `json:"next_certificate_id"`
 }
 
 func RegisterCertLegacyAminoCodec(cdc *codec.LegacyAmino) {
@@ -336,10 +337,11 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 	}
 
 	return &certtypes.GenesisState{
-		Certifiers:   newCertifiers,
-		Validators:   newValidators,
-		Platforms:    newPlatforms,
-		Certificates: newCertificates,
-		Libraries:    newLibraries,
+		Certifiers:        newCertifiers,
+		Validators:        newValidators,
+		Platforms:         newPlatforms,
+		Certificates:      newCertificates,
+		Libraries:         newLibraries,
+		NextCertificateId: oldGenState.NextCertificateId,
 	}
 }

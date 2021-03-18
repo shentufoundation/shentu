@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"math"
@@ -322,4 +323,19 @@ func (k Keeper) GetCertifiedIdentities(ctx sdk.Context) []sdk.AccAddress {
 		return false
 	})
 	return identities
+}
+
+// SetNextCertificateID sets the next certificate ID to store.
+func (k Keeper) SetNextCertificateID(ctx sdk.Context, id uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, id)
+	store.Set(types.NextCertificateIDStoreKey(), bz)
+}
+
+// GetNextCertificateID gets the next certificate ID from store.
+func (k Keeper) GetNextCertificateID(ctx sdk.Context) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	opBz := store.Get(types.NextCertificateIDStoreKey())
+	return binary.LittleEndian.Uint64(opBz)
 }

@@ -18,6 +18,7 @@ message GenesisState {
     repeated Platform platforms = 3 [ (gogoproto.moretags) = "yaml:\"platforms\"", (gogoproto.nullable) = false ];
     repeated google.protobuf.Any certificates = 4 [ (gogoproto.moretags) = "yaml:\"certificates\"", (cosmos_proto.accepts_interface) = "Certificate" ];
     repeated Library libraries = 5 [ (gogoproto.moretags) = "yaml:\"libraries\"", (gogoproto.nullable) = false ];
+    uint64 next_certificate_id = 6 [ (gogoproto.moretags) = "yaml:\"next_certificate_id\"" ];
 }
 
 // Platform is a genesis type for certified platform of a validator

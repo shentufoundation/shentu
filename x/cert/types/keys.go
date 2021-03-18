@@ -34,6 +34,9 @@ var (
 
 	// certifierAliasStoreKeyPrefix is the prefix of certifier alias kv-store keys.
 	certifierAliasStoreKeyPrefix = []byte{0x7}
+
+	// nextCertificateIDKeyPrefix is the prefix of the next certificate ID to assign.
+	nextCertificateIDKeyPrefix = []byte{0x08}
 )
 
 // CertifierStoreKey returns the kv-store key for the certifier registration.
@@ -125,4 +128,9 @@ func PlatformStoreKey(validator cryptotypes.PubKey) []byte {
 // PlatformsStoreKey returns the kv-store key for accessing all platform certificates.
 func PlatformsStoreKey() []byte {
 	return platformStoreKeyPrefix
+}
+
+// NextCertificateIDStoreKey returns the kv-store key for next certificate ID to assign.
+func NextCertificateIDStoreKey() []byte {
+	return nextCertificateIDKeyPrefix
 }

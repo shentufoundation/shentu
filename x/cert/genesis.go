@@ -23,6 +23,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	platforms := data.Platforms
 	certificates := data.Certificates
 	libraries := data.Libraries
+	nextCertificateID := data.NextCertificateId
 
 	for _, certifier := range certifiers {
 		k.SetCertifier(ctx, certifier)
@@ -71,6 +72,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 		}
 		k.SetLibrary(ctx, libAddr, publisherAddr)
 	}
+	k.SetNextCertificateID(ctx, nextCertificateID)
 }
 
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis.
@@ -80,6 +82,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	platforms := k.GetAllPlatforms(ctx)
 	certificates := k.GetAllCertificates(ctx)
 	libraries := k.GetAllLibraries(ctx)
+	nextCertificateID := k.GetNextCertificateID(ctx)
 
 	certificateAnys := make([]*codectypes.Any, len(certificates))
 	for i, certificate := range certificates {
@@ -95,10 +98,11 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	}
 
 	return &types.GenesisState{
-		Certifiers:   certifiers,
-		Validators:   validators,
-		Platforms:    platforms,
-		Certificates: certificateAnys,
-		Libraries:    libraries,
+		Certifiers:        certifiers,
+		Validators:        validators,
+		Platforms:         platforms,
+		Certificates:      certificateAnys,
+		Libraries:         libraries,
+		NextCertificateId: nextCertificateID,
 	}
 }
