@@ -59,7 +59,6 @@ message GeneralCertificate {
     RequestContent req_content = 3 [ (gogoproto.moretags) = "yaml:\"request_content\"" ];
     string cert_description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     string cert_certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
-    string cert_tx_hash = 6 [ (gogoproto.moretags) = "yaml:\"txhash\"" ];
 }
 
 message CompilationCertificateContent {
@@ -81,7 +80,6 @@ message CompilationCertificate {
     CompilationCertificateContent cert_content = 5 [ (gogoproto.moretags) = "yaml:\"certificate_content\"" ];
     string cert_description = 6 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     string cert_certifier = 7 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
-    string cert_tx_hash = 8 [ (gogoproto.moretags) = "yaml:\"txhash\"" ];
 }
 
 // Validator is a type for certified validator.

@@ -131,7 +131,6 @@ func (q Querier) Certificate(c context.Context, req *types.QueryCertificateReque
 		CertificateContent: certificate.FormattedCertificateContent(),
 		Description:        certificate.Description(),
 		Certifier:          certificate.Certifier().String(),
-		TxHash:             certificate.TxHash(),
 	}, nil
 }
 
@@ -178,7 +177,6 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 			CertificateContent: certificate.FormattedCertificateContent(),
 			Description:        certificate.Description(),
 			Certifier:          certificate.Certifier().String(),
-			TxHash:             certificate.TxHash(),
 		}
 	}
 

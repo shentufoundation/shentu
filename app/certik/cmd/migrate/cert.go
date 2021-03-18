@@ -99,13 +99,11 @@ type Certificate interface {
 	CertificateContent() string
 	FormattedCertificateContent() []KVPair
 	Description() string
-	TxHash() string
 
 	Bytes(*codec.LegacyAmino) []byte
 	String() string
 
 	SetCertificateID(CertificateID)
-	SetTxHash(string)
 }
 
 // Library is a type for certified libraries.
@@ -124,7 +122,6 @@ type GeneralCertificate struct {
 	ReqContent      RequestContent  `json:"request_content"`
 	CertDescription string          `json:"description"`
 	CertCertifier   sdk.AccAddress  `json:"certifier"`
-	CertTxHash      string          `json:"txhash"`
 }
 
 // ID returns ID of the certificate.
@@ -162,11 +159,6 @@ func (c GeneralCertificate) Description() string {
 	return c.CertDescription
 }
 
-// TxHash returns the hash of the tx when the certificate is issued.
-func (c GeneralCertificate) TxHash() string {
-	return c.CertTxHash
-}
-
 // Bytes returns a byte array for the certificate.
 func (c GeneralCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
 	return cdc.MustMarshalBinaryLengthPrefixed(c)
@@ -180,20 +172,14 @@ func (c GeneralCertificate) String() string {
 		"RequestContent:\n%s\n"+
 		"CertificateContent:\n%s\n"+
 		"Description: %s\n"+
-		"Certifier: %s\n"+
-		"TxHash: %s\n",
+		"Certifier: %s\n",
 		c.CertID.String(), c.ReqContent.RequestContent, c.CertificateContent(),
-		c.Description(), c.CertCertifier.String(), c.CertTxHash)
+		c.Description(), c.CertCertifier.String())
 }
 
 // SetCertificateID provides a method to set an ID for the certificate.
 func (c GeneralCertificate) SetCertificateID(id CertificateID) {
 	c.CertID = id
-}
-
-// SetTxHash provides a method to set txhash of the certificate.
-func (c GeneralCertificate) SetTxHash(txhash string) {
-	c.CertTxHash = txhash
 }
 
 // CompilationCertificateContent defines type for the compilation certificate content.
@@ -211,7 +197,6 @@ type CompilationCertificate struct {
 	CertContent      CompilationCertificateContent `json:"certificate_content"`
 	CertDescription  string                        `json:"description"`
 	CertCertifier    sdk.AccAddress                `json:"certifier"`
-	CertTxHash       string                        `json:"txhash"`
 }
 
 // ID returns ID of the certificate.
@@ -249,11 +234,6 @@ func (c CompilationCertificate) Description() string {
 	return c.CertDescription
 }
 
-// TxHash returns the hash of the tx when the certificate is issued.
-func (c CompilationCertificate) TxHash() string {
-	return c.CertTxHash
-}
-
 // Bytes returns a byte array for the certificate.
 func (c CompilationCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
 	return cdc.MustMarshalBinaryLengthPrefixed(c)
@@ -267,20 +247,14 @@ func (c CompilationCertificate) String() string {
 		"RequestContent:\n%s\n"+
 		"CertificateContent:\n%s\n"+
 		"Description: %s\n"+
-		"Certifier: %s\n"+
-		"TxHash: %s\n",
+		"Certifier: %s\n",
 		c.CertID.String(), c.ReqContent.RequestContent, c.CertificateContent(),
-		c.Description(), c.CertCertifier.String(), c.CertTxHash)
+		c.Description(), c.CertCertifier.String())
 }
 
 // SetCertificateID provides a method to set an ID for the certificate.
 func (c CompilationCertificate) SetCertificateID(id CertificateID) {
 	c.CertID = id
-}
-
-// SetTxHash provides a method to set txhash of the certificate.
-func (c CompilationCertificate) SetTxHash(txhash string) {
-	c.CertTxHash = txhash
 }
 
 // CertGenesisState - cert genesis state
@@ -341,7 +315,6 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 			ReqContent:      &reqContent,
 			CertDescription: c.Description(),
 			CertCertifier:   c.Certifier().String(),
-			CertTxHash:      c.TxHash(),
 		}
 		msg, ok := newCert.(proto.Message)
 		if !ok {

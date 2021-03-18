@@ -92,7 +92,6 @@ message QueryCertificateResponse {
     repeated KVPair certificate_content = 4 [ (gogoproto.nullable) = false ];
     string description = 5;
     string certifier = 6;
-    string tx_hash = 7;
 }
 
 message QueryCertificatesRequest {

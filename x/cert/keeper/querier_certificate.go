@@ -35,7 +35,6 @@ type QueryResCertificate struct {
 	CertificateContent []types.KVPair         `json:"certificate_content"`
 	Description        string                 `json:"description"`
 	Certifier          string                 `json:"certifier"`
-	TxHash             string                 `json:"txhash"`
 }
 
 func NewQueryResCertificate(
@@ -45,7 +44,6 @@ func NewQueryResCertificate(
 	certificateContent []types.KVPair,
 	description string,
 	certifier string,
-	txhash string,
 ) QueryResCertificate {
 	resRequestContent := NewQueryResRequestContent(
 		requestContent.RequestContentType,
@@ -59,7 +57,6 @@ func NewQueryResCertificate(
 		CertificateContent: certificateContent,
 		Description:        description,
 		Certifier:          certifier,
-		TxHash:             txhash,
 	}
 }
 
@@ -79,7 +76,6 @@ func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQueri
 		certificate.FormattedCertificateContent(),
 		certificate.Description(),
 		certificate.Certifier().String(),
-		certificate.TxHash(),
 	)
 	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, resCertificate)
 	if err != nil {
@@ -116,7 +112,6 @@ func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 			certificate.FormattedCertificateContent(),
 			certificate.Description(),
 			certificate.Certifier().String(),
-			certificate.TxHash(),
 		)
 		resCertificates = append(resCertificates, resCertificate)
 	}

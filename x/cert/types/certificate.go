@@ -75,12 +75,10 @@ type Certificate interface {
 	CertificateContent() string
 	FormattedCertificateContent() []KVPair
 	Description() string
-	TxHash() string
 
 	String() string
 
 	SetCertificateID(CertificateID)
-	SetTxHash(string)
 }
 
 // RequestContentTypes is an array of all request content types.
@@ -184,11 +182,6 @@ func (c *GeneralCertificate) Description() string {
 	return c.CertDescription
 }
 
-// TxHash returns the hash of the tx when the certificate is issued.
-func (c *GeneralCertificate) TxHash() string {
-	return c.CertTxHash
-}
-
 // Bytes returns a byte array for the certificate.
 func (c *GeneralCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
 	return cdc.MustMarshalBinaryLengthPrefixed(c)
@@ -197,11 +190,6 @@ func (c *GeneralCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
 // SetCertificateID provides a method to set an ID for the certificate.
 func (c *GeneralCertificate) SetCertificateID(id CertificateID) {
 	c.CertId = id
-}
-
-// SetTxHash provides a method to set txhash of the certificate.
-func (c *GeneralCertificate) SetTxHash(txhash string) {
-	c.CertTxHash = txhash
 }
 
 // NewCompilationCertificateContent returns a new compilation certificate content.
@@ -276,11 +264,6 @@ func (c *CompilationCertificate) Description() string {
 	return c.CertDescription
 }
 
-// TxHash returns the hash of the tx when the certificate is issued.
-func (c *CompilationCertificate) TxHash() string {
-	return c.CertTxHash
-}
-
 // Bytes returns a byte array for the certificate.
 func (c *CompilationCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
 	return cdc.MustMarshalBinaryLengthPrefixed(c)
@@ -289,9 +272,4 @@ func (c *CompilationCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
 // SetCertificateID provides a method to set an ID for the certificate.
 func (c *CompilationCertificate) SetCertificateID(id CertificateID) {
 	c.CertId = id
-}
-
-// SetTxHash provides a method to set txhash of the certificate.
-func (c *CompilationCertificate) SetTxHash(txhash string) {
-	c.CertTxHash = txhash
 }
