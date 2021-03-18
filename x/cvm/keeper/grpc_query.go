@@ -107,7 +107,7 @@ func (q Querier) Meta(c context.Context, request *types.QueryMetaRequest) (*type
 	state := q.NewState(ctx)
 	hash, err := hex.DecodeString(request.Hash)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	var metahash acmstate.MetadataHash
 	copy(metahash[:], hash)

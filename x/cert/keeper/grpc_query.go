@@ -40,7 +40,7 @@ func (q Querier) Certifier(c context.Context, req *types.QueryCertifierRequest) 
 		// query by address
 		certifierAddr, err := sdk.AccAddressFromBech32(req.Address)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		certifier, err = q.GetCertifier(ctx, certifierAddr)
@@ -71,7 +71,7 @@ func (q Querier) Validator(c context.Context, req *types.QueryValidatorRequest) 
 
 	pk, ok := req.Pubkey.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into cryto.PubKey %T", req.Pubkey))
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into cryto.PubKey %T", req.Pubkey)
 	}
 
 	certifier, err := q.GetValidatorCertifier(ctx, pk)
@@ -100,7 +100,7 @@ func (q Querier) Platform(c context.Context, req *types.QueryPlatformRequest) (*
 
 	pk, ok := req.Pubkey.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into cryto.PubKey %T", req.Pubkey))
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into cryto.PubKey %T", req.Pubkey)
 	}
 
 	platform, ok := q.GetPlatform(ctx, pk)
@@ -141,9 +141,13 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	certifierAddr, err := sdk.AccAddressFromBech32(req.Certifier)
-	if err != nil {
-		panic(err)
+	var certifierAddr sdk.AccAddress
+	var err error
+	if req.Certifier != "" {
+		certifierAddr, err = sdk.AccAddressFromBech32(req.Certifier)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	page, limit, err := qtypes.ParsePagination(req.Pagination)
