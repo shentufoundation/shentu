@@ -117,7 +117,7 @@ func (q Querier) Certificate(c context.Context, req *types.QueryCertificateReque
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	certificate, err := q.GetCertificateByID(ctx, types.CertificateID(req.CertificateId))
+	certificate, err := q.GetCertificateByID(ctx, req.CertificateId)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (q Querier) Certificate(c context.Context, req *types.QueryCertificateReque
 	reqContent := certificate.RequestContent()
 
 	return &types.QueryCertificateResponse{
-		CertificateId:      certificate.ID().String(),
+		CertificateId:      certificate.ID(),
 		CertificateType:    certificate.Type().String(),
 		RequestContent:     &reqContent,
 		CertificateContent: certificate.FormattedCertificateContent(),
@@ -171,7 +171,7 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 		reqContent := certificate.RequestContent()
 
 		results[i] = types.QueryCertificateResponse{
-			CertificateId:      certificate.ID().String(),
+			CertificateId:      certificate.ID(),
 			CertificateType:    certificate.Type().String(),
 			RequestContent:     &reqContent,
 			CertificateContent: certificate.FormattedCertificateContent(),

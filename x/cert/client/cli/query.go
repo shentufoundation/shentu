@@ -3,6 +3,7 @@ package cli
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -175,7 +176,11 @@ func GetCmdCertificate() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Certificate(context.Background(), &types.QueryCertificateRequest{CertificateId: args[0]})
+			certificateID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+			res, err := queryClient.Certificate(context.Background(), &types.QueryCertificateRequest{CertificateId: certificateID})
 			if err != nil {
 				return err
 			}

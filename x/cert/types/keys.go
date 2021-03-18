@@ -2,7 +2,7 @@ package types
 
 import (
 	"crypto/sha256"
-	"encoding/hex"
+	"encoding/binary"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -70,7 +70,9 @@ func ValidatorsStoreKey() []byte {
 }
 
 // CertificateStoreKey returns the kv-store key for accessing a given certificate (ID).
-func CertificateStoreKey(bz []byte) []byte {
+func CertificateStoreKey(id uint64) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, id)
 	return concat(certificateStoreKeyPrefix, bz)
 }
 
@@ -84,25 +86,6 @@ func CertificateStoreContentKey(certType CertificateType, reqContentType Request
 		certType.Bytes(),
 		contentHash[:],
 	)
-}
-
-// GetCertificateID constructs CertificateID (hex string) given certificate information.
-// Its binary representation is the certificate store key without prefix.
-func GetCertificateID(certType CertificateType, reqContent RequestContent, i uint8) CertificateID {
-	// Construct certificate store key (without prefix):
-	// certificate type | sha224(request content type | request content) | uint8
-	bz := make([]byte, 1)
-	bz[0] = i
-
-	content := concat(reqContent.RequestContentType.Bytes(), []byte(reqContent.RequestContent))
-	contentHash := sha256.Sum224(content)
-
-	keyWoPrefix := concat(
-		certType.Bytes(),
-		contentHash[:],
-		bz,
-	)
-	return CertificateID(hex.EncodeToString(keyWoPrefix))
 }
 
 // CertificatesStoreKey returns the kv-store key for accessing all certificates.

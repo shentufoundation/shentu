@@ -2,9 +2,7 @@ package keeper
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
-	"math"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,7 +14,7 @@ import (
 func (k Keeper) SetCertificate(ctx sdk.Context, certificate types.Certificate) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.MustMarshalCertificate(certificate)
-	store.Set(types.CertificateStoreKey(certificate.ID().Bytes()), bz)
+	store.Set(types.CertificateStoreKey(certificate.ID()), bz)
 }
 
 // MustMarshalCertificate attempts to encode a Certificate object and returns the
@@ -38,20 +36,20 @@ func (k Keeper) DeleteCertificate(ctx sdk.Context, certificate types.Certificate
 		return types.ErrCertificateNotExists
 	}
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.CertificateStoreKey(certificate.ID().Bytes()))
+	store.Delete(types.CertificateStoreKey(certificate.ID()))
 	return nil
 }
 
 // HasCertificateByID checks if a certificate exists given an ID.
-func (k Keeper) HasCertificateByID(ctx sdk.Context, id types.CertificateID) bool {
+func (k Keeper) HasCertificateByID(ctx sdk.Context, id uint64) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(types.CertificateStoreKey(id.Bytes()))
+	return store.Has(types.CertificateStoreKey(id))
 }
 
 // GetCertificateByID retrieves a certificate given an ID.
-func (k Keeper) GetCertificateByID(ctx sdk.Context, id types.CertificateID) (types.Certificate, error) {
+func (k Keeper) GetCertificateByID(ctx sdk.Context, id uint64) (types.Certificate, error) {
 	store := ctx.KVStore(k.storeKey)
-	certificateData := store.Get(types.CertificateStoreKey(id.Bytes()))
+	certificateData := store.Get(types.CertificateStoreKey(id))
 	if certificateData == nil {
 		return nil, types.ErrCertificateNotExists
 	}
@@ -64,29 +62,8 @@ func (k Keeper) GetCertificateByID(ctx sdk.Context, id types.CertificateID) (typ
 	return cert, nil
 }
 
-// GetNewCertificateID gets an unused certificate ID for a new certificate.
-func (k Keeper) GetNewCertificateID(ctx sdk.Context, certType types.CertificateType,
-	certContent types.RequestContent) (types.CertificateID, error) {
-	var i uint8
-	var certID types.CertificateID
-	var err error
-	// Find an unoccupied key
-	for {
-		certID = types.GetCertificateID(certType, certContent, i)
-		_, err = k.GetCertificateByID(ctx, certID)
-		if err == types.ErrCertificateNotExists {
-			break
-		}
-		if i == math.MaxUint8 {
-			return "", errors.New("index overflow")
-		}
-		i++
-	}
-	return certID, nil
-}
-
 // GetCertificateType gets type of a certificate by certificate ID.
-func (k Keeper) GetCertificateType(ctx sdk.Context, id types.CertificateID) (types.CertificateType, error) {
+func (k Keeper) GetCertificateType(ctx sdk.Context, id uint64) (types.CertificateType, error) {
 	certificate, err := k.GetCertificateByID(ctx, id)
 	if err != nil {
 		return types.CertificateTypeNil, err
@@ -117,17 +94,15 @@ func (k Keeper) IsContentCertified(ctx sdk.Context, requestContent string) bool 
 }
 
 // IssueCertificate issues a certificate.
-func (k Keeper) IssueCertificate(ctx sdk.Context, c types.Certificate) (types.CertificateID, error) {
+func (k Keeper) IssueCertificate(ctx sdk.Context, c types.Certificate) (uint64, error) {
 	if !k.IsCertifier(ctx, c.Certifier()) {
-		return "", types.ErrUnqualifiedCertifier
+		return 0, types.ErrUnqualifiedCertifier
 	}
 
-	certificateID, err := k.GetNewCertificateID(ctx, c.Type(), c.RequestContent())
-	if err != nil {
-		return "", err
-	}
+	certificateID := k.GetNextCertificateID(ctx)
 	c.SetCertificateID(certificateID)
 
+	k.SetNextCertificateID(ctx, certificateID+1)
 	k.SetCertificate(ctx, c)
 
 	return c.ID(), nil

@@ -231,7 +231,7 @@ func request_Query_Certificate_0(ctx context.Context, marshaler runtime.Marshale
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "certificate_id")
 	}
 
-	protoReq.CertificateId, err = runtime.String(val)
+	protoReq.CertificateId, err = runtime.Uint64(val)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "certificate_id", err)
@@ -258,7 +258,7 @@ func local_request_Query_Certificate_0(ctx context.Context, marshaler runtime.Ma
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "certificate_id")
 	}
 
-	protoReq.CertificateId, err = runtime.String(val)
+	protoReq.CertificateId, err = runtime.Uint64(val)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "certificate_id", err)

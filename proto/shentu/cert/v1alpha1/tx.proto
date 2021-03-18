@@ -74,7 +74,7 @@ message MsgRevokeCertificate {
     option (gogoproto.goproto_getters) = false;
 
     string revoker = 1 [ (gogoproto.moretags) = "yaml:\"revoker\"" ];
-    string id = 2 [ (gogoproto.moretags) = "yaml:\"id\"", (gogoproto.casttype) = "CertificateID" ];
+    uint64 id = 2 [ (gogoproto.moretags) = "yaml:\"id\"" ];
     string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
 }
 

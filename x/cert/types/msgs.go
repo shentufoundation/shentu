@@ -230,7 +230,7 @@ func (m MsgCertifyGeneral) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgRevokeCertificate creates a new instance of MsgRevokeCertificate.
-func NewMsgRevokeCertificate(revoker sdk.AccAddress, id CertificateID, description string) *MsgRevokeCertificate {
+func NewMsgRevokeCertificate(revoker sdk.AccAddress, id uint64, description string) *MsgRevokeCertificate {
 	return &MsgRevokeCertificate{
 		Revoker:     revoker.String(),
 		Id:          id,

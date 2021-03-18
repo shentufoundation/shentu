@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/hex"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -48,27 +47,11 @@ func CertificateTypeFromString(s string) CertificateType {
 	}
 }
 
-// CertificateID is the type for the ID of a certificate.
-type CertificateID string
-
-// Bytes returns the byte array for a certificate ID.
-func (id CertificateID) Bytes() []byte {
-	decoded, err := hex.DecodeString(id.String())
-	if err != nil {
-		panic(err)
-	}
-	return decoded
-}
-
-func (id CertificateID) String() string {
-	return string(id)
-}
-
 // Certificate is the interface for all kinds of certificate
 type Certificate interface {
 	proto.Message
 
-	ID() CertificateID
+	ID() uint64
 	Type() CertificateType
 	Certifier() sdk.AccAddress
 	RequestContent() RequestContent
@@ -78,7 +61,7 @@ type Certificate interface {
 
 	String() string
 
-	SetCertificateID(CertificateID)
+	SetCertificateID(uint64)
 }
 
 // RequestContentTypes is an array of all request content types.
@@ -144,7 +127,7 @@ func NewGeneralCertificate(
 }
 
 // ID returns ID of the certificate.
-func (c *GeneralCertificate) ID() CertificateID {
+func (c *GeneralCertificate) ID() uint64 {
 	return c.CertId
 }
 
@@ -188,7 +171,7 @@ func (c *GeneralCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
 }
 
 // SetCertificateID provides a method to set an ID for the certificate.
-func (c *GeneralCertificate) SetCertificateID(id CertificateID) {
+func (c *GeneralCertificate) SetCertificateID(id uint64) {
 	c.CertId = id
 }
 
@@ -223,7 +206,7 @@ func NewCompilationCertificate(
 }
 
 // ID returns ID of the certificate.
-func (c *CompilationCertificate) ID() CertificateID {
+func (c *CompilationCertificate) ID() uint64 {
 	return c.CertId
 }
 
@@ -270,6 +253,6 @@ func (c *CompilationCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
 }
 
 // SetCertificateID provides a method to set an ID for the certificate.
-func (c *CompilationCertificate) SetCertificateID(id CertificateID) {
+func (c *CompilationCertificate) SetCertificateID(id uint64) {
 	c.CertId = id
 }

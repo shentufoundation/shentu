@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -248,12 +249,17 @@ func GetCmdRevokeCertificate() *cobra.Command {
 				return err
 			}
 
+			certificateID, err := strconv.ParseUint(args[0],10, 64)
+			if err != nil {
+				return err
+			}
+
 			var description string
 			if len(args) > 1 {
 				description = args[1]
 			}
 
-			msg := types.NewMsgRevokeCertificate(from, types.CertificateID(args[0]), description)
+			msg := types.NewMsgRevokeCertificate(from, certificateID, description)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

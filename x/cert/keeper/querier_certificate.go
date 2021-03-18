@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"strconv"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -29,7 +31,7 @@ func NewQueryResRequestContent(
 }
 
 type QueryResCertificate struct {
-	CertificateID      string                 `json:"certificate_id"`
+	CertificateID      uint64                 `json:"certificate_id"`
 	CertificateType    string                 `json:"certificate_type"`
 	RequestContent     QueryResRequestContent `json:"request_content"`
 	CertificateContent []types.KVPair         `json:"certificate_content"`
@@ -38,7 +40,7 @@ type QueryResCertificate struct {
 }
 
 func NewQueryResCertificate(
-	certificateID string,
+	certificateID uint64,
 	certificateType string,
 	requestContent types.RequestContent,
 	certificateContent []types.KVPair,
@@ -65,12 +67,17 @@ func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQueri
 		return nil, err
 	}
 
-	certificate, err := keeper.GetCertificateByID(ctx, types.CertificateID(path[0]))
+	certificateID, err := strconv.ParseUint(path[0], 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	certificate, err := keeper.GetCertificateByID(ctx, certificateID)
 	if err != nil {
 		return nil, err
 	}
 	resCertificate := NewQueryResCertificate(
-		certificate.ID().String(),
+		certificate.ID(),
 		certificate.Type().String(),
 		certificate.RequestContent(),
 		certificate.FormattedCertificateContent(),
@@ -106,7 +113,7 @@ func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 	resCertificates := []QueryResCertificate{}
 	for _, certificate := range certificates {
 		resCertificate := NewQueryResCertificate(
-			certificate.ID().String(),
+			certificate.ID(),
 			certificate.Type().String(),
 			certificate.RequestContent(),
 			certificate.FormattedCertificateContent(),

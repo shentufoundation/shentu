@@ -64,7 +64,7 @@ type certifyPlatformReq struct {
 type revokeCertificateReq struct {
 	BaseReq       resttypes.BaseReq `json:"base_req"`
 	Revoker       string            `json:"revoker"`
-	CertificateID string            `json:"certificate_id"`
+	CertificateID uint64            `json:"certificate_id"`
 	Description   string            `json:"description"`
 }
 

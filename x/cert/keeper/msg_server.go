@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strconv"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -85,7 +86,7 @@ func (k msgServer) CertifyGeneral(goCtx context.Context, msg *types.MsgCertifyGe
 	}
 	certEvent := sdk.NewEvent(
 		types.EventTypeCertify,
-		sdk.NewAttribute("certificate_id", certificateID.String()),
+		sdk.NewAttribute("certificate_id", strconv.FormatUint(certificateID, 10)),
 		sdk.NewAttribute("certificate_type", msg.CertificateType),
 		sdk.NewAttribute("request_content_type", msg.RequestContentType),
 		sdk.NewAttribute("request_content", msg.RequestContent),
@@ -147,7 +148,7 @@ func (k msgServer) CertifyCompilation(goCtx context.Context, msg *types.MsgCerti
 
 	certEvent := sdk.NewEvent(
 		types.EventTypeCertifyCompilation,
-		sdk.NewAttribute("certificate_id", certificateID.String()),
+		sdk.NewAttribute("certificate_id", strconv.FormatUint(certificateID, 10)),
 		sdk.NewAttribute("source_code_hash", msg.SourceCodeHash),
 		sdk.NewAttribute("compiler", msg.Compiler),
 		sdk.NewAttribute("bytecode_hash", msg.BytecodeHash),

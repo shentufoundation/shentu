@@ -82,11 +82,11 @@ message QueryPlatformResponse {
 }
 
 message QueryCertificateRequest {
-    string certificate_id = 1;
+    uint64 certificate_id = 1;
 }
 
 message QueryCertificateResponse {
-    string certificate_id = 1;
+    uint64 certificate_id = 1;
     string certificate_type = 2;
     RequestContent request_content = 3;
     repeated KVPair certificate_content = 4 [ (gogoproto.nullable) = false ];
