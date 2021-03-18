@@ -207,7 +207,7 @@ func GetCmdCertificates() *cobra.Command {
 			}
 
 			res, err := queryClient.Certificates(
-				context.Background(),
+				cmd.Context(),
 				&types.QueryCertificatesRequest{
 					Certifier:   viper.GetString(FlagCertifier),
 					Content:     viper.GetString(FlagContent),

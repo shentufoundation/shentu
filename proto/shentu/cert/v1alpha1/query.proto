@@ -34,7 +34,7 @@ service Query {
     }
 
     rpc Certificate(QueryCertificateRequest) returns (QueryCertificateResponse) {
-        option (google.api.http).get = "/shentu/cert/v1alpha1/certificates/{certificate_id}";
+        option (google.api.http).get = "/shentu/cert/v1alpha1/certificate/{certificate_id}";
     }
 
     rpc Certificates(QueryCertificatesRequest) returns (QueryCertificatesResponse) {

@@ -9,7 +9,7 @@ require (
 	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/hyperledger/burrow v0.30.6-0.20210205235125-5ec0c8b2fee8
+	github.com/hyperledger/burrow v0.31.0
 	github.com/magiconair/properties v1.8.4
 	github.com/rakyll/statik v0.1.7
 	github.com/regen-network/cosmos-proto v0.3.1
@@ -28,6 +28,7 @@ require (
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/genproto v0.0.0-20210114201628-6edceaf6022f
 	google.golang.org/grpc v1.35.0
+	google.golang.org/protobuf v1.25.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
