@@ -16,29 +16,6 @@ import (
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
-func Test_GetCertificateID(t *testing.T) {
-	t.Run("Testing GetCertificateID", func(t *testing.T) {
-		var certType types.CertificateType
-		var i uint8
-
-		certType = types.CertificateTypeFromString("COMPILATION")
-		certContent, err := types.NewRequestContent("ADDRESS", "sample_content")
-		require.NoError(t, err)
-		i = 5
-
-		id1 := types.GetCertificateID(certType, certContent, i)
-		i++
-		id2 := types.GetCertificateID(certType, certContent, i)
-
-		s1 := id1.String()
-		s2 := id2.String()
-
-		if s2 != s1[:len(s1)-1]+"6" {
-			t.Errorf("Some inconsistency in certificate store key construction")
-		}
-	})
-}
-
 func Test_GetNewCertificateID(t *testing.T) {
 	t.Run("Testing GetNewCertificateID", func(t *testing.T) {
 		app := simapp.Setup(false)
@@ -49,15 +26,13 @@ func Test_GetNewCertificateID(t *testing.T) {
 		c1 := types.NewCompilationCertificate(types.CertificateTypeCompilation, "sourcodehash0",
 			"compiler1", "bytecodehash1", "", addrs[0])
 
-		id1, err := app.CertKeeper.GetNewCertificateID(ctx, c1.Type(), c1.RequestContent())
-		if err != nil {
-			t.Errorf(err.Error())
-		}
+		id1 := app.CertKeeper.GetNextCertificateID(ctx)
 
 		c1.SetCertificateID(id1)
+		app.CertKeeper.SetNextCertificateID(ctx, id1+1)
 		app.CertKeeper.SetCertificate(ctx, c1)
 
-		data, err := app.CertKeeper.GetCertificateByID(ctx, id1)
+		data, _ := app.CertKeeper.GetCertificateByID(ctx, id1)
 		if data == nil {
 			t.Errorf("Could not retrieve data from the store")
 		}
@@ -68,14 +43,12 @@ func Test_GetNewCertificateID(t *testing.T) {
 		// Set an identical certificate
 		c2 := types.NewCompilationCertificate(types.CertificateTypeCompilation, "sourcodehash0",
 			"compiler1", "bytecodehash1", "", addrs[0])
-		id2, err := app.CertKeeper.GetNewCertificateID(ctx, c2.Type(), c2.RequestContent())
-		if err != nil {
-			t.Errorf(err.Error())
-		}
+		id2 := app.CertKeeper.GetNextCertificateID(ctx)
 		c2.SetCertificateID(id2)
+		app.CertKeeper.SetNextCertificateID(ctx, id2+1)
 		app.CertKeeper.SetCertificate(ctx, c2)
 
-		data, err = app.CertKeeper.GetCertificateByID(ctx, id2)
+		data, _ = app.CertKeeper.GetCertificateByID(ctx, id2)
 		if data == nil {
 			t.Errorf("Could not retrieve data from the store")
 		}
@@ -89,16 +62,13 @@ func Test_GetNewCertificateID(t *testing.T) {
 
 		c3 := types.NewCompilationCertificate(types.CertificateTypeCompilation, "sourcodehash0",
 			"compiler1", "bytecodehash1", "", addrs[0])
-		id3, err := app.CertKeeper.GetNewCertificateID(ctx, c3.Type(), c3.RequestContent())
-		if err != nil {
-			t.Errorf(err.Error())
-		}
-		require.Equal(t, id, id3)
+		id3 := app.CertKeeper.GetNextCertificateID(ctx)
+		require.Equal(t, id+2, id3)
 
 		c3.SetCertificateID(id3)
 		app.CertKeeper.SetCertificate(ctx, c3)
 
-		data, err = app.CertKeeper.GetCertificateByID(ctx, id3)
+		data, _ = app.CertKeeper.GetCertificateByID(ctx, id3)
 		if data == nil {
 			t.Errorf("Could not retrieve data from the store")
 		}

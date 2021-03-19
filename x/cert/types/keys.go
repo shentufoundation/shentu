@@ -1,7 +1,6 @@
 package types
 
 import (
-	"crypto/sha256"
 	"encoding/binary"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -74,18 +73,6 @@ func CertificateStoreKey(id uint64) []byte {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, id)
 	return concat(certificateStoreKeyPrefix, bz)
-}
-
-// CertificateStoreContentKey gets the prefix for certificate key of given certifier, certificate type,
-// content type, and content.
-func CertificateStoreContentKey(certType CertificateType, reqContentType RequestContentType, reqContent string) []byte {
-	content := concat(reqContentType.Bytes(), []byte(reqContent))
-	contentHash := sha256.Sum224(content)
-	return concat(
-		certificateStoreKeyPrefix,
-		certType.Bytes(),
-		contentHash[:],
-	)
 }
 
 // CertificatesStoreKey returns the kv-store key for accessing all certificates.
