@@ -55,7 +55,7 @@ func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQueri
 	}
 	resCertificate := NewQueryResCertificate(
 		certificate.ID(),
-		certificate.Type().String(),
+		types.TranslateCertificateType(certificate).String(),
 		certificate.FormattedContent(),
 		certificate.FormattedCertificateContent(),
 		certificate.Description(),
@@ -91,7 +91,7 @@ func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 	for _, certificate := range certificates {
 		resCertificate := NewQueryResCertificate(
 			certificate.ID(),
-			certificate.Type().String(),
+			types.TranslateCertificateType(certificate).String(),
 			certificate.FormattedContent(),
 			certificate.FormattedCertificateContent(),
 			certificate.Description(),

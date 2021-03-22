@@ -134,7 +134,6 @@ func (k msgServer) CertifyCompilation(goCtx context.Context, msg *types.MsgCerti
 	}
 
 	certificate := types.NewCompilationCertificate(
-		types.CertificateTypeCompilation,
 		msg.SourceCodeHash,
 		msg.Compiler,
 		msg.BytecodeHash,

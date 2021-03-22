@@ -331,7 +331,7 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 	newCertificates := make([]*codectypes.Any, len(oldGenState.Certificates))
 	for i, c := range oldGenState.Certificates {
 		var newCert certtypes.Certificate
-		reqContent := AssembleContentFromType(c.Type(), c.RequestContent().RequestContentType, c.RequestContent().RequestContent)
+		reqContent := AssembleContent(c.Type(), c.RequestContent().RequestContentType, c.RequestContent().RequestContent)
 		msg, ok := reqContent.(proto.Message)
 		if !ok {
 			panic(fmt.Errorf("%T does not implement proto.Message", reqContent))
@@ -342,7 +342,6 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 		}
 		newCert = &certtypes.GeneralCertificate{
 			CertId:          uint64(i + 1),
-			CertType:        certtypes.CertificateType(c.Type()),
 			ReqContent:      any,
 			CertDescription: c.Description(),
 			CertCertifier:   c.Certifier().String(),
@@ -376,7 +375,7 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 	}
 }
 
-func AssembleContentFromType(certType CertificateType, reqContType RequestContentType, reqContStr string) certtypes.Content {
+func AssembleContent(certType CertificateType, reqContType RequestContentType, reqContStr string) certtypes.Content {
 	switch certType {
 	case CertificateTypeCompilation:
 		return &certtypes.Compilation{certtypes.RequestContentType(reqContType), reqContStr}

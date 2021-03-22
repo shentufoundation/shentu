@@ -68,7 +68,7 @@ func (k Keeper) GetCertificateType(ctx sdk.Context, id uint64) (types.Certificat
 	if err != nil {
 		return types.CertificateTypeNil, err
 	}
-	return certificate.Type(), nil
+	return types.TranslateCertificateType(certificate), nil
 }
 
 // IsCertified checks if a certificate of given type and content exists.
@@ -162,7 +162,7 @@ func (k Keeper) GetCertificatesByTypeAndContent(ctx sdk.Context, certType types.
 	certificates := []types.Certificate{}
 	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
 		if certificate.Content().GetType() == contentType && certificate.Content().GetContent() == content &&
-			certificate.Type() == certType {
+			types.TranslateCertificateType(certificate) == certType {
 			certificates = append(certificates, certificate)
 		}
 		return false
@@ -218,7 +218,7 @@ func (k Keeper) RevokeCertificate(ctx sdk.Context, certificate types.Certificate
 func (k Keeper) GetCertifiedIdentities(ctx sdk.Context) []sdk.AccAddress {
 	identities := []sdk.AccAddress{}
 	k.IterateAllCertificate(ctx, func(certificate types.Certificate) (stop bool) {
-		if certificate.Type() == types.CertificateTypeIdentity &&
+		if types.TranslateCertificateType(certificate) == types.CertificateTypeIdentity &&
 			certificate.Content().GetType() == types.RequestContentTypeAddress {
 			addr, _ := sdk.AccAddressFromBech32(certificate.Content().GetContent())
 			identities = append(identities, addr)

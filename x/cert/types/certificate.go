@@ -62,7 +62,6 @@ type Certificate interface {
 	codecTypes.UnpackInterfacesMessage
 
 	ID() uint64
-	Type() CertificateType
 	Certifier() sdk.AccAddress
 	Content() Content
 	FormattedContent() []KVPair
@@ -73,6 +72,19 @@ type Certificate interface {
 	String() string
 
 	SetCertificateID(uint64)
+}
+
+func TranslateCertificateType(certificate Certificate) CertificateType {
+	switch certificate.Content().(type) {
+	case *Compilation:
+		return CertificateTypeCompilation
+	case *Auditing:
+		return CertificateTypeAuditing
+	case *Identity:
+		return CertificateTypeIdentity
+	default:
+		return CertificateTypeNil
+	}
 }
 
 // RequestContentTypes is an array of all request content types.
@@ -127,10 +139,6 @@ func AssembleContent(certTypeStr, reqContTypeStr, reqContStr string) Content {
 func NewGeneralCertificate(
 	certTypeStr, reqContTypeStr, reqContStr, description string, certifier sdk.AccAddress,
 ) (*GeneralCertificate, error) {
-	certType := CertificateTypeFromString(certTypeStr)
-	if certType == CertificateTypeNil {
-		return nil, ErrInvalidCertificateType
-	}
 	content := AssembleContent(certTypeStr, reqContTypeStr, reqContStr)
 	msg, ok := content.(proto.Message)
 	if !ok {
@@ -141,7 +149,6 @@ func NewGeneralCertificate(
 		return &GeneralCertificate{}, err
 	}
 	return &GeneralCertificate{
-		CertType:        certType,
 		ReqContent:      any,
 		CertDescription: description,
 		CertCertifier:   certifier.String(),
@@ -157,11 +164,6 @@ func (c *GeneralCertificate) UnpackInterfaces(unpacker codecTypes.AnyUnpacker) e
 // ID returns ID of the certificate.
 func (c *GeneralCertificate) ID() uint64 {
 	return c.CertId
-}
-
-// Type returns the certificate type.
-func (c *GeneralCertificate) Type() CertificateType {
-	return c.CertType
 }
 
 // Certifier returns certifier account address of the certificate.
@@ -227,7 +229,6 @@ func NewKVPair(key string, value string) KVPair {
 
 // NewCompilationCertificate returns a new compilation certificate
 func NewCompilationCertificate(
-	certificateType CertificateType,
 	sourceCodeHash string,
 	compiler string,
 	bytecodeHash string,
@@ -245,7 +246,6 @@ func NewCompilationCertificate(
 	}
 	certificateContent := NewCompilationCertificateContent(compiler, bytecodeHash)
 	return &CompilationCertificate{
-		CertType:        certificateType,
 		ReqContent:      any,
 		CertContent:     &certificateContent,
 		CertDescription: description,
@@ -262,11 +262,6 @@ func (c *CompilationCertificate) UnpackInterfaces(unpacker codecTypes.AnyUnpacke
 // ID returns ID of the certificate.
 func (c *CompilationCertificate) ID() uint64 {
 	return c.CertId
-}
-
-// Type returns the certificate type.
-func (c *CompilationCertificate) Type() CertificateType {
-	return c.CertType
 }
 
 // Certifier returns certifier account address of the certificate.
