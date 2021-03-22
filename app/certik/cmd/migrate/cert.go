@@ -1,6 +1,7 @@
 package migrate
 
 import (
+	"encoding/hex"
 	"fmt"
 
 	"github.com/gogo/protobuf/proto"
@@ -61,6 +62,22 @@ const (
 	RequestContentTypeGeneral
 )
 
+// CertificateID is the type for the ID of a certificate.
+type CertificateID string
+
+// Bytes returns the byte array for a certificate ID.
+func (id CertificateID) Bytes() []byte {
+	decoded, err := hex.DecodeString(id.String())
+	if err != nil {
+		panic(err)
+	}
+	return decoded
+}
+
+func (id CertificateID) String() string {
+	return string(id)
+}
+
 // KVPair defines type for the key-value pair.
 type KVPair struct {
 	Key   string `json:"key"`
@@ -75,18 +92,20 @@ type RequestContent struct {
 
 // Certificate is the interface for all kinds of certificate
 type Certificate interface {
-	ID() uint64
+	ID() CertificateID
 	Type() CertificateType
 	Certifier() sdk.AccAddress
 	RequestContent() RequestContent
 	CertificateContent() string
 	FormattedCertificateContent() []KVPair
 	Description() string
+	TxHash() string
 
 	Bytes(*codec.LegacyAmino) []byte
 	String() string
 
-	SetCertificateID(uint64)
+	SetCertificateID(CertificateID)
+	SetTxHash(string)
 }
 
 // Library is a type for certified libraries.
@@ -100,15 +119,16 @@ var _ Certificate = CompilationCertificate{}
 
 // GeneralCertificate defines the type for general certificate.
 type GeneralCertificate struct {
-	CertID          uint64          `json:"certificate_id"`
+	CertID          CertificateID   `json:"certificate_id"`
 	CertType        CertificateType `json:"certificate_type"`
 	ReqContent      RequestContent  `json:"request_content"`
 	CertDescription string          `json:"description"`
 	CertCertifier   sdk.AccAddress  `json:"certifier"`
+	CertTxHash      string          `json:"txhash"`
 }
 
 // ID returns ID of the certificate.
-func (c GeneralCertificate) ID() uint64 {
+func (c GeneralCertificate) ID() CertificateID {
 	return c.CertID
 }
 
@@ -142,6 +162,11 @@ func (c GeneralCertificate) Description() string {
 	return c.CertDescription
 }
 
+// TxHash returns the hash of the tx when the certificate is issued.
+func (c GeneralCertificate) TxHash() string {
+	return c.CertTxHash
+}
+
 // Bytes returns a byte array for the certificate.
 func (c GeneralCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
 	return cdc.MustMarshalBinaryLengthPrefixed(c)
@@ -150,19 +175,25 @@ func (c GeneralCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
 // String returns a human readable string representation of the certificate.
 func (c GeneralCertificate) String() string {
 	return fmt.Sprintf("Compilation certificate\n"+
-		"Certificate ID: %d\n"+
+		"Certificate ID: %s\n"+
 		"Certificate type: compilation\n"+
 		"RequestContent:\n%s\n"+
 		"CertificateContent:\n%s\n"+
 		"Description: %s\n"+
-		"Certifier: %s\n",
-		c.CertID, c.ReqContent.RequestContent, c.CertificateContent(),
-		c.Description(), c.CertCertifier.String())
+		"Certifier: %s\n"+
+		"TxHash: %s\n",
+		c.CertID.String(), c.ReqContent.RequestContent, c.CertificateContent(),
+		c.Description(), c.CertCertifier.String(), c.CertTxHash)
 }
 
 // SetCertificateID provides a method to set an ID for the certificate.
-func (c GeneralCertificate) SetCertificateID(id uint64) {
+func (c GeneralCertificate) SetCertificateID(id CertificateID) {
 	c.CertID = id
+}
+
+// SetTxHash provides a method to set txhash of the certificate.
+func (c GeneralCertificate) SetTxHash(txhash string) {
+	c.CertTxHash = txhash
 }
 
 // CompilationCertificateContent defines type for the compilation certificate content.
@@ -174,16 +205,17 @@ type CompilationCertificateContent struct {
 // CompilationCertificate defines type for the compilation certificate.
 type CompilationCertificate struct {
 	IssueBlockHeight int64                         `json:"time_issued"`
-	CertID           uint64                        `json:"certificate_id"`
+	CertID           CertificateID                 `json:"certificate_id"`
 	CertType         CertificateType               `json:"certificate_type"`
 	ReqContent       RequestContent                `json:"request_content"`
 	CertContent      CompilationCertificateContent `json:"certificate_content"`
 	CertDescription  string                        `json:"description"`
 	CertCertifier    sdk.AccAddress                `json:"certifier"`
+	CertTxHash       string                        `json:"txhash"`
 }
 
 // ID returns ID of the certificate.
-func (c CompilationCertificate) ID() uint64 {
+func (c CompilationCertificate) ID() CertificateID {
 	return c.CertID
 }
 
@@ -217,6 +249,11 @@ func (c CompilationCertificate) Description() string {
 	return c.CertDescription
 }
 
+// TxHash returns the hash of the tx when the certificate is issued.
+func (c CompilationCertificate) TxHash() string {
+	return c.CertTxHash
+}
+
 // Bytes returns a byte array for the certificate.
 func (c CompilationCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
 	return cdc.MustMarshalBinaryLengthPrefixed(c)
@@ -225,29 +262,34 @@ func (c CompilationCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
 // String returns a human readable string representation of the certificate.
 func (c CompilationCertificate) String() string {
 	return fmt.Sprintf("Compilation certificate\n"+
-		"Certificate ID: %d\n"+
+		"Certificate ID: %s\n"+
 		"Certificate type: compilation\n"+
 		"RequestContent:\n%s\n"+
 		"CertificateContent:\n%s\n"+
 		"Description: %s\n"+
-		"Certifier: %s\n",
-		c.CertID, c.ReqContent.RequestContent, c.CertificateContent(),
-		c.Description(), c.CertCertifier.String())
+		"Certifier: %s\n"+
+		"TxHash: %s\n",
+		c.CertID.String(), c.ReqContent.RequestContent, c.CertificateContent(),
+		c.Description(), c.CertCertifier.String(), c.CertTxHash)
 }
 
 // SetCertificateID provides a method to set an ID for the certificate.
-func (c CompilationCertificate) SetCertificateID(id uint64) {
+func (c CompilationCertificate) SetCertificateID(id CertificateID) {
 	c.CertID = id
+}
+
+// SetTxHash provides a method to set txhash of the certificate.
+func (c CompilationCertificate) SetTxHash(txhash string) {
+	c.CertTxHash = txhash
 }
 
 // CertGenesisState - cert genesis state
 type CertGenesisState struct {
-	Certifiers        []Certifier   `json:"certifiers"`
-	Validators        []Validator   `json:"validators"`
-	Platforms         []Platform    `json:"platforms"`
-	Certificates      []Certificate `json:"certificates"`
-	Libraries         []Library     `json:"libraries"`
-	NextCertificateId uint64        `json:"next_certificate_id"`
+	Certifiers   []Certifier   `json:"certifiers"`
+	Validators   []Validator   `json:"validators"`
+	Platforms    []Platform    `json:"platforms"`
+	Certificates []Certificate `json:"certificates"`
+	Libraries    []Library     `json:"libraries"`
 }
 
 func RegisterCertLegacyAminoCodec(cdc *codec.LegacyAmino) {
@@ -255,19 +297,6 @@ func RegisterCertLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&GeneralCertificate{}, "cert/GeneralCertificate", nil)
 	cdc.RegisterConcrete(&CompilationCertificate{}, "cert/CompilationCertificate", nil)
 	cdc.RegisterConcrete(CertifierUpdateProposal{}, "cosmos-sdk/CertifierUpdateProposal", nil)
-}
-
-func AssembleContentFromType(certType CertificateType, reqContType RequestContentType, reqContStr string) certtypes.Content {
-	switch certType {
-	case CertificateTypeCompilation:
-		return &certtypes.Compilation{certtypes.RequestContentType(reqContType), reqContStr}
-	case CertificateTypeAuditing:
-		return &certtypes.Auditing{certtypes.RequestContentType(reqContType), reqContStr}
-	case CertificateTypeIdentity:
-		return &certtypes.Identity{certtypes.RequestContentType(reqContType), reqContStr}
-	default:
-		return nil
-	}
 }
 
 func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
@@ -312,7 +341,7 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 			panic(err)
 		}
 		newCert = &certtypes.GeneralCertificate{
-			CertId:          c.ID(),
+			CertId:          uint64(i + 1),
 			CertType:        certtypes.CertificateType(c.Type()),
 			ReqContent:      any,
 			CertDescription: c.Description(),
@@ -343,6 +372,22 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 		Platforms:         newPlatforms,
 		Certificates:      newCertificates,
 		Libraries:         newLibraries,
-		NextCertificateId: oldGenState.NextCertificateId,
+		NextCertificateId: uint64(len(newCertificates) + 1),
+	}
+}
+
+func AssembleContentFromType(certType CertificateType, reqContType RequestContentType, reqContStr string) certtypes.Content {
+	switch certType {
+	case CertificateTypeCompilation:
+		return &certtypes.Compilation{certtypes.RequestContentType(reqContType), reqContStr}
+	case CertificateTypeAuditing:
+		return &certtypes.Auditing{certtypes.RequestContentType(reqContType), reqContStr}
+	case CertificateTypeIdentity:
+		return &certtypes.Identity{certtypes.RequestContentType(reqContType), reqContStr}
+
+	// TODO: more types to come
+
+	default:
+		return nil
 	}
 }
