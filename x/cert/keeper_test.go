@@ -23,8 +23,8 @@ func Test_GetNewCertificateID(t *testing.T) {
 		addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
 
 		// Set and Get a certificate
-		c1 := types.NewCompilationCertificate(types.CertificateTypeCompilation, "sourcodehash0",
-			"compiler1", "bytecodehash1", "", addrs[0])
+		c1 := types.NewCompilationCertificate("sourcodehash0", "compiler1",
+			"bytecodehash1", "", addrs[0])
 
 		id1 := app.CertKeeper.GetNextCertificateID(ctx)
 
@@ -41,8 +41,8 @@ func Test_GetNewCertificateID(t *testing.T) {
 		}
 
 		// Set an identical certificate
-		c2 := types.NewCompilationCertificate(types.CertificateTypeCompilation, "sourcodehash0",
-			"compiler1", "bytecodehash1", "", addrs[0])
+		c2 := types.NewCompilationCertificate("sourcodehash0", "compiler1",
+			"bytecodehash1", "", addrs[0])
 		id2 := app.CertKeeper.GetNextCertificateID(ctx)
 		c2.SetCertificateID(id2)
 		app.CertKeeper.SetNextCertificateID(ctx, id2+1)
@@ -60,8 +60,8 @@ func Test_GetNewCertificateID(t *testing.T) {
 		id := c1.ID()
 		app.CertKeeper.DeleteCertificate(ctx, c1)
 
-		c3 := types.NewCompilationCertificate(types.CertificateTypeCompilation, "sourcodehash0",
-			"compiler1", "bytecodehash1", "", addrs[0])
+		c3 := types.NewCompilationCertificate("sourcodehash0", "compiler1",
+			"bytecodehash1", "", addrs[0])
 		id3 := app.CertKeeper.GetNextCertificateID(ctx)
 		require.Equal(t, id+2, id3)
 
@@ -105,8 +105,8 @@ func Test_IterationByCertifier(t *testing.T) {
 			}
 			length := rand.Intn(10) + 10
 			s := randomString(length)
-			cert := types.NewCompilationCertificate(types.CertificateTypeCompilation, s,
-				"compiler1", "bytecodehash1", "", addrs[index])
+			cert := types.NewCompilationCertificate(s, "compiler1",
+				"bytecodehash1", "", addrs[index])
 			_, err := app.CertKeeper.IssueCertificate(ctx, cert)
 			require.NoError(t, err)
 		}
@@ -140,8 +140,8 @@ func Test_CertificateQueries(t *testing.T) {
 			var cert *types.CompilationCertificate
 			dup := rand.Intn(100)
 			if dup > 95 {
-				cert = types.NewCompilationCertificate(types.CertificateTypeCompilation, dupContent,
-					"compiler1", "bytecodehash1", "", addrs[index])
+				cert = types.NewCompilationCertificate(dupContent, "compiler1",
+					"bytecodehash1", "", addrs[index])
 				count++
 				if index == 0 {
 					count2++
@@ -150,7 +150,7 @@ func Test_CertificateQueries(t *testing.T) {
 			} else {
 				length := rand.Intn(10) + 10
 				s := randomString(length)
-				cert = types.NewCompilationCertificate(types.CertificateTypeCompilation, s, "compiler1",
+				cert = types.NewCompilationCertificate(s, "compiler1",
 					"bytecodehash1", "", addrs[index])
 				if index == 0 {
 					count3++
@@ -161,8 +161,7 @@ func Test_CertificateQueries(t *testing.T) {
 		}
 
 		// Test GetCertificatesByContent()
-		contentToFind, _ := types.NewRequestContent("sourcecodehash", dupContent)
-		certs := app.CertKeeper.GetCertificatesByContent(ctx, contentToFind)
+		certs := app.CertKeeper.GetCertificatesByContent(ctx, types.RequestContentTypeFromString("sourcecodehash"), dupContent)
 		require.Equal(t, count, len(certs))
 
 		// Test GetCertificatesFiltered()

@@ -47,10 +47,9 @@ message GeneralCertificate {
     option (cosmos_proto.implements_interface) = "Certificate";
 
     uint64 cert_id = 1 [ (gogoproto.moretags) = "yaml:\"certificate_id\"" ];
-    CertificateType cert_type = 2 [ (gogoproto.moretags) = "yaml:\"certificate_type\"" ];
-    google.protobuf.Any req_content = 3 [ (cosmos_proto.accepts_interface) = "Content" ];
-    string cert_description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string cert_certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
+    google.protobuf.Any req_content = 2 [ (cosmos_proto.accepts_interface) = "Content" ];
+    string cert_description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string cert_certifier = 4 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
 }
 
 message CompilationCertificateContent {
@@ -67,11 +66,10 @@ message CompilationCertificate {
 
     int64 issue_block_height = 1 [ (gogoproto.moretags) = "yaml:\"time_issued\"" ];
     uint64 cert_id = 2 [ (gogoproto.moretags) = "yaml:\"certificate_id\"" ];
-    CertificateType cert_type = 3 [ (gogoproto.moretags) = "yaml:\"certificate_type\"" ];
-    google.protobuf.Any req_content = 4 [ (cosmos_proto.accepts_interface) = "Content" ];
-    CompilationCertificateContent cert_content = 5 [ (gogoproto.moretags) = "yaml:\"certificate_content\"" ];
-    string cert_description = 6 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string cert_certifier = 7 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
+    google.protobuf.Any req_content = 3 [ (cosmos_proto.accepts_interface) = "Content" ];
+    CompilationCertificateContent cert_content = 4 [ (gogoproto.moretags) = "yaml:\"certificate_content\"" ];
+    string cert_description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string cert_certifier = 6 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
 }
 
 // Validator is a type for certified validator.
@@ -106,7 +104,35 @@ message Auditing {
     string content = 2;
 }
 
+message Proof {
+    option (cosmos_proto.implements_interface) = "Content";
+
+    RequestContentType type = 1;
+    string content = 2;
+}
+
+message OracleOperator {
+    option (cosmos_proto.implements_interface) = "Content";
+
+    RequestContentType type = 1;
+    string content = 2;
+}
+
+message ShieldPoolCreator {
+    option (cosmos_proto.implements_interface) = "Content";
+
+    RequestContentType type = 1;
+    string content = 2;
+}
+
 message Identity {
+    option (cosmos_proto.implements_interface) = "Content";
+
+    RequestContentType type = 1;
+    string content = 2;
+}
+
+message General {
     option (cosmos_proto.implements_interface) = "Content";
 
     RequestContentType type = 1;

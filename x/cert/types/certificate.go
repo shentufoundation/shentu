@@ -80,8 +80,16 @@ func TranslateCertificateType(certificate Certificate) CertificateType {
 		return CertificateTypeCompilation
 	case *Auditing:
 		return CertificateTypeAuditing
+	case *Proof:
+		return CertificateTypeProof
+	case *OracleOperator:
+		return CertificateTypeOracleOperator
+	case *ShieldPoolCreator:
+		return CertificateTypeShieldPoolCreator
 	case *Identity:
 		return CertificateTypeIdentity
+	case *General:
+		return CertificateTypeGeneral
 	default:
 		return CertificateTypeNil
 	}
@@ -125,11 +133,16 @@ func AssembleContent(certTypeStr, reqContTypeStr, reqContStr string) Content {
 		return &Compilation{reqContType, reqContStr}
 	case CertificateTypeAuditing:
 		return &Auditing{reqContType, reqContStr}
+	case CertificateTypeProof:
+		return &Proof{reqContType, reqContStr}
+	case CertificateTypeOracleOperator:
+		return &OracleOperator{reqContType, reqContStr}
+	case CertificateTypeShieldPoolCreator:
+		return &ShieldPoolCreator{reqContType, reqContStr}
 	case CertificateTypeIdentity:
 		return &Identity{reqContType, reqContStr}
-
-	// TODO: more types to come
-
+	case CertificateTypeGeneral:
+		return &General{reqContType, reqContStr}
 	default:
 		return nil
 	}

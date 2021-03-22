@@ -381,11 +381,16 @@ func AssembleContent(certType CertificateType, reqContType RequestContentType, r
 		return &certtypes.Compilation{certtypes.RequestContentType(reqContType), reqContStr}
 	case CertificateTypeAuditing:
 		return &certtypes.Auditing{certtypes.RequestContentType(reqContType), reqContStr}
+	case CertificateTypeProof:
+		return &certtypes.Proof{certtypes.RequestContentType(reqContType), reqContStr}
+	case CertificateTypeOracleOperator:
+		return &certtypes.OracleOperator{certtypes.RequestContentType(reqContType), reqContStr}
+	case CertificateTypeShieldPoolCreator:
+		return &certtypes.ShieldPoolCreator{certtypes.RequestContentType(reqContType), reqContStr}
 	case CertificateTypeIdentity:
 		return &certtypes.Identity{certtypes.RequestContentType(reqContType), reqContStr}
-
-	// TODO: more types to come
-
+	case CertificateTypeGeneral:
+		return &certtypes.General{certtypes.RequestContentType(reqContType), reqContStr}
 	default:
 		return nil
 	}

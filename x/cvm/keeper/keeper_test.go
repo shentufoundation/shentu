@@ -649,8 +649,7 @@ func TestPrecompiles(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		compCert := certtypes.NewCompilationCertificate(
-			certtypes.CertificateTypeCompilation, "dummysourcecodehash", "testproof",
+		compCert := certtypes.NewCompilationCertificate("dummysourcecodehash", "testproof",
 			"bch", "dummydesc", certAddr)
 
 		_, err = app.CertKeeper.IssueCertificate(ctx, auditingCert1)

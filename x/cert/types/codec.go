@@ -24,7 +24,11 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&CompilationCertificate{}, "cert/CompilationCertificate", nil)
 	cdc.RegisterConcrete(&Compilation{}, "cert/Compilation", nil)
 	cdc.RegisterConcrete(&Auditing{}, "cert/Auditing", nil)
+	cdc.RegisterConcrete(&Proof{}, "cert/Proof", nil)
+	cdc.RegisterConcrete(&OracleOperator{}, "cert/OracleOperator", nil)
+	cdc.RegisterConcrete(&ShieldPoolCreator{}, "cert/ShieldPoolCreator", nil)
 	cdc.RegisterConcrete(&Identity{}, "cert/Identity", nil)
+	cdc.RegisterConcrete(&General{}, "cert/General", nil)
 
 	cdc.RegisterInterface((*Certificate)(nil), nil)
 	cdc.RegisterInterface((*Content)(nil), nil)
@@ -54,7 +58,11 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*Content)(nil),
 		&Compilation{},
 		&Auditing{},
+		&Proof{},
+		&OracleOperator{},
+		&ShieldPoolCreator{},
 		&Identity{},
+		&General{},
 	)
 
 	registry.RegisterInterface("shentu.cert.v1alpha1.Certificate", (*Certificate)(nil),
@@ -65,7 +73,11 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterInterface("shentu.cert.v1alpha1.Content", (*Content)(nil),
 		&Compilation{},
 		&Auditing{},
+		&Proof{},
+		&OracleOperator{},
+		&ShieldPoolCreator{},
 		&Identity{},
+		&General{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
