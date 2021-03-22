@@ -257,6 +257,19 @@ func RegisterCertLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(CertifierUpdateProposal{}, "cosmos-sdk/CertifierUpdateProposal", nil)
 }
 
+func AssembleContentFromType(certType CertificateType, reqContType RequestContentType, reqContStr string) certtypes.Content {
+	switch certType {
+	case CertificateTypeCompilation:
+		return &certtypes.Compilation{certtypes.RequestContentType(reqContType), reqContStr}
+	case CertificateTypeAuditing:
+		return &certtypes.Auditing{certtypes.RequestContentType(reqContType), reqContStr}
+	case CertificateTypeIdentity:
+		return &certtypes.Identity{certtypes.RequestContentType(reqContType), reqContStr}
+	default:
+		return nil
+	}
+}
+
 func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 	newCertifiers := make([]certtypes.Certifier, len(oldGenState.Certifiers))
 	for i, c := range oldGenState.Certifiers {
@@ -289,18 +302,23 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 	newCertificates := make([]*codectypes.Any, len(oldGenState.Certificates))
 	for i, c := range oldGenState.Certificates {
 		var newCert certtypes.Certificate
-		reqContent := certtypes.RequestContent{
-			RequestContentType: certtypes.RequestContentType(c.RequestContent().RequestContentType),
-			RequestContent:     c.RequestContent().RequestContent,
+		reqContent := AssembleContentFromType(c.Type(), c.RequestContent().RequestContentType, c.RequestContent().RequestContent)
+		msg, ok := reqContent.(proto.Message)
+		if !ok {
+			panic(fmt.Errorf("%T does not implement proto.Message", reqContent))
+		}
+		any, err := codectypes.NewAnyWithValue(msg)
+		if err != nil {
+			panic(err)
 		}
 		newCert = &certtypes.GeneralCertificate{
 			CertId:          c.ID(),
 			CertType:        certtypes.CertificateType(c.Type()),
-			ReqContent:      &reqContent,
+			ReqContent:      any,
 			CertDescription: c.Description(),
 			CertCertifier:   c.Certifier().String(),
 		}
-		msg, ok := newCert.(proto.Message)
+		msg, ok = newCert.(proto.Message)
 		if !ok {
 			panic(sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", newCert))
 		}

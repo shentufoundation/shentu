@@ -1,9 +1,11 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	proto "github.com/gogo/protobuf/proto"
 )
@@ -47,14 +49,23 @@ func CertificateTypeFromString(s string) CertificateType {
 	}
 }
 
+type Content interface {
+	proto.Message
+
+	GetType() RequestContentType
+	GetContent() string
+}
+
 // Certificate is the interface for all kinds of certificate
 type Certificate interface {
 	proto.Message
+	codecTypes.UnpackInterfacesMessage
 
 	ID() uint64
 	Type() CertificateType
 	Certifier() sdk.AccAddress
-	RequestContent() RequestContent
+	Content() Content
+	FormattedContent() []KVPair
 	CertificateContent() string
 	FormattedCertificateContent() []KVPair
 	Description() string
@@ -94,16 +105,22 @@ func RequestContentTypeFromString(s string) RequestContentType {
 	}
 }
 
-// NewRequestContent returns a new request content.
-func NewRequestContent(
-	requestContentTypeString string,
-	requestContent string,
-) (RequestContent, error) {
-	requestContentType := RequestContentTypeFromString(requestContentTypeString)
-	if requestContentType == RequestContentTypeNil {
-		return RequestContent{}, ErrInvalidRequestContentType
+func AssembleContent(certTypeStr, reqContTypeStr, reqContStr string) Content {
+	certType := CertificateTypeFromString(certTypeStr)
+	reqContType := RequestContentTypeFromString(reqContTypeStr)
+	switch certType {
+	case CertificateTypeCompilation:
+		return &Compilation{reqContType, reqContStr}
+	case CertificateTypeAuditing:
+		return &Auditing{reqContType, reqContStr}
+	case CertificateTypeIdentity:
+		return &Identity{reqContType, reqContStr}
+
+	// TODO: more types to come
+
+	default:
+		return nil
 	}
-	return RequestContent{RequestContentType: requestContentType, RequestContent: requestContent}, nil
 }
 
 // NewGeneralCertificate returns a new general certificate.
@@ -114,16 +131,27 @@ func NewGeneralCertificate(
 	if certType == CertificateTypeNil {
 		return nil, ErrInvalidCertificateType
 	}
-	reqContent, err := NewRequestContent(reqContTypeStr, reqContStr)
+	content := AssembleContent(certTypeStr, reqContTypeStr, reqContStr)
+	msg, ok := content.(proto.Message)
+	if !ok {
+		return &GeneralCertificate{}, fmt.Errorf("%T does not implement proto.Message", content)
+	}
+	any, err := codecTypes.NewAnyWithValue(msg)
 	if err != nil {
-		return nil, err
+		return &GeneralCertificate{}, err
 	}
 	return &GeneralCertificate{
 		CertType:        certType,
-		ReqContent:      &reqContent,
+		ReqContent:      any,
 		CertDescription: description,
 		CertCertifier:   certifier.String(),
 	}, nil
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (c *GeneralCertificate) UnpackInterfaces(unpacker codecTypes.AnyUnpacker) error {
+	var content Content
+	return unpacker.UnpackAny(c.ReqContent, &content)
 }
 
 // ID returns ID of the certificate.
@@ -146,8 +174,20 @@ func (c *GeneralCertificate) Certifier() sdk.AccAddress {
 }
 
 // RequestContent returns request content of the certificate.
-func (c *GeneralCertificate) RequestContent() RequestContent {
-	return *c.ReqContent
+func (c *GeneralCertificate) Content() Content {
+	content, ok := c.ReqContent.GetCachedValue().(Content)
+	if !ok {
+		return nil
+	}
+	return content
+}
+
+// FormattedCertificateContent returns formatted certificate content of the certificate.
+func (c *GeneralCertificate) FormattedContent() []KVPair {
+	return []KVPair{
+		NewKVPair("content_type", c.Content().GetType().String()),
+		NewKVPair("content", c.Content().GetContent()),
+	}
 }
 
 // CertificateContent returns certificate content of the certificate.
@@ -194,15 +234,29 @@ func NewCompilationCertificate(
 	description string,
 	certifier sdk.AccAddress,
 ) *CompilationCertificate {
-	requestContent, _ := NewRequestContent("sourcecodehash", sourceCodeHash)
+	content := AssembleContent("COMPILATION", "SOURCECODEHASH", sourceCodeHash)
+	msg, ok := content.(proto.Message)
+	if !ok {
+		return &CompilationCertificate{}
+	}
+	any, err := codecTypes.NewAnyWithValue(msg)
+	if err != nil {
+		return &CompilationCertificate{}
+	}
 	certificateContent := NewCompilationCertificateContent(compiler, bytecodeHash)
 	return &CompilationCertificate{
 		CertType:        certificateType,
-		ReqContent:      &requestContent,
+		ReqContent:      any,
 		CertContent:     &certificateContent,
 		CertDescription: description,
 		CertCertifier:   certifier.String(),
 	}
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (c *CompilationCertificate) UnpackInterfaces(unpacker codecTypes.AnyUnpacker) error {
+	var content Content
+	return unpacker.UnpackAny(c.ReqContent, &content)
 }
 
 // ID returns ID of the certificate.
@@ -225,8 +279,20 @@ func (c *CompilationCertificate) Certifier() sdk.AccAddress {
 }
 
 // RequestContent returns request content of the certificate.
-func (c *CompilationCertificate) RequestContent() RequestContent {
-	return *c.ReqContent
+func (c *CompilationCertificate) Content() Content { // TODO: problematic
+	content, ok := c.ReqContent.GetCachedValue().(Content)
+	if !ok {
+		return nil
+	}
+	return content
+}
+
+// FormattedCertificateContent returns formatted certificate content of the certificate.
+func (c *CompilationCertificate) FormattedContent() []KVPair {
+	return []KVPair{
+		NewKVPair("content_type", c.Content().GetType().String()),
+		NewKVPair("content", c.Content().GetContent()),
+	}
 }
 
 // CertificateContent returns certificate content of the certificate.

@@ -22,8 +22,12 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgRevokeCertificate{}, "cert/RevokeCertificate", nil)
 	cdc.RegisterConcrete(&GeneralCertificate{}, "cert/GeneralCertificate", nil)
 	cdc.RegisterConcrete(&CompilationCertificate{}, "cert/CompilationCertificate", nil)
+	cdc.RegisterConcrete(&Compilation{}, "cert/Compilation", nil)
+	cdc.RegisterConcrete(&Auditing{}, "cert/Auditing", nil)
+	cdc.RegisterConcrete(&Identity{}, "cert/Identity", nil)
 
 	cdc.RegisterInterface((*Certificate)(nil), nil)
+	cdc.RegisterInterface((*Content)(nil), nil)
 }
 
 // RegisterInterfaces registers the x/cert interfaces types with the interface registry
@@ -47,9 +51,21 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&CompilationCertificate{},
 	)
 
+	registry.RegisterImplementations((*Content)(nil),
+		&Compilation{},
+		&Auditing{},
+		&Identity{},
+	)
+
 	registry.RegisterInterface("shentu.cert.v1alpha1.Certificate", (*Certificate)(nil),
 		&GeneralCertificate{},
 		&CompilationCertificate{},
+	)
+
+	registry.RegisterInterface("shentu.cert.v1alpha1.Content", (*Content)(nil),
+		&Compilation{},
+		&Auditing{},
+		&Identity{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

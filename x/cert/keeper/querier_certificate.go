@@ -12,50 +12,27 @@ import (
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
-type QueryResRequestContent struct {
-	RequestContentType     types.RequestContentType `json:"request_content_type"`
-	RequestContentTypeName string                   `json:"request_content_type_name"`
-	RequestContent         string                   `json:"request_content"`
-}
-
-func NewQueryResRequestContent(
-	requestContentType types.RequestContentType,
-	requestContentTypeName string,
-	requestContent string,
-) QueryResRequestContent {
-	return QueryResRequestContent{
-		RequestContentType:     requestContentType,
-		RequestContentTypeName: requestContentTypeName,
-		RequestContent:         requestContent,
-	}
-}
-
 type QueryResCertificate struct {
-	CertificateID      uint64                 `json:"certificate_id"`
-	CertificateType    string                 `json:"certificate_type"`
-	RequestContent     QueryResRequestContent `json:"request_content"`
-	CertificateContent []types.KVPair         `json:"certificate_content"`
-	Description        string                 `json:"description"`
-	Certifier          string                 `json:"certifier"`
+	CertificateID      uint64         `json:"certificate_id"`
+	CertificateType    string         `json:"certificate_type"`
+	RequestContent     []types.KVPair `json:"request_content"`
+	CertificateContent []types.KVPair `json:"certificate_content"`
+	Description        string         `json:"description"`
+	Certifier          string         `json:"certifier"`
 }
 
 func NewQueryResCertificate(
 	certificateID uint64,
 	certificateType string,
-	requestContent types.RequestContent,
+	requestContent []types.KVPair,
 	certificateContent []types.KVPair,
 	description string,
 	certifier string,
 ) QueryResCertificate {
-	resRequestContent := NewQueryResRequestContent(
-		requestContent.RequestContentType,
-		requestContent.RequestContentType.String(),
-		requestContent.RequestContent,
-	)
 	return QueryResCertificate{
 		CertificateID:      certificateID,
 		CertificateType:    certificateType,
-		RequestContent:     resRequestContent,
+		RequestContent:     requestContent,
 		CertificateContent: certificateContent,
 		Description:        description,
 		Certifier:          certifier,
@@ -79,7 +56,7 @@ func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQueri
 	resCertificate := NewQueryResCertificate(
 		certificate.ID(),
 		certificate.Type().String(),
-		certificate.RequestContent(),
+		certificate.FormattedContent(),
 		certificate.FormattedCertificateContent(),
 		certificate.Description(),
 		certificate.Certifier().String(),
@@ -115,7 +92,7 @@ func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 		resCertificate := NewQueryResCertificate(
 			certificate.ID(),
 			certificate.Type().String(),
-			certificate.RequestContent(),
+			certificate.FormattedContent(),
 			certificate.FormattedCertificateContent(),
 			certificate.Description(),
 			certificate.Certifier().String(),

@@ -73,20 +73,16 @@ func (k Keeper) GetCertificateType(ctx sdk.Context, id uint64) (types.Certificat
 
 // IsCertified checks if a certificate of given type and content exists.
 func (k Keeper) IsCertified(ctx sdk.Context, requestContentType string, content string, certType string) bool {
-	requestContent, err := types.NewRequestContent(requestContentType, content)
-	if err != nil {
-		return false
-	}
 	certificateType := types.CertificateTypeFromString(certType)
-	certificates := k.GetCertificatesByTypeAndContent(ctx, certificateType, requestContent)
+	certificates := k.GetCertificatesByTypeAndContent(ctx, certificateType,
+		types.RequestContentTypeFromString(requestContentType), content)
 	return len(certificates) > 0
 }
 
 // IsContentCertified checks if a certificate of given content exists.
 func (k Keeper) IsContentCertified(ctx sdk.Context, requestContent string) bool {
 	for _, requestContentType := range types.RequestContentTypes {
-		requestContent := types.RequestContent{RequestContentType: requestContentType, RequestContent: requestContent}
-		if len(k.GetCertificatesByContent(ctx, requestContent)) > 0 {
+		if len(k.GetCertificatesByContent(ctx, requestContentType, requestContent)) > 0 {
 			return true
 		}
 	}
@@ -149,10 +145,10 @@ func (k Keeper) GetCertificatesByCertifier(ctx sdk.Context, certifier sdk.AccAdd
 }
 
 // GetCertificatesByContent retrieves all certificates with given content.
-func (k Keeper) GetCertificatesByContent(ctx sdk.Context, requestContent types.RequestContent) []types.Certificate {
+func (k Keeper) GetCertificatesByContent(ctx sdk.Context, contentType types.RequestContentType, content string) []types.Certificate {
 	certificates := []types.Certificate{}
 	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
-		if certificate.RequestContent() == requestContent {
+		if certificate.Content().GetType() == contentType && certificate.Content().GetContent() == content {
 			certificates = append(certificates, certificate)
 		}
 		return false
@@ -162,10 +158,10 @@ func (k Keeper) GetCertificatesByContent(ctx sdk.Context, requestContent types.R
 
 // GetCertificatesByTypeAndContent retrieves all certificates with given certificate type and content.
 func (k Keeper) GetCertificatesByTypeAndContent(ctx sdk.Context, certType types.CertificateType,
-	requestContent types.RequestContent) []types.Certificate {
+	contentType types.RequestContentType, content string) []types.Certificate {
 	certificates := []types.Certificate{}
 	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
-		if certificate.RequestContent() == requestContent &&
+		if certificate.Content().GetType() == contentType && certificate.Content().GetContent() == content &&
 			certificate.Type() == certType {
 			certificates = append(certificates, certificate)
 		}
@@ -182,8 +178,8 @@ func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCerti
 			return false
 		}
 		if params.ContentType != "" &&
-			(types.RequestContentTypeFromString(params.ContentType) != certificate.RequestContent().RequestContentType ||
-				certificate.RequestContent().RequestContent != params.Content) {
+			(types.RequestContentTypeFromString(params.ContentType) != certificate.Content().GetType() ||
+				certificate.Content().GetContent() != params.Content) {
 			return false
 		}
 		filteredCertificates = append([]types.Certificate{certificate}, filteredCertificates...)
@@ -194,11 +190,7 @@ func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCerti
 	if len(params.Certifier) != 0 {
 		k.IterateAllCertificate(ctx, callback)
 	} else if params.ContentType != "" && params.Content != "" {
-		requestContent, err := types.NewRequestContent(params.ContentType, params.Content)
-		if err != nil {
-			return 0, nil, err
-		}
-		filteredCertificates = k.GetCertificatesByContent(ctx, requestContent)
+		filteredCertificates = k.GetCertificatesByContent(ctx, types.RequestContentTypeFromString(params.ContentType), params.Content)
 	} else {
 		k.IterateAllCertificate(ctx, callback)
 	}
@@ -226,8 +218,9 @@ func (k Keeper) RevokeCertificate(ctx sdk.Context, certificate types.Certificate
 func (k Keeper) GetCertifiedIdentities(ctx sdk.Context) []sdk.AccAddress {
 	identities := []sdk.AccAddress{}
 	k.IterateAllCertificate(ctx, func(certificate types.Certificate) (stop bool) {
-		if certificate.Type() == types.CertificateTypeIdentity {
-			addr, _ := sdk.AccAddressFromBech32(certificate.RequestContent().RequestContent)
+		if certificate.Type() == types.CertificateTypeIdentity &&
+			certificate.Content().GetType() == types.RequestContentTypeAddress {
+			addr, _ := sdk.AccAddressFromBech32(certificate.Content().GetContent())
 			identities = append(identities, addr)
 		}
 		return false
