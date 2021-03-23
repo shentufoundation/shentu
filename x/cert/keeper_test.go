@@ -130,61 +130,78 @@ func Test_CertificateQueries(t *testing.T) {
 
 		// Store certificates
 		count := 0
-		count2 := 0 // For counting certificates with given address and content
-		count3 := 0 // For counting certificates with given address
-		dupContent := "duplicate content"
+		count2 := 0 // For counting compilation certificate
+		count3 := 0 // For counting certificates with given certifier
+		count4 := 0 // For counting compilation certificates with given certifier
 		totalCerts := 1000
+		dupContent := "duplicate content"
+
 		for i := 1; i < totalCerts; i++ {
 			index := rand.Intn(4) // random address index
+			dup := rand.Intn(100)
 
 			var cert *types.CompilationCertificate
-			dup := rand.Intn(100)
+			var cert2 *types.GeneralCertificate
+
+			count++
+
 			if dup > 95 {
 				cert = types.NewCompilationCertificate(dupContent, "compiler1",
 					"bytecodehash1", "", addrs[index])
-				count++
+				count2++
 				if index == 0 {
-					count2++
 					count3++
+					count4++
 				}
+				_, err := app.CertKeeper.IssueCertificate(ctx, cert)
+				require.NoError(t, err)
 			} else {
 				length := rand.Intn(10) + 10
 				s := randomString(length)
-				cert = types.NewCompilationCertificate(s, "compiler1",
-					"bytecodehash1", "", addrs[index])
+				cert2, _ = types.NewGeneralCertificate("general", "general",
+					s, "", addrs[index])
 				if index == 0 {
 					count3++
 				}
+				_, err := app.CertKeeper.IssueCertificate(ctx, cert2)
+				require.NoError(t, err)
 			}
-			_, err := app.CertKeeper.IssueCertificate(ctx, cert)
-			require.NoError(t, err)
 		}
 
 		// Test GetCertificatesByContent()
 		certs := app.CertKeeper.GetCertificatesByContent(ctx, types.RequestContentTypeFromString("sourcecodehash"), dupContent)
-		require.Equal(t, count, len(certs))
+		require.Equal(t, count2, len(certs))
 
 		// Test GetCertificatesFiltered()
-		// Query by content only
-		queryParams := types.NewQueryCertificatesParams(1, totalCerts, nil, "sourcecodehash", dupContent)
+		queryParams := types.NewQueryCertificatesParams(1, totalCerts, nil, types.CertificateTypeFromString("compilation"))
 		total, certs, err := app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
-		require.NoError(t, err)
-		require.Equal(t, uint64(count), total)
-		require.Equal(t, count, len(certs))
-
-		// Query by content and certifier
-		queryParams = types.NewQueryCertificatesParams(1, totalCerts, addrs[0], "sourcecodehash", dupContent)
-		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
 		require.Equal(t, uint64(count2), total)
 		require.Equal(t, count2, len(certs))
 
-		// Query by certifier only
-		queryParams = types.NewQueryCertificatesParams(1, totalCerts, addrs[0], "", "")
+		queryParams = types.NewQueryCertificatesParams(1, totalCerts, nil, types.CertificateTypeFromString("general"))
+		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
+		require.NoError(t, err)
+		require.Equal(t, uint64(count-count2), total)
+		require.Equal(t, count-count2, len(certs))
+
+		queryParams = types.NewQueryCertificatesParams(1, totalCerts, addrs[0], types.CertificateTypeFromString(""))
 		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
 		require.Equal(t, uint64(count3), total)
 		require.Equal(t, count3, len(certs))
+
+		queryParams = types.NewQueryCertificatesParams(1, totalCerts, addrs[0], types.CertificateTypeFromString("compilation"))
+		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
+		require.NoError(t, err)
+		require.Equal(t, uint64(count4), total)
+		require.Equal(t, count4, len(certs))
+
+		queryParams = types.NewQueryCertificatesParams(1, totalCerts, addrs[0], types.CertificateTypeFromString("general"))
+		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
+		require.NoError(t, err)
+		require.Equal(t, uint64(count3-count4), total)
+		require.Equal(t, count3-count4, len(certs))
 	})
 }
 
