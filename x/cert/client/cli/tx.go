@@ -20,8 +20,7 @@ import (
 
 const (
 	FlagAlias        = "alias"
-	FlagContentType  = "content-type"
-	FlagContent      = "content"
+	FlagCertType     = "certificate-type"
 	FlagCompiler     = "compiler"
 	FlagBytecodeHash = "bytecode-hash"
 	FlagDescription  = "description"

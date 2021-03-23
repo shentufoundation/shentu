@@ -152,11 +152,10 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 		return nil, err
 	}
 	params := types.QueryCertificatesParams{
-		Page:        page,
-		Limit:       limit,
-		Certifier:   certifierAddr,
-		ContentType: req.ContentType,
-		Content:     req.Content,
+		Page:            page,
+		Limit:           limit,
+		Certifier:       certifierAddr,
+		CertificateType: types.CertificateTypeFromString(req.CertificateType),
 	}
 
 	total, certificates, err := q.GetCertificatesFiltered(ctx, params)

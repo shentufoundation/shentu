@@ -173,27 +173,14 @@ func (k Keeper) GetCertificatesByTypeAndContent(ctx sdk.Context, certType types.
 // GetCertificatesFiltered gets certificates filtered.
 func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCertificatesParams) (uint64, []types.Certificate, error) {
 	filteredCertificates := []types.Certificate{}
-	callback := func(certificate types.Certificate) bool {
-		if len(params.Certifier) != 0 && !certificate.Certifier().Equals(params.Certifier) {
+	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
+		if (params.Certifier != nil && !certificate.Certifier().Equals(params.Certifier)) ||
+			(params.CertificateType != types.CertificateTypeNil && types.TranslateCertificateType(certificate) != params.CertificateType) {
 			return false
 		}
-		if params.ContentType != "" &&
-			(types.RequestContentTypeFromString(params.ContentType) != certificate.Content().GetType() ||
-				certificate.Content().GetContent() != params.Content) {
-			return false
-		}
-		filteredCertificates = append([]types.Certificate{certificate}, filteredCertificates...)
+		filteredCertificates = append(filteredCertificates, certificate)
 		return false
-	}
-
-	// Choose an efficient iteration mechanism.
-	if len(params.Certifier) != 0 {
-		k.IterateAllCertificate(ctx, callback)
-	} else if params.ContentType != "" && params.Content != "" {
-		filteredCertificates = k.GetCertificatesByContent(ctx, types.RequestContentTypeFromString(params.ContentType), params.Content)
-	} else {
-		k.IterateAllCertificate(ctx, callback)
-	}
+	})
 
 	// Post-processing
 	start, end := client.Paginate(len(filteredCertificates), params.Page, params.Limit, 100)

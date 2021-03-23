@@ -96,8 +96,7 @@ message QueryCertificateResponse {
 
 message QueryCertificatesRequest {
     string certifier = 1;
-    string content = 2;
-    string content_type = 3;
+    string certificate_type = 2;
 
     // pagination defines an optional pagination for the request.
     cosmos.base.query.v1beta1.PageRequest pagination = 4;

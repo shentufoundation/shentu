@@ -37,11 +37,10 @@ const (
 
 // QueryCertificatesParams is the type for parameters of querying certificates.
 type QueryCertificatesParams struct {
-	Page        int
-	Limit       int
-	Certifier   sdk.AccAddress
-	ContentType string
-	Content     string
+	Page            int
+	Limit           int
+	Certifier       sdk.AccAddress
+	CertificateType CertificateType
 }
 
 // QueryResCertifiers is the query result payload for all certifiers.
@@ -77,13 +76,12 @@ func (q QueryResValidators) String() string {
 }
 
 // NewQueryCertificatesParams creates a new instance of QueryCertificatesParams.
-func NewQueryCertificatesParams(page, limit int, certifier sdk.AccAddress, contentType, content string) QueryCertificatesParams {
+func NewQueryCertificatesParams(page, limit int, certifier sdk.AccAddress, CertType CertificateType) QueryCertificatesParams {
 	return QueryCertificatesParams{
-		Page:        page,
-		Limit:       limit,
-		Certifier:   certifier,
-		ContentType: contentType,
-		Content:     content,
+		Page:            page,
+		Limit:           limit,
+		Certifier:       certifier,
+		CertificateType: CertType,
 	}
 }
 
