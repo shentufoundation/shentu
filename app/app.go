@@ -463,7 +463,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// there is nothing left over in the validator fee pool, so as to
 	// keep the CanWithdrawInvariant invariant.
 	app.mm.SetOrderBeginBlockers(upgradetypes.ModuleName, sdkminttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, evidencetypes.ModuleName,
-		oracletypes.ModuleName, cvmtypes.ModuleName, shieldtypes.ModuleName)
+		oracletypes.ModuleName, cvmtypes.ModuleName, shieldtypes.ModuleName, ibchost.ModuleName)
 
 	// NOTE: Shield endblocker comes before staking because it queries
 	// unbonding delegations that staking endblocker deletes.
