@@ -345,9 +345,6 @@ $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04
 			capGenesis := captypes.DefaultGenesis()
 			evGenesis := evtypes.DefaultGenesisState()
 
-			ibcTransferGenesis.Params.ReceiveEnabled = false
-			ibcTransferGenesis.Params.SendEnabled = false
-
 			ibcCoreGenesis.ClientGenesis.Params.AllowedClients = []string{exported.Tendermint}
 			stakingGenesis.Params.HistoricalEntries = 10000
 
