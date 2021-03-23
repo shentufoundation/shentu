@@ -375,6 +375,7 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 	}
 }
 
+// AssembleContent constructs a struct instance that implements content interface.
 func AssembleContent(certType CertificateType, reqContType RequestContentType, reqContStr string) certtypes.Content {
 	switch certType {
 	case CertificateTypeCompilation:

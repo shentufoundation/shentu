@@ -49,6 +49,7 @@ func CertificateTypeFromString(s string) CertificateType {
 	}
 }
 
+// Content is the interface for all kins of certificate content.
 type Content interface {
 	proto.Message
 
@@ -74,6 +75,7 @@ type Certificate interface {
 	SetCertificateID(uint64)
 }
 
+// TranslateCertificateType determines certificate type based on content interface type switch.
 func TranslateCertificateType(certificate Certificate) CertificateType {
 	switch certificate.Content().(type) {
 	case *Compilation:
@@ -125,6 +127,7 @@ func RequestContentTypeFromString(s string) RequestContentType {
 	}
 }
 
+// AssembleContent constructs a struct instance that implements content interface.
 func AssembleContent(certTypeStr, reqContTypeStr, reqContStr string) Content {
 	certType := CertificateTypeFromString(certTypeStr)
 	reqContType := RequestContentTypeFromString(reqContTypeStr)
@@ -188,7 +191,7 @@ func (c *GeneralCertificate) Certifier() sdk.AccAddress {
 	return certifierAddr
 }
 
-// RequestContent returns request content of the certificate.
+// Content returns request content of the certificate.
 func (c *GeneralCertificate) Content() Content {
 	content, ok := c.ReqContent.GetCachedValue().(Content)
 	if !ok {
@@ -197,7 +200,7 @@ func (c *GeneralCertificate) Content() Content {
 	return content
 }
 
-// FormattedCertificateContent returns formatted certificate content of the certificate.
+// FormattedContent returns formatted content of the certificate.
 func (c *GeneralCertificate) FormattedContent() []KVPair {
 	return []KVPair{
 		NewKVPair("content_type", c.Content().GetType().String()),
@@ -286,8 +289,8 @@ func (c *CompilationCertificate) Certifier() sdk.AccAddress {
 	return certifierAddr
 }
 
-// RequestContent returns request content of the certificate.
-func (c *CompilationCertificate) Content() Content { // TODO: problematic
+// Content returns request content of the certificate.
+func (c *CompilationCertificate) Content() Content {
 	content, ok := c.ReqContent.GetCachedValue().(Content)
 	if !ok {
 		return nil
@@ -295,7 +298,7 @@ func (c *CompilationCertificate) Content() Content { // TODO: problematic
 	return content
 }
 
-// FormattedCertificateContent returns formatted certificate content of the certificate.
+// FormattedContent returns formatted content of the certificate.
 func (c *CompilationCertificate) FormattedContent() []KVPair {
 	return []KVPair{
 		NewKVPair("content_type", c.Content().GetType().String()),
