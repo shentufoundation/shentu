@@ -164,6 +164,7 @@ func Test_CertificateQueries(t *testing.T) {
 		count3 := 0 // For counting certificates with given address
 		dupContent := "duplicate content"
 		totalCerts := 1000
+
 		for i := 1; i < totalCerts; i++ {
 			index := rand.Intn(4) // random address index
 
