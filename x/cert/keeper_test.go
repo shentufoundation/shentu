@@ -169,7 +169,7 @@ func Test_CertificateQueries(t *testing.T) {
 		}
 
 		// Test GetCertificatesByContent()
-		certs := app.CertKeeper.GetCertificatesByContent(ctx, types.RequestContentTypeFromString("sourcecodehash"), dupContent)
+		certs := app.CertKeeper.GetCertificatesByContent(ctx, types.ContentTypeFromString("sourcecodehash"), dupContent)
 		require.Equal(t, count2, len(certs))
 
 		// Test GetCertificatesFiltered()

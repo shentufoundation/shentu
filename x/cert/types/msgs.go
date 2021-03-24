@@ -186,14 +186,14 @@ func (m MsgDecertifyValidator) UnpackInterfaces(unpacker codectypes.AnyUnpacker)
 
 // NewMsgCertifyGeneral returns a new general certification message.
 func NewMsgCertifyGeneral(
-	certificateType, requestContentType, requestContent, description string, certifier sdk.AccAddress,
+	certificateType, contentType, content, description string, certifier sdk.AccAddress,
 ) *MsgCertifyGeneral {
 	return &MsgCertifyGeneral{
-		CertificateType:    certificateType,
-		RequestContentType: requestContentType,
-		RequestContent:     requestContent,
-		Description:        description,
-		Certifier:          certifier.String(),
+		CertificateType: certificateType,
+		ContentType:     contentType,
+		Content:         content,
+		Description:     description,
+		Certifier:       certifier.String(),
 	}
 }
 
@@ -208,7 +208,7 @@ func (m MsgCertifyGeneral) ValidateBasic() error {
 	if certificateType := CertificateTypeFromString(m.CertificateType); certificateType == CertificateTypeNil {
 		return ErrInvalidCertificateType
 	}
-	if requestContentType := RequestContentTypeFromString(m.RequestContentType); requestContentType == RequestContentTypeNil {
+	if ContentType := ContentTypeFromString(m.ContentType); ContentType == ContentTypeNil {
 		return ErrInvalidRequestContentType
 	}
 	return nil

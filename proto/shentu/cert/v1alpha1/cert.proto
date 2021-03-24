@@ -31,14 +31,14 @@ enum CertificateType {
     CERT_TYPE_GENERAL = 7 [(gogoproto.enumvalue_customname) = "CertificateTypeGeneral"];
 }
 
-enum RequestContentType {
+enum ContentType {
     option (gogoproto.goproto_enum_prefix) = false;
   
-    REQ_CONTENT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "RequestContentTypeNil"];
-    REQ_CONTENT_TYPE_SOURCE_CODE_HASH = 1 [(gogoproto.enumvalue_customname) = "RequestContentTypeSourceCodeHash"];
-    REQ_CONTENT_TYPE_ADDRESS = 2 [(gogoproto.enumvalue_customname) = "RequestContentTypeAddress"];
-    REQ_CONTENT_TYPE_BYTECODE_HASH = 3 [(gogoproto.enumvalue_customname) = "RequestContentTypeBytecodeHash"];
-    REQ_CONTENT_TYPE_GENERAL = 4 [(gogoproto.enumvalue_customname) = "RequestContentTypeGeneral"];
+    CONTENT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "ContentTypeNil"];
+    CONTENT_TYPE_SOURCE_CODE_HASH = 1 [(gogoproto.enumvalue_customname) = "ContentTypeSourceCodeHash"];
+    CONTENT_TYPE_ADDRESS = 2 [(gogoproto.enumvalue_customname) = "ContentTypeAddress"];
+    CONTENT_TYPE_BYTECODE_HASH = 3 [(gogoproto.enumvalue_customname) = "ContentTypeBytecodeHash"];
+    CONTENT_TYPE_GENERAL = 4 [(gogoproto.enumvalue_customname) = "ContentTypeGeneral"];
 }
 
 message GeneralCertificate {
@@ -93,49 +93,49 @@ message Library {
 message Compilation {
     option (cosmos_proto.implements_interface) = "Content";
 
-    RequestContentType type = 1;
+    ContentType type = 1;
     string content = 2;
 }
 
 message Auditing {
     option (cosmos_proto.implements_interface) = "Content";
 
-    RequestContentType type = 1;
+    ContentType type = 1;
     string content = 2;
 }
 
 message Proof {
     option (cosmos_proto.implements_interface) = "Content";
 
-    RequestContentType type = 1;
+    ContentType type = 1;
     string content = 2;
 }
 
 message OracleOperator {
     option (cosmos_proto.implements_interface) = "Content";
 
-    RequestContentType type = 1;
+    ContentType type = 1;
     string content = 2;
 }
 
 message ShieldPoolCreator {
     option (cosmos_proto.implements_interface) = "Content";
 
-    RequestContentType type = 1;
+    ContentType type = 1;
     string content = 2;
 }
 
 message Identity {
     option (cosmos_proto.implements_interface) = "Content";
 
-    RequestContentType type = 1;
+    ContentType type = 1;
     string content = 2;
 }
 
 message General {
     option (cosmos_proto.implements_interface) = "Content";
 
-    RequestContentType type = 1;
+    ContentType type = 1;
     string content = 2;
 }
 

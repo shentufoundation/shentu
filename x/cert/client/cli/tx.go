@@ -144,8 +144,8 @@ func GetCmdIssueCertificate() *cobra.Command {
 			certificateTypeString := strings.ToLower(args[0])
 			switch certificateTypeString {
 			case "compilation":
-				contentType := types.RequestContentTypeFromString(args[1])
-				if contentType != types.RequestContentTypeSourceCodeHash {
+				contentType := types.ContentTypeFromString(args[1])
+				if contentType != types.ContentTypeSourceCodeHash {
 					return types.ErrInvalidRequestContentType
 				}
 				compiler, bytecodeHash, description, err := parseCertifyCompilationFlags()

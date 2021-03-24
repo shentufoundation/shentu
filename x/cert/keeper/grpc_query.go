@@ -125,7 +125,7 @@ func (q Querier) Certificate(c context.Context, req *types.QueryCertificateReque
 	return &types.QueryCertificateResponse{
 		CertificateId:      certificate.ID(),
 		CertificateType:    types.TranslateCertificateType(certificate).String(),
-		RequestContent:     certificate.FormattedContent(),
+		Content:            certificate.FormattedContent(),
 		CertificateContent: certificate.FormattedCertificateContent(),
 		Description:        certificate.Description(),
 		Certifier:          certificate.Certifier().String(),
@@ -168,7 +168,7 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 		results[i] = types.QueryCertificateResponse{
 			CertificateId:      certificate.ID(),
 			CertificateType:    types.TranslateCertificateType(certificate).String(),
-			RequestContent:     certificate.FormattedContent(),
+			Content:            certificate.FormattedContent(),
 			CertificateContent: certificate.FormattedCertificateContent(),
 			Description:        certificate.Description(),
 			Certifier:          certificate.Certifier().String(),

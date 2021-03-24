@@ -75,7 +75,7 @@ func (k msgServer) CertifyGeneral(goCtx context.Context, msg *types.MsgCertifyGe
 		return nil, err
 	}
 
-	certificate, err := types.NewGeneralCertificate(msg.CertificateType, msg.RequestContentType, msg.RequestContent, msg.Description, certifierAddr)
+	certificate, err := types.NewGeneralCertificate(msg.CertificateType, msg.ContentType, msg.Content, msg.Description, certifierAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -88,8 +88,8 @@ func (k msgServer) CertifyGeneral(goCtx context.Context, msg *types.MsgCertifyGe
 		types.EventTypeCertify,
 		sdk.NewAttribute("certificate_id", strconv.FormatUint(certificateID, 10)),
 		sdk.NewAttribute("certificate_type", msg.CertificateType),
-		sdk.NewAttribute("request_content_type", msg.RequestContentType),
-		sdk.NewAttribute("request_content", msg.RequestContent),
+		sdk.NewAttribute("request_content_type", msg.ContentType),
+		sdk.NewAttribute("request_content", msg.Content),
 		sdk.NewAttribute("description", msg.Description),
 		sdk.NewAttribute("certifier", msg.Certifier),
 	)

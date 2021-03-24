@@ -53,7 +53,7 @@ func CertificateTypeFromString(s string) CertificateType {
 type Content interface {
 	proto.Message
 
-	GetType() RequestContentType
+	GetType() ContentType
 	GetContent() string
 }
 
@@ -97,55 +97,55 @@ func TranslateCertificateType(certificate Certificate) CertificateType {
 	}
 }
 
-// RequestContentTypes is an array of all request content types.
-var RequestContentTypes = [...]RequestContentType{
-	RequestContentTypeNil,
-	RequestContentTypeSourceCodeHash,
-	RequestContentTypeAddress,
-	RequestContentTypeBytecodeHash,
-	RequestContentTypeGeneral,
+// ContentTypes is an array of all content types.
+var ContentTypes = [...]ContentType{
+	ContentTypeNil,
+	ContentTypeSourceCodeHash,
+	ContentTypeAddress,
+	ContentTypeBytecodeHash,
+	ContentTypeGeneral,
 }
 
-// Bytes returns the byte array for a request content type.
-func (c RequestContentType) Bytes() []byte {
+// Bytes returns the byte array for a content type.
+func (c ContentType) Bytes() []byte {
 	return []byte{byte(c)}
 }
 
-// RequestContentTypeFromString returns the request content type by parsing a string.
-func RequestContentTypeFromString(s string) RequestContentType {
+// ContentTypeFromString returns the content type by parsing a string.
+func ContentTypeFromString(s string) ContentType {
 	switch strings.ToUpper(s) {
-	case "SOURCECODEHASH", "REQ_CONTENT_TYPE_SOURCE_CODE_HASH":
-		return RequestContentTypeSourceCodeHash
-	case "ADDRESS", "REQ_CONTENT_TYPE_ADDRESS":
-		return RequestContentTypeAddress
-	case "BYTECODEHASH", "REQ_CONTENT_TYPE_BYTECODE_HASH":
-		return RequestContentTypeBytecodeHash
-	case "GENERAL", "REQ_CONTENT_TYPE_GENERAL":
-		return RequestContentTypeGeneral
+	case "SOURCECODEHASH", "CONTENT_TYPE_SOURCE_CODE_HASH":
+		return ContentTypeSourceCodeHash
+	case "ADDRESS", "CONTENT_TYPE_ADDRESS":
+		return ContentTypeAddress
+	case "BYTECODEHASH", "CONTENT_TYPE_BYTECODE_HASH":
+		return ContentTypeBytecodeHash
+	case "GENERAL", "CONTENT_TYPE_GENERAL":
+		return ContentTypeGeneral
 	default:
-		return RequestContentTypeNil
+		return ContentTypeNil
 	}
 }
 
 // AssembleContent constructs a struct instance that implements content interface.
-func AssembleContent(certTypeStr, reqContTypeStr, reqContStr string) Content {
+func AssembleContent(certTypeStr, contTypeStr, content string) Content {
 	certType := CertificateTypeFromString(certTypeStr)
-	reqContType := RequestContentTypeFromString(reqContTypeStr)
+	contentType := ContentTypeFromString(contTypeStr)
 	switch certType {
 	case CertificateTypeCompilation:
-		return &Compilation{reqContType, reqContStr}
+		return &Compilation{contentType, content}
 	case CertificateTypeAuditing:
-		return &Auditing{reqContType, reqContStr}
+		return &Auditing{contentType, content}
 	case CertificateTypeProof:
-		return &Proof{reqContType, reqContStr}
+		return &Proof{contentType, content}
 	case CertificateTypeOracleOperator:
-		return &OracleOperator{reqContType, reqContStr}
+		return &OracleOperator{contentType, content}
 	case CertificateTypeShieldPoolCreator:
-		return &ShieldPoolCreator{reqContType, reqContStr}
+		return &ShieldPoolCreator{contentType, content}
 	case CertificateTypeIdentity:
-		return &Identity{reqContType, reqContStr}
+		return &Identity{contentType, content}
 	case CertificateTypeGeneral:
-		return &General{reqContType, reqContStr}
+		return &General{contentType, content}
 	default:
 		return nil
 	}
@@ -153,9 +153,9 @@ func AssembleContent(certTypeStr, reqContTypeStr, reqContStr string) Content {
 
 // NewGeneralCertificate returns a new general certificate.
 func NewGeneralCertificate(
-	certTypeStr, reqContTypeStr, reqContStr, description string, certifier sdk.AccAddress,
+	certTypeStr, contTypeStr, contStr, description string, certifier sdk.AccAddress,
 ) (*GeneralCertificate, error) {
-	content := AssembleContent(certTypeStr, reqContTypeStr, reqContStr)
+	content := AssembleContent(certTypeStr, contTypeStr, contStr)
 	msg, ok := content.(proto.Message)
 	if !ok {
 		return &GeneralCertificate{}, fmt.Errorf("%T does not implement proto.Message", content)
@@ -191,7 +191,7 @@ func (c *GeneralCertificate) Certifier() sdk.AccAddress {
 	return certifierAddr
 }
 
-// Content returns request content of the certificate.
+// Content returns content of the certificate.
 func (c *GeneralCertificate) Content() Content {
 	content, ok := c.ReqContent.GetCachedValue().(Content)
 	if !ok {
@@ -289,7 +289,7 @@ func (c *CompilationCertificate) Certifier() sdk.AccAddress {
 	return certifierAddr
 }
 
-// Content returns request content of the certificate.
+// Content returns content of the certificate.
 func (c *CompilationCertificate) Content() Content {
 	content, ok := c.ReqContent.GetCachedValue().(Content)
 	if !ok {

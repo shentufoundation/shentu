@@ -331,10 +331,10 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 	newCertificates := make([]*codectypes.Any, len(oldGenState.Certificates))
 	for i, c := range oldGenState.Certificates {
 		var newCert certtypes.Certificate
-		reqContent := AssembleContent(c.Type(), c.RequestContent().RequestContentType, c.RequestContent().RequestContent)
-		msg, ok := reqContent.(proto.Message)
+		content := AssembleContent(c.Type(), c.RequestContent().RequestContentType, c.RequestContent().RequestContent)
+		msg, ok := content.(proto.Message)
 		if !ok {
-			panic(fmt.Errorf("%T does not implement proto.Message", reqContent))
+			panic(fmt.Errorf("%T does not implement proto.Message", content))
 		}
 		any, err := codectypes.NewAnyWithValue(msg)
 		if err != nil {
@@ -376,22 +376,22 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 }
 
 // AssembleContent constructs a struct instance that implements content interface.
-func AssembleContent(certType CertificateType, reqContType RequestContentType, reqContStr string) certtypes.Content {
+func AssembleContent(certType CertificateType, contentType RequestContentType, content string) certtypes.Content {
 	switch certType {
 	case CertificateTypeCompilation:
-		return &certtypes.Compilation{certtypes.RequestContentType(reqContType), reqContStr}
+		return &certtypes.Compilation{certtypes.ContentType(contentType), content}
 	case CertificateTypeAuditing:
-		return &certtypes.Auditing{certtypes.RequestContentType(reqContType), reqContStr}
+		return &certtypes.Auditing{certtypes.ContentType(contentType), content}
 	case CertificateTypeProof:
-		return &certtypes.Proof{certtypes.RequestContentType(reqContType), reqContStr}
+		return &certtypes.Proof{certtypes.ContentType(contentType), content}
 	case CertificateTypeOracleOperator:
-		return &certtypes.OracleOperator{certtypes.RequestContentType(reqContType), reqContStr}
+		return &certtypes.OracleOperator{certtypes.ContentType(contentType), content}
 	case CertificateTypeShieldPoolCreator:
-		return &certtypes.ShieldPoolCreator{certtypes.RequestContentType(reqContType), reqContStr}
+		return &certtypes.ShieldPoolCreator{certtypes.ContentType(contentType), content}
 	case CertificateTypeIdentity:
-		return &certtypes.Identity{certtypes.RequestContentType(reqContType), reqContStr}
+		return &certtypes.Identity{certtypes.ContentType(contentType), content}
 	case CertificateTypeGeneral:
-		return &certtypes.General{certtypes.RequestContentType(reqContType), reqContStr}
+		return &certtypes.General{certtypes.ContentType(contentType), content}
 	default:
 		return nil
 	}
