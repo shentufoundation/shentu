@@ -63,9 +63,8 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, a
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(weightMsgCertifyValidator, SimulateMsgCertifyValidator(ak, bk, k)),
 		simulation.NewWeightedOperation(weightMsgCertifyPlatform, SimulateMsgCertifyPlatform(ak, bk, k)),
-		simulation.NewWeightedOperation(weightMsgCertifyAuditing, SimulateMsgCertifyAuditing(ak, bk, k)),
-		simulation.NewWeightedOperation(weightMsgCertifyProof, SimulateMsgCertifyProof(ak, bk, k)),
-		simulation.NewWeightedOperation(weightMsgCertifyIdentity, SimulateMsgCertifyIdentity(ak, bk, k)),
+		simulation.NewWeightedOperation(weightMsgCertifyIdentity, SimulateMsgCertifyGeneral(ak, bk, k)),
+		simulation.NewWeightedOperation(weightMsgCertifyIdentity, SimulateMsgCertifyCompilation(ak, bk, k)),
 	}
 }
 
@@ -178,9 +177,8 @@ func SimulateMsgCertifyPlatform(ak types.AccountKeeper, bk types.BankKeeper, k k
 	}
 }
 
-// SimulateMsgCertifyAuditing generates a MsgCertifyAuditing object which fields contain
-// a randomly chosen existing certifer, a random contract and a random string description.
-func SimulateMsgCertifyAuditing(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
+// SimulateMsgCertifyGeneral generates a MsgCertifyGeneral object which field values.
+func SimulateMsgCertifyGeneral(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account,
 		chainID string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		certifiers := k.GetAllCertifiers(ctx)
@@ -196,10 +194,13 @@ func SimulateMsgCertifyAuditing(ak types.AccountKeeper, bk types.BankKeeper, k k
 				break
 			}
 		}
-		contract := simtypes.RandomAccounts(r, 1)[0]
+
+		certType := types.CertificateType_name[r.Int31n(7)+1]
+		contentType := types.ContentType_name[r.Int31n(4)+1]
+		content := simtypes.RandStringOfLength(r, 20)
 		description := simtypes.RandStringOfLength(r, 10)
 
-		msg := types.NewMsgCertifyGeneral("auditing", "address", contract.Address.String(), description, certifierAddr)
+		msg := types.NewMsgCertifyGeneral(certType, contentType, content, description, certifierAddr)
 
 		account := ak.GetAccount(ctx, certifierAddr)
 		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
@@ -230,11 +231,10 @@ func SimulateMsgCertifyAuditing(ak types.AccountKeeper, bk types.BankKeeper, k k
 	}
 }
 
-// SimulateMsgCertifyProof generates a MsgCertifyProof object which fields contain
-// a randomly chosen existing certifer, a random contract and a random string description.
-func SimulateMsgCertifyProof(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
-		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+// SimulateMsgCertifyCompilation generates a MsgCertifyGeneral object which field values.
+func SimulateMsgCertifyCompilation(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account,
+		chainID string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		certifiers := k.GetAllCertifiers(ctx)
 		certifier := certifiers[r.Intn(len(certifiers))]
 		certifierAddr, err := sdk.AccAddressFromBech32(certifier.Address)
@@ -248,10 +248,13 @@ func SimulateMsgCertifyProof(ak types.AccountKeeper, bk types.BankKeeper, k keep
 				break
 			}
 		}
-		contract := simtypes.RandomAccounts(r, 1)[0]
-		description := simtypes.RandStringOfLength(r, 10)
 
-		msg := types.NewMsgCertifyGeneral("proof", "address", contract.Address.String(), description, certifierAddr)
+		sourceCodeHash := simtypes.RandStringOfLength(r, 20)
+		compiler := simtypes.RandStringOfLength(r, 5)
+		bytecodeHash := simtypes.RandStringOfLength(r, 20)
+		discription := simtypes.RandStringOfLength(r, 20)
+
+		msg := types.NewMsgCertifyCompilation(sourceCodeHash, compiler, bytecodeHash, discription, certifierAddr)
 
 		account := ak.GetAccount(ctx, certifierAddr)
 		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
@@ -270,63 +273,6 @@ func SimulateMsgCertifyProof(ak types.AccountKeeper, bk types.BankKeeper, k keep
 			[]uint64{account.GetSequence()},
 			certifierAcc.PrivKey,
 		)
-		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
-		}
-
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
-		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
-		}
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
-	}
-}
-
-// SimulateMsgCertifyIdentity generates a MsgCertifyGeneral object to certify a random account address.
-func SimulateMsgCertifyIdentity(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
-		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		certifiers := k.GetAllCertifiers(ctx)
-		certifier := certifiers[r.Intn(len(certifiers))]
-		certifierAddr, err := sdk.AccAddressFromBech32(certifier.Address)
-		if err != nil {
-			panic(err)
-		}
-
-		var certifierAcc simtypes.Account
-		for _, acc := range accs {
-			if acc.Address.Equals(certifierAddr) {
-				certifierAcc = acc
-				break
-			}
-		}
-
-		delAddr, found := keeper.RandomDelegator(r, k, ctx)
-		if !found {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCertifyGeneral, err.Error()), nil, nil
-		}
-		identityAcc := ak.GetAccount(ctx, delAddr)
-
-		msg := types.NewMsgCertifyGeneral("identity", "address", identityAcc.GetAddress().String(), "", certifierAddr)
-
-		account := ak.GetAccount(ctx, certifierAddr)
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
-		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
-		}
-
-		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
-			txGen,
-			[]sdk.Msg{msg},
-			fees,
-			helpers.DefaultGenTxGas,
-			chainID,
-			[]uint64{account.GetAccountNumber()},
-			[]uint64{account.GetSequence()},
-			certifierAcc.PrivKey,
-		)
-
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
