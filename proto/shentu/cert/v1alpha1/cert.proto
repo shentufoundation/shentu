@@ -31,28 +31,18 @@ enum CertificateType {
     CERT_TYPE_GENERAL = 7 [(gogoproto.enumvalue_customname) = "CertificateTypeGeneral"];
 }
 
-enum ContentType {
-    option (gogoproto.goproto_enum_prefix) = false;
-  
-    CONTENT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "ContentTypeNil"];
-    CONTENT_TYPE_SOURCE_CODE_HASH = 1 [(gogoproto.enumvalue_customname) = "ContentTypeSourceCodeHash"];
-    CONTENT_TYPE_ADDRESS = 2 [(gogoproto.enumvalue_customname) = "ContentTypeAddress"];
-    CONTENT_TYPE_BYTECODE_HASH = 3 [(gogoproto.enumvalue_customname) = "ContentTypeBytecodeHash"];
-    CONTENT_TYPE_GENERAL = 4 [(gogoproto.enumvalue_customname) = "ContentTypeGeneral"];
-}
-
 message GeneralCertificate {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
     option (cosmos_proto.implements_interface) = "Certificate";
 
     uint64 cert_id = 1 [ (gogoproto.moretags) = "yaml:\"certificate_id\"" ];
-    google.protobuf.Any req_content = 2 [ (cosmos_proto.accepts_interface) = "Content" ];
+    google.protobuf.Any cert_content = 2 [ (cosmos_proto.accepts_interface) = "Content" ];
     string cert_description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     string cert_certifier = 4 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
 }
 
-message CompilationCertificateContent {
+message CompilationContent {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
@@ -66,8 +56,8 @@ message CompilationCertificate {
 
     int64 issue_block_height = 1 [ (gogoproto.moretags) = "yaml:\"time_issued\"" ];
     uint64 cert_id = 2 [ (gogoproto.moretags) = "yaml:\"certificate_id\"" ];
-    google.protobuf.Any req_content = 3 [ (cosmos_proto.accepts_interface) = "Content" ];
-    CompilationCertificateContent cert_content = 4 [ (gogoproto.moretags) = "yaml:\"certificate_content\"" ];
+    google.protobuf.Any cert_content = 3 [ (cosmos_proto.accepts_interface) = "Content" ];
+    CompilationContent comp_content = 4 [ (gogoproto.moretags) = "yaml:\"compilation_content\"" ];
     string cert_description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     string cert_certifier = 6 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
 }
@@ -93,66 +83,43 @@ message Library {
 message Compilation {
     option (cosmos_proto.implements_interface) = "Content";
 
-    ContentType type = 1;
-    string content = 2;
+    string content = 1;
 }
 
 message Auditing {
     option (cosmos_proto.implements_interface) = "Content";
 
-    ContentType type = 1;
-    string content = 2;
+    string content = 1;
 }
 
 message Proof {
     option (cosmos_proto.implements_interface) = "Content";
 
-    ContentType type = 1;
-    string content = 2;
+    string content = 1;
 }
 
 message OracleOperator {
     option (cosmos_proto.implements_interface) = "Content";
 
-    ContentType type = 1;
-    string content = 2;
+    string content = 1;
 }
 
 message ShieldPoolCreator {
     option (cosmos_proto.implements_interface) = "Content";
 
-    ContentType type = 1;
-    string content = 2;
+    string content = 1;
 }
 
 message Identity {
     option (cosmos_proto.implements_interface) = "Content";
 
-    ContentType type = 1;
-    string content = 2;
+    string content = 1;
 }
 
 message General {
     option (cosmos_proto.implements_interface) = "Content";
 
-    ContentType type = 1;
-    string content = 2;
-}
-
-// ContentProto is a proto wrapper for certificate Content.
-message ContentProto {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-
-    google.protobuf.Any content = 1 [ (cosmos_proto.accepts_interface) = "Content" ];
-}
-
-// CertificateProto is a proto wrapper for Certificate interface.
-message CertificateProto {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-    
-    google.protobuf.Any certificate = 1 [ (cosmos_proto.accepts_interface) = "Certificate" ];
+    string content = 1;
 }
 
 // CertifierUpdateProposal adds or removes a certifier

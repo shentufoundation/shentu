@@ -69,40 +69,6 @@ func (CertificateType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_14e43b05a8c34048, []int{0}
 }
 
-type ContentType int32
-
-const (
-	ContentTypeNil            ContentType = 0
-	ContentTypeSourceCodeHash ContentType = 1
-	ContentTypeAddress        ContentType = 2
-	ContentTypeBytecodeHash   ContentType = 3
-	ContentTypeGeneral        ContentType = 4
-)
-
-var ContentType_name = map[int32]string{
-	0: "CONTENT_TYPE_UNSPECIFIED",
-	1: "CONTENT_TYPE_SOURCE_CODE_HASH",
-	2: "CONTENT_TYPE_ADDRESS",
-	3: "CONTENT_TYPE_BYTECODE_HASH",
-	4: "CONTENT_TYPE_GENERAL",
-}
-
-var ContentType_value = map[string]int32{
-	"CONTENT_TYPE_UNSPECIFIED":      0,
-	"CONTENT_TYPE_SOURCE_CODE_HASH": 1,
-	"CONTENT_TYPE_ADDRESS":          2,
-	"CONTENT_TYPE_BYTECODE_HASH":    3,
-	"CONTENT_TYPE_GENERAL":          4,
-}
-
-func (x ContentType) String() string {
-	return proto.EnumName(ContentType_name, int32(x))
-}
-
-func (ContentType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_14e43b05a8c34048, []int{1}
-}
-
 type Certifier struct {
 	Address     string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty" yaml:"address"`
 	Alias       string `protobuf:"bytes,2,opt,name=alias,proto3" json:"alias,omitempty" yaml:"alias"`
@@ -145,7 +111,7 @@ var xxx_messageInfo_Certifier proto.InternalMessageInfo
 
 type GeneralCertificate struct {
 	CertId          uint64     `protobuf:"varint,1,opt,name=cert_id,json=certId,proto3" json:"cert_id,omitempty" yaml:"certificate_id"`
-	ReqContent      *types.Any `protobuf:"bytes,2,opt,name=req_content,json=reqContent,proto3" json:"req_content,omitempty"`
+	CertContent     *types.Any `protobuf:"bytes,2,opt,name=cert_content,json=certContent,proto3" json:"cert_content,omitempty"`
 	CertDescription string     `protobuf:"bytes,3,opt,name=cert_description,json=certDescription,proto3" json:"cert_description,omitempty" yaml:"description"`
 	CertCertifier   string     `protobuf:"bytes,4,opt,name=cert_certifier,json=certCertifier,proto3" json:"cert_certifier,omitempty" yaml:"certifier"`
 }
@@ -183,23 +149,23 @@ func (m *GeneralCertificate) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GeneralCertificate proto.InternalMessageInfo
 
-type CompilationCertificateContent struct {
+type CompilationContent struct {
 	Compiler     string `protobuf:"bytes,1,opt,name=compiler,proto3" json:"compiler,omitempty" yaml:"compiler"`
 	BytecodeHash string `protobuf:"bytes,2,opt,name=bytecode_hash,json=bytecodeHash,proto3" json:"bytecode_hash,omitempty" yaml:"bytecode_hash"`
 }
 
-func (m *CompilationCertificateContent) Reset()         { *m = CompilationCertificateContent{} }
-func (m *CompilationCertificateContent) String() string { return proto.CompactTextString(m) }
-func (*CompilationCertificateContent) ProtoMessage()    {}
-func (*CompilationCertificateContent) Descriptor() ([]byte, []int) {
+func (m *CompilationContent) Reset()         { *m = CompilationContent{} }
+func (m *CompilationContent) String() string { return proto.CompactTextString(m) }
+func (*CompilationContent) ProtoMessage()    {}
+func (*CompilationContent) Descriptor() ([]byte, []int) {
 	return fileDescriptor_14e43b05a8c34048, []int{2}
 }
-func (m *CompilationCertificateContent) XXX_Unmarshal(b []byte) error {
+func (m *CompilationContent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *CompilationCertificateContent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *CompilationContent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_CompilationCertificateContent.Marshal(b, m, deterministic)
+		return xxx_messageInfo_CompilationContent.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -209,25 +175,25 @@ func (m *CompilationCertificateContent) XXX_Marshal(b []byte, deterministic bool
 		return b[:n], nil
 	}
 }
-func (m *CompilationCertificateContent) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CompilationCertificateContent.Merge(m, src)
+func (m *CompilationContent) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CompilationContent.Merge(m, src)
 }
-func (m *CompilationCertificateContent) XXX_Size() int {
+func (m *CompilationContent) XXX_Size() int {
 	return m.Size()
 }
-func (m *CompilationCertificateContent) XXX_DiscardUnknown() {
-	xxx_messageInfo_CompilationCertificateContent.DiscardUnknown(m)
+func (m *CompilationContent) XXX_DiscardUnknown() {
+	xxx_messageInfo_CompilationContent.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CompilationCertificateContent proto.InternalMessageInfo
+var xxx_messageInfo_CompilationContent proto.InternalMessageInfo
 
 type CompilationCertificate struct {
-	IssueBlockHeight int64                          `protobuf:"varint,1,opt,name=issue_block_height,json=issueBlockHeight,proto3" json:"issue_block_height,omitempty" yaml:"time_issued"`
-	CertId           uint64                         `protobuf:"varint,2,opt,name=cert_id,json=certId,proto3" json:"cert_id,omitempty" yaml:"certificate_id"`
-	ReqContent       *types.Any                     `protobuf:"bytes,3,opt,name=req_content,json=reqContent,proto3" json:"req_content,omitempty"`
-	CertContent      *CompilationCertificateContent `protobuf:"bytes,4,opt,name=cert_content,json=certContent,proto3" json:"cert_content,omitempty" yaml:"certificate_content"`
-	CertDescription  string                         `protobuf:"bytes,5,opt,name=cert_description,json=certDescription,proto3" json:"cert_description,omitempty" yaml:"description"`
-	CertCertifier    string                         `protobuf:"bytes,6,opt,name=cert_certifier,json=certCertifier,proto3" json:"cert_certifier,omitempty" yaml:"certifier"`
+	IssueBlockHeight int64               `protobuf:"varint,1,opt,name=issue_block_height,json=issueBlockHeight,proto3" json:"issue_block_height,omitempty" yaml:"time_issued"`
+	CertId           uint64              `protobuf:"varint,2,opt,name=cert_id,json=certId,proto3" json:"cert_id,omitempty" yaml:"certificate_id"`
+	CertContent      *types.Any          `protobuf:"bytes,3,opt,name=cert_content,json=certContent,proto3" json:"cert_content,omitempty"`
+	CompContent      *CompilationContent `protobuf:"bytes,4,opt,name=comp_content,json=compContent,proto3" json:"comp_content,omitempty" yaml:"compilation_content"`
+	CertDescription  string              `protobuf:"bytes,5,opt,name=cert_description,json=certDescription,proto3" json:"cert_description,omitempty" yaml:"description"`
+	CertCertifier    string              `protobuf:"bytes,6,opt,name=cert_certifier,json=certCertifier,proto3" json:"cert_certifier,omitempty" yaml:"certifier"`
 }
 
 func (m *CompilationCertificate) Reset()         { *m = CompilationCertificate{} }
@@ -342,8 +308,7 @@ func (m *Library) XXX_DiscardUnknown() {
 var xxx_messageInfo_Library proto.InternalMessageInfo
 
 type Compilation struct {
-	Type    ContentType `protobuf:"varint,1,opt,name=type,proto3,enum=shentu.cert.v1alpha1.ContentType" json:"type,omitempty"`
-	Content string      `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Content string `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
 }
 
 func (m *Compilation) Reset()         { *m = Compilation{} }
@@ -379,13 +344,6 @@ func (m *Compilation) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Compilation proto.InternalMessageInfo
 
-func (m *Compilation) GetType() ContentType {
-	if m != nil {
-		return m.Type
-	}
-	return ContentTypeNil
-}
-
 func (m *Compilation) GetContent() string {
 	if m != nil {
 		return m.Content
@@ -394,8 +352,7 @@ func (m *Compilation) GetContent() string {
 }
 
 type Auditing struct {
-	Type    ContentType `protobuf:"varint,1,opt,name=type,proto3,enum=shentu.cert.v1alpha1.ContentType" json:"type,omitempty"`
-	Content string      `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Content string `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
 }
 
 func (m *Auditing) Reset()         { *m = Auditing{} }
@@ -431,13 +388,6 @@ func (m *Auditing) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Auditing proto.InternalMessageInfo
 
-func (m *Auditing) GetType() ContentType {
-	if m != nil {
-		return m.Type
-	}
-	return ContentTypeNil
-}
-
 func (m *Auditing) GetContent() string {
 	if m != nil {
 		return m.Content
@@ -446,8 +396,7 @@ func (m *Auditing) GetContent() string {
 }
 
 type Proof struct {
-	Type    ContentType `protobuf:"varint,1,opt,name=type,proto3,enum=shentu.cert.v1alpha1.ContentType" json:"type,omitempty"`
-	Content string      `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Content string `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
 }
 
 func (m *Proof) Reset()         { *m = Proof{} }
@@ -483,13 +432,6 @@ func (m *Proof) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Proof proto.InternalMessageInfo
 
-func (m *Proof) GetType() ContentType {
-	if m != nil {
-		return m.Type
-	}
-	return ContentTypeNil
-}
-
 func (m *Proof) GetContent() string {
 	if m != nil {
 		return m.Content
@@ -498,8 +440,7 @@ func (m *Proof) GetContent() string {
 }
 
 type OracleOperator struct {
-	Type    ContentType `protobuf:"varint,1,opt,name=type,proto3,enum=shentu.cert.v1alpha1.ContentType" json:"type,omitempty"`
-	Content string      `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Content string `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
 }
 
 func (m *OracleOperator) Reset()         { *m = OracleOperator{} }
@@ -535,13 +476,6 @@ func (m *OracleOperator) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_OracleOperator proto.InternalMessageInfo
 
-func (m *OracleOperator) GetType() ContentType {
-	if m != nil {
-		return m.Type
-	}
-	return ContentTypeNil
-}
-
 func (m *OracleOperator) GetContent() string {
 	if m != nil {
 		return m.Content
@@ -550,8 +484,7 @@ func (m *OracleOperator) GetContent() string {
 }
 
 type ShieldPoolCreator struct {
-	Type    ContentType `protobuf:"varint,1,opt,name=type,proto3,enum=shentu.cert.v1alpha1.ContentType" json:"type,omitempty"`
-	Content string      `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Content string `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
 }
 
 func (m *ShieldPoolCreator) Reset()         { *m = ShieldPoolCreator{} }
@@ -587,13 +520,6 @@ func (m *ShieldPoolCreator) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ShieldPoolCreator proto.InternalMessageInfo
 
-func (m *ShieldPoolCreator) GetType() ContentType {
-	if m != nil {
-		return m.Type
-	}
-	return ContentTypeNil
-}
-
 func (m *ShieldPoolCreator) GetContent() string {
 	if m != nil {
 		return m.Content
@@ -602,8 +528,7 @@ func (m *ShieldPoolCreator) GetContent() string {
 }
 
 type Identity struct {
-	Type    ContentType `protobuf:"varint,1,opt,name=type,proto3,enum=shentu.cert.v1alpha1.ContentType" json:"type,omitempty"`
-	Content string      `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Content string `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
 }
 
 func (m *Identity) Reset()         { *m = Identity{} }
@@ -639,13 +564,6 @@ func (m *Identity) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Identity proto.InternalMessageInfo
 
-func (m *Identity) GetType() ContentType {
-	if m != nil {
-		return m.Type
-	}
-	return ContentTypeNil
-}
-
 func (m *Identity) GetContent() string {
 	if m != nil {
 		return m.Content
@@ -654,8 +572,7 @@ func (m *Identity) GetContent() string {
 }
 
 type General struct {
-	Type    ContentType `protobuf:"varint,1,opt,name=type,proto3,enum=shentu.cert.v1alpha1.ContentType" json:"type,omitempty"`
-	Content string      `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Content string `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
 }
 
 func (m *General) Reset()         { *m = General{} }
@@ -691,95 +608,12 @@ func (m *General) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_General proto.InternalMessageInfo
 
-func (m *General) GetType() ContentType {
-	if m != nil {
-		return m.Type
-	}
-	return ContentTypeNil
-}
-
 func (m *General) GetContent() string {
 	if m != nil {
 		return m.Content
 	}
 	return ""
 }
-
-// ContentProto is a proto wrapper for certificate Content.
-type ContentProto struct {
-	Content *types.Any `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
-}
-
-func (m *ContentProto) Reset()         { *m = ContentProto{} }
-func (m *ContentProto) String() string { return proto.CompactTextString(m) }
-func (*ContentProto) ProtoMessage()    {}
-func (*ContentProto) Descriptor() ([]byte, []int) {
-	return fileDescriptor_14e43b05a8c34048, []int{13}
-}
-func (m *ContentProto) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ContentProto) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ContentProto.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ContentProto) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ContentProto.Merge(m, src)
-}
-func (m *ContentProto) XXX_Size() int {
-	return m.Size()
-}
-func (m *ContentProto) XXX_DiscardUnknown() {
-	xxx_messageInfo_ContentProto.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ContentProto proto.InternalMessageInfo
-
-// CertificateProto is a proto wrapper for Certificate interface.
-type CertificateProto struct {
-	Certificate *types.Any `protobuf:"bytes,1,opt,name=certificate,proto3" json:"certificate,omitempty"`
-}
-
-func (m *CertificateProto) Reset()         { *m = CertificateProto{} }
-func (m *CertificateProto) String() string { return proto.CompactTextString(m) }
-func (*CertificateProto) ProtoMessage()    {}
-func (*CertificateProto) Descriptor() ([]byte, []int) {
-	return fileDescriptor_14e43b05a8c34048, []int{14}
-}
-func (m *CertificateProto) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *CertificateProto) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_CertificateProto.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *CertificateProto) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CertificateProto.Merge(m, src)
-}
-func (m *CertificateProto) XXX_Size() int {
-	return m.Size()
-}
-func (m *CertificateProto) XXX_DiscardUnknown() {
-	xxx_messageInfo_CertificateProto.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_CertificateProto proto.InternalMessageInfo
 
 // CertifierUpdateProposal adds or removes a certifier
 type CertifierUpdateProposal struct {
@@ -795,7 +629,7 @@ func (m *CertifierUpdateProposal) Reset()         { *m = CertifierUpdateProposal
 func (m *CertifierUpdateProposal) String() string { return proto.CompactTextString(m) }
 func (*CertifierUpdateProposal) ProtoMessage()    {}
 func (*CertifierUpdateProposal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_14e43b05a8c34048, []int{15}
+	return fileDescriptor_14e43b05a8c34048, []int{13}
 }
 func (m *CertifierUpdateProposal) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -833,7 +667,7 @@ func (m *KVPair) Reset()         { *m = KVPair{} }
 func (m *KVPair) String() string { return proto.CompactTextString(m) }
 func (*KVPair) ProtoMessage()    {}
 func (*KVPair) Descriptor() ([]byte, []int) {
-	return fileDescriptor_14e43b05a8c34048, []int{16}
+	return fileDescriptor_14e43b05a8c34048, []int{14}
 }
 func (m *KVPair) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -878,10 +712,9 @@ func (m *KVPair) GetValue() string {
 
 func init() {
 	proto.RegisterEnum("shentu.cert.v1alpha1.CertificateType", CertificateType_name, CertificateType_value)
-	proto.RegisterEnum("shentu.cert.v1alpha1.ContentType", ContentType_name, ContentType_value)
 	proto.RegisterType((*Certifier)(nil), "shentu.cert.v1alpha1.Certifier")
 	proto.RegisterType((*GeneralCertificate)(nil), "shentu.cert.v1alpha1.GeneralCertificate")
-	proto.RegisterType((*CompilationCertificateContent)(nil), "shentu.cert.v1alpha1.CompilationCertificateContent")
+	proto.RegisterType((*CompilationContent)(nil), "shentu.cert.v1alpha1.CompilationContent")
 	proto.RegisterType((*CompilationCertificate)(nil), "shentu.cert.v1alpha1.CompilationCertificate")
 	proto.RegisterType((*Validator)(nil), "shentu.cert.v1alpha1.Validator")
 	proto.RegisterType((*Library)(nil), "shentu.cert.v1alpha1.Library")
@@ -892,8 +725,6 @@ func init() {
 	proto.RegisterType((*ShieldPoolCreator)(nil), "shentu.cert.v1alpha1.ShieldPoolCreator")
 	proto.RegisterType((*Identity)(nil), "shentu.cert.v1alpha1.Identity")
 	proto.RegisterType((*General)(nil), "shentu.cert.v1alpha1.General")
-	proto.RegisterType((*ContentProto)(nil), "shentu.cert.v1alpha1.ContentProto")
-	proto.RegisterType((*CertificateProto)(nil), "shentu.cert.v1alpha1.CertificateProto")
 	proto.RegisterType((*CertifierUpdateProposal)(nil), "shentu.cert.v1alpha1.CertifierUpdateProposal")
 	proto.RegisterType((*KVPair)(nil), "shentu.cert.v1alpha1.KVPair")
 }
@@ -901,94 +732,83 @@ func init() {
 func init() { proto.RegisterFile("shentu/cert/v1alpha1/cert.proto", fileDescriptor_14e43b05a8c34048) }
 
 var fileDescriptor_14e43b05a8c34048 = []byte{
-	// 1389 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x57, 0xcd, 0x6e, 0xdb, 0x46,
-	0x10, 0xb6, 0x2c, 0xff, 0x69, 0xe5, 0xd8, 0xcc, 0x56, 0x71, 0x64, 0x36, 0x96, 0x14, 0xa2, 0x68,
-	0x8b, 0xa0, 0x16, 0x63, 0x07, 0x05, 0x5a, 0x07, 0x01, 0xa2, 0x1f, 0xc6, 0x16, 0xec, 0x8a, 0xc2,
-	0x4a, 0x0e, 0x90, 0x5e, 0x08, 0x8a, 0x5c, 0x4b, 0x84, 0x69, 0x2d, 0x43, 0x52, 0x46, 0x84, 0xbe,
-	0x40, 0xa0, 0x53, 0x0f, 0xbd, 0xf4, 0x20, 0x20, 0x40, 0x51, 0xa0, 0x0f, 0x90, 0x87, 0x28, 0x72,
-	0x0a, 0x72, 0x28, 0x72, 0x28, 0x84, 0x22, 0xb9, 0xf4, 0xac, 0x63, 0x4f, 0x05, 0x97, 0xa4, 0xb8,
-	0x92, 0x1d, 0xc3, 0x48, 0xe1, 0x9e, 0xcc, 0xdd, 0xf9, 0xbe, 0x99, 0xdd, 0x99, 0xd1, 0xb7, 0x63,
-	0x90, 0x75, 0xda, 0xb8, 0xe3, 0x76, 0x45, 0x0d, 0xdb, 0xae, 0x78, 0xba, 0xa5, 0x9a, 0x56, 0x5b,
-	0xdd, 0xa2, 0xab, 0xbc, 0x65, 0x13, 0x97, 0xc0, 0x94, 0x0f, 0xc8, 0xd3, 0xad, 0x10, 0xc0, 0xa7,
-	0x5a, 0xa4, 0x45, 0x28, 0x40, 0xf4, 0xbe, 0x7c, 0x2c, 0x9f, 0xd1, 0x88, 0x73, 0x42, 0x1c, 0xb1,
-	0xa9, 0x3a, 0x58, 0x3c, 0xdd, 0x6a, 0x62, 0xd7, 0xf3, 0x45, 0x8c, 0x4e, 0x60, 0x5f, 0xf7, 0xed,
-	0x8a, 0x4f, 0xf4, 0x17, 0xa1, 0xa9, 0x45, 0x48, 0xcb, 0xc4, 0x22, 0x5d, 0x35, 0xbb, 0x47, 0xa2,
-	0xda, 0xe9, 0xf9, 0x26, 0xe1, 0x8f, 0x18, 0x48, 0x94, 0xb0, 0xed, 0x1a, 0x47, 0x06, 0xb6, 0xe1,
-	0x57, 0x60, 0x51, 0xd5, 0x75, 0x1b, 0x3b, 0x4e, 0x3a, 0x96, 0x8b, 0x7d, 0x99, 0x28, 0xc2, 0xd1,
-	0x30, 0xbb, 0xd2, 0x53, 0x4f, 0xcc, 0x1d, 0x21, 0x30, 0x08, 0x28, 0x84, 0xc0, 0xcf, 0xc1, 0xbc,
-	0x6a, 0x1a, 0xaa, 0x93, 0x9e, 0xa5, 0x58, 0x6e, 0x34, 0xcc, 0x2e, 0x07, 0x58, 0x6f, 0x5b, 0x40,
-	0xbe, 0x19, 0x8a, 0x60, 0xc9, 0xb2, 0x89, 0x45, 0x1c, 0x6c, 0xa7, 0xe3, 0x14, 0xfa, 0xc9, 0x68,
-	0x98, 0x5d, 0xf5, 0xa1, 0xa1, 0x45, 0x40, 0x63, 0x10, 0xfc, 0x06, 0x24, 0x75, 0xec, 0x68, 0xb6,
-	0x61, 0xb9, 0x06, 0xe9, 0xa4, 0xe7, 0x28, 0x67, 0x6d, 0x34, 0xcc, 0x42, 0x9f, 0xc3, 0x18, 0x05,
-	0xc4, 0x42, 0x77, 0x96, 0x9e, 0xbf, 0xc8, 0xce, 0xfc, 0xfd, 0x22, 0x3b, 0x23, 0xfc, 0x3a, 0x0b,
-	0xe0, 0x2e, 0xee, 0x60, 0x5b, 0x35, 0x83, 0xfb, 0x69, 0xaa, 0x8b, 0xe1, 0x36, 0x58, 0xf4, 0x92,
-	0xad, 0x18, 0x3a, 0xbd, 0xe1, 0x5c, 0x71, 0x7d, 0x34, 0xcc, 0xde, 0xf0, 0xdd, 0x6a, 0x11, 0x4e,
-	0x31, 0x74, 0x01, 0x2d, 0x78, 0x1b, 0x15, 0x1d, 0x16, 0x41, 0xd2, 0xc6, 0x4f, 0x15, 0x8d, 0x74,
-	0x5c, 0xdc, 0x71, 0xe9, 0x6d, 0x93, 0xdb, 0xa9, 0xbc, 0x9f, 0xd4, 0x7c, 0x98, 0xd4, 0x7c, 0xa1,
-	0xd3, 0x2b, 0x26, 0x5f, 0xbd, 0xdc, 0x5c, 0x2c, 0xf9, 0x40, 0x04, 0x6c, 0xfc, 0x34, 0xf8, 0x86,
-	0x05, 0xc0, 0xd1, 0xb8, 0xec, 0xbd, 0xe2, 0x17, 0xde, 0x6b, 0xd5, 0xc3, 0x97, 0xa3, 0x1d, 0x78,
-	0x1f, 0xac, 0x50, 0x17, 0x5a, 0x58, 0xae, 0x20, 0x31, 0xa9, 0xd1, 0x30, 0xcb, 0x4d, 0xdc, 0xc0,
-	0xcb, 0xe6, 0x35, 0xef, 0x7b, 0x5c, 0xd9, 0x9d, 0x9b, 0x61, 0x62, 0xde, 0xbc, 0xdc, 0x4c, 0x32,
-	0x09, 0x11, 0x7e, 0x8e, 0x81, 0x8d, 0x12, 0x39, 0xb1, 0x0c, 0x53, 0xf5, 0xa2, 0x30, 0xa6, 0xf0,
-	0xe8, 0x22, 0x58, 0xd2, 0x28, 0x00, 0xdb, 0x41, 0x57, 0x30, 0xe5, 0x0b, 0x2d, 0x02, 0x1a, 0x83,
-	0xe0, 0x03, 0x70, 0xad, 0xd9, 0x73, 0xb1, 0x46, 0x74, 0xac, 0xb4, 0x55, 0xa7, 0x1d, 0xf4, 0x47,
-	0x7a, 0x34, 0xcc, 0xa6, 0x7c, 0xd6, 0x84, 0x59, 0x40, 0xcb, 0xe1, 0x7a, 0x4f, 0x75, 0xda, 0x4c,
-	0x0d, 0xdf, 0xc6, 0xc1, 0xda, 0xf9, 0x67, 0x83, 0x65, 0x00, 0x0d, 0xc7, 0xe9, 0x62, 0xa5, 0x69,
-	0x12, 0xed, 0x58, 0x69, 0x63, 0xa3, 0xd5, 0x76, 0xe9, 0xf1, 0xe2, 0x6c, 0x46, 0x5d, 0xe3, 0x04,
-	0x2b, 0x14, 0xa8, 0x0b, 0x88, 0xa3, 0x1f, 0x45, 0x8f, 0xb0, 0x47, 0xf1, 0x6c, 0x37, 0xcc, 0x7e,
-	0x64, 0x37, 0xc4, 0x3f, 0xa6, 0x1b, 0x4e, 0xc1, 0xb2, 0x5f, 0xca, 0xc0, 0xc9, 0x1c, 0x75, 0x72,
-	0x2f, 0x7f, 0x9e, 0x1c, 0xe4, 0x2f, 0xac, 0x4e, 0x31, 0x33, 0x1a, 0x66, 0xf9, 0xb3, 0x27, 0x0e,
-	0x3c, 0x0b, 0x28, 0x49, 0xfb, 0xe0, 0x82, 0x2e, 0x9c, 0xff, 0xaf, 0x5d, 0xb8, 0x70, 0xf9, 0x2e,
-	0x8c, 0x4a, 0xfb, 0x03, 0x48, 0x3c, 0x56, 0x4d, 0x43, 0x57, 0x5d, 0x62, 0xc3, 0x47, 0x60, 0xc1,
-	0xea, 0x36, 0x8f, 0x71, 0x8f, 0x16, 0xf0, 0x43, 0xd9, 0x4c, 0xbf, 0x7a, 0xb9, 0x99, 0x0a, 0x74,
-	0x4d, 0xb3, 0x7b, 0x96, 0x4b, 0xf2, 0xb5, 0x6e, 0x73, 0x1f, 0xf7, 0x50, 0xc0, 0x86, 0xb7, 0x40,
-	0x22, 0x3a, 0x16, 0x6d, 0x3a, 0x14, 0x6d, 0x30, 0xc1, 0xf7, 0xc1, 0xe2, 0x81, 0xd1, 0xb4, 0x55,
-	0xbb, 0x07, 0xd3, 0x53, 0x8a, 0x17, 0xa9, 0xdb, 0x2d, 0x90, 0xb0, 0xba, 0x4d, 0xd3, 0x70, 0xda,
-	0x91, 0xb3, 0xf1, 0x06, 0xe3, 0xec, 0x18, 0x24, 0x99, 0x0a, 0xc1, 0xaf, 0xc1, 0x9c, 0xdb, 0xb3,
-	0x30, 0xf5, 0xb6, 0xb2, 0x7d, 0xfb, 0x43, 0x25, 0xa5, 0xf5, 0x68, 0xf4, 0x2c, 0x8c, 0x28, 0xdc,
-	0x3b, 0x07, 0xab, 0x2f, 0x09, 0x14, 0x2e, 0x77, 0x92, 0x6f, 0xa2, 0x26, 0x12, 0xda, 0x60, 0xa9,
-	0xd0, 0xd5, 0x0d, 0xd7, 0xe8, 0xb4, 0xae, 0x38, 0x12, 0x06, 0xf3, 0x35, 0x9b, 0x90, 0xa3, 0x2b,
-	0x0e, 0xd3, 0x01, 0x2b, 0xb2, 0xad, 0x6a, 0x26, 0x96, 0x2d, 0x6c, 0xd3, 0x66, 0xb8, 0xda, 0x78,
-	0x4f, 0xc1, 0xf5, 0x7a, 0xdb, 0xc0, 0xa6, 0x5e, 0x23, 0xc4, 0x2c, 0xd9, 0xf8, 0x7f, 0x08, 0xd9,
-	0x06, 0x4b, 0x15, 0x1d, 0x77, 0x5c, 0xc3, 0xed, 0x5d, 0x71, 0xa4, 0x16, 0x58, 0x0c, 0x9e, 0xbc,
-	0x2b, 0x0e, 0x74, 0x08, 0x96, 0x83, 0xcf, 0x1a, 0x9d, 0x63, 0xee, 0x47, 0xb4, 0xd8, 0x65, 0xf5,
-	0x70, 0xec, 0x39, 0xfa, 0x29, 0x61, 0xc0, 0x31, 0x0a, 0xe7, 0xbb, 0xde, 0x05, 0x49, 0x46, 0xd7,
-	0x2e, 0x74, 0xbf, 0xfa, 0x6a, 0xf2, 0x6d, 0x43, 0x2c, 0x93, 0x09, 0xf3, 0x53, 0x1c, 0xdc, 0x1c,
-	0x6b, 0xd2, 0xa1, 0xa5, 0xfb, 0xb1, 0x2c, 0xe2, 0xa8, 0xa6, 0x37, 0xd3, 0xb8, 0x86, 0x6b, 0xe2,
-	0xe0, 0xa5, 0x63, 0x66, 0x1a, 0xba, 0x2d, 0x20, 0xdf, 0x3c, 0x31, 0xd3, 0xcc, 0x5e, 0x66, 0xa6,
-	0x19, 0x0f, 0x4b, 0xf1, 0x8b, 0x87, 0xa5, 0x6d, 0x56, 0xc3, 0x2e, 0x7a, 0xe0, 0x23, 0xd8, 0xf4,
-	0xbc, 0x34, 0x7f, 0xe9, 0x79, 0x09, 0xee, 0x83, 0x6b, 0xaa, 0xae, 0x2b, 0xc4, 0x56, 0x6c, 0x7c,
-	0x42, 0x4e, 0x31, 0x15, 0xf3, 0xa5, 0xe2, 0x17, 0xd1, 0x53, 0x3d, 0x61, 0x16, 0xfe, 0x19, 0x66,
-	0x93, 0x05, 0x5d, 0x97, 0x6d, 0x44, 0xd7, 0x28, 0xa9, 0x46, 0x8b, 0x9d, 0x07, 0xcc, 0x8c, 0xb1,
-	0x75, 0xa7, 0x65, 0xb8, 0xed, 0x6e, 0x33, 0xaf, 0x91, 0x93, 0x60, 0x18, 0x0d, 0xfe, 0x6c, 0x3a,
-	0xfa, 0xb1, 0xf8, 0x4c, 0x6c, 0x91, 0x53, 0xd1, 0x6b, 0x39, 0x27, 0xec, 0x42, 0xe1, 0x2e, 0x58,
-	0xd8, 0x7f, 0x5c, 0x53, 0x0d, 0x1b, 0x72, 0x20, 0x1e, 0x3e, 0x06, 0x09, 0xe4, 0x7d, 0xc2, 0x14,
-	0x98, 0x3f, 0x55, 0xcd, 0x2e, 0x0e, 0xba, 0xd2, 0x5f, 0xdc, 0xf9, 0x33, 0x0e, 0x56, 0x99, 0x7a,
-	0x7b, 0x7d, 0x0c, 0xb7, 0xc0, 0x8d, 0x92, 0x84, 0x1a, 0x4a, 0xe3, 0x49, 0x4d, 0x52, 0x0e, 0xab,
-	0xf5, 0x9a, 0x54, 0xaa, 0x3c, 0xaa, 0x48, 0x65, 0x6e, 0x86, 0x5f, 0xeb, 0x0f, 0x72, 0x70, 0x0a,
-	0x5f, 0x35, 0x4c, 0xf8, 0x2d, 0x4b, 0x29, 0xc9, 0xdf, 0xd5, 0x2a, 0x07, 0x85, 0x46, 0x45, 0xae,
-	0x72, 0x31, 0x3e, 0xd3, 0x1f, 0xe4, 0xf8, 0x29, 0x0a, 0xab, 0xf6, 0xf7, 0x00, 0x8c, 0xa8, 0x85,
-	0xc3, 0x72, 0xa5, 0x51, 0xa9, 0xee, 0x72, 0xb3, 0xfc, 0xa7, 0xfd, 0x41, 0xee, 0xe6, 0x14, 0x6f,
-	0x2c, 0xdc, 0x9b, 0x60, 0x35, 0x22, 0xd5, 0x90, 0x2c, 0x3f, 0xe2, 0xe2, 0x7c, 0xba, 0x3f, 0xc8,
-	0xa5, 0xa6, 0x18, 0xbe, 0x00, 0x3f, 0x04, 0xeb, 0x11, 0x5c, 0x46, 0x85, 0xd2, 0x81, 0xa4, 0xc8,
-	0x35, 0x09, 0x15, 0x1a, 0x32, 0xe2, 0xe6, 0xf8, 0xdb, 0xfd, 0x41, 0x6e, 0x63, 0x8a, 0x38, 0x25,
-	0xa9, 0xbb, 0x60, 0x23, 0xf2, 0x50, 0xdf, 0xab, 0x48, 0x07, 0x65, 0xa5, 0x26, 0xcb, 0x07, 0x4a,
-	0x09, 0x49, 0xd4, 0xcb, 0x3c, 0xff, 0x59, 0x7f, 0x90, 0xcb, 0x4d, 0x79, 0x39, 0x2b, 0x94, 0x13,
-	0xd7, 0xad, 0x94, 0xa5, 0x6a, 0xa3, 0xd2, 0x78, 0xc2, 0x2d, 0x9c, 0x7b, 0xdd, 0xb1, 0xe6, 0x6d,
-	0x81, 0xeb, 0x11, 0x69, 0x57, 0xaa, 0x4a, 0xa8, 0x70, 0xc0, 0x2d, 0xf2, 0x7c, 0x7f, 0x90, 0x5b,
-	0x9b, 0xe2, 0x04, 0xea, 0xc5, 0xcf, 0x3d, 0xff, 0x25, 0x33, 0x73, 0xe7, 0xb7, 0x59, 0xef, 0x69,
-	0x1d, 0x4b, 0x14, 0xbc, 0x0b, 0xd2, 0x25, 0xb9, 0xda, 0x90, 0xaa, 0xe7, 0x56, 0x17, 0xf6, 0x07,
-	0xb9, 0x15, 0x06, 0xee, 0x55, 0xf6, 0x21, 0xd8, 0x98, 0x60, 0xd4, 0xe5, 0x43, 0x54, 0xf2, 0x6a,
-	0x5c, 0x96, 0x94, 0xbd, 0x42, 0x7d, 0x8f, 0x8b, 0xf1, 0x1b, 0xfd, 0x41, 0x6e, 0x9d, 0xa1, 0xd5,
-	0x49, 0xd7, 0xd6, 0x70, 0x29, 0x18, 0x46, 0xe1, 0x5d, 0x90, 0x9a, 0xf0, 0x50, 0x28, 0x97, 0x91,
-	0x54, 0xaf, 0x73, 0xb3, 0x41, 0x37, 0x45, 0xc4, 0x42, 0x30, 0x37, 0xdc, 0x07, 0xfc, 0x04, 0xa3,
-	0xf8, 0xa4, 0x21, 0x45, 0x01, 0xe3, 0x41, 0xae, 0x22, 0x5e, 0x91, 0x99, 0x7d, 0xcf, 0x84, 0x0b,
-	0xd3, 0x35, 0x77, 0x26, 0xdc, 0x44, 0xaa, 0x8a, 0x95, 0xdf, 0xdf, 0x65, 0x62, 0xaf, 0xdf, 0x65,
-	0x62, 0x7f, 0xbd, 0xcb, 0xc4, 0x7e, 0x7c, 0x9f, 0x99, 0x79, 0xfd, 0x3e, 0x33, 0xf3, 0xf6, 0x7d,
-	0x66, 0xe6, 0x7b, 0x91, 0xfd, 0x1d, 0x7a, 0xd9, 0x3e, 0x3e, 0x22, 0xdd, 0x8e, 0x4e, 0xdb, 0x57,
-	0x0c, 0xfe, 0x3f, 0x7d, 0xe6, 0xff, 0x87, 0x4a, 0x7f, 0x8e, 0xcd, 0x05, 0xaa, 0xa9, 0xf7, 0xfe,
-	0x0d, 0x00, 0x00, 0xff, 0xff, 0xda, 0x43, 0x43, 0x5b, 0xbd, 0x0e, 0x00, 0x00,
+	// 1202 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0x4f, 0x6f, 0xdb, 0x64,
+	0x18, 0x4f, 0x9a, 0xe6, 0xdf, 0x9b, 0x6e, 0xf5, 0x5e, 0xb2, 0x36, 0x35, 0x5b, 0x1c, 0x2c, 0x04,
+	0xd3, 0x44, 0x63, 0xd2, 0x21, 0x01, 0x41, 0x93, 0xc8, 0xbf, 0xb6, 0x56, 0x43, 0x1c, 0xb9, 0xe9,
+	0xa4, 0x71, 0xb1, 0x1c, 0xfb, 0x6d, 0x62, 0xd5, 0xc9, 0x6b, 0xd9, 0x4e, 0xb5, 0x88, 0x2f, 0x30,
+	0xe5, 0x80, 0x38, 0x70, 0x8d, 0x34, 0x89, 0x03, 0x5f, 0xa0, 0x1f, 0x02, 0xed, 0xc2, 0xb4, 0x03,
+	0xe2, 0x80, 0x22, 0xd4, 0x5e, 0x38, 0xe7, 0xc8, 0x09, 0xf9, 0xb5, 0x1d, 0xbb, 0xd9, 0xa8, 0xc2,
+	0x38, 0xd9, 0xcf, 0xf3, 0xfc, 0x7e, 0x8f, 0xdf, 0xf7, 0xf9, 0x6b, 0xc0, 0x58, 0x7d, 0x34, 0xb4,
+	0x47, 0x9c, 0x82, 0x4c, 0x9b, 0x3b, 0x2f, 0xc9, 0xba, 0xd1, 0x97, 0x4b, 0x44, 0x2a, 0x1a, 0x26,
+	0xb6, 0x31, 0xcc, 0xba, 0x80, 0x22, 0x51, 0xf9, 0x00, 0x3a, 0xdb, 0xc3, 0x3d, 0x4c, 0x00, 0x9c,
+	0xf3, 0xe6, 0x62, 0xe9, 0xbc, 0x82, 0xad, 0x01, 0xb6, 0xb8, 0xae, 0x6c, 0x21, 0xee, 0xbc, 0xd4,
+	0x45, 0xb6, 0xe3, 0x0b, 0x6b, 0x43, 0xcf, 0xbe, 0xe3, 0xda, 0x25, 0x97, 0xe8, 0x0a, 0xbe, 0xa9,
+	0x87, 0x71, 0x4f, 0x47, 0x1c, 0x91, 0xba, 0xa3, 0x53, 0x4e, 0x1e, 0x8e, 0x5d, 0x13, 0xfb, 0x5b,
+	0x14, 0xa4, 0x6b, 0xc8, 0xb4, 0xb5, 0x53, 0x0d, 0x99, 0xf0, 0x13, 0x90, 0x94, 0x55, 0xd5, 0x44,
+	0x96, 0x95, 0x8b, 0x16, 0xa2, 0x0f, 0xd2, 0x55, 0x38, 0x9f, 0x31, 0xb7, 0xc7, 0xf2, 0x40, 0x2f,
+	0xb3, 0x9e, 0x81, 0x15, 0x7d, 0x08, 0xfc, 0x08, 0xc4, 0x65, 0x5d, 0x93, 0xad, 0xdc, 0x1a, 0xc1,
+	0x52, 0xf3, 0x19, 0xb3, 0xe1, 0x61, 0x1d, 0x35, 0x2b, 0xba, 0x66, 0xc8, 0x81, 0x94, 0x61, 0x62,
+	0x03, 0x5b, 0xc8, 0xcc, 0xc5, 0x08, 0xf4, 0xbd, 0xf9, 0x8c, 0xd9, 0x74, 0xa1, 0xbe, 0x85, 0x15,
+	0x17, 0x20, 0xf8, 0x05, 0xc8, 0xa8, 0xc8, 0x52, 0x4c, 0xcd, 0xb0, 0x35, 0x3c, 0xcc, 0xad, 0x13,
+	0xce, 0xd6, 0x7c, 0xc6, 0x40, 0x97, 0x13, 0x32, 0xb2, 0x62, 0x18, 0x5a, 0x4e, 0x3d, 0x7f, 0xc1,
+	0x44, 0xfe, 0x7a, 0xc1, 0x44, 0xd8, 0x9f, 0xd7, 0x00, 0x3c, 0x40, 0x43, 0x64, 0xca, 0xba, 0x77,
+	0x3f, 0x45, 0xb6, 0x11, 0xdc, 0x03, 0x49, 0x27, 0xd8, 0x92, 0xa6, 0x92, 0x1b, 0xae, 0x57, 0x77,
+	0xe6, 0x33, 0xe6, 0xae, 0xeb, 0x56, 0x09, 0x70, 0x92, 0xa6, 0xb2, 0x62, 0xc2, 0x51, 0xf0, 0x2a,
+	0xac, 0x83, 0x0d, 0xc2, 0x51, 0xf0, 0xd0, 0x46, 0x43, 0x9b, 0x5c, 0x37, 0xb3, 0x97, 0x2d, 0xba,
+	0x51, 0x2d, 0xfa, 0x51, 0x2d, 0x56, 0x86, 0xe3, 0x6a, 0xe6, 0xe5, 0xc5, 0x6e, 0xb2, 0xe6, 0x02,
+	0xc5, 0x8c, 0x43, 0xf3, 0x04, 0x58, 0x01, 0x14, 0xf1, 0x12, 0xbe, 0x59, 0xec, 0xc6, 0x9b, 0x6d,
+	0x3a, 0xf8, 0x7a, 0xa0, 0x81, 0x5f, 0x81, 0xdb, 0xee, 0x41, 0xfc, 0x84, 0x79, 0xa1, 0xc9, 0xce,
+	0x67, 0x0c, 0x75, 0xed, 0x0e, 0x4e, 0x3c, 0x6f, 0x91, 0xaf, 0xfb, 0x72, 0x79, 0xdb, 0x0f, 0xcd,
+	0xeb, 0x8b, 0xdd, 0x4c, 0x28, 0x24, 0xec, 0xf7, 0x51, 0x00, 0x6b, 0x78, 0x60, 0x68, 0xba, 0xec,
+	0x7c, 0xc5, 0x3f, 0x2f, 0x07, 0x52, 0x0a, 0xd1, 0x22, 0xd3, 0x2b, 0x86, 0x50, 0xd6, 0x7c, 0x0b,
+	0x2b, 0x2e, 0x40, 0xf0, 0x31, 0xb8, 0xd5, 0x1d, 0xdb, 0x48, 0xc1, 0x2a, 0x92, 0xfa, 0xb2, 0xd5,
+	0xf7, 0xca, 0x22, 0x37, 0x9f, 0x31, 0x59, 0x97, 0x75, 0xcd, 0xcc, 0x8a, 0x1b, 0xbe, 0x7c, 0x28,
+	0x5b, 0xfd, 0x50, 0xea, 0x7e, 0x8d, 0x81, 0xad, 0xf0, 0x81, 0x42, 0xe9, 0xab, 0x03, 0xa8, 0x59,
+	0xd6, 0x08, 0x49, 0x5d, 0x1d, 0x2b, 0x67, 0x52, 0x1f, 0x69, 0xbd, 0xbe, 0x4d, 0x8e, 0x17, 0x0b,
+	0x87, 0xd1, 0xd6, 0x06, 0x48, 0x22, 0x40, 0x95, 0x15, 0x29, 0xf2, 0x52, 0x75, 0x08, 0x87, 0x04,
+	0x1f, 0x2e, 0x82, 0xb5, 0x77, 0x2d, 0x82, 0xd8, 0x3b, 0x15, 0xc1, 0x19, 0xd8, 0x70, 0xe2, 0xb5,
+	0xf0, 0xb2, 0x4e, 0xbc, 0x3c, 0x28, 0xbe, 0x6d, 0x0e, 0x14, 0xdf, 0x4c, 0x4a, 0x35, 0x3f, 0x9f,
+	0x31, 0x74, 0x38, 0x05, 0xc4, 0xea, 0xbb, 0x63, 0xc5, 0x8c, 0xa3, 0xbd, 0xa9, 0xe2, 0xe2, 0xff,
+	0xb7, 0xe2, 0x12, 0xab, 0x57, 0x5c, 0x90, 0xd1, 0xef, 0x40, 0xfa, 0x89, 0xac, 0x6b, 0xaa, 0x6c,
+	0x63, 0x13, 0xee, 0x83, 0x84, 0x31, 0xea, 0x9e, 0xa1, 0x31, 0xc9, 0xdb, 0xbf, 0xc5, 0x30, 0xf7,
+	0xf2, 0x62, 0x37, 0xeb, 0x4d, 0x31, 0xc5, 0x1c, 0x1b, 0x36, 0x2e, 0xb6, 0x47, 0xdd, 0x23, 0x34,
+	0x16, 0x3d, 0x36, 0xbc, 0x07, 0xd2, 0xc1, 0xb1, 0x48, 0xad, 0x89, 0x81, 0x22, 0xf4, 0xf1, 0x23,
+	0x90, 0x6c, 0x6a, 0x5d, 0x53, 0x36, 0xc7, 0x30, 0xb7, 0x34, 0xdf, 0x82, 0x59, 0x76, 0x0f, 0xa4,
+	0x8d, 0x51, 0x57, 0xd7, 0xac, 0x7e, 0xe0, 0x6c, 0xa1, 0x08, 0x39, 0xfb, 0x0c, 0x64, 0x42, 0x69,
+	0x71, 0x1c, 0xfa, 0xa9, 0xf4, 0x1c, 0x7a, 0x62, 0x39, 0xf3, 0x3a, 0xa8, 0x01, 0xb6, 0x04, 0x52,
+	0x95, 0x91, 0xaa, 0xd9, 0xda, 0xb0, 0xb7, 0x2a, 0xa5, 0x08, 0xe2, 0x6d, 0x13, 0xe3, 0xd3, 0x55,
+	0xf1, 0x9f, 0x83, 0xdb, 0x82, 0x29, 0x2b, 0x3a, 0x12, 0x0c, 0x64, 0x92, 0x38, 0xaf, 0x48, 0x2c,
+	0x83, 0x3b, 0xc7, 0x7d, 0x0d, 0xe9, 0x6a, 0x1b, 0x63, 0xbd, 0x66, 0xa2, 0xff, 0xc2, 0x2d, 0x81,
+	0x14, 0xaf, 0xa2, 0xa1, 0xad, 0xd9, 0xe3, 0x55, 0x29, 0x9f, 0x82, 0xa4, 0x37, 0x96, 0x57, 0x65,
+	0xfc, 0x18, 0x03, 0xdb, 0x8b, 0xa2, 0x3a, 0x31, 0x54, 0xd9, 0x46, 0x6d, 0xb2, 0x29, 0x64, 0xdd,
+	0x59, 0x41, 0xb6, 0x66, 0xeb, 0xc8, 0x9b, 0x50, 0xa1, 0x15, 0x44, 0xd4, 0xac, 0xe8, 0x9a, 0xaf,
+	0xad, 0xa0, 0xb5, 0x55, 0x56, 0xd0, 0x62, 0xb7, 0xc5, 0x6e, 0xde, 0x6d, 0x7b, 0xe1, 0x22, 0xbc,
+	0x69, 0x1a, 0x07, 0xb0, 0xe5, 0xf5, 0x16, 0x5f, 0x79, 0xbd, 0xc1, 0x23, 0x70, 0x4b, 0x56, 0x55,
+	0x09, 0x9b, 0x92, 0x89, 0x06, 0xf8, 0x1c, 0x91, 0x6e, 0x4c, 0x55, 0x3f, 0x0e, 0x46, 0xec, 0x35,
+	0x33, 0xfb, 0xf7, 0x8c, 0xc9, 0x54, 0x54, 0x55, 0x30, 0x45, 0x22, 0x8b, 0x19, 0x39, 0x10, 0xca,
+	0x8f, 0x43, 0x0b, 0xa1, 0xf4, 0xb0, 0xa7, 0xd9, 0xfd, 0x51, 0xb7, 0xa8, 0xe0, 0x81, 0xf7, 0xef,
+	0xe0, 0x3d, 0x76, 0x2d, 0xf5, 0x8c, 0x7b, 0xc6, 0xf5, 0xf0, 0x39, 0x67, 0x8f, 0x0d, 0x64, 0x15,
+	0x83, 0x44, 0x26, 0x8e, 0x9e, 0xb4, 0x65, 0xcd, 0x84, 0x14, 0x88, 0xf9, 0xdd, 0x9c, 0x16, 0x9d,
+	0x57, 0x98, 0x05, 0xf1, 0x73, 0x59, 0x1f, 0x21, 0xaf, 0x93, 0x5c, 0xe1, 0xe1, 0x1f, 0x31, 0xb0,
+	0x19, 0x1a, 0xe6, 0x9d, 0xb1, 0x81, 0x60, 0x09, 0xdc, 0xad, 0x35, 0xc4, 0x8e, 0xd4, 0x79, 0xda,
+	0x6e, 0x48, 0x27, 0xad, 0xe3, 0x76, 0xa3, 0xc6, 0xef, 0xf3, 0x8d, 0x3a, 0x15, 0xa1, 0xb7, 0x26,
+	0xd3, 0x02, 0x5c, 0xc2, 0xb7, 0x34, 0x1d, 0x7e, 0x19, 0xa6, 0xd4, 0x84, 0x6f, 0xda, 0x7c, 0xb3,
+	0xd2, 0xe1, 0x85, 0x16, 0x15, 0xa5, 0xf3, 0x93, 0x69, 0x81, 0x5e, 0xa2, 0x84, 0xdb, 0xf5, 0x11,
+	0x80, 0x01, 0xb5, 0x72, 0x52, 0xe7, 0x3b, 0x7c, 0xeb, 0x80, 0x5a, 0xa3, 0xdf, 0x9f, 0x4c, 0x0b,
+	0xdb, 0x4b, 0xbc, 0x45, 0xc3, 0xee, 0x82, 0xcd, 0x80, 0xd4, 0x16, 0x05, 0x61, 0x9f, 0x8a, 0xd1,
+	0xb9, 0xc9, 0xb4, 0x90, 0x5d, 0x62, 0xb8, 0xfd, 0xfa, 0x35, 0xd8, 0x09, 0xe0, 0x82, 0x58, 0xa9,
+	0x35, 0x1b, 0x92, 0xd0, 0x6e, 0x88, 0x95, 0x8e, 0x20, 0x52, 0xeb, 0xf4, 0x07, 0x93, 0x69, 0xe1,
+	0xfe, 0x12, 0x71, 0xa9, 0x71, 0x0f, 0xc0, 0xfd, 0xc0, 0xc3, 0xf1, 0x21, 0xdf, 0x68, 0xd6, 0xa5,
+	0xb6, 0x20, 0x34, 0xa5, 0x9a, 0xd8, 0x20, 0x5e, 0xe2, 0xf4, 0x87, 0x93, 0x69, 0xa1, 0xb0, 0xe4,
+	0xe5, 0xcd, 0x2e, 0xbe, 0x76, 0x5d, 0xbe, 0xde, 0x68, 0x75, 0xf8, 0xce, 0x53, 0x2a, 0xf1, 0xd6,
+	0xeb, 0x2e, 0xfa, 0xb8, 0x04, 0xee, 0x04, 0xa4, 0x83, 0x46, 0xab, 0x21, 0x56, 0x9a, 0x54, 0x92,
+	0xa6, 0x27, 0xd3, 0xc2, 0xd6, 0x12, 0xc7, 0x6b, 0x64, 0x7a, 0xfd, 0xf9, 0x4f, 0xf9, 0x48, 0x95,
+	0xff, 0xe5, 0x32, 0x1f, 0x7d, 0x75, 0x99, 0x8f, 0xfe, 0x79, 0x99, 0x8f, 0xfe, 0x70, 0x95, 0x8f,
+	0xbc, 0xba, 0xca, 0x47, 0x7e, 0xbf, 0xca, 0x47, 0xbe, 0xe5, 0xc2, 0xc5, 0xe5, 0xb8, 0x38, 0x3b,
+	0xc5, 0xa3, 0xa1, 0x4a, 0x72, 0xc2, 0x79, 0xff, 0xc8, 0xcf, 0xdc, 0xbf, 0x64, 0x52, 0x63, 0xdd,
+	0x04, 0x59, 0x05, 0x8f, 0xfe, 0x09, 0x00, 0x00, 0xff, 0xff, 0xbe, 0xa5, 0xbc, 0xba, 0x41, 0x0b,
+	0x00, 0x00,
 }
 
 func (m *Certifier) Marshal() (dAtA []byte, err error) {
@@ -1076,9 +896,9 @@ func (m *GeneralCertificate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if m.ReqContent != nil {
+	if m.CertContent != nil {
 		{
-			size, err := m.ReqContent.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.CertContent.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1096,7 +916,7 @@ func (m *GeneralCertificate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *CompilationCertificateContent) Marshal() (dAtA []byte, err error) {
+func (m *CompilationContent) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1106,12 +926,12 @@ func (m *CompilationCertificateContent) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *CompilationCertificateContent) MarshalTo(dAtA []byte) (int, error) {
+func (m *CompilationContent) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *CompilationCertificateContent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *CompilationContent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1167,9 +987,9 @@ func (m *CompilationCertificate) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 		i--
 		dAtA[i] = 0x2a
 	}
-	if m.CertContent != nil {
+	if m.CompContent != nil {
 		{
-			size, err := m.CertContent.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.CompContent.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1179,9 +999,9 @@ func (m *CompilationCertificate) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 		i--
 		dAtA[i] = 0x22
 	}
-	if m.ReqContent != nil {
+	if m.CertContent != nil {
 		{
-			size, err := m.ReqContent.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.CertContent.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1308,12 +1128,7 @@ func (m *Compilation) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Content)
 		i = encodeVarintCert(dAtA, i, uint64(len(m.Content)))
 		i--
-		dAtA[i] = 0x12
-	}
-	if m.Type != 0 {
-		i = encodeVarintCert(dAtA, i, uint64(m.Type))
-		i--
-		dAtA[i] = 0x8
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1343,12 +1158,7 @@ func (m *Auditing) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Content)
 		i = encodeVarintCert(dAtA, i, uint64(len(m.Content)))
 		i--
-		dAtA[i] = 0x12
-	}
-	if m.Type != 0 {
-		i = encodeVarintCert(dAtA, i, uint64(m.Type))
-		i--
-		dAtA[i] = 0x8
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1378,12 +1188,7 @@ func (m *Proof) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Content)
 		i = encodeVarintCert(dAtA, i, uint64(len(m.Content)))
 		i--
-		dAtA[i] = 0x12
-	}
-	if m.Type != 0 {
-		i = encodeVarintCert(dAtA, i, uint64(m.Type))
-		i--
-		dAtA[i] = 0x8
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1413,12 +1218,7 @@ func (m *OracleOperator) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Content)
 		i = encodeVarintCert(dAtA, i, uint64(len(m.Content)))
 		i--
-		dAtA[i] = 0x12
-	}
-	if m.Type != 0 {
-		i = encodeVarintCert(dAtA, i, uint64(m.Type))
-		i--
-		dAtA[i] = 0x8
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1448,12 +1248,7 @@ func (m *ShieldPoolCreator) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Content)
 		i = encodeVarintCert(dAtA, i, uint64(len(m.Content)))
 		i--
-		dAtA[i] = 0x12
-	}
-	if m.Type != 0 {
-		i = encodeVarintCert(dAtA, i, uint64(m.Type))
-		i--
-		dAtA[i] = 0x8
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1483,12 +1278,7 @@ func (m *Identity) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Content)
 		i = encodeVarintCert(dAtA, i, uint64(len(m.Content)))
 		i--
-		dAtA[i] = 0x12
-	}
-	if m.Type != 0 {
-		i = encodeVarintCert(dAtA, i, uint64(m.Type))
-		i--
-		dAtA[i] = 0x8
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1517,81 +1307,6 @@ func (m *General) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.Content)
 		copy(dAtA[i:], m.Content)
 		i = encodeVarintCert(dAtA, i, uint64(len(m.Content)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if m.Type != 0 {
-		i = encodeVarintCert(dAtA, i, uint64(m.Type))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ContentProto) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ContentProto) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ContentProto) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Content != nil {
-		{
-			size, err := m.Content.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintCert(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *CertificateProto) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *CertificateProto) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *CertificateProto) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Certificate != nil {
-		{
-			size, err := m.Certificate.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintCert(dAtA, i, uint64(size))
-		}
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1748,8 +1463,8 @@ func (m *GeneralCertificate) Size() (n int) {
 	if m.CertId != 0 {
 		n += 1 + sovCert(uint64(m.CertId))
 	}
-	if m.ReqContent != nil {
-		l = m.ReqContent.Size()
+	if m.CertContent != nil {
+		l = m.CertContent.Size()
 		n += 1 + l + sovCert(uint64(l))
 	}
 	l = len(m.CertDescription)
@@ -1763,7 +1478,7 @@ func (m *GeneralCertificate) Size() (n int) {
 	return n
 }
 
-func (m *CompilationCertificateContent) Size() (n int) {
+func (m *CompilationContent) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1792,12 +1507,12 @@ func (m *CompilationCertificate) Size() (n int) {
 	if m.CertId != 0 {
 		n += 1 + sovCert(uint64(m.CertId))
 	}
-	if m.ReqContent != nil {
-		l = m.ReqContent.Size()
-		n += 1 + l + sovCert(uint64(l))
-	}
 	if m.CertContent != nil {
 		l = m.CertContent.Size()
+		n += 1 + l + sovCert(uint64(l))
+	}
+	if m.CompContent != nil {
+		l = m.CompContent.Size()
 		n += 1 + l + sovCert(uint64(l))
 	}
 	l = len(m.CertDescription)
@@ -1851,9 +1566,6 @@ func (m *Compilation) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Type != 0 {
-		n += 1 + sovCert(uint64(m.Type))
-	}
 	l = len(m.Content)
 	if l > 0 {
 		n += 1 + l + sovCert(uint64(l))
@@ -1867,9 +1579,6 @@ func (m *Auditing) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Type != 0 {
-		n += 1 + sovCert(uint64(m.Type))
-	}
 	l = len(m.Content)
 	if l > 0 {
 		n += 1 + l + sovCert(uint64(l))
@@ -1883,9 +1592,6 @@ func (m *Proof) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Type != 0 {
-		n += 1 + sovCert(uint64(m.Type))
-	}
 	l = len(m.Content)
 	if l > 0 {
 		n += 1 + l + sovCert(uint64(l))
@@ -1899,9 +1605,6 @@ func (m *OracleOperator) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Type != 0 {
-		n += 1 + sovCert(uint64(m.Type))
-	}
 	l = len(m.Content)
 	if l > 0 {
 		n += 1 + l + sovCert(uint64(l))
@@ -1915,9 +1618,6 @@ func (m *ShieldPoolCreator) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Type != 0 {
-		n += 1 + sovCert(uint64(m.Type))
-	}
 	l = len(m.Content)
 	if l > 0 {
 		n += 1 + l + sovCert(uint64(l))
@@ -1931,9 +1631,6 @@ func (m *Identity) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Type != 0 {
-		n += 1 + sovCert(uint64(m.Type))
-	}
 	l = len(m.Content)
 	if l > 0 {
 		n += 1 + l + sovCert(uint64(l))
@@ -1947,37 +1644,8 @@ func (m *General) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Type != 0 {
-		n += 1 + sovCert(uint64(m.Type))
-	}
 	l = len(m.Content)
 	if l > 0 {
-		n += 1 + l + sovCert(uint64(l))
-	}
-	return n
-}
-
-func (m *ContentProto) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Content != nil {
-		l = m.Content.Size()
-		n += 1 + l + sovCert(uint64(l))
-	}
-	return n
-}
-
-func (m *CertificateProto) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Certificate != nil {
-		l = m.Certificate.Size()
 		n += 1 + l + sovCert(uint64(l))
 	}
 	return n
@@ -2269,7 +1937,7 @@ func (m *GeneralCertificate) Unmarshal(dAtA []byte) error {
 			}
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ReqContent", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CertContent", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -2296,10 +1964,10 @@ func (m *GeneralCertificate) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.ReqContent == nil {
-				m.ReqContent = &types.Any{}
+			if m.CertContent == nil {
+				m.CertContent = &types.Any{}
 			}
-			if err := m.ReqContent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.CertContent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2391,7 +2059,7 @@ func (m *GeneralCertificate) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *CompilationCertificateContent) Unmarshal(dAtA []byte) error {
+func (m *CompilationContent) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2414,10 +2082,10 @@ func (m *CompilationCertificateContent) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CompilationCertificateContent: wiretype end group for non-group")
+			return fmt.Errorf("proto: CompilationContent: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CompilationCertificateContent: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: CompilationContent: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2577,42 +2245,6 @@ func (m *CompilationCertificate) Unmarshal(dAtA []byte) error {
 			}
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ReqContent", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCert
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCert
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthCert
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.ReqContent == nil {
-				m.ReqContent = &types.Any{}
-			}
-			if err := m.ReqContent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CertContent", wireType)
 			}
 			var msglen int
@@ -2641,9 +2273,45 @@ func (m *CompilationCertificate) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.CertContent == nil {
-				m.CertContent = &CompilationCertificateContent{}
+				m.CertContent = &types.Any{}
 			}
 			if err := m.CertContent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CompContent", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCert
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCert
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCert
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.CompContent == nil {
+				m.CompContent = &CompilationContent{}
+			}
+			if err := m.CompContent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3003,25 +2671,6 @@ func (m *Compilation) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
-			}
-			m.Type = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCert
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Type |= ContentType(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Content", wireType)
 			}
@@ -3107,25 +2756,6 @@ func (m *Auditing) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
-			}
-			m.Type = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCert
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Type |= ContentType(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Content", wireType)
 			}
@@ -3211,25 +2841,6 @@ func (m *Proof) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
-			}
-			m.Type = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCert
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Type |= ContentType(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Content", wireType)
 			}
@@ -3315,25 +2926,6 @@ func (m *OracleOperator) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
-			}
-			m.Type = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCert
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Type |= ContentType(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Content", wireType)
 			}
@@ -3419,25 +3011,6 @@ func (m *ShieldPoolCreator) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
-			}
-			m.Type = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCert
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Type |= ContentType(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Content", wireType)
 			}
@@ -3523,25 +3096,6 @@ func (m *Identity) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
-			}
-			m.Type = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCert
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Type |= ContentType(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Content", wireType)
 			}
@@ -3627,25 +3181,6 @@ func (m *General) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
-			}
-			m.Type = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCert
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Type |= ContentType(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Content", wireType)
 			}
@@ -3676,184 +3211,6 @@ func (m *General) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Content = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCert(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthCert
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthCert
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ContentProto) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCert
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ContentProto: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ContentProto: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Content", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCert
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCert
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthCert
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Content == nil {
-				m.Content = &types.Any{}
-			}
-			if err := m.Content.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCert(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthCert
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthCert
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *CertificateProto) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCert
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: CertificateProto: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CertificateProto: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Certificate", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCert
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCert
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthCert
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Certificate == nil {
-				m.Certificate = &types.Any{}
-			}
-			if err := m.Certificate.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

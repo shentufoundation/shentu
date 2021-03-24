@@ -40,7 +40,6 @@ type certifyValidatorReq struct {
 type certifyGeneralReq struct {
 	BaseReq         resttypes.BaseReq `json:"base_req"`
 	CertificateType string            `json:"certificate_type"`
-	ContentType     string            `json:"content_type"`
 	Content         string            `json:"content"`
 	Description     string            `json:"description"`
 	Certifier       string            `json:"certifier"`

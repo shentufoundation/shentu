@@ -65,7 +65,7 @@ func (cc CertificateCallable) checkFunc(ctx native.Context, certType string) ([]
 	if err != nil {
 		return []byte{0x00}, err
 	}
-	if cc.certKeeper.IsCertified(cc.ctx, "address", addr.String(), certType) {
+	if cc.certKeeper.IsCertified(cc.ctx, addr.String(), certType) {
 		return []byte{0x01}, nil
 	}
 	return []byte{0x00}, nil
@@ -80,7 +80,7 @@ func (cc CertificateCallable) checkCompilation(ctx native.Context) (output []byt
 		*ctx.Gas = *ctx.Gas.Sub(ctx.Gas, gasRequired)
 	}
 	input := string(ctx.Input)
-	if cc.certKeeper.IsCertified(cc.ctx, "sourcecodehash", input, "compilation") {
+	if cc.certKeeper.IsCertified(cc.ctx, input, "compilation") {
 		return []byte{0x01}, nil
 	}
 	return []byte{0x00}, nil

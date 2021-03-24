@@ -122,7 +122,7 @@ func certifyGeneralHandler(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgCertifyGeneral(req.CertificateType, req.ContentType, req.Content, req.Description, certifier)
+		msg := types.NewMsgCertifyGeneral(req.CertificateType, req.Content, req.Description, certifier)
 		if err = msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

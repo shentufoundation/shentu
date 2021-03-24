@@ -53,7 +53,6 @@ func CertificateTypeFromString(s string) CertificateType {
 type Content interface {
 	proto.Message
 
-	GetType() ContentType
 	GetContent() string
 }
 
@@ -65,9 +64,8 @@ type Certificate interface {
 	ID() uint64
 	Certifier() sdk.AccAddress
 	Content() Content
-	FormattedContent() []KVPair
-	CertificateContent() string
-	FormattedCertificateContent() []KVPair
+	CompilationContent() string
+	FormattedCompilationContent() []KVPair
 	Description() string
 
 	String() string
@@ -97,55 +95,24 @@ func TranslateCertificateType(certificate Certificate) CertificateType {
 	}
 }
 
-// ContentTypes is an array of all content types.
-var ContentTypes = [...]ContentType{
-	ContentTypeNil,
-	ContentTypeSourceCodeHash,
-	ContentTypeAddress,
-	ContentTypeBytecodeHash,
-	ContentTypeGeneral,
-}
-
-// Bytes returns the byte array for a content type.
-func (c ContentType) Bytes() []byte {
-	return []byte{byte(c)}
-}
-
-// ContentTypeFromString returns the content type by parsing a string.
-func ContentTypeFromString(s string) ContentType {
-	switch strings.ToUpper(s) {
-	case "SOURCECODEHASH", "CONTENT_TYPE_SOURCE_CODE_HASH":
-		return ContentTypeSourceCodeHash
-	case "ADDRESS", "CONTENT_TYPE_ADDRESS":
-		return ContentTypeAddress
-	case "BYTECODEHASH", "CONTENT_TYPE_BYTECODE_HASH":
-		return ContentTypeBytecodeHash
-	case "GENERAL", "CONTENT_TYPE_GENERAL":
-		return ContentTypeGeneral
-	default:
-		return ContentTypeNil
-	}
-}
-
 // AssembleContent constructs a struct instance that implements content interface.
-func AssembleContent(certTypeStr, contTypeStr, content string) Content {
+func AssembleContent(certTypeStr, content string) Content {
 	certType := CertificateTypeFromString(certTypeStr)
-	contentType := ContentTypeFromString(contTypeStr)
 	switch certType {
 	case CertificateTypeCompilation:
-		return &Compilation{contentType, content}
+		return &Compilation{content}
 	case CertificateTypeAuditing:
-		return &Auditing{contentType, content}
+		return &Auditing{content}
 	case CertificateTypeProof:
-		return &Proof{contentType, content}
+		return &Proof{content}
 	case CertificateTypeOracleOperator:
-		return &OracleOperator{contentType, content}
+		return &OracleOperator{content}
 	case CertificateTypeShieldPoolCreator:
-		return &ShieldPoolCreator{contentType, content}
+		return &ShieldPoolCreator{content}
 	case CertificateTypeIdentity:
-		return &Identity{contentType, content}
+		return &Identity{content}
 	case CertificateTypeGeneral:
-		return &General{contentType, content}
+		return &General{content}
 	default:
 		return nil
 	}
@@ -153,9 +120,9 @@ func AssembleContent(certTypeStr, contTypeStr, content string) Content {
 
 // NewGeneralCertificate returns a new general certificate.
 func NewGeneralCertificate(
-	certTypeStr, contTypeStr, contStr, description string, certifier sdk.AccAddress,
+	certTypeStr, contStr, description string, certifier sdk.AccAddress,
 ) (*GeneralCertificate, error) {
-	content := AssembleContent(certTypeStr, contTypeStr, contStr)
+	content := AssembleContent(certTypeStr, contStr)
 	msg, ok := content.(proto.Message)
 	if !ok {
 		return &GeneralCertificate{}, fmt.Errorf("%T does not implement proto.Message", content)
@@ -165,7 +132,7 @@ func NewGeneralCertificate(
 		return &GeneralCertificate{}, err
 	}
 	return &GeneralCertificate{
-		ReqContent:      any,
+		CertContent:     any,
 		CertDescription: description,
 		CertCertifier:   certifier.String(),
 	}, nil
@@ -174,7 +141,7 @@ func NewGeneralCertificate(
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (c *GeneralCertificate) UnpackInterfaces(unpacker codecTypes.AnyUnpacker) error {
 	var content Content
-	return unpacker.UnpackAny(c.ReqContent, &content)
+	return unpacker.UnpackAny(c.CertContent, &content)
 }
 
 // ID returns ID of the certificate.
@@ -193,28 +160,20 @@ func (c *GeneralCertificate) Certifier() sdk.AccAddress {
 
 // Content returns content of the certificate.
 func (c *GeneralCertificate) Content() Content {
-	content, ok := c.ReqContent.GetCachedValue().(Content)
+	content, ok := c.CertContent.GetCachedValue().(Content)
 	if !ok {
 		return nil
 	}
 	return content
 }
 
-// FormattedContent returns formatted content of the certificate.
-func (c *GeneralCertificate) FormattedContent() []KVPair {
-	return []KVPair{
-		NewKVPair("content_type", c.Content().GetType().String()),
-		NewKVPair("content", c.Content().GetContent()),
-	}
-}
-
 // CertificateContent returns certificate content of the certificate.
-func (c *GeneralCertificate) CertificateContent() string {
+func (c *GeneralCertificate) CompilationContent() string {
 	return "general certificate"
 }
 
 // FormattedCertificateContent returns formatted certificate content of the certificate.
-func (c *GeneralCertificate) FormattedCertificateContent() []KVPair {
+func (c *GeneralCertificate) FormattedCompilationContent() []KVPair {
 	return nil
 }
 
@@ -234,8 +193,8 @@ func (c *GeneralCertificate) SetCertificateID(id uint64) {
 }
 
 // NewCompilationCertificateContent returns a new compilation certificate content.
-func NewCompilationCertificateContent(compiler, bytecodeHash string) CompilationCertificateContent {
-	return CompilationCertificateContent{Compiler: compiler, BytecodeHash: bytecodeHash}
+func NewCompilationCertificateContent(compiler, bytecodeHash string) CompilationContent {
+	return CompilationContent{Compiler: compiler, BytecodeHash: bytecodeHash}
 }
 
 // NewKVPair returns a new key-value pair.
@@ -251,7 +210,7 @@ func NewCompilationCertificate(
 	description string,
 	certifier sdk.AccAddress,
 ) *CompilationCertificate {
-	content := AssembleContent("COMPILATION", "SOURCECODEHASH", sourceCodeHash)
+	content := AssembleContent("COMPILATION", sourceCodeHash)
 	msg, ok := content.(proto.Message)
 	if !ok {
 		return &CompilationCertificate{}
@@ -260,10 +219,10 @@ func NewCompilationCertificate(
 	if err != nil {
 		return &CompilationCertificate{}
 	}
-	certificateContent := NewCompilationCertificateContent(compiler, bytecodeHash)
+	compilationContent := NewCompilationCertificateContent(compiler, bytecodeHash)
 	return &CompilationCertificate{
-		ReqContent:      any,
-		CertContent:     &certificateContent,
+		CertContent:     any,
+		CompContent:     &compilationContent,
 		CertDescription: description,
 		CertCertifier:   certifier.String(),
 	}
@@ -272,7 +231,7 @@ func NewCompilationCertificate(
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (c *CompilationCertificate) UnpackInterfaces(unpacker codecTypes.AnyUnpacker) error {
 	var content Content
-	return unpacker.UnpackAny(c.ReqContent, &content)
+	return unpacker.UnpackAny(c.CertContent, &content)
 }
 
 // ID returns ID of the certificate.
@@ -291,31 +250,23 @@ func (c *CompilationCertificate) Certifier() sdk.AccAddress {
 
 // Content returns content of the certificate.
 func (c *CompilationCertificate) Content() Content {
-	content, ok := c.ReqContent.GetCachedValue().(Content)
+	content, ok := c.CertContent.GetCachedValue().(Content)
 	if !ok {
 		return nil
 	}
 	return content
 }
 
-// FormattedContent returns formatted content of the certificate.
-func (c *CompilationCertificate) FormattedContent() []KVPair {
-	return []KVPair{
-		NewKVPair("content_type", c.Content().GetType().String()),
-		NewKVPair("content", c.Content().GetContent()),
-	}
-}
-
 // CertificateContent returns certificate content of the certificate.
-func (c *CompilationCertificate) CertificateContent() string {
-	return c.CertContent.String()
+func (c *CompilationCertificate) CompilationContent() string {
+	return c.CompContent.String()
 }
 
 // FormattedCertificateContent returns formatted certificate content of the certificate.
-func (c *CompilationCertificate) FormattedCertificateContent() []KVPair {
+func (c *CompilationCertificate) FormattedCompilationContent() []KVPair {
 	return []KVPair{
-		NewKVPair("compiler", c.CertContent.Compiler),
-		NewKVPair("bytecodeHash", c.CertContent.BytecodeHash),
+		NewKVPair("compiler", c.CompContent.Compiler),
+		NewKVPair("bytecodeHash", c.CompContent.BytecodeHash),
 	}
 }
 

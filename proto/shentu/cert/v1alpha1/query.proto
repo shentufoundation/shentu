@@ -88,8 +88,8 @@ message QueryCertificateRequest {
 message QueryCertificateResponse {
     uint64 certificate_id = 1;
     string certificate_type = 2;
-    repeated KVPair content = 3 [ (gogoproto.nullable) = false ];
-    repeated KVPair certificate_content = 4 [ (gogoproto.nullable) = false ];
+    string content = 3;
+    repeated KVPair compilation_content = 4 [ (gogoproto.nullable) = false ];
     string description = 5;
     string certifier = 6;
 }

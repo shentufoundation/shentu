@@ -158,8 +158,7 @@ func Test_CertificateQueries(t *testing.T) {
 			} else {
 				length := rand.Intn(10) + 10
 				s := randomString(length)
-				cert2, _ = types.NewGeneralCertificate("general", "general",
-					s, "", addrs[index])
+				cert2, _ = types.NewGeneralCertificate("general", s, "", addrs[index])
 				if index == 0 {
 					count3++
 				}
@@ -169,7 +168,7 @@ func Test_CertificateQueries(t *testing.T) {
 		}
 
 		// Test GetCertificatesByContent()
-		certs := app.CertKeeper.GetCertificatesByContent(ctx, types.ContentTypeFromString("sourcecodehash"), dupContent)
+		certs := app.CertKeeper.GetCertificatesByContent(ctx, dupContent)
 		require.Equal(t, count2, len(certs))
 
 		// Test GetCertificatesFiltered()
@@ -213,20 +212,19 @@ func Test_IsCertified(t *testing.T) {
 		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "", addrs[0], ""))
 
 		certType := "auditing"
-		contentTypeStr := "address"
 		contentStr := "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag"
 
-		isCertified := app.CertKeeper.IsCertified(ctx, contentTypeStr, contentStr, certType)
+		isCertified := app.CertKeeper.IsCertified(ctx, contentStr, certType)
 		require.Equal(t, false, isCertified)
 
-		cert, err := types.NewGeneralCertificate(certType, contentTypeStr, contentStr,
+		cert, err := types.NewGeneralCertificate(certType, contentStr,
 			"Audited by CertiK", addrs[0])
 		require.NoError(t, err)
 
 		_, err = app.CertKeeper.IssueCertificate(ctx, cert)
 		require.NoError(t, err)
 
-		isCertified = app.CertKeeper.IsCertified(ctx, contentTypeStr, contentStr, certType)
+		isCertified = app.CertKeeper.IsCertified(ctx, contentStr, certType)
 		require.Equal(t, true, isCertified)
 	})
 }

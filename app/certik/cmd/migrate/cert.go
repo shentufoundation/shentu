@@ -331,7 +331,7 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 	newCertificates := make([]*codectypes.Any, len(oldGenState.Certificates))
 	for i, c := range oldGenState.Certificates {
 		var newCert certtypes.Certificate
-		content := AssembleContent(c.Type(), c.RequestContent().RequestContentType, c.RequestContent().RequestContent)
+		content := AssembleContent(c.Type(), c.RequestContent().RequestContent)
 		msg, ok := content.(proto.Message)
 		if !ok {
 			panic(fmt.Errorf("%T does not implement proto.Message", content))
@@ -342,7 +342,7 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 		}
 		newCert = &certtypes.GeneralCertificate{
 			CertId:          uint64(i + 1),
-			ReqContent:      any,
+			CertContent:     any,
 			CertDescription: c.Description(),
 			CertCertifier:   c.Certifier().String(),
 		}
@@ -376,22 +376,22 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 }
 
 // AssembleContent constructs a struct instance that implements content interface.
-func AssembleContent(certType CertificateType, contentType RequestContentType, content string) certtypes.Content {
+func AssembleContent(certType CertificateType, content string) certtypes.Content {
 	switch certType {
 	case CertificateTypeCompilation:
-		return &certtypes.Compilation{certtypes.ContentType(contentType), content}
+		return &certtypes.Compilation{content}
 	case CertificateTypeAuditing:
-		return &certtypes.Auditing{certtypes.ContentType(contentType), content}
+		return &certtypes.Auditing{content}
 	case CertificateTypeProof:
-		return &certtypes.Proof{certtypes.ContentType(contentType), content}
+		return &certtypes.Proof{content}
 	case CertificateTypeOracleOperator:
-		return &certtypes.OracleOperator{certtypes.ContentType(contentType), content}
+		return &certtypes.OracleOperator{content}
 	case CertificateTypeShieldPoolCreator:
-		return &certtypes.ShieldPoolCreator{certtypes.ContentType(contentType), content}
+		return &certtypes.ShieldPoolCreator{content}
 	case CertificateTypeIdentity:
-		return &certtypes.Identity{certtypes.ContentType(contentType), content}
+		return &certtypes.Identity{content}
 	case CertificateTypeGeneral:
-		return &certtypes.General{certtypes.ContentType(contentType), content}
+		return &certtypes.General{content}
 	default:
 		return nil
 	}

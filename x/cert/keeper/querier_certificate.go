@@ -15,8 +15,8 @@ import (
 type QueryResCertificate struct {
 	CertificateID      uint64         `json:"certificate_id"`
 	CertificateType    string         `json:"certificate_type"`
-	RequestContent     []types.KVPair `json:"request_content"`
-	CertificateContent []types.KVPair `json:"certificate_content"`
+	Content            string         `json:"content"`
+	CompilationContent []types.KVPair `json:"compilation_content"`
 	Description        string         `json:"description"`
 	Certifier          string         `json:"certifier"`
 }
@@ -24,16 +24,16 @@ type QueryResCertificate struct {
 func NewQueryResCertificate(
 	certificateID uint64,
 	certificateType string,
-	requestContent []types.KVPair,
-	certificateContent []types.KVPair,
+	content string,
+	compilationContent []types.KVPair,
 	description string,
 	certifier string,
 ) QueryResCertificate {
 	return QueryResCertificate{
 		CertificateID:      certificateID,
 		CertificateType:    certificateType,
-		RequestContent:     requestContent,
-		CertificateContent: certificateContent,
+		Content:            content,
+		CompilationContent: compilationContent,
 		Description:        description,
 		Certifier:          certifier,
 	}
@@ -56,8 +56,8 @@ func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQueri
 	resCertificate := NewQueryResCertificate(
 		certificate.ID(),
 		types.TranslateCertificateType(certificate).String(),
-		certificate.FormattedContent(),
-		certificate.FormattedCertificateContent(),
+		certificate.Content().GetContent(),
+		certificate.FormattedCompilationContent(),
 		certificate.Description(),
 		certificate.Certifier().String(),
 	)
@@ -92,8 +92,8 @@ func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 		resCertificate := NewQueryResCertificate(
 			certificate.ID(),
 			types.TranslateCertificateType(certificate).String(),
-			certificate.FormattedContent(),
-			certificate.FormattedCertificateContent(),
+			certificate.Content().GetContent(),
+			certificate.FormattedCompilationContent(),
 			certificate.Description(),
 			certificate.Certifier().String(),
 		)

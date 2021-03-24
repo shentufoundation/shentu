@@ -196,11 +196,10 @@ func SimulateMsgCertifyGeneral(ak types.AccountKeeper, bk types.BankKeeper, k ke
 		}
 
 		certType := types.CertificateType_name[r.Int31n(7)+1]
-		contentType := types.ContentType_name[r.Int31n(4)+1]
 		content := simtypes.RandStringOfLength(r, 20)
 		description := simtypes.RandStringOfLength(r, 10)
 
-		msg := types.NewMsgCertifyGeneral(certType, contentType, content, description, certifierAddr)
+		msg := types.NewMsgCertifyGeneral(certType, content, description, certifierAddr)
 
 		account := ak.GetAccount(ctx, certifierAddr)
 		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))

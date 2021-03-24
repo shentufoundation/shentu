@@ -60,10 +60,9 @@ message MsgCertifyGeneral {
     option (gogoproto.goproto_getters) = false;
 
     string certificate_type = 1 [ (gogoproto.moretags) = "yaml:\"certificate_type\"" ];
-    string content_type = 2 [ (gogoproto.moretags) = "yaml:\"content_type\"" ];
-    string content = 3 [ (gogoproto.moretags) = "yaml:\"content\"" ];
-    string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
+    string content = 2 [ (gogoproto.moretags) = "yaml:\"content\"" ];
+    string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string certifier = 4 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
 }
 
 message MsgCertifyGeneralResponse {}

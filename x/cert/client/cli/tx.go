@@ -126,9 +126,9 @@ func GetCmdDecertifyValidator() *cobra.Command {
 // GetCmdIssueCertificate returns the certificate transaction command.
 func GetCmdIssueCertificate() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "issue-certificate <certificate type> <request content type> <request content> [<flags>]",
+		Use:   "issue-certificate <certificate type> <request content> [<flags>]",
 		Short: "Issue a certificate",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -144,15 +144,11 @@ func GetCmdIssueCertificate() *cobra.Command {
 			certificateTypeString := strings.ToLower(args[0])
 			switch certificateTypeString {
 			case "compilation":
-				contentType := types.ContentTypeFromString(args[1])
-				if contentType != types.ContentTypeSourceCodeHash {
-					return types.ErrInvalidRequestContentType
-				}
 				compiler, bytecodeHash, description, err := parseCertifyCompilationFlags()
 				if err != nil {
 					return err
 				}
-				msg := types.NewMsgCertifyCompilation(args[2], compiler, bytecodeHash, description, from)
+				msg := types.NewMsgCertifyCompilation(args[1], compiler, bytecodeHash, description, from)
 				if err := msg.ValidateBasic(); err != nil {
 					return err
 				}
@@ -160,7 +156,7 @@ func GetCmdIssueCertificate() *cobra.Command {
 
 			default:
 				description := viper.GetString(FlagDescription)
-				msg := types.NewMsgCertifyGeneral(certificateTypeString, args[1], args[2], description, from)
+				msg := types.NewMsgCertifyGeneral(certificateTypeString, args[1], description, from)
 				if err := msg.ValidateBasic(); err != nil {
 					return err
 				}

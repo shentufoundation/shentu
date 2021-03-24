@@ -633,19 +633,19 @@ func TestPrecompiles(t *testing.T) {
 			panic(err)
 		}
 		app.CertKeeper.SetCertifier(ctx, certtypes.Certifier{Address: certAddr.String()})
-		auditingCert1, err := certtypes.NewGeneralCertificate("auditing", "address", certAddr.String(), "WOW", certAddr)
+		auditingCert1, err := certtypes.NewGeneralCertificate("auditing", certAddr.String(), "WOW", certAddr)
 		if err != nil {
 			panic(err)
 		}
-		auditingCert2, err := certtypes.NewGeneralCertificate("auditing", "address", everythingAddr.String(), "WOW", certAddr)
+		auditingCert2, err := certtypes.NewGeneralCertificate("auditing", everythingAddr.String(), "WOW", certAddr)
 		if err != nil {
 			panic(err)
 		}
-		proofCert, err := certtypes.NewGeneralCertificate("proof", "address", proofAddr.String(), "testproof", certAddr)
+		proofCert, err := certtypes.NewGeneralCertificate("proof", proofAddr.String(), "testproof", certAddr)
 		if err != nil {
 			panic(err)
 		}
-		proofCert2, err := certtypes.NewGeneralCertificate("proof", "address", everythingAddr.String(), "testproof", certAddr)
+		proofCert2, err := certtypes.NewGeneralCertificate("proof", everythingAddr.String(), "testproof", certAddr)
 		if err != nil {
 			panic(err)
 		}
