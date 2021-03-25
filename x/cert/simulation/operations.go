@@ -18,8 +18,7 @@ import (
 const (
 	OpWeightMsgCertifyValidator = "op_weight_msg_certify_validator"
 	OpWeightMsgCertifyPlatform  = "op_weight_msg_certify_platform"
-	OpWeightMsgCertifyAuditing  = "op_weight_msg_certify_auditing"
-	OpWeightMsgCertifyProof     = "op_weight_msg_certify_proof"
+	OpWeightMsgIssueCertificate = "op_weight_msg_issue_certificate"
 )
 
 // Default simulation operation weights for messages.
@@ -42,28 +41,16 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, a
 			weightMsgCertifyPlatform = simappparams.DefaultWeightMsgSend
 		})
 
-	var weightMsgCertifyAuditing int
-	appParams.GetOrGenerate(cdc, OpWeightMsgCertifyAuditing, &weightMsgCertifyAuditing, nil,
+	var weightMsgIssueCertificate int
+	appParams.GetOrGenerate(cdc, OpWeightMsgIssueCertificate, &weightMsgIssueCertificate, nil,
 		func(_ *rand.Rand) {
-			weightMsgCertifyAuditing = simappparams.DefaultWeightMsgSend
-		})
-
-	var weightMsgCertifyProof int
-	appParams.GetOrGenerate(cdc, OpWeightMsgCertifyProof, &weightMsgCertifyProof, nil,
-		func(_ *rand.Rand) {
-			weightMsgCertifyProof = simappparams.DefaultWeightMsgSend
-		})
-
-	var weightMsgCertifyIdentity int
-	appParams.GetOrGenerate(cdc, OpWeightMsgCertifyProof, &weightMsgCertifyIdentity, nil,
-		func(_ *rand.Rand) {
-			weightMsgCertifyIdentity = DefaultWeightMsgCertify
+			weightMsgIssueCertificate = simappparams.DefaultWeightMsgSend
 		})
 
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(weightMsgCertifyValidator, SimulateMsgCertifyValidator(ak, bk, k)),
 		simulation.NewWeightedOperation(weightMsgCertifyPlatform, SimulateMsgCertifyPlatform(ak, bk, k)),
-		simulation.NewWeightedOperation(weightMsgCertifyIdentity, SimulateMsgIssueCertificates(ak, bk, k)),
+		simulation.NewWeightedOperation(weightMsgIssueCertificate, SimulateMsgIssueCertificates(ak, bk, k)),
 	}
 }
 
