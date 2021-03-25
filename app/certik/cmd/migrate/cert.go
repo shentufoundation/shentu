@@ -6,10 +6,9 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/tendermint/tendermint/crypto"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	certtypes "github.com/certikfoundation/shentu/x/cert/types"
@@ -39,13 +38,13 @@ type Certifier struct {
 
 // Validator is a type for certified validator.
 type Validator struct {
-	PubKey    crypto.PubKey
+	PubKey    cryptotypes.PubKey
 	Certifier sdk.AccAddress
 }
 
 // Platform is a genesis type for certified platform of a validator
 type Platform struct {
-	Validator   crypto.PubKey
+	Validator   cryptotypes.PubKey
 	Description string
 }
 
