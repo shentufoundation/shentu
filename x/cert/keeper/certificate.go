@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"encoding/binary"
-	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,30 +12,17 @@ import (
 // SetCertificate stores a certificate using its ID field.
 func (k Keeper) SetCertificate(ctx sdk.Context, certificate types.Certificate) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.MustMarshalCertificate(certificate)
-	store.Set(types.CertificateStoreKey(certificate.ID()), bz)
-}
-
-// MustMarshalCertificate attempts to encode a Certificate object and returns the
-// raw encoded bytes. It panics on error.
-func (k Keeper) MustMarshalCertificate(certificate types.Certificate) []byte {
-	// marshals a Certificate interface. If the given type implements
-	// the Marshaler interface, it is treated as a Proto-defined message and
-	// serialized that way. Otherwise, it falls back on the internal Amino codec.
-	bz, err := k.cdc.MarshalInterface(certificate)
-	if err != nil {
-		panic(fmt.Errorf("failed to encode certificate: %w", err))
-	}
-	return bz
+	bz := k.cdc.MustMarshalBinaryBare(&certificate)
+	store.Set(types.CertificateStoreKey(certificate.CertificateId), bz)
 }
 
 // DeleteCertificate deletes a certificate using its ID field.
 func (k Keeper) DeleteCertificate(ctx sdk.Context, certificate types.Certificate) error {
-	if !k.HasCertificateByID(ctx, certificate.ID()) {
+	if !k.HasCertificateByID(ctx, certificate.CertificateId) {
 		return types.ErrCertificateNotExists
 	}
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.CertificateStoreKey(certificate.ID()))
+	store.Delete(types.CertificateStoreKey(certificate.CertificateId))
 	return nil
 }
 
@@ -51,14 +37,11 @@ func (k Keeper) GetCertificateByID(ctx sdk.Context, id uint64) (types.Certificat
 	store := ctx.KVStore(k.storeKey)
 	certificateData := store.Get(types.CertificateStoreKey(id))
 	if certificateData == nil {
-		return nil, types.ErrCertificateNotExists
+		return types.Certificate{}, types.ErrCertificateNotExists
 	}
 
 	var cert types.Certificate
-	err := k.cdc.UnmarshalInterface(certificateData, &cert)
-	if err != nil {
-		return nil, err
-	}
+	k.cdc.MustUnmarshalBinaryBare(certificateData, &cert)
 	return cert, nil
 }
 
@@ -85,17 +68,17 @@ func (k Keeper) IsContentCertified(ctx sdk.Context, content string) bool {
 
 // IssueCertificate issues a certificate.
 func (k Keeper) IssueCertificate(ctx sdk.Context, c types.Certificate) (uint64, error) {
-	if !k.IsCertifier(ctx, c.Certifier()) {
+	if !k.IsCertifier(ctx, c.GetCertifier()) {
 		return 0, types.ErrUnqualifiedCertifier
 	}
 
 	certificateID := k.GetNextCertificateID(ctx)
-	c.SetCertificateID(certificateID)
+	c.CertificateId = certificateID
 
 	k.SetNextCertificateID(ctx, certificateID+1)
 	k.SetCertificate(ctx, c)
 
-	return c.ID(), nil
+	return c.CertificateId, nil
 }
 
 // IterateAllCertificate iterates over the all the stored certificates and performs a callback function.
@@ -106,10 +89,7 @@ func (k Keeper) IterateAllCertificate(ctx sdk.Context, callback func(certificate
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var cert types.Certificate
-		err := k.cdc.UnmarshalInterface(iterator.Value(), &cert)
-		if err != nil {
-			panic(err)
-		}
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &cert)
 
 		if callback(cert) {
 			break
@@ -130,7 +110,7 @@ func (k Keeper) GetAllCertificates(ctx sdk.Context) (certificates []types.Certif
 func (k Keeper) GetCertificatesByCertifier(ctx sdk.Context, certifier sdk.AccAddress) []types.Certificate {
 	certificates := []types.Certificate{}
 	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
-		if certificate.Certifier().Equals(certifier) {
+		if certificate.GetCertifier().Equals(certifier) {
 			certificates = append(certificates, certificate)
 		}
 		return false
@@ -142,7 +122,7 @@ func (k Keeper) GetCertificatesByCertifier(ctx sdk.Context, certifier sdk.AccAdd
 func (k Keeper) GetCertificatesByContent(ctx sdk.Context, content string) []types.Certificate {
 	certificates := []types.Certificate{}
 	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
-		if certificate.Content().GetContent() == content {
+		if certificate.GetContentString() == content {
 			certificates = append(certificates, certificate)
 		}
 		return false
@@ -154,7 +134,7 @@ func (k Keeper) GetCertificatesByContent(ctx sdk.Context, content string) []type
 func (k Keeper) GetCertificatesByTypeAndContent(ctx sdk.Context, certType types.CertificateType, content string) []types.Certificate {
 	certificates := []types.Certificate{}
 	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
-		if certificate.Content().GetContent() == content &&
+		if certificate.GetContentString() == content &&
 			types.TranslateCertificateType(certificate) == certType {
 			certificates = append(certificates, certificate)
 		}
@@ -167,7 +147,7 @@ func (k Keeper) GetCertificatesByTypeAndContent(ctx sdk.Context, certType types.
 func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCertificatesParams) (uint64, []types.Certificate, error) {
 	filteredCertificates := []types.Certificate{}
 	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
-		if (params.Certifier != nil && !certificate.Certifier().Equals(params.Certifier)) ||
+		if (params.Certifier != nil && !certificate.GetCertifier().Equals(params.Certifier)) ||
 			(params.CertificateType != types.CertificateTypeNil && types.TranslateCertificateType(certificate) != params.CertificateType) {
 			return false
 		}
@@ -199,7 +179,7 @@ func (k Keeper) GetCertifiedIdentities(ctx sdk.Context) []sdk.AccAddress {
 	identities := []sdk.AccAddress{}
 	k.IterateAllCertificate(ctx, func(certificate types.Certificate) (stop bool) {
 		if types.TranslateCertificateType(certificate) == types.CertificateTypeIdentity {
-			addr, _ := sdk.AccAddressFromBech32(certificate.Content().GetContent())
+			addr, _ := sdk.AccAddressFromBech32(certificate.GetContentString())
 			identities = append(identities, addr)
 		}
 		return false

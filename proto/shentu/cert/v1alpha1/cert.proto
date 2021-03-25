@@ -31,17 +31,6 @@ enum CertificateType {
     CERT_TYPE_GENERAL = 7 [(gogoproto.enumvalue_customname) = "CertificateTypeGeneral"];
 }
 
-message GeneralCertificate {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-    option (cosmos_proto.implements_interface) = "Certificate";
-
-    uint64 cert_id = 1 [ (gogoproto.moretags) = "yaml:\"certificate_id\"" ];
-    google.protobuf.Any cert_content = 2 [ (cosmos_proto.accepts_interface) = "Content" ];
-    string cert_description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string cert_certifier = 4 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
-}
-
 message CompilationContent {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
@@ -50,16 +39,15 @@ message CompilationContent {
     string bytecode_hash = 2 [ (gogoproto.moretags) = "yaml:\"bytecode_hash\"" ];
 }
 
-message CompilationCertificate {
+message Certificate {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    int64 issue_block_height = 1 [ (gogoproto.moretags) = "yaml:\"time_issued\"" ];
-    uint64 cert_id = 2 [ (gogoproto.moretags) = "yaml:\"certificate_id\"" ];
-    google.protobuf.Any cert_content = 3 [ (cosmos_proto.accepts_interface) = "Content" ];
-    CompilationContent comp_content = 4 [ (gogoproto.moretags) = "yaml:\"compilation_content\"" ];
-    string cert_description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string cert_certifier = 6 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
+    uint64 certificate_id = 1 [ (gogoproto.moretags) = "yaml:\"certificate_id\"" ];
+    google.protobuf.Any content = 2 [ (cosmos_proto.accepts_interface) = "Content" ];
+    CompilationContent compilation_content = 3 [ (gogoproto.moretags) = "yaml:\"compilation_content\"" ];
+    string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
 }
 
 // Validator is a type for certified validator.

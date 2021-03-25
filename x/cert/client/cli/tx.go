@@ -141,27 +141,20 @@ func GetCmdIssueCertificate() *cobra.Command {
 				return err
 			}
 
+			compiler, bytecodeHash := "", ""
 			certificateTypeString := strings.ToLower(args[0])
-			switch certificateTypeString {
-			case "compilation":
-				compiler, bytecodeHash, description, err := parseCertifyCompilationFlags()
+			if certificateTypeString == "compilation" {
+				compiler, bytecodeHash, err = parseCertifyCompilationFlags()
 				if err != nil {
 					return err
 				}
-				msg := types.NewMsgCertifyCompilation(args[1], compiler, bytecodeHash, description, from)
-				if err := msg.ValidateBasic(); err != nil {
-					return err
-				}
-				return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
-
-			default:
-				description := viper.GetString(FlagDescription)
-				msg := types.NewMsgCertifyGeneral(certificateTypeString, args[1], description, from)
-				if err := msg.ValidateBasic(); err != nil {
-					return err
-				}
-				return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 			}
+			description := viper.GetString(FlagDescription)
+			msg := types.NewMsgIssueCertificate(args[0], args[1], compiler, bytecodeHash, description, from)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 
@@ -174,17 +167,16 @@ func GetCmdIssueCertificate() *cobra.Command {
 }
 
 // parseCertifyCompilation parses flags for compilation certificate.
-func parseCertifyCompilationFlags() (string, string, string, error) {
+func parseCertifyCompilationFlags() (string, string, error) {
 	compiler := viper.GetString(FlagCompiler)
 	if compiler == "" {
-		return "", "", "", fmt.Errorf("compiler version is required to issue a compilation certificate")
+		return "", "", fmt.Errorf("compiler version is required to issue a compilation certificate")
 	}
 	bytecodeHash := viper.GetString(FlagBytecodeHash)
 	if bytecodeHash == "" {
-		return "", "", "", fmt.Errorf("bytecode hash is required to issue a compilation certificate")
+		return "", "", fmt.Errorf("bytecode hash is required to issue a compilation certificate")
 	}
-	description := viper.GetString(FlagDescription)
-	return compiler, bytecodeHash, description, nil
+	return compiler, bytecodeHash, nil
 }
 
 // GetCmdCertifyPlatform returns the validator host platform certification transaction command.

@@ -86,12 +86,7 @@ message QueryCertificateRequest {
 }
 
 message QueryCertificateResponse {
-    uint64 certificate_id = 1;
-    string certificate_type = 2;
-    string content = 3;
-    repeated KVPair compilation_content = 4 [ (gogoproto.nullable) = false ];
-    string description = 5;
-    string certifier = 6;
+    Certificate certificate = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryCertificatesRequest {

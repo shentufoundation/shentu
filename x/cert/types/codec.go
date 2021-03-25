@@ -16,12 +16,9 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgCertifyValidator{}, "cert/CertifyValidator", nil)
 	cdc.RegisterConcrete(MsgDecertifyValidator{}, "cert/DecertifyValidator", nil)
 	cdc.RegisterConcrete(MsgCertifyPlatform{}, "cert/CertifyPlatform", nil)
-	cdc.RegisterConcrete(MsgCertifyGeneral{}, "cert/CertifyGeneral", nil)
-	cdc.RegisterConcrete(MsgCertifyCompilation{}, "cert/CertifyCompilation", nil)
+	cdc.RegisterConcrete(MsgIssueCertificate{}, "cert/IssueCertificate", nil)
 	cdc.RegisterConcrete(CertifierUpdateProposal{}, "cert/CertifierUpdateProposal", nil)
 	cdc.RegisterConcrete(MsgRevokeCertificate{}, "cert/RevokeCertificate", nil)
-	cdc.RegisterConcrete(&GeneralCertificate{}, "cert/GeneralCertificate", nil)
-	cdc.RegisterConcrete(&CompilationCertificate{}, "cert/CompilationCertificate", nil)
 	cdc.RegisterConcrete(&Compilation{}, "cert/Compilation", nil)
 	cdc.RegisterConcrete(&Auditing{}, "cert/Auditing", nil)
 	cdc.RegisterConcrete(&Proof{}, "cert/Proof", nil)
@@ -30,7 +27,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&Identity{}, "cert/Identity", nil)
 	cdc.RegisterConcrete(&General{}, "cert/General", nil)
 
-	cdc.RegisterInterface((*Certificate)(nil), nil)
 	cdc.RegisterInterface((*Content)(nil), nil)
 }
 
@@ -41,18 +37,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgCertifyValidator{},
 		&MsgDecertifyValidator{},
 		&MsgCertifyPlatform{},
-		&MsgCertifyGeneral{},
-		&MsgCertifyCompilation{},
+		&MsgIssueCertificate{},
 		&MsgRevokeCertificate{},
 	)
 
 	registry.RegisterImplementations((*govtypes.Content)(nil),
 		&CertifierUpdateProposal{},
-	)
-
-	registry.RegisterImplementations((*Certificate)(nil),
-		&GeneralCertificate{},
-		&CompilationCertificate{},
 	)
 
 	registry.RegisterImplementations((*Content)(nil),
@@ -63,11 +53,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&ShieldPoolCreator{},
 		&Identity{},
 		&General{},
-	)
-
-	registry.RegisterInterface("shentu.cert.v1alpha1.Certificate", (*Certificate)(nil),
-		&GeneralCertificate{},
-		&CompilationCertificate{},
 	)
 
 	registry.RegisterInterface("shentu.cert.v1alpha1.Content", (*Content)(nil),

@@ -12,33 +12,6 @@ import (
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
-type QueryResCertificate struct {
-	CertificateID      uint64         `json:"certificate_id"`
-	CertificateType    string         `json:"certificate_type"`
-	Content            string         `json:"content"`
-	CompilationContent []types.KVPair `json:"compilation_content"`
-	Description        string         `json:"description"`
-	Certifier          string         `json:"certifier"`
-}
-
-func NewQueryResCertificate(
-	certificateID uint64,
-	certificateType string,
-	content string,
-	compilationContent []types.KVPair,
-	description string,
-	certifier string,
-) QueryResCertificate {
-	return QueryResCertificate{
-		CertificateID:      certificateID,
-		CertificateType:    certificateType,
-		Content:            content,
-		CompilationContent: compilationContent,
-		Description:        description,
-		Certifier:          certifier,
-	}
-}
-
 func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	if err := validatePathLength(path, 1); err != nil {
 		return nil, err
@@ -53,15 +26,7 @@ func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQueri
 	if err != nil {
 		return nil, err
 	}
-	resCertificate := NewQueryResCertificate(
-		certificate.ID(),
-		types.TranslateCertificateType(certificate).String(),
-		certificate.Content().GetContent(),
-		certificate.FormattedCompilationContent(),
-		certificate.Description(),
-		certificate.Certifier().String(),
-	)
-	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, resCertificate)
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, certificate)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -69,8 +34,8 @@ func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQueri
 }
 
 type QueryResCertificates struct {
-	Total        uint64                `json:"total"`
-	Certificates []QueryResCertificate `json:"certificates"`
+	Total        uint64              `json:"total"`
+	Certificates []types.Certificate `json:"certificates"`
 }
 
 func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
@@ -87,19 +52,7 @@ func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 	if err != nil {
 		return nil, err
 	}
-	resCertificates := []QueryResCertificate{}
-	for _, certificate := range certificates {
-		resCertificate := NewQueryResCertificate(
-			certificate.ID(),
-			types.TranslateCertificateType(certificate).String(),
-			certificate.Content().GetContent(),
-			certificate.FormattedCompilationContent(),
-			certificate.Description(),
-			certificate.Certifier().String(),
-		)
-		resCertificates = append(resCertificates, resCertificate)
-	}
-	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, QueryResCertificates{Total: total, Certificates: resCertificates})
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, QueryResCertificates{Total: total, Certificates: certificates})
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

@@ -16,7 +16,7 @@ message GenesisState {
     repeated Certifier certifiers = 1 [ (gogoproto.moretags) = "yaml:\"certifiers\"", (gogoproto.nullable) = false ];
     repeated Validator validators = 2 [ (gogoproto.moretags) = "yaml:\"validators\"", (gogoproto.nullable) = false ];
     repeated Platform platforms = 3 [ (gogoproto.moretags) = "yaml:\"platforms\"", (gogoproto.nullable) = false ];
-    repeated google.protobuf.Any certificates = 4 [ (gogoproto.moretags) = "yaml:\"certificates\"", (cosmos_proto.accepts_interface) = "Certificate" ];
+    repeated Certificate certificates = 4 [ (gogoproto.moretags) = "yaml:\"certificates\"", (gogoproto.nullable) = false ];
     repeated Library libraries = 5 [ (gogoproto.moretags) = "yaml:\"libraries\"", (gogoproto.nullable) = false ];
     uint64 next_certificate_id = 6 [ (gogoproto.moretags) = "yaml:\"next_certificate_id\"" ];
 }

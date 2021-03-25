@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 )
@@ -328,9 +327,8 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 		}
 	}
 
-	newCertificates := make([]*codectypes.Any, len(oldGenState.Certificates))
+	newCertificates := make([]certtypes.Certificate, len(oldGenState.Certificates))
 	for i, c := range oldGenState.Certificates {
-		var newCert certtypes.Certificate
 		content := AssembleContent(c.Type(), c.RequestContent().RequestContent)
 		msg, ok := content.(proto.Message)
 		if !ok {
@@ -340,21 +338,13 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 		if err != nil {
 			panic(err)
 		}
-		newCert = &certtypes.GeneralCertificate{
-			CertId:          uint64(i + 1),
-			CertContent:     any,
-			CertDescription: c.Description(),
-			CertCertifier:   c.Certifier().String(),
+		newCertificates[i] = certtypes.Certificate{
+			CertificateId:      uint64(i + 1),
+			Content:            any,
+			CompilationContent: &certtypes.CompilationContent{"", ""},
+			Description:        c.Description(),
+			Certifier:          c.Certifier().String(),
 		}
-		msg, ok = newCert.(proto.Message)
-		if !ok {
-			panic(sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", newCert))
-		}
-		certAny, err := codectypes.NewAnyWithValue(msg)
-		if err != nil {
-			panic(err)
-		}
-		newCertificates[i] = certAny
 	}
 
 	newLibraries := make([]certtypes.Library, len(oldGenState.Libraries))

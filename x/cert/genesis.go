@@ -1,9 +1,6 @@
 package cert
 
 import (
-	"github.com/gogo/protobuf/proto"
-
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -54,11 +51,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 
 		k.SetValidator(ctx, pk, certifierAddr)
 	}
-	for _, certificateAny := range certificates {
-		certificate, ok := certificateAny.GetCachedValue().(types.Certificate)
-		if !ok {
-			panic(sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into Certificate %T", certificateAny))
-		}
+	for _, certificate := range certificates {
 		k.SetCertificate(ctx, certificate)
 	}
 	for _, library := range libraries {
@@ -84,24 +77,11 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	libraries := k.GetAllLibraries(ctx)
 	nextCertificateID := k.GetNextCertificateID(ctx)
 
-	certificateAnys := make([]*codectypes.Any, len(certificates))
-	for i, certificate := range certificates {
-		msg, ok := certificate.(proto.Message)
-		if !ok {
-			panic(sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", certificate))
-		}
-		any, err := codectypes.NewAnyWithValue(msg)
-		if err != nil {
-			panic(err)
-		}
-		certificateAnys[i] = any
-	}
-
 	return &types.GenesisState{
 		Certifiers:        certifiers,
 		Validators:        validators,
 		Platforms:         platforms,
-		Certificates:      certificateAnys,
+		Certificates:      certificates,
 		Libraries:         libraries,
 		NextCertificateId: nextCertificateID,
 	}
