@@ -45,7 +45,9 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&CertifierUpdateProposal{},
 	)
 
-	registry.RegisterInterface("shentu.cert.v1alpha1.Content", (*Content)(nil),
+	registry.RegisterInterface(
+		"shentu.cert.v1alpha1.Content",
+		(*Content)(nil),
 		&Compilation{},
 		&Auditing{},
 		&Proof{},
