@@ -383,6 +383,6 @@ func AssembleContent(certType CertificateType, content string) certtypes.Content
 	case CertificateTypeGeneral:
 		return &certtypes.General{content}
 	default:
-		return nil
+		panic(certtypes.ErrInvalidCertificateType)
 	}
 }

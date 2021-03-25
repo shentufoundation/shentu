@@ -10,7 +10,7 @@ import (
 
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(constantFee sdk.Coin, startingCertificateID uint64) GenesisState {
-	return GenesisState{}
+	return GenesisState{NextCertificateId: startingCertificateID}
 }
 
 // DefaultGenesisState creates a default GenesisState object
