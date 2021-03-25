@@ -180,9 +180,9 @@ func certificatesHandler(cliCtx client.Context) http.HandlerFunc {
 			}
 		}
 
-		CertType := r.URL.Query().Get("certificatetype")
+		certType := r.URL.Query().Get("certificatetype")
 
-		params := types.NewQueryCertificatesParams(page, limit, certifierAddress, types.CertificateTypeFromString(CertType))
+		params := types.NewQueryCertificatesParams(page, limit, certifierAddress, types.CertificateTypeFromString(certType))
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

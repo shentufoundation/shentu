@@ -1,6 +1,10 @@
 package types
 
 import (
+	"fmt"
+
+	"github.com/gogo/protobuf/proto"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -186,15 +190,22 @@ func (m MsgDecertifyValidator) UnpackInterfaces(unpacker codectypes.AnyUnpacker)
 
 // NewMsgIssueCertificate returns a new certification message.
 func NewMsgIssueCertificate(
-	certificateType, content, compiler, bytecodeHash, description string, certifier sdk.AccAddress,
+	content Content, compiler, bytecodeHash, description string, certifier sdk.AccAddress,
 ) *MsgIssueCertificate {
+	msg, ok := content.(proto.Message)
+	if !ok {
+		panic(fmt.Errorf("%T does not implement proto.Message", content))
+	}
+	any, err := codectypes.NewAnyWithValue(msg)
+	if err != nil {
+		panic(err)
+	}
 	return &MsgIssueCertificate{
-		CertificateType: certificateType,
-		Content:         content,
-		Compiler:        compiler,
-		BytecodeHash:    bytecodeHash,
-		Description:     description,
-		Certifier:       certifier.String(),
+		Content:      any,
+		Compiler:     compiler,
+		BytecodeHash: bytecodeHash,
+		Description:  description,
+		Certifier:    certifier.String(),
 	}
 }
 
@@ -206,9 +217,6 @@ func (m MsgIssueCertificate) Type() string { return "issue_certificate" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgIssueCertificate) ValidateBasic() error {
-	if certificateType := CertificateTypeFromString(m.CertificateType); certificateType == CertificateTypeNil {
-		return ErrInvalidCertificateType
-	}
 	return nil
 }
 
@@ -225,6 +233,12 @@ func (m MsgIssueCertificate) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{certifierAddr}
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces.
+func (m MsgIssueCertificate) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var content Content
+	return unpacker.UnpackAny(m.Content, &content)
 }
 
 // NewMsgRevokeCertificate creates a new instance of MsgRevokeCertificate.
