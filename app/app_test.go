@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"testing"
 
@@ -37,17 +36,6 @@ func TestSimAppExport(t *testing.T) {
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 	_, err = app2.ExportAppStateAndValidators(true, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators for zero height should not have an error")
-}
-
-// ensure that blacklisted addresses are properly set in bank keeper
-func TestBlackListedAddrs(t *testing.T) {
-	db := dbm.NewMemDB()
-	app := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, DefaultNodeHome, 1, MakeEncodingConfig(), EmptyAppOptions{})
-
-	for acc := range maccPerms {
-		fmt.Println(acc)
-		require.Equal(t, !allowedReceivingModAcc[acc], app.bankKeeper.BlockedAddr(app.accountKeeper.GetModuleAddress(acc)))
-	}
 }
 
 func TestGetMaccPerms(t *testing.T) {

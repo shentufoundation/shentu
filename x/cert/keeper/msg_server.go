@@ -70,14 +70,11 @@ func (k msgServer) DecertifyValidator(goCtx context.Context, msg *types.MsgDecer
 func (k msgServer) IssueCertificate(goCtx context.Context, msg *types.MsgIssueCertificate) (*types.MsgIssueCertificateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	certifierAddr, err := sdk.AccAddressFromBech32(msg.Certifier)
-	if err != nil {
-		return nil, err
-	}
-
-	certificate, err := types.NewCertificate(msg.CertificateType, msg.Content, msg.Compiler, msg.BytecodeHash, msg.Description, certifierAddr)
-	if err != nil {
-		return nil, err
+	certificate := types.Certificate{
+		Content:            msg.Content,
+		CompilationContent: &types.CompilationContent{msg.Compiler, msg.BytecodeHash},
+		Description:        msg.Description,
+		Certifier:          msg.Certifier,
 	}
 
 	certificateID, err := k.Keeper.IssueCertificate(ctx, certificate)
@@ -87,8 +84,8 @@ func (k msgServer) IssueCertificate(goCtx context.Context, msg *types.MsgIssueCe
 	certEvent := sdk.NewEvent(
 		types.EventTypeCertify,
 		sdk.NewAttribute("certificate_id", strconv.FormatUint(certificateID, 10)),
-		sdk.NewAttribute("certificate_type", msg.CertificateType),
-		sdk.NewAttribute("content", msg.Content),
+		sdk.NewAttribute("certificate_type", types.TranslateCertificateType(certificate).String()),
+		sdk.NewAttribute("content", certificate.GetContentString()),
 		sdk.NewAttribute("compiler", msg.Compiler),
 		sdk.NewAttribute("bytecode_hash", msg.BytecodeHash),
 		sdk.NewAttribute("description", msg.Description),

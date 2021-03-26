@@ -122,11 +122,12 @@ func issueCertificateHandler(cliCtx client.Context) http.HandlerFunc {
 		}
 
 		var msg *types.MsgIssueCertificate
+		content := types.AssembleContent(req.CertificateType, req.Content)
 		certificateTypeString := strings.ToLower(req.CertificateType)
 		if certificateTypeString == "compilation" {
-			msg = types.NewMsgIssueCertificate(req.CertificateType, req.Content, req.Compiler, req.BytecodeHash, req.Description, certifier)
+			msg = types.NewMsgIssueCertificate(content, req.Compiler, req.BytecodeHash, req.Description, certifier)
 		} else {
-			msg = types.NewMsgIssueCertificate(req.CertificateType, req.Content, "", "", req.Description, certifier)
+			msg = types.NewMsgIssueCertificate(content, "", "", req.Description, certifier)
 		}
 		if err = msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

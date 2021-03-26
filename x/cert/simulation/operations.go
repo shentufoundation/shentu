@@ -182,12 +182,13 @@ func SimulateMsgIssueCertificates(ak types.AccountKeeper, bk types.BankKeeper, k
 		}
 
 		certType := types.CertificateType_name[r.Int31n(7)+1]
-		content := simtypes.RandStringOfLength(r, 20)
+		contentStr := simtypes.RandStringOfLength(r, 20)
 		compiler := simtypes.RandStringOfLength(r, 5)
 		bytecodeHash := simtypes.RandStringOfLength(r, 20)
 		description := simtypes.RandStringOfLength(r, 10)
 
-		msg := types.NewMsgIssueCertificate(certType, content, compiler, bytecodeHash, description, certifierAddr)
+		content := types.AssembleContent(certType, contentStr)
+		msg := types.NewMsgIssueCertificate(content, compiler, bytecodeHash, description, certifierAddr)
 
 		account := ak.GetAccount(ctx, certifierAddr)
 		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))

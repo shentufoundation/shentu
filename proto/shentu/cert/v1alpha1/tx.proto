@@ -58,12 +58,11 @@ message MsgIssueCertificate {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    string certificate_type = 1 [ (gogoproto.moretags) = "yaml:\"certificate_type\"" ];
-    string content = 2 [ (gogoproto.moretags) = "yaml:\"content\"" ];
-    string compiler = 3 [ (gogoproto.moretags) = "yaml:\"compiler\"" ];
-    string bytecode_hash = 4 [ (gogoproto.moretags) = "yaml:\"bytecodehash\"" ];
-    string description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string certifier = 6 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
+    google.protobuf.Any content = 1 [ (cosmos_proto.accepts_interface) = "Content" ];
+    string compiler = 2 [ (gogoproto.moretags) = "yaml:\"compiler\"" ];
+    string bytecode_hash = 3 [ (gogoproto.moretags) = "yaml:\"bytecodehash\"" ];
+    string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
 }
 
 message MsgIssueCertificateResponse {}

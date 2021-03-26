@@ -160,13 +160,6 @@ var (
 		shieldtypes.ModuleName:         {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 	}
-
-	// module accounts that are allowed to receive tokens
-	allowedReceivingModAcc = map[string]bool{
-		distrtypes.ModuleName:  true,
-		oracletypes.ModuleName: true,
-		shieldtypes.ModuleName: true,
-	}
 )
 
 // CertiKApp is the main CertiK Chain application type.
@@ -296,7 +289,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.accountKeeper,
 		&app.cvmKeeper,
 		app.GetSubspace(sdkbanktypes.ModuleName),
-		app.BlockedAddrs(),
+		app.ModuleAccountAddrs(),
 	)
 	stakingKeeper := stakingkeeper.NewKeeper(
 		appCodec,
@@ -606,16 +599,6 @@ func (app *CertiKApp) ModuleAccountAddrs() map[string]bool {
 	}
 
 	return modAccAddrs
-}
-
-// BlacklistedAccAddrs returns all the app's module account addresses black listed for receiving tokens.
-func (app *CertiKApp) BlockedAddrs() map[string]bool {
-	blockedAddrs := make(map[string]bool)
-	for acc := range maccPerms {
-		blockedAddrs[authtypes.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
-	}
-
-	return blockedAddrs
 }
 
 // LegacyAmino returns SimApp's amino codec.

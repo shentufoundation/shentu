@@ -150,7 +150,8 @@ func GetCmdIssueCertificate() *cobra.Command {
 				}
 			}
 			description := viper.GetString(FlagDescription)
-			msg := types.NewMsgIssueCertificate(args[0], args[1], compiler, bytecodeHash, description, from)
+			content := types.AssembleContent(args[0], args[1])
+			msg := types.NewMsgIssueCertificate(content, compiler, bytecodeHash, description, from)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
