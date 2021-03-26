@@ -78,7 +78,7 @@ message QueryPlatformRequest {
 }
 
 message QueryPlatformResponse {
-    string platform = 1;
+    Platform platform = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryCertificateRequest {

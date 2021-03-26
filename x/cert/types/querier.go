@@ -87,16 +87,6 @@ func NewQueryCertificatesParams(page, limit int, certifier sdk.AccAddress, CertT
 	}
 }
 
-// QueryResPlatform is the query result payload for a validator host platform query.
-type QueryResPlatform struct {
-	Platform string `json:"platform"`
-}
-
-// String implements fmt.Stringer.
-func (q QueryResPlatform) String() string {
-	return q.Platform
-}
-
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (q QueryPlatformRequest) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var pubKey cryptotypes.PubKey

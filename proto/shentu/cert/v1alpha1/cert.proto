@@ -110,6 +110,15 @@ message General {
     string content = 1;
 }
 
+// Platform is a genesis type for certified platform of a validator
+message Platform {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+    
+    google.protobuf.Any validator_pubkey = 1 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+    string description = 2;
+}
+
 // CertifierUpdateProposal adds or removes a certifier
 message CertifierUpdateProposal {
     option (gogoproto.equal) = false;
