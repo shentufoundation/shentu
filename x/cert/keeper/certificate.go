@@ -147,7 +147,7 @@ func (k Keeper) GetCertificatesByTypeAndContent(ctx sdk.Context, certType types.
 func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCertificatesParams) (uint64, []types.Certificate, error) {
 	filteredCertificates := []types.Certificate{}
 	k.IterateAllCertificate(ctx, func(certificate types.Certificate) bool {
-		if (params.Certifier != nil && !certificate.GetCertifier().Equals(params.Certifier)) ||
+		if (len(params.Certifier) != 0 && !certificate.GetCertifier().Equals(params.Certifier)) ||
 			(params.CertificateType != types.CertificateTypeNil && types.TranslateCertificateType(certificate) != params.CertificateType) {
 			return false
 		}

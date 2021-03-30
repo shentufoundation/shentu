@@ -6,6 +6,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -34,8 +35,20 @@ func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQueri
 }
 
 type QueryResCertificates struct {
-	Total        uint64              `json:"total"`
-	Certificates []types.Certificate `json:"certificates"`
+	Total        uint64                        `json:"total"`
+	Certificates []types.Certificate           `json:"certificates"`
+	Params       types.QueryCertificatesParams `json:"params"`
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (q QueryResCertificates) UnpackInterfaces(unpacker codecTypes.AnyUnpacker) error {
+	for _, x := range q.Certificates {
+		err := x.UnpackInterfaces(unpacker)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
@@ -52,7 +65,7 @@ func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 	if err != nil {
 		return nil, err
 	}
-	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, QueryResCertificates{Total: total, Certificates: certificates})
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, QueryResCertificates{Total: total, Certificates: certificates, Params: params})
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
