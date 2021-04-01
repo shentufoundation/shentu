@@ -6,12 +6,10 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/tendermint/tendermint/crypto"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 )
@@ -40,13 +38,13 @@ type Certifier struct {
 
 // Validator is a type for certified validator.
 type Validator struct {
-	PubKey    crypto.PubKey
+	PubKey    cryptotypes.PubKey
 	Certifier sdk.AccAddress
 }
 
 // Platform is a genesis type for certified platform of a validator
 type Platform struct {
-	Validator   crypto.PubKey
+	Validator   cryptotypes.PubKey
 	Description string
 }
 
@@ -328,30 +326,24 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 		}
 	}
 
-	newCertificates := make([]*codectypes.Any, len(oldGenState.Certificates))
+	newCertificates := make([]certtypes.Certificate, len(oldGenState.Certificates))
 	for i, c := range oldGenState.Certificates {
-		var newCert certtypes.Certificate
-		reqContent := certtypes.RequestContent{
-			RequestContentType: certtypes.RequestContentType(c.RequestContent().RequestContentType),
-			RequestContent:     c.RequestContent().RequestContent,
-		}
-		newCert = &certtypes.GeneralCertificate{
-			CertId:          certtypes.CertificateID(c.ID()),
-			CertType:        certtypes.CertificateType(c.Type()),
-			ReqContent:      &reqContent,
-			CertDescription: c.Description(),
-			CertCertifier:   c.Certifier().String(),
-			CertTxHash:      c.TxHash(),
-		}
-		msg, ok := newCert.(proto.Message)
+		content := AssembleContent(c.Type(), c.RequestContent().RequestContent)
+		msg, ok := content.(proto.Message)
 		if !ok {
-			panic(sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", newCert))
+			panic(fmt.Errorf("%T does not implement proto.Message", content))
 		}
-		certAny, err := codectypes.NewAnyWithValue(msg)
+		any, err := codectypes.NewAnyWithValue(msg)
 		if err != nil {
 			panic(err)
 		}
-		newCertificates[i] = certAny
+		newCertificates[i] = certtypes.Certificate{
+			CertificateId:      uint64(i + 1),
+			Content:            any,
+			CompilationContent: &certtypes.CompilationContent{"", ""},
+			Description:        c.Description(),
+			Certifier:          c.Certifier().String(),
+		}
 	}
 
 	newLibraries := make([]certtypes.Library, len(oldGenState.Libraries))
@@ -363,10 +355,33 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 	}
 
 	return &certtypes.GenesisState{
-		Certifiers:   newCertifiers,
-		Validators:   newValidators,
-		Platforms:    newPlatforms,
-		Certificates: newCertificates,
-		Libraries:    newLibraries,
+		Certifiers:        newCertifiers,
+		Validators:        newValidators,
+		Platforms:         newPlatforms,
+		Certificates:      newCertificates,
+		Libraries:         newLibraries,
+		NextCertificateId: uint64(len(newCertificates) + 1),
+	}
+}
+
+// AssembleContent constructs a struct instance that implements content interface.
+func AssembleContent(certType CertificateType, content string) certtypes.Content {
+	switch certType {
+	case CertificateTypeCompilation:
+		return &certtypes.Compilation{content}
+	case CertificateTypeAuditing:
+		return &certtypes.Auditing{content}
+	case CertificateTypeProof:
+		return &certtypes.Proof{content}
+	case CertificateTypeOracleOperator:
+		return &certtypes.OracleOperator{content}
+	case CertificateTypeShieldPoolCreator:
+		return &certtypes.ShieldPoolCreator{content}
+	case CertificateTypeIdentity:
+		return &certtypes.Identity{content}
+	case CertificateTypeGeneral:
+		return &certtypes.General{content}
+	default:
+		panic(certtypes.ErrInvalidCertificateType)
 	}
 }

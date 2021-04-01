@@ -16,16 +16,7 @@ message GenesisState {
     repeated Certifier certifiers = 1 [ (gogoproto.moretags) = "yaml:\"certifiers\"", (gogoproto.nullable) = false ];
     repeated Validator validators = 2 [ (gogoproto.moretags) = "yaml:\"validators\"", (gogoproto.nullable) = false ];
     repeated Platform platforms = 3 [ (gogoproto.moretags) = "yaml:\"platforms\"", (gogoproto.nullable) = false ];
-    repeated google.protobuf.Any certificates = 4 [ (gogoproto.moretags) = "yaml:\"certificates\"", (cosmos_proto.accepts_interface) = "Certificate" ];
+    repeated Certificate certificates = 4 [ (gogoproto.moretags) = "yaml:\"certificates\"", (gogoproto.nullable) = false ];
     repeated Library libraries = 5 [ (gogoproto.moretags) = "yaml:\"libraries\"", (gogoproto.nullable) = false ];
-}
-
-// Platform is a genesis type for certified platform of a validator
-message Platform {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-    
-    google.protobuf.Any validator_pubkey = 1 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
-    string description = 2;
-
+    uint64 next_certificate_id = 6 [ (gogoproto.moretags) = "yaml:\"next_certificate_id\"" ];
 }

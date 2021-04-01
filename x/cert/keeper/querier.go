@@ -138,9 +138,9 @@ func queryPlatform(ctx sdk.Context, path []string, keeper Keeper, legacyQuerierC
 		return nil, nil
 	}
 
-	res, err2 := codec.MarshalJSONIndent(legacyQuerierCdc, types.QueryResPlatform{Platform: platform})
-	if err2 != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err2.Error())
+	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, platform)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return res, nil

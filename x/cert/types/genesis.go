@@ -9,13 +9,13 @@ import (
 )
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(constantFee sdk.Coin, startingCertificateID CertificateID) GenesisState {
-	return GenesisState{}
+func NewGenesisState(constantFee sdk.Coin, startingCertificateID uint64) GenesisState {
+	return GenesisState{NextCertificateId: startingCertificateID}
 }
 
 // DefaultGenesisState creates a default GenesisState object
 func DefaultGenesisState() *GenesisState {
-	return &GenesisState{}
+	return &GenesisState{NextCertificateId: 1}
 }
 
 // ValidateGenesis - validate crisis genesis data
@@ -35,9 +35,8 @@ func GetGenesisStateFromAppState(cdc codec.Marshaler, appState map[string]json.R
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (g GenesisState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	for i := 0; i < len(g.Certificates); i++ {
-		var cert Certificate
-		err := unpacker.UnpackAny(g.Certificates[i], &cert)
+	for _, certificate := range g.Certificates {
+		err := certificate.UnpackInterfaces(unpacker)
 		if err != nil {
 			return err
 		}

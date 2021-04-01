@@ -13,9 +13,8 @@ service Msg {
     rpc ProposeCertifier(MsgProposeCertifier) returns (MsgProposeCertifierResponse);
     rpc CertifyValidator(MsgCertifyValidator) returns (MsgCertifyValidatorResponse);
     rpc DecertifyValidator(MsgDecertifyValidator) returns (MsgDecertifyValidatorResponse);
-    rpc CertifyGeneral(MsgCertifyGeneral) returns (MsgCertifyGeneralResponse);
+    rpc IssueCertificate(MsgIssueCertificate) returns (MsgIssueCertificateResponse);
     rpc RevokeCertificate(MsgRevokeCertificate) returns (MsgRevokeCertificateResponse);
-    rpc CertifyCompilation(MsgCertifyCompilation) returns (MsgCertifyCompilationResponse);
     rpc CertifyPlatform(MsgCertifyPlatform) returns (MsgCertifyPlatformResponse);
 }
 
@@ -55,18 +54,18 @@ message MsgDecertifyValidator {
 message MsgDecertifyValidatorResponse {}
 
 // MsgCertifyGeneral is the message for issuing a general certificate.
-message MsgCertifyGeneral {
+message MsgIssueCertificate {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    string certificate_type = 1 [ (gogoproto.moretags) = "yaml:\"certificate_type\"" ];
-    string request_content_type = 2 [ (gogoproto.moretags) = "yaml:\"request_content_type\"" ];
-    string request_content = 3 [ (gogoproto.moretags) = "yaml:\"request_content\"" ];
+    google.protobuf.Any content = 1 [ (cosmos_proto.accepts_interface) = "Content" ];
+    string compiler = 2 [ (gogoproto.moretags) = "yaml:\"compiler\"" ];
+    string bytecode_hash = 3 [ (gogoproto.moretags) = "yaml:\"bytecodehash\"" ];
     string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     string certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
 }
 
-message MsgCertifyGeneralResponse {}
+message MsgIssueCertificateResponse {}
 
 // MsgRevokeCertificate returns a certificate revoking operation.
 message MsgRevokeCertificate {
@@ -74,26 +73,11 @@ message MsgRevokeCertificate {
     option (gogoproto.goproto_getters) = false;
 
     string revoker = 1 [ (gogoproto.moretags) = "yaml:\"revoker\"" ];
-    string id = 2 [ (gogoproto.moretags) = "yaml:\"id\"", (gogoproto.casttype) = "CertificateID" ];
+    uint64 id = 2 [ (gogoproto.moretags) = "yaml:\"id\"" ];
     string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
 }
 
 message MsgRevokeCertificateResponse {}
-
-// MsgCertifyCompilation is the message for certifying a compilation.
-message MsgCertifyCompilation {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-
-    string source_code_hash = 1 [ (gogoproto.moretags) = "yaml:\"sourcecodehash\"" ];
-    string compiler = 2 [ (gogoproto.moretags) = "yaml:\"compiler\"" ];
-    string bytecode_hash = 3 [ (gogoproto.moretags) = "yaml:\"bytecodehash\"" ];
-    string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
-}
-
-message MsgCertifyCompilationResponse {}
-
 
 // MsgCertifyPlatform is the message for certifying a validator's host platform.
 message MsgCertifyPlatform {

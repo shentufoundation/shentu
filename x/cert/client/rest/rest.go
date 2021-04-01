@@ -40,18 +40,11 @@ type certifyValidatorReq struct {
 type certifyGeneralReq struct {
 	BaseReq         resttypes.BaseReq `json:"base_req"`
 	CertificateType string            `json:"certificate_type"`
-	ContentType     string            `json:"content_type"`
 	Content         string            `json:"content"`
+	Compiler        string            `json:"compiler"`
+	BytecodeHash    string            `json:"bytecode_hash"`
 	Description     string            `json:"description"`
 	Certifier       string            `json:"certifier"`
-}
-
-type certifyCompilationReq struct {
-	BaseReq        resttypes.BaseReq `json:"base_req"`
-	SourceCodeHash string            `json:"source_code_hash"`
-	Compiler       string            `json:"compiler"`
-	BytecodeHash   string            `json:"bytecode_hash"`
-	Description    string            `json:"description"`
 }
 
 type certifyPlatformReq struct {
@@ -64,7 +57,7 @@ type certifyPlatformReq struct {
 type revokeCertificateReq struct {
 	BaseReq       resttypes.BaseReq `json:"base_req"`
 	Revoker       string            `json:"revoker"`
-	CertificateID string            `json:"certificate_id"`
+	CertificateID uint64            `json:"certificate_id"`
 	Description   string            `json:"description"`
 }
 

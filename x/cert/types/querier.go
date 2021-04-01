@@ -3,6 +3,8 @@ package types
 import (
 	"strings"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -37,11 +39,10 @@ const (
 
 // QueryCertificatesParams is the type for parameters of querying certificates.
 type QueryCertificatesParams struct {
-	Page        int
-	Limit       int
-	Certifier   sdk.AccAddress
-	ContentType string
-	Content     string
+	Page            int
+	Limit           int
+	Certifier       sdk.AccAddress
+	CertificateType CertificateType
 }
 
 // QueryResCertifiers is the query result payload for all certifiers.
@@ -77,22 +78,23 @@ func (q QueryResValidators) String() string {
 }
 
 // NewQueryCertificatesParams creates a new instance of QueryCertificatesParams.
-func NewQueryCertificatesParams(page, limit int, certifier sdk.AccAddress, contentType, content string) QueryCertificatesParams {
+func NewQueryCertificatesParams(page, limit int, certifier sdk.AccAddress, CertType CertificateType) QueryCertificatesParams {
 	return QueryCertificatesParams{
-		Page:        page,
-		Limit:       limit,
-		Certifier:   certifier,
-		ContentType: contentType,
-		Content:     content,
+		Page:            page,
+		Limit:           limit,
+		Certifier:       certifier,
+		CertificateType: CertType,
 	}
 }
 
-// QueryResPlatform is the query result payload for a validator host platform query.
-type QueryResPlatform struct {
-	Platform string `json:"platform"`
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (q QueryPlatformRequest) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(q.Pubkey, &pubKey)
 }
 
-// String implements fmt.Stringer.
-func (q QueryResPlatform) String() string {
-	return q.Platform
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (q QueryValidatorRequest) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(q.Pubkey, &pubKey)
 }

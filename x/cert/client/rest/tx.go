@@ -3,6 +3,7 @@ package rest
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -22,9 +23,7 @@ func registerTxHandlers(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/certify/platform", types.ModuleName),
 		certifyPlatformHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/certify", types.ModuleName),
-		certifyGeneralHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/certify/compilation", types.ModuleName),
-		certifyCompilationHandler(cliCtx)).Methods("POST")
+		issueCertificateHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/revoke/certificate", types.ModuleName),
 		revokeCertificateHandler(cliCtx)).Methods("POST")
 }
@@ -103,7 +102,7 @@ func certifyValidatorHandler(cliCtx client.Context) http.HandlerFunc {
 	}
 }
 
-func certifyGeneralHandler(cliCtx client.Context) http.HandlerFunc {
+func issueCertificateHandler(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req certifyGeneralReq
 		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
@@ -122,35 +121,14 @@ func certifyGeneralHandler(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgCertifyGeneral(req.CertificateType, req.ContentType, req.Content, req.Description, certifier)
-		if err = msg.ValidateBasic(); err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
+		var msg *types.MsgIssueCertificate
+		content := types.AssembleContent(req.CertificateType, req.Content)
+		certificateTypeString := strings.ToLower(req.CertificateType)
+		if certificateTypeString == "compilation" {
+			msg = types.NewMsgIssueCertificate(content, req.Compiler, req.BytecodeHash, req.Description, certifier)
+		} else {
+			msg = types.NewMsgIssueCertificate(content, "", "", req.Description, certifier)
 		}
-
-		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
-	}
-}
-
-func certifyCompilationHandler(cliCtx client.Context) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req certifyCompilationReq
-		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
-			return
-		}
-
-		baseReq := req.BaseReq.Sanitize()
-		if !baseReq.ValidateBasic(w) {
-			return
-		}
-		certifier, err := sdk.AccAddressFromBech32(req.BaseReq.From)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		msg := types.NewMsgCertifyCompilation(req.SourceCodeHash, req.Compiler, req.BytecodeHash, req.Description, certifier)
-
 		if err = msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -218,7 +196,7 @@ func revokeCertificateHandler(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgRevokeCertificate(revoker, types.CertificateID(req.CertificateID), req.Description)
+		msg := types.NewMsgRevokeCertificate(revoker, req.CertificateID, req.Description)
 		if err = msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
