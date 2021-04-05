@@ -91,15 +91,17 @@ all: install release lint test
 install: go.sum
 	go install $(BUILD_FLAGS) ./app/certik
 
+proto-swagger-gen:
+	@./devtools/protoc-swagger-gen.sh
+
 update-swagger-docs: statik
-	$(GOBIN)/statik -src=client/lcd/swagger-ui -dest=client/lcd -f -m
+	$(GOBIN)/statik -src=docs/swagger -dest=docs -f -m
 	@if [ -n "$(git status --porcelain)" ]; then \
-        echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
-        exit 1;\
-    else \
-    	echo "\033[92mSwagger docs are in sync\033[0m";\
-    fi
-	@cp -r client/lcd/swagger-ui docs/swagger
+    echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
+    exit 1;\
+  else \
+    echo "\033[92mSwagger docs are in sync\033[0m";\
+  fi
 
 update-cli-docs: install
 	certik --doc docs/certik
