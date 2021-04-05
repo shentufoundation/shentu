@@ -467,9 +467,9 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.SetOrderInitGenesis(
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
+		sdkbanktypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
-		sdkbanktypes.ModuleName,
 		slashingtypes.ModuleName,
 		sdkgovtypes.ModuleName,
 		sdkminttypes.ModuleName,
@@ -477,10 +477,10 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		shieldtypes.ModuleName,
 		crisistypes.ModuleName,
 		certtypes.ModuleName,
+		ibchost.ModuleName,
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		oracletypes.ModuleName,
-		ibchost.ModuleName,
 		ibctransfertypes.ModuleName,
 	)
 
