@@ -3,8 +3,8 @@ module github.com/certikfoundation/shentu
 go 1.15
 
 require (
-	github.com/althea-net/peggy/module v0.0.0-20210220222655-82dd536d7ce2
-	github.com/cosmos/cosmos-sdk v0.41.3
+	github.com/cosmos/cosmos-sdk v0.42.1
+	github.com/cosmos/gravity-bridge/module v0.0.0-20210326182550-a7477cc5a816
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.4 // indirect
@@ -21,7 +21,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15
-	github.com/tendermint/tendermint v0.34.7
+	github.com/tendermint/tendermint v0.34.8
 	github.com/tendermint/tm-db v0.6.4
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
@@ -33,7 +33,6 @@ require (
 )
 
 replace (
-	google.golang.org/grpc => google.golang.org/grpc v1.33.2
-	github.com/althea-net/peggy/module => github.com/certikfoundation/cosmos-gravity-bridge/module v0.0.0-20210225053158-b5e91074e057
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
+	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )

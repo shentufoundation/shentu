@@ -10,10 +10,6 @@ import (
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 
-	"github.com/althea-net/peggy/module/x/peggy"
-	peggykeeper "github.com/althea-net/peggy/module/x/peggy/keeper"
-	peggytypes "github.com/althea-net/peggy/module/x/peggy/types"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
@@ -77,6 +73,10 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
+	"github.com/cosmos/gravity-bridge/module/x/gravity"
+	gravitykeeper "github.com/cosmos/gravity-bridge/module/x/gravity/keeper"
+	gravitytypes "github.com/cosmos/gravity-bridge/module/x/gravity/types"
 
 	appparams "github.com/certikfoundation/shentu/app/params"
 	"github.com/certikfoundation/shentu/x/auth"
@@ -150,7 +150,7 @@ var (
 		evidence.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 		transfer.AppModuleBasic{},
-		peggy.AppModuleBasic{},
+		gravity.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -164,7 +164,7 @@ var (
 		oracletypes.ModuleName:         {authtypes.Burner},
 		shieldtypes.ModuleName:         {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		peggytypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
+		gravitytypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -208,7 +208,7 @@ type CertiKApp struct {
 	cvmKeeper        cvmkeeper.Keeper
 	oracleKeeper     oraclekeeper.Keeper
 	shieldKeeper     shieldkeeper.Keeper
-	peggyKeeper      peggykeeper.Keeper
+	peggyKeeper      gravitykeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	scopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -254,7 +254,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		ibchost.StoreKey,
 		ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey,
-		peggytypes.StoreKey,
+		gravitytypes.StoreKey,
 	}
 
 	keys := sdk.NewKVStoreKeys(ks...)
@@ -413,12 +413,13 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		govRouter,
 	)
 
-	app.peggyKeeper = peggykeeper.NewKeeper(
+	app.peggyKeeper = gravitykeeper.NewKeeper(
 		appCodec,
-		keys[peggytypes.StoreKey],
-		app.GetSubspace(peggytypes.ModuleName),
+		keys[gravitytypes.StoreKey],
+		app.GetSubspace(gravitytypes.ModuleName),
 		stakingKeeper,
 		app.bankKeeper,
+		app.slashingKeeper,
 	)
 
 	// Create Transfer Keepers
@@ -472,7 +473,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		oracle.NewAppModule(app.oracleKeeper, app.bankKeeper),
 		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		transferModule,
-		peggy.NewAppModule(app.peggyKeeper, app.bankKeeper),
+		gravity.NewAppModule(app.peggyKeeper, app.bankKeeper),
 	)
 
 	// NOTE: During BeginBlocker, slashing comes after distr so that
@@ -484,7 +485,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// NOTE: Shield endblocker comes before staking because it queries
 	// unbonding delegations that staking endblocker deletes.
 	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, cvmtypes.ModuleName, shieldtypes.ModuleName, stakingtypes.ModuleName, sdkgovtypes.ModuleName,
-		oracletypes.ModuleName, peggytypes.ModuleName)
+		oracletypes.ModuleName, gravitytypes.ModuleName)
 
 	// NOTE: genutil moodule must occur after staking so that pools
 	// are properly initialized with tokens from genesis accounts.
@@ -503,7 +504,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		oracletypes.ModuleName,
-		peggytypes.ModuleName,
+		gravitytypes.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
@@ -541,7 +542,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		oracle.NewAppModule(app.oracleKeeper, app.bankKeeper),
 		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		transferModule,
-		peggy.NewAppModule(app.peggyKeeper, app.bankKeeper),
+		gravity.NewAppModule(app.peggyKeeper, app.bankKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
@@ -682,7 +683,7 @@ func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyA
 	paramsKeeper.Subspace(sdkgovtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
-	paramsKeeper.Subspace(peggytypes.ModuleName).WithKeyTable(peggytypes.ParamKeyTable())
+	paramsKeeper.Subspace(gravitytypes.ModuleName).WithKeyTable(gravitytypes.ParamKeyTable())
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(oracletypes.ModuleName).WithKeyTable(oracletypes.ParamKeyTable())
 	paramsKeeper.Subspace(cvmtypes.ModuleName).WithKeyTable(cvmtypes.ParamKeyTable())

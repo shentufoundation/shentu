@@ -39,7 +39,6 @@ import (
 	"github.com/certikfoundation/shentu/app/certik/cmd/migrate"
 	certikinit "github.com/certikfoundation/shentu/app/certik/init"
 	"github.com/certikfoundation/shentu/app/params"
-	"github.com/certikfoundation/shentu/common"
 	authcli "github.com/certikfoundation/shentu/x/auth/client/cli"
 	bankcli "github.com/certikfoundation/shentu/x/bank/client/cli"
 	"github.com/certikfoundation/shentu/x/crisis"
@@ -61,9 +60,6 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		WithHomeDir(app.DefaultNodeHome)
 
 	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
-	config.SetBech32PrefixForValidator(common.Bech32PrefixValAddr, common.Bech32PrefixValPub)
-	config.SetBech32PrefixForConsensusNode(common.Bech32PrefixConsAddr, common.Bech32PrefixConsPub)
 	config.Seal()
 
 	rootCmd := &cobra.Command{
