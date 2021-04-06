@@ -1,0 +1,1 @@
+{"src":{"chain-id":"yulei-1","client-id":"","connection-id":"","channel-id":"","port-id":"transfer","order":"unordered","version":"ics20-1"},"dst":{"chain-id":"aplikigo-1","client-id":"","connection-id":"","channel-id":"","port-id":"transfer","order":"unordered","version":"ics20-1"},"strategy":{"type":"naive"}}
