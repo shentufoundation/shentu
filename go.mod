@@ -3,7 +3,7 @@ module github.com/certikfoundation/shentu
 go 1.15
 
 require (
-	github.com/cosmos/cosmos-sdk v0.41.0
+	github.com/cosmos/cosmos-sdk v0.42.3
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.2 // indirect
@@ -20,8 +20,8 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15
-	github.com/tendermint/tendermint v0.34.3
-	github.com/tendermint/tm-db v0.6.3
+	github.com/tendermint/tendermint v0.34.8
+	github.com/tendermint/tm-db v0.6.4
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect

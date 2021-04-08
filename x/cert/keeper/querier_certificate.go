@@ -35,9 +35,8 @@ func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQueri
 }
 
 type QueryResCertificates struct {
-	Total        uint64                        `json:"total"`
-	Certificates []types.Certificate           `json:"certificates"`
-	Params       types.QueryCertificatesParams `json:"params"`
+	Total        uint64              `json:"total"`
+	Certificates []types.Certificate `json:"certificates"`
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
@@ -65,7 +64,8 @@ func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 	if err != nil {
 		return nil, err
 	}
-	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, QueryResCertificates{Total: total, Certificates: certificates, Params: params})
+
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, QueryResCertificates{Total: total, Certificates: certificates})
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
