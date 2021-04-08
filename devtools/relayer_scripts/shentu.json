@@ -1,0 +1,10 @@
+{
+  "key": "testkey",
+  "chain-id": "yulei-1",
+  "rpc-addr": "http://localhost:26657",
+  "account-prefix": "certik",
+  "gas-prices": "0.025uctk",
+  "default-denom": "uctk",
+  "trusting-period": "330h",
+  "gas-adjustment": 1.5
+}
