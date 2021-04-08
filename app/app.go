@@ -208,9 +208,8 @@ type CertiKApp struct {
 	cvmKeeper        cvmkeeper.Keeper
 	oracleKeeper     oraclekeeper.Keeper
 	shieldKeeper     shieldkeeper.Keeper
-	peggyKeeper      gravitykeeper.Keeper
+	gravityKeeper    gravitykeeper.Keeper
 
-	// make scoped keepers public for test purposes
 	scopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	scopedTransferKeeper capabilitykeeper.ScopedKeeper
 	scopedIBCMockKeeper  capabilitykeeper.ScopedKeeper
@@ -258,11 +257,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	}
 
 	keys := sdk.NewKVStoreKeys(ks...)
-
-	tks := []string{
-		paramstypes.TStoreKey,
-	}
-	tkeys := sdk.NewTransientStoreKeys(tks...)
+	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	// initialize application with its store keys
@@ -283,7 +278,11 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	bApp.SetParamStore(app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()))
 
 	// add capability keeper and ScopeToModule for ibc module
-	app.capabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
+	app.capabilityKeeper = capabilitykeeper.NewKeeper(
+		appCodec,
+		keys[capabilitytypes.StoreKey],
+		memKeys[capabilitytypes.MemStoreKey],
+	)
 	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.ModuleName)
 	scopedTransferKeeper := app.capabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
@@ -413,7 +412,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		govRouter,
 	)
 
-	app.peggyKeeper = gravitykeeper.NewKeeper(
+	app.gravityKeeper = gravitykeeper.NewKeeper(
 		appCodec,
 		keys[gravitytypes.StoreKey],
 		app.GetSubspace(gravitytypes.ModuleName),
@@ -473,7 +472,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		oracle.NewAppModule(app.oracleKeeper, app.bankKeeper),
 		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		transferModule,
-		gravity.NewAppModule(app.peggyKeeper, app.bankKeeper),
+		gravity.NewAppModule(app.gravityKeeper, app.bankKeeper),
 	)
 
 	// NOTE: During BeginBlocker, slashing comes after distr so that
@@ -542,7 +541,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		oracle.NewAppModule(app.oracleKeeper, app.bankKeeper),
 		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		transferModule,
-		gravity.NewAppModule(app.peggyKeeper, app.bankKeeper),
+		gravity.NewAppModule(app.gravityKeeper, app.bankKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
