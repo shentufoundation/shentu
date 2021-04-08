@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strconv"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -66,35 +67,33 @@ func (k msgServer) DecertifyValidator(goCtx context.Context, msg *types.MsgDecer
 	return &types.MsgDecertifyValidatorResponse{}, nil
 }
 
-func (k msgServer) CertifyGeneral(goCtx context.Context, msg *types.MsgCertifyGeneral) (*types.MsgCertifyGeneralResponse, error) {
+func (k msgServer) IssueCertificate(goCtx context.Context, msg *types.MsgIssueCertificate) (*types.MsgIssueCertificateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	certifierAddr, err := sdk.AccAddressFromBech32(msg.Certifier)
-	if err != nil {
-		return nil, err
+	certificate := types.Certificate{
+		Content:            msg.Content,
+		CompilationContent: &types.CompilationContent{msg.Compiler, msg.BytecodeHash},
+		Description:        msg.Description,
+		Certifier:          msg.Certifier,
 	}
 
-	certificate, err := types.NewGeneralCertificate(msg.CertificateType, msg.RequestContentType, msg.RequestContent, msg.Description, certifierAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	certificateID, err := k.IssueCertificate(ctx, certificate)
+	certificateID, err := k.Keeper.IssueCertificate(ctx, certificate)
 	if err != nil {
 		return nil, err
 	}
 	certEvent := sdk.NewEvent(
 		types.EventTypeCertify,
-		sdk.NewAttribute("certificate_id", certificateID.String()),
-		sdk.NewAttribute("certificate_type", msg.CertificateType),
-		sdk.NewAttribute("request_content_type", msg.RequestContentType),
-		sdk.NewAttribute("request_content", msg.RequestContent),
+		sdk.NewAttribute("certificate_id", strconv.FormatUint(certificateID, 10)),
+		sdk.NewAttribute("certificate_type", types.TranslateCertificateType(certificate).String()),
+		sdk.NewAttribute("content", certificate.GetContentString()),
+		sdk.NewAttribute("compiler", msg.Compiler),
+		sdk.NewAttribute("bytecode_hash", msg.BytecodeHash),
 		sdk.NewAttribute("description", msg.Description),
 		sdk.NewAttribute("certifier", msg.Certifier),
 	)
 	ctx.EventManager().EmitEvent(certEvent)
 
-	return &types.MsgCertifyGeneralResponse{}, nil
+	return &types.MsgIssueCertificateResponse{}, nil
 }
 
 func (k msgServer) RevokeCertificate(goCtx context.Context, msg *types.MsgRevokeCertificate) (*types.MsgRevokeCertificateResponse, error) {
@@ -122,40 +121,6 @@ func (k msgServer) RevokeCertificate(goCtx context.Context, msg *types.MsgRevoke
 	ctx.EventManager().EmitEvent(revokeEvent)
 
 	return &types.MsgRevokeCertificateResponse{}, nil
-}
-
-func (k msgServer) CertifyCompilation(goCtx context.Context, msg *types.MsgCertifyCompilation) (*types.MsgCertifyCompilationResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	certifierAddr, err := sdk.AccAddressFromBech32(msg.Certifier)
-	if err != nil {
-		panic(err)
-	}
-
-	certificate := types.NewCompilationCertificate(
-		types.CertificateTypeCompilation,
-		msg.SourceCodeHash,
-		msg.Compiler,
-		msg.BytecodeHash,
-		msg.Description,
-		certifierAddr,
-	)
-	certificateID, err := k.Keeper.IssueCertificate(ctx, certificate)
-	if err != nil {
-		return nil, err
-	}
-
-	certEvent := sdk.NewEvent(
-		types.EventTypeCertifyCompilation,
-		sdk.NewAttribute("certificate_id", certificateID.String()),
-		sdk.NewAttribute("source_code_hash", msg.SourceCodeHash),
-		sdk.NewAttribute("compiler", msg.Compiler),
-		sdk.NewAttribute("bytecode_hash", msg.BytecodeHash),
-		sdk.NewAttribute("certifier", msg.Certifier),
-	)
-	ctx.EventManager().EmitEvent(certEvent)
-
-	return &types.MsgCertifyCompilationResponse{}, nil
 }
 
 func (k msgServer) CertifyPlatform(goCtx context.Context, msg *types.MsgCertifyPlatform) (*types.MsgCertifyPlatformResponse, error) {

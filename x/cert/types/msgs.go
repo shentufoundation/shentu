@@ -1,6 +1,10 @@
 package types
 
 import (
+	"fmt"
+
+	"github.com/gogo/protobuf/proto"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -184,44 +188,46 @@ func (m MsgDecertifyValidator) UnpackInterfaces(unpacker codectypes.AnyUnpacker)
 	return unpacker.UnpackAny(m.Pubkey, &pubKey)
 }
 
-// NewMsgCertifyGeneral returns a new general certification message.
-func NewMsgCertifyGeneral(
-	certificateType, requestContentType, requestContent, description string, certifier sdk.AccAddress,
-) *MsgCertifyGeneral {
-	return &MsgCertifyGeneral{
-		CertificateType:    certificateType,
-		RequestContentType: requestContentType,
-		RequestContent:     requestContent,
-		Description:        description,
-		Certifier:          certifier.String(),
+// NewMsgIssueCertificate returns a new certification message.
+func NewMsgIssueCertificate(
+	content Content, compiler, bytecodeHash, description string, certifier sdk.AccAddress,
+) *MsgIssueCertificate {
+	msg, ok := content.(proto.Message)
+	if !ok {
+		panic(fmt.Errorf("%T does not implement proto.Message", content))
+	}
+	any, err := codectypes.NewAnyWithValue(msg)
+	if err != nil {
+		panic(err)
+	}
+	return &MsgIssueCertificate{
+		Content:      any,
+		Compiler:     compiler,
+		BytecodeHash: bytecodeHash,
+		Description:  description,
+		Certifier:    certifier.String(),
 	}
 }
 
 // Route returns the module name.
-func (m MsgCertifyGeneral) Route() string { return ModuleName }
+func (m MsgIssueCertificate) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (m MsgCertifyGeneral) Type() string { return "certify_general" }
+func (m MsgIssueCertificate) Type() string { return "issue_certificate" }
 
 // ValidateBasic runs stateless checks on the message.
-func (m MsgCertifyGeneral) ValidateBasic() error {
-	if certificateType := CertificateTypeFromString(m.CertificateType); certificateType == CertificateTypeNil {
-		return ErrInvalidCertificateType
-	}
-	if requestContentType := RequestContentTypeFromString(m.RequestContentType); requestContentType == RequestContentTypeNil {
-		return ErrInvalidRequestContentType
-	}
+func (m MsgIssueCertificate) ValidateBasic() error {
 	return nil
 }
 
 // GetSignBytes encodes the message for signing.
-func (m MsgCertifyGeneral) GetSignBytes() []byte {
+func (m MsgIssueCertificate) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&m)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
-func (m MsgCertifyGeneral) GetSigners() []sdk.AccAddress {
+func (m MsgIssueCertificate) GetSigners() []sdk.AccAddress {
 	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
 	if err != nil {
 		panic(err)
@@ -229,8 +235,14 @@ func (m MsgCertifyGeneral) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{certifierAddr}
 }
 
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces.
+func (m MsgIssueCertificate) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var content Content
+	return unpacker.UnpackAny(m.Content, &content)
+}
+
 // NewMsgRevokeCertificate creates a new instance of MsgRevokeCertificate.
-func NewMsgRevokeCertificate(revoker sdk.AccAddress, id CertificateID, description string) *MsgRevokeCertificate {
+func NewMsgRevokeCertificate(revoker sdk.AccAddress, id uint64, description string) *MsgRevokeCertificate {
 	return &MsgRevokeCertificate{
 		Revoker:     revoker.String(),
 		Id:          id,
@@ -269,52 +281,6 @@ func (m MsgRevokeCertificate) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{revokerAddr}
-}
-
-// NewMsgCertifyCompilation returns a compilation certificate message.
-func NewMsgCertifyCompilation(sourceCodeHash, compiler, bytecodeHash, description string, certifier sdk.AccAddress) *MsgCertifyCompilation {
-	return &MsgCertifyCompilation{
-		SourceCodeHash: sourceCodeHash,
-		Compiler:       compiler,
-		BytecodeHash:   bytecodeHash,
-		Description:    description,
-		Certifier:      certifier.String(),
-	}
-}
-
-// Route returns the module name.
-func (m MsgCertifyCompilation) Route() string { return ModuleName }
-
-// Type returns the action name.
-func (m MsgCertifyCompilation) Type() string { return "certify_compilation" }
-
-// ValidateBasic runs stateless checks on the message.
-func (m MsgCertifyCompilation) ValidateBasic() error {
-	if m.SourceCodeHash == "" {
-		return sdkerrors.Wrap(ErrSourceCodeHash, "<empty>")
-	}
-	if m.Compiler == "" {
-		return sdkerrors.Wrap(ErrCompiler, "<empty>")
-	}
-	if m.BytecodeHash == "" {
-		return sdkerrors.Wrap(ErrBytecodeHash, "<empty>")
-	}
-	return nil
-}
-
-// GetSignBytes encodes the message for signing.
-func (m MsgCertifyCompilation) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&m)
-	return sdk.MustSortJSON(bz)
-}
-
-// GetSigners defines whose signature is required.
-func (m MsgCertifyCompilation) GetSigners() []sdk.AccAddress {
-	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{certifierAddr}
 }
 
 type msgCertifyPlatformPretty struct {

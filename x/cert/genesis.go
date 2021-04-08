@@ -1,9 +1,6 @@
 package cert
 
 import (
-	"github.com/gogo/protobuf/proto"
-
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -23,6 +20,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	platforms := data.Platforms
 	certificates := data.Certificates
 	libraries := data.Libraries
+	nextCertificateID := data.NextCertificateId
 
 	for _, certifier := range certifiers {
 		k.SetCertifier(ctx, certifier)
@@ -53,11 +51,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 
 		k.SetValidator(ctx, pk, certifierAddr)
 	}
-	for _, certificateAny := range certificates {
-		certificate, ok := certificateAny.GetCachedValue().(types.Certificate)
-		if !ok {
-			panic(sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into Certificate %T", certificateAny))
-		}
+	for _, certificate := range certificates {
 		k.SetCertificate(ctx, certificate)
 	}
 	for _, library := range libraries {
@@ -71,6 +65,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 		}
 		k.SetLibrary(ctx, libAddr, publisherAddr)
 	}
+	k.SetNextCertificateID(ctx, nextCertificateID)
 }
 
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis.
@@ -80,25 +75,14 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	platforms := k.GetAllPlatforms(ctx)
 	certificates := k.GetAllCertificates(ctx)
 	libraries := k.GetAllLibraries(ctx)
-
-	certificateAnys := make([]*codectypes.Any, len(certificates))
-	for i, certificate := range certificates {
-		msg, ok := certificate.(proto.Message)
-		if !ok {
-			panic(sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", certificate))
-		}
-		any, err := codectypes.NewAnyWithValue(msg)
-		if err != nil {
-			panic(err)
-		}
-		certificateAnys[i] = any
-	}
+	nextCertificateID := k.GetNextCertificateID(ctx)
 
 	return &types.GenesisState{
-		Certifiers:   certifiers,
-		Validators:   validators,
-		Platforms:    platforms,
-		Certificates: certificateAnys,
-		Libraries:    libraries,
+		Certifiers:        certifiers,
+		Validators:        validators,
+		Platforms:         platforms,
+		Certificates:      certificates,
+		Libraries:         libraries,
+		NextCertificateId: nextCertificateID,
 	}
 }

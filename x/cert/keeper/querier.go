@@ -128,8 +128,8 @@ func queryPlatform(ctx sdk.Context, path []string, keeper Keeper, legacyQuerierC
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 1 arg. Found %d.", len(path))
 	}
 
-	validator, err1 := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, path[0])
-	if err1 != nil {
+	validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, path[0])
+	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, path[0])
 	}
 
@@ -138,9 +138,9 @@ func queryPlatform(ctx sdk.Context, path []string, keeper Keeper, legacyQuerierC
 		return nil, nil
 	}
 
-	res, err2 := codec.MarshalJSONIndent(legacyQuerierCdc, types.QueryResPlatform{Platform: platform})
-	if err2 != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err2.Error())
+	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, platform)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return res, nil

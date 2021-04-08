@@ -16,14 +16,18 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgCertifyValidator{}, "cert/CertifyValidator", nil)
 	cdc.RegisterConcrete(MsgDecertifyValidator{}, "cert/DecertifyValidator", nil)
 	cdc.RegisterConcrete(MsgCertifyPlatform{}, "cert/CertifyPlatform", nil)
-	cdc.RegisterConcrete(MsgCertifyGeneral{}, "cert/CertifyGeneral", nil)
-	cdc.RegisterConcrete(MsgCertifyCompilation{}, "cert/CertifyCompilation", nil)
+	cdc.RegisterConcrete(MsgIssueCertificate{}, "cert/IssueCertificate", nil)
 	cdc.RegisterConcrete(CertifierUpdateProposal{}, "cert/CertifierUpdateProposal", nil)
 	cdc.RegisterConcrete(MsgRevokeCertificate{}, "cert/RevokeCertificate", nil)
-	cdc.RegisterConcrete(&GeneralCertificate{}, "cert/GeneralCertificate", nil)
-	cdc.RegisterConcrete(&CompilationCertificate{}, "cert/CompilationCertificate", nil)
+	cdc.RegisterConcrete(&Compilation{}, "cert/Compilation", nil)
+	cdc.RegisterConcrete(&Auditing{}, "cert/Auditing", nil)
+	cdc.RegisterConcrete(&Proof{}, "cert/Proof", nil)
+	cdc.RegisterConcrete(&OracleOperator{}, "cert/OracleOperator", nil)
+	cdc.RegisterConcrete(&ShieldPoolCreator{}, "cert/ShieldPoolCreator", nil)
+	cdc.RegisterConcrete(&Identity{}, "cert/Identity", nil)
+	cdc.RegisterConcrete(&General{}, "cert/General", nil)
 
-	cdc.RegisterInterface((*Certificate)(nil), nil)
+	cdc.RegisterInterface((*Content)(nil), nil)
 }
 
 // RegisterInterfaces registers the x/cert interfaces types with the interface registry
@@ -33,8 +37,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgCertifyValidator{},
 		&MsgDecertifyValidator{},
 		&MsgCertifyPlatform{},
-		&MsgCertifyGeneral{},
-		&MsgCertifyCompilation{},
+		&MsgIssueCertificate{},
 		&MsgRevokeCertificate{},
 	)
 
@@ -42,14 +45,16 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&CertifierUpdateProposal{},
 	)
 
-	registry.RegisterImplementations((*Certificate)(nil),
-		&GeneralCertificate{},
-		&CompilationCertificate{},
-	)
-
-	registry.RegisterInterface("shentu.cert.v1alpha1.Certificate", (*Certificate)(nil),
-		&GeneralCertificate{},
-		&CompilationCertificate{},
+	registry.RegisterInterface(
+		"shentu.cert.v1alpha1.Content",
+		(*Content)(nil),
+		&Compilation{},
+		&Auditing{},
+		&Proof{},
+		&OracleOperator{},
+		&ShieldPoolCreator{},
+		&Identity{},
+		&General{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

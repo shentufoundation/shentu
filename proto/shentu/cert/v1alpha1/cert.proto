@@ -31,38 +31,7 @@ enum CertificateType {
     CERT_TYPE_GENERAL = 7 [(gogoproto.enumvalue_customname) = "CertificateTypeGeneral"];
 }
 
-enum RequestContentType {
-    option (gogoproto.goproto_enum_prefix) = false;
-  
-    REQ_CONTENT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "RequestContentTypeNil"];
-    REQ_CONTENT_TYPE_SOURCE_CODE_HASH = 1 [(gogoproto.enumvalue_customname) = "RequestContentTypeSourceCodeHash"];
-    REQ_CONTENT_TYPE_ADDRESS = 2 [(gogoproto.enumvalue_customname) = "RequestContentTypeAddress"];
-    REQ_CONTENT_TYPE_BYTECODE_HASH = 3 [(gogoproto.enumvalue_customname) = "RequestContentTypeBytecodeHash"];
-    REQ_CONTENT_TYPE_GENERAL = 4 [(gogoproto.enumvalue_customname) = "RequestContentTypeGeneral"];
-}
-
-message RequestContent {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-
-    RequestContentType request_content_type = 1 [ (gogoproto.moretags) = "yaml:\"request_content_type\"" ];
-    string request_content = 2 [ (gogoproto.moretags) = "yaml:\"request_content\"" ];
-}
-
-message GeneralCertificate {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-    option (cosmos_proto.implements_interface) = "Certificate";
-
-    string cert_id = 1 [ (gogoproto.moretags) = "yaml:\"certificate_id\"", (gogoproto.casttype) = "CertificateID" ];
-    CertificateType cert_type = 2 [ (gogoproto.moretags) = "yaml:\"certificate_type\"" ];
-    RequestContent req_content = 3 [ (gogoproto.moretags) = "yaml:\"request_content\"" ];
-    string cert_description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string cert_certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
-    string cert_tx_hash = 6 [ (gogoproto.moretags) = "yaml:\"txhash\"" ];
-}
-
-message CompilationCertificateContent {
+message CompilationContent {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
@@ -70,18 +39,15 @@ message CompilationCertificateContent {
     string bytecode_hash = 2 [ (gogoproto.moretags) = "yaml:\"bytecode_hash\"" ];
 }
 
-message CompilationCertificate {
+message Certificate {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    int64 issue_block_height = 1 [ (gogoproto.moretags) = "yaml:\"time_issued\"" ];
-    string cert_id = 2 [ (gogoproto.moretags) = "yaml:\"certificate_id\"", (gogoproto.casttype) = "CertificateID" ];
-    CertificateType cert_type = 3 [ (gogoproto.moretags) = "yaml:\"certificate_type\"" ];
-    RequestContent req_content = 4 [ (gogoproto.moretags) = "yaml:\"request_content\"" ];
-    CompilationCertificateContent cert_content = 5 [ (gogoproto.moretags) = "yaml:\"certificate_content\"" ];
-    string cert_description = 6 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string cert_certifier = 7 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
-    string cert_tx_hash = 8 [ (gogoproto.moretags) = "yaml:\"txhash\"" ];
+    uint64 certificate_id = 1 [ (gogoproto.moretags) = "yaml:\"certificate_id\"" ];
+    google.protobuf.Any content = 2 [ (cosmos_proto.accepts_interface) = "Content" ];
+    CompilationContent compilation_content = 3 [ (gogoproto.moretags) = "yaml:\"compilation_content\"" ];
+    string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
 }
 
 // Validator is a type for certified validator.
@@ -102,12 +68,55 @@ message Library {
     string publisher = 2;
 }
 
-// CertificateProto is a proto wrapper for Certificate interface.
-message CertificateProto {
+message Compilation {
+    option (cosmos_proto.implements_interface) = "Content";
+
+    string content = 1;
+}
+
+message Auditing {
+    option (cosmos_proto.implements_interface) = "Content";
+
+    string content = 1;
+}
+
+message Proof {
+    option (cosmos_proto.implements_interface) = "Content";
+
+    string content = 1;
+}
+
+message OracleOperator {
+    option (cosmos_proto.implements_interface) = "Content";
+
+    string content = 1;
+}
+
+message ShieldPoolCreator {
+    option (cosmos_proto.implements_interface) = "Content";
+
+    string content = 1;
+}
+
+message Identity {
+    option (cosmos_proto.implements_interface) = "Content";
+
+    string content = 1;
+}
+
+message General {
+    option (cosmos_proto.implements_interface) = "Content";
+
+    string content = 1;
+}
+
+// Platform is a genesis type for certified platform of a validator
+message Platform {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
     
-    google.protobuf.Any certificate = 1 [ (cosmos_proto.accepts_interface) = "Certificate" ];
+    google.protobuf.Any validator_pubkey = 1 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+    string description = 2;
 }
 
 // CertifierUpdateProposal adds or removes a certifier

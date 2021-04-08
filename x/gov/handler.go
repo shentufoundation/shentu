@@ -6,7 +6,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/x/gov/keeper"
-	"github.com/certikfoundation/shentu/x/gov/types"
 )
 
 // NewHandler handles all "gov" type messages.
@@ -17,15 +16,15 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 
 		switch msg := msg.(type) {
-		case *types.MsgDeposit:
+		case *govtypes.MsgDeposit:
 			res, err := msgServer.Deposit(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgSubmitProposal:
+		case *govtypes.MsgSubmitProposal:
 			res, err := msgServer.SubmitProposal(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgVote:
+		case *govtypes.MsgVote:
 			res, err := msgServer.Vote(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 

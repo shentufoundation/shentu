@@ -45,11 +45,14 @@ func (k Keeper) CertifyPlatform(ctx sdk.Context, certifier sdk.AccAddress, valid
 }
 
 // GetPlatform returns the host platform of the validator.
-func (k Keeper) GetPlatform(ctx sdk.Context, validator cryptotypes.PubKey) (string, bool) {
-	if platform := ctx.KVStore(k.storeKey).Get(types.PlatformStoreKey(validator)); platform != nil {
-		return string(platform), true
+func (k Keeper) GetPlatform(ctx sdk.Context, validator cryptotypes.PubKey) (types.Platform, bool) {
+	var platform types.Platform
+	var found bool
+	if bz := ctx.KVStore(k.storeKey).Get(types.PlatformStoreKey(validator)); bz != nil {
+		k.cdc.MustUnmarshalBinaryBare(bz, &platform)
+		found = true
 	}
-	return "", false
+	return platform, found
 }
 
 // GetAllPlatforms gets all platform certificates for genesis export

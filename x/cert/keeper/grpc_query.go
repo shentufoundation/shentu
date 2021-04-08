@@ -117,21 +117,13 @@ func (q Querier) Certificate(c context.Context, req *types.QueryCertificateReque
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	certificate, err := q.GetCertificateByID(ctx, types.CertificateID(req.CertificateId))
+	certificate, err := q.GetCertificateByID(ctx, req.CertificateId)
 	if err != nil {
 		return nil, err
 	}
 
-	reqContent := certificate.RequestContent()
-
 	return &types.QueryCertificateResponse{
-		CertificateId:      certificate.ID().String(),
-		CertificateType:    certificate.Type().String(),
-		RequestContent:     &reqContent,
-		CertificateContent: certificate.FormattedCertificateContent(),
-		Description:        certificate.Description(),
-		Certifier:          certificate.Certifier().String(),
-		TxHash:             certificate.TxHash(),
+		Certificate: certificate,
 	}, nil
 }
 
@@ -155,11 +147,10 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 		return nil, err
 	}
 	params := types.QueryCertificatesParams{
-		Page:        page,
-		Limit:       limit,
-		Certifier:   certifierAddr,
-		ContentType: req.ContentType,
-		Content:     req.Content,
+		Page:            page,
+		Limit:           limit,
+		Certifier:       certifierAddr,
+		CertificateType: types.CertificateTypeFromString(req.CertificateType),
 	}
 
 	total, certificates, err := q.GetCertificatesFiltered(ctx, params)
@@ -169,16 +160,8 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 
 	results := make([]types.QueryCertificateResponse, total)
 	for i, certificate := range certificates {
-		reqContent := certificate.RequestContent()
-
 		results[i] = types.QueryCertificateResponse{
-			CertificateId:      certificate.ID().String(),
-			CertificateType:    certificate.Type().String(),
-			RequestContent:     &reqContent,
-			CertificateContent: certificate.FormattedCertificateContent(),
-			Description:        certificate.Description(),
-			Certifier:          certificate.Certifier().String(),
-			TxHash:             certificate.TxHash(),
+			Certificate: certificate,
 		}
 	}
 

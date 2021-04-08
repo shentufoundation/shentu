@@ -82,7 +82,7 @@ func (k Keeper) IsCouncilMember(ctx sdk.Context, addr sdk.AccAddress) bool {
 
 // IsCertifiedIdentity checks if the input address is a certified identity.
 func (k Keeper) IsCertifiedIdentity(ctx sdk.Context, addr sdk.AccAddress) bool {
-	return k.CertKeeper.IsCertified(ctx, "address", addr.String(), "identity")
+	return k.CertKeeper.IsCertified(ctx, addr.String(), "identity")
 }
 
 // TotalBondedByCertifiedIdentities calculates the amount of total bonded stakes by certified identities.

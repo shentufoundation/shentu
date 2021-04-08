@@ -6,10 +6,9 @@ package types
 import (
 	context "context"
 	fmt "fmt"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
-	types1 "github.com/cosmos/cosmos-sdk/types"
-	types2 "github.com/cosmos/cosmos-sdk/x/gov/types"
+	_ "github.com/cosmos/cosmos-sdk/codec/types"
+	_ "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/x/gov/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
@@ -17,9 +16,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	io "io"
 	math "math"
-	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -33,271 +30,29 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary
-// proposal Content.
-type MsgSubmitProposal struct {
-	Content        *types.Any                               `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
-	InitialDeposit github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=initial_deposit,json=initialDeposit,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"initial_deposit" yaml:"initial_deposit"`
-	Proposer       string                                   `protobuf:"bytes,3,opt,name=proposer,proto3" json:"proposer,omitempty"`
-}
-
-func (m *MsgSubmitProposal) Reset()      { *m = MsgSubmitProposal{} }
-func (*MsgSubmitProposal) ProtoMessage() {}
-func (*MsgSubmitProposal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f5034648f58c6e59, []int{0}
-}
-func (m *MsgSubmitProposal) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgSubmitProposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalToSizedBuffer(b)
-	if err != nil {
-		return nil, err
-	}
-	return b[:n], nil
-}
-func (m *MsgSubmitProposal) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgSubmitProposal.Merge(m, src)
-}
-func (m *MsgSubmitProposal) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgSubmitProposal) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgSubmitProposal.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgSubmitProposal proto.InternalMessageInfo
-
-// MsgSubmitProposalResponse defines the Msg/SubmitProposal response type.
-type MsgSubmitProposalResponse struct {
-	ProposalId uint64 `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id" yaml:"proposal_id"`
-}
-
-func (m *MsgSubmitProposalResponse) Reset()         { *m = MsgSubmitProposalResponse{} }
-func (m *MsgSubmitProposalResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgSubmitProposalResponse) ProtoMessage()    {}
-func (*MsgSubmitProposalResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f5034648f58c6e59, []int{1}
-}
-func (m *MsgSubmitProposalResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgSubmitProposalResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalToSizedBuffer(b)
-	if err != nil {
-		return nil, err
-	}
-	return b[:n], nil
-}
-func (m *MsgSubmitProposalResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgSubmitProposalResponse.Merge(m, src)
-}
-func (m *MsgSubmitProposalResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgSubmitProposalResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgSubmitProposalResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgSubmitProposalResponse proto.InternalMessageInfo
-
-func (m *MsgSubmitProposalResponse) GetProposalId() uint64 {
-	if m != nil {
-		return m.ProposalId
-	}
-	return 0
-}
-
-// MsgVote defines a message to cast a vote.
-type MsgVote struct {
-	ProposalId uint64            `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id" yaml:"proposal_id"`
-	Voter      string            `protobuf:"bytes,2,opt,name=voter,proto3" json:"voter,omitempty"`
-	Option     types2.VoteOption `protobuf:"varint,3,opt,name=option,proto3,enum=cosmos.gov.v1beta1.VoteOption" json:"option,omitempty"`
-}
-
-func (m *MsgVote) Reset()      { *m = MsgVote{} }
-func (*MsgVote) ProtoMessage() {}
-func (*MsgVote) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f5034648f58c6e59, []int{2}
-}
-func (m *MsgVote) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgVote) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalToSizedBuffer(b)
-	if err != nil {
-		return nil, err
-	}
-	return b[:n], nil
-}
-func (m *MsgVote) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgVote.Merge(m, src)
-}
-func (m *MsgVote) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgVote) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgVote.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgVote proto.InternalMessageInfo
-
-// MsgVoteResponse defines the Msg/Vote response type.
-type MsgVoteResponse struct {
-}
-
-func (m *MsgVoteResponse) Reset()         { *m = MsgVoteResponse{} }
-func (m *MsgVoteResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgVoteResponse) ProtoMessage()    {}
-func (*MsgVoteResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f5034648f58c6e59, []int{3}
-}
-func (m *MsgVoteResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgVoteResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalToSizedBuffer(b)
-	if err != nil {
-		return nil, err
-	}
-	return b[:n], nil
-}
-func (m *MsgVoteResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgVoteResponse.Merge(m, src)
-}
-func (m *MsgVoteResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgVoteResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgVoteResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgVoteResponse proto.InternalMessageInfo
-
-// MsgDeposit defines a message to submit a deposit to an existing proposal.
-type MsgDeposit struct {
-	ProposalId uint64                                   `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id" yaml:"proposal_id"`
-	Depositor  string                                   `protobuf:"bytes,2,opt,name=depositor,proto3" json:"depositor,omitempty"`
-	Amount     github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount"`
-}
-
-func (m *MsgDeposit) Reset()      { *m = MsgDeposit{} }
-func (*MsgDeposit) ProtoMessage() {}
-func (*MsgDeposit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f5034648f58c6e59, []int{4}
-}
-func (m *MsgDeposit) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgDeposit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalToSizedBuffer(b)
-	if err != nil {
-		return nil, err
-	}
-	return b[:n], nil
-}
-func (m *MsgDeposit) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgDeposit.Merge(m, src)
-}
-func (m *MsgDeposit) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgDeposit) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgDeposit.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgDeposit proto.InternalMessageInfo
-
-// MsgDepositResponse defines the Msg/Deposit response type.
-type MsgDepositResponse struct {
-}
-
-func (m *MsgDepositResponse) Reset()         { *m = MsgDepositResponse{} }
-func (m *MsgDepositResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgDepositResponse) ProtoMessage()    {}
-func (*MsgDepositResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f5034648f58c6e59, []int{5}
-}
-func (m *MsgDepositResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalToSizedBuffer(b)
-	if err != nil {
-		return nil, err
-	}
-	return b[:n], nil
-}
-func (m *MsgDepositResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgDepositResponse.Merge(m, src)
-}
-func (m *MsgDepositResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgDepositResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgDepositResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgDepositResponse proto.InternalMessageInfo
-
-func init() {
-	proto.RegisterType((*MsgSubmitProposal)(nil), "shentu.gov.v1alpha1.MsgSubmitProposal")
-	proto.RegisterType((*MsgSubmitProposalResponse)(nil), "shentu.gov.v1alpha1.MsgSubmitProposalResponse")
-	proto.RegisterType((*MsgVote)(nil), "shentu.gov.v1alpha1.MsgVote")
-	proto.RegisterType((*MsgVoteResponse)(nil), "shentu.gov.v1alpha1.MsgVoteResponse")
-	proto.RegisterType((*MsgDeposit)(nil), "shentu.gov.v1alpha1.MsgDeposit")
-	proto.RegisterType((*MsgDepositResponse)(nil), "shentu.gov.v1alpha1.MsgDepositResponse")
-}
-
 func init() { proto.RegisterFile("shentu/gov/v1alpha1/tx.proto", fileDescriptor_f5034648f58c6e59) }
 
 var fileDescriptor_f5034648f58c6e59 = []byte{
-	// 625 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0x3d, 0x6f, 0x13, 0x41,
-	0x10, 0xbd, 0xb3, 0x43, 0x42, 0x36, 0x52, 0x42, 0x16, 0x2b, 0x72, 0x2c, 0xeb, 0xce, 0x3a, 0xf1,
-	0xe1, 0x26, 0x7b, 0xd8, 0x48, 0x14, 0xe9, 0x70, 0x50, 0x24, 0x22, 0x2c, 0x90, 0x23, 0x51, 0xd0,
-	0x44, 0x67, 0x7b, 0x73, 0x3e, 0xc5, 0xde, 0x39, 0x79, 0xf7, 0xac, 0xb8, 0xa3, 0xa4, 0x42, 0x29,
-	0x11, 0x55, 0x6a, 0x3a, 0x24, 0x7e, 0x44, 0x44, 0x95, 0x32, 0x05, 0x32, 0xc8, 0x69, 0x80, 0x32,
-	0xbf, 0x00, 0xdd, 0x7e, 0x24, 0x56, 0x3e, 0x08, 0x48, 0xa9, 0xec, 0x99, 0x37, 0xef, 0x79, 0xdf,
-	0xcc, 0x78, 0x50, 0x91, 0x77, 0x28, 0x13, 0x89, 0x1f, 0xc2, 0xc0, 0x1f, 0x54, 0x82, 0x6e, 0xdc,
-	0x09, 0x2a, 0xbe, 0xd8, 0x25, 0x71, 0x1f, 0x04, 0xe0, 0xbb, 0x0a, 0x25, 0x21, 0x0c, 0x88, 0x41,
-	0x0b, 0x4e, 0x0b, 0x78, 0x0f, 0xb8, 0xdf, 0x0c, 0x38, 0xf5, 0x07, 0x95, 0x26, 0x15, 0x41, 0xc5,
-	0x6f, 0x41, 0xc4, 0x14, 0xa9, 0x50, 0xd4, 0xb8, 0x92, 0x54, 0x70, 0x2a, 0xa0, 0xd0, 0x65, 0x85,
-	0x6e, 0xc9, 0xc8, 0x57, 0x81, 0x86, 0x72, 0x21, 0x84, 0xa0, 0xf2, 0xe9, 0x37, 0x43, 0x08, 0x01,
-	0xc2, 0x2e, 0xf5, 0x65, 0xd4, 0x4c, 0xb6, 0xfd, 0x80, 0x0d, 0x15, 0xe4, 0x7d, 0xcc, 0xa0, 0xc5,
-	0x3a, 0x0f, 0x37, 0x93, 0x66, 0x2f, 0x12, 0xaf, 0xfa, 0x10, 0x03, 0x0f, 0xba, 0x78, 0x1d, 0xcd,
-	0xb4, 0x80, 0x09, 0xca, 0x44, 0xde, 0x2e, 0xd9, 0xe5, 0xb9, 0x6a, 0x8e, 0x28, 0x09, 0x62, 0x24,
-	0xc8, 0x53, 0x36, 0xac, 0x2d, 0x7d, 0xfd, 0xb2, 0x82, 0xf5, 0xef, 0xa7, 0xcf, 0x5b, 0x53, 0x9c,
-	0x86, 0x21, 0xe3, 0xf7, 0x36, 0x5a, 0x88, 0x58, 0x24, 0xa2, 0xa0, 0xbb, 0xd5, 0xa6, 0x31, 0xf0,
-	0x48, 0xe4, 0x33, 0xa5, 0x6c, 0x79, 0xae, 0xba, 0x4c, 0x34, 0x2f, 0x6d, 0x01, 0xd1, 0x1e, 0xc9,
-	0x1a, 0x44, 0xac, 0xb6, 0x71, 0x30, 0x72, 0xad, 0x93, 0x91, 0xbb, 0x34, 0x0c, 0x7a, 0xdd, 0x55,
-	0xef, 0x1c, 0xdf, 0xfb, 0xf4, 0xdd, 0x2d, 0x87, 0x91, 0xe8, 0x24, 0x4d, 0xd2, 0x82, 0x9e, 0xb6,
-	0xaf, 0x3f, 0x56, 0x78, 0x7b, 0xc7, 0x17, 0xc3, 0x98, 0x72, 0x29, 0xc5, 0x1b, 0xf3, 0x9a, 0xfd,
-	0x4c, 0x91, 0x71, 0x01, 0xdd, 0x8e, 0xa5, 0x49, 0xda, 0xcf, 0x67, 0x4b, 0x76, 0x79, 0xb6, 0x71,
-	0x1a, 0xaf, 0xde, 0x79, 0xb7, 0xef, 0x5a, 0x1f, 0xf6, 0x5d, 0xeb, 0xe7, 0xbe, 0x6b, 0xbd, 0xfd,
-	0x56, 0xb2, 0xbc, 0x16, 0x5a, 0xbe, 0xd0, 0x9b, 0x06, 0xe5, 0x31, 0x30, 0x4e, 0xf1, 0x3a, 0x9a,
-	0x8b, 0x75, 0x6e, 0x2b, 0x6a, 0xcb, 0x3e, 0x4d, 0xd5, 0xee, 0xff, 0x1e, 0xb9, 0x93, 0xe9, 0x93,
-	0x91, 0x8b, 0x95, 0x8d, 0x89, 0xa4, 0xd7, 0x40, 0x26, 0x7a, 0xde, 0xf6, 0x3e, 0xdb, 0x68, 0xa6,
-	0xce, 0xc3, 0xd7, 0x20, 0x6e, 0x4c, 0x13, 0xe7, 0xd0, 0xad, 0x01, 0x08, 0xda, 0xcf, 0x67, 0xa4,
-	0x47, 0x15, 0xe0, 0x27, 0x68, 0x1a, 0x62, 0x11, 0x01, 0x93, 0xd6, 0xe7, 0xab, 0x0e, 0x99, 0x98,
-	0x9d, 0x19, 0x41, 0xfa, 0x8e, 0x97, 0xb2, 0xaa, 0xa1, 0xab, 0x2f, 0x69, 0xcc, 0x22, 0x5a, 0xd0,
-	0x4f, 0x36, 0xed, 0xf0, 0x7e, 0xd9, 0x08, 0xd5, 0x79, 0x68, 0x1a, 0x7d, 0x53, 0x4e, 0x8a, 0x68,
-	0x56, 0x0f, 0x1e, 0x8c, 0x9b, 0xb3, 0x04, 0x6e, 0xa1, 0xe9, 0xa0, 0x07, 0x09, 0x13, 0xf9, 0xec,
-	0x75, 0x5b, 0xf5, 0x28, 0xdd, 0xaa, 0xff, 0xda, 0x1d, 0x2d, 0x7d, 0x89, 0xfd, 0x1c, 0xc2, 0x67,
-	0x56, 0x4d, 0x07, 0xaa, 0x7b, 0x19, 0x94, 0xad, 0xf3, 0x10, 0x77, 0xd0, 0xfc, 0xb9, 0xbf, 0xd3,
-	0x03, 0x72, 0xc9, 0x11, 0x20, 0x17, 0x56, 0xab, 0x40, 0xfe, 0xad, 0xee, 0x74, 0x05, 0x37, 0xd0,
-	0x94, 0x5c, 0x9b, 0xe2, 0x55, 0xbc, 0x14, 0x2d, 0xdc, 0xfb, 0x1b, 0x7a, 0xaa, 0xb5, 0x89, 0x66,
-	0xcc, 0xec, 0xdc, 0xab, 0x08, 0xba, 0xa0, 0xf0, 0xf0, 0x9a, 0x02, 0x23, 0x5a, 0x7b, 0x71, 0x30,
-	0x76, 0xec, 0xc3, 0xb1, 0x63, 0x1f, 0x8d, 0x1d, 0xfb, 0xc7, 0xd8, 0xb1, 0xf7, 0x8e, 0x1d, 0xeb,
-	0xf0, 0xd8, 0xb1, 0x8e, 0x8e, 0x1d, 0xeb, 0x0d, 0x99, 0x1c, 0x05, 0xed, 0x8b, 0x68, 0x67, 0x1b,
-	0x12, 0xd6, 0x0e, 0xd2, 0xa5, 0xf3, 0xf5, 0x51, 0xdd, 0x95, 0x37, 0x50, 0x8e, 0xa5, 0x39, 0x2d,
-	0x8f, 0xcf, 0xe3, 0x3f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x11, 0x6e, 0x9e, 0x88, 0x71, 0x05, 0x00,
+	// 305 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x92, 0xbf, 0x4e, 0xf3, 0x30,
+	0x14, 0xc5, 0x9b, 0xef, 0x43, 0x20, 0x65, 0x60, 0x30, 0x2c, 0xb8, 0xc8, 0x0b, 0x82, 0x0d, 0x5b,
+	0x81, 0x37, 0x40, 0x0c, 0x0c, 0x54, 0xe2, 0x8f, 0xc4, 0xc0, 0x82, 0xec, 0xe0, 0x38, 0x16, 0x89,
+	0xaf, 0x15, 0x3b, 0x51, 0xfb, 0x0a, 0x4c, 0x3c, 0x16, 0x63, 0xc7, 0x8e, 0x28, 0x79, 0x11, 0xd4,
+	0x38, 0x41, 0x62, 0x68, 0xc5, 0xe6, 0xe3, 0xdf, 0x39, 0x47, 0x57, 0xf6, 0x8d, 0x8f, 0x5d, 0x2e,
+	0x8d, 0xaf, 0x99, 0x82, 0x86, 0x35, 0x09, 0x2f, 0x6c, 0xce, 0x13, 0xe6, 0xe7, 0xd4, 0x56, 0xe0,
+	0x01, 0x1d, 0x04, 0x4a, 0x15, 0x34, 0x74, 0xa4, 0x98, 0xa4, 0xe0, 0x4a, 0x70, 0x4c, 0x70, 0x27,
+	0x59, 0x93, 0x08, 0xe9, 0x79, 0xc2, 0x52, 0xd0, 0x26, 0x84, 0xf0, 0x74, 0xe0, 0xa1, 0x32, 0xe0,
+	0xb1, 0x11, 0x1f, 0x05, 0xf8, 0xd2, 0x2b, 0x16, 0xc4, 0x80, 0x0e, 0x15, 0x28, 0x08, 0xf7, 0xeb,
+	0xd3, 0x18, 0x50, 0x00, 0xaa, 0x90, 0xac, 0x57, 0xa2, 0xce, 0x18, 0x37, 0x8b, 0x80, 0x2e, 0xde,
+	0xff, 0xc5, 0xff, 0x67, 0x4e, 0xa1, 0x2c, 0xde, 0x7f, 0xac, 0x45, 0xa9, 0xfd, 0x5d, 0x05, 0x16,
+	0x1c, 0x2f, 0xd0, 0x29, 0x1d, 0x9a, 0xc3, 0xe0, 0xfd, 0x0c, 0x74, 0xe6, 0xd4, 0x6f, 0x1b, 0x3e,
+	0xff, 0x93, 0xed, 0x41, 0x3a, 0x0b, 0xc6, 0x49, 0x74, 0x13, 0xef, 0x3c, 0x81, 0x97, 0x68, 0xba,
+	0x21, 0xb6, 0x86, 0xf8, 0x64, 0x0b, 0xfc, 0x69, 0xba, 0x8f, 0xf7, 0xae, 0xa5, 0x05, 0xa7, 0x3d,
+	0x22, 0x1b, 0xfc, 0x03, 0xc7, 0x67, 0xdb, 0xf9, 0x58, 0x79, 0x75, 0xfb, 0xd9, 0x92, 0x68, 0xd9,
+	0x92, 0x68, 0xd5, 0x92, 0xe8, 0xab, 0x25, 0xd1, 0x47, 0x47, 0x26, 0xcb, 0x8e, 0x4c, 0x56, 0x1d,
+	0x99, 0x3c, 0x53, 0xa5, 0x7d, 0x5e, 0x0b, 0x9a, 0x42, 0xc9, 0x52, 0x59, 0x79, 0xfd, 0x96, 0x41,
+	0x6d, 0x5e, 0xb9, 0xd7, 0x60, 0xd8, 0xb0, 0x02, 0xf3, 0xfe, 0xc7, 0xfc, 0xc2, 0x4a, 0x27, 0x76,
+	0xfb, 0x17, 0xbe, 0xfc, 0x0e, 0x00, 0x00, 0xff, 0xff, 0xc5, 0xcd, 0x04, 0x6e, 0x1f, 0x02, 0x00,
 	0x00,
 }
 
@@ -314,11 +69,11 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
 	// SubmitProposal defines a method to create new proposal given a content.
-	SubmitProposal(ctx context.Context, in *MsgSubmitProposal, opts ...grpc.CallOption) (*MsgSubmitProposalResponse, error)
+	SubmitProposal(ctx context.Context, in *types.MsgSubmitProposal, opts ...grpc.CallOption) (*types.MsgSubmitProposalResponse, error)
 	// Vote defines a method to add a vote on a specific proposal.
-	Vote(ctx context.Context, in *MsgVote, opts ...grpc.CallOption) (*MsgVoteResponse, error)
+	Vote(ctx context.Context, in *types.MsgVote, opts ...grpc.CallOption) (*types.MsgVoteResponse, error)
 	// Deposit defines a method to add deposit on a specific proposal.
-	Deposit(ctx context.Context, in *MsgDeposit, opts ...grpc.CallOption) (*MsgDepositResponse, error)
+	Deposit(ctx context.Context, in *types.MsgDeposit, opts ...grpc.CallOption) (*types.MsgDepositResponse, error)
 }
 
 type msgClient struct {
@@ -329,8 +84,8 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) SubmitProposal(ctx context.Context, in *MsgSubmitProposal, opts ...grpc.CallOption) (*MsgSubmitProposalResponse, error) {
-	out := new(MsgSubmitProposalResponse)
+func (c *msgClient) SubmitProposal(ctx context.Context, in *types.MsgSubmitProposal, opts ...grpc.CallOption) (*types.MsgSubmitProposalResponse, error) {
+	out := new(types.MsgSubmitProposalResponse)
 	err := c.cc.Invoke(ctx, "/shentu.gov.v1alpha1.Msg/SubmitProposal", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -338,8 +93,8 @@ func (c *msgClient) SubmitProposal(ctx context.Context, in *MsgSubmitProposal, o
 	return out, nil
 }
 
-func (c *msgClient) Vote(ctx context.Context, in *MsgVote, opts ...grpc.CallOption) (*MsgVoteResponse, error) {
-	out := new(MsgVoteResponse)
+func (c *msgClient) Vote(ctx context.Context, in *types.MsgVote, opts ...grpc.CallOption) (*types.MsgVoteResponse, error) {
+	out := new(types.MsgVoteResponse)
 	err := c.cc.Invoke(ctx, "/shentu.gov.v1alpha1.Msg/Vote", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -347,8 +102,8 @@ func (c *msgClient) Vote(ctx context.Context, in *MsgVote, opts ...grpc.CallOpti
 	return out, nil
 }
 
-func (c *msgClient) Deposit(ctx context.Context, in *MsgDeposit, opts ...grpc.CallOption) (*MsgDepositResponse, error) {
-	out := new(MsgDepositResponse)
+func (c *msgClient) Deposit(ctx context.Context, in *types.MsgDeposit, opts ...grpc.CallOption) (*types.MsgDepositResponse, error) {
+	out := new(types.MsgDepositResponse)
 	err := c.cc.Invoke(ctx, "/shentu.gov.v1alpha1.Msg/Deposit", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -359,24 +114,24 @@ func (c *msgClient) Deposit(ctx context.Context, in *MsgDeposit, opts ...grpc.Ca
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// SubmitProposal defines a method to create new proposal given a content.
-	SubmitProposal(context.Context, *MsgSubmitProposal) (*MsgSubmitProposalResponse, error)
+	SubmitProposal(context.Context, *types.MsgSubmitProposal) (*types.MsgSubmitProposalResponse, error)
 	// Vote defines a method to add a vote on a specific proposal.
-	Vote(context.Context, *MsgVote) (*MsgVoteResponse, error)
+	Vote(context.Context, *types.MsgVote) (*types.MsgVoteResponse, error)
 	// Deposit defines a method to add deposit on a specific proposal.
-	Deposit(context.Context, *MsgDeposit) (*MsgDepositResponse, error)
+	Deposit(context.Context, *types.MsgDeposit) (*types.MsgDepositResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) SubmitProposal(ctx context.Context, req *MsgSubmitProposal) (*MsgSubmitProposalResponse, error) {
+func (*UnimplementedMsgServer) SubmitProposal(ctx context.Context, req *types.MsgSubmitProposal) (*types.MsgSubmitProposalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitProposal not implemented")
 }
-func (*UnimplementedMsgServer) Vote(ctx context.Context, req *MsgVote) (*MsgVoteResponse, error) {
+func (*UnimplementedMsgServer) Vote(ctx context.Context, req *types.MsgVote) (*types.MsgVoteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Vote not implemented")
 }
-func (*UnimplementedMsgServer) Deposit(ctx context.Context, req *MsgDeposit) (*MsgDepositResponse, error) {
+func (*UnimplementedMsgServer) Deposit(ctx context.Context, req *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Deposit not implemented")
 }
 
@@ -385,7 +140,7 @@ func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 }
 
 func _Msg_SubmitProposal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgSubmitProposal)
+	in := new(types.MsgSubmitProposal)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -397,13 +152,13 @@ func _Msg_SubmitProposal_Handler(srv interface{}, ctx context.Context, dec func(
 		FullMethod: "/shentu.gov.v1alpha1.Msg/SubmitProposal",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).SubmitProposal(ctx, req.(*MsgSubmitProposal))
+		return srv.(MsgServer).SubmitProposal(ctx, req.(*types.MsgSubmitProposal))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_Vote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgVote)
+	in := new(types.MsgVote)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -415,13 +170,13 @@ func _Msg_Vote_Handler(srv interface{}, ctx context.Context, dec func(interface{
 		FullMethod: "/shentu.gov.v1alpha1.Msg/Vote",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).Vote(ctx, req.(*MsgVote))
+		return srv.(MsgServer).Vote(ctx, req.(*types.MsgVote))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_Deposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgDeposit)
+	in := new(types.MsgDeposit)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -433,7 +188,7 @@ func _Msg_Deposit_Handler(srv interface{}, ctx context.Context, dec func(interfa
 		FullMethod: "/shentu.gov.v1alpha1.Msg/Deposit",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).Deposit(ctx, req.(*MsgDeposit))
+		return srv.(MsgServer).Deposit(ctx, req.(*types.MsgDeposit))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -458,1012 +213,3 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "shentu/gov/v1alpha1/tx.proto",
 }
-
-func (m *MsgSubmitProposal) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgSubmitProposal) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgSubmitProposal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Proposer) > 0 {
-		i -= len(m.Proposer)
-		copy(dAtA[i:], m.Proposer)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Proposer)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.InitialDeposit) > 0 {
-		for iNdEx := len(m.InitialDeposit) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.InitialDeposit[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTx(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x12
-		}
-	}
-	if m.Content != nil {
-		{
-			size, err := m.Content.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTx(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgSubmitProposalResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgSubmitProposalResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgSubmitProposalResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.ProposalId != 0 {
-		i = encodeVarintTx(dAtA, i, uint64(m.ProposalId))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgVote) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgVote) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgVote) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Option != 0 {
-		i = encodeVarintTx(dAtA, i, uint64(m.Option))
-		i--
-		dAtA[i] = 0x18
-	}
-	if len(m.Voter) > 0 {
-		i -= len(m.Voter)
-		copy(dAtA[i:], m.Voter)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Voter)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if m.ProposalId != 0 {
-		i = encodeVarintTx(dAtA, i, uint64(m.ProposalId))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgVoteResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgVoteResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgVoteResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgDeposit) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgDeposit) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgDeposit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Amount) > 0 {
-		for iNdEx := len(m.Amount) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Amount[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTx(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x1a
-		}
-	}
-	if len(m.Depositor) > 0 {
-		i -= len(m.Depositor)
-		copy(dAtA[i:], m.Depositor)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Depositor)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if m.ProposalId != 0 {
-		i = encodeVarintTx(dAtA, i, uint64(m.ProposalId))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgDepositResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgDepositResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgDepositResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
-func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
-	offset -= sovTx(v)
-	base := offset
-	for v >= 1<<7 {
-		dAtA[offset] = uint8(v&0x7f | 0x80)
-		v >>= 7
-		offset++
-	}
-	dAtA[offset] = uint8(v)
-	return base
-}
-func (m *MsgSubmitProposal) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Content != nil {
-		l = m.Content.Size()
-		n += 1 + l + sovTx(uint64(l))
-	}
-	if len(m.InitialDeposit) > 0 {
-		for _, e := range m.InitialDeposit {
-			l = e.Size()
-			n += 1 + l + sovTx(uint64(l))
-		}
-	}
-	l = len(m.Proposer)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	return n
-}
-
-func (m *MsgSubmitProposalResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.ProposalId != 0 {
-		n += 1 + sovTx(uint64(m.ProposalId))
-	}
-	return n
-}
-
-func (m *MsgVote) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.ProposalId != 0 {
-		n += 1 + sovTx(uint64(m.ProposalId))
-	}
-	l = len(m.Voter)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	if m.Option != 0 {
-		n += 1 + sovTx(uint64(m.Option))
-	}
-	return n
-}
-
-func (m *MsgVoteResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
-func (m *MsgDeposit) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.ProposalId != 0 {
-		n += 1 + sovTx(uint64(m.ProposalId))
-	}
-	l = len(m.Depositor)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	if len(m.Amount) > 0 {
-		for _, e := range m.Amount {
-			l = e.Size()
-			n += 1 + l + sovTx(uint64(l))
-		}
-	}
-	return n
-}
-
-func (m *MsgDepositResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
-func sovTx(x uint64) (n int) {
-	return (math_bits.Len64(x|1) + 6) / 7
-}
-func sozTx(x uint64) (n int) {
-	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
-}
-func (m *MsgSubmitProposal) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgSubmitProposal: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgSubmitProposal: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Content", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Content == nil {
-				m.Content = &types.Any{}
-			}
-			if err := m.Content.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field InitialDeposit", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.InitialDeposit = append(m.InitialDeposit, types1.Coin{})
-			if err := m.InitialDeposit[len(m.InitialDeposit)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Proposer", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Proposer = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgSubmitProposalResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgSubmitProposalResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgSubmitProposalResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ProposalId", wireType)
-			}
-			m.ProposalId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ProposalId |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgVote) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgVote: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgVote: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ProposalId", wireType)
-			}
-			m.ProposalId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ProposalId |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Voter", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Voter = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Option", wireType)
-			}
-			m.Option = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Option |= types2.VoteOption(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgVoteResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgVoteResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgVoteResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgDeposit) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgDeposit: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgDeposit: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ProposalId", wireType)
-			}
-			m.ProposalId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ProposalId |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Depositor", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Depositor = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Amount = append(m.Amount, types1.Coin{})
-			if err := m.Amount[len(m.Amount)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgDepositResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgDepositResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgDepositResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func skipTx(dAtA []byte) (n int, err error) {
-	l := len(dAtA)
-	iNdEx := 0
-	depth := 0
-	for iNdEx < l {
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return 0, ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return 0, io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		wireType := int(wire & 0x7)
-		switch wireType {
-		case 0:
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return 0, ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return 0, io.ErrUnexpectedEOF
-				}
-				iNdEx++
-				if dAtA[iNdEx-1] < 0x80 {
-					break
-				}
-			}
-		case 1:
-			iNdEx += 8
-		case 2:
-			var length int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return 0, ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return 0, io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				length |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if length < 0 {
-				return 0, ErrInvalidLengthTx
-			}
-			iNdEx += length
-		case 3:
-			depth++
-		case 4:
-			if depth == 0 {
-				return 0, ErrUnexpectedEndOfGroupTx
-			}
-			depth--
-		case 5:
-			iNdEx += 4
-		default:
-			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
-		}
-		if iNdEx < 0 {
-			return 0, ErrInvalidLengthTx
-		}
-		if depth == 0 {
-			return iNdEx, nil
-		}
-	}
-	return 0, io.ErrUnexpectedEOF
-}
-
-var (
-	ErrInvalidLengthTx        = fmt.Errorf("proto: negative length found during unmarshaling")
-	ErrIntOverflowTx          = fmt.Errorf("proto: integer overflow")
-	ErrUnexpectedEndOfGroupTx = fmt.Errorf("proto: unexpected end of group")
-)

@@ -41,7 +41,7 @@ type DistributionKeeper interface {
 
 // CertKeeper defines the expected cert keeper (noalias)
 type CertKeeper interface {
-	IsCertified(ctx sdk.Context, contentType string, content string, certType string) bool
+	IsCertified(ctx sdk.Context, content string, certType string) bool
 	IsContentCertified(ctx sdk.Context, content string) bool
 	IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool
 	SetValidator(ctx sdk.Context, key cryptotypes.PubKey, certifier sdk.AccAddress)

@@ -1,87 +1,33 @@
 package keeper
 
 import (
+	"strconv"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
-type QueryResRequestContent struct {
-	RequestContentType     types.RequestContentType `json:"request_content_type"`
-	RequestContentTypeName string                   `json:"request_content_type_name"`
-	RequestContent         string                   `json:"request_content"`
-}
-
-func NewQueryResRequestContent(
-	requestContentType types.RequestContentType,
-	requestContentTypeName string,
-	requestContent string,
-) QueryResRequestContent {
-	return QueryResRequestContent{
-		RequestContentType:     requestContentType,
-		RequestContentTypeName: requestContentTypeName,
-		RequestContent:         requestContent,
-	}
-}
-
-type QueryResCertificate struct {
-	CertificateID      string                 `json:"certificate_id"`
-	CertificateType    string                 `json:"certificate_type"`
-	RequestContent     QueryResRequestContent `json:"request_content"`
-	CertificateContent []types.KVPair         `json:"certificate_content"`
-	Description        string                 `json:"description"`
-	Certifier          string                 `json:"certifier"`
-	TxHash             string                 `json:"txhash"`
-}
-
-func NewQueryResCertificate(
-	certificateID string,
-	certificateType string,
-	requestContent types.RequestContent,
-	certificateContent []types.KVPair,
-	description string,
-	certifier string,
-	txhash string,
-) QueryResCertificate {
-	resRequestContent := NewQueryResRequestContent(
-		requestContent.RequestContentType,
-		requestContent.RequestContentType.String(),
-		requestContent.RequestContent,
-	)
-	return QueryResCertificate{
-		CertificateID:      certificateID,
-		CertificateType:    certificateType,
-		RequestContent:     resRequestContent,
-		CertificateContent: certificateContent,
-		Description:        description,
-		Certifier:          certifier,
-		TxHash:             txhash,
-	}
-}
-
 func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	if err := validatePathLength(path, 1); err != nil {
 		return nil, err
 	}
 
-	certificate, err := keeper.GetCertificateByID(ctx, types.CertificateID(path[0]))
+	certificateID, err := strconv.ParseUint(path[0], 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	resCertificate := NewQueryResCertificate(
-		certificate.ID().String(),
-		certificate.Type().String(),
-		certificate.RequestContent(),
-		certificate.FormattedCertificateContent(),
-		certificate.Description(),
-		certificate.Certifier().String(),
-		certificate.TxHash(),
-	)
-	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, resCertificate)
+
+	certificate, err := keeper.GetCertificateByID(ctx, certificateID)
+	if err != nil {
+		return nil, err
+	}
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, certificate)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -89,8 +35,19 @@ func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQueri
 }
 
 type QueryResCertificates struct {
-	Total        uint64                `json:"total"`
-	Certificates []QueryResCertificate `json:"certificates"`
+	Total        uint64              `json:"total"`
+	Certificates []types.Certificate `json:"certificates"`
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (q QueryResCertificates) UnpackInterfaces(unpacker codecTypes.AnyUnpacker) error {
+	for _, x := range q.Certificates {
+		err := x.UnpackInterfaces(unpacker)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
@@ -107,20 +64,8 @@ func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 	if err != nil {
 		return nil, err
 	}
-	resCertificates := []QueryResCertificate{}
-	for _, certificate := range certificates {
-		resCertificate := NewQueryResCertificate(
-			certificate.ID().String(),
-			certificate.Type().String(),
-			certificate.RequestContent(),
-			certificate.FormattedCertificateContent(),
-			certificate.Description(),
-			certificate.Certifier().String(),
-			certificate.TxHash(),
-		)
-		resCertificates = append(resCertificates, resCertificate)
-	}
-	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, QueryResCertificates{Total: total, Certificates: resCertificates})
+
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, QueryResCertificates{Total: total, Certificates: certificates})
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
