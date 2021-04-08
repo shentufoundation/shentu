@@ -25,7 +25,7 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-func (k msgServer) SubmitProposal(goCtx context.Context, msg *types.MsgSubmitProposal) (*types.MsgSubmitProposalResponse, error) {
+func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmitProposal) (*govtypes.MsgSubmitProposalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var initialDepositAmount = msg.InitialDeposit.AmountOf(k.stakingKeeper.BondDenom(ctx))
@@ -85,12 +85,12 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *types.MsgSubmitPro
 	}
 
 	ctx.EventManager().EmitEvent(submitEvent)
-	return &types.MsgSubmitProposalResponse{
+	return &govtypes.MsgSubmitProposalResponse{
 		ProposalId: proposal.ProposalId,
 	}, nil
 }
 
-func validateProposalByType(ctx sdk.Context, k Keeper, msg *types.MsgSubmitProposal) error {
+func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitProposal) error {
 	switch c := msg.GetContent().(type) {
 	case *certtypes.CertifierUpdateProposal:
 		if c.Alias != "" && k.CertKeeper.HasCertifierAlias(ctx, c.Alias) {
@@ -156,7 +156,7 @@ func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, proposal types.Proposa
 	return nil
 }
 
-func (k msgServer) Vote(goCtx context.Context, msg *types.MsgVote) (*types.MsgVoteResponse, error) {
+func (k msgServer) Vote(goCtx context.Context, msg *govtypes.MsgVote) (*govtypes.MsgVoteResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	accAddr, accErr := sdk.AccAddressFromBech32(msg.Voter)
 	if accErr != nil {
@@ -175,10 +175,10 @@ func (k msgServer) Vote(goCtx context.Context, msg *types.MsgVote) (*types.MsgVo
 		),
 	)
 
-	return &types.MsgVoteResponse{}, nil
+	return &govtypes.MsgVoteResponse{}, nil
 }
 
-func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
+func (k msgServer) Deposit(goCtx context.Context, msg *govtypes.MsgDeposit) (*govtypes.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	accAddr, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
@@ -207,5 +207,5 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		)
 	}
 
-	return &types.MsgDepositResponse{}, nil
+	return &govtypes.MsgDepositResponse{}, nil
 }
