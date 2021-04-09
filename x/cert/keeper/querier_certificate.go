@@ -64,6 +64,7 @@ func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 	if err != nil {
 		return nil, err
 	}
+
 	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, QueryResCertificates{Total: total, Certificates: certificates})
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
