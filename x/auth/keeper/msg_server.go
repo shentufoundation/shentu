@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/auth/types"
 )
 
@@ -59,7 +58,7 @@ func (k msgServer) Unlock(goCtx context.Context, msg *types.MsgUnlock) (*types.M
 
 	// update vested coins
 	mvacc.VestedCoins = mvacc.VestedCoins.Add(msg.UnlockAmount...)
-	if ctx.BlockHeight() >= common.Update1Height && mvacc.DelegatedVesting.IsAllGT(mvacc.OriginalVesting.Sub(mvacc.VestedCoins)) {
+	if mvacc.DelegatedVesting.IsAllGT(mvacc.OriginalVesting.Sub(mvacc.VestedCoins)) {
 		unlockedDelegated := mvacc.DelegatedVesting.Sub(mvacc.OriginalVesting.Sub(mvacc.VestedCoins))
 		mvacc.DelegatedVesting = mvacc.DelegatedVesting.Sub(unlockedDelegated)
 		mvacc.DelegatedFree = mvacc.DelegatedFree.Add(unlockedDelegated...)

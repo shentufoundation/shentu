@@ -1,0 +1,10 @@
+{
+  "key": "testkey",
+  "chain-id": "aplikigo-1",
+  "rpc-addr": "http://localhost:26557",
+  "account-prefix": "regen",
+  "gas-prices": "0.025stake",
+  "default-denom": "stake",
+  "trusting-period": "330h",
+  "gas-adjustment": 1.5
+}

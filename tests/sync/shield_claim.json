@@ -1,5 +1,5 @@
 {
-  "pool_id": "1",
+  "pool_id": 1,
   "loss": [
     {
       "denom": "uctk",
@@ -7,7 +7,7 @@
     }
   ],
   "evidence": "Attack happened on <time> caused loss of <amount> to <account> by <txhashes>",
-  "purchase_id": "3",
+  "purchase_id": 3,
   "description": "Details of the attack",
   "deposit": [
     {
