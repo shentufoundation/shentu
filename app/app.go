@@ -103,6 +103,9 @@ import (
 	"github.com/certikfoundation/shentu/x/slashing"
 	"github.com/certikfoundation/shentu/x/staking"
 	stakingkeeper "github.com/certikfoundation/shentu/x/staking/keeper"
+
+	// unnamed import of statik for swagger UI support
+	_ "github.com/certikfoundation/shentu/docs/statik"
 )
 
 const (
