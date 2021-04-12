@@ -66,7 +66,7 @@ paths:
               result:
                 type: object
                 properties:
-                  certifier:
+                  address:
                     type: string
                     example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
                   alias:
@@ -282,41 +282,33 @@ paths:
                   certificate_id:
                     type: string
                     example: "1"
-                  certificate_type:
-                    type: string
-                    example: "Compilation"
-                  request_content:
+                  content:
                     type: object
                     properties:
-                      request_content_type:
+                      type:
                         type: string
-                        example: "1"
-                      request_content_type_name:
+                        example: "cert/Compilation"
+                      value:
+                        type: object
+                        properties:
+                          content:
+                            type: string
+                            example: "ff"
+                  compilation_content:
+                    type: object
+                    properties:
+                      compiler:
                         type: string
-                        example: "SourceCodeHash"
-                      request_content:
+                        example: "solc0.5.15"
+                      bytecode_hash:
                         type: string
-                        example: "ff"
-                  certificate_content:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        key:
-                          type: string
-                          example: "compiler"
-                        value:
-                          type: string
-                          example: "solc0.5.15"
+                        example: "BytecodeHash"
                   description:
                     type: string
                     example: "a description for the compilation"
                   certifier:
                     type: string
                     example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
-                  txhash:
-                    type: string
-                    example: "350183f6c02f40f1899b12e7e1b787d1603380a8ba9bf41668066fbdbbbacf38"
         404:
           description: Failed to find result
   /cert/certificates:
@@ -349,41 +341,30 @@ paths:
                         certificate_id:
                           type: string
                           example: "1"
-                        certificate_type:
-                          type: string
-                          example: "Compilation"
-                        request_content:
+                        content:
                           type: object
                           properties:
-                            request_content_type:
+                            type:
                               type: string
-                              example: "1"
-                            request_content_type_name:
+                              example: "cert/Compilation"
+                            value:
                               type: string
                               example: "SourceCodeHash"
-                            request_content:
+                        compilation_content:
+                          type: object
+                          properties:
+                            compiler:
                               type: string
-                              example: "ff"
-                        certificate_content:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              key:
-                                type: string
-                                example: "compiler"
-                              value:
-                                type: string
-                                example: "a compiler"
+                              example: "compiler"
+                            bytecode_hash:
+                              type: string
+                              example: "BytecodeHash"
                         description:
                           type: string
                           example: "a description for the compilation"
                         certifier:
                           type: string
                           example: "certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6"
-                        txhash:
-                          type: string
-                          example: "350183f6c02f40f1899b12e7e1b787d1603380a8ba9bf41668066fbdbbbacf38"
         404:
           description: Failed to find result
 
@@ -2028,10 +2009,6 @@ paths:
                     type: string
                   address:
                     type: string
-                  coins:
-                    type: array
-                    items:
-                      $ref: "#/definitions/Coin"
                   public_key:
                     $ref: "#/definitions/PublicKey"
                   sequence:
