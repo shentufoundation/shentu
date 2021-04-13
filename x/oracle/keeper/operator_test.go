@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/certikfoundation/shentu/simapp"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/certikfoundation/shentu/simapp"
 
 	"github.com/stretchr/testify/require"
 
