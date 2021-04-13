@@ -91,7 +91,6 @@ func TestOperator_Reward(t *testing.T) {
 
 	operator, err := ok.GetOperator(ctx, addrs[0])
 	require.Nil(t, err)
-
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin("uctk", 200)}, operator.AccumulatedRewards)
 
 	withdrawal, err := ok.WithdrawAllReward(ctx, addrs[0])
