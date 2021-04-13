@@ -239,42 +239,6 @@ jobs:
             source $BASH_ENV
             make test-sim-fast
 
-  docker-image:
-    executor: golang
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run: |
-          CERTIKD_VERSION=''
-          if [ "${CIRCLE_BRANCH}" = "master" ]; then
-            CERTIKD_VERSION="stable"
-          elif [ "${CIRCLE_BRANCH}" = "develop" ]; then
-            CERTIKD_VERSION="develop"
-          fi
-          if [ -z "${CERTIKD_VERSION}" ]; then
-            docker build .
-          else
-            docker build -t shentu:$CERTIKD_VERSION .
-            docker login --password-stdin -u $DOCKER_USER \<<<$DOCKER_PASS
-            docker push shentu:$CERTIKD_VERSION
-          fi
-
-  docker-tagged:
-    executor: golang
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run: |
-          docker build -t shentu:$CIRCLE_TAG .
-          docker login --password-stdin -u $DOCKER_USER \<<<$DOCKER_PASS
-          docker push shentu:$CIRCLE_TAG
-
   reproducible-builds:
     executor: golang
     steps:
@@ -298,19 +262,6 @@ workflows:
   version: 2.1
   test-suite:
     jobs:
-      - docker-image:
-          requires:
-           - setup-dependencies
-      - docker-tagged:
-          filters:
-            tags:
-              only:
-               - /^v.*/
-            branches:
-              ignore:
-               - /.*/
-          requires:
-           - setup-dependencies
       - macos-ci:
           filters:
             branches:

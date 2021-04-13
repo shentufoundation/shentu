@@ -452,9 +452,11 @@ func govMigrate(oldGovState v131GovGenesisState) *govtypes.GenesisState {
 			panic(err)
 		}
 		newProposals[i] = govtypes.Proposal{
-			ProposalId: oldProposal.ProposalID,
-			Content:    migrateContent(oldProposal.Content),
-			Status:     migrateProposalStatus(stat),
+			Content:                 migrateContent(oldProposal.Content),
+			ProposalId:              oldProposal.ProposalID,
+			Status:                  migrateProposalStatus(stat),
+			IsProposerCouncilMember: oldProposal.IsProposerCouncilMember,
+			ProposerAddress:         oldProposal.ProposerAddress.String(),
 			FinalTallyResult: v040gov.TallyResult{
 				Yes:        oldProposal.FinalTallyResult.Yes,
 				Abstain:    oldProposal.FinalTallyResult.Abstain,
