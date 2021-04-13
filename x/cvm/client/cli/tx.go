@@ -168,9 +168,6 @@ func parseCallCmd(cliCtx client.Context, calleeString string, calleeAddr sdk.Acc
 	if err != nil {
 		return nil, nil, err
 	}
-	if abiSpec == nil {
-		return nil, nil, fmt.Errorf("corresponding ABI was not found")
-	}
 	logger := logging.NewNoopLogger()
 
 	data, err := parseData(function, abiSpec, args, logger)
