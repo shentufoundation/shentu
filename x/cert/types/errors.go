@@ -4,42 +4,79 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+// Error Code Enums
+const (
+	errUnqualifiedCertifier uint32 = iota + 101
+	errCertifierAlreadyExists
+	errCertifierNotExists
+	errRepeatedAlias
+	errUnqualifiedProposer
+	errEmptyCertifier
+	errAddOrRemove
+	errInvalidCertifierAlias
+	errOnlyOneCertifier
+)
+
+const (
+	errRejectedValidator uint32 = iota + 201
+	errValidatorCertified
+	errValidatorUncertified
+	errTombstonedValidator
+	errMissingValidator
+)
+
+const (
+	errCertificateNotExists uint32 = iota + 301
+	errCertificateGenesis
+	errInvalidCertificateType
+	errSourceCodeHash
+	errCompiler
+	errBytecodeHash
+	errInvalidRequestContentType
+	errUnqualifiedRevoker
+)
+
+const (
+	errLibraryNotExists uint32 = iota + 401
+	errLibraryAlreadyExists
+)
+
 // [1xx] Certifier
 var (
-	ErrUnqualifiedCertifier   = sdkerrors.Register(ModuleName, 101, "certifier not qualified")
-	ErrCertifierAlreadyExists = sdkerrors.Register(ModuleName, 102, "certifier already added")
-	ErrCertifierNotExists     = sdkerrors.Register(ModuleName, 103, "certifier does not exist")
-	ErrRepeatedAlias          = sdkerrors.Register(ModuleName, 104, "the alias has been used by other certifiers")
-	ErrUnqualifiedProposer    = sdkerrors.Register(ModuleName, 105, "proposer not qualified")
-	ErrEmptyCertifier         = sdkerrors.Register(ModuleName, 106, "certifier address empty")
-	ErrAddOrRemove            = sdkerrors.Register(ModuleName, 107, "must be `add` or `remove`")
-	ErrInvalidCertifierAlias  = sdkerrors.Register(ModuleName, 108, "invalid certifier alias`")
-	ErrOnlyOneCertifier       = sdkerrors.Register(ModuleName, 109, "cannot remove only certifier")
+	ErrUnqualifiedCertifier   = sdkerrors.Register(ModuleName, errUnqualifiedCertifier, "certifier not qualified")
+	ErrCertifierAlreadyExists = sdkerrors.Register(ModuleName, errCertifierAlreadyExists, "certifier already added")
+	ErrCertifierNotExists     = sdkerrors.Register(ModuleName, errCertifierNotExists, "certifier does not exist")
+	ErrRepeatedAlias          = sdkerrors.Register(ModuleName, errRepeatedAlias, "the alias has been used by other certifiers")
+	ErrUnqualifiedProposer    = sdkerrors.Register(ModuleName, errUnqualifiedProposer, "proposer not qualified")
+	ErrEmptyCertifier         = sdkerrors.Register(ModuleName, errEmptyCertifier, "certifier address empty")
+	ErrAddOrRemove            = sdkerrors.Register(ModuleName, errAddOrRemove, "must be `add` or `remove`")
+	ErrInvalidCertifierAlias  = sdkerrors.Register(ModuleName, errInvalidCertifierAlias, "invalid certifier alias`")
+	ErrOnlyOneCertifier       = sdkerrors.Register(ModuleName, errOnlyOneCertifier, "cannot remove only certifier")
 )
 
 // [2xx] Validator
 var (
-	ErrRejectedValidator    = sdkerrors.Register(ModuleName, 201, "only certifiers can certify or de-certify validators")
-	ErrValidatorCertified   = sdkerrors.Register(ModuleName, 202, "validator has already been certified")
-	ErrValidatorUncertified = sdkerrors.Register(ModuleName, 203, "validator has not been certified")
-	ErrTombstonedValidator  = sdkerrors.Register(ModuleName, 204, "validator has already been tombstoned")
-	ErrMissingValidator     = sdkerrors.Register(ModuleName, 205, "validator missing from staking store")
+	ErrRejectedValidator    = sdkerrors.Register(ModuleName, errRejectedValidator, "only certifiers can certify or de-certify validators")
+	ErrValidatorCertified   = sdkerrors.Register(ModuleName, errValidatorCertified, "validator has already been certified")
+	ErrValidatorUncertified = sdkerrors.Register(ModuleName, errValidatorUncertified, "validator has not been certified")
+	ErrTombstonedValidator  = sdkerrors.Register(ModuleName, errTombstonedValidator, "validator has already been tombstoned")
+	ErrMissingValidator     = sdkerrors.Register(ModuleName, errMissingValidator, "validator missing from staking store")
 )
 
 // [3xx] Certificate
 var (
-	ErrCertificateNotExists      = sdkerrors.Register(ModuleName, 301, "certificate id does not exist")
-	ErrCertificateGenesis        = sdkerrors.Register(ModuleName, 302, "invalid certificate genesis")
-	ErrInvalidCertificateType    = sdkerrors.Register(ModuleName, 303, "invalid certificate type")
-	ErrSourceCodeHash            = sdkerrors.Register(ModuleName, 304, "invalid source code hash")
-	ErrCompiler                  = sdkerrors.Register(ModuleName, 305, "invalid compiler")
-	ErrBytecodeHash              = sdkerrors.Register(ModuleName, 306, "invalid bytecode hash")
-	ErrInvalidRequestContentType = sdkerrors.Register(ModuleName, 307, "invalid request content type")
-	ErrUnqualifiedRevoker        = sdkerrors.Register(ModuleName, 308, "only certifiers can revoke this certificate")
+	ErrCertificateNotExists      = sdkerrors.Register(ModuleName, errCertificateNotExists, "certificate id does not exist")
+	ErrCertificateGenesis        = sdkerrors.Register(ModuleName, errCertificateGenesis, "invalid certificate genesis")
+	ErrInvalidCertificateType    = sdkerrors.Register(ModuleName, errInvalidCertificateType, "invalid certificate type")
+	ErrSourceCodeHash            = sdkerrors.Register(ModuleName, errSourceCodeHash, "invalid source code hash")
+	ErrCompiler                  = sdkerrors.Register(ModuleName, errCompiler, "invalid compiler")
+	ErrBytecodeHash              = sdkerrors.Register(ModuleName, errBytecodeHash, "invalid bytecode hash")
+	ErrInvalidRequestContentType = sdkerrors.Register(ModuleName, errInvalidRequestContentType, "invalid request content type")
+	ErrUnqualifiedRevoker        = sdkerrors.Register(ModuleName, errUnqualifiedRevoker, "only certifiers can revoke this certificate")
 )
 
 // [4xx] Library
 var (
-	ErrLibraryNotExists     = sdkerrors.Register(ModuleName, 401, "library does not exist")
-	ErrLibraryAlreadyExists = sdkerrors.Register(ModuleName, 402, "library already exists")
+	ErrLibraryNotExists     = sdkerrors.Register(ModuleName, errLibraryNotExists, "library does not exist")
+	ErrLibraryAlreadyExists = sdkerrors.Register(ModuleName, errLibraryAlreadyExists, "library already exists")
 )
