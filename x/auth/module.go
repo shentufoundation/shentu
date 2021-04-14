@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"encoding/json"
 	"math/rand"
 
@@ -75,6 +76,7 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the auth module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 	cosmosauth.AppModuleBasic{}.RegisterGRPCGatewayRoutes(clientCtx, mux)
 }
 
@@ -136,6 +138,7 @@ func (am AppModule) LegacyQuerierHandler(cdc *codec.LegacyAmino) sdk.Querier {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 	authtypes.RegisterQueryServer(cfg.QueryServer(), am.authKeeper)
 }
 
