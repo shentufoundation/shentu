@@ -82,8 +82,7 @@ func (q Keeper) PoolPurchaseLists(c context.Context, req *types.QueryPoolPurchas
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	var purchaseLists []types.PurchaseList
-	purchaseLists = q.GetPoolPurchaseLists(ctx, req.PoolId)
+	purchaseLists := q.GetPoolPurchaseLists(ctx, req.PoolId)
 
 	return &types.QueryPurchaseListsResponse{PurchaseLists: purchaseLists}, nil
 }
