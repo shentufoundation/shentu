@@ -267,17 +267,7 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run: |
-          CERTIK_VERSION=''
-          if [ "${CIRCLE_BRANCH}" = "master" ]; then
-            CERTIK_VERSION="latest"
-          fi
-          if [ -z "${CERTIK_VERSION}" ]; then
-            docker build .
-          else
-            docker build -t ghcr.io/certikfoundation/shentu:$CERTIK_VERSION .
-            docker login --password-stdin ghcr.io -u $DOCKER_USER \<<<$DOCKER_PASS
-            docker push ghcr.io/certikfoundation/shentu:$CERTIK_VERSION
-          fi
+          docker build .
 
   docker-tagged:
     executor: golang
