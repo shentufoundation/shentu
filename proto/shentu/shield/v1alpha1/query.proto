@@ -23,12 +23,16 @@ service Query {
     option (google.api.http).get = "/shentu/shield/v1alpha1/pools";
   }
 
-  rpc PurchaseList(QueryPurchaseListRequest) returns (QueryPurchaseListResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/pool/{pool_id}/purchaser/{purchaser}/purchase_list";
+  rpc PoolPurchaseLists(QueryPoolPurchaseListsRequest) returns (QueryPurchaseListsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/pool_purchase_lists/{pool_id}";
   }
 
   rpc PurchaseLists(QueryPurchaseListsRequest) returns (QueryPurchaseListsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/pool/{pool_id}/purchaser/{purchaser}/purchase_lists";
+    option (google.api.http).get = "/shentu/shield/v1alpha1/purchase_lists/{purchaser}";
+  }
+
+  rpc PurchaseList(QueryPurchaseListRequest) returns (QueryPurchaseListResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/purchase_list/{pool_id}/{purchaser}";
   }
 
   rpc Purchases(QueryPurchasesRequest) returns (QueryPurchasesResponse) {
@@ -56,7 +60,7 @@ service Query {
   }
 
   rpc ShieldStaking(QueryShieldStakingRequest) returns (QueryShieldStakingResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/pool/{pool_id}/purchaser/{purchaser}/shield_staking";
+    option (google.api.http).get = "/shentu/shield/v1alpha1/shield_staking/{pool_id}/{purchaser}";
   }
 
   rpc ShieldStakingRate(QueryShieldStakingRateRequest) returns (QueryShieldStakingRateResponse) {
@@ -96,6 +100,18 @@ message QueryPoolsResponse {
   repeated Pool pools = 1 [(gogoproto.nullable) = false];
 }
 
+message QueryPoolPurchaseListsRequest {
+  uint64 pool_id = 1;
+}
+
+
+message QueryPurchaseListsRequest {
+  string purchaser = 1;
+}
+
+message QueryPurchaseListsResponse {
+  repeated PurchaseList purchase_lists = 1 [(gogoproto.nullable) = false];
+}
 
 message QueryPurchaseListRequest {
   uint64 pool_id = 1;
@@ -105,17 +121,6 @@ message QueryPurchaseListRequest {
 message QueryPurchaseListResponse {
   PurchaseList purchase_list = 1 [(gogoproto.nullable) = false];
 }
-
-
-message QueryPurchaseListsRequest {
-  uint64 pool_id = 1;
-  string purchaser = 2;
-}
-
-message QueryPurchaseListsResponse {
-  repeated PurchaseList purchase_lists = 1 [(gogoproto.nullable) = false];
-}
-
 
 message QueryPurchasesRequest {
 }
