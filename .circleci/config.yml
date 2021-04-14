@@ -275,7 +275,7 @@ jobs:
             docker build .
           else
             docker build -t ghcr.io/certikfoundation/shentu:$CERTIK_VERSION .
-            docker login --password-stdin -u $DOCKER_USER \<<<$DOCKER_PASS
+            docker login --password-stdin ghcr.io -u $DOCKER_USER \<<<$DOCKER_PASS
             docker push ghcr.io/certikfoundation/shentu:$CERTIK_VERSION
           fi
 
@@ -289,7 +289,7 @@ jobs:
           docker_layer_caching: true
       - run: |
           docker build -t ghcr.io/certikfoundation/shentu:$CIRCLE_TAG .
-          docker login --password-stdin -u $DOCKER_USER \<<<$DOCKER_PASS
+          docker login --password-stdin ghcr.io -u $DOCKER_USER \<<<$DOCKER_PASS
           docker push ghcr.io/certikfoundation/shentu:$CIRCLE_TAG
 
 workflows:
