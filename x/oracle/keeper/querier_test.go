@@ -4,16 +4,14 @@ import (
 	"testing"
 	"time"
 
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
-	"github.com/certikfoundation/shentu/simapp"
-
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/certikfoundation/shentu/simapp"
 	. "github.com/certikfoundation/shentu/x/oracle/keeper"
 	"github.com/certikfoundation/shentu/x/oracle/types"
 )
