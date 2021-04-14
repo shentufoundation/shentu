@@ -112,19 +112,12 @@ func GetCmdValidator() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
+			_, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
 			if err != nil {
 				return err
 			}
-			var pkAny *codectypes.Any
-			if pk != nil {
-				var err error
-				if pkAny, err = codectypes.NewAnyWithValue(pk); err != nil {
-					return err
-				}
-			}
 
-			res, err := queryClient.Validator(context.Background(), &types.QueryValidatorRequest{Pubkey: pkAny})
+			res, err := queryClient.Validator(context.Background(), &types.QueryValidatorRequest{Pubkey: args[0]})
 			if err != nil {
 				return err
 			}

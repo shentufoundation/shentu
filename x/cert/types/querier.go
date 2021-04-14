@@ -92,9 +92,3 @@ func (q QueryPlatformRequest) UnpackInterfaces(unpacker codectypes.AnyUnpacker) 
 	var pubKey cryptotypes.PubKey
 	return unpacker.UnpackAny(q.Pubkey, &pubKey)
 }
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (q QueryValidatorRequest) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var pubKey cryptotypes.PubKey
-	return unpacker.UnpackAny(q.Pubkey, &pubKey)
-}
