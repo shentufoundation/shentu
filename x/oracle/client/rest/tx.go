@@ -22,7 +22,6 @@ func registerTxHandlers(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/deposit-collateral", types.ModuleName), depositCollateralHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/withdraw-collateral", types.ModuleName), withdrawCollateralHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/claim-reward", types.ModuleName), claimRewardHandler(cliCtx)).Methods("POST")
-
 	r.HandleFunc(fmt.Sprintf("/%s/create-task", types.ModuleName), createTaskHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/respond-to-task", types.ModuleName), respondToTaskHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/inquiry-task", types.ModuleName), inquireTaskHandler(cliCtx)).Methods("POST")

@@ -103,6 +103,9 @@ import (
 	"github.com/certikfoundation/shentu/x/slashing"
 	"github.com/certikfoundation/shentu/x/staking"
 	stakingkeeper "github.com/certikfoundation/shentu/x/staking/keeper"
+
+	// unnamed import of statik for swagger UI support
+	_ "github.com/certikfoundation/shentu/docs/statik"
 )
 
 const (
@@ -448,6 +451,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cert.NewAppModule(app.certKeeper, app.accountKeeper, app.bankKeeper),
 		oracle.NewAppModule(app.oracleKeeper, app.bankKeeper),
 		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		ibc.NewAppModule(app.ibcKeeper),
 		transferModule,
 	)
 
@@ -455,7 +459,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// there is nothing left over in the validator fee pool, so as to
 	// keep the CanWithdrawInvariant invariant.
 	app.mm.SetOrderBeginBlockers(upgradetypes.ModuleName, sdkminttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, evidencetypes.ModuleName,
-		oracletypes.ModuleName, cvmtypes.ModuleName, shieldtypes.ModuleName)
+		oracletypes.ModuleName, cvmtypes.ModuleName, stakingtypes.ModuleName, shieldtypes.ModuleName, ibchost.ModuleName)
 
 	// NOTE: Shield endblocker comes before staking because it queries
 	// unbonding delegations that staking endblocker deletes.
@@ -464,10 +468,11 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// NOTE: genutil moodule must occur after staking so that pools
 	// are properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
+		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
+		sdkbanktypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
-		sdkbanktypes.ModuleName,
 		slashingtypes.ModuleName,
 		sdkgovtypes.ModuleName,
 		sdkminttypes.ModuleName,
@@ -475,12 +480,15 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		shieldtypes.ModuleName,
 		crisistypes.ModuleName,
 		certtypes.ModuleName,
+		ibchost.ModuleName,
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		oracletypes.ModuleName,
+		ibctransfertypes.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
+		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
@@ -494,6 +502,8 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		genutiltypes.ModuleName,
 		oracletypes.ModuleName,
 		shieldtypes.ModuleName,
+		ibchost.ModuleName,
+		ibctransfertypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -514,6 +524,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cert.NewAppModule(app.certKeeper, app.accountKeeper, app.bankKeeper),
 		oracle.NewAppModule(app.oracleKeeper, app.bankKeeper),
 		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		ibc.NewAppModule(app.ibcKeeper),
 		transferModule,
 	)
 

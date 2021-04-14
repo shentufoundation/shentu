@@ -234,9 +234,9 @@ func GetCmdPoolPurchases() *cobra.Command {
 				return fmt.Errorf("pool id %s is invalid", args[0])
 			}
 
-			res, err := queryClient.PurchaseLists(
+			res, err := queryClient.PoolPurchaseLists(
 				cmd.Context(),
-				&types.QueryPurchaseListsRequest{PoolId: poolID},
+				&types.QueryPoolPurchaseListsRequest{PoolId: poolID},
 			)
 			if err != nil {
 				return err
