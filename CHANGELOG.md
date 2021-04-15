@@ -37,19 +37,28 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [2.0.0] - TBD
 
+Version 2.0.0 brings many changes with SDK upgrading to Stargate version. For more information on the SDK upgrade, visit [CosmosSDK Release Notes](https://github.com/cosmos/cosmos-sdk/releases) 
+
 ### Client Breaking Changes
-* (app) [\#241](https://github.com/certikfoundation/shentu/pull/241) Rename default binary name to `certik`
+* (app) [\#241](https://github.com/certikfoundation/shentu/pull/241) Renamed default binary name to `certik`.
 
 ### API Breaking Changes
-* (cvm) [\#231](https://github.com/certikfoundation/shentu/pull/231) Remove direct solidity file deployment.
-* (x/shield) [\#244](https://github.com/certikfoundation/shentu/pull/244) Fix shield query & state export
+* (app) [\#221](https://github.com/certikfoundation/shentu/pull/221) Restructure general endpoints based on CosmosSDK.
+* (cvm) [\#231](https://github.com/certikfoundation/shentu/pull/231) Removed direct solidity file deployment.
+* (x/shield) [\#244](https://github.com/certikfoundation/shentu/pull/244) Fixed shield query & state export
 
 ### State Machine Breaking Changes
+* (app) [\#221](https://github.com/certikfoundation/shentu/pull/221) Upgraded SDK to 0.42.x.
+
 ### Features
+* (app) [\#236](https://github.com/certikfoundation/shentu/pull/236) Added genesis migration command from 1.x.x to 2.0.0.
+
 ### Improvements
-* [\#230](https://github.com/certikfoundation/shentu/pull/230) Optimized shield invariant & removed crisis module from endblocker
+* (shield) [\#230](https://github.com/certikfoundation/shentu/pull/230) Optimized shield invariant & removed crisis module from endblocker.
+
 ### Tests
 ### Bug Fixes
+* (app) [\#254](https://github.com/certikfoundation/shentu/pull/254) Fix a bug where modules could directly receive coins.
 
 ## [v1.3.1] - 02-05-2021
 
