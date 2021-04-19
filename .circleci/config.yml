@@ -79,13 +79,6 @@ jobs:
           paths:
             - "."
 
-  test-sim-nondeterminism:
-    executor: golang
-    steps:
-      - make:
-          target: test-sim-nondeterminism
-          description: "Test Shentu non-determinism simulations"
-  
   test-sim-fast:
     executor: golang
     steps:
