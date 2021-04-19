@@ -69,9 +69,9 @@ func (q Querier) Validator(c context.Context, req *types.QueryValidatorRequest) 
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	pk, ok := req.Pubkey.GetCachedValue().(cryptotypes.PubKey)
-	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into cryto.PubKey %T", req.Pubkey)
+	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, req.Pubkey)
+	if err != nil {
+		return nil, err
 	}
 
 	certifier, err := q.GetValidatorCertifier(ctx, pk)

@@ -79,13 +79,6 @@ jobs:
           paths:
             - "."
 
-  test-sim-nondeterminism:
-    executor: golang
-    steps:
-      - make:
-          target: test-sim-nondeterminism
-          description: "Test Shentu non-determinism simulations"
-  
   test-sim-fast:
     executor: golang
     steps:
@@ -258,10 +251,47 @@ jobs:
       - store_artifacts:
           path: /go/src/github.com/certikfoundation/shentu/certik-multi-res.yml
 
+  docker-image:
+    executor: golang
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: |
+          docker build .
+
+  docker-tagged:
+    executor: golang
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: |
+          docker build -t ghcr.io/certikfoundation/shentu:$CIRCLE_TAG .
+          docker login --password-stdin ghcr.io -u $DOCKER_USER \<<<$DOCKER_PASS
+          docker push ghcr.io/certikfoundation/shentu:$CIRCLE_TAG
+
 workflows:
   version: 2.1
   test-suite:
     jobs:
+      - docker-image:
+          requires:
+            - setup-dependencies
+      - docker-tagged:
+          filters:
+            tags:
+              only:
+                - /^v.*/
+            branches:
+              ignore:
+                - /.*/
+          requires:
+            - setup-dependencies
       - macos-ci:
           filters:
             branches:
@@ -274,9 +304,6 @@ workflows:
             tags:
               only:
                 - /^v.*/
-      - test-sim-nondeterminism:
-          requires:
-            - setup-dependencies
       - test-sim-fast:
           requires:
             - setup-dependencies
