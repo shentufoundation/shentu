@@ -311,9 +311,6 @@ workflows:
             tags:
               only:
                 - /^v.*/
-      - test-sim-nondeterminism:
-          requires:
-            - setup-dependencies
       - test-sim-fast:
           requires:
             - setup-dependencies
