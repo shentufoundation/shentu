@@ -75,8 +75,19 @@ func (q Keeper) PurchaseList(c context.Context, req *types.QueryPurchaseListRequ
 	return &types.QueryPurchaseListResponse{PurchaseList: purchaseList}, nil
 }
 
-// PurchaseLists queries purchase lists given pool or
-// purchaser parameters.
+// PurchaserPurchaseLists queries purchase lists for a given pool.
+func (q Keeper) PoolPurchaseLists(c context.Context, req *types.QueryPoolPurchaseListsRequest) (*types.QueryPurchaseListsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	purchaseLists := q.GetPoolPurchaseLists(ctx, req.PoolId)
+
+	return &types.QueryPurchaseListsResponse{PurchaseLists: purchaseLists}, nil
+}
+
+// PurchaseLists queries purchase lists purchaser.
 func (q Keeper) PurchaseLists(c context.Context, req *types.QueryPurchaseListsRequest) (*types.QueryPurchaseListsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -84,15 +95,11 @@ func (q Keeper) PurchaseLists(c context.Context, req *types.QueryPurchaseListsRe
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var purchaseLists []types.PurchaseList
-	if req.Purchaser != "" {
-		purchaser, err := sdk.AccAddressFromBech32(req.Purchaser)
-		if err != nil {
-			return nil, err
-		}
-		purchaseLists = q.GetPurchaserPurchases(ctx, purchaser)
-	} else {
-		purchaseLists = q.GetPoolPurchaseLists(ctx, req.PoolId)
+	purchaser, err := sdk.AccAddressFromBech32(req.Purchaser)
+	if err != nil {
+		return nil, err
 	}
+	purchaseLists = q.GetPurchaserPurchases(ctx, purchaser)
 
 	return &types.QueryPurchaseListsResponse{PurchaseLists: purchaseLists}, nil
 }

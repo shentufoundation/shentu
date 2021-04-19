@@ -38,18 +38,28 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [2.0.0] - TBD
 
 ### Client Breaking Changes
-* (app) [\#241](https://github.com/certikfoundation/shentu/pull/241) Rename default binary name to `certik`
+* (app) [\#241](https://github.com/certikfoundation/shentu/pull/241) Rename default binary name to `certik`.
 
 ### API Breaking Changes
 * (cvm) [\#231](https://github.com/certikfoundation/shentu/pull/231) Remove direct solidity file deployment.
-* (x/shield) [\#244](https://github.com/certikfoundation/shentu/pull/244) Fix shield query & state export
+* (shield) [\#244](https://github.com/certikfoundation/shentu/pull/244) Fix shield query & state export.
+* (cert) [\#249](https://github.com/certikfoundation/shentu/pull/249) Certification module refactor.
+* (shield) [\#269](https://github.com/certikfoundation/shentu/pull/269) Shield gRPC query refactor.
+
 
 ### State Machine Breaking Changes
 ### Features
+* (ibc) [\#251](https://github.com/certikfoundation/shentu/pull/251) Add IBC support.
+
 ### Improvements
-* [\#230](https://github.com/certikfoundation/shentu/pull/230) Optimized shield invariant & removed crisis module from endblocker
+* [\#230](https://github.com/certikfoundation/shentu/pull/230) Optimized shield invariant & removed crisis module from endblocker.
+
 ### Tests
+
 ### Bug Fixes
+* (app) [\#254](https://github.com/certikfoundation/shentu/pull/254) Fix module account coin receiving.
+* (gov) [\#259](https://github.com/certikfoundation/shentu/pull/259) Gov module bug fixes. 
+* (gov) [\#268](https://github.com/certikfoundation/shentu/pull/268) Fix proposal migration bug.
 
 ## [v1.3.1] - 02-05-2021
 
@@ -59,6 +69,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 ### Improvements
 * [\#230](https://github.com/certikfoundation/shentu/pull/230) Optimized shield invariant & removed crisis module from endblocker
+
 ### Tests
 ### Bug Fixes
 

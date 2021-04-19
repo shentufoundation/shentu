@@ -6515,7 +6515,7 @@ paths:
           format: byte
       tags:
         - Query
-  /shentu/cert/v1alpha1/validator:
+  '/shentu/cert/v1alpha1/validator/{pubkey}':
     get:
       operationId: CertValidator
       responses:
@@ -6716,66 +6716,10 @@ paths:
                           "value": "1.212s"
                         }
       parameters:
-        - name: pubkey.type_url
-          description: >-
-            A URL/resource name that uniquely identifies the type of the
-            serialized
-
-            protocol buffer message. This string must contain at least
-
-            one "/" character. The last segment of the URL's path must represent
-
-            the fully qualified name of the type (as in
-
-            `path/google.protobuf.Duration`). The name should be in a canonical
-            form
-
-            (e.g., leading "." is not accepted).
-
-
-            In practice, teams usually precompile into the binary all types that
-            they
-
-            expect it to use in the context of Any. However, for URLs which use
-            the
-
-            scheme `http`, `https`, or no scheme, one can optionally set up a
-            type
-
-            server that maps type URLs to message definitions as follows:
-
-
-            * If no scheme is provided, `https` is assumed.
-
-            * An HTTP GET on the URL must yield a [google.protobuf.Type][]
-              value in binary format, or produce an error.
-            * Applications are allowed to cache lookup results based on the
-              URL, or have them precompiled into a binary to avoid any
-              lookup. Therefore, binary compatibility needs to be preserved
-              on changes to types. (Use versioned type names to manage
-              breaking changes.)
-
-            Note: this functionality is not currently available in the official
-
-            protobuf release, and it is not used for type URLs beginning with
-
-            type.googleapis.com.
-
-
-            Schemes other than `http`, `https` (or the empty scheme) might be
-
-            used with implementation specific semantics.
-          in: query
-          required: false
+        - name: pubkey
+          in: path
+          required: true
           type: string
-        - name: pubkey.value
-          description: >-
-            Must be a valid serialized protocol buffer of the above specified
-            type.
-          in: query
-          required: false
-          type: string
-          format: byte
       tags:
         - Query
   /shentu/cert/v1alpha1/validators:
@@ -11851,99 +11795,44 @@ paths:
           format: uint64
       tags:
         - Query
-  '/shentu/shield/v1alpha1/pool/{pool_id}/purchaser/{purchaser}/purchase_list':
+  /shentu/shield/v1alpha1/pool_params:
     get:
-      operationId: PurchaseList
+      operationId: PoolParams
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              purchase_list:
+              params:
                 type: object
                 properties:
-                  pool_id:
+                  protection_period:
                     type: string
-                    format: uint64
-                    description: PoolID is the id of the shield of the purchase.
-                  purchaser:
+                  shield_fees_rate:
                     type: string
-                    description: Purchaser is the address making the purchase.
-                  entries:
+                  withdraw_period:
+                    type: string
+                  pool_shield_limit:
+                    type: string
+                  min_shield_purchase:
                     type: array
                     items:
                       type: object
                       properties:
-                        purchase_id:
+                        denom:
                           type: string
-                          format: uint64
-                          description: PurchaseID is the purchase_id.
-                        protection_end_time:
+                        amount:
                           type: string
-                          format: date-time
-                          description: >-
-                            ProtectionEndTime is the time when the protection of
-                            the shield ends.
-                        deletion_time:
-                          type: string
-                          format: date-time
-                          description: >-
-                            DeletionTime is the time when the purchase should be
-                            deleted.
-                        description:
-                          type: string
-                          description: >-
-                            Description is the information about the protected
-                            asset.
-                        shield:
-                          type: string
-                          description: Shield is the unused amount of shield purchased.
-                        service_fees:
-                          description: >-
-                            ServiceFees is the service fees paid by this
-                            purchase.
-                          type: object
-                          properties:
-                            native:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  denom:
-                                    type: string
-                                  amount:
-                                    type: string
-                                description: >-
-                                  DecCoin defines a token with a denomination
-                                  and a decimal amount.
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
 
 
-                                  NOTE: The amount field is an Dec which
-                                  implements the custom method
+                        NOTE: The amount field is an Int which implements the
+                        custom method
 
-                                  signatures required by gogoproto.
-                            foreign:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  denom:
-                                    type: string
-                                  amount:
-                                    type: string
-                                description: >-
-                                  DecCoin defines a token with a denomination
-                                  and a decimal amount.
-
-
-                                  NOTE: The amount field is an Dec which
-                                  implements the custom method
-
-                                  signatures required by gogoproto.
-                      description: Purchase record an individual purchase.
-                    description: Entries stores all purchases by the purchaser in the pool.
-                description: PurchaseList is a collection of purchase.
+                        signatures required by gogoproto.
+                description: PoolParams defines the parameters for the shield pool.
         default:
           description: An unexpected error response.
           schema:
@@ -11966,21 +11855,11 @@ paths:
                     value:
                       type: string
                       format: byte
-      parameters:
-        - name: pool_id
-          in: path
-          required: true
-          type: string
-          format: uint64
-        - name: purchaser
-          in: path
-          required: true
-          type: string
       tags:
         - Query
-  '/shentu/shield/v1alpha1/pool/{pool_id}/purchaser/{purchaser}/purchase_lists':
+  '/shentu/shield/v1alpha1/pool_purchase_lists/{pool_id}':
     get:
-      operationId: PurchaseLists
+      operationId: PoolPurchaseLists
       responses:
         '200':
           description: A successful response.
@@ -12103,127 +11982,6 @@ paths:
           required: true
           type: string
           format: uint64
-        - name: purchaser
-          in: path
-          required: true
-          type: string
-      tags:
-        - Query
-  '/shentu/shield/v1alpha1/pool/{pool_id}/purchaser/{purchaser}/shield_staking':
-    get:
-      operationId: ShieldStaking
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              shield_staking:
-                type: object
-                properties:
-                  pool_id:
-                    type: string
-                    format: uint64
-                  purchaser:
-                    type: string
-                  amount:
-                    type: string
-                  withdraw_requested:
-                    type: string
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: pool_id
-          in: path
-          required: true
-          type: string
-          format: uint64
-        - name: purchaser
-          in: path
-          required: true
-          type: string
-      tags:
-        - Query
-  /shentu/shield/v1alpha1/pool_params:
-    get:
-      operationId: PoolParams
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              params:
-                type: object
-                properties:
-                  protection_period:
-                    type: string
-                  shield_fees_rate:
-                    type: string
-                  withdraw_period:
-                    type: string
-                  pool_shield_limit:
-                    type: string
-                  min_shield_purchase:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        denom:
-                          type: string
-                        amount:
-                          type: string
-                      description: >-
-                        Coin defines a token with a denomination and an amount.
-
-
-                        NOTE: The amount field is an Int which implements the
-                        custom method
-
-                        signatures required by gogoproto.
-                description: PoolParams defines the parameters for the shield pool.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
       tags:
         - Query
   /shentu/shield/v1alpha1/pools:
@@ -12557,6 +12315,259 @@ paths:
                       format: byte
       tags:
         - Query
+  '/shentu/shield/v1alpha1/purchase_list/{pool_id}/{purchaser}':
+    get:
+      operationId: PurchaseList
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              purchase_list:
+                type: object
+                properties:
+                  pool_id:
+                    type: string
+                    format: uint64
+                    description: PoolID is the id of the shield of the purchase.
+                  purchaser:
+                    type: string
+                    description: Purchaser is the address making the purchase.
+                  entries:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        purchase_id:
+                          type: string
+                          format: uint64
+                          description: PurchaseID is the purchase_id.
+                        protection_end_time:
+                          type: string
+                          format: date-time
+                          description: >-
+                            ProtectionEndTime is the time when the protection of
+                            the shield ends.
+                        deletion_time:
+                          type: string
+                          format: date-time
+                          description: >-
+                            DeletionTime is the time when the purchase should be
+                            deleted.
+                        description:
+                          type: string
+                          description: >-
+                            Description is the information about the protected
+                            asset.
+                        shield:
+                          type: string
+                          description: Shield is the unused amount of shield purchased.
+                        service_fees:
+                          description: >-
+                            ServiceFees is the service fees paid by this
+                            purchase.
+                          type: object
+                          properties:
+                            native:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  denom:
+                                    type: string
+                                  amount:
+                                    type: string
+                                description: >-
+                                  DecCoin defines a token with a denomination
+                                  and a decimal amount.
+
+
+                                  NOTE: The amount field is an Dec which
+                                  implements the custom method
+
+                                  signatures required by gogoproto.
+                            foreign:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  denom:
+                                    type: string
+                                  amount:
+                                    type: string
+                                description: >-
+                                  DecCoin defines a token with a denomination
+                                  and a decimal amount.
+
+
+                                  NOTE: The amount field is an Dec which
+                                  implements the custom method
+
+                                  signatures required by gogoproto.
+                      description: Purchase record an individual purchase.
+                    description: Entries stores all purchases by the purchaser in the pool.
+                description: PurchaseList is a collection of purchase.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: pool_id
+          in: path
+          required: true
+          type: string
+          format: uint64
+        - name: purchaser
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  '/shentu/shield/v1alpha1/purchase_lists/{purchaser}':
+    get:
+      operationId: PurchaseLists
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              purchase_lists:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    pool_id:
+                      type: string
+                      format: uint64
+                      description: PoolID is the id of the shield of the purchase.
+                    purchaser:
+                      type: string
+                      description: Purchaser is the address making the purchase.
+                    entries:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          purchase_id:
+                            type: string
+                            format: uint64
+                            description: PurchaseID is the purchase_id.
+                          protection_end_time:
+                            type: string
+                            format: date-time
+                            description: >-
+                              ProtectionEndTime is the time when the protection
+                              of the shield ends.
+                          deletion_time:
+                            type: string
+                            format: date-time
+                            description: >-
+                              DeletionTime is the time when the purchase should
+                              be deleted.
+                          description:
+                            type: string
+                            description: >-
+                              Description is the information about the protected
+                              asset.
+                          shield:
+                            type: string
+                            description: Shield is the unused amount of shield purchased.
+                          service_fees:
+                            description: >-
+                              ServiceFees is the service fees paid by this
+                              purchase.
+                            type: object
+                            properties:
+                              native:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    denom:
+                                      type: string
+                                    amount:
+                                      type: string
+                                  description: >-
+                                    DecCoin defines a token with a denomination
+                                    and a decimal amount.
+
+
+                                    NOTE: The amount field is an Dec which
+                                    implements the custom method
+
+                                    signatures required by gogoproto.
+                              foreign:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    denom:
+                                      type: string
+                                    amount:
+                                      type: string
+                                  description: >-
+                                    DecCoin defines a token with a denomination
+                                    and a decimal amount.
+
+
+                                    NOTE: The amount field is an Dec which
+                                    implements the custom method
+
+                                    signatures required by gogoproto.
+                        description: Purchase record an individual purchase.
+                      description: >-
+                        Entries stores all purchases by the purchaser in the
+                        pool.
+                  description: PurchaseList is a collection of purchase.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: purchaser
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /shentu/shield/v1alpha1/purchases:
     get:
       operationId: Purchases
@@ -12725,6 +12736,61 @@ paths:
                     value:
                       type: string
                       format: byte
+      tags:
+        - Query
+  '/shentu/shield/v1alpha1/shield_staking/{pool_id}/{purchaser}':
+    get:
+      operationId: ShieldStaking
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              shield_staking:
+                type: object
+                properties:
+                  pool_id:
+                    type: string
+                    format: uint64
+                  purchaser:
+                    type: string
+                  amount:
+                    type: string
+                  withdraw_requested:
+                    type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: pool_id
+          in: path
+          required: true
+          type: string
+          format: uint64
+        - name: purchaser
+          in: path
+          required: true
+          type: string
       tags:
         - Query
   /shentu/shield/v1alpha1/shield_staking_rate:

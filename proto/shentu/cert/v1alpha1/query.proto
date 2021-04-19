@@ -22,7 +22,7 @@ service Query {
     }
 
     rpc Validator(QueryValidatorRequest) returns (QueryValidatorResponse) {
-        option (google.api.http).get = "/shentu/cert/v1alpha1/validator";
+        option (google.api.http).get = "/shentu/cert/v1alpha1/validator/{pubkey}";
     }
 
     rpc Validators(QueryValidatorsRequest) returns (QueryValidatorsResponse) {
@@ -59,7 +59,7 @@ message QueryCertifiersResponse {
 }
 
 message QueryValidatorRequest {
-    google.protobuf.Any pubkey = 1 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+    string pubkey = 1;
 }
 
 message QueryValidatorResponse {
