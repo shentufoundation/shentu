@@ -45,7 +45,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (shield) [\#244](https://github.com/certikfoundation/shentu/pull/244) Fix shield query & state export.
 * (cert) [\#249](https://github.com/certikfoundation/shentu/pull/249) Certification module refactor.
 * (shield) [\#269](https://github.com/certikfoundation/shentu/pull/269) Shield gRPC query refactor.
-* [\#271](https://github.com/certikfoundation/shentu/pull/271) New gRPC gateway for validator address to account address conversion.
 
 
 ### State Machine Breaking Changes
