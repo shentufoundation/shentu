@@ -37,8 +37,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [2.0.0] - TBD
 
+Version 2.0.0 brings many changes with SDK upgrading to Stargate version. For more information on the SDK upgrade, visit [CosmosSDK Release Notes](https://github.com/cosmos/cosmos-sdk/releases) 
+
 ### Client Breaking Changes
-* (app) [\#241](https://github.com/certikfoundation/shentu/pull/241) Rename default binary name to `certik`.
+* (app) [\#241](https://github.com/certikfoundation/shentu/pull/241) Renamed default binary name to `certik`.
 
 ### API Breaking Changes
 * (cvm) [\#231](https://github.com/certikfoundation/shentu/pull/231) Remove direct solidity file deployment.
@@ -46,8 +48,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (cert) [\#249](https://github.com/certikfoundation/shentu/pull/249) Certification module refactor.
 * (shield) [\#269](https://github.com/certikfoundation/shentu/pull/269) Shield gRPC query refactor.
 
-
 ### State Machine Breaking Changes
+* (app) [\#221](https://github.com/certikfoundation/shentu/pull/221) Upgraded SDK to 0.42.x.
+
 ### Features
 * (ibc) [\#251](https://github.com/certikfoundation/shentu/pull/251) Add IBC support.
 
@@ -57,7 +60,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Tests
 
 ### Bug Fixes
-* (app) [\#254](https://github.com/certikfoundation/shentu/pull/254) Fix module account coin receiving.
+* (app) [\#254](https://github.com/certikfoundation/shentu/pull/254) Disable module account receiving coins.
 * (gov) [\#259](https://github.com/certikfoundation/shentu/pull/259) Gov module bug fixes. 
 * (gov) [\#268](https://github.com/certikfoundation/shentu/pull/268) Fix proposal migration bug.
 

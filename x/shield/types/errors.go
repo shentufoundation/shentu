@@ -2,46 +2,92 @@ package types
 
 import sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+// Error Code Enums
+
+const (
+	errNotShieldAdmin uint32 = iota + 101
+	errNoDeposit
+	errNoShield
+	errEmptySponsor
+	errNoPoolFound
+	errNoUpdate
+	errInvalidGenesis
+	errInvalidPoolID
+	errInvalidDuration
+	errAdminWithdraw
+	errNoDelegationAmount
+	errInsufficientStaking
+	errPoolAlreadyPaused
+	errPoolAlreadyActive
+	errPoolInactive
+	errPurchaseMissingDescription
+	errNotEnoughShield
+	errNoPurchaseFound
+	errNoRewards
+	errInvalidDenom
+	errInvalidToAddr
+	errNoCollateralFound
+	errInvalidCollateralAmount
+	errEmptySender
+	errPoolLifeTooShort
+	errPurchaseNotFound
+	errProviderNotFound
+	errNotEnoughCollateral
+	errReimbursementNotFound
+	errInvalidBeneficiary
+	errNotPayoutTime
+	errOverWithdraw
+	errNoPoolFoundForSponsor
+	errSponsorAlreadyExists
+	errCollateralBadDenom
+	errSponsorPurchase
+	errOperationNotSupported
+	errPoolShieldExceedsLimit
+	errShieldAdminNotActive
+	errPurchaseTooSmall
+	errNotEnoughStaked
+)
+
 var (
-	ErrNotShieldAdmin             = sdkerrors.Register(ModuleName, 101, "not the shield admin account")
-	ErrNoDeposit                  = sdkerrors.Register(ModuleName, 102, "no coins given for initial deposit")
-	ErrNoShield                   = sdkerrors.Register(ModuleName, 103, "no coins given for shield")
-	ErrEmptySponsor               = sdkerrors.Register(ModuleName, 104, "no sponsor specified for a pool")
-	ErrNoPoolFound                = sdkerrors.Register(ModuleName, 105, "no pool found")
-	ErrNoUpdate                   = sdkerrors.Register(ModuleName, 106, "nothing was updated for the pool")
-	ErrInvalidGenesis             = sdkerrors.Register(ModuleName, 107, "invalid genesis state")
-	ErrInvalidPoolID              = sdkerrors.Register(ModuleName, 108, "invalid pool ID")
-	ErrInvalidDuration            = sdkerrors.Register(ModuleName, 109, "invalid specification of coverage duration")
-	ErrAdminWithdraw              = sdkerrors.Register(ModuleName, 110, "admin cannot manually withdraw collateral")
-	ErrNoDelegationAmount         = sdkerrors.Register(ModuleName, 111, "cannot obtain delegation amount info")
-	ErrInsufficientStaking        = sdkerrors.Register(ModuleName, 112, "insufficient total delegation amount to deposit the collateral")
-	ErrPoolAlreadyPaused          = sdkerrors.Register(ModuleName, 113, "pool is already paused")
-	ErrPoolAlreadyActive          = sdkerrors.Register(ModuleName, 114, "pool is already active")
-	ErrPoolInactive               = sdkerrors.Register(ModuleName, 115, "pool is inactive")
-	ErrPurchaseMissingDescription = sdkerrors.Register(ModuleName, 116, "missing description for the purchase")
-	ErrNotEnoughShield            = sdkerrors.Register(ModuleName, 117, "not enough available shield")
-	ErrNoPurchaseFound            = sdkerrors.Register(ModuleName, 118, "no purchase found for the given txhash")
-	ErrNoRewards                  = sdkerrors.Register(ModuleName, 119, "no foreign coins rewards to transfer for the denomination")
-	ErrInvalidDenom               = sdkerrors.Register(ModuleName, 120, "invalid coin denomination")
-	ErrInvalidToAddr              = sdkerrors.Register(ModuleName, 121, "invalid recipient address")
-	ErrNoCollateralFound          = sdkerrors.Register(ModuleName, 122, "no collateral for the pool found with the given provider address")
-	ErrInvalidCollateralAmount    = sdkerrors.Register(ModuleName, 123, "invalid amount of collateral")
-	ErrEmptySender                = sdkerrors.Register(ModuleName, 124, "no sender provided")
-	ErrPoolLifeTooShort           = sdkerrors.Register(ModuleName, 125, "new pool life is too short")
-	ErrPurchaseNotFound           = sdkerrors.Register(ModuleName, 126, "purchase is not found")
-	ErrProviderNotFound           = sdkerrors.Register(ModuleName, 127, "provider is not found")
-	ErrNotEnoughCollateral        = sdkerrors.Register(ModuleName, 128, "not enough collateral")
-	ErrReimbursementNotFound      = sdkerrors.Register(ModuleName, 129, "reimbursement is not found")
-	ErrInvalidBeneficiary         = sdkerrors.Register(ModuleName, 130, "invalid beneficiary")
-	ErrNotPayoutTime              = sdkerrors.Register(ModuleName, 131, "has not reached payout time yet")
-	ErrOverWithdraw               = sdkerrors.Register(ModuleName, 132, "too much withdraw initiated")
-	ErrNoPoolFoundForSponsor      = sdkerrors.Register(ModuleName, 133, "no pool found for the given sponsor")
-	ErrSponsorAlreadyExists       = sdkerrors.Register(ModuleName, 134, "a pool already exists under the given sponsor")
-	ErrCollateralBadDenom         = sdkerrors.Register(ModuleName, 135, "invalid coin denomination for collateral")
-	ErrSponsorPurchase            = sdkerrors.Register(ModuleName, 136, "pool sponsor cannot purchase shield")
-	ErrOperationNotSupported      = sdkerrors.Register(ModuleName, 137, "operation is currently not supported")
-	ErrPoolShieldExceedsLimit     = sdkerrors.Register(ModuleName, 138, "pool shield exceeds limit")
-	ErrShieldAdminNotActive       = sdkerrors.Register(ModuleName, 139, "shield admin is not activated")
-	ErrPurchaseTooSmall           = sdkerrors.Register(ModuleName, 140, "purchase amount is too small")
-	ErrNotEnoughStaked            = sdkerrors.Register(ModuleName, 142, "not enough unlocked staking to be withdrawn")
+	ErrNotShieldAdmin             = sdkerrors.Register(ModuleName, errNotShieldAdmin, "not the shield admin account")
+	ErrNoDeposit                  = sdkerrors.Register(ModuleName, errNoDeposit, "no coins given for initial deposit")
+	ErrNoShield                   = sdkerrors.Register(ModuleName, errNoShield, "no coins given for shield")
+	ErrEmptySponsor               = sdkerrors.Register(ModuleName, errEmptySponsor, "no sponsor specified for a pool")
+	ErrNoPoolFound                = sdkerrors.Register(ModuleName, errNoPoolFound, "no pool found")
+	ErrNoUpdate                   = sdkerrors.Register(ModuleName, errNoUpdate, "nothing was updated for the pool")
+	ErrInvalidGenesis             = sdkerrors.Register(ModuleName, errInvalidGenesis, "invalid genesis state")
+	ErrInvalidPoolID              = sdkerrors.Register(ModuleName, errInvalidPoolID, "invalid pool ID")
+	ErrInvalidDuration            = sdkerrors.Register(ModuleName, errInvalidDuration, "invalid specification of coverage duration")
+	ErrAdminWithdraw              = sdkerrors.Register(ModuleName, errAdminWithdraw, "admin cannot manually withdraw collateral")
+	ErrNoDelegationAmount         = sdkerrors.Register(ModuleName, errNoDelegationAmount, "cannot obtain delegation amount info")
+	ErrInsufficientStaking        = sdkerrors.Register(ModuleName, errInsufficientStaking, "insufficient total delegation amount to deposit the collateral")
+	ErrPoolAlreadyPaused          = sdkerrors.Register(ModuleName, errPoolAlreadyPaused, "pool is already paused")
+	ErrPoolAlreadyActive          = sdkerrors.Register(ModuleName, errPoolAlreadyActive, "pool is already active")
+	ErrPoolInactive               = sdkerrors.Register(ModuleName, errPoolInactive, "pool is inactive")
+	ErrPurchaseMissingDescription = sdkerrors.Register(ModuleName, errPurchaseMissingDescription, "missing description for the purchase")
+	ErrNotEnoughShield            = sdkerrors.Register(ModuleName, errNotEnoughShield, "not enough available shield")
+	ErrNoPurchaseFound            = sdkerrors.Register(ModuleName, errNoPurchaseFound, "no purchase found for the given txhash")
+	ErrNoRewards                  = sdkerrors.Register(ModuleName, errNoRewards, "no foreign coins rewards to transfer for the denomination")
+	ErrInvalidDenom               = sdkerrors.Register(ModuleName, errInvalidDenom, "invalid coin denomination")
+	ErrInvalidToAddr              = sdkerrors.Register(ModuleName, errInvalidToAddr, "invalid recipient address")
+	ErrNoCollateralFound          = sdkerrors.Register(ModuleName, errNoCollateralFound, "no collateral for the pool found with the given provider address")
+	ErrInvalidCollateralAmount    = sdkerrors.Register(ModuleName, errInvalidCollateralAmount, "invalid amount of collateral")
+	ErrEmptySender                = sdkerrors.Register(ModuleName, errEmptySender, "no sender provided")
+	ErrPoolLifeTooShort           = sdkerrors.Register(ModuleName, errPoolLifeTooShort, "new pool life is too short")
+	ErrPurchaseNotFound           = sdkerrors.Register(ModuleName, errPurchaseNotFound, "purchase is not found")
+	ErrProviderNotFound           = sdkerrors.Register(ModuleName, errProviderNotFound, "provider is not found")
+	ErrNotEnoughCollateral        = sdkerrors.Register(ModuleName, errNotEnoughCollateral, "not enough collateral")
+	ErrReimbursementNotFound      = sdkerrors.Register(ModuleName, errReimbursementNotFound, "reimbursement is not found")
+	ErrInvalidBeneficiary         = sdkerrors.Register(ModuleName, errInvalidBeneficiary, "invalid beneficiary")
+	ErrNotPayoutTime              = sdkerrors.Register(ModuleName, errNotPayoutTime, "has not reached payout time yet")
+	ErrOverWithdraw               = sdkerrors.Register(ModuleName, errOverWithdraw, "too much withdraw initiated")
+	ErrNoPoolFoundForSponsor      = sdkerrors.Register(ModuleName, errNoPoolFoundForSponsor, "no pool found for the given sponsor")
+	ErrSponsorAlreadyExists       = sdkerrors.Register(ModuleName, errSponsorAlreadyExists, "a pool already exists under the given sponsor")
+	ErrCollateralBadDenom         = sdkerrors.Register(ModuleName, errCollateralBadDenom, "invalid coin denomination for collateral")
+	ErrSponsorPurchase            = sdkerrors.Register(ModuleName, errSponsorPurchase, "pool sponsor cannot purchase shield")
+	ErrOperationNotSupported      = sdkerrors.Register(ModuleName, errOperationNotSupported, "operation is currently not supported")
+	ErrPoolShieldExceedsLimit     = sdkerrors.Register(ModuleName, errPoolShieldExceedsLimit, "pool shield exceeds limit")
+	ErrShieldAdminNotActive       = sdkerrors.Register(ModuleName, errShieldAdminNotActive, "shield admin is not activated")
+	ErrPurchaseTooSmall           = sdkerrors.Register(ModuleName, errPurchaseTooSmall, "purchase amount is too small")
+	ErrNotEnoughStaked            = sdkerrors.Register(ModuleName, errNotEnoughStaked, "not enough unlocked staking to be withdrawn")
 )
