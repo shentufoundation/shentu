@@ -65,6 +65,9 @@ func (k Keeper) Deploy(ctx sdk.Context, msg *types.MsgDeploy) ([]byte, error) {
 		return []byte{}, err
 	}
 	res, err := k.Tx(ctx, callerAddr, nil, msg.Value, msg.Code, msg.Meta, false, msg.IsEWASM, msg.IsRuntime)
+	if err != nil {
+		return []byte{}, err
+	}
 	return res, nil
 }
 
@@ -168,6 +171,7 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 	if err != nil {
 		return nil, types.ErrCodedError(errors.GetCode(err))
 	}
+
 	if callee == nil {
 		if isEWASM {
 			err = engine.InitWASMCode(cache, calleeAddr, ret)
