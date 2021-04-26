@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/certikfoundation/shentu/x/cvm/types"
@@ -31,7 +30,6 @@ func (k msgServer) Deploy(goCtx context.Context, msg *types.MsgDeploy) (*types.M
 
 	addr, err := crypto.AddressFromBytes(result)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 
