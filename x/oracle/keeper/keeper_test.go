@@ -4,13 +4,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/oracle/keeper"
-	"github.com/certikfoundation/shentu/x/oracle/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/certikfoundation/shentu/simapp"
+	"github.com/certikfoundation/shentu/x/oracle/keeper"
+	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
 var (
@@ -50,7 +51,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	}
 
 	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
-
 }
 
 func TestKeeperTestSuite(t *testing.T) {
