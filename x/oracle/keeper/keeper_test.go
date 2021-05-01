@@ -14,6 +14,11 @@ import (
 	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
+// ----------------- TO-DO ----------------- //
+//
+// ...
+// ----------------------------------------- //
+
 var (
 	acc1 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	acc2 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
@@ -76,26 +81,13 @@ func (suite *KeeperTestSuite) TestCreateOperator() {
 		args    args
 		errArgs errArgs
 	}{
-		{"CreateOperator1",
+		{"One Operator: Create",
 			args{
 				params:       suite.keeper.GetLockedPoolParams(suite.ctx),
 				collateral:   sdk.Coins{sdk.NewInt64Coin("uctk", suite.keeper.GetLockedPoolParams(suite.ctx).MinimumCollateral)},
 				senderAddr:   suite.address[0],
 				proposerAddr: suite.address[1],
-				operatorName: "Operator1",
-			},
-			errArgs{
-				shouldPass: true,
-				contains:   "",
-			},
-		},
-		{"CreateOperator2",
-			args{
-				params:       suite.keeper.GetLockedPoolParams(suite.ctx),
-				collateral:   sdk.Coins{sdk.NewInt64Coin("uctk", suite.keeper.GetLockedPoolParams(suite.ctx).MinimumCollateral)},
-				senderAddr:   suite.address[2],
-				proposerAddr: suite.address[3],
-				operatorName: "Operator2",
+				operatorName: "Operator",
 			},
 			errArgs{
 				shouldPass: true,
@@ -117,8 +109,131 @@ func (suite *KeeperTestSuite) TestCreateOperator() {
 	}
 }
 
-// TO-DO
-// {"GetOperator"},
-// {"GetAllOperators"},
-// {"RemoveOperator"},
-// ...
+func (suite *KeeperTestSuite) TestGetOperators() {
+	type args struct {
+		params        types.LockedPoolParams
+		collateral    sdk.Coins
+		senderAddr1   sdk.AccAddress
+		proposerAddr1 sdk.AccAddress
+		operatorName1 string
+		senderAddr2   sdk.AccAddress
+		proposerAddr2 sdk.AccAddress
+		operatorName2 string
+	}
+
+	type errArgs struct {
+		shouldPass bool
+		contains   string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{"Two Operators: Get One then Get All",
+			args{
+				params:        suite.keeper.GetLockedPoolParams(suite.ctx),
+				collateral:    sdk.Coins{sdk.NewInt64Coin("uctk", suite.keeper.GetLockedPoolParams(suite.ctx).MinimumCollateral)},
+				senderAddr1:   suite.address[0],
+				proposerAddr1: suite.address[1],
+				operatorName1: "Operator1",
+				senderAddr2:   suite.address[2],
+				proposerAddr2: suite.address[3],
+				operatorName2: "Operator2",
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			err := suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr1, tc.args.collateral, tc.args.proposerAddr1, tc.args.operatorName1)
+			suite.Require().NoError(err, tc.name)
+			err = suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr2, tc.args.collateral, tc.args.proposerAddr2, tc.args.operatorName2)
+			suite.Require().NoError(err, tc.name)
+			operator1, err := suite.keeper.GetOperator(suite.ctx, tc.args.senderAddr1)
+			allOperators := suite.keeper.GetAllOperators(suite.ctx)
+			if tc.errArgs.shouldPass {
+				suite.Require().NoError(err, tc.name)
+				suite.Equal(tc.args.senderAddr1.String(), operator1.Address)
+				suite.Equal(tc.args.collateral, operator1.Collateral)
+				suite.Equal(tc.args.proposerAddr1.String(), operator1.Proposer)
+				suite.Len(allOperators, 2)
+			} else {
+				suite.Require().Error(err, tc.name)
+				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestRemoveOperator() {
+	type args struct {
+		params        types.LockedPoolParams
+		collateral    sdk.Coins
+		senderAddr1   sdk.AccAddress
+		proposerAddr1 sdk.AccAddress
+		operatorName1 string
+		senderAddr2   sdk.AccAddress
+		proposerAddr2 sdk.AccAddress
+		operatorName2 string
+	}
+
+	type errArgs struct {
+		shouldPass bool
+		contains   string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{"Two Operators: Remove One",
+			args{
+				params:        suite.keeper.GetLockedPoolParams(suite.ctx),
+				collateral:    sdk.Coins{sdk.NewInt64Coin("uctk", suite.keeper.GetLockedPoolParams(suite.ctx).MinimumCollateral)},
+				senderAddr1:   suite.address[0],
+				proposerAddr1: suite.address[1],
+				operatorName1: "Operator1",
+				senderAddr2:   suite.address[2],
+				proposerAddr2: suite.address[3],
+				operatorName2: "Operator2",
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			err := suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr1, tc.args.collateral, tc.args.proposerAddr1, tc.args.operatorName1)
+			suite.Require().NoError(err, tc.name)
+			err = suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr2, tc.args.collateral, tc.args.proposerAddr2, tc.args.operatorName2)
+			suite.Require().NoError(err, tc.name)
+			operator1, err := suite.keeper.GetOperator(suite.ctx, tc.args.senderAddr1)
+			suite.Require().NoError(err, tc.name)
+			// convert operator1.Address (string) back to sdk.AccAddress
+			operator1Addr, _ := sdk.AccAddressFromBech32(operator1.Address)
+			operator2, err := suite.keeper.GetOperator(suite.ctx, tc.args.senderAddr2)
+			suite.Require().NoError(err, tc.name)
+			// remove operator1
+			err = suite.keeper.RemoveOperator(suite.ctx, operator1Addr)
+			allOperators := suite.keeper.GetAllOperators(suite.ctx)
+			if tc.errArgs.shouldPass {
+				suite.Require().NoError(err, tc.name)
+				suite.Len(allOperators, 1)
+				suite.Equal(operator2, allOperators[0])
+			} else {
+				suite.Require().Error(err, tc.name)
+				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+			}
+		})
+	}
+}
