@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto/ed25519"
@@ -13,11 +14,6 @@ import (
 	"github.com/certikfoundation/shentu/x/oracle/keeper"
 	"github.com/certikfoundation/shentu/x/oracle/types"
 )
-
-// ----------------- TO-DO ----------------- //
-//
-// ...
-// ----------------------------------------- //
 
 var (
 	acc1 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
@@ -37,6 +33,7 @@ type KeeperTestSuite struct {
 	keeper        keeper.Keeper
 	address       []sdk.AccAddress
 	minCollateral int64
+	queryClient   types.QueryClient
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -45,6 +42,11 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.keeper = suite.app.OracleKeeper
 	suite.params = suite.keeper.GetLockedPoolParams(suite.ctx)
 	suite.minCollateral = suite.keeper.GetLockedPoolParams(suite.ctx).MinimumCollateral // 0.01 CTK
+
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, suite.app.OracleKeeper)
+	suite.queryClient = types.NewQueryClient(queryHelper)
+
 	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
 		err := suite.app.BankKeeper.AddCoins(
 			suite.ctx,
@@ -67,7 +69,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *KeeperTestSuite) TestCreateOperator() {
 	type args struct {
-		collateral   int64 //sdk.Coins
+		collateral   int64
 		senderAddr   sdk.AccAddress
 		proposerAddr sdk.AccAddress
 		operatorName string
