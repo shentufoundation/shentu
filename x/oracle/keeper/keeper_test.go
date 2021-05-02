@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestCreateOperator() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: min colleteral",
+		{"Operator(1) Create: min collateral",
 			args{
 				collateral:   50000,
 				senderAddr:   suite.address[0],
@@ -95,7 +95,7 @@ func (suite *KeeperTestSuite) TestCreateOperator() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: under min colleteral",
+		{"Operator(1) Create: under min collateral",
 			args{
 				collateral:   10000,
 				senderAddr:   suite.address[0],
@@ -143,7 +143,7 @@ func (suite *KeeperTestSuite) TestGetOperators() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(2) Get One -> Get All",
+		{"Operator(2) Get: One & All",
 			args{
 				collateral:    50000,
 				senderAddr1:   suite.address[0],
@@ -203,7 +203,7 @@ func (suite *KeeperTestSuite) TestRemoveOperator() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(2) Remove One",
+		{"Operator(2) Remove: One",
 			args{
 				collateral:    50000,
 				senderAddr1:   suite.address[0],
@@ -247,7 +247,7 @@ func (suite *KeeperTestSuite) TestRemoveOperator() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestCollateral() {
+func (suite *KeeperTestSuite) TestOperatorCollateral() {
 	type args struct {
 		collateral         int64
 		senderAddr         sdk.AccAddress
@@ -268,7 +268,7 @@ func (suite *KeeperTestSuite) TestCollateral() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Add 100,000",
+		{"Operator(1) Add: 100,000 uctk",
 			args{
 				collateral:      50000,
 				senderAddr:      suite.address[0],
@@ -282,7 +282,7 @@ func (suite *KeeperTestSuite) TestCollateral() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Add 10,000 -> Reduce 5,000",
+		{"Operator(1) Add: 10,000 uctk -> Reduce: 5,000 uctk",
 			args{
 				collateral:         50000,
 				senderAddr:         suite.address[2],
@@ -297,7 +297,7 @@ func (suite *KeeperTestSuite) TestCollateral() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Add 10,000 -> Reduce 15,000", // 10,000+10,000-15,000=5000 < min(10,000)
+		{"Operator(1) Add: 10,000 uctk -> Reduce: 15,000 uctk", // 10,000+10,000-15,000=5000 < min(10,000)
 			args{
 				collateral:         50000,
 				senderAddr:         suite.address[0],
@@ -351,5 +351,99 @@ func (suite *KeeperTestSuite) TestCollateral() {
 	}
 }
 
-// 	withdraws := ok.GetAllWithdraws(ctx)
-// 	require.Len(t, withdraws, 1)
+func (suite *KeeperTestSuite) TestOperatorReward() {
+	type args struct {
+		collateral   int64
+		senderAddr   sdk.AccAddress
+		proposerAddr sdk.AccAddress
+		operatorName string
+		rewardToAdd  int64
+		withdrawAll  bool
+	}
+
+	type errArgs struct {
+		shouldPass bool
+		contains   string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{"Operator(1) Add: 100000 uctk",
+			args{
+				collateral:   50000,
+				senderAddr:   suite.address[0],
+				proposerAddr: suite.address[1],
+				operatorName: "Operator",
+				rewardToAdd:  100000,
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+		{"Operator(1) WithdrawAll: Reward <= Collateral",
+			args{
+				collateral:   50000,
+				senderAddr:   suite.address[0],
+				proposerAddr: suite.address[1],
+				operatorName: "Operator",
+				rewardToAdd:  50000,
+				withdrawAll:  true,
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+		{"Operator(1) WithdrawAll: Reward > Collateral",
+			args{
+				collateral:   50000,
+				senderAddr:   suite.address[0],
+				proposerAddr: suite.address[1],
+				operatorName: "Operator",
+				rewardToAdd:  100000,
+				withdrawAll:  true,
+			},
+			errArgs{
+				shouldPass: false,
+				contains:   "",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			err := suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.collateral)}, tc.args.proposerAddr, tc.args.operatorName)
+			suite.Require().NoError(err, tc.name)
+			err = suite.keeper.AddReward(suite.ctx, tc.args.senderAddr, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.rewardToAdd)})
+			suite.Require().NoError(err, tc.name)
+			if tc.errArgs.shouldPass {
+				if tc.args.withdrawAll {
+					withdrawAmt, err := suite.keeper.WithdrawAllReward(suite.ctx, tc.args.senderAddr)
+					suite.Require().NoError(err, tc.name)
+					suite.Equal(sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.rewardToAdd)}, withdrawAmt)
+					operator, err := suite.keeper.GetOperator(suite.ctx, tc.args.senderAddr)
+					suite.Require().NoError(err, tc.name)
+					suite.Nil(operator.AccumulatedRewards)
+				} else {
+					operator, err := suite.keeper.GetOperator(suite.ctx, tc.args.senderAddr)
+					suite.Require().NoError(err, tc.name)
+					suite.Equal(sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.rewardToAdd)}, operator.AccumulatedRewards)
+				}
+			} else {
+				if tc.args.withdrawAll {
+					_, err := suite.keeper.WithdrawAllReward(suite.ctx, tc.args.senderAddr)
+					suite.Require().Error(err, tc.name)
+					suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+				} else {
+					suite.Require().Error(err, tc.name)
+					suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+				}
+			}
+		})
+	}
+}
