@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 
@@ -29,6 +30,8 @@ type cert struct {
 	description  string
 	certifier    sdk.AccAddress
 	delete       bool
+	assumption   bool
+	create       bool
 }
 
 // shared setup
@@ -47,7 +50,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.app = simapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.CertKeeper
-
 	// queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	// types.RegisterQueryServer(queryHelper, suite.app.CertKeeper)
 	// suite.queryClient = types.NewQueryClient(queryHelper)
@@ -66,13 +68,14 @@ func (suite *KeeperTestSuite) SetupTest() {
 	}
 
 	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
+	suite.keeper.SetCertifier(suite.ctx, types.NewCertifier(suite.address[0], "", suite.address[0], ""))
 }
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestCertificateGetSet() {
+func (suite *KeeperTestSuite) TestCertificate_GetSet() {
 	type args struct {
 		cert []cert
 	}
@@ -159,7 +162,7 @@ func (suite *KeeperTestSuite) TestCertificateGetSet() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestCertificateDelete() {
+func (suite *KeeperTestSuite) TestCertificate_Delete() {
 	type args struct {
 		cert []cert
 	}
@@ -262,6 +265,169 @@ func (suite *KeeperTestSuite) TestCertificateDelete() {
 				} else {
 					suite.Require().Error(err, tc.name)
 					suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+				}
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestCertificate_IsCertified_Issue() {
+	type args struct {
+		cert []cert
+	}
+
+	type errArgs struct {
+		shouldPass bool
+		contains   string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{"Certificate(1) IsCertified: Simple",
+			args{
+				cert: []cert{
+					{
+						certTypeStr:  "auditing",
+						contStr:      "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag",
+						compiler:     "compiler1",
+						bytecodeHash: "bytecodehash1",
+						description:  "",
+						certifier:    suite.address[0],
+						assumption:   false,
+						create:       false,
+					},
+				},
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+		{"Certificate(1) IsCertified: Invalid Cert Type",
+			args{
+				cert: []cert{
+					{
+						certTypeStr:  "random",
+						contStr:      "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag",
+						compiler:     "compiler1",
+						bytecodeHash: "bytecodehash1",
+						description:  "",
+						certifier:    suite.address[0],
+						assumption:   true,
+						create:       false,
+					},
+				},
+			},
+			errArgs{
+				shouldPass: false,
+				contains:   "",
+			},
+		},
+		{"Certificate(1) IsCertified: Issue a New Cert for A Non-Certified Cert",
+			args{
+				cert: []cert{
+					{
+						certTypeStr:  "shieldpoolcreator",
+						contStr:      "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag",
+						compiler:     "compiler1",
+						bytecodeHash: "bytecodehash1",
+						description:  "",
+						certifier:    suite.address[0],
+						// assumption (i.e. intention) must be false for
+						// a non-certified cert to get certified
+						assumption: false,
+						create:     true,
+					},
+				},
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+		{"Certificate(1) IsCertified: Issue a New Cert for A Non-Certified Cert with Bad Intention",
+			args{
+				cert: []cert{
+					{
+						certTypeStr:  "oracleoperator",
+						contStr:      "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag",
+						compiler:     "compiler1",
+						bytecodeHash: "bytecodehash1",
+						description:  "",
+						certifier:    suite.address[0],
+						// assumption (i.e. intention) must be false for
+						// a non-certified cert to get certified
+						assumption: true,
+						create:     true,
+					},
+				},
+			},
+			errArgs{
+				shouldPass: false,
+				contains:   "",
+			},
+		},
+		{"Certificate(1) IsCertified: Issue a New Cert for A Non-Certified Cert from An Unqualified Certifier",
+			args{
+				cert: []cert{
+					{
+						certTypeStr:  "shieldpoolcreator",
+						contStr:      "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag",
+						compiler:     "compiler1",
+						bytecodeHash: "bytecodehash1",
+						description:  "",
+						certifier:    suite.address[1], // only certifier is address[0]
+						// assumption (i.e. intention) must be false for
+						// a non-certified cert to get certified
+						assumption: false,
+						create:     true,
+					},
+				},
+			},
+			errArgs{
+				shouldPass: false,
+				contains:   "",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			for _, cert := range tc.args.cert {
+				got := suite.keeper.IsCertified(suite.ctx, cert.contStr, cert.certTypeStr)
+				if !got && !cert.assumption && cert.create {
+					// construct a new cert
+					newCert, err := types.NewCertificate(cert.certTypeStr, cert.contStr, cert.compiler, cert.bytecodeHash, cert.description, cert.certifier)
+					suite.Require().NoError(err, tc.name)
+					// issue a new cert
+					_, err = suite.keeper.IssueCertificate(suite.ctx, newCert)
+					if !reflect.DeepEqual(cert.certifier, suite.address[0]) {
+						suite.Require().Error(err, tc.name)
+					} else {
+						suite.Require().NoError(err, tc.name)
+					}
+
+					// check again ifCertified
+					got = suite.keeper.IsCertified(suite.ctx, cert.contStr, cert.certTypeStr)
+					want := !cert.assumption
+					if tc.errArgs.shouldPass {
+						suite.Require().Equal(got, want)
+					} else {
+						suite.Require().NotEqual(got, want)
+						// suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+					}
+				} else {
+					want := cert.assumption
+					if tc.errArgs.shouldPass {
+						suite.Require().Equal(got, want)
+					} else {
+						suite.Require().NotEqual(got, want)
+						// suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+					}
 				}
 			}
 		})

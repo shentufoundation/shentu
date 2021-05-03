@@ -67,7 +67,7 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestCreateOperator() {
+func (suite *KeeperTestSuite) TestOperator_Create() {
 	type args struct {
 		collateral   int64
 		senderAddr   sdk.AccAddress
@@ -124,7 +124,7 @@ func (suite *KeeperTestSuite) TestCreateOperator() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetOperators() {
+func (suite *KeeperTestSuite) TestOperator_Get() {
 	type args struct {
 		collateral    int64
 		senderAddr1   sdk.AccAddress
@@ -184,7 +184,7 @@ func (suite *KeeperTestSuite) TestGetOperators() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestRemoveOperator() {
+func (suite *KeeperTestSuite) TestOperator_Remove() {
 	type args struct {
 		collateral    int64
 		senderAddr1   sdk.AccAddress
@@ -249,7 +249,7 @@ func (suite *KeeperTestSuite) TestRemoveOperator() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestOperatorCollateral() {
+func (suite *KeeperTestSuite) TestOperator_Collateral() {
 	type args struct {
 		collateral         int64
 		senderAddr         sdk.AccAddress
@@ -353,7 +353,7 @@ func (suite *KeeperTestSuite) TestOperatorCollateral() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestOperatorReward() {
+func (suite *KeeperTestSuite) TestOperator_Reward() {
 	type args struct {
 		collateral   int64
 		senderAddr   sdk.AccAddress
