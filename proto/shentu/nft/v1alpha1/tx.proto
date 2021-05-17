@@ -9,9 +9,20 @@ option (gogoproto.stable_marshaler_all) = true;
 
 // Msg defines the bank Msg service.
 service Msg {
-  rpc IssueNFTAdmin(MsgIssueNFTAdmin) returns (MsgIssueNFTAdminResponse);
+  rpc CreateNFTAdmin(MsgCreateNFTAdmin) returns (MsgIssueNFTAdminResponse);
+  rpc RevokeNFTAdmin(MsgRevokeNFTAdmin) returns (MsgRevokeAdminResponse);
 }
 
-MsgIssueNFTAdmin {
-  string
-    }
+message MsgCreateNFTAdmin {
+  string issuer = 1;
+  string address = 2;
+}
+
+message MsgIssueNFTAdminResponse {}
+
+message MsgRevokeNFTAdmin {
+  string revoker = 1;
+  string address = 2;
+}
+
+message MsgRevokeAdminResponse {}

@@ -36,6 +36,9 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.BurnNFT(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
+		case *types.MsgIssueNFTAdmin:
+			res, err := msgServer.IssueNFTAdmin
+
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized nft message type: %T", msg)
 		}
