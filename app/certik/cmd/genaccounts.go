@@ -16,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -46,7 +45,6 @@ func AddGenesisAccountCmd(defaultNodeHome string) *cobra.Command {
 the account address or key name and a list of initial coins. If a key name is given,
 the address will be looked up in the local Keybase. The list of initial tokens must
 contain valid denominations. Accounts may optionally be supplied with vesting parameters.
-the precedence rule is period > continuous > endtime.
 `,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -81,14 +79,68 @@ the precedence rule is period > continuous > endtime.
 				return fmt.Errorf("failed to parse coins: %w", err)
 			}
 
+			vestingStart, _ := cmd.Flags().GetInt64(flagVestingStart)
+			vestingEnd, _ := cmd.Flags().GetInt64(flagVestingEnd)
+			vestingAmtStr, _ := cmd.Flags().GetString(flagVestingAmt)
+			vestingAmt, err := sdk.ParseCoinsNormalized(vestingAmtStr)
+			if err != nil {
+				return fmt.Errorf("failed to parse vesting amount: %w", err)
+			}
+
+			period := viper.GetInt64(flagPeriod)
+			numberPeriods := viper.GetInt64(flagNumberPeriods)
+			manual := viper.GetBool(flagManual)
+
 			// create concrete account type based on input parameters
+			var genAccount authtypes.GenesisAccount
+
 			balances := banktypes.Balance{Address: addr.String(), Coins: coins.Sort()}
 			baseAccount := authtypes.NewBaseAccount(addr, nil, 0, 0)
 
-			genAccount, err := getVestedAccountFromFlags(baseAccount, coins)
-			if err != nil {
-				return err
+			if !vestingAmt.IsZero() {
+				baseVestingAccount := authvesting.NewBaseVestingAccount(baseAccount, vestingAmt.Sort(), vestingEnd)
+
+				if (balances.Coins.IsZero() && !baseVestingAccount.OriginalVesting.IsZero()) ||
+					baseVestingAccount.OriginalVesting.IsAnyGT(balances.Coins) {
+					return errors.New("vesting amount cannot be greater than total amount")
+				}
+
+				if vestingStart == 0 {
+					vestingStart = time.Now().Unix() + 10
+				}
+				
+				switch {
+				case manual:
+					unlocker, err := sdk.AccAddressFromBech32(viper.GetString(flagUnlocker))
+					if err != nil || unlocker.Empty() {
+						return errors.New("unlocker address is in incorrect format")
+					}
+					genAccount = types.NewManualVestingAccountRaw(baseVestingAccount, sdk.NewCoins(), unlocker)
+			
+				case period != 0:
+					periods := authvesting.Periods{}
+					remaining := vestingAmt
+					monthlyAmount := common.DivideCoins(vestingAmt, numberPeriods)
+			
+					for i := int64(0); i < numberPeriods-1; i++ {
+						periods = append(periods, authvesting.Period{Length: period, Amount: monthlyAmount})
+						remaining = remaining.Sub(monthlyAmount)
+					}
+					periods = append(periods, authvesting.Period{Length: period, Amount: remaining})
+					endTime := vestingStart
+					for _, p := range periods {
+						endTime += p.Length
+					}
+					baseVestingAccount.EndTime = endTime
+					genAccount = authvesting.NewPeriodicVestingAccountRaw(baseVestingAccount, vestingStart, periods)
+
+				default:
+					return errors.New("invalid vesting parameters; must supply start and end time or end time")
+				}
+			} else {
+				genAccount = baseAccount
 			}
+
 			if err := genAccount.Validate(); err != nil {
 				return fmt.Errorf("failed to validate new genesis account: %w", err)
 			}
@@ -131,6 +183,7 @@ the precedence rule is period > continuous > endtime.
 			bankGenState := banktypes.GetGenesisStateFromAppState(depCdc, appState)
 			bankGenState.Balances = append(bankGenState.Balances, balances)
 			bankGenState.Balances = banktypes.SanitizeGenesisBalances(bankGenState.Balances)
+			bankGenState.Supply = bankGenState.Supply.Add(balances.Coins...)
 
 			bankGenStateBz, err := cdc.MarshalJSON(bankGenState)
 			if err != nil {
@@ -159,66 +212,4 @@ the precedence rule is period > continuous > endtime.
 	cmd.Flags().Bool(flagManual, false, "set to manual vesting")
 	cmd.Flags().String(flagUnlocker, "", "address that can unlock this account's locked coins")
 	return cmd
-}
-
-func getVestedAccountFromFlags(baseAccount *authtypes.BaseAccount, coins sdk.Coins) (authexported.GenesisAccount, error) {
-	vestingStart := viper.GetInt64(flagVestingStart)
-	vestingEnd := viper.GetInt64(flagVestingEnd)
-	vestingAmt, err := sdk.ParseCoinsNormalized(viper.GetString(flagVestingAmt))
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse vesting amount: %w", err)
-	}
-	period := viper.GetInt64(flagPeriod)
-	numberPeriods := viper.GetInt64(flagNumberPeriods)
-	manual := viper.GetBool(flagManual)
-
-	if !vestingAmt.IsZero() {
-		baseVestingAccount := authvesting.NewBaseVestingAccount(baseAccount, vestingAmt.Sort(), vestingEnd)
-
-		if coins.IsZero() && !baseVestingAccount.OriginalVesting.IsZero() ||
-			baseVestingAccount.OriginalVesting.IsAnyGT(coins) {
-			return nil, errors.New("vesting amount cannot be greater than total amount")
-		}
-	
-		if vestingStart == 0 {
-			vestingStart = time.Now().Unix() + 10
-		}
-	
-		switch {
-		case manual:
-			unlocker, err := sdk.AccAddressFromBech32(viper.GetString(flagUnlocker))
-			if err != nil || unlocker.Empty() {
-				return nil, errors.New("unlocker address is in incorrect format")
-			}
-			return types.NewManualVestingAccountRaw(baseVestingAccount, sdk.NewCoins(), unlocker), nil
-	
-		case period != 0:
-			periods := authvesting.Periods{}
-			remaining := vestingAmt
-			monthlyAmount := common.DivideCoins(vestingAmt, numberPeriods)
-	
-			for i := int64(0); i < numberPeriods-1; i++ {
-				periods = append(periods, authvesting.Period{Length: period, Amount: monthlyAmount})
-				remaining = remaining.Sub(monthlyAmount)
-			}
-			periods = append(periods, authvesting.Period{Length: period, Amount: remaining})
-			endTime := vestingStart
-			for _, p := range periods {
-				endTime += p.Length
-			}
-			baseVestingAccount.EndTime = endTime
-			return authvesting.NewPeriodicVestingAccountRaw(baseVestingAccount, vestingStart, periods), nil
-	
-		case vestingStart != 0 && vestingEnd != 0:
-			return authvesting.NewContinuousVestingAccountRaw(baseVestingAccount, vestingStart), nil
-	
-		case vestingEnd != 0:
-			return authvesting.NewDelayedVestingAccountRaw(baseVestingAccount), nil
-	
-		default:
-			return nil, errors.New("invalid vesting parameters; must supply start and end time or end time")
-		}
-	}
-
-	return baseAccount, nil
 }
