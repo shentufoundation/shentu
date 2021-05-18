@@ -19,11 +19,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/irisnet/irismod/modules/nft/client/cli"
-	"github.com/irisnet/irismod/modules/nft/client/rest"
 	"github.com/irisnet/irismod/modules/nft/simulation"
 	nfttypes "github.com/irisnet/irismod/modules/nft/types"
 
+	"github.com/certikfoundation/shentu/x/nft/client/cli"
+	"github.com/certikfoundation/shentu/x/nft/client/rest"
 	"github.com/certikfoundation/shentu/x/nft/keeper"
 	"github.com/certikfoundation/shentu/x/nft/types"
 )

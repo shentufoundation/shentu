@@ -19,11 +19,16 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 		switch msg := msg.(type) {
 		case *nfttypes.MsgIssueDenom:
-			k.CheckAdmin(ctx, msg.Sender)
+			if !k.CheckAdmin(ctx, msg.Sender) {
+				return sdk.WrapServiceResult(ctx, nil, types.ErrAdminNotFound)
+			}
 			res, err := msgServer.IssueDenom(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		case *nfttypes.MsgMintNFT:
+			if !k.CheckAdmin(ctx, msg.Sender) {
+				return sdk.WrapServiceResult(ctx, nil, types.ErrAdminNotFound)
+			}
 			res, err := msgServer.MintNFT(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
