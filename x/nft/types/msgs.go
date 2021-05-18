@@ -3,10 +3,11 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/irisnet/irismod/modules/nft/types"
 )
 
-// NewMsgCreateAdmin returns a new certifier proposal message.
+// NewMsgCreateAdmin returns a new create NFT admin message.
 func NewMsgCreateAdmin(issuer, address string) *MsgCreateAdmin {
 	return &MsgCreateAdmin{
 		Creator:issuer,
@@ -47,7 +48,7 @@ func (m MsgCreateAdmin) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{proposerAddr}
 }
 
-// NewMsgRevokeNFTAdmin returns a new certifier proposal message.
+// NewMsgRevokeNFTAdmin returns a new revoke NFT admin message.
 func NewMsgRevokeNFTAdmin(issuer, address string) *MsgRevokeAdmin {
 	return &MsgRevokeAdmin{
 		Revoker:issuer,

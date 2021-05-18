@@ -74,7 +74,6 @@ import (
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	nftkeeper "github.com/irisnet/irismod/modules/nft/keeper"
 	nfttypes "github.com/irisnet/irismod/modules/nft/types"
 
 	appparams "github.com/certikfoundation/shentu/app/params"
@@ -97,6 +96,7 @@ import (
 	"github.com/certikfoundation/shentu/x/mint"
 	mintkeeper "github.com/certikfoundation/shentu/x/mint/keeper"
 	"github.com/certikfoundation/shentu/x/nft"
+	nftkeeper "github.com/certikfoundation/shentu/x/nft/keeper"
 	"github.com/certikfoundation/shentu/x/oracle"
 	oraclekeeper "github.com/certikfoundation/shentu/x/oracle/keeper"
 	oracletypes "github.com/certikfoundation/shentu/x/oracle/types"
@@ -408,7 +408,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		govRouter,
 	)
 
-	app.nftKeeper = nftkeeper.NewKeeper(appCodec, keys[nfttypes.StoreKey])
+	app.nftKeeper = nftkeeper.NewKeeper(appCodec, app.certKeeper, keys[nfttypes.StoreKey])
 
 	// Create Transfer Keepers
 	app.transferKeeper = ibctransferkeeper.NewKeeper(

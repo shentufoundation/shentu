@@ -1,58 +1,80 @@
 package keeper
 
 import (
-	certkeeper "github.com/certikfoundation/shentu/x/cert/keeper"
-	customtypes "github.com/certikfoundation/shentu/x/nft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/irisnet/irismod/modules/nft/keeper"
+
+	nftkeeper "github.com/irisnet/irismod/modules/nft/keeper"
+
+	certkeeper "github.com/certikfoundation/shentu/x/cert/keeper"
+	"github.com/certikfoundation/shentu/x/nft/types"
 )
 
 type Keeper struct {
-	keeper.Keeper
+	nftkeeper.Keeper
 	certKeeper certkeeper.Keeper
 	storeKey sdk.StoreKey
 	cdc      codec.Marshaler
 }
 
+// NewKeeper creates a new instance of the NFT Keeper
+func NewKeeper(cdc codec.Marshaler, certKeeper types.CertKeeper, storeKey sdk.StoreKey) Keeper {
+	baseKeeper := nftkeeper.NewKeeper(cdc,storeKey)
+	return Keeper{
+		Keeper: baseKeeper,
+		storeKey: storeKey,
+		cdc:      cdc,
+	}
+}
+
+
 func (k Keeper) DeleteAdmin(ctx sdk.Context, addr sdk.AccAddress) error {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(customtypes.AdminKey(addr))
+	store.Delete(types.AdminKey(addr))
 	return nil
 }
 
 func (k Keeper) SetAdmin(ctx sdk.Context, addr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	newAdmin := customtypes.Admin{
+	newAdmin := types.Admin{
 		Address: addr.String(),
 	}
 	bz := k.cdc.MustMarshalBinaryBare(&newAdmin)
-	store.Set(customtypes.AdminKey(addr), bz)
+	store.Set(types.AdminKey(addr), bz)
 }
 
-func (k Keeper) GetAdmin(ctx sdk.Context, addr sdk.AccAddress) (customtypes.Admin, error) {
+func (k Keeper) GetAdmin(ctx sdk.Context, addr sdk.AccAddress) (types.Admin, error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(customtypes.AdminKey(addr))
+	bz := store.Get(types.AdminKey(addr))
 	if bz == nil {
-		return customtypes.Admin{}, sdkerrors.Wrapf(customtypes.ErrAdminNotFound, "not found NFT: %s", addr.String())
+		return types.Admin{}, sdkerrors.Wrapf(types.ErrAdminNotFound, "not found NFT: %s", addr.String())
 	}
-	var admin customtypes.Admin
+	var admin types.Admin
 	k.cdc.MustUnmarshalBinaryBare(bz, &admin)
 	return admin, nil
 }
 
-func (k Keeper) GetAdmins(ctx sdk.Context) []customtypes.Admin {
+func (k Keeper) GetAdmins(ctx sdk.Context) []types.Admin {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, customtypes.AdminKeyPrefix)
-	var res []customtypes.Admin
+	iterator := sdk.KVStorePrefixIterator(store, types.AdminKeyPrefix)
+	var res []types.Admin
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var admin customtypes.Admin
+		var admin types.Admin
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &admin)
 		res = append(res, admin)
 	}
 
 	return res
+}
+
+func (k Keeper) CheckAdmin(ctx sdk.Context, addr string) bool {
+	admin, err := sdk.AccAddressFromBech32(addr)
+	if err != nil {
+		return false
+	}
+	_, err = k.GetAdmin(ctx, admin)
+	return err == nil
 }

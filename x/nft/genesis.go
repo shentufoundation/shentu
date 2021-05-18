@@ -2,6 +2,7 @@ package nft
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/irisnet/irismod/modules/nft"
 	nfttypes "github.com/irisnet/irismod/modules/nft/types"
 
@@ -28,7 +29,3 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return types.NewGenesisState(k.GetCollections(ctx), k.GetAdmins(ctx))
 }
 
-// DefaultGenesisState returns a default genesis state
-func DefaultGenesisState() *types.GenesisState {
-	return types.NewGenesisState([]nfttypes.Collection{}, []types.Admin{})
-}
