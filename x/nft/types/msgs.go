@@ -10,7 +10,7 @@ import (
 // NewMsgCreateAdmin returns a new create NFT admin message.
 func NewMsgCreateAdmin(issuer, address string) *MsgCreateAdmin {
 	return &MsgCreateAdmin{
-		Creator:issuer,
+		Creator: issuer,
 		Address: address,
 	}
 }
@@ -51,7 +51,7 @@ func (m MsgCreateAdmin) GetSigners() []sdk.AccAddress {
 // NewMsgRevokeNFTAdmin returns a new revoke NFT admin message.
 func NewMsgRevokeNFTAdmin(issuer, address string) *MsgRevokeAdmin {
 	return &MsgRevokeAdmin{
-		Revoker:issuer,
+		Revoker: issuer,
 		Address: address,
 	}
 }

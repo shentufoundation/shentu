@@ -13,23 +13,22 @@ import (
 type Keeper struct {
 	nftkeeper.Keeper
 	certKeeper types.CertKeeper
-	storeKey sdk.StoreKey
-	cdc      codec.Marshaler
+	storeKey   sdk.StoreKey
+	cdc        codec.Marshaler
 }
 
 // NewKeeper creates a new instance of the NFT Keeper
 func NewKeeper(cdc codec.Marshaler, certKeeper types.CertKeeper, storeKey sdk.StoreKey) Keeper {
-	baseKeeper := nftkeeper.NewKeeper(cdc,storeKey)
+	baseKeeper := nftkeeper.NewKeeper(cdc, storeKey)
 	return Keeper{
-		Keeper: baseKeeper,
+		Keeper:     baseKeeper,
 		certKeeper: certKeeper,
-		storeKey: storeKey,
-		cdc:      cdc,
+		storeKey:   storeKey,
+		cdc:        cdc,
 	}
 }
 
-
-func (k Keeper) DeleteAdmin(ctx sdk.Context, addr sdk.AccAddress)  {
+func (k Keeper) DeleteAdmin(ctx sdk.Context, addr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.AdminKey(addr))
 }

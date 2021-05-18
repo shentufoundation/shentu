@@ -8,7 +8,6 @@ import (
 	nftrest "github.com/irisnet/irismod/modules/nft/client/rest"
 )
 
-
 // RegisterHandlers registers the NFT REST routes.
 func RegisterHandlers(cliCtx client.Context, r *mux.Router, queryRoute string) {
 	nftrest.RegisterHandlers(cliCtx, r, queryRoute)

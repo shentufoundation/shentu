@@ -9,7 +9,7 @@ import (
 func NewGenesisState(collections []nfttypes.Collection, admins []Admin) *GenesisState {
 	return &GenesisState{
 		Collections: collections,
-		Admin: admins,
+		Admin:       admins,
 	}
 }
 

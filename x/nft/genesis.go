@@ -28,4 +28,3 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return types.NewGenesisState(k.GetCollections(ctx), k.GetAdmins(ctx))
 }
-

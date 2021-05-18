@@ -7,7 +7,7 @@ import (
 	nfttypes "github.com/irisnet/irismod/modules/nft/types"
 
 	"github.com/certikfoundation/shentu/x/nft/keeper"
-	 "github.com/certikfoundation/shentu/x/nft/types"
+	"github.com/certikfoundation/shentu/x/nft/types"
 )
 
 // NewHandler routes the messages to the handlers
@@ -51,7 +51,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgRevokeAdmin:
 			res, err := msgServer.RevokeAdmin(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-
 
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized nft message type: %T", msg)

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/irisnet/irismod/modules/nft/keeper"
@@ -55,8 +56,8 @@ var _ types.MsgServer = msgServer{}
 
 func (k Keeper) NewMsgServerImpl() types.MsgServer {
 	basicServer := keeper.NewMsgServerImpl(k.Keeper)
-	return msgServer {
+	return msgServer{
 		MsgServer: basicServer,
-		Keeper: k,
+		Keeper:    k,
 	}
 }
