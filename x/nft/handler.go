@@ -7,12 +7,13 @@ import (
 	"github.com/irisnet/irismod/modules/nft/keeper"
 	"github.com/irisnet/irismod/modules/nft/types"
 
+	customkeeper "github.com/certikfoundation/shentu/x/nft/keeper"
 	customtypes "github.com/certikfoundation/shentu/x/nft/types"
 )
 
 // NewHandler routes the messages to the handlers
-func NewHandler(k keeper.Keeper) sdk.Handler {
-	msgServer := keeper.NewMsgServerImpl(k)
+func NewHandler(k customkeeper.Keeper) sdk.Handler {
+	msgServer := k.NewMsgServerImpl()
 
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
