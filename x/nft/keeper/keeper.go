@@ -7,13 +7,12 @@ import (
 
 	nftkeeper "github.com/irisnet/irismod/modules/nft/keeper"
 
-	certkeeper "github.com/certikfoundation/shentu/x/cert/keeper"
 	"github.com/certikfoundation/shentu/x/nft/types"
 )
 
 type Keeper struct {
 	nftkeeper.Keeper
-	certKeeper certkeeper.Keeper
+	certKeeper types.CertKeeper
 	storeKey sdk.StoreKey
 	cdc      codec.Marshaler
 }
@@ -23,16 +22,16 @@ func NewKeeper(cdc codec.Marshaler, certKeeper types.CertKeeper, storeKey sdk.St
 	baseKeeper := nftkeeper.NewKeeper(cdc,storeKey)
 	return Keeper{
 		Keeper: baseKeeper,
+		certKeeper: certKeeper,
 		storeKey: storeKey,
 		cdc:      cdc,
 	}
 }
 
 
-func (k Keeper) DeleteAdmin(ctx sdk.Context, addr sdk.AccAddress) error {
+func (k Keeper) DeleteAdmin(ctx sdk.Context, addr sdk.AccAddress)  {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.AdminKey(addr))
-	return nil
 }
 
 func (k Keeper) SetAdmin(ctx sdk.Context, addr sdk.AccAddress) {
