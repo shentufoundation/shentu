@@ -9,4 +9,5 @@ option (gogoproto.stable_marshaler_all) = true;
 
 message NFTAdmin {
   string address = 1;
+  repeated string owned_denoms = 2;
 }
