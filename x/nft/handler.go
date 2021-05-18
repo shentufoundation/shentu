@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/irisnet/irismod/modules/nft/keeper"
 	"github.com/irisnet/irismod/modules/nft/types"
 
 	customkeeper "github.com/certikfoundation/shentu/x/nft/keeper"
@@ -41,6 +40,12 @@ func NewHandler(k customkeeper.Keeper) sdk.Handler {
 
 		case *customtypes.MsgCreateNFTAdmin:
 			res, err := msgServer.CreateNFTAdmin(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+
+		case *customtypes.MsgRevokeNFTAdmin:
+			res, err := msgServer.RevokeNFTAdmin(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+
 
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized nft message type: %T", msg)

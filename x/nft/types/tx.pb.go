@@ -29,21 +29,21 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type MsgCreateNFTAdmin struct {
+type MsgCreateAdmin struct {
 	Issuer  string `protobuf:"bytes,1,opt,name=issuer,proto3" json:"issuer,omitempty"`
 	Address string `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
 }
 
-func (m *MsgCreateNFTAdmin) Reset()         { *m = MsgCreateNFTAdmin{} }
-func (m *MsgCreateNFTAdmin) String() string { return proto.CompactTextString(m) }
-func (*MsgCreateNFTAdmin) ProtoMessage()    {}
-func (*MsgCreateNFTAdmin) Descriptor() ([]byte, []int) {
+func (m *MsgCreateAdmin) Reset()         { *m = MsgCreateAdmin{} }
+func (m *MsgCreateAdmin) String() string { return proto.CompactTextString(m) }
+func (*MsgCreateAdmin) ProtoMessage()    {}
+func (*MsgCreateAdmin) Descriptor() ([]byte, []int) {
 	return fileDescriptor_6cb0e86de90ef9e6, []int{0}
 }
-func (m *MsgCreateNFTAdmin) XXX_Unmarshal(b []byte) error {
+func (m *MsgCreateAdmin) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCreateNFTAdmin) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCreateAdmin) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
 	if err != nil {
@@ -51,45 +51,45 @@ func (m *MsgCreateNFTAdmin) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 	}
 	return b[:n], nil
 }
-func (m *MsgCreateNFTAdmin) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCreateNFTAdmin.Merge(m, src)
+func (m *MsgCreateAdmin) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreateAdmin.Merge(m, src)
 }
-func (m *MsgCreateNFTAdmin) XXX_Size() int {
+func (m *MsgCreateAdmin) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCreateNFTAdmin) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCreateNFTAdmin.DiscardUnknown(m)
+func (m *MsgCreateAdmin) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreateAdmin.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCreateNFTAdmin proto.InternalMessageInfo
+var xxx_messageInfo_MsgCreateAdmin proto.InternalMessageInfo
 
-func (m *MsgCreateNFTAdmin) GetIssuer() string {
+func (m *MsgCreateAdmin) GetIssuer() string {
 	if m != nil {
 		return m.Issuer
 	}
 	return ""
 }
 
-func (m *MsgCreateNFTAdmin) GetAddress() string {
+func (m *MsgCreateAdmin) GetAddress() string {
 	if m != nil {
 		return m.Address
 	}
 	return ""
 }
 
-type MsgIssueNFTAdminResponse struct {
+type MsgIssueAdminResponse struct {
 }
 
-func (m *MsgIssueNFTAdminResponse) Reset()         { *m = MsgIssueNFTAdminResponse{} }
-func (m *MsgIssueNFTAdminResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgIssueNFTAdminResponse) ProtoMessage()    {}
-func (*MsgIssueNFTAdminResponse) Descriptor() ([]byte, []int) {
+func (m *MsgIssueAdminResponse) Reset()         { *m = MsgIssueAdminResponse{} }
+func (m *MsgIssueAdminResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgIssueAdminResponse) ProtoMessage()    {}
+func (*MsgIssueAdminResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_6cb0e86de90ef9e6, []int{1}
 }
-func (m *MsgIssueNFTAdminResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgIssueAdminResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgIssueNFTAdminResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgIssueAdminResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
 	if err != nil {
@@ -97,33 +97,33 @@ func (m *MsgIssueNFTAdminResponse) XXX_Marshal(b []byte, deterministic bool) ([]
 	}
 	return b[:n], nil
 }
-func (m *MsgIssueNFTAdminResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgIssueNFTAdminResponse.Merge(m, src)
+func (m *MsgIssueAdminResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgIssueAdminResponse.Merge(m, src)
 }
-func (m *MsgIssueNFTAdminResponse) XXX_Size() int {
+func (m *MsgIssueAdminResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgIssueNFTAdminResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgIssueNFTAdminResponse.DiscardUnknown(m)
+func (m *MsgIssueAdminResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgIssueAdminResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgIssueNFTAdminResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgIssueAdminResponse proto.InternalMessageInfo
 
-type MsgRevokeNFTAdmin struct {
+type MsgRevokeAdmin struct {
 	Revoker string `protobuf:"bytes,1,opt,name=revoker,proto3" json:"revoker,omitempty"`
 	Address string `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
 }
 
-func (m *MsgRevokeNFTAdmin) Reset()         { *m = MsgRevokeNFTAdmin{} }
-func (m *MsgRevokeNFTAdmin) String() string { return proto.CompactTextString(m) }
-func (*MsgRevokeNFTAdmin) ProtoMessage()    {}
-func (*MsgRevokeNFTAdmin) Descriptor() ([]byte, []int) {
+func (m *MsgRevokeAdmin) Reset()         { *m = MsgRevokeAdmin{} }
+func (m *MsgRevokeAdmin) String() string { return proto.CompactTextString(m) }
+func (*MsgRevokeAdmin) ProtoMessage()    {}
+func (*MsgRevokeAdmin) Descriptor() ([]byte, []int) {
 	return fileDescriptor_6cb0e86de90ef9e6, []int{2}
 }
-func (m *MsgRevokeNFTAdmin) XXX_Unmarshal(b []byte) error {
+func (m *MsgRevokeAdmin) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRevokeNFTAdmin) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRevokeAdmin) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
 	if err != nil {
@@ -131,26 +131,26 @@ func (m *MsgRevokeNFTAdmin) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 	}
 	return b[:n], nil
 }
-func (m *MsgRevokeNFTAdmin) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRevokeNFTAdmin.Merge(m, src)
+func (m *MsgRevokeAdmin) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRevokeAdmin.Merge(m, src)
 }
-func (m *MsgRevokeNFTAdmin) XXX_Size() int {
+func (m *MsgRevokeAdmin) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRevokeNFTAdmin) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRevokeNFTAdmin.DiscardUnknown(m)
+func (m *MsgRevokeAdmin) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRevokeAdmin.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRevokeNFTAdmin proto.InternalMessageInfo
+var xxx_messageInfo_MsgRevokeAdmin proto.InternalMessageInfo
 
-func (m *MsgRevokeNFTAdmin) GetRevoker() string {
+func (m *MsgRevokeAdmin) GetRevoker() string {
 	if m != nil {
 		return m.Revoker
 	}
 	return ""
 }
 
-func (m *MsgRevokeNFTAdmin) GetAddress() string {
+func (m *MsgRevokeAdmin) GetAddress() string {
 	if m != nil {
 		return m.Address
 	}
@@ -190,42 +190,42 @@ func (m *MsgRevokeAdminResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgRevokeAdminResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgCreateNFTAdmin)(nil), "shentu.nft.v1alpha1.MsgCreateNFTAdmin")
-	proto.RegisterType((*MsgIssueNFTAdminResponse)(nil), "shentu.nft.v1alpha1.MsgIssueNFTAdminResponse")
-	proto.RegisterType((*MsgRevokeNFTAdmin)(nil), "shentu.nft.v1alpha1.MsgRevokeNFTAdmin")
+	proto.RegisterType((*MsgCreateAdmin)(nil), "shentu.nft.v1alpha1.MsgCreateAdmin")
+	proto.RegisterType((*MsgIssueAdminResponse)(nil), "shentu.nft.v1alpha1.MsgIssueAdminResponse")
+	proto.RegisterType((*MsgRevokeAdmin)(nil), "shentu.nft.v1alpha1.MsgRevokeAdmin")
 	proto.RegisterType((*MsgRevokeAdminResponse)(nil), "shentu.nft.v1alpha1.MsgRevokeAdminResponse")
 }
 
 func init() { proto.RegisterFile("shentu/nft/v1alpha1/tx.proto", fileDescriptor_6cb0e86de90ef9e6) }
 
 var fileDescriptor_6cb0e86de90ef9e6 = []byte{
-	// 409 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x93, 0xd1, 0xaa, 0xd3, 0x30,
-	0x18, 0xc7, 0x57, 0x95, 0x33, 0x8c, 0x70, 0xc0, 0x78, 0x98, 0x25, 0x4a, 0x95, 0x0a, 0x22, 0x88,
-	0x29, 0xd3, 0x27, 0x70, 0x73, 0x13, 0x61, 0x9d, 0x30, 0x76, 0xe5, 0x5d, 0xb7, 0xa6, 0x5d, 0x98,
-	0x4d, 0x4a, 0x92, 0x8e, 0xf9, 0x16, 0xbe, 0x93, 0x37, 0x5e, 0xee, 0x72, 0x97, 0xd2, 0xbd, 0x88,
-	0x2c, 0x4b, 0x76, 0xb6, 0xae, 0xdd, 0x5d, 0xd3, 0xdf, 0x9f, 0xdf, 0xff, 0x6b, 0xf9, 0x02, 0x5e,
-	0xca, 0x05, 0x61, 0xaa, 0x08, 0x58, 0xa2, 0x82, 0x55, 0x37, 0xfa, 0x99, 0x2f, 0xa2, 0x6e, 0xa0,
-	0xd6, 0x38, 0x17, 0x5c, 0x71, 0xf8, 0xec, 0x40, 0x31, 0x4b, 0x14, 0xb6, 0x14, 0xdd, 0xa5, 0x3c,
-	0xe5, 0x9a, 0x07, 0xfb, 0xa7, 0x43, 0x14, 0xdd, 0x51, 0x41, 0x65, 0xc6, 0x63, 0x6d, 0xb2, 0x02,
-	0x7f, 0x00, 0x9e, 0x86, 0x32, 0xed, 0x0b, 0x12, 0x29, 0x32, 0x1e, 0x4e, 0x3f, 0xc7, 0x19, 0x65,
-	0xb0, 0x03, 0x6e, 0xa8, 0x94, 0x05, 0x11, 0xae, 0xf3, 0xda, 0x79, 0xf7, 0x78, 0x62, 0x4e, 0xd0,
-	0x05, 0xed, 0x28, 0x8e, 0x05, 0x91, 0xd2, 0x7d, 0xa0, 0x81, 0x3d, 0xfa, 0x08, 0xb8, 0xa1, 0x4c,
-	0xbf, 0xed, 0x63, 0xd6, 0x32, 0x21, 0x32, 0xe7, 0x4c, 0x12, 0xff, 0xab, 0xae, 0x98, 0x90, 0x15,
-	0x5f, 0xde, 0x57, 0xb8, 0xa0, 0x2d, 0xf4, 0x1b, 0xdb, 0x61, 0x8f, 0x57, 0x4a, 0x5c, 0xd0, 0x39,
-	0x8a, 0xce, 0x2a, 0x3e, 0xfe, 0x79, 0x04, 0x1e, 0x86, 0x32, 0x85, 0x23, 0x00, 0xf4, 0x0c, 0x5f,
-	0x08, 0xe3, 0x19, 0x44, 0xd8, 0x7c, 0xb2, 0xfe, 0x3d, 0x76, 0x3e, 0xcd, 0x90, 0xdf, 0xcc, 0xac,
-	0x15, 0xf6, 0x41, 0x3b, 0xa4, 0x4c, 0x8d, 0x87, 0x53, 0xf8, 0xbc, 0x1a, 0x37, 0x00, 0xbd, 0x6a,
-	0x00, 0xa7, 0x92, 0x41, 0x4c, 0xeb, 0x25, 0x06, 0x5c, 0x4a, 0x0c, 0x38, 0x4a, 0xbe, 0x83, 0x27,
-	0x53, 0x11, 0x31, 0x99, 0x10, 0xb1, 0x17, 0xbd, 0xa8, 0xe6, 0x4f, 0x20, 0x7a, 0x73, 0x05, 0x9e,
-	0x4e, 0xd5, 0x2b, 0x04, 0xab, 0x9d, 0xca, 0x80, 0xcb, 0xa9, 0x0c, 0x38, 0x4a, 0x52, 0x70, 0x5b,
-	0x59, 0x9c, 0xb7, 0xb8, 0x66, 0x1f, 0xf1, 0xc5, 0x82, 0xa1, 0x0f, 0x4d, 0xb9, 0xda, 0x0d, 0x82,
-	0x04, 0xdc, 0x56, 0xd6, 0xa7, 0xb1, 0xe8, 0x3c, 0x87, 0xde, 0x5f, 0xcf, 0x9d, 0xd5, 0xf4, 0x46,
-	0x7f, 0x4b, 0xcf, 0xd9, 0x94, 0x9e, 0xb3, 0x2d, 0x3d, 0xe7, 0x5f, 0xe9, 0x39, 0xbf, 0x77, 0x5e,
-	0x6b, 0xb3, 0xf3, 0x5a, 0xdb, 0x9d, 0xd7, 0xfa, 0x81, 0x53, 0xaa, 0x16, 0xc5, 0x0c, 0xcf, 0x79,
-	0x16, 0xcc, 0x89, 0x50, 0x74, 0x99, 0xf0, 0x82, 0xc5, 0x91, 0xa2, 0x9c, 0x05, 0xe6, 0x92, 0xae,
-	0x0f, 0x97, 0xeb, 0x57, 0x4e, 0xe4, 0xec, 0x46, 0x5f, 0xb0, 0x4f, 0xff, 0x03, 0x00, 0x00, 0xff,
-	0xff, 0xc5, 0xaa, 0xa9, 0xb0, 0xc1, 0x03, 0x00, 0x00,
+	// 406 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0xdf, 0xce, 0xd2, 0x30,
+	0x18, 0xc6, 0x99, 0x9a, 0x8f, 0x58, 0x12, 0x0f, 0x2a, 0xc2, 0x52, 0xcd, 0x34, 0xe3, 0xc4, 0x68,
+	0xd2, 0x05, 0xbd, 0x02, 0x01, 0x4d, 0x4c, 0x98, 0x26, 0x84, 0x23, 0x0f, 0x34, 0x83, 0x75, 0xa3,
+	0xc1, 0xb5, 0x4b, 0xdb, 0x11, 0xbc, 0x0b, 0x2f, 0xc6, 0x8b, 0xf0, 0x90, 0x43, 0x0e, 0xcd, 0xb8,
+	0x11, 0x43, 0x69, 0xc9, 0xf8, 0x33, 0xf2, 0x9d, 0xf1, 0xe6, 0xf7, 0xe4, 0xd7, 0x97, 0xe5, 0x79,
+	0xc1, 0x0b, 0xb9, 0x20, 0x4c, 0x15, 0x01, 0x4b, 0x54, 0xb0, 0xea, 0x47, 0x3f, 0xf3, 0x45, 0xd4,
+	0x0f, 0xd4, 0x1a, 0xe7, 0x82, 0x2b, 0x0e, 0x9f, 0x1e, 0x28, 0x66, 0x89, 0xc2, 0x96, 0xa2, 0x76,
+	0xca, 0x53, 0xae, 0x79, 0xb0, 0xff, 0x75, 0x88, 0xa2, 0x36, 0x15, 0x54, 0x66, 0x3c, 0xd6, 0x26,
+	0x2b, 0xf0, 0x07, 0xe0, 0x49, 0x28, 0xd3, 0xa1, 0x20, 0x91, 0x22, 0x1f, 0xe2, 0x8c, 0x32, 0xd8,
+	0x01, 0x77, 0x54, 0xca, 0x82, 0x08, 0xd7, 0x79, 0xe5, 0xbc, 0x7e, 0x3c, 0x31, 0x13, 0x74, 0x41,
+	0x33, 0x8a, 0x63, 0x41, 0xa4, 0x74, 0x1f, 0x68, 0x60, 0x47, 0xbf, 0x0b, 0x9e, 0x85, 0x32, 0xfd,
+	0xbc, 0x8f, 0x69, 0xc5, 0x84, 0xc8, 0x9c, 0x33, 0x49, 0xfc, 0x91, 0x96, 0x4f, 0xc8, 0x8a, 0x2f,
+	0x8d, 0xdc, 0x05, 0x4d, 0xa1, 0x47, 0x6b, 0xb7, 0xe3, 0x0d, 0xbd, 0x0b, 0x3a, 0xa7, 0x16, 0xeb,
+	0x7f, 0xf7, 0xe7, 0x11, 0x78, 0x18, 0xca, 0x14, 0x8e, 0x01, 0xd0, 0xaf, 0x8f, 0x08, 0xe3, 0x19,
+	0x44, 0xd8, 0xfc, 0x53, 0xfd, 0x55, 0xec, 0x66, 0x9a, 0x21, 0xbf, 0x9e, 0x59, 0x2b, 0x1c, 0x82,
+	0x66, 0x48, 0x99, 0xfa, 0xf2, 0x69, 0x0a, 0xbb, 0xe7, 0x71, 0x03, 0xd0, 0xcb, 0x1a, 0x50, 0x95,
+	0x7c, 0x8c, 0xe9, 0x75, 0x89, 0x01, 0x97, 0x12, 0x03, 0x8e, 0x92, 0xaf, 0xa0, 0x35, 0x15, 0x11,
+	0x93, 0x09, 0x11, 0x7b, 0xd1, 0xf3, 0xf3, 0x7c, 0x05, 0xa2, 0xde, 0x0d, 0x58, 0xdd, 0x6a, 0x50,
+	0x08, 0x76, 0x75, 0x2b, 0x03, 0x2e, 0xb7, 0x32, 0xe0, 0x28, 0xf9, 0x0e, 0x5a, 0xd5, 0xbe, 0xf4,
+	0xf0, 0x95, 0x0e, 0xe2, 0xd3, 0x52, 0xa1, 0x37, 0x75, 0xa1, 0xcb, 0xd6, 0xc0, 0x1f, 0xa0, 0x55,
+	0xad, 0x4c, 0xad, 0xbf, 0x12, 0x42, 0x6f, 0xef, 0x11, 0xb2, 0x0f, 0x0c, 0xc6, 0x7f, 0x4b, 0xcf,
+	0xd9, 0x94, 0x9e, 0xb3, 0x2d, 0x3d, 0xe7, 0x5f, 0xe9, 0x39, 0xbf, 0x77, 0x5e, 0x63, 0xb3, 0xf3,
+	0x1a, 0xdb, 0x9d, 0xd7, 0xf8, 0x86, 0x53, 0xaa, 0x16, 0xc5, 0x0c, 0xcf, 0x79, 0x16, 0xcc, 0x89,
+	0x50, 0x74, 0x99, 0xf0, 0x82, 0xc5, 0x91, 0xa2, 0x9c, 0x05, 0xe6, 0x18, 0xd7, 0x87, 0x23, 0xfa,
+	0x95, 0x13, 0x39, 0xbb, 0xd3, 0x87, 0xf4, 0xfe, 0x7f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x51, 0x65,
+	0xde, 0xc5, 0xa9, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -251,9 +251,9 @@ type MsgClient interface {
 	// BurnNFT defines a method for burning a nft.
 	BurnNFT(ctx context.Context, in *types.MsgBurnNFT, opts ...grpc.CallOption) (*types.MsgBurnNFTResponse, error)
 	// CreateNFTAdmin defines a method for creating an nft admin.
-	CreateNFTAdmin(ctx context.Context, in *MsgCreateNFTAdmin, opts ...grpc.CallOption) (*MsgIssueNFTAdminResponse, error)
+	CreateAdmin(ctx context.Context, in *MsgCreateAdmin, opts ...grpc.CallOption) (*MsgIssueAdminResponse, error)
 	// RevokeNFTAdmin defines a method for revoking an nft admin.
-	RevokeNFTAdmin(ctx context.Context, in *MsgRevokeNFTAdmin, opts ...grpc.CallOption) (*MsgRevokeAdminResponse, error)
+	RevokeAdmin(ctx context.Context, in *MsgRevokeAdmin, opts ...grpc.CallOption) (*MsgRevokeAdminResponse, error)
 }
 
 type msgClient struct {
@@ -309,18 +309,18 @@ func (c *msgClient) BurnNFT(ctx context.Context, in *types.MsgBurnNFT, opts ...g
 	return out, nil
 }
 
-func (c *msgClient) CreateNFTAdmin(ctx context.Context, in *MsgCreateNFTAdmin, opts ...grpc.CallOption) (*MsgIssueNFTAdminResponse, error) {
-	out := new(MsgIssueNFTAdminResponse)
-	err := c.cc.Invoke(ctx, "/shentu.nft.v1alpha1.Msg/CreateNFTAdmin", in, out, opts...)
+func (c *msgClient) CreateAdmin(ctx context.Context, in *MsgCreateAdmin, opts ...grpc.CallOption) (*MsgIssueAdminResponse, error) {
+	out := new(MsgIssueAdminResponse)
+	err := c.cc.Invoke(ctx, "/shentu.nft.v1alpha1.Msg/CreateAdmin", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) RevokeNFTAdmin(ctx context.Context, in *MsgRevokeNFTAdmin, opts ...grpc.CallOption) (*MsgRevokeAdminResponse, error) {
+func (c *msgClient) RevokeAdmin(ctx context.Context, in *MsgRevokeAdmin, opts ...grpc.CallOption) (*MsgRevokeAdminResponse, error) {
 	out := new(MsgRevokeAdminResponse)
-	err := c.cc.Invoke(ctx, "/shentu.nft.v1alpha1.Msg/RevokeNFTAdmin", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/shentu.nft.v1alpha1.Msg/RevokeAdmin", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -340,9 +340,9 @@ type MsgServer interface {
 	// BurnNFT defines a method for burning a nft.
 	BurnNFT(context.Context, *types.MsgBurnNFT) (*types.MsgBurnNFTResponse, error)
 	// CreateNFTAdmin defines a method for creating an nft admin.
-	CreateNFTAdmin(context.Context, *MsgCreateNFTAdmin) (*MsgIssueNFTAdminResponse, error)
+	CreateAdmin(context.Context, *MsgCreateAdmin) (*MsgIssueAdminResponse, error)
 	// RevokeNFTAdmin defines a method for revoking an nft admin.
-	RevokeNFTAdmin(context.Context, *MsgRevokeNFTAdmin) (*MsgRevokeAdminResponse, error)
+	RevokeAdmin(context.Context, *MsgRevokeAdmin) (*MsgRevokeAdminResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -364,11 +364,11 @@ func (*UnimplementedMsgServer) TransferNFT(ctx context.Context, req *types.MsgTr
 func (*UnimplementedMsgServer) BurnNFT(ctx context.Context, req *types.MsgBurnNFT) (*types.MsgBurnNFTResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BurnNFT not implemented")
 }
-func (*UnimplementedMsgServer) CreateNFTAdmin(ctx context.Context, req *MsgCreateNFTAdmin) (*MsgIssueNFTAdminResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateNFTAdmin not implemented")
+func (*UnimplementedMsgServer) CreateAdmin(ctx context.Context, req *MsgCreateAdmin) (*MsgIssueAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAdmin not implemented")
 }
-func (*UnimplementedMsgServer) RevokeNFTAdmin(ctx context.Context, req *MsgRevokeNFTAdmin) (*MsgRevokeAdminResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RevokeNFTAdmin not implemented")
+func (*UnimplementedMsgServer) RevokeAdmin(ctx context.Context, req *MsgRevokeAdmin) (*MsgRevokeAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeAdmin not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -465,38 +465,38 @@ func _Msg_BurnNFT_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_CreateNFTAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgCreateNFTAdmin)
+func _Msg_CreateAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgCreateAdmin)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).CreateNFTAdmin(ctx, in)
+		return srv.(MsgServer).CreateAdmin(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/shentu.nft.v1alpha1.Msg/CreateNFTAdmin",
+		FullMethod: "/shentu.nft.v1alpha1.Msg/CreateAdmin",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).CreateNFTAdmin(ctx, req.(*MsgCreateNFTAdmin))
+		return srv.(MsgServer).CreateAdmin(ctx, req.(*MsgCreateAdmin))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_RevokeNFTAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRevokeNFTAdmin)
+func _Msg_RevokeAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRevokeAdmin)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).RevokeNFTAdmin(ctx, in)
+		return srv.(MsgServer).RevokeAdmin(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/shentu.nft.v1alpha1.Msg/RevokeNFTAdmin",
+		FullMethod: "/shentu.nft.v1alpha1.Msg/RevokeAdmin",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RevokeNFTAdmin(ctx, req.(*MsgRevokeNFTAdmin))
+		return srv.(MsgServer).RevokeAdmin(ctx, req.(*MsgRevokeAdmin))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -526,19 +526,19 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_BurnNFT_Handler,
 		},
 		{
-			MethodName: "CreateNFTAdmin",
-			Handler:    _Msg_CreateNFTAdmin_Handler,
+			MethodName: "CreateAdmin",
+			Handler:    _Msg_CreateAdmin_Handler,
 		},
 		{
-			MethodName: "RevokeNFTAdmin",
-			Handler:    _Msg_RevokeNFTAdmin_Handler,
+			MethodName: "RevokeAdmin",
+			Handler:    _Msg_RevokeAdmin_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "shentu/nft/v1alpha1/tx.proto",
 }
 
-func (m *MsgCreateNFTAdmin) Marshal() (dAtA []byte, err error) {
+func (m *MsgCreateAdmin) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -548,12 +548,12 @@ func (m *MsgCreateNFTAdmin) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCreateNFTAdmin) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCreateAdmin) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCreateNFTAdmin) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCreateAdmin) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -575,7 +575,7 @@ func (m *MsgCreateNFTAdmin) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgIssueNFTAdminResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgIssueAdminResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -585,12 +585,12 @@ func (m *MsgIssueNFTAdminResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgIssueNFTAdminResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgIssueAdminResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgIssueNFTAdminResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgIssueAdminResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -598,7 +598,7 @@ func (m *MsgIssueNFTAdminResponse) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRevokeNFTAdmin) Marshal() (dAtA []byte, err error) {
+func (m *MsgRevokeAdmin) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -608,12 +608,12 @@ func (m *MsgRevokeNFTAdmin) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRevokeNFTAdmin) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRevokeAdmin) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRevokeNFTAdmin) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRevokeAdmin) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -669,7 +669,7 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgCreateNFTAdmin) Size() (n int) {
+func (m *MsgCreateAdmin) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -686,7 +686,7 @@ func (m *MsgCreateNFTAdmin) Size() (n int) {
 	return n
 }
 
-func (m *MsgIssueNFTAdminResponse) Size() (n int) {
+func (m *MsgIssueAdminResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -695,7 +695,7 @@ func (m *MsgIssueNFTAdminResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgRevokeNFTAdmin) Size() (n int) {
+func (m *MsgRevokeAdmin) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -727,7 +727,7 @@ func sovTx(x uint64) (n int) {
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgCreateNFTAdmin) Unmarshal(dAtA []byte) error {
+func (m *MsgCreateAdmin) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -750,10 +750,10 @@ func (m *MsgCreateNFTAdmin) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCreateNFTAdmin: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCreateAdmin: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCreateNFTAdmin: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCreateAdmin: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -844,7 +844,7 @@ func (m *MsgCreateNFTAdmin) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgIssueNFTAdminResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgIssueAdminResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -867,10 +867,10 @@ func (m *MsgIssueNFTAdminResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgIssueNFTAdminResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgIssueAdminResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgIssueNFTAdminResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgIssueAdminResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -897,7 +897,7 @@ func (m *MsgIssueNFTAdminResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRevokeNFTAdmin) Unmarshal(dAtA []byte) error {
+func (m *MsgRevokeAdmin) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -920,10 +920,10 @@ func (m *MsgRevokeNFTAdmin) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRevokeNFTAdmin: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRevokeAdmin: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRevokeNFTAdmin: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRevokeAdmin: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

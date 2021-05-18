@@ -16,19 +16,20 @@ type msgServer struct {
 }
 
 func (m msgServer) CreateNFTAdmin(ctx context.Context, admin *types.MsgCreateNFTAdmin) (*types.MsgIssueNFTAdminResponse, error) {
-	panic("implement me")
+
+	return &types.MsgIssueNFTAdminResponse{}, nil
 }
 
 func (m msgServer) RevokeNFTAdmin(ctx context.Context, admin *types.MsgRevokeNFTAdmin) (*types.MsgRevokeAdminResponse, error) {
-	panic("implement me")
+	return &types.MsgRevokeAdminResponse{}, nil
 }
 
 var _ types.MsgServer = msgServer{}
 
 func (k Keeper) NewMsgServerImpl() types.MsgServer {
-	vanillaMsgServer := keeper.NewMsgServerImpl(k.Keeper)
+	basicServer := keeper.NewMsgServerImpl(k.Keeper)
 	return msgServer {
-		MsgServer: vanillaMsgServer,
+		MsgServer: basicServer,
 		Keeper: k,
 	}
 }

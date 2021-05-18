@@ -7,7 +7,7 @@ option go_package = "github.com/certikfoundation/shentu/x/nft/types";
 
 option (gogoproto.stable_marshaler_all) = true;
 
-message NFTAdmin {
+message Admin {
   string address = 1;
   repeated string owned_denoms = 2;
 }

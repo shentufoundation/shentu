@@ -7,12 +7,10 @@ import (
 )
 
 // NewMsgCreateNFTAdmin returns a new certifier proposal message.
-func NewMsgCreateNFTAdmin(proposer, certifier sdk.AccAddress, alias string, description string) *MsgCreateNFTAdmin {
+func NewMsgCreateNFTAdmin(issuer, address string) *MsgCreateNFTAdmin {
 	return &MsgCreateNFTAdmin{
-		Proposer:    proposer.String(),
-		Certifier:   certifier.String(),
-		Alias:       alias,
-		Description: description,
+		Issuer:issuer,
+		Address: address,
 	}
 }
 
@@ -20,7 +18,7 @@ func NewMsgCreateNFTAdmin(proposer, certifier sdk.AccAddress, alias string, desc
 func (m MsgCreateNFTAdmin) Route() string { return types.ModuleName }
 
 // Type returns the action name.
-func (m MsgCreateNFTAdmin) Type() string { return "propose_certifier" }
+func (m MsgCreateNFTAdmin) Type() string { return "create_admin" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgCreateNFTAdmin) ValidateBasic() error {
@@ -36,13 +34,54 @@ func (m MsgCreateNFTAdmin) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing.
 func (m MsgCreateNFTAdmin) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&m)
+	bz := types.ModuleCdc.MustMarshalJSON(&m)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
 func (m MsgCreateNFTAdmin) GetSigners() []sdk.AccAddress {
-	proposerAddr, err := sdk.AccAddressFromBech32(m.Proposer)
+	proposerAddr, err := sdk.AccAddressFromBech32(m.Issuer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{proposerAddr}
+}
+
+// NewMsgRevokeNFTAdmin returns a new certifier proposal message.
+func NewMsgRevokeNFTAdmin(issuer, address string) *MsgRevokeNFTAdmin {
+	return &MsgRevokeNFTAdmin{
+		Revoker:issuer,
+		Address: address,
+	}
+}
+
+// Route returns the module name.
+func (m MsgRevokeNFTAdmin) Route() string { return types.ModuleName }
+
+// Type returns the action name.
+func (m MsgRevokeNFTAdmin) Type() string { return "revoke_admin" }
+
+// ValidateBasic runs stateless checks on the message.
+func (m MsgRevokeNFTAdmin) ValidateBasic() error {
+	certifierAddr, err := sdk.AccAddressFromBech32(m.Revoker)
+	if err != nil {
+		panic(err)
+	}
+	if certifierAddr.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, certifierAddr.String())
+	}
+	return nil
+}
+
+// GetSignBytes encodes the message for signing.
+func (m MsgRevokeNFTAdmin) GetSignBytes() []byte {
+	bz := types.ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners defines whose signature is required.
+func (m MsgRevokeNFTAdmin) GetSigners() []sdk.AccAddress {
+	proposerAddr, err := sdk.AccAddressFromBech32(m.Revoker)
 	if err != nil {
 		panic(err)
 	}

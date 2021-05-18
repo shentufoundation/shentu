@@ -26,20 +26,20 @@ service Msg {
   rpc BurnNFT(irismod.nft.MsgBurnNFT) returns (irismod.nft.MsgBurnNFTResponse);
 
   // CreateNFTAdmin defines a method for creating an nft admin.
-  rpc CreateNFTAdmin(MsgCreateNFTAdmin) returns (MsgIssueNFTAdminResponse);
+  rpc CreateAdmin(MsgCreateAdmin) returns (MsgIssueAdminResponse);
 
   // RevokeNFTAdmin defines a method for revoking an nft admin.
-  rpc RevokeNFTAdmin(MsgRevokeNFTAdmin) returns (MsgRevokeAdminResponse);
+  rpc RevokeAdmin(MsgRevokeAdmin) returns (MsgRevokeAdminResponse);
 }
 
-message MsgCreateNFTAdmin {
+message MsgCreateAdmin {
   string issuer = 1;
   string address = 2;
 }
 
-message MsgIssueNFTAdminResponse {}
+message MsgIssueAdminResponse {}
 
-message MsgRevokeNFTAdmin {
+message MsgRevokeAdmin {
   string revoker = 1;
   string address = 2;
 }
