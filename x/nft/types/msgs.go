@@ -6,23 +6,23 @@ import (
 	"github.com/irisnet/irismod/modules/nft/types"
 )
 
-// NewMsgCreateNFTAdmin returns a new certifier proposal message.
-func NewMsgCreateNFTAdmin(issuer, address string) *MsgCreateNFTAdmin {
-	return &MsgCreateNFTAdmin{
-		Issuer:issuer,
+// NewMsgCreateAdmin returns a new certifier proposal message.
+func NewMsgCreateAdmin(issuer, address string) *MsgCreateAdmin {
+	return &MsgCreateAdmin{
+		Creator:issuer,
 		Address: address,
 	}
 }
 
 // Route returns the module name.
-func (m MsgCreateNFTAdmin) Route() string { return types.ModuleName }
+func (m MsgCreateAdmin) Route() string { return types.ModuleName }
 
 // Type returns the action name.
-func (m MsgCreateNFTAdmin) Type() string { return "create_admin" }
+func (m MsgCreateAdmin) Type() string { return "create_admin" }
 
 // ValidateBasic runs stateless checks on the message.
-func (m MsgCreateNFTAdmin) ValidateBasic() error {
-	certifierAddr, err := sdk.AccAddressFromBech32(m.Issuer)
+func (m MsgCreateAdmin) ValidateBasic() error {
+	certifierAddr, err := sdk.AccAddressFromBech32(m.Creator)
 	if err != nil {
 		panic(err)
 	}
@@ -33,14 +33,14 @@ func (m MsgCreateNFTAdmin) ValidateBasic() error {
 }
 
 // GetSignBytes encodes the message for signing.
-func (m MsgCreateNFTAdmin) GetSignBytes() []byte {
+func (m MsgCreateAdmin) GetSignBytes() []byte {
 	bz := types.ModuleCdc.MustMarshalJSON(&m)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
-func (m MsgCreateNFTAdmin) GetSigners() []sdk.AccAddress {
-	proposerAddr, err := sdk.AccAddressFromBech32(m.Issuer)
+func (m MsgCreateAdmin) GetSigners() []sdk.AccAddress {
+	proposerAddr, err := sdk.AccAddressFromBech32(m.Creator)
 	if err != nil {
 		panic(err)
 	}
@@ -48,21 +48,21 @@ func (m MsgCreateNFTAdmin) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgRevokeNFTAdmin returns a new certifier proposal message.
-func NewMsgRevokeNFTAdmin(issuer, address string) *MsgRevokeNFTAdmin {
-	return &MsgRevokeNFTAdmin{
+func NewMsgRevokeNFTAdmin(issuer, address string) *MsgRevokeAdmin {
+	return &MsgRevokeAdmin{
 		Revoker:issuer,
 		Address: address,
 	}
 }
 
 // Route returns the module name.
-func (m MsgRevokeNFTAdmin) Route() string { return types.ModuleName }
+func (m MsgRevokeAdmin) Route() string { return types.ModuleName }
 
 // Type returns the action name.
-func (m MsgRevokeNFTAdmin) Type() string { return "revoke_admin" }
+func (m MsgRevokeAdmin) Type() string { return "revoke_admin" }
 
 // ValidateBasic runs stateless checks on the message.
-func (m MsgRevokeNFTAdmin) ValidateBasic() error {
+func (m MsgRevokeAdmin) ValidateBasic() error {
 	certifierAddr, err := sdk.AccAddressFromBech32(m.Revoker)
 	if err != nil {
 		panic(err)
@@ -74,13 +74,13 @@ func (m MsgRevokeNFTAdmin) ValidateBasic() error {
 }
 
 // GetSignBytes encodes the message for signing.
-func (m MsgRevokeNFTAdmin) GetSignBytes() []byte {
+func (m MsgRevokeAdmin) GetSignBytes() []byte {
 	bz := types.ModuleCdc.MustMarshalJSON(&m)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners defines whose signature is required.
-func (m MsgRevokeNFTAdmin) GetSigners() []sdk.AccAddress {
+func (m MsgRevokeAdmin) GetSigners() []sdk.AccAddress {
 	proposerAddr, err := sdk.AccAddressFromBech32(m.Revoker)
 	if err != nil {
 		panic(err)

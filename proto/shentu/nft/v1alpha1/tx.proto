@@ -33,7 +33,7 @@ service Msg {
 }
 
 message MsgCreateAdmin {
-  string issuer = 1;
+  string creator = 1;
   string address = 2;
 }
 

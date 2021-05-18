@@ -22,9 +22,11 @@ import (
 	"github.com/irisnet/irismod/modules/nft"
 	"github.com/irisnet/irismod/modules/nft/client/cli"
 	"github.com/irisnet/irismod/modules/nft/client/rest"
-	"github.com/irisnet/irismod/modules/nft/keeper"
 	"github.com/irisnet/irismod/modules/nft/simulation"
-	"github.com/irisnet/irismod/modules/nft/types"
+	nfttypes "github.com/irisnet/irismod/modules/nft/types"
+
+	"github.com/certikfoundation/shentu/x/nft/keeper"
+	"github.com/certikfoundation/shentu/x/nft/types"
 )
 
 var (
@@ -39,7 +41,7 @@ type AppModuleBasic struct {
 }
 
 // Name returns the NFT module's name.
-func (AppModuleBasic) Name() string { return types.ModuleName }
+func (AppModuleBasic) Name() string { return nfttypes.ModuleName }
 
 // RegisterLegacyAminoCodec registers the NFT module's types on the LegacyAmino codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
@@ -48,14 +50,14 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 // DefaultGenesis returns default genesis state as raw bytes for the NFT module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
-	return cdc.MustMarshalJSON(nft.DefaultGenesisState())
+	return cdc.MustMarshalJSON(DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the NFT module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var data types.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &data); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", nfttypes.ModuleName, err)
 	}
 
 	return types.ValidateGenesis(data)
@@ -63,7 +65,7 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxE
 
 // RegisterRESTRoutes registers the REST routes for the NFT module.
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	rest.RegisterHandlers(clientCtx, rtr, types.RouterKey)
+	rest.RegisterHandlers(clientCtx, rtr, nfttypes.RouterKey)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the NFT module.
@@ -93,12 +95,12 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper        keeper.Keeper
-	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
+	accountKeeper nfttypes.AccountKeeper
+	bankKeeper    nfttypes.BankKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper) AppModule {
+func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, accountKeeper nfttypes.AccountKeeper, bankKeeper nfttypes.BankKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{cdc: cdc},
 		keeper:         keeper,
@@ -108,11 +110,11 @@ func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, accountKeeper types
 }
 
 // Name returns the NFT module's name.
-func (AppModule) Name() string { return types.ModuleName }
+func (AppModule) Name() string { return nfttypes.ModuleName }
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	types.RegisterMsgServer(cfg.MsgServer(), am.keeper.NewMsgServerImpl())
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
@@ -121,11 +123,11 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
 // Route returns the message routing key for the NFT module.
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
+	return sdk.NewRoute(nfttypes.RouterKey, NewHandler(am.keeper))
 }
 
 // QuerierRoute returns the NFT module's querier route name.
-func (AppModule) QuerierRoute() string { return types.RouterKey }
+func (AppModule) QuerierRoute() string { return nfttypes.RouterKey }
 
 // LegacyQuerierHandler returns the NFT module sdk.Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
@@ -139,13 +141,13 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data j
 
 	cdc.MustUnmarshalJSON(data, &genesisState)
 
-	nft.InitGenesis(ctx, am.keeper, genesisState)
+	InitGenesis(ctx, am.keeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the NFT module.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
-	gs := nft.ExportGenesis(ctx, am.keeper)
+	gs := ExportGenesis(ctx, am.keeper)
 	return cdc.MustMarshalJSON(gs)
 }
 
@@ -178,10 +180,10 @@ func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
 
 // RegisterStoreDecoder registers a decoder for NFT module's types
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
+	sdr[nfttypes.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations returns the all the NFT module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.accountKeeper, am.bankKeeper)
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper.Keeper, am.accountKeeper, am.bankKeeper)
 }

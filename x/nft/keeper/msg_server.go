@@ -15,12 +15,11 @@ type msgServer struct {
 	Keeper
 }
 
-func (m msgServer) CreateNFTAdmin(ctx context.Context, admin *types.MsgCreateNFTAdmin) (*types.MsgIssueNFTAdminResponse, error) {
-
-	return &types.MsgIssueNFTAdminResponse{}, nil
+func (m msgServer) CreateAdmin(ctx context.Context, admin *types.MsgCreateAdmin) (*types.MsgIssueAdminResponse, error) {
+	return &types.MsgIssueAdminResponse{}, nil
 }
 
-func (m msgServer) RevokeNFTAdmin(ctx context.Context, admin *types.MsgRevokeNFTAdmin) (*types.MsgRevokeAdminResponse, error) {
+func (m msgServer) RevokeAdmin(ctx context.Context, admin *types.MsgRevokeAdmin) (*types.MsgRevokeAdminResponse, error) {
 	return &types.MsgRevokeAdminResponse{}, nil
 }
 

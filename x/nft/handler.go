@@ -38,12 +38,12 @@ func NewHandler(k customkeeper.Keeper) sdk.Handler {
 			res, err := msgServer.BurnNFT(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *customtypes.MsgCreateNFTAdmin:
-			res, err := msgServer.CreateNFTAdmin(sdk.WrapSDKContext(ctx), msg)
+		case *customtypes.MsgCreateAdmin:
+			res, err := msgServer.CreateAdmin(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *customtypes.MsgRevokeNFTAdmin:
-			res, err := msgServer.RevokeNFTAdmin(sdk.WrapSDKContext(ctx), msg)
+		case *customtypes.MsgRevokeAdmin:
+			res, err := msgServer.RevokeAdmin(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 
