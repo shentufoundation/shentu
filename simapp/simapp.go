@@ -511,32 +511,24 @@ func NewSimApp(
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 
-	// app.sm = module.NewSimulationManager(
-	// 	genutil.NewAppModule(
-	// 		app.AccountKeeper,
-	// 		app.StakingKeeper,
-	// 		app.BaseApp.DeliverTx,
-	// 		encodingConfig.TxConfig,
-	// 	),
-	// 	auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
-	// 	bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
-	// 	capability.NewAppModule(appCodec, *app.CapabilityKeeper),
-	// 	crisis.NewAppModule(&app.CrisisKeeper, skipGenesisInvariants),
-	// 	distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
-	// 	slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
-	// 	staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper),
-	// 	mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
-	// 	upgrade.NewAppModule(app.UpgradeKeeper),
-	// 	evidence.NewAppModule(app.EvidenceKeeper),
-	// 	gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
-	// 	cvm.NewAppModule(app.CVMKeeper),
-	// 	cert.NewAppModule(app.CertKeeper, app.AccountKeeper),
-	// 	oracle.NewAppModule(app.OracleKeeper),
-	// 	shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.StakingKeeper),
-	//  transferModule,
-	// )
+	app.sm = module.NewSimulationManager(
+		auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
+		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
+		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
+		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper),
+		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
+		evidence.NewAppModule(app.EvidenceKeeper),
+		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
+		cvm.NewAppModule(app.CVMKeeper, app.BankKeeper),
+		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
+		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
+		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
+	 transferModule,
+	)
 
-	// app.sm.RegisterStoreDecoders()
+	app.sm.RegisterStoreDecoders()
 
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)
@@ -687,6 +679,11 @@ func (app *SimApp) GetSubspace(moduleName string) paramstypes.Subspace {
 // SimulationManager implements the SimulationApp interface
 func (app *SimApp) SimulationManager() *module.SimulationManager {
 	return app.sm
+}
+
+// ModuleManager implements the SimulationApp interface
+func (app *SimApp) ModuleManager() *module.Manager {
+	return app.mm
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
