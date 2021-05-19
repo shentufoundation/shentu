@@ -166,6 +166,11 @@ func (k msgServer) DepositCollateral(goCtx context.Context, msg *types.MsgDeposi
 			sdk.NewAttribute(types.AttributeKeyCollateral, amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
 		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
 	})
 
 	return &types.MsgDepositCollateralResponse{}, nil
@@ -194,6 +199,11 @@ func (k msgServer) WithdrawCollateral(goCtx context.Context, msg *types.MsgWithd
 		sdk.NewEvent(
 			types.TypeMsgWithdrawCollateral,
 			sdk.NewAttribute(types.AttributeKeyCollateral, amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
 		),
 	})
@@ -318,6 +328,11 @@ func (k msgServer) UnstakeFromShield(goCtx context.Context, msg *types.MsgUnstak
 			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
 		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
 	})
 
 	return &types.MsgUnstakeFromShieldResponse{}, nil
@@ -375,6 +390,11 @@ func (k msgServer) WithdrawReimbursement(goCtx context.Context, msg *types.MsgWi
 			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(msg.ProposalId, 10)),
 			sdk.NewAttribute(types.AttributeKeyCompensationAmount, amount.String()),
 			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.From),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
 		),
 	})
 
