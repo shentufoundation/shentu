@@ -19,12 +19,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/irisnet/irismod/modules/nft/simulation"
+	nftsim "github.com/irisnet/irismod/modules/nft/simulation"
 	nfttypes "github.com/irisnet/irismod/modules/nft/types"
 
 	"github.com/certikfoundation/shentu/x/nft/client/cli"
 	"github.com/certikfoundation/shentu/x/nft/client/rest"
 	"github.com/certikfoundation/shentu/x/nft/keeper"
+	"github.com/certikfoundation/shentu/x/nft/simulation"
 	"github.com/certikfoundation/shentu/x/nft/types"
 )
 
@@ -179,7 +180,7 @@ func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
 
 // RegisterStoreDecoder registers a decoder for NFT module's types
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[nfttypes.StoreKey] = simulation.NewDecodeStore(am.cdc)
+	sdr[nfttypes.StoreKey] = nftsim.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations returns the all the NFT module operations with their respective weights.
