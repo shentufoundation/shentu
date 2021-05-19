@@ -97,15 +97,18 @@ type AppModule struct {
 	keeper        keeper.Keeper
 	accountKeeper nfttypes.AccountKeeper
 	bankKeeper    nfttypes.BankKeeper
+	certKeeper types.CertKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, accountKeeper nfttypes.AccountKeeper, bankKeeper nfttypes.BankKeeper) AppModule {
+func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, accountKeeper nfttypes.AccountKeeper,
+	bankKeeper nfttypes.BankKeeper, certKeeper types.CertKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{cdc: cdc},
 		keeper:         keeper,
 		accountKeeper:  accountKeeper,
 		bankKeeper:     bankKeeper,
+		certKeeper: certKeeper,
 	}
 }
 
@@ -185,5 +188,5 @@ func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 
 // WeightedOperations returns the all the NFT module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper.Keeper, am.accountKeeper, am.bankKeeper)
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.accountKeeper, am.bankKeeper, am.certKeeper)
 }

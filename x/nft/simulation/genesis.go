@@ -5,6 +5,7 @@ package simulation
 import (
 	"encoding/json"
 	"fmt"
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"math/rand"
 	"strings"
 
@@ -64,7 +65,15 @@ func RandomizedGenState(simState *module.SimulationState) {
 		}
 	}
 
-	nftGenesis := types.NewGenesisState(collections, []types.Admin{})
+	certbz := simState.GenState[certtypes.ModuleName]
+	var certGenState certtypes.GenesisState
+	simState.Cdc.MustUnmarshalJSON(certbz, &certGenState)
+	var admins []types.Admin
+	for _, c := range certGenState.Certifiers {
+		admins = append(admins, types.Admin{Address: c.Address})
+	}
+
+	nftGenesis := types.NewGenesisState(collections, admins)
 
 	bz, err := json.MarshalIndent(nftGenesis, "", " ")
 	if err != nil {

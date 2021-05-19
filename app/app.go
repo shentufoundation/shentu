@@ -462,7 +462,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 		transferModule,
-		nft.NewAppModule(appCodec, app.nftKeeper, app.accountKeeper, app.bankKeeper),
+		nft.NewAppModule(appCodec, app.nftKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper),
 	)
 
 	// NOTE: During BeginBlocker, slashing comes after distr so that
@@ -538,7 +538,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 		transferModule,
-		nft.NewAppModule(appCodec, app.nftKeeper, app.accountKeeper, app.bankKeeper),
+		nft.NewAppModule(appCodec, app.nftKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()

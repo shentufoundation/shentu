@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/irisnet/irismod/modules/nft/keeper"
@@ -31,6 +30,19 @@ func (m msgServer) CreateAdmin(ctx context.Context, msg *types.MsgCreateAdmin) (
 		return nil, err
 	}
 	m.SetAdmin(sdkContext, admin)
+
+	sdkContext.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeCreateAdmin,
+			sdk.NewAttribute(types.AttributeKeyAdminCreator, msg.Creator),
+			sdk.NewAttribute(types.AttributeKeyCreated, msg.Address),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, nfttypes.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Creator),
+		),
+	})
 	return &types.MsgIssueAdminResponse{}, nil
 }
 
@@ -49,6 +61,19 @@ func (m msgServer) RevokeAdmin(ctx context.Context, msg *types.MsgRevokeAdmin) (
 		return nil, err
 	}
 	m.DeleteAdmin(sdkContext, admin)
+
+	sdkContext.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRevokeAdmin,
+			sdk.NewAttribute(types.AttributeKeyAdminRevoker, msg.Revoker),
+			sdk.NewAttribute(types.AttributeKeyRevoked, msg.Address),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, nfttypes.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Revoker),
+		),
+	})
 	return &types.MsgRevokeAdminResponse{}, nil
 }
 

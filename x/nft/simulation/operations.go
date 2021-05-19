@@ -12,8 +12,10 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/irisnet/irismod/modules/nft/keeper"
 	"github.com/irisnet/irismod/modules/nft/types"
+
+	keeper "github.com/certikfoundation/shentu/x/nft/keeper"
+	customtypes "github.com/certikfoundation/shentu/x/nft/types"
 )
 
 // Simulation operation weights constants
@@ -28,7 +30,7 @@ const (
 func WeightedOperations(
 	appParams simtypes.AppParams,
 	cdc codec.JSONMarshaler,
-	k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper) simulation.WeightedOperations {
+	k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, ck customtypes.CertKeeper) simulation.WeightedOperations {
 
 	var weightMint, weightEdit, weightBurn, weightTransfer int
 	appParams.GetOrGenerate(
@@ -75,6 +77,14 @@ func WeightedOperations(
 		simulation.NewWeightedOperation(
 			weightBurn,
 			SimulateMsgBurnNFT(k, ak, bk),
+		),
+		simulation.NewWeightedOperation(
+			weightMint / 10,
+			SimulateMsgCreateAdmin(k, ak, bk, ck),
+		),
+		simulation.NewWeightedOperation(
+			weightMint / 10,
+			SimulateMsgRevokeAdmin(k, ak, bk, ck),
 		),
 	}
 }
@@ -205,6 +215,9 @@ func SimulateMsgMintNFT(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKe
 		opMsg simtypes.OperationMsg, fOps []simtypes.FutureOperation, err error,
 	) {
 		randomSender, _ := simtypes.RandomAcc(r, accs)
+		for !k.CheckAdmin(ctx, randomSender.Address.String()) {
+			randomSender, _ = simtypes.RandomAcc(r, accs)
+		}
 		randomRecipient, _ := simtypes.RandomAcc(r, accs)
 
 		msg := types.NewMsgMintNFT(
@@ -304,32 +317,34 @@ func SimulateMsgBurnNFT(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKe
 	}
 }
 
-// SimulateMsgBurnNFT simulates a burn of an existing NFT
-func SimulateMsgCreateAdmin(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper) simtypes.Operation {
+// SimulateMsgCreateAdmin simulates a burn of an existing NFT
+func SimulateMsgCreateAdmin(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, ck customtypes.CertKeeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (
 		opMsg simtypes.OperationMsg, fOps []simtypes.FutureOperation, err error,
 	) {
-		ownerAddr, denom, nftID := getRandomNFTFromOwner(ctx, k, r)
-		if ownerAddr.Empty() {
-			err = fmt.Errorf("invalid account")
-			return simtypes.NoOpMsg(types.ModuleName, types.EventTypeBurnNFT, err.Error()), nil, err
+
+		acc := accs[r.Intn(len(accs))]
+		certAcc := accs[r.Intn(len(accs))]
+		certifier, err := ck.GetCertifier(ctx, certAcc.Address)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, customtypes.EventTypeCreateAdmin, err.Error()), nil, nil
 		}
 
-		msg := types.NewMsgBurnNFT(ownerAddr.String(), nftID, denom)
+		msg := customtypes.NewMsgCreateAdmin(certifier.Address, acc.Address.String())
 
-		account := ak.GetAccount(ctx, ownerAddr)
-		spendable := bk.SpendableCoins(ctx, account.GetAddress())
+		account := ak.GetAccount(ctx, certAcc.Address)
+		spendable := bk.SpendableCoins(ctx, certAcc.Address)
 		fees, err := simtypes.RandomFees(r, ctx, spendable)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, types.EventTypeBurnNFT, err.Error()), nil, err
+			return simtypes.NoOpMsg(types.ModuleName, customtypes.EventTypeCreateAdmin, err.Error()), nil, err
 		}
 
-		simAccount, found := simtypes.FindAccount(accs, ownerAddr)
+		simAccount, found := simtypes.FindAccount(accs, certAcc.Address)
 		if !found {
-			err = fmt.Errorf("account %s not found", msg.Sender)
-			return simtypes.NoOpMsg(types.ModuleName, types.EventTypeBurnNFT, err.Error()), nil, err
+			err = fmt.Errorf("account %s not found", certAcc.Address)
+			return simtypes.NoOpMsg(types.ModuleName, customtypes.EventTypeCreateAdmin, err.Error()), nil, err
 		}
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
@@ -348,7 +363,60 @@ func SimulateMsgCreateAdmin(k keeper.Keeper, ak types.AccountKeeper, bk types.Ba
 		}
 
 		if _, _, err = app.Deliver(txGen.TxEncoder(), tx); err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, types.EventTypeEditNFT, err.Error()), nil, err
+			return simtypes.NoOpMsg(types.ModuleName, customtypes.EventTypeCreateAdmin, err.Error()), nil, err
+		}
+
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+	}
+}
+
+// SimulateMsgRevokeAdmin simulates a burn of an existing NFT
+func SimulateMsgRevokeAdmin(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, ck customtypes.CertKeeper) simtypes.Operation {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
+	) (
+		opMsg simtypes.OperationMsg, fOps []simtypes.FutureOperation, err error,
+	) {
+
+		acc := accs[r.Intn(len(accs))]
+		certAcc := accs[r.Intn(len(accs))]
+		certifier, err := ck.GetCertifier(ctx, certAcc.Address)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, customtypes.EventTypeRevokeAdmin, err.Error()), nil, nil
+		}
+
+		msg := customtypes.NewMsgRevokeAdmin(certifier.Address, acc.Address.String())
+
+		account := ak.GetAccount(ctx, certAcc.Address)
+		spendable := bk.SpendableCoins(ctx, certAcc.Address)
+		fees, err := simtypes.RandomFees(r, ctx, spendable)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, customtypes.EventTypeRevokeAdmin, err.Error()), nil, err
+		}
+
+		simAccount, found := simtypes.FindAccount(accs, certAcc.Address)
+		if !found {
+			err = fmt.Errorf("account %s not found", msg.Revoker)
+			return simtypes.NoOpMsg(types.ModuleName, customtypes.EventTypeRevokeAdmin, err.Error()), nil, err
+		}
+
+		txGen := simappparams.MakeTestEncodingConfig().TxConfig
+		tx, err := helpers.GenTx(
+			txGen,
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{account.GetAccountNumber()},
+			[]uint64{account.GetSequence()},
+			simAccount.PrivKey,
+		)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), "unable to generate mock tx"), nil, err
+		}
+
+		if _, _, err = app.Deliver(txGen.TxEncoder(), tx); err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, customtypes.EventTypeRevokeAdmin, err.Error()), nil, err
 		}
 
 		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
