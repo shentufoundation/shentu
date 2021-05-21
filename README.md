@@ -4,7 +4,9 @@
 <a href="https://circleci.com/gh/certikfoundation/shentu/tree/master">
 <img src="https://circleci.com/gh/certikfoundation/shentu/tree/master.svg?style=svg&circle-token=b948d67100954a74a11c21fbb8cb6202b83e5f3a">
 </a>
-[![Codecov](https://codecov.io/gh/certikfoundation/shentu/branch/master/graph/badge.svg?token=CwEKiob9GB)](https://codecov.io/gh/certikfoundation/shentu)
+<a href="https://codecov.io/gh/certikfoundation/shentu">
+<img src="https://codecov.io/gh/certikfoundation/shentu/branch/master/graph/badge.svg">
+</a>
 
 # Prerequisites
 
