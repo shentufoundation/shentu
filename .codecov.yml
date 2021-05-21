@@ -14,11 +14,15 @@ comment:
   behavior: default  # update if exists else create new
 
 ignore:
+  - "docs"
   - "*.md"
   - "*.rst"
-  - "cmd/"
-  - "contrib/"
-  - "docs/"
-  - "networks/"
-  - "**/cli"
-  - "**/rest"
+  - "**/*.pb.go"
+  - "types/*.pb.go"
+  - "tests/*"
+  - "tests/**/*"
+  - "x/**/*.pb.go"
+  - "x/**/*.pb.gw.go"
+  - "x/**/test_common.go"
+  - "scripts/"
+  - "contrib"
