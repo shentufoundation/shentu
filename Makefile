@@ -47,29 +47,6 @@ whitespace += $(whitespace)
 comma := ,
 build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 
-ifeq ($(LEDGER_ENABLED),true)
-  ifeq ($(OS),Windows_NT)
-    GCCEXE = $(shell where gcc.exe 2> NUL)
-    ifeq ($(GCCEXE),)
-      $(error gcc.exe required for ledger support but not found, please install or prepend LEDGER_ENABLED=false to omit ledger support)
-    else
-      build_tags += ledger
-    endif
-  else
-    UNAME_S = $(shell uname -s)
-    ifeq ($(UNAME_S),OpenBSD)
-      $(warning OpenBSD detected, disabling ledger support (https://github.com/cosmos/cosmos-sdk/issues/1988))
-    else
-      GCC = $(shell command -v gcc 2> /dev/null)
-      ifeq ($(GCC),)
-        $(error gcc required for ledger support but not found, please install or prepend LEDGER_ENABLED=false to omit ledger support)
-      else
-        build_tags += ledger
-      endif
-    endif
-  endif
-endif
-
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=certik \
 		  -X github.com/cosmos/cosmos-sdk/version.ServerName=certik \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
