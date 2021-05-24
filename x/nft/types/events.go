@@ -6,6 +6,6 @@ var (
 
 	AttributeKeyAdminCreator = "admin_creator"
 	AttributeKeyAdminRevoker = "admin_revoker"
-	AttributeKeyCreated = "created"
-	AttributeKeyRevoked = "revoked"
+	AttributeKeyCreated      = "created"
+	AttributeKeyRevoked      = "revoked"
 )

@@ -31,7 +31,6 @@ func WeightedOperations(
 	appParams simtypes.AppParams,
 	cdc codec.JSONMarshaler,
 	k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, ck customtypes.CertKeeper) simulation.WeightedOperations {
-
 	var weightMint, weightEdit, weightBurn, weightTransfer int
 	appParams.GetOrGenerate(
 		cdc, OpWeightMsgMintNFT, &weightMint, nil,
@@ -79,11 +78,11 @@ func WeightedOperations(
 			SimulateMsgBurnNFT(k, ak, bk),
 		),
 		simulation.NewWeightedOperation(
-			weightMint / 10,
+			weightMint/10,
 			SimulateMsgCreateAdmin(k, ak, bk, ck),
 		),
 		simulation.NewWeightedOperation(
-			weightMint / 10,
+			weightMint/10,
 			SimulateMsgRevokeAdmin(k, ak, bk, ck),
 		),
 	}
@@ -324,7 +323,6 @@ func SimulateMsgCreateAdmin(k keeper.Keeper, ak types.AccountKeeper, bk types.Ba
 	) (
 		opMsg simtypes.OperationMsg, fOps []simtypes.FutureOperation, err error,
 	) {
-
 		acc := accs[r.Intn(len(accs))]
 		certAcc := accs[r.Intn(len(accs))]
 		certifier, err := ck.GetCertifier(ctx, certAcc.Address)
@@ -377,7 +375,6 @@ func SimulateMsgRevokeAdmin(k keeper.Keeper, ak types.AccountKeeper, bk types.Ba
 	) (
 		opMsg simtypes.OperationMsg, fOps []simtypes.FutureOperation, err error,
 	) {
-
 		acc := accs[r.Intn(len(accs))]
 		certAcc := accs[r.Intn(len(accs))]
 		certifier, err := ck.GetCertifier(ctx, certAcc.Address)
@@ -423,7 +420,6 @@ func SimulateMsgRevokeAdmin(k keeper.Keeper, ak types.AccountKeeper, bk types.Ba
 	}
 }
 
-
 func getRandomNFTFromOwner(ctx sdk.Context, k keeper.Keeper, r *rand.Rand) (address sdk.AccAddress, denomID, tokenID string) {
 	owners := k.GetOwners(ctx)
 
@@ -459,7 +455,7 @@ func getRandomNFTFromOwner(ctx sdk.Context, k keeper.Keeper, r *rand.Rand) (addr
 	return ownerAddress, denomID, tokenID
 }
 
-func getRandomDenom(ctx sdk.Context, k keeper.Keeper, r *rand.Rand) string {
+func getRandomDenom(_ sdk.Context, _ keeper.Keeper, r *rand.Rand) string {
 	var denoms = []string{kitties, doggos}
 	i := r.Intn(len(denoms))
 	return denoms[i]

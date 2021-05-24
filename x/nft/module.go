@@ -97,7 +97,7 @@ type AppModule struct {
 	keeper        keeper.Keeper
 	accountKeeper nfttypes.AccountKeeper
 	bankKeeper    nfttypes.BankKeeper
-	certKeeper types.CertKeeper
+	certKeeper    types.CertKeeper
 }
 
 // NewAppModule creates a new AppModule object
@@ -108,7 +108,7 @@ func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, accountKeeper nftty
 		keeper:         keeper,
 		accountKeeper:  accountKeeper,
 		bankKeeper:     bankKeeper,
-		certKeeper: certKeeper,
+		certKeeper:     certKeeper,
 	}
 }
 

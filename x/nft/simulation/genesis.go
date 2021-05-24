@@ -5,7 +5,6 @@ package simulation
 import (
 	"encoding/json"
 	"fmt"
-	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"math/rand"
 	"strings"
 
@@ -14,6 +13,7 @@ import (
 
 	nfttypes "github.com/irisnet/irismod/modules/nft/types"
 
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/nft/types"
 )
 
