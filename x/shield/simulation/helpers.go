@@ -1,4 +1,4 @@
-package keeper
+package simulation
 
 import (
 	"math/rand"
@@ -6,12 +6,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/certikfoundation/shentu/x/shield/keeper"
 	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
 // RandomValidator returns a random validator given access to the keeper and ctx.
-func RandomValidator(r *rand.Rand, k Keeper, ctx sdk.Context) (staking.Validator, bool) {
-	vals := k.sk.GetAllValidators(ctx)
+func RandomValidator(r *rand.Rand, sk types.StakingKeeper, ctx sdk.Context) (staking.Validator, bool) {
+	vals := sk.GetAllValidators(ctx)
 	if len(vals) == 0 {
 		return staking.Validator{}, false
 	}
@@ -21,8 +22,8 @@ func RandomValidator(r *rand.Rand, k Keeper, ctx sdk.Context) (staking.Validator
 }
 
 // RandomDelegation returns a random delegation info given access to the keeper and ctx.
-func RandomDelegation(r *rand.Rand, k Keeper, ctx sdk.Context) (sdk.AccAddress, sdk.Int, bool) {
-	val, ok := RandomValidator(r, k, ctx)
+func RandomDelegation(r *rand.Rand, sk types.StakingKeeper, ctx sdk.Context) (sdk.AccAddress, sdk.Int, bool) {
+	val, ok := RandomValidator(r, sk, ctx)
 	if !ok {
 		return nil, sdk.Int{}, false
 	}
@@ -31,7 +32,7 @@ func RandomDelegation(r *rand.Rand, k Keeper, ctx sdk.Context) (sdk.AccAddress, 
 	if err != nil {
 		panic(err)
 	}
-	dels := k.sk.GetValidatorDelegations(ctx, valAddr)
+	dels := sk.GetValidatorDelegations(ctx, valAddr)
 
 	i := r.Intn(len(dels))
 	delAddr, err := sdk.AccAddressFromBech32(dels[i].DelegatorAddress)
@@ -43,7 +44,7 @@ func RandomDelegation(r *rand.Rand, k Keeper, ctx sdk.Context) (sdk.AccAddress, 
 }
 
 // RandomPoolInfo returns info of a random pool given access to the keeper and ctx.
-func RandomPoolInfo(r *rand.Rand, k Keeper, ctx sdk.Context) (uint64, string, bool) {
+func RandomPoolInfo(r *rand.Rand, k keeper.Keeper, ctx sdk.Context) (uint64, string, bool) {
 	pools := k.GetAllPools(ctx)
 	if len(pools) == 0 {
 		return 0, "", false
@@ -53,7 +54,7 @@ func RandomPoolInfo(r *rand.Rand, k Keeper, ctx sdk.Context) (uint64, string, bo
 }
 
 // RandomPurchaseList returns a random purchase given access to the keeper and ctx.
-func RandomPurchaseList(r *rand.Rand, k Keeper, ctx sdk.Context) (types.PurchaseList, bool) {
+func RandomPurchaseList(r *rand.Rand, k keeper.Keeper, ctx sdk.Context) (types.PurchaseList, bool) {
 	purchaseLists := k.GetAllPurchaseLists(ctx)
 	if len(purchaseLists) == 0 {
 		return types.PurchaseList{}, false
@@ -63,7 +64,7 @@ func RandomPurchaseList(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Purchase
 }
 
 // RandomProvider returns a random provider of collaterals.
-func RandomProvider(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Provider, bool) {
+func RandomProvider(r *rand.Rand, k keeper.Keeper, ctx sdk.Context) (types.Provider, bool) {
 	providers := k.GetAllProviders(ctx)
 	if len(providers) == 0 {
 		return types.Provider{}, false
@@ -74,7 +75,7 @@ func RandomProvider(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Provider, bo
 }
 
 // RandomMaturedProposalIDReimbursementPair returns a random proposal ID - reimbursement pair for a matured reimbursement.
-func RandomMaturedProposalIDReimbursementPair(r *rand.Rand, k Keeper, ctx sdk.Context) (types.ProposalIDReimbursementPair, bool) {
+func RandomMaturedProposalIDReimbursementPair(r *rand.Rand, k keeper.Keeper, ctx sdk.Context) (types.ProposalIDReimbursementPair, bool) {
 	prPairs := k.GetAllProposalIDReimbursementPairs(ctx)
 	if len(prPairs) == 0 {
 		return types.ProposalIDReimbursementPair{}, false

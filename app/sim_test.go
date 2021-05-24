@@ -81,7 +81,7 @@ func TestFullAppSimulation(t *testing.T) {
 	}()
 
 	app := certiksimapp.NewSimApp(logger, db, nil, true, map[int64]bool{},
-	DefaultNodeHome, simapp.FlagPeriodValue, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+		DefaultNodeHome, simapp.FlagPeriodValue, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
@@ -115,8 +115,8 @@ func TestAppImportExport(t *testing.T) {
 
 	//invCheckPeriod := simapp.FlagPeriodValue
 	var invCheckPeriod uint = 1
-	app := certiksimapp.NewSimApp(logger, db, nil, true, map[int64]bool{}, 
-	DefaultNodeHome, invCheckPeriod, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := certiksimapp.NewSimApp(logger, db, nil, true, map[int64]bool{},
+		DefaultNodeHome, invCheckPeriod, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
@@ -150,8 +150,8 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := certiksimapp.NewSimApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, 
-	DefaultNodeHome, invCheckPeriod, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	newApp := certiksimapp.NewSimApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{},
+		DefaultNodeHome, invCheckPeriod, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 
 	require.Equal(t, AppName, newApp.Name())
 
@@ -215,8 +215,8 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := certiksimapp.NewSimApp(logger, db, nil, true, map[int64]bool{}, 
-	DefaultNodeHome, simapp.FlagPeriodValue, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := certiksimapp.NewSimApp(logger, db, nil, true, map[int64]bool{},
+		DefaultNodeHome, simapp.FlagPeriodValue, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
@@ -250,8 +250,8 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := certiksimapp.NewSimApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, 
-	DefaultNodeHome, simapp.FlagPeriodValue, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	newApp := certiksimapp.NewSimApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{},
+		DefaultNodeHome, simapp.FlagPeriodValue, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, newApp.Name())
 
 	newApp.InitChain(abci.RequestInitChain{
@@ -285,7 +285,7 @@ func TestAppStateDeterminism(t *testing.T) {
 	for j := 0; j < numTimesToRunPerSeed; j++ {
 		logger := log.NewNopLogger()
 		db := dbm.NewMemDB()
-		app := certiksimapp.NewSimApp(logger, db, nil, true, map[int64]bool{}, 
+		app := certiksimapp.NewSimApp(logger, db, nil, true, map[int64]bool{},
 			DefaultNodeHome, simapp.FlagPeriodValue, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, interBlockCacheOpt())
 
 		fmt.Printf(

@@ -215,7 +215,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		bondDenom := sk.BondDenom(ctx)
 
 		// pool
-		poolID, _, found := keeper.RandomPoolInfo(r, k, ctx)
+		poolID, _, found := RandomPoolInfo(r, k, ctx)
 		if !found {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, "random pool info not found"), nil, nil
 		}
@@ -285,7 +285,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		delAddr, available, found := keeper.RandomDelegation(r, k, ctx)
+		delAddr, available, found := RandomDelegation(r, sk, ctx)
 		if !found {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgDepositCollateral, "random delegation not found"), nil, nil
 		}
@@ -338,7 +338,7 @@ func SimulateMsgDepositCollateral(k keeper.Keeper, ak types.AccountKeeper, bk ty
 func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		provider, found := keeper.RandomProvider(r, k, ctx)
+		provider, found := RandomProvider(r, k, ctx)
 		if !found {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgWithdrawCollateral, "random provider not found"), nil, nil
 		}
@@ -396,7 +396,7 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, bk t
 func SimulateMsgWithdrawRewards(k keeper.Keeper, ak types.AccountKeeper) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		provider, found := keeper.RandomProvider(r, k, ctx)
+		provider, found := RandomProvider(r, k, ctx)
 		if !found {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgWithdrawCollateral, "random provider not found"), nil, nil
 		}
@@ -446,7 +446,7 @@ func SimulateMsgPurchaseShield(k keeper.Keeper, ak types.AccountKeeper, bk types
 		account := ak.GetAccount(ctx, purchaser.Address)
 		bondDenom := sk.BondDenom(ctx)
 
-		poolID, _, found := keeper.RandomPoolInfo(r, k, ctx)
+		poolID, _, found := RandomPoolInfo(r, k, ctx)
 		if !found {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgPurchaseShield, "random pool info not found"), nil, nil
 		}
@@ -514,7 +514,7 @@ func ProposalContents(k keeper.Keeper, sk types.StakingKeeper) []simtypes.Weight
 func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper) simtypes.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 		bondDenom := sk.BondDenom(ctx)
-		purchaseList, found := keeper.RandomPurchaseList(r, k, ctx)
+		purchaseList, found := RandomPurchaseList(r, k, ctx)
 		if len(purchaseList.Entries) == 0 {
 			return nil
 		}
@@ -552,7 +552,7 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, bk types
 		account := ak.GetAccount(ctx, purchaser.Address)
 		bondDenom := sk.BondDenom(ctx)
 
-		poolID, _, found := keeper.RandomPoolInfo(r, k, ctx)
+		poolID, _, found := RandomPoolInfo(r, k, ctx)
 		if !found {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgStakeForShield, "random pool info not found"), nil, nil
 		}
@@ -669,7 +669,7 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, bk ty
 func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		prPair, found := keeper.RandomMaturedProposalIDReimbursementPair(r, k, ctx)
+		prPair, found := RandomMaturedProposalIDReimbursementPair(r, k, ctx)
 		if !found {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgWithdrawReimbursement, "no mature proposal id - reimbursement pair found"), nil, nil
 		}

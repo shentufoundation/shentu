@@ -525,7 +525,7 @@ func NewSimApp(
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-	 transferModule,
+		transferModule,
 	)
 
 	app.sm.RegisterStoreDecoders()

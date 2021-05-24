@@ -110,6 +110,7 @@ func (sh *Helper) CheckDelegator(delegator sdk.AccAddress, val sdk.ValAddress, f
 func (sh *Helper) TurnBlock(ctx sdk.Context) {
 	sh.ctx = ctx
 	staking.EndBlocker(sh.ctx, sh.k.Keeper)
+	staking.BeginBlocker(sh.ctx, sh.k.Keeper)
 }
 
 // ZeroCommission constructs a commission rates with all zeros.
