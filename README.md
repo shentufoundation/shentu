@@ -1,8 +1,12 @@
 # CertiK Chain
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/certikfoundation/shentu)](https://pkg.go.dev/github.com/certikfoundation/shentu)
-[![GitHub Actions](https://github.com/certikfoundation/shentu/workflows/Build%20on%20Push/badge.svg)](https://github.com/certikfoundation/shentu/actions)
-[![Codecov](https://codecov.io/gh/certikfoundation/shentu/branch/master/graph/badge.svg?token=CwEKiob9GB)](https://codecov.io/gh/certikfoundation/shentu)
+<a href="https://circleci.com/gh/certikfoundation/shentu/tree/master">
+<img src="https://circleci.com/gh/certikfoundation/shentu/tree/master.svg?style=svg&circle-token=b948d67100954a74a11c21fbb8cb6202b83e5f3a">
+</a>
+<a href="https://codecov.io/gh/certikfoundation/shentu">
+<img src="https://codecov.io/gh/certikfoundation/shentu/branch/master/graph/badge.svg">
+</a>
 
 # Prerequisites
 
