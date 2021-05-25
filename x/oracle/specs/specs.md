@@ -16,11 +16,11 @@ See the [whitepaper](https://www.certik.foundation/whitepaper#2-CertiK-Security-
 
 ```go
 type Operator struct {
-    Address            string		`json:"address" yaml:"address"`
-    Proposer           string		`json:"proposer" yaml:"proposer"`
-    Collateral         sdk.Coins	`json:"collateral" yaml:"collateral"`
-    AccumulatedRewards sdk.Coins	`json:"accumulated_rewards" yaml:"accumulated_rewards"`
-    Name               string		`json:"name" yaml:"name"`
+    Address             string      `json:"address" yaml:"address"`
+    Proposer            string      `json:"proposer" yaml:"proposer"`
+    Collateral          sdk.Coins   `json:"collateral" yaml:"collateral"`
+    AccumulatedRewards  sdk.Coins   `json:"accumulated_rewards" yaml:"accumulated_rewards"`
+    Name                string      `json:"name" yaml:"name"`
 }
 ```
 
@@ -32,9 +32,9 @@ type Operator struct {
 
 ```go
 type Withdraw struct {
-    Address  string		`json:"address" yaml:"address"`
-    Amount   sdk.Coins	`json:"amount" yaml:"amount"`
-    DueBlock int64		`json:"due_block" yaml:"due_block"`
+    Address     string      `json:"address" yaml:"address"`
+    Amount      sdk.Coins   `json:"amount" yaml:"amount"`
+    DueBlock    int64       `json:"due_block" yaml:"due_block"`
 }
 ```
 
@@ -46,7 +46,7 @@ type Withdraw struct {
 
 ```go
 type CoinsProto struct {
-    Coins sdk.Coins	`json:"coins" yaml:"amount"`
+    Coins   sdk.Coins   `json:"coins" yaml:"amount"`
 }
 ```
 
@@ -58,23 +58,23 @@ type CoinsProto struct {
 
 ```go
 type Task struct {
-    Contract      string		`json:"contract" yaml:"contract"`
-    Function      string		`json:"function" yaml:"function"`
-    BeginBlock    int64			`json:"begin_block" yaml:"begin_block"`
-    Bounty        sdk.Coins 	`json:"bounty" yaml:"bounty"`
-    Description   string		`json:"description" yaml:"description"`
-    Expiration    time.Time		`json:"expiration" yaml:"expiration"`
-    Creator       string		`json:"creator" yaml:"creator"`
-    Responses     Responses		`json:"responses" yaml:"responses"`
-    Result        sdk.Int   	`json:"result" yaml:"result"`
-    ClosingBlock  int64			`json:"closing_block" yaml:"closing_block"`
-    WaitingBlocks int64			`json:"waiting_blocks" yaml:"waiting_blocks"`
-    Status        TaskStatus	`json:"status" yaml:"status"`
+    Contract        string      `json:"contract" yaml:"contract"`
+    Function        string      `json:"function" yaml:"function"`
+    BeginBlock      int64       `json:"begin_block" yaml:"begin_block"`
+    Bounty          sdk.Coins   `json:"bounty" yaml:"bounty"`
+    Description     string      `json:"description" yaml:"description"`
+    Expiration      time.Time   `json:"expiration" yaml:"expiration"`
+    Creator         string		`json:"creator" yaml:"creator"`
+    Responses       Responses   `json:"responses" yaml:"responses"`
+    Result          sdk.Int     `json:"result" yaml:"result"`
+    ClosingBlock    int64       `json:"closing_block" yaml:"closing_block"`
+    WaitingBlocks   int64       `json:"waiting_blocks" yaml:"waiting_blocks"`
+    Status          TaskStatus  `json:"status" yaml:"status"`
 }
 
 type TaskID struct {
-    Contract string `json:"contract" yaml:"contract"`
-    Function string `json:"function" yaml:"function"`
+    Contract    string  `json:"contract" yaml:"contract"`
+    Function    string  `json:"function" yaml:"function"`
 }
 ```
 
@@ -95,7 +95,7 @@ A list of tasks in the aggregation block is stored as a `TaskIDs` object. The li
 
 ```go
 type TaskIDs struct {
-    TaskIds []TaskID `json:"task_ids"`
+    TaskIds []TaskID    `json:"task_ids"`
 }
 ```
 
@@ -107,15 +107,15 @@ type TaskIDs struct {
 
 ```go
 type MsgCreateOperator struct {
-    Address		string		`json:"address" yaml:"address"`
-    Collateral	sdk.Coins	`json:"collateral" yaml:"collateral"`
-    Proposer	string		`json:"proposer" yaml:"proposer"`
-    Name		string		`json:"name" yaml:"name"`
+    Address     string      `json:"address" yaml:"address"`
+    Collateral  sdk.Coins   `json:"collateral" yaml:"collateral"`
+    Proposer    string      `json:"proposer" yaml:"proposer"`
+    Name        string      `json:"name" yaml:"name"`
 }
 
 type MsgRemoveOperator struct {
-    Address		string	`json:"address" yaml:"address"`
-    Proposer	string	`json:"proposer" yaml:"proposer"`
+    Address     string  `json:"address" yaml:"address"`
+    Proposer    string  `json:"proposer" yaml:"proposer"`
 }
 ```
 
@@ -123,13 +123,13 @@ type MsgRemoveOperator struct {
 
 ```go
 type MsgAddCollateral struct {
-    Address				string		`json:"address" yaml:"address"`
-    CollateralIncrement	sdk.Coins	`json:"collateral_increment" yaml:"collateral_increment"`
+    Address             string      `json:"address" yaml:"address"`
+    CollateralIncrement sdk.Coins   `json:"collateral_increment" yaml:"collateral_increment"`
 }
 
 type MsgReduceCollateral struct {
-    Address				string		`json:"address" yaml:"address"`
-    CollateralDecrement	sdk.Coins	`json:"collateral_decrement" yaml:"collateral_decrement"`
+    Address             string      `json:"address" yaml:"address"`
+    CollateralDecrement sdk.Coins   `json:"collateral_decrement" yaml:"collateral_decrement"`
 }
 ```
 
@@ -137,7 +137,7 @@ type MsgReduceCollateral struct {
 
 ```go
 type MsgWithdrawReward struct {
-    Address	string	`json:"address" yaml:"address"`
+    Address string  `json:"address" yaml:"address"`
 }
 ```
 
@@ -147,20 +147,20 @@ type MsgWithdrawReward struct {
 
 ```go
 type MsgCreateTask struct {
-    Contract		string		`json:"contract" yaml:"contract"`
-    Function		string		`json:"function" yaml:"function"`
-    Bounty			sdk.Coins	`json:"bounty" yaml:"bounty"`
-    Description		string		`json:"description" yaml:"description"`
-    Creator			string		`json:"creator," yaml:"creator"`
-    Wait			int64		`json:"wait" yaml:"wait"`
-    ValidDuration	time.Duration	`json:"valid_duration" yaml:"valid_duration"`
+    Contract        string          `json:"contract" yaml:"contract"`
+    Function        string          `json:"function" yaml:"function"`
+    Bounty          sdk.Coins       `json:"bounty" yaml:"bounty"`
+    Description     string          `json:"description" yaml:"description"`
+    Creator         string          `json:"creator," yaml:"creator"`
+    Wait            int64           `json:"wait" yaml:"wait"`
+    ValidDuration   time.Duration   `json:"valid_duration" yaml:"valid_duration"`
 }
 
 type MsgDeleteTask struct {
-    Contract	string	`json:"contract" yaml:"contract"`
-    Function	string	`json:"function" yaml:"function"`
-    Force		bool	`json:"force" yaml:"force"`
-    Deleter		string	`json:"deleter" yaml:"deleter"`
+    Contract    string  `json:"contract" yaml:"contract"`
+    Function    string  `json:"function" yaml:"function"`
+    Force       bool    `json:"force" yaml:"force"`
+    Deleter     string  `json:"deleter" yaml:"deleter"`
 }
 ```
 
@@ -168,17 +168,17 @@ While a `Task` is active, operators can submit scores for the task's contract. T
 
 ```go
 type MsgTaskResponse struct {
-    Contract	string	`json:"contract" yaml:"contract"`
-    Function	string	`json:"function" yaml:"function"`
-    Score		int64	`json:"score" yaml:"score"`
-    Operator	string	`json:"operator" yaml:"operator"`
+    Contract    string  `json:"contract" yaml:"contract"`
+    Function    string  `json:"function" yaml:"function"`
+    Score       int64   `json:"score" yaml:"score"`
+    Operator    string  `json:"operator" yaml:"operator"`
 }
 
 type MsgInquiryTask struct {
-    Contract	string	`json:"contract" yaml:"contract"`
-    Function	string	`json:"function" yaml:"function"`
-    TxHash		string	`json:"tx_hash" yaml:"tx_hash"`
-    Inquirer	string	`json:"inquirer" yaml:"inquirer"`
+    Contract    string  `json:"contract" yaml:"contract"`
+    Function    string  `json:"function" yaml:"function"`
+    TxHash      string  `json:"tx_hash" yaml:"tx_hash"`
+    Inquirer    string  `json:"inquirer" yaml:"inquirer"`
 }
 ```
 
