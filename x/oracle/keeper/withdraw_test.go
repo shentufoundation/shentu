@@ -64,5 +64,5 @@ func TestSetdraw(t *testing.T) {
 	require.Equal(t, params.LockedInBlocks, withdraws[0].DueBlock)
 	withdraws = ok.GetAllWithdrawsForExport(ctx)
 	require.Len(t, withdraws, 1)
-	require.Equal(t, params.LockedInBlocks-2, withdraws[0].DueBlock)
+	require.Equal(t, params.LockedInBlocks, withdraws[0].DueBlock)
 }

@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/certikfoundation/shentu/x/oracle/types"
@@ -18,6 +19,6 @@ func Test_withdraw(t *testing.T) {
 		wds := []types.Withdraw{wd, wd}
 		var wdss types.Withdraws = wds
 
-		assert.Equal(t, wdss.String(), s+"\n"+s+"\n")
+		assert.Equal(t, wdss.String(), strings.TrimSpace(s+"\n"+s))
 	})
 }
