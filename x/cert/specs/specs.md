@@ -15,11 +15,11 @@ A `Certificate` can be stored on-chain to signify that a smart contract has been
 
 ```go
 type Certificate struct {
-	CertificateId      uint64				`json:"certificate_id"`
-	Content            *types.Any			`json:"content"`
-	CompilationContent *CompilationContent	`json:"compilation_content"`
-	Description        string				`json:"description"`
-	Certifier          string				`json:"certifier"`
+    CertificateId      uint64				`json:"certificate_id"`
+    Content            *types.Any			`json:"content"`
+    CompilationContent *CompilationContent	`json:"compilation_content"`
+    Description        string				`json:"description"`
+    Certifier          string				`json:"certifier"`
 }
 ```
 
@@ -38,9 +38,9 @@ In addition to `CertificateId`, all certificates can be looked up by their `Cert
 ```go
 // Content is the interface for all kinds of certificate content.
 type Content interface {
-	proto.Message
+    proto.Message
 
-	GetContent() string
+    GetContent() string
 }
 ```
 
@@ -48,8 +48,8 @@ In addition to the source code, additional information, such as compiler version
 
 ```go
 type CompilationContent struct {
-	Compiler     string
-	BytecodeHash string
+    Compiler		string
+    BytecodeHash	string
 }
 ```
 
@@ -62,10 +62,10 @@ type CompilationContent struct {
 
 ```go
 type Certifier struct {
-	Address     string	`json:"certifier"`
-	Alias       string	`json:"alias"`
-	Proposer    string	`json:"proposer"`
-	Description string	`json:"description"`
+    Address		string	`json:"certifier"`
+    Alias		string	`json:"alias"`
+    Proposer	string	`json:"proposer"`
+    Description	string	`json:"description"`
 }
 ```
 
@@ -77,8 +77,8 @@ A `Validator` is a validator node, which can be certified by an existing certifi
 
 ```go
 type Validator struct {
-	Pubkey    *types.Any `json:"pubkey"`
-	Certifier string     `json:"certifier"`
+    Pubkey    *types.Any `json:"pubkey"`
+    Certifier string     `json:"certifier"`
 }
 ```
 
@@ -90,8 +90,8 @@ type Validator struct {
 
 ```go
 type Platform struct {
-	ValidatorPubkey *types.Any `json:"validator_pubkey"`
-	Description     string     `json:"description"`
+    ValidatorPubkey	*types.Any	`json:"validator_pubkey"`
+    Description		string		`json:"description"`
 }
 ```
 
@@ -103,8 +103,8 @@ A `Library` object can be certified as well. It stores the library address and i
 
 ```go
 type Library struct {
-	Address   string `json:"address"`
-	Publisher string `json:"publisher"`
+    Address		string	`json:"address"`
+    Publisher	string	`json:"publisher"`
 }
 ```
 
@@ -114,10 +114,10 @@ type Library struct {
 
 ```go
 type MsgProposeCertifier struct {
-	Proposer    string	`json:"proposer" yaml:"proposer"`
-	Alias       string	`json:"alias" yaml:"alias"`
-	Certifier   string	`json:"certifier" yaml:"certifier"`
-	Description string	`json:"description" yaml:"description"`
+    Proposer	string	`json:"proposer" yaml:"proposer"`
+    Alias		string	`json:"alias" yaml:"alias"`
+    Certifier	string	`json:"certifier" yaml:"certifier"`
+    Description	string	`json:"description" yaml:"description"`
 }
 ```
 
@@ -125,15 +125,15 @@ type MsgProposeCertifier struct {
 
 ```go
 type MsgCertifyValidator struct {
-	Certifier string     `json:"certifier" yaml:"certifier"`
-	Pubkey    *types.Any `json:"pubkey"`
+    Certifier	string		`json:"certifier" yaml:"certifier"`
+    Pubkey		*types.Any	`json:"pubkey"`
 }
 ```
 
 ```go
 type MsgDecertifyValidator struct {
-	Decertifier string     `json:"decertifier" yaml:"decertifier"`
-	Pubkey      *types.Any `json:"pubkey"`
+    Decertifier	string		`json:"decertifier" yaml:"decertifier"`
+    Pubkey		*types.Any	`json:"pubkey"`
 }
 ```
 
@@ -141,11 +141,11 @@ type MsgDecertifyValidator struct {
 
 ```go
 type MsgIssueCertificate struct {
-	Content      *types.Any `json:"content"`
-	Compiler     string     `json:"compiler" yaml:"compiler"`
-	BytecodeHash string     `json:"bytecode_hash" yaml:"bytecodehash"`
-	Description  string     `json:"description" yaml:"description"`
-	Certifier    string     `json:"certifier" yaml:"certifier"`
+    Content			*types.Any	`json:"content"`
+    Compiler		string		`json:"compiler" yaml:"compiler"`
+    BytecodeHash	string		`json:"bytecode_hash" yaml:"bytecodehash"`
+    Description		string		`json:"description" yaml:"description"`
+    Certifier		string		`json:"certifier" yaml:"certifier"`
 }
 ```
 
@@ -153,9 +153,9 @@ type MsgIssueCertificate struct {
 
 ```go
 type MsgRevokeCertificate struct {
-	Revoker     string	`json:"revoker" yaml:"revoker"`
-	Id          uint64  `json:"id" yaml:"id"`
-	Description string	`json:"description" yaml:"description"`
+    Revoker		string	`json:"revoker" yaml:"revoker"`
+    Id			uint64	`json:"id" yaml:"id"`
+    Description	string	`json:"description" yaml:"description"`
 }
 ```
 
@@ -163,9 +163,9 @@ type MsgRevokeCertificate struct {
 
 ```go
 type MsgCertifyPlatform struct {
-	Certifier       string     `json:"certifier" yaml:"certifier"`
-	ValidatorPubkey *types.Any `json:"validator_pubkey"`
-	Platform        string     `json:"platform" yaml:"platform"`
+    Certifier		string     `json:"certifier" yaml:"certifier"`
+    ValidatorPubkey *types.Any `json:"validator_pubkey"`
+    Platform        string     `json:"platform" yaml:"platform"`
 }
 ```
 
