@@ -1,4 +1,4 @@
-package oracle_test
+package types_test
 
 import (
 	"testing"
