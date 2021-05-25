@@ -10,7 +10,7 @@ import (
 func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) error {
 	provider, found := k.GetProvider(ctx, from)
 	if !found {
-		provider = k.addProvider(ctx, from)
+		provider = k.AddProvider(ctx, from)
 	}
 	// Check if there are enough delegations backing collaterals.
 	if provider.DelegationBonded.LT(provider.Collateral.Add(amount).Sub(provider.Withdrawing)) {

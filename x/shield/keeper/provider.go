@@ -24,9 +24,9 @@ func (k Keeper) GetProvider(ctx sdk.Context, delegator sdk.AccAddress) (dt types
 	return dt, true
 }
 
-// addProvider adds a new provider into shield module.
+// AddProvider adds a new provider into shield module.
 // Should only be called from CreatePool or DepositCollateral.
-func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) types.Provider {
+func (k Keeper) AddProvider(ctx sdk.Context, addr sdk.AccAddress) types.Provider {
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, addr)
 
 	// Track provider's total stakings.
