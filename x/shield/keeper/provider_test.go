@@ -10,11 +10,10 @@ import (
 
 func TestKeeper_GetAllProviders(t *testing.T) {
 	type args struct {
-		ctx sdk.Context
+		providersToAdd []types.Provider
 	}
 	tests := []struct {
 		name          string
-		keeper        keeper.Keeper
 		args          args
 		wantProviders []types.Provider
 	}{
@@ -22,8 +21,13 @@ func TestKeeper_GetAllProviders(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			k := tt.keeper
-			if gotProviders := k.GetAllProviders(tt.args.ctx); !reflect.DeepEqual(gotProviders, tt.wantProviders) {
+			suite := setup()
+			k := suite.keeper
+			for _, p := range tt.args.providersToAdd {
+				addr, _ := sdk.AccAddressFromBech32(p.Address)
+				suite.keeper.AddProvider(suite.ctx, addr)
+			}
+			if gotProviders := k.GetAllProviders(suite.ctx); !reflect.DeepEqual(gotProviders, tt.wantProviders) {
 				t.Errorf("GetAllProviders() = %v, want %v", gotProviders, tt.wantProviders)
 			}
 		})
@@ -60,7 +64,6 @@ func TestKeeper_GetProvider(t *testing.T) {
 
 func TestKeeper_GetProvidersIteratorPaginated(t *testing.T) {
 	type args struct {
-		ctx   sdk.Context
 		page  uint
 		limit uint
 	}
@@ -74,8 +77,9 @@ func TestKeeper_GetProvidersIteratorPaginated(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			suite := setup()
 			k := tt.keeper
-			if got := k.GetProvidersIteratorPaginated(tt.args.ctx, tt.args.page, tt.args.limit); !reflect.DeepEqual(got, tt.want) {
+			if got := k.GetProvidersIteratorPaginated(suite.ctx, tt.args.page, tt.args.limit); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetProvidersIteratorPaginated() = %v, want %v", got, tt.want)
 			}
 		})
