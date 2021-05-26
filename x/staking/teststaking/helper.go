@@ -2,6 +2,7 @@ package teststaking
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -20,7 +21,7 @@ type Helper struct {
 	h sdk.Handler
 	k keeper.Keeper
 
-	ctx        sdk.Context
+	Ctx        sdk.Context
 	Commission stakingtypes.CommissionRates
 	// Coin Denomination
 	Denom string
@@ -32,8 +33,8 @@ func NewHelper(t *testing.T, ctx sdk.Context, k keeper.Keeper) *Helper {
 }
 
 // CreateValidator calls handler to create a new staking validator
-func (sh *Helper) CreateValidator(addr sdk.ValAddress, pk cryptotypes.PubKey, stakeAmount int64, ok bool) {
-	coin := sdk.NewCoin(sh.Denom, sdk.NewInt(stakeAmount))
+func (sh *Helper) CreateValidator(addr sdk.ValAddress, pk cryptotypes.PubKey, stakeAmount sdk.Int, ok bool) {
+	coin := sdk.NewCoin(sh.Denom, stakeAmount)
 	sh.createValidator(addr, pk, coin, ok)
 }
 
@@ -46,22 +47,34 @@ func (sh *Helper) CreateValidatorWithValPower(addr sdk.ValAddress, pk cryptotype
 	return amount
 }
 
+// CreateValidatorMsg returns a message used to create validator in this service.
+func (sh *Helper) CreateValidatorMsg(addr sdk.ValAddress, pk cryptotypes.PubKey, stakeAmount sdk.Int) *stakingtypes.MsgCreateValidator {
+	coin := sdk.NewCoin(sh.Denom, stakeAmount)
+	msg, err := stakingtypes.NewMsgCreateValidator(addr, pk, coin, stakingtypes.Description{}, sh.Commission, sdk.OneInt())
+	require.NoError(sh.t, err)
+	return msg
+}
+
 func (sh *Helper) createValidator(addr sdk.ValAddress, pk cryptotypes.PubKey, coin sdk.Coin, ok bool) {
 	msg, err := stakingtypes.NewMsgCreateValidator(addr, pk, coin, stakingtypes.Description{}, sh.Commission, sdk.OneInt())
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(sh.t, err)
 	sh.Handle(msg, ok)
 }
 
 // Delegate calls handler to delegate stake for a validator
-func (sh *Helper) Delegate(delegator sdk.AccAddress, val sdk.ValAddress, amount int64) {
-	coin := sdk.NewCoin(sh.Denom, sdk.NewInt(amount))
+func (sh *Helper) Delegate(delegator sdk.AccAddress, val sdk.ValAddress, amount sdk.Int) {
+	coin := sdk.NewCoin(sh.Denom, amount)
 	msg := stakingtypes.NewMsgDelegate(delegator, val, coin)
 	sh.Handle(msg, true)
 }
 
-// Redelegate calls handler to begin redelegation.
+// DelegateWithPower calls handler to delegate stake for a validator
+func (sh *Helper) DelegateWithPower(delegator sdk.AccAddress, val sdk.ValAddress, power int64) {
+	coin := sdk.NewCoin(sh.Denom, sdk.TokensFromConsensusPower(power))
+	msg := stakingtypes.NewMsgDelegate(delegator, val, coin)
+	sh.Handle(msg, true)
+}
+
 func (sh *Helper) Redelegate(delegator sdk.AccAddress, srcVal, dstVal sdk.ValAddress, amount int64, ok bool) {
 	coin := sdk.NewCoin(sh.Denom, sdk.NewInt(amount))
 	msg := stakingtypes.NewMsgBeginRedelegate(delegator, srcVal, dstVal, coin)
@@ -69,15 +82,15 @@ func (sh *Helper) Redelegate(delegator sdk.AccAddress, srcVal, dstVal sdk.ValAdd
 }
 
 // Undelegate calls handler to unbound some stake from a validator.
-func (sh *Helper) Undelegate(delegator sdk.AccAddress, val sdk.ValAddress, amount int64, ok bool) *sdk.Result {
-	unbondAmt := sdk.NewInt64Coin(sh.Denom, amount)
+func (sh *Helper) Undelegate(delegator sdk.AccAddress, val sdk.ValAddress, amount sdk.Int, ok bool) *sdk.Result {
+	unbondAmt := sdk.NewCoin(sh.Denom, amount)
 	msg := stakingtypes.NewMsgUndelegate(delegator, val, unbondAmt)
 	return sh.Handle(msg, ok)
 }
 
 // Handle calls staking handler on a given message
 func (sh *Helper) Handle(msg sdk.Msg, ok bool) *sdk.Result {
-	res, err := sh.h(sh.ctx, msg)
+	res, err := sh.h(sh.Ctx, msg)
 	if ok {
 		require.NoError(sh.t, err)
 		require.NotNil(sh.t, res)
@@ -91,7 +104,7 @@ func (sh *Helper) Handle(msg sdk.Msg, ok bool) *sdk.Result {
 // CheckValidator asserts that a validor exists and has a given status (if status!="")
 // and if has a right jailed flag.
 func (sh *Helper) CheckValidator(addr sdk.ValAddress, status stakingtypes.BondStatus, jailed bool) stakingtypes.Validator {
-	v, ok := sh.k.GetValidator(sh.ctx, addr)
+	v, ok := sh.k.GetValidator(sh.Ctx, addr)
 	require.True(sh.t, ok)
 	require.Equal(sh.t, jailed, v.Jailed, "wrong Jalied status")
 	if status >= 0 {
@@ -102,15 +115,24 @@ func (sh *Helper) CheckValidator(addr sdk.ValAddress, status stakingtypes.BondSt
 
 // CheckDelegator asserts that a delegator exists
 func (sh *Helper) CheckDelegator(delegator sdk.AccAddress, val sdk.ValAddress, found bool) {
-	_, ok := sh.k.GetDelegation(sh.ctx, delegator, val)
+	_, ok := sh.k.GetDelegation(sh.Ctx, delegator, val)
 	require.Equal(sh.t, ok, found)
 }
 
-// TurnBlock updates context and calls endblocker.
-func (sh *Helper) TurnBlock(ctx sdk.Context) {
-	sh.ctx = ctx
-	staking.EndBlocker(sh.ctx, sh.k.Keeper)
-	staking.BeginBlocker(sh.ctx, sh.k.Keeper)
+// TurnBlock calls EndBlocker and updates the block time
+func (sh *Helper) TurnBlock(newTime time.Time) sdk.Context {
+	sh.Ctx = sh.Ctx.WithBlockTime(newTime)
+	staking.BeginBlocker(sh.Ctx, sh.k.Keeper)
+	staking.EndBlocker(sh.Ctx, sh.k.Keeper)
+	return sh.Ctx
+}
+
+// TurnBlockTimeDiff calls EndBlocker and updates the block time by adding the
+// duration to the current block time
+func (sh *Helper) TurnBlockTimeDiff(diff time.Duration) sdk.Context {
+	sh.Ctx = sh.Ctx.WithBlockTime(sh.Ctx.BlockHeader().Time.Add(diff))
+	staking.EndBlocker(sh.Ctx, sh.k.Keeper)
+	return sh.Ctx
 }
 
 // ZeroCommission constructs a commission rates with all zeros.

@@ -2,6 +2,7 @@ package testgov
 
 import (
 	"testing"
+	"time"
 
 	"github.com/certikfoundation/shentu/x/gov/keeper"
 
@@ -21,7 +22,7 @@ type Helper struct {
 	h sdk.Handler
 	k keeper.Keeper
 
-	ctx   sdk.Context
+	Ctx   sdk.Context
 	denom string
 }
 
@@ -40,14 +41,15 @@ func (gh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolI
 }
 
 // TurnBlock updates context and calls endblocker.
-func (sh *Helper) TurnBlock(ctx sdk.Context) {
-	sh.ctx = ctx
-	gov.EndBlocker(sh.ctx, sh.k)
+func (sh *Helper) TurnBlock(newTime time.Time) sdk.Context {
+	sh.Ctx = sh.Ctx.WithBlockTime(newTime)
+	gov.EndBlocker(sh.Ctx, sh.k)
+	return sh.Ctx
 }
 
 // Handle calls shield handler on a given message
 func (gh *Helper) Handle(msg sdk.Msg, ok bool) *sdk.Result {
-	res, err := gh.h(gh.ctx, msg)
+	res, err := gh.h(gh.Ctx, msg)
 	if ok {
 		require.NoError(gh.t, err)
 		require.NotNil(gh.t, res)

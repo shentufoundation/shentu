@@ -24,22 +24,23 @@ import (
 // their test helpers' contexts.
 func nextBlock(ctx sdk.Context, tstaking *teststaking.Helper, tshield *testshield.Helper, tgov *testgov.Helper) sdk.Context {
 	newTime := ctx.BlockTime().Add(time.Second * time.Duration(int64(common.SecondsPerBlock)))
-	ctx = ctx.WithBlockTime(newTime).WithBlockHeight(ctx.BlockHeight() + 1)
+	ctx = ctx.WithBlockTime(newTime)
 
-	tstaking.TurnBlock(ctx)
-	tshield.TurnBlock(ctx)
-	tgov.TurnBlock(ctx)
+	tstaking.Ctx = ctx
+	ctx = tstaking.TurnBlock(newTime)
+	tshield.TurnBlock(newTime)
+	tgov.TurnBlock(newTime)
 
 	return ctx
 }
 
 func skipBlocks(ctx sdk.Context, numBlocks int64, tstaking *teststaking.Helper, tshield *testshield.Helper, tgov *testgov.Helper) sdk.Context {
 	newTime := ctx.BlockTime().Add(time.Second * time.Duration(int64(common.SecondsPerBlock)*numBlocks))
-	ctx = ctx.WithBlockTime(newTime).WithBlockHeight(ctx.BlockHeight() + 1)
+	ctx = ctx.WithBlockTime(newTime)
 
-	tstaking.TurnBlock(ctx)
-	tshield.TurnBlock(ctx)
-	tgov.TurnBlock(ctx)
+	tstaking.TurnBlock(newTime)
+	tshield.TurnBlock(newTime)
+	tgov.TurnBlock(newTime)
 
 	return ctx
 }
@@ -83,17 +84,17 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 
 	// both delegators delegate 50 to each validator
 	tstaking.CheckDelegator(del1addr, val1addr, false)
-	tstaking.Delegate(del1addr, val1addr, 50)
+	tstaking.Delegate(del1addr, val1addr, sdk.NewInt(50))
 	tstaking.CheckDelegator(del1addr, val1addr, true)
 	tstaking.CheckDelegator(del1addr, val2addr, false)
-	tstaking.Delegate(del1addr, val2addr, 50)
+	tstaking.Delegate(del1addr, val2addr, sdk.NewInt(50))
 	tstaking.CheckDelegator(del1addr, val2addr, true)
 
 	tstaking.CheckDelegator(del2addr, val1addr, false)
-	tstaking.Delegate(del2addr, val1addr, 50)
+	tstaking.Delegate(del2addr, val1addr, sdk.NewInt(50))
 	tstaking.CheckDelegator(del2addr, val1addr, true)
 	tstaking.CheckDelegator(del2addr, val2addr, false)
-	tstaking.Delegate(del2addr, val2addr, 50)
+	tstaking.Delegate(del2addr, val2addr, sdk.NewInt(50))
 	tstaking.CheckDelegator(del2addr, val2addr, true)
 
 	// both delegators deposit collateral of amount 75
@@ -101,10 +102,10 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 	tshield.DepositCollateral(del2addr, 75, true)
 
 	// undelegate total 50 to trigger total withdrawal of 25
-	tstaking.Undelegate(del1addr, val1addr, 30, true)
-	tstaking.Undelegate(del2addr, val2addr, 10, true)
-	tstaking.Undelegate(del1addr, val2addr, 20, true)
-	tstaking.Undelegate(del2addr, val2addr, 40, true)
+	tstaking.Undelegate(del1addr, val1addr, sdk.NewInt(30), true)
+	tstaking.Undelegate(del2addr, val2addr, sdk.NewInt(10), true)
+	tstaking.Undelegate(del1addr, val2addr, sdk.NewInt(20), true)
+	tstaking.Undelegate(del2addr, val2addr, sdk.NewInt(40), true)
 
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 
@@ -118,7 +119,7 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 	require.True(t, strAddrEqualsAccAddr(withdraws[2].Address, del2addr))
 
 	// undelegate 5 and trigger another withdrawal of 5.
-	tstaking.Undelegate(del1addr, val1addr, 5, true)
+	tstaking.Undelegate(del1addr, val1addr, sdk.NewInt(5), true)
 
 	numWithdraws++
 	withdraws = app.ShieldKeeper.GetAllWithdraws(ctx)
@@ -129,7 +130,7 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 	tshield.DepositCollateral(del1addr, 10, false)
 
 	// delegate 25
-	tstaking.Delegate(del1addr, val1addr, 25)
+	tstaking.Delegate(del1addr, val1addr, sdk.NewInt(25))
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 
 	// withdraw 5
@@ -139,7 +140,7 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 	require.True(t, len(withdraws) == numWithdraws)
 
 	// undelegate 25 without triggering withdrawal
-	tstaking.Undelegate(del1addr, val1addr, 25, true)
+	tstaking.Undelegate(del1addr, val1addr, sdk.NewInt(25), true)
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
 	withdraws = app.ShieldKeeper.GetAllWithdraws(ctx)
 	require.True(t, len(withdraws) == numWithdraws)
@@ -176,7 +177,7 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 
 	// delegate 100 to the validator
 	tstaking.CheckDelegator(del1addr, val1addr, false)
-	tstaking.Delegate(del1addr, val1addr, 100)
+	tstaking.Delegate(del1addr, val1addr, sdk.NewInt(100))
 	tstaking.CheckDelegator(del1addr, val1addr, true)
 
 	// deposit collateral of amount 75
@@ -250,7 +251,7 @@ func TestClaimProposal(t *testing.T) {
 
 	// shield admin deposit and create pool
 	// $BondDenom pool with shield = 100,000 $BondDenom, limit = 500,000 $BondDenom, serviceFees = 200 $BondDenom
-	tstaking.Delegate(shieldAdmin, val1addr, adminDeposit)
+	tstaking.Delegate(shieldAdmin, val1addr, sdk.NewInt(adminDeposit))
 	tshield.DepositCollateral(shieldAdmin, adminDeposit, true)
 	tshield.CreatePool(shieldAdmin, sponsorAddr, 200e6, 100e9, 500e9, "CertiK", "fake_description")
 
@@ -262,7 +263,7 @@ func TestClaimProposal(t *testing.T) {
 
 	// delegator deposits
 	tstaking.CheckDelegator(del1addr, val1addr, false)
-	tstaking.Delegate(del1addr, val1addr, delegatorDeposit)
+	tstaking.Delegate(del1addr, val1addr, sdk.NewInt(delegatorDeposit))
 	tstaking.CheckDelegator(del1addr, val1addr, true)
 	tshield.DepositCollateral(del1addr, delegatorDeposit, true)
 
@@ -271,12 +272,12 @@ func TestClaimProposal(t *testing.T) {
 	tshield.PurchaseShield(purchaser, shield, poolID, true)
 
 	// delegator undelegates all delegations, triggering a withdrawal
-	tstaking.Undelegate(del1addr, val1addr, 25e9, true)
+	tstaking.Undelegate(del1addr, val1addr, sdk.NewInt(25e9), true)
 	withdraw1End := ctx.BlockTime().Add(app.ShieldKeeper.GetPoolParams(ctx).WithdrawPeriod)
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
-	tstaking.Undelegate(del1addr, val1addr, 90e9, true)
+	tstaking.Undelegate(del1addr, val1addr, sdk.NewInt(90e9), true)
 	ctx = nextBlock(ctx, tstaking, tshield, tgov)
-	tstaking.Undelegate(del1addr, val1addr, 10e9, true)
+	tstaking.Undelegate(del1addr, val1addr, sdk.NewInt(10e9), true)
 
 	withdraws := app.ShieldKeeper.GetAllWithdraws(ctx)
 	require.True(t, len(withdraws) == 3)
@@ -304,9 +305,9 @@ func TestClaimProposal(t *testing.T) {
 	require.True(t, withdraws[0].Amount.Equal(sdk.NewInt(25e9)))
 	require.True(t, withdraws[0].CompletionTime.Equal(withdraw1End)) //25e9 not delayed
 	require.True(t, withdraws[1].Amount.Equal(sdk.NewInt(10e9)))
-	require.True(t, withdraws[1].CompletionTime.Equal(delayedWithdrawEnd)) // 10e9 delayed
+	require.True(t, withdraws[1].CompletionTime.Equal(delayedWithdrawEnd)) // 90e9 delayed
 	require.True(t, withdraws[2].Amount.Equal(sdk.NewInt(90e9)))
-	require.True(t, withdraws[2].CompletionTime.Equal(delayedWithdrawEnd)) // 90e9 delayed
+	require.True(t, withdraws[2].CompletionTime.Equal(delayedWithdrawEnd)) // 10e9 delayed
 
 	delUBD = app.StakingKeeper.GetAllUnbondingDelegations(ctx, del1addr)[0]
 	require.True(t, delUBD.Entries[0].Balance.Equal(sdk.NewInt(25e9)))

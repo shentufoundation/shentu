@@ -2,6 +2,7 @@ package testshield
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -21,7 +22,7 @@ type Helper struct {
 	ph govtypes.Handler
 	k  keeper.Keeper
 
-	ctx   sdk.Context
+	Ctx   sdk.Context
 	denom string
 }
 
@@ -68,14 +69,16 @@ func (sh *Helper) WithdrawReimbursement(purchaser sdk.AccAddress, proposalID uin
 }
 
 // TurnBlock updates context and calls endblocker.
-func (sh *Helper) TurnBlock(ctx sdk.Context) {
-	sh.ctx = ctx
-	shield.EndBlocker(sh.ctx, sh.k)
+func (sh *Helper) TurnBlock(newTime time.Time) sdk.Context {
+	sh.Ctx = sh.Ctx.WithBlockTime(newTime)
+	shield.BeginBlocker(sh.Ctx, sh.k)
+	shield.EndBlocker(sh.Ctx, sh.k)
+	return sh.Ctx
 }
 
 // Handle calls shield handler on a given message
 func (sh *Helper) Handle(msg sdk.Msg, ok bool) *sdk.Result {
-	res, err := sh.h(sh.ctx, msg)
+	res, err := sh.h(sh.Ctx, msg)
 	if ok {
 		require.NoError(sh.t, err)
 		require.NotNil(sh.t, res)
@@ -88,7 +91,7 @@ func (sh *Helper) Handle(msg sdk.Msg, ok bool) *sdk.Result {
 
 // HandleProposal calls shield proposal handler on a given proposal.
 func (sh *Helper) HandleProposal(content govtypes.Content, ok bool) {
-	err := sh.ph(sh.ctx, content)
+	err := sh.ph(sh.Ctx, content)
 	if ok {
 		require.NoError(sh.t, err)
 	} else {

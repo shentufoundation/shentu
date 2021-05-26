@@ -156,9 +156,9 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json
 	return cdc.MustMarshalJSON(&gs)
 }
 
-// BeginBlock returns the begin blocker for the shield module.
+// BeginBlocker returns the begin blocker for the shield module.
 func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
-	BeginBlock(ctx, rbb, am.keeper)
+	BeginBlocker(ctx, am.keeper)
 }
 
 // EndBlock returns the end blocker for the shield module.
