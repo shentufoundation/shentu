@@ -1,14 +1,17 @@
 package keeper_test
 
 import (
+	"github.com/stretchr/testify/suite"
+
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/shield/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/certikfoundation/shentu/simapp"
 	"github.com/certikfoundation/shentu/x/shield/keeper"
+	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
 var (
@@ -19,10 +22,14 @@ var (
 )
 
 type TestSuite struct {
-	app      *simapp.SimApp
-	ctx      sdk.Context
-	keeper   keeper.Keeper
-	accounts []sdk.AccAddress
+	suite.Suite
+
+	app         *simapp.SimApp
+	ctx         sdk.Context
+	keeper      keeper.Keeper
+	accounts    []sdk.AccAddress
+	vals        []stakingtypes.Validator
+	queryClient types.QueryClient
 }
 
 func setup() TestSuite {

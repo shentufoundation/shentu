@@ -37,11 +37,11 @@ func TestKeeper_GetAllProviders(t *testing.T) {
 func TestKeeper_GetProvider(t *testing.T) {
 	type args struct {
 		ctx       sdk.Context
+		vals      []sdk.ValAddress
 		delegator sdk.AccAddress
 	}
 	tests := []struct {
 		name      string
-		keeper    keeper.Keeper
 		args      args
 		wantDt    types.Provider
 		wantFound bool
@@ -50,7 +50,8 @@ func TestKeeper_GetProvider(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			k := tt.keeper
+			suite := setup()
+			k := suite.keeper
 			gotDt, gotFound := k.GetProvider(tt.args.ctx, tt.args.delegator)
 			if !reflect.DeepEqual(gotDt, tt.wantDt) {
 				t.Errorf("GetProvider() gotDt = %v, want %v", gotDt, tt.wantDt)
