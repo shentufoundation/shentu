@@ -3,9 +3,10 @@ package types_test
 import (
 	"testing"
 
-	"github.com/certikfoundation/shentu/x/oracle/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/test-go/testify/require"
+
+	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
 // test ValidateBasic for NewMsgCreateOperator
@@ -34,7 +35,6 @@ func Test_NewMsgCreateOperator(t *testing.T) {
 		if tc.expectPass {
 			require.Nil(t, msg.ValidateBasic(), "test: %v", tc.ts_name)
 		} else {
-
 			require.NotNil(t, msg.ValidateBasic(), "test: %v", tc.ts_name)
 		}
 	}

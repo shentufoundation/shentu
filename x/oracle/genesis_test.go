@@ -4,11 +4,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/certikfoundation/shentu/x/oracle"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/certikfoundation/shentu/simapp"
+	"github.com/certikfoundation/shentu/x/oracle"
 )
 
 func TestExportGenesis(t *testing.T) {

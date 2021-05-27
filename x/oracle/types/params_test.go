@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/certikfoundation/shentu/x/oracle/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/test-go/testify/require"
+
+	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
 func Test_TaskParams(t *testing.T) {
@@ -58,7 +59,6 @@ func equalsForTastParams(t1 *types.TaskParams, t2 *types.TaskParams) bool {
 		return false
 	}
 	return true
-
 }
 
 func equalsForLockedPoolParams(t1 *types.LockedPoolParams, t2 *types.LockedPoolParams) bool {
@@ -74,5 +74,4 @@ func equalsForLockedPoolParams(t1 *types.LockedPoolParams, t2 *types.LockedPoolP
 		return false
 	}
 	return true
-
 }

@@ -3,9 +3,10 @@ package types_test
 import (
 	"testing"
 
-	"github.com/certikfoundation/shentu/x/oracle/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/test-go/testify/assert"
+
+	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
 //test OperatorStoreKey
@@ -29,7 +30,6 @@ func Test_WithdrawStoreKey(t *testing.T) {
 
 func Test_TotalCollateralKey(t *testing.T) {
 	t.Run("test ", func(t *testing.T) {
-
 		tmp := types.TotalCollateralKey()
 		assert.Equal(t, tmp, []byte{3})
 	})

@@ -4,9 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/certikfoundation/shentu/x/oracle/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/test-go/testify/assert"
+
+	"github.com/certikfoundation/shentu/x/oracle/types"
 )
 
 func Test_withdraw(t *testing.T) {
