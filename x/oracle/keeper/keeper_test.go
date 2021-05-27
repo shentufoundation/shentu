@@ -410,7 +410,7 @@ func (suite *KeeperTestSuite) TestOperator_Reward() {
 				withdrawAll:  true,
 			},
 			errArgs{
-				shouldPass: false,
+				shouldPass: true,
 				contains:   "",
 			},
 		},
@@ -425,9 +425,12 @@ func (suite *KeeperTestSuite) TestOperator_Reward() {
 			suite.Require().NoError(err, tc.name)
 			if tc.errArgs.shouldPass {
 				if tc.args.withdrawAll {
+
 					withdrawAmt, err := suite.keeper.WithdrawAllReward(suite.ctx, tc.args.senderAddr)
 					suite.Require().NoError(err, tc.name)
+
 					suite.Equal(sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.rewardToAdd)}, withdrawAmt)
+
 					operator, err := suite.keeper.GetOperator(suite.ctx, tc.args.senderAddr)
 					suite.Require().NoError(err, tc.name)
 					suite.Nil(operator.AccumulatedRewards)
