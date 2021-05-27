@@ -10,7 +10,7 @@ import (
 
 func TestKeeper_AddStaking(t *testing.T) {
 	type args struct {
-		ctx        sdk.Context
+		pools      []types.Pool
 		poolID     uint64
 		purchaser  sdk.AccAddress
 		purchaseID uint64
@@ -18,16 +18,50 @@ func TestKeeper_AddStaking(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		keeper  keeper.Keeper
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Pool doesn't exist",
+			args: args{
+				poolID:     1,
+				purchaser:  acc1,
+				purchaseID: 1,
+				stakingAmt: sdk.NewInt(1),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Pool exists",
+			args: args{
+				pools:      []types.Pool{DummyPool(1)},
+				poolID:     1,
+				purchaser:  acc1,
+				purchaseID: 1,
+				stakingAmt: sdk.NewInt(1),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Zero amount",
+			args: args{
+				pools:      []types.Pool{DummyPool(1)},
+				poolID:     1,
+				purchaser:  acc1,
+				purchaseID: 1,
+				stakingAmt: sdk.NewInt(0),
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			k := tt.keeper
-			if err := k.AddStaking(tt.args.ctx, tt.args.poolID, tt.args.purchaser, tt.args.purchaseID, tt.args.stakingAmt); (err != nil) != tt.wantErr {
+			suite := setup()
+			k := suite.keeper
+			for _, p := range tt.args.pools {
+				k.SetPool(suite.ctx, p)
+			}
+			if err := k.AddStaking(suite.ctx, tt.args.poolID, tt.args.purchaser, tt.args.purchaseID, tt.args.stakingAmt); (err != nil) != tt.wantErr {
 				t.Errorf("AddStaking() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -36,22 +70,44 @@ func TestKeeper_AddStaking(t *testing.T) {
 
 func TestKeeper_FundShieldBlockRewards(t *testing.T) {
 	type args struct {
-		ctx    sdk.Context
 		amount sdk.Coins
 		sender sdk.AccAddress
 	}
 	tests := []struct {
 		name    string
-		keeper  keeper.Keeper
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Normal path",
+			args: args{
+				amount: sdk.NewCoins(sdk.NewCoin("uctk", sdk.OneInt())),
+				sender: acc1,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Zero Amount",
+			args: args{
+				amount: sdk.NewCoins(sdk.NewCoin("uctk", sdk.ZeroInt())),
+				sender: acc1,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Nil Account",
+			args: args{
+				amount: sdk.NewCoins(sdk.NewCoin("uctk", sdk.OneInt())),
+				sender: nil,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			k := tt.keeper
-			if err := k.FundShieldBlockRewards(tt.args.ctx, tt.args.amount, tt.args.sender); (err != nil) != tt.wantErr {
+			suite := setup()
+			k := suite.keeper
+			if err := k.FundShieldBlockRewards(suite.ctx, tt.args.amount, tt.args.sender); (err != nil) != tt.wantErr {
 				t.Errorf("FundShieldBlockRewards() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -60,20 +116,83 @@ func TestKeeper_FundShieldBlockRewards(t *testing.T) {
 
 func TestKeeper_GetAllOriginalStakings(t *testing.T) {
 	type args struct {
-		ctx sdk.Context
+		stakings []types.ShieldStaking
 	}
 	tests := []struct {
 		name                 string
-		keeper               keeper.Keeper
 		args                 args
 		wantOriginalStakings []types.OriginalStaking
 	}{
-		// TODO: Add test cases.
+		{
+			name:                 "Empty stakings",
+			args:                 args{},
+			wantOriginalStakings: nil,
+		},
+		{
+			name: "One staking",
+			args: args{
+				stakings: []types.ShieldStaking{
+					{
+						PoolId:            1,
+						Purchaser:         acc1.String(),
+						Amount:            sdk.OneInt(),
+						WithdrawRequested: sdk.ZeroInt(),
+					},
+				},
+			},
+			wantOriginalStakings: []types.OriginalStaking{
+				{
+					PurchaseId: 0,
+					Amount:     sdk.OneInt(),
+				},
+			},
+		},
+		{
+			name: "Two staking",
+			args: args{
+				stakings: []types.ShieldStaking{
+					{
+						PoolId:            1,
+						Purchaser:         acc1.String(),
+						Amount:            sdk.OneInt(),
+						WithdrawRequested: sdk.ZeroInt(),
+					},
+					{
+						PoolId:            1,
+						Purchaser:         acc1.String(),
+						Amount:            sdk.NewInt(2),
+						WithdrawRequested: sdk.ZeroInt(),
+					},
+				},
+			},
+			wantOriginalStakings: []types.OriginalStaking{
+				{
+					PurchaseId: 0,
+					Amount:     sdk.OneInt(),
+				},
+				{
+					PurchaseId: 1,
+					Amount:     sdk.NewInt(2),
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			k := tt.keeper
-			if gotOriginalStakings := k.GetAllOriginalStakings(tt.args.ctx); !reflect.DeepEqual(gotOriginalStakings, tt.wantOriginalStakings) {
+			suite := setup()
+			k := suite.keeper
+			k.SetPool(suite.ctx, DummyPool(1))
+			for i, s := range tt.args.stakings {
+				purchaser, err := sdk.AccAddressFromBech32(s.Purchaser)
+				if err != nil {
+					t.Errorf("got err = %v, want no error while setting up the test", err)
+				}
+				err = k.AddStaking(suite.ctx, s.PoolId, purchaser, uint64(i), s.Amount)
+				if err != nil {
+					t.Errorf("got err = %v, want no error while setting up the test", err)
+				}
+			}
+			if gotOriginalStakings := k.GetAllOriginalStakings(suite.ctx); !reflect.DeepEqual(gotOriginalStakings, tt.wantOriginalStakings) {
 				t.Errorf("GetAllOriginalStakings() = %v, want %v", gotOriginalStakings, tt.wantOriginalStakings)
 			}
 		})

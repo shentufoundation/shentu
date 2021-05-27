@@ -68,6 +68,9 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 		return err
 	}
 
+	if _, found := k.GetPool(ctx, poolID); !found {
+		return types.ErrNoPoolFound
+	}
 	pool := k.GetGlobalShieldStakingPool(ctx)
 	pool = pool.Add(stakingAmt)
 	k.SetGlobalShieldStakingPool(ctx, pool)

@@ -197,7 +197,7 @@ func TestKeeper_PoolParams(t *testing.T) {
 
 func TestKeeper_PoolPurchaseLists(t *testing.T) {
 	suite := setup()
-	p := DummyPool()
+	p := DummyPool(1)
 	suite.keeper.SetPool(suite.ctx, p)
 	pl := types.PurchaseList{
 		PoolId:    1,

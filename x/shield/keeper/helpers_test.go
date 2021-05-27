@@ -1,6 +1,9 @@
 package keeper_test
 
 import (
+	"github.com/certikfoundation/shentu/x/gov/testgov"
+	"github.com/certikfoundation/shentu/x/shield/testshield"
+	"github.com/certikfoundation/shentu/x/staking/teststaking"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/tendermint/tendermint/crypto/ed25519"
@@ -27,6 +30,9 @@ type TestSuite struct {
 	app         *simapp.SimApp
 	ctx         sdk.Context
 	keeper      keeper.Keeper
+	tshield     *testshield.Helper
+	tstaking    *teststaking.Helper
+	tgov        *testgov.Helper
 	accounts    []sdk.AccAddress
 	vals        []stakingtypes.Validator
 	queryClient types.QueryClient
@@ -38,6 +44,9 @@ func setup() TestSuite {
 	t.ctx = t.app.BaseApp.NewContext(false, tmproto.Header{})
 	t.keeper = t.app.ShieldKeeper
 	t.accounts = []sdk.AccAddress{acc1, acc2, acc3, acc4}
+	t.tstaking = teststaking.NewHelper(t.T(), t.ctx, t.app.StakingKeeper)
+	t.tgov = testgov.NewHelper(t.T(), t.ctx, t.app.GovKeeper, t.tstaking.Denom)
+	t.tshield = testshield.NewHelper(t.T(), t.ctx, t.keeper, t.tstaking.Denom)
 
 	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
 		err := t.app.BankKeeper.AddCoins(
@@ -72,9 +81,9 @@ func OneMixedDecCoins(nativeDenom string) types.MixedDecCoins {
 	}
 }
 
-func DummyPool() types.Pool {
+func DummyPool(id uint64) types.Pool {
 	return types.Pool{
-		Id:          1,
+		Id:          id,
 		Description: "w",
 		Sponsor:     acc1.String(),
 		SponsorAddr: acc2.String(),
