@@ -176,7 +176,6 @@ func (k Keeper) AddReward(ctx sdk.Context, address sdk.AccAddress, increment sdk
 	}
 	operator.AccumulatedRewards = operator.AccumulatedRewards.Add(increment...)
 	k.SetOperator(ctx, operator)
-
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, address, types.ModuleName, increment); err != nil {
 		return err
 	}
