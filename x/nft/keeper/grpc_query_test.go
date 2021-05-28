@@ -25,31 +25,34 @@ func (suite *KeeperTestSuite) TestQueryAdmin() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Admin(1) Query: Empty Address",
-			args{
+		{
+			name: "Admin(1) Query: Empty Address",
+			args: args{
 				adminAddr: suite.address[0],
 			},
-			errArgs{
+			errArgs: errArgs{
 				shouldPass: false,
 				contains:   "empty address",
 			},
 		},
-		{"Admin(1) Query: Admin Address",
-			args{
+		{
+			name: "Admin(1) Query: Admin Address",
+			args: args{
 				adminAddr:   suite.address[0],
 				requestAddr: suite.address[0].String(),
 			},
-			errArgs{
+			errArgs: errArgs{
 				shouldPass: true,
 				contains:   "",
 			},
 		},
-		{"Admin(1) Query: Non-admin Address",
-			args{
+		{
+			name: "Admin(1) Query: Non-admin Address",
+			args: args{
 				adminAddr:   suite.address[0],
 				requestAddr: suite.address[1].String(),
 			},
-			errArgs{
+			errArgs: errArgs{
 				shouldPass: false,
 				contains:   "not found",
 			},
@@ -87,20 +90,22 @@ func (suite *KeeperTestSuite) TestQueryAdmins() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Admins(1) Query: No Admins",
-			args{
+		{
+			name: "Admins(1) Query: No Admins",
+			args: args{
 				addrs: []sdk.AccAddress{},
 			},
-			errArgs{
+			errArgs: errArgs{
 				shouldPass: true,
 				contains:   "",
 			},
 		},
-		{"Admins(2) Query: Two Admins",
-			args{
+		{
+			name: "Admins(2) Query: Two Admins",
+			args: args{
 				addrs: []sdk.AccAddress{suite.address[0], suite.address[1]},
 			},
-			errArgs{
+			errArgs: errArgs{
 				shouldPass: true,
 				contains:   "",
 			},

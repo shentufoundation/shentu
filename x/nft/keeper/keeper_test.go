@@ -78,11 +78,12 @@ func (suite *KeeperTestSuite) TestAdmin_GetSet() {
 		args    args
 		errArgs errArgs
 	}{
-		{"NFT(2) Get: One & All",
-			args{
+		{
+			name: "NFT(2) Get: One & All",
+			args: args{
 				addrs: []sdk.AccAddress{suite.address[0], suite.address[1]},
 			},
-			errArgs{
+			errArgs: errArgs{
 				shouldPass: true,
 				contains:   "",
 			},
@@ -123,22 +124,24 @@ func (suite *KeeperTestSuite) TestAdmin_Delete() {
 		args    args
 		errArgs errArgs
 	}{
-		{"NFT(1) Delete: Simple",
-			args{
+		{
+			name: "NFT(1) Delete: Simple",
+			args: args{
 				addrs:       []sdk.AccAddress{suite.address[0]},
 				deletedAddr: suite.address[0],
 			},
-			errArgs{
+			errArgs: errArgs{
 				shouldPass: true,
 				contains:   "",
 			},
 		},
-		{"NFT(1) Delete: Add Two, Delete One",
-			args{
+		{
+			name: "NFT(1) Delete: Add Two, Delete One",
+			args: args{
 				addrs:       []sdk.AccAddress{suite.address[0], suite.address[1]},
 				deletedAddr: suite.address[1],
 			},
-			errArgs{
+			errArgs: errArgs{
 				shouldPass: true,
 				contains:   "",
 			},
@@ -189,11 +192,12 @@ func (suite *KeeperTestSuite) TestAdmin_Check() {
 		args    args
 		errArgs errArgs
 	}{
-		{"NFT(1) Check: Simple",
-			args{
+		{
+			name: "NFT(1) Check: Simple",
+			args: args{
 				addrs: []sdk.AccAddress{suite.address[0]},
 			},
-			errArgs{
+			errArgs: errArgs{
 				shouldPass: true,
 				contains:   "",
 			},
