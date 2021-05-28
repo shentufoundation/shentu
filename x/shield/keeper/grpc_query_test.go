@@ -11,7 +11,6 @@ import (
 )
 
 func TestKeeper_ClaimParams(t *testing.T) {
-	suite := setup()
 	emptyParams := types.ClaimProposalParams{
 		ClaimPeriod:  0,
 		PayoutPeriod: 0,
@@ -20,27 +19,22 @@ func TestKeeper_ClaimParams(t *testing.T) {
 		FeesRate:     sdk.NewDec(1),
 	}
 	type args struct {
-		c      context.Context
 		params types.ClaimProposalParams
 	}
 	tests := []struct {
 		name    string
-		keeper  keeper.Keeper
 		args    args
 		want    *types.QueryClaimParamsResponse
 		wantErr bool
 	}{
 		{
-			name:   "Default params",
-			keeper: suite.keeper,
-			args:   args{sdk.WrapSDKContext(suite.ctx), types.DefaultClaimProposalParams()},
-			want:   &types.QueryClaimParamsResponse{types.DefaultClaimProposalParams()},
+			name: "Default params",
+			args: args{params: types.DefaultClaimProposalParams()},
+			want: &types.QueryClaimParamsResponse{types.DefaultClaimProposalParams()},
 		},
 		{
-			name:   "Empty params",
-			keeper: suite.keeper,
+			name: "Empty params",
 			args: args{
-				c:      sdk.WrapSDKContext(suite.ctx),
 				params: emptyParams,
 			},
 			want: &types.QueryClaimParamsResponse{
@@ -50,9 +44,10 @@ func TestKeeper_ClaimParams(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			k := tt.keeper
-			k.SetClaimProposalParams(sdk.UnwrapSDKContext(tt.args.c), tt.args.params)
-			got, err := k.ClaimParams(tt.args.c, &types.QueryClaimParamsRequest{})
+			suite := setup()
+			k := suite.keeper
+			k.SetClaimProposalParams(suite.ctx, tt.args.params)
+			got, err := k.ClaimParams(sdk.WrapSDKContext(suite.ctx), &types.QueryClaimParamsRequest{})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ClaimParams() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -65,31 +60,25 @@ func TestKeeper_ClaimParams(t *testing.T) {
 }
 
 func TestKeeper_Pool(t *testing.T) {
-	suite := setup()
 	type args struct {
-		c          context.Context
 		poolsToAdd []types.Pool
 		req        *types.QueryPoolRequest
 	}
 	tests := []struct {
 		name    string
-		keeper  keeper.Keeper
 		args    args
 		want    *types.QueryPoolResponse
 		wantErr bool
 	}{
 		{
 			name:    "No Pool",
-			keeper:  suite.keeper,
-			args:    args{sdk.WrapSDKContext(suite.ctx), nil, &types.QueryPoolRequest{1}},
+			args:    args{req: &types.QueryPoolRequest{1}},
 			want:    nil,
 			wantErr: true,
 		},
 		{
-			name:   "One Pool",
-			keeper: suite.keeper,
+			name: "One Pool",
 			args: args{
-				sdk.WrapSDKContext(suite.ctx),
 				[]types.Pool{{
 					Id:          1,
 					Description: "w",
@@ -115,11 +104,12 @@ func TestKeeper_Pool(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			q := tt.keeper
+			suite := setup()
+			k := suite.keeper
 			for _, p := range tt.args.poolsToAdd {
-				tt.keeper.SetPool(sdk.UnwrapSDKContext(tt.args.c), p)
+				k.SetPool(suite.ctx, p)
 			}
-			got, err := q.Pool(tt.args.c, tt.args.req)
+			got, err := k.Pool(sdk.WrapSDKContext(suite.ctx), tt.args.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Pool() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -132,7 +122,6 @@ func TestKeeper_Pool(t *testing.T) {
 }
 
 func TestKeeper_PoolParams(t *testing.T) {
-	suite := setup()
 	randomParams := types.PoolParams{
 		ProtectionPeriod:  0,
 		ShieldFeesRate:    sdk.NewDec(123),
@@ -141,22 +130,18 @@ func TestKeeper_PoolParams(t *testing.T) {
 		MinShieldPurchase: sdk.NewCoins(sdk.NewInt64Coin("stake", 12345)),
 	}
 	type args struct {
-		c      context.Context
 		params types.PoolParams
 		req    *types.QueryPoolParamsRequest
 	}
 	tests := []struct {
 		name    string
-		keeper  keeper.Keeper
 		args    args
 		want    *types.QueryPoolParamsResponse
 		wantErr bool
 	}{
 		{
-			name:   "Default Params",
-			keeper: suite.keeper,
+			name: "Default Params",
 			args: args{
-				c:      sdk.WrapSDKContext(suite.ctx),
 				params: types.DefaultPoolParams(),
 				req:    &types.QueryPoolParamsRequest{},
 			},
@@ -166,10 +151,8 @@ func TestKeeper_PoolParams(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:   "random Params",
-			keeper: suite.keeper,
+			name: "random Params",
 			args: args{
-				c:      sdk.WrapSDKContext(suite.ctx),
 				params: randomParams,
 				req:    &types.QueryPoolParamsRequest{},
 			},
@@ -181,9 +164,10 @@ func TestKeeper_PoolParams(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			q := tt.keeper
-			tt.keeper.SetPoolParams(sdk.UnwrapSDKContext(tt.args.c), tt.args.params)
-			got, err := q.PoolParams(tt.args.c, tt.args.req)
+			suite := setup()
+			k := suite.keeper
+			k.SetPoolParams(suite.ctx, tt.args.params)
+			got, err := k.PoolParams(sdk.WrapSDKContext(suite.ctx), tt.args.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PoolParams() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -196,48 +180,39 @@ func TestKeeper_PoolParams(t *testing.T) {
 }
 
 func TestKeeper_PoolPurchaseLists(t *testing.T) {
-	suite := setup()
-	p := DummyPool(1)
-	suite.keeper.SetPool(suite.ctx, p)
 	pl := types.PurchaseList{
 		PoolId:    1,
-		Purchaser: suite.accounts[3].String(),
+		Purchaser: acc3.String(),
 		Entries: []types.Purchase{{
 			PurchaseId:        0,
 			ProtectionEndTime: time.Time{},
 			DeletionTime:      time.Time{},
 			Description:       "",
 			Shield:            sdk.NewInt(1),
-			ServiceFees:       OneMixedDecCoins(suite.app.StakingKeeper.BondDenom(suite.ctx)),
+			ServiceFees:       OneMixedDecCoins("uctk"),
 		}},
 	}
 	type args struct {
-		c   context.Context
 		pls []types.PurchaseList
 		req *types.QueryPoolPurchaseListsRequest
 	}
 	tests := []struct {
 		name    string
-		keeper  keeper.Keeper
 		args    args
 		want    *types.QueryPurchaseListsResponse
 		wantErr bool
 	}{
 		{
-			name:   "Empty lists",
-			keeper: suite.keeper,
+			name: "Empty lists",
 			args: args{
-				c:   sdk.WrapSDKContext(suite.ctx),
 				req: &types.QueryPoolPurchaseListsRequest{1},
 			},
 			want:    &types.QueryPurchaseListsResponse{},
 			wantErr: false,
 		},
 		{
-			name:   "One lists",
-			keeper: suite.keeper,
+			name: "One lists",
 			args: args{
-				c:   sdk.WrapSDKContext(suite.ctx),
 				pls: []types.PurchaseList{pl},
 				req: &types.QueryPoolPurchaseListsRequest{1},
 			},
@@ -247,12 +222,14 @@ func TestKeeper_PoolPurchaseLists(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			q := tt.keeper
-			tt.keeper.SetPool(sdk.UnwrapSDKContext(tt.args.c), p)
+			suite := setup()
+			p := DummyPool(1)
+			k := suite.keeper
+			k.SetPool(suite.ctx, p)
 			for _, pl := range tt.args.pls {
-				tt.keeper.SetPurchaseList(sdk.UnwrapSDKContext(tt.args.c), pl)
+				k.SetPurchaseList(suite.ctx, pl)
 			}
-			got, err := q.PoolPurchaseLists(tt.args.c, tt.args.req)
+			got, err := k.PoolPurchaseLists(sdk.WrapSDKContext(suite.ctx), tt.args.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PoolPurchaseLists() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -266,12 +243,10 @@ func TestKeeper_PoolPurchaseLists(t *testing.T) {
 
 func TestKeeper_Pools(t *testing.T) {
 	type args struct {
-		c   context.Context
-		req *types.QueryPoolsRequest
+		pools []types.Pool
 	}
 	tests := []struct {
 		name    string
-		keeper  keeper.Keeper
 		args    args
 		want    *types.QueryPoolsResponse
 		wantErr bool
@@ -280,8 +255,9 @@ func TestKeeper_Pools(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			q := tt.keeper
-			got, err := q.Pools(tt.args.c, tt.args.req)
+			suite := setup()
+			k := suite.keeper
+			got, err := k.Pools(sdk.WrapSDKContext(suite.ctx), &types.QueryPoolsRequest{})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Pools() error = %v, wantErr %v", err, tt.wantErr)
 				return

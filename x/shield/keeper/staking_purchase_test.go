@@ -201,21 +201,88 @@ func TestKeeper_GetAllOriginalStakings(t *testing.T) {
 
 func TestKeeper_GetAllStakeForShields(t *testing.T) {
 	type args struct {
-		ctx sdk.Context
+		sfs []types.ShieldStaking
 	}
 	tests := []struct {
 		name          string
-		keeper        keeper.Keeper
 		args          args
 		wantPurchases []types.ShieldStaking
 	}{
-		// TODO: Add test cases.
+		{
+			name:          "Empty list",
+			args:          args{},
+			wantPurchases: []types.ShieldStaking{},
+		},
+		{
+			name: "One stake for shield",
+			args: args{
+				sfs: []types.ShieldStaking{
+					{
+						PoolId:            1,
+						Purchaser:         acc1.String(),
+						Amount:            sdk.NewInt(2),
+						WithdrawRequested: sdk.ZeroInt(),
+					},
+				},
+			},
+			wantPurchases: []types.ShieldStaking{
+				{
+					PoolId:            1,
+					Purchaser:         acc1.String(),
+					Amount:            sdk.NewInt(2),
+					WithdrawRequested: sdk.ZeroInt(),
+				},
+			},
+		},
+		{
+			name: "Two stake for shield from one purchaser to one pool",
+			args: args{
+				sfs: []types.ShieldStaking{
+					{
+						PoolId:            1,
+						Purchaser:         acc1.String(),
+						Amount:            sdk.OneInt(),
+						WithdrawRequested: sdk.ZeroInt(),
+					},
+					{
+						PoolId:            1,
+						Purchaser:         acc1.String(),
+						Amount:            sdk.NewInt(2),
+						WithdrawRequested: sdk.ZeroInt(),
+					},
+				},
+			},
+			wantPurchases: []types.ShieldStaking{
+				{
+					PoolId:            1,
+					Purchaser:         acc1.String(),
+					Amount:            sdk.NewInt(3),
+					WithdrawRequested: sdk.ZeroInt(),
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			k := tt.keeper
-			if gotPurchases := k.GetAllStakeForShields(tt.args.ctx); !reflect.DeepEqual(gotPurchases, tt.wantPurchases) {
-				t.Errorf("GetAllStakeForShields() = %v, want %v", gotPurchases, tt.wantPurchases)
+			suite := setup()
+			k := suite.keeper
+			k.SetPool(suite.ctx, DummyPool(1))
+			for i, sfs := range tt.args.sfs {
+				purchaser, err := sdk.AccAddressFromBech32(sfs.Purchaser)
+				if err != nil {
+					panic(err)
+				}
+				err = k.AddStaking(suite.ctx, 1, purchaser, uint64(i), sfs.Amount)
+				if err != nil {
+					panic(err)
+				}
+			}
+			if gotPurchases := k.GetAllStakeForShields(suite.ctx); !reflect.DeepEqual(gotPurchases, tt.wantPurchases) {
+				for i, sfs := range gotPurchases {
+					if !reflect.DeepEqual(sfs, tt.wantPurchases[i]) {
+						t.Errorf("GetAllStakeForShields() = %v, want %v", gotPurchases, tt.wantPurchases)
+					}
+				}
 			}
 		})
 	}
@@ -223,20 +290,69 @@ func TestKeeper_GetAllStakeForShields(t *testing.T) {
 
 func TestKeeper_GetGlobalShieldStakingPool(t *testing.T) {
 	type args struct {
-		ctx sdk.Context
+		sfs []types.ShieldStaking
 	}
 	tests := []struct {
 		name     string
-		keeper   keeper.Keeper
 		args     args
 		wantPool sdk.Int
 	}{
-		// TODO: Add test cases.
+		{
+			name:     "Empty pool",
+			args:     args{},
+			wantPool: sdk.ZeroInt(),
+		},
+		{
+			name: "One pool",
+			args: args{
+				sfs: []types.ShieldStaking{
+					{
+						PoolId:            1,
+						Purchaser:         acc1.String(),
+						Amount:            sdk.OneInt(),
+						WithdrawRequested: sdk.ZeroInt(),
+					},
+				},
+			},
+			wantPool: sdk.OneInt(),
+		},
+		{
+			name: "Three pool",
+			args: args{
+				sfs: []types.ShieldStaking{
+					{
+						PoolId:            1,
+						Purchaser:         acc1.String(),
+						Amount:            sdk.OneInt(),
+						WithdrawRequested: sdk.ZeroInt(),
+					},
+					{
+						PoolId:            1,
+						Purchaser:         acc1.String(),
+						Amount:            sdk.NewInt(2),
+						WithdrawRequested: sdk.ZeroInt(),
+					},
+				},
+			},
+			wantPool: sdk.NewInt(3),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			k := tt.keeper
-			if gotPool := k.GetGlobalShieldStakingPool(tt.args.ctx); !reflect.DeepEqual(gotPool, tt.wantPool) {
+			suite := setup()
+			k := suite.keeper
+			k.SetPool(suite.ctx, DummyPool(1))
+			for i, sfs := range tt.args.sfs {
+				purchaser, err := sdk.AccAddressFromBech32(sfs.Purchaser)
+				if err != nil {
+					panic(err)
+				}
+				err = k.AddStaking(suite.ctx, 1, purchaser, uint64(i), sfs.Amount)
+				if err != nil {
+					panic(err)
+				}
+			}
+			if gotPool := k.GetGlobalShieldStakingPool(suite.ctx); !reflect.DeepEqual(gotPool, tt.wantPool) {
 				t.Errorf("GetGlobalShieldStakingPool() = %v, want %v", gotPool, tt.wantPool)
 			}
 		})
@@ -245,21 +361,20 @@ func TestKeeper_GetGlobalShieldStakingPool(t *testing.T) {
 
 func TestKeeper_GetOriginalStaking(t *testing.T) {
 	type args struct {
-		ctx        sdk.Context
 		purchaseID uint64
 	}
 	tests := []struct {
-		name   string
-		keeper keeper.Keeper
-		args   args
-		want   sdk.Int
+		name string
+		args args
+		want sdk.Int
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			k := tt.keeper
-			if got := k.GetOriginalStaking(tt.args.ctx, tt.args.purchaseID); !reflect.DeepEqual(got, tt.want) {
+			suite := setup()
+			k := suite.keeper
+			if got := k.GetOriginalStaking(suite.ctx, tt.args.purchaseID); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetOriginalStaking() = %v, want %v", got, tt.want)
 			}
 		})

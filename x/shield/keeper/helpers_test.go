@@ -1,9 +1,6 @@
 package keeper_test
 
 import (
-	"github.com/certikfoundation/shentu/x/gov/testgov"
-	"github.com/certikfoundation/shentu/x/shield/testshield"
-	"github.com/certikfoundation/shentu/x/staking/teststaking"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/tendermint/tendermint/crypto/ed25519"
@@ -13,8 +10,11 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/simapp"
+	"github.com/certikfoundation/shentu/x/gov/testgov"
 	"github.com/certikfoundation/shentu/x/shield/keeper"
+	"github.com/certikfoundation/shentu/x/shield/testshield"
 	"github.com/certikfoundation/shentu/x/shield/types"
+	"github.com/certikfoundation/shentu/x/staking/teststaking"
 )
 
 var (
