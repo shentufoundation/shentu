@@ -1,11 +1,13 @@
 package keeper_test
 
 import (
-	"github.com/certikfoundation/shentu/x/shield/keeper"
-	"github.com/certikfoundation/shentu/x/shield/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"reflect"
 	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/certikfoundation/shentu/x/shield/keeper"
+	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
 func TestKeeper_GetAllProviders(t *testing.T) {

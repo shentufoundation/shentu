@@ -1,12 +1,15 @@
 package keeper_test
 
 import (
-	"github.com/certikfoundation/shentu/x/shield/keeper"
-	"github.com/certikfoundation/shentu/x/shield/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"reflect"
 	"testing"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/certikfoundation/shentu/common"
+	"github.com/certikfoundation/shentu/x/shield/keeper"
+	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
 func TestKeeper_AddPurchase(t *testing.T) {
@@ -272,101 +275,196 @@ func TestKeeper_GetPurchaseList(t *testing.T) {
 
 func TestKeeper_GetPurchaserPurchases(t *testing.T) {
 	type args struct {
-		ctx     sdk.Context
+		pp      []poolpurchase
 		address sdk.AccAddress
 	}
-	tests := []struct {
+	var tests = []struct {
 		name    string
-		keeper  keeper.Keeper
 		args    args
 		wantRes []types.PurchaseList
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Empty purchases",
+			args: args{
+				pp:      []poolpurchase{},
+				address: acc1,
+			},
+			wantRes: []types.PurchaseList{},
+		},
+		{
+			name: "one purchase",
+			args: args{
+				pp: []poolpurchase{
+					{poolID: 1,
+						purchases: []types.Purchase{
+							{
+								PurchaseId:        1,
+								ProtectionEndTime: time.Time{},
+								DeletionTime:      time.Time{},
+								Description:       "",
+								Shield:            sdk.NewInt(1),
+								ServiceFees:       OneMixedDecCoins(common.MicroCTKDenom),
+							},
+						},
+					},
+				},
+				address: acc1,
+			},
+			wantRes: []types.PurchaseList{
+				{
+					PoolId:    1,
+					Purchaser: acc1.String(),
+					Entries: []types.Purchase{
+						{
+							PurchaseId:        1,
+							ProtectionEndTime: time.Time{},
+							DeletionTime:      time.Time{},
+							Description:       "",
+							Shield:            sdk.NewInt(1),
+							ServiceFees:       OneMixedDecCoins(common.MicroCTKDenom),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "one purchase each in two pools",
+			args: args{
+				pp: []poolpurchase{
+					{
+						poolID: 1,
+						purchases: []types.Purchase{
+							{
+								PurchaseId:        1,
+								ProtectionEndTime: time.Time{},
+								DeletionTime:      time.Time{},
+								Description:       "",
+								Shield:            sdk.NewInt(1),
+								ServiceFees:       OneMixedDecCoins(common.MicroCTKDenom),
+							},
+						},
+					},
+					{
+						poolID: 2,
+						purchases: []types.Purchase{
+							{
+								PurchaseId:        2,
+								ProtectionEndTime: time.Time{},
+								DeletionTime:      time.Time{},
+								Description:       "",
+								Shield:            sdk.NewInt(1),
+								ServiceFees:       OneMixedDecCoins(common.MicroCTKDenom),
+							},
+						},
+					},
+				},
+				address: acc1,
+			},
+			wantRes: []types.PurchaseList{
+				{
+					PoolId:    1,
+					Purchaser: acc1.String(),
+					Entries: []types.Purchase{
+						{
+							PurchaseId:        1,
+							ProtectionEndTime: time.Time{},
+							DeletionTime:      time.Time{},
+							Description:       "",
+							Shield:            sdk.NewInt(1),
+							ServiceFees:       OneMixedDecCoins(common.MicroCTKDenom),
+						},
+					},
+				},
+				{
+					PoolId:    2,
+					Purchaser: acc1.String(),
+					Entries: []types.Purchase{
+						{
+							PurchaseId:        2,
+							ProtectionEndTime: time.Time{},
+							DeletionTime:      time.Time{},
+							Description:       "",
+							Shield:            sdk.NewInt(1),
+							ServiceFees:       OneMixedDecCoins(common.MicroCTKDenom),
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			k := tt.keeper
-			if gotRes := k.GetPurchaserPurchases(tt.args.ctx, tt.args.address); !reflect.DeepEqual(gotRes, tt.wantRes) {
-				t.Errorf("GetPurchaserPurchases() = %v, want %v", gotRes, tt.wantRes)
+			suite := setup()
+			k := suite.keeper
+			k.SetPool(suite.ctx, DummyPool(1))
+			k.SetPool(suite.ctx, DummyPool(2))
+			for _, p := range tt.args.pp {
+				for _, pur := range p.purchases {
+					k.AddPurchase(suite.ctx, p.poolID, acc1, pur)
+				}
+			}
+			if gotRes := k.GetPurchaserPurchases(suite.ctx, tt.args.address); !reflect.DeepEqual(gotRes, tt.wantRes) {
+				if len(gotRes) != 0 || len(tt.wantRes) != 0 {
+					t.Errorf("GetPurchaserPurchases() = %v, want %v", gotRes, tt.wantRes)
+				}
 			}
 		})
 	}
 }
 
 func TestKeeper_InsertExpiringPurchaseQueue(t *testing.T) {
-	type args struct {
-		ctx          sdk.Context
+	type pe struct {
 		purchaseList types.PurchaseList
 		endTime      time.Time
 	}
 	tests := []struct {
-		name   string
-		keeper keeper.Keeper
-		args   args
+		name     string
+		toInsert []pe
 	}{
-		// TODO: Add test cases.
+		{
+			name: "One Insertion, no purchase entry",
+			toInsert: []pe{
+				{
+					purchaseList: types.PurchaseList{
+						PoolId:    1,
+						Purchaser: acc1.String(),
+						Entries:   nil,
+					},
+					endTime: time.Now().Add(12345),
+				},
+			},
+		},
+		{
+			name: "One Insertion, one purchase entry",
+			toInsert: []pe{
+				{
+					purchaseList: types.PurchaseList{
+						PoolId:    1,
+						Purchaser: acc1.String(),
+						Entries: []types.Purchase{
+							{
+								PurchaseId:        1,
+								ProtectionEndTime: time.Time{},
+								DeletionTime:      time.Time{},
+								Description:       "",
+								Shield:            sdk.NewInt(1),
+								ServiceFees:       OneMixedDecCoins(common.MicroCTKDenom),
+							},
+						},
+					},
+					endTime: time.Now().Add(12345),
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_ = tt.keeper
-		})
-	}
-}
-
-func TestKeeper_IteratePoolPurchaseLists(t *testing.T) {
-	type args struct {
-		ctx      sdk.Context
-		poolID   uint64
-		callback func(purchaseList types.PurchaseList) (stop bool)
-	}
-	tests := []struct {
-		name   string
-		keeper keeper.Keeper
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_ = tt.keeper
-		})
-	}
-}
-
-func TestKeeper_IteratePurchaseListEntries(t *testing.T) {
-	type args struct {
-		ctx      sdk.Context
-		callback func(purchase types.Purchase) (stop bool)
-	}
-	tests := []struct {
-		name   string
-		keeper keeper.Keeper
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_ = tt.keeper
-		})
-	}
-}
-
-func TestKeeper_IteratePurchaseLists(t *testing.T) {
-	type args struct {
-		ctx      sdk.Context
-		callback func(purchase types.PurchaseList) (stop bool)
-	}
-	tests := []struct {
-		name   string
-		keeper keeper.Keeper
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_ = tt.keeper
+			suite := setup()
+			k := suite.keeper
+			k.SetPool(suite.ctx, DummyPool(1))
+			for _, pair := range tt.toInsert {
+				k.InsertExpiringPurchaseQueue(suite.ctx, pair.purchaseList, pair.endTime)
+			}
 		})
 	}
 }

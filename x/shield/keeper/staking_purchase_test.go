@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/shield/keeper"
 	"github.com/certikfoundation/shentu/x/shield/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -81,7 +82,7 @@ func TestKeeper_FundShieldBlockRewards(t *testing.T) {
 		{
 			name: "Normal path",
 			args: args{
-				amount: sdk.NewCoins(sdk.NewCoin("uctk", sdk.OneInt())),
+				amount: sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.OneInt())),
 				sender: acc1,
 			},
 			wantErr: false,
@@ -89,7 +90,7 @@ func TestKeeper_FundShieldBlockRewards(t *testing.T) {
 		{
 			name: "Zero Amount",
 			args: args{
-				amount: sdk.NewCoins(sdk.NewCoin("uctk", sdk.ZeroInt())),
+				amount: sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.ZeroInt())),
 				sender: acc1,
 			},
 			wantErr: false,
@@ -97,7 +98,7 @@ func TestKeeper_FundShieldBlockRewards(t *testing.T) {
 		{
 			name: "Nil Account",
 			args: args{
-				amount: sdk.NewCoins(sdk.NewCoin("uctk", sdk.OneInt())),
+				amount: sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.OneInt())),
 				sender: nil,
 			},
 			wantErr: true,

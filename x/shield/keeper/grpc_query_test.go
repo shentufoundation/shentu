@@ -2,12 +2,14 @@ package keeper_test
 
 import (
 	"context"
-	"github.com/certikfoundation/shentu/x/shield/keeper"
-	"github.com/certikfoundation/shentu/x/shield/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"reflect"
 	"testing"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/certikfoundation/shentu/x/shield/keeper"
+	"github.com/certikfoundation/shentu/x/shield/types"
 )
 
 func TestKeeper_ClaimParams(t *testing.T) {

@@ -92,3 +92,8 @@ func DummyPool(id uint64) types.Pool {
 		Shield:      sdk.NewInt(1),
 	}
 }
+
+type poolpurchase struct {
+	poolID    uint64
+	purchases []types.Purchase
+}
