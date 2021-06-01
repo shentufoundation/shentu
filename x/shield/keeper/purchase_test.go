@@ -394,7 +394,7 @@ func TestKeeper_GetPurchaserPurchases(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := suite.keeper
 			k.SetPool(suite.ctx, DummyPool(1))
 			k.SetPool(suite.ctx, DummyPool(2))
@@ -459,7 +459,7 @@ func TestKeeper_InsertExpiringPurchaseQueue(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := suite.keeper
 			k.SetPool(suite.ctx, DummyPool(1))
 			for _, pair := range tt.toInsert {

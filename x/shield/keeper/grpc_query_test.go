@@ -46,7 +46,7 @@ func TestKeeper_ClaimParams(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := suite.keeper
 			k.SetClaimProposalParams(suite.ctx, tt.args.params)
 			got, err := k.ClaimParams(sdk.WrapSDKContext(suite.ctx), &types.QueryClaimParamsRequest{})
@@ -106,7 +106,7 @@ func TestKeeper_Pool(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := suite.keeper
 			for _, p := range tt.args.poolsToAdd {
 				k.SetPool(suite.ctx, p)
@@ -166,7 +166,7 @@ func TestKeeper_PoolParams(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := suite.keeper
 			k.SetPoolParams(suite.ctx, tt.args.params)
 			got, err := k.PoolParams(sdk.WrapSDKContext(suite.ctx), tt.args.req)
@@ -224,7 +224,7 @@ func TestKeeper_PoolPurchaseLists(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			p := DummyPool(1)
 			k := suite.keeper
 			k.SetPool(suite.ctx, p)
@@ -257,7 +257,7 @@ func TestKeeper_Pools(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := suite.keeper
 			got, err := k.Pools(sdk.WrapSDKContext(suite.ctx), &types.QueryPoolsRequest{})
 			if (err != nil) != tt.wantErr {

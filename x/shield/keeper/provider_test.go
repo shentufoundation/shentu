@@ -23,7 +23,7 @@ func TestKeeper_GetAllProviders(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := suite.keeper
 			for _, p := range tt.args.providersToAdd {
 				addr, _ := sdk.AccAddressFromBech32(p.Address)
@@ -52,7 +52,7 @@ func TestKeeper_GetProvider(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := suite.keeper
 			gotDt, gotFound := k.GetProvider(tt.args.ctx, tt.args.delegator)
 			if !reflect.DeepEqual(gotDt, tt.wantDt) {
@@ -80,7 +80,7 @@ func TestKeeper_GetProvidersIteratorPaginated(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := tt.keeper
 			if got := k.GetProvidersIteratorPaginated(suite.ctx, tt.args.page, tt.args.limit); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetProvidersIteratorPaginated() = %v, want %v", got, tt.want)

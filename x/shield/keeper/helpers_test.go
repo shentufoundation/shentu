@@ -1,14 +1,15 @@
 package keeper_test
 
 import (
-	"github.com/stretchr/testify/suite"
+	"testing"
+	"time"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/simapp"
 	"github.com/certikfoundation/shentu/x/gov/testgov"
 	"github.com/certikfoundation/shentu/x/shield/keeper"
@@ -18,14 +19,25 @@ import (
 )
 
 var (
-	acc1 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc2 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc3 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc4 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	PKS  = simapp.CreateTestPubKeys(5)
+	acc1 = sdk.AccAddress(PKS[0].Address().Bytes())
+	acc2 = sdk.AccAddress(PKS[1].Address().Bytes())
+	acc3 = sdk.AccAddress(PKS[2].Address().Bytes())
+	acc4 = sdk.AccAddress(PKS[3].Address().Bytes())
+	acc5 = sdk.AccAddress(PKS[4].Address().Bytes())
+
+	basePurchase = types.Purchase{
+		PurchaseId:        1,
+		ProtectionEndTime: time.Time{},
+		DeletionTime:      time.Time{},
+		Description:       "",
+		Shield:            sdk.OneInt(),
+		ServiceFees:       OneMixedDecCoins(common.MicroCTKDenom),
+	}
 )
 
 type TestSuite struct {
-	suite.Suite
+	*testing.T
 
 	app         *simapp.SimApp
 	ctx         sdk.Context
@@ -38,29 +50,30 @@ type TestSuite struct {
 	queryClient types.QueryClient
 }
 
-func setup() TestSuite {
-	var t TestSuite
-	t.app = simapp.Setup(false)
-	t.ctx = t.app.BaseApp.NewContext(false, tmproto.Header{})
-	t.keeper = t.app.ShieldKeeper
-	t.accounts = []sdk.AccAddress{acc1, acc2, acc3, acc4}
-	t.tstaking = teststaking.NewHelper(t.T(), t.ctx, t.app.StakingKeeper)
-	t.tgov = testgov.NewHelper(t.T(), t.ctx, t.app.GovKeeper, t.tstaking.Denom)
-	t.tshield = testshield.NewHelper(t.T(), t.ctx, t.keeper, t.tstaking.Denom)
-
-	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
-		err := t.app.BankKeeper.AddCoins(
-			t.ctx,
+func setup(t *testing.T) TestSuite {
+	var ts TestSuite
+	ts.T = t
+	ts.app = simapp.Setup(false)
+	ts.ctx = ts.app.BaseApp.NewContext(false, tmproto.Header{})
+	ts.keeper = ts.app.ShieldKeeper
+	ts.accounts = []sdk.AccAddress{acc1, acc2, acc3, acc4, acc5}
+	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4, acc5} {
+		err := ts.app.BankKeeper.AddCoins(
+			ts.ctx,
 			acc,
 			sdk.NewCoins(
-				sdk.NewCoin(t.app.StakingKeeper.BondDenom(t.ctx), sdk.NewInt(10000000000)), // 1,000 stake
+				sdk.NewCoin(ts.app.StakingKeeper.BondDenom(ts.ctx), sdk.NewInt(100000000000)), // 10,000 stake
 			),
 		)
 		if err != nil {
 			panic(err)
 		}
 	}
-	return t
+	ts.tstaking = teststaking.NewHelper(ts.T, ts.ctx, ts.app.StakingKeeper)
+	ts.tgov = testgov.NewHelper(ts.T, ts.ctx, ts.app.GovKeeper, ts.tstaking.Denom)
+	ts.tshield = testshield.NewHelper(ts.T, ts.ctx, ts.keeper, ts.tstaking.Denom)
+
+	return ts
 }
 
 func OneMixedCoins(nativeDenom string) types.MixedCoins {
@@ -88,7 +101,7 @@ func DummyPool(id uint64) types.Pool {
 		Sponsor:     acc1.String(),
 		SponsorAddr: acc2.String(),
 		ShieldLimit: sdk.NewInt(1),
-		Active:      false,
+		Active:      true,
 		Shield:      sdk.NewInt(1),
 	}
 }

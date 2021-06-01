@@ -1,7 +1,9 @@
 package keeper_test
 
 import (
+	"fmt"
 	"github.com/certikfoundation/shentu/common"
+	"github.com/certikfoundation/shentu/simapp"
 	"github.com/certikfoundation/shentu/x/shield/keeper"
 	"github.com/certikfoundation/shentu/x/shield/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -57,7 +59,7 @@ func TestKeeper_AddStaking(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := suite.keeper
 			for _, p := range tt.args.pools {
 				k.SetPool(suite.ctx, p)
@@ -106,7 +108,7 @@ func TestKeeper_FundShieldBlockRewards(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := suite.keeper
 			if err := k.FundShieldBlockRewards(suite.ctx, tt.args.amount, tt.args.sender); (err != nil) != tt.wantErr {
 				t.Errorf("FundShieldBlockRewards() error = %v, wantErr %v", err, tt.wantErr)
@@ -180,7 +182,7 @@ func TestKeeper_GetAllOriginalStakings(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := suite.keeper
 			k.SetPool(suite.ctx, DummyPool(1))
 			for i, s := range tt.args.stakings {
@@ -265,7 +267,7 @@ func TestKeeper_GetAllStakeForShields(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := suite.keeper
 			k.SetPool(suite.ctx, DummyPool(1))
 			for i, sfs := range tt.args.sfs {
@@ -340,7 +342,7 @@ func TestKeeper_GetGlobalShieldStakingPool(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := suite.keeper
 			k.SetPool(suite.ctx, DummyPool(1))
 			for i, sfs := range tt.args.sfs {
@@ -361,7 +363,10 @@ func TestKeeper_GetGlobalShieldStakingPool(t *testing.T) {
 }
 
 func TestKeeper_GetOriginalStaking(t *testing.T) {
+	modpurchase := basePurchase
+	modpurchase.Shield = sdk.NewInt(50000000)
 	type args struct {
+		purchases  []types.Purchase
 		purchaseID uint64
 	}
 	tests := []struct {
@@ -369,12 +374,37 @@ func TestKeeper_GetOriginalStaking(t *testing.T) {
 		args args
 		want sdk.Int
 	}{
-		// TODO: Add test cases.
+		{
+			name: "No original staking",
+			args: args{},
+			want: sdk.ZeroInt(),
+		},
+		{
+			name: "Valid original staking",
+			args: args{
+				purchases: []types.Purchase{
+					modpurchase,
+				},
+				purchaseID: 1,
+			},
+			want: sdk.NewInt(50000000),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			suite := setup()
+			suite := setup(t)
 			k := suite.keeper
+			for _, p := range tt.args.purchases {
+				simapp.AddTestAddrsFromPubKeys(suite.app, suite.ctx, PKS, sdk.NewInt(2e8))
+				suite.tstaking.CreateValidatorWithValPower(sdk.ValAddress(PKS[0].Address()), PKS[0], 10000, true)
+				suite.tshield.DepositCollateral(acc1, 500000000, true)
+				k.SetPool(suite.ctx, DummyPool(1))
+				_, err := k.PurchaseShield(suite.ctx, 1, sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, p.Shield)), "", acc1, false)
+				if err != nil {
+					panic(err)
+				}
+			}
+			fmt.Println(k.GetOriginalStaking(suite.ctx, 1))
 			if got := k.GetOriginalStaking(suite.ctx, tt.args.purchaseID); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetOriginalStaking() = %v, want %v", got, tt.want)
 			}
