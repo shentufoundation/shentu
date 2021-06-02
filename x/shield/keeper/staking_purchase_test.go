@@ -3,13 +3,11 @@ package keeper_test
 import (
 	"fmt"
 	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/simapp"
 	"github.com/certikfoundation/shentu/x/shield/keeper"
 	"github.com/certikfoundation/shentu/x/shield/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func TestKeeper_AddStaking(t *testing.T) {
@@ -396,11 +394,6 @@ func TestKeeper_GetOriginalStaking(t *testing.T) {
 			suite := setup(t)
 			k := suite.keeper
 			for _, p := range tt.args.purchases {
-				simapp.AddTestAddrsFromPubKeys(suite.app, suite.ctx, PKS, sdk.NewInt(2e8))
-				suite.tstaking.CreateValidatorWithValPower(sdk.ValAddress(PKS[0].Address()), PKS[0], 10000, true)
-				suite.tshield.DepositCollateral(acc1, 500000000, true)
-				suite.tstaking.TurnBlock(suite.ctx.BlockTime().Add(time.Second))
-				suite.tshield.TurnBlock(suite.ctx.BlockTime().Add(time.Second))
 				pool := DummyPool(1)
 				pool.ShieldLimit = sdk.NewInt(1234567890)
 				pool.Shield = sdk.NewInt(123456789)
@@ -420,24 +413,50 @@ func TestKeeper_GetOriginalStaking(t *testing.T) {
 
 func TestKeeper_GetStakeForShield(t *testing.T) {
 	type args struct {
-		ctx       sdk.Context
+		sfs       types.ShieldStaking
 		poolID    uint64
 		purchaser sdk.AccAddress
 	}
 	tests := []struct {
 		name         string
-		keeper       keeper.Keeper
 		args         args
 		wantPurchase types.ShieldStaking
 		wantFound    bool
 	}{
-		// TODO: Add test cases.
+		{
+			name:         "No staking purchase",
+			args:         args{},
+			wantPurchase: types.ShieldStaking{},
+			wantFound:    false,
+		},
+		{
+			name: "Found staking purchase",
+			args: args{
+				sfs: types.ShieldStaking{
+					PoolId:            1,
+					Purchaser:         acc1.String(),
+					Amount:            sdk.NewInt(1),
+					WithdrawRequested: sdk.NewInt(0),
+				},
+				poolID:    1,
+				purchaser: acc1,
+			},
+			wantPurchase: types.ShieldStaking{
+				PoolId:            1,
+				Purchaser:         acc1.String(),
+				Amount:            sdk.NewInt(1),
+				WithdrawRequested: sdk.NewInt(0),
+			},
+			wantFound: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			k := tt.keeper
-			gotPurchase, gotFound := k.GetStakeForShield(tt.args.ctx, tt.args.poolID, tt.args.purchaser)
-			if !reflect.DeepEqual(gotPurchase, tt.wantPurchase) {
+			suite := setup(t)
+			k := suite.keeper
+			k.SetPool(suite.ctx, DummyPool(1))
+			gotPurchase, gotFound := k.GetStakeForShield(suite.ctx, tt.args.poolID, tt.args.purchaser)
+			if tt.wantFound && !reflect.DeepEqual(gotPurchase, tt.wantPurchase) {
 				t.Errorf("GetStakeForShield() gotPurchase = %v, want %v", gotPurchase, tt.wantPurchase)
 			}
 			if gotFound != tt.wantFound {
@@ -487,7 +506,6 @@ func TestKeeper_IterateStakeForShields(t *testing.T) {
 
 func TestKeeper_ProcessStakeForShieldExpiration(t *testing.T) {
 	type args struct {
-		ctx        sdk.Context
 		poolID     uint64
 		purchaseID uint64
 		bondDenom  string
@@ -495,7 +513,6 @@ func TestKeeper_ProcessStakeForShieldExpiration(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		keeper  keeper.Keeper
 		args    args
 		wantErr bool
 	}{
@@ -503,8 +520,9 @@ func TestKeeper_ProcessStakeForShieldExpiration(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			k := tt.keeper
-			if err := k.ProcessStakeForShieldExpiration(tt.args.ctx, tt.args.poolID, tt.args.purchaseID, tt.args.bondDenom, tt.args.purchaser); (err != nil) != tt.wantErr {
+			suite := setup(t)
+			k := suite.keeper
+			if err := k.ProcessStakeForShieldExpiration(suite.ctx, tt.args.poolID, tt.args.purchaseID, tt.args.bondDenom, tt.args.purchaser); (err != nil) != tt.wantErr {
 				t.Errorf("ProcessStakeForShieldExpiration() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

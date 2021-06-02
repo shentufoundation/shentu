@@ -73,6 +73,7 @@ func setup(t *testing.T) TestSuite {
 	ts.tgov = testgov.NewHelper(ts.T, ts.ctx, ts.app.GovKeeper, ts.tstaking.Denom)
 	ts.tshield = testshield.NewHelper(ts.T, ts.ctx, ts.keeper, ts.tstaking.Denom)
 
+	ts.setupProviders()
 	return ts
 }
 
@@ -109,4 +110,14 @@ func DummyPool(id uint64) types.Pool {
 type poolpurchase struct {
 	poolID    uint64
 	purchases []types.Purchase
+}
+
+func (suite TestSuite) setupProviders() {
+	simapp.AddTestAddrsFromPubKeys(suite.app, suite.ctx, PKS, sdk.NewInt(2e8))
+	for _, pk := range PKS {
+		suite.tstaking.CreateValidatorWithValPower(sdk.ValAddress(pk.Address()), pk, 10000, true)
+		suite.tshield.DepositCollateral(acc1, 500000000, true)
+		suite.tstaking.TurnBlock(suite.ctx.BlockTime().Add(time.Second))
+		suite.tshield.TurnBlock(suite.ctx.BlockTime().Add(time.Second))
+	}
 }

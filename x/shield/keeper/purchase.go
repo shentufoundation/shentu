@@ -271,8 +271,9 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 	k.SetTotalShield(ctx, totalShield)
 	k.SetServiceFees(ctx, totalServiceFees)
 	for _, ppp := range stakeForShieldUpdateList {
-		k.ProcessStakeForShieldExpiration(ctx, ppp.poolID, ppp.purchaseID, bondDenom,
-			ppp.purchaser)
+		if err := k.ProcessStakeForShieldExpiration(ctx, ppp.poolID, ppp.purchaseID, bondDenom, ppp.purchaser); err != nil {
+			panic(err)
+		}
 	}
 
 	// Add service fees for this block from unexpired purchases.

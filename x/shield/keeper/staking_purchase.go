@@ -163,14 +163,16 @@ func (k Keeper) IterateOriginalStakings(ctx sdk.Context, callback func(original 
 func (k Keeper) ProcessStakeForShieldExpiration(ctx sdk.Context, poolID, purchaseID uint64, bondDenom string, purchaser sdk.AccAddress) error {
 	staked, found := k.GetStakeForShield(ctx, poolID, purchaser)
 	if !found {
-		return nil
+		return types.ErrNoShield
 	}
 	amount := k.GetOriginalStaking(ctx, purchaseID)
 	if amount.IsZero() {
-		return nil
+		return types.ErrNoShield
 	}
 	refundCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, amount))
-	k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, refundCoins)
+	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, refundCoins); err != nil {
+		return err
+	}
 
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetOriginalStakingKey(purchaseID))
