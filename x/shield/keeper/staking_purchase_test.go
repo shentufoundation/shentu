@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestKeeper_AddStaking(t *testing.T) {
@@ -387,7 +388,7 @@ func TestKeeper_GetOriginalStaking(t *testing.T) {
 				},
 				purchaseID: 1,
 			},
-			want: sdk.NewInt(50000000),
+			want: modpurchase.Shield.Mul(sdk.NewInt(2)),
 		},
 	}
 	for _, tt := range tests {
@@ -398,8 +399,13 @@ func TestKeeper_GetOriginalStaking(t *testing.T) {
 				simapp.AddTestAddrsFromPubKeys(suite.app, suite.ctx, PKS, sdk.NewInt(2e8))
 				suite.tstaking.CreateValidatorWithValPower(sdk.ValAddress(PKS[0].Address()), PKS[0], 10000, true)
 				suite.tshield.DepositCollateral(acc1, 500000000, true)
-				k.SetPool(suite.ctx, DummyPool(1))
-				_, err := k.PurchaseShield(suite.ctx, 1, sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, p.Shield)), "", acc1, false)
+				suite.tstaking.TurnBlock(suite.ctx.BlockTime().Add(time.Second))
+				suite.tshield.TurnBlock(suite.ctx.BlockTime().Add(time.Second))
+				pool := DummyPool(1)
+				pool.ShieldLimit = sdk.NewInt(1234567890)
+				pool.Shield = sdk.NewInt(123456789)
+				k.SetPool(suite.ctx, pool)
+				_, err := k.PurchaseShield(suite.ctx, 1, sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, p.Shield)), "", acc1, true)
 				if err != nil {
 					panic(err)
 				}
