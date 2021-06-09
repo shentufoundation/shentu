@@ -59,6 +59,18 @@ func SimulateCertifierUpdateProposalContent(k keeper.Keeper) simtypes.ContentSim
 				panic(err)
 			}
 
+			if len(certifiers) == 1 {
+				addorremove = types.Add
+				for _, acc := range accs {
+					if k.IsCertifier(ctx, acc.Address) {
+						continue
+					} else {
+						certifierAddr = acc.Address
+						break
+					}
+				}
+			}
+
 			certifier = certifierAddr
 		}
 

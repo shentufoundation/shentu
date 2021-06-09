@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -410,7 +411,7 @@ func (suite *KeeperTestSuite) TestOperator_Reward() {
 				withdrawAll:  true,
 			},
 			errArgs{
-				shouldPass: false,
+				shouldPass: true,
 				contains:   "",
 			},
 		},
@@ -420,6 +421,8 @@ func (suite *KeeperTestSuite) TestOperator_Reward() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			err := suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.collateral)}, tc.args.proposerAddr, tc.args.operatorName)
+			suite.Require().NoError(err, tc.name)
+			err = suite.keeper.CreateTask(suite.ctx, "contract", "function", sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.rewardToAdd)}, "description", time.Now().Add(time.Hour).UTC(), tc.args.proposerAddr, int64(50))
 			suite.Require().NoError(err, tc.name)
 			err = suite.keeper.AddReward(suite.ctx, tc.args.senderAddr, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.rewardToAdd)})
 			suite.Require().NoError(err, tc.name)
