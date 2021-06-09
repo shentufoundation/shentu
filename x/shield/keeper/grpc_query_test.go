@@ -31,8 +31,12 @@ func TestKeeper_ClaimParams(t *testing.T) {
 	}{
 		{
 			name: "Default params",
-			args: args{params: types.DefaultClaimProposalParams()},
-			want: &types.QueryClaimParamsResponse{types.DefaultClaimProposalParams()},
+			args: args{
+				params: types.DefaultClaimProposalParams(),
+			},
+			want: &types.QueryClaimParamsResponse{
+				Params: types.DefaultClaimProposalParams(),
+			},
 		},
 		{
 			name: "Empty params",
@@ -40,7 +44,7 @@ func TestKeeper_ClaimParams(t *testing.T) {
 				params: emptyParams,
 			},
 			want: &types.QueryClaimParamsResponse{
-				emptyParams,
+				Params: emptyParams,
 			},
 		},
 	}
@@ -74,7 +78,7 @@ func TestKeeper_Pool(t *testing.T) {
 	}{
 		{
 			name:    "No Pool",
-			args:    args{req: &types.QueryPoolRequest{1}},
+			args:    args{req: &types.QueryPoolRequest{PoolId: 1}},
 			want:    nil,
 			wantErr: true,
 		},
@@ -90,17 +94,21 @@ func TestKeeper_Pool(t *testing.T) {
 					Active:      false,
 					Shield:      sdk.NewInt(1),
 				}},
-				&types.QueryPoolRequest{1},
+				&types.QueryPoolRequest{
+					PoolId: 1,
+				},
 			},
-			want: &types.QueryPoolResponse{types.Pool{
-				Id:          1,
-				Description: "w",
-				Sponsor:     "w",
-				SponsorAddr: "w",
-				ShieldLimit: sdk.NewInt(1),
-				Active:      false,
-				Shield:      sdk.NewInt(1),
-			}},
+			want: &types.QueryPoolResponse{
+				Pool: types.Pool{
+					Id:          1,
+					Description: "w",
+					Sponsor:     "w",
+					SponsorAddr: "w",
+					ShieldLimit: sdk.NewInt(1),
+					Active:      false,
+					Shield:      sdk.NewInt(1),
+				},
+			},
 			wantErr: false,
 		},
 	}
@@ -148,18 +156,18 @@ func TestKeeper_PoolParams(t *testing.T) {
 				req:    &types.QueryPoolParamsRequest{},
 			},
 			want: &types.QueryPoolParamsResponse{
-				types.DefaultPoolParams(),
+				Params: types.DefaultPoolParams(),
 			},
 			wantErr: false,
 		},
 		{
-			name: "random Params",
+			name: "Random Params",
 			args: args{
 				params: randomParams,
 				req:    &types.QueryPoolParamsRequest{},
 			},
 			want: &types.QueryPoolParamsResponse{
-				randomParams,
+				Params: randomParams,
 			},
 			wantErr: false,
 		},
@@ -207,7 +215,9 @@ func TestKeeper_PoolPurchaseLists(t *testing.T) {
 		{
 			name: "Empty lists",
 			args: args{
-				req: &types.QueryPoolPurchaseListsRequest{1},
+				req: &types.QueryPoolPurchaseListsRequest{
+					PoolId: 1,
+				},
 			},
 			want:    &types.QueryPurchaseListsResponse{},
 			wantErr: false,
@@ -216,9 +226,13 @@ func TestKeeper_PoolPurchaseLists(t *testing.T) {
 			name: "One lists",
 			args: args{
 				pls: []types.PurchaseList{pl},
-				req: &types.QueryPoolPurchaseListsRequest{1},
+				req: &types.QueryPoolPurchaseListsRequest{
+					PoolId: 1,
+				},
 			},
-			want:    &types.QueryPurchaseListsResponse{PurchaseLists: []types.PurchaseList{pl}},
+			want: &types.QueryPurchaseListsResponse{
+				PurchaseLists: []types.PurchaseList{pl},
+			},
 			wantErr: false,
 		},
 	}

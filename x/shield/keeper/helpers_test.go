@@ -6,6 +6,7 @@ import (
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -25,6 +26,12 @@ var (
 	acc3 = sdk.AccAddress(PKS[2].Address().Bytes())
 	acc4 = sdk.AccAddress(PKS[3].Address().Bytes())
 	acc5 = sdk.AccAddress(PKS[4].Address().Bytes())
+
+	val1 = sdk.ValAddress(PKS[0].Address())
+	val2 = sdk.ValAddress(PKS[1].Address())
+	val3 = sdk.ValAddress(PKS[2].Address())
+	val4 = sdk.ValAddress(PKS[3].Address())
+	val5 = sdk.ValAddress(PKS[4].Address())
 
 	basePurchase = types.Purchase{
 		PurchaseId:        1,
@@ -73,6 +80,10 @@ func setup(t *testing.T) TestSuite {
 	ts.tgov = testgov.NewHelper(ts.T, ts.ctx, ts.app.GovKeeper, ts.tstaking.Denom)
 	ts.tshield = testshield.NewHelper(ts.T, ts.ctx, ts.keeper, ts.tstaking.Denom)
 
+	queryHelper := baseapp.NewQueryServerTestHelper(ts.ctx, ts.app.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, ts.app.ShieldKeeper)
+	ts.queryClient = types.NewQueryClient(queryHelper)
+
 	ts.setupProviders()
 	return ts
 }
@@ -116,8 +127,16 @@ func (suite TestSuite) setupProviders() {
 	simapp.AddTestAddrsFromPubKeys(suite.app, suite.ctx, PKS, sdk.NewInt(2e8))
 	for _, pk := range PKS {
 		suite.tstaking.CreateValidatorWithValPower(sdk.ValAddress(pk.Address()), pk, 10000, true)
+		val := suite.tstaking.CheckValidator(sdk.ValAddress(pk.Address()), -1, false)
+		suite.vals = append(suite.vals, val)
 		suite.tshield.DepositCollateral(acc1, 500000000, true)
 		suite.tstaking.TurnBlock(suite.ctx.BlockTime().Add(time.Second))
 		suite.tshield.TurnBlock(suite.ctx.BlockTime().Add(time.Second))
 	}
+}
+
+func (suite TestSuite) setupUndelegate() {
+	suite.tstaking.Undelegate(acc5, val5, sdk.NewInt(1000000000), true)
+	suite.tstaking.TurnBlock(suite.ctx.BlockTime().Add(time.Second))
+	suite.tshield.TurnBlock(suite.ctx.BlockTime().Add(time.Second))
 }
