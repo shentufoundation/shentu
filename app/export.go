@@ -66,7 +66,7 @@ func (app *CertiKApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 		}
 		allowedAddrsMap[addr] = true
 	}
-	
+
 	/* Handle fee distribution state. */
 
 	// withdraw all validator commission
