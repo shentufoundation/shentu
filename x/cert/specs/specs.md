@@ -8,50 +8,48 @@ Certifiers are chain users that are responsible for overseeing the chain's secur
 
 ### Certificates
 
-A `Certificate` can be stored on-chain to signify that a smart contract has been audited or formally verified. All certificates are implementations of the following interface:
+A `Certificate` can be stored on-chain to signify that a smart contract has been audited or formally verified.
 
+- Certificate: `0x5 | LittleEndian(CertificateId) -> amino(certificate)`
+- NextCertificateID: `0x8 -> NextCertificateID`
 
 ```go
-// Certificate is the interface for all kinds of certificate
-type Certificate interface {
-	ID() CertificateID
-	Type() CertificateType
-	Certifier() sdk.AccAddress
-	RequestContent() RequestContent
-	CertificateContent() string
-	FormattedCertificateContent() []KVPair
-	Description() string
-	TxHash() string
-
-	Bytes(*codec.Codec) []byte
-	String() string
-
-	SetCertificateID(CertificateID)
-	SetTxHash(string)
+type Certificate struct {
+    CertificateId      uint64               `json:"certificate_id"`
+    Content            *types.Any           `json:"content"`
+    CompilationContent *CompilationContent  `json:"compilation_content"`
+    Description        string               `json:"description"`
+    Certifier          string               `json:"certifier"`
 }
 ```
 
-There are currently two types of certificates, `CompilationCertificate`s and `GeneralCertificate`s:
+There are currently seven types of supported certificates:
+
+- `Compilation`
+- `Auditing`
+- `Proof`
+- `OracleOperator`
+- `ShieldPoolCreator`
+- `Identity`
+- `General`
+
+In addition to `CertificateId`, all certificates can be looked up by their `Certifier` and `Content`. Certificate types are determined by parsing the content string, in which contents are assembled into `Content` struct instances of their respective types.
 
 ```go
-type CompilationCertificate struct {
-	IssueBlockHeight int64                         `json:"time_issued"`
-	CertID           CertificateID                 `json:"certificate_id"`
-	CertType         CertificateType               `json:"certificate_type"`
-	ReqContent       RequestContent                `json:"request_content"`
-	CertContent      CompilationCertificateContent `json:"certificate_content"`
-	CertDescription  string                        `json:"description"`
-	CertCertifier    sdk.AccAddress                `json:"certifier"`
-	CertTxHash       string                        `json:"txhash"`
-}
+// Content is the interface for all kinds of certificate content.
+type Content interface {
+    proto.Message
 
-type GeneralCertificate struct {
-	CertID          CertificateID   `json:"certificate_id"`
-	CertType        CertificateType `json:"certificate_type"`
-	ReqContent      RequestContent  `json:"request_content"`
-	CertDescription string          `json:"description"`
-	CertCertifier   sdk.AccAddress  `json:"certifier"`
-	CertTxHash      string          `json:"txhash"`
+    GetContent() string
+}
+```
+
+In addition to the source code, additional information, such as compiler version and optimization settings, needs to be provided by the certifier. `CompilationContent` contains the compilation info for a smart contract in need of certification.
+
+```go
+type CompilationContent struct {
+    Compiler        string
+    BytecodeHash    string
 }
 ```
 
@@ -59,29 +57,55 @@ type GeneralCertificate struct {
 
 `Certifier` objects keep track of a certifier's information, including the certifier's alias and who proposed to add the certifier.
 
+- Certifier: `0x0 | Address -> amino(certifier)`
+- CertifierByAlias: `0x7 | Alias -> amino(certifier)`
+
 ```go
 type Certifier struct {
-	Address     sdk.AccAddress `json:"certifier"`
-	Alias       string         `json:"alias"`
-	Proposer    sdk.AccAddress `json:"proposer"`
-	Description string         `json:"description"`
+    Address     string  `json:"certifier"`
+    Alias       string  `json:"alias"`
+    Proposer    string  `json:"proposer"`
+    Description string  `json:"description"`
 }
 ```
 
+### Validators
 
-## Stores
+A `Validator` is a validator node, which can be certified by an existing certifier. When de-certified, the validator will then be unbonded, which prevents it from signing blocks or earning rewards.
 
-`Certifier`s are stored both by their address (in `certifierStore`) and their alias (in `certifierAliasStore`).
+- Validator: `0x1 | Pubkey -> amino(validator)`
 
 ```go
-var (
-	certifierStoreKeyPrefix      = []byte{0x0}
-	validatorStoreKeyPrefix      = []byte{0x1}
-	platformStoreKeyPrefix       = []byte{0x2}
-	certificateStoreKeyPrefix    = []byte{0x5}
-	libraryStoreKeyPrefix        = []byte{0x6}
-	certifierAliasStoreKeyPrefix = []byte{0x7}
-)
+type Validator struct {
+    Pubkey    *types.Any `json:"pubkey"`
+    Certifier string     `json:"certifier"`
+}
+```
+
+### Platforms
+
+`Platform` objects are validators' host platforms that can be certified.
+
+- Platform: `0x2 | ValidatorPubkey -> amino(platform)`
+
+```go
+type Platform struct {
+    ValidatorPubkey *types.Any  `json:"validator_pubkey"`
+    Description     string      `json:"description"`
+}
+```
+
+### Libraries
+
+A `Library` object can be certified as well. It stores the library address and its publisher.
+
+- Library: `0x6 | Address -> amino(library)`
+
+```go
+type Library struct {
+    Address     string  `json:"address"`
+    Publisher   string  `json:"publisher"`
+}
 ```
 
 ## Messages
@@ -90,29 +114,38 @@ var (
 
 ```go
 type MsgProposeCertifier struct {
-	Proposer    sdk.AccAddress `json:"proposer" yaml:"proposer"`
-	Alias       string         `json:"alias" yaml:"alias"`
-	Certifier   sdk.AccAddress `json:"certifier" yaml:"certifier"`
-	Description string         `json:"description" yaml:"description"`
+    Proposer    string  `json:"proposer" yaml:"proposer"`
+    Alias       string  `json:"alias" yaml:"alias"`
+    Certifier   string  `json:"certifier" yaml:"certifier"`
+    Description string  `json:"description" yaml:"description"`
 }
 ```
 
-The following two messages create a new general or compilation certificate, respectively.
+`MsgCertifyValidator` and `MsgDecertifyValidator` certifies and de-certifies a validator, respectively.
 
 ```go
-type MsgCertifyGeneral struct {
-	CertificateType    string         `json:"certificate_type" yaml:"certificate_type"`
-	RequestContentType string         `json:"request_content_type" yaml:"request_content_type"`
-	RequestContent     string         `json:"request_content" yaml:"request_content"`
-	Description        string         `json:"description" yaml:"description"`
-	Certifier          sdk.AccAddress `json:"certifier" yaml:"certiifer"`
+type MsgCertifyValidator struct {
+    Certifier   string      `json:"certifier" yaml:"certifier"`
+    Pubkey      *types.Any  `json:"pubkey"`
 }
-type MsgCertifyCompilation struct {
-	SourceCodeHash string         `json:"sourcecodehash" yaml:"sourcecodehash"`
-	Compiler       string         `json:"compiler" yaml:"compiler"`
-	BytecodeHash   string         `json:"bytecodehash" yaml:"bytecodehash"`
-	Description    string         `json:"description" yaml:"description"`
-	Certifier      sdk.AccAddress `json:"certifier" yaml:"certifier"`
+```
+
+```go
+type MsgDecertifyValidator struct {
+    Decertifier string      `json:"decertifier" yaml:"decertifier"`
+    Pubkey      *types.Any  `json:"pubkey"`
+}
+```
+
+`MsgIssueCertificate` issues a certificate. It fails when the given certifier does not exist.
+
+```go
+type MsgIssueCertificate struct {
+    Content         *types.Any  `json:"content"`
+    Compiler        string      `json:"compiler" yaml:"compiler"`
+    BytecodeHash    string      `json:"bytecode_hash" yaml:"bytecodehash"`
+    Description     string      `json:"description" yaml:"description"`
+    Certifier       string      `json:"certifier" yaml:"certifier"`
 }
 ```
 
@@ -120,11 +153,22 @@ type MsgCertifyCompilation struct {
 
 ```go
 type MsgRevokeCertificate struct {
-	Revoker     sdk.AccAddress `json:"revoker" yaml:"revoker"`
-	ID          CertificateID  `json:"id" yaml:"id"`
-	Description string         `json:"description" yaml:"description"`
+    Revoker     string  `json:"revoker" yaml:"revoker"`
+    Id          uint64  `json:"id" yaml:"id"`
+    Description string  `json:"description" yaml:"description"`
 }
 ```
+
+`MsgCertifyPlatform` certifies a validator's host platform.
+
+```go
+type MsgCertifyPlatform struct {
+    Certifier       string     `json:"certifier" yaml:"certifier"`
+    ValidatorPubkey *types.Any `json:"validator_pubkey"`
+    Platform        string     `json:"platform" yaml:"platform"`
+}
+```
+
 ## Parameters
 
 There are currently no parameters specific to the `cert` module.
