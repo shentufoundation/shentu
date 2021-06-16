@@ -1,0 +1,12 @@
+syntax = "proto3";
+package shentu.nft.v1alpha1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/nft/types";
+
+option (gogoproto.stable_marshaler_all) = true;
+
+message Admin {
+  string address = 1;
+}

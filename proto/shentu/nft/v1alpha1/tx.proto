@@ -1,0 +1,47 @@
+syntax = "proto3";
+package shentu.nft.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "irismod/nft/tx.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/nft/types";
+
+option (gogoproto.stable_marshaler_all) = true;
+
+// Msg defines the nft Msg service.
+service Msg {
+  // IssueDenom defines a method for issue a denom.
+  rpc IssueDenom(irismod.nft.MsgIssueDenom) returns (irismod.nft.MsgIssueDenomResponse);
+
+  // MintNFT defines a method for mint a new nft
+  rpc MintNFT(irismod.nft.MsgMintNFT) returns (irismod.nft.MsgMintNFTResponse);
+
+  // RefundHTLC defines a method for editing a nft.
+  rpc EditNFT(irismod.nft.MsgEditNFT) returns (irismod.nft.MsgEditNFTResponse);
+
+  // TransferNFT defines a method for transferring a nft.
+  rpc TransferNFT(irismod.nft.MsgTransferNFT) returns (irismod.nft.MsgTransferNFTResponse);
+
+  // BurnNFT defines a method for burning a nft.
+  rpc BurnNFT(irismod.nft.MsgBurnNFT) returns (irismod.nft.MsgBurnNFTResponse);
+
+  // CreateNFTAdmin defines a method for creating an nft admin.
+  rpc CreateAdmin(MsgCreateAdmin) returns (MsgIssueAdminResponse);
+
+  // RevokeNFTAdmin defines a method for revoking an nft admin.
+  rpc RevokeAdmin(MsgRevokeAdmin) returns (MsgRevokeAdminResponse);
+}
+
+message MsgCreateAdmin {
+  string creator = 1;
+  string address = 2;
+}
+
+message MsgIssueAdminResponse {}
+
+message MsgRevokeAdmin {
+  string revoker = 1;
+  string address = 2;
+}
+
+message MsgRevokeAdminResponse {}

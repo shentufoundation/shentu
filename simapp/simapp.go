@@ -93,6 +93,9 @@ import (
 	govtypes "github.com/certikfoundation/shentu/x/gov/types"
 	"github.com/certikfoundation/shentu/x/mint"
 	mintkeeper "github.com/certikfoundation/shentu/x/mint/keeper"
+	"github.com/certikfoundation/shentu/x/nft"
+	nftkeeper "github.com/certikfoundation/shentu/x/nft/keeper"
+	nfttypes "github.com/certikfoundation/shentu/x/nft/types"
 	"github.com/certikfoundation/shentu/x/oracle"
 	oraclekeeper "github.com/certikfoundation/shentu/x/oracle/keeper"
 	oracletypes "github.com/certikfoundation/shentu/x/oracle/types"
@@ -141,6 +144,7 @@ var (
 		upgrade.AppModuleBasic{},
 		cvm.NewAppModuleBasic(),
 		cert.NewAppModuleBasic(),
+		nft.AppModuleBasic{},
 		oracle.NewAppModuleBasic(),
 		shield.NewAppModuleBasic(),
 		ibc.AppModuleBasic{},
@@ -199,6 +203,7 @@ type SimApp struct {
 	CertKeeper       certkeeper.Keeper
 	CVMKeeper        cvmkeeper.Keeper
 	AuthKeeper       authkeeper.Keeper
+	NFTKeeper        nftkeeper.Keeper
 	OracleKeeper     oraclekeeper.Keeper
 	ShieldKeeper     shieldkeeper.Keeper
 	IBCKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
@@ -245,6 +250,7 @@ func NewSimApp(
 		sdkgovtypes.StoreKey,
 		certtypes.StoreKey,
 		cvmtypes.StoreKey,
+		nfttypes.StoreKey,
 		oracletypes.StoreKey,
 		shieldtypes.StoreKey,
 		evidencetypes.StoreKey,
@@ -323,6 +329,11 @@ func NewSimApp(
 		&app.CertKeeper,
 		&app.StakingKeeper,
 		app.GetSubspace(cvmtypes.ModuleName),
+	)
+	app.NFTKeeper = nftkeeper.NewKeeper(
+		appCodec,
+		app.CertKeeper,
+		keys[nfttypes.StoreKey],
 	)
 	app.OracleKeeper = oraclekeeper.NewKeeper(
 		appCodec,
@@ -458,6 +469,7 @@ func NewSimApp(
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
 		cvm.NewAppModule(app.CVMKeeper, app.BankKeeper),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
+		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		transferModule,
@@ -490,6 +502,7 @@ func NewSimApp(
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		oracletypes.ModuleName,
+		nfttypes.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
@@ -506,6 +519,7 @@ func NewSimApp(
 		genutiltypes.ModuleName,
 		oracletypes.ModuleName,
 		shieldtypes.ModuleName,
+		nfttypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)

@@ -67,7 +67,7 @@ linters:
     - ineffassign
     - misspell
     - nakedret
-    - prealloc
+    # - prealloc
     - scopelint
     - structcheck
     - typecheck

@@ -70,6 +70,8 @@ import (
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	nfttypes "github.com/irisnet/irismod/modules/nft/types"
+
 	appparams "github.com/certikfoundation/shentu/app/params"
 	"github.com/certikfoundation/shentu/x/auth"
 	authkeeper "github.com/certikfoundation/shentu/x/auth/keeper"
@@ -88,6 +90,8 @@ import (
 	govtypes "github.com/certikfoundation/shentu/x/gov/types"
 	"github.com/certikfoundation/shentu/x/mint"
 	mintkeeper "github.com/certikfoundation/shentu/x/mint/keeper"
+	"github.com/certikfoundation/shentu/x/nft"
+	nftkeeper "github.com/certikfoundation/shentu/x/nft/keeper"
 	"github.com/certikfoundation/shentu/x/oracle"
 	oraclekeeper "github.com/certikfoundation/shentu/x/oracle/keeper"
 	oracletypes "github.com/certikfoundation/shentu/x/oracle/types"
@@ -143,6 +147,7 @@ var (
 		evidence.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 		transfer.AppModuleBasic{},
+		nft.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -191,6 +196,7 @@ type CertiKApp struct {
 	cvmKeeper        cvmkeeper.Keeper
 	oracleKeeper     oraclekeeper.Keeper
 	shieldKeeper     shieldkeeper.Keeper
+	nftKeeper        nftkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	scopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -236,6 +242,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		ibchost.StoreKey,
 		ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey,
+		nfttypes.StoreKey,
 	}
 
 	keys := sdk.NewKVStoreKeys(ks...)
@@ -388,6 +395,8 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		govRouter,
 	)
 
+	app.nftKeeper = nftkeeper.NewKeeper(appCodec, app.certKeeper, keys[nfttypes.StoreKey])
+
 	// Create Transfer Keepers
 	app.transferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
@@ -435,6 +444,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 		transferModule,
+		nft.NewAppModule(appCodec, app.nftKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper),
 	)
 
 	// NOTE: During BeginBlocker, slashing comes after distr so that
@@ -466,6 +476,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		evidencetypes.ModuleName,
 		oracletypes.ModuleName,
 		ibctransfertypes.ModuleName,
+		nfttypes.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
@@ -484,6 +495,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		shieldtypes.ModuleName,
 		ibchost.ModuleName,
 		ibctransfertypes.ModuleName,
+		nfttypes.ModuleName,
 	)
 
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
@@ -505,6 +517,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 		transferModule,
+		nft.NewAppModule(appCodec, app.nftKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()

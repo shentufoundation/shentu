@@ -1,0 +1,64 @@
+syntax = "proto3";
+package shentu.nft.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "irismod/nft/query.proto";
+import "shentu/nft/v1alpha1/nft.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/nft/types";
+
+// Query defines the gRPC querier service for NFT module
+service Query {
+  // Supply queries the total supply of a given denom or owner
+  rpc Supply(irismod.nft.QuerySupplyRequest) returns (irismod.nft.QuerySupplyResponse) {
+    option (google.api.http).get = "/shentu/nft/v1alpha1/collections/{denom_id}/supply";
+  }
+
+  // Owner queries the NFTs of the specified owner
+  rpc Owner(irismod.nft.QueryOwnerRequest) returns (irismod.nft.QueryOwnerResponse) {
+    option (google.api.http).get = "/shentu/nft/v1alpha1/nfts";
+  }
+
+  // Collection queries the NFTs of the specified denom
+  rpc Collection(irismod.nft.QueryCollectionRequest) returns (irismod.nft.QueryCollectionResponse) {
+    option (google.api.http).get = "/shentu/nft/v1alpha1/collections/{denom_id}";
+  }
+
+  // Denom queries the definition of a given denom
+  rpc Denom(irismod.nft.QueryDenomRequest) returns (irismod.nft.QueryDenomResponse) {
+    option (google.api.http).get = "/shentu/nft/v1alpha1/denoms/{denom_id}";
+  }
+
+  // Denoms queries all the denoms
+  rpc Denoms(irismod.nft.QueryDenomsRequest) returns (irismod.nft.QueryDenomsResponse) {
+    option (google.api.http).get = "/shentu/nft/v1alpha1/denoms";
+  }
+
+  // NFT queries the NFT for the given denom and token ID
+  rpc NFT(irismod.nft.QueryNFTRequest) returns (irismod.nft.QueryNFTResponse) {
+    option (google.api.http).get = "/shentu/nft/v1alpha1/nfts/{denom_id}/{token_id}";
+  }
+
+  rpc Admin(QueryAdminRequest) returns (QueryAdminResponse) {
+    option (google.api.http).get = "/shentu/nft/v1alpha1/admins/{address}";
+  }
+
+  rpc Admins(QueryAdminsRequest) returns (QueryAdminsResponse) {
+    option (google.api.http).get = "/shentu/nft/v1alpha1/admins";
+  }
+}
+
+message QueryAdminRequest {
+  string address = 1 ;
+}
+
+message QueryAdminResponse {
+  shentu.nft.v1alpha1.Admin admin = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryAdminsRequest {}
+
+message QueryAdminsResponse {
+  repeated shentu.nft.v1alpha1.Admin admins = 1 [ (gogoproto.nullable) = false ];
+}
