@@ -38,6 +38,7 @@ import (
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	certiksimapp "github.com/certikfoundation/shentu/simapp"
 	cert "github.com/certikfoundation/shentu/x/cert/types"
 	cvm "github.com/certikfoundation/shentu/x/cvm/types"
 	oracle "github.com/certikfoundation/shentu/x/oracle/types"
@@ -79,14 +80,15 @@ func TestFullAppSimulation(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := NewCertiKApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := certiksimapp.NewSimApp(logger, db, nil, true, map[int64]bool{},
+	DefaultNodeHome, simapp.FlagPeriodValue, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
-		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
-		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
-		app.ModuleAccountAddrs(), config, app.Codec(),
+		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
+		RandomAccounts, simapp.SimulationOperations(app, app.AppCodec(), config),
+		app.ModuleAccountAddrs(), config, app.AppCodec(),
 	)
 
 	// export state and simParams before the simulation error is checked
@@ -113,14 +115,15 @@ func TestAppImportExport(t *testing.T) {
 
 	//invCheckPeriod := simapp.FlagPeriodValue
 	var invCheckPeriod uint = 1
-	app := NewCertiKApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := certiksimapp.NewSimApp(logger, db, nil, true, map[int64]bool{}, 
+	DefaultNodeHome, invCheckPeriod, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
-		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
-		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
-		app.ModuleAccountAddrs(), config, app.Codec(),
+		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
+		RandomAccounts, simapp.SimulationOperations(app, app.AppCodec(), config),
+		app.ModuleAccountAddrs(), config, app.AppCodec(),
 	)
 
 	// export state and simParams before the simulation error is checked
@@ -147,7 +150,8 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := NewCertiKApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	newApp := certiksimapp.NewSimApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, 
+	DefaultNodeHome, invCheckPeriod, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 
 	require.Equal(t, AppName, newApp.Name())
 
@@ -157,32 +161,32 @@ func TestAppImportExport(t *testing.T) {
 
 	ctxA := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
 	ctxB := newApp.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
-	newApp.mm.InitGenesis(ctxB, app.Codec(), genesisState)
+	newApp.ModuleManager().InitGenesis(ctxB, app.AppCodec(), genesisState)
 	newApp.StoreConsensusParams(ctxB, appState.ConsensusParams)
 
 	fmt.Printf("comparing stores...\n")
 
 	storeKeysPrefixes := []StoreKeysPrefixes{
-		{app.keys[auth.StoreKey], newApp.keys[auth.StoreKey], [][]byte{}},
-		{app.keys[staking.StoreKey], newApp.keys[staking.StoreKey], [][]byte{
+		{app.GetKey(auth.StoreKey), newApp.GetKey(auth.StoreKey), [][]byte{}},
+		{app.GetKey(staking.StoreKey), newApp.GetKey(staking.StoreKey), [][]byte{
 			staking.UnbondingQueueKey, staking.RedelegationQueueKey, staking.ValidatorQueueKey,
 			staking.HistoricalInfoKey,
 		}},
-		{app.keys[distr.StoreKey], newApp.keys[distr.StoreKey], [][]byte{}},
-		{app.keys[mint.StoreKey], newApp.keys[mint.StoreKey], [][]byte{}},
-		{app.keys[slashing.StoreKey], newApp.keys[slashing.StoreKey], [][]byte{}},
-		{app.keys[bank.StoreKey], newApp.keys[bank.StoreKey], [][]byte{bank.BalancesPrefix}},
-		{app.keys[params.StoreKey], newApp.keys[params.StoreKey], [][]byte{}},
-		{app.keys[upgrade.StoreKey], newApp.keys[upgrade.StoreKey], [][]byte{}},
-		{app.keys[gov.StoreKey], newApp.keys[gov.StoreKey], [][]byte{}},
-		{app.keys[cert.StoreKey], newApp.keys[cert.StoreKey], [][]byte{}},
-		{app.keys[cvm.StoreKey], newApp.keys[cvm.StoreKey], [][]byte{}},
-		{app.keys[oracle.StoreKey], newApp.keys[oracle.StoreKey], [][]byte{oracle.TaskStoreKeyPrefix, oracle.ClosingTaskStoreKeyPrefix}},
-		{app.keys[shield.StoreKey], newApp.keys[shield.StoreKey], [][]byte{shield.WithdrawQueueKey, shield.PurchaseQueueKey, shield.BlockServiceFeesKey}},
-		{app.keys[evidence.StoreKey], newApp.keys[evidence.StoreKey], [][]byte{}},
-		{app.keys[capability.StoreKey], newApp.keys[capability.StoreKey], [][]byte{}},
-		{app.keys[ibchost.StoreKey], newApp.keys[ibchost.StoreKey], [][]byte{}},
-		{app.keys[ibctransfer.StoreKey], newApp.keys[ibctransfer.StoreKey], [][]byte{}},
+		{app.GetKey(distr.StoreKey), newApp.GetKey(distr.StoreKey), [][]byte{}},
+		{app.GetKey(mint.StoreKey), newApp.GetKey(mint.StoreKey), [][]byte{}},
+		{app.GetKey(slashing.StoreKey), newApp.GetKey(slashing.StoreKey), [][]byte{}},
+		{app.GetKey(bank.StoreKey), newApp.GetKey(bank.StoreKey), [][]byte{bank.BalancesPrefix}},
+		{app.GetKey(params.StoreKey), newApp.GetKey(params.StoreKey), [][]byte{}},
+		{app.GetKey(upgrade.StoreKey), newApp.GetKey(upgrade.StoreKey), [][]byte{}},
+		{app.GetKey(gov.StoreKey), newApp.GetKey(gov.StoreKey), [][]byte{}},
+		{app.GetKey(cert.StoreKey), newApp.GetKey(cert.StoreKey), [][]byte{}},
+		{app.GetKey(cvm.StoreKey), newApp.GetKey(cvm.StoreKey), [][]byte{}},
+		{app.GetKey(oracle.StoreKey), newApp.GetKey(oracle.StoreKey), [][]byte{oracle.TaskStoreKeyPrefix, oracle.ClosingTaskStoreKeyPrefix}},
+		{app.GetKey(shield.StoreKey), newApp.GetKey(shield.StoreKey), [][]byte{shield.WithdrawQueueKey, shield.PurchaseQueueKey, shield.BlockServiceFeesKey}},
+		{app.GetKey(evidence.StoreKey), newApp.GetKey(evidence.StoreKey), [][]byte{}},
+		{app.GetKey(capability.StoreKey), newApp.GetKey(capability.StoreKey), [][]byte{}},
+		{app.GetKey(ibchost.StoreKey), newApp.GetKey(ibchost.StoreKey), [][]byte{}},
+		{app.GetKey(ibctransfer.StoreKey), newApp.GetKey(ibctransfer.StoreKey), [][]byte{}},
 	}
 
 	for _, skp := range storeKeysPrefixes {
@@ -211,14 +215,15 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := NewCertiKApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := certiksimapp.NewSimApp(logger, db, nil, true, map[int64]bool{}, 
+	DefaultNodeHome, simapp.FlagPeriodValue, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
-		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
-		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
-		app.ModuleAccountAddrs(), config, app.Codec(),
+		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
+		RandomAccounts, simapp.SimulationOperations(app, app.AppCodec(), config),
+		app.ModuleAccountAddrs(), config, app.AppCodec(),
 	)
 
 	// export state and simParams before the simulation error is checked
@@ -245,7 +250,8 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := NewCertiKApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	newApp := certiksimapp.NewSimApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, 
+	DefaultNodeHome, simapp.FlagPeriodValue, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, newApp.Name())
 
 	newApp.InitChain(abci.RequestInitChain{
@@ -253,10 +259,10 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	})
 
 	_, _, err = simulation.SimulateFromSeed(
-		t, os.Stdout, newApp.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
+		t, os.Stdout, newApp.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
 		RandomAccounts, // Replace with own random account function if using keys other than secp256k1
-		simapp.SimulationOperations(newApp, newApp.Codec(), config),
-		app.ModuleAccountAddrs(), config, app.Codec(),
+		simapp.SimulationOperations(newApp, newApp.AppCodec(), config),
+		app.ModuleAccountAddrs(), config, app.AppCodec(),
 	)
 	require.NoError(t, err)
 }
@@ -279,7 +285,8 @@ func TestAppStateDeterminism(t *testing.T) {
 	for j := 0; j < numTimesToRunPerSeed; j++ {
 		logger := log.NewNopLogger()
 		db := dbm.NewMemDB()
-		app := NewCertiKApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, interBlockCacheOpt())
+		app := certiksimapp.NewSimApp(logger, db, nil, true, map[int64]bool{}, 
+			DefaultNodeHome, simapp.FlagPeriodValue, certiksimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, interBlockCacheOpt())
 
 		fmt.Printf(
 			"running non-determinism simulation; seed %d: attempt: %d/%d\n",
@@ -287,10 +294,10 @@ func TestAppStateDeterminism(t *testing.T) {
 		)
 
 		_, _, err := simulation.SimulateFromSeed(
-			t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
+			t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
 			RandomAccounts, // Replace with own random account function if using keys other than secp256k1
-			simapp.SimulationOperations(app, app.Codec(), config),
-			app.ModuleAccountAddrs(), config, app.Codec(),
+			simapp.SimulationOperations(app, app.AppCodec(), config),
+			app.ModuleAccountAddrs(), config, app.AppCodec(),
 		)
 		require.NoError(t, err)
 

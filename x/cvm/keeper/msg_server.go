@@ -27,7 +27,13 @@ func (k msgServer) Deploy(goCtx context.Context, msg *types.MsgDeploy) (*types.M
 	if err != nil {
 		return nil, err
 	}
-	k.Keeper.SetAbi(ctx, crypto.MustAddressFromBytes(result), []byte(msg.Abi))
+
+	addr, err := crypto.AddressFromBytes(result)
+	if err != nil {
+		return nil, err
+	}
+
+	k.Keeper.SetAbi(ctx, addr, []byte(msg.Abi))
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
