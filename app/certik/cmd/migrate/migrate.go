@@ -6,10 +6,6 @@ import (
 	"io/ioutil"
 	"time"
 
-	oracletypes "github.com/certikfoundation/shentu/x/oracle/types"
-
-	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
-
 	"github.com/spf13/cobra"
 
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -58,6 +54,9 @@ import (
 
 	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	cvmtypes "github.com/certikfoundation/shentu/x/cvm/types"
+	nfttypes "github.com/certikfoundation/shentu/x/nft/types"
+	oracletypes "github.com/certikfoundation/shentu/x/oracle/types"
+	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
 )
 
 const (
@@ -275,6 +274,9 @@ func Migrate(appState types.AppMap, clientCtx client.Context) types.AppMap {
 
 		appState[shieldtypes.ModuleName] = v040Codec.MustMarshalJSON(migrateShield(shieldGenState))
 	}
+
+	nftGenState := nfttypes.DefaultGenesisState()
+	appState[nfttypes.ModuleName] = v040Codec.MustMarshalJSON(nftGenState)
 
 	return appState
 }
