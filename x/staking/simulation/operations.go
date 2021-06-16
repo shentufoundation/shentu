@@ -139,7 +139,7 @@ func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountK
 			simtypes.RandomDecAmount(r, maxCommission),
 		)
 
-		msg, err := stakingtypes.NewMsgCreateValidator(address, simAccount.PubKey, selfDelegation, description, commission, sdk.OneInt())
+		msg, err := stakingtypes.NewMsgCreateValidator(address, simAccount.ConsKey.PubKey(), selfDelegation, description, commission, sdk.OneInt())
 		if err != nil {
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, msg.Type(), "unable to create CreateValidator message"), nil, err
 		}
