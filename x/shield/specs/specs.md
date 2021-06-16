@@ -6,133 +6,190 @@ See the [whitepaper](https://www.certik.foundation/whitepaper#3-CertiKShield) fo
 
 ## State
 
-`MixedCoins` keeps track of native and foreign tokens together.
+### Admins
 
-```go
-type MixedCoins struct {
-	Native  sdk.Coins
-	Foreign sdk.Coins
-}
-```
+`Admin` represents the Shield admin account address.
+
+- Admin: `0x0 -> sdk.AccAddress`
+
+### Pools
 
 Every project that wants to buy a Shield needs to have a `Pool` created. Then, a project can purchase Shields (a.k.a. `Purchase`s) up to their `ShieldLimit`.
+
+- Pool: `0x7 | LittleEndian(Id) -> amino(pool)`
+- GetNextPoolId: `0x8 -> LittleEndian(Id)`
 
 ```go
 // Pool contains a shield project pool's data.
 type Pool struct {
-	// ID is the id of the pool.
-	ID uint64 `json:"id" yaml:"id"`
-
-	// Description is the term of the pool.
-	Description string `json:"description" yaml:"description"`
-
-	// Sponsor is the project owner of the pool.
-	Sponsor string `json:"sponsor" yaml:"sponsor"`
-
-	// SponsorAddress is the CertiK Chain address of the sponsor.
-	SponsorAddress sdk.AccAddress `json:"sponsor_address" yaml:"sponsor_address"`
-
-	// ShieldLimit is the maximum shield can be purchased for the pool.
-	ShieldLimit sdk.Int `json:"shield_limit" yaml:"shield_limit"`
-
-	// Active means new purchases are allowed.
-	Active bool `json:"active" yaml:"active"`
-
-	// Shield is the amount of all active purchased shields.
-	Shield sdk.Int `json:"shield" yaml:"shield"`
+    Id          uint64  `json:"id" yaml:"id"`
+    Description string  `json:"description" yaml:"description"`
+    Sponsor     string  `json:"sponsor" yaml:"sponsor"`
+    SponsorAddr string  `json:"sponsor_addr" yaml:"sponsor_addr"`
+    ShieldLimit sdk.Int `json:"shield_limit" yaml:"shield_limit"`
+    Active      bool    `json:"active" yaml:"active"`
+    Shield      sdk.Int `json:"shield" yaml:"shield"`
 }
 ```
 
+Relevant states that are tracked along with the pool are wrapped in `sdk.IntProto` objects.
 
-`Provider` tracks total delegation, total collateral, and rewards of a provider.
+- TotalCollateral: `0x1 -> amino(totalCollateral)`
+- TotalWithdrawing: `0x2 -> amino(totalWithdrawing)`
+- TotalShield: `0x3 -> amino(totalShield)`
+- TotalClaimed: `0x4 -> amino(totalClaimed)`
+
+`ServiceFees` are small fees charged for each purchase, and are stored as `MixDecCoins` objects. `MixedDecCoins` keeps track of native and foreign decimal tokens together.
+
+- ServiceFees: `0x5 -> amino(serviceFees)`
+- RemainingServiceFees: `0x6 -> amino(serviceFees)`
+- BlockServiceFees: `0x13 -> amino(serviceFees)`
 
 ```go
+// MixedDecCoins defines the struct for mixed coins in decimal with native and foreign decimal coins.
+type MixedDecCoins struct {
+    Native  sdk.DecCoins    `json:"native"`
+    Foreign sdk.DecCoins    `json:"foreign"`
+}
+```
+
+### Providers
+
+`Provider` tracks total delegation, total collateral, and rewards of a provider. A collateral provider contributes their assets as the collateral, which is used to pay out approved reimbursement requests from Shield purchasers. The provider earns staking rewards for their staked assets as well as a portion of the fees paid by purchasers.
+
+- Provider: `0xC | Address -> amino(provider)`
+
+```go
+// Provider tracks total delegation, total collateral, and rewards of a provider.
 type Provider struct {
-	// Address is the address of the provider.
-	Address sdk.AccAddress `json:"address" yaml:"address"`
-
-	// DelegationBonded is the amount of bonded delegation.
-	DelegationBonded sdk.Int `json:"delegation_bonded" yaml:"delegation_bonded"`
-
-	// Collateral is amount of all collaterals for the provider, including
-	// those in withdraw queue but excluding those currently locked, in all
-	// pools.
-	Collateral sdk.Int `json:"collateral" yaml:"collateral"`
-
-	// TotalLocked is the amount locked for pending claims.
-	TotalLocked sdk.Int `json:"total_locked" yaml:"total_locked"`
-
-	// Withdrawing is the amount of collateral in withdraw queues.
-	Withdrawing sdk.Int `json:"withdrawing" yaml:"withdrawing"`
-
-	// Rewards is the pooling rewards to be collected.
-	Rewards MixedDecCoins `json:"rewards" yaml:"rewards"`
+    // Address is the address of the provider.
+    Address             string          `json:"address" yaml:"address"`
+    // DelegationBonded is the amount of bonded delegation.
+    DelegationBonded    sdk.Int         `json:"delegation_bonded" yaml:"provider"`
+    // Collateral is amount of all collaterals for the provider, including
+    // those in withdraw queue but excluding those currently locked, in all
+    // pools.
+    Collateral          sdk.Int         `json:"collateral" yaml:"collateral"`
+    // TotalLocked is the amount locked for pending claims.
+    TotalLocked         sdk.Int         `json:"total_locked" yaml:"total_locked"`
+    // Withdrawing is the amount of collateral in withdraw queues.
+    Withdrawing         sdk.Int         `json:"withdrawing" yaml:"withdrawing"`
+    // Rewards is the pooling rewards to be collected.
+    Rewards             MixedDecCoins   `json:"rewards" yaml:"rewards"`
 }
 ```
 
-`Purchase` records an individual purchase.
+### Purchases
+
+`Purchase` records an individual purchase. Purchases are stored in the store as `PurchaseList` objects.
+
+- PurchaseList: `0xA | LittleEndian(Id) | Purchaser -> amino(purchaseList)`
+- NextPurchaseId: `0x9 -> LittleEndian(Id)`
 
 ```go
+// Purchase record an individual purchase.
 type Purchase struct {
-	// PurchaseID is the purchase_id.
-	PurchaseID uint64 `json:"purchase_id" yaml:"purchase_id"`
-
-	// ProtectionEndTime is the time when the protection of the shield ends.
-	ProtectionEndTime time.Time `json:"protection_end_time" yaml:"protection_end_time"`
-
-	// DeletionTime is the time when the purchase should be deleted.
-	DeletionTime time.Time `json:"deletion_time" yaml:"deletion_time"`
-
-	// Description is the information about the protected asset.
-	Description string `json:"description" yaml:"description"`
-
-	// Shield is the unused amount of shield purchased.
-	Shield sdk.Int `json:"shield" yaml:"shield"`
-
-	// ServiceFees is the service fees paid by this purchase.
-	ServiceFees MixedDecCoins `json:"service_fees" yaml:"service_fees"`
+    // PurchaseID is the purchase_id.
+    PurchaseId          uint64          `json:"purchase_id" yaml:"purchase_id"`
+    // ProtectionEndTime is the time when the protection of the shield ends.
+    ProtectionEndTime   time.Time       `json:"protection_end_time" yaml:"protection_end_time"`
+    // DeletionTime is the time when the purchase should be deleted.
+    DeletionTime        time.Time       `json:"deletion_time" yaml:"deletion_time"`
+    // Description is the information about the protected asset.
+    Description         string          `json:"description" yaml:"description"`
+    // Shield is the unused amount of shield purchased.
+    Shield              sdk.Int         `json:"shield" yaml:"shield"`
+    // ServiceFees is the service fees paid by this purchase.
+    ServiceFees         MixedDecCoins   `json:"service_fees" yaml:"service_fees"`
 }
 ```
 
-`PurchaseList` is a collection of `Purchase`s.
-
 ```go
+// PurchaseList is a collection of purchase.
 type PurchaseList struct {
-	// PoolID is the id of the shield of the purchase.
-	PoolID uint64 `json:"pool_id" yaml:"pool_id"`
-
-	// Purchaser is the address making the purchase.
-	Purchaser sdk.AccAddress `json:"purchaser" yaml:"purchaser"`
-
-	// Entries stores all purchases by the purchaser in the pool.
-	Entries []Purchase `json:"entries" yaml:"entries"`
+    // PoolID is the id of the shield of the purchase.
+    PoolId      uint64      `json:"pool_id,omitempty" yaml:"pool_id"`
+    // Purchaser is the address making the purchase.
+    Purchaser   string      `json:"purchaser,omitempty" yaml:"purchaser"`
+    // Entries stores all purchases by the purchaser in the pool.
+    Entries     []Purchase  `json:"entries" yaml:"entries"`
 }
 ```
 
-`PoolPurchase` is a pair of pool id and purchaser.
+Purchases are queued as `(PoolId, Purchaser)` pairs according to their expiration timestamps. Shield purchasers have their assets protected upon purchase of Shields until the expiration timestamp.
+
+- PurchaseExpirationTime: `0xB | Timestamp -> amino(poolPurchaserPairs)`
 
 ```go
+// PoolPurchase is a pair of pool id and purchaser.
 type PoolPurchaser struct {
-	// PoolID is the id of the shield pool.
-	PoolID uint64
-
-	// Purchaser is the chain address of the purchaser.
-	Purchaser sdk.AccAddress
+    // PoolID is the id of the shield pool.
+    PoolId      uint64  `json:"pool_id" yaml:"pool_id"`
+    // Purchaser is the chain address of the purchaser.
+    Purchaser   string  `json:"purchaser" yaml:"purchaser"`
 }
 ```
 
-`Withdraw` stores an ongoing withdraw of pool collateral.
+`LastUpdateTime` is set when the purchase is made or service fees are distributed.
+
+- LastUpdateTime: `0xE -> amino(time)`
+
+### Withdraws
+
+`Withdraw` stores an ongoing withdraw of pool collateral. Withdraws are queued according to their completion timestamps.
+
+- WithdrawQueue: `0xD -> amino([]withdraw)`
 
 ```go
+// Withdraw stores an ongoing withdraw of pool collateral.
 type Withdraw struct {
-	// Address is the chain address of the provider withdrawing.
-	Address sdk.AccAddress `json:"address" yaml:"address"`
+    // Address is the chain address of the provider withdrawing.
+    Address         string      `json:"address" yaml:"address"`
+    // Amount is the amount of withdraw.
+    Amount          sdk.Int     `json:"amount" yaml:"amount"`
+    // CompletionTime is the scheduled withdraw completion time.
+    CompletionTime  time.Time   `json:"completion_time" yaml:"completion_time"`
+}
+```
 
-	// Amount is the amount of withdraw.
-	Amount sdk.Int `json:"amount" yaml:"amount"`
+### Staking Purchases
 
-	// CompletionTime is the scheduled withdraw completion time.
-	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"`
+Collateral providers can stake on Shield pool, which is a higher-risk, higher-reward staking alternative to CertiK Node staking. Providers can stake assets as collaterals on `GlobalShieldStakingPool`, from which purchases are then stored as `StakeForShield` and `OriginalStaking`, which keep track of purchases and staking amounts, respectively. Shield staking purchases are stored as `ShieldStaking` objects.
+
+- GlobalStakeForShieldPool: `0xF -> amino(pool)`
+- StakeForShield: `0x11 | LittleEndian(PoolId) | Purchaser -> amino(purchase)`
+- OriginalStaking: `0x13 | LittleEndian(PurchaseId) -> amino(stakingAmt)`
+
+```go
+type ShieldStaking struct {
+    PoolId              uint64  `json:"pool_id" yaml:"pool_id"`
+    Purchaser           string  `json:"purchaser" yaml:"purchaser"`
+    Amount              sdk.Int `json:"amount" yaml:"amount"`
+    WithdrawRequested   sdk.Int `json:"withdraw_requested" yaml:"withdraw_requested"`
+}
+```
+
+### Reimbursements
+
+`Reimbursement` tracks relevant information for the payout granted upon approval of `ShieldClaimProposal`, which is a proposal Shield purchasers submit when they lose protected assets.
+
+- Reimbursement: `0x14 | LittleEndian(ProposalId) -> amino(reimbursement)`
+
+```go
+type ShieldClaimProposal struct {
+    ProposalId  uint64      `json:"proposal_id" yaml:"proposal_id"`
+    PoolId      uint64      `json:"pool_id" yaml:"pool_id"`
+    PurchaseId  uint64      `json:"purchase_id" yaml:"purchase_id"`
+    Loss        sdk.Coins   `json:"loss" yaml:"loss"`
+    Evidence    string      `json:"evidence" yaml:"evidence"`
+    Description string      `json:"description" yaml:"description"`
+    Proposer    string      `json:"proposer" yaml:"proposer"`
+}
+
+type Reimbursement struct {
+    Amount      sdk.Coins   `json:"amount"`
+    Beneficiary string      `json:"beneficiary" yaml:"beneficiary"`
+    PayoutTime  time.Time   `json:"payout_time" yaml:"payout_time"`
 }
 ```
 
@@ -145,23 +202,23 @@ type Withdraw struct {
 ```go
 // MsgCreatePool defines the attributes of a create-pool transaction.
 type MsgCreatePool struct {
-	From        sdk.AccAddress `json:"from" yaml:"from"`
-	Shield      sdk.Coins      `json:"shield" yaml:"shield"`
-	Deposit     MixedCoins     `json:"deposit" yaml:"deposit"`
-	Sponsor     string         `json:"sponsor" yaml:"sponsor"`
-	SponsorAddr sdk.AccAddress `json:"sponsor_addr" yaml:"sponsor_addr"`
-	Description string         `json:"description" yaml:"description"`
-	ShieldLimit sdk.Int        `json:"shield_limit" yaml:"shield_limit"`
+    From        string      `json:"from" yaml:"from"`
+    Shield      sdk.Coins   `json:"shield"`
+    Deposit     MixedCoins  `json:"deposit" yaml:"deposit"`
+    Sponsor     string      `json:"sponsor" yaml:"sponsor"`
+    SponsorAddr string      `json:"sponsor_addr" yaml:"sponsor_addr"`
+    Description string      `json:"description" yaml:"description"`
+    ShieldLimit sdk.Int     `json:"shield_limit"`
 }
 
 // MsgUpdatePool defines the attributes of a shield pool update transaction.
 type MsgUpdatePool struct {
-	From        sdk.AccAddress `json:"from" yaml:"from"`
-	Shield      sdk.Coins      `json:"Shield" yaml:"Shield"`
-	ServiceFees MixedCoins     `json:"service_fees" yaml:"service_fees"`
-	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
-	Description string         `json:"description" yaml:"description"`
-	ShieldLimit sdk.Int        `json:"shield_limit" yaml:"shield_limit"`
+    From        string      `json:"from" yaml:"from"`
+    Shield      sdk.Coins   `json:"shield"`
+    ServiceFees MixedCoins  `json:"service_fees" yaml:"service_fees"`
+    PoolId      uint64      `json:"pool_id" yaml:"pool_id"`
+    Description string      `json:"description" yaml:"description"`
+    ShieldLimit sdk.Int     `json:"shield_limit"`
 }
 ```
 
@@ -170,14 +227,14 @@ type MsgUpdatePool struct {
 ```go
 // MsgPausePool defines the attributes of a pausing a shield pool.
 type MsgPausePool struct {
-	From   sdk.AccAddress `json:"from" yaml:"from"`
-	PoolID uint64         `json:"pool_id" yaml:"pool_id"`
+    From    string  `json:"from" yaml:"from"`
+    PoolId  uint64  `json:"pool_id" yaml:"pool_id"`
 }
 
 // MsgResumePool defines the attributes of a resuming a shield pool.
 type MsgResumePool struct {
-	From   sdk.AccAddress `json:"from" yaml:"from"`
-	PoolID uint64         `json:"pool_id" yaml:"pool_id"`
+    From    string  `json:"from" yaml:"from"`
+    PoolId  uint64  `json:"pool_id" yaml:"pool_id"`
 }
 ```
 
@@ -186,10 +243,10 @@ Projects with a `Pool` can use `MsgPurchaseShield` to purchase a new Shield.
 ```go
 // MsgPurchaseShield defines the attributes of purchase shield transaction.
 type MsgPurchaseShield struct {
-	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
-	Shield      sdk.Coins      `json:"shield" yaml:"shield"`
-	Description string         `json:"description" yaml:"description"`
-	From        sdk.AccAddress `json:"from" yaml:"from"`
+    PoolId      uint64      `json:"pool_id" yaml:"pool_id"`
+    Shield      sdk.Coins   `json:"shield"`
+    Description string      `json:"description" yaml:"description"`
+    From        string      `json:"from" yaml:"from"`
 }
 ```
 
@@ -200,8 +257,8 @@ type MsgPurchaseShield struct {
 ```go
 // MsgDepositCollateral defines the attributes of a depositing collaterals.
 type MsgDepositCollateral struct {
-	From       sdk.AccAddress `json:"sender" yaml:"sender"`
-	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
+    From       string       `json:"from" yaml:"from"`
+    Collateral sdk.Coins    `json:"collateral"`
 }
 ```
 
@@ -212,8 +269,8 @@ type MsgDepositCollateral struct {
 ```go
 // MsgWithdrawCollateral defines the attributes of a withdrawing collaterals.
 type MsgWithdrawCollateral struct {
-	From       sdk.AccAddress `json:"sender" yaml:"sender"`
-	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
+    From       string       `json:"from" yaml:"from"`
+    Collateral sdk.Coins    `json:"collateral"`
 }
 ```
 
@@ -222,20 +279,20 @@ type MsgWithdrawCollateral struct {
 ```go
 // MsgWithdrawRewards defines attribute of withdraw rewards transaction.
 type MsgWithdrawRewards struct {
-	From sdk.AccAddress `json:"sender" yaml:"sender"`
+    From    string  `json:"from" yaml:"from"`
 }
 
 // MsgWithdrawForeignRewards defines attributes of withdraw foreign rewards transaction.
 type MsgWithdrawForeignRewards struct {
-	From   sdk.AccAddress `json:"sender" yaml:"sender"`
-	Denom  string         `json:"denom" yaml:"denom"`
-	ToAddr string         `json:"to_addr" yaml:"to_addr"`
+    From    string  `json:"from" yaml:"from"`
+    Denom   string  `json:"denom" yaml:"denom"`
+    ToAddr  string  `json:"to_addr" yaml:"to_addr"`
 }
 
 // MsgClearPayouts defines attributes of clear payouts transaction.
 type MsgClearPayouts struct {
-	From  sdk.AccAddress `json:"sender" yaml:"sender"`
-	Denom string         `json:"denom" yaml:"denom"`
+    From    string  `json:"from" yaml:"from"`
+    Denom   string  `json:"denom" yaml:"denom"`
 }
 ```
 
@@ -244,8 +301,8 @@ type MsgClearPayouts struct {
 ```go
 // MsgWithdrawReimbursement defines the attributes of withdraw reimbursement transaction.
 type MsgWithdrawReimbursement struct {
-	ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"`
-	From       sdk.AccAddress `json:"from" yaml:"from"`
+    ProposalId  uint64  `json:"proposal_id" yaml:"proposal_id"`
+    From        string  `json:"from" yaml:"from"`
 }
 ```
 
@@ -254,17 +311,17 @@ type MsgWithdrawReimbursement struct {
 ```go
 // MsgStakeForShield defines the attributes of staking for purchase transaction.
 type MsgStakeForShield struct {
-	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
-	Shield      sdk.Coins      `json:"shield" yaml:"shield"`
-	Description string         `json:"description" yaml:"description"`
-	From        sdk.AccAddress `json:"from" yaml:"from"`
+    PoolId      uint64      `json:"pool_id" yaml:"pool_id"`
+    Shield      sdk.Coins   `json:"shield"`
+    Description string      `json:"description" yaml:"description"`
+    From        string      `json:"from" yaml:"from"`
 }
 
 // MsgUnstakeFromShield defines the attributes of staking for purchase transaction.
 type MsgUnstakeFromShield struct {
-	PoolID uint64         `json:"pool_id" yaml:"pool_id"`
-	Shield sdk.Coins      `json:"shield" yaml:"shield"`
-	From   sdk.AccAddress `json:"from" yaml:"from"`
+    PoolId  uint64      `json:"pool_id,omitempty" yaml:"pool_id"`
+    Shield  sdk.Coins   `json:"shield"`
+    From    string      `json:"from" yaml:"from"`
 }
 ```
 
@@ -272,10 +329,10 @@ type MsgUnstakeFromShield struct {
 ```go
 // MsgUpdateSponsor defines the attributes of a update-sponsor transaction.
 type MsgUpdateSponsor struct {
-	PoolID      uint64         `json:"pool_id" yaml:"pool_id"`
-	Sponsor     string         `json:"sponsor" yaml:"sponsor"`
-	SponsorAddr sdk.AccAddress `json:"sponsor_addr" yaml:"sponsor_addr"`
-	FromAddr    sdk.AccAddress `json:"from" yaml:"from"`
+    PoolId      uint64  `json:"pool_id" yaml:"pool_id"`
+    Sponsor     string  `json:"sponsor" yaml:"from"`
+    SponsorAddr string  `json:"sponsor_addr" yaml:"sponsor_addr"`
+    From        string  `json:"from" yaml:"from"`
 }
 ```
 
