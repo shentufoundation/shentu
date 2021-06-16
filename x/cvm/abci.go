@@ -13,7 +13,4 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 // EndBlocker ends the block by sending all coins stored at the zero address to the community pool.
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
-	if err := k.RecycleCoins(ctx); err != nil {
-		panic(err)
-	}
 }

@@ -492,27 +492,6 @@ func TestCTKTransfer(t *testing.T) {
 	})
 }
 
-func TestZeroTransfer(t *testing.T) {
-	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
-
-	t.Run("use recycle to send to the community pool", func(t *testing.T) {
-		coins := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), sdk.NewInt(10)))
-		err := app.BankKeeper.SendCoins(ctx, addrs[0], crypto.ZeroAddress.Bytes(), coins)
-		require.Nil(t, err)
-		err = app.CVMKeeper.RecycleCoins(ctx)
-		require.Nil(t, err)
-		zAcc := app.AccountKeeper.GetAccount(ctx, crypto.ZeroAddress.Bytes())
-		err = app.BankKeeper.SetBalances(ctx, crypto.ZeroAddress.Bytes(), sdk.Coins{})
-		require.Nil(t, err)
-		app.AccountKeeper.SetAccount(ctx, zAcc)
-		require.Nil(t, err)
-		commPool := app.DistrKeeper.GetFeePoolCommunityCoins(ctx)
-		require.Equal(t, commPool, sdk.NewDecCoinsFromCoins(coins...))
-	})
-}
-
 func TestStoreLastBlockHash(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
