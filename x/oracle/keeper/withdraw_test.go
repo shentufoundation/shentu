@@ -48,7 +48,7 @@ func TestWithdraw(t *testing.T) {
 }
 
 //Test set withdraw
-func TestSetdraw(t *testing.T) {
+func TestSetWithdraw(t *testing.T) {
 	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))

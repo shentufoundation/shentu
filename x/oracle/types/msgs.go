@@ -38,16 +38,24 @@ func (MsgCreateOperator) Type() string { return TypeMsgCreateOperator }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgCreateOperator) ValidateBasic() error {
-	addr, err := sdk.AccAddressFromBech32(m.Address)
+	_, err := sdk.AccAddressFromBech32(m.Address)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	if addr.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, string(addr.Bytes()))
+
+	_, err = sdk.AccAddressFromBech32(m.Proposer)
+	if err != nil {
+		return err
 	}
-	if m.Collateral.IsAnyNegative() {
+
+	if !m.Collateral.IsValid() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.Collateral.String())
 	}
+
+	if !m.Collateral.IsAllPositive() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.Collateral.String())
+	}
+
 	return nil
 }
 
@@ -85,13 +93,16 @@ func (MsgRemoveOperator) Type() string { return TypeMsgRemoveOperator }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgRemoveOperator) ValidateBasic() error {
-	addr, err := sdk.AccAddressFromBech32(m.Address)
+	_, err := sdk.AccAddressFromBech32(m.Address)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	if addr.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, string(addr.Bytes()))
+
+	_, err = sdk.AccAddressFromBech32(m.Proposer)
+	if err != nil {
+		return err
 	}
+
 	return nil
 }
 
@@ -129,16 +140,19 @@ func (MsgAddCollateral) Type() string { return TypeMsgAddCollateral }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgAddCollateral) ValidateBasic() error {
-	addr, err := sdk.AccAddressFromBech32(m.Address)
+	_, err := sdk.AccAddressFromBech32(m.Address)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	if addr.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, string(addr.Bytes()))
-	}
-	if m.CollateralIncrement.IsAnyNegative() {
+
+	if !m.CollateralIncrement.IsValid() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.CollateralIncrement.String())
 	}
+
+	if !m.CollateralIncrement.IsAllPositive() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.CollateralIncrement.String())
+	}
+
 	return nil
 }
 
@@ -176,16 +190,19 @@ func (MsgReduceCollateral) Type() string { return TypeMsgReduceCollateral }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgReduceCollateral) ValidateBasic() error {
-	addr, err := sdk.AccAddressFromBech32(m.Address)
+	_, err := sdk.AccAddressFromBech32(m.Address)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	if addr.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, string(addr.Bytes()))
-	}
-	if m.CollateralDecrement.IsAnyNegative() {
+
+	if !m.CollateralDecrement.IsValid() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.CollateralDecrement.String())
 	}
+
+	if !m.CollateralDecrement.IsAllPositive() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, m.CollateralDecrement.String())
+	}
+
 	return nil
 }
 
@@ -222,13 +239,11 @@ func (MsgWithdrawReward) Type() string { return TypeMsgWithdrawReward }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgWithdrawReward) ValidateBasic() error {
-	addr, err := sdk.AccAddressFromBech32(m.Address)
+	_, err := sdk.AccAddressFromBech32(m.Address)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	if addr.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, string(addr.Bytes()))
-	}
+
 	return nil
 }
 
