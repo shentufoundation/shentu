@@ -108,7 +108,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				if vestingStart == 0 {
 					vestingStart = time.Now().Unix() + 10
 				}
-				
+
 				switch {
 				case manual:
 					unlocker, err := sdk.AccAddressFromBech32(viper.GetString(flagUnlocker))
@@ -116,12 +116,12 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 						return errors.New("unlocker address is in incorrect format")
 					}
 					genAccount = types.NewManualVestingAccountRaw(baseVestingAccount, sdk.NewCoins(), unlocker)
-			
+
 				case period != 0:
 					periods := authvesting.Periods{}
 					remaining := vestingAmt
 					monthlyAmount := common.DivideCoins(vestingAmt, numberPeriods)
-			
+
 					for i := int64(0); i < numberPeriods-1; i++ {
 						periods = append(periods, authvesting.Period{Length: period, Amount: monthlyAmount})
 						remaining = remaining.Sub(monthlyAmount)

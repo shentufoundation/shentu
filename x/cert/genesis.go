@@ -16,7 +16,6 @@ func InitDefaultGenesis(ctx sdk.Context, k keeper.Keeper) {
 // InitGenesis initialize default parameters and the keeper's address to pubkey map.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	certifiers := data.Certifiers
-	validators := data.Validators
 	platforms := data.Platforms
 	certificates := data.Certificates
 	libraries := data.Libraries
@@ -39,18 +38,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 			_ = k.CertifyPlatform(ctx, certifierAddr, pk, platform.Description)
 		}
 	}
-	for _, validator := range validators {
-		pk, ok := validator.Pubkey.GetCachedValue().(cryptotypes.PubKey)
-		if !ok {
-			panic(sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into cryto.PubKey %T", validator.Pubkey))
-		}
-		certifierAddr, err := sdk.AccAddressFromBech32(validator.Certifier)
-		if err != nil {
-			panic(err)
-		}
-
-		k.SetValidator(ctx, pk, certifierAddr)
-	}
 	for _, certificate := range certificates {
 		k.SetCertificate(ctx, certificate)
 	}
@@ -71,7 +58,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	certifiers := k.GetAllCertifiers(ctx)
-	validators := k.GetAllValidators(ctx)
 	platforms := k.GetAllPlatforms(ctx)
 	certificates := k.GetAllCertificates(ctx)
 	libraries := k.GetAllLibraries(ctx)
@@ -79,7 +65,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 
 	return &types.GenesisState{
 		Certifiers:        certifiers,
-		Validators:        validators,
 		Platforms:         platforms,
 		Certificates:      certificates,
 		Libraries:         libraries,

@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -34,6 +35,12 @@ func GetGenesisStateFromAppState(cdc codec.Marshaler, appState map[string]json.R
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (p Platform) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(p.ValidatorPubkey, &pubKey)
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (g GenesisState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	for _, certificate := range g.Certificates {
 		err := certificate.UnpackInterfaces(unpacker)
@@ -41,16 +48,8 @@ func (g GenesisState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 			return err
 		}
 	}
-
 	for _, platform := range g.Platforms {
 		err := platform.UnpackInterfaces(unpacker)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, validator := range g.Validators {
-		err := validator.UnpackInterfaces(unpacker)
 		if err != nil {
 			return err
 		}

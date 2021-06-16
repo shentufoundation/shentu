@@ -308,15 +308,6 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 		}
 	}
 
-	newValidators := make([]certtypes.Validator, len(oldGenState.Validators))
-	for i, v := range oldGenState.Validators {
-		pkAny := codectypes.UnsafePackAny(v.PubKey)
-		newValidators[i] = certtypes.Validator{
-			Pubkey:    pkAny,
-			Certifier: v.Certifier.String(),
-		}
-	}
-
 	newPlatforms := make([]certtypes.Platform, len(oldGenState.Platforms))
 	for i, p := range oldGenState.Platforms {
 		valPkAny := codectypes.UnsafePackAny(p.Validator)
@@ -356,7 +347,6 @@ func migrateCert(oldGenState CertGenesisState) *certtypes.GenesisState {
 
 	return &certtypes.GenesisState{
 		Certifiers:        newCertifiers,
-		Validators:        newValidators,
 		Platforms:         newPlatforms,
 		Certificates:      newCertificates,
 		Libraries:         newLibraries,

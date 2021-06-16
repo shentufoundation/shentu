@@ -702,38 +702,4 @@ func TestPrecompiles(t *testing.T) {
 		require.Equal(t, []byte{0x01}, result)
 		require.Nil(t, err)
 	})
-
-	t.Run("deploy and call certify validator native contract", func(t *testing.T) {
-		valStr := "cosmosvalconspub1zcjduepqxhy6865hf90lwmckjuegfdvqmyznhd6a4dkjr90pq0a82fxxg2qqcpfqat"
-		code, err := hex.DecodeString(TestCertifyValidatorString)
-		require.Nil(t, err)
-
-		result, err := app.CVMKeeper.Tx(ctx, addrs[1], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
-		require.Nil(t, err)
-		require.NotNil(t, result)
-		newContractAddress := sdk.AccAddress(result)
-
-		app.CertKeeper.SetCertifier(ctx, certtypes.Certifier{Address: addrs[2].String()})
-		require.True(t, app.CertKeeper.IsCertifier(ctx, addrs[2]))
-
-		certifyValidator, _, err := abi.EncodeFunctionCall(
-			TestCertifyValidatorAbiJsonString,
-			"certifyValidator",
-			WrapLogger(ctx.Logger()),
-		)
-		err = app.BankKeeper.AddCoins(ctx, addrs[2], sdk.Coins{sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 12345)})
-		require.NoError(t, err)
-		certAcc := app.AccountKeeper.GetAccount(ctx, addrs[2])
-		_ = certAcc.SetSequence(1)
-		app.AccountKeeper.SetAccount(ctx, certAcc)
-
-		result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false, false, false)
-		require.NotNil(t, err)
-		result, err = app.CVMKeeper.Tx(ctx, addrs[2], newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false, false, false)
-		require.Equal(t, []byte{0x01}, result)
-
-		validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, valStr)
-		require.Nil(t, err)
-		require.True(t, app.CertKeeper.IsValidatorCertified(ctx, validator))
-	})
 }

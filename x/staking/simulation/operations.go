@@ -14,8 +14,6 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingSim "github.com/cosmos/cosmos-sdk/x/staking/simulation"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	"github.com/certikfoundation/shentu/x/staking/types"
 )
 
 const (
@@ -27,7 +25,7 @@ const (
 )
 
 func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper,
-	ck types.CertKeeper, k stakingkeeper.Keeper) simulation.WeightedOperations {
+	k stakingkeeper.Keeper) simulation.WeightedOperations {
 	var (
 		weightMsgCreateValidator int
 		weightMsgEditValidator   int
@@ -69,7 +67,7 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, a
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(
 			weightMsgCreateValidator,
-			SimulateMsgCreateValidator(k, ak, bk, ck),
+			SimulateMsgCreateValidator(k, ak, bk),
 		),
 		simulation.NewWeightedOperation(
 			weightMsgEditValidator,
@@ -90,7 +88,7 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, a
 	}
 }
 
-func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper, ck types.CertKeeper) simtypes.Operation {
+func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
 		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
@@ -99,10 +97,6 @@ func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountK
 		_, found := k.GetValidator(ctx, address)
 		if found {
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgCreateValidator, "unable to find a validator"), nil, nil
-		}
-
-		if !ck.IsValidatorCertified(ctx, simAccount.PubKey) {
-			return simtypes.NewOperationMsgBasic(stakingtypes.ModuleName, "NoOp: not a certified validator", "", false, nil), nil, nil
 		}
 
 		denom := k.GetParams(ctx).BondDenom

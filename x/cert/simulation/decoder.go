@@ -21,12 +21,6 @@ func NewDecodeStore(cdc codec.Marshaler) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &certifierB)
 			return fmt.Sprintf("%v\n%v", certifierA, certifierB)
 
-		case bytes.Equal(kvA.Key[:1], types.ValidatorsStoreKey()):
-			var validatorA, validatorB types.Validator
-			cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &validatorA)
-			cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &validatorB)
-			return fmt.Sprintf("%v\n%v", validatorA, validatorB)
-
 		case bytes.Equal(kvA.Key[:1], types.PlatformsStoreKey()):
 			var platformA, platformB types.Platform
 			cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &platformA)
