@@ -390,10 +390,6 @@ func SimulateMsgCreateTask(ak types.AccountKeeper, k keeper.Keeper, bk types.Ban
 
 		futureOperations := []simtypes.FutureOperation{
 			{
-				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 0, 20),
-				Op:          SimulateMsgInquiryTask(ak, bk, contract, function),
-			},
-			{
 				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 20, 25),
 				Op:          SimulateMsgDeleteTask(ak, bk, contract, function, creator),
 			},
@@ -409,45 +405,6 @@ func SimulateMsgCreateTask(ak types.AccountKeeper, k keeper.Keeper, bk types.Ban
 		}
 
 		return simtypes.NewOperationMsg(msg, true, ""), futureOperations, nil
-	}
-}
-
-// SimulateMsgInquiryTask generates a MsgInquiryTask object with all of its fields randomized.
-func SimulateMsgInquiryTask(ak types.AccountKeeper, bk types.BankKeeper, contract, function string) simtypes.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
-		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		txHash := simtypes.RandStringOfLength(r, 20)
-		inquirer, _ := simtypes.RandomAcc(r, accs)
-
-		msg := types.NewMsgInquiryTask(contract, function, txHash, inquirer.Address)
-
-		inquirerAcc := ak.GetAccount(ctx, inquirer.Address)
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, inquirerAcc.GetAddress()))
-		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
-		}
-
-		txGen := simappparams.MakeTestEncodingConfig().TxConfig
-		tx, err := helpers.GenTx(
-			txGen,
-			[]sdk.Msg{msg},
-			fees,
-			helpers.DefaultGenTxGas,
-			chainID,
-			[]uint64{inquirerAcc.GetAccountNumber()},
-			[]uint64{inquirerAcc.GetSequence()},
-			inquirer.PrivKey,
-		)
-		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
-		}
-
-		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
-		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
-		}
-
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 

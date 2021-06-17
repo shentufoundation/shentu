@@ -332,45 +332,6 @@ func (m MsgTaskResponse) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-// NewMsgInquiryTask returns a new MsgInquiryTask instance.
-func NewMsgInquiryTask(contract, function, txhash string, inquirer sdk.AccAddress) *MsgInquiryTask {
-	return &MsgInquiryTask{
-		Contract: contract,
-		Function: function,
-		TxHash:   txhash,
-		Inquirer: inquirer.String(),
-	}
-}
-
-// Route returns the module name.
-func (MsgInquiryTask) Route() string { return ModuleName }
-
-// Type returns the action name.
-func (MsgInquiryTask) Type() string { return TypeMsgInquireTask }
-
-// ValidateBasic runs stateless checks on the message.
-func (m MsgInquiryTask) ValidateBasic() error {
-	return nil
-}
-
-// GetSignBytes encodes the message for signing.
-func (m MsgInquiryTask) GetSignBytes() []byte {
-	b, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
-}
-
-// GetSigners defines whose signature is required.
-func (m MsgInquiryTask) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Inquirer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{addr}
-}
-
 // NewMsgDeleteTask returns a new MsgDeleteTask instance.
 func NewMsgDeleteTask(contract, function string, force bool, deleter sdk.AccAddress) *MsgDeleteTask {
 	return &MsgDeleteTask{
