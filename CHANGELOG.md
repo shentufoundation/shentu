@@ -50,14 +50,19 @@ Version 2.0.0 brings many changes with SDK upgrading to Stargate version. For mo
 
 ### State Machine Breaking Changes
 * (app) [\#221](https://github.com/certikfoundation/shentu/pull/221) Upgraded SDK to 0.42.x.
+* [\#286](https://github.com/certikfoundation/shentu/pull/286) Fix shield emitted events to include sender.
 
 ### Features
 * (ibc) [\#251](https://github.com/certikfoundation/shentu/pull/251) Add IBC support.
 
 ### Improvements
 * [\#230](https://github.com/certikfoundation/shentu/pull/230) Optimized shield invariant & removed crisis module from endblocker.
+* [\#286](https://github.com/certikfoundation/shentu/pull/286) Fix shield emitted events to include sender.
+* [\#283](https://github.com/certikfoundation/shentu/pull/283) Improve vesting account generation.
 
 ### Tests
+* [\#296](https://github.com/certikfoundation/shentu/pull/296) General test improvements over the modules.
+* [\#280](https://github.com/certikfoundation/shentu/pull/280) Additional test cases for cert and oracle modules.
 
 ### Bug Fixes
 * (app) [\#254](https://github.com/certikfoundation/shentu/pull/254) Disable module account receiving coins.
