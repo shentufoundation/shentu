@@ -1,17 +1,33 @@
-FROM golang:1.15
+# FROM golang:1.15
+FROM golang:alpine AS build-env
+
+# Set up dependencies
+ENV PACKAGES bash curl make git libc-dev gcc linux-headers eudev-dev python3
+
+# ADD . /shentu
+WORKDIR /shentu
+
+COPY go.mod .
+COPY go.sum .
+
+RUN go mod download
+
+COPY . .
+
+RUN apk add --no-cache $PACKAGES && \
+    make install
+
+FROM alpine:edge
 
 LABEL name="CertiK Chain"
 LABEL maintainer="CertiK"
 LABEL repository="https://github.com/certikfoundation/shentu"
 LABEL org.opencontainers.image.source=https://github.com/certikfoundation/shentu
 
-EXPOSE 26656 26657 26658
+RUN apk add --update ca-certificates
 
-RUN apt-get update && apt-get install nodejs npm -y
-
-ADD . /shentu
 WORKDIR /shentu
 
-RUN make install
+COPY --from=build-env /go/bin/certik /usr/bin/certik
 
 CMD ["certik"]
