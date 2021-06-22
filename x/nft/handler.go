@@ -52,6 +52,14 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.RevokeAdmin(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
+		case *types.MsgIssueCertificate:
+			res, err := msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+
+		case *types.MsgRevokeCertificate:
+			res, err := msgServer.RevokeCertificate(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized nft message type: %T", msg)
 		}

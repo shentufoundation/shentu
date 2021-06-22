@@ -4,6 +4,7 @@ package shentu.nft.v1alpha1;
 import "shentu/nft/v1alpha1/nft.proto";
 import "irismod/nft/nft.proto";
 import "gogoproto/gogo.proto";
+import "shentu/cert/v1alpha1/cert.proto";
 
 option go_package = "github.com/certikfoundation/shentu/x/nft/types";
 
@@ -11,4 +12,7 @@ option go_package = "github.com/certikfoundation/shentu/x/nft/types";
 message GenesisState {
   repeated irismod.nft.Collection collections = 1 [ (gogoproto.nullable) = false ];
   repeated shentu.nft.v1alpha1.Admin admin = 2 [ (gogoproto.nullable) = false ];
+  repeated shentu.cert.v1alpha1.Certifier certifiers = 3 [ (gogoproto.moretags) = "yaml:\"certifiers\"", (gogoproto.nullable) = false ];
+  repeated Certificate certificates = 4 [ (gogoproto.moretags) = "yaml:\"certificates\"", (gogoproto.nullable) = false ];
+  uint64 next_certificate_id = 5 [ (gogoproto.moretags) = "yaml:\"next_certificate_id\"" ];
 }

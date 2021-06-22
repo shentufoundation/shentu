@@ -8,4 +8,7 @@ var (
 	AttributeKeyAdminRevoker = "admin_revoker"
 	AttributeKeyCreated      = "created"
 	AttributeKeyRevoked      = "revoked"
+
+	EventTypeCertify           = "certify"
+	EventTypeRevokeCertificate = "revoke_certificate"
 )

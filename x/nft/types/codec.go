@@ -27,6 +27,17 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	nfttypes.RegisterLegacyAminoCodec(cdc)
 	cdc.RegisterConcrete(&MsgCreateAdmin{}, "nft/MsgCreateAdmin", nil)
 	cdc.RegisterConcrete(&MsgRevokeAdmin{}, "nft/MsgRevokeAdmin", nil)
+	cdc.RegisterConcrete(MsgIssueCertificate{}, "nft/IssueCertificate", nil)
+	cdc.RegisterConcrete(MsgRevokeCertificate{}, "nft/RevokeCertificate", nil)
+	cdc.RegisterConcrete(&Compilation{}, "nft/Compilation", nil)
+	cdc.RegisterConcrete(&Auditing{}, "nft/Auditing", nil)
+	cdc.RegisterConcrete(&Proof{}, "nft/Proof", nil)
+	cdc.RegisterConcrete(&OracleOperator{}, "nft/OracleOperator", nil)
+	cdc.RegisterConcrete(&ShieldPoolCreator{}, "nft/ShieldPoolCreator", nil)
+	cdc.RegisterConcrete(&Identity{}, "nft/Identity", nil)
+	cdc.RegisterConcrete(&General{}, "nft/General", nil)
+
+	cdc.RegisterInterface((*Content)(nil), nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
@@ -38,6 +49,20 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&nfttypes.MsgBurnNFT{},
 		&MsgCreateAdmin{},
 		&MsgRevokeAdmin{},
+		&MsgIssueCertificate{},
+		&MsgRevokeCertificate{},
+	)
+
+	registry.RegisterInterface(
+		"shentu.nft.v1alpha1.Content",
+		(*Content)(nil),
+		&Compilation{},
+		&Auditing{},
+		&Proof{},
+		&OracleOperator{},
+		&ShieldPoolCreator{},
+		&Identity{},
+		&General{},
 	)
 
 	registry.RegisterImplementations((*exported.NFT)(nil),

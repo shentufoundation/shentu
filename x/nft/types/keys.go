@@ -1,6 +1,10 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	"encoding/binary"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 const (
 	// ModuleName is the name of this module
@@ -17,9 +21,28 @@ const (
 )
 
 var (
-	AdminKeyPrefix = []byte{0x10}
+	AdminKeyPrefix             = []byte{0x10}
+	CertificateStoreKeyPrefix  = []byte{0x11}
+	NextCertificateIDKeyPrefix = []byte{0x12}
 )
 
 func AdminKey(addr sdk.AccAddress) []byte {
 	return append(AdminKeyPrefix, addr...)
+}
+
+// CertificateStoreKey returns the kv-store key for accessing a given certificate (ID).
+func CertificateStoreKey(id uint64) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, id)
+	return append(CertificateStoreKeyPrefix, bz...)
+}
+
+// CertificatesStoreKey returns the kv-store key for accessing all certificates.
+func CertificatesStoreKey() []byte {
+	return CertificateStoreKeyPrefix
+}
+
+// NextCertificateIDStoreKey returns the kv-store key for next certificate ID to assign.
+func NextCertificateIDStoreKey() []byte {
+	return NextCertificateIDKeyPrefix
 }

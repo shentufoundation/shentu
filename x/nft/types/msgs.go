@@ -1,6 +1,11 @@
 package types
 
 import (
+	fmt "fmt"
+
+	"github.com/gogo/protobuf/proto"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -87,4 +92,99 @@ func (m MsgRevokeAdmin) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{proposerAddr}
+}
+
+// NewMsgIssueCertificate returns a new certification message.
+func NewMsgIssueCertificate(
+	content Content, compiler, bytecodeHash, description string, certifier sdk.AccAddress,
+) *MsgIssueCertificate {
+	msg, ok := content.(proto.Message)
+	if !ok {
+		panic(fmt.Errorf("%T does not implement proto.Message", content))
+	}
+	any, err := codectypes.NewAnyWithValue(msg)
+	if err != nil {
+		panic(err)
+	}
+	return &MsgIssueCertificate{
+		Content:      any,
+		Compiler:     compiler,
+		BytecodeHash: bytecodeHash,
+		Description:  description,
+		Certifier:    certifier.String(),
+	}
+}
+
+// Route returns the module name.
+func (m MsgIssueCertificate) Route() string { return ModuleName }
+
+// Type returns the action name.
+func (m MsgIssueCertificate) Type() string { return "issue_certificate" }
+
+// ValidateBasic runs stateless checks on the message.
+func (m MsgIssueCertificate) ValidateBasic() error {
+	return nil
+}
+
+// GetSignBytes encodes the message for signing.
+func (m MsgIssueCertificate) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners defines whose signature is required.
+func (m MsgIssueCertificate) GetSigners() []sdk.AccAddress {
+	certifierAddr, err := sdk.AccAddressFromBech32(m.Certifier)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{certifierAddr}
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces.
+func (m MsgIssueCertificate) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var content Content
+	return unpacker.UnpackAny(m.Content, &content)
+}
+
+// NewMsgRevokeCertificate creates a new instance of MsgRevokeCertificate.
+func NewMsgRevokeCertificate(revoker sdk.AccAddress, id uint64, description string) *MsgRevokeCertificate {
+	return &MsgRevokeCertificate{
+		Revoker:     revoker.String(),
+		Id:          id,
+		Description: description,
+	}
+}
+
+// ValidateBasic runs stateless checks on the message.
+func (m MsgRevokeCertificate) ValidateBasic() error {
+	revokerAddr, err := sdk.AccAddressFromBech32(m.Revoker)
+	if err != nil {
+		panic(err)
+	}
+	if revokerAddr.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, revokerAddr.String())
+	}
+	return nil
+}
+
+// Route returns the module name.
+func (m MsgRevokeCertificate) Route() string { return ModuleName }
+
+// Type returns the action name.
+func (m MsgRevokeCertificate) Type() string { return "revoke_certificate" }
+
+// GetSignBytes encodes the message for signing.
+func (m MsgRevokeCertificate) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners defines whose signature is required.
+func (m MsgRevokeCertificate) GetSigners() []sdk.AccAddress {
+	revokerAddr, err := sdk.AccAddressFromBech32(m.Revoker)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{revokerAddr}
 }

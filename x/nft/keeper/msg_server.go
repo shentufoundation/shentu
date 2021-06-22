@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -76,6 +77,62 @@ func (m msgServer) RevokeAdmin(ctx context.Context, msg *types.MsgRevokeAdmin) (
 		),
 	})
 	return &types.MsgRevokeAdminResponse{}, nil
+}
+
+func (k msgServer) IssueCertificate(goCtx context.Context, msg *types.MsgIssueCertificate) (*types.MsgIssueCertificateResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	certificate := types.Certificate{
+		Content:            msg.Content,
+		CompilationContent: &types.CompilationContent{Compiler: msg.Compiler, BytecodeHash: msg.BytecodeHash},
+		Description:        msg.Description,
+		Certifier:          msg.Certifier,
+	}
+
+	certificateID, err := k.Keeper.IssueCertificate(ctx, certificate)
+	if err != nil {
+		return nil, err
+	}
+	certEvent := sdk.NewEvent(
+		types.EventTypeCertify,
+		sdk.NewAttribute("certificate_id", strconv.FormatUint(certificateID, 10)),
+		sdk.NewAttribute("certificate_type", types.TranslateCertificateType(certificate).String()),
+		sdk.NewAttribute("content", certificate.GetContentString()),
+		sdk.NewAttribute("compiler", msg.Compiler),
+		sdk.NewAttribute("bytecode_hash", msg.BytecodeHash),
+		sdk.NewAttribute("description", msg.Description),
+		sdk.NewAttribute("certifier", msg.Certifier),
+	)
+	ctx.EventManager().EmitEvent(certEvent)
+
+	return &types.MsgIssueCertificateResponse{}, nil
+}
+
+func (k msgServer) RevokeCertificate(goCtx context.Context, msg *types.MsgRevokeCertificate) (*types.MsgRevokeCertificateResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	certificate, err := k.Keeper.GetCertificateByID(ctx, msg.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	revokerAddr, err := sdk.AccAddressFromBech32(msg.Revoker)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := k.Keeper.RevokeCertificate(ctx, certificate, revokerAddr); err != nil {
+		return nil, err
+	}
+	revokeEvent := sdk.NewEvent(
+		types.EventTypeRevokeCertificate,
+		sdk.NewAttribute("revoker", msg.Revoker),
+		sdk.NewAttribute("revoked_certificate", certificate.String()),
+		sdk.NewAttribute("revoke_description", msg.Description),
+	)
+	ctx.EventManager().EmitEvent(revokeEvent)
+
+	return &types.MsgRevokeCertificateResponse{}, nil
 }
 
 var _ types.MsgServer = msgServer{}

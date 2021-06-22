@@ -2,7 +2,9 @@ syntax = "proto3";
 package shentu.nft.v1alpha1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "irismod/nft/tx.proto";
+import "google/protobuf/any.proto";
 
 option go_package = "github.com/certikfoundation/shentu/x/nft/types";
 
@@ -30,8 +32,15 @@ service Msg {
 
   // RevokeNFTAdmin defines a method for revoking an nft admin.
   rpc RevokeAdmin(MsgRevokeAdmin) returns (MsgRevokeAdminResponse);
+
+  // IssueCertificate defines a method for issuing a certificate.
+  rpc IssueCertificate(MsgIssueCertificate) returns (MsgIssueCertificateResponse);
+
+  // RevokeCertificate defines a method for revoking a certificate.
+  rpc RevokeCertificate(MsgRevokeCertificate) returns (MsgRevokeCertificateResponse);
 }
 
+// MsgCreateAdmin is the message for creating an nft admin.
 message MsgCreateAdmin {
   string creator = 1;
   string address = 2;
@@ -39,9 +48,36 @@ message MsgCreateAdmin {
 
 message MsgIssueAdminResponse {}
 
+// MsgRevokeAdmin is the message for revoking an nft admin.
 message MsgRevokeAdmin {
   string revoker = 1;
   string address = 2;
 }
 
 message MsgRevokeAdminResponse {}
+
+// MsgIssueCertificates is the message for issuing a certificate.
+message MsgIssueCertificate {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  google.protobuf.Any content = 1 [ (cosmos_proto.accepts_interface) = "Content" ];
+  string compiler = 2 [ (gogoproto.moretags) = "yaml:\"compiler\"" ];
+  string bytecode_hash = 3 [ (gogoproto.moretags) = "yaml:\"bytecodehash\"" ];
+  string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+  string certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
+}
+
+message MsgIssueCertificateResponse {}
+
+// MsgRevokeCertificate returns a certificate revoking operation.
+message MsgRevokeCertificate {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string revoker = 1 [ (gogoproto.moretags) = "yaml:\"revoker\"" ];
+  uint64 id = 2 [ (gogoproto.moretags) = "yaml:\"id\"" ];
+  string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+}
+
+message MsgRevokeCertificateResponse {}
