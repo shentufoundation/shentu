@@ -39,10 +39,11 @@ func (k Keeper) Certificate(c context.Context, req *types.QueryCertificateReques
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	certificate, err := k.GetCertificateByID(ctx, req.CertificateId)
+	certNFT, err := k.GetNFT(ctx, req.DenomId, req.TokenId)
 	if err != nil {
 		return nil, err
 	}
+	certificate := k.UnmarshalCertificate(ctx, certNFT.GetData())
 
 	return &types.QueryCertificateResponse{Certificate: certificate}, nil
 }
@@ -67,10 +68,10 @@ func (k Keeper) Certificates(c context.Context, req *types.QueryCertificatesRequ
 		return nil, err
 	}
 	params := types.QueryCertificatesParams{
-		Page:            page,
-		Limit:           limit,
-		Certifier:       certifierAddr,
-		CertificateType: types.CertificateTypeFromString(req.CertificateType),
+		Page:      page,
+		Limit:     limit,
+		Certifier: certifierAddr,
+		DenomID:   req.DenomId,
 	}
 
 	total, certificates, err := k.GetCertificatesFiltered(ctx, params)

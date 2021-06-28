@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -83,25 +82,23 @@ func (k msgServer) IssueCertificate(goCtx context.Context, msg *types.MsgIssueCe
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	certificate := types.Certificate{
-		Content:            msg.Content,
-		CompilationContent: &types.CompilationContent{Compiler: msg.Compiler, BytecodeHash: msg.BytecodeHash},
-		Description:        msg.Description,
-		Certifier:          msg.Certifier,
+		Content:     msg.Content,
+		Description: msg.Description,
+		Certifier:   msg.Certifier,
 	}
 
-	certificateID, err := k.Keeper.IssueCertificate(ctx, certificate)
-	if err != nil {
+	if err := k.Keeper.IssueCertificate(ctx, msg.DenomId, msg.TokenId, msg.Name, msg.Uri, certificate); err != nil {
 		return nil, err
 	}
 	certEvent := sdk.NewEvent(
 		types.EventTypeCertify,
-		sdk.NewAttribute("certificate_id", strconv.FormatUint(certificateID, 10)),
-		sdk.NewAttribute("certificate_type", types.TranslateCertificateType(certificate).String()),
-		sdk.NewAttribute("content", certificate.GetContentString()),
-		sdk.NewAttribute("compiler", msg.Compiler),
-		sdk.NewAttribute("bytecode_hash", msg.BytecodeHash),
+		sdk.NewAttribute("content", msg.Content),
 		sdk.NewAttribute("description", msg.Description),
 		sdk.NewAttribute("certifier", msg.Certifier),
+		sdk.NewAttribute("denom_id", msg.DenomId),
+		sdk.NewAttribute("token_id", msg.TokenId),
+		sdk.NewAttribute("name", msg.Name),
+		sdk.NewAttribute("uri", msg.Uri),
 	)
 	ctx.EventManager().EmitEvent(certEvent)
 
@@ -111,24 +108,20 @@ func (k msgServer) IssueCertificate(goCtx context.Context, msg *types.MsgIssueCe
 func (k msgServer) RevokeCertificate(goCtx context.Context, msg *types.MsgRevokeCertificate) (*types.MsgRevokeCertificateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	certificate, err := k.Keeper.GetCertificateByID(ctx, msg.Id)
-	if err != nil {
-		return nil, err
-	}
-
 	revokerAddr, err := sdk.AccAddressFromBech32(msg.Revoker)
 	if err != nil {
 		panic(err)
 	}
 
-	if err := k.Keeper.RevokeCertificate(ctx, certificate, revokerAddr); err != nil {
+	if err := k.Keeper.RevokeCertificate(ctx, msg.DenomId, msg.TokenId, revokerAddr); err != nil {
 		return nil, err
 	}
 	revokeEvent := sdk.NewEvent(
 		types.EventTypeRevokeCertificate,
 		sdk.NewAttribute("revoker", msg.Revoker),
-		sdk.NewAttribute("revoked_certificate", certificate.String()),
-		sdk.NewAttribute("revoke_description", msg.Description),
+		sdk.NewAttribute("denom_id", msg.DenomId),
+		sdk.NewAttribute("token_id", msg.TokenId),
+		sdk.NewAttribute("description", msg.Description),
 	)
 	ctx.EventManager().EmitEvent(revokeEvent)
 

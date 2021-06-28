@@ -2,8 +2,6 @@ syntax = "proto3";
 package shentu.nft.v1alpha1;
 
 import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
-import "google/protobuf/any.proto";
 
 option go_package = "github.com/certikfoundation/shentu/x/nft/types";
 
@@ -13,81 +11,11 @@ message Admin {
   string address = 1;
 }
 
-enum CertificateType {
-  option (gogoproto.goproto_enum_prefix) = false;
-
-  CERT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "CertificateTypeNil"];
-  CERT_TYPE_COMPILATION = 1 [(gogoproto.enumvalue_customname) = "CertificateTypeCompilation"];
-  CERT_TYPE_AUDITING = 2 [(gogoproto.enumvalue_customname) = "CertificateTypeAuditing"];
-  CERT_TYPE_PROOF = 3 [(gogoproto.enumvalue_customname) = "CertificateTypeProof"];
-  CERT_TYPE_ORACLE_OPERATOR = 4 [(gogoproto.enumvalue_customname) = "CertificateTypeOracleOperator"];
-  CERT_TYPE_SHIELD_POOL_CREATOR = 5 [(gogoproto.enumvalue_customname) = "CertificateTypeShieldPoolCreator"];
-  CERT_TYPE_IDENTITY = 6 [(gogoproto.enumvalue_customname) = "CertificateTypeIdentity"];
-  CERT_TYPE_GENERAL = 7 [(gogoproto.enumvalue_customname) = "CertificateTypeGeneral"];
-}
-
-message CompilationContent {
-  option (gogoproto.equal) = false;
-  option (gogoproto.goproto_getters) = false;
-
-  string compiler = 1 [ (gogoproto.moretags) = "yaml:\"compiler\"" ];
-  string bytecode_hash = 2 [ (gogoproto.moretags) = "yaml:\"bytecode_hash\"" ];
-}
-
 message Certificate {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  uint64 certificate_id = 1 [ (gogoproto.moretags) = "yaml:\"certificate_id\"" ];
-  google.protobuf.Any content = 2 [ (cosmos_proto.accepts_interface) = "Content" ];
-  CompilationContent compilation_content = 3 [ (gogoproto.moretags) = "yaml:\"compilation_content\"" ];
-  string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-  string certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
-}
-
-message Compilation {
-  option (cosmos_proto.implements_interface) = "Content";
-
   string content = 1;
-}
-
-message Auditing {
-  option (cosmos_proto.implements_interface) = "Content";
-
-  string content = 1;
-}
-
-message Proof {
-  option (cosmos_proto.implements_interface) = "Content";
-
-  string content = 1;
-}
-
-message OracleOperator {
-  option (cosmos_proto.implements_interface) = "Content";
-
-  string content = 1;
-}
-
-message ShieldPoolCreator {
-  option (cosmos_proto.implements_interface) = "Content";
-
-  string content = 1;
-}
-
-message Identity {
-  option (cosmos_proto.implements_interface) = "Content";
-
-  string content = 1;
-}
-
-message General {
-  option (cosmos_proto.implements_interface) = "Content";
-
-  string content = 1;
-}
-
-message KVPair {
-  string key = 1;
-  string value = 2;
+  string description = 2;
+  string certifier = 3;
 }

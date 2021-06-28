@@ -7,17 +7,16 @@ import (
 	nfttypes "github.com/irisnet/irismod/modules/nft/types"
 )
 
-func NewGenesisState(collections []nfttypes.Collection, admins []Admin, startingCertificateID uint64) *GenesisState {
+func NewGenesisState(collections []nfttypes.Collection, admins []Admin) *GenesisState {
 	return &GenesisState{
-		Collections:       collections,
-		Admin:             admins,
-		NextCertificateId: startingCertificateID,
+		Collections: collections,
+		Admin:       admins,
 	}
 }
 
 // DefaultGenesisState returns a default genesis state
 func DefaultGenesisState() *GenesisState {
-	return NewGenesisState([]nfttypes.Collection{}, []Admin{}, 1)
+	return NewGenesisState([]nfttypes.Collection{}, []Admin{})
 }
 
 func ValidateGenesis(data GenesisState) error {

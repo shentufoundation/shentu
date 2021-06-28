@@ -1,11 +1,6 @@
 package types
 
 import (
-	fmt "fmt"
-
-	"github.com/gogo/protobuf/proto"
-
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -95,23 +90,15 @@ func (m MsgRevokeAdmin) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgIssueCertificate returns a new certification message.
-func NewMsgIssueCertificate(
-	content Content, compiler, bytecodeHash, description string, certifier sdk.AccAddress,
-) *MsgIssueCertificate {
-	msg, ok := content.(proto.Message)
-	if !ok {
-		panic(fmt.Errorf("%T does not implement proto.Message", content))
-	}
-	any, err := codectypes.NewAnyWithValue(msg)
-	if err != nil {
-		panic(err)
-	}
+func NewMsgIssueCertificate(content, description, denomID, tokenID, name, uri string, certifier sdk.AccAddress) *MsgIssueCertificate {
 	return &MsgIssueCertificate{
-		Content:      any,
-		Compiler:     compiler,
-		BytecodeHash: bytecodeHash,
-		Description:  description,
-		Certifier:    certifier.String(),
+		Content:     content,
+		Description: description,
+		Certifier:   certifier.String(),
+		DenomId:     denomID,
+		TokenId:     tokenID,
+		Name:        name,
+		Uri:         uri,
 	}
 }
 
@@ -141,17 +128,12 @@ func (m MsgIssueCertificate) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{certifierAddr}
 }
 
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces.
-func (m MsgIssueCertificate) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var content Content
-	return unpacker.UnpackAny(m.Content, &content)
-}
-
 // NewMsgRevokeCertificate creates a new instance of MsgRevokeCertificate.
-func NewMsgRevokeCertificate(revoker sdk.AccAddress, id uint64, description string) *MsgRevokeCertificate {
+func NewMsgRevokeCertificate(revoker sdk.AccAddress, denomID, tokenID, description string) *MsgRevokeCertificate {
 	return &MsgRevokeCertificate{
 		Revoker:     revoker.String(),
-		Id:          id,
+		DenomId:     denomID,
+		TokenId:     tokenID,
 		Description: description,
 	}
 }

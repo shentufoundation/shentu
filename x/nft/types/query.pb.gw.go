@@ -17,7 +17,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/utilities"
-	types_1 "github.com/irisnet/irismod/modules/nft/types"
+	types_0 "github.com/irisnet/irismod/modules/nft/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
@@ -39,7 +39,7 @@ var (
 )
 
 func request_Query_Supply_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq types_1.QuerySupplyRequest
+	var protoReq types_0.QuerySupplyRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -73,7 +73,7 @@ func request_Query_Supply_0(ctx context.Context, marshaler runtime.Marshaler, cl
 }
 
 func local_request_Query_Supply_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq types_1.QuerySupplyRequest
+	var protoReq types_0.QuerySupplyRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -111,7 +111,7 @@ var (
 )
 
 func request_Query_Owner_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq types_1.QueryOwnerRequest
+	var protoReq types_0.QueryOwnerRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
@@ -127,7 +127,7 @@ func request_Query_Owner_0(ctx context.Context, marshaler runtime.Marshaler, cli
 }
 
 func local_request_Query_Owner_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq types_1.QueryOwnerRequest
+	var protoReq types_0.QueryOwnerRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
@@ -147,7 +147,7 @@ var (
 )
 
 func request_Query_Collection_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq types_1.QueryCollectionRequest
+	var protoReq types_0.QueryCollectionRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -181,7 +181,7 @@ func request_Query_Collection_0(ctx context.Context, marshaler runtime.Marshaler
 }
 
 func local_request_Query_Collection_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq types_1.QueryCollectionRequest
+	var protoReq types_0.QueryCollectionRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -215,7 +215,7 @@ func local_request_Query_Collection_0(ctx context.Context, marshaler runtime.Mar
 }
 
 func request_Query_Denom_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq types_1.QueryDenomRequest
+	var protoReq types_0.QueryDenomRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -242,7 +242,7 @@ func request_Query_Denom_0(ctx context.Context, marshaler runtime.Marshaler, cli
 }
 
 func local_request_Query_Denom_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq types_1.QueryDenomRequest
+	var protoReq types_0.QueryDenomRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -273,7 +273,7 @@ var (
 )
 
 func request_Query_Denoms_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq types_1.QueryDenomsRequest
+	var protoReq types_0.QueryDenomsRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
@@ -289,7 +289,7 @@ func request_Query_Denoms_0(ctx context.Context, marshaler runtime.Marshaler, cl
 }
 
 func local_request_Query_Denoms_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq types_1.QueryDenomsRequest
+	var protoReq types_0.QueryDenomsRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
@@ -305,7 +305,7 @@ func local_request_Query_Denoms_0(ctx context.Context, marshaler runtime.Marshal
 }
 
 func request_Query_NFT_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq types_1.QueryNFTRequest
+	var protoReq types_0.QueryNFTRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -343,7 +343,7 @@ func request_Query_NFT_0(ctx context.Context, marshaler runtime.Marshaler, clien
 }
 
 func local_request_Query_NFT_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq types_1.QueryNFTRequest
+	var protoReq types_0.QueryNFTRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -463,15 +463,26 @@ func request_Query_Certificate_0(ctx context.Context, marshaler runtime.Marshale
 		_   = err
 	)
 
-	val, ok = pathParams["certificate_id"]
+	val, ok = pathParams["denom_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "certificate_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "denom_id")
 	}
 
-	protoReq.CertificateId, err = runtime.Uint64(val)
+	protoReq.DenomId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "certificate_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "denom_id", err)
+	}
+
+	val, ok = pathParams["token_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "token_id")
+	}
+
+	protoReq.TokenId, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "token_id", err)
 	}
 
 	msg, err := client.Certificate(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -490,15 +501,26 @@ func local_request_Query_Certificate_0(ctx context.Context, marshaler runtime.Ma
 		_   = err
 	)
 
-	val, ok = pathParams["certificate_id"]
+	val, ok = pathParams["denom_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "certificate_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "denom_id")
 	}
 
-	protoReq.CertificateId, err = runtime.Uint64(val)
+	protoReq.DenomId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "certificate_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "denom_id", err)
+	}
+
+	val, ok = pathParams["token_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "token_id")
+	}
+
+	protoReq.TokenId, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "token_id", err)
 	}
 
 	msg, err := server.Certificate(ctx, &protoReq)
@@ -507,12 +529,30 @@ func local_request_Query_Certificate_0(ctx context.Context, marshaler runtime.Ma
 }
 
 var (
-	filter_Query_Certificates_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Query_Certificates_0 = &utilities.DoubleArray{Encoding: map[string]int{"denom_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_Query_Certificates_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryCertificatesRequest
 	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["denom_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "denom_id")
+	}
+
+	protoReq.DenomId, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "denom_id", err)
+	}
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -529,6 +569,24 @@ func request_Query_Certificates_0(ctx context.Context, marshaler runtime.Marshal
 func local_request_Query_Certificates_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryCertificatesRequest
 	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["denom_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "denom_id")
+	}
+
+	protoReq.DenomId, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "denom_id", err)
+	}
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -1039,9 +1097,9 @@ var (
 
 	pattern_Query_Admins_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "nft", "v1alpha1", "admins"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Certificate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "nft", "v1alpha1", "certificate", "certificate_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Certificate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"shentu", "nft", "v1alpha1", "certificate", "denom_id", "token_id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Certificates_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "nft", "v1alpha1", "certificates"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Certificates_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "nft", "v1alpha1", "certificates", "denom_id"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

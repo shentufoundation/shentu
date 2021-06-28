@@ -1,14 +1,11 @@
 package keeper
 
 import (
-	"strconv"
-
 	"github.com/irisnet/irismod/modules/nft/keeper"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -36,19 +33,16 @@ func validatePathLength(path []string, length int) error {
 }
 
 func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-	if err := validatePathLength(path, 1); err != nil {
+	if err := validatePathLength(path, 2); err != nil {
 		return nil, err
 	}
 
-	certificateID, err := strconv.ParseUint(path[0], 10, 64)
+	certNFT, err := keeper.GetNFT(ctx, path[0], path[1])
 	if err != nil {
 		return nil, err
 	}
+	certificate := keeper.UnmarshalCertificate(ctx, certNFT.GetData())
 
-	certificate, err := keeper.GetCertificateByID(ctx, certificateID)
-	if err != nil {
-		return nil, err
-	}
 	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, certificate)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
@@ -59,17 +53,6 @@ func queryCertificate(ctx sdk.Context, path []string, keeper Keeper, legacyQueri
 type QueryResCertificates struct {
 	Total        uint64              `json:"total"`
 	Certificates []types.Certificate `json:"certificates"`
-}
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (q QueryResCertificates) UnpackInterfaces(unpacker codecTypes.AnyUnpacker) error {
-	for _, x := range q.Certificates {
-		err := x.UnpackInterfaces(unpacker)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func queryCertificates(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {

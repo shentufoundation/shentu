@@ -6,12 +6,10 @@ package types
 import (
 	context "context"
 	fmt "fmt"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
-	types1 "github.com/irisnet/irismod/modules/nft/types"
-	_ "github.com/regen-network/cosmos-proto"
+	types "github.com/irisnet/irismod/modules/nft/types"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -195,11 +193,13 @@ var xxx_messageInfo_MsgRevokeAdminResponse proto.InternalMessageInfo
 
 // MsgIssueCertificates is the message for issuing a certificate.
 type MsgIssueCertificate struct {
-	Content      *types.Any `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
-	Compiler     string     `protobuf:"bytes,2,opt,name=compiler,proto3" json:"compiler,omitempty" yaml:"compiler"`
-	BytecodeHash string     `protobuf:"bytes,3,opt,name=bytecode_hash,json=bytecodeHash,proto3" json:"bytecode_hash,omitempty" yaml:"bytecodehash"`
-	Description  string     `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty" yaml:"description"`
-	Certifier    string     `protobuf:"bytes,5,opt,name=certifier,proto3" json:"certifier,omitempty" yaml:"certifier"`
+	Content     string `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
+	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	Certifier   string `protobuf:"bytes,3,opt,name=certifier,proto3" json:"certifier,omitempty"`
+	DenomId     string `protobuf:"bytes,4,opt,name=denom_id,json=denomId,proto3" json:"denom_id,omitempty"`
+	TokenId     string `protobuf:"bytes,5,opt,name=token_id,json=tokenId,proto3" json:"token_id,omitempty"`
+	Name        string `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
+	Uri         string `protobuf:"bytes,7,opt,name=uri,proto3" json:"uri,omitempty"`
 }
 
 func (m *MsgIssueCertificate) Reset()         { *m = MsgIssueCertificate{} }
@@ -265,9 +265,10 @@ var xxx_messageInfo_MsgIssueCertificateResponse proto.InternalMessageInfo
 
 // MsgRevokeCertificate returns a certificate revoking operation.
 type MsgRevokeCertificate struct {
-	Revoker     string `protobuf:"bytes,1,opt,name=revoker,proto3" json:"revoker,omitempty" yaml:"revoker"`
-	Id          uint64 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty" yaml:"id"`
-	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty" yaml:"description"`
+	Revoker     string `protobuf:"bytes,1,opt,name=revoker,proto3" json:"revoker,omitempty"`
+	DenomId     string `protobuf:"bytes,2,opt,name=denom_id,json=denomId,proto3" json:"denom_id,omitempty"`
+	TokenId     string `protobuf:"bytes,3,opt,name=token_id,json=tokenId,proto3" json:"token_id,omitempty"`
+	Description string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
 }
 
 func (m *MsgRevokeCertificate) Reset()         { *m = MsgRevokeCertificate{} }
@@ -345,52 +346,45 @@ func init() {
 func init() { proto.RegisterFile("shentu/nft/v1alpha1/tx.proto", fileDescriptor_6cb0e86de90ef9e6) }
 
 var fileDescriptor_6cb0e86de90ef9e6 = []byte{
-	// 710 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x95, 0xbd, 0x4e, 0x1b, 0x4b,
-	0x14, 0xc7, 0x6d, 0xc3, 0xc5, 0x30, 0xbe, 0x70, 0xb9, 0x63, 0x07, 0xcc, 0x02, 0xbb, 0xd1, 0xd2,
-	0x90, 0xaf, 0xdd, 0x40, 0x9a, 0x88, 0xa4, 0xc1, 0x26, 0x51, 0x22, 0xe1, 0x44, 0x5a, 0x51, 0xa5,
-	0x08, 0x5a, 0xef, 0x8e, 0xd7, 0x23, 0xec, 0x19, 0x67, 0x67, 0x8c, 0xf0, 0x1b, 0xa4, 0x4c, 0x97,
-	0x96, 0x2e, 0x2f, 0x90, 0x26, 0x6f, 0x10, 0xa5, 0xa2, 0xa4, 0xb2, 0x22, 0xd3, 0xa4, 0xf6, 0x13,
-	0x44, 0x9e, 0xd9, 0x59, 0x16, 0x7f, 0xc9, 0x9d, 0x8f, 0x7e, 0xff, 0xf3, 0x3f, 0x1f, 0xd6, 0x9c,
-	0x05, 0x5b, 0xac, 0x8e, 0x08, 0x6f, 0xdb, 0xa4, 0xc6, 0xed, 0xf3, 0x3d, 0xb7, 0xd1, 0xaa, 0xbb,
-	0x7b, 0x36, 0xbf, 0xb0, 0x5a, 0x21, 0xe5, 0x14, 0xe6, 0x25, 0xb5, 0x48, 0x8d, 0x5b, 0x8a, 0x6a,
-	0x85, 0x80, 0x06, 0x54, 0x70, 0x7b, 0xf0, 0x4b, 0x4a, 0xb5, 0x0d, 0x8f, 0xb2, 0x26, 0x65, 0xa7,
-	0x12, 0xc8, 0x20, 0x42, 0x05, 0x1c, 0x62, 0xd6, 0xa4, 0xbe, 0x28, 0xa2, 0xbc, 0xb5, 0x8d, 0x80,
-	0xd2, 0xa0, 0x81, 0x6c, 0x11, 0x55, 0xdb, 0x35, 0xdb, 0x25, 0x1d, 0x89, 0xcc, 0x23, 0xb0, 0x52,
-	0x61, 0x41, 0x39, 0x44, 0x2e, 0x47, 0x87, 0x7e, 0x13, 0x13, 0x58, 0x04, 0x59, 0x6f, 0x10, 0xd2,
-	0xb0, 0x98, 0xbe, 0x9f, 0xde, 0x5d, 0x72, 0x54, 0x38, 0x20, 0xae, 0xef, 0x87, 0x88, 0xb1, 0x62,
-	0x46, 0x92, 0x28, 0x34, 0xd7, 0xc1, 0xbd, 0x0a, 0x0b, 0xde, 0x32, 0xd6, 0x96, 0x26, 0x0e, 0x62,
-	0x2d, 0x4a, 0x18, 0x8a, 0xec, 0x1d, 0x74, 0x4e, 0xcf, 0x6e, 0xed, 0x43, 0x11, 0xc6, 0xf6, 0x51,
-	0x38, 0xc5, 0xbe, 0x08, 0xd6, 0xee, 0xba, 0xc4, 0xfe, 0x3f, 0x32, 0x20, 0xaf, 0x2a, 0x97, 0x51,
-	0xc8, 0x71, 0x0d, 0x7b, 0x2e, 0x47, 0xf0, 0x05, 0xc8, 0x7a, 0x94, 0x70, 0x44, 0xb8, 0xa8, 0x92,
-	0xdb, 0x2f, 0x58, 0x72, 0x07, 0x96, 0xda, 0x81, 0x75, 0x48, 0x3a, 0xa5, 0xdc, 0xaf, 0xef, 0x4f,
-	0xb2, 0x65, 0x29, 0x74, 0x54, 0x06, 0xb4, 0xc1, 0xa2, 0x47, 0x9b, 0x2d, 0xdc, 0x40, 0xa1, 0xec,
-	0xa4, 0x94, 0xef, 0x77, 0x8d, 0xff, 0x3a, 0x6e, 0xb3, 0x71, 0x60, 0x2a, 0x62, 0x3a, 0xb1, 0x08,
-	0xbe, 0x04, 0xcb, 0xd5, 0x0e, 0x47, 0x1e, 0xf5, 0xd1, 0x69, 0xdd, 0x65, 0xf5, 0xe2, 0x9c, 0xc8,
-	0x5a, 0xef, 0x77, 0x8d, 0xbc, 0xcc, 0x52, 0x78, 0x40, 0x4d, 0xe7, 0x5f, 0x15, 0xbe, 0x71, 0x59,
-	0x1d, 0x3e, 0x07, 0x39, 0x1f, 0x31, 0x2f, 0xc4, 0x2d, 0x8e, 0x29, 0x29, 0xce, 0x8b, 0xdc, 0xb5,
-	0x7e, 0xd7, 0x80, 0x32, 0x37, 0x01, 0x4d, 0x27, 0x29, 0x85, 0xfb, 0x60, 0xc9, 0x93, 0x43, 0xa3,
-	0xb0, 0xf8, 0x8f, 0xc8, 0x2b, 0xf4, 0xbb, 0xc6, 0x6a, 0xd4, 0xa9, 0x42, 0xa6, 0x73, 0x2b, 0x3b,
-	0x58, 0xfc, 0x7c, 0x69, 0xa4, 0xfe, 0x5c, 0x1a, 0x29, 0x73, 0x1b, 0x6c, 0x8e, 0x59, 0x5d, 0xbc,
-	0xda, 0x6f, 0x69, 0x50, 0x88, 0xb7, 0x9e, 0xdc, 0xed, 0xe3, 0xa1, 0x7f, 0xb0, 0x04, 0xfb, 0x5d,
-	0x63, 0x45, 0xd6, 0x8c, 0x80, 0x79, 0xfb, 0xaf, 0x6e, 0x83, 0x0c, 0xf6, 0xc5, 0x1a, 0xe7, 0x4b,
-	0xcb, 0xfd, 0xae, 0xb1, 0x24, 0x85, 0xd8, 0x37, 0x9d, 0x0c, 0xf6, 0x87, 0x87, 0x9f, 0x9b, 0x79,
-	0xf8, 0xc4, 0x20, 0x3a, 0xd8, 0x1a, 0xd7, 0xa8, 0x9a, 0x64, 0xff, 0xeb, 0x02, 0x98, 0xab, 0xb0,
-	0x00, 0x1e, 0x03, 0x20, 0xa6, 0x3d, 0x42, 0x84, 0x36, 0xa1, 0x66, 0x45, 0x6f, 0x45, 0x3c, 0x39,
-	0xb5, 0x09, 0xc1, 0x34, 0x73, 0x32, 0x53, 0xae, 0xb0, 0x0c, 0xb2, 0x15, 0x4c, 0xf8, 0xbb, 0xd7,
-	0x27, 0x70, 0x7d, 0x58, 0x1e, 0x01, 0xcd, 0x98, 0x00, 0x92, 0x26, 0xaf, 0x7c, 0x3c, 0xde, 0x24,
-	0x02, 0xa3, 0x26, 0x11, 0x88, 0x4d, 0xde, 0x83, 0xdc, 0x49, 0xe8, 0x12, 0x56, 0x43, 0xe1, 0xc0,
-	0x68, 0x73, 0x58, 0x9f, 0x80, 0xda, 0xce, 0x14, 0x98, 0xec, 0xaa, 0xd4, 0x0e, 0xc9, 0xd8, 0xae,
-	0x22, 0x30, 0xda, 0x55, 0x04, 0x62, 0x93, 0x8f, 0x20, 0x97, 0x3c, 0x2b, 0x3b, 0xd6, 0x98, 0x03,
-	0x67, 0xdd, 0xbd, 0x3d, 0xda, 0xc3, 0x49, 0xa2, 0xd1, 0xd3, 0x02, 0x4f, 0x41, 0x2e, 0x79, 0x57,
-	0x26, 0xfa, 0x27, 0x44, 0xda, 0xa3, 0x19, 0x44, 0x71, 0x01, 0x02, 0x56, 0x47, 0xee, 0xca, 0xee,
-	0xd4, 0x06, 0x13, 0x4a, 0xed, 0xe9, 0xac, 0xca, 0xb8, 0xde, 0x27, 0xf0, 0xff, 0xe8, 0x63, 0x7b,
-	0x30, 0xbd, 0xe3, 0x64, 0xc5, 0xbd, 0x99, 0xa5, 0xaa, 0x64, 0xe9, 0xf8, 0x67, 0x4f, 0x4f, 0x5f,
-	0xf5, 0xf4, 0xf4, 0x75, 0x4f, 0x4f, 0xff, 0xee, 0xe9, 0xe9, 0x2f, 0x37, 0x7a, 0xea, 0xea, 0x46,
-	0x4f, 0x5d, 0xdf, 0xe8, 0xa9, 0x0f, 0x56, 0x80, 0x79, 0xbd, 0x5d, 0xb5, 0x3c, 0xda, 0xb4, 0xc5,
-	0x01, 0x39, 0xab, 0xd1, 0x36, 0xf1, 0xdd, 0xc1, 0xf3, 0xb3, 0xa3, 0x8f, 0xd9, 0x85, 0xfc, 0xd2,
-	0x74, 0x5a, 0x88, 0x55, 0x17, 0xc4, 0x6d, 0x7d, 0xf6, 0x37, 0x00, 0x00, 0xff, 0xff, 0xee, 0x59,
-	0xd6, 0xa5, 0xe9, 0x06, 0x00, 0x00,
+	// 594 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x95, 0x4f, 0x6f, 0xd3, 0x4c,
+	0x10, 0xc6, 0xe3, 0xa6, 0x6f, 0xd3, 0x4e, 0xa4, 0x57, 0x65, 0x1b, 0xa8, 0x71, 0x83, 0x53, 0xa5,
+	0x97, 0x02, 0x92, 0x4d, 0xe0, 0xc6, 0x8d, 0xa6, 0x20, 0x45, 0x6a, 0x40, 0x8a, 0x7a, 0xe2, 0x40,
+	0xe5, 0xc6, 0x1b, 0x67, 0x15, 0xb2, 0x1b, 0x76, 0xd7, 0x55, 0xf9, 0x06, 0x1c, 0x11, 0x17, 0xae,
+	0xfd, 0x38, 0x1c, 0x7b, 0x41, 0xea, 0x11, 0x25, 0x17, 0x3e, 0x06, 0xf2, 0xfa, 0x4f, 0x37, 0x71,
+	0x1c, 0xe5, 0xb6, 0xb3, 0xcf, 0xe8, 0x37, 0xcf, 0xac, 0x3c, 0x63, 0xa8, 0x8b, 0x21, 0xa6, 0x32,
+	0x74, 0xe9, 0x40, 0xba, 0x57, 0x2d, 0xef, 0xf3, 0x64, 0xe8, 0xb5, 0x5c, 0x79, 0xed, 0x4c, 0x38,
+	0x93, 0x0c, 0xed, 0xc5, 0xaa, 0x43, 0x07, 0xd2, 0x49, 0x55, 0xab, 0x16, 0xb0, 0x80, 0x29, 0xdd,
+	0x8d, 0x4e, 0x71, 0xaa, 0x55, 0x23, 0x9c, 0x88, 0x31, 0xf3, 0x15, 0x29, 0x05, 0x34, 0x4f, 0xe1,
+	0xff, 0xae, 0x08, 0xda, 0x1c, 0x7b, 0x12, 0xbf, 0xf1, 0xc7, 0x84, 0x22, 0x13, 0x2a, 0xfd, 0x28,
+	0x64, 0xdc, 0x34, 0x0e, 0x8d, 0xe3, 0x9d, 0x5e, 0x1a, 0x46, 0x8a, 0xe7, 0xfb, 0x1c, 0x0b, 0x61,
+	0x6e, 0xc4, 0x4a, 0x12, 0x36, 0xf7, 0xe1, 0x61, 0x57, 0x04, 0x1d, 0x21, 0xc2, 0x18, 0xd2, 0xc3,
+	0x62, 0xc2, 0xa8, 0xc0, 0x09, 0xbe, 0x87, 0xaf, 0xd8, 0xe8, 0x1e, 0xcf, 0x55, 0x98, 0xe1, 0x93,
+	0x70, 0x05, 0xde, 0x84, 0x47, 0xf3, 0x94, 0x8c, 0xff, 0xdb, 0x80, 0xbd, 0xb4, 0x72, 0x1b, 0x73,
+	0x49, 0x06, 0xa4, 0xef, 0x49, 0xac, 0x9a, 0x60, 0x54, 0x62, 0x2a, 0xb3, 0x26, 0xe2, 0x10, 0x1d,
+	0x42, 0xd5, 0xc7, 0xa2, 0xcf, 0xc9, 0x44, 0x12, 0x46, 0x93, 0x4a, 0xfa, 0x15, 0xaa, 0xc3, 0x4e,
+	0x3f, 0x46, 0x61, 0x6e, 0x96, 0x95, 0x7e, 0x7f, 0x81, 0x1e, 0xc3, 0xb6, 0x8f, 0x29, 0x1b, 0x5f,
+	0x10, 0xdf, 0xdc, 0x8c, 0xd1, 0x2a, 0xee, 0xf8, 0x91, 0x24, 0xd9, 0x08, 0xd3, 0x48, 0xfa, 0x2f,
+	0x96, 0x54, 0xdc, 0xf1, 0x11, 0x82, 0x4d, 0xea, 0x8d, 0xb1, 0xb9, 0xa5, 0xae, 0xd5, 0x19, 0xed,
+	0x42, 0x39, 0xe4, 0xc4, 0xac, 0xa8, 0xab, 0xe8, 0xf8, 0x7a, 0xfb, 0xdb, 0x4d, 0xa3, 0xf4, 0xf7,
+	0xa6, 0x51, 0x6a, 0x3e, 0x81, 0x83, 0x25, 0x6d, 0x65, 0x6d, 0xff, 0x30, 0xa0, 0x96, 0xbd, 0xc8,
+	0x42, 0xdf, 0x05, 0xaf, 0xab, 0xfb, 0xde, 0x28, 0xf6, 0x5d, 0x9e, 0xf7, 0xbd, 0xf0, 0x5a, 0x9b,
+	0xb9, 0xd7, 0xd2, 0x3c, 0xdb, 0x50, 0x5f, 0xe6, 0x29, 0x35, 0xfd, 0xf2, 0xe7, 0x16, 0x94, 0xbb,
+	0x22, 0x40, 0x67, 0x00, 0xaa, 0xb1, 0xd3, 0xa8, 0x3c, 0xb2, 0x9c, 0xe4, 0xbb, 0x54, 0xdf, 0x70,
+	0xda, 0xb4, 0xd2, 0xac, 0x66, 0xb1, 0x96, 0x52, 0x51, 0x1b, 0x2a, 0x5d, 0x42, 0xe5, 0xfb, 0x77,
+	0xe7, 0x68, 0x7f, 0x31, 0x3d, 0x11, 0xac, 0x46, 0x81, 0xa0, 0x43, 0xde, 0xfa, 0x64, 0x39, 0x24,
+	0x11, 0xf2, 0x90, 0x44, 0xc8, 0x20, 0x1f, 0xa0, 0x7a, 0xce, 0x3d, 0x2a, 0x06, 0x98, 0x47, 0xa0,
+	0x83, 0xc5, 0x7c, 0x4d, 0xb4, 0x8e, 0x56, 0x88, 0xba, 0xab, 0x93, 0x90, 0xd3, 0xa5, 0xae, 0x12,
+	0x21, 0xef, 0x2a, 0x11, 0x32, 0xc8, 0x27, 0xa8, 0xea, 0xd3, 0x7d, 0xe4, 0x2c, 0xd9, 0x18, 0xce,
+	0xfc, 0x0a, 0xb0, 0x9e, 0x15, 0x25, 0xe5, 0x27, 0x1c, 0x5d, 0x40, 0x55, 0x1f, 0xef, 0x42, 0xbe,
+	0x96, 0x64, 0x3d, 0x5f, 0x23, 0x29, 0x2b, 0x40, 0x61, 0x37, 0x37, 0xde, 0xc7, 0x2b, 0x0d, 0x6a,
+	0x99, 0xd6, 0x8b, 0x75, 0x33, 0xb3, 0x7a, 0x5f, 0xe0, 0x41, 0x7e, 0xae, 0x9e, 0xae, 0x76, 0xac,
+	0x57, 0x6c, 0xad, 0x9d, 0x9a, 0x96, 0x3c, 0x39, 0xfb, 0x35, 0xb5, 0x8d, 0xdb, 0xa9, 0x6d, 0xdc,
+	0x4d, 0x6d, 0xe3, 0xcf, 0xd4, 0x36, 0xbe, 0xcf, 0xec, 0xd2, 0xed, 0xcc, 0x2e, 0xdd, 0xcd, 0xec,
+	0xd2, 0x47, 0x27, 0x20, 0x72, 0x18, 0x5e, 0x3a, 0x7d, 0x36, 0x76, 0xd5, 0x1e, 0x1a, 0x0d, 0x58,
+	0x48, 0x7d, 0x2f, 0x1a, 0x3f, 0x37, 0xf9, 0x3b, 0x5c, 0xc7, 0x5b, 0xfd, 0xeb, 0x04, 0x8b, 0xcb,
+	0x2d, 0xb5, 0xd9, 0x5f, 0xfd, 0x0b, 0x00, 0x00, 0xff, 0xff, 0x25, 0xd8, 0x1a, 0xaa, 0x3a, 0x06,
+	0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -406,15 +400,15 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
 	// IssueDenom defines a method for issue a denom.
-	IssueDenom(ctx context.Context, in *types1.MsgIssueDenom, opts ...grpc.CallOption) (*types1.MsgIssueDenomResponse, error)
+	IssueDenom(ctx context.Context, in *types.MsgIssueDenom, opts ...grpc.CallOption) (*types.MsgIssueDenomResponse, error)
 	// MintNFT defines a method for mint a new nft
-	MintNFT(ctx context.Context, in *types1.MsgMintNFT, opts ...grpc.CallOption) (*types1.MsgMintNFTResponse, error)
+	MintNFT(ctx context.Context, in *types.MsgMintNFT, opts ...grpc.CallOption) (*types.MsgMintNFTResponse, error)
 	// RefundHTLC defines a method for editing a nft.
-	EditNFT(ctx context.Context, in *types1.MsgEditNFT, opts ...grpc.CallOption) (*types1.MsgEditNFTResponse, error)
+	EditNFT(ctx context.Context, in *types.MsgEditNFT, opts ...grpc.CallOption) (*types.MsgEditNFTResponse, error)
 	// TransferNFT defines a method for transferring a nft.
-	TransferNFT(ctx context.Context, in *types1.MsgTransferNFT, opts ...grpc.CallOption) (*types1.MsgTransferNFTResponse, error)
+	TransferNFT(ctx context.Context, in *types.MsgTransferNFT, opts ...grpc.CallOption) (*types.MsgTransferNFTResponse, error)
 	// BurnNFT defines a method for burning a nft.
-	BurnNFT(ctx context.Context, in *types1.MsgBurnNFT, opts ...grpc.CallOption) (*types1.MsgBurnNFTResponse, error)
+	BurnNFT(ctx context.Context, in *types.MsgBurnNFT, opts ...grpc.CallOption) (*types.MsgBurnNFTResponse, error)
 	// CreateNFTAdmin defines a method for creating an nft admin.
 	CreateAdmin(ctx context.Context, in *MsgCreateAdmin, opts ...grpc.CallOption) (*MsgIssueAdminResponse, error)
 	// RevokeNFTAdmin defines a method for revoking an nft admin.
@@ -433,8 +427,8 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) IssueDenom(ctx context.Context, in *types1.MsgIssueDenom, opts ...grpc.CallOption) (*types1.MsgIssueDenomResponse, error) {
-	out := new(types1.MsgIssueDenomResponse)
+func (c *msgClient) IssueDenom(ctx context.Context, in *types.MsgIssueDenom, opts ...grpc.CallOption) (*types.MsgIssueDenomResponse, error) {
+	out := new(types.MsgIssueDenomResponse)
 	err := c.cc.Invoke(ctx, "/shentu.nft.v1alpha1.Msg/IssueDenom", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -442,8 +436,8 @@ func (c *msgClient) IssueDenom(ctx context.Context, in *types1.MsgIssueDenom, op
 	return out, nil
 }
 
-func (c *msgClient) MintNFT(ctx context.Context, in *types1.MsgMintNFT, opts ...grpc.CallOption) (*types1.MsgMintNFTResponse, error) {
-	out := new(types1.MsgMintNFTResponse)
+func (c *msgClient) MintNFT(ctx context.Context, in *types.MsgMintNFT, opts ...grpc.CallOption) (*types.MsgMintNFTResponse, error) {
+	out := new(types.MsgMintNFTResponse)
 	err := c.cc.Invoke(ctx, "/shentu.nft.v1alpha1.Msg/MintNFT", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -451,8 +445,8 @@ func (c *msgClient) MintNFT(ctx context.Context, in *types1.MsgMintNFT, opts ...
 	return out, nil
 }
 
-func (c *msgClient) EditNFT(ctx context.Context, in *types1.MsgEditNFT, opts ...grpc.CallOption) (*types1.MsgEditNFTResponse, error) {
-	out := new(types1.MsgEditNFTResponse)
+func (c *msgClient) EditNFT(ctx context.Context, in *types.MsgEditNFT, opts ...grpc.CallOption) (*types.MsgEditNFTResponse, error) {
+	out := new(types.MsgEditNFTResponse)
 	err := c.cc.Invoke(ctx, "/shentu.nft.v1alpha1.Msg/EditNFT", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -460,8 +454,8 @@ func (c *msgClient) EditNFT(ctx context.Context, in *types1.MsgEditNFT, opts ...
 	return out, nil
 }
 
-func (c *msgClient) TransferNFT(ctx context.Context, in *types1.MsgTransferNFT, opts ...grpc.CallOption) (*types1.MsgTransferNFTResponse, error) {
-	out := new(types1.MsgTransferNFTResponse)
+func (c *msgClient) TransferNFT(ctx context.Context, in *types.MsgTransferNFT, opts ...grpc.CallOption) (*types.MsgTransferNFTResponse, error) {
+	out := new(types.MsgTransferNFTResponse)
 	err := c.cc.Invoke(ctx, "/shentu.nft.v1alpha1.Msg/TransferNFT", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -469,8 +463,8 @@ func (c *msgClient) TransferNFT(ctx context.Context, in *types1.MsgTransferNFT, 
 	return out, nil
 }
 
-func (c *msgClient) BurnNFT(ctx context.Context, in *types1.MsgBurnNFT, opts ...grpc.CallOption) (*types1.MsgBurnNFTResponse, error) {
-	out := new(types1.MsgBurnNFTResponse)
+func (c *msgClient) BurnNFT(ctx context.Context, in *types.MsgBurnNFT, opts ...grpc.CallOption) (*types.MsgBurnNFTResponse, error) {
+	out := new(types.MsgBurnNFTResponse)
 	err := c.cc.Invoke(ctx, "/shentu.nft.v1alpha1.Msg/BurnNFT", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -517,15 +511,15 @@ func (c *msgClient) RevokeCertificate(ctx context.Context, in *MsgRevokeCertific
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// IssueDenom defines a method for issue a denom.
-	IssueDenom(context.Context, *types1.MsgIssueDenom) (*types1.MsgIssueDenomResponse, error)
+	IssueDenom(context.Context, *types.MsgIssueDenom) (*types.MsgIssueDenomResponse, error)
 	// MintNFT defines a method for mint a new nft
-	MintNFT(context.Context, *types1.MsgMintNFT) (*types1.MsgMintNFTResponse, error)
+	MintNFT(context.Context, *types.MsgMintNFT) (*types.MsgMintNFTResponse, error)
 	// RefundHTLC defines a method for editing a nft.
-	EditNFT(context.Context, *types1.MsgEditNFT) (*types1.MsgEditNFTResponse, error)
+	EditNFT(context.Context, *types.MsgEditNFT) (*types.MsgEditNFTResponse, error)
 	// TransferNFT defines a method for transferring a nft.
-	TransferNFT(context.Context, *types1.MsgTransferNFT) (*types1.MsgTransferNFTResponse, error)
+	TransferNFT(context.Context, *types.MsgTransferNFT) (*types.MsgTransferNFTResponse, error)
 	// BurnNFT defines a method for burning a nft.
-	BurnNFT(context.Context, *types1.MsgBurnNFT) (*types1.MsgBurnNFTResponse, error)
+	BurnNFT(context.Context, *types.MsgBurnNFT) (*types.MsgBurnNFTResponse, error)
 	// CreateNFTAdmin defines a method for creating an nft admin.
 	CreateAdmin(context.Context, *MsgCreateAdmin) (*MsgIssueAdminResponse, error)
 	// RevokeNFTAdmin defines a method for revoking an nft admin.
@@ -540,19 +534,19 @@ type MsgServer interface {
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) IssueDenom(ctx context.Context, req *types1.MsgIssueDenom) (*types1.MsgIssueDenomResponse, error) {
+func (*UnimplementedMsgServer) IssueDenom(ctx context.Context, req *types.MsgIssueDenom) (*types.MsgIssueDenomResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IssueDenom not implemented")
 }
-func (*UnimplementedMsgServer) MintNFT(ctx context.Context, req *types1.MsgMintNFT) (*types1.MsgMintNFTResponse, error) {
+func (*UnimplementedMsgServer) MintNFT(ctx context.Context, req *types.MsgMintNFT) (*types.MsgMintNFTResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MintNFT not implemented")
 }
-func (*UnimplementedMsgServer) EditNFT(ctx context.Context, req *types1.MsgEditNFT) (*types1.MsgEditNFTResponse, error) {
+func (*UnimplementedMsgServer) EditNFT(ctx context.Context, req *types.MsgEditNFT) (*types.MsgEditNFTResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditNFT not implemented")
 }
-func (*UnimplementedMsgServer) TransferNFT(ctx context.Context, req *types1.MsgTransferNFT) (*types1.MsgTransferNFTResponse, error) {
+func (*UnimplementedMsgServer) TransferNFT(ctx context.Context, req *types.MsgTransferNFT) (*types.MsgTransferNFTResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransferNFT not implemented")
 }
-func (*UnimplementedMsgServer) BurnNFT(ctx context.Context, req *types1.MsgBurnNFT) (*types1.MsgBurnNFTResponse, error) {
+func (*UnimplementedMsgServer) BurnNFT(ctx context.Context, req *types.MsgBurnNFT) (*types.MsgBurnNFTResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BurnNFT not implemented")
 }
 func (*UnimplementedMsgServer) CreateAdmin(ctx context.Context, req *MsgCreateAdmin) (*MsgIssueAdminResponse, error) {
@@ -573,7 +567,7 @@ func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 }
 
 func _Msg_IssueDenom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(types1.MsgIssueDenom)
+	in := new(types.MsgIssueDenom)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -585,13 +579,13 @@ func _Msg_IssueDenom_Handler(srv interface{}, ctx context.Context, dec func(inte
 		FullMethod: "/shentu.nft.v1alpha1.Msg/IssueDenom",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).IssueDenom(ctx, req.(*types1.MsgIssueDenom))
+		return srv.(MsgServer).IssueDenom(ctx, req.(*types.MsgIssueDenom))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_MintNFT_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(types1.MsgMintNFT)
+	in := new(types.MsgMintNFT)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -603,13 +597,13 @@ func _Msg_MintNFT_Handler(srv interface{}, ctx context.Context, dec func(interfa
 		FullMethod: "/shentu.nft.v1alpha1.Msg/MintNFT",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).MintNFT(ctx, req.(*types1.MsgMintNFT))
+		return srv.(MsgServer).MintNFT(ctx, req.(*types.MsgMintNFT))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_EditNFT_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(types1.MsgEditNFT)
+	in := new(types.MsgEditNFT)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -621,13 +615,13 @@ func _Msg_EditNFT_Handler(srv interface{}, ctx context.Context, dec func(interfa
 		FullMethod: "/shentu.nft.v1alpha1.Msg/EditNFT",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).EditNFT(ctx, req.(*types1.MsgEditNFT))
+		return srv.(MsgServer).EditNFT(ctx, req.(*types.MsgEditNFT))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_TransferNFT_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(types1.MsgTransferNFT)
+	in := new(types.MsgTransferNFT)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -639,13 +633,13 @@ func _Msg_TransferNFT_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: "/shentu.nft.v1alpha1.Msg/TransferNFT",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).TransferNFT(ctx, req.(*types1.MsgTransferNFT))
+		return srv.(MsgServer).TransferNFT(ctx, req.(*types.MsgTransferNFT))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_BurnNFT_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(types1.MsgBurnNFT)
+	in := new(types.MsgBurnNFT)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -657,7 +651,7 @@ func _Msg_BurnNFT_Handler(srv interface{}, ctx context.Context, dec func(interfa
 		FullMethod: "/shentu.nft.v1alpha1.Msg/BurnNFT",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).BurnNFT(ctx, req.(*types1.MsgBurnNFT))
+		return srv.(MsgServer).BurnNFT(ctx, req.(*types.MsgBurnNFT))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -919,43 +913,52 @@ func (m *MsgIssueCertificate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.Uri) > 0 {
+		i -= len(m.Uri)
+		copy(dAtA[i:], m.Uri)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Uri)))
+		i--
+		dAtA[i] = 0x3a
+	}
+	if len(m.Name) > 0 {
+		i -= len(m.Name)
+		copy(dAtA[i:], m.Name)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Name)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.TokenId) > 0 {
+		i -= len(m.TokenId)
+		copy(dAtA[i:], m.TokenId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.TokenId)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.DenomId) > 0 {
+		i -= len(m.DenomId)
+		copy(dAtA[i:], m.DenomId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.DenomId)))
+		i--
+		dAtA[i] = 0x22
+	}
 	if len(m.Certifier) > 0 {
 		i -= len(m.Certifier)
 		copy(dAtA[i:], m.Certifier)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.Certifier)))
 		i--
-		dAtA[i] = 0x2a
+		dAtA[i] = 0x1a
 	}
 	if len(m.Description) > 0 {
 		i -= len(m.Description)
 		copy(dAtA[i:], m.Description)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.Description)))
 		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.BytecodeHash) > 0 {
-		i -= len(m.BytecodeHash)
-		copy(dAtA[i:], m.BytecodeHash)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.BytecodeHash)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.Compiler) > 0 {
-		i -= len(m.Compiler)
-		copy(dAtA[i:], m.Compiler)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Compiler)))
-		i--
 		dAtA[i] = 0x12
 	}
-	if m.Content != nil {
-		{
-			size, err := m.Content.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTx(dAtA, i, uint64(size))
-		}
+	if len(m.Content) > 0 {
+		i -= len(m.Content)
+		copy(dAtA[i:], m.Content)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Content)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1010,12 +1013,21 @@ func (m *MsgRevokeCertificate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Description)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.Description)))
 		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.TokenId) > 0 {
+		i -= len(m.TokenId)
+		copy(dAtA[i:], m.TokenId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.TokenId)))
+		i--
 		dAtA[i] = 0x1a
 	}
-	if m.Id != 0 {
-		i = encodeVarintTx(dAtA, i, uint64(m.Id))
+	if len(m.DenomId) > 0 {
+		i -= len(m.DenomId)
+		copy(dAtA[i:], m.DenomId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.DenomId)))
 		i--
-		dAtA[i] = 0x10
+		dAtA[i] = 0x12
 	}
 	if len(m.Revoker) > 0 {
 		i -= len(m.Revoker)
@@ -1119,15 +1131,7 @@ func (m *MsgIssueCertificate) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Content != nil {
-		l = m.Content.Size()
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.Compiler)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.BytecodeHash)
+	l = len(m.Content)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -1136,6 +1140,22 @@ func (m *MsgIssueCertificate) Size() (n int) {
 		n += 1 + l + sovTx(uint64(l))
 	}
 	l = len(m.Certifier)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.DenomId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.TokenId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Uri)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -1161,8 +1181,13 @@ func (m *MsgRevokeCertificate) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	if m.Id != 0 {
-		n += 1 + sovTx(uint64(m.Id))
+	l = len(m.DenomId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.TokenId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
 	}
 	l = len(m.Description)
 	if l > 0 {
@@ -1547,7 +1572,7 @@ func (m *MsgIssueCertificate) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Content", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1557,93 +1582,25 @@ func (m *MsgIssueCertificate) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Content == nil {
-				m.Content = &types.Any{}
-			}
-			if err := m.Content.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Content = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Compiler", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Compiler = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BytecodeHash", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.BytecodeHash = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
 			}
@@ -1675,7 +1632,7 @@ func (m *MsgIssueCertificate) Unmarshal(dAtA []byte) error {
 			}
 			m.Description = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Certifier", wireType)
 			}
@@ -1706,6 +1663,134 @@ func (m *MsgIssueCertificate) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Certifier = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DenomId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DenomId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TokenId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TokenId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Uri", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Uri = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1840,10 +1925,10 @@ func (m *MsgRevokeCertificate) Unmarshal(dAtA []byte) error {
 			m.Revoker = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DenomId", wireType)
 			}
-			m.Id = 0
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1853,12 +1938,57 @@ func (m *MsgRevokeCertificate) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Id |= uint64(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DenomId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TokenId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TokenId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
 			}

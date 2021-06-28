@@ -2,9 +2,7 @@ syntax = "proto3";
 package shentu.nft.v1alpha1;
 
 import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
 import "irismod/nft/tx.proto";
-import "google/protobuf/any.proto";
 
 option go_package = "github.com/certikfoundation/shentu/x/nft/types";
 
@@ -61,11 +59,13 @@ message MsgIssueCertificate {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  google.protobuf.Any content = 1 [ (cosmos_proto.accepts_interface) = "Content" ];
-  string compiler = 2 [ (gogoproto.moretags) = "yaml:\"compiler\"" ];
-  string bytecode_hash = 3 [ (gogoproto.moretags) = "yaml:\"bytecodehash\"" ];
-  string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-  string certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
+  string content = 1;
+  string description = 2;
+  string certifier = 3;
+  string denom_id = 4;
+  string token_id = 5;
+  string name = 6;
+  string uri = 7;
 }
 
 message MsgIssueCertificateResponse {}
@@ -75,9 +75,10 @@ message MsgRevokeCertificate {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string revoker = 1 [ (gogoproto.moretags) = "yaml:\"revoker\"" ];
-  uint64 id = 2 [ (gogoproto.moretags) = "yaml:\"id\"" ];
-  string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+  string revoker = 1;
+  string denom_id = 2;
+  string token_id = 3;
+  string description = 4;
 }
 
 message MsgRevokeCertificateResponse {}
