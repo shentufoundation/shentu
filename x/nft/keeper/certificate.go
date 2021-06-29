@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/x/nft/types"
@@ -35,6 +36,28 @@ func (k Keeper) IssueCertificate(ctx sdk.Context, denomID, tokenID, tokenNm, tok
 
 	tokenData := k.MarshalCertificate(ctx, certificate)
 	return k.MintNFT(ctx, denomID, tokenID, tokenNm, tokenURI, tokenData, certifier)
+}
+
+// GetCertificatesFiltered gets certificates filtered.
+func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCertificatesParams) (uint64, []types.Certificate, error) {
+	certNFTs := k.GetNFTs(ctx, params.DenomID)
+	filteredCertificates := []types.Certificate{}
+	for i := 0; i < len(certNFTs); i++ {
+		certificate := k.UnmarshalCertificate(ctx, certNFTs[i].GetData())
+		if len(params.Certifier) == 0 || certificate.GetCertifier().Equals(params.Certifier) {
+			filteredCertificates = append(filteredCertificates, certificate)
+		}
+	}
+
+	// Post-processing
+	start, end := client.Paginate(len(filteredCertificates), params.Page, params.Limit, 100)
+	if start < 0 || end < 0 {
+		filteredCertificates = []types.Certificate{}
+	} else {
+		filteredCertificates = filteredCertificates[start:end]
+	}
+
+	return uint64(len(filteredCertificates)), filteredCertificates, nil
 }
 
 // RevokeCertificate revokes a certificate.
