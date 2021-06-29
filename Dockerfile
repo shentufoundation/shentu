@@ -15,7 +15,7 @@ RUN go mod download
 COPY . .
 
 RUN apk add --no-cache $PACKAGES && \
-    make install
+    make build-linux
 
 FROM alpine:edge
 
@@ -28,6 +28,6 @@ RUN apk add --update ca-certificates
 
 WORKDIR /shentu
 
-COPY --from=build-env /go/bin/certik /usr/bin/certik
+COPY --from=build-env /shentu/build/certik /usr/bin/certik
 
 CMD ["certik"]
