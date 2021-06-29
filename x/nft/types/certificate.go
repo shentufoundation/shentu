@@ -32,11 +32,6 @@ const (
 		"description": "Certificate NFT Schema",
 		"type": "object",
 		"properties": {
-			"certificate_id": {
-				"description": "unique certificate ID issued",
-				"type": "integer",
-				"minimum": "1",
-			},
 			"content": {
 				"description": "content of certificate",
 				"type": "string",
@@ -52,7 +47,6 @@ const (
 		},
 		"additionalProperties": false,
 		"required": [
-			"certificate_id",
 			"content",
 			"description",
 			"certifier"

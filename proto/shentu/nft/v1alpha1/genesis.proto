@@ -12,6 +12,4 @@ option go_package = "github.com/certikfoundation/shentu/x/nft/types";
 message GenesisState {
   repeated irismod.nft.Collection collections = 1 [ (gogoproto.nullable) = false ];
   repeated shentu.nft.v1alpha1.Admin admin = 2 [ (gogoproto.nullable) = false ];
-  repeated shentu.cert.v1alpha1.Certifier certifiers = 3 [ (gogoproto.moretags) = "yaml:\"certifiers\"", (gogoproto.nullable) = false ];
-  repeated Certificate certificates = 4 [ (gogoproto.moretags) = "yaml:\"certificates\"", (gogoproto.nullable) = false ];
 }

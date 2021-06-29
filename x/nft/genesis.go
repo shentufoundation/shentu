@@ -23,20 +23,14 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 		}
 		k.SetAdmin(ctx, addr)
 	}
-
-	for _, certificate := range data.Certificates {
-		k.SetCertificate(ctx, certificate)
-	}
 }
 
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	collections := k.GetCollections(ctx)
 	admin := k.GetAdmins(ctx)
-	certificates := k.GetAllCertificates(ctx)
 
 	return &types.GenesisState{
-		Collections:  collections,
-		Admin:        admin,
-		Certificates: certificates,
+		Collections: collections,
+		Admin:       admin,
 	}
 }

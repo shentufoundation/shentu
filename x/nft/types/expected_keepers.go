@@ -9,4 +9,5 @@ import (
 type CertKeeper interface {
 	IsCertifier(ctx sdk.Context, address sdk.AccAddress) bool
 	GetCertifier(ctx sdk.Context, address sdk.AccAddress) (certtypes.Certifier, error)
+	GetAllCertifiers(ctx sdk.Context) certtypes.Certifiers
 }
