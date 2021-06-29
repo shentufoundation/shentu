@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -26,6 +27,8 @@ func GetQueryCmd() *cobra.Command {
 	queryCmd.AddCommand(
 		GetCmdQueryAdmin(),
 		GetCmdQueryAdmins(),
+		GetCmdQueryCertificate(),
+		GetCmdQueryCertificates(),
 	)
 
 	return queryCmd
@@ -78,6 +81,82 @@ func GetCmdQueryAdmins() *cobra.Command {
 			return clientCtx.PrintProto(resp)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryCertificate() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "certificate [denom-id] [token-id]",
+		Long:    "Query a certificate by the specific denom-id and token-id.",
+		Example: fmt.Sprintf("$ %s query nft certificate <denom-id> <token-id>", version.AppName),
+		Args:    cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			if err := nfttypes.ValidateDenomID(args[0]); err != nil {
+				return err
+			}
+			if err := nfttypes.ValidateTokenID(args[1]); err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			resp, err := queryClient.Certificate(context.Background(), &types.QueryCertificateRequest{
+				DenomId: args[0],
+				TokenId: args[1],
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(resp)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryCertificates() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "certificates [denom-id] [<flags>]",
+		Long:    "Query certificates information.",
+		Example: fmt.Sprintf("$ %s query nft certificates <denom-id>", version.AppName),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			if err := nfttypes.ValidateDenomID(args[0]); err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			resp, err := queryClient.Certificates(context.Background(),
+				&types.QueryCertificatesRequest{
+					Certifier:  viper.GetString(FlagCertifier),
+					DenomId:    args[0],
+					Pagination: pageReq,
+				})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(resp)
+		},
+	}
+	cmd.Flags().String(FlagCertifier, "", "certificates issued by certifier")
+	flags.AddPaginationFlagsToCmd(cmd, "certificates")
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
