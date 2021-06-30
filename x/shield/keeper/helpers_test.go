@@ -20,18 +20,18 @@ import (
 )
 
 var (
-	PKS  = simapp.CreateTestPubKeys(5)
-	acc1 = sdk.AccAddress(PKS[0].Address().Bytes())
-	acc2 = sdk.AccAddress(PKS[1].Address().Bytes())
-	acc3 = sdk.AccAddress(PKS[2].Address().Bytes())
-	acc4 = sdk.AccAddress(PKS[3].Address().Bytes())
-	acc5 = sdk.AccAddress(PKS[4].Address().Bytes())
+	pks  = simapp.CreateTestPubKeys(5)
+	acc1 = sdk.AccAddress(pks[0].Address().Bytes())
+	acc2 = sdk.AccAddress(pks[1].Address().Bytes())
+	acc3 = sdk.AccAddress(pks[2].Address().Bytes())
+	acc4 = sdk.AccAddress(pks[3].Address().Bytes())
+	acc5 = sdk.AccAddress(pks[4].Address().Bytes())
 
-	val1 = sdk.ValAddress(PKS[0].Address())
-	val2 = sdk.ValAddress(PKS[1].Address())
-	val3 = sdk.ValAddress(PKS[2].Address())
-	val4 = sdk.ValAddress(PKS[3].Address())
-	val5 = sdk.ValAddress(PKS[4].Address())
+	val1 = sdk.ValAddress(pks[0].Address())
+	val2 = sdk.ValAddress(pks[1].Address())
+	val3 = sdk.ValAddress(pks[2].Address())
+	val4 = sdk.ValAddress(pks[3].Address())
+	val5 = sdk.ValAddress(pks[4].Address())
 
 	basePurchase = types.Purchase{
 		PurchaseId:        1,
@@ -124,8 +124,8 @@ type poolpurchase struct {
 }
 
 func (suite TestSuite) setupProviders() {
-	simapp.AddTestAddrsFromPubKeys(suite.app, suite.ctx, PKS, sdk.NewInt(2e8))
-	for _, pk := range PKS {
+	simapp.AddTestAddrsFromPubKeys(suite.app, suite.ctx, pks, sdk.NewInt(2e8))
+	for _, pk := range pks {
 		suite.tstaking.CreateValidatorWithValPower(sdk.ValAddress(pk.Address()), pk, 10000, true)
 		val := suite.tstaking.CheckValidator(sdk.ValAddress(pk.Address()), -1, false)
 		suite.vals = append(suite.vals, val)

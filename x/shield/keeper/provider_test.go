@@ -16,17 +16,17 @@ func TestKeeper_GetSetProvider(t *testing.T) {
 		delegator sdk.AccAddress
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantDt    types.Provider
-		wantFound bool
+		name         string
+		args         args
+		wantProvider types.Provider
+		wantFound    bool
 	}{
 		{
 			name: "Get Valid Address",
 			args: args{
 				delegator: acc2,
 			},
-			wantDt: types.Provider{
+			wantProvider: types.Provider{
 				Address:          acc2.String(),
 				DelegationBonded: sdk.NewInt(10000000000),
 				Collateral:       sdk.ZeroInt(),
@@ -40,14 +40,14 @@ func TestKeeper_GetSetProvider(t *testing.T) {
 			args: args{
 				delegator: acc2,
 			},
-			wantDt:    types.Provider{},
-			wantFound: false,
+			wantProvider: types.Provider{},
+			wantFound:    false,
 		},
 		{
-			name:      "Get Nil Address",
-			args:      args{},
-			wantDt:    types.Provider{},
-			wantFound: false,
+			name:         "Get Nil Address",
+			args:         args{},
+			wantProvider: types.Provider{},
+			wantFound:    false,
 		},
 	}
 	for _, tt := range tests {
@@ -55,14 +55,14 @@ func TestKeeper_GetSetProvider(t *testing.T) {
 			suite := setup(t)
 			k := suite.keeper
 			if tt.wantFound {
-				gotDt := k.AddProvider(suite.ctx, tt.args.delegator)
-				if !reflect.DeepEqual(gotDt, tt.wantDt) {
-					t.Errorf("AddProvider() gotDt = %v, want %v", gotDt, tt.wantDt)
+				gotProvider := k.AddProvider(suite.ctx, tt.args.delegator)
+				if !reflect.DeepEqual(gotProvider, tt.wantProvider) {
+					t.Errorf("AddProvider() gotProvider = %v, want %v", gotProvider, tt.wantProvider)
 				}
 			}
-			gotDt, gotFound := k.GetProvider(suite.ctx, tt.args.delegator)
-			if !reflect.DeepEqual(gotDt, tt.wantDt) {
-				t.Errorf("GetProvider() gotDt = %v, want %v", gotDt, tt.wantDt)
+			gotProvider, gotFound := k.GetProvider(suite.ctx, tt.args.delegator)
+			if !reflect.DeepEqual(gotProvider, tt.wantProvider) {
+				t.Errorf("GetProvider() gotProvider = %v, want %v", gotProvider, tt.wantProvider)
 			}
 			if gotFound != tt.wantFound {
 				t.Errorf("GetProvider() gotFound = %v, want %v", gotFound, tt.wantFound)
@@ -171,7 +171,11 @@ func TestKeeper_GetAllProviders(t *testing.T) {
 			sort.Slice(tt.wantProviders, func(i, j int) bool {
 				return tt.wantProviders[i].Address < tt.wantProviders[j].Address
 			})
-			if gotProviders := k.GetAllProviders(suite.ctx); !reflect.DeepEqual(gotProviders, tt.wantProviders) {
+			gotProviders := k.GetAllProviders(suite.ctx)
+			sort.Slice(gotProviders, func(i, j int) bool {
+				return gotProviders[i].Address < gotProviders[j].Address
+			})
+			if !reflect.DeepEqual(gotProviders, tt.wantProviders) {
 				t.Errorf("GetAllProviders() = %v, want %v", gotProviders, tt.wantProviders)
 			}
 		})
@@ -274,10 +278,10 @@ func TestKeeper_RemoveDelegation(t *testing.T) {
 		valAddr sdk.ValAddress
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantDt    types.Provider
-		wantFound bool
+		name         string
+		args         args
+		wantProvider types.Provider
+		wantFound    bool
 	}{
 		{
 			name: "Valid Remove Delegation",
@@ -285,7 +289,7 @@ func TestKeeper_RemoveDelegation(t *testing.T) {
 				delAddr: acc2,
 				valAddr: val2,
 			},
-			wantDt: types.Provider{
+			wantProvider: types.Provider{
 				Address:          acc2.String(),
 				DelegationBonded: sdk.ZeroInt(),
 				Collateral:       sdk.ZeroInt(),
@@ -300,40 +304,40 @@ func TestKeeper_RemoveDelegation(t *testing.T) {
 				delAddr: acc2,
 				valAddr: val1,
 			},
-			wantDt:    types.Provider{},
-			wantFound: false,
+			wantProvider: types.Provider{},
+			wantFound:    false,
 		},
 		{
 			name: "Invalid Remove: Nil Delegator Address",
 			args: args{
 				valAddr: val1,
 			},
-			wantDt:    types.Provider{},
-			wantFound: false,
+			wantProvider: types.Provider{},
+			wantFound:    false,
 		},
 		{
 			name: "Invalid Remove: Nil Validator Address",
 			args: args{
 				delAddr: acc2,
 			},
-			wantDt:    types.Provider{},
-			wantFound: false,
+			wantProvider: types.Provider{},
+			wantFound:    false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			defer func() {
 				if r := recover(); r != nil && tt.wantFound {
-					t.Errorf("RemoveDelegation() gotFound = %v, want %v", false, tt.wantDt)
+					t.Errorf("RemoveDelegation() gotFound = %v, want %v", false, tt.wantProvider)
 				}
 			}()
 			suite := setup(t)
 			k := suite.keeper
 			k.AddProvider(suite.ctx, tt.args.delAddr)
 			k.RemoveDelegation(suite.ctx, tt.args.delAddr, tt.args.valAddr)
-			gotDt, gotFound := k.GetProvider(suite.ctx, tt.args.delAddr)
-			if !reflect.DeepEqual(gotDt, tt.wantDt) {
-				t.Errorf("RemoveDelegation() gotDt = %v, want %v", gotDt, tt.wantDt)
+			gotProvider, gotFound := k.GetProvider(suite.ctx, tt.args.delAddr)
+			if !reflect.DeepEqual(gotProvider, tt.wantProvider) {
+				t.Errorf("RemoveDelegation() gotProvider = %v, want %v", gotProvider, tt.wantProvider)
 			}
 			if gotFound != tt.wantFound {
 				t.Errorf("RemoveDelegation() gotFound = %v, want %v", gotFound, tt.wantFound)
@@ -347,17 +351,17 @@ func TestKeeper_UpdateDelegationAmount(t *testing.T) {
 		delAddr sdk.AccAddress
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantDt    types.Provider
-		wantFound bool
+		name         string
+		args         args
+		wantProvider types.Provider
+		wantFound    bool
 	}{
 		{
 			name: "Valid Update Delegation, Updated Provider",
 			args: args{
 				delAddr: acc5,
 			},
-			wantDt: types.Provider{
+			wantProvider: types.Provider{
 				Address:          acc5.String(),
 				DelegationBonded: sdk.NewInt(9000000000),
 				Collateral:       sdk.ZeroInt(),
@@ -371,7 +375,7 @@ func TestKeeper_UpdateDelegationAmount(t *testing.T) {
 			args: args{
 				delAddr: acc2,
 			},
-			wantDt: types.Provider{
+			wantProvider: types.Provider{
 				Address:          acc2.String(),
 				DelegationBonded: sdk.NewInt(10000000000),
 				Collateral:       sdk.ZeroInt(),
@@ -381,17 +385,17 @@ func TestKeeper_UpdateDelegationAmount(t *testing.T) {
 			wantFound: true,
 		},
 		{
-			name:      "Invalid Update Delegation, Nil Address",
-			args:      args{},
-			wantDt:    types.Provider{},
-			wantFound: false,
+			name:         "Invalid Update Delegation, Nil Address",
+			args:         args{},
+			wantProvider: types.Provider{},
+			wantFound:    false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			defer func() {
 				if r := recover(); r != nil && tt.wantFound {
-					t.Errorf("UpdateDelegationAmount() gotFound = %v, want %v", false, tt.wantDt)
+					t.Errorf("UpdateDelegationAmount() gotFound = %v, want %v", false, tt.wantProvider)
 				}
 			}()
 			suite := setup(t)
@@ -399,9 +403,9 @@ func TestKeeper_UpdateDelegationAmount(t *testing.T) {
 			k.AddProvider(suite.ctx, tt.args.delAddr)
 			suite.setupUndelegate()
 			k.UpdateDelegationAmount(suite.ctx, tt.args.delAddr)
-			gotDt, gotFound := k.GetProvider(suite.ctx, tt.args.delAddr)
-			if !reflect.DeepEqual(gotDt, tt.wantDt) {
-				t.Errorf("UpdateDelegationAmount() gotDt = %v, want %v", gotDt, tt.wantDt)
+			gotProvider, gotFound := k.GetProvider(suite.ctx, tt.args.delAddr)
+			if !reflect.DeepEqual(gotProvider, tt.wantProvider) {
+				t.Errorf("UpdateDelegationAmount() gotProvider = %v, want %v", gotProvider, tt.wantProvider)
 			}
 			if gotFound != tt.wantFound {
 				t.Errorf("UpdateDelegationAmount() gotFound = %v, want %v", gotFound, tt.wantFound)
