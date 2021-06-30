@@ -24,8 +24,8 @@ func DefaultGenesisState() *GenesisState {
 
 // Validate performs validation of cvm genesis data.
 func (gs GenesisState) Validate() error {
-	if gs.GasRate > 100 {
-		return fmt.Errorf("failed to validate %s genesis state: GasRate is too high", ModuleName)
+	if gs.GasRate < 1 {
+		return fmt.Errorf("failed to validate %s genesis state: GasRate is too low", ModuleName)
 	}
 
 	for _, metadata := range gs.Metadatas {
