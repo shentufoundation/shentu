@@ -15,7 +15,7 @@ RUN go mod download
 COPY . .
 
 RUN apk add --no-cache $PACKAGES && \
-    make install
+    make install LEDGER_ENABLED=false
 
 FROM alpine:edge
 
