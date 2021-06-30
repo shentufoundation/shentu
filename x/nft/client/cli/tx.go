@@ -137,7 +137,7 @@ func GetCmdIssueCertificate() *cobra.Command {
 
 	cmd.Flags().String(FlagDescription, "", "description")
 	cmd.Flags().String(FlagName, "", "name")
-	cmd.Flags().String(FlagDescription, "", "uri")
+	cmd.Flags().String(FlagURI, "", "uri")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
