@@ -14,6 +14,7 @@ RUN go mod download
 
 COPY . .
 
+USER root
 RUN apk add --no-cache $PACKAGES && \
     make install
 
