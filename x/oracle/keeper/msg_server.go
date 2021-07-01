@@ -204,28 +204,6 @@ func (k msgServer) TaskResponse(goCtx context.Context, msg *types.MsgTaskRespons
 	return &types.MsgTaskResponseResponse{}, nil
 }
 
-func (k msgServer) InquiryTask(goCtx context.Context, msg *types.MsgInquiryTask) (*types.MsgInquiryTaskResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	task, err := k.Keeper.GetTask(ctx, msg.Contract, msg.Function)
-	if err != nil {
-		return nil, err
-	}
-
-	InquiryTaskEvent := sdk.NewEvent(
-		types.TypeMsgInquireTask,
-		sdk.NewAttribute("contract", msg.Contract),
-		sdk.NewAttribute("function", msg.Function),
-		sdk.NewAttribute("txhash", msg.TxHash),
-		sdk.NewAttribute("inquirer", msg.Inquirer),
-		sdk.NewAttribute("result", strconv.FormatUint(task.Result.Uint64(), 10)),
-		sdk.NewAttribute("expiration", task.Expiration.String()),
-	)
-	ctx.EventManager().EmitEvent(InquiryTaskEvent)
-
-	return &types.MsgInquiryTaskResponse{}, nil
-}
-
 func (k msgServer) DeleteTask(goCtx context.Context, msg *types.MsgDeleteTask) (*types.MsgDeleteTaskResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

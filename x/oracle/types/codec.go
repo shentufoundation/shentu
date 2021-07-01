@@ -17,7 +17,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgWithdrawReward{}, "oracle/WithdrawReward", nil)
 	cdc.RegisterConcrete(MsgCreateTask{}, "oracle/CreateTask", nil)
 	cdc.RegisterConcrete(MsgTaskResponse{}, "oracle/RespondToTask", nil)
-	cdc.RegisterConcrete(MsgInquiryTask{}, "oracle/InquiryTask", nil)
 	cdc.RegisterConcrete(MsgDeleteTask{}, "oracle/DeleteTask", nil)
 }
 
@@ -31,7 +30,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgWithdrawReward{},
 		&MsgCreateTask{},
 		&MsgTaskResponse{},
-		&MsgInquiryTask{},
 		&MsgDeleteTask{},
 	)
 

@@ -1,7 +1,7 @@
 package types
 
 import (
-	"encoding/json"
+	"fmt"
 )
 
 type Contracts = []Contract
@@ -22,12 +22,17 @@ func DefaultGenesisState() *GenesisState {
 	}
 }
 
-// ValidateGenesis validates cvm genesis data.
-func ValidateGenesis(bz json.RawMessage) error {
-	var data GenesisState
-	err := ModuleCdc.UnmarshalJSON(bz, &data)
-	if err != nil {
-		return err
+// Validate performs validation of cvm genesis data.
+func (gs GenesisState) Validate() error {
+	if gs.GasRate < 1 {
+		return fmt.Errorf("failed to validate %s genesis state: GasRate is too low", ModuleName)
+	}
+
+	for _, metadata := range gs.Metadatas {
+		if len(metadata.Hash) != 32 {
+			return fmt.Errorf("failed to validate %s genesis state: A metadata hash is not 256 bits", ModuleName)
+		}
 	}
 	return nil
+
 }

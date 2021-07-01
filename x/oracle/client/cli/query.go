@@ -1,10 +1,7 @@
 package cli
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -127,9 +124,9 @@ func GetCmdWithdraws() *cobra.Command {
 // GetCmdTask returns the task query command.
 func GetCmdTask() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "task <flags>",
+		Use:   "task <contract_address> <function>",
 		Short: "Get task information",
-		Args:  cobra.NoArgs,
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -137,18 +134,9 @@ func GetCmdTask() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			contract := viper.GetString(FlagContract)
-			if contract == "" {
-				return fmt.Errorf("contract address is required")
-			}
-			function := viper.GetString(FlagFunction)
-			if function == "" {
-				return fmt.Errorf("function is required")
-			}
-
 			res, err := queryClient.Task(
 				cmd.Context(),
-				&types.QueryTaskRequest{Contract: contract, Function: function},
+				&types.QueryTaskRequest{Contract: args[0], Function: args[1]},
 			)
 			if err != nil {
 				return err
@@ -158,8 +146,6 @@ func GetCmdTask() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagContract, "", "Provide the contract address")
-	cmd.Flags().String(FlagFunction, "", "Provide the function")
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
@@ -167,9 +153,9 @@ func GetCmdTask() *cobra.Command {
 // GetCmdResponse returns the response query command.
 func GetCmdResponse() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "response <flags>",
+		Use:   "response <operator_address> <contract_address> <function>",
 		Short: "Get response information",
-		Args:  cobra.NoArgs,
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -177,26 +163,9 @@ func GetCmdResponse() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			contract := viper.GetString(FlagContract)
-			if contract == "" {
-				return fmt.Errorf("contract address is required")
-			}
-			function := viper.GetString(FlagFunction)
-			if function == "" {
-				return fmt.Errorf("function is required")
-			}
-			operatorStr := viper.GetString(FlagOperator)
-			if operatorStr == "" {
-				return fmt.Errorf("opeartor Address is required")
-			}
-			operatorAddress, err := sdk.AccAddressFromBech32(operatorStr)
-			if err != nil {
-				return err
-			}
-
 			res, err := queryClient.Response(
 				cmd.Context(),
-				&types.QueryResponseRequest{Contract: contract, Function: function, OperatorAddress: operatorAddress.String()},
+				&types.QueryResponseRequest{Contract: args[1], Function: args[2], OperatorAddress: args[0]},
 			)
 			if err != nil {
 				return err
@@ -206,8 +175,6 @@ func GetCmdResponse() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagContract, "", "Provide the contract address")
-	cmd.Flags().String(FlagFunction, "", "Provide the function")
 	cmd.Flags().String(FlagOperator, "", "Provide the operator")
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
