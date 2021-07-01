@@ -1,5 +1,5 @@
 # FROM golang:1.15
-FROM golang:alpine AS build-env
+FROM golang:alpine3.13 AS build-env
 
 # Set up dependencies
 ENV PACKAGES bash curl make git libc-dev gcc linux-headers eudev-dev python3
@@ -10,12 +10,9 @@ WORKDIR /shentu
 COPY go.mod .
 COPY go.sum .
 
-RUN go mod download
-
 COPY . .
 
-RUN apk add --no-cache $PACKAGES && \
-    make install
+RUN apk add --no-cache $PACKAGES && make install
 
 FROM alpine:edge
 

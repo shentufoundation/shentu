@@ -41,6 +41,7 @@ Version 2.0.0 brings many changes with SDK upgrading to Stargate version. For mo
 
 ### Client Breaking Changes
 * (app) [\#241](https://github.com/certikfoundation/shentu/pull/241) Renamed default binary name to `certik`.
+* (oracle) [\#303](https://github.com/certikfoundation/shentu/pull/303) Oracle client commands refactor.
 
 ### API Breaking Changes
 * (cvm) [\#231](https://github.com/certikfoundation/shentu/pull/231) Remove direct solidity file deployment.

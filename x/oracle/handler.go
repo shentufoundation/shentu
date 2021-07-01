@@ -44,10 +44,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.TaskResponse(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgInquiryTask:
-			res, err := msgServer.InquiryTask(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
 		case *types.MsgDeleteTask:
 			res, err := msgServer.DeleteTask(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
