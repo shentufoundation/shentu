@@ -208,174 +208,6 @@ func (m *QueryCertifiersResponse) GetCertifiers() []Certifier {
 	return nil
 }
 
-type QueryValidatorRequest struct {
-	Pubkey string `protobuf:"bytes,1,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
-}
-
-func (m *QueryValidatorRequest) Reset()         { *m = QueryValidatorRequest{} }
-func (m *QueryValidatorRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryValidatorRequest) ProtoMessage()    {}
-func (*QueryValidatorRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d0446c22ac299371, []int{4}
-}
-func (m *QueryValidatorRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryValidatorRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryValidatorRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryValidatorRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryValidatorRequest.Merge(m, src)
-}
-func (m *QueryValidatorRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryValidatorRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryValidatorRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryValidatorRequest proto.InternalMessageInfo
-
-func (m *QueryValidatorRequest) GetPubkey() string {
-	if m != nil {
-		return m.Pubkey
-	}
-	return ""
-}
-
-type QueryValidatorResponse struct {
-	Certifier string `protobuf:"bytes,1,opt,name=certifier,proto3" json:"certifier,omitempty"`
-}
-
-func (m *QueryValidatorResponse) Reset()         { *m = QueryValidatorResponse{} }
-func (m *QueryValidatorResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryValidatorResponse) ProtoMessage()    {}
-func (*QueryValidatorResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d0446c22ac299371, []int{5}
-}
-func (m *QueryValidatorResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryValidatorResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryValidatorResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryValidatorResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryValidatorResponse.Merge(m, src)
-}
-func (m *QueryValidatorResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryValidatorResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryValidatorResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryValidatorResponse proto.InternalMessageInfo
-
-func (m *QueryValidatorResponse) GetCertifier() string {
-	if m != nil {
-		return m.Certifier
-	}
-	return ""
-}
-
-type QueryValidatorsRequest struct {
-}
-
-func (m *QueryValidatorsRequest) Reset()         { *m = QueryValidatorsRequest{} }
-func (m *QueryValidatorsRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryValidatorsRequest) ProtoMessage()    {}
-func (*QueryValidatorsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d0446c22ac299371, []int{6}
-}
-func (m *QueryValidatorsRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryValidatorsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryValidatorsRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryValidatorsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryValidatorsRequest.Merge(m, src)
-}
-func (m *QueryValidatorsRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryValidatorsRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryValidatorsRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryValidatorsRequest proto.InternalMessageInfo
-
-type QueryValidatorsResponse struct {
-	Pubkeys []string `protobuf:"bytes,1,rep,name=pubkeys,proto3" json:"pubkeys,omitempty"`
-}
-
-func (m *QueryValidatorsResponse) Reset()         { *m = QueryValidatorsResponse{} }
-func (m *QueryValidatorsResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryValidatorsResponse) ProtoMessage()    {}
-func (*QueryValidatorsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d0446c22ac299371, []int{7}
-}
-func (m *QueryValidatorsResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryValidatorsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryValidatorsResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryValidatorsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryValidatorsResponse.Merge(m, src)
-}
-func (m *QueryValidatorsResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryValidatorsResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryValidatorsResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryValidatorsResponse proto.InternalMessageInfo
-
-func (m *QueryValidatorsResponse) GetPubkeys() []string {
-	if m != nil {
-		return m.Pubkeys
-	}
-	return nil
-}
-
 type QueryPlatformRequest struct {
 	Pubkey *types.Any `protobuf:"bytes,1,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
 }
@@ -384,7 +216,7 @@ func (m *QueryPlatformRequest) Reset()         { *m = QueryPlatformRequest{} }
 func (m *QueryPlatformRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryPlatformRequest) ProtoMessage()    {}
 func (*QueryPlatformRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d0446c22ac299371, []int{8}
+	return fileDescriptor_d0446c22ac299371, []int{4}
 }
 func (m *QueryPlatformRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -428,7 +260,7 @@ func (m *QueryPlatformResponse) Reset()         { *m = QueryPlatformResponse{} }
 func (m *QueryPlatformResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryPlatformResponse) ProtoMessage()    {}
 func (*QueryPlatformResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d0446c22ac299371, []int{9}
+	return fileDescriptor_d0446c22ac299371, []int{5}
 }
 func (m *QueryPlatformResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -472,7 +304,7 @@ func (m *QueryCertificateRequest) Reset()         { *m = QueryCertificateRequest
 func (m *QueryCertificateRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryCertificateRequest) ProtoMessage()    {}
 func (*QueryCertificateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d0446c22ac299371, []int{10}
+	return fileDescriptor_d0446c22ac299371, []int{6}
 }
 func (m *QueryCertificateRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -516,7 +348,7 @@ func (m *QueryCertificateResponse) Reset()         { *m = QueryCertificateRespon
 func (m *QueryCertificateResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryCertificateResponse) ProtoMessage()    {}
 func (*QueryCertificateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d0446c22ac299371, []int{11}
+	return fileDescriptor_d0446c22ac299371, []int{7}
 }
 func (m *QueryCertificateResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -563,7 +395,7 @@ func (m *QueryCertificatesRequest) Reset()         { *m = QueryCertificatesReque
 func (m *QueryCertificatesRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryCertificatesRequest) ProtoMessage()    {}
 func (*QueryCertificatesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d0446c22ac299371, []int{12}
+	return fileDescriptor_d0446c22ac299371, []int{8}
 }
 func (m *QueryCertificatesRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -622,7 +454,7 @@ func (m *QueryCertificatesResponse) Reset()         { *m = QueryCertificatesResp
 func (m *QueryCertificatesResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryCertificatesResponse) ProtoMessage()    {}
 func (*QueryCertificatesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d0446c22ac299371, []int{13}
+	return fileDescriptor_d0446c22ac299371, []int{9}
 }
 func (m *QueryCertificatesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -670,10 +502,6 @@ func init() {
 	proto.RegisterType((*QueryCertifierResponse)(nil), "shentu.cert.v1alpha1.QueryCertifierResponse")
 	proto.RegisterType((*QueryCertifiersRequest)(nil), "shentu.cert.v1alpha1.QueryCertifiersRequest")
 	proto.RegisterType((*QueryCertifiersResponse)(nil), "shentu.cert.v1alpha1.QueryCertifiersResponse")
-	proto.RegisterType((*QueryValidatorRequest)(nil), "shentu.cert.v1alpha1.QueryValidatorRequest")
-	proto.RegisterType((*QueryValidatorResponse)(nil), "shentu.cert.v1alpha1.QueryValidatorResponse")
-	proto.RegisterType((*QueryValidatorsRequest)(nil), "shentu.cert.v1alpha1.QueryValidatorsRequest")
-	proto.RegisterType((*QueryValidatorsResponse)(nil), "shentu.cert.v1alpha1.QueryValidatorsResponse")
 	proto.RegisterType((*QueryPlatformRequest)(nil), "shentu.cert.v1alpha1.QueryPlatformRequest")
 	proto.RegisterType((*QueryPlatformResponse)(nil), "shentu.cert.v1alpha1.QueryPlatformResponse")
 	proto.RegisterType((*QueryCertificateRequest)(nil), "shentu.cert.v1alpha1.QueryCertificateRequest")
@@ -685,62 +513,55 @@ func init() {
 func init() { proto.RegisterFile("shentu/cert/v1alpha1/query.proto", fileDescriptor_d0446c22ac299371) }
 
 var fileDescriptor_d0446c22ac299371 = []byte{
-	// 869 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x95, 0x4d, 0x6f, 0xe3, 0x44,
-	0x18, 0xc7, 0xe3, 0xa5, 0xdd, 0x6d, 0x26, 0xcb, 0x8b, 0x46, 0x61, 0xf1, 0x46, 0x2b, 0x37, 0x8c,
-	0x60, 0x55, 0xb2, 0xd4, 0x43, 0xb2, 0x08, 0x04, 0x17, 0x96, 0x56, 0x14, 0x55, 0x5c, 0x4a, 0x84,
-	0x10, 0x20, 0x41, 0x99, 0x24, 0x13, 0xd7, 0x6a, 0xea, 0x71, 0x3d, 0xe3, 0x08, 0x2b, 0xea, 0x85,
-	0x6b, 0x2f, 0x48, 0xbd, 0x20, 0xf1, 0x01, 0x40, 0xe2, 0xca, 0x87, 0xa8, 0xb8, 0x50, 0x89, 0x0b,
-	0x27, 0x84, 0x5a, 0x3e, 0x08, 0xf2, 0xbc, 0x38, 0x4e, 0xe2, 0x26, 0xe6, 0xd4, 0xce, 0xcc, 0xf3,
-	0xf2, 0x7b, 0xfe, 0x9e, 0xf9, 0x07, 0x34, 0xf9, 0x11, 0x0d, 0x44, 0x8c, 0xfb, 0x34, 0x12, 0x78,
-	0xdc, 0x26, 0xa3, 0xf0, 0x88, 0xb4, 0xf1, 0x69, 0x4c, 0xa3, 0xc4, 0x0d, 0x23, 0x26, 0x18, 0xac,
-	0xab, 0x08, 0x37, 0x8d, 0x70, 0x4d, 0x44, 0xa3, 0xee, 0x31, 0x8f, 0xc9, 0x00, 0x9c, 0xfe, 0xa7,
-	0x62, 0x1b, 0xad, 0x3e, 0xe3, 0x27, 0x8c, 0xe3, 0x1e, 0xe1, 0x54, 0x15, 0xc1, 0xe3, 0x76, 0x8f,
-	0x0a, 0xd2, 0xc6, 0x21, 0xf1, 0xfc, 0x80, 0x08, 0x9f, 0x05, 0x3a, 0xf6, 0x91, 0xc7, 0x98, 0x37,
-	0xa2, 0x98, 0x84, 0x3e, 0x26, 0x41, 0xc0, 0x84, 0x3c, 0xe4, 0xfa, 0x74, 0xb3, 0x90, 0x4b, 0x32,
-	0xa8, 0x00, 0x54, 0x18, 0xe0, 0xd1, 0x80, 0x72, 0xdf, 0x14, 0x79, 0xa8, 0x5b, 0xc8, 0x55, 0x2f,
-	0x1e, 0x62, 0x12, 0x24, 0xe6, 0x48, 0x91, 0x1e, 0xaa, 0x11, 0xd4, 0x42, 0x1d, 0xa1, 0x8f, 0xc1,
-	0xcb, 0x9f, 0xa6, 0xe8, 0xbb, 0x34, 0x12, 0xfe, 0xd0, 0xa7, 0x51, 0x97, 0x9e, 0xc6, 0x94, 0x0b,
-	0x68, 0x83, 0x7b, 0x64, 0x30, 0x88, 0x28, 0xe7, 0xb6, 0xd5, 0xb4, 0xb6, 0xaa, 0x5d, 0xb3, 0x84,
-	0x75, 0xb0, 0x4e, 0x46, 0x3e, 0xe1, 0xf6, 0x1d, 0xb9, 0xaf, 0x16, 0xe8, 0x6b, 0xf0, 0x60, 0xbe,
-	0x10, 0x0f, 0x59, 0xc0, 0x29, 0xdc, 0x05, 0xd5, 0xbe, 0xd9, 0x94, 0xb5, 0x6a, 0x9d, 0x4d, 0xb7,
-	0x48, 0x67, 0x37, 0xcb, 0xdd, 0x59, 0xbb, 0xfc, 0x7b, 0xb3, 0xd2, 0x9d, 0xe6, 0x21, 0x7b, 0xbe,
-	0x3c, 0xd7, 0xa0, 0xe8, 0x5b, 0xf0, 0xca, 0xc2, 0x89, 0xee, 0xfc, 0x11, 0x00, 0x59, 0x85, 0x74,
-	0x8c, 0xe7, 0xca, 0xb7, 0xce, 0x25, 0x22, 0xac, 0x35, 0xfa, 0x9c, 0x8c, 0xfc, 0x01, 0x11, 0x2c,
-	0xd3, 0xe8, 0x01, 0xb8, 0x1b, 0xc6, 0xbd, 0x63, 0x9a, 0x68, 0x89, 0xf4, 0x0a, 0xbd, 0xa3, 0x61,
-	0x73, 0x09, 0x9a, 0xe8, 0xd1, 0xbc, 0x16, 0xd5, 0xa2, 0x21, 0xb3, 0xbc, 0x6c, 0xc8, 0xa7, 0x7a,
-	0xc8, 0xfc, 0x89, 0x2e, 0x69, 0x83, 0x7b, 0xaa, 0xad, 0x9a, 0xb0, 0xda, 0x35, 0x4b, 0xf4, 0x0d,
-	0xa8, 0xcb, 0xa4, 0x83, 0x11, 0x11, 0x43, 0x16, 0x9d, 0x18, 0xec, 0xbd, 0x19, 0xec, 0x5a, 0xa7,
-	0xee, 0xaa, 0xab, 0xe3, 0x9a, 0xab, 0xe3, 0x7e, 0x18, 0x24, 0x3b, 0xf6, 0xef, 0xbf, 0x6d, 0xd7,
-	0xf5, 0x5d, 0xe9, 0x47, 0x49, 0x28, 0x98, 0x7b, 0x10, 0xf7, 0x3e, 0xa1, 0x49, 0x36, 0xe6, 0x97,
-	0x5a, 0x97, 0x69, 0x7d, 0x8d, 0xf4, 0x0c, 0x6c, 0x84, 0x7a, 0x4f, 0xb7, 0x70, 0x8a, 0x55, 0x37,
-	0x99, 0x5a, 0xf4, 0x2c, 0x0b, 0x3d, 0x9b, 0xfd, 0xa8, 0x7d, 0x22, 0xa8, 0xa1, 0x7f, 0x1d, 0xbc,
-	0xd0, 0x9f, 0xee, 0x1e, 0xfa, 0x03, 0xd9, 0x62, 0xad, 0xfb, 0x7c, 0x6e, 0x77, 0x7f, 0x80, 0x28,
-	0xb0, 0x17, 0x2b, 0x68, 0xbe, 0x7d, 0x50, 0xcb, 0x05, 0x6b, 0xc4, 0x57, 0x97, 0x5e, 0x8c, 0x34,
-	0x50, 0x53, 0xe6, 0x73, 0xd1, 0xaf, 0xd6, 0x62, 0x1f, 0xf3, 0xd5, 0x96, 0x7f, 0x6d, 0xf8, 0x06,
-	0x78, 0x29, 0x3f, 0x88, 0x48, 0x42, 0xaa, 0x9f, 0xd4, 0x8b, 0xb9, 0xfd, 0xcf, 0x92, 0x90, 0xc2,
-	0x3d, 0x00, 0xa6, 0x96, 0x62, 0xaf, 0x49, 0xde, 0xc7, 0xae, 0xfe, 0x38, 0xa9, 0xff, 0xb8, 0xca,
-	0xc4, 0xb4, 0xff, 0xb8, 0x07, 0xc4, 0x33, 0x7a, 0x75, 0x73, 0x99, 0xe8, 0xdc, 0x02, 0x0f, 0x0b,
-	0x68, 0xb5, 0x2c, 0x75, 0xb0, 0x2e, 0x98, 0x20, 0x23, 0x2d, 0xa8, 0x5a, 0xc0, 0x2f, 0xc0, 0xfd,
-	0x1c, 0x4e, 0xfa, 0xea, 0xd3, 0x67, 0xe4, 0x16, 0xab, 0x75, 0x9b, 0xe4, 0x5a, 0xba, 0x99, 0x4a,
-	0x9d, 0x3f, 0x36, 0xc0, 0xba, 0x4c, 0x80, 0x3f, 0x5b, 0xa0, 0x9a, 0xbd, 0x40, 0xf8, 0x64, 0x75,
-	0xed, 0xcc, 0xa7, 0x1a, 0x6f, 0x96, 0x0b, 0x56, 0x18, 0xe8, 0x83, 0xef, 0xff, 0xfc, 0xf7, 0xe2,
-	0xce, 0x7b, 0xf0, 0x5d, 0x7c, 0xab, 0xe5, 0xca, 0x04, 0x3c, 0xd1, 0x6e, 0x77, 0x86, 0xa5, 0xbd,
-	0xe1, 0x89, 0xfc, 0x73, 0x06, 0x2f, 0x2c, 0x00, 0xa6, 0x4e, 0x03, 0x4b, 0x75, 0x37, 0xf7, 0xa1,
-	0xb1, 0x5d, 0x32, 0x5a, 0xc3, 0x6e, 0x49, 0x58, 0x04, 0x9b, 0x2b, 0x60, 0x39, 0xfc, 0xd1, 0x02,
-	0xd5, 0xcc, 0x1a, 0x96, 0xea, 0x37, 0xef, 0x61, 0x4b, 0xf5, 0x5b, 0xf0, 0x2f, 0xf4, 0x96, 0x44,
-	0x6a, 0xc1, 0xad, 0x62, 0xa4, 0xb1, 0x49, 0xc0, 0x13, 0xe5, 0x11, 0x4a, 0xb0, 0xa9, 0x6b, 0xc1,
-	0x52, 0xed, 0x4a, 0x09, 0xb6, 0x68, 0x85, 0xab, 0x04, 0x1b, 0x4f, 0x31, 0xce, 0x2d, 0xb0, 0x61,
-	0xcc, 0x07, 0xb6, 0x96, 0x74, 0x99, 0xf3, 0xce, 0xc6, 0x93, 0x52, 0xb1, 0x9a, 0xe7, 0xb1, 0xe4,
-	0x69, 0x42, 0xa7, 0x98, 0xc7, 0xb8, 0x1d, 0xfc, 0xc5, 0x02, 0xb5, 0xdc, 0xa3, 0x81, 0xdb, 0x65,
-	0x1f, 0x97, 0x62, 0xfa, 0x9f, 0x6f, 0x11, 0xbd, 0x2f, 0xb1, 0xde, 0x86, 0x9d, 0xa5, 0xf7, 0x2a,
-	0x4d, 0xc1, 0x93, 0x59, 0xab, 0x3d, 0x83, 0x3f, 0x59, 0xe0, 0x7e, 0xde, 0x3c, 0x60, 0xc9, 0xe6,
-	0xd9, 0x27, 0xc5, 0xa5, 0xe3, 0x35, 0x6d, 0x4b, 0xd2, 0xbe, 0x06, 0xd1, 0x4a, 0x5a, 0xbe, 0xb3,
-	0x7f, 0x79, 0xed, 0x58, 0x57, 0xd7, 0x8e, 0xf5, 0xcf, 0xb5, 0x63, 0xfd, 0x70, 0xe3, 0x54, 0xae,
-	0x6e, 0x9c, 0xca, 0x5f, 0x37, 0x4e, 0xe5, 0x2b, 0xec, 0xf9, 0xe2, 0x28, 0xee, 0xb9, 0x7d, 0x76,
-	0xa2, 0x52, 0x8e, 0x87, 0x2c, 0x0e, 0x06, 0xd2, 0x16, 0x4d, 0xe1, 0xef, 0x54, 0xe9, 0xd4, 0x88,
-	0x79, 0xef, 0xae, 0xfc, 0x31, 0x7c, 0xfa, 0x5f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x62, 0x54, 0x97,
-	0x2a, 0x34, 0x0a, 0x00, 0x00,
+	// 767 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x94, 0xcd, 0x4f, 0x13, 0x4f,
+	0x18, 0xc7, 0xbb, 0xfc, 0x80, 0x1f, 0x1d, 0xf8, 0xbd, 0x64, 0x52, 0xb5, 0x34, 0x64, 0xa9, 0x13,
+	0x25, 0x08, 0xb2, 0x93, 0xa2, 0x89, 0xd1, 0x8b, 0x08, 0x11, 0x43, 0xbc, 0x60, 0xe3, 0x41, 0x4d,
+	0x14, 0xa7, 0xed, 0x74, 0xd9, 0x50, 0x76, 0x96, 0x9d, 0x59, 0xe2, 0x86, 0x70, 0xf1, 0xca, 0xc5,
+	0x84, 0xa3, 0x89, 0x57, 0x4d, 0xbc, 0xfa, 0x47, 0x10, 0x4f, 0x24, 0x5e, 0x3c, 0x19, 0x03, 0xfe,
+	0x21, 0x66, 0xe7, 0xa5, 0x5d, 0xca, 0x02, 0xeb, 0xa9, 0x9d, 0x99, 0xef, 0xf3, 0x3c, 0x9f, 0x7d,
+	0xde, 0x40, 0x95, 0xaf, 0x53, 0x5f, 0x44, 0xb8, 0x49, 0x43, 0x81, 0xb7, 0x6b, 0xa4, 0x13, 0xac,
+	0x93, 0x1a, 0xde, 0x8a, 0x68, 0x18, 0x3b, 0x41, 0xc8, 0x04, 0x83, 0x25, 0xa5, 0x70, 0x12, 0x85,
+	0x63, 0x14, 0x95, 0x92, 0xcb, 0x5c, 0x26, 0x05, 0x38, 0xf9, 0xa7, 0xb4, 0x95, 0x99, 0x26, 0xe3,
+	0x9b, 0x8c, 0xe3, 0x06, 0xe1, 0x54, 0x39, 0xc1, 0xdb, 0xb5, 0x06, 0x15, 0xa4, 0x86, 0x03, 0xe2,
+	0x7a, 0x3e, 0x11, 0x1e, 0xf3, 0xb5, 0x76, 0xc2, 0x65, 0xcc, 0xed, 0x50, 0x4c, 0x02, 0x0f, 0x13,
+	0xdf, 0x67, 0x42, 0x3e, 0x72, 0xfd, 0x3a, 0x99, 0xc9, 0x25, 0x19, 0x94, 0x00, 0x65, 0x0a, 0x5c,
+	0xea, 0x53, 0xee, 0x19, 0x27, 0xe3, 0x3a, 0x84, 0x3c, 0x35, 0xa2, 0x36, 0x26, 0x7e, 0x6c, 0x9e,
+	0x14, 0xe9, 0x9a, 0xfa, 0x04, 0x75, 0x50, 0x4f, 0xe8, 0x11, 0xb8, 0xf4, 0x24, 0x41, 0x5f, 0xa2,
+	0xa1, 0xf0, 0xda, 0x1e, 0x0d, 0xeb, 0x74, 0x2b, 0xa2, 0x5c, 0xc0, 0x32, 0xf8, 0x9b, 0xb4, 0x5a,
+	0x21, 0xe5, 0xbc, 0x6c, 0x55, 0xad, 0xe9, 0x62, 0xdd, 0x1c, 0x61, 0x09, 0x0c, 0x91, 0x8e, 0x47,
+	0x78, 0x79, 0x40, 0xde, 0xab, 0x03, 0x7a, 0x09, 0x2e, 0xf7, 0x3b, 0xe2, 0x01, 0xf3, 0x39, 0x85,
+	0x4b, 0xa0, 0xd8, 0x34, 0x97, 0xd2, 0xd7, 0xe8, 0xfc, 0xa4, 0x93, 0x95, 0x67, 0xa7, 0x6b, 0xbb,
+	0x38, 0x78, 0xf0, 0x63, 0xb2, 0x50, 0xef, 0xd9, 0xa1, 0x72, 0xbf, 0x7b, 0xae, 0x41, 0xd1, 0x6b,
+	0x70, 0xe5, 0xd4, 0x8b, 0x8e, 0xfc, 0x10, 0x80, 0xae, 0x87, 0xe4, 0x33, 0xfe, 0xca, 0x1f, 0x3a,
+	0x65, 0x88, 0x5e, 0x81, 0x92, 0x8c, 0xb0, 0xda, 0x21, 0xa2, 0xcd, 0xc2, 0x4d, 0x93, 0xa2, 0x65,
+	0x30, 0x1c, 0x44, 0x8d, 0x0d, 0x1a, 0xeb, 0xaf, 0x2a, 0x39, 0xaa, 0x04, 0x8e, 0x29, 0x81, 0xf3,
+	0xc0, 0x8f, 0x17, 0xcb, 0x5f, 0xbf, 0xcc, 0x95, 0x74, 0xce, 0x9b, 0x61, 0x1c, 0x08, 0xe6, 0xac,
+	0x46, 0x8d, 0xc7, 0x34, 0xae, 0x6b, 0x6b, 0xf4, 0x5c, 0xd7, 0xa0, 0xe7, 0x5f, 0xf3, 0x2f, 0x80,
+	0x91, 0x40, 0xdf, 0xe9, 0x10, 0x76, 0x36, 0xbd, 0xb1, 0xd4, 0xf0, 0x5d, 0x2b, 0xb4, 0x70, 0x32,
+	0x39, 0x4d, 0x22, 0xa8, 0xa1, 0xbf, 0x0e, 0xfe, 0x6d, 0xf6, 0x6e, 0xd7, 0xbc, 0x96, 0x0c, 0x31,
+	0x58, 0xff, 0x27, 0x75, 0xbb, 0xd2, 0x42, 0x14, 0x94, 0x4f, 0x7b, 0xd0, 0x7c, 0x2b, 0x60, 0x34,
+	0x25, 0xd6, 0x88, 0x57, 0xcf, 0x4d, 0x70, 0x22, 0xd4, 0x94, 0x69, 0x5b, 0xf4, 0xd9, 0x3a, 0x1d,
+	0xc7, 0x94, 0x18, 0x4e, 0xf4, 0x77, 0x50, 0x31, 0xd5, 0x1a, 0xf0, 0x06, 0xf8, 0x3f, 0xfd, 0x21,
+	0x22, 0x0e, 0xa8, 0x6e, 0xcd, 0xff, 0x52, 0xf7, 0x4f, 0xe3, 0x80, 0xc2, 0x65, 0x00, 0x7a, 0xa3,
+	0x59, 0x1e, 0x94, 0xbc, 0x53, 0x8e, 0x2e, 0x4e, 0x32, 0xc7, 0x8e, 0x5a, 0x06, 0x7a, 0x8e, 0x9d,
+	0x55, 0xe2, 0x9a, 0x7c, 0xd5, 0x53, 0x96, 0x68, 0xcf, 0x02, 0xe3, 0x19, 0xb4, 0x3a, 0x2d, 0x25,
+	0x30, 0x24, 0x98, 0x20, 0x1d, 0x9d, 0x50, 0x75, 0x80, 0xcf, 0xc0, 0x58, 0x0a, 0x27, 0x99, 0x9e,
+	0xa4, 0x1d, 0x9d, 0xec, 0x6c, 0x9d, 0x95, 0x72, 0x9d, 0xba, 0x13, 0x9e, 0xe6, 0x3f, 0x0c, 0x83,
+	0x21, 0x69, 0x00, 0x3f, 0x5a, 0xa0, 0xd8, 0xed, 0x64, 0x38, 0x7b, 0xb1, 0xef, 0xee, 0xbc, 0x57,
+	0x6e, 0xe6, 0x13, 0x2b, 0x0c, 0x74, 0xff, 0xed, 0xb7, 0x5f, 0xfb, 0x03, 0x77, 0xe1, 0x1d, 0x7c,
+	0xe6, 0xea, 0x92, 0x06, 0x78, 0x47, 0x6f, 0x8d, 0x5d, 0x2c, 0xd7, 0x04, 0xde, 0x91, 0x3f, 0xbb,
+	0x70, 0xdf, 0x02, 0xa0, 0x37, 0xb1, 0x30, 0x57, 0x74, 0xd3, 0x0f, 0x95, 0xb9, 0x9c, 0x6a, 0x0d,
+	0x3b, 0x2d, 0x61, 0x11, 0xac, 0x5e, 0x00, 0xcb, 0xe1, 0x9e, 0x05, 0x46, 0xcc, 0x2c, 0xc1, 0x99,
+	0x73, 0xa2, 0xf4, 0xad, 0x82, 0xca, 0x6c, 0x2e, 0xad, 0xe6, 0x99, 0x92, 0x3c, 0x55, 0x68, 0x67,
+	0xf3, 0x98, 0xe1, 0x85, 0x9f, 0x2c, 0x30, 0x9a, 0xea, 0x01, 0x38, 0x97, 0xb7, 0x57, 0x14, 0xd3,
+	0x1f, 0xb6, 0x16, 0xba, 0x27, 0xb1, 0x6e, 0xc3, 0xf9, 0x73, 0xd3, 0x94, 0x98, 0xe0, 0x9d, 0x93,
+	0x9b, 0x63, 0x17, 0xbe, 0xb7, 0xc0, 0x58, 0x7a, 0x16, 0x60, 0xce, 0xe0, 0xdd, 0x92, 0xe2, 0xdc,
+	0x7a, 0x4d, 0x3b, 0x23, 0x69, 0xaf, 0x41, 0x74, 0x21, 0x2d, 0x5f, 0x5c, 0x39, 0x38, 0xb2, 0xad,
+	0xc3, 0x23, 0xdb, 0xfa, 0x79, 0x64, 0x5b, 0xef, 0x8e, 0xed, 0xc2, 0xe1, 0xb1, 0x5d, 0xf8, 0x7e,
+	0x6c, 0x17, 0x5e, 0x60, 0xd7, 0x13, 0xeb, 0x51, 0xc3, 0x69, 0xb2, 0x4d, 0x65, 0xb2, 0xd1, 0x66,
+	0x91, 0xdf, 0x92, 0x53, 0x6e, 0x1c, 0xbf, 0x51, 0xae, 0x93, 0xbd, 0xc2, 0x1b, 0xc3, 0x72, 0xb7,
+	0xdf, 0xfa, 0x1d, 0x00, 0x00, 0xff, 0xff, 0x09, 0xe0, 0x19, 0xae, 0x4b, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -757,8 +578,6 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	Certifier(ctx context.Context, in *QueryCertifierRequest, opts ...grpc.CallOption) (*QueryCertifierResponse, error)
 	Certifiers(ctx context.Context, in *QueryCertifiersRequest, opts ...grpc.CallOption) (*QueryCertifiersResponse, error)
-	Validator(ctx context.Context, in *QueryValidatorRequest, opts ...grpc.CallOption) (*QueryValidatorResponse, error)
-	Validators(ctx context.Context, in *QueryValidatorsRequest, opts ...grpc.CallOption) (*QueryValidatorsResponse, error)
 	Platform(ctx context.Context, in *QueryPlatformRequest, opts ...grpc.CallOption) (*QueryPlatformResponse, error)
 	Certificate(ctx context.Context, in *QueryCertificateRequest, opts ...grpc.CallOption) (*QueryCertificateResponse, error)
 	Certificates(ctx context.Context, in *QueryCertificatesRequest, opts ...grpc.CallOption) (*QueryCertificatesResponse, error)
@@ -784,24 +603,6 @@ func (c *queryClient) Certifier(ctx context.Context, in *QueryCertifierRequest, 
 func (c *queryClient) Certifiers(ctx context.Context, in *QueryCertifiersRequest, opts ...grpc.CallOption) (*QueryCertifiersResponse, error) {
 	out := new(QueryCertifiersResponse)
 	err := c.cc.Invoke(ctx, "/shentu.cert.v1alpha1.Query/Certifiers", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) Validator(ctx context.Context, in *QueryValidatorRequest, opts ...grpc.CallOption) (*QueryValidatorResponse, error) {
-	out := new(QueryValidatorResponse)
-	err := c.cc.Invoke(ctx, "/shentu.cert.v1alpha1.Query/Validator", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) Validators(ctx context.Context, in *QueryValidatorsRequest, opts ...grpc.CallOption) (*QueryValidatorsResponse, error) {
-	out := new(QueryValidatorsResponse)
-	err := c.cc.Invoke(ctx, "/shentu.cert.v1alpha1.Query/Validators", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -839,8 +640,6 @@ func (c *queryClient) Certificates(ctx context.Context, in *QueryCertificatesReq
 type QueryServer interface {
 	Certifier(context.Context, *QueryCertifierRequest) (*QueryCertifierResponse, error)
 	Certifiers(context.Context, *QueryCertifiersRequest) (*QueryCertifiersResponse, error)
-	Validator(context.Context, *QueryValidatorRequest) (*QueryValidatorResponse, error)
-	Validators(context.Context, *QueryValidatorsRequest) (*QueryValidatorsResponse, error)
 	Platform(context.Context, *QueryPlatformRequest) (*QueryPlatformResponse, error)
 	Certificate(context.Context, *QueryCertificateRequest) (*QueryCertificateResponse, error)
 	Certificates(context.Context, *QueryCertificatesRequest) (*QueryCertificatesResponse, error)
@@ -855,12 +654,6 @@ func (*UnimplementedQueryServer) Certifier(ctx context.Context, req *QueryCertif
 }
 func (*UnimplementedQueryServer) Certifiers(ctx context.Context, req *QueryCertifiersRequest) (*QueryCertifiersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Certifiers not implemented")
-}
-func (*UnimplementedQueryServer) Validator(ctx context.Context, req *QueryValidatorRequest) (*QueryValidatorResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Validator not implemented")
-}
-func (*UnimplementedQueryServer) Validators(ctx context.Context, req *QueryValidatorsRequest) (*QueryValidatorsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Validators not implemented")
 }
 func (*UnimplementedQueryServer) Platform(ctx context.Context, req *QueryPlatformRequest) (*QueryPlatformResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Platform not implemented")
@@ -908,42 +701,6 @@ func _Query_Certifiers_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).Certifiers(ctx, req.(*QueryCertifiersRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_Validator_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryValidatorRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).Validator(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/shentu.cert.v1alpha1.Query/Validator",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Validator(ctx, req.(*QueryValidatorRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_Validators_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryValidatorsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).Validators(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/shentu.cert.v1alpha1.Query/Validators",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Validators(ctx, req.(*QueryValidatorsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1013,14 +770,6 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Certifiers",
 			Handler:    _Query_Certifiers_Handler,
-		},
-		{
-			MethodName: "Validator",
-			Handler:    _Query_Validator_Handler,
-		},
-		{
-			MethodName: "Validators",
-			Handler:    _Query_Validators_Handler,
 		},
 		{
 			MethodName: "Platform",
@@ -1162,121 +911,6 @@ func (m *QueryCertifiersResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 				i -= size
 				i = encodeVarintQuery(dAtA, i, uint64(size))
 			}
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryValidatorRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryValidatorRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryValidatorRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Pubkey) > 0 {
-		i -= len(m.Pubkey)
-		copy(dAtA[i:], m.Pubkey)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.Pubkey)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryValidatorResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryValidatorResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryValidatorResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Certifier) > 0 {
-		i -= len(m.Certifier)
-		copy(dAtA[i:], m.Certifier)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.Certifier)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryValidatorsRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryValidatorsRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryValidatorsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryValidatorsResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryValidatorsResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryValidatorsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Pubkeys) > 0 {
-		for iNdEx := len(m.Pubkeys) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.Pubkeys[iNdEx])
-			copy(dAtA[i:], m.Pubkeys[iNdEx])
-			i = encodeVarintQuery(dAtA, i, uint64(len(m.Pubkeys[iNdEx])))
 			i--
 			dAtA[i] = 0xa
 		}
@@ -1561,56 +1195,6 @@ func (m *QueryCertifiersResponse) Size() (n int) {
 	if len(m.Certifiers) > 0 {
 		for _, e := range m.Certifiers {
 			l = e.Size()
-			n += 1 + l + sovQuery(uint64(l))
-		}
-	}
-	return n
-}
-
-func (m *QueryValidatorRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Pubkey)
-	if l > 0 {
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryValidatorResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Certifier)
-	if l > 0 {
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryValidatorsRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
-func (m *QueryValidatorsResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.Pubkeys) > 0 {
-		for _, s := range m.Pubkeys {
-			l = len(s)
 			n += 1 + l + sovQuery(uint64(l))
 		}
 	}
@@ -2027,314 +1611,6 @@ func (m *QueryCertifiersResponse) Unmarshal(dAtA []byte) error {
 			if err := m.Certifiers[len(m.Certifiers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryValidatorRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryValidatorRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryValidatorRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pubkey", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Pubkey = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryValidatorResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryValidatorResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryValidatorResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Certifier", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Certifier = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryValidatorsRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryValidatorsRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryValidatorsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryValidatorsResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryValidatorsResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryValidatorsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pubkeys", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Pubkeys = append(m.Pubkeys, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

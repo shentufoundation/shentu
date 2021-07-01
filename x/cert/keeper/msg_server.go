@@ -27,46 +27,6 @@ func (k msgServer) ProposeCertifier(goCtx context.Context, msg *types.MsgPropose
 	return &types.MsgProposeCertifierResponse{}, nil
 }
 
-func (k msgServer) CertifyValidator(goCtx context.Context, msg *types.MsgCertifyValidator) (*types.MsgCertifyValidatorResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	valPubKey, ok := msg.Pubkey.GetCachedValue().(cryptotypes.PubKey)
-	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", valPubKey)
-	}
-
-	certifierAddr, err := sdk.AccAddressFromBech32(msg.Certifier)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := k.Keeper.CertifyValidator(ctx, valPubKey, certifierAddr); err != nil {
-		return nil, err
-	}
-
-	return &types.MsgCertifyValidatorResponse{}, nil
-}
-
-func (k msgServer) DecertifyValidator(goCtx context.Context, msg *types.MsgDecertifyValidator) (*types.MsgDecertifyValidatorResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	valPubKey, ok := msg.Pubkey.GetCachedValue().(cryptotypes.PubKey)
-	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", valPubKey)
-	}
-
-	decertifierAddr, err := sdk.AccAddressFromBech32(msg.Decertifier)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := k.Keeper.DecertifyValidator(ctx, valPubKey, decertifierAddr); err != nil {
-		return nil, err
-	}
-
-	return &types.MsgDecertifyValidatorResponse{}, nil
-}
-
 func (k msgServer) IssueCertificate(goCtx context.Context, msg *types.MsgIssueCertificate) (*types.MsgIssueCertificateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

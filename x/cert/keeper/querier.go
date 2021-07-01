@@ -20,10 +20,6 @@ func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier 
 			return queryCertifiers(ctx, path[1:], keeper, legacyQuerierCdc)
 		case types.QueryCertifierByAlias:
 			return queryCertifierByAlias(ctx, path[1:], keeper, legacyQuerierCdc)
-		case types.QueryCertifiedValidator:
-			return queryCertifiedValidator(ctx, path[1:], keeper, legacyQuerierCdc)
-		case types.QueryCertifiedValidators:
-			return queryCertifiedValidators(ctx, path[1:], keeper, legacyQuerierCdc)
 		case types.QueryPlatform:
 			return queryPlatform(ctx, path[1:], keeper, legacyQuerierCdc)
 		case types.QueryCertificate:
@@ -86,37 +82,6 @@ func queryCertifierByAlias(ctx sdk.Context, path []string, keeper Keeper, legacy
 		return nil, err
 	}
 	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, certifier)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-func queryCertifiedValidator(ctx sdk.Context, path []string, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 1); err != nil {
-		return nil, err
-	}
-	validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, path[0])
-	if err != nil {
-		return nil, err
-	}
-	certifier, err := keeper.GetValidatorCertifier(ctx, validator)
-	if err != nil {
-		return nil, err
-	}
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, types.QueryResValidator{Certifier: certifier})
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-func queryCertifiedValidators(ctx sdk.Context, path []string, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	err = validatePathLength(path, 0)
-	if err != nil {
-		return nil, err
-	}
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, types.QueryResValidators{Validators: keeper.GetAllValidatorPubkeys(ctx)})
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

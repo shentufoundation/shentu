@@ -7,6 +7,10 @@ import (
 const (
 	MicroCTKDenom = "uctk"
 	MicroUnit     = int64(1e6)
+
+	// MaxTimestamp is max timestamp supported by Amino.
+	// Dec 31, 9999 - 23:59:59 GMT
+	MaxTimestamp = 253402300799
 )
 
 // GetCoinPercentage returns a certain percentage of coins.
