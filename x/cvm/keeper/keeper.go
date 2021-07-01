@@ -314,16 +314,6 @@ func (k Keeper) GetAccountSeqNum(ctx sdk.Context, address sdk.AccAddress) []byte
 	return accountByte
 }
 
-// RecycleCoins transfers tokens from the zero address to the community pool.
-func (k Keeper) RecycleCoins(ctx sdk.Context) error {
-	zeroAddrBytes := crypto.ZeroAddress.Bytes()
-	coins := k.bk.GetAllBalances(ctx, zeroAddrBytes)
-	if coins.IsZero() {
-		return nil
-	}
-	return k.dk.FundCommunityPool(ctx, coins, zeroAddrBytes)
-}
-
 // GetAllContracts gets all contracts for genesis export.
 func (k Keeper) GetAllContracts(ctx sdk.Context) []types.Contract {
 	contracts := make([]types.Contract, 0)

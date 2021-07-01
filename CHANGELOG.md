@@ -53,6 +53,7 @@ Version 2.0.0 brings many changes with SDK upgrading to Stargate version. For mo
 * (app) [\#221](https://github.com/certikfoundation/shentu/pull/221) Upgraded SDK to 0.42.x.
 * (shield) [\#286](https://github.com/certikfoundation/shentu/pull/286) Fix shield emitted events to include sender.
 * (cert) [\#302](https://github.com/certikfoundation/shentu/pull/302) Removed validator certificate.
+* (cvm) [\#301](https://github.com/certikfoundation/shentu/pull/301) Removed zero-address coins recycling.
 
 ### Features
 * (ibc) [\#251](https://github.com/certikfoundation/shentu/pull/251) Add IBC support.
