@@ -90,19 +90,60 @@ func (k msgServer) IssueCertificate(goCtx context.Context, msg *types.MsgIssueCe
 	if err := k.Keeper.IssueCertificate(ctx, msg.DenomId, msg.TokenId, msg.Name, msg.Uri, certificate); err != nil {
 		return nil, err
 	}
-	certEvent := sdk.NewEvent(
-		types.EventTypeCertify,
-		sdk.NewAttribute("content", msg.Content),
-		sdk.NewAttribute("description", msg.Description),
-		sdk.NewAttribute("certifier", msg.Certifier),
-		sdk.NewAttribute("denom_id", msg.DenomId),
-		sdk.NewAttribute("token_id", msg.TokenId),
-		sdk.NewAttribute("name", msg.Name),
-		sdk.NewAttribute("uri", msg.Uri),
-	)
-	ctx.EventManager().EmitEvent(certEvent)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeIssueCertificate,
+			sdk.NewAttribute("denom_id", msg.DenomId),
+			sdk.NewAttribute("token_id", msg.TokenId),
+			sdk.NewAttribute("name", msg.Name),
+			sdk.NewAttribute("uri", msg.Uri),
+			sdk.NewAttribute("content", msg.Content),
+			sdk.NewAttribute("description", msg.Description),
+			sdk.NewAttribute("certifier", msg.Certifier),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, nfttypes.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Certifier),
+		),
+	})
 
 	return &types.MsgIssueCertificateResponse{}, nil
+}
+
+func (k msgServer) EditCertificate(goCtx context.Context, msg *types.MsgEditCertificate) (*types.MsgEditCertificateResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	certificate := types.Certificate{
+		Content:     msg.Content,
+		Description: msg.Description,
+		Certifier:   msg.Owner,
+	}
+
+	if err := k.Keeper.EditCertificate(ctx, msg.DenomId, msg.TokenId, msg.Name, msg.Uri, certificate); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeEditCertificate,
+			sdk.NewAttribute("denom_id", msg.DenomId),
+			sdk.NewAttribute("token_id", msg.TokenId),
+			sdk.NewAttribute("name", msg.Name),
+			sdk.NewAttribute("uri", msg.Uri),
+			sdk.NewAttribute("content", msg.Content),
+			sdk.NewAttribute("description", msg.Description),
+			sdk.NewAttribute("owner", msg.Owner),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, nfttypes.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Owner),
+		),
+	})
+
+	return &types.MsgEditCertificateResponse{}, nil
 }
 
 func (k msgServer) RevokeCertificate(goCtx context.Context, msg *types.MsgRevokeCertificate) (*types.MsgRevokeCertificateResponse, error) {
@@ -116,14 +157,21 @@ func (k msgServer) RevokeCertificate(goCtx context.Context, msg *types.MsgRevoke
 	if err := k.Keeper.RevokeCertificate(ctx, msg.DenomId, msg.TokenId, revokerAddr); err != nil {
 		return nil, err
 	}
-	revokeEvent := sdk.NewEvent(
-		types.EventTypeRevokeCertificate,
-		sdk.NewAttribute("revoker", msg.Revoker),
-		sdk.NewAttribute("denom_id", msg.DenomId),
-		sdk.NewAttribute("token_id", msg.TokenId),
-		sdk.NewAttribute("description", msg.Description),
-	)
-	ctx.EventManager().EmitEvent(revokeEvent)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRevokeCertificate,
+			sdk.NewAttribute("denom_id", msg.DenomId),
+			sdk.NewAttribute("token_id", msg.TokenId),
+			sdk.NewAttribute("revoker", msg.Revoker),
+			sdk.NewAttribute("description", msg.Description),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, nfttypes.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Revoker),
+		),
+	})
 
 	return &types.MsgRevokeCertificateResponse{}, nil
 }

@@ -59,25 +59,41 @@ message MsgIssueCertificate {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string content = 1;
-  string description = 2;
-  string certifier = 3;
-  string denom_id = 4;
-  string token_id = 5;
-  string name = 6;
-  string uri = 7;
+  string denom_id = 1;
+  string token_id = 2;
+  string name = 3;
+  string uri = 4;
+  string content = 5;
+  string description = 6;
+  string certifier = 7;
 }
 
 message MsgIssueCertificateResponse {}
+
+// MsgEditCertificate is the message for editing an existing certificate.
+message MsgEditCertificate {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string denom_id = 1;
+  string token_id = 2;
+  string name = 3;
+  string uri = 4;
+  string content = 5;
+  string description = 6;
+  string owner = 7;
+}
+
+message MsgEditCertificateResponse {}
 
 // MsgRevokeCertificate returns a certificate revoking operation.
 message MsgRevokeCertificate {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string revoker = 1;
-  string denom_id = 2;
-  string token_id = 3;
+  string denom_id = 1;
+  string token_id = 2;
+  string revoker = 3;
   string description = 4;
 }
 

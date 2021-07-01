@@ -9,6 +9,7 @@ var (
 	AttributeKeyCreated      = "created"
 	AttributeKeyRevoked      = "revoked"
 
-	EventTypeCertify           = "certify"
+	EventTypeIssueCertificate  = "issue_certificate"
+	EventTypeEditCertificate   = "edit_certificate"
 	EventTypeRevokeCertificate = "revoke_certificate"
 )

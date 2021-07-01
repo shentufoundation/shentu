@@ -18,12 +18,14 @@ func (k Keeper) UnmarshalCertificate(ctx sdk.Context, tokenData string) types.Ce
 }
 
 // IssueCertificate issues a certificate.
-func (k Keeper) IssueCertificate(ctx sdk.Context, denomID, tokenID, tokenNm, tokenURI string, certificate types.Certificate) error {
-	if !k.certKeeper.IsCertifier(ctx, certificate.GetCertifier()) {
+func (k Keeper) IssueCertificate(
+	ctx sdk.Context, denomID, tokenID, tokenNm, tokenURI string,
+	certificate types.Certificate,
+) error {
+	certifier := certificate.GetCertifier()
+	if !k.certKeeper.IsCertifier(ctx, certifier) {
 		return types.ErrUnqualifiedCertifier
 	}
-	certifier := certificate.GetCertifier()
-
 	denomNm := types.GetCertDenomNm(denomID)
 	if denomNm == "" {
 		return types.ErrInvalidDenomID
@@ -33,7 +35,6 @@ func (k Keeper) IssueCertificate(ctx sdk.Context, denomID, tokenID, tokenNm, tok
 			return err
 		}
 	}
-
 	tokenData := k.MarshalCertificate(ctx, certificate)
 	return k.MintNFT(ctx, denomID, tokenID, tokenNm, tokenURI, tokenData, certifier)
 }
@@ -58,6 +59,23 @@ func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCerti
 	}
 
 	return uint64(len(filteredCertificates)), filteredCertificates, nil
+}
+
+// EditCertificate edits the certificate nft.
+func (k Keeper) EditCertificate(
+	ctx sdk.Context, denomID, tokenID, tokenNm,
+	tokenURI string, certificate types.Certificate,
+) error {
+	owner := certificate.GetCertifier()
+	if !k.certKeeper.IsCertifier(ctx, owner) {
+		return types.ErrUnqualifiedCertifier
+	}
+	denomNm := types.GetCertDenomNm(denomID)
+	if denomNm == "" {
+		return types.ErrInvalidDenomID
+	}
+	tokenData := k.MarshalCertificate(ctx, certificate)
+	return k.EditNFT(ctx, denomID, tokenID, tokenNm, tokenURI, tokenData, owner)
 }
 
 // RevokeCertificate revokes a certificate.
