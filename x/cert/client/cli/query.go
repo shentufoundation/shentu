@@ -27,8 +27,6 @@ func GetQueryCmd() *cobra.Command {
 	certQueryCmds.AddCommand(
 		GetCmdCertifier(),
 		GetCmdCertifiers(),
-		GetCmdValidator(),
-		GetCmdValidators(),
 		GetCmdPlatform(),
 		GetCmdCertificate(),
 		GetCmdCertificates(),
@@ -87,63 +85,6 @@ func GetCmdCertifiers() *cobra.Command {
 
 			queryClient := types.NewQueryClient(cliCtx)
 			res, err := queryClient.Certifiers(context.Background(), &types.QueryCertifiersRequest{})
-			if err != nil {
-				return err
-			}
-
-			return cliCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdValidator returns the validator certification query command.
-func GetCmdValidator() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "validator <pubkey>",
-		Short: "Get validator certification information",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := types.NewQueryClient(cliCtx)
-
-			_, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
-			if err != nil {
-				return err
-			}
-
-			res, err := queryClient.Validator(context.Background(), &types.QueryValidatorRequest{Pubkey: args[0]})
-			if err != nil {
-				return err
-			}
-
-			return cliCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdValidators returns all validators certification query command
-func GetCmdValidators() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "validators",
-		Short: "Get validators certification information",
-		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := types.NewQueryClient(cliCtx)
-
-			res, err := queryClient.Validators(context.Background(), &types.QueryValidatorsRequest{})
 			if err != nil {
 				return err
 			}
