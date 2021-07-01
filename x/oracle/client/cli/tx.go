@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -16,11 +17,7 @@ import (
 )
 
 const (
-	FlagContract      = "contract"
-	FlagFunction      = "function"
-	FlagBounty        = "bounty"
 	FlagDescription   = "description"
-	FlagScore         = "score"
 	FlagTxhash        = "txhash"
 	FlagWait          = "wait"
 	FlagName          = "name"
@@ -44,7 +41,6 @@ func NewTxCmd() *cobra.Command {
 		GetCmdClaimReward(),
 		GetCmdCreateTask(),
 		GetCmdRespondToTask(),
-		GetCmdInquiry(),
 		GetCmdDeleteTask(),
 	)
 
@@ -228,9 +224,9 @@ func GetCmdClaimReward() *cobra.Command {
 // GetCmdCreateTask returns command to create a task.
 func GetCmdCreateTask() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-task <flags>",
+		Use:   "create-task <contract_address> <function> <bounty>",
 		Short: "Create a task",
-		Args:  cobra.NoArgs,
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -243,20 +239,7 @@ func GetCmdCreateTask() *cobra.Command {
 				return err
 			}
 
-			// Required flags
-			contract := viper.GetString(FlagContract)
-			if contract == "" {
-				return fmt.Errorf("contract address is required to submit a task")
-			}
-			function := viper.GetString(FlagFunction)
-			if function == "" {
-				return fmt.Errorf("function is required to submit a task")
-			}
-			bountyStr := viper.GetString(FlagBounty)
-			if bountyStr == "" {
-				return fmt.Errorf("bounty is required to submit a task")
-			}
-			bounty, err := sdk.ParseCoinsNormalized(bountyStr)
+			bounty, err := sdk.ParseCoinsNormalized(args[2])
 			if err != nil {
 				return err
 			}
@@ -270,7 +253,7 @@ func GetCmdCreateTask() *cobra.Command {
 			hours := viper.GetInt64(FlagValidDuration)
 			validDuration := time.Duration(hours) * time.Hour
 
-			msg := types.NewMsgCreateTask(contract, function, bounty, description, from, wait, validDuration)
+			msg := types.NewMsgCreateTask(args[0], args[1], bounty, description, from, wait, validDuration)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -279,9 +262,6 @@ func GetCmdCreateTask() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagContract, "", "target contract address")
-	cmd.Flags().String(FlagFunction, "", "target function")
-	cmd.Flags().String(FlagBounty, "", "bounty for operators working on the task")
 	cmd.Flags().String(FlagDescription, "", "description of the task")
 	cmd.Flags().String(FlagWait, "0", "number of blocks between task creation and aggregation")
 	cmd.Flags().String(FlagValidDuration, "0", "valid duration of the task result")
@@ -293,9 +273,9 @@ func GetCmdCreateTask() *cobra.Command {
 // GetCmdRespondToTask returns command to respond to a task.
 func GetCmdRespondToTask() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "respond-to-task <flags>",
+		Use:   "respond-to-task <contract_address> <function> <score>",
 		Short: "Respond to a task",
-		Args:  cobra.NoArgs,
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -308,71 +288,12 @@ func GetCmdRespondToTask() *cobra.Command {
 				return err
 			}
 
-			contract := viper.GetString(FlagContract)
-			if contract == "" {
-				return fmt.Errorf("contract address is required to respond to a task")
-			}
-			function := viper.GetString(FlagFunction)
-			if function == "" {
-				return fmt.Errorf("function is required to respond to a task")
-			}
-			scoreStr := viper.GetString(FlagScore)
-			if scoreStr == "" {
-				return fmt.Errorf("score is required to respond to a task")
-			}
-			score := viper.GetInt64(FlagScore)
-
-			msg := types.NewMsgTaskResponse(contract, function, score, from)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
-		},
-	}
-
-	cmd.Flags().String(FlagContract, "", "contract address")
-	cmd.Flags().String(FlagFunction, "", "function")
-	cmd.Flags().String(FlagScore, "", "score")
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// GetCmdInquiry returns a inquiry-task command.
-func GetCmdInquiry() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "inquiry-task <flags>",
-		Short: "Inquiry a task",
-		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
+			score, err := strconv.ParseInt(args[2], 10, 64)
 			if err != nil {
-				return err
-			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
-
-			from := cliCtx.GetFromAddress()
-			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
-				return err
+				panic(err)
 			}
 
-			contract := viper.GetString(FlagContract)
-			if contract == "" {
-				return fmt.Errorf("contract address is required to inquiry a task")
-			}
-
-			function := viper.GetString(FlagFunction)
-			if function == "" {
-				return fmt.Errorf("function is required to inquiry a task")
-			}
-
-			txhash := viper.GetString(FlagTxhash)
-			if txhash == "" {
-				return fmt.Errorf("txhash is required to inquiry a task")
-			}
-
-			msg := types.NewMsgInquiryTask(contract, function, txhash, from)
+			msg := types.NewMsgTaskResponse(args[0], args[1], score, from)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -380,9 +301,7 @@ func GetCmdInquiry() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
-	cmd.Flags().String(FlagContract, "", "contract address")
-	cmd.Flags().String(FlagFunction, "", "function")
-	cmd.Flags().String(FlagTxhash, "", "txhash")
+
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -391,9 +310,9 @@ func GetCmdInquiry() *cobra.Command {
 // GetCmdDeleteTask returns a delete-task command.
 func GetCmdDeleteTask() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete-task <flags>",
+		Use:   "delete-task <contract_address> <function>",
 		Short: "delete a finished task",
-		Args:  cobra.NoArgs,
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -406,17 +325,9 @@ func GetCmdDeleteTask() *cobra.Command {
 				return err
 			}
 
-			contract := viper.GetString(FlagContract)
-			if contract == "" {
-				return fmt.Errorf("contract address is required to delete a task")
-			}
-
-			function := viper.GetString(FlagFunction)
-			if function == "" {
-				return fmt.Errorf("function is required to delete a task")
-			}
 			force := FlagForce
-			msg := types.NewMsgDeleteTask(contract, function, force, from)
+
+			msg := types.NewMsgDeleteTask(args[0], args[1], force, from)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -424,9 +335,8 @@ func GetCmdDeleteTask() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
-	cmd.Flags().String(FlagContract, "", "contract address")
-	cmd.Flags().String(FlagFunction, "", "function")
-	cmd.Flags().BoolVarP(&FlagForce, "force", "f", false, "compulsory delete")
+
+	cmd.Flags().BoolVarP(&FlagForce, "force", "f", false, "force delete")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
