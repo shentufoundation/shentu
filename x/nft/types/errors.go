@@ -9,7 +9,6 @@ import (
 const (
 	errAdminNotFound uint32 = iota + 13
 	errUnqualifiedCertifier
-	errCertificateNotExists
 	errCertificateGenesis
 	errInvalidDenomID
 	errUnqualifiedRevoker
