@@ -86,7 +86,7 @@ message QueryCertificatesRequest {
   string denom_id = 2;
 
   // pagination defines an optional pagination for the request.
-  cosmos.base.query.v1beta1.PageRequest pagination = 4;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
 message QueryCertificatesResponse {

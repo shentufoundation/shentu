@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// GetCertDenomNm returns the DenomNm of the certificate NFT, if valid.
 func GetCertDenomNm(denomID string) string {
 	switch denomID {
 	case "CertificateAuditing":
@@ -15,7 +16,7 @@ func GetCertDenomNm(denomID string) string {
 	}
 }
 
-// GetCertifier returns certificer of the certificate.
+// GetCertifier returns certifier of the certificate.
 func (c Certificate) GetCertifier() sdk.AccAddress {
 	certifierAddr, err := sdk.AccAddressFromBech32(c.Certifier)
 	if err != nil {

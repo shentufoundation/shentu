@@ -124,7 +124,7 @@ func GetCmdQueryCertificate() *cobra.Command {
 func GetCmdQueryCertificates() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "certificates [denom-id] [<flags>]",
-		Long:    "Query certificates information.",
+		Long:    "Query all certificates of given denom.",
 		Example: fmt.Sprintf("$ %s query nft certificates <denom-id>", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

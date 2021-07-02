@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	errUnqualifiedCertifier uint32 = iota + 101
+	errAdminNotFound uint32 = iota + 13
+	errUnqualifiedCertifier
 	errCertificateNotExists
 	errCertificateGenesis
 	errInvalidDenomID
@@ -15,12 +16,8 @@ const (
 )
 
 var (
-	ErrAdminNotFound = sdkerrors.Register(nfttypes.ModuleName, 13, "nft admin not found")
-)
-
-var (
+	ErrAdminNotFound        = sdkerrors.Register(nfttypes.ModuleName, errAdminNotFound, "nft admin not found")
 	ErrUnqualifiedCertifier = sdkerrors.Register(ModuleName, errUnqualifiedCertifier, "certifier not qualified")
-	ErrCertificateNotExists = sdkerrors.Register(ModuleName, errCertificateNotExists, "certificate id does not exist")
 	ErrCertificateGenesis   = sdkerrors.Register(ModuleName, errCertificateGenesis, "invalid certificate genesis")
 	ErrInvalidDenomID       = sdkerrors.Register(ModuleName, errInvalidDenomID, "invalid certificate denom ID")
 	ErrUnqualifiedRevoker   = sdkerrors.Register(ModuleName, errUnqualifiedRevoker, "only certifiers can revoke this certificate")

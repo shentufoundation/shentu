@@ -4,7 +4,6 @@ package shentu.nft.v1alpha1;
 import "shentu/nft/v1alpha1/nft.proto";
 import "irismod/nft/nft.proto";
 import "gogoproto/gogo.proto";
-import "shentu/cert/v1alpha1/cert.proto";
 
 option go_package = "github.com/certikfoundation/shentu/x/nft/types";
 
