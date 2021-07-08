@@ -13,13 +13,24 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/simapp"
+	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/nft/keeper"
 	"github.com/certikfoundation/shentu/x/nft/types"
 )
 
 var (
-	acc1 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc2 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc1      = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc2      = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	certifier = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+
+	tokenID  = "tokenid"
+	tokenID2 = "tokenid2"
+
+	tokenNm  = "tokennm"
+	tokenNm2 = "tokennm2"
+
+	tokenURI  = "https://google.com/token-1.json"
+	tokenURI2 = "https://google.com/token-2.json"
 )
 
 type KeeperTestSuite struct {
@@ -56,6 +67,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		}
 	}
 
+	suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(certifier, "", certifier, ""))
 	suite.address = []sdk.AccAddress{acc1, acc2}
 }
 

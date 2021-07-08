@@ -330,11 +330,6 @@ func NewSimApp(
 		&app.StakingKeeper,
 		app.GetSubspace(cvmtypes.ModuleName),
 	)
-	app.NFTKeeper = nftkeeper.NewKeeper(
-		appCodec,
-		app.CertKeeper,
-		keys[nfttypes.StoreKey],
-	)
 	app.OracleKeeper = oraclekeeper.NewKeeper(
 		appCodec,
 		keys[oracletypes.StoreKey],
@@ -355,6 +350,11 @@ func NewSimApp(
 		keys[certtypes.StoreKey],
 		app.SlashingKeeper,
 		stakingKeeper,
+	)
+	app.NFTKeeper = nftkeeper.NewKeeper(
+		appCodec,
+		app.CertKeeper,
+		keys[nfttypes.StoreKey],
 	)
 	app.AuthKeeper = authkeeper.NewKeeper(
 		app.AccountKeeper,

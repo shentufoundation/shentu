@@ -66,13 +66,13 @@ func (k Keeper) EditCertificate(
 	ctx sdk.Context, denomID, tokenID, tokenNm,
 	tokenURI string, certificate types.Certificate,
 ) error {
-	owner := certificate.GetCertifier()
-	if !k.certKeeper.IsCertifier(ctx, owner) {
-		return types.ErrUnqualifiedCertifier
-	}
 	denomNm := types.GetCertDenomNm(denomID)
 	if denomNm == "" {
 		return types.ErrInvalidDenomID
+	}
+	owner := certificate.GetCertifier()
+	if !k.certKeeper.IsCertifier(ctx, owner) {
+		return types.ErrUnqualifiedCertifier
 	}
 	tokenData := k.MarshalCertificate(ctx, certificate)
 	return k.EditNFT(ctx, denomID, tokenID, tokenNm, tokenURI, tokenData, owner)
