@@ -39,8 +39,24 @@ func (k Keeper) IssueCertificate(
 	return k.MintNFT(ctx, denomID, tokenID, tokenNm, tokenURI, tokenData, certifier)
 }
 
+// GetCertificate gets the specified certificate.
+func (k Keeper) GetCertificate(ctx sdk.Context, denomID, tokenID string) (types.Certificate, error) {
+	if denomNm := types.GetCertDenomNm(denomID); denomNm == "" {
+		return types.Certificate{}, types.ErrInvalidDenomID
+	}
+	certNFT, err := k.GetNFT(ctx, denomID, tokenID)
+	if err != nil {
+		return types.Certificate{}, err
+	}
+	certificate := k.UnmarshalCertificate(ctx, certNFT.GetData())
+	return certificate, nil
+}
+
 // GetCertificatesFiltered gets certificates filtered.
 func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCertificatesParams) (uint64, []types.Certificate, error) {
+	if denomNm := types.GetCertDenomNm(params.DenomID); denomNm == "" {
+		return 0, []types.Certificate{}, types.ErrInvalidDenomID
+	}
 	certNFTs := k.GetNFTs(ctx, params.DenomID)
 	filteredCertificates := []types.Certificate{}
 	for i := 0; i < len(certNFTs); i++ {

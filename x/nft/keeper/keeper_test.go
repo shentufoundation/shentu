@@ -19,18 +19,31 @@ import (
 )
 
 var (
-	acc1      = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc2      = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	certifier = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc1 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc2 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+
+	certifier  = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	certifier2 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 
 	tokenID  = "tokenid"
 	tokenID2 = "tokenid2"
+	tokenID3 = "tokenid3"
+	tokenID4 = "tokenid4"
+	tokenID5 = "tokenid5"
 
 	tokenNm  = "tokennm"
 	tokenNm2 = "tokennm2"
+	tokenNm3 = "tokennm3"
+	tokenNm4 = "tokennm4"
+	tokenNm5 = "tokennm5"
 
 	tokenURI  = "https://google.com/token-1.json"
 	tokenURI2 = "https://google.com/token-2.json"
+	tokenURI3 = "https://google.com/token-3.json"
+	tokenURI4 = "https://google.com/token-4.json"
+	tokenURI5 = "https://google.com/token-5.json"
+
+	content = "content"
 )
 
 type KeeperTestSuite struct {
@@ -39,7 +52,6 @@ type KeeperTestSuite struct {
 	app         *simapp.SimApp
 	ctx         sdk.Context
 	keeper      keeper.Keeper
-	address     []sdk.AccAddress
 	queryClient types.QueryClient
 }
 
@@ -68,7 +80,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	}
 
 	suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(certifier, "", certifier, ""))
-	suite.address = []sdk.AccAddress{acc1, acc2}
+	suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(certifier2, "", certifier2, ""))
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -93,7 +105,7 @@ func (suite *KeeperTestSuite) TestAdmin_GetSet() {
 		{
 			name: "NFT(2) Get: One & All",
 			args: args{
-				addrs: []sdk.AccAddress{suite.address[0], suite.address[1]},
+				addrs: []sdk.AccAddress{acc1, acc2},
 			},
 			errArgs: errArgs{
 				shouldPass: true,
@@ -139,8 +151,8 @@ func (suite *KeeperTestSuite) TestAdmin_Delete() {
 		{
 			name: "NFT(1) Delete: Simple",
 			args: args{
-				addrs:       []sdk.AccAddress{suite.address[0]},
-				deletedAddr: suite.address[0],
+				addrs:       []sdk.AccAddress{acc1},
+				deletedAddr: acc1,
 			},
 			errArgs: errArgs{
 				shouldPass: true,
@@ -150,8 +162,8 @@ func (suite *KeeperTestSuite) TestAdmin_Delete() {
 		{
 			name: "NFT(1) Delete: Add Two, Delete One",
 			args: args{
-				addrs:       []sdk.AccAddress{suite.address[0], suite.address[1]},
-				deletedAddr: suite.address[1],
+				addrs:       []sdk.AccAddress{acc1, acc2},
+				deletedAddr: acc2,
 			},
 			errArgs: errArgs{
 				shouldPass: true,
@@ -207,7 +219,7 @@ func (suite *KeeperTestSuite) TestAdmin_Check() {
 		{
 			name: "NFT(1) Check: Simple",
 			args: args{
-				addrs: []sdk.AccAddress{suite.address[0]},
+				addrs: []sdk.AccAddress{acc1},
 			},
 			errArgs: errArgs{
 				shouldPass: true,

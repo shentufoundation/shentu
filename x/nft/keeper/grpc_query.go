@@ -39,11 +39,10 @@ func (k Keeper) Certificate(c context.Context, req *types.QueryCertificateReques
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	certNFT, err := k.GetNFT(ctx, req.DenomId, req.TokenId)
+	certificate, err := k.GetCertificate(ctx, req.DenomId, req.TokenId)
 	if err != nil {
 		return nil, err
 	}
-	certificate := k.UnmarshalCertificate(ctx, certNFT.GetData())
 
 	return &types.QueryCertificateResponse{Certificate: certificate}, nil
 }

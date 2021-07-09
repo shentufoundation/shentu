@@ -40,7 +40,7 @@ func (suite *KeeperTestSuite) TestCertificate_Issue() {
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
 					certificate: types.Certificate{
-						Content:     "content1",
+						Content:     content,
 						Description: "",
 						Certifier:   certifier.String(),
 					},
@@ -60,7 +60,7 @@ func (suite *KeeperTestSuite) TestCertificate_Issue() {
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
 					certificate: types.Certificate{
-						Content:     "content1",
+						Content:     content,
 						Description: "",
 						Certifier:   acc1.String(),
 					},
@@ -80,7 +80,7 @@ func (suite *KeeperTestSuite) TestCertificate_Issue() {
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
 					certificate: types.Certificate{
-						Content:     "content1",
+						Content:     content,
 						Description: "",
 						Certifier:   certifier.String(),
 					},
@@ -104,7 +104,6 @@ func (suite *KeeperTestSuite) TestCertificate_Issue() {
 				suite.Require().NoError(err, tc.name)
 				gotCert := suite.keeper.UnmarshalCertificate(suite.ctx, certNFT.GetData())
 				suite.Require().Equal(tc.args.cert.certificate, gotCert)
-
 			} else {
 				suite.Require().Error(err, tc.name)
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
@@ -138,7 +137,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
 					certificate: types.Certificate{
-						Content:     "content1",
+						Content:     content,
 						Description: "",
 						Certifier:   certifier.String(),
 					},
@@ -149,7 +148,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 					tokenNm:  tokenNm2,
 					tokenURI: tokenURI2,
 					certificate: types.Certificate{
-						Content:     "content2",
+						Content:     content,
 						Description: "",
 						Certifier:   certifier.String(),
 					},
@@ -169,7 +168,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
 					certificate: types.Certificate{
-						Content:     "content1",
+						Content:     content,
 						Description: "",
 						Certifier:   certifier.String(),
 					},
@@ -180,7 +179,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 					tokenNm:  tokenNm2,
 					tokenURI: tokenURI2,
 					certificate: types.Certificate{
-						Content:     "content2",
+						Content:     content,
 						Description: "",
 						Certifier:   certifier.String(),
 					},
@@ -200,7 +199,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
 					certificate: types.Certificate{
-						Content:     "content1",
+						Content:     content,
 						Description: "",
 						Certifier:   certifier.String(),
 					},
@@ -226,7 +225,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
 					certificate: types.Certificate{
-						Content:     "content1",
+						Content:     content,
 						Description: "",
 						Certifier:   certifier.String(),
 					},
@@ -237,7 +236,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
 					certificate: types.Certificate{
-						Content:     "content1",
+						Content:     content,
 						Description: "",
 						Certifier:   acc1.String(),
 					},
@@ -257,7 +256,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
 					certificate: types.Certificate{
-						Content:     "content1",
+						Content:     content,
 						Description: "",
 						Certifier:   certifier.String(),
 					},
@@ -268,7 +267,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
 					certificate: types.Certificate{
-						Content:     "content1",
+						Content:     content,
 						Description: "",
 						Certifier:   certifier.String(),
 					},
@@ -295,7 +294,6 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 				suite.Require().NoError(err, tc.name)
 				gotCert := suite.keeper.UnmarshalCertificate(suite.ctx, certNFT.GetData())
 				suite.Require().Equal(tc.args.edit.certificate, gotCert)
-
 			} else {
 				suite.Require().Error(err, tc.name)
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
@@ -330,7 +328,7 @@ func (suite *KeeperTestSuite) TestCertificate_Revoke() {
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
 					certificate: types.Certificate{
-						Content:     "content1",
+						Content:     content,
 						Description: "",
 						Certifier:   certifier.String(),
 					},
@@ -356,7 +354,7 @@ func (suite *KeeperTestSuite) TestCertificate_Revoke() {
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
 					certificate: types.Certificate{
-						Content:     "content1",
+						Content:     content,
 						Description: "",
 						Certifier:   certifier.String(),
 					},
@@ -382,7 +380,7 @@ func (suite *KeeperTestSuite) TestCertificate_Revoke() {
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
 					certificate: types.Certificate{
-						Content:     "content1",
+						Content:     content,
 						Description: "",
 						Certifier:   certifier.String(),
 					},
@@ -408,7 +406,7 @@ func (suite *KeeperTestSuite) TestCertificate_Revoke() {
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
 					certificate: types.Certificate{
-						Content:     "content1",
+						Content:     content,
 						Description: "",
 						Certifier:   certifier.String(),
 					},
