@@ -35,7 +35,7 @@ func (suite *KeeperTestSuite) TestCertificate_Issue() {
 			name: "IssueCertificate: Correct Issue",
 			args: args{
 				cert: certNFT{
-					denomID:  "CertificateAuditing",
+					denomID:  "certificateauditing",
 					tokenID:  tokenID,
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestCertificate_Issue() {
 			name: "IssueCertificate: Unqualified Certifier",
 			args: args{
 				cert: certNFT{
-					denomID:  "CertificateAuditing",
+					denomID:  "certificateauditing",
 					tokenID:  tokenID,
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
@@ -132,7 +132,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 			name: "EditCertificate: Correct Edit",
 			args: args{
 				cert: certNFT{
-					denomID:  "CertificateAuditing",
+					denomID:  "certificateauditing",
 					tokenID:  tokenID,
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
@@ -143,7 +143,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 					},
 				},
 				edit: certNFT{
-					denomID:  "CertificateAuditing",
+					denomID:  "certificateauditing",
 					tokenID:  tokenID,
 					tokenNm:  tokenNm2,
 					tokenURI: tokenURI2,
@@ -163,7 +163,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 			name: "EditCertificate: Token Does Not Exist",
 			args: args{
 				cert: certNFT{
-					denomID:  "CertificateAuditing",
+					denomID:  "certificateauditing",
 					tokenID:  tokenID,
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
@@ -174,7 +174,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 					},
 				},
 				edit: certNFT{
-					denomID:  "CertificateAuditing",
+					denomID:  "certificateauditing",
 					tokenID:  tokenID2,
 					tokenNm:  tokenNm2,
 					tokenURI: tokenURI2,
@@ -194,7 +194,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 			name: "EditCertificate: Edit Non-Cert NFT",
 			args: args{
 				cert: certNFT{
-					denomID:  "CertificateAuditing",
+					denomID:  "certificateauditing",
 					tokenID:  tokenID,
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
@@ -220,7 +220,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 			name: "EditCertificate: Attempts to Edit Certifier",
 			args: args{
 				cert: certNFT{
-					denomID:  "CertificateAuditing",
+					denomID:  "certificateauditing",
 					tokenID:  tokenID,
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
@@ -231,7 +231,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 					},
 				},
 				edit: certNFT{
-					denomID:  "CertificateAuditing",
+					denomID:  "certificateauditing",
 					tokenID:  tokenID,
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
@@ -251,7 +251,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 			name: "EditCertificate: Attempts to Edit Denom",
 			args: args{
 				cert: certNFT{
-					denomID:  "CertificateAuditing",
+					denomID:  "certificateauditing",
 					tokenID:  tokenID,
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
@@ -262,7 +262,7 @@ func (suite *KeeperTestSuite) TestCertificate_Edit() {
 					},
 				},
 				edit: certNFT{
-					denomID:  "CertificateIdentity",
+					denomID:  "certificateidentity",
 					tokenID:  tokenID,
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
@@ -323,7 +323,7 @@ func (suite *KeeperTestSuite) TestCertificate_Revoke() {
 			name: "RevokeCertificate: Correct Revoke",
 			args: args{
 				cert: certNFT{
-					denomID:  "CertificateAuditing",
+					denomID:  "certificateauditing",
 					tokenID:  tokenID,
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
@@ -334,7 +334,7 @@ func (suite *KeeperTestSuite) TestCertificate_Revoke() {
 					},
 				},
 				revoke: certNFT{
-					denomID: "CertificateAuditing",
+					denomID: "certificateauditing",
 					tokenID: tokenID,
 					tokenNm: tokenNm,
 				},
@@ -349,7 +349,7 @@ func (suite *KeeperTestSuite) TestCertificate_Revoke() {
 			name: "RevokeCertificate: Unqualified Revoker",
 			args: args{
 				cert: certNFT{
-					denomID:  "CertificateAuditing",
+					denomID:  "certificateauditing",
 					tokenID:  tokenID,
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
@@ -360,7 +360,7 @@ func (suite *KeeperTestSuite) TestCertificate_Revoke() {
 					},
 				},
 				revoke: certNFT{
-					denomID: "CertificateAuditing",
+					denomID: "certificateauditing",
 					tokenID: tokenID,
 					tokenNm: tokenNm,
 				},
@@ -375,7 +375,7 @@ func (suite *KeeperTestSuite) TestCertificate_Revoke() {
 			name: "RevokeCertificate: Token Does Not Exist",
 			args: args{
 				cert: certNFT{
-					denomID:  "CertificateAuditing",
+					denomID:  "certificateauditing",
 					tokenID:  tokenID,
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,
@@ -386,7 +386,7 @@ func (suite *KeeperTestSuite) TestCertificate_Revoke() {
 					},
 				},
 				revoke: certNFT{
-					denomID: "CertificateAuditing",
+					denomID: "certificateauditing",
 					tokenID: tokenID2,
 					tokenNm: tokenNm,
 				},
@@ -401,7 +401,7 @@ func (suite *KeeperTestSuite) TestCertificate_Revoke() {
 			name: "RevokeCertificate: Revoke Non-Cert NFT",
 			args: args{
 				cert: certNFT{
-					denomID:  "CertificateAuditing",
+					denomID:  "certificateauditing",
 					tokenID:  tokenID,
 					tokenNm:  tokenNm,
 					tokenURI: tokenURI,

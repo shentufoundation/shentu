@@ -7,10 +7,12 @@ import (
 // GetCertDenomNm returns the DenomNm of the certificate NFT, if valid.
 func GetCertDenomNm(denomID string) string {
 	switch denomID {
-	case "CertificateAuditing":
+	case "certificateauditing":
 		return "Auditing"
-	case "CertificateIdentity":
+	case "certificateidentity":
 		return "Identity"
+	case "certificategeneral":
+		return "General"
 	default:
 		return ""
 	}
