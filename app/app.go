@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
@@ -70,8 +71,6 @@ import (
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	nfttypes "github.com/irisnet/irismod/modules/nft/types"
-
 	appparams "github.com/certikfoundation/shentu/app/params"
 	"github.com/certikfoundation/shentu/x/auth"
 	authkeeper "github.com/certikfoundation/shentu/x/auth/keeper"
@@ -92,6 +91,7 @@ import (
 	mintkeeper "github.com/certikfoundation/shentu/x/mint/keeper"
 	"github.com/certikfoundation/shentu/x/nft"
 	nftkeeper "github.com/certikfoundation/shentu/x/nft/keeper"
+	nfttypes "github.com/certikfoundation/shentu/x/nft/types"
 	"github.com/certikfoundation/shentu/x/oracle"
 	oraclekeeper "github.com/certikfoundation/shentu/x/oracle/keeper"
 	oracletypes "github.com/certikfoundation/shentu/x/oracle/types"
@@ -336,6 +336,11 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.slashingKeeper,
 		stakingKeeper,
 	)
+	app.nftKeeper = nftkeeper.NewKeeper(
+		appCodec,
+		app.certKeeper,
+		keys[nfttypes.StoreKey],
+	)
 	app.authKeeper = authkeeper.NewKeeper(
 		app.accountKeeper,
 		app.certKeeper,
@@ -346,6 +351,41 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		appCodec,
 		homePath,
 	)
+
+	// configure an upgrade handler for Cert-NFT migration
+	app.upgradeKeeper.SetUpgradeHandler("cert-nft", func(ctx sdk.Context, plan upgradetypes.Plan) {
+		app.certKeeper.IterateAllCertificate(ctx, func(legacyCertificate certtypes.Certificate) bool {
+			// set token parameters based on certificate type
+			var denomID, tokenNm string
+			switch certtypes.TranslateCertificateType(legacyCertificate) {
+			case certtypes.CertificateTypeAuditing:
+				denomID = "certificateauditing"
+				tokenNm = "Auditing"
+			case certtypes.CertificateTypeIdentity:
+				denomID = "certificateidentity"
+				tokenNm = "Identity"
+			default:
+				denomID = "certificategeneral"
+				tokenNm = "General"
+			}
+			tokenID := "certificate" + strconv.FormatUint(legacyCertificate.CertificateId, 16)
+
+			// set appropriate fields for certificate data
+			certificate := nfttypes.Certificate{
+				Content:     legacyCertificate.GetContentString(),
+				Description: legacyCertificate.Description,
+				Certifier:   legacyCertificate.Certifier,
+			}
+
+			// issue certificate NFT
+			if err := app.nftKeeper.IssueCertificate(ctx, denomID, tokenID, tokenNm, "", certificate); err != nil {
+				panic(err)
+			}
+
+			return false
+		})
+	})
+
 	app.shieldKeeper = shieldkeeper.NewKeeper(
 		appCodec,
 		keys[shieldtypes.StoreKey],
@@ -394,8 +434,6 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.accountKeeper,
 		govRouter,
 	)
-
-	app.nftKeeper = nftkeeper.NewKeeper(appCodec, app.certKeeper, keys[nfttypes.StoreKey])
 
 	// Create Transfer Keepers
 	app.transferKeeper = ibctransferkeeper.NewKeeper(
