@@ -31,12 +31,6 @@ type proposeCertifierReq struct {
 	Description string            `json:"description"`
 }
 
-type certifyValidatorReq struct {
-	BaseReq   resttypes.BaseReq `json:"base_req"`
-	Certifier string            `json:"certifier"`
-	Validator string            `json:"validator"`
-}
-
 type certifyGeneralReq struct {
 	BaseReq         resttypes.BaseReq `json:"base_req"`
 	CertificateType string            `json:"certificate_type"`

@@ -24,7 +24,6 @@ func registerTxHandlers(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/claim-reward", types.ModuleName), claimRewardHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/create-task", types.ModuleName), createTaskHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/respond-to-task", types.ModuleName), respondToTaskHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/inquiry-task", types.ModuleName), inquireTaskHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/delete-task", types.ModuleName), deleteTaskHandler(cliCtx)).Methods("POST")
 }
 
@@ -73,36 +72,6 @@ func createTaskHandler(cliCtx client.Context) http.HandlerFunc {
 		validDuration := time.Duration(hours) * time.Hour
 
 		msg := types.NewMsgCreateTask(req.Contract, req.Function, bounty, req.Description, creator, wait, validDuration)
-		if err = msg.ValidateBasic(); err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, msg)
-	}
-}
-
-func inquireTaskHandler(cliCtx client.Context) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req inquiryTaskReq
-
-		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
-			return
-		}
-
-		baseReq := req.BaseReq.Sanitize()
-		if !baseReq.ValidateBasic(w) {
-			return
-		}
-
-		inquirer, err := sdk.AccAddressFromBech32(req.BaseReq.From)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		msg := types.NewMsgInquiryTask(req.Contract, req.Function, req.TxHash, inquirer)
 		if err = msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

@@ -17,7 +17,6 @@ service Msg {
     rpc WithdrawReward(MsgWithdrawReward) returns (MsgWithdrawRewardResponse);
     rpc CreateTask(MsgCreateTask) returns (MsgCreateTaskResponse);
     rpc TaskResponse(MsgTaskResponse) returns (MsgTaskResponseResponse);
-    rpc InquiryTask(MsgInquiryTask) returns (MsgInquiryTaskResponse);
     rpc DeleteTask(MsgDeleteTask) returns (MsgDeleteTaskResponse);
 }
 
@@ -98,18 +97,6 @@ message MsgTaskResponse {
 }
 
 message MsgTaskResponseResponse {}
-
-message MsgInquiryTask {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-
-    string contract = 1 [ (gogoproto.moretags) = "yaml:\"contract\"" ];
-    string function = 2 [ (gogoproto.moretags) = "yaml:\"function\"" ];
-    string tx_hash = 3 [ (gogoproto.moretags) = "yaml:\"tx_hash\"" ];
-    string inquirer = 4 [ (gogoproto.moretags) = "yaml:\"inquirer\"" ];
-}
-
-message MsgInquiryTaskResponse {}
 
 message MsgDeleteTask {
     option (gogoproto.equal) = false;

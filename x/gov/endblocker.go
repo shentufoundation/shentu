@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	certkeeper "github.com/certikfoundation/shentu/x/cert/keeper"
+	"github.com/certikfoundation/shentu/common"
 	"github.com/certikfoundation/shentu/x/gov/keeper"
 	"github.com/certikfoundation/shentu/x/gov/types"
 	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
@@ -198,7 +198,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 	// Iterate over all active proposals, regardless of end time, so that
 	// security voting can end as soon as a passing threshold is met.
-	k.IterateActiveProposalsQueue(ctx, time.Unix(certkeeper.MaxTimestamp, 0), func(proposal types.Proposal) bool {
+	k.IterateActiveProposalsQueue(ctx, time.Unix(common.MaxTimestamp, 0), func(proposal types.Proposal) bool {
 		return processSecurityVote(ctx, k, proposal)
 	})
 }

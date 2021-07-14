@@ -50,15 +50,6 @@ message Certificate {
     string certifier = 5 [ (gogoproto.moretags) = "yaml:\"certifier\"" ];
 }
 
-// Validator is a type for certified validator.
-message Validator {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-    
-    google.protobuf.Any pubkey = 1 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
-    string certifier = 2;
-}
-
 // Library is a type for certified libraries.
 message Library {
     option (gogoproto.equal) = false;

@@ -41,6 +41,7 @@ Version 2.0.0 brings many changes with SDK upgrading to Stargate version. For mo
 
 ### Client Breaking Changes
 * (app) [\#241](https://github.com/certikfoundation/shentu/pull/241) Renamed default binary name to `certik`.
+* (oracle) [\#303](https://github.com/certikfoundation/shentu/pull/303) Oracle client commands refactor.
 
 ### API Breaking Changes
 * (cvm) [\#231](https://github.com/certikfoundation/shentu/pull/231) Remove direct solidity file deployment.
@@ -50,14 +51,21 @@ Version 2.0.0 brings many changes with SDK upgrading to Stargate version. For mo
 
 ### State Machine Breaking Changes
 * (app) [\#221](https://github.com/certikfoundation/shentu/pull/221) Upgraded SDK to 0.42.x.
+* (shield) [\#286](https://github.com/certikfoundation/shentu/pull/286) Fix shield emitted events to include sender.
+* (cert) [\#302](https://github.com/certikfoundation/shentu/pull/302) Removed validator certificate.
+* (cvm) [\#301](https://github.com/certikfoundation/shentu/pull/301) Removed zero-address coins recycling.
 
 ### Features
 * (ibc) [\#251](https://github.com/certikfoundation/shentu/pull/251) Add IBC support.
 
 ### Improvements
 * [\#230](https://github.com/certikfoundation/shentu/pull/230) Optimized shield invariant & removed crisis module from endblocker.
+* [\#286](https://github.com/certikfoundation/shentu/pull/286) Fix shield emitted events to include sender.
+* [\#283](https://github.com/certikfoundation/shentu/pull/283) Improve vesting account generation.
 
 ### Tests
+* [\#296](https://github.com/certikfoundation/shentu/pull/296) General test improvements over the modules.
+* [\#280](https://github.com/certikfoundation/shentu/pull/280) Additional test cases for cert and oracle modules.
 
 ### Bug Fixes
 * (app) [\#254](https://github.com/certikfoundation/shentu/pull/254) Disable module account receiving coins.

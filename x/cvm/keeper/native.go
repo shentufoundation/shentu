@@ -12,7 +12,6 @@ import (
 	"github.com/hyperledger/burrow/execution/native"
 	"github.com/hyperledger/burrow/permission"
 
-	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/cvm/types"
 )
 
@@ -32,8 +31,7 @@ func registerCVMNative(cc CertificateCallable, nonce []byte) engine.Options {
 		Natives: native.MustDefaultNatives().
 			MustFunction("General", leftPadAddress(101), permission.None, cc.checkGeneral).
 			MustFunction("Proof", leftPadAddress(102), permission.None, cc.checkProof).
-			MustFunction("Compilation", leftPadAddress(103), permission.None, cc.checkCompilation).
-			MustFunction("CertifyValidator", leftPadAddress(104), permission.None, cc.certifyValidator),
+			MustFunction("Compilation", leftPadAddress(103), permission.None, cc.checkCompilation),
 		Nonce: nonce,
 	}
 }
@@ -84,26 +82,6 @@ func (cc CertificateCallable) checkCompilation(ctx native.Context) (output []byt
 		return []byte{0x01}, nil
 	}
 	return []byte{0x00}, nil
-}
-
-// certifyValidator certifies a validator.
-func (cc CertificateCallable) certifyValidator(ctx native.Context) (output []byte, err error) {
-	gasRequired := big.NewInt(GasBase)
-	if ctx.Gas.Cmp(gasRequired) == -1 {
-		return nil, errors.Codes.InsufficientGas
-	} else {
-		*ctx.Gas = *ctx.Gas.Sub(ctx.Gas, gasRequired)
-	}
-	if !cc.certKeeper.IsCertifier(cc.ctx, ctx.Origin.Bytes()) {
-		return nil, certtypes.ErrUnqualifiedCertifier
-	}
-	input := string(ctx.Input)
-	pubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, input)
-	if err != nil {
-		return []byte{0x00}, err
-	}
-	cc.certKeeper.SetValidator(cc.ctx, pubKey, ctx.Caller.Bytes())
-	return []byte{0x01}, nil
 }
 
 func leftPadAddress(bs ...byte) crypto.Address {
