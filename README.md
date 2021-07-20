@@ -95,21 +95,21 @@ Run `make image` first to build the images initially (no need to be rerun for us
 Setup a localnet (per code change):
 
 ```bash
-$ make localnet
+$ make localnet-start
 ```
 
 This will run (four) testnet nodes in the background as well as an interactive client. If you want to see node output, do `docker-compose logs -f` (in other terminal) which will display output from all four nodes until you exit the process. Stops the localnet by `docker-compose down`.
 
-Enter the client to interact with the localnet:
+To access the running localnet machine, you can list the running containers through
 
 ```bash
-$ make localnet.client
+docker container ls --all
 ```
 
-You can also setup a localnet and start a client in one command:
+and access the specific container through
 
 ```bash
-$ make localnet.both
+docker exec -it <container name> /bin/bash
 ```
 
 Run the scripts for testing:
@@ -126,7 +126,7 @@ $ certik tx send node0 $JACK_KEY 100000uctk --gas-prices=0.025uctk --from node0
 $ certik query account $JACK_KEY
 ```
 
-Finally, run `make localnet.down` to shutdown the localnet.
+Finally, run `make localnet-stop` to shutdown the localnet.
 
 # Deploy Testnet on AWS
 
