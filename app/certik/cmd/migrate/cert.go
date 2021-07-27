@@ -11,7 +11,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	certtypes "github.com/certikfoundation/shentu/x/cert/types"
+	certtypes "github.com/certikfoundation/shentu/x/cert/legacy/types"
 )
 
 // CertificateType is the type for the type of a certificate.

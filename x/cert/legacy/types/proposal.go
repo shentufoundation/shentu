@@ -16,10 +16,10 @@ const (
 // Assert CertifierUpdateProposal implements govtypes.Content at compile-time
 var _ govtypes.Content = &CertifierUpdateProposal{}
 
-// func init() {
-// 	govtypes.RegisterProposalType(ProposalTypeCertifierUpdate)
-// 	govtypes.RegisterProposalTypeCodec(CertifierUpdateProposal{}, "cosmos-sdk/CertifierUpdateProposal")
-// }
+func init() {
+	govtypes.RegisterProposalType(ProposalTypeCertifierUpdate)
+	govtypes.RegisterProposalTypeCodec(CertifierUpdateProposal{}, "cosmos-sdk/CertifierUpdateProposal")
+}
 
 // NewCertifierUpdateProposal creates a new certifier update proposal.
 func NewCertifierUpdateProposal(title,

@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
@@ -79,6 +78,7 @@ import (
 	"github.com/certikfoundation/shentu/x/cert"
 	certclient "github.com/certikfoundation/shentu/x/cert/client"
 	certkeeper "github.com/certikfoundation/shentu/x/cert/keeper"
+	certmigrate "github.com/certikfoundation/shentu/x/cert/legacy/migrate"
 	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/cvm"
 	cvmkeeper "github.com/certikfoundation/shentu/x/cvm/keeper"
@@ -354,36 +354,10 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	// configure an upgrade handler for Cert-NFT migration
 	app.upgradeKeeper.SetUpgradeHandler("cert-nft", func(ctx sdk.Context, plan upgradetypes.Plan) {
-		app.certKeeper.IterateAllCertificate(ctx, func(legacyCertificate certtypes.Certificate) bool {
-			// set token parameters based on certificate type
-			var denomID, tokenNm string
-			switch certtypes.TranslateCertificateType(legacyCertificate) {
-			case certtypes.CertificateTypeAuditing:
-				denomID = "certificateauditing"
-				tokenNm = "Auditing"
-			case certtypes.CertificateTypeIdentity:
-				denomID = "certificateidentity"
-				tokenNm = "Identity"
-			default:
-				denomID = "certificategeneral"
-				tokenNm = "General"
-			}
-			tokenID := "certificate" + strconv.FormatUint(legacyCertificate.CertificateId, 16)
-
-			// set appropriate fields for certificate data
-			certificate := nfttypes.Certificate{
-				Content:     legacyCertificate.GetContentString(),
-				Description: legacyCertificate.Description,
-				Certifier:   legacyCertificate.Certifier,
-			}
-
-			// issue certificate NFT
-			if err := app.nftKeeper.IssueCertificate(ctx, denomID, tokenID, tokenNm, "", certificate); err != nil {
-				panic(err)
-			}
-
-			return false
-		})
+		migrator := certmigrate.NewMigrator(app.certKeeper, app.nftKeeper)
+		if err := migrator.MigrateCertToNFT(ctx, keys[certtypes.StoreKey]); err != nil {
+			panic(err)
+		}
 	})
 
 	app.shieldKeeper = shieldkeeper.NewKeeper(
@@ -430,6 +404,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.bankKeeper,
 		app.stakingKeeper,
 		app.certKeeper,
+		app.nftKeeper,
 		app.shieldKeeper,
 		app.accountKeeper,
 		govRouter,
