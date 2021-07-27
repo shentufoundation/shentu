@@ -45,7 +45,6 @@ func NewTxCmd() *cobra.Command {
 		GetCmdWithdrawCollateral(),
 		GetCmdWithdrawRewards(),
 		GetCmdWithdrawForeignRewards(),
-		GetCmdClearPayouts(),
 		GetCmdPurchaseShield(),
 		GetCmdWithdrawReimbursement(),
 		GetCmdUpdateSponsor(),
@@ -433,32 +432,6 @@ func GetCmdWithdrawForeignRewards() *cobra.Command {
 			addr := args[1]
 
 			msg := types.NewMsgWithdrawForeignRewards(fromAddr, denom, addr)
-
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdClearPayouts implements command for requesting to clear out pending payouts.
-func GetCmdClearPayouts() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "clear-payouts [denom]",
-		Short: "clear pending payouts after they have been distributed",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
-
-			fromAddr := cliCtx.GetFromAddress()
-			denom := args[0]
-
-			msg := types.NewMsgClearPayouts(fromAddr, denom)
 
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},

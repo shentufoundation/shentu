@@ -19,7 +19,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgWithdrawCollateral{}, "shield/MsgWithdrawCollateral", nil)
 	cdc.RegisterConcrete(MsgWithdrawRewards{}, "shield/MsgWithdrawRewards", nil)
 	cdc.RegisterConcrete(MsgWithdrawForeignRewards{}, "shield/MsgWithdrawForeignRewards", nil)
-	cdc.RegisterConcrete(MsgClearPayouts{}, "shield/MsgClearPayouts", nil)
 	cdc.RegisterConcrete(ShieldClaimProposal{}, "shield/ShieldClaimProposal", nil)
 	cdc.RegisterConcrete(MsgPurchaseShield{}, "shield/MsgPurchaseShield", nil)
 	cdc.RegisterConcrete(MsgWithdrawReimbursement{}, "shield/MsgWithdrawReimbursement", nil)
@@ -39,7 +38,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgWithdrawCollateral{},
 		&MsgWithdrawRewards{},
 		&MsgWithdrawForeignRewards{},
-		&MsgClearPayouts{},
 		&MsgPurchaseShield{},
 		&MsgWithdrawReimbursement{},
 		&MsgUpdateSponsor{},
