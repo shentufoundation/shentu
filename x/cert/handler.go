@@ -25,18 +25,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.DecertifyValidator(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgCertifyPlatform:
-			res, err := msgServer.CertifyPlatform(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *types.MsgIssueCertificate:
-			res, err := msgServer.IssueCertificate(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *types.MsgRevokeCertificate:
-			res, err := msgServer.RevokeCertificate(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Unrecognized cert Msg type: %v", msg.Type())
 		}

@@ -7,15 +7,20 @@ import (
 // GetCertDenomNm returns the DenomNm of the certificate NFT, if valid.
 func GetCertDenomNm(denomID string) string {
 	switch denomID {
-	case "certificateauditing":
+	case "certikauditing":
 		return "Auditing"
-	case "certificateidentity":
+	case "certikidentity":
 		return "Identity"
-	case "certificategeneral":
+	case "certikgeneral":
 		return "General"
 	default:
 		return ""
 	}
+}
+
+// GetContent returns the content of the certificate.
+func (c Certificate) GetContent() string {
+	return c.Content
 }
 
 // GetCertifier returns certifier of the certificate.

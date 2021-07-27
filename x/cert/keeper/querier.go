@@ -24,12 +24,6 @@ func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier 
 			return queryCertifiedValidator(ctx, path[1:], keeper, legacyQuerierCdc)
 		case types.QueryCertifiedValidators:
 			return queryCertifiedValidators(ctx, path[1:], keeper, legacyQuerierCdc)
-		case types.QueryPlatform:
-			return queryPlatform(ctx, path[1:], keeper, legacyQuerierCdc)
-		case types.QueryCertificate:
-			return queryCertificate(ctx, path[1:], keeper, legacyQuerierCdc)
-		case types.QueryCertificates:
-			return queryCertificates(ctx, path[1:], req, keeper, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown cert query endpoint")
 		}
@@ -120,28 +114,5 @@ func queryCertifiedValidators(ctx sdk.Context, path []string, keeper Keeper, leg
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-	return res, nil
-}
-
-func queryPlatform(ctx sdk.Context, path []string, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if len(path) != 1 {
-		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 1 arg. Found %d.", len(path))
-	}
-
-	validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, path[0])
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, path[0])
-	}
-
-	platform, ok := keeper.GetPlatform(ctx, validator)
-	if !ok {
-		return nil, nil
-	}
-
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, platform)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-
 	return res, nil
 }

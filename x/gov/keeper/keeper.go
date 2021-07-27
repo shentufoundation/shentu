@@ -29,6 +29,9 @@ type Keeper struct {
 	// the reference to get information about certifiers
 	CertKeeper types.CertKeeper
 
+	// the reference to get information about certificates
+	NFTKeeper types.NFTKeeper
+
 	// the reference to get claim proposal parameters
 	ShieldKeeper types.ShieldKeeper
 
@@ -49,8 +52,8 @@ type Keeper struct {
 // - and tallying the result of the vote.
 func NewKeeper(
 	cdc codec.BinaryMarshaler, key sdk.StoreKey, paramSpace types.ParamSubspace, bankKeeper govtypes.BankKeeper,
-	stakingKeeper types.StakingKeeper, certKeeper types.CertKeeper, shieldKeeper types.ShieldKeeper,
-	authKeeper govtypes.AccountKeeper, router govtypes.Router,
+	stakingKeeper types.StakingKeeper, certKeeper types.CertKeeper, nftKeeper types.NFTKeeper,
+	shieldKeeper types.ShieldKeeper, authKeeper govtypes.AccountKeeper, router govtypes.Router,
 ) Keeper {
 	cosmosKeeper := govkeeper.NewKeeper(cdc, key, paramSpace, authKeeper, bankKeeper, stakingKeeper, router)
 	return Keeper{
@@ -60,6 +63,7 @@ func NewKeeper(
 		bankKeeper:    bankKeeper,
 		stakingKeeper: stakingKeeper,
 		CertKeeper:    certKeeper,
+		NFTKeeper:     nftKeeper,
 		ShieldKeeper:  shieldKeeper,
 		cdc:           cdc,
 		router:        router,

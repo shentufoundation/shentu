@@ -1,4 +1,4 @@
-package cert_test
+package certlegacy_test
 
 import (
 	"math/rand"
@@ -13,7 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/cert/types"
+	"github.com/certikfoundation/shentu/x/cert/legacy/types"
 )
 
 func Test_GetNewCertificateID(t *testing.T) {
@@ -27,13 +27,13 @@ func Test_GetNewCertificateID(t *testing.T) {
 			"bytecodehash1", "", addrs[0])
 		require.NoError(t, err)
 
-		id1 := app.CertKeeper.GetNextCertificateID(ctx)
+		id1 := app.CertLegacyKeeper.GetNextCertificateID(ctx)
 
 		c1.CertificateId = id1
-		app.CertKeeper.SetNextCertificateID(ctx, id1+1)
-		app.CertKeeper.SetCertificate(ctx, c1)
+		app.CertLegacyKeeper.SetNextCertificateID(ctx, id1+1)
+		app.CertLegacyKeeper.SetCertificate(ctx, c1)
 
-		data, err := app.CertKeeper.GetCertificateByID(ctx, id1)
+		data, err := app.CertLegacyKeeper.GetCertificateByID(ctx, id1)
 		if err != nil {
 			t.Errorf("Could not retrieve data from the store")
 		}
@@ -45,12 +45,12 @@ func Test_GetNewCertificateID(t *testing.T) {
 		c2, err := types.NewCertificate("compilation", "sourcodehash0", "compiler1",
 			"bytecodehash1", "", addrs[0])
 		require.NoError(t, err)
-		id2 := app.CertKeeper.GetNextCertificateID(ctx)
+		id2 := app.CertLegacyKeeper.GetNextCertificateID(ctx)
 		c2.CertificateId = id2
-		app.CertKeeper.SetNextCertificateID(ctx, id2+1)
-		app.CertKeeper.SetCertificate(ctx, c2)
+		app.CertLegacyKeeper.SetNextCertificateID(ctx, id2+1)
+		app.CertLegacyKeeper.SetCertificate(ctx, c2)
 
-		data, err = app.CertKeeper.GetCertificateByID(ctx, id2)
+		data, err = app.CertLegacyKeeper.GetCertificateByID(ctx, id2)
 		if err != nil {
 			t.Errorf("Could not retrieve data from the store")
 		}
@@ -60,18 +60,18 @@ func Test_GetNewCertificateID(t *testing.T) {
 
 		// Delete the first certificate and add the third certificate
 		id := c1.CertificateId
-		app.CertKeeper.DeleteCertificate(ctx, c1)
+		app.CertLegacyKeeper.DeleteCertificate(ctx, c1)
 
 		c3, err := types.NewCertificate("compilation", "sourcodehash0", "compiler1",
 			"bytecodehash1", "", addrs[0])
 		require.NoError(t, err)
-		id3 := app.CertKeeper.GetNextCertificateID(ctx)
+		id3 := app.CertLegacyKeeper.GetNextCertificateID(ctx)
 		require.Equal(t, id+2, id3)
 
 		c3.CertificateId = id3
-		app.CertKeeper.SetCertificate(ctx, c3)
+		app.CertLegacyKeeper.SetCertificate(ctx, c3)
 
-		data, err = app.CertKeeper.GetCertificateByID(ctx, id3)
+		data, err = app.CertLegacyKeeper.GetCertificateByID(ctx, id3)
 		if err != nil {
 			t.Errorf("Could not retrieve data from the store")
 		}
@@ -93,7 +93,7 @@ func Test_IterationByCertifier(t *testing.T) {
 		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 		addrs := simapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(10000))
 		for _, addr := range addrs {
-			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, "", addr, ""))
+			app.CertLegacyKeeper.SetCertifier(ctx, types.NewCertifier(addr, "", addr, ""))
 		}
 
 		// Store certificates
@@ -111,14 +111,14 @@ func Test_IterationByCertifier(t *testing.T) {
 			cert, err := types.NewCertificate("compilation", s, "compiler1",
 				"bytecodehash1", "", addrs[index])
 			require.NoError(t, err)
-			_, err = app.CertKeeper.IssueCertificate(ctx, cert)
+			_, err = app.CertLegacyKeeper.IssueCertificate(ctx, cert)
 			require.NoError(t, err)
 		}
 
-		certs := app.CertKeeper.GetCertificatesByCertifier(ctx, addrs[0])
+		certs := app.CertLegacyKeeper.GetCertificatesByCertifier(ctx, addrs[0])
 		require.Equal(t, addr0Count, len(certs))
 
-		certs = app.CertKeeper.GetCertificatesByCertifier(ctx, addrs[2])
+		certs = app.CertLegacyKeeper.GetCertificatesByCertifier(ctx, addrs[2])
 		require.Equal(t, addr2Count, len(certs))
 	})
 }
@@ -129,7 +129,7 @@ func Test_CertificateQueries(t *testing.T) {
 		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 		addrs := simapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(10000))
 		for _, addr := range addrs {
-			app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addr, "", addr, ""))
+			app.CertLegacyKeeper.SetCertifier(ctx, types.NewCertifier(addr, "", addr, ""))
 		}
 
 		// Store certificates
@@ -157,7 +157,7 @@ func Test_CertificateQueries(t *testing.T) {
 					count3++
 					count4++
 				}
-				_, err := app.CertKeeper.IssueCertificate(ctx, cert)
+				_, err := app.CertLegacyKeeper.IssueCertificate(ctx, cert)
 				require.NoError(t, err)
 			} else {
 				length := rand.Intn(10) + 10
@@ -166,42 +166,42 @@ func Test_CertificateQueries(t *testing.T) {
 				if index == 0 {
 					count3++
 				}
-				_, err := app.CertKeeper.IssueCertificate(ctx, cert2)
+				_, err := app.CertLegacyKeeper.IssueCertificate(ctx, cert2)
 				require.NoError(t, err)
 			}
 		}
 
 		// Test GetCertificatesByContent()
-		certs := app.CertKeeper.GetCertificatesByContent(ctx, dupContent)
+		certs := app.CertLegacyKeeper.GetCertificatesByContent(ctx, dupContent)
 		require.Equal(t, count2, len(certs))
 
 		// Test GetCertificatesFiltered()
 		queryParams := types.NewQueryCertificatesParams(1, totalCerts, nil, types.CertificateTypeFromString("compilation"))
-		total, certs, err := app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
+		total, certs, err := app.CertLegacyKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
 		require.Equal(t, uint64(count2), total)
 		require.Equal(t, count2, len(certs))
 
 		queryParams = types.NewQueryCertificatesParams(1, totalCerts, nil, types.CertificateTypeFromString("general"))
-		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
+		total, certs, err = app.CertLegacyKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
 		require.Equal(t, uint64(count-count2), total)
 		require.Equal(t, count-count2, len(certs))
 
 		queryParams = types.NewQueryCertificatesParams(1, totalCerts, addrs[0], types.CertificateTypeFromString(""))
-		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
+		total, certs, err = app.CertLegacyKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
 		require.Equal(t, uint64(count3), total)
 		require.Equal(t, count3, len(certs))
 
 		queryParams = types.NewQueryCertificatesParams(1, totalCerts, addrs[0], types.CertificateTypeFromString("compilation"))
-		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
+		total, certs, err = app.CertLegacyKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
 		require.Equal(t, uint64(count4), total)
 		require.Equal(t, count4, len(certs))
 
 		queryParams = types.NewQueryCertificatesParams(1, totalCerts, addrs[0], types.CertificateTypeFromString("general"))
-		total, certs, err = app.CertKeeper.GetCertificatesFiltered(ctx, queryParams)
+		total, certs, err = app.CertLegacyKeeper.GetCertificatesFiltered(ctx, queryParams)
 		require.NoError(t, err)
 		require.Equal(t, uint64(count3-count4), total)
 		require.Equal(t, count3-count4, len(certs))
@@ -213,22 +213,22 @@ func Test_IsCertified(t *testing.T) {
 		app := simapp.Setup(false)
 		ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 		addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(10000))
-		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "", addrs[0], ""))
+		app.CertLegacyKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "", addrs[0], ""))
 
 		certType := "auditing"
 		contentStr := "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag"
 
-		isCertified := app.CertKeeper.IsCertified(ctx, contentStr, certType)
+		isCertified := app.CertLegacyKeeper.IsCertified(ctx, contentStr, certType)
 		require.Equal(t, false, isCertified)
 
 		cert, err := types.NewCertificate(certType, contentStr,
 			"", "", "Audited by CertiK", addrs[0])
 		require.NoError(t, err)
 
-		_, err = app.CertKeeper.IssueCertificate(ctx, cert)
+		_, err = app.CertLegacyKeeper.IssueCertificate(ctx, cert)
 		require.NoError(t, err)
 
-		isCertified = app.CertKeeper.IsCertified(ctx, contentStr, certType)
+		isCertified = app.CertLegacyKeeper.IsCertified(ctx, contentStr, certType)
 		require.Equal(t, true, isCertified)
 	})
 }

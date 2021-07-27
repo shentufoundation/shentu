@@ -17,7 +17,10 @@ type CertKeeper interface {
 	GetAllCertifiers(ctx sdk.Context) (certifiers certtypes.Certifiers)
 	GetCertifier(ctx sdk.Context, certifierAddress sdk.AccAddress) (certtypes.Certifier, error)
 	HasCertifierAlias(ctx sdk.Context, alias string) bool
-	IsCertified(ctx sdk.Context, content string, certType string) bool
+}
+
+type NFTKeeper interface {
+	IsCertified(ctx sdk.Context, content string, denomID string) bool
 	GetCertifiedIdentities(ctx sdk.Context) []sdk.AccAddress
 }
 

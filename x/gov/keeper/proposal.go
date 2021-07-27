@@ -82,13 +82,13 @@ func (k Keeper) IsCouncilMember(ctx sdk.Context, addr sdk.AccAddress) bool {
 
 // IsCertifiedIdentity checks if the input address is a certified identity.
 func (k Keeper) IsCertifiedIdentity(ctx sdk.Context, addr sdk.AccAddress) bool {
-	return k.CertKeeper.IsCertified(ctx, addr.String(), "identity")
+	return k.NFTKeeper.IsCertified(ctx, addr.String(), "certikidentity")
 }
 
 // TotalBondedByCertifiedIdentities calculates the amount of total bonded stakes by certified identities.
 func (k Keeper) TotalBondedByCertifiedIdentities(ctx sdk.Context) sdk.Int {
 	bonded := sdk.ZeroInt()
-	for _, identity := range k.CertKeeper.GetCertifiedIdentities(ctx) {
+	for _, identity := range k.NFTKeeper.GetCertifiedIdentities(ctx) {
 		k.stakingKeeper.IterateDelegations(ctx, identity, func(index int64, delegation stakingtypes.DelegationI) (stop bool) {
 			val, found := k.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
 			if !found {

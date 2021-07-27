@@ -42,9 +42,3 @@ func (v Validator) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var pubKey cryptotypes.PubKey
 	return unpacker.UnpackAny(v.Pubkey, &pubKey)
 }
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (p Platform) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var pubKey cryptotypes.PubKey
-	return unpacker.UnpackAny(p.ValidatorPubkey, &pubKey)
-}

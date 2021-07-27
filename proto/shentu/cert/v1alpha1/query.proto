@@ -2,12 +2,9 @@ syntax = "proto3";
 package shentu.cert.v1alpha1;
 
 import "gogoproto/gogo.proto";
-import "cosmos/base/query/v1beta1/pagination.proto";
 import "google/api/annotations.proto";
 import "shentu/cert/v1alpha1/cert.proto";
-import "shentu/cert/v1alpha1/genesis.proto";
 import "google/protobuf/any.proto";
-import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/certikfoundation/shentu/x/cert/types";
 
@@ -27,18 +24,6 @@ service Query {
 
     rpc Validators(QueryValidatorsRequest) returns (QueryValidatorsResponse) {
         option (google.api.http).get = "/shentu/cert/v1alpha1/validators";
-    }
-
-    rpc Platform(QueryPlatformRequest) returns (QueryPlatformResponse) {
-        option (google.api.http).get = "/shentu/cert/v1alpha1/platform";
-    }
-
-    rpc Certificate(QueryCertificateRequest) returns (QueryCertificateResponse) {
-        option (google.api.http).get = "/shentu/cert/v1alpha1/certificate/{certificate_id}";
-    }
-
-    rpc Certificates(QueryCertificatesRequest) returns (QueryCertificatesResponse) {
-        option (google.api.http).get = "/shentu/cert/v1alpha1/certificates";
     }
 }
 
@@ -71,36 +56,4 @@ message QueryValidatorsRequest {
 
 message QueryValidatorsResponse {
     repeated string pubkeys = 1;
-}
-
-message QueryPlatformRequest {
-    google.protobuf.Any pubkey = 1 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
-}
-
-message QueryPlatformResponse {
-    Platform platform = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryCertificateRequest {
-    uint64 certificate_id = 1;
-}
-
-message QueryCertificateResponse {
-    Certificate certificate = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryCertificatesRequest {
-    string certifier = 1;
-    string certificate_type = 2;
-
-    // pagination defines an optional pagination for the request.
-    cosmos.base.query.v1beta1.PageRequest pagination = 4;
-}
-
-message QueryCertificatesResponse {
-    uint64 total = 1;
-    repeated QueryCertificateResponse certificates = 2 [(gogoproto.nullable) = false];
-
-    // pagination defines the pagination in the response.
-    //cosmos.base.query.v1beta1.PageResponse pagination = 3;
 }

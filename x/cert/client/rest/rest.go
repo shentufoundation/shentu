@@ -37,30 +37,6 @@ type certifyValidatorReq struct {
 	Validator string            `json:"validator"`
 }
 
-type certifyGeneralReq struct {
-	BaseReq         resttypes.BaseReq `json:"base_req"`
-	CertificateType string            `json:"certificate_type"`
-	Content         string            `json:"content"`
-	Compiler        string            `json:"compiler"`
-	BytecodeHash    string            `json:"bytecode_hash"`
-	Description     string            `json:"description"`
-	Certifier       string            `json:"certifier"`
-}
-
-type certifyPlatformReq struct {
-	BaseReq   resttypes.BaseReq `json:"base_req"`
-	Certifier string            `json:"certifier"`
-	Validator string            `json:"validator"`
-	Platform  string            `json:"platform"`
-}
-
-type revokeCertificateReq struct {
-	BaseReq       resttypes.BaseReq `json:"base_req"`
-	Revoker       string            `json:"revoker"`
-	CertificateID uint64            `json:"certificate_id"`
-	Description   string            `json:"description"`
-}
-
 // ProposalRESTHandler returns a ProposalRESTHandler that exposes the community pool spend REST handler with a given sub-route.
 func ProposalRESTHandler(cliCtx client.Context) govrest.ProposalRESTHandler {
 	return govrest.ProposalRESTHandler{

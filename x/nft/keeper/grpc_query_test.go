@@ -151,7 +151,7 @@ func (suite *KeeperTestSuite) TestQueryCertificate() {
 		{
 			name: "Certificate(1) Query: Certificate Exists",
 			args: args{
-				denomID: "certificateauditing",
+				denomID: "certikauditing",
 				tokenID: tokenID,
 				certificate: &types.Certificate{
 					Content:     content,
@@ -167,7 +167,7 @@ func (suite *KeeperTestSuite) TestQueryCertificate() {
 		{
 			name: "Certificate(1) Query: Certificate Does Not Exists",
 			args: args{
-				denomID: "certificateauditing",
+				denomID: "certikauditing",
 				tokenID: tokenID,
 			},
 			errArgs: errArgs{
@@ -229,7 +229,7 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 
 	manyNFTs := []certNFT{
 		{
-			denomID:  "certificateauditing",
+			denomID:  "certikauditing",
 			tokenID:  tokenID,
 			tokenNm:  tokenNm,
 			tokenURI: tokenURI,
@@ -240,7 +240,7 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 			},
 		},
 		{
-			denomID:  "certificateidentity",
+			denomID:  "certikidentity",
 			tokenID:  tokenID2,
 			tokenNm:  tokenNm2,
 			tokenURI: tokenURI2,
@@ -251,7 +251,7 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 			},
 		},
 		{
-			denomID:  "certificateidentity",
+			denomID:  "certikidentity",
 			tokenID:  tokenID3,
 			tokenNm:  tokenNm3,
 			tokenURI: tokenURI3,
@@ -262,7 +262,7 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 			},
 		},
 		{
-			denomID:  "certificateidentity",
+			denomID:  "certikidentity",
 			tokenID:  tokenID4,
 			tokenNm:  tokenNm4,
 			tokenURI: tokenURI4,
@@ -273,7 +273,7 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 			},
 		},
 		{
-			denomID:  "certificateidentity",
+			denomID:  "certikidentity",
 			tokenID:  tokenID5,
 			tokenNm:  tokenNm5,
 			tokenURI: tokenURI5,
@@ -295,7 +295,7 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 			args: args{
 				certNFTs: []certNFT{
 					{
-						denomID:  "certificateauditing",
+						denomID:  "certikauditing",
 						tokenID:  tokenID,
 						tokenNm:  tokenNm,
 						tokenURI: tokenURI,
@@ -307,7 +307,7 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 					},
 				},
 				certifier: certifier.String(),
-				denomID:   "certificateauditing",
+				denomID:   "certikauditing",
 				wantLen:   1,
 			},
 			errArgs: errArgs{
@@ -320,7 +320,7 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 			args: args{
 				certNFTs: []certNFT{
 					{
-						denomID:  "certificateauditing",
+						denomID:  "certikauditing",
 						tokenID:  tokenID,
 						tokenNm:  tokenNm,
 						tokenURI: tokenURI,
@@ -332,7 +332,7 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 					},
 				},
 				certifier: certifier.String(),
-				denomID:   "certificateidentity",
+				denomID:   "certikidentity",
 				wantLen:   0,
 			},
 			errArgs: errArgs{
@@ -345,7 +345,7 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 			args: args{
 				certNFTs: []certNFT{
 					{
-						denomID:  "certificateauditing",
+						denomID:  "certikauditing",
 						tokenID:  tokenID,
 						tokenNm:  tokenNm,
 						tokenURI: tokenURI,
@@ -369,7 +369,7 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 			args: args{
 				certNFTs:  manyNFTs,
 				certifier: certifier.String(),
-				denomID:   "certificateidentity",
+				denomID:   "certikidentity",
 				wantLen:   3,
 			},
 			errArgs: errArgs{
@@ -382,7 +382,7 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 			args: args{
 				certNFTs:  manyNFTs,
 				certifier: certifier.String(),
-				denomID:   "certificateidentity",
+				denomID:   "certikidentity",
 				pagination: &query.PageRequest{
 					Offset: 0,
 					Limit:  2,

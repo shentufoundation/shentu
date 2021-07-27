@@ -3,7 +3,6 @@ package rest
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -20,12 +19,6 @@ func registerTxHandlers(cliCtx client.Context, r *mux.Router) {
 		proposeCertifierHandler(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/certify/validator", types.ModuleName),
 		certifyValidatorHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/certify/platform", types.ModuleName),
-		certifyPlatformHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/certify", types.ModuleName),
-		issueCertificateHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/revoke/certificate", types.ModuleName),
-		revokeCertificateHandler(cliCtx)).Methods("POST")
 }
 
 func proposeCertifierHandler(cliCtx client.Context) http.HandlerFunc {
@@ -98,109 +91,6 @@ func certifyValidatorHandler(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
-	}
-}
-
-func issueCertificateHandler(cliCtx client.Context) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req certifyGeneralReq
-		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
-			return
-		}
-
-		baseReq := req.BaseReq.Sanitize()
-		if !baseReq.ValidateBasic(w) {
-			return
-		}
-
-		certifier, err := sdk.AccAddressFromBech32(req.Certifier)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		var msg *types.MsgIssueCertificate
-		content := types.AssembleContent(req.CertificateType, req.Content)
-		certificateTypeString := strings.ToLower(req.CertificateType)
-		if certificateTypeString == "compilation" {
-			msg = types.NewMsgIssueCertificate(content, req.Compiler, req.BytecodeHash, req.Description, certifier)
-		} else {
-			msg = types.NewMsgIssueCertificate(content, "", "", req.Description, certifier)
-		}
-		if err = msg.ValidateBasic(); err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
-	}
-}
-
-func certifyPlatformHandler(cliCtx client.Context) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req certifyPlatformReq
-		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
-			return
-		}
-
-		baseReq := req.BaseReq.Sanitize()
-		if !baseReq.ValidateBasic(w) {
-			return
-		}
-
-		certifier, err := sdk.AccAddressFromBech32(req.Certifier)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, req.Validator)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		msg, err := types.NewMsgCertifyPlatform(certifier, validator, req.Platform)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		if err = msg.ValidateBasic(); err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
-	}
-}
-
-func revokeCertificateHandler(cliCtx client.Context) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req revokeCertificateReq
-
-		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
-			return
-		}
-
-		baseReq := req.BaseReq.Sanitize()
-		if !baseReq.ValidateBasic(w) {
-			return
-		}
-
-		revoker, err := sdk.AccAddressFromBech32(req.Revoker)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		msg := types.NewMsgRevokeCertificate(revoker, req.CertificateID, req.Description)
-		if err = msg.ValidateBasic(); err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
 		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }

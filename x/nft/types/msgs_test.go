@@ -186,7 +186,7 @@ func TestMsgIssueCertificate(t *testing.T) {
 		{
 			name: "MsgIssueCertificate: Valid",
 			args: args{
-				denomID:     "certificateauditing",
+				denomID:     "certikauditing",
 				tokenID:     tokenID,
 				name:        tokenNm,
 				uri:         tokenURI,
@@ -202,7 +202,7 @@ func TestMsgIssueCertificate(t *testing.T) {
 		{
 			name: "MsgIssueCertificate: Missing Certifier",
 			args: args{
-				denomID:     "certificateauditing",
+				denomID:     "certikauditing",
 				tokenID:     tokenID,
 				name:        tokenNm,
 				uri:         tokenURI,
@@ -262,7 +262,7 @@ func TestMsgEditCertificate(t *testing.T) {
 		{
 			name: "MsgEditCertificate: Valid",
 			args: args{
-				denomID:     "certificateauditing",
+				denomID:     "certikauditing",
 				tokenID:     tokenID,
 				name:        tokenNm,
 				uri:         tokenURI,
@@ -278,7 +278,7 @@ func TestMsgEditCertificate(t *testing.T) {
 		{
 			name: "MsgEditCertificate: Missing Owner",
 			args: args{
-				denomID:     "certificateauditing",
+				denomID:     "certikauditing",
 				tokenID:     tokenID,
 				name:        tokenNm,
 				uri:         tokenURI,
@@ -335,7 +335,7 @@ func TestMsgRevokeCertificate(t *testing.T) {
 		{
 			name: "MsgRevokeCertificate: Valid",
 			args: args{
-				denomID:     "certificateauditing",
+				denomID:     "certikauditing",
 				tokenID:     tokenID,
 				description: "",
 				revoker:     certifier,
@@ -348,7 +348,7 @@ func TestMsgRevokeCertificate(t *testing.T) {
 		{
 			name: "MsgRevokeCertificate: Missing Revoker",
 			args: args{
-				denomID:     "certificateauditing",
+				denomID:     "certikauditing",
 				tokenID:     tokenID,
 				description: "",
 			},

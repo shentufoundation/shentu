@@ -11,8 +11,8 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/cert/keeper"
-	"github.com/certikfoundation/shentu/x/cert/types"
+	"github.com/certikfoundation/shentu/x/cert/legacy/keeper"
+	"github.com/certikfoundation/shentu/x/cert/legacy/types"
 )
 
 var (
@@ -49,9 +49,9 @@ type KeeperTestSuite struct {
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.app = simapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
-	suite.keeper = suite.app.CertKeeper
+	suite.keeper = suite.app.CertLegacyKeeper
 	// queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	// types.RegisterQueryServer(queryHelper, suite.app.CertKeeper)
+	// types.RegisterQueryServer(queryHelper, suite.app.CertLegacyKeeper)
 	// suite.queryClient = types.NewQueryClient(queryHelper)
 
 	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {

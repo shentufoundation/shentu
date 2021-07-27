@@ -57,10 +57,9 @@ func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCerti
 	if denomNm := types.GetCertDenomNm(params.DenomID); denomNm == "" {
 		return 0, []types.Certificate{}, types.ErrInvalidDenomID
 	}
-	certNFTs := k.GetNFTs(ctx, params.DenomID)
 	filteredCertificates := []types.Certificate{}
-	for i := 0; i < len(certNFTs); i++ {
-		certificate := k.UnmarshalCertificate(ctx, certNFTs[i].GetData())
+	for _, certNFT := range k.GetNFTs(ctx, params.DenomID) {
+		certificate := k.UnmarshalCertificate(ctx, certNFT.GetData())
 		if len(params.Certifier) == 0 || certificate.GetCertifier().Equals(params.Certifier) {
 			filteredCertificates = append(filteredCertificates, certificate)
 		}
@@ -75,6 +74,27 @@ func (k Keeper) GetCertificatesFiltered(ctx sdk.Context, params types.QueryCerti
 	}
 
 	return uint64(len(filteredCertificates)), filteredCertificates, nil
+}
+
+func (k Keeper) GetCertifiedIdentities(ctx sdk.Context) []sdk.AccAddress {
+	addrs := []sdk.AccAddress{}
+	for _, certNFT := range k.GetNFTs(ctx, "certikidentity") {
+		addrs = append(addrs, certNFT.GetOwner())
+	}
+	return addrs
+}
+
+func (k Keeper) IsCertified(ctx sdk.Context, content string, denomID string) bool {
+	if denomNm := types.GetCertDenomNm(denomID); denomNm == "" {
+		return false
+	}
+	for _, certNFT := range k.GetNFTs(ctx, denomID) {
+		certificate := k.UnmarshalCertificate(ctx, certNFT.GetData())
+		if certificate.GetContent() == content {
+			return true
+		}
+	}
+	return false
 }
 
 // EditCertificate edits the certificate nft.
