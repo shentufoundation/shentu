@@ -17,5 +17,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 		}
 	}
 
+	gs.NextCertificateId = 1
+
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(gs)
 }

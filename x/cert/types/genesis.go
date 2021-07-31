@@ -5,17 +5,18 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(constantFee sdk.Coin) GenesisState {
-	return GenesisState{}
+func NewGenesisState(constantFee sdk.Coin, startingCertificateID uint64) GenesisState {
+	return GenesisState{NextCertificateId: startingCertificateID}
 }
 
 // DefaultGenesisState creates a default GenesisState object
 func DefaultGenesisState() *GenesisState {
-	return &GenesisState{}
+	return &GenesisState{NextCertificateId: 1}
 }
 
 // ValidateGenesis - validate crisis genesis data
@@ -34,9 +35,21 @@ func GetGenesisStateFromAppState(cdc codec.Marshaler, appState map[string]json.R
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (p Platform) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(p.ValidatorPubkey, &pubKey)
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (g GenesisState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	for _, validator := range g.Validators {
-		err := validator.UnpackInterfaces(unpacker)
+	for _, certificate := range g.Certificates {
+		err := certificate.UnpackInterfaces(unpacker)
+		if err != nil {
+			return err
+		}
+	}
+	for _, platform := range g.Platforms {
+		err := platform.UnpackInterfaces(unpacker)
 		if err != nil {
 			return err
 		}

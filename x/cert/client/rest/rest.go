@@ -31,12 +31,6 @@ type proposeCertifierReq struct {
 	Description string            `json:"description"`
 }
 
-type certifyValidatorReq struct {
-	BaseReq   resttypes.BaseReq `json:"base_req"`
-	Certifier string            `json:"certifier"`
-	Validator string            `json:"validator"`
-}
-
 // ProposalRESTHandler returns a ProposalRESTHandler that exposes the community pool spend REST handler with a given sub-route.
 func ProposalRESTHandler(cliCtx client.Context) govrest.ProposalRESTHandler {
 	return govrest.ProposalRESTHandler{

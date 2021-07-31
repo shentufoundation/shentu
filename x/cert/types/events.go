@@ -1,5 +1,7 @@
 package types
 
 const (
-	EventTypeCertify = "certify"
+	EventTypeCertifyCompilation = "certify_compilation"
+	EventTypeCertify            = "certify"
+	EventTypeRevokeCertificate  = "revoke_certificate"
 )

@@ -38,7 +38,6 @@ type Keeper struct {
 	ak         types.AccountKeeper
 	bk         types.BankKeeper
 	dk         types.DistributionKeeper
-	ck         types.CertKeeper
 	sk         types.StakingKeeper
 	paramSpace types.ParamSubspace
 }
@@ -46,14 +45,13 @@ type Keeper struct {
 // NewKeeper creates a new instance of the CVM keeper.
 func NewKeeper(
 	cdc codec.BinaryMarshaler, key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
-	dk types.DistributionKeeper, ck types.CertKeeper, sk types.StakingKeeper, paramSpace types.ParamSubspace) Keeper {
+	dk types.DistributionKeeper, sk types.StakingKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
 		cdc:        cdc,
 		key:        key,
 		ak:         ak,
 		bk:         bk,
 		dk:         dk,
-		ck:         ck,
 		sk:         sk,
 		paramSpace: paramSpace,
 	}
@@ -140,8 +138,7 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 	}
 
 	cc := CertificateCallable{
-		ctx:        ctx,
-		certKeeper: k.ck,
+		ctx: ctx,
 	}
 	options := registerCVMNative(cc, sequenceBytes)
 

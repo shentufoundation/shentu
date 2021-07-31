@@ -58,33 +58,3 @@ func (q Querier) Certifiers(c context.Context, req *types.QueryCertifiersRequest
 
 	return &types.QueryCertifiersResponse{Certifiers: q.GetAllCertifiers(ctx)}, nil
 }
-
-// Validator queries the certifier of a certified validator.
-func (q Querier) Validator(c context.Context, req *types.QueryValidatorRequest) (*types.QueryValidatorResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, req.Pubkey)
-	if err != nil {
-		return nil, err
-	}
-
-	certifier, err := q.GetValidatorCertifier(ctx, pk)
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.QueryValidatorResponse{Certifier: certifier.String()}, nil
-}
-
-// Validators returns all validators' public keys.
-func (q Querier) Validators(c context.Context, req *types.QueryValidatorsRequest) (*types.QueryValidatorsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	return &types.QueryValidatorsResponse{Pubkeys: q.GetAllValidatorPubkeys(ctx)}, nil
-}

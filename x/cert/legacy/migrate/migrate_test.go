@@ -10,10 +10,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/simapp"
-	// certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/cert/legacy/migrate"
-	"github.com/certikfoundation/shentu/x/cert/legacy/types"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
+
+func hasListStoreKeys(store sdk.KVStore, prefix []byte) bool {
+	iterator := sdk.KVStorePrefixIterator(store, prefix)
+	return iterator.Valid()
+}
 
 func TestMigrate(t *testing.T) {
 	t.Run("Testing Cert-NFT Migration", func(t *testing.T) {
@@ -21,33 +25,13 @@ func TestMigrate(t *testing.T) {
 		ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 		store := ctx.KVStore(app.GetKey(types.StoreKey))
 
-		// Make sure all keys exist before migration
-		keptStoreKeys := [][]byte{
-			types.CertifiersStoreKey(),
-			types.CertifierAliasesStoreKey(),
-			types.ValidatorsStoreKey(),
-		}
-		for _, key := range keptStoreKeys {
-			require.True(t, store.Has(key), "Legacy Cert module must contain all store keys")
-		}
-
-		deletedStoreKeys := [][]byte{
-			types.CertificatesStoreKey(),
-			types.LibrariesStoreKey(),
-			types.PlatformsStoreKey(),
-			types.NextCertificateIDStoreKey(),
-		}
-		for _, key := range deletedStoreKeys {
-			require.True(t, store.Has(key), "Legacy Cert module must contain all store keys")
-		}
-
 		// Generate certifiers with aliases
 		certifiers := simapp.AddTestAddrs(app, ctx, 3, sdk.NewInt(10000))
-		app.CertLegacyKeeper.SetCertifier(ctx,
+		app.CertKeeper.SetCertifier(ctx,
 			types.NewCertifier(certifiers[0], "auditing", certifiers[0], ""))
-		app.CertLegacyKeeper.SetCertifier(ctx,
+		app.CertKeeper.SetCertifier(ctx,
 			types.NewCertifier(certifiers[1], "identity", certifiers[1], ""))
-		app.CertLegacyKeeper.SetCertifier(ctx,
+		app.CertKeeper.SetCertifier(ctx,
 			types.NewCertifier(certifiers[2], "general", certifiers[2], ""))
 
 		// Issue five legacy auditing certificates
@@ -56,7 +40,7 @@ func TestMigrate(t *testing.T) {
 				"", "", "Audited by CertiK", certifiers[0])
 			require.NoError(t, err, "Error defining an auditing certificate")
 
-			_, err = app.CertLegacyKeeper.IssueCertificate(ctx, cert)
+			_, err = app.CertKeeper.IssueCertificate(ctx, cert)
 			require.NoError(t, err, "Cannot issue an auditing certificate")
 		}
 
@@ -66,7 +50,7 @@ func TestMigrate(t *testing.T) {
 				"", "", "Identity Certified by CertiK", certifiers[1])
 			require.NoError(t, err, "Error defining an identity certificate")
 
-			_, err = app.CertLegacyKeeper.IssueCertificate(ctx, cert)
+			_, err = app.CertKeeper.IssueCertificate(ctx, cert)
 			require.NoError(t, err, "Cannot issue an identity certificate")
 		}
 
@@ -76,20 +60,36 @@ func TestMigrate(t *testing.T) {
 				"", "", "Certified by CertiK", certifiers[2])
 			require.NoError(t, err, "Error defining a general certificate.")
 
-			_, err = app.CertLegacyKeeper.IssueCertificate(ctx, cert)
+			_, err = app.CertKeeper.IssueCertificate(ctx, cert)
 			require.NoError(t, err, "Cannot issue a general certificate")
 		}
 
+		require.True(t, hasListStoreKeys(store, types.CertifiersStoreKey()),
+			"Legacy Cert module should store certifiers")
+		require.True(t, hasListStoreKeys(store, types.CertificatesStoreKey()),
+			"Legacy Cert module should store certificates")
+		require.True(t, store.Has(types.NextCertificateIDStoreKey()),
+			"Legacy Cert module should store next certificate ID")
+
 		// Run migration
-		migrator := migrate.NewMigrator(app.CertLegacyKeeper, app.NFTKeeper)
+		migrator := migrate.NewMigrator(app.CertKeeper, app.NFTKeeper)
 		require.NoError(t, migrator.MigrateCertToNFT(ctx, app.GetKey(types.StoreKey)))
 
-		for _, key := range keptStoreKeys {
-			require.True(t, store.Has(key), "New Cert module must contain kept store keys")
-		}
+		// Check kept keys
+		require.True(t, hasListStoreKeys(store, types.CertifiersStoreKey()),
+			"New Cert module should still store certifiers")
 
-		for _, key := range deletedStoreKeys {
-			require.False(t, store.Has(key), "New Cert module must not contain deleted store keys")
-		}
+		// Check deleted keys
+		require.False(t, hasListStoreKeys(store, types.CertificatesStoreKey()),
+			"New Cert module should not store any certificates")
+		require.False(t, store.Has(types.NextCertificateIDStoreKey()),
+			"New Cert module should not store next certificate ID")
+
+		require.Len(t, app.NFTKeeper.GetNFTs(ctx, "certikauditing"), 5,
+			"NFT module should contain five auditing cert NFTs")
+		require.Len(t, app.NFTKeeper.GetNFTs(ctx, "certikidentity"), 4,
+			"NFT module should contain four identity cert NFTs")
+		require.Len(t, app.NFTKeeper.GetNFTs(ctx, "certikgeneral"), 3,
+			"NFT module should contain three general cert NFTs")
 	})
 }

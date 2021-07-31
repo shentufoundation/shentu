@@ -1,7 +1,6 @@
 package types
 
 import (
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
@@ -37,14 +36,6 @@ type BankKeeper interface {
 // DistributionKeeper defines the expected distribution keeper (noalias)
 type DistributionKeeper interface {
 	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
-}
-
-// CertKeeper defines the expected cert keeper (noalias)
-type CertKeeper interface {
-	// IsCertified(ctx sdk.Context, content string, certType string) bool
-	// IsContentCertified(ctx sdk.Context, content string) bool
-	IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool
-	SetValidator(ctx sdk.Context, key cryptotypes.PubKey, certifier sdk.AccAddress)
 }
 
 // StakingKeeper defines the expected staking keeper

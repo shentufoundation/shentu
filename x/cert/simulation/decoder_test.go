@@ -40,9 +40,23 @@ func TestDecodeStore(t *testing.T) {
 			panic(err)
 		}
 	}
-	validator := types.Validator{
-		Pubkey:    pkAny,
-		Certifier: RandomAccount().Address.String(),
+
+	platformPubKey := RandomAccount().PubKey
+	if validatorPubKey != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(validatorPubKey); err != nil {
+			panic(err)
+		}
+	}
+	platform := types.Platform{
+		ValidatorPubkey: pkAny,
+		Description:     "This is a test case.",
+	}
+
+	libraryAddr := sdk.AccAddress("f23908hf932")
+	library := types.Library{
+		Address:   libraryAddr.String(),
+		Publisher: sdk.AccAddress("0092uf32").String(),
 	}
 
 	aliasCertifier := types.Certifier{
@@ -57,7 +71,8 @@ func TestDecodeStore(t *testing.T) {
 
 	kvPairs := []kv.Pair{
 		{Key: types.CertifierStoreKey(certifierAddr), Value: cdc.MustMarshalBinaryLengthPrefixed(&certifier)},
-		{Key: types.ValidatorStoreKey(validatorPubKey), Value: cdc.MustMarshalBinaryLengthPrefixed(&validator)},
+		{Key: types.PlatformStoreKey(platformPubKey), Value: cdc.MustMarshalBinaryLengthPrefixed(&platform)},
+		{Key: types.LibraryStoreKey(libraryAddr), Value: cdc.MustMarshalBinaryLengthPrefixed(&library)},
 		{Key: types.CertifierAliasStoreKey(aliasCertifier.Alias), Value: cdc.MustMarshalBinaryLengthPrefixed(&aliasCertifier)},
 	}
 
@@ -66,7 +81,8 @@ func TestDecodeStore(t *testing.T) {
 		expectedLog string
 	}{
 		{"Certifier", fmt.Sprintf("%v\n%v", certifier, certifier)},
-		{"Validator", fmt.Sprintf("%v\n%v", validator, validator)},
+		{"Platform", fmt.Sprintf("%v\n%v", platform, platform)},
+		{"Library", fmt.Sprintf("%v\n%v", library, library)},
 		{"Alias certifier", fmt.Sprintf("%v\n%v", aliasCertifier, aliasCertifier)},
 		{"other", ""},
 	}

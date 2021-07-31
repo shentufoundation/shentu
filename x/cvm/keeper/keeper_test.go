@@ -617,123 +617,89 @@ func TestPrecompiles(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := simapp.AddTestAddrs(app, ctx, 3, sdk.NewInt(80000*1e6))
 
-	// t.Run("deploy and call native contracts", func(t *testing.T) {
-	// 	code, err := hex.DecodeString(TestCheckBytecodeString)
-	// 	require.Nil(t, err)
-
-	// 	result, err := app.CVMKeeper.Tx(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
-	// 	require.Nil(t, err)
-	// 	require.NotNil(t, result)
-	// 	newContractAddress := sdk.AccAddress(result)
-
-	// 	certAddr, err := sdk.AccAddressFromBech32("cosmos17w5kw28te7r5vn4qu08hu6a4crcvwrrgzmsrrn")
-	// 	proofAddr, err := sdk.AccAddressFromBech32("cosmos1r60hj2xaxn79qth4pkjm9t27l985xfsmnz9paw")
-	// 	everythingAddr, err := sdk.AccAddressFromBech32("cosmos1xxkueklal9vejv9unqu80w9vptyepfa95pd53u")
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	app.CertKeeper.SetCertifier(ctx, certtypes.Certifier{Address: certAddr.String()})
-	// 	auditingCert1, err := certtypes.NewCertificate("auditing", certAddr.String(), "", "", "WOW", certAddr)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	auditingCert2, err := certtypes.NewCertificate("auditing", everythingAddr.String(), "", "", "WOW", certAddr)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	proofCert, err := certtypes.NewCertificate("proof", proofAddr.String(), "", "", "testproof", certAddr)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	proofCert2, err := certtypes.NewCertificate("proof", everythingAddr.String(), "", "", "testproof", certAddr)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	compCert, err := certtypes.NewCertificate("compilation", "dummysourcecodehash", "testproof",
-	// 		"bch", "dummydesc", certAddr)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-
-	// 	_, err = app.CertKeeper.IssueCertificate(ctx, auditingCert1)
-	// 	_, err = app.CertKeeper.IssueCertificate(ctx, auditingCert2)
-	// 	_, err = app.CertKeeper.IssueCertificate(ctx, proofCert)
-	// 	_, err = app.CertKeeper.IssueCertificate(ctx, proofCert2)
-	// 	_, err = app.CertKeeper.IssueCertificate(ctx, compCert)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-
-	// 	callCheckCall, _, err := abi.EncodeFunctionCall(
-	// 		TestCheckAbiJsonString,
-	// 		"callCheck",
-	// 		WrapLogger(ctx.Logger()),
-	// 	)
-	// 	callCheckNotCertified, _, err := abi.EncodeFunctionCall(
-	// 		TestCheckAbiJsonString,
-	// 		"callCheckNotCertified",
-	// 		WrapLogger(ctx.Logger()),
-	// 	)
-	// 	proofCheck, _, err := abi.EncodeFunctionCall(
-	// 		TestCheckAbiJsonString,
-	// 		"proofCheck",
-	// 		WrapLogger(ctx.Logger()),
-	// 	)
-	// 	compCheck, _, err := abi.EncodeFunctionCall(
-	// 		TestCheckAbiJsonString,
-	// 		"compilationCheck",
-	// 		WrapLogger(ctx.Logger()),
-	// 	)
-	// 	bothCheck, _, err := abi.EncodeFunctionCall(
-	// 		TestCheckAbiJsonString,
-	// 		"proofAndAuditingCheck",
-	// 		WrapLogger(ctx.Logger()),
-	// 	)
-	// 	require.Nil(t, err)
-	// 	result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, callCheckCall, []*payload.ContractMeta{}, false, false, false)
-	// 	require.Equal(t, []byte{0x01}, result)
-	// 	result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, callCheckNotCertified, []*payload.ContractMeta{}, false, false, false)
-	// 	require.Equal(t, []byte{0x00}, result)
-	// 	result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, proofCheck, []*payload.ContractMeta{}, false, false, false)
-	// 	require.Equal(t, []byte{0x01}, result)
-	// 	result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, compCheck, []*payload.ContractMeta{}, false, false, false)
-	// 	require.Equal(t, []byte{0x01}, result)
-	// 	result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, bothCheck, []*payload.ContractMeta{}, false, false, false)
-	// 	require.Equal(t, []byte{0x01}, result)
-	// 	require.Nil(t, err)
-	// })
-
-	t.Run("deploy and call certify validator native contract", func(t *testing.T) {
-		valStr := "cosmosvalconspub1zcjduepqxhy6865hf90lwmckjuegfdvqmyznhd6a4dkjr90pq0a82fxxg2qqcpfqat"
-		code, err := hex.DecodeString(TestCertifyValidatorString)
+	t.Run("deploy and call native contracts", func(t *testing.T) {
+		code, err := hex.DecodeString(TestCheckBytecodeString)
 		require.Nil(t, err)
 
-		result, err := app.CVMKeeper.Tx(ctx, addrs[1], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
+		result, err := app.CVMKeeper.Tx(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		newContractAddress := sdk.AccAddress(result)
 
-		app.CertKeeper.SetCertifier(ctx, certtypes.Certifier{Address: addrs[2].String()})
-		require.True(t, app.CertKeeper.IsCertifier(ctx, addrs[2]))
+		certAddr, err := sdk.AccAddressFromBech32("cosmos17w5kw28te7r5vn4qu08hu6a4crcvwrrgzmsrrn")
+		proofAddr, err := sdk.AccAddressFromBech32("cosmos1r60hj2xaxn79qth4pkjm9t27l985xfsmnz9paw")
+		everythingAddr, err := sdk.AccAddressFromBech32("cosmos1xxkueklal9vejv9unqu80w9vptyepfa95pd53u")
+		if err != nil {
+			panic(err)
+		}
+		app.CertKeeper.SetCertifier(ctx, certtypes.Certifier{Address: certAddr.String()})
+		auditingCert1, err := certtypes.NewCertificate("auditing", certAddr.String(), "", "", "WOW", certAddr)
+		if err != nil {
+			panic(err)
+		}
+		auditingCert2, err := certtypes.NewCertificate("auditing", everythingAddr.String(), "", "", "WOW", certAddr)
+		if err != nil {
+			panic(err)
+		}
+		proofCert, err := certtypes.NewCertificate("proof", proofAddr.String(), "", "", "testproof", certAddr)
+		if err != nil {
+			panic(err)
+		}
+		proofCert2, err := certtypes.NewCertificate("proof", everythingAddr.String(), "", "", "testproof", certAddr)
+		if err != nil {
+			panic(err)
+		}
+		compCert, err := certtypes.NewCertificate("compilation", "dummysourcecodehash", "testproof",
+			"bch", "dummydesc", certAddr)
+		if err != nil {
+			panic(err)
+		}
 
-		certifyValidator, _, err := abi.EncodeFunctionCall(
-			TestCertifyValidatorAbiJsonString,
-			"certifyValidator",
+		_, err = app.CertKeeper.IssueCertificate(ctx, auditingCert1)
+		_, err = app.CertKeeper.IssueCertificate(ctx, auditingCert2)
+		_, err = app.CertKeeper.IssueCertificate(ctx, proofCert)
+		_, err = app.CertKeeper.IssueCertificate(ctx, proofCert2)
+		_, err = app.CertKeeper.IssueCertificate(ctx, compCert)
+		if err != nil {
+			panic(err)
+		}
+
+		callCheckCall, _, err := abi.EncodeFunctionCall(
+			TestCheckAbiJsonString,
+			"callCheck",
 			WrapLogger(ctx.Logger()),
 		)
-		err = app.BankKeeper.AddCoins(ctx, addrs[2], sdk.Coins{sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 12345)})
-		require.NoError(t, err)
-		certAcc := app.AccountKeeper.GetAccount(ctx, addrs[2])
-		_ = certAcc.SetSequence(1)
-		app.AccountKeeper.SetAccount(ctx, certAcc)
-
-		result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false, false, false)
-		require.NotNil(t, err)
-		result, err = app.CVMKeeper.Tx(ctx, addrs[2], newContractAddress, 0, certifyValidator, []*payload.ContractMeta{}, false, false, false)
-		require.Equal(t, []byte{0x01}, result)
-
-		validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, valStr)
+		callCheckNotCertified, _, err := abi.EncodeFunctionCall(
+			TestCheckAbiJsonString,
+			"callCheckNotCertified",
+			WrapLogger(ctx.Logger()),
+		)
+		proofCheck, _, err := abi.EncodeFunctionCall(
+			TestCheckAbiJsonString,
+			"proofCheck",
+			WrapLogger(ctx.Logger()),
+		)
+		compCheck, _, err := abi.EncodeFunctionCall(
+			TestCheckAbiJsonString,
+			"compilationCheck",
+			WrapLogger(ctx.Logger()),
+		)
+		bothCheck, _, err := abi.EncodeFunctionCall(
+			TestCheckAbiJsonString,
+			"proofAndAuditingCheck",
+			WrapLogger(ctx.Logger()),
+		)
 		require.Nil(t, err)
-		require.True(t, app.CertKeeper.IsValidatorCertified(ctx, validator))
+		result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, callCheckCall, []*payload.ContractMeta{}, false, false, false)
+		require.Equal(t, []byte{0x01}, result)
+		result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, callCheckNotCertified, []*payload.ContractMeta{}, false, false, false)
+		require.Equal(t, []byte{0x00}, result)
+		result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, proofCheck, []*payload.ContractMeta{}, false, false, false)
+		require.Equal(t, []byte{0x01}, result)
+		result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, compCheck, []*payload.ContractMeta{}, false, false, false)
+		require.Equal(t, []byte{0x01}, result)
+		result, err = app.CVMKeeper.Tx(ctx, addrs[0], newContractAddress, 0, bothCheck, []*payload.ContractMeta{}, false, false, false)
+		require.Equal(t, []byte{0x01}, result)
+		require.Nil(t, err)
 	})
 }

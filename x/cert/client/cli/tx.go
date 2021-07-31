@@ -7,9 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -17,8 +15,14 @@ import (
 )
 
 const (
-	FlagAlias     = "alias"
-	FlagCertifier = "certifier"
+	FlagAlias        = "alias"
+	FlagCertType     = "certificate-type"
+	FlagCompiler     = "compiler"
+	FlagBytecodeHash = "bytecode-hash"
+	FlagDescription  = "description"
+	FlagCertifier    = "certifier"
+	FlagPage         = "page"
+	FlagLimit        = "limit"
 )
 
 // NewTxCmd returns the transaction commands for the certification module.
@@ -28,89 +32,9 @@ func NewTxCmd() *cobra.Command {
 		Short: "Certification transactions subcommands",
 	}
 
-	certTxCmds.AddCommand(
-		GetCmdCertifyValidator(),
-		GetCmdDecertifyValidator(),
-		GetCmdSubmitProposal(),
-	)
+	certTxCmds.AddCommand()
 
 	return certTxCmds
-}
-
-// GetCmdCertifyValidator returns the validator certification transaction command.
-func GetCmdCertifyValidator() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "certify-validator <validator pubkey>",
-		Short: "Certify a validator",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
-
-			from := cliCtx.GetFromAddress()
-			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
-				return err
-			}
-
-			validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
-			if err != nil {
-				return err
-			}
-			msg, err := types.NewMsgCertifyValidator(from, validator)
-			if err != nil {
-				return err
-			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdDecertifyValidator returns the validator de-certification tx command.
-func GetCmdDecertifyValidator() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "decertify-validator <validator pubkey>",
-		Short: "De-certify a validator",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
-
-			from := cliCtx.GetFromAddress()
-			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
-				return err
-			}
-
-			validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
-			if err != nil {
-				return err
-			}
-			msg, err := types.NewMsgDecertifyValidator(from, validator)
-			if err != nil {
-				return err
-			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
 }
 
 // GetCmdSubmitProposal implements the command to submit a certifier-update proposal

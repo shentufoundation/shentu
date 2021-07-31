@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/cert/legacy/types"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 // SetCertificate stores a certificate using its ID field.

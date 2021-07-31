@@ -17,14 +17,6 @@ service Query {
     rpc Certifiers(QueryCertifiersRequest) returns (QueryCertifiersResponse) {
         option (google.api.http).get = "/shentu/cert/v1alpha1/certifiers";
     }
-
-    rpc Validator(QueryValidatorRequest) returns (QueryValidatorResponse) {
-        option (google.api.http).get = "/shentu/cert/v1alpha1/validator/{pubkey}";
-    }
-
-    rpc Validators(QueryValidatorsRequest) returns (QueryValidatorsResponse) {
-        option (google.api.http).get = "/shentu/cert/v1alpha1/validators";
-    }
 }
 
 message QueryCertifierRequest {
@@ -41,19 +33,4 @@ message QueryCertifiersRequest {
 
 message QueryCertifiersResponse {
     repeated Certifier certifiers = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryValidatorRequest {
-    string pubkey = 1;
-}
-
-message QueryValidatorResponse {
-    string certifier = 1;
-}
-
-message QueryValidatorsRequest {
-}
-
-message QueryValidatorsResponse {
-    repeated string pubkeys = 1;
 }

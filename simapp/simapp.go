@@ -83,9 +83,6 @@ import (
 	"github.com/certikfoundation/shentu/x/cert"
 	certclient "github.com/certikfoundation/shentu/x/cert/client"
 	certkeeper "github.com/certikfoundation/shentu/x/cert/keeper"
-	certlegacy "github.com/certikfoundation/shentu/x/cert/legacy"
-	certlegacykeeper "github.com/certikfoundation/shentu/x/cert/legacy/keeper"
-	certlegacytypes "github.com/certikfoundation/shentu/x/cert/legacy/types"
 	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/cvm"
 	cvmkeeper "github.com/certikfoundation/shentu/x/cvm/keeper"
@@ -204,7 +201,6 @@ type SimApp struct {
 	UpgradeKeeper    upgradekeeper.Keeper
 	GovKeeper        govkeeper.Keeper
 	CertKeeper       certkeeper.Keeper
-	CertLegacyKeeper certlegacykeeper.Keeper // Only for testing
 	CVMKeeper        cvmkeeper.Keeper
 	AuthKeeper       authkeeper.Keeper
 	NFTKeeper        nftkeeper.Keeper
@@ -253,7 +249,6 @@ func NewSimApp(
 		upgradetypes.StoreKey,
 		sdkgovtypes.StoreKey,
 		certtypes.StoreKey,
-		certlegacytypes.StoreKey,
 		cvmtypes.StoreKey,
 		nfttypes.StoreKey,
 		oracletypes.StoreKey,
@@ -331,7 +326,6 @@ func NewSimApp(
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.DistrKeeper,
-		&app.CertKeeper,
 		&app.StakingKeeper,
 		app.GetSubspace(cvmtypes.ModuleName),
 	)
@@ -353,12 +347,6 @@ func NewSimApp(
 	app.CertKeeper = certkeeper.NewKeeper(
 		appCodec,
 		keys[certtypes.StoreKey],
-		app.SlashingKeeper,
-		stakingKeeper,
-	)
-	app.CertLegacyKeeper = certlegacykeeper.NewKeeper(
-		appCodec,
-		keys[certlegacytypes.StoreKey],
 		app.SlashingKeeper,
 		stakingKeeper,
 	)
@@ -474,14 +462,13 @@ func NewSimApp(
 		crisis.NewAppModule(&app.CrisisKeeper, skipGenesisInvariants),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
-		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper),
+		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
 		upgrade.NewAppModule(app.UpgradeKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
 		cvm.NewAppModule(app.CVMKeeper, app.BankKeeper),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
-		certlegacy.NewAppModule(app.CertLegacyKeeper, app.AccountKeeper, app.BankKeeper),
 		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
@@ -512,7 +499,6 @@ func NewSimApp(
 		shieldtypes.ModuleName,
 		crisistypes.ModuleName,
 		certtypes.ModuleName,
-		certlegacytypes.ModuleName,
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		oracletypes.ModuleName,
@@ -530,7 +516,6 @@ func NewSimApp(
 		cvmtypes.ModuleName,
 		crisistypes.ModuleName,
 		certtypes.ModuleName,
-		certlegacytypes.ModuleName,
 		genutiltypes.ModuleName,
 		oracletypes.ModuleName,
 		shieldtypes.ModuleName,
@@ -546,13 +531,12 @@ func NewSimApp(
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
-		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper),
+		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
 		cvm.NewAppModule(app.CVMKeeper, app.BankKeeper),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
-		certlegacy.NewAppModule(app.CertLegacyKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		transferModule,

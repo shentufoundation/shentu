@@ -1,4 +1,4 @@
-package certlegacy_test
+package cert_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/cert/legacy/types"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 func Test_CertifierStoreKey(t *testing.T) {

@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/cert/legacy/types"
+	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
 // SetLibrary sets a new Certificate library registry.

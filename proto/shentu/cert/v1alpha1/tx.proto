@@ -11,8 +11,6 @@ option go_package = "github.com/certikfoundation/shentu/x/cert/types";
 // Msg defines the shield Msg service.
 service Msg {
     rpc ProposeCertifier(MsgProposeCertifier) returns (MsgProposeCertifierResponse);
-    rpc CertifyValidator(MsgCertifyValidator) returns (MsgCertifyValidatorResponse);
-    rpc DecertifyValidator(MsgDecertifyValidator) returns (MsgDecertifyValidatorResponse);
 }
 
 // MsgProposeCertifier is the message for proposing new certifier.
@@ -27,25 +25,3 @@ message MsgProposeCertifier {
 }
 
 message MsgProposeCertifierResponse {}
-
-// MsgCertifyValidator is the message for certifying a validator node.
-message MsgCertifyValidator {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-
-    string certifier = 1 [(gogoproto.moretags) = "yaml:\"certifier\""];
-    google.protobuf.Any pubkey = 2 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
-}
-
-message MsgCertifyValidatorResponse {}
-
-// MsgDecertifyValidator is the message for de-certifying a validator node.
-message MsgDecertifyValidator {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-
-    string decertifier = 1 [ (gogoproto.moretags) = "yaml:\"decertifier\"" ];
-    google.protobuf.Any pubkey = 2 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
-}
-
-message MsgDecertifyValidatorResponse {}
