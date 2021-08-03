@@ -16,7 +16,6 @@ const (
 	TypeMsgWithdrawCollateral     = "withdraw_collateral"
 	TypeMsgWithdrawRewards        = "withdraw_rewards"
 	TypeMsgWithdrawForeignRewards = "withdraw_foreign_rewards"
-	TypeMsgClearPayouts           = "clear_payouts"
 	TypeMsgPurchaseShield         = "purchase_shield"
 	TypeMsgWithdrawReimbursement  = "withdraw_reimbursement"
 	TypeMsgStakeForShield         = "stake_for_shield"
@@ -390,51 +389,6 @@ func (msg MsgWithdrawForeignRewards) ValidateBasic() error {
 	}
 	if strings.TrimSpace(msg.ToAddr) == "" {
 		return ErrInvalidToAddr
-	}
-	return nil
-}
-
-// NewMsgClearPayouts creates a new MsgClearPayouts instance.
-func NewMsgClearPayouts(sender sdk.AccAddress, denom string) *MsgClearPayouts {
-	return &MsgClearPayouts{
-		From:  sender.String(),
-		Denom: denom,
-	}
-}
-
-// Route implements the sdk.Msg interface.
-func (msg MsgClearPayouts) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgClearPayouts) Type() string { return TypeMsgClearPayouts }
-
-// GetSigners implements the sdk.Msg interface.
-func (msg MsgClearPayouts) GetSigners() []sdk.AccAddress {
-	from, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{from}
-}
-
-// GetSignBytes implements the sdk.Msg interface.
-func (msg MsgClearPayouts) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgClearPayouts) ValidateBasic() error {
-	from, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		panic(err)
-	}
-	if from.Empty() {
-		return ErrEmptySender
-	}
-
-	if err := sdk.ValidateDenom(msg.Denom); err != nil {
-		return ErrInvalidDenom
 	}
 	return nil
 }

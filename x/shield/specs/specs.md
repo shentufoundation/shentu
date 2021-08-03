@@ -289,13 +289,6 @@ type MsgWithdrawForeignRewards struct {
     ToAddr  string  `json:"to_addr" yaml:"to_addr"`
 }
 
-// MsgClearPayouts defines attributes of clear payouts transaction.
-type MsgClearPayouts struct {
-    From    string  `json:"from" yaml:"from"`
-    Denom   string  `json:"denom" yaml:"denom"`
-}
-```
-
 `MsgWithdrawReimbursement` withdraws a reimbursement made for a beneficiary.
 
 ```go
