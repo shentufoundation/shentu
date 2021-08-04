@@ -10,19 +10,13 @@
 
 # Prerequisites
 
-Install Golang 1.14+ following instructions from https://golang.org/doc/install.
+Install Golang 1.15+ following instructions from https://golang.org/doc/install.
 
 Install Solidity Compiler following instructions from https://solidity.readthedocs.io/en/latest/installing-solidity.html#binary-packages.
 
 # Development
 
-Please install `solc` first.
-
-During the development, for cross-referencing dependent packages' source, run the following commandline will get them into `/vendor`.
-
-```bash
-$ go mod vendor
-```
+Install `solc` first to make CVM transactions.
 
 # Style
 
@@ -56,8 +50,14 @@ $ go mod vendor
 
 # Build
 
+To include the built binary to `GOBIN`,
 ```bash
 $ make install
+```
+
+To build for Windows, Linux, and macOS,
+```bash
+$ make release
 ```
 
 # Unit Test

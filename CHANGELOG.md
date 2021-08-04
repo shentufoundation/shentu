@@ -35,9 +35,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [2.0.0] - TBD
+## [v2.0.0] - 08-03-2021
 
-Version 2.0.0 brings many changes with SDK upgrading to Stargate version. For more information on the SDK upgrade, visit [CosmosSDK Release Notes](https://github.com/cosmos/cosmos-sdk/releases) 
+Version 2.0.0 brings many breaking changes with SDK upgrading to Stargate version. For more information on the SDK upgrade, visit [CosmosSDK Release Notes](https://github.com/cosmos/cosmos-sdk/releases) 
 
 ### Client Breaking Changes
 * (app) [\#241](https://github.com/certikfoundation/shentu/pull/241) Renamed default binary name to `certik`.
