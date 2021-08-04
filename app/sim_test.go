@@ -41,6 +41,7 @@ import (
 	certiksimapp "github.com/certikfoundation/shentu/simapp"
 	cert "github.com/certikfoundation/shentu/x/cert/types"
 	cvm "github.com/certikfoundation/shentu/x/cvm/types"
+	nft "github.com/certikfoundation/shentu/x/nft/types"
 	oracle "github.com/certikfoundation/shentu/x/oracle/types"
 	shield "github.com/certikfoundation/shentu/x/shield/types"
 	//"github.com/certikfoundation/shentu/x/staking"
@@ -181,6 +182,7 @@ func TestAppImportExport(t *testing.T) {
 		{app.GetKey(gov.StoreKey), newApp.GetKey(gov.StoreKey), [][]byte{}},
 		{app.GetKey(cert.StoreKey), newApp.GetKey(cert.StoreKey), [][]byte{}},
 		{app.GetKey(cvm.StoreKey), newApp.GetKey(cvm.StoreKey), [][]byte{}},
+		{app.GetKey(nft.StoreKey), newApp.GetKey(nft.StoreKey), [][]byte{}},
 		{app.GetKey(oracle.StoreKey), newApp.GetKey(oracle.StoreKey), [][]byte{oracle.TaskStoreKeyPrefix, oracle.ClosingTaskStoreKeyPrefix}},
 		{app.GetKey(shield.StoreKey), newApp.GetKey(shield.StoreKey), [][]byte{shield.WithdrawQueueKey, shield.PurchaseQueueKey, shield.BlockServiceFeesKey}},
 		{app.GetKey(evidence.StoreKey), newApp.GetKey(evidence.StoreKey), [][]byte{}},
