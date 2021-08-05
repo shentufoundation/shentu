@@ -78,7 +78,7 @@ import (
 	"github.com/certikfoundation/shentu/x/cert"
 	certclient "github.com/certikfoundation/shentu/x/cert/client"
 	certkeeper "github.com/certikfoundation/shentu/x/cert/keeper"
-	certmigrate "github.com/certikfoundation/shentu/x/cert/legacy/migrate"
+	certmigrate "github.com/certikfoundation/shentu/x/cert/migrations/v2.1.0"
 	certtypes "github.com/certikfoundation/shentu/x/cert/types"
 	"github.com/certikfoundation/shentu/x/cvm"
 	cvmkeeper "github.com/certikfoundation/shentu/x/cvm/keeper"
@@ -352,7 +352,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	)
 
 	// configure an upgrade handler for Cert-NFT migration
-	app.upgradeKeeper.SetUpgradeHandler("cert-nft", func(ctx sdk.Context, plan upgradetypes.Plan) {
+	app.upgradeKeeper.SetUpgradeHandler("v2.1", func(ctx sdk.Context, plan upgradetypes.Plan) {
 		migrator := certmigrate.NewMigrator(app.certKeeper, app.nftKeeper)
 		if err := migrator.MigrateCertToNFT(ctx, keys[certtypes.StoreKey]); err != nil {
 			panic(err)

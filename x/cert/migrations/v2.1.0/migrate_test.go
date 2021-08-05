@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/cert/legacy/migrate"
+	migrate "github.com/certikfoundation/shentu/x/cert/migrations/v2.1.0"
 	"github.com/certikfoundation/shentu/x/cert/types"
 )
 
