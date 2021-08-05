@@ -203,6 +203,16 @@ func Migrate(appState types.AppMap, clientCtx client.Context) types.AppMap {
 		// delete deprecated x/slashing genesis state
 		delete(appState, v039slashing.ModuleName)
 
+		// change slashing parameters
+		newParams := v039slashing.Params{
+			SignedBlocksWindow:      1000,
+			MinSignedPerWindow:      sdk.NewDecWithPrec(5, 2),
+			DowntimeJailDuration:    slashingGenState.Params.DowntimeJailDuration,
+			SlashFractionDoubleSign: slashingGenState.Params.SlashFractionDoubleSign,
+			SlashFractionDowntime:   slashingGenState.Params.SlashFractionDowntime,
+		}
+		slashingGenState.Params = newParams
+
 		// Migrate relative source genesis application state and marshal it into
 		// the respective key.
 		appState[v040slashing.ModuleName] = v040Codec.MustMarshalJSON(v040slashing.Migrate(slashingGenState))
