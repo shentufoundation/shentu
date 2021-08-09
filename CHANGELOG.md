@@ -35,7 +35,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [v2.0.0] - 08-03-2021
+## [v2.0.0] - 08-09-2021
 
 Version 2.0.0 brings many breaking changes with SDK upgrading to Stargate version. For more information on the SDK upgrade, visit [CosmosSDK Release Notes](https://github.com/cosmos/cosmos-sdk/releases) 
 
@@ -50,7 +50,7 @@ Version 2.0.0 brings many breaking changes with SDK upgrading to Stargate versio
 * (shield) [\#269](https://github.com/certikfoundation/shentu/pull/269) Shield gRPC query refactor.
 
 ### State Machine Breaking Changes
-* (app) [\#221](https://github.com/certikfoundation/shentu/pull/221) Upgraded SDK to 0.42.x.
+* (app) [\#221](https://github.com/certikfoundation/shentu/pull/221) Upgraded SDK to 0.42.9.
 * (shield) [\#286](https://github.com/certikfoundation/shentu/pull/286) Fix shield emitted events to include sender.
 * (cert) [\#302](https://github.com/certikfoundation/shentu/pull/302) Removed validator certificate.
 * (cvm) [\#301](https://github.com/certikfoundation/shentu/pull/301) Removed zero-address coins recycling.
