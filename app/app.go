@@ -440,12 +440,14 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// NOTE: During BeginBlocker, slashing comes after distr so that
 	// there is nothing left over in the validator fee pool, so as to
 	// keep the CanWithdrawInvariant invariant.
-	app.mm.SetOrderBeginBlockers(upgradetypes.ModuleName, sdkminttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, evidencetypes.ModuleName,
-		oracletypes.ModuleName, cvmtypes.ModuleName, stakingtypes.ModuleName, shieldtypes.ModuleName, ibchost.ModuleName)
+	app.mm.SetOrderBeginBlockers(upgradetypes.ModuleName, capabilitytypes.ModuleName, sdkminttypes.ModuleName, distrtypes.ModuleName,
+		slashingtypes.ModuleName, evidencetypes.ModuleName, oracletypes.ModuleName, cvmtypes.ModuleName, stakingtypes.ModuleName,
+		shieldtypes.ModuleName, ibchost.ModuleName)
 
 	// NOTE: Shield endblocker comes before staking because it queries
 	// unbonding delegations that staking endblocker deletes.
-	app.mm.SetOrderEndBlockers(cvmtypes.ModuleName, shieldtypes.ModuleName, stakingtypes.ModuleName, sdkgovtypes.ModuleName, oracletypes.ModuleName)
+	app.mm.SetOrderEndBlockers(cvmtypes.ModuleName, shieldtypes.ModuleName, stakingtypes.ModuleName, sdkgovtypes.ModuleName,
+		oracletypes.ModuleName)
 
 	// NOTE: genutil moodule must occur after staking so that pools
 	// are properly initialized with tokens from genesis accounts.
