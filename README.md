@@ -116,7 +116,7 @@ Run the scripts for testing:
 
 ```bash
 $ certik query account $NODE0_KEY
-$ certik query supply total uctk
+$ certik query bank total
 
 # Create a new account
 $ certik keys add jack
@@ -139,20 +139,22 @@ Recommend the use of the provided Docker containers for simplicity, but here are
 ```bash
 $ certik unsafe-reset-all
 $ rm -rf ~/.certik
-$ rm -rf ~/.certik
 
 $ certik init node0 --chain-id certikchain
 
-$ certik config chain-id certikchain
 $ certik keys add jack
 
 $ certik add-genesis-account $(certik keys show jack -a) 200000000uctk
+
+$ certik add-genesis-certifier $(certik keys show jack -a)
+
+$ certik add-genesis-shield-admin $(certik keys show jack -a)
 ```
 
 Notification: Every transaction will need 5000uctk (certik token), so you'd better start with more than 5000uctk here.
 
 ```bash
-$ certik gentx --name jack --amount 100000000uctk
+$ certik gentx --name jack --amount 10000000000000000uctk
 $ certik collect-gentxs
 
 $ certik start
@@ -160,7 +162,7 @@ $ certik start
 $ certik query account $(certik keys show jack -a)
 
 $ certik keys add alice
-$ certik tx send jack $(certik keys show alice -a) 70000uctk --gas-prices=0.025uctk --from jack
+$ certik tx send jack $(certik keys show alice -a) 7000000000uctk --gas-prices=0.025uctk --from jack --chain-id certikchain
 $ certik query account $(certik keys show jack -a)
 $ certik query account $(certik keys show alice -a)
 ```
@@ -168,7 +170,7 @@ $ certik query account $(certik keys show alice -a)
 # CVM module test commands
 
 ## simple.sol
-We have a very simple storage setter / getter contract `tests/simple.sol`.
+We have a very simple storage setter / getter contract `tests/sync/simple.sol`.
 
 ```solidity
 pragma solidity >=0.4.0 <0.7.0;
@@ -186,12 +188,12 @@ contract SimpleStorage {
 }
 ```
 
-To deploy `tests/simple.sol` contract (be sure to have `solc` installed), first compile it into a bytecode and abi.
+To deploy `tests/sync/simple.sol` contract (be sure to have `solc` installed), first compile it into a bytecode (`.bin` file) and abi.
 
-Assuming you have `simple.sol` compiled into `simple.bytecode` and `simple.abi`
+Assuming you have `simple.sol` compiled into `simple.bytecode` (`.bin` file) and `simple.abi`
 ```bash
 $ cd tests
-$ certik tx cvm deploy simple.bytecode --abi simple.abi --from node0
+$ certik tx cvm deploy simple.bin --abi simple.abi --from node0
 ```
 
 Printed on the main terminal
