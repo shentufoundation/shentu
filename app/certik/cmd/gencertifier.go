@@ -14,7 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
-	certtypes "github.com/certikfoundation/shentu/x/cert/types"
+	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
 )
 
 // AddGenesisCertifierCmd returns add-genesis-certifier cobra Command.

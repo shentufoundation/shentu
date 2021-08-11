@@ -14,7 +14,7 @@ import (
 	govrest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/x/cert/types"
+	"github.com/certikfoundation/shentu/v2/x/cert/types"
 )
 
 func RegisterHandlers(cliCtx client.Context, rtr *mux.Router) {

@@ -11,7 +11,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	qtypes "github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/certikfoundation/shentu/x/cert/types"
+	"github.com/certikfoundation/shentu/v2/x/cert/types"
 )
 
 var _ types.QueryServer = Querier{}

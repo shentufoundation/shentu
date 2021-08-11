@@ -15,9 +15,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/oracle/simulation"
-	"github.com/certikfoundation/shentu/x/oracle/types"
+	"github.com/certikfoundation/shentu/v2/simapp"
+	"github.com/certikfoundation/shentu/v2/x/oracle/simulation"
+	"github.com/certikfoundation/shentu/v2/x/oracle/types"
 )
 
 func TestDecodeStore(t *testing.T) {

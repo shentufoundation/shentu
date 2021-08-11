@@ -21,11 +21,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
-	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/simapp"
-	certtypes "github.com/certikfoundation/shentu/x/cert/types"
-	. "github.com/certikfoundation/shentu/x/cvm/keeper"
-	"github.com/certikfoundation/shentu/x/cvm/types"
+	"github.com/certikfoundation/shentu/v2/common"
+	"github.com/certikfoundation/shentu/v2/simapp"
+	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
+	. "github.com/certikfoundation/shentu/v2/x/cvm/keeper"
+	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 var (

@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/certikfoundation/shentu/x/cvm/types"
+	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/hyperledger/burrow/crypto"
 )

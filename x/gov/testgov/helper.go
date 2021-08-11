@@ -3,15 +3,15 @@ package testgov
 import (
 	"testing"
 
-	"github.com/certikfoundation/shentu/x/gov/keeper"
+	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
 
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/x/gov"
-	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/gov"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // Helper is a structure which wraps the staking handler

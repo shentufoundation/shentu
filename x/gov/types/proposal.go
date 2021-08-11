@@ -15,8 +15,8 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	proto "github.com/gogo/protobuf/proto"
 
-	certtypes "github.com/certikfoundation/shentu/x/cert/types"
-	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
+	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // Proposal types implement UnpackInterfaceMessages to unpack

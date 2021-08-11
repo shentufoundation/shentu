@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"time"
 
-	oracletypes "github.com/certikfoundation/shentu/x/oracle/types"
+	oracletypes "github.com/certikfoundation/shentu/v2/x/oracle/types"
 
-	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 
 	"github.com/spf13/cobra"
 
@@ -56,8 +56,8 @@ import (
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 	v038upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/legacy/v038"
 
-	certtypes "github.com/certikfoundation/shentu/x/cert/types"
-	cvmtypes "github.com/certikfoundation/shentu/x/cvm/types"
+	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
+	cvmtypes "github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 const (

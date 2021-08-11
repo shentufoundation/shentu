@@ -8,8 +8,8 @@ import (
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/certikfoundation/shentu/simapp"
-	. "github.com/certikfoundation/shentu/x/cvm/keeper"
+	"github.com/certikfoundation/shentu/v2/simapp"
+	. "github.com/certikfoundation/shentu/v2/x/cvm/keeper"
 )
 
 func TestNewBlockChain(t *testing.T) {

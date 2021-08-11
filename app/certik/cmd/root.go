@@ -35,15 +35,15 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	"github.com/certikfoundation/shentu/app"
-	"github.com/certikfoundation/shentu/app/certik/cmd/migrate"
-	certikinit "github.com/certikfoundation/shentu/app/certik/init"
-	"github.com/certikfoundation/shentu/app/params"
-	"github.com/certikfoundation/shentu/common"
-	authcli "github.com/certikfoundation/shentu/x/auth/client/cli"
-	bankcli "github.com/certikfoundation/shentu/x/bank/client/cli"
-	"github.com/certikfoundation/shentu/x/crisis"
-	cvmcli "github.com/certikfoundation/shentu/x/cvm/client/cli"
+	"github.com/certikfoundation/shentu/v2/app"
+	"github.com/certikfoundation/shentu/v2/app/certik/cmd/migrate"
+	certikinit "github.com/certikfoundation/shentu/v2/app/certik/init"
+	"github.com/certikfoundation/shentu/v2/app/params"
+	"github.com/certikfoundation/shentu/v2/common"
+	authcli "github.com/certikfoundation/shentu/v2/x/auth/client/cli"
+	bankcli "github.com/certikfoundation/shentu/v2/x/bank/client/cli"
+	"github.com/certikfoundation/shentu/v2/x/crisis"
+	cvmcli "github.com/certikfoundation/shentu/v2/x/cvm/client/cli"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the

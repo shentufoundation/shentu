@@ -3,7 +3,7 @@ package cvm
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/cvm/keeper"
+	"github.com/certikfoundation/shentu/v2/x/cvm/keeper"
 )
 
 // BeginBlocker stores previous block's hash into the k-v store.

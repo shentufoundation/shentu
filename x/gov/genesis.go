@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/x/gov/keeper"
-	"github.com/certikfoundation/shentu/x/gov/types"
+	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
+	"github.com/certikfoundation/shentu/v2/x/gov/types"
 )
 
 // InitGenesis stores genesis parameters.

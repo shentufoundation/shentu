@@ -12,7 +12,7 @@ import (
 	"github.com/hyperledger/burrow/execution/native"
 	"github.com/hyperledger/burrow/permission"
 
-	"github.com/certikfoundation/shentu/x/cvm/types"
+	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 type CertificateCallable struct {

@@ -21,8 +21,8 @@ import (
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	"github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	"github.com/certikfoundation/shentu/x/mint/keeper"
-	"github.com/certikfoundation/shentu/x/oracle/simulation"
+	"github.com/certikfoundation/shentu/v2/x/mint/keeper"
+	"github.com/certikfoundation/shentu/v2/x/oracle/simulation"
 )
 
 var (

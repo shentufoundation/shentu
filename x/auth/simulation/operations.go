@@ -12,7 +12,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/x/auth/types"
+	"github.com/certikfoundation/shentu/v2/x/auth/types"
 )
 
 const OpWeightMsgUnlock = "op_weight_msg_create_operator"

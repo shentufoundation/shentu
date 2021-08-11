@@ -24,8 +24,8 @@ import (
 	"github.com/hyperledger/burrow/permission"
 	"github.com/hyperledger/burrow/txs/payload"
 
-	"github.com/certikfoundation/shentu/vm"
-	"github.com/certikfoundation/shentu/x/cvm/types"
+	"github.com/certikfoundation/shentu/v2/vm"
+	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 // TransactionGasLimit is the gas limit of the block.

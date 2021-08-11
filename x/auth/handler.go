@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/certikfoundation/shentu/x/auth/keeper"
-	"github.com/certikfoundation/shentu/x/auth/types"
+	"github.com/certikfoundation/shentu/v2/x/auth/keeper"
+	"github.com/certikfoundation/shentu/v2/x/auth/types"
 )
 
 // NewHandler returns a handler for "auth" type messages.

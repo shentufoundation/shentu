@@ -13,11 +13,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/gov/testgov"
-	"github.com/certikfoundation/shentu/x/shield/testshield"
-	"github.com/certikfoundation/shentu/x/staking/teststaking"
+	"github.com/certikfoundation/shentu/v2/common"
+	"github.com/certikfoundation/shentu/v2/simapp"
+	"github.com/certikfoundation/shentu/v2/x/gov/testgov"
+	"github.com/certikfoundation/shentu/v2/x/shield/testshield"
+	"github.com/certikfoundation/shentu/v2/x/staking/teststaking"
 )
 
 // nextBlock calls staking, shield, and gov endblockers and updates
