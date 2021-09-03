@@ -41,6 +41,7 @@ Version 2.1.0 re-enables endblocker in the staking module, and bumps SDK to 0.42
 
 ### Client Breaking Changes
 ### API Breaking Changes
+* (auth) [\#323](https://github.com/certikfoundation/shentu/pull/241) Fix ManualVestingAccount proto package route.
 ### State Machine Breaking Changes
 * (staking) [\#323](https://github.com/certikfoundation/shentu/pull/241) Re-enable staking endblockers.
 ### Features
