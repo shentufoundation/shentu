@@ -7,7 +7,7 @@ import (
 )
 
 func (app CertiKApp) setUpgradeHandler() {
-	app.upgradeKeeper.SetUpgradeHandler("test3", func(ctx sdk.Context, plan upgradetypes.Plan) {
+	app.upgradeKeeper.SetUpgradeHandler("shentu-2.1", func(ctx sdk.Context, plan upgradetypes.Plan) {
 	})
 
 	upgradeInfo, err := app.upgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -16,7 +16,7 @@ func (app CertiKApp) setUpgradeHandler() {
 		// handle error
 	}
 
-	if upgradeInfo.Name == "test3" && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == "shentu-2.1" && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Renamed: []storetypes.StoreRename{{}},
 			Deleted: []string{},
