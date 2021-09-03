@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // Withdraw stores an ongoing withdraw of pool collateral.

@@ -10,8 +10,8 @@ import (
 	"github.com/hyperledger/burrow/execution/engine"
 	"github.com/hyperledger/burrow/permission"
 
-	"github.com/certikfoundation/shentu/x/cvm/keeper"
-	"github.com/certikfoundation/shentu/x/cvm/types"
+	"github.com/certikfoundation/shentu/v2/x/cvm/keeper"
+	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []abci.ValidatorUpdate {

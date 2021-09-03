@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	vesting "github.com/certikfoundation/shentu/x/auth/types"
+	vesting "github.com/certikfoundation/shentu/v2/x/auth/types"
 
 	"gopkg.in/yaml.v2"
 

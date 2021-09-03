@@ -10,9 +10,9 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/cert/keeper"
-	"github.com/certikfoundation/shentu/x/cert/types"
+	"github.com/certikfoundation/shentu/v2/simapp"
+	"github.com/certikfoundation/shentu/v2/x/cert/keeper"
+	"github.com/certikfoundation/shentu/v2/x/cert/types"
 )
 
 var (

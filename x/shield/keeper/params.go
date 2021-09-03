@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // SetPoolParams sets parameters subspace for shield pool parameters.

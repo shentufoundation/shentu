@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 func (k Keeper) SetTotalCollateral(ctx sdk.Context, totalCollateral sdk.Int) {

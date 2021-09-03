@@ -12,7 +12,7 @@ import (
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/permission"
 
-	"github.com/certikfoundation/shentu/x/cvm/types"
+	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 // State is the CVM state object. It implements acmstate.ReaderWriter.

@@ -9,7 +9,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/x/gov/types"
+	"github.com/certikfoundation/shentu/v2/x/gov/types"
 )
 
 // NewQuerier creates a new gov Querier instance.

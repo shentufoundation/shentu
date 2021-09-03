@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/certikfoundation/shentu/x/auth/types"
+	"github.com/certikfoundation/shentu/v2/x/auth/types"
 )
 
 // Simulation parameter constants

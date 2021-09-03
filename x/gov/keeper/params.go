@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/gov/types"
+	"github.com/certikfoundation/shentu/v2/x/gov/types"
 )
 
 // GetDepositParams returns the current DepositParams from the global param store.

@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/cvm/types"
+	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 const (

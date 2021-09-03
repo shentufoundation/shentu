@@ -8,7 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/certikfoundation/shentu/x/cvm/types"
+	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 // DecodeStore unmarshals the KVPair's value to the corresponding type of cvm module.

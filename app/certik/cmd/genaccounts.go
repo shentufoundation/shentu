@@ -22,8 +22,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
-	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/x/auth/types"
+	"github.com/certikfoundation/shentu/v2/common"
+	"github.com/certikfoundation/shentu/v2/x/auth/types"
 )
 
 const (

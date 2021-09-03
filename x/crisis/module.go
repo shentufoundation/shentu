@@ -19,7 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	"github.com/cosmos/cosmos-sdk/x/crisis/types"
 
-	"github.com/certikfoundation/shentu/common"
+	"github.com/certikfoundation/shentu/v2/common"
 )
 
 var (

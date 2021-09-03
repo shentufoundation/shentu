@@ -21,11 +21,11 @@ import (
 	authsim "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/certikfoundation/shentu/x/auth/client/cli"
-	"github.com/certikfoundation/shentu/x/auth/client/rest"
-	"github.com/certikfoundation/shentu/x/auth/keeper"
-	"github.com/certikfoundation/shentu/x/auth/simulation"
-	"github.com/certikfoundation/shentu/x/auth/types"
+	"github.com/certikfoundation/shentu/v2/x/auth/client/cli"
+	"github.com/certikfoundation/shentu/v2/x/auth/client/rest"
+	"github.com/certikfoundation/shentu/v2/x/auth/keeper"
+	"github.com/certikfoundation/shentu/v2/x/auth/simulation"
+	"github.com/certikfoundation/shentu/v2/x/auth/types"
 )
 
 var (

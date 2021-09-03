@@ -10,8 +10,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/simapp"
-	"github.com/certikfoundation/shentu/x/oracle/types"
+	"github.com/certikfoundation/shentu/v2/simapp"
+	"github.com/certikfoundation/shentu/v2/x/oracle/types"
 )
 
 func TestWithdraw(t *testing.T) {

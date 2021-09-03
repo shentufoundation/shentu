@@ -8,7 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	cvmtypes "github.com/certikfoundation/shentu/x/cvm/types"
+	cvmtypes "github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 // CVMCodeType is the type for code in CVM.

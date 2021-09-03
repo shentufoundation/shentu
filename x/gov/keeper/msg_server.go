@@ -8,9 +8,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	certtypes "github.com/certikfoundation/shentu/x/cert/types"
-	"github.com/certikfoundation/shentu/x/gov/types"
-	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
+	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
+	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 type msgServer struct {

@@ -9,7 +9,7 @@ import (
 	"github.com/hyperledger/burrow/execution/errors"
 	"github.com/hyperledger/burrow/execution/exec"
 
-	"github.com/certikfoundation/shentu/x/cvm/types"
+	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 type EventSink struct {

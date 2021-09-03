@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // PayoutNativeRewards pays out pending CTK rewards.
@@ -23,7 +23,6 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 		panic(err)
 	}
 	k.SetProvider(ctx, providerAddr, provider)
-	
 
 	// Add leftovers as service fees.
 	remainingServiceFees := k.GetRemainingServiceFees(ctx)

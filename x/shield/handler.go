@@ -7,8 +7,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/x/shield/keeper"
-	"github.com/certikfoundation/shentu/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
+	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // NewHandler creates an sdk.Handler for all the shield type messages.

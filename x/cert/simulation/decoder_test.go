@@ -15,9 +15,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/certikfoundation/shentu/simapp"
-	. "github.com/certikfoundation/shentu/x/cert/simulation"
-	"github.com/certikfoundation/shentu/x/cert/types"
+	"github.com/certikfoundation/shentu/v2/simapp"
+	. "github.com/certikfoundation/shentu/v2/x/cert/simulation"
+	"github.com/certikfoundation/shentu/v2/x/cert/types"
 )
 
 func TestDecodeStore(t *testing.T) {

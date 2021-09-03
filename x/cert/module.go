@@ -18,11 +18,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/certikfoundation/shentu/x/cert/client/cli"
-	"github.com/certikfoundation/shentu/x/cert/client/rest"
-	"github.com/certikfoundation/shentu/x/cert/keeper"
-	"github.com/certikfoundation/shentu/x/cert/simulation"
-	"github.com/certikfoundation/shentu/x/cert/types"
+	"github.com/certikfoundation/shentu/v2/x/cert/client/cli"
+	"github.com/certikfoundation/shentu/v2/x/cert/client/rest"
+	"github.com/certikfoundation/shentu/v2/x/cert/keeper"
+	"github.com/certikfoundation/shentu/v2/x/cert/simulation"
+	"github.com/certikfoundation/shentu/v2/x/cert/types"
 )
 
 var (

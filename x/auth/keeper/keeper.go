@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/certikfoundation/shentu/x/auth/types"
+	"github.com/certikfoundation/shentu/v2/x/auth/types"
 )
 
 type Keeper struct {

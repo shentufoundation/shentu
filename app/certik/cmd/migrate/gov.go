@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 
-	certtypes "github.com/certikfoundation/shentu/x/cert/types"
+	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
 
 	proto "github.com/gogo/protobuf/proto"
 
@@ -25,7 +25,7 @@ import (
 	v038upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/legacy/v038"
 	v040upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	govtypes "github.com/certikfoundation/shentu/x/gov/types"
+	govtypes "github.com/certikfoundation/shentu/v2/x/gov/types"
 )
 
 type Deposit struct {

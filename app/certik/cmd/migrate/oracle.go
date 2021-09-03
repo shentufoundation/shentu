@@ -3,7 +3,7 @@ package migrate
 import (
 	"time"
 
-	oracletypes "github.com/certikfoundation/shentu/x/oracle/types"
+	oracletypes "github.com/certikfoundation/shentu/v2/x/oracle/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

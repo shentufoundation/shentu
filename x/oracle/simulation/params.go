@@ -7,7 +7,7 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/x/oracle/types"
+	"github.com/certikfoundation/shentu/v2/x/oracle/types"
 )
 
 // ParamChanges defines the parameters that can be modified by param change proposals on the simulation.

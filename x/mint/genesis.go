@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	"github.com/certikfoundation/shentu/common"
+	"github.com/certikfoundation/shentu/v2/common"
 )
 
 // DefaultGenesisState creates a default GenesisState object.

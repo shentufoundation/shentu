@@ -23,9 +23,9 @@ import (
 	"github.com/hyperledger/burrow/logging"
 	"github.com/hyperledger/burrow/txs/payload"
 
-	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/x/cvm/compile"
-	"github.com/certikfoundation/shentu/x/cvm/types"
+	"github.com/certikfoundation/shentu/v2/common"
+	"github.com/certikfoundation/shentu/v2/x/cvm/compile"
+	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 const (

@@ -23,9 +23,9 @@ import (
 	sdksimulation "github.com/cosmos/cosmos-sdk/x/staking/simulation"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/certikfoundation/shentu/common"
-	"github.com/certikfoundation/shentu/x/staking/keeper"
-	"github.com/certikfoundation/shentu/x/staking/simulation"
+	"github.com/certikfoundation/shentu/v2/common"
+	"github.com/certikfoundation/shentu/v2/x/staking/keeper"
+	"github.com/certikfoundation/shentu/v2/x/staking/simulation"
 )
 
 var (

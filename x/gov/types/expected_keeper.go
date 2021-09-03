@@ -8,8 +8,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	certtypes "github.com/certikfoundation/shentu/x/cert/types"
-	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
+	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 type CertKeeper interface {

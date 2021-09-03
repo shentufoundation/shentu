@@ -12,8 +12,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sim "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/certikfoundation/shentu/x/cvm/keeper"
-	"github.com/certikfoundation/shentu/x/cvm/types"
+	"github.com/certikfoundation/shentu/v2/x/cvm/keeper"
+	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 const (

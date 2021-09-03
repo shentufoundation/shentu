@@ -10,8 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	auth_types "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/certikfoundation/shentu/x/cvm/client/utils"
-	"github.com/certikfoundation/shentu/x/cvm/types"
+	"github.com/certikfoundation/shentu/v2/x/cvm/client/utils"
+	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {

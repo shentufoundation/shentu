@@ -38,11 +38,11 @@ import (
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	certiksimapp "github.com/certikfoundation/shentu/simapp"
-	cert "github.com/certikfoundation/shentu/x/cert/types"
-	cvm "github.com/certikfoundation/shentu/x/cvm/types"
-	oracle "github.com/certikfoundation/shentu/x/oracle/types"
-	shield "github.com/certikfoundation/shentu/x/shield/types"
+	certiksimapp "github.com/certikfoundation/shentu/v2/simapp"
+	cert "github.com/certikfoundation/shentu/v2/x/cert/types"
+	cvm "github.com/certikfoundation/shentu/v2/x/cvm/types"
+	oracle "github.com/certikfoundation/shentu/v2/x/oracle/types"
+	shield "github.com/certikfoundation/shentu/v2/x/shield/types"
 	//"github.com/certikfoundation/shentu/x/staking"
 )
 

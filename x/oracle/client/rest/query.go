@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
-	"github.com/certikfoundation/shentu/x/oracle/types"
+	"github.com/certikfoundation/shentu/v2/x/oracle/types"
 )
 
 func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {

@@ -9,8 +9,8 @@ import (
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
-	"github.com/certikfoundation/shentu/x/gov/types"
-	shieldtypes "github.com/certikfoundation/shentu/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // GetDeposit gets the deposit of a specific depositor on a specific proposal.
