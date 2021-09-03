@@ -413,6 +413,9 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.evidenceKeeper = *evidenceKeeper
 
+	// Add empty upgrade handler to bump to 0.42.9
+	app.setUpgradeHandler()
+
 	/****  Module Options ****/
 
 	// NOTE: Any module instantiated in the module manager that is
@@ -440,7 +443,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// NOTE: During BeginBlocker, slashing comes after distr so that
 	// there is nothing left over in the validator fee pool, so as to
 	// keep the CanWithdrawInvariant invariant.
-	app.mm.SetOrderBeginBlockers(upgradetypes.ModuleName, sdkminttypes.ModuleName, distrtypes.ModuleName,
+	app.mm.SetOrderBeginBlockers(upgradetypes.ModuleName, capabilitytypes.ModuleName, sdkminttypes.ModuleName, distrtypes.ModuleName,
 		slashingtypes.ModuleName, evidencetypes.ModuleName, oracletypes.ModuleName, cvmtypes.ModuleName, stakingtypes.ModuleName,
 		shieldtypes.ModuleName, ibchost.ModuleName)
 
