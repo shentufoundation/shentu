@@ -35,6 +35,21 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v2.1.0] - 08-09-2021
+
+Version 2.1.0 re-enables endblocker in the staking module, and bumps SDK to 0.42.9 for necessary query route.
+
+### Client Breaking Changes
+### API Breaking Changes
+* (auth) [\#323](https://github.com/certikfoundation/shentu/pull/241) Fix ManualVestingAccount proto package route.
+### State Machine Breaking Changes
+* (staking) [\#323](https://github.com/certikfoundation/shentu/pull/241) Re-enable staking endblockers.
+### Features
+### Improvements
+ * (app) [\#323](https://github.com/certikfoundation/shentu/pull/241) Bump CosmosSDK to 0.42.9.
+### Tests
+### Bug Fixes
+
 ## [v2.0.0] - 08-09-2021
 
 Version 2.0.0 brings many breaking changes with SDK upgrading to Stargate version. For more information on the SDK upgrade, visit [CosmosSDK Release Notes](https://github.com/cosmos/cosmos-sdk/releases) 
