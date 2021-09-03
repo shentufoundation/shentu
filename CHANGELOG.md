@@ -42,10 +42,10 @@ Version 2.1.0 re-enables endblocker in the staking module, and bumps SDK to 0.42
 ### Client Breaking Changes
 ### API Breaking Changes
 ### State Machine Breaking Changes
-* (staking) [\#241](https://github.com/certikfoundation/shentu/pull/241) Re-enable staking endblockers.
+* (staking) [\#323](https://github.com/certikfoundation/shentu/pull/241) Re-enable staking endblockers.
 ### Features
 ### Improvements
- * (app) [\#241](https://github.com/certikfoundation/shentu/pull/241) Bump CosmosSDK to 0.42.9.
+ * (app) [\#323](https://github.com/certikfoundation/shentu/pull/241) Bump CosmosSDK to 0.42.9.
 ### Tests
 ### Bug Fixes
 
