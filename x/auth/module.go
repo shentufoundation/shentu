@@ -36,7 +36,7 @@ var (
 
 // AppModuleBasic defines the basic application module used by the auth module.
 type AppModuleBasic struct {
-	cdc codec.Marshaler
+	cdc codec.Codec
 }
 
 // Name returns the auth module's name.
@@ -58,12 +58,12 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the auth module.
-func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return cosmosauth.AppModuleBasic{}.DefaultGenesis(cdc)
 }
 
 // ValidateGenesis performs genesis state validation for the auth module.
-func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	return cosmosauth.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
 }
 
@@ -102,7 +102,7 @@ type AppModule struct {
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, ak authkeeper.AccountKeeper, bk types.BankKeeper, ck types.CertKeeper, randGenAccountsFn authtypes.RandomGenesisAccountsFn) AppModule {
+func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak authkeeper.AccountKeeper, bk types.BankKeeper, ck types.CertKeeper, randGenAccountsFn authtypes.RandomGenesisAccountsFn) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{cdc: cdc},
 		cosmosAppModule: cosmosauth.NewAppModule(cdc, ak, randGenAccountsFn),
@@ -140,12 +140,12 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 }
 
 // InitGenesis performs genesis initialization for the auth module. It returns no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	return am.cosmosAppModule.InitGenesis(ctx, cdc, data)
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the auth module.
-func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	return am.cosmosAppModule.ExportGenesis(ctx, cdc)
 }
 

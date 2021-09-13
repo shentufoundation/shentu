@@ -24,7 +24,7 @@ const (
 	OpWeightMsgBeginRedelegate = "op_weight_msg_begin_redelegate"
 )
 
-func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper,
+func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper,
 	k stakingkeeper.Keeper) simulation.WeightedOperations {
 	var (
 		weightMsgCreateValidator int

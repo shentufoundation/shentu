@@ -15,7 +15,7 @@ var (
 // SetTask sets a task in KVStore.
 func (k Keeper) SetTask(ctx sdk.Context, task types.Task) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.TaskStoreKey(task.Contract, task.Function), k.cdc.MustMarshalBinaryLengthPrefixed(&task))
+	store.Set(types.TaskStoreKey(task.Contract, task.Function), k.cdc.MustMarshalLengthPrefixed(&task))
 }
 
 // DeleteTask deletes a task from KVStore.
@@ -41,7 +41,7 @@ func (k Keeper) GetTask(ctx sdk.Context, contract, function string) (types.Task,
 		return types.Task{}, types.ErrTaskNotExists
 	}
 	var task types.Task
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(TaskData, &task)
+	k.cdc.MustUnmarshalLengthPrefixed(TaskData, &task)
 	return task, nil
 }
 
@@ -52,7 +52,7 @@ func (k Keeper) SetClosingBlockStore(ctx sdk.Context, task types.Task) {
 	newTaskID := types.TaskID{Contract: task.Contract, Function: task.Function}
 	taskIDs := append(k.GetClosingTaskIDs(ctx, task.ClosingBlock), newTaskID)
 
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})
+	bz := k.cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})
 	store.Set(types.ClosingTaskIDsStoreKey(task.ClosingBlock), bz)
 }
 
@@ -62,7 +62,7 @@ func (k Keeper) GetClosingTaskIDs(ctx sdk.Context, closingBlock int64) []types.T
 
 	var taskIDsProto types.TaskIDs
 	if closingTaskIDsData != nil {
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(closingTaskIDsData, &taskIDsProto)
+		k.cdc.MustUnmarshalLengthPrefixed(closingTaskIDsData, &taskIDsProto)
 	}
 	return taskIDsProto.TaskIds
 }
@@ -131,7 +131,7 @@ func (k Keeper) IteratorAllTasks(ctx sdk.Context, callback func(task types.Task)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var task types.Task
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &task)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &task)
 
 		if callback(task) {
 			break

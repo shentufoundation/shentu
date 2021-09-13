@@ -23,7 +23,7 @@ func (k Keeper) SetPurchaseList(ctx sdk.Context, purchaseList types.PurchaseList
 	if err != nil {
 		panic(err)
 	}
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&purchaseList)
+	bz := k.cdc.MustMarshalLengthPrefixed(&purchaseList)
 	store.Set(types.GetPurchaseListKey(purchaseList.PoolId, purchaser), bz)
 }
 
@@ -45,7 +45,7 @@ func (k Keeper) GetPurchaseList(ctx sdk.Context, poolID uint64, purchaser sdk.Ac
 	bz := store.Get(types.GetPurchaseListKey(poolID, purchaser))
 	if bz != nil {
 		var purchase types.PurchaseList
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &purchase)
+		k.cdc.MustUnmarshalLengthPrefixed(bz, &purchase)
 		return purchase, true
 	}
 	return types.PurchaseList{}, false
@@ -202,7 +202,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var timeslice types.PoolPurchaserPairs
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &timeslice)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &timeslice)
 		for _, poolPurchaser := range timeslice.Pairs {
 			purchaser, err := sdk.AccAddressFromBech32(poolPurchaser.Purchaser)
 			if err != nil {
@@ -349,7 +349,7 @@ func (k Keeper) IteratePurchaseLists(ctx sdk.Context, callback func(purchase typ
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var purchaseList types.PurchaseList
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchaseList)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &purchaseList)
 
 		if callback(purchaseList) {
 			break
@@ -367,7 +367,7 @@ func (k Keeper) IteratePoolPurchaseLists(ctx sdk.Context, poolID uint64, callbac
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var purchaseList types.PurchaseList
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchaseList)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &purchaseList)
 
 		if callback(purchaseList) {
 			break
@@ -406,14 +406,14 @@ func (k Keeper) GetExpiringPurchaseQueueTimeSlice(ctx sdk.Context, timestamp tim
 		return []types.PoolPurchaser{}
 	}
 	var ppPairs types.PoolPurchaserPairs
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ppPairs)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &ppPairs)
 	return ppPairs.Pairs
 }
 
 // SetExpiringPurchaseQueueTimeSlice sets a time slice for a purchase expiring at give time.
 func (k Keeper) SetExpiringPurchaseQueueTimeSlice(ctx sdk.Context, timestamp time.Time, ppPairs []types.PoolPurchaser) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&types.PoolPurchaserPairs{Pairs: ppPairs})
+	bz := k.cdc.MustMarshalLengthPrefixed(&types.PoolPurchaserPairs{Pairs: ppPairs})
 	store.Set(types.GetPurchaseExpirationTimeKey(timestamp), bz)
 }
 
@@ -457,7 +457,7 @@ func (k Keeper) IteratePurchaseListEntries(ctx sdk.Context, callback func(purcha
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var purchaseList types.PurchaseList
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchaseList)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &purchaseList)
 
 		for _, entry := range purchaseList.Entries {
 			if callback(entry) {

@@ -9,7 +9,7 @@ import (
 // SetOperator sets an operator to store.
 func (k Keeper) SetOperator(ctx sdk.Context, operator types.Operator) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&operator)
+	bz := k.cdc.MustMarshalLengthPrefixed(&operator)
 	addr, err := sdk.AccAddressFromBech32(operator.Address)
 	if err != nil {
 		panic(err)
@@ -23,7 +23,7 @@ func (k Keeper) GetOperator(ctx sdk.Context, address sdk.AccAddress) (types.Oper
 	opBz := store.Get(types.OperatorStoreKey(address))
 	if opBz != nil {
 		var operator types.Operator
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(opBz, &operator)
+		k.cdc.MustUnmarshalLengthPrefixed(opBz, &operator)
 		return operator, nil
 	}
 	return types.Operator{}, types.ErrNoOperatorFound
@@ -50,7 +50,7 @@ func (k Keeper) IterateAllOperators(ctx sdk.Context, callback func(operator type
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var operator types.Operator
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &operator)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &operator)
 		if callback(operator) {
 			break
 		}

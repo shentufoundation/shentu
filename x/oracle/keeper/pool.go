@@ -17,7 +17,7 @@ func (k Keeper) CollectBounty(ctx sdk.Context, value sdk.Coins, creator sdk.AccA
 // SetTotalCollateral sets total collateral to store.
 func (k Keeper) SetTotalCollateral(ctx sdk.Context, collateral sdk.Coins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&types.CoinsProto{Coins: collateral})
+	bz := k.cdc.MustMarshalLengthPrefixed(&types.CoinsProto{Coins: collateral})
 	store.Set(types.TotalCollateralKey(), bz)
 }
 
@@ -27,7 +27,7 @@ func (k Keeper) GetTotalCollateral(ctx sdk.Context) (sdk.Coins, error) {
 	opBz := store.Get(types.TotalCollateralKey())
 	if opBz != nil {
 		var coinsProto types.CoinsProto
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(opBz, &coinsProto)
+		k.cdc.MustUnmarshalLengthPrefixed(opBz, &coinsProto)
 		return coinsProto.Coins, nil
 	}
 	return sdk.Coins{}, types.ErrNoTotalCollateralFound

@@ -167,7 +167,7 @@ func (c GeneralCertificate) TxHash() string {
 
 // Bytes returns a byte array for the certificate.
 func (c GeneralCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
-	return cdc.MustMarshalBinaryLengthPrefixed(c)
+	return cdc.MustMarshalLengthPrefixed(c)
 }
 
 // String returns a human readable string representation of the certificate.
@@ -254,7 +254,7 @@ func (c CompilationCertificate) TxHash() string {
 
 // Bytes returns a byte array for the certificate.
 func (c CompilationCertificate) Bytes(cdc *codec.LegacyAmino) []byte {
-	return cdc.MustMarshalBinaryLengthPrefixed(c)
+	return cdc.MustMarshalLengthPrefixed(c)
 }
 
 // String returns a human readable string representation of the certificate.

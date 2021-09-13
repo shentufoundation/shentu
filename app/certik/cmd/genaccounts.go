@@ -50,8 +50,8 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			ctx := client.GetClientContextFromCmd(cmd)
-			depCdc := ctx.JSONMarshaler
-			cdc := depCdc.(codec.Marshaler)
+			depCdc := ctx.JSONCodec
+			cdc := depCdc.(codec.Codec)
 
 			config := server.GetServerContextFromCmd(cmd).Config
 			config.SetRoot(ctx.HomeDir)

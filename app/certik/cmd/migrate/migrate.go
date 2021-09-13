@@ -84,7 +84,7 @@ func Migrate(appState types.AppMap, clientCtx client.Context) types.AppMap {
 	RegisterCertLegacyAminoCodec(v039Codec)
 	RegisterShieldLegacyAminoCodec(v039Codec)
 
-	v040Codec := clientCtx.JSONMarshaler
+	v040Codec := clientCtx.JSONCodec
 
 	if appState[v038bank.ModuleName] != nil {
 		// unmarshal relative source genesis application state
@@ -330,7 +330,7 @@ $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04
 
 			var bankGenesis bank.GenesisState
 
-			clientCtx.JSONMarshaler.MustUnmarshalJSON(newGenState[bank.ModuleName], &bankGenesis)
+			clientCtx.JSONCodec.MustUnmarshalJSON(newGenState[bank.ModuleName], &bankGenesis)
 
 			bankGenesis.DenomMetadata = []bank.Metadata{
 				{
@@ -344,11 +344,11 @@ $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04
 					Display: "ctk",
 				},
 			}
-			newGenState[bank.ModuleName] = clientCtx.JSONMarshaler.MustMarshalJSON(&bankGenesis)
+			newGenState[bank.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&bankGenesis)
 
 			var stakingGenesis staking.GenesisState
 
-			clientCtx.JSONMarshaler.MustUnmarshalJSON(newGenState[staking.ModuleName], &stakingGenesis)
+			clientCtx.JSONCodec.MustUnmarshalJSON(newGenState[staking.ModuleName], &stakingGenesis)
 
 			ibcTransferGenesis := ibcxfertypes.DefaultGenesisState()
 			ibcCoreGenesis := ibccoretypes.DefaultGenesisState()
@@ -358,11 +358,11 @@ $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04
 			ibcCoreGenesis.ClientGenesis.Params.AllowedClients = []string{exported.Tendermint}
 			stakingGenesis.Params.HistoricalEntries = 10000
 
-			newGenState[ibcxfertypes.ModuleName] = clientCtx.JSONMarshaler.MustMarshalJSON(ibcTransferGenesis)
-			newGenState[host.ModuleName] = clientCtx.JSONMarshaler.MustMarshalJSON(ibcCoreGenesis)
-			newGenState[captypes.ModuleName] = clientCtx.JSONMarshaler.MustMarshalJSON(capGenesis)
-			newGenState[evtypes.ModuleName] = clientCtx.JSONMarshaler.MustMarshalJSON(evGenesis)
-			newGenState[staking.ModuleName] = clientCtx.JSONMarshaler.MustMarshalJSON(&stakingGenesis)
+			newGenState[ibcxfertypes.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(ibcTransferGenesis)
+			newGenState[host.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(ibcCoreGenesis)
+			newGenState[captypes.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(capGenesis)
+			newGenState[evtypes.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(evGenesis)
+			newGenState[staking.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&stakingGenesis)
 
 			genDoc.AppState, err = json.Marshal(newGenState)
 			if err != nil {

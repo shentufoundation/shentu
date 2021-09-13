@@ -163,7 +163,7 @@ var (
 type CertiKApp struct {
 	*baseapp.BaseApp
 	cdc               *codec.LegacyAmino
-	appCodec          codec.Marshaler
+	appCodec          codec.Codec
 	interfaceRegistry types.InterfaceRegistry
 
 	invCheckPeriod uint
@@ -208,7 +208,7 @@ type CertiKApp struct {
 func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool, homePath string,
 	invCheckPeriod uint, encodingConfig appparams.EncodingConfig, appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp)) *CertiKApp {
 	// define top-level codec that will be shared between modules
-	appCodec := encodingConfig.Marshaler
+	appCodec := encodingConfig.Codec
 	legacyAmino := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 
@@ -576,9 +576,9 @@ func (app *CertiKApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) ab
 // MakeCodecs constructs the *std.Codec and *codec.LegacyAmino instances used by
 // app. It is useful for tests and clients who do not want to construct the
 // full app
-func MakeCodecs() (codec.Marshaler, *codec.LegacyAmino) {
+func MakeCodecs() (codec.Codec, *codec.LegacyAmino) {
 	config := MakeEncodingConfig()
-	return config.Marshaler, config.Amino
+	return config.Codec, config.Amino
 }
 
 // LoadHeight loads a particular height
@@ -613,7 +613,7 @@ func (app *CertiKApp) GetSubspace(moduleName string) paramstypes.Subspace {
 }
 
 // Codec returns app.cdc.
-func (app *CertiKApp) Codec() codec.Marshaler {
+func (app *CertiKApp) Codec() codec.Codec {
 	return app.appCodec
 }
 
@@ -628,7 +628,7 @@ func (app *CertiKApp) SimulationManager() *module.SimulationManager {
 }
 
 // initParamsKeeper init params keeper and its subspaces
-func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramskeeper.Keeper {
+func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramskeeper.Keeper {
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
 	paramsKeeper.Subspace(authtypes.ModuleName)

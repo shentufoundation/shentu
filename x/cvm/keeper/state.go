@@ -22,7 +22,7 @@ type State struct {
 	bk          types.BankKeeper
 	sk          types.StakingKeeper
 	store       sdk.KVStore
-	cdc         codec.BinaryMarshaler
+	cdc         codec.BinaryCodec
 	legacyAmino *codec.LegacyAmino
 }
 
@@ -56,7 +56,7 @@ func (s *State) GetAccount(address crypto.Address) (*acm.Account, error) {
 	codeData := s.store.Get(types.CodeStoreKey(address))
 	if len(codeData) > 0 {
 		var cvmCode types.CVMCode
-		s.cdc.MustUnmarshalBinaryBare(codeData, &cvmCode)
+		s.cdc.MustUnmarshal(codeData, &cvmCode)
 		if cvmCode.CodeType == types.CVMCodeTypeEVMCode {
 			evmCode = cvmCode.Code
 		} else {
@@ -97,7 +97,7 @@ func (s *State) UpdateAccount(updatedAccount *acm.Account) error {
 	} else {
 		cvmCode = types.NewCVMCode(types.CVMCodeTypeEVMCode, updatedAccount.EVMCode)
 	}
-	s.store.Set(types.CodeStoreKey(updatedAccount.Address), s.cdc.MustMarshalBinaryBare(&cvmCode))
+	s.store.Set(types.CodeStoreKey(updatedAccount.Address), s.cdc.MustMarshal(&cvmCode))
 	err := s.bk.SetBalances(s.ctx, address, sdk.Coins{sdk.NewInt64Coin(s.sk.BondDenom(s.ctx), int64(updatedAccount.Balance))})
 	if err != nil {
 		return err
@@ -179,7 +179,7 @@ func (s *State) GetAddressMeta(address crypto.Address) ([]*acm.ContractMeta, err
 	}
 
 	var metaList types.ContractMetas
-	err := s.cdc.UnmarshalBinaryBare(bz, &metaList)
+	err := s.cdc.Unmarshal(bz, &metaList)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +197,7 @@ func (s *State) SetAddressMeta(address crypto.Address, contMeta []*acm.ContractM
 	for _, meta := range contMeta {
 		metadata.Metas = append(metadata.Metas, meta)
 	}
-	bz, err := s.cdc.MarshalBinaryBare(&metadata)
+	bz, err := s.cdc.Marshal(&metadata)
 	if err != nil {
 		panic(err)
 	}

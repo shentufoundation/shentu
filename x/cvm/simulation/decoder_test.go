@@ -23,7 +23,7 @@ import (
 
 func TestDecodeStore(t *testing.T) {
 	cdc := simapp.MakeTestEncodingConfig()
-	dec := NewDecodeStore(cdc.Marshaler)
+	dec := NewDecodeStore(cdc.Codec)
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -84,7 +84,7 @@ func TestDecodeStore(t *testing.T) {
 			{Key: types.CodeStoreKey(address), Value: value3},
 			{Key: types.AbiStoreKey(address), Value: value4},
 			{Key: types.MetaHashStoreKey(metahash), Value: []byte(str)},
-			{Key: types.AddressMetaStoreKey(address), Value: cdc.Marshaler.MustMarshalBinaryBare(&metadata)},
+			{Key: types.AddressMetaStoreKey(address), Value: cdc.Codec.MustMarshal(&metadata)},
 		},
 	}
 

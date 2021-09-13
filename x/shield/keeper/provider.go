@@ -9,7 +9,7 @@ import (
 // SetProvider sets data of a provider in the kv-store.
 func (k Keeper) SetProvider(ctx sdk.Context, delAddr sdk.AccAddress, provider types.Provider) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&provider)
+	bz := k.cdc.MustMarshalLengthPrefixed(&provider)
 	store.Set(types.GetProviderKey(delAddr), bz)
 }
 
@@ -20,7 +20,7 @@ func (k Keeper) GetProvider(ctx sdk.Context, delegator sdk.AccAddress) (dt types
 	if bz == nil {
 		return types.Provider{}, false
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &dt)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &dt)
 	return dt, true
 }
 
@@ -115,7 +115,7 @@ func (k Keeper) IterateProviders(ctx sdk.Context, callback func(provider types.P
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var provider types.Provider
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &provider)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &provider)
 
 		if callback(provider) {
 			break
@@ -149,7 +149,7 @@ func (k Keeper) IterateProvidersPaginated(ctx sdk.Context, page, limit uint, cb 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var provider types.Provider
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &provider)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &provider)
 
 		if cb(provider) {
 			break

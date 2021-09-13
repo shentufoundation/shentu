@@ -21,7 +21,7 @@ import (
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
-func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, ak govtypes.AccountKeeper, bk govtypes.BankKeeper, ck types.CertKeeper,
+func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, ak govtypes.AccountKeeper, bk govtypes.BankKeeper, ck types.CertKeeper,
 	k keeper.Keeper, wContents []simtypes.WeightedProposalContent) simulation.WeightedOperations {
 	// generate the weighted operations for the proposal contents
 	var wProposalOps simulation.WeightedOperations

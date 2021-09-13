@@ -24,7 +24,7 @@ const (
 	DefaultWeightMsgLockedSend = 10
 )
 
-func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, ak types.AccountKeeper, bk keeper.Keeper) simulation.WeightedOperations {
+func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, ak types.AccountKeeper, bk keeper.Keeper) simulation.WeightedOperations {
 	cosmosOps := banksim.WeightedOperations(appParams, cdc, ak, bk)
 
 	var weightMsgLockedSend int

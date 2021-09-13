@@ -23,7 +23,7 @@ const (
 )
 
 // WeightedOperations creates an operation with a weight for each type of message generators.
-func WeightedOperations(appParams sim.AppParams, cdc codec.JSONMarshaler, k keeper.Keeper, bk types.BankKeeper) simulation.WeightedOperations {
+func WeightedOperations(appParams sim.AppParams, cdc codec.JSONCodec, k keeper.Keeper, bk types.BankKeeper) simulation.WeightedOperations {
 	var weightMsgDeploy int
 	appParams.GetOrGenerate(cdc, OpWeightMsgDeploy, &weightMsgDeploy, nil,
 		func(_ *rand.Rand) {

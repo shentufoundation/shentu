@@ -15,7 +15,7 @@ import (
 // Keeper implements the shield keeper.
 type Keeper struct {
 	storeKey   sdk.StoreKey
-	cdc        codec.BinaryMarshaler
+	cdc        codec.BinaryCodec
 	ak         types.AccountKeeper
 	bk         types.BankKeeper
 	sk         types.StakingKeeper
@@ -24,7 +24,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a shield keeper.
-func NewKeeper(cdc codec.BinaryMarshaler, shieldStoreKey sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
+func NewKeeper(cdc codec.BinaryCodec, shieldStoreKey sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
 	sk types.StakingKeeper, gk types.GovKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
 		storeKey:   shieldStoreKey,
@@ -89,7 +89,7 @@ func (k Keeper) SetLastUpdateTime(ctx sdk.Context, prevUpdateTime time.Time) {
 	var timeProto types.LastUpdateTime
 	timeProto.Time = &prevUpdateTime
 
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&timeProto)
+	bz := k.cdc.MustMarshalLengthPrefixed(&timeProto)
 	store.Set(types.GetLastUpdateTimeKey(), bz)
 }
 
@@ -102,6 +102,6 @@ func (k Keeper) GetLastUpdateTime(ctx sdk.Context) (time.Time, bool) {
 	}
 
 	var timeProto types.LastUpdateTime
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &timeProto)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &timeProto)
 	return *timeProto.Time, true
 }

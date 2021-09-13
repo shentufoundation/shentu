@@ -27,7 +27,7 @@ const (
 )
 
 // WeightedOperations creates an operation (with weight) for each type of message generators.
-func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, ak types.AccountKeeper,
+func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, ak types.AccountKeeper,
 	bk types.BankKeeper, k keeper.Keeper) simulation.WeightedOperations {
 	var weightMsgCertifyValidator int
 	appParams.GetOrGenerate(cdc, OpWeightMsgCertifyValidator, &weightMsgCertifyValidator, nil,

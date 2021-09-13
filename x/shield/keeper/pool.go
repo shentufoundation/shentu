@@ -8,7 +8,7 @@ import (
 
 func (k Keeper) SetTotalCollateral(ctx sdk.Context, totalCollateral sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&sdk.IntProto{Int: totalCollateral})
+	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: totalCollateral})
 	store.Set(types.GetTotalCollateralKey(), bz)
 }
 
@@ -21,13 +21,13 @@ func (k Keeper) GetTotalCollateral(ctx sdk.Context) sdk.Int {
 	}
 
 	ip := sdk.IntProto{}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ip)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &ip)
 	return ip.Int
 }
 
 func (k Keeper) SetTotalWithdrawing(ctx sdk.Context, totalWithdrawing sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&sdk.IntProto{Int: totalWithdrawing})
+	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: totalWithdrawing})
 	store.Set(types.GetTotalWithdrawingKey(), bz)
 }
 
@@ -40,13 +40,13 @@ func (k Keeper) GetTotalWithdrawing(ctx sdk.Context) sdk.Int {
 	}
 
 	ip := sdk.IntProto{}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ip)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &ip)
 	return ip.Int
 }
 
 func (k Keeper) SetTotalShield(ctx sdk.Context, totalShield sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&sdk.IntProto{Int: totalShield})
+	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: totalShield})
 	store.Set(types.GetTotalShieldKey(), bz)
 }
 
@@ -59,13 +59,13 @@ func (k Keeper) GetTotalShield(ctx sdk.Context) sdk.Int {
 	}
 
 	ip := sdk.IntProto{}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ip)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &ip)
 	return ip.Int
 }
 
 func (k Keeper) SetTotalClaimed(ctx sdk.Context, totalClaimed sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&sdk.IntProto{Int: totalClaimed})
+	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: totalClaimed})
 	store.Set(types.GetTotalClaimedKey(), bz)
 }
 
@@ -78,13 +78,13 @@ func (k Keeper) GetTotalClaimed(ctx sdk.Context) sdk.Int {
 	}
 
 	ip := sdk.IntProto{}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ip)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &ip)
 	return ip.Int
 }
 
 func (k Keeper) SetServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&serviceFees)
+	bz := k.cdc.MustMarshalLengthPrefixed(&serviceFees)
 	store.Set(types.GetServiceFeesKey(), bz)
 }
 
@@ -95,13 +95,13 @@ func (k Keeper) GetServiceFees(ctx sdk.Context) types.MixedDecCoins {
 		panic("service fees are not found")
 	}
 	var serviceFees types.MixedDecCoins
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &serviceFees)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &serviceFees)
 	return serviceFees
 }
 
 func (k Keeper) SetBlockServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&serviceFees)
+	bz := k.cdc.MustMarshalLengthPrefixed(&serviceFees)
 	store.Set(types.GetBlockServiceFeesKey(), bz)
 }
 
@@ -112,7 +112,7 @@ func (k Keeper) GetBlockServiceFees(ctx sdk.Context) types.MixedDecCoins {
 		return types.InitMixedDecCoins()
 	}
 	var serviceFees types.MixedDecCoins
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &serviceFees)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &serviceFees)
 	return serviceFees
 }
 
@@ -123,7 +123,7 @@ func (k Keeper) DeleteBlockServiceFees(ctx sdk.Context) {
 
 func (k Keeper) SetRemainingServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&serviceFees)
+	bz := k.cdc.MustMarshalLengthPrefixed(&serviceFees)
 	store.Set(types.GetRemainingServiceFeesKey(), bz)
 }
 
@@ -134,14 +134,14 @@ func (k Keeper) GetRemainingServiceFees(ctx sdk.Context) types.MixedDecCoins {
 		panic("remaining service fees are not found")
 	}
 	var serviceFees types.MixedDecCoins
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &serviceFees)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &serviceFees)
 	return serviceFees
 }
 
 // SetPool sets data of a pool in kv-store.
 func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&pool)
+	bz := k.cdc.MustMarshalLengthPrefixed(&pool)
 	store.Set(types.GetPoolKey(pool.Id), bz)
 }
 
@@ -153,7 +153,7 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
 		return types.Pool{}, false
 	}
 	var pool types.Pool
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &pool)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &pool)
 	return pool, true
 }
 
@@ -288,7 +288,7 @@ func (k Keeper) IterateAllPools(ctx sdk.Context, callback func(pool types.Pool) 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var pool types.Pool
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &pool)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &pool)
 
 		if callback(pool) {
 			break

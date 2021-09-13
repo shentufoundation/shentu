@@ -10,7 +10,7 @@ import (
 func (k Keeper) SetLibrary(ctx sdk.Context, library sdk.AccAddress, publisher sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	libraryData := types.Library{Address: library.String(), Publisher: publisher.String()}
-	store.Set(types.LibraryStoreKey(library), k.cdc.MustMarshalBinaryLengthPrefixed(&libraryData))
+	store.Set(types.LibraryStoreKey(library), k.cdc.MustMarshalLengthPrefixed(&libraryData))
 }
 
 // deleteLibrary deletes a Certificate library registry.
@@ -30,7 +30,7 @@ func (k Keeper) getLibraryPublisher(ctx sdk.Context, library sdk.AccAddress) (sd
 	store := ctx.KVStore(k.storeKey)
 	if bPublisher := store.Get(types.LibraryStoreKey(library)); bPublisher != nil {
 		var libraryData types.Library
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(bPublisher, &libraryData)
+		k.cdc.MustUnmarshalLengthPrefixed(bPublisher, &libraryData)
 
 		publisherAddr, err := sdk.AccAddressFromBech32(libraryData.Publisher)
 		if err != nil {
@@ -75,7 +75,7 @@ func (k Keeper) IterateAllLibraries(ctx sdk.Context, callback func(library types
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var library types.Library
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &library)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &library)
 
 		if callback(library) {
 			break

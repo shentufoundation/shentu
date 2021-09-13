@@ -33,7 +33,7 @@ const TransactionGasLimit = uint64(5000000)
 
 // Keeper implements SDK Keeper.
 type Keeper struct {
-	cdc        codec.BinaryMarshaler
+	cdc        codec.BinaryCodec
 	key        sdk.StoreKey
 	ak         types.AccountKeeper
 	bk         types.BankKeeper
@@ -45,7 +45,7 @@ type Keeper struct {
 
 // NewKeeper creates a new instance of the CVM keeper.
 func NewKeeper(
-	cdc codec.BinaryMarshaler, key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
+	cdc codec.BinaryCodec, key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
 	dk types.DistributionKeeper, ck types.CertKeeper, sk types.StakingKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
 		cdc:        cdc,
@@ -328,7 +328,7 @@ func (k Keeper) GetAllContracts(ctx sdk.Context) []types.Contract {
 			panic(err)
 		}
 		var code types.CVMCode
-		k.cdc.MustUnmarshalBinaryBare(contractIterator.Value(), &code)
+		k.cdc.MustUnmarshal(contractIterator.Value(), &code)
 		abi := k.GetAbi(ctx, address)
 		addrMeta, err := k.getAddrMeta(ctx, address)
 

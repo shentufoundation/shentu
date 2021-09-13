@@ -27,7 +27,7 @@ func (k Keeper) InsertWithdrawQueue(ctx sdk.Context, withdraw types.Withdraw) {
 // using the timestamp as the key.
 func (k Keeper) SetWithdrawQueueTimeSlice(ctx sdk.Context, timestamp time.Time, withdraws []types.Withdraw) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&types.Withdraws{Withdraws: withdraws})
+	bz := k.cdc.MustMarshalLengthPrefixed(&types.Withdraws{Withdraws: withdraws})
 	store.Set(types.GetWithdrawCompletionTimeKey(timestamp), bz)
 }
 
@@ -40,7 +40,7 @@ func (k Keeper) GetWithdrawQueueTimeSlice(ctx sdk.Context, timestamp time.Time) 
 		return []types.Withdraw{}
 	}
 	var withdraws types.Withdraws
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &withdraws)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &withdraws)
 	return withdraws.Withdraws
 }
 
@@ -59,7 +59,7 @@ func (k Keeper) IterateWithdraws(ctx sdk.Context, callback func(withdraw []types
 	for ; iterator.Valid(); iterator.Next() {
 		timeslice := types.Withdraws{}
 		value := iterator.Value()
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
+		k.cdc.MustUnmarshalLengthPrefixed(value, &timeslice)
 
 		if callback(timeslice.Withdraws) {
 			break
@@ -108,7 +108,7 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 	for ; withdrawTimesliceIterator.Valid(); withdrawTimesliceIterator.Next() {
 		var timeslice types.Withdraws
 		value := withdrawTimesliceIterator.Value()
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
+		k.cdc.MustUnmarshalLengthPrefixed(value, &timeslice)
 		withdraws = append(withdraws, timeslice.Withdraws...)
 		store.Delete(withdrawTimesliceIterator.Key())
 	}
@@ -148,7 +148,7 @@ func (k Keeper) ComputeWithdrawAmountByTime(ctx sdk.Context, provider string, ti
 	for ; withdrawTimesliceIterator.Valid(); withdrawTimesliceIterator.Next() {
 		var timeslice types.Withdraws
 		value := withdrawTimesliceIterator.Value()
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
+		k.cdc.MustUnmarshalLengthPrefixed(value, &timeslice)
 
 		for _, withdraw := range timeslice.Withdraws {
 			if withdraw.Address == provider {
@@ -210,7 +210,7 @@ func (k Keeper) getUnbondingsByProviderMaturingByTime(ctx sdk.Context, provider 
 	for ; unbondingTimesliceIterator.Valid(); unbondingTimesliceIterator.Next() {
 		var timeslice stakingtypes.DVPairs
 		value := unbondingTimesliceIterator.Value()
-		k.cdc.MustUnmarshalBinaryBare(value, &timeslice)
+		k.cdc.MustUnmarshal(value, &timeslice)
 
 		for _, ubd := range timeslice.Pairs {
 			if ubd.DelegatorAddress == provider {
@@ -239,7 +239,7 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, provider string, amount sdk.Int,
 	for ; withdrawTimesliceIterator.Valid(); withdrawTimesliceIterator.Next() {
 		var timeslice types.Withdraws
 		value := withdrawTimesliceIterator.Value()
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
+		k.cdc.MustUnmarshalLengthPrefixed(value, &timeslice)
 
 		for _, withdraw := range timeslice.Withdraws {
 			if withdraw.Address == provider {

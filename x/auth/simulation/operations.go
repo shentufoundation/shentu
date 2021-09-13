@@ -18,7 +18,7 @@ import (
 const OpWeightMsgUnlock = "op_weight_msg_create_operator"
 
 // WeightedOperations returns all the operations from the module with their respective weights
-func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, k types.AccountKeeper, bk types.BankKeeper) simulation.WeightedOperations {
+func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, k types.AccountKeeper, bk types.BankKeeper) simulation.WeightedOperations {
 	var weightMsgUnlock int
 	appParams.GetOrGenerate(cdc, OpWeightMsgUnlock, &weightMsgUnlock, nil,
 		func(_ *rand.Rand) {

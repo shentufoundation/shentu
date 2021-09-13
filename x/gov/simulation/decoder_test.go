@@ -24,7 +24,7 @@ import (
 
 func TestDecodeStore(t *testing.T) {
 	cdc := simapp.MakeTestEncodingConfig()
-	dec := NewDecodeStore(cdc.Marshaler)
+	dec := NewDecodeStore(cdc.Codec)
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -47,10 +47,10 @@ func TestDecodeStore(t *testing.T) {
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{
-			{Key: keeper.ProposalKey(proposalID), Value: cdc.Marshaler.MustMarshalBinaryBare(&proposal)},
+			{Key: keeper.ProposalKey(proposalID), Value: cdc.Codec.MustMarshal(&proposal)},
 			{Key: govtypes.InactiveProposalQueueKey(proposalID, endTime), Value: proposalIDBz},
-			{Key: govtypes.DepositKey(proposalID, depositor.Address), Value: cdc.Marshaler.MustMarshalBinaryBare(&deposit)},
-			{Key: govtypes.VoteKey(proposalID, voter.Address), Value: cdc.Marshaler.MustMarshalBinaryBare(&vote)},
+			{Key: govtypes.DepositKey(proposalID, depositor.Address), Value: cdc.Codec.MustMarshal(&deposit)},
+			{Key: govtypes.VoteKey(proposalID, voter.Address), Value: cdc.Codec.MustMarshal(&vote)},
 			{Key: []byte{0x99}, Value: []byte{0x99}},
 		},
 	}

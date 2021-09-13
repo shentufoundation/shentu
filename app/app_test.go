@@ -17,7 +17,7 @@ func TestSimAppExport(t *testing.T) {
 	db := dbm.NewMemDB()
 	app := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, DefaultNodeHome, 1, encodingConfig, EmptyAppOptions{})
 
-	genesisState := ModuleBasics.DefaultGenesis(encodingConfig.Marshaler)
+	genesisState := ModuleBasics.DefaultGenesis(encodingConfig.Codec)
 	stateBytes, err := json.MarshalIndent(genesisState, "", "  ")
 	require.NoError(t, err)
 

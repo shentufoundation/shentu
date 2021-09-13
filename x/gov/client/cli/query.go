@@ -229,7 +229,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 				}
 
 				var votes types.Votes
-				// TODO migrate to use JSONMarshaler (implement MarshalJSONArray
+				// TODO migrate to use JSONCodec (implement MarshalJSONArray
 				// or wrap lists of proto.Message in some other message)
 				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &votes)
 				return cliCtx.PrintObjectLegacy(votes)
@@ -306,7 +306,7 @@ $ %[1]s query gov deposits 1
 				}
 
 				var dep types.Deposits
-				// TODO migrate to use JSONMarshaler (implement MarshalJSONArray
+				// TODO migrate to use JSONCodec (implement MarshalJSONArray
 				// or wrap lists of proto.Message in some other message)
 				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &dep)
 
