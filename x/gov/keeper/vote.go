@@ -14,7 +14,7 @@ import (
 )
 
 // AddVote Adds a vote on a specific proposal.
-func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, option govTypes.VoteOption) error {
+func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, options govTypes.WeightedVoteOptions) error {
 	proposal, ok := k.GetProposal(ctx, proposalID)
 	if !ok {
 		return sdkerrors.Wrapf(govTypes.ErrUnknownProposal, "%v", proposalID)
@@ -24,15 +24,17 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 		return sdkerrors.Wrapf(govTypes.ErrInactiveProposal, "%v", proposalID)
 	}
 
-	if !govTypes.ValidVoteOption(option) {
-		return sdkerrors.Wrapf(govTypes.ErrInvalidVote, "%s", option)
-	}
+	for _, option := range options {
+		if !govTypes.ValidWeightedVoteOption(option) {
+			return sdkerrors.Wrapf(govTypes.ErrInvalidVote, "%s", option)
+		}
 
-	if proposal.Status == types.StatusCertifierVotingPeriod {
-		if !(option == govTypes.OptionYes ||
-			option == govTypes.OptionNo) {
-			return sdkerrors.Wrapf(govTypes.ErrInvalidVote,
-				"'%s' is not valid option in certifier voting; must be 'yes' or 'no'", option)
+		if proposal.Status == types.StatusCertifierVotingPeriod {
+			if !(option.Option == govTypes.OptionYes ||
+				option.Option == govTypes.OptionNo) {
+				return sdkerrors.Wrapf(govTypes.ErrInvalidVote,
+					"'%s' is not valid option in certifier voting; must be 'yes' or 'no'", option.Option)
+			}
 		}
 	}
 
@@ -47,13 +49,13 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 	}
 
 	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
-	vote := types.NewVote(proposalID, voterAddr, option, txhash)
+	vote := types.NewVote(proposalID, voterAddr, options, txhash)
 	k.setVote(ctx, vote)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			govTypes.EventTypeProposalVote,
-			sdk.NewAttribute(govTypes.AttributeKeyOption, option.String()),
+			sdk.NewAttribute(govTypes.AttributeKeyOption, options.String()),
 			sdk.NewAttribute(govTypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
 			sdk.NewAttribute(types.AttributeKeyVoter, voterAddr.String()),
 			sdk.NewAttribute(types.AttributeTxHash, txhash),

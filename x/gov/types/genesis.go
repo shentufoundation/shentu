@@ -12,8 +12,8 @@ import (
 
 // DefaultGenesisState creates a default GenesisState object.
 func DefaultGenesisState() *GenesisState {
-	minInitialDepositTokens := sdk.TokensFromConsensusPower(0)
-	minDepositTokens := sdk.TokensFromConsensusPower(512)
+	minInitialDepositTokens := sdk.TokensFromConsensusPower(0, sdk.DefaultPowerReduction)
+	minDepositTokens := sdk.TokensFromConsensusPower(512, sdk.DefaultPowerReduction)
 
 	// quorum, threshold, and veto threshold params
 	defaultTally := govTypes.NewTallyParams(sdk.NewDecWithPrec(334, 3), sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(334, 3))

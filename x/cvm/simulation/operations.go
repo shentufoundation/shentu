@@ -68,7 +68,7 @@ func SimulateMsgDeployHello55(k keeper.Keeper, bk types.BankKeeper) sim.Operatio
 			panic("return value incorrect")
 		}
 
-		return sim.NewOperationMsg(&msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, "", nil), nil, nil
 	}
 }
 
@@ -108,7 +108,7 @@ func SimulateMsgDeploySimple(k keeper.Keeper, bk types.BankKeeper) sim.Operation
 			},
 		}
 
-		return sim.NewOperationMsg(&msg, true, ""), futureOperations, nil
+		return sim.NewOperationMsg(&msg, true, "", nil), futureOperations, nil
 	}
 }
 
@@ -147,7 +147,7 @@ func SimulateMsgCallSimpleSet(k keeper.Keeper, bk types.BankKeeper, contractAddr
 			panic("return value incorrect")
 		}
 
-		return sim.NewOperationMsg(&msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, "", nil), nil, nil
 	}
 }
 
@@ -187,7 +187,7 @@ func SimulateMsgDeploySimpleEvent(k keeper.Keeper, bk types.BankKeeper) sim.Oper
 			},
 		}
 
-		return sim.NewOperationMsg(&msg, true, ""), futureOperations, nil
+		return sim.NewOperationMsg(&msg, true, "", nil), futureOperations, nil
 	}
 }
 
@@ -226,7 +226,7 @@ func SimulateMsgCallSimpleEventSet(k keeper.Keeper, bk types.BankKeeper, contrac
 			panic("return value incorrect")
 		}
 
-		return sim.NewOperationMsg(&msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, "", nil), nil, nil
 	}
 }
 
@@ -280,7 +280,7 @@ func SimulateMsgDeployStorage(k keeper.Keeper, bk types.BankKeeper) sim.Operatio
 			},
 		}
 
-		return sim.NewOperationMsg(&msg, true, ""), futureOperations, nil
+		return sim.NewOperationMsg(&msg, true, "", nil), futureOperations, nil
 	}
 }
 
@@ -333,7 +333,7 @@ func SimulateMsgCallStorageStore(k keeper.Keeper, bk types.BankKeeper, contractA
 			panic("return value incorrect")
 		}
 
-		return sim.NewOperationMsg(&msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, "", nil), nil, nil
 	}
 }
 
@@ -382,7 +382,7 @@ func SimulateMsgDeployStringTest(k keeper.Keeper, bk types.BankKeeper) sim.Opera
 			},
 		}
 
-		return sim.NewOperationMsg(&msg, true, ""), futureOperations, nil
+		return sim.NewOperationMsg(&msg, true, "", nil), futureOperations, nil
 	}
 }
 
@@ -420,7 +420,7 @@ func SimulateMsgCallStringTestChangeString(k keeper.Keeper, bk types.BankKeeper,
 			panic("return value incorrect")
 		}
 
-		return sim.NewOperationMsg(&msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, "", nil), nil, nil
 	}
 }
 
@@ -458,7 +458,7 @@ func SimulateMsgCallStringTestChangeGiven(k keeper.Keeper, bk types.BankKeeper, 
 			panic("return value incorrect")
 		}
 
-		return sim.NewOperationMsg(&msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, "", nil), nil, nil
 	}
 }
 
@@ -482,7 +482,7 @@ func SimulateMsgCallStringTestGets(k keeper.Keeper, bk types.BankKeeper, contrac
 			panic("return value incorrect")
 		}
 
-		return sim.NewOperationMsg(&msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, "", nil), nil, nil
 	}
 }
 
@@ -511,7 +511,7 @@ func SimulateMsgCallStringTestGetl(k keeper.Keeper, bk types.BankKeeper, contrac
 			panic("return value incorrect")
 		}
 
-		return sim.NewOperationMsg(&msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, "", nil), nil, nil
 	}
 }
 
@@ -536,6 +536,6 @@ func SimulateMsgCallStringTestTestStuff(k keeper.Keeper, bk types.BankKeeper, co
 			panic("return value incorrect")
 		}
 
-		return sim.NewOperationMsg(&msg, true, ""), nil, nil
+		return sim.NewOperationMsg(&msg, true, "", nil), nil, nil
 	}
 }

@@ -95,7 +95,7 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simtypes.Op
 				return simtypes.NoOpMsg(banktypes.ModuleName, msg.Type(), err.Error()), nil, err
 			}
 
-			return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+			return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 		}
 		return simtypes.NewOperationMsgBasic(banktypes.ModuleName,
 			"NoOp: no available manual-vesting account found, skip this tx", "", false, nil), nil, nil

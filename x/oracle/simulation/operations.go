@@ -112,7 +112,7 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AccountKeeper, bk types
 			},
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), futureOperations, nil
+		return simtypes.NewOperationMsg(msg, true, "", nil), futureOperations, nil
 	}
 }
 
@@ -172,7 +172,7 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AccountKeeper, bk types.
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 	}
 }
 
@@ -237,7 +237,7 @@ func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AccountKeeper, bk typ
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 	}
 }
 
@@ -291,7 +291,7 @@ func SimulateMsgRemoveOperator(k keeper.Keeper, ak types.AccountKeeper, bk types
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 	}
 }
 
@@ -345,7 +345,7 @@ func SimulateMsgWithdrawReward(k keeper.Keeper, ak types.AccountKeeper, bk types
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 	}
 }
 
@@ -413,7 +413,7 @@ func SimulateMsgCreateTask(ak types.AccountKeeper, k keeper.Keeper, bk types.Ban
 			}
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), futureOperations, nil
+		return simtypes.NewOperationMsg(msg, true, "", nil), futureOperations, nil
 	}
 }
 
@@ -456,7 +456,7 @@ func SimulateMsgTaskResponse(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 	}
 }
 
@@ -492,6 +492,6 @@ func SimulateMsgDeleteTask(ak types.AccountKeeper, bk types.BankKeeper, contract
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 	}
 }

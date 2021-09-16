@@ -40,7 +40,7 @@ func (sh *Helper) CreateValidator(addr sdk.ValAddress, pk cryptotypes.PubKey, st
 // CreateValidatorWithValPower calls handler to create a new staking validator with zero
 // commission
 func (sh *Helper) CreateValidatorWithValPower(addr sdk.ValAddress, pk cryptotypes.PubKey, valPower int64, ok bool) sdk.Int {
-	amount := sdk.TokensFromConsensusPower(valPower)
+	amount := sdk.TokensFromConsensusPower(valPower, sdk.DefaultPowerReduction)
 	coin := sdk.NewCoin(sh.Denom, amount)
 	sh.createValidator(addr, pk, coin, ok)
 	return amount

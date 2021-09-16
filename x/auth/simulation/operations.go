@@ -81,7 +81,7 @@ func SimulateMsgUnlock(k types.AccountKeeper, bk types.BankKeeper) simtypes.Oper
 				return simtypes.NoOpMsg(authtypes.ModuleName, msg.Type(), err.Error()), nil, err
 			}
 
-			return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+			return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 		}
 		return simtypes.NewOperationMsgBasic(authtypes.ModuleName,
 			"NoOp: no available manual-vesting account found, skip this tx", "", false, nil), nil, nil

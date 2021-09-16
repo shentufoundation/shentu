@@ -24,7 +24,7 @@ import (
 
 func TestDecodeStore(t *testing.T) {
 	cdc := simapp.MakeTestEncodingConfig()
-	dec := NewDecodeStore(cdc.Codec)
+	dec := NewDecodeStore(cdc.Marshaler)
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -43,14 +43,20 @@ func TestDecodeStore(t *testing.T) {
 	txhash := "2300092389009f098099"
 	deposit := types.NewDeposit(proposalID, depositor.Address, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.OneInt())), txhash)
 	voter := RandomAccount()
-	vote := types.NewVote(proposalID, voter.Address, govtypes.OptionYes, txhash)
+	options := govtypes.WeightedVoteOptions{
+		govtypes.WeightedVoteOption{
+			Option: govtypes.OptionYes,
+			Weight: sdk.NewDec(1),
+		},
+	}
+	vote := types.NewVote(proposalID, voter.Address, options, txhash)
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{
-			{Key: keeper.ProposalKey(proposalID), Value: cdc.Codec.MustMarshal(&proposal)},
+			{Key: keeper.ProposalKey(proposalID), Value: cdc.Marshaler.MustMarshal(&proposal)},
 			{Key: govtypes.InactiveProposalQueueKey(proposalID, endTime), Value: proposalIDBz},
-			{Key: govtypes.DepositKey(proposalID, depositor.Address), Value: cdc.Codec.MustMarshal(&deposit)},
-			{Key: govtypes.VoteKey(proposalID, voter.Address), Value: cdc.Codec.MustMarshal(&vote)},
+			{Key: govtypes.DepositKey(proposalID, depositor.Address), Value: cdc.Marshaler.MustMarshal(&deposit)},
+			{Key: govtypes.VoteKey(proposalID, voter.Address), Value: cdc.Marshaler.MustMarshal(&vote)},
 			{Key: []byte{0x99}, Value: []byte{0x99}},
 		},
 	}

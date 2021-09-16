@@ -31,7 +31,13 @@ func TestKeeper_ProposeAndVote(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		vote := govtypes.NewVote(pp.ProposalId, addrs[0], govtypes.OptionYes)
+		options := govtypes.WeightedVoteOptions{
+			govtypes.WeightedVoteOption{
+				Option: govtypes.OptionYes,
+				Weight: sdk.NewDec(1),
+			},
+		}
+		vote := govtypes.NewVote(pp.ProposalId, addrs[0], options)
 		coins700 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 700*1e6))
 		_ = app.BankKeeper.AddCoins(ctx, addrs[1], coins700)
 
@@ -43,7 +49,7 @@ func TestKeeper_ProposeAndVote(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		err = app.GovKeeper.AddVote(ctx, pp.ProposalId, voter, vote.Option)
+		err = app.GovKeeper.AddVote(ctx, pp.ProposalId, voter, options)
 		require.Equal(t, nil, err)
 
 		// the vote does not count since addr[0] is not a validator
@@ -81,13 +87,18 @@ func TestKeeper_GetVotes(t *testing.T) {
 		var addr sdk.AccAddress
 		for i := 0; i < 880; i++ {
 			addr = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-
-			vote := govtypes.NewVote(pp.ProposalId, addr, govtypes.OptionYes)
+			options := govtypes.WeightedVoteOptions{
+				govtypes.WeightedVoteOption{
+					Option: govtypes.OptionYes,
+					Weight: sdk.NewDec(1),
+				},
+			}
+			vote := govtypes.NewVote(pp.ProposalId, addr, options)
 			voter, err := sdk.AccAddressFromBech32(vote.Voter)
 			if err != nil {
 				panic(err)
 			}
-			err = app.GovKeeper.AddVote(ctx, vote.ProposalId, voter, vote.Option)
+			err = app.GovKeeper.AddVote(ctx, vote.ProposalId, voter, options)
 			require.Equal(t, nil, err)
 		}
 

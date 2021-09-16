@@ -6,8 +6,8 @@ import (
 )
 
 // NewVote creates a new Vote instance.
-func NewVote(proposalID uint64, voter sdk.AccAddress, option types.VoteOption, txhash string) Vote {
-	vote := types.NewVote(proposalID, voter, option)
+func NewVote(proposalID uint64, voter sdk.AccAddress, options types.WeightedVoteOptions, txhash string) Vote {
+	vote := types.NewVote(proposalID, voter, options)
 	return Vote{
 		&vote,
 		txhash,
