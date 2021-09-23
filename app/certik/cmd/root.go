@@ -27,7 +27,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/snapshots"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	sdkauthcli "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingcli "github.com/cosmos/cosmos-sdk/x/auth/vesting/client/cli"
@@ -74,7 +73,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 				return err
 			}
 
-			return server.InterceptConfigsPreRunHandler(cmd)
+			return server.InterceptConfigsPreRunHandler(cmd, "", nil)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			docDir, err := cmd.Flags().GetString(certikinit.DocFlag)
@@ -115,8 +114,6 @@ func Execute(rootCmd *cobra.Command, defaultHome string) error {
 }
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
-	authclient.Codec = encodingConfig.Codec
-
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
