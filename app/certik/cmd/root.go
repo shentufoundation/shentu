@@ -35,7 +35,6 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
 	"github.com/certikfoundation/shentu/v2/app"
-	"github.com/certikfoundation/shentu/v2/app/certik/cmd/migrate"
 	certikinit "github.com/certikfoundation/shentu/v2/app/certik/init"
 	"github.com/certikfoundation/shentu/v2/app/params"
 	"github.com/certikfoundation/shentu/v2/common"
@@ -119,7 +118,6 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
-		migrate.MigrateGenesisCmd(),
 		AddGenesisAccountCmd(app.DefaultNodeHome),
 		AddGenesisCertifierCmd(app.DefaultNodeHome),
 		AddGenesisShieldAdminCmd(app.DefaultNodeHome),
