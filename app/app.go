@@ -33,6 +33,8 @@ import (
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	sdkauthz "github.com/cosmos/cosmos-sdk/x/authz"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	sdkbanktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
@@ -44,6 +46,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/evidence"
 	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
+	sdkfeegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
+	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -73,6 +77,7 @@ import (
 	appparams "github.com/certikfoundation/shentu/v2/app/params"
 	"github.com/certikfoundation/shentu/v2/x/auth"
 	authkeeper "github.com/certikfoundation/shentu/v2/x/auth/keeper"
+	"github.com/certikfoundation/shentu/v2/x/authz"
 	"github.com/certikfoundation/shentu/v2/x/bank"
 	bankkeeper "github.com/certikfoundation/shentu/v2/x/bank/keeper"
 	"github.com/certikfoundation/shentu/v2/x/cert"
@@ -83,6 +88,7 @@ import (
 	cvmkeeper "github.com/certikfoundation/shentu/v2/x/cvm/keeper"
 	cvmtypes "github.com/certikfoundation/shentu/v2/x/cvm/types"
 	distr "github.com/certikfoundation/shentu/v2/x/distribution"
+	"github.com/certikfoundation/shentu/v2/x/feegrant"
 	"github.com/certikfoundation/shentu/v2/x/gov"
 	govkeeper "github.com/certikfoundation/shentu/v2/x/gov/keeper"
 	govtypes "github.com/certikfoundation/shentu/v2/x/gov/types"
@@ -120,11 +126,13 @@ var (
 	ModuleBasics = module.NewBasicManager(
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
+		authz.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		capability.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
+		feegrant.AppModuleBasic{},
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler,
 			distrclient.ProposalHandler,
@@ -174,11 +182,13 @@ type CertiKApp struct {
 	memKeys map[string]*sdk.MemoryStoreKey
 
 	accountKeeper    sdkauthkeeper.AccountKeeper
+	authzKeeper      authzkeeper.Keeper
 	bankKeeper       bankkeeper.Keeper
 	stakingKeeper    stakingkeeper.Keeper
 	slashingKeeper   slashingkeeper.Keeper
 	mintKeeper       mintkeeper.Keeper
 	distrKeeper      distrkeeper.Keeper
+	feegrantKeeper   feegrantkeeper.Keeper
 	paramsKeeper     paramskeeper.Keeper
 	upgradeKeeper    upgradekeeper.Keeper
 	govKeeper        govkeeper.Keeper
@@ -215,14 +225,16 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// BaseApp handles interactions with Tendermint through the ABCI protocol.
 	bApp := baseapp.NewBaseApp(AppName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
-	bApp.SetAppVersion(version.Version)
+	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
 	ks := []string{
 		authtypes.StoreKey,
+		authzkeeper.StoreKey,
 		sdkbanktypes.StoreKey,
 		stakingtypes.StoreKey,
 		distrtypes.StoreKey,
+		sdkfeegrant.StoreKey,
 		sdkminttypes.StoreKey,
 		slashingtypes.StoreKey,
 		paramstypes.StoreKey,
@@ -298,6 +310,11 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		appCodec, keys[distrtypes.StoreKey], app.GetSubspace(distrtypes.ModuleName), app.accountKeeper, app.bankKeeper,
 		&stakingKeeper, authtypes.FeeCollectorName, app.ModuleAccountAddrs(),
 	)
+	app.feegrantKeeper = feegrantkeeper.NewKeeper(
+		appCodec,
+		keys[sdkfeegrant.StoreKey],
+		app.accountKeeper,
+	)
 	app.cvmKeeper = cvmkeeper.NewKeeper(
 		appCodec,
 		keys[cvmtypes.StoreKey],
@@ -333,11 +350,17 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.accountKeeper,
 		app.certKeeper,
 	)
+	app.authzKeeper = authzkeeper.NewKeeper(
+		keys[authzkeeper.StoreKey],
+		appCodec,
+		app.MsgServiceRouter(),
+	)
 	app.upgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,
 		keys[upgradetypes.StoreKey],
 		appCodec,
 		homePath,
+		bApp,
 	)
 	app.shieldKeeper = shieldkeeper.NewKeeper(
 		appCodec,
@@ -364,7 +387,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	// Create IBC Keeper
 	app.ibcKeeper = ibckeeper.NewKeeper(
-		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.stakingKeeper, scopedIBCKeeper,
+		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.stakingKeeper, app.upgradeKeeper, scopedIBCKeeper,
 	)
 
 	govRouter := sdkgovtypes.NewRouter()
@@ -372,7 +395,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distrtypes.RouterKey, sdkdistr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
-		AddRoute(ibchost.RouterKey, ibcclient.NewClientUpdateProposalHandler(app.ibcKeeper.ClientKeeper)).
+		AddRoute(ibchost.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
 		AddRoute(shieldtypes.RouterKey, shield.NewShieldClaimProposalHandler(app.shieldKeeper)).
 		AddRoute(certtypes.RouterKey, cert.NewCertifierUpdateProposalHandler(app.certKeeper))
 
@@ -423,9 +446,11 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
 		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
+		authz.NewAppModule(appCodec, app.authzKeeper, app.accountKeeper, app.bankKeeper, app.interfaceRegistry),
 		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
 		capability.NewAppModule(appCodec, *app.capabilityKeeper),
 		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
+		feegrant.NewAppModule(appCodec, app.accountKeeper, app.bankKeeper, app.feegrantKeeper, app.interfaceRegistry),
 		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
 		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
 		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
@@ -457,8 +482,10 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.SetOrderInitGenesis(
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
+		sdkauthz.ModuleName,
 		sdkbanktypes.ModuleName,
 		distrtypes.ModuleName,
+		sdkfeegrant.ModuleName,
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName,
 		sdkgovtypes.ModuleName,
@@ -476,7 +503,9 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.SetOrderExportGenesis(
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
+		sdkauthz.ModuleName,
 		distrtypes.ModuleName,
+		sdkfeegrant.ModuleName,
 		stakingtypes.ModuleName,
 		sdkbanktypes.ModuleName,
 		slashingtypes.ModuleName,
@@ -496,9 +525,11 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	app.sm = module.NewSimulationManager(
 		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
+		authz.NewAppModule(appCodec, app.authzKeeper, app.accountKeeper, app.bankKeeper, app.interfaceRegistry),
 		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
 		capability.NewAppModule(appCodec, *app.capabilityKeeper),
 		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
+		feegrant.NewAppModule(appCodec, app.accountKeeper, app.bankKeeper, app.feegrantKeeper, app.interfaceRegistry),
 		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
 		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
 		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
@@ -521,12 +552,19 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	// The AnteHandler handles signature verification and transaction pre-processing
-	app.SetAnteHandler(
-		ante.NewAnteHandler(
-			app.accountKeeper, app.bankKeeper, ante.DefaultSigVerificationGasConsumer,
+	anteHandler, err := ante.NewAnteHandler(
+		ante.HandlerOptions{
+			app.accountKeeper,
+			app.bankKeeper,
+			app.feegrantKeeper,
 			encodingConfig.TxConfig.SignModeHandler(),
-		),
+			ante.DefaultSigVerificationGasConsumer,
+		},
 	)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+	app.SetAnteHandler(anteHandler)
 	app.SetEndBlocker(app.EndBlocker)
 
 	if loadLatest {
