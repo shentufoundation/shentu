@@ -87,7 +87,9 @@ func main() {
 }
 
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {
-	return app.NewCertiKApp(logger, db, traceStore, true, map[int64]bool{}, uint(1),
+	skipUpgradeHeights := make(map[int64]bool)
+	skipUpgradeHeights[4313500] = true
+	return app.NewCertiKApp(logger, db, traceStore, true, skipUpgradeHeights, uint(1),
 		baseapp.SetPruning(storetypes.NewPruningOptionsFromString(viper.GetString("pruning"))),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(uint64(viper.GetInt(server.FlagHaltHeight))),
