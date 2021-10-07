@@ -55,7 +55,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 	// suite.queryClient = types.NewQueryClient(queryHelper)
 
 	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
-		err := suite.app.BankKeeper.AddCoins(
+		err := simapp.FundAccount(
+			suite.app.BankKeeper,
 			suite.ctx,
 			acc,
 			sdk.NewCoins(

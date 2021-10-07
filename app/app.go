@@ -12,7 +12,6 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -482,10 +481,8 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.SetOrderInitGenesis(
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
-		sdkauthz.ModuleName,
 		sdkbanktypes.ModuleName,
 		distrtypes.ModuleName,
-		sdkfeegrant.ModuleName,
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName,
 		sdkgovtypes.ModuleName,
@@ -497,15 +494,15 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		oracletypes.ModuleName,
+		sdkauthz.ModuleName,
 		ibctransfertypes.ModuleName,
+		sdkfeegrant.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
-		sdkauthz.ModuleName,
 		distrtypes.ModuleName,
-		sdkfeegrant.ModuleName,
 		stakingtypes.ModuleName,
 		sdkbanktypes.ModuleName,
 		slashingtypes.ModuleName,
@@ -517,7 +514,9 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		oracletypes.ModuleName,
 		shieldtypes.ModuleName,
 		ibchost.ModuleName,
+		sdkauthz.ModuleName,
 		ibctransfertypes.ModuleName,
+		sdkfeegrant.ModuleName,
 	)
 
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
@@ -572,15 +571,14 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 			tmos.Exit(err.Error())
 		}
 
-		// Initialize and seal the capability keeper so all persistent capabilities
+		// Seal the capability keeper so all persistent capabilities
 		// are loaded in-memory and prevent any further modules from creating scoped
 		// sub-keepers.
 		// This must be done during creation of baseapp rather than in InitChain so
 		// that in-memory capabilities get regenerated on app restart.
 		// Note that since this reads from the store, we can only perform it when
 		// `loadLatest` is set to true.
-		ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
-		app.capabilityKeeper.InitializeAndSeal(ctx)
+		app.capabilityKeeper.Seal()
 	}
 	app.scopedIBCKeeper = scopedIBCKeeper
 	app.scopedTransferKeeper = scopedTransferKeeper

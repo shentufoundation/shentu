@@ -39,7 +39,7 @@ func TestKeeper_ProposeAndVote(t *testing.T) {
 		}
 		vote := govtypes.NewVote(pp.ProposalId, addrs[0], options)
 		coins700 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 700*1e6))
-		_ = app.BankKeeper.AddCoins(ctx, addrs[1], coins700)
+		require.NoError(t, simapp.FundAccount(app.BankKeeper, ctx, addrs[1], coins700))
 
 		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coins700)
 		require.Equal(t, nil, err)
@@ -124,7 +124,8 @@ func TestKeeper_AddDeposit(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(10000))
 
-	simapp.AddCoinsToAcc(app, ctx, addrs[1], sdk.NewInt(80000*1e6))
+	coins := sdk.Coins{sdk.NewInt64Coin("uctk", 80000*1e6)}
+	require.NoError(t, simapp.FundAccount(app.BankKeeper, ctx, addrs[1], coins))
 
 	tp := govtypes.TextProposal{Title: "title0", Description: "desc0"}
 

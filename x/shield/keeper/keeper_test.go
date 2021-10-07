@@ -218,20 +218,25 @@ func TestClaimProposal(t *testing.T) {
 	simapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.ZeroInt())
 
 	shieldAdmin := sdk.AccAddress(pks[0].Address())
-	simapp.AddCoinsToAcc(app, ctx, shieldAdmin, sdk.NewInt(250e9))
+	err := simapp.FundAccount(app.BankKeeper, ctx, shieldAdmin, sdk.Coins{sdk.NewInt64Coin("uctk", 250e9)})
+	require.NoError(t, err)
 	app.ShieldKeeper.SetAdmin(ctx, shieldAdmin)
 
 	sponsorAddr := sdk.AccAddress(pks[1].Address())
-	simapp.AddCoinsToAcc(app, ctx, sponsorAddr, sdk.NewInt(1))
+	err = simapp.FundAccount(app.BankKeeper, ctx, sponsorAddr, sdk.Coins{sdk.NewInt64Coin("uctk", 1)})
+	require.NoError(t, err)
 
 	purchaser := sdk.AccAddress(pks[2].Address())
-	simapp.AddCoinsToAcc(app, ctx, purchaser, sdk.NewInt(10e9))
+	err = simapp.FundAccount(app.BankKeeper, ctx, purchaser, sdk.Coins{sdk.NewInt64Coin("uctk", 10e9)})
+	require.NoError(t, err)
 
 	del1addr := sdk.AccAddress(pks[3].Address())
-	simapp.AddCoinsToAcc(app, ctx, del1addr, sdk.NewInt(125e9))
+	err = simapp.FundAccount(app.BankKeeper, ctx, del1addr, sdk.Coins{sdk.NewInt64Coin("uctk", 125e9)})
+	require.NoError(t, err)
 
 	val1pk, val1addr := pks[4], sdk.ValAddress(pks[4].Address())
-	simapp.AddCoinsToAcc(app, ctx, sdk.AccAddress(pks[4].Address()), sdk.NewInt(100e6))
+	err = simapp.FundAccount(app.BankKeeper, ctx, sdk.AccAddress(pks[4].Address()), sdk.Coins{sdk.NewInt64Coin("uctk", 100e6)})
+	require.NoError(t, err)
 
 	var adminDeposit int64 = 200e9
 	var delegatorDeposit int64 = 125e9
@@ -318,7 +323,7 @@ func TestClaimProposal(t *testing.T) {
 
 	// create reimbursement
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, loss))
-	err := app.ShieldKeeper.CreateReimbursement(ctx, proposalID, lossCoins, purchaser)
+	err = app.ShieldKeeper.CreateReimbursement(ctx, proposalID, lossCoins, purchaser)
 	require.NoError(t, err)
 	reimbursement, err := app.ShieldKeeper.GetReimbursement(ctx, proposalID)
 	require.NoError(t, err)

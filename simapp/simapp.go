@@ -13,7 +13,6 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -36,6 +35,8 @@ import (
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	sdkauthz "github.com/cosmos/cosmos-sdk/x/authz"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	sdkbanktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
@@ -50,6 +51,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/evidence"
 	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
+	sdkfeegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
+	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -78,6 +81,7 @@ import (
 
 	"github.com/certikfoundation/shentu/v2/x/auth"
 	authkeeper "github.com/certikfoundation/shentu/v2/x/auth/keeper"
+	"github.com/certikfoundation/shentu/v2/x/authz"
 	"github.com/certikfoundation/shentu/v2/x/bank"
 	bankkeeper "github.com/certikfoundation/shentu/v2/x/bank/keeper"
 	"github.com/certikfoundation/shentu/v2/x/cert"
@@ -88,6 +92,7 @@ import (
 	cvmkeeper "github.com/certikfoundation/shentu/v2/x/cvm/keeper"
 	cvmtypes "github.com/certikfoundation/shentu/v2/x/cvm/types"
 	distr "github.com/certikfoundation/shentu/v2/x/distribution"
+	"github.com/certikfoundation/shentu/v2/x/feegrant"
 	"github.com/certikfoundation/shentu/v2/x/gov"
 	govkeeper "github.com/certikfoundation/shentu/v2/x/gov/keeper"
 	govtypes "github.com/certikfoundation/shentu/v2/x/gov/types"
@@ -122,11 +127,13 @@ var (
 	ModuleBasics = module.NewBasicManager(
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
+		authz.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		capability.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
+		feegrant.AppModuleBasic{},
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler,
 			distrclient.ProposalHandler,
@@ -186,12 +193,14 @@ type SimApp struct {
 	memKeys map[string]*sdk.MemoryStoreKey
 
 	AccountKeeper    cosmosauthkeeper.AccountKeeper
+	AuthzKeeper      authzkeeper.Keeper
 	BankKeeper       bankkeeper.Keeper
 	CapabilityKeeper *capabilitykeeper.Keeper
 	StakingKeeper    stakingkeeper.Keeper
 	SlashingKeeper   slashingkeeper.Keeper
 	MintKeeper       mintkeeper.Keeper
 	DistrKeeper      distrkeeper.Keeper
+	FeegrantKeeper   feegrantkeeper.Keeper
 	CrisisKeeper     crisiskeeper.Keeper
 	ParamsKeeper     paramskeeper.Keeper
 	UpgradeKeeper    upgradekeeper.Keeper
@@ -224,20 +233,22 @@ func NewSimApp(
 	appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp),
 ) *SimApp {
 	// TODO: Remove cdc in favor of appCodec once all modules are migrated.
-	appCodec := encodingConfig.Codec
+	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 
 	bApp := baseapp.NewBaseApp(appName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
-	bApp.SetAppVersion(version.Version)
+	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
 	ks := []string{
 		authtypes.StoreKey,
+		authzkeeper.StoreKey,
 		sdkbanktypes.StoreKey,
 		stakingtypes.StoreKey,
 		distrtypes.StoreKey,
+		sdkfeegrant.StoreKey,
 		sdkminttypes.StoreKey,
 		slashingtypes.StoreKey,
 		paramstypes.StoreKey,
@@ -314,6 +325,11 @@ func NewSimApp(
 		appCodec, keys[distrtypes.StoreKey], app.GetSubspace(distrtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
 		&stakingKeeper, authtypes.FeeCollectorName, app.ModuleAccountAddrs(),
 	)
+	app.FeegrantKeeper = feegrantkeeper.NewKeeper(
+		appCodec,
+		keys[sdkfeegrant.StoreKey],
+		app.AccountKeeper,
+	)
 	app.CVMKeeper = cvmkeeper.NewKeeper(
 		appCodec,
 		keys[cvmtypes.StoreKey],
@@ -349,6 +365,11 @@ func NewSimApp(
 		app.AccountKeeper,
 		app.CertKeeper,
 	)
+	app.AuthzKeeper = authzkeeper.NewKeeper(
+		keys[authzkeeper.StoreKey],
+		appCodec,
+		app.MsgServiceRouter(),
+	)
 	app.CrisisKeeper = crisiskeeper.NewKeeper(
 		app.GetSubspace(crisistypes.ModuleName),
 		invCheckPeriod,
@@ -360,6 +381,7 @@ func NewSimApp(
 		keys[upgradetypes.StoreKey],
 		appCodec,
 		DefaultNodeHome,
+		bApp,
 	)
 	app.ShieldKeeper = shieldkeeper.NewKeeper(
 		appCodec,
@@ -386,7 +408,7 @@ func NewSimApp(
 
 	// Create IBC Keeper
 	app.IBCKeeper = ibckeeper.NewKeeper(
-		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, scopedIBCKeeper,
+		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)
 
 	govRouter := sdkgovtypes.NewRouter()
@@ -394,7 +416,7 @@ func NewSimApp(
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
 		AddRoute(distrtypes.RouterKey, sdkdistr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
-		AddRoute(ibchost.RouterKey, ibcclient.NewClientUpdateProposalHandler(app.IBCKeeper.ClientKeeper)).
+		AddRoute(ibchost.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
 		AddRoute(shieldtypes.RouterKey, shield.NewShieldClaimProposalHandler(app.ShieldKeeper)).
 		AddRoute(certtypes.RouterKey, cert.NewCertifierUpdateProposalHandler(app.CertKeeper))
 
@@ -420,7 +442,7 @@ func NewSimApp(
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
-	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper)
+	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCKeeper.PortKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
@@ -446,10 +468,12 @@ func NewSimApp(
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
 		auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
+		authz.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
 		crisis.NewAppModule(&app.CrisisKeeper, skipGenesisInvariants),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeegrantKeeper, app.interfaceRegistry),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
@@ -490,6 +514,8 @@ func NewSimApp(
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		oracletypes.ModuleName,
+		sdkauthz.ModuleName,
+		sdkfeegrant.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
@@ -506,6 +532,8 @@ func NewSimApp(
 		genutiltypes.ModuleName,
 		oracletypes.ModuleName,
 		shieldtypes.ModuleName,
+		sdkauthz.ModuleName,
+		sdkfeegrant.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -513,9 +541,11 @@ func NewSimApp(
 
 	app.sm = module.NewSimulationManager(
 		auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
+		authz.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeegrantKeeper, app.interfaceRegistry),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
@@ -537,12 +567,19 @@ func NewSimApp(
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	// The AnteHandler handles signature verification and transaction pre-processing
-	app.SetAnteHandler(
-		ante.NewAnteHandler(
-			app.AccountKeeper, app.BankKeeper, ante.DefaultSigVerificationGasConsumer,
+	anteHandler, err := ante.NewAnteHandler(
+		ante.HandlerOptions{
+			app.AccountKeeper,
+			app.BankKeeper,
+			app.FeegrantKeeper,
 			encodingConfig.TxConfig.SignModeHandler(),
-		),
+			ante.DefaultSigVerificationGasConsumer,
+		},
 	)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+	app.SetAnteHandler(anteHandler)
 	app.SetEndBlocker(app.EndBlocker)
 
 	if loadLatest {
@@ -550,15 +587,14 @@ func NewSimApp(
 			tmos.Exit(err.Error())
 		}
 
-		// Initialize and seal the capability keeper so all persistent capabilities
+		// Seal the capability keeper so all persistent capabilities
 		// are loaded in-memory and prevent any further modules from creating scoped
 		// sub-keepers.
 		// This must be done during creation of baseapp rather than in InitChain so
 		// that in-memory capabilities get regenerated on app restart.
 		// Note that since this reads from the store, we can only perform it when
 		// `loadLatest` is set to true.
-		ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
-		app.CapabilityKeeper.InitializeAndSeal(ctx)
+		app.CapabilityKeeper.Seal()
 	}
 	app.ScopedIBCKeeper = scopedIBCKeeper
 	app.ScopedTransferKeeper = scopedTransferKeeper
@@ -575,7 +611,7 @@ func NewSimApp(
 // full simapp
 func MakeCodecs() (codec.Codec, *codec.LegacyAmino) {
 	config := MakeTestEncodingConfig()
-	return config.Codec, config.Amino
+	return config.Marshaler, config.Amino
 }
 
 // Name returns the name of the App

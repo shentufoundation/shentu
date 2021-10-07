@@ -70,9 +70,6 @@ type BankKeeper interface {
 	DelegateCoins(ctx sdk.Context, fromAdd, toAddr sdk.AccAddress, amt sdk.Coins) error
 	UndelegateCoins(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amt sdk.Coins) error
 
-	SubtractCoins(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coins) error
-	AddCoins(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coins) error
-
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 

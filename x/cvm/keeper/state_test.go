@@ -54,7 +54,7 @@ func TestState_UpdateAccount(t *testing.T) {
 	require.Nil(t, err)
 
 	sdkAcc := ak.GetAccount(ctx, addrs[0])
-	err = app.BankKeeper.SetBalances(ctx, addrs[0], sdk.Coins{sdk.NewInt64Coin("uctk", 1234)})
+	err = simapp.FundAccount(app.BankKeeper, ctx, addrs[0], sdk.Coins{sdk.NewInt64Coin("uctk", 1234)})
 	require.Nil(t, err)
 	ak.SetAccount(ctx, sdkAcc)
 
