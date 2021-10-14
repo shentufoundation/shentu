@@ -2,7 +2,7 @@
 swagger: "2.0"
 info:
   version: "1.0"
-  title: CertiK Chain
+  title: Shentu Chain
   description: A REST interface for state queries, transaction generation and broadcasting.
 tags:
   - name: Certification
@@ -3188,7 +3188,7 @@ definitions:
         example: "This is a memo!"
       chain_id:
         type: string
-        example: "certikchain"
+        example: "shentuchain"
       account_number:
         type: integer
         format: uint64

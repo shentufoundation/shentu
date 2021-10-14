@@ -105,7 +105,7 @@ import (
 
 const (
 	// AppName specifies the global application name.
-	AppName = "CertiK"
+	AppName = "Shentu"
 
 	// DefaultKeyPass for certik node daemon.
 	DefaultKeyPass = "12345678"
@@ -159,8 +159,8 @@ var (
 	}
 )
 
-// CertiKApp is the main CertiK Chain application type.
-type CertiKApp struct {
+// ShentuApp is the main Shentu Chain application type.
+type ShentuApp struct {
 	*baseapp.BaseApp
 	cdc               *codec.LegacyAmino
 	appCodec          codec.Marshaler
@@ -204,9 +204,9 @@ type CertiKApp struct {
 	sm *module.SimulationManager
 }
 
-// NewCertiKApp returns a reference to an initialized CertiKApp.
-func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool, homePath string,
-	invCheckPeriod uint, encodingConfig appparams.EncodingConfig, appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp)) *CertiKApp {
+// NewShentuApp returns a reference to an initialized ShentuApp.
+func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool, homePath string,
+	invCheckPeriod uint, encodingConfig appparams.EncodingConfig, appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp)) *ShentuApp {
 	// define top-level codec that will be shared between modules
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
@@ -247,7 +247,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	// initialize application with its store keys
-	var app = &CertiKApp{
+	var app = &ShentuApp{
 		BaseApp:           bApp,
 		cdc:               legacyAmino,
 		appCodec:          appCodec,
@@ -555,17 +555,17 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 }
 
 // BeginBlocker processes application updates at the beginning of each block.
-func (app *CertiKApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+func (app *ShentuApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
 	return app.mm.BeginBlock(ctx, req)
 }
 
 // EndBlocker processes application updates at the end of each block.
-func (app *CertiKApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+func (app *ShentuApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	return app.mm.EndBlock(ctx, req)
 }
 
 // InitChainer defines application update at chain initialization
-func (app *CertiKApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+func (app *ShentuApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
@@ -582,12 +582,12 @@ func MakeCodecs() (codec.Marshaler, *codec.LegacyAmino) {
 }
 
 // LoadHeight loads a particular height
-func (app *CertiKApp) LoadHeight(height int64) error {
+func (app *ShentuApp) LoadHeight(height int64) error {
 	return app.LoadVersion(height)
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
-func (app *CertiKApp) ModuleAccountAddrs() map[string]bool {
+func (app *ShentuApp) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
@@ -600,30 +600,30 @@ func (app *CertiKApp) ModuleAccountAddrs() map[string]bool {
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
-func (app *CertiKApp) LegacyAmino() *codec.LegacyAmino {
+func (app *ShentuApp) LegacyAmino() *codec.LegacyAmino {
 	return app.cdc
 }
 
 // GetSubspace returns a param subspace for a given module name.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *CertiKApp) GetSubspace(moduleName string) paramstypes.Subspace {
+func (app *ShentuApp) GetSubspace(moduleName string) paramstypes.Subspace {
 	subspace, _ := app.paramsKeeper.GetSubspace(moduleName)
 	return subspace
 }
 
 // Codec returns app.cdc.
-func (app *CertiKApp) Codec() codec.Marshaler {
+func (app *ShentuApp) Codec() codec.Marshaler {
 	return app.appCodec
 }
 
 // InterfaceRegistry returns the app's InterfaceRegistry
-func (app *CertiKApp) InterfaceRegistry() types.InterfaceRegistry {
+func (app *ShentuApp) InterfaceRegistry() types.InterfaceRegistry {
 	return app.interfaceRegistry
 }
 
 // SimulationManager returns app.sm.
-func (app *CertiKApp) SimulationManager() *module.SimulationManager {
+func (app *ShentuApp) SimulationManager() *module.SimulationManager {
 	return app.sm
 }
 
@@ -660,7 +660,7 @@ func RegisterSwaggerAPI(ctx client.Context, rtr *mux.Router) {
 
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
-func (app *CertiKApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+func (app *ShentuApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
 	rpc.RegisterRoutes(clientCtx, apiSvr.Router)
 	// Register legacy tx routes.
@@ -681,11 +681,11 @@ func (app *CertiKApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
-func (app *CertiKApp) RegisterTxService(clientCtx client.Context) {
+func (app *ShentuApp) RegisterTxService(clientCtx client.Context) {
 	authtx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
 }
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
-func (app *CertiKApp) RegisterTendermintService(clientCtx client.Context) {
+func (app *ShentuApp) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
 }
