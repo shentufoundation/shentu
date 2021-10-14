@@ -4,6 +4,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -93,7 +94,8 @@ func queryPlatform(ctx sdk.Context, path []string, keeper Keeper, legacyQuerierC
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 1 arg. Found %d.", len(path))
 	}
 
-	validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, path[0])
+	var validator cryptotypes.PubKey
+	err = legacyQuerierCdc.UnmarshalJSON([]byte(path[0]), validator)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, path[0])
 	}

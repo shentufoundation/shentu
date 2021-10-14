@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -120,7 +120,8 @@ func GetCmdCertifyPlatform() *cobra.Command {
 				return err
 			}
 
-			validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
+			var validator cryptotypes.PubKey
+			err = cliCtx.JSONCodec.UnmarshalJSON([]byte(args[0]), validator)
 			if err != nil {
 				return err
 			}
