@@ -6,7 +6,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
-func (app CertiKApp) setUpgradeHandler() {
+func (app ShentuApp) setUpgradeHandler() {
 	app.upgradeKeeper.SetUpgradeHandler("v2_1_0", func(ctx sdk.Context, plan upgradetypes.Plan) {
 	})
 

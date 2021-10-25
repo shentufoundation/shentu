@@ -31,9 +31,9 @@ export CERTIKCLI0=$CERTIKCLI" --home $DIR_CLI0"
 
 $CERTIKD0 unsafe-reset-all
 rm -rf $DIR/node0
-$CERTIKD0 init node0 --chain-id certikchain
+$CERTIKD0 init node0 --chain-id shentuchain
 sed -i "" 's/26657/20057/g' $DIR_D0/config/config.toml # rpc port
-$CERTIKCLI0 config chain-id certikchain
+$CERTIKCLI0 config chain-id shentuchain
 $CERTIKCLI0 config keyring-backend test
 
 $CERTIKCLI0 keys add jack

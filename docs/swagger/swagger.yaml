@@ -24950,7 +24950,7 @@ definitions:
         example: This is a memo!
       chain_id:
         type: string
-        example: certikchain
+        example: shentuchain
       account_number:
         type: integer
         format: uint64

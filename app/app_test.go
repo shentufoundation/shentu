@@ -15,7 +15,7 @@ import (
 func TestSimAppExport(t *testing.T) {
 	encodingConfig := MakeEncodingConfig()
 	db := dbm.NewMemDB()
-	app := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, DefaultNodeHome, 1, encodingConfig, EmptyAppOptions{})
+	app := NewShentuApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, DefaultNodeHome, 1, encodingConfig, EmptyAppOptions{})
 
 	genesisState := ModuleBasics.DefaultGenesis(encodingConfig.Marshaler)
 	stateBytes, err := json.MarshalIndent(genesisState, "", "  ")
@@ -31,7 +31,7 @@ func TestSimAppExport(t *testing.T) {
 	app.Commit()
 
 	// make a new app object with the db so that initchain hasn't been called
-	app2 := NewCertiKApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, DefaultNodeHome, 1, encodingConfig, EmptyAppOptions{})
+	app2 := NewShentuApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, DefaultNodeHome, 1, encodingConfig, EmptyAppOptions{})
 	_, err = app2.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 	_, err = app2.ExportAppStateAndValidators(true, []string{})
