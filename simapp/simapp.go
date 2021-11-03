@@ -164,6 +164,7 @@ var (
 		sdkgovtypes.ModuleName:         {authtypes.Burner},
 		oracletypes.ModuleName:         {authtypes.Burner},
 		shieldtypes.ModuleName:         {authtypes.Burner},
+		cvmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 	}
 

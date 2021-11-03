@@ -110,7 +110,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, accountKeeper types.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
-		cosmosAppModule: sdkbank.NewAppModule(cdc, keeper, accountKeeper),
+		cosmosAppModule: sdkbank.NewAppModule(cdc, keeper.BaseKeeper, accountKeeper),
 		keeper:          keeper,
 		accountKeeper:   accountKeeper,
 	}

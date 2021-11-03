@@ -3,11 +3,13 @@ package app
 import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
-func (app CertiKApp) setUpgradeHandler() {
-	app.upgradeKeeper.SetUpgradeHandler("v2_1_0", func(ctx sdk.Context, plan upgradetypes.Plan) {
+func (app CertiKApp) setUpgradeHandler(cfg module.Configurator) {
+	app.upgradeKeeper.SetUpgradeHandler("v2_1_0", func(ctx sdk.Context, plan upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		return app.mm.RunMigrations(ctx, cfg, vm)
 	})
 
 	upgradeInfo, err := app.upgradeKeeper.ReadUpgradeInfoFromDisk()

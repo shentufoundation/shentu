@@ -98,9 +98,16 @@ func (s *State) UpdateAccount(updatedAccount *acm.Account) error {
 		cvmCode = types.NewCVMCode(types.CVMCodeTypeEVMCode, updatedAccount.EVMCode)
 	}
 	s.store.Set(types.CodeStoreKey(updatedAccount.Address), s.cdc.MustMarshal(&cvmCode))
-	err := s.bk.SetBalances(s.ctx, address, sdk.Coins{sdk.NewInt64Coin(s.sk.BondDenom(s.ctx), int64(updatedAccount.Balance))})
-	if err != nil {
-		return err
+	oldBalance := s.bk.GetBalance(s.ctx, address, s.sk.BondDenom(s.ctx))
+	newBalance := sdk.NewInt64Coin(s.sk.BondDenom(s.ctx), int64(updatedAccount.Balance))
+	if newBalance.Amount.GT(oldBalance.Amount) {
+		if err := s.bk.SendCoinsFromModuleToAccount(s.ctx, types.ModuleName, address, sdk.Coins{newBalance.Sub(oldBalance)}); err != nil {
+			return err
+		}
+	} else if newBalance.Amount.LT(oldBalance.Amount) {
+		if err := s.bk.SendCoinsFromAccountToModule(s.ctx, address, types.ModuleName, sdk.Coins{oldBalance.Sub(newBalance)}); err != nil {
+			return err
+		}
 	}
 	s.ak.SetAccount(s.ctx, account)
 	return s.SetAddressMeta(updatedAccount.Address, updatedAccount.ContractMeta)

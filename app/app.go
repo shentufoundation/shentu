@@ -162,6 +162,7 @@ var (
 		sdkgovtypes.ModuleName:         {authtypes.Burner},
 		oracletypes.ModuleName:         {authtypes.Burner},
 		shieldtypes.ModuleName:         {authtypes.Burner},
+		cvmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 	}
 )
@@ -435,8 +436,9 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.evidenceKeeper = *evidenceKeeper
 
-	// Add empty upgrade handler to bump to 0.42.9
-	app.setUpgradeHandler()
+	// Add empty upgrade handler to bump to 0.44.0
+	cfg := module.NewConfigurator(appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
+	app.setUpgradeHandler(cfg)
 
 	/****  Module Options ****/
 
@@ -520,7 +522,7 @@ func NewCertiKApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	)
 
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
-	app.mm.RegisterServices(module.NewConfigurator(appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter()))
+	app.mm.RegisterServices(cfg)
 
 	app.sm = module.NewSimulationManager(
 		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
