@@ -570,11 +570,11 @@ func NewSimApp(
 	// The AnteHandler handles signature verification and transaction pre-processing
 	anteHandler, err := ante.NewAnteHandler(
 		ante.HandlerOptions{
-			app.AccountKeeper,
-			app.BankKeeper,
-			app.FeegrantKeeper,
-			encodingConfig.TxConfig.SignModeHandler(),
-			ante.DefaultSigVerificationGasConsumer,
+			AccountKeeper:   app.AccountKeeper,
+			BankKeeper:      app.BankKeeper,
+			FeegrantKeeper:  app.FeegrantKeeper,
+			SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
+			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 		},
 	)
 	if err != nil {
