@@ -112,7 +112,7 @@ import (
 
 const (
 	// AppName specifies the global application name.
-	appName = "CertiK"
+	appName = "Shentu"
 
 	// DefaultKeyPass for certik node daemon.
 	DefaultKeyPass = "12345678"
@@ -179,7 +179,7 @@ var (
 // Verify app interface at compile time
 var _ simapp.App = (*SimApp)(nil)
 
-// SimApp is the simulated CertiK Chain application type.
+// SimApp is the simulated Shentu Chain application type.
 type SimApp struct {
 	*baseapp.BaseApp
 	legacyAmino       *codec.LegacyAmino

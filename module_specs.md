@@ -1,8 +1,8 @@
 # Module Specs
 
-CertiK Chain is built with Cosmos SDK, which organizes the application's functionality into several components, or modules. Here we document the modules that are unique to CertiK Chain.
+Shentu Chain is built with Cosmos SDK, which organizes the application's functionality into several components, or modules. Here we document the modules that are unique to Shentu Chain.
 
-This documentation dives into the technical specifics of the CertiK Chain modules, and is geared towards a developer audience. See the [CertiK Chain Whitepaper](https://www.certik.foundation/whitepaper) for a conceptual overview of the CertiK Chain ecosystem.
+This documentation dives into the technical specifics of the Shentu Chain modules, and is geared towards a developer audience. See the [Shentu Chain Whitepaper](https://www.certik.foundation/whitepaper) for a conceptual overview of the Shentu Chain ecosystem.
 
 ## Cosmos SDK Modules
 
@@ -20,7 +20,7 @@ The following modules largely inherit from Cosmos SDK. Please see [Cosmos's modu
 
 ## Custom Modules
 
-These modules are unique to CertiK Chain.
+These modules are unique to Shentu Chain.
 
 - [Cert](x/cert/specs/specs.md) - Validator certification and certificate issuance
 - [CVM](x/cvm/specs/specs.md) - CertiK Virtual Machine: smart contract deployment and execution

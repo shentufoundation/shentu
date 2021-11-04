@@ -35,7 +35,7 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
 	"github.com/certikfoundation/shentu/v2/app"
-	certikinit "github.com/certikfoundation/shentu/v2/app/certik/init"
+	shentuinit "github.com/certikfoundation/shentu/v2/app/certik/init"
 	"github.com/certikfoundation/shentu/v2/app/params"
 	"github.com/certikfoundation/shentu/v2/common"
 	authcli "github.com/certikfoundation/shentu/v2/x/auth/client/cli"
@@ -75,9 +75,9 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 			return server.InterceptConfigsPreRunHandler(cmd, "", nil)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			docDir, err := cmd.Flags().GetString(certikinit.DocFlag)
+			docDir, err := cmd.Flags().GetString(shentuinit.DocFlag)
 			if err == nil && docDir != "" {
-				certikinit.GenDoc(cmd, docDir)
+				shentuinit.GenDoc(cmd, docDir)
 			} else if err = cmd.Help(); err != nil {
 				panic(err)
 			}
@@ -126,7 +126,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		debug.Cmd(),
 	)
 
-	rootCmd.Flags().StringP(certikinit.DocFlag, certikinit.DocFlagAbbr, "", certikinit.DocFlagUsage)
+	rootCmd.Flags().StringP(shentuinit.DocFlag, shentuinit.DocFlagAbbr, "", shentuinit.DocFlagUsage)
 
 	server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, createSimappAndExport, addModuleInitFlags)
 
@@ -229,7 +229,7 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts serverty
 		panic(err)
 	}
 
-	return app.NewCertiKApp(
+	return app.NewShentuApp(
 		logger, db, traceStore, true, skipUpgradeHeights,
 		cast.ToString(appOpts.Get(flags.FlagHome)),
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
@@ -253,15 +253,15 @@ func createSimappAndExport(logger log.Logger, db dbm.DB, traceStore io.Writer, h
 	appOpts servertypes.AppOptions) (servertypes.ExportedApp, error) {
 	encCfg := app.MakeEncodingConfig() // Ideally, we would reuse the one created by NewRootCmd.
 	encCfg.Codec = codec.NewProtoCodec(encCfg.InterfaceRegistry)
-	var gaiaApp *app.CertiKApp
+	var gaiaApp *app.ShentuApp
 	if height != -1 {
-		gaiaApp = app.NewCertiKApp(logger, db, traceStore, false, map[int64]bool{}, "", uint(1), encCfg, appOpts)
+		gaiaApp = app.NewShentuApp(logger, db, traceStore, false, map[int64]bool{}, "", uint(1), encCfg, appOpts)
 
 		if err := gaiaApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		gaiaApp = app.NewCertiKApp(logger, db, traceStore, true, map[int64]bool{}, "", uint(1), encCfg, appOpts)
+		gaiaApp = app.NewShentuApp(logger, db, traceStore, true, map[int64]bool{}, "", uint(1), encCfg, appOpts)
 	}
 
 	return gaiaApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
