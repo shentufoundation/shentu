@@ -101,11 +101,19 @@ func (s *State) UpdateAccount(updatedAccount *acm.Account) error {
 	oldBalance := s.bk.GetBalance(s.ctx, address, s.sk.BondDenom(s.ctx))
 	newBalance := sdk.NewInt64Coin(s.sk.BondDenom(s.ctx), int64(updatedAccount.Balance))
 	if newBalance.Amount.GT(oldBalance.Amount) {
-		if err := s.bk.SendCoinsFromModuleToAccount(s.ctx, types.ModuleName, address, sdk.Coins{newBalance.Sub(oldBalance)}); err != nil {
+		coins := sdk.Coins{newBalance.Sub(oldBalance)}
+		if err := s.bk.MintCoins(s.ctx, types.ModuleName, coins); err != nil {
+			return err
+		}
+		if err := s.bk.SendCoinsFromModuleToAccount(s.ctx, types.ModuleName, address, coins); err != nil {
 			return err
 		}
 	} else if newBalance.Amount.LT(oldBalance.Amount) {
-		if err := s.bk.SendCoinsFromAccountToModule(s.ctx, address, types.ModuleName, sdk.Coins{oldBalance.Sub(newBalance)}); err != nil {
+		coins := sdk.Coins{oldBalance.Sub(newBalance)}
+		if err := s.bk.SendCoinsFromAccountToModule(s.ctx, address, types.ModuleName, coins); err != nil {
+			return err
+		}
+		if err := s.bk.BurnCoins(s.ctx, types.ModuleName, coins); err != nil {
 			return err
 		}
 	}
