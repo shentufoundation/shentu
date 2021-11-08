@@ -213,10 +213,10 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 			for i := 0; i < len(purchaseList.Entries); i++ {
 				entry := purchaseList.Entries[i]
 
-				// // Skip entries that has not expired yet.
-				// if ctx.BlockHeight() >= common.Update2Height && entry.ProtectionEndTime.After(ctx.BlockTime()) {
-				// 	continue
-				// }
+				// Skip entries that has not expired yet.
+				if entry.ProtectionEndTime.After(ctx.BlockTime()) {
+					continue
+				}
 
 				// If purchaseProtectionEndTime > previousBlockTime, update service fees.
 				// Otherwise services fees were updated in the last block.
