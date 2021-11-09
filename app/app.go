@@ -35,7 +35,7 @@ import (
 	sdkauthz "github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	sdkbanktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -231,7 +231,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	ks := []string{
 		authtypes.StoreKey,
 		authzkeeper.StoreKey,
-		banktypes.StoreKey,
+		sdkbanktypes.StoreKey,
 		stakingtypes.StoreKey,
 		distrtypes.StoreKey,
 		sdkfeegrant.StoreKey,
@@ -293,10 +293,10 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	)
 	app.bankKeeper = bankkeeper.NewKeeper(
 		appCodec,
-		keys[banktypes.StoreKey],
+		keys[sdkbanktypes.StoreKey],
 		app.accountKeeper,
 		&app.cvmKeeper,
-		app.GetSubspace(banktypes.ModuleName),
+		app.GetSubspace(sdkbanktypes.ModuleName),
 		app.ModuleAccountAddrs(),
 	)
 	stakingKeeper := stakingkeeper.NewKeeper(
@@ -483,7 +483,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.SetOrderInitGenesis(
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
-		banktypes.ModuleName,
+		sdkbanktypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName,
@@ -504,7 +504,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.SetOrderExportGenesis(
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
-		banktypes.ModuleName,
+		sdkbanktypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName,
@@ -670,7 +670,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
 	paramsKeeper.Subspace(authtypes.ModuleName)
-	paramsKeeper.Subspace(banktypes.ModuleName)
+	paramsKeeper.Subspace(sdkbanktypes.ModuleName)
 	paramsKeeper.Subspace(stakingtypes.ModuleName)
 	paramsKeeper.Subspace(sdkminttypes.ModuleName)
 	paramsKeeper.Subspace(distrtypes.ModuleName)
