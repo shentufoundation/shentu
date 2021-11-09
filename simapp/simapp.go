@@ -539,6 +539,7 @@ func NewSimApp(
 		shieldtypes.ModuleName,
 		sdkauthz.ModuleName,
 		sdkfeegrant.ModuleName,
+		evidencetypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
