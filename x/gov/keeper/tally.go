@@ -139,16 +139,21 @@ func delegatorVoting(ctx sdk.Context, k Keeper, vote types.Vote, validators map[
 		valAddrStr := delegation.GetValidatorAddr().String()
 
 		if val, ok := validators[valAddrStr]; ok {
+			// There is no need to handle the special case that validator address equal to voter address.
+			// Because voter's voting power will tally again even if there will deduct voter's voting power from validator.
 			val.DelegatorDeductions = val.DelegatorDeductions.Add(delegation.GetShares())
 			validators[valAddrStr] = val
 
-			delegatorShare := delegation.GetShares().Quo(val.DelegatorShares)
-			votingPower := delegatorShare.MulInt(val.BondedTokens)
+			// delegation shares * bonded / total shares
+			votingPower := delegation.GetShares().MulInt(val.BondedTokens).Quo(val.DelegatorShares)
 
-			results[vote.Option] = results[vote.Option].Add(votingPower)
-			// false positive
-			*totalVotingPower = (*totalVotingPower).Add(votingPower)
+			for _, option := range vote.Options {
+				subPower := votingPower.Mul(option.Weight)
+				results[option.Option] = results[option.Option].Add(subPower)
+			}
+			*totalVotingPower = totalVotingPower.Add(votingPower)
 		}
+
 		return false
 	})
 }
