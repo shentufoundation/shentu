@@ -33,11 +33,11 @@ export CERTIKCLI1=certikcli" --home $DIR_CLI1"
 
 $CERTIKD1 unsafe-reset-all
 rm -rf $DIR/node1
-$CERTIKD1 init node1 --chain-id certikchain
+$CERTIKD1 init node1 --chain-id shentuchain
 sed -i "" 's/26656/27756/g' $DIR_D1/config/config.toml                                        # p2p port
 sed -i "" 's/persistent_peers = ""/persistent_peers = "'$PEER'"/g' $DIR_D1/config/config.toml # persistent peers
 cp $GENESIS $DIR_D1/config/genesis.json
-$CERTIKCLI1 config chain-id certikchain
+$CERTIKCLI1 config chain-id shentuchain
 $CERTIKCLI1 config keyring-backend test
 
 $CERTIKCLI1 keys add mary

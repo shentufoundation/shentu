@@ -16,7 +16,7 @@ RUN apk add --no-cache $PACKAGES && make install
 
 FROM alpine:edge
 
-LABEL name="CertiK Chain"
+LABEL name="Shentu Chain"
 LABEL maintainer="CertiK"
 LABEL repository="https://github.com/certikfoundation/shentu"
 LABEL org.opencontainers.image.source=https://github.com/certikfoundation/shentu

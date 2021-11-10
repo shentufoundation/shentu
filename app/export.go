@@ -15,7 +15,7 @@ import (
 )
 
 // ExportAppStateAndValidators exports the application state for a genesis file.
-func (app *CertiKApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []string) (servertypes.ExportedApp, error) {
+func (app *ShentuApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []string) (servertypes.ExportedApp, error) {
 	// as if they could withdraw from the start of the next block
 	ctx := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
 
@@ -49,7 +49,7 @@ func (app *CertiKApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteL
 // prepForZeroHeightGenesis prepares for fresh start at zero height.
 // NOTE: Zero-height genesis is a temporary feature which will be deprecated
 //      in favor of export at a block height.
-func (app *CertiKApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []string) {
+func (app *ShentuApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []string) {
 	applyAllowedAddrs := false
 
 	// check if there is a allowed address list

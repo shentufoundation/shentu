@@ -58,7 +58,7 @@ type Pool struct {
 	// Sponsor is the project owner of the pool.
 	Sponsor string `json:"sponsor" yaml:"sponsor"`
 
-	// SponsorAddress is the CertiK Chain address of the sponsor.
+	// SponsorAddress is the Shentu Chain address of the sponsor.
 	SponsorAddress sdk.AccAddress `json:"sponsor_address" yaml:"sponsor_address"`
 
 	// ShieldLimit is the maximum shield can be purchased for the pool.

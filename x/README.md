@@ -1,6 +1,6 @@
 # List of Modules
 
-Modules used in CertiK Chain:
+Modules used in Shentu Chain:
 
 - [auth](auth): Account management
 - [bank](bank): Banking
@@ -13,7 +13,7 @@ Modules used in CertiK Chain:
 - [oracle](oracle): CertiK Security Oracle
 - [shield](shield): CertiKShield
 - [slashing](slashing): Punishment
-- [staking](staking): PoS layer for the CertiK Chain
+- [staking](staking): PoS layer for the Shentu Chain
 - [upgrade](upgrade): Node software upgrade
 
 For chain documentation, please see [`docs/`](../docs).

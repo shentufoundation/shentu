@@ -1,4 +1,4 @@
-# CertiK Chain
+# Shentu Chain
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/certikfoundation/shentu)](https://pkg.go.dev/github.com/certikfoundation/shentu)
 <a href="https://circleci.com/gh/certikfoundation/shentu/tree/master">
@@ -31,7 +31,7 @@ Install `solc` first to make CVM transactions.
   - Tendermint packages
   - Cosmos SDK packages
   - Burrow packages
-  - CertiK packages
+  - Shentu packages
 
 - Before creating pull requests of your changes, run the following commandlines for style and dependencies.
 
@@ -140,7 +140,7 @@ Recommend the use of the provided Docker containers for simplicity, but here are
 $ certik unsafe-reset-all
 $ rm -rf ~/.certik
 
-$ certik init node0 --chain-id certikchain
+$ certik init node0 --chain-id shentuchain
 
 $ certik keys add jack
 
@@ -336,11 +336,11 @@ Back to the previous terminal window where `NODE0_KEY` is defined:
 
 ```bash
 # Initiate Transaction: Burn 2 ctk from node0.
-$ curl -XPOST -s http://localhost:1317/ctk/burn --data-binary '{"base_req":{"from":"'$NODE0_KEY'","chain_id":"certikchain"},"src":"'$NODE0_KEY'","amount":"2"}' > unsignedTx.json
+$ curl -XPOST -s http://localhost:1317/ctk/burn --data-binary '{"base_req":{"from":"'$NODE0_KEY'","chain_id":"shentuchain"},"src":"'$NODE0_KEY'","amount":"2"}' > unsignedTx.json
 
 # Sign Transaction
 # Note: sequence and account-number can be found in account information
-$ certik tx sign unsignedTx.json --from $NODE0_KEY --offline --chain-id certikchain --sequence 5 --account-number 0 > signedTx.json
+$ certik tx sign unsignedTx.json --from $NODE0_KEY --offline --chain-id shentuchain --sequence 5 --account-number 0 > signedTx.json
 
 # Broadcast Transaction
 $ certik tx broadcast signedTx.json
