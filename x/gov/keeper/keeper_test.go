@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -34,7 +35,7 @@ func TestKeeper_ProposeAndVote(t *testing.T) {
 		options := govtypes.NewNonSplitVoteOption(govtypes.OptionYes)
 		vote := govtypes.NewVote(pp.ProposalId, addrs[0], options)
 		coins700 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 700*1e6))
-		require.NoError(t, simapp.FundAccount(app.BankKeeper, ctx, addrs[1], coins700))
+		require.NoError(t, sdksimapp.FundAccount(app.BankKeeper, ctx, addrs[1], coins700))
 
 		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coins700)
 		require.Equal(t, nil, err)
@@ -115,7 +116,7 @@ func TestKeeper_AddDeposit(t *testing.T) {
 	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(10000))
 
 	coins := sdk.Coins{sdk.NewInt64Coin("uctk", 80000*1e6)}
-	require.NoError(t, simapp.FundAccount(app.BankKeeper, ctx, addrs[1], coins))
+	require.NoError(t, sdksimapp.FundAccount(app.BankKeeper, ctx, addrs[1], coins))
 
 	tp := govtypes.TextProposal{Title: "title0", Description: "desc0"}
 

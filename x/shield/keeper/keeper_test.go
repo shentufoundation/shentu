@@ -10,6 +10,7 @@ import (
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -218,24 +219,24 @@ func TestClaimProposal(t *testing.T) {
 	simapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.ZeroInt())
 
 	shieldAdmin := sdk.AccAddress(pks[0].Address())
-	err := simapp.FundAccount(app.BankKeeper, ctx, shieldAdmin, sdk.Coins{sdk.NewInt64Coin("uctk", 250e9)})
+	err := sdksimapp.FundAccount(app.BankKeeper, ctx, shieldAdmin, sdk.Coins{sdk.NewInt64Coin("uctk", 250e9)})
 	require.NoError(t, err)
 	app.ShieldKeeper.SetAdmin(ctx, shieldAdmin)
 
 	sponsorAddr := sdk.AccAddress(pks[1].Address())
-	err = simapp.FundAccount(app.BankKeeper, ctx, sponsorAddr, sdk.Coins{sdk.NewInt64Coin("uctk", 1)})
+	err = sdksimapp.FundAccount(app.BankKeeper, ctx, sponsorAddr, sdk.Coins{sdk.NewInt64Coin("uctk", 1)})
 	require.NoError(t, err)
 
 	purchaser := sdk.AccAddress(pks[2].Address())
-	err = simapp.FundAccount(app.BankKeeper, ctx, purchaser, sdk.Coins{sdk.NewInt64Coin("uctk", 10e9)})
+	err = sdksimapp.FundAccount(app.BankKeeper, ctx, purchaser, sdk.Coins{sdk.NewInt64Coin("uctk", 10e9)})
 	require.NoError(t, err)
 
 	del1addr := sdk.AccAddress(pks[3].Address())
-	err = simapp.FundAccount(app.BankKeeper, ctx, del1addr, sdk.Coins{sdk.NewInt64Coin("uctk", 125e9)})
+	err = sdksimapp.FundAccount(app.BankKeeper, ctx, del1addr, sdk.Coins{sdk.NewInt64Coin("uctk", 125e9)})
 	require.NoError(t, err)
 
 	val1pk, val1addr := pks[4], sdk.ValAddress(pks[4].Address())
-	err = simapp.FundAccount(app.BankKeeper, ctx, sdk.AccAddress(pks[4].Address()), sdk.Coins{sdk.NewInt64Coin("uctk", 100e6)})
+	err = sdksimapp.FundAccount(app.BankKeeper, ctx, sdk.AccAddress(pks[4].Address()), sdk.Coins{sdk.NewInt64Coin("uctk", 100e6)})
 	require.NoError(t, err)
 
 	var adminDeposit int64 = 200e9
