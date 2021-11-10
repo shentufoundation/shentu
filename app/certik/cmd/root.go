@@ -49,7 +49,7 @@ import (
 func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	encodingConfig := app.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
-		WithCodec(encodingConfig.Codec).
+		WithCodec(encodingConfig.Marshaler).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
@@ -252,7 +252,7 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts serverty
 func createSimappAndExport(logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string,
 	appOpts servertypes.AppOptions) (servertypes.ExportedApp, error) {
 	encCfg := app.MakeEncodingConfig() // Ideally, we would reuse the one created by NewRootCmd.
-	encCfg.Codec = codec.NewProtoCodec(encCfg.InterfaceRegistry)
+	encCfg.Marshaler = codec.NewProtoCodec(encCfg.InterfaceRegistry)
 	var gaiaApp *app.ShentuApp
 	if height != -1 {
 		gaiaApp = app.NewShentuApp(logger, db, traceStore, false, map[int64]bool{}, "", uint(1), encCfg, appOpts)

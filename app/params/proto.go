@@ -17,7 +17,7 @@ func MakeEncodingConfig() EncodingConfig {
 
 	return EncodingConfig{
 		InterfaceRegistry: interfaceRegistry,
-		Codec:             codec,
+		Marshaler:         codec,
 		TxConfig:          txCfg,
 		Amino:             amino,
 	}

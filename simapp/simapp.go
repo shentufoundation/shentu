@@ -31,12 +31,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
-	cosmosauthkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	sdkauthkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	sdkauthz "github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
+	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 	sdkbanktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
@@ -53,6 +54,7 @@ import (
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	sdkfeegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
+	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -82,7 +84,6 @@ import (
 
 	"github.com/certikfoundation/shentu/v2/x/auth"
 	authkeeper "github.com/certikfoundation/shentu/v2/x/auth/keeper"
-	"github.com/certikfoundation/shentu/v2/x/authz"
 	"github.com/certikfoundation/shentu/v2/x/bank"
 	bankkeeper "github.com/certikfoundation/shentu/v2/x/bank/keeper"
 	"github.com/certikfoundation/shentu/v2/x/cert"
@@ -93,7 +94,6 @@ import (
 	cvmkeeper "github.com/certikfoundation/shentu/v2/x/cvm/keeper"
 	cvmtypes "github.com/certikfoundation/shentu/v2/x/cvm/types"
 	distr "github.com/certikfoundation/shentu/v2/x/distribution"
-	"github.com/certikfoundation/shentu/v2/x/feegrant"
 	"github.com/certikfoundation/shentu/v2/x/gov"
 	govkeeper "github.com/certikfoundation/shentu/v2/x/gov/keeper"
 	govtypes "github.com/certikfoundation/shentu/v2/x/gov/types"
@@ -151,6 +151,7 @@ var (
 		cert.NewAppModuleBasic(),
 		oracle.NewAppModuleBasic(),
 		shield.NewAppModuleBasic(),
+		evidence.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 	)
@@ -194,7 +195,7 @@ type SimApp struct {
 	tkeys   map[string]*sdk.TransientStoreKey
 	memKeys map[string]*sdk.MemoryStoreKey
 
-	AccountKeeper    cosmosauthkeeper.AccountKeeper
+	AccountKeeper    sdkauthkeeper.AccountKeeper
 	AuthzKeeper      authzkeeper.Keeper
 	BankKeeper       bankkeeper.Keeper
 	CapabilityKeeper *capabilitykeeper.Keeper
@@ -301,7 +302,7 @@ func NewSimApp(
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
 
 	// initialize keepers
-	app.AccountKeeper = cosmosauthkeeper.NewAccountKeeper(
+	app.AccountKeeper = sdkauthkeeper.NewAccountKeeper(
 		appCodec,
 		keys[authtypes.StoreKey],
 		app.GetSubspace(authtypes.ModuleName),
@@ -459,6 +460,7 @@ func NewSimApp(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
+	cfg := module.NewConfigurator(appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	/****  Module Options ****/
 
 	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
@@ -502,10 +504,11 @@ func NewSimApp(
 	// NOTE: genutil moodule must occur after staking so that pools
 	// are properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
+		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
+		sdkbanktypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
-		sdkbanktypes.ModuleName,
 		slashingtypes.ModuleName,
 		sdkgovtypes.ModuleName,
 		sdkminttypes.ModuleName,
@@ -521,10 +524,11 @@ func NewSimApp(
 	)
 
 	app.mm.SetOrderExportGenesis(
+		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
+		sdkbanktypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
-		sdkbanktypes.ModuleName,
 		slashingtypes.ModuleName,
 		sdkgovtypes.ModuleName,
 		sdkminttypes.ModuleName,
@@ -536,10 +540,12 @@ func NewSimApp(
 		shieldtypes.ModuleName,
 		sdkauthz.ModuleName,
 		sdkfeegrant.ModuleName,
+		evidencetypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
+	app.mm.RegisterServices(cfg)
 
 	app.sm = module.NewSimulationManager(
 		auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
@@ -599,7 +605,7 @@ func NewSimApp(
 	return app
 }
 
-// MakeCodecs constructs the *std.Codec and *codec.LegacyAmino instances used by
+// MakeCodecs constructs the *std.Marshaler and *codec.LegacyAmino instances used by
 // simapp. It is useful for tests and clients who do not want to construct the
 // full simapp
 func MakeCodecs() (codec.Codec, *codec.LegacyAmino) {
@@ -724,6 +730,8 @@ func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 	authrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	// Register new tendermint queries routes from grpc-gateway.
+	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register legacy and grpc-gateway routes for all modules.
 	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
@@ -735,14 +743,14 @@ func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 	}
 }
 
-// RegisterTendermintService implements the Application.RegisterTendermintService method.
-func (app *SimApp) RegisterTendermintService(clientCtx client.Context) {
-	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
-}
-
 // RegisterTxService implements the Application.RegisterTxService method.
 func (app *SimApp) RegisterTxService(clientCtx client.Context) {
 	authtx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
+}
+
+// RegisterTendermintService implements the Application.RegisterTendermintService method.
+func (app *SimApp) RegisterTendermintService(clientCtx client.Context) {
+	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server

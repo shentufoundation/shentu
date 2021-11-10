@@ -34,6 +34,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	sdkauthz "github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
+	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 	sdkbanktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
@@ -47,6 +48,7 @@ import (
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	sdkfeegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
+	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -77,7 +79,6 @@ import (
 	appparams "github.com/certikfoundation/shentu/v2/app/params"
 	"github.com/certikfoundation/shentu/v2/x/auth"
 	authkeeper "github.com/certikfoundation/shentu/v2/x/auth/keeper"
-	"github.com/certikfoundation/shentu/v2/x/authz"
 	"github.com/certikfoundation/shentu/v2/x/bank"
 	bankkeeper "github.com/certikfoundation/shentu/v2/x/bank/keeper"
 	"github.com/certikfoundation/shentu/v2/x/cert"
@@ -88,7 +89,6 @@ import (
 	cvmkeeper "github.com/certikfoundation/shentu/v2/x/cvm/keeper"
 	cvmtypes "github.com/certikfoundation/shentu/v2/x/cvm/types"
 	distr "github.com/certikfoundation/shentu/v2/x/distribution"
-	"github.com/certikfoundation/shentu/v2/x/feegrant"
 	"github.com/certikfoundation/shentu/v2/x/gov"
 	govkeeper "github.com/certikfoundation/shentu/v2/x/gov/keeper"
 	govtypes "github.com/certikfoundation/shentu/v2/x/gov/types"
@@ -171,7 +171,7 @@ var (
 // ShentuApp is the main Shentu Chain application type.
 type ShentuApp struct {
 	*baseapp.BaseApp
-	cdc               *codec.LegacyAmino
+	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
 	interfaceRegistry types.InterfaceRegistry
 
@@ -219,7 +219,7 @@ type ShentuApp struct {
 func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool, homePath string,
 	invCheckPeriod uint, encodingConfig appparams.EncodingConfig, appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp)) *ShentuApp {
 	// define top-level codec that will be shared between modules
-	appCodec := encodingConfig.Codec
+	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 
@@ -262,7 +262,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// initialize application with its store keys
 	var app = &ShentuApp{
 		BaseApp:           bApp,
-		cdc:               legacyAmino,
+		legacyAmino:       legacyAmino,
 		appCodec:          appCodec,
 		interfaceRegistry: interfaceRegistry,
 		invCheckPeriod:    invCheckPeriod,
@@ -505,9 +505,9 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.SetOrderExportGenesis(
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
+		sdkbanktypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
-		sdkbanktypes.ModuleName,
 		slashingtypes.ModuleName,
 		sdkgovtypes.ModuleName,
 		sdkminttypes.ModuleName,
@@ -520,6 +520,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		sdkauthz.ModuleName,
 		ibctransfertypes.ModuleName,
 		sdkfeegrant.ModuleName,
+		evidencetypes.ModuleName,
 	)
 
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
@@ -603,12 +604,12 @@ func (app *ShentuApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) ab
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
-// MakeCodecs constructs the *std.Codec and *codec.LegacyAmino instances used by
+// MakeCodecs constructs the *std.Marshaler and *codec.LegacyAmino instances used by
 // app. It is useful for tests and clients who do not want to construct the
 // full app
 func MakeCodecs() (codec.Codec, *codec.LegacyAmino) {
 	config := MakeEncodingConfig()
-	return config.Codec, config.Amino
+	return config.Marshaler, config.Amino
 }
 
 // LoadHeight loads a particular height
@@ -631,7 +632,7 @@ func (app *ShentuApp) ModuleAccountAddrs() map[string]bool {
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
 func (app *ShentuApp) LegacyAmino() *codec.LegacyAmino {
-	return app.cdc
+	return app.legacyAmino
 }
 
 // GetSubspace returns a param subspace for a given module name.
@@ -642,7 +643,7 @@ func (app *ShentuApp) GetSubspace(moduleName string) paramstypes.Subspace {
 	return subspace
 }
 
-// Codec returns app.cdc.
+// Codec returns app.legacyAmino.
 func (app *ShentuApp) Codec() codec.Codec {
 	return app.appCodec
 }
@@ -655,37 +656,6 @@ func (app *ShentuApp) InterfaceRegistry() types.InterfaceRegistry {
 // SimulationManager returns app.sm.
 func (app *ShentuApp) SimulationManager() *module.SimulationManager {
 	return app.sm
-}
-
-// initParamsKeeper init params keeper and its subspaces
-func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramskeeper.Keeper {
-	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
-
-	paramsKeeper.Subspace(authtypes.ModuleName)
-	paramsKeeper.Subspace(sdkbanktypes.ModuleName)
-	paramsKeeper.Subspace(stakingtypes.ModuleName)
-	paramsKeeper.Subspace(sdkminttypes.ModuleName)
-	paramsKeeper.Subspace(distrtypes.ModuleName)
-	paramsKeeper.Subspace(slashingtypes.ModuleName)
-	paramsKeeper.Subspace(sdkgovtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
-	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
-	paramsKeeper.Subspace(ibchost.ModuleName)
-	paramsKeeper.Subspace(oracletypes.ModuleName).WithKeyTable(oracletypes.ParamKeyTable())
-	paramsKeeper.Subspace(cvmtypes.ModuleName).WithKeyTable(cvmtypes.ParamKeyTable())
-	paramsKeeper.Subspace(shieldtypes.ModuleName).WithKeyTable(shieldtypes.ParamKeyTable())
-
-	return paramsKeeper
-}
-
-// RegisterSwaggerAPI registers swagger route with API Server
-func RegisterSwaggerAPI(ctx client.Context, rtr *mux.Router) {
-	statikFS, err := fs.New()
-	if err != nil {
-		panic(err)
-	}
-
-	staticServer := http.FileServer(statikFS)
-	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
@@ -718,4 +688,35 @@ func (app *ShentuApp) RegisterTxService(clientCtx client.Context) {
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
 func (app *ShentuApp) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
+}
+
+// RegisterSwaggerAPI registers swagger route with API Server
+func RegisterSwaggerAPI(ctx client.Context, rtr *mux.Router) {
+	statikFS, err := fs.New()
+	if err != nil {
+		panic(err)
+	}
+
+	staticServer := http.FileServer(statikFS)
+	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
+}
+
+// initParamsKeeper init params keeper and its subspaces
+func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramskeeper.Keeper {
+	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
+
+	paramsKeeper.Subspace(authtypes.ModuleName)
+	paramsKeeper.Subspace(sdkbanktypes.ModuleName)
+	paramsKeeper.Subspace(stakingtypes.ModuleName)
+	paramsKeeper.Subspace(sdkminttypes.ModuleName)
+	paramsKeeper.Subspace(distrtypes.ModuleName)
+	paramsKeeper.Subspace(slashingtypes.ModuleName)
+	paramsKeeper.Subspace(sdkgovtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
+	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
+	paramsKeeper.Subspace(ibchost.ModuleName)
+	paramsKeeper.Subspace(oracletypes.ModuleName).WithKeyTable(oracletypes.ParamKeyTable())
+	paramsKeeper.Subspace(cvmtypes.ModuleName).WithKeyTable(cvmtypes.ParamKeyTable())
+	paramsKeeper.Subspace(shieldtypes.ModuleName).WithKeyTable(shieldtypes.ParamKeyTable())
+
+	return paramsKeeper
 }
