@@ -71,6 +71,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/modules/core/02-client"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/modules/core/keeper"
@@ -112,6 +113,7 @@ import (
 const (
 	// AppName specifies the global application name.
 	AppName = "Shentu"
+	upgradeName = "Shentu-upgrade"
 
 	// DefaultKeyPass for certik node daemon.
 	DefaultKeyPass = "12345678"
@@ -213,6 +215,7 @@ type ShentuApp struct {
 
 	// simulation manager
 	sm *module.SimulationManager
+	configurator module.Configurator
 }
 
 // NewShentuApp returns a reference to an initialized ShentuApp.
@@ -524,7 +527,9 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	)
 
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
-	app.mm.RegisterServices(cfg)
+
+	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
+	app.mm.RegisterServices(app.configurator)
 
 	app.sm = module.NewSimulationManager(
 		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
@@ -569,6 +574,23 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	}
 	app.SetAnteHandler(anteHandler)
 	app.SetEndBlocker(app.EndBlocker)
+
+	app.upgradeKeeper.SetUpgradeHandler(
+		upgradeName,
+		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
+			app.ibcKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
+
+			fromVM := make(map[string]uint64)
+			for moduleName := range app.mm.Modules {
+				fromVM[moduleName] = 1
+			}
+			// override versions for _new_ modules as to not skip InitGenesis
+			fromVM[sdkauthz.ModuleName] = 0
+			fromVM[sdkfeegrant.ModuleName] = 0
+
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		},
+	)
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
