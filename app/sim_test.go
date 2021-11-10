@@ -35,6 +35,7 @@ import (
 	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	ibctransfer "github.com/cosmos/ibc-go/modules/apps/transfer/types"
 	ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
 
