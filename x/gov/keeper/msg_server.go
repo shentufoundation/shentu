@@ -162,12 +162,7 @@ func (k msgServer) Vote(goCtx context.Context, msg *govtypes.MsgVote) (*govtypes
 	if accErr != nil {
 		return nil, accErr
 	}
-	options := govtypes.WeightedVoteOptions{
-		govtypes.WeightedVoteOption{
-			Option: msg.Option,
-			Weight: sdk.OneDec(),
-		},
-	}
+	options := govtypes.NewNonSplitVoteOption(msg.Option)
 	err := k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, options)
 	if err != nil {
 		return nil, err

@@ -31,12 +31,7 @@ func TestKeeper_ProposeAndVote(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		options := govtypes.WeightedVoteOptions{
-			govtypes.WeightedVoteOption{
-				Option: govtypes.OptionYes,
-				Weight: sdk.NewDec(1),
-			},
-		}
+		options := govtypes.NewNonSplitVoteOption(govtypes.OptionYes)
 		vote := govtypes.NewVote(pp.ProposalId, addrs[0], options)
 		coins700 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 700*1e6))
 		require.NoError(t, simapp.FundAccount(app.BankKeeper, ctx, addrs[1], coins700))
@@ -87,12 +82,7 @@ func TestKeeper_GetVotes(t *testing.T) {
 		var addr sdk.AccAddress
 		for i := 0; i < 880; i++ {
 			addr = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-			options := govtypes.WeightedVoteOptions{
-				govtypes.WeightedVoteOption{
-					Option: govtypes.OptionYes,
-					Weight: sdk.NewDec(1),
-				},
-			}
+			options := govtypes.NewNonSplitVoteOption(govtypes.OptionYes)
 			vote := govtypes.NewVote(pp.ProposalId, addr, options)
 			voter, err := sdk.AccAddressFromBech32(vote.Voter)
 			if err != nil {

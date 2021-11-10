@@ -43,12 +43,7 @@ func TestDecodeStore(t *testing.T) {
 	txhash := "2300092389009f098099"
 	deposit := types.NewDeposit(proposalID, depositor.Address, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.OneInt())), txhash)
 	voter := RandomAccount()
-	options := govtypes.WeightedVoteOptions{
-		govtypes.WeightedVoteOption{
-			Option: govtypes.OptionYes,
-			Weight: sdk.NewDec(1),
-		},
-	}
+	options := govtypes.NewNonSplitVoteOption(govtypes.OptionYes)
 	vote := types.NewVote(proposalID, voter.Address, options, txhash)
 
 	kvPairs := kv.Pairs{
