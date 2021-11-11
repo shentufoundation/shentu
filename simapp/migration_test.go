@@ -10,6 +10,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 	"github.com/test-go/testify/require"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -23,8 +24,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	sdkparams "github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
+	"github.com/cosmos/ibc-go/modules/apps/transfer"
 
 	"github.com/certikfoundation/shentu/v2/x/auth"
+	"github.com/certikfoundation/shentu/v2/x/cert"
 	"github.com/certikfoundation/shentu/v2/x/cvm"
 	"github.com/certikfoundation/shentu/v2/x/distribution"
 	"github.com/certikfoundation/shentu/v2/x/gov"
@@ -41,12 +44,12 @@ func TestRunMigrations(t *testing.T) {
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 	app := NewSimApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, 0, encCfg, simapp.EmptyAppOptions{})
 
-	// // Create a new baseapp and configurator for the purpose of this test.
-	// bApp := baseapp.NewBaseApp(appName, logger, db, encCfg.TxConfig.TxDecoder())
-	// bApp.SetCommitMultiStoreTracer(nil)
-	// bApp.SetInterfaceRegistry(encCfg.InterfaceRegistry)
-	// app.BaseApp = bApp
-	// app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
+	// Create a new baseapp and configurator for the purpose of this test.
+	bApp := baseapp.NewBaseApp(appName, logger, db, encCfg.TxConfig.TxDecoder())
+	bApp.SetCommitMultiStoreTracer(nil)
+	bApp.SetInterfaceRegistry(encCfg.InterfaceRegistry)
+	app.BaseApp = bApp
+	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 
 	// We register all modules on the Configurator, except x/bank. x/bank will
 	// serve as the test subject on which we run the migration tests.
@@ -130,6 +133,7 @@ func TestRunMigrations(t *testing.T) {
 				app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()}), app.configurator,
 				module.VersionMap{
 					"bank":         1,
+					"cert":         cert.AppModule{}.ConsensusVersion(),
 					"cvm":          cvm.AppModule{}.ConsensusVersion(),
 					"oracle":       oracle.AppModule{}.ConsensusVersion(),
 					"shield":       shield.AppModule{}.ConsensusVersion(),
@@ -148,6 +152,7 @@ func TestRunMigrations(t *testing.T) {
 					"crisis":       crisis.AppModule{}.ConsensusVersion(),
 					"genutil":      genutil.AppModule{}.ConsensusVersion(),
 					"capability":   capability.AppModule{}.ConsensusVersion(),
+					"transfer":     transfer.AppModule{}.ConsensusVersion(),
 				},
 			)
 			if tc.expRunErr {
