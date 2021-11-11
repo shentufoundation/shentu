@@ -8,9 +8,10 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
+
 	//tmcli "github.com/tendermint/tendermint/libs/cli"
 
-   //	"github.com/cosmos/cosmos-sdk/client"
+	//	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
 	//clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
@@ -43,7 +44,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	bankGenesis.DenomMetadata = []types.Metadata{
 		{
-			Description: "The native staking token of the CTK Tokens.",
+			Description: "The native staking token of the Shentu Chain.",
 			DenomUnits: []*types.DenomUnit{
 				{
 					Denom:    "uctk",
@@ -94,8 +95,6 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	s.network.Cleanup()
 }
 
-
-
 func (s *IntegrationTestSuite) TestLockedSendTxCmd() {
 	val := s.network.Validators[0]
 
@@ -108,7 +107,7 @@ func (s *IntegrationTestSuite) TestLockedSendTxCmd() {
 		expectedCode uint32
 		expectErr    bool
 	}{
-		{    
+		{
 			[]string{
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
@@ -125,7 +124,7 @@ func (s *IntegrationTestSuite) TestLockedSendTxCmd() {
 			0,
 			false,
 		},
-		{   
+		{
 			[]string{
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
@@ -142,7 +141,7 @@ func (s *IntegrationTestSuite) TestLockedSendTxCmd() {
 			sdkerrors.ErrInsufficientFee.ABCICode(),
 			false,
 		},
-		{   
+		{
 			[]string{
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
@@ -181,7 +180,6 @@ func (s *IntegrationTestSuite) TestLockedSendTxCmd() {
 		})
 	}
 }
-
 
 func TestIntegrationTestSuite(t *testing.T) {
 	suite.Run(t, new(IntegrationTestSuite))
