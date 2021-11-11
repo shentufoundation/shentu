@@ -112,7 +112,7 @@ import (
 
 const (
 	// AppName specifies the global application name.
-	AppName = "Shentu"
+	AppName     = "Shentu"
 	upgradeName = "Shentu-upgrade"
 
 	// DefaultKeyPass for certik node daemon.
@@ -214,7 +214,7 @@ type ShentuApp struct {
 	mm *module.Manager
 
 	// simulation manager
-	sm *module.SimulationManager
+	sm           *module.SimulationManager
 	configurator module.Configurator
 }
 
