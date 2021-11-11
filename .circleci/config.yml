@@ -330,4 +330,6 @@ workflows:
       - upload-coverage:
           requires:
             - test-cover
-      - lint
+      - lint:
+          requires:
+            - setup-dependencies
