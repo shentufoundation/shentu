@@ -136,7 +136,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (am AppModule) ConsensusVersion() uint64 { return am.ConsensusVersion() }
+func (am AppModule) ConsensusVersion() uint64 { return am.cosmosAppModule.ConsensusVersion() }
 
 // BeginBlock implements the Cosmos SDK BeginBlock module function.
 func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {

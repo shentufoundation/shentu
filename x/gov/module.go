@@ -184,7 +184,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (am AppModule) ConsensusVersion() uint64 { return am.ConsensusVersion() }
+func (am AppModule) ConsensusVersion() uint64 { return 2 }
 
 // BeginBlock implements the Cosmos SDK BeginBlock module function.
 func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
