@@ -44,7 +44,7 @@ func TestDecodeStore(t *testing.T) {
 	deposit := types.NewDeposit(proposalID, depositor.Address, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.OneInt())), txhash)
 	voter := RandomAccount()
 	options := govtypes.NewNonSplitVoteOption(govtypes.OptionYes)
-	vote := types.NewVote(proposalID, voter.Address, options, txhash)
+	vote := govtypes.NewVote(proposalID, voter.Address, options)
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{

@@ -25,7 +25,7 @@ message GenesisState {
     // deposits defines all the deposits present at genesis.
     repeated Deposit deposits = 2 [(gogoproto.castrepeated) = "Deposits", (gogoproto.nullable) = false];
     // votes defines all the votes present at genesis.
-    repeated Vote votes = 3 [(gogoproto.castrepeated) = "Votes", (gogoproto.nullable) = false];
+    repeated cosmos.gov.v1beta1.Vote votes = 3 [(gogoproto.nullable) = false];
     // proposals defines all the proposals present at genesis.
     repeated Proposal proposals = 4 [(gogoproto.castrepeated) = "Proposals", (gogoproto.nullable) = false];
     // params defines all the paramaters of related to deposit.
@@ -128,14 +128,4 @@ enum ProposalStatus {
   // PROPOSAL_STATUS_FAILED defines a proposal status of a proposal that has
   // failed.
   PROPOSAL_STATUS_FAILED = 6 [(gogoproto.enumvalue_customname) = "StatusFailed"];
-}
-
-// Vote defines a vote on a governance proposal.
-// A Vote consists of a proposal ID, the voter, and the vote option.
-message Vote {
-  option (gogoproto.goproto_stringer) = false;
-  option (gogoproto.equal)            = false;
-
-  cosmos.gov.v1beta1.Vote deposit = 1 [(gogoproto.embed) = true];
-  string   tx_hash = 2 [ (gogoproto.moretags) = "yaml:\"txhash\"" ];
 }

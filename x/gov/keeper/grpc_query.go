@@ -133,14 +133,14 @@ func (q Keeper) Votes(c context.Context, req *types.QueryVotesRequest) (*types.Q
 		return nil, status.Error(codes.InvalidArgument, "proposal id can not be 0")
 	}
 
-	var votes types.Votes
+	var votes govtypes.Votes
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(q.storeKey)
 	votesStore := prefix.NewStore(store, govtypes.VotesKey(req.ProposalId))
 
 	pageRes, err := query.Paginate(votesStore, req.Pagination, func(key []byte, value []byte) error {
-		var vote types.Vote
+		var vote govtypes.Vote
 		if err := q.cdc.Unmarshal(value, &vote); err != nil {
 			return err
 		}
