@@ -1,0 +1,13 @@
+{
+	"title": "New Certifier, Alice",
+	"description": "Why we should make Alice a certifier",
+	"certifier": "certik1kgv37gjtl2vj6gg7n2ernkdynr8hj7cfrz0n94",
+	"add_or_remove": "add",
+	"alias": "alice",
+	"deposit": [
+		{
+		"denom": "ctk",
+		"amount": "10"
+		}
+	]
+}
