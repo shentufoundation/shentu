@@ -221,7 +221,7 @@ func queryDepositHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		var deposit types.Deposit
+		var deposit govtypes.Deposit
 		if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &deposit); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

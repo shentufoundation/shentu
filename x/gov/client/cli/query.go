@@ -305,7 +305,7 @@ $ %[1]s query gov deposits 1
 					return err
 				}
 
-				var dep types.Deposits
+				var dep govtypes.Deposits
 				// TODO migrate to use JSONCodec (implement MarshalJSONArray
 				// or wrap lists of proto.Message in some other message)
 				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &dep)

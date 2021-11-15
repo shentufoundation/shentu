@@ -222,14 +222,14 @@ func (q Keeper) Deposits(c context.Context, req *types.QueryDepositsRequest) (*t
 		return nil, status.Error(codes.InvalidArgument, "proposal id can not be 0")
 	}
 
-	var deposits types.Deposits
+	var deposits govtypes.Deposits
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(q.storeKey)
 	depositStore := prefix.NewStore(store, govtypes.DepositsKey(req.ProposalId))
 
 	pageRes, err := query.Paginate(depositStore, req.Pagination, func(key []byte, value []byte) error {
-		var deposit types.Deposit
+		var deposit govtypes.Deposit
 		if err := q.cdc.Unmarshal(value, &deposit); err != nil {
 			return err
 		}

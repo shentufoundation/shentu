@@ -107,13 +107,13 @@ func (k Keeper) IterateInactiveProposalsQueue(ctx sdk.Context, endTime time.Time
 }
 
 // IterateAllDeposits iterates over the all the stored deposits and performs a callback function.
-func (k Keeper) IterateAllDeposits(ctx sdk.Context, cb func(deposit types.Deposit) (stop bool)) {
+func (k Keeper) IterateAllDeposits(ctx sdk.Context, cb func(deposit govtypes.Deposit) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, govtypes.DepositsKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var deposit types.Deposit
+		var deposit govtypes.Deposit
 		k.cdc.MustUnmarshal(iterator.Value(), &deposit)
 
 		if cb(deposit) {

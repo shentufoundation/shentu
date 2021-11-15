@@ -31,7 +31,7 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			return fmt.Sprintf("%d\n%d", proposalIDA, proposalIDB)
 
 		case bytes.Equal(kvA.Key[:1], govtypes.DepositsKeyPrefix):
-			var depositA, depositB types.Deposit
+			var depositA, depositB govtypes.Deposit
 			cdc.MustUnmarshal(kvA.Value, &depositA)
 			cdc.MustUnmarshal(kvB.Value, &depositB)
 			return fmt.Sprintf("%v\n%v", depositA, depositB)
