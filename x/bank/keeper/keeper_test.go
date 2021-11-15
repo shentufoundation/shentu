@@ -102,12 +102,66 @@ func (suite *IntegrationTestSuite) TestSendCoins() {
 	expected = sdk.NewCoins(newFooCoin(150), newBarCoin(75))
 	suite.Require().Equal(expected, acc2Balances)
 
-	// we sent all foo coins to acc2, so foo balance should be deleted for acc1 and bar should be still there
+	// we sent all uctk coins to acc2, so uctk balance should be deleted for acc1 and bar should be still there
 	var coins []sdk.Coin
 	app.BankKeeper.IterateAccountBalances(ctx, addr1, func(c sdk.Coin) (stop bool) {
 		coins = append(coins, c)
 		return true
 	})
 	suite.Require().Len(coins, 1)
-	suite.Require().Equal(newBarCoin(25), coins[0], "expected only bar coins in the account balance, got: %v", coins)
+	suite.Require().Equal(newBarCoin(25), coins[0], "expected only ctk coins in the account balance, got: %v", coins)
+}
+
+
+
+func (suite *IntegrationTestSuite) TestInputOutputCoins() {
+	app, ctx := suite.app, suite.ctx
+	balances := sdk.NewCoins(newFooCoin(90), newBarCoin(30))
+
+	addr1 := sdk.AccAddress([]byte("addr1_______________"))
+	acc1 := app.AccountKeeper.NewAccountWithAddress(ctx, addr1)
+	app.AccountKeeper.SetAccount(ctx, acc1)
+
+	addr2 := sdk.AccAddress([]byte("addr2_______________"))
+	acc2 := app.AccountKeeper.NewAccountWithAddress(ctx, addr2)
+	app.AccountKeeper.SetAccount(ctx, acc2)
+
+	addr3 := sdk.AccAddress([]byte("addr3_______________"))
+	acc3 := app.AccountKeeper.NewAccountWithAddress(ctx, addr3)
+	app.AccountKeeper.SetAccount(ctx, acc3)
+
+	inputs := []types.Input{
+		{Address: addr1.String(), Coins: sdk.NewCoins(newFooCoin(30), newBarCoin(10))},
+		{Address: addr1.String(), Coins: sdk.NewCoins(newFooCoin(30), newBarCoin(10))},
+	}
+	outputs := []types.Output{
+		{Address: addr2.String(), Coins: sdk.NewCoins(newFooCoin(30), newBarCoin(10))},
+		{Address: addr3.String(), Coins: sdk.NewCoins(newFooCoin(30), newBarCoin(10))},
+	}
+
+	suite.Require().Error(app.BankKeeper.InputOutputCoins(ctx, inputs, []types.Output{}))
+	suite.Require().Error(app.BankKeeper.InputOutputCoins(ctx, inputs, outputs))
+
+	suite.Require().NoError(simapp.FundAccount(app.BankKeeper, ctx, addr1, balances))
+
+	insufficientInputs := []types.Input{
+		{Address: addr1.String(), Coins: sdk.NewCoins(newFooCoin(300), newBarCoin(100))},
+		{Address: addr1.String(), Coins: sdk.NewCoins(newFooCoin(300), newBarCoin(100))},
+	}
+	insufficientOutputs := []types.Output{
+		{Address: addr2.String(), Coins: sdk.NewCoins(newFooCoin(300), newBarCoin(100))},
+		{Address: addr3.String(), Coins: sdk.NewCoins(newFooCoin(300), newBarCoin(100))},
+	}
+	suite.Require().Error(app.BankKeeper.InputOutputCoins(ctx, insufficientInputs, insufficientOutputs))
+	suite.Require().NoError(app.BankKeeper.InputOutputCoins(ctx, inputs, outputs))
+
+	acc1Balances := app.BankKeeper.GetAllBalances(ctx, addr1)
+	expected := sdk.NewCoins(newFooCoin(30), newBarCoin(10))
+	suite.Require().Equal(expected, acc1Balances)
+
+	acc2Balances := app.BankKeeper.GetAllBalances(ctx, addr2)
+	suite.Require().Equal(expected, acc2Balances)
+
+	acc3Balances := app.BankKeeper.GetAllBalances(ctx, addr3)
+	suite.Require().Equal(expected, acc3Balances)
 }
