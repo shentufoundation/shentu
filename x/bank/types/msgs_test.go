@@ -47,18 +47,17 @@ func TestTypesTestSuite(t *testing.T) {
 func (suite *IntegrationTestSuite) TestMsgSendRoute() {
 	addr1 := sdk.AccAddress([]byte("from"))
 	addr2 := sdk.AccAddress([]byte("to"))
-	UnlockerAddress := sdk.AccAddress([]byte("unlocker"))
+	unlockerAddress := sdk.AccAddress([]byte("unlocker"))
 	coins := sdk.NewCoins(sdk.NewInt64Coin("uctk", 10))
-	var msg = NewMsgLockedSend(addr1, addr2, UnlockerAddress.String(), coins)
+	var msg = NewMsgLockedSend(addr1, addr2, unlockerAddress.String(), coins)
 	suite.Require().Equal(msg.Route(), bankTypes.RouterKey)
 	suite.Require().Equal(msg.Type(), "locked_send")
 }
 
-
-func (suite *IntegrationTestSuite)  TestMsgSendValidation() {
+func (suite *IntegrationTestSuite) TestMsgSendValidation() {
 	addr1 := sdk.AccAddress([]byte("from"))
 	addr2 := sdk.AccAddress([]byte("to"))
-	UnlockerAddress := sdk.AccAddress([]byte("unlocker"))
+	unlockerAddress := sdk.AccAddress([]byte("unlocker"))
 	CTK123 := sdk.NewCoins(sdk.NewInt64Coin("ctk", 123))
 	CTK0 := sdk.NewCoins(sdk.NewInt64Coin("ctk", 0))
 	CTK123eth123 := sdk.NewCoins(sdk.NewInt64Coin("ctk", 123), sdk.NewInt64Coin("eth", 123))
@@ -70,12 +69,12 @@ func (suite *IntegrationTestSuite)  TestMsgSendValidation() {
 		tx    *MsgLockedSend
 		valid bool
 	}{
-		{NewMsgLockedSend(addr1, addr2, UnlockerAddress.String(), CTK123), true},       // valid send
-		{NewMsgLockedSend(addr1, addr2, UnlockerAddress.String(), CTK123eth123), true}, // valid send with multiple coins
-		{NewMsgLockedSend(addr1, addr2, UnlockerAddress.String(), CTK0), false},        // non positive coin
-		{NewMsgLockedSend(addr1, addr2, UnlockerAddress.String(), CTK123eth0), false},  // non positive coin in multicoins
-		{NewMsgLockedSend(emptyAddr, addr2, UnlockerAddress.String(), CTK123), false},  // empty from addr
-		{NewMsgLockedSend(addr1, emptyAddr, UnlockerAddress.String(), CTK123), false},  // empty to addr
+		{NewMsgLockedSend(addr1, addr2, unlockerAddress.String(), CTK123), true},       // valid send
+		{NewMsgLockedSend(addr1, addr2, unlockerAddress.String(), CTK123eth123), true}, // valid send with multiple coins
+		{NewMsgLockedSend(addr1, addr2, unlockerAddress.String(), CTK0), false},        // non positive coin
+		{NewMsgLockedSend(addr1, addr2, unlockerAddress.String(), CTK123eth0), false},  // non positive coin in multicoins
+		{NewMsgLockedSend(emptyAddr, addr2, unlockerAddress.String(), CTK123), false},  // empty from addr
+		{NewMsgLockedSend(addr1, emptyAddr, unlockerAddress.String(), CTK123), false},  // empty to addr
 	}
 
 	for _, tc := range cases {
@@ -84,4 +83,17 @@ func (suite *IntegrationTestSuite)  TestMsgSendValidation() {
 			suite.Require().Nil(err)
 		}
 	}
+}
+
+func (suite *IntegrationTestSuite) TestMsgSendGetSignBytes() {
+	addr1 := sdk.AccAddress([]byte("input"))
+	addr2 := sdk.AccAddress([]byte("output"))
+	unlockerAddress := sdk.AccAddress([]byte("unlocker"))
+	coins := sdk.NewCoins(sdk.NewInt64Coin("ctk", 10))
+	var msg = NewMsgLockedSend(addr1, addr2, unlockerAddress.String(), coins)
+	res := msg.GetSignBytes()
+
+	expected := `{"type":"bank/MsgLockedSend","value":{"amount":[{"amount":"10","denom":"ctk"}],"from_address":"cosmos1d9h8qat57ljhcm","to_address":"cosmos1da6hgur4wsmpnjyg","unlocker_address":"cosmos1w4hxcmmrddjhy0qf5ju"}}`
+
+	suite.Require().Equal(expected, string(res))
 }
