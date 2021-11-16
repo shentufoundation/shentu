@@ -1,7 +1,7 @@
 package types
 
 import (
-	//"fmt"
+	"fmt"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -97,3 +97,12 @@ func (suite *IntegrationTestSuite) TestMsgSendGetSignBytes() {
 
 	suite.Require().Equal(expected, string(res))
 }
+
+func (suite *IntegrationTestSuite)  TestMsgSendGetSigners() {
+	unlockerAddress := sdk.AccAddress([]byte("unlocker"))
+	var msg = NewMsgLockedSend(sdk.AccAddress([]byte("input1")), sdk.AccAddress{}, unlockerAddress.String(), sdk.NewCoins())
+	res := msg.GetSigners()
+	// TODO: fix this !
+	suite.Require().Equal(fmt.Sprintf("%v", res), "[696E70757431]")
+}
+
