@@ -16,7 +16,7 @@ import (
 
 const upgradeName = "Shentu-v230"
 
-func (app ShentuApp) setUpgradeHandler(cfg module.Configurator) {
+func (app ShentuApp) setUpgradeHandler() {
 	app.upgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {

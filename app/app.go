@@ -438,10 +438,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.evidenceKeeper = *evidenceKeeper
 
-	// Add empty upgrade handler to bump to 0.44.0
-	cfg := module.NewConfigurator(appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
-	app.setUpgradeHandler(cfg)
-
 	/****  Module Options ****/
 
 	// NOTE: Any module instantiated in the module manager that is
@@ -572,6 +568,8 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	}
 	app.SetAnteHandler(anteHandler)
 	app.SetEndBlocker(app.EndBlocker)
+
+	app.setUpgradeHandler()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {

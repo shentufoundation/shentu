@@ -20,6 +20,7 @@ import (
 	sdkbank "github.com/cosmos/cosmos-sdk/x/bank"
 	bankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	v040 "github.com/cosmos/cosmos-sdk/x/bank/legacy/v040"
 	banksim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -88,6 +89,9 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
 	banktypes.RegisterInterfaces(registry)
+
+	// Register legacy interfaces for migration scripts.
+	v040.RegisterInterfaces(registry)
 }
 
 // ___________________________
