@@ -1,167 +1,189 @@
 package keeper_test
 
 import (
+	"strings"
 	"testing"
-	//"time"
 
 	"github.com/stretchr/testify/suite"
+
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp"
+	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	//"github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	"github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
-const (
-	fooDenom     = "uctk"
-	barDenom     = "ctk"
-	initialPower = int64(100)
-	holder       = "holder"
-	multiPerm    = "multiple permissions account"
-	randomPerm   = "random permission"
-)
-
 var (
-	holderAcc     = authtypes.NewEmptyModuleAccount(holder)
-	burnerAcc     = authtypes.NewEmptyModuleAccount(authtypes.Burner, authtypes.Burner)
-	minterAcc     = authtypes.NewEmptyModuleAccount(authtypes.Minter, authtypes.Minter)
-	multiPermAcc  = authtypes.NewEmptyModuleAccount(multiPerm, authtypes.Burner, authtypes.Minter, authtypes.Staking)
-	randomPermAcc = authtypes.NewEmptyModuleAccount(randomPerm, "random")
-
-	// The default power validators are initialized to have within tests
-	initTokens = sdk.TokensFromConsensusPower(initialPower, sdk.DefaultPowerReduction)
-	initCoins  = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, initTokens))
+	acc1 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc2 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc3 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc4 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 )
 
-func newFooCoin(amt int64) sdk.Coin {
-	return sdk.NewInt64Coin(fooDenom, amt)
-}
-
-func newBarCoin(amt int64) sdk.Coin {
-	return sdk.NewInt64Coin(barDenom, amt)
-}
-
-
-
-type IntegrationTestSuite struct {
+// shared setup
+type KeeperTestSuite struct {
 	suite.Suite
 
+	address     []sdk.AccAddress
 	app         *simapp.SimApp
 	ctx         sdk.Context
 	queryClient types.QueryClient
+	params      types.AccountKeeper
+	keeper      keeper.Keeper
+
+	//amount       int64
 }
 
-func (suite *IntegrationTestSuite) SetupTest() {
-	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+func (suite *KeeperTestSuite) SetupTest() {
+	suite.app = simapp.Setup(false)
+	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
+	suite.params = suite.app.AccountKeeper
+	suite.keeper = suite.app.BankKeeper
 
-	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	app.BankKeeper.SetParams(ctx, types.DefaultParams())
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, suite.app.BankKeeper)
+	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.BankKeeper)
-	queryClient := types.NewQueryClient(queryHelper)
+	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
+		err := sdksimapp.FundAccount(
+			suite.app.BankKeeper,
+			suite.ctx,
+			acc,
+			sdk.NewCoins(
+				sdk.NewCoin("uctk", sdk.NewInt(1000)), // 1,000 CTK
+			),
+		)
+		if err != nil {
+			panic(err)
+		}
+	}
 
-	suite.app = app
-	suite.ctx = ctx
-	suite.queryClient = queryClient
+	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(IntegrationTestSuite))
+	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *IntegrationTestSuite) TestSendCoins() {
-	app, ctx := suite.app, suite.ctx
-	balances := sdk.NewCoins(newFooCoin(100), newBarCoin(50))
+func (suite *KeeperTestSuite) TestMsgSend() {
+	type args struct {
+		fromAddr sdk.AccAddress
+		toAddr   sdk.AccAddress
+		amount   int64
+	}
 
-	addr1 := sdk.AccAddress("addr1_______________")
-	acc1 := app.AccountKeeper.NewAccountWithAddress(ctx, addr1)
-	app.AccountKeeper.SetAccount(ctx, acc1)
+	type errArgs struct {
+		shouldPass bool
+		contains   string
+	}
 
-	addr2 := sdk.AccAddress("addr2_______________")
-	acc2 := app.AccountKeeper.NewAccountWithAddress(ctx, addr2)
-	app.AccountKeeper.SetAccount(ctx, acc2)
-	suite.Require().NoError(simapp.FundAccount(app.BankKeeper, ctx, addr2, balances))
-
-	sendAmt := sdk.NewCoins(newFooCoin(50), newBarCoin(25))
-	suite.Require().Error(app.BankKeeper.SendCoins(ctx, addr1, addr2, sendAmt))
-
-	suite.Require().NoError(simapp.FundAccount(app.BankKeeper, ctx, addr1, balances))
-	suite.Require().NoError(app.BankKeeper.SendCoins(ctx, addr1, addr2, sendAmt))
-
-	acc1Balances := app.BankKeeper.GetAllBalances(ctx, addr1)
-	expected := sdk.NewCoins(newFooCoin(50), newBarCoin(25))
-	suite.Require().Equal(expected, acc1Balances)
-
-	acc2Balances := app.BankKeeper.GetAllBalances(ctx, addr2)
-	expected = sdk.NewCoins(newFooCoin(150), newBarCoin(75))
-	suite.Require().Equal(expected, acc2Balances)
-
-	// we sent all uctk coins to acc2, so uctk balance should be deleted for acc1 and bar should be still there
-	var coins []sdk.Coin
-	app.BankKeeper.IterateAccountBalances(ctx, addr1, func(c sdk.Coin) (stop bool) {
-		coins = append(coins, c)
-		return true
-	})
-	suite.Require().Len(coins, 1)
-	suite.Require().Equal(newBarCoin(25), coins[0], "expected only ctk coins in the account balance, got: %v", coins)
+	tests := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{"Operator(1) Create: first send",
+			args{
+				amount:   200,
+				fromAddr: suite.address[0],
+				toAddr:   suite.address[1],
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+		{"Operator(1) Create: second send if balance is less",
+			args{
+				amount:   11000,
+				fromAddr: suite.address[0],
+				toAddr:   suite.address[1],
+			},
+			errArgs{
+				shouldPass: false,
+				contains:   "",
+			},
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			err := suite.app.BankKeeper.SendCoins(suite.ctx, tc.args.fromAddr, tc.args.toAddr, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.amount)})
+			balance := suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.args.fromAddr)
+			if tc.errArgs.shouldPass {
+				suite.Require().NoError(err, tc.name)
+				suite.Require().NotEqual(tc.args.amount, balance)
+				suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("uctk", 800)}, balance)
+			} else {
+				suite.Require().Error(err, tc.name)
+				suite.Require().NotEqual(tc.args.amount, balance)
+				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+			}
+		})
+	}
 }
 
-
-
-func (suite *IntegrationTestSuite) TestInputOutputCoins() {
-	app, ctx := suite.app, suite.ctx
-	balances := sdk.NewCoins(newFooCoin(90), newBarCoin(30))
-
-	addr1 := sdk.AccAddress([]byte("addr1_______________"))
-	acc1 := app.AccountKeeper.NewAccountWithAddress(ctx, addr1)
-	app.AccountKeeper.SetAccount(ctx, acc1)
-
-	addr2 := sdk.AccAddress([]byte("addr2_______________"))
-	acc2 := app.AccountKeeper.NewAccountWithAddress(ctx, addr2)
-	app.AccountKeeper.SetAccount(ctx, acc2)
-
-	addr3 := sdk.AccAddress([]byte("addr3_______________"))
-	acc3 := app.AccountKeeper.NewAccountWithAddress(ctx, addr3)
-	app.AccountKeeper.SetAccount(ctx, acc3)
-
-	inputs := []types.Input{
-		{Address: addr1.String(), Coins: sdk.NewCoins(newFooCoin(30), newBarCoin(10))},
-		{Address: addr1.String(), Coins: sdk.NewCoins(newFooCoin(30), newBarCoin(10))},
-	}
-	outputs := []types.Output{
-		{Address: addr2.String(), Coins: sdk.NewCoins(newFooCoin(30), newBarCoin(10))},
-		{Address: addr3.String(), Coins: sdk.NewCoins(newFooCoin(30), newBarCoin(10))},
+func (suite *KeeperTestSuite) TestMsgMultiSend() {
+	type args struct {
+		fromAddr        sdk.AccAddress
+		toAddr          sdk.AccAddress
+		UnlockerAddress sdk.AccAddress
+		amount          int64
 	}
 
-	suite.Require().Error(app.BankKeeper.InputOutputCoins(ctx, inputs, []types.Output{}))
-	suite.Require().Error(app.BankKeeper.InputOutputCoins(ctx, inputs, outputs))
-
-	suite.Require().NoError(simapp.FundAccount(app.BankKeeper, ctx, addr1, balances))
-
-	insufficientInputs := []types.Input{
-		{Address: addr1.String(), Coins: sdk.NewCoins(newFooCoin(300), newBarCoin(100))},
-		{Address: addr1.String(), Coins: sdk.NewCoins(newFooCoin(300), newBarCoin(100))},
+	type errArgs struct {
+		shouldPass bool
+		contains   string
 	}
-	insufficientOutputs := []types.Output{
-		{Address: addr2.String(), Coins: sdk.NewCoins(newFooCoin(300), newBarCoin(100))},
-		{Address: addr3.String(), Coins: sdk.NewCoins(newFooCoin(300), newBarCoin(100))},
+
+	tests := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+
+		{"Operator(1) Create: first send",
+			args{
+				amount:          200,
+				fromAddr:        suite.address[0],
+				toAddr:          suite.address[1],
+				UnlockerAddress: suite.address[2],
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+
+		{"Operator(1) Create: second send",
+			args{
+				amount:          1100,
+				fromAddr:        suite.address[0],
+				toAddr:          suite.address[1],
+				UnlockerAddress: suite.address[2],
+			},
+			errArgs{
+				shouldPass: false,
+				contains:   "",
+			},
+		},
 	}
-	suite.Require().Error(app.BankKeeper.InputOutputCoins(ctx, insufficientInputs, insufficientOutputs))
-	suite.Require().NoError(app.BankKeeper.InputOutputCoins(ctx, inputs, outputs))
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			err := suite.app.BankKeeper.SendCoins(suite.ctx, tc.args.fromAddr, tc.args.toAddr, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.amount)})
 
-	acc1Balances := app.BankKeeper.GetAllBalances(ctx, addr1)
-	expected := sdk.NewCoins(newFooCoin(30), newBarCoin(10))
-	suite.Require().Equal(expected, acc1Balances)
-
-	acc2Balances := app.BankKeeper.GetAllBalances(ctx, addr2)
-	suite.Require().Equal(expected, acc2Balances)
-
-	acc3Balances := app.BankKeeper.GetAllBalances(ctx, addr3)
-	suite.Require().Equal(expected, acc3Balances)
+			if tc.errArgs.shouldPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+			}
+		})
+	}
 }
