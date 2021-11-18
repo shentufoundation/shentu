@@ -111,7 +111,7 @@ import (
 
 const (
 	// AppName specifies the global application name.
-	AppName     = "Shentu"
+	AppName = "Shentu"
 
 	// DefaultKeyPass for certik node daemon.
 	DefaultKeyPass = "12345678"

@@ -2,6 +2,7 @@
 package staking
 
 import (
+	"context"
 	"encoding/json"
 	"math/rand"
 
@@ -19,11 +20,11 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	sdksimulation "github.com/cosmos/cosmos-sdk/x/staking/simulation"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/v2/common"
+	"github.com/certikfoundation/shentu/v2/x/staking/client/rest"
 	"github.com/certikfoundation/shentu/v2/x/staking/keeper"
 	"github.com/certikfoundation/shentu/v2/x/staking/simulation"
 )
@@ -68,12 +69,12 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 
 // RegisterRESTRoutes registers the REST routes for the staking module.
 func (AppModuleBasic) RegisterRESTRoutes(cliCtx client.Context, route *mux.Router) {
-	staking.AppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
+	rest.RegisterRoutes(cliCtx, route)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the staking module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	staking.AppModuleBasic{}.RegisterGRPCGatewayRoutes(clientCtx, mux)
+	stakingtypes.RegisterQueryHandlerClient(context.Background(), mux, stakingtypes.NewQueryClient(clientCtx))
 }
 
 // GetTxCmd returns no root tx command for the staking module.
@@ -126,7 +127,7 @@ func (AppModule) QuerierRoute() string {
 
 // NewQuerierHandler create new query handler.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return stakingkeeper.NewQuerier(am.keeper.Keeper, legacyQuerierCdc)
+	return am.cosmosAppModule.LegacyQuerierHandler(legacyQuerierCdc)
 }
 
 // RegisterServices registers a gRPC query service to respond to the
