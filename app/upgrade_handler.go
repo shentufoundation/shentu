@@ -55,7 +55,7 @@ func (app ShentuApp) setUpgradeHandler() {
 				return false
 			})
 
-			return temp, err
+			return temp, iterErr
 		},
 	)
 
