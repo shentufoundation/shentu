@@ -111,7 +111,7 @@ import (
 
 const (
 	// AppName specifies the global application name.
-	AppName     = "Shentu"
+	AppName = "Shentu"
 
 	// DefaultKeyPass for certik node daemon.
 	DefaultKeyPass = "12345678"
@@ -551,8 +551,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.MountTransientStores(tkeys)
 	app.MountMemoryStores(memKeys)
 
-	app.SetInitChainer(app.InitChainer)
-	app.SetBeginBlocker(app.BeginBlocker)
 	// The AnteHandler handles signature verification and transaction pre-processing
 	anteHandler, err := ante.NewAnteHandler(
 		ante.HandlerOptions{
@@ -567,6 +565,8 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		tmos.Exit(err.Error())
 	}
 	app.SetAnteHandler(anteHandler)
+	app.SetInitChainer(app.InitChainer)
+	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
 	app.setUpgradeHandler()
