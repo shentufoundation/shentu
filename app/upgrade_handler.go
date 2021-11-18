@@ -2,17 +2,17 @@ package app
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	sdkauthtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	sdkauthz "github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	sdkfeegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
 
