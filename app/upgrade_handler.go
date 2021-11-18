@@ -2,10 +2,10 @@ package app
 
 import (
 	"fmt"
-
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	sdkauthz "github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
@@ -21,7 +21,7 @@ func (app ShentuApp) setUpgradeHandler() {
 		upgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
 			app.ibcKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
-	
+
 			fromVM := make(map[string]uint64)
 			for moduleName := range app.mm.Modules {
 				fromVM[moduleName] = 1
@@ -29,8 +29,18 @@ func (app ShentuApp) setUpgradeHandler() {
 			// override versions for _new_ modules as to not skip InitGenesis
 			fromVM[sdkauthz.ModuleName] = 0
 			fromVM[sdkfeegrant.ModuleName] = 0
-	
-			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+
+			temp, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
+
+			if err != nil {
+				return temp, err
+			}
+
+			authVM := make(map[string]uint64)
+			authVM[authtypes.ModuleName] = 1
+
+			_, err = app.mm.RunMigrations(ctx, app.configurator, authVM)
+			return temp, err
 		},
 	)
 
