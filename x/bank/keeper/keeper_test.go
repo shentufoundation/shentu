@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
 )
@@ -35,8 +34,6 @@ type KeeperTestSuite struct {
 	queryClient types.QueryClient
 	params      types.AccountKeeper
 	keeper      keeper.Keeper
-
-	//amount       int64
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -55,7 +52,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 			suite.ctx,
 			acc,
 			sdk.NewCoins(
-				sdk.NewCoin("uctk", sdk.NewInt(1000)), // 1,000 CTK
+				sdk.NewCoin("ctk", sdk.NewInt(1000)), // 1,000 CTK
 			),
 		)
 		if err != nil {
@@ -70,11 +67,12 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestMsgSend() {
+func (suite *KeeperTestSuite) TestSendCoins() {
 	type args struct {
-		fromAddr sdk.AccAddress
-		toAddr   sdk.AccAddress
-		amount   int64
+		fromAddr   sdk.AccAddress
+		toAddr     sdk.AccAddress
+		amount     int64
+		accBalance int64
 	}
 
 	type errArgs struct {
@@ -89,9 +87,10 @@ func (suite *KeeperTestSuite) TestMsgSend() {
 	}{
 		{"Operator(1) Create: first send",
 			args{
-				amount:   200,
-				fromAddr: suite.address[0],
-				toAddr:   suite.address[1],
+				amount:     200,
+				accBalance: 800,
+				fromAddr:   suite.address[0],
+				toAddr:     suite.address[1],
 			},
 			errArgs{
 				shouldPass: true,
@@ -100,9 +99,10 @@ func (suite *KeeperTestSuite) TestMsgSend() {
 		},
 		{"Operator(1) Create: second send if balance is less",
 			args{
-				amount:   11000,
-				fromAddr: suite.address[0],
-				toAddr:   suite.address[1],
+				amount:     11000,
+				accBalance: 1000,
+				fromAddr:   suite.address[0],
+				toAddr:     suite.address[1],
 			},
 			errArgs{
 				shouldPass: false,
@@ -113,12 +113,12 @@ func (suite *KeeperTestSuite) TestMsgSend() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			err := suite.app.BankKeeper.SendCoins(suite.ctx, tc.args.fromAddr, tc.args.toAddr, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.amount)})
+			err := suite.app.BankKeeper.SendCoins(suite.ctx, tc.args.fromAddr, tc.args.toAddr, sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)})
 			balance := suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.args.fromAddr)
 			if tc.errArgs.shouldPass {
 				suite.Require().NoError(err, tc.name)
 				suite.Require().NotEqual(tc.args.amount, balance)
-				suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("uctk", 800)}, balance)
+				suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.accBalance)}, balance)
 			} else {
 				suite.Require().Error(err, tc.name)
 				suite.Require().NotEqual(tc.args.amount, balance)
@@ -128,62 +128,6 @@ func (suite *KeeperTestSuite) TestMsgSend() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestMsgMultiSend() {
-	type args struct {
-		fromAddr        sdk.AccAddress
-		toAddr          sdk.AccAddress
-		UnlockerAddress sdk.AccAddress
-		amount          int64
-	}
-
-	type errArgs struct {
-		shouldPass bool
-		contains   string
-	}
-
-	tests := []struct {
-		name    string
-		args    args
-		errArgs errArgs
-	}{
-
-		{"Operator(1) Create: first send",
-			args{
-				amount:          200,
-				fromAddr:        suite.address[0],
-				toAddr:          suite.address[1],
-				UnlockerAddress: suite.address[2],
-			},
-			errArgs{
-				shouldPass: true,
-				contains:   "",
-			},
-		},
-
-		{"Operator(1) Create: second send",
-			args{
-				amount:          1100,
-				fromAddr:        suite.address[0],
-				toAddr:          suite.address[1],
-				UnlockerAddress: suite.address[2],
-			},
-			errArgs{
-				shouldPass: false,
-				contains:   "",
-			},
-		},
-	}
-	for _, tc := range tests {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			err := suite.app.BankKeeper.SendCoins(suite.ctx, tc.args.fromAddr, tc.args.toAddr, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.amount)})
-
-			if tc.errArgs.shouldPass {
-				suite.Require().NoError(err, tc.name)
-			} else {
-				suite.Require().Error(err, tc.name)
-				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
-			}
-		})
-	}
+func (suite *KeeperTestSuite) TestLockedSend() {
+	//testing for locksend
 }
