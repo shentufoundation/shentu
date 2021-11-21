@@ -4,105 +4,280 @@ import (
 	"fmt"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	"github.com/stretchr/testify/suite"
+
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
-type IntegrationTestSuite struct {
+var (
+	acc1 = sdk.AccAddress([]byte("input1"))
+	acc2 = sdk.AccAddress([]byte("input2"))
+	acc3 = sdk.AccAddress([]byte("input3"))
+	acc4 = sdk.AccAddress([]byte("input4"))
+)
+
+// shared setup
+type TypesTestSuite struct {
 	suite.Suite
 
+	address     []sdk.AccAddress
 	app         *simapp.SimApp
 	ctx         sdk.Context
 	queryClient types.QueryClient
+	params      types.AccountKeeper
+	keeper      keeper.Keeper
 }
 
-func (suite *IntegrationTestSuite) SetupTest() {
-	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+func (suite *TypesTestSuite) SetupTest() {
+	suite.app = simapp.Setup(false)
+	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
+	suite.params = suite.app.AccountKeeper
+	suite.keeper = suite.app.BankKeeper
 
-	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	app.BankKeeper.SetParams(ctx, types.DefaultParams())
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, suite.app.BankKeeper)
+	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.BankKeeper)
-	queryClient := types.NewQueryClient(queryHelper)
-
-	suite.app = app
-	suite.ctx = ctx
-	suite.queryClient = queryClient
+	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
 }
 
 func TestTypesTestSuite(t *testing.T) {
-	suite.Run(t, new(IntegrationTestSuite))
+	suite.Run(t, new(TypesTestSuite))
 }
 
-func (suite *IntegrationTestSuite) TestMsgSendRoute() {
-	addr1 := sdk.AccAddress([]byte("from"))
-	addr2 := sdk.AccAddress([]byte("to"))
-	unlockerAddress := sdk.AccAddress([]byte("unlocker"))
-	coins := sdk.NewCoins(sdk.NewInt64Coin("uctk", 10))
-	var msg = NewMsgLockedSend(addr1, addr2, unlockerAddress.String(), coins)
-	suite.Require().Equal(msg.Route(), bankTypes.RouterKey)
-	suite.Require().Equal(msg.Type(), "locked_send")
-}
+func (suite *TypesTestSuite) TestMsgSendRoute() {
+	type args struct {
+		fromAddr        sdk.AccAddress
+		toAddr          sdk.AccAddress
+		unlockerAddress sdk.AccAddress
+		amount          int64
+	}
 
-func (suite *IntegrationTestSuite) TestMsgSendValidation() {
-	addr1 := sdk.AccAddress([]byte("from"))
-	addr2 := sdk.AccAddress([]byte("to"))
-	unlockerAddress := sdk.AccAddress([]byte("unlocker"))
-	CTK123 := sdk.NewCoins(sdk.NewInt64Coin("ctk", 123))
-	CTK0 := sdk.NewCoins(sdk.NewInt64Coin("ctk", 0))
-	CTK123eth123 := sdk.NewCoins(sdk.NewInt64Coin("ctk", 123), sdk.NewInt64Coin("eth", 123))
-	CTK123eth0 := sdk.Coins{sdk.NewInt64Coin("ctk", 123), sdk.NewInt64Coin("eth", 0)}
+	type errArgs struct {
+		shouldPass bool
+		contains   string
+	}
 
-	var emptyAddr sdk.AccAddress
-
-	cases := []struct {
-		tx    *MsgLockedSend
-		valid bool
+	tests := []struct {
+		name    string
+		args    args
+		errArgs errArgs
 	}{
-		{NewMsgLockedSend(addr1, addr2, unlockerAddress.String(), CTK123), true},       // valid send
-		{NewMsgLockedSend(addr1, addr2, unlockerAddress.String(), CTK123eth123), true}, // valid send with multiple coins
-		{NewMsgLockedSend(addr1, addr2, unlockerAddress.String(), CTK0), false},        // non positive coin
-		{NewMsgLockedSend(addr1, addr2, unlockerAddress.String(), CTK123eth0), false},  // non positive coin in multicoins
-		{NewMsgLockedSend(emptyAddr, addr2, unlockerAddress.String(), CTK123), false},  // empty from addr
-		{NewMsgLockedSend(addr1, emptyAddr, unlockerAddress.String(), CTK123), false},  // empty to addr
+		{"Operator(1) Create: first",
+			args{
+				amount:          200,
+				fromAddr:        suite.address[0],
+				toAddr:          suite.address[1],
+				unlockerAddress: suite.address[2],
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+		{"Operator(1) Create: second",
+			args{
+				amount:          110,
+				fromAddr:        suite.address[0],
+				toAddr:          suite.address[1],
+				unlockerAddress: suite.address[2],
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			coins := sdk.NewCoins(sdk.NewInt64Coin("ctk", tc.args.amount))
+			var msg = NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
+			if tc.errArgs.shouldPass {
+				suite.Require().Equal(msg.Route(), "bank")
+				suite.Require().Equal(msg.Type(), "locked_send")
+			} else {
+
+			}
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestMsgSendValidation() {
+	type args struct {
+		fromAddr        sdk.AccAddress
+		toAddr          sdk.AccAddress
+		unlockerAddress sdk.AccAddress
+		amount          int64
 	}
 
-	for _, tc := range cases {
-		err := tc.tx.ValidateBasic()
-		if tc.valid {
-			suite.Require().Nil(err)
-		}
+	type errArgs struct {
+		shouldPass bool
+		contains   string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{"Operator(1) Create: first",
+			args{
+				amount:          200,
+				fromAddr:        suite.address[0],
+				toAddr:          suite.address[1],
+				unlockerAddress: suite.address[2],
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+		{"Operator(1) Create: second",
+			args{
+				amount:          110,
+				fromAddr:        suite.address[0],
+				toAddr:          suite.address[1],
+				unlockerAddress: suite.address[2],
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			coins := sdk.NewCoins(sdk.NewInt64Coin("ctk", tc.args.amount))
+			var msg = NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
+			err := msg.ValidateBasic()
+			suite.Require().NoError(err, tc.name)
+			if tc.errArgs.shouldPass {
+				suite.Require().Nil(err)
+			} else {
+				suite.Require().NotNil(err)
+			}
+		})
 	}
 }
 
-func (suite *IntegrationTestSuite) TestMsgSendGetSignBytes() {
-	addr1 := sdk.AccAddress([]byte("input"))
-	addr2 := sdk.AccAddress([]byte("output"))
-	unlockerAddress := sdk.AccAddress([]byte("unlocker"))
-	coins := sdk.NewCoins(sdk.NewInt64Coin("ctk", 10))
-	var msg = NewMsgLockedSend(addr1, addr2, unlockerAddress.String(), coins)
-	res := msg.GetSignBytes()
+func (suite *TypesTestSuite) TestMsgSendGetSignBytes() {
+	type args struct {
+		fromAddr        sdk.AccAddress
+		toAddr          sdk.AccAddress
+		unlockerAddress sdk.AccAddress
+		amount          int64
+	}
 
-	expected := `{"type":"bank/MsgLockedSend","value":{"amount":[{"amount":"10","denom":"ctk"}],"from_address":"cosmos1d9h8qat57ljhcm","to_address":"cosmos1da6hgur4wsmpnjyg","unlocker_address":"cosmos1w4hxcmmrddjhy0qf5ju"}}`
+	type errArgs struct {
+		shouldPass bool
+		contains   string
+	}
 
-	suite.Require().Equal(expected, string(res))
+	tests := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{"Operator(1) Create: first",
+			args{
+				amount:          200,
+				fromAddr:        suite.address[0],
+				toAddr:          suite.address[1],
+				unlockerAddress: suite.address[2],
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+		{"Operator(1) Create: Second",
+			args{
+				amount:          2000,
+				fromAddr:        suite.address[0],
+				toAddr:          suite.address[1],
+				unlockerAddress: suite.address[2],
+			},
+			errArgs{
+				shouldPass: false,
+				contains:   "",
+			},
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			coins := sdk.NewCoins(sdk.NewInt64Coin("ctk", tc.args.amount))
+			var msg = NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
+			res := msg.GetSignBytes()
+			expected := `{"type":"bank/MsgLockedSend","value":{"amount":[{"amount":"200","denom":"ctk"}],"from_address":"cosmos1d9h8qat5xyj6yfmj","to_address":"cosmos1d9h8qat5xgryzr24","unlocker_address":"cosmos1d9h8qat5xvvwq990"}}`
+			if tc.errArgs.shouldPass {
+				suite.Require().Equal(expected, string(res))
+			} else {
+				suite.Require().NotEqual(expected, string(res))
+			}
+		})
+	}
 }
 
-func (suite *IntegrationTestSuite)  TestMsgSendGetSigners() {
-	unlockerAddress := sdk.AccAddress([]byte("unlocker"))
-	var msg = NewMsgLockedSend(sdk.AccAddress([]byte("input1")), sdk.AccAddress{}, unlockerAddress.String(), sdk.NewCoins())
-	res := msg.GetSigners()
-	// TODO: fix this !
-	suite.Require().Equal(fmt.Sprintf("%v", res), "[696E70757431]")
-}
+func (suite *TypesTestSuite) TestMsgSendGetSigners() {
+	type args struct {
+		fromAddr        sdk.AccAddress
+		toAddr          sdk.AccAddress
+		unlockerAddress sdk.AccAddress
+		amount          int64
+	}
 
+	type errArgs struct {
+		shouldPass bool
+		contains   string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{"Operator(1) Create: first",
+			args{
+				fromAddr:        suite.address[0],
+				toAddr:          suite.address[1],
+				unlockerAddress: suite.address[2],
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+		{"Operator(1) Create: Second",
+			args{
+				fromAddr:        suite.address[0],
+				toAddr:          suite.address[1],
+				unlockerAddress: suite.address[2],
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			var msg = NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), sdk.NewCoins())
+			res := msg.GetSigners()
+			if tc.errArgs.shouldPass {
+				suite.Require().Equal(fmt.Sprintf("%v", res), "[696E70757431]")
+			} else {
+				suite.Require().NotEqual(fmt.Sprintf("%v", res), "[696E70757431]")
+			}
+		})
+	}
+}
