@@ -232,7 +232,6 @@ func (suite *TypesTestSuite) TestMsgSendGetSigners() {
 		fromAddr        sdk.AccAddress
 		toAddr          sdk.AccAddress
 		unlockerAddress sdk.AccAddress
-		amount          int64
 	}
 
 	type errArgs struct {
