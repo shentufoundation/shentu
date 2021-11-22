@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"github.com/gogo/protobuf/grpc"
+	"math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	v043 "github.com/cosmos/cosmos-sdk/x/auth/legacy/v043"
 	sdktypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
 	"github.com/certikfoundation/shentu/v2/x/auth/types"
 )
@@ -26,7 +28,15 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	var iterErr error
 
 	m.keeper.IterateAccounts(ctx, func(account sdktypes.AccountI) (stop bool) {
-		wb, err := v043.MigrateAccount(ctx, account, m.queryServer)
+		mvacc, ok := account.(*types.ManualVestingAccount)
+		if !ok {
+			return false
+		}
+
+		dvAcc := vestingtypes.NewDelayedVestingAccount(
+			mvacc.BaseAccount, mvacc.OriginalVesting, math.MaxInt64)
+
+		wb, err := v043.MigrateAccount(ctx, dvAcc, m.queryServer)
 		if err != nil {
 			iterErr = err
 			return true
@@ -36,7 +46,17 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 			return false
 		}
 
-		m.keeper.SetAccount(ctx, wb)
+		dvAcc, ok = account.(*vestingtypes.DelayedVestingAccount)
+		if !ok {
+			return false
+		}
+		unlocker, err := sdk.AccAddressFromBech32(mvacc.Unlocker)
+		if err != nil {
+			panic(err)
+		}
+		newmvacc := types.NewManualVestingAccount(dvAcc.BaseAccount, dvAcc.OriginalVesting, dvAcc.OriginalVesting, unlocker)
+
+		m.keeper.SetAccount(ctx, newmvacc)
 		return false
 	})
 
