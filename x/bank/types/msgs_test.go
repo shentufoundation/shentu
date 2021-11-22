@@ -1,4 +1,4 @@
-package types
+package types_test
 
 import (
 	"fmt"
@@ -9,10 +9,11 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	"github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	"github.com/certikfoundation/shentu/v2/simapp"
+	"github.com/certikfoundation/shentu/v2/x/bank/keeper"
+	"github.com/certikfoundation/shentu/v2/x/bank/types"
 )
 
 var (
@@ -29,7 +30,7 @@ type TypesTestSuite struct {
 	address     []sdk.AccAddress
 	app         *simapp.SimApp
 	ctx         sdk.Context
-	queryClient types.QueryClient
+	queryClient sdk.Msg
 	params      types.AccountKeeper
 	keeper      keeper.Keeper
 }
@@ -37,12 +38,11 @@ type TypesTestSuite struct {
 func (suite *TypesTestSuite) SetupTest() {
 	suite.app = simapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
+	suite.keeper = suite.keeper
 	suite.params = suite.app.AccountKeeper
-	suite.keeper = suite.app.BankKeeper
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.app.BankKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
+	types.RegisterMsgServer(queryHelper, &types.UnimplementedMsgServer{})
 
 	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
 }
@@ -98,7 +98,7 @@ func (suite *TypesTestSuite) TestMsgSendRoute() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			coins := sdk.NewCoins(sdk.NewInt64Coin("ctk", tc.args.amount))
-			var msg = NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
+			var msg = types.NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
 			if tc.errArgs.shouldPass {
 				suite.Require().Equal(msg.Route(), "bank")
 				suite.Require().Equal(msg.Type(), "locked_send")
@@ -156,7 +156,7 @@ func (suite *TypesTestSuite) TestMsgSendValidation() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			coins := sdk.NewCoins(sdk.NewInt64Coin("ctk", tc.args.amount))
-			var msg = NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
+			var msg = types.NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
 			err := msg.ValidateBasic()
 			suite.Require().NoError(err, tc.name)
 			if tc.errArgs.shouldPass {
@@ -215,7 +215,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSignBytes() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			coins := sdk.NewCoins(sdk.NewInt64Coin("ctk", tc.args.amount))
-			var msg = NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
+			var msg = types.NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
 			res := msg.GetSignBytes()
 			expected := `{"type":"bank/MsgLockedSend","value":{"amount":[{"amount":"200","denom":"ctk"}],"from_address":"cosmos1d9h8qat5xyj6yfmj","to_address":"cosmos1d9h8qat5xgryzr24","unlocker_address":"cosmos1d9h8qat5xvvwq990"}}`
 			if tc.errArgs.shouldPass {
@@ -270,7 +270,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSigners() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			var msg = NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), sdk.NewCoins())
+			var msg = types.NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), sdk.NewCoins())
 			res := msg.GetSigners()
 			if tc.errArgs.shouldPass {
 				suite.Require().Equal(fmt.Sprintf("%v", res), "[696E70757431]")

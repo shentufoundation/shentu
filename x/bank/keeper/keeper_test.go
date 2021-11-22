@@ -10,11 +10,12 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	"github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	"github.com/certikfoundation/shentu/v2/simapp"
+	"github.com/certikfoundation/shentu/v2/x/bank/keeper"
+	"github.com/certikfoundation/shentu/v2/x/bank/types"
 )
 
 var (
@@ -31,7 +32,7 @@ type KeeperTestSuite struct {
 	address     []sdk.AccAddress
 	app         *simapp.SimApp
 	ctx         sdk.Context
-	queryClient types.QueryClient
+	queryClient types.MsgServer
 	params      types.AccountKeeper
 	keeper      keeper.Keeper
 }
@@ -39,12 +40,12 @@ type KeeperTestSuite struct {
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.app = simapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
-	suite.params = suite.app.AccountKeeper
 	suite.keeper = suite.app.BankKeeper
+	suite.params = suite.app.AccountKeeper
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.app.BankKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
+	types.RegisterMsgServer(queryHelper, suite.queryClient)
+	suite.queryClient = &types.UnimplementedMsgServer{}
 
 	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
 		err := sdksimapp.FundAccount(
@@ -113,8 +114,8 @@ func (suite *KeeperTestSuite) TestSendCoins() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			err := suite.app.BankKeeper.SendCoins(suite.ctx, tc.args.fromAddr, tc.args.toAddr, sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)})
-			balance := suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.args.fromAddr)
+			err := suite.keeper.SendCoins(suite.ctx, tc.args.fromAddr, tc.args.toAddr, sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)})
+			balance := suite.keeper.GetAllBalances(suite.ctx, tc.args.fromAddr)
 			if tc.errArgs.shouldPass {
 				suite.Require().NoError(err, tc.name)
 				suite.Require().NotEqual(tc.args.amount, balance)
@@ -130,4 +131,5 @@ func (suite *KeeperTestSuite) TestSendCoins() {
 
 func (suite *KeeperTestSuite) TestLockedSend() {
 	//testing for locksend
+
 }
