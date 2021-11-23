@@ -37,10 +37,13 @@ func ValidateGenesis(gs GenesisState) error {
 		}
 	}
 	if !sum.IsEqual(gs.TotalCollateral) {
-		panic(ErrTotalCollateralNotEqual)
+		return ErrTotalCollateralNotEqual
 	}
-	if gs.PoolParams.LockedInBlocks < 0 || gs.PoolParams.MinimumCollateral < 0 {
-		panic(ErrInvalidPoolParams)
+	if err := validatePoolParams(*gs.PoolParams); err != nil {
+		return err
+	}
+	if err := validateTaskParams(*gs.TaskParams); err != nil {
+		return err
 	}
 	return nil
 }
