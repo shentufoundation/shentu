@@ -170,6 +170,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSignBytes() {
 		toAddr          sdk.AccAddress
 		unlockerAddress sdk.AccAddress
 		amount          int64
+		res             string
 	}
 
 	type errArgs struct {
@@ -188,6 +189,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSignBytes() {
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
 				unlockerAddress: suite.address[2],
+				res:             `{"type":"bank/MsgLockedSend","value":{"amount":[{"amount":"200","denom":"ctk"}],"from_address":"cosmos1d9h8qat5xyj6yfmj","to_address":"cosmos1d9h8qat5xgryzr24","unlocker_address":"cosmos1d9h8qat5xvvwq990"}}`,
 			},
 			errArgs{
 				shouldPass: true,
@@ -200,6 +202,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSignBytes() {
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
 				unlockerAddress: suite.address[2],
+				res:             `{"type":"bank/MsgLockedSend","value":{"amount":[{"amount":"12000","denom":"ctk"}],"from_address":"cosmos1d9h8qat5xyj6yfmj","to_address":"cosmos1d9h8qat5xgryzr24","unlocker_address":"cosmos1d9h8qat5xvvwq990"}}`,
 			},
 			errArgs{
 				shouldPass: false,
@@ -213,11 +216,10 @@ func (suite *TypesTestSuite) TestMsgSendGetSignBytes() {
 			coins := sdk.NewCoins(sdk.NewInt64Coin("ctk", tc.args.amount))
 			var msg = types.NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
 			res := msg.GetSignBytes()
-			expected := `{"type":"bank/MsgLockedSend","value":{"amount":[{"amount":"200","denom":"ctk"}],"from_address":"cosmos1d9h8qat5xyj6yfmj","to_address":"cosmos1d9h8qat5xgryzr24","unlocker_address":"cosmos1d9h8qat5xvvwq990"}}`
 			if tc.errArgs.shouldPass {
-				suite.Require().Equal(expected, string(res))
+				suite.Require().Equal(tc.args.res, string(res))
 			} else {
-				suite.Require().NotEqual(expected, string(res))
+				suite.Require().NotEqual(tc.args.res, string(res))
 			}
 		})
 	}
@@ -228,6 +230,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSigners() {
 		fromAddr        sdk.AccAddress
 		toAddr          sdk.AccAddress
 		unlockerAddress sdk.AccAddress
+		res             string
 	}
 
 	type errArgs struct {
@@ -245,6 +248,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSigners() {
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
 				unlockerAddress: suite.address[2],
+				res:             "[696E70757431]",
 			},
 			errArgs{
 				shouldPass: true,
@@ -256,6 +260,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSigners() {
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
 				unlockerAddress: suite.address[2],
+				res:             "[696E70757431]",
 			},
 			errArgs{
 				shouldPass: true,
@@ -269,9 +274,9 @@ func (suite *TypesTestSuite) TestMsgSendGetSigners() {
 			var msg = types.NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), sdk.NewCoins())
 			res := msg.GetSigners()
 			if tc.errArgs.shouldPass {
-				suite.Require().Equal(fmt.Sprintf("%v", res), "[696E70757431]")
+				suite.Require().Equal(fmt.Sprintf("%v", res), tc.args.res)
 			} else {
-				suite.Require().NotEqual(fmt.Sprintf("%v", res), "[696E70757431]")
+				suite.Require().NotEqual(fmt.Sprintf("%v", res), tc.args.res)
 			}
 		})
 	}
