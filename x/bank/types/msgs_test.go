@@ -12,7 +12,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/simapp"
-	"github.com/certikfoundation/shentu/v2/x/bank/keeper"
 	"github.com/certikfoundation/shentu/v2/x/bank/types"
 )
 
@@ -27,18 +26,15 @@ var (
 type TypesTestSuite struct {
 	suite.Suite
 
-	address     []sdk.AccAddress
-	app         *simapp.SimApp
-	ctx         sdk.Context
-	queryClient sdk.Msg
-	params      types.AccountKeeper
-	keeper      keeper.Keeper
+	address []sdk.AccAddress
+	app     *simapp.SimApp
+	ctx     sdk.Context
+	params  types.AccountKeeper
 }
 
 func (suite *TypesTestSuite) SetupTest() {
 	suite.app = simapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
-	suite.keeper = suite.keeper
 	suite.params = suite.app.AccountKeeper
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
