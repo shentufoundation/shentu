@@ -11,12 +11,16 @@ import (
 )
 
 var (
-	acc1 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
-	acc2 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
+	acc1     = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
+	acc2     = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
+	emptyAcc = sdk.AccAddress([]byte(""))
 
-	coins1234 = sdk.NewCoins(sdk.NewInt64Coin("uctk", 1234))
-	coins5000 = sdk.NewCoins(sdk.NewInt64Coin("uctk", 50000))
-	coins1e5  = sdk.NewCoins(sdk.NewInt64Coin("uctk", 1e5))
+	coins0         = sdk.Coins{sdk.NewInt64Coin("uctk", 0)}
+	coins1234      = sdk.NewCoins(sdk.NewInt64Coin("uctk", 1234))
+	coins5000      = sdk.NewCoins(sdk.NewInt64Coin("uctk", 50000))
+	coins1e5       = sdk.NewCoins(sdk.NewInt64Coin("uctk", 1e5))
+	multicoins1234 = sdk.NewCoins(sdk.NewInt64Coin("uctk", 1234), sdk.NewInt64Coin("eth", 1234))
+	multicoins0    = sdk.Coins{sdk.NewInt64Coin("uctk", 1234), sdk.NewInt64Coin("eth", 0)}
 
 	operator1 = types.NewOperator(acc1, acc1, coins5000, nil, "operator1")
 	operator2 = types.NewOperator(acc2, acc2, coins5000, nil, "operator2")

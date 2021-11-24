@@ -15,7 +15,7 @@ func Test_GenesisStateValidate(t *testing.T) {
 		expPass      bool
 	}{
 		{
-			"Genesis: valid genesis state",
+			"valid genesis state",
 			types.GenesisState{
 				Operators:       []types.Operator{operator1, operator2},
 				TotalCollateral: coins1e5,
@@ -27,7 +27,7 @@ func Test_GenesisStateValidate(t *testing.T) {
 			true,
 		},
 		{
-			"Genesis: mismatched total collateral",
+			"mismatched total collateral",
 			types.GenesisState{
 				Operators:       []types.Operator{operator1, operator2},
 				TotalCollateral: coins1234,
@@ -39,7 +39,7 @@ func Test_GenesisStateValidate(t *testing.T) {
 			false,
 		},
 		{
-			"Genesis: invalid pool params",
+			"invalid pool params",
 			types.GenesisState{
 				Operators:       []types.Operator{operator1, operator2},
 				TotalCollateral: coins1e5,
@@ -51,7 +51,7 @@ func Test_GenesisStateValidate(t *testing.T) {
 			false,
 		},
 		{
-			"Genesis: invalid task params",
+			"invalid task params",
 			types.GenesisState{
 				Operators:       []types.Operator{operator1, operator2},
 				TotalCollateral: coins1e5,
@@ -63,7 +63,7 @@ func Test_GenesisStateValidate(t *testing.T) {
 			false,
 		},
 		{
-			"Genesis: malformed withdraw",
+			"malformed withdraw",
 			types.GenesisState{
 				Operators:       []types.Operator{operator1, operator2},
 				TotalCollateral: coins1e5,
