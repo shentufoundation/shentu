@@ -13,6 +13,7 @@ import (
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/certikfoundation/shentu/v2/simapp"
 	vesting "github.com/certikfoundation/shentu/v2/x/auth/types"
@@ -126,6 +127,73 @@ func (suite *KeeperTestSuite) TestSendCoins() {
 				suite.Require().Error(err, tc.name)
 				suite.Require().NotEqual(tc.args.amount, balance)
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestInputOutputCoins() {
+	type args struct {
+		Addr1      sdk.AccAddress
+		Addr2      sdk.AccAddress
+		Addr3      sdk.AccAddress
+		amount     int64
+		accBalance int64
+	}
+
+	type errArgs struct {
+		shouldPass bool
+		contains   string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{"Operator(1) Create: first send",
+			args{
+				amount:     200,
+				accBalance: 800,
+				Addr1:      suite.address[0],
+				Addr2:      suite.address[1],
+				Addr3:      suite.address[2],
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+		{"Operator(1) Create: second send if amount is insufficient",
+			args{
+				amount:     5000,
+				accBalance: 1000,
+				Addr1:      suite.address[0],
+				Addr2:      suite.address[1],
+				Addr3:      suite.address[2],
+			},
+			errArgs{
+				shouldPass: false,
+				contains:   "",
+			},
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			inputs := []bankTypes.Input{
+				{Address: tc.args.Addr1.String(), Coins: sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)}},
+				{Address: tc.args.Addr1.String(), Coins: sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)}},
+			}
+			outputs := []bankTypes.Output{
+				{Address: tc.args.Addr2.String(), Coins: sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)}},
+				{Address: tc.args.Addr3.String(), Coins: sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)}},
+			}
+			err := suite.keeper.InputOutputCoins(suite.ctx, inputs, outputs)
+			if tc.errArgs.shouldPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
 			}
 		})
 	}
