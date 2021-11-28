@@ -134,11 +134,10 @@ func (suite *KeeperTestSuite) TestSendCoins() {
 
 func (suite *KeeperTestSuite) TestInputOutputCoins() {
 	type args struct {
-		Addr1      sdk.AccAddress
-		Addr2      sdk.AccAddress
-		Addr3      sdk.AccAddress
-		amount     int64
-		accBalance int64
+		Addr1  sdk.AccAddress
+		Addr2  sdk.AccAddress
+		Addr3  sdk.AccAddress
+		amount int64
 	}
 
 	type errArgs struct {
@@ -153,11 +152,10 @@ func (suite *KeeperTestSuite) TestInputOutputCoins() {
 	}{
 		{"Operator(1) Create: first send",
 			args{
-				amount:     200,
-				accBalance: 800,
-				Addr1:      suite.address[0],
-				Addr2:      suite.address[1],
-				Addr3:      suite.address[2],
+				amount: 200,
+				Addr1:  suite.address[0],
+				Addr2:  suite.address[1],
+				Addr3:  suite.address[2],
 			},
 			errArgs{
 				shouldPass: true,
@@ -166,11 +164,10 @@ func (suite *KeeperTestSuite) TestInputOutputCoins() {
 		},
 		{"Operator(1) Create: second send if amount is insufficient",
 			args{
-				amount:     5000,
-				accBalance: 1000,
-				Addr1:      suite.address[0],
-				Addr2:      suite.address[1],
-				Addr3:      suite.address[2],
+				amount: 5000,
+				Addr1:  suite.address[0],
+				Addr2:  suite.address[1],
+				Addr3:  suite.address[2],
 			},
 			errArgs{
 				shouldPass: false,
