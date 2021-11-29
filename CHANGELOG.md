@@ -43,8 +43,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### API Breaking Changes
 ### State Machine Breaking Changes
 * (app) [\#326](https://github.com/certikfoundation/shentu/pull/326) Bump Cosmos SDK to v0.44.3.
-* (app) [\#323](https://github.com/certikfoundation/shentu/pull/334) Implement in-store migration from v2.2.0 to v2.3.0.
-* (x/gov) [\#323](https://github.com/certikfoundation/shentu/pull/334) `TxHash` field has been removed from `Vote` and `Deposit` types.
+* (app) [\#334](https://github.com/certikfoundation/shentu/pull/334) Implement in-store migration from v2.2.0 to v2.3.0.
+* (x/gov) [\#334](https://github.com/certikfoundation/shentu/pull/334) `TxHash` field has been removed from `Vote` and `Deposit` types.
 
 ### Features
 * (app) [\#326](https://github.com/certikfoundation/shentu/pull/326) Add `authz` and `feegrant` modules.
