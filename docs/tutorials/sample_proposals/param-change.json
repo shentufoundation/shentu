@@ -1,0 +1,12 @@
+{
+	"title": "Staking Param Change",
+	"description": "Update max validators",
+	"changes": [
+	{
+		"subspace": "staking",
+		"key": "MaxValidators",
+		"value": 105
+	}
+	],
+	"deposit": "100uctk"
+}
