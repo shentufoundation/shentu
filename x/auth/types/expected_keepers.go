@@ -16,4 +16,6 @@ type CertKeeper interface {
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
 	SetAccount(ctx sdk.Context, acc types.AccountI)
+
+	IterateAccounts(ctx sdk.Context, cb func(account types.AccountI) (stop bool))
 }

@@ -28,7 +28,7 @@ func Tally(ctx sdk.Context, k Keeper, proposal types.Proposal) (pass bool, veto 
 
 	fetchBondedValidators(ctx, k, currValidators)
 
-	k.IterateVotes(ctx, proposal.ProposalId, func(vote types.Vote) bool {
+	k.IterateVotes(ctx, proposal.ProposalId, func(vote govtypes.Vote) bool {
 		voter, err := sdk.AccAddressFromBech32(vote.Voter)
 		if err != nil {
 			panic(err)
@@ -130,7 +130,7 @@ func fetchBondedValidators(ctx sdk.Context, k Keeper, validators map[string]*val
 	})
 }
 
-func delegatorVoting(ctx sdk.Context, k Keeper, vote types.Vote, validators map[string]*validatorGovInfo, results map[govtypes.VoteOption]sdk.Dec, totalVotingPower *sdk.Dec) {
+func delegatorVoting(ctx sdk.Context, k Keeper, vote govtypes.Vote, validators map[string]*validatorGovInfo, results map[govtypes.VoteOption]sdk.Dec, totalVotingPower *sdk.Dec) {
 	voter, err := sdk.AccAddressFromBech32(vote.Voter)
 	if err != nil {
 		panic(err)
