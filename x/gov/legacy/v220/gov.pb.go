@@ -97,11 +97,11 @@ type GenesisState struct {
 	Votes Votes `protobuf:"bytes,3,rep,name=votes,proto3,castrepeated=Votes" json:"votes"`
 	// proposals defines all the proposals present at genesis.
 	Proposals Proposals `protobuf:"bytes,4,rep,name=proposals,proto3,castrepeated=Proposals" json:"proposals"`
-	// params defines all the paramaters of related to deposit.
+	// params defines all the parameters of related to deposit.
 	DepositParams DepositParams `protobuf:"bytes,5,opt,name=deposit_params,json=depositParams,proto3" json:"deposit_params" yaml:"deposit_params"`
-	// params defines all the paramaters of related to voting.
+	// params defines all the parameters of related to voting.
 	VotingParams types.VotingParams `protobuf:"bytes,6,opt,name=voting_params,json=votingParams,proto3" json:"voting_params" yaml:"voting_params"`
-	// params defines all the paramaters of related to tally.
+	// params defines all the parameters of related to tally.
 	TallyParams TallyParams `protobuf:"bytes,7,opt,name=tally_params,json=tallyParams,proto3" json:"tally_params" yaml:"tally_params"`
 }
 
@@ -604,7 +604,7 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		}
 	}
 	if m.StartingProposalId != 0 {
-		i = encodeVarintGov(dAtA, i, uint64(m.StartingProposalId))
+		i = encodeVarintGov(dAtA, i, m.StartingProposalId)
 		i--
 		dAtA[i] = 0x8
 	}
@@ -870,7 +870,7 @@ func (m *Proposal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x18
 	}
 	if m.ProposalId != 0 {
-		i = encodeVarintGov(dAtA, i, uint64(m.ProposalId))
+		i = encodeVarintGov(dAtA, i, m.ProposalId)
 		i--
 		dAtA[i] = 0x10
 	}
@@ -949,7 +949,7 @@ func (m *GenesisState) Size() (n int) {
 	var l int
 	_ = l
 	if m.StartingProposalId != 0 {
-		n += 1 + sovGov(uint64(m.StartingProposalId))
+		n += 1 + sovGov(m.StartingProposalId)
 	}
 	if len(m.Deposits) > 0 {
 		for _, e := range m.Deposits {
@@ -1050,7 +1050,7 @@ func (m *Proposal) Size() (n int) {
 		n += 1 + l + sovGov(uint64(l))
 	}
 	if m.ProposalId != 0 {
-		n += 1 + sovGov(uint64(m.ProposalId))
+		n += 1 + sovGov(m.ProposalId)
 	}
 	if m.Status != 0 {
 		n += 1 + sovGov(uint64(m.Status))
@@ -1102,7 +1102,7 @@ func sovGov(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozGov(x uint64) (n int) {
-	return sovGov(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+	return sovGov((x << 1) ^ uint64((int64(x) >> 63)))
 }
 func (m *GenesisState) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
