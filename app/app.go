@@ -333,6 +333,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.distrKeeper,
 		&app.stakingKeeper,
 		app.bankKeeper,
+		app.certKeeper,
 		app.GetSubspace(oracletypes.ModuleName),
 	)
 	app.slashingKeeper = slashingkeeper.NewKeeper(

@@ -83,29 +83,39 @@ func (k Keeper) CreateOperator(ctx sdk.Context, address sdk.AccAddress, collater
 }
 
 // RemoveOperator removes an operator, creates an withdrawal for collateral and gives back rewards immediately.
-func (k Keeper) RemoveOperator(ctx sdk.Context, address sdk.AccAddress) error {
-	if !k.IsOperator(ctx, address) {
+func (k Keeper) RemoveOperator(ctx sdk.Context, operatorAddress, proposerAddress string) error {
+	// Ensure that the sender of the tx is either the operator to be removed itself or a certifier.
+	proposerAddr, err := sdk.AccAddressFromBech32(proposerAddress)
+	if err != nil {
+		return err
+	}
+	if operatorAddress != proposerAddress || !k.CertKeeper.IsCertifier(ctx, proposerAddr) {
+		return types.ErrUnqualifiedRemover
+	}
+
+	operatorAddr, err := sdk.AccAddressFromBech32(operatorAddress)
+	if err != nil {
+		return err
+	}
+	if !k.IsOperator(ctx, operatorAddr) {
 		return types.ErrNoOperatorFound
 	}
-	operator, err := k.GetOperator(ctx, address)
+
+	operator, err := k.GetOperator(ctx, operatorAddr)
 	if err != nil {
 		return nil
 	}
 	if err := k.ReduceTotalCollateral(ctx, operator.Collateral); err != nil {
 		return err
 	}
-	operatorAddr, err := sdk.AccAddressFromBech32(operator.Address)
-	if err != nil {
-		panic(err)
-	}
 	if err := k.CreateWithdraw(ctx, operatorAddr, operator.Collateral); err != nil {
 		return err
 	}
-	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, address,
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, operatorAddr,
 		operator.AccumulatedRewards); err != nil {
 		return err
 	}
-	return k.DeleteOperator(ctx, address)
+	return k.DeleteOperator(ctx, operatorAddr)
 }
 
 // GetAllOperators gets all operators.
