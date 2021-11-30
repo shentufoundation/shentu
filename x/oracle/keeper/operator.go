@@ -89,7 +89,7 @@ func (k Keeper) RemoveOperator(ctx sdk.Context, operatorAddress, proposerAddress
 	if err != nil {
 		return err
 	}
-	if operatorAddress != proposerAddress || !k.CertKeeper.IsCertifier(ctx, proposerAddr) {
+	if operatorAddress != proposerAddress && !k.CertKeeper.IsCertifier(ctx, proposerAddr) {
 		return types.ErrUnqualifiedRemover
 	}
 
