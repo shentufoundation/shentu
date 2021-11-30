@@ -49,6 +49,8 @@ func TestTypesTestSuite(t *testing.T) {
 
 func (suite *TypesTestSuite) TestMsgSendRoute() {
 	type args struct {
+		expectedRoute   string
+		expectedType    string
 		fromAddr        sdk.AccAddress
 		toAddr          sdk.AccAddress
 		unlockerAddress sdk.AccAddress
@@ -65,27 +67,31 @@ func (suite *TypesTestSuite) TestMsgSendRoute() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: first",
+		{"Operator(1) Create: first test case if route and type is correct",
 			args{
 				amount:          200,
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
 				unlockerAddress: suite.address[2],
+				expectedRoute:   "bank",
+				expectedType:    "locked_send",
 			},
 			errArgs{
 				shouldPass: true,
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: second",
+		{"Operator(1) Create: second test case if route and type is not correct",
 			args{
 				amount:          110,
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
 				unlockerAddress: suite.address[2],
+				expectedRoute:   "auth",
+				expectedType:    "locked_coins",
 			},
 			errArgs{
-				shouldPass: true,
+				shouldPass: false,
 				contains:   "",
 			},
 		},
@@ -96,8 +102,8 @@ func (suite *TypesTestSuite) TestMsgSendRoute() {
 			coins := sdk.NewCoins(sdk.NewInt64Coin("ctk", tc.args.amount))
 			var msg = types.NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
 			if tc.errArgs.shouldPass {
-				suite.Require().Equal(msg.Route(), "bank")
-				suite.Require().Equal(msg.Type(), "locked_send")
+				suite.Require().Equal(msg.Route(), tc.args.expectedRoute)
+				suite.Require().Equal(msg.Type(), tc.args.expectedType)
 			} else {
 
 			}
@@ -123,7 +129,7 @@ func (suite *TypesTestSuite) TestMsgSendValidation() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: first",
+		{"Operator(1) Create: first test case for validation",
 			args{
 				amount:          200,
 				fromAddr:        suite.address[0],
@@ -135,7 +141,7 @@ func (suite *TypesTestSuite) TestMsgSendValidation() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: second",
+		{"Operator(1) Create: second test case for validation",
 			args{
 				amount:          110,
 				fromAddr:        suite.address[0],
@@ -183,7 +189,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSignBytes() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: first",
+		{"Operator(1) Create: first test case",
 			args{
 				amount:          200,
 				fromAddr:        suite.address[0],
@@ -196,7 +202,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSignBytes() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: Second",
+		{"Operator(1) Create: Second test case for not expected response",
 			args{
 				amount:          2000,
 				fromAddr:        suite.address[0],
@@ -243,7 +249,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSigners() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: first",
+		{"Operator(1) Create: first test case",
 			args{
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
@@ -255,15 +261,15 @@ func (suite *TypesTestSuite) TestMsgSendGetSigners() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: Second",
+		{"Operator(1) Create: Second test case for invalid response type",
 			args{
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
 				unlockerAddress: suite.address[2],
-				res:             "[696E70757431]",
+				res:             "[696E70757431999]",
 			},
 			errArgs{
-				shouldPass: true,
+				shouldPass: false,
 				contains:   "",
 			},
 		},

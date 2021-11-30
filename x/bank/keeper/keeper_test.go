@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestSendCoins() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: first send",
+		{"Operator(1) Create: first send test case if coins is not greater than total amount",
 			args{
 				amount:     200,
 				accBalance: 800,
@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) TestSendCoins() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: second send if balance is less",
+		{"Operator(1) Create: second send test case if coins is greater than  total amount",
 			args{
 				amount:     11000,
 				accBalance: 1000,
@@ -150,7 +150,7 @@ func (suite *KeeperTestSuite) TestInputOutputCoins() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: first send",
+		{"Operator(1) Create: first send test case",
 			args{
 				amount: 200,
 				Addr1:  suite.address[0],
@@ -215,7 +215,7 @@ func (suite *KeeperTestSuite) TestLockedSend() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: first send",
+		{"Operator(1) Create: first send test case",
 			args{
 				amount:          200,
 				accBalance:      1200,
@@ -228,7 +228,7 @@ func (suite *KeeperTestSuite) TestLockedSend() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: second send",
+		{"Operator(1) Create: second send test case",
 			args{
 				amount:          100,
 				accBalance:      1100,
