@@ -20,7 +20,7 @@ type Keeper struct {
 
 // NewKeeper implements the wrapper newkeeper on top of the original newkeeper with distribution, supply and staking keeper.
 func NewKeeper(
-	cdc codec.BinaryMarshaler, key sdk.StoreKey, paramSpace paramtypes.Subspace,
+	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
 	sk types.StakingKeeper, ak types.AccountKeeper, bk types.BankKeeper, distributionKeeper types.DistributionKeeper, shieldKeeper types.ShieldKeeper,
 	feeCollectorName string) Keeper {
 	return Keeper{

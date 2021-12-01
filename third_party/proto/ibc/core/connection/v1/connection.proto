@@ -1,7 +1,8 @@
 syntax = "proto3";
+
 package ibc.core.connection.v1;
 
-option go_package = "github.com/cosmos/cosmos-sdk/x/ibc/core/03-connection/types";
+option go_package = "github.com/cosmos/ibc-go/modules/core/03-connection/types";
 
 import "gogoproto/gogo.proto";
 import "ibc/core/commitment/v1/commitment.proto";
@@ -10,19 +11,24 @@ import "ibc/core/commitment/v1/commitment.proto";
 // https://github.com/cosmos/ics/tree/master/spec/ics-003-connection-semantics#data-structures
 
 // ConnectionEnd defines a stateful object on a chain connected to another
-// separate one. NOTE: there must only be 2 defined ConnectionEnds to establish
+// separate one.
+// NOTE: there must only be 2 defined ConnectionEnds to establish
 // a connection between two chains.
 message ConnectionEnd {
   option (gogoproto.goproto_getters) = false;
   // client associated with this connection.
   string client_id = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
   // IBC version which can be utilised to determine encodings or protocols for
-  // channels or packets utilising this connection
+  // channels or packets utilising this connection.
   repeated Version versions = 2;
   // current state of the connection end.
   State state = 3;
   // counterparty chain associated with this connection.
   Counterparty counterparty = 4 [(gogoproto.nullable) = false];
+  // delay period that must pass before a consensus state can be used for
+  // packet-verification NOTE: delay period logic is only implemented by some
+  // clients.
+  uint64 delay_period = 5 [(gogoproto.moretags) = "yaml:\"delay_period\""];
 }
 
 // IdentifiedConnection defines a connection with additional connection
@@ -40,6 +46,8 @@ message IdentifiedConnection {
   State state = 4;
   // counterparty chain associated with this connection.
   Counterparty counterparty = 5 [(gogoproto.nullable) = false];
+  // delay period associated with this connection.
+  uint64 delay_period = 6 [(gogoproto.moretags) = "yaml:\"delay_period\""];
 }
 
 // State defines if a connection is in one of the following states:
@@ -68,7 +76,7 @@ message Counterparty {
   // identifies the connection end on the counterparty chain associated with a
   // given connection.
   string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
-  // commitment merkle prefix of the counterparty chain
+  // commitment merkle prefix of the counterparty chain.
   ibc.core.commitment.v1.MerklePrefix prefix = 3 [(gogoproto.nullable) = false];
 }
 
@@ -95,4 +103,12 @@ message Version {
   string identifier = 1;
   // list of features compatible with the specified identifier
   repeated string features = 2;
+}
+
+// Params defines the set of Connection parameters.
+message Params {
+  // maximum expected time per block (in nanoseconds), used to enforce block delay. This parameter should reflect the
+  // largest amount of time that the chain might reasonably take to produce the next block under normal operating
+  // conditions. A safe choice is 3-5x the expected time per block.
+  uint64 max_expected_time_per_block = 1 [(gogoproto.moretags) = "yaml:\"max_expected_time_per_block\""];
 }

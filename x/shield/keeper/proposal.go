@@ -177,7 +177,7 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 // SetReimbursement sets a reimbursement in store.
 func (k Keeper) SetReimbursement(ctx sdk.Context, proposalID uint64, payout types.Reimbursement) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&payout)
+	bz := k.cdc.MustMarshalLengthPrefixed(&payout)
 	store.Set(types.GetReimbursementKey(proposalID), bz)
 }
 
@@ -187,7 +187,7 @@ func (k Keeper) GetReimbursement(ctx sdk.Context, proposalID uint64) (types.Reim
 	bz := store.Get(types.GetReimbursementKey(proposalID))
 	if bz != nil {
 		var reimbursement types.Reimbursement
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &reimbursement)
+		k.cdc.MustUnmarshalLengthPrefixed(bz, &reimbursement)
 		return reimbursement, nil
 	}
 	return types.Reimbursement{}, types.ErrReimbursementNotFound
@@ -211,7 +211,7 @@ func (k Keeper) IterateReimbursements(ctx sdk.Context, callback func(rmb types.R
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var rmb types.Reimbursement
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &rmb)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &rmb)
 
 		if callback(rmb) {
 			break
@@ -238,7 +238,7 @@ func (k Keeper) GetAllProposalIDReimbursementPairs(ctx sdk.Context) []types.Prop
 	for ; iterator.Valid(); iterator.Next() {
 		proposalID := binary.LittleEndian.Uint64(iterator.Key()[len(types.ReimbursementKey):])
 		var reimbursement types.Reimbursement
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &reimbursement)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &reimbursement)
 
 		pRPairs = append(pRPairs, types.NewProposalIDReimbursementPair(proposalID, reimbursement))
 	}

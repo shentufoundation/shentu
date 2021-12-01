@@ -40,17 +40,17 @@ func TestDecodeStore(t *testing.T) {
 	binary.LittleEndian.PutUint64(proposalIDBz, proposalID)
 
 	depositor := RandomAccount()
-	txhash := "2300092389009f098099"
-	deposit := types.NewDeposit(proposalID, depositor.Address, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.OneInt())), txhash)
+	deposit := govtypes.NewDeposit(proposalID, depositor.Address, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.OneInt())))
 	voter := RandomAccount()
-	vote := types.NewVote(proposalID, voter.Address, govtypes.OptionYes, txhash)
+	options := govtypes.NewNonSplitVoteOption(govtypes.OptionYes)
+	vote := govtypes.NewVote(proposalID, voter.Address, options)
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{
-			{Key: keeper.ProposalKey(proposalID), Value: cdc.Marshaler.MustMarshalBinaryBare(&proposal)},
+			{Key: keeper.ProposalKey(proposalID), Value: cdc.Marshaler.MustMarshal(&proposal)},
 			{Key: govtypes.InactiveProposalQueueKey(proposalID, endTime), Value: proposalIDBz},
-			{Key: govtypes.DepositKey(proposalID, depositor.Address), Value: cdc.Marshaler.MustMarshalBinaryBare(&deposit)},
-			{Key: govtypes.VoteKey(proposalID, voter.Address), Value: cdc.Marshaler.MustMarshalBinaryBare(&vote)},
+			{Key: govtypes.DepositKey(proposalID, depositor.Address), Value: cdc.Marshaler.MustMarshal(&deposit)},
+			{Key: govtypes.VoteKey(proposalID, voter.Address), Value: cdc.Marshaler.MustMarshal(&vote)},
 			{Key: []byte{0x99}, Value: []byte{0x99}},
 		},
 	}

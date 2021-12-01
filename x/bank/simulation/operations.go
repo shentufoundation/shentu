@@ -24,7 +24,7 @@ const (
 	DefaultWeightMsgLockedSend = 10
 )
 
-func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, ak types.AccountKeeper, bk keeper.Keeper) simulation.WeightedOperations {
+func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, ak types.AccountKeeper, bk keeper.Keeper) simulation.WeightedOperations {
 	cosmosOps := banksim.WeightedOperations(appParams, cdc, ak, bk)
 
 	var weightMsgLockedSend int
@@ -95,7 +95,7 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simtypes.Op
 				return simtypes.NoOpMsg(banktypes.ModuleName, msg.Type(), err.Error()), nil, err
 			}
 
-			return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+			return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 		}
 		return simtypes.NewOperationMsgBasic(banktypes.ModuleName,
 			"NoOp: no available manual-vesting account found, skip this tx", "", false, nil), nil, nil

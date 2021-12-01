@@ -5,18 +5,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
-	"github.com/certikfoundation/shentu/v2/x/cvm/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
 	"github.com/stretchr/testify/require"
 
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/hyperledger/burrow/acm"
 	"github.com/hyperledger/burrow/acm/acmstate"
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/execution/engine"
+
+	"github.com/certikfoundation/shentu/v2/simapp"
+	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 func TestState_NewState(t *testing.T) {
@@ -54,7 +56,7 @@ func TestState_UpdateAccount(t *testing.T) {
 	require.Nil(t, err)
 
 	sdkAcc := ak.GetAccount(ctx, addrs[0])
-	err = app.BankKeeper.SetBalances(ctx, addrs[0], sdk.Coins{sdk.NewInt64Coin("uctk", 1234)})
+	err = sdksimapp.FundAccount(app.BankKeeper, ctx, addrs[0], sdk.Coins{sdk.NewInt64Coin("uctk", 1234)})
 	require.Nil(t, err)
 	ak.SetAccount(ctx, sdkAcc)
 

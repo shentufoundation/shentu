@@ -13,13 +13,13 @@ import (
 // Keeper manages certifier & security council related logics.
 type Keeper struct {
 	storeKey       sdk.StoreKey
-	cdc            codec.BinaryMarshaler
+	cdc            codec.BinaryCodec
 	slashingKeeper types.SlashingKeeper
 	stakingKeeper  types.StakingKeeper
 }
 
 // NewKeeper creates a new instance of the certifier keeper.
-func NewKeeper(cdc codec.BinaryMarshaler, storeKey sdk.StoreKey, slashingKeeper types.SlashingKeeper, stakingKeeper types.StakingKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, slashingKeeper types.SlashingKeeper, stakingKeeper types.StakingKeeper) Keeper {
 	return Keeper{
 		cdc:            cdc,
 		storeKey:       storeKey,
@@ -39,7 +39,7 @@ func (k Keeper) CertifyPlatform(ctx sdk.Context, certifier sdk.AccAddress, valid
 		return err
 	}
 
-	bz := k.cdc.MustMarshalBinaryBare(&types.Platform{ValidatorPubkey: pkAny, Description: description})
+	bz := k.cdc.MustMarshal(&types.Platform{ValidatorPubkey: pkAny, Description: description})
 	ctx.KVStore(k.storeKey).Set(types.PlatformStoreKey(validator), bz)
 	return nil
 }
@@ -49,7 +49,7 @@ func (k Keeper) GetPlatform(ctx sdk.Context, validator cryptotypes.PubKey) (type
 	var platform types.Platform
 	var found bool
 	if bz := ctx.KVStore(k.storeKey).Get(types.PlatformStoreKey(validator)); bz != nil {
-		k.cdc.MustUnmarshalBinaryBare(bz, &platform)
+		k.cdc.MustUnmarshal(bz, &platform)
 		found = true
 	}
 	return platform, found
@@ -64,7 +64,7 @@ func (k Keeper) GetAllPlatforms(ctx sdk.Context) (platforms []types.Platform) {
 
 	for ; iterator.Valid(); iterator.Next() {
 		var platform types.Platform
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &platform)
+		k.cdc.MustUnmarshal(iterator.Value(), &platform)
 		platforms = append(platforms, platform)
 	}
 	return platforms

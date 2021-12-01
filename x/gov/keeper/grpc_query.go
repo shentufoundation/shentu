@@ -46,7 +46,7 @@ func (q Keeper) Proposals(c context.Context, req *types.QueryProposalsRequest) (
 
 	pageRes, err := query.FilteredPaginate(proposalStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		var p types.Proposal
-		if err := q.cdc.UnmarshalBinaryBare(value, &p); err != nil {
+		if err := q.cdc.Unmarshal(value, &p); err != nil {
 			return false, status.Error(codes.Internal, err.Error())
 		}
 
@@ -133,15 +133,15 @@ func (q Keeper) Votes(c context.Context, req *types.QueryVotesRequest) (*types.Q
 		return nil, status.Error(codes.InvalidArgument, "proposal id can not be 0")
 	}
 
-	var votes types.Votes
+	var votes govtypes.Votes
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(q.storeKey)
 	votesStore := prefix.NewStore(store, govtypes.VotesKey(req.ProposalId))
 
 	pageRes, err := query.Paginate(votesStore, req.Pagination, func(key []byte, value []byte) error {
-		var vote types.Vote
-		if err := q.cdc.UnmarshalBinaryBare(value, &vote); err != nil {
+		var vote govtypes.Vote
+		if err := q.cdc.Unmarshal(value, &vote); err != nil {
 			return err
 		}
 
@@ -222,15 +222,15 @@ func (q Keeper) Deposits(c context.Context, req *types.QueryDepositsRequest) (*t
 		return nil, status.Error(codes.InvalidArgument, "proposal id can not be 0")
 	}
 
-	var deposits types.Deposits
+	var deposits govtypes.Deposits
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(q.storeKey)
 	depositStore := prefix.NewStore(store, govtypes.DepositsKey(req.ProposalId))
 
 	pageRes, err := query.Paginate(depositStore, req.Pagination, func(key []byte, value []byte) error {
-		var deposit types.Deposit
-		if err := q.cdc.UnmarshalBinaryBare(value, &deposit); err != nil {
+		var deposit govtypes.Deposit
+		if err := q.cdc.Unmarshal(value, &deposit); err != nil {
 			return err
 		}
 

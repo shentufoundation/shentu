@@ -18,13 +18,13 @@ func (k Keeper) GetGlobalShieldStakingPool(ctx sdk.Context) (pool sdk.Int) {
 	}
 
 	ip := sdk.IntProto{}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ip)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &ip)
 	return ip.Int
 }
 
 func (k Keeper) SetGlobalShieldStakingPool(ctx sdk.Context, value sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&sdk.IntProto{Int: value})
+	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: value})
 	store.Set(types.GetGlobalStakeForShieldPoolKey(), bz)
 }
 
@@ -36,13 +36,13 @@ func (k Keeper) GetOriginalStaking(ctx sdk.Context, purchaseID uint64) sdk.Int {
 	}
 
 	ip := sdk.IntProto{}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &ip)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &ip)
 	return ip.Int
 }
 
 func (k Keeper) SetOriginalStaking(ctx sdk.Context, purchaseID uint64, amount sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&sdk.IntProto{Int: amount})
+	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: amount})
 	store.Set(types.GetOriginalStakingKey(purchaseID), bz)
 }
 
@@ -50,7 +50,7 @@ func (k Keeper) GetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetStakeForShieldKey(poolID, purchaser))
 	if bz != nil {
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &purchase)
+		k.cdc.MustUnmarshalLengthPrefixed(bz, &purchase)
 		found = true
 	}
 	return
@@ -58,7 +58,7 @@ func (k Keeper) GetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.
 
 func (k Keeper) SetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchase types.ShieldStaking) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&purchase)
+	bz := k.cdc.MustMarshalLengthPrefixed(&purchase)
 	store.Set(types.GetStakeForShieldKey(poolID, purchaser), bz)
 }
 
@@ -122,7 +122,7 @@ func (k Keeper) IterateStakeForShields(ctx sdk.Context, callback func(purchase t
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var purchase types.ShieldStaking
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &purchase)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &purchase)
 
 		if callback(purchase) {
 			break
@@ -146,7 +146,7 @@ func (k Keeper) IterateOriginalStakings(ctx sdk.Context, callback func(original 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var ip sdk.IntProto
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &ip)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &ip)
 		bz := iterator.Key()[1:]
 		id := binary.LittleEndian.Uint64(bz)
 		newOS := types.NewOriginalStaking(id, ip.Int)

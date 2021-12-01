@@ -126,7 +126,7 @@ tidy:
 	@go mod tidy
 
 lint: tidy
-	@GO111MODULE=on golangci-lint run --config .golangci.yml
+	@GO111MODULE=on golangci-lint run --config .golangci.yml --timeout 10m
 
 ########## Testing ##########
 

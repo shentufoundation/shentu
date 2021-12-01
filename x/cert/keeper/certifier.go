@@ -13,9 +13,9 @@ func (k Keeper) SetCertifier(ctx sdk.Context, certifier types.Certifier) {
 	if err != nil {
 		panic(err)
 	}
-	store.Set(types.CertifierStoreKey(certifierAddr), k.cdc.MustMarshalBinaryLengthPrefixed(&certifier))
+	store.Set(types.CertifierStoreKey(certifierAddr), k.cdc.MustMarshalLengthPrefixed(&certifier))
 	if certifier.Alias != "" {
-		store.Set(types.CertifierAliasStoreKey(certifier.Alias), k.cdc.MustMarshalBinaryLengthPrefixed(&certifier))
+		store.Set(types.CertifierAliasStoreKey(certifier.Alias), k.cdc.MustMarshalLengthPrefixed(&certifier))
 	}
 }
 
@@ -53,7 +53,7 @@ func (k Keeper) HasCertifierAlias(ctx sdk.Context, alias string) bool {
 func (k Keeper) GetCertifier(ctx sdk.Context, certifierAddress sdk.AccAddress) (types.Certifier, error) {
 	if certifierData := ctx.KVStore(k.storeKey).Get(types.CertifierStoreKey(certifierAddress)); certifierData != nil {
 		var certifier types.Certifier
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(certifierData, &certifier)
+		k.cdc.MustUnmarshalLengthPrefixed(certifierData, &certifier)
 		return certifier, nil
 	}
 	return types.Certifier{}, types.ErrCertifierNotExists
@@ -66,7 +66,7 @@ func (k Keeper) GetCertifierByAlias(ctx sdk.Context, alias string) (types.Certif
 	}
 	if certifierData := ctx.KVStore(k.storeKey).Get(types.CertifierAliasStoreKey(alias)); certifierData != nil {
 		var certifier types.Certifier
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(certifierData, &certifier)
+		k.cdc.MustUnmarshalLengthPrefixed(certifierData, &certifier)
 		return certifier, nil
 	}
 	return types.Certifier{}, types.ErrCertifierNotExists
@@ -80,7 +80,7 @@ func (k Keeper) IterateAllCertifiers(ctx sdk.Context, callback func(certifier ty
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var certifier types.Certifier
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &certifier)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &certifier)
 
 		if callback(certifier) {
 			break

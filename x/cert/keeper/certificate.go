@@ -12,7 +12,7 @@ import (
 // SetCertificate stores a certificate using its ID field.
 func (k Keeper) SetCertificate(ctx sdk.Context, certificate types.Certificate) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryBare(&certificate)
+	bz := k.cdc.MustMarshal(&certificate)
 	store.Set(types.CertificateStoreKey(certificate.CertificateId), bz)
 }
 
@@ -41,7 +41,7 @@ func (k Keeper) GetCertificateByID(ctx sdk.Context, id uint64) (types.Certificat
 	}
 
 	var cert types.Certificate
-	k.cdc.MustUnmarshalBinaryBare(certificateData, &cert)
+	k.cdc.MustUnmarshal(certificateData, &cert)
 	return cert, nil
 }
 
@@ -89,7 +89,7 @@ func (k Keeper) IterateAllCertificate(ctx sdk.Context, callback func(certificate
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var cert types.Certificate
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &cert)
+		k.cdc.MustUnmarshal(iterator.Value(), &cert)
 
 		if callback(cert) {
 			break

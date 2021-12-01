@@ -9,6 +9,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
@@ -116,7 +117,8 @@ func certifyPlatformHandler(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		validator, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, req.Validator)
+		var validator cryptotypes.PubKey
+		err = cliCtx.JSONCodec.UnmarshalJSON([]byte(req.Validator), validator)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

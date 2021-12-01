@@ -78,21 +78,15 @@ func (k msgServer) LockedSend(goCtx context.Context, msg *types.MsgLockedSend) (
 		}
 	}
 
-	// add to receiver account as normally done
+	// send from sender account to receiver account
 	// but make the added amount vesting (OV := Vesting + Vested)
-	err = k.AddCoins(ctx, toAddr, msg.Amount)
+	err = k.SendCoins(ctx, fromAddr, toAddr, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
 
 	toAcc.OriginalVesting = toAcc.OriginalVesting.Add(msg.Amount...)
 	k.ak.SetAccount(ctx, toAcc)
-
-	// subtract from sender account (as normally done)
-	err = k.SubtractCoins(ctx, fromAddr, msg.Amount)
-	if err != nil {
-		return nil, err
-	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

@@ -5,11 +5,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
+
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/simapp"
 	"github.com/certikfoundation/shentu/v2/x/oracle/keeper"
@@ -49,7 +52,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
 	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
-		err := suite.app.BankKeeper.AddCoins(
+		err := sdksimapp.FundAccount(
+			suite.app.BankKeeper,
 			suite.ctx,
 			acc,
 			sdk.NewCoins(
@@ -236,7 +240,7 @@ func (suite *KeeperTestSuite) TestOperator_Remove() {
 			operator2, err := suite.keeper.GetOperator(suite.ctx, tc.args.senderAddr2)
 			suite.Require().NoError(err, tc.name)
 			// remove operator1
-			err = suite.keeper.RemoveOperator(suite.ctx, operator1Addr)
+			err = suite.keeper.RemoveOperator(suite.ctx, operator1Addr.String(), operator1Addr.String())
 			allOperators := suite.keeper.GetAllOperators(suite.ctx)
 			if tc.errArgs.shouldPass {
 				suite.Require().NoError(err, tc.name)

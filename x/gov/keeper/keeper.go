@@ -36,7 +36,7 @@ type Keeper struct {
 	storeKey sdk.StoreKey
 
 	// codec for binary encoding/decoding
-	cdc codec.BinaryMarshaler
+	cdc codec.BinaryCodec
 
 	// Proposal router
 	router govtypes.Router
@@ -48,7 +48,7 @@ type Keeper struct {
 // - users voting on proposals, with weight proportional to stake in the system
 // - and tallying the result of the vote.
 func NewKeeper(
-	cdc codec.BinaryMarshaler, key sdk.StoreKey, paramSpace types.ParamSubspace, bankKeeper govtypes.BankKeeper,
+	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace types.ParamSubspace, bankKeeper govtypes.BankKeeper,
 	stakingKeeper types.StakingKeeper, certKeeper types.CertKeeper, shieldKeeper types.ShieldKeeper,
 	authKeeper govtypes.AccountKeeper, router govtypes.Router,
 ) Keeper {
@@ -107,14 +107,14 @@ func (k Keeper) IterateInactiveProposalsQueue(ctx sdk.Context, endTime time.Time
 }
 
 // IterateAllDeposits iterates over the all the stored deposits and performs a callback function.
-func (k Keeper) IterateAllDeposits(ctx sdk.Context, cb func(deposit types.Deposit) (stop bool)) {
+func (k Keeper) IterateAllDeposits(ctx sdk.Context, cb func(deposit govtypes.Deposit) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, govtypes.DepositsKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var deposit types.Deposit
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &deposit)
+		var deposit govtypes.Deposit
+		k.cdc.MustUnmarshal(iterator.Value(), &deposit)
 
 		if cb(deposit) {
 			break

@@ -21,7 +21,7 @@ import (
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
-func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONMarshaler, ak govtypes.AccountKeeper, bk govtypes.BankKeeper, ck types.CertKeeper,
+func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, ak govtypes.AccountKeeper, bk govtypes.BankKeeper, ck types.CertKeeper,
 	k keeper.Keeper, wContents []simtypes.WeightedProposalContent) simulation.WeightedOperations {
 	// generate the weighted operations for the proposal contents
 	var wProposalOps simulation.WeightedOperations
@@ -167,7 +167,7 @@ func SimulateSubmitProposal(
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgSubmitProposal, ""), nil, err
 		}
 
-		opMsg := simtypes.NewOperationMsg(msg, true, "")
+		opMsg := simtypes.NewOperationMsg(msg, true, "", nil)
 
 		var fops []simtypes.FutureOperation
 
@@ -269,7 +269,7 @@ func SimulateMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k keeper
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, err
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 	}
 }
 
@@ -326,7 +326,7 @@ func SimulateCertifierMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper,
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, err
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 	}
 }
 
@@ -381,7 +381,7 @@ func SimulateMsgDeposit(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k kee
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgDeposit, ""), nil, err
 		}
 
-		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 	}
 }
 

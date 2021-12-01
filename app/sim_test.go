@@ -30,13 +30,14 @@ import (
 	distr "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidence "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
-	ibctransfer "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
-	ibchost "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
 	params "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
+	ibctransfer "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
+	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 
 	shentusimapp "github.com/certikfoundation/shentu/v2/simapp"
 	cert "github.com/certikfoundation/shentu/v2/x/cert/types"

@@ -16,7 +16,7 @@ type Keeper struct {
 	storeKey sdk.StoreKey
 }
 
-func NewKeeper(cdc codec.BinaryMarshaler, key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper, paramstore paramtypes.Subspace) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper, paramstore paramtypes.Subspace) Keeper {
 	return Keeper{
 		Keeper:   keeper.NewKeeper(cdc, key, ak, bk, paramstore),
 		storeKey: key,

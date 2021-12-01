@@ -7,7 +7,6 @@ import (
 	yaml "gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	vesttypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -15,7 +14,7 @@ import (
 
 // Compile-time type assertions
 var _ vestexported.VestingAccount = (*ManualVestingAccount)(nil)
-var _ authexported.GenesisAccount = (*ManualVestingAccount)(nil)
+var _ authtypes.GenesisAccount = (*ManualVestingAccount)(nil)
 
 //-----------------------------------------------------------------------------
 // Manual Vesting Account
@@ -121,14 +120,8 @@ func (mva ManualVestingAccount) MarshalYAML() (interface{}, error) {
 		Unlocker:         unlocker,
 	}
 
-	pk := mva.GetPubKey()
-	if pk != nil {
-		pks, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, pk)
-		if err != nil {
-			return nil, err
-		}
-
-		alias.PubKey = pks
+	if pk := mva.GetPubKey(); pk != nil {
+		alias.PubKey = pk.String()
 	}
 
 	bz, err := yaml.Marshal(alias)

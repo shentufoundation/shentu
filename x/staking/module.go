@@ -36,7 +36,7 @@ var (
 
 // AppModuleBasic is the basic app module.
 type AppModuleBasic struct {
-	cdc codec.Marshaler
+	cdc codec.Codec
 }
 
 // Name returns the staking module's name.
@@ -55,14 +55,14 @@ func (b AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) 
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the staking module.
-func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	defaultGenesis := stakingtypes.DefaultGenesisState()
 	defaultGenesis.Params.BondDenom = common.MicroCTKDenom
 	return cdc.MustMarshalJSON(defaultGenesis)
 }
 
 // ValidateGenesis performs genesis state validation for the staking module.
-func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	return staking.AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
 }
 
@@ -96,7 +96,7 @@ type AppModule struct {
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(cdc codec.Marshaler, stakingKeeper keeper.Keeper, ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper) AppModule {
+func NewAppModule(cdc codec.Codec, stakingKeeper keeper.Keeper, ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
 		cosmosAppModule: staking.NewAppModule(cdc, stakingKeeper.Keeper, ak, bk),
@@ -135,6 +135,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	am.cosmosAppModule.RegisterServices(cfg)
 }
 
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (am AppModule) ConsensusVersion() uint64 { return am.cosmosAppModule.ConsensusVersion() }
+
 // BeginBlock implements the Cosmos SDK BeginBlock module function.
 func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
 	am.cosmosAppModule.BeginBlock(ctx, rbb)
@@ -142,12 +145,12 @@ func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
 
 // InitGenesis performs genesis initialization for the staking module. It returns
 // no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	return am.cosmosAppModule.InitGenesis(ctx, cdc, data)
 }
 
 // ExportGenesis exports genesis state data.
-func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	gs := staking.ExportGenesis(ctx, am.keeper.Keeper)
 	return cdc.MustMarshalJSON(gs)
 }

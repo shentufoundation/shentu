@@ -11,7 +11,7 @@ import (
 // SetWithdraw sets a withdrawal in store.
 func (k Keeper) SetWithdraw(ctx sdk.Context, withdraw types.Withdraw) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&withdraw)
+	bz := k.cdc.MustMarshalLengthPrefixed(&withdraw)
 	withdrawAddr, err := sdk.AccAddressFromBech32(withdraw.Address)
 	if err != nil {
 		panic(err)
@@ -34,7 +34,7 @@ func (k Keeper) IterateAllWithdraws(ctx sdk.Context, callback func(withdraw type
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var withdraw types.Withdraw
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &withdraw)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &withdraw)
 		if callback(withdraw) {
 			break
 		}
@@ -53,7 +53,7 @@ func (k Keeper) IterateMatureWithdraws(ctx sdk.Context, callback func(withdraw t
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var withdraw types.Withdraw
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &withdraw)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &withdraw)
 		if callback(withdraw) {
 			break
 		}

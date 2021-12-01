@@ -11,12 +11,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/v2/simapp"
 	. "github.com/certikfoundation/shentu/v2/x/gov/keeper"
-	"github.com/certikfoundation/shentu/v2/x/gov/types"
 )
 
 func TestKeeper_ProposeAndVote(t *testing.T) {
@@ -31,9 +31,10 @@ func TestKeeper_ProposeAndVote(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		vote := govtypes.NewVote(pp.ProposalId, addrs[0], govtypes.OptionYes)
+		options := govtypes.NewNonSplitVoteOption(govtypes.OptionYes)
+		vote := govtypes.NewVote(pp.ProposalId, addrs[0], options)
 		coins700 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 700*1e6))
-		_ = app.BankKeeper.AddCoins(ctx, addrs[1], coins700)
+		require.NoError(t, sdksimapp.FundAccount(app.BankKeeper, ctx, addrs[1], coins700))
 
 		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coins700)
 		require.Equal(t, nil, err)
@@ -43,7 +44,7 @@ func TestKeeper_ProposeAndVote(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		err = app.GovKeeper.AddVote(ctx, pp.ProposalId, voter, vote.Option)
+		err = app.GovKeeper.AddVote(ctx, pp.ProposalId, voter, options)
 		require.Equal(t, nil, err)
 
 		// the vote does not count since addr[0] is not a validator
@@ -81,13 +82,13 @@ func TestKeeper_GetVotes(t *testing.T) {
 		var addr sdk.AccAddress
 		for i := 0; i < 880; i++ {
 			addr = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-
-			vote := govtypes.NewVote(pp.ProposalId, addr, govtypes.OptionYes)
+			options := govtypes.NewNonSplitVoteOption(govtypes.OptionYes)
+			vote := govtypes.NewVote(pp.ProposalId, addr, options)
 			voter, err := sdk.AccAddressFromBech32(vote.Voter)
 			if err != nil {
 				panic(err)
 			}
-			err = app.GovKeeper.AddVote(ctx, vote.ProposalId, voter, vote.Option)
+			err = app.GovKeeper.AddVote(ctx, vote.ProposalId, voter, options)
 			require.Equal(t, nil, err)
 		}
 
@@ -113,7 +114,8 @@ func TestKeeper_AddDeposit(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(10000))
 
-	simapp.AddCoinsToAcc(app, ctx, addrs[1], sdk.NewInt(80000*1e6))
+	coins := sdk.Coins{sdk.NewInt64Coin("uctk", 80000*1e6)}
+	require.NoError(t, sdksimapp.FundAccount(app.BankKeeper, ctx, addrs[1], coins))
 
 	tp := govtypes.TextProposal{Title: "title0", Description: "desc0"}
 
@@ -221,7 +223,7 @@ func TestKeeper_DepositOperation(t *testing.T) {
 
 		app.GovKeeper.RefundDepositsByProposalID(ctx, pp.ProposalId)
 		depositsRemaining := app.GovKeeper.GetAllDeposits(ctx)
-		require.Equal(t, types.Deposits(nil), depositsRemaining)
+		require.Equal(t, govtypes.Deposits(nil), depositsRemaining)
 		addr1Amount = app.BankKeeper.GetAllBalances(ctx, addrs[1])
 		addr2Amount = app.BankKeeper.GetAllBalances(ctx, addrs[2])
 		addr3Amount = app.BankKeeper.GetAllBalances(ctx, addrs[3])
@@ -251,7 +253,7 @@ func TestKeeper_DepositOperation(t *testing.T) {
 
 		app.GovKeeper.DeleteDepositsByProposalID(ctx, pp.ProposalId)
 		depositsRemaining := app.GovKeeper.GetAllDeposits(ctx)
-		require.Equal(t, types.Deposits(nil), depositsRemaining)
+		require.Equal(t, govtypes.Deposits(nil), depositsRemaining)
 
 		addr1Amount = app.BankKeeper.GetAllBalances(ctx, addrs[1])
 		addr2Amount = app.BankKeeper.GetAllBalances(ctx, addrs[2])

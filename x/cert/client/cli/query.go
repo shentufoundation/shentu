@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	"github.com/certikfoundation/shentu/v2/x/cert/types"
 )
@@ -180,7 +180,8 @@ func GetCmdPlatform() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
+			var pk cryptotypes.PubKey
+			err = cliCtx.JSONCodec.UnmarshalJSON([]byte(args[0]), pk)
 			if err != nil {
 				return err
 			}

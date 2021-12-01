@@ -8,17 +8,18 @@ import (
 )
 
 type Keeper struct {
-	cdc           codec.BinaryMarshaler
+	cdc           codec.BinaryCodec
 	storeKey      sdk.StoreKey
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
 	distrKeeper   types.DistrKeeper
 	stakingKeeper types.StakingKeeper
+	CertKeeper    types.CertKeeper
 	paramSpace    types.ParamSubspace
 }
 
-func NewKeeper(cdc codec.BinaryMarshaler, storeKey sdk.StoreKey, authKeeper types.AccountKeeper, distriKeeper types.DistrKeeper,
-	stakingKeeper types.StakingKeeper, bankKeeper types.BankKeeper, paramSpace types.ParamSubspace) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, authKeeper types.AccountKeeper, distriKeeper types.DistrKeeper,
+	stakingKeeper types.StakingKeeper, bankKeeper types.BankKeeper, certKeeper types.CertKeeper, paramSpace types.ParamSubspace) Keeper {
 	return Keeper{
 		cdc:           cdc,
 		paramSpace:    paramSpace,
@@ -27,6 +28,7 @@ func NewKeeper(cdc codec.BinaryMarshaler, storeKey sdk.StoreKey, authKeeper type
 		distrKeeper:   distriKeeper,
 		stakingKeeper: stakingKeeper,
 		bankKeeper:    bankKeeper,
+		CertKeeper:    certKeeper,
 	}
 }
 

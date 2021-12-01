@@ -26,8 +26,8 @@ func AddGenesisCertifierCmd(defaultNodeHome string) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := client.GetClientContextFromCmd(cmd)
-			depCdc := ctx.JSONMarshaler
-			cdc := depCdc.(codec.Marshaler)
+			depCdc := ctx.JSONCodec
+			cdc := depCdc.(codec.Codec)
 
 			config := server.GetServerContextFromCmd(cmd).Config
 			config.SetRoot(ctx.HomeDir)

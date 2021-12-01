@@ -69,11 +69,11 @@ func TestDecodeStore(t *testing.T) {
 	require.NoError(t, err)
 	KVPairs := kv.Pairs{
 		Pairs: []kv.Pair{
-			{Key: types.OperatorStoreKey(operatorAddr), Value: cdc.MustMarshalBinaryLengthPrefixed(&operator)},
-			{Key: types.WithdrawStoreKey(withdrawAddr, withdraw.DueBlock), Value: cdc.MustMarshalBinaryLengthPrefixed(&withdraw)},
-			{Key: types.TotalCollateralKey(), Value: cdc.MustMarshalBinaryLengthPrefixed(&types.CoinsProto{Coins: totalCollateral})},
-			{Key: types.TaskStoreKey(task.Contract, task.Function), Value: cdc.MustMarshalBinaryLengthPrefixed(&task)},
-			{Key: types.ClosingTaskIDsStoreKey(task.ClosingBlock), Value: cdc.MustMarshalBinaryLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})},
+			{Key: types.OperatorStoreKey(operatorAddr), Value: cdc.MustMarshalLengthPrefixed(&operator)},
+			{Key: types.WithdrawStoreKey(withdrawAddr, withdraw.DueBlock), Value: cdc.MustMarshalLengthPrefixed(&withdraw)},
+			{Key: types.TotalCollateralKey(), Value: cdc.MustMarshalLengthPrefixed(&types.CoinsProto{Coins: totalCollateral})},
+			{Key: types.TaskStoreKey(task.Contract, task.Function), Value: cdc.MustMarshalLengthPrefixed(&task)},
+			{Key: types.ClosingTaskIDsStoreKey(task.ClosingBlock), Value: cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})},
 		},
 	}
 
