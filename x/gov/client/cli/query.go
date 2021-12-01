@@ -14,7 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govUtils "github.com/cosmos/cosmos-sdk/x/gov/client/utils"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
 )
@@ -23,7 +23,7 @@ import (
 func GetQueryCmd() *cobra.Command {
 	// Group gov queries under a subcommand
 	govQueryCmd := &cobra.Command{
-		Use:                        govTypes.ModuleName,
+		Use:                        govtypes.ModuleName,
 		Short:                      "Querying commands for the governance module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -222,13 +222,13 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 				page, _ := cmd.Flags().GetInt(flags.FlagPage)
 				limit, _ := cmd.Flags().GetInt(flags.FlagLimit)
 
-				params := govTypes.NewQueryProposalVotesParams(proposalID, page, limit)
+				params := govtypes.NewQueryProposalVotesParams(proposalID, page, limit)
 				resByTxQuery, err := govUtils.QueryVotesByTxQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
 
-				var votes types.Votes
+				var votes govtypes.Votes
 				// TODO migrate to use JSONCodec (implement MarshalJSONArray
 				// or wrap lists of proto.Message in some other message)
 				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &votes)
@@ -299,13 +299,13 @@ $ %[1]s query gov deposits 1
 
 			propStatus := proposalRes.GetProposal().Status
 			if !(propStatus == types.StatusCertifierVotingPeriod || propStatus == types.StatusValidatorVotingPeriod || propStatus == types.StatusDepositPeriod) {
-				params := govTypes.NewQueryProposalParams(proposalID)
+				params := govtypes.NewQueryProposalParams(proposalID)
 				resByTxQuery, err := govUtils.QueryDepositsByTxQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
 
-				var dep types.Deposits
+				var dep govtypes.Deposits
 				// TODO migrate to use JSONCodec (implement MarshalJSONArray
 				// or wrap lists of proto.Message in some other message)
 				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &dep)

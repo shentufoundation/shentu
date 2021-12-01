@@ -135,7 +135,7 @@ func queryDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacy
 
 	deposits := keeper.GetDeposits(ctx, params.ProposalID)
 	if deposits == nil {
-		deposits = types.Deposits{}
+		deposits = govtypes.Deposits{}
 	}
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, deposits)

@@ -35,18 +35,42 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [v2.1.0] - 08-09-2021
+## Unreleased
+
+### Client Breaking Changes
+* (x/cert) [\#326](https://github.com/certikfoundation/shentu/pull/326) Remove `Bech32` encoding for validator pubkeys.
+
+### API Breaking Changes
+### State Machine Breaking Changes
+* (app) [\#326](https://github.com/certikfoundation/shentu/pull/326) Bump Cosmos SDK to v0.44.3.
+* (app) [\#334](https://github.com/certikfoundation/shentu/pull/334) Implement in-store migration from v2.2.0 to v2.3.0.
+* (x/gov) [\#334](https://github.com/certikfoundation/shentu/pull/334) `TxHash` field has been removed from `Vote` and `Deposit` types.
+
+### Features
+* (app) [\#326](https://github.com/certikfoundation/shentu/pull/326) Add `authz` and `feegrant` modules.
+
+### Improvements
+* (deps) Bump Tendermint to v0.34.14.
+
+### Tests
+### Bug Fixes
+* (x/shield) [\#326](https://github.com/certikfoundation/shentu/pull/326) Add checks for expired entries in shield purchase.
+* (x/gov) [\#331](https://github.com/certikfoundation/shentu/pull/331) Fix gov tally logic.
+
+
+## [v2.1.0] - 09-03-2021
 
 Version 2.1.0 re-enables endblocker in the staking module, and bumps SDK to 0.42.9 for necessary query route.
 
 ### Client Breaking Changes
 ### API Breaking Changes
-* (auth) [\#323](https://github.com/certikfoundation/shentu/pull/241) Fix ManualVestingAccount proto package route.
 ### State Machine Breaking Changes
-* (staking) [\#323](https://github.com/certikfoundation/shentu/pull/241) Re-enable staking endblockers.
+* (x/staking) [\#323](https://github.com/certikfoundation/shentu/pull/241) Re-enable staking endblockers.
+
 ### Features
 ### Improvements
- * (app) [\#323](https://github.com/certikfoundation/shentu/pull/241) Bump CosmosSDK to 0.42.9.
+ * (app) [\#323](https://github.com/certikfoundation/shentu/pull/241) Bump Cosmos SDK to 0.42.9.
+
 ### Tests
 ### Bug Fixes
 
@@ -56,19 +80,19 @@ Version 2.0.0 brings many breaking changes with SDK upgrading to Stargate versio
 
 ### Client Breaking Changes
 * (app) [\#241](https://github.com/certikfoundation/shentu/pull/241) Renamed default binary name to `certik`.
-* (oracle) [\#303](https://github.com/certikfoundation/shentu/pull/303) Oracle client commands refactor.
+* (x/oracle) [\#303](https://github.com/certikfoundation/shentu/pull/303) Oracle client commands refactor.
 
 ### API Breaking Changes
-* (cvm) [\#231](https://github.com/certikfoundation/shentu/pull/231) Remove direct solidity file deployment.
-* (shield) [\#244](https://github.com/certikfoundation/shentu/pull/244) Fix shield query & state export.
-* (cert) [\#249](https://github.com/certikfoundation/shentu/pull/249) Certification module refactor.
-* (shield) [\#269](https://github.com/certikfoundation/shentu/pull/269) Shield gRPC query refactor.
+* (x/cvm) [\#231](https://github.com/certikfoundation/shentu/pull/231) Remove direct solidity file deployment.
+* (x/shield) [\#244](https://github.com/certikfoundation/shentu/pull/244) Fix shield query & state export.
+* (x/cert) [\#249](https://github.com/certikfoundation/shentu/pull/249) Certification module refactor.
+* (x/shield) [\#269](https://github.com/certikfoundation/shentu/pull/269) Shield gRPC query refactor.
 
 ### State Machine Breaking Changes
 * (app) [\#221](https://github.com/certikfoundation/shentu/pull/221) Upgraded SDK to 0.42.9.
-* (shield) [\#286](https://github.com/certikfoundation/shentu/pull/286) Fix shield emitted events to include sender.
-* (cert) [\#302](https://github.com/certikfoundation/shentu/pull/302) Removed validator certificate.
-* (cvm) [\#301](https://github.com/certikfoundation/shentu/pull/301) Removed zero-address coins recycling.
+* (x/shield) [\#286](https://github.com/certikfoundation/shentu/pull/286) Fix shield emitted events to include sender.
+* (x/cert) [\#302](https://github.com/certikfoundation/shentu/pull/302) Removed validator certificate.
+* (x/cvm) [\#301](https://github.com/certikfoundation/shentu/pull/301) Removed zero-address coins recycling.
 
 ### Features
 * (ibc) [\#251](https://github.com/certikfoundation/shentu/pull/251) Add IBC support.
@@ -84,8 +108,8 @@ Version 2.0.0 brings many breaking changes with SDK upgrading to Stargate versio
 
 ### Bug Fixes
 * (app) [\#254](https://github.com/certikfoundation/shentu/pull/254) Disable module account receiving coins.
-* (gov) [\#259](https://github.com/certikfoundation/shentu/pull/259) Gov module bug fixes. 
-* (gov) [\#268](https://github.com/certikfoundation/shentu/pull/268) Fix proposal migration bug.
+* (x/gov) [\#259](https://github.com/certikfoundation/shentu/pull/259) Gov module bug fixes. 
+* (x/gov) [\#268](https://github.com/certikfoundation/shentu/pull/268) Fix proposal migration bug.
 
 ## [v1.3.1] - 02-05-2021
 
@@ -127,7 +151,7 @@ Version 2.0.0 brings many breaking changes with SDK upgrading to Stargate versio
 * (x/shield) [\#170](https://github.com/certikfoundation/shentu/pull/170) Fixed conditional check for depositing collateral
 
 
-## v1.1.0 - 11-11-2020
+## [v1.1.0] - 11-11-2020
 
 ### Client Breaking Changes
 ### API Breaking Changes
@@ -146,16 +170,14 @@ Version 2.0.0 brings many breaking changes with SDK upgrading to Stargate versio
 * (x/auth) [\#124](https://github.com/certikfoundation/shentu/pull/124) Fixed locked send event output.
 * (x/gov) [\#145](https://github.com/certikfoundation/shentu/pull/145) Fixed param change proposal for simulations.
 
-## v1.0.0 - 10-24-2020
+## [v1.0.0] - 10-24-2020
 
 ### Client Breaking Changes
-
 ### API Breaking Changes
 * (x/oracle) [\#6](https://github.com/certikfoundation/shentu/pull/6) Updated the `aggregate_task` event.
 * (x/gov) [\#9](https://github.com/certikfoundation/shentu/pull/9) Paginated query and next page field in votes query. 
 
 ### State Machine Breaking Changes
-
 ### Features
 * (x/cvm) [\#15](https://github.com/certikfoundation/shentu/pull/15) Enabled EWASM supoort.
 * (x/auth) [\#7](https://github.com/certikfoundation/shentu/pull/7) Added new vesting account type ManualVestingAccount.

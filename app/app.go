@@ -212,7 +212,8 @@ type ShentuApp struct {
 	mm *module.Manager
 
 	// simulation manager
-	sm *module.SimulationManager
+	sm           *module.SimulationManager
+	configurator module.Configurator
 }
 
 // NewShentuApp returns a reference to an initialized ShentuApp.
@@ -333,6 +334,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.distrKeeper,
 		&app.stakingKeeper,
 		app.bankKeeper,
+		app.certKeeper,
 		app.GetSubspace(oracletypes.ModuleName),
 	)
 	app.slashingKeeper = slashingkeeper.NewKeeper(
@@ -437,10 +439,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.evidenceKeeper = *evidenceKeeper
 
-	// Add empty upgrade handler to bump to 0.44.0
-	cfg := module.NewConfigurator(appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
-	app.setUpgradeHandler(cfg)
-
 	/****  Module Options ****/
 
 	// NOTE: Any module instantiated in the module manager that is
@@ -524,7 +522,9 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	)
 
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
-	app.mm.RegisterServices(cfg)
+
+	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
+	app.mm.RegisterServices(app.configurator)
 
 	app.sm = module.NewSimulationManager(
 		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
@@ -552,8 +552,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.MountTransientStores(tkeys)
 	app.MountMemoryStores(memKeys)
 
-	app.SetInitChainer(app.InitChainer)
-	app.SetBeginBlocker(app.BeginBlocker)
 	// The AnteHandler handles signature verification and transaction pre-processing
 	anteHandler, err := ante.NewAnteHandler(
 		ante.HandlerOptions{
@@ -568,7 +566,11 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		tmos.Exit(err.Error())
 	}
 	app.SetAnteHandler(anteHandler)
+	app.SetInitChainer(app.InitChainer)
+	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
+
+	app.setUpgradeHandler()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {

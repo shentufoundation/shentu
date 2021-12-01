@@ -21,6 +21,10 @@ type BankKeeper interface {
 	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 }
 
+type CertKeeper interface {
+	IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool
+}
+
 type DistrKeeper interface {
 	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 }

@@ -144,7 +144,7 @@ $ certik init node0 --chain-id shentuchain
 
 $ certik keys add jack
 
-$ certik add-genesis-account $(certik keys show jack -a) 200000000uctk
+$ certik add-genesis-account $(certik keys show jack -a) 10000000000000000uctk
 
 $ certik add-genesis-certifier $(certik keys show jack -a)
 
@@ -154,7 +154,7 @@ $ certik add-genesis-shield-admin $(certik keys show jack -a)
 Notification: Every transaction will need 5000uctk (certik token), so you'd better start with more than 5000uctk here.
 
 ```bash
-$ certik gentx --name jack --amount 10000000000000000uctk
+$ certik gentx jack 10000000000000000uctk --chain-id shentuchain
 $ certik collect-gentxs
 
 $ certik start

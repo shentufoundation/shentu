@@ -240,7 +240,7 @@ func (suite *KeeperTestSuite) TestOperator_Remove() {
 			operator2, err := suite.keeper.GetOperator(suite.ctx, tc.args.senderAddr2)
 			suite.Require().NoError(err, tc.name)
 			// remove operator1
-			err = suite.keeper.RemoveOperator(suite.ctx, operator1Addr)
+			err = suite.keeper.RemoveOperator(suite.ctx, operator1Addr.String(), operator1Addr.String())
 			allOperators := suite.keeper.GetAllOperators(suite.ctx)
 			if tc.errArgs.shouldPass {
 				suite.Require().NoError(err, tc.name)
