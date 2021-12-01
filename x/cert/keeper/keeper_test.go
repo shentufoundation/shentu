@@ -56,7 +56,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	// queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	// types.RegisterQueryServer(queryHelper, suite.app.CertKeeper)
 	// suite.queryClient = types.NewQueryClient(queryHelper)
-
 	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
 		err := sdksimapp.FundAccount(
 			suite.app.BankKeeper,
@@ -75,10 +74,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.keeper.SetCertifier(suite.ctx, types.NewCertifier(suite.address[0], "", suite.address[0], ""))
 }
 
-func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
-}
-
 func (suite *KeeperTestSuite) TestCertificate_GetSet() {
 	type args struct {
 		cert []cert
@@ -94,7 +89,7 @@ func (suite *KeeperTestSuite) TestCertificate_GetSet() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Certificate(1) Creat -> Get: Simple",
+		{"Certificate(1) Create -> Get: Simple",
 			args{
 				cert: []cert{
 					{
@@ -112,7 +107,7 @@ func (suite *KeeperTestSuite) TestCertificate_GetSet() {
 				contains:   "",
 			},
 		},
-		{"Certificate(2) Creat -> Get: Two Different Ones",
+		{"Certificate(2) Create -> Get: Two Different Ones",
 			args{
 				cert: []cert{
 					{
@@ -140,8 +135,8 @@ func (suite *KeeperTestSuite) TestCertificate_GetSet() {
 		},
 	}
 	for _, tc := range tests {
+		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
 			// construct a new cert
 			for _, cert := range tc.args.cert {
 				want, err := types.NewCertificate(cert.certTypeStr, cert.contStr, cert.compiler, cert.bytecodeHash, cert.description, cert.certifier)
@@ -196,22 +191,13 @@ func (suite *KeeperTestSuite) TestCertificate_Delete() {
 				},
 			},
 			errArgs{
-				shouldPass: false,
+				shouldPass: true,
 				contains:   "",
 			},
 		},
-		{"Certificate(1) Delete: Add Three Delete the Second One",
+		{"Certificate(2) Delete: Add Three Delete the Second One",
 			args{
 				cert: []cert{
-					{
-						certTypeStr:  "compilation",
-						contStr:      "sourcodehash0",
-						compiler:     "compiler1",
-						bytecodeHash: "bytecodehash1",
-						description:  "",
-						certifier:    suite.address[0],
-						delete:       true,
-					},
 					{
 						certTypeStr:  "compilation",
 						contStr:      "sourcodehash0",
@@ -230,6 +216,15 @@ func (suite *KeeperTestSuite) TestCertificate_Delete() {
 						certifier:    suite.address[0],
 						delete:       true,
 					},
+					{
+						certTypeStr:  "compilation",
+						contStr:      "sourcodehash0",
+						compiler:     "compiler1",
+						bytecodeHash: "bytecodehash1",
+						description:  "",
+						certifier:    suite.address[0],
+						delete:       false,
+					},
 				},
 			},
 			errArgs{
@@ -239,8 +234,8 @@ func (suite *KeeperTestSuite) TestCertificate_Delete() {
 		},
 	}
 	for _, tc := range tests {
+		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
 			// construct a new cert
 			for _, cert := range tc.args.cert {
 				want, err := types.NewCertificate(cert.certTypeStr, cert.contStr, cert.compiler, cert.bytecodeHash, cert.description, cert.certifier)
@@ -310,7 +305,7 @@ func (suite *KeeperTestSuite) TestCertificate_IsCertified_Issue() {
 				contains:   "",
 			},
 		},
-		{"Certificate(1) IsCertified: Invalid Cert Type",
+		{"Certificate(2) IsCertified: Invalid Cert Type",
 			args{
 				cert: []cert{
 					{
@@ -436,4 +431,8 @@ func (suite *KeeperTestSuite) TestCertificate_IsCertified_Issue() {
 			}
 		})
 	}
+}
+
+func TestKeeperTestSuite(t *testing.T) {
+	suite.Run(t, new(KeeperTestSuite))
 }
