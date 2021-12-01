@@ -293,7 +293,7 @@ func (suite *KeeperTestSuite) createTask(contract, function string, creator sdk.
 	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
 	expiration := time.Now().Add(time.Hour).UTC()
 	waitingBlocks := int64(5)
-	err := suite.keeper.CreateTask(suite.ctx, contract, function, bounty, "task", expiration, suite.address[0], waitingBlocks)
+	err := suite.keeper.CreateTask(suite.ctx, contract, function, bounty, "task", expiration, creator, waitingBlocks)
 	suite.Require().NoError(err)
 }
 
