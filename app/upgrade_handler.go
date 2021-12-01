@@ -12,7 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	sdkfeegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ibcconnectiontypes "github.com/cosmos/ibc-go/modules/core/03-connection/types"
+
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
 )
 
 const upgradeName = "Shentu-v230"
