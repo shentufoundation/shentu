@@ -353,6 +353,7 @@ func NewSimApp(
 		app.DistrKeeper,
 		&app.StakingKeeper,
 		app.BankKeeper,
+		app.CertKeeper,
 		app.GetSubspace(oracletypes.ModuleName),
 	)
 	app.SlashingKeeper = slashingkeeper.NewKeeper(

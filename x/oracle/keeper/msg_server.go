@@ -52,12 +52,7 @@ func (k msgServer) CreateOperator(goCtx context.Context, msg *types.MsgCreateOpe
 func (k msgServer) RemoveOperator(goCtx context.Context, msg *types.MsgRemoveOperator) (*types.MsgRemoveOperatorResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	addr, err := sdk.AccAddressFromBech32(msg.Address)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := k.Keeper.RemoveOperator(ctx, addr); err != nil {
+	if err := k.Keeper.RemoveOperator(ctx, msg.Address, msg.Proposer); err != nil {
 		return nil, err
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
