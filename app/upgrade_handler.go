@@ -31,17 +31,16 @@ func (app ShentuApp) setUpgradeHandler() {
 			fromVM[sdkauthz.ModuleName] = 0
 			fromVM[sdkfeegrant.ModuleName] = 0
 
-			temp, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
+			fromVM[authtypes.ModuleName] = 2
+			newVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
 
 			if err != nil {
-				return temp, err
+				return newVM, err
 			}
 
-			authVM := make(map[string]uint64)
-			authVM[authtypes.ModuleName] = 1
+			newVM[authtypes.ModuleName] = 1
 
-			_, err = app.mm.RunMigrations(ctx, app.configurator, authVM)
-			return temp, err
+			return app.mm.RunMigrations(ctx, app.configurator, newVM)
 		},
 	)
 
