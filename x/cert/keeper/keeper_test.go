@@ -35,6 +35,7 @@ type cert struct {
 	delete       bool
 	assumption   bool
 	create       bool
+	inputCertId  uint64
 }
 
 // shared setup
@@ -72,6 +73,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
 	suite.keeper.SetCertifier(suite.ctx, types.NewCertifier(suite.address[0], "", suite.address[0], ""))
+
 }
 
 func (suite *KeeperTestSuite) TestCertificate_GetSet() {
@@ -187,6 +189,7 @@ func (suite *KeeperTestSuite) TestCertificate_Delete() {
 						description:  "",
 						certifier:    suite.address[0],
 						delete:       true,
+						inputCertId:  suite.keeper.GetNextCertificateID(suite.ctx),
 					},
 				},
 			},
@@ -206,6 +209,7 @@ func (suite *KeeperTestSuite) TestCertificate_Delete() {
 						description:  "",
 						certifier:    suite.address[0],
 						delete:       false,
+						inputCertId:  suite.keeper.GetNextCertificateID(suite.ctx),
 					},
 					{
 						certTypeStr:  "compilation",
@@ -215,6 +219,7 @@ func (suite *KeeperTestSuite) TestCertificate_Delete() {
 						description:  "",
 						certifier:    suite.address[0],
 						delete:       true,
+						inputCertId:  suite.keeper.GetNextCertificateID(suite.ctx) + 1,
 					},
 					{
 						certTypeStr:  "compilation",
@@ -224,6 +229,7 @@ func (suite *KeeperTestSuite) TestCertificate_Delete() {
 						description:  "",
 						certifier:    suite.address[0],
 						delete:       false,
+						inputCertId:  suite.keeper.GetNextCertificateID(suite.ctx) + 2,
 					},
 				},
 			},
@@ -232,10 +238,32 @@ func (suite *KeeperTestSuite) TestCertificate_Delete() {
 				contains:   "",
 			},
 		},
+		{"Certificate(3) Delete: Invalid certificate id",
+			args{
+				cert: []cert{
+					{
+						certTypeStr:  "compilation",
+						contStr:      "sourcodehash0",
+						compiler:     "compiler1",
+						bytecodeHash: "bytecodehash1",
+						description:  "",
+						certifier:    suite.address[0],
+						delete:       true,
+						inputCertId:  suite.keeper.GetNextCertificateID(suite.ctx) + 10,
+					},
+				},
+			},
+			errArgs{
+				shouldPass: false,
+				contains:   "certificate id does not exist",
+			},
+		},
 	}
 	for _, tc := range tests {
 		tc := tc
 		suite.Run(tc.name, func() {
+			// initializing certificate id for each testcase
+			suite.keeper.SetNextCertificateID(suite.ctx, 1)
 			// construct a new cert
 			for _, cert := range tc.args.cert {
 				want, err := types.NewCertificate(cert.certTypeStr, cert.contStr, cert.compiler, cert.bytecodeHash, cert.description, cert.certifier)
@@ -246,13 +274,13 @@ func (suite *KeeperTestSuite) TestCertificate_Delete() {
 				// set the cert and its ID in the store
 				suite.keeper.SetNextCertificateID(suite.ctx, id+1)
 				suite.keeper.SetCertificate(suite.ctx, want)
-				// delete if marked
-				if cert.delete {
+				// Check if the certificate was set successfully and delete if marked
+				if suite.keeper.HasCertificateByID(suite.ctx, want.CertificateId) && cert.delete {
 					err := suite.keeper.DeleteCertificate(suite.ctx, want)
 					suite.Require().NoError(err, tc.name)
 				}
 				// now retrieve its ID from the store
-				got, err := suite.keeper.GetCertificateByID(suite.ctx, id)
+				got, err := suite.keeper.GetCertificateByID(suite.ctx, cert.inputCertId)
 				if tc.errArgs.shouldPass {
 					if cert.delete {
 						suite.Require().Error(err, tc.name)
