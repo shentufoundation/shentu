@@ -50,7 +50,7 @@ func TestQueryOperators(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, bz)
 
-	err = ok2.RemoveOperator(ctx, addrs[2])
+	err = ok2.RemoveOperator(ctx, addrs[2].String(), addrs[2].String())
 	require.Nil(t, err)
 
 	path = []string{"withdraws"}

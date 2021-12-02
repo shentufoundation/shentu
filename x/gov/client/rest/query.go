@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	govUtils "github.com/cosmos/cosmos-sdk/x/gov/client/utils"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/v2/x/gov/client/utils"
@@ -40,7 +40,7 @@ func queryParamsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s/%s", govTypes.QuerierRoute, govTypes.QueryParams, paramType)
+		route := fmt.Sprintf("custom/%s/%s/%s", govtypes.QuerierRoute, govtypes.QueryParams, paramType)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -73,7 +73,7 @@ func queryProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		params := govTypes.NewQueryProposalParams(proposalID)
+		params := govtypes.NewQueryProposalParams(proposalID)
 
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
@@ -81,7 +81,7 @@ func queryProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s", govTypes.QuerierRoute, govTypes.QueryProposal)
+		route := fmt.Sprintf("custom/%s/%s", govtypes.QuerierRoute, govtypes.QueryProposal)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -108,7 +108,7 @@ func queryDepositsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		params := govTypes.NewQueryProposalParams(proposalID)
+		params := govtypes.NewQueryProposalParams(proposalID)
 
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
@@ -163,7 +163,7 @@ func queryProposerHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		res, err := utils.QueryProposerByTxQuery(cliCtx, proposalID, govTypes.StoreKey)
+		res, err := utils.QueryProposerByTxQuery(cliCtx, proposalID, govtypes.StoreKey)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -207,7 +207,7 @@ func queryDepositHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		params := govTypes.NewQueryDepositParams(proposalID, depositorAddr)
+		params := govtypes.NewQueryDepositParams(proposalID, depositorAddr)
 
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
@@ -221,7 +221,7 @@ func queryDepositHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		var deposit types.Deposit
+		var deposit govtypes.Deposit
 		if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &deposit); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -231,7 +231,7 @@ func queryDepositHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		// which case the deposit would be removed from state and should be queried
 		// for directly via a txs query.
 		if deposit.Empty() {
-			bz, err := cliCtx.LegacyAmino.MarshalJSON(govTypes.NewQueryProposalParams(proposalID))
+			bz, err := cliCtx.LegacyAmino.MarshalJSON(govtypes.NewQueryProposalParams(proposalID))
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 				return
@@ -289,7 +289,7 @@ func queryVoteHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		params := govTypes.NewQueryVoteParams(proposalID, voterAddr)
+		params := govtypes.NewQueryVoteParams(proposalID, voterAddr)
 
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
@@ -303,7 +303,7 @@ func queryVoteHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		var vote types.Vote
+		var vote govtypes.Vote
 		if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &vote); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -313,7 +313,7 @@ func queryVoteHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		// which case the vote would be removed from state and should be queried for
 		// directly via a txs query.
 		if vote.Empty() {
-			bz, err := cliCtx.LegacyAmino.MarshalJSON(govTypes.NewQueryProposalParams(proposalID))
+			bz, err := cliCtx.LegacyAmino.MarshalJSON(govtypes.NewQueryProposalParams(proposalID))
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 				return
@@ -365,7 +365,7 @@ func queryVotesOnProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		params := govTypes.NewQueryProposalVotesParams(proposalID, page, limit)
+		params := govtypes.NewQueryProposalVotesParams(proposalID, page, limit)
 
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
@@ -408,7 +408,7 @@ func queryVotesOnProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 }
 
 func getVotesWithPower(cliCtx client.Context, w http.ResponseWriter, res []byte) (VotesWithPower, http.ResponseWriter) {
-	votes := types.Votes{}
+	votes := govtypes.Votes{}
 	err := cliCtx.LegacyAmino.UnmarshalJSON(res, &votes)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -505,7 +505,7 @@ func queryProposalsWithParameterFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s", govTypes.QuerierRoute, govTypes.QueryProposals)
+		route := fmt.Sprintf("custom/%s/%s", govtypes.QuerierRoute, govtypes.QueryProposals)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -539,14 +539,14 @@ func queryTallyOnProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		params := govTypes.NewQueryProposalParams(proposalID)
+		params := govtypes.NewQueryProposalParams(proposalID)
 
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		route := fmt.Sprintf("custom/%s/%s", govTypes.QuerierRoute, govTypes.QueryTally)
+		route := fmt.Sprintf("custom/%s/%s", govtypes.QuerierRoute, govtypes.QueryTally)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())

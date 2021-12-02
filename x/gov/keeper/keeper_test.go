@@ -17,7 +17,6 @@ import (
 
 	"github.com/certikfoundation/shentu/v2/simapp"
 	. "github.com/certikfoundation/shentu/v2/x/gov/keeper"
-	"github.com/certikfoundation/shentu/v2/x/gov/types"
 )
 
 func TestKeeper_ProposeAndVote(t *testing.T) {
@@ -224,7 +223,7 @@ func TestKeeper_DepositOperation(t *testing.T) {
 
 		app.GovKeeper.RefundDepositsByProposalID(ctx, pp.ProposalId)
 		depositsRemaining := app.GovKeeper.GetAllDeposits(ctx)
-		require.Equal(t, types.Deposits(nil), depositsRemaining)
+		require.Equal(t, govtypes.Deposits(nil), depositsRemaining)
 		addr1Amount = app.BankKeeper.GetAllBalances(ctx, addrs[1])
 		addr2Amount = app.BankKeeper.GetAllBalances(ctx, addrs[2])
 		addr3Amount = app.BankKeeper.GetAllBalances(ctx, addrs[3])
@@ -254,7 +253,7 @@ func TestKeeper_DepositOperation(t *testing.T) {
 
 		app.GovKeeper.DeleteDepositsByProposalID(ctx, pp.ProposalId)
 		depositsRemaining := app.GovKeeper.GetAllDeposits(ctx)
-		require.Equal(t, types.Deposits(nil), depositsRemaining)
+		require.Equal(t, govtypes.Deposits(nil), depositsRemaining)
 
 		addr1Amount = app.BankKeeper.GetAllBalances(ctx, addrs[1])
 		addr2Amount = app.BankKeeper.GetAllBalances(ctx, addrs[2])

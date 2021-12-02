@@ -40,11 +40,10 @@ func TestDecodeStore(t *testing.T) {
 	binary.LittleEndian.PutUint64(proposalIDBz, proposalID)
 
 	depositor := RandomAccount()
-	txhash := "2300092389009f098099"
-	deposit := types.NewDeposit(proposalID, depositor.Address, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.OneInt())), txhash)
+	deposit := govtypes.NewDeposit(proposalID, depositor.Address, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.OneInt())))
 	voter := RandomAccount()
 	options := govtypes.NewNonSplitVoteOption(govtypes.OptionYes)
-	vote := types.NewVote(proposalID, voter.Address, options, txhash)
+	vote := govtypes.NewVote(proposalID, voter.Address, options)
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{

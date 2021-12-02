@@ -9,8 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govRest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
-
-	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 // REST Variable names
@@ -36,7 +35,7 @@ func RegisterRoutes(cliCtx client.Context, r *mux.Router, phs []govRest.Proposal
 }
 
 type VoteWithPower struct {
-	types.Vote
+	govtypes.Vote
 	VotingPower sdk.Dec `json:"voting_power" yaml:"voting_power"`
 }
 
