@@ -114,6 +114,13 @@ jobs:
           target: test-sim-multi-seed-long
           description: "Test Shentu multi-seed simulation (long-lived)"
 
+  test-sim-nondeterminism:
+    executor: golang
+    steps:
+      - make:
+          target: test-sim-nondeterminism
+          description: "Test Shentu nondeterminism simulation"
+
   test-cover:
     executor: golang
     parallelism: 4
@@ -311,6 +318,9 @@ workflows:
           requires:
             - setup-dependencies
       - test-sim-multi-seed-short:
+          requires:
+            - setup-dependencies
+      - test-sim-nondeterminism:
           requires:
             - setup-dependencies
       - test-sim-multi-seed-long:
