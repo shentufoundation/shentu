@@ -422,8 +422,8 @@ func (suite *KeeperTestSuite) TestCertificate_IsCertified_Issue() {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
 			for _, cert := range tc.args.cert {
 				got := suite.keeper.IsCertified(suite.ctx, cert.contStr, cert.certTypeStr)
 				if !got && !cert.assumption && cert.create {
@@ -438,7 +438,7 @@ func (suite *KeeperTestSuite) TestCertificate_IsCertified_Issue() {
 						suite.Require().NoError(err, tc.name)
 					}
 
-					// check again ifCertified
+					// check again if Certified
 					got = suite.keeper.IsCertified(suite.ctx, cert.contStr, cert.certTypeStr)
 					want := !cert.assumption
 					if tc.errArgs.shouldPass {
