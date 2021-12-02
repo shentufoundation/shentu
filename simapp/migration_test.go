@@ -24,7 +24,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	sdkparams "github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
-	"github.com/cosmos/ibc-go/modules/apps/transfer"
+
+	"github.com/cosmos/ibc-go/v2/modules/apps/transfer"
 
 	"github.com/certikfoundation/shentu/v2/x/auth"
 	"github.com/certikfoundation/shentu/v2/x/cert"
