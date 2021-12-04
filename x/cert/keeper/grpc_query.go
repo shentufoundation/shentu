@@ -81,6 +81,7 @@ func (q Querier) Platform(c context.Context, req *types.QueryPlatformRequest) (*
 	return &types.QueryPlatformResponse{Platform: platform}, nil
 }
 
+// Certificate queries a certificate given its ID.
 func (q Querier) Certificate(c context.Context, req *types.QueryCertificateRequest) (*types.QueryCertificateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -97,6 +98,7 @@ func (q Querier) Certificate(c context.Context, req *types.QueryCertificateReque
 	}, nil
 }
 
+// Certificates queries all certificates based on a filter.
 func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesRequest) (*types.QueryCertificatesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")

@@ -10,6 +10,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -43,20 +44,20 @@ type KeeperTestSuite struct {
 	suite.Suite
 
 	// cdc    *codec.LegacyAmino
-	app     *simapp.SimApp
-	ctx     sdk.Context
-	keeper  keeper.Keeper
-	address []sdk.AccAddress
-	// queryClient types.QueryClient
+	app         *simapp.SimApp
+	ctx         sdk.Context
+	keeper      keeper.Keeper
+	address     []sdk.AccAddress
+	queryClient types.QueryClient
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.app = simapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.CertKeeper
-	// queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	// types.RegisterQueryServer(queryHelper, suite.app.CertKeeper)
-	// suite.queryClient = types.NewQueryClient(queryHelper)
+	suite.queryClient = types.NewQueryClient(queryHelper)
 	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
 		err := sdksimapp.FundAccount(
 			suite.app.BankKeeper,
