@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"github.com/certikfoundation/shentu/v2/x/cert/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 )
 
 func (suite *KeeperTestSuite) TestQueryCertifier() {
@@ -54,4 +55,76 @@ func (suite *KeeperTestSuite) TestQueryCertificate() {
 	// valid request
 	_, err = queryClient.Certificate(ctx.Context(), &types.QueryCertificateRequest{CertificateId: 1})
 	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) TestQueryCertificates() {
+	ctx, queryClient := suite.ctx, suite.queryClient
+
+	allCertificates := []cert{
+		{
+			// type auditing, certifier suite.address[0]
+			certTypeStr:  "auditing",
+			contStr:      "sourcodehash0",
+			compiler:     "compiler1",
+			bytecodeHash: "bytecodehash1",
+			description:  "",
+			certifier:    suite.address[0],
+			inputCertId:  suite.keeper.GetNextCertificateID(suite.ctx),
+		},
+		{
+			// type auditing, but different certifier
+			certTypeStr:  "auditing",
+			contStr:      "sourcodehash0",
+			compiler:     "compiler1",
+			bytecodeHash: "bytecodehash1",
+			description:  "",
+			certifier:    suite.address[1],
+			inputCertId:  suite.keeper.GetNextCertificateID(suite.ctx) + 1,
+		},
+		{
+			// different type
+			certTypeStr:  "compilation",
+			contStr:      "sourcodehash0",
+			compiler:     "compiler1",
+			bytecodeHash: "bytecodehash1",
+			description:  "",
+			certifier:    suite.address[0],
+			inputCertId:  suite.keeper.GetNextCertificateID(suite.ctx) + 2,
+		},
+		{
+			certTypeStr:  "auditing",
+			contStr:      "sourcodehash0",
+			compiler:     "compiler1",
+			bytecodeHash: "bytecodehash1",
+			description:  "",
+			certifier:    suite.address[0],
+			inputCertId:  suite.keeper.GetNextCertificateID(suite.ctx) + 3,
+		},
+	}
+
+	for _, cert := range allCertificates {
+		want, err := types.NewCertificate(cert.certTypeStr, cert.contStr, cert.compiler, cert.bytecodeHash, cert.description, cert.certifier)
+		suite.Require().NoError(err)
+		// TODO: maybe remove this and just use issueCertificate
+		want.CertificateId = cert.inputCertId
+		// set the cert
+		suite.keeper.SetCertificate(suite.ctx, want)
+	}
+
+	// TODO: make an array of testcases
+	queryParameters := struct {
+		Certifier       string
+		CertificateType string
+		// pagination defines an optional pagination for the request.
+		Pagination *query.PageRequest
+	}{
+		Certifier:       string(suite.address[0]),
+		CertificateType: "auditing",
+		Pagination:      &query.PageRequest{Offset: 1},
+	}
+
+	queryResponse, err := queryClient.Certificates(ctx.Context(), &types.QueryCertificatesRequest{Certifier: queryParameters.Certifier, CertificateType: queryParameters.CertificateType, Pagination: queryParameters.Pagination})
+	suite.Require().NoError(err)	
+	suite.Require().Equal(2, queryResponse.Total)
+
 }
