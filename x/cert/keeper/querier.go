@@ -95,12 +95,13 @@ func queryPlatform(ctx sdk.Context, path []string, keeper Keeper, legacyQuerierC
 	}
 
 	var validator cryptotypes.PubKey
-	err = legacyQuerierCdc.UnmarshalJSON([]byte(path[0]), validator)
+	err = legacyQuerierCdc.UnmarshalJSON([]byte(path[0]), &validator)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, path[0])
 	}
 
 	platform, ok := keeper.GetPlatform(ctx, validator)
+
 	if !ok {
 		return nil, nil
 	}
