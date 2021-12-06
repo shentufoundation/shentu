@@ -56,7 +56,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.CertKeeper
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	// types.RegisterQueryServer(queryHelper, suite.app.CertKeeper)
+	types.RegisterQueryServer(queryHelper, keeper.Querier{Keeper: suite.keeper})
 	suite.queryClient = types.NewQueryClient(queryHelper)
 	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
 		err := sdksimapp.FundAccount(
