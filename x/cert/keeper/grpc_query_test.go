@@ -112,21 +112,53 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 		suite.keeper.SetCertificate(suite.ctx, want)
 	}
 
-	// TODO: make an array of testcases
-	queryParameters := struct {
-		Certifier       string
-		CertificateType string
+	tests := []struct {
+		certifier       string
+		certificateType string
 		// pagination defines an optional pagination for the request.
-		Pagination *query.PageRequest
+		pagination        *query.PageRequest
+		totalCertificates int
+		shouldPass        bool
 	}{
-		Certifier:       suite.address[0].String(),
-		CertificateType: "auditing",
-		Pagination:      &query.PageRequest{Offset: 1},
+		{
+			certifier:         suite.address[0].String(),
+			certificateType:   "auditing",
+			pagination:        &query.PageRequest{Offset: 1},
+			totalCertificates: 2,
+			shouldPass:        true,
+		},
+		{
+			certifier:         suite.address[0].String(),
+			certificateType:   "compilation",
+			pagination:        &query.PageRequest{Offset: 1},
+			totalCertificates: 1,
+			shouldPass:        true,
+		},
+		{
+			certifier:         suite.address[1].String(),
+			certificateType:   "auditing",
+			pagination:        &query.PageRequest{Offset: 1},
+			totalCertificates: 1,
+			shouldPass:        true,
+		},
+		{
+			certifier:         suite.address[0].String(),
+			certificateType:   "auditing",
+			pagination:        &query.PageRequest{Offset: 1},
+			totalCertificates: 0,
+			shouldPass:        false,
+		},
 	}
 
-	queryResponse, err := queryClient.Certificates(ctx.Context(), &types.QueryCertificatesRequest{Certifier: queryParameters.Certifier, CertificateType: queryParameters.CertificateType, Pagination: queryParameters.Pagination})
-	suite.Require().NoError(err)
-	// TODO: add the hardcoded value in testcases
-	suite.Require().Equal(2, int(queryResponse.Total))
+	for _, tc := range tests {
+		queryResponse, err := queryClient.Certificates(ctx.Context(), &types.QueryCertificatesRequest{Certifier: tc.certifier, CertificateType: tc.certificateType, Pagination: tc.pagination})
+		suite.Require().NoError(err)
+		if tc.shouldPass {
+			suite.Require().Equal(tc.totalCertificates, int(queryResponse.Total))
+		} else {
+			suite.Require().NotEqual(tc.totalCertificates, int(queryResponse.Total))
+		}
+
+	}
 
 }
