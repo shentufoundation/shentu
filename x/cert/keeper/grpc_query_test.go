@@ -8,14 +8,46 @@ import (
 func (suite *KeeperTestSuite) TestQueryCertifier() {
 	ctx, queryClient := suite.ctx, suite.queryClient
 
-	// empty address string
-	_, err := queryClient.Certifier(ctx.Context(), &types.QueryCertifierRequest{})
-	suite.Require().Error(err)
+	tests := []struct {
+		address    string
+		alias      string
+		shouldPass bool
+	}{
+		{
+			address:    "",
+			alias:      "",
+			shouldPass: false,
+		},
+		{
+			address:    suite.address[0].String(),
+			alias:      "",
+			shouldPass: true,
+		},
+		{
+			address:    "",
+			alias:      "address1",
+			shouldPass: true,
+		},
+		{
+			address:    "",
+			alias:      "invalid",
+			shouldPass: false,
+		},
+	}
 
-	// valid address
-	queryResponse, err := queryClient.Certifier(ctx.Context(), &types.QueryCertifierRequest{Address: suite.address[0].String(), Alias: ""})
-	suite.Require().NoError(err)
-	suite.Equal(suite.address[0].String(), queryResponse.Certifier.Address)
+	for _, tc := range tests {
+		queryResponse, err := queryClient.Certifier(ctx.Context(), &types.QueryCertifierRequest{Address: tc.address, Alias: tc.alias})
+		if tc.shouldPass {
+			suite.Require().NoError(err)
+			if tc.address != "" {
+				suite.Equal(tc.address, queryResponse.Certifier.Address)
+			} else {
+				suite.Equal(tc.alias, queryResponse.Certifier.Alias)
+			}
+		} else {
+			suite.Require().Error(err)
+		}
+	}
 }
 
 func (suite *KeeperTestSuite) TestQueryCertifiers() {
@@ -45,17 +77,32 @@ func (suite *KeeperTestSuite) TestQueryCertificate() {
 	suite.keeper.SetNextCertificateID(suite.ctx, 1)
 	suite.keeper.IssueCertificate(ctx, certificate)
 
-	// invalid request
-	// _, err = queryClient.Certificate(ctx.Context(), nil)
-	// suite.Require().Error(err)
+	tests := []struct {
+		certificateId uint
+		shouldPass    bool
+	}{
+		{
+			certificateId: 0,
+			shouldPass:    false,
+		},
+		{
+			certificateId: 1,
+			shouldPass:    true,
+		},
+		{
+			certificateId: 10,
+			shouldPass:    false,
+		},
+	}
 
-	// id not found
-	_, err = queryClient.Certificate(ctx.Context(), &types.QueryCertificateRequest{CertificateId: 10})
-	suite.Require().Error(err)
-
-	// valid request
-	_, err = queryClient.Certificate(ctx.Context(), &types.QueryCertificateRequest{CertificateId: 1})
-	suite.Require().NoError(err)
+	for _, tc := range tests {
+		_, err = queryClient.Certificate(ctx.Context(), &types.QueryCertificateRequest{CertificateId: uint64(tc.certificateId)})
+		if tc.shouldPass {
+			suite.Require().NoError(err)
+		} else {
+			suite.Require().Error(err)
+		}
+	}
 }
 
 func (suite *KeeperTestSuite) TestQueryCertificates() {
@@ -106,7 +153,6 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 	for _, cert := range allCertificates {
 		want, err := types.NewCertificate(cert.certTypeStr, cert.contStr, cert.compiler, cert.bytecodeHash, cert.description, cert.certifier)
 		suite.Require().NoError(err)
-		// TODO: maybe remove this and just use issueCertificate
 		want.CertificateId = cert.inputCertId
 		// set the cert
 		suite.keeper.SetCertificate(suite.ctx, want)
