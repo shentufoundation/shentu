@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
@@ -47,7 +48,17 @@ func GetCmdView() *cobra.Command {
 		Use:   "view <address> <function> [<params>...]",
 		Short: "View CVM contract",
 		Args:  cobra.MinimumNArgs(2),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`View CVM contract view functions with caller flag.
+
+Example:
+$ %s certik query cvm view <address> retrieve --caller <caller address bech32>
+`,
+				version.AppName,
+			),
+		),
 		RunE: func(cmd *cobra.Command, args []string) error {
+
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
@@ -67,6 +78,8 @@ func GetCmdView() *cobra.Command {
 				if err != nil {
 					return err
 				}
+			} else {
+				return errors.New("caller address flag is not set")
 			}
 
 			callee, err := sdk.AccAddressFromBech32(args[0])
