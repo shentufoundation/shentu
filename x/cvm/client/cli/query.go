@@ -58,6 +58,7 @@ $ %s certik query cvm view <address> retrieve --caller <caller address bech32>
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			_ = cmd.MarkFlagRequired(FlagCaller)
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
