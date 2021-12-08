@@ -35,7 +35,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [v2.3.0] - TBD
+## [v2.3.0] - 12-02-2021
 
 ### Client Breaking Changes
 * (x/cert) [\#326](https://github.com/certikfoundation/shentu/pull/326) Remove `Bech32` encoding for validator pubkeys.
@@ -56,6 +56,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 * (x/shield) [\#326](https://github.com/certikfoundation/shentu/pull/326) Add checks for expired entries in shield purchase.
 * (x/gov) [\#331](https://github.com/certikfoundation/shentu/pull/331) Fix gov tally logic.
+* (x/oracle) [\345](https://github.com/certikfoundation/shentu/pull/345) Fix oracle operator update txs permission checks.
 
 ## [v2.2.0] - 09-08-2021
 
