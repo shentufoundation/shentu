@@ -120,7 +120,7 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 			inputCertId:  suite.keeper.GetNextCertificateID(suite.ctx),
 		},
 		{
-			// type auditing, but different certifier
+			// type auditing, but unqualified certifier suite.address[1]
 			certTypeStr:  "auditing",
 			contStr:      "sourcodehash0",
 			compiler:     "compiler1",
@@ -150,12 +150,12 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 		},
 	}
 
+	// intitalize certificate ID
+	suite.keeper.SetNextCertificateID(suite.ctx, 0)
 	for _, cert := range allCertificates {
 		want, err := types.NewCertificate(cert.certTypeStr, cert.contStr, cert.compiler, cert.bytecodeHash, cert.description, cert.certifier)
 		suite.Require().NoError(err)
-		want.CertificateId = cert.inputCertId
-		// set the cert
-		suite.keeper.SetCertificate(suite.ctx, want)
+		suite.keeper.IssueCertificate(suite.ctx, want)
 	}
 
 	tests := []struct {
@@ -181,18 +181,18 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 			shouldPass:        true,
 		},
 		{
-			certifier:         suite.address[1].String(),
-			certificateType:   "auditing",
-			pagination:        &query.PageRequest{Offset: 1},
-			totalCertificates: 1,
-			shouldPass:        true,
-		},
-		{
 			certifier:         suite.address[0].String(),
 			certificateType:   "auditing",
 			pagination:        &query.PageRequest{Offset: 1},
 			totalCertificates: 0,
 			shouldPass:        false,
+		},
+		{
+			certifier:         suite.address[1].String(),
+			certificateType:   "auditing",
+			pagination:        &query.PageRequest{Offset: 1},
+			totalCertificates: 0,
+			shouldPass:        true,
 		},
 	}
 

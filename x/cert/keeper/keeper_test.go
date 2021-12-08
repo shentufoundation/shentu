@@ -127,12 +127,30 @@ func (suite *KeeperTestSuite) TestCertificate_GetSet() {
 						compiler:     "compiler2",
 						bytecodeHash: "bytecodehash2",
 						description:  "",
-						certifier:    suite.address[1],
+						certifier:    suite.address[0],
 					},
 				},
 			},
 			errArgs{
 				shouldPass: true,
+				contains:   "",
+			},
+		},
+		{"Certificate(3) Create -> Get: Unqualified Certifier",
+			args{
+				cert: []cert{
+					{
+						certTypeStr:  "compilation",
+						contStr:      "sourcodehash0",
+						compiler:     "compiler1",
+						bytecodeHash: "bytecodehash1",
+						description:  "",
+						certifier:    suite.address[1],
+					},
+				},
+			},
+			errArgs{
+				shouldPass: false,
 				contains:   "",
 			},
 		},
@@ -144,14 +162,14 @@ func (suite *KeeperTestSuite) TestCertificate_GetSet() {
 			for _, cert := range tc.args.cert {
 				want, err := types.NewCertificate(cert.certTypeStr, cert.contStr, cert.compiler, cert.bytecodeHash, cert.description, cert.certifier)
 				suite.Require().NoError(err, tc.name)
-				// Get the next available ID and assign it
-				id := suite.keeper.GetNextCertificateID(suite.ctx)
-				want.CertificateId = id
 				// set the cert and its ID in the store
-				suite.keeper.SetNextCertificateID(suite.ctx, id+1)
-				suite.keeper.SetCertificate(suite.ctx, want)
-				// now retrieve its ID from the store
-				got, err := suite.keeper.GetCertificateByID(suite.ctx, id)
+				id, err := suite.keeper.IssueCertificate(suite.ctx, want)
+				var got types.Certificate
+				if err == nil {
+					// now retrieve the certificate from store
+					got, err = suite.keeper.GetCertificateByID(suite.ctx, id)
+				}
+				want.CertificateId = id
 				if tc.errArgs.shouldPass {
 					suite.Require().NoError(err, tc.name)
 					suite.Equal(got, want)
