@@ -38,7 +38,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryParam(),
 		GetCmdQueryParams(),
 		cli.GetCmdQueryProposer(),
-		cli.GetCmdQueryDeposit(),
+		GetCmdQueryDeposit(),
 		GetCmdQueryDeposits(),
 		cli.GetCmdQueryTally(),
 	)
@@ -254,6 +254,79 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 	}
 
 	flags.AddPaginationFlagsToCmd(cmd, "votes")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// GetCmdQueryDeposit implements the command for querying a specific
+// deposit given its depositor and proposal ID.
+func GetCmdQueryDeposit() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deposit [proposal-id] [depositer-addr]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Query details of a deposit",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query details for a single proposal deposit on a proposal by its identifier.
+
+Example:
+$ %s query gov deposit 1 certik1r4tssz9j0025vrct90uxxfzrte0w94q6s27n4x
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			// validate that the proposal id is a uint
+			proposalID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("proposal-id %s not a valid uint, please input a valid proposal-id", args[0])
+			}
+
+			// check to see if the proposal is in the store
+			ctx := cmd.Context()
+			proposalRes, err := queryClient.Proposal(
+				ctx,
+				&types.QueryProposalRequest{ProposalId: proposalID},
+			)
+			if err != nil {
+				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
+			}
+
+			depositorAddr, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+
+			var deposit govtypes.Deposit
+			propStatus := proposalRes.Proposal.Status
+			if !(propStatus == types.StatusCertifierVotingPeriod || propStatus == types.StatusValidatorVotingPeriod || propStatus == types.StatusDepositPeriod) {
+				params := govtypes.NewQueryDepositParams(proposalID, depositorAddr)
+				resByTxQuery, err := govUtils.QueryDepositByTxQuery(clientCtx, params)
+				if err != nil {
+					return err
+				}
+				clientCtx.Codec.MustUnmarshalJSON(resByTxQuery, &deposit)
+				return clientCtx.PrintProto(&deposit)
+			}
+
+			res, err := queryClient.Deposit(
+				ctx,
+				&types.QueryDepositRequest{ProposalId: proposalID, Depositor: args[1]},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(&res.Deposit)
+		},
+	}
+
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
