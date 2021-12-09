@@ -56,6 +56,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 * (x/shield) [\#326](https://github.com/certikfoundation/shentu/pull/326) Add checks for expired entries in shield purchase.
 * (x/gov) [\#331](https://github.com/certikfoundation/shentu/pull/331) Fix gov tally logic.
+* (x/oracle) [\345](https://github.com/certikfoundation/shentu/pull/345) Fix oracle operator update txs permission checks.
+* (x/cvm) [\#357](https://github.com/certikfoundation/shentu/pull/357) Fix cvm contract view.
 
 ## [v2.2.0] - 09-08-2021
 
