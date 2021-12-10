@@ -151,7 +151,7 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 	}
 
 	// intitalize certificate ID
-	suite.keeper.SetNextCertificateID(suite.ctx, 0)
+	suite.keeper.SetNextCertificateID(suite.ctx, 1)
 	for _, cert := range allCertificates {
 		want, err := types.NewCertificate(cert.certTypeStr, cert.contStr, cert.compiler, cert.bytecodeHash, cert.description, cert.certifier)
 		suite.Require().NoError(err)
