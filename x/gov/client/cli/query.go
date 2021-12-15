@@ -33,7 +33,7 @@ func GetQueryCmd() *cobra.Command {
 	govQueryCmd.AddCommand(
 		GetCmdQueryProposal(),
 		GetCmdQueryProposals(),
-		cli.GetCmdQueryVote(),
+		GetCmdQueryVote(),
 		GetCmdQueryVotes(),
 		GetCmdQueryParam(),
 		GetCmdQueryParams(),
@@ -174,6 +174,81 @@ $ %[1]s query gov proposals --page=2 --limit=100
 	cmd.Flags().String(flagDepositor, "", "(optional) filter by proposals deposited on by depositor")
 	cmd.Flags().String(flagVoter, "", "(optional) filter by proposals voted on by voted")
 	cmd.Flags().String(flagStatus, "", "(optional) filter proposals by proposal status, status: deposit_period/voting_period/passed/rejected")
+
+	return cmd
+}
+
+// GetCmdQueryVote implements the query proposal vote command. Command to Get a
+// Proposal Information.
+func GetCmdQueryVote() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "vote [proposal-id] [voter-addr]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Query details of a single vote",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query details for a single vote on a proposal given its identifier.
+
+Example:
+$ %s query gov vote 1 certik16gzt5vd0dd5c98ajl3ld2ltvcahxgyygzglazd
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			// validate that the proposal id is a uint
+			proposalID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("proposal-id %s not a valid int, please input a valid proposal-id", args[0])
+			}
+
+			// check to see if the proposal is in the store
+			ctx := cmd.Context()
+			_, err = queryClient.Proposal(
+				ctx,
+				&types.QueryProposalRequest{ProposalId: proposalID},
+			)
+			if err != nil {
+				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
+			}
+
+			voterAddr, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.Vote(
+				ctx,
+				&types.QueryVoteRequest{ProposalId: proposalID, Voter: args[1]},
+			)
+			if err != nil {
+				return err
+			}
+
+			vote := res.GetVote()
+			if vote.Empty() {
+				params := govtypes.NewQueryVoteParams(proposalID, voterAddr)
+				resByTxQuery, err := govUtils.QueryVoteByTxQuery(clientCtx, params)
+
+				if err != nil {
+					return err
+				}
+
+				if err := clientCtx.Codec.UnmarshalJSON(resByTxQuery, &vote); err != nil {
+					return err
+				}
+			}
+
+			return clientCtx.PrintProto(&res.Vote)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
