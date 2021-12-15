@@ -40,7 +40,7 @@ func GetCmdCertifier() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "certifier <address>",
 		Short: "Get certifier information",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
