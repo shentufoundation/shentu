@@ -9,6 +9,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -16,7 +17,6 @@ import (
 	"github.com/certikfoundation/shentu/v2/simapp"
 	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 var (
@@ -30,7 +30,7 @@ var (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	// cdc    *codec.LegacyAmino
+	cdc         *codec.LegacyAmino
 	app         *simapp.SimApp
 	ctx         sdk.Context
 	keeper      keeper.Keeper
@@ -47,7 +47,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.queryClient = types.NewQueryClient(queryHelper)
 	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
 	// suite.keeper.SetCertifier(suite.ctx, types.NewCertifier(suite.address[0], "address1", suite.address[0], ""))
-	suite.app.StakingKeeper.SetValidator(suite.ctx, stakingtypes.Validator{OperatorAddress: suite.address[0].String()})
 }
 
 func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
@@ -63,11 +62,12 @@ func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
 		fundedCoins        sdk.Coins
 		depositAmount      sdk.Coins
 		votingPeriodStatus bool
+		reDeposit          bool
 		err                bool
 		shouldPass         bool
 	}{
 		{
-			name: "New proposal, sufficient coins for voting",
+			name: "New proposal, sufficient coins to start voting",
 			proposal: proposal{
 				title:       "title0",
 				description: "description0",
@@ -76,6 +76,7 @@ func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
 			fundedCoins:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
 			depositAmount:      sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
 			votingPeriodStatus: true,
+			reDeposit:          false,
 			err:                false,
 			shouldPass:         true,
 		},
@@ -89,6 +90,7 @@ func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
 			fundedCoins:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (10)*1e6)),
 			depositAmount:      sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (10)*1e6)),
 			votingPeriodStatus: false,
+			reDeposit:          false,
 			err:                false,
 			shouldPass:         false,
 		},
@@ -102,6 +104,21 @@ func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
 			fundedCoins:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (600)*1e6)),
 			depositAmount:      sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
 			votingPeriodStatus: false,
+			reDeposit:          false,
+			err:                true,
+			shouldPass:         false,
+		},
+		{
+			name: "New proposal, add more deposit after votingPeriod starts",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+			},
+			proposer:           suite.address[0],
+			fundedCoins:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (1500)*1e6)),
+			depositAmount:      sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			votingPeriodStatus: true,
+			reDeposit:          true,
 			err:                true,
 			shouldPass:         false,
 		},
@@ -119,6 +136,10 @@ func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
 
 		// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
 		votingPeriodActivated, err := suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, suite.address[1], tc.depositAmount)
+
+		if tc.reDeposit {
+			_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, suite.address[1], tc.depositAmount)
+		}
 
 		if tc.shouldPass {
 			suite.Require().NoError(err)
