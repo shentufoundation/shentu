@@ -19,7 +19,7 @@ import (
 // GetProposal get Proposal from store by ProposalID.
 func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (types.Proposal, bool) {
 	store := ctx.KVStore(k.storeKey)
-
+	
 	bz := store.Get(ProposalKey(proposalID))
 	if bz == nil {
 		return types.Proposal{}, false
