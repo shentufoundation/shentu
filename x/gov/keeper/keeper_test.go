@@ -8,14 +8,16 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	"github.com/certikfoundation/shentu/v2/simapp"
+	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
+	"github.com/certikfoundation/shentu/v2/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
-	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
-	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
 )
 
 var (
@@ -45,6 +47,27 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.queryClient = types.NewQueryClient(queryHelper)
 	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
 	// suite.keeper.SetCertifier(suite.ctx, types.NewCertifier(suite.address[0], "address1", suite.address[0], ""))
+	validatorAddress := sdk.ValAddress(suite.address[3])
+	
+	pks := simapp.CreateTestPubKeys(5)
+	powers := []int64{5, 5, 5}
+	cdc := sdksimapp.MakeTestEncodingConfig().Marshaler
+	suite.app.StakingKeeper = stakingkeeper.NewKeeper(
+		cdc,
+		suite.app.GetKey(stakingtypes.StoreKey),
+		suite.app.AccountKeeper,
+		suite.app.BankKeeper,
+		suite.app.GetSubspace(stakingtypes.ModuleName),
+	)
+
+	val1, err := stakingtypes.NewValidator(validatorAddress, pks[0], stakingtypes.Description{})
+	suite.Require().NoError(err)
+	suite.app.StakingKeeper.SetValidator(suite.ctx, val1)
+	suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, val1)
+	suite.app.StakingKeeper.SetNewValidatorByPowerIndex(suite.ctx, val1)
+	suite.app.StakingKeeper.AfterValidatorCreated(suite.ctx, val1.GetOperator())
+	_, _ = suite.app.StakingKeeper.Delegate(suite.ctx, suite.address[1], suite.app.StakingKeeper.TokensFromConsensusPower(suite.ctx, powers[0]), stakingtypes.Unbonded, val1, true)
+
 }
 
 func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
@@ -270,16 +293,63 @@ func (suite *KeeperTestSuite) TestKeeper_Vote() {
 		description string
 	}
 
-	// tests := []struct {
-	// 	name               string
-	// 	proposal           proposal
-	// 	proposer           sdk.AccAddress
-	// 	fundedCoins        sdk.Coins
-	// 	depositAmount      sdk.Coins
-	// 	votingPeriodStatus bool
-	// 	err                bool
-	// 	shouldPass         bool
-	// }{}
+	tests := []struct {
+		name               string
+		proposal           proposal
+		proposer           sdk.AccAddress
+		fundedCoins        sdk.Coins
+		depositAmount      sdk.Coins
+		votingPeriodStatus bool
+		err                bool
+		shouldPass         bool
+	}{
+		{
+			name: "vote yes on a proposal",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+			},
+			proposer:           suite.address[3],
+			fundedCoins:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount:      sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			votingPeriodStatus: true,
+			err:                false,
+			shouldPass:         true,
+		},
+	}
+
+	for _, tc := range tests {
+		textProposalContent := govtypes.NewTextProposal(tc.proposal.title, tc.proposal.description)
+
+		// create/submit a new proposal
+		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent, tc.proposer)
+		suite.Require().NoError(err)
+
+		// add staking coins to address 1
+		suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, suite.address[1], tc.fundedCoins))
+
+		// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
+		_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, suite.address[1], tc.depositAmount)
+		suite.Require().NoError(err)
+
+		options := govtypes.NewNonSplitVoteOption(govtypes.OptionYes)
+		vote := govtypes.NewVote(proposal.ProposalId, suite.address[0], options)
+
+		voter, _ := sdk.AccAddressFromBech32(vote.Voter)
+		err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, voter, options)
+		suite.Require().NoError(err)
+
+		results := map[govtypes.VoteOption]sdk.Dec{
+			govtypes.OptionYes:        sdk.OneDec(),
+			govtypes.OptionAbstain:    sdk.ZeroDec(),
+			govtypes.OptionNo:         sdk.ZeroDec(),
+			govtypes.OptionNoWithVeto: sdk.ZeroDec(),
+		}
+		pass, veto, res := keeper.Tally(suite.ctx, suite.app.GovKeeper, proposal)
+		suite.Require().Equal(false, pass)
+		suite.Require().Equal(false, veto)
+		suite.Require().Equal(govtypes.NewTallyResultFromMap(results), res)
+	}
 }
 
 func TestKeeperTestSuite(t *testing.T) {
