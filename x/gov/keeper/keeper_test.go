@@ -77,6 +77,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 }
 
+// TODO: Add proposer in type proposal for all test cases
 func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
 	type proposal struct {
 		title       string
@@ -161,10 +162,10 @@ func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
 				title:       "title0",
 				description: "description0",
 			},
-			proposer:      suite.validatorAccAddress,
-			depositor:     suite.address[1],
-			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
-			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (100)*1e6)),
+			proposer:           suite.validatorAccAddress,
+			depositor:          suite.address[1],
+			fundedCoins:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount:      sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (100)*1e6)),
 			votingPeriodStatus: false,
 			err:                true,
 			shouldPass:         false,
@@ -177,7 +178,6 @@ func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
 		// create/submit a new proposal
 		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent, tc.proposer)
 		suite.Require().NoError(err)
-
 		// add staking coins to depositor
 		suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
 
@@ -292,7 +292,7 @@ func (suite *KeeperTestSuite) TestKeeper_DepositOperations() {
 		// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
 		_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, tc.depositor, tc.depositAmount)
 		suite.Require().NoError(err)
-		
+
 		if tc.setInvalidProposalId {
 			proposal.ProposalId = proposal.ProposalId + 10
 		}
@@ -422,7 +422,6 @@ func (suite *KeeperTestSuite) TestKeeper_Vote() {
 			err:                true,
 			shouldPass:         false,
 		},
-	
 	}
 
 	for _, tc := range tests {
