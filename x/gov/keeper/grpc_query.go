@@ -107,9 +107,15 @@ func (q Keeper) Vote(c context.Context, req *types.QueryVoteRequest) (*types.Que
 	if req.Voter == "" {
 		return nil, status.Error(codes.InvalidArgument, "empty voter address")
 	}
+	
 
 	ctx := sdk.UnwrapSDKContext(c)
 
+	_, found := q.GetProposal(ctx, req.ProposalId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "proposal %d doesn't exist", req.ProposalId)
+	}
+	
 	voter, err := sdk.AccAddressFromBech32(req.Voter)
 	if err != nil {
 		return nil, err
