@@ -19,7 +19,7 @@ import (
 // GetProposal get Proposal from store by ProposalID.
 func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (types.Proposal, bool) {
 	store := ctx.KVStore(k.storeKey)
-	
+
 	bz := store.Get(ProposalKey(proposalID))
 	if bz == nil {
 		return types.Proposal{}, false
@@ -134,6 +134,14 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govtypes.Content, addr s
 		return types.Proposal{}, err
 	}
 
+	if k.IsCouncilMember(ctx, addr) {
+		if k.IsCertifier(ctx, addr) {
+			proposal.Status = types.StatusCertifierVotingPeriod
+		} else {
+			proposal.Status = types.StatusValidatorVotingPeriod
+		}
+
+	}
 	k.SetProposal(ctx, proposal)
 	k.InsertInactiveProposalQueue(ctx, proposalID, proposal.DepositEndTime)
 	k.SetProposalID(ctx, proposalID+1)
