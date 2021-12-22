@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -89,7 +91,7 @@ func (suite *KeeperTestSuite) TestQueryProposals() {
 	}{
 		{
 			proposal: proposal{
-				// StatusValidatorVotingPeriod 1, since add deposit will not run completely as proposer is CouncilMember
+				// StatusValidatorVotingPeriod 3
 				title:       "title",
 				description: "description",
 				proposer:    suite.validatorAccAddress,
@@ -204,13 +206,13 @@ func (suite *KeeperTestSuite) TestQueryProposals() {
 		{
 			name:                    "proposals with status 1",
 			proposalStatus:          1,
-			filteredProposalsLength: 3,
+			filteredProposalsLength: 2,
 			shouldPass:              true,
 		},
 		{
 			name:                    "proposals with status 3",
 			proposalStatus:          3,
-			filteredProposalsLength: 3,
+			filteredProposalsLength: 4,
 			shouldPass:              true,
 		},
 		{
@@ -255,10 +257,127 @@ func (suite *KeeperTestSuite) TestQueryProposals() {
 	for _, tc := range tests {
 		queryResponse, err := queryClient.Proposals(ctx.Context(), &types.QueryProposalsRequest{ProposalStatus: types.ProposalStatus(tc.proposalStatus), Voter: tc.voter, Depositor: tc.depositor})
 		suite.Require().NoError(err)
+		fmt.Println(tc.name)
 		if tc.shouldPass {
 			suite.Require().Equal(tc.filteredProposalsLength, len(queryResponse.Proposals))
 		} else {
 			suite.Require().NotEqual(tc.filteredProposalsLength, len(queryResponse.Proposals))
 		}
+	}
+}
+
+func (suite *KeeperTestSuite) TestQueryVote() {
+	ctx, queryClient := suite.ctx, suite.queryClient
+	type proposal struct {
+		title       string
+		description string
+		proposer    sdk.AccAddress
+		proposalId  int
+	}
+	tests := []struct {
+		proposal      proposal
+		voter         string
+		name          string
+		depositor     sdk.AccAddress
+		fundedCoins   sdk.Coins
+		depositAmount sdk.Coins
+		voteOption    govtypes.VoteOption
+		deposit       bool
+		shouldPass    bool
+	}{
+		{
+			name: "Proposal submitted by validator, vote yes",
+			proposal: proposal{
+				title:       "title",
+				description: "description",
+				proposer:    suite.validatorAccAddress,
+				proposalId:  1,
+			},
+			voter:      suite.validatorAccAddress.String(),
+			voteOption: govtypes.OptionYes,
+			deposit:    false,
+			shouldPass: true,
+		},
+		{
+			name: "Proposal submitted by non-validator, vote yes",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+				proposer:    suite.address[0],
+				proposalId:  2,
+			},
+			depositor:     suite.address[0],
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			voter:         suite.validatorAccAddress.String(),
+			voteOption:    govtypes.OptionYes,
+			deposit:       true,
+			shouldPass:    true,
+		},
+		{
+			name: "Invalid voter address",
+			proposal: proposal{
+				title:       "title1",
+				description: "description1",
+				proposer:    suite.address[0],
+				proposalId:  3,
+			},
+			depositor:     suite.address[0],
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			voter:         "",
+			voteOption:    govtypes.OptionYes,
+			deposit:       true,
+			shouldPass:    false,
+		},
+		{
+			name: "Invalid proposal ID",
+			proposal: proposal{
+				title:       "title1",
+				description: "description1",
+				proposer:    suite.address[0],
+				proposalId:  10,
+			},
+			depositor:     suite.address[0],
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			voter:         suite.validatorAccAddress.String(),
+			voteOption:    govtypes.OptionYes,
+			deposit:       true,
+			shouldPass:    false,
+		},
+	}
+
+	for _, tc := range tests {
+		textProposalContent := govtypes.NewTextProposal(tc.proposal.title, tc.proposal.description)
+		// create/submit a new proposal
+		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent, tc.proposal.proposer)
+		suite.Require().NoError(err)
+
+		// add staking coins to depositor
+		suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
+
+		if tc.deposit {
+			// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
+			_, err := suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, tc.depositor, tc.depositAmount)
+			suite.Require().NoError(err)
+
+		}
+		voter, _ := sdk.AccAddressFromBech32(tc.voter)
+		options := govtypes.NewNonSplitVoteOption(tc.voteOption)
+		_ = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, voter, options)
+
+		queryResponse, err := queryClient.Vote(ctx.Context(), &types.QueryVoteRequest{ProposalId: uint64(tc.proposal.proposalId), Voter: tc.voter})
+		if tc.shouldPass {
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.voter, queryResponse.Vote.Voter)
+
+		} else {
+			suite.Require().Error(err)
+		}
+
+		// emptying depositor for next set of events
+		suite.app.BankKeeper.SendCoins(suite.ctx, tc.depositor, suite.address[2], suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.depositor))
+
 	}
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
 
-	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -50,7 +49,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.queryClient = types.NewQueryClient(queryHelper)
 	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
 
-	suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(suite.address[3], "", suite.address[3], ""))
+	// suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(suite.address[3], "", suite.address[3], ""))
 	validatorAddress := sdk.ValAddress(suite.address[3])
 	suite.validatorAccAddress = suite.address[3]
 	pks := simapp.CreateTestPubKeys(5)
