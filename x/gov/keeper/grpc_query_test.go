@@ -547,3 +547,168 @@ func (suite *KeeperTestSuite) TestQueryVote() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestQueryTally() {
+	ctx, queryClient := suite.ctx, suite.queryClient
+	type proposal struct {
+		title       string
+		description string
+		proposer    sdk.AccAddress
+		proposalId  int
+	}
+	tests := []struct {
+		proposal      proposal
+		name          string
+		tallyResults  govtypes.TallyResult
+		depositor     sdk.AccAddress
+		voter         sdk.AccAddress
+		fundedCoins   sdk.Coins
+		depositAmount sdk.Coins
+		voteOption    govtypes.VoteOption
+		deposit       bool
+		shouldPass    bool
+	}{
+		{
+			name: "Proposal submitted by validator, vote yes",
+			proposal: proposal{
+				title:       "title",
+				description: "description",
+				proposer:    suite.validatorAccAddress,
+				proposalId:  1,
+			},
+			voter:      suite.validatorAccAddress,
+			voteOption: govtypes.OptionYes,
+			deposit:    false,
+			tallyResults: govtypes.TallyResult{
+				Yes:        sdk.Int(sdk.OneDec().TruncateInt()),
+				Abstain:    sdk.Int(sdk.ZeroDec().TruncateInt()),
+				No:         sdk.Int(sdk.ZeroDec().TruncateInt()),
+				NoWithVeto: sdk.Int(sdk.ZeroDec().TruncateInt()),
+			},
+			shouldPass: true,
+		},
+		{
+			name: "Proposal submitted by non-validator, validator vote yes",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+				proposer:    suite.address[0],
+				proposalId:  2,
+			},
+			depositor:     suite.address[0],
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			voter:         suite.validatorAccAddress,
+			voteOption:    govtypes.OptionYes,
+			deposit:       true,
+			tallyResults: govtypes.TallyResult{
+				Yes:        sdk.Int(sdk.OneDec().TruncateInt()),
+				Abstain:    sdk.Int(sdk.ZeroDec().TruncateInt()),
+				No:         sdk.Int(sdk.ZeroDec().TruncateInt()),
+				NoWithVeto: sdk.Int(sdk.ZeroDec().TruncateInt()),
+			},
+			shouldPass: true,
+		}, {
+			name: "Proposal submitted by non-validator, non-validator vote should not be counted",
+			proposal: proposal{
+				title:       "title1",
+				description: "description1",
+				proposer:    suite.address[0],
+				proposalId:  3,
+			},
+			depositor:     suite.address[0],
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			voter:         suite.address[0],
+			voteOption:    govtypes.OptionYes,
+			deposit:       true,
+			tallyResults: govtypes.TallyResult{
+				Yes:        sdk.Int(sdk.ZeroDec().TruncateInt()),
+				Abstain:    sdk.Int(sdk.ZeroDec().TruncateInt()),
+				No:         sdk.Int(sdk.ZeroDec().TruncateInt()),
+				NoWithVeto: sdk.Int(sdk.ZeroDec().TruncateInt()),
+			},
+			shouldPass: true,
+		},
+		{
+			name: "Proposal status DepositPeriod, so vote not added",
+			proposal: proposal{
+				title:       "title2",
+				description: "description2",
+				proposer:    suite.address[0],
+				proposalId:  4,
+			},
+			depositor:     suite.address[0],
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (100)*1e6)),
+			voter:         suite.validatorAccAddress,
+			voteOption:    govtypes.OptionYes,
+			deposit:       true,
+			tallyResults: govtypes.TallyResult{
+				Yes:        sdk.Int(sdk.ZeroDec().TruncateInt()),
+				Abstain:    sdk.Int(sdk.ZeroDec().TruncateInt()),
+				No:         sdk.Int(sdk.ZeroDec().TruncateInt()),
+				NoWithVeto: sdk.Int(sdk.ZeroDec().TruncateInt()),
+			},
+			shouldPass: true,
+		},
+		{
+			name: "Invalid proposal ID",
+			proposal: proposal{
+				title:       "title3",
+				description: "description3",
+				proposer:    suite.address[0],
+				proposalId:  10,
+			},
+			depositor:     suite.address[0],
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			voter:         suite.validatorAccAddress,
+			voteOption:    govtypes.OptionYes,
+			deposit:       true,
+			tallyResults: govtypes.TallyResult{
+				Yes:        sdk.Int(sdk.ZeroDec().TruncateInt()),
+				Abstain:    sdk.Int(sdk.ZeroDec().TruncateInt()),
+				No:         sdk.Int(sdk.ZeroDec().TruncateInt()),
+				NoWithVeto: sdk.Int(sdk.ZeroDec().TruncateInt()),
+			},
+			shouldPass: false,
+		},
+	}
+
+	for _, tc := range tests {
+		textProposalContent := govtypes.NewTextProposal(tc.proposal.title, tc.proposal.description)
+		// create/submit a new proposal
+		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent, tc.proposal.proposer)
+		suite.Require().NoError(err)
+
+		// add staking coins to depositor
+		suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
+
+		if tc.deposit {
+			// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
+			_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, tc.depositor, tc.depositAmount)
+			if tc.shouldPass {
+				suite.Require().NoError(err)
+			}
+
+		}
+
+		options := govtypes.NewNonSplitVoteOption(tc.voteOption)
+		vote := govtypes.NewVote(proposal.ProposalId, tc.voter, options)
+		voter, _ := sdk.AccAddressFromBech32(vote.Voter)
+		_ = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, voter, options)
+		queryResponse, err := queryClient.TallyResult(ctx.Context(), &types.QueryTallyResultRequest{ProposalId: uint64(tc.proposal.proposalId)})
+		// fmt.Println(tc.tallyResults, queryResponse.Tally)
+
+		if tc.shouldPass {
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.tallyResults, queryResponse.Tally)
+
+		} else {
+			suite.Require().Error(err)
+		}
+		// emptying depositor for next set of events
+		suite.app.BankKeeper.SendCoins(suite.ctx, tc.depositor, suite.address[2], suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.depositor))
+
+	}
+}
