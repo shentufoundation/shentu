@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
-
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -257,13 +255,180 @@ func (suite *KeeperTestSuite) TestQueryProposals() {
 	for _, tc := range tests {
 		queryResponse, err := queryClient.Proposals(ctx.Context(), &types.QueryProposalsRequest{ProposalStatus: types.ProposalStatus(tc.proposalStatus), Voter: tc.voter, Depositor: tc.depositor})
 		suite.Require().NoError(err)
-		fmt.Println(tc.name)
 		if tc.shouldPass {
 			suite.Require().Equal(tc.filteredProposalsLength, len(queryResponse.Proposals))
 		} else {
 			suite.Require().NotEqual(tc.filteredProposalsLength, len(queryResponse.Proposals))
 		}
 	}
+}
+
+func (suite *KeeperTestSuite) TestQueryDeposit() {
+	ctx, queryClient := suite.ctx, suite.queryClient
+	type proposal struct {
+		title       string
+		description string
+		proposer    sdk.AccAddress
+		proposalId  int
+	}
+	tests := []struct {
+		proposal      proposal
+		name          string
+		depositor     sdk.AccAddress
+		fundedCoins   sdk.Coins
+		depositAmount sdk.Coins
+		shouldPass    bool
+	}{
+		{
+			name: "Valid deposit",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+				proposer:    suite.address[0],
+				proposalId:  1,
+			},
+			depositor:     suite.address[0],
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			shouldPass:    true,
+		},
+		{
+			name: "Invalid proposal ID",
+			proposal: proposal{
+				title:       "title1",
+				description: "description1",
+				proposer:    suite.address[0],
+				proposalId:  3,
+			},
+			depositor:     suite.address[0],
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			shouldPass:    false,
+		},
+	}
+
+	for _, tc := range tests {
+		textProposalContent := govtypes.NewTextProposal(tc.proposal.title, tc.proposal.description)
+		// create/submit a new proposal
+		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent, tc.proposal.proposer)
+		suite.Require().NoError(err)
+
+		// add staking coins to depositor
+		suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
+
+		// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
+		_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, tc.depositor, tc.depositAmount)
+		suite.Require().NoError(err)
+
+		queryResponse, err := queryClient.Deposit(ctx.Context(), &types.QueryDepositRequest{ProposalId: uint64(tc.proposal.proposalId), Depositor: tc.depositor.String()})
+		if tc.shouldPass {
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.depositAmount, queryResponse.Deposit.Amount)
+
+		} else {
+			suite.Require().Error(err)
+		}
+
+		// emptying depositor for next set of events
+		suite.app.BankKeeper.SendCoins(suite.ctx, tc.depositor, suite.address[2], suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.depositor))
+
+	}
+}
+
+func (suite *KeeperTestSuite) TestQueryDeposits() {
+	ctx, queryClient := suite.ctx, suite.queryClient
+	type proposal struct {
+		title       string
+		description string
+		proposer    sdk.AccAddress
+	}
+	events := []struct {
+		proposal      proposal
+		depositors    []sdk.AccAddress
+		fundedCoins   sdk.Coins
+		depositAmount sdk.Coins
+	}{
+		{
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+				proposer:    suite.address[0],
+			},
+			depositors:    []sdk.AccAddress{suite.address[0], suite.address[1], suite.address[2]},
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (250)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (250)*1e6)),
+		},
+		{
+			proposal: proposal{
+				title:       "title1",
+				description: "description1",
+				proposer:    suite.address[0],
+			},
+			depositors:    []sdk.AccAddress{suite.address[0]},
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+		},
+	}
+
+	for _, event := range events {
+		textProposalContent := govtypes.NewTextProposal(event.proposal.title, event.proposal.description)
+		// create/submit a new proposal
+		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent, event.proposal.proposer)
+		suite.Require().NoError(err)
+		for _, depositor := range event.depositors {
+			// add staking coins to depositor
+			suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, depositor, event.fundedCoins))
+
+			// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
+			_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, depositor, event.depositAmount)
+			suite.Require().NoError(err)
+
+			// emptying depositor for next set of events
+			suite.app.BankKeeper.SendCoins(suite.ctx, depositor, suite.address[3], suite.app.BankKeeper.GetAllBalances(suite.ctx, depositor))
+
+		}
+	}
+	tests := []struct {
+		name            string
+		proposalId      int
+		pagination      int
+		depositorsCount int
+		shouldPass      bool
+	}{
+		{
+			name:            "Proposal with 3 depositors",
+			proposalId:      1,
+			pagination:      1,
+			depositorsCount: 3,
+			shouldPass:      true,
+		},
+		{
+			name:            "Proposal with 1 depositor",
+			proposalId:      2,
+			pagination:      1,
+			depositorsCount: 1,
+			shouldPass:      true,
+		},
+		{
+			name:            "Invalid proposal ID",
+			proposalId:      4,
+			pagination:      1,
+			depositorsCount: 3,
+			shouldPass:      false,
+		},
+	}
+
+	for _, tc := range tests {
+		queryResponse, err := queryClient.Deposits(ctx.Context(), &types.QueryDepositsRequest{ProposalId: uint64(tc.proposalId)})
+		if tc.shouldPass {
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.depositorsCount, len(queryResponse.Deposits))
+
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+
 }
 
 func (suite *KeeperTestSuite) TestQueryVote() {
@@ -381,3 +546,4 @@ func (suite *KeeperTestSuite) TestQueryVote() {
 
 	}
 }
+
