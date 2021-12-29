@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -51,8 +50,8 @@ func GetQueryCmd() *cobra.Command {
 func GetCmdPool() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pool [pool_ID]",
-		Short: "query a pool",
-		Args:  cobra.RangeArgs(0, 1),
+		Short: "Query a pool using its ID.",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -60,13 +59,9 @@ func GetCmdPool() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			sponsor := viper.GetString(flagSponsor)
-			var id uint64
-			if sponsor == "" {
-				id, err = strconv.ParseUint(args[0], 10, 64)
-				if err != nil {
-					return fmt.Errorf("no sponsor was provided, and pool id %s is invalid", args[0])
-				}
+			id, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("pool id %s is invalid", args[0])
 			}
 
 			res, err := queryClient.Pool(
@@ -88,9 +83,9 @@ func GetCmdPool() *cobra.Command {
 // GetCmdSponsor returns the command for querying the pools for a sponsor address.
 func GetCmdSponsor() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "sponsor [pool_ID]",
-		Short: "query pools for a sponsor",
-		Args:  cobra.RangeArgs(0, 1),
+		Use:   "sponsor [sponsor_address]",
+		Short: "Query pools with a given sponsor.",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -98,10 +93,9 @@ func GetCmdSponsor() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			sponsor := args[0]
 			res, err := queryClient.Sponsor(
 				cmd.Context(),
-				&types.QuerySponsorRequest{Sponsor: sponsor},
+				&types.QuerySponsorRequest{Sponsor: args[0]},
 			)
 			if err != nil {
 				return err
