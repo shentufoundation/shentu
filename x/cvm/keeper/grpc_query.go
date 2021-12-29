@@ -136,10 +136,18 @@ func (q Querier) Account(c context.Context, request *types.QueryAccountRequest) 
 
 func (q Querier) View(c context.Context, request *types.QueryViewRequest) (*types.QueryViewResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	caller, err := sdk.AccAddressFromBech32(request.Caller)
+
+	var caller sdk.AccAddress
+	var err error
+	if request.Caller == "" {
+		caller = crypto.ZeroAddress.Bytes()
+	} else {
+		caller, err = sdk.AccAddressFromBech32(request.Caller)
+	}
 	if err != nil {
 		return nil, err
 	}
+
 	callee, err := sdk.AccAddressFromBech32(request.Callee)
 	if err != nil {
 		return nil, err

@@ -1,22 +1,20 @@
 package keeper
 
 import (
-	"encoding/hex"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // GetDeposit gets the deposit of a specific depositor on a specific proposal.
-func (k Keeper) GetDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk.AccAddress) (deposit types.Deposit, found bool) {
+func (k Keeper) GetDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk.AccAddress) (deposit govtypes.Deposit, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(govTypes.DepositKey(proposalID, depositorAddr))
+	bz := store.Get(govtypes.DepositKey(proposalID, depositorAddr))
 	if bz == nil {
 		return deposit, false
 	}
@@ -26,14 +24,14 @@ func (k Keeper) GetDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk
 }
 
 // SetDeposit sets the deposit to KVStore.
-func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit) {
+func (k Keeper) SetDeposit(ctx sdk.Context, deposit govtypes.Deposit) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&deposit)
 	depositor, err := sdk.AccAddressFromBech32(deposit.Depositor)
 	if err != nil {
 		panic(err)
 	}
-	store.Set(govTypes.DepositKey(deposit.ProposalId, depositor), bz)
+	store.Set(govtypes.DepositKey(deposit.ProposalId, depositor), bz)
 }
 
 // AddDeposit adds or updates a deposit of a specific depositor on a specific proposal.
@@ -43,15 +41,15 @@ func (k Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk
 	// checks to see if proposal exists
 	proposal, ok := k.GetProposal(ctx, proposalID)
 	if !ok {
-		return false, sdkerrors.Wrap(govTypes.ErrUnknownProposal, fmt.Sprint(proposalID))
+		return false, sdkerrors.Wrap(govtypes.ErrUnknownProposal, fmt.Sprint(proposalID))
 	}
 	// check if proposal is still depositable or if proposer is council member
 	if (proposal.Status != types.StatusDepositPeriod) || proposal.IsProposerCouncilMember {
-		return false, sdkerrors.Wrap(govTypes.ErrAlreadyActiveProposal, fmt.Sprint(proposalID))
+		return false, sdkerrors.Wrap(govtypes.ErrAlreadyActiveProposal, fmt.Sprint(proposalID))
 	}
 
 	// update the governance module's account coins pool
-	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, depositorAddr, govTypes.ModuleName, depositAmount)
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, depositorAddr, govtypes.ModuleName, depositAmount)
 	if err != nil {
 		return false, err
 	}
@@ -69,9 +67,9 @@ func (k Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			govTypes.EventTypeProposalDeposit,
+			govtypes.EventTypeProposalDeposit,
 			sdk.NewAttribute(sdk.AttributeKeyAmount, depositAmount.String()),
-			sdk.NewAttribute(govTypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
+			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
 			sdk.NewAttribute(types.AttributeKeyDepositor, depositorAddr.String()),
 		),
 	)
@@ -88,15 +86,15 @@ func (k Keeper) upsertDeposit(ctx sdk.Context, proposalID uint64, depositorAddr 
 	if found {
 		deposit.Amount = deposit.Amount.Add(depositAmount...)
 	} else {
-		deposit = types.NewDeposit(proposalID, depositorAddr, depositAmount, hex.EncodeToString(tmhash.Sum(ctx.TxBytes())))
+		deposit = govtypes.NewDeposit(proposalID, depositorAddr, depositAmount)
 	}
 
 	k.SetDeposit(ctx, deposit)
 }
 
 // GetAllDeposits returns all the deposits from the store.
-func (k Keeper) GetAllDeposits(ctx sdk.Context) (deposits types.Deposits) {
-	k.IterateAllDeposits(ctx, func(deposit types.Deposit) bool {
+func (k Keeper) GetAllDeposits(ctx sdk.Context) (deposits govtypes.Deposits) {
+	k.IterateAllDeposits(ctx, func(deposit govtypes.Deposit) bool {
 		deposits = append(deposits, deposit)
 		return false
 	})
@@ -104,8 +102,8 @@ func (k Keeper) GetAllDeposits(ctx sdk.Context) (deposits types.Deposits) {
 }
 
 // GetDepositsByProposalID returns all the deposits from a proposal.
-func (k Keeper) GetDepositsByProposalID(ctx sdk.Context, proposalID uint64) (deposits types.Deposits) {
-	k.IterateDeposits(ctx, proposalID, func(deposit types.Deposit) bool {
+func (k Keeper) GetDepositsByProposalID(ctx sdk.Context, proposalID uint64) (deposits govtypes.Deposits) {
+	k.IterateDeposits(ctx, proposalID, func(deposit govtypes.Deposit) bool {
 		deposits = append(deposits, deposit)
 		return false
 	})
@@ -115,25 +113,25 @@ func (k Keeper) GetDepositsByProposalID(ctx sdk.Context, proposalID uint64) (dep
 // GetDepositsIteratorByProposalID gets all the deposits on a specific proposal as an sdk.Iterator.
 func (k Keeper) GetDepositsIteratorByProposalID(ctx sdk.Context, proposalID uint64) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
-	return sdk.KVStorePrefixIterator(store, govTypes.DepositsKey(proposalID))
+	return sdk.KVStorePrefixIterator(store, govtypes.DepositsKey(proposalID))
 }
 
 // RefundDepositsByProposalID refunds and deletes all the deposits on a specific proposal.
 func (k Keeper) RefundDepositsByProposalID(ctx sdk.Context, proposalID uint64) {
 	store := ctx.KVStore(k.storeKey)
 
-	k.IterateDeposits(ctx, proposalID, func(deposit types.Deposit) bool {
+	k.IterateDeposits(ctx, proposalID, func(deposit govtypes.Deposit) bool {
 		depositor, err := sdk.AccAddressFromBech32(deposit.Depositor)
 		if err != nil {
 			panic(err)
 		}
 
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, govTypes.ModuleName, depositor, deposit.Amount)
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, govtypes.ModuleName, depositor, deposit.Amount)
 		if err != nil {
 			panic(err)
 		}
 
-		store.Delete(govTypes.DepositKey(proposalID, depositor))
+		store.Delete(govtypes.DepositKey(proposalID, depositor))
 		return false
 	})
 }
@@ -142,8 +140,8 @@ func (k Keeper) RefundDepositsByProposalID(ctx sdk.Context, proposalID uint64) {
 func (k Keeper) DeleteDepositsByProposalID(ctx sdk.Context, proposalID uint64) {
 	store := ctx.KVStore(k.storeKey)
 
-	k.IterateDeposits(ctx, proposalID, func(deposit types.Deposit) bool {
-		err := k.bankKeeper.BurnCoins(ctx, govTypes.ModuleName, deposit.Amount)
+	k.IterateDeposits(ctx, proposalID, func(deposit govtypes.Deposit) bool {
+		err := k.bankKeeper.BurnCoins(ctx, govtypes.ModuleName, deposit.Amount)
 		if err != nil {
 			panic(err)
 		}
@@ -153,14 +151,14 @@ func (k Keeper) DeleteDepositsByProposalID(ctx sdk.Context, proposalID uint64) {
 			panic(err)
 		}
 
-		store.Delete(govTypes.DepositKey(proposalID, depositor))
+		store.Delete(govtypes.DepositKey(proposalID, depositor))
 		return false
 	})
 }
 
 // GetDeposits returns all the deposits from a proposal.
-func (k Keeper) GetDeposits(ctx sdk.Context, proposalID uint64) (deposits types.Deposits) {
-	k.IterateDeposits(ctx, proposalID, func(deposit types.Deposit) bool {
+func (k Keeper) GetDeposits(ctx sdk.Context, proposalID uint64) (deposits govtypes.Deposits) {
+	k.IterateDeposits(ctx, proposalID, func(deposit govtypes.Deposit) bool {
 		deposits = append(deposits, deposit)
 		return false
 	})
@@ -168,12 +166,16 @@ func (k Keeper) GetDeposits(ctx sdk.Context, proposalID uint64) (deposits types.
 }
 
 // IterateDeposits iterates over the all the proposals deposits and performs a callback function.
-func (k Keeper) IterateDeposits(ctx sdk.Context, proposalID uint64, cb func(deposit types.Deposit) (stop bool)) {
+func (k Keeper) IterateDeposits(ctx sdk.Context, proposalID uint64, cb func(deposit govtypes.Deposit) (stop bool)) {
 	iterator := k.GetDepositsIteratorByProposalID(ctx, proposalID)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
+<<<<<<< HEAD
 		var deposit types.Deposit
+=======
+		var deposit govtypes.Deposit
+>>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 		k.cdc.MustUnmarshal(iterator.Value(), &deposit)
 
 		if cb(deposit) {

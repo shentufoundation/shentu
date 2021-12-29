@@ -35,7 +35,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+<<<<<<< HEAD
 ## Unreleased
+=======
+## [v2.3.0] - TBD
+>>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 
 ### Client Breaking Changes
 * (x/cert) [\#326](https://github.com/certikfoundation/shentu/pull/326) Remove `Bech32` encoding for validator pubkeys.
@@ -43,6 +47,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### API Breaking Changes
 ### State Machine Breaking Changes
 * (app) [\#326](https://github.com/certikfoundation/shentu/pull/326) Bump Cosmos SDK to v0.44.3.
+<<<<<<< HEAD
+=======
+* (app) [\#334](https://github.com/certikfoundation/shentu/pull/334) Implement in-store migration from v2.2.0 to v2.3.0.
+* (x/gov) [\#334](https://github.com/certikfoundation/shentu/pull/334) `TxHash` field has been removed from `Vote` and `Deposit` types.
+>>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 
 ### Features
 * (app) [\#326](https://github.com/certikfoundation/shentu/pull/326) Add `authz` and `feegrant` modules.
@@ -54,8 +63,21 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 * (x/shield) [\#326](https://github.com/certikfoundation/shentu/pull/326) Add checks for expired entries in shield purchase.
 * (x/gov) [\#331](https://github.com/certikfoundation/shentu/pull/331) Fix gov tally logic.
+<<<<<<< HEAD
 
 ## [v2.1.0] - 08-09-2021
+=======
+* (x/oracle) [\345](https://github.com/certikfoundation/shentu/pull/345) Fix oracle operator update txs permission checks.
+* (x/cvm) [\#357](https://github.com/certikfoundation/shentu/pull/357) Fix cvm contract view.
+
+## [v2.2.0] - 09-08-2021
+
+### Bug Fixes
+* (SDK) [\#323](https://github.com/certikfoundation/shentu/pull/323) Bump SDK to 0.42.9
+
+
+## [v2.1.0] - 09-03-2021
+>>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 
 Version 2.1.0 re-enables endblocker in the staking module, and bumps SDK to 0.42.9 for necessary query route.
 

@@ -136,7 +136,11 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
+<<<<<<< HEAD
 func (AppModule) ConsensusVersion() uint64 { return 1 }
+=======
+func (am AppModule) ConsensusVersion() uint64 { return 1 }
+>>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 
 // BeginBlock processes module beginblock.
 func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {

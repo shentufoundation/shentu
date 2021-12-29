@@ -137,6 +137,12 @@ func (am AppModule) LegacyQuerierHandler(cdc *codec.LegacyAmino) sdk.Querier {
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	authtypes.RegisterQueryServer(cfg.QueryServer(), am.authKeeper)
+
+	m := keeper.NewMigrator(am.keeper, cfg.QueryServer())
+	err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // InitGenesis performs genesis initialization for the auth module. It returns no validator updates.
@@ -150,7 +156,11 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
+<<<<<<< HEAD
 func (AppModule) ConsensusVersion() uint64 { return 1 }
+=======
+func (am AppModule) ConsensusVersion() uint64 { return am.cosmosAppModule.ConsensusVersion() }
+>>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 
 // BeginBlock returns the begin blocker for the auth module.
 func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {

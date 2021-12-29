@@ -20,6 +20,7 @@ import (
 	sdkbank "github.com/cosmos/cosmos-sdk/x/bank"
 	bankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	v040 "github.com/cosmos/cosmos-sdk/x/bank/legacy/v040"
 	banksim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -88,6 +89,9 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
 	banktypes.RegisterInterfaces(registry)
+
+	// Register legacy interfaces for migration scripts.
+	v040.RegisterInterfaces(registry)
 }
 
 // ___________________________
@@ -150,7 +154,11 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
+<<<<<<< HEAD
 func (AppModule) ConsensusVersion() uint64 { return 1 }
+=======
+func (am AppModule) ConsensusVersion() uint64 { return am.cosmosAppModule.ConsensusVersion() }
+>>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 
 // BeginBlock returns the begin blocker for the bank module.
 func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {

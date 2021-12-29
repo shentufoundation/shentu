@@ -4,7 +4,11 @@ go 1.15
 
 require (
 	github.com/cosmos/cosmos-sdk v0.44.3
+<<<<<<< HEAD
 	github.com/cosmos/ibc-go v1.0.0
+=======
+	github.com/cosmos/ibc-go/v2 v2.0.0
+>>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
@@ -15,7 +19,11 @@ require (
 	github.com/regen-network/cosmos-proto v0.3.1
 	github.com/rs/zerolog v1.23.0
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+<<<<<<< HEAD
 	github.com/spf13/cast v1.3.1
+=======
+	github.com/spf13/cast v1.4.1
+>>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.8.1
 	github.com/stretchr/testify v1.7.0
@@ -24,7 +32,11 @@ require (
 	github.com/tendermint/tm-db v0.6.4
 	github.com/test-go/testify v1.1.4
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc
+<<<<<<< HEAD
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
+=======
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
+>>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c
 	google.golang.org/grpc v1.40.0
 	google.golang.org/protobuf v1.27.1
