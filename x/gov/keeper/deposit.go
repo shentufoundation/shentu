@@ -171,11 +171,7 @@ func (k Keeper) IterateDeposits(ctx sdk.Context, proposalID uint64, cb func(depo
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-<<<<<<< HEAD
-		var deposit types.Deposit
-=======
 		var deposit govtypes.Deposit
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 		k.cdc.MustUnmarshal(iterator.Value(), &deposit)
 
 		if cb(deposit) {

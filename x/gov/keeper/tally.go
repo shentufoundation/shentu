@@ -130,11 +130,7 @@ func fetchBondedValidators(ctx sdk.Context, k Keeper, validators map[string]*val
 	})
 }
 
-<<<<<<< HEAD
-func delegatorVoting(ctx sdk.Context, k Keeper, vote types.Vote, validators map[string]*validatorGovInfo, results map[govtypes.VoteOption]sdk.Dec, totalVotingPower *sdk.Dec) {
-=======
 func delegatorVoting(ctx sdk.Context, k Keeper, vote govtypes.Vote, validators map[string]*validatorGovInfo, results map[govtypes.VoteOption]sdk.Dec, totalVotingPower *sdk.Dec) {
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 	voter, err := sdk.AccAddressFromBech32(vote.Voter)
 	if err != nil {
 		panic(err)
@@ -272,11 +268,7 @@ func SecurityTally(ctx sdk.Context, k Keeper, proposal types.Proposal) (bool, bo
 
 	currVotes := k.GetVotes(ctx, proposal.ProposalId)
 	for _, vote := range currVotes {
-<<<<<<< HEAD
-		if vote.Option == govtypes.OptionEmpty {
-=======
 		if len(vote.Options) != 1 {
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 			continue
 		}
 

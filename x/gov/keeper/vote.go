@@ -14,11 +14,7 @@ import (
 )
 
 // AddVote Adds a vote on a specific proposal.
-<<<<<<< HEAD
-func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, options govTypes.WeightedVoteOptions) error {
-=======
 func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, options govtypes.WeightedVoteOptions) error {
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 	proposal, ok := k.GetProposal(ctx, proposalID)
 	if !ok {
 		return sdkerrors.Wrapf(govtypes.ErrUnknownProposal, "%v", proposalID)
@@ -29,16 +25,6 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 	}
 
 	for _, option := range options {
-<<<<<<< HEAD
-		if !govTypes.ValidWeightedVoteOption(option) {
-			return sdkerrors.Wrapf(govTypes.ErrInvalidVote, "%s", option)
-		}
-
-		if proposal.Status == types.StatusCertifierVotingPeriod {
-			if !(option.Option == govTypes.OptionYes ||
-				option.Option == govTypes.OptionNo) {
-				return sdkerrors.Wrapf(govTypes.ErrInvalidVote,
-=======
 		if !govtypes.ValidWeightedVoteOption(option) {
 			return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "%s", option)
 		}
@@ -47,7 +33,6 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 			if !(option.Option == govtypes.OptionYes ||
 				option.Option == govtypes.OptionNo) {
 				return sdkerrors.Wrapf(govtypes.ErrInvalidVote,
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 					"'%s' is not valid option in certifier voting; must be 'yes' or 'no'", option.Option)
 			}
 		}
@@ -64,24 +49,14 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 	}
 
 	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
-<<<<<<< HEAD
-	vote := types.NewVote(proposalID, voterAddr, options, txhash)
-=======
 	vote := govtypes.NewVote(proposalID, voterAddr, options)
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 	k.setVote(ctx, vote)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-<<<<<<< HEAD
-			govTypes.EventTypeProposalVote,
-			sdk.NewAttribute(govTypes.AttributeKeyOption, options.String()),
-			sdk.NewAttribute(govTypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
-=======
 			govtypes.EventTypeProposalVote,
 			sdk.NewAttribute(govtypes.AttributeKeyOption, options.String()),
 			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 			sdk.NewAttribute(types.AttributeKeyVoter, voterAddr.String()),
 			sdk.NewAttribute(types.AttributeTxHash, txhash),
 		),
@@ -183,11 +158,7 @@ func (k Keeper) IterateAllVotes(ctx sdk.Context, cb func(vote govtypes.Vote) (st
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-<<<<<<< HEAD
-		var vote types.Vote
-=======
 		var vote govtypes.Vote
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 		k.cdc.MustUnmarshal(iterator.Value(), &vote)
 
 		if cb(vote) {
@@ -202,11 +173,7 @@ func (k Keeper) IterateVotes(ctx sdk.Context, proposalID uint64, cb func(vote go
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-<<<<<<< HEAD
-		var vote types.Vote
-=======
 		var vote govtypes.Vote
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 		k.cdc.MustUnmarshal(iterator.Value(), &vote)
 
 		if cb(vote) {
@@ -222,11 +189,7 @@ func (k Keeper) IterateVotesPaginated(ctx sdk.Context, proposalID uint64, page, 
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-<<<<<<< HEAD
-		var vote types.Vote
-=======
 		var vote govtypes.Vote
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 		k.cdc.MustUnmarshal(iterator.Value(), &vote)
 
 		if cb(vote) {

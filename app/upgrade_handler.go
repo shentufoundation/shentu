@@ -1,12 +1,6 @@
 package app
 
 import (
-<<<<<<< HEAD
-	"github.com/cosmos/cosmos-sdk/types/module"
-)
-
-func (app ShentuApp) setUpgradeHandler(cfg module.Configurator) {}
-=======
 	"fmt"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -65,4 +59,3 @@ func (app ShentuApp) setUpgradeHandler() {
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 	}
 }
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a

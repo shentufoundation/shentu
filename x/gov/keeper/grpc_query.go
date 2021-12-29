@@ -140,11 +140,7 @@ func (q Keeper) Votes(c context.Context, req *types.QueryVotesRequest) (*types.Q
 	votesStore := prefix.NewStore(store, govtypes.VotesKey(req.ProposalId))
 
 	pageRes, err := query.Paginate(votesStore, req.Pagination, func(key []byte, value []byte) error {
-<<<<<<< HEAD
-		var vote types.Vote
-=======
 		var vote govtypes.Vote
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 		if err := q.cdc.Unmarshal(value, &vote); err != nil {
 			return err
 		}
@@ -233,11 +229,7 @@ func (q Keeper) Deposits(c context.Context, req *types.QueryDepositsRequest) (*t
 	depositStore := prefix.NewStore(store, govtypes.DepositsKey(req.ProposalId))
 
 	pageRes, err := query.Paginate(depositStore, req.Pagination, func(key []byte, value []byte) error {
-<<<<<<< HEAD
-		var deposit types.Deposit
-=======
 		var deposit govtypes.Deposit
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 		if err := q.cdc.Unmarshal(value, &deposit); err != nil {
 			return err
 		}

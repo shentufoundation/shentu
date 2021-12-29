@@ -303,11 +303,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 					return err
 				}
 
-<<<<<<< HEAD
-				var votes types.Votes
-=======
 				var votes govtypes.Votes
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 				// TODO migrate to use JSONCodec (implement MarshalJSONArray
 				// or wrap lists of proto.Message in some other message)
 				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &votes)
@@ -457,11 +453,7 @@ $ %[1]s query gov deposits 1
 					return err
 				}
 
-<<<<<<< HEAD
-				var dep types.Deposits
-=======
 				var dep govtypes.Deposits
->>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
 				// TODO migrate to use JSONCodec (implement MarshalJSONArray
 				// or wrap lists of proto.Message in some other message)
 				cliCtx.LegacyAmino.MustUnmarshalJSON(resByTxQuery, &dep)
