@@ -7,11 +7,11 @@ executors:
   golang:
     docker:
       - image: circleci/golang:1.16.3
-    working_directory: /go/src/github.com/certikfoundation/shentu
+    working_directory: /go/src/github.com/shentuchain/shentu
   mac:
     macos:
       xcode: "10.3.0"
-    working_directory: /Users/distiller/project/src/github.com/certikfoundation/shentu
+    working_directory: /Users/distiller/project/src/github.com/shentuchain/shentu
     environment:
       GO_VERSION: "1.16.3"
 commands:
@@ -159,7 +159,7 @@ jobs:
 
   release:
     docker:
-      - image: circleci/golang:1.15.5
+      - image: circleci/golang:1.16.3
     steps:
       - checkout
       - run:
@@ -190,14 +190,14 @@ jobs:
           command: bash <(curl -s https://codecov.io/bash) -f coverage.txt
 
   localnet:
-    working_directory: /home/circleci/.go_workspace/src/github.com/certikfoundation/shentu
+    working_directory: /home/circleci/.go_workspace/src/github.com/shentuchain/shentu
     machine:
       image: circleci/classic:latest
     environment:
       GOPATH: /home/circleci/.go_workspace/
       GOOS: linux
       GOARCH: amd64
-      GO_VERSION: "1.15.5"
+      GO_VERSION: "1.16.3"
     parallelism: 1
     steps:
       - checkout
@@ -256,7 +256,7 @@ jobs:
             cp gitian-build-multi/result/shentu-multi-res.yml .
             rm -rf gitian-build-multi/
       - store_artifacts:
-          path: /go/src/github.com/certikfoundation/shentu/certik-multi-res.yml
+          path: /go/src/github.com/shentuchain/shentu/certik-multi-res.yml
 
   docker-image:
     executor: golang
@@ -278,9 +278,9 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run: |
-          docker build -t ghcr.io/certikfoundation/shentu:$CIRCLE_TAG .
+          docker build -t ghcr.io/shentuchain/shentu:$CIRCLE_TAG .
           docker login --password-stdin ghcr.io -u $DOCKER_USER \<<<$DOCKER_PASS
-          docker push ghcr.io/certikfoundation/shentu:$CIRCLE_TAG
+          docker push ghcr.io/shentuchain/shentu:$CIRCLE_TAG
 
 workflows:
   version: 2.1
