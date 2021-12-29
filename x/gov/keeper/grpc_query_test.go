@@ -1,10 +1,11 @@
 package keeper_test
 
 import (
-	"github.com/certikfoundation/shentu/v2/x/gov/types"
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/certikfoundation/shentu/v2/x/gov/types"
 )
 
 func (suite *KeeperTestSuite) TestQueryProposal() {
@@ -121,7 +122,7 @@ func (suite *KeeperTestSuite) TestQueryProposals() {
 		},
 		{
 			proposal: proposal{
-				// StatusCertifierVotingPeriod 3
+				// StatusValidatorVotingPeriod 3
 				title:       "title2",
 				description: "description2",
 				proposer:    suite.address[0],
@@ -133,7 +134,7 @@ func (suite *KeeperTestSuite) TestQueryProposals() {
 		},
 		{
 			proposal: proposal{
-				// StatusCertifierVotingPeriod 3
+				// StatusValidatorVotingPeriod 3
 				title:       "title3",
 				description: "description3",
 				proposer:    suite.address[0],
@@ -147,7 +148,7 @@ func (suite *KeeperTestSuite) TestQueryProposals() {
 		},
 		{
 			proposal: proposal{
-				// StatusCertifierVotingPeriod 3
+				// StatusValidatorVotingPeriod 3
 				title:       "title4",
 				description: "description4",
 				proposer:    suite.address[0],

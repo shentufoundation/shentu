@@ -8,10 +8,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
-	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
-	"github.com/certikfoundation/shentu/v2/x/gov/types"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,6 +15,10 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
+
+	"github.com/certikfoundation/shentu/v2/simapp"
+	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
+	"github.com/certikfoundation/shentu/v2/x/gov/types"
 )
 
 var (
@@ -73,7 +73,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.app.StakingKeeper.SetNewValidatorByPowerIndex(suite.ctx, val1)
 	suite.app.StakingKeeper.AfterValidatorCreated(suite.ctx, val1.GetOperator())
 	_, _ = suite.app.StakingKeeper.Delegate(suite.ctx, suite.address[0], suite.app.StakingKeeper.TokensFromConsensusPower(suite.ctx, powers[0]), stakingtypes.Unbonded, val1, true)
-
 }
 
 // TODO: Add proposer in type proposal for all test cases
@@ -197,7 +196,6 @@ func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
 			suite.Require().Equal(tc.votingPeriodStatus, votingPeriodActivated)
 		}
 	}
-
 }
 
 func (suite *KeeperTestSuite) TestKeeper_DepositOperations() {

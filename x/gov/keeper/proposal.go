@@ -140,8 +140,8 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govtypes.Content, addr s
 		} else {
 			proposal.Status = types.StatusValidatorVotingPeriod
 		}
-
 	}
+	
 	k.SetProposal(ctx, proposal)
 	k.InsertInactiveProposalQueue(ctx, proposalID, proposal.DepositEndTime)
 	k.SetProposalID(ctx, proposalID+1)
