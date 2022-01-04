@@ -94,4 +94,30 @@ func TestManualVestingAcc(t *testing.T) {
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 850)}, spendableCoins)
 
 	// TODO: Test delegation, undelegation, genesis validation
+	// Test delegation
+	// require the ability to delegate all vesting coins
+	mva3 := types.NewManualVestingAccountRaw(bva, sdk.NewCoins(), unlocker)
+	app.AccountKeeper.SetAccount(ctx, mva3)
+
+	mva3.TrackDelegation(now, origCoins, origCoins)
+	require.Equal(t, origCoins, mva3.DelegatedVesting)
+	// require.Nil(t, mva3.DelegatedFree)
+	t.Logf(mva3.DelegatedVesting.String())
+
+	// require the ability to delegate all vesting coins
+	mva3.TrackUndelegation(origCoins)
+	// require.Nil(t, mva3.DelegatedFree)
+	// require.Nil(t, mva3.DelegatedVesting)
+	t.Logf(mva3.DelegatedFree.String())
+	t.Logf(mva3.DelegatedVesting.String())
+
+	// require the ability to delegate all vested coins
+	mva3 = types.NewManualVestingAccountRaw(bva, origCoins, unlocker)
+	mva3.TrackDelegation(now.Add(24*time.Hour), origCoins, origCoins)
+	require.Equal(t, origCoins, mva3.DelegatedFree)
+	t.Logf(mva3.DelegatedVesting.String())
+	t.Logf(mva3.DelegatedFree.String())
+
+	// can delegate his tokens, or vested tokns or both
+	// mva3.TrackUndelegation()
 }
