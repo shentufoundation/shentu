@@ -12,8 +12,9 @@ import (
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
+	"github.com/certikfoundation/shentu/v2/simapp"
 )
 
 func TestKeeper_SendToCommunityPool(t *testing.T) {
