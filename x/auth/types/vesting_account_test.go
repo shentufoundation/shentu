@@ -27,6 +27,7 @@ var (
 	pubkeys  = []cryptotypes.PubKey{
 		secp256k1.GenPrivKey().PubKey(),
 		secp256k1.GenPrivKey().PubKey(),
+		secp256k1.GenPrivKey().PubKey(),
 	}
 )
 
@@ -94,30 +95,90 @@ func TestManualVestingAcc(t *testing.T) {
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 850)}, spendableCoins)
 
 	// TODO: Test delegation, undelegation, genesis validation
-	// Test delegation
-	// require the ability to delegate all vesting coins
-	mva3 := types.NewManualVestingAccountRaw(bva, sdk.NewCoins(), unlocker)
-	app.AccountKeeper.SetAccount(ctx, mva3)
+}
 
-	mva3.TrackDelegation(now, origCoins, origCoins)
-	require.Equal(t, origCoins, mva3.DelegatedVesting)
-	// require.Nil(t, mva3.DelegatedFree)
-	t.Logf(mva3.DelegatedVesting.String())
+func TestTrackDelegation(t *testing.T) {
+	now := tmtime.Now()
+
+	origCoins := sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(100))}
+	ba := authtypes.NewBaseAccountWithAddress(sdk.AccAddress(pubkeys[2].Address()))
+	bva := authvesting.NewBaseVestingAccount(ba, origCoins, 0)
 
 	// require the ability to delegate all vesting coins
-	mva3.TrackUndelegation(origCoins)
-	// require.Nil(t, mva3.DelegatedFree)
-	// require.Nil(t, mva3.DelegatedVesting)
-	t.Logf(mva3.DelegatedFree.String())
-	t.Logf(mva3.DelegatedVesting.String())
+	mva := types.NewManualVestingAccountRaw(bva, sdk.NewCoins(), unlocker)
+	mva.TrackDelegation(now, origCoins, origCoins)
+	require.Equal(t, origCoins, mva.DelegatedVesting) // 100uctk
+	require.Empty(t, mva.DelegatedFree)               // 0uctk
 
 	// require the ability to delegate all vested coins
-	mva3 = types.NewManualVestingAccountRaw(bva, origCoins, unlocker)
-	mva3.TrackDelegation(now.Add(24*time.Hour), origCoins, origCoins)
-	require.Equal(t, origCoins, mva3.DelegatedFree)
-	t.Logf(mva3.DelegatedVesting.String())
-	t.Logf(mva3.DelegatedFree.String())
+	bva = authvesting.NewBaseVestingAccount(ba, origCoins, 0)
+	mva = types.NewManualVestingAccountRaw(bva, origCoins, unlocker)
+	mva.TrackDelegation(now, origCoins, origCoins)
+	require.Empty(t, mva.DelegatedVesting)         // 0uctk
+	require.Equal(t, origCoins, mva.DelegatedFree) // 100uctk
 
-	// can delegate his tokens, or vested tokns or both
-	// mva3.TrackUndelegation()
+	// create account with 50 vested and 50 vesting coins
+	bva = authvesting.NewBaseVestingAccount(ba, origCoins, 0)
+	mva = types.NewManualVestingAccountRaw(bva, sdk.NewCoins(), unlocker)
+	mva.LockedCoins(now)
+	coinToUnlock := sdk.NewCoin(denom, sdk.NewInt(50))
+	mva.VestedCoins = mva.VestedCoins.Add(coinToUnlock)
+	// require the ability to delegate all vesting coins (50%) and all vested coins (50%)
+	mva.TrackDelegation(now, origCoins, sdk.Coins{sdk.NewInt64Coin(denom, 50)})
+	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 50)}, mva.DelegatedVesting) // 50uctk
+	require.Empty(t, mva.DelegatedFree)                                            // 0uctk
+
+	mva.TrackDelegation(now.Add(12*time.Hour), origCoins, sdk.Coins{sdk.NewInt64Coin(denom, 50)})
+	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 50)}, mva.DelegatedVesting) // 50uctk
+	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 50)}, mva.DelegatedFree)    // 50uctk
+
+	// require panic when delegation amount is zero or not enough funds
+	bva = authvesting.NewBaseVestingAccount(ba, origCoins, 0)
+	mva = types.NewManualVestingAccountRaw(bva, sdk.NewCoins(), unlocker)
+	require.Panics(t, func() {
+		mva.TrackDelegation(now, origCoins, sdk.Coins{sdk.NewInt64Coin(denom, 1000000)})
+	})
+}
+
+func TestTrackUndelegation(t *testing.T) {
+	now := tmtime.Now()
+
+	origCoins := sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(100))}
+	ba := authtypes.NewBaseAccountWithAddress(sdk.AccAddress(pubkeys[2].Address()))
+	bva := authvesting.NewBaseVestingAccount(ba, origCoins, 0)
+
+	// require the ability to undelegate all vesting coins
+	mva := types.NewManualVestingAccountRaw(bva, sdk.NewCoins(), unlocker)
+	mva.TrackDelegation(now, origCoins, origCoins)
+	mva.TrackUndelegation(origCoins)
+	require.Empty(t, mva.DelegatedFree)
+	require.Empty(t, mva.DelegatedVesting)
+
+	// require the ability to undelegate all vested coins
+	bva = authvesting.NewBaseVestingAccount(ba, origCoins, 0)
+	mva = types.NewManualVestingAccountRaw(bva, origCoins, unlocker)
+	mva.TrackDelegation(now, origCoins, origCoins)
+	mva.TrackUndelegation(origCoins)
+	require.Empty(t, mva.DelegatedFree)
+	require.Empty(t, mva.DelegatedVesting)
+
+	// create account with equal vested and vesting coins
+	bva = authvesting.NewBaseVestingAccount(ba, origCoins, 0)
+	mva = types.NewManualVestingAccountRaw(bva, sdk.NewCoins(), unlocker)
+	mva.LockedCoins(now)
+	coinToUnlock := sdk.NewCoin(denom, sdk.NewInt(50))
+	mva.VestedCoins = mva.VestedCoins.Add(coinToUnlock)
+	// vest 50% and delegate to two validators
+	mva.TrackDelegation(now, origCoins, sdk.Coins{sdk.NewInt64Coin(denom, 50)})
+	mva.TrackDelegation(now, origCoins, sdk.Coins{sdk.NewInt64Coin(denom, 50)})
+
+	// undelegate from one validator that got slashed 50%
+	mva.TrackUndelegation(sdk.Coins{sdk.NewInt64Coin(denom, 25)})
+	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 25)}, mva.DelegatedFree)
+	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 50)}, mva.DelegatedVesting)
+
+	// undelegate from the other validator that did not get slashed
+	mva.TrackUndelegation(sdk.Coins{sdk.NewInt64Coin(denom, 50)})
+	require.Empty(t, mva.DelegatedFree)
+	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 25)}, mva.DelegatedVesting)
 }
