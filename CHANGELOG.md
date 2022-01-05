@@ -36,10 +36,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 # Changelog
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ## Unreleased
 =======
 ## [v2.3.0] - TBD
 >>>>>>> 6f4b45bce5f277e193c4116dbea18212f40e242a
+=======
+## [v2.3.0] - 01-04-2021
+>>>>>>> 77aa85eb959e77a18706d994b00d0cad5a620e20
 
 ### Client Breaking Changes
 * (x/cert) [\#326](https://github.com/certikfoundation/shentu/pull/326) Remove `Bech32` encoding for validator pubkeys.
