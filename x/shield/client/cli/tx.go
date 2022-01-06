@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	flagNativeDeposit = "native-deposit"
+	flagDeposit = "deposit"
 	flagShield        = "shield"
 	flagDescription   = "description"
 	flagShieldLimit   = "shield-limit"
@@ -154,11 +154,10 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 				return err
 			}
 
-			nativeDeposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagNativeDeposit))
+			deposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagDeposit))
 			if err != nil {
 				return err
 			}
-			deposit := types.MixedCoins{Native: nativeDeposit}
 
 			description := viper.GetString(flagDescription)
 
@@ -177,7 +176,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 	}
 
 	cmd.Flags().String(flagDescription, "", "description for the pool")
-	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
+	cmd.Flags().String(flagDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
@@ -212,7 +211,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				return err
 			}
 
-			nativeDeposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagNativeDeposit))
+			deposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagDeposit))
 			if err != nil {
 				return err
 			}
@@ -221,7 +220,6 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 			if err != nil {
 				return err
 			}
-			deposit := types.MixedCoins{Native: nativeDeposit}
 
 			description := viper.GetString(flagDescription)
 
@@ -240,7 +238,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 	}
 
 	cmd.Flags().String(flagShield, "", "CTK Shield amount")
-	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
+	cmd.Flags().String(flagDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
 	flags.AddTxFlagsToCmd(cmd)
