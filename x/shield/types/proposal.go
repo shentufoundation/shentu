@@ -58,7 +58,7 @@ func (scp ShieldClaimProposal) ProposalType() string {
 
 // ValidateBasic runs basic stateless validity checks.
 func (scp ShieldClaimProposal) ValidateBasic() error {
-	// TODO
+	// TODO: implement ValidateBasic for Claim proposals https://github.com/ShentuChain/shentu-private/issues/14
 	return nil
 }
 

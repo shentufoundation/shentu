@@ -166,7 +166,7 @@ message MsgWithdrawReimbursement {
 message MsgWithdrawReimbursementResponse {}
 
 
-// TODO: eliminate this msg type
+// TODO: eliminate this msg type https://github.com/ShentuChain/shentu-private/issues/13
 // MsgStakeForShield defines the attributes of staking for purchase transaction.
 message MsgStakeForShield {
     option (gogoproto.equal) = false;

@@ -159,17 +159,18 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 	k.SetPool(ctx, pool)
 
 	// Update shield of the purchase.
-	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
-	if !found {
-		return types.ErrPurchaseNotFound
-	}
-	for i := range purchaseList.Entries {
-		if purchaseList.Entries[i].PurchaseId == id {
-			purchaseList.Entries[i].Shield = purchaseList.Entries[i].Shield.Add(lossAmt)
-			break
-		}
-	}
-	k.SetPurchaseList(ctx, purchaseList)
+	//purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
+	//if !found {
+	//	return types.ErrPurchaseNotFound
+	//}
+	//for i := range purchaseList.Entries {
+	//	if purchaseList.Entries[i].PurchaseId == id {
+	//		purchaseList.Entries[i].Shield = purchaseList.Entries[i].Shield.Add(lossAmt)
+	//		break
+	//	}
+	//}
+	//k.SetPurchaseList(ctx, purchaseList)
+	// TODO: reimplement above for V2  https://github.com/ShentuChain/shentu-private/issues/13
 
 	return nil
 }
