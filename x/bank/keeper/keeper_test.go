@@ -258,7 +258,7 @@ func (suite *KeeperTestSuite) TestLockedSend() {
 			suite.params.SetAccount(suite.ctx, toAcc)
 			//send coin
 			sendCoins := sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)}
-			// send some coins to the vesting account
+			//send some coins to the vesting account
 			err := suite.keeper.SendCoins(suite.ctx, tc.args.fromAddr, tc.args.toAddr, sendCoins)
 			suite.Require().NoError(err)
 			//require that the coin is spendable
