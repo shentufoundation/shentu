@@ -28,12 +28,12 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 		remainingServiceFees := keeper.GetRemainingServiceFees(ctx)
 
 		// rewards
-		var rewards types.MixedDecCoins
+		var rewards sdk.DecCoins
 		for _, provider := range keeper.GetAllProviders(ctx) {
-			rewards = rewards.Add(provider.Rewards)
+			rewards = rewards.Add(provider.Rewards...)
 		}
 
-		totalInt, change := remainingServiceFees.Add(rewards).Native.TruncateDecimal()
+		totalInt, change := remainingServiceFees.Add(rewards...).TruncateDecimal()
 
 		// shield stake
 		shieldStake := sdk.ZeroInt()
@@ -48,7 +48,7 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 		}
 
 		// block service fees
-		blockServiceFees := keeper.GetBlockServiceFees(ctx).Native.AmountOf(bondDenom).TruncateInt()
+		blockServiceFees := keeper.GetBlockServiceFees(ctx).AmountOf(bondDenom).TruncateInt()
 
 		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, reimbursement)).Add(sdk.NewCoin(bondDenom, blockServiceFees))
 

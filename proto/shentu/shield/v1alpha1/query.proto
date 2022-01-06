@@ -2,6 +2,7 @@ syntax = "proto3";
 package shentu.shield.v1alpha1;
 
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "shentu/shield/v1alpha1/shield.proto";
@@ -170,8 +171,8 @@ message QueryShieldStatusResponse {
   string total_collateral = 1 [ (gogoproto.moretags) = "yaml:\"total_collateral\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
   string total_shield = 2 [ (gogoproto.moretags) = "yaml:\"total_shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
   string total_withdrawing = 3 [ (gogoproto.moretags) = "yaml:\"total_withdrawing\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-  MixedDecCoins current_service_fees = 4 [ (gogoproto.moretags) = "yaml:\"current_service_fees\"", (gogoproto.nullable) = false ];
-  MixedDecCoins remaining_service_fees = 5 [ (gogoproto.moretags) = "yaml:\"remaining_service_fees\"", (gogoproto.nullable) = false ];
+  repeated cosmos.base.v1beta1.DecCoin current_service_fees = 4 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"current_service_fees\"", (gogoproto.nullable) = false ];
+  repeated cosmos.base.v1beta1.DecCoin remaining_service_fees = 5 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"remaining_service_fees\"", (gogoproto.nullable) = false ];
   string global_shield_staking_pool = 6 [ (gogoproto.moretags) = "yaml:\"global_shield_staking_pool\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 }
 

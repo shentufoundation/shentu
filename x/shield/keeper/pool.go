@@ -82,38 +82,38 @@ func (k Keeper) GetTotalClaimed(ctx sdk.Context) sdk.Int {
 	return ip.Int
 }
 
-func (k Keeper) SetServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
+func (k Keeper) SetServiceFees(ctx sdk.Context, serviceFees sdk.DecCoins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&serviceFees)
+	bz := k.cdc.MustMarshal(&types.ServiceFees{ServiceFees: serviceFees})
 	store.Set(types.GetServiceFeesKey(), bz)
 }
 
-func (k Keeper) GetServiceFees(ctx sdk.Context) types.MixedDecCoins {
+func (k Keeper) GetServiceFees(ctx sdk.Context) sdk.DecCoins {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetServiceFeesKey())
 	if bz == nil {
 		panic("service fees are not found")
 	}
-	var serviceFees types.MixedDecCoins
+	var serviceFees types.ServiceFees
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &serviceFees)
-	return serviceFees
+	return serviceFees.ServiceFees
 }
 
-func (k Keeper) SetBlockServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
+func (k Keeper) SetBlockServiceFees(ctx sdk.Context, serviceFees sdk.DecCoins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&serviceFees)
+	bz := k.cdc.MustMarshal(&types.ServiceFees{ServiceFees: serviceFees})
 	store.Set(types.GetBlockServiceFeesKey(), bz)
 }
 
-func (k Keeper) GetBlockServiceFees(ctx sdk.Context) types.MixedDecCoins {
+func (k Keeper) GetBlockServiceFees(ctx sdk.Context) sdk.DecCoins {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetBlockServiceFeesKey())
 	if bz == nil {
-		return types.InitMixedDecCoins()
+		return sdk.DecCoins{}
 	}
-	var serviceFees types.MixedDecCoins
+	var serviceFees types.ServiceFees
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &serviceFees)
-	return serviceFees
+	return serviceFees.ServiceFees
 }
 
 func (k Keeper) DeleteBlockServiceFees(ctx sdk.Context) {
@@ -121,21 +121,21 @@ func (k Keeper) DeleteBlockServiceFees(ctx sdk.Context) {
 	store.Delete(types.GetBlockServiceFeesKey())
 }
 
-func (k Keeper) SetRemainingServiceFees(ctx sdk.Context, serviceFees types.MixedDecCoins) {
+func (k Keeper) SetRemainingServiceFees(ctx sdk.Context, serviceFees sdk.DecCoins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&serviceFees)
+	bz := k.cdc.MustMarshal(&types.ServiceFees{ServiceFees: serviceFees})
 	store.Set(types.GetRemainingServiceFeesKey(), bz)
 }
 
-func (k Keeper) GetRemainingServiceFees(ctx sdk.Context) types.MixedDecCoins {
+func (k Keeper) GetRemainingServiceFees(ctx sdk.Context) sdk.DecCoins {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetRemainingServiceFeesKey())
 	if bz == nil {
 		panic("remaining service fees are not found")
 	}
-	var serviceFees types.MixedDecCoins
+	var serviceFees types.ServiceFees
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &serviceFees)
-	return serviceFees
+	return serviceFees.ServiceFees
 }
 
 // SetPool sets data of a pool in kv-store.
@@ -158,7 +158,7 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
 }
 
 // CreatePool creates a pool and sponsor's shield.
-func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) (uint64, error) {
+func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield, serviceFees sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) (uint64, error) {
 	admin := k.GetAdmin(ctx)
 	if !creator.Equals(admin) {
 		return 0, types.ErrNotShieldAdmin
@@ -174,7 +174,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 	k.SetNextPoolID(ctx, poolID+1)
 
 	// Purchase shield for the pool.
-	if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", creator, serviceFees.Native, sdk.NewCoins()); err != nil {
+	if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", creator, serviceFees, sdk.NewCoins()); err != nil {
 		return poolID, err
 	}
 
@@ -182,7 +182,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 }
 
 // UpdatePool updates pool info and shield for B.
-func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield sdk.Coins, serviceFees types.MixedCoins, shieldLimit sdk.Int) (types.Pool, error) {
+func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield, serviceFees sdk.Coins, shieldLimit sdk.Int) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -203,16 +203,16 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 
 	// Update purchase and shield.
 	if !shield.IsZero() {
-		if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", updater, serviceFees.Native, sdk.NewCoins()); err != nil {
+		if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", updater, serviceFees, sdk.NewCoins()); err != nil {
 			return pool, err
 		}
-	} else if !serviceFees.Native.IsZero() {
+	} else if !serviceFees.IsZero() {
 		// Allow adding service fees without purchasing more shield.
 		totalServiceFees := k.GetServiceFees(ctx)
-		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees.Native...)})
+		totalServiceFees = totalServiceFees.Add(sdk.NewDecCoinsFromCoins(serviceFees...)...)
 		k.SetServiceFees(ctx, totalServiceFees)
 		totalRemainingServiceFees := k.GetRemainingServiceFees(ctx)
-		totalRemainingServiceFees = totalRemainingServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees.Native...)})
+		totalRemainingServiceFees = totalRemainingServiceFees.Add(sdk.NewDecCoinsFromCoins(serviceFees...)...)
 		k.SetRemainingServiceFees(ctx, totalRemainingServiceFees)
 	}
 

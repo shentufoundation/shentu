@@ -132,10 +132,10 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 			return types.Purchase{}, err
 		}
 		totalServiceFees := k.GetServiceFees(ctx)
-		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
+		totalServiceFees = totalServiceFees.Add(sdk.NewDecCoinsFromCoins(serviceFees...)...)
 		k.SetServiceFees(ctx, totalServiceFees)
 		totalRemainingServiceFees := k.GetRemainingServiceFees(ctx)
-		totalRemainingServiceFees = totalRemainingServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
+		totalRemainingServiceFees = totalRemainingServiceFees.Add(sdk.NewDecCoinsFromCoins(serviceFees...)...)
 		k.SetRemainingServiceFees(ctx, totalRemainingServiceFees)
 	} else {
 		if err := k.AddStaking(ctx, poolID, purchaser, purchaseID, stakingCoins.AmountOf(bondDenom)); err != nil {
@@ -150,7 +150,7 @@ func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins,
 	k.SetPool(ctx, pool)
 
 	// Set a new purchase.
-	purchase := types.NewPurchase(purchaseID, protectionEndTime, protectionEndTime, description, shieldAmt, types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees...)})
+	purchase := types.NewPurchase(purchaseID, protectionEndTime, protectionEndTime, description, shieldAmt, sdk.NewDecCoinsFromCoins(serviceFees...))
 	purchaseList := k.AddPurchase(ctx, poolID, purchaser, purchase)
 	k.InsertExpiringPurchaseQueue(ctx, purchaseList, protectionEndTime)
 
@@ -191,7 +191,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 
 	totalServiceFees := k.GetServiceFees(ctx)
 	totalShield := k.GetTotalShield(ctx)
-	serviceFees := types.InitMixedDecCoins()
+	serviceFees := sdk.DecCoins{}
 	bondDenom := k.BondDenom(ctx)
 	var stakeForShieldUpdateList []pPPTriplet
 
@@ -220,15 +220,15 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 
 				// If purchaseProtectionEndTime > previousBlockTime, update service fees.
 				// Otherwise services fees were updated in the last block.
-				if entry.ProtectionEndTime.After(lastUpdateTime) && entry.ServiceFees.Native.IsAllPositive() {
+				if entry.ProtectionEndTime.After(lastUpdateTime) && entry.ServiceFees.IsAllPositive() {
 					// Add purchaseServiceFees * (purchaseProtectionEndTime - previousBlockTime) / protectionPeriod.
 					serviceFees = serviceFees.Add(entry.ServiceFees.MulDec(
 						sdk.NewDec(entry.ProtectionEndTime.Sub(lastUpdateTime).Nanoseconds()).Quo(
-							sdk.NewDec(k.GetPoolParams(ctx).ProtectionPeriod.Nanoseconds()))))
+							sdk.NewDec(k.GetPoolParams(ctx).ProtectionPeriod.Nanoseconds())))...)
 					// Remove purchaseServiceFees from total service fees.
 					totalServiceFees = totalServiceFees.Sub(entry.ServiceFees)
 					// Set purchaseServiceFees to zero because it can be reached again.
-					purchaseList.Entries[i].ServiceFees = types.InitMixedDecCoins()
+					purchaseList.Entries[i].ServiceFees = sdk.DecCoins{}
 
 					originalStaking := k.GetOriginalStaking(ctx, entry.PurchaseId)
 					if !originalStaking.IsZero() {
@@ -279,17 +279,17 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 	// totalServiceFees * (currentBlockTime - previousBlockTime) / protectionPeriodTime
 	serviceFees = serviceFees.Add(totalServiceFees.MulDec(
 		sdk.NewDec(ctx.BlockTime().Sub(lastUpdateTime).Nanoseconds())).QuoDec(
-		sdk.NewDec(k.GetPoolParams(ctx).ProtectionPeriod.Nanoseconds())))
+		sdk.NewDec(k.GetPoolParams(ctx).ProtectionPeriod.Nanoseconds()))...)
 
 	// Limit service fees by remaining service fees.
 	remainingServiceFees := k.GetRemainingServiceFees(ctx)
-	if remainingServiceFees.Native.AmountOf(bondDenom).LT(serviceFees.Native.AmountOf(bondDenom)) {
-		serviceFees.Native = remainingServiceFees.Native
+	if remainingServiceFees.AmountOf(bondDenom).LT(serviceFees.AmountOf(bondDenom)) {
+		serviceFees = remainingServiceFees
 	}
 
 	// Add block service fees that need to be distributed for this block
 	blockServiceFees := k.GetBlockServiceFees(ctx)
-	serviceFees = serviceFees.Add(blockServiceFees)
+	serviceFees = serviceFees.Add(blockServiceFees...)
 	k.DeleteBlockServiceFees(ctx)
 
 	// Distribute service fees.
@@ -302,17 +302,17 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 		}
 
 		// fees * providerCollateral / totalCollateral
-		nativeFees := serviceFees.Native.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
-		if nativeFees.AmountOf(bondDenom).GT(remainingServiceFees.Native.AmountOf(bondDenom)) {
-			nativeFees = remainingServiceFees.Native
+		nativeFees := serviceFees.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
+		if nativeFees.AmountOf(bondDenom).GT(remainingServiceFees.AmountOf(bondDenom)) {
+			nativeFees = remainingServiceFees
 		}
-		provider.Rewards = provider.Rewards.Add(types.MixedDecCoins{Native: nativeFees})
+		provider.Rewards = provider.Rewards.Add(nativeFees...)
 		k.SetProvider(ctx, providerAddr, provider)
 
-		remainingServiceFees.Native = remainingServiceFees.Native.Sub(nativeFees)
+		remainingServiceFees = remainingServiceFees.Sub(nativeFees)
 	}
 	// add back block service fees
-	remainingServiceFees.Native = remainingServiceFees.Native.Add(blockServiceFees.Native...)
+	remainingServiceFees = remainingServiceFees.Add(blockServiceFees...)
 	k.SetRemainingServiceFees(ctx, remainingServiceFees)
 	k.SetLastUpdateTime(ctx, ctx.BlockTime())
 }
