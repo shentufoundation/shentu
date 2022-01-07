@@ -18,6 +18,7 @@ import (
 // SecureCollaterals is called after a claim is submitted to secure
 // the given amount of collaterals for the duration and adjust shield
 // module states accordingly.
+// TODO: rewrite some parts for V2 https://github.com/ShentuChain/shentu-private/issues/13
 func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, duration time.Duration) error {
 	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
 
@@ -248,6 +249,7 @@ func (k Keeper) GetAllProposalIDReimbursementPairs(ctx sdk.Context) []types.Prop
 
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount sdk.Coins, beneficiary sdk.AccAddress) error {
+	// TODO: rewrite this for V2 https://github.com/ShentuChain/shentu-private/issues/13
 	bondDenom := k.BondDenom(ctx)
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalPurchased := k.GetTotalShield(ctx)

@@ -30,27 +30,6 @@ func NewProvider(addr sdk.AccAddress) Provider {
 	}
 }
 
-// NewPurchase creates a new purchase object.
-func NewPurchase(purchaseID uint64, protectionEndTime, deletionTime time.Time, description string, shield sdk.Int, serviceFees MixedDecCoins) Purchase {
-	return Purchase{
-		PurchaseId:        purchaseID,
-		ProtectionEndTime: protectionEndTime,
-		DeletionTime:      deletionTime,
-		Description:       description,
-		Shield:            shield,
-		ServiceFees:       serviceFees,
-	}
-}
-
-// NewPurchaseList creates a new purchase list.
-func NewPurchaseList(poolID uint64, purchaser sdk.AccAddress, purchases []Purchase) PurchaseList {
-	return PurchaseList{
-		PoolId:    poolID,
-		Purchaser: purchaser.String(),
-		Entries:   purchases,
-	}
-}
-
 // NewWithdraw creates a new withdraw object.
 func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) Withdraw {
 	return Withdraw{
@@ -60,11 +39,10 @@ func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) 
 	}
 }
 
-func NewShieldStaking(poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) ShieldStaking {
-	return ShieldStaking{
-		PoolId:            poolID,
-		Purchaser:         purchaser.String(),
-		Amount:            amount,
-		WithdrawRequested: sdk.NewInt(0),
+func NewStakingPurchase(poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) StakingPurchase {
+	return StakingPurchase{
+		PoolId:    poolID,
+		Purchaser: purchaser.String(),
+		Amount:    amount,
 	}
 }

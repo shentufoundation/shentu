@@ -3,8 +3,6 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"time"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -12,8 +10,8 @@ import (
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
 	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, serviceFees, remainingServiceFees MixedDecCoins,
-	pools []Pool, providers []Provider, purchase []PurchaseList, withdraws []Withdraw, lastUpdateTime time.Time, sSRate sdk.Dec, globalStakingPool sdk.Int,
-	stakingPurchases []ShieldStaking, originalStaking []OriginalStaking, proposalIDReimbursementPairs []ProposalIDReimbursementPair) GenesisState {
+	pools []Pool, providers []Provider, withdraws []Withdraw, sSRate sdk.Dec, globalStakingPool sdk.Int,
+	stakingPurchases []StakingPurchase, proposalIDReimbursementPairs []ProposalIDReimbursementPair) GenesisState {
 	return GenesisState{
 		ShieldAdmin:                  shieldAdmin.String(),
 		NextPoolId:                   nextPoolID,
@@ -28,13 +26,10 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		RemainingServiceFees:         remainingServiceFees,
 		Pools:                        pools,
 		Providers:                    providers,
-		PurchaseLists:                purchase,
 		Withdraws:                    withdraws,
-		LastUpdateTime:               lastUpdateTime,
 		ShieldStakingRate:            sSRate,
 		GlobalStakingPool:            globalStakingPool,
-		StakeForShields:              stakingPurchases,
-		OriginalStakings:             originalStaking,
+		StakingPurchases:             stakingPurchases,
 		ProposalIDReimbursementPairs: proposalIDReimbursementPairs,
 	}
 }
@@ -53,7 +48,6 @@ func DefaultGenesisState() *GenesisState {
 		ServiceFees:          InitMixedDecCoins(),
 		RemainingServiceFees: InitMixedDecCoins(),
 		ShieldStakingRate:    sdk.NewDec(2),
-		LastUpdateTime:       time.Now(),
 	}
 }
 
@@ -79,11 +73,4 @@ func GetGenesisStateFromAppState(cdc codec.Codec, appState map[string]json.RawMe
 		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
 	}
 	return genesisState
-}
-
-func NewOriginalStaking(purchaseID uint64, amount sdk.Int) OriginalStaking {
-	return OriginalStaking{
-		PurchaseId: purchaseID,
-		Amount:     amount,
-	}
 }

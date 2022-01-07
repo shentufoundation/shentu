@@ -55,65 +55,6 @@ func (q Keeper) Pools(c context.Context, req *types.QueryPoolsRequest) (*types.Q
 	return &types.QueryPoolsResponse{Pools: q.GetAllPools(ctx)}, nil
 }
 
-// PurchaseList queries a purchase list given a pool-purchase pair.
-func (q Keeper) PurchaseList(c context.Context, req *types.QueryPurchaseListRequest) (*types.QueryPurchaseListResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	purchaser, err := sdk.AccAddressFromBech32(req.Purchaser)
-	if err != nil {
-		return nil, err
-	}
-
-	purchaseList, found := q.GetPurchaseList(ctx, req.PoolId, purchaser)
-	if !found {
-		return nil, types.ErrPurchaseNotFound
-	}
-
-	return &types.QueryPurchaseListResponse{PurchaseList: purchaseList}, nil
-}
-
-// PurchaserPurchaseLists queries purchase lists for a given pool.
-func (q Keeper) PoolPurchaseLists(c context.Context, req *types.QueryPoolPurchaseListsRequest) (*types.QueryPurchaseListsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	purchaseLists := q.GetPoolPurchaseLists(ctx, req.PoolId)
-
-	return &types.QueryPurchaseListsResponse{PurchaseLists: purchaseLists}, nil
-}
-
-// PurchaseLists queries purchase lists purchaser.
-func (q Keeper) PurchaseLists(c context.Context, req *types.QueryPurchaseListsRequest) (*types.QueryPurchaseListsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	var purchaseLists []types.PurchaseList
-	purchaser, err := sdk.AccAddressFromBech32(req.Purchaser)
-	if err != nil {
-		return nil, err
-	}
-	purchaseLists = q.GetPurchaserPurchases(ctx, purchaser)
-
-	return &types.QueryPurchaseListsResponse{PurchaseLists: purchaseLists}, nil
-}
-
-// Purchases queries all purchases.
-func (q Keeper) Purchases(c context.Context, req *types.QueryPurchasesRequest) (*types.QueryPurchasesResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	return &types.QueryPurchasesResponse{Purchases: q.GetAllPurchases(ctx)}, nil
-}
-
 // Provider queries a provider given the address.
 func (q Keeper) Provider(c context.Context, req *types.QueryProviderRequest) (*types.QueryProviderResponse, error) {
 	if req == nil {
@@ -177,12 +118,12 @@ func (q Keeper) ShieldStatus(c context.Context, req *types.QueryShieldStatusRequ
 		TotalWithdrawing:        q.GetTotalWithdrawing(ctx),
 		CurrentServiceFees:      q.GetServiceFees(ctx),
 		RemainingServiceFees:    q.GetRemainingServiceFees(ctx),
-		GlobalShieldStakingPool: q.GetGlobalShieldStakingPool(ctx),
+		GlobalShieldStakingPool: q.GetGlobalStakingPool(ctx),
 	}, nil
 }
 
 // ShieldStaking queries staked-for-shield for pool-purchaser pair.
-func (q Keeper) ShieldStaking(c context.Context, req *types.QueryShieldStakingRequest) (*types.QueryShieldStakingResponse, error) {
+func (q Keeper) StakingPurchase(c context.Context, req *types.QueryStakingPurchaseRequest) (*types.QueryStakingPurchaseResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -192,22 +133,22 @@ func (q Keeper) ShieldStaking(c context.Context, req *types.QueryShieldStakingRe
 	if err != nil {
 		return nil, err
 	}
-	shieldStaking, found := q.GetStakeForShield(ctx, req.PoolId, purchaser)
+	shieldStaking, found := q.GetStakingPurchase(ctx, req.PoolId, purchaser)
 	if !found {
 		return nil, types.ErrPurchaseNotFound
 	}
 
-	return &types.QueryShieldStakingResponse{ShieldStaking: shieldStaking}, nil
+	return &types.QueryStakingPurchaseResponse{StakingPurchase: shieldStaking}, nil
 }
 
 // ShieldStakingRate queries the shield staking rate for shield.
-func (q Keeper) ShieldStakingRate(c context.Context, req *types.QueryShieldStakingRateRequest) (*types.QueryShieldStakingRateResponse, error) {
+func (q Keeper) ShieldStakingRate(c context.Context, req *types.QueryStakingPurchaseRateRequest) (*types.QueryStakingPurchaseRateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	return &types.QueryShieldStakingRateResponse{Rate: q.GetShieldStakingRate(ctx)}, nil
+	return &types.QueryStakingPurchaseRateResponse{Rate: q.GetShieldStakingRate(ctx)}, nil
 }
 
 // Reimbursement queries a reimbursement by proposal ID.

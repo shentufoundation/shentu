@@ -5,7 +5,6 @@ import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
-import "gogoproto/gogo.proto";
 import "shentu/shield/v1alpha1/shield.proto";
 
 option go_package = "github.com/certikfoundation/shentu/x/shield/types";
@@ -31,7 +30,7 @@ message GenesisState {
     repeated Withdraw withdraws = 15 [ (gogoproto.moretags) = "yaml:\"withdraws\"", (gogoproto.nullable) = false ];
     string shield_staking_rate = 17 [ (gogoproto.moretags) = "yaml:\"shield_staking_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
     string global_staking_pool = 18 [ (gogoproto.moretags) = "yaml:\"global_staking_pool\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    repeated ShieldStaking stake_for_shields = 19 [ (gogoproto.moretags) = "yaml:\"stake_for_shields\"", (gogoproto.nullable) = false ];
+    repeated StakingPurchase staking_purchases = 19 [ (gogoproto.moretags) = "yaml:\"staking_purchases\"", (gogoproto.nullable) = false ];
     repeated ProposalIDReimbursementPair proposalID_reimbursement_pairs = 21 [ (gogoproto.moretags) = "yaml:\"proposalID_reimbursement_pairs\"", (gogoproto.nullable) = false ];
 }
 

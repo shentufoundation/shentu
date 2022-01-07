@@ -20,8 +20,8 @@ service Msg {
     rpc PurchaseShield(MsgPurchaseShield) returns (MsgPurchaseShieldResponse);
     rpc WithdrawReimbursement(MsgWithdrawReimbursement) returns (MsgWithdrawReimbursementResponse);
     rpc UpdateSponsor(MsgUpdateSponsor) returns (MsgUpdateSponsorResponse);
-    rpc StakeForShield(MsgStakeForShield) returns (MsgStakeForShieldResponse);
-    rpc UnstakeFromShield(MsgUnstakeFromShield) returns (MsgUnstakeFromShieldResponse);
+    rpc StakingPurchase(MsgStakingPurchase) returns (MsgStakingPurchaseResponse);
+    rpc Unstake(MsgUnstake) returns (MsgUnstakeResponse);
 }
 
 // MsgCreatePool defines the attributes of a create-pool transaction.
@@ -168,30 +168,30 @@ message MsgWithdrawReimbursementResponse {}
 
 // TODO: eliminate this msg type https://github.com/ShentuChain/shentu-private/issues/13
 // MsgStakeForShield defines the attributes of staking for purchase transaction.
-message MsgStakeForShield {
+message MsgStakingPurchase {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
   
     uint64 pool_id = 1 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
-    repeated cosmos.base.v1beta1.Coin shield = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    repeated cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
     string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     string from = 4 [ (gogoproto.moretags) = "yaml:\"from\"" ];
 }
   
-message MsgStakeForShieldResponse {}
+message MsgStakingPurchaseResponse {}
 
 
 // MsgUnstakeFromShield defines the attributes of staking for purchase transaction.
-message MsgUnstakeFromShield {
+message MsgUnstake {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
   
     uint64 pool_id = 1 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
-    repeated cosmos.base.v1beta1.Coin shield = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    repeated cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
     string from = 3 [ (gogoproto.moretags) = "yaml:\"from\"" ];
 }
   
-message MsgUnstakeFromShieldResponse {}
+message MsgUnstakeResponse {}
 
 
 // MsgUpdateSponsor defines the attributes of a update-sponsor transaction.

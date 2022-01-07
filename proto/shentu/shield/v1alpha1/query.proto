@@ -23,22 +23,6 @@ service Query {
     option (google.api.http).get = "/shentu/shield/v1alpha1/pools";
   }
 
-  rpc PoolPurchaseLists(QueryPoolPurchaseListsRequest) returns (QueryPurchaseListsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/pool_purchase_lists/{pool_id}";
-  }
-
-  rpc PurchaseLists(QueryPurchaseListsRequest) returns (QueryPurchaseListsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/purchase_lists/{purchaser}";
-  }
-
-  rpc PurchaseList(QueryPurchaseListRequest) returns (QueryPurchaseListResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/purchase_list/{pool_id}/{purchaser}";
-  }
-
-  rpc Purchases(QueryPurchasesRequest) returns (QueryPurchasesResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/purchases";
-  }
-
   rpc Provider(QueryProviderRequest) returns (QueryProviderResponse) {
     option (google.api.http).get = "/shentu/shield/v1alpha1/provider/{address}";
   }
@@ -59,11 +43,11 @@ service Query {
     option (google.api.http).get = "/shentu/shield/v1alpha1/status";
   }
 
-  rpc ShieldStaking(QueryShieldStakingRequest) returns (QueryShieldStakingResponse) {
+  rpc StakingPurchase(QueryStakingPurchaseRequest) returns (QueryStakingPurchaseResponse) {
     option (google.api.http).get = "/shentu/shield/v1alpha1/shield_staking/{pool_id}/{purchaser}";
   }
 
-  rpc ShieldStakingRate(QueryShieldStakingRateRequest) returns (QueryShieldStakingRateResponse) {
+  rpc StakingPurchaseRate(QueryStakingPurchaseRateRequest) returns (QueryStakingPurchaseRateResponse) {
     option (google.api.http).get = "/shentu/shield/v1alpha1/shield_staking_rate";
   }
 
@@ -99,36 +83,6 @@ message QueryPoolsRequest {
 message QueryPoolsResponse {
   repeated Pool pools = 1 [(gogoproto.nullable) = false];
 }
-
-message QueryPoolPurchaseListsRequest {
-  uint64 pool_id = 1;
-}
-
-
-message QueryPurchaseListsRequest {
-  string purchaser = 1;
-}
-
-message QueryPurchaseListsResponse {
-  repeated PurchaseList purchase_lists = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryPurchaseListRequest {
-  uint64 pool_id = 1;
-  string purchaser = 2;
-}
-
-message QueryPurchaseListResponse {
-  PurchaseList purchase_list = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryPurchasesRequest {
-}
-
-message QueryPurchasesResponse {
-  repeated Purchase purchases = 1 [(gogoproto.nullable) = false];
-}
-
 
 message QueryProviderRequest {
   string address = 1;
@@ -176,20 +130,20 @@ message QueryShieldStatusResponse {
 }
 
 
-message QueryShieldStakingRequest {
+message QueryStakingPurchaseRequest {
   uint64 pool_id = 1;
   string purchaser = 2;
 }
 
-message QueryShieldStakingResponse {
-  ShieldStaking shield_staking = 1 [(gogoproto.nullable) = false];
+message QueryStakingPurchaseResponse {
+  StakingPurchase staking_purchase = 1 [(gogoproto.nullable) = false];
 }
 
 
-message QueryShieldStakingRateRequest {
+message QueryStakingPurchaseRateRequest {
 }
 
-message QueryShieldStakingRateResponse {
+message QueryStakingPurchaseRateResponse {
   string rate = 1 [ (gogoproto.moretags) = "yaml:\"rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }
 

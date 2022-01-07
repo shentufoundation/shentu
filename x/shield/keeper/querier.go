@@ -41,9 +41,9 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 		case types.QueryStatus:
 			return queryGlobalState(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryStakedForShield:
-			return queryStakeForShield(ctx, path[1:], k, legacyQuerierCdc)
+			return queryStakingPurchase(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryShieldStakingRate:
-			return queryShieldStakingRate(ctx, path[1:], k, legacyQuerierCdc)
+			return queryStakingPurchaseRate(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryReimbursement:
 			return queryReimbursement(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryReimbursements:
@@ -262,7 +262,7 @@ func queryGlobalState(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc
 		k.GetTotalWithdrawing(ctx),
 		k.GetServiceFees(ctx),
 		k.GetRemainingServiceFees(ctx),
-		k.GetGlobalShieldStakingPool(ctx),
+		k.GetGlobalStakingPool(ctx),
 	)
 
 	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, shieldState)
@@ -273,7 +273,7 @@ func queryGlobalState(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc
 }
 
 // queryPurchase queries staked-for-shield for pool-purchaser pair.
-func queryStakeForShield(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
+func queryStakingPurchase(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if err := validatePathLength(path, 2); err != nil {
 		return nil, err
 	}
@@ -286,7 +286,7 @@ func queryStakeForShield(ctx sdk.Context, path []string, k Keeper, legacyQuerier
 	if err != nil {
 		return nil, err
 	}
-	purchaseList, found := k.GetStakeForShield(ctx, poolID, purchaser)
+	purchaseList, found := k.GetStakingPurchase(ctx, poolID, purchaser)
 	if !found {
 		return []byte{}, types.ErrPurchaseNotFound
 	}
@@ -298,8 +298,8 @@ func queryStakeForShield(ctx sdk.Context, path []string, k Keeper, legacyQuerier
 	return res, nil
 }
 
-// queryShieldStakingRate queries the shield staking rate for shield.
-func queryShieldStakingRate(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
+// queryStakingPurchaseRate queries the shield staking rate for shield.
+func queryStakingPurchaseRate(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if err := validatePathLength(path, 0); err != nil {
 		return nil, err
 	}
