@@ -18,6 +18,11 @@ func (k Keeper) GetGlobalStakingPool(ctx sdk.Context) (pool sdk.Int) {
 	return ip.Int
 }
 
+func (k Keeper) DeleteStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetStakingPurchaseKey(poolID, purchaser))
+}
+
 func (k Keeper) SetGlobalStakingPool(ctx sdk.Context, value sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: value})
@@ -26,7 +31,7 @@ func (k Keeper) SetGlobalStakingPool(ctx sdk.Context, value sdk.Int) {
 
 func (k Keeper) GetStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (purchase types.StakingPurchase, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetStakeForShieldKey(poolID, purchaser))
+	bz := store.Get(types.GetStakingPurchaseKey(poolID, purchaser))
 	if bz != nil {
 		k.cdc.MustUnmarshalLengthPrefixed(bz, &purchase)
 		found = true
@@ -34,39 +39,61 @@ func (k Keeper) GetStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk
 	return
 }
 
-func (k Keeper) SetStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchase types.StakingPurchase) {
+func (k Keeper) SetStakingPurchase(ctx sdk.Context, purchase types.StakingPurchase) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&purchase)
-	store.Set(types.GetStakeForShieldKey(poolID, purchaser), bz)
+	purchaser, err := sdk.AccAddressFromBech32(purchase.Purchaser)
+	if err != nil {
+		panic(err)
+	}
+	store.Set(types.GetStakingPurchaseKey(purchase.PoolId, purchaser), bz)
 }
 
-func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, stakingAmt sdk.Int) error {
-	stakingCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), stakingAmt))
-	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, stakingCoins); err != nil {
-		return err
+func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Coins) (types.StakingPurchase, error) {
+
+	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, amount); err != nil {
+		return types.StakingPurchase{}, err
 	}
 
+	bondDenomAmt := amount.AmountOf(k.BondDenom(ctx))
 	pool := k.GetGlobalStakingPool(ctx)
-	pool = pool.Add(stakingAmt)
+	pool = pool.Add(bondDenomAmt)
 	k.SetGlobalStakingPool(ctx, pool)
 
-	sFS, found := k.GetStakingPurchase(ctx, poolID, purchaser)
+	sp, found := k.GetStakingPurchase(ctx, poolID, purchaser)
 	if !found {
-		sFS = types.NewStakingPurchase(poolID, purchaser, stakingAmt)
+		sp = types.NewStakingPurchase(poolID, purchaser, bondDenomAmt)
 	} else {
-		sFS.Amount = sFS.Amount.Add(stakingAmt)
+		sp.Amount = sp.Amount.Add(bondDenomAmt)
 	}
-	k.SetStakingPurchase(ctx, poolID, purchaser, sFS)
-	return nil
+	sp.StartTime = ctx.BlockTime()
+	k.SetStakingPurchase(ctx, sp)
+	return sp, nil
 }
 
-func (k Keeper) UnstakeFromShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) error {
+func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) error {
 	sp, found := k.GetStakingPurchase(ctx, poolID, purchaser)
 	if !found {
 		return types.ErrPurchaseNotFound
 	}
-	k.SetStakingPurchase(ctx, poolID, purchaser, sp)
-	return nil
+	if sp.Amount.LT(amount) {
+		return types.ErrInsufficientStaking
+	}
+	poolParams := k.GetPoolParams(ctx)
+	cd := poolParams.CooldownPeriod
+	if sp.StartTime.Add(cd).After(ctx.BlockTime()) {
+		return types.ErrBeforeCooldownEnd
+	}
+	sp.Amount = sp.Amount.Sub(amount)
+	if sp.Amount.Equal(sdk.ZeroInt()) {
+		k.DeleteStakingPurchase(ctx, poolID, purchaser)
+	} else {
+		k.SetStakingPurchase(ctx, sp)
+	}
+
+	withdrawCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), amount))
+
+	return k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, withdrawCoins)
 }
 
 func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error {

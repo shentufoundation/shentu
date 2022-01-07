@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"encoding/binary"
-	"time"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
@@ -15,33 +13,29 @@ type pPPTriplet struct {
 	purchaser  sdk.AccAddress
 }
 
-// PurchaseShield purchases shield of a pool.
-func (k Keeper) purchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress, serviceFees sdk.Coins, stakingCoins sdk.Coins) (types.Purchase, error) {
-
-}
-
 // PurchaseShield purchases shield of a pool with standard fee rate.
-func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, shield sdk.Coins, description string, purchaser sdk.AccAddress, staking bool) (types.StakingPurchase, error) {
+func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, amount sdk.Coins, description string, purchaser sdk.AccAddress) (types.StakingPurchase, error) {
 	poolParams := k.GetPoolParams(ctx)
-	if poolParams.MinShieldPurchase.IsAnyGT(shield) {
+	if poolParams.MinShieldPurchase.IsAnyGT(amount) {
 		return types.StakingPurchase{}, types.ErrPurchaseTooSmall
 	}
 	bondDenom := k.BondDenom(ctx)
-	serviceFees := sdk.NewCoins()
-	stakingCoins := sdk.NewCoins()
+	if amount.AmountOf(bondDenom).Equal(sdk.ZeroInt()) {
+		return types.StakingPurchase{}, types.ErrInsufficientStaking
+	}
+	pool, found := k.GetPool(ctx, poolID)
+	if !found {
+		return types.StakingPurchase{}, types.ErrNoPoolFound
+	}
+	if !pool.Active {
+		return types.StakingPurchase{}, types.ErrPoolInactive
+	}
+	if amount.Empty() {
+		return types.StakingPurchase{}, types.ErrNoShield
+	}
 
-	// TODO: consider direct purchase
-	// stake to the staking purchase pool
-	stakingAmt := k.GetShieldStakingRate(ctx).MulInt(shield.AmountOf(bondDenom)).TruncateInt()
-	stakingCoins = sdk.NewCoins(sdk.NewCoin(bondDenom, stakingAmt))
-	return k.purchaseShield(ctx, poolID, shield, description, purchaser, serviceFees, stakingCoins)
-}
-
-// ExpiringPurchaseQueueIterator returns a iterator of purchases expiring before endTime
-func (k Keeper) ExpiringPurchaseQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
-	store := ctx.KVStore(k.storeKey)
-	return store.Iterator(types.PurchaseQueueKey,
-		sdk.InclusiveEndBytes(types.GetPurchaseExpirationTimeKey(endTime)))
+	sp, err := k.AddStaking(ctx, poolID, purchaser, amount)
+	return sp, err
 }
 
 // SetNextPurchaseID sets the latest pool ID to store.

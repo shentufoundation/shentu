@@ -66,7 +66,7 @@ func (k Keeper) GetCommunityPoolRatio(ctx sdk.Context) sdk.Dec {
 // GetShieldStakeForShieldPoolRatio returns the current ratio of
 // shield staking pool compared to the total supply.
 func (k Keeper) GetShieldStakeForShieldPoolRatio(ctx sdk.Context) sdk.Dec {
-	pool := k.shieldKeeper.GetGlobalShieldStakingPool(ctx)
+	pool := k.shieldKeeper.GetGlobalStakingPool(ctx)
 	totalBondedTokensDec := k.StakingTokenSupply(ctx).ToDec()
 	if totalBondedTokensDec.IsZero() {
 		return sdk.ZeroDec()

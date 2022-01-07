@@ -86,7 +86,8 @@ message StakingPurchase {
     uint64 pool_id = 1 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
     string purchaser = 2 [ (gogoproto.moretags) = "yaml:\"purchaser\"" ];
     string amount = 3 [ (gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    string start_time = 4 [ (gogoproto.moretags) = "yaml:\"start_time\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    google.protobuf.Timestamp start_time = 4
+    [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
 }
 
 message ShieldClaimProposal {

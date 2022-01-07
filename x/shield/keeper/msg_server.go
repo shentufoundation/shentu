@@ -274,7 +274,7 @@ func (k msgServer) UpdateSponsor(goCtx context.Context, msg *types.MsgUpdateSpon
 	return &types.MsgUpdateSponsorResponse{}, nil
 }
 
-func (k msgServer) StakeForShield(goCtx context.Context, msg *types.MsgStakeForShield) (*types.MsgStakeForShieldResponse, error) {
+func (k msgServer) StakingPurchase(goCtx context.Context, msg *types.MsgStakeForShield) (*types.MsgStakeForShieldResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
@@ -307,7 +307,7 @@ func (k msgServer) StakeForShield(goCtx context.Context, msg *types.MsgStakeForS
 	return &types.MsgStakeForShieldResponse{}, nil
 }
 
-func (k msgServer) UnstakeFromShield(goCtx context.Context, msg *types.MsgUnstakeFromShield) (*types.MsgUnstakeFromShieldResponse, error) {
+func (k msgServer) Unstake(goCtx context.Context, msg *types.MsgUnstakeFromShield) (*types.MsgUnstakeFromShieldResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
@@ -316,7 +316,7 @@ func (k msgServer) UnstakeFromShield(goCtx context.Context, msg *types.MsgUnstak
 	}
 	amount := msg.Shield.AmountOf(k.Keeper.BondDenom(ctx))
 
-	err = k.Keeper.UnstakeFromShield(ctx, msg.PoolId, fromAddr, amount)
+	err = k.Keeper.Unstake(ctx, msg.PoolId, fromAddr, amount)
 	if err != nil {
 		return nil, err
 	}

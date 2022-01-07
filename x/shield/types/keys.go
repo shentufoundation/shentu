@@ -132,7 +132,7 @@ func GetGlobalStakeForShieldPoolKey() []byte {
 	return GlobalStakeForShieldPoolKey
 }
 
-func GetStakeForShieldKey(poolID uint64, purchaser sdk.AccAddress) []byte {
+func GetStakingPurchaseKey(poolID uint64, purchaser sdk.AccAddress) []byte {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, poolID)
 	return append(StakeForShieldKey, append(bz, purchaser...)...)

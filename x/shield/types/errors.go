@@ -46,6 +46,7 @@ const (
 	errShieldAdminNotActive
 	errPurchaseTooSmall
 	errNotEnoughStaked
+	errBeforeCooldownEnd
 )
 
 var (
@@ -90,4 +91,5 @@ var (
 	ErrShieldAdminNotActive       = sdkerrors.Register(ModuleName, errShieldAdminNotActive, "shield admin is not activated")
 	ErrPurchaseTooSmall           = sdkerrors.Register(ModuleName, errPurchaseTooSmall, "purchase amount is too small")
 	ErrNotEnoughStaked            = sdkerrors.Register(ModuleName, errNotEnoughStaked, "not enough unlocked staking to be withdrawn")
+	ErrBeforeCooldownEnd          = sdkerrors.Register(ModuleName, errBeforeCooldownEnd, "cooldown period is not over for the purchase")
 )
