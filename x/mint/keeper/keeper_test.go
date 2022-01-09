@@ -10,8 +10,9 @@ import (
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
 	"github.com/tendermint/tendermint/crypto"
+
+	"github.com/certikfoundation/shentu/v2/simapp"
 )
 
 // shared setup
