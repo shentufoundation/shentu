@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/simapp"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 // shared setup
@@ -47,11 +48,18 @@ func (suite *KeeperTestSuite) TestKeeper_SendToCommunityPool() {
 
 	for _, tc := range tests {
 		suite.T().Log(tc.name)
-		err := suite.app.MintKeeper.SendToCommunityPool(suite.ctx, tc.coins)
+		moduleAcct := sdk.AccAddress(crypto.AddressHash([]byte("mint")))
 		if tc.err {
+			err := suite.app.MintKeeper.SendToCommunityPool(suite.ctx, tc.coins)
 			suite.Require().Nil(err)
+		} else {
+			initalMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, "uctk")
+			err := suite.app.MintKeeper.SendToCommunityPool(suite.ctx, tc.coins)
+			suite.Require().NoError(err)
+			deductedMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, "uctk")
+			distributionBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(crypto.AddressHash([]byte("distribution"))), "uctk")
+			suite.Require().Equal(initalMintBalance.Sub(deductedMintBalance), distributionBalance)
 		}
-		suite.Require().NoError(err)
 	}
 }
 
@@ -75,11 +83,18 @@ func (suite *KeeperTestSuite) TestKeeper_SendToShieldRewards() {
 
 	for _, tc := range tests {
 		suite.T().Log(tc.name)
-		err := suite.app.MintKeeper.SendToShieldRewards(suite.ctx, tc.coins)
+		moduleAcct := sdk.AccAddress(crypto.AddressHash([]byte("mint")))
 		if tc.err {
+			err := suite.app.MintKeeper.SendToShieldRewards(suite.ctx, tc.coins)
 			suite.Require().Nil(err)
+		} else {
+			initalMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, "uctk")
+			err := suite.app.MintKeeper.SendToShieldRewards(suite.ctx, tc.coins)
+			suite.Require().NoError(err)
+			deductedMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, "uctk")
+			shieldBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(crypto.AddressHash([]byte("shield"))), "uctk")
+			suite.Require().Equal(initalMintBalance.Sub(deductedMintBalance), shieldBalance)
 		}
-		suite.Require().NoError(err)
 	}
 }
 
