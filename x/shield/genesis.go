@@ -40,12 +40,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 	k.SetNextPoolID(ctx, data.NextPoolId)
 	k.SetNextPurchaseID(ctx, data.NextPurchaseId)
 
-	for _, purchase := range data.StakingPurchases {
+	for _, purchase := range data.Purchases {
 		purchaserAddr, err := sdk.AccAddressFromBech32(purchase.Purchaser)
 		if err != nil {
 			panic(err)
 		}
-		k.SetStakingPurchase(ctx, purchase.PoolId, purchaserAddr, purchase)
+		k.SetPurchase(ctx, purchase.PoolId, purchaserAddr, purchase)
 	}
 
 	for _, provider := range data.Providers {
@@ -83,7 +83,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	withdraws := k.GetAllWithdraws(ctx)
 	stakingPurchaseRate := k.GetShieldStakingRate(ctx)
 	globalStakingPool := k.GetGlobalStakingPool(ctx)
-	stakingPurchases := k.GetAllStakingPurchase(ctx)
+	stakingPurchases := k.GetAllPurchase(ctx)
 	reimbursements := k.GetAllProposalIDReimbursementPairs(ctx)
 
 	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams,

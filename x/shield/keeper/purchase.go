@@ -14,24 +14,24 @@ type pPPTriplet struct {
 }
 
 // PurchaseShield purchases shield of a pool with standard fee rate.
-func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, amount sdk.Coins, description string, purchaser sdk.AccAddress) (types.StakingPurchase, error) {
+func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, amount sdk.Coins, description string, purchaser sdk.AccAddress) (types.Purchase, error) {
 	poolParams := k.GetPoolParams(ctx)
 	if poolParams.MinShieldPurchase.IsAnyGT(amount) {
-		return types.StakingPurchase{}, types.ErrPurchaseTooSmall
+		return types.Purchase{}, types.ErrPurchaseTooSmall
 	}
 	bondDenom := k.BondDenom(ctx)
 	if amount.AmountOf(bondDenom).Equal(sdk.ZeroInt()) {
-		return types.StakingPurchase{}, types.ErrInsufficientStaking
+		return types.Purchase{}, types.ErrInsufficientStaking
 	}
 	pool, found := k.GetPool(ctx, poolID)
 	if !found {
-		return types.StakingPurchase{}, types.ErrNoPoolFound
+		return types.Purchase{}, types.ErrNoPoolFound
 	}
 	if !pool.Active {
-		return types.StakingPurchase{}, types.ErrPoolInactive
+		return types.Purchase{}, types.ErrPoolInactive
 	}
 	if amount.Empty() {
-		return types.StakingPurchase{}, types.ErrNoShield
+		return types.Purchase{}, types.ErrNoShield
 	}
 
 	sp, err := k.AddStaking(ctx, poolID, purchaser, amount)
@@ -51,4 +51,26 @@ func (k Keeper) GetNextPurchaseID(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	opBz := store.Get(types.GetNextPurchaseIDKey())
 	return binary.LittleEndian.Uint64(opBz)
+}
+
+func (k Keeper) GetPurchaserPurchases(ctx sdk.Context, address sdk.AccAddress) (res []types.Purchase) {
+	purchases := k.GetAllPurchase(ctx)
+
+	for _, p := range purchases {
+		if p.Purchaser == address.String() {
+			res = append(res, p)
+		}
+	}
+	return
+}
+
+func (k Keeper) GetPoolPurchases(ctx sdk.Context, poolID uint64) (res []types.Purchase) {
+	purchases := k.GetAllPurchase(ctx)
+
+	for _, p := range purchases {
+		if p.PoolId == poolID {
+			res = append(res, p)
+		}
+	}
+	return
 }

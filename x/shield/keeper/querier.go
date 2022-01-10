@@ -27,7 +27,7 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 		case types.QueryPoolPurchases:
 			return queryPoolPurchases(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryPurchases:
-			return queryStakingPurchases(ctx, path[1:], k, legacyQuerierCdc)
+			return queryPurchases(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryProvider:
 			return queryProvider(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryProviders:
@@ -39,7 +39,7 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 		case types.QueryStatus:
 			return queryGlobalState(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryStakedForShield:
-			return queryStakingPurchase(ctx, path[1:], k, legacyQuerierCdc)
+			return queryPurchase(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryReimbursement:
 			return queryReimbursement(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryReimbursements:
@@ -143,13 +143,13 @@ func queryPoolPurchases(ctx sdk.Context, path []string, k Keeper, legacyQuerierC
 	return res, nil
 }
 
-// queryStakingPurchases queries all purchases.
-func queryStakingPurchases(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
+// queryPurchases queries all purchases.
+func queryPurchases(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if err := validatePathLength(path, 0); err != nil {
 		return nil, err
 	}
 
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, k.GetAllStakingPurchase(ctx))
+	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, k.GetAllPurchase(ctx))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -244,7 +244,7 @@ func queryGlobalState(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc
 }
 
 // queryPurchase queries staked-for-shield for pool-purchaser pair.
-func queryStakingPurchase(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
+func queryPurchase(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if err := validatePathLength(path, 2); err != nil {
 		return nil, err
 	}
@@ -257,7 +257,7 @@ func queryStakingPurchase(ctx sdk.Context, path []string, k Keeper, legacyQuerie
 	if err != nil {
 		return nil, err
 	}
-	purchaseList, found := k.GetStakingPurchase(ctx, poolID, purchaser)
+	purchaseList, found := k.GetPurchase(ctx, poolID, purchaser)
 	if !found {
 		return []byte{}, types.ErrPurchaseNotFound
 	}

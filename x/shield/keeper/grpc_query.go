@@ -123,7 +123,7 @@ func (q Keeper) ShieldStatus(c context.Context, req *types.QueryShieldStatusRequ
 }
 
 // ShieldStaking queries staked-for-shield for pool-purchaser pair.
-func (q Keeper) StakingPurchase(c context.Context, req *types.QueryStakingPurchaseRequest) (*types.QueryStakingPurchaseResponse, error) {
+func (q Keeper) Purchase(c context.Context, req *types.QueryPurchaseRequest) (*types.QueryPurchaseResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -133,12 +133,12 @@ func (q Keeper) StakingPurchase(c context.Context, req *types.QueryStakingPurcha
 	if err != nil {
 		return nil, err
 	}
-	shieldStaking, found := q.GetStakingPurchase(ctx, req.PoolId, purchaser)
+	shieldStaking, found := q.GetPurchase(ctx, req.PoolId, purchaser)
 	if !found {
 		return nil, types.ErrPurchaseNotFound
 	}
 
-	return &types.QueryStakingPurchaseResponse{StakingPurchase: shieldStaking}, nil
+	return &types.QueryPurchaseResponse{Purchase: shieldStaking}, nil
 }
 
 // Reimbursement queries a reimbursement by proposal ID.

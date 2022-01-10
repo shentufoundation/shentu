@@ -37,7 +37,7 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 
 		// shield stake
 		shieldStake := sdk.ZeroInt()
-		for _, stake := range keeper.GetAllStakingPurchase(ctx) {
+		for _, stake := range keeper.GetAllPurchase(ctx) {
 			shieldStake = shieldStake.Add(stake.Amount)
 		}
 
@@ -110,7 +110,7 @@ func ShieldInvariant(keeper Keeper) sdk.Invariant {
 func GlobalStakingPoolInvariant(keeper Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		stakedCoin := sdk.NewCoin(keeper.BondDenom(ctx), sdk.ZeroInt())
-		for _, staked := range keeper.GetAllStakingPurchase(ctx) {
+		for _, staked := range keeper.GetAllPurchase(ctx) {
 			stakedCoin = stakedCoin.Add(sdk.NewCoin(keeper.BondDenom(ctx), staked.Amount))
 		}
 		stakedInt := stakedCoin.Amount

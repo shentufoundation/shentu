@@ -568,7 +568,7 @@ $ %s tx shield stake-for-shield <pool id> <shield amount> <description>
 				return types.ErrPurchaseMissingDescription
 			}
 
-			msg := types.NewMsgStakingPurchase(poolID, shield, description, fromAddr)
+			msg := types.NewMsgPurchase(poolID, shield, description, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

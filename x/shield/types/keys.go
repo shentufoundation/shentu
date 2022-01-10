@@ -40,7 +40,7 @@ var (
 	WithdrawQueueKey            = []byte{0x0D}
 	LastUpdateTimeKey           = []byte{0x0E}
 	GlobalStakeForShieldPoolKey = []byte{0x0F}
-	StakingPurchaseKey          = []byte{0x11}
+	PurchaseKey                 = []byte{0x11}
 	BlockServiceFeesKey         = []byte{0x12}
 	ReimbursementKey            = []byte{0x14}
 )
@@ -118,10 +118,10 @@ func GetGlobalStakeForShieldPoolKey() []byte {
 	return GlobalStakeForShieldPoolKey
 }
 
-func GetStakingPurchaseKey(poolID uint64, purchaser sdk.AccAddress) []byte {
+func GetPurchaseKey(poolID uint64, purchaser sdk.AccAddress) []byte {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, poolID)
-	return append(StakingPurchaseKey, append(bz, purchaser...)...)
+	return append(PurchaseKey, append(bz, purchaser...)...)
 }
 
 // GetReimbursementKey gets the key for a reimbursement.

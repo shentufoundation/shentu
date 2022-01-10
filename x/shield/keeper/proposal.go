@@ -39,7 +39,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	}
 
 	// Verify purchase.
-	purchase, found := k.GetStakingPurchase(ctx, poolID, purchaser)
+	purchase, found := k.GetPurchase(ctx, poolID, purchaser)
 	if !found {
 		return types.ErrPurchaseNotFound
 	}
@@ -67,7 +67,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	// Update purchase states.
 	purchase.Amount = purchase.Amount.Sub(lossAmt)
 
-	k.SetStakingPurchase(ctx, purchase)
+	k.SetPurchase(ctx, purchase)
 
 	// Update pool and global pool states.
 	pool.Shield = pool.Shield.Sub(lossAmt)

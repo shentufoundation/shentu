@@ -19,7 +19,7 @@ service Msg {
     rpc WithdrawForeignRewards(MsgWithdrawForeignRewards) returns (MsgWithdrawForeignRewardsResponse);
     rpc WithdrawReimbursement(MsgWithdrawReimbursement) returns (MsgWithdrawReimbursementResponse);
     rpc UpdateSponsor(MsgUpdateSponsor) returns (MsgUpdateSponsorResponse);
-    rpc StakingPurchase(MsgStakingPurchase) returns (MsgStakingPurchaseResponse);
+    rpc Purchase(MsgPurchase) returns (MsgPurchaseResponse);
     rpc Unstake(MsgUnstake) returns (MsgUnstakeResponse);
 }
 
@@ -164,10 +164,8 @@ message MsgWithdrawReimbursement {
   
 message MsgWithdrawReimbursementResponse {}
 
-
-// TODO: eliminate this msg type https://github.com/ShentuChain/shentu-private/issues/13
 // MsgStakeForShield defines the attributes of staking for purchase transaction.
-message MsgStakingPurchase {
+message MsgPurchase {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
   
@@ -177,7 +175,7 @@ message MsgStakingPurchase {
     string from = 4 [ (gogoproto.moretags) = "yaml:\"from\"" ];
 }
   
-message MsgStakingPurchaseResponse {}
+message MsgPurchaseResponse {}
 
 
 // MsgUnstakeFromShield defines the attributes of staking for purchase transaction.

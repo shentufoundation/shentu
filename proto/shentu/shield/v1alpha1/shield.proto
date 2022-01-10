@@ -84,7 +84,7 @@ message Withdraws {
     repeated Withdraw withdraws = 1 [(gogoproto.nullable) = false];
 }
 
-message StakingPurchase {
+message Purchase {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 

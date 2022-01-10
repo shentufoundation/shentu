@@ -43,8 +43,8 @@ service Query {
     option (google.api.http).get = "/shentu/shield/v1alpha1/status";
   }
 
-  rpc StakingPurchase(QueryStakingPurchaseRequest) returns (QueryStakingPurchaseResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/shield_staking/{pool_id}/{purchaser}";
+  rpc Purchase(QueryPurchaseRequest) returns (QueryPurchaseResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/purchase/{pool_id}/{purchaser}";
   }
 
   rpc Reimbursement(QueryReimbursementRequest) returns (QueryReimbursementResponse) {
@@ -126,13 +126,13 @@ message QueryShieldStatusResponse {
 }
 
 
-message QueryStakingPurchaseRequest {
+message QueryPurchaseRequest {
   uint64 pool_id = 1;
   string purchaser = 2;
 }
 
-message QueryStakingPurchaseResponse {
-  StakingPurchase staking_purchase = 1 [(gogoproto.nullable) = false];
+message QueryPurchaseResponse {
+  Purchase purchase = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryReimbursementRequest {

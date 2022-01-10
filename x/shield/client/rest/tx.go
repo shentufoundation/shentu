@@ -253,7 +253,7 @@ func stakeForShieldHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgStakingPurchase(req.PoolID, req.Shield, req.Description, from)
+		msg := types.NewMsgPurchase(req.PoolID, req.Shield, req.Description, from)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

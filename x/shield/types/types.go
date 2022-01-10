@@ -39,8 +39,8 @@ func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) 
 	}
 }
 
-func NewStakingPurchase(poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) StakingPurchase {
-	return StakingPurchase{
+func NewPurchase(poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) Purchase {
+	return Purchase{
 		PoolId:    poolID,
 		Purchaser: purchaser.String(),
 		Amount:    amount,

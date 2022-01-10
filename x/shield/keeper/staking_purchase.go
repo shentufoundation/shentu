@@ -24,14 +24,14 @@ func (k Keeper) SetGlobalStakingPool(ctx sdk.Context, value sdk.Int) {
 	store.Set(types.GetGlobalStakeForShieldPoolKey(), bz)
 }
 
-func (k Keeper) DeleteStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) {
+func (k Keeper) DeletePurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetStakingPurchaseKey(poolID, purchaser))
+	store.Delete(types.GetPurchaseKey(poolID, purchaser))
 }
 
-func (k Keeper) GetStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (purchase types.StakingPurchase, found bool) {
+func (k Keeper) GetPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (purchase types.Purchase, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetStakingPurchaseKey(poolID, purchaser))
+	bz := store.Get(types.GetPurchaseKey(poolID, purchaser))
 	if bz != nil {
 		k.cdc.MustUnmarshalLengthPrefixed(bz, &purchase)
 		found = true
@@ -39,20 +39,20 @@ func (k Keeper) GetStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk
 	return
 }
 
-func (k Keeper) SetStakingPurchase(ctx sdk.Context, purchase types.StakingPurchase) {
+func (k Keeper) SetPurchase(ctx sdk.Context, purchase types.Purchase) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&purchase)
 	purchaser, err := sdk.AccAddressFromBech32(purchase.Purchaser)
 	if err != nil {
 		panic(err)
 	}
-	store.Set(types.GetStakingPurchaseKey(purchase.PoolId, purchaser), bz)
+	store.Set(types.GetPurchaseKey(purchase.PoolId, purchaser), bz)
 }
 
-func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Coins) (types.StakingPurchase, error) {
+func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Coins) (types.Purchase, error) {
 
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, amount); err != nil {
-		return types.StakingPurchase{}, err
+		return types.Purchase{}, err
 	}
 
 	bondDenomAmt := amount.AmountOf(k.BondDenom(ctx))
@@ -60,19 +60,19 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	pool = pool.Add(bondDenomAmt)
 	k.SetGlobalStakingPool(ctx, pool)
 
-	sp, found := k.GetStakingPurchase(ctx, poolID, purchaser)
+	sp, found := k.GetPurchase(ctx, poolID, purchaser)
 	if !found {
-		sp = types.NewStakingPurchase(poolID, purchaser, bondDenomAmt)
+		sp = types.NewPurchase(poolID, purchaser, bondDenomAmt)
 	} else {
 		sp.Amount = sp.Amount.Add(bondDenomAmt)
 	}
 	sp.StartTime = ctx.BlockTime()
-	k.SetStakingPurchase(ctx, sp)
+	k.SetPurchase(ctx, sp)
 	return sp, nil
 }
 
 func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) error {
-	sp, found := k.GetStakingPurchase(ctx, poolID, purchaser)
+	sp, found := k.GetPurchase(ctx, poolID, purchaser)
 	if !found {
 		return types.ErrPurchaseNotFound
 	}
@@ -86,9 +86,9 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 	}
 	sp.Amount = sp.Amount.Sub(amount)
 	if sp.Amount.Equal(sdk.ZeroInt()) {
-		k.DeleteStakingPurchase(ctx, poolID, purchaser)
+		k.DeletePurchase(ctx, poolID, purchaser)
 	} else {
-		k.SetStakingPurchase(ctx, sp)
+		k.SetPurchase(ctx, sp)
 	}
 
 	withdrawCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), amount))
@@ -106,22 +106,22 @@ func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender
 	return nil
 }
 
-func (k Keeper) GetAllStakingPurchase(ctx sdk.Context) (purchases []types.StakingPurchase) {
-	k.IterateStakingPurchases(ctx, func(purchase types.StakingPurchase) bool {
+func (k Keeper) GetAllPurchase(ctx sdk.Context) (purchases []types.Purchase) {
+	k.IteratePurchases(ctx, func(purchase types.Purchase) bool {
 		purchases = append(purchases, purchase)
 		return false
 	})
 	return
 }
 
-// IterateStakingPurchases iterates through purchase lists in a pool
-func (k Keeper) IterateStakingPurchases(ctx sdk.Context, callback func(purchase types.StakingPurchase) (stop bool)) {
+// IteratePurchases iterates through purchase lists in a pool
+func (k Keeper) IteratePurchases(ctx sdk.Context, callback func(purchase types.Purchase) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.StakingPurchaseKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.PurchaseKey)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var purchase types.StakingPurchase
+		var purchase types.Purchase
 		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &purchase)
 
 		if callback(purchase) {

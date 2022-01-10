@@ -514,7 +514,7 @@ func ProposalContents(k keeper.Keeper, sk types.StakingKeeper) []simtypes.Weight
 func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper) simtypes.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 		bondDenom := sk.BondDenom(ctx)
-		purchaseList, found := keeper.RandomStakingPurchase(r, k, ctx)
+		purchaseList, found := keeper.RandomPurchase(r, k, ctx)
 		if len(purchaseList.Entries) == 0 {
 			return nil
 		}
@@ -584,7 +584,7 @@ func SimulateMsgStakeForShield(k keeper.Keeper, ak types.AccountKeeper, bk types
 		}
 
 		description := simtypes.RandStringOfLength(r, 100)
-		msg := types.NewMsgStakingPurchase(poolID, shield, description, purchaser.Address)
+		msg := types.NewMsgPurchase(poolID, shield, description, purchaser.Address)
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
@@ -614,7 +614,7 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, bk ty
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		bondDenom := sk.BondDenom(ctx)
-		stakeForShields := k.GetAllStakingPurchase(ctx)
+		stakeForShields := k.GetAllPurchase(ctx)
 		if len(stakeForShields) == 0 {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUnstakeFromShield, "no stake for shields found"), nil, nil
 		}

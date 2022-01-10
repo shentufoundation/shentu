@@ -274,7 +274,7 @@ func (k msgServer) UpdateSponsor(goCtx context.Context, msg *types.MsgUpdateSpon
 	return &types.MsgUpdateSponsorResponse{}, nil
 }
 
-func (k msgServer) StakingPurchase(goCtx context.Context, msg *types.MsgStakingPurchase) (*types.MsgStakingPurchaseResponse, error) {
+func (k msgServer) Purchase(goCtx context.Context, msg *types.MsgPurchase) (*types.MsgPurchaseResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
@@ -301,7 +301,7 @@ func (k msgServer) StakingPurchase(goCtx context.Context, msg *types.MsgStakingP
 		),
 	})
 
-	return &types.MsgStakingPurchaseResponse{}, nil
+	return &types.MsgPurchaseResponse{}, nil
 }
 
 func (k msgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types.MsgUnstakeResponse, error) {

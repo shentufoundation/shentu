@@ -11,7 +11,7 @@ import (
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
 	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, serviceFees, remainingServiceFees MixedDecCoins,
 	pools []Pool, providers []Provider, withdraws []Withdraw, sSRate sdk.Dec, globalStakingPool sdk.Int,
-	stakingPurchases []StakingPurchase, proposalIDReimbursementPairs []ProposalIDReimbursementPair) GenesisState {
+	stakingPurchases []Purchase, proposalIDReimbursementPairs []ProposalIDReimbursementPair) GenesisState {
 	return GenesisState{
 		ShieldAdmin:                  shieldAdmin.String(),
 		NextPoolId:                   nextPoolID,
@@ -27,9 +27,8 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		Pools:                        pools,
 		Providers:                    providers,
 		Withdraws:                    withdraws,
-		ShieldStakingRate:            sSRate,
 		GlobalStakingPool:            globalStakingPool,
-		StakingPurchases:             stakingPurchases,
+		Purchases:                    stakingPurchases,
 		ProposalIDReimbursementPairs: proposalIDReimbursementPairs,
 	}
 }
@@ -47,7 +46,6 @@ func DefaultGenesisState() *GenesisState {
 		TotalClaimed:         sdk.ZeroInt(),
 		ServiceFees:          InitMixedDecCoins(),
 		RemainingServiceFees: InitMixedDecCoins(),
-		ShieldStakingRate:    sdk.NewDec(2),
 	}
 }
 
