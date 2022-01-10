@@ -253,7 +253,7 @@ func stakeForShieldHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgStakeForShield(req.PoolID, req.Shield, req.Description, from)
+		msg := types.NewMsgStakingPurchase(req.PoolID, req.Shield, req.Description, from)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -282,7 +282,7 @@ func unstakeFromShieldHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgUnstakeFromShield(req.PoolID, req.Amount, from)
+		msg := types.NewMsgUnstake(req.PoolID, req.Amount, from)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

@@ -568,7 +568,7 @@ $ %s tx shield stake-for-shield <pool id> <shield amount> <description>
 				return types.ErrPurchaseMissingDescription
 			}
 
-			msg := types.NewMsgStakeForShield(poolID, shield, description, fromAddr)
+			msg := types.NewMsgStakingPurchase(poolID, shield, description, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -614,7 +614,7 @@ $ %s tx shield withdraw-staking <pool id> <shield amount>
 				return err
 			}
 
-			msg := types.NewMsgUnstakeFromShield(poolID, shield, fromAddr)
+			msg := types.NewMsgUnstake(poolID, shield, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

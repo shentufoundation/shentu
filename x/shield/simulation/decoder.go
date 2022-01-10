@@ -66,7 +66,7 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &timeB)
 			return fmt.Sprintf("%v\n%v", timeA, timeB)
 
-		case bytes.Equal(kvA.Key[:1], types.StakeForShieldKey):
+		case bytes.Equal(kvA.Key[:1], types.StakingPurchaseKey):
 			var sPA, spB types.ShieldStaking
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &sPA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &spB)

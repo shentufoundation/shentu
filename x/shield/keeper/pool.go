@@ -173,10 +173,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, poolID+1)
 
-	// Purchase shield for the pool.
-	if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", creator, serviceFees.Native, sdk.NewCoins()); err != nil {
-		return poolID, err
-	}
+	// TODO: implement pool creation
 
 	return poolID, nil
 }
@@ -202,19 +199,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 	k.SetPool(ctx, pool)
 
 	// Update purchase and shield.
-	if !shield.IsZero() {
-		if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", updater, serviceFees.Native, sdk.NewCoins()); err != nil {
-			return pool, err
-		}
-	} else if !serviceFees.Native.IsZero() {
-		// Allow adding service fees without purchasing more shield.
-		totalServiceFees := k.GetServiceFees(ctx)
-		totalServiceFees = totalServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees.Native...)})
-		k.SetServiceFees(ctx, totalServiceFees)
-		totalRemainingServiceFees := k.GetRemainingServiceFees(ctx)
-		totalRemainingServiceFees = totalRemainingServiceFees.Add(types.MixedDecCoins{Native: sdk.NewDecCoinsFromCoins(serviceFees.Native...)})
-		k.SetRemainingServiceFees(ctx, totalRemainingServiceFees)
-	}
+	// TODO: implement updating the pool
 
 	return pool, nil
 }

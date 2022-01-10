@@ -17,7 +17,6 @@ service Msg {
     rpc WithdrawCollateral(MsgWithdrawCollateral) returns (MsgWithdrawCollateralResponse);
     rpc WithdrawRewards(MsgWithdrawRewards) returns (MsgWithdrawRewardsResponse);
     rpc WithdrawForeignRewards(MsgWithdrawForeignRewards) returns (MsgWithdrawForeignRewardsResponse);
-    rpc PurchaseShield(MsgPurchaseShield) returns (MsgPurchaseShieldResponse);
     rpc WithdrawReimbursement(MsgWithdrawReimbursement) returns (MsgWithdrawReimbursementResponse);
     rpc UpdateSponsor(MsgUpdateSponsor) returns (MsgUpdateSponsorResponse);
     rpc StakingPurchase(MsgStakingPurchase) returns (MsgStakingPurchaseResponse);

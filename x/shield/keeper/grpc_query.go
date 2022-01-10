@@ -141,16 +141,6 @@ func (q Keeper) StakingPurchase(c context.Context, req *types.QueryStakingPurcha
 	return &types.QueryStakingPurchaseResponse{StakingPurchase: shieldStaking}, nil
 }
 
-// ShieldStakingRate queries the shield staking rate for shield.
-func (q Keeper) ShieldStakingRate(c context.Context, req *types.QueryStakingPurchaseRateRequest) (*types.QueryStakingPurchaseRateResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	return &types.QueryStakingPurchaseRateResponse{Rate: q.GetShieldStakingRate(ctx)}, nil
-}
-
 // Reimbursement queries a reimbursement by proposal ID.
 func (q Keeper) Reimbursement(c context.Context, req *types.QueryReimbursementRequest) (*types.QueryReimbursementResponse, error) {
 	if req == nil {

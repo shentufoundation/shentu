@@ -23,8 +23,8 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgPurchaseShield{}, "shield/MsgPurchaseShield", nil)
 	cdc.RegisterConcrete(MsgWithdrawReimbursement{}, "shield/MsgWithdrawReimbursement", nil)
 	cdc.RegisterConcrete(MsgUpdateSponsor{}, "shield/MsgUpdateSponsor", nil)
-	cdc.RegisterConcrete(MsgStakeForShield{}, "shield/MsgStakeForShield", nil)
-	cdc.RegisterConcrete(MsgUnstakeFromShield{}, "shield/MsgUnstakeFromShield", nil)
+	cdc.RegisterConcrete(MsgStakingPurchase{}, "shield/MsgStakeForShield", nil)
+	cdc.RegisterConcrete(MsgUnstake{}, "shield/MsgUnstakeFromShield", nil)
 }
 
 // RegisterInterfaces registers the x/shield interfaces types with the interface registry
@@ -41,8 +41,8 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgPurchaseShield{},
 		&MsgWithdrawReimbursement{},
 		&MsgUpdateSponsor{},
-		&MsgStakeForShield{},
-		&MsgUnstakeFromShield{},
+		&MsgStakingPurchase{},
+		&MsgUnstake{},
 	)
 	registry.RegisterImplementations(
 		(*govtypes.Content)(nil),

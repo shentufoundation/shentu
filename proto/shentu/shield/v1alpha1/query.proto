@@ -47,10 +47,6 @@ service Query {
     option (google.api.http).get = "/shentu/shield/v1alpha1/shield_staking/{pool_id}/{purchaser}";
   }
 
-  rpc StakingPurchaseRate(QueryStakingPurchaseRateRequest) returns (QueryStakingPurchaseRateResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/shield_staking_rate";
-  }
-
   rpc Reimbursement(QueryReimbursementRequest) returns (QueryReimbursementResponse) {
     option (google.api.http).get = "/shentu/shield/v1alpha1/proposal/{proposal_id}/reimbursement";
   }
@@ -139,15 +135,6 @@ message QueryStakingPurchaseResponse {
   StakingPurchase staking_purchase = 1 [(gogoproto.nullable) = false];
 }
 
-
-message QueryStakingPurchaseRateRequest {
-}
-
-message QueryStakingPurchaseRateResponse {
-  string rate = 1 [ (gogoproto.moretags) = "yaml:\"rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
-}
-
-
 message QueryReimbursementRequest {
   uint64 proposal_id = 1;
 }
@@ -155,7 +142,6 @@ message QueryReimbursementRequest {
 message QueryReimbursementResponse {
   Reimbursement reimbursement = 1 [ (gogoproto.nullable) = false ];
 }
-
 
 message QueryReimbursementsRequest {
 }

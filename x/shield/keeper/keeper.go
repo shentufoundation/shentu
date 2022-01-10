@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"encoding/binary"
-	"time"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -79,29 +77,4 @@ func (k Keeper) BondDenom(ctx sdk.Context) string {
 // GetVotingParams returns gov keeper's voting params.
 func (k Keeper) GetVotingParams(ctx sdk.Context) govtypes.VotingParams {
 	return k.gk.GetVotingParams(ctx)
-}
-
-// SetLastUpdateTime sets the last update time.
-// Last update time will be set when the first purchase is made or distributing service fees.
-func (k Keeper) SetLastUpdateTime(ctx sdk.Context, prevUpdateTime time.Time) {
-	store := ctx.KVStore(k.storeKey)
-
-	var timeProto types.LastUpdateTime
-	timeProto.Time = &prevUpdateTime
-
-	bz := k.cdc.MustMarshalLengthPrefixed(&timeProto)
-	store.Set(types.GetLastUpdateTimeKey(), bz)
-}
-
-// GetLastUpdateTime returns the last update time.
-func (k Keeper) GetLastUpdateTime(ctx sdk.Context) (time.Time, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetLastUpdateTimeKey())
-	if bz == nil {
-		return time.Time{}, false
-	}
-
-	var timeProto types.LastUpdateTime
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &timeProto)
-	return *timeProto.Time, true
 }

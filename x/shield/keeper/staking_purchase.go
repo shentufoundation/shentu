@@ -18,15 +18,15 @@ func (k Keeper) GetGlobalStakingPool(ctx sdk.Context) (pool sdk.Int) {
 	return ip.Int
 }
 
-func (k Keeper) DeleteStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetStakingPurchaseKey(poolID, purchaser))
-}
-
 func (k Keeper) SetGlobalStakingPool(ctx sdk.Context, value sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: value})
 	store.Set(types.GetGlobalStakeForShieldPoolKey(), bz)
+}
+
+func (k Keeper) DeleteStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetStakingPurchaseKey(poolID, purchaser))
 }
 
 func (k Keeper) GetStakingPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (purchase types.StakingPurchase, found bool) {
@@ -117,7 +117,7 @@ func (k Keeper) GetAllStakingPurchase(ctx sdk.Context) (purchases []types.Stakin
 // IterateStakingPurchases iterates through purchase lists in a pool
 func (k Keeper) IterateStakingPurchases(ctx sdk.Context, callback func(purchase types.StakingPurchase) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.StakeForShieldKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.StakingPurchaseKey)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

@@ -22,14 +22,12 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return queryPoolBySponsor(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryPools:
 			return queryPools(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryPurchaseList:
-			return queryPurchaseList(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryPurchaserPurchases:
 			return queryPurchaserPurchases(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryPoolPurchases:
 			return queryPoolPurchases(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryPurchases:
-			return queryPurchases(ctx, path[1:], k, legacyQuerierCdc)
+			return queryStakingPurchases(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryProvider:
 			return queryProvider(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryProviders:
@@ -42,8 +40,6 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return queryGlobalState(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryStakedForShield:
 			return queryStakingPurchase(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryShieldStakingRate:
-			return queryStakingPurchaseRate(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryReimbursement:
 			return queryReimbursement(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryReimbursements:
@@ -111,31 +107,6 @@ func queryPools(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *code
 	return res, nil
 }
 
-func queryPurchaseList(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 2); err != nil {
-		return nil, err
-	}
-
-	poolID, err := strconv.ParseUint(path[0], 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	purchaser, err := sdk.AccAddressFromBech32(path[1])
-	if err != nil {
-		return nil, err
-	}
-	purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
-	if !found {
-		return []byte{}, types.ErrPurchaseNotFound
-	}
-
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, purchaseList)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
 // queryPurchaserPurchases returns information about a community member's purchases.
 func queryPurchaserPurchases(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if err := validatePathLength(path, 1); err != nil {
@@ -165,20 +136,20 @@ func queryPoolPurchases(ctx sdk.Context, path []string, k Keeper, legacyQuerierC
 		return nil, err
 	}
 
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, k.GetPoolPurchaseLists(ctx, id))
+	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, k.GetPoolPurchases(ctx, id))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return res, nil
 }
 
-// queryPurchases queries all purchases.
-func queryPurchases(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
+// queryStakingPurchases queries all purchases.
+func queryStakingPurchases(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if err := validatePathLength(path, 0); err != nil {
 		return nil, err
 	}
 
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, k.GetAllPurchases(ctx))
+	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, k.GetAllStakingPurchase(ctx))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -292,20 +263,6 @@ func queryStakingPurchase(ctx sdk.Context, path []string, k Keeper, legacyQuerie
 	}
 
 	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, purchaseList)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-// queryStakingPurchaseRate queries the shield staking rate for shield.
-func queryStakingPurchaseRate(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 0); err != nil {
-		return nil, err
-	}
-
-	rate := k.GetShieldStakingRate(ctx)
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, rate)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

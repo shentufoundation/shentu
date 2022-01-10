@@ -480,24 +480,24 @@ func (msg MsgWithdrawReimbursement) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgStakeForShield creates a new MsgPurchaseShield instance.
-func NewMsgStakeForShield(poolID uint64, shield sdk.Coins, description string, from sdk.AccAddress) *MsgStakeForShield {
-	return &MsgStakeForShield{
+// NewMsgStakingPurchase creates a new MsgPurchaseShield instance.
+func NewMsgStakingPurchase(poolID uint64, shield sdk.Coins, description string, from sdk.AccAddress) *MsgStakingPurchase {
+	return &MsgStakingPurchase{
 		PoolId:      poolID,
-		Shield:      shield,
+		Amount:      shield,
 		Description: description,
 		From:        from.String(),
 	}
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgStakeForShield) Route() string { return RouterKey }
+func (msg MsgStakingPurchase) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgStakeForShield) Type() string { return TypeMsgStakeForShield }
+func (msg MsgStakingPurchase) Type() string { return TypeMsgStakeForShield }
 
 // GetSigners implements the sdk.Msg interface.
-func (msg MsgStakeForShield) GetSigners() []sdk.AccAddress {
+func (msg MsgStakingPurchase) GetSigners() []sdk.AccAddress {
 	from, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
 		panic(err)
@@ -506,33 +506,33 @@ func (msg MsgStakeForShield) GetSigners() []sdk.AccAddress {
 }
 
 // GetSignBytes implements the sdk.Msg interface.
-func (msg MsgStakeForShield) GetSignBytes() []byte {
+func (msg MsgStakingPurchase) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgStakeForShield) ValidateBasic() error {
+func (msg MsgStakingPurchase) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgUnstakeFromShield creates a new MsgPurchaseShield instance.
-func NewMsgUnstakeFromShield(poolID uint64, shield sdk.Coins, from sdk.AccAddress) *MsgUnstakeFromShield {
-	return &MsgUnstakeFromShield{
+// NewMsgUnstake creates a new MsgPurchaseShield instance.
+func NewMsgUnstake(poolID uint64, shield sdk.Coins, from sdk.AccAddress) *MsgUnstake {
+	return &MsgUnstake{
 		PoolId: poolID,
-		Shield: shield,
+		Amount: shield,
 		From:   from.String(),
 	}
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgUnstakeFromShield) Route() string { return RouterKey }
+func (msg MsgUnstake) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgUnstakeFromShield) Type() string { return TypeMsgUnstakeFromShield }
+func (msg MsgUnstake) Type() string { return TypeMsgUnstakeFromShield }
 
 // GetSigners implements the sdk.Msg interface.
-func (msg MsgUnstakeFromShield) GetSigners() []sdk.AccAddress {
+func (msg MsgUnstake) GetSigners() []sdk.AccAddress {
 	from, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
 		panic(err)
@@ -541,13 +541,13 @@ func (msg MsgUnstakeFromShield) GetSigners() []sdk.AccAddress {
 }
 
 // GetSignBytes implements the sdk.Msg interface.
-func (msg MsgUnstakeFromShield) GetSignBytes() []byte {
+func (msg MsgUnstake) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgUnstakeFromShield) ValidateBasic() error {
+func (msg MsgUnstake) ValidateBasic() error {
 	return nil
 }
 
