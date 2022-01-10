@@ -393,59 +393,6 @@ func (msg MsgWithdrawForeignRewards) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgPurchaseShield creates a new MsgPurchaseShield instance.
-func NewMsgPurchaseShield(poolID uint64, shield sdk.Coins, description string, from sdk.AccAddress) *MsgPurchaseShield {
-	return &MsgPurchaseShield{
-		PoolId:      poolID,
-		Shield:      shield,
-		Description: description,
-		From:        from.String(),
-	}
-}
-
-// Route implements the sdk.Msg interface.
-func (msg MsgPurchaseShield) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgPurchaseShield) Type() string { return TypeMsgPurchaseShield }
-
-// GetSigners implements the sdk.Msg interface.
-func (msg MsgPurchaseShield) GetSigners() []sdk.AccAddress {
-	from, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{from}
-}
-
-// GetSignBytes implements the sdk.Msg interface.
-func (msg MsgPurchaseShield) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgPurchaseShield) ValidateBasic() error {
-	if msg.PoolId == 0 {
-		return ErrInvalidPoolID
-	}
-	if !msg.Shield.IsValid() || msg.Shield.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "shield amount: %s", msg.Shield)
-	}
-	if strings.TrimSpace(msg.Description) == "" {
-		return ErrPurchaseMissingDescription
-	}
-
-	from, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		panic(err)
-	}
-	if from.Empty() {
-		return ErrEmptySender
-	}
-	return nil
-}
-
 // NewMsgWithdrawReimbursement creates a new MsgWithdrawReimbursement instance.
 func NewMsgWithdrawReimbursement(proposalID uint64, from sdk.AccAddress) *MsgWithdrawReimbursement {
 	return &MsgWithdrawReimbursement{

@@ -101,7 +101,7 @@ Where proposal.json contains:
 			}
 			from := cliCtx.GetFromAddress()
 			content := types.NewShieldClaimProposal(proposal.PoolID, proposal.Loss,
-				proposal.PurchaseID, proposal.Evidence, proposal.Description, from)
+				proposal.Evidence, proposal.Description, from)
 
 			msg, err := govtypes.NewMsgSubmitProposal(content, proposal.Deposit, from)
 			if err != nil {
@@ -477,7 +477,7 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 				return types.ErrPurchaseMissingDescription
 			}
 
-			msg := types.NewMsgPurchaseShield(poolID, shield, description, fromAddr)
+			msg := types.NewMsgPurchase(poolID, shield, description, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

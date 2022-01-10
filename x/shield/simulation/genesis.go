@@ -36,7 +36,6 @@ func RandomizedGenState(simState *module.SimulationState) {
 		gs.PoolParams.ProtectionPeriod = time.Duration(simtypes.RandIntBetween(r,
 			int(gs.ClaimProposalParams.ClaimPeriod)/10, int(gs.ClaimProposalParams.ClaimPeriod)))
 	}
-	gs.ShieldStakingRate = GenShieldStakingRateParam(r)
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&gs)
 }
 

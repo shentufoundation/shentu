@@ -5,8 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	gogotypes "github.com/gogo/protobuf/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
@@ -48,26 +46,14 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			idB := binary.LittleEndian.Uint64(kvB.Value)
 			return fmt.Sprintf("%v\n%v", idA, idB)
 
-		case bytes.Equal(kvA.Key[:1], types.PurchaseListKey):
-			var purchaseA, purchaseB types.PurchaseList
-			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &purchaseA)
-			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &purchaseB)
-			return fmt.Sprintf("%v\n%v", purchaseA, purchaseB)
-
 		case bytes.Equal(kvA.Key[:1], types.ProviderKey):
 			var providerA, providerB types.Provider
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &providerA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &providerB)
 			return fmt.Sprintf("%v\n%v", providerA, providerB)
 
-		case bytes.Equal(kvA.Key[:1], types.LastUpdateTimeKey):
-			var timeA, timeB gogotypes.Timestamp
-			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &timeA)
-			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &timeB)
-			return fmt.Sprintf("%v\n%v", timeA, timeB)
-
 		case bytes.Equal(kvA.Key[:1], types.PurchaseKey):
-			var sPA, spB types.ShieldStaking
+			var sPA, spB types.Purchase
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &sPA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &spB)
 			return fmt.Sprintf("%v\n%v", sPA, spB)
@@ -77,12 +63,6 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &blockFeesA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &blockFeesB)
 			return fmt.Sprintf("%v\n%v", blockFeesA, blockFeesB)
-
-		case bytes.Equal(kvA.Key[:1], types.OriginalStakingKey):
-			var rateA, rateB sdk.IntProto
-			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &rateA)
-			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &rateB)
-			return fmt.Sprintf("%v\n%v", rateA, rateB)
 
 		default:
 			panic(fmt.Sprintf("invalid %s key prefix %X", types.ModuleName, kvA.Key[:1]))

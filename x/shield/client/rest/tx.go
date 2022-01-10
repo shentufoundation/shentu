@@ -190,7 +190,7 @@ func purchaseHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgPurchaseShield(req.PoolID, req.Shield, req.Description, from)
+		msg := types.NewMsgPurchase(req.PoolID, req.Shield, req.Description, from)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -219,7 +219,7 @@ func postProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		content := types.NewShieldClaimProposal(req.PoolID, req.Loss, req.PurchaseID, req.Evidence, req.Description, from)
+		content := types.NewShieldClaimProposal(req.PoolID, req.Loss, req.Evidence, req.Description, from)
 
 		msg, err := govtypes.NewMsgSubmitProposal(content, req.Deposit, from)
 		if err != nil {

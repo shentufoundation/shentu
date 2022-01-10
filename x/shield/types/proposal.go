@@ -25,12 +25,11 @@ func init() {
 }
 
 // NewShieldClaimProposal creates a new shield claim proposal.
-func NewShieldClaimProposal(poolID uint64, loss sdk.Coins, purchaseID uint64, evidence, description string, proposer sdk.AccAddress) *ShieldClaimProposal {
+func NewShieldClaimProposal(poolID uint64, loss sdk.Coins, evidence, description string, proposer sdk.AccAddress) *ShieldClaimProposal {
 	return &ShieldClaimProposal{
 		PoolId:      poolID,
 		Loss:        loss,
 		Evidence:    evidence,
-		PurchaseId:  purchaseID,
 		Description: description,
 		Proposer:    proposer.String(),
 	}
