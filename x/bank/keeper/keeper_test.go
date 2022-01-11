@@ -9,7 +9,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -32,12 +31,11 @@ var (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	address     []sdk.AccAddress
-	app         *simapp.SimApp
-	ctx         sdk.Context
-	queryClient types.MsgServer
-	params      types.AccountKeeper
-	keeper      keeper.Keeper
+	address []sdk.AccAddress
+	app     *simapp.SimApp
+	ctx     sdk.Context
+	params  types.AccountKeeper
+	keeper  keeper.Keeper
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -45,10 +43,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.BankKeeper
 	suite.params = suite.app.AccountKeeper
-
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	types.RegisterMsgServer(queryHelper, suite.queryClient)
-	suite.queryClient = &types.UnimplementedMsgServer{}
 
 	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
 		err := sdksimapp.FundAccount(
