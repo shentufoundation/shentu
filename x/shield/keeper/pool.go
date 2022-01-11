@@ -170,11 +170,14 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield, serv
 	// Set the new project pool.
 	poolID := k.GetNextPoolID(ctx)
 	pool := types.NewPool(poolID, description, sponsor, sponsorAddr, shieldLimit, sdk.ZeroInt())
+
+	// TODO: implement full pool creation
+	// TODO: get input
+	rate := sdk.NewDecFromInt(sdk.NewInt(5))
+	pool.ShieldRate = rate
+
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, poolID+1)
-
-	// TODO: implement pool creation
-
 	return poolID, nil
 }
 

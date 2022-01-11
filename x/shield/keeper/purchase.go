@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"encoding/binary"
-
+ 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
+  
+	"github.com/certikfoundation/shentu/v2/common"
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
@@ -35,7 +36,11 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, amount sdk.Coins,
 		return types.Purchase{}, types.ErrNoShield
 	}
 
-	sp, err := k.AddStaking(ctx, poolID, purchaser, amount)
+	sp, err := k.AddStaking(ctx, poolID, purchaser, description, amount)
+
+	totalShield := k.GetTotalShield(ctx)
+	totalShield = totalShield.Add(common.MulCoins(amount, pool.ShieldRate).AmountOf(k.BondDenom(ctx)))
+	k.SetTotalShield(ctx, totalShield)
 	return sp, err
 }
 

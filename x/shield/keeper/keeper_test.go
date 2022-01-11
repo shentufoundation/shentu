@@ -228,7 +228,7 @@ func TestClaimProposal(t *testing.T) {
 	require.NoError(t, err)
 
 	purchaser := sdk.AccAddress(pks[2].Address())
-	err = sdksimapp.FundAccount(app.BankKeeper, ctx, purchaser, sdk.Coins{sdk.NewInt64Coin("uctk", 10e9)})
+	err = sdksimapp.FundAccount(app.BankKeeper, ctx, purchaser, sdk.Coins{sdk.NewInt64Coin("uctk", 100e9)})
 	require.NoError(t, err)
 
 	del1addr := sdk.AccAddress(pks[3].Address())
@@ -300,7 +300,7 @@ func TestClaimProposal(t *testing.T) {
 
 	// the purchaser submits a claim proposal
 	loss := shield
-	tgov.ShieldClaimProposal(purchaser, loss, poolID, 2, true)
+	tgov.ShieldClaimProposal(purchaser, loss, poolID, true)
 	var proposalID uint64 = 1 // TODO: unmarshal sdk.Result to obtain proposal ID
 
 	// verify that the withdrawal and unbonding have been delayed

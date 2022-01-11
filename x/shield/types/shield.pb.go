@@ -253,10 +253,11 @@ func (m *Withdraws) GetWithdraws() []Withdraw {
 }
 
 type Purchase struct {
-	PoolId    uint64                                 `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty" yaml:"pool_id"`
-	Purchaser string                                 `protobuf:"bytes,2,opt,name=purchaser,proto3" json:"purchaser,omitempty" yaml:"purchaser"`
-	Amount    github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount" yaml:"amount"`
-	StartTime time.Time                              `protobuf:"bytes,4,opt,name=start_time,json=startTime,proto3,stdtime" json:"start_time"`
+	PoolId      uint64                                 `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty" yaml:"pool_id"`
+	Purchaser   string                                 `protobuf:"bytes,2,opt,name=purchaser,proto3" json:"purchaser,omitempty" yaml:"purchaser"`
+	Amount      github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount" yaml:"amount"`
+	Description string                                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty" yaml:"description"`
+	StartTime   time.Time                              `protobuf:"bytes,5,opt,name=start_time,json=startTime,proto3,stdtime" json:"start_time"`
 }
 
 func (m *Purchase) Reset()         { *m = Purchase{} }
@@ -741,7 +742,14 @@ func (m *Purchase) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i -= n2
 	i = encodeVarintShield(dAtA, i, uint64(n2))
 	i--
-	dAtA[i] = 0x22
+	dAtA[i] = 0x2a
+	if len(m.Description) > 0 {
+		i -= len(m.Description)
+		copy(dAtA[i:], m.Description)
+		i = encodeVarintShield(dAtA, i, uint64(len(m.Description)))
+		i--
+		dAtA[i] = 0x22
+	}
 	{
 		size := m.Amount.Size()
 		i -= size
@@ -973,6 +981,10 @@ func (m *Purchase) Size() (n int) {
 	}
 	l = m.Amount.Size()
 	n += 1 + l + sovShield(uint64(l))
+	l = len(m.Description)
+	if l > 0 {
+		n += 1 + l + sovShield(uint64(l))
+	}
 	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.StartTime)
 	n += 1 + l + sovShield(uint64(l))
 	return n
@@ -2006,6 +2018,38 @@ func (m *Purchase) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowShield
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthShield
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthShield
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Description = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field StartTime", wireType)
 			}
