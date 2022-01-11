@@ -33,14 +33,14 @@ func GetQueryCmd() *cobra.Command {
 	govQueryCmd.AddCommand(
 		GetCmdQueryProposal(),
 		GetCmdQueryProposals(),
-		cli.GetCmdQueryVote(),
+		GetCmdQueryVote(),
 		GetCmdQueryVotes(),
 		GetCmdQueryParam(),
 		GetCmdQueryParams(),
 		cli.GetCmdQueryProposer(),
-		cli.GetCmdQueryDeposit(),
+		GetCmdQueryDeposit(),
 		GetCmdQueryDeposits(),
-		cli.GetCmdQueryTally(),
+		GetCmdQueryTally(),
 	)
 
 	return govQueryCmd
@@ -178,6 +178,81 @@ $ %[1]s query gov proposals --page=2 --limit=100
 	return cmd
 }
 
+// GetCmdQueryVote implements the query proposal vote command. Command to Get a
+// Proposal Information.
+func GetCmdQueryVote() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "vote [proposal-id] [voter-addr]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Query details of a single vote",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query details for a single vote on a proposal given its identifier.
+
+Example:
+$ %s query gov vote 1 certik16gzt5vd0dd5c98ajl3ld2ltvcahxgyygzglazd
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			// validate that the proposal id is a uint
+			proposalID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("proposal-id %s not a valid int, please input a valid proposal-id", args[0])
+			}
+
+			// check to see if the proposal is in the store
+			ctx := cmd.Context()
+			_, err = queryClient.Proposal(
+				ctx,
+				&types.QueryProposalRequest{ProposalId: proposalID},
+			)
+			if err != nil {
+				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
+			}
+
+			voterAddr, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.Vote(
+				ctx,
+				&types.QueryVoteRequest{ProposalId: proposalID, Voter: args[1]},
+			)
+			if err != nil {
+				return err
+			}
+
+			vote := res.GetVote()
+			if vote.Empty() {
+				params := govtypes.NewQueryVoteParams(proposalID, voterAddr)
+				resByTxQuery, err := govUtils.QueryVoteByTxQuery(clientCtx, params)
+
+				if err != nil {
+					return err
+				}
+
+				if err := clientCtx.Codec.UnmarshalJSON(resByTxQuery, &vote); err != nil {
+					return err
+				}
+			}
+
+			return clientCtx.PrintProto(&res.Vote)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 // GetCmdQueryVotes implements the command to query for proposal votes.
 func GetCmdQueryVotes() *cobra.Command {
 	cmd := &cobra.Command{
@@ -259,6 +334,79 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 	return cmd
 }
 
+// GetCmdQueryDeposit implements the command for querying a specific
+// deposit given its depositor and proposal ID.
+func GetCmdQueryDeposit() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deposit [proposal-id] [depositer-addr]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Query details of a deposit",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query details for a single proposal deposit on a proposal by its identifier.
+
+Example:
+$ %s query gov deposit 1 certik1r4tssz9j0025vrct90uxxfzrte0w94q6s27n4x
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			// validate that the proposal id is a uint
+			proposalID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("proposal-id %s not a valid uint, please input a valid proposal-id", args[0])
+			}
+
+			// check to see if the proposal is in the store
+			ctx := cmd.Context()
+			proposalRes, err := queryClient.Proposal(
+				ctx,
+				&types.QueryProposalRequest{ProposalId: proposalID},
+			)
+			if err != nil {
+				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
+			}
+
+			depositorAddr, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+
+			var deposit govtypes.Deposit
+			propStatus := proposalRes.Proposal.Status
+			if !(propStatus == types.StatusCertifierVotingPeriod || propStatus == types.StatusValidatorVotingPeriod || propStatus == types.StatusDepositPeriod) {
+				params := govtypes.NewQueryDepositParams(proposalID, depositorAddr)
+				resByTxQuery, err := govUtils.QueryDepositByTxQuery(clientCtx, params)
+				if err != nil {
+					return err
+				}
+				clientCtx.Codec.MustUnmarshalJSON(resByTxQuery, &deposit)
+				return clientCtx.PrintProto(&deposit)
+			}
+
+			res, err := queryClient.Deposit(
+				ctx,
+				&types.QueryDepositRequest{ProposalId: proposalID, Depositor: args[1]},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(&res.Deposit)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 // GetCmdQueryDeposits implements the command to query for proposal deposits.
 func GetCmdQueryDeposits() *cobra.Command {
 	cmd := &cobra.Command{
@@ -332,6 +480,63 @@ $ %[1]s query gov deposits 1
 	}
 
 	flags.AddPaginationFlagsToCmd(cmd, "deposits")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// GetCmdQueryTally implements the command to query for proposal tally result.
+func GetCmdQueryTally() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "tally [proposal-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Get the tally of a proposal vote",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query tally of votes on a proposal. You can find
+the proposal-id by running "%s query gov proposals".
+
+Example:
+$ %s query gov tally 1
+`,
+				version.AppName, version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			// validate that the proposal id is a uint
+			proposalID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("proposal-id %s not a valid int, please input a valid proposal-id", args[0])
+			}
+
+			// check to see if the proposal is in the store
+			ctx := cmd.Context()
+			_, err = queryClient.Proposal(
+				ctx,
+				&types.QueryProposalRequest{ProposalId: proposalID},
+			)
+			if err != nil {
+				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
+			}
+
+			// Query store
+			res, err := queryClient.TallyResult(
+				ctx,
+				&types.QueryTallyResultRequest{ProposalId: proposalID},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(&res.Tally)
+		},
+	}
+
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
