@@ -49,7 +49,7 @@ func (k Keeper) SetPurchase(ctx sdk.Context, purchase types.Purchase) {
 	store.Set(types.GetPurchaseKey(purchase.PoolId, purchaser), bz)
 }
 
-func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Coins) (types.Purchase, error) {
+func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, description string, amount sdk.Coins) (types.Purchase, error) {
 
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, amount); err != nil {
 		return types.Purchase{}, err
@@ -62,7 +62,7 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 
 	sp, found := k.GetPurchase(ctx, poolID, purchaser)
 	if !found {
-		sp = types.NewPurchase(poolID, purchaser, bondDenomAmt)
+		sp = types.NewPurchase(poolID, purchaser, description, bondDenomAmt)
 	} else {
 		sp.Amount = sp.Amount.Add(bondDenomAmt)
 	}

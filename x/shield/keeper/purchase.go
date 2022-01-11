@@ -34,7 +34,7 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, amount sdk.Coins,
 		return types.Purchase{}, types.ErrNoShield
 	}
 
-	sp, err := k.AddStaking(ctx, poolID, purchaser, amount)
+	sp, err := k.AddStaking(ctx, poolID, purchaser, description, amount)
 	return sp, err
 }
 
