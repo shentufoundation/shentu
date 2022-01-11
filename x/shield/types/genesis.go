@@ -10,7 +10,7 @@ import (
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
-	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, serviceFees, remainingServiceFees MixedDecCoins,
+	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, serviceFees, remainingServiceFees sdk.DecCoins,
 	pools []Pool, providers []Provider, withdraws []Withdraw, globalStakingPool sdk.Int,
 	stakingPurchases []Purchase, proposalIDReimbursementPairs []ProposalIDReimbursementPair) GenesisState {
 	return GenesisState{
@@ -45,8 +45,8 @@ func DefaultGenesisState() *GenesisState {
 		TotalWithdrawing:     sdk.ZeroInt(),
 		TotalShield:          sdk.ZeroInt(),
 		TotalClaimed:         sdk.ZeroInt(),
-		ServiceFees:          InitMixedDecCoins(),
-		RemainingServiceFees: InitMixedDecCoins(),
+		ServiceFees:          sdk.DecCoins{},
+		RemainingServiceFees: sdk.DecCoins{},
 	}
 }
 
