@@ -30,7 +30,7 @@ func NewHelper(t *testing.T, ctx sdk.Context, k keeper.Keeper, denom string) *He
 	return &Helper{t, gov.NewHandler(k), k, ctx, denom}
 }
 
-func (gh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID, purchaseID uint64, ok bool) *sdk.Result {
+func (gh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID uint64, ok bool) *sdk.Result {
 	initDeposit := sdk.NewCoins(sdk.NewInt64Coin(gh.denom, 5000e6))
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(gh.denom, loss))
 	content := shieldtypes.NewShieldClaimProposal(poolID, lossCoins, "test_claim_evidence", "test_claim_description", proposer)

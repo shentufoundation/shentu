@@ -52,13 +52,13 @@ func (sh *Helper) CreatePool(addr, sponsorAddr sdk.AccAddress, nativeDeposit, sh
 
 func (sh *Helper) PurchaseShield(purchaser sdk.AccAddress, shield int64, poolID uint64, ok bool) {
 	shieldCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, shield))
-	msg := types.NewMsgPurchaseShield(poolID, shieldCoins, "test_purchase", purchaser)
+	msg := types.NewMsgPurchase(poolID, shieldCoins, "test_purchase", purchaser)
 	sh.Handle(msg, ok)
 }
 
 func (sh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID, purchaseID uint64, ok bool) {
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, loss))
-	proposal := types.NewShieldClaimProposal(poolID, lossCoins, purchaseID, "test_claim_evidence", "test_claim_description", proposer)
+	proposal := types.NewShieldClaimProposal(poolID, lossCoins, "test_claim_evidence", "test_claim_description", proposer)
 	sh.HandleProposal(proposal, ok)
 }
 
