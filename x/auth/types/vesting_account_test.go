@@ -231,3 +231,62 @@ func TestTrackUndelegation(t *testing.T) {
 		})
 	}
 }
+
+func TestGenesisAccountValidate(t *testing.T) {
+	initialVesting := sdk.Coins{sdk.NewInt64Coin(denom, 100)}
+	pubkey := secp256k1.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
+	ba := authtypes.NewBaseAccount(addr, pubkey, 0, 0)
+	bva := authvesting.NewBaseVestingAccount(ba, initialVesting, 0)
+
+	tests := []struct {
+		name   string
+		acc    authtypes.GenesisAccount
+		expErr bool
+	}{
+		{
+			"valid base account",
+			ba,
+			false,
+		},
+		{
+			"invalid base account",
+			authtypes.NewBaseAccount(addr, secp256k1.GenPrivKey().PubKey(), 0, 0),
+			true,
+		},
+		{
+			"valid base vesting account",
+			bva,
+			false,
+		},
+		{
+			"valid continuous vesting account",
+			types.NewManualVestingAccountRaw(bva, initialVesting, unlocker),
+			false,
+		},
+		{
+			"valid manual vesting amount with no vested coins",
+			types.NewManualVestingAccountRaw(bva, sdk.NewCoins(), unlocker),
+			false,
+		},
+		{
+			"valid manual vesting amount with vested coins",
+			types.NewManualVestingAccountRaw(bva, sdk.NewCoins(sdk.NewInt64Coin(denom, 100)), unlocker),
+			false,
+		},
+		{
+			"invalid vesting amount with invalid vested coins",
+			types.NewManualVestingAccountRaw(bva, sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(101))), unlocker),
+			true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			t.Logf("acc: %+v", tt.acc)
+			require.Equal(t, tt.expErr, tt.acc.Validate() != nil)
+		})
+	}
+}
