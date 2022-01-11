@@ -74,7 +74,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
 	suite.keeper.SetCertifier(suite.ctx, types.NewCertifier(suite.address[0], "address1", suite.address[0], ""))
-
 }
 
 func (suite *KeeperTestSuite) TestCertificate_GetSet() {

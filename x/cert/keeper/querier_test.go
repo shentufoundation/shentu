@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/certikfoundation/shentu/v2/x/cert/keeper"
-	"github.com/certikfoundation/shentu/v2/x/cert/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	qtypes "github.com/cosmos/cosmos-sdk/types/query"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	"github.com/certikfoundation/shentu/v2/x/cert/keeper"
+	"github.com/certikfoundation/shentu/v2/x/cert/types"
 )
 
 func (suite *KeeperTestSuite) TestQuerier_QueryCertifier() {
@@ -48,7 +49,6 @@ func (suite *KeeperTestSuite) TestQuerier_QueryCertifier() {
 			suite.Require().Nil(bz)
 		}
 	}
-
 }
 
 func (suite *KeeperTestSuite) TestQuerier_QueryCertifiers() {
@@ -89,7 +89,6 @@ func (suite *KeeperTestSuite) TestQuerier_QueryCertifiers() {
 			suite.Require().Nil(bz)
 		}
 	}
-
 }
 
 func (suite *KeeperTestSuite) TestQuerier_QueryCertifierByAlias() {
@@ -126,7 +125,6 @@ func (suite *KeeperTestSuite) TestQuerier_QueryCertifierByAlias() {
 			suite.Require().Nil(bz)
 		}
 	}
-
 }
 
 func (suite *KeeperTestSuite) TestQuerier_QueryCertificate() {
@@ -181,7 +179,6 @@ func (suite *KeeperTestSuite) TestQuerier_QueryCertificate() {
 			suite.Require().Nil(bz)
 		}
 	}
-
 }
 
 // TODO: Error - invalid character -- Amino:JSON int/int64/uint/uint64 expects quoted values for javascript numeric support, got: 1
@@ -279,10 +276,8 @@ func (suite *KeeperTestSuite) TestQuerier_QueryCertificates() {
 			var jsonResponse map[string]interface{}
 			json.Unmarshal(bz, &jsonResponse)
 			suite.Require().Equal(tc.totalCertificates, jsonResponse["total"])
-
 		} else {
 			suite.Require().Error(err)
 		}
 	}
-
 }

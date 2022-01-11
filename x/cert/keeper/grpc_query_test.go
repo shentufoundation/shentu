@@ -1,8 +1,9 @@
 package keeper_test
 
 import (
-	"github.com/certikfoundation/shentu/v2/x/cert/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
+	"github.com/certikfoundation/shentu/v2/x/cert/types"
 )
 
 func (suite *KeeperTestSuite) TestQueryCertifier() {
@@ -204,7 +205,5 @@ func (suite *KeeperTestSuite) TestQueryCertificates() {
 		} else {
 			suite.Require().NotEqual(tc.totalCertificates, int(queryResponse.Total))
 		}
-
 	}
-
 }
