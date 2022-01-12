@@ -22,7 +22,6 @@ var (
 	flagNativeDeposit = "native-deposit"
 	flagShield        = "shield"
 	flagDescription   = "description"
-	flagShieldLimit   = "shield-limit"
 )
 
 // NewTxCmd returns the transaction commands for this module.
@@ -162,12 +161,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 
 			description := viper.GetString(flagDescription)
 
-			shieldLimit, ok := sdk.NewIntFromString(viper.GetString(flagShieldLimit))
-			if !ok {
-				return fmt.Errorf("invalid input for shield limit")
-			}
-
-			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, description, shieldLimit)
+			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, description)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -178,7 +172,6 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
-	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
@@ -225,12 +218,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 
 			description := viper.GetString(flagDescription)
 
-			shieldLimit, ok := sdk.NewIntFromString(viper.GetString(flagShieldLimit))
-			if !ok {
-				return fmt.Errorf("invalid input for shield limit")
-			}
-
-			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, description, shieldLimit)
+			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, description)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -242,7 +230,6 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 	cmd.Flags().String(flagShield, "", "CTK Shield amount")
 	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagDescription, "", "description for the pool")
-	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }

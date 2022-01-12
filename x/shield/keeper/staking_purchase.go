@@ -56,9 +56,9 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	}
 
 	bondDenomAmt := amount.AmountOf(k.BondDenom(ctx))
-	pool := k.GetGlobalStakingPool(ctx)
-	pool = pool.Add(bondDenomAmt)
-	k.SetGlobalStakingPool(ctx, pool)
+	gSPool := k.GetGlobalStakingPool(ctx)
+	gSPool = gSPool.Add(bondDenomAmt)
+	k.SetGlobalStakingPool(ctx, gSPool)
 
 	sp, found := k.GetPurchase(ctx, poolID, purchaser)
 	if !found {

@@ -46,6 +46,7 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 		for _, rmb := range keeper.GetAllReimbursements(ctx) {
 			reimbursement = reimbursement.Add(rmb.Amount.AmountOf(bondDenom))
 		}
+		fmt.Println("reimbursement total: ", reimbursement.String())
 
 		// block service fees
 		blockServiceFees := keeper.GetBlockServiceFees(ctx).Native.AmountOf(bondDenom).TruncateInt()

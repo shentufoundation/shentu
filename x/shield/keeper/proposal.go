@@ -27,10 +27,9 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	if !found {
 		return types.ErrNoPoolFound
 	}
-	//if lossAmt.GT(pool.Shield) {
-	//	panic("wow")
-	//	return types.ErrNotEnoughShield
-	//}
+	if lossAmt.GT(pool.Shield) {
+		return types.ErrNotEnoughShield
+	}
 
 	// Verify collateral availability.
 	totalCollateral := k.GetTotalCollateral(ctx)
@@ -261,9 +260,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 			purchased = totalPurchased
 		}
 		payout := provider.Collateral.ToDec().Mul(payoutRatio).TruncateInt()
-		if payout.GT(totalPayout) {
-			payout = totalPayout
-		}
+		payout = sdk.MinInt(payout, totalPayout)
 
 		// Require providers to cover (purchased + 1) and (payout + 1) if it's possible,
 		// so that the last provider will not be asked to cover all truncated amount.
@@ -461,6 +458,7 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payou
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
 	payoutRatio := payout.ToDec().Quo(totalDelAmount.ToDec())
 	remaining := payout
+	fmt.Println(payout.String())
 	for i := range delegations {
 		if !remaining.IsPositive() {
 			return
@@ -597,8 +595,8 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	if validator.IsBonded() {
 		srcPool = stakingtypes.BondedPoolName
 	}
-	err := k.UndelegateFromAccountToShieldModule(ctx, srcPool, delAddr, coins)
-	if err != nil {
+
+	if err := k.UndelegateFromAccountToShieldModule(ctx, srcPool, delAddr, coins); err != nil {
 		panic(err)
 	}
 }
@@ -627,11 +625,7 @@ func (k Keeper) UndelegateFromAccountToShieldModule(ctx sdk.Context, senderModul
 		k.ak.SetAccount(ctx, delAcc)
 	}
 
-	if err := k.bk.SendCoinsFromModuleToModule(ctx, senderModule, types.ModuleName, amt); err != nil {
-		panic(err)
-	}
-
-	return nil
+	return k.bk.SendCoinsFromModuleToModule(ctx, senderModule, types.ModuleName, amt)
 }
 
 // GetSortedUnbondingDelegations gets unbonding delegations sorted by completion time from latest to earliest.

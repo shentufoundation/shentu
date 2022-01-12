@@ -6,14 +6,17 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+var (
+	DefaultShieldRate = sdk.NewDec(5)
+)
+
 // NewPool creates a new project pool.
-func NewPool(id uint64, description, sponsor string, sponsorAddress sdk.AccAddress, shieldLimit sdk.Int, shield sdk.Int) Pool {
+func NewPool(id uint64, description, sponsor string, sponsorAddress sdk.AccAddress, shield sdk.Int) Pool {
 	return Pool{
 		Id:          id,
 		Description: description,
 		Sponsor:     sponsor,
 		SponsorAddr: sponsorAddress.String(),
-		ShieldLimit: shieldLimit,
 		Active:      true,
 		Shield:      shield,
 	}

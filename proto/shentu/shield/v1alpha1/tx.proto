@@ -34,7 +34,6 @@ message MsgCreatePool {
     string sponsor = 4 [ (gogoproto.moretags) = "yaml:\"sponsor\"" ];
     string sponsor_addr = 5 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
     string description = 6 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string shield_limit = 7 [ (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 }
 
 message MsgCreatePoolResponse {}
@@ -49,7 +48,6 @@ message MsgUpdatePool {
     MixedCoins service_fees = 3 [ (gogoproto.moretags) = "yaml:\"service_fees\"", (gogoproto.nullable) = false ];
     uint64 pool_id = 4 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
     string description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string shield_limit = 6 [ (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 }
   
 message MsgUpdatePoolResponse {}
