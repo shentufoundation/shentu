@@ -54,23 +54,28 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, amount); err != nil {
 		return types.Purchase{}, err
 	}
+	pool, found := k.GetPool(ctx, poolID)
+	pool.Shield = pool.Shield.Add(amount.AmountOf(k.BondDenom(ctx)).ToDec().Mul(pool.ShieldRate).TruncateInt())
+	k.SetPool(ctx, pool)
 
 	bondDenomAmt := amount.AmountOf(k.BondDenom(ctx))
+	shieldAmt := bondDenomAmt.ToDec().Mul(pool.ShieldRate).TruncateInt()
 	gSPool := k.GetGlobalStakingPool(ctx)
 	gSPool = gSPool.Add(bondDenomAmt)
 	k.SetGlobalStakingPool(ctx, gSPool)
 
 	sp, found := k.GetPurchase(ctx, poolID, purchaser)
 	if !found {
-		sp = types.NewPurchase(poolID, purchaser, description, bondDenomAmt)
+		sp = types.NewPurchase(poolID, purchaser, description, bondDenomAmt, shieldAmt)
 	} else {
 		sp.Amount = sp.Amount.Add(bondDenomAmt)
+		sp.Shield = sp.Shield.Add(shieldAmt)
 	}
 	sp.StartTime = ctx.BlockTime()
 	k.SetPurchase(ctx, sp)
 
 	totalShield := k.GetTotalShield(ctx)
-	totalShield = totalShield.Add(amount.AmountOf(k.BondDenom(ctx)))
+	totalShield = totalShield.Add(shieldAmt)
 	k.SetTotalShield(ctx, totalShield)
 	return sp, nil
 }

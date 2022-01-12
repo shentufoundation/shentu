@@ -64,8 +64,9 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 		remaining = remaining.Sub(secureAmt)
 	}
 
+	// TODO: Decide what we actually want to do here.
 	// Update purchase states.
-	purchase.Amount = purchase.Amount.Sub(lossAmt)
+	purchase.Shield = purchase.Shield.Sub(lossAmt)
 
 	k.SetPurchase(ctx, purchase)
 
@@ -116,10 +117,10 @@ func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amo
 
 	if amount.GT(availableCollateralByEndTime) {
 		withdrawDelayAmt := amount.Sub(availableCollateralByEndTime)
-		k.DelayWithdraws(ctx, provider.Address, withdrawDelayAmt, endTime)
+		_ = k.DelayWithdraws(ctx, provider.Address, withdrawDelayAmt, endTime)
 		if amount.GT(availableDelegationByEndTime) {
 			unbondingDelayAmt := amount.Sub(availableDelegationByEndTime)
-			k.DelayUnbonding(ctx, providerAddr, unbondingDelayAmt, endTime)
+			_ = k.DelayUnbonding(ctx, providerAddr, unbondingDelayAmt, endTime)
 		}
 	}
 }
@@ -150,25 +151,23 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 
 	purchase, found := k.GetPurchase(ctx, poolID, purchaser)
 	if !found {
+		purchase = types.NewPurchase(poolID, purchaser, "restored purchase",
+			loss.AmountOf(k.BondDenom(ctx)).ToDec().Quo(pool.ShieldRate).TruncateInt(), loss.AmountOf(k.BondDenom(ctx)))
 		return types.ErrPurchaseNotFound
+	} else {
+		purchase.Shield = purchase.Shield.Add(loss.AmountOf(k.BondDenom(ctx)))
 	}
 
-	purchase.Amount = purchase.Amount.Add(loss.AmountOf(k.BondDenom(ctx)))
 	k.SetPurchase(ctx, purchase)
-	// TODO: reimplement above for V2  https://github.com/ShentuChain/shentu-private/issues/13
 
 	return nil
 }
 
 // SetReimbursement sets a reimbursement in store.
 func (k Keeper) SetReimbursement(ctx sdk.Context, proposalID uint64, payout types.Reimbursement) {
-	fmt.Println("Set reimbursement: ", payout.String(), "proposal ID: ", proposalID)
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&payout)
 	store.Set(types.GetReimbursementKey(proposalID), bz)
-
-	rs := k.GetAllReimbursements(ctx)
-	fmt.Println("now: ", rs)
 }
 
 // GetReimbursement get a reimbursement in store.
@@ -244,6 +243,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 	totalPayout := amount.AmountOf(bondDenom)
 	purchaseRatio := totalPurchased.ToDec().Quo(totalCollateral.ToDec())
 	payoutRatio := totalPayout.ToDec().Quo(totalCollateral.ToDec())
+
 	for _, provider := range k.GetAllProviders(ctx) {
 		if !totalPayout.IsPositive() {
 			break
@@ -269,7 +269,6 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 		if payout.LT(totalPayout) && provider.Collateral.GT(payout.Add(purchased)) {
 			payout = payout.Add(sdk.OneInt())
 		}
-
 		if err := k.UpdateProviderCollateralForPayout(ctx, providerAddr, purchased, payout); err != nil {
 			panic(err)
 		}
@@ -457,7 +456,7 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payou
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
 	payoutRatio := payout.ToDec().Quo(totalDelAmount.ToDec())
 	remaining := payout
-	fmt.Println(payout.String())
+
 	for i := range delegations {
 		if !remaining.IsPositive() {
 			return
@@ -660,7 +659,6 @@ func (k Keeper) WithdrawReimbursement(ctx sdk.Context, proposalID uint64, benefi
 		return sdk.Coins{}, types.ErrNotPayoutTime
 	}
 
-	fmt.Println("wowowow", reimbursement.String())
 	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, beneficiary, reimbursement.Amount); err != nil {
 		return sdk.Coins{}, types.ErrNotPayoutTime
 	}

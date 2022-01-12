@@ -600,7 +600,7 @@ func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, b
 		if !found {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgWithdrawReimbursement, "no mature proposal id - reimbursement pair found"), nil, nil
 		}
-		fmt.Println("withdrawing...")
+		fmt.Println("\n\n...withdrawing reimbursement...\n\n")
 
 		var simAccount simtypes.Account
 		for _, simAcc := range accs {

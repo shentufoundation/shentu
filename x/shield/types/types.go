@@ -42,11 +42,12 @@ func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) 
 	}
 }
 
-func NewPurchase(poolID uint64, purchaser sdk.AccAddress, description string, amount sdk.Int) Purchase {
+func NewPurchase(poolID uint64, purchaser sdk.AccAddress, description string, amount, shield sdk.Int) Purchase {
 	return Purchase{
 		PoolId:      poolID,
 		Purchaser:   purchaser.String(),
 		Description: description,
 		Amount:      amount,
+		Shield:      shield,
 	}
 }

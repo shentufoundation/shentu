@@ -27,8 +27,6 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, amount sdk.Coins,
 	if amount.Empty() {
 		return types.Purchase{}, types.ErrNoShield
 	}
-	pool.Shield = pool.Shield.Add(amount.AmountOf(k.BondDenom(ctx)).ToDec().Mul(pool.ShieldRate).TruncateInt())
-	k.SetPool(ctx, pool)
 
 	sp, err := k.AddStaking(ctx, poolID, purchaser, description, amount)
 
