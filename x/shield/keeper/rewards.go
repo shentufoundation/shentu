@@ -41,7 +41,6 @@ func (k Keeper) DistributeShieldRewards(ctx sdk.Context) {
 	// add back block service fees
 	remainingServiceFees = remainingServiceFees.Add(blockServiceFees...)
 	k.SetRemainingServiceFees(ctx, remainingServiceFees)
-	// k.SetLastUpdateTime(ctx, ctx.BlockTime())
 }
 
 // PayoutNativeRewards pays out pending CTK rewards.

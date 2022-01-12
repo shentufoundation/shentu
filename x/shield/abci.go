@@ -14,6 +14,8 @@ func BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) {
 
 // EndBlocker processes premium payment at every block.
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
+	// Distribute Shield Rewards.
+	k.DistributeShieldRewards(ctx)
 
 	// Process completed withdraws.
 	k.DequeueCompletedWithdrawQueue(ctx)
