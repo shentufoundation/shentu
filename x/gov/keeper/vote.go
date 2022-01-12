@@ -8,8 +8,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
@@ -22,10 +20,6 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 		return sdkerrors.Wrapf(govtypes.ErrUnknownProposal, "%v", proposalID)
 	}
 
-	if voterAddr.String() == "" {
-		return status.Error(codes.InvalidArgument, "invalid request")
-	}
-	
 	if proposal.Status != types.StatusCertifierVotingPeriod &&
 		proposal.Status != types.StatusValidatorVotingPeriod {
 		return sdkerrors.Wrapf(govtypes.ErrInactiveProposal, "%v", proposalID)

@@ -123,7 +123,6 @@ func (k Keeper) RefundDepositsByProposalID(ctx sdk.Context, proposalID uint64) e
 	if !found {
 		return sdkerrors.ErrNotFound
 	}
-	
 	k.IterateDeposits(ctx, proposalID, func(deposit govtypes.Deposit) bool {
 		depositor, err := sdk.AccAddressFromBech32(deposit.Depositor)
 		if err != nil {
@@ -142,13 +141,13 @@ func (k Keeper) RefundDepositsByProposalID(ctx sdk.Context, proposalID uint64) e
 }
 
 // DeleteDepositsByProposalID deletes all the deposits on a specific proposal without refunding them.
-func (k Keeper) DeleteDepositsByProposalID(ctx sdk.Context, proposalID uint64) error{
+func (k Keeper) DeleteDepositsByProposalID(ctx sdk.Context, proposalID uint64) error {
 	store := ctx.KVStore(k.storeKey)
 	_, found := k.GetProposal(ctx, proposalID)
 	if !found {
 		return sdkerrors.ErrNotFound
 	}
-	
+
 	k.IterateDeposits(ctx, proposalID, func(deposit govtypes.Deposit) bool {
 		err := k.bankKeeper.BurnCoins(ctx, govtypes.ModuleName, deposit.Amount)
 		if err != nil {

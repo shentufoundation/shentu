@@ -90,7 +90,7 @@ func (suite *KeeperTestSuite) TestQueryProposals() {
 	}{
 		{
 			proposal: proposal{
-				// StatusValidatorVotingPeriod 3
+				// StatusValidatorVotingPeriod text proposal 1
 				title:       "title",
 				description: "description",
 				proposer:    suite.validatorAccAddress,
@@ -176,7 +176,6 @@ func (suite *KeeperTestSuite) TestQueryProposals() {
 			// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
 			_, err := suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, event.depositor, event.depositAmount)
 			suite.Require().NoError(err)
-
 		}
 
 		if event.vote {
@@ -186,12 +185,10 @@ func (suite *KeeperTestSuite) TestQueryProposals() {
 			voter, _ := sdk.AccAddressFromBech32(vote.Voter)
 			err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, voter, options)
 			suite.Require().NoError(err)
-
 		}
 
 		// emptying depositor for next set of events
 		suite.app.BankKeeper.SendCoins(suite.ctx, event.depositor, suite.address[2], suite.app.BankKeeper.GetAllBalances(suite.ctx, event.depositor))
-
 	}
 
 	tests := []struct {
@@ -205,13 +202,13 @@ func (suite *KeeperTestSuite) TestQueryProposals() {
 		{
 			name:                    "proposals with status 1",
 			proposalStatus:          1,
-			filteredProposalsLength: 2,
+			filteredProposalsLength: 3,
 			shouldPass:              true,
 		},
 		{
 			name:                    "proposals with status 3",
 			proposalStatus:          3,
-			filteredProposalsLength: 4,
+			filteredProposalsLength: 3,
 			shouldPass:              true,
 		},
 		{
@@ -325,14 +322,12 @@ func (suite *KeeperTestSuite) TestQueryDeposit() {
 		if tc.shouldPass {
 			suite.Require().NoError(err)
 			suite.Require().Equal(tc.depositAmount, queryResponse.Deposit.Amount)
-
 		} else {
 			suite.Require().Error(err)
 		}
 
 		// emptying depositor for next set of events
 		suite.app.BankKeeper.SendCoins(suite.ctx, tc.depositor, suite.address[2], suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.depositor))
-
 	}
 }
 
@@ -386,7 +381,6 @@ func (suite *KeeperTestSuite) TestQueryDeposits() {
 
 			// emptying depositor for next set of events
 			suite.app.BankKeeper.SendCoins(suite.ctx, depositor, suite.address[3], suite.app.BankKeeper.GetAllBalances(suite.ctx, depositor))
-
 		}
 	}
 	tests := []struct {
@@ -424,12 +418,10 @@ func (suite *KeeperTestSuite) TestQueryDeposits() {
 		if tc.shouldPass {
 			suite.Require().NoError(err)
 			suite.Require().Equal(tc.depositorsCount, len(queryResponse.Deposits))
-
 		} else {
 			suite.Require().Error(err)
 		}
 	}
-
 }
 
 func (suite *KeeperTestSuite) TestQueryVote() {
@@ -452,25 +444,12 @@ func (suite *KeeperTestSuite) TestQueryVote() {
 		shouldPass    bool
 	}{
 		{
-			name: "Proposal submitted by validator, vote yes",
-			proposal: proposal{
-				title:       "title",
-				description: "description",
-				proposer:    suite.validatorAccAddress,
-				proposalId:  1,
-			},
-			voter:      suite.validatorAccAddress.String(),
-			voteOption: govtypes.OptionYes,
-			deposit:    false,
-			shouldPass: true,
-		},
-		{
 			name: "Proposal submitted by non-validator, vote yes",
 			proposal: proposal{
 				title:       "title0",
 				description: "description0",
 				proposer:    suite.address[0],
-				proposalId:  2,
+				proposalId:  1,
 			},
 			depositor:     suite.address[0],
 			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
@@ -479,22 +458,6 @@ func (suite *KeeperTestSuite) TestQueryVote() {
 			voteOption:    govtypes.OptionYes,
 			deposit:       true,
 			shouldPass:    true,
-		},
-		{
-			name: "Invalid voter address",
-			proposal: proposal{
-				title:       "title1",
-				description: "description1",
-				proposer:    suite.address[0],
-				proposalId:  3,
-			},
-			depositor:     suite.address[0],
-			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
-			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
-			voter:         "",
-			voteOption:    govtypes.OptionYes,
-			deposit:       true,
-			shouldPass:    false,
 		},
 		{
 			name: "Invalid proposal ID",
@@ -527,24 +490,20 @@ func (suite *KeeperTestSuite) TestQueryVote() {
 			// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
 			_, err := suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, tc.depositor, tc.depositAmount)
 			suite.Require().NoError(err)
-
 		}
 		voter, _ := sdk.AccAddressFromBech32(tc.voter)
 		options := govtypes.NewNonSplitVoteOption(tc.voteOption)
 		_ = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, voter, options)
-
 		queryResponse, err := queryClient.Vote(ctx.Context(), &types.QueryVoteRequest{ProposalId: uint64(tc.proposal.proposalId), Voter: tc.voter})
 		if tc.shouldPass {
 			suite.Require().NoError(err)
 			suite.Require().Equal(tc.voter, queryResponse.Vote.Voter)
-
 		} else {
 			suite.Require().Error(err)
 		}
 
 		// emptying depositor for next set of events
 		suite.app.BankKeeper.SendCoins(suite.ctx, tc.depositor, suite.address[2], suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.depositor))
-
 	}
 }
 
@@ -569,31 +528,12 @@ func (suite *KeeperTestSuite) TestQueryTally() {
 		shouldPass    bool
 	}{
 		{
-			name: "Proposal submitted by validator, vote yes",
-			proposal: proposal{
-				title:       "title",
-				description: "description",
-				proposer:    suite.validatorAccAddress,
-				proposalId:  1,
-			},
-			voter:      suite.validatorAccAddress,
-			voteOption: govtypes.OptionYes,
-			deposit:    false,
-			tallyResults: govtypes.TallyResult{
-				Yes:        sdk.Int(sdk.OneDec().TruncateInt()),
-				Abstain:    sdk.Int(sdk.ZeroDec().TruncateInt()),
-				No:         sdk.Int(sdk.ZeroDec().TruncateInt()),
-				NoWithVeto: sdk.Int(sdk.ZeroDec().TruncateInt()),
-			},
-			shouldPass: true,
-		},
-		{
 			name: "Proposal submitted by non-validator, validator vote yes",
 			proposal: proposal{
 				title:       "title0",
 				description: "description0",
 				proposer:    suite.address[0],
-				proposalId:  2,
+				proposalId:  1,
 			},
 			depositor:     suite.address[0],
 			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
@@ -602,10 +542,10 @@ func (suite *KeeperTestSuite) TestQueryTally() {
 			voteOption:    govtypes.OptionYes,
 			deposit:       true,
 			tallyResults: govtypes.TallyResult{
-				Yes:        sdk.Int(sdk.OneDec().TruncateInt()),
-				Abstain:    sdk.Int(sdk.ZeroDec().TruncateInt()),
-				No:         sdk.Int(sdk.ZeroDec().TruncateInt()),
-				NoWithVeto: sdk.Int(sdk.ZeroDec().TruncateInt()),
+				Yes:        sdk.OneDec().TruncateInt(),
+				Abstain:    sdk.ZeroDec().TruncateInt(),
+				No:         sdk.ZeroDec().TruncateInt(),
+				NoWithVeto: sdk.ZeroDec().TruncateInt(),
 			},
 			shouldPass: true,
 		}, {
@@ -614,7 +554,7 @@ func (suite *KeeperTestSuite) TestQueryTally() {
 				title:       "title1",
 				description: "description1",
 				proposer:    suite.address[0],
-				proposalId:  3,
+				proposalId:  2,
 			},
 			depositor:     suite.address[0],
 			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
@@ -623,10 +563,10 @@ func (suite *KeeperTestSuite) TestQueryTally() {
 			voteOption:    govtypes.OptionYes,
 			deposit:       true,
 			tallyResults: govtypes.TallyResult{
-				Yes:        sdk.Int(sdk.ZeroDec().TruncateInt()),
-				Abstain:    sdk.Int(sdk.ZeroDec().TruncateInt()),
-				No:         sdk.Int(sdk.ZeroDec().TruncateInt()),
-				NoWithVeto: sdk.Int(sdk.ZeroDec().TruncateInt()),
+				Yes:        sdk.ZeroDec().TruncateInt(),
+				Abstain:    sdk.ZeroDec().TruncateInt(),
+				No:         sdk.ZeroDec().TruncateInt(),
+				NoWithVeto: sdk.ZeroDec().TruncateInt(),
 			},
 			shouldPass: true,
 		},
@@ -636,7 +576,7 @@ func (suite *KeeperTestSuite) TestQueryTally() {
 				title:       "title2",
 				description: "description2",
 				proposer:    suite.address[0],
-				proposalId:  4,
+				proposalId:  3,
 			},
 			depositor:     suite.address[0],
 			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
@@ -645,10 +585,10 @@ func (suite *KeeperTestSuite) TestQueryTally() {
 			voteOption:    govtypes.OptionYes,
 			deposit:       true,
 			tallyResults: govtypes.TallyResult{
-				Yes:        sdk.Int(sdk.ZeroDec().TruncateInt()),
-				Abstain:    sdk.Int(sdk.ZeroDec().TruncateInt()),
-				No:         sdk.Int(sdk.ZeroDec().TruncateInt()),
-				NoWithVeto: sdk.Int(sdk.ZeroDec().TruncateInt()),
+				Yes:        sdk.ZeroDec().TruncateInt(),
+				Abstain:    sdk.ZeroDec().TruncateInt(),
+				No:         sdk.ZeroDec().TruncateInt(),
+				NoWithVeto: sdk.ZeroDec().TruncateInt(),
 			},
 			shouldPass: true,
 		},
@@ -667,10 +607,10 @@ func (suite *KeeperTestSuite) TestQueryTally() {
 			voteOption:    govtypes.OptionYes,
 			deposit:       true,
 			tallyResults: govtypes.TallyResult{
-				Yes:        sdk.Int(sdk.ZeroDec().TruncateInt()),
-				Abstain:    sdk.Int(sdk.ZeroDec().TruncateInt()),
-				No:         sdk.Int(sdk.ZeroDec().TruncateInt()),
-				NoWithVeto: sdk.Int(sdk.ZeroDec().TruncateInt()),
+				Yes:        sdk.ZeroDec().TruncateInt(),
+				Abstain:    sdk.ZeroDec().TruncateInt(),
+				No:         sdk.ZeroDec().TruncateInt(),
+				NoWithVeto: sdk.ZeroDec().TruncateInt(),
 			},
 			shouldPass: false,
 		},
@@ -691,7 +631,6 @@ func (suite *KeeperTestSuite) TestQueryTally() {
 			if tc.shouldPass {
 				suite.Require().NoError(err)
 			}
-
 		}
 
 		options := govtypes.NewNonSplitVoteOption(tc.voteOption)
@@ -699,17 +638,14 @@ func (suite *KeeperTestSuite) TestQueryTally() {
 		voter, _ := sdk.AccAddressFromBech32(vote.Voter)
 		_ = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, voter, options)
 		queryResponse, err := queryClient.TallyResult(ctx.Context(), &types.QueryTallyResultRequest{ProposalId: uint64(tc.proposal.proposalId)})
-		// fmt.Println(tc.tallyResults, queryResponse.Tally)
 
 		if tc.shouldPass {
 			suite.Require().NoError(err)
 			suite.Require().Equal(tc.tallyResults, queryResponse.Tally)
-
 		} else {
 			suite.Require().Error(err)
 		}
 		// emptying depositor for next set of events
 		suite.app.BankKeeper.SendCoins(suite.ctx, tc.depositor, suite.address[2], suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.depositor))
-
 	}
 }
