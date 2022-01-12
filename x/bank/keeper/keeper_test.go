@@ -56,7 +56,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 			suite.ctx,
 			acc,
 			sdk.NewCoins(
-				sdk.NewCoin("ctk", sdk.NewInt(1000)), // 1,000 CTK
+				sdk.NewCoin("uctk", sdk.NewInt(1000)), // 1,000 UCTK
 			),
 		)
 		if err != nil {
@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestSendCoins() {
 	type args struct {
 		fromAddr   sdk.AccAddress
 		toAddr     sdk.AccAddress
-		amount     int64
+		sendAmt    int64
 		accBalance int64
 	}
 
@@ -89,9 +89,9 @@ func (suite *KeeperTestSuite) TestSendCoins() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: first send test case if coins is not greater than total amount",
+		{"Sender(1) isValid: SendAmt < Total Amount",
 			args{
-				amount:     200,
+				sendAmt:    200,
 				accBalance: 800,
 				fromAddr:   suite.address[0],
 				toAddr:     suite.address[1],
@@ -101,9 +101,21 @@ func (suite *KeeperTestSuite) TestSendCoins() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: second send test case if coins is greater than  total amount",
+		{"Sender(1) inValid Coins: SendAmt = 0",
 			args{
-				amount:     11000,
+				sendAmt:    0,
+				accBalance: 1000,
+				fromAddr:   suite.address[0],
+				toAddr:     suite.address[1],
+			},
+			errArgs{
+				shouldPass: false,
+				contains:   "",
+			},
+		},
+		{"Sender(1) inValid: SendAmt > Total Amount",
+			args{
+				sendAmt:    11000,
 				accBalance: 1000,
 				fromAddr:   suite.address[0],
 				toAddr:     suite.address[1],
@@ -117,15 +129,14 @@ func (suite *KeeperTestSuite) TestSendCoins() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			err := suite.keeper.SendCoins(suite.ctx, tc.args.fromAddr, tc.args.toAddr, sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)})
+			err := suite.keeper.SendCoins(suite.ctx, tc.args.fromAddr, tc.args.toAddr, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.sendAmt)})
 			balance := suite.keeper.GetAllBalances(suite.ctx, tc.args.fromAddr)
 			if tc.errArgs.shouldPass {
 				suite.Require().NoError(err, tc.name)
-				suite.Require().NotEqual(tc.args.amount, balance)
-				suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.accBalance)}, balance)
+				suite.Require().NotEqual(tc.args.sendAmt, balance)
+				suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.accBalance)}, balance)
 			} else {
 				suite.Require().Error(err, tc.name)
-				suite.Require().NotEqual(tc.args.amount, balance)
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
 			}
 		})
@@ -134,10 +145,13 @@ func (suite *KeeperTestSuite) TestSendCoins() {
 
 func (suite *KeeperTestSuite) TestInputOutputCoins() {
 	type args struct {
-		Addr1  sdk.AccAddress
-		Addr2  sdk.AccAddress
-		Addr3  sdk.AccAddress
-		amount int64
+		Addr1        sdk.AccAddress
+		Addr2        sdk.AccAddress
+		Addr3        sdk.AccAddress
+		amount       int64
+		addr1Balance int64
+		addr2Balance int64
+		addr3Balance int64
 	}
 
 	type errArgs struct {
@@ -150,24 +164,30 @@ func (suite *KeeperTestSuite) TestInputOutputCoins() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: first send test case",
+		{"Sender(1) isValid: Sufficient Amount",
 			args{
-				amount: 200,
-				Addr1:  suite.address[0],
-				Addr2:  suite.address[1],
-				Addr3:  suite.address[2],
+				amount:       200,
+				Addr1:        suite.address[0],
+				Addr2:        suite.address[1],
+				Addr3:        suite.address[2],
+				addr1Balance: 600,
+				addr2Balance: 1200,
+				addr3Balance: 1200,
 			},
 			errArgs{
 				shouldPass: true,
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: second send if amount is insufficient",
+		{"Sender(1) inValid: InSufficient Amount",
 			args{
-				amount: 5000,
-				Addr1:  suite.address[0],
-				Addr2:  suite.address[1],
-				Addr3:  suite.address[2],
+				amount:       5000,
+				Addr1:        suite.address[0],
+				Addr2:        suite.address[1],
+				Addr3:        suite.address[2],
+				addr1Balance: 1000,
+				addr2Balance: 1000,
+				addr3Balance: 1000,
 			},
 			errArgs{
 				shouldPass: false,
@@ -179,16 +199,22 @@ func (suite *KeeperTestSuite) TestInputOutputCoins() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			inputs := []bankTypes.Input{
-				{Address: tc.args.Addr1.String(), Coins: sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)}},
-				{Address: tc.args.Addr1.String(), Coins: sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)}},
+				{Address: tc.args.Addr1.String(), Coins: sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.amount)}},
+				{Address: tc.args.Addr1.String(), Coins: sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.amount)}},
 			}
 			outputs := []bankTypes.Output{
-				{Address: tc.args.Addr2.String(), Coins: sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)}},
-				{Address: tc.args.Addr3.String(), Coins: sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)}},
+				{Address: tc.args.Addr2.String(), Coins: sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.amount)}},
+				{Address: tc.args.Addr3.String(), Coins: sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.amount)}},
 			}
 			err := suite.keeper.InputOutputCoins(suite.ctx, inputs, outputs)
+			addr1Balance := suite.keeper.GetAllBalances(suite.ctx, tc.args.Addr1)
+			addr2Balance := suite.keeper.GetAllBalances(suite.ctx, tc.args.Addr2)
+			addr3Balance := suite.keeper.GetAllBalances(suite.ctx, tc.args.Addr3)
 			if tc.errArgs.shouldPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.addr1Balance)}, addr1Balance)
+				suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.addr2Balance)}, addr2Balance)
+				suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.addr3Balance)}, addr3Balance)
 			} else {
 				suite.Require().Error(err)
 			}
@@ -201,7 +227,7 @@ func (suite *KeeperTestSuite) TestLockedSend() {
 		fromAddr        sdk.AccAddress
 		toAddr          sdk.AccAddress
 		UnlockerAddress sdk.AccAddress
-		amount          int64
+		lockedSendAmt   int64
 		accBalance      int64
 	}
 
@@ -215,9 +241,9 @@ func (suite *KeeperTestSuite) TestLockedSend() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: first send test case",
+		{"Sender(1) isValid: lockedSendAmt < Total Amount",
 			args{
-				amount:          200,
+				lockedSendAmt:   200,
 				accBalance:      1200,
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
@@ -228,10 +254,10 @@ func (suite *KeeperTestSuite) TestLockedSend() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: second send test case",
+		{"Sender(1) isValid: lockedSendAmt < Total Amount",
 			args{
-				amount:          100,
-				accBalance:      1100,
+				lockedSendAmt:   900,
+				accBalance:      1900,
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
 				UnlockerAddress: suite.address[2],
@@ -247,32 +273,32 @@ func (suite *KeeperTestSuite) TestLockedSend() {
 			suite.SetupTest()
 			//primary checks
 			from := suite.params.GetAccount(suite.ctx, tc.args.fromAddr)
-			suite.Require().NotNil(from)
-			suite.Require().NotEqual(tc.args.toAddr, tc.args.UnlockerAddress)
 			acc := suite.params.GetAccount(suite.ctx, tc.args.toAddr)
 			suite.Require().NotNil(acc)
 			baseAcc := authtypes.NewBaseAccount(tc.args.toAddr, acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
-			suite.Require().NotNil(baseAcc)
 			toAcc := vesting.NewManualVestingAccount(baseAcc, sdk.NewCoins(), sdk.NewCoins(), tc.args.UnlockerAddress)
-			suite.Require().NotNil(toAcc)
 			suite.params.SetAccount(suite.ctx, toAcc)
 			//send coin
-			sendCoins := sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)}
+			sendCoins := sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.lockedSendAmt)}
 			//send some coins to the vesting account
 			err := suite.keeper.SendCoins(suite.ctx, tc.args.fromAddr, tc.args.toAddr, sendCoins)
-			suite.Require().NoError(err)
 			//require that the coin is spendable
 			toAcc = suite.params.GetAccount(suite.ctx, tc.args.toAddr).(*vesting.ManualVestingAccount)
 			balances := suite.keeper.GetAllBalances(suite.ctx, toAcc.GetAddress())
 			if tc.errArgs.shouldPass {
-				suite.Require().Equal(balances, sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.accBalance)})
+				suite.Require().NotNil(from)
+				suite.Require().NotEqual(tc.args.toAddr, tc.args.UnlockerAddress)
+				suite.Require().NotNil(baseAcc)
+				suite.Require().NoError(err)
+				suite.Require().NotNil(toAcc)
+				suite.Require().Equal(balances, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.accBalance)})
 				//LockedCoinsFromVesting returns all the coins that are not spendable (i.e. locked)
-				suite.Require().Equal(toAcc.LockedCoinsFromVesting(sendCoins), sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.amount)})
+				suite.Require().Equal(toAcc.LockedCoinsFromVesting(sendCoins), sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.lockedSendAmt)})
 				//LockedCoins returns the set of coins that are  spendable plus any have vested
-				suite.Require().Equal(balances.Sub(toAcc.LockedCoins(suite.ctx.BlockTime())), sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.accBalance)})
+				suite.Require().Equal(balances.Sub(toAcc.LockedCoins(suite.ctx.BlockTime())), sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.accBalance)})
 			} else {
-				suite.Require().Equal(balances, sdk.Coins{sdk.NewInt64Coin("ctk", tc.args.accBalance)})
-				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+				suite.Require().NotEqual(balances, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.accBalance)})
+				suite.Require().Error(err)
 			}
 		})
 	}

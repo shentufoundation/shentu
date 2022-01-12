@@ -8,7 +8,6 @@ import (
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/simapp"
@@ -37,9 +36,6 @@ func (suite *TypesTestSuite) SetupTest() {
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.params = suite.app.AccountKeeper
 
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	types.RegisterMsgServer(queryHelper, &types.UnimplementedMsgServer{})
-
 	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
 }
 
@@ -67,7 +63,7 @@ func (suite *TypesTestSuite) TestMsgSendRoute() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: first test case if route and type is correct",
+		{"Bank Module: Valid Route and Type",
 			args{
 				amount:          200,
 				fromAddr:        suite.address[0],
@@ -81,7 +77,7 @@ func (suite *TypesTestSuite) TestMsgSendRoute() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: second test case if route and type is not correct",
+		{"Bank Module: Invalid Route and Type",
 			args{
 				amount:          110,
 				fromAddr:        suite.address[0],
@@ -129,21 +125,9 @@ func (suite *TypesTestSuite) TestMsgSendValidation() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: first test case for validation",
+		{"Valid recipient address",
 			args{
 				amount:          200,
-				fromAddr:        suite.address[0],
-				toAddr:          suite.address[1],
-				unlockerAddress: suite.address[2],
-			},
-			errArgs{
-				shouldPass: true,
-				contains:   "",
-			},
-		},
-		{"Operator(1) Create: second test case for validation",
-			args{
-				amount:          110,
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
 				unlockerAddress: suite.address[2],
@@ -160,8 +144,8 @@ func (suite *TypesTestSuite) TestMsgSendValidation() {
 			coins := sdk.NewCoins(sdk.NewInt64Coin("ctk", tc.args.amount))
 			var msg = types.NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
 			err := msg.ValidateBasic()
-			suite.Require().NoError(err, tc.name)
 			if tc.errArgs.shouldPass {
+				suite.Require().NoError(err, tc.name)
 				suite.Require().Nil(err)
 			} else {
 				suite.Require().NotNil(err)
@@ -189,7 +173,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSignBytes() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: first test case",
+		{"Expected Response",
 			args{
 				amount:          200,
 				fromAddr:        suite.address[0],
@@ -202,7 +186,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSignBytes() {
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: Second test case for not expected response",
+		{"Unexpected Response",
 			args{
 				amount:          2000,
 				fromAddr:        suite.address[0],
@@ -236,7 +220,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSigners() {
 		fromAddr        sdk.AccAddress
 		toAddr          sdk.AccAddress
 		unlockerAddress sdk.AccAddress
-		res             string
+		signature       string
 	}
 
 	type errArgs struct {
@@ -249,24 +233,24 @@ func (suite *TypesTestSuite) TestMsgSendGetSigners() {
 		args    args
 		errArgs errArgs
 	}{
-		{"Operator(1) Create: first test case",
+		{"Expected Signature",
 			args{
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
 				unlockerAddress: suite.address[2],
-				res:             "[696E70757431]",
+				signature:       "[696E70757431]",
 			},
 			errArgs{
 				shouldPass: true,
 				contains:   "",
 			},
 		},
-		{"Operator(1) Create: Second test case for invalid response type",
+		{"Unexpectec Signature",
 			args{
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
 				unlockerAddress: suite.address[2],
-				res:             "[696E70757431999]",
+				signature:       "[696E70757431999]",
 			},
 			errArgs{
 				shouldPass: false,
@@ -280,9 +264,9 @@ func (suite *TypesTestSuite) TestMsgSendGetSigners() {
 			var msg = types.NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), sdk.NewCoins())
 			res := msg.GetSigners()
 			if tc.errArgs.shouldPass {
-				suite.Require().Equal(fmt.Sprintf("%v", res), tc.args.res)
+				suite.Require().Equal(fmt.Sprintf("%v", res), tc.args.signature)
 			} else {
-				suite.Require().NotEqual(fmt.Sprintf("%v", res), tc.args.res)
+				suite.Require().NotEqual(fmt.Sprintf("%v", res), tc.args.signature)
 			}
 		})
 	}
