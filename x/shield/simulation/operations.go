@@ -1,6 +1,7 @@
 package simulation
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 
@@ -599,6 +600,7 @@ func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, b
 		if !found {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgWithdrawReimbursement, "no mature proposal id - reimbursement pair found"), nil, nil
 		}
+		fmt.Println("withdrawing...")
 
 		var simAccount simtypes.Account
 		for _, simAcc := range accs {

@@ -148,18 +148,13 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 	pool.Shield = pool.Shield.Add(lossAmt)
 	k.SetPool(ctx, pool)
 
-	// Update shield of the purchase.
-	//purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
-	//if !found {
-	//	return types.ErrPurchaseNotFound
-	//}
-	//for i := range purchaseList.Entries {
-	//	if purchaseList.Entries[i].PurchaseId == id {
-	//		purchaseList.Entries[i].Shield = purchaseList.Entries[i].Shield.Add(lossAmt)
-	//		break
-	//	}
-	//}
-	//k.SetPurchaseList(ctx, purchaseList)
+	purchase, found := k.GetPurchase(ctx, poolID, purchaser)
+	if !found {
+		return types.ErrPurchaseNotFound
+	}
+
+	purchase.Amount = purchase.Amount.Add(loss.AmountOf(k.BondDenom(ctx)))
+	k.SetPurchase(ctx, purchase)
 	// TODO: reimplement above for V2  https://github.com/ShentuChain/shentu-private/issues/13
 
 	return nil
@@ -167,9 +162,13 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 
 // SetReimbursement sets a reimbursement in store.
 func (k Keeper) SetReimbursement(ctx sdk.Context, proposalID uint64, payout types.Reimbursement) {
+	fmt.Println("Set reimbursement: ", payout.String(), "proposal ID: ", proposalID)
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&payout)
 	store.Set(types.GetReimbursementKey(proposalID), bz)
+
+	rs := k.GetAllReimbursements(ctx)
+	fmt.Println("now: ", rs)
 }
 
 // GetReimbursement get a reimbursement in store.
@@ -661,6 +660,7 @@ func (k Keeper) WithdrawReimbursement(ctx sdk.Context, proposalID uint64, benefi
 		return sdk.Coins{}, types.ErrNotPayoutTime
 	}
 
+	fmt.Println("wowowow", reimbursement.String())
 	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, beneficiary, reimbursement.Amount); err != nil {
 		return sdk.Coins{}, types.ErrNotPayoutTime
 	}

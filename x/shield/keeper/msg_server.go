@@ -311,9 +311,8 @@ func (k msgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 	if err != nil {
 		return nil, err
 	}
-	amount := msg.Amount.AmountOf(k.Keeper.BondDenom(ctx))
 
-	err = k.Keeper.Unstake(ctx, msg.PoolId, fromAddr, amount)
+	err = k.Keeper.Unstake(ctx, msg.PoolId, fromAddr, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +321,7 @@ func (k msgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 		sdk.NewEvent(
 			types.TypeMsgUnstakeFromShield,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolId, 10)),
-			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
+			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
 		),
 		sdk.NewEvent(

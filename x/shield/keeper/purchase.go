@@ -2,17 +2,10 @@ package keeper
 
 import (
 	"encoding/binary"
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
-
-type pPPTriplet struct {
-	poolID     uint64
-	purchaseID uint64
-	purchaser  sdk.AccAddress
-}
 
 // PurchaseShield purchases shield of a pool with standard fee rate.
 func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, amount sdk.Coins, description string, purchaser sdk.AccAddress) (types.Purchase, error) {
@@ -34,16 +27,11 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, amount sdk.Coins,
 	if amount.Empty() {
 		return types.Purchase{}, types.ErrNoShield
 	}
-	pool.Shield.Add(amount.AmountOf(k.BondDenom(ctx)).ToDec().Mul(pool.ShieldRate).TruncateInt())
+	pool.Shield = pool.Shield.Add(amount.AmountOf(k.BondDenom(ctx)).ToDec().Mul(pool.ShieldRate).TruncateInt())
 	k.SetPool(ctx, pool)
-
-	fmt.Println(pool.String())
 
 	sp, err := k.AddStaking(ctx, poolID, purchaser, description, amount)
 
-	totalShield := k.GetTotalShield(ctx)
-	totalShield = totalShield.Add(amount.AmountOf(k.BondDenom(ctx)))
-	k.SetTotalShield(ctx, totalShield)
 	return sp, err
 }
 
@@ -82,4 +70,45 @@ func (k Keeper) GetPoolPurchases(ctx sdk.Context, poolID uint64) (res []types.Pu
 		}
 	}
 	return
+}
+
+// RemoveExpiredPurchasesAndDistributeFees removes expired purchases and distributes fees for current block.
+func (k Keeper) DistributeFees(ctx sdk.Context) {
+
+	serviceFees := types.InitMixedDecCoins()
+	bondDenom := k.BondDenom(ctx)
+
+	// Limit service fees by remaining service fees.
+	remainingServiceFees := k.GetRemainingServiceFees(ctx)
+	if remainingServiceFees.Native.AmountOf(bondDenom).LT(serviceFees.Native.AmountOf(bondDenom)) {
+		serviceFees.Native = remainingServiceFees.Native
+	}
+
+	// Add block service fees that need to be distributed for this block
+	blockServiceFees := k.GetBlockServiceFees(ctx)
+	serviceFees = serviceFees.Add(blockServiceFees)
+	k.DeleteBlockServiceFees(ctx)
+
+	// Distribute service fees.
+	totalCollateral := k.GetTotalCollateral(ctx)
+	providers := k.GetAllProviders(ctx)
+	for _, provider := range providers {
+		providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
+		if err != nil {
+			panic(err)
+		}
+
+		// fees * providerCollateral / totalCollateral
+		nativeFees := serviceFees.Native.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
+		if nativeFees.AmountOf(bondDenom).GT(remainingServiceFees.Native.AmountOf(bondDenom)) {
+			nativeFees = remainingServiceFees.Native
+		}
+		provider.Rewards = provider.Rewards.Add(types.MixedDecCoins{Native: nativeFees})
+		k.SetProvider(ctx, providerAddr, provider)
+
+		remainingServiceFees.Native = remainingServiceFees.Native.Sub(nativeFees)
+	}
+	// add back block service fees
+	remainingServiceFees.Native = remainingServiceFees.Native.Add(blockServiceFees.Native...)
+	k.SetRemainingServiceFees(ctx, remainingServiceFees)
 }

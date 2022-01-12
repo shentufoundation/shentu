@@ -35,10 +35,8 @@ var (
 	PoolKey                     = []byte{0x07}
 	NextPoolIDKey               = []byte{0x08}
 	NextPurchaseIDKey           = []byte{0x09}
-	PurchaseListKey             = []byte{0x0A}
 	ProviderKey                 = []byte{0x0C}
 	WithdrawQueueKey            = []byte{0x0D}
-	LastUpdateTimeKey           = []byte{0x0E}
 	GlobalStakeForShieldPoolKey = []byte{0x0F}
 	PurchaseKey                 = []byte{0x11}
 	BlockServiceFeesKey         = []byte{0x12}
@@ -93,13 +91,6 @@ func GetNextPoolIDKey() []byte {
 // GetNextPurchaseIDKey gets the key for the next pool ID.
 func GetNextPurchaseIDKey() []byte {
 	return NextPurchaseIDKey
-}
-
-// GetPurchaseTxHashKey gets the key for a purchase.
-func GetPurchaseListKey(id uint64, purchaser sdk.AccAddress) []byte {
-	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, id)
-	return append(PurchaseListKey, append(bz, purchaser.Bytes()...)...)
 }
 
 // GetProviderKey gets the key for the delegator's tracker.
