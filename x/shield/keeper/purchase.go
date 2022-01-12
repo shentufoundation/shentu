@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/binary"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
@@ -70,9 +71,8 @@ func (k Keeper) GetPoolPurchases(ctx sdk.Context, poolID uint64) (res []types.Pu
 	return
 }
 
-// RemoveExpiredPurchasesAndDistributeFees removes expired purchases and distributes fees for current block.
+// DistributeFees removes expired purchases and distributes fees for current block.
 func (k Keeper) DistributeFees(ctx sdk.Context) {
-
 	serviceFees := types.InitMixedDecCoins()
 	bondDenom := k.BondDenom(ctx)
 

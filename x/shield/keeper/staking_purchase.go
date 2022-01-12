@@ -50,11 +50,13 @@ func (k Keeper) SetPurchase(ctx sdk.Context, purchase types.Purchase) {
 }
 
 func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, description string, amount sdk.Coins) (types.Purchase, error) {
-
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, amount); err != nil {
 		return types.Purchase{}, err
 	}
 	pool, found := k.GetPool(ctx, poolID)
+	if !found {
+		return types.Purchase{}, types.ErrNoPoolFound
+	}
 	pool.Shield = pool.Shield.Add(amount.AmountOf(k.BondDenom(ctx)).ToDec().Mul(pool.ShieldRate).TruncateInt())
 	k.SetPool(ctx, pool)
 
