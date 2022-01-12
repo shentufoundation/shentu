@@ -95,7 +95,7 @@ func (suite *TypesTestSuite) TestMsgSendRoute() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			coins := sdk.NewCoins(sdk.NewInt64Coin("ctk", tc.args.amount))
+			coins := sdk.NewCoins(sdk.NewInt64Coin("uctk", tc.args.amount))
 			var msg = types.NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
 			if tc.errArgs.shouldPass {
 				suite.Require().Equal(msg.Route(), tc.args.expectedRoute)
@@ -141,7 +141,7 @@ func (suite *TypesTestSuite) TestMsgSendValidation() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			coins := sdk.NewCoins(sdk.NewInt64Coin("ctk", tc.args.amount))
+			coins := sdk.NewCoins(sdk.NewInt64Coin("uctk", tc.args.amount))
 			var msg = types.NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
 			err := msg.ValidateBasic()
 			if tc.errArgs.shouldPass {
@@ -179,7 +179,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSignBytes() {
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
 				unlockerAddress: suite.address[2],
-				res:             `{"type":"bank/MsgLockedSend","value":{"amount":[{"amount":"200","denom":"ctk"}],"from_address":"cosmos1d9h8qat5xyj6yfmj","to_address":"cosmos1d9h8qat5xgryzr24","unlocker_address":"cosmos1d9h8qat5xvvwq990"}}`,
+				res:             `{"type":"bank/MsgLockedSend","value":{"amount":[{"amount":"200","denom":"uctk"}],"from_address":"cosmos1d9h8qat5xyj6yfmj","to_address":"cosmos1d9h8qat5xgryzr24","unlocker_address":"cosmos1d9h8qat5xvvwq990"}}`,
 			},
 			errArgs{
 				shouldPass: true,
@@ -192,7 +192,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSignBytes() {
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
 				unlockerAddress: suite.address[2],
-				res:             `{"type":"bank/MsgLockedSend","value":{"amount":[{"amount":"12000","denom":"ctk"}],"from_address":"cosmos1d9h8qat5xyj6yfmj","to_address":"cosmos1d9h8qat5xgryzr24","unlocker_address":"cosmos1d9h8qat5xvvwq990"}}`,
+				res:             `{"type":"bank/MsgLockedSend","value":{"amount":[{"amount":"12000","denom":"uctk"}],"from_address":"cosmos1d9h8qat5xyj6yfmj","to_address":"cosmos1d9h8qat5xgryzr24","unlocker_address":"cosmos1d9h8qat5xvvwq990"}}`,
 			},
 			errArgs{
 				shouldPass: false,
@@ -203,7 +203,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSignBytes() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			coins := sdk.NewCoins(sdk.NewInt64Coin("ctk", tc.args.amount))
+			coins := sdk.NewCoins(sdk.NewInt64Coin("uctk", tc.args.amount))
 			var msg = types.NewMsgLockedSend(tc.args.fromAddr, tc.args.toAddr, tc.args.unlockerAddress.String(), coins)
 			res := msg.GetSignBytes()
 			if tc.errArgs.shouldPass {
@@ -245,7 +245,7 @@ func (suite *TypesTestSuite) TestMsgSendGetSigners() {
 				contains:   "",
 			},
 		},
-		{"Unexpectec Signature",
+		{"Unexpected Signature",
 			args{
 				fromAddr:        suite.address[0],
 				toAddr:          suite.address[1],
