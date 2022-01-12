@@ -391,10 +391,7 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 
 	uncoveredPurchase := sdk.ZeroInt()
 	payoutFromDelegation := sdk.ZeroInt()
-	fmt.Println(provider.String())
-	fmt.Println(purchased, payout)
 	if provider.DelegationBonded.GTE(purchased.Add(payout)) {
-		fmt.Println(1)
 		// If delegation >= purchased + payout:
 		//     purchased       payout
 		//   ----------------|--------|
@@ -402,7 +399,6 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 		// -------------------------------|---------------------------------
 		payoutFromDelegation = payout
 	} else if provider.DelegationBonded.GTE(purchased) {
-		fmt.Println(2)
 		// If purchased <= delegation < purchased + payout:
 		//               purchased       payout
 		//             ----------------|--------|
@@ -410,7 +406,6 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 		// -------------------------------|---------------------------------
 		payoutFromDelegation = provider.DelegationBonded.Sub(purchased)
 	} else {
-		fmt.Println(3)
 		// If delegation < purchased:
 		//                      purchased       payout
 		//                    ----------------|--------|
@@ -421,7 +416,6 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 	payoutFromUnbonding := payout.Sub(payoutFromDelegation)
 
 	if payoutFromDelegation.IsPositive() {
-		fmt.Println("pay from delegation amt: ", payoutFromDelegation)
 		k.PayFromDelegation(ctx, providerAddr, payoutFromDelegation)
 	}
 
@@ -465,8 +459,6 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payou
 	totalDelAmount := provider.DelegationBonded
 
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
-	fmt.Println(delegations)
-	fmt.Println(provider.String())
 	payoutRatio := payout.ToDec().Quo(totalDelAmount.ToDec())
 	remaining := payout
 	for i := range delegations {
