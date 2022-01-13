@@ -144,10 +144,6 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
-		// shield limit
-		// No overflow would happen when converting int64 to int in this case.
-		shieldLimit := sdk.NewInt(int64(simtypes.RandIntBetween(r, int(maxShield.Int64()), int(maxShield.Int64())*5)))
-
 		// sponsor
 		sponsor := strings.ToLower(simtypes.RandStringOfLength(r, 10))
 		if _, found := k.GetPoolsBySponsor(ctx, sponsor); found {
@@ -168,7 +164,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		sponsorAcc, _ := simtypes.RandomAcc(r, accs)
 		description := simtypes.RandStringOfLength(r, 42)
 
-		msg := types.NewMsgCreatePool(simAccount.Address, shield, serviceFees, sponsor, sponsorAcc.Address, description, shieldLimit)
+		msg := types.NewMsgCreatePool(simAccount.Address, shield, serviceFees, sponsor, sponsorAcc.Address, description)
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
@@ -245,7 +241,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		serviceFees := nativeServiceFees
 		description := simtypes.RandStringOfLength(r, 42)
 
-		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description, sdk.ZeroInt())
+		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description)
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
@@ -633,8 +629,6 @@ func SimulateMsgWithdrawReimbursement(k keeper.Keeper, ak types.AccountKeeper, b
 }
 
 func computeMaxShield(pool types.Pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield sdk.Int, poolParams types.PoolParams) sdk.Int {
-	poolLimit := pool.ShieldLimit.Sub(pool.Shield)
-	globalLimit := sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
+	return sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
 		totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).Sub(totalShield))
-	return sdk.MinInt(poolLimit, globalLimit)
 }

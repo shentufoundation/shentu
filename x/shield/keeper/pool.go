@@ -158,7 +158,7 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
 }
 
 // CreatePool creates a pool and sponsor's shield.
-func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield, serviceFees sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) (uint64, error) {
+func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield, serviceFees sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string) (uint64, error) {
 	admin := k.GetAdmin(ctx)
 	if !creator.Equals(admin) {
 		return 0, types.ErrNotShieldAdmin
@@ -169,12 +169,11 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield, serv
 
 	// Set the new project pool.
 	poolID := k.GetNextPoolID(ctx)
-	pool := types.NewPool(poolID, description, sponsor, sponsorAddr, shieldLimit, sdk.ZeroInt())
+	pool := types.NewPool(poolID, description, sponsor, sponsorAddr, sdk.ZeroInt())
 
 	// TODO: implement full pool creation
 	// TODO: get input
-	rate := sdk.NewDecFromInt(sdk.NewInt(5))
-	pool.ShieldRate = rate
+	pool.ShieldRate = types.DefaultShieldRate
 
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, poolID+1)
@@ -182,7 +181,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield, serv
 }
 
 // UpdatePool updates pool info and shield for B.
-func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield, serviceFees sdk.Coins, shieldLimit sdk.Int) (types.Pool, error) {
+func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield, serviceFees sdk.Coins) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -195,9 +194,6 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 	}
 	if description != "" {
 		pool.Description = description
-	}
-	if !shieldLimit.IsZero() {
-		pool.ShieldLimit = shieldLimit
 	}
 	k.SetPool(ctx, pool)
 
@@ -261,7 +257,7 @@ func (k Keeper) ClosePool(ctx sdk.Context, pool types.Pool) {
 // ClosePools closes pools when both of the pool's shield and shield limit is non-positive.
 func (k Keeper) ClosePools(ctx sdk.Context) {
 	k.IterateAllPools(ctx, func(pool types.Pool) bool {
-		if !pool.Shield.IsPositive() && !pool.ShieldLimit.IsPositive() {
+		if !pool.Shield.IsPositive() {
 			k.ClosePool(ctx, pool)
 		}
 		return false

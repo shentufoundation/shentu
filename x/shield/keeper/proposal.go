@@ -27,10 +27,9 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	if !found {
 		return types.ErrNoPoolFound
 	}
-	//if lossAmt.GT(pool.Shield) {
-	//	panic("wow")
-	//	return types.ErrNotEnoughShield
-	//}
+	if lossAmt.GT(pool.Shield) {
+		return types.ErrNotEnoughShield
+	}
 
 	// Verify collateral availability.
 	totalCollateral := k.GetTotalCollateral(ctx)
@@ -65,8 +64,9 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 		remaining = remaining.Sub(secureAmt)
 	}
 
+	// TODO: Decide what we actually want to do here.
 	// Update purchase states.
-	purchase.Amount = purchase.Amount.Sub(lossAmt)
+	purchase.Shield = purchase.Shield.Sub(lossAmt)
 
 	k.SetPurchase(ctx, purchase)
 
@@ -117,10 +117,10 @@ func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amo
 
 	if amount.GT(availableCollateralByEndTime) {
 		withdrawDelayAmt := amount.Sub(availableCollateralByEndTime)
-		k.DelayWithdraws(ctx, provider.Address, withdrawDelayAmt, endTime)
+		_ = k.DelayWithdraws(ctx, provider.Address, withdrawDelayAmt, endTime)
 		if amount.GT(availableDelegationByEndTime) {
 			unbondingDelayAmt := amount.Sub(availableDelegationByEndTime)
-			k.DelayUnbonding(ctx, providerAddr, unbondingDelayAmt, endTime)
+			_ = k.DelayUnbonding(ctx, providerAddr, unbondingDelayAmt, endTime)
 		}
 	}
 }
@@ -149,19 +149,16 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 	pool.Shield = pool.Shield.Add(lossAmt)
 	k.SetPool(ctx, pool)
 
-	// Update shield of the purchase.
-	//purchaseList, found := k.GetPurchaseList(ctx, poolID, purchaser)
-	//if !found {
-	//	return types.ErrPurchaseNotFound
-	//}
-	//for i := range purchaseList.Entries {
-	//	if purchaseList.Entries[i].PurchaseId == id {
-	//		purchaseList.Entries[i].Shield = purchaseList.Entries[i].Shield.Add(lossAmt)
-	//		break
-	//	}
-	//}
-	//k.SetPurchaseList(ctx, purchaseList)
-	// TODO: reimplement above for V2  https://github.com/ShentuChain/shentu-private/issues/13
+	purchase, found := k.GetPurchase(ctx, poolID, purchaser)
+	if !found {
+		purchase = types.NewPurchase(poolID, purchaser, "restored purchase",
+			loss.AmountOf(k.BondDenom(ctx)).ToDec().Quo(pool.ShieldRate).TruncateInt(), loss.AmountOf(k.BondDenom(ctx)))
+		return types.ErrPurchaseNotFound
+	} else {
+		purchase.Shield = purchase.Shield.Add(loss.AmountOf(k.BondDenom(ctx)))
+	}
+
+	k.SetPurchase(ctx, purchase)
 
 	return nil
 }
@@ -246,6 +243,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 	totalPayout := amount.AmountOf(bondDenom)
 	purchaseRatio := totalPurchased.ToDec().Quo(totalCollateral.ToDec())
 	payoutRatio := totalPayout.ToDec().Quo(totalCollateral.ToDec())
+
 	for _, provider := range k.GetAllProviders(ctx) {
 		if !totalPayout.IsPositive() {
 			break
@@ -261,9 +259,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 			purchased = totalPurchased
 		}
 		payout := provider.Collateral.ToDec().Mul(payoutRatio).TruncateInt()
-		if payout.GT(totalPayout) {
-			payout = totalPayout
-		}
+		payout = sdk.MinInt(payout, totalPayout)
 
 		// Require providers to cover (purchased + 1) and (payout + 1) if it's possible,
 		// so that the last provider will not be asked to cover all truncated amount.
@@ -273,7 +269,6 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 		if payout.LT(totalPayout) && provider.Collateral.GT(payout.Add(purchased)) {
 			payout = payout.Add(sdk.OneInt())
 		}
-
 		if err := k.UpdateProviderCollateralForPayout(ctx, providerAddr, purchased, payout); err != nil {
 			panic(err)
 		}
@@ -391,10 +386,7 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 
 	uncoveredPurchase := sdk.ZeroInt()
 	payoutFromDelegation := sdk.ZeroInt()
-	fmt.Println(provider.String())
-	fmt.Println(purchased, payout)
 	if provider.DelegationBonded.GTE(purchased.Add(payout)) {
-		fmt.Println(1)
 		// If delegation >= purchased + payout:
 		//     purchased       payout
 		//   ----------------|--------|
@@ -402,7 +394,6 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 		// -------------------------------|---------------------------------
 		payoutFromDelegation = payout
 	} else if provider.DelegationBonded.GTE(purchased) {
-		fmt.Println(2)
 		// If purchased <= delegation < purchased + payout:
 		//               purchased       payout
 		//             ----------------|--------|
@@ -410,7 +401,6 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 		// -------------------------------|---------------------------------
 		payoutFromDelegation = provider.DelegationBonded.Sub(purchased)
 	} else {
-		fmt.Println(3)
 		// If delegation < purchased:
 		//                      purchased       payout
 		//                    ----------------|--------|
@@ -421,7 +411,6 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 	payoutFromUnbonding := payout.Sub(payoutFromDelegation)
 
 	if payoutFromDelegation.IsPositive() {
-		fmt.Println("pay from delegation amt: ", payoutFromDelegation)
 		k.PayFromDelegation(ctx, providerAddr, payoutFromDelegation)
 	}
 
@@ -465,10 +454,9 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payou
 	totalDelAmount := provider.DelegationBonded
 
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
-	fmt.Println(delegations)
-	fmt.Println(provider.String())
 	payoutRatio := payout.ToDec().Quo(totalDelAmount.ToDec())
 	remaining := payout
+
 	for i := range delegations {
 		if !remaining.IsPositive() {
 			return
@@ -605,8 +593,8 @@ func (k Keeper) UndelegateShares(ctx sdk.Context, delAddr sdk.AccAddress, valAdd
 	if validator.IsBonded() {
 		srcPool = stakingtypes.BondedPoolName
 	}
-	err := k.UndelegateFromAccountToShieldModule(ctx, srcPool, delAddr, coins)
-	if err != nil {
+
+	if err := k.UndelegateFromAccountToShieldModule(ctx, srcPool, delAddr, coins); err != nil {
 		panic(err)
 	}
 }
@@ -635,11 +623,7 @@ func (k Keeper) UndelegateFromAccountToShieldModule(ctx sdk.Context, senderModul
 		k.ak.SetAccount(ctx, delAcc)
 	}
 
-	if err := k.bk.SendCoinsFromModuleToModule(ctx, senderModule, types.ModuleName, amt); err != nil {
-		panic(err)
-	}
-
-	return nil
+	return k.bk.SendCoinsFromModuleToModule(ctx, senderModule, types.ModuleName, amt)
 }
 
 // GetSortedUnbondingDelegations gets unbonding delegations sorted by completion time from latest to earliest.

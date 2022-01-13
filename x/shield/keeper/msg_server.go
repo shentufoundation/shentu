@@ -33,7 +33,7 @@ func (k msgServer) CreatePool(goCtx context.Context, msg *types.MsgCreatePool) (
 		return nil, err
 	}
 
-	poolID, err := k.Keeper.CreatePool(ctx, fromAddr, msg.Shield, msg.Deposit, msg.Sponsor, sponsorAddr, msg.Description, msg.ShieldLimit)
+	poolID, err := k.Keeper.CreatePool(ctx, fromAddr, msg.Shield, msg.Deposit, msg.Sponsor, sponsorAddr, msg.Description)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (k msgServer) UpdatePool(goCtx context.Context, msg *types.MsgUpdatePool) (
 		return nil, err
 	}
 
-	_, err = k.Keeper.UpdatePool(ctx, msg.PoolId, msg.Description, fromAddr, msg.Shield, msg.ServiceFees, msg.ShieldLimit)
+	_, err = k.Keeper.UpdatePool(ctx, msg.PoolId, msg.Description, fromAddr, msg.Shield, msg.ServiceFees)
 	if err != nil {
 		return nil, err
 	}
@@ -311,9 +311,8 @@ func (k msgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 	if err != nil {
 		return nil, err
 	}
-	amount := msg.Amount.AmountOf(k.Keeper.BondDenom(ctx))
 
-	err = k.Keeper.Unstake(ctx, msg.PoolId, fromAddr, amount)
+	err = k.Keeper.Unstake(ctx, msg.PoolId, fromAddr, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +321,7 @@ func (k msgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 		sdk.NewEvent(
 			types.TypeMsgUnstakeFromShield,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolId, 10)),
-			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
+			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
 		),
 		sdk.NewEvent(

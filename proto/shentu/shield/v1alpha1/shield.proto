@@ -17,10 +17,10 @@ message Pool {
     string description = 2 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     string sponsor = 3 [ (gogoproto.moretags) = "yaml:\"sponsor\"" ];
     string sponsor_addr = 4 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
-    string shield_limit = 5 [ (gogoproto.moretags) = "yaml:\"shield_limit\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    bool active = 6 [ (gogoproto.moretags) = "yaml:\"active\"" ];
-    string shield = 7 [ (gogoproto.moretags) = "yaml:\"shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    string shield_rate = 8 [
+
+    bool active = 5 [ (gogoproto.moretags) = "yaml:\"active\"" ];
+    string shield = 6 [ (gogoproto.moretags) = "yaml:\"shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    string shield_rate = 7 [
         (gogoproto.moretags) = "yaml:\"shield_rate\"",
         (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
         (gogoproto.nullable)   = false
@@ -82,8 +82,8 @@ message Purchase {
     string purchaser = 2 [ (gogoproto.moretags) = "yaml:\"purchaser\"" ];
     string amount = 3 [ (gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    google.protobuf.Timestamp start_time = 5
-    [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+    google.protobuf.Timestamp start_time = 5 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+    string shield = 6 [ (gogoproto.moretags) = "yaml:\"shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 }
 
 message ShieldClaimProposal {
