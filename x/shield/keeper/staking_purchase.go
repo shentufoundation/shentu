@@ -50,17 +50,21 @@ func (k Keeper) SetPurchase(ctx sdk.Context, purchase types.Purchase) {
 }
 
 func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, description string, amount sdk.Coins) (types.Purchase, error) {
-	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, amount); err != nil {
-		return types.Purchase{}, err
-	}
 	pool, found := k.GetPool(ctx, poolID)
 	if !found {
 		return types.Purchase{}, types.ErrNoPoolFound
 	}
-	pool.Shield = pool.Shield.Add(amount.AmountOf(k.BondDenom(ctx)).ToDec().Mul(pool.ShieldRate).TruncateInt())
-	k.SetPool(ctx, pool)
 
 	bondDenomAmt := amount.AmountOf(k.BondDenom(ctx))
+
+	// TODO: handle when purchase > collateral
+	maxPurchase := sdk.MaxInt(k.GetTotalCollateral(ctx).Sub(k.GetTotalShield(ctx)).Quo(pool.ShieldRate.TruncateInt()), sdk.ZeroInt())
+	bondDenomAmt = sdk.MinInt(maxPurchase, bondDenomAmt)
+	ceiledCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), bondDenomAmt))
+
+	pool.Shield = pool.Shield.Add(bondDenomAmt.ToDec().Mul(pool.ShieldRate).TruncateInt())
+	k.SetPool(ctx, pool)
+
 	shieldAmt := bondDenomAmt.ToDec().Mul(pool.ShieldRate).TruncateInt()
 	gSPool := k.GetGlobalStakingPool(ctx)
 	gSPool = gSPool.Add(bondDenomAmt)
@@ -79,6 +83,10 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	totalShield := k.GetTotalShield(ctx)
 	totalShield = totalShield.Add(shieldAmt)
 	k.SetTotalShield(ctx, totalShield)
+
+	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, ceiledCoins); err != nil {
+		return types.Purchase{}, err
+	}
 	return sp, nil
 }
 

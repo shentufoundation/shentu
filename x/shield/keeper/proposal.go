@@ -305,6 +305,7 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 
 	uncoveredPurchase := sdk.ZeroInt()
 	payoutFromCollateral := sdk.ZeroInt()
+
 	if provider.Collateral.Sub(provider.Withdrawing).GTE(purchased.Add(payout)) {
 		// If collateral - withdraw >= purchased + payout:
 		//     purchased       payout
