@@ -1,23 +1,15 @@
 package cli
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/spf13/cobra"
 
 	"github.com/certikfoundation/shentu/v2/x/bank/types"
 )
 
-const (
-	FlagUnlocker = "unlocker"
-)
-
-// LockedSendTxCmd sends coins to a manual vesting account
-// and have them vesting.
 func LockedSendTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "locked-send [from_key_or_address] [to_address] [amount]",
@@ -41,20 +33,18 @@ func LockedSendTxCmd() *cobra.Command {
 				return err
 			}
 
-			unlocker := viper.GetString(FlagUnlocker)
+			unlocker, _ := cmd.Flags().GetString(FlagUnlocker)
 			if unlocker != "" {
 				_, err = sdk.AccAddressFromBech32(unlocker)
 				if err != nil {
 					return err
 				}
 			}
-
 			msg := types.NewMsgLockedSend(cliCtx.GetFromAddress(), to, unlocker, coins)
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
-
+	cmd.Flags().AddFlagSet(FlagAddUnlocker())
 	flags.AddTxFlagsToCmd(cmd)
-	cmd.Flags().String(FlagUnlocker, "", "unlocker when initializing a new manual vesting account")
 	return cmd
 }
