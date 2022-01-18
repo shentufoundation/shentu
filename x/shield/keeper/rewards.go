@@ -11,12 +11,10 @@ import (
 func (k Keeper) DistributeShieldRewards(ctx sdk.Context) {
 	// Add block service fees that need to be distributed for this block
 	blockServiceFees := k.GetBlockServiceFees(ctx)
-
-	// FIX DIS
-	// serviceFees = serviceFees.Add(blockServiceFees)
-	serviceFees := blockServiceFees
 	remainingServiceFees := blockServiceFees
 	k.DeleteBlockServiceFees(ctx)
+
+	// TODO: Add support for any denoms.
 
 	// Distribute service fees.
 	totalCollateral := k.GetTotalCollateral(ctx)
@@ -29,14 +27,14 @@ func (k Keeper) DistributeShieldRewards(ctx sdk.Context) {
 		}
 
 		// fees * providerCollateral / totalCollateral
-		nativeFees := serviceFees.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
-		if nativeFees.AmountOf(bondDenom).GT(remainingServiceFees.AmountOf(bondDenom)) {
-			nativeFees = remainingServiceFees
+		fees := blockServiceFees.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
+		if fees.AmountOf(bondDenom).GT(remainingServiceFees.AmountOf(bondDenom)) {
+			fees = remainingServiceFees
 		}
-		provider.Rewards = provider.Rewards.Add(nativeFees...)
+		provider.Rewards = provider.Rewards.Add(fees...)
 		k.SetProvider(ctx, providerAddr, provider)
 
-		remainingServiceFees = remainingServiceFees.Sub(nativeFees)
+		remainingServiceFees = remainingServiceFees.Sub(fees)
 	}
 	// add back block service fees
 	remainingServiceFees = remainingServiceFees.Add(blockServiceFees...)

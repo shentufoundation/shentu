@@ -45,8 +45,8 @@ func DefaultGenesisState() *GenesisState {
 		TotalWithdrawing:     sdk.ZeroInt(),
 		TotalShield:          sdk.ZeroInt(),
 		TotalClaimed:         sdk.ZeroInt(),
-		ServiceFees:          sdk.DecCoins{},
-		RemainingServiceFees: sdk.DecCoins{},
+		ServiceFees:          sdk.NewDecCoins(),
+		RemainingServiceFees: sdk.NewDecCoins(),
 	}
 }
 

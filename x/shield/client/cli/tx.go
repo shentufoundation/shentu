@@ -170,7 +170,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 	}
 
 	cmd.Flags().String(flagDescription, "", "description for the pool")
-	cmd.Flags().String(flagDeposit, "", "CTK deposit amount")
+	cmd.Flags().String(flagDeposit, "", "Initial deposit amount")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
@@ -226,7 +226,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 	}
 
 	cmd.Flags().String(flagShield, "", "CTK Shield amount")
-	cmd.Flags().String(flagDeposit, "", "CTK deposit amount")
+	cmd.Flags().String(flagDeposit, "", "Additional deposit amount")
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd

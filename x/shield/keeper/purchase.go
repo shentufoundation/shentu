@@ -73,8 +73,10 @@ func (k Keeper) GetPoolPurchases(ctx sdk.Context, poolID uint64) (res []types.Pu
 
 // DistributeFees removes expired purchases and distributes fees for current block.
 func (k Keeper) DistributeFees(ctx sdk.Context) {
-	serviceFees := sdk.DecCoins{}
+	serviceFees := sdk.NewDecCoins()
 	bondDenom := k.BondDenom(ctx)
+
+	// TODO: Add support for any denoms.
 
 	// Limit service fees by remaining service fees.
 	remainingServiceFees := k.GetRemainingServiceFees(ctx)
@@ -82,7 +84,7 @@ func (k Keeper) DistributeFees(ctx sdk.Context) {
 		serviceFees = remainingServiceFees
 	}
 
-	// Add block service fees that need to be distributed for this block
+	// Add block service fees that need to be distributed for this block.
 	blockServiceFees := k.GetBlockServiceFees(ctx)
 	serviceFees = serviceFees.Add(blockServiceFees...)
 	k.DeleteBlockServiceFees(ctx)
