@@ -46,8 +46,7 @@ func NewTxCmd() *cobra.Command {
 		GetCmdPurchaseShield(),
 		GetCmdWithdrawReimbursement(),
 		GetCmdUpdateSponsor(),
-		GetCmdStakeForShield(),
-		GetCmdUnstakeFromShield(),
+		GetCmdUnstake(),
 	)
 
 	return shieldTxCmd
@@ -518,58 +517,8 @@ $ %s tx shield withdraw-reimbursement <proposal id>
 	return cmd
 }
 
-// GetCmdStakeForShield implements the command for purchasing Shield.
-func GetCmdStakeForShield() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "stake-for-shield [pool id] [shield amount] [description]",
-		Args:  cobra.ExactArgs(3),
-		Short: "obtain shield through staking CTK",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Obtain shield through staking. Requires purchaser to provide descriptions of accounts to be protected.
-
-Example:
-$ %s tx shield stake-for-shield <pool id> <shield amount> <description>
-`,
-				version.AppName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
-
-			fromAddr := cliCtx.GetFromAddress()
-
-			poolID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
-			shield, err := sdk.ParseCoinsNormalized(args[1])
-			if err != nil {
-				return err
-			}
-			description := args[2]
-			if description == "" {
-				return types.ErrPurchaseMissingDescription
-			}
-
-			msg := types.NewMsgPurchase(poolID, shield, description, fromAddr)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdUnstakeFromShield implements the command for purchasing Shield.
-func GetCmdUnstakeFromShield() *cobra.Command {
+// GetCmdUnstake implements the command for purchasing Shield.
+func GetCmdUnstake() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unstake-from-shield [pool id] [amount] ",
 		Args:  cobra.ExactArgs(2),

@@ -60,12 +60,15 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	// TODO: handle when purchase > collateral
 	maxPurchase := sdk.MaxInt(k.GetTotalCollateral(ctx).Sub(k.GetTotalShield(ctx)).Quo(pool.ShieldRate.TruncateInt()), sdk.ZeroInt())
 	bondDenomAmt = sdk.MinInt(maxPurchase, bondDenomAmt)
+	if bondDenomAmt.Equal(sdk.ZeroInt()) {
+		return types.Purchase{}, nil
+	}
 	ceiledCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), bondDenomAmt))
 
-	pool.Shield = pool.Shield.Add(bondDenomAmt.ToDec().Mul(pool.ShieldRate).TruncateInt())
+	shieldAmt := bondDenomAmt.ToDec().Mul(pool.ShieldRate).TruncateInt()
+	pool.Shield = pool.Shield.Add(shieldAmt)
 	k.SetPool(ctx, pool)
 
-	shieldAmt := bondDenomAmt.ToDec().Mul(pool.ShieldRate).TruncateInt()
 	gSPool := k.GetGlobalStakingPool(ctx)
 	gSPool = gSPool.Add(bondDenomAmt)
 	k.SetGlobalStakingPool(ctx, gSPool)
