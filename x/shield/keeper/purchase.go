@@ -73,18 +73,20 @@ func (k Keeper) GetPoolPurchases(ctx sdk.Context, poolID uint64) (res []types.Pu
 
 // DistributeFees removes expired purchases and distributes fees for current block.
 func (k Keeper) DistributeFees(ctx sdk.Context) {
-	serviceFees := types.InitMixedDecCoins()
+	serviceFees := sdk.NewDecCoins()
 	bondDenom := k.BondDenom(ctx)
+
+	// TODO: Add support for any denoms.
 
 	// Limit service fees by remaining service fees.
 	remainingServiceFees := k.GetRemainingServiceFees(ctx)
-	if remainingServiceFees.Native.AmountOf(bondDenom).LT(serviceFees.Native.AmountOf(bondDenom)) {
-		serviceFees.Native = remainingServiceFees.Native
+	if remainingServiceFees.AmountOf(bondDenom).LT(serviceFees.AmountOf(bondDenom)) {
+		serviceFees = remainingServiceFees
 	}
 
-	// Add block service fees that need to be distributed for this block
+	// Add block service fees that need to be distributed for this block.
 	blockServiceFees := k.GetBlockServiceFees(ctx)
-	serviceFees = serviceFees.Add(blockServiceFees)
+	serviceFees = serviceFees.Add(blockServiceFees...)
 	k.DeleteBlockServiceFees(ctx)
 
 	// Distribute service fees.
@@ -97,16 +99,16 @@ func (k Keeper) DistributeFees(ctx sdk.Context) {
 		}
 
 		// fees * providerCollateral / totalCollateral
-		nativeFees := serviceFees.Native.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
-		if nativeFees.AmountOf(bondDenom).GT(remainingServiceFees.Native.AmountOf(bondDenom)) {
-			nativeFees = remainingServiceFees.Native
+		nativeFees := serviceFees.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
+		if nativeFees.AmountOf(bondDenom).GT(remainingServiceFees.AmountOf(bondDenom)) {
+			nativeFees = remainingServiceFees
 		}
-		provider.Rewards = provider.Rewards.Add(types.MixedDecCoins{Native: nativeFees})
+		provider.Rewards = provider.Rewards.Add(nativeFees...)
 		k.SetProvider(ctx, providerAddr, provider)
 
-		remainingServiceFees.Native = remainingServiceFees.Native.Sub(nativeFees)
+		remainingServiceFees = remainingServiceFees.Sub(nativeFees)
 	}
 	// add back block service fees
-	remainingServiceFees.Native = remainingServiceFees.Native.Add(blockServiceFees.Native...)
+	remainingServiceFees = remainingServiceFees.Add(blockServiceFees...)
 	k.SetRemainingServiceFees(ctx, remainingServiceFees)
 }

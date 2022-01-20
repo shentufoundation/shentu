@@ -74,7 +74,8 @@ func (k Keeper) GetShieldStakeForShieldPoolRatio(ctx sdk.Context) sdk.Dec {
 	return pool.ToDec().Quo(totalBondedTokensDec)
 }
 
-// GetPoolMint returns Coins that are about to be minted towards the community pool.
+// GetPoolMint returns bond denom coin whose amount is the given coin
+// multiplied by the given ratio.
 func (k Keeper) GetPoolMint(ctx sdk.Context, ratio sdk.Dec, mintedCoin sdk.Coin) sdk.Coins {
 	communityPoolMintDec := ratio.MulInt(mintedCoin.Amount)
 	amount := communityPoolMintDec.TruncateInt()

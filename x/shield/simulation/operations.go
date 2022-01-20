@@ -159,13 +159,8 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, err.Error()), nil, nil
 		}
 		nativeServiceFees := sdk.NewCoins(sdk.NewCoin(bondDenom, nativeAmount))
-		foreignAmount, err := simtypes.RandPositiveInt(r, sdk.NewInt(int64(DefaultIntMax)))
-		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, err.Error()), nil, nil
-		}
-		foreignServiceFees := sdk.NewCoins(sdk.NewCoin(sponsor, foreignAmount))
 
-		serviceFees := types.MixedCoins{Native: nativeServiceFees, Foreign: foreignServiceFees}
+		serviceFees := nativeServiceFees
 		sponsorAcc, _ := simtypes.RandomAcc(r, accs)
 		description := simtypes.RandStringOfLength(r, 42)
 
@@ -242,13 +237,8 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, err.Error()), nil, nil
 		}
 		nativeServiceFees := sdk.NewCoins(sdk.NewCoin(bondDenom, nativeAmount))
-		foreignAmount, err := simtypes.RandPositiveInt(r, sdk.NewInt(int64(DefaultIntMax)))
-		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, err.Error()), nil, nil
-		}
-		foreignServiceFees := sdk.NewCoins(sdk.NewCoin(pool.Sponsor, foreignAmount))
 
-		serviceFees := types.MixedCoins{Native: nativeServiceFees, Foreign: foreignServiceFees}
+		serviceFees := nativeServiceFees
 		description := simtypes.RandStringOfLength(r, 42)
 
 		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description)
