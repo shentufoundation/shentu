@@ -22,6 +22,7 @@ var (
 	flagDeposit       = "deposit"
 	flagShield        = "shield"
 	flagDescription   = "description"
+	flagShieldRate    = "shield-rate"
 )
 
 // NewTxCmd returns the transaction commands for this module.
@@ -127,7 +128,7 @@ func GetCmdCreatePool() *cobra.Command {
 			fmt.Sprintf(`Create a Shield pool. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-deposit <ctk deposit> --shield-limit <shield limit>
+$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --deposit <ctk deposit> --shield-rate <shield rate>
 `,
 				version.AppName,
 			),
@@ -160,7 +161,12 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 
 			description := viper.GetString(flagDescription)
 
-			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, description)
+			shieldRate, err := sdk.NewDecFromStr(viper.GetString(flagShieldRate))
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, description, shieldRate)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -171,6 +177,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagDeposit, "", "Initial deposit amount")
+	cmd.Flags().String(flagShieldRate, "", "Shield Rate")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
@@ -185,7 +192,7 @@ func GetCmdUpdatePool() *cobra.Command {
 			fmt.Sprintf(`Update a Shield pool. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield amount> --shield-limit <shield limit>
+$ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield amount> --shield-rate <shield rate>
 `,
 				version.AppName,
 			),
@@ -216,7 +223,15 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 
 			description := viper.GetString(flagDescription)
 
-			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, description)
+			var shieldRate sdk.Dec
+			if shieldRateInput := viper.GetString(flagShieldRate); shieldRateInput != "" {
+				shieldRate, err = sdk.NewDecFromStr(shieldRateInput)
+				if err != nil {
+					return err
+				}
+			}
+
+			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, description, shieldRate)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -228,6 +243,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 	cmd.Flags().String(flagShield, "", "CTK Shield amount")
 	cmd.Flags().String(flagDeposit, "", "Additional deposit amount")
 	cmd.Flags().String(flagDescription, "", "description for the pool")
+	cmd.Flags().String(flagShieldRate, "", "Shield Rate")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }

@@ -163,8 +163,9 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		serviceFees := nativeServiceFees
 		sponsorAcc, _ := simtypes.RandomAcc(r, accs)
 		description := simtypes.RandStringOfLength(r, 42)
+		shieldRate := simtypes.RandomDecAmount(r, sdk.NewDec(10))
 
-		msg := types.NewMsgCreatePool(simAccount.Address, shield, serviceFees, sponsor, sponsorAcc.Address, description)
+		msg := types.NewMsgCreatePool(simAccount.Address, shield, serviceFees, sponsor, sponsorAcc.Address, description, shieldRate)
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
@@ -240,8 +241,9 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 
 		serviceFees := nativeServiceFees
 		description := simtypes.RandStringOfLength(r, 42)
+		shieldRate := simtypes.RandomDecAmount(r, sdk.NewDec(10))
 
-		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description)
+		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description, shieldRate)
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
