@@ -44,6 +44,10 @@ func FixAccounts(ctx sdk.Context, ak *sdkauthkeeper.AccountKeeper, bk bankkeeper
 
 		mvacc, ok = wb.(*authtypes.ManualVestingAccount)
 
+		if !ok {
+			panic("couldn't unmarshal resulting account to MVA")
+		}
+
 		ak.SetAccount(ctx, mvacc)
 		return false
 	})

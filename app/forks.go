@@ -1,8 +1,9 @@
 package app
 
 import (
-	"github.com/certikfoundation/shentu/v2/app/mva"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/certikfoundation/shentu/v2/app/mva"
 )
 
 // BeginBlockForks is intended to be ran in
