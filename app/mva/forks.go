@@ -17,15 +17,10 @@ import (
 func RunForkLogic(ctx sdk.Context, ak *sdkauthkeeper.AccountKeeper, bk bankkeeper.Keeper, sk *stakingkeeper.Keeper) {
 	ctx.Logger().Info("Applying Shentu MVA upgrade." +
 		" Fixing Shentu MVA accounts to correctly update to the right delegation tracking.")
-	e := FixAccounts(ctx, ak, bk, sk)
-	if e != nil {
-		panic(e)
-	}
+	FixAccounts(ctx, ak, bk, sk)
 }
 
-func FixAccounts(ctx sdk.Context, ak *sdkauthkeeper.AccountKeeper, bk bankkeeper.Keeper, sk *stakingkeeper.Keeper) error {
-	var iterErr error
-
+func FixAccounts(ctx sdk.Context, ak *sdkauthkeeper.AccountKeeper, bk bankkeeper.Keeper, sk *stakingkeeper.Keeper) {
 	ak.IterateAccounts(ctx, func(account sdktypes.AccountI) (stop bool) {
 		mvacc, ok := account.(*authtypes.ManualVestingAccount)
 		if !ok {
@@ -34,8 +29,7 @@ func FixAccounts(ctx sdk.Context, ak *sdkauthkeeper.AccountKeeper, bk bankkeeper
 
 		wb, err := MigrateAccount(ctx, mvacc, bk, sk)
 		if err != nil {
-			iterErr = err
-			return true
+			panic(err)
 		}
 
 		if wb == nil {
@@ -52,7 +46,6 @@ func FixAccounts(ctx sdk.Context, ak *sdkauthkeeper.AccountKeeper, bk bankkeeper
 		return false
 	})
 
-	return iterErr
 }
 
 func MigrateAccount(ctx sdk.Context, account sdktypes.AccountI, bk bankkeeper.Keeper, sk *stakingkeeper.Keeper) (sdktypes.AccountI, error) {
@@ -110,14 +103,10 @@ func MigrateAccount(ctx sdk.Context, account sdktypes.AccountI, bk bankkeeper.Ke
 }
 
 func resetVestingDelegatedBalances(evacct exported.VestingAccount) (exported.VestingAccount, bool) {
-	// reset `DelegatedVesting` and `DelegatedFree` to zero
-	df := sdk.NewCoins()
-	dv := sdk.NewCoins()
-
 	switch vacct := evacct.(type) {
 	case *authtypes.ManualVestingAccount:
-		vacct.DelegatedVesting = dv
-		vacct.DelegatedFree = df
+		vacct.DelegatedVesting = sdk.NewCoins()
+		vacct.DelegatedFree = sdk.NewCoins()
 		return vacct, true
 	default:
 		return nil, false
