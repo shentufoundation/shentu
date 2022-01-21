@@ -45,7 +45,6 @@ func FixAccounts(ctx sdk.Context, ak *sdkauthkeeper.AccountKeeper, bk bankkeeper
 		ak.SetAccount(ctx, mvacc)
 		return false
 	})
-
 }
 
 func MigrateAccount(ctx sdk.Context, account sdktypes.AccountI, bk bankkeeper.Keeper, sk *stakingkeeper.Keeper) (sdktypes.AccountI, error) {

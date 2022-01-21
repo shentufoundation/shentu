@@ -1,10 +1,6 @@
 package mva
 
 import (
-	"github.com/certikfoundation/shentu/v2/common"
-	"github.com/certikfoundation/shentu/v2/x/staking/teststaking"
-	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"math"
 	"testing"
 	"time"
@@ -14,15 +10,19 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkauthkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/certikfoundation/shentu/v2/common"
 	"github.com/certikfoundation/shentu/v2/simapp"
 	"github.com/certikfoundation/shentu/v2/x/auth/types"
 	bankkeeper "github.com/certikfoundation/shentu/v2/x/bank/keeper"
 	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
+	"github.com/certikfoundation/shentu/v2/x/staking/teststaking"
 )
 
 var (
