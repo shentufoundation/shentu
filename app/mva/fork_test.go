@@ -26,17 +26,41 @@ import (
 )
 
 var (
-	acc1 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc2 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc3 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc4 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	pk = genAccs(10)
 
 	baseVAcc = vestingtypes.NewBaseVestingAccount(
-		authtypes.NewBaseAccountWithAddress(acc1), sdk.NewCoins(), math.MaxInt64)
+		authtypes.NewBaseAccountWithAddress(toAddr(pk[0])), sdk.NewCoins(), math.MaxInt64)
 	baseMVA = types.ManualVestingAccount{
 		BaseVestingAccount: baseVAcc,
 		VestedCoins:        sdk.NewCoins(),
-		Unlocker:           acc2.String(),
+		Unlocker:           toAddr(pk[1]).String(),
+	}
+
+	// 2000000uctk vested out of 5000000uctk
+	baseVAcc2 = vestingtypes.NewBaseVestingAccount(
+		authtypes.NewBaseAccountWithAddress(toAddr(pk[1])), sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 5000000)}, math.MaxInt64)
+	baseMVA2 = types.ManualVestingAccount{
+		BaseVestingAccount: baseVAcc2,
+		VestedCoins:        sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 2000000)},
+		Unlocker:           toAddr(pk[2]).String(),
+	}
+
+	// fully vested
+	baseVAcc3 = vestingtypes.NewBaseVestingAccount(
+		authtypes.NewBaseAccountWithAddress(toAddr(pk[2])), sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 5000000)}, math.MaxInt64)
+	baseMVA3 = types.ManualVestingAccount{
+		BaseVestingAccount: baseVAcc3,
+		VestedCoins:        sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 5000000)},
+		Unlocker:           toAddr(pk[3]).String(),
+	}
+
+	// fully vesting (locked)
+	baseVAcc4 = vestingtypes.NewBaseVestingAccount(
+		authtypes.NewBaseAccountWithAddress(toAddr(pk[3])), sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 5000000)}, math.MaxInt64)
+	baseMVA4 = types.ManualVestingAccount{
+		BaseVestingAccount: baseVAcc4,
+		VestedCoins:        sdk.NewCoins(),
+		Unlocker:           toAddr(pk[4]).String(),
 	}
 )
 
@@ -44,13 +68,12 @@ var (
 type ForkTestSuite struct {
 	suite.Suite
 
-	// cdc    *codec.LegacyAmino
+	// cdc    *codec.LegacyAminogenAccs
 	app      *simapp.SimApp
 	ctx      sdk.Context
 	ak       sdkauthkeeper.AccountKeeper
 	bk       bankkeeper.Keeper
 	sk       stakingkeeper.Keeper
-	address  []sdk.AccAddress
 	tstaking *teststaking.Helper
 }
 
@@ -65,6 +88,18 @@ func nextBlock(ctx sdk.Context, tstaking *teststaking.Helper) sdk.Context {
 	tstaking.TurnBlock(ctx)
 
 	return ctx
+}
+
+func genAccs(n int) []ed25519.PrivKey {
+	var pks []ed25519.PrivKey
+	for i := 0; i < n; i++ {
+		pks = append(pks, ed25519.GenPrivKey())
+	}
+	return pks
+}
+
+func toAddr(key ed25519.PrivKey) sdk.AccAddress {
+	return key.PubKey().Address().Bytes()
 }
 
 func (suite *ForkTestSuite) SetupTest() {
@@ -82,7 +117,8 @@ func (suite *ForkTestSuite) SetupTest() {
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(suite.T(), suite.ctx, suite.app.StakingKeeper)
 
-	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
+	for _, pk := range pk {
+		acc := toAddr(pk)
 		err := sdksimapp.FundAccount(
 			suite.app.BankKeeper,
 			suite.ctx,
@@ -106,7 +142,6 @@ func (suite *ForkTestSuite) SetupTest() {
 	tstaking.CheckValidator(val2addr, stakingtypes.Bonded, false)
 
 	suite.tstaking = tstaking
-	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
 }
 
 func (suite *ForkTestSuite) TestFork() {
@@ -135,6 +170,61 @@ func (suite *ForkTestSuite) TestFork() {
 				&baseMVA,
 			},
 		},
+		{
+			"manual vesting account with some delegated vesting coins", args{
+				&baseMVA2,
+				[]sdk.Int{sdk.NewInt(2000000)},
+				[]sdk.Int{sdk.NewInt(1000000)},
+			},
+			errArgs{
+				true,
+				&baseMVA2,
+			},
+		},
+		{
+			"manual vesting account with some delegated vesting and delegated free coins", args{
+				&baseMVA2,
+				[]sdk.Int{sdk.NewInt(3500000)},
+				[]sdk.Int{},
+			},
+			errArgs{
+				true,
+				&baseMVA2,
+			},
+		},
+		{
+			"fully vested manual vesting account", args{
+				&baseMVA3,
+				[]sdk.Int{sdk.NewInt(3500000)},
+				[]sdk.Int{sdk.NewInt(1500000)},
+			},
+			errArgs{
+				true,
+				&baseMVA3,
+			},
+		},
+		{
+			"fully vested manual vesting account", args{
+				&baseMVA3,
+				[]sdk.Int{sdk.NewInt(3500000)},
+				[]sdk.Int{sdk.NewInt(1500000)},
+			},
+			errArgs{
+				true,
+				&baseMVA3,
+			},
+		},
+		{
+			"fully vesting (locked) manual vesting account", args{
+				&baseMVA4,
+				[]sdk.Int{sdk.NewInt(3500000)},
+				[]sdk.Int{sdk.NewInt(1500000)},
+			},
+			errArgs{
+				true,
+				&baseMVA4,
+			},
+		},
 	}
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
@@ -153,7 +243,16 @@ func (suite *ForkTestSuite) TestFork() {
 				}
 				suite.tstaking.Undelegate(tc.args.acc.GetAddress(), operAddr, u.Int64(), true)
 			}
-			res, err := MigrateAccount(suite.ctx, tc.args.acc, suite.bk, &suite.sk)
+
+			// reset account delegation tracking to test the migration
+			var mva types.ManualVestingAccount
+			acc := tc.args.acc.(*types.ManualVestingAccount)
+			mva = *acc
+
+			mva.BaseVestingAccount.DelegatedFree = sdk.NewCoins()
+			mva.BaseVestingAccount.DelegatedVesting = sdk.NewCoins()
+
+			res, err := MigrateAccount(suite.ctx, &mva, suite.bk, &suite.sk)
 			if tc.expected.shouldPass {
 				suite.Require().NoError(err, tc.name)
 				suite.Require().Equal(res, tc.expected.expected)
