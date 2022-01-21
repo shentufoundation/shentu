@@ -243,16 +243,7 @@ func (suite *ForkTestSuite) TestFork() {
 				}
 				suite.tstaking.Undelegate(tc.args.acc.GetAddress(), operAddr, u.Int64(), true)
 			}
-
-			// reset account delegation tracking to test the migration
-			var mva types.ManualVestingAccount
-			acc := tc.args.acc.(*types.ManualVestingAccount)
-			mva = *acc
-
-			mva.BaseVestingAccount.DelegatedFree = sdk.NewCoins()
-			mva.BaseVestingAccount.DelegatedVesting = sdk.NewCoins()
-
-			res, err := MigrateAccount(suite.ctx, &mva, suite.bk, &suite.sk)
+			res, err := MigrateAccount(suite.ctx, tc.args.acc, suite.bk, &suite.sk)
 			if tc.expected.shouldPass {
 				suite.Require().NoError(err, tc.name)
 				suite.Require().Equal(res, tc.expected.expected)
