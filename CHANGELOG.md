@@ -35,6 +35,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v2.3.1] - 01-23-2021
+### State Machine Breaking Changes
+* (app) [\#371](https://github.com/certikfoundation/shentu/pull/371) Implement migration of `ManualVestingAccount`s.
+
 ## [v2.3.0] - 01-04-2021
 
 ### Client Breaking Changes
