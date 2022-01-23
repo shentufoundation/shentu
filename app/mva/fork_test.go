@@ -180,10 +180,10 @@ func (suite *ForkTestSuite) TestFork() {
 			},
 		},
 		{
-			"manual vesting account with some delegated vesting coins (1)", args{
+			"manual vesting account with some delegated vesting coins", args{
 				copyMVA(baseMVA2),
 				[]sdk.Int{sdk.NewInt(2000000)},
-				[]sdk.Int{},
+				[]sdk.Int{sdk.NewInt(1000000)},
 			},
 			errArgs{
 				true,
@@ -192,19 +192,7 @@ func (suite *ForkTestSuite) TestFork() {
 			},
 		},
 		{
-			"manual vesting account with some delegated vesting coins (2)", args{
-				copyMVA(baseMVA2),
-				[]sdk.Int{sdk.NewInt(2000000)},
-				[]sdk.Int{sdk.NewInt(1000000)},
-			},
-			errArgs{
-				true,
-				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 1000000)),
-				sdk.NewCoins(),
-			},
-		},
-		{
-			"manual vesting account with some delegated vesting and delegated free coins (1)", args{
+			"manual vesting account with some delegated vesting and delegated free coins", args{
 				copyMVA(baseMVA2),
 				[]sdk.Int{sdk.NewInt(3500000)},
 				[]sdk.Int{},
@@ -216,34 +204,10 @@ func (suite *ForkTestSuite) TestFork() {
 			},
 		},
 		{
-			"manual vesting account with some delegated vesting and delegated free coins (2)", args{
-				copyMVA(baseMVA2),
-				[]sdk.Int{sdk.NewInt(3500000)},
-				[]sdk.Int{sdk.NewInt(1500000)},
-			},
-			errArgs{
-				true,
-				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 2000000)),
-				sdk.NewCoins(),
-			},
-		},
-		{
-			"manual vesting account with some delegated vesting and delegated free coins (3)", args{
-				copyMVA(baseMVA2),
-				[]sdk.Int{sdk.NewInt(3500000)},
-				[]sdk.Int{sdk.NewInt(250000)},
-			},
-			errArgs{
-				true,
-				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 3000000)),
-				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 250000)),
-			},
-		},
-		{
-			"fully vested manual vesting account (1)", args{
+			"fully vested manual vesting account", args{
 				copyMVA(baseMVA3),
 				[]sdk.Int{sdk.NewInt(3500000)},
-				[]sdk.Int{},
+				[]sdk.Int{sdk.NewInt(1500000)},
 			},
 			errArgs{
 				true,
@@ -252,22 +216,10 @@ func (suite *ForkTestSuite) TestFork() {
 			},
 		},
 		{
-			"fully vested manual vesting account (2)", args{
-				copyMVA(baseMVA3),
-				[]sdk.Int{sdk.NewInt(3500000)},
-				[]sdk.Int{sdk.NewInt(1500000)},
-			},
-			errArgs{
-				true,
-				sdk.NewCoins(),
-				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 2000000)),
-			},
-		},
-		{
-			"fully vesting (locked) manual vesting account (1)", args{
+			"fully vesting (locked) manual vesting account", args{
 				copyMVA(baseMVA4),
 				[]sdk.Int{sdk.NewInt(3500000)},
-				[]sdk.Int{},
+				[]sdk.Int{sdk.NewInt(1500000)},
 			},
 			errArgs{
 				true,
@@ -276,38 +228,14 @@ func (suite *ForkTestSuite) TestFork() {
 			},
 		},
 		{
-			"fully vesting (locked) manual vesting account (2)", args{
-				copyMVA(baseMVA4),
-				[]sdk.Int{sdk.NewInt(3500000)},
-				[]sdk.Int{sdk.NewInt(1500000)},
-			},
-			errArgs{
-				true,
-				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 2000000)),
-				sdk.NewCoins(),
-			},
-		},
-		{
-			"manual vesting account with some delegated vesting coins with multiple validators (1)", args{
-				copyMVA(baseMVA2),
-				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(1000000)},
-				[]sdk.Int{},
-			},
-			errArgs{
-				true,
-				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 2000000)),
-				sdk.NewCoins(),
-			},
-		},
-		{
-			"manual vesting account with some delegated vesting coins with multiple validators (2)", args{
+			"manual vesting account with some delegated vesting coins with multiple validators", args{
 				copyMVA(baseMVA2),
 				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(1000000)},
 				[]sdk.Int{sdk.NewInt(500000), sdk.NewInt(500000)},
 			},
 			errArgs{
 				true,
-				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 1000000)),
+				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 2000000)),
 				sdk.NewCoins(),
 			},
 		},
@@ -324,10 +252,10 @@ func (suite *ForkTestSuite) TestFork() {
 			},
 		},
 		{
-			"fully vested manual vesting account with multiple validators (1)", args{
+			"fully vested manual vesting account with multiple validators", args{
 				copyMVA(baseMVA3),
 				[]sdk.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
-				[]sdk.Int{},
+				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(500000)},
 			},
 			errArgs{
 				true,
@@ -336,38 +264,14 @@ func (suite *ForkTestSuite) TestFork() {
 			},
 		},
 		{
-			"fully vested manual vesting account with multiple validators (2)", args{
-				copyMVA(baseMVA3),
-				[]sdk.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
-				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(500000)},
-			},
-			errArgs{
-				true,
-				sdk.NewCoins(),
-				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 2000000)),
-			},
-		},
-		{
-			"fully vesting (locked) manual vesting account with multiple validators (1)", args{
+			"fully vesting (locked) manual vesting account with multiple validators", args{
 				copyMVA(baseMVA4),
 				[]sdk.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
-				[]sdk.Int{},
+				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(500000)},
 			},
 			errArgs{
 				true,
 				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 3500000)),
-				sdk.NewCoins(),
-			},
-		},
-		{
-			"fully vesting (locked) manual vesting account with multiple validators (2)", args{
-				copyMVA(baseMVA4),
-				[]sdk.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
-				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(500000)},
-			},
-			errArgs{
-				true,
-				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 2000000)),
 				sdk.NewCoins(),
 			},
 		},
@@ -375,7 +279,7 @@ func (suite *ForkTestSuite) TestFork() {
 			"sample failing test case", args{
 				copyMVA(baseMVA4),
 				[]sdk.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
-				[]sdk.Int{},
+				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(500000)},
 			},
 			errArgs{
 				false,
@@ -394,19 +298,14 @@ func (suite *ForkTestSuite) TestFork() {
 				}
 				suite.tstaking.Delegate(tc.args.acc.GetAddress(), operAddr, s.Int64())
 			}
-			suite.tstaking.TurnBlock(suite.ctx)
-
-			if len(tc.args.unbondings) != 0 {
-				for i, u := range tc.args.unbondings {
-					operAddr, err := sdk.ValAddressFromBech32(suite.sk.GetAllValidators(suite.ctx)[i].OperatorAddress)
-					if err != nil {
-						panic(err)
-					}
-					suite.tstaking.Undelegate(tc.args.acc.GetAddress(), operAddr, u.Int64(), true)
+			for i, u := range tc.args.unbondings {
+				operAddr, err := sdk.ValAddressFromBech32(suite.sk.GetAllValidators(suite.ctx)[i].OperatorAddress)
+				if err != nil {
+					panic(err)
 				}
-				suite.tstaking.TurnBlockTimeDiff(suite.tstaking.GetUnbondingTime())
+				suite.tstaking.Undelegate(tc.args.acc.GetAddress(), operAddr, u.Int64(), true)
 			}
-
+			suite.tstaking.TurnBlock(suite.ctx)
 			res := MigrateAccount(suite.ctx, tc.args.acc, suite.bk, &suite.sk)
 
 			resMVA := res.(*types.ManualVestingAccount)

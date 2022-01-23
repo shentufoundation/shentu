@@ -2,7 +2,6 @@ package teststaking
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -111,19 +110,6 @@ func (sh *Helper) CheckDelegator(delegator sdk.AccAddress, val sdk.ValAddress, f
 func (sh *Helper) TurnBlock(ctx sdk.Context) {
 	sh.ctx = ctx
 	staking.EndBlocker(sh.ctx, sh.k.Keeper)
-}
-
-// TurnBlockTimeDiff calls EndBlocker and updates the block time by adding the
-// duration to the current block time
-func (sh *Helper) TurnBlockTimeDiff(diff time.Duration) sdk.Context {
-	sh.ctx = sh.ctx.WithBlockTime(sh.ctx.BlockHeader().Time.Add(diff))
-	staking.EndBlocker(sh.ctx, sh.k.Keeper)
-	return sh.ctx
-}
-
-// GetUnbondingTime returns the unbonding time.
-func (sh *Helper) GetUnbondingTime() time.Duration {
-	return sh.k.Keeper.UnbondingTime(sh.ctx)
 }
 
 // ZeroCommission constructs a commission rates with all zeros.
