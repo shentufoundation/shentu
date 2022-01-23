@@ -27,10 +27,7 @@ func FixAccounts(ctx sdk.Context, ak *sdkauthkeeper.AccountKeeper, bk bankkeeper
 			return false
 		}
 
-		wb, err := MigrateAccount(ctx, mvacc, bk, sk)
-		if err != nil {
-			panic(err)
-		}
+		wb := MigrateAccount(ctx, mvacc, bk, sk)
 
 		if wb == nil {
 			return false
@@ -47,12 +44,12 @@ func FixAccounts(ctx sdk.Context, ak *sdkauthkeeper.AccountKeeper, bk bankkeeper
 	})
 }
 
-func MigrateAccount(ctx sdk.Context, account sdktypes.AccountI, bk bankkeeper.Keeper, sk *stakingkeeper.Keeper) (sdktypes.AccountI, error) {
+func MigrateAccount(ctx sdk.Context, account sdktypes.AccountI, bk bankkeeper.Keeper, sk *stakingkeeper.Keeper) sdktypes.AccountI {
 	bondDenom := sk.BondDenom(ctx)
 
 	asVesting, ok := account.(exported.VestingAccount)
 	if !ok {
-		return nil, nil
+		return nil
 	}
 
 	addr := account.GetAddress()
@@ -88,7 +85,7 @@ func MigrateAccount(ctx sdk.Context, account sdktypes.AccountI, bk bankkeeper.Ke
 
 	asVesting, ok = resetVestingDelegatedBalances(asVesting)
 	if !ok {
-		return nil, nil
+		return nil
 	}
 
 	// balance before any delegation includes balance of delegation
@@ -98,7 +95,7 @@ func MigrateAccount(ctx sdk.Context, account sdktypes.AccountI, bk bankkeeper.Ke
 
 	asVesting.TrackDelegation(ctx.BlockTime(), balance, delegationCoins)
 
-	return asVesting.(sdktypes.AccountI), nil
+	return asVesting.(sdktypes.AccountI)
 }
 
 func resetVestingDelegatedBalances(evacct exported.VestingAccount) (exported.VestingAccount, bool) {

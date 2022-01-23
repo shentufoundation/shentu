@@ -1,7 +1,6 @@
 package mva
 
 import (
-	"math"
 	"testing"
 	"time"
 
@@ -29,7 +28,7 @@ var (
 	pk = genAccs(10)
 
 	baseVAcc = vestingtypes.NewBaseVestingAccount(
-		authtypes.NewBaseAccountWithAddress(toAddr(pk[0])), sdk.NewCoins(), math.MaxInt64)
+		authtypes.NewBaseAccountWithAddress(toAddr(pk[0])), sdk.NewCoins(), 0)
 	baseMVA = types.ManualVestingAccount{
 		BaseVestingAccount: baseVAcc,
 		VestedCoins:        sdk.NewCoins(),
@@ -38,7 +37,7 @@ var (
 
 	// 2000000uctk vested out of 5000000uctk
 	baseVAcc2 = vestingtypes.NewBaseVestingAccount(
-		authtypes.NewBaseAccountWithAddress(toAddr(pk[1])), sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 5000000)}, math.MaxInt64)
+		authtypes.NewBaseAccountWithAddress(toAddr(pk[1])), sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 5000000)}, 0)
 	baseMVA2 = types.ManualVestingAccount{
 		BaseVestingAccount: baseVAcc2,
 		VestedCoins:        sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 2000000)},
@@ -47,7 +46,7 @@ var (
 
 	// fully vested
 	baseVAcc3 = vestingtypes.NewBaseVestingAccount(
-		authtypes.NewBaseAccountWithAddress(toAddr(pk[2])), sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 5000000)}, math.MaxInt64)
+		authtypes.NewBaseAccountWithAddress(toAddr(pk[2])), sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 5000000)}, 0)
 	baseMVA3 = types.ManualVestingAccount{
 		BaseVestingAccount: baseVAcc3,
 		VestedCoins:        sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 5000000)},
@@ -56,7 +55,7 @@ var (
 
 	// fully vesting (locked)
 	baseVAcc4 = vestingtypes.NewBaseVestingAccount(
-		authtypes.NewBaseAccountWithAddress(toAddr(pk[3])), sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 5000000)}, math.MaxInt64)
+		authtypes.NewBaseAccountWithAddress(toAddr(pk[3])), sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 5000000)}, 0)
 	baseMVA4 = types.ManualVestingAccount{
 		BaseVestingAccount: baseVAcc4,
 		VestedCoins:        sdk.NewCoins(),
@@ -100,6 +99,14 @@ func genAccs(n int) []ed25519.PrivKey {
 
 func toAddr(key ed25519.PrivKey) sdk.AccAddress {
 	return key.PubKey().Address().Bytes()
+}
+
+func copyMVA(mva types.ManualVestingAccount) *types.ManualVestingAccount {
+	unlocker, err := sdk.AccAddressFromBech32(mva.Unlocker)
+	if err != nil {
+		panic(err)
+	}
+	return types.NewManualVestingAccount(mva.BaseAccount, mva.OriginalVesting, mva.VestedCoins, unlocker)
 }
 
 func (suite *ForkTestSuite) SetupTest() {
@@ -152,7 +159,8 @@ func (suite *ForkTestSuite) TestFork() {
 	}
 	type errArgs struct {
 		shouldPass bool
-		expected   *types.ManualVestingAccount
+		dV         sdk.Coins
+		dF         sdk.Coins
 	}
 	tests := []struct {
 		name     string
@@ -161,68 +169,122 @@ func (suite *ForkTestSuite) TestFork() {
 	}{
 		{
 			"empty acc", args{
-				&baseMVA,
+				copyMVA(baseMVA),
 				[]sdk.Int{},
 				[]sdk.Int{},
 			},
 			errArgs{
 				true,
-				&baseMVA,
+				sdk.NewCoins(),
+				sdk.NewCoins(),
 			},
 		},
 		{
 			"manual vesting account with some delegated vesting coins", args{
-				&baseMVA2,
+				copyMVA(baseMVA2),
 				[]sdk.Int{sdk.NewInt(2000000)},
 				[]sdk.Int{sdk.NewInt(1000000)},
 			},
 			errArgs{
 				true,
-				&baseMVA2,
+				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 2000000)),
+				sdk.NewCoins(),
 			},
 		},
 		{
 			"manual vesting account with some delegated vesting and delegated free coins", args{
-				&baseMVA2,
+				copyMVA(baseMVA2),
 				[]sdk.Int{sdk.NewInt(3500000)},
 				[]sdk.Int{},
 			},
 			errArgs{
 				true,
-				&baseMVA2,
+				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 3000000)),
+				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 500000)),
 			},
 		},
 		{
 			"fully vested manual vesting account", args{
-				&baseMVA3,
+				copyMVA(baseMVA3),
 				[]sdk.Int{sdk.NewInt(3500000)},
 				[]sdk.Int{sdk.NewInt(1500000)},
 			},
 			errArgs{
 				true,
-				&baseMVA3,
-			},
-		},
-		{
-			"fully vested manual vesting account", args{
-				&baseMVA3,
-				[]sdk.Int{sdk.NewInt(3500000)},
-				[]sdk.Int{sdk.NewInt(1500000)},
-			},
-			errArgs{
-				true,
-				&baseMVA3,
+				sdk.NewCoins(),
+				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 3500000)),
 			},
 		},
 		{
 			"fully vesting (locked) manual vesting account", args{
-				&baseMVA4,
+				copyMVA(baseMVA4),
 				[]sdk.Int{sdk.NewInt(3500000)},
 				[]sdk.Int{sdk.NewInt(1500000)},
 			},
 			errArgs{
 				true,
-				&baseMVA4,
+				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 3500000)),
+				sdk.NewCoins(),
+			},
+		},
+		{
+			"manual vesting account with some delegated vesting coins with multiple validators", args{
+				copyMVA(baseMVA2),
+				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(1000000)},
+				[]sdk.Int{sdk.NewInt(500000), sdk.NewInt(500000)},
+			},
+			errArgs{
+				true,
+				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 2000000)),
+				sdk.NewCoins(),
+			},
+		},
+		{
+			"manual vesting account with some delegated vesting and delegated free coins with multiple validators", args{
+				copyMVA(baseMVA2),
+				[]sdk.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
+				[]sdk.Int{},
+			},
+			errArgs{
+				true,
+				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 3000000)),
+				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 500000)),
+			},
+		},
+		{
+			"fully vested manual vesting account with multiple validators", args{
+				copyMVA(baseMVA3),
+				[]sdk.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
+				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(500000)},
+			},
+			errArgs{
+				true,
+				sdk.NewCoins(),
+				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 3500000)),
+			},
+		},
+		{
+			"fully vesting (locked) manual vesting account with multiple validators", args{
+				copyMVA(baseMVA4),
+				[]sdk.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
+				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(500000)},
+			},
+			errArgs{
+				true,
+				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 3500000)),
+				sdk.NewCoins(),
+			},
+		},
+		{
+			"sample failing test case", args{
+				copyMVA(baseMVA4),
+				[]sdk.Int{sdk.NewInt(2000000), sdk.NewInt(1500000)},
+				[]sdk.Int{sdk.NewInt(1000000), sdk.NewInt(500000)},
+			},
+			errArgs{
+				false,
+				sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 3000000)),
+				sdk.NewCoins(),
 			},
 		},
 	}
@@ -243,12 +305,16 @@ func (suite *ForkTestSuite) TestFork() {
 				}
 				suite.tstaking.Undelegate(tc.args.acc.GetAddress(), operAddr, u.Int64(), true)
 			}
-			res, err := MigrateAccount(suite.ctx, tc.args.acc, suite.bk, &suite.sk)
+			suite.tstaking.TurnBlock(suite.ctx)
+			res := MigrateAccount(suite.ctx, tc.args.acc, suite.bk, &suite.sk)
+
+			resMVA := res.(*types.ManualVestingAccount)
 			if tc.expected.shouldPass {
-				suite.Require().NoError(err, tc.name)
-				suite.Require().Equal(res, tc.expected.expected)
+				suite.Require().Equal(resMVA.BaseVestingAccount.DelegatedVesting, tc.expected.dV)
+				suite.Require().Equal(resMVA.BaseVestingAccount.DelegatedFree, tc.expected.dF)
 			} else {
-				suite.Require().Error(err, tc.name)
+				suite.Require().True(!resMVA.BaseVestingAccount.DelegatedVesting.IsEqual(tc.expected.dV) ||
+					resMVA.BaseVestingAccount.DelegatedFree.IsEqual(tc.expected.dF))
 			}
 		})
 	}
