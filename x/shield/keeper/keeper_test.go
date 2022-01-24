@@ -326,6 +326,8 @@ func TestClaimProposal(t *testing.T) {
 	// create reimbursement
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, loss))
 	proposal := shieldtypes.NewShieldClaimProposal(poolID, lossCoins, "test_claim_evidence", "test_claim_description", purchaser)
+	// TODO: make this more structured
+	proposal.ProposalId = 1
 	err = app.ShieldKeeper.CreateReimbursement(ctx, proposal, purchaser)
 	require.NoError(t, err)
 	reimbursement, err := app.ShieldKeeper.GetReimbursement(ctx, proposalID)
