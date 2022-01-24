@@ -19,9 +19,9 @@ import (
 )
 
 var (
-	flagDeposit       = "deposit"
-	flagShield        = "shield"
-	flagDescription   = "description"
+	flagDeposit     = "deposit"
+	flagShield      = "shield"
+	flagDescription = "description"
 )
 
 // NewTxCmd returns the transaction commands for this module.

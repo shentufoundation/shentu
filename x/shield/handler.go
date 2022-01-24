@@ -85,7 +85,7 @@ func handleShieldClaimProposal(ctx sdk.Context, k keeper.Keeper, p *types.Shield
 	if err != nil {
 		panic(err)
 	}
-	if err := k.CreateReimbursement(ctx, p.ProposalId, p.Loss, proposerAddr); err != nil {
+	if err := k.CreateReimbursement(ctx, p, proposerAddr); err != nil {
 		return err
 	}
 

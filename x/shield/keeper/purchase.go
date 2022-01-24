@@ -112,3 +112,20 @@ func (k Keeper) DistributeFees(ctx sdk.Context) {
 	remainingServiceFees = remainingServiceFees.Add(blockServiceFees...)
 	k.SetRemainingServiceFees(ctx, remainingServiceFees)
 }
+
+func (k Keeper) RecoverPurchases(ctx sdk.Context) {
+	bondDenom := k.BondDenom(ctx)
+	k.IteratePurchases(ctx, func(purchase types.Purchase) bool {
+		var updated []types.RecoveringEntry
+		for _, e := range purchase.RecoveringEntries {
+			if e.RecoverTime.Before(ctx.BlockTime()) {
+				purchase.Shield = purchase.Shield.Add(e.Amount.AmountOf(bondDenom))
+			} else {
+				updated = append(updated, e)
+			}
+		}
+		purchase.RecoveringEntries = updated
+		k.SetPurchase(ctx, purchase)
+		return false
+	})
+}

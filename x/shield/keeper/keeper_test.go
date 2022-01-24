@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"encoding/hex"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 	"math"
 	"testing"
 	"time"
@@ -324,7 +325,8 @@ func TestClaimProposal(t *testing.T) {
 
 	// create reimbursement
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, loss))
-	err = app.ShieldKeeper.CreateReimbursement(ctx, proposalID, lossCoins, purchaser)
+	proposal := shieldtypes.NewShieldClaimProposal(poolID, lossCoins, "test_claim_evidence", "test_claim_description", purchaser)
+	err = app.ShieldKeeper.CreateReimbursement(ctx, proposal, purchaser)
 	require.NoError(t, err)
 	reimbursement, err := app.ShieldKeeper.GetReimbursement(ctx, proposalID)
 	require.NoError(t, err)

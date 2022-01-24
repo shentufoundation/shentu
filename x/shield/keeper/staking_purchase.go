@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/certikfoundation/shentu/v2/common"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
@@ -108,6 +109,29 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 	if sp.StartTime.Add(cd).After(ctx.BlockTime()) {
 		return types.ErrBeforeCooldownEnd
 	}
+
+	pool, found := k.GetPool(ctx, poolID)
+	if !found {
+		return types.ErrNoPoolFound
+	}
+
+	// update shield amount
+	shieldRate := pool.ShieldRate
+	shieldReducAmt := common.MulCoins(amount, shieldRate)
+	var updatedRE []types.RecoveringEntry
+	for _, e := range sp.RecoveringEntries {
+		if e.Amount.IsAllLTE(shieldReducAmt) {
+			shieldReducAmt = shieldReducAmt.Sub(e.Amount)
+			continue
+		} else if shieldReducAmt.IsAllLTE(e.Amount) {
+			e.Amount = e.Amount.Sub(shieldReducAmt)
+			updatedRE = append(updatedRE, e)
+		} else if shieldReducAmt.Empty() {
+			updatedRE = append(updatedRE, e)
+		}
+	}
+	sp.RecoveringEntries = updatedRE
+
 	sp.Amount = sp.Amount.Sub(bdAmount)
 	if sp.Amount.Equal(sdk.ZeroInt()) {
 		k.DeletePurchase(ctx, poolID, purchaser)
@@ -117,11 +141,8 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 	}
 
 	// update pool
-	pool, found := k.GetPool(ctx, poolID)
-	if !found {
-		return types.ErrNoPoolFound
-	}
 	pool.Shield = pool.Shield.Sub(bdAmount.ToDec().Mul(pool.ShieldRate).TruncateInt())
+	k.SetPool(ctx, pool)
 
 	// update global pool
 	bondDenomAmt := bdAmount
