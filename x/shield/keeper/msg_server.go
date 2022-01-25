@@ -353,3 +353,39 @@ func (k msgServer) WithdrawReimbursement(goCtx context.Context, msg *types.MsgWi
 func (k msgServer) WithdrawForeignRewards(goCtx context.Context, msg *types.MsgWithdrawForeignRewards) (*types.MsgWithdrawForeignRewardsResponse, error) {
 	return &types.MsgWithdrawForeignRewardsResponse{}, nil
 }
+
+func (k msgServer) Donate(goCtx context.Context, msg *types.MsgDonate) (*types.MsgDonateResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return nil, err
+	}
+
+	bondDenom := k.Keeper.BondDenom(ctx)
+	for _, coin := range msg.Amount {
+		if coin.Denom != bondDenom {
+			return nil, types.ErrDonationBadDenom
+		}
+	}
+	amount := msg.Amount.AmountOf(bondDenom)
+
+	if err := k.Keeper.Donate(ctx, fromAddr, amount); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeMsgDonate,
+			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
+	})
+
+	return &types.MsgDonateResponse{}, nil
+}

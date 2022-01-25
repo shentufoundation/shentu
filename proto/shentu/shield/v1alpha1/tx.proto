@@ -21,6 +21,7 @@ service Msg {
     rpc UpdateSponsor(MsgUpdateSponsor) returns (MsgUpdateSponsorResponse);
     rpc Purchase(MsgPurchase) returns (MsgPurchaseResponse);
     rpc Unstake(MsgUnstake) returns (MsgUnstakeResponse);
+    rpc Donate(MsgDonate) returns (MsgDonateResponse);
 }
 
 // MsgCreatePool defines the attributes of a create-pool transaction.
@@ -189,3 +190,13 @@ message MsgUpdateSponsor {
   
 message MsgUpdateSponsorResponse {}
 
+// MsgDonate represents a message to donate tokens to Shield Donation Pool.
+message MsgDonate {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+    repeated cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+}
+  
+message MsgDonateResponse {}
