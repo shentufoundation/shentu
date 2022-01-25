@@ -165,7 +165,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		description := simtypes.RandStringOfLength(r, 42)
 		shieldRate := simtypes.RandomDecAmount(r, sdk.NewDec(10))
 		if shieldRate.IsZero() {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, err.Error()), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, "zero shield rate"), nil, nil
 		}
 
 		msg := types.NewMsgCreatePool(simAccount.Address, shield, serviceFees, sponsor, sponsorAcc.Address, description, shieldRate)
@@ -246,7 +246,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		description := simtypes.RandStringOfLength(r, 42)
 		shieldRate := simtypes.RandomDecAmount(r, sdk.NewDec(10))
 		if shieldRate.IsZero() {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, err.Error()), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, "zero shield rate"), nil, nil
 		}
 
 		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description, shieldRate)
