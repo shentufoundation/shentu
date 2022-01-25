@@ -48,6 +48,7 @@ func NewTxCmd() *cobra.Command {
 		GetCmdWithdrawReimbursement(),
 		GetCmdUpdateSponsor(),
 		GetCmdUnstake(),
+		GetCmdDoante(),
 	)
 
 	return shieldTxCmd
@@ -613,6 +614,39 @@ $ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address> --fr
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdDoante implements donating to Shield Donation Pool.
+func GetCmdDoante() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "donate [amount]",
+		Short: "donate to Shield Donation Pool",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+
+			fromAddr := cliCtx.GetFromAddress()
+
+			donation, err := sdk.ParseCoinsNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDonate(fromAddr, donation)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
