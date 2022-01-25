@@ -21,7 +21,6 @@ const (
 	TypeMsgStakeForShield         = "stake_for_shield"
 	TypeMsgUnstakeFromShield      = "unstake_from_shield"
 	TypeMsgUpdateSponsor          = "update_sponsor"
-	TypeMsgDonate                 = "donate"
 )
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
@@ -220,51 +219,6 @@ func (msg MsgResumePool) ValidateBasic() error {
 
 	if msg.PoolId == 0 {
 		return ErrInvalidPoolID
-	}
-	return nil
-}
-
-// NewMsgDonate creates a new MsgDonate instance.
-func NewMsgDonate(sender sdk.AccAddress, amount sdk.Coins) *MsgDonate {
-	return &MsgDonate{
-		From:       sender.String(),
-		Amount:     amount,
-	}
-}
-
-// Route implements the sdk.Msg interface.
-func (msg MsgDonate) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgDonate) Type() string { return "donate" }
-
-// GetSigners implements the sdk.Msg interface.
-func (msg MsgDonate) GetSigners() []sdk.AccAddress {
-	from, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{from}
-}
-
-// GetSignBytes implements the sdk.Msg interface.
-func (msg MsgDonate) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgDonate) ValidateBasic() error {
-	from, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		panic(err)
-	}
-	if from.Empty() {
-		return ErrEmptySender
-	}
-
-	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Donation amount: %s", msg.Amount)
 	}
 	return nil
 }
