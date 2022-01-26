@@ -24,6 +24,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	gs.NextPoolId = 1
 	gs.PoolParams = GenPoolParams(r)
 	gs.ClaimProposalParams = GenClaimProposalParams(r)
+	gs.BlockRewardParams = GenBlockRewardParams(r)
 
 	var stakingGenState stakingtypes.GenesisState
 	stakingGenStatebz := simState.GenState[stakingtypes.ModuleName]
