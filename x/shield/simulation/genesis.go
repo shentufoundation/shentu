@@ -71,9 +71,10 @@ func GenShieldStakingRateParam(r *rand.Rand) sdk.Dec {
 }
 
 func GenBlockRewardParams(r *rand.Rand) types.BlockRewardParams {
-	modelParamA := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 0, 2)), 1)
-	modelParamB := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 2, 4)), 1)
-	return types.NewBlockRewardParams(modelParamA, modelParamB)
+	modelParamA := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 0, 20)), 2)
+	modelParamB := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 20, 40)), 2)
+	targetLeverage := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 40, 60)), 1)
+	return types.NewBlockRewardParams(modelParamA, modelParamB, targetLeverage)
 }
 
 // GetRandDenom generates a random coin denom.

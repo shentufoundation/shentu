@@ -30,8 +30,9 @@ var (
 	DefaultStakingShieldRate = sdk.NewDec(2)
 
 	// default values for block reward parameters
-	DefaultModelParamA = sdk.NewDecWithPrec(1, 1)
-	DefaultModelParamB = sdk.NewDecWithPrec(3, 1)
+	DefaultModelParamA    = sdk.NewDecWithPrec(10, 2)
+	DefaultModelParamB    = sdk.NewDecWithPrec(30, 2)
+	DefaultTargetLeverage = sdk.NewDec(5)
 )
 
 // parameter keys
@@ -165,16 +166,17 @@ func validateStakingShieldRateParams(i interface{}) error {
 }
 
 // NewBlockRewardParams creates a new BlockRewardParams object.
-func NewBlockRewardParams(modelParamA, modelParamB sdk.Dec) BlockRewardParams {
+func NewBlockRewardParams(modelParamA, modelParamB, targetLeverage sdk.Dec) BlockRewardParams {
 	return BlockRewardParams{
-		ModelParamA: modelParamA,
-		ModelParamB: modelParamB,
+		ModelParamA:    modelParamA,
+		ModelParamB:    modelParamB,
+		TargetLeverage: targetLeverage,
 	}
 }
 
 // DefaultBlockRewardParams returns a default BlockRewardParams instance.
 func DefaultBlockRewardParams() BlockRewardParams {
-	return NewBlockRewardParams(DefaultModelParamA, DefaultModelParamB)
+	return NewBlockRewardParams(DefaultModelParamA, DefaultModelParamB, DefaultTargetLeverage)
 }
 
 func validateBlockRewardParams(i interface{}) error {
@@ -184,12 +186,16 @@ func validateBlockRewardParams(i interface{}) error {
 	}
 	modelParamA := v.ModelParamA
 	modelParamB := v.ModelParamB
+	targetLeverage := v.TargetLeverage
 
 	if modelParamA.IsNegative() || modelParamA.GT(sdk.OneDec()) {
 		return fmt.Errorf("block reward model param a range should be [0, 1], but got %s", modelParamA)
 	}
 	if modelParamB.IsNegative() || modelParamB.GT(sdk.OneDec()) {
 		return fmt.Errorf("block reward model param b range should be [0, 1], but got %s", modelParamB)
+	}
+	if targetLeverage.IsNegative() {
+		return fmt.Errorf("block reward model param b range should not be negative, but got %s", targetLeverage)
 	}
 
 	return nil

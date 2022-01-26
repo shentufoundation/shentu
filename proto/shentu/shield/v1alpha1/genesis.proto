@@ -83,4 +83,5 @@ message BlockRewardParams {
 
     string model_param_a = 1 [ (gogoproto.moretags) = "yaml:\"model_param_a\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
     string model_param_b = 2 [ (gogoproto.moretags) = "yaml:\"model_param_b\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    string target_leverage = 3 [ (gogoproto.moretags) = "yaml:\"target_leverage\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }
