@@ -38,6 +38,6 @@ func (k Keeper) SetBlockRewardParams(ctx sdk.Context, blockRewardParams types.Bl
 // GetBlockRewardParams returns shield block reward parameters.
 func (k Keeper) GetBlockRewardParams(ctx sdk.Context) types.BlockRewardParams {
 	var blockRewardParams types.BlockRewardParams
-	k.paramSpace.Get(ctx, types.ParamStoreKeyPoolParams, &blockRewardParams)
+	k.paramSpace.Get(ctx, types.ParamStoreKeyBlockRewardParams, &blockRewardParams)
 	return blockRewardParams
 }

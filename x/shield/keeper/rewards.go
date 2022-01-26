@@ -74,14 +74,21 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 func (k Keeper) GetShieldBlockRewardRatio(ctx sdk.Context) sdk.Dec {
 	totalShield := k.GetTotalShield(ctx)
 	totalCollateral := k.GetTotalCollateral(ctx)
-	leverage := totalShield.ToDec().Quo(totalCollateral.ToDec()) // l
+
+	var leverage sdk.Dec // l = (total shield) / (total collateral)
+	if totalCollateral.IsZero() {
+		leverage = sdk.NewDec(0)
+	} else {
+		leverage = totalShield.ToDec().Quo(totalCollateral.ToDec())
+	}
 
 	blockRewardParams := k.GetBlockRewardParams(ctx)
 	modelParamA := blockRewardParams.ModelParamA       // a
 	modelParamB := blockRewardParams.ModelParamB       // b
 	targetLeverage := blockRewardParams.TargetLeverage // L
 
-	/*                         l
+	/* The non-linear model:
+	 *                         l
 	 *   r = a + 2(b - a) * -------
 	 *                       l + L
 	 */
