@@ -23,6 +23,13 @@ func NewPool(id uint64, description, sponsor string, sponsorAddress sdk.AccAddre
 	}
 }
 
+// zero donation pool
+func InitialDonationPool() DonationPool {
+	return DonationPool{
+		Amount: sdk.NewInt(0),
+	}
+}
+
 // NewProvider creates a new provider object.
 func NewProvider(addr sdk.AccAddress) Provider {
 	return Provider{

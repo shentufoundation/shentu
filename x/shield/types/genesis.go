@@ -10,9 +10,10 @@ import (
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
-	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, serviceFees, remainingServiceFees sdk.DecCoins,
-	pools []Pool, providers []Provider, withdraws []Withdraw, globalStakingPool sdk.Int,
-	stakingPurchases []Purchase, proposalIDReimbursementPairs []ProposalIDReimbursementPair) GenesisState {
+	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, 
+	serviceFees, remainingServiceFees sdk.DecCoins, pools []Pool, providers []Provider, withdraws []Withdraw, 
+	globalStakingPool sdk.Int, stakingPurchases []Purchase, proposalIDReimbursementPairs []ProposalIDReimbursementPair,
+	donationPool DonationPool) GenesisState {
 	return GenesisState{
 		ShieldAdmin:                  shieldAdmin.String(),
 		NextPoolId:                   nextPoolID,
@@ -31,6 +32,7 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		GlobalStakingPool:            globalStakingPool,
 		Purchases:                    stakingPurchases,
 		ProposalIDReimbursementPairs: proposalIDReimbursementPairs,
+		DonationPool:                 donationPool,
 	}
 }
 
@@ -47,6 +49,7 @@ func DefaultGenesisState() *GenesisState {
 		TotalClaimed:         sdk.ZeroInt(),
 		ServiceFees:          sdk.NewDecCoins(),
 		RemainingServiceFees: sdk.NewDecCoins(),
+		DonationPool:         InitialDonationPool(),
 	}
 }
 
@@ -54,6 +57,9 @@ func DefaultGenesisState() *GenesisState {
 func ValidateGenesis(data GenesisState) error {
 	if data.NextPoolId < 1 {
 		return fmt.Errorf("failed to validate %s genesis state: NextPoolID must be positive ", ModuleName)
+	}
+	if data.DonationPool.Amount.IsNegative() {
+		return fmt.Errorf("donation pool amount is negative %v", data.DonationPool.Amount)
 	}
 	if err := validatePoolParams(data.PoolParams); err != nil {
 		return fmt.Errorf("failed to validate %s pool params: %w", ModuleName, err)
