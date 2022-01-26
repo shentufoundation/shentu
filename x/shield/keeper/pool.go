@@ -191,7 +191,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, msg types.MsgUpdatePool) (types.Pool
 	if err != nil {
 		return types.Pool{}, err
 	}
-	
+
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
