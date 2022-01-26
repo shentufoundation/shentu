@@ -30,9 +30,9 @@ var (
 	DefaultStakingShieldRate = sdk.NewDec(2)
 
 	// default values for block reward parameters
-	DefaultModelParamA    = sdk.NewDecWithPrec(10, 2)
-	DefaultModelParamB    = sdk.NewDecWithPrec(30, 2)
-	DefaultTargetLeverage = sdk.NewDec(5)
+	DefaultModelParamA    = sdk.NewDecWithPrec(10, 2) // 0.1
+	DefaultModelParamB    = sdk.NewDecWithPrec(30, 2) // 0.3
+	DefaultTargetLeverage = sdk.NewDec(5)             // 5
 )
 
 // parameter keys
