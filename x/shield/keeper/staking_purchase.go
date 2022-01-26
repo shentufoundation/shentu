@@ -140,9 +140,16 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 		k.SetPurchase(ctx, sp)
 	}
 
+	shieldDecrease := bdAmount.ToDec().Mul(pool.ShieldRate).TruncateInt()
+
 	// update pool
-	pool.Shield = pool.Shield.Sub(bdAmount.ToDec().Mul(pool.ShieldRate).TruncateInt())
+	pool.Shield = pool.Shield.Sub(shieldDecrease)
 	k.SetPool(ctx, pool)
+
+	// update total shield
+	totalShield := k.GetTotalShield(ctx)
+	newTotalShield := totalShield.Sub(shieldDecrease)
+	k.SetTotalShield(ctx, newTotalShield)
 
 	// update global pool
 	bondDenomAmt := bdAmount
