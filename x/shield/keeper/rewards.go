@@ -77,7 +77,7 @@ func (k Keeper) GetShieldBlockRewardRatio(ctx sdk.Context) sdk.Dec {
 
 	var leverage sdk.Dec // l = (total shield) / (total collateral)
 	if totalCollateral.IsZero() {
-		leverage = sdk.NewDec(0)
+		leverage = sdk.ZeroDec()
 	} else {
 		leverage = totalShield.ToDec().Quo(totalCollateral.ToDec())
 	}

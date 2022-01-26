@@ -70,6 +70,7 @@ func GenShieldStakingRateParam(r *rand.Rand) sdk.Dec {
 	return random
 }
 
+// GenBlockRewardParams returns a randomized BlockRewardParams object.
 func GenBlockRewardParams(r *rand.Rand) types.BlockRewardParams {
 	modelParamA := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 0, 20)), 2)
 	modelParamB := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 20, 40)), 2)
