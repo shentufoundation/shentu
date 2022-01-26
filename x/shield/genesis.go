@@ -15,6 +15,7 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []abci.ValidatorUpdate {
 	k.SetPoolParams(ctx, data.PoolParams)
 	k.SetClaimProposalParams(ctx, data.ClaimProposalParams)
+	k.SetBlockRewardParams(ctx, data.BlockRewardParams)
 
 	adminAddr := sdk.AccAddress{}
 	var err error
@@ -79,8 +80,9 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	globalStakingPool := k.GetGlobalStakingPool(ctx)
 	stakingPurchases := k.GetAllPurchase(ctx)
 	reimbursements := k.GetAllProposalIDReimbursementPairs(ctx)
+	blockRewardParams := k.GetBlockRewardParams(ctx)
 
 	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams,
 		totalCollateral, totalWithdrawing, totalShield, totalClaimed, serviceFees, remainingServiceFees, pools,
-		providers, withdraws, globalStakingPool, stakingPurchases, reimbursements, types.DefaultBlockRewardParams())
+		providers, withdraws, globalStakingPool, stakingPurchases, reimbursements, blockRewardParams)
 }
