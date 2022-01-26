@@ -195,7 +195,7 @@ func validateBlockRewardParams(i interface{}) error {
 		return fmt.Errorf("block reward model param b range should be [0, 1], but got %s", modelParamB)
 	}
 	if targetLeverage.IsNegative() {
-		return fmt.Errorf("block reward model param b range should not be negative, but got %s", targetLeverage)
+		return fmt.Errorf("block reward target leverage range should not be negative, but got %s", targetLeverage)
 	}
 
 	return nil
