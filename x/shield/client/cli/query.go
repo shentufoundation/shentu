@@ -410,7 +410,7 @@ func GetCmdReimbursements() *cobra.Command {
 	return cmd
 }
 
-// GetCmdDonations returns the command for querying a donation pool.
+// GetCmdDonations returns the command for querying the donation pool.
 func GetCmdDonations() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "donations",
