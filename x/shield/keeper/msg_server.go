@@ -32,9 +32,8 @@ func (k msgServer) CreatePool(goCtx context.Context, msg *types.MsgCreatePool) (
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.TypeMsgCreatePool,
-			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
-			sdk.NewAttribute(types.AttributeKeyDeposit, msg.Deposit.String()),
-			sdk.NewAttribute(types.AttributeKeySponsor, msg.Sponsor),
+			sdk.NewAttribute(types.AttributeKeySponsorAddress, msg.SponsorAddr),
+			sdk.NewAttribute(types.AttributeKeyShieldRate, msg.ShieldRate.String()),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(poolID, 10)),
 		),
 		sdk.NewEvent(
@@ -246,7 +245,6 @@ func (k msgServer) UpdateSponsor(goCtx context.Context, msg *types.MsgUpdateSpon
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.TypeMsgUpdateSponsor,
-			sdk.NewAttribute(types.AttributeKeySponsor, pool.Sponsor),
 			sdk.NewAttribute(types.AttributeKeySponsorAddress, pool.SponsorAddr),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(pool.Id, 10)),
 		),

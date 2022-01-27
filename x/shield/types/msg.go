@@ -27,9 +27,6 @@ const (
 func NewMsgCreatePool(accAddr sdk.AccAddress, shield, deposit sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldRate sdk.Dec) *MsgCreatePool {
 	return &MsgCreatePool{
 		From:        accAddr.String(),
-		Shield:      shield,
-		Deposit:     deposit,
-		Sponsor:     sponsor,
 		SponsorAddr: sponsorAddr.String(),
 		Description: description,
 		ShieldRate:  shieldRate,
@@ -67,12 +64,6 @@ func (msg MsgCreatePool) ValidateBasic() error {
 		return ErrEmptySender
 	}
 
-	if strings.TrimSpace(msg.Sponsor) == "" {
-		return ErrEmptySponsor
-	}
-	if !msg.Shield.IsValid() || msg.Shield.IsZero() {
-		return ErrNoShield
-	}
 	if !msg.ShieldRate.IsPositive() {
 		return ErrInvalidShieldRate
 	}
@@ -83,8 +74,6 @@ func (msg MsgCreatePool) ValidateBasic() error {
 func NewMsgUpdatePool(accAddr sdk.AccAddress, shield, serviceFees sdk.Coins, id uint64, description string, shieldRate sdk.Dec) *MsgUpdatePool {
 	return &MsgUpdatePool{
 		From:        accAddr.String(),
-		Shield:      shield,
-		ServiceFees: serviceFees,
 		PoolId:      id,
 		Description: description,
 		ShieldRate:  shieldRate,
@@ -124,9 +113,6 @@ func (msg MsgUpdatePool) ValidateBasic() error {
 
 	if msg.PoolId == 0 {
 		return ErrInvalidPoolID
-	}
-	if !msg.Shield.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid shield")
 	}
 	if !msg.ShieldRate.IsPositive() {
 		return ErrInvalidShieldRate
