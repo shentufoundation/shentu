@@ -172,7 +172,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg types.MsgCreatePool) (uint64, er
 	if !creator.Equals(admin) {
 		return 0, types.ErrNotShieldAdmin
 	}
-	if _, found := k.GetPoolsBySponsor(ctx, msg.Sponsor); found {
+	if _, found := k.GetPoolsBySponsor(ctx, msg.SponsorAddr); found {
 		return 0, types.ErrSponsorAlreadyExists
 	}
 
@@ -191,7 +191,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, msg types.MsgUpdatePool) (types.Pool
 	if err != nil {
 		return types.Pool{}, err
 	}
-	
+
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
