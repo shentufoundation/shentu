@@ -39,6 +39,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdStaking(),
 		GetCmdReimbursement(),
 		GetCmdReimbursements(),
+		GetCmdDonations(),
 	)
 
 	return shieldQueryCmd
@@ -406,5 +407,29 @@ func GetCmdReimbursements() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdDonations returns the command for querying a donation pool.
+func GetCmdDonations() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "donations",
+		Short: "query donation amount to Shield Donation Pool",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.Donations(cmd.Context(), &types.QueryDonationsRequest{})
+			if err != nil {
+				return err
+			}
+			return cliCtx.PrintProto(&res.Amount)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
