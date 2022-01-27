@@ -59,7 +59,7 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	bondDenomAmt := amount.AmountOf(k.BondDenom(ctx))
 
 	// TODO: handle when purchase > collateral
-	maxPurchase := sdk.MaxInt(k.GetTotalCollateral(ctx).Sub(k.GetTotalShield(ctx)).Quo(pool.ShieldRate.TruncateInt()), sdk.ZeroInt())
+	maxPurchase := sdk.MaxInt(k.GetTotalCollateral(ctx).Sub(k.GetTotalShield(ctx)).ToDec().Quo(pool.ShieldRate).TruncateInt(), sdk.ZeroInt())
 	bondDenomAmt = sdk.MinInt(maxPurchase, bondDenomAmt)
 	if bondDenomAmt.Equal(sdk.ZeroInt()) {
 		return types.Purchase{}, nil

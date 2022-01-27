@@ -158,22 +158,27 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
 }
 
 // CreatePool creates a pool and sponsor's shield.
-func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield, serviceFees sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string) (uint64, error) {
+func (k Keeper) CreatePool(ctx sdk.Context, msg types.MsgCreatePool) (uint64, error) {
+	creator, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return 0, err
+	}
+	sponsorAddr, err := sdk.AccAddressFromBech32(msg.SponsorAddr)
+	if err != nil {
+		return 0, err
+	}
+
 	admin := k.GetAdmin(ctx)
 	if !creator.Equals(admin) {
 		return 0, types.ErrNotShieldAdmin
 	}
-	if _, found := k.GetPoolsBySponsor(ctx, sponsor); found {
+	if _, found := k.GetPoolsBySponsor(ctx, msg.Sponsor); found {
 		return 0, types.ErrSponsorAlreadyExists
 	}
 
 	// Set the new project pool.
 	poolID := k.GetNextPoolID(ctx)
-	pool := types.NewPool(poolID, description, sponsor, sponsorAddr, sdk.ZeroInt())
-
-	// TODO: implement full pool creation
-	// TODO: get input
-	pool.ShieldRate = types.DefaultShieldRate
+	pool := types.NewPool(poolID, msg.Description, msg.Sponsor, sponsorAddr, sdk.ZeroInt(), msg.ShieldRate)
 
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, poolID+1)
@@ -181,19 +186,27 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield, serv
 }
 
 // UpdatePool updates pool info and shield for B.
-func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield, serviceFees sdk.Coins) (types.Pool, error) {
+func (k Keeper) UpdatePool(ctx sdk.Context, msg types.MsgUpdatePool) (types.Pool, error) {
+	updater, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return types.Pool{}, err
+	}
+	
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
 	}
 
 	// Update pool info.
-	pool, found := k.GetPool(ctx, poolID)
+	pool, found := k.GetPool(ctx, msg.PoolId)
 	if !found {
 		return types.Pool{}, types.ErrNoPoolFound
 	}
-	if description != "" {
-		pool.Description = description
+	if msg.Description != "" {
+		pool.Description = msg.Description
+	}
+	if !msg.ShieldRate.IsZero() {
+		pool.ShieldRate = msg.ShieldRate
 	}
 	k.SetPool(ctx, pool)
 

@@ -24,16 +24,7 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreatePool(goCtx context.Context, msg *types.MsgCreatePool) (*types.MsgCreatePoolResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		return nil, err
-	}
-	sponsorAddr, err := sdk.AccAddressFromBech32(msg.SponsorAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	poolID, err := k.Keeper.CreatePool(ctx, fromAddr, msg.Shield, msg.Deposit, msg.Sponsor, sponsorAddr, msg.Description)
+	poolID, err := k.Keeper.CreatePool(ctx, *msg)
 	if err != nil {
 		return nil, err
 	}
@@ -59,12 +50,7 @@ func (k msgServer) CreatePool(goCtx context.Context, msg *types.MsgCreatePool) (
 func (k msgServer) UpdatePool(goCtx context.Context, msg *types.MsgUpdatePool) (*types.MsgUpdatePoolResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = k.Keeper.UpdatePool(ctx, msg.PoolId, msg.Description, fromAddr, msg.Shield, msg.ServiceFees)
+	_, err := k.Keeper.UpdatePool(ctx, *msg)
 	if err != nil {
 		return nil, err
 	}
