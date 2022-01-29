@@ -38,11 +38,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 	}
 	k.SetNextPoolID(ctx, data.NextPoolId)
 	k.SetNextPurchaseID(ctx, data.NextPurchaseId)
-
 	for _, purchase := range data.Purchases {
 		k.SetPurchase(ctx, purchase)
 	}
-
 	for _, provider := range data.Providers {
 		providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
 		if err != nil {
@@ -57,6 +55,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 		k.SetReimbursement(ctx, pRPair.ProposalId, pRPair.Reimbursement)
 	}
 	k.SetDonationPool(ctx, data.DonationPool)
+	for _, payout := range data.PendingPayouts {
+		k.SetPendingPayout(ctx, payout)
+	}
+
 	return []abci.ValidatorUpdate{}
 }
 
@@ -81,8 +83,9 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	stakingPurchases := k.GetAllPurchase(ctx)
 	reimbursements := k.GetAllProposalIDReimbursementPairs(ctx)
 	donationPool := k.GetDonationPool(ctx)
+	pendingPayouts := k.GetAllPendingPayouts(ctx)
 
 	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams,
 		totalCollateral, totalWithdrawing, totalShield, totalClaimed, serviceFees, remainingServiceFees, pools,
-		providers, withdraws, globalStakingPool, stakingPurchases, reimbursements, donationPool)
+		providers, withdraws, globalStakingPool, stakingPurchases, reimbursements, donationPool, pendingPayouts)
 }

@@ -13,7 +13,7 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, 
 	serviceFees, remainingServiceFees sdk.DecCoins, pools []Pool, providers []Provider, withdraws []Withdraw, 
 	globalStakingPool sdk.Int, stakingPurchases []Purchase, proposalIDReimbursementPairs []ProposalIDReimbursementPair,
-	donationPool DonationPool) GenesisState {
+	donationPool DonationPool, pendingPayouts []PendingPayout) GenesisState {
 	return GenesisState{
 		ShieldAdmin:                  shieldAdmin.String(),
 		NextPoolId:                   nextPoolID,
@@ -33,6 +33,7 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		Purchases:                    stakingPurchases,
 		ProposalIDReimbursementPairs: proposalIDReimbursementPairs,
 		DonationPool:                 donationPool,
+		PendingPayouts:				  pendingPayouts,
 	}
 }
 

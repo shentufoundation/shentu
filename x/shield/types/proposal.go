@@ -107,6 +107,14 @@ func NewReimbursement(amount sdk.Coins, beneficiary sdk.AccAddress, payoutTime t
 	}
 }
 
+// NewPendingPayout returns a new PendingPayout instance.
+func NewPendingPayout(proposalID uint64, amount sdk.Int) PendingPayout {
+	return PendingPayout{
+		ProposalId:  proposalID,
+		Amount:      amount,
+	}
+}
+
 // NewProposalIDReimbursementPair returns a new ProposalIDReimbursementPair instance.
 func NewProposalIDReimbursementPair(proposalID uint64, reimbursement Reimbursement) ProposalIDReimbursementPair {
 	return ProposalIDReimbursementPair{

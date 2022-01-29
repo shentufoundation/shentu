@@ -32,6 +32,7 @@ message GenesisState {
     repeated Purchase purchases = 19 [ (gogoproto.moretags) = "yaml:\"purchases\"", (gogoproto.nullable) = false ];
     repeated ProposalIDReimbursementPair proposalID_reimbursement_pairs = 21 [ (gogoproto.moretags) = "yaml:\"proposalID_reimbursement_pairs\"", (gogoproto.nullable) = false ];
     DonationPool donation_pool = 22 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"donation_pool\""];
+    repeated PendingPayout pending_payouts = 23 [ (gogoproto.moretags) = "yaml:\"pending_payouts\"", (gogoproto.nullable) = false ];
 }
 
 message ProposalIDReimbursementPair {
