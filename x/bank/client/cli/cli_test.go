@@ -2,23 +2,19 @@ package cli_test
 
 import (
 	"fmt"
-
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-
-	"github.com/certikfoundation/shentu/v2/app"
-
-	"github.com/cosmos/cosmos-sdk/client/flags"
-
-	"github.com/certikfoundation/shentu/v2/x/bank/client/cli"
-
-	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
-	"github.com/cosmos/cosmos-sdk/testutil/network"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"testing"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
+	"github.com/cosmos/cosmos-sdk/testutil/network"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/certikfoundation/shentu/v2/app"
+	"github.com/certikfoundation/shentu/v2/x/bank/client/cli"
 )
 
 type IntegrationTestSuite struct {
