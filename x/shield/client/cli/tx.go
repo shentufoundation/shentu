@@ -21,7 +21,6 @@ import (
 var (
 	flagNativeDeposit = "native-deposit"
 	flagShield        = "shield"
-	flagSponsor       = "sponsor"
 	flagDescription   = "description"
 	flagShieldLimit   = "shield-limit"
 )
