@@ -940,7 +940,7 @@ var (
 
 	pattern_Query_Purchase_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"shentu", "shield", "v1alpha1", "purchase", "pool_id", "purchaser"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Reimbursement_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"shentu", "shield", "v1alpha1", "proposal", "proposal_id", "reimbursement"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Reimbursement_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "shield", "v1alpha1", "reimbursement", "proposal_id"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_Reimbursements_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1alpha1", "reimbursements"}, "", runtime.AssumeColonVerbOpt(true)))
 )

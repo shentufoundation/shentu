@@ -25,8 +25,6 @@ func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/pool_params", types.QuerierRoute), queryPoolParamsHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/claim_params", types.QuerierRoute), queryClaimParamsHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/status", types.QuerierRoute), queryStatusHandler(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/staked_for_shield/{poolID}/{address}", types.QuerierRoute), queryStakeForShieldHandler(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/shield_staking_rate", types.QuerierRoute), queryShieldStakingRateHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/reimbursement/{proposalID}", types.QuerierRoute), queryReimbursementHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/reimbursements", types.QuerierRoute), queryReimbursementsHandler(cliCtx)).Methods("GET")
 }
@@ -281,48 +279,6 @@ func queryStatusHandler(cliCtx client.Context) http.HandlerFunc {
 		}
 
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryStatus)
-		res, height, err := cliCtx.QueryWithData(route, nil)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
-	}
-}
-
-func queryStakeForShieldHandler(cliCtx client.Context) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-		if !ok {
-			return
-		}
-
-		vars := mux.Vars(r)
-		poolID := vars["poolID"]
-		address := vars["address"]
-
-		route := fmt.Sprintf("custom/%s/%s/%s/%s", types.QuerierRoute, types.QueryStakedForShield, poolID, address)
-		res, height, err := cliCtx.QueryWithData(route, nil)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
-			return
-		}
-
-		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
-	}
-}
-
-func queryShieldStakingRateHandler(cliCtx client.Context) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-		if !ok {
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryShieldStakingRate)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())

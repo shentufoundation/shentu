@@ -24,7 +24,7 @@ const (
 )
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
-func NewMsgCreatePool(accAddr sdk.AccAddress, shield, deposit sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldRate sdk.Dec) *MsgCreatePool {
+func NewMsgCreatePool(accAddr, sponsorAddr sdk.AccAddress, description string, shieldRate sdk.Dec) *MsgCreatePool {
 	return &MsgCreatePool{
 		From:        accAddr.String(),
 		SponsorAddr: sponsorAddr.String(),
@@ -71,7 +71,7 @@ func (msg MsgCreatePool) ValidateBasic() error {
 }
 
 // NewMsgUpdatePool creates a new MsgUpdatePool instance.
-func NewMsgUpdatePool(accAddr sdk.AccAddress, shield, serviceFees sdk.Coins, id uint64, description string, shieldRate sdk.Dec) *MsgUpdatePool {
+func NewMsgUpdatePool(accAddr sdk.AccAddress, id uint64, description string, shieldRate sdk.Dec) *MsgUpdatePool {
 	return &MsgUpdatePool{
 		From:        accAddr.String(),
 		PoolId:      id,
