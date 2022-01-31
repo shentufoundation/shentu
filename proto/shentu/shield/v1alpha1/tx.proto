@@ -29,12 +29,9 @@ message MsgCreatePool {
     option (gogoproto.goproto_getters) = false;
 
     string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
-    repeated cosmos.base.v1beta1.Coin shield = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    repeated cosmos.base.v1beta1.Coin deposit = 3 [ (gogoproto.moretags) = "yaml:\"deposit\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    string sponsor = 4 [ (gogoproto.moretags) = "yaml:\"sponsor\"" ];
-    string sponsor_addr = 5 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
-    string description = 6 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string shield_rate = 7 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    string sponsor_addr = 2 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
+    string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string shield_rate = 4 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }
 
 message MsgCreatePoolResponse {}
@@ -45,11 +42,9 @@ message MsgUpdatePool {
     option (gogoproto.goproto_getters) = false;
   
     string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
-    repeated cosmos.base.v1beta1.Coin shield = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    repeated cosmos.base.v1beta1.Coin service_fees = 3 [ (gogoproto.moretags) = "yaml:\"service_fees\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    uint64 pool_id = 4 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
-    string description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string shield_rate = 6 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    uint64 pool_id = 2 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
+    string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string shield_rate = 4 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }
   
 message MsgUpdatePoolResponse {}

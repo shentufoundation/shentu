@@ -258,7 +258,7 @@ func TestClaimProposal(t *testing.T) {
 	// $BondDenom pool with shield = 100,000 $BondDenom, limit = 500,000 $BondDenom, serviceFees = 200 $BondDenom
 	tstaking.Delegate(shieldAdmin, val1addr, adminDeposit)
 	tshield.DepositCollateral(shieldAdmin, adminDeposit, true)
-	tshield.CreatePool(shieldAdmin, sponsorAddr, 200e6, 100e9, "CertiK", "fake_description", sdk.NewDec(1))
+	tshield.CreatePool(shieldAdmin, sponsorAddr, "fake_description", sdk.NewDec(1))
 
 	pools := app.ShieldKeeper.GetAllPools(ctx)
 	require.True(t, len(pools) == 1)
