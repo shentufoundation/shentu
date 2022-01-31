@@ -29,3 +29,15 @@ func (k Keeper) GetClaimProposalParams(ctx sdk.Context) types.ClaimProposalParam
 	k.paramSpace.Get(ctx, types.ParamStoreKeyClaimProposalParams, &claimProposalParams)
 	return claimProposalParams
 }
+
+// SetBlockRewardParams sets parameters subspace for shield block reward parameters.
+func (k Keeper) SetBlockRewardParams(ctx sdk.Context, blockRewardParams types.BlockRewardParams) {
+	k.paramSpace.Set(ctx, types.ParamStoreKeyBlockRewardParams, &blockRewardParams)
+}
+
+// GetBlockRewardParams returns shield block reward parameters.
+func (k Keeper) GetBlockRewardParams(ctx sdk.Context) types.BlockRewardParams {
+	var blockRewardParams types.BlockRewardParams
+	k.paramSpace.Get(ctx, types.ParamStoreKeyBlockRewardParams, &blockRewardParams)
+	return blockRewardParams
+}
