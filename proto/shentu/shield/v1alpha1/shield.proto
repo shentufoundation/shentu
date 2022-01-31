@@ -15,7 +15,6 @@ message Pool {
 
     uint64 id = 1 [ (gogoproto.moretags) = "yaml:\"id\"" ];
     string description = 2 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string sponsor = 3 [ (gogoproto.moretags) = "yaml:\"sponsor\"" ];
     string sponsor_addr = 4 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
     bool active = 5 [ (gogoproto.moretags) = "yaml:\"active\"" ];
     string shield = 6 [ (gogoproto.moretags) = "yaml:\"shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
