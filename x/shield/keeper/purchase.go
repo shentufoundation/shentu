@@ -71,18 +71,15 @@ func (k Keeper) GetPoolPurchases(ctx sdk.Context, poolID uint64) (res []types.Pu
 	return
 }
 
-// DistributeFees removes expired purchases and distributes fees for current block.
+// DistributeFees distributes rewards for current block plus leftover rewards for last block.
 func (k Keeper) DistributeFees(ctx sdk.Context) {
 	serviceFees := sdk.NewDecCoins()
-	bondDenom := k.BondDenom(ctx)
 
 	// TODO: Add support for any denoms.
 
-	// Limit service fees by remaining service fees.
+	// Add leftover block service fees from last block
 	remainingServiceFees := k.GetRemainingServiceFees(ctx)
-	if remainingServiceFees.AmountOf(bondDenom).LT(serviceFees.AmountOf(bondDenom)) {
-		serviceFees = remainingServiceFees
-	}
+	serviceFees = serviceFees.Add(remainingServiceFees...)
 
 	// Add block service fees that need to be distributed for this block.
 	blockServiceFees := k.GetBlockServiceFees(ctx)
@@ -100,15 +97,11 @@ func (k Keeper) DistributeFees(ctx sdk.Context) {
 
 		// fees * providerCollateral / totalCollateral
 		nativeFees := serviceFees.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
-		if nativeFees.AmountOf(bondDenom).GT(remainingServiceFees.AmountOf(bondDenom)) {
-			nativeFees = remainingServiceFees
-		}
 		provider.Rewards = provider.Rewards.Add(nativeFees...)
 		k.SetProvider(ctx, providerAddr, provider)
-
-		remainingServiceFees = remainingServiceFees.Sub(nativeFees)
+		serviceFees = serviceFees.Sub(nativeFees)
 	}
-	// add back block service fees
-	remainingServiceFees = remainingServiceFees.Add(blockServiceFees...)
-	k.SetRemainingServiceFees(ctx, remainingServiceFees)
+
+	// Store remaining block reward as new leftover
+	k.SetRemainingServiceFees(ctx, serviceFees)
 }
