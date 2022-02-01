@@ -227,8 +227,8 @@ func (msg MsgResumePool) ValidateBasic() error {
 // NewMsgDonate creates a new MsgDonate instance.
 func NewMsgDonate(sender sdk.AccAddress, amount sdk.Coins) *MsgDonate {
 	return &MsgDonate{
-		From:       sender.String(),
-		Amount:     amount,
+		From:   sender.String(),
+		Amount: amount,
 	}
 }
 

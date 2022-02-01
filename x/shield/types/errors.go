@@ -98,5 +98,4 @@ var (
 	ErrBeforeCooldownEnd          = sdkerrors.Register(ModuleName, errBeforeCooldownEnd, "cooldown period is not over for the purchase")
 	ErrDonationBadDenom           = sdkerrors.Register(ModuleName, errDonationBadDenom, "invalid coin denomination for donation")
 	ErrPendingPayoutExists        = sdkerrors.Register(ModuleName, errPendingPayoutExists, "there is a pending payout corresponding to this reimbursement")
-
 )

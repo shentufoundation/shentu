@@ -43,7 +43,6 @@ func (k Keeper) SetPendingPayout(ctx sdk.Context, pp types.PendingPayout) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&pp)
 	store.Set(types.GetPendingPayoutKey(pp.ProposalId), bz)
-	return
 }
 
 // GetPendingPayout retrieves a pending payout.
