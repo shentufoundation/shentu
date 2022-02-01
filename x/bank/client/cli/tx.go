@@ -7,8 +7,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	
+
 	"github.com/certikfoundation/shentu/v2/x/bank/types"
+)
+
+const (
+	FlagUnlocker = "unlocker"
 )
 
 func LockedSendTxCmd() *cobra.Command {
@@ -45,7 +49,7 @@ func LockedSendTxCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
-	cmd.Flags().AddFlagSet(FlagAddUnlocker())
+	cmd.Flags().String(FlagUnlocker, "", "unlocker when initializing a new manual vesting account")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
