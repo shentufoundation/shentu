@@ -2,8 +2,9 @@ package app
 
 import (
 	"fmt"
-	"github.com/certikfoundation/shentu/v2/common"
 	"time"
+
+	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -15,9 +16,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	dbm "github.com/tendermint/tm-db"
-
 	"github.com/certikfoundation/shentu/v2/app/params"
+	"github.com/certikfoundation/shentu/v2/common"
 )
 
 // DefaultConfig returns a default configuration suitable for nearly all

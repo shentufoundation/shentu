@@ -2,7 +2,6 @@ package cli_test
 
 import (
 	"fmt"
-	"github.com/certikfoundation/shentu/v2/common"
 	"testing"
 
 	"github.com/gogo/protobuf/proto"
@@ -15,6 +14,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/app"
+	"github.com/certikfoundation/shentu/v2/common"
 	"github.com/certikfoundation/shentu/v2/x/bank/client/cli"
 )
 
