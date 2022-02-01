@@ -55,6 +55,10 @@ service Query {
   rpc Reimbursements(QueryReimbursementsRequest) returns (QueryReimbursementsResponse) {
     option (google.api.http).get = "/shentu/shield/v1alpha1/reimbursements";
   }
+
+  rpc Donations(QueryDonationsRequest) returns (QueryDonationsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/donations";
+  }
 }
 
 
@@ -149,4 +153,11 @@ message QueryReimbursementsRequest {
 
 message QueryReimbursementsResponse {
   repeated ProposalIDReimbursementPair pairs = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryDonationsRequest {
+}
+
+message QueryDonationsResponse {
+  DonationPool amount = 1 [ (gogoproto.nullable) = false ];
 }

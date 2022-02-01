@@ -165,3 +165,12 @@ func (q Keeper) Reimbursements(c context.Context, req *types.QueryReimbursements
 
 	return &types.QueryReimbursementsResponse{Pairs: q.GetAllProposalIDReimbursementPairs(ctx)}, nil
 }
+
+// Donations queries all shield donation pool amount.
+func (q Keeper) Donations(c context.Context, req *types.QueryDonationsRequest) (*types.QueryDonationsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	return &types.QueryDonationsResponse{Amount: q.GetDonationPool(ctx)}, nil
+}
