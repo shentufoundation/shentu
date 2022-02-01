@@ -23,11 +23,11 @@ import (
 )
 
 var (
-	denom    = common.MicroCTKDenom
-	acc1 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc2 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc3 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc4 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	denom = common.MicroCTKDenom
+	acc1  = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc2  = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc3  = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc4  = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 )
 
 // shared setup
@@ -93,7 +93,7 @@ func (suite *KeeperTestSuite) TestSendCoins() {
 	}{
 		{"Sender(1) isValid: SendAmt < Total Amount",
 			args{
-				sendAmt: sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(200))},
+				sendAmt:    sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(200))},
 				accBalance: sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(800))},
 				fromAddr:   suite.address[0],
 				toAddr:     suite.address[1],
@@ -105,7 +105,7 @@ func (suite *KeeperTestSuite) TestSendCoins() {
 		},
 		{"Sender(1) inValid Coins: SendAmt = 0",
 			args{
-				sendAmt: sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(0))},
+				sendAmt:    sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(0))},
 				accBalance: sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(1000))},
 				fromAddr:   suite.address[0],
 				toAddr:     suite.address[1],
@@ -117,7 +117,7 @@ func (suite *KeeperTestSuite) TestSendCoins() {
 		},
 		{"Sender(1) inValid: SendAmt > Total Amount",
 			args{
-				sendAmt: sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(11000))},
+				sendAmt:    sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(11000))},
 				accBalance: sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(1000))},
 				fromAddr:   suite.address[0],
 				toAddr:     suite.address[1],
@@ -201,8 +201,8 @@ func (suite *KeeperTestSuite) TestInputOutputCoins() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			inputs := []bankTypes.Input{
-				{Address: tc.args.Addr1.String(), Coins:  tc.args.amount},
-				{Address: tc.args.Addr1.String(), Coins:  tc.args.amount},
+				{Address: tc.args.Addr1.String(), Coins: tc.args.amount},
+				{Address: tc.args.Addr1.String(), Coins: tc.args.amount},
 			}
 			outputs := []bankTypes.Output{
 				{Address: tc.args.Addr2.String(), Coins: tc.args.amount},
