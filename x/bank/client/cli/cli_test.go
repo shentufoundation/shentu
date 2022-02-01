@@ -2,6 +2,7 @@ package cli_test
 
 import (
 	"fmt"
+	"github.com/certikfoundation/shentu/v2/common"
 	"testing"
 
 	"github.com/gogo/protobuf/proto"
@@ -29,7 +30,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.cfg = app.DefaultConfig()
 
 	s.cfg.NumValidators = 2
-	s.cfg.BondDenom = "uctk"
+	s.cfg.BondDenom = common.MicroCTKDenom
 	s.cfg.AccountTokens = sdk.NewInt(100_000_000_000)
 	s.cfg.StakingTokens = sdk.NewInt(100_000_000_000)
 

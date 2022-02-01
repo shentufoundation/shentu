@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/certikfoundation/shentu/v2/common"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -35,8 +36,8 @@ func DefaultConfig() network.Config {
 		TimeoutCommit:     1 * time.Second,
 		ChainID:           "shentu-code-test",
 		NumValidators:     1,
-		BondDenom:         "uctk",
-		MinGasPrices:      fmt.Sprintf("0.025%s", "uctk"),
+		BondDenom:         common.MicroCTKDenom,
+		MinGasPrices:      fmt.Sprintf("0.025%s", common.MicroCTKDenom),
 		AccountTokens:     sdk.TokensFromConsensusPower(1000, sdk.DefaultPowerReduction),
 		StakingTokens:     sdk.TokensFromConsensusPower(500, sdk.DefaultPowerReduction),
 		BondedTokens:      sdk.TokensFromConsensusPower(100, sdk.DefaultPowerReduction),
