@@ -74,7 +74,7 @@ func (msg MsgCreatePool) ValidateBasic() error {
 	if !msg.Shield.IsValid() || msg.Shield.IsZero() {
 		return ErrNoShield
 	}
-	if !msg.ShieldRate.IsPositive() {
+	if !msg.ShieldRate.GTE(sdk.NewDec(1)) {
 		return ErrInvalidShieldRate
 	}
 	return nil

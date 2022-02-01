@@ -28,6 +28,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	if !found {
 		return types.ErrNoPoolFound
 	}
+	// TODO: shield ratio
 	if lossAmt.GT(pool.Shield) {
 		return types.ErrNotEnoughShield
 	}
