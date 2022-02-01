@@ -45,6 +45,16 @@ func (k Keeper) SetPendingPayout(ctx sdk.Context, pp types.PendingPayout) {
 	store.Set(types.GetPendingPayoutKey(pp.ProposalId), bz)
 }
 
+// DeletePendingPayout deletes a pending payout given its proposal ID.
+func (k Keeper) DeletePendingPayout(ctx sdk.Context, proposalID uint64) error {
+	store := ctx.KVStore(k.storeKey)
+	if _, found := k.GetPendingPayout(ctx, proposalID); !found {
+		return types.ErrPendingPayoutNotFound
+	}
+	store.Delete(types.GetPendingPayoutKey(proposalID))
+	return nil
+}
+
 // GetPendingPayout retrieves a pending payout.
 func (k Keeper) GetPendingPayout(ctx sdk.Context, proposalId uint64) (pp types.PendingPayout, found bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -81,7 +91,52 @@ func (k Keeper) IteratePendingPayouts(ctx sdk.Context, callback func(pp types.Pe
 	}
 }
 
-// // MakePayouts ...
-// func (k Keeper) MakePayouts(ctx sdk.Context) {
+// ProcessPendingPayout processes the given amount from a pending
+// payout.
+func (k Keeper) ProcessPendingPayout(ctx sdk.Context, pp types.PendingPayout, amount sdk.Int) error {
+	reimb, err := k.GetReimbursement(ctx, pp.ProposalId)
+	if err != nil {
+		return types.ErrReimbursementNotFound
+	}
+	reimb.Amount = reimb.Amount.Add(sdk.NewCoin(k.BondDenom(ctx), amount))
+	k.SetReimbursement(ctx, pp.ProposalId, reimb)
 
-// }
+	pp.Amount = pp.Amount.Sub(amount)
+	if pp.Amount.IsZero() {
+		if pp.Amount.IsNegative() { //testing purpose
+			panic("negative pending payout amount")
+		}
+		k.DeletePendingPayout(ctx, pp.ProposalId)
+	}
+	k.SetPendingPayout(ctx, pp)
+	return nil
+}
+
+// MakePayouts makes payouts from donation pool to pending payouts.
+// It processes as many pending payouts as possible.
+// TODO: Order matters??
+func (k Keeper) MakePayouts(ctx sdk.Context) {
+	donationPool := k.GetDonationPool(ctx)
+
+	k.IteratePendingPayouts(ctx, func(payout types.PendingPayout) bool {
+		if donationPool.Amount.IsZero() {
+			if donationPool.Amount.IsNegative() { //testing purpose
+				panic("negative donation pool")
+			}
+			return true
+		}
+
+		var amount sdk.Int
+		if donationPool.Amount.GTE(payout.Amount) {
+			amount = payout.Amount
+		} else {
+			amount = donationPool.Amount
+		}
+
+		k.ProcessPendingPayout(ctx, payout, amount)
+		donationPool.Amount = donationPool.Amount.Sub(amount)
+		return false
+	})
+
+	k.SetDonationPool(ctx, donationPool)
+}
