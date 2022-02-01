@@ -57,7 +57,27 @@ func (scp ShieldClaimProposal) ProposalType() string {
 
 // ValidateBasic runs basic stateless validity checks.
 func (scp ShieldClaimProposal) ValidateBasic() error {
-	// TODO: implement ValidateBasic for Claim proposals https://github.com/ShentuChain/shentu-private/issues/14
+	proposalID, err := sdk.AccAddressFromBech32(scp.ProposalId)
+	if err != nil {
+		panic(err)
+	}
+	if proposalID.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+	}
+	poolID, err := sdk.AccAddressFromBech32(scp.PoolID)
+	if err != nil {
+		panic(err)
+	}
+	if poolID.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+	}
+	proposerAddr, err := sdk.AccAddressFromBech32(scp.Proposer)
+	if err != nil {
+		panic(err)
+	}
+	if proposerAddr.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
+	}
 	return nil
 }
 
