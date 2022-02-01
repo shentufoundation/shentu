@@ -39,7 +39,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdStaking(),
 		GetCmdReimbursement(),
 		GetCmdReimbursements(),
-		GetCmdDonations(),
+		GetCmdDonationPool(),
 	)
 
 	return shieldQueryCmd
@@ -410,10 +410,10 @@ func GetCmdReimbursements() *cobra.Command {
 	return cmd
 }
 
-// GetCmdDonations returns the command for querying the donation pool.
-func GetCmdDonations() *cobra.Command {
+// GetCmdDonationPool returns the command for querying the donation pool.
+func GetCmdDonationPool() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "donations",
+		Use:   "donation-pool",
 		Short: "query donation amount to Shield Donation Pool",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
