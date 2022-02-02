@@ -49,7 +49,7 @@ func RandomPoolInfo(r *rand.Rand, k Keeper, ctx sdk.Context) (uint64, string, bo
 		return 0, "", false
 	}
 	i := r.Intn(len(pools))
-	return pools[i].Id, pools[i].Sponsor, true
+	return pools[i].Id, pools[i].SponsorAddr, true
 }
 
 // RandomPurchase returns a random purchase given access to the keeper and ctx.

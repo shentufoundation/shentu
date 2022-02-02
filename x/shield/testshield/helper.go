@@ -42,10 +42,8 @@ func (sh *Helper) WithdrawCollateral(addr sdk.AccAddress, amount int64, ok bool)
 	sh.Handle(msg, ok)
 }
 
-func (sh *Helper) CreatePool(addr, sponsorAddr sdk.AccAddress, nativeDeposit, shield int64, sponsor, description string, shieldRate sdk.Dec) {
-	shieldCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, shield))
-	depositCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, nativeDeposit))
-	msg := types.NewMsgCreatePool(addr, shieldCoins, depositCoins, sponsor, sponsorAddr, description, shieldRate)
+func (sh *Helper) CreatePool(addr, sponsorAddr sdk.AccAddress, description string, shieldRate sdk.Dec) {
+	msg := types.NewMsgCreatePool(addr, sponsorAddr, description, shieldRate)
 	sh.Handle(msg, true)
 }
 

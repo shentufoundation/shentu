@@ -19,10 +19,8 @@ import (
 )
 
 var (
-	flagDeposit       = "deposit"
-	flagShield        = "shield"
-	flagDescription   = "description"
-	flagShieldRate    = "shield-rate"
+	flagDescription = "description"
+	flagShieldRate  = "shield-rate"
 )
 
 // NewTxCmd returns the transaction commands for this module.
@@ -141,19 +139,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --deposit
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			shield, err := sdk.ParseCoinsNormalized(args[0])
-			if err != nil {
-				return err
-			}
-
-			sponsor := args[1]
-
 			sponsorAddr, err := sdk.AccAddressFromBech32(args[2])
-			if err != nil {
-				return err
-			}
-
-			deposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagDeposit))
 			if err != nil {
 				return err
 			}
@@ -165,7 +151,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --deposit
 				return err
 			}
 
-			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, description, shieldRate)
+			msg := types.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -175,7 +161,6 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --deposit
 	}
 
 	cmd.Flags().String(flagDescription, "", "description for the pool")
-	cmd.Flags().String(flagDeposit, "", "Initial deposit amount")
 	cmd.Flags().String(flagShieldRate, "", "Shield Rate")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
@@ -210,16 +195,6 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				return err
 			}
 
-			deposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagDeposit))
-			if err != nil {
-				return err
-			}
-
-			shield, err := sdk.ParseCoinsNormalized(viper.GetString(flagShield))
-			if err != nil {
-				return err
-			}
-
 			description := viper.GetString(flagDescription)
 
 			var shieldRate sdk.Dec
@@ -230,7 +205,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				}
 			}
 
-			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, description, shieldRate)
+			msg := types.NewMsgUpdatePool(fromAddr, id, description, shieldRate)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -239,8 +214,6 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 		},
 	}
 
-	cmd.Flags().String(flagShield, "", "CTK Shield amount")
-	cmd.Flags().String(flagDeposit, "", "Additional deposit amount")
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagShieldRate, "", "Shield Rate")
 	flags.AddTxFlagsToCmd(cmd)

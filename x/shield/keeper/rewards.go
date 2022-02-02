@@ -69,3 +69,28 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 	}
 	return ctkRewards, nil
 }
+
+// GetShieldBlockRewardRatio calculates the dynamic ratio for block rewards to shield module, based on total shield and total collateral.
+func (k Keeper) GetShieldBlockRewardRatio(ctx sdk.Context) sdk.Dec {
+	totalShield := k.GetTotalShield(ctx)
+	totalCollateral := k.GetTotalCollateral(ctx)
+
+	var leverage sdk.Dec // l = (total shield) / (total collateral)
+	if totalCollateral.IsZero() {
+		leverage = sdk.ZeroDec()
+	} else {
+		leverage = totalShield.ToDec().Quo(totalCollateral.ToDec())
+	}
+
+	blockRewardParams := k.GetBlockRewardParams(ctx)
+	modelParamA := blockRewardParams.ModelParamA       // a
+	modelParamB := blockRewardParams.ModelParamB       // b
+	targetLeverage := blockRewardParams.TargetLeverage // L
+
+	/* The non-linear model:
+	 *                         l
+	 *   r = a + 2(b - a) * -------
+	 *                       l + L
+	 */
+	return leverage.Quo(leverage.Add(targetLeverage)).Mul(modelParamB.Sub(modelParamA).MulInt64(2)).Add(modelParamA)
+}

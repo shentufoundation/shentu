@@ -31,6 +31,7 @@ message GenesisState {
     string global_staking_pool = 18 [ (gogoproto.moretags) = "yaml:\"global_staking_pool\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     repeated Purchase purchases = 19 [ (gogoproto.moretags) = "yaml:\"purchases\"", (gogoproto.nullable) = false ];
     repeated ProposalIDReimbursementPair proposalID_reimbursement_pairs = 21 [ (gogoproto.moretags) = "yaml:\"proposalID_reimbursement_pairs\"", (gogoproto.nullable) = false ];
+    BlockRewardParams block_reward_params = 22 [ (gogoproto.moretags) = "yaml:\"block_reward_params\"", (gogoproto.nullable) = false ];
 }
 
 message ProposalIDReimbursementPair {
@@ -73,4 +74,14 @@ message ClaimProposalParams {
     repeated cosmos.base.v1beta1.Coin min_deposit = 3 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
     string deposit_rate = 4 [ (gogoproto.moretags) = "yaml:\"deposit_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
     string fees_rate = 5 [ (gogoproto.moretags) = "yaml:\"fees_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+}
+
+// BlockRewardParams defines the parameters for shield block reward.
+message BlockRewardParams {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string model_param_a = 1 [ (gogoproto.moretags) = "yaml:\"model_param_a\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    string model_param_b = 2 [ (gogoproto.moretags) = "yaml:\"model_param_b\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    string target_leverage = 3 [ (gogoproto.moretags) = "yaml:\"target_leverage\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }

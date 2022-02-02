@@ -39,8 +39,8 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	communityPoolRatio := k.GetCommunityPoolRatio(ctx)
 	communityPoolCoins := k.GetPoolMint(ctx, communityPoolRatio, mintedCoin)
 
-	shieldStakeForShieldPoolRatio := k.GetShieldStakeForShieldPoolRatio(ctx)
-	SPPCoins := k.GetPoolMint(ctx, shieldStakeForShieldPoolRatio, mintedCoin)
+	shieldBlockRewardRatio := k.GetShieldBlockRewardRatio(ctx)
+	SPPCoins := k.GetPoolMint(ctx, shieldBlockRewardRatio, mintedCoin)
 	collectedFeesCoins := mintedCoins.Sub(communityPoolCoins).Sub(SPPCoins)
 
 	// send the minted coins to the fee collector account
