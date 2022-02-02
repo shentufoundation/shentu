@@ -43,7 +43,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	if !found {
 		return types.ErrPurchaseNotFound
 	}
-	if lossAmt.GT(purchase.Amount) {
+	if lossAmt.GT(purchase.Shield) {
 		return types.ErrNotEnoughShield
 	}
 
