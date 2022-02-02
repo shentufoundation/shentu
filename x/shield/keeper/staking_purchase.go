@@ -132,6 +132,18 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 	}
 	sp.RecoveringEntries = updatedRE
 
+	totalShield := k.GetTotalShield(ctx)
+	if !shieldReducAmt.IsZero() {
+		sp.Shield = sp.Shield.Sub(shieldReducAmt.AmountOf(k.BondDenom(ctx)))
+		// pool shield is already decreased for the loss amount when the claim proposal is submitted
+		pool.Shield = pool.Shield.Sub(shieldReducAmt.AmountOf(k.BondDenom(ctx)))
+		k.SetPool(ctx, pool)
+
+		// update total shield
+		newTotalShield := totalShield.Sub(shieldReducAmt.AmountOf(k.BondDenom(ctx)))
+		k.SetTotalShield(ctx, newTotalShield)
+	}
+
 	sp.Amount = sp.Amount.Sub(bdAmount)
 	if sp.Amount.Equal(sdk.ZeroInt()) {
 		k.DeletePurchase(ctx, poolID, purchaser)
@@ -140,26 +152,13 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 		k.SetPurchase(ctx, sp)
 	}
 
-	shieldDecrease := bdAmount.ToDec().Mul(pool.ShieldRate).TruncateInt()
-
-	// update pool
-	pool.Shield = pool.Shield.Sub(shieldDecrease)
-	k.SetPool(ctx, pool)
-
-	// update total shield
-	totalShield := k.GetTotalShield(ctx)
-	newTotalShield := totalShield.Sub(shieldDecrease)
-	k.SetTotalShield(ctx, newTotalShield)
-
 	// update global pool
 	bondDenomAmt := bdAmount
 	gSPool := k.GetGlobalStakingPool(ctx)
 	gSPool = gSPool.Sub(bondDenomAmt)
 	k.SetGlobalStakingPool(ctx, gSPool)
 
-	withdrawCoins := amount
-
-	return k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, withdrawCoins)
+	return k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, amount)
 }
 
 func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error {
