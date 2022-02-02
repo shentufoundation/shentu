@@ -85,9 +85,9 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	reimbursements := k.GetAllProposalIDReimbursementPairs(ctx)
 	donationPool := k.GetDonationPool(ctx)
 	pendingPayouts := k.GetAllPendingPayouts(ctx)
-  blockRewardParams := k.GetBlockRewardParams(ctx)
+	blockRewardParams := k.GetBlockRewardParams(ctx)
 	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams,
 		totalCollateral, totalWithdrawing, totalShield, totalClaimed, serviceFees, remainingServiceFees, pools,
 		providers, withdraws, globalStakingPool, stakingPurchases, reimbursements, donationPool, pendingPayouts,
-    blockRewardParams)
+		blockRewardParams)
 }

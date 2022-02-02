@@ -19,8 +19,6 @@ import (
 )
 
 var (
-	flagDeposit     = "deposit"
-	flagShield      = "shield"
 	flagDescription = "description"
 	flagShieldRate  = "shield-rate"
 )
@@ -128,7 +126,7 @@ func GetCmdCreatePool() *cobra.Command {
 			fmt.Sprintf(`Create a Shield pool. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --deposit <ctk deposit> --shield-rate <shield rate>
+$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-rate <shield rate>
 `,
 				version.AppName,
 			),
