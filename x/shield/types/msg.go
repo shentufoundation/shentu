@@ -65,12 +65,6 @@ func (msg MsgCreatePool) ValidateBasic() error {
 		return ErrEmptySender
 	}
 
-	if strings.TrimSpace(msg.Sponsor) == "" {
-		return ErrEmptySponsor
-	}
-	if !msg.Shield.IsValid() || msg.Shield.IsZero() {
-		return ErrNoShield
-	}
 	if !msg.ShieldRate.GTE(sdk.NewDec(1)) {
 		return ErrInvalidShieldRate
 	}
