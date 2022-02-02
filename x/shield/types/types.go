@@ -11,11 +11,10 @@ var (
 )
 
 // NewPool creates a new project pool.
-func NewPool(id uint64, description, sponsor string, sponsorAddress sdk.AccAddress, shield sdk.Int, shieldRate sdk.Dec) Pool {
+func NewPool(id uint64, description string, sponsorAddress sdk.AccAddress, shield sdk.Int, shieldRate sdk.Dec) Pool {
 	return Pool{
 		Id:          id,
 		Description: description,
-		Sponsor:     sponsor,
 		SponsorAddr: sponsorAddress.String(),
 		Active:      true,
 		Shield:      shield,

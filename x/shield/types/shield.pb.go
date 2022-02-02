@@ -34,7 +34,6 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type Pool struct {
 	Id          uint64                                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty" yaml:"id"`
 	Description string                                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty" yaml:"description"`
-	Sponsor     string                                 `protobuf:"bytes,3,opt,name=sponsor,proto3" json:"sponsor,omitempty" yaml:"sponsor"`
 	SponsorAddr string                                 `protobuf:"bytes,4,opt,name=sponsor_addr,json=sponsorAddr,proto3" json:"sponsor_addr,omitempty" yaml:"sponsor_addr"`
 	Active      bool                                   `protobuf:"varint,5,opt,name=active,proto3" json:"active,omitempty" yaml:"active"`
 	Shield      github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,6,opt,name=shield,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"shield" yaml:"shield"`
@@ -556,13 +555,6 @@ func (m *Pool) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x22
 	}
-	if len(m.Sponsor) > 0 {
-		i -= len(m.Sponsor)
-		copy(dAtA[i:], m.Sponsor)
-		i = encodeVarintShield(dAtA, i, uint64(len(m.Sponsor)))
-		i--
-		dAtA[i] = 0x1a
-	}
 	if len(m.Description) > 0 {
 		i -= len(m.Description)
 		copy(dAtA[i:], m.Description)
@@ -1022,10 +1014,6 @@ func (m *Pool) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovShield(uint64(l))
 	}
-	l = len(m.Sponsor)
-	if l > 0 {
-		n += 1 + l + sovShield(uint64(l))
-	}
 	l = len(m.SponsorAddr)
 	if l > 0 {
 		n += 1 + l + sovShield(uint64(l))
@@ -1286,38 +1274,6 @@ func (m *Pool) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Description = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sponsor", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowShield
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthShield
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthShield
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Sponsor = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {

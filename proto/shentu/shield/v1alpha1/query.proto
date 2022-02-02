@@ -49,7 +49,7 @@ service Query {
   }
 
   rpc Reimbursement(QueryReimbursementRequest) returns (QueryReimbursementResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/proposal/{proposal_id}/reimbursement";
+    option (google.api.http).get = "/shentu/shield/v1alpha1/reimbursement/{proposal_id}";
   }
 
   rpc Reimbursements(QueryReimbursementsRequest) returns (QueryReimbursementsResponse) {
