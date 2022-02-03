@@ -168,7 +168,7 @@ jobs:
             export BUILD_TAGS="netgo ledger"
             export GOSUM=$(sha256sum go.sum | cut -d ' ' -f1)
             curl -sL https://git.io/goreleaser | bash
-
+  
   upload-coverage:
     executor: golang
     steps:
@@ -213,7 +213,7 @@ jobs:
             set -x
             make clean build-docker-certiknode localnet-start
             ./devtools/localnet/localnet-blocks-test.sh 100 5 50 localhost
-
+  
   macos-ci:
     executor: mac
     steps:
@@ -238,7 +238,7 @@ jobs:
           command: |
             source $BASH_ENV
             make test-sim-fast
-
+  
   reproducible-builds:
     executor: golang
     steps:
@@ -268,7 +268,7 @@ jobs:
           docker_layer_caching: true
       - run: |
           docker build .
-
+  
   docker-tagged:
     executor: golang
     steps:

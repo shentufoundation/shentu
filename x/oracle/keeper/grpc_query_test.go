@@ -1,91 +1,303 @@
 package keeper_test
 
-// import (
-// 	gocontext "context"
-// 	"strings"
+import (
+	"time"
 
-// 	"github.com/certikfoundation/shentu/x/oracle/types"
-// 	sdk "github.com/cosmos/cosmos-sdk/types"
-// )
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
-// func (suite *KeeperTestSuite) TestQueryOperator() {
-// 	queryClient := suite.queryClient
-// 	type args struct {
-// 		collateral   int64
-// 		senderAddr   sdk.AccAddress
-// 		proposerAddr sdk.AccAddress
-// 		operatorName string
-// 		operatorAddr sdk.AccAddress
-// 	}
+	"github.com/certikfoundation/shentu/v2/x/oracle/types"
+)
 
-// 	type errArgs struct {
-// 		shouldPass bool
-// 		contains   string
-// 	}
+func (suite *KeeperTestSuite) TestGRPCQueryOperator() {
+	tests := []struct {
+		name    string
+		req     *types.QueryOperatorRequest
+		preRun  func()
+		postRun func(_ *types.QueryOperatorResponse)
+		expPass bool
+	}{
+		{
+			"invalid address",
+			&types.QueryOperatorRequest{
+				Address: "invalid",
+			},
+			func() {},
+			func(*types.QueryOperatorResponse) {},
+			false,
+		},
+		{
+			"operator does not exist",
+			&types.QueryOperatorRequest{
+				Address: suite.address[2].String(),
+			},
+			func() {},
+			func(*types.QueryOperatorResponse) {},
+			false,
+		},
+		{
+			"valid request",
+			&types.QueryOperatorRequest{
+				Address: suite.address[0].String(),
+			},
+			func() {
+				suite.createOperator(suite.address[0], suite.address[1])
+			},
+			func(res *types.QueryOperatorResponse) {
+				suite.Require().Equal(suite.address[0].String(), res.Operator.Address)
+				suite.Require().Equal(suite.address[1].String(), res.Operator.Proposer)
+			},
+			true,
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			tc.preRun()
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			res, err := suite.queryClient.Operator(ctx, tc.req)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+			}
+			tc.postRun(res)
+		})
+	}
+}
 
-// 	tests := []struct {
-// 		name    string
-// 		args    args
-// 		errArgs errArgs
-// 	}{
-// 		{"Operator(1) Query: Empty Operator Address",
-// 			args{
-// 				collateral:   50000,
-// 				senderAddr:   suite.address[0],
-// 				proposerAddr: suite.address[1],
-// 				operatorName: "Operator",
-// 			},
-// 			errArgs{
-// 				shouldPass: false,
-// 				contains:   "",
-// 			},
-// 		},
-// 		{"Operator(1) Query: Non-Existent Operator",
-// 			args{
-// 				collateral:   50000,
-// 				senderAddr:   suite.address[0],
-// 				proposerAddr: suite.address[1],
-// 				operatorName: "Operator",
-// 				operatorAddr: suite.address[3],
-// 			},
-// 			errArgs{
-// 				shouldPass: false,
-// 				contains:   "",
-// 			},
-// 		},
-// 		{"Operator(1) Query: Valid Request",
-// 			args{
-// 				collateral:   50000,
-// 				senderAddr:   suite.address[0],
-// 				proposerAddr: suite.address[1],
-// 				operatorName: "Operator",
-// 				operatorAddr: suite.address[0],
-// 			},
-// 			errArgs{
-// 				shouldPass: true,
-// 				contains:   "",
-// 			},
-// 		},
-// 	}
-// 	for _, tc := range tests {
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupTest()
-// 			// create an operator
-// 			err := suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.collateral)}, tc.args.proposerAddr, tc.args.operatorName)
-// 			suite.Require().NoError(err, tc.name)
-// 			// what we got from query
-// 			got, err := queryClient.Operator(gocontext.Background(), &types.QueryOperatorRequest{Address: tc.args.operatorAddr.String()})
-// 			suite.Require().NoError(err, tc.name)
-// 			// what we want
-// 			want, err := suite.keeper.GetOperator(suite.ctx, tc.args.senderAddr)
-// 			suite.Require().NoError(err, tc.name)
-// 			if tc.errArgs.shouldPass {
-// 				suite.Require().NoError(err, tc.name)
-// 				suite.Equal(got, want)
-// 			} else {
-// 				suite.Require().Error(err, tc.name)
-// 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
-// 			}
-// 		})
-// 	}
-// }
+func (suite *KeeperTestSuite) TestGRPCQueryOperators() {
+	tests := []struct {
+		name    string
+		req     *types.QueryOperatorsRequest
+		preRun  func()
+		postRun func(_ *types.QueryOperatorsResponse)
+		expPass bool
+	}{
+		{
+			"valid request",
+			&types.QueryOperatorsRequest{},
+			func() {
+				suite.createOperator(suite.address[0], suite.address[1])
+			},
+			func(res *types.QueryOperatorsResponse) {
+				suite.Require().Len(res.Operators, 1)
+				suite.Require().Equal(suite.address[0].String(), res.Operators[0].Address)
+				suite.Require().Equal(suite.address[1].String(), res.Operators[0].Proposer)
+			},
+			true,
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			tc.preRun()
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			res, err := suite.queryClient.Operators(ctx, tc.req)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+			}
+			tc.postRun(res)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestGRPCQueryWithdraws() {
+	tests := []struct {
+		name    string
+		req     *types.QueryWithdrawsRequest
+		preRun  func()
+		postRun func(_ *types.QueryWithdrawsResponse)
+		expPass bool
+	}{
+		{
+			"valid request",
+			&types.QueryWithdrawsRequest{},
+			func() {
+				suite.createWithdraw(suite.address[0])
+			},
+			func(res *types.QueryWithdrawsResponse) {
+				suite.Require().Len(res.Withdraws, 1)
+				suite.Require().Equal(suite.address[0].String(), res.Withdraws[0].Address)
+				suite.Require().Equal(suite.keeper.GetLockedPoolParams(suite.ctx).LockedInBlocks, res.Withdraws[0].DueBlock)
+			},
+			true,
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			tc.preRun()
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			res, err := suite.queryClient.Withdraws(ctx, tc.req)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+			}
+			tc.postRun(res)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestGRPCQueryTask() {
+	tests := []struct {
+		name    string
+		req     *types.QueryTaskRequest
+		preRun  func()
+		postRun func(_ *types.QueryTaskResponse)
+		expPass bool
+	}{
+		{
+			"empty contract",
+			&types.QueryTaskRequest{
+				Contract: "",
+				Function: "func",
+			},
+			func() {},
+			func(*types.QueryTaskResponse) {},
+			false,
+		},
+		{
+			"empty function",
+			&types.QueryTaskRequest{
+				Contract: "0x1234567890abcdef",
+				Function: "",
+			},
+			func() {},
+			func(*types.QueryTaskResponse) {},
+			false,
+		},
+		{
+			"valid request",
+			&types.QueryTaskRequest{
+				Contract: "0x1234567890abcdef",
+				Function: "func",
+			},
+			func() {
+				suite.createTask("0x1234567890abcdef", "func", suite.address[0])
+			},
+			func(res *types.QueryTaskResponse) {
+				suite.Require().Equal("0x1234567890abcdef", res.Task.Contract)
+				suite.Require().Equal("func", res.Task.Function)
+			},
+			true,
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			tc.preRun()
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			res, err := suite.queryClient.Task(ctx, tc.req)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+			}
+			tc.postRun(res)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestGRPCQueryResponse() {
+	tests := []struct {
+		name    string
+		req     *types.QueryResponseRequest
+		preRun  func()
+		postRun func(_ *types.QueryResponseResponse)
+		expPass bool
+	}{
+		{
+			"no task found",
+			&types.QueryResponseRequest{
+				Contract:        "",
+				Function:        "func",
+				OperatorAddress: suite.address[0].String(),
+			},
+			func() {},
+			func(*types.QueryResponseResponse) {},
+			false,
+		},
+		{
+			"no operator found",
+			&types.QueryResponseRequest{
+				Contract:        "0x1234567890abcdef",
+				Function:        "func",
+				OperatorAddress: suite.address[1].String(),
+			},
+			func() {
+				suite.createOperator(suite.address[0], suite.address[0])
+				suite.createTask("0x1234567890abcdef", "func", suite.address[0])
+				suite.respondToTask("0x1234567890abcdef", "func", suite.address[0])
+			},
+			func(*types.QueryResponseResponse) {},
+			false,
+		},
+		{
+			"valid request",
+			&types.QueryResponseRequest{
+				Contract:        "0x1234567890abcdef",
+				Function:        "func",
+				OperatorAddress: suite.address[0].String(),
+			},
+			func() {
+				suite.createOperator(suite.address[0], suite.address[0])
+				suite.createTask("0x1234567890abcdef", "func", suite.address[0])
+				suite.respondToTask("0x1234567890abcdef", "func", suite.address[0])
+			},
+			func(res *types.QueryResponseResponse) {
+				suite.Require().Equal(suite.address[0].String(), res.Response.Operator)
+			},
+			true,
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			tc.preRun()
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			res, err := suite.queryClient.Response(ctx, tc.req)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+			}
+			tc.postRun(res)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) createOperator(address, proposer sdk.AccAddress) {
+	err := suite.keeper.CreateOperator(suite.ctx, address, sdk.Coins{sdk.NewInt64Coin("uctk", 50000)}, proposer, "operator")
+	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) createWithdraw(address sdk.AccAddress) {
+	err := suite.keeper.CreateWithdraw(suite.ctx, address, sdk.Coins{sdk.NewInt64Coin("uctk", 1000)})
+	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) createTask(contract, function string, creator sdk.AccAddress) {
+	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
+	expiration := time.Now().Add(time.Hour).UTC()
+	waitingBlocks := int64(5)
+	err := suite.keeper.CreateTask(suite.ctx, contract, function, bounty, "task", expiration, creator, waitingBlocks)
+	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) respondToTask(contract, function string, operatorAddress sdk.AccAddress) {
+	err := suite.keeper.RespondToTask(suite.ctx, contract, function, 100, operatorAddress)
+	suite.Require().NoError(err)
+}
