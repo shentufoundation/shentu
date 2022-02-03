@@ -135,6 +135,7 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 	totalShield := k.GetTotalShield(ctx)
 	if !shieldReducAmt.IsZero() {
 		sp.Shield = sp.Shield.Sub(shieldReducAmt.AmountOf(k.BondDenom(ctx)))
+
 		// pool shield is already decreased for the loss amount when the claim proposal is submitted
 		pool.Shield = pool.Shield.Sub(shieldReducAmt.AmountOf(k.BondDenom(ctx)))
 		k.SetPool(ctx, pool)

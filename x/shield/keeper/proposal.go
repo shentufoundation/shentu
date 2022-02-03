@@ -151,7 +151,6 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 	if !found {
 		purchase = types.NewPurchase(poolID, purchaser, "restored purchase",
 			lossAmt.ToDec().Quo(pool.ShieldRate).TruncateInt(), lossAmt)
-		return types.ErrPurchaseNotFound
 	} else {
 		purchase.Shield = purchase.Shield.Add(lossAmt)
 	}
@@ -307,7 +306,6 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposal *types.ShieldClaim
 		Amount:      amount,
 	}
 	purchase.RecoveringEntries = append(purchase.RecoveringEntries, entry)
-	purchase.Shield = purchase.Shield.Sub(amount.AmountOf(bondDenom))
 	k.SetPurchase(ctx, purchase)
 
 	return nil
