@@ -431,40 +431,6 @@ func (msg MsgWithdrawForeignRewards) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgWithdrawReimbursement creates a new MsgWithdrawReimbursement instance.
-func NewMsgWithdrawReimbursement(proposalID uint64, from sdk.AccAddress) *MsgWithdrawReimbursement {
-	return &MsgWithdrawReimbursement{
-		ProposalId: proposalID,
-		From:       from.String(),
-	}
-}
-
-// Route implements the sdk.Msg interface.
-func (msg MsgWithdrawReimbursement) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgWithdrawReimbursement) Type() string { return TypeMsgWithdrawReimbursement }
-
-// GetSigners implements the sdk.Msg interface.
-func (msg MsgWithdrawReimbursement) GetSigners() []sdk.AccAddress {
-	from, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{from}
-}
-
-// GetSignBytes implements the sdk.Msg interface.
-func (msg MsgWithdrawReimbursement) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgWithdrawReimbursement) ValidateBasic() error {
-	return nil
-}
-
 // NewMsgPurchase creates a new MsgPurchaseShield instance.
 func NewMsgPurchase(poolID uint64, shield sdk.Coins, description string, from sdk.AccAddress) *MsgPurchase {
 	return &MsgPurchase{

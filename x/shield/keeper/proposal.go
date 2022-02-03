@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/binary"
 	"fmt"
 	"sort"
 	"time"
@@ -163,77 +162,6 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 	return nil
 }
 
-// SetReimbursement sets a reimbursement in store.
-func (k Keeper) SetReimbursement(ctx sdk.Context, proposalID uint64, payout types.Reimbursement) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&payout)
-	store.Set(types.GetReimbursementKey(proposalID), bz)
-}
-
-// GetReimbursement get a reimbursement in store.
-func (k Keeper) GetReimbursement(ctx sdk.Context, proposalID uint64) (types.Reimbursement, error) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetReimbursementKey(proposalID))
-	if bz != nil {
-		var reimbursement types.Reimbursement
-		k.cdc.MustUnmarshalLengthPrefixed(bz, &reimbursement)
-		return reimbursement, nil
-	}
-	return types.Reimbursement{}, types.ErrReimbursementNotFound
-}
-
-// DeleteReimbursement deletes a reimbursement.
-func (k Keeper) DeleteReimbursement(ctx sdk.Context, proposalID uint64) error {
-	store := ctx.KVStore(k.storeKey)
-	if _, err := k.GetReimbursement(ctx, proposalID); err != nil {
-		return err
-	}
-	store.Delete(types.GetReimbursementKey(proposalID))
-	return nil
-}
-
-// IterateReimbursements iterates through all reimbursements.
-func (k Keeper) IterateReimbursements(ctx sdk.Context, callback func(rmb types.Reimbursement) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ReimbursementKey)
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var rmb types.Reimbursement
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &rmb)
-
-		if callback(rmb) {
-			break
-		}
-	}
-}
-
-// GetAllReimbursements retrieves all reimbursements.
-func (k Keeper) GetAllReimbursements(ctx sdk.Context) (rmbs []types.Reimbursement) {
-	k.IterateReimbursements(ctx, func(rmb types.Reimbursement) bool {
-		rmbs = append(rmbs, rmb)
-		return false
-	})
-	return
-}
-
-// GetAllProposalIDReimbursementPairs retrieves all proposal ID and reimbursement pairs.
-func (k Keeper) GetAllProposalIDReimbursementPairs(ctx sdk.Context) []types.ProposalIDReimbursementPair {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ReimbursementKey)
-
-	var pRPairs []types.ProposalIDReimbursementPair
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		proposalID := binary.LittleEndian.Uint64(iterator.Key()[len(types.ReimbursementKey):])
-		var reimbursement types.Reimbursement
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &reimbursement)
-
-		pRPairs = append(pRPairs, types.NewProposalIDReimbursementPair(proposalID, reimbursement))
-	}
-	return pRPairs
-}
-
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount sdk.Coins, beneficiary sdk.AccAddress) error {
 	// TODO: rewrite this for V2 https://github.com/ShentuChain/shentu-private/issues/13
@@ -290,7 +218,10 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 		// Create pending payout since collateral could not cover the payout.
 		k.SetPendingPayout(ctx, types.NewPendingPayout(proposalID, totalPayout))
 	}
-	k.SetReimbursement(ctx, proposalID, types.NewReimbursement(reimbursement, beneficiary, ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).PayoutPeriod)))
+	// k.SetReimbursement(ctx, proposalID, types.NewReimbursement(reimbursement, beneficiary, ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).PayoutPeriod)))
+	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, beneficiary, reimbursement); err != nil {
+		return err
+	}
 
 	totalCollateral = totalCollateral.Sub(amount.AmountOf(bondDenom))
 	totalClaimed := k.GetTotalClaimed(ctx)
@@ -649,35 +580,6 @@ func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAd
 		return unbondingDelegations[i].Entries[0].CompletionTime.After(unbondingDelegations[j].Entries[0].CompletionTime)
 	})
 	return unbondingDelegations
-}
-
-// WithdrawReimbursement withdraws a reimbursement made for a beneficiary.
-func (k Keeper) WithdrawReimbursement(ctx sdk.Context, proposalID uint64, beneficiary sdk.AccAddress) (sdk.Coins, error) {
-	reimbursement, err := k.GetReimbursement(ctx, proposalID)
-	if err != nil {
-		return sdk.Coins{}, err
-	}
-
-	// check beneficiary and time
-	if reimbursement.Beneficiary != beneficiary.String() {
-		return sdk.Coins{}, types.ErrInvalidBeneficiary
-	}
-	if reimbursement.PayoutTime.After(ctx.BlockTime()) {
-		return sdk.Coins{}, types.ErrNotPayoutTime
-	}
-
-	// Ensure that there is no pending payout.
-	if _, found := k.GetPendingPayout(ctx, proposalID); found {
-		return sdk.Coins{}, types.ErrPendingPayoutExists
-	}
-
-	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, beneficiary, reimbursement.Amount); err != nil {
-		return sdk.Coins{}, types.ErrNotPayoutTime
-	}
-	if err := k.DeleteReimbursement(ctx, proposalID); err != nil {
-		return sdk.Coins{}, err
-	}
-	return reimbursement.Amount, nil
 }
 
 // getActualPayout computes the payout sans the amount to be

@@ -141,31 +141,6 @@ func (q Keeper) Purchase(c context.Context, req *types.QueryPurchaseRequest) (*t
 	return &types.QueryPurchaseResponse{Purchase: shieldStaking}, nil
 }
 
-// Reimbursement queries a reimbursement by proposal ID.
-func (q Keeper) Reimbursement(c context.Context, req *types.QueryReimbursementRequest) (*types.QueryReimbursementResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	reimbursement, err := q.GetReimbursement(ctx, req.ProposalId)
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.QueryReimbursementResponse{Reimbursement: reimbursement}, nil
-}
-
-// Reimbursements queries all reimbursements.
-func (q Keeper) Reimbursements(c context.Context, req *types.QueryReimbursementsRequest) (*types.QueryReimbursementsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	return &types.QueryReimbursementsResponse{Pairs: q.GetAllProposalIDReimbursementPairs(ctx)}, nil
-}
-
 // Donations queries all shield donation pool amount.
 func (q Keeper) Donations(c context.Context, req *types.QueryDonationsRequest) (*types.QueryDonationsResponse, error) {
 	if req == nil {

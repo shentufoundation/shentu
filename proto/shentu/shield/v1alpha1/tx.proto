@@ -17,7 +17,6 @@ service Msg {
     rpc WithdrawCollateral(MsgWithdrawCollateral) returns (MsgWithdrawCollateralResponse);
     rpc WithdrawRewards(MsgWithdrawRewards) returns (MsgWithdrawRewardsResponse);
     rpc WithdrawForeignRewards(MsgWithdrawForeignRewards) returns (MsgWithdrawForeignRewardsResponse);
-    rpc WithdrawReimbursement(MsgWithdrawReimbursement) returns (MsgWithdrawReimbursementResponse);
     rpc UpdateSponsor(MsgUpdateSponsor) returns (MsgUpdateSponsorResponse);
     rpc Purchase(MsgPurchase) returns (MsgPurchaseResponse);
     rpc Unstake(MsgUnstake) returns (MsgUnstakeResponse);
@@ -133,17 +132,6 @@ message MsgClearPayouts {
 }
 
 message MsgClearPayoutsResponse {}
-
-// MsgWithdrawReimburse defines the attributes of withdraw reimbursement transaction.
-message MsgWithdrawReimbursement {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-  
-    uint64 proposal_id = 1 [ (gogoproto.moretags) = "yaml:\"proposal_id\"" ];
-    string from = 2 [ (gogoproto.moretags) = "yaml:\"from\"" ];
-}
-  
-message MsgWithdrawReimbursementResponse {}
 
 // MsgStakeForShield defines the attributes of staking for purchase transaction.
 message MsgPurchase {

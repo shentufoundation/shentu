@@ -43,7 +43,6 @@ func NewTxCmd() *cobra.Command {
 		GetCmdWithdrawRewards(),
 		GetCmdWithdrawForeignRewards(),
 		GetCmdPurchaseShield(),
-		GetCmdWithdrawReimbursement(),
 		GetCmdUpdateSponsor(),
 		GetCmdUnstake(),
 		GetCmdDoante(),
@@ -452,47 +451,6 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 			}
 
 			msg := types.NewMsgPurchase(poolID, shield, description, fromAddr)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdWithdrawReimbursement the command for withdrawing reimbursement.
-func GetCmdWithdrawReimbursement() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "withdraw-reimbursement [proposal id]",
-		Args:  cobra.ExactArgs(1),
-		Short: "withdraw reimbursement",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Withdraw reimbursement by proposal id.
-
-Example:
-$ %s tx shield withdraw-reimbursement <proposal id>
-`,
-				version.AppName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
-
-			fromAddr := cliCtx.GetFromAddress()
-			proposalID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgWithdrawReimbursement(proposalID, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

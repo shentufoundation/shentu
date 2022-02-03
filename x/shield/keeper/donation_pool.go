@@ -94,12 +94,20 @@ func (k Keeper) IteratePendingPayouts(ctx sdk.Context, callback func(pp types.Pe
 // ProcessPendingPayout processes the given amount from a pending
 // payout.
 func (k Keeper) ProcessPendingPayout(ctx sdk.Context, pp types.PendingPayout, amount sdk.Int) error {
-	reimb, err := k.GetReimbursement(ctx, pp.ProposalId)
+	//reimb, err := k.GetReimbursement(ctx, pp.ProposalId)
+	//if err != nil {
+	//	return types.ErrReimbursementNotFound
+	//}
+	//reimb.Amount = reimb.Amount.Add(sdk.NewCoin(k.BondDenom(ctx), amount))
+	//k.SetReimbursement(ctx, pp.ProposalId, reimb)
+
+	beneficiary, err := k.gk.GetProposalProposer(ctx, pp.ProposalId)
 	if err != nil {
-		return types.ErrReimbursementNotFound
+		return err
 	}
-	reimb.Amount = reimb.Amount.Add(sdk.NewCoin(k.BondDenom(ctx), amount))
-	k.SetReimbursement(ctx, pp.ProposalId, reimb)
+	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, beneficiary, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), amount))); err != nil {
+		return err
+	}
 
 	pp.Amount = pp.Amount.Sub(amount)
 	if pp.Amount.IsZero() {

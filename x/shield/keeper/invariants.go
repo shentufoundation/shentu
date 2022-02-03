@@ -41,12 +41,6 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 			shieldStake = shieldStake.Add(stake.Amount)
 		}
 
-		// reimbursement
-		reimbursement := sdk.ZeroInt()
-		for _, rmb := range keeper.GetAllReimbursements(ctx) {
-			reimbursement = reimbursement.Add(rmb.Amount.AmountOf(bondDenom))
-		}
-
 		// pending payouts
 		pending_payouts := sdk.ZeroInt()
 		for _, pp := range keeper.GetAllPendingPayouts(ctx) {
@@ -56,7 +50,7 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 		// block service fees
 		blockServiceFees := keeper.GetBlockServiceFees(ctx).AmountOf(bondDenom).TruncateInt()
 
-		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, reimbursement)).Add(sdk.NewCoin(bondDenom, pending_payouts)).Add(sdk.NewCoin(bondDenom, blockServiceFees))
+		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, pending_payouts)).Add(sdk.NewCoin(bondDenom, blockServiceFees))
 
 		broken := !totalInt.IsEqual(moduleCoins) || !change.Empty()
 

@@ -318,36 +318,6 @@ func (k msgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 	return &types.MsgUnstakeResponse{}, nil
 }
 
-func (k msgServer) WithdrawReimbursement(goCtx context.Context, msg *types.MsgWithdrawReimbursement) (*types.MsgWithdrawReimbursementResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		return nil, err
-	}
-
-	amount, err := k.Keeper.WithdrawReimbursement(ctx, msg.ProposalId, fromAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.TypeMsgWithdrawReimbursement,
-			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(msg.ProposalId, 10)),
-			sdk.NewAttribute(types.AttributeKeyCompensationAmount, amount.String()),
-			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.From),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
-		),
-	})
-
-	return &types.MsgWithdrawReimbursementResponse{}, nil
-}
-
 func (k msgServer) WithdrawForeignRewards(goCtx context.Context, msg *types.MsgWithdrawForeignRewards) (*types.MsgWithdrawForeignRewardsResponse, error) {
 	return &types.MsgWithdrawForeignRewardsResponse{}, nil
 }
