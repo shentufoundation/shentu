@@ -235,7 +235,6 @@ func (k Keeper) GetAllProposalIDReimbursementPairs(ctx sdk.Context) []types.Prop
 func (k Keeper) CreateReimbursement(ctx sdk.Context, proposal *types.ShieldClaimProposal, beneficiary sdk.AccAddress) error {
 	amount := proposal.Loss
 
-	// TODO: rewrite this for V2 https://github.com/ShentuChain/shentu-private/issues/13
 	bondDenom := k.BondDenom(ctx)
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalPurchased := k.GetTotalShield(ctx)

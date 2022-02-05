@@ -126,6 +126,7 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 		} else if shieldReducAmt.IsAllLTE(e.Amount) {
 			e.Amount = e.Amount.Sub(shieldReducAmt)
 			updatedRE = append(updatedRE, e)
+			shieldReducAmt = sdk.NewCoins()
 		} else if shieldReducAmt.Empty() {
 			updatedRE = append(updatedRE, e)
 		}
