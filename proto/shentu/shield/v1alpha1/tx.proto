@@ -17,10 +17,10 @@ service Msg {
     rpc WithdrawCollateral(MsgWithdrawCollateral) returns (MsgWithdrawCollateralResponse);
     rpc WithdrawRewards(MsgWithdrawRewards) returns (MsgWithdrawRewardsResponse);
     rpc WithdrawForeignRewards(MsgWithdrawForeignRewards) returns (MsgWithdrawForeignRewardsResponse);
-    rpc WithdrawReimbursement(MsgWithdrawReimbursement) returns (MsgWithdrawReimbursementResponse);
     rpc UpdateSponsor(MsgUpdateSponsor) returns (MsgUpdateSponsorResponse);
     rpc Purchase(MsgPurchase) returns (MsgPurchaseResponse);
     rpc Unstake(MsgUnstake) returns (MsgUnstakeResponse);
+    rpc Donate(MsgDonate) returns (MsgDonateResponse);
 }
 
 // MsgCreatePool defines the attributes of a create-pool transaction.
@@ -133,17 +133,6 @@ message MsgClearPayouts {
 
 message MsgClearPayoutsResponse {}
 
-// MsgWithdrawReimburse defines the attributes of withdraw reimbursement transaction.
-message MsgWithdrawReimbursement {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-  
-    uint64 proposal_id = 1 [ (gogoproto.moretags) = "yaml:\"proposal_id\"" ];
-    string from = 2 [ (gogoproto.moretags) = "yaml:\"from\"" ];
-}
-  
-message MsgWithdrawReimbursementResponse {}
-
 // MsgStakeForShield defines the attributes of staking for purchase transaction.
 message MsgPurchase {
     option (gogoproto.equal) = false;
@@ -184,3 +173,13 @@ message MsgUpdateSponsor {
   
 message MsgUpdateSponsorResponse {}
 
+// MsgDonate represents a message to donate tokens to Shield Donation Pool.
+message MsgDonate {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+    repeated cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+}
+  
+message MsgDonateResponse {}

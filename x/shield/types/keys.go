@@ -41,6 +41,8 @@ var (
 	PurchaseKey                 = []byte{0x11}
 	BlockServiceFeesKey         = []byte{0x12}
 	ReimbursementKey            = []byte{0x14}
+	DonationPoolKey             = []byte{0x15}
+	PendingPayoutKey            = []byte{0x16}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -120,4 +122,17 @@ func GetReimbursementKey(proposalID uint64) []byte {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, proposalID)
 	return append(ReimbursementKey, bz...)
+}
+
+// GetDonationPoolKey gets the key for Shield Donation Pool.
+func GetDonationPoolKey() []byte {
+	return DonationPoolKey
+}
+
+// GetPendingPayoutKey gets the key for the pending payout
+// corresponding to the given proposal ID.
+func GetPendingPayoutKey(proposalID uint64) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, proposalID)
+	return append(PendingPayoutKey, bz...)
 }

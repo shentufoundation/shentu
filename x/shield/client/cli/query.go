@@ -37,8 +37,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdClaimParams(),
 		GetCmdStatus(),
 		GetCmdStaking(),
-		GetCmdReimbursement(),
-		GetCmdReimbursements(),
+		GetCmdDonationPool(),
 	)
 
 	return shieldQueryCmd
@@ -349,45 +348,11 @@ func GetCmdStaking() *cobra.Command {
 	return cmd
 }
 
-// GetCmdReimbursement returns the command for querying a reimbursement.
-func GetCmdReimbursement() *cobra.Command {
+// GetCmdDonationPool returns the command for querying the donation pool.
+func GetCmdDonationPool() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "reimbursement [proposal ID]",
-		Short: "query a reimbursement",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := types.NewQueryClient(cliCtx)
-
-			proposalID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("pool id %s is invalid", args[0])
-			}
-
-			res, err := queryClient.Reimbursement(
-				cmd.Context(),
-				&types.QueryReimbursementRequest{ProposalId: proposalID},
-			)
-			if err != nil {
-				return err
-			}
-
-			return cliCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdReimbursements returns the command for querying reimbursements.
-func GetCmdReimbursements() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "reimbursements",
-		Short: "query all reimbursements",
+		Use:   "donation-pool",
+		Short: "query donation amount to Shield Donation Pool",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
@@ -395,16 +360,14 @@ func GetCmdReimbursements() *cobra.Command {
 				return err
 			}
 			queryClient := types.NewQueryClient(cliCtx)
-
-			res, err := queryClient.Reimbursements(cmd.Context(), &types.QueryReimbursementsRequest{})
+			res, err := queryClient.Donations(cmd.Context(), &types.QueryDonationsRequest{})
 			if err != nil {
 				return err
 			}
-
-			return cliCtx.PrintProto(res)
+			return cliCtx.PrintProto(&res.Amount)
 		},
 	}
 
-	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }

@@ -59,8 +59,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.Unstake(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgWithdrawReimbursement:
-			res, err := msgServer.WithdrawReimbursement(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgDonate:
+			res, err := msgServer.Donate(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:

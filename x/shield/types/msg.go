@@ -21,6 +21,7 @@ const (
 	TypeMsgStakeForShield         = "stake_for_shield"
 	TypeMsgUnstakeFromShield      = "unstake_from_shield"
 	TypeMsgUpdateSponsor          = "update_sponsor"
+	TypeMsgDonate                 = "donate"
 )
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
@@ -64,7 +65,7 @@ func (msg MsgCreatePool) ValidateBasic() error {
 		return ErrEmptySender
 	}
 
-	if !msg.ShieldRate.IsPositive() {
+	if !msg.ShieldRate.GTE(sdk.NewDec(1)) {
 		return ErrInvalidShieldRate
 	}
 	return nil
@@ -205,6 +206,51 @@ func (msg MsgResumePool) ValidateBasic() error {
 
 	if msg.PoolId == 0 {
 		return ErrInvalidPoolID
+	}
+	return nil
+}
+
+// NewMsgDonate creates a new MsgDonate instance.
+func NewMsgDonate(sender sdk.AccAddress, amount sdk.Coins) *MsgDonate {
+	return &MsgDonate{
+		From:   sender.String(),
+		Amount: amount,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgDonate) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgDonate) Type() string { return "donate" }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgDonate) GetSigners() []sdk.AccAddress {
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{from}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgDonate) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgDonate) ValidateBasic() error {
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		panic(err)
+	}
+	if from.Empty() {
+		return ErrEmptySender
+	}
+
+	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Donation amount: %s", msg.Amount)
 	}
 	return nil
 }
@@ -382,40 +428,6 @@ func (msg MsgWithdrawForeignRewards) ValidateBasic() error {
 	if strings.TrimSpace(msg.ToAddr) == "" {
 		return ErrInvalidToAddr
 	}
-	return nil
-}
-
-// NewMsgWithdrawReimbursement creates a new MsgWithdrawReimbursement instance.
-func NewMsgWithdrawReimbursement(proposalID uint64, from sdk.AccAddress) *MsgWithdrawReimbursement {
-	return &MsgWithdrawReimbursement{
-		ProposalId: proposalID,
-		From:       from.String(),
-	}
-}
-
-// Route implements the sdk.Msg interface.
-func (msg MsgWithdrawReimbursement) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgWithdrawReimbursement) Type() string { return TypeMsgWithdrawReimbursement }
-
-// GetSigners implements the sdk.Msg interface.
-func (msg MsgWithdrawReimbursement) GetSigners() []sdk.AccAddress {
-	from, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{from}
-}
-
-// GetSignBytes implements the sdk.Msg interface.
-func (msg MsgWithdrawReimbursement) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgWithdrawReimbursement) ValidateBasic() error {
 	return nil
 }
 

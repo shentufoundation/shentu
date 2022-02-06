@@ -59,11 +59,6 @@ func (sh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolI
 	sh.HandleProposal(proposal, ok)
 }
 
-func (sh *Helper) WithdrawReimbursement(purchaser sdk.AccAddress, proposalID uint64, ok bool) {
-	msg := types.NewMsgWithdrawReimbursement(proposalID, purchaser)
-	sh.Handle(msg, ok)
-}
-
 // TurnBlock updates context and calls endblocker.
 func (sh *Helper) TurnBlock(ctx sdk.Context) {
 	sh.ctx = ctx

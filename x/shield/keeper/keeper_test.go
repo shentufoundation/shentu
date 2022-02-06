@@ -302,7 +302,6 @@ func TestClaimProposal(t *testing.T) {
 	// the purchaser submits a claim proposal
 	loss := shield
 	tgov.ShieldClaimProposal(purchaser, loss, poolID, true)
-	var proposalID uint64 = 1 // TODO: unmarshal sdk.Result to obtain proposal ID
 
 	// verify that the withdrawal and unbonding have been delayed
 	// about 19e9 must be secured (two of three withdraws & ubds are delayed)
@@ -325,14 +324,15 @@ func TestClaimProposal(t *testing.T) {
 
 	// create reimbursement
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, loss))
+
+	beforeBalance := app.BankKeeper.GetBalance(ctx, purchaser, bondDenom).Amount
 	proposal := shieldtypes.NewShieldClaimProposal(poolID, lossCoins, "test_claim_evidence", "test_claim_description", purchaser)
 	// TODO: make this more structured
 	proposal.ProposalId = 1
 	err = app.ShieldKeeper.CreateReimbursement(ctx, proposal, purchaser)
 	require.NoError(t, err)
-	reimbursement, err := app.ShieldKeeper.GetReimbursement(ctx, proposalID)
-	require.NoError(t, err)
-	require.True(t, reimbursement.Amount.IsEqual(lossCoins))
+	afterBalance := app.BankKeeper.GetBalance(ctx, purchaser, bondDenom).Amount
+	require.True(t, beforeBalance.Add(sdk.NewInt(loss)).Equal(afterBalance))
 
 	// confirm admin delegation reduction
 	lossRatio := float64(loss) / float64(totalDeposit)
@@ -354,13 +354,4 @@ func TestClaimProposal(t *testing.T) {
 	require.True(t, withdraws[0].Amount.Add(withdraws[1].Amount.Add(withdraws[2].Amount)).Equal(sdk.NewInt(expected)))
 	delUBD = app.StakingKeeper.GetAllUnbondingDelegations(ctx, del1addr)[0]
 	require.True(t, delUBD.Entries[0].Balance.Add(delUBD.Entries[1].Balance.Add(delUBD.Entries[2].Balance)).Equal(sdk.NewInt(expected)))
-
-	// test withdraw reimbursement
-	// 56 days later (967,680 blocks)
-	ctx = skipBlocks(ctx, 967680, tstaking, tshield, tgov)
-
-	beforeInt := app.BankKeeper.GetBalance(ctx, purchaser, bondDenom).Amount
-	tshield.WithdrawReimbursement(purchaser, proposalID, true)
-	afterInt := app.BankKeeper.GetBalance(ctx, purchaser, bondDenom).Amount
-	require.True(t, beforeInt.Add(sdk.NewInt(loss)).Equal(afterInt))
 }

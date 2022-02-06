@@ -48,12 +48,8 @@ service Query {
     option (google.api.http).get = "/shentu/shield/v1alpha1/purchase/{pool_id}/{purchaser}";
   }
 
-  rpc Reimbursement(QueryReimbursementRequest) returns (QueryReimbursementResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/reimbursement/{proposal_id}";
-  }
-
-  rpc Reimbursements(QueryReimbursementsRequest) returns (QueryReimbursementsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/reimbursements";
+  rpc Donations(QueryDonationsRequest) returns (QueryDonationsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/donations";
   }
 }
 
@@ -136,17 +132,9 @@ message QueryPurchaseResponse {
   Purchase purchase = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryReimbursementRequest {
-  uint64 proposal_id = 1;
+message QueryDonationsRequest {
 }
 
-message QueryReimbursementResponse {
-  Reimbursement reimbursement = 1 [ (gogoproto.nullable) = false ];
-}
-
-message QueryReimbursementsRequest {
-}
-
-message QueryReimbursementsResponse {
-  repeated ProposalIDReimbursementPair pairs = 1 [ (gogoproto.nullable) = false ];
+message QueryDonationsResponse {
+  DonationPool amount = 1 [ (gogoproto.nullable) = false ];
 }
