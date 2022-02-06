@@ -246,34 +246,6 @@ func (suite *KeeperTestSuite) TestKeeper_DepositOperations() {
 			setInvalidProposalId: false,
 			shouldPass:           true,
 		},
-		{
-			name: "Refund: Invalid proposal id",
-			proposal: proposal{
-				title:       "title0",
-				description: "description0",
-			},
-			proposer:             suite.address[0],
-			depositor:            suite.address[1],
-			fundedCoins:          sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
-			depositAmount:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
-			testRefund:           true,
-			setInvalidProposalId: true,
-			shouldPass:           false,
-		},
-		{
-			name: "Delete: Invalid proposal id",
-			proposal: proposal{
-				title:       "title0",
-				description: "description0",
-			},
-			proposer:             suite.address[0],
-			depositor:            suite.address[1],
-			fundedCoins:          sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
-			depositAmount:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
-			testRefund:           false,
-			setInvalidProposalId: true,
-			shouldPass:           false,
-		},
 	}
 
 	for _, tc := range tests {
@@ -295,20 +267,13 @@ func (suite *KeeperTestSuite) TestKeeper_DepositOperations() {
 		}
 
 		if tc.testRefund {
-			err = suite.app.GovKeeper.RefundDepositsByProposalID(suite.ctx, proposal.ProposalId)
+			suite.app.GovKeeper.RefundDepositsByProposalID(suite.ctx, proposal.ProposalId)
 		} else {
-			err = suite.app.GovKeeper.DeleteDepositsByProposalID(suite.ctx, proposal.ProposalId)
+			suite.app.GovKeeper.DeleteDepositsByProposalID(suite.ctx, proposal.ProposalId)
 		}
 
 		if tc.shouldPass {
-			suite.Require().NoError(err)
-			if tc.testRefund {
-				suite.Require().Equal(tc.finalAmount, suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.depositor))
-			} else {
-				suite.Require().Equal(tc.finalAmount, suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.depositor))
-			}
-		} else {
-			suite.Require().Error(err)
+			suite.Require().Equal(tc.finalAmount, suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.depositor))
 		}
 
 		// emptying depositor for next set of test cases
