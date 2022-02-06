@@ -324,11 +324,11 @@ func TestClaimProposal(t *testing.T) {
 
 	// create reimbursement
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, loss))
+	beforeBalance := app.BankKeeper.GetBalance(ctx, purchaser, bondDenom).Amount
 	err = app.ShieldKeeper.CreateReimbursement(ctx, proposalID, lossCoins, purchaser)
 	require.NoError(t, err)
-	reimbursement, err := app.ShieldKeeper.GetReimbursement(ctx, proposalID)
-	require.NoError(t, err)
-	require.True(t, reimbursement.Amount.IsEqual(lossCoins))
+	afterBalance := app.BankKeeper.GetBalance(ctx, purchaser, bondDenom).Amount
+	require.True(t, beforeBalance.Add(sdk.NewInt(loss)).Equal(afterBalance))
 
 	// confirm admin delegation reduction
 	lossRatio := float64(loss) / float64(totalDeposit)
@@ -350,13 +350,4 @@ func TestClaimProposal(t *testing.T) {
 	require.True(t, withdraws[0].Amount.Add(withdraws[1].Amount.Add(withdraws[2].Amount)).Equal(sdk.NewInt(expected)))
 	delUBD = app.StakingKeeper.GetAllUnbondingDelegations(ctx, del1addr)[0]
 	require.True(t, delUBD.Entries[0].Balance.Add(delUBD.Entries[1].Balance.Add(delUBD.Entries[2].Balance)).Equal(sdk.NewInt(expected)))
-
-	// test withdraw reimbursement
-	// 56 days later (967,680 blocks)
-	ctx = skipBlocks(ctx, 967680, tstaking, tshield, tgov)
-
-	beforeInt := app.BankKeeper.GetBalance(ctx, purchaser, bondDenom).Amount
-	tshield.WithdrawReimbursement(purchaser, proposalID, true)
-	afterInt := app.BankKeeper.GetBalance(ctx, purchaser, bondDenom).Amount
-	require.True(t, beforeInt.Add(sdk.NewInt(loss)).Equal(afterInt))
 }

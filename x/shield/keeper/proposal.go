@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/binary"
 	"fmt"
 	"sort"
 	"time"
@@ -20,14 +19,14 @@ import (
 // module states accordingly.
 // TODO: rewrite some parts for V2 https://github.com/ShentuChain/shentu-private/issues/13
 func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, duration time.Duration) error {
-	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
+	lossAmt := k.getActualPayout(ctx, loss)
 
 	// Verify shield.
 	pool, found := k.GetPool(ctx, poolID)
 	if !found {
 		return types.ErrNoPoolFound
 	}
-	if lossAmt.GT(pool.Shield) {
+	if lossAmt.ToDec().GT(pool.Shield.ToDec().Mul(pool.ShieldRate)) {
 		return types.ErrNotEnoughShield
 	}
 
@@ -163,77 +162,6 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 	return nil
 }
 
-// SetReimbursement sets a reimbursement in store.
-func (k Keeper) SetReimbursement(ctx sdk.Context, proposalID uint64, payout types.Reimbursement) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&payout)
-	store.Set(types.GetReimbursementKey(proposalID), bz)
-}
-
-// GetReimbursement get a reimbursement in store.
-func (k Keeper) GetReimbursement(ctx sdk.Context, proposalID uint64) (types.Reimbursement, error) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetReimbursementKey(proposalID))
-	if bz != nil {
-		var reimbursement types.Reimbursement
-		k.cdc.MustUnmarshalLengthPrefixed(bz, &reimbursement)
-		return reimbursement, nil
-	}
-	return types.Reimbursement{}, types.ErrReimbursementNotFound
-}
-
-// DeleteReimbursement deletes a reimbursement.
-func (k Keeper) DeleteReimbursement(ctx sdk.Context, proposalID uint64) error {
-	store := ctx.KVStore(k.storeKey)
-	if _, err := k.GetReimbursement(ctx, proposalID); err != nil {
-		return err
-	}
-	store.Delete(types.GetReimbursementKey(proposalID))
-	return nil
-}
-
-// IterateReimbursements iterates through all reimbursements.
-func (k Keeper) IterateReimbursements(ctx sdk.Context, callback func(rmb types.Reimbursement) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ReimbursementKey)
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var rmb types.Reimbursement
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &rmb)
-
-		if callback(rmb) {
-			break
-		}
-	}
-}
-
-// GetAllReimbursements retrieves all reimbursements.
-func (k Keeper) GetAllReimbursements(ctx sdk.Context) (rmbs []types.Reimbursement) {
-	k.IterateReimbursements(ctx, func(rmb types.Reimbursement) bool {
-		rmbs = append(rmbs, rmb)
-		return false
-	})
-	return
-}
-
-// GetAllProposalIDReimbursementPairs retrieves all proposal ID and reimbursement pairs.
-func (k Keeper) GetAllProposalIDReimbursementPairs(ctx sdk.Context) []types.ProposalIDReimbursementPair {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ReimbursementKey)
-
-	var pRPairs []types.ProposalIDReimbursementPair
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		proposalID := binary.LittleEndian.Uint64(iterator.Key()[len(types.ReimbursementKey):])
-		var reimbursement types.Reimbursement
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &reimbursement)
-
-		pRPairs = append(pRPairs, types.NewProposalIDReimbursementPair(proposalID, reimbursement))
-	}
-	return pRPairs
-}
-
 // CreateReimbursement creates a reimbursement.
 func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount sdk.Coins, beneficiary sdk.AccAddress) error {
 	// TODO: rewrite this for V2 https://github.com/ShentuChain/shentu-private/issues/13
@@ -269,22 +197,31 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 		if payout.LT(totalPayout) && provider.Collateral.GT(payout.Add(purchased)) {
 			payout = payout.Add(sdk.OneInt())
 		}
-		if err := k.UpdateProviderCollateralForPayout(ctx, providerAddr, purchased, payout); err != nil {
+
+		actualPayout, err := k.UpdateProviderCollateralForPayout(ctx, providerAddr, purchased, payout)
+		if err != nil {
 			panic(err)
 		}
 
-		if err := k.MakePayoutByProviderDelegations(ctx, providerAddr, purchased, payout); err != nil {
+		if err := k.MakePayoutByProviderDelegations(ctx, providerAddr, purchased, actualPayout); err != nil {
 			panic(err)
 		}
 
 		totalPurchased = totalPurchased.Sub(purchased)
-		totalPayout = totalPayout.Sub(payout)
+		totalPayout = totalPayout.Sub(actualPayout)
 	}
+
+	reimbursement := amount
 	if totalPayout.IsPositive() {
-		panic("not enough payout made")
+		reimbursement = amount.Sub(sdk.NewCoins(sdk.NewCoin(bondDenom, totalPayout)))
+
+		// Create pending payout since collateral could not cover the payout.
+		k.SetPendingPayout(ctx, types.NewPendingPayout(proposalID, totalPayout))
 	}
-	reimbursement := types.NewReimbursement(amount, beneficiary, ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).PayoutPeriod))
-	k.SetReimbursement(ctx, proposalID, reimbursement)
+	// k.SetReimbursement(ctx, proposalID, types.NewReimbursement(reimbursement, beneficiary, ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).PayoutPeriod)))
+	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, beneficiary, reimbursement); err != nil {
+		return err
+	}
 
 	totalCollateral = totalCollateral.Sub(amount.AmountOf(bondDenom))
 	totalClaimed := k.GetTotalClaimed(ctx)
@@ -295,11 +232,13 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 	return nil
 }
 
-// UpdateProviderCollateralForPayout updates a provider's collateral and withdraws according to the payout.
-func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout sdk.Int) error {
+// UpdateProviderCollateralForPayout updates a provider's collateral and withdraws
+// according to the payout. If the whole payout cannot be made, try to process
+// as much payout as possible. Return the actual payout amount updated.
+func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout sdk.Int) (sdk.Int, error) {
 	provider, found := k.GetProvider(ctx, providerAddr)
 	if !found {
-		return types.ErrProviderNotFound
+		return sdk.NewInt(0), types.ErrProviderNotFound
 	}
 	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 
@@ -328,16 +267,13 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 		// -------------------------------|---------------------------------
 		uncoveredPurchase = purchased.Sub(provider.Collateral.Sub(provider.Withdrawing))
 	}
-	payoutFromWithdraw := payout.Sub(payoutFromCollateral)
 
-	// Update provider's collateral and total withdraw.
 	provider.Collateral = provider.Collateral.Sub(payout)
-	provider.Withdrawing = provider.Withdrawing.Sub(payoutFromWithdraw)
-	totalWithdrawing = totalWithdrawing.Sub(payoutFromWithdraw)
+	remainingPayout := payout.Sub(payoutFromCollateral)
 
 	// Update provider's withdraws from latest to oldest.
 	withdraws := k.GetWithdrawsByProvider(ctx, provider.Address)
-	for i := len(withdraws) - 1; i >= 0 && payoutFromWithdraw.IsPositive(); i-- {
+	for i := len(withdraws) - 1; i >= 0 && remainingPayout.IsPositive(); i-- {
 		// If purchased is not fully covered, cover purchased first.
 		remainingWithdraw := sdk.MaxInt(withdraws[i].Amount.Sub(uncoveredPurchase), sdk.ZeroInt())
 		uncoveredPurchase = sdk.MaxInt(uncoveredPurchase.Sub(withdraws[i].Amount), sdk.ZeroInt())
@@ -346,8 +282,8 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 		}
 
 		// Update the withdraw based on payout after purchased is fully covered.
-		payoutFromThisWithdraw := sdk.MinInt(payoutFromWithdraw, remainingWithdraw)
-		payoutFromWithdraw = payoutFromWithdraw.Sub(payoutFromThisWithdraw)
+		payoutFromThisWithdraw := sdk.MinInt(remainingPayout, remainingWithdraw)
+		remainingPayout = remainingPayout.Sub(payoutFromThisWithdraw)
 		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime)
 		for j := range timeSlice {
 			if timeSlice[j].Address != withdraws[i].Address || !timeSlice[j].Amount.Equal(withdraws[i].Amount) {
@@ -368,14 +304,15 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 			break
 		}
 	}
-	if !payoutFromWithdraw.IsZero() {
-		panic("exact payout was not made from withdrawals")
-	}
-
 	k.SetTotalWithdrawing(ctx, totalWithdrawing)
+
+	// Update provider's collateral and total withdraw.
+	payoutFromWithdraw := payout.Sub(payoutFromCollateral).Sub(remainingPayout)
+	provider.Withdrawing = provider.Withdrawing.Sub(payoutFromWithdraw)
+	totalWithdrawing = totalWithdrawing.Sub(payoutFromWithdraw)
 	k.SetProvider(ctx, providerAddr, provider)
 
-	return nil
+	return payout.Sub(remainingPayout), nil
 }
 
 // MakePayoutByProviderDelegations undelegates the provider's delegations and transfers tokens from the staking module account to the shield module account.
@@ -645,26 +582,87 @@ func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAd
 	return unbondingDelegations
 }
 
-// WithdrawReimbursement withdraws a reimbursement made for a beneficiary.
-func (k Keeper) WithdrawReimbursement(ctx sdk.Context, proposalID uint64, beneficiary sdk.AccAddress) (sdk.Coins, error) {
-	reimbursement, err := k.GetReimbursement(ctx, proposalID)
-	if err != nil {
-		return sdk.Coins{}, err
+// getActualPayout computes the payout sans the amount to be
+// takens from the donation pool.
+func (k Keeper) getActualPayout(ctx sdk.Context, amount sdk.Coins) sdk.Int {
+	bondDenom := k.BondDenom(ctx)
+	totalCollateral := k.GetTotalCollateral(ctx)
+	totalPurchased := k.GetTotalShield(ctx)
+	totalPayout := amount.AmountOf(bondDenom)
+	purchaseRatio := totalPurchased.ToDec().Quo(totalCollateral.ToDec())
+	payoutRatio := totalPayout.ToDec().Quo(totalCollateral.ToDec())
+
+	for _, provider := range k.GetAllProviders(ctx) {
+		if !totalPayout.IsPositive() {
+			break
+		}
+
+		providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
+		if err != nil {
+			panic(err)
+		}
+
+		purchased := provider.Collateral.ToDec().Mul(purchaseRatio).TruncateInt()
+		if purchased.GT(totalPurchased) {
+			purchased = totalPurchased
+		}
+		payout := provider.Collateral.ToDec().Mul(payoutRatio).TruncateInt()
+		payout = sdk.MinInt(payout, totalPayout)
+
+		if purchased.LT(totalPurchased) && provider.Collateral.GT(payout.Add(purchased)) {
+			purchased = purchased.Add(sdk.OneInt())
+		}
+		if payout.LT(totalPayout) && provider.Collateral.GT(payout.Add(purchased)) {
+			payout = payout.Add(sdk.OneInt())
+		}
+
+		actualPayout, err := k.computeProviderCollateralForPayout(ctx, providerAddr, purchased, payout)
+		if err != nil {
+			panic(err)
+		}
+
+		totalPayout = totalPayout.Sub(actualPayout)
 	}
 
-	// check beneficiary and time
-	if reimbursement.Beneficiary != beneficiary.String() {
-		return sdk.Coins{}, types.ErrInvalidBeneficiary
-	}
-	if reimbursement.PayoutTime.After(ctx.BlockTime()) {
-		return sdk.Coins{}, types.ErrNotPayoutTime
+	reimbursement := amount
+	if totalPayout.IsPositive() {
+		reimbursement = amount.Sub(sdk.NewCoins(sdk.NewCoin(bondDenom, totalPayout)))
 	}
 
-	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, beneficiary, reimbursement.Amount); err != nil {
-		return sdk.Coins{}, types.ErrNotPayoutTime
+	return reimbursement.AmountOf(bondDenom)
+}
+
+// ComputeProviderCollateralForPayout the amount of collateral
+// to be contributed to the payout from the given provider.
+func (k Keeper) computeProviderCollateralForPayout(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout sdk.Int) (sdk.Int, error) {
+	provider, found := k.GetProvider(ctx, providerAddr)
+	if !found {
+		return sdk.NewInt(0), types.ErrProviderNotFound
 	}
-	if err := k.DeleteReimbursement(ctx, proposalID); err != nil {
-		return sdk.Coins{}, err
+
+	uncoveredPurchase := sdk.ZeroInt()
+	payoutFromCollateral := sdk.ZeroInt()
+
+	if provider.Collateral.Sub(provider.Withdrawing).GTE(purchased.Add(payout)) {
+		payoutFromCollateral = payout
+	} else if provider.Collateral.Sub(provider.Withdrawing).GTE(purchased) {
+		payoutFromCollateral = provider.Collateral.Sub(provider.Withdrawing).Sub(purchased)
+	} else {
+		uncoveredPurchase = purchased.Sub(provider.Collateral.Sub(provider.Withdrawing))
 	}
-	return reimbursement.Amount, nil
+
+	provider.Collateral = provider.Collateral.Sub(payout)
+	remainingPayout := payout.Sub(payoutFromCollateral)
+
+	withdraws := k.GetWithdrawsByProvider(ctx, provider.Address)
+	for i := len(withdraws) - 1; i >= 0 && remainingPayout.IsPositive(); i-- {
+		remainingWithdraw := sdk.MaxInt(withdraws[i].Amount.Sub(uncoveredPurchase), sdk.ZeroInt())
+		uncoveredPurchase = sdk.MaxInt(uncoveredPurchase.Sub(withdraws[i].Amount), sdk.ZeroInt())
+		if remainingWithdraw.IsZero() {
+			continue
+		}
+		payoutFromThisWithdraw := sdk.MinInt(remainingPayout, remainingWithdraw)
+		remainingPayout = remainingPayout.Sub(payoutFromThisWithdraw)
+	}
+	return payout.Sub(remainingPayout), nil
 }

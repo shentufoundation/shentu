@@ -13,6 +13,7 @@ __pycache__
 # Generated binaries & files
 certik
 !app/certik
+custom
 
 # Test
 coverage.out
