@@ -105,3 +105,29 @@ func (k Keeper) DistributeFees(ctx sdk.Context) {
 	// Store remaining block reward as new leftover
 	k.SetRemainingServiceFees(ctx, serviceFees)
 }
+
+func (k Keeper) RecoverPurchases(ctx sdk.Context) {
+	bondDenom := k.BondDenom(ctx)
+	k.IteratePurchases(ctx, func(purchase types.Purchase) bool {
+		var updated []types.RecoveringEntry
+		pool, found := k.GetPool(ctx, purchase.PoolId)
+		total := k.GetTotalShield(ctx)
+		if !found {
+			panic("pool not found for an existing purchase")
+		}
+		for _, e := range purchase.RecoveringEntries {
+			if e.RecoverTime.Before(ctx.BlockTime()) {
+				purchase.Shield = purchase.Shield.Add(e.Amount.AmountOf(bondDenom))
+				pool.Shield = pool.Shield.Add(e.Amount.AmountOf(bondDenom))
+				total = total.Add(e.Amount.AmountOf(bondDenom))
+			} else {
+				updated = append(updated, e)
+			}
+		}
+		purchase.RecoveringEntries = updated
+		k.SetPurchase(ctx, purchase)
+		k.SetPool(ctx, pool)
+		k.SetTotalShield(ctx, total)
+		return false
+	})
+}

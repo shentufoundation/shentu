@@ -42,7 +42,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	if !found {
 		return types.ErrPurchaseNotFound
 	}
-	if lossAmt.GT(purchase.Amount) {
+	if lossAmt.GT(purchase.Shield) {
 		return types.ErrNotEnoughShield
 	}
 
@@ -63,10 +63,8 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 		remaining = remaining.Sub(secureAmt)
 	}
 
-	// TODO: Decide what we actually want to do here.
 	// Update purchase states.
 	purchase.Shield = purchase.Shield.Sub(lossAmt)
-
 	k.SetPurchase(ctx, purchase)
 
 	// Update pool and global pool states.
@@ -151,10 +149,9 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 	purchase, found := k.GetPurchase(ctx, poolID, purchaser)
 	if !found {
 		purchase = types.NewPurchase(poolID, purchaser, "restored purchase",
-			loss.AmountOf(k.BondDenom(ctx)).ToDec().Quo(pool.ShieldRate).TruncateInt(), loss.AmountOf(k.BondDenom(ctx)))
-		return types.ErrPurchaseNotFound
+			lossAmt.ToDec().Quo(pool.ShieldRate).TruncateInt(), lossAmt)
 	} else {
-		purchase.Shield = purchase.Shield.Add(loss.AmountOf(k.BondDenom(ctx)))
+		purchase.Shield = purchase.Shield.Add(lossAmt)
 	}
 
 	k.SetPurchase(ctx, purchase)
@@ -163,8 +160,9 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 }
 
 // CreateReimbursement creates a reimbursement.
-func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount sdk.Coins, beneficiary sdk.AccAddress) error {
-	// TODO: rewrite this for V2 https://github.com/ShentuChain/shentu-private/issues/13
+func (k Keeper) CreateReimbursement(ctx sdk.Context, proposal *types.ShieldClaimProposal, beneficiary sdk.AccAddress) error {
+	amount := proposal.Loss
+
 	bondDenom := k.BondDenom(ctx)
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalPurchased := k.GetTotalShield(ctx)
@@ -216,7 +214,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 		reimbursement = amount.Sub(sdk.NewCoins(sdk.NewCoin(bondDenom, totalPayout)))
 
 		// Create pending payout since collateral could not cover the payout.
-		k.SetPendingPayout(ctx, types.NewPendingPayout(proposalID, totalPayout))
+		k.SetPendingPayout(ctx, types.NewPendingPayout(proposal.ProposalId, totalPayout))
 	}
 	// k.SetReimbursement(ctx, proposalID, types.NewReimbursement(reimbursement, beneficiary, ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).PayoutPeriod)))
 	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, beneficiary, reimbursement); err != nil {
@@ -228,6 +226,23 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposalID uint64, amount s
 	totalClaimed = totalClaimed.Sub(amount.AmountOf(bondDenom))
 	k.SetTotalCollateral(ctx, totalCollateral)
 	k.SetTotalClaimed(ctx, totalClaimed)
+
+	// Decrease shield and start cooldown period for the purchase
+	purchaserAddr, err := sdk.AccAddressFromBech32(proposal.Proposer)
+	if err != nil {
+		return err
+	}
+	purchase, found := k.GetPurchase(ctx, proposal.PoolId, purchaserAddr)
+	if !found {
+		return types.ErrPurchaseNotFound
+	}
+	params := k.GetPoolParams(ctx)
+	entry := types.RecoveringEntry{
+		RecoverTime: ctx.BlockTime().Add(params.CooldownPeriod),
+		Amount:      amount,
+	}
+	purchase.RecoveringEntries = append(purchase.RecoveringEntries, entry)
+	k.SetPurchase(ctx, purchase)
 
 	return nil
 }

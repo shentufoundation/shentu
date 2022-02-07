@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/certikfoundation/shentu/v2/common"
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
@@ -108,6 +109,43 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 	if sp.StartTime.Add(cd).After(ctx.BlockTime()) {
 		return types.ErrBeforeCooldownEnd
 	}
+
+	pool, found := k.GetPool(ctx, poolID)
+	if !found {
+		return types.ErrNoPoolFound
+	}
+
+	// update shield amount
+	shieldRate := pool.ShieldRate
+	shieldReducAmt := common.MulCoins(amount, shieldRate)
+	var updatedRE []types.RecoveringEntry
+	for _, e := range sp.RecoveringEntries {
+		if e.Amount.IsAllLTE(shieldReducAmt) {
+			shieldReducAmt = shieldReducAmt.Sub(e.Amount)
+			continue
+		} else if shieldReducAmt.IsAllLTE(e.Amount) {
+			e.Amount = e.Amount.Sub(shieldReducAmt)
+			updatedRE = append(updatedRE, e)
+			shieldReducAmt = sdk.NewCoins()
+		} else if shieldReducAmt.Empty() {
+			updatedRE = append(updatedRE, e)
+		}
+	}
+	sp.RecoveringEntries = updatedRE
+
+	totalShield := k.GetTotalShield(ctx)
+	if !shieldReducAmt.IsZero() {
+		sp.Shield = sp.Shield.Sub(shieldReducAmt.AmountOf(k.BondDenom(ctx)))
+
+		// pool shield is already decreased for the loss amount when the claim proposal is submitted
+		pool.Shield = pool.Shield.Sub(shieldReducAmt.AmountOf(k.BondDenom(ctx)))
+		k.SetPool(ctx, pool)
+
+		// update total shield
+		newTotalShield := totalShield.Sub(shieldReducAmt.AmountOf(k.BondDenom(ctx)))
+		k.SetTotalShield(ctx, newTotalShield)
+	}
+
 	sp.Amount = sp.Amount.Sub(bdAmount)
 	if sp.Amount.Equal(sdk.ZeroInt()) {
 		k.DeletePurchase(ctx, poolID, purchaser)
@@ -116,22 +154,13 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 		k.SetPurchase(ctx, sp)
 	}
 
-	// update pool
-	pool, found := k.GetPool(ctx, poolID)
-	if !found {
-		return types.ErrNoPoolFound
-	}
-	pool.Shield = pool.Shield.Sub(bdAmount.ToDec().Mul(pool.ShieldRate).TruncateInt())
-
 	// update global pool
 	bondDenomAmt := bdAmount
 	gSPool := k.GetGlobalStakingPool(ctx)
 	gSPool = gSPool.Sub(bondDenomAmt)
 	k.SetGlobalStakingPool(ctx, gSPool)
 
-	withdrawCoins := amount
-
-	return k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, withdrawCoins)
+	return k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, amount)
 }
 
 func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error {

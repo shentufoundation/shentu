@@ -18,6 +18,7 @@ import (
 	"github.com/certikfoundation/shentu/v2/simapp"
 	"github.com/certikfoundation/shentu/v2/x/gov/testgov"
 	"github.com/certikfoundation/shentu/v2/x/shield/testshield"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 	"github.com/certikfoundation/shentu/v2/x/staking/teststaking"
 )
 
@@ -301,7 +302,6 @@ func TestClaimProposal(t *testing.T) {
 	// the purchaser submits a claim proposal
 	loss := shield
 	tgov.ShieldClaimProposal(purchaser, loss, poolID, true)
-	var proposalID uint64 = 1 // TODO: unmarshal sdk.Result to obtain proposal ID
 
 	// verify that the withdrawal and unbonding have been delayed
 	// about 19e9 must be secured (two of three withdraws & ubds are delayed)
@@ -324,8 +324,12 @@ func TestClaimProposal(t *testing.T) {
 
 	// create reimbursement
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, loss))
+
 	beforeBalance := app.BankKeeper.GetBalance(ctx, purchaser, bondDenom).Amount
-	err = app.ShieldKeeper.CreateReimbursement(ctx, proposalID, lossCoins, purchaser)
+	proposal := shieldtypes.NewShieldClaimProposal(poolID, lossCoins, "test_claim_evidence", "test_claim_description", purchaser)
+	// TODO: make this more structured
+	proposal.ProposalId = 1
+	err = app.ShieldKeeper.CreateReimbursement(ctx, proposal, purchaser)
 	require.NoError(t, err)
 	afterBalance := app.BankKeeper.GetBalance(ctx, purchaser, bondDenom).Amount
 	require.True(t, beforeBalance.Add(sdk.NewInt(loss)).Equal(afterBalance))

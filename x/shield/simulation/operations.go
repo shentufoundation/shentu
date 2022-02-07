@@ -424,7 +424,7 @@ func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper)
 		if err != nil {
 			panic(err)
 		}
-		lossAmount, err := simtypes.RandPositiveInt(r, purchase.Amount)
+		lossAmount, err := simtypes.RandPositiveInt(r, purchase.Shield)
 		if err != nil {
 			return nil
 		}

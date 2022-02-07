@@ -24,4 +24,6 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 	// Close pools who do not have any shield and shield limits are set to zero.
 	// k.ClosePools(ctx)
+
+	k.RecoverPurchases(ctx)
 }
