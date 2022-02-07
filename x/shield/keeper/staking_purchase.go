@@ -1,16 +1,13 @@
 package keeper
 
 import (
-	"encoding/binary"
-	"fmt"
-	"strconv"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/certikfoundation/shentu/v2/common"
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
-func (k Keeper) GetGlobalShieldStakingPool(ctx sdk.Context) (pool sdk.Int) {
+func (k Keeper) GetGlobalStakingPool(ctx sdk.Context) (pool sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetGlobalStakeForShieldPoolKey())
 	if bz == nil {
@@ -22,33 +19,20 @@ func (k Keeper) GetGlobalShieldStakingPool(ctx sdk.Context) (pool sdk.Int) {
 	return ip.Int
 }
 
-func (k Keeper) SetGlobalShieldStakingPool(ctx sdk.Context, value sdk.Int) {
+func (k Keeper) SetGlobalStakingPool(ctx sdk.Context, value sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: value})
 	store.Set(types.GetGlobalStakeForShieldPoolKey(), bz)
 }
 
-func (k Keeper) GetOriginalStaking(ctx sdk.Context, purchaseID uint64) sdk.Int {
+func (k Keeper) DeletePurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetOriginalStakingKey(purchaseID))
-	if bz == nil {
-		return sdk.NewInt(0)
-	}
-
-	ip := sdk.IntProto{}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &ip)
-	return ip.Int
+	store.Delete(types.GetPurchaseKey(poolID, purchaser))
 }
 
-func (k Keeper) SetOriginalStaking(ctx sdk.Context, purchaseID uint64, amount sdk.Int) {
+func (k Keeper) GetPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (purchase types.Purchase, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: amount})
-	store.Set(types.GetOriginalStakingKey(purchaseID), bz)
-}
-
-func (k Keeper) GetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (purchase types.ShieldStaking, found bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetStakeForShieldKey(poolID, purchaser))
+	bz := store.Get(types.GetPurchaseKey(poolID, purchaser))
 	if bz != nil {
 		k.cdc.MustUnmarshalLengthPrefixed(bz, &purchase)
 		found = true
@@ -56,44 +40,127 @@ func (k Keeper) GetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.
 	return
 }
 
-func (k Keeper) SetStakeForShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchase types.ShieldStaking) {
+func (k Keeper) SetPurchase(ctx sdk.Context, purchase types.Purchase) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&purchase)
-	store.Set(types.GetStakeForShieldKey(poolID, purchaser), bz)
+	purchaser, err := sdk.AccAddressFromBech32(purchase.Purchaser)
+	if err != nil {
+		panic(err)
+	}
+	store.Set(types.GetPurchaseKey(purchase.PoolId, purchaser), bz)
 }
 
-func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, stakingAmt sdk.Int) error {
-	stakingCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), stakingAmt))
-	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, stakingCoins); err != nil {
-		return err
-	}
-
-	pool := k.GetGlobalShieldStakingPool(ctx)
-	pool = pool.Add(stakingAmt)
-	k.SetGlobalShieldStakingPool(ctx, pool)
-
-	sFS, found := k.GetStakeForShield(ctx, poolID, purchaser)
+func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, description string, amount sdk.Coins) (types.Purchase, error) {
+	pool, found := k.GetPool(ctx, poolID)
 	if !found {
-		sFS = types.NewShieldStaking(poolID, purchaser, stakingAmt)
-	} else {
-		sFS.Amount = sFS.Amount.Add(stakingAmt)
+		return types.Purchase{}, types.ErrNoPoolFound
 	}
-	k.SetStakeForShield(ctx, poolID, purchaser, sFS)
-	k.SetOriginalStaking(ctx, purchaseID, stakingAmt)
-	return nil
+
+	bondDenomAmt := amount.AmountOf(k.BondDenom(ctx))
+
+	// TODO: handle when purchase > collateral
+	maxPurchase := sdk.MaxInt(k.GetTotalCollateral(ctx).Sub(k.GetTotalShield(ctx)).ToDec().Quo(pool.ShieldRate).TruncateInt(), sdk.ZeroInt())
+	bondDenomAmt = sdk.MinInt(maxPurchase, bondDenomAmt)
+	if bondDenomAmt.Equal(sdk.ZeroInt()) {
+		return types.Purchase{}, nil
+	}
+	ceiledCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), bondDenomAmt))
+
+	shieldAmt := bondDenomAmt.ToDec().Mul(pool.ShieldRate).TruncateInt()
+	pool.Shield = pool.Shield.Add(shieldAmt)
+	k.SetPool(ctx, pool)
+
+	gSPool := k.GetGlobalStakingPool(ctx)
+	gSPool = gSPool.Add(bondDenomAmt)
+	k.SetGlobalStakingPool(ctx, gSPool)
+
+	sp, found := k.GetPurchase(ctx, poolID, purchaser)
+	if !found {
+		sp = types.NewPurchase(poolID, purchaser, description, bondDenomAmt, shieldAmt)
+	} else {
+		sp.Amount = sp.Amount.Add(bondDenomAmt)
+		sp.Shield = sp.Shield.Add(shieldAmt)
+	}
+	sp.StartTime = ctx.BlockTime()
+	k.SetPurchase(ctx, sp)
+
+	totalShield := k.GetTotalShield(ctx)
+	totalShield = totalShield.Add(shieldAmt)
+	k.SetTotalShield(ctx, totalShield)
+
+	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, ceiledCoins); err != nil {
+		return types.Purchase{}, err
+	}
+	return sp, nil
 }
 
-func (k Keeper) UnstakeFromShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) error {
-	sp, found := k.GetStakeForShield(ctx, poolID, purchaser)
+func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, amount sdk.Coins) error {
+	bdAmount := amount.AmountOf(k.BondDenom(ctx))
+
+	sp, found := k.GetPurchase(ctx, poolID, purchaser)
 	if !found {
 		return types.ErrPurchaseNotFound
 	}
-	if sp.WithdrawRequested.Add(amount).GT(sp.Amount) {
-		return types.ErrNotEnoughStaked
+	if sp.Amount.LT(bdAmount) {
+		return types.ErrInsufficientStaking
 	}
-	sp.WithdrawRequested = sp.WithdrawRequested.Add(amount)
-	k.SetStakeForShield(ctx, poolID, purchaser, sp)
-	return nil
+	poolParams := k.GetPoolParams(ctx)
+	cd := poolParams.CooldownPeriod
+	if sp.StartTime.Add(cd).After(ctx.BlockTime()) {
+		return types.ErrBeforeCooldownEnd
+	}
+
+	pool, found := k.GetPool(ctx, poolID)
+	if !found {
+		return types.ErrNoPoolFound
+	}
+
+	// update shield amount
+	shieldRate := pool.ShieldRate
+	shieldReducAmt := common.MulCoins(amount, shieldRate)
+	var updatedRE []types.RecoveringEntry
+	for _, e := range sp.RecoveringEntries {
+		if e.Amount.IsAllLTE(shieldReducAmt) {
+			shieldReducAmt = shieldReducAmt.Sub(e.Amount)
+			continue
+		} else if shieldReducAmt.IsAllLTE(e.Amount) {
+			e.Amount = e.Amount.Sub(shieldReducAmt)
+			updatedRE = append(updatedRE, e)
+			shieldReducAmt = sdk.NewCoins()
+		} else if shieldReducAmt.Empty() {
+			updatedRE = append(updatedRE, e)
+		}
+	}
+	sp.RecoveringEntries = updatedRE
+
+	totalShield := k.GetTotalShield(ctx)
+	if !shieldReducAmt.IsZero() {
+		sp.Shield = sp.Shield.Sub(shieldReducAmt.AmountOf(k.BondDenom(ctx)))
+
+		// pool shield is already decreased for the loss amount when the claim proposal is submitted
+		pool.Shield = pool.Shield.Sub(shieldReducAmt.AmountOf(k.BondDenom(ctx)))
+		k.SetPool(ctx, pool)
+
+		// update total shield
+		newTotalShield := totalShield.Sub(shieldReducAmt.AmountOf(k.BondDenom(ctx)))
+		k.SetTotalShield(ctx, newTotalShield)
+	}
+
+	sp.Amount = sp.Amount.Sub(bdAmount)
+	if sp.Amount.Equal(sdk.ZeroInt()) {
+		k.DeletePurchase(ctx, poolID, purchaser)
+	} else {
+		sp.StartTime = ctx.BlockTime()
+		k.SetPurchase(ctx, sp)
+	}
+
+	// update global pool
+	bondDenomAmt := bdAmount
+	gSPool := k.GetGlobalStakingPool(ctx)
+	gSPool = gSPool.Sub(bondDenomAmt)
+	k.SetGlobalStakingPool(ctx, gSPool)
+
+	return k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, amount)
 }
 
 func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error {
@@ -101,108 +168,31 @@ func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender
 		return err
 	}
 	blockServiceFee := k.GetBlockServiceFees(ctx)
-	blockServiceFee = blockServiceFee.Add(types.NewMixedDecCoins(sdk.NewDecCoinsFromCoins(amount...), sdk.NewDecCoins()))
+	blockServiceFee = blockServiceFee.Add(sdk.NewDecCoinsFromCoins(amount...)...)
 	k.SetBlockServiceFees(ctx, blockServiceFee)
 	return nil
 }
 
-func (k Keeper) GetAllStakeForShields(ctx sdk.Context) (purchases []types.ShieldStaking) {
-	k.IterateStakeForShields(ctx, func(purchase types.ShieldStaking) bool {
+func (k Keeper) GetAllPurchase(ctx sdk.Context) (purchases []types.Purchase) {
+	k.IteratePurchases(ctx, func(purchase types.Purchase) bool {
 		purchases = append(purchases, purchase)
 		return false
 	})
 	return
 }
 
-// IterateStakeForShields iterates through purchase lists in a pool
-func (k Keeper) IterateStakeForShields(ctx sdk.Context, callback func(purchase types.ShieldStaking) (stop bool)) {
+// IteratePurchases iterates through purchase lists in a pool
+func (k Keeper) IteratePurchases(ctx sdk.Context, callback func(purchase types.Purchase) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.StakeForShieldKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.PurchaseKey)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var purchase types.ShieldStaking
+		var purchase types.Purchase
 		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &purchase)
 
 		if callback(purchase) {
 			break
 		}
 	}
-}
-
-func (k Keeper) GetAllOriginalStakings(ctx sdk.Context) (originalStakings []types.OriginalStaking) {
-	k.IterateOriginalStakings(ctx, func(newOS types.OriginalStaking) bool {
-		originalStakings = append(originalStakings, newOS)
-		return false
-	})
-	return
-}
-
-// IterateStakeForShields iterates through purchase lists in a pool
-func (k Keeper) IterateOriginalStakings(ctx sdk.Context, callback func(original types.OriginalStaking) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.OriginalStakingKey)
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var ip sdk.IntProto
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &ip)
-		bz := iterator.Key()[1:]
-		id := binary.LittleEndian.Uint64(bz)
-		newOS := types.NewOriginalStaking(id, ip.Int)
-
-		if callback(newOS) {
-			break
-		}
-	}
-}
-
-func (k Keeper) ProcessStakeForShieldExpiration(ctx sdk.Context, poolID, purchaseID uint64, bondDenom string, purchaser sdk.AccAddress) error {
-	staked, found := k.GetStakeForShield(ctx, poolID, purchaser)
-	if !found {
-		return nil
-	}
-	amount := k.GetOriginalStaking(ctx, purchaseID)
-	if amount.IsZero() {
-		return nil
-	}
-	refundCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, amount))
-	k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, refundCoins)
-
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetOriginalStakingKey(purchaseID))
-
-	pool := k.GetGlobalShieldStakingPool(ctx)
-	pool = pool.Sub(amount)
-	k.SetGlobalShieldStakingPool(ctx, pool)
-
-	renew := amount.Sub(staked.WithdrawRequested)
-	if renew.IsNegative() {
-		renew = sdk.NewInt(0)
-	}
-
-	staked.Amount = staked.Amount.Sub(amount)
-	withdrawAmt := sdk.MinInt(staked.WithdrawRequested, amount)
-	staked.WithdrawRequested = staked.WithdrawRequested.Sub(withdrawAmt)
-	if staked.Amount.IsZero() {
-		store.Delete(types.GetStakeForShieldKey(poolID, purchaser))
-	} else {
-		k.SetStakeForShield(ctx, poolID, purchaser, staked)
-	}
-
-	if renew.IsZero() {
-		return nil
-	}
-
-	sPRate := k.GetShieldStakingRate(ctx)
-	renewShieldInt := amount.ToDec().Quo(sPRate).TruncateInt()
-	renewShield := sdk.NewCoins(sdk.NewCoin(bondDenom, renewShieldInt))
-	if renewShieldInt.IsZero() {
-		return nil
-	}
-
-	desc := fmt.Sprintf(`renewed from PurchaseID %s`, strconv.FormatUint(purchaseID, 10))
-	_, _ = k.PurchaseShield(ctx, poolID, renewShield, desc, purchaser, true)
-
-	return nil
 }

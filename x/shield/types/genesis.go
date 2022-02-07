@@ -3,7 +3,6 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,31 +10,30 @@ import (
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
-	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, serviceFees, remainingServiceFees MixedDecCoins,
-	pools []Pool, providers []Provider, purchase []PurchaseList, withdraws []Withdraw, lastUpdateTime time.Time, sSRate sdk.Dec, globalStakingPool sdk.Int,
-	stakingPurchases []ShieldStaking, originalStaking []OriginalStaking, proposalIDReimbursementPairs []ProposalIDReimbursementPair) GenesisState {
+	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int,
+	serviceFees, remainingServiceFees sdk.DecCoins, pools []Pool, providers []Provider, withdraws []Withdraw,
+	globalStakingPool sdk.Int, stakingPurchases []Purchase,
+	donationPool DonationPool, pendingPayouts []PendingPayout, blockRewardParams BlockRewardParams) GenesisState {
 	return GenesisState{
-		ShieldAdmin:                  shieldAdmin.String(),
-		NextPoolId:                   nextPoolID,
-		NextPurchaseId:               nextPurchaseID,
-		PoolParams:                   poolParams,
-		ClaimProposalParams:          claimProposalParams,
-		TotalCollateral:              totalCollateral,
-		TotalWithdrawing:             totalWithdrawing,
-		TotalShield:                  totalShield,
-		TotalClaimed:                 totalClaimed,
-		ServiceFees:                  serviceFees,
-		RemainingServiceFees:         remainingServiceFees,
-		Pools:                        pools,
-		Providers:                    providers,
-		PurchaseLists:                purchase,
-		Withdraws:                    withdraws,
-		LastUpdateTime:               lastUpdateTime,
-		ShieldStakingRate:            sSRate,
-		GlobalStakingPool:            globalStakingPool,
-		StakeForShields:              stakingPurchases,
-		OriginalStakings:             originalStaking,
-		ProposalIDReimbursementPairs: proposalIDReimbursementPairs,
+		ShieldAdmin:          shieldAdmin.String(),
+		NextPoolId:           nextPoolID,
+		NextPurchaseId:       nextPurchaseID,
+		PoolParams:           poolParams,
+		ClaimProposalParams:  claimProposalParams,
+		TotalCollateral:      totalCollateral,
+		TotalWithdrawing:     totalWithdrawing,
+		TotalShield:          totalShield,
+		TotalClaimed:         totalClaimed,
+		ServiceFees:          serviceFees,
+		RemainingServiceFees: remainingServiceFees,
+		Pools:                pools,
+		Providers:            providers,
+		Withdraws:            withdraws,
+		GlobalStakingPool:    globalStakingPool,
+		Purchases:            stakingPurchases,
+		DonationPool:         donationPool,
+		PendingPayouts:       pendingPayouts,
+		BlockRewardParams:    blockRewardParams,
 	}
 }
 
@@ -50,10 +48,10 @@ func DefaultGenesisState() *GenesisState {
 		TotalWithdrawing:     sdk.ZeroInt(),
 		TotalShield:          sdk.ZeroInt(),
 		TotalClaimed:         sdk.ZeroInt(),
-		ServiceFees:          InitMixedDecCoins(),
-		RemainingServiceFees: InitMixedDecCoins(),
-		ShieldStakingRate:    sdk.NewDec(2),
-		LastUpdateTime:       time.Now(),
+		ServiceFees:          sdk.NewDecCoins(),
+		RemainingServiceFees: sdk.NewDecCoins(),
+		DonationPool:         InitialDonationPool(),
+		BlockRewardParams:    DefaultBlockRewardParams(),
 	}
 }
 
@@ -62,11 +60,17 @@ func ValidateGenesis(data GenesisState) error {
 	if data.NextPoolId < 1 {
 		return fmt.Errorf("failed to validate %s genesis state: NextPoolID must be positive ", ModuleName)
 	}
+	if data.DonationPool.Amount.IsNegative() {
+		return fmt.Errorf("donation pool amount is negative %v", data.DonationPool.Amount)
+	}
 	if err := validatePoolParams(data.PoolParams); err != nil {
 		return fmt.Errorf("failed to validate %s pool params: %w", ModuleName, err)
 	}
 	if err := validateClaimProposalParams(data.ClaimProposalParams); err != nil {
 		return fmt.Errorf("failed to validate %s claim proposal params: %w", ModuleName, err)
+	}
+	if err := validateBlockRewardParams(data.BlockRewardParams); err != nil {
+		return fmt.Errorf("failed to validate %s block reward params: %w", ModuleName, err)
 	}
 
 	return nil
@@ -79,11 +83,4 @@ func GetGenesisStateFromAppState(cdc codec.Codec, appState map[string]json.RawMe
 		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
 	}
 	return genesisState
-}
-
-func NewOriginalStaking(purchaseID uint64, amount sdk.Int) OriginalStaking {
-	return OriginalStaking{
-		PurchaseId: purchaseID,
-		Amount:     amount,
-	}
 }

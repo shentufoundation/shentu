@@ -33,5 +33,12 @@ func ParamChanges(_ *rand.Rand) []simtypes.ParamChange {
 				return string(bz)
 			},
 		),
+
+		simulation.NewSimParamChange(types.ModuleName, string(types.ParamStoreKeyBlockRewardParams),
+			func(r *rand.Rand) string {
+				bz, _ := json.Marshal(GenBlockRewardParams(r))
+				return string(bz)
+			},
+		),
 	}
 }

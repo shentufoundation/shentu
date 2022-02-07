@@ -5,7 +5,6 @@ import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
-import "gogoproto/gogo.proto";
 import "shentu/shield/v1alpha1/shield.proto";
 
 option go_package = "github.com/certikfoundation/shentu/x/shield/types";
@@ -24,43 +23,16 @@ message GenesisState {
     string total_withdrawing = 7 [ (gogoproto.moretags) = "yaml:\"total_withdrawing\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     string total_shield = 8 [ (gogoproto.moretags) = "yaml:\"total_shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     string total_claimed = 9 [ (gogoproto.moretags) = "yaml:\"total_claimed\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    MixedDecCoins service_fees = 10 [ (gogoproto.moretags) = "yaml:\"service_fees\"", (gogoproto.nullable) = false ];    
-    MixedDecCoins remaining_service_fees = 11 [ (gogoproto.moretags) = "yaml:\"remaining_service_fees\"", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.DecCoin service_fees = 10 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"service_fees\"", (gogoproto.nullable) = false ];    
+    repeated cosmos.base.v1beta1.DecCoin remaining_service_fees = 11 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"remaining_service_fees\"", (gogoproto.nullable) = false ];
     repeated Pool pools = 12 [ (gogoproto.moretags) = "yaml:\"pools\"", (gogoproto.nullable) = false ];
     repeated Provider providers = 13 [ (gogoproto.moretags) = "yaml:\"providers\"", (gogoproto.nullable) = false ];
-    repeated PurchaseList purchase_lists = 14 [ (gogoproto.moretags) = "yaml:\"purchases\"", (gogoproto.nullable) = false ];
     repeated Withdraw withdraws = 15 [ (gogoproto.moretags) = "yaml:\"withdraws\"", (gogoproto.nullable) = false ];
-    google.protobuf.Timestamp last_update_time = 16 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"last_update_time\""];
-    string shield_staking_rate = 17 [ (gogoproto.moretags) = "yaml:\"shield_staking_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
     string global_staking_pool = 18 [ (gogoproto.moretags) = "yaml:\"global_staking_pool\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    repeated ShieldStaking stake_for_shields = 19 [ (gogoproto.moretags) = "yaml:\"stake_for_shields\"", (gogoproto.nullable) = false ];
-    repeated OriginalStaking original_stakings = 20 [ (gogoproto.moretags) = "yaml:\"original_stakings\"", (gogoproto.nullable) = false ];
-    repeated ProposalIDReimbursementPair proposalID_reimbursement_pairs = 21 [ (gogoproto.moretags) = "yaml:\"proposalID_reimbursement_pairs\"", (gogoproto.nullable) = false ];
-}
-
-message OriginalStaking {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-
-    uint64 purchase_id = 1 [ (gogoproto.moretags) = "yaml:\"purchase_id\"" ];
-    string amount = 2 [ (gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-}
-
-message ProposalIDReimbursementPair {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-
-    uint64 proposal_id = 1 [ (gogoproto.moretags) = "yaml:\"proposal_id\"" ];
-    Reimbursement reimbursement = 2 [ (gogoproto.moretags) = "yaml:\"reimbursement\"", (gogoproto.nullable) = false ];
-}
-
-message Reimbursement {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-
-    repeated cosmos.base.v1beta1.Coin amount = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    string beneficiary = 2 [ (gogoproto.moretags) = "yaml:\"beneficiary\"" ];
-    google.protobuf.Timestamp payout_time = 3 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"payout_time\""];
+    repeated Purchase purchases = 19 [ (gogoproto.moretags) = "yaml:\"purchases\"", (gogoproto.nullable) = false ];
+    DonationPool donation_pool = 22 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"donation_pool\""];
+    repeated PendingPayout pending_payouts = 23 [ (gogoproto.moretags) = "yaml:\"pending_payouts\"", (gogoproto.nullable) = false ];
+    BlockRewardParams block_reward_params = 24 [ (gogoproto.moretags) = "yaml:\"block_reward_params\"", (gogoproto.nullable) = false ];
 }
 
 // PoolParams defines the parameters for the shield pool.
@@ -73,6 +45,7 @@ message PoolParams {
     google.protobuf.Duration withdraw_period = 3 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"withdraw_period\"" ];
     string pool_shield_limit = 4 [ (gogoproto.moretags) = "yaml:\"pool_shield_limit\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
     repeated cosmos.base.v1beta1.Coin min_shield_purchase = 5 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    google.protobuf.Duration cooldown_period = 6 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"cooldown_period\"" ];
 }
 
 // ClaimProposalParams defines the parameters for the shield claim proposals.
@@ -85,4 +58,14 @@ message ClaimProposalParams {
     repeated cosmos.base.v1beta1.Coin min_deposit = 3 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
     string deposit_rate = 4 [ (gogoproto.moretags) = "yaml:\"deposit_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
     string fees_rate = 5 [ (gogoproto.moretags) = "yaml:\"fees_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+}
+
+// BlockRewardParams defines the parameters for shield block reward.
+message BlockRewardParams {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string model_param_a = 1 [ (gogoproto.moretags) = "yaml:\"model_param_a\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    string model_param_b = 2 [ (gogoproto.moretags) = "yaml:\"model_param_b\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    string target_leverage = 3 [ (gogoproto.moretags) = "yaml:\"target_leverage\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }

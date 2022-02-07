@@ -269,3 +269,12 @@ func (keeper Keeper) MustUnmarshalProposal(bz []byte, proposal *types.Proposal) 
 		panic(err)
 	}
 }
+
+func (keeper Keeper) GetProposalProposer(ctx sdk.Context, proposalId uint64) (sdk.AccAddress, error) {
+	proposal, found := keeper.GetProposal(ctx, proposalId)
+	if !found {
+		return sdk.AccAddress{}, govtypes.ErrUnknownProposal
+	}
+	proposer := proposal.ProposerAddress
+	return sdk.AccAddressFromBech32(proposer)
+}

@@ -113,28 +113,19 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 				initialDepositAmount, lossAmountDec.Mul(depositRate), minDeposit,
 			)
 		}
-
-		// check shield >= loss
 		proposerAddr, err := sdk.AccAddressFromBech32(c.Proposer)
 		if err != nil {
 			return err
 		}
-		purchaseList, found := k.ShieldKeeper.GetPurchaseList(ctx, c.PoolId, proposerAddr)
+
+		purchase, found := k.ShieldKeeper.GetPurchase(ctx, c.PoolId, proposerAddr)
 		if !found {
 			return shieldtypes.ErrPurchaseNotFound
 		}
-		purchase, found := k.ShieldKeeper.GetPurchase(purchaseList, c.PurchaseId)
-		if !found {
-			return shieldtypes.ErrPurchaseNotFound
-		}
-		if !purchase.Shield.GTE(lossAmount) {
-			return fmt.Errorf("insufficient shield: %s, loss: %s", purchase.Shield, c.Loss)
+		if purchase.Amount.LT(lossAmount) {
+			return fmt.Errorf("insufficient shield: %s, loss: %s", purchase.Amount, c.Loss)
 		}
 
-		// check the purchaseList is not expired
-		if purchase.ProtectionEndTime.Before(ctx.BlockTime()) {
-			return fmt.Errorf("after protection end time: %s", purchase.ProtectionEndTime)
-		}
 		return nil
 
 	default:
