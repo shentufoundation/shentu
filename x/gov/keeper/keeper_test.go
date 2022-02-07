@@ -1,265 +1,431 @@
 package keeper_test
 
 import (
-	"fmt"
-	"reflect"
 	"testing"
-	"time"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
 
 	"github.com/certikfoundation/shentu/v2/simapp"
-	. "github.com/certikfoundation/shentu/v2/x/gov/keeper"
+	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
+	"github.com/certikfoundation/shentu/v2/x/gov/types"
 )
 
-func TestKeeper_ProposeAndVote(t *testing.T) {
-	t.Log("Test keeper AddVote")
-	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+var (
+	acc1 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc2 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc3 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc4 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+)
 
-	tp := govtypes.NewTextProposal("title0", "desc0")
-	t.Run("Test submitting a proposal and adding a vote with yes", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, tp, addrs[0])
-		if err != nil {
-			panic(err)
-		}
-		options := govtypes.NewNonSplitVoteOption(govtypes.OptionYes)
-		vote := govtypes.NewVote(pp.ProposalId, addrs[0], options)
-		coins700 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 700*1e6))
-		require.NoError(t, sdksimapp.FundAccount(app.BankKeeper, ctx, addrs[1], coins700))
+// shared setup
+type KeeperTestSuite struct {
+	suite.Suite
 
-		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coins700)
-		require.Equal(t, nil, err)
-		require.Equal(t, true, votingPeriodActivated)
-
-		voter, err := sdk.AccAddressFromBech32(vote.Voter)
-		if err != nil {
-			panic(err)
-		}
-		err = app.GovKeeper.AddVote(ctx, pp.ProposalId, voter, options)
-		require.Equal(t, nil, err)
-
-		// the vote does not count since addr[0] is not a validator
-		results := map[govtypes.VoteOption]sdk.Dec{
-			govtypes.OptionYes:        sdk.ZeroDec(),
-			govtypes.OptionAbstain:    sdk.ZeroDec(),
-			govtypes.OptionNo:         sdk.ZeroDec(),
-			govtypes.OptionNoWithVeto: sdk.ZeroDec(),
-		}
-
-		pass, veto, res := Tally(ctx, app.GovKeeper, pp)
-		require.Equal(t, false, pass)
-		require.Equal(t, false, veto)
-		require.Equal(t, govtypes.NewTallyResultFromMap(results), res)
-	})
-
-	// TODO: more tests. validator cases
+	app                 *simapp.SimApp
+	ctx                 sdk.Context
+	keeper              keeper.Keeper
+	address             []sdk.AccAddress
+	queryClient         types.QueryClient
+	validatorAccAddress sdk.AccAddress
 }
 
-func TestKeeper_GetVotes(t *testing.T) {
-	t.Log("Test keeper GetVotes")
-	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
+func (suite *KeeperTestSuite) SetupTest() {
+	suite.app = simapp.Setup(false)
+	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
+	suite.keeper = suite.app.GovKeeper
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, suite.app.GovKeeper)
+	suite.queryClient = types.NewQueryClient(queryHelper)
+	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
 
-	tp := govtypes.TextProposal{Title: "title0", Description: "desc0"}
-	t.Run("Test adding a lot of votes and retrieving them", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
-		require.Equal(t, nil, err)
-		coins700 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 700*1e6))
-		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[0], coins700)
-		require.Equal(t, nil, err)
-		require.Equal(t, true, votingPeriodActivated)
+	// suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(suite.address[3], "", suite.address[3], ""))
+	validatorAddress := sdk.ValAddress(suite.address[3])
+	suite.validatorAccAddress = suite.address[3]
+	pks := simapp.CreateTestPubKeys(5)
+	powers := []int64{1, 1, 1}
+	cdc := sdksimapp.MakeTestEncodingConfig().Marshaler
+	suite.app.StakingKeeper = stakingkeeper.NewKeeper(
+		cdc,
+		suite.app.GetKey(stakingtypes.StoreKey),
+		suite.app.AccountKeeper,
+		suite.app.BankKeeper,
+		suite.app.GetSubspace(stakingtypes.ModuleName),
+	)
 
-		var addr sdk.AccAddress
-		for i := 0; i < 880; i++ {
-			addr = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-			options := govtypes.NewNonSplitVoteOption(govtypes.OptionYes)
-			vote := govtypes.NewVote(pp.ProposalId, addr, options)
-			voter, err := sdk.AccAddressFromBech32(vote.Voter)
-			if err != nil {
-				panic(err)
+	val1, err := stakingtypes.NewValidator(validatorAddress, pks[0], stakingtypes.Description{})
+	suite.Require().NoError(err)
+	val1.Status = stakingtypes.Bonded
+	val1.DelegatorShares = sdk.OneDec()
+	val1.Tokens = sdk.OneInt()
+	suite.app.StakingKeeper.SetValidator(suite.ctx, val1)
+	suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, val1)
+	suite.app.StakingKeeper.SetNewValidatorByPowerIndex(suite.ctx, val1)
+	suite.app.StakingKeeper.AfterValidatorCreated(suite.ctx, val1.GetOperator())
+	_, _ = suite.app.StakingKeeper.Delegate(suite.ctx, suite.address[0], suite.app.StakingKeeper.TokensFromConsensusPower(suite.ctx, powers[0]), stakingtypes.Unbonded, val1, true)
+}
+
+// TODO: Add proposer in type proposal for all test cases
+func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
+	type proposal struct {
+		title       string
+		description string
+	}
+
+	tests := []struct {
+		name               string
+		proposal           proposal
+		proposer           sdk.AccAddress
+		depositor          sdk.AccAddress
+		fundedCoins        sdk.Coins
+		depositAmount      sdk.Coins
+		votingPeriodStatus bool
+		reDeposit          bool
+		err                bool
+		shouldPass         bool
+	}{
+		{
+			name: "New proposal, sufficient coins to start voting",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+			},
+			proposer:           suite.address[0],
+			depositor:          suite.address[1],
+			fundedCoins:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount:      sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			votingPeriodStatus: true,
+			reDeposit:          false,
+			err:                false,
+			shouldPass:         true,
+		},
+		{
+			name: "New proposal, insufficient coins to start voting",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+			},
+			proposer:           suite.address[0],
+			depositor:          suite.address[1],
+			fundedCoins:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (10)*1e6)),
+			depositAmount:      sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (10)*1e6)),
+			votingPeriodStatus: false,
+			reDeposit:          false,
+			err:                false,
+			shouldPass:         false,
+		},
+		{
+			name: "New proposal, deposit amount greater than funded coins",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+			},
+			proposer:           suite.address[0],
+			depositor:          suite.address[1],
+			fundedCoins:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (600)*1e6)),
+			depositAmount:      sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			votingPeriodStatus: false,
+			reDeposit:          false,
+			err:                true,
+			shouldPass:         false,
+		},
+		{
+			name: "New proposal, add more deposit after votingPeriod starts",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+			},
+			proposer:           suite.address[0],
+			depositor:          suite.address[1],
+			fundedCoins:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (1500)*1e6)),
+			depositAmount:      sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			votingPeriodStatus: true,
+			reDeposit:          true,
+			err:                true,
+			shouldPass:         false,
+		},
+		{
+			name: "proposal submitted by validator is already active and doesn't require deposit",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+			},
+			proposer:           suite.validatorAccAddress,
+			depositor:          suite.address[1],
+			fundedCoins:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount:      sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (100)*1e6)),
+			votingPeriodStatus: false,
+			err:                true,
+			shouldPass:         false,
+		},
+	}
+
+	for _, tc := range tests {
+		textProposalContent := govtypes.NewTextProposal(tc.proposal.title, tc.proposal.description)
+
+		// create/submit a new proposal
+		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent, tc.proposer)
+		suite.Require().NoError(err)
+		// add staking coins to depositor
+		suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
+
+		// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
+		votingPeriodActivated, err := suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, tc.depositor, tc.depositAmount)
+
+		if tc.reDeposit {
+			_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, tc.depositor, tc.depositAmount)
+		}
+
+		if tc.shouldPass {
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.votingPeriodStatus, votingPeriodActivated)
+		} else {
+			if tc.err {
+				suite.Require().Error(err)
 			}
-			err = app.GovKeeper.AddVote(ctx, vote.ProposalId, voter, options)
-			require.Equal(t, nil, err)
+			suite.Require().Equal(tc.votingPeriodStatus, votingPeriodActivated)
 		}
-
-		retrievedVotes := app.GovKeeper.GetVotesPaginated(ctx, pp.ProposalId, 1, 2000)
-		require.Equal(t, 880, len(retrievedVotes))
-		retrievedVotes = app.GovKeeper.GetVotesPaginated(ctx, pp.ProposalId, 2, 200)
-		require.Equal(t, 200, len(retrievedVotes))
-		retrievedVotes = app.GovKeeper.GetVotesPaginated(ctx, pp.ProposalId, 5, 200)
-		require.Equal(t, 80, len(retrievedVotes))
-
-		retrievedVotesNoPage := app.GovKeeper.GetVotes(ctx, pp.ProposalId)
-		require.Equal(t, 880, len(retrievedVotesNoPage))
-
-		for i := range retrievedVotes[:10] {
-			require.True(t, reflect.DeepEqual(retrievedVotes[i], retrievedVotesNoPage[i+800]))
-		}
-	})
+	}
 }
 
-func TestKeeper_AddDeposit(t *testing.T) {
-	t.Log("Test keeper AddDeposit")
-	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(10000))
+func (suite *KeeperTestSuite) TestKeeper_DepositOperations() {
+	type proposal struct {
+		title       string
+		description string
+	}
 
-	coins := sdk.Coins{sdk.NewInt64Coin("uctk", 80000*1e6)}
-	require.NoError(t, sdksimapp.FundAccount(app.BankKeeper, ctx, addrs[1], coins))
+	tests := []struct {
+		name                 string
+		proposal             proposal
+		proposer             sdk.AccAddress
+		depositor            sdk.AccAddress
+		fundedCoins          sdk.Coins
+		depositAmount        sdk.Coins
+		finalAmount          sdk.Coins
+		testRefund           bool
+		setInvalidProposalId bool
+		shouldPass           bool
+	}{
+		{
+			name: "Refund all deposits in a specific proposal",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+			},
+			proposer:             suite.address[0],
+			depositor:            suite.address[1],
+			fundedCoins:          sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			finalAmount:          sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			testRefund:           true,
+			setInvalidProposalId: false,
+			shouldPass:           true,
+		},
+		{
+			name: "Delete all deposits in a specific proposal",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+			},
+			proposer:             suite.address[0],
+			depositor:            suite.address[1],
+			fundedCoins:          sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (600)*1e6)),
+			finalAmount:          sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), 100*1e6)),
+			testRefund:           false,
+			setInvalidProposalId: false,
+			shouldPass:           true,
+		},
+	}
 
-	tp := govtypes.TextProposal{Title: "title0", Description: "desc0"}
+	for _, tc := range tests {
+		textProposalContent := govtypes.NewTextProposal(tc.proposal.title, tc.proposal.description)
 
-	t.Run("adding deposit and proposal doesn't exist", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
-		require.Equal(t, nil, err)
-		coins100 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 100*1e6))
+		// create/submit a new proposal
+		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent, tc.proposer)
+		suite.Require().NoError(err)
 
-		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId+1, addrs[1], coins100)
-		errString := fmt.Sprintf("%d: unknown proposal", pp.ProposalId+1)
-		require.EqualError(t, err, errString)
-		require.Equal(t, false, votingPeriodActivated)
-	})
+		// add staking coins to depositor
+		suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
 
-	t.Run("adding deposit not enough balance", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
-		require.Equal(t, nil, err)
-		coins15000 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 15000*1e6))
+		// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
+		_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, tc.depositor, tc.depositAmount)
+		suite.Require().NoError(err)
 
-		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[0], coins15000)
-		errString := "10000uctk is smaller than 15000000000uctk: insufficient funds"
-		require.EqualError(t, err, errString)
-		require.Equal(t, false, votingPeriodActivated)
-	})
+		if tc.setInvalidProposalId {
+			proposal.ProposalId = proposal.ProposalId + 10
+		}
 
-	t.Run("adding deposit and waiting for more deposits", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
-		require.Equal(t, nil, err)
-		coins100 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 100*1e6))
+		if tc.testRefund {
+			suite.app.GovKeeper.RefundDepositsByProposalID(suite.ctx, proposal.ProposalId)
+		} else {
+			suite.app.GovKeeper.DeleteDepositsByProposalID(suite.ctx, proposal.ProposalId)
+		}
 
-		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coins100)
-		require.Equal(t, nil, err)
-		require.Equal(t, false, votingPeriodActivated)
-	})
+		if tc.shouldPass {
+			suite.Require().Equal(tc.finalAmount, suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.depositor))
+		}
 
-	t.Run("adding more deposit and still waiting for more", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
-		require.Equal(t, nil, err)
-		coins100 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 100*1e6))
-		coins200 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 200*1e6))
-
-		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coins100)
-		require.Equal(t, nil, err)
-		require.Equal(t, false, votingPeriodActivated)
-
-		votingPeriodActivated, err = app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coins200)
-		require.Equal(t, nil, err)
-		require.Equal(t, false, votingPeriodActivated)
-	})
-
-	t.Run("adding deposit and entering votingPeriod", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
-		require.Equal(t, nil, err)
-		coins700 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 700*1e6))
-
-		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coins700)
-		require.Equal(t, nil, err)
-		require.Equal(t, true, votingPeriodActivated)
-	})
-
-	t.Run("entering votingPeriod and trying to add more deposit", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
-		require.Equal(t, nil, err)
-		coins700 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 700*1e6))
-		coinsAfterAvtivated := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 1))
-
-		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coins700)
-		require.Equal(t, nil, err)
-		require.Equal(t, true, votingPeriodActivated)
-
-		votingPeriodActivated, err = app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coinsAfterAvtivated)
-		errString := fmt.Sprintf("%d: proposal already active", pp.ProposalId)
-		require.EqualError(t, err, errString)
-		require.Equal(t, false, votingPeriodActivated)
-	})
+		// emptying depositor for next set of test cases
+		suite.app.BankKeeper.SendCoins(suite.ctx, tc.depositor, suite.address[2], suite.app.BankKeeper.GetAllBalances(suite.ctx, tc.depositor))
+	}
 }
 
-func TestKeeper_DepositOperation(t *testing.T) {
-	t.Log("Test keeper DepositOperation")
-	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
+func (suite *KeeperTestSuite) TestKeeper_Vote() {
+	type proposal struct {
+		title       string
+		description string
+	}
 
-	tp := govtypes.TextProposal{Title: "title0", Description: "desc0"}
+	tests := []struct {
+		name               string
+		proposal           proposal
+		proposer           sdk.AccAddress
+		depositor          sdk.AccAddress
+		voter              sdk.AccAddress
+		fundedCoins        sdk.Coins
+		depositAmount      sdk.Coins
+		expResults         map[govtypes.VoteOption]sdk.Dec
+		votingPeriodStatus bool
+		err                bool
+		shouldPass         bool
+	}{
+		{
+			name: "certifier/validator votes yes on a proposal, vote should be counted",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+			},
+			proposer:      suite.address[0],
+			depositor:     suite.address[1],
+			voter:         suite.validatorAccAddress,
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			expResults: map[govtypes.VoteOption]sdk.Dec{
+				govtypes.OptionYes:        sdk.OneDec(),
+				govtypes.OptionAbstain:    sdk.ZeroDec(),
+				govtypes.OptionNo:         sdk.ZeroDec(),
+				govtypes.OptionNoWithVeto: sdk.ZeroDec(),
+			},
+			votingPeriodStatus: true,
+			err:                false,
+			shouldPass:         true,
+		},
+		{
+			name: "non certifier/validator votes yes on a proposal, vote should not be counted",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+			},
+			proposer:      suite.address[0],
+			depositor:     suite.address[1],
+			voter:         suite.address[0],
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			expResults: map[govtypes.VoteOption]sdk.Dec{
+				govtypes.OptionYes:        sdk.ZeroDec(),
+				govtypes.OptionAbstain:    sdk.ZeroDec(),
+				govtypes.OptionNo:         sdk.ZeroDec(),
+				govtypes.OptionNoWithVeto: sdk.ZeroDec(),
+			},
+			votingPeriodStatus: true,
+			err:                false,
+			shouldPass:         true,
+		},
+		{
+			name: "non certifier/validator vote, vote should not be counted, invalid expected results",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+			},
+			proposer:      suite.address[0],
+			depositor:     suite.address[1],
+			voter:         suite.address[0],
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			expResults: map[govtypes.VoteOption]sdk.Dec{
+				govtypes.OptionYes:        sdk.OneDec(),
+				govtypes.OptionAbstain:    sdk.ZeroDec(),
+				govtypes.OptionNo:         sdk.ZeroDec(),
+				govtypes.OptionNoWithVeto: sdk.ZeroDec(),
+			},
+			votingPeriodStatus: true,
+			err:                false,
+			shouldPass:         false,
+		},
+		{
+			name: "voting period not started, so add vote should give error",
+			proposal: proposal{
+				title:       "title0",
+				description: "description0",
+			},
+			proposer:      suite.address[0],
+			depositor:     suite.address[1],
+			voter:         suite.validatorAccAddress,
+			fundedCoins:   sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			depositAmount: sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (100)*1e6)),
+			expResults: map[govtypes.VoteOption]sdk.Dec{
+				govtypes.OptionYes:        sdk.OneDec(),
+				govtypes.OptionAbstain:    sdk.ZeroDec(),
+				govtypes.OptionNo:         sdk.ZeroDec(),
+				govtypes.OptionNoWithVeto: sdk.ZeroDec(),
+			},
+			votingPeriodStatus: false,
+			err:                true,
+			shouldPass:         false,
+		},
+	}
 
-	t.Run("refund all deposits in a specific proposal", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
-		require.Equal(t, nil, err)
-		coins100 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 100*1e6))
-		coins50 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 50*1e6))
-		coins20 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 20*1e6))
+	for _, tc := range tests {
+		textProposalContent := govtypes.NewTextProposal(tc.proposal.title, tc.proposal.description)
 
-		_, _ = app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coins100)
-		_, _ = app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[2], coins50)
-		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[3], coins20)
-		require.Equal(t, nil, err)
-		require.Equal(t, false, votingPeriodActivated)
+		// create/submit a new proposal
+		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent, tc.proposer)
+		suite.Require().NoError(err)
 
-		addr1Amount := app.BankKeeper.GetAllBalances(ctx, addrs[1])
-		addr2Amount := app.BankKeeper.GetAllBalances(ctx, addrs[2])
-		addr3Amount := app.BankKeeper.GetAllBalances(ctx, addrs[3])
-		require.Equal(t, sdk.NewInt(79900*1e6).Int64(), addr1Amount.AmountOf(app.StakingKeeper.BondDenom(ctx)).Int64())
-		require.Equal(t, sdk.NewInt(79950*1e6).Int64(), addr2Amount.AmountOf(app.StakingKeeper.BondDenom(ctx)).Int64())
-		require.Equal(t, sdk.NewInt(79980*1e6).Int64(), addr3Amount.AmountOf(app.StakingKeeper.BondDenom(ctx)).Int64())
+		// add staking coins to depositor
+		suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
 
-		app.GovKeeper.RefundDepositsByProposalID(ctx, pp.ProposalId)
-		depositsRemaining := app.GovKeeper.GetAllDeposits(ctx)
-		require.Equal(t, govtypes.Deposits(nil), depositsRemaining)
-		addr1Amount = app.BankKeeper.GetAllBalances(ctx, addrs[1])
-		addr2Amount = app.BankKeeper.GetAllBalances(ctx, addrs[2])
-		addr3Amount = app.BankKeeper.GetAllBalances(ctx, addrs[3])
-		require.Equal(t, sdk.NewInt(80000*1e6).Int64(), addr1Amount.AmountOf(app.StakingKeeper.BondDenom(ctx)).Int64())
-		require.Equal(t, sdk.NewInt(80000*1e6).Int64(), addr2Amount.AmountOf(app.StakingKeeper.BondDenom(ctx)).Int64())
-		require.Equal(t, sdk.NewInt(80000*1e6).Int64(), addr3Amount.AmountOf(app.StakingKeeper.BondDenom(ctx)).Int64())
-	})
-	t.Run("delete all deposits in a specific proposal", func(t *testing.T) {
-		pp, err := app.GovKeeper.SubmitProposal(ctx, &tp, addrs[0])
-		require.Equal(t, nil, err)
-		coins10 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 10*1e6))
-		coins50 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 50*1e6))
-		coins20 := sdk.NewCoins(sdk.NewInt64Coin(app.StakingKeeper.BondDenom(ctx), 20*1e6))
+		// deposit staked coins to get the proposal into voting period once it has exceeded minDeposit
+		votingPeriodStatus, err := suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, tc.depositor, tc.depositAmount)
+		if !tc.err {
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.votingPeriodStatus, votingPeriodStatus)
+		}
 
-		_, _ = app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[1], coins10)
-		_, _ = app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[2], coins20)
-		votingPeriodActivated, err := app.GovKeeper.AddDeposit(ctx, pp.ProposalId, addrs[3], coins50)
-		require.Equal(t, nil, err)
-		require.Equal(t, false, votingPeriodActivated)
+		// vote
+		options := govtypes.NewNonSplitVoteOption(govtypes.OptionYes)
+		vote := govtypes.NewVote(proposal.ProposalId, tc.voter, options)
+		voter, _ := sdk.AccAddressFromBech32(vote.Voter)
+		err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, voter, options)
+		if !tc.err {
+			suite.Require().NoError(err)
+		}
 
-		addr1Amount := app.BankKeeper.GetAllBalances(ctx, addrs[1])
-		addr2Amount := app.BankKeeper.GetAllBalances(ctx, addrs[2])
-		addr3Amount := app.BankKeeper.GetAllBalances(ctx, addrs[3])
-		require.Equal(t, sdk.NewInt(79990*1e6).Int64(), addr1Amount.AmountOf(app.StakingKeeper.BondDenom(ctx)).Int64())
-		require.Equal(t, sdk.NewInt(79980*1e6).Int64(), addr2Amount.AmountOf(app.StakingKeeper.BondDenom(ctx)).Int64())
-		require.Equal(t, sdk.NewInt(79950*1e6).Int64(), addr3Amount.AmountOf(app.StakingKeeper.BondDenom(ctx)).Int64())
+		// tally proposal
+		_, _, results := suite.keeper.Tally(suite.ctx, proposal)
+		if tc.shouldPass {
+			suite.Require().Equal(govtypes.NewTallyResultFromMap(tc.expResults), results)
+		} else {
+			if tc.err {
+				suite.Require().Error(err)
+			} else {
+				suite.Require().NotEqual(govtypes.NewTallyResultFromMap(tc.expResults), results)
+			}
+		}
+	}
+}
 
-		app.GovKeeper.DeleteDepositsByProposalID(ctx, pp.ProposalId)
-		depositsRemaining := app.GovKeeper.GetAllDeposits(ctx)
-		require.Equal(t, govtypes.Deposits(nil), depositsRemaining)
-
-		addr1Amount = app.BankKeeper.GetAllBalances(ctx, addrs[1])
-		addr2Amount = app.BankKeeper.GetAllBalances(ctx, addrs[2])
-		addr3Amount = app.BankKeeper.GetAllBalances(ctx, addrs[3])
-		require.Equal(t, sdk.NewInt(79990*1e6).Int64(), addr1Amount.AmountOf(app.StakingKeeper.BondDenom(ctx)).Int64())
-		require.Equal(t, sdk.NewInt(79980*1e6).Int64(), addr2Amount.AmountOf(app.StakingKeeper.BondDenom(ctx)).Int64())
-		require.Equal(t, sdk.NewInt(79950*1e6).Int64(), addr3Amount.AmountOf(app.StakingKeeper.BondDenom(ctx)).Int64())
-	})
+func TestKeeperTestSuite(t *testing.T) {
+	suite.Run(t, new(KeeperTestSuite))
 }
