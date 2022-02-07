@@ -42,29 +42,21 @@ func (sh *Helper) WithdrawCollateral(addr sdk.AccAddress, amount int64, ok bool)
 	sh.Handle(msg, ok)
 }
 
-func (sh *Helper) CreatePool(addr, sponsorAddr sdk.AccAddress, nativeDeposit, shield, shieldLimit int64, sponsor, description string) {
-	shieldCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, shield))
-	depositCoins := types.MixedCoins{Native: sdk.NewCoins(sdk.NewInt64Coin(sh.denom, nativeDeposit))}
-	limit := sdk.NewInt(shieldLimit)
-	msg := types.NewMsgCreatePool(addr, shieldCoins, depositCoins, sponsor, sponsorAddr, description, limit)
+func (sh *Helper) CreatePool(addr, sponsorAddr sdk.AccAddress, description string, shieldRate sdk.Dec) {
+	msg := types.NewMsgCreatePool(addr, sponsorAddr, description, shieldRate)
 	sh.Handle(msg, true)
 }
 
 func (sh *Helper) PurchaseShield(purchaser sdk.AccAddress, shield int64, poolID uint64, ok bool) {
 	shieldCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, shield))
-	msg := types.NewMsgPurchaseShield(poolID, shieldCoins, "test_purchase", purchaser)
+	msg := types.NewMsgPurchase(poolID, shieldCoins, "test_purchase", purchaser)
 	sh.Handle(msg, ok)
 }
 
 func (sh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID, purchaseID uint64, ok bool) {
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, loss))
-	proposal := types.NewShieldClaimProposal(poolID, lossCoins, purchaseID, "test_claim_evidence", "test_claim_description", proposer)
+	proposal := types.NewShieldClaimProposal(poolID, lossCoins, "test_claim_evidence", "test_claim_description", proposer)
 	sh.HandleProposal(proposal, ok)
-}
-
-func (sh *Helper) WithdrawReimbursement(purchaser sdk.AccAddress, proposalID uint64, ok bool) {
-	msg := types.NewMsgWithdrawReimbursement(proposalID, purchaser)
-	sh.Handle(msg, ok)
 }
 
 // TurnBlock updates context and calls endblocker.

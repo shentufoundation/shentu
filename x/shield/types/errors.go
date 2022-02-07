@@ -14,6 +14,7 @@ const (
 	errInvalidGenesis
 	errInvalidPoolID
 	errInvalidDuration
+	errInvalidShieldRate
 	errAdminWithdraw
 	errNoDelegationAmount
 	errInsufficientStaking
@@ -46,6 +47,10 @@ const (
 	errShieldAdminNotActive
 	errPurchaseTooSmall
 	errNotEnoughStaked
+	errBeforeCooldownEnd
+	errDonationBadDenom
+	errPendingPayoutExists
+	errPendingPayoutNotFound
 )
 
 var (
@@ -58,6 +63,7 @@ var (
 	ErrInvalidGenesis             = sdkerrors.Register(ModuleName, errInvalidGenesis, "invalid genesis state")
 	ErrInvalidPoolID              = sdkerrors.Register(ModuleName, errInvalidPoolID, "invalid pool ID")
 	ErrInvalidDuration            = sdkerrors.Register(ModuleName, errInvalidDuration, "invalid specification of coverage duration")
+	ErrInvalidShieldRate          = sdkerrors.Register(ModuleName, errInvalidShieldRate, "invalid Shield Rate")
 	ErrAdminWithdraw              = sdkerrors.Register(ModuleName, errAdminWithdraw, "admin cannot manually withdraw collateral")
 	ErrNoDelegationAmount         = sdkerrors.Register(ModuleName, errNoDelegationAmount, "cannot obtain delegation amount info")
 	ErrInsufficientStaking        = sdkerrors.Register(ModuleName, errInsufficientStaking, "insufficient total delegation amount to deposit the collateral")
@@ -90,4 +96,8 @@ var (
 	ErrShieldAdminNotActive       = sdkerrors.Register(ModuleName, errShieldAdminNotActive, "shield admin is not activated")
 	ErrPurchaseTooSmall           = sdkerrors.Register(ModuleName, errPurchaseTooSmall, "purchase amount is too small")
 	ErrNotEnoughStaked            = sdkerrors.Register(ModuleName, errNotEnoughStaked, "not enough unlocked staking to be withdrawn")
+	ErrBeforeCooldownEnd          = sdkerrors.Register(ModuleName, errBeforeCooldownEnd, "cooldown period is not over for the purchase")
+	ErrDonationBadDenom           = sdkerrors.Register(ModuleName, errDonationBadDenom, "invalid coin denomination for donation")
+	ErrPendingPayoutExists        = sdkerrors.Register(ModuleName, errPendingPayoutExists, "there is a pending payout corresponding to this reimbursement")
+	ErrPendingPayoutNotFound      = sdkerrors.Register(ModuleName, errPendingPayoutNotFound, "pending payout identified by the given proposal ID was not found")
 )

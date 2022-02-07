@@ -190,7 +190,7 @@ func (k Keeper) ComputeUnbondingAmountByTime(ctx sdk.Context, provider sdk.AccAd
 		}
 		ubd, found := k.sk.GetUnbondingDelegation(ctx, provider, addr)
 		if !found {
-			continue //TODO
+			continue // TODO: error or panic here
 		}
 		for i := 0; i < len(ubd.Entries); i++ {
 			entry := ubd.Entries[i]

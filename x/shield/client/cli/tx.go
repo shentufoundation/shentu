@@ -19,10 +19,8 @@ import (
 )
 
 var (
-	flagNativeDeposit = "native-deposit"
-	flagShield        = "shield"
-	flagDescription   = "description"
-	flagShieldLimit   = "shield-limit"
+	flagDescription = "description"
+	flagShieldRate  = "shield-rate"
 )
 
 // NewTxCmd returns the transaction commands for this module.
@@ -45,10 +43,9 @@ func NewTxCmd() *cobra.Command {
 		GetCmdWithdrawRewards(),
 		GetCmdWithdrawForeignRewards(),
 		GetCmdPurchaseShield(),
-		GetCmdWithdrawReimbursement(),
 		GetCmdUpdateSponsor(),
-		GetCmdStakeForShield(),
-		GetCmdUnstakeFromShield(),
+		GetCmdUnstake(),
+		GetCmdDoante(),
 	)
 
 	return shieldTxCmd
@@ -101,7 +98,7 @@ Where proposal.json contains:
 			}
 			from := cliCtx.GetFromAddress()
 			content := types.NewShieldClaimProposal(proposal.PoolID, proposal.Loss,
-				proposal.PurchaseID, proposal.Evidence, proposal.Description, from)
+				proposal.Evidence, proposal.Description, from)
 
 			msg, err := govtypes.NewMsgSubmitProposal(content, proposal.Deposit, from)
 			if err != nil {
@@ -128,7 +125,7 @@ func GetCmdCreatePool() *cobra.Command {
 			fmt.Sprintf(`Create a Shield pool. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-deposit <ctk deposit> --shield-limit <shield limit>
+$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-rate <shield rate>
 `,
 				version.AppName,
 			),
@@ -142,32 +139,19 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			shield, err := sdk.ParseCoinsNormalized(args[0])
-			if err != nil {
-				return err
-			}
-
-			sponsor := args[1]
-
 			sponsorAddr, err := sdk.AccAddressFromBech32(args[2])
 			if err != nil {
 				return err
 			}
 
-			nativeDeposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagNativeDeposit))
+			description := viper.GetString(flagDescription)
+
+			shieldRate, err := sdk.NewDecFromStr(viper.GetString(flagShieldRate))
 			if err != nil {
 				return err
 			}
-			deposit := types.MixedCoins{Native: nativeDeposit}
 
-			description := viper.GetString(flagDescription)
-
-			shieldLimit, ok := sdk.NewIntFromString(viper.GetString(flagShieldLimit))
-			if !ok {
-				return fmt.Errorf("invalid input for shield limit")
-			}
-
-			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, description, shieldLimit)
+			msg := types.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -177,8 +161,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 	}
 
 	cmd.Flags().String(flagDescription, "", "description for the pool")
-	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
-	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
+	cmd.Flags().String(flagShieldRate, "", "Shield Rate")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
@@ -193,7 +176,7 @@ func GetCmdUpdatePool() *cobra.Command {
 			fmt.Sprintf(`Update a Shield pool. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield amount> --shield-limit <shield limit>
+$ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield amount> --shield-rate <shield rate>
 `,
 				version.AppName,
 			),
@@ -212,25 +195,17 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				return err
 			}
 
-			nativeDeposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagNativeDeposit))
-			if err != nil {
-				return err
-			}
-
-			shield, err := sdk.ParseCoinsNormalized(viper.GetString(flagShield))
-			if err != nil {
-				return err
-			}
-			deposit := types.MixedCoins{Native: nativeDeposit}
-
 			description := viper.GetString(flagDescription)
 
-			shieldLimit, ok := sdk.NewIntFromString(viper.GetString(flagShieldLimit))
-			if !ok {
-				return fmt.Errorf("invalid input for shield limit")
+			var shieldRate sdk.Dec
+			if shieldRateInput := viper.GetString(flagShieldRate); shieldRateInput != "" {
+				shieldRate, err = sdk.NewDecFromStr(shieldRateInput)
+				if err != nil {
+					return err
+				}
 			}
 
-			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, description, shieldLimit)
+			msg := types.NewMsgUpdatePool(fromAddr, id, description, shieldRate)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -239,10 +214,8 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 		},
 	}
 
-	cmd.Flags().String(flagShield, "", "CTK Shield amount")
-	cmd.Flags().String(flagNativeDeposit, "", "CTK deposit amount")
 	cmd.Flags().String(flagDescription, "", "description for the pool")
-	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
+	cmd.Flags().String(flagShieldRate, "", "Shield Rate")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
@@ -477,7 +450,7 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 				return types.ErrPurchaseMissingDescription
 			}
 
-			msg := types.NewMsgPurchaseShield(poolID, shield, description, fromAddr)
+			msg := types.NewMsgPurchase(poolID, shield, description, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -490,99 +463,8 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 	return cmd
 }
 
-// GetCmdWithdrawReimbursement the command for withdrawing reimbursement.
-func GetCmdWithdrawReimbursement() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "withdraw-reimbursement [proposal id]",
-		Args:  cobra.ExactArgs(1),
-		Short: "withdraw reimbursement",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Withdraw reimbursement by proposal id.
-
-Example:
-$ %s tx shield withdraw-reimbursement <proposal id>
-`,
-				version.AppName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
-
-			fromAddr := cliCtx.GetFromAddress()
-			proposalID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgWithdrawReimbursement(proposalID, fromAddr)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdStakeForShield implements the command for purchasing Shield.
-func GetCmdStakeForShield() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "stake-for-shield [pool id] [shield amount] [description]",
-		Args:  cobra.ExactArgs(3),
-		Short: "obtain shield through staking CTK",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Obtain shield through staking. Requires purchaser to provide descriptions of accounts to be protected.
-
-Example:
-$ %s tx shield stake-for-shield <pool id> <shield amount> <description>
-`,
-				version.AppName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
-
-			fromAddr := cliCtx.GetFromAddress()
-
-			poolID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
-			shield, err := sdk.ParseCoinsNormalized(args[1])
-			if err != nil {
-				return err
-			}
-			description := args[2]
-			if description == "" {
-				return types.ErrPurchaseMissingDescription
-			}
-
-			msg := types.NewMsgStakeForShield(poolID, shield, description, fromAddr)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdUnstakeFromShield implements the command for purchasing Shield.
-func GetCmdUnstakeFromShield() *cobra.Command {
+// GetCmdUnstake implements the command for purchasing Shield.
+func GetCmdUnstake() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unstake-from-shield [pool id] [amount] ",
 		Args:  cobra.ExactArgs(2),
@@ -614,7 +496,7 @@ $ %s tx shield withdraw-staking <pool id> <shield amount>
 				return err
 			}
 
-			msg := types.NewMsgUnstakeFromShield(poolID, shield, fromAddr)
+			msg := types.NewMsgUnstake(poolID, shield, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -663,6 +545,39 @@ $ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address> --fr
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdDoante implements donating to Shield Donation Pool.
+func GetCmdDoante() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "donate [amount]",
+		Short: "donate to Shield Donation Pool",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+
+			fromAddr := cliCtx.GetFromAddress()
+
+			donation, err := sdk.ParseCoinsNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDonate(fromAddr, donation)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}

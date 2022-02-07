@@ -47,24 +47,20 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.WithdrawCollateral(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgPurchaseShield:
-			res, err := msgServer.PurchaseShield(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgPurchase:
+			res, err := msgServer.Purchase(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		case *types.MsgUpdateSponsor:
 			res, err := msgServer.UpdateSponsor(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgStakeForShield:
-			res, err := msgServer.StakeForShield(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgUnstake:
+			res, err := msgServer.Unstake(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgUnstakeFromShield:
-			res, err := msgServer.UnstakeFromShield(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *types.MsgWithdrawReimbursement:
-			res, err := msgServer.WithdrawReimbursement(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgDonate:
+			res, err := msgServer.Donate(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:
@@ -89,7 +85,7 @@ func handleShieldClaimProposal(ctx sdk.Context, k keeper.Keeper, p *types.Shield
 	if err != nil {
 		panic(err)
 	}
-	if err := k.CreateReimbursement(ctx, p.ProposalId, p.Loss, proposerAddr); err != nil {
+	if err := k.CreateReimbursement(ctx, p, proposerAddr); err != nil {
 		return err
 	}
 

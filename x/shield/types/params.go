@@ -28,6 +28,11 @@ var (
 
 	// default value for staking-shield rate parameter
 	DefaultStakingShieldRate = sdk.NewDec(2)
+
+	// default values for block reward parameters
+	DefaultModelParamA    = sdk.NewDecWithPrec(10, 2) // 0.1
+	DefaultModelParamB    = sdk.NewDecWithPrec(30, 2) // 0.3
+	DefaultTargetLeverage = sdk.NewDec(5)             // 5
 )
 
 // parameter keys
@@ -35,6 +40,7 @@ var (
 	ParamStoreKeyPoolParams          = []byte("shieldpoolparams")
 	ParamStoreKeyClaimProposalParams = []byte("claimproposalparams")
 	ParamStoreKeyStakingShieldRate   = []byte("stakingshieldrateparams")
+	ParamStoreKeyBlockRewardParams   = []byte("blockrewardparams")
 )
 
 // ParamKeyTable is the key declaration for parameters.
@@ -43,6 +49,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 		paramtypes.NewParamSetPair(ParamStoreKeyPoolParams, PoolParams{}, validatePoolParams),
 		paramtypes.NewParamSetPair(ParamStoreKeyClaimProposalParams, ClaimProposalParams{}, validateClaimProposalParams),
 		paramtypes.NewParamSetPair(ParamStoreKeyStakingShieldRate, sdk.Dec{}, validateStakingShieldRateParams),
+		paramtypes.NewParamSetPair(ParamStoreKeyBlockRewardParams, BlockRewardParams{}, validateBlockRewardParams),
 	)
 }
 
@@ -155,5 +162,41 @@ func validateStakingShieldRateParams(i interface{}) error {
 	if v.LTE(sdk.ZeroDec()) {
 		return fmt.Errorf("staking shield rate should be greater than 0")
 	}
+	return nil
+}
+
+// NewBlockRewardParams creates a new BlockRewardParams object.
+func NewBlockRewardParams(modelParamA, modelParamB, targetLeverage sdk.Dec) BlockRewardParams {
+	return BlockRewardParams{
+		ModelParamA:    modelParamA,
+		ModelParamB:    modelParamB,
+		TargetLeverage: targetLeverage,
+	}
+}
+
+// DefaultBlockRewardParams returns a default BlockRewardParams instance.
+func DefaultBlockRewardParams() BlockRewardParams {
+	return NewBlockRewardParams(DefaultModelParamA, DefaultModelParamB, DefaultTargetLeverage)
+}
+
+func validateBlockRewardParams(i interface{}) error {
+	v, ok := i.(BlockRewardParams)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	modelParamA := v.ModelParamA
+	modelParamB := v.ModelParamB
+	targetLeverage := v.TargetLeverage
+
+	if modelParamA.IsNegative() || modelParamA.GT(sdk.OneDec()) {
+		return fmt.Errorf("block reward model param a range should be [0, 1], but got %s", modelParamA)
+	}
+	if modelParamB.IsNegative() || modelParamB.GT(sdk.OneDec()) {
+		return fmt.Errorf("block reward model param b range should be [0, 1], but got %s", modelParamB)
+	}
+	if targetLeverage.IsNegative() {
+		return fmt.Errorf("block reward target leverage range should not be negative, but got %s", targetLeverage)
+	}
+
 	return nil
 }

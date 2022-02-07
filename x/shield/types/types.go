@@ -6,16 +6,26 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+var (
+	DefaultShieldRate = sdk.NewDec(5)
+)
+
 // NewPool creates a new project pool.
-func NewPool(id uint64, description, sponsor string, sponsorAddress sdk.AccAddress, shieldLimit sdk.Int, shield sdk.Int) Pool {
+func NewPool(id uint64, description string, sponsorAddress sdk.AccAddress, shield sdk.Int, shieldRate sdk.Dec) Pool {
 	return Pool{
 		Id:          id,
 		Description: description,
-		Sponsor:     sponsor,
 		SponsorAddr: sponsorAddress.String(),
-		ShieldLimit: shieldLimit,
 		Active:      true,
 		Shield:      shield,
+		ShieldRate:  shieldRate,
+	}
+}
+
+// zero donation pool
+func InitialDonationPool() DonationPool {
+	return DonationPool{
+		Amount: sdk.NewInt(0),
 	}
 }
 
@@ -30,27 +40,6 @@ func NewProvider(addr sdk.AccAddress) Provider {
 	}
 }
 
-// NewPurchase creates a new purchase object.
-func NewPurchase(purchaseID uint64, protectionEndTime, deletionTime time.Time, description string, shield sdk.Int, serviceFees MixedDecCoins) Purchase {
-	return Purchase{
-		PurchaseId:        purchaseID,
-		ProtectionEndTime: protectionEndTime,
-		DeletionTime:      deletionTime,
-		Description:       description,
-		Shield:            shield,
-		ServiceFees:       serviceFees,
-	}
-}
-
-// NewPurchaseList creates a new purchase list.
-func NewPurchaseList(poolID uint64, purchaser sdk.AccAddress, purchases []Purchase) PurchaseList {
-	return PurchaseList{
-		PoolId:    poolID,
-		Purchaser: purchaser.String(),
-		Entries:   purchases,
-	}
-}
-
 // NewWithdraw creates a new withdraw object.
 func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) Withdraw {
 	return Withdraw{
@@ -60,11 +49,12 @@ func NewWithdraw(addr sdk.AccAddress, amount sdk.Int, completionTime time.Time) 
 	}
 }
 
-func NewShieldStaking(poolID uint64, purchaser sdk.AccAddress, amount sdk.Int) ShieldStaking {
-	return ShieldStaking{
-		PoolId:            poolID,
-		Purchaser:         purchaser.String(),
-		Amount:            amount,
-		WithdrawRequested: sdk.NewInt(0),
+func NewPurchase(poolID uint64, purchaser sdk.AccAddress, description string, amount, shield sdk.Int) Purchase {
+	return Purchase{
+		PoolId:      poolID,
+		Purchaser:   purchaser.String(),
+		Description: description,
+		Amount:      amount,
+		Shield:      shield,
 	}
 }
