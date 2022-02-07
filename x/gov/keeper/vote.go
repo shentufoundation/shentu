@@ -19,6 +19,7 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 	if !ok {
 		return sdkerrors.Wrapf(govtypes.ErrUnknownProposal, "%v", proposalID)
 	}
+
 	if proposal.Status != types.StatusCertifierVotingPeriod &&
 		proposal.Status != types.StatusValidatorVotingPeriod {
 		return sdkerrors.Wrapf(govtypes.ErrInactiveProposal, "%v", proposalID)
