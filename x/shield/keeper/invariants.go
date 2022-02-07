@@ -47,10 +47,13 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 			pending_payouts = pending_payouts.Add(pp.Amount)
 		}
 
+		// pending payouts
+		donation_pool := keeper.GetDonationPool(ctx).Amount
+
 		// block service fees
 		blockServiceFees := keeper.GetBlockServiceFees(ctx).AmountOf(bondDenom).TruncateInt()
 
-		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, pending_payouts)).Add(sdk.NewCoin(bondDenom, blockServiceFees))
+		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, pending_payouts)).Add(sdk.NewCoin(bondDenom, blockServiceFees)).Add(sdk.NewCoin(bondDenom, donation_pool))
 
 		broken := !totalInt.IsEqual(moduleCoins) || !change.Empty()
 
