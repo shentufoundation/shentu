@@ -3,7 +3,6 @@ package types_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/test-go/testify/require"
 
 	"github.com/certikfoundation/shentu/v2/x/oracle/types"
@@ -11,148 +10,205 @@ import (
 
 // test ValidateBasic for NewMsgCreateOperator
 func Test_NewMsgCreateOperator(t *testing.T) {
-	addr1 := sdk.AccAddress([]byte("addr1_______________"))
-	addr2 := sdk.AccAddress([]byte("addr2_______________"))
-	addrEmpty := sdk.AccAddress([]byte(""))
-	// addrLong := sdk.AccAddress([]byte("Purposefully long address"))
-
-	uctk123 := sdk.NewCoins(sdk.NewInt64Coin("uctk", 123))
-	uctk0 := sdk.NewCoins(sdk.NewInt64Coin("uctk", 0))
-	uctk123eth123 := sdk.NewCoins(sdk.NewInt64Coin("uctk", 123), sdk.NewInt64Coin("eth", 123))
-	uctk123eth0 := sdk.Coins{sdk.NewInt64Coin("uctk", 123), sdk.NewInt64Coin("eth", 0)}
-
-	name := "abc"
-
-	cases := []struct {
-		name       string
-		expectPass bool
-		msg        *types.MsgCreateOperator
+	tests := []struct {
+		name    string
+		msg     *types.MsgCreateOperator
+		expPass bool
 	}{
-		{"valid with one denom", true, types.NewMsgCreateOperator(addr1, uctk123, addr2, name)},
-		{"valid with two denoms", true, types.NewMsgCreateOperator(addr1, uctk123eth123, addr2, name)},
-		// {true, types.NewMsgCreateOperator(addrLong, uctk123, addr2, name)},
-		// {true, types.NewMsgCreateOperator(addr1, uctk123, addrLong, name)},
-		{"non-positive coin", false, types.NewMsgCreateOperator(addr1, uctk0, addr2, name)},
-		{"non-positive multicoins", false, types.NewMsgCreateOperator(addr1, uctk123eth0, addr2, name)},
-		{"invalid operator address", false, types.NewMsgCreateOperator(addrEmpty, uctk123, addr2, name)},
-		{"invalid proposer address", false, types.NewMsgCreateOperator(addr1, uctk123, addrEmpty, name)},
+		{
+			"valid with one denom",
+			types.NewMsgCreateOperator(acc1, coins1234, acc2, "operator"),
+			true,
+		},
+		{
+			"valid with two denoms",
+			types.NewMsgCreateOperator(acc1, multicoins1234, acc2, "operator"),
+			true,
+		},
+		{
+			"non-positive coin",
+			types.NewMsgCreateOperator(acc1, coins0, acc2, "operator"),
+			false,
+		},
+		{
+			"non-positive multicoins",
+			types.NewMsgCreateOperator(acc1, multicoins0, acc2, "operator"),
+			false,
+		},
+		{
+			"invalid operator address",
+			types.NewMsgCreateOperator(emptyAcc, coins1234, acc2, "operator"),
+			false,
+		},
+		{
+			"invalid proposer address",
+			types.NewMsgCreateOperator(acc1, coins1234, emptyAcc, "operator"),
+			false,
+		},
 	}
 
-	for _, tc := range cases {
-		if tc.expectPass {
-			require.Nil(t, tc.msg.ValidateBasic(), "test: %v", tc.name)
-		} else {
-			require.Error(t, tc.msg.ValidateBasic(), "test: %v", tc.name)
-		}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.expPass {
+				require.NoError(t, tc.msg.ValidateBasic())
+			} else {
+				require.Error(t, tc.msg.ValidateBasic())
+			}
+		})
 	}
 }
 
 // test ValidateBasic for NewMsgRemoveOperator
 func Test_NewMsgRemoveOperator(t *testing.T) {
-	addr1 := sdk.AccAddress([]byte("addr1_______________"))
-	addr2 := sdk.AccAddress([]byte("addr2_______________"))
-	addrEmpty := sdk.AccAddress([]byte(""))
-
-	cases := []struct {
-		name       string
-		expectPass bool
-		msg        *types.MsgRemoveOperator
+	tests := []struct {
+		name    string
+		msg     *types.MsgRemoveOperator
+		expPass bool
 	}{
-		{"valid addresses", true, types.NewMsgRemoveOperator(addr1, addr2)},
-		{"invalid operator address", false, types.NewMsgRemoveOperator(addrEmpty, addr2)},
-		{"invalid proposer address", false, types.NewMsgRemoveOperator(addr1, addrEmpty)},
+		{
+			"valid addresses",
+			types.NewMsgRemoveOperator(acc1, acc2),
+			true,
+		},
+		{
+			"invalid operator address",
+			types.NewMsgRemoveOperator(emptyAcc, acc2),
+			false,
+		},
+		{
+			"invalid proposer address",
+			types.NewMsgRemoveOperator(acc1, emptyAcc),
+			false,
+		},
 	}
 
-	for _, tc := range cases {
-		if tc.expectPass {
-			require.Nil(t, tc.msg.ValidateBasic(), "test: %v", tc.name)
-		} else {
-			require.Error(t, tc.msg.ValidateBasic(), "test: %v", tc.name)
-		}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.expPass {
+				require.Nil(t, tc.msg.ValidateBasic())
+			} else {
+				require.Error(t, tc.msg.ValidateBasic())
+			}
+		})
 	}
 }
 
 // test ValidateBasic for NewMsgAddCollateral
 func Test_NewMsgAddCollateral(t *testing.T) {
-	addr := sdk.AccAddress([]byte("addr1_______________"))
-	addrEmpty := sdk.AccAddress([]byte(""))
-
-	uctk123 := sdk.NewCoins(sdk.NewInt64Coin("uctk", 123))
-	uctk0 := sdk.NewCoins(sdk.NewInt64Coin("uctk", 0))
-	uctk123eth123 := sdk.NewCoins(sdk.NewInt64Coin("uctk", 123), sdk.NewInt64Coin("eth", 123))
-	uctk123eth0 := sdk.Coins{sdk.NewInt64Coin("uctk", 123), sdk.NewInt64Coin("eth", 0)}
-
-	cases := []struct {
-		name       string
-		expectPass bool
-		msg        *types.MsgAddCollateral
+	tests := []struct {
+		name    string
+		msg     *types.MsgAddCollateral
+		expPass bool
 	}{
-		{"valid with one denom", true, types.NewMsgAddCollateral(addr, uctk123)},
-		{"valid with two denoms", true, types.NewMsgAddCollateral(addr, uctk123eth123)},
-		{"non-positive coin", false, types.NewMsgAddCollateral(addr, uctk0)},
-		{"non-positive multicoins", false, types.NewMsgAddCollateral(addr, uctk123eth0)},
-		{"empty address", false, types.NewMsgAddCollateral(addrEmpty, uctk123)},
+		{
+			"valid with one denom",
+			types.NewMsgAddCollateral(acc1, coins1234),
+			true,
+		},
+		{
+			"valid with two denoms",
+			types.NewMsgAddCollateral(acc1, multicoins1234),
+			true,
+		},
+		{
+			"non-positive coin",
+			types.NewMsgAddCollateral(acc1, coins0),
+			false,
+		},
+		{
+			"non-positive multicoins",
+			types.NewMsgAddCollateral(acc1, multicoins0),
+			false,
+		},
+		{
+			"empty address",
+			types.NewMsgAddCollateral(emptyAcc, coins1234),
+			false,
+		},
 	}
 
-	for _, tc := range cases {
-		if tc.expectPass {
-			require.Nil(t, tc.msg.ValidateBasic(), "test: %v", tc.name)
-		} else {
-			require.Error(t, tc.msg.ValidateBasic(), "test: %v", tc.name)
-		}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.expPass {
+				require.Nil(t, tc.msg.ValidateBasic())
+			} else {
+				require.Error(t, tc.msg.ValidateBasic())
+			}
+		})
 	}
 }
 
 // test ValidateBasic for NewMsgReduceCollateral
 func Test_NewMsgReduceCollateral(t *testing.T) {
-	addr := sdk.AccAddress([]byte("addr1_______________"))
-	addrEmpty := sdk.AccAddress([]byte(""))
-
-	uctk123 := sdk.NewCoins(sdk.NewInt64Coin("uctk", 123))
-	uctk0 := sdk.NewCoins(sdk.NewInt64Coin("uctk", 0))
-	uctk123eth123 := sdk.NewCoins(sdk.NewInt64Coin("uctk", 123), sdk.NewInt64Coin("eth", 123))
-	uctk123eth0 := sdk.Coins{sdk.NewInt64Coin("uctk", 123), sdk.NewInt64Coin("eth", 0)}
-
-	cases := []struct {
-		name       string
-		expectPass bool
-		msg        *types.MsgReduceCollateral
+	tests := []struct {
+		name    string
+		msg     *types.MsgReduceCollateral
+		expPass bool
 	}{
-		{"valid with one denom", true, types.NewMsgReduceCollateral(addr, uctk123)},
-		{"valid with two denoms", true, types.NewMsgReduceCollateral(addr, uctk123eth123)},
-		{"non-positive coin", false, types.NewMsgReduceCollateral(addr, uctk0)},
-		{"non-positive multicoins", false, types.NewMsgReduceCollateral(addr, uctk123eth0)},
-		{"empty address", false, types.NewMsgReduceCollateral(addrEmpty, uctk123)},
+		{
+			"valid with one denom",
+			types.NewMsgReduceCollateral(acc1, coins1234),
+			true,
+		},
+		{
+			"valid with two denoms",
+			types.NewMsgReduceCollateral(acc1, multicoins1234),
+			true,
+		},
+		{
+			"non-positive coin",
+			types.NewMsgReduceCollateral(acc1, coins0),
+			false,
+		},
+		{
+			"non-positive multicoins",
+			types.NewMsgReduceCollateral(acc1, multicoins0),
+			false,
+		},
+		{
+			"empty address",
+			types.NewMsgReduceCollateral(emptyAcc, coins1234),
+			false,
+		},
 	}
 
-	for _, tc := range cases {
-		if tc.expectPass {
-			require.Nil(t, tc.msg.ValidateBasic(), "test: %v", tc.name)
-		} else {
-			require.Error(t, tc.msg.ValidateBasic(), "test: %v", tc.name)
-		}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.expPass {
+				require.Nil(t, tc.msg.ValidateBasic())
+			} else {
+				require.Error(t, tc.msg.ValidateBasic())
+			}
+		})
 	}
 }
 
 // test ValidateBasic for NewMsgWithdrawReward
 func Test_NewMsgWithdrawReward(t *testing.T) {
-	addr := sdk.AccAddress([]byte("addr1_______________"))
-	addrEmpty := sdk.AccAddress([]byte(""))
-
-	cases := []struct {
-		name       string
-		expectPass bool
-		msg        *types.MsgWithdrawReward
+	tests := []struct {
+		name    string
+		msg     *types.MsgWithdrawReward
+		expPass bool
 	}{
-		{"valid with one denom", true, types.NewMsgWithdrawReward(addr)},
-		{"empty address", false, types.NewMsgWithdrawReward(addrEmpty)},
+		{
+			"valid address",
+			types.NewMsgWithdrawReward(acc1),
+			true,
+		},
+		{
+			"empty address",
+			types.NewMsgWithdrawReward(emptyAcc),
+			false,
+		},
 	}
 
-	for _, tc := range cases {
-		if tc.expectPass {
-			require.Nil(t, tc.msg.ValidateBasic(), "test: %v", tc.name)
-		} else {
-			require.Error(t, tc.msg.ValidateBasic(), "test: %v", tc.name)
-		}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.expPass {
+				require.Nil(t, tc.msg.ValidateBasic())
+			} else {
+				require.Error(t, tc.msg.ValidateBasic())
+			}
+		})
 	}
 }
