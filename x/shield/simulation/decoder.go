@@ -64,6 +64,12 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &blockFeesB)
 			return fmt.Sprintf("%v\n%v", blockFeesA, blockFeesB)
 
+		case bytes.Equal(kvA.Key[:1], types.DonationPoolKey):
+			var donationPoolA, donationPoolB types.Pool
+			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &donationPoolA)
+			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &donationPoolB)
+			return fmt.Sprintf("%v\n%v", donationPoolA, donationPoolB)
+
 		default:
 			panic(fmt.Sprintf("invalid %s key prefix %X", types.ModuleName, kvA.Key[:1]))
 		}
