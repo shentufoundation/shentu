@@ -386,8 +386,10 @@ func SimulateMsgDonatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		account := ak.GetAccount(ctx, simAccount.Address)
 
 		// donate pool
-		amount := int64(simtypes.RandIntBetween(r, 10, 100))
-		depositAmount := sdk.Coins{sdk.NewCoin(sk.BondDenom(ctx), sdk.NewInt(amount))}
+		depositAmount := simtypes.RandSubsetCoins(r, bk.SpendableCoins(ctx, simAccount.Address))
+		if depositAmount.Empty() {
+			return simtypes.NewOperationMsgBasic(types.ModuleName, "NoOp: empty collateral increment, skip this tx", "", false, nil), nil, nil
+		}
 		msg := types.NewMsgDonate(simAccount.Address, depositAmount)
 
 		fees := sdk.Coins{}
