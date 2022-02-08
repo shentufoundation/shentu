@@ -52,9 +52,15 @@ func RandomPoolInfo(r *rand.Rand, k Keeper, ctx sdk.Context) (uint64, string, bo
 	return pools[i].Id, pools[i].SponsorAddr, true
 }
 
-// RandomPurchase returns a random purchase given access to the keeper and ctx.
-func RandomPurchase(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Purchase, bool) {
-	purchases := k.GetAllPurchase(ctx)
+// RandomUnlockedPurchase returns a random purchase given access to the keeper and ctx.
+func RandomUnlockedPurchase(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Purchase, bool) {
+	ps := k.GetAllPurchase(ctx)
+	var purchases []types.Purchase
+	for _, p := range ps {
+		if !p.Locked {
+			purchases = append(purchases, p)
+		}
+	}
 	if len(purchases) == 0 {
 		return types.Purchase{}, false
 	}

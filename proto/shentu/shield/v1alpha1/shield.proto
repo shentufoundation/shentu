@@ -87,6 +87,7 @@ message Purchase {
     google.protobuf.Timestamp start_time = 5 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
     string shield = 6 [ (gogoproto.moretags) = "yaml:\"shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     repeated RecoveringEntry recovering_entries = 7 [(gogoproto.nullable) = false];
+    bool locked = 8 [ (gogoproto.moretags) = "yaml:\"locked\"" ];
 }
 
 message RecoveringEntry {

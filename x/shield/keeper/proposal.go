@@ -42,6 +42,9 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	if !found {
 		return types.ErrPurchaseNotFound
 	}
+	if purchase.Locked {
+		return types.ErrPurchaseLocked
+	}
 	if lossAmt.GT(purchase.Shield) {
 		return types.ErrNotEnoughShield
 	}
@@ -65,6 +68,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 
 	// Update purchase states.
 	purchase.Shield = purchase.Shield.Sub(lossAmt)
+	purchase.Locked = true
 	k.SetPurchase(ctx, purchase)
 
 	// Update pool and global pool states.
@@ -152,6 +156,7 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 			lossAmt.ToDec().Quo(pool.ShieldRate).TruncateInt(), lossAmt)
 	} else {
 		purchase.Shield = purchase.Shield.Add(lossAmt)
+		purchase.Locked = false
 	}
 
 	k.SetPurchase(ctx, purchase)
@@ -242,6 +247,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposal *types.ShieldClaim
 		Amount:      amount,
 	}
 	purchase.RecoveringEntries = append(purchase.RecoveringEntries, entry)
+	purchase.Locked = true
 	k.SetPurchase(ctx, purchase)
 
 	return nil
