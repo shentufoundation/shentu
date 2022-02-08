@@ -248,8 +248,17 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 	}
 
 	// update shield amount
-	shieldRate := pool.ShieldRate
-	shieldReducAmt := common.MulCoins(amount, shieldRate)
+
+	// calculate the shield amount to be deducted
+	var recShield sdk.Coins
+	for _, rc := range sp.RecoveringEntries {
+		recShield.Add(rc.Amount...)
+	}
+	// TODO: support multiple coins (?)
+	purchasedShield := recShield.AmountOf(k.BondDenom(ctx)).Add(sp.Shield)
+	withdrawRatio := purchasedShield.ToDec().Quo(sp.Amount.ToDec())
+	shieldReducAmt := common.MulCoins(amount, withdrawRatio)
+
 	var updatedRE []types.RecoveringEntry
 	for _, e := range sp.RecoveringEntries {
 		if e.Amount.IsAllLTE(shieldReducAmt) {
