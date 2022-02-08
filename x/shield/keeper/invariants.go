@@ -96,8 +96,14 @@ func ShieldInvariant(keeper Keeper) sdk.Invariant {
 			shieldSum = shieldSum.Add(pool.Shield)
 		}
 
+		purchases := keeper.GetAllPurchase(ctx)
+		pShieldSum := sdk.NewInt(0)
+		for _, purchase := range purchases {
+			pShieldSum = pShieldSum.Add(purchase.Shield)
+		}
+
 		totalShield := keeper.GetTotalShield(ctx)
-		broken := !totalShield.Equal(shieldSum)
+		broken := !totalShield.Equal(shieldSum) || !totalShield.Equal(pShieldSum) || totalShield.IsNegative()
 
 		return sdk.FormatInvariant(types.ModuleName, "shield",
 			fmt.Sprintf("\n\ttotal shield amount: %s"+
