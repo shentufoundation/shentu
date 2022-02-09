@@ -82,13 +82,13 @@ func (k Keeper) GetTotalClaimed(ctx sdk.Context) sdk.Int {
 	return ip.Int
 }
 
-func (k Keeper) SetBlockServiceFees(ctx sdk.Context, serviceFees sdk.DecCoins) {
+func (k Keeper) SetServiceFees(ctx sdk.Context, serviceFees sdk.DecCoins) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&types.ServiceFees{ServiceFees: serviceFees})
 	store.Set(types.GetBlockServiceFeesKey(), bz)
 }
 
-func (k Keeper) GetBlockServiceFees(ctx sdk.Context) sdk.DecCoins {
+func (k Keeper) GetServiceFees(ctx sdk.Context) sdk.DecCoins {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetBlockServiceFeesKey())
 	if bz == nil {
@@ -102,23 +102,6 @@ func (k Keeper) GetBlockServiceFees(ctx sdk.Context) sdk.DecCoins {
 func (k Keeper) DeleteBlockServiceFees(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetBlockServiceFeesKey())
-}
-
-func (k Keeper) SetRemainingServiceFees(ctx sdk.Context, serviceFees sdk.DecCoins) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&types.ServiceFees{ServiceFees: serviceFees})
-	store.Set(types.GetRemainingServiceFeesKey(), bz)
-}
-
-func (k Keeper) GetRemainingServiceFees(ctx sdk.Context) sdk.DecCoins {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetRemainingServiceFeesKey())
-	if bz == nil {
-		panic("remaining service fees are not found")
-	}
-	var serviceFees types.ServiceFees
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &serviceFees)
-	return serviceFees.ServiceFees
 }
 
 // SetPool sets data of a pool in kv-store.

@@ -28,7 +28,7 @@ type QueryResStatus struct {
 	TotalCollateral         sdk.Int      `json:"total_collateral" yaml:"total_collateral"`
 	TotalShield             sdk.Int      `json:"total_shield" yaml:"total_shield"`
 	TotalWithdrawing        sdk.Int      `json:"total_withdrawing" yaml:"total_withdrawing"`
-	RemainingServiceFees    sdk.DecCoins `json:"remaining_service_fees" yaml:"remaining_service_fees"`
+	ServiceFees             sdk.DecCoins `json:"service_fees" yaml:"service_fees"`
 	GlobalShieldStakingPool sdk.Int      `json:"global_shield_staking_pool" yaml:"global_shield_staking_pool"`
 }
 
@@ -38,7 +38,7 @@ func NewQueryResStatus(totalCollateral, totalShield, totalWithdrawing sdk.Int, r
 		TotalCollateral:         totalCollateral,
 		TotalShield:             totalShield,
 		TotalWithdrawing:        totalWithdrawing,
-		RemainingServiceFees:    remainingServiceFees,
+		ServiceFees:             remainingServiceFees,
 		GlobalShieldStakingPool: globalStakingPool,
 	}
 }

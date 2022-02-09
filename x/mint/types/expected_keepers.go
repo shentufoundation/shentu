@@ -39,6 +39,6 @@ type DistributionKeeper interface {
 }
 
 type ShieldKeeper interface {
-	FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
+	FundShieldFees(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 	GetShieldBlockRewardRatio(ctx sdk.Context) sdk.Dec
 }
