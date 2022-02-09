@@ -172,14 +172,10 @@ func (k Keeper) UpdatePool(ctx sdk.Context, msg types.MsgUpdatePool) (types.Pool
 		pool.Description = msg.Description
 	}
 	if !msg.ShieldRate.IsZero() {
-		// TODO: enable (?) shield rate update
 		pool.ShieldRate = msg.ShieldRate
 	}
+	pool.Active = msg.Active
 	k.SetPool(ctx, pool)
-
-	// Update purchase and shield.
-	// TODO: implement updating the pool
-
 	return pool, nil
 }
 

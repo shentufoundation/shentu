@@ -21,6 +21,7 @@ import (
 var (
 	flagDescription = "description"
 	flagShieldRate  = "shield-rate"
+	flagActive      = "active"
 )
 
 // NewTxCmd returns the transaction commands for this module.
@@ -36,8 +37,6 @@ func NewTxCmd() *cobra.Command {
 	shieldTxCmd.AddCommand(
 		GetCmdCreatePool(),
 		GetCmdUpdatePool(),
-		GetCmdPausePool(),
-		GetCmdResumePool(),
 		GetCmdDepositCollateral(),
 		GetCmdWithdrawCollateral(),
 		GetCmdWithdrawRewards(),
@@ -204,8 +203,12 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 					return err
 				}
 			}
+			active, err := cmd.Flags().GetBool(flagActive)
+			if err != nil {
+				panic(err)
+			}
 
-			msg := types.NewMsgUpdatePool(fromAddr, id, description, shieldRate)
+			msg := types.NewMsgUpdatePool(fromAddr, id, description, active, shieldRate)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -216,81 +219,9 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagShieldRate, "", "Shield Rate")
+	cmd.Flags().Bool(flagActive, true, "new pool status. default true.")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
-}
-
-// GetCmdPausePool implements the command for pausing a pool.
-func GetCmdPausePool() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "pause-pool [pool id]",
-		Args:  cobra.ExactArgs(1),
-		Short: "pause a Shield pool to disallow further Shield purchase.",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Pause a Shield pool to prevent new Shield purchases. Can only be executed from the Shield admin address.
-
-Example:
-$ %s tx shield pause-pool <pool id>
-`,
-				version.AppName,
-			),
-		),
-		RunE: pauseOrResume(false),
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdResumePool implements the command for resuming a pool.
-func GetCmdResumePool() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "resume-pool [pool id]",
-		Args:  cobra.ExactArgs(1),
-		Short: "resume a Shield pool to allow Shield purchase.",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Resume a Shield pool to reactivate Shield purchase. Can only be executed from the Shield admin address.
-
-Example:
-$ %s tx shield resume-pool <pool id>
-`,
-				version.AppName,
-			),
-		),
-		RunE: pauseOrResume(true),
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
-
-func pauseOrResume(active bool) func(cmd *cobra.Command, args []string) error {
-	return func(cmd *cobra.Command, args []string) error {
-		cliCtx, err := client.GetClientTxContext(cmd)
-		if err != nil {
-			return err
-		}
-		txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
-
-		fromAddr := cliCtx.GetFromAddress()
-
-		id, err := strconv.ParseUint(args[0], 10, 64)
-		if err != nil {
-			return err
-		}
-
-		var msg sdk.Msg
-		if active {
-			msg = types.NewMsgResumePool(fromAddr, id)
-		} else {
-			msg = types.NewMsgPausePool(fromAddr, id)
-		}
-		if err := msg.ValidateBasic(); err != nil {
-			return err
-		}
-
-		return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
-	}
 }
 
 // GetCmdDepositCollateral implements command for community member to

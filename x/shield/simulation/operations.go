@@ -2,7 +2,6 @@ package simulation
 
 import (
 	"math/rand"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -100,7 +99,7 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, k kee
 
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(weightMsgCreatePool, SimulateMsgCreatePool(k, ak, bk, sk)),
-		simulation.NewWeightedOperation(weightMsgCreatePool, SimulateMsgUpdatePool(k, ak, bk, sk)),
+		simulation.NewWeightedOperation(weightMsgUpdatePool, SimulateMsgUpdatePool(k, ak, bk, sk)),
 		simulation.NewWeightedOperation(weightMsgDepositCollateral, SimulateMsgDepositCollateral(k, ak, bk, sk)),
 		simulation.NewWeightedOperation(weightMsgWithdrawCollateral, SimulateMsgWithdrawCollateral(k, ak, bk, sk)),
 		simulation.NewWeightedOperation(weightMsgWithdrawRewards, SimulateMsgWithdrawRewards(k, ak)),
@@ -115,7 +114,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		pools := k.GetAllPools(ctx)
 		// restrict number of pools to reduce gas consumptions for unbondings and redelegations
-		if len(pools) > 20 {
+		if len(pools) > 50 {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, "too many pools"), nil, nil
 		}
 		// admin
@@ -131,20 +130,17 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		bondDenom := sk.BondDenom(ctx)
 
 		// sponsor
-		sponsor := strings.ToLower(simtypes.RandStringOfLength(r, 10))
-		if _, found := k.GetPoolsBySponsor(ctx, sponsor); found {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, "pool not found for given sponsor"), nil, nil
+		sponsorAddr, _ := simtypes.RandomAcc(r, accs)
+		if _, found := k.GetPoolsBySponsor(ctx, sponsorAddr.Address.String()); found {
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, "sponsor already has a pool"), nil, nil
 		}
-		sponsorAddr, err := sdk.AccAddressFromBech32(sponsor)
-		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, "failed to convert sponsor Bech32 address"), nil, nil
-		}
+
 		// serviceFees
 		nativeAmount := bk.SpendableCoins(ctx, account.GetAddress()).AmountOf(bondDenom)
 		if !nativeAmount.IsPositive() {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, ""), nil, nil
 		}
-		nativeAmount, err = simtypes.RandPositiveInt(r, nativeAmount)
+		nativeAmount, err := simtypes.RandPositiveInt(r, nativeAmount)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, err.Error()), nil, nil
 		}
@@ -155,7 +151,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, "zero shield rate"), nil, nil
 		}
 
-		msg := types.NewMsgCreatePool(simAccount.Address, sponsorAddr, description, shieldRate)
+		msg := types.NewMsgCreatePool(simAccount.Address, sponsorAddr.Address, description, shieldRate)
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
@@ -213,11 +209,18 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 
 		description := simtypes.RandStringOfLength(r, 42)
 		shieldRate := simtypes.RandomDecAmount(r, sdk.NewDec(10))
-		if !shieldRate.GTE(sdk.NewDec(1)) {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, "zero shield rate"), nil, nil
+		if shieldRate.IsNegative() {
+			shieldRate = shieldRate.Mul(sdk.NewDec(-1))
 		}
+		shieldRate = shieldRate.Add(sdk.OneDec())
 
-		msg := types.NewMsgUpdatePool(simAccount.Address, poolID, description, shieldRate)
+		tmp, err := simtypes.RandPositiveInt(r, sdk.OneInt())
+		if err != nil {
+			panic(err)
+		}
+		active := tmp.Equal(sdk.OneInt())
+
+		msg := types.NewMsgUpdatePool(simAccount.Address, poolID, description, active, shieldRate)
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
@@ -455,6 +458,11 @@ func SimulateMsgPurchase(k keeper.Keeper, ak types.AccountKeeper, bk types.BankK
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgStakeForShield, "pool not found"), nil, nil
 		}
 
+		purchase, found := k.GetPurchase(ctx, poolID, purchaser.Address)
+		if found && purchase.Locked {
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgStakeForShield, "purchase is locked"), nil, nil
+		}
+
 		totalCollateral := k.GetTotalCollateral(ctx)
 		totalWithdrawing := k.GetTotalWithdrawing(ctx)
 		totalShield := k.GetTotalShield(ctx)
@@ -507,20 +515,18 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, bk ty
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		bondDenom := sk.BondDenom(ctx)
-		stakeForShields := k.GetAllPurchase(ctx)
-		if len(stakeForShields) == 0 {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUnstakeFromShield, "no stake for shields found"), nil, nil
+		purchase, found := keeper.RandomUnlockedPurchase(r, k, ctx)
+		if !found {
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUnstakeFromShield, "no ongoing unlocked purchase found"), nil, nil
 		}
-		index := simtypes.RandIntBetween(r, 0, len(stakeForShields))
-		sfs := stakeForShields[index]
 
-		withdrawableCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, sfs.Amount))
+		withdrawableCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, purchase.Amount))
 		shield := simtypes.RandSubsetCoins(r, withdrawableCoins)
-		purchaserAddr, err := sdk.AccAddressFromBech32(sfs.Purchaser)
+		purchaserAddr, err := sdk.AccAddressFromBech32(purchase.Purchaser)
 		if err != nil {
 			panic(err)
 		}
-		msg := types.NewMsgUnstake(sfs.PoolId, shield, purchaserAddr)
+		msg := types.NewMsgUnstake(purchase.PoolId, shield, purchaserAddr)
 
 		var account authtypes.AccountI
 		var simAcc simtypes.Account
