@@ -23,15 +23,15 @@ message GenesisState {
     string total_withdrawing = 7 [ (gogoproto.moretags) = "yaml:\"total_withdrawing\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     string total_shield = 8 [ (gogoproto.moretags) = "yaml:\"total_shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     string total_claimed = 9 [ (gogoproto.moretags) = "yaml:\"total_claimed\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    repeated cosmos.base.v1beta1.DecCoin fees = 11 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"fees\"", (gogoproto.nullable) = false ];
-    repeated Pool pools = 12 [ (gogoproto.moretags) = "yaml:\"pools\"", (gogoproto.nullable) = false ];
-    repeated Provider providers = 13 [ (gogoproto.moretags) = "yaml:\"providers\"", (gogoproto.nullable) = false ];
-    repeated Withdraw withdraws = 15 [ (gogoproto.moretags) = "yaml:\"withdraws\"", (gogoproto.nullable) = false ];
-    string global_staking_pool = 18 [ (gogoproto.moretags) = "yaml:\"global_staking_pool\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    repeated Purchase purchases = 19 [ (gogoproto.moretags) = "yaml:\"purchases\"", (gogoproto.nullable) = false ];
-    DonationPool donation_pool = 22 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"donation_pool\""];
-    repeated PendingPayout pending_payouts = 23 [ (gogoproto.moretags) = "yaml:\"pending_payouts\"", (gogoproto.nullable) = false ];
-    BlockRewardParams block_reward_params = 24 [ (gogoproto.moretags) = "yaml:\"block_reward_params\"", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.DecCoin fees = 10 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"fees\"", (gogoproto.nullable) = false ];
+    repeated Pool pools = 11 [ (gogoproto.moretags) = "yaml:\"pools\"", (gogoproto.nullable) = false ];
+    repeated Provider providers = 12 [ (gogoproto.moretags) = "yaml:\"providers\"", (gogoproto.nullable) = false ];
+    repeated Withdraw withdraws = 13 [ (gogoproto.moretags) = "yaml:\"withdraws\"", (gogoproto.nullable) = false ];
+    string global_staking_pool = 14 [ (gogoproto.moretags) = "yaml:\"global_staking_pool\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    repeated Purchase purchases = 15 [ (gogoproto.moretags) = "yaml:\"purchases\"", (gogoproto.nullable) = false ];
+    DonationPool donation_pool = 16 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"donation_pool\""];
+    repeated PendingPayout pending_payouts = 17 [ (gogoproto.moretags) = "yaml:\"pending_payouts\"", (gogoproto.nullable) = false ];
+    BlockRewardParams block_reward_params = 18 [ (gogoproto.moretags) = "yaml:\"block_reward_params\"", (gogoproto.nullable) = false ];
 }
 
 // PoolParams defines the parameters for the shield pool.
