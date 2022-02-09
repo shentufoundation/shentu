@@ -24,7 +24,7 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		TotalWithdrawing:    totalWithdrawing,
 		TotalShield:         totalShield,
 		TotalClaimed:        totalClaimed,
-		ServiceFees:         serviceFees,
+		Fees:                serviceFees,
 		Pools:               pools,
 		Providers:           providers,
 		Withdraws:           withdraws,
@@ -47,7 +47,7 @@ func DefaultGenesisState() *GenesisState {
 		TotalWithdrawing:    sdk.ZeroInt(),
 		TotalShield:         sdk.ZeroInt(),
 		TotalClaimed:        sdk.ZeroInt(),
-		ServiceFees:         sdk.NewDecCoins(),
+		Fees:                sdk.NewDecCoins(),
 		DonationPool:        InitialDonationPool(),
 		BlockRewardParams:   DefaultBlockRewardParams(),
 	}

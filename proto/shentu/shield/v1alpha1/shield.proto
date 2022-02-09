@@ -30,11 +30,11 @@ message DonationPool {
 }
 
 // ServiceFees is a wrapper for DecCoins object.
-message ServiceFees {
+message Fees {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    repeated cosmos.base.v1beta1.DecCoin service_fees = 1 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"service_fees\"", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.DecCoin amount = 1 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false ];
 }
 
 // Provider tracks total delegation, total collateral, and rewards of a provider.

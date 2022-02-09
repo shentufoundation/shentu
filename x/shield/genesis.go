@@ -31,7 +31,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 	k.SetTotalWithdrawing(ctx, data.TotalWithdrawing)
 	k.SetTotalShield(ctx, data.TotalShield)
 	k.SetTotalClaimed(ctx, data.TotalClaimed)
-	k.SetServiceFees(ctx, data.ServiceFees)
+	k.SetServiceFees(ctx, data.Fees)
 	k.SetGlobalStakingPool(ctx, data.GlobalStakingPool)
 	for _, pool := range data.Pools {
 		k.SetPool(ctx, pool)

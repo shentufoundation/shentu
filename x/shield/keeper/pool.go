@@ -84,7 +84,7 @@ func (k Keeper) GetTotalClaimed(ctx sdk.Context) sdk.Int {
 
 func (k Keeper) SetServiceFees(ctx sdk.Context, serviceFees sdk.DecCoins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&types.ServiceFees{ServiceFees: serviceFees})
+	bz := k.cdc.MustMarshalLengthPrefixed(&types.Fees{Amount: serviceFees})
 	store.Set(types.GetServiceFeesKey(), bz)
 }
 
@@ -94,9 +94,9 @@ func (k Keeper) GetServiceFees(ctx sdk.Context) sdk.DecCoins {
 	if bz == nil {
 		return sdk.DecCoins{}
 	}
-	var serviceFees types.ServiceFees
+	var serviceFees types.Fees
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &serviceFees)
-	return serviceFees.ServiceFees
+	return serviceFees.Amount
 }
 
 func (k Keeper) DeleteServiceFees(ctx sdk.Context) {
