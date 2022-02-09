@@ -82,23 +82,6 @@ func (k Keeper) GetTotalClaimed(ctx sdk.Context) sdk.Int {
 	return ip.Int
 }
 
-func (k Keeper) SetServiceFees(ctx sdk.Context, serviceFees sdk.DecCoins) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&types.ServiceFees{ServiceFees: serviceFees})
-	store.Set(types.GetServiceFeesKey(), bz)
-}
-
-func (k Keeper) GetServiceFees(ctx sdk.Context) sdk.DecCoins {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetServiceFeesKey())
-	if bz == nil {
-		panic("service fees are not found")
-	}
-	var serviceFees types.ServiceFees
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &serviceFees)
-	return serviceFees.ServiceFees
-}
-
 func (k Keeper) SetBlockServiceFees(ctx sdk.Context, serviceFees sdk.DecCoins) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&types.ServiceFees{ServiceFees: serviceFees})
@@ -207,7 +190,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, msg types.MsgUpdatePool) (types.Pool
 	}
 	if !msg.ShieldRate.IsZero() {
 		// TODO: enable (?) shield rate update
-		// pool.ShieldRate = msg.ShieldRate
+		pool.ShieldRate = msg.ShieldRate
 	}
 	k.SetPool(ctx, pool)
 
