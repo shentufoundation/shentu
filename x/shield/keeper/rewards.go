@@ -12,7 +12,7 @@ func (k Keeper) DistributeShieldRewards(ctx sdk.Context) {
 	// Add block service fees that need to be distributed for this block
 	serviceFees := k.GetServiceFees(ctx)
 	remainingServiceFees := serviceFees
-	k.DeleteBlockServiceFees(ctx)
+	k.DeleteServiceFees(ctx)
 
 	// TODO: Add support for any denoms.
 

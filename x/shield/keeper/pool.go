@@ -85,12 +85,12 @@ func (k Keeper) GetTotalClaimed(ctx sdk.Context) sdk.Int {
 func (k Keeper) SetServiceFees(ctx sdk.Context, serviceFees sdk.DecCoins) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&types.ServiceFees{ServiceFees: serviceFees})
-	store.Set(types.GetBlockServiceFeesKey(), bz)
+	store.Set(types.GetServiceFeesKey(), bz)
 }
 
 func (k Keeper) GetServiceFees(ctx sdk.Context) sdk.DecCoins {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetBlockServiceFeesKey())
+	bz := store.Get(types.GetServiceFeesKey())
 	if bz == nil {
 		return sdk.DecCoins{}
 	}
@@ -99,9 +99,9 @@ func (k Keeper) GetServiceFees(ctx sdk.Context) sdk.DecCoins {
 	return serviceFees.ServiceFees
 }
 
-func (k Keeper) DeleteBlockServiceFees(ctx sdk.Context) {
+func (k Keeper) DeleteServiceFees(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetBlockServiceFeesKey())
+	store.Delete(types.GetServiceFeesKey())
 }
 
 // SetPool sets data of a pool in kv-store.

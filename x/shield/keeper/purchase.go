@@ -77,7 +77,7 @@ func (k Keeper) DistributeFees(ctx sdk.Context) {
 
 	// Add leftover block service fees from last block
 	serviceFees := k.GetServiceFees(ctx)
-	k.DeleteBlockServiceFees(ctx)
+	k.DeleteServiceFees(ctx)
 
 	// Distribute service fees.
 	totalCollateral := k.GetTotalCollateral(ctx)
