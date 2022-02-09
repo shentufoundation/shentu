@@ -74,7 +74,6 @@ func (k Keeper) GetPoolPurchases(ctx sdk.Context, poolID uint64) (res []types.Pu
 
 // DistributeFees distributes rewards for current block plus leftover rewards for last block.
 func (k Keeper) DistributeFees(ctx sdk.Context) {
-
 	// Add leftover block service fees from last block
 	serviceFees := k.GetServiceFees(ctx)
 	k.DeleteServiceFees(ctx)
