@@ -414,7 +414,7 @@ func ProposalContents(k keeper.Keeper, sk types.StakingKeeper) []simtypes.Weight
 func SimulateShieldClaimProposalContent(k keeper.Keeper, sk types.StakingKeeper) simtypes.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 		bondDenom := sk.BondDenom(ctx)
-		purchase, found := keeper.RandomPurchase(r, k, ctx)
+		purchase, found := keeper.RandomUnlockedPurchase(r, k, ctx)
 		if !found {
 			return nil
 		}

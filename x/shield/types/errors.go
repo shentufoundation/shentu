@@ -51,6 +51,7 @@ const (
 	errDonationBadDenom
 	errPendingPayoutExists
 	errPendingPayoutNotFound
+	errPurchaseLocked
 )
 
 var (
@@ -100,4 +101,5 @@ var (
 	ErrDonationBadDenom           = sdkerrors.Register(ModuleName, errDonationBadDenom, "invalid coin denomination for donation")
 	ErrPendingPayoutExists        = sdkerrors.Register(ModuleName, errPendingPayoutExists, "there is a pending payout corresponding to this reimbursement")
 	ErrPendingPayoutNotFound      = sdkerrors.Register(ModuleName, errPendingPayoutNotFound, "pending payout identified by the given proposal ID was not found")
+	ErrPurchaseLocked             = sdkerrors.Register(ModuleName, errPurchaseLocked, "purchase is locked due to an ongoing claim proposal")
 )
