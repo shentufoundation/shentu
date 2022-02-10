@@ -5,15 +5,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/spf13/cobra"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
@@ -143,9 +141,9 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-
 				return err
 			}
 
-			description := viper.GetString(flagDescription)
-
-			shieldRate, err := sdk.NewDecFromStr(viper.GetString(flagShieldRate))
+			description, _ := cmd.Flags().GetString(flagDescription)
+			flagShieldRateExtract, _ := cmd.Flags().GetString(flagShieldRate)
+			shieldRate, err := sdk.NewDecFromStr(flagShieldRateExtract)
 			if err != nil {
 				return err
 			}
@@ -194,10 +192,10 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				return err
 			}
 
-			description := viper.GetString(flagDescription)
-
+			description, _ := cmd.Flags().GetString(flagDescription)
+			flagShieldRateExtract, _ := cmd.Flags().GetString(flagShieldRate)
 			var shieldRate sdk.Dec
-			if shieldRateInput := viper.GetString(flagShieldRate); shieldRateInput != "" {
+			if shieldRateInput := flagShieldRateExtract; shieldRateInput != "" {
 				shieldRate, err = sdk.NewDecFromStr(shieldRateInput)
 				if err != nil {
 					return err
