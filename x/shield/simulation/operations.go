@@ -44,7 +44,7 @@ var (
 	DefaultWeightMsgPurchaseShield        = 20
 	DefaultWeightMsgStakeForShield        = 20
 	DefaultWeightMsgUnstakeFromShield     = 15
-	DefaultWeightShieldClaimProposal      = 5
+	DefaultWeightShieldClaimProposal      = 20
 	DefaultWeightMsgWithdrawReimbursement = 5
 	DefaultWeightMsgDonatePool            = 10
 
