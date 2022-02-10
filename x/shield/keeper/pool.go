@@ -84,7 +84,7 @@ func (k Keeper) GetTotalClaimed(ctx sdk.Context) sdk.Int {
 
 func (k Keeper) SetServiceFees(ctx sdk.Context, serviceFees sdk.DecCoins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&types.ServiceFees{ServiceFees: serviceFees})
+	bz := k.cdc.MustMarshalLengthPrefixed(&types.Fees{Amount: serviceFees})
 	store.Set(types.GetServiceFeesKey(), bz)
 }
 
@@ -92,50 +92,16 @@ func (k Keeper) GetServiceFees(ctx sdk.Context) sdk.DecCoins {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetServiceFeesKey())
 	if bz == nil {
-		panic("service fees are not found")
-	}
-	var serviceFees types.ServiceFees
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &serviceFees)
-	return serviceFees.ServiceFees
-}
-
-func (k Keeper) SetBlockServiceFees(ctx sdk.Context, serviceFees sdk.DecCoins) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&types.ServiceFees{ServiceFees: serviceFees})
-	store.Set(types.GetBlockServiceFeesKey(), bz)
-}
-
-func (k Keeper) GetBlockServiceFees(ctx sdk.Context) sdk.DecCoins {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetBlockServiceFeesKey())
-	if bz == nil {
 		return sdk.DecCoins{}
 	}
-	var serviceFees types.ServiceFees
+	var serviceFees types.Fees
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &serviceFees)
-	return serviceFees.ServiceFees
+	return serviceFees.Amount
 }
 
-func (k Keeper) DeleteBlockServiceFees(ctx sdk.Context) {
+func (k Keeper) DeleteServiceFees(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetBlockServiceFeesKey())
-}
-
-func (k Keeper) SetRemainingServiceFees(ctx sdk.Context, serviceFees sdk.DecCoins) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&types.ServiceFees{ServiceFees: serviceFees})
-	store.Set(types.GetRemainingServiceFeesKey(), bz)
-}
-
-func (k Keeper) GetRemainingServiceFees(ctx sdk.Context) sdk.DecCoins {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetRemainingServiceFeesKey())
-	if bz == nil {
-		panic("remaining service fees are not found")
-	}
-	var serviceFees types.ServiceFees
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &serviceFees)
-	return serviceFees.ServiceFees
+	store.Delete(types.GetServiceFeesKey())
 }
 
 // SetPool sets data of a pool in kv-store.
@@ -206,14 +172,10 @@ func (k Keeper) UpdatePool(ctx sdk.Context, msg types.MsgUpdatePool) (types.Pool
 		pool.Description = msg.Description
 	}
 	if !msg.ShieldRate.IsZero() {
-		// TODO: enable (?) shield rate update
-		// pool.ShieldRate = msg.ShieldRate
+		pool.ShieldRate = msg.ShieldRate
 	}
+	pool.Active = msg.Active
 	k.SetPool(ctx, pool)
-
-	// Update purchase and shield.
-	// TODO: implement updating the pool
-
 	return pool, nil
 }
 
