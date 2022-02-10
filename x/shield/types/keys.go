@@ -65,14 +65,6 @@ func GetServiceFeesKey() []byte {
 	return ServiceFeesKey
 }
 
-func GetBlockServiceFeesKey() []byte {
-	return BlockServiceFeesKey
-}
-
-func GetRemainingServiceFeesKey() []byte {
-	return RemainingServiceFeesKey
-}
-
 // GetPoolKey gets the key for the pool identified by pool ID.
 func GetPoolKey(id uint64) []byte {
 	b := make([]byte, 8)

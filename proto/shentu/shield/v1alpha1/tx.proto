@@ -44,7 +44,8 @@ message MsgUpdatePool {
     string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
     uint64 pool_id = 2 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
     string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string shield_rate = 4 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    bool active = 4 [ (gogoproto.moretags) = "yaml:\"active\"" ];
+    string shield_rate = 5 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }
   
 message MsgUpdatePoolResponse {}

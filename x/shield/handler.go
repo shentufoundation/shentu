@@ -27,14 +27,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.UpdatePool(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgPausePool:
-			res, err := msgServer.PausePool(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *types.MsgResumePool:
-			res, err := msgServer.ResumePool(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
 		case *types.MsgWithdrawRewards:
 			res, err := msgServer.WithdrawRewards(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)

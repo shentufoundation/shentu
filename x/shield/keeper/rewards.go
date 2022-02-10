@@ -10,9 +10,9 @@ import (
 // collateral providers.
 func (k Keeper) DistributeShieldRewards(ctx sdk.Context) {
 	// Add block service fees that need to be distributed for this block
-	blockServiceFees := k.GetBlockServiceFees(ctx)
-	remainingServiceFees := blockServiceFees
-	k.DeleteBlockServiceFees(ctx)
+	serviceFees := k.GetServiceFees(ctx)
+	remainingServiceFees := serviceFees
+	k.DeleteServiceFees(ctx)
 
 	// TODO: Add support for any denoms.
 
@@ -27,7 +27,7 @@ func (k Keeper) DistributeShieldRewards(ctx sdk.Context) {
 		}
 
 		// fees * providerCollateral / totalCollateral
-		fees := blockServiceFees.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
+		fees := serviceFees.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
 		if fees.AmountOf(bondDenom).GT(remainingServiceFees.AmountOf(bondDenom)) {
 			fees = remainingServiceFees
 		}
@@ -37,8 +37,8 @@ func (k Keeper) DistributeShieldRewards(ctx sdk.Context) {
 		remainingServiceFees = remainingServiceFees.Sub(fees)
 	}
 	// add back block service fees
-	remainingServiceFees = remainingServiceFees.Add(blockServiceFees...)
-	k.SetRemainingServiceFees(ctx, remainingServiceFees)
+	remainingServiceFees = remainingServiceFees.Add(serviceFees...)
+	k.SetServiceFees(ctx, remainingServiceFees)
 }
 
 // PayoutNativeRewards pays out pending CTK rewards.
@@ -60,9 +60,9 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 	k.SetProvider(ctx, providerAddr, provider)
 
 	// Add leftovers as service fees.
-	remainingServiceFees := k.GetRemainingServiceFees(ctx)
+	remainingServiceFees := k.GetServiceFees(ctx)
 	remainingServiceFees = remainingServiceFees.Add(change...)
-	k.SetRemainingServiceFees(ctx, remainingServiceFees)
+	k.SetServiceFees(ctx, remainingServiceFees)
 
 	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, ctkRewards); err != nil {
 		return sdk.Coins{}, err

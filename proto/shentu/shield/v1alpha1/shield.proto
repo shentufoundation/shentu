@@ -15,10 +15,10 @@ message Pool {
 
     uint64 id = 1 [ (gogoproto.moretags) = "yaml:\"id\"" ];
     string description = 2 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string sponsor_addr = 4 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
-    bool active = 5 [ (gogoproto.moretags) = "yaml:\"active\"" ];
-    string shield = 6 [ (gogoproto.moretags) = "yaml:\"shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    string shield_rate = 7 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    string sponsor_addr = 3 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
+    bool active = 4 [ (gogoproto.moretags) = "yaml:\"active\"" ];
+    string shield = 5 [ (gogoproto.moretags) = "yaml:\"shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    string shield_rate = 6 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }
 
 // DonationPool defines Shield Donation Pool.
@@ -30,11 +30,11 @@ message DonationPool {
 }
 
 // ServiceFees is a wrapper for DecCoins object.
-message ServiceFees {
+message Fees {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    repeated cosmos.base.v1beta1.DecCoin service_fees = 1 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"service_fees\"", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.DecCoin amount = 1 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false ];
 }
 
 // Provider tracks total delegation, total collateral, and rewards of a provider.

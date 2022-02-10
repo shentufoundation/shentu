@@ -74,18 +74,9 @@ func (k Keeper) GetPoolPurchases(ctx sdk.Context, poolID uint64) (res []types.Pu
 
 // DistributeFees distributes rewards for current block plus leftover rewards for last block.
 func (k Keeper) DistributeFees(ctx sdk.Context) {
-	serviceFees := sdk.NewDecCoins()
-
-	// TODO: Add support for any denoms.
-
 	// Add leftover block service fees from last block
-	remainingServiceFees := k.GetRemainingServiceFees(ctx)
-	serviceFees = serviceFees.Add(remainingServiceFees...)
-
-	// Add block service fees that need to be distributed for this block.
-	blockServiceFees := k.GetBlockServiceFees(ctx)
-	serviceFees = serviceFees.Add(blockServiceFees...)
-	k.DeleteBlockServiceFees(ctx)
+	serviceFees := k.GetServiceFees(ctx)
+	k.DeleteServiceFees(ctx)
 
 	// Distribute service fees.
 	totalCollateral := k.GetTotalCollateral(ctx)
@@ -104,7 +95,7 @@ func (k Keeper) DistributeFees(ctx sdk.Context) {
 	}
 
 	// Store remaining block reward as new leftover
-	k.SetRemainingServiceFees(ctx, serviceFees)
+	k.SetServiceFees(ctx, serviceFees)
 }
 
 func (k Keeper) RecoverPurchases(ctx sdk.Context) {
@@ -304,13 +295,13 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 	return k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, amount)
 }
 
-func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error {
+func (k Keeper) FundShieldFees(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error {
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount); err != nil {
 		return err
 	}
-	blockServiceFee := k.GetBlockServiceFees(ctx)
+	blockServiceFee := k.GetServiceFees(ctx)
 	blockServiceFee = blockServiceFee.Add(sdk.NewDecCoinsFromCoins(amount...)...)
-	k.SetBlockServiceFees(ctx, blockServiceFee)
+	k.SetServiceFees(ctx, blockServiceFee)
 	return nil
 }
 
