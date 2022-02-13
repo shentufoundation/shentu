@@ -277,55 +277,55 @@ func (s *IntegrationTestSuite) TestCmdCreatePool() {
 	val := s.network.Validators[0]
 
 	// deposit collateral for this new address
-	//testCases := []struct {
-	//	name         string
-	//	args         []string
-	//	expectErr    bool
-	//	respType     proto.Message
-	//	expectedCode uint32
-	//}{
-	//
-	//	{
-	//		"initial collateral deposit",
-	//		[]string{
-	//			sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10000))).String(),
-	//			fmt.Sprintf("--%s=%s", flags.FlagFrom, acc1.String()),
-	//
-	//			// common args
-	//			fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-	//			fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-	//			fmt.Sprintf("--%s=%s", flags.FlagFees, "400000uctk"),
-	//		},
-	//		false,
-	//		&sdk.TxResponse{},
-	//		0x0,
-	//	},
-	//}
-	//
-	//for _, tc := range testCases {
-	//	tc := tc
-	//
-	//	s.Run(tc.name, func() {
-	//		cmd := cli.GetCmdDepositCollateral()
-	//		clientCtx := val.ClientCtx
-	//
-	//		if tc.expectErr {
-	//			_, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, tc.args)
-	//			s.Require().Error(err)
-	//		} else {
-	//			out, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, tc.args)
-	//			s.Require().NoError(err, out.String())
-	//			s.Require().NoError(clientCtx.JSONCodec.UnmarshalJSON(out.Bytes(), tc.respType), out.String())
-	//
-	//			txResp := tc.respType.(*sdk.TxResponse)
-	//			s.Require().Equal(tc.expectedCode, txResp.Code, out.String())
-	//		}
-	//	})
-	//}
+	testCases := []struct {
+		name         string
+		args         []string
+		expectErr    bool
+		respType     proto.Message
+		expectedCode uint32
+	}{
+
+		{
+			"initial collateral deposit",
+			[]string{
+				sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10000))).String(),
+				fmt.Sprintf("--%s=%s", flags.FlagFrom, acc1.String()),
+
+				// common args
+				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+				fmt.Sprintf("--%s=%s", flags.FlagFees, "400000uctk"),
+			},
+			false,
+			&sdk.TxResponse{},
+			0x0,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		s.Run(tc.name, func() {
+			cmd := cli.GetCmdDepositCollateral()
+			clientCtx := val.ClientCtx
+
+			if tc.expectErr {
+				_, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, tc.args)
+				s.Require().Error(err)
+			} else {
+				out, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, tc.args)
+				s.Require().NoError(err, out.String())
+				s.Require().NoError(clientCtx.JSONCodec.UnmarshalJSON(out.Bytes(), tc.respType), out.String())
+
+				txResp := tc.respType.(*sdk.TxResponse)
+				s.Require().Equal(tc.expectedCode, txResp.Code, out.String())
+			}
+		})
+	}
 
 	// send pool creation from this address
 
-	testCases := []struct {
+	testCases = []struct {
 		name         string
 		args         []string
 		expectErr    bool

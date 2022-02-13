@@ -35,6 +35,23 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v2.3.X] - XX-XX-2022
+
+### Client Breaking Changes
+
+### API Breaking Changes
+
+### State Machine Breaking Changes
+
+### Features
+
+### Improvements
+
+### Tests
+* (x/shield) [\#44](https://github.com/ShentuChain/shentu-private/pull/44) CLI Tests for Shield
+
+### Bug Fixes
+
 ## [v2.3.1] - 01-24-2021
 
 ### State Machine Breaking Changes
