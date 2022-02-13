@@ -6,8 +6,11 @@ import (
 	"net/http"
 	"os"
 
+	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
+	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
+	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
@@ -85,6 +88,7 @@ import (
 	certclient "github.com/certikfoundation/shentu/v2/x/cert/client"
 	certkeeper "github.com/certikfoundation/shentu/v2/x/cert/keeper"
 	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
+	"github.com/certikfoundation/shentu/v2/x/crisis"
 	"github.com/certikfoundation/shentu/v2/x/cvm"
 	cvmkeeper "github.com/certikfoundation/shentu/v2/x/cvm/keeper"
 	cvmtypes "github.com/certikfoundation/shentu/v2/x/cvm/types"
@@ -129,6 +133,7 @@ var (
 		authz.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		capability.AppModuleBasic{},
+		crisis.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
@@ -182,26 +187,27 @@ type ShentuApp struct {
 	tkeys   map[string]*sdk.TransientStoreKey
 	memKeys map[string]*sdk.MemoryStoreKey
 
-	accountKeeper    sdkauthkeeper.AccountKeeper
+	AccountKeeper    sdkauthkeeper.AccountKeeper
 	authzKeeper      authzkeeper.Keeper
-	bankKeeper       bankkeeper.Keeper
-	stakingKeeper    stakingkeeper.Keeper
+	BankKeeper       bankkeeper.Keeper
+	crisisKeeper     crisiskeeper.Keeper
+	StakingKeeper    stakingkeeper.Keeper
 	slashingKeeper   slashingkeeper.Keeper
-	mintKeeper       mintkeeper.Keeper
+	MintKeeper       mintkeeper.Keeper
 	distrKeeper      distrkeeper.Keeper
 	feegrantKeeper   feegrantkeeper.Keeper
 	paramsKeeper     paramskeeper.Keeper
 	upgradeKeeper    upgradekeeper.Keeper
-	govKeeper        govkeeper.Keeper
-	certKeeper       certkeeper.Keeper
+	GovKeeper        govkeeper.Keeper
+	CertKeeper       certkeeper.Keeper
 	authKeeper       authkeeper.Keeper
 	evidenceKeeper   evidencekeeper.Keeper
 	ibcKeeper        *ibckeeper.Keeper
 	transferKeeper   ibctransferkeeper.Keeper
 	capabilityKeeper *capabilitykeeper.Keeper
-	cvmKeeper        cvmkeeper.Keeper
-	oracleKeeper     oraclekeeper.Keeper
-	shieldKeeper     shieldkeeper.Keeper
+	CvmKeeper        cvmkeeper.Keeper
+	OracleKeeper     oraclekeeper.Keeper
+	ShieldKeeper     shieldkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	scopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -286,55 +292,55 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	scopedIBCMockKeeper := app.capabilityKeeper.ScopeToModule(ibcmock.ModuleName)
 
 	// initialize keepers
-	app.accountKeeper = sdkauthkeeper.NewAccountKeeper(
+	app.AccountKeeper = sdkauthkeeper.NewAccountKeeper(
 		appCodec,
 		keys[authtypes.StoreKey],
 		app.GetSubspace(authtypes.ModuleName),
 		authtypes.ProtoBaseAccount,
 		maccPerms,
 	)
-	app.bankKeeper = bankkeeper.NewKeeper(
+	app.BankKeeper = bankkeeper.NewKeeper(
 		appCodec,
 		keys[sdkbanktypes.StoreKey],
-		app.accountKeeper,
-		&app.cvmKeeper,
+		app.AccountKeeper,
+		&app.CvmKeeper,
 		app.GetSubspace(sdkbanktypes.ModuleName),
 		app.ModuleAccountAddrs(),
 	)
 	stakingKeeper := stakingkeeper.NewKeeper(
 		appCodec,
 		keys[stakingtypes.StoreKey],
-		app.accountKeeper,
-		app.bankKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
 		app.GetSubspace(stakingtypes.ModuleName),
 	)
 	app.distrKeeper = distrkeeper.NewKeeper(
-		appCodec, keys[distrtypes.StoreKey], app.GetSubspace(distrtypes.ModuleName), app.accountKeeper, app.bankKeeper,
+		appCodec, keys[distrtypes.StoreKey], app.GetSubspace(distrtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
 		&stakingKeeper, authtypes.FeeCollectorName, app.ModuleAccountAddrs(),
 	)
 	app.feegrantKeeper = feegrantkeeper.NewKeeper(
 		appCodec,
 		keys[sdkfeegrant.StoreKey],
-		app.accountKeeper,
+		app.AccountKeeper,
 	)
-	app.cvmKeeper = cvmkeeper.NewKeeper(
+	app.CvmKeeper = cvmkeeper.NewKeeper(
 		appCodec,
 		keys[cvmtypes.StoreKey],
-		app.accountKeeper,
-		app.bankKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
 		app.distrKeeper,
-		&app.certKeeper,
-		&app.stakingKeeper,
+		&app.CertKeeper,
+		&app.StakingKeeper,
 		app.GetSubspace(cvmtypes.ModuleName),
 	)
-	app.oracleKeeper = oraclekeeper.NewKeeper(
+	app.OracleKeeper = oraclekeeper.NewKeeper(
 		appCodec,
 		keys[oracletypes.StoreKey],
-		app.accountKeeper,
+		app.AccountKeeper,
 		app.distrKeeper,
-		&app.stakingKeeper,
-		app.bankKeeper,
-		&app.certKeeper,
+		&app.StakingKeeper,
+		app.BankKeeper,
+		&app.CertKeeper,
 		app.GetSubspace(oracletypes.ModuleName),
 	)
 	app.slashingKeeper = slashingkeeper.NewKeeper(
@@ -343,20 +349,26 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		&stakingKeeper,
 		app.GetSubspace(slashingtypes.ModuleName),
 	)
-	app.certKeeper = certkeeper.NewKeeper(
+	app.CertKeeper = certkeeper.NewKeeper(
 		appCodec,
 		keys[certtypes.StoreKey],
 		app.slashingKeeper,
 		stakingKeeper,
 	)
 	app.authKeeper = authkeeper.NewKeeper(
-		app.accountKeeper,
-		app.certKeeper,
+		app.AccountKeeper,
+		app.CertKeeper,
 	)
 	app.authzKeeper = authzkeeper.NewKeeper(
 		keys[authzkeeper.StoreKey],
 		appCodec,
 		app.MsgServiceRouter(),
+	)
+	app.crisisKeeper = crisiskeeper.NewKeeper(
+		app.GetSubspace(crisistypes.ModuleName),
+		invCheckPeriod,
+		app.BankKeeper,
+		authtypes.FeeCollectorName,
 	)
 	app.upgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,
@@ -365,32 +377,32 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		homePath,
 		bApp,
 	)
-	app.shieldKeeper = shieldkeeper.NewKeeper(
+	app.ShieldKeeper = shieldkeeper.NewKeeper(
 		appCodec,
 		keys[shieldtypes.StoreKey],
-		app.accountKeeper,
-		app.bankKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
 		&stakingKeeper,
-		&app.govKeeper,
+		&app.GovKeeper,
 		app.GetSubspace(shieldtypes.ModuleName),
 	)
-	app.mintKeeper = mintkeeper.NewKeeper(
+	app.MintKeeper = mintkeeper.NewKeeper(
 		appCodec, keys[sdkminttypes.StoreKey], app.GetSubspace(sdkminttypes.ModuleName), &stakingKeeper,
-		app.accountKeeper, app.bankKeeper, app.distrKeeper, app.shieldKeeper, authtypes.FeeCollectorName,
+		app.AccountKeeper, app.BankKeeper, app.distrKeeper, app.ShieldKeeper, authtypes.FeeCollectorName,
 	)
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference so that it will contain these hooks.
-	app.stakingKeeper.Keeper = *stakingKeeper.Keeper.SetHooks(
+	app.StakingKeeper.Keeper = *stakingKeeper.Keeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(
 			app.distrKeeper.Hooks(),
 			app.slashingKeeper.Hooks(),
-			app.shieldKeeper.Hooks(),
+			app.ShieldKeeper.Hooks(),
 		),
 	)
 
 	// Create IBC Keeper
 	app.ibcKeeper = ibckeeper.NewKeeper(
-		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.stakingKeeper, app.upgradeKeeper, scopedIBCKeeper,
+		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.upgradeKeeper, scopedIBCKeeper,
 	)
 
 	govRouter := sdkgovtypes.NewRouter()
@@ -399,18 +411,18 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		AddRoute(distrtypes.RouterKey, sdkdistr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
 		AddRoute(ibchost.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
-		AddRoute(shieldtypes.RouterKey, shield.NewShieldClaimProposalHandler(app.shieldKeeper)).
-		AddRoute(certtypes.RouterKey, cert.NewCertifierUpdateProposalHandler(app.certKeeper))
+		AddRoute(shieldtypes.RouterKey, shield.NewShieldClaimProposalHandler(app.ShieldKeeper)).
+		AddRoute(certtypes.RouterKey, cert.NewCertifierUpdateProposalHandler(app.CertKeeper))
 
-	app.govKeeper = govkeeper.NewKeeper(
+	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,
 		keys[sdkgovtypes.StoreKey],
 		app.GetSubspace(sdkgovtypes.ModuleName),
-		app.bankKeeper,
-		app.stakingKeeper,
-		app.certKeeper,
-		app.shieldKeeper,
-		app.accountKeeper,
+		app.BankKeeper,
+		app.StakingKeeper,
+		app.CertKeeper,
+		app.ShieldKeeper,
+		app.AccountKeeper,
 		govRouter,
 	)
 
@@ -418,7 +430,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.transferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
 		app.ibcKeeper.ChannelKeeper, &app.ibcKeeper.PortKeeper,
-		app.accountKeeper, app.bankKeeper, scopedTransferKeeper,
+		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.transferKeeper)
 
@@ -434,33 +446,35 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
-		appCodec, keys[evidencetypes.StoreKey], &app.stakingKeeper.Keeper, app.slashingKeeper,
+		appCodec, keys[evidencetypes.StoreKey], &app.StakingKeeper.Keeper, app.slashingKeeper,
 	)
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.evidenceKeeper = *evidenceKeeper
 
 	/****  Module Options ****/
 
+	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 	// NOTE: Any module instantiated in the module manager that is
 	// later modified must be passed by reference here.
 	app.mm = module.NewManager(
-		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
-		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
-		authz.NewAppModule(appCodec, app.authzKeeper, app.accountKeeper, app.bankKeeper, app.interfaceRegistry),
-		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
+		genutil.NewAppModule(app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
+		auth.NewAppModule(appCodec, app.authKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
+		authz.NewAppModule(appCodec, app.authzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
+		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
 		capability.NewAppModule(appCodec, *app.capabilityKeeper),
-		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
-		feegrant.NewAppModule(appCodec, app.accountKeeper, app.bankKeeper, app.feegrantKeeper, app.interfaceRegistry),
-		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
-		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
-		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
+		crisis.NewAppModule(&app.crisisKeeper, skipGenesisInvariants),
+		distr.NewAppModule(appCodec, app.distrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.feegrantKeeper, app.interfaceRegistry),
+		slashing.NewAppModule(appCodec, app.slashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
+		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
-		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
-		cvm.NewAppModule(app.cvmKeeper, app.bankKeeper),
-		cert.NewAppModule(app.certKeeper, app.accountKeeper, app.bankKeeper),
-		oracle.NewAppModule(app.oracleKeeper, app.bankKeeper),
-		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
+		cvm.NewAppModule(app.CvmKeeper, app.BankKeeper),
+		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
+		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
+		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 		transferModule,
 	)
@@ -468,14 +482,21 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// NOTE: During BeginBlocker, slashing comes after distr so that
 	// there is nothing left over in the validator fee pool, so as to
 	// keep the CanWithdrawInvariant invariant.
-	app.mm.SetOrderBeginBlockers(upgradetypes.ModuleName, capabilitytypes.ModuleName, sdkminttypes.ModuleName, distrtypes.ModuleName,
-		slashingtypes.ModuleName, evidencetypes.ModuleName, oracletypes.ModuleName, cvmtypes.ModuleName, stakingtypes.ModuleName,
-		shieldtypes.ModuleName, ibchost.ModuleName)
+	app.mm.SetOrderBeginBlockers(
+		upgradetypes.ModuleName, capabilitytypes.ModuleName, sdkminttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
+		evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, sdkgovtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName,
+		sdkauthz.ModuleName, sdkfeegrant.ModuleName, shieldtypes.ModuleName, certtypes.ModuleName, oracletypes.ModuleName, cvmtypes.ModuleName,
+	)
 
 	// NOTE: Shield endblocker comes before staking because it queries
 	// unbonding delegations that staking endblocker deletes.
-	app.mm.SetOrderEndBlockers(cvmtypes.ModuleName, shieldtypes.ModuleName, stakingtypes.ModuleName, sdkgovtypes.ModuleName,
-		oracletypes.ModuleName)
+	app.mm.SetOrderEndBlockers(
+		crisistypes.ModuleName, sdkgovtypes.ModuleName, shieldtypes.ModuleName, stakingtypes.ModuleName,
+		capabilitytypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, distrtypes.ModuleName,
+		slashingtypes.ModuleName, sdkminttypes.ModuleName,
+		genutiltypes.ModuleName, evidencetypes.ModuleName, sdkauthz.ModuleName,
+		sdkfeegrant.ModuleName, upgradetypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName, certtypes.ModuleName, oracletypes.ModuleName, cvmtypes.ModuleName,
+	)
 
 	// NOTE: genutil moodule must occur after staking so that pools
 	// are properly initialized with tokens from genesis accounts.
@@ -490,6 +511,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		sdkminttypes.ModuleName,
 		cvmtypes.ModuleName,
 		shieldtypes.ModuleName,
+		crisistypes.ModuleName,
 		certtypes.ModuleName,
 		ibchost.ModuleName,
 		genutiltypes.ModuleName,
@@ -498,6 +520,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		sdkauthz.ModuleName,
 		ibctransfertypes.ModuleName,
 		sdkfeegrant.ModuleName,
+		upgradetypes.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
@@ -510,6 +533,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		sdkgovtypes.ModuleName,
 		sdkminttypes.ModuleName,
 		cvmtypes.ModuleName,
+		crisistypes.ModuleName,
 		certtypes.ModuleName,
 		genutiltypes.ModuleName,
 		oracletypes.ModuleName,
@@ -519,29 +543,30 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		ibctransfertypes.ModuleName,
 		sdkfeegrant.ModuleName,
 		evidencetypes.ModuleName,
+		upgradetypes.ModuleName,
 	)
-
+	app.mm.RegisterInvariants(&app.crisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
 
 	app.sm = module.NewSimulationManager(
-		auth.NewAppModule(appCodec, app.authKeeper, app.accountKeeper, app.bankKeeper, app.certKeeper, authsims.RandomGenesisAccounts),
-		authz.NewAppModule(appCodec, app.authzKeeper, app.accountKeeper, app.bankKeeper, app.interfaceRegistry),
-		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
+		auth.NewAppModule(appCodec, app.authKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
+		authz.NewAppModule(appCodec, app.authzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
+		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
 		capability.NewAppModule(appCodec, *app.capabilityKeeper),
-		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
-		feegrant.NewAppModule(appCodec, app.accountKeeper, app.bankKeeper, app.feegrantKeeper, app.interfaceRegistry),
-		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper.Keeper),
-		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
-		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
+		distr.NewAppModule(appCodec, app.distrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.feegrantKeeper, app.interfaceRegistry),
+		slashing.NewAppModule(appCodec, app.slashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
+		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
-		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
-		cvm.NewAppModule(app.cvmKeeper, app.bankKeeper),
-		cert.NewAppModule(app.certKeeper, app.accountKeeper, app.bankKeeper),
-		oracle.NewAppModule(app.oracleKeeper, app.bankKeeper),
-		shield.NewAppModule(app.shieldKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
+		cvm.NewAppModule(app.CvmKeeper, app.BankKeeper),
+		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
+		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
+		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 		transferModule,
 	)
@@ -555,8 +580,8 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// The AnteHandler handles signature verification and transaction pre-processing
 	anteHandler, err := ante.NewAnteHandler(
 		ante.HandlerOptions{
-			AccountKeeper:   app.accountKeeper,
-			BankKeeper:      app.bankKeeper,
+			AccountKeeper:   app.AccountKeeper,
+			BankKeeper:      app.BankKeeper,
 			FeegrantKeeper:  app.feegrantKeeper,
 			SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
@@ -587,9 +612,11 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	return app
 }
 
+// Name returns the name of the App
+func (app *ShentuApp) Name() string { return app.BaseApp.Name() }
+
 // BeginBlocker processes application updates at the beginning of each block.
 func (app *ShentuApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	BeginBlockForks(ctx, app)
 	return app.mm.BeginBlock(ctx, req)
 }
 
@@ -661,6 +688,32 @@ func (app *ShentuApp) SimulationManager() *module.SimulationManager {
 	return app.sm
 }
 
+// GetKey returns the KVStoreKey for the provided store key.
+//
+// NOTE: This is solely to be used for testing purposes.
+func (app *ShentuApp) GetKey(storeKey string) *sdk.KVStoreKey {
+	return app.keys[storeKey]
+}
+
+// GetTKey returns the TransientStoreKey for the provided store key.
+//
+// NOTE: This is solely to be used for testing purposes.
+func (app *ShentuApp) GetTKey(storeKey string) *sdk.TransientStoreKey {
+	return app.tkeys[storeKey]
+}
+
+// GetMemKey returns the MemStoreKey for the provided mem key.
+//
+// NOTE: This is solely used for testing purposes.
+func (app *ShentuApp) GetMemKey(storeKey string) *sdk.MemoryStoreKey {
+	return app.memKeys[storeKey]
+}
+
+// GetTxConfig is used solely for testing purposes.
+func (app *ShentuApp) GetTxConfig() client.TxConfig {
+	return MakeEncodingConfig().TxConfig
+}
+
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
 func (app *ShentuApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
@@ -715,6 +768,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(distrtypes.ModuleName)
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(sdkgovtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
+	paramsKeeper.Subspace(crisistypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(oracletypes.ModuleName).WithKeyTable(oracletypes.ParamKeyTable())
