@@ -48,7 +48,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 ### Tests
-* (x/shield) [\#44](https://github.com/ShentuChain/shentu-private/pull/44) CLI Tests for Shield
+* (x/shield) [\#58](https://github.com/ShentuChain/shentu-private/pull/44) CLI Tests for Shield
 
 ### Bug Fixes
 
