@@ -40,9 +40,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Client Breaking Changes
 
 ### API Breaking Changes
-* (app) [\#59](https://github.com/ShentuChain/shentu-private/pull/59) Merge simapp with app
 
 ### State Machine Breaking Changes
+* (app) [\#59](https://github.com/ShentuChain/shentu-private/pull/59) Merge simapp with app
 
 ### Features
 
