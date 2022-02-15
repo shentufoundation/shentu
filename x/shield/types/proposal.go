@@ -63,7 +63,7 @@ func (scp ShieldClaimProposal) ValidateBasic() error {
 	if proposalID.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
 	}
-	poolID, err := sdk.AccAddressFromBech32(scp.PoolID)
+	poolID, err := sdk.AccAddressFromBech32(scp.poolID)
 	if err != nil {
 		panic(err)
 	}
