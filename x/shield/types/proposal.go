@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
@@ -56,20 +57,6 @@ func (scp ShieldClaimProposal) ProposalType() string {
 
 // ValidateBasic runs basic stateless validity checks.
 func (scp ShieldClaimProposal) ValidateBasic() error {
-	proposalID, err := sdk.AccAddressFromBech32(scp.ProposalId)
-	if err != nil {
-		panic(err)
-	}
-	if proposalID.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
-	}
-	poolID, err := sdk.AccAddressFromBech32(scp.poolID)
-	if err != nil {
-		panic(err)
-	}
-	if poolID.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "<empty>")
-	}
 	proposerAddr, err := sdk.AccAddressFromBech32(scp.Proposer)
 	if err != nil {
 		panic(err)
