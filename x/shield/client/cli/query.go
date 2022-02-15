@@ -37,7 +37,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdClaimParams(),
 		GetCmdStatus(),
 		GetCmdStaking(),
-		GetCmdDonationPool(),
+		GetCmdReserve(),
 	)
 
 	return shieldQueryCmd
@@ -348,10 +348,10 @@ func GetCmdStaking() *cobra.Command {
 	return cmd
 }
 
-// GetCmdDonationPool returns the command for querying the donation pool.
-func GetCmdDonationPool() *cobra.Command {
+// GetCmdReserve returns the command for querying the reserve.
+func GetCmdReserve() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "donation-pool",
+		Use:   "reserve",
 		Short: "query donation amount to Shield Donation Pool",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -360,11 +360,11 @@ func GetCmdDonationPool() *cobra.Command {
 				return err
 			}
 			queryClient := types.NewQueryClient(cliCtx)
-			res, err := queryClient.Donations(cmd.Context(), &types.QueryDonationsRequest{})
+			res, err := queryClient.Reserve(cmd.Context(), &types.QueryReserveRequest{})
 			if err != nil {
 				return err
 			}
-			return cliCtx.PrintProto(&res.Amount)
+			return cliCtx.PrintProto(&res.Reserve)
 		},
 	}
 

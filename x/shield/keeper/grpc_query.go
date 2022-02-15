@@ -140,11 +140,11 @@ func (q Keeper) Purchase(c context.Context, req *types.QueryPurchaseRequest) (*t
 	return &types.QueryPurchaseResponse{Purchase: shieldStaking}, nil
 }
 
-// Donations queries all shield donation pool amount.
-func (q Keeper) Donations(c context.Context, req *types.QueryDonationsRequest) (*types.QueryDonationsResponse, error) {
+// Reserve queries all shield reserve amount.
+func (q Keeper) Reserve(c context.Context, req *types.QueryReserveRequest) (*types.QueryReserveResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-	return &types.QueryDonationsResponse{Amount: q.GetDonationPool(ctx)}, nil
+	return &types.QueryReserveResponse{Reserve: q.GetReserve(ctx)}, nil
 }
