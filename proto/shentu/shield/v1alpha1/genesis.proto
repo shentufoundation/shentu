@@ -45,6 +45,7 @@ message PoolParams {
     string pool_shield_limit = 4 [ (gogoproto.moretags) = "yaml:\"pool_shield_limit\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
     repeated cosmos.base.v1beta1.Coin min_shield_purchase = 5 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
     google.protobuf.Duration cooldown_period = 6 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"cooldown_period\"" ];
+    string withdraw_fees_rate = 7 [ (gogoproto.moretags) = "yaml:\"withdraw_fees_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }
 
 // ClaimProposalParams defines the parameters for the shield claim proposals.
