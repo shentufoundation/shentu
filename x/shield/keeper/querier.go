@@ -40,10 +40,6 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return queryGlobalState(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryStakedForShield:
 			return queryPurchase(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryReimbursement:
-			return queryReimbursement(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryReimbursements:
-			return queryReimbursements(ctx, path[1:], k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
@@ -232,7 +228,6 @@ func queryGlobalState(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc
 		k.GetTotalShield(ctx),
 		k.GetTotalWithdrawing(ctx),
 		k.GetServiceFees(ctx),
-		k.GetRemainingServiceFees(ctx),
 		k.GetGlobalStakingPool(ctx),
 	)
 
@@ -263,40 +258,6 @@ func queryPurchase(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *c
 	}
 
 	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, purchaseList)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-// queryReimbursement queries a reimbursement by proposal ID.
-func queryReimbursement(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 1); err != nil {
-		return nil, err
-	}
-
-	proposalID, err := strconv.ParseUint(path[0], 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	pool, err := k.GetReimbursement(ctx, proposalID)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, pool)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return res, nil
-}
-
-// queryReimbursements returns information about all the reimbursements.
-func queryReimbursements(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	if err := validatePathLength(path, 0); err != nil {
-		return nil, err
-	}
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, k.GetAllProposalIDReimbursementPairs(ctx))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

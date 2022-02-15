@@ -15,19 +15,26 @@ message Pool {
 
     uint64 id = 1 [ (gogoproto.moretags) = "yaml:\"id\"" ];
     string description = 2 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string sponsor = 3 [ (gogoproto.moretags) = "yaml:\"sponsor\"" ];
-    string sponsor_addr = 4 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
-    bool active = 5 [ (gogoproto.moretags) = "yaml:\"active\"" ];
-    string shield = 6 [ (gogoproto.moretags) = "yaml:\"shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    string shield_rate = 7 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    string sponsor_addr = 3 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
+    bool active = 4 [ (gogoproto.moretags) = "yaml:\"active\"" ];
+    string shield = 5 [ (gogoproto.moretags) = "yaml:\"shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    string shield_rate = 6 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }
 
-// ServiceFees is a wrapper for DecCoins object.
-message ServiceFees {
+// DonationPool defines Shield Donation Pool.
+message DonationPool {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    repeated cosmos.base.v1beta1.DecCoin service_fees = 1 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"service_fees\"", (gogoproto.nullable) = false ];
+    string amount = 1 [ (gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+}
+
+// ServiceFees is a wrapper for DecCoins object.
+message Fees {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    repeated cosmos.base.v1beta1.DecCoin amount = 1 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false ];
 }
 
 // Provider tracks total delegation, total collateral, and rewards of a provider.
@@ -79,6 +86,13 @@ message Purchase {
     string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     google.protobuf.Timestamp start_time = 5 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
     string shield = 6 [ (gogoproto.moretags) = "yaml:\"shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    repeated RecoveringEntry recovering_entries = 7 [(gogoproto.nullable) = false];
+    bool locked = 8 [ (gogoproto.moretags) = "yaml:\"locked\"" ];
+}
+
+message RecoveringEntry {
+    google.protobuf.Timestamp recover_time = 1 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+    repeated cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
 }
 
 message ShieldClaimProposal {
@@ -93,4 +107,12 @@ message ShieldClaimProposal {
     string evidence = 5 [ (gogoproto.moretags) = "yaml:\"evidence\"" ];
     string description = 6 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     string proposer = 7 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
+}
+
+message PendingPayout {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    uint64 proposal_id = 1 [ (gogoproto.moretags) = "yaml:\"proposal_id\"" ];
+    string amount = 2 [ (gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 }

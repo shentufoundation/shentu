@@ -15,6 +15,7 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []abci.ValidatorUpdate {
 	k.SetPoolParams(ctx, data.PoolParams)
 	k.SetClaimProposalParams(ctx, data.ClaimProposalParams)
+	k.SetBlockRewardParams(ctx, data.BlockRewardParams)
 
 	adminAddr := sdk.AccAddress{}
 	var err error
@@ -30,19 +31,16 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 	k.SetTotalWithdrawing(ctx, data.TotalWithdrawing)
 	k.SetTotalShield(ctx, data.TotalShield)
 	k.SetTotalClaimed(ctx, data.TotalClaimed)
-	k.SetServiceFees(ctx, data.ServiceFees)
-	k.SetRemainingServiceFees(ctx, data.RemainingServiceFees)
+	k.SetServiceFees(ctx, data.Fees)
 	k.SetGlobalStakingPool(ctx, data.GlobalStakingPool)
 	for _, pool := range data.Pools {
 		k.SetPool(ctx, pool)
 	}
 	k.SetNextPoolID(ctx, data.NextPoolId)
 	k.SetNextPurchaseID(ctx, data.NextPurchaseId)
-
 	for _, purchase := range data.Purchases {
 		k.SetPurchase(ctx, purchase)
 	}
-
 	for _, provider := range data.Providers {
 		providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
 		if err != nil {
@@ -53,9 +51,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 	for _, withdraw := range data.Withdraws {
 		k.InsertWithdrawQueue(ctx, withdraw)
 	}
-	for _, pRPair := range data.ProposalIDReimbursementPairs {
-		k.SetReimbursement(ctx, pRPair.ProposalId, pRPair.Reimbursement)
+	k.SetDonationPool(ctx, data.DonationPool)
+	for _, payout := range data.PendingPayouts {
+		k.SetPendingPayout(ctx, payout)
 	}
+
 	return []abci.ValidatorUpdate{}
 }
 
@@ -70,7 +70,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	totalShield := k.GetTotalShield(ctx)
 	totalClaimed := k.GetTotalClaimed(ctx)
 	serviceFees := k.GetServiceFees(ctx)
-	remainingServiceFees := k.GetRemainingServiceFees(ctx)
 	pools := k.GetAllPools(ctx)
 	nextPoolID := k.GetNextPoolID(ctx)
 	nextPurchaseID := k.GetNextPurchaseID(ctx)
@@ -78,9 +77,11 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	withdraws := k.GetAllWithdraws(ctx)
 	globalStakingPool := k.GetGlobalStakingPool(ctx)
 	stakingPurchases := k.GetAllPurchase(ctx)
-	reimbursements := k.GetAllProposalIDReimbursementPairs(ctx)
-
+	donationPool := k.GetDonationPool(ctx)
+	pendingPayouts := k.GetAllPendingPayouts(ctx)
+	blockRewardParams := k.GetBlockRewardParams(ctx)
 	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams,
-		totalCollateral, totalWithdrawing, totalShield, totalClaimed, serviceFees, remainingServiceFees, pools,
-		providers, withdraws, globalStakingPool, stakingPurchases, reimbursements)
+		totalCollateral, totalWithdrawing, totalShield, totalClaimed, serviceFees, pools,
+		providers, withdraws, globalStakingPool, stakingPurchases, donationPool, pendingPayouts,
+		blockRewardParams)
 }

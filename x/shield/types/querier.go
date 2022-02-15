@@ -25,22 +25,20 @@ const (
 )
 
 type QueryResStatus struct {
-	TotalCollateral         sdk.Int       `json:"total_collateral" yaml:"total_collateral"`
-	TotalShield             sdk.Int       `json:"total_shield" yaml:"total_shield"`
-	TotalWithdrawing        sdk.Int       `json:"total_withdrawing" yaml:"total_withdrawing"`
-	CurrentServiceFees      sdk.DecCoins `json:"current_service_fees" yaml:"current_service_fees"`
-	RemainingServiceFees    sdk.DecCoins `json:"remaining_service_fees" yaml:"remaining_service_fees"`
-	GlobalShieldStakingPool sdk.Int       `json:"global_shield_staking_pool" yaml:"global_shield_staking_pool"`
+	TotalCollateral         sdk.Int      `json:"total_collateral" yaml:"total_collateral"`
+	TotalShield             sdk.Int      `json:"total_shield" yaml:"total_shield"`
+	TotalWithdrawing        sdk.Int      `json:"total_withdrawing" yaml:"total_withdrawing"`
+	ServiceFees             sdk.DecCoins `json:"service_fees" yaml:"service_fees"`
+	GlobalShieldStakingPool sdk.Int      `json:"global_shield_staking_pool" yaml:"global_shield_staking_pool"`
 }
 
-func NewQueryResStatus(totalCollateral, totalShield, totalWithdrawing sdk.Int, currentServiceFees, remainingServiceFees sdk.DecCoins,
+func NewQueryResStatus(totalCollateral, totalShield, totalWithdrawing sdk.Int, remainingServiceFees sdk.DecCoins,
 	globalStakingPool sdk.Int) QueryResStatus {
 	return QueryResStatus{
 		TotalCollateral:         totalCollateral,
 		TotalShield:             totalShield,
 		TotalWithdrawing:        totalWithdrawing,
-		CurrentServiceFees:      currentServiceFees,
-		RemainingServiceFees:    remainingServiceFees,
+		ServiceFees:             remainingServiceFees,
 		GlobalShieldStakingPool: globalStakingPool,
 	}
 }

@@ -41,13 +41,13 @@ func (k Keeper) SendToCommunityPool(ctx sdk.Context, amount sdk.Coins) error {
 	return k.dk.FundCommunityPool(ctx, amount, mintAddress)
 }
 
-// SendToShieldRewards sends coins to the shield rewards using FundShieldBlockRewards.
+// SendToShieldRewards sends coins to the shield rewards using FundShieldFees.
 func (k Keeper) SendToShieldRewards(ctx sdk.Context, amount sdk.Coins) error {
 	if amount.AmountOf(k.stakingKeeper.BondDenom(ctx)).Equal(sdk.ZeroInt()) {
 		return nil
 	}
 	mintAddress := k.accountKeeper.GetModuleAddress(minttypes.ModuleName)
-	return k.shieldKeeper.FundShieldBlockRewards(ctx, amount, mintAddress)
+	return k.shieldKeeper.FundShieldFees(ctx, amount, mintAddress)
 }
 
 // GetCommunityPoolRatio returns the current ratio of the community pool compared to the total supply.
@@ -63,15 +63,9 @@ func (k Keeper) GetCommunityPoolRatio(ctx sdk.Context) sdk.Dec {
 	return sdk.NewDec(0)
 }
 
-// GetShieldStakeForShieldPoolRatio returns the current ratio of
-// shield staking pool compared to the total supply.
-func (k Keeper) GetShieldStakeForShieldPoolRatio(ctx sdk.Context) sdk.Dec {
-	pool := k.shieldKeeper.GetGlobalStakingPool(ctx)
-	totalBondedTokensDec := k.StakingTokenSupply(ctx).ToDec()
-	if totalBondedTokensDec.IsZero() {
-		return sdk.ZeroDec()
-	}
-	return pool.ToDec().Quo(totalBondedTokensDec)
+// GetShieldBlockRewardRatio returns the current ratio of shield block reward.
+func (k Keeper) GetShieldBlockRewardRatio(ctx sdk.Context) sdk.Dec {
+	return k.shieldKeeper.GetShieldBlockRewardRatio(ctx)
 }
 
 // GetPoolMint returns bond denom coin whose amount is the given coin

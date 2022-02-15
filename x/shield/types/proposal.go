@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -118,19 +117,10 @@ func NewUnbondingDelegation(delAddr, valAddr string, entry stakingTypes.Unbondin
 	}
 }
 
-// NewReimbursement returns a new Reimbursement instance.
-func NewReimbursement(amount sdk.Coins, beneficiary sdk.AccAddress, payoutTime time.Time) Reimbursement {
-	return Reimbursement{
-		Amount:      amount,
-		Beneficiary: beneficiary.String(),
-		PayoutTime:  payoutTime,
-	}
-}
-
-// NewProposalIDReimbursementPair returns a new ProposalIDReimbursementPair instance.
-func NewProposalIDReimbursementPair(proposalID uint64, reimbursement Reimbursement) ProposalIDReimbursementPair {
-	return ProposalIDReimbursementPair{
-		ProposalId:    proposalID,
-		Reimbursement: reimbursement,
+// NewPendingPayout returns a new PendingPayout instance.
+func NewPendingPayout(proposalID uint64, amount sdk.Int) PendingPayout {
+	return PendingPayout{
+		ProposalId: proposalID,
+		Amount:     amount,
 	}
 }

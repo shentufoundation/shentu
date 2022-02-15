@@ -48,6 +48,10 @@ const (
 	errPurchaseTooSmall
 	errNotEnoughStaked
 	errBeforeCooldownEnd
+	errDonationBadDenom
+	errPendingPayoutExists
+	errPendingPayoutNotFound
+	errPurchaseLocked
 )
 
 var (
@@ -94,4 +98,8 @@ var (
 	ErrPurchaseTooSmall           = sdkerrors.Register(ModuleName, errPurchaseTooSmall, "purchase amount is too small")
 	ErrNotEnoughStaked            = sdkerrors.Register(ModuleName, errNotEnoughStaked, "not enough unlocked staking to be withdrawn")
 	ErrBeforeCooldownEnd          = sdkerrors.Register(ModuleName, errBeforeCooldownEnd, "cooldown period is not over for the purchase")
+	ErrDonationBadDenom           = sdkerrors.Register(ModuleName, errDonationBadDenom, "invalid coin denomination for donation")
+	ErrPendingPayoutExists        = sdkerrors.Register(ModuleName, errPendingPayoutExists, "there is a pending payout corresponding to this reimbursement")
+	ErrPendingPayoutNotFound      = sdkerrors.Register(ModuleName, errPendingPayoutNotFound, "pending payout identified by the given proposal ID was not found")
+	ErrPurchaseLocked             = sdkerrors.Register(ModuleName, errPurchaseLocked, "purchase is locked due to an ongoing claim proposal")
 )

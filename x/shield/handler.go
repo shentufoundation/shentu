@@ -27,14 +27,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.UpdatePool(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgPausePool:
-			res, err := msgServer.PausePool(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *types.MsgResumePool:
-			res, err := msgServer.ResumePool(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
 		case *types.MsgWithdrawRewards:
 			res, err := msgServer.WithdrawRewards(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
@@ -59,8 +51,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.Unstake(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgWithdrawReimbursement:
-			res, err := msgServer.WithdrawReimbursement(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgDonate:
+			res, err := msgServer.Donate(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:
@@ -85,7 +77,7 @@ func handleShieldClaimProposal(ctx sdk.Context, k keeper.Keeper, p *types.Shield
 	if err != nil {
 		panic(err)
 	}
-	if err := k.CreateReimbursement(ctx, p.ProposalId, p.Loss, proposerAddr); err != nil {
+	if err := k.CreateReimbursement(ctx, p, proposerAddr); err != nil {
 		return err
 	}
 

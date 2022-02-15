@@ -19,10 +19,9 @@ import (
 )
 
 var (
-	flagDeposit       = "deposit"
-	flagShield        = "shield"
-	flagDescription   = "description"
-	flagShieldRate    = "shield-rate"
+	flagDescription = "description"
+	flagShieldRate  = "shield-rate"
+	flagActive      = "active"
 )
 
 // NewTxCmd returns the transaction commands for this module.
@@ -38,16 +37,14 @@ func NewTxCmd() *cobra.Command {
 	shieldTxCmd.AddCommand(
 		GetCmdCreatePool(),
 		GetCmdUpdatePool(),
-		GetCmdPausePool(),
-		GetCmdResumePool(),
 		GetCmdDepositCollateral(),
 		GetCmdWithdrawCollateral(),
 		GetCmdWithdrawRewards(),
 		GetCmdWithdrawForeignRewards(),
 		GetCmdPurchaseShield(),
-		GetCmdWithdrawReimbursement(),
 		GetCmdUpdateSponsor(),
 		GetCmdUnstake(),
+		GetCmdDoante(),
 	)
 
 	return shieldTxCmd
@@ -127,7 +124,7 @@ func GetCmdCreatePool() *cobra.Command {
 			fmt.Sprintf(`Create a Shield pool. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --deposit <ctk deposit> --shield-rate <shield rate>
+$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-rate <shield rate>
 `,
 				version.AppName,
 			),
@@ -141,19 +138,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --deposit
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			shield, err := sdk.ParseCoinsNormalized(args[0])
-			if err != nil {
-				return err
-			}
-
-			sponsor := args[1]
-
 			sponsorAddr, err := sdk.AccAddressFromBech32(args[2])
-			if err != nil {
-				return err
-			}
-
-			deposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagDeposit))
 			if err != nil {
 				return err
 			}
@@ -165,7 +150,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --deposit
 				return err
 			}
 
-			msg := types.NewMsgCreatePool(fromAddr, shield, deposit, sponsor, sponsorAddr, description, shieldRate)
+			msg := types.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -175,7 +160,6 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --deposit
 	}
 
 	cmd.Flags().String(flagDescription, "", "description for the pool")
-	cmd.Flags().String(flagDeposit, "", "Initial deposit amount")
 	cmd.Flags().String(flagShieldRate, "", "Shield Rate")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
@@ -210,16 +194,6 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				return err
 			}
 
-			deposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagDeposit))
-			if err != nil {
-				return err
-			}
-
-			shield, err := sdk.ParseCoinsNormalized(viper.GetString(flagShield))
-			if err != nil {
-				return err
-			}
-
 			description := viper.GetString(flagDescription)
 
 			var shieldRate sdk.Dec
@@ -229,8 +203,12 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 					return err
 				}
 			}
+			active, err := cmd.Flags().GetBool(flagActive)
+			if err != nil {
+				panic(err)
+			}
 
-			msg := types.NewMsgUpdatePool(fromAddr, shield, deposit, id, description, shieldRate)
+			msg := types.NewMsgUpdatePool(fromAddr, id, description, active, shieldRate)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -239,85 +217,11 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 		},
 	}
 
-	cmd.Flags().String(flagShield, "", "CTK Shield amount")
-	cmd.Flags().String(flagDeposit, "", "Additional deposit amount")
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagShieldRate, "", "Shield Rate")
+	cmd.Flags().Bool(flagActive, true, "new pool status. default true.")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
-}
-
-// GetCmdPausePool implements the command for pausing a pool.
-func GetCmdPausePool() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "pause-pool [pool id]",
-		Args:  cobra.ExactArgs(1),
-		Short: "pause a Shield pool to disallow further Shield purchase.",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Pause a Shield pool to prevent new Shield purchases. Can only be executed from the Shield admin address.
-
-Example:
-$ %s tx shield pause-pool <pool id>
-`,
-				version.AppName,
-			),
-		),
-		RunE: pauseOrResume(false),
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdResumePool implements the command for resuming a pool.
-func GetCmdResumePool() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "resume-pool [pool id]",
-		Args:  cobra.ExactArgs(1),
-		Short: "resume a Shield pool to allow Shield purchase.",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Resume a Shield pool to reactivate Shield purchase. Can only be executed from the Shield admin address.
-
-Example:
-$ %s tx shield resume-pool <pool id>
-`,
-				version.AppName,
-			),
-		),
-		RunE: pauseOrResume(true),
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
-
-func pauseOrResume(active bool) func(cmd *cobra.Command, args []string) error {
-	return func(cmd *cobra.Command, args []string) error {
-		cliCtx, err := client.GetClientTxContext(cmd)
-		if err != nil {
-			return err
-		}
-		txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
-
-		fromAddr := cliCtx.GetFromAddress()
-
-		id, err := strconv.ParseUint(args[0], 10, 64)
-		if err != nil {
-			return err
-		}
-
-		var msg sdk.Msg
-		if active {
-			msg = types.NewMsgResumePool(fromAddr, id)
-		} else {
-			msg = types.NewMsgPausePool(fromAddr, id)
-		}
-		if err := msg.ValidateBasic(); err != nil {
-			return err
-		}
-
-		return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
-	}
 }
 
 // GetCmdDepositCollateral implements command for community member to
@@ -490,47 +394,6 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 	return cmd
 }
 
-// GetCmdWithdrawReimbursement the command for withdrawing reimbursement.
-func GetCmdWithdrawReimbursement() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "withdraw-reimbursement [proposal id]",
-		Args:  cobra.ExactArgs(1),
-		Short: "withdraw reimbursement",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Withdraw reimbursement by proposal id.
-
-Example:
-$ %s tx shield withdraw-reimbursement <proposal id>
-`,
-				version.AppName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
-
-			fromAddr := cliCtx.GetFromAddress()
-			proposalID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgWithdrawReimbursement(proposalID, fromAddr)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
-
 // GetCmdUnstake implements the command for purchasing Shield.
 func GetCmdUnstake() *cobra.Command {
 	cmd := &cobra.Command{
@@ -613,6 +476,39 @@ $ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address> --fr
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdDoante implements donating to Shield Donation Pool.
+func GetCmdDoante() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "donate [amount]",
+		Short: "donate to Shield Donation Pool",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+
+			fromAddr := cliCtx.GetFromAddress()
+
+			donation, err := sdk.ParseCoinsNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDonate(fromAddr, donation)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}

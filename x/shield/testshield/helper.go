@@ -42,10 +42,8 @@ func (sh *Helper) WithdrawCollateral(addr sdk.AccAddress, amount int64, ok bool)
 	sh.Handle(msg, ok)
 }
 
-func (sh *Helper) CreatePool(addr, sponsorAddr sdk.AccAddress, nativeDeposit, shield int64, sponsor, description string, shieldRate sdk.Dec) {
-	shieldCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, shield))
-	depositCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, nativeDeposit))
-	msg := types.NewMsgCreatePool(addr, shieldCoins, depositCoins, sponsor, sponsorAddr, description, shieldRate)
+func (sh *Helper) CreatePool(addr, sponsorAddr sdk.AccAddress, description string, shieldRate sdk.Dec) {
+	msg := types.NewMsgCreatePool(addr, sponsorAddr, description, shieldRate)
 	sh.Handle(msg, true)
 }
 
@@ -59,11 +57,6 @@ func (sh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolI
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, loss))
 	proposal := types.NewShieldClaimProposal(poolID, lossCoins, "test_claim_evidence", "test_claim_description", proposer)
 	sh.HandleProposal(proposal, ok)
-}
-
-func (sh *Helper) WithdrawReimbursement(purchaser sdk.AccAddress, proposalID uint64, ok bool) {
-	msg := types.NewMsgWithdrawReimbursement(proposalID, purchaser)
-	sh.Handle(msg, ok)
 }
 
 // TurnBlock updates context and calls endblocker.

@@ -48,12 +48,8 @@ service Query {
     option (google.api.http).get = "/shentu/shield/v1alpha1/purchase/{pool_id}/{purchaser}";
   }
 
-  rpc Reimbursement(QueryReimbursementRequest) returns (QueryReimbursementResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/proposal/{proposal_id}/reimbursement";
-  }
-
-  rpc Reimbursements(QueryReimbursementsRequest) returns (QueryReimbursementsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/reimbursements";
+  rpc Donations(QueryDonationsRequest) returns (QueryDonationsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/donations";
   }
 }
 
@@ -121,9 +117,8 @@ message QueryShieldStatusResponse {
   string total_collateral = 1 [ (gogoproto.moretags) = "yaml:\"total_collateral\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
   string total_shield = 2 [ (gogoproto.moretags) = "yaml:\"total_shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
   string total_withdrawing = 3 [ (gogoproto.moretags) = "yaml:\"total_withdrawing\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-  repeated cosmos.base.v1beta1.DecCoin current_service_fees = 4 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"current_service_fees\"", (gogoproto.nullable) = false ];
-  repeated cosmos.base.v1beta1.DecCoin remaining_service_fees = 5 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"remaining_service_fees\"", (gogoproto.nullable) = false ];
-  string global_shield_staking_pool = 6 [ (gogoproto.moretags) = "yaml:\"global_shield_staking_pool\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+  repeated cosmos.base.v1beta1.DecCoin fees = 4 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"fees\"", (gogoproto.nullable) = false ];
+  string global_shield_staking_pool = 5 [ (gogoproto.moretags) = "yaml:\"global_shield_staking_pool\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 }
 
 
@@ -136,17 +131,9 @@ message QueryPurchaseResponse {
   Purchase purchase = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryReimbursementRequest {
-  uint64 proposal_id = 1;
+message QueryDonationsRequest {
 }
 
-message QueryReimbursementResponse {
-  Reimbursement reimbursement = 1 [ (gogoproto.nullable) = false ];
-}
-
-message QueryReimbursementsRequest {
-}
-
-message QueryReimbursementsResponse {
-  repeated ProposalIDReimbursementPair pairs = 1 [ (gogoproto.nullable) = false ];
+message QueryDonationsResponse {
+  DonationPool amount = 1 [ (gogoproto.nullable) = false ];
 }
