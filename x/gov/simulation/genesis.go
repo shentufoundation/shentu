@@ -17,7 +17,7 @@ import (
 func RandomizedGenState(simState *module.SimulationState) {
 	r := simState.Rand
 	gs := types.GenesisState{}
-	gs.StartingProposalId = uint64(simState.Rand.Intn(100) + 1)
+	gs.StartingProposalId = uint64(simState.Rand.Intn(100)) + 1
 
 	gs.DepositParams = GenerateADepositParams(r)
 	gs.VotingParams = GenerateAVotingParams(r)
