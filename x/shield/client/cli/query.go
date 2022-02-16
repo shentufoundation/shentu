@@ -330,24 +330,6 @@ func GetCmdStatus() *cobra.Command {
 	return cmd
 }
 
-// GetCmdStaking returns the command for querying staked-for-shield amounts
-// corresponding to a given pool-purchaser pair.
-func GetCmdStaking() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "staked-for-shield [pool_ID] [purchaser_address]",
-		Short: "get staked CTK for shield corresponding to a given pool-purchaser pair",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: implement this
-
-			return nil
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-	return cmd
-}
-
 // GetCmdReserve returns the command for querying the reserve.
 func GetCmdReserve() *cobra.Command {
 	cmd := &cobra.Command{
