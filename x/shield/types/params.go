@@ -18,6 +18,7 @@ var (
 	DefaultWithdrawPeriod    = time.Hour * 24 * 21                                                   // 21 days
 	DefaultPoolShieldLimit   = sdk.NewDecWithPrec(50, 2)                                             // 50%
 	DefaultMinShieldPurchase = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(50000000))) // 50 CTK
+	DefaultCooldownPeriod    = time.Hour * 24 * 7
 
 	// default values for Shield claim proposal's parameters
 	DefaultClaimPeriod              = time.Hour * 24 * 21                                                    // 21 days
@@ -54,19 +55,20 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewPoolParams creates a new PoolParams object.
-func NewPoolParams(protectionPeriod, withdrawPeriod time.Duration, shieldFeesRate sdk.Dec, poolShieldLimit sdk.Dec, minShieldPurchase sdk.Coins) PoolParams {
+func NewPoolParams(protectionPeriod, withdrawPeriod time.Duration, shieldFeesRate sdk.Dec, poolShieldLimit sdk.Dec, minShieldPurchase sdk.Coins, cooldownPeriod time.Duration) PoolParams {
 	return PoolParams{
 		ProtectionPeriod:  protectionPeriod,
 		ShieldFeesRate:    shieldFeesRate,
 		WithdrawPeriod:    withdrawPeriod,
 		PoolShieldLimit:   poolShieldLimit,
 		MinShieldPurchase: minShieldPurchase,
+		CooldownPeriod:    cooldownPeriod,
 	}
 }
 
 // DefaultPoolParams returns a default PoolParams instance.
 func DefaultPoolParams() PoolParams {
-	return NewPoolParams(DefaultProtectionPeriod, DefaultWithdrawPeriod, DefaultShieldFeesRate, DefaultPoolShieldLimit, DefaultMinShieldPurchase)
+	return NewPoolParams(DefaultProtectionPeriod, DefaultWithdrawPeriod, DefaultShieldFeesRate, DefaultPoolShieldLimit, DefaultMinShieldPurchase, DefaultCooldownPeriod)
 }
 
 func validatePoolParams(i interface{}) error {
