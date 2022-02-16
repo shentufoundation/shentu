@@ -36,7 +36,6 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdPoolParams(),
 		GetCmdClaimParams(),
 		GetCmdStatus(),
-		GetCmdStaking(),
 		GetCmdReserve(),
 	)
 
