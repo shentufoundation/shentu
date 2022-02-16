@@ -57,6 +57,14 @@ func (scp ShieldClaimProposal) ProposalType() string {
 
 // ValidateBasic runs basic stateless validity checks.
 func (scp ShieldClaimProposal) ValidateBasic() error {
+	proposalID := scp.ProposalId
+	if proposalID <= 0 {
+		return fmt.Errorf("proposal id is invalid")
+	}
+	poolID := scp.PoolId
+	if poolID <= 0 {
+		return fmt.Errorf("pool id is invalid")
+	}
 	proposerAddr, err := sdk.AccAddressFromBech32(scp.Proposer)
 	if err != nil {
 		panic(err)
