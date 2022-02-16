@@ -8,33 +8,33 @@ import (
 
 // Donate donates the given amount to Shield Donation Pool.
 func (k Keeper) Donate(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) error {
-	donationPool := k.GetDonationPool(ctx)
+	reserve := k.GetReserve(ctx)
 
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), amount))); err != nil {
 		return err
 	}
 
-	donationPool.Amount = donationPool.Amount.Add(amount)
-	k.SetDonationPool(ctx, donationPool)
+	reserve.Amount = reserve.Amount.Add(amount)
+	k.SetReserve(ctx, reserve)
 
 	return nil
 }
 
-// SetDonationPool saves Shield Donation Pool.
-func (k Keeper) SetDonationPool(ctx sdk.Context, donationPool types.DonationPool) {
+// SetReserve saves Shield Donation Pool.
+func (k Keeper) SetReserve(ctx sdk.Context, reserve types.Reserve) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&donationPool)
-	store.Set(types.GetDonationPoolKey(), bz)
+	bz := k.cdc.MustMarshalLengthPrefixed(&reserve)
+	store.Set(types.GetReserveKey(), bz)
 }
 
-// GetDonationPool retrieves Shield Donation Pool.
-func (k Keeper) GetDonationPool(ctx sdk.Context) (donationPool types.DonationPool) {
+// GetReserve retrieves Shield Donation Pool.
+func (k Keeper) GetReserve(ctx sdk.Context) (reserve types.Reserve) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetDonationPoolKey())
+	bz := store.Get(types.GetReserveKey())
 	if bz == nil {
 		panic("failed to retrieve Shield Donation Pool")
 	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &donationPool)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &reserve)
 	return
 }
 
@@ -120,31 +120,31 @@ func (k Keeper) ProcessPendingPayout(ctx sdk.Context, pp types.PendingPayout, am
 	return nil
 }
 
-// MakePayouts makes payouts from donation pool to pending payouts.
+// MakePayouts makes payouts from reserve to pending payouts.
 // It processes as many pending payouts as possible.
 // TODO: Order matters??
 func (k Keeper) MakePayouts(ctx sdk.Context) {
-	donationPool := k.GetDonationPool(ctx)
+	reserve := k.GetReserve(ctx)
 
 	k.IteratePendingPayouts(ctx, func(payout types.PendingPayout) bool {
-		if donationPool.Amount.IsZero() {
-			if donationPool.Amount.IsNegative() { //testing purpose
-				panic("negative donation pool")
+		if reserve.Amount.IsZero() {
+			if reserve.Amount.IsNegative() { //testing purpose
+				panic("negative reserve balance")
 			}
 			return true
 		}
 
 		var amount sdk.Int
-		if donationPool.Amount.GTE(payout.Amount) {
+		if reserve.Amount.GTE(payout.Amount) {
 			amount = payout.Amount
 		} else {
-			amount = donationPool.Amount
+			amount = reserve.Amount
 		}
 
 		k.ProcessPendingPayout(ctx, payout, amount)
-		donationPool.Amount = donationPool.Amount.Sub(amount)
+		reserve.Amount = reserve.Amount.Sub(amount)
 		return false
 	})
 
-	k.SetDonationPool(ctx, donationPool)
+	k.SetReserve(ctx, reserve)
 }

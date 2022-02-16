@@ -22,9 +22,9 @@ func NewPool(id uint64, description string, sponsorAddress sdk.AccAddress, shiel
 	}
 }
 
-// zero donation pool
-func InitialDonationPool() DonationPool {
-	return DonationPool{
+// InitialReserve initializes a reserve
+func InitialReserve() Reserve {
+	return Reserve{
 		Amount: sdk.NewInt(0),
 	}
 }

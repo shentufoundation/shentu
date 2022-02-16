@@ -13,7 +13,7 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int,
 	serviceFees sdk.DecCoins, pools []Pool, providers []Provider, withdraws []Withdraw,
 	globalStakingPool sdk.Int, stakingPurchases []Purchase,
-	donationPool DonationPool, pendingPayouts []PendingPayout, blockRewardParams BlockRewardParams) GenesisState {
+	reserve Reserve, pendingPayouts []PendingPayout, blockRewardParams BlockRewardParams) GenesisState {
 	return GenesisState{
 		ShieldAdmin:         shieldAdmin.String(),
 		NextPoolId:          nextPoolID,
@@ -30,7 +30,7 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		Withdraws:           withdraws,
 		GlobalStakingPool:   globalStakingPool,
 		Purchases:           stakingPurchases,
-		DonationPool:        donationPool,
+		Reserve:             reserve,
 		PendingPayouts:      pendingPayouts,
 		BlockRewardParams:   blockRewardParams,
 	}
@@ -48,7 +48,7 @@ func DefaultGenesisState() *GenesisState {
 		TotalShield:         sdk.ZeroInt(),
 		TotalClaimed:        sdk.ZeroInt(),
 		Fees:                sdk.NewDecCoins(),
-		DonationPool:        InitialDonationPool(),
+		Reserve:             InitialReserve(),
 		BlockRewardParams:   DefaultBlockRewardParams(),
 	}
 }
@@ -58,8 +58,8 @@ func ValidateGenesis(data GenesisState) error {
 	if data.NextPoolId < 1 {
 		return fmt.Errorf("failed to validate %s genesis state: NextPoolID must be positive ", ModuleName)
 	}
-	if data.DonationPool.Amount.IsNegative() {
-		return fmt.Errorf("donation pool amount is negative %v", data.DonationPool.Amount)
+	if data.Reserve.Amount.IsNegative() {
+		return fmt.Errorf("reserve amount is negative %v", data.Reserve.Amount)
 	}
 	if err := validatePoolParams(data.PoolParams); err != nil {
 		return fmt.Errorf("failed to validate %s pool params: %w", ModuleName, err)
