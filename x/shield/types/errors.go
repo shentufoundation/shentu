@@ -67,7 +67,7 @@ var (
 	ErrInvalidShieldRate          = sdkerrors.Register(ModuleName, errInvalidShieldRate, "invalid Shield Rate")
 	ErrAdminWithdraw              = sdkerrors.Register(ModuleName, errAdminWithdraw, "admin cannot manually withdraw collateral")
 	ErrNoDelegationAmount         = sdkerrors.Register(ModuleName, errNoDelegationAmount, "cannot obtain delegation amount info")
-	ErrInsufficientStaking        = sdkerrors.Register(ModuleName, errInsufficientStaking, "insufficient total delegation amount to deposit the collateral")
+	ErrInsufficientStaking        = sdkerrors.Register(ModuleName, errInsufficientStaking, "insufficient total delegation amount to deposit")
 	ErrPoolAlreadyPaused          = sdkerrors.Register(ModuleName, errPoolAlreadyPaused, "pool is already paused")
 	ErrPoolAlreadyActive          = sdkerrors.Register(ModuleName, errPoolAlreadyActive, "pool is already active")
 	ErrPoolInactive               = sdkerrors.Register(ModuleName, errPoolInactive, "pool is inactive")
