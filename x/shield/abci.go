@@ -19,7 +19,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	// Process completed withdraws.
 	k.DequeueCompletedWithdrawQueue(ctx)
 
-	// Make pending payouts from donation pool.
+	// Resolve pending payouts from the reserve.
 	k.MakePayouts(ctx)
 
 	// Close pools who do not have any shield and shield limits are set to zero.

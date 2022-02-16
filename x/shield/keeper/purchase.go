@@ -224,9 +224,9 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 	fees := sdk.ZeroInt()
 	if sp.StartTime.Add(cd).After(ctx.BlockTime()) {
 		fees = bdAmount.ToDec().Mul(poolParams.WithdrawFeesRate).QuoInt(sdk.NewInt(100)).TruncateInt()
-		donationPool := k.GetDonationPool(ctx)
+		donationPool := k.GetReserve(ctx)
 		donationPool.Amount = donationPool.Amount.Add(fees)
-		k.SetDonationPool(ctx, donationPool)
+		k.SetReserve(ctx, donationPool)
 	}
 
 	pool, found := k.GetPool(ctx, poolID)
