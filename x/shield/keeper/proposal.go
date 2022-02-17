@@ -604,8 +604,7 @@ func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAd
 	return unbondingDelegations
 }
 
-// getActualPayout computes the payout sans the amount to be
-// takens from the donation pool.
+// getActualPayout computes the payouts and the amount to be taken from the reserve.
 func (k Keeper) getActualPayout(ctx sdk.Context, amount sdk.Coins) sdk.Int {
 	bondDenom := k.BondDenom(ctx)
 	totalCollateral := k.GetTotalCollateral(ctx)

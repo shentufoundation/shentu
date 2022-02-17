@@ -367,7 +367,7 @@ func GetCmdStatus() *cobra.Command {
 func GetCmdReserve() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "reserve",
-		Short: "query donation amount to Shield Donation Pool",
+		Short: "query Shield reserve amount",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
