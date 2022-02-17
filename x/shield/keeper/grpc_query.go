@@ -147,3 +147,48 @@ func (q Keeper) Reserve(c context.Context, req *types.QueryReserveRequest) (*typ
 	ctx := sdk.UnwrapSDKContext(c)
 	return &types.QueryReserveResponse{Reserve: q.GetReserve(ctx)}, nil
 }
+
+// PoolPurchases queries for all purchases for a specific pool.
+func (k Keeper) PoolPurchases(c context.Context, req *types.QueryPoolPurchasesRequest) (*types.QueryPurchasesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	res := k.GetPoolPurchases(ctx, req.PoolId)
+	return &types.QueryPurchasesResponse{Purchases: res}, nil
+}
+
+// Purchases queries for all purchases.
+func (k Keeper) Purchases(c context.Context, req *types.QueryAllPurchasesRequest) (*types.QueryPurchasesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	res := k.GetAllPurchase(ctx)
+	return &types.QueryPurchasesResponse{Purchases: res}, nil
+}
+
+// Purchaser queries for information on a purchaser.
+func (k Keeper) Purchaser(c context.Context, req *types.QueryPurchaserRequest) (*types.QueryPurchaserResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	purchaser, err := sdk.AccAddressFromBech32(req.Purchaser)
+	if err != nil {
+		return nil, err
+	}
+	res := k.GetPurchaserPurchases(ctx, purchaser)
+
+	shield := sdk.ZeroInt()
+	deposit := sdk.ZeroInt()
+	for _, p := range res {
+		shield = shield.Add(p.Shield)
+		deposit = deposit.Add(p.Amount)
+	}
+	return &types.QueryPurchaserResponse{
+		Purchases:    res,
+		TotalShield:  shield,
+		TotalDeposit: deposit,
+	}, nil
+}
