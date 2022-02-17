@@ -28,7 +28,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdPool(),
 		GetCmdSponsor(),
 		GetCmdPools(),
-		GetCmdPurchaserPurchases(),
+		GetCmdPurchaser(),
 		GetCmdPoolPurchases(),
 		GetCmdPurchases(),
 		GetCmdProvider(),
@@ -131,16 +131,26 @@ func GetCmdPools() *cobra.Command {
 	return cmd
 }
 
-// GetCmdPurchaserPurchases returns the command for querying
+// GetCmdPurchaser returns the command for querying
 // purchases by a given address.
-func GetCmdPurchaserPurchases() *cobra.Command {
+func GetCmdPurchaser() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "purchases-by [purchaser_address]",
-		Short: "query purchase information of a given account",
+		Use:   "purchaser [purchaser]",
+		Short: "query purchase information of a given account address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: implement this
-			return nil
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+
+			res, err := queryClient.Purchaser(cmd.Context(), &types.QueryPurchaserRequest{Purchaser: args[0]})
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -156,8 +166,23 @@ func GetCmdPoolPurchases() *cobra.Command {
 		Short: "query purchases in a given pool",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: implement this
-			return nil
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+
+			poolID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.PoolPurchases(cmd.Context(), &types.QueryPoolPurchasesRequest{PoolId: poolID})
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -172,9 +197,18 @@ func GetCmdPurchases() *cobra.Command {
 		Short: "query all purchases",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: implement this
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
 
-			return nil
+			res, err := queryClient.Purchases(cmd.Context(), &types.QueryAllPurchasesRequest{})
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintProto(res)
 		},
 	}
 
