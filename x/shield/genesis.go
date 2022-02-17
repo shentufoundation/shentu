@@ -51,7 +51,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 	for _, withdraw := range data.Withdraws {
 		k.InsertWithdrawQueue(ctx, withdraw)
 	}
-	k.SetDonationPool(ctx, data.DonationPool)
+	k.SetReserve(ctx, data.Reserve)
 	for _, payout := range data.PendingPayouts {
 		k.SetPendingPayout(ctx, payout)
 	}
@@ -77,11 +77,11 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	withdraws := k.GetAllWithdraws(ctx)
 	globalStakingPool := k.GetGlobalStakingPool(ctx)
 	stakingPurchases := k.GetAllPurchase(ctx)
-	donationPool := k.GetDonationPool(ctx)
+	reserve := k.GetReserve(ctx)
 	pendingPayouts := k.GetAllPendingPayouts(ctx)
 	blockRewardParams := k.GetBlockRewardParams(ctx)
 	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams,
 		totalCollateral, totalWithdrawing, totalShield, totalClaimed, serviceFees, pools,
-		providers, withdraws, globalStakingPool, stakingPurchases, donationPool, pendingPayouts,
+		providers, withdraws, globalStakingPool, stakingPurchases, reserve, pendingPayouts,
 		blockRewardParams)
 }

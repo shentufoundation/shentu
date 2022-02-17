@@ -48,7 +48,7 @@ service Query {
     option (google.api.http).get = "/shentu/shield/v1alpha1/purchase/{pool_id}/{purchaser}";
   }
 
-  rpc Donations(QueryDonationsRequest) returns (QueryDonationsResponse) {
+  rpc Reserve(QueryReserveRequest) returns (QueryReserveResponse) {
     option (google.api.http).get = "/shentu/shield/v1alpha1/donations";
   }
 }
@@ -130,9 +130,9 @@ message QueryPurchaseResponse {
   Purchase purchase = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryDonationsRequest {
+message QueryReserveRequest {
 }
 
-message QueryDonationsResponse {
-  DonationPool amount = 1 [ (gogoproto.nullable) = false ];
+message QueryReserveResponse {
+  Reserve reserve = 1 [ (gogoproto.nullable) = false ];
 }

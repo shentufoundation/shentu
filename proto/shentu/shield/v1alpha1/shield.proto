@@ -21,8 +21,8 @@ message Pool {
     string shield_rate = 6 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }
 
-// DonationPool defines Shield Donation Pool.
-message DonationPool {
+// Reserve defines Shield Reserve.
+message Reserve {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
