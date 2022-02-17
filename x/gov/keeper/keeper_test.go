@@ -15,11 +15,10 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
-
 	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
 )
 
 var (

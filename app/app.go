@@ -188,31 +188,31 @@ type ShentuApp struct {
 	memKeys map[string]*sdk.MemoryStoreKey
 
 	AccountKeeper    sdkauthkeeper.AccountKeeper
-	authzKeeper      authzkeeper.Keeper
+	AuthzKeeper      authzkeeper.Keeper
 	BankKeeper       bankkeeper.Keeper
-	crisisKeeper     crisiskeeper.Keeper
+	CrisisKeeper     crisiskeeper.Keeper
 	StakingKeeper    stakingkeeper.Keeper
-	slashingKeeper   slashingkeeper.Keeper
+	SlashingKeeper   slashingkeeper.Keeper
 	MintKeeper       mintkeeper.Keeper
-	distrKeeper      distrkeeper.Keeper
-	feegrantKeeper   feegrantkeeper.Keeper
-	paramsKeeper     paramskeeper.Keeper
-	upgradeKeeper    upgradekeeper.Keeper
+	DistrKeeper      distrkeeper.Keeper
+	FeegrantKeeper   feegrantkeeper.Keeper
+	ParamsKeeper     paramskeeper.Keeper
+	UpgradeKeeper    upgradekeeper.Keeper
 	GovKeeper        govkeeper.Keeper
 	CertKeeper       certkeeper.Keeper
-	authKeeper       authkeeper.Keeper
-	evidenceKeeper   evidencekeeper.Keeper
-	ibcKeeper        *ibckeeper.Keeper
-	transferKeeper   ibctransferkeeper.Keeper
-	capabilityKeeper *capabilitykeeper.Keeper
+	AuthKeeper       authkeeper.Keeper
+	EvidenceKeeper   evidencekeeper.Keeper
+	IbcKeeper        *ibckeeper.Keeper
+	TransferKeeper   ibctransferkeeper.Keeper
+	CapabilityKeeper *capabilitykeeper.Keeper
 	CVMKeeper        cvmkeeper.Keeper
 	OracleKeeper     oraclekeeper.Keeper
 	ShieldKeeper     shieldkeeper.Keeper
 
 	// make scoped keepers public for test purposes
-	scopedIBCKeeper      capabilitykeeper.ScopedKeeper
-	scopedTransferKeeper capabilitykeeper.ScopedKeeper
-	scopedIBCMockKeeper  capabilitykeeper.ScopedKeeper
+	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
+	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
+	ScopedIBCMockKeeper  capabilitykeeper.ScopedKeeper
 
 	// module manager
 	mm *module.Manager
@@ -278,18 +278,18 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		memKeys:           memKeys,
 	}
 	// initialize params keeper and subspaces
-	app.paramsKeeper = initParamsKeeper(appCodec, legacyAmino, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
+	app.ParamsKeeper = initParamsKeeper(appCodec, legacyAmino, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
 	// set the BaseApp's parameter store
-	bApp.SetParamStore(app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()))
+	bApp.SetParamStore(app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()))
 
 	// add capability keeper and ScopeToModule for ibc module
-	app.capabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
-	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.ModuleName)
-	scopedTransferKeeper := app.capabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
+	app.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
+	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
+	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
-	scopedIBCMockKeeper := app.capabilityKeeper.ScopeToModule(ibcmock.ModuleName)
+	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
 
 	// initialize keepers
 	app.AccountKeeper = sdkauthkeeper.NewAccountKeeper(
@@ -314,11 +314,11 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		app.BankKeeper,
 		app.GetSubspace(stakingtypes.ModuleName),
 	)
-	app.distrKeeper = distrkeeper.NewKeeper(
+	app.DistrKeeper = distrkeeper.NewKeeper(
 		appCodec, keys[distrtypes.StoreKey], app.GetSubspace(distrtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
 		&stakingKeeper, authtypes.FeeCollectorName, app.ModuleAccountAddrs(),
 	)
-	app.feegrantKeeper = feegrantkeeper.NewKeeper(
+	app.FeegrantKeeper = feegrantkeeper.NewKeeper(
 		appCodec,
 		keys[sdkfeegrant.StoreKey],
 		app.AccountKeeper,
@@ -328,7 +328,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		keys[cvmtypes.StoreKey],
 		app.AccountKeeper,
 		app.BankKeeper,
-		app.distrKeeper,
+		app.DistrKeeper,
 		&app.CertKeeper,
 		&app.StakingKeeper,
 		app.GetSubspace(cvmtypes.ModuleName),
@@ -337,13 +337,13 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		appCodec,
 		keys[oracletypes.StoreKey],
 		app.AccountKeeper,
-		app.distrKeeper,
+		app.DistrKeeper,
 		&app.StakingKeeper,
 		app.BankKeeper,
 		&app.CertKeeper,
 		app.GetSubspace(oracletypes.ModuleName),
 	)
-	app.slashingKeeper = slashingkeeper.NewKeeper(
+	app.SlashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
 		keys[slashingtypes.StoreKey],
 		&stakingKeeper,
@@ -352,25 +352,25 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.CertKeeper = certkeeper.NewKeeper(
 		appCodec,
 		keys[certtypes.StoreKey],
-		app.slashingKeeper,
+		app.SlashingKeeper,
 		stakingKeeper,
 	)
-	app.authKeeper = authkeeper.NewKeeper(
+	app.AuthKeeper = authkeeper.NewKeeper(
 		app.AccountKeeper,
 		app.CertKeeper,
 	)
-	app.authzKeeper = authzkeeper.NewKeeper(
+	app.AuthzKeeper = authzkeeper.NewKeeper(
 		keys[authzkeeper.StoreKey],
 		appCodec,
 		app.MsgServiceRouter(),
 	)
-	app.crisisKeeper = crisiskeeper.NewKeeper(
+	app.CrisisKeeper = crisiskeeper.NewKeeper(
 		app.GetSubspace(crisistypes.ModuleName),
 		invCheckPeriod,
 		app.BankKeeper,
 		authtypes.FeeCollectorName,
 	)
-	app.upgradeKeeper = upgradekeeper.NewKeeper(
+	app.UpgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,
 		keys[upgradetypes.StoreKey],
 		appCodec,
@@ -388,29 +388,29 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	)
 	app.MintKeeper = mintkeeper.NewKeeper(
 		appCodec, keys[sdkminttypes.StoreKey], app.GetSubspace(sdkminttypes.ModuleName), &stakingKeeper,
-		app.AccountKeeper, app.BankKeeper, app.distrKeeper, app.ShieldKeeper, authtypes.FeeCollectorName,
+		app.AccountKeeper, app.BankKeeper, app.DistrKeeper, app.ShieldKeeper, authtypes.FeeCollectorName,
 	)
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference so that it will contain these hooks.
 	app.StakingKeeper.Keeper = *stakingKeeper.Keeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(
-			app.distrKeeper.Hooks(),
-			app.slashingKeeper.Hooks(),
+			app.DistrKeeper.Hooks(),
+			app.SlashingKeeper.Hooks(),
 			app.ShieldKeeper.Hooks(),
 		),
 	)
 
 	// Create IBC Keeper
-	app.ibcKeeper = ibckeeper.NewKeeper(
-		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.upgradeKeeper, scopedIBCKeeper,
+	app.IbcKeeper = ibckeeper.NewKeeper(
+		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)
 
 	govRouter := sdkgovtypes.NewRouter()
 	govRouter.AddRoute(sdkgovtypes.RouterKey, govtypes.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(distrtypes.RouterKey, sdkdistr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
-		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
-		AddRoute(ibchost.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
+		AddRoute(distrtypes.RouterKey, sdkdistr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
+		AddRoute(ibchost.RouterKey, ibcclient.NewClientProposalHandler(app.IbcKeeper.ClientKeeper)).
 		AddRoute(shieldtypes.RouterKey, shield.NewShieldClaimProposalHandler(app.ShieldKeeper)).
 		AddRoute(certtypes.RouterKey, cert.NewCertifierUpdateProposalHandler(app.CertKeeper))
 
@@ -427,29 +427,29 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	)
 
 	// Create Transfer Keepers
-	app.transferKeeper = ibctransferkeeper.NewKeeper(
+	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
-		app.ibcKeeper.ChannelKeeper, &app.ibcKeeper.PortKeeper,
+		app.IbcKeeper.ChannelKeeper, &app.IbcKeeper.PortKeeper,
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
-	transferModule := transfer.NewAppModule(app.transferKeeper)
+	transferModule := transfer.NewAppModule(app.TransferKeeper)
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
-	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.ibcKeeper.PortKeeper)
+	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IbcKeeper.PortKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
 	ibcRouter.AddRoute(ibcmock.ModuleName, mockModule)
-	app.ibcKeeper.SetRouter(ibcRouter)
+	app.IbcKeeper.SetRouter(ibcRouter)
 
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
-		appCodec, keys[evidencetypes.StoreKey], &app.StakingKeeper.Keeper, app.slashingKeeper,
+		appCodec, keys[evidencetypes.StoreKey], &app.StakingKeeper.Keeper, app.SlashingKeeper,
 	)
 	// If evidence needs to be handled for the app, set routes in router here and seal
-	app.evidenceKeeper = *evidenceKeeper
+	app.EvidenceKeeper = *evidenceKeeper
 
 	/****  Module Options ****/
 
@@ -458,24 +458,24 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// later modified must be passed by reference here.
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
-		auth.NewAppModule(appCodec, app.authKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
-		authz.NewAppModule(appCodec, app.authzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
+		auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
+		authz.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
-		capability.NewAppModule(appCodec, *app.capabilityKeeper),
-		crisis.NewAppModule(&app.crisisKeeper, skipGenesisInvariants),
-		distr.NewAppModule(appCodec, app.distrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
-		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.feegrantKeeper, app.interfaceRegistry),
-		slashing.NewAppModule(appCodec, app.slashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
+		crisis.NewAppModule(&app.CrisisKeeper, skipGenesisInvariants),
+		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeegrantKeeper, app.interfaceRegistry),
+		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
-		upgrade.NewAppModule(app.upgradeKeeper),
-		evidence.NewAppModule(app.evidenceKeeper),
+		upgrade.NewAppModule(app.UpgradeKeeper),
+		evidence.NewAppModule(app.EvidenceKeeper),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
 		cvm.NewAppModule(app.CVMKeeper, app.BankKeeper),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		ibc.NewAppModule(app.ibcKeeper),
+		ibc.NewAppModule(app.IbcKeeper),
 		transferModule,
 	)
 
@@ -546,29 +546,29 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		upgradetypes.ModuleName,
 	)
 
-	app.mm.RegisterInvariants(&app.crisisKeeper)
+	app.mm.RegisterInvariants(&app.CrisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
 
 	app.sm = module.NewSimulationManager(
-		auth.NewAppModule(appCodec, app.authKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
-		authz.NewAppModule(appCodec, app.authzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
+		auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountKeeper, app.BankKeeper, app.CertKeeper, authsims.RandomGenesisAccounts),
+		authz.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
-		capability.NewAppModule(appCodec, *app.capabilityKeeper),
-		distr.NewAppModule(appCodec, app.distrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
-		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.feegrantKeeper, app.interfaceRegistry),
-		slashing.NewAppModule(appCodec, app.slashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
+		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeegrantKeeper, app.interfaceRegistry),
+		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
-		evidence.NewAppModule(app.evidenceKeeper),
+		evidence.NewAppModule(app.EvidenceKeeper),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
 		cvm.NewAppModule(app.CVMKeeper, app.BankKeeper),
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		ibc.NewAppModule(app.ibcKeeper),
+		ibc.NewAppModule(app.IbcKeeper),
 		transferModule,
 	)
 
@@ -583,7 +583,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		ante.HandlerOptions{
 			AccountKeeper:   app.AccountKeeper,
 			BankKeeper:      app.BankKeeper,
-			FeegrantKeeper:  app.feegrantKeeper,
+			FeegrantKeeper:  app.FeegrantKeeper,
 			SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 		},
@@ -603,12 +603,12 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 			tmos.Exit(err.Error())
 		}
 	}
-	app.scopedIBCKeeper = scopedIBCKeeper
-	app.scopedTransferKeeper = scopedTransferKeeper
+	app.ScopedIBCKeeper = scopedIBCKeeper
+	app.ScopedTransferKeeper = scopedTransferKeeper
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
-	app.scopedIBCMockKeeper = scopedIBCMockKeeper
+	app.ScopedIBCMockKeeper = scopedIBCMockKeeper
 
 	return app
 }
@@ -670,7 +670,7 @@ func (app *ShentuApp) LegacyAmino() *codec.LegacyAmino {
 //
 // NOTE: This is solely to be used for testing purposes.
 func (app *ShentuApp) GetSubspace(moduleName string) paramstypes.Subspace {
-	subspace, _ := app.paramsKeeper.GetSubspace(moduleName)
+	subspace, _ := app.ParamsKeeper.GetSubspace(moduleName)
 	return subspace
 }
 

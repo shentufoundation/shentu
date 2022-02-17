@@ -71,7 +71,7 @@ func (app *ShentuApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 
 	// withdraw all validator commission
 	app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
-		_, err := app.distrKeeper.WithdrawValidatorCommission(ctx, val.GetOperator())
+		_, err := app.DistrKeeper.WithdrawValidatorCommission(ctx, val.GetOperator())
 		if err != distrtypes.ErrNoValidatorCommission && err != nil {
 			panic(err)
 		}
@@ -81,17 +81,17 @@ func (app *ShentuApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 	// withdraw all delegator rewards
 	dels := app.StakingKeeper.GetAllDelegations(ctx)
 	for _, delegation := range dels {
-		_, err := app.distrKeeper.WithdrawDelegationRewards(ctx, delegation.GetDelegatorAddr(), delegation.GetValidatorAddr())
+		_, err := app.DistrKeeper.WithdrawDelegationRewards(ctx, delegation.GetDelegatorAddr(), delegation.GetValidatorAddr())
 		if err != nil {
 			panic(err)
 		}
 	}
 
 	// clear validator slash events
-	app.distrKeeper.DeleteAllValidatorSlashEvents(ctx)
+	app.DistrKeeper.DeleteAllValidatorSlashEvents(ctx)
 
 	// clear validator historical rewards
-	app.distrKeeper.DeleteAllValidatorHistoricalRewards(ctx)
+	app.DistrKeeper.DeleteAllValidatorHistoricalRewards(ctx)
 
 	// set context height to zero
 	height := ctx.BlockHeight()
@@ -100,19 +100,19 @@ func (app *ShentuApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 	// reinitialize all validators
 	app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
 		// donate any unwithdrawn outstanding reward fraction tokens to the community pool
-		scraps := app.distrKeeper.GetValidatorOutstandingRewardsCoins(ctx, val.GetOperator())
-		feePool := app.distrKeeper.GetFeePool(ctx)
+		scraps := app.DistrKeeper.GetValidatorOutstandingRewardsCoins(ctx, val.GetOperator())
+		feePool := app.DistrKeeper.GetFeePool(ctx)
 		feePool.CommunityPool = feePool.CommunityPool.Add(scraps...)
-		app.distrKeeper.SetFeePool(ctx, feePool)
+		app.DistrKeeper.SetFeePool(ctx, feePool)
 
-		app.distrKeeper.Hooks().AfterValidatorCreated(ctx, val.GetOperator())
+		app.DistrKeeper.Hooks().AfterValidatorCreated(ctx, val.GetOperator())
 		return false
 	})
 
 	// reinitialize all delegations
 	for _, del := range dels {
-		app.distrKeeper.Hooks().BeforeDelegationCreated(ctx, del.GetDelegatorAddr(), del.GetValidatorAddr())
-		app.distrKeeper.Hooks().AfterDelegationModified(ctx, del.GetDelegatorAddr(), del.GetValidatorAddr())
+		app.DistrKeeper.Hooks().BeforeDelegationCreated(ctx, del.GetDelegatorAddr(), del.GetValidatorAddr())
+		app.DistrKeeper.Hooks().AfterDelegationModified(ctx, del.GetDelegatorAddr(), del.GetValidatorAddr())
 	}
 
 	// reset context height
@@ -170,11 +170,11 @@ func (app *ShentuApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 	/* Handle slashing state. */
 
 	// reset start height on signing infos
-	app.slashingKeeper.IterateValidatorSigningInfos(
+	app.SlashingKeeper.IterateValidatorSigningInfos(
 		ctx,
 		func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) (stop bool) {
 			info.StartHeight = 0
-			app.slashingKeeper.SetValidatorSigningInfo(ctx, addr, info)
+			app.SlashingKeeper.SetValidatorSigningInfo(ctx, addr, info)
 			return false
 		},
 	)
