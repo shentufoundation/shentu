@@ -221,8 +221,12 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 	}
 	poolParams := k.GetPoolParams(ctx)
 	cd := poolParams.CooldownPeriod
+	fees := sdk.ZeroInt()
 	if sp.StartTime.Add(cd).After(ctx.BlockTime()) {
-		return types.ErrBeforeCooldownEnd
+		fees = bdAmount.ToDec().Mul(poolParams.WithdrawFeesRate).QuoInt(sdk.NewInt(100)).TruncateInt()
+		donationPool := k.GetReserve(ctx)
+		donationPool.Amount = donationPool.Amount.Add(fees)
+		k.SetReserve(ctx, donationPool)
 	}
 
 	pool, found := k.GetPool(ctx, poolID)
@@ -284,7 +288,9 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 	gSPool = gSPool.Sub(bondDenomAmt)
 	k.SetGlobalStakingPool(ctx, gSPool)
 
-	return k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, amount)
+	withdraw := bdAmount.Sub(fees)
+	withdrawCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), withdraw))
+	return k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, withdrawCoins)
 }
 
 func (k Keeper) FundShieldFees(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error {
