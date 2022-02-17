@@ -145,7 +145,7 @@ func GetCmdPurchaser() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Purchaser(cmd.Context(), &types.QueryPurchaserRequest{})
+			res, err := queryClient.Purchaser(cmd.Context(), &types.QueryPurchaserRequest{Purchaser: args[0]})
 			if err != nil {
 				return err
 			}
