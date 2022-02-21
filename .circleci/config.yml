@@ -92,6 +92,7 @@ jobs:
       - make:
           target: test-sim-import-export
           description: "Test Shentu import/export simulation"
+    resource_class: xlarge
 
   test-sim-after-import:
     executor: golang
@@ -106,6 +107,7 @@ jobs:
       - make:
           target: test-sim-multi-seed-short
           description: "Test Shentu multi-seed simulation (short-lived)"
+    resource_class: xlarge
 
   test-sim-multi-seed-long:
     executor: golang
@@ -113,6 +115,7 @@ jobs:
       - make:
           target: test-sim-multi-seed-long
           description: "Test Shentu multi-seed simulation (long-lived)"
+    resource_class: 2xlarge
 
   test-sim-nondeterminism:
     executor: golang
@@ -315,6 +318,9 @@ workflows:
           requires:
             - setup-dependencies
       - test-sim-import-export:
+          requires:
+            - setup-dependencies
+      - test-sim-after-import:
           requires:
             - setup-dependencies
       - test-sim-multi-seed-short:
