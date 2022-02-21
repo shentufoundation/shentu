@@ -101,6 +101,7 @@ jobs:
       - make:
           target: test-sim-after-import
           description: "Test Shentu simulation after importing state"
+    resource_class: xlarge
 
   test-sim-multi-seed-short:
     executor: golang
