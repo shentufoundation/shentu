@@ -324,13 +324,6 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 		}
 		entry := ubd.Entries[0]
 
-		// If purchased is not fully covered, cover purchased first.
-		// remainingUbd := sdk.MaxInt(entry.Balance.Sub(uncoveredPurchase), sdk.ZeroInt())
-		// uncoveredPurchase = sdk.MaxInt(uncoveredPurchase.Sub(entry.Balance), sdk.ZeroInt())
-		// if remainingUbd.IsZero() {
-		// 	continue
-		// }
-
 		// Make payout regardless of the uncovered purchase.
 		payoutFromThisUbd := sdk.MinInt(payoutFromUnbonding, entry.Balance)
 		k.PayFromUnbondings(ctx, ubd, payoutFromThisUbd)
