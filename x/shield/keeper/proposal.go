@@ -28,7 +28,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	if !found {
 		return types.ErrNoPoolFound
 	}
-	if coverAmt.ToDec().GT(pool.Shield.ToDec().Mul(pool.ShieldRate)) {
+	if coverAmt.GT(pool.Shield) {
 		return types.ErrNotEnoughShield
 	}
 
