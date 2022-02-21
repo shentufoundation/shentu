@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"encoding/binary"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/common"
@@ -33,21 +31,6 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, amount sdk.Coins,
 	sp, err := k.AddStaking(ctx, poolID, purchaser, description, amount)
 
 	return sp, err
-}
-
-// SetNextPurchaseID sets the latest pool ID to store.
-func (k Keeper) SetNextPurchaseID(ctx sdk.Context, id uint64) {
-	store := ctx.KVStore(k.storeKey)
-	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, id)
-	store.Set(types.GetNextPurchaseIDKey(), bz)
-}
-
-// GetNextPurchaseID gets the latest pool ID from store.
-func (k Keeper) GetNextPurchaseID(ctx sdk.Context) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	opBz := store.Get(types.GetNextPurchaseIDKey())
-	return binary.LittleEndian.Uint64(opBz)
 }
 
 func (k Keeper) GetPurchaserPurchases(ctx sdk.Context, address sdk.AccAddress) (res []types.Purchase) {

@@ -13,9 +13,9 @@ import (
 
 // InitGenesis initialize store values with genesis states.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []abci.ValidatorUpdate {
-	k.SetPoolParams(ctx, data.PoolParams)
-	k.SetClaimProposalParams(ctx, data.ClaimProposalParams)
-	k.SetBlockRewardParams(ctx, data.BlockRewardParams)
+	k.SetPoolParams(ctx, data.ShieldParams.PoolParams)
+	k.SetClaimProposalParams(ctx, data.ShieldParams.ClaimProposalParams)
+	k.SetBlockRewardParams(ctx, data.ShieldParams.BlockRewardParams)
 
 	adminAddr := sdk.AccAddress{}
 	var err error
@@ -27,17 +27,16 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 	}
 
 	k.SetAdmin(ctx, adminAddr)
-	k.SetTotalCollateral(ctx, data.TotalCollateral)
-	k.SetTotalWithdrawing(ctx, data.TotalWithdrawing)
-	k.SetTotalShield(ctx, data.TotalShield)
-	k.SetTotalClaimed(ctx, data.TotalClaimed)
+	k.SetTotalCollateral(ctx, data.GlobalPools.TotalCollateral)
+	k.SetTotalWithdrawing(ctx, data.GlobalPools.TotalWithdrawing)
+	k.SetTotalShield(ctx, data.GlobalPools.TotalShield)
+	k.SetTotalClaimed(ctx, data.GlobalPools.TotalClaimed)
 	k.SetServiceFees(ctx, data.Fees)
-	k.SetGlobalStakingPool(ctx, data.GlobalStakingPool)
+	k.SetGlobalStakingPool(ctx, data.GlobalPools.GlobalStakingPool)
 	for _, pool := range data.Pools {
 		k.SetPool(ctx, pool)
 	}
 	k.SetNextPoolID(ctx, data.NextPoolId)
-	k.SetNextPurchaseID(ctx, data.NextPurchaseId)
 	for _, purchase := range data.Purchases {
 		k.SetPurchase(ctx, purchase)
 	}
@@ -72,7 +71,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	serviceFees := k.GetServiceFees(ctx)
 	pools := k.GetAllPools(ctx)
 	nextPoolID := k.GetNextPoolID(ctx)
-	nextPurchaseID := k.GetNextPurchaseID(ctx)
 	providers := k.GetAllProviders(ctx)
 	withdraws := k.GetAllWithdraws(ctx)
 	globalStakingPool := k.GetGlobalStakingPool(ctx)
@@ -80,7 +78,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	reserve := k.GetReserve(ctx)
 	pendingPayouts := k.GetAllPendingPayouts(ctx)
 	blockRewardParams := k.GetBlockRewardParams(ctx)
-	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams,
+	return types.NewGenesisState(shieldAdmin, nextPoolID, poolParams, claimProposalParams,
 		totalCollateral, totalWithdrawing, totalShield, totalClaimed, serviceFees, pools,
 		providers, withdraws, globalStakingPool, stakingPurchases, reserve, pendingPayouts,
 		blockRewardParams)

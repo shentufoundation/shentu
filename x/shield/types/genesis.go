@@ -9,47 +9,34 @@ import (
 )
 
 // NewGenesisState creates a new genesis state.
-func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
+func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID uint64, poolParams PoolParams,
 	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int,
 	serviceFees sdk.DecCoins, pools []Pool, providers []Provider, withdraws []Withdraw,
 	globalStakingPool sdk.Int, stakingPurchases []Purchase,
 	reserve Reserve, pendingPayouts []PendingPayout, blockRewardParams BlockRewardParams) GenesisState {
 	return GenesisState{
-		ShieldAdmin:         shieldAdmin.String(),
-		NextPoolId:          nextPoolID,
-		NextPurchaseId:      nextPurchaseID,
-		PoolParams:          poolParams,
-		ClaimProposalParams: claimProposalParams,
-		TotalCollateral:     totalCollateral,
-		TotalWithdrawing:    totalWithdrawing,
-		TotalShield:         totalShield,
-		TotalClaimed:        totalClaimed,
-		Fees:                serviceFees,
-		Pools:               pools,
-		Providers:           providers,
-		Withdraws:           withdraws,
-		GlobalStakingPool:   globalStakingPool,
-		Purchases:           stakingPurchases,
-		Reserve:             reserve,
-		PendingPayouts:      pendingPayouts,
-		BlockRewardParams:   blockRewardParams,
+		ShieldAdmin:    shieldAdmin.String(),
+		NextPoolId:     nextPoolID,
+		Fees:           serviceFees,
+		Pools:          pools,
+		Providers:      providers,
+		Withdraws:      withdraws,
+		Purchases:      stakingPurchases,
+		Reserve:        reserve,
+		PendingPayouts: pendingPayouts,
+		GlobalPools:    NewGlobalPools(totalCollateral, totalWithdrawing, totalShield, totalClaimed, globalStakingPool),
+		ShieldParams:   NewShieldParams(poolParams, claimProposalParams, blockRewardParams),
 	}
 }
 
 // DefaultGenesisState returns a default genesis state.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		NextPoolId:          uint64(1),
-		NextPurchaseId:      uint64(1),
-		PoolParams:          DefaultPoolParams(),
-		ClaimProposalParams: DefaultClaimProposalParams(),
-		TotalCollateral:     sdk.ZeroInt(),
-		TotalWithdrawing:    sdk.ZeroInt(),
-		TotalShield:         sdk.ZeroInt(),
-		TotalClaimed:        sdk.ZeroInt(),
-		Fees:                sdk.NewDecCoins(),
-		Reserve:             InitialReserve(),
-		BlockRewardParams:   DefaultBlockRewardParams(),
+		NextPoolId:   uint64(1),
+		Fees:         sdk.NewDecCoins(),
+		Reserve:      InitialReserve(),
+		GlobalPools:  DefaultGlobalPools(),
+		ShieldParams: DefaultShieldParams(),
 	}
 }
 
@@ -61,13 +48,13 @@ func ValidateGenesis(data GenesisState) error {
 	if data.Reserve.Amount.IsNegative() {
 		return fmt.Errorf("reserve amount is negative %v", data.Reserve.Amount)
 	}
-	if err := validatePoolParams(data.PoolParams); err != nil {
+	if err := validatePoolParams(data.ShieldParams.PoolParams); err != nil {
 		return fmt.Errorf("failed to validate %s pool params: %w", ModuleName, err)
 	}
-	if err := validateClaimProposalParams(data.ClaimProposalParams); err != nil {
+	if err := validateClaimProposalParams(data.ShieldParams.ClaimProposalParams); err != nil {
 		return fmt.Errorf("failed to validate %s claim proposal params: %w", ModuleName, err)
 	}
-	if err := validateBlockRewardParams(data.BlockRewardParams); err != nil {
+	if err := validateBlockRewardParams(data.ShieldParams.BlockRewardParams); err != nil {
 		return fmt.Errorf("failed to validate %s block reward params: %w", ModuleName, err)
 	}
 
@@ -81,4 +68,43 @@ func GetGenesisStateFromAppState(cdc codec.Codec, appState map[string]json.RawMe
 		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
 	}
 	return genesisState
+}
+
+// NewGlobalPools creates a new GlobalPools object.
+func NewGlobalPools(totalCollateral, totalWithdrawing, totalShield, totalClaimed, globalStakingPool sdk.Int) GlobalPools {
+	return GlobalPools{
+		TotalCollateral:   totalCollateral,
+		TotalWithdrawing:  totalWithdrawing,
+		TotalShield:       totalShield,
+		TotalClaimed:      totalClaimed,
+		GlobalStakingPool: globalStakingPool,
+	}
+}
+
+// DefaultGlobalPools returns a default GlobalPools object.
+func DefaultGlobalPools() GlobalPools {
+	return GlobalPools{
+		TotalCollateral:  sdk.ZeroInt(),
+		TotalWithdrawing: sdk.ZeroInt(),
+		TotalShield:      sdk.ZeroInt(),
+		TotalClaimed:     sdk.ZeroInt(),
+	}
+}
+
+// NewShieldParams creates a new ShieldParams object.
+func NewShieldParams(poolParams PoolParams, claimProposalParams ClaimProposalParams, blockRewardParams BlockRewardParams) ShieldParams {
+	return ShieldParams{
+		PoolParams:          poolParams,
+		ClaimProposalParams: claimProposalParams,
+		BlockRewardParams:   blockRewardParams,
+	}
+}
+
+// DefaultShieldParams returns a default ShieldParams object.
+func DefaultShieldParams() ShieldParams {
+	return ShieldParams{
+		PoolParams:          DefaultPoolParams(),
+		ClaimProposalParams: DefaultClaimProposalParams(),
+		BlockRewardParams:   DefaultBlockRewardParams(),
+	}
 }

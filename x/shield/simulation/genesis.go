@@ -22,21 +22,22 @@ func RandomizedGenState(simState *module.SimulationState) {
 	simAccount, _ := simtypes.RandomAcc(r, simState.Accounts)
 	gs.ShieldAdmin = simAccount.Address.String()
 	gs.NextPoolId = 1
-	gs.PoolParams = GenPoolParams(r)
-	gs.ClaimProposalParams = GenClaimProposalParams(r)
-	gs.BlockRewardParams = GenBlockRewardParams(r)
+	poolParams := GenPoolParams(r)
+	claimProposalParams := GenClaimProposalParams(r)
+	blockRewardParams := GenBlockRewardParams(r)
 
 	var stakingGenState stakingtypes.GenesisState
 	stakingGenStatebz := simState.GenState[stakingtypes.ModuleName]
 	simState.Cdc.MustUnmarshalJSON(stakingGenStatebz, &stakingGenState)
-	gs.PoolParams.WithdrawPeriod = stakingGenState.Params.UnbondingTime
+	poolParams.WithdrawPeriod = stakingGenState.Params.UnbondingTime
 
-	gs.ClaimProposalParams.ClaimPeriod = time.Duration(simtypes.RandIntBetween(r,
-		int(gs.PoolParams.WithdrawPeriod)/10, int(gs.PoolParams.WithdrawPeriod)))
-	if gs.PoolParams.ProtectionPeriod >= gs.ClaimProposalParams.ClaimPeriod {
-		gs.PoolParams.ProtectionPeriod = time.Duration(simtypes.RandIntBetween(r,
-			int(gs.ClaimProposalParams.ClaimPeriod)/10, int(gs.ClaimProposalParams.ClaimPeriod)))
+	claimProposalParams.ClaimPeriod = time.Duration(simtypes.RandIntBetween(r,
+		int(poolParams.WithdrawPeriod)/10, int(poolParams.WithdrawPeriod)))
+	if poolParams.ProtectionPeriod >= claimProposalParams.ClaimPeriod {
+		poolParams.ProtectionPeriod = time.Duration(simtypes.RandIntBetween(r,
+			int(claimProposalParams.ClaimPeriod)/10, int(claimProposalParams.ClaimPeriod)))
 	}
+	gs.ShieldParams = types.NewShieldParams(poolParams, claimProposalParams, blockRewardParams)
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&gs)
 }
 
