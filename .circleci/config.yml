@@ -46,6 +46,7 @@ commands:
 jobs:
   setup-dependencies:
     executor: golang
+    resource_class: large
     steps:
       - checkout
       - restore_cache:
