@@ -483,12 +483,18 @@ func TestInsufficientCollateral(t *testing.T) {
 	// couldn't claim the full amount
 	require.False(t, beforeBalance.Add(sdk.NewInt(loss)).Equal(afterBalance))
 	// partially claimed
-	require.True(t, beforeBalance.Add(sdk.NewInt(325e9)).Equal(afterBalance))
+	require.True(t, beforeBalance.Add(sdk.NewInt(totalDeposit)).Equal(afterBalance))
 
-	// confirm admin delegation reduction
-	lossRatio := float64(loss) / float64(totalDeposit)
-	expected := adminDeposit - int64(math.Round(float64(adminDeposit)*lossRatio))
-	if hex.EncodeToString(shieldAdmin) < hex.EncodeToString(del1addr) {
-		expected -= 1 // adjust for discrepancy due to sorting
-	}
+	// purchaser donates to the reserve
+	var donation int64 = 200e9
+	err = app.ShieldKeeper.Donate(ctx, purchaser, sdk.NewInt(donation))
+	require.Nil(t, err)
+	reserve := app.ShieldKeeper.GetReserve(ctx)
+	require.True(t, reserve.Amount.Equal(sdk.NewInt(donation)))
+
+	// make payouts from the reserve (usually done in the endblocker
+	app.ShieldKeeper.MakePayouts(ctx)
+
+	reserve = app.ShieldKeeper.GetReserve(ctx)
+	require.True(t, reserve.Amount.Equal(sdk.NewInt(totalDeposit+donation-loss)))
 }
