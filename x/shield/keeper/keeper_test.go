@@ -454,11 +454,11 @@ func TestInsufficientCollateral(t *testing.T) {
 	// about 19e9 must be secured (two of three withdraws & ubds are delayed)
 	withdraws = app.ShieldKeeper.GetAllWithdraws(ctx)
 	delayedWithdrawEnd := ctx.BlockTime().Add(app.GovKeeper.GetVotingParams(ctx).VotingPeriod * 2)
-	require.True(t, withdraws[0].Amount.Equal(sdk.NewInt(25e9)))
+	require.True(t, withdraws[0].Amount.Equal(sdk.NewInt(10e9)))
 	require.True(t, withdraws[0].CompletionTime.Equal(delayedWithdrawEnd)) //25e9 delayed
 	require.True(t, withdraws[1].Amount.Equal(sdk.NewInt(90e9)))
 	require.True(t, withdraws[1].CompletionTime.Equal(delayedWithdrawEnd)) // 10e9 delayed
-	require.True(t, withdraws[2].Amount.Equal(sdk.NewInt(10e9)))
+	require.True(t, withdraws[2].Amount.Equal(sdk.NewInt(25e9)))
 	require.True(t, withdraws[2].CompletionTime.Equal(delayedWithdrawEnd)) // 90e9 delayed
 
 	delUBD = app.StakingKeeper.GetAllUnbondingDelegations(ctx, del1addr)[0]
@@ -479,7 +479,11 @@ func TestInsufficientCollateral(t *testing.T) {
 	err = app.ShieldKeeper.CreateReimbursement(ctx, proposal, purchaser)
 	require.NoError(t, err)
 	afterBalance := app.BankKeeper.GetBalance(ctx, purchaser, bondDenom).Amount
-	require.True(t, beforeBalance.Add(sdk.NewInt(loss)).Equal(afterBalance))
+
+	// couldn't claim the full amount
+	require.False(t, beforeBalance.Add(sdk.NewInt(loss)).Equal(afterBalance))
+	// partially claimed
+	require.True(t, beforeBalance.Add(sdk.NewInt(325e9)).Equal(afterBalance))
 
 	// confirm admin delegation reduction
 	lossRatio := float64(loss) / float64(totalDeposit)
@@ -487,18 +491,4 @@ func TestInsufficientCollateral(t *testing.T) {
 	if hex.EncodeToString(shieldAdmin) < hex.EncodeToString(del1addr) {
 		expected -= 1 // adjust for discrepancy due to sorting
 	}
-
-	adminDels := app.StakingKeeper.GetAllDelegatorDelegations(ctx, shieldAdmin)
-	validator, _ := app.StakingKeeper.GetValidator(ctx, val1addr)
-	require.True(t, validator.TokensFromShares(adminDels[0].Shares).Equal(sdk.NewDec(expected)))
-
-	// confirm delegator unbonding reduction
-	expected = 25e9 + 10e9 + 90e9 - int64(math.Round(float64(125e9)*lossRatio))
-	if hex.EncodeToString(shieldAdmin) < hex.EncodeToString(del1addr) {
-		expected += 1 // adjust for discrepancy due to sorting
-	}
-	withdraws = app.ShieldKeeper.GetAllWithdraws(ctx)
-	require.True(t, withdraws[0].Amount.Add(withdraws[1].Amount.Add(withdraws[2].Amount)).Equal(sdk.NewInt(expected)))
-	delUBD = app.StakingKeeper.GetAllUnbondingDelegations(ctx, del1addr)[0]
-	require.True(t, delUBD.Entries[0].Balance.Add(delUBD.Entries[1].Balance.Add(delUBD.Entries[2].Balance)).Equal(sdk.NewInt(expected)))
 }

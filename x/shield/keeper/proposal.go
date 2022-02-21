@@ -19,22 +19,17 @@ import (
 // module states accordingly.
 // TODO: rewrite some parts for V2 https://github.com/ShentuChain/shentu-private/issues/13
 func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, duration time.Duration) error {
-	lossAmt := k.getActualPayout(ctx, loss)
+	totalCollateral := k.GetTotalCollateral(ctx)
+
+	coverAmt := sdk.MinInt(totalCollateral, loss.AmountOf(k.BondDenom(ctx)))
 
 	// Verify shield.
 	pool, found := k.GetPool(ctx, poolID)
 	if !found {
 		return types.ErrNoPoolFound
 	}
-	if lossAmt.ToDec().GT(pool.Shield.ToDec().Mul(pool.ShieldRate)) {
+	if coverAmt.ToDec().GT(pool.Shield.ToDec().Mul(pool.ShieldRate)) {
 		return types.ErrNotEnoughShield
-	}
-
-	// Verify collateral availability.
-	totalCollateral := k.GetTotalCollateral(ctx)
-	totalSecureAmt := k.GetTotalClaimed(ctx).Add(lossAmt)
-	if totalSecureAmt.GT(totalCollateral) {
-		panic("total secure amount surpassed total collateral")
 	}
 
 	// Verify purchase.
@@ -45,14 +40,14 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	if purchase.Locked {
 		return types.ErrPurchaseLocked
 	}
-	if lossAmt.GT(purchase.Shield) {
+	if coverAmt.GT(purchase.Shield) {
 		return types.ErrNotEnoughShield
 	}
 
 	// Secure the updated loss ratio from each provider to cover total claimed.
 	providers := k.GetAllProviders(ctx)
-	claimedRatio := totalSecureAmt.ToDec().Quo(totalCollateral.ToDec())
-	remaining := totalSecureAmt
+	claimedRatio := coverAmt.ToDec().Quo(totalCollateral.ToDec())
+	remaining := coverAmt
 	for i := range providers {
 		secureAmt := sdk.MinInt(providers[i].Collateral.ToDec().Mul(claimedRatio).TruncateInt(), remaining)
 
@@ -67,18 +62,17 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	}
 
 	// Update purchase states.
-	purchase.Shield = purchase.Shield.Sub(lossAmt)
+	purchase.Shield = purchase.Shield.Sub(coverAmt)
 	purchase.Locked = true
 	k.SetPurchase(ctx, purchase)
 
 	// Update pool and global pool states.
-	pool.Shield = pool.Shield.Sub(lossAmt)
+	pool.Shield = pool.Shield.Sub(coverAmt)
 	k.SetPool(ctx, pool)
 
 	totalShield := k.GetTotalShield(ctx)
-	totalShield = totalShield.Sub(lossAmt)
+	totalShield = totalShield.Sub(coverAmt)
 	k.SetTotalShield(ctx, totalShield)
-	k.SetTotalClaimed(ctx, totalSecureAmt)
 
 	return nil
 }
@@ -552,88 +546,4 @@ func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAd
 		return unbondingDelegations[i].Entries[0].CompletionTime.After(unbondingDelegations[j].Entries[0].CompletionTime)
 	})
 	return unbondingDelegations
-}
-
-// getActualPayout computes the payouts and the amount to be taken from the reserve.
-func (k Keeper) getActualPayout(ctx sdk.Context, amount sdk.Coins) sdk.Int {
-	bondDenom := k.BondDenom(ctx)
-	totalCollateral := k.GetTotalCollateral(ctx)
-	totalPurchased := k.GetTotalShield(ctx)
-	totalPayout := amount.AmountOf(bondDenom)
-	purchaseRatio := totalPurchased.ToDec().Quo(totalCollateral.ToDec())
-	payoutRatio := totalPayout.ToDec().Quo(totalCollateral.ToDec())
-
-	for _, provider := range k.GetAllProviders(ctx) {
-		if !totalPayout.IsPositive() {
-			break
-		}
-
-		providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
-		if err != nil {
-			panic(err)
-		}
-
-		purchased := provider.Collateral.ToDec().Mul(purchaseRatio).TruncateInt()
-		if purchased.GT(totalPurchased) {
-			purchased = totalPurchased
-		}
-		payout := provider.Collateral.ToDec().Mul(payoutRatio).TruncateInt()
-		payout = sdk.MinInt(payout, totalPayout)
-
-		if purchased.LT(totalPurchased) && provider.Collateral.GT(payout.Add(purchased)) {
-			purchased = purchased.Add(sdk.OneInt())
-		}
-		if payout.LT(totalPayout) && provider.Collateral.GT(payout.Add(purchased)) {
-			payout = payout.Add(sdk.OneInt())
-		}
-
-		actualPayout, err := k.computeProviderCollateralForPayout(ctx, providerAddr, purchased, payout)
-		if err != nil {
-			panic(err)
-		}
-
-		totalPayout = totalPayout.Sub(actualPayout)
-	}
-
-	reimbursement := amount
-	if totalPayout.IsPositive() {
-		reimbursement = amount.Sub(sdk.NewCoins(sdk.NewCoin(bondDenom, totalPayout)))
-	}
-
-	return reimbursement.AmountOf(bondDenom)
-}
-
-// ComputeProviderCollateralForPayout the amount of collateral
-// to be contributed to the payout from the given provider.
-func (k Keeper) computeProviderCollateralForPayout(ctx sdk.Context, providerAddr sdk.AccAddress, purchased, payout sdk.Int) (sdk.Int, error) {
-	provider, found := k.GetProvider(ctx, providerAddr)
-	if !found {
-		return sdk.NewInt(0), types.ErrProviderNotFound
-	}
-
-	uncoveredPurchase := sdk.ZeroInt()
-	payoutFromCollateral := sdk.ZeroInt()
-
-	if provider.Collateral.Sub(provider.Withdrawing).GTE(purchased.Add(payout)) {
-		payoutFromCollateral = payout
-	} else if provider.Collateral.Sub(provider.Withdrawing).GTE(purchased) {
-		payoutFromCollateral = provider.Collateral.Sub(provider.Withdrawing).Sub(purchased)
-	} else {
-		uncoveredPurchase = purchased.Sub(provider.Collateral.Sub(provider.Withdrawing))
-	}
-
-	provider.Collateral = provider.Collateral.Sub(payout)
-	remainingPayout := payout.Sub(payoutFromCollateral)
-
-	withdraws := k.GetWithdrawsByProvider(ctx, provider.Address)
-	for i := len(withdraws) - 1; i >= 0 && remainingPayout.IsPositive(); i-- {
-		remainingWithdraw := sdk.MaxInt(withdraws[i].Amount.Sub(uncoveredPurchase), sdk.ZeroInt())
-		uncoveredPurchase = sdk.MaxInt(uncoveredPurchase.Sub(withdraws[i].Amount), sdk.ZeroInt())
-		if remainingWithdraw.IsZero() {
-			continue
-		}
-		payoutFromThisWithdraw := sdk.MinInt(remainingPayout, remainingWithdraw)
-		remainingPayout = remainingPayout.Sub(payoutFromThisWithdraw)
-	}
-	return payout.Sub(remainingPayout), nil
 }
