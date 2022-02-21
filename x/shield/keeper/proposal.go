@@ -264,47 +264,15 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 	}
 	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 
-	uncoveredPurchase := sdk.ZeroInt()
-	payoutFromCollateral := sdk.ZeroInt()
-
-	if provider.Collateral.Sub(provider.Withdrawing).GTE(purchased.Add(payout)) {
-		// If collateral - withdraw >= purchased + payout:
-		//     purchased       payout
-		//   ----------------|--------|
-		//       collateral - withdraw                withdraw
-		// -------------------------------|---------------------------------
-		payoutFromCollateral = payout
-	} else if provider.Collateral.Sub(provider.Withdrawing).GTE(purchased) {
-		// If purchased <= collateral - withdraw < purchased + payout:
-		//               purchased       payout
-		//             ----------------|--------|
-		//       collateral - withdraw                withdraw
-		// -------------------------------|---------------------------------
-		payoutFromCollateral = provider.Collateral.Sub(provider.Withdrawing).Sub(purchased)
-	} else {
-		// If collateral - withdraw < purchased:
-		//                      purchased       payout
-		//                    ----------------|--------|
-		//       collateral - withdraw                withdraw
-		// -------------------------------|---------------------------------
-		uncoveredPurchase = purchased.Sub(provider.Collateral.Sub(provider.Withdrawing))
-	}
-
-	provider.Collateral = provider.Collateral.Sub(payout)
+	payoutFromCollateral := sdk.MinInt(provider.Collateral.Sub(provider.Withdrawing), payout)
+	provider.Collateral = provider.Collateral.Sub(payoutFromCollateral)
 	remainingPayout := payout.Sub(payoutFromCollateral)
 
 	// Update provider's withdraws from latest to oldest.
 	withdraws := k.GetWithdrawsByProvider(ctx, provider.Address)
 	for i := len(withdraws) - 1; i >= 0 && remainingPayout.IsPositive(); i-- {
-		// If purchased is not fully covered, cover purchased first.
-		remainingWithdraw := sdk.MaxInt(withdraws[i].Amount.Sub(uncoveredPurchase), sdk.ZeroInt())
-		uncoveredPurchase = sdk.MaxInt(uncoveredPurchase.Sub(withdraws[i].Amount), sdk.ZeroInt())
-		if remainingWithdraw.IsZero() {
-			continue
-		}
-
 		// Update the withdraw based on payout after purchased is fully covered.
-		payoutFromThisWithdraw := sdk.MinInt(remainingPayout, remainingWithdraw)
+		payoutFromThisWithdraw := sdk.MinInt(remainingPayout, withdraws[i].Amount)
 		remainingPayout = remainingPayout.Sub(payoutFromThisWithdraw)
 		timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraws[i].CompletionTime)
 		for j := range timeSlice {
@@ -344,30 +312,7 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 		return types.ErrProviderNotFound
 	}
 
-	uncoveredPurchase := sdk.ZeroInt()
-	payoutFromDelegation := sdk.ZeroInt()
-	if provider.DelegationBonded.GTE(purchased.Add(payout)) {
-		// If delegation >= purchased + payout:
-		//     purchased       payout
-		//   ----------------|--------|
-		//            delegations                     unbondings
-		// -------------------------------|---------------------------------
-		payoutFromDelegation = payout
-	} else if provider.DelegationBonded.GTE(purchased) {
-		// If purchased <= delegation < purchased + payout:
-		//               purchased       payout
-		//             ----------------|--------|
-		//            delegations                     unbondings
-		// -------------------------------|---------------------------------
-		payoutFromDelegation = provider.DelegationBonded.Sub(purchased)
-	} else {
-		// If delegation < purchased:
-		//                      purchased       payout
-		//                    ----------------|--------|
-		//            delegations                     unbondings
-		// -------------------------------|---------------------------------
-		uncoveredPurchase = purchased.Sub(provider.DelegationBonded)
-	}
+	payoutFromDelegation := sdk.MinInt(provider.DelegationBonded, payout)
 	payoutFromUnbonding := payout.Sub(payoutFromDelegation)
 
 	if payoutFromDelegation.IsPositive() {
@@ -380,20 +325,20 @@ func (k Keeper) MakePayoutByProviderDelegations(ctx sdk.Context, providerAddr sd
 
 	unbondingDelegations := k.GetSortedUnbondingDelegations(ctx, providerAddr)
 	for _, ubd := range unbondingDelegations {
-		if !payoutFromUnbonding.IsPositive() {
+		if payoutFromUnbonding.IsZero() {
 			break
 		}
 		entry := ubd.Entries[0]
 
 		// If purchased is not fully covered, cover purchased first.
-		remainingUbd := sdk.MaxInt(entry.Balance.Sub(uncoveredPurchase), sdk.ZeroInt())
-		uncoveredPurchase = sdk.MaxInt(uncoveredPurchase.Sub(entry.Balance), sdk.ZeroInt())
-		if remainingUbd.IsZero() {
-			continue
-		}
+		// remainingUbd := sdk.MaxInt(entry.Balance.Sub(uncoveredPurchase), sdk.ZeroInt())
+		// uncoveredPurchase = sdk.MaxInt(uncoveredPurchase.Sub(entry.Balance), sdk.ZeroInt())
+		// if remainingUbd.IsZero() {
+		// 	continue
+		// }
 
-		// Make payout after purchased is fully covered.
-		payoutFromThisUbd := sdk.MinInt(payoutFromUnbonding, remainingUbd)
+		// Make payout regardless of the uncovered purchase.
+		payoutFromThisUbd := sdk.MinInt(payoutFromUnbonding, entry.Balance)
 		k.PayFromUnbondings(ctx, ubd, payoutFromThisUbd)
 
 		payoutFromUnbonding = payoutFromUnbonding.Sub(payoutFromThisUbd)
@@ -414,7 +359,12 @@ func (k Keeper) PayFromDelegation(ctx sdk.Context, delAddr sdk.AccAddress, payou
 	totalDelAmount := provider.DelegationBonded
 
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, delAddr)
-	payoutRatio := payout.ToDec().Quo(totalDelAmount.ToDec())
+	var payoutRatio sdk.Dec
+	if totalDelAmount.Equal(sdk.ZeroInt()) {
+		payoutRatio = sdk.ZeroDec()
+	} else {
+		payoutRatio = payout.ToDec().Quo(totalDelAmount.ToDec())
+	}
 	remaining := payout
 
 	for i := range delegations {
