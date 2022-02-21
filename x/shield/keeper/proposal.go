@@ -21,7 +21,8 @@ import (
 func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, duration time.Duration) error {
 	totalCollateral := k.GetTotalCollateral(ctx)
 
-	coverAmt := sdk.MinInt(totalCollateral, loss.AmountOf(k.BondDenom(ctx)))
+	lossAmt := loss.AmountOf(k.BondDenom(ctx))
+	coverAmt := sdk.MinInt(totalCollateral, lossAmt)
 
 	// Verify shield.
 	pool, found := k.GetPool(ctx, poolID)
@@ -46,7 +47,12 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 
 	// Secure the updated loss ratio from each provider to cover total claimed.
 	providers := k.GetAllProviders(ctx)
-	claimedRatio := coverAmt.ToDec().Quo(totalCollateral.ToDec())
+	var claimedRatio sdk.Dec
+	if totalCollateral.IsZero() {
+		claimedRatio = sdk.ZeroDec()
+	} else {
+		claimedRatio = coverAmt.ToDec().Quo(totalCollateral.ToDec())
+	}
 	remaining := coverAmt
 	for i := range providers {
 		secureAmt := sdk.MinInt(providers[i].Collateral.ToDec().Mul(claimedRatio).TruncateInt(), remaining)
@@ -62,16 +68,16 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 	}
 
 	// Update purchase states.
-	purchase.Shield = purchase.Shield.Sub(coverAmt)
+	purchase.Shield = purchase.Shield.Sub(lossAmt)
 	purchase.Locked = true
 	k.SetPurchase(ctx, purchase)
 
 	// Update pool and global pool states.
-	pool.Shield = pool.Shield.Sub(coverAmt)
+	pool.Shield = pool.Shield.Sub(lossAmt)
 	k.SetPool(ctx, pool)
 
 	totalShield := k.GetTotalShield(ctx)
-	totalShield = totalShield.Sub(coverAmt)
+	totalShield = totalShield.Sub(lossAmt)
 	k.SetTotalShield(ctx, totalShield)
 
 	return nil
@@ -166,8 +172,14 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposal *types.ShieldClaim
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalPurchased := k.GetTotalShield(ctx)
 	totalPayout := amount.AmountOf(bondDenom)
-	purchaseRatio := totalPurchased.ToDec().Quo(totalCollateral.ToDec())
-	payoutRatio := totalPayout.ToDec().Quo(totalCollateral.ToDec())
+	var purchaseRatio, payoutRatio sdk.Dec
+	if totalCollateral.IsZero() {
+		purchaseRatio = sdk.ZeroDec()
+		payoutRatio = sdk.ZeroDec()
+	} else {
+		purchaseRatio = totalPurchased.ToDec().Quo(totalCollateral.ToDec())
+		payoutRatio = totalPayout.ToDec().Quo(totalCollateral.ToDec())
+	}
 
 	for _, provider := range k.GetAllProviders(ctx) {
 		if !totalPayout.IsPositive() {
@@ -220,9 +232,9 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposal *types.ShieldClaim
 		return err
 	}
 
-	totalCollateral = totalCollateral.Sub(amount.AmountOf(bondDenom))
+	totalCollateral = totalCollateral.Sub(reimbursement.AmountOf(bondDenom))
 	totalClaimed := k.GetTotalClaimed(ctx)
-	totalClaimed = totalClaimed.Sub(amount.AmountOf(bondDenom))
+	totalClaimed = totalClaimed.Sub(reimbursement.AmountOf(bondDenom))
 	k.SetTotalCollateral(ctx, totalCollateral)
 	k.SetTotalClaimed(ctx, totalClaimed)
 
