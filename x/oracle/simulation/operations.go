@@ -52,17 +52,16 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AccountKeeper, bk types
 		operator, _ := simtypes.RandomAcc(r, accs)
 
 		if k.IsOperator(ctx, operator.Address) {
-			return simtypes.NewOperationMsgBasic(types.ModuleName, "NoOp: operator already exists, skip this tx", "", false, nil), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreateOperator, "operator already exists, skip this tx"), nil, nil
 		}
 
 		operatorAcc := ak.GetAccount(ctx, operator.Address)
 		collateral := simtypes.RandSubsetCoins(r, bk.SpendableCoins(ctx, operatorAcc.GetAddress()))
 		if collateral.Empty() {
-			return simtypes.NewOperationMsgBasic(types.ModuleName, "NoOp: empty collateral, skip this tx", "", false, nil), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreateOperator, "empty collateral, skip this tx"), nil, nil
 		}
 		if collateral.AmountOf(sdk.DefaultBondDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
-			return simtypes.NewOperationMsgBasic(types.ModuleName,
-				"NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreateOperator, "randomized collateral not enough, skip this tx"), nil, nil
 		}
 
 		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()).Sub(collateral))
@@ -141,7 +140,7 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AccountKeeper, bk types.
 		operatorAcc := ak.GetAccount(ctx, operatorAddr)
 		collateralIncrement := simtypes.RandSubsetCoins(r, bk.SpendableCoins(ctx, operatorAcc.GetAddress()))
 		if collateralIncrement.Empty() {
-			return simtypes.NewOperationMsgBasic(types.ModuleName, "NoOp: empty collateral increment, skip this tx", "", false, nil), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgAddCollateral, "empty collateral increment, skip this tx"), nil, nil
 		}
 		stdOperator.Collateral = stdOperator.Collateral.Add(collateralIncrement...)
 
@@ -196,12 +195,11 @@ func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AccountKeeper, bk typ
 
 		collateralDecrement := simtypes.RandSubsetCoins(r, operator.Collateral)
 		if collateralDecrement.Empty() {
-			return simtypes.NewOperationMsgBasic(types.ModuleName, "NoOp: empty collateral increment, skip this tx", "", false, nil), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgReduceCollateral, "empty collateral increment, skip this tx"), nil, nil
 		}
 		newCollateral := operator.Collateral.Sub(collateralDecrement)
 		if newCollateral.AmountOf(sdk.DefaultBondDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
-			return simtypes.NewOperationMsgBasic(types.ModuleName,
-				"NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgReduceCollateral, "randomized collateral not enough, skip this tx"), nil, nil
 		}
 		stdOperator.Collateral = newCollateral
 
