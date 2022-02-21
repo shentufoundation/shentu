@@ -63,6 +63,9 @@ func (k Keeper) DistributeFees(ctx sdk.Context) {
 
 	// Distribute service fees.
 	totalCollateral := k.GetTotalCollateral(ctx)
+	if totalCollateral.IsZero() {
+		return
+	}
 	providers := k.GetAllProviders(ctx)
 	for _, provider := range providers {
 		providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
