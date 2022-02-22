@@ -37,6 +37,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdClaimParams(),
 		GetCmdStatus(),
 		GetCmdReserve(),
+		GetCmdPendingPayouts(),
 	)
 
 	return shieldQueryCmd
@@ -383,6 +384,30 @@ func GetCmdReserve() *cobra.Command {
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdPendingPayouts returns the command for querying pending payouts..
+func GetCmdPendingPayouts() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pending-payouts",
+		Short: "query pending payouts",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.PendingPayouts(cmd.Context(), &types.QueryPendingPayoutsRequest{})
+			if err != nil {
+				return err
+			}
+			return cliCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

@@ -39,6 +39,9 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 		shieldStake := sdk.ZeroInt()
 		for _, stake := range keeper.GetAllPurchase(ctx) {
 			shieldStake = shieldStake.Add(stake.Amount)
+			for _, re := range stake.RecoveringEntries {
+				shieldStake = shieldStake.Add(re.Amount.AmountOf(bondDenom))
+			}
 		}
 
 		// pending payouts

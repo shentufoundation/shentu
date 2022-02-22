@@ -148,6 +148,15 @@ func (q Keeper) Reserve(c context.Context, req *types.QueryReserveRequest) (*typ
 	return &types.QueryReserveResponse{Reserve: q.GetReserve(ctx)}, nil
 }
 
+// PendingPayouts queries all pending payouts.
+func (q Keeper) PendingPayouts(c context.Context, req *types.QueryPendingPayoutsRequest) (*types.QueryPendingPayoutsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	return &types.QueryPendingPayoutsResponse{PendingPayouts: q.GetAllPendingPayouts(ctx)}, nil
+}
+
 // PoolPurchases queries for all purchases for a specific pool.
 func (k Keeper) PoolPurchases(c context.Context, req *types.QueryPoolPurchasesRequest) (*types.QueryPurchasesResponse, error) {
 	if req == nil {

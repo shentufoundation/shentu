@@ -63,6 +63,10 @@ service Query {
   rpc Reserve(QueryReserveRequest) returns (QueryReserveResponse) {
     option (google.api.http).get = "/shentu/shield/v1alpha1/donations";
   }
+
+  rpc PendingPayouts(QueryPendingPayoutsRequest) returns (QueryPendingPayoutsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/pending_payouts";
+  }
 }
 
 
@@ -147,6 +151,13 @@ message QueryReserveRequest {
 
 message QueryReserveResponse {
   Reserve reserve = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryPendingPayoutsRequest {
+}
+
+message QueryPendingPayoutsResponse {
+  repeated PendingPayout pending_payouts = 1 [ (gogoproto.nullable) = false ];
 }
 
 message QueryAllPurchasesRequest {
