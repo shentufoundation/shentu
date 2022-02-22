@@ -59,7 +59,6 @@ func (k Keeper) GetPoolPurchases(ctx sdk.Context, poolID uint64) (res []types.Pu
 func (k Keeper) DistributeFees(ctx sdk.Context) {
 	// Add leftover block service fees from last block
 	serviceFees := k.GetServiceFees(ctx)
-	k.DeleteServiceFees(ctx)
 
 	// Distribute service fees.
 	totalCollateral := k.GetTotalCollateral(ctx)
