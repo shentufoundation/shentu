@@ -57,10 +57,11 @@ func (scp ShieldClaimProposal) ProposalType() string {
 
 // ValidateBasic runs basic stateless validity checks.
 func (scp ShieldClaimProposal) ValidateBasic() error {
-	proposerAddr, err := sdk.AccAddressFromBech32(scp.Proposer)
+	_, err := sdk.AccAddressFromBech32(scp.Proposer)
 	if err != nil {
-		return sdkerrors.ErrInvalidAddress, "Invalid proposer address (%s)", err
-	return gov.ValidateAbstract(scp)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid sender address (%s)", err)
+	}
+	return nil
 }
 
 // String implements the Stringer interface.
