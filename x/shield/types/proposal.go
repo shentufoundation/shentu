@@ -61,7 +61,7 @@ func (scp ShieldClaimProposal) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid sender address (%s)", err)
 	}
-	return nil
+	return govTypes.ValidateAbstract(scp)
 }
 
 // String implements the Stringer interface.
