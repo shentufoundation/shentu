@@ -300,13 +300,13 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 			break
 		}
 	}
-	k.SetTotalWithdrawing(ctx, totalWithdrawing)
 
 	// Update provider's collateral and total withdraw.
 	payoutFromWithdraw := payout.Sub(payoutFromCollateral).Sub(remainingPayout)
 	provider.Withdrawing = provider.Withdrawing.Sub(payoutFromWithdraw)
 	totalWithdrawing = totalWithdrawing.Sub(payoutFromWithdraw)
 	k.SetProvider(ctx, providerAddr, provider)
+	k.SetTotalWithdrawing(ctx, totalWithdrawing)
 
 	return payout.Sub(remainingPayout), nil
 }
