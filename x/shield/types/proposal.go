@@ -67,10 +67,9 @@ func (scp ShieldClaimProposal) String() string {
   PoolID:         %d
   Loss:           %s
   Evidence:       %s
-  PurchaseID:     %d
   Description:    %s
   Proposer:       %s
-`, scp.PoolId, scp.Loss, scp.Evidence, scp.PurchaseId, scp.Description, scp.Proposer))
+`, scp.PoolId, scp.Loss, scp.Evidence, scp.Description, scp.Proposer))
 	return b.String()
 }
 

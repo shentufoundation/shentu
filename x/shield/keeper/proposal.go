@@ -18,7 +18,7 @@ import (
 // the given amount of collaterals for the duration and adjust shield
 // module states accordingly.
 // TODO: rewrite some parts for V2 https://github.com/ShentuChain/shentu-private/issues/13
-func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, purchaseID uint64, loss sdk.Coins, duration time.Duration) error {
+func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, loss sdk.Coins, duration time.Duration) error {
 	totalCollateral := k.GetTotalCollateral(ctx)
 
 	lossAmt := loss.AmountOf(k.BondDenom(ctx))
@@ -134,7 +134,7 @@ func (k Keeper) ClaimEnd(ctx sdk.Context, id, poolID uint64, loss sdk.Coins) {
 
 // RestoreShield restores shield-related states as they were prior to
 // the claim proposal submission.
-func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, id uint64, loss sdk.Coins) error {
+func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, loss sdk.Coins) error {
 	lossAmt := loss.AmountOf(k.sk.BondDenom(ctx))
 
 	// Update the total shield.

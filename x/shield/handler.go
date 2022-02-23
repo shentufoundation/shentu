@@ -1,8 +1,6 @@
 package shield
 
 import (
-	"strconv"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -84,7 +82,6 @@ func handleShieldClaimProposal(ctx sdk.Context, k keeper.Keeper, p *types.Shield
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateReimbursement,
-			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(p.PurchaseId, 10)),
 			sdk.NewAttribute(types.AttributeKeyCompensationAmount, p.Loss.String()),
 			sdk.NewAttribute(types.AttributeKeyBeneficiary, p.Proposer),
 		),
