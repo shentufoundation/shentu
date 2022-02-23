@@ -57,5 +57,9 @@ func (k Keeper) GetShieldBlockRewardRatio(ctx sdk.Context) sdk.Dec {
 	 *   r = a + 2(b - a) * -------
 	 *                       l + L
 	 */
-	return leverage.Quo(leverage.Add(targetLeverage)).Mul(modelParamB.Sub(modelParamA).MulInt64(2)).Add(modelParamA)
+	if leverage.Add(targetLeverage).IsZero() {
+		return sdk.ZeroDec()
+	} else {
+		return leverage.Quo(leverage.Add(targetLeverage)).Mul(modelParamB.Sub(modelParamA).MulInt64(2)).Add(modelParamA)
+	}
 }

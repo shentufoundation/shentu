@@ -12,6 +12,7 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 
+	"github.com/certikfoundation/shentu/v2/common"
 	"github.com/certikfoundation/shentu/v2/simapp"
 )
 
@@ -25,7 +26,7 @@ type KeeperTestSuite struct {
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.app = simapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	coins := sdk.Coins{sdk.NewInt64Coin("uctk", 80000*1e6)}
+	coins := sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 80000*1e6)}
 	suite.Require().NoError(sdksimapp.FundModuleAccount(suite.app.BankKeeper, suite.ctx, "mint", coins))
 }
 
@@ -54,11 +55,11 @@ func (suite *KeeperTestSuite) TestKeeper_SendToCommunityPool() {
 			err := suite.app.MintKeeper.SendToCommunityPool(suite.ctx, tc.coins)
 			suite.Require().Nil(err)
 		} else {
-			initalMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, "uctk")
+			initalMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, common.MicroCTKDenom)
 			err := suite.app.MintKeeper.SendToCommunityPool(suite.ctx, tc.coins)
 			suite.Require().NoError(err)
-			deductedMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, "uctk")
-			distributionBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(crypto.AddressHash([]byte("distribution"))), "uctk")
+			deductedMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, common.MicroCTKDenom)
+			distributionBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(crypto.AddressHash([]byte("distribution"))), common.MicroCTKDenom)
 			suite.Require().Equal(initalMintBalance.Sub(deductedMintBalance), distributionBalance)
 		}
 	}
@@ -89,13 +90,71 @@ func (suite *KeeperTestSuite) TestKeeper_SendToShieldRewards() {
 			err := suite.app.MintKeeper.SendToShieldRewards(suite.ctx, tc.coins)
 			suite.Require().Nil(err)
 		} else {
-			initalMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, "uctk")
+			initalMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, common.MicroCTKDenom)
 			err := suite.app.MintKeeper.SendToShieldRewards(suite.ctx, tc.coins)
 			suite.Require().NoError(err)
-			deductedMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, "uctk")
-			shieldBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(crypto.AddressHash([]byte("shield"))), "uctk")
+			deductedMintBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAcct, common.MicroCTKDenom)
+			shieldBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(crypto.AddressHash([]byte("shield"))), common.MicroCTKDenom)
 			suite.Require().Equal(initalMintBalance.Sub(deductedMintBalance), shieldBalance)
 		}
+	}
+}
+
+func (suite *KeeperTestSuite) TestGetPoolMint() {
+	tests := []struct {
+		name       string
+		ratio      sdk.Dec
+		mintedCoin sdk.Coin
+		expCoins   sdk.Coins
+	}{
+		{
+			name:       "Get Pool Mint with Zero Ratio and Zero Minted Coin",
+			ratio:      sdk.ZeroDec(), // 0%
+			mintedCoin: sdk.NewCoin(common.MicroCTKDenom, sdk.ZeroInt()),
+			expCoins:   sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, sdk.ZeroInt())},
+		},
+		{
+			name:       "Get Pool Mint with Zero Ratio",
+			ratio:      sdk.ZeroDec(), // 0%
+			mintedCoin: sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(1e4)),
+			expCoins:   sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, sdk.ZeroInt())},
+		},
+		{
+			name:       "Get Pool Mint with Zero Minted Coin",
+			ratio:      sdk.NewDecWithPrec(20, 2), // 20%
+			mintedCoin: sdk.NewCoin(common.MicroCTKDenom, sdk.ZeroInt()),
+			expCoins:   sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, sdk.ZeroInt())},
+		},
+		{
+			name:       "Get Pool Mint with 100% Ratio",
+			ratio:      sdk.NewDecWithPrec(100, 2), // 100%
+			mintedCoin: sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(1e4)),
+			expCoins:   sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(1e4))},
+		},
+		{
+			name:       "Get Pool Mint with No Remainder",
+			ratio:      sdk.NewDecWithPrec(20, 2), // 20%
+			mintedCoin: sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(1e4)),
+			expCoins:   sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(2e3))},
+		},
+		{
+			name:       "Get Pool Mint with Remainder 1",
+			ratio:      sdk.NewDecWithPrec(4928, 4), // 49.28%
+			mintedCoin: sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100)),
+			expCoins:   sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(49))},
+		},
+		{
+			name:       "Get Pool Mint with Remainder 2",
+			ratio:      sdk.NewDecWithPrec(20, 2), // 20%
+			mintedCoin: sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(9999)),
+			expCoins:   sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(1999))},
+		},
+	}
+
+	for _, tc := range tests {
+		suite.T().Log(tc.name)
+		poolMint := suite.app.MintKeeper.GetPoolMint(suite.ctx, tc.ratio, tc.mintedCoin)
+		suite.Require().True(tc.expCoins.IsEqual(poolMint))
 	}
 }
 
