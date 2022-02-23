@@ -242,7 +242,6 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposal *types.ShieldClaim
 	}
 	purchase.RecoveringEntries = append(purchase.RecoveringEntries, entry)
 	purchase.Locked = false
-	purchase.Shield = purchase.Shield.Sub(amount.AmountOf(bondDenom))
 	k.SetPurchase(ctx, purchase)
 
 	return nil
