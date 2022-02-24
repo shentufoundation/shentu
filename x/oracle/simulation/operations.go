@@ -195,7 +195,7 @@ func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AccountKeeper, bk typ
 
 		collateralDecrement := simtypes.RandSubsetCoins(r, operator.Collateral)
 		if collateralDecrement.Empty() {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgReduceCollateral, "empty collateral increment, skip this tx"), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgReduceCollateral, "Empty collateral decrement, skip this tx"), nil, nil
 		}
 		newCollateral := operator.Collateral.Sub(collateralDecrement)
 		if newCollateral.AmountOf(sdk.DefaultBondDenom).Int64() < k.GetLockedPoolParams(ctx).MinimumCollateral {
