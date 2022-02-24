@@ -83,6 +83,7 @@ func (s *IntegrationTestSuite) TestLockedSendTx() {
 
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, from.String()),
 				fmt.Sprintf("--%s=%s", cli.FlagUnlocker, from.String()),
+
 				// common args
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
