@@ -131,6 +131,7 @@ func (k Keeper) MakePayouts(ctx sdk.Context) {
 			if reserve.Amount.IsNegative() { //testing purpose
 				panic("negative reserve balance")
 			}
+			k.DeletePendingPayout(ctx, payout.ProposalId)
 			return true
 		}
 
