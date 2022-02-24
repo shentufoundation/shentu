@@ -171,7 +171,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposal *types.ShieldClaim
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalPayout := amount.AmountOf(bondDenom)
 
-	// If total collateral is positive, update provider collateral 
+	// If total collateral is positive, update provider collateral
 	// and make payouts from delegations.
 	if !totalCollateral.IsZero() {
 		payoutRatio := totalPayout.ToDec().Quo(totalCollateral.ToDec())
@@ -180,30 +180,30 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposal *types.ShieldClaim
 			if !totalPayout.IsPositive() {
 				break
 			}
-	
+
 			providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
 			if err != nil {
 				panic(err)
 			}
-	
+
 			payout := provider.Collateral.ToDec().Mul(payoutRatio).TruncateInt()
 			payout = sdk.MinInt(payout, totalPayout)
-	
+
 			// Require providers to cover (payout + 1) if it's possible,
 			// so that the last provider will not be asked to cover all truncated amount.
 			if payout.LT(totalPayout) && provider.Collateral.GT(payout) {
 				payout = payout.Add(sdk.OneInt())
 			}
-	
+
 			actualPayout, err := k.UpdateProviderCollateralForPayout(ctx, providerAddr, payout)
 			if err != nil {
 				panic(err)
 			}
-	
+
 			if err := k.MakePayoutByProviderDelegations(ctx, providerAddr, actualPayout); err != nil {
 				panic(err)
 			}
-	
+
 			totalPayout = totalPayout.Sub(actualPayout)
 		}
 	}

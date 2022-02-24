@@ -22,6 +22,7 @@ var (
 	flagDescription = "description"
 	flagShieldRate  = "shield-rate"
 	flagActive      = "active"
+	flagShieldLimit = "shield-limit"
 )
 
 // NewTxCmd returns the transaction commands for this module.
@@ -124,7 +125,7 @@ func GetCmdCreatePool() *cobra.Command {
 			fmt.Sprintf(`Create a Shield pool. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-rate <shield rate>
+$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-rate <shield rate> --shield-limit <shield limit>
 `,
 				version.AppName,
 			),
@@ -150,7 +151,12 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-
 				return err
 			}
 
-			msg := types.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate)
+			shieldLimit, err := sdk.ParseCoinsNormalized(viper.GetString(flagShieldLimit))
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate, shieldLimit)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -161,6 +167,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-
 
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagShieldRate, "", "Shield Rate")
+	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }

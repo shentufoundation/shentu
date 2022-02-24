@@ -9,6 +9,7 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/certikfoundation/shentu/v2/common"
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
@@ -46,7 +47,7 @@ func GenPoolParams(r *rand.Rand) types.PoolParams {
 	protectionPeriod := time.Duration(simtypes.RandIntBetween(r, 60*1, 60*60*24*2)) * time.Second
 	withdrawPeriod := time.Duration(simtypes.RandIntBetween(r, 60*1, 60*60*24*3)) * time.Second
 	shieldFeesRate := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 0, 50)), 3)
-	poolShieldLimit := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 20)), 2)
+	poolShieldLimit := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100000000)))
 	withdrawFeesRate := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 50)), 3)
 	cooldownPeriod := time.Duration(simtypes.RandIntBetween(r, 60*1, 60*60*24*3)) * time.Second
 	return types.NewPoolParams(protectionPeriod, withdrawPeriod, cooldownPeriod, shieldFeesRate, withdrawFeesRate, poolShieldLimit, sdk.NewCoins())

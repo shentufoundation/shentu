@@ -19,6 +19,7 @@ message Pool {
     bool active = 4 [ (gogoproto.moretags) = "yaml:\"active\"" ];
     string shield = 5 [ (gogoproto.moretags) = "yaml:\"shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     string shield_rate = 6 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.Coin shield_limit = 7 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
 }
 
 // Reserve defines Shield Reserve.

@@ -32,6 +32,8 @@ message MsgCreatePool {
     string sponsor_addr = 2 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
     string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     string shield_rate = 4 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.Coin shield_limit = 5 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    
 }
 
 message MsgCreatePoolResponse {}
@@ -46,6 +48,7 @@ message MsgUpdatePool {
     string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     bool active = 4 [ (gogoproto.moretags) = "yaml:\"active\"" ];
     string shield_rate = 5 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.Coin shield_limit = 6 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
 }
   
 message MsgUpdatePoolResponse {}
