@@ -63,7 +63,6 @@ func (s *IntegrationTestSuite) TestLockedSendTx() {
 				sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 				sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(1))).String(),
 
-				//fmt.Sprintf("--%s=%s", cli.FlagDuration, "24h"),
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, from.String()),
 				//fmt.Sprintf("--%s=%s", cli.FlagUnlocker, from.String()),
 				// common args
