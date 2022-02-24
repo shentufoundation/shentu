@@ -179,7 +179,6 @@ type ShieldStaking struct {
 type ShieldClaimProposal struct {
     ProposalId  uint64      `json:"proposal_id" yaml:"proposal_id"`
     PoolId      uint64      `json:"pool_id" yaml:"pool_id"`
-    PurchaseId  uint64      `json:"purchase_id" yaml:"purchase_id"`
     Loss        sdk.Coins   `json:"loss" yaml:"loss"`
     Evidence    string      `json:"evidence" yaml:"evidence"`
     Description string      `json:"description" yaml:"description"`
