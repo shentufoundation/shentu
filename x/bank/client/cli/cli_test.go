@@ -29,7 +29,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.T().Log("setting up integration test suite")
 	s.cfg = app.DefaultConfig()
 
-	s.cfg.NumValidators = 2
+	s.cfg.NumValidators = 1
 	s.cfg.BondDenom = common.MicroCTKDenom
 	s.cfg.AccountTokens = sdk.NewInt(100_000_000_000)
 	s.cfg.StakingTokens = sdk.NewInt(100_000_000_000)
@@ -47,11 +47,8 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 
 func (s *IntegrationTestSuite) TestLockedSendTx() {
 	val := s.network.Validators[0]
-	val1 := s.network.Validators[1]
 	from := val.Address
-	to := val1.Address
 
-	fmt.Println("payment", from.String(), to.String(), s.cfg.MinGasPrices)
 	testCases := []struct {
 		name         string
 		args         []string
