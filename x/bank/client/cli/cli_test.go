@@ -66,7 +66,6 @@ func (s *IntegrationTestSuite) TestLockedSendTx() {
 				sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(1))).String(),
 
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, from.String()),
-				//fmt.Sprintf("--%s=%s", cli.FlagUnlocker, from.String()),
 
 				// common args
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
