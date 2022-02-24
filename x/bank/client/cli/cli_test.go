@@ -3,6 +3,7 @@ package cli_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
@@ -42,6 +43,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 func (s *IntegrationTestSuite) TearDownSuite() {
 	s.T().Log("tearing down integration test suite")
+	time.Sleep(1 * time.Second)
 	s.network.Cleanup()
 }
 
