@@ -224,6 +224,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 			shieldRate = shieldRate.Mul(sdk.NewDec(-1))
 		}
 		shieldRate = shieldRate.Add(sdk.OneDec())
+		shieldLimit := simtypes.RandSubsetCoins(r, sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100000000))))
 
 		tmp, err := simtypes.RandPositiveInt(r, sdk.OneInt())
 		if err != nil {
@@ -231,7 +232,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		}
 		active := tmp.Equal(sdk.OneInt())
 
-		msg := types.NewMsgUpdatePool(simAccount.Address, poolID, description, active, shieldRate)
+		msg := types.NewMsgUpdatePool(simAccount.Address, poolID, description, active, shieldRate, shieldLimit)
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
