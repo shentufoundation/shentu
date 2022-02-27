@@ -3,6 +3,7 @@ package simulation
 import (
 	"bytes"
 	"fmt"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,37 +29,37 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 
 		case bytes.Equal(kvA.Key[:1], types.ServiceFeesKey),
 			bytes.Equal(kvA.Key[:1], types.RemainingServiceFeesKey):
-			var serviceFeesA, serviceFeesB types.Fees
+			var serviceFeesA, serviceFeesB v1beta1.Fees
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &serviceFeesA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &serviceFeesB)
 			return fmt.Sprintf("%v\n%v", serviceFeesA, serviceFeesB)
 
 		case bytes.Equal(kvA.Key[:1], types.PoolKey):
-			var poolA, poolB types.Pool
+			var poolA, poolB v1beta1.Pool
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &poolA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &poolB)
 			return fmt.Sprintf("%v\n%v", poolA, poolB)
 
 		case bytes.Equal(kvA.Key[:1], types.ProviderKey):
-			var providerA, providerB types.Provider
+			var providerA, providerB v1beta1.Provider
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &providerA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &providerB)
 			return fmt.Sprintf("%v\n%v", providerA, providerB)
 
 		case bytes.Equal(kvA.Key[:1], types.PurchaseKey):
-			var sPA, spB types.Purchase
+			var sPA, spB v1beta1.Purchase
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &sPA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &spB)
 			return fmt.Sprintf("%v\n%v", sPA, spB)
 
 		case bytes.Equal(kvA.Key[:1], types.BlockServiceFeesKey):
-			var blockFeesA, blockFeesB types.Fees
+			var blockFeesA, blockFeesB v1beta1.Fees
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &blockFeesA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &blockFeesB)
 			return fmt.Sprintf("%v\n%v", blockFeesA, blockFeesB)
 
 		case bytes.Equal(kvA.Key[:1], types.ReserveKey):
-			var reserveA, reserveB types.Pool
+			var reserveA, reserveB v1beta1.Pool
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &reserveA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &reserveB)
 			return fmt.Sprintf("%v\n%v", reserveA, reserveB)

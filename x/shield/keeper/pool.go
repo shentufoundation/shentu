@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
@@ -84,7 +85,7 @@ func (k Keeper) GetTotalClaimed(ctx sdk.Context) sdk.Int {
 
 func (k Keeper) SetServiceFees(ctx sdk.Context, serviceFees sdk.DecCoins) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&types.Fees{Amount: serviceFees})
+	bz := k.cdc.MustMarshalLengthPrefixed(&v1beta1.Fees{Amount: serviceFees})
 	store.Set(types.GetServiceFeesKey(), bz)
 }
 
@@ -94,7 +95,7 @@ func (k Keeper) GetServiceFees(ctx sdk.Context) sdk.DecCoins {
 	if bz == nil {
 		return sdk.DecCoins{}
 	}
-	var serviceFees types.Fees
+	var serviceFees v1beta1.Fees
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &serviceFees)
 	return serviceFees.Amount
 }
@@ -105,26 +106,26 @@ func (k Keeper) DeleteServiceFees(ctx sdk.Context) {
 }
 
 // SetPool sets data of a pool in kv-store.
-func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
+func (k Keeper) SetPool(ctx sdk.Context, pool v1beta1.Pool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&pool)
 	store.Set(types.GetPoolKey(pool.Id), bz)
 }
 
 // GetPool gets data of a pool given pool ID.
-func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
+func (k Keeper) GetPool(ctx sdk.Context, id uint64) (v1beta1.Pool, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetPoolKey(id))
 	if bz == nil {
-		return types.Pool{}, false
+		return v1beta1.Pool{}, false
 	}
-	var pool types.Pool
+	var pool v1beta1.Pool
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &pool)
 	return pool, true
 }
 
 // CreatePool creates a pool and sponsor's shield.
-func (k Keeper) CreatePool(ctx sdk.Context, msg types.MsgCreatePool) (uint64, error) {
+func (k Keeper) CreatePool(ctx sdk.Context, msg v1beta1.MsgCreatePool) (uint64, error) {
 	creator, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
 		return 0, err
@@ -144,7 +145,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg types.MsgCreatePool) (uint64, er
 
 	// Set the new project pool.
 	poolID := k.GetNextPoolID(ctx)
-	pool := types.NewPool(poolID, msg.Description, sponsorAddr, sdk.ZeroInt(), msg.ShieldRate)
+	pool := v1beta1.NewPool(poolID, msg.Description, sponsorAddr, sdk.ZeroInt(), msg.ShieldRate)
 
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, poolID+1)
@@ -152,21 +153,21 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg types.MsgCreatePool) (uint64, er
 }
 
 // UpdatePool updates pool info and shield for B.
-func (k Keeper) UpdatePool(ctx sdk.Context, msg types.MsgUpdatePool) (types.Pool, error) {
+func (k Keeper) UpdatePool(ctx sdk.Context, msg v1beta1.MsgUpdatePool) (v1beta1.Pool, error) {
 	updater, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
-		return types.Pool{}, err
+		return v1beta1.Pool{}, err
 	}
 
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
-		return types.Pool{}, types.ErrNotShieldAdmin
+		return v1beta1.Pool{}, types.ErrNotShieldAdmin
 	}
 
 	// Update pool info.
 	pool, found := k.GetPool(ctx, msg.PoolId)
 	if !found {
-		return types.Pool{}, types.ErrNoPoolFound
+		return v1beta1.Pool{}, types.ErrNoPoolFound
 	}
 	if msg.Description != "" {
 		pool.Description = msg.Description
@@ -180,17 +181,17 @@ func (k Keeper) UpdatePool(ctx sdk.Context, msg types.MsgUpdatePool) (types.Pool
 }
 
 // PausePool sets an active pool to be inactive.
-func (k Keeper) PausePool(ctx sdk.Context, updater sdk.AccAddress, id uint64) (types.Pool, error) {
+func (k Keeper) PausePool(ctx sdk.Context, updater sdk.AccAddress, id uint64) (v1beta1.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
-		return types.Pool{}, types.ErrNotShieldAdmin
+		return v1beta1.Pool{}, types.ErrNotShieldAdmin
 	}
 	pool, found := k.GetPool(ctx, id)
 	if !found {
-		return types.Pool{}, types.ErrNoPoolFound
+		return v1beta1.Pool{}, types.ErrNoPoolFound
 	}
 	if !pool.Active {
-		return types.Pool{}, types.ErrPoolAlreadyPaused
+		return v1beta1.Pool{}, types.ErrPoolAlreadyPaused
 	}
 	pool.Active = false
 	k.SetPool(ctx, pool)
@@ -198,17 +199,17 @@ func (k Keeper) PausePool(ctx sdk.Context, updater sdk.AccAddress, id uint64) (t
 }
 
 // ResumePool sets an inactive pool to be active.
-func (k Keeper) ResumePool(ctx sdk.Context, updater sdk.AccAddress, id uint64) (types.Pool, error) {
+func (k Keeper) ResumePool(ctx sdk.Context, updater sdk.AccAddress, id uint64) (v1beta1.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
-		return types.Pool{}, types.ErrNotShieldAdmin
+		return v1beta1.Pool{}, types.ErrNotShieldAdmin
 	}
 	pool, found := k.GetPool(ctx, id)
 	if !found {
-		return types.Pool{}, types.ErrNoPoolFound
+		return v1beta1.Pool{}, types.ErrNoPoolFound
 	}
 	if pool.Active {
-		return types.Pool{}, types.ErrPoolAlreadyActive
+		return v1beta1.Pool{}, types.ErrPoolAlreadyActive
 	}
 	pool.Active = true
 	k.SetPool(ctx, pool)
@@ -216,8 +217,8 @@ func (k Keeper) ResumePool(ctx sdk.Context, updater sdk.AccAddress, id uint64) (
 }
 
 // GetAllPools retrieves all pools in the store.
-func (k Keeper) GetAllPools(ctx sdk.Context) (pools []types.Pool) {
-	k.IterateAllPools(ctx, func(pool types.Pool) bool {
+func (k Keeper) GetAllPools(ctx sdk.Context) (pools []v1beta1.Pool) {
+	k.IterateAllPools(ctx, func(pool v1beta1.Pool) bool {
 		pools = append(pools, pool)
 		return false
 	})
@@ -225,13 +226,13 @@ func (k Keeper) GetAllPools(ctx sdk.Context) (pools []types.Pool) {
 }
 
 // IterateAllPools iterates over the all the stored pools and performs a callback function.
-func (k Keeper) IterateAllPools(ctx sdk.Context, callback func(pool types.Pool) (stop bool)) {
+func (k Keeper) IterateAllPools(ctx sdk.Context, callback func(pool v1beta1.Pool) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.PoolKey)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var pool types.Pool
+		var pool v1beta1.Pool
 		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &pool)
 
 		if callback(pool) {
@@ -241,17 +242,17 @@ func (k Keeper) IterateAllPools(ctx sdk.Context, callback func(pool types.Pool) 
 }
 
 // UpdateSponsor updates the sponsor information of a given pool.
-func (k Keeper) UpdateSponsor(ctx sdk.Context, poolID uint64, newSponsor string, newSponsorAddr, updater sdk.AccAddress) (types.Pool, error) {
+func (k Keeper) UpdateSponsor(ctx sdk.Context, poolID uint64, newSponsor string, newSponsorAddr, updater sdk.AccAddress) (v1beta1.Pool, error) {
 	// Check admin status of the updater.
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
-		return types.Pool{}, types.ErrNotShieldAdmin
+		return v1beta1.Pool{}, types.ErrNotShieldAdmin
 	}
 
 	// Retrieve the pool and update its sponsor information.
 	pool, found := k.GetPool(ctx, poolID)
 	if !found {
-		return types.Pool{}, types.ErrNoPoolFound
+		return v1beta1.Pool{}, types.ErrNoPoolFound
 	}
 	pool.SponsorAddr = newSponsorAddr.String()
 	k.SetPool(ctx, pool)

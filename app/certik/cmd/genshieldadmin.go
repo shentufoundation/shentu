@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 
 	"github.com/spf13/cobra"
 
@@ -42,7 +43,7 @@ func AddGenesisShieldAdminCmd(defaultNodeHome string) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal genesis state: %w", err)
 			}
-			shieldGenState := shieldtypes.GetGenesisStateFromAppState(cdc, appState)
+			shieldGenState := v1beta1.GetGenesisStateFromAppState(cdc, appState)
 
 			shieldGenState.ShieldAdmin = addr.String()
 

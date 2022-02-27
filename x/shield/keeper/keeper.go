@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/binary"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -50,10 +51,10 @@ func (k Keeper) GetNextPoolID(ctx sdk.Context) uint64 {
 }
 
 // GetPoolsBySponsor search store for a pool object with given pool ID.
-func (k Keeper) GetPoolsBySponsor(ctx sdk.Context, sponsorAddr string) ([]types.Pool, bool) {
-	var ret []types.Pool
+func (k Keeper) GetPoolsBySponsor(ctx sdk.Context, sponsorAddr string) ([]v1beta1.Pool, bool) {
+	var ret []v1beta1.Pool
 	found := false
-	k.IterateAllPools(ctx, func(pool types.Pool) bool {
+	k.IterateAllPools(ctx, func(pool v1beta1.Pool) bool {
 		if pool.SponsorAddr == sponsorAddr {
 			ret = append(ret, pool)
 			found = true

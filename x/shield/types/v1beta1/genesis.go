@@ -1,8 +1,9 @@
-package types
+package v1beta1
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/certikfoundation/shentu/v2/x/shield/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -43,19 +44,19 @@ func DefaultGenesisState() *GenesisState {
 // ValidateGenesis validates shield genesis data.
 func ValidateGenesis(data GenesisState) error {
 	if data.NextPoolId < 1 {
-		return fmt.Errorf("failed to validate %s genesis state: NextPoolID must be positive ", ModuleName)
+		return fmt.Errorf("failed to validate %s genesis state: NextPoolID must be positive ", types.ModuleName)
 	}
 	if data.Reserve.Amount.IsNegative() {
 		return fmt.Errorf("reserve amount is negative %v", data.Reserve.Amount)
 	}
 	if err := validatePoolParams(data.ShieldParams.PoolParams); err != nil {
-		return fmt.Errorf("failed to validate %s pool params: %w", ModuleName, err)
+		return fmt.Errorf("failed to validate %s pool params: %w", types.ModuleName, err)
 	}
 	if err := validateClaimProposalParams(data.ShieldParams.ClaimProposalParams); err != nil {
-		return fmt.Errorf("failed to validate %s claim proposal params: %w", ModuleName, err)
+		return fmt.Errorf("failed to validate %s claim proposal params: %w", types.ModuleName, err)
 	}
 	if err := validateBlockRewardParams(data.ShieldParams.BlockRewardParams); err != nil {
-		return fmt.Errorf("failed to validate %s block reward params: %w", ModuleName, err)
+		return fmt.Errorf("failed to validate %s block reward params: %w", types.ModuleName, err)
 	}
 
 	return nil
@@ -64,8 +65,8 @@ func ValidateGenesis(data GenesisState) error {
 // GetGenesisStateFromAppState returns GenesisState given raw application genesis state.
 func GetGenesisStateFromAppState(cdc codec.Codec, appState map[string]json.RawMessage) GenesisState {
 	var genesisState GenesisState
-	if appState[ModuleName] != nil {
-		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
+	if appState[types.ModuleName] != nil {
+		cdc.MustUnmarshalJSON(appState[types.ModuleName], &genesisState)
 	}
 	return genesisState
 }

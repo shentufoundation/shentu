@@ -25,23 +25,28 @@ const (
 )
 
 var (
-	ShieldAdminKey              = []byte{0x00}
-	TotalCollateralKey          = []byte{0x01}
-	TotalWithdrawingKey         = []byte{0x02}
-	TotalShieldKey              = []byte{0x03}
-	TotalClaimedKey             = []byte{0x04}
-	ServiceFeesKey              = []byte{0x05}
-	RemainingServiceFeesKey     = []byte{0x06}
-	PoolKey                     = []byte{0x07}
-	NextPoolIDKey               = []byte{0x08}
-	ProviderKey                 = []byte{0x0C}
-	WithdrawQueueKey            = []byte{0x0D}
-	GlobalStakeForShieldPoolKey = []byte{0x0F}
-	PurchaseKey                 = []byte{0x11}
-	BlockServiceFeesKey         = []byte{0x12}
-	ReimbursementKey            = []byte{0x14}
-	ReserveKey                  = []byte{0x15}
-	PendingPayoutKey            = []byte{0x16}
+	ShieldAdminKey          = []byte{0x00}
+	TotalCollateralKey      = []byte{0x01}
+	TotalWithdrawingKey     = []byte{0x02}
+	TotalShieldKey          = []byte{0x03}
+	TotalClaimedKey         = []byte{0x04}
+	ServiceFeesKey          = []byte{0x05}
+	RemainingServiceFeesKey = []byte{0x06}
+	PoolKey                 = []byte{0x07}
+	NextPoolIDKey           = []byte{0x08}
+	NextPurchaseIDKey       = []byte{0x09}
+	PurchaseListKey         = []byte{0x0A}
+	PurchaseQueueKey        = []byte{0x0B}
+	ProviderKey             = []byte{0x0C}
+	WithdrawQueueKey        = []byte{0x0D}
+	LastUpdateTimeKey       = []byte{0x0E}
+	GlobalStakingPoolKey    = []byte{0x0F}
+	PurchaseKey             = []byte{0x11}
+	BlockServiceFeesKey     = []byte{0x12}
+	OriginalStakingKey      = []byte{0x13}
+	ReimbursementKey        = []byte{0x14}
+	ReserveKey              = []byte{0x15}
+	PendingPayoutKey        = []byte{0x16}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -93,8 +98,8 @@ func GetWithdrawCompletionTimeKey(timestamp time.Time) []byte {
 	return append(WithdrawQueueKey, bz...)
 }
 
-func GetGlobalStakeForShieldPoolKey() []byte {
-	return GlobalStakeForShieldPoolKey
+func GetGlobalStakingPoolKey() []byte {
+	return GlobalStakingPoolKey
 }
 
 func GetPurchaseKey(poolID uint64, purchaser sdk.AccAddress) []byte {
@@ -121,4 +126,34 @@ func GetPendingPayoutKey(proposalID uint64) []byte {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, proposalID)
 	return append(PendingPayoutKey, bz...)
+}
+
+func GetOriginalStakingKey(purchaseID uint64) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, purchaseID)
+	return append(OriginalStakingKey, bz...)
+}
+
+// GetLastUpdateTimeKey gets the key for the last update time.
+func GetLastUpdateTimeKey() []byte {
+	return LastUpdateTimeKey
+}
+
+// GetNextPurchaseIDKey gets the key for the next pool ID.
+func GetNextPurchaseIDKey() []byte {
+	return NextPurchaseIDKey
+}
+
+// GetPurchaseTxHashKey gets the key for a purchase.
+func GetPurchaseListKey(id uint64, purchaser sdk.AccAddress) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, id)
+	return append(PurchaseListKey, append(bz, purchaser.Bytes()...)...)
+}
+
+// GetPurchaseExpirationTimeKey gets a withdraw queue key,
+// which is obtained from the expiration time.
+func GetPurchaseExpirationTimeKey(timestamp time.Time) []byte {
+	bz := sdk.FormatTimeBytes(timestamp)
+	return append(PurchaseQueueKey, bz...)
 }

@@ -1,13 +1,13 @@
 package keeper
 
 import (
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // validatorGovInfo used for tallying

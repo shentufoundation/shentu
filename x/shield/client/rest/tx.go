@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -10,8 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 func registerTxHandlers(cliCtx client.Context, r *mux.Router) {
@@ -43,7 +42,7 @@ func depositCollateralHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgDepositCollateral(from, req.Amount)
+		msg := v1beta1.NewMsgDepositCollateral(from, req.Amount)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -72,7 +71,7 @@ func withdrawCollateralHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgWithdrawCollateral(from, req.Amount)
+		msg := v1beta1.NewMsgWithdrawCollateral(from, req.Amount)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -101,7 +100,7 @@ func withdrawRewardsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgWithdrawRewards(from)
+		msg := v1beta1.NewMsgWithdrawRewards(from)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -131,7 +130,7 @@ func withdrawForeignRewardsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgWithdrawForeignRewards(accAddr, req.Denom, req.ToAddr)
+		msg := v1beta1.NewMsgWithdrawForeignRewards(accAddr, req.Denom, req.ToAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -160,7 +159,7 @@ func purchaseHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgPurchase(req.PoolID, req.Shield, req.Description, from)
+		msg := v1beta1.NewMsgPurchase(req.PoolID, req.Shield, req.Description, from)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -189,7 +188,7 @@ func postProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		content := types.NewShieldClaimProposal(req.PoolID, req.Loss, req.Evidence, req.Description, from)
+		content := v1beta1.NewShieldClaimProposal(req.PoolID, req.Loss, req.Evidence, req.Description, from)
 
 		msg, err := govtypes.NewMsgSubmitProposal(content, req.Deposit, from)
 		if err != nil {
@@ -223,7 +222,7 @@ func stakeForShieldHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgPurchase(req.PoolID, req.Shield, req.Description, from)
+		msg := v1beta1.NewMsgPurchase(req.PoolID, req.Shield, req.Description, from)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -252,7 +251,7 @@ func unstakeFromShieldHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgUnstake(req.PoolID, req.Amount, from)
+		msg := v1beta1.NewMsgUnstake(req.PoolID, req.Amount, from)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

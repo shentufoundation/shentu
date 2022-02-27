@@ -3,6 +3,7 @@ package v220
 import (
 	"encoding/json"
 	"fmt"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"strings"
 	"time"
 
@@ -16,7 +17,6 @@ import (
 	proto "github.com/gogo/protobuf/proto"
 
 	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // Proposal types implement UnpackInterfaceMessages to unpack

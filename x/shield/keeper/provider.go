@@ -1,24 +1,25 @@
 package keeper
 
 import (
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // SetProvider sets data of a provider in the kv-store.
-func (k Keeper) SetProvider(ctx sdk.Context, delAddr sdk.AccAddress, provider types.Provider) {
+func (k Keeper) SetProvider(ctx sdk.Context, delAddr sdk.AccAddress, provider v1beta1.Provider) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&provider)
 	store.Set(types.GetProviderKey(delAddr), bz)
 }
 
 // GetProvider returns data of a provider given its address.
-func (k Keeper) GetProvider(ctx sdk.Context, delegator sdk.AccAddress) (dt types.Provider, found bool) {
+func (k Keeper) GetProvider(ctx sdk.Context, delegator sdk.AccAddress) (dt v1beta1.Provider, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetProviderKey(delegator))
 	if bz == nil {
-		return types.Provider{}, false
+		return v1beta1.Provider{}, false
 	}
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &dt)
 	return dt, true
@@ -26,7 +27,7 @@ func (k Keeper) GetProvider(ctx sdk.Context, delegator sdk.AccAddress) (dt types
 
 // addProvider adds a new provider into shield module.
 // Should only be called from CreatePool or DepositCollateral.
-func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) types.Provider {
+func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) v1beta1.Provider {
 	delegations := k.sk.GetAllDelegatorDelegations(ctx, addr)
 
 	// Track provider's total stakings.
@@ -39,7 +40,7 @@ func (k Keeper) addProvider(ctx sdk.Context, addr sdk.AccAddress) types.Provider
 		totalStaked = totalStaked.Add(val.TokensFromShares(del.GetShares()).TruncateInt())
 	}
 
-	provider := types.NewProvider(addr)
+	provider := v1beta1.NewProvider(addr)
 	provider.DelegationBonded = totalStaked
 	k.SetProvider(ctx, addr, provider)
 	return provider
@@ -108,13 +109,13 @@ func (k Keeper) updateProviderForDelegationChanges(ctx sdk.Context, delAddr sdk.
 }
 
 // IterateProviders iterates through all providers.
-func (k Keeper) IterateProviders(ctx sdk.Context, callback func(provider types.Provider) (stop bool)) {
+func (k Keeper) IterateProviders(ctx sdk.Context, callback func(provider v1beta1.Provider) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ProviderKey)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var provider types.Provider
+		var provider v1beta1.Provider
 		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &provider)
 
 		if callback(provider) {
@@ -124,8 +125,8 @@ func (k Keeper) IterateProviders(ctx sdk.Context, callback func(provider types.P
 }
 
 // GetAllProviders retrieves all providers.
-func (k Keeper) GetAllProviders(ctx sdk.Context) (providers []types.Provider) {
-	k.IterateProviders(ctx, func(provider types.Provider) bool {
+func (k Keeper) GetAllProviders(ctx sdk.Context) (providers []v1beta1.Provider) {
+	k.IterateProviders(ctx, func(provider v1beta1.Provider) bool {
 		providers = append(providers, provider)
 		return false
 	})
@@ -133,8 +134,8 @@ func (k Keeper) GetAllProviders(ctx sdk.Context) (providers []types.Provider) {
 }
 
 // GetProvidersPaginated performs paginated query of providers.
-func (k Keeper) GetProvidersPaginated(ctx sdk.Context, page, limit uint) (providers []types.Provider) {
-	k.IterateProvidersPaginated(ctx, page, limit, func(provider types.Provider) bool {
+func (k Keeper) GetProvidersPaginated(ctx sdk.Context, page, limit uint) (providers []v1beta1.Provider) {
+	k.IterateProvidersPaginated(ctx, page, limit, func(provider v1beta1.Provider) bool {
 		providers = append(providers, provider)
 		return false
 	})
@@ -143,12 +144,12 @@ func (k Keeper) GetProvidersPaginated(ctx sdk.Context, page, limit uint) (provid
 
 // IterateProvidersPaginated iterates over providers based on
 // pagination parameters and performs a callback function.
-func (k Keeper) IterateProvidersPaginated(ctx sdk.Context, page, limit uint, cb func(vote types.Provider) (stop bool)) {
+func (k Keeper) IterateProvidersPaginated(ctx sdk.Context, page, limit uint, cb func(vote v1beta1.Provider) (stop bool)) {
 	iterator := k.GetProvidersIteratorPaginated(ctx, page, limit)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var provider types.Provider
+		var provider v1beta1.Provider
 		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &provider)
 
 		if cb(provider) {

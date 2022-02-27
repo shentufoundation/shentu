@@ -2,6 +2,7 @@ package gov
 
 import (
 	"fmt"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,7 +11,6 @@ import (
 	"github.com/certikfoundation/shentu/v2/common"
 	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
@@ -32,15 +32,15 @@ func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 }
 
 func updateVeto(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
-	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
+	if proposal.ProposalType() == v1beta1.ProposalTypeShieldClaim {
+		c := proposal.GetContent().(*v1beta1.ShieldClaimProposal)
 		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalId, c.PoolId, c.Loss)
 	}
 }
 
 func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
-	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
+	if proposal.ProposalType() == v1beta1.ProposalTypeShieldClaim {
+		c := proposal.GetContent().(*v1beta1.ShieldClaimProposal)
 		proposer, err := sdk.AccAddressFromBech32(proposal.ProposerAddress)
 		if err != nil {
 			panic(err)

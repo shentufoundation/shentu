@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,7 +18,7 @@ type unbondingInfo struct {
 
 // InsertWithdrawQueue prepares a withdraw queue timeslice
 // for insertion into the queue.
-func (k Keeper) InsertWithdrawQueue(ctx sdk.Context, withdraw types.Withdraw) {
+func (k Keeper) InsertWithdrawQueue(ctx sdk.Context, withdraw v1beta1.Withdraw) {
 	timeSlice := k.GetWithdrawQueueTimeSlice(ctx, withdraw.CompletionTime)
 	timeSlice = append(timeSlice, withdraw)
 	k.SetWithdrawQueueTimeSlice(ctx, withdraw.CompletionTime, timeSlice)
@@ -25,21 +26,21 @@ func (k Keeper) InsertWithdrawQueue(ctx sdk.Context, withdraw types.Withdraw) {
 
 // SetWithdrawQueueTimeSlice stores a withdraw queue timeslice
 // using the timestamp as the key.
-func (k Keeper) SetWithdrawQueueTimeSlice(ctx sdk.Context, timestamp time.Time, withdraws []types.Withdraw) {
+func (k Keeper) SetWithdrawQueueTimeSlice(ctx sdk.Context, timestamp time.Time, withdraws []v1beta1.Withdraw) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&types.Withdraws{Withdraws: withdraws})
+	bz := k.cdc.MustMarshalLengthPrefixed(&v1beta1.Withdraws{Withdraws: withdraws})
 	store.Set(types.GetWithdrawCompletionTimeKey(timestamp), bz)
 }
 
 // GetWithdrawQueueTimeSlice gets a specific withdraw queue timeslice,
 // which is a slice of withdraws corresponding to a given time.
-func (k Keeper) GetWithdrawQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []types.Withdraw {
+func (k Keeper) GetWithdrawQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []v1beta1.Withdraw {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetWithdrawCompletionTimeKey(timestamp))
 	if bz == nil {
-		return []types.Withdraw{}
+		return []v1beta1.Withdraw{}
 	}
-	var withdraws types.Withdraws
+	var withdraws v1beta1.Withdraws
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &withdraws)
 	return withdraws.Withdraws
 }
@@ -51,13 +52,13 @@ func (k Keeper) WithdrawQueueIterator(ctx sdk.Context, endTime time.Time) sdk.It
 }
 
 // IterateWithdraws iterates through all ongoing withdraws.
-func (k Keeper) IterateWithdraws(ctx sdk.Context, callback func(withdraw []types.Withdraw) (stop bool)) {
+func (k Keeper) IterateWithdraws(ctx sdk.Context, callback func(withdraw []v1beta1.Withdraw) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.WithdrawQueueKey)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		timeslice := types.Withdraws{}
+		timeslice := v1beta1.Withdraws{}
 		value := iterator.Value()
 		k.cdc.MustUnmarshalLengthPrefixed(value, &timeslice)
 
@@ -68,8 +69,8 @@ func (k Keeper) IterateWithdraws(ctx sdk.Context, callback func(withdraw []types
 }
 
 // GetAllWithdraws gets all collaterals that are being withdrawn.
-func (k Keeper) GetAllWithdraws(ctx sdk.Context) (result []types.Withdraw) {
-	k.IterateWithdraws(ctx, func(withdraws []types.Withdraw) bool {
+func (k Keeper) GetAllWithdraws(ctx sdk.Context) (result []v1beta1.Withdraw) {
+	k.IterateWithdraws(ctx, func(withdraws []v1beta1.Withdraw) bool {
 		result = append(result, withdraws...)
 		return false
 	})
@@ -77,9 +78,9 @@ func (k Keeper) GetAllWithdraws(ctx sdk.Context) (result []types.Withdraw) {
 }
 
 // GetWithdrawsByProvider gets all withdraws of a provider.
-func (k Keeper) GetWithdrawsByProvider(ctx sdk.Context, providerAddr string) []types.Withdraw {
-	var result []types.Withdraw
-	k.IterateWithdraws(ctx, func(withdraws []types.Withdraw) bool {
+func (k Keeper) GetWithdrawsByProvider(ctx sdk.Context, providerAddr string) []v1beta1.Withdraw {
+	var result []v1beta1.Withdraw
+	k.IterateWithdraws(ctx, func(withdraws []v1beta1.Withdraw) bool {
 		for _, withdraw := range withdraws {
 			if withdraw.Address == providerAddr {
 				result = append(result, withdraw)
@@ -104,9 +105,9 @@ func (k Keeper) DequeueCompletedWithdrawQueue(ctx sdk.Context) {
 	withdrawTimesliceIterator := k.WithdrawQueueIterator(ctx, ctx.BlockHeader().Time)
 	defer withdrawTimesliceIterator.Close()
 
-	var withdraws []types.Withdraw
+	var withdraws []v1beta1.Withdraw
 	for ; withdrawTimesliceIterator.Valid(); withdrawTimesliceIterator.Next() {
-		var timeslice types.Withdraws
+		var timeslice v1beta1.Withdraws
 		value := withdrawTimesliceIterator.Value()
 		k.cdc.MustUnmarshalLengthPrefixed(value, &timeslice)
 		withdraws = append(withdraws, timeslice.Withdraws...)
@@ -146,7 +147,7 @@ func (k Keeper) ComputeWithdrawAmountByTime(ctx sdk.Context, provider string, ti
 
 	amount := sdk.ZeroInt()
 	for ; withdrawTimesliceIterator.Valid(); withdrawTimesliceIterator.Next() {
-		var timeslice types.Withdraws
+		var timeslice v1beta1.Withdraws
 		value := withdrawTimesliceIterator.Value()
 		k.cdc.MustUnmarshalLengthPrefixed(value, &timeslice)
 
@@ -235,9 +236,9 @@ func (k Keeper) DelayWithdraws(ctx sdk.Context, provider string, amount sdk.Int,
 	withdrawTimesliceIterator := k.WithdrawQueueIterator(ctx, delayedTime)
 	defer withdrawTimesliceIterator.Close()
 
-	withdraws := []types.Withdraw{}
+	withdraws := []v1beta1.Withdraw{}
 	for ; withdrawTimesliceIterator.Valid(); withdrawTimesliceIterator.Next() {
-		var timeslice types.Withdraws
+		var timeslice v1beta1.Withdraws
 		value := withdrawTimesliceIterator.Value()
 		k.cdc.MustUnmarshalLengthPrefixed(value, &timeslice)
 

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
@@ -53,7 +54,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, amount 
 	// Insert into withdraw queue.
 	poolParams := k.GetPoolParams(ctx)
 	completionTime := ctx.BlockHeader().Time.Add(poolParams.WithdrawPeriod)
-	withdraw := types.NewWithdraw(from, amount, completionTime)
+	withdraw := v1beta1.NewWithdraw(from, amount, completionTime)
 	k.InsertWithdrawQueue(ctx, withdraw)
 
 	// Update provider's withdrawing.

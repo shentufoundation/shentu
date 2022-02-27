@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,7 +10,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 type CertKeeper interface {
@@ -26,8 +26,8 @@ type UpgradeKeeper interface {
 }
 
 type ShieldKeeper interface {
-	GetPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (shieldtypes.Purchase, bool)
-	GetClaimProposalParams(ctx sdk.Context) shieldtypes.ClaimProposalParams
+	GetPurchase(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress) (v1beta1.Purchase, bool)
+	GetClaimProposalParams(ctx sdk.Context) v1beta1.ClaimProposalParams
 	SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, loss sdk.Coins, lockPeriod time.Duration) error
 	RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress, loss sdk.Coins) error
 	ClaimEnd(ctx sdk.Context, id, poolID uint64, loss sdk.Coins)

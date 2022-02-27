@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
@@ -21,14 +22,14 @@ func (k Keeper) Donate(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) err
 }
 
 // SetReserve saves Shield Donation Pool.
-func (k Keeper) SetReserve(ctx sdk.Context, reserve types.Reserve) {
+func (k Keeper) SetReserve(ctx sdk.Context, reserve v1beta1.Reserve) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&reserve)
 	store.Set(types.GetReserveKey(), bz)
 }
 
 // GetReserve retrieves Shield Donation Pool.
-func (k Keeper) GetReserve(ctx sdk.Context) (reserve types.Reserve) {
+func (k Keeper) GetReserve(ctx sdk.Context) (reserve v1beta1.Reserve) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetReserveKey())
 	if bz == nil {
@@ -39,7 +40,7 @@ func (k Keeper) GetReserve(ctx sdk.Context) (reserve types.Reserve) {
 }
 
 // SetPendingPayout stores a pending payout.
-func (k Keeper) SetPendingPayout(ctx sdk.Context, pp types.PendingPayout) {
+func (k Keeper) SetPendingPayout(ctx sdk.Context, pp v1beta1.PendingPayout) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&pp)
 	store.Set(types.GetPendingPayoutKey(pp.ProposalId), bz)
@@ -56,7 +57,7 @@ func (k Keeper) DeletePendingPayout(ctx sdk.Context, proposalID uint64) error {
 }
 
 // GetPendingPayout retrieves a pending payout.
-func (k Keeper) GetPendingPayout(ctx sdk.Context, proposalId uint64) (pp types.PendingPayout, found bool) {
+func (k Keeper) GetPendingPayout(ctx sdk.Context, proposalId uint64) (pp v1beta1.PendingPayout, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetPendingPayoutKey(proposalId))
 	if bz == nil {
@@ -67,8 +68,8 @@ func (k Keeper) GetPendingPayout(ctx sdk.Context, proposalId uint64) (pp types.P
 }
 
 // GetAllPendingPayouts retrieves all pending payouts.
-func (k Keeper) GetAllPendingPayouts(ctx sdk.Context) (payouts []types.PendingPayout) {
-	k.IteratePendingPayouts(ctx, func(payout types.PendingPayout) bool {
+func (k Keeper) GetAllPendingPayouts(ctx sdk.Context) (payouts []v1beta1.PendingPayout) {
+	k.IteratePendingPayouts(ctx, func(payout v1beta1.PendingPayout) bool {
 		payouts = append(payouts, payout)
 		return false
 	})
@@ -76,13 +77,13 @@ func (k Keeper) GetAllPendingPayouts(ctx sdk.Context) (payouts []types.PendingPa
 }
 
 // IteratePendingPayouts iterates through all pending payouts.
-func (k Keeper) IteratePendingPayouts(ctx sdk.Context, callback func(pp types.PendingPayout) (stop bool)) {
+func (k Keeper) IteratePendingPayouts(ctx sdk.Context, callback func(pp v1beta1.PendingPayout) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.PendingPayoutKey)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var payout types.PendingPayout
+		var payout v1beta1.PendingPayout
 		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &payout)
 
 		if callback(payout) {
@@ -93,7 +94,7 @@ func (k Keeper) IteratePendingPayouts(ctx sdk.Context, callback func(pp types.Pe
 
 // ProcessPendingPayout processes the given amount from a pending
 // payout.
-func (k Keeper) ProcessPendingPayout(ctx sdk.Context, pp types.PendingPayout, amount sdk.Int) error {
+func (k Keeper) ProcessPendingPayout(ctx sdk.Context, pp v1beta1.PendingPayout, amount sdk.Int) error {
 	//reimb, err := k.GetReimbursement(ctx, pp.ProposalId)
 	//if err != nil {
 	//	return types.ErrReimbursementNotFound
@@ -126,7 +127,7 @@ func (k Keeper) ProcessPendingPayout(ctx sdk.Context, pp types.PendingPayout, am
 func (k Keeper) MakePayouts(ctx sdk.Context) {
 	reserve := k.GetReserve(ctx)
 
-	k.IteratePendingPayouts(ctx, func(payout types.PendingPayout) bool {
+	k.IteratePendingPayouts(ctx, func(payout v1beta1.PendingPayout) bool {
 		if reserve.Amount.IsZero() {
 			if reserve.Amount.IsNegative() { //testing purpose
 				panic("negative reserve balance")

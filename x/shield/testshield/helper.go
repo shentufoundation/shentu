@@ -1,6 +1,7 @@
 package testshield
 
 import (
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/certikfoundation/shentu/v2/x/shield"
 	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // Helper is a structure which wraps the staking handler
@@ -32,30 +32,30 @@ func NewHelper(t *testing.T, ctx sdk.Context, k keeper.Keeper, denom string) *He
 
 func (sh *Helper) DepositCollateral(addr sdk.AccAddress, amount int64, ok bool) {
 	coins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, amount))
-	msg := types.NewMsgDepositCollateral(addr, coins)
+	msg := v1beta1.NewMsgDepositCollateral(addr, coins)
 	sh.Handle(msg, ok)
 }
 
 func (sh *Helper) WithdrawCollateral(addr sdk.AccAddress, amount int64, ok bool) {
 	coins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, amount))
-	msg := types.NewMsgWithdrawCollateral(addr, coins)
+	msg := v1beta1.NewMsgWithdrawCollateral(addr, coins)
 	sh.Handle(msg, ok)
 }
 
 func (sh *Helper) CreatePool(addr, sponsorAddr sdk.AccAddress, description string, shieldRate sdk.Dec) {
-	msg := types.NewMsgCreatePool(addr, sponsorAddr, description, shieldRate)
+	msg := v1beta1.NewMsgCreatePool(addr, sponsorAddr, description, shieldRate)
 	sh.Handle(msg, true)
 }
 
 func (sh *Helper) PurchaseShield(purchaser sdk.AccAddress, shield int64, poolID uint64, ok bool) {
 	shieldCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, shield))
-	msg := types.NewMsgPurchase(poolID, shieldCoins, "test_purchase", purchaser)
+	msg := v1beta1.NewMsgPurchase(poolID, shieldCoins, "test_purchase", purchaser)
 	sh.Handle(msg, ok)
 }
 
 func (sh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID uint64, ok bool) {
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, loss))
-	proposal := types.NewShieldClaimProposal(poolID, lossCoins, "test_claim_evidence", "test_claim_description", proposer)
+	proposal := v1beta1.NewShieldClaimProposal(poolID, lossCoins, "test_claim_evidence", "test_claim_description", proposer)
 	sh.HandleProposal(proposal, ok)
 }
 

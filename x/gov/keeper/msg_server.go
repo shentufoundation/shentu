@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -97,7 +98,7 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 			return certtypes.ErrRepeatedAlias
 		}
 
-	case shieldtypes.ShieldClaimProposal:
+	case v1beta1.ShieldClaimProposal:
 		// check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit)
 		denom := k.BondDenom(ctx)
 		initialDepositAmount := msg.InitialDeposit.AmountOf(denom).ToDec()
@@ -135,8 +136,8 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 }
 
 func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, proposal types.Proposal) error {
-	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
+	if proposal.ProposalType() == v1beta1.ProposalTypeShieldClaim {
+		c := proposal.GetContent().(*v1beta1.ShieldClaimProposal)
 		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
 		proposerAddr, err := sdk.AccAddressFromBech32(c.Proposer)
 		if err != nil {

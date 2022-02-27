@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"strconv"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -16,29 +17,29 @@ import (
 func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
-		case types.QueryPoolByID:
+		case v1beta1.QueryPoolByID:
 			return queryPoolByID(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryPoolBySponsor:
+		case v1beta1.QueryPoolBySponsor:
 			return queryPoolBySponsor(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryPools:
+		case v1beta1.QueryPools:
 			return queryPools(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryPurchaserPurchases:
+		case v1beta1.QueryPurchaserPurchases:
 			return queryPurchaserPurchases(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryPoolPurchases:
+		case v1beta1.QueryPoolPurchases:
 			return queryPoolPurchases(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryPurchases:
+		case v1beta1.QueryPurchases:
 			return queryPurchases(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryProvider:
+		case v1beta1.QueryProvider:
 			return queryProvider(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryProviders:
+		case v1beta1.QueryProviders:
 			return queryProviders(ctx, req, k, legacyQuerierCdc)
-		case types.QueryPoolParams:
+		case v1beta1.QueryPoolParams:
 			return queryPoolParams(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryClaimParams:
+		case v1beta1.QueryClaimParams:
 			return queryClaimParams(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryStatus:
+		case v1beta1.QueryStatus:
 			return queryGlobalState(ctx, path[1:], k, legacyQuerierCdc)
-		case types.QueryStakedForShield:
+		case v1beta1.QueryStakedForShield:
 			return queryPurchase(ctx, path[1:], k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
@@ -175,7 +176,7 @@ func queryProvider(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *c
 }
 
 func queryProviders(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
-	var params types.QueryPaginationParams
+	var params v1beta1.QueryPaginationParams
 	err = legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
@@ -223,7 +224,7 @@ func queryGlobalState(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc
 		return nil, err
 	}
 
-	shieldState := types.NewQueryResStatus(
+	shieldState := v1beta1.NewQueryResStatus(
 		k.GetTotalCollateral(ctx),
 		k.GetTotalShield(ctx),
 		k.GetTotalWithdrawing(ctx),

@@ -1,6 +1,7 @@
 package shield
 
 import (
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"strings"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -8,11 +9,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // InitGenesis initialize store values with genesis states.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []abci.ValidatorUpdate {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, data v1beta1.GenesisState) []abci.ValidatorUpdate {
 	k.SetPoolParams(ctx, data.ShieldParams.PoolParams)
 	k.SetClaimProposalParams(ctx, data.ShieldParams.ClaimProposalParams)
 	k.SetBlockRewardParams(ctx, data.ShieldParams.BlockRewardParams)
@@ -60,7 +60,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 
 // ExportGenesis writes the current store values to a genesis file,
 // which can be imported again with InitGenesis.
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) v1beta1.GenesisState {
 	poolParams := k.GetPoolParams(ctx)
 	claimProposalParams := k.GetClaimProposalParams(ctx)
 	shieldAdmin := k.GetAdmin(ctx)
@@ -78,7 +78,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	reserve := k.GetReserve(ctx)
 	pendingPayouts := k.GetAllPendingPayouts(ctx)
 	blockRewardParams := k.GetBlockRewardParams(ctx)
-	return types.NewGenesisState(shieldAdmin, nextPoolID, poolParams, claimProposalParams,
+	return v1beta1.NewGenesisState(shieldAdmin, nextPoolID, poolParams, claimProposalParams,
 		totalCollateral, totalWithdrawing, totalShield, totalClaimed, serviceFees, pools,
 		providers, withdraws, globalStakingPool, stakingPurchases, reserve, pendingPayouts,
 		blockRewardParams)

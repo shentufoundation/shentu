@@ -1,12 +1,11 @@
 package keeper
 
 import (
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"math/rand"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // RandomValidator returns a random validator given access to the keeper and ctx.
@@ -53,26 +52,26 @@ func RandomPoolInfo(r *rand.Rand, k Keeper, ctx sdk.Context) (uint64, string, bo
 }
 
 // RandomUnlockedPurchase returns a random purchase given access to the keeper and ctx.
-func RandomUnlockedPurchase(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Purchase, bool) {
+func RandomUnlockedPurchase(r *rand.Rand, k Keeper, ctx sdk.Context) (v1beta1.Purchase, bool) {
 	ps := k.GetAllPurchase(ctx)
-	var purchases []types.Purchase
+	var purchases []v1beta1.Purchase
 	for _, p := range ps {
 		if !p.Locked {
 			purchases = append(purchases, p)
 		}
 	}
 	if len(purchases) == 0 {
-		return types.Purchase{}, false
+		return v1beta1.Purchase{}, false
 	}
 	i := r.Intn(len(purchases))
 	return purchases[i], true
 }
 
 // RandomProvider returns a random provider of collaterals.
-func RandomProvider(r *rand.Rand, k Keeper, ctx sdk.Context) (types.Provider, bool) {
+func RandomProvider(r *rand.Rand, k Keeper, ctx sdk.Context) (v1beta1.Provider, bool) {
 	providers := k.GetAllProviders(ctx)
 	if len(providers) == 0 {
-		return types.Provider{}, false
+		return v1beta1.Provider{}, false
 	}
 
 	i := r.Intn(len(providers))
