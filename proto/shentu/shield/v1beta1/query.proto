@@ -5,8 +5,8 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "shentu/shield/v1alpha1/shield.proto";
-import "shentu/shield/v1alpha1/genesis.proto";
+import "shentu/shield/v1beta1/shield.proto";
+import "shentu/shield/v1beta1/genesis.proto";
 
 option go_package = "github.com/certikfoundation/shentu/x/shield/types/v1beta1";
 
