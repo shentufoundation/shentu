@@ -1,7 +1,6 @@
 package shield
 
 import (
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"strings"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -9,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // InitGenesis initialize store values with genesis states.

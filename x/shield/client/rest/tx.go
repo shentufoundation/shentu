@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -11,6 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 func registerTxHandlers(cliCtx client.Context, r *mux.Router) {

@@ -2,7 +2,6 @@ package gov
 
 import (
 	"fmt"
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,6 +10,7 @@ import (
 	"github.com/certikfoundation/shentu/v2/common"
 	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {

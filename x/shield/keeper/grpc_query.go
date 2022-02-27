@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -10,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 var _ v1beta1.QueryServer = Keeper{}

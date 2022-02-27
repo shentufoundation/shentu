@@ -85,7 +85,7 @@ func resolvePurchases(store sdk.KVStore, cdc codec.BinaryCodec, bondDenom string
 	return nil
 }
 
-func deleteUnusedStores(store sdk.KVStore, cdc codec.BinaryCodec) error {
+func deleteUnusedStores(store sdk.KVStore) error {
 	store.Delete(types.GetNextPurchaseIDKey())
 	store.Delete(types.GetLastUpdateTimeKey())
 	return nil
@@ -113,7 +113,6 @@ func resolveReimbursements(store sdk.KVStore, cdc codec.BinaryCodec, bondDenom s
 }
 
 func migrateparams(store sdk.KVStore, cdc codec.BinaryCodec, ps types.ParamSubspace) error {
-
 	return nil
 }
 
@@ -143,5 +142,5 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec,
 		return err
 	}
 
-	return deleteUnusedStores(store, cdc)
+	return deleteUnusedStores(store)
 }

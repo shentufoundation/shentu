@@ -2,13 +2,13 @@ package keeper
 
 import (
 	"fmt"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // GetDeposit gets the deposit of a specific depositor on a specific proposal.

@@ -1,11 +1,11 @@
 package keeper
 
 import (
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/common"
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // PurchaseShield purchases shield of a pool with standard fee rate.

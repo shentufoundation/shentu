@@ -2,7 +2,6 @@ package rest
 
 import (
 	"fmt"
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -11,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {

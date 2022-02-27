@@ -2,7 +2,6 @@
 package app
 
 import (
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"io"
 	"net/http"
 	"os"
@@ -102,6 +101,7 @@ import (
 	shieldclient "github.com/certikfoundation/shentu/v2/x/shield/client"
 	shieldkeeper "github.com/certikfoundation/shentu/v2/x/shield/keeper"
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"github.com/certikfoundation/shentu/v2/x/slashing"
 	"github.com/certikfoundation/shentu/v2/x/staking"
 	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"

@@ -1,13 +1,13 @@
 package keeper
 
 import (
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 type unbondingInfo struct {

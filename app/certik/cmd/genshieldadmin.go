@@ -3,7 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 
 	"github.com/spf13/cobra"
 
@@ -16,6 +15,7 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // AddGenesisShieldAdminCmd returns add-genesis-shield-admin cobra Command.

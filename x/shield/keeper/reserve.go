@@ -1,10 +1,10 @@
 package keeper
 
 import (
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // Donate donates the given amount to Shield Donation Pool.

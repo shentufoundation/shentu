@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"strconv"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -11,6 +10,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // NewQuerier creates a querier for shield module.

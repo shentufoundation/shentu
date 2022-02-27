@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"strconv"
 	"strings"
 
@@ -17,6 +16,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 var (

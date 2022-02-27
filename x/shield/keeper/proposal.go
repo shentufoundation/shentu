@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"sort"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 
 	vesting "github.com/certikfoundation/shentu/v2/x/auth/types"
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // SecureCollaterals is called after a claim is submitted to secure

@@ -1,7 +1,6 @@
 package simulation
 
 import (
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"math"
 	"math/rand"
 
@@ -18,6 +17,7 @@ import (
 	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
 	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights

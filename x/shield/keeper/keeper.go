@@ -2,12 +2,12 @@ package keeper
 
 import (
 	"encoding/binary"
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // Keeper implements the shield keeper.
