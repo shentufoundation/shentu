@@ -45,11 +45,27 @@ service Query {
   }
 
   rpc Purchase(QueryPurchaseRequest) returns (QueryPurchaseResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/purchase/{pool_id}/{purchaser}";
+    option (google.api.http).get = "/shentu/shield/v1alpha1/purchases/{pool_id}/{purchaser}";
   }
 
-  rpc Donations(QueryDonationsRequest) returns (QueryDonationsResponse) {
+  rpc PoolPurchases(QueryPoolPurchasesRequest) returns (QueryPurchasesResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/purchases/{pool_id}";
+  }
+
+  rpc Purchases(QueryAllPurchasesRequest) returns (QueryPurchasesResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/purchases";
+  }
+
+  rpc Purchaser(QueryPurchaserRequest) returns (QueryPurchaserResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/purchaser/{purchaser}";
+  }
+
+  rpc Reserve(QueryReserveRequest) returns (QueryReserveResponse) {
     option (google.api.http).get = "/shentu/shield/v1alpha1/donations";
+  }
+
+  rpc PendingPayouts(QueryPendingPayoutsRequest) returns (QueryPendingPayoutsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/pending_payouts";
   }
 }
 
@@ -117,8 +133,7 @@ message QueryShieldStatusResponse {
   string total_collateral = 1 [ (gogoproto.moretags) = "yaml:\"total_collateral\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
   string total_shield = 2 [ (gogoproto.moretags) = "yaml:\"total_shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
   string total_withdrawing = 3 [ (gogoproto.moretags) = "yaml:\"total_withdrawing\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-  repeated cosmos.base.v1beta1.DecCoin fees = 4 [ (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.moretags) = "yaml:\"fees\"", (gogoproto.nullable) = false ];
-  string global_shield_staking_pool = 5 [ (gogoproto.moretags) = "yaml:\"global_shield_staking_pool\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+  string global_shield_staking_pool = 4 [ (gogoproto.moretags) = "yaml:\"global_shield_staking_pool\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 }
 
 
@@ -131,9 +146,37 @@ message QueryPurchaseResponse {
   Purchase purchase = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryDonationsRequest {
+message QueryReserveRequest {
 }
 
-message QueryDonationsResponse {
-  DonationPool amount = 1 [ (gogoproto.nullable) = false ];
+message QueryReserveResponse {
+  Reserve reserve = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryPendingPayoutsRequest {
+}
+
+message QueryPendingPayoutsResponse {
+  repeated PendingPayout pending_payouts = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryAllPurchasesRequest {
+}
+
+message QueryPoolPurchasesRequest {
+  uint64 pool_id = 1;
+}
+
+message QueryPurchasesResponse {
+  repeated Purchase purchases = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryPurchaserRequest {
+  string purchaser = 1;
+}
+
+message QueryPurchaserResponse {
+  repeated Purchase purchases = 1 [(gogoproto.nullable) = false];
+  string total_shield = 2 [ (gogoproto.moretags) = "yaml:\"total_shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+  string total_deposit = 3 [ (gogoproto.moretags) = "yaml:\"total_deposit\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 }

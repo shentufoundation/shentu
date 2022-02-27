@@ -43,7 +43,7 @@ func NewTxCmd() *cobra.Command {
 		GetCmdPurchaseShield(),
 		GetCmdUpdateSponsor(),
 		GetCmdUnstake(),
-		GetCmdDoante(),
+		GetCmdDonate(),
 	)
 
 	return shieldTxCmd
@@ -483,8 +483,8 @@ $ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address> --fr
 	return cmd
 }
 
-// GetCmdDoante implements donating to Shield Donation Pool.
-func GetCmdDoante() *cobra.Command {
+// GetCmdDonate implements donating to Shield Donation Pool.
+func GetCmdDonate() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "donate [amount]",
 		Short: "donate to Shield Donation Pool",

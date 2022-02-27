@@ -34,14 +34,13 @@ var (
 	RemainingServiceFeesKey     = []byte{0x06}
 	PoolKey                     = []byte{0x07}
 	NextPoolIDKey               = []byte{0x08}
-	NextPurchaseIDKey           = []byte{0x09}
 	ProviderKey                 = []byte{0x0C}
 	WithdrawQueueKey            = []byte{0x0D}
 	GlobalStakeForShieldPoolKey = []byte{0x0F}
 	PurchaseKey                 = []byte{0x11}
 	BlockServiceFeesKey         = []byte{0x12}
 	ReimbursementKey            = []byte{0x14}
-	DonationPoolKey             = []byte{0x15}
+	ReserveKey                  = []byte{0x15}
 	PendingPayoutKey            = []byte{0x16}
 )
 
@@ -82,11 +81,6 @@ func GetNextPoolIDKey() []byte {
 	return NextPoolIDKey
 }
 
-// GetNextPurchaseIDKey gets the key for the next pool ID.
-func GetNextPurchaseIDKey() []byte {
-	return NextPurchaseIDKey
-}
-
 // GetProviderKey gets the key for the delegator's tracker.
 func GetProviderKey(addr sdk.AccAddress) []byte {
 	return append(ProviderKey, addr...)
@@ -116,9 +110,9 @@ func GetReimbursementKey(proposalID uint64) []byte {
 	return append(ReimbursementKey, bz...)
 }
 
-// GetDonationPoolKey gets the key for Shield Donation Pool.
-func GetDonationPoolKey() []byte {
-	return DonationPoolKey
+// GetReserveKey gets the key for Shield Donation Pool.
+func GetReserveKey() []byte {
+	return ReserveKey
 }
 
 // GetPendingPayoutKey gets the key for the pending payout

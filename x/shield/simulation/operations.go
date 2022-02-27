@@ -25,6 +25,7 @@ const (
 	OpWeightMsgDepositCollateral  = "op_weight_msg_deposit_collateral"
 	OpWeightMsgWithdrawCollateral = "op_weight_msg_withdraw_collateral"
 	OpWeightMsgWithdrawRewards    = "op_weight_msg_withdraw_rewards"
+	OpWeightMsgDonatePool         = "op_weight_msg_donate_pool"
 
 	// P's operations
 	OpWeightMsgPurchaseShield     = "op_weight_msg_purchase_shield"
@@ -43,8 +44,9 @@ var (
 	DefaultWeightMsgPurchaseShield        = 20
 	DefaultWeightMsgStakeForShield        = 20
 	DefaultWeightMsgUnstakeFromShield     = 15
-	DefaultWeightShieldClaimProposal      = 5
+	DefaultWeightShieldClaimProposal      = 20
 	DefaultWeightMsgWithdrawReimbursement = 5
+	DefaultWeightMsgDonatePool            = 10
 
 	DefaultIntMax = 100000000000
 )
@@ -97,6 +99,12 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, k kee
 			weightMsgWithdrawReimbursement = DefaultWeightMsgWithdrawReimbursement
 		})
 
+	var weightMsgDonatePool int
+	appParams.GetOrGenerate(cdc, OpWeightMsgDonatePool, &weightMsgDonatePool, nil,
+		func(_ *rand.Rand) {
+			weightMsgDonatePool = DefaultWeightMsgDonatePool
+		})
+
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(weightMsgCreatePool, SimulateMsgCreatePool(k, ak, bk, sk)),
 		simulation.NewWeightedOperation(weightMsgUpdatePool, SimulateMsgUpdatePool(k, ak, bk, sk)),
@@ -105,6 +113,7 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, k kee
 		simulation.NewWeightedOperation(weightMsgWithdrawRewards, SimulateMsgWithdrawRewards(k, ak)),
 		simulation.NewWeightedOperation(weightMsgPurchaseShield, SimulateMsgPurchase(k, ak, bk, sk)),
 		simulation.NewWeightedOperation(weightMsgUnstakeFromShield, SimulateMsgUnstakeFromShield(k, ak, bk, sk)),
+		simulation.NewWeightedOperation(weightMsgDonatePool, SimulateMsgDonatePool(k, ak, bk, sk)),
 	}
 }
 
@@ -351,6 +360,58 @@ func SimulateMsgWithdrawCollateral(k keeper.Keeper, ak types.AccountKeeper, bk t
 
 		if _, _, err := app.Deliver(txGen.TxEncoder(), tx); err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgWithdrawCollateral, err.Error()), nil, err
+		}
+		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
+	}
+}
+
+// SimulateMsgDonatePool generates a MsgWithdrawDepositPool object with all of its fields randomized.
+func SimulateMsgDonatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper) simtypes.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
+	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		provider, found := keeper.RandomProvider(r, k, ctx)
+		if !found {
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgWithdrawCollateral, "random provider not found"), nil, nil
+		}
+
+		var simAccount simtypes.Account
+		for _, simAcc := range accs {
+			providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
+			if err != nil {
+				panic(err)
+			}
+			if simAcc.Address.Equals(providerAddr) {
+				simAccount = simAcc
+				break
+			}
+		}
+		account := ak.GetAccount(ctx, simAccount.Address)
+
+		// donate pool
+		depositAmount := simtypes.RandSubsetCoins(r, bk.SpendableCoins(ctx, simAccount.Address))
+		if depositAmount.Empty() {
+			return simtypes.NewOperationMsgBasic(types.ModuleName, "NoOp: empty collateral increment, skip this tx", "", false, nil), nil, nil
+		}
+		msg := types.NewMsgDonate(simAccount.Address, depositAmount)
+
+		fees := sdk.Coins{}
+		txGen := simappparams.MakeTestEncodingConfig().TxConfig
+		tx, err := helpers.GenTx(
+			txGen,
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{account.GetAccountNumber()},
+			[]uint64{account.GetSequence()},
+			simAccount.PrivKey,
+		)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
+		}
+
+		if _, _, err := app.Deliver(txGen.TxEncoder(), tx); err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgDonate, err.Error()), nil, err
 		}
 		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 	}

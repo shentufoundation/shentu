@@ -142,7 +142,7 @@ func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, proposal types.Proposa
 		if err != nil {
 			return err
 		}
-		return k.ShieldKeeper.SecureCollaterals(ctx, c.PoolId, proposerAddr, c.PurchaseId, c.Loss, lockPeriod)
+		return k.ShieldKeeper.SecureCollaterals(ctx, c.PoolId, proposerAddr, c.Loss, lockPeriod)
 	}
 	return nil
 }

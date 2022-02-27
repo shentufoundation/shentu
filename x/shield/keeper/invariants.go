@@ -47,7 +47,10 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 			pending_payouts = pending_payouts.Add(pp.Amount)
 		}
 
-		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, pending_payouts))
+		// reserve payouts
+		reserve := keeper.GetReserve(ctx).Amount
+
+		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, pending_payouts)).Add(sdk.NewCoin(bondDenom, reserve))
 
 		broken := !totalInt.IsEqual(moduleCoins) || !change.Empty()
 

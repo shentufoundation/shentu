@@ -21,8 +21,8 @@ message Pool {
     string shield_rate = 6 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }
 
-// DonationPool defines Shield Donation Pool.
-message DonationPool {
+// Reserve defines Shield Reserve.
+message Reserve {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
@@ -102,11 +102,10 @@ message ShieldClaimProposal {
 
     uint64 proposal_id = 1 [ (gogoproto.moretags) = "yaml:\"proposal_id\"" ];
     uint64 pool_id = 2 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
-    uint64 purchase_id = 3 [ (gogoproto.moretags) = "yaml:\"purchase_id\"" ];
-    repeated cosmos.base.v1beta1.Coin loss = 4 [ (gogoproto.moretags) = "yaml:\"loss\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    string evidence = 5 [ (gogoproto.moretags) = "yaml:\"evidence\"" ];
-    string description = 6 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string proposer = 7 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
+    repeated cosmos.base.v1beta1.Coin loss = 3 [ (gogoproto.moretags) = "yaml:\"loss\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    string evidence = 4 [ (gogoproto.moretags) = "yaml:\"evidence\"" ];
+    string description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string proposer = 6 [ (gogoproto.moretags) = "yaml:\"proposer\"" ];
 }
 
 message PendingPayout {

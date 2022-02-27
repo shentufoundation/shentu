@@ -6,41 +6,6 @@ import (
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
-// DistributeShieldRewards distributes Shield Rewards to
-// collateral providers.
-func (k Keeper) DistributeShieldRewards(ctx sdk.Context) {
-	// Add block service fees that need to be distributed for this block
-	serviceFees := k.GetServiceFees(ctx)
-	remainingServiceFees := serviceFees
-	k.DeleteServiceFees(ctx)
-
-	// TODO: Add support for any denoms.
-
-	// Distribute service fees.
-	totalCollateral := k.GetTotalCollateral(ctx)
-	providers := k.GetAllProviders(ctx)
-	bondDenom := k.sk.BondDenom(ctx)
-	for _, provider := range providers {
-		providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
-		if err != nil {
-			panic(err)
-		}
-
-		// fees * providerCollateral / totalCollateral
-		fees := serviceFees.MulDec(sdk.NewDecFromInt(provider.Collateral).QuoInt(totalCollateral))
-		if fees.AmountOf(bondDenom).GT(remainingServiceFees.AmountOf(bondDenom)) {
-			fees = remainingServiceFees
-		}
-		provider.Rewards = provider.Rewards.Add(fees...)
-		k.SetProvider(ctx, providerAddr, provider)
-
-		remainingServiceFees = remainingServiceFees.Sub(fees)
-	}
-	// add back block service fees
-	remainingServiceFees = remainingServiceFees.Add(serviceFees...)
-	k.SetServiceFees(ctx, remainingServiceFees)
-}
-
 // PayoutNativeRewards pays out pending CTK rewards.
 func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.Coins, error) {
 	provider, found := k.GetProvider(ctx, addr)
@@ -92,5 +57,9 @@ func (k Keeper) GetShieldBlockRewardRatio(ctx sdk.Context) sdk.Dec {
 	 *   r = a + 2(b - a) * -------
 	 *                       l + L
 	 */
-	return leverage.Quo(leverage.Add(targetLeverage)).Mul(modelParamB.Sub(modelParamA).MulInt64(2)).Add(modelParamA)
+	if leverage.Add(targetLeverage).IsZero() {
+		return sdk.ZeroDec()
+	} else {
+		return leverage.Quo(leverage.Add(targetLeverage)).Mul(modelParamB.Sub(modelParamA).MulInt64(2)).Add(modelParamA)
+	}
 }

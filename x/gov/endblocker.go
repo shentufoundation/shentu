@@ -45,7 +45,7 @@ func updateAbstain(ctx sdk.Context, k keeper.Keeper, proposal types.Proposal) {
 		if err != nil {
 			panic(err)
 		}
-		k.ShieldKeeper.RestoreShield(ctx, c.PoolId, proposer, c.PurchaseId, c.Loss)
+		k.ShieldKeeper.RestoreShield(ctx, c.PoolId, proposer, c.Loss)
 		k.ShieldKeeper.ClaimEnd(ctx, c.ProposalId, c.PoolId, c.Loss)
 	}
 }
