@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1alpha1"
 	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"math/rand"
 
@@ -49,11 +50,13 @@ func (AppModuleBasic) Name() string {
 
 // RegisterLegacyAminoCodec registers the shield module's types for the given codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	v1alpha1.RegisterLegacyAminoCodec(cdc)
 	v1beta1.RegisterLegacyAminoCodec(cdc)
 }
 
 // RegisterInterfaces registers the module's interface types
 func (AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+	v1alpha1.RegisterInterfaces(registry)
 	v1beta1.RegisterInterfaces(registry)
 }
 
@@ -79,7 +82,12 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the shield module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	v1beta1.RegisterQueryHandlerClient(context.Background(), mux, v1beta1.NewQueryClient(clientCtx))
+	if err := v1alpha1.RegisterQueryHandlerClient(context.Background(), mux, v1alpha1.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
+	if err := v1beta1.RegisterQueryHandlerClient(context.Background(), mux, v1beta1.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
 }
 
 // GetTxCmd returns the root tx command for the shield module.
@@ -142,6 +150,12 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	v1beta1.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	v1beta1.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+
+	m := keeper.NewMigrator(am.keeper, cfg.QueryServer())
+	err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // InitGenesis performs genesis initialization for the shield module.
