@@ -1132,33 +1132,33 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Pool_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "shield", "v1alpha1", "pool", "pool_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Pool_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "shield", "v1beta1", "pool", "pool_id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Sponsor_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3}, []string{"shentu", "shield", "v1alpha1", "sponsor"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Sponsor_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3}, []string{"shentu", "shield", "v1beta1", "sponsor"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Pools_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1alpha1", "pools"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Pools_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1beta1", "pools"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Provider_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "shield", "v1alpha1", "provider", "address"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Provider_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "shield", "v1beta1", "provider", "address"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Providers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1alpha1", "providers"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Providers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1beta1", "providers"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_PoolParams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1alpha1", "pool_params"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PoolParams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1beta1", "pool_params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_ClaimParams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1alpha1", "claim_params"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ClaimParams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1beta1", "claim_params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_ShieldStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1alpha1", "status"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ShieldStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1beta1", "status"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Purchase_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"shentu", "shield", "v1alpha1", "purchases", "pool_id", "purchaser"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Purchase_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"shentu", "shield", "v1beta1", "purchases", "pool_id", "purchaser"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_PoolPurchases_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "shield", "v1alpha1", "purchases", "pool_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PoolPurchases_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "shield", "v1beta1", "purchases", "pool_id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Purchases_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1alpha1", "purchases"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Purchases_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1beta1", "purchases"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Purchaser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3}, []string{"shentu", "shield", "v1alpha1", "purchaser"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Purchaser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3}, []string{"shentu", "shield", "v1beta1", "purchaser"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Reserve_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1alpha1", "donations"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Reserve_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1beta1", "donations"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_PendingPayouts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1alpha1", "pending_payouts"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PendingPayouts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "shield", "v1beta1", "pending_payouts"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

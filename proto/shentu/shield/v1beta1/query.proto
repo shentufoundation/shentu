@@ -13,59 +13,59 @@ option go_package = "github.com/certikfoundation/shentu/x/shield/types/v1beta1";
 // Query defines the gRPC querier service for shield module
 service Query {
   rpc Pool(QueryPoolRequest) returns (QueryPoolResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/pool/{pool_id}";
+    option (google.api.http).get = "/shentu/shield/v1beta1/pool/{pool_id}";
   }
 
   rpc Sponsor(QuerySponsorRequest) returns (QuerySponsorResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/sponsor/{sponsor}";
+    option (google.api.http).get = "/shentu/shield/v1beta1/sponsor/{sponsor}";
   }
 
   rpc Pools(QueryPoolsRequest) returns (QueryPoolsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/pools";
+    option (google.api.http).get = "/shentu/shield/v1beta1/pools";
   }
 
   rpc Provider(QueryProviderRequest) returns (QueryProviderResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/provider/{address}";
+    option (google.api.http).get = "/shentu/shield/v1beta1/provider/{address}";
   }
 
   rpc Providers(QueryProvidersRequest) returns (QueryProvidersResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/providers";
+    option (google.api.http).get = "/shentu/shield/v1beta1/providers";
   }
 
   rpc PoolParams(QueryPoolParamsRequest) returns (QueryPoolParamsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/pool_params";
+    option (google.api.http).get = "/shentu/shield/v1beta1/pool_params";
   }
 
   rpc ClaimParams(QueryClaimParamsRequest) returns (QueryClaimParamsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/claim_params";
+    option (google.api.http).get = "/shentu/shield/v1beta1/claim_params";
   }
 
   rpc ShieldStatus(QueryShieldStatusRequest) returns (QueryShieldStatusResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/status";
+    option (google.api.http).get = "/shentu/shield/v1beta1/status";
   }
 
   rpc Purchase(QueryPurchaseRequest) returns (QueryPurchaseResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/purchases/{pool_id}/{purchaser}";
+    option (google.api.http).get = "/shentu/shield/v1beta1/purchases/{pool_id}/{purchaser}";
   }
 
   rpc PoolPurchases(QueryPoolPurchasesRequest) returns (QueryPurchasesResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/purchases/{pool_id}";
+    option (google.api.http).get = "/shentu/shield/v1beta1/purchases/{pool_id}";
   }
 
   rpc Purchases(QueryAllPurchasesRequest) returns (QueryPurchasesResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/purchases";
+    option (google.api.http).get = "/shentu/shield/v1beta1/purchases";
   }
 
   rpc Purchaser(QueryPurchaserRequest) returns (QueryPurchaserResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/purchaser/{purchaser}";
+    option (google.api.http).get = "/shentu/shield/v1beta1/purchaser/{purchaser}";
   }
 
   rpc Reserve(QueryReserveRequest) returns (QueryReserveResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/donations";
+    option (google.api.http).get = "/shentu/shield/v1beta1/donations";
   }
 
   rpc PendingPayouts(QueryPendingPayoutsRequest) returns (QueryPendingPayoutsResponse) {
-    option (google.api.http).get = "/shentu/shield/v1alpha1/pending_payouts";
+    option (google.api.http).get = "/shentu/shield/v1beta1/pending_payouts";
   }
 }
 

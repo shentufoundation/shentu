@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1alpha1"
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"math/rand"
 
 	"github.com/gorilla/mux"
@@ -25,6 +23,8 @@ import (
 	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
 	"github.com/certikfoundation/shentu/v2/x/shield/simulation"
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1alpha1"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 var (

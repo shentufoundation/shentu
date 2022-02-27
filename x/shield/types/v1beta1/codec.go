@@ -11,18 +11,18 @@ import (
 
 // RegisterLegacyAminoCodec registers concrete types on the LegacyAmino codec
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(MsgCreatePool{}, "shield/MsgCreatePool", nil)
-	cdc.RegisterConcrete(MsgUpdatePool{}, "shield/MsgUpdatePool", nil)
-	cdc.RegisterConcrete(MsgPausePool{}, "shield/MsgPausePool", nil)
-	cdc.RegisterConcrete(MsgResumePool{}, "shield/MsgResumePool", nil)
-	cdc.RegisterConcrete(MsgDepositCollateral{}, "shield/MsgDepositCollateral", nil)
-	cdc.RegisterConcrete(MsgWithdrawCollateral{}, "shield/MsgWithdrawCollateral", nil)
-	cdc.RegisterConcrete(MsgWithdrawRewards{}, "shield/MsgWithdrawRewards", nil)
-	cdc.RegisterConcrete(MsgWithdrawForeignRewards{}, "shield/MsgWithdrawForeignRewards", nil)
-	cdc.RegisterConcrete(ShieldClaimProposal{}, "shield/ShieldClaimProposal", nil)
-	cdc.RegisterConcrete(MsgPurchase{}, "shield/MsgPurchaseShield", nil)
-	cdc.RegisterConcrete(MsgUpdateSponsor{}, "shield/MsgUpdateSponsor", nil)
-	cdc.RegisterConcrete(MsgUnstake{}, "shield/MsgUnstakeFromShield", nil)
+	cdc.RegisterConcrete(MsgCreatePool{}, "shentu/v1beta1/MsgCreatePool", nil)
+	cdc.RegisterConcrete(MsgUpdatePool{}, "shentu/v1beta1/MsgUpdatePool", nil)
+	cdc.RegisterConcrete(MsgPausePool{}, "shentu/v1beta1/MsgPausePool", nil)
+	cdc.RegisterConcrete(MsgResumePool{}, "shentu/v1beta1/MsgResumePool", nil)
+	cdc.RegisterConcrete(MsgDepositCollateral{}, "shentu/v1beta1/MsgDepositCollateral", nil)
+	cdc.RegisterConcrete(MsgWithdrawCollateral{}, "shentu/v1beta1/MsgWithdrawCollateral", nil)
+	cdc.RegisterConcrete(MsgWithdrawRewards{}, "shentu/v1beta1/MsgWithdrawRewards", nil)
+	cdc.RegisterConcrete(MsgWithdrawForeignRewards{}, "shentu/v1beta1/MsgWithdrawForeignRewards", nil)
+	cdc.RegisterConcrete(ShieldClaimProposal{}, "shentu/v1beta1/ShieldClaimProposal", nil)
+	cdc.RegisterConcrete(MsgPurchase{}, "shentu/v1beta1/MsgPurchaseShield", nil)
+	cdc.RegisterConcrete(MsgUpdateSponsor{}, "shentu/v1beta1/MsgUpdateSponsor", nil)
+	cdc.RegisterConcrete(MsgUnstake{}, "shentu/v1beta1/MsgUnstakeFromShield", nil)
 }
 
 // RegisterInterfaces registers the x/shield interfaces types with the interface registry
