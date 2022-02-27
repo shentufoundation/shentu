@@ -15,7 +15,7 @@ import (
 
 const (
 	// ProposalTypeShieldClaim defines the type for a ShieldClaimProposal.
-	ProposalTypeShieldClaim = "ShieldClaim"
+	ProposalTypeShieldClaim = "ShieldClaimV1"
 )
 
 // Assert ShieldClaimProposal implements govTypes.Content at compile-time.

@@ -1,5 +1,5 @@
 syntax = "proto3";
-package shentu.shield.v1alpha1;
+package shentu.shield.v1beta1;
 
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "cosmos/base/v1beta1/coin.proto";
