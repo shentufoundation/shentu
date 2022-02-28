@@ -22,9 +22,6 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	// Resolve pending payouts from the reserve.
 	k.MakePayouts(ctx)
 
-	// Delete pending payouts from the reserve.
-	k.DeletePendingPayouts(ctx)
-
 	// Close pools who do not have any shield and shield limits are set to zero.
 	// k.ClosePools(ctx)
 

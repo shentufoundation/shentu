@@ -115,6 +115,7 @@ func (k Keeper) ProcessPendingPayout(ctx sdk.Context, pp types.PendingPayout, am
 			panic("negative pending payout amount")
 		}
 		k.DeletePendingPayout(ctx, pp.ProposalId)
+		return nil
 	}
 	k.SetPendingPayout(ctx, pp)
 	return nil
@@ -147,14 +148,4 @@ func (k Keeper) MakePayouts(ctx sdk.Context) {
 	})
 
 	k.SetReserve(ctx, reserve)
-}
-
-func (k Keeper) DeletePendingPayouts(ctx sdk.Context) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.PendingPayoutKey)
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		store.Delete(iterator.Key())
-	}
 }
