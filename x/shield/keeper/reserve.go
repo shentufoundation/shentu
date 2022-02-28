@@ -115,8 +115,9 @@ func (k Keeper) ProcessPendingPayout(ctx sdk.Context, pp types.PendingPayout, am
 			panic("negative pending payout amount")
 		}
 		k.DeletePendingPayout(ctx, pp.ProposalId)
+	} else {
+		k.SetPendingPayout(ctx, pp)
 	}
-	k.SetPendingPayout(ctx, pp)
 	return nil
 }
 
