@@ -131,7 +131,6 @@ func (k Keeper) MakePayouts(ctx sdk.Context) {
 			if reserve.Amount.IsNegative() { //testing purpose
 				panic("negative reserve balance")
 			}
-			k.DeletePendingPayout(ctx, payout.ProposalId)
 			return true
 		}
 
@@ -148,4 +147,14 @@ func (k Keeper) MakePayouts(ctx sdk.Context) {
 	})
 
 	k.SetReserve(ctx, reserve)
+}
+
+func (k Keeper) DeletePendingPayouts(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.PendingPayoutKey)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		store.Delete(iterator.Key())
+	}
 }
