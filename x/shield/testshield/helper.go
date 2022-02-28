@@ -53,7 +53,7 @@ func (sh *Helper) PurchaseShield(purchaser sdk.AccAddress, shield int64, poolID 
 	sh.Handle(msg, ok)
 }
 
-func (sh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID, purchaseID uint64, ok bool) {
+func (sh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolID uint64, ok bool) {
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, loss))
 	proposal := types.NewShieldClaimProposal(poolID, lossCoins, "test_claim_evidence", "test_claim_description", proposer)
 	sh.HandleProposal(proposal, ok)

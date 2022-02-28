@@ -2,7 +2,6 @@ package simulation
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -39,12 +38,6 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &poolA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &poolB)
 			return fmt.Sprintf("%v\n%v", poolA, poolB)
-
-		case bytes.Equal(kvA.Key[:1], types.NextPoolIDKey),
-			bytes.Equal(kvA.Key[:1], types.NextPurchaseIDKey):
-			idA := binary.LittleEndian.Uint64(kvA.Value)
-			idB := binary.LittleEndian.Uint64(kvB.Value)
-			return fmt.Sprintf("%v\n%v", idA, idB)
 
 		case bytes.Equal(kvA.Key[:1], types.ProviderKey):
 			var providerA, providerB types.Provider

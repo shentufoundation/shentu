@@ -34,7 +34,6 @@ var (
 	RemainingServiceFeesKey     = []byte{0x06}
 	PoolKey                     = []byte{0x07}
 	NextPoolIDKey               = []byte{0x08}
-	NextPurchaseIDKey           = []byte{0x09}
 	ProviderKey                 = []byte{0x0C}
 	WithdrawQueueKey            = []byte{0x0D}
 	GlobalStakeForShieldPoolKey = []byte{0x0F}
@@ -80,11 +79,6 @@ func GetShieldAdminKey() []byte {
 // GetNextPoolIDKey gets the key for the next pool ID.
 func GetNextPoolIDKey() []byte {
 	return NextPoolIDKey
-}
-
-// GetNextPurchaseIDKey gets the key for the next pool ID.
-func GetNextPurchaseIDKey() []byte {
-	return NextPurchaseIDKey
 }
 
 // GetProviderKey gets the key for the delegator's tracker.
