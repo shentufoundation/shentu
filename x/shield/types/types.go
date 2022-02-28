@@ -11,7 +11,7 @@ var (
 )
 
 // NewPool creates a new project pool.
-func NewPool(id uint64, description string, sponsorAddress sdk.AccAddress, shield sdk.Int, shieldRate sdk.Dec, shieldLimit sdk.Coins) Pool {
+func NewPool(id uint64, description string, sponsorAddress sdk.AccAddress, shield sdk.Int, shieldRate sdk.Dec, shieldLimit sdk.Int) Pool {
 	return Pool{
 		Id:          id,
 		Description: description,

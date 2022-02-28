@@ -12,7 +12,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/v2/common"
 	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
@@ -157,7 +156,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 
 		description := simtypes.RandStringOfLength(r, 42)
 		shieldRate := simtypes.RandomDecAmount(r, sdk.NewDec(10))
-		shieldLimit := simtypes.RandSubsetCoins(r, sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100000000))))
+		shieldLimit := simtypes.RandomAmount(r, sdk.NewInt(100e7))
 		if !shieldRate.GTE(sdk.NewDec(1)) {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, "zero shield rate"), nil, nil
 		}
@@ -224,7 +223,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 			shieldRate = shieldRate.Mul(sdk.NewDec(-1))
 		}
 		shieldRate = shieldRate.Add(sdk.OneDec())
-		shieldLimit := simtypes.RandSubsetCoins(r, sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100000000))))
+		shieldLimit := simtypes.RandomAmount(r, sdk.NewInt(100e7))
 
 		tmp, err := simtypes.RandPositiveInt(r, sdk.OneInt())
 		if err != nil {
@@ -628,6 +627,6 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, bk ty
 }
 
 func computeMaxShield(pool types.Pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield sdk.Int, poolParams types.PoolParams) sdk.Int {
-	return sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).Sub(poolParams.PoolShieldLimit.AmountOf(common.MicroCTKDenom)).Sub(pool.Shield),
+	return sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).Sub(poolParams.PoolShieldLimit).Sub(pool.Shield),
 		totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).Sub(totalShield))
 }

@@ -17,7 +17,7 @@ var (
 	DefaultShieldFeesRate    = sdk.NewDecWithPrec(769, 5)                                             // 0.769%
 	DefaultWithdrawPeriod    = time.Hour * 24 * 21                                                    // 21 days
 	DefaultWithdrawFeesRate  = sdk.NewDecWithPrec(5, 2)                                               // 5%
-	DefaultPoolShieldLimit   = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100000000))) // 100 CTK                                       // 50%
+	DefaultPoolShieldLimit   = sdk.NewInt(100000000) 												  // 100 CTK                                      
 	DefaultMinShieldPurchase = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(50000000)))  // 50 CTK
 	DefaultCooldownPeriod    = time.Hour * 24 * 7
 
@@ -56,7 +56,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewPoolParams creates a new PoolParams object.
-func NewPoolParams(protectionPeriod, withdrawPeriod, cooldownPeriod time.Duration, shieldFeesRate, withdrawFeesRate sdk.Dec, poolShieldLimit sdk.Coins, minShieldPurchase sdk.Coins) PoolParams {
+func NewPoolParams(protectionPeriod, withdrawPeriod, cooldownPeriod time.Duration, shieldFeesRate, withdrawFeesRate sdk.Dec, poolShieldLimit sdk.Int, minShieldPurchase sdk.Coins) PoolParams {
 	return PoolParams{
 		ProtectionPeriod:  protectionPeriod,
 		ShieldFeesRate:    shieldFeesRate,
@@ -94,8 +94,8 @@ func validatePoolParams(i interface{}) error {
 	if withdrawPeriod <= 0 {
 		return fmt.Errorf("withdraw period must be positive: %s", withdrawPeriod)
 	}
-	if !poolShieldLimit.IsValid() {
-		return fmt.Errorf("shield limit must be a valid sdk.Coins, is %s", poolShieldLimit.String())
+	if poolShieldLimit.IsNegative() {
+		return fmt.Errorf("shield limit should be positive but is %s", poolShieldLimit)
 	}
 	if withdrawFeesRate.IsNegative() {
 		return fmt.Errorf("withdraw fees rate should be positive but is %s", withdrawFeesRate)

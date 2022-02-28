@@ -20,7 +20,8 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, amount sdk.Coins,
 	}
 	pool, found := k.GetPool(ctx, poolID)
 
-	if !pool.ShieldLimit.IsAnyGT(amount) {
+
+	if pool.ShieldLimit.LT(amount.AmountOf("uctk")) {
 		return types.Purchase{}, types.ErrPurchaseExceededLimit
 	}
 

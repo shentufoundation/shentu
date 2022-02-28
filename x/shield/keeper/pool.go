@@ -146,7 +146,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg types.MsgCreatePool) (uint64, er
 	poolID := k.GetNextPoolID(ctx)
 
 	// set default shield limit if no limit provided
-	if msg.ShieldLimit.Empty() {
+	if msg.ShieldLimit == sdk.NewInt(0) {
 		msg.ShieldLimit = k.GetPoolParams(ctx).PoolShieldLimit
 	}
 	pool := types.NewPool(poolID, msg.Description, sponsorAddr, sdk.ZeroInt(), msg.ShieldRate, msg.ShieldLimit)
@@ -180,7 +180,7 @@ func (k Keeper) UpdatePool(ctx sdk.Context, msg types.MsgUpdatePool) (types.Pool
 		pool.ShieldRate = msg.ShieldRate
 	}
 
-	if !msg.ShieldLimit.Empty() {
+	if !msg.ShieldLimit.IsZero() {
 		pool.ShieldLimit = msg.ShieldLimit
 	}
 	pool.Active = msg.Active

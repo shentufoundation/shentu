@@ -55,7 +55,7 @@ message PoolParams {
     google.protobuf.Duration protection_period = 1 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"protection_period\"" ];
     string shield_fees_rate = 2 [ (gogoproto.moretags) = "yaml:\"shield_fees_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
     google.protobuf.Duration withdraw_period = 3 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"withdraw_period\"" ];
-    repeated cosmos.base.v1beta1.Coin pool_shield_limit = 4 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    string pool_shield_limit = 4 [ (gogoproto.moretags) = "yaml:\"pool_shield_limit\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     repeated cosmos.base.v1beta1.Coin min_shield_purchase = 5 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
     google.protobuf.Duration cooldown_period = 6 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"cooldown_period\"" ];
     string withdraw_fees_rate = 7 [ (gogoproto.moretags) = "yaml:\"withdraw_fees_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];

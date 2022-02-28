@@ -151,12 +151,21 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-
 				return err
 			}
 
-			shieldLimit, err := sdk.ParseCoinsNormalized(viper.GetString(flagShieldLimit))
+			shieldLimit, err := sdk.ParseCoinNormalized(viper.GetString(flagShieldLimit))
 			if err != nil {
 				return err
 			}
+			
+			denom := shieldLimit.Denom
+			shieldLimitAmt := shieldLimit.Amount
 
-			msg := types.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate, shieldLimit)
+			// converting to uctk
+			if(denom == "ctk"){
+				shieldLimitAmt = shieldLimitAmt.Mul(sdk.NewInt(1e6))
+			}
+
+			
+			msg := types.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate, shieldLimitAmt)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -211,17 +220,26 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				}
 			}
 
-			shieldLimit, err := sdk.ParseCoinsNormalized(viper.GetString(flagShieldLimit))
+			shieldLimit, err := sdk.ParseCoinNormalized(viper.GetString(flagShieldLimit))
 			if err != nil {
 				return err
 			}
+
+			denom := shieldLimit.Denom
+			shieldLimitAmt := shieldLimit.Amount
+
+			// converting to uctk
+			if(denom == "ctk"){
+				shieldLimitAmt = shieldLimitAmt.Mul(sdk.NewInt(1e6))
+			}
+
 
 			active, err := cmd.Flags().GetBool(flagActive)
 			if err != nil {
 				panic(err)
 			}
 
-			msg := types.NewMsgUpdatePool(fromAddr, id, description, active, shieldRate, shieldLimit)
+			msg := types.NewMsgUpdatePool(fromAddr, id, description, active, shieldRate, shieldLimitAmt)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
