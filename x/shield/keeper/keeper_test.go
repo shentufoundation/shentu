@@ -259,7 +259,7 @@ func TestClaimProposal(t *testing.T) {
 	// $BondDenom pool with shield = 100,000 $BondDenom, limit = 500,000 $BondDenom, serviceFees = 200 $BondDenom
 	tstaking.Delegate(shieldAdmin, val1addr, adminDeposit)
 	tshield.DepositCollateral(shieldAdmin, adminDeposit, true)
-	tshield.CreatePool(shieldAdmin, sponsorAddr, "fake_description", sdk.NewDec(1), sdk.Coins{sdk.NewInt64Coin("uctk", 100e6)})
+	tshield.CreatePool(shieldAdmin, sponsorAddr, "fake_description", sdk.NewDec(1), sdk.Coins{sdk.NewInt64Coin("uctk", 100e9)})
 
 	pools := app.ShieldKeeper.GetAllPools(ctx)
 	require.True(t, len(pools) == 1)
@@ -406,7 +406,7 @@ func TestInsufficientCollateral(t *testing.T) {
 	// $BondDenom pool with shield = 100,000 $BondDenom, limit = 500,000 $BondDenom, serviceFees = 200 $BondDenom
 	tstaking.Delegate(shieldAdmin, val1addr, adminDeposit)
 	tshield.DepositCollateral(shieldAdmin, adminDeposit, true)
-	tshield.CreatePool(shieldAdmin, sponsorAddr, "fake_description", sdk.NewDec(1), sdk.Coins{sdk.NewInt64Coin("uctk", 100e6)})
+	tshield.CreatePool(shieldAdmin, sponsorAddr, "fake_description", sdk.NewDec(1), sdk.Coins{sdk.NewInt64Coin("uctk", 1000e9)})
 
 	pools := app.ShieldKeeper.GetAllPools(ctx)
 	require.True(t, len(pools) == 1)
