@@ -20,11 +20,6 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, amount sdk.Coins,
 	}
 	pool, found := k.GetPool(ctx, poolID)
 
-
-	if pool.ShieldLimit.LT(amount.AmountOf("uctk")) {
-		return types.Purchase{}, types.ErrPurchaseExceededLimit
-	}
-
 	if !found {
 		return types.Purchase{}, types.ErrNoPoolFound
 	}
@@ -168,6 +163,11 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	bondDenomAmt := amount.AmountOf(k.BondDenom(ctx))
 
 	shieldAmt := bondDenomAmt.ToDec().Mul(pool.ShieldRate).TruncateInt()
+
+	if pool.ShieldLimit.LT(shieldAmt) {
+		return types.Purchase{}, types.ErrPurchaseExceededLimit
+	}
+
 	pool.Shield = pool.Shield.Add(shieldAmt)
 	k.SetPool(ctx, pool)
 

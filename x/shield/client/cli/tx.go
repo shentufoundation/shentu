@@ -155,16 +155,9 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-
 			if err != nil {
 				return err
 			}
-			
-			denom := shieldLimit.Denom
+
 			shieldLimitAmt := shieldLimit.Amount
 
-			// converting to uctk
-			if(denom == "ctk"){
-				shieldLimitAmt = shieldLimitAmt.Mul(sdk.NewInt(1e6))
-			}
-
-			
 			msg := types.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate, shieldLimitAmt)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -225,14 +218,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				return err
 			}
 
-			denom := shieldLimit.Denom
 			shieldLimitAmt := shieldLimit.Amount
-
-			// converting to uctk
-			if(denom == "ctk"){
-				shieldLimitAmt = shieldLimitAmt.Mul(sdk.NewInt(1e6))
-			}
-
 
 			active, err := cmd.Flags().GetBool(flagActive)
 			if err != nil {

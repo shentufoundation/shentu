@@ -13,12 +13,12 @@ import (
 // default parameter values
 var (
 	// default values for Shield pool's parameters
-	DefaultProtectionPeriod  = time.Hour * 24 * 21                                                    // 21 days
-	DefaultShieldFeesRate    = sdk.NewDecWithPrec(769, 5)                                             // 0.769%
-	DefaultWithdrawPeriod    = time.Hour * 24 * 21                                                    // 21 days
-	DefaultWithdrawFeesRate  = sdk.NewDecWithPrec(5, 2)                                               // 5%
-	DefaultPoolShieldLimit   = sdk.NewInt(100000000) 												  // 100 CTK                                      
-	DefaultMinShieldPurchase = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(50000000)))  // 50 CTK
+	DefaultProtectionPeriod  = time.Hour * 24 * 21                                                   // 21 days
+	DefaultShieldFeesRate    = sdk.NewDecWithPrec(769, 5)                                            // 0.769%
+	DefaultWithdrawPeriod    = time.Hour * 24 * 21                                                   // 21 days
+	DefaultWithdrawFeesRate  = sdk.NewDecWithPrec(5, 2)                                              // 5%
+	DefaultPoolShieldLimit   = sdk.NewInt(100000000)                                                 // 100 CTK
+	DefaultMinShieldPurchase = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(50000000))) // 50 CTK
 	DefaultCooldownPeriod    = time.Hour * 24 * 7
 
 	// default values for Shield claim proposal's parameters
