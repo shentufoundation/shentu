@@ -53,7 +53,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	acc1 = sdk.AccAddress(valAddrs[0])
 	validator = valAddrs[0]
 	suite.app.ShieldKeeper.SetAdmin(suite.ctx, acc1)
-
 }
 
 func (suite *KeeperTestSuite) Test_DepositCollateral() {
@@ -432,7 +431,7 @@ func (suite *KeeperTestSuite) Test_Unstake() {
 
 	for _, tc := range tests {
 		suite.T().Log(tc.name)
-		initialPurchase, check := suite.app.ShieldKeeper.GetPurchase(suite.ctx, 1, acc1)
+		initialPurchase, _ := suite.app.ShieldKeeper.GetPurchase(suite.ctx, 1, acc1)
 		_, err := suite.msgServer.Unstake(sdk.WrapSDKContext(suite.ctx), tc.message)
 		finalPurchase, check := suite.app.ShieldKeeper.GetPurchase(suite.ctx, 1, acc1)
 		if tc.err {
