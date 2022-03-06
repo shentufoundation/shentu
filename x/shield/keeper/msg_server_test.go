@@ -396,7 +396,7 @@ func (suite *KeeperTestSuite) Test_Purchase() {
 			suite.Require().Error(err)
 		} else {
 			suite.Require().NoError(err)
-			suite.Require().Truef(purchase.Amount.Equal(tc.message.Amount.AmountOf(common.MicroCTKDenom)) && check, "should contain and update sponsor")
+			suite.Require().Truef(purchase.Amount.Equal(tc.message.Amount.AmountOf(common.MicroCTKDenom)) && check, "should contain and purchase")
 		}
 	}
 }
