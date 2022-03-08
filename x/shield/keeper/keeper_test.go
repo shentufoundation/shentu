@@ -359,12 +359,12 @@ func TestClaimProposal(t *testing.T) {
 // TestInsufficientCollateral tests a claim proposal process that involves
 // withdrawal and unbonding delays that cannot fully reimburse the claim.
 func TestInsufficientCollateral(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	// create and add addresses
-	pks := simapp.CreateTestPubKeys(5)
-	simapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.ZeroInt())
+	pks := shentuapp.CreateTestPubKeys(5)
+	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.ZeroInt())
 
 	shieldAdmin := sdk.AccAddress(pks[0].Address())
 	err := sdksimapp.FundAccount(app.BankKeeper, ctx, shieldAdmin, sdk.Coins{sdk.NewInt64Coin("uctk", 250e9)})

@@ -1,3 +1,6 @@
+//go:build norace
+// +build norace
+
 package cli_test
 
 import (
@@ -18,6 +21,7 @@ import (
 	stakingcli "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 
 	"github.com/certikfoundation/shentu/v2/app"
+	"github.com/certikfoundation/shentu/v2/common"
 	"github.com/certikfoundation/shentu/v2/x/shield/client/cli"
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
@@ -39,7 +43,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.cfg = app.DefaultConfig()
 
 	s.cfg.NumValidators = 1
-	s.cfg.BondDenom = "uctk"
+	s.cfg.BondDenom = common.MicroCTKDenom
 	s.cfg.AccountTokens = sdk.NewInt(100_000_000_000_000_000)
 	s.cfg.StakingTokens = sdk.NewInt(100_000_000_000_000_000)
 
@@ -564,7 +568,7 @@ func (s *IntegrationTestSuite) TestCmdUnstakeFromShield() {
 		expectedCode uint32
 	}{
 		{
-			"should fail on insufficient delegation unstake",
+			"should pass on small delegation unstake",
 			[]string{
 				sdk.NewInt(1).String(),
 				sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(1))).String(),
@@ -577,7 +581,7 @@ func (s *IntegrationTestSuite) TestCmdUnstakeFromShield() {
 			},
 			false,
 			&sdk.TxResponse{},
-			0x7f,
+			0x0,
 		},
 		{
 			"should pass on valid unstake other than admin",
