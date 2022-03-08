@@ -32,7 +32,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.T().Log("setting up integration test suite")
 	s.cfg = app.DefaultConfig()
 
-	s.cfg.NumValidators = 2
+	s.cfg.NumValidators = 1
 	s.cfg.BondDenom = common.MicroCTKDenom
 	s.cfg.AccountTokens = sdk.NewInt(100_000_000_000)
 	s.cfg.StakingTokens = sdk.NewInt(100_000_000_000)
@@ -50,11 +50,8 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 
 func (s *IntegrationTestSuite) TestLockedSendTx() {
 	val := s.network.Validators[0]
-	val1 := s.network.Validators[1]
 	from := val.Address
-	to := val1.Address
 
-	fmt.Println("payment", from.String(), to.String(), s.cfg.MinGasPrices)
 	testCases := []struct {
 		name         string
 		args         []string
@@ -69,9 +66,8 @@ func (s *IntegrationTestSuite) TestLockedSendTx() {
 				sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 				sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(1))).String(),
 
-				//fmt.Sprintf("--%s=%s", cli.FlagDuration, "24h"),
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, from.String()),
-				//fmt.Sprintf("--%s=%s", cli.FlagUnlocker, from.String()),
+
 				// common args
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
@@ -88,6 +84,7 @@ func (s *IntegrationTestSuite) TestLockedSendTx() {
 
 				fmt.Sprintf("--%s=%s", flags.FlagFrom, from.String()),
 				fmt.Sprintf("--%s=%s", cli.FlagUnlocker, from.String()),
+
 				// common args
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
