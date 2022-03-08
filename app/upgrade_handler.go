@@ -73,6 +73,9 @@ func (app ShentuApp) setShieldV2UpgradeHandler() {
 			// Refund v1 purchases
 			v231.RefundPurchasers(ctx, app.appCodec, app.bankKeeper, &app.stakingKeeper, app.shieldKeeper, app.keys[shieldtypes.StoreKey])
 
+			// Payout reimbursements
+			v231.PayoutReimbursements(ctx, app.appCodec, app.bankKeeper, &app.stakingKeeper, app.shieldKeeper, app.keys[shieldtypes.StoreKey])
+
 			app.ibcKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
 
 			fromVM := make(map[string]uint64)

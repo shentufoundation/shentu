@@ -41,52 +41,11 @@ func migratePools(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	return nil
 }
 
-func resolvePurchases(store sdk.KVStore) error {
-	oldStore := prefix.NewStore(store, types.PurchaseKey)
-
-	oldStoreIter := oldStore.Iterator(nil, nil)
-	defer oldStoreIter.Close()
-
-	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
-		oldStore.Delete(oldStoreIter.Key())
-	}
-
-	queueStore := prefix.NewStore(store, types.PurchaseQueueKey)
-
-	queueStoreIter := queueStore.Iterator(nil, nil)
-	defer queueStoreIter.Close()
-
-	for ; queueStoreIter.Valid(); queueStoreIter.Next() {
-		oldStore.Delete(queueStoreIter.Key())
-	}
-
-	return nil
-}
-
 func deleteUnusedStores(store sdk.KVStore) error {
 	store.Delete(types.GetNextPurchaseIDKey())
 	store.Delete(types.GetLastUpdateTimeKey())
-	return nil
-}
-
-func resolveReimbursements(store sdk.KVStore, cdc codec.BinaryCodec, bondDenom string) error {
-	var reserve v1beta1.Reserve
-	reserveBz := store.Get(types.ReserveKey)
-	cdc.MustUnmarshal(reserveBz, &reserve)
-
-	oldStore := prefix.NewStore(store, types.ReimbursementKey)
-
-	oldStoreIter := oldStore.Iterator(nil, nil)
-	defer oldStoreIter.Close()
-	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
-		var reimbursement v1alpha1.Reimbursement
-		cdc.MustUnmarshal(oldStoreIter.Value(), &reimbursement)
-
-		reserve.Amount = reserve.Amount.Add(reimbursement.Amount.AmountOf(bondDenom))
-		oldStore.Delete(oldStoreIter.Key())
-	}
-	reserveBz = cdc.MustMarshal(&reserve)
-	store.Set(types.ReserveKey, reserveBz)
+	store.Delete(types.PurchaseKey)
+	store.Delete(types.PurchaseQueueKey)
 	return nil
 }
 
@@ -101,16 +60,6 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec,
 	}
 	store := ctx.KVStore(storeKey)
 	err = migratePools(store, cdc)
-	if err != nil {
-		return err
-	}
-
-	err = resolvePurchases(store)
-	if err != nil {
-		return err
-	}
-
-	err = resolveReimbursements(store, cdc, bondDenom)
 	if err != nil {
 		return err
 	}
