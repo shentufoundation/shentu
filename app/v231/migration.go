@@ -39,13 +39,9 @@ func RefundPurchasers(ctx sdk.Context, cdc codec.BinaryCodec, bk bankkeeper.Keep
 	k.SetGlobalStakingPool(ctx, sdk.ZeroInt())
 }
 
-func PayoutReimbursements(ctx sdk.Context, cdc codec.BinaryCodec, bk bankkeeper.Keeper, sk *stakingkeeper.Keeper, k shieldkeeper.Keeper, storeKey sdk.StoreKey) {
-	bondDenom := sk.BondDenom(ctx)
-
+func PayoutReimbursements(ctx sdk.Context, cdc codec.BinaryCodec, bk bankkeeper.Keeper, k shieldkeeper.Keeper, storeKey sdk.StoreKey) {
 	store := ctx.KVStore(storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, shieldtypes.ReimbursementKey)
-
-	var claimed sdk.Int
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -58,11 +54,8 @@ func PayoutReimbursements(ctx sdk.Context, cdc codec.BinaryCodec, bk bankkeeper.
 		if err := bk.SendCoinsFromModuleToAccount(ctx, shieldtypes.ModuleName, addr, reimbursement.Amount); err != nil {
 			panic(err)
 		}
-		claimed = claimed.Add(reimbursement.Amount.AmountOf(bondDenom))
 		store.Delete(iterator.Key())
 	}
 
-	totalClaimed := k.GetTotalClaimed(ctx)
-	totalClaimed = totalClaimed.Add(claimed)
-	k.SetTotalClaimed(ctx, totalClaimed)
+	k.SetTotalClaimed(ctx, sdk.ZeroInt())
 }
