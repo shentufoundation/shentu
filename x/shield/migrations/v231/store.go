@@ -54,12 +54,8 @@ func migrateparams(store sdk.KVStore, cdc codec.BinaryCodec, ps types.ParamSubsp
 }
 
 func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec, paramSpace types.ParamSubspace, queryServer grpc.Server) error {
-	bondDenom, err := getBondDenom(ctx, queryServer)
-	if err != nil {
-		return err
-	}
 	store := ctx.KVStore(storeKey)
-	err = migratePools(store, cdc)
+	err := migratePools(store, cdc)
 	if err != nil {
 		return err
 	}
