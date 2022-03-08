@@ -41,7 +41,7 @@ func migratePools(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	return nil
 }
 
-func resolvePurchases(store sdk.KVStore, cdc codec.BinaryCodec, bondDenom string) error {
+func resolvePurchases(store sdk.KVStore) error {
 	oldStore := prefix.NewStore(store, types.PurchaseKey)
 
 	oldStoreIter := oldStore.Iterator(nil, nil)
@@ -59,28 +59,6 @@ func resolvePurchases(store sdk.KVStore, cdc codec.BinaryCodec, bondDenom string
 	for ; queueStoreIter.Valid(); queueStoreIter.Next() {
 		oldStore.Delete(queueStoreIter.Key())
 	}
-
-	listStore := prefix.NewStore(store, types.PurchaseListKey)
-
-	listStoreIter := listStore.Iterator(nil, nil)
-	defer listStoreIter.Close()
-
-	total := sdk.ZeroDec()
-	for ; listStoreIter.Valid(); listStoreIter.Next() {
-		var pl v1alpha1.PurchaseList
-		cdc.MustUnmarshal(oldStoreIter.Value(), &pl)
-
-		for _, e := range pl.Entries {
-			total = total.Add(e.ServiceFees.Native.AmountOf(bondDenom))
-		}
-		oldStore.Delete(listStoreIter.Key())
-	}
-	var reserve v1beta1.Reserve
-	reserveBz := store.Get(types.ReserveKey)
-	cdc.MustUnmarshal(reserveBz, &reserve)
-	reserve.Amount = reserve.Amount.Add(total.TruncateInt())
-	reserveBz = cdc.MustMarshal(&reserve)
-	store.Set(types.ReserveKey, reserveBz)
 
 	return nil
 }
@@ -127,7 +105,7 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec,
 		return err
 	}
 
-	err = resolvePurchases(store, cdc, bondDenom)
+	err = resolvePurchases(store)
 	if err != nil {
 		return err
 	}

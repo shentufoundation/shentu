@@ -15,6 +15,7 @@ import (
 
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
 
+	v231 "github.com/certikfoundation/shentu/v2/app/v231"
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
@@ -69,6 +70,9 @@ func (app ShentuApp) setShieldV2UpgradeHandler() {
 	app.upgradeKeeper.SetUpgradeHandler(
 		shieldv2,
 		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
+			// Refund v1 purchases
+			v231.RefundPurchasers(ctx, app.appCodec, app.bankKeeper, &app.stakingKeeper, app.shieldKeeper, app.keys[shieldtypes.StoreKey])
+
 			app.ibcKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
 
 			fromVM := make(map[string]uint64)
