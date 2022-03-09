@@ -110,7 +110,7 @@ func migrateParams(ctx sdk.Context, ps types.ParamSubspace) error {
 	// ps.Get(ctx, v1beta1.ParamStoreKeyClaimProposalParams, &claimProposal)
 	// fmt.Println(claimProposal.String())
 
-	// Staking shield rate didn't change, do nothing. 
+	// Staking shield rate didn't change, do nothing.
 	// var stakingShieldRate sdk.Dec
 	// ps.Get(ctx, v1beta1.ParamStoreKeyStakingShieldRate, &stakingShieldRate)
 	// fmt.Println(stakingShieldRate.String())
@@ -118,6 +118,13 @@ func migrateParams(ctx sdk.Context, ps types.ParamSubspace) error {
 	blockRewardParams := v1beta1.DefaultBlockRewardParams()
 	ps.Set(ctx, v1beta1.ParamStoreKeyBlockRewardParams, &blockRewardParams)
 
+	return nil
+}
+
+func initReserve(store sdk.KVStore, cdc codec.BinaryCodec) error {
+	reserve := v1beta1.InitialReserve()
+	bz := cdc.MustMarshalLengthPrefixed(&reserve)
+	store.Set(types.GetReserveKey(), bz)
 	return nil
 }
 
@@ -143,6 +150,11 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec,
 	}
 
 	err = migrateParams(ctx, paramSpace)
+	if err != nil {
+		return err
+	}
+
+	err = initReserve(store, cdc)
 	if err != nil {
 		return err
 	}
