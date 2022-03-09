@@ -151,14 +151,9 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-
 				return err
 			}
 
-			shieldLimit, err := sdk.ParseCoinNormalized(viper.GetString(flagShieldLimit))
-			if err != nil {
-				return err
-			}
+			shieldLimit := sdk.NewInt(int64(viper.GetUint(flagShieldLimit)))
 
-			shieldLimitAmt := shieldLimit.Amount
-
-			msg := types.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate, shieldLimitAmt)
+			msg := types.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate, shieldLimit)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -169,7 +164,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-
 
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagShieldRate, "", "Shield Rate")
-	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
+	cmd.Flags().Uint(flagShieldLimit, 0, "coverage limit of the pool")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
@@ -213,19 +208,14 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				}
 			}
 
-			shieldLimit, err := sdk.ParseCoinNormalized(viper.GetString(flagShieldLimit))
-			if err != nil {
-				return err
-			}
-
-			shieldLimitAmt := shieldLimit.Amount
+			shieldLimit := sdk.NewInt(int64(viper.GetUint(flagShieldLimit)))
 
 			active, err := cmd.Flags().GetBool(flagActive)
 			if err != nil {
 				panic(err)
 			}
 
-			msg := types.NewMsgUpdatePool(fromAddr, id, description, active, shieldRate, shieldLimitAmt)
+			msg := types.NewMsgUpdatePool(fromAddr, id, description, active, shieldRate, shieldLimit)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -236,7 +226,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagShieldRate, "", "Shield Rate")
-	cmd.Flags().String(flagShieldLimit, "", "the limit of active shield for the pool")
+	cmd.Flags().Uint(flagShieldLimit, 0, "coverage limit of the pool")
 	cmd.Flags().Bool(flagActive, true, "new pool status. default true.")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd

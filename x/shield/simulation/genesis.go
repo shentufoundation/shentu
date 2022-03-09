@@ -46,10 +46,9 @@ func GenPoolParams(r *rand.Rand) types.PoolParams {
 	protectionPeriod := time.Duration(simtypes.RandIntBetween(r, 60*1, 60*60*24*2)) * time.Second
 	withdrawPeriod := time.Duration(simtypes.RandIntBetween(r, 60*1, 60*60*24*3)) * time.Second
 	shieldFeesRate := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 0, 50)), 3)
-	poolShieldLimit := sdk.NewInt(int64(simtypes.RandIntBetween(r, 1e14, 1e15)))
 	withdrawFeesRate := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 50)), 3)
 	cooldownPeriod := time.Duration(simtypes.RandIntBetween(r, 60*1, 60*60*24*3)) * time.Second
-	return types.NewPoolParams(protectionPeriod, withdrawPeriod, cooldownPeriod, shieldFeesRate, withdrawFeesRate, poolShieldLimit, sdk.NewCoins())
+	return types.NewPoolParams(protectionPeriod, withdrawPeriod, cooldownPeriod, shieldFeesRate, withdrawFeesRate, sdk.NewCoins())
 }
 
 // GenClaimProposalParams returns a randomized ClaimProposalParams object.

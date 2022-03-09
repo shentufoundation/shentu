@@ -17,7 +17,6 @@ var (
 	DefaultShieldFeesRate    = sdk.NewDecWithPrec(769, 5)                                            // 0.769%
 	DefaultWithdrawPeriod    = time.Hour * 24 * 21                                                   // 21 days
 	DefaultWithdrawFeesRate  = sdk.NewDecWithPrec(5, 2)                                              // 5%
-	DefaultPoolShieldLimit   = sdk.NewInt(100000000)                                                 // 100 CTK
 	DefaultMinShieldPurchase = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(50000000))) // 50 CTK
 	DefaultCooldownPeriod    = time.Hour * 24 * 7
 
@@ -56,13 +55,12 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewPoolParams creates a new PoolParams object.
-func NewPoolParams(protectionPeriod, withdrawPeriod, cooldownPeriod time.Duration, shieldFeesRate, withdrawFeesRate sdk.Dec, poolShieldLimit sdk.Int, minShieldPurchase sdk.Coins) PoolParams {
+func NewPoolParams(protectionPeriod, withdrawPeriod, cooldownPeriod time.Duration, shieldFeesRate, withdrawFeesRate sdk.Dec, minShieldPurchase sdk.Coins) PoolParams {
 	return PoolParams{
 		ProtectionPeriod:  protectionPeriod,
 		ShieldFeesRate:    shieldFeesRate,
 		WithdrawPeriod:    withdrawPeriod,
 		WithdrawFeesRate:  withdrawFeesRate,
-		PoolShieldLimit:   poolShieldLimit,
 		MinShieldPurchase: minShieldPurchase,
 		CooldownPeriod:    cooldownPeriod,
 	}
@@ -70,7 +68,7 @@ func NewPoolParams(protectionPeriod, withdrawPeriod, cooldownPeriod time.Duratio
 
 // DefaultPoolParams returns a default PoolParams instance.
 func DefaultPoolParams() PoolParams {
-	return NewPoolParams(DefaultProtectionPeriod, DefaultWithdrawPeriod, DefaultCooldownPeriod, DefaultShieldFeesRate, DefaultWithdrawFeesRate, DefaultPoolShieldLimit, DefaultMinShieldPurchase)
+	return NewPoolParams(DefaultProtectionPeriod, DefaultWithdrawPeriod, DefaultCooldownPeriod, DefaultShieldFeesRate, DefaultWithdrawFeesRate, DefaultMinShieldPurchase)
 }
 
 func validatePoolParams(i interface{}) error {
@@ -82,7 +80,6 @@ func validatePoolParams(i interface{}) error {
 	shieldFeesRate := v.ShieldFeesRate
 	withdrawPeriod := v.WithdrawPeriod
 	withdrawFeesRate := v.WithdrawFeesRate
-	poolShieldLimit := v.PoolShieldLimit
 	minShieldPurchase := v.MinShieldPurchase
 
 	if protectionPeriod <= 0 {
@@ -93,9 +90,6 @@ func validatePoolParams(i interface{}) error {
 	}
 	if withdrawPeriod <= 0 {
 		return fmt.Errorf("withdraw period must be positive: %s", withdrawPeriod)
-	}
-	if poolShieldLimit.IsNegative() {
-		return fmt.Errorf("shield limit should be positive but is %s", poolShieldLimit)
 	}
 	if withdrawFeesRate.IsNegative() {
 		return fmt.Errorf("withdraw fees rate should be positive but is %s", withdrawFeesRate)

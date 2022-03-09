@@ -164,11 +164,12 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 
 	shieldAmt := bondDenomAmt.ToDec().Mul(pool.ShieldRate).TruncateInt()
 
-	if pool.ShieldLimit.LT(shieldAmt) {
+	totalPurchaseAmt := pool.Shield.Add(shieldAmt)
+	if pool.ShieldLimit.LT(totalPurchaseAmt) {
 		return types.Purchase{}, types.ErrPurchaseExceededLimit
 	}
 
-	pool.Shield = pool.Shield.Add(shieldAmt)
+	pool.Shield = totalPurchaseAmt
 	k.SetPool(ctx, pool)
 
 	gSPool := k.GetGlobalStakingPool(ctx)
