@@ -64,10 +64,10 @@ func ValidateGenesis(data GenesisState) error {
 	if data.NextPoolId < 1 {
 		return fmt.Errorf("failed to validate %s genesis state: NextPoolID must be positive ", types.ModuleName)
 	}
-	if err := validatePoolParams(data.PoolParams); err != nil {
+	if err := ValidatePoolParams(data.PoolParams); err != nil {
 		return fmt.Errorf("failed to validate %s pool params: %w", types.ModuleName, err)
 	}
-	if err := validateClaimProposalParams(data.ClaimProposalParams); err != nil {
+	if err := ValidateClaimProposalParams(data.ClaimProposalParams); err != nil {
 		return fmt.Errorf("failed to validate %s claim proposal params: %w", types.ModuleName, err)
 	}
 

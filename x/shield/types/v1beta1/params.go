@@ -39,19 +39,19 @@ var (
 
 // parameter keys
 var (
-	ParamStoreKeyPoolParams          = []byte("shieldpoolparams")
-	ParamStoreKeyClaimProposalParams = []byte("claimproposalparams")
-	ParamStoreKeyStakingShieldRate   = []byte("stakingshieldrateparams")
-	ParamStoreKeyBlockRewardParams   = []byte("blockrewardparams")
+	ParamStoreKeyPoolParams          = []byte("shieldpoolparamsv2")
+	ParamStoreKeyClaimProposalParams = []byte("claimproposalparamsv2")
+	ParamStoreKeyStakingShieldRate   = []byte("stakingshieldrateparamsv2")
+	ParamStoreKeyBlockRewardParams   = []byte("blockrewardparamsv2")
 )
 
 // ParamKeyTable is the key declaration for parameters.
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable(
-		paramtypes.NewParamSetPair(ParamStoreKeyPoolParams, PoolParams{}, validatePoolParams),
-		paramtypes.NewParamSetPair(ParamStoreKeyClaimProposalParams, ClaimProposalParams{}, validateClaimProposalParams),
-		paramtypes.NewParamSetPair(ParamStoreKeyStakingShieldRate, sdk.Dec{}, validateStakingShieldRateParams),
-		paramtypes.NewParamSetPair(ParamStoreKeyBlockRewardParams, BlockRewardParams{}, validateBlockRewardParams),
+		paramtypes.NewParamSetPair(ParamStoreKeyPoolParams, PoolParams{}, ValidatePoolParams),
+		paramtypes.NewParamSetPair(ParamStoreKeyClaimProposalParams, ClaimProposalParams{}, ValidateClaimProposalParams),
+		paramtypes.NewParamSetPair(ParamStoreKeyStakingShieldRate, sdk.Dec{}, ValidateStakingShieldRateParams),
+		paramtypes.NewParamSetPair(ParamStoreKeyBlockRewardParams, BlockRewardParams{}, ValidateBlockRewardParams),
 	)
 }
 
@@ -73,7 +73,7 @@ func DefaultPoolParams() PoolParams {
 	return NewPoolParams(DefaultProtectionPeriod, DefaultWithdrawPeriod, DefaultCooldownPeriod, DefaultShieldFeesRate, DefaultWithdrawFeesRate, DefaultPoolShieldLimit, DefaultMinShieldPurchase)
 }
 
-func validatePoolParams(i interface{}) error {
+func ValidatePoolParams(i interface{}) error {
 	v, ok := i.(PoolParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -124,7 +124,7 @@ func DefaultClaimProposalParams() ClaimProposalParams {
 		DefaultMinClaimProposalDeposit, DefaultClaimProposalDepositRate, DefaultClaimProposalFeesRate)
 }
 
-func validateClaimProposalParams(i interface{}) error {
+func ValidateClaimProposalParams(i interface{}) error {
 	v, ok := i.(ClaimProposalParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -162,7 +162,7 @@ func DefaultStakingShieldRateParams() sdk.Dec {
 	return sdk.NewDec(2)
 }
 
-func validateStakingShieldRateParams(i interface{}) error {
+func ValidateStakingShieldRateParams(i interface{}) error {
 	v, ok := i.(sdk.Dec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -187,7 +187,7 @@ func DefaultBlockRewardParams() BlockRewardParams {
 	return NewBlockRewardParams(DefaultModelParamA, DefaultModelParamB, DefaultTargetLeverage)
 }
 
-func validateBlockRewardParams(i interface{}) error {
+func ValidateBlockRewardParams(i interface{}) error {
 	v, ok := i.(BlockRewardParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
