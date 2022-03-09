@@ -93,6 +93,7 @@ func resolveReimbursements(store sdk.KVStore, cdc codec.BinaryCodec, bondDenom s
 func migrateParams(ctx sdk.Context, ps types.ParamSubspace) error {
 	var poolParamsV1 v1alpha1.PoolParams
 	ps.Get(ctx, v1alpha1.ParamStoreKeyPoolParams, &poolParamsV1)
+	// fmt.Println(poolParamsV1.String())
 	poolParamsV2 := v1beta1.PoolParams{
 		ProtectionPeriod:  poolParamsV1.ProtectionPeriod,
 		ShieldFeesRate:    poolParamsV1.ShieldFeesRate,
@@ -104,9 +105,15 @@ func migrateParams(ctx sdk.Context, ps types.ParamSubspace) error {
 	}
 	ps.Set(ctx, v1beta1.ParamStoreKeyPoolParams, &poolParamsV2)
 
-	// Claim proposal params didn't change, do nothing?
+	// Claim proposal params didn't change, do nothing.
+	// var claimProposal v1beta1.ClaimProposalParams
+	// ps.Get(ctx, v1beta1.ParamStoreKeyClaimProposalParams, &claimProposal)
+	// fmt.Println(claimProposal.String())
 
-	// Staking shield rate didn't change, do nothing?
+	// Staking shield rate didn't change, do nothing. 
+	// var stakingShieldRate sdk.Dec
+	// ps.Get(ctx, v1beta1.ParamStoreKeyStakingShieldRate, &stakingShieldRate)
+	// fmt.Println(stakingShieldRate.String())
 
 	blockRewardParams := v1beta1.DefaultBlockRewardParams()
 	ps.Set(ctx, v1beta1.ParamStoreKeyBlockRewardParams, &blockRewardParams)

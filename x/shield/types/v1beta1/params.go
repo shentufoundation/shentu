@@ -39,10 +39,10 @@ var (
 
 // parameter keys
 var (
-	ParamStoreKeyPoolParams          = []byte("shieldpoolparamsv2")
-	ParamStoreKeyClaimProposalParams = []byte("claimproposalparamsv2")
-	ParamStoreKeyStakingShieldRate   = []byte("stakingshieldrateparamsv2")
-	ParamStoreKeyBlockRewardParams   = []byte("blockrewardparamsv2")
+	ParamStoreKeyPoolParams          = []byte("shieldpoolparamsv2") // has suffix "v2" to avoid collision with shield v1's "shieldpoolparams"
+	ParamStoreKeyClaimProposalParams = []byte("claimproposalparams")
+	ParamStoreKeyStakingShieldRate   = []byte("stakingshieldrateparams")
+	ParamStoreKeyBlockRewardParams   = []byte("blockrewardparams")
 )
 
 // ParamKeyTable is the key declaration for parameters.
