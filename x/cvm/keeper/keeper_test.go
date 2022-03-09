@@ -21,8 +21,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/common"
-	"github.com/certikfoundation/shentu/v2/simapp"
 	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
 	. "github.com/certikfoundation/shentu/v2/x/cvm/keeper"
 	"github.com/certikfoundation/shentu/v2/x/cvm/types"
@@ -72,9 +72,9 @@ func padOrTrim(bb []byte, size int) []byte {
 }
 
 func TestContractCreation(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	t.Run("should allow call on a contract with no code when calling with empty data (transfer)", func(t *testing.T) {
 		result, err := app.CVMKeeper.Tx(ctx, addrs[0], addrs[1], 10, []byte{}, []*payload.ContractMeta{}, false, false, false)
@@ -115,9 +115,9 @@ func TestContractCreation(t *testing.T) {
 }
 
 func TestProperExecution(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	var newContractAddress sdk.AccAddress
 	t.Run("deploy a contract with regular code", func(t *testing.T) {
@@ -190,9 +190,9 @@ func TestProperExecution(t *testing.T) {
 }
 
 func TestView(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	var newContractAddress sdk.AccAddress
 	t.Run("deploy a contract with regular code", func(t *testing.T) {
@@ -221,9 +221,9 @@ func TestView(t *testing.T) {
 }
 
 func TestGasPrice(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	var newContractAddress sdk.AccAddress
 	t.Run("deploy contract", func(t *testing.T) {
@@ -305,9 +305,9 @@ func TestGasPrice(t *testing.T) {
 }
 
 func TestGasRefund(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	var newContractAddress sdk.AccAddress
 	fmt.Println("Deploy gas test contract")
@@ -420,9 +420,9 @@ func TestGasRefund(t *testing.T) {
 }
 
 func TestCTKTransfer(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	t.Run("check to ensure some account1 that has 10000 CTK", func(t *testing.T) {
 		balance := app.BankKeeper.GetAllBalances(ctx, addrs[0]).AmountOf(app.StakingKeeper.BondDenom(ctx))
@@ -493,9 +493,9 @@ func TestCTKTransfer(t *testing.T) {
 }
 
 func TestStoreLastBlockHash(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
 
 	blockChain := NewBlockChain(ctx, cvmk)
@@ -524,9 +524,9 @@ func TestStoreLastBlockHash(t *testing.T) {
 }
 
 func TestAbi(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	t.Run("store Ctx block hash", func(t *testing.T) {
 		ctx := ctx
@@ -542,9 +542,9 @@ func TestAbi(t *testing.T) {
 }
 
 func TestCode(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	t.Run("deploy contract testCheck", func(t *testing.T) {
 		ctx := ctx
@@ -570,9 +570,9 @@ func TestCode(t *testing.T) {
 }
 
 func TestSend(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	t.Run("test sending through CVM", func(t *testing.T) {
 		ctx := ctx
@@ -592,9 +592,9 @@ func TestSend(t *testing.T) {
 }
 
 func TestPrecompiles(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 3, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 3, sdk.NewInt(80000*1e6))
 
 	t.Run("deploy and call native contracts", func(t *testing.T) {
 		code, err := hex.DecodeString(TestCheckBytecodeString)

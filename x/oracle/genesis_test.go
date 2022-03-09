@@ -7,18 +7,18 @@ import (
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/oracle"
 )
 
 func TestExportGenesis(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	k := app.OracleKeeper
 
 	exported := oracle.ExportGenesis(ctx, k)
 
-	app2 := simapp.Setup(false)
+	app2 := shentuapp.Setup(false)
 	ctx2 := app2.BaseApp.NewContext(false, tmproto.Header{})
 	k2 := app2.OracleKeeper
 
