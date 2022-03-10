@@ -23,6 +23,8 @@ import (
 var (
 	acc1       = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	acc2       = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc3       = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	acc4       = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	validator  = sdk.ValAddress{}
 	PKS        = shentuapp.CreateTestPubKeys(5)
 	valConsPk1 = PKS[0]
