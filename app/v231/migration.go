@@ -32,9 +32,30 @@ func RefundPurchasers(ctx sdk.Context, cdc codec.BinaryCodec, bk bankkeeper.Keep
 		if err := bk.SendCoinsFromModuleToAccount(ctx, shieldtypes.ModuleName, addr, sdk.NewCoins(sdk.NewCoin(bondDenom, total.TruncateInt()))); err != nil {
 			panic(err)
 		}
-		store.Delete(shieldtypes.GetPurchaseListKey(pl.PoolId, addr))
+		store.Delete(iterator.Key())
 	}
 
 	k.SetTotalShield(ctx, sdk.ZeroInt())
 	k.SetGlobalStakingPool(ctx, sdk.ZeroInt())
+}
+
+func PayoutReimbursements(ctx sdk.Context, cdc codec.BinaryCodec, bk bankkeeper.Keeper, k shieldkeeper.Keeper, storeKey sdk.StoreKey) {
+	store := ctx.KVStore(storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, shieldtypes.ReimbursementKey)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var reimbursement v1alpha1.Reimbursement
+		cdc.MustUnmarshal(iterator.Value(), &reimbursement)
+		addr, err := sdk.AccAddressFromBech32(reimbursement.Beneficiary)
+		if err != nil {
+			panic(err)
+		}
+		if err := bk.SendCoinsFromModuleToAccount(ctx, shieldtypes.ModuleName, addr, reimbursement.Amount); err != nil {
+			panic(err)
+		}
+		store.Delete(iterator.Key())
+	}
+
+	k.SetTotalClaimed(ctx, sdk.ZeroInt())
 }
