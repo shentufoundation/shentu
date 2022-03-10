@@ -5,15 +5,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/spf13/cobra"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
@@ -144,14 +142,22 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-
 				return err
 			}
 
-			description := viper.GetString(flagDescription)
-
-			shieldRate, err := sdk.NewDecFromStr(viper.GetString(flagShieldRate))
+			description, err := cmd.Flags().GetString(flagDescription)
 			if err != nil {
 				return err
 			}
 
-			shieldLimit := sdk.NewInt(int64(viper.GetUint(flagShieldLimit)))
+			shieldRateStr, err := cmd.Flags().GetString(flagShieldRate)
+			shieldRate, err := sdk.NewDecFromStr(shieldRateStr)
+			if err != nil {
+				return err
+			}
+
+			limit, err := cmd.Flags().GetInt(flagShieldLimit)
+			if err != nil {
+				return err
+			}
+			shieldLimit := sdk.NewInt(int64(limit))
 
 			msg := types.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate, shieldLimit)
 			if err := msg.ValidateBasic(); err != nil {
@@ -198,17 +204,29 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				return err
 			}
 
-			description := viper.GetString(flagDescription)
+			description, err := cmd.Flags().GetString(flagDescription)
+			if err != nil {
+				return err
+			}
 
 			var shieldRate sdk.Dec
-			if shieldRateInput := viper.GetString(flagShieldRate); shieldRateInput != "" {
+			shieldRateInput, err := cmd.Flags().GetString(flagShieldRate)
+			if err != nil {
+				return err
+			}
+
+			if shieldRateInput != "" {
 				shieldRate, err = sdk.NewDecFromStr(shieldRateInput)
 				if err != nil {
 					return err
 				}
 			}
 
-			shieldLimit := sdk.NewInt(int64(viper.GetUint(flagShieldLimit)))
+			limit, err := cmd.Flags().GetInt(flagShieldLimit)
+			if err != nil {
+				return err
+			}
+			shieldLimit := sdk.NewInt(int64(limit))
 
 			active, err := cmd.Flags().GetBool(flagActive)
 			if err != nil {
