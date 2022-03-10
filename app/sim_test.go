@@ -22,8 +22,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
-
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capability "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -32,19 +30,17 @@ import (
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
 	params "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/cosmos/cosmos-sdk/x/simulation"
 	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
 	ibctransfer "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
-
-	shentusimapp "github.com/certikfoundation/shentu/v2/simapp"
+	
 	cert "github.com/certikfoundation/shentu/v2/x/cert/types"
 	cvm "github.com/certikfoundation/shentu/v2/x/cvm/types"
 	oracle "github.com/certikfoundation/shentu/v2/x/oracle/types"
 	shield "github.com/certikfoundation/shentu/v2/x/shield/types"
-	//"github.com/certikfoundation/shentu/x/staking"
 )
 
 type StoreKeysPrefixes struct {
@@ -81,15 +77,15 @@ func TestFullAppSimulation(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := shentusimapp.NewSimApp(logger, db, nil, true, map[int64]bool{},
-		DefaultNodeHome, simapp.FlagPeriodValue, shentusimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := NewShentuApp(logger, db, nil, true, map[int64]bool{},
+		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
-		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
-		RandomAccounts, simapp.SimulationOperations(app, app.AppCodec(), config),
-		app.ModuleAccountAddrs(), config, app.AppCodec(),
+		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
+		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
+		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 
 	// export state and simParams before the simulation error is checked
@@ -116,15 +112,15 @@ func TestAppImportExport(t *testing.T) {
 
 	//invCheckPeriod := simapp.FlagPeriodValue
 	var invCheckPeriod uint = 1
-	app := shentusimapp.NewSimApp(logger, db, nil, true, map[int64]bool{},
-		DefaultNodeHome, invCheckPeriod, shentusimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := NewShentuApp(logger, db, nil, true, map[int64]bool{},
+		DefaultNodeHome, invCheckPeriod, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
-		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
-		RandomAccounts, simapp.SimulationOperations(app, app.AppCodec(), config),
-		app.ModuleAccountAddrs(), config, app.AppCodec(),
+		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
+		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
+		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 
 	// export state and simParams before the simulation error is checked
@@ -151,8 +147,8 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := shentusimapp.NewSimApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{},
-		DefaultNodeHome, invCheckPeriod, shentusimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	newApp := NewShentuApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{},
+		DefaultNodeHome, invCheckPeriod, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 
 	require.Equal(t, AppName, newApp.Name())
 
@@ -162,7 +158,7 @@ func TestAppImportExport(t *testing.T) {
 
 	ctxA := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
 	ctxB := newApp.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
-	newApp.ModuleManager().InitGenesis(ctxB, app.AppCodec(), genesisState)
+	newApp.ModuleManager().InitGenesis(ctxB, app.Codec(), genesisState)
 	newApp.StoreConsensusParams(ctxB, appState.ConsensusParams)
 
 	fmt.Printf("comparing stores...\n")
@@ -216,15 +212,15 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := shentusimapp.NewSimApp(logger, db, nil, true, map[int64]bool{},
-		DefaultNodeHome, simapp.FlagPeriodValue, shentusimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := NewShentuApp(logger, db, nil, true, map[int64]bool{},
+		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
-		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
-		RandomAccounts, simapp.SimulationOperations(app, app.AppCodec(), config),
-		app.ModuleAccountAddrs(), config, app.AppCodec(),
+		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
+		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
+		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 
 	// export state and simParams before the simulation error is checked
@@ -238,7 +234,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 
 	fmt.Printf("exporting genesis...\n")
 
-	appState, err := app.ExportAppStateAndValidators(true, []string{})
+	appState, err := app.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err)
 
 	fmt.Printf("importing genesis...\n")
@@ -251,8 +247,8 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := shentusimapp.NewSimApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{},
-		DefaultNodeHome, simapp.FlagPeriodValue, shentusimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	newApp := NewShentuApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{},
+		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, newApp.Name())
 
 	newApp.InitChain(abci.RequestInitChain{
@@ -260,10 +256,10 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	})
 
 	_, _, err = simulation.SimulateFromSeed(
-		t, os.Stdout, newApp.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
+		t, os.Stdout, newApp.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
 		RandomAccounts, // Replace with own random account function if using keys other than secp256k1
-		simapp.SimulationOperations(newApp, newApp.AppCodec(), config),
-		app.ModuleAccountAddrs(), config, app.AppCodec(),
+		simapp.SimulationOperations(newApp, newApp.Codec(), config),
+		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 	require.NoError(t, err)
 }
@@ -286,8 +282,8 @@ func TestAppStateDeterminism(t *testing.T) {
 	for j := 0; j < numTimesToRunPerSeed; j++ {
 		logger := log.NewNopLogger()
 		db := dbm.NewMemDB()
-		app := shentusimapp.NewSimApp(logger, db, nil, true, map[int64]bool{},
-			DefaultNodeHome, simapp.FlagPeriodValue, shentusimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, interBlockCacheOpt())
+		app := NewShentuApp(logger, db, nil, true, map[int64]bool{},
+			DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, interBlockCacheOpt())
 
 		fmt.Printf(
 			"running non-determinism simulation; seed %d: attempt: %d/%d\n",
@@ -295,10 +291,10 @@ func TestAppStateDeterminism(t *testing.T) {
 		)
 
 		_, _, err := simulation.SimulateFromSeed(
-			t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
+			t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
 			RandomAccounts, // Replace with own random account function if using keys other than secp256k1
-			simapp.SimulationOperations(app, app.AppCodec(), config),
-			app.ModuleAccountAddrs(), config, app.AppCodec(),
+			simapp.SimulationOperations(app, app.Codec(), config),
+			app.ModuleAccountAddrs(), config, app.Codec(),
 		)
 		require.NoError(t, err)
 

@@ -2,7 +2,6 @@ package simulation
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -40,12 +39,6 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &poolB)
 			return fmt.Sprintf("%v\n%v", poolA, poolB)
 
-		case bytes.Equal(kvA.Key[:1], types.NextPoolIDKey),
-			bytes.Equal(kvA.Key[:1], types.NextPurchaseIDKey):
-			idA := binary.LittleEndian.Uint64(kvA.Value)
-			idB := binary.LittleEndian.Uint64(kvB.Value)
-			return fmt.Sprintf("%v\n%v", idA, idB)
-
 		case bytes.Equal(kvA.Key[:1], types.ProviderKey):
 			var providerA, providerB types.Provider
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &providerA)
@@ -64,11 +57,11 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &blockFeesB)
 			return fmt.Sprintf("%v\n%v", blockFeesA, blockFeesB)
 
-		case bytes.Equal(kvA.Key[:1], types.DonationPoolKey):
-			var donationPoolA, donationPoolB types.Pool
-			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &donationPoolA)
-			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &donationPoolB)
-			return fmt.Sprintf("%v\n%v", donationPoolA, donationPoolB)
+		case bytes.Equal(kvA.Key[:1], types.ReserveKey):
+			var reserveA, reserveB types.Pool
+			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &reserveA)
+			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &reserveB)
+			return fmt.Sprintf("%v\n%v", reserveA, reserveB)
 
 		default:
 			panic(fmt.Sprintf("invalid %s key prefix %X", types.ModuleName, kvA.Key[:1]))

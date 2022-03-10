@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"encoding/binary"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/common"
@@ -35,21 +33,6 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, amount sdk.Coins,
 	return sp, err
 }
 
-// SetNextPurchaseID sets the latest pool ID to store.
-func (k Keeper) SetNextPurchaseID(ctx sdk.Context, id uint64) {
-	store := ctx.KVStore(k.storeKey)
-	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, id)
-	store.Set(types.GetNextPurchaseIDKey(), bz)
-}
-
-// GetNextPurchaseID gets the latest pool ID from store.
-func (k Keeper) GetNextPurchaseID(ctx sdk.Context) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	opBz := store.Get(types.GetNextPurchaseIDKey())
-	return binary.LittleEndian.Uint64(opBz)
-}
-
 func (k Keeper) GetPurchaserPurchases(ctx sdk.Context, address sdk.AccAddress) (res []types.Purchase) {
 	purchases := k.GetAllPurchase(ctx)
 
@@ -76,10 +59,12 @@ func (k Keeper) GetPoolPurchases(ctx sdk.Context, poolID uint64) (res []types.Pu
 func (k Keeper) DistributeFees(ctx sdk.Context) {
 	// Add leftover block service fees from last block
 	serviceFees := k.GetServiceFees(ctx)
-	k.DeleteServiceFees(ctx)
 
 	// Distribute service fees.
 	totalCollateral := k.GetTotalCollateral(ctx)
+	if totalCollateral.IsZero() {
+		return
+	}
 	providers := k.GetAllProviders(ctx)
 	for _, provider := range providers {
 		providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
@@ -175,14 +160,6 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 
 	bondDenomAmt := amount.AmountOf(k.BondDenom(ctx))
 
-	// TODO: handle when purchase > collateral
-	maxPurchase := sdk.MaxInt(k.GetTotalCollateral(ctx).Sub(k.GetTotalShield(ctx)).ToDec().Quo(pool.ShieldRate).TruncateInt(), sdk.ZeroInt())
-	bondDenomAmt = sdk.MinInt(maxPurchase, bondDenomAmt)
-	if bondDenomAmt.Equal(sdk.ZeroInt()) {
-		return types.Purchase{}, nil
-	}
-	ceiledCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), bondDenomAmt))
-
 	shieldAmt := bondDenomAmt.ToDec().Mul(pool.ShieldRate).TruncateInt()
 	pool.Shield = pool.Shield.Add(shieldAmt)
 	k.SetPool(ctx, pool)
@@ -208,7 +185,7 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	totalShield = totalShield.Add(shieldAmt)
 	k.SetTotalShield(ctx, totalShield)
 
-	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, ceiledCoins); err != nil {
+	if err := k.bk.SendCoinsFromAccountToModule(ctx, purchaser, types.ModuleName, amount); err != nil {
 		return types.Purchase{}, err
 	}
 	return sp, nil
@@ -229,8 +206,12 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 	}
 	poolParams := k.GetPoolParams(ctx)
 	cd := poolParams.CooldownPeriod
+	fees := sdk.ZeroInt()
 	if sp.StartTime.Add(cd).After(ctx.BlockTime()) {
-		return types.ErrBeforeCooldownEnd
+		fees = bdAmount.ToDec().Mul(poolParams.WithdrawFeesRate).QuoInt(sdk.NewInt(100)).TruncateInt()
+		reserve := k.GetReserve(ctx)
+		reserve.Amount = reserve.Amount.Add(fees)
+		k.SetReserve(ctx, reserve)
 	}
 
 	pool, found := k.GetPool(ctx, poolID)
@@ -292,7 +273,9 @@ func (k Keeper) Unstake(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddress
 	gSPool = gSPool.Sub(bondDenomAmt)
 	k.SetGlobalStakingPool(ctx, gSPool)
 
-	return k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, amount)
+	withdraw := bdAmount.Sub(fees)
+	withdrawCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), withdraw))
+	return k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, purchaser, withdrawCoins)
 }
 
 func (k Keeper) FundShieldFees(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error {

@@ -14,8 +14,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/common"
-	"github.com/certikfoundation/shentu/v2/simapp"
 	"github.com/certikfoundation/shentu/v2/x/gov/testgov"
 	"github.com/certikfoundation/shentu/v2/x/shield/testshield"
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
@@ -56,12 +56,12 @@ func strAddrEqualsAccAddr(strAddr string, accAddr sdk.AccAddress) bool {
 
 // TestWithdraw tests withdraws triggered by staking undelegation.
 func TestWithdrawsByUndelegate(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	// create and add addresses
-	pks := simapp.CreateTestPubKeys(4)
-	simapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.NewInt(2e8))
+	pks := shentuapp.CreateTestPubKeys(4)
+	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.NewInt(2e8))
 	del1addr, del2addr := sdk.AccAddress(pks[0].Address()), sdk.AccAddress(pks[1].Address())
 	val1pk, val2pk := pks[2], pks[3]
 	val1addr, val2addr := sdk.ValAddress(val1pk.Address()), sdk.ValAddress(val2pk.Address())
@@ -149,12 +149,12 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 
 // TestWithdraw tests withdraws triggered by staking redelegation.
 func TestWithdrawsByRedelegate(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	// create and add addresses
-	pks := simapp.CreateTestPubKeys(4)
-	simapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.NewInt(2e8))
+	pks := shentuapp.CreateTestPubKeys(4)
+	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.NewInt(2e8))
 	del1addr, _ := sdk.AccAddress(pks[0].Address()), sdk.AccAddress(pks[1].Address())
 	val1pk, val2pk := pks[2], pks[3]
 	val1addr, val2addr := sdk.ValAddress(val1pk.Address()), sdk.ValAddress(val2pk.Address())
@@ -212,12 +212,12 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 // TestClaimProposal tests a claim proposal process that involves
 // withdrawal and unbonding delays.
 func TestClaimProposal(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	// create and add addresses
-	pks := simapp.CreateTestPubKeys(5)
-	simapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.ZeroInt())
+	pks := shentuapp.CreateTestPubKeys(5)
+	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.ZeroInt())
 
 	shieldAdmin := sdk.AccAddress(pks[0].Address())
 	err := sdksimapp.FundAccount(app.BankKeeper, ctx, shieldAdmin, sdk.Coins{sdk.NewInt64Coin("uctk", 250e9)})
@@ -354,4 +354,147 @@ func TestClaimProposal(t *testing.T) {
 	require.True(t, withdraws[0].Amount.Add(withdraws[1].Amount.Add(withdraws[2].Amount)).Equal(sdk.NewInt(expected)))
 	delUBD = app.StakingKeeper.GetAllUnbondingDelegations(ctx, del1addr)[0]
 	require.True(t, delUBD.Entries[0].Balance.Add(delUBD.Entries[1].Balance.Add(delUBD.Entries[2].Balance)).Equal(sdk.NewInt(expected)))
+}
+
+// TestInsufficientCollateral tests a claim proposal process that involves
+// withdrawal and unbonding delays that cannot fully reimburse the claim.
+func TestInsufficientCollateral(t *testing.T) {
+	app := shentuapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+
+	// create and add addresses
+	pks := shentuapp.CreateTestPubKeys(5)
+	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.ZeroInt())
+
+	shieldAdmin := sdk.AccAddress(pks[0].Address())
+	err := sdksimapp.FundAccount(app.BankKeeper, ctx, shieldAdmin, sdk.Coins{sdk.NewInt64Coin("uctk", 250e9)})
+	require.NoError(t, err)
+	app.ShieldKeeper.SetAdmin(ctx, shieldAdmin)
+
+	sponsorAddr := sdk.AccAddress(pks[1].Address())
+	err = sdksimapp.FundAccount(app.BankKeeper, ctx, sponsorAddr, sdk.Coins{sdk.NewInt64Coin("uctk", 1)})
+	require.NoError(t, err)
+
+	purchaser := sdk.AccAddress(pks[2].Address())
+	err = sdksimapp.FundAccount(app.BankKeeper, ctx, purchaser, sdk.Coins{sdk.NewInt64Coin("uctk", 1000e9)})
+	require.NoError(t, err)
+
+	del1addr := sdk.AccAddress(pks[3].Address())
+	err = sdksimapp.FundAccount(app.BankKeeper, ctx, del1addr, sdk.Coins{sdk.NewInt64Coin("uctk", 125e9)})
+	require.NoError(t, err)
+
+	val1pk, val1addr := pks[4], sdk.ValAddress(pks[4].Address())
+	err = sdksimapp.FundAccount(app.BankKeeper, ctx, sdk.AccAddress(pks[4].Address()), sdk.Coins{sdk.NewInt64Coin("uctk", 100e6)})
+	require.NoError(t, err)
+
+	var adminDeposit int64 = 200e9
+	var delegatorDeposit int64 = 125e9
+	totalDeposit := adminDeposit + delegatorDeposit
+
+	// set up testing helpers
+	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
+	bondDenom := tstaking.Denom
+	tshield := testshield.NewHelper(t, ctx, app.ShieldKeeper, bondDenom)
+	tgov := testgov.NewHelper(t, ctx, app.GovKeeper, bondDenom)
+
+	// set up a validator
+	tstaking.CreateValidatorWithValPower(val1addr, val1pk, 100, true)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
+	tstaking.CheckValidator(val1addr, stakingtypes.Bonded, false)
+
+	// shield admin deposit and create pool
+	// $BondDenom pool with shield = 100,000 $BondDenom, limit = 500,000 $BondDenom, serviceFees = 200 $BondDenom
+	tstaking.Delegate(shieldAdmin, val1addr, adminDeposit)
+	tshield.DepositCollateral(shieldAdmin, adminDeposit, true)
+	tshield.CreatePool(shieldAdmin, sponsorAddr, "fake_description", sdk.NewDec(1))
+
+	pools := app.ShieldKeeper.GetAllPools(ctx)
+	require.True(t, len(pools) == 1)
+	require.True(t, strAddrEqualsAccAddr(pools[0].SponsorAddr, sponsorAddr))
+
+	poolID := pools[0].Id
+
+	// delegator deposits
+	tstaking.CheckDelegator(del1addr, val1addr, false)
+	tstaking.Delegate(del1addr, val1addr, delegatorDeposit)
+	tstaking.CheckDelegator(del1addr, val1addr, true)
+	tshield.DepositCollateral(del1addr, delegatorDeposit, true)
+
+	// purchaser purhcases a shield
+	var shield int64 = 500e9
+	tshield.PurchaseShield(purchaser, shield, poolID, true)
+
+	// delegator undelegates all delegations, triggering a withdrawal
+	tstaking.Undelegate(del1addr, val1addr, 25e9, true)
+	// withdraw1End := ctx.BlockTime().Add(app.ShieldKeeper.GetPoolParams(ctx).WithdrawPeriod)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
+	tstaking.Undelegate(del1addr, val1addr, 90e9, true)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
+	tstaking.Undelegate(del1addr, val1addr, 10e9, true)
+
+	withdraws := app.ShieldKeeper.GetAllWithdraws(ctx)
+	require.True(t, len(withdraws) == 3)
+	require.True(t, withdraws[0].Amount.Equal(sdk.NewInt(25e9)))
+	require.True(t, withdraws[1].Amount.Equal(sdk.NewInt(90e9)))
+	require.True(t, withdraws[2].Amount.Equal(sdk.NewInt(10e9)))
+
+	delUBD := app.StakingKeeper.GetAllUnbondingDelegations(ctx, del1addr)[0]
+	require.True(t, delUBD.Entries[0].Balance.Equal(sdk.NewInt(25e9)))
+	require.True(t, delUBD.Entries[1].Balance.Equal(sdk.NewInt(90e9)))
+	require.True(t, delUBD.Entries[2].Balance.Equal(sdk.NewInt(10e9)))
+
+	// 20 days later (345,600 blocks)
+	ctx = skipBlocks(ctx, 345600, tstaking, tshield, tgov)
+
+	// the purchaser submits a claim proposal
+	loss := shield
+	tgov.ShieldClaimProposal(purchaser, loss, poolID, true)
+
+	// verify that the withdrawal and unbonding have been delayed
+	// about 19e9 must be secured (two of three withdraws & ubds are delayed)
+	withdraws = app.ShieldKeeper.GetAllWithdraws(ctx)
+	delayedWithdrawEnd := ctx.BlockTime().Add(app.GovKeeper.GetVotingParams(ctx).VotingPeriod * 2)
+	require.True(t, withdraws[0].Amount.Equal(sdk.NewInt(10e9)))
+	require.True(t, withdraws[0].CompletionTime.Equal(delayedWithdrawEnd)) //25e9 delayed
+	require.True(t, withdraws[1].Amount.Equal(sdk.NewInt(90e9)))
+	require.True(t, withdraws[1].CompletionTime.Equal(delayedWithdrawEnd)) // 10e9 delayed
+	require.True(t, withdraws[2].Amount.Equal(sdk.NewInt(25e9)))
+	require.True(t, withdraws[2].CompletionTime.Equal(delayedWithdrawEnd)) // 90e9 delayed
+
+	delUBD = app.StakingKeeper.GetAllUnbondingDelegations(ctx, del1addr)[0]
+	require.True(t, delUBD.Entries[0].Balance.Equal(sdk.NewInt(25e9)))
+	require.True(t, delUBD.Entries[0].CompletionTime.Equal(delayedWithdrawEnd)) //25e9 delayed
+	require.True(t, delUBD.Entries[1].Balance.Equal(sdk.NewInt(90e9)))
+	require.True(t, delUBD.Entries[1].CompletionTime.Equal(delayedWithdrawEnd)) // 90e9 delayed
+	require.True(t, delUBD.Entries[2].Balance.Equal(sdk.NewInt(10e9)))
+	require.True(t, delUBD.Entries[2].CompletionTime.Equal(delayedWithdrawEnd)) // 10e9 delayed
+
+	// create reimbursement
+	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, loss))
+
+	beforeBalance := app.BankKeeper.GetBalance(ctx, purchaser, bondDenom).Amount
+	proposal := shieldtypes.NewShieldClaimProposal(poolID, lossCoins, "test_claim_evidence", "test_claim_description", purchaser)
+	// TODO: make this more structured
+	proposal.ProposalId = 1
+	err = app.ShieldKeeper.CreateReimbursement(ctx, proposal, purchaser)
+	require.NoError(t, err)
+	afterBalance := app.BankKeeper.GetBalance(ctx, purchaser, bondDenom).Amount
+
+	// couldn't claim the full amount
+	require.False(t, beforeBalance.Add(sdk.NewInt(loss)).Equal(afterBalance))
+	// partially claimed
+	require.True(t, beforeBalance.Add(sdk.NewInt(totalDeposit)).Equal(afterBalance))
+
+	// purchaser donates to the reserve
+	var donation int64 = 200e9
+	err = app.ShieldKeeper.Donate(ctx, purchaser, sdk.NewInt(donation))
+	require.Nil(t, err)
+	reserve := app.ShieldKeeper.GetReserve(ctx)
+	require.True(t, reserve.Amount.Equal(sdk.NewInt(donation)))
+
+	// make payouts from the reserve (usually done in the endblocker
+	app.ShieldKeeper.MakePayouts(ctx)
+
+	reserve = app.ShieldKeeper.GetReserve(ctx)
+	require.True(t, reserve.Amount.Equal(sdk.NewInt(totalDeposit+donation-loss)))
 }

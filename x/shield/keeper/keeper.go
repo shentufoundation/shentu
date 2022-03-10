@@ -5,8 +5,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
@@ -34,11 +32,6 @@ func NewKeeper(cdc codec.BinaryCodec, shieldStoreKey sdk.StoreKey, ak types.Acco
 		gk:         gk,
 		paramSpace: paramSpace,
 	}
-}
-
-// GetValidator returns info of a validator given its operator address.
-func (k Keeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (stakingtypes.ValidatorI, bool) {
-	return k.sk.GetValidator(ctx, addr)
 }
 
 // SetLatestPoolID sets the latest pool ID to store.
@@ -73,9 +66,4 @@ func (k Keeper) GetPoolsBySponsor(ctx sdk.Context, sponsorAddr string) ([]types.
 // BondDenom returns staking bond denomination.
 func (k Keeper) BondDenom(ctx sdk.Context) string {
 	return k.sk.BondDenom(ctx)
-}
-
-// GetVotingParams returns gov keeper's voting params.
-func (k Keeper) GetVotingParams(ctx sdk.Context) govtypes.VotingParams {
-	return k.gk.GetVotingParams(ctx)
 }

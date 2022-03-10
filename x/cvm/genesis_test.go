@@ -13,7 +13,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/cvm"
 )
 
@@ -24,9 +24,9 @@ func NewGasMeter(limit uint64) sdk.GasMeter {
 }
 
 func TestExportGenesis(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(10000))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(10000))
 	k := app.CVMKeeper
 
 	code, err := hex.DecodeString(basicTestsBytecodeString)
@@ -35,7 +35,7 @@ func TestExportGenesis(t *testing.T) {
 	_, _ = k.Tx(ctx, addrs[0], nil, 0, code, []*payload.ContractMeta{}, false, false, false)
 	exported := cvm.ExportGenesis(ctx, k)
 
-	app2 := simapp.Setup(false)
+	app2 := shentuapp.Setup(false)
 	ctx2 := app2.BaseApp.NewContext(false, tmproto.Header{})
 	k2 := app2.CVMKeeper
 

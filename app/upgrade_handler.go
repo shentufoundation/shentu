@@ -19,10 +19,10 @@ import (
 const upgradeName = "Shentu-v230"
 
 func (app ShentuApp) setUpgradeHandler() {
-	app.upgradeKeeper.SetUpgradeHandler(
+	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-			app.ibcKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
+			app.IbcKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
 
 			fromVM := make(map[string]uint64)
 			for moduleName := range app.mm.Modules {
@@ -45,12 +45,12 @@ func (app ShentuApp) setUpgradeHandler() {
 		},
 	)
 
-	upgradeInfo, err := app.upgradeKeeper.ReadUpgradeInfoFromDisk()
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if upgradeInfo.Name == upgradeName && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{authz.ModuleName, feegrant.ModuleName},
 		}

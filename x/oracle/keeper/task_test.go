@@ -10,14 +10,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/oracle/types"
 )
 
 func TestTaskBasic(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
 	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
@@ -66,9 +66,9 @@ func TestTaskBasic(t *testing.T) {
 }
 
 func TestTaskAggregateFail(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
 	params := ok.GetLockedPoolParams(ctx)
@@ -108,9 +108,9 @@ func TestTaskAggregateFail(t *testing.T) {
 }
 
 func TestTaskNoResponses(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
 	contract := "0x1234567890abcdef"
@@ -131,9 +131,9 @@ func TestTaskNoResponses(t *testing.T) {
 }
 
 func TestTaskMinScore(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
 	params := ok.GetLockedPoolParams(ctx)
@@ -177,9 +177,9 @@ func TestTaskMinScore(t *testing.T) {
 }
 
 func TestTaskBelowThreshold(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
 	params := ok.GetLockedPoolParams(ctx)
@@ -223,9 +223,9 @@ func TestTaskBelowThreshold(t *testing.T) {
 }
 
 func TestTaskAboveThreshold(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
 	params := ok.GetLockedPoolParams(ctx)

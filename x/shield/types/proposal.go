@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
@@ -56,8 +57,11 @@ func (scp ShieldClaimProposal) ProposalType() string {
 
 // ValidateBasic runs basic stateless validity checks.
 func (scp ShieldClaimProposal) ValidateBasic() error {
-	// TODO: implement ValidateBasic for Claim proposals https://github.com/ShentuChain/shentu-private/issues/14
-	return nil
+	_, err := sdk.AccAddressFromBech32(scp.Proposer)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid sender address (%s)", err)
+	}
+	return govTypes.ValidateAbstract(scp)
 }
 
 // String implements the Stringer interface.
@@ -67,10 +71,9 @@ func (scp ShieldClaimProposal) String() string {
   PoolID:         %d
   Loss:           %s
   Evidence:       %s
-  PurchaseID:     %d
   Description:    %s
   Proposer:       %s
-`, scp.PoolId, scp.Loss, scp.Evidence, scp.PurchaseId, scp.Description, scp.Proposer))
+`, scp.PoolId, scp.Loss, scp.Evidence, scp.Description, scp.Proposer))
 	return b.String()
 }
 

@@ -301,7 +301,7 @@ func (msg MsgDepositCollateral) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgDepositCollateral creates a new MsgDepositCollateral instance.
+// NewMsgWithdrawCollateral creates a new NewMsgWithdrawCollateral instance.
 func NewMsgWithdrawCollateral(sender sdk.AccAddress, collateral sdk.Coins) *MsgWithdrawCollateral {
 	return &MsgWithdrawCollateral{
 		From:       sender.String(),
