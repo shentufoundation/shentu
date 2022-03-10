@@ -122,7 +122,7 @@ func migrateParams(ctx sdk.Context, ps types.ParamSubspace) error {
 }
 
 func initReserve(store sdk.KVStore, cdc codec.BinaryCodec) error {
-	reserve := v1beta1.InitialReserve()
+	reserve := v1beta1.NewReserve()
 	bz := cdc.MustMarshalLengthPrefixed(&reserve)
 	store.Set(types.GetReserveKey(), bz)
 	return nil

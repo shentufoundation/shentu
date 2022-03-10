@@ -36,7 +36,7 @@ func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		NextPoolId:   uint64(1),
 		Fees:         sdk.NewDecCoins(),
-		Reserve:      InitialReserve(),
+		Reserve:      NewReserve(),
 		GlobalPools:  DefaultGlobalPools(),
 		ShieldParams: DefaultShieldParams(),
 	}
