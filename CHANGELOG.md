@@ -35,6 +35,27 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v2.3.X] - XX-XX-2022
+
+### Client Breaking Changes
+
+### API Breaking Changes
+* (app) [\#60](https://github.com/ShentuChain/shentu-private/pull/60) `SetOrder*` now has all the modules
+* (x/bank) [\#60](https://github.com/ShentuChain/shentu-private/pull/60) Added `HasAccount` to `AccountKeeper` interface in `bank`
+
+### State Machine Breaking Changes
+* (app) [\#60](https://github.com/ShentuChain/shentu-private/pull/44) Bump Cosmos SDK to v0.45.1
+* (app) [\#59](https://github.com/ShentuChain/shentu-private/pull/59) Merge simapp with app
+
+### Features
+
+### Improvements
+
+### Tests
+* (x/shield) [\#58](https://github.com/ShentuChain/shentu-private/pull/58) CLI Tests for Shield
+
+### Bug Fixes
+
 ## [v2.3.1] - 01-24-2021
 
 ### State Machine Breaking Changes

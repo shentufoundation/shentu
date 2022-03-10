@@ -12,7 +12,7 @@ import (
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/oracle/keeper"
 	"github.com/certikfoundation/shentu/v2/x/oracle/types"
 )
@@ -29,7 +29,7 @@ type KeeperTestSuite struct {
 	suite.Suite
 
 	// cdc    *codec.LegacyAmino
-	app           *simapp.SimApp
+	app           *shentuapp.ShentuApp
 	ctx           sdk.Context
 	params        types.LockedPoolParams
 	keeper        keeper.Keeper
@@ -39,7 +39,7 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.app = simapp.Setup(false)
+	suite.app = shentuapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.OracleKeeper
 	suite.params = suite.keeper.GetLockedPoolParams(suite.ctx)

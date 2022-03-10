@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/sha3"
@@ -26,10 +27,10 @@ import (
 )
 
 func TestNewQuerier(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	cvmk := app.CVMKeeper
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 
 	query := abci.RequestQuery{
 		Path: "",
@@ -62,9 +63,9 @@ func TestNewQuerier(t *testing.T) {
 }
 
 func TestViewQuery(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
 
 	query := abci.RequestQuery{
@@ -108,9 +109,9 @@ func TestViewQuery(t *testing.T) {
 }
 
 func TestQueryMeta(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
 
 	query := abci.RequestQuery{

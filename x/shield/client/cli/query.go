@@ -59,7 +59,7 @@ func GetCmdPool() *cobra.Command {
 
 			id, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return fmt.Errorf("pool id %s is invalid", args[0])
+				return fmt.Errorf("pool id %s is not a valid uint, please input a valid pool-id", args[0])
 			}
 
 			res, err := queryClient.Pool(
@@ -176,7 +176,7 @@ func GetCmdPoolPurchases() *cobra.Command {
 
 			poolID, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return err
+				return fmt.Errorf("pool id %s not a valid uint, please input a valid pool-id", args[0])
 			}
 
 			res, err := queryClient.PoolPurchases(cmd.Context(), &v1beta1.QueryPoolPurchasesRequest{PoolId: poolID})
@@ -233,7 +233,7 @@ func GetCmdProvider() *cobra.Command {
 
 			address, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
-				return err
+				return fmt.Errorf("provider address %s is not a valid address, please input a valid provider address", args[0])
 			}
 
 			res, err := queryClient.Provider(
