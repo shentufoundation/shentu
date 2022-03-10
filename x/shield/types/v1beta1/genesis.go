@@ -36,7 +36,7 @@ func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		NextPoolId:   uint64(1),
 		Fees:         sdk.NewDecCoins(),
-		Reserve:      InitialReserve(),
+		Reserve:      NewReserve(),
 		GlobalPools:  DefaultGlobalPools(),
 		ShieldParams: DefaultShieldParams(),
 	}
@@ -50,13 +50,13 @@ func ValidateGenesis(data GenesisState) error {
 	if data.Reserve.Amount.IsNegative() {
 		return fmt.Errorf("reserve amount is negative %v", data.Reserve.Amount)
 	}
-	if err := validatePoolParams(data.ShieldParams.PoolParams); err != nil {
+	if err := ValidatePoolParams(data.ShieldParams.PoolParams); err != nil {
 		return fmt.Errorf("failed to validate %s pool params: %w", types.ModuleName, err)
 	}
-	if err := validateClaimProposalParams(data.ShieldParams.ClaimProposalParams); err != nil {
+	if err := ValidateClaimProposalParams(data.ShieldParams.ClaimProposalParams); err != nil {
 		return fmt.Errorf("failed to validate %s claim proposal params: %w", types.ModuleName, err)
 	}
-	if err := validateBlockRewardParams(data.ShieldParams.BlockRewardParams); err != nil {
+	if err := ValidateBlockRewardParams(data.ShieldParams.BlockRewardParams); err != nil {
 		return fmt.Errorf("failed to validate %s block reward params: %w", types.ModuleName, err)
 	}
 

@@ -101,7 +101,7 @@ import (
 	shieldclient "github.com/certikfoundation/shentu/v2/x/shield/client"
 	shieldkeeper "github.com/certikfoundation/shentu/v2/x/shield/keeper"
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
+	shieldparams "github.com/certikfoundation/shentu/v2/x/shield/types/params"
 	"github.com/certikfoundation/shentu/v2/x/slashing"
 	"github.com/certikfoundation/shentu/v2/x/staking"
 	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
@@ -571,7 +571,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	app.setv230UpgradeHandler()
+	app.setShieldV2UpgradeHandler()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -720,7 +720,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(oracletypes.ModuleName).WithKeyTable(oracletypes.ParamKeyTable())
 	paramsKeeper.Subspace(cvmtypes.ModuleName).WithKeyTable(cvmtypes.ParamKeyTable())
-	paramsKeeper.Subspace(shieldtypes.ModuleName).WithKeyTable(v1beta1.ParamKeyTable())
+	paramsKeeper.Subspace(shieldtypes.ModuleName).WithKeyTable(shieldparams.ParamKeyTable())
 
 	return paramsKeeper
 }

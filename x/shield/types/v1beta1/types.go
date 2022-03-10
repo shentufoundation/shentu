@@ -22,8 +22,8 @@ func NewPool(id uint64, description string, sponsorAddress sdk.AccAddress, shiel
 	}
 }
 
-// InitialReserve initializes a reserve
-func InitialReserve() Reserve {
+// NewReserve initializes a reserve
+func NewReserve() Reserve {
 	return Reserve{
 		Amount: sdk.NewInt(0),
 	}
