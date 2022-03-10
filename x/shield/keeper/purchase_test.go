@@ -12,7 +12,7 @@ import (
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
@@ -28,7 +28,7 @@ var (
 type PurchaseTestSuite struct {
 	suite.Suite
 
-	app                   *simapp.SimApp
+	app                   *shentuapp.ShentuApp
 	ctx                   sdk.Context
 	keeper                keeper.Keeper
 	address               []sdk.AccAddress
@@ -37,7 +37,7 @@ type PurchaseTestSuite struct {
 }
 
 func (suite *PurchaseTestSuite) SetupTest() {
-	suite.app = simapp.Setup(false)
+	suite.app = shentuapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.ShieldKeeper
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
