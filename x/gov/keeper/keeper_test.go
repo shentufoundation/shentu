@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	"github.com/cosmos/ibc-go/v2/testing/simapp"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/tendermint/tendermint/crypto/ed25519"
@@ -14,11 +15,10 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
-
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
 )
 
 var (
@@ -32,7 +32,7 @@ var (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	app                 *simapp.SimApp
+	app                 *shentuapp.ShentuApp
 	ctx                 sdk.Context
 	keeper              keeper.Keeper
 	address             []sdk.AccAddress
@@ -41,7 +41,7 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.app = simapp.Setup(false)
+	suite.app = shentuapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.GovKeeper
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())

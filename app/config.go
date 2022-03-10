@@ -33,7 +33,7 @@ func DefaultConfig() network.Config {
 		AccountRetriever:  authtypes.AccountRetriever{},
 		AppConstructor:    NewAppConstructor(encCfg),
 		GenesisState:      ModuleBasics.DefaultGenesis(encCfg.Marshaler),
-		TimeoutCommit:     1 * time.Second,
+		TimeoutCommit:     1 * time.Second / 2,
 		ChainID:           "shentu-code-test",
 		NumValidators:     1,
 		BondDenom:         common.MicroCTKDenom,

@@ -15,14 +15,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	. "github.com/certikfoundation/shentu/v2/x/cert/simulation"
 	"github.com/certikfoundation/shentu/v2/x/cert/types"
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(false)
-	cdc := app.AppCodec()
+	app := shentuapp.Setup(false)
+	cdc := app.Codec()
 
 	rand.Seed(time.Now().UnixNano())
 

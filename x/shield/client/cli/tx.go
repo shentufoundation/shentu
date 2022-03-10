@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -140,12 +139,12 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-
 
 			sponsorAddr, err := sdk.AccAddressFromBech32(args[2])
 			if err != nil {
-				return err
+				return fmt.Errorf("sponsor address %s is not a valid address, please input a valid sponsor address", args[2])
 			}
 
-			description := viper.GetString(flagDescription)
-
-			shieldRate, err := sdk.NewDecFromStr(viper.GetString(flagShieldRate))
+			description, _ := cmd.Flags().GetString(flagDescription)
+			flagShieldRateExtract, _ := cmd.Flags().GetString(flagShieldRate)
+			shieldRate, err := sdk.NewDecFromStr(flagShieldRateExtract)
 			if err != nil {
 				return err
 			}
@@ -191,13 +190,13 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 
 			id, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return err
+				return fmt.Errorf("pool id %s not a valid uint, please input a valid pool-id", args[0])
 			}
 
-			description := viper.GetString(flagDescription)
-
+			description, _ := cmd.Flags().GetString(flagDescription)
+			flagShieldRateExtract, _ := cmd.Flags().GetString(flagShieldRate)
 			var shieldRate sdk.Dec
-			if shieldRateInput := viper.GetString(flagShieldRate); shieldRateInput != "" {
+			if shieldRateInput := flagShieldRateExtract; shieldRateInput != "" {
 				shieldRate, err = sdk.NewDecFromStr(shieldRateInput)
 				if err != nil {
 					return err
@@ -370,7 +369,7 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 
 			poolID, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return err
+				return fmt.Errorf("pool id %s not a valid uint, please input a valid pool-id", args[0])
 			}
 			shield, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
@@ -420,7 +419,7 @@ $ %s tx shield withdraw-staking <pool id> <shield amount>
 
 			poolID, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return err
+				return fmt.Errorf("pool id %s not a valid uint, please input a valid pool-id", args[0])
 			}
 			shield, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
@@ -465,11 +464,11 @@ $ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address> --fr
 
 			poolID, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return err
+				return fmt.Errorf("pool id %s not a valid uint, please input a valid pool-id", args[0])
 			}
 			sponsorAddr, err := sdk.AccAddressFromBech32(args[2])
 			if err != nil {
-				return err
+				return fmt.Errorf("sponsor address %s is not a valid address, please input a valid sponsor address", args[2])
 			}
 
 			msg := types.NewMsgUpdateSponsor(poolID, args[1], sponsorAddr, fromAddr)

@@ -12,19 +12,19 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/common"
-	"github.com/certikfoundation/shentu/v2/simapp"
 )
 
 // shared setup
 type KeeperTestSuite struct {
 	suite.Suite
-	app *simapp.SimApp
+	app *shentuapp.ShentuApp
 	ctx sdk.Context
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.app = simapp.Setup(false)
+	suite.app = shentuapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	coins := sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 80000*1e6)}
 	suite.Require().NoError(sdksimapp.FundModuleAccount(suite.app.BankKeeper, suite.ctx, "mint", coins))

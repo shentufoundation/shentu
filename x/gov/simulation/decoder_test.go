@@ -16,14 +16,14 @@ import (
 	sim "github.com/cosmos/cosmos-sdk/types/simulation"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
 	. "github.com/certikfoundation/shentu/v2/x/gov/simulation"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
 )
 
 func TestDecodeStore(t *testing.T) {
-	cdc := simapp.MakeTestEncodingConfig()
+	cdc := shentuapp.MakeEncodingConfig()
 	dec := NewDecodeStore(cdc.Marshaler)
 
 	rand.Seed(time.Now().UnixNano())
