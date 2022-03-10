@@ -42,7 +42,14 @@ func (suite *PurchaseTestSuite) SetupTest() {
 	suite.shieldAdminAccAddress = suite.address[3]
 
 	// create pool
-	_, err := suite.keeper.CreatePool(suite.ctx, types.MsgCreatePool{From: suite.shieldAdminAccAddress.String(), SponsorAddr: suite.address[1].String(), Description: "", ShieldRate: sdk.NewDec(1)})
+	pool := types.NewMsgCreatePool(
+		suite.shieldAdminAccAddress,
+		suite.address[1],
+		"",
+		sdk.NewDec(1),
+		sdk.NewInt(1e10),
+	)
+	_, err := suite.keeper.CreatePool(suite.ctx, *pool)
 	suite.Require().NoError(err)
 }
 
