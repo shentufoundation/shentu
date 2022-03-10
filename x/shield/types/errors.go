@@ -46,6 +46,7 @@ const (
 	errPoolShieldExceedsLimit
 	errShieldAdminNotActive
 	errPurchaseTooSmall
+	errPurchaseExceededLimit
 	errNotEnoughStaked
 	errBeforeCooldownEnd
 	errDonationBadDenom
@@ -96,6 +97,7 @@ var (
 	ErrPoolShieldExceedsLimit     = sdkerrors.Register(ModuleName, errPoolShieldExceedsLimit, "pool shield exceeds limit")
 	ErrShieldAdminNotActive       = sdkerrors.Register(ModuleName, errShieldAdminNotActive, "shield admin is not activated")
 	ErrPurchaseTooSmall           = sdkerrors.Register(ModuleName, errPurchaseTooSmall, "purchase amount is too small")
+	ErrPurchaseExceededLimit      = sdkerrors.Register(ModuleName, errPurchaseExceededLimit, "purchase amount is too high, total purchase exceeds shield limit")
 	ErrNotEnoughStaked            = sdkerrors.Register(ModuleName, errNotEnoughStaked, "not enough unlocked staking to be withdrawn")
 	ErrBeforeCooldownEnd          = sdkerrors.Register(ModuleName, errBeforeCooldownEnd, "cooldown period is not over for the purchase")
 	ErrDonationBadDenom           = sdkerrors.Register(ModuleName, errDonationBadDenom, "invalid coin denomination for donation")

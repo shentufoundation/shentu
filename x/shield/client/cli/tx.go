@@ -21,6 +21,7 @@ var (
 	flagDescription = "description"
 	flagShieldRate  = "shield-rate"
 	flagActive      = "active"
+	flagShieldLimit = "shield-limit"
 )
 
 // NewTxCmd returns the transaction commands for this module.
@@ -123,7 +124,7 @@ func GetCmdCreatePool() *cobra.Command {
 			fmt.Sprintf(`Create a Shield pool. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-rate <shield rate>
+$ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-rate <shield rate> --shield-limit <shield limit>
 `,
 				version.AppName,
 			),
@@ -149,7 +150,13 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-
 				return err
 			}
 
-			msg := types.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate)
+			limit, err := cmd.Flags().GetInt(flagShieldLimit)
+			if err != nil {
+				return err
+			}
+			shieldLimit := sdk.NewInt(int64(limit))
+
+			msg := types.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate, shieldLimit)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -160,6 +167,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-
 
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagShieldRate, "", "Shield Rate")
+	cmd.Flags().Uint(flagShieldLimit, 0, "coverage limit of the pool")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
@@ -174,7 +182,7 @@ func GetCmdUpdatePool() *cobra.Command {
 			fmt.Sprintf(`Update a Shield pool. Can only be executed from the Shield admin address.
 
 Example:
-$ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield amount> --shield-rate <shield rate>
+$ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield amount> --shield-rate <shield rate> --shield-limit <shield limit>
 `,
 				version.AppName,
 			),
@@ -202,12 +210,19 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 					return err
 				}
 			}
+
+			limit, err := cmd.Flags().GetInt(flagShieldLimit)
+			if err != nil {
+				return err
+			}
+			shieldLimit := sdk.NewInt(int64(limit))
+
 			active, err := cmd.Flags().GetBool(flagActive)
 			if err != nil {
 				panic(err)
 			}
 
-			msg := types.NewMsgUpdatePool(fromAddr, id, description, active, shieldRate)
+			msg := types.NewMsgUpdatePool(fromAddr, id, description, active, shieldRate, shieldLimit)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -218,6 +233,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 
 	cmd.Flags().String(flagDescription, "", "description for the pool")
 	cmd.Flags().String(flagShieldRate, "", "Shield Rate")
+	cmd.Flags().Uint(flagShieldLimit, 0, "coverage limit of the pool")
 	cmd.Flags().Bool(flagActive, true, "new pool status. default true.")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd

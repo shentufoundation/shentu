@@ -178,22 +178,22 @@ func (suite *KeeperTestSuite) Test_CreatePool() {
 	}{
 		{
 			name:    "Should create a pool",
-			message: types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1)),
+			message: types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)),
 			err:     false,
 		},
 		{
 			name:    "Should pass for non validator",
-			message: types.NewMsgCreatePool(acc2, acc2, "pool creation", sdk.NewDec(2)),
+			message: types.NewMsgCreatePool(acc2, acc2, "pool creation", sdk.NewDec(2), sdk.NewInt(1e14)),
 			err:     true,
 		},
 		{
 			name:    "Should fail for duplicate pool",
-			message: types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1)),
+			message: types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)),
 			err:     true,
 		},
 		{
 			name:    "Should create pool for others",
-			message: types.NewMsgCreatePool(acc1, acc2, "pool creation", sdk.NewDec(1)),
+			message: types.NewMsgCreatePool(acc1, acc2, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)),
 			err:     false,
 		},
 	}
@@ -212,7 +212,7 @@ func (suite *KeeperTestSuite) Test_CreatePool() {
 }
 
 func (suite *KeeperTestSuite) Test_UpdatePool() {
-	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1)))
+	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
 	suite.Require().NoError(err)
 	tests := []struct {
 		name    string
@@ -221,17 +221,17 @@ func (suite *KeeperTestSuite) Test_UpdatePool() {
 	}{
 		{
 			name:    "Should update a pool",
-			message: types.NewMsgUpdatePool(acc1, 1, "pool updated", true, sdk.NewDec(1)),
+			message: types.NewMsgUpdatePool(acc1, 1, "pool updated", true, sdk.NewDec(1), sdk.NewInt(1e14)),
 			err:     false,
 		},
 		{
 			name:    "Should fail for different sponsor",
-			message: types.NewMsgUpdatePool(acc2, 1, "pool updated", true, sdk.NewDec(1)),
+			message: types.NewMsgUpdatePool(acc2, 1, "pool updated", true, sdk.NewDec(1), sdk.NewInt(1e14)),
 			err:     true,
 		},
 		{
 			name:    "Should fail for non existent pool",
-			message: types.NewMsgUpdatePool(acc2, 5, "pool updated", true, sdk.NewDec(1)),
+			message: types.NewMsgUpdatePool(acc2, 5, "pool updated", true, sdk.NewDec(1), sdk.NewInt(1e14)),
 			err:     true,
 		},
 	}
@@ -250,7 +250,7 @@ func (suite *KeeperTestSuite) Test_UpdatePool() {
 }
 
 func (suite *KeeperTestSuite) Test_PausePool() {
-	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1)))
+	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
 	suite.Require().NoError(err)
 	tests := []struct {
 		name    string
@@ -288,7 +288,7 @@ func (suite *KeeperTestSuite) Test_PausePool() {
 }
 
 func (suite *KeeperTestSuite) Test_ResumePool() {
-	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1)))
+	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
 	suite.Require().NoError(err)
 	_, err = suite.msgServer.PausePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgPausePool(acc1, 1))
 	suite.Require().NoError(err)
@@ -328,7 +328,7 @@ func (suite *KeeperTestSuite) Test_ResumePool() {
 }
 
 func (suite *KeeperTestSuite) Test_UpdateSponsor() {
-	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1)))
+	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
 	suite.Require().NoError(err)
 	tests := []struct {
 		name    string
@@ -366,7 +366,7 @@ func (suite *KeeperTestSuite) Test_UpdateSponsor() {
 }
 
 func (suite *KeeperTestSuite) Test_Purchase() {
-	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1)))
+	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
 	suite.Require().NoError(err)
 	tests := []struct {
 		name    string
@@ -404,7 +404,7 @@ func (suite *KeeperTestSuite) Test_Purchase() {
 }
 
 func (suite *KeeperTestSuite) Test_Unstake() {
-	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1)))
+	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
 	suite.Require().NoError(err)
 	_, err = suite.msgServer.Purchase(sdk.WrapSDKContext(suite.ctx), types.NewMsgPurchase(1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 100000000)}, "purchasing", acc1))
 	suite.Require().NoError(err)

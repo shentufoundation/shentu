@@ -144,7 +144,8 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg types.MsgCreatePool) (uint64, er
 
 	// Set the new project pool.
 	poolID := k.GetNextPoolID(ctx)
-	pool := types.NewPool(poolID, msg.Description, sponsorAddr, sdk.ZeroInt(), msg.ShieldRate)
+
+	pool := types.NewPool(poolID, msg.Description, sponsorAddr, sdk.ZeroInt(), msg.ShieldRate, msg.ShieldLimit)
 
 	k.SetPool(ctx, pool)
 	k.SetNextPoolID(ctx, poolID+1)
@@ -173,6 +174,10 @@ func (k Keeper) UpdatePool(ctx sdk.Context, msg types.MsgUpdatePool) (types.Pool
 	}
 	if !msg.ShieldRate.IsZero() {
 		pool.ShieldRate = msg.ShieldRate
+	}
+
+	if !msg.ShieldLimit.IsZero() {
+		pool.ShieldLimit = msg.ShieldLimit
 	}
 	pool.Active = msg.Active
 	k.SetPool(ctx, pool)

@@ -13,11 +13,13 @@ func (k Keeper) PurchaseShield(ctx sdk.Context, poolID uint64, amount sdk.Coins,
 	if poolParams.MinShieldPurchase.IsAnyGT(amount) {
 		return types.Purchase{}, types.ErrPurchaseTooSmall
 	}
+
 	bondDenom := k.BondDenom(ctx)
 	if amount.AmountOf(bondDenom).Equal(sdk.ZeroInt()) {
 		return types.Purchase{}, types.ErrInsufficientStaking
 	}
 	pool, found := k.GetPool(ctx, poolID)
+
 	if !found {
 		return types.Purchase{}, types.ErrNoPoolFound
 	}
@@ -161,7 +163,13 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 	bondDenomAmt := amount.AmountOf(k.BondDenom(ctx))
 
 	shieldAmt := bondDenomAmt.ToDec().Mul(pool.ShieldRate).TruncateInt()
-	pool.Shield = pool.Shield.Add(shieldAmt)
+
+	totalPurchaseAmt := pool.Shield.Add(shieldAmt)
+	if pool.ShieldLimit.LT(totalPurchaseAmt) {
+		return types.Purchase{}, types.ErrPurchaseExceededLimit
+	}
+
+	pool.Shield = totalPurchaseAmt
 	k.SetPool(ctx, pool)
 
 	gSPool := k.GetGlobalStakingPool(ctx)
