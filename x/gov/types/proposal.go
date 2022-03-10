@@ -61,6 +61,20 @@ func (p Proposal) GetContent() govtypes.Content {
 	return content
 }
 
+// SetContent sets the proposal Content
+func (p Proposal) SetContent(content govtypes.Content) error {
+	msg, ok := content.(proto.Message)
+	if !ok {
+		return fmt.Errorf("can't proto marshal %T", msg)
+	}
+	any, err := types.NewAnyWithValue(msg)
+	if err != nil {
+		return err
+	}
+	p.Content = any
+	return nil
+}
+
 // String implements stringer interface
 func (p Proposal) String() string {
 	out, _ := yaml.Marshal(p)

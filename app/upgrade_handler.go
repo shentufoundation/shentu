@@ -12,6 +12,7 @@ import (
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	sdkfeegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
@@ -83,6 +84,7 @@ func (app ShentuApp) setShieldV2UpgradeHandler() {
 			}
 
 			fromVM[shieldtypes.ModuleName] = 1
+			fromVM[govtypes.ModuleName] = 2
 			fromVM[crisistypes.ModuleName] = 0
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
