@@ -13,8 +13,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/common"
-	"github.com/certikfoundation/shentu/v2/simapp"
 	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 	"github.com/certikfoundation/shentu/v2/x/staking/teststaking"
@@ -24,28 +24,28 @@ var (
 	acc1       = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	acc2       = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	validator  = sdk.ValAddress{}
-	PKS        = simapp.CreateTestPubKeys(5)
+	PKS        = shentuapp.CreateTestPubKeys(5)
 	valConsPk1 = PKS[0]
 )
 
 // shared setup
 type KeeperTestSuite struct {
 	suite.Suite
-	app       *simapp.SimApp
+	app       *shentuapp.ShentuApp
 	ctx       sdk.Context
 	msgServer types.MsgServer
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.app = simapp.Setup(false)
+	suite.app = shentuapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	suite.msgServer = keeper.NewMsgServerImpl(suite.app.ShieldKeeper)
 	coins := sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 80000*1e6)}
-	suite.Require().NoError(sdksimapp.FundModuleAccount(suite.app.BankKeeper, suite.ctx, "shield", coins))
+	suite.Require().NoError(sdksimapp.FundModuleAccount(suite.app.BankKeeper, suite.ctx, types.ModuleName, coins))
 	suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, acc2, coins))
 	// validator set up
 	tstaking := teststaking.NewHelper(suite.T(), suite.ctx, suite.app.StakingKeeper)
-	addr := simapp.AddTestAddrs(suite.app, suite.ctx, 2, sdk.NewInt(1000000000))
+	addr := shentuapp.AddTestAddrs(suite.app, suite.ctx, 2, sdk.NewInt(1000000000))
 	valAddrs := sdksimapp.ConvertAddrsToValAddrs(addr)
 	tstaking.Commission = stakingtypes.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(5, 1), sdk.NewDec(0))
 	tstaking.CreateValidator(valAddrs[0], valConsPk1, 100, true)
