@@ -78,6 +78,9 @@ func (app ShentuApp) setShieldV2UpgradeHandler() {
 			v231.PayoutReimbursements(ctx, app.appCodec, app.BankKeeper, app.ShieldKeeper, app.keys[shieldtypes.StoreKey])
 
 			fromVM := make(map[string]uint64)
+			for moduleName := range app.mm.Modules {
+				fromVM[moduleName] = 2
+			}
 
 			fromVM[shieldtypes.ModuleName] = 1
 			fromVM[crisistypes.ModuleName] = 0
