@@ -14,7 +14,7 @@ import (
 
 	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 var (
@@ -32,7 +32,7 @@ type PurchaseTestSuite struct {
 	ctx                   sdk.Context
 	keeper                keeper.Keeper
 	address               []sdk.AccAddress
-	queryClient           types.QueryClient
+	queryClient           v1beta1.QueryClient
 	shieldAdminAccAddress sdk.AccAddress
 }
 
@@ -41,8 +41,8 @@ func (suite *PurchaseTestSuite) SetupTest() {
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.ShieldKeeper
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.app.ShieldKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
+	v1beta1.RegisterQueryServer(queryHelper, suite.app.ShieldKeeper)
+	suite.queryClient = v1beta1.NewQueryClient(queryHelper)
 	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
 
 	// Set address[3] as admin
@@ -50,7 +50,7 @@ func (suite *PurchaseTestSuite) SetupTest() {
 	suite.shieldAdminAccAddress = suite.address[3]
 
 	// create pool
-	_, err := suite.keeper.CreatePool(suite.ctx, types.MsgCreatePool{From: suite.shieldAdminAccAddress.String(), SponsorAddr: suite.address[1].String(), Description: "", ShieldRate: sdk.NewDec(1)})
+	_, err := suite.keeper.CreatePool(suite.ctx, v1beta1.MsgCreatePool{From: suite.shieldAdminAccAddress.String(), SponsorAddr: suite.address[1].String(), Description: "", ShieldRate: sdk.NewDec(1)})
 	suite.Require().NoError(err)
 }
 
