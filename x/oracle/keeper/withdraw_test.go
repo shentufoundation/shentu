@@ -10,14 +10,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/oracle/types"
 )
 
 func TestWithdraw(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
 	params := ok.GetLockedPoolParams(ctx)
@@ -49,9 +49,9 @@ func TestWithdraw(t *testing.T) {
 
 //Test set withdraw
 func TestSetWithdraw(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
 	params := ok.GetLockedPoolParams(ctx)

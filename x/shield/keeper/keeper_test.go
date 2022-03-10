@@ -14,8 +14,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/common"
-	"github.com/certikfoundation/shentu/v2/simapp"
 	"github.com/certikfoundation/shentu/v2/x/gov/testgov"
 	"github.com/certikfoundation/shentu/v2/x/shield/testshield"
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
@@ -56,12 +56,12 @@ func strAddrEqualsAccAddr(strAddr string, accAddr sdk.AccAddress) bool {
 
 // TestWithdraw tests withdraws triggered by staking undelegation.
 func TestWithdrawsByUndelegate(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	// create and add addresses
-	pks := simapp.CreateTestPubKeys(4)
-	simapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.NewInt(2e8))
+	pks := shentuapp.CreateTestPubKeys(4)
+	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.NewInt(2e8))
 	del1addr, del2addr := sdk.AccAddress(pks[0].Address()), sdk.AccAddress(pks[1].Address())
 	val1pk, val2pk := pks[2], pks[3]
 	val1addr, val2addr := sdk.ValAddress(val1pk.Address()), sdk.ValAddress(val2pk.Address())
@@ -149,12 +149,12 @@ func TestWithdrawsByUndelegate(t *testing.T) {
 
 // TestWithdraw tests withdraws triggered by staking redelegation.
 func TestWithdrawsByRedelegate(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	// create and add addresses
-	pks := simapp.CreateTestPubKeys(4)
-	simapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.NewInt(2e8))
+	pks := shentuapp.CreateTestPubKeys(4)
+	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.NewInt(2e8))
 	del1addr, _ := sdk.AccAddress(pks[0].Address()), sdk.AccAddress(pks[1].Address())
 	val1pk, val2pk := pks[2], pks[3]
 	val1addr, val2addr := sdk.ValAddress(val1pk.Address()), sdk.ValAddress(val2pk.Address())
@@ -212,12 +212,12 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 // TestClaimProposal tests a claim proposal process that involves
 // withdrawal and unbonding delays.
 func TestClaimProposal(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	// create and add addresses
-	pks := simapp.CreateTestPubKeys(5)
-	simapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.ZeroInt())
+	pks := shentuapp.CreateTestPubKeys(5)
+	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.ZeroInt())
 
 	shieldAdmin := sdk.AccAddress(pks[0].Address())
 	err := sdksimapp.FundAccount(app.BankKeeper, ctx, shieldAdmin, sdk.Coins{sdk.NewInt64Coin("uctk", 250e9)})
@@ -359,12 +359,12 @@ func TestClaimProposal(t *testing.T) {
 // TestInsufficientCollateral tests a claim proposal process that involves
 // withdrawal and unbonding delays that cannot fully reimburse the claim.
 func TestInsufficientCollateral(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	// create and add addresses
-	pks := simapp.CreateTestPubKeys(5)
-	simapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.ZeroInt())
+	pks := shentuapp.CreateTestPubKeys(5)
+	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.ZeroInt())
 
 	shieldAdmin := sdk.AccAddress(pks[0].Address())
 	err := sdksimapp.FundAccount(app.BankKeeper, ctx, shieldAdmin, sdk.Coins{sdk.NewInt64Coin("uctk", 250e9)})

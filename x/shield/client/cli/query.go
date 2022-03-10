@@ -37,6 +37,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdClaimParams(),
 		GetCmdStatus(),
 		GetCmdReserve(),
+		GetCmdPendingPayouts(),
 	)
 
 	return shieldQueryCmd
@@ -57,7 +58,7 @@ func GetCmdPool() *cobra.Command {
 
 			id, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return fmt.Errorf("pool id %s is invalid", args[0])
+				return fmt.Errorf("pool id %s is not a valid uint, please input a valid pool-id", args[0])
 			}
 
 			res, err := queryClient.Pool(
@@ -174,7 +175,7 @@ func GetCmdPoolPurchases() *cobra.Command {
 
 			poolID, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return err
+				return fmt.Errorf("pool id %s not a valid uint, please input a valid pool-id", args[0])
 			}
 
 			res, err := queryClient.PoolPurchases(cmd.Context(), &types.QueryPoolPurchasesRequest{PoolId: poolID})
@@ -231,7 +232,7 @@ func GetCmdProvider() *cobra.Command {
 
 			address, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
-				return err
+				return fmt.Errorf("provider address %s is not a valid address, please input a valid provider address", args[0])
 			}
 
 			res, err := queryClient.Provider(
@@ -383,6 +384,30 @@ func GetCmdReserve() *cobra.Command {
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdPendingPayouts returns the command for querying pending payouts..
+func GetCmdPendingPayouts() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pending-payouts",
+		Short: "query pending payouts",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.PendingPayouts(cmd.Context(), &types.QueryPendingPayoutsRequest{})
+			if err != nil {
+				return err
+			}
+			return cliCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
