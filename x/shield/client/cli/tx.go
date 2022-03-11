@@ -150,7 +150,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-
 				return err
 			}
 
-			limit, err := cmd.Flags().GetInt(flagShieldLimit)
+			limit, err := cmd.Flags().GetUint(flagShieldLimit)
 			if err != nil {
 				return err
 			}
@@ -203,7 +203,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 
 			description, _ := cmd.Flags().GetString(flagDescription)
 			flagShieldRateExtract, _ := cmd.Flags().GetString(flagShieldRate)
-			var shieldRate sdk.Dec
+			var shieldRate sdk.Dec = sdk.ZeroDec()
 			if shieldRateInput := flagShieldRateExtract; shieldRateInput != "" {
 				shieldRate, err = sdk.NewDecFromStr(shieldRateInput)
 				if err != nil {
@@ -211,7 +211,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				}
 			}
 
-			limit, err := cmd.Flags().GetInt(flagShieldLimit)
+			limit, err := cmd.Flags().GetUint(flagShieldLimit)
 			if err != nil {
 				return err
 			}

@@ -118,7 +118,7 @@ func (msg MsgUpdatePool) ValidateBasic() error {
 	if msg.PoolId == 0 {
 		return ErrInvalidPoolID
 	}
-	if !msg.ShieldRate.IsPositive() {
+	if !msg.ShieldRate.GTE(sdk.NewDec(0)) {
 		return ErrInvalidShieldRate
 	}
 	return nil
