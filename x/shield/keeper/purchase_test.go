@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -15,13 +14,6 @@ import (
 	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
 	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
-)
-
-var (
-	acc1 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc2 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc3 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc4 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 )
 
 // shared setup
@@ -50,7 +42,14 @@ func (suite *PurchaseTestSuite) SetupTest() {
 	suite.shieldAdminAccAddress = suite.address[3]
 
 	// create pool
-	_, err := suite.keeper.CreatePool(suite.ctx, v1beta1.MsgCreatePool{From: suite.shieldAdminAccAddress.String(), SponsorAddr: suite.address[1].String(), Description: "", ShieldRate: sdk.NewDec(1)})
+	pool := v1beta1.NewMsgCreatePool(
+		suite.shieldAdminAccAddress,
+		suite.address[1],
+		"",
+		sdk.NewDec(1),
+		sdk.NewInt(1e10),
+	)
+	_, err := suite.keeper.CreatePool(suite.ctx, *pool)
 	suite.Require().NoError(err)
 }
 

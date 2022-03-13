@@ -157,11 +157,12 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 
 		description := simtypes.RandStringOfLength(r, 42)
 		shieldRate := simtypes.RandomDecAmount(r, sdk.NewDec(10))
+		shieldLimit := sdk.NewInt(int64(simtypes.RandIntBetween(r, 1e14, 1e15)))
 		if !shieldRate.GTE(sdk.NewDec(1)) {
 			return simtypes.NoOpMsg(types.ModuleName, v1beta1.TypeMsgCreatePool, "zero shield rate"), nil, nil
 		}
 
-		msg := v1beta1.NewMsgCreatePool(simAccount.Address, sponsorAddr.Address, description, shieldRate)
+		msg := v1beta1.NewMsgCreatePool(simAccount.Address, sponsorAddr.Address, description, shieldRate, shieldLimit)
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
@@ -223,6 +224,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 			shieldRate = shieldRate.Mul(sdk.NewDec(-1))
 		}
 		shieldRate = shieldRate.Add(sdk.OneDec())
+		shieldLimit := sdk.NewInt(int64(simtypes.RandIntBetween(r, 1e14, 1e15)))
 
 		tmp, err := simtypes.RandPositiveInt(r, sdk.OneInt())
 		if err != nil {
@@ -230,7 +232,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		}
 		active := tmp.Equal(sdk.OneInt())
 
-		msg := v1beta1.NewMsgUpdatePool(simAccount.Address, poolID, description, active, shieldRate)
+		msg := v1beta1.NewMsgUpdatePool(simAccount.Address, poolID, description, active, shieldRate, shieldLimit)
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
@@ -529,8 +531,7 @@ func SimulateMsgPurchase(k keeper.Keeper, ak types.AccountKeeper, bk types.BankK
 		totalWithdrawing := k.GetTotalWithdrawing(ctx)
 		totalShield := k.GetTotalShield(ctx)
 		totalClaimed := k.GetTotalClaimed(ctx)
-		poolParams := k.GetPoolParams(ctx)
-		maxShield := computeMaxShield(pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield, poolParams)
+		maxShield := computeMaxShield(pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield)
 		accountMax := bk.GetAllBalances(ctx, account.GetAddress()).AmountOf(k.BondDenom(ctx))
 		max := sdk.MinInt(accountMax, maxShield)
 		shieldAmount, err := simtypes.RandPositiveInt(r, max)
@@ -625,7 +626,7 @@ func SimulateMsgUnstakeFromShield(k keeper.Keeper, ak types.AccountKeeper, bk ty
 	}
 }
 
-func computeMaxShield(pool v1beta1.Pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield sdk.Int, poolParams v1beta1.PoolParams) sdk.Int {
-	return sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).ToDec().Mul(poolParams.PoolShieldLimit).TruncateInt().Sub(pool.Shield),
+func computeMaxShield(pool v1beta1.Pool, totalCollateral, totalWithdrawing, totalClaimed, totalShield sdk.Int) sdk.Int {
+	return sdk.MinInt(totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).Sub(pool.Shield),
 		totalCollateral.Sub(totalWithdrawing).Sub(totalClaimed).Sub(totalShield))
 }

@@ -52,7 +52,7 @@ message MsgUpdatePool {
     string description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     string shield_limit = 6 [ (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 }
-  
+
 message MsgUpdatePoolResponse {}
 
 
