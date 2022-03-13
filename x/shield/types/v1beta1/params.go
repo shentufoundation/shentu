@@ -2,13 +2,13 @@ package v1beta1
 
 import (
 	"fmt"
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1alpha1"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/certikfoundation/shentu/v2/common"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1alpha1"
 )
 
 // default parameter values
