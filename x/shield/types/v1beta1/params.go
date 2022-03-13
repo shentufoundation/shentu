@@ -2,6 +2,7 @@ package v1beta1
 
 import (
 	"fmt"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1alpha1"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -47,6 +48,7 @@ var (
 // ParamKeyTable is the key declaration for parameters.
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable(
+		paramtypes.NewParamSetPair(v1alpha1.ParamStoreKeyPoolParams, v1alpha1.PoolParams{}, v1alpha1.ValidatePoolParams),
 		paramtypes.NewParamSetPair(ParamStoreKeyPoolParams, PoolParams{}, ValidatePoolParams),
 		paramtypes.NewParamSetPair(ParamStoreKeyClaimProposalParams, ClaimProposalParams{}, ValidateClaimProposalParams),
 		paramtypes.NewParamSetPair(ParamStoreKeyStakingShieldRate, sdk.Dec{}, ValidateStakingShieldRateParams),

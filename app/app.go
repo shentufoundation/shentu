@@ -106,7 +106,7 @@ import (
 	shieldclient "github.com/certikfoundation/shentu/v2/x/shield/client"
 	shieldkeeper "github.com/certikfoundation/shentu/v2/x/shield/keeper"
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
-	shieldparams "github.com/certikfoundation/shentu/v2/x/shield/types/params"
+	shieldv1beta1 "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"github.com/certikfoundation/shentu/v2/x/slashing"
 	"github.com/certikfoundation/shentu/v2/x/staking"
 	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
@@ -782,7 +782,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(oracletypes.ModuleName).WithKeyTable(oracletypes.ParamKeyTable())
 	paramsKeeper.Subspace(cvmtypes.ModuleName).WithKeyTable(cvmtypes.ParamKeyTable())
-	paramsKeeper.Subspace(shieldtypes.ModuleName).WithKeyTable(shieldparams.ParamKeyTable())
+	paramsKeeper.Subspace(shieldtypes.ModuleName).WithKeyTable(shieldv1beta1.ParamKeyTable())
 
 	return paramsKeeper
 }
