@@ -167,7 +167,7 @@ func (k Keeper) AddStaking(ctx sdk.Context, poolID uint64, purchaser sdk.AccAddr
 
 	totalPurchaseAmt := pool.Shield.Add(shieldAmt)
 	if pool.ShieldLimit.LT(totalPurchaseAmt) {
-		return types.Purchase{}, types.ErrPurchaseExceededLimit
+		return v1beta1.Purchase{}, types.ErrPurchaseExceededLimit
 	}
 
 	pool.Shield = totalPurchaseAmt
