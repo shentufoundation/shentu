@@ -120,7 +120,7 @@ func (msg MsgUpdatePool) ValidateBasic() error {
 	if msg.PoolId == 0 {
 		return types.ErrInvalidPoolID
 	}
-	if !msg.ShieldRate.IsPositive() {
+	if msg.ShieldRate.IsNegative() {
 		return types.ErrInvalidShieldRate
 	}
 	return nil
