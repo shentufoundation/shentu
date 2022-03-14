@@ -128,10 +128,10 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec,
 		return err
 	}
 
-	err = initReserve(store, cdc)
-	if err != nil {
-		return err
-	}
+	//err = initReserve(store, cdc)
+	//if err != nil {
+	//	return err
+	//}
 
 	err = migrateProviders(store, cdc)
 	if err != nil {

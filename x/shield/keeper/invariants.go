@@ -54,6 +54,12 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 
 		broken := !totalInt.IsEqual(moduleCoins) || !change.Empty()
 
+		fmt.Println(shieldStake)
+		fmt.Println(pending_payouts)
+		fmt.Println(reserve)
+		fmt.Println(rewards)
+		fmt.Println(serviceFees)
+
 		return sdk.FormatInvariant(types.ModuleName, "module-account",
 			fmt.Sprintf("\n\tshield ModuleAccount coins: %s"+
 				"\n\tsum of remaining service fees & rewards & staked & reimbursement & pending payouts amount:  %s"+
