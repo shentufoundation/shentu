@@ -1,6 +1,7 @@
 package v231
 
 import (
+	"fmt"
 	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -31,7 +32,7 @@ func RefundPurchasers(ctx sdk.Context, cdc codec.BinaryCodec, bk bankkeeper.Keep
 
 	iterator2 := sdk.KVStorePrefixIterator(store, shieldtypes.ProviderKey)
 
-	// directly pay out rewards
+	// directly pay out provider rewards
 	var prov []v1alpha1.Provider
 	remainingFees := totalFees
 	defer iterator2.Close()
@@ -45,21 +46,29 @@ func RefundPurchasers(ctx sdk.Context, cdc codec.BinaryCodec, bk bankkeeper.Keep
 			panic(err)
 		}
 		rewardsInt := sdk.NewCoins()
+		remainders := sdk.NewDecCoins()
 		for _, r := range pv.Rewards.Native {
-			rInt, _ := r.TruncateDecimal()
-			remainingFees = remainingFees.Sub(rInt.Amount.ToDec())
+			rInt, remainder := r.TruncateDecimal()
+			remainders = remainders.Add(remainder)
+			remainingFees = remainingFees.Sub(rInt.Amount.ToDec()).Sub(remainder.Amount)
+			fmt.Println(remainingFees)
 			rewardsInt = rewardsInt.Add(rInt)
 		}
 		err = bk.SendCoinsFromModuleToAccount(ctx, shieldtypes.ModuleName, addr, rewardsInt)
 		if err != nil {
 			panic(err)
 		}
-		pv.Rewards = v1alpha1.NewMixedDecCoins(sdk.NewDecCoins(), sdk.NewDecCoins())
+		pv.Rewards.Native = remainders
 		pvBz := cdc.MustMarshalLengthPrefixed(&pv)
 		store.Set(iterator2.Key(), pvBz)
 	}
 
-	refundRatio := remainingFees.Quo(totalFees)
+	var refundRatio sdk.Dec
+	if !totalFees.IsZero() {
+		refundRatio = remainingFees.Quo(totalFees)
+	} else {
+		refundRatio = sdk.ZeroDec()
+	}
 
 	iterator3 := sdk.KVStorePrefixIterator(store, shieldtypes.PurchaseListKey)
 
@@ -77,10 +86,17 @@ func RefundPurchasers(ctx sdk.Context, cdc codec.BinaryCodec, bk bankkeeper.Keep
 			panic(err)
 		}
 		purchaserReimbursement := purchaserTotal.Mul(refundRatio)
-		if err := bk.SendCoinsFromModuleToAccount(ctx, shieldtypes.ModuleName, addr, sdk.NewCoins(sdk.NewCoin(bondDenom, purchaserReimbursement.TruncateInt()))); err != nil {
-			panic(err)
+		if !purchaserReimbursement.TruncateInt().IsZero() {
+			if err := bk.SendCoinsFromModuleToAccount(ctx, shieldtypes.ModuleName, addr,
+				sdk.NewCoins(sdk.NewCoin(bondDenom, purchaserReimbursement.TruncateInt()))); err != nil {
+				panic(err)
+			}
+			remainingFees = remainingFees.Sub(purchaserReimbursement.TruncateInt().ToDec())
+			fmt.Println(remainingFees)
+			fmt.Println(refundRatio)
+			fmt.Println(purchaserReimbursement.String())
+			fmt.Println(purchaserReimbursement.TruncateInt().String())
 		}
-		remainingFees = remainingFees.Sub(purchaserReimbursement)
 		store.Delete(iterator3.Key())
 	}
 
@@ -97,7 +113,9 @@ func RefundPurchasers(ctx sdk.Context, cdc codec.BinaryCodec, bk bankkeeper.Keep
 	}
 
 	reserve := v1beta1.NewReserve()
-	reserve.Amount = reserve.Amount.Add(remainingFees.TruncateInt())
+	if remainingFees.IsPositive() {
+		reserve.Amount = reserve.Amount.Add(remainingFees)
+	}
 	k.SetReserve(ctx, reserve)
 	k.SetServiceFees(ctx, sdk.NewDecCoins())
 	k.SetTotalShield(ctx, sdk.ZeroInt())

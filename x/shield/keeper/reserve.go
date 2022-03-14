@@ -15,7 +15,7 @@ func (k Keeper) Donate(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) err
 		return err
 	}
 
-	reserve.Amount = reserve.Amount.Add(amount)
+	reserve.Amount = reserve.Amount.Add(amount.ToDec())
 	k.SetReserve(ctx, reserve)
 
 	return nil
@@ -137,14 +137,14 @@ func (k Keeper) MakePayouts(ctx sdk.Context) {
 		}
 
 		var amount sdk.Int
-		if reserve.Amount.GTE(payout.Amount) {
+		if reserve.Amount.GTE(payout.Amount.ToDec()) {
 			amount = payout.Amount
 		} else {
-			amount = reserve.Amount
+			amount = reserve.Amount.TruncateInt()
 		}
 
 		k.ProcessPendingPayout(ctx, payout, amount)
-		reserve.Amount = reserve.Amount.Sub(amount)
+		reserve.Amount = reserve.Amount.Sub(amount.ToDec())
 		return false
 	})
 

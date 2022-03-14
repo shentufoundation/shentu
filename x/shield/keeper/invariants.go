@@ -49,16 +49,16 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 
 		// reserve payouts
 		reserve := keeper.GetReserve(ctx).Amount
-
-		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, pending_payouts)).Add(sdk.NewCoin(bondDenom, reserve))
-
-		broken := !totalInt.IsEqual(moduleCoins) || !change.Empty()
+		reserveInt := reserve.Add(change.AmountOf(bondDenom)).TruncateInt()
 
 		fmt.Println(shieldStake)
 		fmt.Println(pending_payouts)
 		fmt.Println(reserve)
 		fmt.Println(rewards)
 		fmt.Println(serviceFees)
+		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, pending_payouts)).Add(sdk.NewCoin(bondDenom, reserveInt))
+
+		broken := !totalInt.IsEqual(moduleCoins)
 
 		return sdk.FormatInvariant(types.ModuleName, "module-account",
 			fmt.Sprintf("\n\tshield ModuleAccount coins: %s"+
