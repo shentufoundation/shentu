@@ -20,7 +20,7 @@ func RefundPurchasers(ctx sdk.Context, cdc codec.BinaryCodec, bk bankkeeper.Keep
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var pl v1alpha1.PurchaseList
-		cdc.MustUnmarshal(iterator.Value(), &pl)
+		cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &pl)
 		total := sdk.ZeroDec()
 		for _, e := range pl.Entries {
 			total.Add(e.ServiceFees.Native.AmountOf(bondDenom))

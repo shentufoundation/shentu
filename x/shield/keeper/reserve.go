@@ -24,7 +24,7 @@ func (k Keeper) Donate(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) err
 // SetReserve saves Shield Donation Pool.
 func (k Keeper) SetReserve(ctx sdk.Context, reserve v1beta1.Reserve) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&reserve)
+	bz := k.cdc.MustMarshal(&reserve)
 	store.Set(types.GetReserveKey(), bz)
 }
 
@@ -35,7 +35,7 @@ func (k Keeper) GetReserve(ctx sdk.Context) (reserve v1beta1.Reserve) {
 	if bz == nil {
 		panic("failed to retrieve Shield Donation Pool")
 	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &reserve)
+	k.cdc.MustUnmarshal(bz, &reserve)
 	return
 }
 
