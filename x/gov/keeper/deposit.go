@@ -171,9 +171,9 @@ func (k Keeper) IterateDeposits(ctx sdk.Context, proposalID uint64, cb func(depo
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit govtypes.Deposit
-		var legacydeposit v220.Deposit
 		err := k.cdc.Unmarshal(iterator.Value(), &deposit)
 		if err != nil {
+			var legacydeposit v220.Deposit
 			k.cdc.MustUnmarshal(iterator.Value(), &legacydeposit)
 			deposit = *legacydeposit.Deposit
 		}
