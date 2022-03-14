@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	v220 "github.com/certikfoundation/shentu/v2/x/gov/legacy/v220"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -170,8 +171,12 @@ func (k Keeper) IterateDeposits(ctx sdk.Context, proposalID uint64, cb func(depo
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit govtypes.Deposit
-		k.cdc.MustUnmarshal(iterator.Value(), &deposit)
-
+		var legacydeposit v220.Deposit
+		err := k.cdc.Unmarshal(iterator.Value(), &deposit)
+		if err != nil {
+			k.cdc.MustUnmarshal(iterator.Value(), &legacydeposit)
+			deposit = *legacydeposit.Deposit
+		}
 		if cb(deposit) {
 			break
 		}
