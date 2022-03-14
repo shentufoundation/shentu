@@ -1,8 +1,6 @@
 package v231
 
 import (
-	"fmt"
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -10,6 +8,7 @@ import (
 	shieldkeeper "github.com/certikfoundation/shentu/v2/x/shield/keeper"
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 	"github.com/certikfoundation/shentu/v2/x/shield/types/v1alpha1"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
 )
 
@@ -51,7 +50,6 @@ func RefundPurchasers(ctx sdk.Context, cdc codec.BinaryCodec, bk bankkeeper.Keep
 			rInt, remainder := r.TruncateDecimal()
 			remainders = remainders.Add(remainder)
 			remainingFees = remainingFees.Sub(rInt.Amount.ToDec()).Sub(remainder.Amount)
-			fmt.Println(remainingFees)
 			rewardsInt = rewardsInt.Add(rInt)
 		}
 		err = bk.SendCoinsFromModuleToAccount(ctx, shieldtypes.ModuleName, addr, rewardsInt)
@@ -92,10 +90,6 @@ func RefundPurchasers(ctx sdk.Context, cdc codec.BinaryCodec, bk bankkeeper.Keep
 				panic(err)
 			}
 			remainingFees = remainingFees.Sub(purchaserReimbursement.TruncateInt().ToDec())
-			fmt.Println(remainingFees)
-			fmt.Println(refundRatio)
-			fmt.Println(purchaserReimbursement.String())
-			fmt.Println(purchaserReimbursement.TruncateInt().String())
 		}
 		store.Delete(iterator3.Key())
 	}

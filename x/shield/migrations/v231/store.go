@@ -84,11 +84,10 @@ func migrateParams(ctx sdk.Context, ps types.ParamSubspace) error {
 	return nil
 }
 
-func initReserve(store sdk.KVStore, cdc codec.BinaryCodec) error {
+func initReserve(store sdk.KVStore, cdc codec.BinaryCodec) {
 	reserve := v1beta1.NewReserve()
 	bz := cdc.MustMarshal(&reserve)
 	store.Set(types.GetReserveKey(), bz)
-	return nil
 }
 
 func migrateProviders(store sdk.KVStore, cdc codec.BinaryCodec) error {
