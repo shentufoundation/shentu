@@ -12,6 +12,7 @@ import (
 
 	vesting "github.com/certikfoundation/shentu/v2/x/auth/types"
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // SecureCollaterals is called after a claim is submitted to secure
@@ -85,7 +86,7 @@ func (k Keeper) SecureCollaterals(ctx sdk.Context, poolID uint64, purchaser sdk.
 // SecureFromProvider secures the specified amount of collaterals from
 // the provider for the duration. If necessary, it extends withdrawing
 // collaterals and, if exist, their linked unbondings as well.
-func (k Keeper) SecureFromProvider(ctx sdk.Context, provider types.Provider, amount sdk.Int, duration time.Duration) {
+func (k Keeper) SecureFromProvider(ctx sdk.Context, provider v1beta1.Provider, amount sdk.Int, duration time.Duration) {
 	providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
 	if err != nil {
 		panic(err)
@@ -151,7 +152,7 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 
 	purchase, found := k.GetPurchase(ctx, poolID, purchaser)
 	if !found {
-		purchase = types.NewPurchase(poolID, purchaser, "restored purchase",
+		purchase = v1beta1.NewPurchase(poolID, purchaser, "restored purchase",
 			lossAmt.ToDec().Quo(pool.ShieldRate).TruncateInt(), lossAmt)
 	} else {
 		purchase.Shield = purchase.Shield.Add(lossAmt)
@@ -164,7 +165,7 @@ func (k Keeper) RestoreShield(ctx sdk.Context, poolID uint64, purchaser sdk.AccA
 }
 
 // CreateReimbursement creates a reimbursement.
-func (k Keeper) CreateReimbursement(ctx sdk.Context, proposal *types.ShieldClaimProposal, beneficiary sdk.AccAddress) error {
+func (k Keeper) CreateReimbursement(ctx sdk.Context, proposal *v1beta1.ShieldClaimProposal, beneficiary sdk.AccAddress) error {
 	amount := proposal.Loss
 
 	bondDenom := k.BondDenom(ctx)
@@ -213,7 +214,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposal *types.ShieldClaim
 		reimbursement = amount.Sub(sdk.NewCoins(sdk.NewCoin(bondDenom, totalPayout)))
 
 		// Create pending payout since collateral could not cover the payout.
-		k.SetPendingPayout(ctx, types.NewPendingPayout(proposal.ProposalId, totalPayout))
+		k.SetPendingPayout(ctx, v1beta1.NewPendingPayout(proposal.ProposalId, totalPayout))
 	}
 	// k.SetReimbursement(ctx, proposalID, types.NewReimbursement(reimbursement, beneficiary, ctx.BlockTime().Add(k.GetClaimProposalParams(ctx).PayoutPeriod)))
 	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, beneficiary, reimbursement); err != nil {
@@ -236,7 +237,7 @@ func (k Keeper) CreateReimbursement(ctx sdk.Context, proposal *types.ShieldClaim
 		return types.ErrPurchaseNotFound
 	}
 	params := k.GetPoolParams(ctx)
-	entry := types.RecoveringEntry{
+	entry := v1beta1.RecoveringEntry{
 		RecoverTime: ctx.BlockTime().Add(params.CooldownPeriod),
 		Amount:      amount,
 	}
@@ -530,7 +531,7 @@ func (k Keeper) GetSortedUnbondingDelegations(ctx sdk.Context, delAddr sdk.AccAd
 		for _, entry := range ubd.Entries {
 			unbondingDelegations = append(
 				unbondingDelegations,
-				types.NewUnbondingDelegation(ubd.DelegatorAddress, ubd.ValidatorAddress, entry),
+				v1beta1.NewUnbondingDelegation(ubd.DelegatorAddress, ubd.ValidatorAddress, entry),
 			)
 		}
 	}

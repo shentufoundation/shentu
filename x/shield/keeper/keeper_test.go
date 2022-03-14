@@ -18,7 +18,7 @@ import (
 	"github.com/certikfoundation/shentu/v2/common"
 	"github.com/certikfoundation/shentu/v2/x/gov/testgov"
 	"github.com/certikfoundation/shentu/v2/x/shield/testshield"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"github.com/certikfoundation/shentu/v2/x/staking/teststaking"
 )
 

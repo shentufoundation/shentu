@@ -1,10 +1,12 @@
-package types
+package v1beta1
 
 import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 const (
@@ -36,7 +38,7 @@ func NewMsgCreatePool(accAddr, sponsorAddr sdk.AccAddress, description string, s
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgCreatePool) Route() string { return RouterKey }
+func (msg MsgCreatePool) Route() string { return types.RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgCreatePool) Type() string { return TypeMsgCreatePool }
@@ -63,11 +65,11 @@ func (msg MsgCreatePool) ValidateBasic() error {
 		return err
 	}
 	if from.Empty() {
-		return ErrEmptySender
+		return types.ErrEmptySender
 	}
 
 	if !msg.ShieldRate.GTE(sdk.NewDec(1)) {
-		return ErrInvalidShieldRate
+		return types.ErrInvalidShieldRate
 	}
 	return nil
 }
@@ -85,7 +87,7 @@ func NewMsgUpdatePool(accAddr sdk.AccAddress, id uint64, description string, act
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgUpdatePool) Route() string { return RouterKey }
+func (msg MsgUpdatePool) Route() string { return types.RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgUpdatePool) Type() string { return TypeMsgUpdatePool }
@@ -112,14 +114,14 @@ func (msg MsgUpdatePool) ValidateBasic() error {
 		panic(err)
 	}
 	if from.Empty() {
-		return ErrEmptySender
+		return types.ErrEmptySender
 	}
 
 	if msg.PoolId == 0 {
-		return ErrInvalidPoolID
+		return types.ErrInvalidPoolID
 	}
-	if !msg.ShieldRate.GTE(sdk.NewDec(0)) {
-		return ErrInvalidShieldRate
+	if msg.ShieldRate.IsNegative() {
+		return types.ErrInvalidShieldRate
 	}
 	return nil
 }
@@ -133,7 +135,7 @@ func NewMsgPausePool(accAddr sdk.AccAddress, id uint64) *MsgPausePool {
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgPausePool) Route() string { return RouterKey }
+func (msg MsgPausePool) Route() string { return types.RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgPausePool) Type() string { return TypeMsgPausePool }
@@ -160,11 +162,11 @@ func (msg MsgPausePool) ValidateBasic() error {
 		panic(err)
 	}
 	if from.Empty() {
-		return ErrEmptySender
+		return types.ErrEmptySender
 	}
 
 	if msg.PoolId == 0 {
-		return ErrInvalidPoolID
+		return types.ErrInvalidPoolID
 	}
 	return nil
 }
@@ -177,7 +179,7 @@ func NewMsgResumePool(accAddr sdk.AccAddress, id uint64) *MsgResumePool {
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgResumePool) Route() string { return RouterKey }
+func (msg MsgResumePool) Route() string { return types.RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgResumePool) Type() string { return TypeMsgResumePool }
@@ -204,11 +206,11 @@ func (msg MsgResumePool) ValidateBasic() error {
 		panic(err)
 	}
 	if from.Empty() {
-		return ErrEmptySender
+		return types.ErrEmptySender
 	}
 
 	if msg.PoolId == 0 {
-		return ErrInvalidPoolID
+		return types.ErrInvalidPoolID
 	}
 	return nil
 }
@@ -222,7 +224,7 @@ func NewMsgDonate(sender sdk.AccAddress, amount sdk.Coins) *MsgDonate {
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgDonate) Route() string { return RouterKey }
+func (msg MsgDonate) Route() string { return types.RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgDonate) Type() string { return "donate" }
@@ -249,7 +251,7 @@ func (msg MsgDonate) ValidateBasic() error {
 		panic(err)
 	}
 	if from.Empty() {
-		return ErrEmptySender
+		return types.ErrEmptySender
 	}
 
 	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
@@ -267,7 +269,7 @@ func NewMsgDepositCollateral(sender sdk.AccAddress, collateral sdk.Coins) *MsgDe
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgDepositCollateral) Route() string { return RouterKey }
+func (msg MsgDepositCollateral) Route() string { return types.RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgDepositCollateral) Type() string { return "deposit_collateral" }
@@ -294,7 +296,7 @@ func (msg MsgDepositCollateral) ValidateBasic() error {
 		panic(err)
 	}
 	if from.Empty() {
-		return ErrEmptySender
+		return types.ErrEmptySender
 	}
 
 	if !msg.Collateral.IsValid() || msg.Collateral.IsZero() {
@@ -312,7 +314,7 @@ func NewMsgWithdrawCollateral(sender sdk.AccAddress, collateral sdk.Coins) *MsgW
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgWithdrawCollateral) Route() string { return RouterKey }
+func (msg MsgWithdrawCollateral) Route() string { return types.RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgWithdrawCollateral) Type() string { return "withdraw_collateral" }
@@ -339,7 +341,7 @@ func (msg MsgWithdrawCollateral) ValidateBasic() error {
 		panic(err)
 	}
 	if from.Empty() {
-		return ErrEmptySender
+		return types.ErrEmptySender
 	}
 
 	if !msg.Collateral.IsValid() || msg.Collateral.IsZero() {
@@ -356,7 +358,7 @@ func NewMsgWithdrawRewards(sender sdk.AccAddress) *MsgWithdrawRewards {
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgWithdrawRewards) Route() string { return RouterKey }
+func (msg MsgWithdrawRewards) Route() string { return types.RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgWithdrawRewards) Type() string { return TypeMsgWithdrawRewards }
@@ -383,7 +385,7 @@ func (msg MsgWithdrawRewards) ValidateBasic() error {
 		panic(err)
 	}
 	if from.Empty() {
-		return ErrEmptySender
+		return types.ErrEmptySender
 	}
 
 	return nil
@@ -399,7 +401,7 @@ func NewMsgWithdrawForeignRewards(sender sdk.AccAddress, denom, toAddr string) *
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgWithdrawForeignRewards) Route() string { return RouterKey }
+func (msg MsgWithdrawForeignRewards) Route() string { return types.RouterKey }
 
 // Type implements the sdk.Msg interface
 func (msg MsgWithdrawForeignRewards) Type() string { return TypeMsgWithdrawForeignRewards }
@@ -426,10 +428,10 @@ func (msg MsgWithdrawForeignRewards) ValidateBasic() error {
 		panic(err)
 	}
 	if from.Empty() {
-		return ErrEmptySender
+		return types.ErrEmptySender
 	}
 	if strings.TrimSpace(msg.ToAddr) == "" {
-		return ErrInvalidToAddr
+		return types.ErrInvalidToAddr
 	}
 	return nil
 }
@@ -445,7 +447,7 @@ func NewMsgPurchase(poolID uint64, shield sdk.Coins, description string, from sd
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgPurchase) Route() string { return RouterKey }
+func (msg MsgPurchase) Route() string { return types.RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgPurchase) Type() string { return TypeMsgStakeForShield }
@@ -480,7 +482,7 @@ func NewMsgUnstake(poolID uint64, shield sdk.Coins, from sdk.AccAddress) *MsgUns
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgUnstake) Route() string { return RouterKey }
+func (msg MsgUnstake) Route() string { return types.RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgUnstake) Type() string { return TypeMsgUnstakeFromShield }
@@ -516,7 +518,7 @@ func NewMsgUpdateSponsor(poolID uint64, sponsor string, sponsorAddr, fromAddr sd
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgUpdateSponsor) Route() string { return RouterKey }
+func (msg MsgUpdateSponsor) Route() string { return types.RouterKey }
 
 // Type implements the sdk.Msg interface.
 func (msg MsgUpdateSponsor) Type() string { return TypeMsgUpdateSponsor }
@@ -543,7 +545,7 @@ func (msg MsgUpdateSponsor) ValidateBasic() error {
 		panic(err)
 	}
 	if fromAddr.Empty() {
-		return ErrEmptySender
+		return types.ErrEmptySender
 	}
 
 	sponsorAddr, err := sdk.AccAddressFromBech32(msg.From)
@@ -551,7 +553,7 @@ func (msg MsgUpdateSponsor) ValidateBasic() error {
 		panic(err)
 	}
 	if sponsorAddr.Empty() || strings.TrimSpace(msg.Sponsor) == "" {
-		return ErrEmptySponsor
+		return types.ErrEmptySponsor
 	}
 	return nil
 }

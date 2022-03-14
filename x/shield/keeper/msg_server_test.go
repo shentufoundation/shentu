@@ -17,6 +17,7 @@ import (
 	"github.com/certikfoundation/shentu/v2/common"
 	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"github.com/certikfoundation/shentu/v2/x/staking/teststaking"
 )
 
@@ -35,7 +36,7 @@ type KeeperTestSuite struct {
 	suite.Suite
 	app       *shentuapp.ShentuApp
 	ctx       sdk.Context
-	msgServer types.MsgServer
+	msgServer v1beta1.MsgServer
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -60,22 +61,22 @@ func (suite *KeeperTestSuite) SetupTest() {
 func (suite *KeeperTestSuite) Test_DepositCollateral() {
 	tests := []struct {
 		name    string
-		message *types.MsgDepositCollateral
+		message *v1beta1.MsgDepositCollateral
 		err     bool
 	}{
 		{
 			name:    "Should fail for insufficient delegation",
-			message: types.NewMsgDepositCollateral(acc1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 80000*1e6)}),
+			message: v1beta1.NewMsgDepositCollateral(acc1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 80000*1e6)}),
 			err:     true,
 		},
 		{
 			name:    "Should fail for non validator",
-			message: types.NewMsgDepositCollateral(acc2, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 1)}),
+			message: v1beta1.NewMsgDepositCollateral(acc2, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 1)}),
 			err:     true,
 		},
 		{
 			name:    "Should pass for sufficient delegation",
-			message: types.NewMsgDepositCollateral(acc1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 1)}),
+			message: v1beta1.NewMsgDepositCollateral(acc1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 1)}),
 			err:     false,
 		},
 	}
@@ -95,26 +96,26 @@ func (suite *KeeperTestSuite) Test_DepositCollateral() {
 }
 
 func (suite *KeeperTestSuite) Test_WithdrawCollateral() {
-	_, err := suite.msgServer.DepositCollateral(sdk.WrapSDKContext(suite.ctx), types.NewMsgDepositCollateral(acc1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 10)}))
+	_, err := suite.msgServer.DepositCollateral(sdk.WrapSDKContext(suite.ctx), v1beta1.NewMsgDepositCollateral(acc1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 10)}))
 	suite.Require().NoError(err)
 	tests := []struct {
 		name    string
-		message *types.MsgWithdrawCollateral
+		message *v1beta1.MsgWithdrawCollateral
 		err     bool
 	}{
 		{
 			name:    "Should fail for insufficient collateral deposit",
-			message: types.NewMsgWithdrawCollateral(acc1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 80000*1e6)}),
+			message: v1beta1.NewMsgWithdrawCollateral(acc1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 80000*1e6)}),
 			err:     true,
 		},
 		{
 			name:    "Should fail for non validator",
-			message: types.NewMsgWithdrawCollateral(acc2, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 1)}),
+			message: v1beta1.NewMsgWithdrawCollateral(acc2, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 1)}),
 			err:     true,
 		},
 		{
 			name:    "Should pass for sufficient collateral",
-			message: types.NewMsgWithdrawCollateral(acc1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 1)}),
+			message: v1beta1.NewMsgWithdrawCollateral(acc1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 1)}),
 			err:     false,
 		},
 	}
@@ -136,22 +137,22 @@ func (suite *KeeperTestSuite) Test_WithdrawCollateral() {
 func (suite *KeeperTestSuite) Test_Donate() {
 	tests := []struct {
 		name    string
-		message *types.MsgDonate
+		message *v1beta1.MsgDonate
 		err     bool
 	}{
 		{
 			name:    "Should fail for insufficient balance",
-			message: types.NewMsgDonate(acc1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 80000*1e6)}),
+			message: v1beta1.NewMsgDonate(acc1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 80000*1e6)}),
 			err:     true,
 		},
 		{
 			name:    "Should pass for non validator",
-			message: types.NewMsgDonate(acc2, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 1)}),
+			message: v1beta1.NewMsgDonate(acc2, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 1)}),
 			err:     false,
 		},
 		{
 			name:    "Should pass for sufficient collateral",
-			message: types.NewMsgDonate(acc1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 1)}),
+			message: v1beta1.NewMsgDonate(acc1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 1)}),
 			err:     false,
 		},
 	}
@@ -173,27 +174,27 @@ func (suite *KeeperTestSuite) Test_Donate() {
 func (suite *KeeperTestSuite) Test_CreatePool() {
 	tests := []struct {
 		name    string
-		message *types.MsgCreatePool
+		message *v1beta1.MsgCreatePool
 		err     bool
 	}{
 		{
 			name:    "Should create a pool",
-			message: types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)),
+			message: v1beta1.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)),
 			err:     false,
 		},
 		{
 			name:    "Should pass for non validator",
-			message: types.NewMsgCreatePool(acc2, acc2, "pool creation", sdk.NewDec(2), sdk.NewInt(1e14)),
+			message: v1beta1.NewMsgCreatePool(acc2, acc2, "pool creation", sdk.NewDec(2), sdk.NewInt(1e14)),
 			err:     true,
 		},
 		{
 			name:    "Should fail for duplicate pool",
-			message: types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)),
+			message: v1beta1.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)),
 			err:     true,
 		},
 		{
 			name:    "Should create pool for others",
-			message: types.NewMsgCreatePool(acc1, acc2, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)),
+			message: v1beta1.NewMsgCreatePool(acc1, acc2, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)),
 			err:     false,
 		},
 	}
@@ -212,26 +213,26 @@ func (suite *KeeperTestSuite) Test_CreatePool() {
 }
 
 func (suite *KeeperTestSuite) Test_UpdatePool() {
-	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
+	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), v1beta1.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
 	suite.Require().NoError(err)
 	tests := []struct {
 		name    string
-		message *types.MsgUpdatePool
+		message *v1beta1.MsgUpdatePool
 		err     bool
 	}{
 		{
 			name:    "Should update a pool",
-			message: types.NewMsgUpdatePool(acc1, 1, "pool updated", true, sdk.NewDec(1), sdk.NewInt(1e14)),
+			message: v1beta1.NewMsgUpdatePool(acc1, 1, "pool updated", true, sdk.NewDec(1), sdk.NewInt(1e14)),
 			err:     false,
 		},
 		{
 			name:    "Should fail for different sponsor",
-			message: types.NewMsgUpdatePool(acc2, 1, "pool updated", true, sdk.NewDec(1), sdk.NewInt(1e14)),
+			message: v1beta1.NewMsgUpdatePool(acc2, 1, "pool updated", true, sdk.NewDec(1), sdk.NewInt(1e14)),
 			err:     true,
 		},
 		{
 			name:    "Should fail for non existent pool",
-			message: types.NewMsgUpdatePool(acc2, 5, "pool updated", true, sdk.NewDec(1), sdk.NewInt(1e14)),
+			message: v1beta1.NewMsgUpdatePool(acc2, 5, "pool updated", true, sdk.NewDec(1), sdk.NewInt(1e14)),
 			err:     true,
 		},
 	}
@@ -250,26 +251,26 @@ func (suite *KeeperTestSuite) Test_UpdatePool() {
 }
 
 func (suite *KeeperTestSuite) Test_PausePool() {
-	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
+	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), v1beta1.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
 	suite.Require().NoError(err)
 	tests := []struct {
 		name    string
-		message *types.MsgPausePool
+		message *v1beta1.MsgPausePool
 		err     bool
 	}{
 		{
 			name:    "Should pause a pool",
-			message: types.NewMsgPausePool(acc1, 1),
+			message: v1beta1.NewMsgPausePool(acc1, 1),
 			err:     false,
 		},
 		{
 			name:    "Should fail for different sponsor",
-			message: types.NewMsgPausePool(acc2, 1),
+			message: v1beta1.NewMsgPausePool(acc2, 1),
 			err:     true,
 		},
 		{
 			name:    "Should fail for non existent pool",
-			message: types.NewMsgPausePool(acc2, 5),
+			message: v1beta1.NewMsgPausePool(acc2, 5),
 			err:     true,
 		},
 	}
@@ -288,28 +289,28 @@ func (suite *KeeperTestSuite) Test_PausePool() {
 }
 
 func (suite *KeeperTestSuite) Test_ResumePool() {
-	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
+	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), v1beta1.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
 	suite.Require().NoError(err)
-	_, err = suite.msgServer.PausePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgPausePool(acc1, 1))
+	_, err = suite.msgServer.PausePool(sdk.WrapSDKContext(suite.ctx), v1beta1.NewMsgPausePool(acc1, 1))
 	suite.Require().NoError(err)
 	tests := []struct {
 		name    string
-		message *types.MsgResumePool
+		message *v1beta1.MsgResumePool
 		err     bool
 	}{
 		{
 			name:    "Should pause a pool",
-			message: types.NewMsgResumePool(acc1, 1),
+			message: v1beta1.NewMsgResumePool(acc1, 1),
 			err:     false,
 		},
 		{
 			name:    "Should fail for different sponsor",
-			message: types.NewMsgResumePool(acc2, 1),
+			message: v1beta1.NewMsgResumePool(acc2, 1),
 			err:     true,
 		},
 		{
 			name:    "Should fail for non existent pool",
-			message: types.NewMsgResumePool(acc2, 5),
+			message: v1beta1.NewMsgResumePool(acc2, 5),
 			err:     true,
 		},
 	}
@@ -328,26 +329,26 @@ func (suite *KeeperTestSuite) Test_ResumePool() {
 }
 
 func (suite *KeeperTestSuite) Test_UpdateSponsor() {
-	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
+	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), v1beta1.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
 	suite.Require().NoError(err)
 	tests := []struct {
 		name    string
-		message *types.MsgUpdateSponsor
+		message *v1beta1.MsgUpdateSponsor
 		err     bool
 	}{
 		{
 			name:    "Should fail for invalid from",
-			message: types.NewMsgUpdateSponsor(1, "new sponsor", acc2, acc2),
+			message: v1beta1.NewMsgUpdateSponsor(1, "new sponsor", acc2, acc2),
 			err:     true,
 		},
 		{
 			name:    "Should fail for non existent pool",
-			message: types.NewMsgUpdateSponsor(1, "new sponsor", acc1, acc1),
+			message: v1beta1.NewMsgUpdateSponsor(1, "new sponsor", acc1, acc1),
 			err:     false,
 		},
 		{
 			name:    "Should update a sponsor",
-			message: types.NewMsgUpdateSponsor(1, "new sponsor", acc2, acc1),
+			message: v1beta1.NewMsgUpdateSponsor(1, "new sponsor", acc2, acc1),
 			err:     false,
 		},
 	}
@@ -366,26 +367,26 @@ func (suite *KeeperTestSuite) Test_UpdateSponsor() {
 }
 
 func (suite *KeeperTestSuite) Test_Purchase() {
-	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
+	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), v1beta1.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
 	suite.Require().NoError(err)
 	tests := []struct {
 		name    string
-		message *types.MsgPurchase
+		message *v1beta1.MsgPurchase
 		err     bool
 	}{
 		{
 			name:    "Should pass for purchase",
-			message: types.NewMsgPurchase(1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 100000000)}, "purchasing", acc1),
+			message: v1beta1.NewMsgPurchase(1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 100000000)}, "purchasing", acc1),
 			err:     false,
 		},
 		{
 			name:    "Should fail for small purchase",
-			message: types.NewMsgPurchase(1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 10)}, "purchasing", acc1),
+			message: v1beta1.NewMsgPurchase(1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 10)}, "purchasing", acc1),
 			err:     true,
 		},
 		{
 			name:    "Should pass for other than spnosor purchase",
-			message: types.NewMsgPurchase(1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 100000000)}, "purchasing", acc2),
+			message: v1beta1.NewMsgPurchase(1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 100000000)}, "purchasing", acc2),
 			err:     false,
 		},
 	}
@@ -404,29 +405,29 @@ func (suite *KeeperTestSuite) Test_Purchase() {
 }
 
 func (suite *KeeperTestSuite) Test_Unstake() {
-	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
+	_, err := suite.msgServer.CreatePool(sdk.WrapSDKContext(suite.ctx), v1beta1.NewMsgCreatePool(acc1, acc1, "pool creation", sdk.NewDec(1), sdk.NewInt(1e14)))
 	suite.Require().NoError(err)
-	_, err = suite.msgServer.Purchase(sdk.WrapSDKContext(suite.ctx), types.NewMsgPurchase(1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 100000000)}, "purchasing", acc1))
+	_, err = suite.msgServer.Purchase(sdk.WrapSDKContext(suite.ctx), v1beta1.NewMsgPurchase(1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 100000000)}, "purchasing", acc1))
 	suite.Require().NoError(err)
 
 	tests := []struct {
 		name    string
-		message *types.MsgUnstake
+		message *v1beta1.MsgUnstake
 		err     bool
 	}{
 		{
 			name:    "Should pass for purchase",
-			message: types.NewMsgUnstake(1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 10)}, acc1),
+			message: v1beta1.NewMsgUnstake(1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 10)}, acc1),
 			err:     false,
 		},
 		{
 			name:    "Should fail for unstaking more",
-			message: types.NewMsgUnstake(1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 100000000)}, acc2),
+			message: v1beta1.NewMsgUnstake(1, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 100000000)}, acc2),
 			err:     true,
 		},
 		{
 			name:    "Should fail for absent pool",
-			message: types.NewMsgUnstake(3, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 100000000)}, acc1),
+			message: v1beta1.NewMsgUnstake(3, sdk.Coins{sdk.NewInt64Coin(common.MicroCTKDenom, 100000000)}, acc1),
 			err:     true,
 		},
 	}

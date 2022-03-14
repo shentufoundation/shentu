@@ -15,6 +15,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 var (
@@ -96,7 +97,7 @@ Where proposal.json contains:
 				return err
 			}
 			from := cliCtx.GetFromAddress()
-			content := types.NewShieldClaimProposal(proposal.PoolID, proposal.Loss,
+			content := v1beta1.NewShieldClaimProposal(proposal.PoolID, proposal.Loss,
 				proposal.Evidence, proposal.Description, from)
 
 			msg, err := govtypes.NewMsgSubmitProposal(content, proposal.Deposit, from)
@@ -156,7 +157,7 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-
 			}
 			shieldLimit := sdk.NewInt(int64(limit))
 
-			msg := types.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate, shieldLimit)
+			msg := v1beta1.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate, shieldLimit)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -222,7 +223,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				panic(err)
 			}
 
-			msg := types.NewMsgUpdatePool(fromAddr, id, description, active, shieldRate, shieldLimit)
+			msg := v1beta1.NewMsgUpdatePool(fromAddr, id, description, active, shieldRate, shieldLimit)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -260,7 +261,7 @@ func GetCmdDepositCollateral() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgDepositCollateral(fromAddr, collateral)
+			msg := v1beta1.NewMsgDepositCollateral(fromAddr, collateral)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -294,7 +295,7 @@ func GetCmdWithdrawCollateral() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgWithdrawCollateral(fromAddr, collateral)
+			msg := v1beta1.NewMsgWithdrawCollateral(fromAddr, collateral)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -322,7 +323,7 @@ func GetCmdWithdrawRewards() *cobra.Command {
 
 			fromAddr := cliCtx.GetFromAddress()
 
-			msg := types.NewMsgWithdrawRewards(fromAddr)
+			msg := v1beta1.NewMsgWithdrawRewards(fromAddr)
 
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
@@ -349,7 +350,7 @@ func GetCmdWithdrawForeignRewards() *cobra.Command {
 			denom := args[0]
 			addr := args[1]
 
-			msg := types.NewMsgWithdrawForeignRewards(fromAddr, denom, addr)
+			msg := v1beta1.NewMsgWithdrawForeignRewards(fromAddr, denom, addr)
 
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
@@ -396,7 +397,7 @@ $ %s tx shield purchase <pool id> <shield amount> <description>
 				return types.ErrPurchaseMissingDescription
 			}
 
-			msg := types.NewMsgPurchase(poolID, shield, description, fromAddr)
+			msg := v1beta1.NewMsgPurchase(poolID, shield, description, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -442,7 +443,7 @@ $ %s tx shield withdraw-staking <pool id> <shield amount>
 				return err
 			}
 
-			msg := types.NewMsgUnstake(poolID, shield, fromAddr)
+			msg := v1beta1.NewMsgUnstake(poolID, shield, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -487,7 +488,7 @@ $ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address> --fr
 				return fmt.Errorf("sponsor address %s is not a valid address, please input a valid sponsor address", args[2])
 			}
 
-			msg := types.NewMsgUpdateSponsor(poolID, args[1], sponsorAddr, fromAddr)
+			msg := v1beta1.NewMsgUpdateSponsor(poolID, args[1], sponsorAddr, fromAddr)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -519,7 +520,7 @@ func GetCmdDonate() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgDonate(fromAddr, donation)
+			msg := v1beta1.NewMsgDonate(fromAddr, donation)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

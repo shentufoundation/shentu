@@ -1,4 +1,4 @@
-package types
+package v1alpha1
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -20,9 +20,11 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgWithdrawRewards{}, "shield/MsgWithdrawRewards", nil)
 	cdc.RegisterConcrete(MsgWithdrawForeignRewards{}, "shield/MsgWithdrawForeignRewards", nil)
 	cdc.RegisterConcrete(ShieldClaimProposal{}, "shield/ShieldClaimProposal", nil)
-	cdc.RegisterConcrete(MsgPurchase{}, "shield/MsgPurchaseShield", nil)
+	cdc.RegisterConcrete(MsgPurchaseShield{}, "shield/MsgPurchaseShield", nil)
+	cdc.RegisterConcrete(MsgWithdrawReimbursement{}, "shield/MsgWithdrawReimbursement", nil)
 	cdc.RegisterConcrete(MsgUpdateSponsor{}, "shield/MsgUpdateSponsor", nil)
-	cdc.RegisterConcrete(MsgUnstake{}, "shield/MsgUnstakeFromShield", nil)
+	cdc.RegisterConcrete(MsgStakeForShield{}, "shield/MsgStakeForShield", nil)
+	cdc.RegisterConcrete(MsgUnstakeFromShield{}, "shield/MsgUnstakeFromShield", nil)
 }
 
 // RegisterInterfaces registers the x/shield interfaces types with the interface registry
@@ -36,9 +38,11 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgWithdrawCollateral{},
 		&MsgWithdrawRewards{},
 		&MsgWithdrawForeignRewards{},
-		&MsgPurchase{},
+		&MsgPurchaseShield{},
+		&MsgWithdrawReimbursement{},
 		&MsgUpdateSponsor{},
-		&MsgUnstake{},
+		&MsgStakeForShield{},
+		&MsgUnstakeFromShield{},
 	)
 	registry.RegisterImplementations(
 		(*govtypes.Content)(nil),

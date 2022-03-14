@@ -1,0 +1,182 @@
+syntax = "proto3";
+package shentu.shield.v1beta1;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "shentu/shield/v1beta1/shield.proto";
+import "shentu/shield/v1beta1/genesis.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/shield/types/v1beta1";
+
+// Query defines the gRPC querier service for shield module
+service Query {
+  rpc Pool(QueryPoolRequest) returns (QueryPoolResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/pool/{pool_id}";
+  }
+
+  rpc Sponsor(QuerySponsorRequest) returns (QuerySponsorResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/sponsor/{sponsor}";
+  }
+
+  rpc Pools(QueryPoolsRequest) returns (QueryPoolsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/pools";
+  }
+
+  rpc Provider(QueryProviderRequest) returns (QueryProviderResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/provider/{address}";
+  }
+
+  rpc Providers(QueryProvidersRequest) returns (QueryProvidersResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/providers";
+  }
+
+  rpc PoolParams(QueryPoolParamsRequest) returns (QueryPoolParamsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/pool_params";
+  }
+
+  rpc ClaimParams(QueryClaimParamsRequest) returns (QueryClaimParamsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/claim_params";
+  }
+
+  rpc ShieldStatus(QueryShieldStatusRequest) returns (QueryShieldStatusResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/status";
+  }
+
+  rpc Purchase(QueryPurchaseRequest) returns (QueryPurchaseResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/purchases/{pool_id}/{purchaser}";
+  }
+
+  rpc PoolPurchases(QueryPoolPurchasesRequest) returns (QueryPurchasesResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/purchases/{pool_id}";
+  }
+
+  rpc Purchases(QueryAllPurchasesRequest) returns (QueryPurchasesResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/purchases";
+  }
+
+  rpc Purchaser(QueryPurchaserRequest) returns (QueryPurchaserResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/purchaser/{purchaser}";
+  }
+
+  rpc Reserve(QueryReserveRequest) returns (QueryReserveResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/donations";
+  }
+
+  rpc PendingPayouts(QueryPendingPayoutsRequest) returns (QueryPendingPayoutsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/pending_payouts";
+  }
+}
+
+
+message QueryPoolRequest {
+  uint64 pool_id = 1;
+}
+
+message QueryPoolResponse {
+ Pool pool = 1 [(gogoproto.nullable) = false];
+}
+
+message QuerySponsorRequest {
+  string sponsor = 1;
+}
+
+message QuerySponsorResponse {
+  repeated Pool pools = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryPoolsRequest {
+}
+
+message QueryPoolsResponse {
+  repeated Pool pools = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryProviderRequest {
+  string address = 1;
+}
+
+message QueryProviderResponse {
+  Provider provider = 1 [(gogoproto.nullable) = false];
+}
+
+
+message QueryProvidersRequest {
+}
+
+message QueryProvidersResponse {
+  repeated Provider providers = 1 [(gogoproto.nullable) = false];
+}
+
+
+message QueryPoolParamsRequest {
+}
+
+message QueryPoolParamsResponse {
+  PoolParams params = 1 [(gogoproto.nullable) = false];
+}
+
+
+message QueryClaimParamsRequest {
+}
+
+message QueryClaimParamsResponse {
+  ClaimProposalParams params = 1 [(gogoproto.nullable) = false];
+}
+
+
+message QueryShieldStatusRequest {
+}
+
+message QueryShieldStatusResponse {
+  string total_collateral = 1 [ (gogoproto.moretags) = "yaml:\"total_collateral\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+  string total_shield = 2 [ (gogoproto.moretags) = "yaml:\"total_shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+  string total_withdrawing = 3 [ (gogoproto.moretags) = "yaml:\"total_withdrawing\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+  string global_shield_staking_pool = 4 [ (gogoproto.moretags) = "yaml:\"global_shield_staking_pool\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+}
+
+
+message QueryPurchaseRequest {
+  uint64 pool_id = 1;
+  string purchaser = 2;
+}
+
+message QueryPurchaseResponse {
+  Purchase purchase = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryReserveRequest {
+}
+
+message QueryReserveResponse {
+  Reserve reserve = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryPendingPayoutsRequest {
+}
+
+message QueryPendingPayoutsResponse {
+  repeated PendingPayout pending_payouts = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryAllPurchasesRequest {
+}
+
+message QueryPoolPurchasesRequest {
+  uint64 pool_id = 1;
+}
+
+message QueryPurchasesResponse {
+  repeated Purchase purchases = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryPurchaserRequest {
+  string purchaser = 1;
+}
+
+message QueryPurchaserResponse {
+  repeated Purchase purchases = 1 [(gogoproto.nullable) = false];
+  string total_shield = 2 [ (gogoproto.moretags) = "yaml:\"total_shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+  string total_deposit = 3 [ (gogoproto.moretags) = "yaml:\"total_deposit\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+}

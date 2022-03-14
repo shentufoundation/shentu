@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	shentuapp "github.com/certikfoundation/shentu/v2/app"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // TestBlockRewardRatio tests the calculation of shield block reward ratio

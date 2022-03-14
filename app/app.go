@@ -6,11 +6,10 @@ import (
 	"net/http"
 	"os"
 
-	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
-	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
@@ -42,6 +41,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
+	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	sdkdistr "github.com/cosmos/cosmos-sdk/x/distribution"
 	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
@@ -105,6 +106,7 @@ import (
 	shieldclient "github.com/certikfoundation/shentu/v2/x/shield/client"
 	shieldkeeper "github.com/certikfoundation/shentu/v2/x/shield/keeper"
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	shieldv1beta1 "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"github.com/certikfoundation/shentu/v2/x/slashing"
 	"github.com/certikfoundation/shentu/v2/x/staking"
 	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
@@ -202,7 +204,7 @@ type ShentuApp struct {
 	CertKeeper       certkeeper.Keeper
 	AuthKeeper       authkeeper.Keeper
 	EvidenceKeeper   evidencekeeper.Keeper
-	IbcKeeper        *ibckeeper.Keeper
+	IBCKeeper        *ibckeeper.Keeper
 	TransferKeeper   ibctransferkeeper.Keeper
 	CapabilityKeeper *capabilitykeeper.Keeper
 	CVMKeeper        cvmkeeper.Keeper
@@ -401,7 +403,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	)
 
 	// Create IBC Keeper
-	app.IbcKeeper = ibckeeper.NewKeeper(
+	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)
 
@@ -410,7 +412,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
 		AddRoute(distrtypes.RouterKey, sdkdistr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
-		AddRoute(ibchost.RouterKey, ibcclient.NewClientProposalHandler(app.IbcKeeper.ClientKeeper)).
+		AddRoute(ibchost.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
 		AddRoute(shieldtypes.RouterKey, shield.NewShieldClaimProposalHandler(app.ShieldKeeper)).
 		AddRoute(certtypes.RouterKey, cert.NewCertifierUpdateProposalHandler(app.CertKeeper))
 
@@ -429,20 +431,20 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IbcKeeper.ChannelKeeper, &app.IbcKeeper.PortKeeper,
+		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// note replicate if you do not need to test core IBC or light clients.
-	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IbcKeeper.PortKeeper)
+	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCKeeper.PortKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
 	ibcRouter.AddRoute(ibcmock.ModuleName, mockModule)
-	app.IbcKeeper.SetRouter(ibcRouter)
+	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
@@ -475,7 +477,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		ibc.NewAppModule(app.IbcKeeper),
+		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
 	)
 
@@ -568,7 +570,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		cert.NewAppModule(app.CertKeeper, app.AccountKeeper, app.BankKeeper),
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		ibc.NewAppModule(app.IbcKeeper),
+		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
 	)
 
@@ -596,7 +598,8 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	app.setUpgradeHandler()
+	app.setv230UpgradeHandler()
+	app.setShieldV2UpgradeHandler()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -779,7 +782,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(oracletypes.ModuleName).WithKeyTable(oracletypes.ParamKeyTable())
 	paramsKeeper.Subspace(cvmtypes.ModuleName).WithKeyTable(cvmtypes.ParamKeyTable())
-	paramsKeeper.Subspace(shieldtypes.ModuleName).WithKeyTable(shieldtypes.ParamKeyTable())
+	paramsKeeper.Subspace(shieldtypes.ModuleName).WithKeyTable(shieldv1beta1.ParamKeyTable())
 
 	return paramsKeeper
 }

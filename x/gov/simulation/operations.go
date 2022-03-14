@@ -17,7 +17,7 @@ import (
 	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
 	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
@@ -86,8 +86,8 @@ func SimulateSubmitProposal(
 			err     error
 		)
 		var simAccount simtypes.Account
-		if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-			c := content.(*shieldtypes.ShieldClaimProposal)
+		if content.ProposalType() == v1beta1.ProposalTypeShieldClaim {
+			c := content.(*v1beta1.ShieldClaimProposal)
 			for _, simAcc := range accs {
 				proposerAddr, _ := sdk.AccAddressFromBech32(c.Proposer)
 				if simAcc.Address.Equals(proposerAddr) {
@@ -172,7 +172,7 @@ func SimulateSubmitProposal(
 		var fops []simtypes.FutureOperation
 
 		// 2) Schedule deposit operations
-		if content.ProposalType() != shieldtypes.ProposalTypeShieldClaim {
+		if content.ProposalType() != v1beta1.ProposalTypeShieldClaim {
 			for i := 0; i < 10; i++ {
 				fops = append(fops, simtypes.FutureOperation{
 					BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 1, 5),
@@ -182,7 +182,7 @@ func SimulateSubmitProposal(
 		}
 
 		// 3) Schedule operations for certifier voting
-		if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim ||
+		if content.ProposalType() == v1beta1.ProposalTypeShieldClaim ||
 			content.ProposalType() == certtypes.ProposalTypeCertifierUpdate ||
 			content.ProposalType() == upgradetypes.ProposalTypeSoftwareUpgrade {
 			for _, acc := range accs {
@@ -196,7 +196,7 @@ func SimulateSubmitProposal(
 		}
 
 		// 4) Schedule operations for validator/delegator voting
-		if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
+		if content.ProposalType() == v1beta1.ProposalTypeShieldClaim {
 			for _, acc := range accs {
 				if k.IsCertifiedIdentity(ctx, acc.Address) {
 					fops = append(fops, simtypes.FutureOperation{

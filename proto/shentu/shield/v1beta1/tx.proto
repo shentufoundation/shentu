@@ -1,0 +1,188 @@
+syntax = "proto3";
+package shentu.shield.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "shentu/shield/v1beta1/shield.proto";
+
+option go_package = "github.com/certikfoundation/shentu/x/shield/types/v1beta1";
+
+// Msg defines the shield Msg service.
+service Msg {
+    rpc CreatePool(MsgCreatePool) returns (MsgCreatePoolResponse);
+    rpc UpdatePool(MsgUpdatePool) returns (MsgUpdatePoolResponse);
+    rpc PausePool(MsgPausePool) returns (MsgPausePoolResponse);
+    rpc ResumePool(MsgResumePool) returns (MsgResumePoolResponse);
+    rpc DepositCollateral(MsgDepositCollateral) returns (MsgDepositCollateralResponse);
+    rpc WithdrawCollateral(MsgWithdrawCollateral) returns (MsgWithdrawCollateralResponse);
+    rpc WithdrawRewards(MsgWithdrawRewards) returns (MsgWithdrawRewardsResponse);
+    rpc WithdrawForeignRewards(MsgWithdrawForeignRewards) returns (MsgWithdrawForeignRewardsResponse);
+    rpc UpdateSponsor(MsgUpdateSponsor) returns (MsgUpdateSponsorResponse);
+    rpc Purchase(MsgPurchase) returns (MsgPurchaseResponse);
+    rpc Unstake(MsgUnstake) returns (MsgUnstakeResponse);
+    rpc Donate(MsgDonate) returns (MsgDonateResponse);
+}
+
+// MsgCreatePool defines the attributes of a create-pool transaction.
+message MsgCreatePool {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+    string sponsor_addr = 2 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
+    string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string shield_rate = 4 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    string shield_limit = 5 [ (gogoproto.moretags) = "yaml:\"shield_limit\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+}
+
+message MsgCreatePoolResponse {}
+
+// MsgUpdatePool defines the attributes of a shield pool update transaction.
+message MsgUpdatePool {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+    uint64 pool_id = 2 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
+    string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    bool active = 4 [ (gogoproto.moretags) = "yaml:\"active\"" ];
+    string shield_rate = 5 [ (gogoproto.moretags) = "yaml:\"shield_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    string shield_limit = 6 [ (gogoproto.moretags) = "yaml:\"shield_limit\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+}
+  
+message MsgUpdatePoolResponse {}
+
+
+// MsgPausePool defines the attributes of a pausing a shield pool.
+message MsgPausePool {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+    uint64 pool_id = 2 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
+}
+  
+message MsgPausePoolResponse {}
+
+
+// MsgResumePool defines the attributes of a resuming a shield pool.
+message MsgResumePool {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+    uint64 pool_id = 2 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
+}
+  
+message MsgResumePoolResponse {}
+
+
+// MsgDepositCollateral defines the attributes of a depositing collaterals.
+message MsgDepositCollateral {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+    repeated cosmos.base.v1beta1.Coin collateral = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+}
+  
+message MsgDepositCollateralResponse {}
+
+
+// NewMsgWithdrawCollateral defines the attributes of a withdrawing collaterals.
+message MsgWithdrawCollateral {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+    repeated cosmos.base.v1beta1.Coin collateral = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+}
+  
+message MsgWithdrawCollateralResponse {}
+
+
+// MsgWithdrawForeignRewards defines attribute of withdraw rewards transaction.
+message MsgWithdrawRewards {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+}
+  
+message MsgWithdrawRewardsResponse {}
+
+
+// MsgWithdrawForeignRewards defines attributes of withdraw foreign rewards transaction.
+message MsgWithdrawForeignRewards {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+    string denom = 2 [ (gogoproto.moretags) = "yaml:\"denom\"" ];
+    string to_addr = 3 [ (gogoproto.moretags) = "yaml:\"to_addr\"" ];
+}
+  
+message MsgWithdrawForeignRewardsResponse {}
+
+
+// MsgClearPayouts defines attributes of clear payouts transaction.
+message MsgClearPayouts {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+    string denom = 2 [ (gogoproto.moretags) = "yaml:\"denom\"" ];
+}
+
+message MsgClearPayoutsResponse {}
+
+// MsgStakeForShield defines the attributes of staking for purchase transaction.
+message MsgPurchase {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    uint64 pool_id = 1 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
+    repeated cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    string description = 3 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string from = 4 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+}
+  
+message MsgPurchaseResponse {}
+
+
+// MsgUnstakeFromShield defines the attributes of staking for purchase transaction.
+message MsgUnstake {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    uint64 pool_id = 1 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
+    repeated cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    string from = 3 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+}
+  
+message MsgUnstakeResponse {}
+
+
+// MsgUpdateSponsor defines the attributes of a update-sponsor transaction.
+message MsgUpdateSponsor {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    uint64 pool_id = 1 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
+    string sponsor = 2 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+    string sponsor_addr = 3 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
+    string from = 4 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+}
+  
+message MsgUpdateSponsorResponse {}
+
+// MsgDonate represents a message to donate tokens to Shield Donation Pool.
+message MsgDonate {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+    repeated cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+}
+  
+message MsgDonateResponse {}

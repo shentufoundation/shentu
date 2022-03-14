@@ -15,6 +15,7 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // AddGenesisShieldAdminCmd returns add-genesis-shield-admin cobra Command.
@@ -42,7 +43,7 @@ func AddGenesisShieldAdminCmd(defaultNodeHome string) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal genesis state: %w", err)
 			}
-			shieldGenState := shieldtypes.GetGenesisStateFromAppState(cdc, appState)
+			shieldGenState := v1beta1.GetGenesisStateFromAppState(cdc, appState)
 
 			shieldGenState.ShieldAdmin = addr.String()
 

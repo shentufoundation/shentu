@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -54,7 +55,7 @@ func GetCmdPool() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
 			id, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
@@ -63,7 +64,7 @@ func GetCmdPool() *cobra.Command {
 
 			res, err := queryClient.Pool(
 				cmd.Context(),
-				&types.QueryPoolRequest{PoolId: id},
+				&v1beta1.QueryPoolRequest{PoolId: id},
 			)
 			if err != nil {
 				return err
@@ -88,11 +89,11 @@ func GetCmdSponsor() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
 			res, err := queryClient.Sponsor(
 				cmd.Context(),
-				&types.QuerySponsorRequest{Sponsor: args[0]},
+				&v1beta1.QuerySponsorRequest{Sponsor: args[0]},
 			)
 			if err != nil {
 				return err
@@ -117,9 +118,9 @@ func GetCmdPools() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Pools(cmd.Context(), &types.QueryPoolsRequest{})
+			res, err := queryClient.Pools(cmd.Context(), &v1beta1.QueryPoolsRequest{})
 			if err != nil {
 				return err
 			}
@@ -144,9 +145,9 @@ func GetCmdPurchaser() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Purchaser(cmd.Context(), &types.QueryPurchaserRequest{Purchaser: args[0]})
+			res, err := queryClient.Purchaser(cmd.Context(), &v1beta1.QueryPurchaserRequest{Purchaser: args[0]})
 			if err != nil {
 				return err
 			}
@@ -171,14 +172,14 @@ func GetCmdPoolPurchases() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
 			poolID, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				return fmt.Errorf("pool id %s not a valid uint, please input a valid pool-id", args[0])
 			}
 
-			res, err := queryClient.PoolPurchases(cmd.Context(), &types.QueryPoolPurchasesRequest{PoolId: poolID})
+			res, err := queryClient.PoolPurchases(cmd.Context(), &v1beta1.QueryPoolPurchasesRequest{PoolId: poolID})
 			if err != nil {
 				return err
 			}
@@ -202,9 +203,9 @@ func GetCmdPurchases() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Purchases(cmd.Context(), &types.QueryAllPurchasesRequest{})
+			res, err := queryClient.Purchases(cmd.Context(), &v1beta1.QueryAllPurchasesRequest{})
 			if err != nil {
 				return err
 			}
@@ -228,7 +229,7 @@ func GetCmdProvider() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
 			address, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -237,7 +238,7 @@ func GetCmdProvider() *cobra.Command {
 
 			res, err := queryClient.Provider(
 				cmd.Context(),
-				&types.QueryProviderRequest{Address: address.String()},
+				&v1beta1.QueryProviderRequest{Address: address.String()},
 			)
 			if err != nil {
 				return err
@@ -271,9 +272,9 @@ $ %[1]s query shield providers
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Providers(cmd.Context(), &types.QueryProvidersRequest{})
+			res, err := queryClient.Providers(cmd.Context(), &v1beta1.QueryProvidersRequest{})
 			if err != nil {
 				return err
 			}
@@ -297,9 +298,9 @@ func GetCmdPoolParams() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
-			res, err := queryClient.PoolParams(cmd.Context(), &types.QueryPoolParamsRequest{})
+			res, err := queryClient.PoolParams(cmd.Context(), &v1beta1.QueryPoolParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -323,9 +324,9 @@ func GetCmdClaimParams() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
-			res, err := queryClient.ClaimParams(cmd.Context(), &types.QueryClaimParamsRequest{})
+			res, err := queryClient.ClaimParams(cmd.Context(), &v1beta1.QueryClaimParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -349,9 +350,9 @@ func GetCmdStatus() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
-			res, err := queryClient.ShieldStatus(cmd.Context(), &types.QueryShieldStatusRequest{})
+			res, err := queryClient.ShieldStatus(cmd.Context(), &v1beta1.QueryShieldStatusRequest{})
 			if err != nil {
 				return err
 			}
@@ -375,8 +376,8 @@ func GetCmdReserve() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
-			res, err := queryClient.Reserve(cmd.Context(), &types.QueryReserveRequest{})
+			queryClient := v1beta1.NewQueryClient(cliCtx)
+			res, err := queryClient.Reserve(cmd.Context(), &v1beta1.QueryReserveRequest{})
 			if err != nil {
 				return err
 			}
@@ -399,8 +400,8 @@ func GetCmdPendingPayouts() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
-			res, err := queryClient.PendingPayouts(cmd.Context(), &types.QueryPendingPayoutsRequest{})
+			queryClient := v1beta1.NewQueryClient(cliCtx)
+			res, err := queryClient.PendingPayouts(cmd.Context(), &v1beta1.QueryPendingPayoutsRequest{})
 			if err != nil {
 				return err
 			}
