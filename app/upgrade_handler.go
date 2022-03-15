@@ -89,17 +89,6 @@ func (app ShentuApp) setShieldV2UpgradeHandler() {
 			// Delete crisis from fromVM to trigger crisis genesis init
 			delete(fromVM, crisistypes.ModuleName)
 
-			// Modify migration order. Put crisis behind shield so that shield gets migrated before crisis invariant check
-			allOtherModules := make([]string, len(fromVM))
-			i := 0
-			for moduleName := range fromVM {
-				allOtherModules[i] = moduleName
-				i++
-			}
-			order := module.DefaultMigrationsOrder(allOtherModules)
-			order = append(order, crisistypes.ModuleName)
-			app.mm.SetOrderMigrations(order...)
-
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)
