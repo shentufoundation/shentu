@@ -35,6 +35,7 @@ func migratePools(store sdk.KVStore, cdc codec.BinaryCodec) error {
 			SponsorAddr: oldPool.SponsorAddr,
 			Active:      oldPool.Active,
 			Shield:      oldPool.Shield,
+			ShieldLimit: oldPool.ShieldLimit,
 			ShieldRate:  v1beta1.DefaultShieldRate,
 		}
 
