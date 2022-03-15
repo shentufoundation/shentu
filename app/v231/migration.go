@@ -32,13 +32,11 @@ func RefundPurchasers(ctx sdk.Context, cdc codec.BinaryCodec, bk bankkeeper.Keep
 	iterator2 := sdk.KVStorePrefixIterator(store, shieldtypes.ProviderKey)
 
 	// directly pay out provider rewards
-	var prov []v1alpha1.Provider
 	remainingFees := totalFees
 	defer iterator2.Close()
 	for ; iterator2.Valid(); iterator2.Next() {
 		var pv v1alpha1.Provider
 		cdc.MustUnmarshalLengthPrefixed(iterator2.Value(), &pv)
-		prov = append(prov, pv)
 
 		addr, err := sdk.AccAddressFromBech32(pv.Address)
 		if err != nil {

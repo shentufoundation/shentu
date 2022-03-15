@@ -49,17 +49,21 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 
 		// reserve payouts
 		reserve := keeper.GetReserve(ctx).Amount
-		reserveInt := reserve.Add(change.AmountOf(bondDenom)).TruncateInt()
+		decSum := reserve.Add(change.AmountOf(bondDenom))
 
-		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, pending_payouts)).Add(sdk.NewCoin(bondDenom, reserveInt))
+		// the decimals have to add up to Int
+		decTruncated := decSum.TruncateDec()
+		remainder := decTruncated.Sub(decSum)
 
-		broken := !totalInt.IsEqual(moduleCoins)
+		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, pending_payouts)).Add(sdk.NewCoin(bondDenom, decTruncated.TruncateInt()))
+
+		broken := !totalInt.IsEqual(moduleCoins) || !remainder.IsZero()
 
 		return sdk.FormatInvariant(types.ModuleName, "module-account",
 			fmt.Sprintf("\n\tshield ModuleAccount coins: %s"+
 				"\n\tsum of remaining service fees & rewards & staked & reimbursement & pending payouts amount:  %s"+
-				"\n\tremaining change amount: %s\n",
-				moduleCoins, totalInt, change)), broken
+				"\n\tremaining Decimal amount: %s\n",
+				moduleCoins, totalInt, remainder)), broken
 	}
 }
 
