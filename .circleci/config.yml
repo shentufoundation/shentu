@@ -6,14 +6,14 @@ version: 2.1
 executors:
   golang:
     docker:
-      - image: circleci/golang:1.16.3
+      - image: circleci/golang:1.17.7
     working_directory: /go/src/github.com/shentuchain/shentu
   mac:
     macos:
       xcode: "10.3.0"
     working_directory: /Users/distiller/project/src/github.com/shentuchain/shentu
     environment:
-      GO_VERSION: "1.16.3"
+      GO_VERSION: "1.17.7"
 commands:
   make:
     parameters:
@@ -164,7 +164,7 @@ jobs:
 
   release:
     docker:
-      - image: circleci/golang:1.16.3
+      - image: circleci/golang:1.17.7
     steps:
       - checkout
       - run:
@@ -202,7 +202,7 @@ jobs:
       GOPATH: /home/circleci/.go_workspace/
       GOOS: linux
       GOARCH: amd64
-      GO_VERSION: "1.16.3"
+      GO_VERSION: "1.17.7"
     parallelism: 1
     steps:
       - checkout
