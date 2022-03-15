@@ -197,7 +197,7 @@ jobs:
   localnet:
     working_directory: /home/circleci/.go_workspace/src/github.com/shentuchain/shentu
     machine:
-      image: circleci/classic:latest
+      image: ubuntu-2004:202201-02
     environment:
       GOPATH: /home/circleci/.go_workspace/
       GOOS: linux
