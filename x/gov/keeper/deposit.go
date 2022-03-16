@@ -7,6 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	v220 "github.com/certikfoundation/shentu/v2/x/gov/legacy/v220"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
@@ -170,8 +171,12 @@ func (k Keeper) IterateDeposits(ctx sdk.Context, proposalID uint64, cb func(depo
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit govtypes.Deposit
-		k.cdc.MustUnmarshal(iterator.Value(), &deposit)
-
+		err := k.cdc.Unmarshal(iterator.Value(), &deposit)
+		if err != nil {
+			var legacydeposit v220.Deposit
+			k.cdc.MustUnmarshal(iterator.Value(), &legacydeposit)
+			deposit = *legacydeposit.Deposit
+		}
 		if cb(deposit) {
 			break
 		}
