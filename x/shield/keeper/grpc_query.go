@@ -106,6 +106,16 @@ func (q Keeper) ClaimParams(c context.Context, req *v1beta1.QueryClaimParamsRequ
 	return &v1beta1.QueryClaimParamsResponse{Params: q.GetClaimProposalParams(ctx)}, nil
 }
 
+// BlockRewardParams queries block reward parameters.
+func (q Keeper) BlockRewardParams(c context.Context, req *v1beta1.QueryBlockRewardParamsRequest) (*v1beta1.QueryBlockRewardParamsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	return &v1beta1.QueryBlockRewardParamsResponse{Params: q.GetBlockRewardParams(ctx)}, nil
+}
+
 // ShieldStatus queries the global status of the shield module.
 func (q Keeper) ShieldStatus(c context.Context, req *v1beta1.QueryShieldStatusRequest) (*v1beta1.QueryShieldStatusResponse, error) {
 	if req == nil {

@@ -17,6 +17,7 @@ const (
 	QueryProviders           = "providers"
 	QueryPoolParams          = "pool_params"
 	QueryClaimParams         = "claim_params"
+	QueryBlockRewardParams   = "block_reward_params"
 	QueryStatus              = "status"
 	QueryStakedForShield     = "staked_for_shield"
 	QueryShieldStakingRate   = "shield_staking_rate"

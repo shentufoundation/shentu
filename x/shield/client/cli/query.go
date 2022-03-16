@@ -36,6 +36,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdProviders(),
 		GetCmdPoolParams(),
 		GetCmdClaimParams(),
+		GetCmdBlockRewardParams(),
 		GetCmdStatus(),
 		GetCmdReserve(),
 		GetCmdPendingPayouts(),
@@ -327,6 +328,32 @@ func GetCmdClaimParams() *cobra.Command {
 			queryClient := v1beta1.NewQueryClient(cliCtx)
 
 			res, err := queryClient.ClaimParams(cmd.Context(), &v1beta1.QueryClaimParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdBlockRewardParams returns the command for querying block reward parameters.
+func GetCmdBlockRewardParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "block-reward-params",
+		Short: "get block reward parameters",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := v1beta1.NewQueryClient(cliCtx)
+
+			res, err := queryClient.BlockRewardParams(cmd.Context(), &v1beta1.QueryBlockRewardParamsRequest{})
 			if err != nil {
 				return err
 			}

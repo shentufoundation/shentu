@@ -40,6 +40,10 @@ service Query {
     option (google.api.http).get = "/shentu/shield/v1beta1/claim_params";
   }
 
+  rpc BlockRewardParams(QueryBlockRewardParamsRequest) returns (QueryBlockRewardParamsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1beta1/block_reward_params";
+  }
+
   rpc ShieldStatus(QueryShieldStatusRequest) returns (QueryShieldStatusResponse) {
     option (google.api.http).get = "/shentu/shield/v1beta1/status";
   }
@@ -123,6 +127,13 @@ message QueryClaimParamsRequest {
 
 message QueryClaimParamsResponse {
   ClaimProposalParams params = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryBlockRewardParamsRequest {
+}
+
+message QueryBlockRewardParamsResponse {
+  BlockRewardParams params = 1 [(gogoproto.nullable) = false];
 }
 
 
