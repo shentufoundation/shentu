@@ -10,7 +10,7 @@ import (
 // SetProvider sets data of a provider in the kv-store.
 func (k Keeper) SetProvider(ctx sdk.Context, delAddr sdk.AccAddress, provider v1beta1.Provider) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&provider)
+	bz := k.cdc.MustMarshal(&provider)
 	store.Set(types.GetProviderKey(delAddr), bz)
 }
 
@@ -21,7 +21,7 @@ func (k Keeper) GetProvider(ctx sdk.Context, delegator sdk.AccAddress) (dt v1bet
 	if bz == nil {
 		return v1beta1.Provider{}, false
 	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &dt)
+	k.cdc.MustUnmarshal(bz, &dt)
 	return dt, true
 }
 
@@ -116,7 +116,7 @@ func (k Keeper) IterateProviders(ctx sdk.Context, callback func(provider v1beta1
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var provider v1beta1.Provider
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &provider)
+		k.cdc.MustUnmarshal(iterator.Value(), &provider)
 
 		if callback(provider) {
 			break
@@ -150,7 +150,7 @@ func (k Keeper) IterateProvidersPaginated(ctx sdk.Context, page, limit uint, cb 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var provider v1beta1.Provider
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &provider)
+		k.cdc.MustUnmarshal(iterator.Value(), &provider)
 
 		if cb(provider) {
 			break

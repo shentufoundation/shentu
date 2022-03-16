@@ -166,7 +166,7 @@ func (suite *KeeperTestSuite) Test_Donate() {
 			suite.Require().Error(err)
 		} else {
 			suite.Require().NoError(err)
-			suite.Require().Truef(finalCollateral.Sub(initCollateral).Equal(tc.message.Amount.AmountOf(common.MicroCTKDenom)), "unexpected err")
+			suite.Require().Truef(finalCollateral.Sub(initCollateral).Equal(tc.message.Amount.AmountOf(common.MicroCTKDenom).ToDec()), "unexpected err")
 		}
 	}
 }

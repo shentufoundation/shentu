@@ -24,7 +24,10 @@ func migratePools(store sdk.KVStore, cdc codec.BinaryCodec) error {
 
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
 		var oldPool v1alpha1.Pool
-		cdc.MustUnmarshal(oldStoreIter.Value(), &oldPool)
+		err := cdc.UnmarshalLengthPrefixed(oldStoreIter.Value(), &oldPool)
+		if err != nil {
+			return err
+		}
 
 		newPool := v1beta1.Pool{
 			Id:          oldPool.Id,
@@ -32,11 +35,13 @@ func migratePools(store sdk.KVStore, cdc codec.BinaryCodec) error {
 			SponsorAddr: oldPool.SponsorAddr,
 			Active:      oldPool.Active,
 			Shield:      oldPool.Shield,
+			ShieldLimit: oldPool.ShieldLimit,
 			ShieldRate:  v1beta1.DefaultShieldRate,
 		}
 
+		oldStore.Delete(oldStoreIter.Key())
 		newPoolBz := cdc.MustMarshal(&newPool)
-		store.Set(oldStoreIter.Key(), newPoolBz)
+		oldStore.Set(oldStoreIter.Key(), newPoolBz)
 	}
 	return nil
 }
@@ -80,10 +85,28 @@ func migrateParams(ctx sdk.Context, ps types.ParamSubspace) error {
 	return nil
 }
 
-func initReserve(store sdk.KVStore, cdc codec.BinaryCodec) error {
-	reserve := v1beta1.NewReserve()
-	bz := cdc.MustMarshalLengthPrefixed(&reserve)
-	store.Set(types.GetReserveKey(), bz)
+func migrateProviders(store sdk.KVStore, cdc codec.BinaryCodec) error {
+	oldStore := prefix.NewStore(store, types.ProviderKey)
+
+	oldStoreIter := oldStore.Iterator(nil, nil)
+	defer oldStoreIter.Close()
+	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
+		var oldProvider v1alpha1.Provider
+		cdc.MustUnmarshalLengthPrefixed(oldStoreIter.Value(), &oldProvider)
+
+		newProvider := v1beta1.Provider{
+			Address:          oldProvider.Address,
+			DelegationBonded: oldProvider.DelegationBonded,
+			Collateral:       oldProvider.Collateral,
+			TotalLocked:      oldProvider.TotalLocked,
+			Withdrawing:      oldProvider.Withdrawing,
+			Rewards:          oldProvider.Rewards.Native.Add(oldProvider.Rewards.Foreign...),
+		}
+
+		oldStore.Delete(oldStoreIter.Key())
+		newProvBz := cdc.MustMarshal(&newProvider)
+		oldStore.Set(oldStoreIter.Key(), newProvBz)
+	}
 	return nil
 }
 
@@ -99,7 +122,7 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec,
 		return err
 	}
 
-	err = initReserve(store, cdc)
+	err = migrateProviders(store, cdc)
 	if err != nil {
 		return err
 	}

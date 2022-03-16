@@ -108,7 +108,7 @@ func (k Keeper) DeleteServiceFees(ctx sdk.Context) {
 // SetPool sets data of a pool in kv-store.
 func (k Keeper) SetPool(ctx sdk.Context, pool v1beta1.Pool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&pool)
+	bz := k.cdc.MustMarshal(&pool)
 	store.Set(types.GetPoolKey(pool.Id), bz)
 }
 
@@ -120,7 +120,7 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (v1beta1.Pool, bool) {
 		return v1beta1.Pool{}, false
 	}
 	var pool v1beta1.Pool
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &pool)
+	k.cdc.MustUnmarshal(bz, &pool)
 	return pool, true
 }
 
@@ -238,7 +238,7 @@ func (k Keeper) IterateAllPools(ctx sdk.Context, callback func(pool v1beta1.Pool
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var pool v1beta1.Pool
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &pool)
+		k.cdc.MustUnmarshal(iterator.Value(), &pool)
 
 		if callback(pool) {
 			break

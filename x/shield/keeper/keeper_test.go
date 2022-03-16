@@ -490,11 +490,11 @@ func TestInsufficientCollateral(t *testing.T) {
 	err = app.ShieldKeeper.Donate(ctx, purchaser, sdk.NewInt(donation))
 	require.Nil(t, err)
 	reserve := app.ShieldKeeper.GetReserve(ctx)
-	require.True(t, reserve.Amount.Equal(sdk.NewInt(donation)))
+	require.True(t, reserve.Amount.Equal(sdk.NewDec(donation)))
 
 	// make payouts from the reserve (usually done in the endblocker
 	app.ShieldKeeper.MakePayouts(ctx)
 
 	reserve = app.ShieldKeeper.GetReserve(ctx)
-	require.True(t, reserve.Amount.Equal(sdk.NewInt(totalDeposit+donation-loss)))
+	require.True(t, reserve.Amount.Equal(sdk.NewDec(totalDeposit+donation-loss)))
 }
