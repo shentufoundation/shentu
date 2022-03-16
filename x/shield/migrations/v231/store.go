@@ -104,8 +104,8 @@ func migrateProviders(store sdk.KVStore, cdc codec.BinaryCodec) error {
 		}
 
 		oldStore.Delete(oldStoreIter.Key())
-		newPoolBz := cdc.MustMarshal(&newProvider)
-		oldStore.Set(oldStoreIter.Key(), newPoolBz)
+		newProvBz := cdc.MustMarshal(&newProvider)
+		oldStore.Set(oldStoreIter.Key(), newProvBz)
 	}
 	return nil
 }
