@@ -1,6 +1,7 @@
 package v231
 
 import (
+	v220 "github.com/certikfoundation/shentu/v2/x/gov/legacy/v220"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -44,7 +45,34 @@ func MigrateShieldClaimProposal(store sdk.KVStore, cdc codec.BinaryCodec) error 
 	return nil
 }
 
+func MigrateLegacyDeposits(store sdk.KVStore, cdc codec.BinaryCodec) error {
+	iterator := sdk.KVStorePrefixIterator(store, govtypes.DepositsKeyPrefix)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var deposit govtypes.Deposit
+		var legacyDeposit v220.Deposit
+		if err := cdc.Unmarshal(iterator.Value(), &deposit); err != nil {
+			if err := cdc.Unmarshal(iterator.Value(), &legacyDeposit); err != nil {
+				return err
+			}
+			deposit = *legacyDeposit.Deposit
+		}
+
+		bz, err := cdc.Marshal(&deposit)
+		if err != nil {
+			return err
+		}
+		store.Set(iterator.Key(), bz)
+	}
+	return nil
+}
+
 func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
+	err := MigrateLegacyDeposits(store, cdc)
+	if err != nil {
+		return err
+	}
 	return MigrateShieldClaimProposal(store, cdc)
 }
