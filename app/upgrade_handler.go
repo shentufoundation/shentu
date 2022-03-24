@@ -72,11 +72,15 @@ func (app ShentuApp) setShieldV2UpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		shieldv2,
 		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-			// Refund v1 purchases
-			v231.RefundPurchasers(ctx, app.appCodec, app.BankKeeper, &app.StakingKeeper, app.ShieldKeeper, app.keys[shieldtypes.StoreKey])
 
 			// Payout reimbursements
 			v231.PayoutReimbursements(ctx, app.appCodec, app.BankKeeper, app.ShieldKeeper, app.keys[shieldtypes.StoreKey])
+
+			// Expire staking purchases
+			v231.ExpireStakingPurchase(ctx, app.appCodec, app.BankKeeper, app.ShieldKeeper, &app.StakingKeeper, app.keys[shieldtypes.StoreKey])
+
+			// Refund v1 purchases
+			v231.RefundPurchasers(ctx, app.appCodec, app.AccountKeeper, app.BankKeeper, &app.StakingKeeper, app.ShieldKeeper, app.keys[shieldtypes.StoreKey])
 
 			fromVM := make(map[string]uint64)
 			for moduleName := range app.mm.Modules {

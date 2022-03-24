@@ -500,7 +500,7 @@ $ %s tx shield update-sponsor <id> <new_sponsor_name> <new_sponsor_address> --fr
 	return cmd
 }
 
-// GetCmdDonate implements donating to Shield Donation Pool.
+// GetCmdDonate implements donating to Shield Reserve.
 func GetCmdDonate() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "donate [amount]",

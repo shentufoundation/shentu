@@ -33,7 +33,7 @@ func (k Keeper) GetReserve(ctx sdk.Context) (reserve v1beta1.Reserve) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetReserveKey())
 	if bz == nil {
-		panic("failed to retrieve Shield Donation Pool")
+		return v1beta1.NewReserve()
 	}
 	k.cdc.MustUnmarshal(bz, &reserve)
 	return
