@@ -156,6 +156,9 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --shield-
 				return err
 			}
 			shieldLimit := sdk.NewInt(int64(limit))
+			if shieldLimit.IsZero() {
+				return fmt.Errorf("invalid input for shield limit")
+			}
 
 			msg := v1beta1.NewMsgCreatePool(fromAddr, sponsorAddr, description, shieldRate, shieldLimit)
 			if err := msg.ValidateBasic(); err != nil {
