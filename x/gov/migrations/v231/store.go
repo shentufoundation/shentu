@@ -1,11 +1,11 @@
 package v231
 
 import (
-	v220 "github.com/certikfoundation/shentu/v2/x/gov/legacy/v220"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	v220 "github.com/certikfoundation/shentu/v2/x/gov/legacy/v220"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
 	"github.com/certikfoundation/shentu/v2/x/shield/types/v1alpha1"
 	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"

@@ -72,7 +72,6 @@ func (app ShentuApp) setShieldV2UpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		shieldv2,
 		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-
 			// Payout reimbursements
 			v231.PayoutReimbursements(ctx, app.appCodec, app.BankKeeper, app.ShieldKeeper, app.keys[shieldtypes.StoreKey])
 
