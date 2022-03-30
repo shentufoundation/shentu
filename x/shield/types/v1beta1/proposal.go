@@ -23,6 +23,7 @@ var _ govTypes.Content = ShieldClaimProposal{}
 
 func init() {
 	govTypes.RegisterProposalType(ProposalTypeShieldClaim)
+	govTypes.RegisterProposalTypeCodec(ShieldClaimProposal{}, "shentu/v1beta1/ShieldClaimProposal")
 }
 
 // NewShieldClaimProposal creates a new shield claim proposal.
