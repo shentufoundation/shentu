@@ -15,6 +15,7 @@ const (
 	errInvalidPoolID
 	errInvalidDuration
 	errInvalidShieldRate
+	errInvalidShieldLimit
 	errAdminWithdraw
 	errNoDelegationAmount
 	errInsufficientStaking
@@ -66,6 +67,7 @@ var (
 	ErrInvalidPoolID              = sdkerrors.Register(ModuleName, errInvalidPoolID, "invalid pool ID")
 	ErrInvalidDuration            = sdkerrors.Register(ModuleName, errInvalidDuration, "invalid specification of coverage duration")
 	ErrInvalidShieldRate          = sdkerrors.Register(ModuleName, errInvalidShieldRate, "invalid Shield Rate")
+	ErrInvalidShieldLimit              = sdkerrors.Register(ModuleName, errInvalidShieldLimit, "invalid input for shield limit")
 	ErrAdminWithdraw              = sdkerrors.Register(ModuleName, errAdminWithdraw, "admin cannot manually withdraw collateral")
 	ErrNoDelegationAmount         = sdkerrors.Register(ModuleName, errNoDelegationAmount, "cannot obtain delegation amount info")
 	ErrInsufficientStaking        = sdkerrors.Register(ModuleName, errInsufficientStaking, "insufficient total delegation amount to deposit")

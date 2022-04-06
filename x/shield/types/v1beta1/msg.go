@@ -71,6 +71,9 @@ func (msg MsgCreatePool) ValidateBasic() error {
 	if !msg.ShieldRate.GTE(sdk.NewDec(1)) {
 		return types.ErrInvalidShieldRate
 	}
+	if !msg.ShieldLimit.IsPositive() {
+		return types.ErrInvalidShieldLimit
+	}
 	return nil
 }
 
