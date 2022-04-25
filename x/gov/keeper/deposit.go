@@ -9,7 +9,7 @@ import (
 
 	v220 "github.com/certikfoundation/shentu/v2/x/gov/legacy/v220"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // GetDeposit gets the deposit of a specific depositor on a specific proposal.

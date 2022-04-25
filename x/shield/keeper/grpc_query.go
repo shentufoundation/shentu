@@ -9,12 +9,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
-var _ types.QueryServer = Keeper{}
+var _ v1beta1.QueryServer = Keeper{}
 
 // Pool queries a pool based on the ID or sponsor.
-func (q Keeper) Pool(c context.Context, req *types.QueryPoolRequest) (*types.QueryPoolResponse, error) {
+func (q Keeper) Pool(c context.Context, req *v1beta1.QueryPoolRequest) (*v1beta1.QueryPoolResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -26,11 +27,11 @@ func (q Keeper) Pool(c context.Context, req *types.QueryPoolRequest) (*types.Que
 		return nil, status.Errorf(codes.NotFound, "pool under ID %d doesn't exist", req.PoolId)
 	}
 
-	return &types.QueryPoolResponse{Pool: pool}, nil
+	return &v1beta1.QueryPoolResponse{Pool: pool}, nil
 }
 
 // Pool queries a pool based on the ID or sponsor.
-func (q Keeper) Sponsor(c context.Context, req *types.QuerySponsorRequest) (*types.QuerySponsorResponse, error) {
+func (q Keeper) Sponsor(c context.Context, req *v1beta1.QuerySponsorRequest) (*v1beta1.QuerySponsorResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -42,80 +43,21 @@ func (q Keeper) Sponsor(c context.Context, req *types.QuerySponsorRequest) (*typ
 		return nil, status.Errorf(codes.NotFound, "there is no pool with sponsor %s", req.Sponsor)
 	}
 
-	return &types.QuerySponsorResponse{Pools: pool}, nil
+	return &v1beta1.QuerySponsorResponse{Pools: pool}, nil
 }
 
 // Pools queries all pools.
-func (q Keeper) Pools(c context.Context, req *types.QueryPoolsRequest) (*types.QueryPoolsResponse, error) {
+func (q Keeper) Pools(c context.Context, req *v1beta1.QueryPoolsRequest) (*v1beta1.QueryPoolsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	return &types.QueryPoolsResponse{Pools: q.GetAllPools(ctx)}, nil
-}
-
-// PurchaseList queries a purchase list given a pool-purchase pair.
-func (q Keeper) PurchaseList(c context.Context, req *types.QueryPurchaseListRequest) (*types.QueryPurchaseListResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	purchaser, err := sdk.AccAddressFromBech32(req.Purchaser)
-	if err != nil {
-		return nil, err
-	}
-
-	purchaseList, found := q.GetPurchaseList(ctx, req.PoolId, purchaser)
-	if !found {
-		return nil, types.ErrPurchaseNotFound
-	}
-
-	return &types.QueryPurchaseListResponse{PurchaseList: purchaseList}, nil
-}
-
-// PurchaserPurchaseLists queries purchase lists for a given pool.
-func (q Keeper) PoolPurchaseLists(c context.Context, req *types.QueryPoolPurchaseListsRequest) (*types.QueryPurchaseListsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	purchaseLists := q.GetPoolPurchaseLists(ctx, req.PoolId)
-
-	return &types.QueryPurchaseListsResponse{PurchaseLists: purchaseLists}, nil
-}
-
-// PurchaseLists queries purchase lists purchaser.
-func (q Keeper) PurchaseLists(c context.Context, req *types.QueryPurchaseListsRequest) (*types.QueryPurchaseListsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	var purchaseLists []types.PurchaseList
-	purchaser, err := sdk.AccAddressFromBech32(req.Purchaser)
-	if err != nil {
-		return nil, err
-	}
-	purchaseLists = q.GetPurchaserPurchases(ctx, purchaser)
-
-	return &types.QueryPurchaseListsResponse{PurchaseLists: purchaseLists}, nil
-}
-
-// Purchases queries all purchases.
-func (q Keeper) Purchases(c context.Context, req *types.QueryPurchasesRequest) (*types.QueryPurchasesResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	return &types.QueryPurchasesResponse{Purchases: q.GetAllPurchases(ctx)}, nil
+	return &v1beta1.QueryPoolsResponse{Pools: q.GetAllPools(ctx)}, nil
 }
 
 // Provider queries a provider given the address.
-func (q Keeper) Provider(c context.Context, req *types.QueryProviderRequest) (*types.QueryProviderResponse, error) {
+func (q Keeper) Provider(c context.Context, req *v1beta1.QueryProviderRequest) (*v1beta1.QueryProviderResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -131,58 +73,66 @@ func (q Keeper) Provider(c context.Context, req *types.QueryProviderRequest) (*t
 		return nil, types.ErrProviderNotFound
 	}
 
-	return &types.QueryProviderResponse{Provider: provider}, nil
+	return &v1beta1.QueryProviderResponse{Provider: provider}, nil
 }
 
 // Providers queries all providers.
-func (q Keeper) Providers(c context.Context, req *types.QueryProvidersRequest) (*types.QueryProvidersResponse, error) {
+func (q Keeper) Providers(c context.Context, req *v1beta1.QueryProvidersRequest) (*v1beta1.QueryProvidersResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	return &types.QueryProvidersResponse{Providers: q.GetAllProviders(ctx)}, nil
+	return &v1beta1.QueryProvidersResponse{Providers: q.GetAllProviders(ctx)}, nil
 }
 
 // PoolParams queries pool parameters.
-func (q Keeper) PoolParams(c context.Context, req *types.QueryPoolParamsRequest) (*types.QueryPoolParamsResponse, error) {
+func (q Keeper) PoolParams(c context.Context, req *v1beta1.QueryPoolParamsRequest) (*v1beta1.QueryPoolParamsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	return &types.QueryPoolParamsResponse{Params: q.GetPoolParams(ctx)}, nil
+	return &v1beta1.QueryPoolParamsResponse{Params: q.GetPoolParams(ctx)}, nil
 }
 
 // ClaimParams queries claim proposal parameters.
-func (q Keeper) ClaimParams(c context.Context, req *types.QueryClaimParamsRequest) (*types.QueryClaimParamsResponse, error) {
+func (q Keeper) ClaimParams(c context.Context, req *v1beta1.QueryClaimParamsRequest) (*v1beta1.QueryClaimParamsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	return &types.QueryClaimParamsResponse{Params: q.GetClaimProposalParams(ctx)}, nil
+	return &v1beta1.QueryClaimParamsResponse{Params: q.GetClaimProposalParams(ctx)}, nil
+}
+
+// BlockRewardParams queries block reward parameters.
+func (q Keeper) BlockRewardParams(c context.Context, req *v1beta1.QueryBlockRewardParamsRequest) (*v1beta1.QueryBlockRewardParamsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	return &v1beta1.QueryBlockRewardParamsResponse{Params: q.GetBlockRewardParams(ctx)}, nil
 }
 
 // ShieldStatus queries the global status of the shield module.
-func (q Keeper) ShieldStatus(c context.Context, req *types.QueryShieldStatusRequest) (*types.QueryShieldStatusResponse, error) {
+func (q Keeper) ShieldStatus(c context.Context, req *v1beta1.QueryShieldStatusRequest) (*v1beta1.QueryShieldStatusResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	return &types.QueryShieldStatusResponse{
+	return &v1beta1.QueryShieldStatusResponse{
 		TotalCollateral:         q.GetTotalCollateral(ctx),
 		TotalShield:             q.GetTotalShield(ctx),
 		TotalWithdrawing:        q.GetTotalWithdrawing(ctx),
-		CurrentServiceFees:      q.GetServiceFees(ctx),
-		RemainingServiceFees:    q.GetRemainingServiceFees(ctx),
-		GlobalShieldStakingPool: q.GetGlobalShieldStakingPool(ctx),
+		GlobalShieldStakingPool: q.GetGlobalStakingPool(ctx),
 	}, nil
 }
 
 // ShieldStaking queries staked-for-shield for pool-purchaser pair.
-func (q Keeper) ShieldStaking(c context.Context, req *types.QueryShieldStakingRequest) (*types.QueryShieldStakingResponse, error) {
+func (q Keeper) Purchase(c context.Context, req *v1beta1.QueryPurchaseRequest) (*v1beta1.QueryPurchaseResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -192,45 +142,73 @@ func (q Keeper) ShieldStaking(c context.Context, req *types.QueryShieldStakingRe
 	if err != nil {
 		return nil, err
 	}
-	shieldStaking, found := q.GetStakeForShield(ctx, req.PoolId, purchaser)
+	shieldStaking, found := q.GetPurchase(ctx, req.PoolId, purchaser)
 	if !found {
 		return nil, types.ErrPurchaseNotFound
 	}
 
-	return &types.QueryShieldStakingResponse{ShieldStaking: shieldStaking}, nil
+	return &v1beta1.QueryPurchaseResponse{Purchase: shieldStaking}, nil
 }
 
-// ShieldStakingRate queries the shield staking rate for shield.
-func (q Keeper) ShieldStakingRate(c context.Context, req *types.QueryShieldStakingRateRequest) (*types.QueryShieldStakingRateResponse, error) {
+// Reserve queries all shield reserve amount.
+func (q Keeper) Reserve(c context.Context, req *v1beta1.QueryReserveRequest) (*v1beta1.QueryReserveResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-
-	return &types.QueryShieldStakingRateResponse{Rate: q.GetShieldStakingRate(ctx)}, nil
+	return &v1beta1.QueryReserveResponse{Reserve: q.GetReserve(ctx)}, nil
 }
 
-// Reimbursement queries a reimbursement by proposal ID.
-func (q Keeper) Reimbursement(c context.Context, req *types.QueryReimbursementRequest) (*types.QueryReimbursementResponse, error) {
+// PendingPayouts queries all pending payouts.
+func (q Keeper) PendingPayouts(c context.Context, req *v1beta1.QueryPendingPayoutsRequest) (*v1beta1.QueryPendingPayoutsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
+	return &v1beta1.QueryPendingPayoutsResponse{PendingPayouts: q.GetAllPendingPayouts(ctx)}, nil
+}
 
-	reimbursement, err := q.GetReimbursement(ctx, req.ProposalId)
+// PoolPurchases queries for all purchases for a specific pool.
+func (k Keeper) PoolPurchases(c context.Context, req *v1beta1.QueryPoolPurchasesRequest) (*v1beta1.QueryPurchasesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	res := k.GetPoolPurchases(ctx, req.PoolId)
+	return &v1beta1.QueryPurchasesResponse{Purchases: res}, nil
+}
+
+// Purchases queries for all purchases.
+func (k Keeper) Purchases(c context.Context, req *v1beta1.QueryAllPurchasesRequest) (*v1beta1.QueryPurchasesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	res := k.GetAllPurchase(ctx)
+	return &v1beta1.QueryPurchasesResponse{Purchases: res}, nil
+}
+
+// Purchaser queries for information on a purchaser.
+func (k Keeper) Purchaser(c context.Context, req *v1beta1.QueryPurchaserRequest) (*v1beta1.QueryPurchaserResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	purchaser, err := sdk.AccAddressFromBech32(req.Purchaser)
 	if err != nil {
 		return nil, err
 	}
+	res := k.GetPurchaserPurchases(ctx, purchaser)
 
-	return &types.QueryReimbursementResponse{Reimbursement: reimbursement}, nil
-}
-
-// Reimbursements queries all reimbursements.
-func (q Keeper) Reimbursements(c context.Context, req *types.QueryReimbursementsRequest) (*types.QueryReimbursementsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	shield := sdk.ZeroInt()
+	deposit := sdk.ZeroInt()
+	for _, p := range res {
+		shield = shield.Add(p.Shield)
+		deposit = deposit.Add(p.Amount)
 	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	return &types.QueryReimbursementsResponse{Pairs: q.GetAllProposalIDReimbursementPairs(ctx)}, nil
+	return &v1beta1.QueryPurchaserResponse{
+		Purchases:    res,
+		TotalShield:  shield,
+		TotalDeposit: deposit,
+	}, nil
 }

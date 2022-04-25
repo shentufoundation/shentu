@@ -8,28 +8,36 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // ParamChanges defines the parameters that can be modified by param change proposals on the simulation.
 func ParamChanges(_ *rand.Rand) []simtypes.ParamChange {
 	return []simtypes.ParamChange{
-		simulation.NewSimParamChange(types.ModuleName, string(types.ParamStoreKeyPoolParams),
+		simulation.NewSimParamChange(types.ModuleName, string(v1beta1.ParamStoreKeyPoolParams),
 			func(r *rand.Rand) string {
 				bz, _ := json.Marshal(GenPoolParams(r))
 				return string(bz)
 			},
 		),
 
-		simulation.NewSimParamChange(types.ModuleName, string(types.ParamStoreKeyClaimProposalParams),
+		simulation.NewSimParamChange(types.ModuleName, string(v1beta1.ParamStoreKeyClaimProposalParams),
 			func(r *rand.Rand) string {
 				bz, _ := json.Marshal(GenClaimProposalParams(r))
 				return string(bz)
 			},
 		),
 
-		simulation.NewSimParamChange(types.ModuleName, string(types.ParamStoreKeyStakingShieldRate),
+		simulation.NewSimParamChange(types.ModuleName, string(v1beta1.ParamStoreKeyStakingShieldRate),
 			func(r *rand.Rand) string {
 				bz, _ := json.Marshal(GenShieldStakingRateParam(r))
+				return string(bz)
+			},
+		),
+
+		simulation.NewSimParamChange(types.ModuleName, string(v1beta1.ParamStoreKeyBlockRewardParams),
+			func(r *rand.Rand) string {
+				bz, _ := json.Marshal(GenBlockRewardParams(r))
 				return string(bz)
 			},
 		),

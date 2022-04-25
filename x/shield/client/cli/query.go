@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -28,19 +29,17 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdPool(),
 		GetCmdSponsor(),
 		GetCmdPools(),
-		GetCmdPurchaseList(),
-		GetCmdPurchaserPurchases(),
+		GetCmdPurchaser(),
 		GetCmdPoolPurchases(),
 		GetCmdPurchases(),
 		GetCmdProvider(),
 		GetCmdProviders(),
 		GetCmdPoolParams(),
 		GetCmdClaimParams(),
+		GetCmdBlockRewardParams(),
 		GetCmdStatus(),
-		GetCmdStaking(),
-		GetCmdShieldStakingRate(),
-		GetCmdReimbursement(),
-		GetCmdReimbursements(),
+		GetCmdReserve(),
+		GetCmdPendingPayouts(),
 	)
 
 	return shieldQueryCmd
@@ -57,16 +56,16 @@ func GetCmdPool() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
 			id, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return fmt.Errorf("pool id %s is invalid", args[0])
+				return fmt.Errorf("pool id %s is not a valid uint, please input a valid pool-id", args[0])
 			}
 
 			res, err := queryClient.Pool(
 				cmd.Context(),
-				&types.QueryPoolRequest{PoolId: id},
+				&v1beta1.QueryPoolRequest{PoolId: id},
 			)
 			if err != nil {
 				return err
@@ -91,11 +90,11 @@ func GetCmdSponsor() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
 			res, err := queryClient.Sponsor(
 				cmd.Context(),
-				&types.QuerySponsorRequest{Sponsor: args[0]},
+				&v1beta1.QuerySponsorRequest{Sponsor: args[0]},
 			)
 			if err != nil {
 				return err
@@ -120,9 +119,9 @@ func GetCmdPools() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Pools(cmd.Context(), &types.QueryPoolsRequest{})
+			res, err := queryClient.Pools(cmd.Context(), &v1beta1.QueryPoolsRequest{})
 			if err != nil {
 				return err
 			}
@@ -135,68 +134,21 @@ func GetCmdPools() *cobra.Command {
 	return cmd
 }
 
-// GetCmdPurchaseList returns the command for querying purchases
-// corresponding to a given pool-purchaser pair.
-func GetCmdPurchaseList() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "pool-purchaser [pool_ID] [purchaser_address]",
-		Short: "get purchases corresponding to a given pool-purchaser pair",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := types.NewQueryClient(cliCtx)
-
-			poolID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("pool id %s is invalid", args[0])
-			}
-			purchaser, err := sdk.AccAddressFromBech32(args[1])
-			if err != nil {
-				return err
-			}
-
-			res, err := queryClient.PurchaseList(
-				cmd.Context(),
-				&types.QueryPurchaseListRequest{PoolId: poolID, Purchaser: purchaser.String()},
-			)
-			if err != nil {
-				return err
-			}
-
-			return cliCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdPurchaserPurchases returns the command for querying
+// GetCmdPurchaser returns the command for querying
 // purchases by a given address.
-func GetCmdPurchaserPurchases() *cobra.Command {
+func GetCmdPurchaser() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "purchases-by [purchaser_address]",
-		Short: "query purchase information of a given account",
+		Use:   "purchaser [purchaser]",
+		Short: "query purchase information of a given account address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
-			purchaser, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
-
-			res, err := queryClient.PurchaseLists(
-				cmd.Context(),
-				&types.QueryPurchaseListsRequest{Purchaser: purchaser.String()},
-			)
+			res, err := queryClient.Purchaser(cmd.Context(), &v1beta1.QueryPurchaserRequest{Purchaser: args[0]})
 			if err != nil {
 				return err
 			}
@@ -221,17 +173,14 @@ func GetCmdPoolPurchases() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
 			poolID, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return fmt.Errorf("pool id %s is invalid", args[0])
+				return fmt.Errorf("pool id %s not a valid uint, please input a valid pool-id", args[0])
 			}
 
-			res, err := queryClient.PoolPurchaseLists(
-				cmd.Context(),
-				&types.QueryPoolPurchaseListsRequest{PoolId: poolID},
-			)
+			res, err := queryClient.PoolPurchases(cmd.Context(), &v1beta1.QueryPoolPurchasesRequest{PoolId: poolID})
 			if err != nil {
 				return err
 			}
@@ -255,9 +204,9 @@ func GetCmdPurchases() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Purchases(cmd.Context(), &types.QueryPurchasesRequest{})
+			res, err := queryClient.Purchases(cmd.Context(), &v1beta1.QueryAllPurchasesRequest{})
 			if err != nil {
 				return err
 			}
@@ -281,16 +230,16 @@ func GetCmdProvider() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
 			address, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
-				return err
+				return fmt.Errorf("provider address %s is not a valid address, please input a valid provider address", args[0])
 			}
 
 			res, err := queryClient.Provider(
 				cmd.Context(),
-				&types.QueryProviderRequest{Address: address.String()},
+				&v1beta1.QueryProviderRequest{Address: address.String()},
 			)
 			if err != nil {
 				return err
@@ -324,9 +273,9 @@ $ %[1]s query shield providers
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
-			res, err := queryClient.Providers(cmd.Context(), &types.QueryProvidersRequest{})
+			res, err := queryClient.Providers(cmd.Context(), &v1beta1.QueryProvidersRequest{})
 			if err != nil {
 				return err
 			}
@@ -350,9 +299,9 @@ func GetCmdPoolParams() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
-			res, err := queryClient.PoolParams(cmd.Context(), &types.QueryPoolParamsRequest{})
+			res, err := queryClient.PoolParams(cmd.Context(), &v1beta1.QueryPoolParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -376,9 +325,35 @@ func GetCmdClaimParams() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
-			res, err := queryClient.ClaimParams(cmd.Context(), &types.QueryClaimParamsRequest{})
+			res, err := queryClient.ClaimParams(cmd.Context(), &v1beta1.QueryClaimParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdBlockRewardParams returns the command for querying block reward parameters.
+func GetCmdBlockRewardParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "block-reward-params",
+		Short: "get block reward parameters",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := v1beta1.NewQueryClient(cliCtx)
+
+			res, err := queryClient.BlockRewardParams(cmd.Context(), &v1beta1.QueryBlockRewardParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -402,9 +377,9 @@ func GetCmdStatus() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
+			queryClient := v1beta1.NewQueryClient(cliCtx)
 
-			res, err := queryClient.ShieldStatus(cmd.Context(), &types.QueryShieldStatusRequest{})
+			res, err := queryClient.ShieldStatus(cmd.Context(), &v1beta1.QueryShieldStatusRequest{})
 			if err != nil {
 				return err
 			}
@@ -417,123 +392,46 @@ func GetCmdStatus() *cobra.Command {
 	return cmd
 }
 
-// GetCmdStaking returns the command for querying staked-for-shield amounts
-// corresponding to a given pool-purchaser pair.
-func GetCmdStaking() *cobra.Command {
+// GetCmdReserve returns the command for querying the reserve.
+func GetCmdReserve() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "staked-for-shield [pool_ID] [purchaser_address]",
-		Short: "get staked CTK for shield corresponding to a given pool-purchaser pair",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := types.NewQueryClient(cliCtx)
-
-			poolID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("pool id %s is invalid", args[0])
-			}
-			purchaser, err := sdk.AccAddressFromBech32(args[1])
-			if err != nil {
-				return err
-			}
-
-			res, err := queryClient.ShieldStaking(
-				cmd.Context(),
-				&types.QueryShieldStakingRequest{PoolId: poolID, Purchaser: purchaser.String()},
-			)
-			if err != nil {
-				return err
-			}
-
-			return cliCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdShieldStakingRate returns the shield-staking rate for stake-for-shield
-func GetCmdShieldStakingRate() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "shield-staking-rate",
-		Short: "get shield staking rate for stake-for-shield",
-		Args:  cobra.ExactArgs(0),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := types.NewQueryClient(cliCtx)
-
-			res, err := queryClient.ShieldStakingRate(cmd.Context(), &types.QueryShieldStakingRateRequest{})
-			if err != nil {
-				return err
-			}
-
-			return cliCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdReimbursement returns the command for querying a reimbursement.
-func GetCmdReimbursement() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "reimbursement [proposal ID]",
-		Short: "query a reimbursement",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := types.NewQueryClient(cliCtx)
-
-			proposalID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("pool id %s is invalid", args[0])
-			}
-
-			res, err := queryClient.Reimbursement(
-				cmd.Context(),
-				&types.QueryReimbursementRequest{ProposalId: proposalID},
-			)
-			if err != nil {
-				return err
-			}
-
-			return cliCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-	return cmd
-}
-
-// GetCmdReimbursements returns the command for querying reimbursements.
-func GetCmdReimbursements() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "reimbursements",
-		Short: "query all reimbursements",
+		Use:   "reserve",
+		Short: "query Shield reserve amount",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(cliCtx)
-
-			res, err := queryClient.Reimbursements(cmd.Context(), &types.QueryReimbursementsRequest{})
+			queryClient := v1beta1.NewQueryClient(cliCtx)
+			res, err := queryClient.Reserve(cmd.Context(), &v1beta1.QueryReserveRequest{})
 			if err != nil {
 				return err
 			}
+			return cliCtx.PrintProto(&res.Reserve)
+		},
+	}
 
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdPendingPayouts returns the command for querying pending payouts..
+func GetCmdPendingPayouts() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pending-payouts",
+		Short: "query pending payouts",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := v1beta1.NewQueryClient(cliCtx)
+			res, err := queryClient.PendingPayouts(cmd.Context(), &v1beta1.QueryPendingPayoutsRequest{})
+			if err != nil {
+				return err
+			}
 			return cliCtx.PrintProto(res)
 		},
 	}

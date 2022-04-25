@@ -81,4 +81,5 @@ type BankKeeper interface {
 // GovKeeper defines the expected gov keeper.
 type GovKeeper interface {
 	GetVotingParams(ctx sdk.Context) govtypes.VotingParams
+	GetProposalProposer(ctx sdk.Context, proposalId uint64) (sdk.AccAddress, error)
 }

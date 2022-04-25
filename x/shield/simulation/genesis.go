@@ -10,6 +10,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 const letters = "abcdefghijklmnopqrstuvwxyz"
@@ -18,47 +19,48 @@ const letters = "abcdefghijklmnopqrstuvwxyz"
 func RandomizedGenState(simState *module.SimulationState) {
 	r := simState.Rand
 
-	gs := types.GenesisState{}
+	gs := v1beta1.GenesisState{}
 	simAccount, _ := simtypes.RandomAcc(r, simState.Accounts)
 	gs.ShieldAdmin = simAccount.Address.String()
 	gs.NextPoolId = 1
-	gs.PoolParams = GenPoolParams(r)
-	gs.ClaimProposalParams = GenClaimProposalParams(r)
+	poolParams := GenPoolParams(r)
+	claimProposalParams := GenClaimProposalParams(r)
+	blockRewardParams := GenBlockRewardParams(r)
 
 	var stakingGenState stakingtypes.GenesisState
 	stakingGenStatebz := simState.GenState[stakingtypes.ModuleName]
 	simState.Cdc.MustUnmarshalJSON(stakingGenStatebz, &stakingGenState)
-	gs.PoolParams.WithdrawPeriod = stakingGenState.Params.UnbondingTime
+	poolParams.WithdrawPeriod = stakingGenState.Params.UnbondingTime
 
-	gs.ClaimProposalParams.ClaimPeriod = time.Duration(simtypes.RandIntBetween(r,
-		int(gs.PoolParams.WithdrawPeriod)/10, int(gs.PoolParams.WithdrawPeriod)))
-	if gs.PoolParams.ProtectionPeriod >= gs.ClaimProposalParams.ClaimPeriod {
-		gs.PoolParams.ProtectionPeriod = time.Duration(simtypes.RandIntBetween(r,
-			int(gs.ClaimProposalParams.ClaimPeriod)/10, int(gs.ClaimProposalParams.ClaimPeriod)))
+	claimProposalParams.ClaimPeriod = time.Duration(simtypes.RandIntBetween(r,
+		int(poolParams.WithdrawPeriod)/10, int(poolParams.WithdrawPeriod)))
+	if poolParams.ProtectionPeriod >= claimProposalParams.ClaimPeriod {
+		poolParams.ProtectionPeriod = time.Duration(simtypes.RandIntBetween(r,
+			int(claimProposalParams.ClaimPeriod)/10, int(claimProposalParams.ClaimPeriod)))
 	}
-	gs.ShieldStakingRate = GenShieldStakingRateParam(r)
+	gs.ShieldParams = v1beta1.NewShieldParams(poolParams, claimProposalParams, blockRewardParams)
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&gs)
 }
 
 // GenPoolParams returns a randomized PoolParams object.
-func GenPoolParams(r *rand.Rand) types.PoolParams {
+func GenPoolParams(r *rand.Rand) v1beta1.PoolParams {
 	protectionPeriod := time.Duration(simtypes.RandIntBetween(r, 60*1, 60*60*24*2)) * time.Second
 	withdrawPeriod := time.Duration(simtypes.RandIntBetween(r, 60*1, 60*60*24*3)) * time.Second
 	shieldFeesRate := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 0, 50)), 3)
-	poolShieldLimit := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 20)), 2)
-
-	return types.NewPoolParams(protectionPeriod, withdrawPeriod, shieldFeesRate, poolShieldLimit, sdk.Coins{})
+	withdrawFeesRate := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 50)), 3)
+	cooldownPeriod := time.Duration(simtypes.RandIntBetween(r, 60*1, 60*60*24*3)) * time.Second
+	return v1beta1.NewPoolParams(protectionPeriod, withdrawPeriod, cooldownPeriod, shieldFeesRate, withdrawFeesRate, sdk.NewCoins())
 }
 
 // GenClaimProposalParams returns a randomized ClaimProposalParams object.
-func GenClaimProposalParams(r *rand.Rand) types.ClaimProposalParams {
+func GenClaimProposalParams(r *rand.Rand) v1beta1.ClaimProposalParams {
 	claimPeriod := time.Duration(simtypes.RandIntBetween(r, 60*60*24, 60*60*24*2)) * time.Second
 	payoutPeriod := time.Duration(simtypes.RandIntBetween(r, 60*60*24, 60*60*24*2)) * time.Second
 	minDeposit := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(int64(simtypes.RandIntBetween(r, 5e7, 2e8)))))
 	depositRate := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 0, 100)), 3)
 	feesRate := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 0, 50)), 3)
 
-	return types.NewClaimProposalParams(claimPeriod, payoutPeriod, minDeposit, depositRate, feesRate)
+	return v1beta1.NewClaimProposalParams(claimPeriod, payoutPeriod, minDeposit, depositRate, feesRate)
 }
 
 // GenShieldStakingRateParam returns a randomized staking-shield rate.
@@ -68,6 +70,14 @@ func GenShieldStakingRateParam(r *rand.Rand) sdk.Dec {
 		return sdk.NewDec(2)
 	}
 	return random
+}
+
+// GenBlockRewardParams returns a randomized BlockRewardParams object.
+func GenBlockRewardParams(r *rand.Rand) v1beta1.BlockRewardParams {
+	modelParamA := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 0, 20)), 2)
+	modelParamB := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 20, 40)), 2)
+	targetLeverage := sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 40, 60)), 1)
+	return v1beta1.NewBlockRewardParams(modelParamA, modelParamB, targetLeverage)
 }
 
 // GetRandDenom generates a random coin denom.
