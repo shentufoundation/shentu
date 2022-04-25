@@ -84,8 +84,8 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 				return err
 			}
 
-			customAppConfig := initAppConfig()
-			return server.InterceptConfigsPreRunHandler(cmd, "", customAppConfig)
+			template, customAppConfig := initAppConfig()
+			return server.InterceptConfigsPreRunHandler(cmd, template, customAppConfig)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			docDir, err := cmd.Flags().GetString(shentuinit.DocFlag)
@@ -104,7 +104,11 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 
 // initAppConfig helps to override default appConfig template and configs.
 // return "", nil if no custom configuration is required for the application.
-func initAppConfig() interface{} {
+func initAppConfig() (string, interface{}) {
+	type CustomAppConfig struct {
+		serverconfig.Config
+	}
+
 	// Optionally allow the chain developer to overwrite the SDK's default
 	// server config.
 	srvCfg := serverconfig.DefaultConfig()
@@ -113,7 +117,9 @@ func initAppConfig() interface{} {
 	srvCfg.StateSync.SnapshotKeepRecent = 2
 	srvCfg.MinGasPrices = "0.025" + common.MicroCTKDenom
 
-	return srvCfg
+	AppTemplate := serverconfig.DefaultConfigTemplate
+
+	return AppTemplate, CustomAppConfig{*srvCfg}
 }
 
 // Execute executes the root command of an application. It handles creating a
