@@ -14,6 +14,8 @@ const (
 	errInvalidGenesis
 	errInvalidPoolID
 	errInvalidDuration
+	errInvalidShieldRate
+	errInvalidShieldLimit
 	errAdminWithdraw
 	errNoDelegationAmount
 	errInsufficientStaking
@@ -45,7 +47,13 @@ const (
 	errPoolShieldExceedsLimit
 	errShieldAdminNotActive
 	errPurchaseTooSmall
+	errPurchaseExceededLimit
 	errNotEnoughStaked
+	errBeforeCooldownEnd
+	errDonationBadDenom
+	errPendingPayoutExists
+	errPendingPayoutNotFound
+	errPurchaseLocked
 )
 
 var (
@@ -58,9 +66,11 @@ var (
 	ErrInvalidGenesis             = sdkerrors.Register(ModuleName, errInvalidGenesis, "invalid genesis state")
 	ErrInvalidPoolID              = sdkerrors.Register(ModuleName, errInvalidPoolID, "invalid pool ID")
 	ErrInvalidDuration            = sdkerrors.Register(ModuleName, errInvalidDuration, "invalid specification of coverage duration")
+	ErrInvalidShieldRate          = sdkerrors.Register(ModuleName, errInvalidShieldRate, "invalid Shield Rate")
+	ErrInvalidShieldLimit              = sdkerrors.Register(ModuleName, errInvalidShieldLimit, "invalid input for shield limit")
 	ErrAdminWithdraw              = sdkerrors.Register(ModuleName, errAdminWithdraw, "admin cannot manually withdraw collateral")
 	ErrNoDelegationAmount         = sdkerrors.Register(ModuleName, errNoDelegationAmount, "cannot obtain delegation amount info")
-	ErrInsufficientStaking        = sdkerrors.Register(ModuleName, errInsufficientStaking, "insufficient total delegation amount to deposit the collateral")
+	ErrInsufficientStaking        = sdkerrors.Register(ModuleName, errInsufficientStaking, "insufficient total delegation amount to deposit")
 	ErrPoolAlreadyPaused          = sdkerrors.Register(ModuleName, errPoolAlreadyPaused, "pool is already paused")
 	ErrPoolAlreadyActive          = sdkerrors.Register(ModuleName, errPoolAlreadyActive, "pool is already active")
 	ErrPoolInactive               = sdkerrors.Register(ModuleName, errPoolInactive, "pool is inactive")
@@ -89,5 +99,11 @@ var (
 	ErrPoolShieldExceedsLimit     = sdkerrors.Register(ModuleName, errPoolShieldExceedsLimit, "pool shield exceeds limit")
 	ErrShieldAdminNotActive       = sdkerrors.Register(ModuleName, errShieldAdminNotActive, "shield admin is not activated")
 	ErrPurchaseTooSmall           = sdkerrors.Register(ModuleName, errPurchaseTooSmall, "purchase amount is too small")
+	ErrPurchaseExceededLimit      = sdkerrors.Register(ModuleName, errPurchaseExceededLimit, "purchase amount is too high, total purchase exceeds shield limit")
 	ErrNotEnoughStaked            = sdkerrors.Register(ModuleName, errNotEnoughStaked, "not enough unlocked staking to be withdrawn")
+	ErrBeforeCooldownEnd          = sdkerrors.Register(ModuleName, errBeforeCooldownEnd, "cooldown period is not over for the purchase")
+	ErrDonationBadDenom           = sdkerrors.Register(ModuleName, errDonationBadDenom, "invalid coin denomination for donation")
+	ErrPendingPayoutExists        = sdkerrors.Register(ModuleName, errPendingPayoutExists, "there is a pending payout corresponding to this reimbursement")
+	ErrPendingPayoutNotFound      = sdkerrors.Register(ModuleName, errPendingPayoutNotFound, "pending payout identified by the given proposal ID was not found")
+	ErrPurchaseLocked             = sdkerrors.Register(ModuleName, errPurchaseLocked, "purchase is locked due to an ongoing claim proposal")
 )

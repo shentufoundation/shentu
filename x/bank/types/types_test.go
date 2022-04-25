@@ -10,7 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/bank/types"
 )
 
@@ -26,13 +26,13 @@ type TypesTestSuite struct {
 	suite.Suite
 
 	address []sdk.AccAddress
-	app     *simapp.SimApp
+	app     *shentuapp.ShentuApp
 	ctx     sdk.Context
 	params  types.AccountKeeper
 }
 
 func (suite *TypesTestSuite) SetupTest() {
-	suite.app = simapp.Setup(false)
+	suite.app = shentuapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.params = suite.app.AccountKeeper
 

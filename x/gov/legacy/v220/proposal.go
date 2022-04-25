@@ -16,7 +16,7 @@ import (
 	proto "github.com/gogo/protobuf/proto"
 
 	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // Proposal types implement UnpackInterfaceMessages to unpack

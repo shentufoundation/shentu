@@ -15,9 +15,6 @@ ifeq ($(GO),)
   $(error could not find go. Is it in PATH? $(GO))
 endif
 
-GOPATH ?= $(shell $(GO) env GOPATH)
-GITHUBDIR := $(GOPATH)$(FS)src$(FS)github.com
-
 ###############################################################################
 ###                                Functions                                ###
 ###############################################################################
@@ -38,10 +35,19 @@ mkfile_dir := $(shell cd $(shell dirname $(mkfile_path)); pwd)
 ###                                 Tools                                   ###
 ###############################################################################
 
-TOOLS_DESTDIR  ?= $(GOPATH)/bin
+PREFIX ?= /usr/local
+BIN ?= $(PREFIX)/bin
+UNAME_S ?= $(shell uname -s)
+UNAME_M ?= $(shell uname -m)
 
-STATIK        = $(TOOLS_DESTDIR)/statik
-RUNSIM        = $(TOOLS_DESTDIR)/runsim
+GOPATH ?= $(shell $(GO) env GOPATH)
+GITHUBDIR := $(GOPATH)$(FS)src$(FS)github.com
+
+BUF_VERSION ?= 0.11.0
+
+TOOLS_DESTDIR  ?= $(GOPATH)/bin
+STATIK         = $(TOOLS_DESTDIR)/statik
+RUNSIM         = $(TOOLS_DESTDIR)/runsim
 
 all: tools
 

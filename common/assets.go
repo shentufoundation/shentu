@@ -42,3 +42,15 @@ func DivideCoins(coins sdk.Coins, dividend int64) sdk.Coins {
 	}
 	return res
 }
+
+// MulCoins multiplies the coins with certain number, discarding any remainders.
+func MulCoins(coins sdk.Coins, b sdk.Dec) sdk.Coins {
+	res := sdk.Coins{}
+	for _, coin := range coins {
+		res = res.Add(sdk.Coin{
+			Denom:  coin.Denom,
+			Amount: coin.Amount.ToDec().Mul(b).TruncateInt(),
+		})
+	}
+	return res
+}

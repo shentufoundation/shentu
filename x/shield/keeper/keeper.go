@@ -2,14 +2,12 @@ package keeper
 
 import (
 	"encoding/binary"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // Keeper implements the shield keeper.
@@ -37,11 +35,6 @@ func NewKeeper(cdc codec.BinaryCodec, shieldStoreKey sdk.StoreKey, ak types.Acco
 	}
 }
 
-// GetValidator returns info of a validator given its operator address.
-func (k Keeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (stakingtypes.ValidatorI, bool) {
-	return k.sk.GetValidator(ctx, addr)
-}
-
 // SetLatestPoolID sets the latest pool ID to store.
 func (k Keeper) SetNextPoolID(ctx sdk.Context, id uint64) {
 	store := ctx.KVStore(k.storeKey)
@@ -58,10 +51,10 @@ func (k Keeper) GetNextPoolID(ctx sdk.Context) uint64 {
 }
 
 // GetPoolsBySponsor search store for a pool object with given pool ID.
-func (k Keeper) GetPoolsBySponsor(ctx sdk.Context, sponsorAddr string) ([]types.Pool, bool) {
-	var ret []types.Pool
+func (k Keeper) GetPoolsBySponsor(ctx sdk.Context, sponsorAddr string) ([]v1beta1.Pool, bool) {
+	var ret []v1beta1.Pool
 	found := false
-	k.IterateAllPools(ctx, func(pool types.Pool) bool {
+	k.IterateAllPools(ctx, func(pool v1beta1.Pool) bool {
 		if pool.SponsorAddr == sponsorAddr {
 			ret = append(ret, pool)
 			found = true
@@ -74,34 +67,4 @@ func (k Keeper) GetPoolsBySponsor(ctx sdk.Context, sponsorAddr string) ([]types.
 // BondDenom returns staking bond denomination.
 func (k Keeper) BondDenom(ctx sdk.Context) string {
 	return k.sk.BondDenom(ctx)
-}
-
-// GetVotingParams returns gov keeper's voting params.
-func (k Keeper) GetVotingParams(ctx sdk.Context) govtypes.VotingParams {
-	return k.gk.GetVotingParams(ctx)
-}
-
-// SetLastUpdateTime sets the last update time.
-// Last update time will be set when the first purchase is made or distributing service fees.
-func (k Keeper) SetLastUpdateTime(ctx sdk.Context, prevUpdateTime time.Time) {
-	store := ctx.KVStore(k.storeKey)
-
-	var timeProto types.LastUpdateTime
-	timeProto.Time = &prevUpdateTime
-
-	bz := k.cdc.MustMarshalLengthPrefixed(&timeProto)
-	store.Set(types.GetLastUpdateTimeKey(), bz)
-}
-
-// GetLastUpdateTime returns the last update time.
-func (k Keeper) GetLastUpdateTime(ctx sdk.Context) (time.Time, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetLastUpdateTimeKey())
-	if bz == nil {
-		return time.Time{}, false
-	}
-
-	var timeProto types.LastUpdateTime
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &timeProto)
-	return *timeProto.Time, true
 }

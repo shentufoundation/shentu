@@ -22,5 +22,6 @@ const (
 	AttributeKeyPurchaseDescription = "purchase_description"
 	AttributeKeyServiceFees         = "service_fees"
 	AttributeKeyProtectionEndTime   = "protection_end_time"
+	AttributeKeyShieldRate          = "shield_rate"
 	AttributeValueCategory          = ModuleName
 )

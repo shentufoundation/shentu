@@ -11,6 +11,7 @@ import (
 	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 type msgServer struct {
@@ -97,7 +98,7 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 			return certtypes.ErrRepeatedAlias
 		}
 
-	case shieldtypes.ShieldClaimProposal:
+	case v1beta1.ShieldClaimProposal:
 		// check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit)
 		denom := k.BondDenom(ctx)
 		initialDepositAmount := msg.InitialDeposit.AmountOf(denom).ToDec()
@@ -113,28 +114,19 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 				initialDepositAmount, lossAmountDec.Mul(depositRate), minDeposit,
 			)
 		}
-
-		// check shield >= loss
 		proposerAddr, err := sdk.AccAddressFromBech32(c.Proposer)
 		if err != nil {
 			return err
 		}
-		purchaseList, found := k.ShieldKeeper.GetPurchaseList(ctx, c.PoolId, proposerAddr)
+
+		purchase, found := k.ShieldKeeper.GetPurchase(ctx, c.PoolId, proposerAddr)
 		if !found {
 			return shieldtypes.ErrPurchaseNotFound
 		}
-		purchase, found := k.ShieldKeeper.GetPurchase(purchaseList, c.PurchaseId)
-		if !found {
-			return shieldtypes.ErrPurchaseNotFound
-		}
-		if !purchase.Shield.GTE(lossAmount) {
-			return fmt.Errorf("insufficient shield: %s, loss: %s", purchase.Shield, c.Loss)
+		if purchase.Amount.LT(lossAmount) {
+			return fmt.Errorf("insufficient shield: %s, loss: %s", purchase.Amount, c.Loss)
 		}
 
-		// check the purchaseList is not expired
-		if purchase.ProtectionEndTime.Before(ctx.BlockTime()) {
-			return fmt.Errorf("after protection end time: %s", purchase.ProtectionEndTime)
-		}
 		return nil
 
 	default:
@@ -144,14 +136,14 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 }
 
 func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, proposal types.Proposal) error {
-	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
+	if proposal.ProposalType() == v1beta1.ProposalTypeShieldClaim {
+		c := proposal.GetContent().(*v1beta1.ShieldClaimProposal)
 		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
 		proposerAddr, err := sdk.AccAddressFromBech32(c.Proposer)
 		if err != nil {
 			return err
 		}
-		return k.ShieldKeeper.SecureCollaterals(ctx, c.PoolId, proposerAddr, c.PurchaseId, c.Loss, lockPeriod)
+		return k.ShieldKeeper.SecureCollaterals(ctx, c.PoolId, proposerAddr, c.Loss, lockPeriod)
 	}
 	return nil
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
@@ -24,9 +25,8 @@ func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/purchases", types.QuerierRoute), queryPurchasesHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/pool_params", types.QuerierRoute), queryPoolParamsHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/claim_params", types.QuerierRoute), queryClaimParamsHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/block_reward_params", types.QuerierRoute), queryBlockRewardParamsHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/status", types.QuerierRoute), queryStatusHandler(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/staked_for_shield/{poolID}/{address}", types.QuerierRoute), queryStakeForShieldHandler(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/shield_staking_rate", types.QuerierRoute), queryShieldStakingRateHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/reimbursement/{proposalID}", types.QuerierRoute), queryReimbursementHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/reimbursements", types.QuerierRoute), queryReimbursementsHandler(cliCtx)).Methods("GET")
 }
@@ -41,7 +41,7 @@ func queryPoolWithIDHandler(cliCtx client.Context) http.HandlerFunc {
 		vars := mux.Vars(r)
 		poolID := vars["poolID"]
 
-		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryPoolByID, poolID)
+		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, v1beta1.QueryPoolByID, poolID)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -63,7 +63,7 @@ func queryPoolWithSponsorHandler(cliCtx client.Context) http.HandlerFunc {
 		vars := mux.Vars(r)
 		sponsor := vars["sponsor"]
 
-		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryPoolBySponsor, sponsor)
+		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, v1beta1.QueryPoolBySponsor, sponsor)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -82,7 +82,7 @@ func queryPoolsHandler(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryPools)
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, v1beta1.QueryPools)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -105,7 +105,7 @@ func queryPurchaseListHandler(cliCtx client.Context) http.HandlerFunc {
 		poolID := vars["poolID"]
 		address := vars["address"]
 
-		route := fmt.Sprintf("custom/%s/%s/%s/%s", types.QuerierRoute, types.QueryPurchaseList, poolID, address)
+		route := fmt.Sprintf("custom/%s/%s/%s/%s", types.QuerierRoute, v1beta1.QueryPurchaseList, poolID, address)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -127,7 +127,7 @@ func queryPurchaserPurchasesHandler(cliCtx client.Context) http.HandlerFunc {
 		vars := mux.Vars(r)
 		address := vars["address"]
 
-		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryPurchaserPurchases, address)
+		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, v1beta1.QueryPurchaserPurchases, address)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -149,7 +149,7 @@ func queryPoolPurchasesHandler(cliCtx client.Context) http.HandlerFunc {
 		vars := mux.Vars(r)
 		poolID := vars["poolID"]
 
-		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryPoolPurchases, poolID)
+		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, v1beta1.QueryPoolPurchases, poolID)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -168,7 +168,7 @@ func queryPurchasesHandler(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryPurchases)
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, v1beta1.QueryPurchases)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -190,7 +190,7 @@ func queryProviderHandler(cliCtx client.Context) http.HandlerFunc {
 		vars := mux.Vars(r)
 		address := vars["address"]
 
-		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryProvider, address)
+		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, v1beta1.QueryProvider, address)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -210,7 +210,7 @@ func queryProvidersHandler(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		params := types.NewQueryPaginationParams(page, limit)
+		params := v1beta1.NewQueryPaginationParams(page, limit)
 
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
@@ -223,7 +223,7 @@ func queryProvidersHandler(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryProviders)
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, v1beta1.QueryProviders)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -242,7 +242,7 @@ func queryPoolParamsHandler(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryPoolParams)
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, v1beta1.QueryPoolParams)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -261,7 +261,26 @@ func queryClaimParamsHandler(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryClaimParams)
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, v1beta1.QueryClaimParams)
+		res, height, err := cliCtx.QueryWithData(route, nil)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryBlockRewardParamsHandler(cliCtx client.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, v1beta1.QueryBlockRewardParams)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -280,49 +299,7 @@ func queryStatusHandler(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryStatus)
-		res, height, err := cliCtx.QueryWithData(route, nil)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
-	}
-}
-
-func queryStakeForShieldHandler(cliCtx client.Context) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-		if !ok {
-			return
-		}
-
-		vars := mux.Vars(r)
-		poolID := vars["poolID"]
-		address := vars["address"]
-
-		route := fmt.Sprintf("custom/%s/%s/%s/%s", types.QuerierRoute, types.QueryStakedForShield, poolID, address)
-		res, height, err := cliCtx.QueryWithData(route, nil)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
-			return
-		}
-
-		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
-	}
-}
-
-func queryShieldStakingRateHandler(cliCtx client.Context) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-		if !ok {
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryShieldStakingRate)
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, v1beta1.QueryStatus)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -344,7 +321,7 @@ func queryReimbursementHandler(cliCtx client.Context) http.HandlerFunc {
 		vars := mux.Vars(r)
 		proposalID := vars["proposalID"]
 
-		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryReimbursement, proposalID)
+		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, v1beta1.QueryReimbursement, proposalID)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -363,7 +340,7 @@ func queryReimbursementsHandler(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryReimbursements)
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, v1beta1.QueryReimbursements)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())

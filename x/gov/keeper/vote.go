@@ -10,7 +10,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // AddVote Adds a vote on a specific proposal.

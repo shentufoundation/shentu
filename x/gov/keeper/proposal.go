@@ -11,7 +11,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // Proposal
@@ -268,4 +268,13 @@ func (keeper Keeper) MustUnmarshalProposal(bz []byte, proposal *types.Proposal) 
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (keeper Keeper) GetProposalProposer(ctx sdk.Context, proposalId uint64) (sdk.AccAddress, error) {
+	proposal, found := keeper.GetProposal(ctx, proposalId)
+	if !found {
+		return sdk.AccAddress{}, govtypes.ErrUnknownProposal
+	}
+	proposer := proposal.ProposerAddress
+	return sdk.AccAddressFromBech32(proposer)
 }

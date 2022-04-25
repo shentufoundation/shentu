@@ -16,7 +16,7 @@ import (
 	proto "github.com/gogo/protobuf/proto"
 
 	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // Proposal types implement UnpackInterfaceMessages to unpack
@@ -59,6 +59,20 @@ func (p Proposal) GetContent() govtypes.Content {
 		return nil
 	}
 	return content
+}
+
+// SetContent sets the proposal Content
+func (p Proposal) SetContent(content govtypes.Content) error {
+	msg, ok := content.(proto.Message)
+	if !ok {
+		return fmt.Errorf("can't proto marshal %T", msg)
+	}
+	any, err := types.NewAnyWithValue(msg)
+	if err != nil {
+		return err
+	}
+	p.Content = any
+	return nil
 }
 
 // String implements stringer interface

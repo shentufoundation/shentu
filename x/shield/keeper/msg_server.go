@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 type msgServer struct {
@@ -15,35 +16,25 @@ type msgServer struct {
 
 // NewMsgServerImpl returns an implementation of the shield MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) types.MsgServer {
+func NewMsgServerImpl(keeper Keeper) v1beta1.MsgServer {
 	return &msgServer{Keeper: keeper}
 }
 
-var _ types.MsgServer = msgServer{}
+var _ v1beta1.MsgServer = msgServer{}
 
-func (k msgServer) CreatePool(goCtx context.Context, msg *types.MsgCreatePool) (*types.MsgCreatePoolResponse, error) {
+func (k msgServer) CreatePool(goCtx context.Context, msg *v1beta1.MsgCreatePool) (*v1beta1.MsgCreatePoolResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		return nil, err
-	}
-	sponsorAddr, err := sdk.AccAddressFromBech32(msg.SponsorAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	poolID, err := k.Keeper.CreatePool(ctx, fromAddr, msg.Shield, msg.Deposit, msg.Sponsor, sponsorAddr, msg.Description, msg.ShieldLimit)
+	poolID, err := k.Keeper.CreatePool(ctx, *msg)
 	if err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.TypeMsgCreatePool,
-			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
-			sdk.NewAttribute(types.AttributeKeyDeposit, msg.Deposit.String()),
-			sdk.NewAttribute(types.AttributeKeySponsor, msg.Sponsor),
+			v1beta1.TypeMsgCreatePool,
+			sdk.NewAttribute(types.AttributeKeySponsorAddress, msg.SponsorAddr),
+			sdk.NewAttribute(types.AttributeKeyShieldRate, msg.ShieldRate.String()),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(poolID, 10)),
 		),
 		sdk.NewEvent(
@@ -53,25 +44,20 @@ func (k msgServer) CreatePool(goCtx context.Context, msg *types.MsgCreatePool) (
 		),
 	})
 
-	return &types.MsgCreatePoolResponse{}, nil
+	return &v1beta1.MsgCreatePoolResponse{}, nil
 }
 
-func (k msgServer) UpdatePool(goCtx context.Context, msg *types.MsgUpdatePool) (*types.MsgUpdatePoolResponse, error) {
+func (k msgServer) UpdatePool(goCtx context.Context, msg *v1beta1.MsgUpdatePool) (*v1beta1.MsgUpdatePoolResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = k.Keeper.UpdatePool(ctx, msg.PoolId, msg.Description, fromAddr, msg.Shield, msg.ServiceFees, msg.ShieldLimit)
+	_, err := k.Keeper.UpdatePool(ctx, *msg)
 	if err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.TypeMsgUpdatePool,
+			v1beta1.TypeMsgUpdatePool,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolId, 10)),
 		),
 		sdk.NewEvent(
@@ -81,10 +67,10 @@ func (k msgServer) UpdatePool(goCtx context.Context, msg *types.MsgUpdatePool) (
 		),
 	})
 
-	return &types.MsgUpdatePoolResponse{}, nil
+	return &v1beta1.MsgUpdatePoolResponse{}, nil
 }
 
-func (k msgServer) PausePool(goCtx context.Context, msg *types.MsgPausePool) (*types.MsgPausePoolResponse, error) {
+func (k msgServer) PausePool(goCtx context.Context, msg *v1beta1.MsgPausePool) (*v1beta1.MsgPausePoolResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
@@ -99,7 +85,7 @@ func (k msgServer) PausePool(goCtx context.Context, msg *types.MsgPausePool) (*t
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.TypeMsgPausePool,
+			v1beta1.TypeMsgPausePool,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolId, 10)),
 		),
 		sdk.NewEvent(
@@ -109,10 +95,10 @@ func (k msgServer) PausePool(goCtx context.Context, msg *types.MsgPausePool) (*t
 		),
 	})
 
-	return &types.MsgPausePoolResponse{}, nil
+	return &v1beta1.MsgPausePoolResponse{}, nil
 }
 
-func (k msgServer) ResumePool(goCtx context.Context, msg *types.MsgResumePool) (*types.MsgResumePoolResponse, error) {
+func (k msgServer) ResumePool(goCtx context.Context, msg *v1beta1.MsgResumePool) (*v1beta1.MsgResumePoolResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
@@ -127,7 +113,7 @@ func (k msgServer) ResumePool(goCtx context.Context, msg *types.MsgResumePool) (
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.TypeMsgResumePool,
+			v1beta1.TypeMsgResumePool,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolId, 10)),
 		),
 		sdk.NewEvent(
@@ -137,10 +123,10 @@ func (k msgServer) ResumePool(goCtx context.Context, msg *types.MsgResumePool) (
 		),
 	})
 
-	return &types.MsgResumePoolResponse{}, nil
+	return &v1beta1.MsgResumePoolResponse{}, nil
 }
 
-func (k msgServer) DepositCollateral(goCtx context.Context, msg *types.MsgDepositCollateral) (*types.MsgDepositCollateralResponse, error) {
+func (k msgServer) DepositCollateral(goCtx context.Context, msg *v1beta1.MsgDepositCollateral) (*v1beta1.MsgDepositCollateralResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
@@ -162,7 +148,7 @@ func (k msgServer) DepositCollateral(goCtx context.Context, msg *types.MsgDeposi
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.TypeMsgDepositCollateral,
+			v1beta1.TypeMsgDepositCollateral,
 			sdk.NewAttribute(types.AttributeKeyCollateral, amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
 		),
@@ -173,10 +159,10 @@ func (k msgServer) DepositCollateral(goCtx context.Context, msg *types.MsgDeposi
 		),
 	})
 
-	return &types.MsgDepositCollateralResponse{}, nil
+	return &v1beta1.MsgDepositCollateralResponse{}, nil
 }
 
-func (k msgServer) WithdrawCollateral(goCtx context.Context, msg *types.MsgWithdrawCollateral) (*types.MsgWithdrawCollateralResponse, error) {
+func (k msgServer) WithdrawCollateral(goCtx context.Context, msg *v1beta1.MsgWithdrawCollateral) (*v1beta1.MsgWithdrawCollateralResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
@@ -197,7 +183,7 @@ func (k msgServer) WithdrawCollateral(goCtx context.Context, msg *types.MsgWithd
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.TypeMsgWithdrawCollateral,
+			v1beta1.TypeMsgWithdrawCollateral,
 			sdk.NewAttribute(types.AttributeKeyCollateral, amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
 		),
@@ -208,10 +194,10 @@ func (k msgServer) WithdrawCollateral(goCtx context.Context, msg *types.MsgWithd
 		),
 	})
 
-	return &types.MsgWithdrawCollateralResponse{}, nil
+	return &v1beta1.MsgWithdrawCollateralResponse{}, nil
 }
 
-func (k msgServer) WithdrawRewards(goCtx context.Context, msg *types.MsgWithdrawRewards) (*types.MsgWithdrawRewardsResponse, error) {
+func (k msgServer) WithdrawRewards(goCtx context.Context, msg *v1beta1.MsgWithdrawRewards) (*v1beta1.MsgWithdrawRewardsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
@@ -225,7 +211,7 @@ func (k msgServer) WithdrawRewards(goCtx context.Context, msg *types.MsgWithdraw
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.TypeMsgWithdrawRewards,
+			v1beta1.TypeMsgWithdrawRewards,
 			sdk.NewAttribute(types.AttributeKeyAccountAddress, msg.From),
 			sdk.NewAttribute(types.AttributeKeyDenom, k.Keeper.BondDenom(ctx)),
 			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
@@ -237,10 +223,10 @@ func (k msgServer) WithdrawRewards(goCtx context.Context, msg *types.MsgWithdraw
 		),
 	})
 
-	return &types.MsgWithdrawRewardsResponse{}, nil
+	return &v1beta1.MsgWithdrawRewardsResponse{}, nil
 }
 
-func (k msgServer) UpdateSponsor(goCtx context.Context, msg *types.MsgUpdateSponsor) (*types.MsgUpdateSponsorResponse, error) {
+func (k msgServer) UpdateSponsor(goCtx context.Context, msg *v1beta1.MsgUpdateSponsor) (*v1beta1.MsgUpdateSponsorResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
@@ -259,8 +245,7 @@ func (k msgServer) UpdateSponsor(goCtx context.Context, msg *types.MsgUpdateSpon
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.TypeMsgUpdateSponsor,
-			sdk.NewAttribute(types.AttributeKeySponsor, pool.Sponsor),
+			v1beta1.TypeMsgUpdateSponsor,
 			sdk.NewAttribute(types.AttributeKeySponsorAddress, pool.SponsorAddr),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(pool.Id, 10)),
 		),
@@ -271,10 +256,10 @@ func (k msgServer) UpdateSponsor(goCtx context.Context, msg *types.MsgUpdateSpon
 		),
 	})
 
-	return &types.MsgUpdateSponsorResponse{}, nil
+	return &v1beta1.MsgUpdateSponsorResponse{}, nil
 }
 
-func (k msgServer) StakeForShield(goCtx context.Context, msg *types.MsgStakeForShield) (*types.MsgStakeForShieldResponse, error) {
+func (k msgServer) Purchase(goCtx context.Context, msg *v1beta1.MsgPurchase) (*v1beta1.MsgPurchaseResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
@@ -282,20 +267,17 @@ func (k msgServer) StakeForShield(goCtx context.Context, msg *types.MsgStakeForS
 		return nil, err
 	}
 
-	purchase, err := k.Keeper.PurchaseShield(ctx, msg.PoolId, msg.Shield, msg.Description, fromAddr, true)
+	purchase, err := k.Keeper.PurchaseShield(ctx, msg.PoolId, msg.Amount, msg.Description, fromAddr)
 	if err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.TypeMsgStakeForShield,
-			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(purchase.PurchaseId, 10)),
+			v1beta1.TypeMsgStakeForShield,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolId, 10)),
-			sdk.NewAttribute(types.AttributeKeyProtectionEndTime, purchase.ProtectionEndTime.String()),
-			sdk.NewAttribute(types.AttributeKeyPurchaseDescription, purchase.Description),
-			sdk.NewAttribute(types.AttributeKeyShield, purchase.Shield.String()),
-			sdk.NewAttribute(types.AttributeKeyServiceFees, purchase.ServiceFees.String()),
+			sdk.NewAttribute(types.AttributeKeyAccountAddress, msg.From),
+			sdk.NewAttribute(types.AttributeKeyAmount, purchase.Amount.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -304,27 +286,66 @@ func (k msgServer) StakeForShield(goCtx context.Context, msg *types.MsgStakeForS
 		),
 	})
 
-	return &types.MsgStakeForShieldResponse{}, nil
+	return &v1beta1.MsgPurchaseResponse{}, nil
 }
 
-func (k msgServer) UnstakeFromShield(goCtx context.Context, msg *types.MsgUnstakeFromShield) (*types.MsgUnstakeFromShieldResponse, error) {
+func (k msgServer) Unstake(goCtx context.Context, msg *v1beta1.MsgUnstake) (*v1beta1.MsgUnstakeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
 		return nil, err
 	}
-	amount := msg.Shield.AmountOf(k.Keeper.BondDenom(ctx))
 
-	err = k.Keeper.UnstakeFromShield(ctx, msg.PoolId, fromAddr, amount)
+	err = k.Keeper.Unstake(ctx, msg.PoolId, fromAddr, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.TypeMsgUnstakeFromShield,
+			v1beta1.TypeMsgUnstakeFromShield,
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolId, 10)),
+			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
+	})
+
+	return &v1beta1.MsgUnstakeResponse{}, nil
+}
+
+func (k msgServer) WithdrawForeignRewards(goCtx context.Context, msg *v1beta1.MsgWithdrawForeignRewards) (*v1beta1.MsgWithdrawForeignRewardsResponse, error) {
+	return &v1beta1.MsgWithdrawForeignRewardsResponse{}, nil
+}
+
+func (k msgServer) Donate(goCtx context.Context, msg *v1beta1.MsgDonate) (*v1beta1.MsgDonateResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return nil, err
+	}
+
+	bondDenom := k.Keeper.BondDenom(ctx)
+	for _, coin := range msg.Amount {
+		if coin.Denom != bondDenom {
+			return nil, types.ErrDonationBadDenom
+		}
+	}
+	amount := msg.Amount.AmountOf(bondDenom)
+
+	if err := k.Keeper.Donate(ctx, fromAddr, amount); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			v1beta1.TypeMsgDonate,
 			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
 		),
@@ -335,72 +356,5 @@ func (k msgServer) UnstakeFromShield(goCtx context.Context, msg *types.MsgUnstak
 		),
 	})
 
-	return &types.MsgUnstakeFromShieldResponse{}, nil
-}
-
-func (k msgServer) PurchaseShield(goCtx context.Context, msg *types.MsgPurchaseShield) (*types.MsgPurchaseShieldResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		return nil, err
-	}
-
-	purchase, err := k.Keeper.PurchaseShield(ctx, msg.PoolId, msg.Shield, msg.Description, fromAddr, false)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.TypeMsgPurchaseShield,
-			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(purchase.PurchaseId, 10)),
-			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(msg.PoolId, 10)),
-			sdk.NewAttribute(types.AttributeKeyProtectionEndTime, purchase.ProtectionEndTime.String()),
-			sdk.NewAttribute(types.AttributeKeyPurchaseDescription, purchase.Description),
-			sdk.NewAttribute(types.AttributeKeyShield, purchase.Shield.String()),
-			sdk.NewAttribute(types.AttributeKeyServiceFees, purchase.ServiceFees.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
-		),
-	})
-
-	return &types.MsgPurchaseShieldResponse{}, nil
-}
-
-func (k msgServer) WithdrawReimbursement(goCtx context.Context, msg *types.MsgWithdrawReimbursement) (*types.MsgWithdrawReimbursementResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		return nil, err
-	}
-
-	amount, err := k.Keeper.WithdrawReimbursement(ctx, msg.ProposalId, fromAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.TypeMsgWithdrawReimbursement,
-			sdk.NewAttribute(types.AttributeKeyPurchaseID, strconv.FormatUint(msg.ProposalId, 10)),
-			sdk.NewAttribute(types.AttributeKeyCompensationAmount, amount.String()),
-			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.From),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
-		),
-	})
-
-	return &types.MsgWithdrawReimbursementResponse{}, nil
-}
-
-func (k msgServer) WithdrawForeignRewards(goCtx context.Context, msg *types.MsgWithdrawForeignRewards) (*types.MsgWithdrawForeignRewardsResponse, error) {
-	return &types.MsgWithdrawForeignRewardsResponse{}, nil
+	return &v1beta1.MsgDonateResponse{}, nil
 }

@@ -2,16 +2,14 @@ package simulation
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
-
-	gogotypes "github.com/gogo/protobuf/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // NewDecodeStore unmarshals the KVPair's Value to the corresponding type of shield module.
@@ -31,58 +29,40 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 
 		case bytes.Equal(kvA.Key[:1], types.ServiceFeesKey),
 			bytes.Equal(kvA.Key[:1], types.RemainingServiceFeesKey):
-			var serviceFeesA, serviceFeesB types.MixedDecCoins
+			var serviceFeesA, serviceFeesB v1beta1.Fees
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &serviceFeesA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &serviceFeesB)
 			return fmt.Sprintf("%v\n%v", serviceFeesA, serviceFeesB)
 
 		case bytes.Equal(kvA.Key[:1], types.PoolKey):
-			var poolA, poolB types.Pool
+			var poolA, poolB v1beta1.Pool
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &poolA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &poolB)
 			return fmt.Sprintf("%v\n%v", poolA, poolB)
 
-		case bytes.Equal(kvA.Key[:1], types.NextPoolIDKey),
-			bytes.Equal(kvA.Key[:1], types.NextPurchaseIDKey):
-			idA := binary.LittleEndian.Uint64(kvA.Value)
-			idB := binary.LittleEndian.Uint64(kvB.Value)
-			return fmt.Sprintf("%v\n%v", idA, idB)
-
-		case bytes.Equal(kvA.Key[:1], types.PurchaseListKey):
-			var purchaseA, purchaseB types.PurchaseList
-			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &purchaseA)
-			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &purchaseB)
-			return fmt.Sprintf("%v\n%v", purchaseA, purchaseB)
-
 		case bytes.Equal(kvA.Key[:1], types.ProviderKey):
-			var providerA, providerB types.Provider
+			var providerA, providerB v1beta1.Provider
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &providerA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &providerB)
 			return fmt.Sprintf("%v\n%v", providerA, providerB)
 
-		case bytes.Equal(kvA.Key[:1], types.LastUpdateTimeKey):
-			var timeA, timeB gogotypes.Timestamp
-			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &timeA)
-			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &timeB)
-			return fmt.Sprintf("%v\n%v", timeA, timeB)
-
-		case bytes.Equal(kvA.Key[:1], types.StakeForShieldKey):
-			var sPA, spB types.ShieldStaking
+		case bytes.Equal(kvA.Key[:1], types.PurchaseKey):
+			var sPA, spB v1beta1.Purchase
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &sPA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &spB)
 			return fmt.Sprintf("%v\n%v", sPA, spB)
 
 		case bytes.Equal(kvA.Key[:1], types.BlockServiceFeesKey):
-			var blockFeesA, blockFeesB types.MixedDecCoins
+			var blockFeesA, blockFeesB v1beta1.Fees
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &blockFeesA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &blockFeesB)
 			return fmt.Sprintf("%v\n%v", blockFeesA, blockFeesB)
 
-		case bytes.Equal(kvA.Key[:1], types.OriginalStakingKey):
-			var rateA, rateB sdk.IntProto
-			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &rateA)
-			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &rateB)
-			return fmt.Sprintf("%v\n%v", rateA, rateB)
+		case bytes.Equal(kvA.Key[:1], types.ReserveKey):
+			var reserveA, reserveB v1beta1.Pool
+			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &reserveA)
+			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &reserveB)
+			return fmt.Sprintf("%v\n%v", reserveA, reserveB)
 
 		default:
 			panic(fmt.Sprintf("invalid %s key prefix %X", types.ModuleName, kvA.Key[:1]))
