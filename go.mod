@@ -1,6 +1,6 @@
 module github.com/certikfoundation/shentu/v2
 
-go 1.15
+go 1.17
 
 require (
 	github.com/cosmos/cosmos-sdk v0.44.3
