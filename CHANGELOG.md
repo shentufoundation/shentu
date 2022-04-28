@@ -37,7 +37,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased] - 03-16-2022
 
-### State Machine Breaking Changes
+
+### Improvements
 * (x/gov) [\#373](https://github.com/certikfoundation/shentu/pull/373) Add a fix to correctly export gov genesis state.
 
 
