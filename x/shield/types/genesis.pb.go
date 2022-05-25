@@ -288,7 +288,7 @@ func (m *ClaimProposalParams) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ClaimProposalParams proto.InternalMessageInfo
 
-// BlockRewardParams defines the parameters for shield block reward.
+// DistributionParams defines the parameters for shield block reward.
 type DistributionParams struct {
 	ModelParamA github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,1,opt,name=model_param_a,json=modelParamA,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"model_param_a" yaml:"model_param_a"`
 	ModelParamB github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=model_param_b,json=modelParamB,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"model_param_b" yaml:"model_param_b"`
