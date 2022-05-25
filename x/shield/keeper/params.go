@@ -48,6 +48,6 @@ func (k Keeper) GetDistributionParams(ctx sdk.Context) (distrParams types.Distri
 }
 
 // SetDistributionParams sets distribution parameters.
-func (k Keeper) SetDistributionParams(ctx sdk.Context, distrParams types.D) {
-	k.paramSpace.Set(ctx, types.ParamStoreKeyDistribution, &rate)
+func (k Keeper) SetDistributionParams(ctx sdk.Context, dp types.DistributionParams) {
+	k.paramSpace.Set(ctx, types.ParamStoreKeyDistribution, &dp)
 }

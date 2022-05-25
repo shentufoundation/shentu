@@ -26,6 +26,11 @@ var (
 	DefaultClaimProposalDepositRate = sdk.NewDecWithPrec(10, 2)                                              // 10%
 	DefaultClaimProposalFeesRate    = sdk.NewDecWithPrec(1, 2)                                               // 1%
 
+	// default distribution parameters
+	DefaultA = sdk.NewDecWithPrec(10, 2) // 0.1
+	DefaultB = sdk.NewDecWithPrec(30, 2) // 0.3
+	DefaultL = sdk.NewDecWithPrec(1, 0)  // 1
+
 	// default value for staking-shield rate parameter
 	DefaultStakingShieldRate = sdk.NewDec(2)
 )
@@ -146,6 +151,51 @@ func validateClaimProposalParams(i interface{}) error {
 // DefaultStakingShieldRateParams returns a default DefaultStakingShieldRateParams.
 func DefaultStakingShieldRateParams() sdk.Dec {
 	return sdk.NewDec(2)
+}
+
+// NewDistributionParams creates a new DistributionParams instance.
+func NewDistributionParams(a, b, L sdk.Dec) DistributionParams {
+	return DistributionParams{
+		ModelParamA:    a,
+		ModelParamB:    b,
+		TargetLeverage: L,
+	}
+}
+
+// DefaultDistributionParams returns a default DistributionParams instance.
+func DefaultDistributionParams() DistributionParams {
+	return NewDistributionParams(DefaultA, DefaultB, DefaultL)
+}
+
+func validateDistributionParams(i interface{}) error {
+	v, ok := i.(DistributionParams)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	claimPeriod := v.ModelParamA
+	claimPeriod := v.ModelParamB
+	claimPeriod := v.TargetLeverage
+
+	if claimPeriod <= 0 {
+		return fmt.Errorf("claim period must be positive: %s", claimPeriod)
+	}
+	if payoutPeriod <= 0 {
+		return fmt.Errorf("payout period must be positive: %s", payoutPeriod)
+	}
+	if !minDeposit.IsValid() {
+		return fmt.Errorf("minimum deposit amount must be a valid sdk.Coins amount, is %s",
+			minDeposit.String())
+	}
+	if depositRate.IsNegative() || depositRate.GT(sdk.OneDec()) {
+		return fmt.Errorf("deposit rate should be positive and less or equal to one but is %s",
+			depositRate.String())
+	}
+	if feesRate.IsNegative() || feesRate.GT(sdk.OneDec()) {
+		return fmt.Errorf("fees rate should be positive and less or equal to one but is %s",
+			feesRate.String())
+	}
+
+	return nil
 }
 
 func validateStakingShieldRateParams(i interface{}) error {
