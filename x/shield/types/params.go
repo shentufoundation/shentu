@@ -35,6 +35,7 @@ var (
 	ParamStoreKeyPoolParams          = []byte("shieldpoolparams")
 	ParamStoreKeyClaimProposalParams = []byte("claimproposalparams")
 	ParamStoreKeyStakingShieldRate   = []byte("stakingshieldrateparams")
+	ParamStoreKeyDistribution        = []byte("distributionparams")
 )
 
 // ParamKeyTable is the key declaration for parameters.
