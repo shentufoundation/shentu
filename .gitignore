@@ -17,6 +17,7 @@ certik
 # Test
 coverage.out
 launch/localnet
+custom
 
 # IDE
 .idea/

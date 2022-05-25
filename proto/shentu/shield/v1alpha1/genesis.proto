@@ -87,7 +87,7 @@ message ClaimProposalParams {
     string fees_rate = 5 [ (gogoproto.moretags) = "yaml:\"fees_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }
 
-// BlockRewardParams defines the parameters for shield block reward.
+// DistributionParams defines the parameters for shield block reward.
 message DistributionParams {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
