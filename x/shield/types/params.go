@@ -49,6 +49,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 		paramtypes.NewParamSetPair(ParamStoreKeyPoolParams, PoolParams{}, validatePoolParams),
 		paramtypes.NewParamSetPair(ParamStoreKeyClaimProposalParams, ClaimProposalParams{}, validateClaimProposalParams),
 		paramtypes.NewParamSetPair(ParamStoreKeyStakingShieldRate, sdk.Dec{}, validateStakingShieldRateParams),
+		paramtypes.NewParamSetPair(ParamStoreKeyDistribution, DistributionParams{}, validateDistributionParams),
 	)
 }
 
@@ -156,9 +157,9 @@ func DefaultStakingShieldRateParams() sdk.Dec {
 // NewDistributionParams creates a new DistributionParams instance.
 func NewDistributionParams(a, b, L sdk.Dec) DistributionParams {
 	return DistributionParams{
-		ModelParamA:    a,
-		ModelParamB:    b,
-		TargetLeverage: L,
+		ModelParamA: a,
+		ModelParamB: b,
+		MaxLeverage: L,
 	}
 }
 
@@ -172,27 +173,18 @@ func validateDistributionParams(i interface{}) error {
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	claimPeriod := v.ModelParamA
-	claimPeriod := v.ModelParamB
-	claimPeriod := v.TargetLeverage
+	a := v.ModelParamA
+	b := v.ModelParamB
+	L := v.MaxLeverage
 
-	if claimPeriod <= 0 {
-		return fmt.Errorf("claim period must be positive: %s", claimPeriod)
+	if a.LT(sdk.ZeroDec()) || a.GT(sdk.OneDec()) {
+		return fmt.Errorf("invalid value for a: %s", a.String())
 	}
-	if payoutPeriod <= 0 {
-		return fmt.Errorf("payout period must be positive: %s", payoutPeriod)
+	if b.LT(sdk.ZeroDec()) || b.GT(sdk.OneDec()) {
+		return fmt.Errorf("invalid value for b: %s", b.String())
 	}
-	if !minDeposit.IsValid() {
-		return fmt.Errorf("minimum deposit amount must be a valid sdk.Coins amount, is %s",
-			minDeposit.String())
-	}
-	if depositRate.IsNegative() || depositRate.GT(sdk.OneDec()) {
-		return fmt.Errorf("deposit rate should be positive and less or equal to one but is %s",
-			depositRate.String())
-	}
-	if feesRate.IsNegative() || feesRate.GT(sdk.OneDec()) {
-		return fmt.Errorf("fees rate should be positive and less or equal to one but is %s",
-			feesRate.String())
+	if L.LT(sdk.ZeroDec()) {
+		return fmt.Errorf("invalid value for L: %s", b.String())
 	}
 
 	return nil

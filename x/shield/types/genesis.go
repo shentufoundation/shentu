@@ -47,7 +47,7 @@ func DefaultGenesisState() *GenesisState {
 		NextPurchaseId:       uint64(1),
 		PoolParams:           DefaultPoolParams(),
 		ClaimProposalParams:  DefaultClaimProposalParams(),
-		DistributionParams: DefaultDistributionParams(),,
+		DistributionParams:   DefaultDistributionParams(),
 		TotalCollateral:      sdk.ZeroInt(),
 		TotalWithdrawing:     sdk.ZeroInt(),
 		TotalShield:          sdk.ZeroInt(),

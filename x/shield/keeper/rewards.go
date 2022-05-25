@@ -50,9 +50,9 @@ func (k Keeper) GetShieldBlockRewardRatio(ctx sdk.Context) sdk.Dec {
 	}
 
 	blockRewardParams := k.GetDistributionParams(ctx)
-	modelParamA := blockRewardParams.ModelParamA       // a
-	modelParamB := blockRewardParams.ModelParamB       // b
-	targetLeverage := blockRewardParams.TargetLeverage // L
+	modelParamA := blockRewardParams.ModelParamA    // a
+	modelParamB := blockRewardParams.ModelParamB    // b
+	targetLeverage := blockRewardParams.MaxLeverage // L
 
 	/* The non-linear model:
 	 *         c+n                        l        d
