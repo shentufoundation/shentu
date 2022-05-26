@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	v231 "github.com/certikfoundation/shentu/v2/x/shield/legacy/v231"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/grpc"
+
+	v231 "github.com/certikfoundation/shentu/v2/x/shield/legacy/v231"
 )
 
 // Migrator is a struct for handling in-place store migrations.
