@@ -164,6 +164,16 @@ func (q Keeper) ClaimParams(c context.Context, req *types.QueryClaimParamsReques
 	return &types.QueryClaimParamsResponse{Params: q.GetClaimProposalParams(ctx)}, nil
 }
 
+// DistrParams queries shield distribution parameters.
+func (q Keeper) DistrParams(c context.Context, req *types.QueryDistrParamsRequest) (*types.QueryDistrParamsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	return &types.QueryDistrParamsResponse{Params: q.GetDistributionParams(ctx)}, nil
+}
+
 // ShieldStatus queries the global status of the shield module.
 func (q Keeper) ShieldStatus(c context.Context, req *types.QueryShieldStatusRequest) (*types.QueryShieldStatusResponse, error) {
 	if req == nil {
