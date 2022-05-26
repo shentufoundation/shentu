@@ -570,7 +570,8 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	app.setUpgradeHandler()
+	app.setv230UpgradeHandler()
+	app.setShieldV2UpgradeHandler()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
