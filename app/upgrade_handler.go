@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -16,11 +17,14 @@ import (
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
 )
 
-const upgradeName = "Shentu-v230"
+const (
+	v230Upgrade = "Shentu-v230"
+	shieldv2    = "Shield-V2"
+)
 
-func (app ShentuApp) setUpgradeHandler() {
+func (app ShentuApp) setv230UpgradeHandler() {
 	app.upgradeKeeper.SetUpgradeHandler(
-		upgradeName,
+		v230Upgrade,
 		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
 			app.ibcKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
 
@@ -50,10 +54,41 @@ func (app ShentuApp) setUpgradeHandler() {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if upgradeInfo.Name == upgradeName && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == v230Upgrade && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{authz.ModuleName, feegrant.ModuleName},
 		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+}
+
+func (app ShentuApp) setShieldV2UpgradeHandler() {
+	app.upgradeKeeper.SetUpgradeHandler(
+		shieldv2,
+		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
+
+			// Set all modules "old versions" to 1. Then the run migrations logic will
+			// handle running their upgrade logics.
+			fromVM := make(map[string]uint64)
+			for moduleName := range app.mm.Modules {
+				fromVM[moduleName] = 2
+			}
+			// Set all modules "old versions" to 1. Then the run migrations logic will
+			// handle running their upgrade logics.
+			fromVM[shieldtypes.ModuleName] = 1
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		},
+	)
+
+	upgradeInfo, err := app.upgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
+	}
+
+	if upgradeInfo.Name == shieldv2 && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
