@@ -68,7 +68,6 @@ func (app ShentuApp) setShieldV2UpgradeHandler() {
 	app.upgradeKeeper.SetUpgradeHandler(
 		shieldv2,
 		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-
 			// Set all modules "old versions" to 1. Then the run migrations logic will
 			// handle running their upgrade logics.
 			fromVM := make(map[string]uint64)
