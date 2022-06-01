@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/grpc"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/legacy/v232"
 )
