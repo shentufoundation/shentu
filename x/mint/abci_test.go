@@ -18,7 +18,7 @@ func TestBeginBlocker(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	k := app.MintKeeper
 
-	p := minttypes.DefaultParams()
+	p := mint.DefaultGenesisState().GetParams()
 	k.SetParams(ctx, p)
 	type args struct {
 		minter minttypes.Minter
