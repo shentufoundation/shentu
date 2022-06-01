@@ -15,6 +15,7 @@ func MigrateStore(ctx sdk.Context, paramstore types.ParamSubspace) {
 }
 
 func migrateParamsStore(ctx sdk.Context, paramstore types.ParamSubspace) {
+	ctx.Logger().Info("Adding Additional Shield Params..")
 	blockRewardParams := types.DefaultDistributionParams()
 	paramstore.Set(ctx, types.ParamStoreKeyDistribution, &blockRewardParams)
 }
