@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/grpc"
 
-	v231 "github.com/certikfoundation/shentu/v2/x/shield/legacy/v231"
+	"github.com/certikfoundation/shentu/v2/x/shield/legacy/v232"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -20,6 +20,6 @@ func NewMigrator(keeper Keeper, queryServer grpc.Server) Migrator {
 
 // Migrate1to2 migrates from version 1 to 2.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
-	v231.MigrateStore(ctx, m.keeper.paramSpace)
+	v232.MigrateStore(ctx, m.keeper.paramSpace)
 	return nil
 }
