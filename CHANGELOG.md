@@ -35,13 +35,22 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [v2.3.1] - 01-24-2021
+## [v2.3.2] - 05-02-2022
+
+
+### Improvements
+* (app) [\#376](https://github.com/certikfoundation/shentu/pull/376) Add Rosetta Command & config command.
+* (x/gov) [\#373](https://github.com/certikfoundation/shentu/pull/373) Add a fix to correctly export gov genesis state.
+
+# Changelog
+
+## [v2.3.1] - 01-24-2022
 
 ### State Machine Breaking Changes
 * (x/auth) [\#371](https://github.com/certikfoundation/shentu/pull/371) Add an upgrade height to fix the outdated MVA accounts.
 
 
-## [v2.3.0] - 01-04-2021
+## [v2.3.0] - 01-04-2022
 
 ### Client Breaking Changes
 * (x/cert) [\#326](https://github.com/certikfoundation/shentu/pull/326) Remove `Bech32` encoding for validator pubkeys.
