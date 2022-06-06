@@ -81,6 +81,8 @@ tools-clean:
 ##################################################################################
 ###                                 Protobuf                                   ###
 ##################################################################################
+containerProtoVer=v0.3
+containerProtoImage=tendermintdev/sdk-proto-gen:$(containerProtoVer)
 
 proto-all: proto-format proto-lint proto-check-breaking proto-gen
 
@@ -89,7 +91,7 @@ proto-gen:
 
 proto-gen-docker:
 	@echo "Generating Protobuf files"
-	$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace tendermintdev/sdk-proto-gen sh ./devtools/protocgen.sh
+	$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(containerProtoImage) sh ./devtools/protocgen.sh
 
 proto-format:
 	find ./ -not -path "./third_party/*" -name *.proto -exec clang-format -i {} \;
