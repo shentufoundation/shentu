@@ -5,18 +5,8 @@ import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "google/protobuf/timestamp.proto";
-import "gogoproto/gogo.proto";
 
 option go_package = "github.com/certikfoundation/shentu/x/shield/types";
-
-// MixedCoins defines the struct for mixed coins with native and foreign coins.
-message MixedCoins {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-  
-    repeated cosmos.base.v1beta1.Coin native = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    repeated cosmos.base.v1beta1.Coin foreign = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-}
 
 // NativeCoin defines the struct for one native coin
 message NativeCoin {
@@ -34,25 +24,16 @@ message ForeignCoin {
     repeated cosmos.base.v1beta1.Coin foreign = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
 }
 
-// MixedDecCoins defines the struct for mixed coins in decimal with native and foreign decimal coins.
-message MixedDecCoins {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-  
-    repeated cosmos.base.v1beta1.DecCoin native = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
-    repeated cosmos.base.v1beta1.DecCoin foreign = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
-}
-
-// DecNativeCoins defines the struct for native coin in decimal
-message DecNativeCoin {
+// NativeDecCoin defines the struct for native coin in decimal
+message NativeDecCoin {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
   
     repeated cosmos.base.v1beta1.DecCoin native = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
 }
 
-// DecForeignCoin defines the struct for foreign coin in decimal
-message DecForeignCoin {
+// ForeignDecCoin defines the struct for foreign coin in decimal
+message ForeignDecCoin {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
   
@@ -88,8 +69,10 @@ message Purchase {
     string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
 	// Shield is the unused amount of shield purchased.
     string shield = 5 [ (gogoproto.moretags) = "yaml:\"shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-	// ServiceFees is the service fees paid by this purchase.
-    MixedDecCoins service_fees = 6 [ (gogoproto.moretags) = "yaml:\"service_fees\"", (gogoproto.nullable) = false ];
+	// NativeServiceFee is the native service fee paid by this purchase
+    NativeDecCoin native_service_fee = 6 [ (gogoproto.moretags) = "yaml:\"native_service_fee\"", (gogoproto.nullable) = false ];
+    // ForeignServiceFee is the native service fee paid by this purchase
+    ForeignDecCoin foreign_service_fee = 7 [ (gogoproto.moretags) = "yaml:\"foreign_service_fee\"", (gogoproto.nullable) = false ];
 }
 
 // PurchaseList is a collection of purchase.
@@ -123,7 +106,10 @@ message Provider {
 	// Withdrawing is the amount of collateral in withdraw queues.
     string withdrawing = 5 [ (gogoproto.moretags) = "yaml:\"withdrawing\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 	// Rewards is the pooling rewards to be collected.
-    MixedDecCoins rewards = 6 [ (gogoproto.moretags) = "yaml:\"rewards\"", (gogoproto.nullable) = false ];
+    // NativeReward is the pooling reward to be collected on the native coin
+    NativeDecCoin native_reward = 6 [ (gogoproto.moretags) = "yaml:\"native_reward\"", (gogoproto.nullable) = false ];
+    // ForeignReward is the pooling reward to be collected on the foreign coin
+    ForeignDecCoin foreign_reward = 7 [ (gogoproto.moretags) = "yaml:\"foreign_reward\"", (gogoproto.nullable) = false ];
 }
 
 // PoolPurchase is a pair of pool id and purchaser.
