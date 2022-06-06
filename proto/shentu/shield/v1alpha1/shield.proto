@@ -18,6 +18,20 @@ message MixedCoins {
     repeated cosmos.base.v1beta1.Coin foreign = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
 }
 
+message NativeCoin {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    repeated cosmos.base.v1beta1.Coin native = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+}
+
+message ForeignCoin {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    repeated cosmos.base.v1beta1.Coin foreign = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+}
+
 // MixedDecCoins defines the struct for mixed coins in decimal with native and foreign decimal coins.
 message MixedDecCoins {
     option (gogoproto.equal) = false;
@@ -25,6 +39,22 @@ message MixedDecCoins {
   
     repeated cosmos.base.v1beta1.DecCoin native = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
     repeated cosmos.base.v1beta1.DecCoin foreign = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
+}
+
+// DecNativeCoins defines the struct for native coin in decimal
+message DecNativeCoin {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    repeated cosmos.base.v1beta1.DecCoin native = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
+}
+
+// DecForeignCoin defines the struct for foreign coin in decimal
+message DecForeignCoin {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+  
+    repeated cosmos.base.v1beta1.DecCoin foreign = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
 }
 
 // Pool contains a shield project pool's data.
