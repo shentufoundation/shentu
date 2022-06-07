@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	cryptocodec "github.com/tendermint/tendermint/crypto/encoding"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -115,8 +116,10 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 		return stakingGenesis.Validators[i].BondedTokens().GT(stakingGenesis.Validators[j].GetTokens())
 	})
 
-	for i, _ := range rks {
-		val := stakingGenesis.Validators[i]
+	for i, val := range stakingGenesis.Validators {
+		if i >= len(rks) {
+			break
+		}
 		toReplaceValConsAddress, err := val.GetConsAddr()
 		if err != nil {
 			panic(err)
@@ -128,16 +131,11 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 		}
 		var tmp codectypes.Any
 		clientCtx.JSONCodec.MustUnmarshalJSON(bz, &tmp)
-		var pk *codectypes.Any
-		pk, err = codectypes.NewAnyWithValue(&tmp)
-		if err != nil {
+		var mypk cryptotypes.PubKey
+		if err = clientCtx.InterfaceRegistry.UnpackAny(&tmp, &mypk); err != nil {
 			panic(err)
 		}
-
-		stakingGenesis.Validators[i].ConsensusPubkey = pk
-		if err != nil {
-			panic(err)
-		}
+		val.ConsensusPubkey, err = codectypes.NewAnyWithValue(mypk)
 
 		replaceValConsAddress, err := val.GetConsAddr()
 		if err != nil {
@@ -166,13 +164,12 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 		}
 
 		for tmIdx, tmval := range genDoc.Validators {
-			if bytes.Equal(tmval.Address.Bytes(), replaceValConsAddress.Bytes()) {
-				fmt.Println("wow")
+			if bytes.Equal(tmval.Address.Bytes(), toReplaceValConsAddress.Bytes()) {
 				genDoc.Validators[tmIdx].Address = replaceValConsAddress.Bytes()
 				genDoc.Validators[tmIdx].PubKey = replaceValConsPubKey
 			}
 		}
-		stakingGenesis.Validators[i].ConsensusPubkey
+		stakingGenesis.Validators[i] = val
 	}
 	state[staking.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&stakingGenesis)
 	state[slashing.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&slashingGenesis)
