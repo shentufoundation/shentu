@@ -505,7 +505,14 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 			c.debugf(" => %v\n", *params.Gas)
 
 		case CHAINID: // 0x46
-			id := crypto.GetEthChainID(st.Blockchain.ChainID())
+			var id *big.Int
+			b := new(big.Int)
+			id2, ok := b.SetString(st.Blockchain.ChainID(), 10)
+			if !ok {
+				id = id2
+			} else {
+				id = b.SetBytes([]byte(st.Blockchain.ChainID()))
+			}
 			stack.PushBigInt(id)
 			c.debugf(" => %X\n", id)
 

@@ -33,8 +33,9 @@ func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, ak types.AccountKee
 
 // GetCode retrieves VM code from an account.
 func (k Keeper) GetCode(ctx sdk.Context, addr sdk.AccAddress) ([]byte, error) {
-	vmAddress := crypto.MustAddressFromBytes(addr)
-	return k.cvmk.GetCode(ctx, vmAddress)
+	var res crypto.Address
+	copy(res[:], addr)
+	return k.cvmk.GetCode(ctx, res)
 }
 
 // SendCoins checks if there is code in the receiver account, and wires the send through CVM if it does.

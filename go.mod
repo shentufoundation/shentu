@@ -3,9 +3,10 @@ module github.com/certikfoundation/shentu/v2
 go 1.18
 
 require (
-	github.com/cosmos/cosmos-sdk v0.45.4
+	github.com/CosmWasm/wasmd v0.27.0
+	github.com/cosmos/cosmos-sdk v0.45.5
 	github.com/cosmos/go-bip39 v1.0.0
-	github.com/cosmos/ibc-go/v2 v2.0.0
+	github.com/cosmos/ibc-go/v3 v3.1.0
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
 	github.com/golangci/golangci-lint v1.47.2
@@ -14,6 +15,7 @@ require (
 	github.com/hyperledger/burrow v0.31.0
 	github.com/magiconair/properties v1.8.6
 	github.com/ory/dockertest/v3 v3.9.1
+	github.com/prometheus/client_golang v1.12.1
 	github.com/rakyll/statik v0.1.7
 	github.com/regen-network/cosmos-proto v0.3.1
 	github.com/rs/zerolog v1.27.0
@@ -23,7 +25,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15
 	github.com/tendermint/tendermint v0.34.19
-	github.com/tendermint/tm-db v0.6.6
+	github.com/tendermint/tm-db v0.6.7
 	github.com/test-go/testify v1.1.4
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
@@ -43,6 +45,7 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/BurntSushi/toml v1.1.0 // indirect
 	github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d // indirect
+	github.com/CosmWasm/wasmvm v1.0.0 // indirect
 	github.com/DataDog/zstd v1.4.5 // indirect
 	github.com/Djarvur/go-err113 v0.0.0-20210108212216-aea10b59be24 // indirect
 	github.com/GaijinEntertainment/go-exhaustruct/v2 v2.2.0 // indirect
@@ -71,9 +74,10 @@ require (
 	github.com/charithe/durationcheck v0.0.9 // indirect
 	github.com/chavacava/garif v0.0.0-20220316182200-5cad0b5181d4 // indirect
 	github.com/coinbase/rosetta-sdk-go v0.7.0 // indirect
-	github.com/confio/ics23/go v0.6.6 // indirect
+	github.com/confio/ics23/go v0.7.0 // indirect
 	github.com/containerd/continuity v0.3.0 // indirect
 	github.com/cosmos/btcutil v1.0.4 // indirect
+	github.com/cosmos/gorocksdb v1.2.0 // indirect
 	github.com/cosmos/iavl v0.17.3 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.11.1 // indirect
 	github.com/cosmos/ledger-go v0.9.2 // indirect
@@ -129,6 +133,7 @@ require (
 	github.com/golangci/unconvert v0.0.0-20180507085042-28b1c447d1f4 // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/orderedcode v0.0.1 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/gordonklaus/ineffassign v0.0.0-20210914165742-4cc7213b9bc8 // indirect
@@ -202,7 +207,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/polyfloyd/go-errorlint v1.0.0 // indirect
-	github.com/prometheus/client_golang v1.12.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
@@ -235,7 +239,6 @@ require (
 	github.com/sylvia7788/contextcheck v1.0.4 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20200815110645-5c35d600f0ca // indirect
 	github.com/tdakkota/asciicheck v0.1.1 // indirect
-	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect
 	github.com/tendermint/btcd v0.1.1 // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
 	github.com/tetafro/godot v1.4.11 // indirect

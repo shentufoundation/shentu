@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/rs/zerolog"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
@@ -36,6 +38,9 @@ import (
 	sdkbankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 
 	"github.com/certikfoundation/shentu/v2/app"
 	shentuinit "github.com/certikfoundation/shentu/v2/app/certik/init"
@@ -155,6 +160,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		AddGenesisAccountCmd(app.DefaultNodeHome),
 		AddGenesisCertifierCmd(app.DefaultNodeHome),
 		AddGenesisShieldAdminCmd(app.DefaultNodeHome),
+		AddGenesisWasmMsgCmd(app.DefaultNodeHome),
 		RotateValKeysCmd(),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}),
@@ -181,6 +187,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
+	wasm.AddModuleInitFlags(startCmd)
 }
 
 func queryCommand() *cobra.Command {
@@ -269,12 +276,19 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts serverty
 		panic(err)
 	}
 
+	var wasmOpts []wasm.Option
+	if cast.ToBool(appOpts.Get("telemetry.enabled")) {
+		wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
+	}
+
 	return app.NewShentuApp(
 		logger, db, traceStore, true, skipUpgradeHeights,
 		cast.ToString(appOpts.Get(flags.FlagHome)),
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
 		app.MakeEncodingConfig(), // Ideally, we would reuse the one created by NewRootCmd.
 		appOpts,
+		app.GetWasmEnabledProposals(),
+		wasmOpts,
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
 		baseapp.SetHaltHeight(cast.ToUint64(appOpts.Get(server.FlagHaltHeight))),
@@ -295,13 +309,15 @@ func createSimappAndExport(logger log.Logger, db dbm.DB, traceStore io.Writer, h
 	encCfg.Marshaler = codec.NewProtoCodec(encCfg.InterfaceRegistry)
 	var gaiaApp *app.ShentuApp
 	if height != -1 {
-		gaiaApp = app.NewShentuApp(logger, db, traceStore, false, map[int64]bool{}, "", uint(1), encCfg, appOpts)
+		gaiaApp = app.NewShentuApp(logger, db, traceStore, false, map[int64]bool{}, "", uint(1), encCfg, appOpts,
+			app.GetWasmEnabledProposals(), app.EmptyWasmOpts)
 
 		if err := gaiaApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		gaiaApp = app.NewShentuApp(logger, db, traceStore, true, map[int64]bool{}, "", uint(1), encCfg, appOpts)
+		gaiaApp = app.NewShentuApp(logger, db, traceStore, true, map[int64]bool{}, "", uint(1), encCfg, appOpts,
+			app.GetWasmEnabledProposals(), app.EmptyWasmOpts)
 	}
 
 	return gaiaApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)

@@ -2,9 +2,12 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
@@ -14,6 +17,7 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -71,17 +75,19 @@ import (
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v2/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v2/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v2/modules/core"
-	ibcclient "github.com/cosmos/ibc-go/v2/modules/core/02-client"
-	ibcclientclient "github.com/cosmos/ibc-go/v2/modules/core/02-client/client"
-	ibcclienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
-	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
-	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
-	ibckeeper "github.com/cosmos/ibc-go/v2/modules/core/keeper"
-	ibcmock "github.com/cosmos/ibc-go/v2/testing/mock"
+	"github.com/cosmos/ibc-go/v3/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v3/modules/core"
+	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
+	ibcclientclient "github.com/cosmos/ibc-go/v3/modules/core/02-client/client"
+	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmclient "github.com/CosmWasm/wasmd/x/wasm/client"
 
 	appparams "github.com/certikfoundation/shentu/v2/app/params"
 	"github.com/certikfoundation/shentu/v2/x/auth"
@@ -128,6 +134,18 @@ var (
 	// DefaultNodeHome specifies where the node daemon data is stored.
 	DefaultNodeHome = os.ExpandEnv("$HOME/.certik")
 
+	// If EnabledSpecificWasmProposals is "", and this is "true", then enable all x/wasm proposals.
+	// If EnabledSpecificWasmProposals is "", and this is not "true", then disable all x/wasm proposals.
+	WasmProposalsEnabled = "true"
+
+	// If set to non-empty string it must be comma-separated list of values that are all a subset
+	// of "EnableAllProposals" (takes precedence over WasmProposalsEnabled)
+	// https://github.com/CosmWasm/wasmd/blob/02a54d33ff2c064f3539ae12d75d027d9c665f05/x/wasm/internal/types/proposal.go#L28-L34
+	EnableSpecificWasmProposals = ""
+
+	// EmptyWasmOpts defines a type alias for a list of wasm options.
+	EmptyWasmOpts []wasm.Option
+
 	// ModuleBasics is in charge of setting up basic, non-dependant module
 	// elements, such as codec registration and genesis verification.
 	ModuleBasics = module.NewBasicManager(
@@ -142,14 +160,17 @@ var (
 		distr.AppModuleBasic{},
 		feegrant.AppModuleBasic{},
 		gov.NewAppModuleBasic(
-			paramsclient.ProposalHandler,
-			distrclient.ProposalHandler,
-			upgradeclient.ProposalHandler,
-			upgradeclient.CancelProposalHandler,
-			certclient.ProposalHandler,
-			shieldclient.ProposalHandler,
-			ibcclientclient.UpdateClientProposalHandler,
-			ibcclientclient.UpgradeProposalHandler,
+			append(
+				wasmclient.ProposalHandlers,
+				paramsclient.ProposalHandler,
+				distrclient.ProposalHandler,
+				upgradeclient.ProposalHandler,
+				upgradeclient.CancelProposalHandler,
+				certclient.ProposalHandler,
+				shieldclient.ProposalHandler,
+				ibcclientclient.UpdateClientProposalHandler,
+				ibcclientclient.UpgradeProposalHandler,
+			)...,
 		),
 		params.AppModuleBasic{},
 		slashing.AppModuleBasic{},
@@ -161,6 +182,7 @@ var (
 		evidence.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 		transfer.AppModuleBasic{},
+		wasm.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -175,8 +197,26 @@ var (
 		shieldtypes.ModuleName:         {authtypes.Burner},
 		cvmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		wasm.ModuleName:                {authtypes.Burner},
 	}
 )
+
+// GetWasmEnabledProposals parses the WasmProposalsEnabled / EnableSpecificWasmProposals values to
+// produce a list of enabled proposals to pass into wasmd app.
+func GetWasmEnabledProposals() []wasm.ProposalType {
+	if EnableSpecificWasmProposals == "" {
+		if WasmProposalsEnabled == "true" {
+			return wasm.EnableAllProposals
+		}
+		return wasm.DisableAllProposals
+	}
+	chunks := strings.Split(EnableSpecificWasmProposals, ",")
+	proposals, err := wasm.ConvertToProposals(chunks)
+	if err != nil {
+		panic(err)
+	}
+	return proposals
+}
 
 // ShentuApp is the main Shentu Chain application type.
 type ShentuApp struct {
@@ -213,11 +253,12 @@ type ShentuApp struct {
 	CVMKeeper        cvmkeeper.Keeper
 	OracleKeeper     oraclekeeper.Keeper
 	ShieldKeeper     shieldkeeper.Keeper
+	WasmKeeper       *wasm.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
-	ScopedIBCMockKeeper  capabilitykeeper.ScopedKeeper
+	ScopedWasmKeeper     capabilitykeeper.ScopedKeeper
 
 	// module manager
 	mm *module.Manager
@@ -229,7 +270,9 @@ type ShentuApp struct {
 
 // NewShentuApp returns a reference to an initialized ShentuApp.
 func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool, homePath string,
-	invCheckPeriod uint, encodingConfig appparams.EncodingConfig, appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp)) *ShentuApp {
+	invCheckPeriod uint, encodingConfig appparams.EncodingConfig, appOpts servertypes.AppOptions,
+	wasmEnabledProposals []wasm.ProposalType, wasmOpts []wasm.Option,
+	baseAppOptions ...func(*baseapp.BaseApp)) *ShentuApp {
 	// define top-level codec that will be shared between modules
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
@@ -261,6 +304,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		ibchost.StoreKey,
 		ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey,
+		wasm.StoreKey,
 	}
 
 	keys := sdk.NewKVStoreKeys(ks...)
@@ -282,6 +326,13 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		tkeys:             tkeys,
 		memKeys:           memKeys,
 	}
+
+	wasmDir := filepath.Join(homePath, "wasm")
+	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
+	if err != nil {
+		panic(fmt.Sprintf("error while reading wasm config: %s", err))
+	}
+
 	// initialize params keeper and subspaces
 	app.ParamsKeeper = initParamsKeeper(appCodec, legacyAmino, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
@@ -292,9 +343,8 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
 	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// note replicate if you do not need to test core IBC or light clients.
-	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
+
+	app.ScopedWasmKeeper = app.CapabilityKeeper.ScopeToModule(wasm.ModuleName)
 
 	// initialize keepers
 	app.AccountKeeper = sdkauthkeeper.NewAccountKeeper(
@@ -395,6 +445,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		appCodec, keys[sdkminttypes.StoreKey], app.GetSubspace(sdkminttypes.ModuleName), &stakingKeeper,
 		app.AccountKeeper, app.BankKeeper, app.DistrKeeper, app.ShieldKeeper, authtypes.FeeCollectorName,
 	)
+
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference so that it will contain these hooks.
 	app.StakingKeeper.Keeper = *stakingKeeper.Keeper.SetHooks(
@@ -410,6 +461,32 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)
 
+	// The last arguments can contain custom message handlers, and custom query handlers,
+	// if we want to allow any custom callbacks
+	supportedFeatures := "iterator,staking,stargate,CertiK"
+
+	wasmK := wasm.NewKeeper(
+		appCodec,
+		keys[wasm.StoreKey],
+		app.GetSubspace(wasm.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.StakingKeeper,
+		app.DistrKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		app.ScopedWasmKeeper,
+		app.TransferKeeper,
+		bApp.MsgServiceRouter(),
+		bApp.GRPCQueryRouter(),
+		wasmDir,
+		wasmConfig,
+		supportedFeatures,
+		wasmOpts...,
+	)
+
+	app.WasmKeeper = &wasmK
+
 	govRouter := sdkgovtypes.NewRouter()
 	govRouter.AddRoute(sdkgovtypes.RouterKey, govtypes.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
@@ -418,6 +495,10 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
 		AddRoute(shieldtypes.RouterKey, shield.NewShieldClaimProposalHandler(app.ShieldKeeper)).
 		AddRoute(certtypes.RouterKey, cert.NewCertifierUpdateProposalHandler(app.CertKeeper))
+
+	if len(wasmEnabledProposals) != 0 {
+		govRouter.AddRoute(wasm.RouterKey, wasm.NewWasmProposalHandler(app.WasmKeeper, wasmEnabledProposals))
+	}
 
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,
@@ -434,19 +515,19 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
-
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// note replicate if you do not need to test core IBC or light clients.
-	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper, &app.IBCKeeper.PortKeeper)
+	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
-	ibcRouter.AddRoute(ibcmock.ModuleName, mockModule)
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
+
+	// wire up x/wasm to IBC
+	ibcRouter.AddRoute(wasm.ModuleName, wasm.NewIBCHandler(app.WasmKeeper, app.IBCKeeper.ChannelKeeper))
+
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// create evidence keeper with router
@@ -483,6 +564,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
+		wasm.NewAppModule(appCodec, app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 	)
 
 	// NOTE: During BeginBlocker, slashing comes after distr so that
@@ -492,7 +574,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName,
 		authtypes.ModuleName, sdkbanktypes.ModuleName, sdkgovtypes.ModuleName, genutiltypes.ModuleName, sdkauthz.ModuleName,
 		sdkfeegrant.ModuleName, crisistypes.ModuleName, shieldtypes.ModuleName, certtypes.ModuleName, oracletypes.ModuleName,
-		cvmtypes.ModuleName,
+		cvmtypes.ModuleName, wasm.ModuleName,
 	)
 
 	// NOTE: Shield endblocker comes before staking because it queries
@@ -501,7 +583,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		capabilitytypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		sdkminttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, sdkauthz.ModuleName, sdkfeegrant.ModuleName,
 		upgradetypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName, certtypes.ModuleName, oracletypes.ModuleName,
-		cvmtypes.ModuleName,
+		cvmtypes.ModuleName, wasm.ModuleName,
 	)
 
 	// NOTE: genutil moodule must occur after staking so that pools
@@ -527,6 +609,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		ibctransfertypes.ModuleName,
 		sdkfeegrant.ModuleName,
 		upgradetypes.ModuleName,
+		wasm.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
@@ -550,6 +633,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		sdkfeegrant.ModuleName,
 		evidencetypes.ModuleName,
 		upgradetypes.ModuleName,
+		wasm.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -575,6 +659,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
+		wasm.NewAppModule(appCodec, app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 		transferModule,
 	)
 
@@ -585,18 +670,24 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.MountMemoryStores(memKeys)
 
 	// The AnteHandler handles signature verification and transaction pre-processing
-	anteHandler, err := ante.NewAnteHandler(
-		ante.HandlerOptions{
-			AccountKeeper:   app.AccountKeeper,
-			BankKeeper:      app.BankKeeper,
-			FeegrantKeeper:  app.FeegrantKeeper,
-			SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
-			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+	anteHandler, err := NewAnteHandler(
+		HandlerOptions{
+			HandlerOptions: ante.HandlerOptions{
+				AccountKeeper:   app.AccountKeeper,
+				BankKeeper:      app.BankKeeper,
+				FeegrantKeeper:  app.FeegrantKeeper,
+				SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
+				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+			},
+			IBCKeeper:         app.IBCKeeper,
+			WasmConfig:        &wasmConfig,
+			TXCounterStoreKey: keys[wasm.StoreKey],
 		},
 	)
 	if err != nil {
-		tmos.Exit(err.Error())
+		panic(fmt.Errorf("failed to create AnteHandler: %s", err))
 	}
+
 	app.SetAnteHandler(anteHandler)
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
@@ -608,13 +699,16 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
 		}
+		ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
+
+		// Initialize pinned codes in wasmvm as they are not persisted there
+		if err := app.WasmKeeper.InitializePinnedCodes(ctx); err != nil {
+			tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
+		}
 	}
+
 	app.ScopedIBCKeeper = scopedIBCKeeper
 	app.ScopedTransferKeeper = scopedTransferKeeper
-
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// note replicate if you do not need to test core IBC or light clients.
-	app.ScopedIBCMockKeeper = scopedIBCMockKeeper
 
 	return app
 }
@@ -793,6 +887,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(oracletypes.ModuleName).WithKeyTable(oracletypes.ParamKeyTable())
 	paramsKeeper.Subspace(cvmtypes.ModuleName).WithKeyTable(cvmtypes.ParamKeyTable())
 	paramsKeeper.Subspace(shieldtypes.ModuleName).WithKeyTable(shieldtypes.ParamKeyTable())
-
+	paramsKeeper.Subspace(wasm.ModuleName)
 	return paramsKeeper
 }

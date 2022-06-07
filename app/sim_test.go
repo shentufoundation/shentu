@@ -34,8 +34,8 @@ import (
 	params "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibctransfer "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
-	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
+	ibctransfer "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
 	cert "github.com/certikfoundation/shentu/v2/x/cert/types"
 	cvm "github.com/certikfoundation/shentu/v2/x/cvm/types"
@@ -79,7 +79,8 @@ func TestFullAppSimulation(t *testing.T) {
 	}()
 
 	app := NewShentuApp(logger, db, nil, true, map[int64]bool{},
-		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{},
+		GetWasmEnabledProposals(), EmptyWasmOpts, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
@@ -114,7 +115,8 @@ func TestAppImportExport(t *testing.T) {
 	//invCheckPeriod := simapp.FlagPeriodValue
 	var invCheckPeriod uint = 1
 	app := NewShentuApp(logger, db, nil, true, map[int64]bool{},
-		DefaultNodeHome, invCheckPeriod, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+		DefaultNodeHome, invCheckPeriod, MakeEncodingConfig(), EmptyAppOptions{},
+		GetWasmEnabledProposals(), EmptyWasmOpts, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
@@ -149,7 +151,8 @@ func TestAppImportExport(t *testing.T) {
 	}()
 
 	newApp := NewShentuApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{},
-		DefaultNodeHome, invCheckPeriod, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+		DefaultNodeHome, invCheckPeriod, MakeEncodingConfig(), EmptyAppOptions{},
+		GetWasmEnabledProposals(), EmptyWasmOpts, fauxMerkleModeOpt)
 
 	require.Equal(t, AppName, newApp.Name())
 
@@ -213,7 +216,8 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	}()
 
 	app := NewShentuApp(logger, db, nil, true, map[int64]bool{},
-		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{},
+		GetWasmEnabledProposals(), EmptyWasmOpts, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
@@ -248,7 +252,8 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	}()
 
 	newApp := NewShentuApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{},
-		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{},
+		GetWasmEnabledProposals(), EmptyWasmOpts, fauxMerkleModeOpt)
 	require.Equal(t, AppName, newApp.Name())
 
 	newApp.InitChain(abci.RequestInitChain{
@@ -283,7 +288,8 @@ func TestAppStateDeterminism(t *testing.T) {
 		logger := log.NewNopLogger()
 		db := dbm.NewMemDB()
 		app := NewShentuApp(logger, db, nil, true, map[int64]bool{},
-			DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, interBlockCacheOpt())
+			DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{},
+			GetWasmEnabledProposals(), EmptyWasmOpts, interBlockCacheOpt())
 
 		fmt.Printf(
 			"running non-determinism simulation; seed %d: attempt: %d/%d\n",

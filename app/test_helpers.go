@@ -29,7 +29,8 @@ func (ao EmptyAppOptions) Get(o string) interface{} {
 
 func Setup(isCheckTx bool) *ShentuApp {
 	db := dbm.NewMemDB()
-	app := NewShentuApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, MakeEncodingConfig(), simapp.EmptyAppOptions{})
+	app := NewShentuApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, MakeEncodingConfig(),
+		simapp.EmptyAppOptions{}, GetWasmEnabledProposals(), EmptyWasmOpts)
 	if !isCheckTx {
 		// init chain must be called to stop deliverState from being nil
 		genesisState := NewDefaultGenesisState()
