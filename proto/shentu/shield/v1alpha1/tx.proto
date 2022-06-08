@@ -31,8 +31,8 @@ message MsgCreatePool {
 
     string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
     repeated cosmos.base.v1beta1.Coin shield = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    NativeCoin native_deposit = 3 [ (gogoproto.moretags) = "yaml:\"native_deposit\"", (gogoproto.nullable) = false ];
-    ForeignCoin foreign_deposit = 4 [ (gogoproto.moretags) = "yaml:\"foreign_deposit\"", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.Coin native_deposit = 3 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    repeated cosmos.base.v1beta1.Coin foreign_deposit = 4 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
     string sponsor = 5 [ (gogoproto.moretags) = "yaml:\"sponsor\"" ];
     string sponsor_addr = 6 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
     string description = 7 [ (gogoproto.moretags) = "yaml:\"description\"" ];
@@ -48,8 +48,8 @@ message MsgUpdatePool {
   
     string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
     repeated cosmos.base.v1beta1.Coin shield = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    NativeCoin native_service_fee = 3 [ (gogoproto.moretags) = "yaml:\"native_service_fees\"", (gogoproto.nullable) = false ];
-    ForeignCoin foreign_service_fee = 4 [ (gogoproto.moretags) = "yaml:\"foreign_service_fees\"", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.Coin native_service_fee = 3 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    repeated cosmos.base.v1beta1.Coin foreign_service_fee = 4 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
     uint64 pool_id = 5 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
     string description = 6 [ (gogoproto.moretags) = "yaml:\"description\"" ];
     string shield_limit = 7 [ (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];

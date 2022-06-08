@@ -8,38 +8,6 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/certikfoundation/shentu/x/shield/types";
 
-// NativeCoin defines the struct for one native coin
-message NativeCoin {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-  
-    repeated cosmos.base.v1beta1.Coin native = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-}
-
-// ForeignCoin defines the struct for one foreign coin
-message ForeignCoin {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-  
-    repeated cosmos.base.v1beta1.Coin foreign = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-}
-
-// NativeDecCoin defines the struct for native coin in decimal
-message NativeDecCoin {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-  
-    repeated cosmos.base.v1beta1.DecCoin native = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
-}
-
-// ForeignDecCoin defines the struct for foreign coin in decimal
-message ForeignDecCoin {
-    option (gogoproto.equal) = false;
-    option (gogoproto.goproto_getters) = false;
-  
-    repeated cosmos.base.v1beta1.DecCoin foreign = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
-}
-
 // Pool contains a shield project pool's data.
 message Pool {
     option (gogoproto.equal) = false;
@@ -70,9 +38,9 @@ message Purchase {
 	// Shield is the unused amount of shield purchased.
     string shield = 5 [ (gogoproto.moretags) = "yaml:\"shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 	// NativeServiceFee is the native service fee paid by this purchase
-    NativeDecCoin native_service_fee = 6 [ (gogoproto.moretags) = "yaml:\"native_service_fee\"", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.DecCoin native_service_fee = 6 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
     // ForeignServiceFee is the native service fee paid by this purchase
-    ForeignDecCoin foreign_service_fee = 7 [ (gogoproto.moretags) = "yaml:\"foreign_service_fee\"", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.DecCoin foreign_service_fee = 7 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
 }
 
 // PurchaseList is a collection of purchase.
@@ -107,9 +75,9 @@ message Provider {
     string withdrawing = 5 [ (gogoproto.moretags) = "yaml:\"withdrawing\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 	// Rewards is the pooling rewards to be collected.
     // NativeReward is the pooling reward to be collected on the native coin
-    NativeDecCoin native_reward = 6 [ (gogoproto.moretags) = "yaml:\"native_reward\"", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.DecCoin native_reward = 6 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
     // ForeignReward is the pooling reward to be collected on the foreign coin
-    ForeignDecCoin foreign_reward = 7 [ (gogoproto.moretags) = "yaml:\"foreign_reward\"", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.DecCoin foreign_reward = 7 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
 }
 
 // PoolPurchase is a pair of pool id and purchaser.

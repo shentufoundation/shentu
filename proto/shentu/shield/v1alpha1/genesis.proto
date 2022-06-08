@@ -23,10 +23,10 @@ message GenesisState {
     string total_withdrawing = 7 [ (gogoproto.moretags) = "yaml:\"total_withdrawing\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     string total_shield = 8 [ (gogoproto.moretags) = "yaml:\"total_shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     string total_claimed = 9 [ (gogoproto.moretags) = "yaml:\"total_claimed\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];   
-    NativeDecCoin native_service_fee = 10 [ (gogoproto.moretags) = "yaml:\"native_service_fee\"", (gogoproto.nullable) = false ];  
-    ForeignDecCoin foreign_service_fee = 11 [ (gogoproto.moretags) = "yaml:\"foreign_service_fee\"", (gogoproto.nullable) = false ];  
-    NativeDecCoin native_remaining_service_fee = 12 [ (gogoproto.moretags) = "yaml:\"native_remaining_service_fee\"", (gogoproto.nullable) = false ];  
-    ForeignDecCoin foreign_remaining_service_fee = 13 [ (gogoproto.moretags) = "yaml:\"foreign_remaining_service_fee\"", (gogoproto.nullable) = false ];  
+    repeated cosmos.base.v1beta1.DecCoin native_service_fee = 10 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
+    repeated cosmos.base.v1beta1.DecCoin foreign_service_fee = 11 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
+    repeated cosmos.base.v1beta1.DecCoin native_remaining_service_fee = 12 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
+    repeated cosmos.base.v1beta1.DecCoin foreign_remaining_service_fee = 13 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
     repeated Pool pools = 14 [ (gogoproto.moretags) = "yaml:\"pools\"", (gogoproto.nullable) = false ];
     repeated Provider providers = 15 [ (gogoproto.moretags) = "yaml:\"providers\"", (gogoproto.nullable) = false ];
     repeated PurchaseList purchase_lists = 16 [ (gogoproto.moretags) = "yaml:\"purchases\"", (gogoproto.nullable) = false ];
