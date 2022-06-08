@@ -31,7 +31,7 @@ const (
 func RotateValKeysCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "replace-validators [genesis-file] [replacement-cons-keys]",
-		Short: "Replace validators in a given genesis with a set json",
+		Short: "Replace top N validators in a given genesis with a set json",
 		Long: fmt.Sprintf(`Migrate the source genesis into the target version and print to STDOUT.
 Example:
 $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04-22T17:00:00Z --initial-height=5000
@@ -83,7 +83,18 @@ $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04
 	return cmd
 }
 
-type replacementKeys []interface{}
+type replacementKeys []map[string]interface{}
+
+/*
+ sample replacement key json
+[
+    {"pub_key": {"@type":"/cosmos.crypto.ed25519.PubKey","key":"ggUAGDemAsE3poIz6sIhvZ66v3wzQh1eaJwHs6u5dI8="},
+    "valoper": "certikvaloper17dtr2l33v7zc6jwcajtex8jc2ena0msygjrcl5"},
+    {"pub_key": {"@type":"/cosmos.crypto.ed25519.PubKey","key":"dcRpDFrR/i5e6zYEhIduQ73bAVMNuO7YttDT8O/Bkjo="},
+    "valoper": "certikvaloper1v8yvepuclny9aycq5p7hthe25cer6tprky62nn"}
+]
+
+*/
 
 func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genDoc *tmtypes.GenesisDoc) *tmtypes.GenesisDoc {
 	jsonReplacementBlob, err := ioutil.ReadFile(replacementsJSON)
@@ -125,7 +136,7 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 			panic(err)
 		}
 
-		bz, err := json.Marshal(rks[i])
+		bz, err := json.Marshal(rks[i]["pub_key"])
 		if err != nil {
 			panic(err)
 		}
@@ -136,6 +147,7 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 			panic(err)
 		}
 		val.ConsensusPubkey, err = codectypes.NewAnyWithValue(mypk)
+		val.OperatorAddress = rks[i]["valoper"].(string)
 
 		replaceValConsAddress, err := val.GetConsAddr()
 		if err != nil {
