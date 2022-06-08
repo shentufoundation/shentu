@@ -62,6 +62,7 @@ type StakingKeeper interface {
 
 	BondDenom(sdk.Context) string
 	UnbondingTime(sdk.Context) time.Duration
+	GetBondedPool(ctx sdk.Context) authtypes.ModuleAccountI
 }
 
 // BankKeeper defines the expected bank keeper.

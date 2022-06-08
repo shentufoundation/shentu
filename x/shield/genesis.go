@@ -15,6 +15,7 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []abci.ValidatorUpdate {
 	k.SetPoolParams(ctx, data.PoolParams)
 	k.SetClaimProposalParams(ctx, data.ClaimProposalParams)
+	k.SetDistributionParams(ctx, data.DistributionParams)
 
 	adminAddr := sdk.AccAddress{}
 	var err error
@@ -77,6 +78,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	poolParams := k.GetPoolParams(ctx)
 	claimProposalParams := k.GetClaimProposalParams(ctx)
+	distrParams := k.GetDistributionParams(ctx)
 	shieldAdmin := k.GetAdmin(ctx)
 	totalCollateral := k.GetTotalCollateral(ctx)
 	totalWithdrawing := k.GetTotalWithdrawing(ctx)
@@ -97,7 +99,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	originalStaking := k.GetAllOriginalStakings(ctx)
 	reimbursements := k.GetAllProposalIDReimbursementPairs(ctx)
 
-	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams,
+	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams, distrParams,
 		totalCollateral, totalWithdrawing, totalShield, totalClaimed, serviceFees, remainingServiceFees, pools,
 		providers, purchaseLists, withdraws, lastUpdateTime, stakingPurchaseRate, globalStakingPool, stakingPurchases, originalStaking, reimbursements)
 }

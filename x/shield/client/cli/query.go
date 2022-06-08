@@ -36,6 +36,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdProviders(),
 		GetCmdPoolParams(),
 		GetCmdClaimParams(),
+		GetCmdDistrParams(),
 		GetCmdStatus(),
 		GetCmdStaking(),
 		GetCmdShieldStakingRate(),
@@ -379,6 +380,32 @@ func GetCmdClaimParams() *cobra.Command {
 			queryClient := types.NewQueryClient(cliCtx)
 
 			res, err := queryClient.ClaimParams(cmd.Context(), &types.QueryClaimParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdDistrParams returns the command for querying distribution parameters.
+func GetCmdDistrParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "distr-params",
+		Short: "get distribution parameters",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+
+			res, err := queryClient.DistrParams(cmd.Context(), &types.QueryDistrParamsRequest{})
 			if err != nil {
 				return err
 			}
