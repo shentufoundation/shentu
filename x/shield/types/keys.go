@@ -30,21 +30,24 @@ var (
 	TotalWithdrawingKey         = []byte{0x02}
 	TotalShieldKey              = []byte{0x03}
 	TotalClaimedKey             = []byte{0x04}
-	ServiceFeesKey              = []byte{0x05}
-	RemainingServiceFeesKey     = []byte{0x06}
-	PoolKey                     = []byte{0x07}
-	NextPoolIDKey               = []byte{0x08}
-	NextPurchaseIDKey           = []byte{0x09}
-	PurchaseListKey             = []byte{0x0A}
-	PurchaseQueueKey            = []byte{0x0B}
-	ProviderKey                 = []byte{0x0C}
-	WithdrawQueueKey            = []byte{0x0D}
-	LastUpdateTimeKey           = []byte{0x0E}
-	GlobalStakeForShieldPoolKey = []byte{0x0F}
-	StakeForShieldKey           = []byte{0x11}
-	BlockServiceFeesKey         = []byte{0x12}
-	OriginalStakingKey          = []byte{0x13}
-	ReimbursementKey            = []byte{0x14}
+	NativeServiceKey            = []byte{0x05}
+	ForeignServiceKey           = []byte{0x06}
+	RemainingNativeServiceFeeKey = []byte{0x07}
+	RemainingForeignServiceFeeKey = []byte{0x08}
+	PoolKey                     = []byte{0x09}
+	NextPoolIDKey               = []byte{0x0A}
+	NextPurchaseIDKey           = []byte{0x0B}
+	PurchaseListKey             = []byte{0x0C}
+	PurchaseQueueKey            = []byte{0x0D}
+	ProviderKey                 = []byte{0x0E}
+	WithdrawQueueKey            = []byte{0x0F}
+	LastUpdateTimeKey           = []byte{0x11}
+	GlobalStakeForShieldPoolKey = []byte{0x12}
+	StakeForShieldKey           = []byte{0x13}
+	BlockNativeServiceFeeKey    = []byte{0x14}
+	BlockForeignServiceFeeKey   = []byte{0x15}
+	OriginalStakingKey          = []byte{0x16}
+	ReimbursementKey            = []byte{0x17}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -63,16 +66,28 @@ func GetTotalClaimedKey() []byte {
 	return TotalClaimedKey
 }
 
-func GetServiceFeesKey() []byte {
-	return ServiceFeesKey
+func GetNativeServiceFeeKey() []byte {
+	return NativeServiceKey
 }
 
-func GetBlockServiceFeesKey() []byte {
-	return BlockServiceFeesKey
+func GetForeignServiceFeeKey() []byte {
+	return ForeignServiceKey
 }
 
-func GetRemainingServiceFeesKey() []byte {
-	return RemainingServiceFeesKey
+func GetBlockNativeServiceFeeKey() []byte {
+	return BlockNativeServiceFeeKey
+}
+
+func GetBlockForeignServiceFeeKey() []byte {
+	return BlockForeignServiceFeeKey
+}
+
+func GetRemainingNativeServiceFeeKey() []byte {
+	return RemainingNativeServiceFeeKey
+}
+
+func GetRemainingForeignServiceFeeKey() []byte {
+	return RemainingForeignServiceFeeKey
 }
 
 // GetPoolKey gets the key for the pool identified by pool ID.
