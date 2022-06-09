@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	cryptocodec "github.com/tendermint/tendermint/crypto/encoding"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -118,9 +120,11 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 
 	var stakingGenesis staking.GenesisState
 	var slashingGenesis slashing.GenesisState
+	var bankGenesis bank.GenesisState
 
 	clientCtx.JSONCodec.MustUnmarshalJSON(state[staking.ModuleName], &stakingGenesis)
 	clientCtx.JSONCodec.MustUnmarshalJSON(state[slashing.ModuleName], &slashingGenesis)
+	clientCtx.JSONCodec.MustUnmarshalJSON(state[bank.ModuleName], &bankGenesis)
 
 	// sort validators power descending
 	sort.Slice(stakingGenesis.Validators, func(i, j int) bool {
@@ -132,6 +136,7 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 			break
 		}
 		toReplaceValConsAddress, err := val.GetConsAddr()
+		toReplaceValOperAddress := val.OperatorAddress
 		if err != nil {
 			panic(err)
 		}
@@ -147,8 +152,8 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 			panic(err)
 		}
 		val.ConsensusPubkey, err = codectypes.NewAnyWithValue(mypk)
-		val.OperatorAddress = rks[i]["valoper"].(string)
 
+		replaceValOperAddress := rks[i]["valoper"].(string)
 		replaceValConsAddress, err := val.GetConsAddr()
 		if err != nil {
 			panic(err)
@@ -175,16 +180,51 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 			}
 		}
 
+		for l, powerInfo := range stakingGenesis.LastValidatorPowers {
+			if powerInfo.Address == toReplaceValOperAddress {
+				stakingGenesis.LastValidatorPowers[l].Address = replaceValOperAddress
+			}
+		}
+
 		for tmIdx, tmval := range genDoc.Validators {
 			if bytes.Equal(tmval.Address.Bytes(), toReplaceValConsAddress.Bytes()) {
 				genDoc.Validators[tmIdx].Address = replaceValConsAddress.Bytes()
 				genDoc.Validators[tmIdx].PubKey = replaceValConsPubKey
 			}
 		}
+
+		// transfer the funds over too from the delegator addr
+		toreplaceoperatorValAddress, err := sdk.ValAddressFromBech32(toReplaceValOperAddress)
+		valAddrHexToReplace := hex.EncodeToString(toreplaceoperatorValAddress)
+		if err != nil {
+			panic(err)
+		}
+		accAddrToReplace, err := sdk.AccAddressFromHex(valAddrHexToReplace)
+		if err != nil {
+			panic(err)
+		}
+		operatorValAddress, err := sdk.ValAddressFromBech32(replaceValOperAddress)
+		valAddrHex := hex.EncodeToString(operatorValAddress)
+		if err != nil {
+			panic(err)
+		}
+		accAddr, err := sdk.AccAddressFromHex(valAddrHex)
+		if err != nil {
+			panic(err)
+		}
+		copy(accAddr[:], operatorValAddress)
+		for m, bal := range bankGenesis.Balances {
+			if bal.Address == accAddrToReplace.String() {
+				bankGenesis.Balances[m].Address = accAddr.String()
+			}
+		}
+		val.OperatorAddress = replaceValOperAddress
+
 		stakingGenesis.Validators[i] = val
 	}
 	state[staking.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&stakingGenesis)
 	state[slashing.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&slashingGenesis)
+	state[bank.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&bankGenesis)
 
 	genDoc.AppState, err = json.Marshal(state)
 
