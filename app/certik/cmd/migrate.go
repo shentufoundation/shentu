@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	cryptocodec "github.com/tendermint/tendermint/crypto/encoding"
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -121,10 +122,12 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 	var stakingGenesis staking.GenesisState
 	var slashingGenesis slashing.GenesisState
 	var bankGenesis bank.GenesisState
+	var authGenesis auth.GenesisState
 
 	clientCtx.JSONCodec.MustUnmarshalJSON(state[staking.ModuleName], &stakingGenesis)
 	clientCtx.JSONCodec.MustUnmarshalJSON(state[slashing.ModuleName], &slashingGenesis)
 	clientCtx.JSONCodec.MustUnmarshalJSON(state[bank.ModuleName], &bankGenesis)
+	clientCtx.JSONCodec.MustUnmarshalJSON(state[auth.ModuleName], &authGenesis)
 
 	// sort validators power descending
 	sort.Slice(stakingGenesis.Validators, func(i, j int) bool {
@@ -220,11 +223,19 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 		}
 		val.OperatorAddress = replaceValOperAddress
 
+		account := auth.NewBaseAccountWithAddress(accAddr)
+		accountAny, err := codectypes.NewAnyWithValue(account)
+		if err != nil {
+			panic(err)
+		}
+		authGenesis.Accounts = append(authGenesis.Accounts, accountAny)
+
 		stakingGenesis.Validators[i] = val
 	}
 	state[staking.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&stakingGenesis)
 	state[slashing.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&slashingGenesis)
 	state[bank.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&bankGenesis)
+	state[auth.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&authGenesis)
 
 	genDoc.AppState, err = json.Marshal(state)
 
