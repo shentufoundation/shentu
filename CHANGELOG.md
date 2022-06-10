@@ -35,6 +35,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v2.4.0] - TBD
+
+### State Machine Breaking Changes
+* (x/shield) [\#380](https://github.com/certikfoundation/shentu/pull/380) Add more fine-grained and additional shield rewards to the collateral providers.
+
 ## [v2.3.2] - 05-02-2022
 
 
