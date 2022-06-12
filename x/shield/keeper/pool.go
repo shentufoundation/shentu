@@ -122,7 +122,7 @@ func (k Keeper) SetBlockNativeServiceFee(ctx sdk.Context, nativeServiceFee sdk.D
 	store.Set(types.GetBlockNativeServiceFeeKey(), bz)
 }
 
-func (k Keeper) SetForeignNativeServiceFee(ctx sdk.Context, foreignServiceFee sdk.DecCoins) {
+func (k Keeper) SetBlockForeignServiceFee(ctx sdk.Context, foreignServiceFee sdk.DecCoins) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&foreignServiceFee[0])
 	store.Set(types.GetBlockForeignServiceFeeKey(), bz)

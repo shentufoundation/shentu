@@ -11,9 +11,10 @@ import (
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
-	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, serviceFees, remainingServiceFees MixedDecCoins,
-	pools []Pool, providers []Provider, purchase []PurchaseList, withdraws []Withdraw, lastUpdateTime time.Time, sSRate sdk.Dec, globalStakingPool sdk.Int,
-	stakingPurchases []ShieldStaking, originalStaking []OriginalStaking, proposalIDReimbursementPairs []ProposalIDReimbursementPair) GenesisState {
+	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, nativeServiceFee, foreignServiceFee, 
+	nativeRemainingServiceFee, foreignRemainingServiceFee sdk.DecCoins, pools []Pool, providers []Provider, purchase []PurchaseList, withdraws []Withdraw, 
+	lastUpdateTime time.Time, sSRate sdk.Dec, globalStakingPool sdk.Int, stakingPurchases []ShieldStaking, originalStaking []OriginalStaking, 
+	proposalIDReimbursementPairs []ProposalIDReimbursementPair) GenesisState {
 	return GenesisState{
 		ShieldAdmin:                  shieldAdmin.String(),
 		NextPoolId:                   nextPoolID,
@@ -24,8 +25,10 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		TotalWithdrawing:             totalWithdrawing,
 		TotalShield:                  totalShield,
 		TotalClaimed:                 totalClaimed,
-		ServiceFees:                  serviceFees,
-		RemainingServiceFees:         remainingServiceFees,
+		NativeServiceFee: 		   nativeServiceFee,
+		ForeignServiceFee: 		   foreignServiceFee,
+		NativeRemainingServiceFee:   nativeRemainingServiceFee,
+		ForeignRemainingServiceFee:  foreignRemainingServiceFee,
 		Pools:                        pools,
 		Providers:                    providers,
 		PurchaseLists:                purchase,
@@ -50,8 +53,10 @@ func DefaultGenesisState() *GenesisState {
 		TotalWithdrawing:     sdk.ZeroInt(),
 		TotalShield:          sdk.ZeroInt(),
 		TotalClaimed:         sdk.ZeroInt(),
-		ServiceFees:          InitMixedDecCoins(),
-		RemainingServiceFees: InitMixedDecCoins(),
+		NativeServiceFee:     sdk.DecCoins{},
+		ForeignServiceFee:    sdk.DecCoins{},
+		NativeRemainingServiceFee:   sdk.DecCoins{},
+		ForeignRemainingServiceFee:  sdk.DecCoins{},
 		ShieldStakingRate:    sdk.NewDec(2),
 		LastUpdateTime:       time.Now(),
 	}
