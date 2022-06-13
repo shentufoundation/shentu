@@ -24,16 +24,21 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 
 		moduleCoins := keeper.bk.GetAllBalances(ctx, keeper.ak.GetModuleAccount(ctx, types.ModuleName).GetAddress())
 
-		// remaining service fees
-		remainingServiceFees := keeper.GetRemainingServiceFees(ctx)
+		// remaining service fees for both native and foreign
+		remainingNativeServiceFee := keeper.GetRemainingNativeServiceFee(ctx)
+		remainingForeignServiceFee := keeper.GetRemainingForeignServiceFee(ctx)
 
 		// rewards
-		var rewards types.MixedDecCoins
+		var nativeReward sdk.DecCoins
+		var foreignReward sdk.DecCoins
+
 		for _, provider := range keeper.GetAllProviders(ctx) {
-			rewards = rewards.Add(provider.Rewards)
+			nativeReward = nativeReward.Add(provider.NativeReward...)
+			foreignReward = foreignReward.Add(provider.ForeignReward...)
 		}
 
-		totalInt, change := remainingServiceFees.Add(rewards).Native.TruncateDecimal()
+		totalNativeInt, nativeChange := remainingNativeServiceFee.Add(nativeReward...).TruncateDecimal()
+		totalForeignInt, foreignChange := remainingForeignServiceFee.Add(foreignReward...).TruncateDecimal()
 
 		// shield stake
 		shieldStake := sdk.ZeroInt()
@@ -48,9 +53,14 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 		}
 
 		// block service fees
-		blockServiceFees := keeper.GetBlockServiceFees(ctx).Native.AmountOf(bondDenom).TruncateInt()
+		blockNativeServiceFee := keeper.GetBlockNativeServiceFee(ctx).AmountOf(bondDenom).TruncateInt()
+		blockForeignServiceFee := keeper.GetBlockForeignServiceFee(ctx).AmountOf(bondDenom).TruncateInt()
 
-		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, reimbursement)).Add(sdk.NewCoin(bondDenom, blockServiceFees))
+		totalNativeInt = totalNativeInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, reimbursement)).Add(sdk.NewCoin(bondDenom, blockNativeServiceFee))
+		totalForeignInt = totalForeignInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, reimbursement)).Add(sdk.NewCoin(bondDenom, blockForeignServiceFee))
+
+		totalInt := totalNativeInt.Add(totalForeignInt...)
+		change := nativeChange.Add(foreignChange...)
 
 		broken := !totalInt.IsEqual(moduleCoins) || !change.Empty()
 
