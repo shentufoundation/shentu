@@ -31,14 +31,14 @@ func NewProvider(addr sdk.AccAddress) Provider {
 }
 
 // NewPurchase creates a new purchase object.
-func NewPurchase(purchaseID uint64, protectionEndTime, deletionTime time.Time, description string, shield sdk.Int, serviceFees MixedDecCoins) Purchase {
+func NewPurchase(purchaseID uint64, protectionEndTime, deletionTime time.Time, description string, shield sdk.Int, nativeServiceFee sdk.DecCoins) Purchase {
 	return Purchase{
 		PurchaseId:        purchaseID,
 		ProtectionEndTime: protectionEndTime,
 		DeletionTime:      deletionTime,
 		Description:       description,
 		Shield:            shield,
-		ServiceFees:       serviceFees,
+		NativeServiceFee:  nativeServiceFee,
 	}
 }
 
