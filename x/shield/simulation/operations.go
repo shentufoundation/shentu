@@ -163,18 +163,17 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, err.Error()), nil, nil
 		}
-		nativeServiceFees := sdk.NewCoins(sdk.NewCoin(bondDenom, nativeAmount))
+		nativeServiceFee := sdk.NewCoins(sdk.NewCoin(bondDenom, nativeAmount))
 		foreignAmount, err := simtypes.RandPositiveInt(r, sdk.NewInt(int64(DefaultIntMax)))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, err.Error()), nil, nil
 		}
-		foreignServiceFees := sdk.NewCoins(sdk.NewCoin(sponsor, foreignAmount))
+		foreignServiceFee := sdk.NewCoins(sdk.NewCoin(sponsor, foreignAmount))
 
-		serviceFees := types.MixedCoins{Native: nativeServiceFees, Foreign: foreignServiceFees}
 		sponsorAcc, _ := simtypes.RandomAcc(r, accs)
 		description := simtypes.RandStringOfLength(r, 42)
 
-		msg := types.NewMsgCreatePool(simAccount.Address, shield, serviceFees, sponsor, sponsorAcc.Address, description, shieldLimit)
+		msg := types.NewMsgCreatePool(simAccount.Address, shield, nativeServiceFee, foreignServiceFee, sponsor, sponsorAcc.Address, description, shieldLimit)
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
@@ -246,17 +245,16 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, err.Error()), nil, nil
 		}
-		nativeServiceFees := sdk.NewCoins(sdk.NewCoin(bondDenom, nativeAmount))
+		nativeServiceFee := sdk.NewCoins(sdk.NewCoin(bondDenom, nativeAmount))
 		foreignAmount, err := simtypes.RandPositiveInt(r, sdk.NewInt(int64(DefaultIntMax)))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, err.Error()), nil, nil
 		}
-		foreignServiceFees := sdk.NewCoins(sdk.NewCoin(pool.Sponsor, foreignAmount))
+		foreignServiceFee := sdk.NewCoins(sdk.NewCoin(pool.Sponsor, foreignAmount))
 
-		serviceFees := types.MixedCoins{Native: nativeServiceFees, Foreign: foreignServiceFees}
 		description := simtypes.RandStringOfLength(r, 42)
 
-		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description, sdk.ZeroInt())
+		msg := types.NewMsgUpdatePool(simAccount.Address, shield, nativeServiceFee, foreignServiceFee, poolID, description, sdk.ZeroInt())
 
 		fees := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig

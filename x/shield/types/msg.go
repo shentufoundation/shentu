@@ -24,11 +24,16 @@ const (
 )
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
-func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) *MsgCreatePool {
+func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, nativeDeposit, foreignDeposit sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) *MsgCreatePool {
+	if foreignDeposit == nil {
+		foreignDeposit = sdk.Coins{}
+	}
+	
 	return &MsgCreatePool{
 		From:        accAddr.String(),
 		Shield:      shield,
-		Deposit:     deposit,
+		NativeDeposit: nativeDeposit,
+		ForeignDeposit: foreignDeposit,
 		Sponsor:     sponsor,
 		SponsorAddr: sponsorAddr.String(),
 		Description: description,
@@ -77,11 +82,16 @@ func (msg MsgCreatePool) ValidateBasic() error {
 }
 
 // NewMsgUpdatePool creates a new MsgUpdatePool instance.
-func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, serviceFees MixedCoins, id uint64, description string, shieldLimit sdk.Int) *MsgUpdatePool {
+func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, nativeServiceFee, foreignServiceFee sdk.Coins, id uint64, description string, shieldLimit sdk.Int) *MsgUpdatePool {
+	if foreignServiceFee == nil {
+		foreignServiceFee = sdk.Coins{}
+	}
+
 	return &MsgUpdatePool{
 		From:        accAddr.String(),
 		Shield:      shield,
-		ServiceFees: serviceFees,
+		NativeServiceFee: nativeServiceFee,
+		ForeignServiceFee: foreignServiceFee,
 		PoolId:      id,
 		Description: description,
 		ShieldLimit: shieldLimit,
