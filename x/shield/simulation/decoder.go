@@ -29,12 +29,19 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &totalB)
 			return fmt.Sprintf("%v\n%v", totalA, totalB)
 
-		case bytes.Equal(kvA.Key[:1], types.ServiceFeesKey),
-			bytes.Equal(kvA.Key[:1], types.RemainingServiceFeesKey):
-			var serviceFeesA, serviceFeesB types.MixedDecCoins
-			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &serviceFeesA)
-			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &serviceFeesB)
-			return fmt.Sprintf("%v\n%v", serviceFeesA, serviceFeesB)
+		case bytes.Equal(kvA.Key[:1], types.NativeServiceKey),
+			bytes.Equal(kvA.Key[:1], types.RemainingNativeServiceFeeKey):
+			var nativeServiceFeeA, nativeServiceFeeB types.NativeServiceFee
+			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &nativeServiceFeeA)
+			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &nativeServiceFeeB)
+			return fmt.Sprintf("%v\n%v", nativeServiceFeeA, nativeServiceFeeB)
+
+		case bytes.Equal(kvA.Key[:1], types.ForeignServiceKey),
+			bytes.Equal(kvA.Key[:1], types.RemainingForeignServiceFeeKey):
+			var foreignServiceFeeA, foreignServiceFeeB types.ForeignServiceFee
+			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &foreignServiceFeeA)
+			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &foreignServiceFeeB)
+			return fmt.Sprintf("%v\n%v", foreignServiceFeeA, foreignServiceFeeB)
 
 		case bytes.Equal(kvA.Key[:1], types.PoolKey):
 			var poolA, poolB types.Pool
@@ -72,11 +79,17 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &spB)
 			return fmt.Sprintf("%v\n%v", sPA, spB)
 
-		case bytes.Equal(kvA.Key[:1], types.BlockServiceFeesKey):
-			var blockFeesA, blockFeesB types.MixedDecCoins
-			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &blockFeesA)
-			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &blockFeesB)
-			return fmt.Sprintf("%v\n%v", blockFeesA, blockFeesB)
+		case bytes.Equal(kvA.Key[:1], types.BlockNativeServiceFeeKey):
+			var blockNativeServiceFeeA, blockNativeServiceFeeB types.NativeServiceFee
+			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &blockNativeServiceFeeA)
+			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &blockNativeServiceFeeB)
+			return fmt.Sprintf("%v\n%v", blockNativeServiceFeeA, blockNativeServiceFeeB)
+		
+		case bytes.Equal(kvA.Key[:1], types.BlockForeignServiceFeeKey):
+			var blockForeignServiceFeeA, blockForeignServiceFeeB types.ForeignServiceFee
+			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &blockForeignServiceFeeA)
+			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &blockForeignServiceFeeB)
+			return fmt.Sprintf("%v\n%v", blockForeignServiceFeeA, blockForeignServiceFeeB)
 
 		case bytes.Equal(kvA.Key[:1], types.OriginalStakingKey):
 			var rateA, rateB sdk.IntProto
