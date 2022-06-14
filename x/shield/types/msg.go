@@ -28,16 +28,16 @@ func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, nativeDeposit, f
 	if foreignDeposit == nil {
 		foreignDeposit = sdk.Coins{}
 	}
-	
+
 	return &MsgCreatePool{
-		From:        accAddr.String(),
-		Shield:      shield,
-		NativeDeposit: nativeDeposit,
+		From:           accAddr.String(),
+		Shield:         shield,
+		NativeDeposit:  nativeDeposit,
 		ForeignDeposit: foreignDeposit,
-		Sponsor:     sponsor,
-		SponsorAddr: sponsorAddr.String(),
-		Description: description,
-		ShieldLimit: shieldLimit,
+		Sponsor:        sponsor,
+		SponsorAddr:    sponsorAddr.String(),
+		Description:    description,
+		ShieldLimit:    shieldLimit,
 	}
 }
 
@@ -88,13 +88,13 @@ func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, nativeServiceFee
 	}
 
 	return &MsgUpdatePool{
-		From:        accAddr.String(),
-		Shield:      shield,
-		NativeServiceFee: nativeServiceFee,
+		From:              accAddr.String(),
+		Shield:            shield,
+		NativeServiceFee:  nativeServiceFee,
 		ForeignServiceFee: foreignServiceFee,
-		PoolId:      id,
-		Description: description,
-		ShieldLimit: shieldLimit,
+		PoolId:            id,
+		Description:       description,
+		ShieldLimit:       shieldLimit,
 	}
 }
 

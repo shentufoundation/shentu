@@ -84,7 +84,7 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &blockNativeServiceFeeA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &blockNativeServiceFeeB)
 			return fmt.Sprintf("%v\n%v", blockNativeServiceFeeA, blockNativeServiceFeeB)
-		
+
 		case bytes.Equal(kvA.Key[:1], types.BlockForeignServiceFeeKey):
 			var blockForeignServiceFeeA, blockForeignServiceFeeB types.ForeignServiceFee
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &blockForeignServiceFeeA)

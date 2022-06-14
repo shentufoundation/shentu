@@ -108,7 +108,7 @@ func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender
 
 	k.SetBlockNativeServiceFee(ctx, nativeBlockServiceFee)
 	k.SetBlockForeignServiceFee(ctx, foreignBlockServiceFee)
-	
+
 	return nil
 }
 

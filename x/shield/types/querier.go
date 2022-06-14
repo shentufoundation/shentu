@@ -35,17 +35,17 @@ type QueryResStatus struct {
 	GlobalShieldStakingPool    sdk.Int      `json:"global_shield_staking_pool" yaml:"global_shield_staking_pool"`
 }
 
-func NewQueryResStatus(totalCollateral, totalShield, totalWithdrawing sdk.Int, nativeCurrentServiceFee, foreignCurrentServiceFee, nativeRemainingServiceFee, 
+func NewQueryResStatus(totalCollateral, totalShield, totalWithdrawing sdk.Int, nativeCurrentServiceFee, foreignCurrentServiceFee, nativeRemainingServiceFee,
 	foreignRemainingServiceFee sdk.DecCoins, globalStakingPool sdk.Int) QueryResStatus {
 	return QueryResStatus{
-		TotalCollateral:         totalCollateral,
-		TotalShield:             totalShield,
-		TotalWithdrawing:        totalWithdrawing,
-		NativeCurrentServiceFee: nativeCurrentServiceFee,
-		ForeignCurrentServiceFee: foreignCurrentServiceFee,
-		NativeRemainingServiceFee: nativeRemainingServiceFee,
+		TotalCollateral:            totalCollateral,
+		TotalShield:                totalShield,
+		TotalWithdrawing:           totalWithdrawing,
+		NativeCurrentServiceFee:    nativeCurrentServiceFee,
+		ForeignCurrentServiceFee:   foreignCurrentServiceFee,
+		NativeRemainingServiceFee:  nativeRemainingServiceFee,
 		ForeignRemainingServiceFee: foreignRemainingServiceFee,
-		GlobalShieldStakingPool: globalStakingPool,
+		GlobalShieldStakingPool:    globalStakingPool,
 	}
 }
 
