@@ -8,6 +8,22 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/certikfoundation/shentu/x/shield/types";
 
+// NativeServiceFee proto wrapper for pool.go methods
+message NativeServiceFee {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    repeated cosmos.base.v1beta1.DecCoin native_service_fee = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
+}
+
+// ForeignServiceFee proto wrapper for pool.go methods
+message ForeignServiceFee {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    repeated cosmos.base.v1beta1.DecCoin foreign_service_fee = 1 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
+}
+
 // Pool contains a shield project pool's data.
 message Pool {
     option (gogoproto.equal) = false;
