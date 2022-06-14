@@ -13,11 +13,11 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 		return sdk.Coins{}, types.ErrProviderNotFound
 	}
 
-	ctkRewards, change := provider.Rewards.Native.TruncateDecimal()
+	ctkRewards, change := provider.NativeReward.TruncateDecimal()
 	if ctkRewards.IsZero() {
 		return nil, nil
 	}
-	provider.Rewards.Native = sdk.DecCoins{}
+	provider.NativeReward = sdk.DecCoins{}
 	providerAddr, err := sdk.AccAddressFromBech32(provider.Address)
 	if err != nil {
 		panic(err)
@@ -25,9 +25,9 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 	k.SetProvider(ctx, providerAddr, provider)
 
 	// Add leftovers as service fees.
-	remainingServiceFees := k.GetRemainingServiceFees(ctx)
-	remainingServiceFees.Native = remainingServiceFees.Native.Add(change...)
-	k.SetRemainingServiceFees(ctx, remainingServiceFees)
+	remainingNativeServiceFee := k.GetRemainingNativeServiceFee(ctx)
+	remainingNativeServiceFee = remainingNativeServiceFee.Add(change...)
+	k.SetRemainingNativeServiceFee(ctx, remainingNativeServiceFee)
 
 	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, ctkRewards); err != nil {
 		return sdk.Coins{}, err
