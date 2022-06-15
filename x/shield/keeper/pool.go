@@ -6,8 +6,6 @@ import (
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
-// TODO: Wrapper for native and foreign service fee
-
 func (k Keeper) SetTotalCollateral(ctx sdk.Context, totalCollateral sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&sdk.IntProto{Int: totalCollateral})

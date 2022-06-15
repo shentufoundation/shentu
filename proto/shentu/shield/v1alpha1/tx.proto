@@ -31,12 +31,11 @@ message MsgCreatePool {
 
     string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
     repeated cosmos.base.v1beta1.Coin shield = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    repeated cosmos.base.v1beta1.Coin native_deposit = 3 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    repeated cosmos.base.v1beta1.Coin foreign_deposit = 4 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    string sponsor = 5 [ (gogoproto.moretags) = "yaml:\"sponsor\"" ];
-    string sponsor_addr = 6 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
-    string description = 7 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string shield_limit = 8 [ (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.Coin deposits = 3 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    string sponsor = 4 [ (gogoproto.moretags) = "yaml:\"sponsor\"" ];
+    string sponsor_addr = 5 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
+    string description = 6 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string shield_limit = 7 [ (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 }
 
 message MsgCreatePoolResponse {}
@@ -48,11 +47,10 @@ message MsgUpdatePool {
   
     string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
     repeated cosmos.base.v1beta1.Coin shield = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    repeated cosmos.base.v1beta1.Coin native_service_fee = 3 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    repeated cosmos.base.v1beta1.Coin foreign_service_fee = 4 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    uint64 pool_id = 5 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
-    string description = 6 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-    string shield_limit = 7 [ (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.Coin fees = 3 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    uint64 pool_id = 4 [ (gogoproto.moretags) = "yaml:\"pool_id\"" ];
+    string description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+    string shield_limit = 6 [ (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 }
   
 message MsgUpdatePoolResponse {}
