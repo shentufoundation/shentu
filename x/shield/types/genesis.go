@@ -11,8 +11,8 @@ import (
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
-	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, nativeServiceFee, foreignServiceFee,
-	nativeRemainingServiceFee, foreignRemainingServiceFee sdk.DecCoins, pools []Pool, providers []Provider, purchase []PurchaseList, withdraws []Withdraw,
+	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, fees,
+	remainingFees sdk.DecCoins, pools []Pool, providers []Provider, purchase []PurchaseList, withdraws []Withdraw,
 	lastUpdateTime time.Time, sSRate sdk.Dec, globalStakingPool sdk.Int, stakingPurchases []ShieldStaking, originalStaking []OriginalStaking,
 	proposalIDReimbursementPairs []ProposalIDReimbursementPair) GenesisState {
 	return GenesisState{
@@ -25,10 +25,8 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		TotalWithdrawing:             totalWithdrawing,
 		TotalShield:                  totalShield,
 		TotalClaimed:                 totalClaimed,
-		NativeServiceFee:             nativeServiceFee,
-		ForeignServiceFee:            foreignServiceFee,
-		NativeRemainingServiceFee:    nativeRemainingServiceFee,
-		ForeignRemainingServiceFee:   foreignRemainingServiceFee,
+		Fees: fees,
+		RemainingFees: remainingFees,
 		Pools:                        pools,
 		Providers:                    providers,
 		PurchaseLists:                purchase,
@@ -53,10 +51,8 @@ func DefaultGenesisState() *GenesisState {
 		TotalWithdrawing:           sdk.ZeroInt(),
 		TotalShield:                sdk.ZeroInt(),
 		TotalClaimed:               sdk.ZeroInt(),
-		NativeServiceFee:           sdk.DecCoins{},
-		ForeignServiceFee:          sdk.DecCoins{},
-		NativeRemainingServiceFee:  sdk.DecCoins{},
-		ForeignRemainingServiceFee: sdk.DecCoins{},
+		Fees: sdk.DecCoins{},
+		RemainingFees: sdk.DecCoins{},
 		ShieldStakingRate:          sdk.NewDec(2),
 		LastUpdateTime:             time.Now(),
 	}

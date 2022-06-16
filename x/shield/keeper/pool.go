@@ -191,7 +191,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 }
 
 // UpdatePool updates pool info and shield for B.
-func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield sdk.Coins, nativeServiceFee sdk.Coins, shieldLimit sdk.Int) (types.Pool, error) {
+func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield sdk.Coins, fees sdk.Coins, shieldLimit sdk.Int) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -212,10 +212,10 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 
 	// Update purchase and shield.
 	if !shield.IsZero() {
-		if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", updater, nativeServiceFee, sdk.NewCoins()); err != nil {
+		if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", updater, fees, sdk.NewCoins()); err != nil {
 			return pool, err
 		}
-	} else if !nativeServiceFee.IsZero() {
+	} else if !fees.IsZero() {
 		// Allow adding service fees without purchasing more shield.
 		fees := k.GetFees(ctx)
 		fees = fees.Add(fees...)
