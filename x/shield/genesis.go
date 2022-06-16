@@ -30,10 +30,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) []ab
 	k.SetTotalWithdrawing(ctx, data.TotalWithdrawing)
 	k.SetTotalShield(ctx, data.TotalShield)
 	k.SetTotalClaimed(ctx, data.TotalClaimed)
-	k.SetNativeServiceFee(ctx, data.NativeServiceFee)
-	k.SetForeignServiceFee(ctx, data.ForeignServiceFee)
-	k.SetRemainingNativeServiceFee(ctx, data.NativeRemainingServiceFee)
-	k.SetRemainingForeignServiceFee(ctx, data.ForeignRemainingServiceFee)
+	k.SetFees(ctx, data.Fees)
+	k.SetRemainingFees(ctx, data.RemainingFees)
 	k.SetGlobalShieldStakingPool(ctx, data.GlobalStakingPool)
 	k.SetShieldStakingRate(ctx, data.ShieldStakingRate)
 	for _, pool := range data.Pools {
@@ -84,10 +82,8 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 	totalShield := k.GetTotalShield(ctx)
 	totalClaimed := k.GetTotalClaimed(ctx)
-	nativeServiceFee := k.GetNativeServiceFee(ctx)
-	foreignServiceFee := k.GetForeignServiceFee(ctx)
-	remainingNativeServiceFee := k.GetRemainingNativeServiceFee(ctx)
-	remainingForeignServiceFee := k.GetRemainingForeignServiceFee(ctx)
+	fees := k.GetFees(ctx)
+	remainingFees := k.GetRemainingFees(ctx)
 	pools := k.GetAllPools(ctx)
 	nextPoolID := k.GetNextPoolID(ctx)
 	nextPurchaseID := k.GetNextPurchaseID(ctx)
@@ -102,6 +98,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	reimbursements := k.GetAllProposalIDReimbursementPairs(ctx)
 
 	return types.NewGenesisState(shieldAdmin, nextPoolID, nextPurchaseID, poolParams, claimProposalParams,
-		totalCollateral, totalWithdrawing, totalShield, totalClaimed, nativeServiceFee, foreignServiceFee, remainingNativeServiceFee, remainingForeignServiceFee, pools,
+		totalCollateral, totalWithdrawing, totalShield, totalClaimed, fees, remainingFees, pools,
 		providers, purchaseLists, withdraws, lastUpdateTime, stakingPurchaseRate, globalStakingPool, stakingPurchases, originalStaking, reimbursements)
 }

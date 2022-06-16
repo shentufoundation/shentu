@@ -25,27 +25,22 @@ const (
 )
 
 type QueryResStatus struct {
-	TotalCollateral            sdk.Int      `json:"total_collateral" yaml:"total_collateral"`
-	TotalShield                sdk.Int      `json:"total_shield" yaml:"total_shield"`
-	TotalWithdrawing           sdk.Int      `json:"total_withdrawing" yaml:"total_withdrawing"`
-	NativeCurrentServiceFee    sdk.DecCoins `json:"native_current_service_fee" yaml:"native_current_service_fee"`
-	ForeignCurrentServiceFee   sdk.DecCoins `json:"foreign_current_service_fee" yaml:"foreign_current_service_fee"`
-	NativeRemainingServiceFee  sdk.DecCoins `json:"native_remaining_service_fee" yaml:"native_remaining_service_fee"`
-	ForeignRemainingServiceFee sdk.DecCoins `json:"foreign_remaining_service_fee" yaml:"foreign_remaining_service_fee"`
-	GlobalShieldStakingPool    sdk.Int      `json:"global_shield_staking_pool" yaml:"global_shield_staking_pool"`
+	TotalCollateral         sdk.Int      `json:"total_collateral" yaml:"total_collateral"`
+	TotalShield             sdk.Int      `json:"total_shield" yaml:"total_shield"`
+	TotalWithdrawing        sdk.Int      `json:"total_withdrawing" yaml:"total_withdrawing"`
+	CurrentFees             sdk.DecCoins `json:"current_fees" yaml:"current_fees"`
+	RemainingFees           sdk.DecCoins `json:"remaining_fees" yaml:"remaining_fees"`
+	GlobalShieldStakingPool sdk.Int      `json:"global_shield_staking_pool" yaml:"global_shield_staking_pool"`
 }
 
-func NewQueryResStatus(totalCollateral, totalShield, totalWithdrawing sdk.Int, nativeCurrentServiceFee, foreignCurrentServiceFee, nativeRemainingServiceFee,
-	foreignRemainingServiceFee sdk.DecCoins, globalStakingPool sdk.Int) QueryResStatus {
+func NewQueryResStatus(totalCollateral, totalShield, totalWithdrawing sdk.Int, currentFees, remainingFees sdk.DecCoins, globalStakingPool sdk.Int) QueryResStatus {
 	return QueryResStatus{
-		TotalCollateral:            totalCollateral,
-		TotalShield:                totalShield,
-		TotalWithdrawing:           totalWithdrawing,
-		NativeCurrentServiceFee:    nativeCurrentServiceFee,
-		ForeignCurrentServiceFee:   foreignCurrentServiceFee,
-		NativeRemainingServiceFee:  nativeRemainingServiceFee,
-		ForeignRemainingServiceFee: foreignRemainingServiceFee,
-		GlobalShieldStakingPool:    globalStakingPool,
+		TotalCollateral:         totalCollateral,
+		TotalShield:             totalShield,
+		TotalWithdrawing:        totalWithdrawing,
+		CurrentFees:             currentFees,
+		RemainingFees:           remainingFees,
+		GlobalShieldStakingPool: globalStakingPool,
 	}
 }
 

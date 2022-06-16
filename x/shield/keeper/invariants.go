@@ -24,21 +24,15 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 
 		moduleCoins := keeper.bk.GetAllBalances(ctx, keeper.ak.GetModuleAccount(ctx, types.ModuleName).GetAddress())
 
-		// remaining service fees for both native and foreign
-		remainingNativeServiceFee := keeper.GetRemainingNativeServiceFee(ctx)
-		remainingForeignServiceFee := keeper.GetRemainingForeignServiceFee(ctx)
+		remainingFees := keeper.GetRemainingFees(ctx)
 
-		// rewards
-		var nativeReward sdk.DecCoins
-		var foreignReward sdk.DecCoins
+		var rewards sdk.DecCoins
 
 		for _, provider := range keeper.GetAllProviders(ctx) {
-			nativeReward = nativeReward.Add(provider.NativeReward...)
-			foreignReward = foreignReward.Add(provider.ForeignReward...)
+			rewards = rewards.Add(provider.Rewards...)
 		}
 
-		totalNativeInt, nativeChange := remainingNativeServiceFee.Add(nativeReward...).TruncateDecimal()
-		totalForeignInt, foreignChange := remainingForeignServiceFee.Add(foreignReward...).TruncateDecimal()
+		totalInt, change := remainingFees.Add(rewards...).TruncateDecimal()
 
 		// shield stake
 		shieldStake := sdk.ZeroInt()
@@ -52,21 +46,15 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 			reimbursement = reimbursement.Add(rmb.Amount.AmountOf(bondDenom))
 		}
 
-		// block service fees
-		blockNativeServiceFee := keeper.GetBlockNativeServiceFee(ctx).AmountOf(bondDenom).TruncateInt()
-		blockForeignServiceFee := keeper.GetBlockForeignServiceFee(ctx).AmountOf(bondDenom).TruncateInt()
+		blockFees := keeper.GetBlockFees(ctx).AmountOf(bondDenom).TruncateInt()
 
-		totalNativeInt = totalNativeInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, reimbursement)).Add(sdk.NewCoin(bondDenom, blockNativeServiceFee))
-		totalForeignInt = totalForeignInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, reimbursement)).Add(sdk.NewCoin(bondDenom, blockForeignServiceFee))
-
-		totalInt := totalNativeInt.Add(totalForeignInt...)
-		change := nativeChange.Add(foreignChange...)
+		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, reimbursement)).Add(sdk.NewCoin(bondDenom, blockFees))
 
 		broken := !totalInt.IsEqual(moduleCoins) || !change.Empty()
 
 		return sdk.FormatInvariant(types.ModuleName, "module-account",
 			fmt.Sprintf("\n\tshield ModuleAccount coins: %s"+
-				"\n\tsum of remaining service fees & rewards & staked & reimbursement amount:  %s"+
+				"\n\tsum of remaining fees & rewards & staked & reimbursement amount:  %s"+
 				"\n\tremaining change amount: %s\n",
 				moduleCoins, totalInt, change)), broken
 	}

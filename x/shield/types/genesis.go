@@ -25,8 +25,8 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		TotalWithdrawing:             totalWithdrawing,
 		TotalShield:                  totalShield,
 		TotalClaimed:                 totalClaimed,
-		Fees: fees,
-		RemainingFees: remainingFees,
+		Fees:                         fees,
+		RemainingFees:                remainingFees,
 		Pools:                        pools,
 		Providers:                    providers,
 		PurchaseLists:                purchase,
@@ -43,18 +43,18 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 // DefaultGenesisState returns a default genesis state.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		NextPoolId:                 uint64(1),
-		NextPurchaseId:             uint64(1),
-		PoolParams:                 DefaultPoolParams(),
-		ClaimProposalParams:        DefaultClaimProposalParams(),
-		TotalCollateral:            sdk.ZeroInt(),
-		TotalWithdrawing:           sdk.ZeroInt(),
-		TotalShield:                sdk.ZeroInt(),
-		TotalClaimed:               sdk.ZeroInt(),
-		Fees: sdk.DecCoins{},
-		RemainingFees: sdk.DecCoins{},
-		ShieldStakingRate:          sdk.NewDec(2),
-		LastUpdateTime:             time.Now(),
+		NextPoolId:          uint64(1),
+		NextPurchaseId:      uint64(1),
+		PoolParams:          DefaultPoolParams(),
+		ClaimProposalParams: DefaultClaimProposalParams(),
+		TotalCollateral:     sdk.ZeroInt(),
+		TotalWithdrawing:    sdk.ZeroInt(),
+		TotalShield:         sdk.ZeroInt(),
+		TotalClaimed:        sdk.ZeroInt(),
+		Fees:                sdk.DecCoins{},
+		RemainingFees:       sdk.DecCoins{},
+		ShieldStakingRate:   sdk.NewDec(2),
+		LastUpdateTime:      time.Now(),
 	}
 }
 

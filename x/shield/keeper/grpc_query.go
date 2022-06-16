@@ -172,12 +172,12 @@ func (q Keeper) ShieldStatus(c context.Context, req *types.QueryShieldStatusRequ
 	ctx := sdk.UnwrapSDKContext(c)
 
 	return &types.QueryShieldStatusResponse{
-		TotalCollateral:            q.GetTotalCollateral(ctx),
-		TotalShield:                q.GetTotalShield(ctx),
-		TotalWithdrawing:           q.GetTotalWithdrawing(ctx),
-		CurrentFees: q.GetFees(ctx),
-		RemainingFees: q.GetRemainingFees(ctx),
-		GlobalShieldStakingPool:    q.GetGlobalShieldStakingPool(ctx),
+		TotalCollateral:         q.GetTotalCollateral(ctx),
+		TotalShield:             q.GetTotalShield(ctx),
+		TotalWithdrawing:        q.GetTotalWithdrawing(ctx),
+		CurrentFees:             q.GetFees(ctx),
+		RemainingFees:           q.GetRemainingFees(ctx),
+		GlobalShieldStakingPool: q.GetGlobalShieldStakingPool(ctx),
 	}, nil
 }
 

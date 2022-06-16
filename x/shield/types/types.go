@@ -38,7 +38,7 @@ func NewPurchase(purchaseID uint64, protectionEndTime, deletionTime time.Time, d
 		DeletionTime:      deletionTime,
 		Description:       description,
 		Shield:            shield,
-		Fees: 			fees,
+		Fees:              fees,
 	}
 }
 

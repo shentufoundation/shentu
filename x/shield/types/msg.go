@@ -27,13 +27,13 @@ const (
 func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposits sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) *MsgCreatePool {
 
 	return &MsgCreatePool{
-		From:           accAddr.String(),
-		Shield:         shield,
-		Deposits: deposits,
-		Sponsor:        sponsor,
-		SponsorAddr:    sponsorAddr.String(),
-		Description:    description,
-		ShieldLimit:    shieldLimit,
+		From:        accAddr.String(),
+		Shield:      shield,
+		Deposits:    deposits,
+		Sponsor:     sponsor,
+		SponsorAddr: sponsorAddr.String(),
+		Description: description,
+		ShieldLimit: shieldLimit,
 	}
 }
 
@@ -81,12 +81,12 @@ func (msg MsgCreatePool) ValidateBasic() error {
 func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, fees sdk.Coins, id uint64, description string, shieldLimit sdk.Int) *MsgUpdatePool {
 
 	return &MsgUpdatePool{
-		From:              accAddr.String(),
-		Shield:            shield,
-		Fees: fees,
-		PoolId:            id,
-		Description:       description,
-		ShieldLimit:       shieldLimit,
+		From:        accAddr.String(),
+		Shield:      shield,
+		Fees:        fees,
+		PoolId:      id,
+		Description: description,
+		ShieldLimit: shieldLimit,
 	}
 }
 
