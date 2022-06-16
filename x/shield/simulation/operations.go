@@ -154,33 +154,29 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		if _, found := k.GetPoolsBySponsor(ctx, sponsor); found {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, "pool not found for given sponsor"), nil, nil
 		}
-		// serviceFees
-		nativeAmount := bk.SpendableCoins(ctx, account.GetAddress()).AmountOf(bondDenom)
-		if !nativeAmount.IsPositive() {
+		// fees
+		amount := bk.SpendableCoins(ctx, account.GetAddress()).AmountOf(bondDenom)
+		if !amount.IsPositive() {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, ""), nil, nil
 		}
-		nativeAmount, err = simtypes.RandPositiveInt(r, nativeAmount)
+		amount, err = simtypes.RandPositiveInt(r, amount)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, err.Error()), nil, nil
 		}
-		nativeServiceFee := sdk.NewCoins(sdk.NewCoin(bondDenom, nativeAmount))
-		foreignAmount, err := simtypes.RandPositiveInt(r, sdk.NewInt(int64(DefaultIntMax)))
-		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, err.Error()), nil, nil
-		}
-		foreignServiceFee := sdk.NewCoins(sdk.NewCoin(sponsor, foreignAmount))
+
+		fees := sdk.NewCoins(sdk.NewCoin(bondDenom, amount))
 
 		sponsorAcc, _ := simtypes.RandomAcc(r, accs)
 		description := simtypes.RandStringOfLength(r, 42)
 
-		msg := types.NewMsgCreatePool(simAccount.Address, shield, nativeServiceFee, foreignServiceFee, sponsor, sponsorAcc.Address, description, shieldLimit)
+		msg := types.NewMsgCreatePool(simAccount.Address, shield, fees, sponsor, sponsorAcc.Address, description, shieldLimit)
 
-		fees := sdk.Coins{}
+		feeAmount := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
 		tx, err := helpers.GenTx(
 			txGen,
 			[]sdk.Msg{msg},
-			fees,
+			feeAmount,
 			helpers.DefaultGenTxGas,
 			chainID,
 			[]uint64{account.GetAccountNumber()},
@@ -236,32 +232,28 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
-		// serviceFees
-		nativeAmount := bk.SpendableCoins(ctx, account.GetAddress()).AmountOf(bondDenom)
-		if !nativeAmount.IsPositive() {
+		// fees
+		amount := bk.SpendableCoins(ctx, account.GetAddress()).AmountOf(bondDenom)
+		if !amount.IsPositive() {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, ""), nil, nil
 		}
-		nativeAmount, err = simtypes.RandPositiveInt(r, nativeAmount)
+		amount, err = simtypes.RandPositiveInt(r, amount)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, err.Error()), nil, nil
 		}
-		nativeServiceFee := sdk.NewCoins(sdk.NewCoin(bondDenom, nativeAmount))
-		foreignAmount, err := simtypes.RandPositiveInt(r, sdk.NewInt(int64(DefaultIntMax)))
-		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, err.Error()), nil, nil
-		}
-		foreignServiceFee := sdk.NewCoins(sdk.NewCoin(pool.Sponsor, foreignAmount))
+
+		fees := sdk.NewCoins(sdk.NewCoin(bondDenom, amount))
 
 		description := simtypes.RandStringOfLength(r, 42)
 
-		msg := types.NewMsgUpdatePool(simAccount.Address, shield, nativeServiceFee, foreignServiceFee, poolID, description, sdk.ZeroInt())
+		msg := types.NewMsgUpdatePool(simAccount.Address, shield, fees, poolID, description, sdk.ZeroInt())
 
-		fees := sdk.Coins{}
+		feeAmount := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
 		tx, err := helpers.GenTx(
 			txGen,
 			[]sdk.Msg{msg},
-			fees,
+			feeAmount,
 			helpers.DefaultGenTxGas,
 			chainID,
 			[]uint64{account.GetAccountNumber()},
