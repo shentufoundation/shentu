@@ -54,7 +54,7 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 
 		return sdk.FormatInvariant(types.ModuleName, "module-account",
 			fmt.Sprintf("\n\tshield ModuleAccount coins: %s"+
-				"\n\tsum of remaining fees & rewards & staked & reimbursement amount:  %s"+
+				"\n\tsum of collected fees & rewards & staked & reimbursement amount:  %s"+
 				"\n\tremaining change amount: %s\n",
 				moduleCoins, totalInt, change)), broken
 	}
