@@ -14,11 +14,10 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
-
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
 	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
 )
 
 var (
@@ -32,7 +31,7 @@ var (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	app                 *simapp.SimApp
+	app                 *shentuapp.ShentuApp
 	ctx                 sdk.Context
 	keeper              keeper.Keeper
 	address             []sdk.AccAddress
@@ -41,7 +40,7 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.app = simapp.Setup(false)
+	suite.app = shentuapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.GovKeeper
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
@@ -52,7 +51,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	// suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(suite.address[3], "", suite.address[3], ""))
 	validatorAddress := sdk.ValAddress(suite.address[3])
 	suite.validatorAccAddress = suite.address[3]
-	pks := simapp.CreateTestPubKeys(5)
+	pks := shentuapp.CreateTestPubKeys(5)
 	powers := []int64{1, 1, 1}
 	cdc := sdksimapp.MakeTestEncodingConfig().Marshaler
 	suite.app.StakingKeeper = stakingkeeper.NewKeeper(

@@ -11,15 +11,15 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	. "github.com/certikfoundation/shentu/v2/x/oracle/keeper"
 	"github.com/certikfoundation/shentu/v2/x/oracle/types"
 )
 
 func TestQueryOperators(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 3, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 3, sdk.NewInt(80000*1e6))
 	ok1 := app.OracleKeeper
 
 	query := abci.RequestQuery{
@@ -69,9 +69,9 @@ func TestQueryOperators(t *testing.T) {
 }
 
 func TestQueryTask(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
 	legacyQuerierCdc := app.LegacyAmino()

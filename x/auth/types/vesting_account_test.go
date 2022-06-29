@@ -16,8 +16,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/common"
-	"github.com/certikfoundation/shentu/v2/simapp"
 	"github.com/certikfoundation/shentu/v2/x/auth/types"
 )
 
@@ -34,11 +34,11 @@ func TestManualVestingAcc(t *testing.T) {
 	origAmt := sdk.NewInt(1000)
 	origCoins := sdk.Coins{sdk.NewCoin(denom, origAmt)}
 
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 
 	// Set up an MVA with all its base coins vesting
-	simapp.AddTestAddrsFromPubKeys(app, ctx, pubkeys, origAmt)
+	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pubkeys, origAmt)
 	ba := authtypes.NewBaseAccountWithAddress(sdk.AccAddress(pubkeys[0].Address()))
 	bva := authvesting.NewBaseVestingAccount(ba, origCoins, 0)
 	mva := types.NewManualVestingAccountRaw(bva, sdk.NewCoins(), unlocker)

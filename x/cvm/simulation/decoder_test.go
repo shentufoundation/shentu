@@ -16,13 +16,13 @@ import (
 	"github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	. "github.com/certikfoundation/shentu/v2/x/cvm/simulation"
 	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 func TestDecodeStore(t *testing.T) {
-	cdc := simapp.MakeTestEncodingConfig()
+	cdc := shentuapp.MakeEncodingConfig()
 	dec := NewDecodeStore(cdc.Marshaler)
 
 	rand.Seed(time.Now().UnixNano())
