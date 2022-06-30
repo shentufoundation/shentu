@@ -489,13 +489,20 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	// there is nothing left over in the validator fee pool, so as to
 	// keep the CanWithdrawInvariant invariant.
 	app.mm.SetOrderBeginBlockers(upgradetypes.ModuleName, capabilitytypes.ModuleName, sdkminttypes.ModuleName, distrtypes.ModuleName,
-		slashingtypes.ModuleName, evidencetypes.ModuleName, oracletypes.ModuleName, cvmtypes.ModuleName, stakingtypes.ModuleName,
-		shieldtypes.ModuleName, ibchost.ModuleName)
+		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName,
+		authtypes.ModuleName, sdkbanktypes.ModuleName, sdkgovtypes.ModuleName, genutiltypes.ModuleName, sdkauthz.ModuleName,
+		sdkfeegrant.ModuleName, crisistypes.ModuleName, shieldtypes.ModuleName, certtypes.ModuleName, oracletypes.ModuleName,
+		cvmtypes.ModuleName,
+	)
 
 	// NOTE: Shield endblocker comes before staking because it queries
 	// unbonding delegations that staking endblocker deletes.
-	app.mm.SetOrderEndBlockers(cvmtypes.ModuleName, shieldtypes.ModuleName, stakingtypes.ModuleName, sdkgovtypes.ModuleName,
-		oracletypes.ModuleName)
+	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, sdkgovtypes.ModuleName, shieldtypes.ModuleName, stakingtypes.ModuleName,
+		capabilitytypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
+		sdkminttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, sdkauthz.ModuleName, sdkfeegrant.ModuleName,
+		upgradetypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName, certtypes.ModuleName, oracletypes.ModuleName,
+		cvmtypes.ModuleName,
+	)
 
 	// NOTE: genutil moodule must occur after staking so that pools
 	// are properly initialized with tokens from genesis accounts.
@@ -519,6 +526,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		sdkauthz.ModuleName,
 		ibctransfertypes.ModuleName,
 		sdkfeegrant.ModuleName,
+		upgradetypes.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
@@ -541,6 +549,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		ibctransfertypes.ModuleName,
 		sdkfeegrant.ModuleName,
 		evidencetypes.ModuleName,
+		upgradetypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
