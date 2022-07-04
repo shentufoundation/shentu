@@ -3,10 +3,9 @@ package keeper
 import (
 	"math/rand"
 
+	types "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // RandomValidator returns a random validator given access to the keeper and ctx.

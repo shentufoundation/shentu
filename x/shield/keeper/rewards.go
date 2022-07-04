@@ -1,9 +1,8 @@
 package keeper
 
 import (
+	types "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // PayoutNativeRewards pays out pending CTK rewards.

@@ -5,8 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 type unbondingInfo struct {

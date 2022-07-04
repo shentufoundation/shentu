@@ -7,8 +7,6 @@ import (
 	"google.golang.org/grpc/status"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 var _ types.QueryServer = Keeper{}

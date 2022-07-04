@@ -12,7 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	types "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // GetQueryCmd returns the cli query commands for this module

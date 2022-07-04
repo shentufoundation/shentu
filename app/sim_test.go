@@ -43,7 +43,7 @@ import (
 	cert "github.com/certikfoundation/shentu/v2/x/cert/types"
 	cvm "github.com/certikfoundation/shentu/v2/x/cvm/types"
 	oracle "github.com/certikfoundation/shentu/v2/x/oracle/types"
-	shield "github.com/certikfoundation/shentu/v2/x/shield/types"
+	shield "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	//"github.com/certikfoundation/shentu/x/staking"
 )
 

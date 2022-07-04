@@ -1,4 +1,4 @@
-package types
+package v1beta1
 
 import (
 	"time"
@@ -9,7 +9,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 type CertKeeper interface {

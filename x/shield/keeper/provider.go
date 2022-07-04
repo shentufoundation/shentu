@@ -2,8 +2,6 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 // SetProvider sets data of a provider in the kv-store.
