@@ -12,6 +12,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	vesting "github.com/certikfoundation/shentu/v2/x/auth/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // SecureCollaterals is called after a claim is submitted to secure

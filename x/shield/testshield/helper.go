@@ -10,6 +10,7 @@ import (
 
 	"github.com/certikfoundation/shentu/v2/x/shield"
 	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // Helper is a structure which wraps the staking handler

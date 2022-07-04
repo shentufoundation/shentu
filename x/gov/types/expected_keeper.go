@@ -1,4 +1,4 @@
-package v1beta1
+package types
 
 import (
 	"time"

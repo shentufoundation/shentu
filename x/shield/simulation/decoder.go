@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // NewDecodeStore unmarshals the KVPair's Value to the corresponding type of shield module.

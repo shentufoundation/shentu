@@ -18,7 +18,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/certikfoundation/shentu/v2/x/cert/types"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"github.com/certikfoundation/shentu/v2/x/shield/client/cli"
 	"github.com/certikfoundation/shentu/v2/x/shield/client/rest"
 	"github.com/certikfoundation/shentu/v2/x/shield/keeper"

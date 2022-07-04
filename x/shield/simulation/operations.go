@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 const (
