@@ -110,10 +110,6 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 		panic(err)
 	}
 
-	if err != nil {
-		panic(err)
-	}
-
 	var state types.AppMap
 	if err := json.Unmarshal(genDoc.AppState, &state); err != nil {
 		log.Fatal(errors.Wrap(err, "failed to JSON unmarshal initial genesis state"))
