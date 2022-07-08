@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func (k Keeper) GetGlobalShieldStakingPool(ctx sdk.Context) (pool sdk.Int) {

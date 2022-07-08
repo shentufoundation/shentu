@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"math/rand"
 
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 // ParamChanges defines the parameters that can be modified by param change proposals on the simulation.

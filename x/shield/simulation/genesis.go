@@ -4,11 +4,11 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 const letters = "abcdefghijklmnopqrstuvwxyz"

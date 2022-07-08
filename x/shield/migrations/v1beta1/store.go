@@ -5,8 +5,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v1beta1 "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	v1alpha1 "github.com/certikfoundation/shentu/v2/x/shield/types/v1alpha1"
+	v1beta1 "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 )
 
 const (
@@ -27,13 +27,13 @@ func migratePools(store sdk.KVStore, cdc codec.BinaryCodec) error {
 		}
 
 		newPool := v1beta1.Pool{
-			Id: oldPool.Id,
+			Id:          oldPool.Id,
 			Description: oldPool.Description,
-			Sponsor: oldPool.Sponsor,
+			Sponsor:     oldPool.Sponsor,
 			SponsorAddr: oldPool.SponsorAddr,
 			ShieldLimit: oldPool.ShieldLimit,
-			Active: oldPool.Active,
-			Shield: oldPool.Shield,
+			Active:      oldPool.Active,
+			Shield:      oldPool.Shield,
 		}
 
 		oldStore.Delete(oldStoreIter.Key())
@@ -54,16 +54,16 @@ func migrateProviders(store sdk.KVStore, cdc codec.BinaryCodec) error {
 		var oldProvider v1alpha1.Provider
 		err := cdc.UnmarshalLengthPrefixed(oldStoreIter.Value(), &oldProvider)
 		if err != nil {
-			return err;
+			return err
 		}
 
 		newProvider := v1beta1.Provider{
-			Address: oldProvider.Address,
+			Address:          oldProvider.Address,
 			DelegationBonded: oldProvider.DelegationBonded,
-			Collateral: oldProvider.Collateral,
-			TotalLocked: oldProvider.TotalLocked,
-			Withdrawing: oldProvider.Withdrawing,
-			Rewards: oldProvider.Rewards.Native.Add(oldProvider.Rewards.Foreign...),
+			Collateral:       oldProvider.Collateral,
+			TotalLocked:      oldProvider.TotalLocked,
+			Withdrawing:      oldProvider.Withdrawing,
+			Rewards:          oldProvider.Rewards.Native.Add(oldProvider.Rewards.Foreign...),
 		}
 
 		oldStore.Delete(oldStoreIter.Key())
@@ -77,23 +77,23 @@ func migrateProviders(store sdk.KVStore, cdc codec.BinaryCodec) error {
 func migratePurchases(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	oldStore := prefix.NewStore(store, v1beta1.PurchaseListKey)
 
-	oldStoreIter := oldStore.Iterator(nil, nil) 
+	oldStoreIter := oldStore.Iterator(nil, nil)
 	defer oldStoreIter.Close()
 
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
 		var oldPurchase v1alpha1.Purchase
 		err := cdc.UnmarshalLengthPrefixed(oldStoreIter.Value(), &oldPurchase)
 		if err != nil {
-			return err;
+			return err
 		}
 
 		newPurchase := v1beta1.Purchase{
-			PurchaseId: oldPurchase.PurchaseId,
+			PurchaseId:        oldPurchase.PurchaseId,
 			ProtectionEndTime: oldPurchase.ProtectionEndTime,
-			DeletionTime: oldPurchase.DeletionTime,
-			Description: oldPurchase.Description,
-			Shield: oldPurchase.Shield,
-			Fees: oldPurchase.ServiceFees.Native.Add(oldPurchase.ServiceFees.Foreign...),
+			DeletionTime:      oldPurchase.DeletionTime,
+			Description:       oldPurchase.Description,
+			Shield:            oldPurchase.Shield,
+			Fees:              oldPurchase.ServiceFees.Native.Add(oldPurchase.ServiceFees.Foreign...),
 		}
 
 		oldStore.Delete(oldStoreIter.Key())
@@ -107,7 +107,7 @@ func migratePurchases(store sdk.KVStore, cdc codec.BinaryCodec) error {
 func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
 
-	poolMigrationErr := migratePools(store, cdc) 
+	poolMigrationErr := migratePools(store, cdc)
 	if poolMigrationErr != nil {
 		return poolMigrationErr
 	}

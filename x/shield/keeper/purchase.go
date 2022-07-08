@@ -4,8 +4,8 @@ import (
 	"encoding/binary"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type pPPTriplet struct {

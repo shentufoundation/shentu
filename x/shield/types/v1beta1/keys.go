@@ -1,4 +1,5 @@
 package types
+
 import (
 	"encoding/binary"
 	"time"
