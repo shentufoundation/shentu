@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -76,7 +75,6 @@ func (app ShentuApp) setShieldV2UpgradeHandler() {
 			}
 
 			fromVM[shieldtypes.ModuleName] = 1
-			fromVM[crisistypes.ModuleName] = 0
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)
@@ -87,9 +85,7 @@ func (app ShentuApp) setShieldV2UpgradeHandler() {
 	}
 
 	if upgradeInfo.Name == shieldv2 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{crisistypes.ModuleName},
-		}
+		storeUpgrades := storetypes.StoreUpgrades{}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
