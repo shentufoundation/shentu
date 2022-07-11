@@ -151,6 +151,9 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 			panic(err)
 		}
 		val.ConsensusPubkey, err = codectypes.NewAnyWithValue(mypk)
+		if err != nil {
+			panic(err)
+		}
 
 		replaceValOperAddress := rks[i]["valoper"].(string)
 		replaceValConsAddress, err := val.GetConsAddr()
