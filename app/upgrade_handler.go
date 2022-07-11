@@ -13,7 +13,7 @@ import (
 	sdkfeegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 
 	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
