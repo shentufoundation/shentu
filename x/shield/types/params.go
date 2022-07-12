@@ -188,7 +188,7 @@ func validateDistributionParams(i interface{}) error {
 	}
 
 	if a.GT(b) {
-		return fmt.Errorf("a (%s) can't be bigger than b (%s)")
+		return fmt.Errorf("a (%s) can't be bigger than b (%s)", a, b)
 	}
 
 	return nil
