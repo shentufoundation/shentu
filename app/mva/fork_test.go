@@ -1,4 +1,4 @@
-package mva
+package mva_test
 
 import (
 	"testing"
@@ -16,8 +16,9 @@ import (
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
+	"github.com/certikfoundation/shentu/v2/app/mva"
 	"github.com/certikfoundation/shentu/v2/common"
-	"github.com/certikfoundation/shentu/v2/simapp"
 	"github.com/certikfoundation/shentu/v2/x/auth/types"
 	bankkeeper "github.com/certikfoundation/shentu/v2/x/bank/keeper"
 	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
@@ -68,7 +69,7 @@ type ForkTestSuite struct {
 	suite.Suite
 
 	// cdc    *codec.LegacyAminogenAccs
-	app      *simapp.SimApp
+	app      *shentuapp.ShentuApp
 	ctx      sdk.Context
 	ak       sdkauthkeeper.AccountKeeper
 	bk       bankkeeper.Keeper
@@ -110,14 +111,14 @@ func copyMVA(mva types.ManualVestingAccount) *types.ManualVestingAccount {
 }
 
 func (suite *ForkTestSuite) SetupTest() {
-	suite.app = simapp.Setup(false)
+	suite.app = shentuapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.ak = suite.app.AccountKeeper
 	suite.bk = suite.app.BankKeeper
 	suite.sk = suite.app.StakingKeeper
 
-	pks := simapp.CreateTestPubKeys(4)
-	simapp.AddTestAddrsFromPubKeys(suite.app, suite.ctx, pks, sdk.NewInt(2e8))
+	pks := shentuapp.CreateTestPubKeys(4)
+	shentuapp.AddTestAddrsFromPubKeys(suite.app, suite.ctx, pks, sdk.NewInt(2e8))
 	val1pk, val2pk := pks[2], pks[3]
 	val1addr, val2addr := sdk.ValAddress(val1pk.Address()), sdk.ValAddress(val2pk.Address())
 
@@ -306,7 +307,7 @@ func (suite *ForkTestSuite) TestFork() {
 				suite.tstaking.Undelegate(tc.args.acc.GetAddress(), operAddr, u.Int64(), true)
 			}
 			suite.tstaking.TurnBlock(suite.ctx)
-			res := MigrateAccount(suite.ctx, tc.args.acc, suite.bk, &suite.sk)
+			res := mva.MigrateAccount(suite.ctx, tc.args.acc, suite.bk, &suite.sk)
 
 			resMVA := res.(*types.ManualVestingAccount)
 			if tc.expected.shouldPass {

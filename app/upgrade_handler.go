@@ -24,10 +24,10 @@ const (
 )
 
 func (app ShentuApp) setv230UpgradeHandler() {
-	app.upgradeKeeper.SetUpgradeHandler(
+	app.UpgradeKeeper.SetUpgradeHandler(
 		v230Upgrade,
 		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-			app.ibcKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
+			app.IBCKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
 
 			fromVM := make(map[string]uint64)
 			for moduleName := range app.mm.Modules {
@@ -50,12 +50,12 @@ func (app ShentuApp) setv230UpgradeHandler() {
 		},
 	)
 
-	upgradeInfo, err := app.upgradeKeeper.ReadUpgradeInfoFromDisk()
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if upgradeInfo.Name == v230Upgrade && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == v230Upgrade && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{authz.ModuleName, feegrant.ModuleName},
 		}
@@ -66,7 +66,7 @@ func (app ShentuApp) setv230UpgradeHandler() {
 }
 
 func (app ShentuApp) setShieldV2UpgradeHandler() {
-	app.upgradeKeeper.SetUpgradeHandler(
+	app.UpgradeKeeper.SetUpgradeHandler(
 		shieldv2,
 		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
 			fromVM := make(map[string]uint64)
@@ -79,12 +79,12 @@ func (app ShentuApp) setShieldV2UpgradeHandler() {
 		},
 	)
 
-	upgradeInfo, err := app.upgradeKeeper.ReadUpgradeInfoFromDisk()
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if upgradeInfo.Name == shieldv2 && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == shieldv2 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
