@@ -34,7 +34,7 @@ linters-settings:
   lll:
     line-length: 140
   goimports:
-    local-prefixes: github.com/certikfoundation/shentu
+    local-prefixes: github.com/certikfoundation/shentu/v2
   gocritic:
     enabled-tags:
       - diagnostic

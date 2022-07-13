@@ -9,16 +9,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/mint"
 )
 
 func TestBeginBlocker(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	k := app.MintKeeper
 
-	p := minttypes.DefaultParams()
+	p := mint.DefaultGenesisState().GetParams()
 	k.SetParams(ctx, p)
 	type args struct {
 		minter minttypes.Minter

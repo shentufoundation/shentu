@@ -155,6 +155,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		AddGenesisAccountCmd(app.DefaultNodeHome),
 		AddGenesisCertifierCmd(app.DefaultNodeHome),
 		AddGenesisShieldAdminCmd(app.DefaultNodeHome),
+		RotateValKeysCmd(),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}),
 		tmcmds.RollbackStateCmd,

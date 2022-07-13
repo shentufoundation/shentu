@@ -40,3 +40,14 @@ func (k Keeper) GetShieldStakingRate(ctx sdk.Context) (rate sdk.Dec) {
 func (k Keeper) SetShieldStakingRate(ctx sdk.Context, rate sdk.Dec) {
 	k.paramSpace.Set(ctx, types.ParamStoreKeyStakingShieldRate, &rate)
 }
+
+// GetDistributionParams returns distribution parameters.
+func (k Keeper) GetDistributionParams(ctx sdk.Context) (distrParams types.DistributionParams) {
+	k.paramSpace.Get(ctx, types.ParamStoreKeyDistribution, &distrParams)
+	return
+}
+
+// SetDistributionParams sets distribution parameters.
+func (k Keeper) SetDistributionParams(ctx sdk.Context, dp types.DistributionParams) {
+	k.paramSpace.Set(ctx, types.ParamStoreKeyDistribution, &dp)
+}

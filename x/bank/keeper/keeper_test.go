@@ -15,8 +15,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/common"
-	"github.com/certikfoundation/shentu/v2/simapp"
 	vesting "github.com/certikfoundation/shentu/v2/x/auth/types"
 	"github.com/certikfoundation/shentu/v2/x/bank/keeper"
 	"github.com/certikfoundation/shentu/v2/x/bank/types"
@@ -35,7 +35,7 @@ type KeeperTestSuite struct {
 	suite.Suite
 
 	address     []sdk.AccAddress
-	app         *simapp.SimApp
+	app         *shentuapp.ShentuApp
 	ctx         sdk.Context
 	params      types.AccountKeeper
 	keeper      keeper.Keeper
@@ -43,7 +43,7 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.app = simapp.Setup(false)
+	suite.app = shentuapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.BankKeeper
 	suite.params = suite.app.AccountKeeper
