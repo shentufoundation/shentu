@@ -130,17 +130,40 @@ lint: tidy
 
 ########## Testing ##########
 
-test: tidy
-	@GO111MODULE=on go test ${PKG_LIST}
+PACKAGES_UNIT=$(shell go list ./... | grep -v -e '/tests/e2e')
+PACKAGES_E2E=$(shell go list ./... | grep '/e2e')
+TEST_PACKAGES=./...
+TEST_TARGETS := test-unit test-unit-cover test-race test-e2e
 
-coverage.out: tidy
-	@GO111MODULE=on go test -short -coverprofile=coverage.out -covermode=atomic ${PKG_LIST}
+test-unit: ARGS=-timeout=5m -tags='norace'
+test-unit: TEST_PACKAGES=$(PACKAGES_UNIT)
+test-unit-cover: ARGS=-timeout=5m -tags='norace' -coverprofile=coverage.txt -covermode=atomic
+test-unit-cover: TEST_PACKAGES=$(PACKAGES_UNIT)
+test-race: ARGS=-timeout=5m -race
+test-race: TEST_PACKAGES=$(PACKAGES_UNIT)
+test-e2e: ARGS=-timeout=25m -v
+test-e2e: TEST_PACKAGES=$(PACKAGES_E2E)
+$(TEST_TARGETS): run-tests
 
-test-cov: coverage.out
-	@GO111MODULE=on go tool cover -func $<
+run-tests:
+ifneq (,$(shell which tparse 2>/dev/null))
+	@echo "--> Running tests"
+	@go test -mod=readonly -json $(ARGS) $(TEST_PACKAGES) | tparse
+else
+	@echo "--> Running tests"
+	@go test -mod=readonly $(ARGS) $(TEST_PACKAGES)
+endif
 
-test-cov-html: coverage.out
-	@GO111MODULE=on go tool cover -html $<
+.PHONY: run-tests $(TEST_TARGETS)
+
+docker-build-debug:
+	@docker build -t cosmos/gaiad-e2e --build-arg IMG_TAG=debug -f e2e.Dockerfile .
+
+# TODO: Push this to the Cosmos Dockerhub so we don't have to keep building it
+# in CI.
+docker-build-hermes:
+	@cd tests/e2e/docker; docker build -t cosmos/hermes-e2e:latest -f hermes.Dockerfile .
+
 
 image: Dockerfile Dockerfile.update
 	@docker rmi -f shentu-base -f shentu

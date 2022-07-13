@@ -3,7 +3,7 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   cleanup-runs:
@@ -70,6 +70,11 @@ jobs:
             **/**.go
             go.mod
             go.sum
+      # TODO: implement and enable e2e tests
+      - name: Build Docker Image
+        run: make docker-build-debug
+      - name: Test E2E
+        run: make test-e2e
 
   liveness-test:
     runs-on: ubuntu-latest
