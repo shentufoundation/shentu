@@ -70,11 +70,11 @@ jobs:
           name: "Save go modules cache"
           key: go-mod-v1-{{ checksum "go.sum" }}
           paths:
-            - "/go/pkg/mod"
+            - "/home/circleci/go/pkg/mod"
       - run:
           command: |
             mkdir -p /tmp/bin
-            cp -r /go/bin/* /tmp/bin
+            cp -r /home/circleci/go/bin/* /tmp/bin
       - persist_to_workspace:
           root: "/tmp/bin"
           paths:
@@ -197,7 +197,7 @@ jobs:
   localnet:
     working_directory: /home/circleci/.go_workspace/src/github.com/shentuchain/shentu
     machine:
-      image: ubuntu-2004:202010-01
+      image: ubuntu-2004:2022.04.2
     environment:
       GOPATH: /home/circleci/.go_workspace/
       GOOS: linux
@@ -261,7 +261,7 @@ jobs:
             cp gitian-build-multi/result/shentu-multi-res.yml .
             rm -rf gitian-build-multi/
       - store_artifacts:
-          path: /go/src/github.com/shentuchain/shentu/certik-multi-res.yml
+          path: /home/circleci/go/src/github.com/shentuchain/shentu/certik-multi-res.yml
 
   docker-image:
     executor: golang
