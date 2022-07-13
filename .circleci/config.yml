@@ -13,7 +13,7 @@ executors:
       xcode: "10.3.0"
     working_directory: /Users/distiller/project/src/github.com/shentuchain/shentu
     environment:
-      GO_VERSION: "1.16.3"
+      GO_VERSION: "1.18.3"
 commands:
   make:
     parameters:
@@ -38,14 +38,15 @@ commands:
     steps:
       - run:
           name: "Set environment"
-          command: | 
+          command: |
             echo 'export PATH=$PATH:$HOME/go/bin' >> $BASH_ENV
             echo 'export GOPATH=$HOME/project' >> $BASH_ENV
             echo 'export PATH=$PATH:$HOME/go/bin:$GOPATH/bin' >> $BASH_ENV
-            echo 'export GO111MODULE=on' 
+            echo 'export GO111MODULE=on'
 jobs:
   setup-dependencies:
     executor: golang
+    resource_class: large
     steps:
       - checkout
       - restore_cache:
@@ -92,6 +93,7 @@ jobs:
       - make:
           target: test-sim-import-export
           description: "Test Shentu import/export simulation"
+    resource_class: xlarge
 
   test-sim-after-import:
     executor: golang
@@ -99,6 +101,7 @@ jobs:
       - make:
           target: test-sim-after-import
           description: "Test Shentu simulation after importing state"
+    resource_class: xlarge
 
   test-sim-multi-seed-short:
     executor: golang
@@ -106,6 +109,7 @@ jobs:
       - make:
           target: test-sim-multi-seed-short
           description: "Test Shentu multi-seed simulation (short-lived)"
+    resource_class: xlarge
 
   test-sim-multi-seed-long:
     executor: golang
@@ -113,6 +117,7 @@ jobs:
       - make:
           target: test-sim-multi-seed-long
           description: "Test Shentu multi-seed simulation (long-lived)"
+    resource_class: 2xlarge
 
   test-sim-nondeterminism:
     executor: golang
@@ -168,7 +173,7 @@ jobs:
             export BUILD_TAGS="netgo ledger"
             export GOSUM=$(sha256sum go.sum | cut -d ' ' -f1)
             curl -sL https://git.io/goreleaser | bash
-  
+
   upload-coverage:
     executor: golang
     steps:
@@ -192,7 +197,7 @@ jobs:
   localnet:
     working_directory: /home/circleci/.go_workspace/src/github.com/shentuchain/shentu
     machine:
-      image: ubuntu-2004:202201-02
+      image: ubuntu-2004:202010-01
     environment:
       GOPATH: /home/circleci/.go_workspace/
       GOOS: linux
@@ -213,7 +218,7 @@ jobs:
             set -x
             make clean build-docker-certiknode localnet-start
             ./devtools/localnet/localnet-blocks-test.sh 100 5 50 localhost
-  
+
   macos-ci:
     executor: mac
     steps:
@@ -238,7 +243,7 @@ jobs:
           command: |
             source $BASH_ENV
             make test-sim-fast
-  
+
   reproducible-builds:
     executor: golang
     steps:
@@ -268,7 +273,7 @@ jobs:
           docker_layer_caching: true
       - run: |
           docker build .
-  
+
   docker-tagged:
     executor: golang
     steps:
@@ -315,6 +320,9 @@ workflows:
           requires:
             - setup-dependencies
       - test-sim-import-export:
+          requires:
+            - setup-dependencies
+      - test-sim-after-import:
           requires:
             - setup-dependencies
       - test-sim-multi-seed-short:
