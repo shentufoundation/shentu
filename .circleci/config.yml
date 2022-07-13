@@ -7,7 +7,7 @@ executors:
   golang:
     docker:
       - image: cimg/go:1.18.3
-    working_directory: /go/src/github.com/shentuchain/shentu
+    working_directory: /home/circleci/go/src/github.com/shentuchain/shentu
   mac:
     macos:
       xcode: "10.3.0"
