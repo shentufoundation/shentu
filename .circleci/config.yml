@@ -6,7 +6,7 @@ version: 2.1
 executors:
   golang:
     docker:
-      - image: circleci/golang:1.16.3
+      - image: cimg/go:1.18.3
     working_directory: /go/src/github.com/shentuchain/shentu
   mac:
     macos:
@@ -159,7 +159,7 @@ jobs:
 
   release:
     docker:
-      - image: circleci/golang:1.16.3
+      - image: cimg/go:1.18.3
     steps:
       - checkout
       - run:
@@ -197,7 +197,7 @@ jobs:
       GOPATH: /home/circleci/.go_workspace/
       GOOS: linux
       GOARCH: amd64
-      GO_VERSION: "1.16.3"
+      GO_VERSION: "1.18.3"
     parallelism: 1
     steps:
       - checkout
