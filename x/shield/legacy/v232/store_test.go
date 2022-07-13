@@ -10,7 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
@@ -19,13 +19,13 @@ import (
 type MigrationTestSuite struct {
 	suite.Suite
 
-	app    *simapp.SimApp
+	app    *shentuapp.ShentuApp
 	ctx    sdk.Context
 	keeper keeper.Keeper
 }
 
 func (suite *MigrationTestSuite) SetupTest() {
-	suite.app = simapp.Setup(false)
+	suite.app = shentuapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	suite.keeper = suite.app.ShieldKeeper
 }
