@@ -44,7 +44,6 @@ jobs:
         run: |
           excludelist="$(find ./ -type f -name '*.go' | xargs grep -l 'DONTCOVER')"
           excludelist+=" $(find ./ -type f -name '*.pb.go')"
-          excludelist+=" $(find ./ -type f -path './tests/mocks/*.go')"
           for filename in ${excludelist}; do
             filename=$(echo $filename | sed 's/^./github.com\/cosmos\/cosmos-sdk/g')
             echo "Excluding ${filename} from coverage report..."
@@ -90,15 +89,15 @@ jobs:
             **/**.go
             go.mod
             go.sum
-      - name: Install Gaia
+      - name: Install CertiK binary
         run: |
           make build
         if: env.GIT_DIFF
       - name: Start Local Network
         run: |
-          make start-localnet-ci > liveness.out 2>&1 &
+          make localnet-start > liveness.out 2>&1 &
         if: env.GIT_DIFF
       - name: Test Local Network Liveness
         run: |
-          ./contrib/scripts/test_localnet_liveness.sh 100 5 50 localhost
+          devtools/localnet/localnet-blocks-test.sh 100 5 50 localhost
         if: env.GIT_DIFF
