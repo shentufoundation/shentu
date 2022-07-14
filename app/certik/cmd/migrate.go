@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"sort"
-	
+
 	"github.com/spf13/cobra"
 
 	cryptocodec "github.com/tendermint/tendermint/crypto/encoding"
