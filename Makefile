@@ -200,7 +200,7 @@ start-localnet-ci:
 	./build/certik gentx val 1000000000uctk --home ~/.certik-liveness --chain-id liveness
 	./build/certik collect-gentxs --home ~/.certik-liveness
 	sed -i'' 's/minimum-gas-prices = ""/minimum-gas-prices = "0uatom"/' ~/.certik-liveness/config/app.toml
-	./build/certik start --home ~/.certik-liveness --mode validator --x-crisis-skip-assert-invariants
+	./build/certik start --home ~/.certik-liveness --x-crisis-skip-assert-invariants
 
 .PHONY: start-localnet-ci
 
