@@ -95,9 +95,9 @@ jobs:
         if: env.GIT_DIFF
       - name: Start Local Network
         run: |
-          make localnet-start > liveness.out 2>&1 &
+          make start-localnet-ci > liveness.out 2>&1 &
         if: env.GIT_DIFF
       - name: Test Local Network Liveness
         run: |
-          devtools/localnet/localnet-blocks-test.sh 100 5 50 localhost
+          devtools/localnet/test_localnet_liveness.sh 100 5 50 localhost
         if: env.GIT_DIFF

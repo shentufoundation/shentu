@@ -191,6 +191,19 @@ localnet-start: build-linux build-docker-certiknode localnet-stop
 localnet-stop:
 	docker-compose down
 
+start-localnet-ci:
+	./build/certik init liveness --chain-id liveness --home ~/.certik-liveness
+	./build/certik config chain-id liveness --home ~/.certik-liveness
+	./build/certik config keyring-backend test --home ~/.certik-liveness
+	./build/certik keys add val --home ~/.certik-liveness
+	./build/certik add-genesis-account val 10000000000000000000000000uctk --home ~/.certik-liveness --keyring-backend test
+	./build/certik gentx val 1000000000uctk --home ~/.gaiad-liveness --chain-id liveness
+	./build/certik collect-gentxs --home ~/.certik-liveness
+	sed -i'' 's/minimum-gas-prices = ""/minimum-gas-prices = "0uatom"/' ~/.certik-liveness/config/app.toml
+	./build/certik start --home ~/.certik-liveness --mode validator --x-crisis-skip-assert-invariants
+
+.PHONY: start-localnet-ci
+
 # include simulations
 include sims.mk
 
