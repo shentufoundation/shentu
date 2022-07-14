@@ -63,7 +63,7 @@ include devtools/Makefile
 
 export GO111MODULE = on
 
-all: install release lint test
+all: install release lint test-unit
 
 install: go.sum
 	go install $(BUILD_FLAGS) ./app/certik
@@ -125,7 +125,7 @@ tidy:
 	@gofmt -s -w .
 	@go mod tidy
 
-lint: tidy
+lint:
 	@echo "--> Running linter"
 	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m
 
