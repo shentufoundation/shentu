@@ -183,8 +183,12 @@ func validateDistributionParams(i interface{}) error {
 	if b.LT(sdk.ZeroDec()) || b.GT(sdk.OneDec()) {
 		return fmt.Errorf("invalid value for b: %s", b.String())
 	}
-	if L.LT(sdk.ZeroDec()) {
-		return fmt.Errorf("invalid value for L: %s", b.String())
+	if L.LT(sdk.ZeroDec()) || L.GT(sdk.OneDec()) {
+		return fmt.Errorf("invalid value for L: %s", L.String())
+	}
+
+	if a.GT(b) {
+		return fmt.Errorf("a (%s) can't be bigger than b (%s)", a, b)
 	}
 
 	return nil

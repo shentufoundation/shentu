@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"log"
 	"sort"
@@ -111,10 +110,6 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 		panic(err)
 	}
 
-	if err != nil {
-		panic(err)
-	}
-
 	var state types.AppMap
 	if err := json.Unmarshal(genDoc.AppState, &state); err != nil {
 		log.Fatal(errors.Wrap(err, "failed to JSON unmarshal initial genesis state"))
@@ -156,6 +151,9 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 			panic(err)
 		}
 		val.ConsensusPubkey, err = codectypes.NewAnyWithValue(mypk)
+		if err != nil {
+			panic(err)
+		}
 
 		replaceValOperAddress := rks[i]["valoper"].(string)
 		replaceValConsAddress, err := val.GetConsAddr()
