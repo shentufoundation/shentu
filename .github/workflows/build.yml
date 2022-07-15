@@ -39,7 +39,7 @@ jobs:
           cd app/certik/cmd
           go build .
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: certik ${{ matrix.targetos }} ${{ matrix.arch }}
           path: app/certik/cmd/certik
