@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,6 +22,7 @@ import (
 const (
 	v230Upgrade = "Shentu-v230"
 	shieldv2    = "Shield-V2"
+	tmp         = "tmp"
 )
 
 func (app ShentuApp) setv230UpgradeHandler() {
@@ -85,6 +87,31 @@ func (app ShentuApp) setShieldV2UpgradeHandler() {
 	}
 
 	if upgradeInfo.Name == shieldv2 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+}
+
+// TODO: rename upgrade title
+func (app ShentuApp) setTmpUpgradeHandler() {
+	app.UpgradeKeeper.SetUpgradeHandler(
+		tmp,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			constantFee := crisistypes.DefaultGenesisState()
+			constantFee.ConstantFee.Denom = app.StakingKeeper.BondDenom(ctx)
+			app.CrisisKeeper.SetConstantFee(ctx, constantFee.ConstantFee)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		},
+	)
+
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
+	}
+
+	if upgradeInfo.Name == tmp && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
