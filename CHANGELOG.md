@@ -51,7 +51,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Tests
 ### Bug Fixes
 
-
 ## [v2.4.0] - 06-17-2022
 
 ### State Machine Breaking Changes
@@ -59,6 +58,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 * (app) [\#387](https://github.com/certikfoundation/shentu/pull/387) Add genesis validator key rotation command
+
 
 ## [v2.3.2] - 05-02-2022
 
