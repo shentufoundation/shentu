@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	sdkauthz "github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
@@ -32,13 +33,17 @@ func (app ShentuApp) setUpgradeHandler() {
 			fromVM[sdkauthz.ModuleName] = 0
 			fromVM[sdkfeegrant.ModuleName] = 0
 
+			fromVM[shieldtypes.ModuleName] = 1
+
 			fromVM[authtypes.ModuleName] = 2
+
 			newVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
 
 			if err != nil {
 				return newVM, err
 			}
 
+			newVM[shieldtypes.ModuleName] = 2
 			newVM[authtypes.ModuleName] = 1
 
 			return app.mm.RunMigrations(ctx, app.configurator, newVM)
