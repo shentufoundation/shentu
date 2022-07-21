@@ -1,5 +1,7 @@
 package cmd
 
+// DONTCOVER
+
 import (
 	"bufio"
 	"encoding/json"

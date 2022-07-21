@@ -9,6 +9,8 @@ import (
 	"log"
 	"sort"
 
+	"github.com/spf13/cobra"
+
 	cryptocodec "github.com/tendermint/tendermint/crypto/encoding"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -24,7 +26,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/spf13/cobra"
 )
 
 const (
