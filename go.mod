@@ -13,7 +13,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/hyperledger/burrow v0.31.0
 	github.com/magiconair/properties v1.8.6
-	github.com/ory/dockertest v3.3.5+incompatible
 	github.com/ory/dockertest/v3 v3.8.1
 	github.com/rakyll/statik v0.1.7
 	github.com/regen-network/cosmos-proto v0.3.1
@@ -65,7 +64,6 @@ require (
 	github.com/breml/errchkjson v0.3.0 // indirect
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/butuzov/ireturn v0.1.1 // indirect
-	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect

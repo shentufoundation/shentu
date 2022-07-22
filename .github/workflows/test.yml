@@ -55,7 +55,6 @@ jobs:
           file: ./coverage.txt # optional
           fail_ci_if_error: true
 
-#  TODO: implement and enable e2e tests
   test-e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 25
