@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,8 +9,13 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	sdkauthz "github.com/cosmos/cosmos-sdk/x/authz"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	sdkfeegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
@@ -99,9 +103,44 @@ func (app ShentuApp) setTmpUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		tmp,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			ctx.Logger().Info("Initializing Crisis module...")
 			constantFee := crisistypes.DefaultGenesisState()
 			constantFee.ConstantFee.Denom = app.StakingKeeper.BondDenom(ctx)
-			app.CrisisKeeper.SetConstantFee(ctx, constantFee.ConstantFee)
+			app.CrisisKeeper.InitGenesis(ctx, constantFee)
+
+			fromVM[icatypes.ModuleName] = icaModule.ConsensusVersion()
+			// create ICS27 Controller submodule params
+			controllerParams := icacontrollertypes.Params{}
+			// create ICS27 Host submodule params
+			hostParams := icahosttypes.Params{
+				HostEnabled: true,
+				AllowMessages: []string{
+					sdk.MsgTypeURL(&authz.MsgExec{}),
+					sdk.MsgTypeURL(&authz.MsgGrant{}),
+					sdk.MsgTypeURL(&authz.MsgRevoke{}),
+					sdk.MsgTypeURL(&banktypes.MsgSend{}),
+					sdk.MsgTypeURL(&distrtypes.MsgWithdrawDelegatorReward{}),
+					sdk.MsgTypeURL(&distrtypes.MsgSetWithdrawAddress{}),
+					sdk.MsgTypeURL(&distrtypes.MsgWithdrawValidatorCommission{}),
+					sdk.MsgTypeURL(&distrtypes.MsgFundCommunityPool{}),
+					sdk.MsgTypeURL(&govtypes.MsgVote{}),
+					sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}),
+					sdk.MsgTypeURL(&stakingtypes.MsgBeginRedelegate{}),
+					sdk.MsgTypeURL(&stakingtypes.MsgCreateValidator{}),
+					sdk.MsgTypeURL(&stakingtypes.MsgEditValidator{}),
+					sdk.MsgTypeURL(&shieldtypes.MsgCreatePool{}),
+					sdk.MsgTypeURL(&shieldtypes.MsgDepositCollateral{}),
+					sdk.MsgTypeURL(&shieldtypes.MsgWithdrawCollateral{}),
+					sdk.MsgTypeURL(&shieldtypes.MsgWithdrawRewards{}),
+					sdk.MsgTypeURL(&shieldtypes.MsgWithdrawReimbursement{}),
+					sdk.MsgTypeURL(&shieldtypes.MsgPurchaseShield{}),
+				},
+			}
+
+			ctx.Logger().Info("start to init interchainaccount module...")
+			// initialize ICS27 module
+			icaModule.InitModule(ctx, controllerParams, hostParams)
+			ctx.Logger().Info("Start to run module migrations...")
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)

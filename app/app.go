@@ -602,8 +602,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	app.setv230UpgradeHandler()
-	app.setShieldV2UpgradeHandler()
+	app.RegisterUpgradeHandlers()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -758,6 +757,12 @@ func (app *ShentuApp) RegisterTxService(clientCtx client.Context) {
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
 func (app *ShentuApp) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
+}
+
+// RegisterUpgradeHandlers registers necessary upgrade handlers
+func (app *ShentuApp) RegisterUpgradeHandlers() {
+	app.setv230UpgradeHandler()
+	app.setShieldV2UpgradeHandler()
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
