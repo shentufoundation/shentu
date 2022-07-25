@@ -3,7 +3,6 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	icahosttypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
 	"math/rand"
 	"os"
 	"testing"
@@ -188,7 +187,6 @@ func TestAppImportExport(t *testing.T) {
 		{app.GetKey(capability.StoreKey), newApp.GetKey(capability.StoreKey), [][]byte{}},
 		{app.GetKey(ibchost.StoreKey), newApp.GetKey(ibchost.StoreKey), [][]byte{}},
 		{app.GetKey(ibctransfer.StoreKey), newApp.GetKey(ibctransfer.StoreKey), [][]byte{}},
-		{app.GetKey(icahosttypes.StoreKey), newApp.GetKey(icahosttypes.StoreKey), [][]byte{}},
 	}
 
 	for _, skp := range storeKeysPrefixes {
