@@ -57,8 +57,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (x/shield) [\#380](https://github.com/certikfoundation/shentu/pull/380) Add more fine-grained and additional shield rewards to the collateral providers.
 
 ### Features
-* (app) [\#387](https://github.com/certikfoundation/shentu/pull/387) Add genesis validator key rotation command
-
+* (app) [\#387](https://github.com/certikfoundation/shentu/pull/387) Add genesis validator key rotation command.
+* (x/shield) [\#437](https://github.com/certikfoundation/shentu/pull/437) Add automatic reward withdrawals on deposit/withdraw collateral.
 
 ## [v2.3.2] - 05-02-2022
 
