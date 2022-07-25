@@ -15,20 +15,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/certikfoundation/shentu/v2/common"
+	tmconfig "github.com/tendermint/tendermint/config"
+	tmjson "github.com/tendermint/tendermint/libs/json"
+	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 
 	"github.com/cosmos/cosmos-sdk/server"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
-	tmconfig "github.com/tendermint/tendermint/config"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
+
+	"github.com/certikfoundation/shentu/v2/common"
 )
 
 const (
