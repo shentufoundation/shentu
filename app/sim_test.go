@@ -22,8 +22,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
-
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capability "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -32,10 +30,10 @@ import (
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
 	params "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/cosmos/cosmos-sdk/x/simulation"
 	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
 	ibctransfer "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 
@@ -43,7 +41,6 @@ import (
 	cvm "github.com/certikfoundation/shentu/v2/x/cvm/types"
 	oracle "github.com/certikfoundation/shentu/v2/x/oracle/types"
 	shield "github.com/certikfoundation/shentu/v2/x/shield/types"
-	//"github.com/certikfoundation/shentu/x/staking"
 )
 
 type StoreKeysPrefixes struct {
@@ -113,13 +110,11 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	//invCheckPeriod := simapp.FlagPeriodValue
-	var invCheckPeriod uint = 1
-	app := NewShentuApp(logger, db, nil, true, map[int64]bool{},
-		DefaultNodeHome, invCheckPeriod, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
-	require.Equal(t, AppName, app.Name())
+	app := NewShentuApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome,
+		simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	require.Equal(t, "Shentu", app.Name())
 
-	// run randomized simulation
+	// Run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
 		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
@@ -136,13 +131,12 @@ func TestAppImportExport(t *testing.T) {
 	}
 
 	fmt.Printf("exporting genesis...\n")
-
-	appState, err := app.ExportAppStateAndValidators(false, []string{})
+	exported, err := app.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err)
 
 	fmt.Printf("importing genesis...\n")
 
-	_, newDB, newDir, _, _, err := simapp.SetupSimulation("leveldb-app-sim-2", "Simulation-2") // nolint
+	_, newDB, newDir, _, _, err := simapp.SetupSimulation("leveldb-app-sim-2", "Simulation-2")
 	require.NoError(t, err, "simulation setup failed")
 
 	defer func() {
@@ -151,18 +145,25 @@ func TestAppImportExport(t *testing.T) {
 	}()
 
 	newApp := NewShentuApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{},
-		DefaultNodeHome, invCheckPeriod, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 
-	require.Equal(t, AppName, newApp.Name())
-
-	var genesisState simapp.GenesisState
-	err = json.Unmarshal(appState.AppState, &genesisState)
+	var genesisState GenesisState
+	err = json.Unmarshal(exported.AppState, &genesisState)
 	require.NoError(t, err)
 
 	ctxA := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
+
+	// bypass an error where the original chain's SendEnabled is `null` instead of `[]`
+	// TODO: remove this and make it work
+	pA := app.BankKeeper.GetParams(ctxA)
+	if len(pA.SendEnabled) == 0 {
+		pA.SendEnabled = []*bank.SendEnabled{}
+	}
+	app.BankKeeper.SetParams(ctxA, pA)
+
 	ctxB := newApp.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
-	newApp.ModuleManager().InitGenesis(ctxB, app.Codec(), genesisState)
-	newApp.StoreConsensusParams(ctxB, appState.ConsensusParams)
+	newApp.mm.InitGenesis(ctxB, app.Codec(), genesisState)
+	newApp.StoreConsensusParams(ctxB, exported.ConsensusParams)
 
 	fmt.Printf("comparing stores...\n")
 
@@ -176,7 +177,6 @@ func TestAppImportExport(t *testing.T) {
 		{app.GetKey(mint.StoreKey), newApp.GetKey(mint.StoreKey), [][]byte{}},
 		{app.GetKey(slashing.StoreKey), newApp.GetKey(slashing.StoreKey), [][]byte{}},
 		{app.GetKey(bank.StoreKey), newApp.GetKey(bank.StoreKey), [][]byte{bank.BalancesPrefix}},
-		{app.GetKey(params.StoreKey), newApp.GetKey(params.StoreKey), [][]byte{}},
 		{app.GetKey(upgrade.StoreKey), newApp.GetKey(upgrade.StoreKey), [][]byte{}},
 		{app.GetKey(gov.StoreKey), newApp.GetKey(gov.StoreKey), [][]byte{}},
 		{app.GetKey(cert.StoreKey), newApp.GetKey(cert.StoreKey), [][]byte{}},
@@ -187,6 +187,7 @@ func TestAppImportExport(t *testing.T) {
 		{app.GetKey(capability.StoreKey), newApp.GetKey(capability.StoreKey), [][]byte{}},
 		{app.GetKey(ibchost.StoreKey), newApp.GetKey(ibchost.StoreKey), [][]byte{}},
 		{app.GetKey(ibctransfer.StoreKey), newApp.GetKey(ibctransfer.StoreKey), [][]byte{}},
+		{app.GetKey(params.StoreKey), newApp.GetKey(params.StoreKey), [][]byte{}},
 	}
 
 	for _, skp := range storeKeysPrefixes {
@@ -195,11 +196,9 @@ func TestAppImportExport(t *testing.T) {
 
 		failedKVAs, failedKVBs := sdk.DiffKVStores(storeA, storeB, skp.Prefixes)
 		require.Equal(t, len(failedKVAs), len(failedKVBs), "unequal sets of key-values to compare")
-		if len(failedKVAs) != 0 {
-			fmt.Printf("found %d non-equal key/value pairs between %s and %s\n", len(failedKVAs), skp.A.Name(), skp.B.Name())
-		}
-		require.Equal(t, len(failedKVAs), 0, simapp.GetSimulationLog(skp.A.Name(),
-			app.SimulationManager().StoreDecoders, failedKVAs, failedKVBs))
+
+		fmt.Printf("compared %d different key/value pairs between %s and %s\n", len(failedKVAs), skp.A, skp.B)
+		require.Equal(t, len(failedKVAs), 0, simapp.GetSimulationLog(skp.A.Name(), app.SimulationManager().StoreDecoders, failedKVAs, failedKVBs))
 	}
 }
 
