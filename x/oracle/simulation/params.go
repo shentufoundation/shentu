@@ -3,11 +3,13 @@ package simulation
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/certikfoundation/shentu/v2/x/oracle/types"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"math/rand"
 	"strconv"
+
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/cosmos/cosmos-sdk/x/simulation"
+
+	"github.com/certikfoundation/shentu/v2/x/oracle/types"
 )
 
 const (
