@@ -761,8 +761,7 @@ func (app *ShentuApp) RegisterTendermintService(clientCtx client.Context) {
 
 // RegisterUpgradeHandlers registers necessary upgrade handlers
 func (app *ShentuApp) RegisterUpgradeHandlers() {
-	app.setv230UpgradeHandler()
-	app.setShieldV2UpgradeHandler()
+	app.setTmpUpgradeHandler()
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
