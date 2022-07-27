@@ -47,7 +47,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 			return false
 		}
 
-		dvAcc, ok = account.(*vestingtypes.DelayedVestingAccount)
+		dvAcc, ok = wb.(*vestingtypes.DelayedVestingAccount)
 		if !ok {
 			return false
 		}
