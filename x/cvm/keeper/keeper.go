@@ -80,8 +80,7 @@ func (k Keeper) Call(ctx sdk.Context, msg *types.MsgCall, view bool) ([]byte, er
 	if err != nil {
 		return []byte{}, err
 	}
-	res, err := k.Tx(ctx, callerAddr, calleeAddr, msg.Value, msg.Data, []*payload.ContractMeta{}, view, false, false)
-	return res, nil
+	return k.Tx(ctx, callerAddr, calleeAddr, msg.Value, msg.Data, []*payload.ContractMeta{}, view, false, false)
 }
 
 // Call executes the CVM call from caller to callee with the given data and gas limit.
@@ -113,8 +112,10 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 		code = data
 	} else {
 		input = data
-		calleeAddr = crypto.MustAddressFromBytes(callee)
 		calleeAddr, code, isEWASM, err = getCallee(callee, cache)
+		if err != nil {
+			return nil, types.ErrCodedError(errors.GetCode(err))
+		}
 		if len(code) == 0 && !bytes.Equal(data, []byte{}) {
 			return nil, types.ErrCodedError(errors.Codes.CodeOutOfBounds)
 		}
@@ -162,7 +163,7 @@ func (k Keeper) Tx(ctx sdk.Context, caller, callee sdk.AccAddress, value uint64,
 	// Refund cannot exceed half of the total gas cost.
 	// Only refund when there is no error.
 	if err != nil {
-		gasTracker = gasTracker + vm.Min((originalGas-gasTracker)/2, newCVM.GetRefund())
+		gasTracker += vm.Min((originalGas-gasTracker)/2, newCVM.GetRefund())
 	}
 
 	// GasTracker is guaranteed to not underflow during CVM execution.

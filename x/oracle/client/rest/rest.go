@@ -15,13 +15,6 @@ func RegisterHandlers(cliCtx client.Context, rtr *mux.Router) {
 	registerTxHandlers(cliCtx, r)
 }
 
-type inquiryTaskReq struct {
-	BaseReq  resttypes.BaseReq `json:"base_req"`
-	Contract string            `json:"contract"`
-	Function string            `json:"function"`
-	TxHash   string            `json:"txhash"`
-}
-
 type createOperatorReq struct {
 	BaseReq    resttypes.BaseReq `json:"base_req"`
 	Address    string            `json:"address"`

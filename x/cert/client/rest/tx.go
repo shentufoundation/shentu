@@ -118,7 +118,7 @@ func certifyPlatformHandler(cliCtx client.Context) http.HandlerFunc {
 		}
 
 		var validator cryptotypes.PubKey
-		err = cliCtx.JSONCodec.UnmarshalJSON([]byte(req.Validator), validator)
+		err = cliCtx.Codec.UnmarshalJSON([]byte(req.Validator), validator)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

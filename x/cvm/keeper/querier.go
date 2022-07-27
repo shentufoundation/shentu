@@ -79,7 +79,7 @@ func queryView(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 	return res, nil
 }
 
-func queryCode(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
+func queryCode(ctx sdk.Context, path []string, _ abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if len(path) != 1 {
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 1 args. Found %d.", len(path))
 	}
@@ -109,7 +109,7 @@ func queryCode(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 	return res, nil
 }
 
-func queryStorage(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
+func queryStorage(ctx sdk.Context, path []string, _ abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if len(path) != 2 {
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 2 args. Found %d.", len(path))
 	}
@@ -143,7 +143,7 @@ func queryStorage(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 	return res, nil
 }
 
-func queryAbi(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
+func queryAbi(ctx sdk.Context, path []string, _ abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if len(path) != 1 {
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 1 args. Found %d.", len(path))
 	}
@@ -162,7 +162,7 @@ func queryAbi(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keep
 	return res, nil
 }
 
-func queryAddrMeta(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
+func queryAddrMeta(ctx sdk.Context, path []string, _ abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if len(path) != 1 {
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 1 args. Found %d.", len(path))
 	}
@@ -191,7 +191,7 @@ func queryAddrMeta(ctx sdk.Context, path []string, req abci.RequestQuery, keeper
 	return
 }
 
-func queryMeta(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
+func queryMeta(ctx sdk.Context, path []string, _ abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if len(path) != 1 {
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 1 args. Found %d.", len(path))
 	}
@@ -211,7 +211,7 @@ func queryMeta(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 	return
 }
 
-func queryAccount(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
+func queryAccount(ctx sdk.Context, path []string, _ abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
 	if len(path) != 1 {
 		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Expecting 1 args. Found %d.", len(path))
 	}

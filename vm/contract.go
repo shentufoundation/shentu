@@ -385,7 +385,7 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 			c.debugf(" => [%v, %v, %v] %X\n", memOff, inputOff, length, data)
 
 		case CODESIZE: // 0x38
-			l := uint64(c.Length())
+			l := c.Length()
 			stack.Push64(l)
 			c.debugf(" => %d\n", l)
 
@@ -772,7 +772,6 @@ func (c *CVMContract) execute(st engine.State, params engine.CallParams) ([]byte
 		}
 		pc++
 	}
-	return nil, maybe.Error()
 }
 
 func (c *CVMContract) jump(to uint64, pc *uint64) error {
@@ -827,7 +826,7 @@ func gasLookUp(op OpCode, state engine.CallFrame, addr crypto.Address, st *Stack
 // zeroes. if offset > len(data) it returns a false
 func subslice(data []byte, offset, length uint64) ([]byte, error) {
 	size := uint64(len(data))
-	if size < offset || offset < 0 || length < 0 {
+	if size < offset {
 		return nil, errors.Errorf(errors.Codes.InputOutOfBounds,
 			"subslice could not slice data of size %d at offset %d for length %d", size, offset, length)
 	}

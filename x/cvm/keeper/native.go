@@ -55,9 +55,8 @@ func (cc CertificateCallable) checkFunc(ctx native.Context, certType string) ([]
 	gasRequired := big.NewInt(GasBase)
 	if ctx.Gas.Cmp(gasRequired) == -1 {
 		return nil, errors.Codes.InsufficientGas
-	} else {
-		*ctx.Gas = *ctx.Gas.Sub(ctx.Gas, gasRequired)
 	}
+	*ctx.Gas = *ctx.Gas.Sub(ctx.Gas, gasRequired)
 	input := string(ctx.Input)
 	addr, err := sdk.AccAddressFromBech32(input)
 	if err != nil {
@@ -74,9 +73,8 @@ func (cc CertificateCallable) checkCompilation(ctx native.Context) (output []byt
 	gasRequired := big.NewInt(GasBase)
 	if ctx.Gas.Cmp(gasRequired) == -1 {
 		return nil, errors.Codes.InsufficientGas
-	} else {
-		*ctx.Gas = *ctx.Gas.Sub(ctx.Gas, gasRequired)
 	}
+	*ctx.Gas = *ctx.Gas.Sub(ctx.Gas, gasRequired)
 	input := string(ctx.Input)
 	if cc.certKeeper.IsCertified(cc.ctx, input, "compilation") {
 		return []byte{0x01}, nil
