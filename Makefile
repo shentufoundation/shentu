@@ -210,3 +210,4 @@ include sims.mk
 .PHONY: all build-linux install release release32 \
 	fix lint test cov coverage coverage.out image image.update \
 	build-docker-certiknode localnet-start localnet-stop \
+	docker-build-debug docker-build-hermes \
