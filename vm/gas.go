@@ -149,7 +149,7 @@ func onlyMemoryGas(addGas uint64) gasFunc {
 	}
 }
 
-func onlyCopyGas(stackPos int, gasBase uint64, gasAdd uint64) gasFunc {
+func onlyCopyGas(stackPos int, _ uint64, gasAdd uint64) gasFunc {
 	return func(st engine.CallFrame, address crypto.Address, stack *Stack, mem *gasMemory, memorySize uint64) (uint64, error) {
 		return copyGas(stack, mem, memorySize, stackPos, gasAdd)
 	}

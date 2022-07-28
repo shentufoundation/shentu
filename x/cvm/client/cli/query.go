@@ -284,7 +284,7 @@ func GetCmdAddressTranslate() *cobra.Command {
 				fmt.Println(hex.EncodeToString(accAddr))
 				return nil
 			} else { // hex to Bech32
-				if len(strings.TrimSpace(addr)) <= 0 || len(strings.TrimSpace(addr)) > 510 {
+				if len(strings.TrimSpace(addr)) == 0 || len(strings.TrimSpace(addr)) > 510 {
 					fmt.Println(errorMsg)
 					return errors.New("address needs to be 1-255 bytes")
 				}

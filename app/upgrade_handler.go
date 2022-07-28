@@ -8,9 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	sdkauthz "github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
-	sdkfeegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
@@ -34,8 +32,8 @@ func (app ShentuApp) setv230UpgradeHandler() {
 				fromVM[moduleName] = 1
 			}
 			// override versions for _new_ modules as to not skip InitGenesis
-			fromVM[sdkauthz.ModuleName] = 0
-			fromVM[sdkfeegrant.ModuleName] = 0
+			fromVM[authz.ModuleName] = 0
+			fromVM[feegrant.ModuleName] = 0
 
 			fromVM[authtypes.ModuleName] = 2
 			newVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
