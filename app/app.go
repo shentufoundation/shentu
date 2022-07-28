@@ -644,6 +644,7 @@ func (app *ShentuApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) ab
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
+	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 

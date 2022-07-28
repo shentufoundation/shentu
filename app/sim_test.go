@@ -33,7 +33,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
-	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibctransfer "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 
@@ -177,7 +176,6 @@ func TestAppImportExport(t *testing.T) {
 		{app.GetKey(mint.StoreKey), newApp.GetKey(mint.StoreKey), [][]byte{}},
 		{app.GetKey(slashing.StoreKey), newApp.GetKey(slashing.StoreKey), [][]byte{}},
 		{app.GetKey(bank.StoreKey), newApp.GetKey(bank.StoreKey), [][]byte{bank.BalancesPrefix}},
-		{app.GetKey(upgrade.StoreKey), newApp.GetKey(upgrade.StoreKey), [][]byte{}},
 		{app.GetKey(gov.StoreKey), newApp.GetKey(gov.StoreKey), [][]byte{}},
 		{app.GetKey(cert.StoreKey), newApp.GetKey(cert.StoreKey), [][]byte{}},
 		{app.GetKey(cvm.StoreKey), newApp.GetKey(cvm.StoreKey), [][]byte{}},
