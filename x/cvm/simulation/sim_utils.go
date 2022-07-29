@@ -78,6 +78,9 @@ func DeployContract(caller sim.Account, contractCode string, contractAbi string,
 		[]uint64{account.GetSequence()},
 		caller.PrivKey,
 	)
+	if err != nil {
+		return msg, nil, err
+	}
 
 	_, res, err := app.Deliver(txGen.TxEncoder(), tx)
 	if err != nil {
@@ -127,6 +130,9 @@ func CallFunction(caller sim.Account, prefix string, input string, contractAddr 
 		[]uint64{account.GetSequence()},
 		caller.PrivKey,
 	)
+	if err != nil {
+		return msg, nil, err
+	}
 
 	_, res, err := app.Deliver(txGen.TxEncoder(), tx)
 	if err != nil {

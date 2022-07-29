@@ -50,7 +50,7 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 }
 
 // RegisterInterfaces registers the module's interface types
-func (b AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+func (am AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	stakingtypes.RegisterInterfaces(registry)
 }
 

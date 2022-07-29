@@ -61,12 +61,11 @@ func (k Keeper) GetShieldBlockRewardRatio(ctx sdk.Context) sdk.Dec {
 	 */
 	if leverage.Add(targetLeverage).IsZero() || totalBondedTokens.IsZero() {
 		return sdk.ZeroDec()
-	} else {
-		leading := totalBondedTokens.Quo(totalBondedTokens.Add(totalShieldDeposit))                        // (c+n)/(c+n+d)
-		first := modelParamA                                                                               // a
-		second := leverage.Quo(leverage.Add(targetLeverage)).Mul(modelParamB.Sub(modelParamA).MulInt64(2)) // 2(b-a)(l/l+L)
-		third := totalShieldDeposit.Quo(totalBondedTokens)                                                 // d/(c+n)
-		inner := first.Add(second).Add(third)
-		return leading.Mul(inner)
 	}
+	leading := totalBondedTokens.Quo(totalBondedTokens.Add(totalShieldDeposit))                        // (c+n)/(c+n+d)
+	first := modelParamA                                                                               // a
+	second := leverage.Quo(leverage.Add(targetLeverage)).Mul(modelParamB.Sub(modelParamA).MulInt64(2)) // 2(b-a)(l/l+L)
+	third := totalShieldDeposit.Quo(totalBondedTokens)                                                 // d/(c+n)
+	inner := first.Add(second).Add(third)
+	return leading.Mul(inner)
 }
