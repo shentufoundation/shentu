@@ -155,11 +155,11 @@ func DefaultStakingShieldRateParams() sdk.Dec {
 }
 
 // NewDistributionParams creates a new DistributionParams instance.
-func NewDistributionParams(a, b, L sdk.Dec) DistributionParams {
+func NewDistributionParams(a, b, l sdk.Dec) DistributionParams {
 	return DistributionParams{
 		ModelParamA: a,
 		ModelParamB: b,
-		MaxLeverage: L,
+		MaxLeverage: l,
 	}
 }
 

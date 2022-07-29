@@ -40,9 +40,9 @@ func (gh *Helper) ShieldClaimProposal(proposer sdk.AccAddress, loss int64, poolI
 }
 
 // TurnBlock updates context and calls endblocker.
-func (sh *Helper) TurnBlock(ctx sdk.Context) {
-	sh.ctx = ctx
-	gov.EndBlocker(sh.ctx, sh.k)
+func (gh *Helper) TurnBlock(ctx sdk.Context) {
+	gh.ctx = ctx
+	gov.EndBlocker(gh.ctx, gh.k)
 }
 
 // Handle calls shield handler on a given message
