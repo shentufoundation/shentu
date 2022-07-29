@@ -129,9 +129,8 @@ func (q Querier) Account(c context.Context, request *types.QueryAccountRequest) 
 		return nil, err
 	}
 	vmAddr, _ := crypto.AddressFromBytes(addr)
-	account, err := state.GetAccount(vmAddr)
 
-	return account, nil
+	return state.GetAccount(vmAddr)
 }
 
 func (q Querier) View(c context.Context, request *types.QueryViewRequest) (*types.QueryViewResponse, error) {
@@ -153,6 +152,9 @@ func (q Querier) View(c context.Context, request *types.QueryViewRequest) (*type
 		return nil, err
 	}
 	ret, err := q.Tx(ctx, caller, callee, 0, request.Data, nil, true, false, false)
+	if err != nil {
+		return nil, err
+	}
 
 	out, err := abi.DecodeFunctionReturn(string(request.AbiSpec), request.FunctionName, ret)
 	if err != nil {

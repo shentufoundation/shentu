@@ -78,12 +78,12 @@ func (q QueryResValidators) String() string {
 }
 
 // NewQueryCertificatesParams creates a new instance of QueryCertificatesParams.
-func NewQueryCertificatesParams(page, limit int, certifier sdk.AccAddress, CertType CertificateType) QueryCertificatesParams {
+func NewQueryCertificatesParams(page, limit int, certifier sdk.AccAddress, certType CertificateType) QueryCertificatesParams {
 	return QueryCertificatesParams{
 		Page:            page,
 		Limit:           limit,
 		Certifier:       certifier,
-		CertificateType: CertType,
+		CertificateType: certType,
 	}
 }
 
