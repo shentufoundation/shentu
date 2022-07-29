@@ -29,7 +29,7 @@ require (
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd
 	google.golang.org/grpc v1.46.2
-	google.golang.org/protobuf v1.28.0
+	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v2 v2.4.0
 	mvdan.cc/gofumpt v0.3.1
 )
