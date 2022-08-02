@@ -224,7 +224,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 				// Otherwise services fees were updated in the last block.
 				if entry.ProtectionEndTime.After(lastUpdateTime) && entry.ServiceFees.IsAllPositive() {
 					// Add purchaseServiceFees * (purchaseProtectionEndTime - previousBlockTime) / protectionPeriod.
-					toAddFees := entry.Fees.MulDec(
+					toAddFees := entry.ServiceFees.MulDec(
 						sdk.NewDec(entry.ProtectionEndTime.Sub(lastUpdateTime).Nanoseconds()).Quo(
 							sdk.NewDec(k.GetPoolParams(ctx).ProtectionPeriod.Nanoseconds()),
 						))
