@@ -77,11 +77,11 @@ func (msg MsgCreatePool) ValidateBasic() error {
 }
 
 // NewMsgUpdatePool creates a new MsgUpdatePool instance.
-func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, fees sdk.Coins, id uint64, description string, shieldLimit sdk.Int) *MsgUpdatePool {
+func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, serviceFees sdk.Coins, id uint64, description string, shieldLimit sdk.Int) *MsgUpdatePool {
 	return &MsgUpdatePool{
 		From:        accAddr.String(),
 		Shield:      shield,
-		Fees:        fees,
+		ServiceFees: serviceFees,
 		PoolId:      id,
 		Description: description,
 		ShieldLimit: shieldLimit,

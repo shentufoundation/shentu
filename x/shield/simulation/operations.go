@@ -154,7 +154,7 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		if _, found := k.GetPoolsBySponsor(ctx, sponsor); found {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, "pool not found for given sponsor"), nil, nil
 		}
-		// fees
+		// serviceFees
 		amount := bk.SpendableCoins(ctx, account.GetAddress()).AmountOf(bondDenom)
 		if !amount.IsPositive() {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, ""), nil, nil
@@ -164,12 +164,12 @@ func SimulateMsgCreatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePool, err.Error()), nil, nil
 		}
 
-		fees := sdk.NewCoins(sdk.NewCoin(bondDenom, amount))
+		serviceFees := sdk.NewCoins(sdk.NewCoin(bondDenom, amount))
 
 		sponsorAcc, _ := simtypes.RandomAcc(r, accs)
 		description := simtypes.RandStringOfLength(r, 42)
 
-		msg := types.NewMsgCreatePool(simAccount.Address, shield, fees, sponsor, sponsorAcc.Address, description, shieldLimit)
+		msg := types.NewMsgCreatePool(simAccount.Address, shield, serviceFees, sponsor, sponsorAcc.Address, description, shieldLimit)
 
 		feeAmount := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
@@ -232,7 +232,7 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 		}
 		shield := sdk.NewCoins(sdk.NewCoin(bondDenom, shieldAmount))
 
-		// fees
+		// serviceFees
 		amount := bk.SpendableCoins(ctx, account.GetAddress()).AmountOf(bondDenom)
 		if !amount.IsPositive() {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, ""), nil, nil
@@ -242,11 +242,11 @@ func SimulateMsgUpdatePool(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdatePool, err.Error()), nil, nil
 		}
 
-		fees := sdk.NewCoins(sdk.NewCoin(bondDenom, amount))
+		serviceFees := sdk.NewCoins(sdk.NewCoin(bondDenom, amount))
 
 		description := simtypes.RandStringOfLength(r, 42)
 
-		msg := types.NewMsgUpdatePool(simAccount.Address, shield, fees, poolID, description, sdk.ZeroInt())
+		msg := types.NewMsgUpdatePool(simAccount.Address, shield, serviceFees, poolID, description, sdk.ZeroInt())
 
 		feeAmount := sdk.Coins{}
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig

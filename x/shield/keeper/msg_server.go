@@ -64,7 +64,7 @@ func (k msgServer) UpdatePool(goCtx context.Context, msg *types.MsgUpdatePool) (
 		return nil, err
 	}
 
-	_, err = k.Keeper.UpdatePool(ctx, msg.PoolId, msg.Description, fromAddr, msg.Shield, msg.Fees, msg.ShieldLimit)
+	_, err = k.Keeper.UpdatePool(ctx, msg.PoolId, msg.Description, fromAddr, msg.Shield, msg.ServiceFees, msg.ShieldLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -295,7 +295,7 @@ func (k msgServer) StakeForShield(goCtx context.Context, msg *types.MsgStakeForS
 			sdk.NewAttribute(types.AttributeKeyProtectionEndTime, purchase.ProtectionEndTime.String()),
 			sdk.NewAttribute(types.AttributeKeyPurchaseDescription, purchase.Description),
 			sdk.NewAttribute(types.AttributeKeyShield, purchase.Shield.String()),
-			sdk.NewAttribute(types.AttributeKeyFees, purchase.Fees.String()),
+			sdk.NewAttribute(types.AttributeKeyServiceFees, purchase.ServiceFees.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -359,7 +359,7 @@ func (k msgServer) PurchaseShield(goCtx context.Context, msg *types.MsgPurchaseS
 			sdk.NewAttribute(types.AttributeKeyProtectionEndTime, purchase.ProtectionEndTime.String()),
 			sdk.NewAttribute(types.AttributeKeyPurchaseDescription, purchase.Description),
 			sdk.NewAttribute(types.AttributeKeyShield, purchase.Shield.String()),
-			sdk.NewAttribute(types.AttributeKeyFees, purchase.Fees.String()),
+			sdk.NewAttribute(types.AttributeKeyServiceFees, purchase.ServiceFees.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

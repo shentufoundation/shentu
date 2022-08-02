@@ -175,8 +175,8 @@ func (q Keeper) ShieldStatus(c context.Context, req *types.QueryShieldStatusRequ
 		TotalCollateral:         q.GetTotalCollateral(ctx),
 		TotalShield:             q.GetTotalShield(ctx),
 		TotalWithdrawing:        q.GetTotalWithdrawing(ctx),
-		CurrentFees:             q.GetFees(ctx),
-		RemainingFees:           q.GetRemainingFees(ctx),
+		CurrentServiceFees:      q.GetServiceFees(ctx),
+		RemainingServiceFees:    q.GetRemainingServiceFees(ctx),
 		GlobalShieldStakingPool: q.GetGlobalShieldStakingPool(ctx),
 	}, nil
 }

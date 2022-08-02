@@ -29,12 +29,12 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &totalB)
 			return fmt.Sprintf("%v\n%v", totalA, totalB)
 
-		case bytes.Equal(kvA.Key[:1], types.FeesKey),
-			bytes.Equal(kvA.Key[:1], types.RemainingFeesKey):
-			var feesA, feesB types.Fees
-			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &feesA)
-			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &feesB)
-			return fmt.Sprintf("%v\n%v", feesA, feesB)
+		case bytes.Equal(kvA.Key[:1], types.ServiceFeesKey),
+			bytes.Equal(kvA.Key[:1], types.RemainingServiceFeesKey):
+			var serviceFeesA, serviceFeesB types.Fees
+			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &serviceFeesA)
+			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &serviceFeesB)
+			return fmt.Sprintf("%v\n%v", serviceFeesA, serviceFeesB)
 
 		case bytes.Equal(kvA.Key[:1], types.PoolKey):
 			var poolA, poolB types.Pool
@@ -72,7 +72,7 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &spB)
 			return fmt.Sprintf("%v\n%v", sPA, spB)
 
-		case bytes.Equal(kvA.Key[:1], types.BlockFeesKey):
+		case bytes.Equal(kvA.Key[:1], types.BlockServiceFeesKey):
 			var blockFeesA, blockFeesB types.Fees
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &blockFeesA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &blockFeesB)

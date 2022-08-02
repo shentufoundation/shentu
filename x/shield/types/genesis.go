@@ -11,8 +11,8 @@ import (
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
-	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, fees,
-	remainingFees sdk.DecCoins, pools []Pool, providers []Provider, purchase []PurchaseList, withdraws []Withdraw,
+	claimProposalParams ClaimProposalParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, serviceFees,
+	remainingServiceFees sdk.DecCoins, pools []Pool, providers []Provider, purchase []PurchaseList, withdraws []Withdraw,
 	lastUpdateTime time.Time, sSRate sdk.Dec, globalStakingPool sdk.Int, stakingPurchases []ShieldStaking, originalStaking []OriginalStaking,
 	proposalIDReimbursementPairs []ProposalIDReimbursementPair) GenesisState {
 	return GenesisState{
@@ -25,8 +25,8 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 		TotalWithdrawing:             totalWithdrawing,
 		TotalShield:                  totalShield,
 		TotalClaimed:                 totalClaimed,
-		Fees:                         fees,
-		RemainingFees:                remainingFees,
+		ServiceFees:                  serviceFees,
+		RemainingServiceFees:         remainingServiceFees,
 		Pools:                        pools,
 		Providers:                    providers,
 		PurchaseLists:                purchase,
@@ -43,18 +43,18 @@ func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint
 // DefaultGenesisState returns a default genesis state.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		NextPoolId:          uint64(1),
-		NextPurchaseId:      uint64(1),
-		PoolParams:          DefaultPoolParams(),
-		ClaimProposalParams: DefaultClaimProposalParams(),
-		TotalCollateral:     sdk.ZeroInt(),
-		TotalWithdrawing:    sdk.ZeroInt(),
-		TotalShield:         sdk.ZeroInt(),
-		TotalClaimed:        sdk.ZeroInt(),
-		Fees:                sdk.DecCoins{},
-		RemainingFees:       sdk.DecCoins{},
-		ShieldStakingRate:   sdk.NewDec(2),
-		LastUpdateTime:      time.Now(),
+		NextPoolId:           uint64(1),
+		NextPurchaseId:       uint64(1),
+		PoolParams:           DefaultPoolParams(),
+		ClaimProposalParams:  DefaultClaimProposalParams(),
+		TotalCollateral:      sdk.ZeroInt(),
+		TotalWithdrawing:     sdk.ZeroInt(),
+		TotalShield:          sdk.ZeroInt(),
+		TotalClaimed:         sdk.ZeroInt(),
+		ServiceFees:          sdk.DecCoins{},
+		RemainingServiceFees: sdk.DecCoins{},
+		ShieldStakingRate:    sdk.NewDec(2),
+		LastUpdateTime:       time.Now(),
 	}
 }
 

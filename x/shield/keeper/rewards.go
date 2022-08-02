@@ -24,10 +24,10 @@ func (k Keeper) PayoutNativeRewards(ctx sdk.Context, addr sdk.AccAddress) (sdk.C
 	}
 	k.SetProvider(ctx, providerAddr, provider)
 
-	// Add leftovers as fees
-	remainingFees := k.GetRemainingFees(ctx)
-	remainingFees = remainingFees.Add(change...)
-	k.SetRemainingFees(ctx, remainingFees)
+	// Add leftovers as service fees
+	remainingServiceFees := k.GetRemainingServiceFees(ctx)
+	remainingServiceFees = remainingServiceFees.Add(change...)
+	k.SetRemainingServiceFees(ctx, remainingServiceFees)
 
 	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, ctkRewards); err != nil {
 		return sdk.Coins{}, err

@@ -45,8 +45,8 @@ message Purchase {
     string description = 4 [ (gogoproto.moretags) = "yaml:\"description\"" ];
 	// Shield is the unused amount of shield purchased.
     string shield = 5 [ (gogoproto.moretags) = "yaml:\"shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-	// Fees is the native service fee paid by this purchase
-    repeated cosmos.base.v1beta1.DecCoin fees = 6 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
+	// ServiceFees is the native service fee paid by this purchase
+    repeated cosmos.base.v1beta1.DecCoin service_fees = 6 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
 }
 
 // PurchaseList is a collection of purchase.

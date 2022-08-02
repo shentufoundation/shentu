@@ -30,21 +30,21 @@ var (
 	TotalWithdrawingKey         = []byte{0x02}
 	TotalShieldKey              = []byte{0x03}
 	TotalClaimedKey             = []byte{0x04}
-	FeesKey                     = []byte{0x05}
-	RemainingFeesKey            = []byte{0x06}
+	ServiceFeesKey              = []byte{0x05}
+	RemainingServiceFeesKey     = []byte{0x06}
 	PoolKey                     = []byte{0x07}
 	NextPoolIDKey               = []byte{0x08}
-	NextPurchaseIDKey           = []byte{0x0A}
-	PurchaseListKey             = []byte{0x0B}
-	PurchaseQueueKey            = []byte{0x0C}
-	ProviderKey                 = []byte{0x0D}
-	WithdrawQueueKey            = []byte{0x0E}
-	LastUpdateTimeKey           = []byte{0x0F}
-	GlobalStakeForShieldPoolKey = []byte{0x11}
-	StakeForShieldKey           = []byte{0x12}
-	BlockFeesKey                = []byte{0x13}
-	OriginalStakingKey          = []byte{0x14}
-	ReimbursementKey            = []byte{0x15}
+	NextPurchaseIDKey           = []byte{0x09}
+	PurchaseListKey             = []byte{0x0A}
+	PurchaseQueueKey            = []byte{0x0B}
+	ProviderKey                 = []byte{0x0C}
+	WithdrawQueueKey            = []byte{0x0D}
+	LastUpdateTimeKey           = []byte{0x0E}
+	GlobalStakeForShieldPoolKey = []byte{0x0F}
+	StakeForShieldKey           = []byte{0x11}
+	BlockServiceFeesKey         = []byte{0x12}
+	OriginalStakingKey          = []byte{0x13}
+	ReimbursementKey            = []byte{0x14}
 )
 
 func GetTotalCollateralKey() []byte {
@@ -63,16 +63,16 @@ func GetTotalClaimedKey() []byte {
 	return TotalClaimedKey
 }
 
-func GetFeesKey() []byte {
-	return FeesKey
+func GetServiceFeesKey() []byte {
+	return ServiceFeesKey
 }
 
-func GetBlockFeesKey() []byte {
-	return BlockFeesKey
+func GetBlockServiceFeesKey() []byte {
+	return BlockServiceFeesKey
 }
 
-func GetRemainingFeesKey() []byte {
-	return RemainingFeesKey
+func GetRemainingServiceFeesKey() []byte {
+	return RemainingServiceFeesKey
 }
 
 // GetPoolKey gets the key for the pool identified by pool ID.

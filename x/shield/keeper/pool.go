@@ -82,69 +82,69 @@ func (k Keeper) GetTotalClaimed(ctx sdk.Context) sdk.Int {
 	return ip.Int
 }
 
-func (k Keeper) SetFees(ctx sdk.Context, fees sdk.DecCoins) {
+func (k Keeper) SetServiceFees(ctx sdk.Context, fees sdk.DecCoins) {
 	store := ctx.KVStore(k.storeKey)
 	serviceFees := types.Fees{
 		Fees: fees,
 	}
 	bz := k.cdc.MustMarshalLengthPrefixed(&serviceFees)
-	store.Set(types.GetFeesKey(), bz)
+	store.Set(types.GetServiceFeesKey(), bz)
 }
 
-func (k Keeper) GetFees(ctx sdk.Context) sdk.DecCoins {
+func (k Keeper) GetServiceFees(ctx sdk.Context) sdk.DecCoins {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetFeesKey())
+	bz := store.Get(types.GetServiceFeesKey())
 	if bz == nil {
 		panic("service fees are not found")
 	}
-	var fees types.Fees
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &fees)
-	return fees.Fees
+	var serviceFees types.Fees
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &serviceFees)
+	return serviceFees.Fees
 }
 
-func (k Keeper) SetBlockFees(ctx sdk.Context, fees sdk.DecCoins) {
+func (k Keeper) SetBlockServiceFees(ctx sdk.Context, fees sdk.DecCoins) {
 	store := ctx.KVStore(k.storeKey)
-	blockFees := types.Fees{
+	blockServiceFees := types.Fees{
 		Fees: fees,
 	}
-	bz := k.cdc.MustMarshalLengthPrefixed(&blockFees)
-	store.Set(types.GetBlockFeesKey(), bz)
+	bz := k.cdc.MustMarshalLengthPrefixed(&blockServiceFees)
+	store.Set(types.GetBlockServiceFeesKey(), bz)
 }
 
-func (k Keeper) GetBlockFees(ctx sdk.Context) sdk.DecCoins {
+func (k Keeper) GetBlockServiceFees(ctx sdk.Context) sdk.DecCoins {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetBlockFeesKey())
+	bz := store.Get(types.GetBlockServiceFeesKey())
 	if bz == nil {
 		return sdk.DecCoins{}
 	}
-	var blockFees types.Fees
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &blockFees)
-	return blockFees.Fees
+	var blockServiceFees types.Fees
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &blockServiceFees)
+	return blockServiceFees.Fees
 }
 
-func (k Keeper) DeleteBlockFees(ctx sdk.Context) {
+func (k Keeper) DeleteBlockServiceFees(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetBlockFeesKey())
+	store.Delete(types.GetBlockServiceFeesKey())
 }
 
-func (k Keeper) SetRemainingFees(ctx sdk.Context, fees sdk.DecCoins) {
+func (k Keeper) SetRemainingServiceFees(ctx sdk.Context, fees sdk.DecCoins) {
 	store := ctx.KVStore(k.storeKey)
 	serviceFee := types.Fees{
 		Fees: fees,
 	}
 	bz := k.cdc.MustMarshalLengthPrefixed(&serviceFee)
-	store.Set(types.GetRemainingFeesKey(), bz)
+	store.Set(types.GetRemainingServiceFeesKey(), bz)
 }
 
-func (k Keeper) GetRemainingFees(ctx sdk.Context) sdk.DecCoins {
+func (k Keeper) GetRemainingServiceFees(ctx sdk.Context) sdk.DecCoins {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetRemainingFeesKey())
+	bz := store.Get(types.GetRemainingServiceFeesKey())
 	if bz == nil {
 		panic("remaining service fee is not found")
 	}
-	var remainingFees types.Fees
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &remainingFees)
-	return remainingFees.Fees
+	var remainingServiceFees types.Fees
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &remainingServiceFees)
+	return remainingServiceFees.Fees
 }
 
 // SetPool sets data of a pool in kv-store.
@@ -167,7 +167,7 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (types.Pool, bool) {
 }
 
 // CreatePool creates a pool and sponsor's shield.
-func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, fees sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) (uint64, error) {
+func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.Coins, serviceFees sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) (uint64, error) {
 	admin := k.GetAdmin(ctx)
 	if !creator.Equals(admin) {
 		return 0, types.ErrNotShieldAdmin
@@ -183,7 +183,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 	k.SetNextPoolID(ctx, poolID+1)
 
 	// Purchase shield for the pool.
-	if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", creator, fees, sdk.NewCoins()); err != nil {
+	if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", creator, serviceFees, sdk.NewCoins()); err != nil {
 		return poolID, err
 	}
 
@@ -191,7 +191,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, shield sdk.C
 }
 
 // UpdatePool updates pool info and shield for B.
-func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield sdk.Coins, fees sdk.Coins, shieldLimit sdk.Int) (types.Pool, error) {
+func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, updater sdk.AccAddress, shield sdk.Coins, serviceFees sdk.Coins, shieldLimit sdk.Int) (types.Pool, error) {
 	admin := k.GetAdmin(ctx)
 	if !updater.Equals(admin) {
 		return types.Pool{}, types.ErrNotShieldAdmin
@@ -212,17 +212,17 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 
 	// Update purchase and shield.
 	if !shield.IsZero() {
-		if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", updater, fees, sdk.NewCoins()); err != nil {
+		if _, err := k.purchaseShield(ctx, poolID, shield, "shield for sponsor", updater, serviceFees, sdk.NewCoins()); err != nil {
 			return pool, err
 		}
-	} else if !fees.IsZero() {
+	} else if !serviceFees.IsZero() {
 		// Allow adding service fees without purchasing more shield.
-		fees := k.GetFees(ctx)
-		fees = fees.Add(fees...)
-		k.SetFees(ctx, fees)
-		remainingFees := k.GetRemainingFees(ctx)
-		remainingFees = remainingFees.Add(remainingFees...)
-		k.SetRemainingFees(ctx, remainingFees)
+		totalServiceFees := k.GetServiceFees(ctx)
+		totalServiceFees = totalServiceFees.Add(sdk.NewDecCoinsFromCoins(serviceFees...)...)
+		k.SetServiceFees(ctx, totalServiceFees)
+		totalRemainingServiceFees := k.GetRemainingServiceFees(ctx)
+		totalRemainingServiceFees = totalRemainingServiceFees.Add(sdk.NewDecCoinsFromCoins(serviceFees...)...)
+		k.SetRemainingServiceFees(ctx, totalRemainingServiceFees)
 	}
 
 	return pool, nil

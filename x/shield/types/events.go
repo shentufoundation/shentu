@@ -20,7 +20,7 @@ const (
 	AttributeKeyCompensationAmount  = "compensation_amount"
 	AttributeKeyBeneficiary         = "beneficiary"
 	AttributeKeyPurchaseDescription = "purchase_description"
-	AttributeKeyFees                = "fees"
+	AttributeKeyServiceFees         = "service_fees"
 	AttributeKeyProtectionEndTime   = "protection_end_time"
 	AttributeValueCategory          = ModuleName
 )

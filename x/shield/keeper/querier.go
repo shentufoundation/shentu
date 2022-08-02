@@ -260,8 +260,8 @@ func queryGlobalState(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc
 		k.GetTotalCollateral(ctx),
 		k.GetTotalShield(ctx),
 		k.GetTotalWithdrawing(ctx),
-		k.GetFees(ctx),
-		k.GetRemainingFees(ctx),
+		k.GetServiceFees(ctx),
+		k.GetRemainingServiceFees(ctx),
 		k.GetGlobalShieldStakingPool(ctx),
 	)
 
