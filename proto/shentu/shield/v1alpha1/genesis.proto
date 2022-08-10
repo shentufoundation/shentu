@@ -68,11 +68,11 @@ message PoolParams {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    google.protobuf.Duration protection_period = 1 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"protection_period\"" ];
-    string shield_fees_rate = 2 [ (gogoproto.moretags) = "yaml:\"shield_fees_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
-    google.protobuf.Duration withdraw_period = 3 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"withdraw_period\"" ];
-    string pool_shield_limit = 4 [ (gogoproto.moretags) = "yaml:\"pool_shield_limit\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
-    repeated cosmos.base.v1beta1.Coin min_shield_purchase = 5 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    google.protobuf.Duration protection_period = 1 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.jsontag) = "protection_period,omitempty",(gogoproto.moretags) = "yaml:\"protection_period\"" ];
+    string shield_fees_rate = 2 [ (gogoproto.jsontag) = "shield_fees_rate,omitempty",(gogoproto.moretags) = "yaml:\"shield_fees_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    google.protobuf.Duration withdraw_period = 3 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.jsontag) = "withdraw_period,omitempty",(gogoproto.moretags) = "yaml:\"withdraw_period\"" ];
+    string pool_shield_limit = 4 [ (gogoproto.jsontag) = "pool_shield_limit,omitempty",(gogoproto.moretags) = "yaml:\"pool_shield_limit\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.Coin min_shield_purchase = 5 [ (gogoproto.jsontag) = "min_shield_purchase,omitempty",(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
 }
 
 // ClaimProposalParams defines the parameters for the shield claim proposals.
@@ -80,11 +80,11 @@ message ClaimProposalParams {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    google.protobuf.Duration claim_period = 1 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"claim_period\"" ];
-    google.protobuf.Duration payout_period = 2 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"payout_period\"" ];
-    repeated cosmos.base.v1beta1.Coin min_deposit = 3 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    string deposit_rate = 4 [ (gogoproto.moretags) = "yaml:\"deposit_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
-    string fees_rate = 5 [ (gogoproto.moretags) = "yaml:\"fees_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    google.protobuf.Duration claim_period = 1 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.jsontag) = "claim_period,omitempty",(gogoproto.moretags) = "yaml:\"claim_period\"" ];
+    google.protobuf.Duration payout_period = 2 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.jsontag) = "payout_period,omitempty",(gogoproto.moretags) = "yaml:\"payout_period\"" ];
+    repeated cosmos.base.v1beta1.Coin min_deposit = 3 [ (gogoproto.jsontag) = "min_deposit,omitempty",(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    string deposit_rate = 4 [ (gogoproto.jsontag) = "deposit_rate,omitempty",(gogoproto.moretags) = "yaml:\"deposit_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
+    string fees_rate = 5 [ (gogoproto.jsontag) = "fees_rate,omitempty",(gogoproto.moretags) = "yaml:\"fees_rate\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }
 
 // DistributionParams defines the parameters for shield block reward.
