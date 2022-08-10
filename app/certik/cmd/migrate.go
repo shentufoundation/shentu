@@ -122,10 +122,10 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 	var bankGenesis bank.GenesisState
 	var authGenesis auth.GenesisState
 
-	clientCtx.JSONCodec.MustUnmarshalJSON(state[staking.ModuleName], &stakingGenesis)
-	clientCtx.JSONCodec.MustUnmarshalJSON(state[slashing.ModuleName], &slashingGenesis)
-	clientCtx.JSONCodec.MustUnmarshalJSON(state[bank.ModuleName], &bankGenesis)
-	clientCtx.JSONCodec.MustUnmarshalJSON(state[auth.ModuleName], &authGenesis)
+	clientCtx.Codec.MustUnmarshalJSON(state[staking.ModuleName], &stakingGenesis)
+	clientCtx.Codec.MustUnmarshalJSON(state[slashing.ModuleName], &slashingGenesis)
+	clientCtx.Codec.MustUnmarshalJSON(state[bank.ModuleName], &bankGenesis)
+	clientCtx.Codec.MustUnmarshalJSON(state[auth.ModuleName], &authGenesis)
 
 	// sort validators power descending
 	sort.Slice(stakingGenesis.Validators, func(i, j int) bool {
@@ -147,7 +147,7 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 			panic(err)
 		}
 		var tmp codectypes.Any
-		clientCtx.JSONCodec.MustUnmarshalJSON(bz, &tmp)
+		clientCtx.Codec.MustUnmarshalJSON(bz, &tmp)
 		var mypk cryptotypes.PubKey
 		if err = clientCtx.InterfaceRegistry.UnpackAny(&tmp, &mypk); err != nil {
 			panic(err)

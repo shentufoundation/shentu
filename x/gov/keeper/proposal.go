@@ -239,32 +239,32 @@ func (k Keeper) GetProposalsFiltered(ctx sdk.Context, params types.QueryProposal
 	return filteredProposals
 }
 
-func (keeper Keeper) MarshalProposal(proposal types.Proposal) ([]byte, error) {
-	bz, err := keeper.cdc.Marshal(&proposal)
+func (k Keeper) MarshalProposal(proposal types.Proposal) ([]byte, error) {
+	bz, err := k.cdc.Marshal(&proposal)
 	if err != nil {
 		return nil, err
 	}
 	return bz, nil
 }
 
-func (keeper Keeper) UnmarshalProposal(bz []byte, proposal *types.Proposal) error {
-	err := keeper.cdc.Unmarshal(bz, proposal)
+func (k Keeper) UnmarshalProposal(bz []byte, proposal *types.Proposal) error {
+	err := k.cdc.Unmarshal(bz, proposal)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (keeper Keeper) MustMarshalProposal(proposal types.Proposal) []byte {
-	bz, err := keeper.MarshalProposal(proposal)
+func (k Keeper) MustMarshalProposal(proposal types.Proposal) []byte {
+	bz, err := k.MarshalProposal(proposal)
 	if err != nil {
 		panic(err)
 	}
 	return bz
 }
 
-func (keeper Keeper) MustUnmarshalProposal(bz []byte, proposal *types.Proposal) {
-	err := keeper.UnmarshalProposal(bz, proposal)
+func (k Keeper) MustUnmarshalProposal(bz []byte, proposal *types.Proposal) {
+	err := k.UnmarshalProposal(bz, proposal)
 	if err != nil {
 		panic(err)
 	}

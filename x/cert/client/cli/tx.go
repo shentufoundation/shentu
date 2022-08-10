@@ -121,7 +121,7 @@ func GetCmdCertifyPlatform() *cobra.Command {
 			}
 
 			var validator cryptotypes.PubKey
-			err = cliCtx.JSONCodec.UnmarshalJSON([]byte(args[0]), validator)
+			err = cliCtx.Codec.UnmarshalJSON([]byte(args[0]), validator)
 			if err != nil {
 				return err
 			}

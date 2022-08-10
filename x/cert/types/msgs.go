@@ -64,11 +64,6 @@ func (m MsgProposeCertifier) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{proposerAddr}
 }
 
-type msgCertifyValidatorPretty struct {
-	Certifier sdk.AccAddress `json:"certifier" yaml:"certifier"`
-	Validator string         `json:"validator" yaml:"validator"`
-}
-
 // NewMsgIssueCertificate returns a new certification message.
 func NewMsgIssueCertificate(
 	content Content, compiler, bytecodeHash, description string, certifier sdk.AccAddress,
@@ -162,12 +157,6 @@ func (m MsgRevokeCertificate) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{revokerAddr}
-}
-
-type msgCertifyPlatformPretty struct {
-	Certifier sdk.AccAddress `json:"certifier" yaml:"certifier"`
-	Validator string         `json:"validator" yaml:"validator"`
-	Platform  string         `json:"platform" yaml:"platform"`
 }
 
 // NewMsgCertifyPlatform returns a new validator host platform certification

@@ -501,6 +501,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
+		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		icaModule,
 	)
@@ -512,7 +513,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, sdkgovtypes.ModuleName, genutiltypes.ModuleName,
 		sdkauthz.ModuleName, sdkfeegrant.ModuleName, crisistypes.ModuleName, shieldtypes.ModuleName, certtypes.ModuleName,
-		oracletypes.ModuleName, cvmtypes.ModuleName,
+		oracletypes.ModuleName, cvmtypes.ModuleName, paramstypes.ModuleName,
 	)
 
 	// NOTE: Shield endblocker comes before staking because it queries
@@ -520,8 +521,8 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, sdkgovtypes.ModuleName, shieldtypes.ModuleName, stakingtypes.ModuleName,
 		capabilitytypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		sdkminttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, sdkauthz.ModuleName, sdkfeegrant.ModuleName,
-		upgradetypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName, icatypes.ModuleName, certtypes.ModuleName,
-		oracletypes.ModuleName, cvmtypes.ModuleName,
+		paramstypes.ModuleName, upgradetypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName, icatypes.ModuleName,
+		certtypes.ModuleName, oracletypes.ModuleName, cvmtypes.ModuleName,
 	)
 
 	// NOTE: genutil moodule must occur after staking so that pools
@@ -542,11 +543,12 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		ibchost.ModuleName,
 		icatypes.ModuleName,
 		genutiltypes.ModuleName,
+		ibctransfertypes.ModuleName,
 		evidencetypes.ModuleName,
 		oracletypes.ModuleName,
 		sdkauthz.ModuleName,
-		ibctransfertypes.ModuleName,
 		sdkfeegrant.ModuleName,
+		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 	)
 
@@ -571,6 +573,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		ibctransfertypes.ModuleName,
 		sdkfeegrant.ModuleName,
 		evidencetypes.ModuleName,
+		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 	)
 
@@ -588,6 +591,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
 		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeegrantKeeper, app.interfaceRegistry),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
+		params.NewAppModule(app.ParamsKeeper),
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
@@ -624,9 +628,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	app.setv230UpgradeHandler()
-	app.setShieldV2UpgradeHandler()
-	// TODO: add IBC upgrade handler (ICA, IBC V3)
+	app.RegisterUpgradeHandlers()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -660,6 +662,7 @@ func (app *ShentuApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) ab
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
+	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
@@ -778,6 +781,11 @@ func (app *ShentuApp) RegisterTxService(clientCtx client.Context) {
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
 func (app *ShentuApp) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
+}
+
+// RegisterUpgradeHandlers registers necessary upgrade handlers
+func (app *ShentuApp) RegisterUpgradeHandlers() {
+	app.setTmpUpgradeHandler()
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
