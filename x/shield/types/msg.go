@@ -24,11 +24,11 @@ const (
 )
 
 // NewMsgCreatePool creates a new NewMsgCreatePool instance.
-func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposits sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) *MsgCreatePool {
+func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit sdk.Coins, sponsor string, sponsorAddr sdk.AccAddress, description string, shieldLimit sdk.Int) *MsgCreatePool {
 	return &MsgCreatePool{
 		From:        accAddr.String(),
 		Shield:      shield,
-		Deposits:    deposits,
+		Deposit:     deposit,
 		Sponsor:     sponsor,
 		SponsorAddr: sponsorAddr.String(),
 		Description: description,

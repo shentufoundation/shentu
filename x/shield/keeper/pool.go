@@ -140,7 +140,7 @@ func (k Keeper) GetRemainingServiceFees(ctx sdk.Context) sdk.DecCoins {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetRemainingServiceFeesKey())
 	if bz == nil {
-		panic("remaining service fee is not found")
+		panic("remaining service fees are not found")
 	}
 	var remainingServiceFees types.Fees
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &remainingServiceFees)

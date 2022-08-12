@@ -33,7 +33,7 @@ func (k msgServer) CreatePool(goCtx context.Context, msg *types.MsgCreatePool) (
 		return nil, err
 	}
 
-	poolID, err := k.Keeper.CreatePool(ctx, fromAddr, msg.Shield, msg.Deposits, msg.Sponsor, sponsorAddr, msg.Description, msg.ShieldLimit)
+	poolID, err := k.Keeper.CreatePool(ctx, fromAddr, msg.Shield, msg.Deposit, msg.Sponsor, sponsorAddr, msg.Description, msg.ShieldLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (k msgServer) CreatePool(goCtx context.Context, msg *types.MsgCreatePool) (
 		sdk.NewEvent(
 			types.TypeMsgCreatePool,
 			sdk.NewAttribute(types.AttributeKeyShield, msg.Shield.String()),
-			sdk.NewAttribute(types.AttributeKeyDeposit, msg.Deposits.String()),
+			sdk.NewAttribute(types.AttributeKeyDeposit, msg.Deposit.String()),
 			sdk.NewAttribute(types.AttributeKeySponsor, msg.Sponsor),
 			sdk.NewAttribute(types.AttributeKeyPoolID, strconv.FormatUint(poolID, 10)),
 		),

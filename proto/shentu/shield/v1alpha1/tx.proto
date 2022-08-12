@@ -31,7 +31,7 @@ message MsgCreatePool {
 
     string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
     repeated cosmos.base.v1beta1.Coin shield = 2 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    repeated cosmos.base.v1beta1.Coin deposits = 3 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    repeated cosmos.base.v1beta1.Coin deposit = 3 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
     string sponsor = 4 [ (gogoproto.moretags) = "yaml:\"sponsor\"" ];
     string sponsor_addr = 5 [ (gogoproto.moretags) = "yaml:\"sponsor_addr\"" ];
     string description = 6 [ (gogoproto.moretags) = "yaml:\"description\"" ];
