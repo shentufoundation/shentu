@@ -750,8 +750,8 @@ github.com/hudl/fargo v1.3.0/go.mod h1:y3CKSmjA+wD2gak7sUSXTAoopbhU08POFhmITJgmK
 github.com/hudl/fargo v1.4.0/go.mod h1:9Ai6uvFy5fQNq6VPKtg+Ceq1+eTY4nKUlR2JElEOcDo=
 github.com/huin/goupnp v1.0.0/go.mod h1:n9v9KO1tAxYH82qOn+UTIFQDmx5n1Zxd/ClZDMX7Bnc=
 github.com/huin/goutil v0.0.0-20170803182201-1ca381bf3150/go.mod h1:PpLOETDnJ0o3iZrZfqZzyLl6l7F3c6L1oWn7OICBi6o=
-github.com/hyperledger/burrow v0.31.0 h1:eJrT+SgvTTePSektPiP5qo+oW3qQvI2TN6VuBAqazTo=
-github.com/hyperledger/burrow v0.31.0/go.mod h1:FQQo/qSESfo/hh8NsbkqisNTzeo4H+KV0M+MG7dKTBA=
+github.com/hyperledger/burrow v0.34.4 h1:OgsTDMjFML3WQNujKpqj27fMpB9xHt9Kdb6JBp7QrFc=
+github.com/hyperledger/burrow v0.34.4/go.mod h1:Zclvkg18OK8O7ch8bFyaJjsA05cLXxFZ6F683GQAJdg=
 github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0/go.mod h1:N0Wam8K1arqPXNWjMo21EXnBPOPp36vB07FNRdD2geA=
 github.com/iancoleman/strcase v0.1.3/go.mod h1:SK73tn/9oHe+/Y0h39VT4UCxmurVJkR5NA7kMEAOgSE=
 github.com/iancoleman/strcase v0.2.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47ZCWhYzw7ho=
@@ -1111,9 +1111,6 @@ github.com/pkg/sftp v1.13.1/go.mod h1:3HaPG6Dq1ILlpPZRO0HVMrsydcdLt6HRDccSgb87qR
 github.com/pmezard/go-difflib v0.0.0-20151028094244-d8ed2627bdf0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/pointlander/compress v1.1.0/go.mod h1:q5NXNGzqj5uPnVuhGkZfmgHqNUhf15VLi6L9kW0VEc0=
-github.com/pointlander/jetset v1.0.0/go.mod h1:zY6+WHRPB10uzTajloHtybSicLW1bf6Rz0eSaU9Deng=
-github.com/pointlander/peg v1.0.0/go.mod h1:WJTMcgeWYr6fZz4CwHnY1oWZCXew8GWCF93FaAxPrh4=
 github.com/polyfloyd/go-errorlint v1.0.0 h1:pDrQG0lrh68e602Wfp68BlUTRFoHn8PZYAjLgt2LFsM=
 github.com/polyfloyd/go-errorlint v1.0.0/go.mod h1:KZy4xxPJyy88/gldCe5OdW6OQRtNO3EZE7hXzmnebgA=
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
