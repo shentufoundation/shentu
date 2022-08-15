@@ -26,6 +26,10 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, from sdk.AccAddress, amount s
 	totalCollateral = totalCollateral.Add(amount)
 	k.SetTotalCollateral(ctx, totalCollateral)
 
+	if _, err := k.PayoutNativeRewards(ctx, from); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -68,6 +72,10 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, from sdk.AccAddress, amount 
 	totalWithdrawing := k.GetTotalWithdrawing(ctx)
 	totalWithdrawing = totalWithdrawing.Add(amount)
 	k.SetTotalWithdrawing(ctx, totalWithdrawing)
+
+	if _, err := k.PayoutNativeRewards(ctx, from); err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -113,9 +113,8 @@ func newResponse(basename string, bytecode, abi json.RawMessage) (*compile.Respo
 func CheckFileExists(filename string) error {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		return err
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func ResolveFilename(filename string) (string, string, error) {

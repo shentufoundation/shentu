@@ -17,14 +17,14 @@ import (
 	"github.com/hyperledger/burrow/crypto"
 	"github.com/hyperledger/burrow/execution/engine"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	"github.com/certikfoundation/shentu/v2/x/cvm/types"
 )
 
 func TestState_NewState(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
 	state := cvmk.NewState(ctx)
 
@@ -38,11 +38,11 @@ func TestState_NewState(t *testing.T) {
 }
 
 func TestState_UpdateAccount(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	bondDenom := app.StakingKeeper.BondDenom(ctx)
 
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
 	ak := app.AccountKeeper
 	state := cvmk.NewState(ctx)
@@ -82,9 +82,9 @@ func TestState_UpdateAccount(t *testing.T) {
 }
 
 func TestState_RemoveAccount(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(80000*1e6))
 	cvmk := app.CVMKeeper
 	state := cvmk.NewState(ctx)
 

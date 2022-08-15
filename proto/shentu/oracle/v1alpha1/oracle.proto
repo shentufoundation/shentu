@@ -72,20 +72,20 @@ message TaskParams {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    google.protobuf.Duration expiration_duration = 1 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"task_expiration_duration\"" ];
-    int64 aggregation_window = 2 [ (gogoproto.moretags) = "yaml:\"task_aggregation_window\"" ];
-    string aggregation_result = 3 [ (gogoproto.moretags) = "yaml:\"task_aggregation_result\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    string threshold_score = 4 [ (gogoproto.moretags) = "yaml:\"task_threshold_score\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    string epsilon1 = 5 [ (gogoproto.moretags) = "yaml:\"task_epsilon1\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    string epsilon2 = 6 [ (gogoproto.moretags) = "yaml:\"task_epsilon2\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    google.protobuf.Duration expiration_duration = 1 [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"expiration_duration\"" ];
+    int64 aggregation_window = 2 [ (gogoproto.jsontag)     = "aggregation_window,omitempty",(gogoproto.moretags) = "yaml:\"aggregation_window\"" ];
+    string aggregation_result = 3 [ (gogoproto.moretags) = "yaml:\"aggregation_result\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    string threshold_score = 4 [ (gogoproto.moretags) = "yaml:\"threshold_score\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    string epsilon1 = 5 [ (gogoproto.moretags) = "yaml:\"epsilon1\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    string epsilon2 = 6 [ (gogoproto.moretags) = "yaml:\"epsilon2\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
 }
 
 message LockedPoolParams {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    int64 locked_in_blocks = 1 [ (gogoproto.moretags) = "yaml:\"locked_in_blocks\"" ];
-    int64 minimum_collateral = 2 [ (gogoproto.moretags) = "yaml:\"minimum_collateral\"" ];
+    int64 locked_in_blocks = 1 [ (gogoproto.jsontag)     = "locked_in_blocks,omitempty",(gogoproto.moretags) = "yaml:\"locked_in_blocks\"" ];
+    int64 minimum_collateral = 2 [ (gogoproto.jsontag)     = "minimum_collateral,omitempty",(gogoproto.moretags) = "yaml:\"minimum_collateral\"" ];
 }
 
 message TaskID {

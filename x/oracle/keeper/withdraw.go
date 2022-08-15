@@ -83,7 +83,7 @@ func (k Keeper) GetAllWithdraws(ctx sdk.Context) types.Withdraws {
 func (k Keeper) GetAllWithdrawsForExport(ctx sdk.Context) types.Withdraws {
 	var withdraws types.Withdraws
 	k.IterateAllWithdraws(ctx, func(withdraw types.Withdraw) bool {
-		withdraw.DueBlock = withdraw.DueBlock - ctx.BlockHeight()
+		withdraw.DueBlock -= ctx.BlockHeight()
 		withdraws = append(withdraws, withdraw)
 		return false
 	})

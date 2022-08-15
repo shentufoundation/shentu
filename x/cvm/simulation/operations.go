@@ -405,7 +405,7 @@ func SimulateMsgCallStringTestChangeString(k keeper.Keeper, bk types.BankKeeper,
 		hexStr := hex.EncodeToString([]byte(*ref))
 		l = len(hexStr)
 		for i := 0; i < 64-l; i++ {
-			hexStr = hexStr + "0"
+			hexStr += "0"
 		}
 
 		// call changeString()
@@ -443,7 +443,7 @@ func SimulateMsgCallStringTestChangeGiven(k keeper.Keeper, bk types.BankKeeper, 
 		hexStr := hex.EncodeToString([]byte(str))
 		l = len(hexStr)
 		for i := 0; i < 64-l; i++ {
-			hexStr = hexStr + "0"
+			hexStr += "0"
 		}
 
 		// call changeGiven()

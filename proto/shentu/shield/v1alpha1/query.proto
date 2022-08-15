@@ -56,6 +56,10 @@ service Query {
     option (google.api.http).get = "/shentu/shield/v1alpha1/claim_params";
   }
 
+  rpc DistrParams(QueryDistrParamsRequest) returns (QueryDistrParamsResponse) {
+    option (google.api.http).get = "/shentu/shield/v1alpha1/distr_params";
+  }
+
   rpc ShieldStatus(QueryShieldStatusRequest) returns (QueryShieldStatusResponse) {
     option (google.api.http).get = "/shentu/shield/v1alpha1/status";
   }
@@ -162,6 +166,14 @@ message QueryClaimParamsRequest {
 message QueryClaimParamsResponse {
   ClaimProposalParams params = 1 [(gogoproto.nullable) = false];
 }
+
+message QueryDistrParamsRequest {
+}
+
+message QueryDistrParamsResponse {
+  DistributionParams params = 1 [(gogoproto.nullable) = false];
+}
+
 
 
 message QueryShieldStatusRequest {

@@ -17,6 +17,7 @@ type AccountKeeper interface {
 	GetAllAccounts(ctx sdk.Context) []types.AccountI
 	SetAccount(ctx sdk.Context, acc types.AccountI)
 
+	HasAccount(ctx sdk.Context, addr sdk.AccAddress) bool
 	IterateAccounts(ctx sdk.Context, process func(types.AccountI) bool)
 
 	ValidatePermissions(macc types.ModuleAccountI) error

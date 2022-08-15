@@ -26,6 +26,11 @@ var (
 	DefaultClaimProposalDepositRate = sdk.NewDecWithPrec(10, 2)                                              // 10%
 	DefaultClaimProposalFeesRate    = sdk.NewDecWithPrec(1, 2)                                               // 1%
 
+	// default distribution parameters
+	DefaultA = sdk.NewDecWithPrec(10, 2) // 0.1
+	DefaultB = sdk.NewDecWithPrec(30, 2) // 0.3
+	DefaultL = sdk.NewDecWithPrec(1, 0)  // 1
+
 	// default value for staking-shield rate parameter
 	DefaultStakingShieldRate = sdk.NewDec(2)
 )
@@ -35,6 +40,7 @@ var (
 	ParamStoreKeyPoolParams          = []byte("shieldpoolparams")
 	ParamStoreKeyClaimProposalParams = []byte("claimproposalparams")
 	ParamStoreKeyStakingShieldRate   = []byte("stakingshieldrateparams")
+	ParamStoreKeyDistribution        = []byte("distributionparams")
 )
 
 // ParamKeyTable is the key declaration for parameters.
@@ -43,6 +49,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 		paramtypes.NewParamSetPair(ParamStoreKeyPoolParams, PoolParams{}, validatePoolParams),
 		paramtypes.NewParamSetPair(ParamStoreKeyClaimProposalParams, ClaimProposalParams{}, validateClaimProposalParams),
 		paramtypes.NewParamSetPair(ParamStoreKeyStakingShieldRate, sdk.Dec{}, validateStakingShieldRateParams),
+		paramtypes.NewParamSetPair(ParamStoreKeyDistribution, DistributionParams{}, validateDistributionParams),
 	)
 }
 
@@ -145,6 +152,46 @@ func validateClaimProposalParams(i interface{}) error {
 // DefaultStakingShieldRateParams returns a default DefaultStakingShieldRateParams.
 func DefaultStakingShieldRateParams() sdk.Dec {
 	return sdk.NewDec(2)
+}
+
+// NewDistributionParams creates a new DistributionParams instance.
+func NewDistributionParams(a, b, l sdk.Dec) DistributionParams {
+	return DistributionParams{
+		ModelParamA: a,
+		ModelParamB: b,
+		MaxLeverage: l,
+	}
+}
+
+// DefaultDistributionParams returns a default DistributionParams instance.
+func DefaultDistributionParams() DistributionParams {
+	return NewDistributionParams(DefaultA, DefaultB, DefaultL)
+}
+
+func validateDistributionParams(i interface{}) error {
+	v, ok := i.(DistributionParams)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	a := v.ModelParamA
+	b := v.ModelParamB
+	L := v.MaxLeverage
+
+	if a.LT(sdk.ZeroDec()) || a.GT(sdk.OneDec()) {
+		return fmt.Errorf("invalid value for a: %s", a.String())
+	}
+	if b.LT(sdk.ZeroDec()) || b.GT(sdk.OneDec()) {
+		return fmt.Errorf("invalid value for b: %s", b.String())
+	}
+	if L.LT(sdk.ZeroDec()) || L.GT(sdk.OneDec()) {
+		return fmt.Errorf("invalid value for L: %s", L.String())
+	}
+
+	if a.GT(b) {
+		return fmt.Errorf("a (%s) can't be bigger than b (%s)", a, b)
+	}
+
+	return nil
 }
 
 func validateStakingShieldRateParams(i interface{}) error {

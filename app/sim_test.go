@@ -22,8 +22,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
-
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capability "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -32,19 +30,16 @@ import (
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
 	params "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/cosmos/cosmos-sdk/x/simulation"
 	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
-	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
 	ibctransfer "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 
-	shentusimapp "github.com/certikfoundation/shentu/v2/simapp"
 	cert "github.com/certikfoundation/shentu/v2/x/cert/types"
 	cvm "github.com/certikfoundation/shentu/v2/x/cvm/types"
 	oracle "github.com/certikfoundation/shentu/v2/x/oracle/types"
 	shield "github.com/certikfoundation/shentu/v2/x/shield/types"
-	//"github.com/certikfoundation/shentu/x/staking"
 )
 
 type StoreKeysPrefixes struct {
@@ -81,15 +76,15 @@ func TestFullAppSimulation(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := shentusimapp.NewSimApp(logger, db, nil, true, map[int64]bool{},
-		DefaultNodeHome, simapp.FlagPeriodValue, shentusimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := NewShentuApp(logger, db, nil, true, map[int64]bool{},
+		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
-		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
-		RandomAccounts, simapp.SimulationOperations(app, app.AppCodec(), config),
-		app.ModuleAccountAddrs(), config, app.AppCodec(),
+		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
+		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
+		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 
 	// export state and simParams before the simulation error is checked
@@ -114,17 +109,118 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	//invCheckPeriod := simapp.FlagPeriodValue
-	var invCheckPeriod uint = 1
-	app := shentusimapp.NewSimApp(logger, db, nil, true, map[int64]bool{},
-		DefaultNodeHome, invCheckPeriod, shentusimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := NewShentuApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome,
+		simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	require.Equal(t, "Shentu", app.Name())
+
+	// Run randomized simulation
+	_, simParams, simErr := simulation.SimulateFromSeed(
+		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
+		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
+		app.ModuleAccountAddrs(), config, app.Codec(),
+	)
+
+	// export state and simParams before the simulation error is checked
+	err = simapp.CheckExportSimulation(app, config, simParams)
+	require.NoError(t, err)
+	require.NoError(t, simErr)
+
+	if config.Commit {
+		simapp.PrintStats(db)
+	}
+
+	fmt.Printf("exporting genesis...\n")
+	exported, err := app.ExportAppStateAndValidators(false, []string{})
+	require.NoError(t, err)
+
+	fmt.Printf("importing genesis...\n")
+
+	_, newDB, newDir, _, _, err := simapp.SetupSimulation("leveldb-app-sim-2", "Simulation-2") // nolint
+	require.NoError(t, err, "simulation setup failed")
+
+	defer func() {
+		newDB.Close()
+		require.NoError(t, os.RemoveAll(newDir))
+	}()
+
+	newApp := NewShentuApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{},
+		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+
+	var genesisState GenesisState
+	err = json.Unmarshal(exported.AppState, &genesisState)
+	require.NoError(t, err)
+
+	ctxA := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
+
+	// bypass an error where the original chain's SendEnabled is `null` instead of `[]`
+	// TODO: remove this and make it work
+	pA := app.BankKeeper.GetParams(ctxA)
+	if len(pA.SendEnabled) == 0 {
+		pA.SendEnabled = []*bank.SendEnabled{}
+	}
+	app.BankKeeper.SetParams(ctxA, pA)
+
+	ctxB := newApp.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
+	newApp.mm.InitGenesis(ctxB, app.Codec(), genesisState)
+	newApp.StoreConsensusParams(ctxB, exported.ConsensusParams)
+
+	fmt.Printf("comparing stores...\n")
+
+	storeKeysPrefixes := []StoreKeysPrefixes{
+		{app.GetKey(auth.StoreKey), newApp.GetKey(auth.StoreKey), [][]byte{}},
+		{app.GetKey(staking.StoreKey), newApp.GetKey(staking.StoreKey), [][]byte{
+			staking.UnbondingQueueKey, staking.RedelegationQueueKey, staking.ValidatorQueueKey,
+			staking.HistoricalInfoKey,
+		}},
+		{app.GetKey(distr.StoreKey), newApp.GetKey(distr.StoreKey), [][]byte{}},
+		{app.GetKey(mint.StoreKey), newApp.GetKey(mint.StoreKey), [][]byte{}},
+		{app.GetKey(slashing.StoreKey), newApp.GetKey(slashing.StoreKey), [][]byte{}},
+		{app.GetKey(bank.StoreKey), newApp.GetKey(bank.StoreKey), [][]byte{bank.BalancesPrefix}},
+		{app.GetKey(gov.StoreKey), newApp.GetKey(gov.StoreKey), [][]byte{}},
+		{app.GetKey(cert.StoreKey), newApp.GetKey(cert.StoreKey), [][]byte{}},
+		{app.GetKey(cvm.StoreKey), newApp.GetKey(cvm.StoreKey), [][]byte{}},
+		{app.GetKey(oracle.StoreKey), newApp.GetKey(oracle.StoreKey), [][]byte{oracle.TaskStoreKeyPrefix, oracle.ClosingTaskStoreKeyPrefix}},
+		{app.GetKey(shield.StoreKey), newApp.GetKey(shield.StoreKey), [][]byte{shield.WithdrawQueueKey, shield.PurchaseQueueKey, shield.BlockServiceFeesKey}},
+		{app.GetKey(evidence.StoreKey), newApp.GetKey(evidence.StoreKey), [][]byte{}},
+		{app.GetKey(capability.StoreKey), newApp.GetKey(capability.StoreKey), [][]byte{}},
+		{app.GetKey(ibchost.StoreKey), newApp.GetKey(ibchost.StoreKey), [][]byte{}},
+		{app.GetKey(ibctransfer.StoreKey), newApp.GetKey(ibctransfer.StoreKey), [][]byte{}},
+		{app.GetKey(params.StoreKey), newApp.GetKey(params.StoreKey), [][]byte{}},
+	}
+
+	for _, skp := range storeKeysPrefixes {
+		storeA := ctxA.KVStore(skp.A)
+		storeB := ctxB.KVStore(skp.B)
+
+		failedKVAs, failedKVBs := sdk.DiffKVStores(storeA, storeB, skp.Prefixes)
+		require.Equal(t, len(failedKVAs), len(failedKVBs), "unequal sets of key-values to compare")
+
+		fmt.Printf("compared %d different key/value pairs between %s and %s\n", len(failedKVAs), skp.A, skp.B)
+		require.Equal(t, len(failedKVAs), 0, simapp.GetSimulationLog(skp.A.Name(), app.SimulationManager().StoreDecoders, failedKVAs, failedKVBs))
+	}
+}
+
+func TestAppSimulationAfterImport(t *testing.T) {
+	config, db, dir, logger, skip, err := simapp.SetupSimulation("leveldb-app-sim", "Simulation")
+	if skip {
+		t.Skip("skipping application simulation after import")
+	}
+	require.NoError(t, err, "simulation setup failed")
+
+	defer func() {
+		db.Close()
+		require.NoError(t, os.RemoveAll(dir))
+	}()
+
+	app := NewShentuApp(logger, db, nil, true, map[int64]bool{},
+		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, app.Name())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
-		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
-		RandomAccounts, simapp.SimulationOperations(app, app.AppCodec(), config),
-		app.ModuleAccountAddrs(), config, app.AppCodec(),
+		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
+		RandomAccounts, simapp.SimulationOperations(app, app.Codec(), config),
+		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 
 	// export state and simParams before the simulation error is checked
@@ -151,108 +247,8 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := shentusimapp.NewSimApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{},
-		DefaultNodeHome, invCheckPeriod, shentusimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
-
-	require.Equal(t, AppName, newApp.Name())
-
-	var genesisState simapp.GenesisState
-	err = json.Unmarshal(appState.AppState, &genesisState)
-	require.NoError(t, err)
-
-	ctxA := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
-	ctxB := newApp.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
-	newApp.ModuleManager().InitGenesis(ctxB, app.AppCodec(), genesisState)
-	newApp.StoreConsensusParams(ctxB, appState.ConsensusParams)
-
-	fmt.Printf("comparing stores...\n")
-
-	storeKeysPrefixes := []StoreKeysPrefixes{
-		{app.GetKey(auth.StoreKey), newApp.GetKey(auth.StoreKey), [][]byte{}},
-		{app.GetKey(staking.StoreKey), newApp.GetKey(staking.StoreKey), [][]byte{
-			staking.UnbondingQueueKey, staking.RedelegationQueueKey, staking.ValidatorQueueKey,
-			staking.HistoricalInfoKey,
-		}},
-		{app.GetKey(distr.StoreKey), newApp.GetKey(distr.StoreKey), [][]byte{}},
-		{app.GetKey(mint.StoreKey), newApp.GetKey(mint.StoreKey), [][]byte{}},
-		{app.GetKey(slashing.StoreKey), newApp.GetKey(slashing.StoreKey), [][]byte{}},
-		{app.GetKey(bank.StoreKey), newApp.GetKey(bank.StoreKey), [][]byte{bank.BalancesPrefix}},
-		{app.GetKey(params.StoreKey), newApp.GetKey(params.StoreKey), [][]byte{}},
-		{app.GetKey(upgrade.StoreKey), newApp.GetKey(upgrade.StoreKey), [][]byte{}},
-		{app.GetKey(gov.StoreKey), newApp.GetKey(gov.StoreKey), [][]byte{}},
-		{app.GetKey(cert.StoreKey), newApp.GetKey(cert.StoreKey), [][]byte{}},
-		{app.GetKey(cvm.StoreKey), newApp.GetKey(cvm.StoreKey), [][]byte{}},
-		{app.GetKey(oracle.StoreKey), newApp.GetKey(oracle.StoreKey), [][]byte{oracle.TaskStoreKeyPrefix, oracle.ClosingTaskStoreKeyPrefix}},
-		{app.GetKey(shield.StoreKey), newApp.GetKey(shield.StoreKey), [][]byte{shield.WithdrawQueueKey, shield.PurchaseQueueKey, shield.BlockServiceFeesKey}},
-		{app.GetKey(evidence.StoreKey), newApp.GetKey(evidence.StoreKey), [][]byte{}},
-		{app.GetKey(capability.StoreKey), newApp.GetKey(capability.StoreKey), [][]byte{}},
-		{app.GetKey(ibchost.StoreKey), newApp.GetKey(ibchost.StoreKey), [][]byte{}},
-		{app.GetKey(ibctransfer.StoreKey), newApp.GetKey(ibctransfer.StoreKey), [][]byte{}},
-	}
-
-	for _, skp := range storeKeysPrefixes {
-		storeA := ctxA.KVStore(skp.A)
-		storeB := ctxB.KVStore(skp.B)
-
-		failedKVAs, failedKVBs := sdk.DiffKVStores(storeA, storeB, skp.Prefixes)
-		require.Equal(t, len(failedKVAs), len(failedKVBs), "unequal sets of key-values to compare")
-		if len(failedKVAs) != 0 {
-			fmt.Printf("found %d non-equal key/value pairs between %s and %s\n", len(failedKVAs), skp.A.Name(), skp.B.Name())
-		}
-		require.Equal(t, len(failedKVAs), 0, simapp.GetSimulationLog(skp.A.Name(),
-			app.SimulationManager().StoreDecoders, failedKVAs, failedKVBs))
-	}
-}
-
-func TestAppSimulationAfterImport(t *testing.T) {
-	config, db, dir, logger, skip, err := simapp.SetupSimulation("leveldb-app-sim", "Simulation")
-	if skip {
-		t.Skip("skipping application simulation after import")
-	}
-	require.NoError(t, err, "simulation setup failed")
-
-	defer func() {
-		db.Close()
-		require.NoError(t, os.RemoveAll(dir))
-	}()
-
-	app := shentusimapp.NewSimApp(logger, db, nil, true, map[int64]bool{},
-		DefaultNodeHome, simapp.FlagPeriodValue, shentusimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
-	require.Equal(t, AppName, app.Name())
-
-	// run randomized simulation
-	_, simParams, simErr := simulation.SimulateFromSeed(
-		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
-		RandomAccounts, simapp.SimulationOperations(app, app.AppCodec(), config),
-		app.ModuleAccountAddrs(), config, app.AppCodec(),
-	)
-
-	// export state and simParams before the simulation error is checked
-	err = simapp.CheckExportSimulation(app, config, simParams)
-	require.NoError(t, err)
-	require.NoError(t, simErr)
-
-	if config.Commit {
-		simapp.PrintStats(db)
-	}
-
-	fmt.Printf("exporting genesis...\n")
-
-	appState, err := app.ExportAppStateAndValidators(true, []string{})
-	require.NoError(t, err)
-
-	fmt.Printf("importing genesis...\n")
-
-	_, newDB, newDir, _, _, err := simapp.SetupSimulation("leveldb-app-sim-2", "Simulation-2") // nolint
-	require.NoError(t, err, "simulation setup failed")
-
-	defer func() {
-		newDB.Close()
-		require.NoError(t, os.RemoveAll(newDir))
-	}()
-
-	newApp := shentusimapp.NewSimApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{},
-		DefaultNodeHome, simapp.FlagPeriodValue, shentusimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	newApp := NewShentuApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{},
+		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, AppName, newApp.Name())
 
 	newApp.InitChain(abci.RequestInitChain{
@@ -260,10 +256,10 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	})
 
 	_, _, err = simulation.SimulateFromSeed(
-		t, os.Stdout, newApp.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
+		t, os.Stdout, newApp.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
 		RandomAccounts, // Replace with own random account function if using keys other than secp256k1
-		simapp.SimulationOperations(newApp, newApp.AppCodec(), config),
-		app.ModuleAccountAddrs(), config, app.AppCodec(),
+		simapp.SimulationOperations(newApp, newApp.Codec(), config),
+		app.ModuleAccountAddrs(), config, app.Codec(),
 	)
 	require.NoError(t, err)
 }
@@ -286,8 +282,8 @@ func TestAppStateDeterminism(t *testing.T) {
 	for j := 0; j < numTimesToRunPerSeed; j++ {
 		logger := log.NewNopLogger()
 		db := dbm.NewMemDB()
-		app := shentusimapp.NewSimApp(logger, db, nil, true, map[int64]bool{},
-			DefaultNodeHome, simapp.FlagPeriodValue, shentusimapp.MakeTestEncodingConfig(), EmptyAppOptions{}, interBlockCacheOpt())
+		app := NewShentuApp(logger, db, nil, true, map[int64]bool{},
+			DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), EmptyAppOptions{}, interBlockCacheOpt())
 
 		fmt.Printf(
 			"running non-determinism simulation; seed %d: attempt: %d/%d\n",
@@ -295,10 +291,10 @@ func TestAppStateDeterminism(t *testing.T) {
 		)
 
 		_, _, err := simulation.SimulateFromSeed(
-			t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
+			t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
 			RandomAccounts, // Replace with own random account function if using keys other than secp256k1
-			simapp.SimulationOperations(app, app.AppCodec(), config),
-			app.ModuleAccountAddrs(), config, app.AppCodec(),
+			simapp.SimulationOperations(app, app.Codec(), config),
+			app.ModuleAccountAddrs(), config, app.Codec(),
 		)
 		require.NoError(t, err)
 

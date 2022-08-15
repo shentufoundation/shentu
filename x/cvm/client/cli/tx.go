@@ -39,10 +39,6 @@ const (
 	FlagMetadata = "metadata"
 )
 
-var (
-	errFileExt = errors.New("contract file extension must be .sol, .ds, .bc .bytecode or .wasm")
-)
-
 type abiEntry struct {
 	Name string `json:"name"`
 	Type string `json:"stateMutability"`
@@ -293,13 +289,13 @@ func appendDeployMsgs(cmd *cobra.Command, fileName string) ([]sdk.Msg, error) {
 }
 
 func parseData(function string, abiSpec []byte, args []string, logger *logging.Logger) ([]byte, error) {
-	var params []interface{}
+	params := make([]interface{}, len(args))
 
 	if string(abiSpec) == compile.NoABI {
 		panic("No ABI registered for this contract. Use --raw flag to submit raw bytecode.")
 	}
 
-	for _, arg := range args {
+	for i, arg := range args {
 		var argi interface{}
 		argi = arg
 		for _, prefix := range []string{common.Bech32MainPrefix, common.Bech32PrefixConsAddr, common.Bech32PrefixAccAddr} {
@@ -313,7 +309,7 @@ func parseData(function string, abiSpec []byte, args []string, logger *logging.L
 				break
 			}
 		}
-		params = append(params, argi)
+		params[i] = argi
 	}
 
 	data, _, err := abi.EncodeFunctionCall(string(abiSpec), function, logger, params...)

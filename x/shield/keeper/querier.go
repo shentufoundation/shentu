@@ -38,6 +38,8 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return queryPoolParams(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryClaimParams:
 			return queryClaimParams(ctx, path[1:], k, legacyQuerierCdc)
+		case types.QueryDistrParams:
+			return queryDistrParams(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryStatus:
 			return queryGlobalState(ctx, path[1:], k, legacyQuerierCdc)
 		case types.QueryStakedForShield:
@@ -243,6 +245,20 @@ func queryClaimParams(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc
 	}
 
 	params := k.GetClaimProposalParams(ctx)
+
+	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+func queryDistrParams(ctx sdk.Context, path []string, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (res []byte, err error) {
+	if err := validatePathLength(path, 0); err != nil {
+		return nil, err
+	}
+
+	params := k.GetDistributionParams(ctx)
 
 	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, params)
 	if err != nil {

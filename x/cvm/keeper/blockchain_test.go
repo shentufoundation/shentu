@@ -8,12 +8,12 @@ import (
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/certikfoundation/shentu/v2/simapp"
+	shentuapp "github.com/certikfoundation/shentu/v2/app"
 	. "github.com/certikfoundation/shentu/v2/x/cvm/keeper"
 )
 
 func TestNewBlockChain(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	cvmk := app.CVMKeeper
 
@@ -22,7 +22,7 @@ func TestNewBlockChain(t *testing.T) {
 }
 
 func TestBlockchain_BlockHash(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	cvmk := app.CVMKeeper
 
@@ -38,7 +38,7 @@ func TestBlockchain_BlockHash(t *testing.T) {
 }
 
 func TestBlockchain_LastBlockHeight(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	cvmk := app.CVMKeeper
 	bc := NewBlockChain(ctx, cvmk)
@@ -48,7 +48,7 @@ func TestBlockchain_LastBlockHeight(t *testing.T) {
 }
 
 func TestBlockchain_LastBlockTime(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	cvmk := app.CVMKeeper
 	bc := NewBlockChain(ctx, cvmk)

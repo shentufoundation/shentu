@@ -1,128 +1,92 @@
-linters-settings:
-  govet:
-    check-shadowing: false
-    settings:
-      printf:
-        funcs:
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
-    disable:
-      - shadow
-      - composites
-  golint:
-    min-confidence: 0.3
-  gocyclo:
-    min-complexity: 15
-  dupl:
-    threshold: 100
-  goconst:
-    min-len: 2
-    min-occurrences: 2
-  depguard:
-    list-type: blacklist
-    packages:
-      # logging is allowed only by logutils.Log, logrus
-      # is allowed to use only in logutils package
-      - github.com/sirupsen/logrus
-    packages-with-error-messages:
-      github.com/sirupsen/logrus: "logging is allowed only by logutils.Log"
-  misspell:
-    locale: US
-    auto-fix: true
-  lll:
-    line-length: 140
-  goimports:
-    local-prefixes: github.com/certikfoundation/shentu
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-    disabled-checks:
-      - dupImport # https://github.com/go-critic/go-critic/issues/845
-      - ifElseChain
-      - octalLiteral
-      - wrapperFunc
-      - hugeParam # premature optimization
-      - paramTypeCombine
-  funlen:
-    lines: 100
-    statements: 50
+run:
+  tests: false
+  skip-dirs:
+    - tests/e2e
+    # TODO: include below
+    - app/certik/cmd
+  timeout: 5m
 
 linters:
-  # please, do not use `enable-all`: it's deprecated and will be removed soon.
-  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
   disable-all: true
   enable:
     - bodyclose
+    - deadcode
     - depguard
     - dogsled
+    # - errcheck
+    - goconst
+    - gocritic
     - gofmt
     - goimports
+    - golint
+    # - gosec
     - gosimple
+    - govet
     - ineffassign
+    - interfacer
+    - maligned
     - misspell
     - nakedret
     - prealloc
     - scopelint
+    - staticcheck
     - structcheck
+    - stylecheck
     - typecheck
     - unconvert
+    - unused
     - unparam
-    - varcheck
-    - whitespace
-    # - goconst
-    # - lll
-    # - dupl
-    # - gochecknoglobals
-    # - godox
-    # - golint
-    - govet
-    # - interfacer
-    # - stylecheck
-    # - funlen
-    # - gochecknoinits
-    # - deadcode
-    # - errcheck
-    # - gocritic
-    # - gosec
-    # - staticcheck
-    # - unused
-    # - gocognit
-    # - gocyclo
-
-run:
-  skip-dirs:
-    - vm
-    - vendor
-    - x/*/internal/mocks
+    # - wsl
+    - nolintlint
 
 issues:
-  exclude-use-default: false
   exclude-rules:
-    - path: _test\.go
+    - text: "Use of weak random number generator"
       linters:
-        - gocyclo
-        - errcheck
-        - dupl
         - gosec
-
-    - path: internal/(cache|renameio)/
+    - text: "comment on exported var"
       linters:
-        - lll
-        - gochecknoinits
-        - gocyclo
-        - funlen
-  exclude:
-    - Using the variable on range scope .* in function literal
+        - golint
+    - text: "don't use an underscore in package name"
+      linters:
+        - golint
+    - text: "put a space between `//` and comment text"
+      linters:
+        - gocritic
+    - text: "ST1003:"
+      linters:
+        - stylecheck
+    # FIXME: Disabled until golangci-lint updates stylecheck with this fix:
+    # https://github.com/dominikh/go-tools/issues/389
+    - text: "ST1016:"
+      linters:
+        - stylecheck
+    - text: "SA1019: codec.LegacyAmino is deprecated"
+      linters:
+        - staticcheck
+    - text: "don't use underscores in Go names"
+      linters:
+        - golint
+    - text: "should not use dot imports"
+      linters:
+        - golint
+    - text: "ST1001: should not use dot imports"
+      linters:
+        - stylecheck
+    - text: "ifElseChain: rewrite if-else to switch statement"
+      linters:
+        - gocritic
+  max-issues-per-linter: 10000
+  max-same-issues: 10000
 
-# golangci.com configuration
-# https://github.com/golangci/golangci/wiki/Configuration
-service:
-  golangci-lint-version: 1.23.x # use the fixed version to not introduce new linters unexpectedly
-  prepare:
-    - echo "here I can run custom commands, but no preparation needed for this repo"
+linters-settings:
+  dogsled:
+    max-blank-identifiers: 3
+  maligned:
+    # print struct with more effective memory layout or not, false by default
+    suggest-new: true
+  nolintlint:
+    allow-unused: false
+    allow-leading-space: true
+    require-explanation: false
+    require-specific: false

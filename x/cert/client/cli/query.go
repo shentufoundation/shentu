@@ -181,7 +181,7 @@ func GetCmdPlatform() *cobra.Command {
 			queryClient := types.NewQueryClient(cliCtx)
 
 			var pk cryptotypes.PubKey
-			err = cliCtx.JSONCodec.UnmarshalJSON([]byte(args[0]), pk)
+			err = cliCtx.Codec.UnmarshalJSON([]byte(args[0]), pk)
 			if err != nil {
 				return err
 			}
