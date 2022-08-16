@@ -12,7 +12,7 @@ on: [workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: certik state sync
+    name: shentud state sync
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3.2.1
