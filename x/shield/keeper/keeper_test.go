@@ -14,11 +14,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	shentuapp "github.com/certikfoundation/shentu/v2/app"
-	"github.com/certikfoundation/shentu/v2/common"
-	"github.com/certikfoundation/shentu/v2/x/gov/testgov"
-	"github.com/certikfoundation/shentu/v2/x/shield/testshield"
-	"github.com/certikfoundation/shentu/v2/x/staking/teststaking"
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/common"
+	"github.com/shentufoundation/shentu/v2/x/gov/testgov"
+	"github.com/shentufoundation/shentu/v2/x/shield/testshield"
+	"github.com/shentufoundation/shentu/v2/x/staking/teststaking"
 )
 
 // nextBlock calls staking, shield, and gov endblockers and updates
@@ -258,7 +258,7 @@ func TestClaimProposal(t *testing.T) {
 	// $BondDenom pool with shield = 100,000 $BondDenom, limit = 500,000 $BondDenom, serviceFees = 200 $BondDenom
 	tstaking.Delegate(shieldAdmin, val1addr, adminDeposit)
 	tshield.DepositCollateral(shieldAdmin, adminDeposit, true)
-	tshield.CreatePool(shieldAdmin, sponsorAddr, 200e6, 100e9, 500e9, "CertiK", "fake_description")
+	tshield.CreatePool(shieldAdmin, sponsorAddr, 200e6, 100e9, 500e9, "Shentu", "fake_description")
 
 	pools := app.ShieldKeeper.GetAllPools(ctx)
 	require.True(t, len(pools) == 1)

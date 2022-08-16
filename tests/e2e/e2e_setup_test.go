@@ -30,7 +30,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/certikfoundation/shentu/v2/common"
+	"github.com/shentufoundation/shentu/v2/common"
 )
 
 const (

@@ -3,7 +3,7 @@ package v232
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 // MigrateStore performs in-place store migrations from v2.3.1/v2.3.2 to v2.4.0.

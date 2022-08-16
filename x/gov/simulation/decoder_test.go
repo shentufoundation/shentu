@@ -16,10 +16,10 @@ import (
 	sim "github.com/cosmos/cosmos-sdk/types/simulation"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	shentuapp "github.com/certikfoundation/shentu/v2/app"
-	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
-	. "github.com/certikfoundation/shentu/v2/x/gov/simulation"
-	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
+	. "github.com/shentufoundation/shentu/v2/x/gov/simulation"
+	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
 func TestDecodeStore(t *testing.T) {

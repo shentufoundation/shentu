@@ -1,58 +1,58 @@
 version: '3.2'
 
 services:
-  certiknode0:
-    container_name: certiknode0
-    image: "certikfoundation/certiknode"
+  shentunode0:
+    container_name: shentunode0
+    image: "shentufoundation/shentunode"
     ports:
       - "26656-26657:26656-26657"
     environment:
       - ID=0
-      - LOG=${LOG:-certik.log}
+      - LOG=${LOG:-shentud.log}
     volumes:
-      - ./build:/certik:Z
+      - ./build:/shentu:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.2
 
-  certiknode1:
-    container_name: certiknode1
-    image: "certikfoundation/certiknode"
+  shentunode1:
+    container_name: shentunode1
+    image: "shentufoundation/shentunode"
     ports:
       - "26659-26660:26656-26657"
     environment:
       - ID=1
-      - LOG=${LOG:-certik.log}
+      - LOG=${LOG:-shentud.log}
     volumes:
-      - ./build:/certik:Z
+      - ./build:/shentu:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.3
 
-  certiknode2:
-    container_name: certiknode2
-    image: "certikfoundation/certiknode"
+  shentunode2:
+    container_name: shentunode2
+    image: "shentufoundation/shentunode"
     environment:
       - ID=2
-      - LOG=${LOG:-certik.log}
+      - LOG=${LOG:-shentud.log}
     ports:
       - "26661-26662:26656-26657"
     volumes:
-      - ./build:/certik:Z
+      - ./build:/shentu:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.4
 
-  certiknode3:
-    container_name: certiknode3
-    image: "certikfoundation/certiknode"
+  shentunode3:
+    container_name: shentunode3
+    image: "shentufoundation/shentunode"
     environment:
       - ID=3
-      - LOG=${LOG:-certik.log}
+      - LOG=${LOG:-shentud.log}
     ports:
       - "26663-26664:26656-26657"
     volumes:
-      - ./build:/certik:Z
+      - ./build:/shentu:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.5

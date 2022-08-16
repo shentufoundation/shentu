@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/x/cert/types"
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 type (

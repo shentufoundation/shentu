@@ -7,9 +7,9 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/v2/app/params"
-	"github.com/certikfoundation/shentu/v2/x/cert/keeper"
-	"github.com/certikfoundation/shentu/v2/x/cert/types"
+	"github.com/shentufoundation/shentu/v2/app/params"
+	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 // OpWeightSubmitCertifierUpdateProposal app params key for certifier update proposal

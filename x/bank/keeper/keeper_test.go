@@ -15,11 +15,11 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	shentuapp "github.com/certikfoundation/shentu/v2/app"
-	"github.com/certikfoundation/shentu/v2/common"
-	vesting "github.com/certikfoundation/shentu/v2/x/auth/types"
-	"github.com/certikfoundation/shentu/v2/x/bank/keeper"
-	"github.com/certikfoundation/shentu/v2/x/bank/types"
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/common"
+	vesting "github.com/shentufoundation/shentu/v2/x/auth/types"
+	"github.com/shentufoundation/shentu/v2/x/bank/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bank/types"
 )
 
 var (

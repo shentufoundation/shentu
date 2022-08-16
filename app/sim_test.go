@@ -36,10 +36,10 @@ import (
 	ibctransfer "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 
-	cert "github.com/certikfoundation/shentu/v2/x/cert/types"
-	cvm "github.com/certikfoundation/shentu/v2/x/cvm/types"
-	oracle "github.com/certikfoundation/shentu/v2/x/oracle/types"
-	shield "github.com/certikfoundation/shentu/v2/x/shield/types"
+	cert "github.com/shentufoundation/shentu/v2/x/cert/types"
+	cvm "github.com/shentufoundation/shentu/v2/x/cvm/types"
+	oracle "github.com/shentufoundation/shentu/v2/x/oracle/types"
+	shield "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 type StoreKeysPrefixes struct {

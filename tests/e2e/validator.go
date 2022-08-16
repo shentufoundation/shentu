@@ -25,7 +25,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	shentu "github.com/certikfoundation/shentu/v2/app"
+	shentu "github.com/shentufoundation/shentu/v2/app"
 )
 
 type validator struct {

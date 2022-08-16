@@ -8,9 +8,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/v2/x/shield"
-	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/shentufoundation/shentu/v2/x/shield"
+	"github.com/shentufoundation/shentu/v2/x/shield/keeper"
+	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 // Helper is a structure which wraps the staking handler

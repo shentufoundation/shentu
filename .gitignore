@@ -11,8 +11,8 @@ __pycache__
 *.pyc
 
 # Generated binaries & files
-certik
-!app/certik
+shentud
+!app/shentud
 
 # Test
 coverage.out
