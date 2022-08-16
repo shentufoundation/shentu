@@ -35,11 +35,30 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [v2.4.0] - TBD
+## [v2.5.0] - TBD
+
+### Client Breaking Changes
+### API Breaking Changes
+### State Machine Breaking Changes
+* (app) [\#390](https://github.com/certikfoundation/shentu/pull/390) Bump Cosmos SDK to v0.45.4
+
+### Features
+### Improvements
+* (app) [\#394](https://github.com/certikfoundation/shentu/pull/394) Bump Go version to 1.18
+* (app) [\#399](https://github.com/certikfoundation/shentu/pull/399) Format & fix bugs in shield module
+
+
+### Tests
+### Bug Fixes
+
+## [v2.4.0] - 06-17-2022
 
 ### State Machine Breaking Changes
 * (x/shield) [\#380](https://github.com/certikfoundation/shentu/pull/380) Add more fine-grained and additional shield rewards to the collateral providers.
-* (app) [\#390](https://github.com/certikfoundation/shentu/pull/390) Bump Cosmos SDK to v0.45.4
+
+### Features
+* (app) [\#387](https://github.com/certikfoundation/shentu/pull/387) Add genesis validator key rotation command.
+* (x/shield) [\#437](https://github.com/certikfoundation/shentu/pull/437) Add automatic reward withdrawals on deposit/withdraw collateral.
 
 ## [v2.3.2] - 05-02-2022
 

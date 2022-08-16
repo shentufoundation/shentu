@@ -32,7 +32,7 @@ func (k msgServer) IssueCertificate(goCtx context.Context, msg *types.MsgIssueCe
 
 	certificate := types.Certificate{
 		Content:            msg.Content,
-		CompilationContent: &types.CompilationContent{msg.Compiler, msg.BytecodeHash},
+		CompilationContent: &types.CompilationContent{Compiler: msg.Compiler, BytecodeHash: msg.BytecodeHash},
 		Description:        msg.Description,
 		Certifier:          msg.Certifier,
 	}

@@ -48,7 +48,7 @@ func (AppModuleBasic) Name() string {
 // RegisterLegacyAminoCodec registers the bank module's types on the LegacyAmino codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
-	*banktypes.ModuleCdc = *types.ModuleCdc // nolint
+	*banktypes.ModuleCdc = *types.ModuleCdc
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the bank

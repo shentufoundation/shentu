@@ -6,75 +6,30 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	sdkauthz "github.com/cosmos/cosmos-sdk/x/authz"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
-	sdkfeegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
+	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
-
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
 const (
-	v230Upgrade = "Shentu-v230"
-	shieldv2    = "Shield-V2"
+	tmp = "tmp"
 )
 
-func (app ShentuApp) setv230UpgradeHandler() {
+// TODO: rename upgrade title
+func (app ShentuApp) setTmpUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		v230Upgrade,
-		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-			app.IBCKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
-
-			fromVM := make(map[string]uint64)
-			for moduleName := range app.mm.Modules {
-				fromVM[moduleName] = 1
+		tmp,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			migrationOrder := make([]string, len(fromVM))
+			i := 0
+			for moduleName := range fromVM {
+				migrationOrder[i] = moduleName
+				i++
 			}
-			// override versions for _new_ modules as to not skip InitGenesis
-			fromVM[sdkauthz.ModuleName] = 0
-			fromVM[sdkfeegrant.ModuleName] = 0
-
-			fromVM[authtypes.ModuleName] = 2
-			newVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
-
-			if err != nil {
-				return newVM, err
-			}
-
-			newVM[authtypes.ModuleName] = 1
-
-			return app.mm.RunMigrations(ctx, app.configurator, newVM)
-		},
-	)
-
-	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
-	}
-
-	if upgradeInfo.Name == v230Upgrade && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{authz.ModuleName, feegrant.ModuleName},
-		}
-
-		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-	}
-}
-
-func (app ShentuApp) setShieldV2UpgradeHandler() {
-	app.UpgradeKeeper.SetUpgradeHandler(
-		shieldv2,
-		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-			fromVM := make(map[string]uint64)
-			for moduleName := range app.mm.Modules {
-				fromVM[moduleName] = 2
-			}
-
-			fromVM[shieldtypes.ModuleName] = 1
+			order := module.DefaultMigrationsOrder(migrationOrder)
+			// need to run crisis module last to avoid it being run before shield which has broken invariant before migration
+			order = append(order, crisistypes.ModuleName)
+			app.mm.SetOrderMigrations(order...)
+			ctx.Logger().Info("Start to run module migrations...")
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)
@@ -84,8 +39,10 @@ func (app ShentuApp) setShieldV2UpgradeHandler() {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if upgradeInfo.Name == shieldv2 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := storetypes.StoreUpgrades{}
+	if upgradeInfo.Name == tmp && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{
+			Added: []string{crisistypes.ModuleName},
+		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))

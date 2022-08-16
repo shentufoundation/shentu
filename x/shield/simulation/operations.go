@@ -47,7 +47,7 @@ var (
 	DefaultWeightShieldClaimProposal      = 5
 	DefaultWeightMsgWithdrawReimbursement = 5
 
-	DefaultIntMax = 100000000000
+	DefaultIntMax = 10000000000
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights

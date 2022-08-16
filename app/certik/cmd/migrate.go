@@ -9,6 +9,8 @@ import (
 	"log"
 	"sort"
 
+	"github.com/spf13/cobra"
+
 	cryptocodec "github.com/tendermint/tendermint/crypto/encoding"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -24,7 +26,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/spf13/cobra"
 )
 
 const (
@@ -121,10 +122,10 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 	var bankGenesis bank.GenesisState
 	var authGenesis auth.GenesisState
 
-	clientCtx.JSONCodec.MustUnmarshalJSON(state[staking.ModuleName], &stakingGenesis)
-	clientCtx.JSONCodec.MustUnmarshalJSON(state[slashing.ModuleName], &slashingGenesis)
-	clientCtx.JSONCodec.MustUnmarshalJSON(state[bank.ModuleName], &bankGenesis)
-	clientCtx.JSONCodec.MustUnmarshalJSON(state[auth.ModuleName], &authGenesis)
+	clientCtx.Codec.MustUnmarshalJSON(state[staking.ModuleName], &stakingGenesis)
+	clientCtx.Codec.MustUnmarshalJSON(state[slashing.ModuleName], &slashingGenesis)
+	clientCtx.Codec.MustUnmarshalJSON(state[bank.ModuleName], &bankGenesis)
+	clientCtx.Codec.MustUnmarshalJSON(state[auth.ModuleName], &authGenesis)
 
 	// sort validators power descending
 	sort.Slice(stakingGenesis.Validators, func(i, j int) bool {
@@ -146,7 +147,7 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 			panic(err)
 		}
 		var tmp codectypes.Any
-		clientCtx.JSONCodec.MustUnmarshalJSON(bz, &tmp)
+		clientCtx.Codec.MustUnmarshalJSON(bz, &tmp)
 		var mypk cryptotypes.PubKey
 		if err = clientCtx.InterfaceRegistry.UnpackAny(&tmp, &mypk); err != nil {
 			panic(err)
