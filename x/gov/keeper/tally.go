@@ -226,8 +226,8 @@ func passAndVetoStakeResultForShieldClaim(k Keeper, ctx sdk.Context, th TallyHel
 }
 
 // passAndVetoSecurityResult has two storeKey differences from passAndVetoStakeResult:
-//		1. Every certifier has equal voting power (1 head =  1 vote)
-//		2. The only voting options are "yes" and "no".
+//  1. Every certifier has equal voting power (1 head =  1 vote)
+//  2. The only voting options are "yes" and "no".
 func passAndVetoSecurityResult(k Keeper, ctx sdk.Context, th TallyHelper) (pass bool) {
 	nCertifiers := sdk.NewDec(int64(len(k.CertKeeper.GetAllCertifiers(ctx))))
 

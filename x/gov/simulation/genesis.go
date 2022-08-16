@@ -49,7 +49,7 @@ func GenerateAVotingParams(r *rand.Rand) govTypes.VotingParams {
 	return govTypes.NewVotingParams(time.Duration(votingPeriod) * time.Second)
 }
 
-//GenerateTallyParams returns a TallyParams object with all of its fields randomized.
+// GenerateTallyParams returns a TallyParams object with all of its fields randomized.
 func GenerateTallyParams(r *rand.Rand) types.TallyParams {
 	aTallyParam := GenerateATallyParams(r)
 	return types.TallyParams{

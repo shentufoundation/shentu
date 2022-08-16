@@ -15,7 +15,7 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
-//shared test
+// shared test
 type MigrationTestSuite struct {
 	suite.Suite
 

@@ -47,7 +47,7 @@ func TestWithdraw(t *testing.T) {
 	require.Equal(t, params.LockedInBlocks, withdraws[2].DueBlock)
 }
 
-//Test set withdraw
+// Test set withdraw
 func TestSetWithdraw(t *testing.T) {
 	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})

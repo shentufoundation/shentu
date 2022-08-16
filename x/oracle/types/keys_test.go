@@ -9,7 +9,7 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
-//test OperatorStoreKey
+// test OperatorStoreKey
 func Test_OperatorStoreKey(t *testing.T) {
 	t.Run("Operator", func(t *testing.T) {
 		acc := sdk.AccAddress([]byte{10})
@@ -18,7 +18,7 @@ func Test_OperatorStoreKey(t *testing.T) {
 	})
 }
 
-//test WithdrawStoreKey
+// test WithdrawStoreKey
 func Test_WithdrawStoreKey(t *testing.T) {
 	t.Run("Withdraw", func(t *testing.T) {
 		acc := sdk.AccAddress([]byte{10})
@@ -35,7 +35,7 @@ func Test_TotalCollateralKey(t *testing.T) {
 	})
 }
 
-//test TaskStoreKey
+// test TaskStoreKey
 func Test_TaskStoreKey(t *testing.T) {
 	t.Run("Task", func(t *testing.T) {
 		s1 := "abc"
@@ -45,7 +45,7 @@ func Test_TaskStoreKey(t *testing.T) {
 	})
 }
 
-//test ClosingTaskIDsStoreKey
+// test ClosingTaskIDsStoreKey
 func Test_ClosingTaskIDsStoreKey(t *testing.T) {
 	t.Run("ClosingTaskIDs", func(t *testing.T) {
 		var n int64 = 34

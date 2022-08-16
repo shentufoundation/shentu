@@ -4,9 +4,11 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/shentufoundation/shentu/v2/x/cvm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/hyperledger/burrow/crypto"
+
+	"github.com/shentufoundation/shentu/v2/x/cvm/types"
 )
 
 type msgServer struct {

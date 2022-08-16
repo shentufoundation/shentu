@@ -27,7 +27,7 @@ func ProposalContents(k keeper.Keeper) []simtypes.WeightedProposalContent {
 }
 
 // SimulateCertifierUpdateProposalContent generates random certifier update proposal content
-//nolint: funlen
+// nolint: funlen
 func SimulateCertifierUpdateProposalContent(k keeper.Keeper) simtypes.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 		certifiers := k.GetAllCertifiers(ctx)
