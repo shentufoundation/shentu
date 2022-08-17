@@ -230,7 +230,6 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 func (s *IntegrationTestSuite) initValidatorConfigs(c *chain) {
 	for i, val := range c.validators {
 		tmCfgPath := filepath.Join(val.configDir(), "config", "config.toml")
-		fmt.Println(tmCfgPath)
 
 		vpr := viper.New()
 		vpr.SetConfigFile(tmCfgPath)
@@ -367,7 +366,7 @@ func (s *IntegrationTestSuite) runIBCRelayer() {
 				"3031/tcp": {{HostIP: "", HostPort: "3031"}},
 			},
 			Env: []string{
-				fmt.Sprintf("SHENTU=%s", s.chainA.id),
+				fmt.Sprintf("SHENTU_A_E2E_CHAIN_ID=%s", s.chainA.id),
 				fmt.Sprintf("SHENTU_B_E2E_CHAIN_ID=%s", s.chainB.id),
 				fmt.Sprintf("SHENTU_A_E2E_VAL_MNEMONIC=%s", shentuAVal.mnemonic),
 				fmt.Sprintf("SHENTU_B_E2E_VAL_MNEMONIC=%s", shentuBVal.mnemonic),
