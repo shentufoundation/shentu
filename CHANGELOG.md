@@ -38,7 +38,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [v2.5.0] - TBD
 
 ### Client Breaking Changes
+* (app) [\#467](https://github.com/shentufoundation/shentu/pull/467) Change binary name to `shentud` from `certik`
 ### API Breaking Changes
+* (app) [\#467](https://github.com/shentufoundation/shentu/pull/467) Change package path to "github.com/shentufoundation/shentu" from "github.com/certikfoundation/shentu"
 ### State Machine Breaking Changes
 * (app) [\#390](https://github.com/shentufoundation/shentu/pull/390) Bump Cosmos SDK to v0.45.4
 
