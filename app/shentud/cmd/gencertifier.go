@@ -8,7 +8,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -26,8 +25,8 @@ func AddGenesisCertifierCmd(defaultNodeHome string) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := client.GetClientContextFromCmd(cmd)
-			depCdc := ctx.JSONCodec
-			cdc := depCdc.(codec.Codec)
+			depCdc := ctx.Codec
+			cdc := depCdc
 
 			config := server.GetServerContextFromCmd(cmd).Config
 			config.SetRoot(ctx.HomeDir)

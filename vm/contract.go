@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"io/ioutil"
 	"math/big"
+	"os"
 	"strings"
 
 	"github.com/hyperledger/burrow/acm"
@@ -860,7 +860,7 @@ func dumpTokens(nonce []byte, caller, callee crypto.Address, code []byte) {
 	if callee != crypto.ZeroAddress {
 		calleeString = fmt.Sprintf("callee-%v", caller)
 	}
-	_ = ioutil.WriteFile(fmt.Sprintf("tokens_%s_%s_%s.asm", txHashString, callerString, calleeString),
+	_ = os.WriteFile(fmt.Sprintf("tokens_%s_%s_%s.asm", txHashString, callerString, calleeString),
 		[]byte(tokensString), 0777)
 }
 

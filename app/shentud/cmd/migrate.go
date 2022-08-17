@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"sort"
 
 	"github.com/spf13/cobra"
@@ -49,7 +49,7 @@ $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04
 
 			importGenesis := args[0]
 
-			jsonBlob, err := ioutil.ReadFile(importGenesis)
+			jsonBlob, err := os.ReadFile(importGenesis)
 
 			if err != nil {
 				return errors.Wrap(err, "failed to read provided genesis file")
@@ -102,7 +102,7 @@ type replacementKeys []map[string]interface{}
 */
 
 func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genDoc *tmtypes.GenesisDoc) *tmtypes.GenesisDoc {
-	jsonReplacementBlob, err := ioutil.ReadFile(replacementsJSON)
+	jsonReplacementBlob, err := os.ReadFile(replacementsJSON)
 	if err != nil {
 		log.Fatal(errors.Wrapf(err, "failed to read replacement keys from file %s", replacementsJSON))
 	}
@@ -233,10 +233,10 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 
 		stakingGenesis.Validators[i] = val
 	}
-	state[staking.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&stakingGenesis)
-	state[slashing.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&slashingGenesis)
-	state[bank.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&bankGenesis)
-	state[auth.ModuleName] = clientCtx.JSONCodec.MustMarshalJSON(&authGenesis)
+	state[staking.ModuleName] = clientCtx.Codec.MustMarshalJSON(&stakingGenesis)
+	state[slashing.ModuleName] = clientCtx.Codec.MustMarshalJSON(&slashingGenesis)
+	state[bank.ModuleName] = clientCtx.Codec.MustMarshalJSON(&bankGenesis)
+	state[auth.ModuleName] = clientCtx.Codec.MustMarshalJSON(&authGenesis)
 
 	genDoc.AppState, err = json.Marshal(state)
 

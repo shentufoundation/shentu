@@ -12,7 +12,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -50,8 +49,8 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			ctx := client.GetClientContextFromCmd(cmd)
-			depCdc := ctx.JSONCodec
-			cdc := depCdc.(codec.Codec)
+			depCdc := ctx.Codec
+			cdc := depCdc
 
 			config := server.GetServerContextFromCmd(cmd).Config
 			config.SetRoot(ctx.HomeDir)
