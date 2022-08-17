@@ -107,7 +107,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
-	if str := os.Getenv("CERTIK_E2E_SKIP_CLEANUP"); len(str) > 0 {
+	if str := os.Getenv("SHENTU_E2E_SKIP_CLEANUP"); len(str) > 0 {
 		skipCleanup, err := strconv.ParseBool(str)
 		s.Require().NoError(err)
 
@@ -281,9 +281,9 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 			Name:      val.instanceName(),
 			NetworkID: s.dkrNet.Network.ID,
 			Mounts: []string{
-				fmt.Sprintf("%s/:/root/.certik", val.configDir()),
+				fmt.Sprintf("%s/:/root/.shentud", val.configDir()),
 			},
-			Repository: "shentuchain/certik-e2e",
+			Repository: "shentuchain/shentu-e2e",
 		}
 
 		// expose the first validator for debugging and communication
@@ -338,7 +338,7 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 func (s *IntegrationTestSuite) runIBCRelayer() {
 	s.T().Log("starting Hermes relayer container...")
 
-	tmpDir, err := ioutil.TempDir("", "certik-e2e-testnet-hermes-")
+	tmpDir, err := ioutil.TempDir("", "shentu-e2e-testnet-hermes-")
 	s.Require().NoError(err)
 	s.tmpDirs = append(s.tmpDirs, tmpDir)
 
