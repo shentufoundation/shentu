@@ -158,7 +158,7 @@ endif
 .PHONY: run-tests $(TEST_TARGETS)
 
 docker-build-debug:
-	@docker build -t shentuchain/shentu-e2e --build-arg IMG_TAG=debug -f e2e.Dockerfile .
+	@docker build -t shentuchain/shentud-e2e --build-arg IMG_TAG=debug -f e2e.Dockerfile .
 
 # in CI.
 docker-build-hermes:
