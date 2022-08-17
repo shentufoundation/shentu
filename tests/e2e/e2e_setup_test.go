@@ -230,6 +230,7 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 func (s *IntegrationTestSuite) initValidatorConfigs(c *chain) {
 	for i, val := range c.validators {
 		tmCfgPath := filepath.Join(val.configDir(), "config", "config.toml")
+		fmt.Println(tmCfgPath)
 
 		vpr := viper.New()
 		vpr.SetConfigFile(tmCfgPath)
@@ -281,7 +282,7 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 			Name:      val.instanceName(),
 			NetworkID: s.dkrNet.Network.ID,
 			Mounts: []string{
-				fmt.Sprintf("%s/:/root/.shentu", val.configDir()),
+				fmt.Sprintf("%s/:/root/.shentud", val.configDir()),
 			},
 			Repository: "shentuchain/shentud-e2e",
 		}
