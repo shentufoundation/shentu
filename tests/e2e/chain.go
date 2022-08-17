@@ -50,7 +50,7 @@ type chain struct {
 }
 
 func newChain() (*chain, error) {
-	tmpDir, err := ioutil.TempDir("", "shentud-e2e-testnet-")
+	tmpDir, err := ioutil.TempDir("", "shentu-e2e-testnet-")
 	if err != nil {
 		return nil, err
 	}

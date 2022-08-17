@@ -46,7 +46,7 @@ rpc_addr = 'http://$SHENTU_A_E2E_VAL_HOST:26657'
 grpc_addr = 'http://$SHENTU_A_E2E_VAL_HOST:9090'
 websocket_addr = 'ws://$SHENTU_A_E2E_VAL_HOST:26657/websocket'
 rpc_timeout = '10s'
-account_prefix = 'shentu'
+account_prefix = 'certik'
 key_name = 'val01-shentu-a'
 store_prefix = 'ibc'
 max_gas = 6000000
@@ -62,7 +62,7 @@ rpc_addr = 'http://$SHENTU_B_E2E_VAL_HOST:26657'
 grpc_addr = 'http://$SHENTU_B_E2E_VAL_HOST:9090'
 websocket_addr = 'ws://$SHENTU_B_E2E_VAL_HOST:26657/websocket'
 rpc_timeout = '10s'
-account_prefix = 'shentu'
+account_prefix = 'certik'
 key_name = 'val01-shentu-b'
 store_prefix = 'ibc'
 max_gas = 6000000
@@ -74,8 +74,8 @@ trust_threshold = { numerator = '1', denominator = '3' }
 EOF
 
 # import keys
-hermes keys restore ${CERTIK_B_E2E_CHAIN_ID} -n "val01-shentu-b" -m "${CERTIK_B_E2E_VAL_MNEMONIC}"
-hermes keys restore ${CERTIK_A_E2E_CHAIN_ID} -n "val01-shentu-a" -m "${CERTIK_A_E2E_VAL_MNEMONIC}"
+hermes keys restore ${SHENTU_B_E2E_CHAIN_ID} -n "val01-shentu-b" -m "${SHENTU_B_E2E_VAL_MNEMONIC}"
+hermes keys restore ${SHENTU_A_E2E_CHAIN_ID} -n "val01-shentu-a" -m "${SHENTU_A_E2E_VAL_MNEMONIC}"
 
 # start Hermes relayer
 hermes start

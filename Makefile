@@ -166,12 +166,12 @@ docker-build-hermes:
 
 
 image: Dockerfile Dockerfile.update
-	@docker rmi -f shentu-base -f shentu
-	@docker build -t shentu-base -t shentu . -f Dockerfile
+	@docker rmi -f shentu-base -f shentud
+	@docker build -t shentu-base -t shentud . -f Dockerfile
 
 image.update: Dockerfile.update
-	@docker rmi -f shentu
-	@docker build -t shentu . -f Dockerfile.update
+	@docker rmi -f shentud
+	@docker build -t shentud . -f Dockerfile.update
 
 include .env
 

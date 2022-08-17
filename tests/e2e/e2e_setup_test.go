@@ -281,7 +281,7 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 			Name:      val.instanceName(),
 			NetworkID: s.dkrNet.Network.ID,
 			Mounts: []string{
-				fmt.Sprintf("%s/:/root/.shentud", val.configDir()),
+				fmt.Sprintf("%s/:/root/.shentu", val.configDir()),
 			},
 			Repository: "shentuchain/shentud-e2e",
 		}
@@ -338,7 +338,7 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 func (s *IntegrationTestSuite) runIBCRelayer() {
 	s.T().Log("starting Hermes relayer container...")
 
-	tmpDir, err := ioutil.TempDir("", "shentud-e2e-testnet-hermes-")
+	tmpDir, err := ioutil.TempDir("", "shentu-e2e-testnet-hermes-")
 	s.Require().NoError(err)
 	s.tmpDirs = append(s.tmpDirs, tmpDir)
 
