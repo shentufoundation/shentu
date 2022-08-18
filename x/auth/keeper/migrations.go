@@ -33,6 +33,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 		if !ok {
 			return false
 		}
+		vestedCoins := mvacc.VestedCoins
 
 		dvAcc := vestingtypes.NewDelayedVestingAccount(
 			mvacc.BaseAccount, mvacc.OriginalVesting, math.MaxInt64)
@@ -55,7 +56,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 		if err != nil {
 			panic(err)
 		}
-		newmvacc := types.NewManualVestingAccount(dvAcc.BaseAccount, dvAcc.OriginalVesting, dvAcc.OriginalVesting, unlocker)
+		newmvacc := types.NewManualVestingAccount(dvAcc.BaseAccount, dvAcc.OriginalVesting, vestedCoins, unlocker)
 
 		m.keeper.SetAccount(ctx, newmvacc)
 		return false
