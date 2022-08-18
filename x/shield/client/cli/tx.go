@@ -154,11 +154,10 @@ $ %s tx shield create-pool <shield amount> <sponsor> <sponsor-address> --native-
 				return err
 			}
 
-			nativeDeposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagNativeDeposit))
+			deposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagNativeDeposit))
 			if err != nil {
 				return err
 			}
-			deposit := types.MixedCoins{Native: nativeDeposit}
 
 			description := viper.GetString(flagDescription)
 
@@ -212,7 +211,7 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 				return err
 			}
 
-			nativeDeposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagNativeDeposit))
+			deposit, err := sdk.ParseCoinsNormalized(viper.GetString(flagNativeDeposit))
 			if err != nil {
 				return err
 			}
@@ -221,7 +220,6 @@ $ %s tx shield update-pool <id> --native-deposit <ctk deposit> --shield <shield 
 			if err != nil {
 				return err
 			}
-			deposit := types.MixedCoins{Native: nativeDeposit}
 
 			description := viper.GetString(flagDescription)
 
