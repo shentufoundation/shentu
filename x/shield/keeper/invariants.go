@@ -24,16 +24,15 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 
 		moduleCoins := keeper.bk.GetAllBalances(ctx, keeper.ak.GetModuleAccount(ctx, types.ModuleName).GetAddress())
 
-		// remaining service fees
 		remainingServiceFees := keeper.GetRemainingServiceFees(ctx)
 
-		// rewards
-		var rewards types.MixedDecCoins
+		var rewards sdk.DecCoins
+
 		for _, provider := range keeper.GetAllProviders(ctx) {
-			rewards = rewards.Add(provider.Rewards)
+			rewards = rewards.Add(provider.Rewards...)
 		}
 
-		totalInt, change := remainingServiceFees.Add(rewards).Native.TruncateDecimal()
+		totalInt, change := remainingServiceFees.Add(rewards...).TruncateDecimal()
 
 		// shield stake
 		shieldStake := sdk.ZeroInt()
@@ -47,8 +46,7 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 			reimbursement = reimbursement.Add(rmb.Amount.AmountOf(bondDenom))
 		}
 
-		// block service fees
-		blockServiceFees := keeper.GetBlockServiceFees(ctx).Native.AmountOf(bondDenom).TruncateInt()
+		blockServiceFees := keeper.GetBlockServiceFees(ctx).AmountOf(bondDenom).TruncateInt()
 
 		totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, reimbursement)).Add(sdk.NewCoin(bondDenom, blockServiceFees))
 
@@ -56,7 +54,7 @@ func ModuleAccountInvariant(keeper Keeper) sdk.Invariant {
 
 		return sdk.FormatInvariant(types.ModuleName, "module-account",
 			fmt.Sprintf("\n\tshield ModuleAccount coins: %s"+
-				"\n\tsum of remaining service fees & rewards & staked & reimbursement amount:  %s"+
+				"\n\tsum of collected service fees & rewards & staked & reimbursement amount:  %s"+
 				"\n\tremaining change amount: %s\n",
 				moduleCoins, totalInt, change)), broken
 	}
