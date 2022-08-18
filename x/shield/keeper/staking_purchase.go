@@ -100,9 +100,11 @@ func (k Keeper) FundShieldBlockRewards(ctx sdk.Context, amount sdk.Coins, sender
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount); err != nil {
 		return err
 	}
-	blockServiceFee := k.GetBlockServiceFees(ctx)
-	blockServiceFee = blockServiceFee.Add(types.NewMixedDecCoins(sdk.NewDecCoinsFromCoins(amount...), sdk.NewDecCoins()))
-	k.SetBlockServiceFees(ctx, blockServiceFee)
+
+	blockServiceFees := k.GetBlockServiceFees(ctx).Add(sdk.NewDecCoinsFromCoins(amount...)...)
+
+	k.SetBlockServiceFees(ctx, blockServiceFees)
+
 	return nil
 }
 

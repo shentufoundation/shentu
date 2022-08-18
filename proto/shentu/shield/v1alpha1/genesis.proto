@@ -24,8 +24,8 @@ message GenesisState {
     string total_withdrawing = 8 [ (gogoproto.moretags) = "yaml:\"total_withdrawing\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     string total_shield = 9 [ (gogoproto.moretags) = "yaml:\"total_shield\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     string total_claimed = 10 [ (gogoproto.moretags) = "yaml:\"total_claimed\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    MixedDecCoins service_fees = 11 [ (gogoproto.moretags) = "yaml:\"service_fees\"", (gogoproto.nullable) = false ];
-    MixedDecCoins remaining_service_fees = 12 [ (gogoproto.moretags) = "yaml:\"remaining_service_fees\"", (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.DecCoin service_fees = 11 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
+    repeated cosmos.base.v1beta1.DecCoin remaining_service_fees = 12 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins" ];
     repeated Pool pools = 13 [ (gogoproto.moretags) = "yaml:\"pools\"", (gogoproto.nullable) = false ];
     repeated Provider providers = 14 [ (gogoproto.moretags) = "yaml:\"providers\"", (gogoproto.nullable) = false ];
     repeated PurchaseList purchase_lists = 15 [ (gogoproto.moretags) = "yaml:\"purchases\"", (gogoproto.nullable) = false ];

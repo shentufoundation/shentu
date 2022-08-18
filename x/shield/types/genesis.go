@@ -11,9 +11,10 @@ import (
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(shieldAdmin sdk.AccAddress, nextPoolID, nextPurchaseID uint64, poolParams PoolParams,
-	claimProposalParams ClaimProposalParams, distrParams DistributionParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, serviceFees, remainingServiceFees MixedDecCoins,
-	pools []Pool, providers []Provider, purchase []PurchaseList, withdraws []Withdraw, lastUpdateTime time.Time, sSRate sdk.Dec, globalStakingPool sdk.Int,
-	stakingPurchases []ShieldStaking, originalStaking []OriginalStaking, proposalIDReimbursementPairs []ProposalIDReimbursementPair) GenesisState {
+	claimProposalParams ClaimProposalParams, distrParams DistributionParams, totalCollateral, totalWithdrawing, totalShield, totalClaimed sdk.Int, serviceFees,
+	remainingServiceFees sdk.DecCoins, pools []Pool, providers []Provider, purchase []PurchaseList, withdraws []Withdraw,
+	lastUpdateTime time.Time, sSRate sdk.Dec, globalStakingPool sdk.Int, stakingPurchases []ShieldStaking, originalStaking []OriginalStaking,
+	proposalIDReimbursementPairs []ProposalIDReimbursementPair) GenesisState {
 	return GenesisState{
 		ShieldAdmin:                  shieldAdmin.String(),
 		NextPoolId:                   nextPoolID,
@@ -52,8 +53,8 @@ func DefaultGenesisState() *GenesisState {
 		TotalWithdrawing:     sdk.ZeroInt(),
 		TotalShield:          sdk.ZeroInt(),
 		TotalClaimed:         sdk.ZeroInt(),
-		ServiceFees:          InitMixedDecCoins(),
-		RemainingServiceFees: InitMixedDecCoins(),
+		ServiceFees:          sdk.DecCoins{},
+		RemainingServiceFees: sdk.DecCoins{},
 		ShieldStakingRate:    sdk.NewDec(2),
 		LastUpdateTime:       time.Now(),
 	}
