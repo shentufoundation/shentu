@@ -13,37 +13,6 @@ const (
 	stakingParamsPath = "/cosmos.staking.v1beta1.Query/Params"
 )
 
-// func migratePools(store sdk.KVStore, cdc codec.BinaryCodec) error {
-// 	oldStore := prefix.NewStore(store, types.PoolKey)
-
-// 	oldStoreIter := oldStore.Iterator(nil, nil)
-// 	defer oldStoreIter.Close()
-
-// 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
-// 		var oldPool v2.Pool
-// 		err := cdc.UnmarshalLengthPrefixed(oldStoreIter.Value(), &oldPool)
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		newPool := types.Pool{
-// 			Id:          oldPool.Id,
-// 			Description: oldPool.Description,
-// 			Sponsor:     oldPool.Sponsor,
-// 			SponsorAddr: oldPool.SponsorAddr,
-// 			ShieldLimit: oldPool.ShieldLimit,
-// 			Active:      oldPool.Active,
-// 			Shield:      oldPool.Shield,
-// 		}
-
-// 		oldStore.Delete(oldStoreIter.Key())
-// 		newPoolBz := cdc.MustMarshal(&newPool)
-// 		oldStore.Set(oldStoreIter.Key(), newPoolBz)
-// 	}
-
-// 	return nil
-// }
-
 func migrateProviders(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	oldStore := prefix.NewStore(store, types.ProviderKey)
 
@@ -129,11 +98,6 @@ func MigrateFees(store sdk.KVStore, cdc codec.BinaryCodec, key []byte) error {
 
 func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
-
-	// poolMigrationErr := migratePools(store, cdc)
-	// if poolMigrationErr != nil {
-	// 	return poolMigrationErr
-	// }
 
 	providerMigrationErr := migrateProviders(store, cdc)
 	if providerMigrationErr != nil {
