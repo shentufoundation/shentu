@@ -9,10 +9,6 @@ import (
 	"github.com/certikfoundation/shentu/v2/x/shield/types"
 )
 
-const (
-	stakingParamsPath = "/cosmos.staking.v1beta1.Query/Params"
-)
-
 func migrateProviders(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	oldStore := prefix.NewStore(store, types.ProviderKey)
 

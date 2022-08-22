@@ -589,23 +589,23 @@ func (m *ShieldClaimProposal) XXX_DiscardUnknown() {
 var xxx_messageInfo_ShieldClaimProposal proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MixedCoins)(nil), "shentu.shield.v1alpha1.MixedCoins")
-	proto.RegisterType((*MixedDecCoins)(nil), "shentu.shield.v1alpha1.MixedDecCoins")
-	proto.RegisterType((*Pool)(nil), "shentu.shield.v1alpha1.Pool")
-	proto.RegisterType((*Purchase)(nil), "shentu.shield.v1alpha1.Purchase")
-	proto.RegisterType((*PurchaseList)(nil), "shentu.shield.v1alpha1.PurchaseList")
-	proto.RegisterType((*Provider)(nil), "shentu.shield.v1alpha1.Provider")
-	proto.RegisterType((*PoolPurchaser)(nil), "shentu.shield.v1alpha1.PoolPurchaser")
-	proto.RegisterType((*PoolPurchaserPairs)(nil), "shentu.shield.v1alpha1.PoolPurchaserPairs")
-	proto.RegisterType((*Withdraw)(nil), "shentu.shield.v1alpha1.Withdraw")
-	proto.RegisterType((*Withdraws)(nil), "shentu.shield.v1alpha1.Withdraws")
-	proto.RegisterType((*ShieldStaking)(nil), "shentu.shield.v1alpha1.ShieldStaking")
-	proto.RegisterType((*LastUpdateTime)(nil), "shentu.shield.v1alpha1.LastUpdateTime")
-	proto.RegisterType((*ShieldClaimProposal)(nil), "shentu.shield.v1alpha1.ShieldClaimProposal")
+	// proto.RegisterType((*MixedCoins)(nil), "shentu.shield.v1alpha1.MixedCoins")
+	// proto.RegisterType((*MixedDecCoins)(nil), "shentu.shield.v1alpha1.MixedDecCoins")
+	// proto.RegisterType((*Pool)(nil), "shentu.shield.v1alpha1.Pool")
+	// proto.RegisterType((*Purchase)(nil), "shentu.shield.v1alpha1.Purchase")
+	// proto.RegisterType((*PurchaseList)(nil), "shentu.shield.v1alpha1.PurchaseList")
+	// proto.RegisterType((*Provider)(nil), "shentu.shield.v1alpha1.Provider")
+	// proto.RegisterType((*PoolPurchaser)(nil), "shentu.shield.v1alpha1.PoolPurchaser")
+	// proto.RegisterType((*PoolPurchaserPairs)(nil), "shentu.shield.v1alpha1.PoolPurchaserPairs")
+	// proto.RegisterType((*Withdraw)(nil), "shentu.shield.v1alpha1.Withdraw")
+	// proto.RegisterType((*Withdraws)(nil), "shentu.shield.v1alpha1.Withdraws")
+	// proto.RegisterType((*ShieldStaking)(nil), "shentu.shield.v1alpha1.ShieldStaking")
+	// proto.RegisterType((*LastUpdateTime)(nil), "shentu.shield.v1alpha1.LastUpdateTime")
+	// proto.RegisterType((*ShieldClaimProposal)(nil), "shentu.shield.v1alpha1.ShieldClaimProposal")
 }
 
 func init() {
-	proto.RegisterFile("shentu/shield/v1alpha1/shield.proto", fileDescriptor_d5263cf0ba18829d)
+	// proto.RegisterFile("shentu/shield/v1alpha1/shield.proto", fileDescriptor_d5263cf0ba18829d)
 }
 
 var fileDescriptor_d5263cf0ba18829d = []byte{
