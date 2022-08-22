@@ -11,17 +11,19 @@ import (
 )
 
 const (
-	tmp = "tmp"
+	upgradeName = "v2.5.0"
 )
 
-// TODO: rename upgrade title
-func (app ShentuApp) setTmpUpgradeHandler() {
+func (app ShentuApp) setUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		tmp,
+		upgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			migrationOrder := make([]string, len(fromVM))
 			i := 0
 			for moduleName := range fromVM {
+				if moduleName == crisistypes.ModuleName {
+					continue
+				}
 				migrationOrder[i] = moduleName
 				i++
 			}
@@ -39,7 +41,7 @@ func (app ShentuApp) setTmpUpgradeHandler() {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if upgradeInfo.Name == tmp && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{crisistypes.ModuleName},
 		}
