@@ -31,7 +31,6 @@ func migrateProviders(store sdk.KVStore, cdc codec.BinaryCodec) error {
 			Rewards:          oldProvider.Rewards.Native.Add(oldProvider.Rewards.Foreign...),
 		}
 
-		oldStore.Delete(oldStoreIter.Key())
 		newProviderBz := cdc.MustMarshal(&newProvider)
 		oldStore.Set(oldStoreIter.Key(), newProviderBz)
 	}
