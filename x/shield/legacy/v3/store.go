@@ -31,7 +31,7 @@ func migrateProviders(store sdk.KVStore, cdc codec.BinaryCodec) error {
 			Rewards:          oldProvider.Rewards.Native.Add(oldProvider.Rewards.Foreign...),
 		}
 
-		newProviderBz := cdc.MustMarshal(&newProvider)
+		newProviderBz := cdc.MustMarshalLengthPrefixed(&newProvider)
 		oldStore.Set(oldStoreIter.Key(), newProviderBz)
 	}
 
@@ -51,7 +51,7 @@ func migratePurchases(store sdk.KVStore, cdc codec.BinaryCodec) error {
 			return err
 		}
 
-		entries := make([]types.Purchase, len(oldPurchaseList.Entries))
+		entries := make([]types.Purchase, 0, len(oldPurchaseList.Entries))
 		for _, op := range oldPurchaseList.Entries {
 			newPurchase := types.Purchase{
 				PurchaseId:        op.PurchaseId,
@@ -79,7 +79,7 @@ func migratePurchases(store sdk.KVStore, cdc codec.BinaryCodec) error {
 func MigrateFees(store sdk.KVStore, cdc codec.BinaryCodec, key []byte) error {
 	bz := store.Get(key)
 	if bz == nil {
-		panic("MigrateFees: key not found")
+		return nil
 	}
 	var oldFees v2.MixedDecCoins
 	cdc.MustUnmarshalLengthPrefixed(bz, &oldFees)
