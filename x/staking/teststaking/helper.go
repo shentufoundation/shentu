@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/certikfoundation/shentu/v2/x/staking/keeper"
+	"github.com/shentufoundation/shentu/v2/x/staking/keeper"
 )
 
 // Helper is a structure which wraps the staking handler

@@ -14,7 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/v2/x/gov/client/utils"
+	"github.com/shentufoundation/shentu/v2/x/gov/client/utils"
 )
 
 // Proposal flags

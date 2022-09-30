@@ -10,7 +10,7 @@ import (
 
 	"github.com/hyperledger/burrow/crypto"
 
-	"github.com/certikfoundation/shentu/v2/x/bank/types"
+	"github.com/shentufoundation/shentu/v2/x/bank/types"
 )
 
 // Keeper is a wrapper of the basekeeper with CVM keeper.

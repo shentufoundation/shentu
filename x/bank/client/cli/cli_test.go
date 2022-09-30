@@ -13,9 +13,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/app"
-	"github.com/certikfoundation/shentu/v2/common"
-	"github.com/certikfoundation/shentu/v2/x/bank/client/cli"
+	"github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/common"
+	"github.com/shentufoundation/shentu/v2/x/bank/client/cli"
 )
 
 type IntegrationTestSuite struct {

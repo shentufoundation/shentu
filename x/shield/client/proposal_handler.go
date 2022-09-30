@@ -3,8 +3,8 @@ package client
 import (
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 
-	"github.com/certikfoundation/shentu/v2/x/shield/client/cli"
-	"github.com/certikfoundation/shentu/v2/x/shield/client/rest"
+	"github.com/shentufoundation/shentu/v2/x/shield/client/cli"
+	"github.com/shentufoundation/shentu/v2/x/shield/client/rest"
 )
 
 var (

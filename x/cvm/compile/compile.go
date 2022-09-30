@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,7 +16,7 @@ import (
 const NoABI = "\000"
 
 func BytecodeEVM(basename, workDir, abiFile string, logger *logging.Logger) (*compile.Response, error) {
-	bytecode, err := ioutil.ReadFile(workDir + "/" + basename)
+	bytecode, err := os.ReadFile(workDir + "/" + basename)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +39,7 @@ func BytecodeEVM(basename, workDir, abiFile string, logger *logging.Logger) (*co
 			return nil, errors.New("ABI file extension must be .abi")
 		}
 
-		abi, err = ioutil.ReadFile(abiWorkDir + "/" + abiBasename)
+		abi, err = os.ReadFile(abiWorkDir + "/" + abiBasename)
 		if err != nil {
 			return nil, err
 		}

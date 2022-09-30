@@ -14,10 +14,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
-	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
-	"github.com/certikfoundation/shentu/v2/x/gov/types"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
+	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
+	"github.com/shentufoundation/shentu/v2/x/gov/types"
+	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights

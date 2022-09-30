@@ -17,14 +17,14 @@ RUN apk add --no-cache $PACKAGES && make install
 FROM alpine:edge
 
 LABEL name="Shentu Chain"
-LABEL maintainer="CertiK"
-LABEL repository="https://github.com/certikfoundation/shentu"
-LABEL org.opencontainers.image.source=https://github.com/certikfoundation/shentu
+LABEL maintainer="Shentu Foundation"
+LABEL repository="https://github.com/shentufoundation/shentu"
+LABEL org.opencontainers.image.source=https://github.com/shentufoundation/shentu
 
 RUN apk add --update ca-certificates
 
 WORKDIR /shentu
 
-COPY --from=build-env /go/bin/certik /usr/bin/certik
+COPY --from=build-env /go/bin/shentud /usr/bin/shentud
 
-CMD ["certik"]
+CMD ["shentud"]

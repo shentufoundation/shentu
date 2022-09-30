@@ -1,11 +1,11 @@
 # Shentu Chain
 
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/certikfoundation/shentu)](https://pkg.go.dev/github.com/certikfoundation/shentu)
-<a href="https://circleci.com/gh/certikfoundation/shentu/tree/master">
-<img src="https://circleci.com/gh/certikfoundation/shentu/tree/master.svg?style=svg&circle-token=b948d67100954a74a11c21fbb8cb6202b83e5f3a">
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/shentufoundation/shentu)](https://pkg.go.dev/github.com/shentufoundation/shentu)
+<a href="https://circleci.com/gh/shentufoundation/shentu/tree/master">
+<img src="https://circleci.com/gh/shentufoundation/shentu/tree/master.svg?style=svg&circle-token=b948d67100954a74a11c21fbb8cb6202b83e5f3a">
 </a>
-<a href="https://codecov.io/gh/certikfoundation/shentu">
-<img src="https://codecov.io/gh/certikfoundation/shentu/branch/master/graph/badge.svg">
+<a href="https://codecov.io/gh/shentufoundation/shentu">
+<img src="https://codecov.io/gh/shentufoundation/shentu/branch/master/graph/badge.svg">
 </a>
 
 # Prerequisites
@@ -115,15 +115,15 @@ docker exec -it <container name> /bin/bash
 Run the scripts for testing:
 
 ```bash
-$ certik query account $NODE0_KEY
-$ certik query bank total
+$ shentud query account $NODE0_KEY
+$ shentud query bank total
 
 # Create a new account
-$ certik keys add jack
-$ JACK_KEY=$(certik keys show jack -a)
+$ shentud keys add jack
+$ JACK_KEY=$(shentud keys show jack -a)
 # default password = jkljkljkl
-$ certik tx send node0 $JACK_KEY 100000uctk --gas-prices=0.025uctk --from node0
-$ certik query account $JACK_KEY
+$ shentud tx send node0 $JACK_KEY 100000uctk --gas-prices=0.025uctk --from node0
+$ shentud query account $JACK_KEY
 ```
 
 Finally, run `make localnet-stop` to shutdown the localnet.
@@ -137,34 +137,34 @@ Please see e2e/README.md for instructions.
 Recommend the use of the provided Docker containers for simplicity, but here are instructions for manually setting up a single node chain for testing purposes.
 
 ```bash
-$ certik unsafe-reset-all
-$ rm -rf ~/.certik
+$ shentud unsafe-reset-all
+$ rm -rf ~/.shentud
 
-$ certik init node0 --chain-id shentuchain
+$ shentud init node0 --chain-id shentuchain
 
-$ certik keys add jack
+$ shentud keys add jack
 
-$ certik add-genesis-account $(certik keys show jack -a) 10000000000000000uctk
+$ shentud add-genesis-account $(shentud keys show jack -a) 10000000000000000uctk
 
-$ certik add-genesis-certifier $(certik keys show jack -a)
+$ shentud add-genesis-certifier $(shentud keys show jack -a)
 
-$ certik add-genesis-shield-admin $(certik keys show jack -a)
+$ shentud add-genesis-shield-admin $(shentud keys show jack -a)
 ```
 
-Notification: Every transaction will need 5000uctk (certik token), so you'd better start with more than 5000uctk here.
+Notification: Every transaction will need 5000uctk , so you'd better start with more than 5000uctk here.
 
 ```bash
-$ certik gentx jack 10000000000000000uctk --chain-id shentuchain
-$ certik collect-gentxs
+$ shentud gentx jack 10000000000000000uctk --chain-id shentuchain
+$ shentud collect-gentxs
 
-$ certik start
+$ shentud start
 
-$ certik query account $(certik keys show jack -a)
+$ shentud query account $(shentud keys show jack -a)
 
-$ certik keys add alice
-$ certik tx send jack $(certik keys show alice -a) 7000000000uctk --gas-prices=0.025uctk --from jack --chain-id certikchain
-$ certik query account $(certik keys show jack -a)
-$ certik query account $(certik keys show alice -a)
+$ shentud keys add alice
+$ shentud tx send jack $(shentud keys show alice -a) 7000000000uctk --gas-prices=0.025uctk --from jack --chain-id shentuchain
+$ shentud query account $(shentud keys show jack -a)
+$ shentud query account $(shentud keys show alice -a)
 ```
 
 # CVM module test commands
@@ -193,7 +193,7 @@ To deploy `tests/sync/simple.sol` contract (be sure to have `solc` installed), f
 Assuming you have `simple.sol` compiled into `simple.bytecode` (`.bin` file) and `simple.abi`
 ```bash
 $ cd tests
-$ certik tx cvm deploy simple.bin --abi simple.abi --from node0
+$ shentud tx cvm deploy simple.bin --abi simple.abi --from node0
 ```
 
 Printed on the main terminal
@@ -203,7 +203,7 @@ Response:
   TxHash: 8067DBC001BE239E5A44843CCEF4C71A87B802352989F97664AF8F265E7B888E
 ```
 
-Printed on the certik node server terminals
+Printed on the shentud node server terminals
 
 ```bash
 I[2019-06-27|09:05:33.281] CVM Start                                    module=main txHash=8067dbc001be239e5a44843ccef4c71a87b802352989f97664af8f265e7b888e
@@ -248,7 +248,7 @@ I[2019-06-27|09:05:33.287] CVM Stop                                     module=m
 To inspect deploy transaction details and to obtain Bech32 contract address
 
 ```bash
-$ certik query tx 8067DBC001BE239E5A44843CCEF4C71A87B802352989F97664AF8F265E7B888E
+$ shentud query tx 8067DBC001BE239E5A44843CCEF4C71A87B802352989F97664AF8F265E7B888E
 Response:
   Height: 169
   TxHash: 8067DBC001BE239E5A44843CCEF4C71A87B802352989F97664AF8F265E7B888E
@@ -266,7 +266,7 @@ Response:
 To inspect contract code bytes deployed at `certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy`
 
 ```bash
-$ certik query cvm code certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy
+$ shentud query cvm code certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy
 6080604052348015600F57600080FD5B506004361060325760003560E01C806360FE47B114603757
 80636D4CE63C146062575B600080FD5B606060048036036020811015604B57600080FD5B81019080
 80359060200190929190505050607E565B005B60686088565B604051808281526020019150506040
@@ -277,20 +277,20 @@ $ certik query cvm code certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy
 To call `SimpleStorage.set(123)` at the contract
 
 ```bash
-$ certik tx cvm call certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy set 123 --from node0
+$ shentud tx cvm call certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy set 123 --from node0
 ```
 
 Then we can verify the storage setting by calling `SimpleStorage.get()` at the
 contract
 
 ```bash
-$ certik tx cvm call certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy get --from node0
+$ shentud tx cvm call certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy get --from node0
 Response:
   TxHash: 6EAABFDF5022F21F88D9DBBE8A0837F3CF6819F06F801BEF301188F22DF16C9B
 ```
 
 We can inspect and verify the read out value is indeed 123 (0x7b) by either
-looking at the certik node server terminal
+looking at the shentud node server terminal
 
 ```bash
 I[2019-06-27|09:20:44.674] CVM Stop                                     module=main result=000000000000000000000000000000000000000000000000000000000000007b
@@ -299,7 +299,7 @@ I[2019-06-27|09:20:44.674] CVM Stop                                     module=m
 or query the get call transaction
 
 ```bash
-$ certik query tx 6EAABFDF5022F21F88D9DBBE8A0837F3CF6819F06F801BEF301188F22DF16C9B
+$ shentud query tx 6EAABFDF5022F21F88D9DBBE8A0837F3CF6819F06F801BEF301188F22DF16C9B
 Response:
   Height: 333
   TxHash: 6EAABFDF5022F21F88D9DBBE8A0837F3CF6819F06F801BEF301188F22DF16C9B
@@ -319,7 +319,7 @@ Response:
 Analogous to the steps above, a DeepSEA contract `contract.ds` can be deployed with:
 
 ```bash
-$ certik tx cvm deploy contract.ds --from node0
+$ shentud tx cvm deploy contract.ds --from node0
 ```
 
 Make sure that `dsc` (DeepSEA compiler) is in your `PATH`.
@@ -329,7 +329,7 @@ Make sure that `dsc` (DeepSEA compiler) is in your `PATH`.
 Start the `rest-server` in another terminal window:
 
 ```bash
-$ certik rest-server --trust-node
+$ shentud rest-server --trust-node
 ```
 
 Back to the previous terminal window where `NODE0_KEY` is defined:
@@ -340,10 +340,10 @@ $ curl -XPOST -s http://localhost:1317/ctk/burn --data-binary '{"base_req":{"fro
 
 # Sign Transaction
 # Note: sequence and account-number can be found in account information
-$ certik tx sign unsignedTx.json --from $NODE0_KEY --offline --chain-id shentuchain --sequence 5 --account-number 0 > signedTx.json
+$ shentud tx sign unsignedTx.json --from $NODE0_KEY --offline --chain-id shentuchain --sequence 5 --account-number 0 > signedTx.json
 
 # Broadcast Transaction
-$ certik tx broadcast signedTx.json
+$ shentud tx broadcast signedTx.json
 
 # Check the balance of node0
 $ curl -s http:/localhost:1317/ctk/balance/$NODE0_KEY
