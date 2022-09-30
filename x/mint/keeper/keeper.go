@@ -7,7 +7,7 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	"github.com/certikfoundation/shentu/v2/x/mint/types"
+	"github.com/shentufoundation/shentu/v2/x/mint/types"
 )
 
 type Keeper struct {

@@ -3,7 +3,7 @@ run:
   skip-dirs:
     - tests/e2e
     # TODO: include below
-    - app/certik/cmd
+    - app/shentud/cmd
   timeout: 5m
 
 linters:
@@ -35,7 +35,7 @@ linters:
     - unused
     - unparam
     # - wsl
-    - nolintlint
+    # - nolintlint
 
 issues:
   exclude-rules:

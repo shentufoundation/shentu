@@ -1,6 +1,6 @@
 # CVM
 
-CertiK virtual machine (CVM) handles the underlying gas calculation and corresponding error handling for contract deployments and calls.
+CVM handles the underlying gas calculation and corresponding error handling for contract deployments and calls.
 
 ## Behavior
 These are some differences in behavior between CVM and EVM.

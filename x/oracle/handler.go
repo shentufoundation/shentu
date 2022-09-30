@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/certikfoundation/shentu/v2/x/oracle/keeper"
-	"github.com/certikfoundation/shentu/v2/x/oracle/types"
+	"github.com/shentufoundation/shentu/v2/x/oracle/keeper"
+	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
 // NewHandler returns a handler for oracle type messages.

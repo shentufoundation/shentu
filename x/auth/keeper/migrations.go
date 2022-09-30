@@ -10,7 +10,7 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
-	"github.com/certikfoundation/shentu/v2/x/auth/types"
+	"github.com/shentufoundation/shentu/v2/x/auth/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.

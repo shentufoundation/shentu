@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/certikfoundation/shentu/v2/x/auth/types"
+	"github.com/shentufoundation/shentu/v2/x/auth/types"
 )
 
 // NewTxCmd returns the transaction commands for this module.

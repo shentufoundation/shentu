@@ -7,9 +7,9 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/v2/app/params"
-	"github.com/certikfoundation/shentu/v2/x/cert/keeper"
-	"github.com/certikfoundation/shentu/v2/x/cert/types"
+	"github.com/shentufoundation/shentu/v2/app/params"
+	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 // OpWeightSubmitCertifierUpdateProposal app params key for certifier update proposal
@@ -27,7 +27,7 @@ func ProposalContents(k keeper.Keeper) []simtypes.WeightedProposalContent {
 }
 
 // SimulateCertifierUpdateProposalContent generates random certifier update proposal content
-//nolint: funlen
+// nolint: funlen
 func SimulateCertifierUpdateProposalContent(k keeper.Keeper) simtypes.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 		certifiers := k.GetAllCertifiers(ctx)

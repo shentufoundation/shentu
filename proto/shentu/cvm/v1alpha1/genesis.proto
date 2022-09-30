@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "shentu/cvm/v1alpha1/cvm.proto";
 import "burrow/acm.proto";
 
-option go_package = "github.com/certikfoundation/shentu/x/cvm/types";
+option go_package = "github.com/shentufoundation/shentu/x/cvm/types";
 
 option (gogoproto.stable_marshaler_all) = true;
 option (gogoproto.marshaler_all) = true;

@@ -5,18 +5,18 @@ before:
     - go mod tidy
 builds:
   -
-    id: "certik"
+    id: "shentud"
 
-    main: ./app/certik
+    main: ./app/shentud
 
-    binary: certik
+    binary: shentud
 
     ldflags: |
-      -X github.com/cosmos/cosmos-sdk/version.Name=certik
-      -X github.com/cosmos/cosmos-sdk/version.AppName=certik
-      -X github.com/certikfoundation/shentu/version.Version={{ .Version }}
-      -X github.com/certikfoundation/shentu/version.Commit={{ .FullCommit }}
-      -X github.com/certikfoundation/shentu/version.BuildTags={{ .Tag }}
+      -X github.com/cosmos/cosmos-sdk/version.Name=shentu
+      -X github.com/cosmos/cosmos-sdk/version.AppName=shentud
+      -X github.com/shentufoundation/shentu/version.Version={{ .Version }}
+      -X github.com/shentufoundation/shentu/version.Commit={{ .FullCommit }}
+      -X github.com/shentufoundation/shentu/version.BuildTags={{ .Tag }}
 
     goos:
       - linux
@@ -34,10 +34,10 @@ builds:
       #   goarch: 386
 archives:
   - 
-    id: certik-archives
+    id: shentud-archives
 
     builds:
-      - certik
+      - shentud
 
     name_template: "{{ .Binary }}-{{ .Os }}"
     replacements:

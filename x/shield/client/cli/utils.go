@@ -2,7 +2,7 @@ package cli
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -21,7 +21,7 @@ type ShieldClaimProposalJSON struct {
 func ParseShieldClaimProposalJSON(proposalFile string) (ShieldClaimProposalJSON, error) {
 	proposal := ShieldClaimProposalJSON{}
 
-	contents, err := ioutil.ReadFile(proposalFile)
+	contents, err := os.ReadFile(proposalFile)
 	if err != nil {
 		return proposal, err
 	}
