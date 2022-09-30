@@ -6,7 +6,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "shentu/oracle/v1alpha1/oracle.proto";
 
-option go_package = "github.com/certikfoundation/shentu/x/oracle/types";
+option go_package = "github.com/shentufoundation/shentu/x/oracle/types";
 
 // Query defines the gRPC querier service for oracle module.
 service Query {

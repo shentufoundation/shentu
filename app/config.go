@@ -16,8 +16,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/certikfoundation/shentu/v2/app/params"
-	"github.com/certikfoundation/shentu/v2/common"
+	"github.com/shentufoundation/shentu/v2/app/params"
+	"github.com/shentufoundation/shentu/v2/common"
 )
 
 // DefaultConfig returns a default configuration suitable for nearly all

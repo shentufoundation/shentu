@@ -13,8 +13,8 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/certikfoundation/shentu/v2/x/oracle/keeper"
-	"github.com/certikfoundation/shentu/v2/x/oracle/types"
+	"github.com/shentufoundation/shentu/v2/x/oracle/keeper"
+	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
 const (

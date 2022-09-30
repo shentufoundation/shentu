@@ -20,8 +20,8 @@ Contributing to this repo can mean many things such as participated in
 discussion or proposing code changes. To ensure a smooth workflow for all
 contributors, the general procedure for contributing has been established:
 
-1. Either [open](https://github.com/certikfoundation/shentu/issues/new/choose) or
-   [find](https://github.com/certikfoundation/shentu/issues) an issue you'd like to help with
+1. Either [open](https://github.com/shentufoundation/shentu/issues/new/choose) or
+   [find](https://github.com/shentufoundation/shentu/issues) an issue you'd like to help with
 2. Participate in thoughtful discussion on that issue
 3. If you would like to contribute:
    1. If the issue is a proposal, ensure that the proposal has been accepted
@@ -46,7 +46,7 @@ taken place in a github issue, that PR runs a high likelihood of being rejected.
 Other notes:
 
 - Looking for a good place to start contributing? How about checking out some
-  [good first issues](https://github.com/certikfoundation/shentu/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
+  [good first issues](https://github.com/shentufoundation/shentu/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
 - Please make sure to use `gofmt` before every commit - the easiest way to do
   this is have your editor run it for you upon saving a file. Additionally
   please ensure that your code is lint compliant by running `make lint`
@@ -74,7 +74,7 @@ All PRs require two Reviews before merge (except docs changes, or variable name-
 
 ### Updating Documentation
 
-If you open a PR on the CertiK Chain, it is mandatory to update the relevant documentation in /docs.
+If you open a PR on the Shentu Chain, it is mandatory to update the relevant documentation in /docs.
 
 - If your changes relate to a module, please update the module's spec in `x/moduleName/docs/spec/`.
 
@@ -83,7 +83,7 @@ If you open a PR on the CertiK Chain, it is mandatory to update the relevant doc
 We use [Go 1.11 Modules](https://github.com/golang/go/wiki/Modules) to manage
 dependency versions.
 
-The master branch of every CertiK repository should just build with `go get`,
+The master branch of every Shentu repository should just build with `go get`,
 which means they should be kept up-to-date with their dependencies, so we can
 get away with telling people they can just `go get` our software.
 

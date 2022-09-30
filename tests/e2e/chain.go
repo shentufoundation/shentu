@@ -13,8 +13,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	shentu "github.com/certikfoundation/shentu/v2/app"
-	"github.com/certikfoundation/shentu/v2/app/params"
+	shentu "github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/app/params"
 )
 
 const (
@@ -50,7 +50,7 @@ type chain struct {
 }
 
 func newChain() (*chain, error) {
-	tmpDir, err := ioutil.TempDir("", "certik-e2e-testnet-")
+	tmpDir, err := ioutil.TempDir("", "shentu-e2e-testnet-")
 	if err != nil {
 		return nil, err
 	}
@@ -122,6 +122,6 @@ func (c *chain) createValidator(index int) *validator {
 	return &validator{
 		chain:   c,
 		index:   index,
-		moniker: fmt.Sprintf("%s-certik-%d", c.id, index),
+		moniker: fmt.Sprintf("%s-shentu-%d", c.id, index),
 	}
 }

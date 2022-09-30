@@ -3,7 +3,7 @@ package app
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/app/mva"
+	"github.com/shentufoundation/shentu/v2/app/mva"
 )
 
 // BeginBlockForks is intended to be ran in

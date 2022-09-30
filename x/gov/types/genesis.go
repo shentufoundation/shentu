@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/v2/common"
+	"github.com/shentufoundation/shentu/v2/common"
 )
 
 // DefaultGenesisState creates a default GenesisState object.

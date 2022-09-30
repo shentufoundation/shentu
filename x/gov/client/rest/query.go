@@ -14,8 +14,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/certikfoundation/shentu/v2/x/gov/client/utils"
-	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	"github.com/shentufoundation/shentu/v2/x/gov/client/utils"
+	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
 func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {

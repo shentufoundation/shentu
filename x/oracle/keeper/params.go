@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/x/oracle/types"
+	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
 // SetTaskParams sets the current task params to the global param store.

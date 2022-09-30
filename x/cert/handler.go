@@ -5,8 +5,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/v2/x/cert/keeper"
-	"github.com/certikfoundation/shentu/v2/x/cert/types"
+	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 // NewHandler returns a handler for "cert" type messages.

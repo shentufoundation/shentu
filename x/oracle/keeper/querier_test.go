@@ -11,9 +11,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	shentuapp "github.com/certikfoundation/shentu/v2/app"
-	. "github.com/certikfoundation/shentu/v2/x/oracle/keeper"
-	"github.com/certikfoundation/shentu/v2/x/oracle/types"
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	. "github.com/shentufoundation/shentu/v2/x/oracle/keeper"
+	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
 func TestQueryOperators(t *testing.T) {
