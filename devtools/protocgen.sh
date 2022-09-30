@@ -35,5 +35,5 @@ buf protoc -I "proto" -I "third_party/proto" -I "testutil/testdata" --gocosmos_o
 Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types:. ./testutil/testdata/*.proto
 
 # move proto files to the right places
-cp -r github.com/certikfoundation/shentu/* ./
+cp -r github.com/shentufoundation/shentu/* ./
 rm -rf github.com

@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/cosmos/cosmos-sdk/std"
 
-	"github.com/certikfoundation/shentu/v2/app/params"
+	"github.com/shentufoundation/shentu/v2/app/params"
 )
 
 // MakeEncodingConfig creates an EncodingConfig for testing

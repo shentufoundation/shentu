@@ -9,9 +9,9 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 
-	authtypes "github.com/certikfoundation/shentu/v2/x/auth/types"
-	bankkeeper "github.com/certikfoundation/shentu/v2/x/bank/keeper"
-	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
+	authtypes "github.com/shentufoundation/shentu/v2/x/auth/types"
+	bankkeeper "github.com/shentufoundation/shentu/v2/x/bank/keeper"
+	stakingkeeper "github.com/shentufoundation/shentu/v2/x/staking/keeper"
 )
 
 func RunForkLogic(ctx sdk.Context, ak *sdkauthkeeper.AccountKeeper, bk bankkeeper.Keeper, sk *stakingkeeper.Keeper) {

@@ -16,13 +16,13 @@ import (
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	shentuapp "github.com/certikfoundation/shentu/v2/app"
-	"github.com/certikfoundation/shentu/v2/app/mva"
-	"github.com/certikfoundation/shentu/v2/common"
-	"github.com/certikfoundation/shentu/v2/x/auth/types"
-	bankkeeper "github.com/certikfoundation/shentu/v2/x/bank/keeper"
-	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
-	"github.com/certikfoundation/shentu/v2/x/staking/teststaking"
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/app/mva"
+	"github.com/shentufoundation/shentu/v2/common"
+	"github.com/shentufoundation/shentu/v2/x/auth/types"
+	bankkeeper "github.com/shentufoundation/shentu/v2/x/bank/keeper"
+	stakingkeeper "github.com/shentufoundation/shentu/v2/x/staking/keeper"
+	"github.com/shentufoundation/shentu/v2/x/staking/teststaking"
 )
 
 var (

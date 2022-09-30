@@ -16,9 +16,9 @@ import (
 	"github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
 
-	shentuapp "github.com/certikfoundation/shentu/v2/app"
-	. "github.com/certikfoundation/shentu/v2/x/cvm/simulation"
-	"github.com/certikfoundation/shentu/v2/x/cvm/types"
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	. "github.com/shentufoundation/shentu/v2/x/cvm/simulation"
+	"github.com/shentufoundation/shentu/v2/x/cvm/types"
 )
 
 func TestDecodeStore(t *testing.T) {

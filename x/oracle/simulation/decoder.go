@@ -8,7 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/certikfoundation/shentu/v2/x/oracle/types"
+	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
 // NewDecodeStore unmarshals the KVPair's Value to the corresponding type of oracle module.

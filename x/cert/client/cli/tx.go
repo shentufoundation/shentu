@@ -15,7 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/v2/x/cert/types"
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 const (

@@ -18,7 +18,7 @@ import (
 	"github.com/hyperledger/burrow/acm/acmstate"
 	"github.com/hyperledger/burrow/txs/payload"
 
-	"github.com/certikfoundation/shentu/v2/x/cvm/types"
+	"github.com/shentufoundation/shentu/v2/x/cvm/types"
 )
 
 func registerTxHandlers(cliCtx client.Context, r *mux.Router) {

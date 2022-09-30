@@ -5,7 +5,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
+	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
 )
 
 // NewHandler handles all "gov" type messages.

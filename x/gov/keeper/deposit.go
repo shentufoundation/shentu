@@ -7,9 +7,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	v220 "github.com/certikfoundation/shentu/v2/x/gov/legacy/v220"
-	"github.com/certikfoundation/shentu/v2/x/gov/types"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
+	v220 "github.com/shentufoundation/shentu/v2/x/gov/legacy/v220"
+	"github.com/shentufoundation/shentu/v2/x/gov/types"
+	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 // GetDeposit gets the deposit of a specific depositor on a specific proposal.
