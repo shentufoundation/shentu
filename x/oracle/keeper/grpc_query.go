@@ -9,7 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/x/oracle/types"
+	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
 var _ types.QueryServer = Keeper{}

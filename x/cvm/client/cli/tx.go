@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -23,9 +23,9 @@ import (
 	"github.com/hyperledger/burrow/logging"
 	"github.com/hyperledger/burrow/txs/payload"
 
-	"github.com/certikfoundation/shentu/v2/common"
-	"github.com/certikfoundation/shentu/v2/x/cvm/compile"
-	"github.com/certikfoundation/shentu/v2/x/cvm/types"
+	"github.com/shentufoundation/shentu/v2/common"
+	"github.com/shentufoundation/shentu/v2/x/cvm/compile"
+	"github.com/shentufoundation/shentu/v2/x/cvm/types"
 )
 
 const (
@@ -231,7 +231,7 @@ func appendDeployMsgs(cmd *cobra.Command, fileName string) ([]sdk.Msg, error) {
 
 	argsRaw := viper.GetString(FlagArgs)
 	arguments := strings.Split(argsRaw, ",")
-	code, err := ioutil.ReadFile(fileName)
+	code, err := os.ReadFile(fileName)
 	codeStr := strings.Trim(string(code), "\n")
 	if err != nil {
 		return msgs, err
@@ -246,7 +246,7 @@ func appendDeployMsgs(cmd *cobra.Command, fileName string) ([]sdk.Msg, error) {
 	metadataFile := viper.GetString(FlagMetadata)
 	var metas []*payload.ContractMeta
 	if metadataFile != "" {
-		metadataBytes, err := ioutil.ReadFile(metadataFile)
+		metadataBytes, err := os.ReadFile(metadataFile)
 		if err != nil {
 			return msgs, err
 		}
@@ -263,7 +263,7 @@ func appendDeployMsgs(cmd *cobra.Command, fileName string) ([]sdk.Msg, error) {
 	}
 	var abiBytes []byte
 	if abiFile != "" {
-		abiBytes, err = ioutil.ReadFile(abiFile)
+		abiBytes, err = os.ReadFile(abiFile)
 		if err != nil {
 			return msgs, err
 		}

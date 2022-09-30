@@ -3,7 +3,7 @@ package simulation
 import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/certikfoundation/shentu/v2/x/cvm/types"
+	"github.com/shentufoundation/shentu/v2/x/cvm/types"
 )
 
 // RandomizedGenState creates a random genesis state for module simulation.

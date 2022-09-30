@@ -8,7 +8,7 @@ import "google/api/annotations.proto";
 import "shentu/shield/v1alpha1/shield.proto";
 import "shentu/shield/v1alpha1/genesis.proto";
 
-option go_package = "github.com/certikfoundation/shentu/x/shield/types";
+option go_package = "github.com/shentufoundation/shentu/x/shield/types";
 
 // Query defines the gRPC querier service for shield module
 service Query {

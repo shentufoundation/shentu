@@ -9,8 +9,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	shentuapp "github.com/certikfoundation/shentu/v2/app"
-	"github.com/certikfoundation/shentu/v2/x/mint"
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/x/mint"
 )
 
 func TestBeginBlocker(t *testing.T) {

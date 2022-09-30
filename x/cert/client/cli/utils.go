@@ -1,12 +1,12 @@
 package cli
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/certikfoundation/shentu/v2/x/cert/types"
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 type (
@@ -25,7 +25,7 @@ type (
 func ParseCertifierUpdateProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (CertifierUpdateProposalJSON, error) {
 	proposal := CertifierUpdateProposalJSON{}
 
-	contents, err := ioutil.ReadFile(proposalFile)
+	contents, err := os.ReadFile(proposalFile)
 	if err != nil {
 		return proposal, err
 	}

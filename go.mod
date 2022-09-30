@@ -1,4 +1,4 @@
-module github.com/certikfoundation/shentu/v2
+module github.com/shentufoundation/shentu/v2
 
 go 1.18
 

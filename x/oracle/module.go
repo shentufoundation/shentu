@@ -18,11 +18,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/certikfoundation/shentu/v2/x/oracle/client/cli"
-	"github.com/certikfoundation/shentu/v2/x/oracle/client/rest"
-	"github.com/certikfoundation/shentu/v2/x/oracle/keeper"
-	"github.com/certikfoundation/shentu/v2/x/oracle/simulation"
-	"github.com/certikfoundation/shentu/v2/x/oracle/types"
+	"github.com/shentufoundation/shentu/v2/x/oracle/client/cli"
+	"github.com/shentufoundation/shentu/v2/x/oracle/client/rest"
+	"github.com/shentufoundation/shentu/v2/x/oracle/keeper"
+	"github.com/shentufoundation/shentu/v2/x/oracle/simulation"
+	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
 var (
