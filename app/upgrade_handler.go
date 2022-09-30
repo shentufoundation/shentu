@@ -68,12 +68,12 @@ func RunShieldMigration(app ShentuApp, ctx sdk.Context) {
 	remainingServiceFees := sk.GetRemainingServiceFees(ctx)
 
 	// rewards
-	var rewards shieldtypes.MixedDecCoins
+	var rewards sdk.DecCoins
 	for _, provider := range sk.GetAllProviders(ctx) {
-		rewards = rewards.Add(provider.Rewards)
+		rewards = rewards.Add(provider.Rewards...)
 	}
 
-	totalInt, _ := remainingServiceFees.Add(rewards).Native.TruncateDecimal()
+	totalInt, _ := remainingServiceFees.Add(rewards...).TruncateDecimal()
 
 	// shield stake
 	shieldStake := sdk.ZeroInt()
@@ -88,19 +88,19 @@ func RunShieldMigration(app ShentuApp, ctx sdk.Context) {
 	}
 
 	// block service fees
-	blockServiceFees := sk.GetBlockServiceFees(ctx).Native.AmountOf(bondDenom).TruncateInt()
+	blockServiceFees, _ := sk.GetBlockServiceFees(ctx).TruncateDecimal()
 
-	totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, reimbursement)).Add(sdk.NewCoin(bondDenom, blockServiceFees))
+	totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, reimbursement)).Add(blockServiceFees...)
 
 	if moduleCoins.IsAllGTE(totalInt) {
-		blockServiceFees = blockServiceFees.Add(moduleCoins.Sub(totalInt).AmountOf(bondDenom))
-		newBlockServiceFees := shieldtypes.NewMixedDecCoins(sdk.NewDecCoinsFromCoins(sdk.NewCoin(bondDenom, blockServiceFees)), sdk.NewDecCoins())
+		blockServiceFees = blockServiceFees.Add(moduleCoins.Sub(totalInt)...)
+		newBlockServiceFees := sdk.NewDecCoinsFromCoins(blockServiceFees...)
 		sk.SetBlockServiceFees(ctx, newBlockServiceFees)
 	} else {
 		diff := totalInt.Sub(moduleCoins)
 		fmt.Println("diff: ", diff)
 		// first try to take away from remaining services
-		rSFInt, decimals := remainingServiceFees.Native.TruncateDecimal()
+		rSFInt, decimals := remainingServiceFees.TruncateDecimal()
 		if !rSFInt.IsAllGTE(diff) {
 			additionalFunds := diff.Sub(rSFInt)
 			app.BankKeeper.SendCoinsFromModuleToModule(ctx, distrtypes.ModuleName, shieldtypes.ModuleName, additionalFunds)
@@ -110,11 +110,11 @@ func RunShieldMigration(app ShentuApp, ctx sdk.Context) {
 			moduleCoins = app.BankKeeper.GetAllBalances(ctx, app.AccountKeeper.GetModuleAccount(ctx, shieldtypes.ModuleName).GetAddress())
 		}
 		rSFInt = rSFInt.Sub(diff)
-		remainingServiceFees.Native = sdk.NewDecCoinsFromCoins(rSFInt...)
-		remainingServiceFees.Native = remainingServiceFees.Native.Add(decimals...)
+		remainingServiceFees = sdk.NewDecCoinsFromCoins(rSFInt...)
+		remainingServiceFees = remainingServiceFees.Add(decimals...)
 		app.ShieldKeeper.SetRemainingServiceFees(ctx, remainingServiceFees)
-		fmt.Printf("remainingServiceFees: %s\n", remainingServiceFees.Native.String())
-		fmt.Printf("rewards: %s\n", rewards.Native.String())
+		fmt.Printf("remainingServiceFees: %s\n", remainingServiceFees.String())
+		fmt.Printf("rewards: %s\n", rewards.String())
 		fmt.Printf("reimbursement: %s\n", reimbursement.String())
 		fmt.Printf("blockServiceFees: %s\n", blockServiceFees.String())
 		fmt.Printf("shieldStake: %s\n", shieldStake.String())
