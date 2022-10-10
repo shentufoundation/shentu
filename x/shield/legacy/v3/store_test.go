@@ -1,8 +1,8 @@
 package v3
 
 import (
-	v2 "github.com/certikfoundation/shentu/v2/x/shield/legacy/v2"
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	v2 "github.com/shentufoundation/shentu/v2/x/shield/legacy/v2"
+	"github.com/shentufoundation/shentu/v2/x/shield/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/testutil"

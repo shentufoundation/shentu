@@ -5,8 +5,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v2 "github.com/certikfoundation/shentu/v2/x/shield/legacy/v2"
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	v2 "github.com/shentufoundation/shentu/v2/x/shield/legacy/v2"
+	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 func migrateProviders(store sdk.KVStore, cdc codec.BinaryCodec) error {

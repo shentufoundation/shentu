@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/shentufoundation/shentu/v2/x/shield/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
