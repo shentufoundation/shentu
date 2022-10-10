@@ -1,6 +1,6 @@
 ARG IMG_TAG=latest
 
-# Compile the gaiad binary
+# Compile the shentud binary
 FROM golang:1.18-alpine AS shentud-builder
 WORKDIR /src/app/
 COPY go.mod go.sum* ./
