@@ -16,7 +16,7 @@ import (
 	govUtils "github.com/cosmos/cosmos-sdk/x/gov/client/utils"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module.

@@ -17,8 +17,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	"github.com/cosmos/cosmos-sdk/simapp"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
@@ -33,13 +31,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibctransfer "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
-	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
+	ibctransfer "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v3/testing/simapp"
+	"github.com/cosmos/ibc-go/v3/testing/simapp/helpers"
 
-	cert "github.com/certikfoundation/shentu/v2/x/cert/types"
-	cvm "github.com/certikfoundation/shentu/v2/x/cvm/types"
-	oracle "github.com/certikfoundation/shentu/v2/x/oracle/types"
-	shield "github.com/certikfoundation/shentu/v2/x/shield/types"
+	cert "github.com/shentufoundation/shentu/v2/x/cert/types"
+	cvm "github.com/shentufoundation/shentu/v2/x/cvm/types"
+	oracle "github.com/shentufoundation/shentu/v2/x/oracle/types"
+	shield "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 type StoreKeysPrefixes struct {

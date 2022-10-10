@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
 // NewDecodeStore unmarshals the KVPair's Value to the corresponding gov type

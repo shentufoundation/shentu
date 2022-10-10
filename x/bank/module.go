@@ -24,11 +24,11 @@ import (
 	banksim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/certikfoundation/shentu/v2/x/bank/client/cli"
-	"github.com/certikfoundation/shentu/v2/x/bank/client/rest"
-	"github.com/certikfoundation/shentu/v2/x/bank/keeper"
-	"github.com/certikfoundation/shentu/v2/x/bank/simulation"
-	"github.com/certikfoundation/shentu/v2/x/bank/types"
+	"github.com/shentufoundation/shentu/v2/x/bank/client/cli"
+	"github.com/shentufoundation/shentu/v2/x/bank/client/rest"
+	"github.com/shentufoundation/shentu/v2/x/bank/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bank/simulation"
+	"github.com/shentufoundation/shentu/v2/x/bank/types"
 )
 
 var (

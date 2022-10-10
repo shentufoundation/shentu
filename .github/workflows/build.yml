@@ -1,4 +1,4 @@
-name: Compile Certik
+name: Compile Shentu Daemon
 
 # Controls when the action will run.
 #  This workflow runr on pushes to master & every Pull Requests. (Or when manually triggered)
@@ -26,7 +26,7 @@ jobs:
     name: certik ${{ matrix.arch }} for ${{ matrix.targetos }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3.2.1
+      - uses: actions/setup-go@v3.3.0
         with:
           go-version: '^1.18'
         env:
@@ -36,10 +36,10 @@ jobs:
       - name: Compile certik binary
         run: |
           go mod download
-          cd app/certik/cmd
+          cd app/shentud/cmd
           go build .
 
       - uses: actions/upload-artifact@v3
         with:
-          name: certik ${{ matrix.targetos }} ${{ matrix.arch }}
-          path: app/certik/cmd/certik
+          name: shentud ${{ matrix.targetos }} ${{ matrix.arch }}
+          path: app/shentud/cmd/shentu

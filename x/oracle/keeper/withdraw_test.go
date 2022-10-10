@@ -10,8 +10,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	shentuapp "github.com/certikfoundation/shentu/v2/app"
-	"github.com/certikfoundation/shentu/v2/x/oracle/types"
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
 func TestWithdraw(t *testing.T) {
@@ -47,7 +47,7 @@ func TestWithdraw(t *testing.T) {
 	require.Equal(t, params.LockedInBlocks, withdraws[2].DueBlock)
 }
 
-//Test set withdraw
+// Test set withdraw
 func TestSetWithdraw(t *testing.T) {
 	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})

@@ -12,7 +12,7 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 
-	shentuapp "github.com/certikfoundation/shentu/v2/app"
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
 )
 
 // shared setup

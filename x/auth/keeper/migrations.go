@@ -10,7 +10,7 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
-	"github.com/certikfoundation/shentu/v2/x/auth/types"
+	"github.com/shentufoundation/shentu/v2/x/auth/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -33,6 +33,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 		if !ok {
 			return false
 		}
+		vestedCoins := mvacc.VestedCoins
 
 		dvAcc := vestingtypes.NewDelayedVestingAccount(
 			mvacc.BaseAccount, mvacc.OriginalVesting, math.MaxInt64)
@@ -47,7 +48,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 			return false
 		}
 
-		dvAcc, ok = account.(*vestingtypes.DelayedVestingAccount)
+		dvAcc, ok = wb.(*vestingtypes.DelayedVestingAccount)
 		if !ok {
 			return false
 		}
@@ -55,7 +56,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 		if err != nil {
 			panic(err)
 		}
-		newmvacc := types.NewManualVestingAccount(dvAcc.BaseAccount, dvAcc.OriginalVesting, dvAcc.OriginalVesting, unlocker)
+		newmvacc := types.NewManualVestingAccount(dvAcc.BaseAccount, dvAcc.OriginalVesting, vestedCoins, unlocker)
 
 		m.keeper.SetAccount(ctx, newmvacc)
 		return false

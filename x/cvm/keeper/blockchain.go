@@ -7,7 +7,7 @@ import (
 
 	"github.com/hyperledger/burrow/execution/errors"
 
-	"github.com/certikfoundation/shentu/v2/x/cvm/types"
+	"github.com/shentufoundation/shentu/v2/x/cvm/types"
 )
 
 // Blockchain implements the blockchain interface from burrow to make state queries.

@@ -5,9 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v232 "github.com/certikfoundation/shentu/v2/x/shield/legacy/v232"
+    v232 "github.com/shentufoundation/shentu/v2/x/shield/legacy/v232"
 
-	v3 "github.com/certikfoundation/shentu/v2/x/shield/legacy/v3"
+	v3 "github.com/shentufoundation/shentu/v2/x/shield/legacy/v3"
 )
 
 // Migrator is a struct for handling in-place store migrations.
