@@ -13,6 +13,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	ica "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts"
 	icacontrollertypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
@@ -30,14 +31,24 @@ func (app ShentuApp) setUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			migrationOrder := make([]string, len(fromVM))
-			i := 0
+			migrationOrder := make([]string, 0, len(fromVM))
+			hasParams, hasICA := false, false
 			for moduleName := range fromVM {
 				if moduleName == crisistypes.ModuleName {
 					continue
+				} else if moduleName == paramstypes.ModuleName {
+					hasParams = true
+				} else if moduleName == icatypes.ModuleName {
+					hasICA = true
 				}
-				migrationOrder[i] = moduleName
-				i++
+				migrationOrder = append(migrationOrder, moduleName)
+			}
+			//to satisfy the assertNoForgottenModules of SetOrderMigrations
+			if !hasParams {
+				migrationOrder = append(migrationOrder, paramstypes.ModuleName)
+			}
+			if !hasICA {
+				migrationOrder = append(migrationOrder, icatypes.ModuleName)
 			}
 			order := module.DefaultMigrationsOrder(migrationOrder)
 			// need to run crisis module last to avoid it being run before shield which has broken invariant before migration
