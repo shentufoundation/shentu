@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-    v232 "github.com/shentufoundation/shentu/v2/x/shield/legacy/v232"
+	v232 "github.com/shentufoundation/shentu/v2/x/shield/legacy/v232"
 
 	v3 "github.com/shentufoundation/shentu/v2/x/shield/legacy/v3"
 )
