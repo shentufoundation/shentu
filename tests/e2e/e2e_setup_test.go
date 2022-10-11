@@ -329,7 +329,7 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 
 			return true
 		},
-		5*time.Minute,
+		1*time.Minute,
 		time.Second,
 		"Shentu node failed to produce blocks",
 	)
@@ -357,7 +357,7 @@ func (s *IntegrationTestSuite) runIBCRelayer() {
 		&dockertest.RunOptions{
 			Name:       fmt.Sprintf("%s-%s-relayer", s.chainA.id, s.chainB.id),
 			Repository: "ghcr.io/cosmos/hermes-e2e",
-			Tag:        "latest",
+			Tag:        "0.13.0",
 			NetworkID:  s.dkrNet.Network.ID,
 			Mounts: []string{
 				fmt.Sprintf("%s/:/root/hermes", hermesCfgPath),
