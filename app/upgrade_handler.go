@@ -103,7 +103,7 @@ func (app ShentuApp) setUpgradeHandler() {
 
 	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{crisistypes.ModuleName},
+			Added: []string{crisistypes.ModuleName, icahosttypes.SubModuleName},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
