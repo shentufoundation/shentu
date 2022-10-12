@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	DENOM           = "CTK"
+	DENOM           = "uctk"
 	AMOUNT_PROVIDER = 10e5
 	AMOUNT_FEE      = 2e8
 	PURCHASER       = "for_test"
