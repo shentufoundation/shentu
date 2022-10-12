@@ -3,7 +3,10 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"strconv"
 
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -177,6 +180,36 @@ func (k msgServer) Vote(goCtx context.Context, msg *govtypes.MsgVote) (*govtypes
 	)
 
 	return &govtypes.MsgVoteResponse{}, nil
+}
+
+func (k msgServer) VoteWeighted(goCtx context.Context, msg *govtypes.MsgVoteWeighted) (*govtypes.MsgVoteWeightedResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	accAddr, accErr := sdk.AccAddressFromBech32(msg.Voter)
+	if accErr != nil {
+		return nil, accErr
+	}
+	err := k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, msg.Options)
+	if err != nil {
+		return nil, err
+	}
+
+	defer telemetry.IncrCounterWithLabels(
+		[]string{govtypes.ModuleName, "vote"},
+		1,
+		[]metrics.Label{
+			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
+		},
+	)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter),
+		),
+	)
+
+	return &govtypes.MsgVoteWeightedResponse{}, nil
 }
 
 func (k msgServer) Deposit(goCtx context.Context, msg *govtypes.MsgDeposit) (*govtypes.MsgDepositResponse, error) {
