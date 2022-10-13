@@ -107,7 +107,6 @@ func RunShieldMigration(app ShentuApp, ctx sdk.Context) {
 	sk := app.ShieldKeeper
 	bondDenom := sk.BondDenom(ctx)
 
-
 	// remaining service fees
 	remainingServiceFees := sk.GetRemainingServiceFees(ctx)
 
@@ -164,7 +163,7 @@ func RunShieldMigration(app ShentuApp, ctx sdk.Context) {
 		}
 		rSFInt = rSFInt.Sub(diff)
 		if rSFInt.IsAnyNegative() {
-			panic(fmt.Sprintf("remaining service fees - module coins diff < 0.\nRSF: %s, diff: %s", rSFInt.Add(diff...), diff)))
+			panic(fmt.Sprintf("remaining service fees - module coins diff < 0.\nRSF: %s, diff: %s", rSFInt.Add(diff...), diff))
 		}
 		remainingServiceFees = sdk.NewDecCoinsFromCoins(rSFInt...)
 		remainingServiceFees = remainingServiceFees.Add(decimals...)
