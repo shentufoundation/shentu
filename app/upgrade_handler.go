@@ -107,7 +107,6 @@ func RunShieldMigration(app ShentuApp, ctx sdk.Context) {
 	sk := app.ShieldKeeper
 	bondDenom := sk.BondDenom(ctx)
 
-	moduleCoins := app.BankKeeper.GetAllBalances(ctx, app.AccountKeeper.GetModuleAccount(ctx, shieldtypes.ModuleName).GetAddress())
 
 	// remaining service fees
 	remainingServiceFees := sk.GetRemainingServiceFees(ctx)
@@ -118,7 +117,10 @@ func RunShieldMigration(app ShentuApp, ctx sdk.Context) {
 		rewards = rewards.Add(provider.Rewards...)
 	}
 
-	totalInt, _ := remainingServiceFees.Add(rewards...).TruncateDecimal()
+	totalInt, remainder := remainingServiceFees.Add(rewards...).TruncateDecimal()
+	if !remainder.Empty() {
+		panic("remaining coins in the shield module is not an sdk.Int")
+	}
 
 	// shield stake
 	shieldStake := sdk.ZeroInt()
@@ -135,35 +137,44 @@ func RunShieldMigration(app ShentuApp, ctx sdk.Context) {
 	// block service fees
 	blockServiceFees, _ := sk.GetBlockServiceFees(ctx).TruncateDecimal()
 
+	// sum of total coins tracked by the shield module
 	totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, reimbursement)).Add(blockServiceFees...)
+	// actual balance of shield module
+	moduleCoins := app.BankKeeper.GetAllBalances(ctx, app.AccountKeeper.GetModuleAccount(ctx, shieldtypes.ModuleName).GetAddress())
 
 	if moduleCoins.IsAllGTE(totalInt) {
+		// if actual balance is greater, send remainder to the next block reward
 		blockServiceFees = blockServiceFees.Add(moduleCoins.Sub(totalInt)...)
 		newBlockServiceFees := sdk.NewDecCoinsFromCoins(blockServiceFees...)
 		sk.SetBlockServiceFees(ctx, newBlockServiceFees)
 	} else {
-		diff := totalInt.Sub(moduleCoins)
-		fmt.Println("diff: ", diff)
-		// first try to take away from remaining services
+		diff := totalInt.Sub(moduleCoins) // assuming there is only CTK in shield module.
+		ctx.Logger().Info("Shield Module Account Coin diff: ", diff)
+		// first try to take away from remaining service fees
 		rSFInt, decimals := remainingServiceFees.TruncateDecimal()
 		if !rSFInt.IsAllGTE(diff) {
+			// if the remaining service fees is not enough, take the diff from the community pool.
 			additionalFunds := diff.Sub(rSFInt)
 			app.BankKeeper.SendCoinsFromModuleToModule(ctx, distrtypes.ModuleName, shieldtypes.ModuleName, additionalFunds)
 			fp := app.DistrKeeper.GetFeePool(ctx)
 			fp.CommunityPool = fp.CommunityPool.Sub(sdk.NewDecCoinsFromCoins(additionalFunds...))
 			app.DistrKeeper.SetFeePool(ctx, fp)
 			moduleCoins = app.BankKeeper.GetAllBalances(ctx, app.AccountKeeper.GetModuleAccount(ctx, shieldtypes.ModuleName).GetAddress())
+			diff = totalInt.Sub(moduleCoins)
 		}
 		rSFInt = rSFInt.Sub(diff)
+		if rSFInt.IsAnyNegative() {
+			panic(fmt.Sprintf("remaining service fees - module coins diff < 0.\nRSF: %s, diff: %s", rSFInt.Add(diff...), diff)))
+		}
 		remainingServiceFees = sdk.NewDecCoinsFromCoins(rSFInt...)
 		remainingServiceFees = remainingServiceFees.Add(decimals...)
 		app.ShieldKeeper.SetRemainingServiceFees(ctx, remainingServiceFees)
-		fmt.Printf("remainingServiceFees: %s\n", remainingServiceFees.String())
-		fmt.Printf("rewards: %s\n", rewards.String())
-		fmt.Printf("reimbursement: %s\n", reimbursement.String())
-		fmt.Printf("blockServiceFees: %s\n", blockServiceFees.String())
-		fmt.Printf("shieldStake: %s\n", shieldStake.String())
-		fmt.Printf("TotalInt: %s\n", totalInt.String())
-		fmt.Printf("ModuleCoins: %s\n", moduleCoins.String())
+		ctx.Logger().Info("remainingServiceFees: %s\n", remainingServiceFees.String())
+		ctx.Logger().Info("rewards: %s\n", rewards.String())
+		ctx.Logger().Info("reimbursement: %s\n", reimbursement.String())
+		ctx.Logger().Info("blockServiceFees: %s\n", blockServiceFees.String())
+		ctx.Logger().Info("shieldStake: %s\n", shieldStake.String())
+		ctx.Logger().Info("TotalInt: %s\n", totalInt.String())
+		ctx.Logger().Info("ModuleCoins: %s\n", moduleCoins.String())
 	}
 }
