@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -89,15 +88,8 @@ func (app ShentuApp) setUpgradeHandler() {
 			if !correctTypecast {
 				panic("mm.Modules[icatypes.ModuleName] is not of type ica.AppModule")
 			}
-
 			icamodule.InitModule(ctx, controllerParams, hostParams)
 
-			crisisGenesis := crisistypes.DefaultGenesisState()
-			crisisGenesis.ConstantFee.Denom = app.StakingKeeper.BondDenom(ctx)
-			app.CrisisKeeper.InitGenesis(ctx, crisisGenesis)
-
-			// skip crisis init genesis through RunMigrations for now to fix shield
-			fromVM[crisistypes.ModuleName] = 1
 			ctx.Logger().Info("Start to run module migrations...")
 			newVersionMap, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
 
