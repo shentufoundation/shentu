@@ -37,6 +37,7 @@ type KeeperTestSuite struct {
 	address             []sdk.AccAddress
 	queryClient         types.QueryClient
 	validatorAccAddress sdk.AccAddress
+	msgServer           types.MsgServer
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -51,6 +52,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	// suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(suite.address[3], "", suite.address[3], ""))
 	validatorAddress := sdk.ValAddress(suite.address[3])
 	suite.validatorAccAddress = suite.address[3]
+	suite.msgServer = keeper.NewMsgServerImpl(suite.app.GovKeeper)
 	pks := shentuapp.CreateTestPubKeys(5)
 	powers := []int64{1, 1, 1}
 	cdc := sdksimapp.MakeTestEncodingConfig().Marshaler
@@ -391,6 +393,7 @@ func (suite *KeeperTestSuite) TestKeeper_Vote() {
 		// create/submit a new proposal
 		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent, tc.proposer)
 		suite.Require().NoError(err)
+		suite.Require().NotNil(proposal)
 
 		// add staking coins to depositor
 		suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
