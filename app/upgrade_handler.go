@@ -11,6 +11,7 @@ import (
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
@@ -23,19 +24,31 @@ import (
 )
 
 const (
-	tmp = "tmp"
+	upgradeName = "v2.6.0"
 )
 
-// TODO: rename upgrade title
-func (app ShentuApp) setTmpUpgradeHandler() {
+func (app ShentuApp) setUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		tmp,
+		upgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			migrationOrder := make([]string, len(fromVM))
-			i := 0
+			migrationOrder := make([]string, 0, len(fromVM))
+			hasParams, hasICA := false, false
 			for moduleName := range fromVM {
-				migrationOrder[i] = moduleName
-				i++
+				if moduleName == crisistypes.ModuleName {
+					continue
+				} else if moduleName == paramstypes.ModuleName {
+					hasParams = true
+				} else if moduleName == icatypes.ModuleName {
+					hasICA = true
+				}
+				migrationOrder = append(migrationOrder, moduleName)
+			}
+			//to satisfy the assertNoForgottenModules of SetOrderMigrations
+			if !hasParams {
+				migrationOrder = append(migrationOrder, paramstypes.ModuleName)
+			}
+			if !hasICA {
+				migrationOrder = append(migrationOrder, icatypes.ModuleName)
 			}
 			order := module.DefaultMigrationsOrder(migrationOrder)
 			// need to run crisis module last to avoid it being run before shield which has broken invariant before migration
@@ -88,9 +101,9 @@ func (app ShentuApp) setTmpUpgradeHandler() {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if upgradeInfo.Name == tmp && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{crisistypes.ModuleName},
+			Added: []string{crisistypes.ModuleName, icahosttypes.SubModuleName},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
