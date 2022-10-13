@@ -11,7 +11,7 @@ import (
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
@@ -24,27 +24,36 @@ import (
 )
 
 const (
-	tmp = "tmp"
+	upgradeName = "v2.6.0"
 )
 
-// TODO: rename upgrade title
-func (app ShentuApp) setTmpUpgradeHandler() {
+func (app ShentuApp) setUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		tmp,
+		upgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			migrationOrder := make([]string, len(fromVM))
-			i := 0
+			fmt.Println(fromVM)
+			migrationOrder := make([]string, 0, len(fromVM))
+			hasParams, hasICA := false, false
 			for moduleName := range fromVM {
-				migrationOrder[i] = moduleName
-				i++
+				if moduleName == crisistypes.ModuleName {
+					continue
+				} else if moduleName == paramstypes.ModuleName {
+					hasParams = true
+				} else if moduleName == icatypes.ModuleName {
+					hasICA = true
+				}
+				migrationOrder = append(migrationOrder, moduleName)
+			}
+			//to satisfy the assertNoForgottenModules of SetOrderMigrations
+			if !hasParams {
+				migrationOrder = append(migrationOrder, paramstypes.ModuleName)
+			}
+			if !hasICA {
+				migrationOrder = append(migrationOrder, icatypes.ModuleName)
 			}
 			order := module.DefaultMigrationsOrder(migrationOrder)
-			// need to run crisis module last to avoid it being run before shield which has broken invariant before migration
-			order = append(order, crisistypes.ModuleName, paramtypes.ModuleName)
+			order = append(order, crisistypes.ModuleName, paramstypes.ModuleName)
 			app.mm.SetOrderMigrations(order...)
-
-			ctx.Logger().Info("Fixing Shield invariant...")
-			RunShieldMigration(app, ctx)
 
 			ctx.Logger().Info("Start to run module migrations...")
 			// create ICS27 Controller submodule params, controller module not enabled.
@@ -83,8 +92,19 @@ func (app ShentuApp) setTmpUpgradeHandler() {
 
 			icamodule.InitModule(ctx, controllerParams, hostParams)
 
+			crisisGenesis := crisistypes.DefaultGenesisState()
+			crisisGenesis.ConstantFee.Denom = app.StakingKeeper.BondDenom(ctx)
+			app.CrisisKeeper.InitGenesis(ctx, crisisGenesis)
+
+			// skip crisis init genesis through RunMigrations for now to fix shield
+			fromVM[crisistypes.ModuleName] = 1
 			ctx.Logger().Info("Start to run module migrations...")
-			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+			newVersionMap, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
+
+			ctx.Logger().Info("Fixing Shield invariant...")
+			RunShieldMigration(app, ctx)
+
+			return newVersionMap, err
 		},
 	)
 
@@ -93,9 +113,9 @@ func (app ShentuApp) setTmpUpgradeHandler() {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if upgradeInfo.Name == tmp && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{crisistypes.ModuleName},
+			Added: []string{crisistypes.ModuleName, icahosttypes.SubModuleName},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
@@ -168,12 +188,12 @@ func RunShieldMigration(app ShentuApp, ctx sdk.Context) {
 		remainingServiceFees = sdk.NewDecCoinsFromCoins(rSFInt...)
 		remainingServiceFees = remainingServiceFees.Add(decimals...)
 		app.ShieldKeeper.SetRemainingServiceFees(ctx, remainingServiceFees)
-		ctx.Logger().Info("remainingServiceFees: %s\n", remainingServiceFees.String())
-		ctx.Logger().Info("rewards: %s\n", rewards.String())
-		ctx.Logger().Info("reimbursement: %s\n", reimbursement.String())
-		ctx.Logger().Info("blockServiceFees: %s\n", blockServiceFees.String())
-		ctx.Logger().Info("shieldStake: %s\n", shieldStake.String())
-		ctx.Logger().Info("TotalInt: %s\n", totalInt.String())
-		ctx.Logger().Info("ModuleCoins: %s\n", moduleCoins.String())
+		ctx.Logger().Info(fmt.Sprintf("remainingServiceFees: %s", remainingServiceFees.String()))
+		ctx.Logger().Info(fmt.Sprintf("rewards: %s", rewards.String()))
+		ctx.Logger().Info(fmt.Sprintf("reimbursement: %s", reimbursement.String()))
+		ctx.Logger().Info(fmt.Sprintf("blockServiceFees: %s", blockServiceFees.String()))
+		ctx.Logger().Info(fmt.Sprintf("shieldStake: %s", shieldStake.String()))
+		ctx.Logger().Info(fmt.Sprintf("TotalInt: %s", totalInt.String()))
+		ctx.Logger().Info(fmt.Sprintf("ModuleCoins: %s", moduleCoins.String()))
 	}
 }
