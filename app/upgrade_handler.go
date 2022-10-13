@@ -10,7 +10,6 @@ import (
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
@@ -30,29 +29,8 @@ func (app ShentuApp) setUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			fmt.Println(fromVM)
-			migrationOrder := make([]string, 0, len(fromVM))
-			hasParams, hasICA := false, false
-			for moduleName := range fromVM {
-				if moduleName == crisistypes.ModuleName {
-					continue
-				} else if moduleName == paramstypes.ModuleName {
-					hasParams = true
-				} else if moduleName == icatypes.ModuleName {
-					hasICA = true
-				}
-				migrationOrder = append(migrationOrder, moduleName)
-			}
-			//to satisfy the assertNoForgottenModules of SetOrderMigrations
-			if !hasParams {
-				migrationOrder = append(migrationOrder, paramstypes.ModuleName)
-			}
-			if !hasICA {
-				migrationOrder = append(migrationOrder, icatypes.ModuleName)
-			}
-			order := module.DefaultMigrationsOrder(migrationOrder)
-			order = append(order, crisistypes.ModuleName, paramstypes.ModuleName)
-			app.mm.SetOrderMigrations(order...)
+			// don't run Initgenesis since it'll be set with a wrong denom
+			fromVM[crisistypes.ModuleName] = app.mm.Modules[crisistypes.ModuleName].ConsensusVersion()
 
 			ctx.Logger().Info("Start to run module migrations...")
 			// create ICS27 Controller submodule params, controller module not enabled.
@@ -89,6 +67,10 @@ func (app ShentuApp) setUpgradeHandler() {
 				panic("mm.Modules[icatypes.ModuleName] is not of type ica.AppModule")
 			}
 			icamodule.InitModule(ctx, controllerParams, hostParams)
+
+			crisisGenesis := crisistypes.DefaultGenesisState()
+			crisisGenesis.ConstantFee.Denom = app.StakingKeeper.BondDenom(ctx)
+			app.CrisisKeeper.InitGenesis(ctx, crisisGenesis)
 
 			ctx.Logger().Info("Start to run module migrations...")
 			newVersionMap, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
