@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	upgradeName = "v2.5.0"
+	upgradeName = "v2.6.0"
 )
 
 func (app ShentuApp) setUpgradeHandler() {
