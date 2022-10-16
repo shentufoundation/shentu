@@ -106,9 +106,6 @@ go-mod-cache: go.sum
 	@echo "--> Download go modules to local cache"
 	@go mod download
 
-go.sum: go.mod
-	@echo "--> Ensure dependencies have not been modified"
-	go mod verify
 
 clean:
 	#rm -rf snapcraft-local.yaml build/
