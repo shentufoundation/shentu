@@ -268,14 +268,23 @@ func SecurityTally(ctx sdk.Context, k Keeper, proposal types.Proposal) (bool, bo
 
 	currVotes := k.GetVotes(ctx, proposal.ProposalId)
 	for _, vote := range currVotes {
-		if len(vote.Options) != 1 {
+		if len(vote.Options) == 0 {
 			continue
 		}
 
-		results[vote.Options[0].Option] = results[vote.Options[0].Option].Add(sdk.NewDec(1))
+		if len(vote.Options) == 1 {
+			results[vote.Options[0].Option] = results[vote.Options[0].Option].Add(sdk.NewDec(1))
+			totalHeadCounts = totalHeadCounts.Add(sdk.NewDec(1))
+			continue
+		}
+
+		for _, option := range vote.Options {
+			results[option.Option] = results[option.Option].Add(option.Weight)
+		}
 		totalHeadCounts = totalHeadCounts.Add(sdk.NewDec(1))
 	}
 	tallyParams := k.GetTallyParams(ctx)
+	// todo tallyResults will show 0 if the sum is below 1.
 	tallyResults := govtypes.NewTallyResultFromMap(results)
 
 	th := TallyHelper{
