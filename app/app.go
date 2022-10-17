@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
+	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
@@ -476,7 +477,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	/****  Module Options ****/
 
 	// always skip genesis invariant for now
-	// skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
+	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
 	// NOTE: Any module instantiated in the module manager that is
 	// later modified must be passed by reference here.
@@ -486,7 +487,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		authz.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
-		crisis.NewAppModule(&app.CrisisKeeper, true), // skip genesis invariant check for now
+		crisis.NewAppModule(&app.CrisisKeeper, skipGenesisInvariants), // skip genesis invariant check for now
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
 		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeegrantKeeper, app.interfaceRegistry),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
