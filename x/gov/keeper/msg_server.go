@@ -3,10 +3,6 @@ package keeper
 import (
 	"context"
 	"fmt"
-	"strconv"
-
-	"github.com/armon/go-metrics"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -192,14 +188,6 @@ func (k msgServer) VoteWeighted(goCtx context.Context, msg *govtypes.MsgVoteWeig
 	if err != nil {
 		return nil, err
 	}
-
-	defer telemetry.IncrCounterWithLabels(
-		[]string{govtypes.ModuleName, "vote"},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
-		},
-	)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
