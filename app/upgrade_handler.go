@@ -32,6 +32,10 @@ func (app ShentuApp) setUpgradeHandler() {
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			// don't run Initgenesis since it'll be set with a wrong denom
 			fromVM[crisistypes.ModuleName] = app.mm.Modules[crisistypes.ModuleName].ConsensusVersion()
+			// don't run icamodule's Initgenesis since it'll overwrite the icahost params that be set here
+			// the InitModule will be called later on to set params.
+			// this assumes it's the first time ica module go into fromVM
+			fromVM[icatypes.ModuleName] = app.mm.Modules[icatypes.ModuleName].ConsensusVersion()
 
 			ctx.Logger().Info("Start to run module migrations...")
 			// create ICS27 Controller submodule params, controller module not enabled.
