@@ -35,7 +35,29 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [v2.5.0] - TBD
+## [v2.6.0] - 10-21-2022
+
+### Client Breaking Changes
+### API Breaking Changes
+### State Machine Breaking Changes
+* (app) [\#473](https://github.com/shentufoundation/shentu/pull/473) Store migration for mixcoins removal
+
+### Features
+### Improvements
+* (app) [\#501](https://github.com/shentufoundation/shentu/pull/501) Apply Dragonberry patch
+* (app) [\#506](https://github.com/shentufoundation/shentu/pull/506) Disable ica module init upgradeHandler
+
+
+### Tests
+### Bug Fixes
+* (tests) [\#489](https://github.com/shentufoundation/shentu/pull/489) Fix e2e test bug
+* (app) [\#471](https://github.com/shentufoundation/shentu/pull/471) Add shield crisis invariant fix for the upgrade
+* (x/auth) [\#452](https://github.com/shentufoundation/shentu/pull/452) fix auth v1->v2 migration bug
+
+
+
+
+## [v2.5.0] - 06-17-2022
 
 ### Client Breaking Changes
 * (app) [\#467](https://github.com/shentufoundation/shentu/pull/467) Change binary name to `shentud` from `certik`
