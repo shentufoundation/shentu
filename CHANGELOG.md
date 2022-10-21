@@ -38,14 +38,19 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [v2.6.0] - 10-21-2022
 
 ### Client Breaking Changes
+* (app) [\#467](https://github.com/shentufoundation/shentu/pull/467) Change binary name to `shentud` from `certik`
 ### API Breaking Changes
+* (app) [\#467](https://github.com/shentufoundation/shentu/pull/467) Change package path to "github.com/shentufoundation/shentu" from "github.com/certikfoundation/shentu"
 ### State Machine Breaking Changes
 * (app) [\#473](https://github.com/shentufoundation/shentu/pull/473) Store migration for mixcoins removal
+* * (app) [\#390](https://github.com/shentufoundation/shentu/pull/390) Bump Cosmos SDK to v0.45.4
 
 ### Features
 ### Improvements
 * (app) [\#501](https://github.com/shentufoundation/shentu/pull/501) Apply Dragonberry patch
 * (app) [\#506](https://github.com/shentufoundation/shentu/pull/506) Disable ica module init upgradeHandler
+* (app) [\#394](https://github.com/shentufoundation/shentu/pull/394) Bump Go version to 1.18
+* (app) [\#399](https://github.com/shentufoundation/shentu/pull/399) Format & fix bugs in shield module
 
 
 ### Tests
@@ -53,27 +58,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (tests) [\#489](https://github.com/shentufoundation/shentu/pull/489) Fix e2e test bug
 * (app) [\#471](https://github.com/shentufoundation/shentu/pull/471) Add shield crisis invariant fix for the upgrade
 * (x/auth) [\#452](https://github.com/shentufoundation/shentu/pull/452) fix auth v1->v2 migration bug
-
-
-
-
-## [v2.5.0] - 06-17-2022
-
-### Client Breaking Changes
-* (app) [\#467](https://github.com/shentufoundation/shentu/pull/467) Change binary name to `shentud` from `certik`
-### API Breaking Changes
-* (app) [\#467](https://github.com/shentufoundation/shentu/pull/467) Change package path to "github.com/shentufoundation/shentu" from "github.com/certikfoundation/shentu"
-### State Machine Breaking Changes
-* (app) [\#390](https://github.com/shentufoundation/shentu/pull/390) Bump Cosmos SDK to v0.45.4
-
-### Features
-### Improvements
-* (app) [\#394](https://github.com/shentufoundation/shentu/pull/394) Bump Go version to 1.18
-* (app) [\#399](https://github.com/shentufoundation/shentu/pull/399) Format & fix bugs in shield module
-
-
-### Tests
-### Bug Fixes
 
 ## [v2.4.0] - 06-17-2022
 
