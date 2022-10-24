@@ -4,7 +4,7 @@ package testdata;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/certikfoundation/shentu/testutil/testdata";
+option go_package = "github.com/shentufoundation/shentu/testutil/testdata";
 
 message GroupMetadata {
   string description = 1;

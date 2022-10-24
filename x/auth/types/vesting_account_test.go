@@ -16,9 +16,9 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
-	shentuapp "github.com/certikfoundation/shentu/v2/app"
-	"github.com/certikfoundation/shentu/v2/common"
-	"github.com/certikfoundation/shentu/v2/x/auth/types"
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/common"
+	"github.com/shentufoundation/shentu/v2/x/auth/types"
 )
 
 var (

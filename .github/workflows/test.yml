@@ -27,7 +27,7 @@ jobs:
             **/**.go
             go.mod
             go.sum
-      - uses: actions/cache@v3.0.8
+      - uses: actions/cache@v3.0.10
         with:
           path: |
             ~/.cache/go-build
@@ -88,7 +88,7 @@ jobs:
             **/**.go
             go.mod
             go.sum
-      - name: Install CertiK binary
+      - name: Install Shentu binary
         run: |
           make build
         if: env.GIT_DIFF

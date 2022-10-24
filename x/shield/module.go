@@ -18,11 +18,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/certikfoundation/shentu/v2/x/shield/client/cli"
-	"github.com/certikfoundation/shentu/v2/x/shield/client/rest"
-	"github.com/certikfoundation/shentu/v2/x/shield/keeper"
-	"github.com/certikfoundation/shentu/v2/x/shield/simulation"
-	"github.com/certikfoundation/shentu/v2/x/shield/types"
+	"github.com/shentufoundation/shentu/v2/x/shield/client/cli"
+	"github.com/shentufoundation/shentu/v2/x/shield/client/rest"
+	"github.com/shentufoundation/shentu/v2/x/shield/keeper"
+	"github.com/shentufoundation/shentu/v2/x/shield/simulation"
+	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 var (
@@ -147,6 +147,10 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if err != nil {
 		panic(err)
 	}
+	err = cfg.RegisterMigration(types.ModuleName, 2, m.Migrate2to3)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // InitGenesis performs genesis initialization for the shield module.
@@ -163,7 +167,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 2 }
+func (AppModule) ConsensusVersion() uint64 { return 3 }
 
 // BeginBlock returns the begin blocker for the shield module.
 func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {

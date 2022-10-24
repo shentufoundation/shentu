@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
@@ -87,50 +86,50 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 
-	appparams "github.com/certikfoundation/shentu/v2/app/params"
-	"github.com/certikfoundation/shentu/v2/x/auth"
-	authkeeper "github.com/certikfoundation/shentu/v2/x/auth/keeper"
-	"github.com/certikfoundation/shentu/v2/x/bank"
-	bankkeeper "github.com/certikfoundation/shentu/v2/x/bank/keeper"
-	"github.com/certikfoundation/shentu/v2/x/cert"
-	certclient "github.com/certikfoundation/shentu/v2/x/cert/client"
-	certkeeper "github.com/certikfoundation/shentu/v2/x/cert/keeper"
-	certtypes "github.com/certikfoundation/shentu/v2/x/cert/types"
-	"github.com/certikfoundation/shentu/v2/x/cvm"
-	cvmkeeper "github.com/certikfoundation/shentu/v2/x/cvm/keeper"
-	cvmtypes "github.com/certikfoundation/shentu/v2/x/cvm/types"
-	distr "github.com/certikfoundation/shentu/v2/x/distribution"
-	"github.com/certikfoundation/shentu/v2/x/gov"
-	govkeeper "github.com/certikfoundation/shentu/v2/x/gov/keeper"
-	govtypes "github.com/certikfoundation/shentu/v2/x/gov/types"
-	"github.com/certikfoundation/shentu/v2/x/mint"
-	mintkeeper "github.com/certikfoundation/shentu/v2/x/mint/keeper"
-	"github.com/certikfoundation/shentu/v2/x/oracle"
-	oraclekeeper "github.com/certikfoundation/shentu/v2/x/oracle/keeper"
-	oracletypes "github.com/certikfoundation/shentu/v2/x/oracle/types"
-	"github.com/certikfoundation/shentu/v2/x/shield"
-	shieldclient "github.com/certikfoundation/shentu/v2/x/shield/client"
-	shieldkeeper "github.com/certikfoundation/shentu/v2/x/shield/keeper"
-	shieldtypes "github.com/certikfoundation/shentu/v2/x/shield/types"
-	"github.com/certikfoundation/shentu/v2/x/slashing"
-	"github.com/certikfoundation/shentu/v2/x/staking"
-	stakingkeeper "github.com/certikfoundation/shentu/v2/x/staking/keeper"
+	appparams "github.com/shentufoundation/shentu/v2/app/params"
+	"github.com/shentufoundation/shentu/v2/x/auth"
+	authkeeper "github.com/shentufoundation/shentu/v2/x/auth/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bank"
+	bankkeeper "github.com/shentufoundation/shentu/v2/x/bank/keeper"
+	"github.com/shentufoundation/shentu/v2/x/cert"
+	certclient "github.com/shentufoundation/shentu/v2/x/cert/client"
+	certkeeper "github.com/shentufoundation/shentu/v2/x/cert/keeper"
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
+	"github.com/shentufoundation/shentu/v2/x/cvm"
+	cvmkeeper "github.com/shentufoundation/shentu/v2/x/cvm/keeper"
+	cvmtypes "github.com/shentufoundation/shentu/v2/x/cvm/types"
+	distr "github.com/shentufoundation/shentu/v2/x/distribution"
+	"github.com/shentufoundation/shentu/v2/x/gov"
+	govkeeper "github.com/shentufoundation/shentu/v2/x/gov/keeper"
+	govtypes "github.com/shentufoundation/shentu/v2/x/gov/types"
+	"github.com/shentufoundation/shentu/v2/x/mint"
+	mintkeeper "github.com/shentufoundation/shentu/v2/x/mint/keeper"
+	"github.com/shentufoundation/shentu/v2/x/oracle"
+	oraclekeeper "github.com/shentufoundation/shentu/v2/x/oracle/keeper"
+	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
+	"github.com/shentufoundation/shentu/v2/x/shield"
+	shieldclient "github.com/shentufoundation/shentu/v2/x/shield/client"
+	shieldkeeper "github.com/shentufoundation/shentu/v2/x/shield/keeper"
+	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
+	"github.com/shentufoundation/shentu/v2/x/slashing"
+	"github.com/shentufoundation/shentu/v2/x/staking"
+	stakingkeeper "github.com/shentufoundation/shentu/v2/x/staking/keeper"
 
 	// unnamed import of statik for swagger UI support
-	_ "github.com/certikfoundation/shentu/v2/docs/statik"
+	_ "github.com/shentufoundation/shentu/v2/docs/statik"
 )
 
 const (
 	// AppName specifies the global application name.
 	AppName = "Shentu"
 
-	// DefaultKeyPass for certik node daemon.
+	// DefaultKeyPass for shentud node daemon.
 	DefaultKeyPass = "12345678"
 )
 
 var (
 	// DefaultNodeHome specifies where the node daemon data is stored.
-	DefaultNodeHome = os.ExpandEnv("$HOME/.certik")
+	DefaultNodeHome = os.ExpandEnv("$HOME/.shentud")
 
 	// ModuleBasics is in charge of setting up basic, non-dependant module
 	// elements, such as codec registration and genesis verification.
@@ -477,6 +476,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 
 	/****  Module Options ****/
 
+	// always skip genesis invariant for now
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
 	// NOTE: Any module instantiated in the module manager that is
@@ -487,7 +487,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		authz.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
-		crisis.NewAppModule(&app.CrisisKeeper, skipGenesisInvariants),
+		crisis.NewAppModule(&app.CrisisKeeper, skipGenesisInvariants), // skip genesis invariant check for now
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
 		feegrant.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeegrantKeeper, app.interfaceRegistry),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper.Keeper),
@@ -785,7 +785,7 @@ func (app *ShentuApp) RegisterTendermintService(clientCtx client.Context) {
 
 // RegisterUpgradeHandlers registers necessary upgrade handlers
 func (app *ShentuApp) RegisterUpgradeHandlers() {
-	app.setTmpUpgradeHandler()
+	app.setUpgradeHandler()
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server

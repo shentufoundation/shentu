@@ -5,7 +5,7 @@ import (
 
 	"github.com/test-go/testify/require"
 
-	"github.com/certikfoundation/shentu/v2/x/oracle/types"
+	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
 func Test_GenesisStateValidate(t *testing.T) {

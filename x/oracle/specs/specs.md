@@ -1,9 +1,9 @@
 # Oracle
 
 The `oracle` module facilitates real-time security checks by providing on-chain security scores from audited smart contracts that can be queried by a Security Oracle on any chain.
-CertiK Chain users can serve as `Operator`s, which provide queriers with security scores for audited smart contracts and earn rewards for doing so. The reward an operator receives is proportional to the amount of collateral the operator locks up. Also, operators' security scores for a given smart contract are weighted by their collateral. In this way, the `oracle` module serves as the Oracle Combinator, which combines the various results from each operator into a composite score.
+Shentu Chain users can serve as `Operator`s, which provide queriers with security scores for audited smart contracts and earn rewards for doing so. The reward an operator receives is proportional to the amount of collateral the operator locks up. Also, operators' security scores for a given smart contract are weighted by their collateral. In this way, the `oracle` module serves as the Oracle Combinator, which combines the various results from each operator into a composite score.
 
-See the [whitepaper](https://www.certik.foundation/whitepaper#2-CertiK-Security-Oracle) for more information on the CertiK Security Oracle.
+See the [whitepaper](https://www.shentu.technology/whitepaper#2-CertiK-Security-Oracle) for more information on the CertiK Security Oracle.
 
 
 ## State

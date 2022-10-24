@@ -26,11 +26,11 @@ import (
 	govsim "github.com/cosmos/cosmos-sdk/x/gov/simulation"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/certikfoundation/shentu/v2/x/gov/client/cli"
-	"github.com/certikfoundation/shentu/v2/x/gov/client/rest"
-	"github.com/certikfoundation/shentu/v2/x/gov/keeper"
-	"github.com/certikfoundation/shentu/v2/x/gov/simulation"
-	"github.com/certikfoundation/shentu/v2/x/gov/types"
+	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
+	"github.com/shentufoundation/shentu/v2/x/gov/client/rest"
+	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
+	"github.com/shentufoundation/shentu/v2/x/gov/simulation"
+	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
 var (
@@ -185,9 +185,6 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 { return 2 }
-
-// BeginBlock implements the Cosmos SDK BeginBlock module function.
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
 // EndBlock implements the Cosmos SDK EndBlock module function.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {

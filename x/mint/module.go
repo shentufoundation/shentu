@@ -21,8 +21,8 @@ import (
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	"github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	"github.com/certikfoundation/shentu/v2/x/mint/keeper"
-	"github.com/certikfoundation/shentu/v2/x/oracle/simulation"
+	"github.com/shentufoundation/shentu/v2/x/mint/keeper"
+	"github.com/shentufoundation/shentu/v2/x/oracle/simulation"
 )
 
 var (
@@ -141,11 +141,6 @@ func (am AppModule) ConsensusVersion() uint64 { return 1 }
 // BeginBlock processes module beginblock.
 func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 	BeginBlocker(ctx, am.keeper)
-}
-
-// EndBlock processes module beginblock.
-func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
 }
 
 //____________________________________________________________________________

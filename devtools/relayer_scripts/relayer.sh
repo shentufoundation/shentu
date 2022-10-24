@@ -27,7 +27,7 @@ rly tx link demo -d -o 3s
 # rly chains list
 # rly paths list
 
-# transfer from certik to regen
+# transfer from shentud to regen
 # rly tx transfer yulei-1 aplikigo-1 1000000000000uctk $(rly chains address aplikigo-1)
 
 # rly query unrelayed-packets demo
@@ -37,10 +37,10 @@ rly tx link demo -d -o 3s
 
 # rly query bal yulei-1 testkey
 # rly query bal aplikigo-1 testkey
-# certik query bank balances $(rly chains address yulei-1)
+# shentud query bank balances $(rly chains address yulei-1)
 # regen query bank balances $(rly chains address aplikigo-1) --node tcp://0.0.0.0:26557
 
 # clean up
 # rm $CURDIR/yulei_user_key.json $CURDIR/regen_user_key.json
 # rm $CURDIR/yulei-1.log $CURDIR/aplikigo-1.log 
-# killall certik && killall regen
+# killall shentud && killall regen

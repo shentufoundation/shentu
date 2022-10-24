@@ -30,7 +30,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/certikfoundation/shentu/v2/common"
+	"github.com/shentufoundation/shentu/v2/common"
 )
 
 const (
@@ -107,7 +107,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
-	if str := os.Getenv("CERTIK_E2E_SKIP_CLEANUP"); len(str) > 0 {
+	if str := os.Getenv("SHENTU_E2E_SKIP_CLEANUP"); len(str) > 0 {
 		skipCleanup, err := strconv.ParseBool(str)
 		s.Require().NoError(err)
 
@@ -235,7 +235,7 @@ func (s *IntegrationTestSuite) initValidatorConfigs(c *chain) {
 		vpr.SetConfigFile(tmCfgPath)
 		s.Require().NoError(vpr.ReadInConfig())
 
-		valConfig := &tmconfig.Config{}
+		valConfig := tmconfig.DefaultConfig()
 		s.Require().NoError(vpr.Unmarshal(valConfig))
 
 		valConfig.P2P.ListenAddress = "tcp://0.0.0.0:26656"
@@ -273,7 +273,7 @@ func (s *IntegrationTestSuite) initValidatorConfigs(c *chain) {
 }
 
 func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
-	s.T().Logf("starting Certik %s validator containers...", c.id)
+	s.T().Logf("starting Shentu %s validator containers...", c.id)
 
 	s.valResources[c.id] = make([]*dockertest.Resource, len(c.validators))
 	for i, val := range c.validators {
@@ -281,9 +281,9 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 			Name:      val.instanceName(),
 			NetworkID: s.dkrNet.Network.ID,
 			Mounts: []string{
-				fmt.Sprintf("%s/:/root/.certik", val.configDir()),
+				fmt.Sprintf("%s/:/root/.shentud", val.configDir()),
 			},
-			Repository: "shentuchain/certik-e2e",
+			Repository: "shentuchain/shentud-e2e",
 		}
 
 		// expose the first validator for debugging and communication
@@ -306,7 +306,7 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 		s.Require().NoError(err)
 
 		s.valResources[c.id][i] = resource
-		s.T().Logf("started Certik %s validator container: %s", c.id, resource.Container.ID)
+		s.T().Logf("started Shentu %s validator container: %s", c.id, resource.Container.ID)
 	}
 
 	rpcClient, err := rpchttp.New("tcp://localhost:26657", "/websocket")
@@ -329,7 +329,7 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 
 			return true
 		},
-		5*time.Minute,
+		1*time.Minute,
 		time.Second,
 		"Shentu node failed to produce blocks",
 	)
@@ -338,12 +338,12 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 func (s *IntegrationTestSuite) runIBCRelayer() {
 	s.T().Log("starting Hermes relayer container...")
 
-	tmpDir, err := ioutil.TempDir("", "certik-e2e-testnet-hermes-")
+	tmpDir, err := ioutil.TempDir("", "shentu-e2e-testnet-hermes-")
 	s.Require().NoError(err)
 	s.tmpDirs = append(s.tmpDirs, tmpDir)
 
-	certikAVal := s.chainA.validators[0]
-	certikBVal := s.chainB.validators[0]
+	shentuAVal := s.chainA.validators[0]
+	shentuBVal := s.chainB.validators[0]
 	hermesCfgPath := path.Join(tmpDir, "hermes")
 
 	s.Require().NoError(os.MkdirAll(hermesCfgPath, 0755))
@@ -357,7 +357,7 @@ func (s *IntegrationTestSuite) runIBCRelayer() {
 		&dockertest.RunOptions{
 			Name:       fmt.Sprintf("%s-%s-relayer", s.chainA.id, s.chainB.id),
 			Repository: "ghcr.io/cosmos/hermes-e2e",
-			Tag:        "latest",
+			Tag:        "0.13.0",
 			NetworkID:  s.dkrNet.Network.ID,
 			Mounts: []string{
 				fmt.Sprintf("%s/:/root/hermes", hermesCfgPath),
@@ -366,12 +366,12 @@ func (s *IntegrationTestSuite) runIBCRelayer() {
 				"3031/tcp": {{HostIP: "", HostPort: "3031"}},
 			},
 			Env: []string{
-				fmt.Sprintf("CERTIK_A_E2E_CHAIN_ID=%s", s.chainA.id),
-				fmt.Sprintf("CERTIK_B_E2E_CHAIN_ID=%s", s.chainB.id),
-				fmt.Sprintf("CERTIK_A_E2E_VAL_MNEMONIC=%s", certikAVal.mnemonic),
-				fmt.Sprintf("CERTIK_B_E2E_VAL_MNEMONIC=%s", certikBVal.mnemonic),
-				fmt.Sprintf("CERTIK_A_E2E_VAL_HOST=%s", s.valResources[s.chainA.id][0].Container.Name[1:]),
-				fmt.Sprintf("CERTIK_B_E2E_VAL_HOST=%s", s.valResources[s.chainB.id][0].Container.Name[1:]),
+				fmt.Sprintf("SHENTU_A_E2E_CHAIN_ID=%s", s.chainA.id),
+				fmt.Sprintf("SHENTU_B_E2E_CHAIN_ID=%s", s.chainB.id),
+				fmt.Sprintf("SHENTU_A_E2E_VAL_MNEMONIC=%s", shentuAVal.mnemonic),
+				fmt.Sprintf("SHENTU_B_E2E_VAL_MNEMONIC=%s", shentuBVal.mnemonic),
+				fmt.Sprintf("SHENTU_A_E2E_VAL_HOST=%s", s.valResources[s.chainA.id][0].Container.Name[1:]),
+				fmt.Sprintf("SHENTU_B_E2E_VAL_HOST=%s", s.valResources[s.chainB.id][0].Container.Name[1:]),
 			},
 			Entrypoint: []string{
 				"sh",

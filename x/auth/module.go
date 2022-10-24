@@ -21,11 +21,11 @@ import (
 	authsim "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/certikfoundation/shentu/v2/x/auth/client/cli"
-	"github.com/certikfoundation/shentu/v2/x/auth/client/rest"
-	"github.com/certikfoundation/shentu/v2/x/auth/keeper"
-	"github.com/certikfoundation/shentu/v2/x/auth/simulation"
-	"github.com/certikfoundation/shentu/v2/x/auth/types"
+	"github.com/shentufoundation/shentu/v2/x/auth/client/cli"
+	"github.com/shentufoundation/shentu/v2/x/auth/client/rest"
+	"github.com/shentufoundation/shentu/v2/x/auth/keeper"
+	"github.com/shentufoundation/shentu/v2/x/auth/simulation"
+	"github.com/shentufoundation/shentu/v2/x/auth/types"
 )
 
 var (
@@ -157,16 +157,6 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 { return am.cosmosAppModule.ConsensusVersion() }
-
-// BeginBlock returns the begin blocker for the auth module.
-func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
-	am.cosmosAppModule.BeginBlock(ctx, rbb)
-}
-
-// EndBlock returns the end blocker for the auth module. It returns no validator updates.
-func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.EndBlock(ctx, rbb)
-}
 
 //____________________________________________________________________________
 

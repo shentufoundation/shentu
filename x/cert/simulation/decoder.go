@@ -8,7 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/certikfoundation/shentu/v2/x/cert/types"
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 // NewDecodeStore unmarshals the KVPair's Value to the corresponding type of cert module.

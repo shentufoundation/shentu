@@ -14,9 +14,9 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	vesting "github.com/certikfoundation/shentu/v2/x/auth/types"
-	"github.com/certikfoundation/shentu/v2/x/bank/keeper"
-	"github.com/certikfoundation/shentu/v2/x/bank/types"
+	vesting "github.com/shentufoundation/shentu/v2/x/auth/types"
+	"github.com/shentufoundation/shentu/v2/x/bank/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bank/types"
 )
 
 const (
@@ -40,7 +40,7 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, ak ty
 
 // SimulateMsgLockedSend tests and runs a single msg send where both
 // accounts already exist.
-//nolint: funlen
+// nolint: funlen
 func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,

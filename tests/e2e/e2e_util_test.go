@@ -51,13 +51,7 @@ func (s *IntegrationTestSuite) connectIBCChains() {
 	})
 	s.Require().NoErrorf(
 		err,
-		"failed connect chains; stdout: %s, stderr: %s", outBuf.String(), errBuf.String(),
-	)
-
-	s.Require().Containsf(
-		errBuf.String(),
-		"successfully opened init channel",
-		"failed to connect chains via IBC: %s", errBuf.String(),
+		"failed to connect chains; stdout: %s, stderr: %s", outBuf.String(), errBuf.String(),
 	)
 
 	s.T().Logf("connected %s and %s chains via IBC", s.chainA.id, s.chainB.id)

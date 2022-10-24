@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	shentuapp "github.com/certikfoundation/shentu/v2/app"
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/stretchr/testify/require"
@@ -21,8 +21,8 @@ import (
 	"github.com/hyperledger/burrow/execution/evm/abi"
 	"github.com/hyperledger/burrow/txs/payload"
 
-	. "github.com/certikfoundation/shentu/v2/x/cvm/keeper"
-	"github.com/certikfoundation/shentu/v2/x/cvm/types"
+	. "github.com/shentufoundation/shentu/v2/x/cvm/keeper"
+	"github.com/shentufoundation/shentu/v2/x/cvm/types"
 )
 
 func TestNewQuerier(t *testing.T) {

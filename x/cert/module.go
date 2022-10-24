@@ -18,11 +18,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/certikfoundation/shentu/v2/x/cert/client/cli"
-	"github.com/certikfoundation/shentu/v2/x/cert/client/rest"
-	"github.com/certikfoundation/shentu/v2/x/cert/keeper"
-	"github.com/certikfoundation/shentu/v2/x/cert/simulation"
-	"github.com/certikfoundation/shentu/v2/x/cert/types"
+	"github.com/shentufoundation/shentu/v2/x/cert/client/cli"
+	"github.com/shentufoundation/shentu/v2/x/cert/client/rest"
+	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
+	"github.com/shentufoundation/shentu/v2/x/cert/simulation"
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 var (
@@ -151,15 +151,6 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 1 }
-
-// BeginBlock implements the Cosmos SDK BeginBlock module function.
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-}
-
-// EndBlock implements the Cosmos SDK EndBlock module function.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
-}
 
 //____________________________________________________________________________
 

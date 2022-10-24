@@ -24,11 +24,11 @@ import (
 	banksim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/certikfoundation/shentu/v2/x/bank/client/cli"
-	"github.com/certikfoundation/shentu/v2/x/bank/client/rest"
-	"github.com/certikfoundation/shentu/v2/x/bank/keeper"
-	"github.com/certikfoundation/shentu/v2/x/bank/simulation"
-	"github.com/certikfoundation/shentu/v2/x/bank/types"
+	"github.com/shentufoundation/shentu/v2/x/bank/client/cli"
+	"github.com/shentufoundation/shentu/v2/x/bank/client/rest"
+	"github.com/shentufoundation/shentu/v2/x/bank/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bank/simulation"
+	"github.com/shentufoundation/shentu/v2/x/bank/types"
 )
 
 var (
@@ -155,16 +155,6 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 { return am.cosmosAppModule.ConsensusVersion() }
-
-// BeginBlock returns the begin blocker for the bank module.
-func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
-	am.cosmosAppModule.BeginBlock(ctx, rbb)
-}
-
-// EndBlock returns the end blocker for the bank module.
-func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.EndBlock(ctx, rbb)
-}
 
 //____________________________________________________________________________
 

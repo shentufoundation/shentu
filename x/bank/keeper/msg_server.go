@@ -8,8 +8,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	vesting "github.com/certikfoundation/shentu/v2/x/auth/types"
-	"github.com/certikfoundation/shentu/v2/x/bank/types"
+	vesting "github.com/shentufoundation/shentu/v2/x/auth/types"
+	"github.com/shentufoundation/shentu/v2/x/bank/types"
 )
 
 type msgServer struct {
