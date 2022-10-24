@@ -43,7 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (app) [\#467](https://github.com/shentufoundation/shentu/pull/467) Change package path to "github.com/shentufoundation/shentu" from "github.com/certikfoundation/shentu"
 ### State Machine Breaking Changes
 * (app) [\#473](https://github.com/shentufoundation/shentu/pull/473) Store migration for mixcoins removal
-* * (app) [\#390](https://github.com/shentufoundation/shentu/pull/390) Bump Cosmos SDK to v0.45.4
+* (app) [\#390](https://github.com/shentufoundation/shentu/pull/390) Bump Cosmos SDK to v0.45.9
 
 ### Features
 ### Improvements
