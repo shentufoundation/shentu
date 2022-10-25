@@ -3,7 +3,7 @@ module github.com/shentufoundation/shentu/v2
 go 1.18
 
 require (
-	github.com/cosmos/cosmos-sdk v0.45.9
+	github.com/cosmos/cosmos-sdk v0.45.6
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/ibc-go/v3 v3.1.0
 	github.com/gogo/protobuf v1.3.3
@@ -18,7 +18,7 @@ require (
 	github.com/regen-network/cosmos-proto v0.3.1
 	github.com/rs/zerolog v1.28.0
 	github.com/spf13/cast v1.5.0
-	github.com/spf13/cobra v1.5.0
+	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.13.0
 	github.com/stretchr/testify v1.8.0
 	github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15
@@ -75,7 +75,7 @@ require (
 	github.com/confio/ics23/go v0.7.0 // indirect
 	github.com/containerd/continuity v0.3.0 // indirect
 	github.com/cosmos/btcutil v1.0.4 // indirect
-	github.com/cosmos/iavl v0.19.3 // indirect
+	github.com/cosmos/iavl v0.19.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.11.1 // indirect
 	github.com/cosmos/ledger-go v0.9.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
@@ -155,7 +155,7 @@ require (
 	github.com/hexops/gotextdiff v1.0.3 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/improbable-eng/grpc-web v0.14.1 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/jgautheron/goconst v1.5.1 // indirect
 	github.com/jingyugao/rowserrcheck v1.1.1 // indirect
 	github.com/jirfag/go-printf-func-name v0.0.0-20200119135958-7558a9eaa5af // indirect
