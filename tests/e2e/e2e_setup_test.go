@@ -34,14 +34,25 @@ import (
 )
 
 const (
-	photonDenom    = "photon"
-	initBalanceStr = "110000000000uctk,100000000000photon"
-	minGasPrice    = "0.00001"
+	shentuBinary        = "shentud"
+	txCommand           = "tx"
+	queryCommand        = "query"
+	keysCommand         = "keys"
+	uctkDenom           = "uctk"
+	photonDenom         = "photon"
+	initBalanceStr      = "110000000000uctk,100000000000photon"
+	minGasPrice         = "0.00001"
+	proposalBlockBuffer = 35
 )
 
 var (
-	uctkAmount, _  = sdk.NewIntFromString("100000000000")
-	uctkAmountCoin = sdk.NewCoin("uctk", uctkAmount)
+	uctkAmount, _     = sdk.NewIntFromString("100000000000")
+	feesAmount, _     = sdk.NewIntFromString("1000")
+	depositAmount, _  = sdk.NewIntFromString("513000000")
+	uctkAmountCoin    = sdk.NewCoin(uctkDenom, uctkAmount)
+	feesAmountCoin    = sdk.NewCoin(photonDenom, feesAmount)
+	depositAmountCoin = sdk.NewCoin(uctkDenom, depositAmount)
+	proposalCounter   = 0
 )
 
 type IntegrationTestSuite struct {
@@ -139,9 +150,23 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 func (s *IntegrationTestSuite) initNodes(c *chain) {
 	s.Require().NoError(c.createAndInitValidators(2))
 
+	// create 4 accounts for test
+	accts, err := c.validators[0].createAccounts(4)
+	s.Require().NoError(err)
+	c.accounts = append(c.accounts, accts...)
+
 	// initialize a genesis file for the first validator
 	val0ConfigDir := c.validators[0].configDir()
 	for _, val := range c.validators {
+		s.Require().NoError(
+			addGenesisAccount(val0ConfigDir, "", initBalanceStr, val.keyInfo.GetAddress()),
+		)
+		s.Require().NoError(
+			addCertifierAccount(val0ConfigDir, "", val.keyInfo.GetAddress()),
+		)
+	}
+	for _, val := range c.accounts {
+		s.T().Logf("Account %s : %s", val.moniker, val.keyInfo.GetAddress())
 		s.Require().NoError(
 			addGenesisAccount(val0ConfigDir, "", initBalanceStr, val.keyInfo.GetAddress()),
 		)
@@ -188,6 +213,14 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 	bz, err := cdc.MarshalJSON(&bankGenState)
 	s.Require().NoError(err)
 	appGenState[banktypes.ModuleName] = bz
+
+	// var govGenState govtypes.GenesisState
+	// s.Require().NoError(cdc.UnmarshalJSON(appGenState[govtypes.ModuleName], &govGenState))
+
+	// govGenState.VotingParams.VotingPeriod = time.Duration(time.Second * 30)
+	// bz, err = cdc.MarshalJSON(&govGenState)
+	// s.Require().NoError(err)
+	// appGenState[govtypes.ModuleName] = bz
 
 	var genUtilGenState genutiltypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[genutiltypes.ModuleName], &genUtilGenState))
