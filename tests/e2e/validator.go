@@ -40,6 +40,13 @@ type validator struct {
 	nodeKey          p2p.NodeKey
 }
 
+type account struct {
+	moniker    string
+	mnemonic   string
+	keyInfo    keyring.Info
+	privateKey cryptotypes.PrivKey
+}
+
 func (v *validator) instanceName() string {
 	return fmt.Sprintf("%s%d", v.moniker, v.index)
 }
@@ -166,6 +173,53 @@ func (v *validator) createKey(name string) error {
 	}
 
 	return v.createKeyFromMnemonic(name, mnemonic)
+}
+
+func (v *validator) createAccounts(counts int) ([]*account, error) {
+	kb, err := keyring.New(keyringAppName, keyring.BackendTest, v.configDir(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	keyringAlgos, _ := kb.SupportedAlgorithms()
+	algo, err := keyring.NewSigningAlgoFromString(string(hd.Secp256k1Type), keyringAlgos)
+	if err != nil {
+		return nil, err
+	}
+
+	res := []*account{}
+	for i := 0; i < counts; i++ {
+		name := fmt.Sprintf("acct-%d", i)
+		mnemonic, err := createMnemonic()
+		if err != nil {
+			return nil, err
+		}
+
+		info, err := kb.NewAccount(name, mnemonic, "", sdk.FullFundraiserPath, algo)
+		if err != nil {
+			return nil, err
+		}
+
+		privKeyArmor, err := kb.ExportPrivKeyArmor(name, keyringPassphrase)
+		if err != nil {
+			return nil, err
+		}
+
+		privKey, _, err := sdkcrypto.UnarmorDecryptPrivKey(privKeyArmor, keyringPassphrase)
+		if err != nil {
+			return nil, err
+		}
+
+		acct := account{}
+		acct.keyInfo = info
+		acct.mnemonic = mnemonic
+		acct.moniker = name
+		acct.privateKey = privKey
+
+		res = append(res, &acct)
+	}
+
+	return res, nil
 }
 
 func (v *validator) buildCreateValidatorMsg(amount sdk.Coin) (sdk.Msg, error) {
