@@ -17,6 +17,7 @@ import (
 	vesting "github.com/shentufoundation/shentu/v2/x/auth/types"
 	"github.com/shentufoundation/shentu/v2/x/bank/keeper"
 	"github.com/shentufoundation/shentu/v2/x/bank/types"
+	simutil "github.com/shentufoundation/shentu/v2/x/cvm/simulation"
 )
 
 const (
@@ -62,7 +63,7 @@ func SimulateMsgLockedSend(ak types.AccountKeeper, bk keeper.Keeper) simtypes.Op
 			}
 			spendableCoins = spendableCoins.Sub(sendCoins)
 
-			fees, err := simtypes.RandomFees(r, ctx, spendableCoins)
+			fees, err := simutil.RandomReasonableFees(r, ctx, spendableCoins)
 			if err != nil {
 				return simtypes.NoOpMsg(banktypes.ModuleName, types.TypeMsgLockedSend, err.Error()), nil, err
 			}
