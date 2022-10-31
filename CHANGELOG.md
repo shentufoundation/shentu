@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (app) [\#467](https://github.com/shentuchain/shentu/pull/467) Change binary name to `shentud` from `certik`
 ### API Breaking Changes
 * (app) [\#467](https://github.com/shentuchain/shentu/pull/467) Change package path to "github.com/shentufoundation/shentu" from "github.com/certikfoundation/shentu"
+* (app) [\#386](https://github.com/shentuchain/shentu/pull/386) Remove MixedCoins from codebase
 ### State Machine Breaking Changes
 * (app) [\#473](https://github.com/shentuchain/shentu/pull/473) Store migration for mixcoins removal
 * (app) [\#390](https://github.com/shentuchain/shentu/pull/390) Bump Cosmos SDK to v0.45.9
@@ -131,7 +132,7 @@ Version 2.1.0 re-enables endblocker in the staking module, and bumps SDK to 0.42
 
 ## [v2.0.0] - 08-09-2021
 
-Version 2.0.0 brings many breaking changes with SDK upgrading to Stargate version. For more information on the SDK upgrade, visit [CosmosSDK Release Notes](https://github.com/cosmos/cosmos-sdk/releases) 
+Version 2.0.0 brings many breaking changes with SDK upgrading to Stargate version. For more information on the SDK upgrade, visit [CosmosSDK Release Notes](https://github.com/cosmos/cosmos-sdk/releases)
 
 ### Client Breaking Changes
 * (app) [\#241](https://github.com/shentuchain/shentu/pull/241) Renamed default binary name to `certik`.
@@ -163,7 +164,7 @@ Version 2.0.0 brings many breaking changes with SDK upgrading to Stargate versio
 
 ### Bug Fixes
 * (app) [\#254](https://github.com/shentuchain/shentu/pull/254) Disable module account receiving coins.
-* (x/gov) [\#259](https://github.com/shentuchain/shentu/pull/259) Gov module bug fixes. 
+* (x/gov) [\#259](https://github.com/shentuchain/shentu/pull/259) Gov module bug fixes.
 * (x/gov) [\#268](https://github.com/shentuchain/shentu/pull/268) Fix proposal migration bug.
 
 ## [v1.3.1] - 02-05-2021
@@ -230,7 +231,7 @@ Version 2.0.0 brings many breaking changes with SDK upgrading to Stargate versio
 ### Client Breaking Changes
 ### API Breaking Changes
 * (x/oracle) [\#6](https://github.com/shentuchain/shentu/pull/6) Updated the `aggregate_task` event.
-* (x/gov) [\#9](https://github.com/shentuchain/shentu/pull/9) Paginated query and next page field in votes query. 
+* (x/gov) [\#9](https://github.com/shentuchain/shentu/pull/9) Paginated query and next page field in votes query.
 
 ### State Machine Breaking Changes
 ### Features
