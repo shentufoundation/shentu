@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -17,6 +19,9 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ory/dockertest/v3/docker"
+
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
+	govtypes2 "github.com/shentufoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
@@ -140,6 +145,33 @@ func (s *IntegrationTestSuite) getLatestBlockHeight(c *chain, valIdx int) int {
 	return latestHeight
 }
 
+func (s *IntegrationTestSuite) executeIssueCertificate(c *chain, valIdx int, certificateType, content, certifierAddr, fees string) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	s.T().Logf("Executing shentu tx issue certificate %s", c.id)
+
+	command := []string{
+		shentuBinary,
+		txCommand,
+		certtypes.ModuleName,
+		"issue-certificate",
+		certificateType,
+		content,
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, certifierAddr),
+		fmt.Sprintf("--%s=%s", flags.FlagGasPrices, fees),
+		fmt.Sprintf("--%s=%s", flags.FlagChainID, c.id),
+		"--keyring-backend=test",
+		"--output=json",
+		"-y",
+	}
+
+	s.T().Logf("cmd: %s", strings.Join(command, " "))
+
+	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
+	s.T().Logf("%s successfully issue %s certificate to %s", certifierAddr, certificateType, content)
+}
+
 func (s *IntegrationTestSuite) executeSubmitUpgradeProposal(c *chain, valIdx, upgradeHeight int, submitterAddr, proposalName, fees string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
@@ -168,6 +200,34 @@ func (s *IntegrationTestSuite) executeSubmitUpgradeProposal(c *chain, valIdx, up
 
 	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
 	s.T().Logf("%s successfully submit %s proposal", submitterAddr, proposalName)
+}
+
+func (s *IntegrationTestSuite) executeSubmitClaimProposal(c *chain, valIdx int, proposalFile, submitterAddr, fees string) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	s.T().Logf("Executing shentu tx submit proposal %s", c.id)
+
+	command := []string{
+		shentuBinary,
+		txCommand,
+		govtypes.ModuleName,
+		"submit-proposal",
+		"shield-claim",
+		proposalFile,
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, submitterAddr),
+		fmt.Sprintf("--%s=%s", flags.FlagGas, "auto"),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
+		fmt.Sprintf("--%s=%s", flags.FlagChainID, c.id),
+		"--keyring-backend=test",
+		"--output=json",
+		"-y",
+	}
+
+	s.T().Logf("cmd: %s", strings.Join(command, " "))
+
+	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
+	s.T().Logf("%s successfully submit claim proposal %s", submitterAddr, proposalFile)
 }
 
 func (s *IntegrationTestSuite) executeDepositProposal(c *chain, valIdx int, submitterAddr string, proposalId int, amount, fees string) {
@@ -310,6 +370,35 @@ func (s *IntegrationTestSuite) executeCreatePool(c *chain, valIdx int, poolAmoun
 	s.T().Logf("%s successfully create pool %s", submitterAddr, poolName)
 }
 
+func (s *IntegrationTestSuite) executePurchaseShield(c *chain, valIdx, poolId int, shieldAmount, description, submitterAddr, fees string) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	s.T().Logf("Executing shentu tx shield purchase %s", c.id)
+
+	command := []string{
+		shentuBinary,
+		txCommand,
+		shieldtypes.ModuleName,
+		"purchase",
+		fmt.Sprintf("%d", poolId),
+		shieldAmount,
+		description,
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, submitterAddr),
+		fmt.Sprintf("--%s=%s", flags.FlagChainID, c.id),
+		fmt.Sprintf("--%s=%s", flags.FlagGas, "auto"),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
+		"--keyring-backend=test",
+		"--output=json",
+		"-y",
+	}
+
+	s.T().Logf("cmd: %s", strings.Join(command, " "))
+
+	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
+	s.T().Logf("%s successfully purchase shield at pool %d", submitterAddr, poolId)
+}
+
 func (s *IntegrationTestSuite) execShentuTxCmd(ctx context.Context, c *chain, cmd []string, valIdx int, validation func([]byte, []byte) bool) {
 	if validation == nil {
 		validation = s.defaultExecValidation(s.chainA, 0)
@@ -366,6 +455,43 @@ func (s *IntegrationTestSuite) defaultExecValidation(chain *chain, valIdx int) f
 		}
 		return false
 	}
+}
+
+func (s *IntegrationTestSuite) writeClaimProposal(c *chain, valIdx, poolId, purchaseId int, fileName string) string {
+	type ClaimLoss struct {
+		Denom  string `json:"denom"`
+		Amount string `json:"amount"`
+	}
+	type ClaimProposal struct {
+		PoolId      int         `json:"pool_id"`
+		PurchaseId  int         `json:"purchase_id"`
+		Evidence    string      `json:"evidence"`
+		Description string      `json:"description"`
+		Loss        []ClaimLoss `json:"loss"`
+	}
+
+	var loss = ClaimLoss{
+		Denom:  "uctk",
+		Amount: "100000000",
+	}
+	var proposal = &ClaimProposal{
+		PoolId:      poolId,
+		PurchaseId:  purchaseId,
+		Evidence:    "Attack happened on <time> caused loss of <amount> to <account> by <txhashes>",
+		Description: "Details of the attack",
+	}
+	proposal.Loss = append(proposal.Loss, loss)
+
+	proposalByte, err := json.Marshal(proposal)
+	s.Require().NoError(err)
+
+	path := filepath.Join(c.validators[valIdx].configDir(), "config", fileName)
+
+	_, err = os.Create(path)
+	s.Require().NoError(err)
+
+	os.WriteFile(path, proposalByte, 0o600)
+	return path
 }
 
 func queryShentuTx(endpoint, txHash string) error {
@@ -467,26 +593,56 @@ func queryDelegation(endpoint, validatorAddr, delegatorAddr string) (stakingtype
 	return res, nil
 }
 
-func queryProposal(endpoint string, proposalId int) (string, error) {
+func queryProposal(endpoint string, proposalId int) (govtypes2.QueryProposalResponse, error) {
+	var res govtypes2.QueryProposalResponse
 	path := fmt.Sprintf(
-		"%s/gov/proposals/%d",
+		"%s/shentu/gov/v1alpha1/proposals/%d",
 		endpoint, proposalId,
 	)
 
 	resp, err := http.Get(path)
 	if err != nil {
-		return "", err
+		return res, err
 	}
 
 	defer resp.Body.Close()
 
-	var res map[string]interface{}
-
-	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return "", err
+	bz, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return res, err
 	}
 
-	return res["result"].(map[string]interface{})["status"].(string), nil
+	if err = cdc.UnmarshalJSON(bz, &res); err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
+func queryCertificate(endpoint string, certificateId int) (certtypes.QueryCertificateResponse, error) {
+	var res certtypes.QueryCertificateResponse
+	path := fmt.Sprintf(
+		"%s/shentu/cert/v1alpha1/certificate/%d",
+		endpoint, certificateId,
+	)
+
+	resp, err := http.Get(path)
+	if err != nil {
+		return res, err
+	}
+
+	defer resp.Body.Close()
+
+	bz, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return res, err
+	}
+
+	if err = cdc.UnmarshalJSON(bz, &res); err != nil {
+		return res, err
+	}
+
+	return res, nil
 }
 
 func queryShieldPool(endpoint string, poolId int) (shieldtypes.QueryPoolResponse, error) {
@@ -511,5 +667,88 @@ func queryShieldPool(endpoint string, poolId int) (shieldtypes.QueryPoolResponse
 	if err = cdc.UnmarshalJSON(bz, &res); err != nil {
 		return res, err
 	}
+
 	return res, nil
+}
+
+func queryShieldStatus(endpoint string) (shieldtypes.QueryShieldStatusResponse, error) {
+	var res shieldtypes.QueryShieldStatusResponse
+	path := fmt.Sprintf(
+		"%s/shentu/shield/v1alpha1/status",
+		endpoint,
+	)
+
+	resp, err := http.Get(path)
+	if err != nil {
+		return res, err
+	}
+
+	defer resp.Body.Close()
+
+	bz, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return res, err
+	}
+
+	if err = cdc.UnmarshalJSON(bz, &res); err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
+func queryShieldPurchase(endpoint, purchaser string, poolId int) (shieldtypes.QueryPurchaseListResponse, error) {
+	var res shieldtypes.QueryPurchaseListResponse
+	path := fmt.Sprintf(
+		"%s/shentu/shield/v1alpha1/purchase_list/%d/%s",
+		endpoint, poolId, purchaser,
+	)
+
+	resp, err := http.Get(path)
+	if err != nil {
+		return res, err
+	}
+
+	defer resp.Body.Close()
+
+	bz, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return res, err
+	}
+
+	if err = cdc.UnmarshalJSON(bz, &res); err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
+func queryShieldReimbursement(endpoint string, proposalId int) (shieldtypes.QueryReimbursementResponse, error) {
+	var res shieldtypes.QueryReimbursementResponse
+	path := fmt.Sprintf(
+		"%s/shentu/shield/v1alpha1/proposal/%d/reimbursement",
+		endpoint, proposalId,
+	)
+
+	resp, err := http.Get(path)
+	if err != nil {
+		return res, err
+	}
+
+	defer resp.Body.Close()
+
+	bz, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return res, err
+	}
+
+	if err = cdc.UnmarshalJSON(bz, &res); err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
+func configFile(filename string) string {
+	return filepath.Join(shentuHome, "config", filename)
 }
