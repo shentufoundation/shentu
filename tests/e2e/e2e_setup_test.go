@@ -24,7 +24,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
@@ -32,7 +32,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/shentufoundation/shentu/v2/common"
-	govtypes2 "github.com/shentufoundation/shentu/v2/x/gov/types"
+	govtypes "github.com/shentufoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
@@ -233,13 +233,13 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 	s.Require().NoError(err)
 	appGenState[shieldtypes.ModuleName] = bz
 
-	var govGenState govtypes2.GenesisState
-	s.Require().NoError(cdc.UnmarshalJSON(appGenState[govtypes.ModuleName], &govGenState))
+	var govGenState govtypes.GenesisState
+	s.Require().NoError(cdc.UnmarshalJSON(appGenState[sdkgovtypes.ModuleName], &govGenState))
 
 	govGenState.VotingParams.VotingPeriod = time.Duration(time.Second * 20)
 	bz, err = cdc.MarshalJSON(&govGenState)
 	s.Require().NoError(err)
-	appGenState[govtypes.ModuleName] = bz
+	appGenState[sdkgovtypes.ModuleName] = bz
 
 	var genUtilGenState genutiltypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[genutiltypes.ModuleName], &genUtilGenState))

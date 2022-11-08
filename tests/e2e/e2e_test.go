@@ -48,7 +48,6 @@ func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
 }
 
 func (s *IntegrationTestSuite) TestStaking() {
-
 	s.Run("delegate_staking", func() {
 		chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
 		validatorA := s.chainA.validators[0]
@@ -76,9 +75,37 @@ func (s *IntegrationTestSuite) TestStaking() {
 			5*time.Second,
 		)
 	})
+
+	s.Run("unbond_staking", func() {
+		chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
+		validatorA := s.chainA.validators[0]
+		validatorAAddr := validatorA.keyInfo.GetAddress()
+		valOperA := sdk.ValAddress(validatorAAddr)
+
+		alice := s.chainA.accounts[0].keyInfo.GetAddress()
+
+		delegationAmount, _ := sdk.NewIntFromString("5000000")
+		unbondAmount, _ := sdk.NewIntFromString("500000")
+		unbond := sdk.NewCoin(uctkDenom, unbondAmount)
+
+		// Alice unbond uatom to Validator A
+		s.executeUnbond(s.chainA, 0, unbond.String(), valOperA.String(), alice.String(), feesAmountCoin.String())
+
+		// Validate unbond successful
+		s.Require().Eventually(
+			func() bool {
+				res, err := queryDelegation(chainAAPIEndpoint, valOperA.String(), alice.String())
+				amt := res.GetDelegationResponse().GetDelegation().GetShares()
+				s.Require().NoError(err)
+				return amt.Equal(sdk.NewDecFromInt(delegationAmount.Sub(unbondAmount)))
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
 }
 
-func (s *IntegrationTestSuite) TestGoverment() {
+func (s *IntegrationTestSuite) TestGovernment() {
 
 	chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
 	validatorA := s.chainA.validators[0]

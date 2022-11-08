@@ -312,6 +312,34 @@ func (s *IntegrationTestSuite) executeDelegate(c *chain, valIdx int, amount, val
 	s.T().Logf("%s successfully delegated %s to %s", delegatorAddr, amount, valOperAddress)
 }
 
+func (s *IntegrationTestSuite) executeUnbond(c *chain, valIdx int, amount, valOperAddress, delegatorAddr, fees string) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	s.T().Logf("Executing shentu tx staking unbond %s", c.id)
+
+	command := []string{
+		shentuBinary,
+		txCommand,
+		stakingtypes.ModuleName,
+		"unbond",
+		valOperAddress,
+		amount,
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, delegatorAddr),
+		fmt.Sprintf("--%s=%s", flags.FlagChainID, c.id),
+		fmt.Sprintf("--%s=%s", flags.FlagGas, "auto"),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, fees),
+		"--keyring-backend=test",
+		"--output=json",
+		"-y",
+	}
+
+	s.T().Logf("cmd: %s", strings.Join(command, " "))
+
+	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
+	s.T().Logf("%s successfully unbond %s from %s", delegatorAddr, amount, valOperAddress)
+}
+
 func (s *IntegrationTestSuite) executeDepositCollateral(c *chain, valIdx int, submitterAddr, amount, fees string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
