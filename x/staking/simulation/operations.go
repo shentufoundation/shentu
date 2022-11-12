@@ -14,6 +14,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingSim "github.com/cosmos/cosmos-sdk/x/staking/simulation"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	simutil "github.com/shentufoundation/shentu/v2/x/cvm/simulation"
 )
 
 const (
@@ -118,7 +119,7 @@ func SimulateMsgCreateValidator(k stakingkeeper.Keeper, ak stakingtypes.AccountK
 		var fees sdk.Coins
 		coins, hasNeg := coins.SafeSub(sdk.Coins{selfDelegation})
 		if !hasNeg {
-			fees, err = simtypes.RandomFees(r, ctx, coins)
+			fees, err = simutil.RandomReasonableFees(r, ctx, coins)
 			if err != nil {
 				return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgCreateValidator, ""), nil, err
 			}
@@ -225,7 +226,7 @@ func SimulateMsgUndelegate(ak stakingtypes.AccountKeeper, bk stakingtypes.BankKe
 		}
 
 		account := ak.GetAccount(ctx, delAddr)
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
 		if err != nil {
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgUndelegate, ""), nil, err
 		}
@@ -327,7 +328,7 @@ func SimulateMsgBeginRedelegate(ak stakingtypes.AccountKeeper, bk stakingtypes.B
 
 		// get tx fees
 		account := ak.GetAccount(ctx, delAddr)
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
 		if err != nil {
 			return simtypes.NoOpMsg(stakingtypes.ModuleName, stakingtypes.TypeMsgBeginRedelegate, ""), nil, err
 		}

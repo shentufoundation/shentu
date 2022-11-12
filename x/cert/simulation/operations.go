@@ -13,6 +13,7 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/cert/keeper"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
+	simutil "github.com/shentufoundation/shentu/v2/x/cvm/simulation"
 )
 
 const (
@@ -80,7 +81,7 @@ func SimulateMsgCertifyPlatform(ak types.AccountKeeper, bk types.BankKeeper, k k
 		}
 
 		account := ak.GetAccount(ctx, certifierAddr)
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCertifyPlatform, err.Error()), nil, err
 		}
@@ -136,7 +137,7 @@ func SimulateMsgIssueCertificates(ak types.AccountKeeper, bk types.BankKeeper, k
 		msg := types.NewMsgIssueCertificate(content, compiler, bytecodeHash, description, certifierAddr)
 
 		account := ak.GetAccount(ctx, certifierAddr)
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
