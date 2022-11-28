@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/shentufoundation/shentu/v2/x/auth/types"
+	simutil "github.com/shentufoundation/shentu/v2/x/cvm/simulation"
 )
 
 const OpWeightMsgUnlock = "op_weight_msg_create_operator"
@@ -49,13 +50,13 @@ func SimulateMsgUnlock(k types.AccountKeeper, bk types.BankKeeper) simtypes.Oper
 			if simtypes.RandIntBetween(r, 0, 100) < 50 {
 				unlockAmount = mvacc.OriginalVesting.Sub(mvacc.VestedCoins)
 			} else {
-				unlockAmount, err = simtypes.RandomFees(r, ctx, mvacc.OriginalVesting.Sub(mvacc.VestedCoins))
+				unlockAmount, err = simutil.RandomReasonableFees(r, ctx, mvacc.OriginalVesting.Sub(mvacc.VestedCoins))
 				if err != nil {
 					return simtypes.NoOpMsg(authtypes.ModuleName, types.TypeMsgUnlock, err.Error()), nil, err
 				}
 			}
 
-			fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, acc.Address))
+			fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, acc.Address))
 			if err != nil {
 				return simtypes.NoOpMsg(authtypes.ModuleName, types.TypeMsgUnlock, err.Error()), nil, err
 			}

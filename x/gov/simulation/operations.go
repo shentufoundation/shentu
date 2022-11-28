@@ -15,6 +15,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
+	simutil "github.com/shentufoundation/shentu/v2/x/cvm/simulation"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
@@ -135,7 +136,7 @@ func SimulateSubmitProposal(
 		var fees sdk.Coins
 		coins, hasNeg := coins.SafeSub(deposit)
 		if !hasNeg {
-			fees, err = simtypes.RandomFees(r, ctx, coins)
+			fees, err = simutil.RandomReasonableFees(r, ctx, coins)
 			if err != nil {
 				return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgSubmitProposal, ""), nil, err
 			}
@@ -244,7 +245,7 @@ func SimulateMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k keeper
 		msg := govtypes.NewMsgVote(simAccount.Address, proposalID, option)
 
 		account := ak.GetAccount(ctx, simAccount.Address)
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, simAccount.Address))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, simAccount.Address))
 		if err != nil {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, err
 		}
@@ -301,7 +302,7 @@ func SimulateCertifierMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper,
 		msg := govtypes.NewMsgVote(simAccount.Address, proposalID, option)
 
 		account := ak.GetAccount(ctx, simAccount.Address)
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, simAccount.Address))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, simAccount.Address))
 		if err != nil {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, err
 		}
@@ -356,7 +357,7 @@ func SimulateMsgDeposit(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k kee
 
 		msg := govtypes.NewMsgDeposit(simAcc.Address, proposalID, deposit)
 
-		fees, err := simtypes.RandomFees(r, ctx, spendable.Sub(deposit))
+		fees, err := simutil.RandomReasonableFees(r, ctx, spendable.Sub(deposit))
 		if err != nil {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgDeposit, ""), nil, err
 		}
