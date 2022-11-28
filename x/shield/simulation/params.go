@@ -11,7 +11,7 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
-//nolint
+// nolint
 const (
 	subkeyProtectionPeriod  = "protection_period"
 	subkeyWithdrawPeriod    = "withdraw_period"

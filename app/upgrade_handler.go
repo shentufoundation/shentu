@@ -11,7 +11,6 @@ import (
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
@@ -31,30 +30,14 @@ func (app ShentuApp) setUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			migrationOrder := make([]string, 0, len(fromVM))
-			hasParams, hasICA := false, false
-			for moduleName := range fromVM {
-				if moduleName == crisistypes.ModuleName {
-					continue
-				} else if moduleName == paramstypes.ModuleName {
-					hasParams = true
-				} else if moduleName == icatypes.ModuleName {
-					hasICA = true
-				}
-				migrationOrder = append(migrationOrder, moduleName)
-			}
-			//to satisfy the assertNoForgottenModules of SetOrderMigrations
-			if !hasParams {
-				migrationOrder = append(migrationOrder, paramstypes.ModuleName)
-			}
-			if !hasICA {
-				migrationOrder = append(migrationOrder, icatypes.ModuleName)
-			}
-			order := module.DefaultMigrationsOrder(migrationOrder)
-			// need to run crisis module last to avoid it being run before shield which has broken invariant before migration
-			order = append(order, crisistypes.ModuleName)
-			app.mm.SetOrderMigrations(order...)
+			// don't run Initgenesis since it'll be set with a wrong denom
+			fromVM[crisistypes.ModuleName] = app.mm.Modules[crisistypes.ModuleName].ConsensusVersion()
+			// don't run icamodule's Initgenesis since it'll overwrite the icahost params that be set here
+			// the InitModule will be called later on to set params.
+			// this assumes it's the first time ica module go into fromVM
+			fromVM[icatypes.ModuleName] = app.mm.Modules[icatypes.ModuleName].ConsensusVersion()
 
+			ctx.Logger().Info("Start to run module migrations...")
 			// create ICS27 Controller submodule params, controller module not enabled.
 			controllerParams := icacontrollertypes.Params{}
 
@@ -88,11 +71,19 @@ func (app ShentuApp) setUpgradeHandler() {
 			if !correctTypecast {
 				panic("mm.Modules[icatypes.ModuleName] is not of type ica.AppModule")
 			}
-
 			icamodule.InitModule(ctx, controllerParams, hostParams)
 
+			crisisGenesis := crisistypes.DefaultGenesisState()
+			crisisGenesis.ConstantFee.Denom = app.StakingKeeper.BondDenom(ctx)
+			app.CrisisKeeper.InitGenesis(ctx, crisisGenesis)
+
 			ctx.Logger().Info("Start to run module migrations...")
-			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+			newVersionMap, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
+
+			ctx.Logger().Info("Fixing Shield invariant...")
+			RunShieldMigration(app, ctx)
+
+			return newVersionMap, err
 		},
 	)
 
@@ -108,5 +99,80 @@ func (app ShentuApp) setUpgradeHandler() {
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+}
+
+func RunShieldMigration(app ShentuApp, ctx sdk.Context) {
+	sk := app.ShieldKeeper
+	bondDenom := sk.BondDenom(ctx)
+
+	// remaining service fees
+	remainingServiceFees := sk.GetRemainingServiceFees(ctx)
+
+	// rewards
+	var rewards sdk.DecCoins
+	for _, provider := range sk.GetAllProviders(ctx) {
+		rewards = rewards.Add(provider.Rewards...)
+	}
+
+	totalInt, remainder := remainingServiceFees.Add(rewards...).TruncateDecimal()
+	if !remainder.Empty() {
+		panic("remaining coins in the shield module is not an sdk.Int")
+	}
+
+	// shield stake
+	shieldStake := sdk.ZeroInt()
+	for _, stake := range sk.GetAllStakeForShields(ctx) {
+		shieldStake = shieldStake.Add(stake.Amount)
+	}
+
+	// reimbursement
+	reimbursement := sdk.ZeroInt()
+	for _, rmb := range sk.GetAllReimbursements(ctx) {
+		reimbursement = reimbursement.Add(rmb.Amount.AmountOf(bondDenom))
+	}
+
+	// block service fees
+	blockServiceFees, _ := sk.GetBlockServiceFees(ctx).TruncateDecimal()
+
+	// sum of total coins tracked by the shield module
+	totalInt = totalInt.Add(sdk.NewCoin(bondDenom, shieldStake)).Add(sdk.NewCoin(bondDenom, reimbursement)).Add(blockServiceFees...)
+	// actual balance of shield module
+	moduleCoins := app.BankKeeper.GetAllBalances(ctx, app.AccountKeeper.GetModuleAccount(ctx, shieldtypes.ModuleName).GetAddress())
+
+	if moduleCoins.IsAllGTE(totalInt) {
+		// if actual balance is greater, send remainder to the next block reward
+		blockServiceFees = blockServiceFees.Add(moduleCoins.Sub(totalInt)...)
+		newBlockServiceFees := sdk.NewDecCoinsFromCoins(blockServiceFees...)
+		sk.SetBlockServiceFees(ctx, newBlockServiceFees)
+	} else {
+		diff := totalInt.Sub(moduleCoins) // assuming there is only CTK in shield module.
+		ctx.Logger().Info("Shield Module Account Coin diff: ", diff)
+		// first try to take away from remaining service fees
+		rSFInt, decimals := remainingServiceFees.TruncateDecimal()
+		if !rSFInt.IsAllGTE(diff) {
+			// if the remaining service fees is not enough, take the diff from the community pool.
+			additionalFunds := diff.Sub(rSFInt)
+			app.BankKeeper.SendCoinsFromModuleToModule(ctx, distrtypes.ModuleName, shieldtypes.ModuleName, additionalFunds)
+			fp := app.DistrKeeper.GetFeePool(ctx)
+			fp.CommunityPool = fp.CommunityPool.Sub(sdk.NewDecCoinsFromCoins(additionalFunds...))
+			app.DistrKeeper.SetFeePool(ctx, fp)
+			moduleCoins = app.BankKeeper.GetAllBalances(ctx, app.AccountKeeper.GetModuleAccount(ctx, shieldtypes.ModuleName).GetAddress())
+			diff = totalInt.Sub(moduleCoins)
+		}
+		rSFInt = rSFInt.Sub(diff)
+		if rSFInt.IsAnyNegative() {
+			panic(fmt.Sprintf("remaining service fees - module coins diff < 0.\nRSF: %s, diff: %s", rSFInt.Add(diff...), diff))
+		}
+		remainingServiceFees = sdk.NewDecCoinsFromCoins(rSFInt...)
+		remainingServiceFees = remainingServiceFees.Add(decimals...)
+		app.ShieldKeeper.SetRemainingServiceFees(ctx, remainingServiceFees)
+		ctx.Logger().Info(fmt.Sprintf("remainingServiceFees: %s", remainingServiceFees.String()))
+		ctx.Logger().Info(fmt.Sprintf("rewards: %s", rewards.String()))
+		ctx.Logger().Info(fmt.Sprintf("reimbursement: %s", reimbursement.String()))
+		ctx.Logger().Info(fmt.Sprintf("blockServiceFees: %s", blockServiceFees.String()))
+		ctx.Logger().Info(fmt.Sprintf("shieldStake: %s", shieldStake.String()))
+		ctx.Logger().Info(fmt.Sprintf("TotalInt: %s", totalInt.String()))
+		ctx.Logger().Info(fmt.Sprintf("ModuleCoins: %s", moduleCoins.String()))
 	}
 }

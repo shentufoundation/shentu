@@ -148,11 +148,6 @@ func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
 	am.cosmosAppModule.BeginBlock(ctx, rbb)
 }
 
-// EndBlock implements the Cosmos SDK EndBlock module function.
-func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.EndBlock(ctx, rbb)
-}
-
 //____________________________________________________________________________
 
 // AppModuleSimulation functions
