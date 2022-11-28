@@ -66,6 +66,7 @@ $ %[1]s tx gov submit-proposal --title="Test Proposal" --description="My awesome
 	govTxCmd.AddCommand(
 		cli.NewCmdDeposit(),
 		NewCmdVote(),
+		cli.NewCmdWeightedVote(),
 		cmdSubmitProp,
 	)
 

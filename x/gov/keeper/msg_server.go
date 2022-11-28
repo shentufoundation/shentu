@@ -179,6 +179,28 @@ func (k msgServer) Vote(goCtx context.Context, msg *govtypes.MsgVote) (*govtypes
 	return &govtypes.MsgVoteResponse{}, nil
 }
 
+func (k msgServer) VoteWeighted(goCtx context.Context, msg *govtypes.MsgVoteWeighted) (*govtypes.MsgVoteWeightedResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	accAddr, accErr := sdk.AccAddressFromBech32(msg.Voter)
+	if accErr != nil {
+		return nil, accErr
+	}
+	err := k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, msg.Options)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter),
+		),
+	)
+
+	return &govtypes.MsgVoteWeightedResponse{}, nil
+}
+
 func (k msgServer) Deposit(goCtx context.Context, msg *govtypes.MsgDeposit) (*govtypes.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	accAddr, err := sdk.AccAddressFromBech32(msg.Depositor)
