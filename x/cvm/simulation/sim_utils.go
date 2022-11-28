@@ -2,6 +2,7 @@ package simulation
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/rand"
 
 	"github.com/gogo/protobuf/proto"
@@ -62,7 +63,7 @@ func DeployContract(caller sim.Account, contractCode string, contractAbi string,
 	msg = types.NewMsgDeploy(caller.Address.String(), uint64(0), code, contractAbi, nil, false, false)
 
 	account := k.GetAccount(ctx, caller.Address)
-	fees, err := sim.RandomFees(r, ctx, bk.SpendableCoins(ctx, caller.Address))
+	fees, err := RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, caller.Address))
 	if err != nil {
 		return msg, nil, err
 	}
@@ -103,6 +104,38 @@ func DeployContract(caller sim.Account, contractCode string, contractAbi string,
 	return msg, deployResponse.Result, nil
 }
 
+func RandomReasonableFees(r *rand.Rand, ctx sdk.Context, spendableCoins sdk.Coins) (sdk.Coins, error) {
+	if spendableCoins.Empty() {
+		return nil, nil
+	}
+
+	perm := r.Perm(len(spendableCoins))
+	var randCoin sdk.Coin
+	for _, index := range perm {
+		randCoin = spendableCoins[index]
+		if !randCoin.Amount.IsZero() {
+			break
+		}
+	}
+
+	if randCoin.Amount.IsZero() {
+		return nil, fmt.Errorf("no coins found for random fees")
+	}
+	//To limit the fee not exceeding ninth of remaining balances.
+	//Without this limitation, it's easy to run out of accounts balance
+	//  given so many simulate operations introduced by shentu modules.
+	amt, err := sim.RandPositiveInt(r, randCoin.Amount.Add(sdk.NewInt(8)).Quo(sdk.NewInt(9)))
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a random fee and verify the fees are within the account's spendable
+	// balance.
+	fees := sdk.NewCoins(sdk.NewCoin(randCoin.Denom, amt))
+
+	return fees, nil
+}
+
 // CallFunction delivers a call tx and returns msg, contract address and error.
 func CallFunction(caller sim.Account, prefix string, input string, contractAddr sdk.AccAddress, k keeper.Keeper, bk types.BankKeeper,
 	ctx sdk.Context, r *rand.Rand, chainID string, app *baseapp.BaseApp) (msg types.MsgCall, ret []byte, err error) {
@@ -114,7 +147,7 @@ func CallFunction(caller sim.Account, prefix string, input string, contractAddr 
 	msg = types.NewMsgCall(caller.Address.String(), contractAddr.String(), 0, data)
 
 	account := k.GetAccount(ctx, caller.Address)
-	fees, err := sim.RandomFees(r, ctx, bk.SpendableCoins(ctx, caller.Address))
+	fees, err := RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, caller.Address))
 	if err != nil {
 		return msg, nil, err
 	}
