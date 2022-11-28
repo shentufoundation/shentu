@@ -92,7 +92,7 @@ message QueryProposalsResponse {
 
 // QueryVoteRequest is the request type for the Query/Vote RPC method.
 message QueryVoteRequest {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   // proposal_id defines the unique id of the proposal.
