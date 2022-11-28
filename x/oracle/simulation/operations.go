@@ -13,6 +13,7 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
+	simutil "github.com/shentufoundation/shentu/v2/x/cvm/simulation"
 	"github.com/shentufoundation/shentu/v2/x/oracle/keeper"
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
@@ -65,7 +66,7 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AccountKeeper, bk types
 				"NoOp: randomized collateral not enough, skip this tx", "", false, nil), nil, nil
 		}
 
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()).Sub(collateral))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()).Sub(collateral))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreateOperator, err.Error()), nil, err
 		}
@@ -145,7 +146,7 @@ func SimulateMsgAddCollateral(k keeper.Keeper, ak types.AccountKeeper, bk types.
 		}
 		stdOperator.Collateral = stdOperator.Collateral.Add(collateralIncrement...)
 
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()).Sub(collateralIncrement))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()).Sub(collateralIncrement))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgAddCollateral, err.Error()), nil, err
 		}
@@ -210,7 +211,7 @@ func SimulateMsgReduceCollateral(k keeper.Keeper, ak types.AccountKeeper, bk typ
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgRemoveOperator, err.Error()), nil, err
 		}
 		operatorAcc := ak.GetAccount(ctx, operatorAddr)
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgReduceCollateral, err.Error()), nil, err
 		}
@@ -264,7 +265,7 @@ func SimulateMsgRemoveOperator(k keeper.Keeper, ak types.AccountKeeper, bk types
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgRemoveOperator, err.Error()), nil, err
 		}
 		operatorAcc := ak.GetAccount(ctx, operatorAddr)
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgRemoveOperator, err.Error()), nil, err
 		}
@@ -320,7 +321,7 @@ func SimulateMsgWithdrawReward(k keeper.Keeper, ak types.AccountKeeper, bk types
 		msg := types.NewMsgWithdrawReward(operatorAddr)
 
 		operatorAcc := ak.GetAccount(ctx, operatorAddr)
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
@@ -372,7 +373,7 @@ func SimulateMsgCreateTask(ak types.AccountKeeper, k keeper.Keeper, bk types.Ban
 
 		msg := types.NewMsgCreateTask(contract, function, bounty, description, creator.Address, int64(wait), time.Duration(0))
 
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, creatorAcc.GetAddress()).Sub(bounty))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, creatorAcc.GetAddress()).Sub(bounty))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
@@ -431,7 +432,7 @@ func SimulateMsgTaskResponse(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 		msg := types.NewMsgTaskResponse(contract, function, score, simAcc.Address)
 
 		operatorAcc := ak.GetAccount(ctx, simAcc.Address)
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, operatorAcc.GetAddress()))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgRespondToTask, err.Error()), nil, err
 		}
@@ -467,7 +468,7 @@ func SimulateMsgDeleteTask(ak types.AccountKeeper, bk types.BankKeeper, contract
 		msg := types.NewMsgDeleteTask(contract, function, true, creator.Address)
 
 		creatorAcc := ak.GetAccount(ctx, creator.Address)
-		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, creatorAcc.GetAddress()))
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, creatorAcc.GetAddress()))
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgDeleteTask, err.Error()), nil, err
 		}
