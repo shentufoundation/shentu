@@ -19,6 +19,11 @@ service Msg {
   // Vote defines a method to add a vote on a specific proposal.
   rpc Vote(cosmos.gov.v1beta1.MsgVote) returns (cosmos.gov.v1beta1.MsgVoteResponse);
 
+  // VoteWeighted defines a method to add a weighted vote on a specific proposal.
+  //
+  // Since: cosmos-sdk 0.43
+  rpc VoteWeighted(cosmos.gov.v1beta1.MsgVoteWeighted) returns (cosmos.gov.v1beta1.MsgVoteWeightedResponse);
+
   // Deposit defines a method to add deposit on a specific proposal.
   rpc Deposit(cosmos.gov.v1beta1.MsgDeposit) returns (cosmos.gov.v1beta1.MsgDepositResponse);
 }
