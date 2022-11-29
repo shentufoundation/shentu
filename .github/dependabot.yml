@@ -11,7 +11,7 @@ updates:
       interval: daily
     open-pull-requests-limit: 10
     reviewers:
-      - fadeev
+      - yoongbok-lee
   - package-ecosystem: gomod
     directory: "/"
     schedule:
