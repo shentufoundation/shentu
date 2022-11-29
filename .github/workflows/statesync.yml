@@ -15,7 +15,7 @@ jobs:
     name: shentud state sync
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3.3.0
+      - uses: actions/setup-go@v3.3.1
         with:
           go-version: '^1.18'
 
