@@ -24,6 +24,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
@@ -31,17 +32,40 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/shentufoundation/shentu/v2/common"
+	govtypes "github.com/shentufoundation/shentu/v2/x/gov/types"
+	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 const (
-	photonDenom    = "photon"
-	initBalanceStr = "110000000000uctk,100000000000photon"
-	minGasPrice    = "0.00001"
+	shentuBinary        = "shentud"
+	shentuHome          = "/root/.shentud"
+	txCommand           = "tx"
+	queryCommand        = "query"
+	keysCommand         = "keys"
+	uctkDenom           = "uctk"
+	photonDenom         = "photon"
+	initBalanceStr      = "110000000000uctk,100000000000photon"
+	minGasPrice         = "0.00001"
+	proposalBlockBuffer = 35
+	shieldPoolName      = "testpool"
+	shieldPoolLimit     = "1000000000"
 )
 
 var (
-	uctkAmount, _  = sdk.NewIntFromString("100000000000")
-	uctkAmountCoin = sdk.NewCoin("uctk", uctkAmount)
+	uctkAmount, _         = sdk.NewIntFromString("100000000000")
+	collateralAmount, _   = sdk.NewIntFromString("1000000000")
+	shieldAmount, _       = sdk.NewIntFromString("100000000")
+	depositAmount, _      = sdk.NewIntFromString("10000000")
+	feesAmount, _         = sdk.NewIntFromString("1000")
+	uctkAmountCoin        = sdk.NewCoin(uctkDenom, uctkAmount)
+	collateralAmountCoin  = sdk.NewCoin(uctkDenom, collateralAmount)
+	shieldAmountCoin      = sdk.NewCoin(uctkDenom, shieldAmount)
+	depositAmountCoin     = sdk.NewCoin(uctkDenom, depositAmount)
+	feesAmountCoin        = sdk.NewCoin(photonDenom, feesAmount)
+	proposalCounter       = 0
+	certificateCounter    = 0
+	shieldPoolCounter     = 0
+	shieldPurchaseCounter = 0
 )
 
 type IntegrationTestSuite struct {
@@ -139,9 +163,23 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 func (s *IntegrationTestSuite) initNodes(c *chain) {
 	s.Require().NoError(c.createAndInitValidators(2))
 
+	// create 4 accounts for test
+	accts, err := c.validators[0].createAccounts(4)
+	s.Require().NoError(err)
+	c.accounts = append(c.accounts, accts...)
+
 	// initialize a genesis file for the first validator
 	val0ConfigDir := c.validators[0].configDir()
 	for _, val := range c.validators {
+		s.Require().NoError(
+			addGenesisAccount(val0ConfigDir, "", initBalanceStr, val.keyInfo.GetAddress()),
+		)
+		s.Require().NoError(
+			addCertifierAccount(val0ConfigDir, "", val.keyInfo.GetAddress()),
+		)
+	}
+	for _, val := range c.accounts {
+		s.T().Logf("Account %s : %s", val.moniker, val.keyInfo.GetAddress())
 		s.Require().NoError(
 			addGenesisAccount(val0ConfigDir, "", initBalanceStr, val.keyInfo.GetAddress()),
 		)
@@ -188,6 +226,20 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 	bz, err := cdc.MarshalJSON(&bankGenState)
 	s.Require().NoError(err)
 	appGenState[banktypes.ModuleName] = bz
+
+	shieldGenState := shieldtypes.GetGenesisStateFromAppState(cdc, appGenState)
+	shieldGenState.ShieldAdmin = c.validators[0].keyInfo.GetAddress().String()
+	bz, err = cdc.MarshalJSON(&shieldGenState)
+	s.Require().NoError(err)
+	appGenState[shieldtypes.ModuleName] = bz
+
+	var govGenState govtypes.GenesisState
+	s.Require().NoError(cdc.UnmarshalJSON(appGenState[sdkgovtypes.ModuleName], &govGenState))
+
+	govGenState.VotingParams.VotingPeriod = time.Duration(time.Second * 20)
+	bz, err = cdc.MarshalJSON(&govGenState)
+	s.Require().NoError(err)
+	appGenState[sdkgovtypes.ModuleName] = bz
 
 	var genUtilGenState genutiltypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[genutiltypes.ModuleName], &genUtilGenState))
