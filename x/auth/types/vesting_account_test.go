@@ -27,6 +27,7 @@ var (
 	pubkeys  = []cryptotypes.PubKey{
 		secp256k1.GenPrivKey().PubKey(),
 		secp256k1.GenPrivKey().PubKey(),
+		secp256k1.GenPrivKey().PubKey(),
 	}
 )
 
@@ -92,6 +93,200 @@ func TestManualVestingAcc(t *testing.T) {
 
 	spendableCoins = app.BankKeeper.SpendableCoins(ctx, mva2.GetAddress())
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(denom, 850)}, spendableCoins)
+}
 
-	// TODO: Test delegation, undelegation, genesis validation
+func TestTrackDelegation(t *testing.T) {
+	now := tmtime.Now()
+	origCoins := sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(100))}
+	ba := authtypes.NewBaseAccountWithAddress(sdk.AccAddress(pubkeys[2].Address()))
+
+	tests := []struct {
+		name        string
+		vestedCoins sdk.Coins
+		amount      sdk.Coins
+		expVesting  sdk.Coins
+		expDfree    sdk.Coins
+		doubleDel   bool
+		willPanic   bool
+	}{
+		{
+			"require the ability to delegate all vesting coins",
+			sdk.NewCoins(),
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(100))},
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(100))},
+			sdk.NewCoins(),
+			false,
+			false,
+		},
+		{
+			"require the ability to delegate all vested coins",
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(100))},
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(100))},
+			sdk.NewCoins(),
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(100))},
+			false,
+			false,
+		},
+		{
+			"require the ability to delegate all vesting coins (50%) and all vested coins (50%)",
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(50))},
+			sdk.Coins{sdk.NewInt64Coin(denom, 50)},
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(50))},
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(50))},
+			true,
+			false,
+		},
+		{
+			"panic if attempting to delegate coins that exceed the vesting coins",
+			sdk.NewCoins(),
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(1000000))},
+			sdk.NewCoins(),
+			sdk.NewCoins(),
+			false,
+			true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // pin variable
+
+		t.Run(tt.name, func(t *testing.T) {
+			// create manual vesting account with desired vested amount
+			bva := authvesting.NewBaseVestingAccount(ba, origCoins, 0)
+			mva := types.NewManualVestingAccountRaw(bva, sdk.NewCoins(), unlocker)
+			mva.LockedCoins(now)
+			mva.VestedCoins = tt.vestedCoins
+
+			if tt.willPanic {
+				require.Panics(t, func() {
+					mva.TrackDelegation(now, origCoins, tt.amount)
+				})
+			} else {
+				mva.TrackDelegation(now, origCoins, tt.amount)
+				if tt.doubleDel {
+					mva.TrackDelegation(now, origCoins, tt.amount)
+				}
+				require.Equal(t, tt.expDfree, mva.DelegatedFree)
+				require.Equal(t, tt.expVesting, mva.DelegatedVesting)
+			}
+		})
+	}
+}
+
+func TestTrackUndelegation(t *testing.T) {
+	now := tmtime.Now()
+	origCoins := sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(100))}
+	ba := authtypes.NewBaseAccountWithAddress(sdk.AccAddress(pubkeys[2].Address()))
+
+	tests := []struct {
+		name        string
+		vestedCoins sdk.Coins
+		delAmount   sdk.Coins
+		unDelAmount sdk.Coins
+		doubleDel   bool
+	}{
+		{
+			"require the ability to undelegate all vesting coins",
+			sdk.NewCoins(),
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(100))},
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(100))},
+			false,
+		},
+		{
+			"require the ability to undelegate all vested coins",
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(100))},
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(100))},
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(100))},
+			false,
+		},
+		{
+			"undelegate 50% vested coins and 50% vesting coins",
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(50))},
+			sdk.Coins{sdk.NewInt64Coin(denom, 50)},
+			sdk.Coins{sdk.NewCoin(denom, sdk.NewInt(50))},
+			true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // pin variable
+
+		t.Run(tt.name, func(t *testing.T) {
+			// create manual vesting account with desired vested amount
+			bva := authvesting.NewBaseVestingAccount(ba, origCoins, 0)
+			mva := types.NewManualVestingAccountRaw(bva, sdk.NewCoins(), unlocker)
+			mva.LockedCoins(now)
+			mva.VestedCoins = tt.vestedCoins
+
+			mva.TrackDelegation(now, origCoins, tt.delAmount)
+			if tt.doubleDel {
+				mva.TrackDelegation(now, origCoins, tt.delAmount)
+			}
+			mva.TrackUndelegation(tt.unDelAmount)
+			if tt.doubleDel {
+				mva.TrackUndelegation(tt.unDelAmount)
+			}
+			require.Empty(t, mva.DelegatedFree)
+			require.Empty(t, mva.DelegatedVesting)
+		})
+	}
+}
+
+func TestGenesisAccountValidate(t *testing.T) {
+	initialVesting := sdk.Coins{sdk.NewInt64Coin(denom, 100)}
+	pubkey := secp256k1.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
+	ba := authtypes.NewBaseAccount(addr, pubkey, 0, 0)
+	bva := authvesting.NewBaseVestingAccount(ba, initialVesting, 0)
+
+	tests := []struct {
+		name   string
+		acc    authtypes.GenesisAccount
+		expErr bool
+	}{
+		{
+			"valid base account",
+			ba,
+			false,
+		},
+		{
+			"invalid base account",
+			authtypes.NewBaseAccount(addr, secp256k1.GenPrivKey().PubKey(), 0, 0),
+			true,
+		},
+		{
+			"valid base vesting account",
+			bva,
+			false,
+		},
+		{
+			"valid continuous vesting account",
+			types.NewManualVestingAccountRaw(bva, initialVesting, unlocker),
+			false,
+		},
+		{
+			"valid manual vesting amount with no vested coins",
+			types.NewManualVestingAccountRaw(bva, sdk.NewCoins(), unlocker),
+			false,
+		},
+		{
+			"valid manual vesting amount with vested coins",
+			types.NewManualVestingAccountRaw(bva, sdk.NewCoins(sdk.NewInt64Coin(denom, 100)), unlocker),
+			false,
+		},
+		{
+			"invalid vesting amount with invalid vested coins",
+			types.NewManualVestingAccountRaw(bva, sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(101))), unlocker),
+			true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			t.Logf("acc: %+v", tt.acc)
+			require.Equal(t, tt.expErr, tt.acc.Validate() != nil)
+		})
+	}
 }
