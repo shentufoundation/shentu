@@ -1,7 +1,5 @@
 name: Dependabot auto-merge
-on:
-  pull_request_target:
-    types: [labeled]
+on: pull_request
 
 permissions:
   contents: write
