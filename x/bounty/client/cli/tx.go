@@ -51,7 +51,11 @@ func NewCreateProgramCmd() *cobra.Command {
 			if encKeyString == "" {
 				privKey := secp256k1.GenPrivKey()
 				encKey = privKey.PubKey()
-				fmt.Println("generated private key for decrypting: ", privKey.String())
+				privKeyBz, err := privKey.Marshal()
+				if err != nil {
+					return err
+				}
+				fmt.Println("generated private key for decrypting: ", privKeyBz)
 			} else {
 				encKey = &secp256k1.PubKey{Key: []byte(encKeyString)}
 			}
