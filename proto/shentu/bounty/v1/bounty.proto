@@ -28,7 +28,7 @@ message Program {
   google.protobuf.Any encryption_key = 7
   [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey", (gogoproto.moretags) = "yaml:\"encryption_key\""];
 
-  cosmos.base.v1beta1.Coin deposit = 8 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"deposit\""];
+  repeated cosmos.base.v1beta1.Coin deposit = 8 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"deposit\""];
 
   string commission_rate = 9 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
