@@ -91,6 +91,9 @@ import (
 	authkeeper "github.com/shentufoundation/shentu/v2/x/auth/keeper"
 	"github.com/shentufoundation/shentu/v2/x/bank"
 	bankkeeper "github.com/shentufoundation/shentu/v2/x/bank/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bounty"
+	bountykeeper "github.com/shentufoundation/shentu/v2/x/bounty/keeper"
+	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
 	"github.com/shentufoundation/shentu/v2/x/cert"
 	certclient "github.com/shentufoundation/shentu/v2/x/cert/client"
 	certkeeper "github.com/shentufoundation/shentu/v2/x/cert/keeper"
@@ -165,6 +168,7 @@ var (
 		ibc.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		ica.AppModuleBasic{},
+		bounty.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -219,6 +223,7 @@ type ShentuApp struct {
 	CVMKeeper        cvmkeeper.Keeper
 	OracleKeeper     oraclekeeper.Keeper
 	ShieldKeeper     shieldkeeper.Keeper
+	BountyKeeper bountykeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -268,6 +273,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		ibctransfertypes.StoreKey,
 		icahosttypes.StoreKey,
 		capabilitytypes.StoreKey,
+		bountytypes.StoreKey,
 	}
 
 	keys := sdk.NewKVStoreKeys(ks...)
@@ -397,6 +403,13 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		&app.GovKeeper,
 		app.GetSubspace(shieldtypes.ModuleName),
 	)
+	app.BountyKeeper = bountykeeper.NewKeeper(
+		appCodec,
+		keys[bountytypes.StoreKey],
+		app.BankKeeper,
+		app.GetSubspace(bountytypes.ModuleName),
+	)
+
 	app.MintKeeper = mintkeeper.NewKeeper(
 		appCodec, keys[sdkminttypes.StoreKey], app.GetSubspace(sdkminttypes.ModuleName), &stakingKeeper,
 		app.AccountKeeper, app.BankKeeper, app.DistrKeeper, app.ShieldKeeper, authtypes.FeeCollectorName,
@@ -504,6 +517,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		icaModule,
+		bounty.NewAppModule(app.BountyKeeper),
 	)
 
 	// NOTE: During BeginBlocker, slashing comes after distr so that
@@ -513,7 +527,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, sdkgovtypes.ModuleName, genutiltypes.ModuleName,
 		sdkauthz.ModuleName, sdkfeegrant.ModuleName, crisistypes.ModuleName, shieldtypes.ModuleName, certtypes.ModuleName,
-		oracletypes.ModuleName, cvmtypes.ModuleName, paramstypes.ModuleName,
+		oracletypes.ModuleName, cvmtypes.ModuleName, paramstypes.ModuleName, bountytypes.ModuleName,
 	)
 
 	// NOTE: Shield endblocker comes before staking because it queries
@@ -522,7 +536,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		capabilitytypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		sdkminttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, sdkauthz.ModuleName, sdkfeegrant.ModuleName,
 		paramstypes.ModuleName, upgradetypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName, icatypes.ModuleName,
-		certtypes.ModuleName, oracletypes.ModuleName, cvmtypes.ModuleName,
+		certtypes.ModuleName, oracletypes.ModuleName, cvmtypes.ModuleName, bountytypes.ModuleName,
 	)
 
 	// NOTE: genutil moodule must occur after staking so that pools
@@ -550,6 +564,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		sdkfeegrant.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
+		bountytypes.ModuleName,
 	)
 
 	app.mm.SetOrderExportGenesis(
@@ -575,6 +590,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		evidencetypes.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
+		bountytypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -602,6 +618,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
+		// TODO: add bounty module simulations
 	)
 
 	app.sm.RegisterStoreDecoders()

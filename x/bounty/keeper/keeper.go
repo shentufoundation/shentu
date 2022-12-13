@@ -19,7 +19,7 @@ type Keeper struct {
 
 // NewKeeper creates a new Keeper object
 func NewKeeper(
-	paramSpace paramtypes.Subspace, bankKeeper types.BankKeeper,
+	cdc codec.BinaryCodec, storeKey sdk.StoreKey, bk types.BankKeeper, paramSpace paramtypes.Subspace,
 ) Keeper {
 
 	// set KeyTable if it has not already been set
@@ -28,7 +28,9 @@ func NewKeeper(
 	}
 
 	return Keeper{
+		cdc: cdc,
+		bk: bk,
+		storeKey: storeKey,
 		paramSpace: paramSpace,
-		bk:         bankKeeper,
 	}
 }

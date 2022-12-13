@@ -8,6 +8,8 @@ const (
 	ModuleName = "bounty"
 
 	RouterKey = ModuleName
+
+	StoreKey = ModuleName
 )
 
 var (
