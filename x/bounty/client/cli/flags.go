@@ -1,8 +1,8 @@
 package cli
 
 const (
-	FlagEncKey = "enc-key"
-	FlagDesc = "desc"
+	FlagEncKeyFile = "enc-key"
+	FlagDesc       = "desc"
 	FlagCommissionRate = "commission_rate"
 	FlagDeposit = "deposit"
 	FlagSubmissionEndTime = "submit-end"

@@ -39,25 +39,23 @@ func NewCreateProgramCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
 			creatorAddr := clientCtx.GetFromAddress()
 			if err != nil {
 				return err
 			}
 
 			desc, _ := cmd.Flags().GetString(FlagDesc)
-			encKeyString, _ := cmd.Flags().GetString(FlagEncKey)
+
+			encKeyFile, _ := cmd.Flags().GetString(FlagEncKeyFile)
 			var encKey cryptotypes.PubKey
-			if encKeyString == "" {
-				privKey := secp256k1.GenPrivKey()
-				encKey = privKey.PubKey()
-				privKeyBz, err := privKey.Marshal()
-				if err != nil {
-					return err
-				}
-				fmt.Println("generated private key for decrypting: ", privKeyBz)
+			if encKeyFile == "" {
+				decKey := secp256k1.GenPrivKey()
+				encKey = decKey.PubKey()
+
+				// TODO: avoid overwriting silently
+				SaveKeys(encKey, decKey, clientCtx.HomeDir, clientCtx.Codec)
 			} else {
-				encKey = &secp256k1.PubKey{Key: []byte(encKeyString)}
+				encKey = LoadPubKey(encKeyFile, clientCtx.Codec)
 			}
 
 			newRate := sdk.ZeroDec()
@@ -121,7 +119,7 @@ func NewCreateProgramCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagEncKey, "", "The program's encryption key to encrypt findings")
+	cmd.Flags().String(FlagEncKeyFile, "", "The program's encryption key file to encrypt findings")
 	cmd.Flags().String(FlagDesc, "", "The program description.")
 	cmd.Flags().String(FlagCommissionRate, "", "The commission rate for the program")
 	cmd.Flags().String(FlagDeposit, "", "The initial deposit to the program")
