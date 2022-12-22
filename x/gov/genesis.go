@@ -7,11 +7,10 @@ import (
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
 // InitGenesis stores genesis parameters.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govTypes.AccountKeeper, bk govTypes.BankKeeper, data types.GenesisState) {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govTypes.AccountKeeper, bk govTypes.BankKeeper, data govTypes.GenesisState) {
 	k.SetProposalID(ctx, data.StartingProposalId)
 	k.SetDepositParams(ctx, data.DepositParams)
 	k.SetVotingParams(ctx, data.VotingParams)
@@ -35,9 +34,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govTypes.AccountKeeper, bk
 
 	for _, proposal := range data.Proposals {
 		switch proposal.Status {
-		case types.StatusDepositPeriod:
+		case govTypes.StatusDepositPeriod:
 			k.InsertInactiveProposalQueue(ctx, proposal.ProposalId, proposal.DepositEndTime)
-		case types.StatusCertifierVotingPeriod, types.StatusValidatorVotingPeriod:
+		case govTypes.StatusVotingPeriod:
 			k.InsertActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
 		}
 		k.SetProposal(ctx, proposal)
@@ -55,25 +54,31 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govTypes.AccountKeeper, bk
 	}
 }
 
-// ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis.
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
+// ExportGenesis - output genesis parameters
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *govTypes.GenesisState {
 	startingProposalID, _ := k.GetProposalID(ctx)
 	depositParams := k.GetDepositParams(ctx)
 	votingParams := k.GetVotingParams(ctx)
 	tallyParams := k.GetTallyParams(ctx)
 	proposals := k.GetProposals(ctx)
 
-	var genState types.GenesisState
-
+	var proposalsDeposits govTypes.Deposits
+	var proposalsVotes govTypes.Votes
 	for _, proposal := range proposals {
-		genState.Deposits = append(genState.Deposits, k.GetDepositsByProposalID(ctx, proposal.ProposalId)...)
-		genState.Votes = append(genState.Votes, k.GetVotes(ctx, proposal.ProposalId)...)
-	}
-	genState.StartingProposalId = startingProposalID
-	genState.Proposals = proposals
-	genState.DepositParams = depositParams
-	genState.VotingParams = votingParams
-	genState.TallyParams = tallyParams
+		deposits := k.GetDeposits(ctx, proposal.ProposalId)
+		proposalsDeposits = append(proposalsDeposits, deposits...)
 
-	return &genState
+		votes := k.GetVotes(ctx, proposal.ProposalId)
+		proposalsVotes = append(proposalsVotes, votes...)
+	}
+
+	return &govTypes.GenesisState{
+		StartingProposalId: startingProposalID,
+		Deposits:           proposalsDeposits,
+		Votes:              proposalsVotes,
+		Proposals:          proposals,
+		DepositParams:      depositParams,
+		VotingParams:       votingParams,
+		TallyParams:        tallyParams,
+	}
 }

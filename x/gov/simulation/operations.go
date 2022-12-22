@@ -15,7 +15,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
-	simutil "github.com/shentufoundation/shentu/v2/x/cvm/simulation"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
@@ -121,13 +120,6 @@ func SimulateSubmitProposal(
 			}
 		}
 
-		minInitialDeposit := k.GetDepositParams(ctx).MinInitialDeposit
-		if deposit.AmountOf(sdk.DefaultBondDenom).LT(minInitialDeposit.AmountOf(sdk.DefaultBondDenom)) &&
-			!k.IsCouncilMember(ctx, simAccount.Address) {
-			return simtypes.NewOperationMsgBasic(govtypes.ModuleName,
-				"NoOp: insufficient initial deposit amount, skip this tx", "", false, nil), nil, nil
-		}
-
 		msg, _ := govtypes.NewMsgSubmitProposal(content, deposit, simAccount.Address)
 
 		account := ak.GetAccount(ctx, simAccount.Address)
@@ -136,7 +128,7 @@ func SimulateSubmitProposal(
 		var fees sdk.Coins
 		coins, hasNeg := coins.SafeSub(deposit)
 		if !hasNeg {
-			fees, err = simutil.RandomReasonableFees(r, ctx, coins)
+			fees, err = simtypes.RandomFees(r, ctx, coins)
 			if err != nil {
 				return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgSubmitProposal, ""), nil, err
 			}
@@ -231,21 +223,12 @@ func SimulateMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k keeper
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
 		accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		proposal, ok := k.GetProposal(ctx, proposalID)
-		if !ok {
-			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
-		}
-
-		if proposal.Status != types.StatusValidatorVotingPeriod {
-			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
-		}
-
 		option := randomVotingOption(r)
 
 		msg := govtypes.NewMsgVote(simAccount.Address, proposalID, option)
 
 		account := ak.GetAccount(ctx, simAccount.Address)
-		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, simAccount.Address))
+		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, simAccount.Address))
 		if err != nil {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, err
 		}
@@ -283,15 +266,6 @@ func SimulateCertifierMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper,
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
 		}
 
-		proposal, ok := k.GetProposal(ctx, proposalID)
-		if !ok {
-			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
-		}
-
-		if proposal.Status != types.StatusCertifierVotingPeriod {
-			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
-		}
-
 		var option govtypes.VoteOption
 		if simtypes.RandIntBetween(r, 0, 100) < 70 {
 			option = govtypes.OptionYes
@@ -302,7 +276,7 @@ func SimulateCertifierMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper,
 		msg := govtypes.NewMsgVote(simAccount.Address, proposalID, option)
 
 		account := ak.GetAccount(ctx, simAccount.Address)
-		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, simAccount.Address))
+		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, simAccount.Address))
 		if err != nil {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, err
 		}
@@ -335,15 +309,6 @@ func SimulateMsgDeposit(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k kee
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
 		accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		proposal, ok := k.GetProposal(ctx, proposalID)
-		if !ok {
-			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgDeposit, ""), nil, nil
-		}
-
-		if proposal.Status != types.StatusDepositPeriod {
-			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgDeposit, ""), nil, nil
-		}
-
 		simAcc, _ := simtypes.RandomAcc(r, accs)
 		acc := ak.GetAccount(ctx, simAcc.Address)
 		spendable := bk.SpendableCoins(ctx, simAcc.Address)
@@ -357,7 +322,7 @@ func SimulateMsgDeposit(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k kee
 
 		msg := govtypes.NewMsgDeposit(simAcc.Address, proposalID, deposit)
 
-		fees, err := simutil.RandomReasonableFees(r, ctx, spendable.Sub(deposit))
+		fees, err := simtypes.RandomFees(r, ctx, spendable.Sub(deposit))
 		if err != nil {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgDeposit, ""), nil, err
 		}
