@@ -63,22 +63,6 @@ func NewKeeper(
 	}
 }
 
-// IterateAllDeposits iterates over the all the stored deposits and performs a callback function.
-func (k Keeper) IterateAllDeposits(ctx sdk.Context, cb func(deposit govtypes.Deposit) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, govtypes.DepositsKeyPrefix)
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var deposit govtypes.Deposit
-		k.cdc.MustUnmarshal(iterator.Value(), &deposit)
-
-		if cb(deposit) {
-			break
-		}
-	}
-}
-
 // BondDenom returns the staking denom.
 func (k Keeper) BondDenom(ctx sdk.Context) string {
 	return k.stakingKeeper.BondDenom(ctx)
