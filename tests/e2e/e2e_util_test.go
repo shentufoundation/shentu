@@ -21,7 +21,6 @@ import (
 	"github.com/ory/dockertest/v3/docker"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
-	govtypes2 "github.com/shentufoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
@@ -621,10 +620,10 @@ func queryDelegation(endpoint, validatorAddr, delegatorAddr string) (stakingtype
 	return res, nil
 }
 
-func queryProposal(endpoint string, proposalId int) (govtypes2.QueryProposalResponse, error) {
-	var res govtypes2.QueryProposalResponse
+func queryProposal(endpoint string, proposalId int) (govtypes.QueryProposalResponse, error) {
+	var res govtypes.QueryProposalResponse
 	path := fmt.Sprintf(
-		"%s/shentu/gov/v1alpha1/proposals/%d",
+		"%s/cosmos/gov/v1beta1/proposals/%d",
 		endpoint, proposalId,
 	)
 

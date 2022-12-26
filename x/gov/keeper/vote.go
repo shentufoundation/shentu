@@ -23,11 +23,6 @@ func (keeper Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.A
 		return sdkerrors.Wrapf(govtypes.ErrInactiveProposal, "%d", proposalID)
 	}
 
-	if proposal.GetContent().ProposalType() == shieldtypes.ProposalTypeShieldClaim &&
-		!keeper.IsCertifiedIdentity(ctx, voterAddr) {
-		return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "'%s' is not a certified identity", voterAddr)
-	}
-
 	for _, option := range options {
 		if !govtypes.ValidWeightedVoteOption(option) {
 			return sdkerrors.Wrap(govtypes.ErrInvalidVote, option.String())
@@ -88,8 +83,5 @@ func (keeper Keeper) SetCertifierVote(ctx sdk.Context, proposalID uint64) {
 func (keeper Keeper) IsCertifierVoted(ctx sdk.Context, proposalID uint64) bool {
 	store := ctx.KVStore(keeper.storeKey)
 	bz := store.Get(types.CertVotesKey(proposalID))
-	if bz == nil {
-		return false
-	}
-	return true
+	return bz != nil
 }

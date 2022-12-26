@@ -6,19 +6,19 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
 )
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
-	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyEndBlocker)
+	defer telemetry.ModuleMeasureSince(govtypes.ModuleName, time.Now(), telemetry.MetricKeyEndBlocker)
 
 	logger := keeper.Logger(ctx)
 
 	// delete inactive proposal from store and its deposits
-	keeper.IterateInactiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal types.Proposal) bool {
+	keeper.IterateInactiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal govtypes.Proposal) bool {
 		keeper.DeleteProposal(ctx, proposal.ProposalId)
 		keeper.DeleteDeposits(ctx, proposal.ProposalId)
 
@@ -27,9 +27,9 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				types.EventTypeInactiveProposal,
-				sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
-				sdk.NewAttribute(types.AttributeKeyProposalResult, types.AttributeValueProposalDropped),
+				govtypes.EventTypeInactiveProposal,
+				sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
+				sdk.NewAttribute(govtypes.AttributeKeyProposalResult, govtypes.AttributeValueProposalDropped),
 			),
 		)
 
@@ -45,7 +45,7 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 	})
 
 	// fetch active proposals whose voting periods have ended (are passed the block time)
-	keeper.IterateActiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal types.Proposal) bool {
+	keeper.IterateActiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal govtypes.Proposal) bool {
 		var tagValue, logMsg string
 
 		passes, burnDeposits, tallyResults := keeper.Tally(ctx, proposal)
@@ -65,8 +65,8 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 			// is written and the error message is logged.
 			err := handler(cacheCtx, proposal.GetContent())
 			if err == nil {
-				proposal.Status = types.StatusPassed
-				tagValue = types.AttributeValueProposalPassed
+				proposal.Status = govtypes.StatusPassed
+				tagValue = govtypes.AttributeValueProposalPassed
 				logMsg = "passed"
 
 				// The cached context is created with a new EventManager. However, since
@@ -78,13 +78,13 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 				// write state to the underlying multi-store
 				writeCache()
 			} else {
-				proposal.Status = types.StatusFailed
-				tagValue = types.AttributeValueProposalFailed
+				proposal.Status = govtypes.StatusFailed
+				tagValue = govtypes.AttributeValueProposalFailed
 				logMsg = fmt.Sprintf("passed, but failed on execution: %s", err)
 			}
 		} else {
-			proposal.Status = types.StatusRejected
-			tagValue = types.AttributeValueProposalRejected
+			proposal.Status = govtypes.StatusRejected
+			tagValue = govtypes.AttributeValueProposalRejected
 			logMsg = "rejected"
 		}
 
@@ -105,9 +105,9 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				types.EventTypeActiveProposal,
-				sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
-				sdk.NewAttribute(types.AttributeKeyProposalResult, tagValue),
+				govtypes.EventTypeActiveProposal,
+				sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
+				sdk.NewAttribute(govtypes.AttributeKeyProposalResult, tagValue),
 			),
 		)
 		return false

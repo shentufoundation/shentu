@@ -32,7 +32,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/shentufoundation/shentu/v2/common"
-	govtypes "github.com/shentufoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
@@ -233,7 +232,7 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 	s.Require().NoError(err)
 	appGenState[shieldtypes.ModuleName] = bz
 
-	var govGenState govtypes.GenesisState
+	var govGenState sdkgovtypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[sdkgovtypes.ModuleName], &govGenState))
 
 	govGenState.VotingParams.VotingPeriod = time.Duration(time.Second * 20)

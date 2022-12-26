@@ -7,6 +7,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
@@ -142,7 +143,7 @@ func (s *IntegrationTestSuite) TestGovernment() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.Status == 3
+				return res.Proposal.Status == govtypes.StatusPassed
 			},
 			20*time.Second,
 			5*time.Second,
@@ -261,7 +262,7 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.Status == 4
+				return res.Proposal.Status == govtypes.StatusPassed
 			},
 			20*time.Second,
 			5*time.Second,

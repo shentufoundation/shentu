@@ -3,16 +3,17 @@ package keeper
 import (
 	"context"
 	"fmt"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
-	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 	"strconv"
 
 	"github.com/armon/go-metrics"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
+	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 type msgServer struct {
@@ -21,13 +22,13 @@ type msgServer struct {
 
 // NewMsgServerImpl returns an implementation of the gov MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) types.MsgServer {
+func NewMsgServerImpl(keeper Keeper) govtypes.MsgServer {
 	return &msgServer{Keeper: keeper}
 }
 
-var _ types.MsgServer = msgServer{}
+var _ govtypes.MsgServer = msgServer{}
 
-func (k msgServer) SubmitProposal(goCtx context.Context, msg *types.MsgSubmitProposal) (*types.MsgSubmitProposalResponse, error) {
+func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmitProposal) (*govtypes.MsgSubmitProposalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	err := validateProposalByType(ctx, k.Keeper, msg)
@@ -40,35 +41,39 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *types.MsgSubmitPro
 		return nil, err
 	}
 
-	defer telemetry.IncrCounter(1, types.ModuleName, "proposal")
+	defer telemetry.IncrCounter(1, govtypes.ModuleName, "proposal")
 
 	votingStarted, err := k.Keeper.AddDeposit(ctx, proposal.ProposalId, msg.GetProposer(), msg.GetInitialDeposit())
 	if err != nil {
 		return nil, err
 	}
 
+	if err := updateAfterSubmitProposal(ctx, k.Keeper, proposal); err != nil {
+		return nil, err
+	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.GetProposer().String()),
 		),
 	)
 
-	submitEvent := sdk.NewEvent(types.EventTypeSubmitProposal, sdk.NewAttribute(types.AttributeKeyProposalType, msg.GetContent().ProposalType()))
+	submitEvent := sdk.NewEvent(govtypes.EventTypeSubmitProposal, sdk.NewAttribute(govtypes.AttributeKeyProposalType, msg.GetContent().ProposalType()))
 	if votingStarted {
 		submitEvent = submitEvent.AppendAttributes(
-			sdk.NewAttribute(types.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", proposal.ProposalId)),
+			sdk.NewAttribute(govtypes.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", proposal.ProposalId)),
 		)
 	}
 
 	ctx.EventManager().EmitEvent(submitEvent)
-	return &types.MsgSubmitProposalResponse{
+	return &govtypes.MsgSubmitProposalResponse{
 		ProposalId: proposal.ProposalId,
 	}, nil
 }
 
-func (k msgServer) Vote(goCtx context.Context, msg *types.MsgVote) (*types.MsgVoteResponse, error) {
+func (k msgServer) Vote(goCtx context.Context, msg *govtypes.MsgVote) (*govtypes.MsgVoteResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	accAddr, err := sdk.AccAddressFromBech32(msg.Voter)
 	if err != nil {
@@ -84,13 +89,13 @@ func (k msgServer) Vote(goCtx context.Context, msg *types.MsgVote) (*types.MsgVo
 		return k.AddCertVote(ctx, msg.ProposalId, accAddr)
 	}
 
-	err = k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, types.NewNonSplitVoteOption(msg.Option))
+	err = k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, govtypes.NewNonSplitVoteOption(msg.Option))
 	if err != nil {
 		return nil, err
 	}
 
 	defer telemetry.IncrCounterWithLabels(
-		[]string{types.ModuleName, "vote"},
+		[]string{govtypes.ModuleName, "vote"},
 		1,
 		[]metrics.Label{
 			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
@@ -100,15 +105,15 @@ func (k msgServer) Vote(goCtx context.Context, msg *types.MsgVote) (*types.MsgVo
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter),
 		),
 	)
 
-	return &types.MsgVoteResponse{}, nil
+	return &govtypes.MsgVoteResponse{}, nil
 }
 
-func (k msgServer) VoteWeighted(goCtx context.Context, msg *types.MsgVoteWeighted) (*types.MsgVoteWeightedResponse, error) {
+func (k msgServer) VoteWeighted(goCtx context.Context, msg *govtypes.MsgVoteWeighted) (*govtypes.MsgVoteWeightedResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	accAddr, accErr := sdk.AccAddressFromBech32(msg.Voter)
 	if accErr != nil {
@@ -121,7 +126,7 @@ func (k msgServer) VoteWeighted(goCtx context.Context, msg *types.MsgVoteWeighte
 		return nil, err
 	}
 	if isNeedCertVote {
-		return nil, sdkerrors.Wrap(types.ErrInvalidVote, "need cert vote fist")
+		return nil, sdkerrors.Wrap(govtypes.ErrInvalidVote, "need cert vote fist")
 	}
 
 	err = k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, msg.Options)
@@ -130,7 +135,7 @@ func (k msgServer) VoteWeighted(goCtx context.Context, msg *types.MsgVoteWeighte
 	}
 
 	defer telemetry.IncrCounterWithLabels(
-		[]string{types.ModuleName, "vote"},
+		[]string{govtypes.ModuleName, "vote"},
 		1,
 		[]metrics.Label{
 			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
@@ -140,15 +145,15 @@ func (k msgServer) VoteWeighted(goCtx context.Context, msg *types.MsgVoteWeighte
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter),
 		),
 	)
 
-	return &types.MsgVoteWeightedResponse{}, nil
+	return &govtypes.MsgVoteWeightedResponse{}, nil
 }
 
-func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
+func (k msgServer) Deposit(goCtx context.Context, msg *govtypes.MsgDeposit) (*govtypes.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	accAddr, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
@@ -160,7 +165,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	}
 
 	defer telemetry.IncrCounterWithLabels(
-		[]string{types.ModuleName, "deposit"},
+		[]string{govtypes.ModuleName, "deposit"},
 		1,
 		[]metrics.Label{
 			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
@@ -170,7 +175,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor),
 		),
 	)
@@ -178,16 +183,16 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	if votingStarted {
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				types.EventTypeProposalDeposit,
-				sdk.NewAttribute(types.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", msg.ProposalId)),
+				govtypes.EventTypeProposalDeposit,
+				sdk.NewAttribute(govtypes.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", msg.ProposalId)),
 			),
 		)
 	}
 
-	return &types.MsgDepositResponse{}, nil
+	return &govtypes.MsgDepositResponse{}, nil
 }
 
-func validateProposalByType(ctx sdk.Context, k Keeper, msg *types.MsgSubmitProposal) error {
+func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitProposal) error {
 	switch c := msg.GetContent().(type) {
 	case *certtypes.CertifierUpdateProposal:
 		if c.Alias != "" && k.CertKeeper.HasCertifierAlias(ctx, c.Alias) {
@@ -236,6 +241,19 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *types.MsgSubmitPropo
 
 	default:
 		return nil
+	}
+	return nil
+}
+
+func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, proposal govtypes.Proposal) error {
+	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
+		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
+		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
+		proposerAddr, err := sdk.AccAddressFromBech32(c.Proposer)
+		if err != nil {
+			return err
+		}
+		return k.ShieldKeeper.SecureCollaterals(ctx, c.PoolId, proposerAddr, c.PurchaseId, c.Loss, lockPeriod)
 	}
 	return nil
 }
