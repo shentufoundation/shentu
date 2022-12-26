@@ -1,11 +1,12 @@
 package cli
 
 import (
+	"os"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/tendermint/tendermint/libs/tempfile"
-	"os"
 )
 
 // SaveKey saves the given key to a file as json and panics on error.

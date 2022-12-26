@@ -1,9 +1,10 @@
 package rest
 
 import (
+	"net/http"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
 func registerQueryRoutes(clientCtx client.Context, r *mux.Router) {
