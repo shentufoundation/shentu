@@ -15,7 +15,7 @@ func SaveKeys(pubKey cryptotypes.PubKey, privKey cryptotypes.PrivKey, dirPath st
 	}
 
 	decKeyBz := cdc.MustMarshalJSON(privKey)
-	if err := tempfile.WriteFileAtomic(dirPath + "/dec-key.json", decKeyBz, 0666); err != nil {
+	if err := tempfile.WriteFileAtomic(dirPath+"/dec-key.json", decKeyBz, 0666); err != nil {
 		panic(err)
 	}
 }

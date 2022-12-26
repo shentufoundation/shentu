@@ -223,7 +223,7 @@ type ShentuApp struct {
 	CVMKeeper        cvmkeeper.Keeper
 	OracleKeeper     oraclekeeper.Keeper
 	ShieldKeeper     shieldkeeper.Keeper
-	BountyKeeper bountykeeper.Keeper
+	BountyKeeper     bountykeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper

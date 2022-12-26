@@ -22,7 +22,6 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProgram) (*types.MsgCreateProgramResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-
 	nextID := k.GetNextProgramID(ctx)
 
 	program := types.Program{

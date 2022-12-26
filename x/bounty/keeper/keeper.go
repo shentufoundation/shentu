@@ -10,8 +10,8 @@ import (
 
 // Keeper - crisis keeper
 type Keeper struct {
-	storeKey sdk.StoreKey
-	cdc codec.BinaryCodec
+	storeKey   sdk.StoreKey
+	cdc        codec.BinaryCodec
 	paramSpace paramtypes.Subspace
 
 	bk types.BankKeeper
@@ -28,9 +28,9 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc: cdc,
-		bk: bk,
-		storeKey: storeKey,
+		cdc:        cdc,
+		bk:         bk,
+		storeKey:   storeKey,
 		paramSpace: paramSpace,
 	}
 }

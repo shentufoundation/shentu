@@ -9,7 +9,6 @@ import (
 // RegisterLegacyAminoCodec registers the necessary x/crisis interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	return
 }
 
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {

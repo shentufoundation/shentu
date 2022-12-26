@@ -24,11 +24,10 @@ func NewTxCmd() *cobra.Command {
 
 	bountyTxCmds.AddCommand(
 		NewCreateProgramCmd(),
-		)
+	)
 
 	return bountyTxCmds
 }
-
 
 func NewCreateProgramCmd() *cobra.Command {
 	cmd := &cobra.Command{

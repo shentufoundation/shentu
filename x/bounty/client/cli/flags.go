@@ -1,13 +1,13 @@
 package cli
 
 const (
-	FlagEncKeyFile = "enc-key"
-	FlagDesc       = "desc"
-	FlagCommissionRate = "commission_rate"
-	FlagDeposit = "deposit"
+	FlagEncKeyFile        = "enc-key"
+	FlagDesc              = "desc"
+	FlagCommissionRate    = "commission_rate"
+	FlagDeposit           = "deposit"
 	FlagSubmissionEndTime = "submit-end"
-	FlagJudgingEndTime = "judge-end"
-	FlagClaimEndTime = "claim-end"
+	FlagJudgingEndTime    = "judge-end"
+	FlagClaimEndTime      = "claim-end"
 
-	dateLayout = "1999-12-31"
+	dateLayout = "2006-01-02"
 )

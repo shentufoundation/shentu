@@ -7,7 +7,7 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-func (k Keeper) GetProgram(ctx sdk.Context, id uint64) ( types.Program,  bool) {
+func (k Keeper) GetProgram(ctx sdk.Context, id uint64) (types.Program, bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	pBz := store.Get(types.GetProgramKey(id))
