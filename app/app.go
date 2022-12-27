@@ -618,7 +618,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
-		// TODO: add bounty module simulations
+		bounty.NewAppModule(app.BountyKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()

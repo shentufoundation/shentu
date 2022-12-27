@@ -3,6 +3,7 @@ package bounty
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -14,6 +15,8 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/bounty/keeper"
@@ -21,8 +24,9 @@ import (
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the crisis module.
@@ -144,4 +148,31 @@ func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 // updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
+}
+
+//____________________________________________________________________________
+
+// AppModuleSimulation functions
+
+// ProposalContents doesn't return any content functions for governance proposals.
+func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+	return nil
+}
+
+// WeightedOperations returns auth operations for use in simulations.
+func (AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	return simulation.WeightedOperations{}
+}
+
+// RandomizedParams returns functions that generate params for the module.
+func (AppModuleBasic) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	return []simtypes.ParamChange{}
+}
+
+// GenerateGenesisState creates a randomized GenState of this module.
+func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+}
+
+// RegisterStoreDecoder registers a decoder for this module.
+func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 }
