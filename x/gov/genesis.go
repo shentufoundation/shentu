@@ -35,9 +35,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govTypes.AccountKeeper, bk
 
 	for _, proposal := range data.Proposals {
 		switch proposal.Status {
-		case types.StatusDepositPeriod:
+		case govTypes.StatusDepositPeriod:
 			k.InsertInactiveProposalQueue(ctx, proposal.ProposalId, proposal.DepositEndTime)
-		case types.StatusCertifierVotingPeriod, types.StatusValidatorVotingPeriod:
+		case govTypes.StatusVotingPeriod:
 			k.InsertActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
 		}
 		k.SetProposal(ctx, proposal)

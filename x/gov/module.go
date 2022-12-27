@@ -20,12 +20,11 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govrest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
 	govsim "github.com/cosmos/cosmos-sdk/x/gov/simulation"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
-	"github.com/shentufoundation/shentu/v2/x/gov/client/rest"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
 	"github.com/shentufoundation/shentu/v2/x/gov/simulation"
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
@@ -82,12 +81,12 @@ func (a AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) 
 		proposalRESTHandlers = append(proposalRESTHandlers, proposalHandler.RESTHandler(ctx))
 	}
 
-	rest.RegisterRoutes(ctx, rtr, proposalRESTHandlers)
+	govrest.RegisterHandlers(ctx, rtr, proposalRESTHandlers)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, mux *runtime.ServeMux) {
-	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(ctx))
+	govtypes.RegisterQueryHandlerClient(context.Background(), mux, govtypes.NewQueryClient(ctx))
 }
 
 // GetTxCmd gets the root tx command of this module.
@@ -97,12 +96,12 @@ func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 		proposalCLIHandlers = append(proposalCLIHandlers, proposalHandler.CLIHandler())
 	}
 
-	return cli.NewTxCmd(proposalCLIHandlers)
+	return govcli.NewTxCmd(proposalCLIHandlers)
 }
 
 // GetQueryCmd gets the root query command of this module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
+	return govcli.GetQueryCmd()
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
@@ -158,7 +157,7 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	//govtypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	govtypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	m := keeper.NewMigrator(am.keeper)
 	err := cfg.RegisterMigration(govtypes.ModuleName, 1, m.Migrate1to2)

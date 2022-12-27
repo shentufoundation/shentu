@@ -70,7 +70,7 @@ func NewKeeper(
 
 // IterateActiveProposalsQueue iterates over the proposals in the active proposal queue
 // and performs a callback function.
-func (k Keeper) IterateActiveProposalsQueue(ctx sdk.Context, endTime time.Time, cb func(proposal types.Proposal) (stop bool)) {
+func (k Keeper) IterateActiveProposalsQueue(ctx sdk.Context, endTime time.Time, cb func(proposal govtypes.Proposal) (stop bool)) {
 	iterator := k.ActiveProposalQueueIterator(ctx, endTime)
 
 	defer iterator.Close()
@@ -89,7 +89,7 @@ func (k Keeper) IterateActiveProposalsQueue(ctx sdk.Context, endTime time.Time, 
 
 // IterateInactiveProposalsQueue iterates over the proposals in the inactive proposal queue
 // and performs a callback function.
-func (k Keeper) IterateInactiveProposalsQueue(ctx sdk.Context, endTime time.Time, cb func(proposal types.Proposal) (stop bool)) {
+func (k Keeper) IterateInactiveProposalsQueue(ctx sdk.Context, endTime time.Time, cb func(proposal govtypes.Proposal) (stop bool)) {
 	iterator := k.InactiveProposalQueueIterator(ctx, endTime)
 
 	defer iterator.Close()
@@ -123,7 +123,7 @@ func (k Keeper) IterateAllDeposits(ctx sdk.Context, cb func(deposit govtypes.Dep
 }
 
 // Tally counts the votes and returns whether the proposal passes and/or if tokens should be burned.
-func (k Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes bool, burnDeposits bool, tallyResults govtypes.TallyResult) {
+func (k Keeper) Tally(ctx sdk.Context, proposal govtypes.Proposal) (passes bool, burnDeposits bool, tallyResults govtypes.TallyResult) {
 	return Tally(ctx, k, proposal)
 }
 

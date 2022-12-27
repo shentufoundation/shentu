@@ -9,8 +9,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
 // NewDecodeStore unmarshals the KVPair's Value to the corresponding gov type
@@ -18,7 +16,7 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 	return func(kvA, kvB kv.Pair) string {
 		switch {
 		case bytes.Equal(kvA.Key[:1], govtypes.ProposalsKeyPrefix):
-			var proposalA, proposalB types.Proposal
+			var proposalA, proposalB govtypes.Proposal
 			cdc.MustUnmarshal(kvA.Value, &proposalA)
 			cdc.MustUnmarshal(kvB.Value, &proposalB)
 			return fmt.Sprintf("%v\n%v", proposalA, proposalB)

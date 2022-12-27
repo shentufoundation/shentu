@@ -12,29 +12,6 @@ import (
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
-// GetDeposit gets the deposit of a specific depositor on a specific proposal.
-func (k Keeper) GetDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk.AccAddress) (deposit govtypes.Deposit, found bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(govtypes.DepositKey(proposalID, depositorAddr))
-	if bz == nil {
-		return deposit, false
-	}
-
-	k.cdc.MustUnmarshal(bz, &deposit)
-	return deposit, true
-}
-
-// SetDeposit sets the deposit to KVStore.
-func (k Keeper) SetDeposit(ctx sdk.Context, deposit govtypes.Deposit) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&deposit)
-	depositor, err := sdk.AccAddressFromBech32(deposit.Depositor)
-	if err != nil {
-		panic(err)
-	}
-	store.Set(govtypes.DepositKey(deposit.ProposalId, depositor), bz)
-}
-
 // AddDeposit adds or updates a deposit of a specific depositor on a specific proposal.
 // When proposer is a council member, it's not depositable.
 // Activates voting period when appropriate.
@@ -45,7 +22,7 @@ func (k Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk
 		return false, sdkerrors.Wrap(govtypes.ErrUnknownProposal, fmt.Sprint(proposalID))
 	}
 	// check if proposal is still depositable or if proposer is council member
-	if (proposal.Status != types.StatusDepositPeriod) || proposal.IsProposerCouncilMember {
+	if proposal.Status != govtypes.StatusDepositPeriod {
 		return false, sdkerrors.Wrap(govtypes.ErrAlreadyActiveProposal, fmt.Sprint(proposalID))
 	}
 
@@ -60,7 +37,7 @@ func (k Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk
 
 	// check if deposit has provided sufficient total funds to transition the proposal into the voting period
 	activatedVotingPeriod := false
-	if proposal.Status == types.StatusDepositPeriod && proposal.TotalDeposit.IsAllGTE(k.GetDepositParams(ctx).MinDeposit) ||
+	if proposal.Status == govtypes.StatusDepositPeriod && proposal.TotalDeposit.IsAllGTE(k.GetDepositParams(ctx).MinDeposit) ||
 		proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
 		k.ActivateVotingPeriod(ctx, proposal)
 		activatedVotingPeriod = true

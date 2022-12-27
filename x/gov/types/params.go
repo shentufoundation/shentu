@@ -15,6 +15,7 @@ var (
 	ParamStoreKeyDepositParams = []byte("depositparams")
 	ParamStoreKeyVotingParams  = []byte("votingparams")
 	ParamStoreKeyTallyParams   = []byte("tallyparams")
+	CertVotesKeyPrefix         = []byte("certvote")
 )
 
 // ParamKeyTable is the key declaration for parameters.
@@ -65,7 +66,7 @@ func validateDepositParams(i interface{}) error {
 	return nil
 }
 
-// Params returns all of the governance params
+// Params returns all the governance params
 type Params struct {
 	VotingParams  govTypes.VotingParams `json:"voting_params" yaml:"voting_params"`
 	TallyParams   TallyParams           `json:"tally_params" yaml:"tally_params"`
@@ -146,4 +147,9 @@ func validateVotingParams(i interface{}) error {
 	}
 
 	return nil
+}
+
+// CertVotesKey gets the first part of the cert votes key based on the proposalID
+func CertVotesKey(proposalID uint64) []byte {
+	return append(CertVotesKeyPrefix, govTypes.GetProposalIDBytes(proposalID)...)
 }

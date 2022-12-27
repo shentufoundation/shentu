@@ -236,7 +236,7 @@ func SimulateMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k keeper
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
 		}
 
-		if proposal.Status != types.StatusValidatorVotingPeriod {
+		if proposal.Status != govtypes.StatusVotingPeriod {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
 		}
 
@@ -283,14 +283,14 @@ func SimulateCertifierMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper,
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
 		}
 
-		proposal, ok := k.GetProposal(ctx, proposalID)
-		if !ok {
-			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
-		}
+		//proposal, ok := k.GetProposal(ctx, proposalID)
+		//if !ok {
+		//	return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
+		//}
 
-		if proposal.Status != types.StatusCertifierVotingPeriod {
-			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
-		}
+		//if proposal.Status != types.StatusCertifierVotingPeriod {
+		//	return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
+		//}
 
 		var option govtypes.VoteOption
 		if simtypes.RandIntBetween(r, 0, 100) < 70 {
@@ -340,7 +340,7 @@ func SimulateMsgDeposit(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k kee
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgDeposit, ""), nil, nil
 		}
 
-		if proposal.Status != types.StatusDepositPeriod {
+		if proposal.Status != govtypes.StatusDepositPeriod {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgDeposit, ""), nil, nil
 		}
 

@@ -19,7 +19,6 @@ import (
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
 	. "github.com/shentufoundation/shentu/v2/x/gov/simulation"
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
 func TestDecodeStore(t *testing.T) {
@@ -32,9 +31,7 @@ func TestDecodeStore(t *testing.T) {
 
 	content := govtypes.ContentFromProposalType("test", "test", govtypes.ProposalTypeText)
 	proposalID := rand.Uint64()
-	proposer := RandomAccount()
-	isMember := 1 == rand.Intn(2)
-	proposal, _ := types.NewProposal(content, proposalID, proposer.Address, isMember, endTime, endTime.Add(24*time.Hour))
+	proposal, _ := govtypes.NewProposal(content, proposalID, endTime, endTime.Add(24*time.Hour))
 
 	proposalIDBz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(proposalIDBz, proposalID)

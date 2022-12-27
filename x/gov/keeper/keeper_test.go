@@ -35,7 +35,7 @@ type KeeperTestSuite struct {
 	ctx                 sdk.Context
 	keeper              keeper.Keeper
 	address             []sdk.AccAddress
-	queryClient         types.QueryClient
+	queryClient         govtypes.QueryClient
 	validatorAccAddress sdk.AccAddress
 	msgServer           types.MsgServer
 }
@@ -45,8 +45,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.GovKeeper
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.app.GovKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
+	govtypes.RegisterQueryServer(queryHelper, suite.app.GovKeeper)
+	suite.queryClient = govtypes.NewQueryClient(queryHelper)
 	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
 
 	// suite.app.CertKeeper.SetCertifier(suite.ctx, certtypes.NewCertifier(suite.address[3], "", suite.address[3], ""))
@@ -163,9 +163,10 @@ func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
 			},
 			proposer:           suite.validatorAccAddress,
 			depositor:          suite.address[1],
-			fundedCoins:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
-			depositAmount:      sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (100)*1e6)),
-			votingPeriodStatus: false,
+			fundedCoins:        sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (1500)*1e6)),
+			depositAmount:      sdk.NewCoins(sdk.NewInt64Coin(suite.app.StakingKeeper.BondDenom(suite.ctx), (700)*1e6)),
+			votingPeriodStatus: true,
+			reDeposit:          true,
 			err:                true,
 			shouldPass:         false,
 		},
@@ -175,7 +176,7 @@ func (suite *KeeperTestSuite) TestKeeper_ProposeAndDeposit() {
 		textProposalContent := govtypes.NewTextProposal(tc.proposal.title, tc.proposal.description)
 
 		// create/submit a new proposal
-		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent, tc.proposer)
+		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent)
 		suite.Require().NoError(err)
 		// add staking coins to depositor
 		suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, tc.depositor, tc.fundedCoins))
@@ -253,7 +254,7 @@ func (suite *KeeperTestSuite) TestKeeper_DepositOperations() {
 		textProposalContent := govtypes.NewTextProposal(tc.proposal.title, tc.proposal.description)
 
 		// create/submit a new proposal
-		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent, tc.proposer)
+		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent)
 		suite.Require().NoError(err)
 
 		// add staking coins to depositor
@@ -391,7 +392,7 @@ func (suite *KeeperTestSuite) TestKeeper_Vote() {
 		textProposalContent := govtypes.NewTextProposal(tc.proposal.title, tc.proposal.description)
 
 		// create/submit a new proposal
-		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent, tc.proposer)
+		proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, textProposalContent)
 		suite.Require().NoError(err)
 		suite.Require().NotNil(proposal)
 
