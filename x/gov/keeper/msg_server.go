@@ -3,10 +3,6 @@ package keeper
 import (
 	"context"
 	"fmt"
-	"strconv"
-
-	"github.com/armon/go-metrics"
-
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -94,14 +90,6 @@ func (k msgServer) Vote(goCtx context.Context, msg *govtypes.MsgVote) (*govtypes
 		return nil, err
 	}
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{govtypes.ModuleName, "vote"},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
-		},
-	)
-
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -134,14 +122,6 @@ func (k msgServer) VoteWeighted(goCtx context.Context, msg *govtypes.MsgVoteWeig
 		return nil, err
 	}
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{govtypes.ModuleName, "vote"},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
-		},
-	)
-
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -163,14 +143,6 @@ func (k msgServer) Deposit(goCtx context.Context, msg *govtypes.MsgDeposit) (*go
 	if err != nil {
 		return nil, err
 	}
-
-	defer telemetry.IncrCounterWithLabels(
-		[]string{govtypes.ModuleName, "deposit"},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
-		},
-	)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
