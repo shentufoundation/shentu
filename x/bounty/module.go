@@ -135,7 +135,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 // module.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	// TODO: implement exportgenesis
-	return json.RawMessage{}
+	return cdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
