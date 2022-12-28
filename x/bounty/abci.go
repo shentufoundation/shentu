@@ -2,7 +2,7 @@ package bounty
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/crisis/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bounty/keeper"
 )
 
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {

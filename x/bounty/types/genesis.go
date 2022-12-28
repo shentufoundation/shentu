@@ -16,7 +16,7 @@ func DefaultGenesisState() *GenesisState {
 	}
 }
 
-// ValidateGenesis - validate crisis genesis data
+// ValidateGenesis - validate bounty genesis data
 func ValidateGenesis(data *GenesisState) error {
 	// TODO: implement ValidateGenesis
 	return nil

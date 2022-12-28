@@ -29,26 +29,26 @@ var (
 	_ module.AppModuleSimulation = AppModule{}
 )
 
-// AppModuleBasic defines the basic application module used by the crisis module.
+// AppModuleBasic defines the basic application module used by the bounty module.
 type AppModuleBasic struct{}
 
-// Name returns the crisis module's name.
+// Name returns the bounty module's name.
 func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-// RegisterLegacyAminoCodec registers the crisis module's types on the given LegacyAmino codec.
+// RegisterLegacyAminoCodec registers the bounty module's types on the given LegacyAmino codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
 }
 
-// DefaultGenesis returns default genesis state as raw bytes for the crisis
+// DefaultGenesis returns default genesis state as raw bytes for the bounty
 // module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return cdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
-// ValidateGenesis performs genesis state validation for the crisis module.
+// ValidateGenesis performs genesis state validation for the bounty module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var data types.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &data); err != nil {
@@ -58,27 +58,27 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 	return types.ValidateGenesis(&data)
 }
 
-// RegisterRESTRoutes registers no REST routes for the crisis module.
+// RegisterRESTRoutes registers no REST routes for the bounty module.
 func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the capability module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
-// GetTxCmd returns the root tx command for the crisis module.
+// GetTxCmd returns the root tx command for the bounty module.
 func (b AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.NewTxCmd()
 }
 
-// GetQueryCmd returns no root query command for the crisis module.
+// GetQueryCmd returns no root query command for the bounty module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command { return nil }
 
-// RegisterInterfaces registers interfaces and implementations of the crisis
+// RegisterInterfaces registers interfaces and implementations of the bounty
 // module.
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
 }
 
-// AppModule implements an application module for the crisis module.
+// AppModule implements an application module for the bounty module.
 type AppModule struct {
 	AppModuleBasic
 
@@ -96,7 +96,7 @@ func NewAppModule(keeper keeper.Keeper) AppModule {
 	}
 }
 
-// Name returns the crisis module's name.
+// Name returns the bounty module's name.
 func (AppModule) Name() string {
 	return types.ModuleName
 }
@@ -104,7 +104,7 @@ func (AppModule) Name() string {
 // RegisterInvariants performs a no-op.
 func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Route returns the message routing key for the crisis module.
+// Route returns the message routing key for the bounty module.
 func (am AppModule) Route() sdk.Route {
 	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
 }
@@ -124,14 +124,14 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 }
 
-// InitGenesis performs genesis initialization for the crisis module. It returns
+// InitGenesis performs genesis initialization for the bounty module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	// TODO: implement initgenesis
 	return []abci.ValidatorUpdate{}
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the crisis
+// ExportGenesis returns the exported genesis state as raw bytes for the bounty
 // module.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	// TODO: implement exportgenesis
@@ -144,7 +144,7 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 // BeginBlock performs a no-op.
 func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
-// EndBlock returns the end blocker for the crisis module. It returns no validator
+// EndBlock returns the end blocker for the bounty module. It returns no validator
 // updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}

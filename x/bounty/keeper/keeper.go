@@ -8,7 +8,7 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-// Keeper - crisis keeper
+// Keeper - bounty keeper
 type Keeper struct {
 	storeKey   sdk.StoreKey
 	cdc        codec.BinaryCodec
