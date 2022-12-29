@@ -623,7 +623,7 @@ func queryDelegation(endpoint, validatorAddr, delegatorAddr string) (stakingtype
 func queryProposal(endpoint string, proposalId int) (govtypes.QueryProposalResponse, error) {
 	var res govtypes.QueryProposalResponse
 	path := fmt.Sprintf(
-		"%s/shentu/gov/v1alpha1/proposals/%d",
+		"%s/cosmos/gov/v1beta1/proposals/%d",
 		endpoint, proposalId,
 	)
 

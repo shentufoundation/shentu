@@ -33,6 +33,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govTypes.AccountKeeper, bk
 		k.SetVote(ctx, vote)
 	}
 
+	for _, proposalId := range data.CertVotedProposalIds {
+		k.SetCertVote(ctx, proposalId)
+	}
+
 	for _, proposal := range data.Proposals {
 		switch proposal.Status {
 		case govTypes.StatusDepositPeriod:
@@ -66,8 +70,11 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	var genState types.GenesisState
 
 	for _, proposal := range proposals {
-		genState.Deposits = append(genState.Deposits, k.GetDepositsByProposalID(ctx, proposal.ProposalId)...)
+		genState.Deposits = append(genState.Deposits, k.GetDeposits(ctx, proposal.ProposalId)...)
 		genState.Votes = append(genState.Votes, k.GetVotes(ctx, proposal.ProposalId)...)
+		if k.IsCertifierVoted(ctx, proposal.ProposalId) {
+			genState.CertVotedProposalIds = append(genState.CertVotedProposalIds, proposal.ProposalId)
+		}
 	}
 	genState.StartingProposalId = startingProposalID
 	genState.Proposals = proposals

@@ -190,7 +190,7 @@ func (k Keeper) GetProposalsFiltered(ctx sdk.Context, params govtypes.QueryPropo
 
 func (k Keeper) HasSecurityVoting(p govtypes.Proposal) bool {
 	switch p.GetContent().(type) {
-	case *upgradetypes.SoftwareUpgradeProposal, *certtypes.CertifierUpdateProposal, shieldtypes.ShieldClaimProposal:
+	case *upgradetypes.SoftwareUpgradeProposal, *certtypes.CertifierUpdateProposal, *shieldtypes.ShieldClaimProposal:
 		return true
 	default:
 		return false

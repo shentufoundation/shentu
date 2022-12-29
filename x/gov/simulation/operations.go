@@ -88,6 +88,8 @@ func SimulateSubmitProposal(
 		)
 		var simAccount simtypes.Account
 		if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
+			// TODO The mention of shield involves problems
+			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgSubmitProposal, ""), nil, nil
 			c := content.(*shieldtypes.ShieldClaimProposal)
 			for _, simAcc := range accs {
 				proposerAddr, _ := sdk.AccAddressFromBech32(c.Proposer)
@@ -174,7 +176,8 @@ func SimulateSubmitProposal(
 
 		// 2) Schedule deposit operations
 		if content.ProposalType() != shieldtypes.ProposalTypeShieldClaim {
-			for i := 0; i < 10; i++ {
+			// todo refactor
+			for i := 0; i < 20; i++ {
 				fops = append(fops, simtypes.FutureOperation{
 					BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 1, 5),
 					Op:          SimulateMsgDeposit(ak, bk, k, proposalID),
@@ -240,6 +243,14 @@ func SimulateMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k keeper
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
 		}
 
+		if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim ||
+			proposal.ProposalType() == certtypes.ProposalTypeCertifierUpdate ||
+			proposal.ProposalType() == upgradetypes.ProposalTypeSoftwareUpgrade {
+			if !k.IsCertifierVoted(ctx, proposal.ProposalId) {
+				return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
+			}
+		}
+
 		option := randomVotingOption(r)
 
 		msg := govtypes.NewMsgVote(simAccount.Address, proposalID, option)
@@ -283,14 +294,17 @@ func SimulateCertifierMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper,
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
 		}
 
-		//proposal, ok := k.GetProposal(ctx, proposalID)
-		//if !ok {
-		//	return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
-		//}
+		proposal, ok := k.GetProposal(ctx, proposalID)
+		if !ok {
+			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
+		}
 
-		//if proposal.Status != types.StatusCertifierVotingPeriod {
-		//	return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
-		//}
+		if proposal.Status != govtypes.StatusVotingPeriod {
+			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
+		}
+		if k.IsCertifierVoted(ctx, proposal.ProposalId) {
+			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
+		}
 
 		var option govtypes.VoteOption
 		if simtypes.RandIntBetween(r, 0, 100) < 70 {
