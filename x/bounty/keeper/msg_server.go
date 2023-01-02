@@ -29,8 +29,6 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 		ProgramId:         nextID,
 		CreatorAddress:    msg.CreatorAddress,
 		SubmissionEndTime: msg.SubmissionEndTime,
-		JudgingEndTime:    msg.JudgingEndTime,
-		ClaimEndTime:      msg.ClaimEndTime,
 		Description:       msg.Description,
 		EncryptionKey:     msg.EncryptionKey,
 		Deposit:           msg.Deposit,

@@ -29,8 +29,6 @@ func NewMsgCreateProgram(
 		Description:       description,
 		CommissionRate:    commissionRate,
 		SubmissionEndTime: submissionEndTime,
-		JudgingEndTime:    judgingEndTime,
-		ClaimEndTime:      claimEndTime,
 		CreatorAddress:    creatorAddress,
 		EncryptionKey:     encAny,
 		Deposit:           deposit,
