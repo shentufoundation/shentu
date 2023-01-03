@@ -12,7 +12,7 @@ func DefaultGenesisState() *types.GenesisState {
 	return &types.GenesisState{
 		Minter: types.InitialMinter(sdk.NewDecWithPrec(4, 2)),
 		Params: types.NewParams(
-			common.MicroCTKDenom,
+			sdk.DefaultBondDenom,
 			sdk.NewDecWithPrec(10, 2), // max inflation rate change
 			sdk.NewDecWithPrec(14, 2), // max inflation rate
 			sdk.NewDecWithPrec(4, 2),  // min inflation rate

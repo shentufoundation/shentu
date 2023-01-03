@@ -18,8 +18,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	"github.com/cosmos/cosmos-sdk/x/crisis/types"
-
-	"github.com/shentufoundation/shentu/v2/common"
 )
 
 var (
@@ -49,7 +47,6 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 // module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	defaultGenesisState := types.DefaultGenesisState()
-	defaultGenesisState.ConstantFee.Denom = common.MicroCTKDenom
 	return cdc.MustMarshalJSON(defaultGenesisState)
 }
 

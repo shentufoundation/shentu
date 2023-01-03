@@ -6,8 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
-	"github.com/shentufoundation/shentu/v2/common"
 )
 
 // default parameter values
@@ -17,12 +15,12 @@ var (
 	DefaultShieldFeesRate    = sdk.NewDecWithPrec(769, 5)                                            // 0.769%
 	DefaultWithdrawPeriod    = time.Hour * 24 * 21                                                   // 21 days
 	DefaultPoolShieldLimit   = sdk.NewDecWithPrec(50, 2)                                             // 50%
-	DefaultMinShieldPurchase = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(50000000))) // 50 CTK
+	DefaultMinShieldPurchase = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(50000000))) // 50 CTK
 
 	// default values for Shield claim proposal's parameters
 	DefaultClaimPeriod              = time.Hour * 24 * 21                                                    // 21 days
 	DefaultPayoutPeriod             = time.Hour * 24 * 56                                                    // 56 days
-	DefaultMinClaimProposalDeposit  = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(100000000))) // 100 CTK
+	DefaultMinClaimProposalDeposit  = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000))) // 100 CTK
 	DefaultClaimProposalDepositRate = sdk.NewDecWithPrec(10, 2)                                              // 10%
 	DefaultClaimProposalFeesRate    = sdk.NewDecWithPrec(1, 2)                                               // 1%
 
