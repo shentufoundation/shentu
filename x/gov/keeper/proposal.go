@@ -1,10 +1,8 @@
 package keeper
 
 import (
-	"encoding/binary"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -36,25 +34,6 @@ func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal govtypes.Proposal
 	k.RemoveFromInactiveProposalQueue(ctx, proposal.ProposalId, oldDepositEndTime)
 	k.InsertActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
 
-}
-
-// DeleteProposalByProposalID deletes a proposal from store.
-func (k Keeper) DeleteProposalByProposalID(ctx sdk.Context, proposalID uint64) {
-	store := ctx.KVStore(k.storeKey)
-	proposal, ok := k.GetProposal(ctx, proposalID)
-	if !ok {
-		panic(fmt.Sprintf("couldn't find proposal with id#%d", proposalID))
-	}
-	k.RemoveFromInactiveProposalQueue(ctx, proposalID, proposal.DepositEndTime)
-	k.RemoveFromActiveProposalQueue(ctx, proposalID, proposal.VotingEndTime)
-	store.Delete(ProposalKey(proposalID))
-}
-
-// ProposalKey gets a specific proposal from the store.
-func ProposalKey(proposalID uint64) []byte {
-	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, proposalID)
-	return append(govtypes.ProposalsKeyPrefix, bz...)
 }
 
 // isValidator checks if the input address is a validator.
@@ -148,44 +127,6 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, content govtypes.Content) (govty
 	)
 
 	return proposal, nil
-}
-
-// GetProposalsFiltered returns proposals filtered.
-func (k Keeper) GetProposalsFiltered(ctx sdk.Context, params govtypes.QueryProposalsParams) []govtypes.Proposal {
-	proposals := k.GetProposals(ctx)
-	filteredProposals := make([]govtypes.Proposal, 0, len(proposals))
-
-	for _, p := range proposals {
-		matchVoter, matchDepositor, matchStatus := true, true, true
-
-		// match status (if supplied/valid)
-		if govtypes.ValidProposalStatus(params.ProposalStatus) {
-			matchStatus = p.Status == params.ProposalStatus
-		}
-
-		// match voter address (if supplied)
-		if len(params.Voter) > 0 {
-			_, matchVoter = k.GetVote(ctx, p.ProposalId, params.Voter)
-		}
-
-		// match depositor (if supplied)
-		if len(params.Depositor) > 0 {
-			_, matchDepositor = k.GetDeposit(ctx, p.ProposalId, params.Depositor)
-		}
-
-		if matchVoter && matchDepositor && matchStatus {
-			filteredProposals = append(filteredProposals, p)
-		}
-	}
-
-	start, end := client.Paginate(len(filteredProposals), params.Page, params.Limit, 100)
-	if start < 0 || end < 0 {
-		filteredProposals = []govtypes.Proposal{}
-	} else {
-		filteredProposals = filteredProposals[start:end]
-	}
-
-	return filteredProposals
 }
 
 func (k Keeper) HasSecurityVoting(p govtypes.Proposal) bool {

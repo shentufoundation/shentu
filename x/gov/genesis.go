@@ -33,8 +33,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak govTypes.AccountKeeper, bk
 		k.SetVote(ctx, vote)
 	}
 
-	for _, proposalId := range data.CertVotedProposalIds {
-		k.SetCertVote(ctx, proposalId)
+	for _, proposalID := range data.CertVotedProposalIds {
+		k.SetCertVote(ctx, proposalID)
 	}
 
 	for _, proposal := range data.Proposals {

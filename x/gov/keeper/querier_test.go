@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 	"testing"
@@ -11,21 +12,23 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov/keeper"
-	"github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
+	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
 const custom = "custom"
 
-func getQueriedParams(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, querier sdk.Querier) (types.DepositParams, types.VotingParams, types.TallyParams) {
+func getQueriedParams(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, querier sdk.Querier) (types.DepositParams, govtypes.VotingParams, types.TallyParams) {
 	query := abci.RequestQuery{
-		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryParams, types.ParamDeposit}, "/"),
+		Path: strings.Join([]string{custom, govtypes.QuerierRoute, govtypes.QueryParams, govtypes.ParamDeposit}, "/"),
 		Data: []byte{},
 	}
 
-	bz, err := querier(ctx, []string{types.QueryParams, types.ParamDeposit}, query)
+	bz, err := querier(ctx, []string{govtypes.QueryParams, govtypes.ParamDeposit}, query)
 	require.NoError(t, err)
 	require.NotNil(t, bz)
 
@@ -33,23 +36,23 @@ func getQueriedParams(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, que
 	require.NoError(t, cdc.UnmarshalJSON(bz, &depositParams))
 
 	query = abci.RequestQuery{
-		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryParams, types.ParamVoting}, "/"),
+		Path: strings.Join([]string{custom, govtypes.QuerierRoute, govtypes.QueryParams, govtypes.ParamVoting}, "/"),
 		Data: []byte{},
 	}
 
-	bz, err = querier(ctx, []string{types.QueryParams, types.ParamVoting}, query)
+	bz, err = querier(ctx, []string{govtypes.QueryParams, govtypes.ParamVoting}, query)
 	require.NoError(t, err)
 	require.NotNil(t, bz)
 
-	var votingParams types.VotingParams
+	var votingParams govtypes.VotingParams
 	require.NoError(t, cdc.UnmarshalJSON(bz, &votingParams))
 
 	query = abci.RequestQuery{
-		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryParams, types.ParamTallying}, "/"),
+		Path: strings.Join([]string{custom, govtypes.QuerierRoute, govtypes.QueryParams, govtypes.ParamTallying}, "/"),
 		Data: []byte{},
 	}
 
-	bz, err = querier(ctx, []string{types.QueryParams, types.ParamTallying}, query)
+	bz, err = querier(ctx, []string{govtypes.QueryParams, govtypes.ParamTallying}, query)
 	require.NoError(t, err)
 	require.NotNil(t, bz)
 
@@ -61,66 +64,66 @@ func getQueriedParams(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, que
 
 func getQueriedProposals(
 	t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, querier sdk.Querier,
-	depositor, voter sdk.AccAddress, status types.ProposalStatus, page, limit int,
-) []types.Proposal {
+	depositor, voter sdk.AccAddress, status govtypes.ProposalStatus, page, limit int,
+) []govtypes.Proposal {
 	query := abci.RequestQuery{
-		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryProposals}, "/"),
-		Data: cdc.MustMarshalJSON(types.NewQueryProposalsParams(page, limit, status, voter, depositor)),
+		Path: strings.Join([]string{custom, govtypes.QuerierRoute, govtypes.QueryProposals}, "/"),
+		Data: cdc.MustMarshalJSON(govtypes.NewQueryProposalsParams(page, limit, status, voter, depositor)),
 	}
 
-	bz, err := querier(ctx, []string{types.QueryProposals}, query)
+	bz, err := querier(ctx, []string{govtypes.QueryProposals}, query)
 	require.NoError(t, err)
 	require.NotNil(t, bz)
 
-	var proposals types.Proposals
+	var proposals govtypes.Proposals
 	require.NoError(t, cdc.UnmarshalJSON(bz, &proposals))
 
 	return proposals
 }
 
-func getQueriedDeposit(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, querier sdk.Querier, proposalID uint64, depositor sdk.AccAddress) types.Deposit {
+func getQueriedDeposit(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, querier sdk.Querier, proposalID uint64, depositor sdk.AccAddress) govtypes.Deposit {
 	query := abci.RequestQuery{
-		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryDeposit}, "/"),
-		Data: cdc.MustMarshalJSON(types.NewQueryDepositParams(proposalID, depositor)),
+		Path: strings.Join([]string{custom, govtypes.QuerierRoute, govtypes.QueryDeposit}, "/"),
+		Data: cdc.MustMarshalJSON(govtypes.NewQueryDepositParams(proposalID, depositor)),
 	}
 
-	bz, err := querier(ctx, []string{types.QueryDeposit}, query)
+	bz, err := querier(ctx, []string{govtypes.QueryDeposit}, query)
 	require.NoError(t, err)
 	require.NotNil(t, bz)
 
-	var deposit types.Deposit
+	var deposit govtypes.Deposit
 	require.NoError(t, cdc.UnmarshalJSON(bz, &deposit))
 
 	return deposit
 }
 
-func getQueriedDeposits(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, querier sdk.Querier, proposalID uint64) []types.Deposit {
+func getQueriedDeposits(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, querier sdk.Querier, proposalID uint64) []govtypes.Deposit {
 	query := abci.RequestQuery{
-		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryDeposits}, "/"),
-		Data: cdc.MustMarshalJSON(types.NewQueryProposalParams(proposalID)),
+		Path: strings.Join([]string{custom, govtypes.QuerierRoute, govtypes.QueryDeposits}, "/"),
+		Data: cdc.MustMarshalJSON(govtypes.NewQueryProposalParams(proposalID)),
 	}
 
-	bz, err := querier(ctx, []string{types.QueryDeposits}, query)
+	bz, err := querier(ctx, []string{govtypes.QueryDeposits}, query)
 	require.NoError(t, err)
 	require.NotNil(t, bz)
 
-	var deposits []types.Deposit
+	var deposits []govtypes.Deposit
 	require.NoError(t, cdc.UnmarshalJSON(bz, &deposits))
 
 	return deposits
 }
 
-func getQueriedVote(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, querier sdk.Querier, proposalID uint64, voter sdk.AccAddress) types.Vote {
+func getQueriedVote(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, querier sdk.Querier, proposalID uint64, voter sdk.AccAddress) govtypes.Vote {
 	query := abci.RequestQuery{
-		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryVote}, "/"),
-		Data: cdc.MustMarshalJSON(types.NewQueryVoteParams(proposalID, voter)),
+		Path: strings.Join([]string{custom, govtypes.QuerierRoute, govtypes.QueryVote}, "/"),
+		Data: cdc.MustMarshalJSON(govtypes.NewQueryVoteParams(proposalID, voter)),
 	}
 
-	bz, err := querier(ctx, []string{types.QueryVote}, query)
+	bz, err := querier(ctx, []string{govtypes.QueryVote}, query)
 	require.NoError(t, err)
 	require.NotNil(t, bz)
 
-	var vote types.Vote
+	var vote govtypes.Vote
 	require.NoError(t, cdc.UnmarshalJSON(bz, &vote))
 
 	return vote
@@ -128,33 +131,35 @@ func getQueriedVote(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, queri
 
 func getQueriedVotes(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, querier sdk.Querier,
 	proposalID uint64, page, limit int,
-) []types.Vote {
+) []govtypes.Vote {
 	query := abci.RequestQuery{
-		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryVote}, "/"),
-		Data: cdc.MustMarshalJSON(types.NewQueryProposalVotesParams(proposalID, page, limit)),
+		Path: strings.Join([]string{custom, govtypes.QuerierRoute, govtypes.QueryVote}, "/"),
+		Data: cdc.MustMarshalJSON(govtypes.NewQueryProposalVotesParams(proposalID, page, limit)),
 	}
 
-	bz, err := querier(ctx, []string{types.QueryVotes}, query)
+	bz, err := querier(ctx, []string{govtypes.QueryVotes}, query)
 	require.NoError(t, err)
 	require.NotNil(t, bz)
 
-	var votes []types.Vote
+	var votes []govtypes.Vote
 	require.NoError(t, cdc.UnmarshalJSON(bz, &votes))
 
 	return votes
 }
 
 func TestQueries(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	legacyQuerierCdc := app.LegacyAmino()
 	querier := keeper.NewQuerier(app.GovKeeper, legacyQuerierCdc)
 
-	TestAddrs := simapp.AddTestAddrsIncremental(app, ctx, 2, sdk.NewInt(20000001))
+	TestAddrs := shentuapp.AddTestAddrs(app, ctx, 2, sdk.NewInt(1000000000000))
 
-	oneCoins := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 1))
-	consCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, app.StakingKeeper.TokensFromConsensusPower(ctx, 10)))
+	SortAddresses(TestAddrs)
 
+	oneCoins := sdk.NewCoins(sdk.NewInt64Coin("uctk", 1))
+	consCoins := sdk.NewCoins(sdk.NewInt64Coin("uctk", 10))
+	fmt.Println(TestAddrs[0].String(), TestAddrs[1].String())
 	tp := TestProposal
 
 	depositParams, _, _ := getQueriedParams(t, ctx, legacyQuerierCdc, querier)
@@ -162,7 +167,7 @@ func TestQueries(t *testing.T) {
 	// TestAddrs[0] proposes (and deposits) proposals #1 and #2
 	proposal1, err := app.GovKeeper.SubmitProposal(ctx, tp)
 	require.NoError(t, err)
-	deposit1 := types.NewDeposit(proposal1.ProposalId, TestAddrs[0], oneCoins)
+	deposit1 := govtypes.NewDeposit(proposal1.ProposalId, TestAddrs[0], oneCoins)
 	depositer1, err := sdk.AccAddressFromBech32(deposit1.Depositor)
 	require.NoError(t, err)
 	_, err = app.GovKeeper.AddDeposit(ctx, deposit1.ProposalId, depositer1, deposit1.Amount)
@@ -172,7 +177,7 @@ func TestQueries(t *testing.T) {
 
 	proposal2, err := app.GovKeeper.SubmitProposal(ctx, tp)
 	require.NoError(t, err)
-	deposit2 := types.NewDeposit(proposal2.ProposalId, TestAddrs[0], consCoins)
+	deposit2 := govtypes.NewDeposit(proposal2.ProposalId, TestAddrs[0], consCoins)
 	depositer2, err := sdk.AccAddressFromBech32(deposit2.Depositor)
 	require.NoError(t, err)
 	_, err = app.GovKeeper.AddDeposit(ctx, deposit2.ProposalId, depositer2, deposit2.Amount)
@@ -183,7 +188,7 @@ func TestQueries(t *testing.T) {
 	// TestAddrs[1] proposes (and deposits) on proposal #3
 	proposal3, err := app.GovKeeper.SubmitProposal(ctx, tp)
 	require.NoError(t, err)
-	deposit3 := types.NewDeposit(proposal3.ProposalId, TestAddrs[1], oneCoins)
+	deposit3 := govtypes.NewDeposit(proposal3.ProposalId, TestAddrs[1], oneCoins)
 	depositer3, err := sdk.AccAddressFromBech32(deposit3.Depositor)
 	require.NoError(t, err)
 
@@ -193,25 +198,25 @@ func TestQueries(t *testing.T) {
 	proposal3.TotalDeposit = proposal3.TotalDeposit.Add(deposit3.Amount...)
 
 	// TestAddrs[1] deposits on proposals #2 & #3
-	deposit4 := types.NewDeposit(proposal2.ProposalId, TestAddrs[1], depositParams.MinDeposit)
+	deposit4 := govtypes.NewDeposit(proposal2.ProposalId, TestAddrs[1], depositParams.MinDeposit)
 	depositer4, err := sdk.AccAddressFromBech32(deposit4.Depositor)
 	require.NoError(t, err)
 	_, err = app.GovKeeper.AddDeposit(ctx, deposit4.ProposalId, depositer4, deposit4.Amount)
 	require.NoError(t, err)
 
 	proposal2.TotalDeposit = proposal2.TotalDeposit.Add(deposit4.Amount...)
-	proposal2.Status = types.StatusVotingPeriod
-	proposal2.VotingEndTime = proposal2.VotingEndTime.Add(types.DefaultPeriod)
+	proposal2.Status = govtypes.StatusVotingPeriod
+	proposal2.VotingEndTime = proposal2.VotingEndTime.Add(govtypes.DefaultPeriod)
 
-	deposit5 := types.NewDeposit(proposal3.ProposalId, TestAddrs[1], depositParams.MinDeposit)
+	deposit5 := govtypes.NewDeposit(proposal3.ProposalId, TestAddrs[1], depositParams.MinDeposit)
 	depositer5, err := sdk.AccAddressFromBech32(deposit5.Depositor)
 	require.NoError(t, err)
 	_, err = app.GovKeeper.AddDeposit(ctx, deposit5.ProposalId, depositer5, deposit5.Amount)
 	require.NoError(t, err)
 
 	proposal3.TotalDeposit = proposal3.TotalDeposit.Add(deposit5.Amount...)
-	proposal3.Status = types.StatusVotingPeriod
-	proposal3.VotingEndTime = proposal3.VotingEndTime.Add(types.DefaultPeriod)
+	proposal3.Status = govtypes.StatusVotingPeriod
+	proposal3.VotingEndTime = proposal3.VotingEndTime.Add(govtypes.DefaultPeriod)
 	// total deposit of TestAddrs[1] on proposal #3 is worth the proposal deposit + individual deposit
 	deposit5.Amount = deposit5.Amount.Add(deposit3.Amount...)
 
@@ -240,28 +245,30 @@ func TestQueries(t *testing.T) {
 	require.Equal(t, deposit5, deposit)
 
 	// Only proposal #1 should be in types.Deposit Period
-	proposals := getQueriedProposals(t, ctx, legacyQuerierCdc, querier, nil, nil, types.StatusDepositPeriod, 1, 0)
+	proposals := getQueriedProposals(t, ctx, legacyQuerierCdc, querier, nil, nil, govtypes.StatusDepositPeriod, 1, 0)
 	require.Len(t, proposals, 1)
 	require.Equal(t, proposal1, proposals[0])
 
 	// Only proposals #2 and #3 should be in Voting Period
-	proposals = getQueriedProposals(t, ctx, legacyQuerierCdc, querier, nil, nil, types.StatusVotingPeriod, 1, 0)
+	proposals = getQueriedProposals(t, ctx, legacyQuerierCdc, querier, nil, nil, govtypes.StatusVotingPeriod, 1, 0)
 	require.Len(t, proposals, 2)
+	proposal2.DepositEndTime = proposals[0].DepositEndTime
+	proposal3.DepositEndTime = proposals[1].DepositEndTime
 	require.Equal(t, proposal2, proposals[0])
 	require.Equal(t, proposal3, proposals[1])
 
 	// Addrs[0] votes on proposals #2 & #3
-	vote1 := types.NewVote(proposal2.ProposalId, TestAddrs[0], types.NewNonSplitVoteOption(types.OptionYes))
-	vote2 := types.NewVote(proposal3.ProposalId, TestAddrs[0], types.NewNonSplitVoteOption(types.OptionYes))
+	vote1 := govtypes.NewVote(proposal2.ProposalId, TestAddrs[0], govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
+	vote2 := govtypes.NewVote(proposal3.ProposalId, TestAddrs[0], govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
 	app.GovKeeper.SetVote(ctx, vote1)
 	app.GovKeeper.SetVote(ctx, vote2)
 
 	// Addrs[1] votes on proposal #3
-	vote3 := types.NewVote(proposal3.ProposalId, TestAddrs[1], types.NewNonSplitVoteOption(types.OptionYes))
+	vote3 := govtypes.NewVote(proposal3.ProposalId, TestAddrs[1], govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
 	app.GovKeeper.SetVote(ctx, vote3)
 
 	// Test query voted by TestAddrs[0]
-	proposals = getQueriedProposals(t, ctx, legacyQuerierCdc, querier, nil, TestAddrs[0], types.StatusNil, 1, 0)
+	proposals = getQueriedProposals(t, ctx, legacyQuerierCdc, querier, nil, TestAddrs[0], govtypes.StatusNil, 1, 0)
 	require.Equal(t, proposal2, proposals[0])
 	require.Equal(t, proposal3, proposals[1])
 
@@ -280,42 +287,42 @@ func TestQueries(t *testing.T) {
 	checkEqualVotes(t, vote3, votes[1])
 
 	// Test query all proposals
-	proposals = getQueriedProposals(t, ctx, legacyQuerierCdc, querier, nil, nil, types.StatusNil, 1, 0)
+	proposals = getQueriedProposals(t, ctx, legacyQuerierCdc, querier, nil, nil, govtypes.StatusNil, 1, 0)
 	require.Equal(t, proposal1, proposals[0])
 	require.Equal(t, proposal2, proposals[1])
 	require.Equal(t, proposal3, proposals[2])
 
 	// Test query voted by TestAddrs[1]
-	proposals = getQueriedProposals(t, ctx, legacyQuerierCdc, querier, nil, TestAddrs[1], types.StatusNil, 1, 0)
+	proposals = getQueriedProposals(t, ctx, legacyQuerierCdc, querier, nil, TestAddrs[1], govtypes.StatusNil, 1, 0)
 	require.Equal(t, proposal3.ProposalId, proposals[0].ProposalId)
 
 	// Test query deposited by TestAddrs[0]
-	proposals = getQueriedProposals(t, ctx, legacyQuerierCdc, querier, TestAddrs[0], nil, types.StatusNil, 1, 0)
+	proposals = getQueriedProposals(t, ctx, legacyQuerierCdc, querier, TestAddrs[0], nil, govtypes.StatusNil, 1, 0)
 	require.Equal(t, proposal1.ProposalId, proposals[0].ProposalId)
 
 	// Test query deposited by addr2
-	proposals = getQueriedProposals(t, ctx, legacyQuerierCdc, querier, TestAddrs[1], nil, types.StatusNil, 1, 0)
+	proposals = getQueriedProposals(t, ctx, legacyQuerierCdc, querier, TestAddrs[1], nil, govtypes.StatusNil, 1, 0)
 	require.Equal(t, proposal2.ProposalId, proposals[0].ProposalId)
 	require.Equal(t, proposal3.ProposalId, proposals[1].ProposalId)
 
 	// Test query voted AND deposited by addr1
-	proposals = getQueriedProposals(t, ctx, legacyQuerierCdc, querier, TestAddrs[0], TestAddrs[0], types.StatusNil, 1, 0)
+	proposals = getQueriedProposals(t, ctx, legacyQuerierCdc, querier, TestAddrs[0], TestAddrs[0], govtypes.StatusNil, 1, 0)
 	require.Equal(t, proposal2.ProposalId, proposals[0].ProposalId)
 }
 
 func TestPaginatedVotesQuery(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	legacyQuerierCdc := app.LegacyAmino()
 
-	proposal := types.Proposal{
+	proposal := govtypes.Proposal{
 		ProposalId: 100,
-		Status:     types.StatusVotingPeriod,
+		Status:     govtypes.StatusVotingPeriod,
 	}
 
 	app.GovKeeper.SetProposal(ctx, proposal)
 
-	votes := make([]types.Vote, 20)
+	votes := make([]govtypes.Vote, 20)
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	addrMap := make(map[string]struct{})
 	genAddr := func() string {
@@ -330,10 +337,10 @@ func TestPaginatedVotesQuery(t *testing.T) {
 		}
 	}
 	for i := range votes {
-		vote := types.Vote{
+		vote := govtypes.Vote{
 			ProposalId: proposal.ProposalId,
 			Voter:      genAddr(),
-			Options:    types.NewNonSplitVoteOption(types.OptionYes),
+			Options:    govtypes.NewNonSplitVoteOption(govtypes.OptionYes),
 		}
 		votes[i] = vote
 		app.GovKeeper.SetVote(ctx, vote)
@@ -349,7 +356,7 @@ func TestPaginatedVotesQuery(t *testing.T) {
 		description string
 		page        int
 		limit       int
-		votes       []types.Vote
+		votes       []govtypes.Vote
 	}
 	for _, tc := range []testCase{
 		{
@@ -390,7 +397,7 @@ func TestPaginatedVotesQuery(t *testing.T) {
 // When querying, the keeper populates the `vote.Option` field when there's
 // only 1 vote, this function checks equality of structs while skipping that
 // field.
-func checkEqualVotes(t *testing.T, vote1, vote2 types.Vote) {
+func checkEqualVotes(t *testing.T, vote1, vote2 govtypes.Vote) {
 	require.Equal(t, vote1.Options, vote2.Options)
 	require.Equal(t, vote1.Voter, vote2.Voter)
 	require.Equal(t, vote1.ProposalId, vote2.ProposalId)

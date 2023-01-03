@@ -10,19 +10,21 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
+	sdkauth "github.com/cosmos/cosmos-sdk/x/auth"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/x/gov"
+	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
 func TestImportExportQueues(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, valTokens)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, valTokens)
 
 	SortAddresses(addrs)
 
@@ -49,19 +51,19 @@ func TestImportExportQueues(t *testing.T) {
 	require.True(t, ok)
 	proposal2, ok = app.GovKeeper.GetProposal(ctx, proposalID2)
 	require.True(t, ok)
-	require.True(t, proposal1.Status == types.StatusDepositPeriod)
-	require.True(t, proposal2.Status == types.StatusVotingPeriod)
+	require.True(t, proposal1.Status == govtypes.StatusDepositPeriod)
+	require.True(t, proposal2.Status == govtypes.StatusVotingPeriod)
 
-	authGenState := auth.ExportGenesis(ctx, app.AccountKeeper)
+	authGenState := sdkauth.ExportGenesis(ctx, app.AccountKeeper)
 	bankGenState := app.BankKeeper.ExportGenesis(ctx)
 
 	// export the state and import it into a new app
 	govGenState := gov.ExportGenesis(ctx, app.GovKeeper)
-	genesisState := simapp.NewDefaultGenesisState(app.AppCodec())
+	genesisState := shentuapp.NewDefaultGenesisState()
 
-	genesisState[authtypes.ModuleName] = app.AppCodec().MustMarshalJSON(authGenState)
-	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(bankGenState)
-	genesisState[types.ModuleName] = app.AppCodec().MustMarshalJSON(govGenState)
+	genesisState[authtypes.ModuleName] = app.Codec().MustMarshalJSON(authGenState)
+	genesisState[banktypes.ModuleName] = app.Codec().MustMarshalJSON(bankGenState)
+	genesisState[govtypes.ModuleName] = app.Codec().MustMarshalJSON(govGenState)
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
 	if err != nil {
@@ -69,13 +71,12 @@ func TestImportExportQueues(t *testing.T) {
 	}
 
 	db := dbm.NewMemDB()
-	app2 := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 0, simapp.MakeTestEncodingConfig(), simapp.EmptyAppOptions{})
+	app2 := shentuapp.NewShentuApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, shentuapp.DefaultNodeHome, 1, shentuapp.MakeEncodingConfig(), shentuapp.EmptyAppOptions{})
 
 	app2.InitChain(
 		abci.RequestInitChain{
-			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: simapp.DefaultConsensusParams,
-			AppStateBytes:   stateBytes,
+			Validators:    []abci.ValidatorUpdate{},
+			AppStateBytes: stateBytes,
 		},
 	)
 
@@ -95,8 +96,8 @@ func TestImportExportQueues(t *testing.T) {
 	require.True(t, ok)
 	proposal2, ok = app2.GovKeeper.GetProposal(ctx2, proposalID2)
 	require.True(t, ok)
-	require.True(t, proposal1.Status == types.StatusDepositPeriod)
-	require.True(t, proposal2.Status == types.StatusVotingPeriod)
+	require.True(t, proposal1.Status == govtypes.StatusDepositPeriod)
+	require.True(t, proposal2.Status == govtypes.StatusVotingPeriod)
 
 	macc := app2.GovKeeper.GetGovernanceAccount(ctx2)
 	require.Equal(t, app2.GovKeeper.GetDepositParams(ctx2).MinDeposit, app2.BankKeeper.GetAllBalances(ctx2, macc.GetAddress()))
@@ -109,15 +110,15 @@ func TestImportExportQueues(t *testing.T) {
 
 	proposal2, ok = app2.GovKeeper.GetProposal(ctx2, proposalID2)
 	require.True(t, ok)
-	require.True(t, proposal2.Status == types.StatusRejected)
+	require.True(t, proposal2.Status == govtypes.StatusRejected)
 }
 
 func TestImportExportQueues_ErrorUnconsistentState(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	require.Panics(t, func() {
-		gov.InitGenesis(ctx, app.AccountKeeper, app.BankKeeper, app.GovKeeper, &types.GenesisState{
-			Deposits: types.Deposits{
+		gov.InitGenesis(ctx, app.GovKeeper, app.AccountKeeper, app.BankKeeper, types.GenesisState{
+			Deposits: govtypes.Deposits{
 				{
 					ProposalId: 1234,
 					Depositor:  "me",
@@ -134,9 +135,9 @@ func TestImportExportQueues_ErrorUnconsistentState(t *testing.T) {
 }
 
 func TestEqualProposals(t *testing.T) {
-	app := simapp.Setup(false)
+	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	addrs := simapp.AddTestAddrs(app, ctx, 2, valTokens)
+	addrs := shentuapp.AddTestAddrs(app, ctx, 2, valTokens)
 
 	SortAddresses(addrs)
 
@@ -156,10 +157,9 @@ func TestEqualProposals(t *testing.T) {
 	require.NotEqual(t, proposal1, proposal2)
 
 	// Now create two genesis blocks
-	state1 := types.GenesisState{Proposals: []types.Proposal{proposal1}}
-	state2 := types.GenesisState{Proposals: []types.Proposal{proposal2}}
+	state1 := types.GenesisState{Proposals: []govtypes.Proposal{proposal1}}
+	state2 := types.GenesisState{Proposals: []govtypes.Proposal{proposal2}}
 	require.NotEqual(t, state1, state2)
-	require.False(t, state1.Equal(state2))
 
 	// Now make proposals identical by setting both IDs to 55
 	proposal1.ProposalId = 55
@@ -171,7 +171,6 @@ func TestEqualProposals(t *testing.T) {
 	state1.Proposals[0] = proposal1
 	state2.Proposals[0] = proposal2
 
-	// State should be identical now..
+	// State should be identical now.
 	require.Equal(t, state1, state2)
-	require.True(t, state1.Equal(state2))
 }

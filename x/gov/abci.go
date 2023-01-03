@@ -16,7 +16,7 @@ func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 	logger := k.Logger(ctx)
 
 	k.IterateInactiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal govtypes.Proposal) bool {
-		k.DeleteProposalByProposalID(ctx, proposal.ProposalId)
+		k.DeleteProposal(ctx, proposal.ProposalId)
 		k.RefundDepositsByProposalID(ctx, proposal.ProposalId)
 
 		ctx.EventManager().EmitEvent(
