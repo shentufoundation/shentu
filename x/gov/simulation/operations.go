@@ -77,6 +77,7 @@ func SimulateSubmitProposal(
 		accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		// 1) submit proposal now
+		// todo refactor
 		content := contentSim(r, ctx, accs)
 		if content == nil {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgSubmitProposal, ""), nil, nil
@@ -88,8 +89,6 @@ func SimulateSubmitProposal(
 		)
 		var simAccount simtypes.Account
 		if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
-			// TODO The mention of shield involves problems
-			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgSubmitProposal, ""), nil, nil
 			c := content.(*shieldtypes.ShieldClaimProposal)
 			for _, simAcc := range accs {
 				proposerAddr, _ := sdk.AccAddressFromBech32(c.Proposer)
@@ -176,7 +175,6 @@ func SimulateSubmitProposal(
 
 		// 2) Schedule deposit operations
 		if content.ProposalType() != shieldtypes.ProposalTypeShieldClaim {
-			// todo refactor
 			for i := 0; i < 20; i++ {
 				fops = append(fops, simtypes.FutureOperation{
 					BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 1, 5),
