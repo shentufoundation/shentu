@@ -11,9 +11,9 @@ import (
 func (suite *KeeperTestSuite) TestVoteWeightedReq() {
 	proposer := suite.address[0]
 
-	stakingCoins := sdk.NewCoins(sdk.NewCoin("uctk", sdk.NewInt(1e10)))
+	stakingCoins := sdk.NewCoins(sdk.NewCoin(suite.denom, sdk.NewInt(1e10)))
 	minDeposit := suite.app.GovKeeper.GetDepositParams(suite.ctx).MinDeposit
-	inactiveCoins := sdk.NewCoins(sdk.NewCoin("uctk", sdk.NewInt(1)))
+	inactiveCoins := sdk.NewCoins(sdk.NewCoin(suite.denom, sdk.NewInt(1)))
 
 	// add staking coins to depositor
 	suite.Require().NoError(sdksimapp.FundAccount(suite.app.BankKeeper, suite.ctx, proposer, stakingCoins))

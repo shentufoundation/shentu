@@ -38,6 +38,7 @@ type KeeperTestSuite struct {
 	queryClient         types.QueryClient
 	validatorAccAddress sdk.AccAddress
 	msgServer           types.MsgServer
+	denom               string
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -74,6 +75,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.app.StakingKeeper.SetNewValidatorByPowerIndex(suite.ctx, val1)
 	suite.app.StakingKeeper.AfterValidatorCreated(suite.ctx, val1.GetOperator())
 	_, _ = suite.app.StakingKeeper.Delegate(suite.ctx, suite.address[0], suite.app.StakingKeeper.TokensFromConsensusPower(suite.ctx, powers[0]), stakingtypes.Unbonded, val1, true)
+	suite.denom = sdk.DefaultBondDenom
 }
 
 // TODO: Add proposer in type proposal for all test cases
