@@ -485,22 +485,28 @@ func (s *IntegrationTestSuite) defaultExecValidation(chain *chain, valIdx int) f
 }
 
 func (s *IntegrationTestSuite) writeClaimProposal(c *chain, valIdx, poolId, purchaseId int, fileName string) string {
-	type ClaimLoss struct {
+	type Coin struct {
 		Denom  string `json:"denom"`
 		Amount string `json:"amount"`
 	}
 	type ClaimProposal struct {
-		PoolId      int         `json:"pool_id"`
-		PurchaseId  int         `json:"purchase_id"`
-		Evidence    string      `json:"evidence"`
-		Description string      `json:"description"`
-		Loss        []ClaimLoss `json:"loss"`
+		PoolId      int    `json:"pool_id"`
+		PurchaseId  int    `json:"purchase_id"`
+		Evidence    string `json:"evidence"`
+		Description string `json:"description"`
+		Loss        []Coin `json:"loss"`
+		Deposit     []Coin `json:"deposit"`
 	}
 
-	var loss = ClaimLoss{
+	var loss = Coin{
 		Denom:  "uctk",
-		Amount: "100000000",
+		Amount: "1000000",
 	}
+	var deposit = Coin{
+		Denom:  "uctk",
+		Amount: "110000000",
+	}
+
 	var proposal = &ClaimProposal{
 		PoolId:      poolId,
 		PurchaseId:  purchaseId,
@@ -508,6 +514,7 @@ func (s *IntegrationTestSuite) writeClaimProposal(c *chain, valIdx, poolId, purc
 		Description: "Details of the attack",
 	}
 	proposal.Loss = append(proposal.Loss, loss)
+	proposal.Deposit = append(proposal.Deposit, deposit)
 
 	proposalByte, err := json.Marshal(proposal)
 	s.Require().NoError(err)

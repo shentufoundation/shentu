@@ -236,7 +236,9 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 	var govGenState govtypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[sdkgovtypes.ModuleName], &govGenState))
 
-	govGenState.VotingParams.VotingPeriod = time.Duration(time.Second * 20)
+	minDepositTokens := sdk.TokensFromConsensusPower(0, sdk.NewIntFromUint64(10))
+	govGenState.VotingParams.VotingPeriod = time.Second * 20
+	govGenState.DepositParams.MinDeposit = sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minDepositTokens)}
 	bz, err = cdc.MarshalJSON(&govGenState)
 	s.Require().NoError(err)
 	appGenState[sdkgovtypes.ModuleName] = bz
