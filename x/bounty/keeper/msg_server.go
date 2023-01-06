@@ -23,6 +23,16 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProgram) (*types.MsgCreateProgramResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	creatorAddr, err := sdk.AccAddressFromBech32(msg.CreatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	err = k.bk.SendCoinsFromAccountToModule(ctx, creatorAddr, types.ModuleName, msg.Deposit)
+	if err != nil {
+		return nil, err
+	}
+
 	nextID := k.GetNextProgramID(ctx)
 
 	program := types.Program{
@@ -41,16 +51,6 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 	nextID++
 	k.SetNextProgramID(ctx, nextID)
 
-	creatorAddr, err := sdk.AccAddressFromBech32(msg.CreatorAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	err = k.bk.SendCoinsFromAccountToModule(ctx, creatorAddr, types.ModuleName, msg.Deposit)
-	if err != nil {
-		return nil, err
-	}
-
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateProgram,
@@ -64,5 +64,5 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 		),
 	})
 
-	return &types.MsgCreateProgramResponse{}, nil
+	return &types.MsgCreateProgramResponse{ProgramId: nextID}, nil
 }

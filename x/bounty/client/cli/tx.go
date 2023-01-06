@@ -40,9 +40,6 @@ func NewCreateProgramCmd() *cobra.Command {
 				return err
 			}
 			creatorAddr := clientCtx.GetFromAddress()
-			if err != nil {
-				return err
-			}
 
 			desc, _ := cmd.Flags().GetString(FlagDesc)
 
@@ -53,7 +50,7 @@ func NewCreateProgramCmd() *cobra.Command {
 				encKey = decKey.PubKey()
 
 				// TODO: avoid overwriting silently
-				SaveKeys(encKey, decKey, clientCtx.HomeDir, clientCtx.Codec)
+				SaveKeys(decKey, clientCtx.HomeDir, clientCtx.Codec)
 			} else {
 				encKey = LoadPubKey(encKeyFile, clientCtx.Codec)
 			}

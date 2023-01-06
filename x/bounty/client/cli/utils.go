@@ -10,7 +10,7 @@ import (
 )
 
 // SaveKey saves the given key to a file as json and panics on error.
-func SaveKeys(pubKey cryptotypes.PubKey, privKey cryptotypes.PrivKey, dirPath string, cdc codec.Codec) {
+func SaveKeys(privKey cryptotypes.PrivKey, dirPath string, cdc codec.Codec) {
 	if dirPath == "" {
 		panic("cannot save PrivValidator key: filePath not set")
 	}

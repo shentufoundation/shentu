@@ -127,7 +127,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 // InitGenesis performs genesis initialization for the bounty module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	// TODO: implement initgenesis
+	var genesisState types.GenesisState
+	cdc.MustUnmarshalJSON(data, &genesisState)
+	InitGenesis(ctx, am.keeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
