@@ -27,26 +27,6 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProgram) (*types.MsgCreateProgramResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	nextID := k.GetNextProgramID(ctx)
-
-	program := types.Program{
-		ProgramId:         nextID,
-		CreatorAddress:    msg.CreatorAddress,
-		SubmissionEndTime: msg.SubmissionEndTime,
-		//	JudgingEndTime:    msg.JudgingEndTime,
-		//	ClaimEndTime:      msg.ClaimEndTime,
-		Description:    msg.Description,
-		EncryptionKey:  msg.EncryptionKey,
-		Deposit:        msg.Deposit,
-		CommissionRate: msg.CommissionRate,
-	}
-
-	k.SetProgram(ctx, program)
-
-	// increment before storing
-	nextID++
-	k.SetNextProgramID(ctx, nextID)
-
 	creatorAddr, err := sdk.AccAddressFromBech32(msg.CreatorAddress)
 	if err != nil {
 		return nil, err
@@ -56,6 +36,24 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 	if err != nil {
 		return nil, err
 	}
+
+	nextID := k.GetNextProgramID(ctx)
+
+	program := types.Program{
+		ProgramId:         nextID,
+		CreatorAddress:    msg.CreatorAddress,
+		SubmissionEndTime: msg.SubmissionEndTime,
+		Description:       msg.Description,
+		EncryptionKey:     msg.EncryptionKey,
+		Deposit:           msg.Deposit,
+		CommissionRate:    msg.CommissionRate,
+	}
+
+	k.SetProgram(ctx, program)
+
+	// increment before storing
+	nextID++
+	k.SetNextProgramID(ctx, nextID)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -70,7 +68,7 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 		),
 	})
 
-	return &types.MsgCreateProgramResponse{}, nil
+	return &types.MsgCreateProgramResponse{ProgramId: nextID}, nil
 }
 
 func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFinding) (*types.MsgSubmitFindingResponse, error) {

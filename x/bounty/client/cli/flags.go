@@ -6,8 +6,6 @@ const (
 	FlagCommissionRate    = "commission_rate"
 	FlagDeposit           = "deposit"
 	FlagSubmissionEndTime = "submit-end"
-	FlagJudgingEndTime    = "judge-end"
-	FlagClaimEndTime      = "claim-end"
 
 	FlagFindingTitle         = "title"
 	FlagFindingDesc          = "desc"

@@ -37,8 +37,9 @@ message MsgCreateProgram {
 }
 
 // MsgCreateProgramResponse defines the Msg/CreateValidator response type.
-message MsgCreateProgramResponse {}
-
+message MsgCreateProgramResponse {
+  uint64 program_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
+}
 message MsgSubmitFinding {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -53,6 +54,6 @@ message MsgSubmitFinding {
 
 message MsgSubmitFindingResponse {
   option (gogoproto.goproto_getters) = false;
-  uint64 fid = 1;
-  string data = 2;
+  uint64 fid = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
 }
+

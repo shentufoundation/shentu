@@ -14,5 +14,6 @@ message GenesisState {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  repeated Program programs = 1 [ (gogoproto.moretags) = "yaml:\"programs\"", (gogoproto.nullable) = false ];
+  uint64 starting_program_id = 1 [(gogoproto.moretags) = "yaml:\"starting_program_id\""];
+  repeated Program programs = 2 [ (gogoproto.moretags) = "yaml:\"programs\"", (gogoproto.nullable) = false ];
 }

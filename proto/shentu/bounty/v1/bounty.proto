@@ -27,6 +27,8 @@ message Program {
   repeated cosmos.base.v1beta1.Coin deposit = 6 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"deposit\""];
 
   string commission_rate = 7 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+
+  bool active = 8 [ (gogoproto.moretags) = "yaml:\"active\"" ];
 }
 
 message Finding {

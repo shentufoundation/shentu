@@ -9,8 +9,8 @@ import (
 	"github.com/tendermint/tendermint/libs/tempfile"
 )
 
-// SaveKeys saves the given key to a file as json and panics on error.
-func SaveKeys(pubKey cryptotypes.PubKey, privKey cryptotypes.PrivKey, dirPath string, cdc codec.Codec) {
+// SaveKey saves the given key to a file as json and panics on error.
+func SaveKeys(privKey cryptotypes.PrivKey, dirPath string, cdc codec.Codec) {
 	if dirPath == "" {
 		panic("cannot save PrivValidator key: filePath not set")
 	}
