@@ -9,5 +9,11 @@ const (
 	FlagJudgingEndTime    = "judge-end"
 	FlagClaimEndTime      = "claim-end"
 
+	FlagFindingTitle         = "title"
+	FlagFindingDesc          = "desc"
+	FlagProgramID            = "pid"
+	FlagFindingSeverityLevel = "severity-level"
+	FlagFindingPoc           = "poc"
+
 	dateLayout = "2006-01-02"
 )

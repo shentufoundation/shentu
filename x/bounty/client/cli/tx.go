@@ -25,6 +25,7 @@ func NewTxCmd() *cobra.Command {
 
 	bountyTxCmds.AddCommand(
 		NewCreateProgramCmd(),
+		NewSubmitFindingCmd(),
 	)
 
 	return bountyTxCmds
@@ -127,6 +128,56 @@ func NewCreateProgramCmd() *cobra.Command {
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagDesc)
+
+	return cmd
+}
+
+func NewSubmitFindingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "submit-finding",
+		Short: "submit finding for a program",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			submitAddr := clientCtx.GetFromAddress()
+
+			desc, _ := cmd.Flags().GetString(FlagFindingDesc)
+			title, _ := cmd.Flags().GetString(FlagFindingTitle)
+
+			pid, err := cmd.Flags().GetUint64(FlagProgramID)
+			if err != nil {
+				return err
+			}
+			severityLevel, _ := cmd.Flags().GetUint32(FlagFindingSeverityLevel)
+			poc, _ := cmd.Flags().GetString(FlagFindingPoc)
+
+			msg, err := types.NewMsgSubmitFinding(
+				submitAddr.String(),
+				title,
+				desc,
+				pid,
+				severityLevel,
+				poc,
+			)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(FlagFindingDesc, "", "The finding description")
+	cmd.Flags().String(FlagFindingTitle, "", "The finding's title")
+	cmd.Flags().String(FlagFindingPoc, "", "Ths finding's poc")
+	cmd.Flags().Uint64(FlagProgramID, 0, "The program's ID")
+	cmd.Flags().Uint32(FlagFindingSeverityLevel, 0, "The finding's severity level")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagProgramID)
 
 	return cmd
 }

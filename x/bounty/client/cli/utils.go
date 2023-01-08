@@ -9,7 +9,7 @@ import (
 	"github.com/tendermint/tendermint/libs/tempfile"
 )
 
-// SaveKey saves the given key to a file as json and panics on error.
+// SaveKeys saves the given key to a file as json and panics on error.
 func SaveKeys(pubKey cryptotypes.PubKey, privKey cryptotypes.PrivKey, dirPath string, cdc codec.Codec) {
 	if dirPath == "" {
 		panic("cannot save PrivValidator key: filePath not set")
@@ -21,7 +21,7 @@ func SaveKeys(pubKey cryptotypes.PubKey, privKey cryptotypes.PrivKey, dirPath st
 	}
 }
 
-// LoadKey loads the key at the given location by loading the stored private key and getting the public key part.
+// LoadPubKey loads the key at the given location by loading the stored private key and getting the public key part.
 func LoadPubKey(filePath string, cdc codec.Codec) cryptotypes.PubKey {
 	keyJSONBytes, err := os.ReadFile(filePath)
 	if err != nil {

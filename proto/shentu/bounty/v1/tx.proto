@@ -15,6 +15,9 @@ option go_package = "github.com/shentufoundation/shentu/x/bounty/types";
 service Msg {
   // CreateProgram defines a method for creating a new program.
   rpc CreateProgram(MsgCreateProgram) returns (MsgCreateProgramResponse);
+
+  // SubmitFinding defines a method for submitting a new finding.
+  rpc SubmitFinding(MsgSubmitFinding) returns (MsgSubmitFindingResponse);
 }
 
 // MsgCreateProgram defines a SDK message for creating a new validator.
@@ -35,3 +38,21 @@ message MsgCreateProgram {
 
 // MsgCreateProgramResponse defines the Msg/CreateValidator response type.
 message MsgCreateProgramResponse {}
+
+message MsgSubmitFinding {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string title = 1;
+  string desc = 2 [(gogoproto.moretags) = "yaml:\"description\""];
+  uint64 pid = 3 [(gogoproto.moretags) = "yaml:\"pid\""];
+  uint32 severity_level = 4 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
+  string poc = 5 [(gogoproto.moretags) = "yaml:\"poc\""];
+  string submitter_address  = 6 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
+}
+
+message MsgSubmitFindingResponse {
+  option (gogoproto.goproto_getters) = false;
+  uint64 fid = 1;
+  string data = 2;
+}

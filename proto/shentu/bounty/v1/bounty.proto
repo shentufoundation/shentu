@@ -28,3 +28,15 @@ message Program {
 
   string commission_rate = 7 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
+
+message Finding {
+  option (gogoproto.equal)            = false;
+
+  uint64 finding_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
+  string title = 2 [(gogoproto.moretags) = "yaml:\"title\""];
+  bytes encrypted_desc = 3 [(gogoproto.moretags) = "yaml:\"encrypted_desc\""];
+  uint64 pid = 4 [(gogoproto.moretags) = "yaml:\"pid\""];
+  uint32 severity_level = 5 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
+  bytes encrypted_poc = 6 [(gogoproto.moretags) = "yaml:\"encrypted_poc\""];
+  string submitter_address  = 7 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
+}
