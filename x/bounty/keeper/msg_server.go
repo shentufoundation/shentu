@@ -106,10 +106,13 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		SubmitterAddress: msg.SubmitterAddress,
 	}
 
+	err = k.AppendFidToFidList(ctx, msg.Pid, nextID)
+	if err != nil {
+		return nil, err
+	}
+
 	k.SetFinding(ctx, finding)
 	k.SetNextFindingID(ctx, nextID+1)
-
-	err = k.AppendFidToFidList(ctx, msg.Pid, nextID)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
