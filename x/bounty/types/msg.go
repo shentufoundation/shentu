@@ -3,8 +3,6 @@ package types
 import (
 	"time"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -12,25 +10,18 @@ const (
 	TypeMsgCreateProgram = "create_program"
 )
 
-// NewMsgCreateValidator creates a new MsgCreateValidator instance.
+// NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
 // Delegator address and validator address are the same.
 func NewMsgCreateProgram(
-	creatorAddress string, description string, encKey cryptotypes.PubKey, commissionRate sdk.Dec, deposit sdk.Coins,
+	creatorAddress string, description string, encKey []byte, commissionRate sdk.Dec, deposit sdk.Coins,
 	submissionEndTime, judgingEndTime, claimEndTime time.Time,
 ) (*MsgCreateProgram, error) {
-	var encAny *codectypes.Any
-	if encKey != nil {
-		var err error
-		if encAny, err = codectypes.NewAnyWithValue(encKey); err != nil {
-			return nil, err
-		}
-	}
 	return &MsgCreateProgram{
 		Description:       description,
 		CommissionRate:    commissionRate,
 		SubmissionEndTime: submissionEndTime,
 		CreatorAddress:    creatorAddress,
-		EncryptionKey:     encAny,
+		EncryptionKey:     encKey,
 		Deposit:           deposit,
 	}, nil
 }
@@ -65,10 +56,4 @@ func (msg MsgCreateProgram) GetSignBytes() []byte {
 func (msg MsgCreateProgram) ValidateBasic() error {
 	// TODO: implement ValidateBasic
 	return nil
-}
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgCreateProgram) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var pubKey cryptotypes.PubKey
-	return unpacker.UnpackAny(msg.EncryptionKey, &pubKey)
 }
