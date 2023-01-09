@@ -12,7 +12,6 @@ import (
 
 // DefaultGenesisState creates a default GenesisState object.
 func DefaultGenesisState() *GenesisState {
-	minInitialDepositTokens := sdk.TokensFromConsensusPower(0, sdk.DefaultPowerReduction)
 	minDepositTokens := sdk.TokensFromConsensusPower(512, sdk.DefaultPowerReduction)
 
 	// quorum, threshold, and veto threshold params
@@ -22,14 +21,13 @@ func DefaultGenesisState() *GenesisState {
 
 	return &GenesisState{
 		StartingProposalId: govTypes.DefaultStartingProposalID,
-		DepositParams: DepositParams{
-			MinInitialDeposit: sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minInitialDepositTokens)},
-			MinDeposit:        sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minDepositTokens)},
-			MaxDepositPeriod:  govTypes.DefaultPeriod,
+		DepositParams: govTypes.DepositParams{
+			MinDeposit:       sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minDepositTokens)},
+			MaxDepositPeriod: govTypes.DefaultPeriod,
 		},
 		VotingParams: govTypes.DefaultVotingParams(),
-		TallyParams: TallyParams{
-			DefaultTally:                     &defaultTally,
+		TallyParams:  defaultTally,
+		CustomParams: CustomParams{
 			CertifierUpdateSecurityVoteTally: &certifierUpdateSecurityVoteTally,
 			CertifierUpdateStakeVoteTally:    &certifierUpdateStakeVoteTally,
 		},
@@ -38,15 +36,15 @@ func DefaultGenesisState() *GenesisState {
 
 // ValidateGenesis validates gov genesis data.
 func ValidateGenesis(data *GenesisState) error {
-	err := validateTallyParams(*data.TallyParams.DefaultTally)
+	err := validateTallyParams(data.TallyParams)
 	if err != nil {
 		return err
 	}
-	err = validateTallyParams(*data.TallyParams.CertifierUpdateStakeVoteTally)
+	err = validateTallyParams(*data.CustomParams.CertifierUpdateStakeVoteTally)
 	if err != nil {
 		return err
 	}
-	err = validateTallyParams(*data.TallyParams.CertifierUpdateSecurityVoteTally)
+	err = validateTallyParams(*data.CustomParams.CertifierUpdateSecurityVoteTally)
 	if err != nil {
 		return err
 	}

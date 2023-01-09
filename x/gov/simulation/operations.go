@@ -122,12 +122,12 @@ func SimulateSubmitProposal(
 			}
 		}
 
-		minInitialDeposit := k.GetDepositParams(ctx).MinInitialDeposit
-		if deposit.AmountOf(sdk.DefaultBondDenom).LT(minInitialDeposit.AmountOf(sdk.DefaultBondDenom)) &&
-			!k.IsCouncilMember(ctx, simAccount.Address) {
-			return simtypes.NewOperationMsgBasic(govtypes.ModuleName,
-				"NoOp: insufficient initial deposit amount, skip this tx", "", false, nil), nil, nil
-		}
+		//minInitialDeposit := k.GetDepositParams(ctx).MinInitialDeposit
+		//if deposit.AmountOf(sdk.DefaultBondDenom).LT(minInitialDeposit.AmountOf(sdk.DefaultBondDenom)) &&
+		//	!k.IsCouncilMember(ctx, simAccount.Address) {
+		//	return simtypes.NewOperationMsgBasic(govtypes.ModuleName,
+		//		"NoOp: insufficient initial deposit amount, skip this tx", "", false, nil), nil, nil
+		//}
 
 		msg, _ := govtypes.NewMsgSubmitProposal(content, deposit, simAccount.Address)
 
@@ -175,7 +175,7 @@ func SimulateSubmitProposal(
 
 		// 2) Schedule deposit operations
 		if content.ProposalType() != shieldtypes.ProposalTypeShieldClaim {
-			for i := 0; i < 20; i++ {
+			for i := 0; i < 10; i++ {
 				fops = append(fops, simtypes.FutureOperation{
 					BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 1, 5),
 					Op:          SimulateMsgDeposit(ak, bk, k, proposalID),

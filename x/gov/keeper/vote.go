@@ -84,18 +84,9 @@ func (k Keeper) DeleteAllVotes(ctx sdk.Context, proposalID uint64) {
 }
 
 // AddCertifierVoted add a certifier vote
-// The only voting options are "yes" and "no".
 func (k Keeper) AddCertifierVoted(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, options govtypes.WeightedVoteOptions) error {
 	if !k.IsCertifier(ctx, voterAddr) {
 		return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "%s is not a certified identity", voterAddr)
-	}
-
-	for _, option := range options {
-		if !(option.Option == govtypes.OptionYes ||
-			option.Option == govtypes.OptionNo) {
-			return sdkerrors.Wrapf(govtypes.ErrInvalidVote,
-				"'%s' is not valid option in certifier voting; must be 'yes' or 'no'", option.Option)
-		}
 	}
 
 	txhash := hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))
@@ -104,8 +95,10 @@ func (k Keeper) AddCertifierVoted(ctx sdk.Context, proposalID uint64, voterAddr 
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeSetCertVote,
+			types.EventTypeCertVote,
+			sdk.NewAttribute(govtypes.AttributeKeyOption, options.String()),
 			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
+			sdk.NewAttribute(types.AttributeKeyVoter, voterAddr.String()),
 			sdk.NewAttribute(types.AttributeTxHash, txhash),
 		),
 	)

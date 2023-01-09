@@ -485,28 +485,17 @@ func (s *IntegrationTestSuite) defaultExecValidation(chain *chain, valIdx int) f
 }
 
 func (s *IntegrationTestSuite) writeClaimProposal(c *chain, valIdx, poolId, purchaseId int, fileName string) string {
-	type Coin struct {
-		Denom  string `json:"denom"`
-		Amount string `json:"amount"`
-	}
 	type ClaimProposal struct {
-		PoolId      int    `json:"pool_id"`
-		PurchaseId  int    `json:"purchase_id"`
-		Evidence    string `json:"evidence"`
-		Description string `json:"description"`
-		Loss        []Coin `json:"loss"`
-		Deposit     []Coin `json:"deposit"`
+		PoolId      int       `json:"pool_id"`
+		PurchaseId  int       `json:"purchase_id"`
+		Evidence    string    `json:"evidence"`
+		Description string    `json:"description"`
+		Loss        sdk.Coins `json:"loss"`
+		Deposit     sdk.Coins `json:"deposit"`
 	}
 
-	var loss = Coin{
-		Denom:  "uctk",
-		Amount: "1000000",
-	}
-	var deposit = Coin{
-		Denom:  "uctk",
-		Amount: "110000000",
-	}
-
+	loss := sdk.NewCoin(uctkDenom, sdk.NewInt(1000000))
+	deposit := sdk.NewCoin(uctkDenom, sdk.NewInt(110000000))
 	var proposal = &ClaimProposal{
 		PoolId:      poolId,
 		PurchaseId:  purchaseId,

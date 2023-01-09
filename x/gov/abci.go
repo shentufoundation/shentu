@@ -17,7 +17,7 @@ func removeInactiveProposals(ctx sdk.Context, k keeper.Keeper) {
 
 	k.IterateInactiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal govtypes.Proposal) bool {
 		k.DeleteProposal(ctx, proposal.ProposalId)
-		k.RefundDepositsByProposalID(ctx, proposal.ProposalId)
+		k.RefundDeposits(ctx, proposal.ProposalId)
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
@@ -82,10 +82,10 @@ func processActiveProposal(ctx sdk.Context, k keeper.Keeper, proposal govtypes.P
 	}
 
 	if veto {
-		k.DeleteDepositsByProposalID(ctx, proposal.ProposalId)
+		k.DeleteDeposits(ctx, proposal.ProposalId)
 		updateVeto(ctx, k, proposal)
 	} else {
-		k.RefundDepositsByProposalID(ctx, proposal.ProposalId)
+		k.RefundDeposits(ctx, proposal.ProposalId)
 		if !pass {
 			updateAbstain(ctx, k, proposal)
 		}
@@ -154,8 +154,7 @@ func processSecurityVote(ctx sdk.Context, k keeper.Keeper, proposal govtypes.Pro
 	var endVoting bool
 	pass, endVoting, tallyResults = keeper.SecurityTally(ctx, k, proposal)
 	if !pass {
-		// Do nothing, because the proposal still has time before the voting period
-		// ends.
+		// Do nothing, because the proposal still has time before the voting period ends.
 		return false
 	}
 	// Else: the proposal passed the certifier voting period.

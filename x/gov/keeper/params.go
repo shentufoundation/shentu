@@ -6,26 +6,14 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
-// GetDepositParams returns the current DepositParams from the global param store.
-func (k Keeper) GetDepositParams(ctx sdk.Context) types.DepositParams {
-	var depositParams types.DepositParams
-	k.paramSpace.Get(ctx, types.ParamStoreKeyDepositParams, &depositParams)
-	return depositParams
+// GetCustomParams returns the current CustomParams from the global param store.
+func (k Keeper) GetCustomParams(ctx sdk.Context) types.CustomParams {
+	var customAddParams types.CustomParams
+	k.paramSpace.Get(ctx, types.ParamStoreKeyCustomParams, &customAddParams)
+	return customAddParams
 }
 
-// GetTallyParams returns the current TallyParams from the global param store.
-func (k Keeper) GetTallyParams(ctx sdk.Context) types.TallyParams {
-	var tallyParams types.TallyParams
-	k.paramSpace.Get(ctx, types.ParamStoreKeyTallyParams, &tallyParams)
-	return tallyParams
-}
-
-// SetDepositParams sets parameters space for deposits.
-func (k Keeper) SetDepositParams(ctx sdk.Context, depositParams types.DepositParams) {
-	k.paramSpace.Set(ctx, types.ParamStoreKeyDepositParams, &depositParams)
-}
-
-// SetTallyParams sets parameters space for tally period.
-func (k Keeper) SetTallyParams(ctx sdk.Context, tallyParams types.TallyParams) {
-	k.paramSpace.Set(ctx, types.ParamStoreKeyTallyParams, &tallyParams)
+// SetCustomParams sets parameters space for custom.
+func (k Keeper) SetCustomParams(ctx sdk.Context, customAddParams types.CustomParams) {
+	k.paramSpace.Set(ctx, types.ParamStoreKeyCustomParams, &customAddParams)
 }

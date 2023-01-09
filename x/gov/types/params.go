@@ -1,9 +1,7 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -12,46 +10,22 @@ import (
 
 // parameter store keys
 var (
-	ParamStoreKeyDepositParams = []byte("depositparams")
-	ParamStoreKeyVotingParams  = []byte("votingparams")
-	ParamStoreKeyTallyParams   = []byte("tallyparams")
-	CertVotesKeyPrefix         = []byte("certvote")
+	ParamStoreKeyCustomParams = []byte("customparams")
+	CertVotesKeyPrefix        = []byte("certvote")
 )
 
 // ParamKeyTable is the key declaration for parameters.
 func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable(
-		params.NewParamSetPair(ParamStoreKeyDepositParams, DepositParams{}, validateDepositParams),
-		params.NewParamSetPair(ParamStoreKeyVotingParams, govTypes.VotingParams{}, validateVotingParams),
-		params.NewParamSetPair(ParamStoreKeyTallyParams, TallyParams{}, validateTally),
+		params.NewParamSetPair(govTypes.ParamStoreKeyDepositParams, govTypes.DepositParams{}, validateDepositParams),
+		params.NewParamSetPair(govTypes.ParamStoreKeyVotingParams, govTypes.VotingParams{}, validateVotingParams),
+		params.NewParamSetPair(govTypes.ParamStoreKeyTallyParams, govTypes.TallyParams{}, validateTally),
+		params.NewParamSetPair(ParamStoreKeyCustomParams, CustomParams{}, validateCustomAdd),
 	)
 }
 
-// NewDepositParams creates a new DepositParams object
-func NewDepositParams(minInitialDeposit, minDeposit sdk.Coins, maxDepositPeriod time.Duration) DepositParams {
-	return DepositParams{
-		MinInitialDeposit: minInitialDeposit,
-		MinDeposit:        minDeposit,
-		MaxDepositPeriod:  maxDepositPeriod,
-	}
-}
-
-func (dp DepositParams) String() string {
-	return fmt.Sprintf(`Deposit Params:
-  Min Initial Deposit: %s
-  Min Deposit:         %s
-  Max Deposit Period:  %s`, dp.MinInitialDeposit, dp.MinDeposit, dp.MaxDepositPeriod)
-}
-
-// Equal checks equality of DepositParams
-func (dp DepositParams) Equal(dp2 DepositParams) bool {
-	return dp.MinInitialDeposit.IsEqual(dp2.MinInitialDeposit) &&
-		dp.MinDeposit.IsEqual(dp2.MinDeposit) &&
-		dp.MaxDepositPeriod == dp2.MaxDepositPeriod
-}
-
 func validateDepositParams(i interface{}) error {
-	v, ok := i.(DepositParams)
+	v, ok := i.(govTypes.DepositParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -66,50 +40,19 @@ func validateDepositParams(i interface{}) error {
 	return nil
 }
 
-// Params returns all the governance params
-type Params struct {
-	VotingParams  govTypes.VotingParams `json:"voting_params" yaml:"voting_params"`
-	TallyParams   TallyParams           `json:"tally_params" yaml:"tally_params"`
-	DepositParams DepositParams         `json:"deposit_params" yaml:"deposit_parmas"`
-}
-
-func (gp Params) String() string {
-	return gp.VotingParams.String() + "\n" +
-		gp.TallyParams.String() + "\n" + gp.DepositParams.String()
-}
-
-// NewParams returns a Params structs including voting, deposit and tally params
-func NewParams(vp govTypes.VotingParams, tp TallyParams, dp DepositParams) Params {
-	return Params{
-		VotingParams:  vp,
-		DepositParams: dp,
-		TallyParams:   tp,
-	}
-}
-
-func (tp TallyParams) String() string {
-	b, err := json.MarshalIndent(tp, "", " ")
-	if err != nil {
-		panic(err)
-	}
-	return string(b)
-}
-
 func validateTally(i interface{}) error {
-	v, ok := i.(TallyParams)
+	v, ok := i.(govTypes.TallyParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if err := validateTallyParams(*v.CertifierUpdateSecurityVoteTally); err != nil {
+	if err := validateTallyParams(v); err != nil {
 		return err
 	}
-	if err := validateTallyParams(*v.CertifierUpdateStakeVoteTally); err != nil {
-		return err
-	}
-	if err := validateTallyParams(*v.DefaultTally); err != nil {
-		return err
-	}
+	return nil
+}
+
+func validateCustomAdd(i interface{}) error {
 	return nil
 }
 

@@ -16,13 +16,13 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/common"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
 const custom = "custom"
 
-func getQueriedParams(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, querier sdk.Querier) (types.DepositParams, govtypes.VotingParams, types.TallyParams) {
+func getQueriedParams(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, querier sdk.Querier) (govtypes.DepositParams, govtypes.VotingParams, govtypes.TallyParams) {
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, govtypes.QuerierRoute, govtypes.QueryParams, govtypes.ParamDeposit}, "/"),
 		Data: []byte{},
@@ -32,7 +32,7 @@ func getQueriedParams(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, que
 	require.NoError(t, err)
 	require.NotNil(t, bz)
 
-	var depositParams types.DepositParams
+	var depositParams govtypes.DepositParams
 	require.NoError(t, cdc.UnmarshalJSON(bz, &depositParams))
 
 	query = abci.RequestQuery{
@@ -56,7 +56,7 @@ func getQueriedParams(t *testing.T, ctx sdk.Context, cdc *codec.LegacyAmino, que
 	require.NoError(t, err)
 	require.NotNil(t, bz)
 
-	var tallyParams types.TallyParams
+	var tallyParams govtypes.TallyParams
 	require.NoError(t, cdc.UnmarshalJSON(bz, &tallyParams))
 
 	return depositParams, votingParams, tallyParams
@@ -157,8 +157,8 @@ func TestQueries(t *testing.T) {
 
 	SortAddresses(TestAddrs)
 
-	oneCoins := sdk.NewCoins(sdk.NewInt64Coin("uctk", 1))
-	consCoins := sdk.NewCoins(sdk.NewInt64Coin("uctk", 10))
+	oneCoins := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 1))
+	consCoins := sdk.NewCoins(sdk.NewInt64Coin(common.MicroCTKDenom, 10))
 	fmt.Println(TestAddrs[0].String(), TestAddrs[1].String())
 	tp := TestProposal
 

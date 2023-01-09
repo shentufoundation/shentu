@@ -9,7 +9,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
@@ -19,27 +18,14 @@ type msgServer struct {
 
 // NewMsgServerImpl returns an implementation of the gov MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) types.MsgServer {
+func NewMsgServerImpl(keeper Keeper) govtypes.MsgServer {
 	return &msgServer{Keeper: keeper}
 }
 
-var _ types.MsgServer = msgServer{}
+var _ govtypes.MsgServer = msgServer{}
 
 func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmitProposal) (*govtypes.MsgSubmitProposalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	var initialDepositAmount = msg.InitialDeposit.AmountOf(k.stakingKeeper.BondDenom(ctx))
-	var depositParams = k.GetDepositParams(ctx)
-	var minimalInitialDepositAmount = depositParams.MinInitialDeposit.AmountOf(k.stakingKeeper.BondDenom(ctx))
-	// Check if delegator proposal reach the bar, current bar is 0 ctk.
-	if initialDepositAmount.LT(minimalInitialDepositAmount) && !k.IsCouncilMember(ctx, msg.GetProposer()) {
-		return nil, sdkerrors.Wrapf(
-			sdkerrors.ErrInsufficientFunds,
-			"insufficient initial deposits amount: %v, minimum: %v",
-			initialDepositAmount,
-			minimalInitialDepositAmount,
-		)
-	}
 
 	err := validateProposalByType(ctx, k.Keeper, msg)
 	if err != nil {
@@ -94,7 +80,7 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 
 	case *shieldtypes.ShieldClaimProposal:
 		// check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit)
-		denom := k.BondDenom(ctx)
+		denom := k.stakingKeeper.BondDenom(ctx)
 		initialDepositAmount := msg.InitialDeposit.AmountOf(denom).ToDec()
 		lossAmount := c.Loss.AmountOf(denom)
 		lossAmountDec := lossAmount.ToDec()

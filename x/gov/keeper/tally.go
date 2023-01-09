@@ -64,14 +64,15 @@ func Tally(ctx sdk.Context, k Keeper, proposal govtypes.Proposal) (pass bool, ve
 	}
 
 	tallyParams := k.GetTallyParams(ctx)
+	customParams := k.GetCustomParams(ctx)
 	tallyResults = govtypes.NewTallyResultFromMap(results)
 
 	var tp govtypes.TallyParams
 	switch proposal.GetContent().(type) {
 	case *certtypes.CertifierUpdateProposal:
-		tp = *tallyParams.CertifierUpdateStakeVoteTally
+		tp = *customParams.CertifierUpdateStakeVoteTally
 	default:
-		tp = *tallyParams.DefaultTally
+		tp = tallyParams
 	}
 
 	th := TallyHelper{
@@ -226,7 +227,6 @@ func passAndVetoStakeResultForShieldClaim(k Keeper, ctx sdk.Context, th TallyHel
 
 // passAndVetoSecurityResult has two storeKey differences from passAndVetoStakeResult:
 //  1. Every certifier has equal voting power (1 head =  1 vote)
-//  2. The only voting options are "yes" and "no".
 func passAndVetoSecurityResult(k Keeper, ctx sdk.Context, th TallyHelper) (pass bool) {
 	nCertifiers := sdk.NewDec(int64(len(k.CertKeeper.GetAllCertifiers(ctx))))
 
@@ -274,12 +274,12 @@ func SecurityTally(ctx sdk.Context, k Keeper, proposal govtypes.Proposal) (bool,
 		results[vote.Options[0].Option] = results[vote.Options[0].Option].Add(sdk.NewDec(1))
 		totalHeadCounts = totalHeadCounts.Add(sdk.NewDec(1))
 	}
-	tallyParams := k.GetTallyParams(ctx)
+	customParams := k.GetCustomParams(ctx)
 	tallyResults := govtypes.NewTallyResultFromMap(results)
 
 	th := TallyHelper{
 		totalHeadCounts,
-		*tallyParams.CertifierUpdateSecurityVoteTally,
+		*customParams.CertifierUpdateSecurityVoteTally,
 		results,
 	}
 	pass := passAndVetoSecurityResult(k, ctx, th)

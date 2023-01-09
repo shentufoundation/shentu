@@ -4,5 +4,6 @@ const (
 	AttributeKeyDepositor = "depositor"
 	AttributeKeyVoter     = "voter"
 	AttributeTxHash       = "txhash"
-	EventTypeSetCertVote  = "cert_vote"
+	EventTypeCertVote     = "cert_vote"
+	EventTypeSetCertVote  = "set_cert_vote"
 )

@@ -67,8 +67,3 @@ func NewKeeper(
 func (k Keeper) Tally(ctx sdk.Context, proposal govtypes.Proposal) (passes bool, burnDeposits bool, tallyResults govtypes.TallyResult) {
 	return Tally(ctx, k, proposal)
 }
-
-// BondDenom returns the staking denom.
-func (k Keeper) BondDenom(ctx sdk.Context) string {
-	return k.stakingKeeper.BondDenom(ctx)
-}
