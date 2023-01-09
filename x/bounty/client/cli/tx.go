@@ -2,8 +2,9 @@ package cli
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/crypto"
 	"time"
+
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"crypto/rand"
 
