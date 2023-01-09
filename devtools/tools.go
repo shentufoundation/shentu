@@ -8,6 +8,6 @@
 package tools
 
 import (
-	_ "github.com/rakyll/statik"
 	_ "github.com/cosmos/tools/cmd/runsim"
+	_ "github.com/rakyll/statik"
 )
