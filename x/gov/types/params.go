@@ -53,6 +53,17 @@ func validateTally(i interface{}) error {
 }
 
 func validateCustomAdd(i interface{}) error {
+	v, ok := i.(CustomParams)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if err := validateTallyParams(*v.CertifierUpdateSecurityVoteTally); err != nil {
+		return err
+	}
+	if err := validateTallyParams(*v.CertifierUpdateStakeVoteTally); err != nil {
+		return err
+	}
+
 	return nil
 }
 
