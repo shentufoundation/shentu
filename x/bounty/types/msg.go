@@ -1,7 +1,10 @@
 package types
 
 import (
+	"fmt"
 	"time"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -16,12 +19,26 @@ func NewMsgCreateProgram(
 	creatorAddress string, description string, encKey []byte, commissionRate sdk.Dec, deposit sdk.Coins,
 	submissionEndTime, judgingEndTime, claimEndTime time.Time,
 ) (*MsgCreateProgram, error) {
+	var encAny *codectypes.Any
+	if encKey != nil {
+		encKeyMsg := EciesPubKey{
+			PubKey: encKey,
+		}
+
+		var err error
+		if encAny, err = codectypes.NewAnyWithValue(&encKeyMsg); err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, fmt.Errorf("encKey is empty")
+	}
+
 	return &MsgCreateProgram{
 		Description:       description,
 		CommissionRate:    commissionRate,
 		SubmissionEndTime: submissionEndTime,
 		CreatorAddress:    creatorAddress,
-		EncryptionKey:     encKey,
+		EncryptionKey:     encAny,
 		Deposit:           deposit,
 	}, nil
 }
