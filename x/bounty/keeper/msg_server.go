@@ -47,9 +47,7 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 
 	k.SetProgram(ctx, program)
 
-	// increment before storing
-	nextID++
-	k.SetNextProgramID(ctx, nextID)
+	k.SetNextProgramID(ctx, nextID+1)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
