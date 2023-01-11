@@ -19,6 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
+	"github.com/shentufoundation/shentu/v2/x/bounty/client/rest"
 	"github.com/shentufoundation/shentu/v2/x/bounty/keeper"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
@@ -59,7 +60,9 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 }
 
 // RegisterRESTRoutes registers no REST routes for the bounty module.
-func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
+func (a AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
+	rest.RegisterHandlers(ctx, rtr)
+}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the capability module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
@@ -70,7 +73,9 @@ func (b AppModuleBasic) GetTxCmd() *cobra.Command {
 }
 
 // GetQueryCmd returns no root query command for the bounty module.
-func (AppModuleBasic) GetQueryCmd() *cobra.Command { return nil }
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
+}
 
 // RegisterInterfaces registers interfaces and implementations of the bounty
 // module.

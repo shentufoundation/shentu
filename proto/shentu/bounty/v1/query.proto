@@ -3,9 +3,137 @@ package shentu.bounty.v1;
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
+import "google/api/annotations.proto";
 
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+
 import "shentu/bounty/v1/bounty.proto";
 
 option go_package = "github.com/shentufoundation/shentu/x/bounty/types";
+
+// Query defines the gRPC querier service for bounty module
+service Query {
+  // Hosts queries all hosts that match the given status.
+  rpc Hosts(QueryHostsRequest) returns (QueryHostsResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/hosts";
+  }
+
+  // Host queries host info for given host address.
+  rpc Host(QueryHostRequest) returns (QueryHostResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/hosts/{host_addr}";
+  }
+
+  // Programs queries all programs based on given status.
+  rpc Programs(QueryProgramsRequest) returns (QueryProgramsResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/programs";
+  }
+
+  // Program queries program details based on ProgramId.
+  rpc Program(QueryProgramRequest) returns (QueryProgramResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/programs/{program_id}";
+  }
+
+  // Findings queries findings of a given program.
+  rpc Findings(QueryFindingsRequests) returns (QueryFindingsResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/programs/{program_id}/findings";
+  }
+
+  // Finding queries Finding information based on programID, FindingId.
+  rpc Finding(QueryFindingRequest) returns (QueryFindingResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/programs/{program_id}/findings/{finding_id}";
+  }
+}
+
+// QueryHostsRequest is the request type for the Query/Hosts RPC method.
+message QueryHostsRequest {
+
+}
+
+// QueryHostsResponse is the response type for the Query/Hosts RPC method.
+message QueryHostsResponse {
+
+}
+
+// QueryHostRequest is the request type for the Query/Host RPC method.
+message QueryHostRequest {
+  // host_addr defines the host address to query for.
+  string host_addr = 1;
+}
+
+// QueryHostResponse is the response type for the Query/Host RPC method.
+message QueryHostResponse {
+
+}
+
+// QueryProposalsRequest is the request type for the Query/Programs RPC method.
+message QueryProgramsRequest {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // active defines the status of the programs.
+  bool active = 1;
+
+  // submitter_address defines the finder address for the program.
+  string submitter_address = 2;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 4;
+}
+
+// QueryProgramsResponse is the response type for the Query/Programs RPC method.
+message QueryProgramsResponse {
+  repeated Program programs = 1 [(gogoproto.nullable) = false];
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryProgramRequest is the request type for the Query/Program RPC method.
+message QueryProgramRequest {
+  // program_id defines the unique id of the bounty program.
+  uint64 program_id = 1;
+}
+
+// QueryProgramResponse is the response type for the Query/Program RPC method.
+message QueryProgramResponse {
+  Program program = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryFindingRequests is the request type for the Query/Findings RPC method.
+message QueryFindingsRequests {
+  // program_id defines the unique id of the bounty program.
+  uint64 program_id = 1;
+  // submitter_address defines the finder address for the program.
+  string submitter_address = 2;
+  // severity_level defines the finding of the severity level.
+  SeverityLevel severity_level = 3;
+}
+
+// QueryFindingsResponse is the response type for the Query/Findings RPC method.
+message QueryFindingsResponse {
+  // findings defined the queried findings.
+  repeated Finding findings = 1 [(gogoproto.nullable) = false];
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryFindingRequest is the request type for the Query/Finding RPC method.
+message QueryFindingRequest {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // program_id defines the unique id of the program.
+  uint64 program_id = 1;
+
+  // finding_id defines the unique id of the finding.
+  uint64 finding_id = 2;
+}
+
+// QueryFindingResponse is the response type for the Query/Finding RPC method.
+message QueryFindingResponse {
+  // finding defined the queried finding.
+  Finding finding = 1 [(gogoproto.nullable) = false];
+}
