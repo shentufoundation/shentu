@@ -27,5 +27,26 @@ func LoadPubKey(filePath string) []byte {
 	if err != nil {
 		panic(err)
 	}
-	return keyBytes
+
+	prvK, err := crypto.ToECDSA(keyBytes)
+	if err != nil {
+		panic(err)
+	}
+
+	return crypto.FromECDSAPub(&prvK.PublicKey)
+}
+
+// LoadPrvKey loads the key at the given location by loading the stored private key.
+func LoadPrvKey(filePath string) *ecies.PrivateKey {
+	keyBytes, err := os.ReadFile(filePath)
+	if err != nil {
+		panic(err)
+	}
+
+	prvK, err := crypto.ToECDSA(keyBytes)
+	if err != nil {
+		panic(err)
+	}
+
+	return ecies.ImportECDSA(prvK)
 }
