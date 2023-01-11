@@ -1,12 +1,14 @@
 package cli
 
 import (
+	"crypto/rand"
 	"fmt"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/spf13/cobra"
+
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/ecies"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -45,15 +47,18 @@ func NewCreateProgramCmd() *cobra.Command {
 			desc, _ := cmd.Flags().GetString(FlagDesc)
 
 			encKeyFile, _ := cmd.Flags().GetString(FlagEncKeyFile)
-			var encKey cryptotypes.PubKey
+			var encKey []byte
 			if encKeyFile == "" {
-				decKey := secp256k1.GenPrivKey()
-				encKey = decKey.PubKey()
+				decKey, err := ecies.GenerateKey(rand.Reader, ecies.DefaultCurve, nil)
+				if err != nil {
+					return fmt.Errorf("internal error, failed to generate key")
+				}
+				encKey = crypto.FromECDSAPub(&decKey.ExportECDSA().PublicKey)
 
 				// TODO: avoid overwriting silently
-				SaveKeys(decKey, clientCtx.HomeDir, clientCtx.Codec)
+				SaveKey(decKey, clientCtx.HomeDir)
 			} else {
-				encKey = LoadPubKey(encKeyFile, clientCtx.Codec)
+				encKey = LoadPubKey(encKeyFile)
 			}
 
 			newRate := sdk.ZeroDec()
@@ -63,7 +68,6 @@ func NewCreateProgramCmd() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("invalid new commission rate: %v", err)
 				}
-
 				newRate = rate
 			}
 

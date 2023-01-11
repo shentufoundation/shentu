@@ -2,11 +2,11 @@ syntax = "proto3";
 package shentu.bounty.v1;
 
 import "gogoproto/gogo.proto";
-import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/protobuf/any.proto";
 
 import "cosmos/base/v1beta1/coin.proto";
-import "cosmos_proto/cosmos.proto";
 import "shentu/bounty/v1/bounty.proto";
 
 option go_package = "github.com/shentufoundation/shentu/x/bounty/types";
@@ -32,7 +32,9 @@ message MsgCreateProgram {
   [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"submission_end_time\""];
 
   string                   creator_address  = 4 [(gogoproto.moretags) = "yaml:\"creator_address\""];
-  google.protobuf.Any      encryption_key   = 5 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+
+  google.protobuf.Any encryption_key = 5 [(cosmos_proto.accepts_interface) = "EncryptionKey",(gogoproto.moretags) = "yaml:\"encryption_key\""];
+
   repeated cosmos.base.v1beta1.Coin deposit = 6 [(gogoproto.nullable) = false];
 }
 
