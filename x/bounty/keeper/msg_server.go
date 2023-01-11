@@ -8,7 +8,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto/ecies"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
@@ -84,25 +86,52 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		return nil, fmt.Errorf("no program id:%d", msg.Pid)
 	}
 
-	encryptedDesc, err := ecies.Encrypt(rand.Reader, ecies.PublicKey(program.EncryptionKey), []byte(msg.Desc), nil, nil)
+	if !program.Active {
+		return nil, fmt.Errorf("program id:%d is closed", msg.Pid)
+	}
+
+	var eciesEncKey ecies.PublicKey
+	err = k.cdc.UnpackAny(program.EncryptionKey, &eciesEncKey)
+	if err != nil {
+		return nil, fmt.Errorf("EncryptionKey error")
+	}
+
+	encryptedDesc, err := ecies.Encrypt(rand.Reader, &eciesEncKey, []byte(msg.Desc), nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	encryptedPoc, err := ecies.Encrypt(rand.Reader, ecies.PublicKey(program.EncryptionKey), []byte(msg.Poc), nil, nil)
+	encryptedPoc, err := ecies.Encrypt(rand.Reader, &eciesEncKey, []byte(msg.Poc), nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	nextID := k.GetNextFindingID(ctx)
 
+	var descAny *codectypes.Any
+	var pocAny *codectypes.Any
+
+	encDesc := types.EciesEncryptedDesc{
+		Desc: encryptedDesc,
+	}
+	if descAny, err = codectypes.NewAnyWithValue(&encDesc); err != nil {
+		return nil, err
+	}
+
+	encPoc := types.EciesEncryptedPoc{
+		Poc: encryptedPoc,
+	}
+	if pocAny, err = codectypes.NewAnyWithValue(&encPoc); err != nil {
+		return nil, err
+	}
+
 	finding := types.Finding{
 		FindingId:        nextID,
 		Title:            msg.Title,
-		EncryptedDesc:    encryptedDesc,
+		EncryptedDesc:    descAny,
 		Pid:              msg.Pid,
 		SeverityLevel:    msg.SeverityLevel,
-		EncryptedPoc:     encryptedPoc,
+		EncryptedPoc:     pocAny,
 		SubmitterAddress: msg.SubmitterAddress,
 	}
 

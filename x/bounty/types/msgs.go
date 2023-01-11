@@ -80,7 +80,7 @@ func (msg MsgCreateProgram) UnpackInterfaces(unpacker codectypes.AnyUnpacker) er
 
 // NewMsgSubmitFinding submit a new finding.
 func NewMsgSubmitFinding(
-	submitterAddress string, title, description string, programId uint64, severityLevel uint32, poc string,
+	submitterAddress string, title, description string, programId uint64, severityLevel int32, poc string,
 ) (*MsgSubmitFinding, error) {
 	if programId == 0 {
 		return nil, errors.New("empty pid is not allowed")
@@ -90,7 +90,7 @@ func NewMsgSubmitFinding(
 		Title:            title,
 		Desc:             description,
 		Pid:              programId,
-		SeverityLevel:    severityLevel,
+		SeverityLevel:    SeverityLevel(severityLevel),
 		Poc:              poc,
 		SubmitterAddress: submitterAddress,
 	}, nil

@@ -147,7 +147,7 @@ func NewSubmitFindingCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			severityLevel, _ := cmd.Flags().GetUint32(FlagFindingSeverityLevel)
+			severityLevel, _ := cmd.Flags().GetInt32(FlagFindingSeverityLevel)
 			poc, _ := cmd.Flags().GetString(FlagFindingPoc)
 
 			msg, err := types.NewMsgSubmitFinding(
@@ -170,7 +170,7 @@ func NewSubmitFindingCmd() *cobra.Command {
 	cmd.Flags().String(FlagFindingTitle, "", "The finding's title")
 	cmd.Flags().String(FlagFindingPoc, "", "Ths finding's poc")
 	cmd.Flags().Uint64(FlagProgramID, 0, "The program's ID")
-	cmd.Flags().Uint32(FlagFindingSeverityLevel, 0, "The finding's severity level")
+	cmd.Flags().Int32(FlagFindingSeverityLevel, 0, "The finding's severity level")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
