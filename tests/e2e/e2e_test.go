@@ -7,8 +7,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
@@ -124,7 +123,7 @@ func (s *IntegrationTestSuite) TestSubmitProposal() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.Status == govTypes.StatusDepositPeriod && res.Proposal.ProposalId == uint64(proposalCounter)
+				return res.Proposal.Status == govtypes.StatusDepositPeriod && res.Proposal.ProposalId == uint64(proposalCounter)
 			},
 			20*time.Second,
 			5*time.Second,
@@ -139,7 +138,7 @@ func (s *IntegrationTestSuite) TestSubmitProposal() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.Status == govTypes.StatusVotingPeriod
+				return res.Proposal.Status == govtypes.StatusVotingPeriod
 			},
 			20*time.Second,
 			5*time.Second,
@@ -158,7 +157,7 @@ func (s *IntegrationTestSuite) TestSubmitProposal() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.Status == govTypes.StatusPassed
+				return res.Proposal.Status == govtypes.StatusPassed
 			},
 			20*time.Second,
 			5*time.Second,
@@ -258,7 +257,7 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.Status == govTypes.StatusVotingPeriod && res.Proposal.ProposalId == uint64(proposalCounter)
+				return res.Proposal.Status == govtypes.StatusVotingPeriod && res.Proposal.ProposalId == uint64(proposalCounter)
 			},
 			20*time.Second,
 			5*time.Second,
@@ -278,7 +277,7 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.Status == govTypes.StatusPassed
+				return res.Proposal.Status == govtypes.StatusPassed
 			},
 			20*time.Second,
 			5*time.Second,

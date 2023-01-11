@@ -122,13 +122,6 @@ func SimulateSubmitProposal(
 			}
 		}
 
-		//minInitialDeposit := k.GetDepositParams(ctx).MinInitialDeposit
-		//if deposit.AmountOf(sdk.DefaultBondDenom).LT(minInitialDeposit.AmountOf(sdk.DefaultBondDenom)) &&
-		//	!k.IsCouncilMember(ctx, simAccount.Address) {
-		//	return simtypes.NewOperationMsgBasic(govtypes.ModuleName,
-		//		"NoOp: insufficient initial deposit amount, skip this tx", "", false, nil), nil, nil
-		//}
-
 		msg, _ := govtypes.NewMsgSubmitProposal(content, deposit, simAccount.Address)
 
 		account := ak.GetAccount(ctx, simAccount.Address)

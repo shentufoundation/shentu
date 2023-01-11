@@ -3,10 +3,14 @@ package types
 import (
 	"fmt"
 
+	yaml "gopkg.in/yaml.v2"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	params "github.com/cosmos/cosmos-sdk/x/params/types"
 )
+
+const ParamCustom = "custom"
 
 // parameter store keys
 var (
@@ -20,7 +24,7 @@ func ParamKeyTable() params.KeyTable {
 		params.NewParamSetPair(govTypes.ParamStoreKeyDepositParams, govTypes.DepositParams{}, validateDepositParams),
 		params.NewParamSetPair(govTypes.ParamStoreKeyVotingParams, govTypes.VotingParams{}, validateVotingParams),
 		params.NewParamSetPair(govTypes.ParamStoreKeyTallyParams, govTypes.TallyParams{}, validateTally),
-		params.NewParamSetPair(ParamStoreKeyCustomParams, CustomParams{}, validateCustomAdd),
+		params.NewParamSetPair(ParamStoreKeyCustomParams, CustomParams{}, validateCustomParams),
 	)
 }
 
@@ -40,6 +44,30 @@ func validateDepositParams(i interface{}) error {
 	return nil
 }
 
+// Params returns all the governance params
+type Params struct {
+	VotingParams  govTypes.VotingParams  `json:"voting_params" yaml:"voting_params"`
+	TallyParams   govTypes.TallyParams   `json:"tally_params" yaml:"tally_params"`
+	DepositParams govTypes.DepositParams `json:"deposit_params" yaml:"deposit_parmas"`
+	CustomParams  CustomParams           `json:"custom_params" yaml:"custom_params"`
+}
+
+func (gp Params) String() string {
+	return gp.VotingParams.String() + "\n" +
+		gp.TallyParams.String() + "\n" + gp.DepositParams.String() + "\n" +
+		gp.CustomParams.String()
+}
+
+// NewParams returns a Params structs including voting, deposit and tally params
+func NewParams(vp govTypes.VotingParams, tp govTypes.TallyParams, dp govTypes.DepositParams, cp CustomParams) Params {
+	return Params{
+		VotingParams:  vp,
+		DepositParams: dp,
+		TallyParams:   tp,
+		CustomParams:  cp,
+	}
+}
+
 func validateTally(i interface{}) error {
 	v, ok := i.(govTypes.TallyParams)
 	if !ok {
@@ -52,7 +80,13 @@ func validateTally(i interface{}) error {
 	return nil
 }
 
-func validateCustomAdd(i interface{}) error {
+// String implements stringer insterface
+func (cp CustomParams) String() string {
+	out, _ := yaml.Marshal(cp)
+	return string(out)
+}
+
+func validateCustomParams(i interface{}) error {
 	v, ok := i.(CustomParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

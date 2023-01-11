@@ -16,6 +16,7 @@ import (
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
+	"github.com/shentufoundation/shentu/v2/x/gov/types"
 	stakingkeeper "github.com/shentufoundation/shentu/v2/x/staking/keeper"
 )
 
@@ -44,7 +45,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.GovKeeper
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	govtypes.RegisterQueryServer(queryHelper, suite.app.GovKeeper)
+	types.RegisterQueryServer(queryHelper, suite.app.GovKeeper)
 	suite.queryClient = govtypes.NewQueryClient(queryHelper)
 	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
 

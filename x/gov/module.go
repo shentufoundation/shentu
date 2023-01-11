@@ -25,6 +25,7 @@ import (
 	govsim "github.com/cosmos/cosmos-sdk/x/gov/simulation"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	"github.com/shentufoundation/shentu/v2/x/gov/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/gov/keeper"
 	"github.com/shentufoundation/shentu/v2/x/gov/simulation"
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
@@ -86,7 +87,7 @@ func (a AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) 
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, mux *runtime.ServeMux) {
-	govtypes.RegisterQueryHandlerClient(context.Background(), mux, govtypes.NewQueryClient(ctx))
+	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(ctx))
 }
 
 // GetTxCmd gets the root tx command of this module.
@@ -101,7 +102,7 @@ func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 
 // GetQueryCmd gets the root query command of this module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return govcli.GetQueryCmd()
+	return cli.GetQueryCmd()
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
@@ -156,7 +157,7 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	govtypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	govtypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	m := keeper.NewMigrator(am.keeper)
 	err := cfg.RegisterMigration(govtypes.ModuleName, 1, m.Migrate1to2)

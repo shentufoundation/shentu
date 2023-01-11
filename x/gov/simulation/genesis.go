@@ -42,7 +42,6 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 // GenerateADepositParams returns a DepositParams object with all of its fields randomized.
 func GenerateADepositParams(r *rand.Rand) govTypes.DepositParams {
-	//minInitialDeposit := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, int64(sim.RandIntBetween(r, 1, 1e2))))
 	minDeposit := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, int64(sim.RandIntBetween(r, 1, 1e3))))
 	maxDepositPeriod := sim.RandIntBetween(r, 1, 2*60*60*24*2)
 	return govTypes.NewDepositParams(minDeposit, time.Duration(maxDepositPeriod)*time.Second)

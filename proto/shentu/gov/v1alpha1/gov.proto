@@ -1,0 +1,15 @@
+syntax = "proto3";
+package shentu.gov.v1alpha1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/gov/v1beta1/gov.proto";
+
+option go_package = "github.com/shentufoundation/shentu/x/gov/types";
+option (gogoproto.goproto_stringer_all) = false;
+option (gogoproto.stringer_all)         = false;
+option (gogoproto.goproto_getters_all)  = false;
+
+message CustomParams {
+  cosmos.gov.v1beta1.TallyParams certifier_update_security_vote_tally = 1;
+  cosmos.gov.v1beta1.TallyParams certifier_update_stake_vote_tally = 2;
+}
