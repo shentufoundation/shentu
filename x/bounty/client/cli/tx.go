@@ -1,16 +1,14 @@
 package cli
 
 import (
+	"crypto/rand"
 	"fmt"
 	"time"
 
-	"github.com/ethereum/go-ethereum/crypto"
-
-	"crypto/rand"
-
-	"github.com/ethereum/go-ethereum/crypto/ecies"
-
 	"github.com/spf13/cobra"
+
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/ecies"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
