@@ -5,7 +5,6 @@ import (
 	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
