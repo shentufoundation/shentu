@@ -47,7 +47,7 @@ message MsgSubmitFinding {
   string title = 1;
   string desc = 2 [(gogoproto.moretags) = "yaml:\"description\""];
   uint64 pid = 3 [(gogoproto.moretags) = "yaml:\"pid\""];
-  uint32 severity_level = 4 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
+  SeverityLevel severity_level = 4 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
   string poc = 5 [(gogoproto.moretags) = "yaml:\"poc\""];
   string submitter_address  = 6 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
 }

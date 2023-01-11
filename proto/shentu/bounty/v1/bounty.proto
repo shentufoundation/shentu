@@ -7,7 +7,6 @@ import "google/protobuf/timestamp.proto";
 import "cosmos_proto/cosmos.proto";
 
 import "cosmos/base/v1beta1/coin.proto";
-import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/shentufoundation/shentu/x/bounty/types";
 
@@ -39,7 +38,7 @@ message Finding {
   string title = 2 [(gogoproto.moretags) = "yaml:\"title\""];
   google.protobuf.Any encrypted_desc = 3 [(cosmos_proto.accepts_interface) = "EncryptedDesc",(gogoproto.moretags) = "yaml:\"encrypted_desc\""];
   uint64 pid = 4 [(gogoproto.moretags) = "yaml:\"pid\""];
-  uint32 severity_level = 5 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
+  SeverityLevel severity_level = 5 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
   google.protobuf.Any encrypted_poc = 6 [(cosmos_proto.accepts_interface) = "EncryptedPoc",(gogoproto.moretags) = "yaml:\"encrypted_poc\""];
   string submitter_address  = 7 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
 }
@@ -53,3 +52,16 @@ message EciesEncryptedPoc {
   option (cosmos_proto.implements_interface) = "EncryptionPoc";
   bytes poc = 1;
 }
+
+enum SeverityLevel {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  SEVERITY_LEVEL_CRITICAL = 0 [(gogoproto.enumvalue_customname) = "SeverityLevelCritical"];
+  SEVERITY_LEVEL_MAJOR = 1 [(gogoproto.enumvalue_customname) = "SeverityLevelMajor"];
+  SEVERITY_LEVEL_MEDIUM = 2 [(gogoproto.enumvalue_customname) = "SeverityLevelMedium"];
+  SEVERITY_LEVEL_MINOR = 3 [(gogoproto.enumvalue_customname) = "SeverityLevelMinor"];
+  SEVERITY_LEVEL_OPTIMIZATION = 4 [(gogoproto.enumvalue_customname) = "SeverityLevelOptimization"];
+  SEVERITY_LEVEL_INFORMATIONAL = 5 [(gogoproto.enumvalue_customname) = "SeverityLevelInformational"];
+}
+
+
