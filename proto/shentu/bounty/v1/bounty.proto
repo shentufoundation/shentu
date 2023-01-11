@@ -4,6 +4,7 @@ package shentu.bounty.v1;
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
+import "cosmos_proto/cosmos.proto";
 
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
@@ -36,9 +37,19 @@ message Finding {
 
   uint64 finding_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
   string title = 2 [(gogoproto.moretags) = "yaml:\"title\""];
-  bytes encrypted_desc = 3 [(gogoproto.moretags) = "yaml:\"encrypted_desc\""];
+  google.protobuf.Any encrypted_desc = 3 [(cosmos_proto.accepts_interface) = "EncryptedDesc",(gogoproto.moretags) = "yaml:\"encrypted_desc\""];
   uint64 pid = 4 [(gogoproto.moretags) = "yaml:\"pid\""];
   uint32 severity_level = 5 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
-  bytes encrypted_poc = 6 [(gogoproto.moretags) = "yaml:\"encrypted_poc\""];
+  google.protobuf.Any encrypted_poc = 6 [(cosmos_proto.accepts_interface) = "EncryptedPoc",(gogoproto.moretags) = "yaml:\"encrypted_poc\""];
   string submitter_address  = 7 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
+}
+
+message EciesEncryptedDesc {
+  option (cosmos_proto.implements_interface) = "EncryptedDesc";
+  bytes desc = 1;
+}
+
+message EciesEncryptedPoc {
+  option (cosmos_proto.implements_interface) = "EncryptionPoc";
+  bytes poc = 1;
 }
