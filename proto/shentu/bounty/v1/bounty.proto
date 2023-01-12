@@ -44,6 +44,7 @@ message Finding {
   SeverityLevel severity_level = 5 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
   google.protobuf.Any encrypted_poc = 6 [(cosmos_proto.accepts_interface) = "EncryptedPoc",(gogoproto.moretags) = "yaml:\"encrypted_poc\""];
   string submitter_address  = 7 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
+  FindingStatus finding_status = 8 [(gogoproto.moretags) = "yaml:\"finding_status\""];
 }
 
 message EciesEncryptedDesc {
@@ -65,4 +66,12 @@ enum SeverityLevel {
   SEVERITY_LEVEL_MINOR = 3 [(gogoproto.enumvalue_customname) = "SeverityLevelMinor"];
   SEVERITY_LEVEL_OPTIMIZATION = 4 [(gogoproto.enumvalue_customname) = "SeverityLevelOptimization"];
   SEVERITY_LEVEL_INFORMATIONAL = 5 [(gogoproto.enumvalue_customname) = "SeverityLevelInformational"];
+}
+
+enum FindingStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  FINDING_STATUS_UNCONFIRMED = 0 [(gogoproto.enumvalue_customname) = "FindingStatusUnConfirmed"];
+  FINDING_STATUS_VALID = 1 [(gogoproto.enumvalue_customname) = "FindingStatusValid"];
+  FINDING_STATUS_INVALID = 2 [(gogoproto.enumvalue_customname) = "FindingStatusInvalid"];
 }

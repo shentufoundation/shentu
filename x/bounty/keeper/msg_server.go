@@ -131,6 +131,7 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		SeverityLevel:    msg.SeverityLevel,
 		EncryptedPoc:     pocAny,
 		SubmitterAddress: msg.SubmitterAddress,
+		FindingStatus:    types.FindingStatusUnConfirmed,
 	}
 
 	err = k.AppendFidToFidList(ctx, msg.Pid, nextID)

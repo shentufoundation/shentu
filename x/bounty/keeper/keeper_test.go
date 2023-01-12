@@ -74,7 +74,7 @@ func (suite *KeeperTestSuite) TestProgram_GetSet() {
 	}
 
 	deposit1 := types1.NewInt(10000)
-
+	dd, _ := time.ParseDuration("24h")
 	tests := []struct {
 		name    string
 		args    args
@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) TestProgram_GetSet() {
 					{
 						ProgramId:         1,
 						CreatorAddress:    suite.address[0].String(),
-						SubmissionEndTime: time.Now(),
+						SubmissionEndTime: time.Now().Add(dd),
 						Description:       "for test1",
 						Deposit: []types1.Coin{
 							{
@@ -109,11 +109,60 @@ func (suite *KeeperTestSuite) TestProgram_GetSet() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			for _, program := range tc.args.program {
-				fmt.Println("----", program)
 				nextID := suite.keeper.GetNextProgramID(suite.ctx)
 				fmt.Println(nextID)
 
 				suite.keeper.SetProgram(suite.ctx, program)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestFinding_GetSet() {
+	type args struct {
+		finding []types.Finding
+	}
+
+	type errArgs struct {
+		shouldPass bool
+		contains   string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{"Finding(1)  -> Set: Simple",
+			args{
+				finding: []types.Finding{
+					{
+						FindingId:        1,
+						Title:            "test finding",
+						Pid:              1,
+						SeverityLevel:    types.SeverityLevelCritical,
+						SubmitterAddress: suite.address[0].String(),
+					},
+				},
+			},
+			errArgs{
+				shouldPass: true,
+				contains:   "",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			for _, finding := range tc.args.finding {
+				suite.keeper.SetFinding(suite.ctx, finding)
+				findingResult, result := suite.keeper.GetFinding(suite.ctx, finding.FindingId)
+				if !result {
+					panic("error")
+				}
+				if findingResult.FindingId != finding.FindingId {
+					panic("error")
+				}
 			}
 		})
 	}
