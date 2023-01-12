@@ -1,7 +1,11 @@
 package cli
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/ecies"
@@ -10,13 +14,20 @@ import (
 )
 
 // SaveKey saves the given key to a file as json and panics on error.
-func SaveKey(privKey *ecies.PrivateKey, dirPath string) {
+func SaveKey(privKey *ecies.PrivateKey, dirPath string, creator string) {
 	if dirPath == "" {
 		panic("cannot save private key: filePath not set")
 	}
+	if len(creator) < 20 {
+		panic("cannot save private key: creator address is too short")
+	}
 
 	decKeyBz := crypto.FromECDSA(privKey.ExportECDSA())
-	if err := tempfile.WriteFileAtomic(dirPath+"/dec-key.json", decKeyBz, 0666); err != nil {
+	//to create a unique file name
+	allBytes := bytes.Join([][]byte{[]byte(creator), decKeyBz}, nil)
+	hashBytes := sha256.Sum256(allBytes)
+	filename := fmt.Sprintf("dec-key-%s-%x.json", creator[6:12], hashBytes[:3])
+	if err := tempfile.WriteFileAtomic(filepath.Join(dirPath, filename), decKeyBz, 0666); err != nil {
 		panic(err)
 	}
 }

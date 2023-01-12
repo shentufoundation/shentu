@@ -53,9 +53,7 @@ func NewCreateProgramCmd() *cobra.Command {
 					return fmt.Errorf("internal error, failed to generate key")
 				}
 				encKey = crypto.FromECDSAPub(&decKey.ExportECDSA().PublicKey)
-
-				// TODO: avoid overwriting silently
-				SaveKey(decKey, clientCtx.HomeDir)
+				SaveKey(decKey, clientCtx.HomeDir, creatorAddr.String())
 			} else {
 				encKey = LoadPubKey(encKeyFile)
 			}
