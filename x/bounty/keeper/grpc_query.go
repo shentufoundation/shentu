@@ -2,38 +2,97 @@ package keeper
 
 import (
 	"context"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 var _ types.QueryServer = Keeper{}
 
-func (k Keeper) Hosts(ctx context.Context, request *types.QueryHostsRequest) (*types.QueryHostsResponse, error) {
-	//TODO implement me
+// Hosts implements the Query/Hosts gRPC method
+func (k Keeper) Hosts(c context.Context, req *types.QueryHostsRequest) (*types.QueryHostsResponse, error) {
+	//TODO implement this
 	panic("implement me")
 }
 
-func (k Keeper) Host(ctx context.Context, request *types.QueryHostRequest) (*types.QueryHostResponse, error) {
-	//TODO implement me
+// Host implements
+func (k Keeper) Host(c context.Context, req *types.QueryHostRequest) (*types.QueryHostResponse, error) {
+	//TODO implement this
 	panic("implement me")
 }
 
-func (k Keeper) Programs(ctx context.Context, request *types.QueryProgramsRequest) (*types.QueryProgramsResponse, error) {
-	//TODO implement me
+// Programs implements the Query/Programs gRPC method
+func (k Keeper) Programs(c context.Context, req *types.QueryProgramsRequest) (*types.QueryProgramsResponse, error) {
+	var programs types.Programs
+	ctx := sdk.UnwrapSDKContext(c)
+
+	store := ctx.KVStore(k.storeKey)
+	programStore := prefix.NewStore(store, types.ProgramsKey)
+
+	pageRes, err := query.FilteredPaginate(programStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		var p types.Program
+		if err := k.cdc.Unmarshal(value, &p); err != nil {
+			return false, status.Error(codes.Internal, err.Error())
+		}
+
+		matchSubmitter := true
+		// match submitter (if supplied)
+		if len(req.Submitter) > 0 {
+			//sumitter, err := sdk.AccAddressFromBech32(req.Submitter)
+			//if err != nil {
+			//	return false, err
+			//}
+			//TODO implement this: when finding merged
+		}
+
+		if matchSubmitter {
+			if accumulate {
+				programs = append(programs, p)
+			}
+
+			return true, nil
+		}
+
+		return false, nil
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryProgramsResponse{
+		Programs:   programs,
+		Pagination: pageRes,
+	}, nil
+}
+
+// Program returns program details based on ProgramId
+func (k Keeper) Program(c context.Context, req *types.QueryProgramRequest) (*types.QueryProgramResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	if req.ProgramId == 0 {
+		return nil, status.Error(codes.InvalidArgument, "program id can not be 0")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	program, found := k.GetProgram(ctx, req.ProgramId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "program %d doesn't exist", req.ProgramId)
+	}
+
+	return &types.QueryProgramResponse{Program: program}, nil
+}
+
+func (k Keeper) Findings(c context.Context, req *types.QueryFindingsRequest) (*types.QueryFindingsResponse, error) {
+	//TODO implement this
 	panic("implement me")
 }
 
-func (k Keeper) Program(ctx context.Context, request *types.QueryProgramRequest) (*types.QueryProgramResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (k Keeper) Findings(ctx context.Context, requests *types.QueryFindingsRequests) (*types.QueryFindingsResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (k Keeper) Finding(ctx context.Context, request *types.QueryFindingRequest) (*types.QueryFindingResponse, error) {
-	//TODO implement me
+func (k Keeper) Finding(c context.Context, req *types.QueryFindingRequest) (*types.QueryFindingResponse, error) {
+	//TODO implement this
 	panic("implement me")
 }

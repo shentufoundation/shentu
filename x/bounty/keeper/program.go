@@ -39,3 +39,9 @@ func (k Keeper) SetNextProgramID(ctx sdk.Context, id uint64) {
 	binary.LittleEndian.PutUint64(bz, id)
 	store.Set(types.GetNextProgramIDKey(), bz)
 }
+
+// GetPrograms returns all the program from store
+func (k Keeper) GetPrograms(ctx sdk.Context) (proposals types.Programs) {
+	//TODO implement this
+	return
+}

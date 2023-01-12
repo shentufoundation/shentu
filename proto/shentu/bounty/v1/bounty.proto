@@ -45,7 +45,7 @@ message Finding {
   uint64 program_id = 4 [(gogoproto.moretags) = "yaml:\"program_id\""];
   SeverityLevel severity_level = 5 [(gogoproto.moretags) = "yaml:\"severity_level\""];
   google.protobuf.Any encrypted_poc = 6 [(cosmos_proto.accepts_interface) = "EncryptedPoc", (gogoproto.moretags) = "yaml:\"encrypted_poc\""];
-  string submitter_address = 7 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
+  string submitter = 7 [(gogoproto.moretags) = "yaml:\"submitter\""];
 }
 
 enum SeverityLevel {
@@ -64,8 +64,6 @@ enum SeverityLevel {
 // The current display is just a demo
 message Host {
   option (gogoproto.equal) = false;
-  option (gogoproto.goproto_stringer) = false;
-  option (gogoproto.goproto_getters) = false;
 
   // host_address defines the address of the host
   string host_address = 1 [(gogoproto.moretags) = "yaml:\"operator_address\""];

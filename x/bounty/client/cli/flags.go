@@ -6,6 +6,8 @@ const (
 	FlagCommissionRate    = "commission_rate"
 	FlagDeposit           = "deposit"
 	FlagSubmissionEndTime = "submit-end"
+	FlagSubmitter         = "submitter"
+	FlagActive            = "active"
 
 	dateLayout = "2006-01-02"
 )

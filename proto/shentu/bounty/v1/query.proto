@@ -36,7 +36,7 @@ service Query {
   }
 
   // Findings queries findings of a given program.
-  rpc Findings(QueryFindingsRequests) returns (QueryFindingsResponse) {
+  rpc Findings(QueryFindingsRequest) returns (QueryFindingsResponse) {
     option (google.api.http).get = "/shentu/bounty/v1/programs/{program_id}/findings";
   }
 
@@ -75,8 +75,8 @@ message QueryProgramsRequest {
   // active defines the status of the programs.
   bool active = 1;
 
-  // submitter_address defines the finder address for the program.
-  string submitter_address = 2;
+  // submitter defines the finder address for the program.
+  string submitter = 2;
 
   // pagination defines an optional pagination for the request.
   cosmos.base.query.v1beta1.PageRequest pagination = 4;
@@ -102,11 +102,11 @@ message QueryProgramResponse {
 }
 
 // QueryFindingRequests is the request type for the Query/Findings RPC method.
-message QueryFindingsRequests {
+message QueryFindingsRequest {
   // program_id defines the unique id of the bounty program.
   uint64 program_id = 1;
-  // submitter_address defines the finder address for the program.
-  string submitter_address = 2;
+  // submitter defines the finder address for the program.
+  string submitter = 2;
   // severity_level defines the finding of the severity level.
   SeverityLevel severity_level = 3;
 }
