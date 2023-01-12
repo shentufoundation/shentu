@@ -68,7 +68,7 @@ func (a AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) 
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
 // GetTxCmd returns the root tx command for the bounty module.
-func (b AppModuleBasic) GetTxCmd() *cobra.Command {
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.NewTxCmd()
 }
 

@@ -34,28 +34,28 @@ func (k Keeper) Programs(c context.Context, req *types.QueryProgramsRequest) (*t
 	programStore := prefix.NewStore(store, types.ProgramsKey)
 
 	pageRes, err := query.FilteredPaginate(programStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
-		var p types.Program
-		if err := k.cdc.Unmarshal(value, &p); err != nil {
-			return false, status.Error(codes.Internal, err.Error())
-		}
-
-		matchSubmitter := true
+		//TODO implement this: when finding merged
+		//var p types.Program
+		//if err := k.cdc.Unmarshal(value, &p); err != nil {
+		//	return false, status.Error(codes.Internal, err.Error())
+		//}
+		//matchSubmitter := true
 		// match submitter (if supplied)
-		if len(req.Submitter) > 0 {
-			//sumitter, err := sdk.AccAddressFromBech32(req.Submitter)
-			//if err != nil {
-			//	return false, err
-			//}
-			//TODO implement this: when finding merged
-		}
-
-		if matchSubmitter {
-			if accumulate {
-				programs = append(programs, p)
-			}
-
-			return true, nil
-		}
+		//if len(req.Submitter) > 0 {
+		//sumitter, err := sdk.AccAddressFromBech32(req.Submitter)
+		//if err != nil {
+		//	return false, err
+		//}
+		//
+		//}
+		//
+		//if matchSubmitter {
+		//	if accumulate {
+		//		programs = append(programs, p)
+		//	}
+		//
+		//	return true, nil
+		//}
 
 		return false, nil
 	})
