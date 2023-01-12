@@ -5,8 +5,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	bankkeeper "github.com/shentufoundation/shentu/v2/x/bank/keeper"
 
 	"github.com/shentufoundation/shentu/v2/x/shield"
 	"github.com/shentufoundation/shentu/v2/x/shield/keeper"
@@ -94,4 +97,29 @@ func (sh *Helper) HandleProposal(content govtypes.Content, ok bool) {
 	} else {
 		require.Error(sh.t, err)
 	}
+}
+
+func (sh *Helper) GetFundedAcc(bk bankkeeper.Keeper, pk cryptotypes.PubKey, amt int64) sdk.AccAddress {
+	accAdd := sdk.AccAddress(pk.Address())
+	err := sdksimapp.FundAccount(bk, sh.ctx, accAdd, sdk.Coins{sdk.NewInt64Coin(sh.denom, amt)})
+	require.NoError(sh.t, err)
+	return accAdd
+}
+
+func (sh *Helper) UpdatePool(poolID uint64, fromAddr sdk.AccAddress, serviceFee, shield, shieldLimit int64, desc string) {
+	shieldCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, shield))
+	serviceFeeCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, serviceFee))
+	limit := sdk.NewInt(shieldLimit)
+	msg := types.NewMsgUpdatePool(fromAddr, shieldCoins, serviceFeeCoins, poolID, desc, limit)
+	sh.Handle(msg, true)
+}
+
+func (sh *Helper) StakeForShield(poolID uint64, shield int64, desc string, from sdk.AccAddress) {
+	shieldCoins := sdk.NewCoins(sdk.NewInt64Coin(sh.denom, shield))
+	msg := types.NewMsgStakeForShield(poolID, shieldCoins, desc, from)
+	sh.Handle(msg, true)
+}
+
+func (sh *Helper) DecCoinsI64(amt int64) sdk.DecCoins {
+	return sdk.DecCoins{sdk.NewInt64DecCoin(sh.denom, amt)}
 }

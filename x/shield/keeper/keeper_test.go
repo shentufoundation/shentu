@@ -10,7 +10,6 @@ import (
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -213,41 +212,26 @@ func TestWithdrawsByRedelegate(t *testing.T) {
 func TestClaimProposal(t *testing.T) {
 	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-
-	// create and add addresses
-	pks := shentuapp.CreateTestPubKeys(5)
-	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.ZeroInt())
-
-	shieldAdmin := sdk.AccAddress(pks[0].Address())
-	err := sdksimapp.FundAccount(app.BankKeeper, ctx, shieldAdmin, sdk.Coins{sdk.NewInt64Coin("uctk", 250e9)})
-	require.NoError(t, err)
-	app.ShieldKeeper.SetAdmin(ctx, shieldAdmin)
-
-	sponsorAddr := sdk.AccAddress(pks[1].Address())
-	err = sdksimapp.FundAccount(app.BankKeeper, ctx, sponsorAddr, sdk.Coins{sdk.NewInt64Coin("uctk", 1)})
-	require.NoError(t, err)
-
-	purchaser := sdk.AccAddress(pks[2].Address())
-	err = sdksimapp.FundAccount(app.BankKeeper, ctx, purchaser, sdk.Coins{sdk.NewInt64Coin("uctk", 10e9)})
-	require.NoError(t, err)
-
-	del1addr := sdk.AccAddress(pks[3].Address())
-	err = sdksimapp.FundAccount(app.BankKeeper, ctx, del1addr, sdk.Coins{sdk.NewInt64Coin("uctk", 125e9)})
-	require.NoError(t, err)
-
-	val1pk, val1addr := pks[4], sdk.ValAddress(pks[4].Address())
-	err = sdksimapp.FundAccount(app.BankKeeper, ctx, sdk.AccAddress(pks[4].Address()), sdk.Coins{sdk.NewInt64Coin("uctk", 100e6)})
-	require.NoError(t, err)
-
-	var adminDeposit int64 = 200e9
-	var delegatorDeposit int64 = 125e9
-	totalDeposit := adminDeposit + delegatorDeposit
-
 	// set up testing helpers
 	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
 	bondDenom := tstaking.Denom
 	tshield := testshield.NewHelper(t, ctx, app.ShieldKeeper, bondDenom)
 	tgov := testgov.NewHelper(t, ctx, app.GovKeeper, bondDenom)
+	// create and add addresses
+	pks := shentuapp.CreateTestPubKeys(5)
+	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.ZeroInt())
+
+	shieldAdmin := tshield.GetFundedAcc(app.BankKeeper, pks[0], 250e9)
+	app.ShieldKeeper.SetAdmin(ctx, shieldAdmin)
+	sponsorAddr := tshield.GetFundedAcc(app.BankKeeper, pks[1], 1)
+	purchaser := tshield.GetFundedAcc(app.BankKeeper, pks[2], 10e9)
+	del1addr := tshield.GetFundedAcc(app.BankKeeper, pks[3], 125e9)
+	_ = tshield.GetFundedAcc(app.BankKeeper, pks[4], 100e6)
+	val1pk, val1addr := pks[4], sdk.ValAddress(pks[4].Address())
+
+	var adminDeposit int64 = 200e9
+	var delegatorDeposit int64 = 125e9
+	totalDeposit := adminDeposit + delegatorDeposit
 
 	// set up a validator
 	tstaking.CreateValidatorWithValPower(val1addr, val1pk, 100, true)
@@ -324,7 +308,7 @@ func TestClaimProposal(t *testing.T) {
 
 	// create reimbursement
 	lossCoins := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, loss))
-	err = app.ShieldKeeper.CreateReimbursement(ctx, proposalID, lossCoins, purchaser)
+	err := app.ShieldKeeper.CreateReimbursement(ctx, proposalID, lossCoins, purchaser)
 	require.NoError(t, err)
 	reimbursement, err := app.ShieldKeeper.GetReimbursement(ctx, proposalID)
 	require.NoError(t, err)
@@ -359,4 +343,88 @@ func TestClaimProposal(t *testing.T) {
 	tshield.WithdrawReimbursement(purchaser, proposalID, true)
 	afterInt := app.BankKeeper.GetBalance(ctx, purchaser, bondDenom).Amount
 	require.True(t, beforeInt.Add(sdk.NewInt(loss)).Equal(afterInt))
+}
+
+func TestUpdatePool(t *testing.T) {
+	app := shentuapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	// set up testing helpers
+	tstaking := teststaking.NewHelper(t, ctx, app.StakingKeeper)
+	tshield := testshield.NewHelper(t, ctx, app.ShieldKeeper, tstaking.Denom)
+	tgov := testgov.NewHelper(t, ctx, app.GovKeeper, tstaking.Denom)
+	// create and add addresses
+	pks := shentuapp.CreateTestPubKeys(4)
+	shentuapp.AddTestAddrsFromPubKeys(app, ctx, pks, sdk.ZeroInt())
+
+	orginalFund := int64(250e9)
+	shieldAdmin := tshield.GetFundedAcc(app.BankKeeper, pks[0], orginalFund)
+	app.ShieldKeeper.SetAdmin(ctx, shieldAdmin)
+	sponsorAddr := tshield.GetFundedAcc(app.BankKeeper, pks[1], 1)
+	purchaserAddr := tshield.GetFundedAcc(app.BankKeeper, pks[2], 125e9)
+	_ = tshield.GetFundedAcc(app.BankKeeper, pks[3], 100e6)
+	val1pk, val1addr := pks[3], sdk.ValAddress(pks[3].Address())
+
+	// set up a validator
+	tstaking.CreateValidatorWithValPower(val1addr, val1pk, 100, true)
+	ctx = nextBlock(ctx, tstaking, tshield, tgov)
+	tstaking.CheckValidator(val1addr, stakingtypes.Bonded, false)
+
+	// 1)delegate tokens
+	// 2)deposite collateral as a shield provider
+	// 3)create pool
+	adminDeposit := int64(200e9)
+	serviceFee0 := int64(200e6)
+	shield1 := int64(50e9)
+	tstaking.Delegate(shieldAdmin, val1addr, adminDeposit)
+	tshield.DepositCollateral(shieldAdmin, adminDeposit, true)
+	tshield.CreatePool(shieldAdmin, sponsorAddr, serviceFee0, shield1, 500e9, "Shentu", "fake_description")
+	pools := app.ShieldKeeper.GetAllPools(ctx)
+	require.True(t, len(pools) == 1)
+	require.True(t, strAddrEqualsAccAddr(pools[0].SponsorAddr, sponsorAddr))
+
+	//update the pool with shield purchasement
+	serviceFee1, shield2 := int64(20000), int64(30e9)
+	tshield.UpdatePool(pools[0].Id, shieldAdmin, serviceFee1, shield2, 0, "updatepool1")
+	require.True(t,
+		app.ShieldKeeper.GetServiceFees(ctx).IsEqual(
+			tshield.DecCoinsI64(serviceFee0+serviceFee1)))
+	shieldAdminBalance := app.BankKeeper.GetBalance(ctx, shieldAdmin, tstaking.Denom).Amount.Int64()
+	require.True(t, shieldAdminBalance == orginalFund-adminDeposit-serviceFee0-serviceFee1)
+	purchases := app.ShieldKeeper.GetAllPurchases(ctx)
+	require.True(t, len(purchases) == 2)
+	require.True(t, purchases[0].Shield.Int64() == shield1)
+	require.True(t, purchases[1].Shield.Int64() == shield2)
+
+	//update the pool without shield purchasement, but with service fees payment
+	serviceFee2 := int64(7e9)
+	tshield.UpdatePool(pools[0].Id, shieldAdmin, serviceFee2, 0, 0, "updatepool2")
+	shieldAdminBalance = app.BankKeeper.GetBalance(ctx, shieldAdmin, tstaking.Denom).Amount.Int64()
+	require.True(t, shieldAdminBalance == orginalFund-adminDeposit-serviceFee0-serviceFee1-serviceFee2)
+	purchases = app.ShieldKeeper.GetAllPurchases(ctx)
+	require.True(t, len(purchases) == 2)
+
+	// 1)stake for shield
+	// 2)pass the purchase's protection end time
+	// 3)check the newly created staked purchase
+	shield3 := int64(7e9)
+	tshield.StakeForShield(pools[0].Id, shield3, "shield created by staking", purchaserAddr)
+	purchases = app.ShieldKeeper.GetAllPurchases(ctx)
+	require.True(t, len(purchases) == 3)
+	require.True(t, purchases[0].Description == "shield created by staking")
+	stakedPurchaseId1 := purchases[0].PurchaseId
+	allStakes := app.ShieldKeeper.GetAllOriginalStakings(ctx)
+	require.True(t, len(allStakes) == 1)
+	stakeAmt1 := app.ShieldKeeper.GetOriginalStaking(ctx, stakedPurchaseId1)
+	protectionSecs := int64(app.ShieldKeeper.GetPoolParams(ctx).ProtectionPeriod.Seconds())
+	numBlocks := protectionSecs/5 + 1
+	ctx = skipBlocks(ctx, numBlocks, tstaking, tshield, tgov)
+	allStakes = app.ShieldKeeper.GetAllOriginalStakings(ctx)
+	require.True(t, len(allStakes) == 1)
+	purchases = app.ShieldKeeper.GetAllPurchases(ctx)
+	require.True(t, len(purchases) == 1)
+	stakedPurchaseId2 := purchases[0].PurchaseId
+	require.False(t, stakedPurchaseId1 == stakedPurchaseId2)
+	stakeAmt2 := app.ShieldKeeper.GetOriginalStaking(ctx, stakedPurchaseId2)
+	//the two stakes are both calculated the same way, they should equal
+	require.True(t, stakeAmt1.Equal(stakeAmt2))
 }
