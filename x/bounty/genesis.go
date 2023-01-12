@@ -10,6 +10,7 @@ import (
 // InitGenesis stores genesis parameters.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	k.SetNextProgramID(ctx, data.StartingProgramId)
+	k.SetNextFindingID(ctx, data.StartingFindingId)
 	// TODO Complete InitGenesis
 }
 
