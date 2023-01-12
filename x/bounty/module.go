@@ -83,16 +83,20 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper keeper.Keeper
+	ak     types.AccountKeeper
+	bk     types.BankKeeper
 }
 
 // NewAppModule creates a new AppModule object. If initChainAssertInvariants is set,
 // we will call keeper.AssertInvariants during InitGenesis (it may take a significant time)
 // - which doesn't impact the chain security unless 66+% of validators have a wrongly
 // modified genesis file.
-func NewAppModule(keeper keeper.Keeper) AppModule {
+func NewAppModule(keeper keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
+		ak:             ak,
+		bk:             bk,
 	}
 }
 
@@ -129,7 +133,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, genesisState)
+	InitGenesis(ctx, am.keeper, am.ak, am.bk, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 

@@ -184,6 +184,7 @@ var (
 		shieldtypes.ModuleName:         {authtypes.Burner},
 		cvmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		bountytypes.ModuleName:         {authtypes.Burner},
 	}
 )
 
@@ -406,6 +407,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	app.BountyKeeper = bountykeeper.NewKeeper(
 		appCodec,
 		keys[bountytypes.StoreKey],
+		app.AccountKeeper,
 		app.BankKeeper,
 		app.GetSubspace(bountytypes.ModuleName),
 	)
@@ -517,7 +519,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		icaModule,
-		bounty.NewAppModule(app.BountyKeeper),
+		bounty.NewAppModule(app.BountyKeeper, app.AccountKeeper, app.BankKeeper),
 	)
 
 	// NOTE: During BeginBlocker, slashing comes after distr so that
@@ -618,7 +620,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
-		bounty.NewAppModule(app.BountyKeeper),
+		bounty.NewAppModule(app.BountyKeeper, app.AccountKeeper, app.BankKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
