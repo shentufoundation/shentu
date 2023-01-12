@@ -29,19 +29,13 @@ func (k Keeper) SetProgram(ctx sdk.Context, program types.Program) {
 
 func (k Keeper) GetNextProgramID(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.NextProgramIDKey)
-	return binary.LittleEndian.Uint64(bz)
+	Bz := store.Get(types.GetNextProgramIDKey())
+	return binary.LittleEndian.Uint64(Bz)
 }
 
 func (k Keeper) SetNextProgramID(ctx sdk.Context, id uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, id)
-	store.Set(types.NextProgramIDKey, bz)
-}
-
-// GetPrograms returns all the program from store
-func (k Keeper) GetPrograms(ctx sdk.Context) (proposals types.Programs) {
-	//TODO implement this
-	return
+	store.Set(types.GetNextProgramIDKey(), bz)
 }

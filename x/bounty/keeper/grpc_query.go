@@ -16,13 +16,13 @@ var _ types.QueryServer = Keeper{}
 
 // Hosts implements the Query/Hosts gRPC method
 func (k Keeper) Hosts(c context.Context, req *types.QueryHostsRequest) (*types.QueryHostsResponse, error) {
-	//TODO implement this
+	//TODO implement me
 	panic("implement me")
 }
 
 // Host implements
 func (k Keeper) Host(c context.Context, req *types.QueryHostRequest) (*types.QueryHostResponse, error) {
-	//TODO implement this
+	//TODO implement me
 	panic("implement me")
 }
 
@@ -35,7 +35,7 @@ func (k Keeper) Programs(c context.Context, req *types.QueryProgramsRequest) (*t
 	programStore := prefix.NewStore(store, types.ProgramsKey)
 
 	pageRes, err := query.FilteredPaginate(programStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
-		//TODO implement this: when finding merged
+		//TODO implement me: when finding merged
 		//var p types.Program
 		//if err := k.cdc.Unmarshal(value, &p); err != nil {
 		//	return false, status.Error(codes.Internal, err.Error())
@@ -89,11 +89,11 @@ func (k Keeper) Program(c context.Context, req *types.QueryProgramRequest) (*typ
 }
 
 func (k Keeper) Findings(c context.Context, req *types.QueryFindingsRequest) (*types.QueryFindingsResponse, error) {
-	//TODO implement this
+	//TODO implement me
 	panic("implement me")
 }
 
 func (k Keeper) Finding(c context.Context, req *types.QueryFindingRequest) (*types.QueryFindingResponse, error) {
-	//TODO implement this
+	//TODO implement me
 	panic("implement me")
 }

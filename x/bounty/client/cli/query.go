@@ -39,7 +39,7 @@ func GetQueryCmd() *cobra.Command {
 
 // GetCmdQueryHost implements the query host command.
 func GetCmdQueryHost() *cobra.Command {
-	//TODO implement this
+	//TODO implement me
 	cmd := &cobra.Command{}
 
 	flags.AddQueryFlagsToCmd(cmd)
@@ -49,7 +49,7 @@ func GetCmdQueryHost() *cobra.Command {
 // GetCmdQueryHosts implements the query hosts command. Command to Get a
 // Host Information list.
 func GetCmdQueryHosts() *cobra.Command {
-	//TODO implement this
+	//TODO implement me
 	cmd := &cobra.Command{}
 
 	flags.AddPaginationFlagsToCmd(cmd, "hosts")
@@ -119,7 +119,6 @@ $ %s query bounty programs --page=2 --limit=100
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			submitterAddr, _ := cmd.Flags().GetString(FlagSubmitter)
-			active, _ := cmd.Flags().GetBool(FlagActive)
 
 			if len(submitterAddr) != 0 {
 				_ = sdk.MustAccAddressFromBech32(submitterAddr)
@@ -139,7 +138,6 @@ $ %s query bounty programs --page=2 --limit=100
 			res, err := queryClient.Programs(
 				cmd.Context(),
 				&types.QueryProgramsRequest{
-					Active:     active,
 					Submitter:  submitterAddr,
 					Pagination: pageReq,
 				})
@@ -156,7 +154,6 @@ $ %s query bounty programs --page=2 --limit=100
 	}
 
 	cmd.Flags().String(FlagSubmitter, "", "(optional) filter by programs submitted on by submitter")
-	cmd.Flags().Bool(FlagActive, true, "(optional) filter by programs by active")
 	flags.AddPaginationFlagsToCmd(cmd, "programs")
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
@@ -164,7 +161,7 @@ $ %s query bounty programs --page=2 --limit=100
 
 // GetCmdQueryFinding implements the query finding command.
 func GetCmdQueryFinding() *cobra.Command {
-	//TODO implement this
+	//TODO implement me
 	cmd := &cobra.Command{}
 
 	flags.AddQueryFlagsToCmd(cmd)
@@ -173,7 +170,7 @@ func GetCmdQueryFinding() *cobra.Command {
 
 // GetCmdQueryFindings implements the query findings command.
 func GetCmdQueryFindings() *cobra.Command {
-	//TODO implement this
+	//TODO implement me
 	cmd := &cobra.Command{}
 
 	flags.AddPaginationFlagsToCmd(cmd, "findings")

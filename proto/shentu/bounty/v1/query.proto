@@ -2,11 +2,8 @@ syntax = "proto3";
 package shentu.bounty.v1;
 
 import "gogoproto/gogo.proto";
-import "google/protobuf/any.proto";
 import "google/api/annotations.proto";
 
-import "cosmos/base/v1beta1/coin.proto";
-import "cosmos_proto/cosmos.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 
 import "shentu/bounty/v1/bounty.proto";
@@ -72,14 +69,11 @@ message QueryProgramsRequest {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  // active defines the status of the programs.
-  bool active = 1;
-
   // submitter defines the finder address for the program.
-  string submitter = 2;
+  string submitter = 1;
 
   // pagination defines an optional pagination for the request.
-  cosmos.base.query.v1beta1.PageRequest pagination = 4;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 // QueryProgramsResponse is the response type for the Query/Programs RPC method.
@@ -102,22 +96,23 @@ message QueryProgramResponse {
 }
 
 // QueryFindingRequests is the request type for the Query/Findings RPC method.
+// TODO wait finding path merge
 message QueryFindingsRequest {
   // program_id defines the unique id of the bounty program.
   uint64 program_id = 1;
-  // submitter defines the finder address for the program.
-  string submitter = 2;
-  // severity_level defines the finding of the severity level.
-  SeverityLevel severity_level = 3;
+//  // submitter defines the finder address for the program.
+//  string submitter = 2;
+//  // severity_level defines the finding of the severity level.
+//  SeverityLevel severity_level = 3;
 }
 
 // QueryFindingsResponse is the response type for the Query/Findings RPC method.
 message QueryFindingsResponse {
-  // findings defined the queried findings.
-  repeated Finding findings = 1 [(gogoproto.nullable) = false];
-
-  // pagination defines the pagination in the response.
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+//  // findings defined the queried findings.
+//  repeated Finding findings = 1 [(gogoproto.nullable) = false];
+//
+//  // pagination defines the pagination in the response.
+//  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryFindingRequest is the request type for the Query/Finding RPC method.
@@ -134,6 +129,6 @@ message QueryFindingRequest {
 
 // QueryFindingResponse is the response type for the Query/Finding RPC method.
 message QueryFindingResponse {
-  // finding defined the queried finding.
-  Finding finding = 1 [(gogoproto.nullable) = false];
+//  // finding defined the queried finding.
+//  Finding finding = 1 [(gogoproto.nullable) = false];
 }

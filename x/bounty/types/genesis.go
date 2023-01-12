@@ -12,7 +12,7 @@ func NewGenesisState(constantFee sdk.Coin) *GenesisState {
 // DefaultGenesisState creates a default GenesisState object
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		StartingProgramId: 1,
+		Programs: []Program{},
 	}
 }
 
