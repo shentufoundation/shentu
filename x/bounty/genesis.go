@@ -38,7 +38,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak types.AccountKeeper, bk ty
 
 // ExportGenesis - output genesis parameters
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
-	startingProgramID, _ := k.GetProgramID(ctx)
+	startingProgramID, _ := k.GetNextProgramID(ctx)
 	programs := k.GetPrograms(ctx)
 
 	return &types.GenesisState{
