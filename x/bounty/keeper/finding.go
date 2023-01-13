@@ -87,6 +87,46 @@ func (k Keeper) AppendFidToFidList(ctx sdk.Context, pid, fid uint64) error {
 	return err
 }
 
+func (k Keeper) WithdrawalFinding(ctx sdk.Context, updater sdk.AccAddress, fid uint64) (types.Finding, error) {
+	finding, found := k.GetFinding(ctx, fid)
+	if !found {
+		return types.Finding{}, types.ErrFindingNotExists
+	}
+	submitter, err := sdk.AccAddressFromBech32(finding.SubmitterAddress)
+	if err != nil {
+		return types.Finding{}, types.ErrFindingInvalid
+	}
+	if !updater.Equals(submitter) {
+		return types.Finding{}, types.ErrFindingAccessDeny
+	}
+	if !finding.Active {
+		return finding, types.ErrFindingAlreadyInactive
+	}
+	finding.Active = false
+	k.SetFinding(ctx, finding)
+	return finding, nil
+}
+
+func (k Keeper) ReactivateFinding(ctx sdk.Context, updater sdk.AccAddress, fid uint64) (types.Finding, error) {
+	finding, found := k.GetFinding(ctx, fid)
+	if !found {
+		return types.Finding{}, types.ErrFindingNotExists
+	}
+	submitter, err := sdk.AccAddressFromBech32(finding.SubmitterAddress)
+	if err != nil {
+		return types.Finding{}, types.ErrFindingInvalid
+	}
+	if !updater.Equals(submitter) {
+		return types.Finding{}, types.ErrFindingAccessDeny
+	}
+	if finding.Active {
+		return finding, types.ErrFindingAlreadyActive
+	}
+	finding.Active = true
+	k.SetFinding(ctx, finding)
+	return finding, nil
+}
+
 func Uint64sToBytes(list []uint64) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	err := binary.Write(buf, binary.LittleEndian, list)

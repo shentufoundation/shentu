@@ -6,11 +6,6 @@ package types
 import (
 	context "context"
 	fmt "fmt"
-	io "io"
-	math "math"
-	math_bits "math/bits"
-	time "time"
-
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types1 "github.com/cosmos/cosmos-sdk/types"
@@ -23,6 +18,10 @@ import (
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -204,65 +203,223 @@ func (m *MsgSubmitFindingResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSubmitFindingResponse proto.InternalMessageInfo
 
+type MsgWithdrawalFinding struct {
+	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty" yaml:"from"`
+	Fid  uint64 `protobuf:"varint,2,opt,name=fid,proto3" json:"fid,omitempty" yaml:"id"`
+}
+
+func (m *MsgWithdrawalFinding) Reset()         { *m = MsgWithdrawalFinding{} }
+func (m *MsgWithdrawalFinding) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawalFinding) ProtoMessage()    {}
+func (*MsgWithdrawalFinding) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{4}
+}
+func (m *MsgWithdrawalFinding) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawalFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawalFinding.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawalFinding) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawalFinding.Merge(m, src)
+}
+func (m *MsgWithdrawalFinding) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawalFinding) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawalFinding.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawalFinding proto.InternalMessageInfo
+
+type MsgWithdrawalFindingResponse struct {
+}
+
+func (m *MsgWithdrawalFindingResponse) Reset()         { *m = MsgWithdrawalFindingResponse{} }
+func (m *MsgWithdrawalFindingResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawalFindingResponse) ProtoMessage()    {}
+func (*MsgWithdrawalFindingResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{5}
+}
+func (m *MsgWithdrawalFindingResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawalFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawalFindingResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawalFindingResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawalFindingResponse.Merge(m, src)
+}
+func (m *MsgWithdrawalFindingResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawalFindingResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawalFindingResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawalFindingResponse proto.InternalMessageInfo
+
+type MsgReactivateFinding struct {
+	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty" yaml:"from"`
+	Fid  uint64 `protobuf:"varint,2,opt,name=fid,proto3" json:"fid,omitempty" yaml:"id"`
+}
+
+func (m *MsgReactivateFinding) Reset()         { *m = MsgReactivateFinding{} }
+func (m *MsgReactivateFinding) String() string { return proto.CompactTextString(m) }
+func (*MsgReactivateFinding) ProtoMessage()    {}
+func (*MsgReactivateFinding) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{6}
+}
+func (m *MsgReactivateFinding) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgReactivateFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgReactivateFinding.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgReactivateFinding) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgReactivateFinding.Merge(m, src)
+}
+func (m *MsgReactivateFinding) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgReactivateFinding) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgReactivateFinding.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgReactivateFinding proto.InternalMessageInfo
+
+type MsgReactivateFindingResponse struct {
+}
+
+func (m *MsgReactivateFindingResponse) Reset()         { *m = MsgReactivateFindingResponse{} }
+func (m *MsgReactivateFindingResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgReactivateFindingResponse) ProtoMessage()    {}
+func (*MsgReactivateFindingResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{7}
+}
+func (m *MsgReactivateFindingResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgReactivateFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgReactivateFindingResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgReactivateFindingResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgReactivateFindingResponse.Merge(m, src)
+}
+func (m *MsgReactivateFindingResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgReactivateFindingResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgReactivateFindingResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgReactivateFindingResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgCreateProgram)(nil), "shentu.bounty.v1.MsgCreateProgram")
 	proto.RegisterType((*MsgCreateProgramResponse)(nil), "shentu.bounty.v1.MsgCreateProgramResponse")
 	proto.RegisterType((*MsgSubmitFinding)(nil), "shentu.bounty.v1.MsgSubmitFinding")
 	proto.RegisterType((*MsgSubmitFindingResponse)(nil), "shentu.bounty.v1.MsgSubmitFindingResponse")
+	proto.RegisterType((*MsgWithdrawalFinding)(nil), "shentu.bounty.v1.MsgWithdrawalFinding")
+	proto.RegisterType((*MsgWithdrawalFindingResponse)(nil), "shentu.bounty.v1.MsgWithdrawalFindingResponse")
+	proto.RegisterType((*MsgReactivateFinding)(nil), "shentu.bounty.v1.MsgReactivateFinding")
+	proto.RegisterType((*MsgReactivateFindingResponse)(nil), "shentu.bounty.v1.MsgReactivateFindingResponse")
 }
 
 func init() { proto.RegisterFile("shentu/bounty/v1/tx.proto", fileDescriptor_1e4b4296bac3db30) }
 
 var fileDescriptor_1e4b4296bac3db30 = []byte{
-	// 756 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x54, 0xcd, 0x4e, 0xdb, 0x4a,
-	0x18, 0x8d, 0x49, 0xe0, 0xde, 0x0c, 0x4a, 0xe0, 0x1a, 0x2e, 0x72, 0xa2, 0x7b, 0xe3, 0xc8, 0x52,
-	0x11, 0x42, 0xc2, 0x56, 0xd2, 0x55, 0xd9, 0x61, 0x4a, 0x2b, 0x44, 0xa9, 0x2a, 0x53, 0xa9, 0x52,
-	0x37, 0x96, 0x63, 0x0f, 0x66, 0x44, 0xec, 0xb1, 0x3c, 0x93, 0x08, 0xbf, 0x41, 0x97, 0x3c, 0x02,
-	0x0f, 0xd1, 0x77, 0x28, 0xea, 0x8a, 0x65, 0xd5, 0x85, 0x5b, 0xc1, 0xa6, 0xea, 0x32, 0xea, 0x03,
-	0x54, 0xf3, 0x93, 0xc4, 0x09, 0xb4, 0x5d, 0x25, 0xf3, 0x9d, 0x33, 0xdf, 0x7c, 0x73, 0xce, 0xf1,
-	0x80, 0x06, 0x39, 0x83, 0x31, 0x1d, 0x58, 0x3d, 0x3c, 0x88, 0x69, 0x66, 0x0d, 0x3b, 0x16, 0xbd,
-	0x30, 0x93, 0x14, 0x53, 0xac, 0xae, 0x0a, 0xc8, 0x14, 0x90, 0x39, 0xec, 0x34, 0xd7, 0x43, 0x1c,
-	0x62, 0x0e, 0x5a, 0xec, 0x9f, 0xe0, 0x35, 0xf5, 0x10, 0xe3, 0xb0, 0x0f, 0x2d, 0xbe, 0xea, 0x0d,
-	0x4e, 0x2d, 0x8a, 0x22, 0x48, 0xa8, 0x17, 0x25, 0x92, 0xd0, 0xf0, 0x31, 0x89, 0x30, 0x71, 0xc5,
-	0x4e, 0xb1, 0x18, 0x43, 0xf3, 0x7b, 0xbd, 0x38, 0x93, 0x50, 0x4b, 0x10, 0xad, 0x9e, 0x47, 0xa0,
-	0x35, 0xec, 0xf4, 0x20, 0xf5, 0x3a, 0x96, 0x8f, 0x51, 0x2c, 0xf1, 0xff, 0xef, 0x4d, 0x2e, 0x07,
-	0xe5, 0xb0, 0xf1, 0xa3, 0x0c, 0x56, 0x8f, 0x49, 0xb8, 0x9f, 0x42, 0x8f, 0xc2, 0x57, 0x29, 0x0e,
-	0x53, 0x2f, 0x52, 0xdb, 0x60, 0x39, 0x80, 0xc4, 0x4f, 0x51, 0x42, 0x11, 0x8e, 0x35, 0xa5, 0xad,
-	0x6c, 0x55, 0x9d, 0x62, 0x49, 0x7d, 0x03, 0x56, 0x7c, 0x1c, 0x45, 0x88, 0x10, 0x84, 0x63, 0x37,
-	0xf5, 0x28, 0xd4, 0x16, 0x18, 0xcb, 0x36, 0xaf, 0x73, 0xbd, 0xf4, 0x39, 0xd7, 0x37, 0x43, 0x44,
-	0xcf, 0x06, 0x3d, 0xd3, 0xc7, 0x91, 0xbc, 0x8a, 0xfc, 0xd9, 0x21, 0xc1, 0xb9, 0x45, 0xb3, 0x04,
-	0x12, 0xf3, 0x29, 0xf4, 0x9d, 0xfa, 0xb4, 0x8d, 0xe3, 0x51, 0xa8, 0xa6, 0x60, 0x8d, 0x0c, 0x7a,
-	0xe3, 0xc6, 0x30, 0x0e, 0x5c, 0x26, 0x93, 0x56, 0x6e, 0x2b, 0x5b, 0xcb, 0xdd, 0xa6, 0x29, 0x74,
-	0x30, 0xc7, 0x3a, 0x98, 0xaf, 0xc7, 0x1a, 0xda, 0x9b, 0xec, 0xe0, 0x51, 0xae, 0x37, 0x33, 0x2f,
-	0xea, 0xef, 0x1a, 0x0f, 0x34, 0x31, 0x2e, 0xbf, 0xe8, 0x8a, 0xf3, 0xcf, 0x14, 0x39, 0x88, 0x03,
-	0xb6, 0x5f, 0xdd, 0x07, 0x2b, 0x3e, 0xbb, 0x3f, 0x4e, 0x5d, 0x2f, 0x08, 0x52, 0x48, 0x88, 0x56,
-	0xe1, 0x97, 0x69, 0x8e, 0x72, 0x7d, 0x43, 0xf4, 0x9b, 0x23, 0x18, 0x4e, 0x5d, 0x56, 0xf6, 0x44,
-	0x41, 0x0d, 0x41, 0x1d, 0xc6, 0x7e, 0x9a, 0x71, 0x7d, 0xdc, 0x73, 0x98, 0x69, 0x8b, 0x7c, 0xe6,
-	0xf5, 0x7b, 0x33, 0xef, 0xc5, 0x99, 0xbd, 0x3d, 0xca, 0xf5, 0x7f, 0x45, 0xe7, 0xd9, 0x5d, 0xc6,
-	0xc7, 0xf7, 0x3b, 0xb5, 0x83, 0x49, 0xe9, 0x08, 0x66, 0x4e, 0x0d, 0x16, 0x97, 0xea, 0x13, 0xf0,
-	0x57, 0x00, 0x13, 0x4c, 0x10, 0xd5, 0x96, 0xda, 0xe5, 0xad, 0xe5, 0x6e, 0xc3, 0x94, 0x59, 0x61,
-	0x11, 0x30, 0x65, 0x04, 0xcc, 0x7d, 0x8c, 0x62, 0xbb, 0xc2, 0x44, 0x71, 0xc6, 0xfc, 0xdd, 0xbf,
-	0xdf, 0x5d, 0xe9, 0xa5, 0x6f, 0x57, 0x7a, 0xc9, 0x78, 0x09, 0xb4, 0x79, 0xd7, 0x1d, 0x48, 0x12,
-	0x1c, 0x13, 0xa8, 0x76, 0x01, 0x48, 0x44, 0xc9, 0x45, 0x01, 0x37, 0xbf, 0x62, 0xaf, 0x7d, 0xcf,
-	0xf5, 0x05, 0x14, 0x8c, 0x72, 0xbd, 0x2a, 0xa6, 0x46, 0x81, 0xe1, 0x54, 0x25, 0xed, 0x30, 0x30,
-	0x6e, 0x16, 0x78, 0x8c, 0x4e, 0x98, 0xb6, 0xf4, 0x19, 0x8a, 0x03, 0x14, 0x87, 0xea, 0x3a, 0x58,
-	0xa4, 0x88, 0xf6, 0xa1, 0x0c, 0x90, 0x58, 0xa8, 0xdb, 0xa0, 0xc2, 0x92, 0x24, 0xf3, 0xb2, 0x31,
-	0xca, 0x75, 0x55, 0xb4, 0x2c, 0xe4, 0xcb, 0x70, 0x38, 0x47, 0x6d, 0x83, 0x72, 0x82, 0x02, 0xee,
-	0x7e, 0xc5, 0xae, 0x8f, 0x72, 0x1d, 0x08, 0x6a, 0xc2, 0x8e, 0x67, 0x90, 0xea, 0x81, 0x3a, 0x81,
-	0x43, 0x98, 0x22, 0x9a, 0xb9, 0x7d, 0x38, 0x84, 0x7d, 0x6e, 0x5d, 0xbd, 0xab, 0x9b, 0xf3, 0x9f,
-	0xa5, 0x79, 0x22, 0x79, 0x2f, 0x18, 0xcd, 0x6e, 0x4c, 0x1d, 0x98, 0x6d, 0x60, 0x38, 0x35, 0x52,
-	0x64, 0xf2, 0x21, 0xb0, 0xcf, 0xed, 0xac, 0xce, 0x0c, 0x81, 0x7d, 0x36, 0x04, 0xf6, 0xd5, 0x43,
-	0x20, 0x52, 0x45, 0x29, 0x9c, 0x46, 0x68, 0x89, 0xf3, 0xff, 0x1b, 0xe5, 0xba, 0x56, 0x88, 0x64,
-	0x91, 0x62, 0x38, 0xab, 0x93, 0x9a, 0x8c, 0x51, 0xc1, 0xa2, 0xe7, 0xdc, 0xa2, 0x19, 0x45, 0x27,
-	0x16, 0x3d, 0x02, 0xe5, 0xd3, 0xdf, 0x7b, 0xc3, 0xf0, 0xdd, 0x0a, 0x6b, 0xd6, 0xfd, 0xa0, 0x80,
-	0xf2, 0x31, 0x09, 0x55, 0x17, 0xd4, 0x66, 0x3f, 0x73, 0xe3, 0xbe, 0x46, 0xf3, 0xa1, 0x68, 0x6e,
-	0xff, 0x99, 0x33, 0x99, 0xca, 0x05, 0xb5, 0xd9, 0x00, 0x3c, 0x7c, 0xc0, 0x0c, 0xe7, 0x17, 0x07,
-	0x3c, 0x78, 0x6d, 0xfb, 0xe8, 0xfa, 0xb6, 0xa5, 0xdc, 0xdc, 0xb6, 0x94, 0xaf, 0xb7, 0x2d, 0xe5,
-	0xf2, 0xae, 0x55, 0xba, 0xb9, 0x6b, 0x95, 0x3e, 0xdd, 0xb5, 0x4a, 0x6f, 0x3b, 0x85, 0xe7, 0x46,
-	0xf4, 0x3b, 0xc5, 0x83, 0x38, 0xf0, 0x58, 0x98, 0x64, 0xc1, 0xba, 0x18, 0xbf, 0x81, 0xfc, 0xf5,
-	0xe9, 0x2d, 0xf1, 0x0f, 0xf2, 0xf1, 0xcf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x91, 0xa6, 0x6b, 0xa9,
-	0xdb, 0x05, 0x00, 0x00,
+	// 859 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x55, 0x4d, 0x6f, 0xe3, 0x44,
+	0x18, 0x4e, 0x9a, 0x6c, 0xa1, 0x53, 0x25, 0xed, 0xce, 0x96, 0x55, 0x1a, 0x2d, 0x99, 0xc8, 0x88,
+	0xaa, 0xaa, 0xb4, 0xb6, 0x12, 0x4e, 0xf4, 0xb6, 0x2e, 0x0b, 0x5a, 0x2d, 0x45, 0xc8, 0x8b, 0xb4,
+	0x12, 0x17, 0x6b, 0x62, 0x4f, 0xdc, 0x51, 0x63, 0x8f, 0xe5, 0x99, 0x84, 0xf5, 0x3f, 0xe0, 0xb8,
+	0x3f, 0x61, 0xf9, 0x0f, 0xfc, 0x88, 0x8a, 0x53, 0x8f, 0x88, 0x83, 0x41, 0xed, 0x05, 0x71, 0x8c,
+	0xf8, 0x01, 0x68, 0x3e, 0xdc, 0x38, 0x1f, 0x05, 0x2e, 0x7b, 0x4a, 0xe6, 0x7d, 0x9f, 0x79, 0xdf,
+	0xc7, 0xef, 0xf3, 0xcc, 0x0c, 0x38, 0xe4, 0x17, 0x24, 0x11, 0x53, 0x67, 0xc4, 0xa6, 0x89, 0xc8,
+	0x9d, 0xd9, 0xc0, 0x11, 0x6f, 0xec, 0x34, 0x63, 0x82, 0xc1, 0x7d, 0x9d, 0xb2, 0x75, 0xca, 0x9e,
+	0x0d, 0xba, 0x07, 0x11, 0x8b, 0x98, 0x4a, 0x3a, 0xf2, 0x9f, 0xc6, 0x75, 0x51, 0xc4, 0x58, 0x34,
+	0x21, 0x8e, 0x5a, 0x8d, 0xa6, 0x63, 0x47, 0xd0, 0x98, 0x70, 0x81, 0xe3, 0xd4, 0x00, 0x0e, 0x03,
+	0xc6, 0x63, 0xc6, 0x7d, 0xbd, 0x53, 0x2f, 0xca, 0xd4, 0xea, 0x5e, 0x9c, 0xe4, 0x26, 0xd5, 0xd3,
+	0x40, 0x67, 0x84, 0x39, 0x71, 0x66, 0x83, 0x11, 0x11, 0x78, 0xe0, 0x04, 0x8c, 0x26, 0x26, 0xff,
+	0xf1, 0x1a, 0x73, 0x43, 0x54, 0xa5, 0xad, 0xbf, 0x1b, 0x60, 0xff, 0x9c, 0x47, 0x67, 0x19, 0xc1,
+	0x82, 0x7c, 0x9b, 0xb1, 0x28, 0xc3, 0x31, 0xec, 0x83, 0xdd, 0x90, 0xf0, 0x20, 0xa3, 0xa9, 0xa0,
+	0x2c, 0xe9, 0xd4, 0xfb, 0xf5, 0xe3, 0x1d, 0xaf, 0x1a, 0x82, 0xaf, 0xc1, 0x5e, 0xc0, 0xe2, 0x98,
+	0x72, 0x4e, 0x59, 0xe2, 0x67, 0x58, 0x90, 0xce, 0x96, 0x44, 0xb9, 0xf6, 0x55, 0x81, 0x6a, 0xbf,
+	0x15, 0xe8, 0x28, 0xa2, 0xe2, 0x62, 0x3a, 0xb2, 0x03, 0x16, 0x9b, 0x4f, 0x31, 0x3f, 0x4f, 0x79,
+	0x78, 0xe9, 0x88, 0x3c, 0x25, 0xdc, 0xfe, 0x82, 0x04, 0x5e, 0x7b, 0x51, 0xc6, 0xc3, 0x82, 0xc0,
+	0x0c, 0x3c, 0xe2, 0xd3, 0x51, 0x59, 0x98, 0x24, 0xa1, 0x2f, 0xc7, 0xd4, 0x69, 0xf4, 0xeb, 0xc7,
+	0xbb, 0xc3, 0xae, 0xad, 0xe7, 0x60, 0x97, 0x73, 0xb0, 0xbf, 0x2b, 0x67, 0xe8, 0x1e, 0xc9, 0xc6,
+	0xf3, 0x02, 0x75, 0x73, 0x1c, 0x4f, 0x4e, 0xad, 0x0d, 0x45, 0xac, 0xb7, 0xbf, 0xa3, 0xba, 0xf7,
+	0x70, 0x91, 0x79, 0x9e, 0x84, 0x72, 0x3f, 0x3c, 0x03, 0x7b, 0x81, 0xfc, 0x7e, 0x96, 0xf9, 0x38,
+	0x0c, 0x33, 0xc2, 0x79, 0xa7, 0xa9, 0x3e, 0xa6, 0x3b, 0x2f, 0xd0, 0x63, 0x5d, 0x6f, 0x05, 0x60,
+	0x79, 0x6d, 0x13, 0x79, 0xa6, 0x03, 0x30, 0x02, 0x6d, 0x92, 0x04, 0x59, 0xae, 0xe6, 0xe3, 0x5f,
+	0x92, 0xbc, 0xf3, 0x40, 0x71, 0x3e, 0x58, 0xe3, 0xfc, 0x2c, 0xc9, 0xdd, 0x93, 0x79, 0x81, 0x3e,
+	0xd2, 0x95, 0x97, 0x77, 0x59, 0xbf, 0xfc, 0xfc, 0xb4, 0xf5, 0xfc, 0x2e, 0xf4, 0x92, 0xe4, 0x5e,
+	0x8b, 0x54, 0x97, 0xf0, 0x73, 0xf0, 0x41, 0x48, 0x52, 0xc6, 0xa9, 0xe8, 0x6c, 0xf7, 0x1b, 0xc7,
+	0xbb, 0xc3, 0x43, 0xdb, 0x78, 0x45, 0x5a, 0xc0, 0x36, 0x16, 0xb0, 0xcf, 0x18, 0x4d, 0xdc, 0xa6,
+	0x1c, 0x8a, 0x57, 0xe2, 0x4f, 0x3f, 0xfc, 0xf1, 0x1d, 0xaa, 0xfd, 0xf9, 0x0e, 0xd5, 0xac, 0x6f,
+	0x40, 0x67, 0x55, 0x75, 0x8f, 0xf0, 0x94, 0x25, 0x9c, 0xc0, 0x21, 0x00, 0xa9, 0x0e, 0xf9, 0x34,
+	0x54, 0xe2, 0x37, 0xdd, 0x47, 0x7f, 0x15, 0x68, 0x8b, 0x86, 0xf3, 0x02, 0xed, 0x68, 0xd6, 0x34,
+	0xb4, 0xbc, 0x1d, 0x03, 0x7b, 0x11, 0x5a, 0xd7, 0x5b, 0xca, 0x46, 0xaf, 0xe4, 0x6c, 0xc5, 0x97,
+	0x34, 0x09, 0x69, 0x12, 0xc1, 0x03, 0xf0, 0x40, 0x50, 0x31, 0x21, 0xc6, 0x40, 0x7a, 0x01, 0x4f,
+	0x40, 0x53, 0x3a, 0xc9, 0xf8, 0xe5, 0xf1, 0xbc, 0x40, 0x50, 0x97, 0xac, 0xf8, 0xcb, 0xf2, 0x14,
+	0x06, 0xf6, 0x41, 0x23, 0xa5, 0xa1, 0x52, 0xbf, 0xe9, 0xb6, 0xe7, 0x05, 0x02, 0x1a, 0x9a, 0xca,
+	0xf6, 0x32, 0x05, 0x31, 0x68, 0x73, 0x32, 0x23, 0x19, 0x15, 0xb9, 0x3f, 0x21, 0x33, 0x32, 0x51,
+	0xd2, 0xb5, 0x87, 0xc8, 0x5e, 0x3d, 0x96, 0xf6, 0x2b, 0x83, 0xfb, 0x5a, 0xc2, 0xdc, 0xc3, 0x85,
+	0x02, 0xcb, 0x05, 0x2c, 0xaf, 0xc5, 0xab, 0x48, 0x45, 0x82, 0x05, 0x4a, 0xce, 0x9d, 0x25, 0x12,
+	0x2c, 0x90, 0x24, 0x58, 0x00, 0x5f, 0x00, 0xed, 0x2a, 0x21, 0xc8, 0xc2, 0x42, 0xdb, 0x0a, 0xff,
+	0x64, 0x5e, 0xa0, 0x4e, 0xc5, 0x92, 0x55, 0x88, 0xe5, 0xed, 0xdf, 0xc5, 0x8c, 0x8d, 0x2a, 0x12,
+	0x7d, 0xa5, 0x24, 0x5a, 0x9a, 0xe8, 0x9d, 0x44, 0x9f, 0x82, 0xc6, 0xf8, 0xdf, 0xb5, 0x91, 0xf9,
+	0xd3, 0xa6, 0x2c, 0x66, 0x8d, 0xc1, 0xc1, 0x39, 0x8f, 0x5e, 0x53, 0x71, 0x11, 0x66, 0xf8, 0x07,
+	0x3c, 0x29, 0xe5, 0xf9, 0x04, 0x34, 0xc7, 0x19, 0x8b, 0xb5, 0x3a, 0xee, 0xde, 0xbc, 0x40, 0xbb,
+	0x7a, 0xbf, 0x8c, 0x5a, 0x9e, 0x4a, 0x42, 0xa4, 0x3b, 0x6d, 0xa9, 0x4e, 0xad, 0x0d, 0x3d, 0x16,
+	0x84, 0x7b, 0xe0, 0xc9, 0xa6, 0x3e, 0x25, 0x69, 0xc3, 0xc3, 0x23, 0x38, 0x10, 0x74, 0x86, 0x05,
+	0x79, 0xbf, 0x3c, 0xd6, 0xfa, 0x94, 0x3c, 0x86, 0x3f, 0x35, 0x40, 0xe3, 0x9c, 0x47, 0xd0, 0x07,
+	0xad, 0xe5, 0x6b, 0xcf, 0x5a, 0xf7, 0xcc, 0xea, 0x21, 0xe9, 0x9e, 0xfc, 0x37, 0xe6, 0x4e, 0x25,
+	0x1f, 0xb4, 0x96, 0x0f, 0xc4, 0xe6, 0x06, 0x4b, 0x98, 0x7b, 0x1a, 0x6c, 0xb6, 0xc1, 0x25, 0x78,
+	0xb8, 0x2e, 0xeb, 0xd1, 0xc6, 0x02, 0x6b, 0xb8, 0xae, 0xfd, 0xff, 0x70, 0xd5, 0x66, 0xeb, 0xda,
+	0x6d, 0x6e, 0xb6, 0x86, 0xbb, 0xa7, 0xd9, 0xbd, 0x1a, 0xb9, 0x2f, 0xaf, 0x6e, 0x7a, 0xf5, 0xeb,
+	0x9b, 0x5e, 0xfd, 0x8f, 0x9b, 0x5e, 0xfd, 0xed, 0x6d, 0xaf, 0x76, 0x7d, 0xdb, 0xab, 0xfd, 0x7a,
+	0xdb, 0xab, 0x7d, 0x3f, 0xa8, 0x3c, 0x2c, 0xba, 0xe6, 0x98, 0x4d, 0x93, 0x10, 0xcb, 0x6b, 0xc3,
+	0x04, 0x9c, 0x37, 0xe5, 0x6b, 0xa7, 0xde, 0x99, 0xd1, 0xb6, 0xba, 0x7a, 0x3f, 0xfb, 0x27, 0x00,
+	0x00, 0xff, 0xff, 0x5f, 0x79, 0x67, 0xc5, 0xc5, 0x07, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -281,6 +438,10 @@ type MsgClient interface {
 	CreateProgram(ctx context.Context, in *MsgCreateProgram, opts ...grpc.CallOption) (*MsgCreateProgramResponse, error)
 	// SubmitFinding defines a method for submitting a new finding.
 	SubmitFinding(ctx context.Context, in *MsgSubmitFinding, opts ...grpc.CallOption) (*MsgSubmitFindingResponse, error)
+	// WithdrawalFinding defines a mathod for inactive the specific finding
+	WithdrawalFinding(ctx context.Context, in *MsgWithdrawalFinding, opts ...grpc.CallOption) (*MsgWithdrawalFindingResponse, error)
+	// ReactivateFinding defines a mathod for inactive the specific finding
+	ReactivateFinding(ctx context.Context, in *MsgReactivateFinding, opts ...grpc.CallOption) (*MsgReactivateFindingResponse, error)
 }
 
 type msgClient struct {
@@ -309,12 +470,34 @@ func (c *msgClient) SubmitFinding(ctx context.Context, in *MsgSubmitFinding, opt
 	return out, nil
 }
 
+func (c *msgClient) WithdrawalFinding(ctx context.Context, in *MsgWithdrawalFinding, opts ...grpc.CallOption) (*MsgWithdrawalFindingResponse, error) {
+	out := new(MsgWithdrawalFindingResponse)
+	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/WithdrawalFinding", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) ReactivateFinding(ctx context.Context, in *MsgReactivateFinding, opts ...grpc.CallOption) (*MsgReactivateFindingResponse, error) {
+	out := new(MsgReactivateFindingResponse)
+	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/ReactivateFinding", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// CreateProgram defines a method for creating a new program.
 	CreateProgram(context.Context, *MsgCreateProgram) (*MsgCreateProgramResponse, error)
 	// SubmitFinding defines a method for submitting a new finding.
 	SubmitFinding(context.Context, *MsgSubmitFinding) (*MsgSubmitFindingResponse, error)
+	// WithdrawalFinding defines a mathod for inactive the specific finding
+	WithdrawalFinding(context.Context, *MsgWithdrawalFinding) (*MsgWithdrawalFindingResponse, error)
+	// ReactivateFinding defines a mathod for inactive the specific finding
+	ReactivateFinding(context.Context, *MsgReactivateFinding) (*MsgReactivateFindingResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -326,6 +509,12 @@ func (*UnimplementedMsgServer) CreateProgram(ctx context.Context, req *MsgCreate
 }
 func (*UnimplementedMsgServer) SubmitFinding(ctx context.Context, req *MsgSubmitFinding) (*MsgSubmitFindingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitFinding not implemented")
+}
+func (*UnimplementedMsgServer) WithdrawalFinding(ctx context.Context, req *MsgWithdrawalFinding) (*MsgWithdrawalFindingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WithdrawalFinding not implemented")
+}
+func (*UnimplementedMsgServer) ReactivateFinding(ctx context.Context, req *MsgReactivateFinding) (*MsgReactivateFindingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReactivateFinding not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -368,6 +557,42 @@ func _Msg_SubmitFinding_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_WithdrawalFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgWithdrawalFinding)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).WithdrawalFinding(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/shentu.bounty.v1.Msg/WithdrawalFinding",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).WithdrawalFinding(ctx, req.(*MsgWithdrawalFinding))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_ReactivateFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgReactivateFinding)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ReactivateFinding(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/shentu.bounty.v1.Msg/ReactivateFinding",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ReactivateFinding(ctx, req.(*MsgReactivateFinding))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "shentu.bounty.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -379,6 +604,14 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SubmitFinding",
 			Handler:    _Msg_SubmitFinding_Handler,
+		},
+		{
+			MethodName: "WithdrawalFinding",
+			Handler:    _Msg_WithdrawalFinding_Handler,
+		},
+		{
+			MethodName: "ReactivateFinding",
+			Handler:    _Msg_ReactivateFinding_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -583,6 +816,122 @@ func (m *MsgSubmitFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgWithdrawalFinding) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgWithdrawalFinding) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgWithdrawalFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Fid != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Fid))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.From) > 0 {
+		i -= len(m.From)
+		copy(dAtA[i:], m.From)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.From)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgWithdrawalFindingResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgWithdrawalFindingResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgWithdrawalFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgReactivateFinding) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgReactivateFinding) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgReactivateFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Fid != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Fid))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.From) > 0 {
+		i -= len(m.From)
+		copy(dAtA[i:], m.From)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.From)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgReactivateFindingResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgReactivateFindingResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgReactivateFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -677,6 +1026,56 @@ func (m *MsgSubmitFindingResponse) Size() (n int) {
 	if m.Fid != 0 {
 		n += 1 + sovTx(uint64(m.Fid))
 	}
+	return n
+}
+
+func (m *MsgWithdrawalFinding) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.From)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.Fid != 0 {
+		n += 1 + sovTx(uint64(m.Fid))
+	}
+	return n
+}
+
+func (m *MsgWithdrawalFindingResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgReactivateFinding) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.From)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.Fid != 0 {
+		n += 1 + sovTx(uint64(m.Fid))
+	}
+	return n
+}
+
+func (m *MsgReactivateFindingResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	return n
 }
 
@@ -1279,6 +1678,320 @@ func (m *MsgSubmitFindingResponse) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgWithdrawalFinding) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgWithdrawalFinding: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgWithdrawalFinding: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field From", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.From = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Fid", wireType)
+			}
+			m.Fid = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Fid |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgWithdrawalFindingResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgWithdrawalFindingResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgWithdrawalFindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgReactivateFinding) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgReactivateFinding: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgReactivateFinding: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field From", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.From = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Fid", wireType)
+			}
+			m.Fid = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Fid |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgReactivateFindingResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgReactivateFindingResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgReactivateFindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])

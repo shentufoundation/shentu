@@ -28,6 +28,8 @@ func NewTxCmd() *cobra.Command {
 	bountyTxCmds.AddCommand(
 		NewCreateProgramCmd(),
 		NewSubmitFindingCmd(),
+		NewWithdrawalFindingCmd(),
+		NewReactivateFindingCmd(),
 	)
 
 	return bountyTxCmds
@@ -172,7 +174,7 @@ func NewSubmitFindingCmd() *cobra.Command {
 
 	cmd.Flags().String(FlagFindingDesc, "", "The finding description")
 	cmd.Flags().String(FlagFindingTitle, "", "The finding's title")
-	cmd.Flags().String(FlagFindingPoc, "", "Ths finding's poc")
+	cmd.Flags().String(FlagFindingPoc, "", "The finding's poc")
 	cmd.Flags().Uint64(FlagProgramID, 0, "The program's ID")
 	cmd.Flags().Int32(FlagFindingSeverityLevel, 0, "The finding's severity level")
 	flags.AddTxFlagsToCmd(cmd)
@@ -181,4 +183,60 @@ func NewSubmitFindingCmd() *cobra.Command {
 	_ = cmd.MarkFlagRequired(FlagProgramID)
 
 	return cmd
+}
+
+func NewWithdrawalFindingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "withdrawal-finding",
+		Short: "withdrawal the specific finding",
+		RunE:  setFindingActiveStatus(false),
+	}
+
+	cmd.Flags().Uint64(FlagFindingID, 0, "The finding's ID")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagFindingID)
+	return cmd
+}
+
+func NewReactivateFindingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "reactivate-finding",
+		Short: "reactivate the specific finding",
+		RunE:  setFindingActiveStatus(true),
+	}
+
+	cmd.Flags().Uint64(FlagFindingID, 0, "The finding's ID")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagFindingID)
+	return cmd
+}
+
+func setFindingActiveStatus(active bool) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		clientCtx, err := client.GetClientTxContext(cmd)
+		if err != nil {
+			return err
+		}
+		fromAddr := clientCtx.GetFromAddress()
+		fid, err := cmd.Flags().GetUint64(FlagFindingID)
+		if err != nil {
+			return err
+		}
+		var msg sdk.Msg
+		if active {
+			// Reactivate
+			msg = types.NewMsgReactivateFinding(fromAddr, fid)
+		} else {
+			// Withdrawal
+			msg = types.NewMsgWithdrawalFinding(fromAddr, fid)
+		}
+		if err := msg.ValidateBasic(); err != nil {
+			return err
+		}
+		return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+	}
 }

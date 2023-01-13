@@ -13,5 +13,7 @@ const (
 	FlagFindingSeverityLevel = "severity-level"
 	FlagFindingPoc           = "poc"
 
+	FlagFindingID = "fid"
+
 	dateLayout = "2006-01-02"
 )

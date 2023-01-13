@@ -158,3 +158,57 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		Fid: finding.FindingId,
 	}, nil
 }
+
+func (k msgServer) WithdrawalFinding(goCtx context.Context, msg *types.MsgWithdrawalFinding) (*types.MsgWithdrawalFindingResponse, error) {
+	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	_, err = k.Keeper.WithdrawalFinding(ctx, fromAddr, msg.Fid)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeWithdrawalFinding,
+			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(msg.Fid, 10)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
+	})
+
+	return &types.MsgWithdrawalFindingResponse{}, nil
+}
+
+func (k msgServer) ReactivateFinding(goCtx context.Context, msg *types.MsgReactivateFinding) (*types.MsgReactivateFindingResponse, error) {
+	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	_, err = k.Keeper.ReactivateFinding(ctx, fromAddr, msg.Fid)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeReactivateFinding,
+			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(msg.Fid, 10)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
+	})
+
+	return &types.MsgReactivateFindingResponse{}, nil
+}

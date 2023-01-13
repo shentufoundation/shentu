@@ -11,8 +11,10 @@ import (
 )
 
 const (
-	TypeMsgCreateProgram = "create_program"
-	TypeMsgSubmitFinding = "submit_finding"
+	TypeMsgCreateProgram     = "create_program"
+	TypeMsgSubmitFinding     = "submit_finding"
+	TypeMsgWithdrawalFinding = "withdrawal_finding"
+	TypeMsgReactivateFinding = "reactivate_finding"
 )
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
@@ -130,6 +132,90 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 
 	if msg.Pid == 0 {
 		return errors.New("empty pid is not allowed")
+	}
+	return nil
+}
+
+// NewMsgWithdrawalFinding withdrawal a specific finding
+func NewMsgWithdrawalFinding(accAddr sdk.AccAddress, findingId uint64) *MsgWithdrawalFinding {
+	return &MsgWithdrawalFinding{
+		From: accAddr.String(),
+		Fid:  findingId,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgWithdrawalFinding) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgWithdrawalFinding) Type() string { return TypeMsgWithdrawalFinding }
+
+// GetSigners implements the sdk.Msg interface
+func (msg MsgWithdrawalFinding) GetSigners() []sdk.AccAddress {
+	// creator should sign the message
+	cAddr, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{cAddr}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg MsgWithdrawalFinding) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgWithdrawalFinding) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+	}
+	if msg.Fid == 0 {
+		return errors.New("empty fid is not allowed")
+	}
+	return nil
+}
+
+// NewMsgReactivateFinding reactivate a specific finding
+func NewMsgReactivateFinding(accAddr sdk.AccAddress, findingId uint64) *MsgReactivateFinding {
+	return &MsgReactivateFinding{
+		From: accAddr.String(),
+		Fid:  findingId,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgReactivateFinding) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgReactivateFinding) Type() string { return TypeMsgReactivateFinding }
+
+// GetSigners implements the sdk.Msg interface
+func (msg MsgReactivateFinding) GetSigners() []sdk.AccAddress {
+	// creator should sign the message
+	cAddr, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{cAddr}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg MsgReactivateFinding) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgReactivateFinding) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+	}
+	if msg.Fid == 0 {
+		return errors.New("empty fid is not allowed")
 	}
 	return nil
 }

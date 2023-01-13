@@ -1,8 +1,10 @@
 package types
 
 const (
-	EventTypeCreateProgram = "create_program"
-	EventTypeSubmitFinding = "submit_finding"
+	EventTypeCreateProgram     = "create_program"
+	EventTypeSubmitFinding     = "submit_finding"
+	EventTypeWithdrawalFinding = "withdrawal_finding"
+	EventTypeReactivateFinding = "reactivate_finding"
 
 	AttributeKeyProgramID = "program_id"
 	AttributeKeyDeposit   = "deposit"

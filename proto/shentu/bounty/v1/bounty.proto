@@ -44,6 +44,7 @@ message Finding {
   SeverityLevel severity_level = 5 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
   google.protobuf.Any encrypted_poc = 6 [(cosmos_proto.accepts_interface) = "EncryptedPoc",(gogoproto.moretags) = "yaml:\"encrypted_poc\""];
   string submitter_address  = 7 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
+  bool active = 8 [ (gogoproto.moretags) = "yaml:\"active\"" ];
 }
 
 message EciesEncryptedDesc {
