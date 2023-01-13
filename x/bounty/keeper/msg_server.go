@@ -33,13 +33,10 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 		return nil, err
 	}
 
-	programID, err := k.GetNextProgramID(ctx)
-	if err != nil {
-		return nil, err
-	}
+	nextID := k.GetNextProgramID(ctx)
 
 	program := types.Program{
-		ProgramId:         programID,
+		ProgramId:         nextID,
 		CreatorAddress:    msg.CreatorAddress,
 		SubmissionEndTime: msg.SubmissionEndTime,
 		Description:       msg.Description,
@@ -50,7 +47,7 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 
 	k.SetProgram(ctx, program)
 
-	k.SetNextProgramID(ctx, programID+1)
+	k.SetNextProgramID(ctx, nextID+1)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -65,5 +62,5 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 		),
 	})
 
-	return &types.MsgCreateProgramResponse{ProgramId: programID}, nil
+	return &types.MsgCreateProgramResponse{ProgramId: nextID}, nil
 }

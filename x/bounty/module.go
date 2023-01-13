@@ -133,15 +133,15 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, &genesisState)
+	InitGenesis(ctx, am.keeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the bounty
 // module.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	eg := ExportGenesis(ctx, am.keeper)
-	return cdc.MustMarshalJSON(eg)
+	// TODO: implement exportgenesis
+	return cdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
