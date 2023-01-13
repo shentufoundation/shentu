@@ -10,10 +10,8 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data *types.GenesisState) {
 	k.SetNextProgramID(ctx, data.StartingProgramId)
 
-	var totalDeposits sdk.Coins
 	for _, program := range data.Programs {
 		k.SetProgram(ctx, program)
-		totalDeposits = totalDeposits.Add(program.Deposit...)
 	}
 }
 
