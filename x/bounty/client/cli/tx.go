@@ -125,6 +125,7 @@ func NewCreateProgramCmd() *cobra.Command {
 	cmd.Flags().String(FlagDesc, "", "The program description.")
 	cmd.Flags().String(FlagCommissionRate, "", "The commission rate for the program")
 	cmd.Flags().String(FlagDeposit, "", "The initial deposit to the program")
+	cmd.Flags().String(FlagSubmissionEndTime, "", "The program's submission end time")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)

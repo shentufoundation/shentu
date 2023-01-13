@@ -7,23 +7,14 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	types1 "github.com/cosmos/cosmos-sdk/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/x/bounty/keeper"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
-)
-
-var (
-	acc1 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc2 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc3 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc4 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 )
 
 // shared setup
@@ -41,22 +32,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.BountyKeeper
 
-	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
-		err := sdksimapp.FundAccount(
-			suite.app.BankKeeper,
-			suite.ctx,
-			acc,
-			sdk.NewCoins(
-				sdk.NewCoin("uctk", sdk.NewInt(10000000000)), // 1,000 CTK
-			),
-		)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
-	//suite.keeper.SetCertifier(suite.ctx, types.NewCertifier(suite.address[0], "", suite.address[0], ""))
+	suite.address = shentuapp.AddTestAddrs(suite.app, suite.ctx, 4, sdk.NewInt(1e10))
 }
 
 func TestKeeperTestSuite(t *testing.T) {
