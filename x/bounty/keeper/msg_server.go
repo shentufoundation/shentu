@@ -79,13 +79,13 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	program, isExist := k.GetProgram(ctx, msg.Pid)
+	program, isExist := k.GetProgram(ctx, msg.ProgramId)
 	if !isExist {
-		return nil, fmt.Errorf("no program id:%d", msg.Pid)
+		return nil, fmt.Errorf("no program id:%d", msg.ProgramId)
 	}
 
 	if !program.Active {
-		return nil, fmt.Errorf("program id:%d is closed", msg.Pid)
+		return nil, fmt.Errorf("program id:%d is closed", msg.ProgramId)
 	}
 
 	var eciesEncKey ecies.PublicKey
@@ -104,7 +104,7 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		return nil, err
 	}
 
-	nextID := k.GetNextFindingID(ctx)
+	findingID := k.GetNextFindingID(ctx)
 
 	var descAny *codectypes.Any
 	var pocAny *codectypes.Any
@@ -124,29 +124,29 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 	}
 
 	finding := types.Finding{
-		FindingId:        nextID,
+		FindingId:        findingID,
 		Title:            msg.Title,
 		EncryptedDesc:    descAny,
-		Pid:              msg.Pid,
+		ProgramId:        msg.ProgramId,
 		SeverityLevel:    msg.SeverityLevel,
 		EncryptedPoc:     pocAny,
 		SubmitterAddress: msg.SubmitterAddress,
 		FindingStatus:    types.FindingStatusUnConfirmed,
 	}
 
-	err = k.AppendFidToFidList(ctx, msg.Pid, nextID)
+	err = k.AppendFidToFidList(ctx, msg.ProgramId, findingID)
 	if err != nil {
 		return nil, err
 	}
 
 	k.SetFinding(ctx, finding)
-	k.SetNextFindingID(ctx, nextID+1)
+	k.SetNextFindingID(ctx, findingID+1)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSubmitFinding,
 			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(finding.FindingId, 10)),
-			sdk.NewAttribute(types.AttributeKeyProgramID, strconv.FormatUint(finding.Pid, 10)),
+			sdk.NewAttribute(types.AttributeKeyProgramID, strconv.FormatUint(finding.ProgramId, 10)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -156,6 +156,6 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 	})
 
 	return &types.MsgSubmitFindingResponse{
-		Fid: finding.FindingId,
+		FindingId: finding.FindingId,
 	}, nil
 }

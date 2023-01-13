@@ -9,8 +9,8 @@ const (
 
 	FlagFindingTitle         = "title"
 	FlagFindingDesc          = "desc"
-	FlagProgramID            = "pid"
-	FlagFindingSeverityLevel = "severity-level"
+	FlagProgramID            = "program_id"
+	FlagFindingSeverityLevel = "severity_level"
 	FlagFindingPoc           = "poc"
 
 	dateLayout = "2006-01-02"
