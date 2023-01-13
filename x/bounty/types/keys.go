@@ -10,6 +10,8 @@ const (
 	RouterKey = ModuleName
 
 	StoreKey = ModuleName
+
+	QuerierRoute = ModuleName
 )
 
 var (

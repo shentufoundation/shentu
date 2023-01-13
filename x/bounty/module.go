@@ -19,6 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
+	"github.com/shentufoundation/shentu/v2/x/bounty/client/rest"
 	"github.com/shentufoundation/shentu/v2/x/bounty/keeper"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
@@ -59,18 +60,22 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 }
 
 // RegisterRESTRoutes registers no REST routes for the bounty module.
-func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
+func (a AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
+	rest.RegisterHandlers(ctx, rtr)
+}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the capability module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
 // GetTxCmd returns the root tx command for the bounty module.
-func (b AppModuleBasic) GetTxCmd() *cobra.Command {
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.NewTxCmd()
 }
 
 // GetQueryCmd returns no root query command for the bounty module.
-func (AppModuleBasic) GetQueryCmd() *cobra.Command { return nil }
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
+}
 
 // RegisterInterfaces registers interfaces and implementations of the bounty
 // module.
@@ -110,18 +115,19 @@ func (am AppModule) Route() sdk.Route {
 }
 
 // QuerierRoute returns no querier route.
-func (AppModule) QuerierRoute() string { return "" }
+func (AppModule) QuerierRoute() string {
+	return types.QuerierRoute
+}
 
 // LegacyQuerierHandler returns no sdk.Querier.
-func (AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier { return nil }
+func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
+}
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	// TODO: implement querier service
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	//querier := keeper.Querier{Keeper: am.keeper}
-	//types.RegisterQueryServer(cfg.QueryServer(), querier)
-
+	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
 // InitGenesis performs genesis initialization for the bounty module. It returns
