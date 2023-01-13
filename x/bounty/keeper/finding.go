@@ -9,10 +9,6 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-const (
-	ErrorEmptyProgramIDFindingList = "empty finding id list"
-)
-
 func (k Keeper) GetFinding(ctx sdk.Context, id uint64) (types.Finding, bool) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -61,7 +57,7 @@ func (k Keeper) GetPidFindingIDList(ctx sdk.Context, pid uint64) ([]uint64, erro
 	findingIDs := store.Get(types.GetProgramIDFindingListKey(pid))
 
 	if findingIDs == nil {
-		return nil, fmt.Errorf(ErrorEmptyProgramIDFindingList)
+		return nil, fmt.Errorf(types.ErrorEmptyProgramIDFindingList)
 	}
 
 	findingIDList, err := BytesToUint64s(findingIDs)
@@ -73,7 +69,7 @@ func (k Keeper) GetPidFindingIDList(ctx sdk.Context, pid uint64) ([]uint64, erro
 
 func (k Keeper) AppendFidToFidList(ctx sdk.Context, pid, fid uint64) error {
 	fids, err := k.GetPidFindingIDList(ctx, pid)
-	if err.Error() == ErrorEmptyProgramIDFindingList {
+	if err.Error() == types.ErrorEmptyProgramIDFindingList {
 		fids = []uint64{}
 	} else if err != nil {
 		return err

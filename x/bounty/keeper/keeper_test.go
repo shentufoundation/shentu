@@ -139,7 +139,7 @@ func (suite *KeeperTestSuite) TestFinding_GetSet() {
 					{
 						FindingId:        1,
 						Title:            "test finding",
-						Pid:              1,
+						ProgramId:        1,
 						SeverityLevel:    types.SeverityLevelCritical,
 						SubmitterAddress: suite.address[0].String(),
 					},

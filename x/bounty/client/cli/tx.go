@@ -170,7 +170,7 @@ func NewSubmitFindingCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagFindingDesc, "", "The finding description")
+	cmd.Flags().String(FlagFindingDesc, "", "The finding's description")
 	cmd.Flags().String(FlagFindingTitle, "", "The finding's title")
 	cmd.Flags().String(FlagFindingPoc, "", "Ths finding's poc")
 	cmd.Flags().Uint64(FlagProgramID, 0, "The program's ID")
