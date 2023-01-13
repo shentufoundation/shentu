@@ -88,7 +88,7 @@ func NewMsgSubmitFinding(
 	return &MsgSubmitFinding{
 		Title:            title,
 		Desc:             description,
-		Pid:              programID,
+		ProgramId:        programID,
 		SeverityLevel:    SeverityLevel(severityLevel),
 		Poc:              poc,
 		SubmitterAddress: submitterAddress,
@@ -128,7 +128,7 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
 
-	if msg.Pid == 0 {
+	if msg.ProgramId == 0 {
 		return errors.New("empty pid is not allowed")
 	}
 	return nil
