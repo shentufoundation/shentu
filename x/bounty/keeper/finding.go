@@ -46,13 +46,13 @@ func (k Keeper) SetNextFindingID(ctx sdk.Context, id uint64) {
 }
 
 func (k Keeper) SetPidFindingIDList(ctx sdk.Context, pid uint64, findingIds []uint64) error {
-	findingIdList, err := Uint64sToBytes(findingIds)
+	findingIDList, err := Uint64sToBytes(findingIds)
 	if err != nil {
 		return err
 	}
 
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetProgramIDFindingListKey(pid), findingIdList)
+	store.Set(types.GetProgramIDFindingListKey(pid), findingIDList)
 	return nil
 }
 

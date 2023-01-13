@@ -79,16 +79,16 @@ func (msg MsgCreateProgram) ValidateBasic() error {
 
 // NewMsgSubmitFinding submit a new finding.
 func NewMsgSubmitFinding(
-	submitterAddress string, title, description string, programId uint64, severityLevel int32, poc string,
+	submitterAddress string, title, description string, programID uint64, severityLevel int32, poc string,
 ) (*MsgSubmitFinding, error) {
-	if programId == 0 {
+	if programID == 0 {
 		return nil, errors.New("empty pid is not allowed")
 	}
 
 	return &MsgSubmitFinding{
 		Title:            title,
 		Desc:             description,
-		Pid:              programId,
+		Pid:              programID,
 		SeverityLevel:    SeverityLevel(severityLevel),
 		Poc:              poc,
 		SubmitterAddress: submitterAddress,
