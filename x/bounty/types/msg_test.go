@@ -21,35 +21,30 @@ func TestMsgCreateProgram(t *testing.T) {
 	var sET, jET, cET time.Time
 
 	tests := []struct {
-		creatorAddress    string
-		description       string
-		encKey            []byte
-		commissionRate    sdk.Dec
-		deposit           sdk.Coins
-		submissionEndTime time.Time
-		judgingEndTime    time.Time
-		claimEndTime      time.Time
-
-		expectPass bool
+		creatorAddress string
+		description    string
+		encKey         []byte
+		commissionRate sdk.Dec
+		deposit        sdk.Coins
+		expectPass     bool
 	}{
 		{"Test Program", "test pass", encKey,
-			sdk.ZeroDec(), deposit, sET,
-			jET, cET, true,
+			sdk.ZeroDec(), deposit, true,
 		},
 		{"Test Program", "test fail, encKey is nil", nil,
-			sdk.ZeroDec(), deposit, sET,
-			jET, cET, false,
+			sdk.ZeroDec(), deposit, false,
 		},
 	}
 
 	for i, test := range tests {
 		msg, err := NewMsgCreateProgram(test.creatorAddress, test.description, test.encKey, test.commissionRate,
-			test.deposit, test.submissionEndTime, test.judgingEndTime, test.claimEndTime)
+			test.deposit, sET, jET, cET)
 
 		if test.expectPass {
 			require.NoError(t, err)
 			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
 		} else {
+			//
 			//require.Error(t, msg.ValidateBasic(), "test: %v", i)
 		}
 	}
