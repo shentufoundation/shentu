@@ -44,18 +44,52 @@ func (suite *KeeperTestSuite) TestFinding_GetSet() {
 				shouldPass: true,
 			},
 		},
+		{"Finding(2)  -> Set: Simple",
+			args{
+				finding: []types.Finding{
+					{
+						FindingId:        3,
+						Title:            "test findingv3",
+						ProgramId:        3,
+						SeverityLevel:    types.SeverityLevelCritical,
+						SubmitterAddress: suite.address[0].String(),
+					},
+				},
+			},
+			errArgs{
+				shouldPass: true,
+			},
+		},
+		{"Finding(3)  -> get: Simple",
+			args{
+				finding: []types.Finding{
+					{
+						FindingId:        30,
+						Title:            "",
+						ProgramId:        3,
+						SeverityLevel:    types.SeverityLevelCritical,
+						SubmitterAddress: suite.address[0].String(),
+					},
+				},
+			},
+			errArgs{
+				shouldPass: false,
+			},
+		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			for _, finding := range tc.args.finding {
-				suite.keeper.SetFinding(suite.ctx, finding)
-				findingResult, result := suite.keeper.GetFinding(suite.ctx, finding.FindingId)
-				if !result {
-					panic("error")
-				}
-				if findingResult.FindingId != finding.FindingId {
-					panic("error")
+				if tc.errArgs.shouldPass {
+					suite.keeper.SetFinding(suite.ctx, finding)
+					findingResult, result := suite.keeper.GetFinding(suite.ctx, finding.FindingId)
+
+					suite.Require().True(result)
+					suite.Require().Equal(findingResult.FindingId, finding.FindingId)
+				} else {
+					_, result := suite.keeper.GetFinding(suite.ctx, finding.FindingId)
+					suite.Require().False(result)
 				}
 			}
 		})

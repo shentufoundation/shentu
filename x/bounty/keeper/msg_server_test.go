@@ -93,6 +93,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 	}
 
 	programId := suite.InitCreateProgram()
+	errorProgramId := suite.InitCreateErrorProgram()
 
 	tests := []struct {
 		name    string
@@ -133,6 +134,40 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 				shouldPass: false,
 			},
 		},
+		{"Submit finding(3)  -> submit: Simple",
+			args{
+				msgSubmitFindings: []types.MsgSubmitFinding{
+					{
+						Title:            "Test bug 2",
+						Desc:             "This is real bug 2",
+						ProgramId:        200,
+						Poc:              "bug2",
+						SeverityLevel:    types.SeverityLevelCritical,
+						SubmitterAddress: "test address",
+					},
+				},
+			},
+			errArgs{
+				shouldPass: false,
+			},
+		},
+		{"Submit finding(4)  -> submit: Simple",
+			args{
+				msgSubmitFindings: []types.MsgSubmitFinding{
+					{
+						Title:            "Test bug 2",
+						Desc:             "This is real bug 2",
+						ProgramId:        errorProgramId,
+						Poc:              "bug2",
+						SeverityLevel:    types.SeverityLevelCritical,
+						SubmitterAddress: "test address",
+					},
+				},
+			},
+			errArgs{
+				shouldPass: false,
+			},
+		},
 	}
 
 	for _, tc := range tests {
@@ -163,6 +198,38 @@ func (suite *KeeperTestSuite) InitCreateProgram() uint64 {
 
 	encKeyMsg := types.EciesPubKey{
 		EncryptionKey: encPubKey,
+	}
+	encAny, _ := codectypes.NewAnyWithValue(&encKeyMsg)
+
+	deposit1 := types1.NewInt(10000)
+	msgCreateProgram := types.MsgCreateProgram{
+		Description:       "create test1",
+		CommissionRate:    types1.NewDec(1),
+		SubmissionEndTime: time.Now().Add(dd),
+		CreatorAddress:    suite.address[0].String(),
+		EncryptionKey:     encAny,
+		Deposit: []types1.Coin{
+			{
+				Denom:  "uctk",
+				Amount: deposit1,
+			},
+		},
+	}
+
+	ctx := types1.WrapSDKContext(suite.ctx)
+	resp, err := suite.msgServer.CreateProgram(ctx, &msgCreateProgram)
+	suite.Require().NoError(err)
+
+	return resp.ProgramId
+}
+
+func (suite *KeeperTestSuite) InitCreateErrorProgram() uint64 {
+	dd, _ := time.ParseDuration("24h")
+
+	encKeyMsg := types.EciesPubKey{
+		EncryptionKey: []byte{
+			1, 2, 3, 5,
+		},
 	}
 	encAny, _ := codectypes.NewAnyWithValue(&encKeyMsg)
 

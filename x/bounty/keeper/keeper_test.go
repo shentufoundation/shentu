@@ -79,7 +79,6 @@ func (suite *KeeperTestSuite) TestProgram_GetSet() {
 			},
 		},
 	}
-	suite.keeper.SetNextProgramID(suite.ctx, 1)
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
