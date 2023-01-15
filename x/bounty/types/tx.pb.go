@@ -37,7 +37,7 @@ var _ = time.Kitchen
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgCreateProgram defines a SDK message for creating a new validator.
+// MsgCreateProgram defines a SDK message for creating a new program.
 type MsgCreateProgram struct {
 	Description       string                                 `protobuf:"bytes,1,opt,name=description,proto3" json:"description,omitempty"`
 	CommissionRate    github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=commission_rate,json=commissionRate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"commission_rate"`
@@ -80,7 +80,7 @@ func (m *MsgCreateProgram) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreateProgram proto.InternalMessageInfo
 
-// MsgCreateProgramResponse defines the Msg/CreateValidator response type.
+// MsgCreateProgramResponse defines the Msg/CreateProgram response type.
 type MsgCreateProgramResponse struct {
 	ProgramId uint64 `protobuf:"varint,1,opt,name=program_id,json=programId,proto3" json:"id" yaml:"id"`
 }

@@ -24,7 +24,7 @@ func NewMsgCreateProgram(
 	var encAny *codectypes.Any
 	if encKey != nil {
 		encKeyMsg := EciesPubKey{
-			PubKey: encKey,
+			EncryptionKey: encKey,
 		}
 
 		var err error
@@ -75,6 +75,12 @@ func (msg MsgCreateProgram) GetSignBytes() []byte {
 func (msg MsgCreateProgram) ValidateBasic() error {
 	// TODO: implement ValidateBasic
 	return nil
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgCreateProgram) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey EncryptionKey
+	return unpacker.UnpackAny(msg.EncryptionKey, &pubKey)
 }
 
 // NewMsgSubmitFinding submit a new finding.

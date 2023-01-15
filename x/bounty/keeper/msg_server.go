@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/ethereum/go-ethereum/crypto"
+
 	"github.com/ethereum/go-ethereum/crypto/ecies"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -49,6 +51,7 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 		EncryptionKey:     msg.EncryptionKey,
 		Deposit:           msg.Deposit,
 		CommissionRate:    msg.CommissionRate,
+		Active:            true,
 	}
 
 	k.SetProgram(ctx, program)
@@ -88,18 +91,18 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		return nil, fmt.Errorf("program id:%d is closed", msg.ProgramId)
 	}
 
-	var eciesEncKey ecies.PublicKey
-	err = k.cdc.UnpackAny(program.EncryptionKey, &eciesEncKey)
+	pubEcdsa, err := crypto.UnmarshalPubkey(program.GetEncryptionKey().GetEncryptionKey())
 	if err != nil {
-		return nil, fmt.Errorf("EncryptionKey error")
+		return nil, err
 	}
+	eciesEncKey := ecies.ImportECDSAPublic(pubEcdsa)
 
-	encryptedDesc, err := ecies.Encrypt(rand.Reader, &eciesEncKey, []byte(msg.Desc), nil, nil)
+	encryptedDesc, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(msg.Desc), nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	encryptedPoc, err := ecies.Encrypt(rand.Reader, &eciesEncKey, []byte(msg.Poc), nil, nil)
+	encryptedPoc, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(msg.Poc), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -110,14 +113,14 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 	var pocAny *codectypes.Any
 
 	encDesc := types.EciesEncryptedDesc{
-		Desc: encryptedDesc,
+		EncryptedDesc: encryptedDesc,
 	}
 	if descAny, err = codectypes.NewAnyWithValue(&encDesc); err != nil {
 		return nil, err
 	}
 
 	encPoc := types.EciesEncryptedPoc{
-		Poc: encryptedPoc,
+		EncryptedPoc: encryptedPoc,
 	}
 	if pocAny, err = codectypes.NewAnyWithValue(&encPoc); err != nil {
 		return nil, err

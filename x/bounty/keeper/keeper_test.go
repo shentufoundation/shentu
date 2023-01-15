@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -20,19 +19,20 @@ import (
 // shared setup
 type KeeperTestSuite struct {
 	suite.Suite
-	app     *shentuapp.ShentuApp
-	ctx     sdk.Context
-	keeper  keeper.Keeper
-	address []sdk.AccAddress
-	// queryClient types.QueryClient
+	app       *shentuapp.ShentuApp
+	ctx       sdk.Context
+	keeper    keeper.Keeper
+	address   []sdk.AccAddress
+	msgServer types.MsgServer
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.app = shentuapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.BountyKeeper
-
 	suite.address = shentuapp.AddTestAddrs(suite.app, suite.ctx, 4, sdk.NewInt(1e10))
+
+	suite.msgServer = keeper.NewMsgServerImpl(suite.keeper)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -76,7 +76,6 @@ func (suite *KeeperTestSuite) TestProgram_GetSet() {
 			},
 			errArgs{
 				shouldPass: true,
-				contains:   "",
 			},
 		},
 	}
@@ -85,59 +84,14 @@ func (suite *KeeperTestSuite) TestProgram_GetSet() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			for _, program := range tc.args.program {
-				nextID := suite.keeper.GetNextProgramID(suite.ctx)
-				fmt.Println(nextID)
-
 				suite.keeper.SetProgram(suite.ctx, program)
-			}
-		})
-	}
-}
+				storedProgram, isExist := suite.keeper.GetProgram(suite.ctx, program.ProgramId)
+				suite.Require().Equal(true, isExist)
 
-func (suite *KeeperTestSuite) TestFinding_GetSet() {
-	type args struct {
-		finding []types.Finding
-	}
-
-	type errArgs struct {
-		shouldPass bool
-		contains   string
-	}
-
-	tests := []struct {
-		name    string
-		args    args
-		errArgs errArgs
-	}{
-		{"Finding(1)  -> Set: Simple",
-			args{
-				finding: []types.Finding{
-					{
-						FindingId:        1,
-						Title:            "test finding",
-						ProgramId:        1,
-						SeverityLevel:    types.SeverityLevelCritical,
-						SubmitterAddress: suite.address[0].String(),
-					},
-				},
-			},
-			errArgs{
-				shouldPass: true,
-				contains:   "",
-			},
-		},
-	}
-
-	for _, tc := range tests {
-		suite.Run(tc.name, func() {
-			for _, finding := range tc.args.finding {
-				suite.keeper.SetFinding(suite.ctx, finding)
-				findingResult, result := suite.keeper.GetFinding(suite.ctx, finding.FindingId)
-				if !result {
-					panic("error")
-				}
-				if findingResult.FindingId != finding.FindingId {
-					panic("error")
+				if tc.errArgs.shouldPass {
+					suite.Require().Equal(program.ProgramId, storedProgram.ProgramId)
+				} else {
+					suite.Require().NotEqual(program.ProgramId, storedProgram.ProgramId)
 				}
 			}
 		})

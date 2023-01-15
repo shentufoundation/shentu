@@ -11,6 +11,7 @@ option go_package = "github.com/shentufoundation/shentu/x/bounty/types";
 
 message Program {
   option (gogoproto.equal)            = false;
+  option (gogoproto.goproto_getters) = false;
 
   uint64 program_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
   string creator_address = 2 [ (gogoproto.moretags) = "yaml:\"creator_address\"" ];
@@ -31,11 +32,12 @@ message Program {
 
 message EciesPubKey {
   option (cosmos_proto.implements_interface) = "EncryptionKey";
-  bytes pub_key = 1;
+  bytes encryption_key = 1;
 }
 
 message Finding {
   option (gogoproto.equal)            = false;
+  option (gogoproto.goproto_getters) = false;
 
   uint64 finding_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
   string title = 2 [(gogoproto.moretags) = "yaml:\"title\""];
@@ -49,12 +51,12 @@ message Finding {
 
 message EciesEncryptedDesc {
   option (cosmos_proto.implements_interface) = "EncryptedDesc";
-  bytes desc = 1;
+  bytes encrypted_desc = 1;
 }
 
 message EciesEncryptedPoc {
   option (cosmos_proto.implements_interface) = "EncryptionPoc";
-  bytes poc = 1;
+  bytes encrypted_poc = 1;
 }
 
 enum SeverityLevel {
