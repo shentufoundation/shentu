@@ -104,7 +104,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryPrograms() {
 			func() {
 				req = &types.QueryProgramsRequest{}
 			},
-			false,
+			true,
 		},
 		{
 			"valid request",
