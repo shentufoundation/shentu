@@ -34,21 +34,28 @@ func TestQueries(t *testing.T) {
 	require.Nil(t, bz)
 
 	// program
+	queryProgramParams := &types.QueryProgramParams{ProgramID: 1}
 	req = abci.RequestQuery{
-		Data: []byte{},
+		Data: legacyQuerierCdc.MustMarshalJSON(queryProgramParams),
 		Path: fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryProgram),
 	}
 	bz, err = querier(ctx, programPath, req)
 	require.Error(t, err)
 	require.Nil(t, bz)
 
+	// TODO set some programs
+
 	// programs
+	queryProgramsParams := &types.QueryProgramsParams{
+		Page:  1,
+		Limit: 10,
+	}
 	req = abci.RequestQuery{
-		Data: []byte{},
+		Data: legacyQuerierCdc.MustMarshalJSON(queryProgramsParams),
 		Path: fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryPrograms),
 	}
 
 	bz, err = querier(ctx, programsPath, req)
-	require.Error(t, err)
-	require.Nil(t, bz)
+	require.NoError(t, err)
+	require.NotNil(t, bz)
 }
