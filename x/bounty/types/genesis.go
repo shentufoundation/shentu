@@ -1,12 +1,13 @@
 package types
 
-import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
-
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(constantFee sdk.Coin) *GenesisState {
-	return &GenesisState{}
+func NewGenesisState(startingProgramID, startingFindingID uint64, programs []Program, findings []Finding) *GenesisState {
+	return &GenesisState{
+		StartingProgramId: startingProgramID,
+		StartingFindingId: startingFindingID,
+		Programs:          programs,
+		Findings:          findings,
+	}
 }
 
 // DefaultGenesisState creates a default GenesisState object
