@@ -18,6 +18,12 @@ service Msg {
 
   // SubmitFinding defines a method for submitting a new finding.
   rpc SubmitFinding(MsgSubmitFinding) returns (MsgSubmitFindingResponse);
+
+  // HostAcceptFinding defines a method for host accept a finding.
+  rpc HostAcceptFinding(MsgHostAcceptFinding) returns (MsgHostAcceptFindingResponse);
+
+  // HostRejectFinding defines a method for host reject a finding.
+  rpc HostRejectFinding(MsgHostRejectFinding) returns (MsgHostRejectFindingResponse);
 }
 
 // MsgCreateProgram defines a SDK message for creating a new program.
@@ -59,3 +65,28 @@ message MsgSubmitFindingResponse {
   uint64 finding_id = 1 [(gogoproto.jsontag) = "finding_id", (gogoproto.moretags) = "yaml:\"finding_id\""];
 }
 
+// MsgHostAcceptFinding defines a message to accept a finding to an existing finding.
+message MsgHostAcceptFinding {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string comment = 2 [(gogoproto.moretags) = "yaml:\"comment\""];
+  string host_address  = 6 [(gogoproto.moretags) = "yaml:\"host_address\""];
+}
+
+// MsgHostAcceptFindingResponse defines the Msg/HostAcceptFinding response type.
+message MsgHostAcceptFindingResponse {}
+
+// MsgHostRejectFinding defines a message to accept a reject to an existing finding.
+message MsgHostRejectFinding {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string comment = 2 [(gogoproto.moretags) = "yaml:\"comment\""];
+  string host_address  = 6 [(gogoproto.moretags) = "yaml:\"host_address\""];
+}
+
+// MsgHostRejectFindingResponse defines the Msg/ostRejectFinding response type.
+message MsgHostRejectFindingResponse {}

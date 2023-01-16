@@ -3,12 +3,14 @@ package cli
 import (
 	"crypto/rand"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/version"
+	"strconv"
+	"strings"
 	"time"
-
-	"github.com/spf13/cobra"
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/ecies"
+	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -28,6 +30,8 @@ func NewTxCmd() *cobra.Command {
 	bountyTxCmds.AddCommand(
 		NewCreateProgramCmd(),
 		NewSubmitFindingCmd(),
+		NewHostAcceptFindingCmd(),
+		NewHostRejectFindingCmd(),
 	)
 
 	return bountyTxCmds
@@ -180,6 +184,106 @@ func NewSubmitFindingCmd() *cobra.Command {
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagProgramID)
+
+	return cmd
+}
+
+// NewHostAcceptFindingCmd implements accept a finding by host.
+func NewHostAcceptFindingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "accept-finding [finding-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Host accept a finding for a program",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Host accept a finding for a program.Meantime, you can also add some comments, which will be encrypted.
+Example:
+$ %s tx bounty accept-finding 1 --comment "Looks good to me"
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			// validate that the finding id is uint
+			findingID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("finding-id %s not a valid uint, please input a valid finding-id", args[0])
+			}
+			// Get host address
+			hostAddr := clientCtx.GetFromAddress()
+			comment, err := cmd.Flags().GetString(FlagComment)
+			if err != nil {
+				return err
+			}
+
+			msg, err := types.NewMsgHostAcceptFinding(findingID, comment, hostAddr)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(FlagComment, "", "Host's comment on finding")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagDesc)
+
+	return cmd
+}
+
+// NewHostRejectFindingCmd implements reject a finding by host.
+func NewHostRejectFindingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "reject-finding [finding-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Host reject a finding for a program",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Host reject a finding for a program.Meantime, you can also add some comments, which will be encrypted.
+Example:
+$ %s tx bounty reject-finding 1 --comment "Verified to be an invalid finding"
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			// validate that the finding id is uint
+			findingID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("finding-id %s not a valid uint, please input a valid finding-id", args[0])
+			}
+			// Get host address
+			hostAddr := clientCtx.GetFromAddress()
+			comment, err := cmd.Flags().GetString(FlagComment)
+			if err != nil {
+				return err
+			}
+
+			msg, err := types.NewMsgHostRejectFinding(findingID, comment, hostAddr)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(FlagComment, "", "Host's comment on finding")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagDesc)
 
 	return cmd
 }

@@ -17,6 +17,8 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCreateProgram{},
 		&MsgSubmitFinding{},
+		&MsgHostAcceptFinding{},
+		&MsgHostRejectFinding{},
 	)
 
 	registry.RegisterInterface(
@@ -35,6 +37,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		"shentu.bounty.v1.EncryptedPoc",
 		(*EncryptedPoc)(nil),
 		&EciesEncryptedPoc{},
+	)
+
+	registry.RegisterInterface(
+		"shentu.bounty.v1.EncryptedComment",
+		(*EncryptedCommnet)(nil),
+		&EciesEncryptedComment{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
