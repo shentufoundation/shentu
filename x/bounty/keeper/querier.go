@@ -49,42 +49,28 @@ func queryHost(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 
 func queryPrograms(ctx sdk.Context, _ []string, req abci.RequestQuery, keeper Keeper, cdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryProgramsParams
-	err := cdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
-	}
+	cdc.MustUnmarshalJSON(req.Data, &params)
 
 	programs := keeper.GetProgramsFiltered(ctx, params)
 	if programs == nil {
 		programs = types.Programs{}
 	}
 
-	bz, err := codec.MarshalJSONIndent(cdc, programs)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
+	bz := codec.MustMarshalJSONIndent(cdc, programs)
 
 	return bz, nil
 }
 
 func queryProgram(ctx sdk.Context, _ []string, req abci.RequestQuery, keeper Keeper, cdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryProgramParams
-	err := cdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
-	}
+	cdc.MustUnmarshalJSON(req.Data, &params)
 
 	program, ok := keeper.GetProgram(ctx, params.ProgramID)
 	if !ok {
 		return nil, sdkerrors.Wrapf(types.ErrUnknownProgram, "%d", params.ProgramID)
 	}
 
-	bz, err := codec.MarshalJSONIndent(cdc, program)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-
-	return bz, nil
+	return codec.MustMarshalJSONIndent(cdc, program), nil
 }
 
 func queryFindings(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper, cdc *codec.LegacyAmino) ([]byte, error) {

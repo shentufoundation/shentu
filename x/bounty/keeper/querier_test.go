@@ -2,25 +2,20 @@ package keeper_test
 
 import (
 	"fmt"
-	"testing"
 
-	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/x/bounty/keeper"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-func TestQueries(t *testing.T) {
+func (suite *KeeperTestSuite) TestQueries() {
 	var (
 		programPath  = []string{types.QueryProgram}
 		programsPath = []string{types.QueryPrograms}
 	)
 
-	app := shentuapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	app, ctx := suite.app, suite.ctx
 	legacyQuerierCdc := app.LegacyAmino()
 	querier := keeper.NewQuerier(app.BountyKeeper, legacyQuerierCdc)
 
@@ -30,8 +25,8 @@ func TestQueries(t *testing.T) {
 		Path: "",
 	}
 	bz, err := querier(ctx, []string{"other"}, req)
-	require.Error(t, err)
-	require.Nil(t, bz)
+	suite.Require().Error(err)
+	suite.Require().Nil(bz)
 
 	// program
 	queryProgramParams := &types.QueryProgramParams{ProgramID: 1}
@@ -40,15 +35,16 @@ func TestQueries(t *testing.T) {
 		Path: fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryProgram),
 	}
 	bz, err = querier(ctx, programPath, req)
-	require.Error(t, err)
-	require.Nil(t, bz)
+	suite.Require().Error(err)
+	suite.Require().Nil(bz)
 
-	// TODO set some programs
+	// create programs
+	//suite.CreatePrograms()
 
 	// programs
 	queryProgramsParams := &types.QueryProgramsParams{
 		Page:  1,
-		Limit: 10,
+		Limit: 100,
 	}
 	req = abci.RequestQuery{
 		Data: legacyQuerierCdc.MustMarshalJSON(queryProgramsParams),
@@ -56,6 +52,6 @@ func TestQueries(t *testing.T) {
 	}
 
 	bz, err = querier(ctx, programsPath, req)
-	require.NoError(t, err)
-	require.NotNil(t, bz)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(bz)
 }

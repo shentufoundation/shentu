@@ -73,9 +73,9 @@ func (k Keeper) GetProgramsFiltered(ctx sdk.Context, params types.QueryProgramsP
 	filteredPrograms := make([]types.Program, 0, len(programs))
 
 	// TODO add filter
-	//for k, v := range programs {
-	//
-	//}
+	for _, program := range programs {
+		filteredPrograms = append(filteredPrograms, program)
+	}
 
 	start, end := client.Paginate(len(filteredPrograms), params.Page, params.Limit, types.DefaultLimit)
 	if start < 0 || end < 0 {
