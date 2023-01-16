@@ -16,21 +16,21 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 		k.SetProgram(ctx, program)
 	}
 
-	findingIdMap := make(map[uint64][]uint64)
+	findingIDMap := make(map[uint64][]uint64)
 	for _, finding := range data.Findings {
 		k.SetFinding(ctx, finding)
 
-		findingList, ok := findingIdMap[finding.ProgramId]
+		findingList, ok := findingIDMap[finding.ProgramId]
 		if !ok {
 			findingList = []uint64{finding.FindingId}
 		} else {
 			findingList = append(findingList, finding.FindingId)
 		}
-		findingIdMap[finding.ProgramId] = findingList
+		findingIDMap[finding.ProgramId] = findingList
 	}
 
-	for programId, findingIdList := range findingIdMap {
-		k.SetPidFindingIDList(ctx, programId, findingIdList)
+	for programID, findingIdList := range findingIDMap {
+		k.SetPidFindingIDList(ctx, programID, findingIdList)
 	}
 }
 
@@ -38,16 +38,16 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	var programs []types.Program
 	var findings []types.Finding
 
-	maxFindingId := k.GetNextFindingID(ctx)
-	maxProgramId := k.GetNextProgramID(ctx)
-	for programId := uint64(1); programId < maxProgramId; programId++ {
-		program, ok := k.GetProgram(ctx, programId)
+	maxFindingID := k.GetNextFindingID(ctx)
+	maxProgramID := k.GetNextProgramID(ctx)
+	for programID := uint64(1); programID < maxProgramID; programID++ {
+		program, ok := k.GetProgram(ctx, programID)
 		if ok {
 			programs = append(programs, program)
 
-			findingIds, err := k.GetPidFindingIDList(ctx, program.ProgramId)
+			findingIDs, err := k.GetPidFindingIDList(ctx, program.ProgramId)
 			if err == nil {
-				for _, fid := range findingIds {
+				for _, fid := range findingIDs {
 					finding, ok := k.GetFinding(ctx, fid)
 					if ok {
 						findings = append(findings, finding)
@@ -58,8 +58,8 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	}
 
 	return &types.GenesisState{
-		StartingFindingId: maxFindingId,
-		StartingProgramId: maxProgramId,
+		StartingFindingId: maxFindingID,
+		StartingProgramId: maxProgramID,
 		Programs:          programs,
 		Findings:          findings,
 	}

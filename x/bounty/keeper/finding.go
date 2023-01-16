@@ -31,6 +31,9 @@ func (k Keeper) SetFinding(ctx sdk.Context, finding types.Finding) {
 func (k Keeper) GetNextFindingID(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	Bz := store.Get(types.GetNextFindingIDKey())
+	if Bz == nil {
+		return 1
+	}
 	return binary.LittleEndian.Uint64(Bz)
 }
 

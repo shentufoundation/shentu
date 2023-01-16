@@ -30,6 +30,9 @@ func (k Keeper) SetProgram(ctx sdk.Context, program types.Program) {
 func (k Keeper) GetNextProgramID(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	Bz := store.Get(types.GetNextProgramIDKey())
+	if Bz == nil {
+		return 1
+	}
 	return binary.LittleEndian.Uint64(Bz)
 }
 
