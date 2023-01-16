@@ -5,16 +5,15 @@ import (
 )
 
 // Error Code Enums
-
 const (
-	errUnknownHost uint32 = iota + 101
-	errUnknownProgram
+	errUnknownProgram uint32 = iota + 101
+	errUnknownHost
 	errUnknownFinding
 )
 
 // x/bounty module sentinel errors
 var (
-	ErrUnknownHost    = sdkerrors.Register(ModuleName, errUnknownHost, "unknown host")
 	ErrUnknownProgram = sdkerrors.Register(ModuleName, errUnknownProgram, "unknown program")
+	ErrUnknownHost    = sdkerrors.Register(ModuleName, errUnknownHost, "unknown host")
 	ErrUnknownFinding = sdkerrors.Register(ModuleName, errUnknownFinding, "unknown finding")
 )

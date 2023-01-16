@@ -77,7 +77,7 @@ func (k Keeper) GetProgramsFiltered(ctx sdk.Context, params types.QueryProgramsP
 	//
 	//}
 
-	start, end := client.Paginate(len(filteredPrograms), params.Page, params.Limit, 100)
+	start, end := client.Paginate(len(filteredPrograms), params.Page, params.Limit, types.DefaultLimit)
 	if start < 0 || end < 0 {
 		filteredPrograms = []types.Program{}
 	} else {

@@ -100,6 +100,13 @@ func (suite *KeeperTestSuite) TestGRPCQueryPrograms() {
 		expPass  bool
 	}{
 		{
+			"empty request",
+			func() {
+				req = &types.QueryProgramsRequest{}
+			},
+			false,
+		},
+		{
 			"valid request",
 			func() {
 				req = &types.QueryProgramsRequest{
@@ -131,9 +138,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryPrograms() {
 			testCase.malleate()
 
 			programRes, err := queryClient.Programs(context.Background(), req)
-			fmt.Println(len(programRes.Programs))
 
-			fmt.Println(programRes.Programs)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 			} else {

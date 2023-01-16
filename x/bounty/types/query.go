@@ -8,6 +8,8 @@ const (
 	QueryProgram  = "program"
 	QueryFindings = "findings"
 	QueryFinding  = "finding"
+
+	DefaultLimit = 100
 )
 
 // QueryProgramsParams Params for query 'custom/bounty/programs'
