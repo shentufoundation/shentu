@@ -1,5 +1,7 @@
 package types
 
+import "fmt"
+
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(startingProgramID, startingFindingID uint64, programs []Program, findings []Finding) *GenesisState {
 	return &GenesisState{
@@ -22,6 +24,31 @@ func DefaultGenesisState() *GenesisState {
 
 // ValidateGenesis - validate bounty genesis data
 func ValidateGenesis(data *GenesisState) error {
-	// TODO: implement ValidateGenesis
+	programIds := make(map[uint64]bool)
+	for _, program := range data.Programs {
+		if program.ProgramId > data.StartingProgramId {
+			return fmt.Errorf("error program id")
+		}
+
+		_, ok := programIds[program.ProgramId]
+		if ok {
+			//repeat program
+			return fmt.Errorf("repeat programId:%d", program.ProgramId)
+		}
+		programIds[program.ProgramId] = true
+	}
+
+	for _, finding := range data.Findings {
+		//Check if it is a valid programID
+		_, ok := programIds[finding.ProgramId]
+		if !ok {
+			return fmt.Errorf("programID:%d is invalid programID", finding.ProgramId)
+		}
+
+		if finding.FindingId > data.StartingFindingId {
+			return fmt.Errorf("error finding id")
+		}
+	}
+
 	return nil
 }
