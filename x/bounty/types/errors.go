@@ -11,6 +11,10 @@ const (
 	errUnknownFinding
 )
 
+const (
+	ErrorEmptyProgramIDFindingList = "empty finding id list"
+)
+
 // x/bounty module sentinel errors
 var (
 	ErrUnknownProgram = sdkerrors.Register(ModuleName, errUnknownProgram, "unknown program")

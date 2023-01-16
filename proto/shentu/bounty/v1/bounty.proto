@@ -3,7 +3,6 @@ package shentu.bounty.v1;
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
-
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "google/protobuf/any.proto";
@@ -12,6 +11,7 @@ option go_package = "github.com/shentufoundation/shentu/x/bounty/types";
 
 message Program {
   option (gogoproto.equal)            = false;
+  option (gogoproto.goproto_getters) = false;
 
   uint64 program_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
   string creator_address = 2 [ (gogoproto.moretags) = "yaml:\"creator_address\"" ];
@@ -32,5 +32,48 @@ message Program {
 
 message EciesPubKey {
   option (cosmos_proto.implements_interface) = "EncryptionKey";
-  bytes pub_key = 1;
+  bytes encryption_key = 1;
+}
+
+message Finding {
+  option (gogoproto.equal)            = false;
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 finding_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
+  string title = 2 [(gogoproto.moretags) = "yaml:\"title\""];
+  google.protobuf.Any encrypted_desc = 3 [(cosmos_proto.accepts_interface) = "EncryptedDesc",(gogoproto.moretags) = "yaml:\"encrypted_desc\""];
+  uint64 program_id = 4 [(gogoproto.moretags) = "yaml:\"program_id\""];
+  SeverityLevel severity_level = 5 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
+  google.protobuf.Any encrypted_poc = 6 [(cosmos_proto.accepts_interface) = "EncryptedPoc",(gogoproto.moretags) = "yaml:\"encrypted_poc\""];
+  string submitter_address  = 7 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
+  FindingStatus finding_status = 8 [(gogoproto.moretags) = "yaml:\"finding_status\""];
+}
+
+message EciesEncryptedDesc {
+  option (cosmos_proto.implements_interface) = "EncryptedDesc";
+  bytes encrypted_desc = 1;
+}
+
+message EciesEncryptedPoc {
+  option (cosmos_proto.implements_interface) = "EncryptionPoc";
+  bytes encrypted_poc = 1;
+}
+
+enum SeverityLevel {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  SEVERITY_LEVEL_CRITICAL = 0 [(gogoproto.enumvalue_customname) = "SeverityLevelCritical"];
+  SEVERITY_LEVEL_MAJOR = 1 [(gogoproto.enumvalue_customname) = "SeverityLevelMajor"];
+  SEVERITY_LEVEL_MEDIUM = 2 [(gogoproto.enumvalue_customname) = "SeverityLevelMedium"];
+  SEVERITY_LEVEL_MINOR = 3 [(gogoproto.enumvalue_customname) = "SeverityLevelMinor"];
+  SEVERITY_LEVEL_OPTIMIZATION = 4 [(gogoproto.enumvalue_customname) = "SeverityLevelOptimization"];
+  SEVERITY_LEVEL_INFORMATIONAL = 5 [(gogoproto.enumvalue_customname) = "SeverityLevelInformational"];
+}
+
+enum FindingStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  FINDING_STATUS_UNCONFIRMED = 0 [(gogoproto.enumvalue_customname) = "FindingStatusUnConfirmed"];
+  FINDING_STATUS_VALID = 1 [(gogoproto.enumvalue_customname) = "FindingStatusValid"];
+  FINDING_STATUS_INVALID = 2 [(gogoproto.enumvalue_customname) = "FindingStatusInvalid"];
 }

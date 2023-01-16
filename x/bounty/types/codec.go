@@ -16,7 +16,27 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCreateProgram{},
+		&MsgSubmitFinding{},
 	)
+
+	registry.RegisterInterface(
+		"shentu.bounty.v1.EncryptionKey",
+		(*EncryptionKey)(nil),
+		&EciesPubKey{},
+	)
+
+	registry.RegisterInterface(
+		"shentu.bounty.v1.EncryptedDesc",
+		(*EncryptedDesc)(nil),
+		&EciesEncryptedDesc{},
+	)
+
+	registry.RegisterInterface(
+		"shentu.bounty.v1.EncryptedPoc",
+		(*EncryptedPoc)(nil),
+		&EciesEncryptedPoc{},
+	)
+
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 

@@ -3,6 +3,7 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
@@ -14,6 +15,7 @@ type Keeper struct {
 	cdc        codec.BinaryCodec
 	paramSpace paramtypes.Subspace
 
+	//authKeeper authtypes.AccountKeeper
 	bk types.BankKeeper
 }
 
@@ -33,4 +35,10 @@ func NewKeeper(
 		storeKey:   storeKey,
 		paramSpace: paramSpace,
 	}
+}
+
+// GetBountyAccount returns the bounty ModuleAccount
+func (keeper Keeper) GetBountyAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+	//return keeper.authKeeper.GetModuleAccount(ctx, types.ModuleName)
+	return nil
 }

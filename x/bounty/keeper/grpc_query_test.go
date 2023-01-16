@@ -16,7 +16,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestGRPCQueryProgram() {
-	addr, queryClient := suite.addrs, suite.queryClient
+	addr, queryClient := suite.address, suite.queryClient
 
 	var (
 		req *types.QueryProgramRequest
@@ -87,7 +87,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryProgram() {
 }
 
 func (suite *KeeperTestSuite) TestGRPCQueryPrograms() {
-	addr, queryClient := suite.addrs, suite.queryClient
+	addr, queryClient := suite.address, suite.queryClient
 
 	var (
 		req  *types.QueryProgramsRequest
