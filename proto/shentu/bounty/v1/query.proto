@@ -11,7 +11,6 @@ import "shentu/bounty/v1/bounty.proto";
 option go_package = "github.com/shentufoundation/shentu/x/bounty/types";
 
 // Query defines the gRPC querier service for bounty module
-// TODO Waiting for the finding path merged, then fill in the finding related fields
 service Query {
   // Hosts queries all hosts that match the given status.
   rpc Hosts(QueryHostsRequest) returns (QueryHostsResponse) {
@@ -40,7 +39,7 @@ service Query {
 
   // Finding queries Finding information based on programID, FindingId.
   rpc Finding(QueryFindingRequest) returns (QueryFindingResponse) {
-    option (google.api.http).get = "/shentu/bounty/v1/findings/{program_id}";
+    option (google.api.http).get = "/shentu/bounty/v1/findings/{finding_id}";
   }
 }
 
@@ -67,11 +66,8 @@ message QueryHostResponse {
 
 // QueryProgramsRequest is the request type for the Query/Programs RPC method.
 message QueryProgramsRequest {
-  // finding_address defines the finding address for the program.
-  string finding_address = 1;
-
   // pagination defines an optional pagination for the request.
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
 // QueryProgramsResponse is the response type for the Query/Programs RPC method.
@@ -95,26 +91,31 @@ message QueryProgramResponse {
 
 // QueryFindingRequests is the request type for the Query/Findings RPC method.
 message QueryFindingsRequest {
+  // program_id defines the unique id of the program.
+  uint64 program_id = 1;
+
   // submitter_address defines the find address for the finding.
-  string submitter_address = 1;
+  string submitter_address = 2;
+
+  // pagination defines the pagination in the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+// QueryFindingsResponse is the response type for the Query/Findings RPC method.
+message QueryFindingsResponse {
+  repeated Finding findings = 1 [(gogoproto.nullable) = false];
 
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-// QueryFindingsResponse is the response type for the Query/Findings RPC method.
-message QueryFindingsResponse {
-}
-
 // QueryFindingRequest is the request type for the Query/Finding RPC method.
 message QueryFindingRequest {
-  // program_id defines the unique id of the program.
-  uint64 program_id = 1;
-
   // finding_id defines the unique id of the finding.
-  uint64 finding_id = 2;
+  uint64 finding_id = 1;
 }
 
 // QueryFindingResponse is the response type for the Query/Finding RPC method.
 message QueryFindingResponse {
+  Finding finding = 1 [(gogoproto.nullable) = false];
 }

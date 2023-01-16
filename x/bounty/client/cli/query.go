@@ -110,18 +110,12 @@ func GetCmdQueryPrograms() *cobra.Command {
 			fmt.Sprintf(`Query for a all paginated programs that match optional filters.
 
 Example:
-$ %s query bounty programs --finding-address certik1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
-$ %s query bounty programs --page=2 --limit=100
+$ %s query bounty programs --page=1 --limit=100
 `,
-				version.AppName, version.AppName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			findingAddr, _ := cmd.Flags().GetString(FlagFindingAddress)
-
-			if len(findingAddr) != 0 {
-				_ = sdk.MustAccAddressFromBech32(findingAddr)
-			}
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -137,8 +131,7 @@ $ %s query bounty programs --page=2 --limit=100
 			res, err := queryClient.Programs(
 				cmd.Context(),
 				&types.QueryProgramsRequest{
-					FindingAddress: findingAddr,
-					Pagination:     pageReq,
+					Pagination: pageReq,
 				})
 			if err != nil {
 				return err
@@ -160,8 +153,44 @@ $ %s query bounty programs --page=2 --limit=100
 
 // GetCmdQueryFinding implements the query finding command.
 func GetCmdQueryFinding() *cobra.Command {
-	//TODO implement me
-	cmd := &cobra.Command{}
+	cmd := &cobra.Command{
+		Use:   "finding [finding-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query details of a single finding",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query details for a finding. You can find the finding-id by running "%s query bounty findings".
+Example:
+$ %s query bounty finding 1
+`,
+				version.AppName, version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// validate that the finding-id is an uint
+			findingID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("finding-id %s not a valid uint, please input a valid finding-id", args[1])
+			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			// Query the finding
+			res, err := queryClient.Finding(
+				cmd.Context(),
+				&types.QueryFindingRequest{
+					FindingId: findingID,
+				})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(&res.Finding)
+		},
+	}
 
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
@@ -169,9 +198,68 @@ func GetCmdQueryFinding() *cobra.Command {
 
 // GetCmdQueryFindings implements the query findings command.
 func GetCmdQueryFindings() *cobra.Command {
-	//TODO implement me
-	cmd := &cobra.Command{}
+	cmd := &cobra.Command{
+		Use:   "findings",
+		Short: "Query findings with optional filters",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query for a all paginated findings that match optional filters.
 
+Example:
+$ %s query bounty findings
+$ %s query bounty findings --program-id 1
+$ %s query bounty findings --submitter-address cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
+$ %s query bounty findings --page=1 --limit=100
+`,
+				version.AppName, version.AppName, version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// validate that the program-id is an uint
+			programID, err := cmd.Flags().GetUint64(FlagProgramID)
+			if err != nil {
+				return fmt.Errorf("program-id not a valid uint, please input a valid program-id")
+			}
+
+			submitterAddr, _ := cmd.Flags().GetString(FlagSubmitterAddress)
+			if len(submitterAddr) != 0 {
+				_ = sdk.MustAccAddressFromBech32(submitterAddr)
+			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			req := &types.QueryFindingsRequest{
+				SubmitterAddress: submitterAddr,
+				Pagination:       pageReq,
+			}
+			if programID != 0 {
+				req.ProgramId = programID
+			}
+
+			res, err := queryClient.Findings(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			if len(res.GetFindings()) == 0 {
+				return fmt.Errorf("no finding found")
+			}
+
+			return clientCtx.PrintProto(res)
+
+		},
+	}
+
+	cmd.Flags().Uint64(FlagProgramID, 0, "(optional) filter by programs find by program id")
+	cmd.Flags().String(FlagSubmitterAddress, "", "(optional) filter by programs find by submitter address")
 	flags.AddPaginationFlagsToCmd(cmd, "findings")
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd

@@ -84,8 +84,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryPrograms() {
 			"valid request",
 			func() {
 				req = &types.QueryProgramsRequest{
-					FindingAddress: "",
-					Pagination:     nil,
+					Pagination: nil,
 				}
 
 				// create programs

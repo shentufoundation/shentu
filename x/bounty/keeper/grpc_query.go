@@ -41,7 +41,6 @@ func (k Keeper) Programs(c context.Context, req *types.QueryProgramsRequest) (*t
 			return false, status.Error(codes.Internal, err.Error())
 		}
 
-		// TODO add filter
 		if accumulate {
 			programs = append(programs, p)
 		}
@@ -65,7 +64,7 @@ func (k Keeper) Program(c context.Context, req *types.QueryProgramRequest) (*typ
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	if req.ProgramId == 0 {
-		return nil, status.Error(codes.InvalidArgument, "program id can not be 0")
+		return nil, status.Error(codes.InvalidArgument, "program-id can not be 0")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -78,11 +77,60 @@ func (k Keeper) Program(c context.Context, req *types.QueryProgramRequest) (*typ
 }
 
 func (k Keeper) Findings(c context.Context, req *types.QueryFindingsRequest) (*types.QueryFindingsResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	var findings types.Findings
+	ctx := sdk.UnwrapSDKContext(c)
+
+	store := ctx.KVStore(k.storeKey)
+	programStore := prefix.NewStore(store, types.FindingKey)
+
+	pageRes, err := query.FilteredPaginate(programStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		var finding types.Finding
+		if err := k.cdc.Unmarshal(value, &finding); err != nil {
+			return false, status.Error(codes.Internal, err.Error())
+		}
+
+		matchProgramId, matchSubmitter := true, true
+		// match program-id
+		if req.ProgramId != 0 {
+			matchProgramId = req.ProgramId == finding.ProgramId
+		}
+		// match submitter address
+		if len(req.SubmitterAddress) > 0 {
+			matchSubmitter = req.SubmitterAddress == finding.SubmitterAddress
+
+		}
+
+		if matchProgramId && matchSubmitter {
+			if accumulate {
+				findings = append(findings, finding)
+			}
+		}
+
+		return true, nil
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryFindingsResponse{
+		Findings:   findings,
+		Pagination: pageRes,
+	}, nil
 }
 
 func (k Keeper) Finding(c context.Context, req *types.QueryFindingRequest) (*types.QueryFindingResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	if req.FindingId == 0 {
+		return nil, status.Error(codes.InvalidArgument, "finding-id can not be 0")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	finding, found := k.GetFinding(ctx, req.FindingId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "finding %d doesn't exist", req.FindingId)
+	}
+
+	return &types.QueryFindingResponse{Finding: finding}, nil
 }

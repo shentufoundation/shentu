@@ -15,5 +15,6 @@ const (
 
 	dateLayout = "2006-01-02"
 
-	FlagFindingAddress = "finding-address"
+	FlagFindingAddress   = "finding-address"
+	FlagSubmitterAddress = "submitter-address"
 )

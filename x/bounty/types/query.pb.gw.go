@@ -231,10 +231,6 @@ func local_request_Query_Findings_0(ctx context.Context, marshaler runtime.Marsh
 
 }
 
-var (
-	filter_Query_Finding_0 = &utilities.DoubleArray{Encoding: map[string]int{"program_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
-)
-
 func request_Query_Finding_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryFindingRequest
 	var metadata runtime.ServerMetadata
@@ -246,22 +242,15 @@ func request_Query_Finding_0(ctx context.Context, marshaler runtime.Marshaler, c
 		_   = err
 	)
 
-	val, ok = pathParams["program_id"]
+	val, ok = pathParams["finding_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "program_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "finding_id")
 	}
 
-	protoReq.ProgramId, err = runtime.Uint64(val)
+	protoReq.FindingId, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "program_id", err)
-	}
-
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_Finding_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "finding_id", err)
 	}
 
 	msg, err := client.Finding(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -280,22 +269,15 @@ func local_request_Query_Finding_0(ctx context.Context, marshaler runtime.Marsha
 		_   = err
 	)
 
-	val, ok = pathParams["program_id"]
+	val, ok = pathParams["finding_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "program_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "finding_id")
 	}
 
-	protoReq.ProgramId, err = runtime.Uint64(val)
+	protoReq.FindingId, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "program_id", err)
-	}
-
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_Finding_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "finding_id", err)
 	}
 
 	msg, err := server.Finding(ctx, &protoReq)
@@ -622,7 +604,7 @@ var (
 
 	pattern_Query_Findings_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "bounty", "v1", "findings"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Finding_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "bounty", "v1", "findings", "program_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Finding_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "bounty", "v1", "findings", "finding_id"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
