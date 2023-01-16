@@ -224,13 +224,11 @@ func (k msgServer) hostProcess(ctx sdk.Context, fid uint64, hostAddr, comment st
 	if !isExist {
 		return nil, fmt.Errorf("no finding id:%d", fid)
 	}
-
 	// get program
 	program, isExist := k.GetProgram(ctx, finding.ProgramId)
 	if !isExist {
 		return nil, fmt.Errorf("no program id:%d", finding.ProgramId)
 	}
-
 	if !program.Active {
 		return nil, fmt.Errorf("program id:%d is closed", finding.ProgramId)
 	}
@@ -238,6 +236,11 @@ func (k msgServer) hostProcess(ctx sdk.Context, fid uint64, hostAddr, comment st
 	// only creator can update finding comment
 	if program.CreatorAddress != hostAddr {
 		return nil, fmt.Errorf("%s not the program creator, expect %s", hostAddr, program.CreatorAddress)
+	}
+
+	// comment is empty and does not need to be encrypted
+	if len(comment) == 0 {
+		return &finding, nil
 	}
 
 	// get pubEcdsa

@@ -72,7 +72,7 @@ message MsgHostAcceptFinding {
 
   uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
   string comment = 2 [(gogoproto.moretags) = "yaml:\"comment\""];
-  string host_address  = 6 [(gogoproto.moretags) = "yaml:\"host_address\""];
+  string host_address  = 3 [(gogoproto.moretags) = "yaml:\"host_address\""];
 }
 
 // MsgHostAcceptFindingResponse defines the Msg/HostAcceptFinding response type.
@@ -85,7 +85,7 @@ message MsgHostRejectFinding {
 
   uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
   string comment = 2 [(gogoproto.moretags) = "yaml:\"comment\""];
-  string host_address  = 6 [(gogoproto.moretags) = "yaml:\"host_address\""];
+  string host_address  = 3 [(gogoproto.moretags) = "yaml:\"host_address\""];
 }
 
 // MsgHostRejectFindingResponse defines the Msg/ostRejectFinding response type.

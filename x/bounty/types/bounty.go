@@ -74,7 +74,7 @@ func (f Finding) GetEncryptedPoc() EncryptedPoc {
 }
 
 func (f Finding) GetEncryptedComment() EncryptedCommnet {
-	poc, ok := f.EncryptedPoc.GetCachedValue().(EncryptedCommnet)
+	poc, ok := f.EncryptedComment.GetCachedValue().(EncryptedCommnet)
 	if !ok {
 		return nil
 	}

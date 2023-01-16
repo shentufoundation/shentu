@@ -3,19 +3,20 @@ package cli
 import (
 	"crypto/rand"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/version"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/spf13/cobra"
+
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/ecies"
-	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
@@ -233,7 +234,6 @@ $ %s tx bounty accept-finding 1 --comment "Looks good to me"
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
-	_ = cmd.MarkFlagRequired(FlagDesc)
 
 	return cmd
 }
@@ -283,7 +283,6 @@ $ %s tx bounty reject-finding 1 --comment "Verified to be an invalid finding"
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
-	_ = cmd.MarkFlagRequired(FlagDesc)
 
 	return cmd
 }

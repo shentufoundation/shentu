@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"crypto/rand"
+	"fmt"
 	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -223,6 +224,26 @@ func (suite *KeeperTestSuite) InitCreateProgram() uint64 {
 	return resp.ProgramId
 }
 
+func (suite *KeeperTestSuite) InitSubmitFinding(proposalId uint64) uint64 {
+
+	msgSubmitFinding := &types.MsgSubmitFinding{
+		Title:            "Bug title",
+		Desc:             "Bug desc",
+		ProgramId:        proposalId,
+		Poc:              "bug poc",
+		SeverityLevel:    types.SeverityLevelCritical,
+		SubmitterAddress: suite.address[0].String(),
+	}
+
+	ctx := types1.WrapSDKContext(suite.ctx)
+	findingId := suite.keeper.GetNextFindingID(suite.ctx)
+	resp, err := suite.msgServer.SubmitFinding(ctx, msgSubmitFinding)
+	suite.Require().NoError(err)
+	suite.Require().Equal(findingId, resp.FindingId)
+
+	return findingId
+}
+
 func (suite *KeeperTestSuite) InitCreateErrorProgram() uint64 {
 	dd, _ := time.ParseDuration("24h")
 
@@ -253,4 +274,108 @@ func (suite *KeeperTestSuite) InitCreateErrorProgram() uint64 {
 	suite.Require().NoError(err)
 
 	return resp.ProgramId
+}
+
+func (suite *KeeperTestSuite) TestHostAcceptFinding() {
+	programId := suite.InitCreateProgram()
+	findingId := suite.InitSubmitFinding(programId)
+
+	testCases := []struct {
+		name    string
+		req     *types.MsgHostAcceptFinding
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgHostAcceptFinding{},
+			false,
+		},
+		{
+			"valid request => comment is empty",
+			&types.MsgHostAcceptFinding{
+				FindingId:   findingId,
+				Comment:     "",
+				HostAddress: suite.address[0].String(),
+			},
+			true,
+		},
+		{
+			"valid request => comment is not empty",
+			&types.MsgHostAcceptFinding{
+				FindingId:   findingId,
+				Comment:     "comment",
+				HostAddress: suite.address[0].String(),
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			ctx := types1.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.HostAcceptFinding(ctx, testCase.req)
+
+			finding, _ := suite.keeper.GetFinding(suite.ctx, findingId)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(finding.FindingStatus, types.FindingStatusValid)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Equal(finding.FindingStatus, types.FindingStatusUnConfirmed)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestHostRejectFinding() {
+	programId := suite.InitCreateProgram()
+	findingId := suite.InitSubmitFinding(programId)
+
+	testCases := []struct {
+		name    string
+		req     *types.MsgHostRejectFinding
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgHostRejectFinding{},
+			false,
+		},
+		{
+			"valid request => comment is empty",
+			&types.MsgHostRejectFinding{
+				FindingId:   findingId,
+				Comment:     "",
+				HostAddress: suite.address[0].String(),
+			},
+			true,
+		},
+		{
+			"valid request => comment is not empty",
+			&types.MsgHostRejectFinding{
+				FindingId:   findingId,
+				Comment:     "comment",
+				HostAddress: suite.address[0].String(),
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			ctx := types1.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.HostRejectFinding(ctx, testCase.req)
+
+			finding, _ := suite.keeper.GetFinding(suite.ctx, findingId)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(finding.FindingStatus, types.FindingStatusInvalid)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Equal(finding.FindingStatus, types.FindingStatusUnConfirmed)
+			}
+		})
+	}
 }
