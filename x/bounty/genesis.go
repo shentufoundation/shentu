@@ -29,8 +29,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 		findingIDMap[finding.ProgramId] = findingList
 	}
 
-	for programID, findingIdList := range findingIDMap {
-		k.SetPidFindingIDList(ctx, programID, findingIdList)
+	for programID, findingIDList := range findingIDMap {
+		k.SetPidFindingIDList(ctx, programID, findingIDList)
 	}
 }
 
