@@ -9,7 +9,7 @@ import (
 )
 
 // GetEncryptionKey get the key in the program for information encryption
-func GetEncryptionKey(cmd *cobra.Command, programId uint64) (*codectypes.Any, error) {
+func GetEncryptionKey(cmd *cobra.Command, programID uint64) (*codectypes.Any, error) {
 	clientCtx, err := client.GetClientTxContext(cmd)
 	if err != nil {
 		return nil, err
@@ -20,7 +20,7 @@ func GetEncryptionKey(cmd *cobra.Command, programId uint64) (*codectypes.Any, er
 	res, err := queryClient.Program(
 		cmd.Context(),
 		&types.QueryProgramRequest{
-			ProgramId: programId,
+			ProgramId: programID,
 		})
 
 	if err != nil {
@@ -30,7 +30,7 @@ func GetEncryptionKey(cmd *cobra.Command, programId uint64) (*codectypes.Any, er
 }
 
 // GetFinding get finding details
-func GetFinding(cmd *cobra.Command, findingId uint64) (*types.Finding, error) {
+func GetFinding(cmd *cobra.Command, findingID uint64) (*types.Finding, error) {
 	clientCtx, err := client.GetClientTxContext(cmd)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func GetFinding(cmd *cobra.Command, findingId uint64) (*types.Finding, error) {
 	res, err := queryClient.Finding(
 		cmd.Context(),
 		&types.QueryFindingRequest{
-			FindingId: findingId,
+			FindingId: findingID,
 		})
 
 	if err != nil {
