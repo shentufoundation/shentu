@@ -71,7 +71,7 @@ message MsgHostAcceptFinding {
   option (gogoproto.goproto_getters) = false;
 
   uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
-  string comment = 2 [(gogoproto.moretags) = "yaml:\"comment\""];
+  google.protobuf.Any encrypted_comment = 2 [(cosmos_proto.accepts_interface) = "EncryptedComment"];
   string host_address  = 3 [(gogoproto.moretags) = "yaml:\"host_address\""];
 }
 
@@ -84,7 +84,7 @@ message MsgHostRejectFinding {
   option (gogoproto.goproto_getters) = false;
 
   uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
-  string comment = 2 [(gogoproto.moretags) = "yaml:\"comment\""];
+  google.protobuf.Any encrypted_comment = 2 [(cosmos_proto.accepts_interface) = "EncryptedComment"];
   string host_address  = 3 [(gogoproto.moretags) = "yaml:\"host_address\""];
 }
 

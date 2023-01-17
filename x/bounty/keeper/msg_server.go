@@ -166,7 +166,7 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 func (k msgServer) HostAcceptFinding(goCtx context.Context, msg *types.MsgHostAcceptFinding) (*types.MsgHostAcceptFindingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	finding, err := k.hostProcess(ctx, msg.FindingId, msg.HostAddress, msg.Comment)
+	finding, err := k.hostProcess(ctx, msg.FindingId, msg.HostAddress, msg.EncryptedComment)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func (k msgServer) HostAcceptFinding(goCtx context.Context, msg *types.MsgHostAc
 func (k msgServer) HostRejectFinding(goCtx context.Context, msg *types.MsgHostRejectFinding) (*types.MsgHostRejectFindingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	finding, err := k.hostProcess(ctx, msg.FindingId, msg.HostAddress, msg.Comment)
+	finding, err := k.hostProcess(ctx, msg.FindingId, msg.HostAddress, msg.EncryptedComment)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +217,7 @@ func (k msgServer) HostRejectFinding(goCtx context.Context, msg *types.MsgHostRe
 	return &types.MsgHostRejectFindingResponse{}, nil
 }
 
-func (k msgServer) hostProcess(ctx sdk.Context, fid uint64, hostAddr, comment string) (*types.Finding, error) {
+func (k msgServer) hostProcess(ctx sdk.Context, fid uint64, hostAddr string, encryptedCommentAny *codectypes.Any) (*types.Finding, error) {
 
 	// get finding
 	finding, isExist := k.GetFinding(ctx, fid)
@@ -238,31 +238,6 @@ func (k msgServer) hostProcess(ctx sdk.Context, fid uint64, hostAddr, comment st
 		return nil, fmt.Errorf("%s not the program creator, expect %s", hostAddr, program.CreatorAddress)
 	}
 
-	// comment is empty and does not need to be encrypted
-	if len(comment) == 0 {
-		return &finding, nil
-	}
-
-	// get pubEcdsa
-	pubEcdsa, err := crypto.UnmarshalPubkey(program.GetEncryptionKey().GetEncryptionKey())
-	if err != nil {
-		return nil, err
-	}
-	eciesEncKey := ecies.ImportECDSAPublic(pubEcdsa)
-
-	encryptedComment, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(comment), nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	encComment := types.EciesEncryptedComment{
-		EncryptedComment: encryptedComment,
-	}
-	commentAny, err := codectypes.NewAnyWithValue(&encComment)
-	if err != nil {
-		return nil, err
-	}
-
-	finding.Comment = commentAny
+	finding.EncryptedComment = encryptedCommentAny
 	return &finding, nil
 }

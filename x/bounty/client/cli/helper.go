@@ -3,13 +3,16 @@ package cli
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/ecies"
+
 	"github.com/cosmos/cosmos-sdk/client"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 // GetEncryptionKey get the key in the program for information encryption
-func GetEncryptionKey(cmd *cobra.Command, programID uint64) (*codectypes.Any, error) {
+func GetEncryptionKey(cmd *cobra.Command, programID uint64) (*ecies.PublicKey, error) {
 	clientCtx, err := client.GetClientTxContext(cmd)
 	if err != nil {
 		return nil, err
@@ -26,7 +29,15 @@ func GetEncryptionKey(cmd *cobra.Command, programID uint64) (*codectypes.Any, er
 	if err != nil {
 		return nil, err
 	}
-	return res.GetProgram().EncryptionKey, nil
+
+	encryptionKey := res.Program.EncryptionKey.GetValue()
+	pubEcdsa, err := crypto.UnmarshalPubkey(encryptionKey[2:])
+	if err != nil {
+		return nil, err
+	}
+	eciesEncKey := ecies.ImportECDSAPublic(pubEcdsa)
+
+	return eciesEncKey, nil
 }
 
 // GetFinding get finding details

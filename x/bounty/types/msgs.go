@@ -143,11 +143,11 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgHostAcceptFinding(findingID uint64, comment string, hostAddr sdk.AccAddress) *MsgHostAcceptFinding {
+func NewMsgHostAcceptFinding(findingID uint64, encryptedComment *codectypes.Any, hostAddr sdk.AccAddress) *MsgHostAcceptFinding {
 	return &MsgHostAcceptFinding{
-		FindingId:   findingID,
-		Comment:     comment,
-		HostAddress: hostAddr.String(),
+		FindingId:        findingID,
+		EncryptedComment: encryptedComment,
+		HostAddress:      hostAddr.String(),
 	}
 }
 
@@ -188,11 +188,11 @@ func (msg MsgHostAcceptFinding) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgHostRejectFinding(findingID uint64, comment string, hostAddr sdk.AccAddress) *MsgHostRejectFinding {
+func NewMsgHostRejectFinding(findingID uint64, encryptedComment *codectypes.Any, hostAddr sdk.AccAddress) *MsgHostRejectFinding {
 	return &MsgHostRejectFinding{
-		FindingId:   findingID,
-		Comment:     comment,
-		HostAddress: hostAddr.String(),
+		FindingId:        findingID,
+		EncryptedComment: encryptedComment,
+		HostAddress:      hostAddr.String(),
 	}
 }
 

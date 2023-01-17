@@ -15,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
@@ -200,28 +201,7 @@ $ %s tx bounty accept-finding 1 --comment "Looks good to me"
 				version.AppName,
 			),
 		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			// validate that the finding id is uint
-			findingID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("finding-id %s not a valid uint, please input a valid finding-id", args[0])
-			}
-			// Get host address
-			hostAddr := clientCtx.GetFromAddress()
-			comment, err := cmd.Flags().GetString(FlagComment)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgHostAcceptFinding(findingID, comment, hostAddr)
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
+		RunE: HostAcceptFinding,
 	}
 
 	cmd.Flags().String(FlagComment, "", "Host's comment on finding")
@@ -246,28 +226,7 @@ $ %s tx bounty reject-finding 1 --comment "Verified to be an invalid finding"
 				version.AppName,
 			),
 		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			// validate that the finding id is uint
-			findingID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("finding-id %s not a valid uint, please input a valid finding-id", args[0])
-			}
-			// Get host address
-			hostAddr := clientCtx.GetFromAddress()
-			comment, err := cmd.Flags().GetString(FlagComment)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgHostRejectFinding(findingID, comment, hostAddr)
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
+		RunE: HostRejectFinding,
 	}
 
 	cmd.Flags().String(FlagComment, "", "Host's comment on finding")
@@ -276,4 +235,82 @@ $ %s tx bounty reject-finding 1 --comment "Verified to be an invalid finding"
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
+}
+
+func HostAcceptFinding(cmd *cobra.Command, args []string) error {
+	clientCtx, err := client.GetClientTxContext(cmd)
+	if err != nil {
+		return err
+	}
+
+	findingID, encryptedCommentAny, hostAddr, err := HostProcessFinding(cmd, args)
+	if err != nil {
+		return err
+	}
+
+	msg := types.NewMsgHostAcceptFinding(findingID, encryptedCommentAny, hostAddr)
+
+	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+}
+
+func HostRejectFinding(cmd *cobra.Command, args []string) error {
+	clientCtx, err := client.GetClientTxContext(cmd)
+	if err != nil {
+		return err
+	}
+
+	findingID, encryptedCommentAny, hostAddr, err := HostProcessFinding(cmd, args)
+	if err != nil {
+		return err
+	}
+
+	msg := types.NewMsgHostRejectFinding(findingID, encryptedCommentAny, hostAddr)
+
+	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+}
+
+func HostProcessFinding(cmd *cobra.Command, args []string) (fid uint64,
+	commentAny *codectypes.Any, hostAddr sdk.AccAddress, err error) {
+	clientCtx, err := client.GetClientTxContext(cmd)
+	if err != nil {
+		return fid, commentAny, hostAddr, err
+	}
+
+	// validate that the finding id is uint
+	fid, err = strconv.ParseUint(args[0], 10, 64)
+	if err != nil {
+		return fid, commentAny, hostAddr, fmt.Errorf("finding-id %s not a valid uint, please input a valid finding-id", args[0])
+	}
+	// Get host address
+	hostAddr = clientCtx.GetFromAddress()
+	comment, err := cmd.Flags().GetString(FlagComment)
+	if err != nil {
+		return fid, commentAny, hostAddr, err
+	}
+
+	// comment is empty and does not need to be encrypted
+	if len(comment) == 0 {
+		return fid, commentAny, hostAddr, nil
+	}
+
+	// get encryptionKey
+	finding, err := GetFinding(cmd, fid)
+	if err != nil {
+		return fid, commentAny, hostAddr, err
+	}
+	eciesEncKey, err := GetEncryptionKey(cmd, finding.ProgramId)
+
+	encryptedComment, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(comment), nil, nil)
+	if err != nil {
+		return fid, commentAny, hostAddr, err
+	}
+	encComment := types.EciesEncryptedComment{
+		EncryptedComment: encryptedComment,
+	}
+	commentAny, err = codectypes.NewAnyWithValue(&encComment)
+	if err != nil {
+		return fid, commentAny, hostAddr, err
+	}
+
+	return fid, commentAny, hostAddr, nil
 }

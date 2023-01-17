@@ -293,18 +293,18 @@ func (suite *KeeperTestSuite) TestHostAcceptFinding() {
 		{
 			"valid request => comment is empty",
 			&types.MsgHostAcceptFinding{
-				FindingId:   findingId,
-				Comment:     "",
-				HostAddress: suite.address[0].String(),
+				FindingId:        findingId,
+				EncryptedComment: nil,
+				HostAddress:      suite.address[0].String(),
 			},
 			true,
 		},
 		{
 			"valid request => comment is not empty",
 			&types.MsgHostAcceptFinding{
-				FindingId:   findingId,
-				Comment:     "comment",
-				HostAddress: suite.address[0].String(),
+				FindingId:        findingId,
+				EncryptedComment: nil,
+				HostAddress:      suite.address[0].String(),
 			},
 			true,
 		},
@@ -345,18 +345,18 @@ func (suite *KeeperTestSuite) TestHostRejectFinding() {
 		{
 			"valid request => comment is empty",
 			&types.MsgHostRejectFinding{
-				FindingId:   findingId,
-				Comment:     "",
-				HostAddress: suite.address[0].String(),
+				FindingId:        findingId,
+				EncryptedComment: nil,
+				HostAddress:      suite.address[0].String(),
 			},
 			true,
 		},
 		{
 			"valid request => comment is not empty",
 			&types.MsgHostRejectFinding{
-				FindingId:   findingId,
-				Comment:     "comment",
-				HostAddress: suite.address[0].String(),
+				FindingId:        findingId,
+				EncryptedComment: nil,
+				HostAddress:      suite.address[0].String(),
 			},
 			true,
 		},
