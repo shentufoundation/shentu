@@ -14,41 +14,70 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var addrs = []sdk.AccAddress{sdk.AccAddress("test1"), sdk.AccAddress("test2")}
+var (
+	addrs         = []sdk.AccAddress{sdk.AccAddress("test1"), sdk.AccAddress("test2")}
+	decKey, _     = ecies.GenerateKey(rand.Reader, ecies.DefaultCurve, nil)
+	encKey        = crypto.FromECDSAPub(&decKey.ExportECDSA().PublicKey)
+	deposit       = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(1e5)))
+	sET, jET, cET time.Time
+)
 
 func TestMsgCreateProgram(t *testing.T) {
-	decKey, err := ecies.GenerateKey(rand.Reader, ecies.DefaultCurve, nil)
-	require.NoError(t, err)
-	encKey := crypto.FromECDSAPub(&decKey.ExportECDSA().PublicKey)
-	deposit := sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(1e5)))
-	var sET, jET, cET time.Time
-
 	tests := []struct {
-		creatorAddress string
+		creatorAddress sdk.AccAddress
 		description    string
 		encKey         []byte
 		commissionRate sdk.Dec
 		deposit        sdk.Coins
 		expectPass     bool
 	}{
-		{"Test Program", "test pass", encKey,
+		{addrs[0], "desc", encKey,
 			sdk.ZeroDec(), deposit, true,
 		},
-		{"Test Program", "test fail, encKey is nil", nil,
+		{sdk.AccAddress{}, "desc", encKey,
 			sdk.ZeroDec(), deposit, false,
 		},
 	}
 
 	for i, test := range tests {
-		msg, err := NewMsgCreateProgram(test.creatorAddress, test.description, test.encKey, test.commissionRate,
+		msg, err := NewMsgCreateProgram(test.creatorAddress.String(), test.description, test.encKey, test.commissionRate,
 			test.deposit, sET, jET, cET)
+		require.Equal(t, msg.Route(), RouterKey)
+		require.Equal(t, msg.Type(), TypeMsgCreateProgram)
 
 		if test.expectPass {
 			require.NoError(t, err)
 			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
+			require.Equal(t, msg.GetSigners(), []sdk.AccAddress{test.creatorAddress})
 		} else {
-			//
-			//require.Error(t, msg.ValidateBasic(), "test: %v", i)
+			require.Error(t, msg.ValidateBasic(), "test: %v", i)
+		}
+	}
+}
+
+func TestMsgSubmitFinding(t *testing.T) {
+	testCases := []struct {
+		pid              uint64
+		severityLevel    int32
+		addr             sdk.AccAddress
+		title, desc, poc string
+		expectPass       bool
+	}{
+		{0, 0, addrs[0], "title", "desc", "poc", false},
+		{1, 0, sdk.AccAddress{}, "title", "desc", "poc", false},
+		{1, 0, addrs[0], "title", "desc", "poc", true},
+	}
+
+	for _, tc := range testCases {
+		msg := NewMsgSubmitFinding(tc.addr.String(), tc.title, tc.desc, tc.pid, tc.severityLevel, tc.poc)
+		require.Equal(t, msg.Route(), RouterKey)
+		require.Equal(t, msg.Type(), TypeMsgSubmitFinding)
+
+		if tc.expectPass {
+			require.NoError(t, msg.ValidateBasic())
+			require.Equal(t, msg.GetSigners(), []sdk.AccAddress{tc.addr})
+		} else {
+			require.Error(t, msg.ValidateBasic())
 		}
 	}
 }
@@ -109,11 +138,19 @@ func TestMsgHostRejectFinding(t *testing.T) {
 
 func TestHostAcceptGetSignBytes(t *testing.T) {
 	msg := NewMsgHostAcceptFinding(1, "comment", addrs[0])
-	msg.GetSignBytes()
-
-	//expected := ""
-	//require.Equal(t, expected, string(res))
+	res := msg.GetSignBytes()
+	expected := `{"type":"bounty/HostAcceptFinding","value":{"comment":"comment","finding_id":"1","host_address":"cosmos1w3jhxap3gempvr"}}`
+	require.Equal(t, expected, string(res))
 
 	msg1 := NewMsgHostRejectFinding(1, "comment", addrs[0])
-	msg1.GetSignBytes()
+	res = msg1.GetSignBytes()
+	expected = `{"type":"bounty/HostRejectFinding","value":{"comment":"comment","finding_id":"1","host_address":"cosmos1w3jhxap3gempvr"}}`
+	require.Equal(t, expected, string(res))
+
+	msg2 := NewMsgSubmitFinding(addrs[0].String(), "title", "desc", 1, 0, "poc")
+	res = msg2.GetSignBytes()
+	expected = `{"type":"bounty/SubmitFinding","value":{"desc":"desc","poc":"poc","program_id":"1","submitter_address":"cosmos1w3jhxap3gempvr","title":"title"}}`
+	require.Equal(t, expected, string(res))
+
+	// TODO add createProgram
 }

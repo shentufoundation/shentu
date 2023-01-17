@@ -76,6 +76,11 @@ func (msg MsgCreateProgram) GetSignBytes() []byte {
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgCreateProgram) ValidateBasic() error {
 	// TODO: implement ValidateBasic
+	_, err := sdk.AccAddressFromBech32(msg.CreatorAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+	}
+
 	return nil
 }
 
@@ -88,11 +93,7 @@ func (msg MsgCreateProgram) UnpackInterfaces(unpacker codectypes.AnyUnpacker) er
 // NewMsgSubmitFinding submit a new finding.
 func NewMsgSubmitFinding(
 	submitterAddress string, title, description string, programID uint64, severityLevel int32, poc string,
-) (*MsgSubmitFinding, error) {
-	if programID == 0 {
-		return nil, errors.New("empty pid is not allowed")
-	}
-
+) *MsgSubmitFinding {
 	return &MsgSubmitFinding{
 		Title:            title,
 		Desc:             description,
@@ -100,7 +101,7 @@ func NewMsgSubmitFinding(
 		SeverityLevel:    SeverityLevel(severityLevel),
 		Poc:              poc,
 		SubmitterAddress: submitterAddress,
-	}, nil
+	}
 }
 
 // Route implements the sdk.Msg interface.

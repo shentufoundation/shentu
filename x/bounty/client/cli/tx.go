@@ -160,7 +160,7 @@ func NewSubmitFindingCmd() *cobra.Command {
 			severityLevel, _ := cmd.Flags().GetInt32(FlagFindingSeverityLevel)
 			poc, _ := cmd.Flags().GetString(FlagFindingPoc)
 
-			msg, err := types.NewMsgSubmitFinding(
+			msg := types.NewMsgSubmitFinding(
 				submitAddr.String(),
 				title,
 				desc,
@@ -168,9 +168,6 @@ func NewSubmitFindingCmd() *cobra.Command {
 				severityLevel,
 				poc,
 			)
-			if err != nil {
-				return err
-			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
