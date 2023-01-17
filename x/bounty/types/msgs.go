@@ -142,15 +142,12 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgHostAcceptFinding(findingID uint64, comment string, hostAddr sdk.AccAddress) (*MsgHostAcceptFinding, error) {
-	if findingID == 0 {
-		return nil, errors.New("empty finding-id is not allowed")
-	}
+func NewMsgHostAcceptFinding(findingID uint64, comment string, hostAddr sdk.AccAddress) *MsgHostAcceptFinding {
 	return &MsgHostAcceptFinding{
 		FindingId:   findingID,
 		Comment:     comment,
 		HostAddress: hostAddr.String(),
-	}, nil
+	}
 }
 
 // Route implements the sdk.Msg interface.
@@ -190,15 +187,12 @@ func (msg MsgHostAcceptFinding) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgHostRejectFinding(findingID uint64, comment string, hostAddr sdk.AccAddress) (*MsgHostRejectFinding, error) {
-	if findingID == 0 {
-		return nil, errors.New("empty finding-id is not allowed")
-	}
+func NewMsgHostRejectFinding(findingID uint64, comment string, hostAddr sdk.AccAddress) *MsgHostRejectFinding {
 	return &MsgHostRejectFinding{
 		FindingId:   findingID,
 		Comment:     comment,
 		HostAddress: hostAddr.String(),
-	}, nil
+	}
 }
 
 // Route implements the sdk.Msg interface.

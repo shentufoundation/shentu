@@ -221,10 +221,7 @@ $ %s tx bounty accept-finding 1 --comment "Looks good to me"
 				return err
 			}
 
-			msg, err := types.NewMsgHostAcceptFinding(findingID, comment, hostAddr)
-			if err != nil {
-				return err
-			}
+			msg := types.NewMsgHostAcceptFinding(findingID, comment, hostAddr)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -270,10 +267,7 @@ $ %s tx bounty reject-finding 1 --comment "Verified to be an invalid finding"
 				return err
 			}
 
-			msg, err := types.NewMsgHostRejectFinding(findingID, comment, hostAddr)
-			if err != nil {
-				return err
-			}
+			msg := types.NewMsgHostRejectFinding(findingID, comment, hostAddr)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
