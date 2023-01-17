@@ -210,7 +210,7 @@ $ %s query bounty findings --program-id 1
 $ %s query bounty findings --submitter-address cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 $ %s query bounty findings --page=1 --limit=100
 `,
-				version.AppName, version.AppName, version.AppName,
+				version.AppName, version.AppName, version.AppName, version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {

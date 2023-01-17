@@ -89,10 +89,10 @@ func (k Keeper) Findings(c context.Context, req *types.QueryFindingsRequest) (*t
 			return false, status.Error(codes.Internal, err.Error())
 		}
 
-		matchProgramId, matchSubmitter := true, true
+		matchProgramID, matchSubmitter := true, true
 		// match program-id
 		if req.ProgramId != 0 {
-			matchProgramId = req.ProgramId == finding.ProgramId
+			matchProgramID = req.ProgramId == finding.ProgramId
 		}
 		// match submitter address
 		if len(req.SubmitterAddress) > 0 {
@@ -100,7 +100,7 @@ func (k Keeper) Findings(c context.Context, req *types.QueryFindingsRequest) (*t
 
 		}
 
-		if matchProgramId && matchSubmitter {
+		if matchProgramID && matchSubmitter {
 			if accumulate {
 				findings = append(findings, finding)
 			}
