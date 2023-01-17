@@ -2,8 +2,9 @@ package types
 
 import (
 	"bytes"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"testing"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
 func TestGetEncryptionKey(t *testing.T) {

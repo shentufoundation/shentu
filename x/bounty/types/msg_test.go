@@ -2,11 +2,13 @@ package types
 
 import (
 	"crypto/rand"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/crypto/ecies"
-	"github.com/shentufoundation/shentu/v2/common"
 	"testing"
 	"time"
+
+	"github.com/shentufoundation/shentu/v2/common"
+
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/ecies"
 
 	"github.com/stretchr/testify/require"
 

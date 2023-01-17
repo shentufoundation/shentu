@@ -58,4 +58,10 @@ message MsgSubmitFindingResponse {
   option (gogoproto.goproto_getters) = false;
   uint64 finding_id = 1 [(gogoproto.jsontag) = "finding_id", (gogoproto.moretags) = "yaml:\"finding_id\""];
 }
+message MsgReleaseFinding {
+  option (gogoproto.equal)           = false;
 
+  uint64 finding_id = 1;
+  string desc = 2;
+  string poc = 3;
+}
