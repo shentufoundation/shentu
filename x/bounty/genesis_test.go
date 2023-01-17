@@ -9,20 +9,41 @@ import (
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/x/bounty"
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 func TestExportGenesis(t *testing.T) {
-	app := shentuapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	k := app.BountyKeeper
+	dataGS := types.GenesisState{
+		StartingFindingId: 2,
+		StartingProgramId: 2,
+		Programs: []types.Program{
+			{
+				ProgramId: 1,
+			},
+		},
+		Findings: []types.Finding{
+			{
+				FindingId: 1,
+				ProgramId: 1,
+			},
+		},
+	}
 
-	exported := bounty.ExportGenesis(ctx, k)
+	app1 := shentuapp.Setup(false)
+	ctx1 := app1.BaseApp.NewContext(false, tmproto.Header{})
+	k1 := app1.BountyKeeper
+
+	bounty.InitGenesis(ctx1, k1, dataGS)
+	exported1 := bounty.ExportGenesis(ctx1, k1)
 
 	app2 := shentuapp.Setup(false)
 	ctx2 := app2.BaseApp.NewContext(false, tmproto.Header{})
 	k2 := app2.BountyKeeper
 
-	bounty.InitGenesis(ctx2, k2, *exported)
-	exported2 := bounty.ExportGenesis(ctx, k)
-	require.True(t, reflect.DeepEqual(exported, exported2))
+	exported2 := bounty.ExportGenesis(ctx2, k2)
+	require.False(t, reflect.DeepEqual(exported1, exported2))
+
+	bounty.InitGenesis(ctx2, k2, *exported1)
+	exported3 := bounty.ExportGenesis(ctx2, k2)
+	require.True(t, reflect.DeepEqual(exported1, exported3))
 }
