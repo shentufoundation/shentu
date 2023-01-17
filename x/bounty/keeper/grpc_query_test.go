@@ -44,7 +44,6 @@ func (suite *KeeperTestSuite) TestGRPCQueryProgram() {
 			"valid request",
 			func() {
 				req = &types.QueryProgramRequest{ProgramId: 1}
-
 				// create programs
 				suite.CreatePrograms()
 			},
@@ -87,7 +86,8 @@ func (suite *KeeperTestSuite) TestGRPCQueryPrograms() {
 					Pagination: nil,
 				}
 
-				// create programs
+				// create two programs
+				suite.CreatePrograms()
 				suite.CreatePrograms()
 			},
 			true,
@@ -102,11 +102,122 @@ func (suite *KeeperTestSuite) TestGRPCQueryPrograms() {
 
 			if testCase.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(len(programRes.Programs), SIZE)
+				suite.Require().Equal(len(programRes.Programs), 2)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(programRes)
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
+	queryClient := suite.queryClient
+
+	// create programs
+	programId := suite.CreatePrograms()
+
+	var (
+		req *types.QueryFindingRequest
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"empty request",
+			func() {
+				req = &types.QueryFindingRequest{}
+			},
+			false,
+		},
+		{
+			"non existing finding id request",
+			func() {
+				req = &types.QueryFindingRequest{FindingId: 100}
+			},
+			false,
+		},
+		{
+			"zero finding id request",
+			func() {
+				req = &types.QueryFindingRequest{FindingId: 1}
+			},
+			false,
+		},
+		{
+			"valid request",
+			func() {
+				req = &types.QueryFindingRequest{FindingId: 1}
+				suite.CreateSubmitFinding(programId)
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.msg), func() {
+			testCase.malleate()
+
+			findingRes, err := queryClient.Finding(context.Background(), req)
+			if testCase.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(findingRes)
+			}
+		})
+	}
+
+}
+
+func (suite *KeeperTestSuite) TestGRPCQueryFindings() {
+	queryClient := suite.queryClient
+
+	// create programs
+	programId := suite.CreatePrograms()
+
+	var (
+		req *types.QueryFindingsRequest
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"valid request",
+			func() {
+				req = &types.QueryFindingsRequest{ProgramId: programId}
+				suite.CreateSubmitFinding(programId)
+			},
+			true,
+		},
+		{
+			"valid request with submitter address",
+			func() {
+				req = &types.QueryFindingsRequest{ProgramId: programId, SubmitterAddress: suite.address[0].String()}
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.msg), func() {
+			testCase.malleate()
+
+			findingRes, err := queryClient.Findings(context.Background(), req)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(findingRes)
+			}
+		})
+	}
+
 }
