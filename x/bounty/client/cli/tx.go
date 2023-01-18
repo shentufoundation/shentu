@@ -293,12 +293,15 @@ func HostProcessFinding(cmd *cobra.Command, args []string) (fid uint64,
 		return fid, commentAny, hostAddr, nil
 	}
 
-	// get encryptionKey
+	// get eciesEncKey
 	finding, err := GetFinding(cmd, fid)
 	if err != nil {
 		return fid, commentAny, hostAddr, err
 	}
 	eciesEncKey, err := GetEncryptionKey(cmd, finding.ProgramId)
+	if err != nil {
+		return fid, commentAny, hostAddr, err
+	}
 
 	encryptedComment, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(comment), nil, nil)
 	if err != nil {
