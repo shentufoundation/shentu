@@ -26,7 +26,7 @@ func NewMsgCreateProgram(
 	var encAny *codectypes.Any
 	if encKey != nil {
 		encKeyMsg := EciesPubKey{
-			PubKey: encKey,
+			EncryptionKey: encKey,
 		}
 
 		var err error
@@ -79,18 +79,24 @@ func (msg MsgCreateProgram) ValidateBasic() error {
 	return nil
 }
 
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgCreateProgram) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey EncryptionKey
+	return unpacker.UnpackAny(msg.EncryptionKey, &pubKey)
+}
+
 // NewMsgSubmitFinding submit a new finding.
 func NewMsgSubmitFinding(
-	submitterAddress string, title, description string, programId uint64, severityLevel int32, poc string,
+	submitterAddress string, title, description string, programID uint64, severityLevel int32, poc string,
 ) (*MsgSubmitFinding, error) {
-	if programId == 0 {
+	if programID == 0 {
 		return nil, errors.New("empty pid is not allowed")
 	}
 
 	return &MsgSubmitFinding{
 		Title:            title,
 		Desc:             description,
-		Pid:              programId,
+		ProgramId:        programID,
 		SeverityLevel:    SeverityLevel(severityLevel),
 		Poc:              poc,
 		SubmitterAddress: submitterAddress,
@@ -130,7 +136,7 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
 
-	if msg.Pid == 0 {
+	if msg.ProgramId == 0 {
 		return errors.New("empty pid is not allowed")
 	}
 	return nil
@@ -139,8 +145,8 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 // NewMsgWithdrawalFinding withdrawal a specific finding
 func NewMsgWithdrawalFinding(accAddr sdk.AccAddress, findingId uint64) *MsgWithdrawalFinding {
 	return &MsgWithdrawalFinding{
-		From: accAddr.String(),
-		Fid:  findingId,
+		From:      accAddr.String(),
+		FindingId: findingId,
 	}
 }
 
@@ -172,7 +178,7 @@ func (msg MsgWithdrawalFinding) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
-	if msg.Fid == 0 {
+	if msg.FindingId == 0 {
 		return errors.New("empty fid is not allowed")
 	}
 	return nil
@@ -181,8 +187,8 @@ func (msg MsgWithdrawalFinding) ValidateBasic() error {
 // NewMsgReactivateFinding reactivate a specific finding
 func NewMsgReactivateFinding(accAddr sdk.AccAddress, findingId uint64) *MsgReactivateFinding {
 	return &MsgReactivateFinding{
-		From: accAddr.String(),
-		Fid:  findingId,
+		From:      accAddr.String(),
+		FindingId: findingId,
 	}
 }
 
@@ -214,7 +220,7 @@ func (msg MsgReactivateFinding) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
-	if msg.Fid == 0 {
+	if msg.FindingId == 0 {
 		return errors.New("empty fid is not allowed")
 	}
 	return nil

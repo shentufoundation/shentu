@@ -127,6 +127,7 @@ func NewCreateProgramCmd() *cobra.Command {
 	cmd.Flags().String(FlagDesc, "", "The program description.")
 	cmd.Flags().String(FlagCommissionRate, "", "The commission rate for the program")
 	cmd.Flags().String(FlagDeposit, "", "The initial deposit to the program")
+	cmd.Flags().String(FlagSubmissionEndTime, "", "The program's submission end time")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -172,9 +173,9 @@ func NewSubmitFindingCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagFindingDesc, "", "The finding description")
+	cmd.Flags().String(FlagFindingDesc, "", "The finding's description")
 	cmd.Flags().String(FlagFindingTitle, "", "The finding's title")
-	cmd.Flags().String(FlagFindingPoc, "", "The finding's poc")
+	cmd.Flags().String(FlagFindingPoc, "", "Ths finding's poc")
 	cmd.Flags().Uint64(FlagProgramID, 0, "The program's ID")
 	cmd.Flags().Int32(FlagFindingSeverityLevel, 0, "The finding's severity level")
 	flags.AddTxFlagsToCmd(cmd)
