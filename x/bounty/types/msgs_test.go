@@ -9,9 +9,11 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/ecies"
-	"github.com/shentufoundation/shentu/v2/common"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/shentufoundation/shentu/v2/common"
 )
 
 var (
@@ -83,16 +85,21 @@ func TestMsgSubmitFinding(t *testing.T) {
 }
 
 func TestMsgHostAcceptFinding(t *testing.T) {
+	encComment := EciesEncryptedComment{
+		EncryptedComment: []byte("comment"),
+	}
+	commentAny, _ := codectypes.NewAnyWithValue(&encComment)
+
 	testCases := []struct {
 		findingId  uint64
 		hostAddr   sdk.AccAddress
-		comment    string
+		comment    *codectypes.Any
 		expectPass bool
 	}{
-		{0, addrs[0], "comment", false},
-		{1, sdk.AccAddress{}, "comment", false},
-		{1, addrs[0], "comment", true},
-		{1, addrs[0], "", true},
+		{0, addrs[0], commentAny, false},
+		{1, sdk.AccAddress{}, commentAny, false},
+		{1, addrs[0], commentAny, true},
+		{1, addrs[0], commentAny, true},
 	}
 
 	for _, tc := range testCases {
@@ -110,16 +117,21 @@ func TestMsgHostAcceptFinding(t *testing.T) {
 }
 
 func TestMsgHostRejectFinding(t *testing.T) {
+	encComment := EciesEncryptedComment{
+		EncryptedComment: []byte("comment"),
+	}
+	commentAny, _ := codectypes.NewAnyWithValue(&encComment)
+
 	testCases := []struct {
 		findingId  uint64
 		hostAddr   sdk.AccAddress
-		comment    string
+		comment    *codectypes.Any
 		expectPass bool
 	}{
-		{0, addrs[0], "comment", false},
-		{1, sdk.AccAddress{}, "comment", false},
-		{1, addrs[0], "comment", true},
-		{1, addrs[0], "", true},
+		{0, addrs[0], commentAny, false},
+		{1, sdk.AccAddress{}, commentAny, false},
+		{1, addrs[0], commentAny, true},
+		{1, addrs[0], nil, true},
 	}
 
 	for _, tc := range testCases {
@@ -137,12 +149,17 @@ func TestMsgHostRejectFinding(t *testing.T) {
 }
 
 func TestHostAcceptGetSignBytes(t *testing.T) {
-	msg := NewMsgHostAcceptFinding(1, "comment", addrs[0])
+	encComment := EciesEncryptedComment{
+		EncryptedComment: []byte("comment"),
+	}
+	commentAny, _ := codectypes.NewAnyWithValue(&encComment)
+
+	msg := NewMsgHostAcceptFinding(1, commentAny, addrs[0])
 	res := msg.GetSignBytes()
 	expected := `{"type":"bounty/HostAcceptFinding","value":{"comment":"comment","finding_id":"1","host_address":"cosmos1w3jhxap3gempvr"}}`
 	require.Equal(t, expected, string(res))
 
-	msg1 := NewMsgHostRejectFinding(1, "comment", addrs[0])
+	msg1 := NewMsgHostRejectFinding(1, commentAny, addrs[0])
 	res = msg1.GetSignBytes()
 	expected = `{"type":"bounty/HostRejectFinding","value":{"comment":"comment","finding_id":"1","host_address":"cosmos1w3jhxap3gempvr"}}`
 	require.Equal(t, expected, string(res))
