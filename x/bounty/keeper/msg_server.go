@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/ethereum/go-ethereum/crypto"
+
 	"github.com/ethereum/go-ethereum/crypto/ecies"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -49,6 +51,7 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 		EncryptionKey:     msg.EncryptionKey,
 		Deposit:           msg.Deposit,
 		CommissionRate:    msg.CommissionRate,
+		Active:            true,
 	}
 
 	k.SetProgram(ctx, program)
@@ -79,73 +82,74 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	program, isExist := k.GetProgram(ctx, msg.Pid)
+	program, isExist := k.GetProgram(ctx, msg.ProgramId)
 	if !isExist {
-		return nil, fmt.Errorf("no program id:%d", msg.Pid)
+		return nil, fmt.Errorf("no program id:%d", msg.ProgramId)
 	}
 
 	if !program.Active {
-		return nil, fmt.Errorf("program id:%d is closed", msg.Pid)
+		return nil, fmt.Errorf("program id:%d is closed", msg.ProgramId)
 	}
 
-	var eciesEncKey ecies.PublicKey
-	err = k.cdc.UnpackAny(program.EncryptionKey, &eciesEncKey)
+	pubEcdsa, err := crypto.UnmarshalPubkey(program.GetEncryptionKey().GetEncryptionKey())
 	if err != nil {
-		return nil, fmt.Errorf("EncryptionKey error")
+		return nil, err
 	}
+	eciesEncKey := ecies.ImportECDSAPublic(pubEcdsa)
 
-	encryptedDesc, err := ecies.Encrypt(rand.Reader, &eciesEncKey, []byte(msg.Desc), nil, nil)
+	encryptedDesc, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(msg.Desc), nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	encryptedPoc, err := ecies.Encrypt(rand.Reader, &eciesEncKey, []byte(msg.Poc), nil, nil)
+	encryptedPoc, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(msg.Poc), nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	nextID := k.GetNextFindingID(ctx)
+	findingID := k.GetNextFindingID(ctx)
 
 	var descAny *codectypes.Any
 	var pocAny *codectypes.Any
 
 	encDesc := types.EciesEncryptedDesc{
-		Desc: encryptedDesc,
+		EncryptedDesc: encryptedDesc,
 	}
 	if descAny, err = codectypes.NewAnyWithValue(&encDesc); err != nil {
 		return nil, err
 	}
 
 	encPoc := types.EciesEncryptedPoc{
-		Poc: encryptedPoc,
+		EncryptedPoc: encryptedPoc,
 	}
 	if pocAny, err = codectypes.NewAnyWithValue(&encPoc); err != nil {
 		return nil, err
 	}
 
 	finding := types.Finding{
-		FindingId:        nextID,
+		FindingId:        findingID,
 		Title:            msg.Title,
 		EncryptedDesc:    descAny,
-		Pid:              msg.Pid,
+		ProgramId:        msg.ProgramId,
 		SeverityLevel:    msg.SeverityLevel,
 		EncryptedPoc:     pocAny,
 		SubmitterAddress: msg.SubmitterAddress,
+		FindingStatus:    types.FindingStatusUnConfirmed,
 	}
 
-	err = k.AppendFidToFidList(ctx, msg.Pid, nextID)
+	err = k.AppendFidToFidList(ctx, msg.ProgramId, findingID)
 	if err != nil {
 		return nil, err
 	}
 
 	k.SetFinding(ctx, finding)
-	k.SetNextFindingID(ctx, nextID+1)
+	k.SetNextFindingID(ctx, findingID+1)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSubmitFinding,
 			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(finding.FindingId, 10)),
-			sdk.NewAttribute(types.AttributeKeyProgramID, strconv.FormatUint(finding.Pid, 10)),
+			sdk.NewAttribute(types.AttributeKeyProgramID, strconv.FormatUint(finding.ProgramId, 10)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -155,7 +159,7 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 	})
 
 	return &types.MsgSubmitFindingResponse{
-		Fid: finding.FindingId,
+		FindingId: finding.FindingId,
 	}, nil
 }
 
@@ -166,7 +170,7 @@ func (k msgServer) WithdrawalFinding(goCtx context.Context, msg *types.MsgWithdr
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	_, err = k.Keeper.WithdrawalFinding(ctx, fromAddr, msg.Fid)
+	_, err = k.Keeper.WithdrawalFinding(ctx, fromAddr, msg.FindingId)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +178,7 @@ func (k msgServer) WithdrawalFinding(goCtx context.Context, msg *types.MsgWithdr
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWithdrawalFinding,
-			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(msg.Fid, 10)),
+			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(msg.FindingId, 10)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -193,7 +197,7 @@ func (k msgServer) ReactivateFinding(goCtx context.Context, msg *types.MsgReacti
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	_, err = k.Keeper.ReactivateFinding(ctx, fromAddr, msg.Fid)
+	_, err = k.Keeper.ReactivateFinding(ctx, fromAddr, msg.FindingId)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +205,7 @@ func (k msgServer) ReactivateFinding(goCtx context.Context, msg *types.MsgReacti
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeReactivateFinding,
-			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(msg.Fid, 10)),
+			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(msg.FindingId, 10)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

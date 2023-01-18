@@ -6,6 +6,7 @@ import sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 // Program
 const (
 	errProgramNotExists uint32 = iota + 101
+	errEmptyProgramIDFindingList
 )
 
 // Finding
@@ -19,7 +20,8 @@ const (
 
 // [1xx] Program
 var (
-	ErrProgramNotExists = sdkerrors.Register(ModuleName, errProgramNotExists, "program does not exist")
+	ErrProgramNotExists          = sdkerrors.Register(ModuleName, errProgramNotExists, "program does not exist")
+	ErrEmptyProgramIDFindingList = sdkerrors.Register(ModuleName, errEmptyProgramIDFindingList, "empty finding id list")
 )
 
 // [2xx] Finding

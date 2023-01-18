@@ -26,7 +26,7 @@ service Msg {
   rpc ReactivateFinding(MsgReactivateFinding) returns (MsgReactivateFindingResponse);
 }
 
-// MsgCreateProgram defines a SDK message for creating a new validator.
+// MsgCreateProgram defines a SDK message for creating a new program.
 message MsgCreateProgram {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -44,18 +44,17 @@ message MsgCreateProgram {
   repeated cosmos.base.v1beta1.Coin deposit = 6 [(gogoproto.nullable) = false];
 }
 
-// MsgCreateProgramResponse defines the Msg/CreateValidator response type.
+// MsgCreateProgramResponse defines the Msg/CreateProgram response type.
 message MsgCreateProgramResponse {
   uint64 program_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
 }
-
 message MsgSubmitFinding {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string title = 1;
   string desc = 2 [(gogoproto.moretags) = "yaml:\"description\""];
-  uint64 pid = 3 [(gogoproto.moretags) = "yaml:\"pid\""];
+  uint64 program_id = 3 [(gogoproto.moretags) = "yaml:\"program_id\""];
   SeverityLevel severity_level = 4 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
   string poc = 5 [(gogoproto.moretags) = "yaml:\"poc\""];
   string submitter_address  = 6 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
@@ -63,7 +62,7 @@ message MsgSubmitFinding {
 
 message MsgSubmitFindingResponse {
   option (gogoproto.goproto_getters) = false;
-  uint64 fid = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
+  uint64 finding_id = 1 [(gogoproto.jsontag) = "finding_id", (gogoproto.moretags) = "yaml:\"finding_id\""];
 }
 
 message MsgWithdrawalFinding {
@@ -71,7 +70,7 @@ message MsgWithdrawalFinding {
   option (gogoproto.goproto_getters) = false;
 
   string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
-  uint64 fid = 2 [ (gogoproto.moretags) = "yaml:\"id\"" ];
+  uint64 finding_id = 2 [ (gogoproto.moretags) = "yaml:\"finding_id\"" ];
 }
 
 message MsgWithdrawalFindingResponse {}
@@ -81,7 +80,7 @@ message MsgReactivateFinding {
   option (gogoproto.goproto_getters) = false;
 
   string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
-  uint64 fid = 2 [ (gogoproto.moretags) = "yaml:\"id\"" ];
+  uint64 finding_id = 2 [ (gogoproto.moretags) = "yaml:\"finding_id\"" ];
 }
 
 message MsgReactivateFindingResponse {}

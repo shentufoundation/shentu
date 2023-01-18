@@ -1,16 +1,14 @@
 package keeper_test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	types1 "github.com/cosmos/cosmos-sdk/types"
 
@@ -19,44 +17,28 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-var (
-	acc1 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc2 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc3 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	acc4 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-)
-
 // shared setup
 type KeeperTestSuite struct {
 	suite.Suite
-	app     *shentuapp.ShentuApp
-	ctx     sdk.Context
-	keeper  keeper.Keeper
-	address []sdk.AccAddress
-	// queryClient types.QueryClient
+
+	app         *shentuapp.ShentuApp
+	ctx         sdk.Context
+	keeper      keeper.Keeper
+	address     []sdk.AccAddress
+	msgServer   types.MsgServer
+	queryClient types.QueryClient
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.app = shentuapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = suite.app.BountyKeeper
+	suite.address = shentuapp.AddTestAddrs(suite.app, suite.ctx, 4, sdk.NewInt(1e10))
 
-	for _, acc := range []sdk.AccAddress{acc1, acc2, acc3, acc4} {
-		err := sdksimapp.FundAccount(
-			suite.app.BankKeeper,
-			suite.ctx,
-			acc,
-			sdk.NewCoins(
-				sdk.NewCoin("uctk", sdk.NewInt(10000000000)), // 1,000 CTK
-			),
-		)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	suite.address = []sdk.AccAddress{acc1, acc2, acc3, acc4}
-	//suite.keeper.SetCertifier(suite.ctx, types.NewCertifier(suite.address[0], "", suite.address[0], ""))
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, suite.app.BountyKeeper)
+	suite.queryClient = types.NewQueryClient(queryHelper)
+	suite.msgServer = keeper.NewMsgServerImpl(suite.keeper)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -74,7 +56,7 @@ func (suite *KeeperTestSuite) TestProgram_GetSet() {
 	}
 
 	deposit1 := types1.NewInt(10000)
-
+	dd, _ := time.ParseDuration("24h")
 	tests := []struct {
 		name    string
 		args    args
@@ -86,7 +68,7 @@ func (suite *KeeperTestSuite) TestProgram_GetSet() {
 					{
 						ProgramId:         1,
 						CreatorAddress:    suite.address[0].String(),
-						SubmissionEndTime: time.Now(),
+						SubmissionEndTime: time.Now().Add(dd),
 						Description:       "for test1",
 						Deposit: []types1.Coin{
 							{
@@ -100,20 +82,22 @@ func (suite *KeeperTestSuite) TestProgram_GetSet() {
 			},
 			errArgs{
 				shouldPass: true,
-				contains:   "",
 			},
 		},
 	}
-	suite.keeper.SetNextProgramID(suite.ctx, 1)
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			for _, program := range tc.args.program {
-				fmt.Println("----", program)
-				nextID := suite.keeper.GetNextProgramID(suite.ctx)
-				fmt.Println(nextID)
-
 				suite.keeper.SetProgram(suite.ctx, program)
+				storedProgram, isExist := suite.keeper.GetProgram(suite.ctx, program.ProgramId)
+				suite.Require().Equal(true, isExist)
+
+				if tc.errArgs.shouldPass {
+					suite.Require().Equal(program.ProgramId, storedProgram.ProgramId)
+				} else {
+					suite.Require().NotEqual(program.ProgramId, storedProgram.ProgramId)
+				}
 			}
 		})
 	}

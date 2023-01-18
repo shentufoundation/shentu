@@ -184,6 +184,7 @@ var (
 		shieldtypes.ModuleName:         {authtypes.Burner},
 		cvmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		bountytypes.ModuleName:         {authtypes.Burner},
 	}
 )
 

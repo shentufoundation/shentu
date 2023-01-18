@@ -17,23 +17,25 @@ func (suite *KeeperTestSuite) TestFindingList_GetSet() {
 
 func (suite *KeeperTestSuite) TestFindingWithdrawal() {
 	var findingID uint64 = 1
+	testAcct := suite.address[0]
 	finding := types.Finding{
-		FindingId: findingID,
-		Active:    true,
+		FindingId:        findingID,
+		SubmitterAddress: testAcct.String(),
+		Active:           true,
 	}
 	suite.keeper.SetFinding(suite.ctx, finding)
 
-	f2, err := suite.keeper.WithdrawalFinding(suite.ctx, findingID)
+	f2, err := suite.keeper.WithdrawalFinding(suite.ctx, testAcct, findingID)
 	suite.Require().NoError(err)
 	suite.Require().False(f2.Active)
 
-	_, err = suite.keeper.WithdrawalFinding(suite.ctx, findingID)
+	_, err = suite.keeper.WithdrawalFinding(suite.ctx, testAcct, findingID)
 	suite.Require().Error(err)
 
-	f4, err := suite.keeper.ReactivateFinding(suite.ctx, findingID)
+	f4, err := suite.keeper.ReactivateFinding(suite.ctx, testAcct, findingID)
 	suite.Require().NoError(err)
 	suite.Require().True(f4.Active)
 
-	_, err = suite.keeper.ReactivateFinding(suite.ctx, findingID)
+	_, err = suite.keeper.ReactivateFinding(suite.ctx, testAcct, findingID)
 	suite.Require().Error(err)
 }
