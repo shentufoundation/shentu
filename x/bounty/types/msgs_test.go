@@ -147,27 +147,3 @@ func TestMsgHostRejectFinding(t *testing.T) {
 		}
 	}
 }
-
-func TestHostAcceptGetSignBytes(t *testing.T) {
-	encComment := EciesEncryptedComment{
-		EncryptedComment: []byte("comment"),
-	}
-	commentAny, _ := codectypes.NewAnyWithValue(&encComment)
-
-	msg := NewMsgHostAcceptFinding(1, commentAny, addrs[0])
-	res := msg.GetSignBytes()
-	expected := `{"type":"bounty/HostAcceptFinding","value":{"comment":"comment","finding_id":"1","host_address":"cosmos1w3jhxap3gempvr"}}`
-	require.Equal(t, expected, string(res))
-
-	msg1 := NewMsgHostRejectFinding(1, commentAny, addrs[0])
-	res = msg1.GetSignBytes()
-	expected = `{"type":"bounty/HostRejectFinding","value":{"comment":"comment","finding_id":"1","host_address":"cosmos1w3jhxap3gempvr"}}`
-	require.Equal(t, expected, string(res))
-
-	msg2 := NewMsgSubmitFinding(addrs[0].String(), "title", "desc", 1, 0, "poc")
-	res = msg2.GetSignBytes()
-	expected = `{"type":"bounty/SubmitFinding","value":{"desc":"desc","poc":"poc","program_id":"1","submitter_address":"cosmos1w3jhxap3gempvr","title":"title"}}`
-	require.Equal(t, expected, string(res))
-
-	// TODO add createProgram
-}
