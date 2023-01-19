@@ -49,7 +49,6 @@ message Finding {
   FindingStatus finding_status = 8 [(gogoproto.moretags) = "yaml:\"finding_status\""];
 
   google.protobuf.Any encrypted_comment = 9 [(cosmos_proto.accepts_interface) = "EncryptedComment",(gogoproto.moretags) = "yaml:\"encrypted_comment\""];
-  google.protobuf.Any comment = 10 [(cosmos_proto.accepts_interface) = "Comment",(gogoproto.moretags) = "yaml:\"comment\""];
 }
 
 message EciesEncryptedDesc {
