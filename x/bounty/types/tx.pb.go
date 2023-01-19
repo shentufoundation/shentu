@@ -125,6 +125,7 @@ func (m *MsgCreateProgramResponse) GetProgramId() uint64 {
 	return 0
 }
 
+// MsgSubmitFinding defines a message to submit a finding.
 type MsgSubmitFinding struct {
 	Title            string        `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	Desc             string        `protobuf:"bytes,2,opt,name=desc,proto3" json:"desc,omitempty" yaml:"description"`
@@ -167,6 +168,7 @@ func (m *MsgSubmitFinding) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSubmitFinding proto.InternalMessageInfo
 
+// MsgSubmitFindingResponse defines the MsgSubmitFinding response type.
 type MsgSubmitFindingResponse struct {
 	FindingId uint64 `protobuf:"varint,1,opt,name=finding_id,json=findingId,proto3" json:"finding_id" yaml:"finding_id"`
 }
@@ -204,17 +206,174 @@ func (m *MsgSubmitFindingResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSubmitFindingResponse proto.InternalMessageInfo
 
+// MsgHostAcceptFinding defines a message to accept a finding to an existing finding.
+type MsgHostAcceptFinding struct {
+	FindingId        uint64     `protobuf:"varint,1,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
+	EncryptedComment *types.Any `protobuf:"bytes,2,opt,name=encrypted_comment,json=encryptedComment,proto3" json:"encrypted_comment,omitempty"`
+	HostAddress      string     `protobuf:"bytes,3,opt,name=host_address,json=hostAddress,proto3" json:"host_address,omitempty" yaml:"host_address"`
+}
+
+func (m *MsgHostAcceptFinding) Reset()         { *m = MsgHostAcceptFinding{} }
+func (m *MsgHostAcceptFinding) String() string { return proto.CompactTextString(m) }
+func (*MsgHostAcceptFinding) ProtoMessage()    {}
+func (*MsgHostAcceptFinding) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{4}
+}
+func (m *MsgHostAcceptFinding) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgHostAcceptFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgHostAcceptFinding.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgHostAcceptFinding) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgHostAcceptFinding.Merge(m, src)
+}
+func (m *MsgHostAcceptFinding) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgHostAcceptFinding) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgHostAcceptFinding.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgHostAcceptFinding proto.InternalMessageInfo
+
+// MsgHostAcceptFindingResponse defines the Msg/HostAcceptFinding response type.
+type MsgHostAcceptFindingResponse struct {
+}
+
+func (m *MsgHostAcceptFindingResponse) Reset()         { *m = MsgHostAcceptFindingResponse{} }
+func (m *MsgHostAcceptFindingResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgHostAcceptFindingResponse) ProtoMessage()    {}
+func (*MsgHostAcceptFindingResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{5}
+}
+func (m *MsgHostAcceptFindingResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgHostAcceptFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgHostAcceptFindingResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgHostAcceptFindingResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgHostAcceptFindingResponse.Merge(m, src)
+}
+func (m *MsgHostAcceptFindingResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgHostAcceptFindingResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgHostAcceptFindingResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgHostAcceptFindingResponse proto.InternalMessageInfo
+
+// MsgHostRejectFinding defines a message to accept a reject to an existing finding.
+type MsgHostRejectFinding struct {
+	FindingId        uint64     `protobuf:"varint,1,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
+	EncryptedComment *types.Any `protobuf:"bytes,2,opt,name=encrypted_comment,json=encryptedComment,proto3" json:"encrypted_comment,omitempty"`
+	HostAddress      string     `protobuf:"bytes,3,opt,name=host_address,json=hostAddress,proto3" json:"host_address,omitempty" yaml:"host_address"`
+}
+
+func (m *MsgHostRejectFinding) Reset()         { *m = MsgHostRejectFinding{} }
+func (m *MsgHostRejectFinding) String() string { return proto.CompactTextString(m) }
+func (*MsgHostRejectFinding) ProtoMessage()    {}
+func (*MsgHostRejectFinding) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{6}
+}
+func (m *MsgHostRejectFinding) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgHostRejectFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgHostRejectFinding.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgHostRejectFinding) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgHostRejectFinding.Merge(m, src)
+}
+func (m *MsgHostRejectFinding) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgHostRejectFinding) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgHostRejectFinding.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgHostRejectFinding proto.InternalMessageInfo
+
+// MsgHostRejectFindingResponse defines the Msg/ostRejectFinding response type.
+type MsgHostRejectFindingResponse struct {
+}
+
+func (m *MsgHostRejectFindingResponse) Reset()         { *m = MsgHostRejectFindingResponse{} }
+func (m *MsgHostRejectFindingResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgHostRejectFindingResponse) ProtoMessage()    {}
+func (*MsgHostRejectFindingResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{7}
+}
+func (m *MsgHostRejectFindingResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgHostRejectFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgHostRejectFindingResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgHostRejectFindingResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgHostRejectFindingResponse.Merge(m, src)
+}
+func (m *MsgHostRejectFindingResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgHostRejectFindingResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgHostRejectFindingResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgHostRejectFindingResponse proto.InternalMessageInfo
+
+// MsgReleaseFinding defines a message to release a finding.
 type MsgReleaseFinding struct {
-	FindingId uint64 `protobuf:"varint,1,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty"`
-	Desc      string `protobuf:"bytes,2,opt,name=desc,proto3" json:"desc,omitempty"`
-	Poc       string `protobuf:"bytes,3,opt,name=poc,proto3" json:"poc,omitempty"`
+	FindingId   uint64 `protobuf:"varint,1,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
+	Desc        string `protobuf:"bytes,2,opt,name=desc,proto3" json:"desc,omitempty" yaml:"desc"`
+	Poc         string `protobuf:"bytes,3,opt,name=poc,proto3" json:"poc,omitempty" yaml:"poc"`
+	Comment     string `protobuf:"bytes,4,opt,name=comment,proto3" json:"comment,omitempty" yaml:"comment"`
+	HostAddress string `protobuf:"bytes,5,opt,name=host_address,json=hostAddress,proto3" json:"host_address,omitempty" yaml:"host_address"`
 }
 
 func (m *MsgReleaseFinding) Reset()         { *m = MsgReleaseFinding{} }
 func (m *MsgReleaseFinding) String() string { return proto.CompactTextString(m) }
 func (*MsgReleaseFinding) ProtoMessage()    {}
 func (*MsgReleaseFinding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{4}
+	return fileDescriptor_1e4b4296bac3db30, []int{8}
 }
 func (m *MsgReleaseFinding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -264,69 +423,137 @@ func (m *MsgReleaseFinding) GetPoc() string {
 	return ""
 }
 
+func (m *MsgReleaseFinding) GetComment() string {
+	if m != nil {
+		return m.Comment
+	}
+	return ""
+}
+
+func (m *MsgReleaseFinding) GetHostAddress() string {
+	if m != nil {
+		return m.HostAddress
+	}
+	return ""
+}
+
+// MsgReleaseFindingResponse defines the MsgReleaseFinding response type.
+type MsgReleaseFindingResponse struct {
+}
+
+func (m *MsgReleaseFindingResponse) Reset()         { *m = MsgReleaseFindingResponse{} }
+func (m *MsgReleaseFindingResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgReleaseFindingResponse) ProtoMessage()    {}
+func (*MsgReleaseFindingResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{9}
+}
+func (m *MsgReleaseFindingResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgReleaseFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgReleaseFindingResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgReleaseFindingResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgReleaseFindingResponse.Merge(m, src)
+}
+func (m *MsgReleaseFindingResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgReleaseFindingResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgReleaseFindingResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgReleaseFindingResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgCreateProgram)(nil), "shentu.bounty.v1.MsgCreateProgram")
 	proto.RegisterType((*MsgCreateProgramResponse)(nil), "shentu.bounty.v1.MsgCreateProgramResponse")
 	proto.RegisterType((*MsgSubmitFinding)(nil), "shentu.bounty.v1.MsgSubmitFinding")
 	proto.RegisterType((*MsgSubmitFindingResponse)(nil), "shentu.bounty.v1.MsgSubmitFindingResponse")
+	proto.RegisterType((*MsgHostAcceptFinding)(nil), "shentu.bounty.v1.MsgHostAcceptFinding")
+	proto.RegisterType((*MsgHostAcceptFindingResponse)(nil), "shentu.bounty.v1.MsgHostAcceptFindingResponse")
+	proto.RegisterType((*MsgHostRejectFinding)(nil), "shentu.bounty.v1.MsgHostRejectFinding")
+	proto.RegisterType((*MsgHostRejectFindingResponse)(nil), "shentu.bounty.v1.MsgHostRejectFindingResponse")
 	proto.RegisterType((*MsgReleaseFinding)(nil), "shentu.bounty.v1.MsgReleaseFinding")
+	proto.RegisterType((*MsgReleaseFindingResponse)(nil), "shentu.bounty.v1.MsgReleaseFindingResponse")
 }
 
 func init() { proto.RegisterFile("shentu/bounty/v1/tx.proto", fileDescriptor_1e4b4296bac3db30) }
 
 var fileDescriptor_1e4b4296bac3db30 = []byte{
-	// 812 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x54, 0xcf, 0x8a, 0xdb, 0x46,
-	0x1c, 0xb6, 0xd6, 0xce, 0xb6, 0x9e, 0xc5, 0xce, 0xee, 0x64, 0x13, 0xb4, 0xa6, 0xf1, 0x18, 0x15,
-	0xc2, 0xb2, 0x10, 0x09, 0xbb, 0xbd, 0xd4, 0xb7, 0x68, 0x9b, 0xc2, 0x92, 0x6e, 0x29, 0x4a, 0xa1,
-	0xd0, 0x43, 0x85, 0x2c, 0xcd, 0x2a, 0x43, 0x2c, 0x8d, 0xd0, 0x8c, 0x4d, 0xf4, 0x06, 0x3d, 0xe6,
-	0x11, 0xf2, 0x10, 0x7d, 0x87, 0x86, 0x9e, 0x72, 0x2c, 0x3d, 0xa8, 0x65, 0xb7, 0x87, 0xb2, 0x47,
-	0xd1, 0x07, 0x28, 0xf3, 0xc7, 0x96, 0x6c, 0x6f, 0xe9, 0xc9, 0x9a, 0xef, 0xf7, 0xcd, 0x6f, 0x7e,
-	0xf3, 0x7d, 0x9f, 0x07, 0x9c, 0xb0, 0x57, 0x38, 0xe5, 0x0b, 0x67, 0x46, 0x17, 0x29, 0x2f, 0x9c,
-	0xe5, 0xd8, 0xe1, 0x6f, 0xec, 0x2c, 0xa7, 0x9c, 0xc2, 0x43, 0x55, 0xb2, 0x55, 0xc9, 0x5e, 0x8e,
-	0x07, 0xc7, 0x31, 0x8d, 0xa9, 0x2c, 0x3a, 0xe2, 0x4b, 0xf1, 0x06, 0x28, 0xa6, 0x34, 0x9e, 0x63,
-	0x47, 0xae, 0x66, 0x8b, 0x2b, 0x87, 0x93, 0x04, 0x33, 0x1e, 0x24, 0x99, 0x26, 0x9c, 0x84, 0x94,
-	0x25, 0x94, 0xf9, 0x6a, 0xa7, 0x5a, 0xac, 0x4a, 0xdb, 0x7b, 0x83, 0xb4, 0xd0, 0xa5, 0xa1, 0x22,
-	0x3a, 0xb3, 0x80, 0x61, 0x67, 0x39, 0x9e, 0x61, 0x1e, 0x8c, 0x9d, 0x90, 0x92, 0x54, 0xd7, 0x1f,
-	0xef, 0x4c, 0xae, 0x07, 0x95, 0x65, 0xeb, 0x9f, 0x36, 0x38, 0xbc, 0x64, 0xf1, 0x79, 0x8e, 0x03,
-	0x8e, 0xbf, 0xcd, 0x69, 0x9c, 0x07, 0x09, 0x1c, 0x81, 0x83, 0x08, 0xb3, 0x30, 0x27, 0x19, 0x27,
-	0x34, 0x35, 0x8d, 0x91, 0x71, 0xda, 0xf5, 0x9a, 0x10, 0xfc, 0x1e, 0xdc, 0x0f, 0x69, 0x92, 0x10,
-	0xc6, 0x08, 0x4d, 0xfd, 0x3c, 0xe0, 0xd8, 0xdc, 0x13, 0x2c, 0xd7, 0x7e, 0x5f, 0xa2, 0xd6, 0xef,
-	0x25, 0x7a, 0x12, 0x13, 0xfe, 0x6a, 0x31, 0xb3, 0x43, 0x9a, 0xe8, 0xab, 0xe8, 0x9f, 0xa7, 0x2c,
-	0x7a, 0xed, 0xf0, 0x22, 0xc3, 0xcc, 0xfe, 0x12, 0x87, 0x5e, 0xbf, 0x6e, 0xe3, 0x05, 0x1c, 0xc3,
-	0x1c, 0x3c, 0x60, 0x8b, 0xd9, 0xaa, 0x31, 0x4e, 0x23, 0x5f, 0xc8, 0x64, 0xb6, 0x47, 0xc6, 0xe9,
-	0xc1, 0x64, 0x60, 0x2b, 0x1d, 0xec, 0x95, 0x0e, 0xf6, 0x77, 0x2b, 0x0d, 0xdd, 0x27, 0xe2, 0xe0,
-	0xaa, 0x44, 0x83, 0x22, 0x48, 0xe6, 0x53, 0xeb, 0x8e, 0x26, 0xd6, 0xdb, 0x3f, 0x90, 0xe1, 0x1d,
-	0xd5, 0x95, 0xe7, 0x69, 0x24, 0xf6, 0xc3, 0x73, 0x70, 0x3f, 0x14, 0xf7, 0xa7, 0xb9, 0x1f, 0x44,
-	0x51, 0x8e, 0x19, 0x33, 0x3b, 0xf2, 0x32, 0x83, 0xaa, 0x44, 0x8f, 0x54, 0xbf, 0x2d, 0x82, 0xe5,
-	0xf5, 0x35, 0xf2, 0x4c, 0x01, 0x30, 0x06, 0x7d, 0x9c, 0x86, 0x79, 0x21, 0xf5, 0xf1, 0x5f, 0xe3,
-	0xc2, 0xbc, 0x27, 0x67, 0x3e, 0xde, 0x99, 0xf9, 0x59, 0x5a, 0xb8, 0x67, 0x55, 0x89, 0x1e, 0xaa,
-	0xce, 0x9b, 0xbb, 0xac, 0x5f, 0x7f, 0x7e, 0xda, 0x7b, 0xbe, 0x86, 0x5e, 0xe0, 0xc2, 0xeb, 0xe1,
-	0xe6, 0x12, 0x7e, 0x01, 0x3e, 0x8a, 0x70, 0x46, 0x19, 0xe1, 0xe6, 0xfe, 0xa8, 0x7d, 0x7a, 0x30,
-	0x39, 0xb1, 0x75, 0x56, 0x44, 0x04, 0x6c, 0x1d, 0x01, 0xfb, 0x9c, 0x92, 0xd4, 0xed, 0x08, 0x51,
-	0xbc, 0x15, 0x7f, 0xfa, 0xf1, 0x4f, 0xef, 0x50, 0xeb, 0xef, 0x77, 0xa8, 0x65, 0x7d, 0x03, 0xcc,
-	0x6d, 0xd7, 0x3d, 0xcc, 0x32, 0x9a, 0x32, 0x0c, 0x27, 0x00, 0x64, 0x0a, 0xf2, 0x49, 0x24, 0xcd,
-	0xef, 0xb8, 0x0f, 0x6e, 0x4b, 0xb4, 0x47, 0xa2, 0xaa, 0x44, 0x5d, 0x35, 0x35, 0x89, 0x2c, 0xaf,
-	0xab, 0x69, 0x17, 0x91, 0xf5, 0xd7, 0x9e, 0x8c, 0xd1, 0x4b, 0xa1, 0x2d, 0xff, 0x8a, 0xa4, 0x11,
-	0x49, 0x63, 0x78, 0x0c, 0xee, 0x71, 0xc2, 0xe7, 0x58, 0x07, 0x48, 0x2d, 0xe0, 0x19, 0xe8, 0x88,
-	0x24, 0xe9, 0xbc, 0x3c, 0xaa, 0x4a, 0x04, 0x55, 0xcb, 0x46, 0xbe, 0x2c, 0x4f, 0x72, 0xe0, 0xe7,
-	0x1b, 0xa3, 0xb4, 0xe5, 0x28, 0x0f, 0xab, 0x12, 0x1d, 0xa9, 0x1d, 0x75, 0xad, 0x39, 0x0c, 0x0c,
-	0x40, 0x9f, 0xe1, 0x25, 0xce, 0x09, 0x2f, 0xfc, 0x39, 0x5e, 0xe2, 0xb9, 0xb4, 0xb3, 0x3f, 0x41,
-	0xf6, 0xf6, 0x5f, 0xd5, 0x7e, 0xa9, 0x79, 0x5f, 0x0b, 0x9a, 0x7b, 0x52, 0xbb, 0xb2, 0xd9, 0xc0,
-	0xf2, 0x7a, 0xac, 0xc9, 0x84, 0x23, 0xd0, 0xce, 0x68, 0x28, 0x2d, 0xee, 0xba, 0xfd, 0xaa, 0x44,
-	0x40, 0x4f, 0x44, 0x43, 0xcb, 0x13, 0x25, 0x78, 0x01, 0x54, 0xd2, 0x38, 0xc7, 0x75, 0xac, 0xf6,
-	0x25, 0xff, 0x93, 0xaa, 0x44, 0x66, 0x23, 0xa6, 0x4d, 0x8a, 0xe5, 0x1d, 0xae, 0x31, 0x1d, 0xad,
-	0x86, 0x6d, 0x91, 0xb4, 0x6d, 0x43, 0xe5, 0xb5, 0x6d, 0x2e, 0x00, 0x57, 0x0a, 0xaa, 0x6d, 0xfb,
-	0xf4, 0xb6, 0x44, 0x0d, 0xb4, 0x56, 0xae, 0xc6, 0x2c, 0xaf, 0xab, 0x17, 0x17, 0xd1, 0xb4, 0x23,
-	0x4e, 0xb2, 0x7e, 0x04, 0x47, 0x97, 0x2c, 0xf6, 0xf0, 0x1c, 0x07, 0x0c, 0xaf, 0xcc, 0x7c, 0xbc,
-	0xdb, 0xbe, 0xb1, 0x13, 0xc2, 0xa6, 0xab, 0xda, 0xbd, 0x43, 0x25, 0x52, 0x5b, 0x42, 0xe2, 0x73,
-	0xda, 0x11, 0xb7, 0x98, 0xfc, 0x62, 0x80, 0xf6, 0x25, 0x8b, 0xa1, 0x0f, 0x7a, 0x9b, 0xef, 0x8e,
-	0xb5, 0x6b, 0xd0, 0x76, 0x4a, 0x07, 0x67, 0xff, 0xcf, 0x59, 0x4b, 0xe2, 0x83, 0xde, 0x66, 0x22,
-	0xef, 0x3e, 0x60, 0x83, 0xf3, 0x1f, 0x07, 0xdc, 0xa9, 0xb9, 0xfb, 0xe2, 0xfd, 0xf5, 0xd0, 0xf8,
-	0x70, 0x3d, 0x34, 0xfe, 0xbc, 0x1e, 0x1a, 0x6f, 0x6f, 0x86, 0xad, 0x0f, 0x37, 0xc3, 0xd6, 0x6f,
-	0x37, 0xc3, 0xd6, 0x0f, 0xe3, 0xc6, 0xfb, 0xa7, 0xfa, 0x5d, 0xd1, 0x45, 0x1a, 0x05, 0x22, 0xdd,
-	0x1a, 0x70, 0xde, 0xac, 0x1e, 0x65, 0xf9, 0x1c, 0xce, 0xf6, 0xe5, 0x0b, 0xf1, 0xd9, 0xbf, 0x01,
-	0x00, 0x00, 0xff, 0xff, 0xdb, 0x9b, 0x7b, 0xdd, 0x6c, 0x06, 0x00, 0x00,
+	// 1001 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x56, 0x41, 0x6f, 0xe3, 0x44,
+	0x14, 0x4e, 0x9a, 0xb4, 0x4b, 0xa7, 0x24, 0x4d, 0xa6, 0xe9, 0x92, 0x84, 0x25, 0x13, 0xb9, 0x52,
+	0x55, 0x15, 0x6a, 0x2b, 0x61, 0x2f, 0xf4, 0xd6, 0x94, 0x22, 0xaa, 0xa5, 0x08, 0xcd, 0x22, 0xad,
+	0xc4, 0xc5, 0x72, 0xec, 0xa9, 0x6b, 0x9a, 0x78, 0x22, 0xcf, 0x24, 0xda, 0xdc, 0xb8, 0x20, 0x71,
+	0xdc, 0x9f, 0xb0, 0x3f, 0x62, 0x7f, 0xc4, 0x6a, 0x4f, 0x7b, 0x44, 0x1c, 0x0c, 0x6a, 0x39, 0xa0,
+	0xe5, 0x66, 0xf1, 0x03, 0x90, 0x67, 0xc6, 0x89, 0x9d, 0xa4, 0xec, 0x22, 0x8e, 0x9c, 0xda, 0x79,
+	0xef, 0x9b, 0xf7, 0xde, 0x7c, 0xef, 0x7b, 0x2f, 0x06, 0x0d, 0x76, 0x45, 0x7c, 0x3e, 0x36, 0xfa,
+	0x74, 0xec, 0xf3, 0xa9, 0x31, 0xe9, 0x18, 0xfc, 0xa9, 0x3e, 0x0a, 0x28, 0xa7, 0xb0, 0x22, 0x5d,
+	0xba, 0x74, 0xe9, 0x93, 0x4e, 0xb3, 0xe6, 0x52, 0x97, 0x0a, 0xa7, 0x11, 0xff, 0x27, 0x71, 0x4d,
+	0xe4, 0x52, 0xea, 0x0e, 0x88, 0x21, 0x4e, 0xfd, 0xf1, 0xa5, 0xc1, 0xbd, 0x21, 0x61, 0xdc, 0x1a,
+	0x8e, 0x14, 0xa0, 0x61, 0x53, 0x36, 0xa4, 0xcc, 0x94, 0x37, 0xe5, 0x21, 0x71, 0x2d, 0xde, 0xb5,
+	0xfc, 0xa9, 0x72, 0xb5, 0x24, 0xd0, 0xe8, 0x5b, 0x8c, 0x18, 0x93, 0x4e, 0x9f, 0x70, 0xab, 0x63,
+	0xd8, 0xd4, 0xf3, 0x95, 0xff, 0xa3, 0xa5, 0xca, 0x55, 0xa1, 0xc2, 0xad, 0xfd, 0x55, 0x00, 0x95,
+	0x0b, 0xe6, 0x9e, 0x06, 0xc4, 0xe2, 0xe4, 0x9b, 0x80, 0xba, 0x81, 0x35, 0x84, 0x6d, 0xb0, 0xe5,
+	0x10, 0x66, 0x07, 0xde, 0x88, 0x7b, 0xd4, 0xaf, 0xe7, 0xdb, 0xf9, 0x83, 0x4d, 0x9c, 0x36, 0xc1,
+	0x27, 0x60, 0xdb, 0xa6, 0xc3, 0xa1, 0xc7, 0x98, 0x47, 0x7d, 0x33, 0xb0, 0x38, 0xa9, 0xaf, 0xc5,
+	0xa8, 0x9e, 0xfe, 0x32, 0x44, 0xb9, 0x5f, 0x42, 0xb4, 0xef, 0x7a, 0xfc, 0x6a, 0xdc, 0xd7, 0x6d,
+	0x3a, 0x54, 0x4f, 0x51, 0x7f, 0x8e, 0x98, 0x73, 0x6d, 0xf0, 0xe9, 0x88, 0x30, 0xfd, 0x73, 0x62,
+	0xe3, 0xf2, 0x3c, 0x0c, 0xb6, 0x38, 0x81, 0x01, 0xd8, 0x61, 0xe3, 0x7e, 0x12, 0x98, 0xf8, 0x8e,
+	0x19, 0xd3, 0x54, 0x2f, 0xb4, 0xf3, 0x07, 0x5b, 0xdd, 0xa6, 0x2e, 0x79, 0xd0, 0x13, 0x1e, 0xf4,
+	0x6f, 0x13, 0x0e, 0x7b, 0xfb, 0x71, 0xe2, 0x28, 0x44, 0xcd, 0xa9, 0x35, 0x1c, 0x1c, 0x6b, 0x2b,
+	0x82, 0x68, 0xcf, 0x7e, 0x45, 0x79, 0x5c, 0x9d, 0x7b, 0xce, 0x7c, 0x27, 0xbe, 0x0f, 0x4f, 0xc1,
+	0xb6, 0x1d, 0xbf, 0x9f, 0x06, 0xa6, 0xe5, 0x38, 0x01, 0x61, 0xac, 0x5e, 0x14, 0x8f, 0x69, 0x46,
+	0x21, 0xba, 0x2f, 0xe3, 0x2d, 0x00, 0x34, 0x5c, 0x56, 0x96, 0x13, 0x69, 0x80, 0x2e, 0x28, 0x13,
+	0xdf, 0x0e, 0xa6, 0x82, 0x1f, 0xf3, 0x9a, 0x4c, 0xeb, 0xeb, 0xa2, 0xe6, 0xda, 0x52, 0xcd, 0x27,
+	0xfe, 0xb4, 0x77, 0x18, 0x85, 0x68, 0x57, 0x46, 0xce, 0xde, 0xd2, 0x5e, 0xbd, 0x38, 0x2a, 0x9d,
+	0xcd, 0x4c, 0x8f, 0xc8, 0x14, 0x97, 0x48, 0xfa, 0x08, 0x3f, 0x03, 0xf7, 0x1c, 0x32, 0xa2, 0xcc,
+	0xe3, 0xf5, 0x8d, 0x76, 0xe1, 0x60, 0xab, 0xdb, 0xd0, 0x95, 0x56, 0x62, 0x09, 0xe8, 0x4a, 0x02,
+	0xfa, 0x29, 0xf5, 0xfc, 0x5e, 0x31, 0x26, 0x05, 0x27, 0xf8, 0xe3, 0xf7, 0x7e, 0x7a, 0x8e, 0x72,
+	0x7f, 0x3c, 0x47, 0x39, 0xed, 0x6b, 0x50, 0x5f, 0xec, 0x3a, 0x26, 0x6c, 0x44, 0x7d, 0x46, 0x60,
+	0x17, 0x80, 0x91, 0x34, 0x99, 0x9e, 0x23, 0x9a, 0x5f, 0xec, 0xed, 0xbc, 0x09, 0xd1, 0x9a, 0xe7,
+	0x44, 0x21, 0xda, 0x94, 0x55, 0x7b, 0x8e, 0x86, 0x37, 0x15, 0xec, 0xdc, 0xd1, 0x7e, 0x5f, 0x13,
+	0x32, 0x7a, 0x1c, 0x73, 0xcb, 0xbf, 0xf0, 0x7c, 0xc7, 0xf3, 0x5d, 0x58, 0x03, 0xeb, 0xdc, 0xe3,
+	0x03, 0xa2, 0x04, 0x24, 0x0f, 0xf0, 0x10, 0x14, 0x63, 0x25, 0x29, 0xbd, 0xdc, 0x8f, 0x42, 0x04,
+	0x65, 0xc8, 0x94, 0xbe, 0x34, 0x2c, 0x30, 0xf0, 0x61, 0xa6, 0x94, 0x82, 0x28, 0x65, 0x37, 0x0a,
+	0x51, 0x55, 0xde, 0x98, 0xfb, 0xd2, 0xc5, 0x40, 0x0b, 0x94, 0x19, 0x99, 0x90, 0xc0, 0xe3, 0x53,
+	0x73, 0x40, 0x26, 0x64, 0x20, 0xda, 0x59, 0xee, 0x22, 0x7d, 0x71, 0x54, 0xf5, 0xc7, 0x0a, 0xf7,
+	0x55, 0x0c, 0xeb, 0x35, 0xe6, 0x5d, 0xc9, 0x06, 0xd0, 0x70, 0x89, 0xa5, 0x91, 0xb0, 0x0d, 0x0a,
+	0x23, 0x6a, 0x8b, 0x16, 0x6f, 0xf6, 0xca, 0x51, 0x88, 0x80, 0xaa, 0x88, 0xda, 0x1a, 0x8e, 0x5d,
+	0xf0, 0x1c, 0x48, 0xa5, 0x71, 0x4e, 0xe6, 0xb2, 0xda, 0x10, 0xf8, 0x07, 0x51, 0x88, 0xea, 0x29,
+	0x99, 0xa6, 0x21, 0x1a, 0xae, 0xcc, 0x6c, 0x4a, 0x5a, 0xa9, 0xb6, 0x39, 0xa2, 0x6d, 0x19, 0x96,
+	0x67, 0x6d, 0xeb, 0x01, 0x70, 0x29, 0x4d, 0xf3, 0xb6, 0xed, 0xbd, 0x09, 0x51, 0xca, 0x3a, 0x67,
+	0x6e, 0x6e, 0xd3, 0xf0, 0xa6, 0x3a, 0x9c, 0x3b, 0xc7, 0xc5, 0x38, 0x93, 0xf6, 0x67, 0x1e, 0xd4,
+	0x2e, 0x98, 0xfb, 0x25, 0x65, 0xfc, 0xc4, 0xb6, 0xc9, 0x68, 0xd6, 0xd0, 0x87, 0x2b, 0x52, 0xec,
+	0xbe, 0x2d, 0x28, 0x7c, 0x02, 0xaa, 0x4a, 0xc1, 0xc4, 0x31, 0xe3, 0x71, 0x27, 0x3e, 0x17, 0xdd,
+	0xbf, 0x6b, 0x38, 0x6a, 0xaf, 0x5e, 0x1c, 0x55, 0xce, 0x92, 0x2b, 0xa7, 0xf2, 0x06, 0xae, 0x90,
+	0x05, 0x0b, 0x3c, 0x06, 0xef, 0x5f, 0x51, 0xc6, 0x67, 0xec, 0x16, 0x04, 0xbb, 0x1f, 0x44, 0x21,
+	0xda, 0x91, 0x05, 0xa5, 0xbd, 0x1a, 0xde, 0x8a, 0x8f, 0xcb, 0x9c, 0xb6, 0xc0, 0x83, 0x55, 0x8f,
+	0x4d, 0x78, 0x4d, 0xb3, 0x81, 0xc9, 0xf7, 0xc4, 0xfe, 0xbf, 0xb0, 0x91, 0x79, 0xec, 0x8c, 0x8d,
+	0x1f, 0xd6, 0x40, 0xf5, 0x82, 0xb9, 0x98, 0x0c, 0x88, 0xc5, 0xc8, 0x7f, 0xa3, 0x62, 0x2f, 0xb3,
+	0x09, 0xb6, 0xa3, 0x10, 0x6d, 0xcd, 0x37, 0x41, 0xb2, 0x02, 0xd4, 0xa4, 0x15, 0xee, 0x9e, 0xb4,
+	0x4f, 0xc0, 0xbd, 0x84, 0x47, 0xb9, 0xb6, 0x61, 0x14, 0xa2, 0xb2, 0x5a, 0xdb, 0xd2, 0xa1, 0xe1,
+	0x04, 0xb2, 0x44, 0xd3, 0xfa, 0xbf, 0xa0, 0xa9, 0x28, 0x28, 0xfa, 0x10, 0x34, 0x96, 0x18, 0x48,
+	0xf8, 0xe9, 0xfe, 0x58, 0x04, 0x85, 0x0b, 0xe6, 0x42, 0x13, 0x94, 0xb2, 0xbf, 0xa9, 0xda, 0xf2,
+	0xf2, 0x59, 0xdc, 0xc0, 0xcd, 0xc3, 0xb7, 0x63, 0x66, 0xe3, 0x6e, 0x82, 0x52, 0x76, 0xdb, 0xae,
+	0x4e, 0x90, 0xc1, 0xdc, 0x91, 0x60, 0xf5, 0x3e, 0xb9, 0x06, 0xd5, 0xe5, 0x0d, 0xb0, 0xbf, 0x32,
+	0xc0, 0x12, 0xae, 0xa9, 0xbf, 0x1b, 0x6e, 0x31, 0x59, 0x76, 0xc0, 0xee, 0x4e, 0x96, 0xc1, 0xfd,
+	0x43, 0xb2, 0x95, 0x1a, 0x86, 0x7d, 0x50, 0x5e, 0xd0, 0xef, 0xde, 0xca, 0x08, 0x59, 0x50, 0xf3,
+	0xe3, 0x77, 0x00, 0x25, 0x39, 0x7a, 0x8f, 0x5e, 0xde, 0xb4, 0xf2, 0xaf, 0x6f, 0x5a, 0xf9, 0xdf,
+	0x6e, 0x5a, 0xf9, 0x67, 0xb7, 0xad, 0xdc, 0xeb, 0xdb, 0x56, 0xee, 0xe7, 0xdb, 0x56, 0xee, 0xbb,
+	0x4e, 0xea, 0xcb, 0x48, 0x06, 0xbc, 0xa4, 0x63, 0xdf, 0xb1, 0xe2, 0xdf, 0x3d, 0x65, 0x30, 0x9e,
+	0x26, 0x9f, 0x6b, 0xe2, 0x43, 0xa9, 0xbf, 0x21, 0x16, 0xc2, 0xa7, 0x7f, 0x07, 0x00, 0x00, 0xff,
+	0xff, 0xc4, 0x99, 0x36, 0xe3, 0x86, 0x0a, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -345,6 +572,12 @@ type MsgClient interface {
 	CreateProgram(ctx context.Context, in *MsgCreateProgram, opts ...grpc.CallOption) (*MsgCreateProgramResponse, error)
 	// SubmitFinding defines a method for submitting a new finding.
 	SubmitFinding(ctx context.Context, in *MsgSubmitFinding, opts ...grpc.CallOption) (*MsgSubmitFindingResponse, error)
+	// HostAcceptFinding defines a method for host accept a finding.
+	HostAcceptFinding(ctx context.Context, in *MsgHostAcceptFinding, opts ...grpc.CallOption) (*MsgHostAcceptFindingResponse, error)
+	// HostRejectFinding defines a method for host reject a finding.
+	HostRejectFinding(ctx context.Context, in *MsgHostRejectFinding, opts ...grpc.CallOption) (*MsgHostRejectFindingResponse, error)
+	// MsgReleaseFinding defines a method for release a finding.
+	ReleaseFinding(ctx context.Context, in *MsgReleaseFinding, opts ...grpc.CallOption) (*MsgReleaseFindingResponse, error)
 }
 
 type msgClient struct {
@@ -373,12 +606,45 @@ func (c *msgClient) SubmitFinding(ctx context.Context, in *MsgSubmitFinding, opt
 	return out, nil
 }
 
+func (c *msgClient) HostAcceptFinding(ctx context.Context, in *MsgHostAcceptFinding, opts ...grpc.CallOption) (*MsgHostAcceptFindingResponse, error) {
+	out := new(MsgHostAcceptFindingResponse)
+	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/HostAcceptFinding", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) HostRejectFinding(ctx context.Context, in *MsgHostRejectFinding, opts ...grpc.CallOption) (*MsgHostRejectFindingResponse, error) {
+	out := new(MsgHostRejectFindingResponse)
+	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/HostRejectFinding", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) ReleaseFinding(ctx context.Context, in *MsgReleaseFinding, opts ...grpc.CallOption) (*MsgReleaseFindingResponse, error) {
+	out := new(MsgReleaseFindingResponse)
+	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/ReleaseFinding", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// CreateProgram defines a method for creating a new program.
 	CreateProgram(context.Context, *MsgCreateProgram) (*MsgCreateProgramResponse, error)
 	// SubmitFinding defines a method for submitting a new finding.
 	SubmitFinding(context.Context, *MsgSubmitFinding) (*MsgSubmitFindingResponse, error)
+	// HostAcceptFinding defines a method for host accept a finding.
+	HostAcceptFinding(context.Context, *MsgHostAcceptFinding) (*MsgHostAcceptFindingResponse, error)
+	// HostRejectFinding defines a method for host reject a finding.
+	HostRejectFinding(context.Context, *MsgHostRejectFinding) (*MsgHostRejectFindingResponse, error)
+	// MsgReleaseFinding defines a method for release a finding.
+	ReleaseFinding(context.Context, *MsgReleaseFinding) (*MsgReleaseFindingResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -390,6 +656,15 @@ func (*UnimplementedMsgServer) CreateProgram(ctx context.Context, req *MsgCreate
 }
 func (*UnimplementedMsgServer) SubmitFinding(ctx context.Context, req *MsgSubmitFinding) (*MsgSubmitFindingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitFinding not implemented")
+}
+func (*UnimplementedMsgServer) HostAcceptFinding(ctx context.Context, req *MsgHostAcceptFinding) (*MsgHostAcceptFindingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HostAcceptFinding not implemented")
+}
+func (*UnimplementedMsgServer) HostRejectFinding(ctx context.Context, req *MsgHostRejectFinding) (*MsgHostRejectFindingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HostRejectFinding not implemented")
+}
+func (*UnimplementedMsgServer) ReleaseFinding(ctx context.Context, req *MsgReleaseFinding) (*MsgReleaseFindingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReleaseFinding not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -432,6 +707,60 @@ func _Msg_SubmitFinding_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_HostAcceptFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgHostAcceptFinding)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).HostAcceptFinding(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/shentu.bounty.v1.Msg/HostAcceptFinding",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).HostAcceptFinding(ctx, req.(*MsgHostAcceptFinding))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_HostRejectFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgHostRejectFinding)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).HostRejectFinding(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/shentu.bounty.v1.Msg/HostRejectFinding",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).HostRejectFinding(ctx, req.(*MsgHostRejectFinding))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_ReleaseFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgReleaseFinding)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ReleaseFinding(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/shentu.bounty.v1.Msg/ReleaseFinding",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ReleaseFinding(ctx, req.(*MsgReleaseFinding))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "shentu.bounty.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -443,6 +772,18 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SubmitFinding",
 			Handler:    _Msg_SubmitFinding_Handler,
+		},
+		{
+			MethodName: "HostAcceptFinding",
+			Handler:    _Msg_HostAcceptFinding_Handler,
+		},
+		{
+			MethodName: "HostRejectFinding",
+			Handler:    _Msg_HostRejectFinding_Handler,
+		},
+		{
+			MethodName: "ReleaseFinding",
+			Handler:    _Msg_ReleaseFinding_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -647,6 +988,146 @@ func (m *MsgSubmitFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgHostAcceptFinding) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgHostAcceptFinding) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgHostAcceptFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.HostAddress) > 0 {
+		i -= len(m.HostAddress)
+		copy(dAtA[i:], m.HostAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.HostAddress)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.EncryptedComment != nil {
+		{
+			size, err := m.EncryptedComment.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.FindingId != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.FindingId))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgHostAcceptFindingResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgHostAcceptFindingResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgHostAcceptFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgHostRejectFinding) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgHostRejectFinding) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgHostRejectFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.HostAddress) > 0 {
+		i -= len(m.HostAddress)
+		copy(dAtA[i:], m.HostAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.HostAddress)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.EncryptedComment != nil {
+		{
+			size, err := m.EncryptedComment.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.FindingId != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.FindingId))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgHostRejectFindingResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgHostRejectFindingResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgHostRejectFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func (m *MsgReleaseFinding) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -667,6 +1148,20 @@ func (m *MsgReleaseFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.HostAddress) > 0 {
+		i -= len(m.HostAddress)
+		copy(dAtA[i:], m.HostAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.HostAddress)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.Comment) > 0 {
+		i -= len(m.Comment)
+		copy(dAtA[i:], m.Comment)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Comment)))
+		i--
+		dAtA[i] = 0x22
+	}
 	if len(m.Poc) > 0 {
 		i -= len(m.Poc)
 		copy(dAtA[i:], m.Poc)
@@ -686,6 +1181,29 @@ func (m *MsgReleaseFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x8
 	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgReleaseFindingResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgReleaseFindingResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgReleaseFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
 	return len(dAtA) - i, nil
 }
 
@@ -786,6 +1304,64 @@ func (m *MsgSubmitFindingResponse) Size() (n int) {
 	return n
 }
 
+func (m *MsgHostAcceptFinding) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.FindingId != 0 {
+		n += 1 + sovTx(uint64(m.FindingId))
+	}
+	if m.EncryptedComment != nil {
+		l = m.EncryptedComment.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.HostAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgHostAcceptFindingResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgHostRejectFinding) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.FindingId != 0 {
+		n += 1 + sovTx(uint64(m.FindingId))
+	}
+	if m.EncryptedComment != nil {
+		l = m.EncryptedComment.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.HostAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgHostRejectFindingResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
 func (m *MsgReleaseFinding) Size() (n int) {
 	if m == nil {
 		return 0
@@ -803,6 +1379,23 @@ func (m *MsgReleaseFinding) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
+	l = len(m.Comment)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.HostAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgReleaseFindingResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	return n
 }
 
@@ -1429,6 +2022,392 @@ func (m *MsgSubmitFindingResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *MsgHostAcceptFinding) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgHostAcceptFinding: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgHostAcceptFinding: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingId", wireType)
+			}
+			m.FindingId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.FindingId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EncryptedComment", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.EncryptedComment == nil {
+				m.EncryptedComment = &types.Any{}
+			}
+			if err := m.EncryptedComment.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field HostAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.HostAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgHostAcceptFindingResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgHostAcceptFindingResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgHostAcceptFindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgHostRejectFinding) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgHostRejectFinding: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgHostRejectFinding: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingId", wireType)
+			}
+			m.FindingId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.FindingId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EncryptedComment", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.EncryptedComment == nil {
+				m.EncryptedComment = &types.Any{}
+			}
+			if err := m.EncryptedComment.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field HostAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.HostAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgHostRejectFindingResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgHostRejectFindingResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgHostRejectFindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *MsgReleaseFinding) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1541,6 +2520,123 @@ func (m *MsgReleaseFinding) Unmarshal(dAtA []byte) error {
 			}
 			m.Poc = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Comment", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Comment = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field HostAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.HostAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgReleaseFindingResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgReleaseFindingResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgReleaseFindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
