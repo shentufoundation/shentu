@@ -2,13 +2,8 @@ package keeper
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
 	"strconv"
-
-	"github.com/ethereum/go-ethereum/crypto"
-
-	"github.com/ethereum/go-ethereum/crypto/ecies"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -91,48 +86,15 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		return nil, fmt.Errorf("program id:%d is closed", msg.ProgramId)
 	}
 
-	pubEcdsa, err := crypto.UnmarshalPubkey(program.GetEncryptionKey().GetEncryptionKey())
-	if err != nil {
-		return nil, err
-	}
-	eciesEncKey := ecies.ImportECDSAPublic(pubEcdsa)
-
-	encryptedDesc, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(msg.Desc), nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	encryptedPoc, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(msg.Poc), nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
 	findingID := k.GetNextFindingID(ctx)
-
-	var descAny *codectypes.Any
-	var pocAny *codectypes.Any
-
-	encDesc := types.EciesEncryptedDesc{
-		EncryptedDesc: encryptedDesc,
-	}
-	if descAny, err = codectypes.NewAnyWithValue(&encDesc); err != nil {
-		return nil, err
-	}
-
-	encPoc := types.EciesEncryptedPoc{
-		EncryptedPoc: encryptedPoc,
-	}
-	if pocAny, err = codectypes.NewAnyWithValue(&encPoc); err != nil {
-		return nil, err
-	}
 
 	finding := types.Finding{
 		FindingId:        findingID,
 		Title:            msg.Title,
-		EncryptedDesc:    descAny,
+		EncryptedDesc:    msg.EncryptedDesc,
 		ProgramId:        msg.ProgramId,
 		SeverityLevel:    msg.SeverityLevel,
-		EncryptedPoc:     pocAny,
+		EncryptedPoc:     msg.EncryptedPoc,
 		SubmitterAddress: msg.SubmitterAddress,
 		FindingStatus:    types.FindingStatusUnConfirmed,
 	}

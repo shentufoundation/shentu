@@ -53,10 +53,10 @@ message MsgSubmitFinding {
   option (gogoproto.goproto_getters) = false;
 
   string title = 1;
-  string desc = 2 [(gogoproto.moretags) = "yaml:\"description\""];
+  google.protobuf.Any encrypted_desc = 2 [(cosmos_proto.accepts_interface) = "EncryptedDesc",(gogoproto.moretags) = "yaml:\"encrypted_desc\""];
   uint64 program_id = 3 [(gogoproto.moretags) = "yaml:\"program_id\""];
   SeverityLevel severity_level = 4 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
-  string poc = 5 [(gogoproto.moretags) = "yaml:\"poc\""];
+  google.protobuf.Any encrypted_poc = 5 [(cosmos_proto.accepts_interface) = "EncryptedPoc",(gogoproto.moretags) = "yaml:\"encrypted_poc\""];
   string submitter_address  = 6 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
 }
 

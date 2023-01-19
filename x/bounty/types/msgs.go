@@ -92,14 +92,14 @@ func (msg MsgCreateProgram) UnpackInterfaces(unpacker codectypes.AnyUnpacker) er
 
 // NewMsgSubmitFinding submit a new finding.
 func NewMsgSubmitFinding(
-	submitterAddress string, title, description string, programID uint64, severityLevel int32, poc string,
+	submitterAddress, title string, descAny, pocAny *codectypes.Any, programID uint64, severityLevel int32,
 ) *MsgSubmitFinding {
 	return &MsgSubmitFinding{
 		Title:            title,
-		Desc:             description,
+		EncryptedDesc:    descAny,
 		ProgramId:        programID,
 		SeverityLevel:    SeverityLevel(severityLevel),
-		Poc:              poc,
+		EncryptedPoc:     pocAny,
 		SubmitterAddress: submitterAddress,
 	}
 }
