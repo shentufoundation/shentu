@@ -241,3 +241,46 @@ func (k msgServer) hostProcess(ctx sdk.Context, fid uint64, hostAddr string, enc
 	finding.EncryptedComment = encryptedCommentAny
 	return &finding, nil
 }
+
+func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFinding) (*types.MsgReleaseFindingResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// get finding
+	finding, isExist := k.GetFinding(ctx, msg.FindingId)
+	if !isExist {
+		return nil, fmt.Errorf("no finding id:%d", msg.FindingId)
+	}
+	// get program
+	program, isExist := k.GetProgram(ctx, finding.ProgramId)
+	if !isExist {
+		return nil, fmt.Errorf("no program id:%d", finding.ProgramId)
+	}
+	if !program.Active {
+		return nil, fmt.Errorf("program id:%d is closed", finding.ProgramId)
+	}
+
+	// only creator can update finding comment
+	if program.CreatorAddress != msg.HostAddress {
+		return nil, fmt.Errorf("%s not the program creator, expect %s", msg.HostAddress, program.CreatorAddress)
+	}
+
+	finding.Desc = msg.Desc
+	finding.Poc = msg.Poc
+	finding.Comment = msg.Comment
+
+	k.SetFinding(ctx, finding)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeReleaseFinding,
+			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(finding.FindingId, 10)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.HostAddress),
+		),
+	})
+
+	return &types.MsgReleaseFindingResponse{}, nil
+}

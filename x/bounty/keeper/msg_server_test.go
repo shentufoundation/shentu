@@ -379,3 +379,60 @@ func (suite *KeeperTestSuite) TestHostRejectFinding() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestReleaseFinding() {
+	programId := suite.InitCreateProgram()
+	findingId := suite.InitSubmitFinding(programId)
+
+	testCases := []struct {
+		name    string
+		req     *types.MsgReleaseFinding
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgReleaseFinding{},
+			false,
+		},
+		{
+			"valid request => plain text is valid",
+			&types.MsgReleaseFinding{
+				FindingId:   findingId,
+				Desc:        "test desc",
+				Poc:         "test poc",
+				Comment:     "test comment",
+				HostAddress: suite.address[0].String(),
+			},
+			true,
+		},
+		{
+			"invalid request => host address is invalid",
+			&types.MsgReleaseFinding{
+				FindingId:   findingId,
+				Desc:        "test desc",
+				Poc:         "test poc",
+				Comment:     "test comment",
+				HostAddress: suite.address[1].String(),
+			},
+			false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			ctx := types1.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.ReleaseFinding(ctx, testCase.req)
+
+			finding, _ := suite.keeper.GetFinding(suite.ctx, findingId)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(finding.Desc, testCase.req.Desc)
+				suite.Require().Equal(finding.Poc, testCase.req.Poc)
+				suite.Require().Equal(finding.Comment, testCase.req.Comment)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}

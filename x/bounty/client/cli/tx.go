@@ -34,6 +34,7 @@ func NewTxCmd() *cobra.Command {
 		NewSubmitFindingCmd(),
 		NewHostAcceptFindingCmd(),
 		NewHostRejectFindingCmd(),
+		NewReleaseFindingCmd(),
 	)
 
 	return bountyTxCmds
@@ -316,4 +317,84 @@ func HostProcessFinding(cmd *cobra.Command, args []string) (fid uint64,
 	}
 
 	return fid, commentAny, hostAddr, nil
+}
+
+func NewReleaseFindingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "release-finding",
+		Short: "release encrypted part of a finding ",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			hostAddr := clientCtx.GetFromAddress()
+
+			fid, err := cmd.Flags().GetUint64(FlagFindingID)
+			if err != nil {
+				return err
+			}
+
+			encKeyFile, err := cmd.Flags().GetString(FlagEncKeyFile)
+			if err != nil {
+				return err
+			}
+
+			findingDesc, findingPoc, findingComment, err := GetFindingPlainText(cmd, fid, encKeyFile)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewReleaseFinding(
+				hostAddr.String(),
+				fid,
+				findingDesc,
+				findingPoc,
+				findingComment,
+			)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(FlagEncKeyFile, "", "The program's encryption key file to decrypt findings")
+	cmd.Flags().Uint64(FlagFindingID, 0, "The program's ID")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagFindingID)
+	_ = cmd.MarkFlagRequired(FlagEncKeyFile)
+
+	return cmd
+}
+
+func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
+	desc, poc, comment string, err error) {
+	// get finding info
+	finding, err := GetFinding(cmd, fid)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	prvKey := LoadPrvKey(encKeyFile)
+
+	encryptedDescBytes := finding.EncryptedDesc.GetValue()
+	descBytes, err := prvKey.Decrypt(encryptedDescBytes[2:], nil, nil)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	encryptedPocBytes := finding.EncryptedPoc.GetValue()
+	pocBytes, err := prvKey.Decrypt(encryptedPocBytes[2:], nil, nil)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	encryptedCommentBytes := finding.EncryptedComment.GetValue()
+	commentBytes, err := prvKey.Decrypt(encryptedCommentBytes[2:], nil, nil)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	return string(descBytes), string(pocBytes), string(commentBytes), nil
 }
