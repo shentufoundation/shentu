@@ -17,4 +17,5 @@ const (
 
 	FlagFindingAddress   = "finding-address"
 	FlagSubmitterAddress = "submitter-address"
+	FlagFindingID        = "finding-id"
 )

@@ -49,6 +49,8 @@ message Finding {
   string poc = 8 [(gogoproto.moretags) = "yaml:\"poc\""];
   string submitter_address  = 9 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
   FindingStatus finding_status = 10 [(gogoproto.moretags) = "yaml:\"finding_status\""];
+  google.protobuf.Any encrypted_comment = 11 [(cosmos_proto.accepts_interface) = "EncryptedComment",(gogoproto.moretags) = "yaml:\"encrypted_comment\""];
+  string comment = 12 [(cosmos_proto.accepts_interface) = "Comment",(gogoproto.moretags) = "yaml:\"comment\""];
 }
 
 message EciesEncryptedDesc {
@@ -59,6 +61,11 @@ message EciesEncryptedDesc {
 message EciesEncryptedPoc {
   option (cosmos_proto.implements_interface) = "EncryptionPoc";
   bytes encrypted_poc = 1;
+}
+
+message EciesEncryptedComment {
+  option (cosmos_proto.implements_interface) = "EncryptionComment";
+  bytes encrypted_comment = 1;
 }
 
 enum SeverityLevel {
