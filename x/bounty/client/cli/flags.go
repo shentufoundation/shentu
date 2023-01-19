@@ -12,6 +12,7 @@ const (
 	FlagProgramID            = "program-id"
 	FlagFindingSeverityLevel = "severity-level"
 	FlagFindingPoc           = "poc"
+	FlagComment              = "comment"
 
 	dateLayout = "2006-01-02"
 

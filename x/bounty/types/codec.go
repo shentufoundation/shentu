@@ -11,12 +11,28 @@ import (
 // RegisterLegacyAminoCodec registers the necessary x/bounty interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	cdc.RegisterConcrete(MsgCreateProgram{}, "bounty/CreateProgram", nil)
+	cdc.RegisterConcrete(MsgSubmitFinding{}, "bounty/SubmitFinding", nil)
+	cdc.RegisterConcrete(MsgHostAcceptFinding{}, "bounty/HostAcceptFinding", nil)
+	cdc.RegisterConcrete(MsgHostRejectFinding{}, "bounty/HostRejectFinding", nil)
+
+	cdc.RegisterConcrete(&EciesPubKey{}, "bounty/EciesPubKey", nil)
+	cdc.RegisterConcrete(&EciesEncryptedDesc{}, "bounty/EciesEncryptedDesc", nil)
+	cdc.RegisterConcrete(&EciesEncryptedPoc{}, "bounty/EciesEncryptedPoc", nil)
+	cdc.RegisterConcrete(&EciesEncryptedComment{}, "bounty/EciesEncryptedComment", nil)
+
+	cdc.RegisterInterface((*EncryptionKey)(nil), nil)
+	cdc.RegisterInterface((*EncryptedDesc)(nil), nil)
+	cdc.RegisterInterface((*EncryptedPoc)(nil), nil)
+	cdc.RegisterInterface((*EncryptedCommnet)(nil), nil)
 }
 
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCreateProgram{},
 		&MsgSubmitFinding{},
+		&MsgHostAcceptFinding{},
+		&MsgHostRejectFinding{},
 	)
 
 	registry.RegisterInterface(
@@ -35,6 +51,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		"shentu.bounty.v1.EncryptedPoc",
 		(*EncryptedPoc)(nil),
 		&EciesEncryptedPoc{},
+	)
+
+	registry.RegisterInterface(
+		"shentu.bounty.v1.EncryptedComment",
+		(*EncryptedCommnet)(nil),
+		&EciesEncryptedComment{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

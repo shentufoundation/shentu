@@ -162,3 +162,82 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		FindingId: finding.FindingId,
 	}, nil
 }
+
+func (k msgServer) HostAcceptFinding(goCtx context.Context, msg *types.MsgHostAcceptFinding) (*types.MsgHostAcceptFindingResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	finding, err := k.hostProcess(ctx, msg.FindingId, msg.HostAddress, msg.EncryptedComment)
+	if err != nil {
+		return nil, err
+	}
+
+	finding.FindingStatus = types.FindingStatusValid
+	k.SetFinding(ctx, *finding)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeAcceptFinding,
+			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(finding.FindingId, 10)),
+			sdk.NewAttribute(types.AttributeKeyProgramID, strconv.FormatUint(finding.ProgramId, 10)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.HostAddress),
+		),
+	})
+
+	return &types.MsgHostAcceptFindingResponse{}, nil
+}
+
+func (k msgServer) HostRejectFinding(goCtx context.Context, msg *types.MsgHostRejectFinding) (*types.MsgHostRejectFindingResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	finding, err := k.hostProcess(ctx, msg.FindingId, msg.HostAddress, msg.EncryptedComment)
+	if err != nil {
+		return nil, err
+	}
+
+	finding.FindingStatus = types.FindingStatusInvalid
+	k.SetFinding(ctx, *finding)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRejectFinding,
+			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(finding.FindingId, 10)),
+			sdk.NewAttribute(types.AttributeKeyProgramID, strconv.FormatUint(finding.ProgramId, 10)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.HostAddress),
+		),
+	})
+
+	return &types.MsgHostRejectFindingResponse{}, nil
+}
+
+func (k msgServer) hostProcess(ctx sdk.Context, fid uint64, hostAddr string, encryptedCommentAny *codectypes.Any) (*types.Finding, error) {
+
+	// get finding
+	finding, isExist := k.GetFinding(ctx, fid)
+	if !isExist {
+		return nil, fmt.Errorf("no finding id:%d", fid)
+	}
+	// get program
+	program, isExist := k.GetProgram(ctx, finding.ProgramId)
+	if !isExist {
+		return nil, fmt.Errorf("no program id:%d", finding.ProgramId)
+	}
+	if !program.Active {
+		return nil, fmt.Errorf("program id:%d is closed", finding.ProgramId)
+	}
+
+	// only creator can update finding comment
+	if program.CreatorAddress != hostAddr {
+		return nil, fmt.Errorf("%s not the program creator, expect %s", hostAddr, program.CreatorAddress)
+	}
+
+	finding.EncryptedComment = encryptedCommentAny
+	return &finding, nil
+}

@@ -25,6 +25,12 @@ type EncryptedPoc interface {
 	GetEncryptedPoc() []byte
 }
 
+type EncryptedCommnet interface {
+	proto.Message
+
+	GetEncryptedComment() []byte
+}
+
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces.
 func (p Program) UnpackInterfaces(unpacker codecTypes.AnyUnpacker) error {
 	var pubKey EncryptionKey
@@ -61,6 +67,14 @@ func (f Finding) GetEncryptedDesc() EncryptedDesc {
 
 func (f Finding) GetEncryptedPoc() EncryptedPoc {
 	poc, ok := f.EncryptedPoc.GetCachedValue().(EncryptedPoc)
+	if !ok {
+		return nil
+	}
+	return poc
+}
+
+func (f Finding) GetEncryptedComment() EncryptedCommnet {
+	poc, ok := f.EncryptedComment.GetCachedValue().(EncryptedCommnet)
 	if !ok {
 		return nil
 	}
