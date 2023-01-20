@@ -3,12 +3,14 @@ package cli
 import (
 	"bytes"
 	"crypto/rand"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/ecies"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 const (

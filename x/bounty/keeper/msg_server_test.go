@@ -93,8 +93,10 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 		shouldPass bool
 	}
 
-	programId := suite.InitCreateProgram()
+	programId, pubKey := suite.InitCreateProgram()
 	errorProgramId := suite.InitCreateErrorProgram()
+
+	descAny1, pocAny1, _ := GetDescPocAny("This is real bug 1", "bug1", pubKey)
 
 	tests := []struct {
 		name    string
@@ -106,9 +108,9 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 				msgSubmitFindings: []types.MsgSubmitFinding{
 					{
 						Title:            "Test bug 1",
-						Desc:             "This is real bug 1",
+						EncryptedDesc:    descAny1,
 						ProgramId:        programId,
-						Poc:              "bug1",
+						EncryptedPoc:     pocAny1,
 						SeverityLevel:    types.SeverityLevelCritical,
 						SubmitterAddress: suite.address[0].String(),
 					},
@@ -123,9 +125,9 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 				msgSubmitFindings: []types.MsgSubmitFinding{
 					{
 						Title:            "Test bug 2",
-						Desc:             "This is real bug 2",
+						EncryptedDesc:    descAny1,
 						ProgramId:        200,
-						Poc:              "bug2",
+						EncryptedPoc:     pocAny1,
 						SeverityLevel:    types.SeverityLevelCritical,
 						SubmitterAddress: suite.address[0].String(),
 					},
@@ -140,9 +142,9 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 				msgSubmitFindings: []types.MsgSubmitFinding{
 					{
 						Title:            "Test bug 2",
-						Desc:             "This is real bug 2",
+						EncryptedDesc:    nil,
 						ProgramId:        200,
-						Poc:              "bug2",
+						EncryptedPoc:     nil,
 						SeverityLevel:    types.SeverityLevelCritical,
 						SubmitterAddress: "test address",
 					},
@@ -157,9 +159,9 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 				msgSubmitFindings: []types.MsgSubmitFinding{
 					{
 						Title:            "Test bug 2",
-						Desc:             "This is real bug 2",
+						EncryptedDesc:    descAny1,
 						ProgramId:        errorProgramId,
-						Poc:              "bug2",
+						EncryptedPoc:     pocAny1,
 						SeverityLevel:    types.SeverityLevelCritical,
 						SubmitterAddress: "test address",
 					},
@@ -192,7 +194,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 	}
 }
 
-func (suite *KeeperTestSuite) InitCreateProgram() uint64 {
+func (suite *KeeperTestSuite) InitCreateProgram() (uint64, *ecies.PublicKey) {
 	dd, _ := time.ParseDuration("24h")
 	decKey, _ := ecies.GenerateKey(rand.Reader, ecies.DefaultCurve, nil)
 	encPubKey := crypto.FromECDSAPub(&decKey.ExportECDSA().PublicKey)
@@ -221,16 +223,45 @@ func (suite *KeeperTestSuite) InitCreateProgram() uint64 {
 	resp, err := suite.msgServer.CreateProgram(ctx, &msgCreateProgram)
 	suite.Require().NoError(err)
 
-	return resp.ProgramId
+	return resp.ProgramId, &decKey.PublicKey
 }
 
-func (suite *KeeperTestSuite) InitSubmitFinding(proposalId uint64) uint64 {
+func GetDescPocAny(desc, poc string, pubKey *ecies.PublicKey) (descAny, pocAny *codectypes.Any, err error) {
+	encryptedDescBytes, err := ecies.Encrypt(rand.Reader, pubKey, []byte(desc), nil, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	encDesc := types.EciesEncryptedDesc{
+		EncryptedDesc: encryptedDescBytes,
+	}
+	descAny, err = codectypes.NewAnyWithValue(&encDesc)
+	if err != nil {
+		return nil, nil, err
+	}
 
+	encryptedPocBytes, err := ecies.Encrypt(rand.Reader, pubKey, []byte(poc), nil, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	encPoc := types.EciesEncryptedPoc{
+		EncryptedPoc: encryptedPocBytes,
+	}
+	pocAny, err = codectypes.NewAnyWithValue(&encPoc)
+	if err != nil {
+		return nil, nil, err
+	}
+	return
+}
+
+func (suite *KeeperTestSuite) InitSubmitFinding(programId uint64, pubKey *ecies.PublicKey) uint64 {
+	desc := "Bug desc"
+	poc := "bug poc"
+	descAny, pocAny, _ := GetDescPocAny(desc, poc, pubKey)
 	msgSubmitFinding := &types.MsgSubmitFinding{
 		Title:            "Bug title",
-		Desc:             "Bug desc",
-		ProgramId:        proposalId,
-		Poc:              "bug poc",
+		EncryptedDesc:    descAny,
+		ProgramId:        programId,
+		EncryptedPoc:     pocAny,
 		SeverityLevel:    types.SeverityLevelCritical,
 		SubmitterAddress: suite.address[0].String(),
 	}
@@ -277,8 +308,8 @@ func (suite *KeeperTestSuite) InitCreateErrorProgram() uint64 {
 }
 
 func (suite *KeeperTestSuite) TestHostAcceptFinding() {
-	programId := suite.InitCreateProgram()
-	findingId := suite.InitSubmitFinding(programId)
+	programId, pubKey := suite.InitCreateProgram()
+	findingId := suite.InitSubmitFinding(programId, pubKey)
 
 	testCases := []struct {
 		name    string
@@ -329,8 +360,8 @@ func (suite *KeeperTestSuite) TestHostAcceptFinding() {
 }
 
 func (suite *KeeperTestSuite) TestHostRejectFinding() {
-	programId := suite.InitCreateProgram()
-	findingId := suite.InitSubmitFinding(programId)
+	programId, pubKey := suite.InitCreateProgram()
+	findingId := suite.InitSubmitFinding(programId, pubKey)
 
 	testCases := []struct {
 		name    string
