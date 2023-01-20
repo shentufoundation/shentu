@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"crypto/rand"
 	"os"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -49,4 +50,13 @@ func LoadPrvKey(filePath string) *ecies.PrivateKey {
 	}
 
 	return ecies.ImportECDSA(prvK)
+}
+
+func GenerateKey() (*ecies.PrivateKey, *ecies.PublicKey, error) {
+	decKey, err := ecies.GenerateKey(rand.Reader, ecies.DefaultCurve, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	encKey := &decKey.PublicKey
+	return decKey, encKey, nil
 }

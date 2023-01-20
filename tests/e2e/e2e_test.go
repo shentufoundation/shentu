@@ -283,3 +283,34 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 		)
 	})
 }
+
+func (s *IntegrationTestSuite) TestBounty() {
+	chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
+	validatorA := s.chainA.validators[0]
+	accountA := s.chainA.accounts[0]
+	accountAAddr := accountA.keyInfo.GetAddress()
+
+	bountyKeyFile := "e2e_bounty_key.json"
+	generateBountyKeyFile(validatorA.configDir() + "/" + bountyKeyFile)
+
+	s.Run("create_program", func() {
+		s.T().Logf("Creating program %d on chain %s", bountyProgramCounter, s.chainA.id)
+		var (
+			programDesc    = "program desc"
+			bountyKeyPath  = "/root/.shentud/" + bountyKeyFile
+			commissionRate = "2"
+			endTime        = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
+		)
+		bountyProgramCounter++
+		s.executeCreateProgram(s.chainA, 0, accountAAddr.String(), programDesc, bountyKeyPath, commissionRate, depositAmountCoin.String(), endTime, feesAmountCoin.String())
+		s.Require().Eventually(
+			func() bool {
+				res, err := queryBountyProgram(chainAAPIEndpoint, bountyProgramCounter)
+				s.Require().NoError(err)
+				return res.GetProgram().ProgramId == uint64(bountyProgramCounter)
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
+}

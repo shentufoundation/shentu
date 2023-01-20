@@ -66,6 +66,7 @@ var (
 	certificateCounter    = 0
 	shieldPoolCounter     = 0
 	shieldPurchaseCounter = 0
+	bountyProgramCounter  = 0
 )
 
 type IntegrationTestSuite struct {
