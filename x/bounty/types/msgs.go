@@ -145,8 +145,8 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 // NewMsgWithdrawalFinding withdrawal a specific finding
 func NewMsgWithdrawalFinding(accAddr sdk.AccAddress, findingID uint64) *MsgWithdrawalFinding {
 	return &MsgWithdrawalFinding{
-		From:      accAddr.String(),
-		FindingId: findingID,
+		SubmitterAddress: accAddr.String(),
+		FindingId:        findingID,
 	}
 }
 
@@ -159,7 +159,7 @@ func (msg MsgWithdrawalFinding) Type() string { return TypeMsgWithdrawalFinding 
 // GetSigners implements the sdk.Msg interface
 func (msg MsgWithdrawalFinding) GetSigners() []sdk.AccAddress {
 	// creator should sign the message
-	cAddr, err := sdk.AccAddressFromBech32(msg.From)
+	cAddr, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -174,7 +174,7 @@ func (msg MsgWithdrawalFinding) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgWithdrawalFinding) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.From)
+	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
@@ -187,8 +187,8 @@ func (msg MsgWithdrawalFinding) ValidateBasic() error {
 // NewMsgReactivateFinding reactivate a specific finding
 func NewMsgReactivateFinding(accAddr sdk.AccAddress, findingID uint64) *MsgReactivateFinding {
 	return &MsgReactivateFinding{
-		From:      accAddr.String(),
-		FindingId: findingID,
+		SubmitterAddress: accAddr.String(),
+		FindingId:        findingID,
 	}
 }
 
@@ -201,7 +201,7 @@ func (msg MsgReactivateFinding) Type() string { return TypeMsgReactivateFinding 
 // GetSigners implements the sdk.Msg interface
 func (msg MsgReactivateFinding) GetSigners() []sdk.AccAddress {
 	// creator should sign the message
-	cAddr, err := sdk.AccAddressFromBech32(msg.From)
+	cAddr, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -216,7 +216,7 @@ func (msg MsgReactivateFinding) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgReactivateFinding) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.From)
+	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}

@@ -3,6 +3,7 @@ package cli
 import (
 	"crypto/rand"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -188,7 +189,7 @@ func NewSubmitFindingCmd() *cobra.Command {
 
 func NewWithdrawalFindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "withdrawal-finding",
+		Use:   "withdrawal-finding [finding id]",
 		Short: "withdrawal the specific finding",
 		RunE:  setFindingActiveStatus(false),
 	}
@@ -203,7 +204,7 @@ func NewWithdrawalFindingCmd() *cobra.Command {
 
 func NewReactivateFindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "reactivate-finding",
+		Use:   "reactivate-finding [finding id]",
 		Short: "reactivate the specific finding",
 		RunE:  setFindingActiveStatus(true),
 	}
@@ -223,7 +224,7 @@ func setFindingActiveStatus(active bool) func(cmd *cobra.Command, args []string)
 			return err
 		}
 		fromAddr := clientCtx.GetFromAddress()
-		fid, err := cmd.Flags().GetUint64(FlagFindingID)
+		fid, err := strconv.ParseUint(args[0], 10, 64)
 		if err != nil {
 			return err
 		}

@@ -164,7 +164,7 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 }
 
 func (k msgServer) WithdrawalFinding(goCtx context.Context, msg *types.MsgWithdrawalFinding) (*types.MsgWithdrawalFindingResponse, error) {
-	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
+	fromAddr, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +183,7 @@ func (k msgServer) WithdrawalFinding(goCtx context.Context, msg *types.MsgWithdr
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.SubmitterAddress),
 		),
 	})
 
@@ -191,7 +191,7 @@ func (k msgServer) WithdrawalFinding(goCtx context.Context, msg *types.MsgWithdr
 }
 
 func (k msgServer) ReactivateFinding(goCtx context.Context, msg *types.MsgReactivateFinding) (*types.MsgReactivateFindingResponse, error) {
-	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
+	fromAddr, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +210,7 @@ func (k msgServer) ReactivateFinding(goCtx context.Context, msg *types.MsgReacti
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.SubmitterAddress),
 		),
 	})
 

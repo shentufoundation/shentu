@@ -69,7 +69,7 @@ message MsgWithdrawalFinding {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+  string submitter_address = 1 [ (gogoproto.moretags) = "yaml:\"submitter_address\"" ];
   uint64 finding_id = 2 [ (gogoproto.moretags) = "yaml:\"finding_id\"" ];
 }
 
@@ -79,7 +79,7 @@ message MsgReactivateFinding {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+  string submitter_address = 1 [ (gogoproto.moretags) = "yaml:\"submitter_address\"" ];
   uint64 finding_id = 2 [ (gogoproto.moretags) = "yaml:\"finding_id\"" ];
 }
 
