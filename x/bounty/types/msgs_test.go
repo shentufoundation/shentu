@@ -59,19 +59,20 @@ func TestMsgCreateProgram(t *testing.T) {
 
 func TestMsgSubmitFinding(t *testing.T) {
 	testCases := []struct {
-		pid              uint64
-		severityLevel    int32
-		addr             sdk.AccAddress
-		title, desc, poc string
-		expectPass       bool
+		pid           uint64
+		severityLevel int32
+		addr          sdk.AccAddress
+		title         string
+		desc, poc     *codectypes.Any
+		expectPass    bool
 	}{
-		{0, 0, addrs[0], "title", "desc", "poc", false},
-		{1, 0, sdk.AccAddress{}, "title", "desc", "poc", false},
-		{1, 0, addrs[0], "title", "desc", "poc", true},
+		{0, 0, addrs[0], "title", nil, nil, false},
+		{1, 0, sdk.AccAddress{}, "title", nil, nil, false},
+		{1, 0, addrs[0], "title", nil, nil, true},
 	}
 
 	for _, tc := range testCases {
-		msg := NewMsgSubmitFinding(tc.addr.String(), tc.title, tc.desc, tc.pid, tc.severityLevel, tc.poc)
+		msg := NewMsgSubmitFinding(tc.addr.String(), tc.title, tc.desc, tc.poc, tc.pid, tc.severityLevel)
 		require.Equal(t, msg.Route(), RouterKey)
 		require.Equal(t, msg.Type(), TypeMsgSubmitFinding)
 

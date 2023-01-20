@@ -33,9 +33,9 @@ func (suite *KeeperTestSuite) CreateSubmitFinding(proposalId uint64) uint64 {
 
 	msgSubmitFinding := &types.MsgSubmitFinding{
 		Title:            "title",
-		Desc:             "desc",
+		EncryptedDesc:    nil,
 		ProgramId:        proposalId,
-		Poc:              "poc",
+		EncryptedPoc:     nil,
 		SeverityLevel:    types.SeverityLevelCritical,
 		SubmitterAddress: suite.address[0].String(),
 	}

@@ -159,15 +159,25 @@ func NewSubmitFindingCmd() *cobra.Command {
 				return err
 			}
 			severityLevel, _ := cmd.Flags().GetInt32(FlagFindingSeverityLevel)
+			_, ok := types.SeverityLevel_name[severityLevel]
+			if !ok {
+				return fmt.Errorf("invalid %s value", FlagFindingSeverityLevel)
+			}
+
 			poc, _ := cmd.Flags().GetString(FlagFindingPoc)
 
+			//func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny, pocAny *codectypes.Any, err error) {
+			descAny, pocAny, err := EncryptMsg(cmd, pid, desc, poc)
+			if err != nil {
+				return err
+			}
 			msg := types.NewMsgSubmitFinding(
 				submitAddr.String(),
 				title,
-				desc,
+				descAny,
+				pocAny,
 				pid,
 				severityLevel,
-				poc,
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
@@ -185,6 +195,38 @@ func NewSubmitFindingCmd() *cobra.Command {
 	_ = cmd.MarkFlagRequired(FlagProgramID)
 
 	return cmd
+}
+
+func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny, pocAny *codectypes.Any, err error) {
+	eciesEncKey, err := GetEncryptionKey(cmd, programID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	encryptedDescBytes, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(desc), nil, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	encDesc := types.EciesEncryptedDesc{
+		EncryptedDesc: encryptedDescBytes,
+	}
+	descAny, err = codectypes.NewAnyWithValue(&encDesc)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	encryptedPocBytes, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(poc), nil, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	encPoc := types.EciesEncryptedPoc{
+		EncryptedPoc: encryptedPocBytes,
+	}
+	pocAny, err = codectypes.NewAnyWithValue(&encPoc)
+	if err != nil {
+		return nil, nil, err
+	}
+	return
 }
 
 // NewHostAcceptFindingCmd implements accept a finding by host.
