@@ -93,15 +93,15 @@ func (k Keeper) DeleteFidFromFidList(ctx sdk.Context, pid, fid uint64) error {
 	}
 	for idx, id := range fids {
 		if id == fid {
-			fids = append(fids[:idx], fids[idx+1:]...)
-			if len(fids) > 0 {
-				return k.SetPidFindingIDList(ctx, pid, fids)
-			} else {
+			if len(fids) == 1 {
 				// Delete fid list if empty
 				store := ctx.KVStore(k.storeKey)
 				store.Delete(types.GetProgramIDFindingListKey(pid))
 				return nil
+
 			}
+			fids = append(fids[:idx], fids[idx+1:]...)
+			return k.SetPidFindingIDList(ctx, pid, fids)
 		}
 	}
 	return fmt.Errorf("finding id not exists")
