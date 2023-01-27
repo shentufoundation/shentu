@@ -18,6 +18,12 @@ service Msg {
 
   // SubmitFinding defines a method for submitting a new finding.
   rpc SubmitFinding(MsgSubmitFinding) returns (MsgSubmitFindingResponse);
+
+  // HostAcceptFinding defines a method for host accept a finding.
+  rpc HostAcceptFinding(MsgHostAcceptFinding) returns (MsgHostAcceptFindingResponse);
+
+  // HostRejectFinding defines a method for host reject a finding.
+  rpc HostRejectFinding(MsgHostRejectFinding) returns (MsgHostRejectFindingResponse);
 }
 
 // MsgCreateProgram defines a SDK message for creating a new program.
@@ -47,10 +53,10 @@ message MsgSubmitFinding {
   option (gogoproto.goproto_getters) = false;
 
   string title = 1;
-  string desc = 2 [(gogoproto.moretags) = "yaml:\"description\""];
+  google.protobuf.Any encrypted_desc = 2 [(cosmos_proto.accepts_interface) = "EncryptedDesc",(gogoproto.moretags) = "yaml:\"encrypted_desc\""];
   uint64 program_id = 3 [(gogoproto.moretags) = "yaml:\"program_id\""];
   SeverityLevel severity_level = 4 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
-  string poc = 5 [(gogoproto.moretags) = "yaml:\"poc\""];
+  google.protobuf.Any encrypted_poc = 5 [(cosmos_proto.accepts_interface) = "EncryptedPoc",(gogoproto.moretags) = "yaml:\"encrypted_poc\""];
   string submitter_address  = 6 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
 }
 
@@ -59,3 +65,28 @@ message MsgSubmitFindingResponse {
   uint64 finding_id = 1 [(gogoproto.jsontag) = "finding_id", (gogoproto.moretags) = "yaml:\"finding_id\""];
 }
 
+// MsgHostAcceptFinding defines a message to accept a finding to an existing finding.
+message MsgHostAcceptFinding {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  google.protobuf.Any encrypted_comment = 2 [(cosmos_proto.accepts_interface) = "EncryptedComment"];
+  string host_address  = 3 [(gogoproto.moretags) = "yaml:\"host_address\""];
+}
+
+// MsgHostAcceptFindingResponse defines the Msg/HostAcceptFinding response type.
+message MsgHostAcceptFindingResponse {}
+
+// MsgHostRejectFinding defines a message to accept a reject to an existing finding.
+message MsgHostRejectFinding {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  google.protobuf.Any encrypted_comment = 2 [(cosmos_proto.accepts_interface) = "EncryptedComment"];
+  string host_address  = 3 [(gogoproto.moretags) = "yaml:\"host_address\""];
+}
+
+// MsgHostRejectFindingResponse defines the Msg/ostRejectFinding response type.
+message MsgHostRejectFindingResponse {}

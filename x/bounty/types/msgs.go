@@ -13,6 +13,8 @@ import (
 const (
 	TypeMsgCreateProgram = "create_program"
 	TypeMsgSubmitFinding = "submit_finding"
+	TypeMsgAcceptFinding = "accept_finding"
+	TypeMsgRejectFinding = "reject_finding"
 )
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
@@ -74,6 +76,11 @@ func (msg MsgCreateProgram) GetSignBytes() []byte {
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgCreateProgram) ValidateBasic() error {
 	// TODO: implement ValidateBasic
+	_, err := sdk.AccAddressFromBech32(msg.CreatorAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+	}
+
 	return nil
 }
 
@@ -85,20 +92,16 @@ func (msg MsgCreateProgram) UnpackInterfaces(unpacker codectypes.AnyUnpacker) er
 
 // NewMsgSubmitFinding submit a new finding.
 func NewMsgSubmitFinding(
-	submitterAddress string, title, description string, programID uint64, severityLevel int32, poc string,
-) (*MsgSubmitFinding, error) {
-	if programID == 0 {
-		return nil, errors.New("empty pid is not allowed")
-	}
-
+	submitterAddress, title string, descAny, pocAny *codectypes.Any, programID uint64, severityLevel int32,
+) *MsgSubmitFinding {
 	return &MsgSubmitFinding{
 		Title:            title,
-		Desc:             description,
+		EncryptedDesc:    descAny,
 		ProgramId:        programID,
 		SeverityLevel:    SeverityLevel(severityLevel),
-		Poc:              poc,
+		EncryptedPoc:     pocAny,
 		SubmitterAddress: submitterAddress,
-	}, nil
+	}
 }
 
 // Route implements the sdk.Msg interface.
@@ -136,6 +139,96 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 
 	if msg.ProgramId == 0 {
 		return errors.New("empty pid is not allowed")
+	}
+	return nil
+}
+
+func NewMsgHostAcceptFinding(findingID uint64, encryptedComment *codectypes.Any, hostAddr sdk.AccAddress) *MsgHostAcceptFinding {
+	return &MsgHostAcceptFinding{
+		FindingId:        findingID,
+		EncryptedComment: encryptedComment,
+		HostAddress:      hostAddr.String(),
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgHostAcceptFinding) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgHostAcceptFinding) Type() string { return TypeMsgAcceptFinding }
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg MsgHostAcceptFinding) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners implements the sdk.Msg interface. It returns the address(es) that
+// must sign over msg.GetSignBytes().
+func (msg MsgHostAcceptFinding) GetSigners() []sdk.AccAddress {
+	// host should sign the message
+	hostAddr, err := sdk.AccAddressFromBech32(msg.HostAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{hostAddr}
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgHostAcceptFinding) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.HostAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+	}
+
+	if msg.FindingId == 0 {
+		return errors.New("empty finding-id is not allowed")
+	}
+	return nil
+}
+
+func NewMsgHostRejectFinding(findingID uint64, encryptedComment *codectypes.Any, hostAddr sdk.AccAddress) *MsgHostRejectFinding {
+	return &MsgHostRejectFinding{
+		FindingId:        findingID,
+		EncryptedComment: encryptedComment,
+		HostAddress:      hostAddr.String(),
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgHostRejectFinding) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgHostRejectFinding) Type() string { return TypeMsgRejectFinding }
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg MsgHostRejectFinding) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners implements the sdk.Msg interface. It returns the address(es) that
+// must sign over msg.GetSignBytes().
+func (msg MsgHostRejectFinding) GetSigners() []sdk.AccAddress {
+	// host should sign the message
+	hostAddr, err := sdk.AccAddressFromBech32(msg.HostAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{hostAddr}
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgHostRejectFinding) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.HostAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+	}
+
+	if msg.FindingId == 0 {
+		return errors.New("empty finding-id is not allowed")
 	}
 	return nil
 }

@@ -2,8 +2,11 @@ package types
 
 import (
 	"bytes"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
 func TestGetEncryptionKey(t *testing.T) {
@@ -133,6 +136,7 @@ func TestGetEncryptedDesc(t *testing.T) {
 		}
 	}
 }
+
 func TestGetEncryptedPoc(t *testing.T) {
 	type args struct {
 		finding []Finding
@@ -194,4 +198,35 @@ func TestGetEncryptedPoc(t *testing.T) {
 
 		}
 	}
+}
+
+func TestGetEncryptedComment(t *testing.T) {
+	testCases := []struct {
+		name    string
+		args    string
+		expPass bool
+	}{
+		{"empty Finding", "", true},
+		{"no empty Finding", "string", true},
+	}
+
+	for _, testCase := range testCases {
+		eciesEncryptedComment := EciesEncryptedComment{
+			EncryptedComment: []byte(testCase.args),
+		}
+		encAny, err := codectypes.NewAnyWithValue(&eciesEncryptedComment)
+		require.NoError(t, err)
+
+		finding := Finding{}
+		finding.EncryptedComment = encAny
+
+		testByte := finding.GetEncryptedComment().GetEncryptedComment()
+
+		if testCase.expPass {
+			require.Equal(t, testByte, []byte(testCase.args))
+		} else {
+			require.NotEqual(t, testByte, []byte(testCase.args))
+		}
+	}
+
 }

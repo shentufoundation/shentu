@@ -3,6 +3,8 @@ package cli
 import (
 	"crypto/rand"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -13,7 +15,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
@@ -28,6 +32,8 @@ func NewTxCmd() *cobra.Command {
 	bountyTxCmds.AddCommand(
 		NewCreateProgramCmd(),
 		NewSubmitFindingCmd(),
+		NewHostAcceptFindingCmd(),
+		NewHostRejectFindingCmd(),
 	)
 
 	return bountyTxCmds
@@ -153,19 +159,26 @@ func NewSubmitFindingCmd() *cobra.Command {
 				return err
 			}
 			severityLevel, _ := cmd.Flags().GetInt32(FlagFindingSeverityLevel)
+			_, ok := types.SeverityLevel_name[severityLevel]
+			if !ok {
+				return fmt.Errorf("invalid %s value", FlagFindingSeverityLevel)
+			}
+
 			poc, _ := cmd.Flags().GetString(FlagFindingPoc)
 
-			msg, err := types.NewMsgSubmitFinding(
-				submitAddr.String(),
-				title,
-				desc,
-				pid,
-				severityLevel,
-				poc,
-			)
+			//func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny, pocAny *codectypes.Any, err error) {
+			descAny, pocAny, err := EncryptMsg(cmd, pid, desc, poc)
 			if err != nil {
 				return err
 			}
+			msg := types.NewMsgSubmitFinding(
+				submitAddr.String(),
+				title,
+				descAny,
+				pocAny,
+				pid,
+				severityLevel,
+			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -182,4 +195,167 @@ func NewSubmitFindingCmd() *cobra.Command {
 	_ = cmd.MarkFlagRequired(FlagProgramID)
 
 	return cmd
+}
+
+func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny, pocAny *codectypes.Any, err error) {
+	eciesEncKey, err := GetEncryptionKey(cmd, programID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	encryptedDescBytes, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(desc), nil, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	encDesc := types.EciesEncryptedDesc{
+		EncryptedDesc: encryptedDescBytes,
+	}
+	descAny, err = codectypes.NewAnyWithValue(&encDesc)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	encryptedPocBytes, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(poc), nil, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	encPoc := types.EciesEncryptedPoc{
+		EncryptedPoc: encryptedPocBytes,
+	}
+	pocAny, err = codectypes.NewAnyWithValue(&encPoc)
+	if err != nil {
+		return nil, nil, err
+	}
+	return
+}
+
+// NewHostAcceptFindingCmd implements accept a finding by host.
+func NewHostAcceptFindingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "accept-finding [finding-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Host accept a finding for a program",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Host accept a finding for a program.Meantime, you can also add some comments, which will be encrypted.
+Example:
+$ %s tx bounty accept-finding 1 --comment "Looks good to me"
+`,
+				version.AppName,
+			),
+		),
+		RunE: HostAcceptFinding,
+	}
+
+	cmd.Flags().String(FlagComment, "", "Host's comment on finding")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
+}
+
+// NewHostRejectFindingCmd implements reject a finding by host.
+func NewHostRejectFindingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "reject-finding [finding-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Host reject a finding for a program",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Host reject a finding for a program.Meantime, you can also add some comments, which will be encrypted.
+Example:
+$ %s tx bounty reject-finding 1 --comment "Verified to be an invalid finding"
+`,
+				version.AppName,
+			),
+		),
+		RunE: HostRejectFinding,
+	}
+
+	cmd.Flags().String(FlagComment, "", "Host's comment on finding")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
+}
+
+func HostAcceptFinding(cmd *cobra.Command, args []string) error {
+	clientCtx, err := client.GetClientTxContext(cmd)
+	if err != nil {
+		return err
+	}
+
+	findingID, encryptedCommentAny, hostAddr, err := HostProcessFinding(cmd, args)
+	if err != nil {
+		return err
+	}
+
+	msg := types.NewMsgHostAcceptFinding(findingID, encryptedCommentAny, hostAddr)
+
+	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+}
+
+func HostRejectFinding(cmd *cobra.Command, args []string) error {
+	clientCtx, err := client.GetClientTxContext(cmd)
+	if err != nil {
+		return err
+	}
+
+	findingID, encryptedCommentAny, hostAddr, err := HostProcessFinding(cmd, args)
+	if err != nil {
+		return err
+	}
+
+	msg := types.NewMsgHostRejectFinding(findingID, encryptedCommentAny, hostAddr)
+
+	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+}
+
+func HostProcessFinding(cmd *cobra.Command, args []string) (fid uint64,
+	commentAny *codectypes.Any, hostAddr sdk.AccAddress, err error) {
+	clientCtx, err := client.GetClientTxContext(cmd)
+	if err != nil {
+		return fid, commentAny, hostAddr, err
+	}
+
+	// validate that the finding id is uint
+	fid, err = strconv.ParseUint(args[0], 10, 64)
+	if err != nil {
+		return fid, commentAny, hostAddr, fmt.Errorf("finding-id %s not a valid uint, please input a valid finding-id", args[0])
+	}
+	// Get host address
+	hostAddr = clientCtx.GetFromAddress()
+	comment, err := cmd.Flags().GetString(FlagComment)
+	if err != nil {
+		return fid, commentAny, hostAddr, err
+	}
+
+	// comment is empty and does not need to be encrypted
+	if len(comment) == 0 {
+		return fid, commentAny, hostAddr, nil
+	}
+
+	// get eciesEncKey
+	finding, err := GetFinding(cmd, fid)
+	if err != nil {
+		return fid, commentAny, hostAddr, err
+	}
+	eciesEncKey, err := GetEncryptionKey(cmd, finding.ProgramId)
+	if err != nil {
+		return fid, commentAny, hostAddr, err
+	}
+
+	encryptedComment, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(comment), nil, nil)
+	if err != nil {
+		return fid, commentAny, hostAddr, err
+	}
+	encComment := types.EciesEncryptedComment{
+		EncryptedComment: encryptedComment,
+	}
+	commentAny, err = codectypes.NewAnyWithValue(&encComment)
+	if err != nil {
+		return fid, commentAny, hostAddr, err
+	}
+
+	return fid, commentAny, hostAddr, nil
 }
