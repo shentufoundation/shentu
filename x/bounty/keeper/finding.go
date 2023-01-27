@@ -28,6 +28,11 @@ func (k Keeper) SetFinding(ctx sdk.Context, finding types.Finding) {
 	store.Set(types.GetFindingKey(finding.FindingId), bz)
 }
 
+func (k Keeper) DeleteFinding(ctx sdk.Context, id uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetFindingKey(id))
+}
+
 func (k Keeper) GetNextFindingID(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	Bz := store.Get(types.GetNextFindingIDKey())
@@ -69,7 +74,8 @@ func (k Keeper) GetPidFindingIDList(ctx sdk.Context, pid uint64) ([]uint64, erro
 
 func (k Keeper) AppendFidToFidList(ctx sdk.Context, pid, fid uint64) error {
 	fids, err := k.GetPidFindingIDList(ctx, pid)
-	if err.Error() == types.ErrorEmptyProgramIDFindingList {
+
+	if err != nil && err.Error() == types.ErrorEmptyProgramIDFindingList {
 		fids = []uint64{}
 	} else if err != nil {
 		return err
@@ -78,6 +84,27 @@ func (k Keeper) AppendFidToFidList(ctx sdk.Context, pid, fid uint64) error {
 	fids = append(fids, fid)
 	err = k.SetPidFindingIDList(ctx, pid, fids)
 	return err
+}
+
+func (k Keeper) DeleteFidFromFidList(ctx sdk.Context, pid, fid uint64) error {
+	fids, err := k.GetPidFindingIDList(ctx, pid)
+	if err != nil {
+		return err
+	}
+	for idx, id := range fids {
+		if id == fid {
+			fids = append(fids[:idx], fids[idx+1:]...)
+			if len(fids) > 0 {
+				return k.SetPidFindingIDList(ctx, pid, fids)
+			} else {
+				// Delete fid list if empty
+				store := ctx.KVStore(k.storeKey)
+				store.Delete(types.GetProgramIDFindingListKey(pid))
+				return nil
+			}
+		}
+	}
+	return fmt.Errorf("finding id not exists")
 }
 
 func Uint64sToBytes(list []uint64) ([]byte, error) {

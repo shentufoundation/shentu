@@ -24,6 +24,9 @@ service Msg {
 
   // HostRejectFinding defines a method for host reject a finding.
   rpc HostRejectFinding(MsgHostRejectFinding) returns (MsgHostRejectFindingResponse);
+
+  // WithdrawalFinding defines a mathod for inactive the specific finding
+  rpc WithdrawalFinding(MsgWithdrawalFinding) returns (MsgWithdrawalFindingResponse);
 }
 
 // MsgCreateProgram defines a SDK message for creating a new program.
@@ -90,3 +93,13 @@ message MsgHostRejectFinding {
 
 // MsgHostRejectFindingResponse defines the Msg/ostRejectFinding response type.
 message MsgHostRejectFindingResponse {}
+
+message MsgWithdrawalFinding {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string submitter_address = 1 [ (gogoproto.moretags) = "yaml:\"submitter_address\"" ];
+  uint64 finding_id = 2 [ (gogoproto.moretags) = "yaml:\"finding_id\"" ];
+}
+
+message MsgWithdrawalFindingResponse {}

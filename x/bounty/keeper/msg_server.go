@@ -203,3 +203,45 @@ func (k msgServer) hostProcess(ctx sdk.Context, fid uint64, hostAddr string, enc
 	finding.EncryptedComment = encryptedCommentAny
 	return &finding, nil
 }
+
+func (k msgServer) WithdrawalFinding(goCtx context.Context, msg *types.MsgWithdrawalFinding) (*types.MsgWithdrawalFindingResponse, error) {
+	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// get finding
+	finding, ok := k.GetFinding(ctx, msg.FindingId)
+	if !ok {
+		return nil, types.ErrFindingNotExists
+	}
+
+	// check submitter
+	if finding.SubmitterAddress != msg.SubmitterAddress {
+		return nil, fmt.Errorf("invalid submitter %s, expect %s", msg.SubmitterAddress, finding.SubmitterAddress)
+	}
+
+	// check status
+	if finding.FindingStatus != types.FindingStatusUnConfirmed {
+		return nil, fmt.Errorf("invalid finding status")
+	}
+
+	k.DeleteFidFromFidList(ctx, finding.ProgramId, finding.FindingId)
+	k.DeleteFinding(ctx, finding.FindingId)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeWithdrawalFinding,
+			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(msg.FindingId, 10)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.SubmitterAddress),
+		),
+	})
+
+	return &types.MsgWithdrawalFindingResponse{}, nil
+}

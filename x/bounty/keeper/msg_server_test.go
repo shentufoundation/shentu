@@ -410,3 +410,71 @@ func (suite *KeeperTestSuite) TestHostRejectFinding() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestWithdrawalFinding() {
+	programId, pubKey := suite.InitCreateProgram()
+	findingId := suite.InitSubmitFinding(programId, pubKey)
+	findindId2 := suite.InitSubmitFinding(programId, pubKey)
+
+	ctx := types1.WrapSDKContext(suite.ctx)
+	suite.msgServer.HostAcceptFinding(ctx, types.NewMsgHostAcceptFinding(findindId2, nil, suite.address[0]))
+
+	testCases := []struct {
+		name string
+		req  *types.MsgWithdrawalFinding
+		exp  bool
+	}{
+		{
+			"empty request",
+			&types.MsgWithdrawalFinding{},
+			false,
+		},
+		{
+			"invalid finding id",
+			&types.MsgWithdrawalFinding{
+				FindingId:        findingId + 10000,
+				SubmitterAddress: suite.address[0].String(),
+			},
+			false,
+		},
+		{
+			"invalid submitter",
+			&types.MsgWithdrawalFinding{
+				FindingId:        findingId,
+				SubmitterAddress: suite.address[1].String(),
+			},
+			false,
+		},
+		{
+			"invalid status",
+			&types.MsgWithdrawalFinding{
+				FindingId:        findindId2,
+				SubmitterAddress: suite.address[0].String(),
+			},
+			false,
+		},
+		{
+			"valid request",
+			&types.MsgWithdrawalFinding{
+				FindingId:        findingId,
+				SubmitterAddress: suite.address[0].String(),
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			_, err := suite.msgServer.WithdrawalFinding(ctx, testCase.req)
+			_, ok := suite.keeper.GetFinding(suite.ctx, findingId)
+
+			if testCase.exp {
+				suite.Require().NoError(err)
+				suite.Require().False(ok)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().True(ok)
+			}
+		})
+	}
+}
