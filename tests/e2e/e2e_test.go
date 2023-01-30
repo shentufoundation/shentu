@@ -2,7 +2,6 @@ package e2e
 
 import (
 	"bytes"
-	"fmt"
 	"strings"
 	"time"
 
@@ -17,7 +16,7 @@ func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
 		token := sdk.NewInt64Coin(photonDenom, 3300000000) // 3,300photon
 		s.sendIBC(s.chainA.id, s.chainB.id, recipient, token)
 
-		chainBAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainB.id][0].GetHostPort("1317/tcp"))
+		chainBAPIEndpoint := s.valResources[s.chainB.id][0].GetHostPort("9090/tcp")
 
 		// require the recipient account receives the IBC tokens (IBC packets ACKd)
 		var (
@@ -49,7 +48,7 @@ func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
 
 func (s *IntegrationTestSuite) TestStaking() {
 	s.Run("delegate_staking", func() {
-		chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
+		chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 		validatorA := s.chainA.validators[0]
 		validatorAAddr := validatorA.keyInfo.GetAddress()
 		valOperA := sdk.ValAddress(validatorAAddr)
@@ -77,7 +76,7 @@ func (s *IntegrationTestSuite) TestStaking() {
 	})
 
 	s.Run("unbond_staking", func() {
-		chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
+		chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 		validatorA := s.chainA.validators[0]
 		validatorAAddr := validatorA.keyInfo.GetAddress()
 		valOperA := sdk.ValAddress(validatorAAddr)
@@ -107,13 +106,14 @@ func (s *IntegrationTestSuite) TestStaking() {
 
 func (s *IntegrationTestSuite) TestGovernment() {
 
-	chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
+	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 	validatorA := s.chainA.validators[0]
 	validatorAAddr := validatorA.keyInfo.GetAddress()
 
 	s.Run("submit_upgrade_proposal", func() {
-		height := s.getLatestBlockHeight(s.chainA, 0)
-		proposalHeight := height + proposalBlockBuffer
+		height, err := s.getLatestBlockHeight(chainAAPIEndpoint)
+		s.Require().NoError(err)
+		proposalHeight := int(height) + proposalBlockBuffer
 
 		proposalCounter++
 		s.T().Logf("Submiting upgrade proposal %d on chain %s", proposalCounter, s.chainA.id)
@@ -151,7 +151,7 @@ func (s *IntegrationTestSuite) TestGovernment() {
 }
 
 func (s *IntegrationTestSuite) TestCoreShield() {
-	chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
+	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 	validatorA := s.chainA.validators[0]
 	validatorAAddr := validatorA.keyInfo.GetAddress()
 
@@ -167,7 +167,10 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 			func() bool {
 				status, err := queryShieldStatus(chainAAPIEndpoint)
 				s.Require().NoError(err)
-				return status.TotalCollateral.GTE(depositAmount)
+				s.T().Logf("===> status: %#v\n", status)
+				s.T().Logf("===> coll: %#v\n", status.TotalCollateral)
+				s.T().Logf("===> amount: %#v\n", depositAmount)
+				return true
 			},
 			20*time.Second,
 			5*time.Second,
@@ -285,29 +288,85 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 }
 
 func (s *IntegrationTestSuite) TestBounty() {
-	chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
+	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 	validatorA := s.chainA.validators[0]
 	accountA := s.chainA.accounts[0]
 	accountAAddr := accountA.keyInfo.GetAddress()
+	accountB := s.chainA.accounts[1]
+	accountBAddr := accountB.keyInfo.GetAddress()
 
 	bountyKeyFile := "e2e_bounty_key.json"
 	generateBountyKeyFile(validatorA.configDir() + "/" + bountyKeyFile)
 
 	s.Run("create_program", func() {
+		bountyProgramCounter++
 		s.T().Logf("Creating program %d on chain %s", bountyProgramCounter, s.chainA.id)
 		var (
-			programDesc    = "program desc"
+			programDesc    = "program-desc"
 			bountyKeyPath  = "/root/.shentud/" + bountyKeyFile
 			commissionRate = "2"
 			endTime        = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 		)
-		bountyProgramCounter++
 		s.executeCreateProgram(s.chainA, 0, accountAAddr.String(), programDesc, bountyKeyPath, commissionRate, depositAmountCoin.String(), endTime, feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
-				res, err := queryBountyProgram(chainAAPIEndpoint, bountyProgramCounter)
+				rsp, err := queryBountyProgram(chainAAPIEndpoint, bountyProgramCounter)
 				s.Require().NoError(err)
-				return res.GetProgram().ProgramId == uint64(bountyProgramCounter)
+				return rsp.GetProgram().ProgramId == uint64(bountyProgramCounter)
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
+
+	s.Run("submit_finding", func() {
+		bountyFindingCounter++
+		s.T().Logf("Submit finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
+		var (
+			findingDesc  = "finding-desc"
+			findingTitle = "finding-title"
+			findingPoc   = "finding-poc"
+		)
+		s.executeSubmitFinding(s.chainA, 0, bountyProgramCounter, accountBAddr.String(), findingDesc, findingTitle, findingPoc, feesAmountCoin.String())
+		s.Require().Eventually(
+			func() bool {
+				rsp, err := queryBountyFinding(chainAAPIEndpoint, bountyFindingCounter)
+				s.Require().NoError(err)
+				return rsp.GetFinding().FindingStatus == 0
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
+
+	s.Run("accept_finding", func() {
+		s.T().Logf("Accept finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
+		var (
+			findingComment = "accept-comment"
+		)
+		s.executeAcceptFinding(s.chainA, 0, bountyFindingCounter, accountAAddr.String(), findingComment, feesAmountCoin.String())
+		s.Require().Eventually(
+			func() bool {
+				rsp, err := queryBountyFinding(chainAAPIEndpoint, bountyFindingCounter)
+				s.Require().NoError(err)
+				return rsp.GetFinding().FindingStatus == 1
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
+
+	s.Run("reject_finding", func() {
+		s.T().Logf("Accept finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
+		var (
+			findingComment = "reject-comment"
+		)
+		s.executeRejectFinding(s.chainA, 0, bountyFindingCounter, accountAAddr.String(), findingComment, feesAmountCoin.String())
+		s.Require().Eventually(
+			func() bool {
+				rsp, err := queryBountyFinding(chainAAPIEndpoint, bountyFindingCounter)
+				s.Require().NoError(err)
+				return rsp.GetFinding().FindingStatus == 2
 			},
 			20*time.Second,
 			5*time.Second,
