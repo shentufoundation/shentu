@@ -12,10 +12,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	k.SetNextProgramID(ctx, data.StartingProgramId)
 	k.SetNextFindingID(ctx, data.StartingFindingId)
 
-	for _, program := range data.Programs {
-		k.SetProgram(ctx, program)
-	}
-
 	findingIDMap := make(map[uint64][]uint64)
 	for _, finding := range data.Findings {
 		k.SetFinding(ctx, finding)
@@ -29,8 +25,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 		findingIDMap[finding.ProgramId] = findingList
 	}
 
-	for programID, findingIDList := range findingIDMap {
-		k.SetPidFindingIDList(ctx, programID, findingIDList)
+	for _, program := range data.Programs {
+		k.SetProgram(ctx, program)
+		findingIDList, ok := findingIDMap[program.ProgramId]
+		if ok {
+			k.SetPidFindingIDList(ctx, program.ProgramId, findingIDList)
+		}
 	}
 }
 
