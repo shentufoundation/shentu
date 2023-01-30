@@ -411,7 +411,7 @@ func (suite *KeeperTestSuite) TestHostRejectFinding() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestWithdrawalFinding() {
+func (suite *KeeperTestSuite) TestCancelFinding() {
 	programId, pubKey := suite.InitCreateProgram()
 	findingId := suite.InitSubmitFinding(programId, pubKey)
 	findindId2 := suite.InitSubmitFinding(programId, pubKey)
@@ -421,17 +421,17 @@ func (suite *KeeperTestSuite) TestWithdrawalFinding() {
 
 	testCases := []struct {
 		name string
-		req  *types.MsgWithdrawalFinding
+		req  *types.MsgCancelFinding
 		exp  bool
 	}{
 		{
 			"empty request",
-			&types.MsgWithdrawalFinding{},
+			&types.MsgCancelFinding{},
 			false,
 		},
 		{
 			"invalid finding id",
-			&types.MsgWithdrawalFinding{
+			&types.MsgCancelFinding{
 				FindingId:        findingId + 10000,
 				SubmitterAddress: suite.address[0].String(),
 			},
@@ -439,7 +439,7 @@ func (suite *KeeperTestSuite) TestWithdrawalFinding() {
 		},
 		{
 			"invalid submitter",
-			&types.MsgWithdrawalFinding{
+			&types.MsgCancelFinding{
 				FindingId:        findingId,
 				SubmitterAddress: suite.address[1].String(),
 			},
@@ -447,7 +447,7 @@ func (suite *KeeperTestSuite) TestWithdrawalFinding() {
 		},
 		{
 			"invalid status",
-			&types.MsgWithdrawalFinding{
+			&types.MsgCancelFinding{
 				FindingId:        findindId2,
 				SubmitterAddress: suite.address[0].String(),
 			},
@@ -455,7 +455,7 @@ func (suite *KeeperTestSuite) TestWithdrawalFinding() {
 		},
 		{
 			"valid request",
-			&types.MsgWithdrawalFinding{
+			&types.MsgCancelFinding{
 				FindingId:        findingId,
 				SubmitterAddress: suite.address[0].String(),
 			},
@@ -465,7 +465,7 @@ func (suite *KeeperTestSuite) TestWithdrawalFinding() {
 
 	for _, testCase := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
-			_, err := suite.msgServer.WithdrawalFinding(ctx, testCase.req)
+			_, err := suite.msgServer.CancelFinding(ctx, testCase.req)
 			_, ok := suite.keeper.GetFinding(suite.ctx, findingId)
 
 			if testCase.exp {

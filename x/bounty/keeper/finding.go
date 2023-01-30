@@ -3,7 +3,6 @@ package keeper
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
@@ -62,7 +61,7 @@ func (k Keeper) GetPidFindingIDList(ctx sdk.Context, pid uint64) ([]uint64, erro
 	findingIDs := store.Get(types.GetProgramIDFindingListKey(pid))
 
 	if findingIDs == nil {
-		return nil, fmt.Errorf(types.ErrorEmptyProgramIDFindingList)
+		return nil, types.ErrorEmptyProgramIDFindingList
 	}
 
 	findingIDList, err := BytesToUint64s(findingIDs)
@@ -75,10 +74,12 @@ func (k Keeper) GetPidFindingIDList(ctx sdk.Context, pid uint64) ([]uint64, erro
 func (k Keeper) AppendFidToFidList(ctx sdk.Context, pid, fid uint64) error {
 	fids, err := k.GetPidFindingIDList(ctx, pid)
 
-	if err != nil && err.Error() == types.ErrorEmptyProgramIDFindingList {
-		fids = []uint64{}
-	} else if err != nil {
-		return err
+	if err != nil {
+		if err == types.ErrorEmptyProgramIDFindingList {
+			fids = []uint64{}
+		} else {
+			return err
+		}
 	}
 
 	fids = append(fids, fid)
@@ -98,20 +99,19 @@ func (k Keeper) DeleteFidFromFidList(ctx sdk.Context, pid, fid uint64) error {
 				store := ctx.KVStore(k.storeKey)
 				store.Delete(types.GetProgramIDFindingListKey(pid))
 				return nil
-
 			}
 			fids = append(fids[:idx], fids[idx+1:]...)
 			return k.SetPidFindingIDList(ctx, pid, fids)
 		}
 	}
-	return fmt.Errorf("finding id not exists")
+	return types.ErrFindingNotExists
 }
 
 func Uint64sToBytes(list []uint64) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	err := binary.Write(buf, binary.LittleEndian, list)
 	if err != nil {
-		return nil, fmt.Errorf("convert uint64 to byte list error")
+		return nil, types.ErrProgramIDFindingListMarshal
 	}
 	return buf.Bytes(), nil
 }
@@ -121,7 +121,7 @@ func BytesToUint64s(list []byte) ([]uint64, error) {
 	r64 := make([]uint64, (len(list)+7)/8)
 	err := binary.Read(buf, binary.LittleEndian, &r64)
 	if err != nil {
-		return nil, fmt.Errorf("convert to uint64 list error")
+		return nil, types.ErrProgramIDFindingListUnmarshal
 	}
 	return r64, nil
 }

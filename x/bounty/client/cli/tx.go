@@ -34,7 +34,7 @@ func NewTxCmd() *cobra.Command {
 		NewSubmitFindingCmd(),
 		NewHostAcceptFindingCmd(),
 		NewHostRejectFindingCmd(),
-		NewWithdrawalFindingCmd(),
+		NewCancelFindingCmd(),
 	)
 
 	return bountyTxCmds
@@ -361,11 +361,11 @@ func HostProcessFinding(cmd *cobra.Command, args []string) (fid uint64,
 	return fid, commentAny, hostAddr, nil
 }
 
-func NewWithdrawalFindingCmd() *cobra.Command {
+func NewCancelFindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "withdrawal-finding [finding id]",
+		Use:   "cancel-finding [finding id]",
 		Args:  cobra.ExactArgs(1),
-		Short: "withdrawal the specific finding",
+		Short: "cancel the specific finding",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -376,7 +376,7 @@ func NewWithdrawalFindingCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			msg := types.NewMsgWithdrawalFinding(submitAddr, fid)
+			msg := types.NewMsgCancelFinding(submitAddr, fid)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}

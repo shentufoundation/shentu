@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -79,11 +78,11 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 
 	program, isExist := k.GetProgram(ctx, msg.ProgramId)
 	if !isExist {
-		return nil, fmt.Errorf("no program id:%d", msg.ProgramId)
+		return nil, types.ErrProgramNotExists
 	}
 
 	if !program.Active {
-		return nil, fmt.Errorf("program id:%d is closed", msg.ProgramId)
+		return nil, types.ErrProgramInactive
 	}
 
 	findingID := k.GetNextFindingID(ctx)
@@ -184,27 +183,27 @@ func (k msgServer) hostProcess(ctx sdk.Context, fid uint64, hostAddr string, enc
 	// get finding
 	finding, isExist := k.GetFinding(ctx, fid)
 	if !isExist {
-		return nil, fmt.Errorf("no finding id:%d", fid)
+		return nil, types.ErrFindingNotExists
 	}
 	// get program
 	program, isExist := k.GetProgram(ctx, finding.ProgramId)
 	if !isExist {
-		return nil, fmt.Errorf("no program id:%d", finding.ProgramId)
+		return nil, types.ErrProgramNotExists
 	}
 	if !program.Active {
-		return nil, fmt.Errorf("program id:%d is closed", finding.ProgramId)
+		return nil, types.ErrProgramInactive
 	}
 
 	// only creator can update finding comment
 	if program.CreatorAddress != hostAddr {
-		return nil, fmt.Errorf("%s not the program creator, expect %s", hostAddr, program.CreatorAddress)
+		return nil, types.ErrProgramCreatorInvalid
 	}
 
 	finding.EncryptedComment = encryptedCommentAny
 	return &finding, nil
 }
 
-func (k msgServer) WithdrawalFinding(goCtx context.Context, msg *types.MsgWithdrawalFinding) (*types.MsgWithdrawalFindingResponse, error) {
+func (k msgServer) CancelFinding(goCtx context.Context, msg *types.MsgCancelFinding) (*types.MsgCancelFindingResponse, error) {
 	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
 	if err != nil {
 		return nil, err
@@ -220,12 +219,12 @@ func (k msgServer) WithdrawalFinding(goCtx context.Context, msg *types.MsgWithdr
 
 	// check submitter
 	if finding.SubmitterAddress != msg.SubmitterAddress {
-		return nil, fmt.Errorf("invalid submitter %s, expect %s", msg.SubmitterAddress, finding.SubmitterAddress)
+		return nil, types.ErrFindingSubmitterInvalid
 	}
 
 	// check status
 	if finding.FindingStatus != types.FindingStatusUnConfirmed {
-		return nil, fmt.Errorf("invalid finding status")
+		return nil, types.ErrFindingStatusInvalid
 	}
 
 	k.DeleteFidFromFidList(ctx, finding.ProgramId, finding.FindingId)
@@ -233,8 +232,9 @@ func (k msgServer) WithdrawalFinding(goCtx context.Context, msg *types.MsgWithdr
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeWithdrawalFinding,
+			types.EventTypeCancelFinding,
 			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(msg.FindingId, 10)),
+			sdk.NewAttribute(types.AttributeKeyProgramID, strconv.FormatUint(finding.ProgramId, 10)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -243,5 +243,5 @@ func (k msgServer) WithdrawalFinding(goCtx context.Context, msg *types.MsgWithdr
 		),
 	})
 
-	return &types.MsgWithdrawalFindingResponse{}, nil
+	return &types.MsgCancelFindingResponse{}, nil
 }

@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	TypeMsgCreateProgram     = "create_program"
-	TypeMsgSubmitFinding     = "submit_finding"
-	TypeMsgAcceptFinding     = "accept_finding"
-	TypeMsgRejectFinding     = "reject_finding"
-	TypeMsgWithdrawalFinding = "withdrawal_finding"
+	TypeMsgCreateProgram = "create_program"
+	TypeMsgSubmitFinding = "submit_finding"
+	TypeMsgAcceptFinding = "accept_finding"
+	TypeMsgRejectFinding = "reject_finding"
+	TypeMsgCancelFinding = "cancel_finding"
 )
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
@@ -234,22 +234,22 @@ func (msg *MsgHostRejectFinding) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgWithdrawalFinding withdrawal a specific finding
-func NewMsgWithdrawalFinding(accAddr sdk.AccAddress, findingID uint64) *MsgWithdrawalFinding {
-	return &MsgWithdrawalFinding{
+// NewMsgCancelFinding cancel a specific finding
+func NewMsgCancelFinding(accAddr sdk.AccAddress, findingID uint64) *MsgCancelFinding {
+	return &MsgCancelFinding{
 		SubmitterAddress: accAddr.String(),
 		FindingId:        findingID,
 	}
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgWithdrawalFinding) Route() string { return RouterKey }
+func (msg MsgCancelFinding) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgWithdrawalFinding) Type() string { return TypeMsgWithdrawalFinding }
+func (msg MsgCancelFinding) Type() string { return TypeMsgCancelFinding }
 
 // GetSigners implements the sdk.Msg interface
-func (msg MsgWithdrawalFinding) GetSigners() []sdk.AccAddress {
+func (msg MsgCancelFinding) GetSigners() []sdk.AccAddress {
 	// creator should sign the message
 	cAddr, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
 	if err != nil {
@@ -259,13 +259,13 @@ func (msg MsgWithdrawalFinding) GetSigners() []sdk.AccAddress {
 }
 
 // GetSignBytes returns the message bytes to sign over.
-func (msg MsgWithdrawalFinding) GetSignBytes() []byte {
+func (msg MsgCancelFinding) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgWithdrawalFinding) ValidateBasic() error {
+func (msg MsgCancelFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
