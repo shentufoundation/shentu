@@ -144,5 +144,5 @@ func (suite *KeeperTestSuite) TestFindingList_Delete() {
 	err = suite.keeper.DeleteFidFromFidList(suite.ctx, pid, 1)
 	suite.Require().NoError(err)
 	_, err = suite.keeper.GetPidFindingIDList(suite.ctx, pid)
-	suite.Require().Equal(err.Error(), types.ErrorEmptyProgramIDFindingList)
+	suite.Require().Equal(err, types.ErrProgramFindingListEmpty)
 }

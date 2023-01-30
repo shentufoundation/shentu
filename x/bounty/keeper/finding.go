@@ -61,7 +61,7 @@ func (k Keeper) GetPidFindingIDList(ctx sdk.Context, pid uint64) ([]uint64, erro
 	findingIDs := store.Get(types.GetProgramIDFindingListKey(pid))
 
 	if findingIDs == nil {
-		return nil, types.ErrorEmptyProgramIDFindingList
+		return nil, types.ErrProgramFindingListEmpty
 	}
 
 	findingIDList, err := BytesToUint64s(findingIDs)
@@ -75,7 +75,7 @@ func (k Keeper) AppendFidToFidList(ctx sdk.Context, pid, fid uint64) error {
 	fids, err := k.GetPidFindingIDList(ctx, pid)
 
 	if err != nil {
-		if err == types.ErrorEmptyProgramIDFindingList {
+		if err == types.ErrProgramFindingListEmpty {
 			fids = []uint64{}
 		} else {
 			return err
@@ -111,7 +111,7 @@ func Uint64sToBytes(list []uint64) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	err := binary.Write(buf, binary.LittleEndian, list)
 	if err != nil {
-		return nil, types.ErrProgramIDFindingListMarshal
+		return nil, types.ErrProgramFindingListMarshal
 	}
 	return buf.Bytes(), nil
 }
@@ -121,7 +121,7 @@ func BytesToUint64s(list []byte) ([]uint64, error) {
 	r64 := make([]uint64, (len(list)+7)/8)
 	err := binary.Read(buf, binary.LittleEndian, &r64)
 	if err != nil {
-		return nil, types.ErrProgramIDFindingListUnmarshal
+		return nil, types.ErrProgramFindingListUnmarshal
 	}
 	return r64, nil
 }

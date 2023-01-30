@@ -23,12 +23,12 @@ const (
 
 // [1xx] Program
 var (
-	ErrorEmptyProgramIDFindingList   = sdkerrors.Register(ModuleName, errProgramFindingListEmpty, "empty finding id list")
-	ErrProgramIDFindingListMarshal   = sdkerrors.Register(ModuleName, errProgramFindingListMarshal, "convert uint64 to byte list error")
-	ErrProgramIDFindingListUnmarshal = sdkerrors.Register(ModuleName, errProgramFindingListUnmarshal, "convert to uint64 list error")
-	ErrProgramNotExists              = sdkerrors.Register(ModuleName, errProgramNotExists, "program does not exist")
-	ErrProgramInactive               = sdkerrors.Register(ModuleName, errProgramInactive, "program is inactive")
-	ErrProgramCreatorInvalid         = sdkerrors.Register(ModuleName, errProgramCreatorInvalid, "invalid program creator")
+	ErrProgramFindingListEmpty     = sdkerrors.Register(ModuleName, errProgramFindingListEmpty, "empty finding id list")
+	ErrProgramFindingListMarshal   = sdkerrors.Register(ModuleName, errProgramFindingListMarshal, "convert uint64 to byte list error")
+	ErrProgramFindingListUnmarshal = sdkerrors.Register(ModuleName, errProgramFindingListUnmarshal, "convert to uint64 list error")
+	ErrProgramNotExists            = sdkerrors.Register(ModuleName, errProgramNotExists, "program does not exist")
+	ErrProgramInactive             = sdkerrors.Register(ModuleName, errProgramInactive, "program is inactive")
+	ErrProgramCreatorInvalid       = sdkerrors.Register(ModuleName, errProgramCreatorInvalid, "invalid program creator")
 )
 
 // [2xx] Finding
