@@ -451,5 +451,5 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 		}
 		comment = string(commentBytes)
 	}
-	return
+	return desc, poc, comment, nil
 }
