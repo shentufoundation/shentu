@@ -87,7 +87,7 @@ func TestMsgSubmitFinding(t *testing.T) {
 
 func TestMsgHostAcceptFinding(t *testing.T) {
 	encComment := EciesEncryptedComment{
-		EncryptedComment: []byte("comment"),
+		FindingComment: []byte("comment"),
 	}
 	commentAny, _ := codectypes.NewAnyWithValue(&encComment)
 
@@ -119,7 +119,7 @@ func TestMsgHostAcceptFinding(t *testing.T) {
 
 func TestMsgHostRejectFinding(t *testing.T) {
 	encComment := EciesEncryptedComment{
-		EncryptedComment: []byte("comment"),
+		FindingComment: []byte("comment"),
 	}
 	commentAny, _ := codectypes.NewAnyWithValue(&encComment)
 
