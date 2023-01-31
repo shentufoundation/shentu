@@ -30,7 +30,7 @@ func TestAnyToBytes(t *testing.T) {
 
 	var descAny *codectypes.Any
 	encDesc := types.EciesEncryptedDesc{
-		EncryptedDesc: encryptedDesc,
+		FindingDesc: encryptedDesc,
 	}
 	if descAny, err = codectypes.NewAnyWithValue(&encDesc); err != nil {
 		t.Fatal(err)

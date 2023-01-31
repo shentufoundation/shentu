@@ -232,7 +232,7 @@ func GetDescPocAny(desc, poc string, pubKey *ecies.PublicKey) (descAny, pocAny *
 		return nil, nil, err
 	}
 	encDesc := types.EciesEncryptedDesc{
-		EncryptedDesc: encryptedDescBytes,
+		FindingDesc: encryptedDescBytes,
 	}
 	descAny, err = codectypes.NewAnyWithValue(&encDesc)
 	if err != nil {
@@ -244,7 +244,7 @@ func GetDescPocAny(desc, poc string, pubKey *ecies.PublicKey) (descAny, pocAny *
 		return nil, nil, err
 	}
 	encPoc := types.EciesEncryptedPoc{
-		EncryptedPoc: encryptedPocBytes,
+		FindingPoc: encryptedPocBytes,
 	}
 	pocAny, err = codectypes.NewAnyWithValue(&encPoc)
 	if err != nil {
@@ -412,8 +412,8 @@ func (suite *KeeperTestSuite) TestHostRejectFinding() {
 }
 
 func (suite *KeeperTestSuite) TestReleaseFinding() {
-	programId := suite.InitCreateProgram()
-	findingId := suite.InitSubmitFinding(programId)
+	programId, pubKey := suite.InitCreateProgram()
+	findingId := suite.InitSubmitFinding(programId, pubKey)
 
 	testCases := []struct {
 		name    string
@@ -458,9 +458,17 @@ func (suite *KeeperTestSuite) TestReleaseFinding() {
 
 			if testCase.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(finding.Desc, testCase.req.Desc)
-				suite.Require().Equal(finding.Poc, testCase.req.Poc)
-				suite.Require().Equal(finding.Comment, testCase.req.Comment)
+				desc, ok := finding.FindingDesc.GetCachedValue().(types.FindingDesc)
+				suite.Require().True(ok)
+				suite.Require().Equal(string(desc.GetFindingDesc()), testCase.req.Desc)
+
+				poc, ok := finding.FindingPoc.GetCachedValue().(types.FindingPoc)
+				suite.Require().True(ok)
+				suite.Require().Equal(string(poc.GetFindingPoc()), testCase.req.Poc)
+
+				comment, ok := finding.FindingComment.GetCachedValue().(types.FindingComment)
+				suite.Require().True(ok)
+				suite.Require().Equal(string(comment.GetFindingComment()), testCase.req.Comment)
 			} else {
 				suite.Require().Error(err)
 			}

@@ -167,7 +167,6 @@ func NewSubmitFindingCmd() *cobra.Command {
 
 			poc, _ := cmd.Flags().GetString(FlagFindingPoc)
 
-			//func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny, pocAny *codectypes.Any, err error) {
 			descAny, pocAny, err := EncryptMsg(cmd, pid, desc, poc)
 			if err != nil {
 				return err
@@ -209,7 +208,7 @@ func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny
 		return nil, nil, err
 	}
 	encDesc := types.EciesEncryptedDesc{
-		EncryptedDesc: encryptedDescBytes,
+		FindingDesc: encryptedDescBytes,
 	}
 	descAny, err = codectypes.NewAnyWithValue(&encDesc)
 	if err != nil {
@@ -221,7 +220,7 @@ func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny
 		return nil, nil, err
 	}
 	encPoc := types.EciesEncryptedPoc{
-		EncryptedPoc: encryptedPocBytes,
+		FindingPoc: encryptedPocBytes,
 	}
 	pocAny, err = codectypes.NewAnyWithValue(&encPoc)
 	if err != nil {
@@ -351,7 +350,7 @@ func HostProcessFinding(cmd *cobra.Command, args []string) (fid uint64,
 		return fid, commentAny, hostAddr, err
 	}
 	encComment := types.EciesEncryptedComment{
-		EncryptedComment: encryptedComment,
+		FindingComment: encryptedComment,
 	}
 	commentAny, err = codectypes.NewAnyWithValue(&encComment)
 	if err != nil {
@@ -420,23 +419,37 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 
 	prvKey := LoadPrvKey(encKeyFile)
 
-	encryptedDescBytes := finding.EncryptedDesc.GetValue()
-	descBytes, err := prvKey.Decrypt(encryptedDescBytes[2:], nil, nil)
-	if err != nil {
-		return "", "", "", err
+	if finding.FindingDesc == nil {
+		desc = ""
+	} else {
+		encryptedDescBytes := finding.FindingDesc.GetValue()
+		descBytes, err := prvKey.Decrypt(encryptedDescBytes[2:], nil, nil)
+		if err != nil {
+			return "", "", "", err
+		}
+		desc = string(descBytes)
 	}
 
-	encryptedPocBytes := finding.EncryptedPoc.GetValue()
-	pocBytes, err := prvKey.Decrypt(encryptedPocBytes[2:], nil, nil)
-	if err != nil {
-		return "", "", "", err
+	if finding.FindingPoc == nil {
+		poc = ""
+	} else {
+		encryptedPocBytes := finding.FindingPoc.GetValue()
+		pocBytes, err := prvKey.Decrypt(encryptedPocBytes[2:], nil, nil)
+		if err != nil {
+			return "", "", "", err
+		}
+		poc = string(pocBytes)
 	}
 
-	encryptedCommentBytes := finding.EncryptedComment.GetValue()
-	commentBytes, err := prvKey.Decrypt(encryptedCommentBytes[2:], nil, nil)
-	if err != nil {
-		return "", "", "", err
+	if finding.FindingComment == nil {
+		comment = ""
+	} else {
+		encryptedCommentBytes := finding.FindingComment.GetValue()
+		commentBytes, err := prvKey.Decrypt(encryptedCommentBytes[2:], nil, nil)
+		if err != nil {
+			return "", "", "", err
+		}
+		comment = string(commentBytes)
 	}
-
-	return string(descBytes), string(pocBytes), string(commentBytes), nil
+	return
 }

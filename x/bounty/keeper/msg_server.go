@@ -91,10 +91,10 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 	finding := types.Finding{
 		FindingId:        findingID,
 		Title:            msg.Title,
-		EncryptedDesc:    msg.EncryptedDesc,
+		FindingDesc:      msg.EncryptedDesc,
 		ProgramId:        msg.ProgramId,
 		SeverityLevel:    msg.SeverityLevel,
-		EncryptedPoc:     msg.EncryptedPoc,
+		FindingPoc:       msg.EncryptedPoc,
 		SubmitterAddress: msg.SubmitterAddress,
 		FindingStatus:    types.FindingStatusUnConfirmed,
 	}
@@ -200,7 +200,7 @@ func (k msgServer) hostProcess(ctx sdk.Context, fid uint64, hostAddr string, enc
 		return nil, fmt.Errorf("%s not the program creator, expect %s", hostAddr, program.CreatorAddress)
 	}
 
-	finding.EncryptedComment = encryptedCommentAny
+	finding.FindingComment = encryptedCommentAny
 	return &finding, nil
 }
 
@@ -226,9 +226,33 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 		return nil, fmt.Errorf("%s not the program creator, expect %s", msg.HostAddress, program.CreatorAddress)
 	}
 
-	finding.Desc = msg.Desc
-	finding.Poc = msg.Poc
-	finding.Comment = msg.Comment
+	plainTextDesc := types.PlainTextDesc{
+		FindingDesc: []byte(msg.Desc),
+	}
+	descAny, err := codectypes.NewAnyWithValue(&plainTextDesc)
+	if err != nil {
+		return nil, err
+	}
+
+	plainTextPoc := types.PlainTextPoc{
+		FindingPoc: []byte(msg.Poc),
+	}
+	pocAny, err := codectypes.NewAnyWithValue(&plainTextPoc)
+	if err != nil {
+		return nil, err
+	}
+
+	plainTextComment := types.PlainTextComment{
+		FindingComment: []byte(msg.Comment),
+	}
+	commentAny, err := codectypes.NewAnyWithValue(&plainTextComment)
+	if err != nil {
+		return nil, err
+	}
+
+	finding.FindingDesc = descAny
+	finding.FindingPoc = pocAny
+	finding.FindingComment = commentAny
 
 	k.SetFinding(ctx, finding)
 
@@ -236,6 +260,7 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 		sdk.NewEvent(
 			types.EventTypeReleaseFinding,
 			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(finding.FindingId, 10)),
+			sdk.NewAttribute(types.AttributeKeyProgramID, strconv.FormatUint(program.ProgramId, 10)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
