@@ -75,12 +75,19 @@ func (msg MsgCreateProgram) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgCreateProgram) ValidateBasic() error {
-	// TODO: implement ValidateBasic
 	_, err := sdk.AccAddressFromBech32(msg.CreatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
+	if len(msg.Deposit) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "Deposit is empty")
+	}
 
+	for _, deposit := range msg.Deposit {
+		if !deposit.IsValid() {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "Deposit is invalid")
+		}
+	}
 	return nil
 }
 
