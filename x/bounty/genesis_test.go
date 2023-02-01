@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
