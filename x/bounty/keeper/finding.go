@@ -73,7 +73,6 @@ func (k Keeper) GetPidFindingIDList(ctx sdk.Context, pid uint64) ([]uint64, erro
 
 func (k Keeper) AppendFidToFidList(ctx sdk.Context, pid, fid uint64) error {
 	fids, err := k.GetPidFindingIDList(ctx, pid)
-
 	if err != nil {
 		if err == types.ErrProgramFindingListEmpty {
 			fids = []uint64{}

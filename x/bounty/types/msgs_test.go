@@ -87,7 +87,7 @@ func TestMsgSubmitFinding(t *testing.T) {
 
 func TestMsgHostAcceptFinding(t *testing.T) {
 	encComment := EciesEncryptedComment{
-		EncryptedComment: []byte("comment"),
+		FindingComment: []byte("comment"),
 	}
 	commentAny, _ := codectypes.NewAnyWithValue(&encComment)
 
@@ -119,7 +119,7 @@ func TestMsgHostAcceptFinding(t *testing.T) {
 
 func TestMsgHostRejectFinding(t *testing.T) {
 	encComment := EciesEncryptedComment{
-		EncryptedComment: []byte("comment"),
+		FindingComment: []byte("comment"),
 	}
 	commentAny, _ := codectypes.NewAnyWithValue(&encComment)
 
@@ -139,6 +139,34 @@ func TestMsgHostRejectFinding(t *testing.T) {
 		msg := NewMsgHostRejectFinding(tc.findingId, tc.comment, tc.hostAddr)
 		require.Equal(t, msg.Route(), RouterKey)
 		require.Equal(t, msg.Type(), TypeMsgRejectFinding)
+
+		if tc.expectPass {
+			require.NoError(t, msg.ValidateBasic())
+			require.Equal(t, msg.GetSigners(), []sdk.AccAddress{tc.hostAddr})
+		} else {
+			require.Error(t, msg.ValidateBasic())
+		}
+	}
+}
+
+func TestMsgReleaseFinding(t *testing.T) {
+	testCases := []struct {
+		findingId  uint64
+		hostAddr   sdk.AccAddress
+		comment    string
+		desc       string
+		poc        string
+		expectPass bool
+	}{
+		{0, addrs[0], "test 0", "test 0", "test 0", false},
+		{1, sdk.AccAddress{}, "", "", "", false},
+		{2, addrs[0], "test 0", "test 0", "test 0", true},
+	}
+
+	for _, tc := range testCases {
+		msg := NewReleaseFinding(tc.hostAddr.String(), tc.findingId, tc.desc, tc.poc, tc.comment)
+		require.Equal(t, msg.Route(), RouterKey)
+		require.Equal(t, msg.Type(), TypeMsgReleaseFinding)
 
 		if tc.expectPass {
 			require.NoError(t, msg.ValidateBasic())

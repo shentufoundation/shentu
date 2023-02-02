@@ -116,12 +116,12 @@ func TestGetEncryptedDesc(t *testing.T) {
 	for _, tc := range tests {
 		for _, finding := range tc.args.finding {
 			encKeyMsg := EciesEncryptedDesc{
-				EncryptedDesc: []byte(finding.Title),
+				FindingDesc: []byte(finding.Title),
 			}
 			encAny, _ = codectypes.NewAnyWithValue(&encKeyMsg)
-			finding.EncryptedDesc = encAny
+			finding.FindingDesc = encAny
 
-			testByte := finding.GetEncryptedDesc().GetEncryptedDesc()
+			testByte := finding.GetFindingDesc().GetFindingDesc()
 
 			if tc.errArgs.shouldPass {
 				if !bytes.Equal(testByte, []byte(finding.Title)) {
@@ -179,12 +179,12 @@ func TestGetEncryptedPoc(t *testing.T) {
 	for _, tc := range tests {
 		for _, finding := range tc.args.finding {
 			encKeyMsg := EciesEncryptedPoc{
-				EncryptedPoc: []byte(finding.Title),
+				FindingPoc: []byte(finding.Title),
 			}
 			encAny, _ = codectypes.NewAnyWithValue(&encKeyMsg)
-			finding.EncryptedPoc = encAny
+			finding.FindingPoc = encAny
 
-			testByte := finding.GetEncryptedPoc().GetEncryptedPoc()
+			testByte := finding.GetFindingPoc().GetFindingPoc()
 
 			if tc.errArgs.shouldPass {
 				if !bytes.Equal(testByte, []byte(finding.Title)) {
@@ -212,15 +212,15 @@ func TestGetEncryptedComment(t *testing.T) {
 
 	for _, testCase := range testCases {
 		eciesEncryptedComment := EciesEncryptedComment{
-			EncryptedComment: []byte(testCase.args),
+			FindingComment: []byte(testCase.args),
 		}
 		encAny, err := codectypes.NewAnyWithValue(&eciesEncryptedComment)
 		require.NoError(t, err)
 
 		finding := Finding{}
-		finding.EncryptedComment = encAny
+		finding.FindingComment = encAny
 
-		testByte := finding.GetEncryptedComment().GetEncryptedComment()
+		testByte := finding.GetFindingComment().GetFindingComment()
 
 		if testCase.expPass {
 			require.Equal(t, testByte, []byte(testCase.args))

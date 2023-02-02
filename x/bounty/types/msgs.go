@@ -11,11 +11,12 @@ import (
 )
 
 const (
-	TypeMsgCreateProgram = "create_program"
-	TypeMsgSubmitFinding = "submit_finding"
-	TypeMsgAcceptFinding = "accept_finding"
-	TypeMsgRejectFinding = "reject_finding"
-	TypeMsgCancelFinding = "cancel_finding"
+	TypeMsgCreateProgram  = "create_program"
+	TypeMsgSubmitFinding  = "submit_finding"
+	TypeMsgAcceptFinding  = "accept_finding"
+	TypeMsgRejectFinding  = "reject_finding"
+  TypeMsgCancelFinding  = "cancel_finding"
+	TypeMsgReleaseFinding = "release_finding"
 )
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
@@ -76,12 +77,19 @@ func (msg MsgCreateProgram) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgCreateProgram) ValidateBasic() error {
-	// TODO: implement ValidateBasic
 	_, err := sdk.AccAddressFromBech32(msg.CreatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
+	if len(msg.Deposit) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "Deposit is empty")
+	}
 
+	for _, deposit := range msg.Deposit {
+		if !deposit.IsValid() {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "Deposit is invalid")
+		}
+	}
 	return nil
 }
 
@@ -272,6 +280,55 @@ func (msg MsgCancelFinding) ValidateBasic() error {
 	}
 	if msg.FindingId == 0 {
 		return errors.New("empty finding-id is not allowed")
+	}
+	return nil
+}
+
+// NewReleaseFinding release finding.
+func NewReleaseFinding(
+	hostAddr string, fid uint64, findingDesc, findingPoc, findingComment string,
+) *MsgReleaseFinding {
+	return &MsgReleaseFinding{
+		FindingId:   fid,
+		Desc:        findingDesc,
+		Poc:         findingPoc,
+		Comment:     findingComment,
+		HostAddress: hostAddr,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgReleaseFinding) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgReleaseFinding) Type() string { return TypeMsgReleaseFinding }
+
+// GetSigners implements the sdk.Msg interface. It returns the address(es) that
+// must sign over msg.GetSignBytes().
+func (msg MsgReleaseFinding) GetSigners() []sdk.AccAddress {
+	// releaser should sign the message
+	cAddr, err := sdk.AccAddressFromBech32(msg.HostAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{cAddr}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg MsgReleaseFinding) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgReleaseFinding) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.HostAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+	}
+
+	if msg.FindingId == 0 {
+		return errors.New("empty fid is not allowed")
 	}
 	return nil
 }
