@@ -239,7 +239,7 @@ func (k msgServer) CancelFinding(goCtx context.Context, msg *types.MsgCancelFind
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-      sdk.NewAttribute(sdk.AttributeKeySender, msg.SubmitterAddress),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.SubmitterAddress),
 		),
 	})
 
@@ -252,20 +252,20 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 	// get finding
 	finding, isExist := k.GetFinding(ctx, msg.FindingId)
 	if !isExist {
-		return nil, fmt.Errorf("no finding id:%d", msg.FindingId)
+		return nil, types.ErrFindingNotExists
 	}
 	// get program
 	program, isExist := k.GetProgram(ctx, finding.ProgramId)
 	if !isExist {
-		return nil, fmt.Errorf("no program id:%d", finding.ProgramId)
+		return nil, types.ErrProgramNotExists
 	}
 	if !program.Active {
-		return nil, fmt.Errorf("program id:%d is closed", finding.ProgramId)
+		return nil, types.ErrProgramInactive
 	}
 
 	// only creator can update finding comment
 	if program.CreatorAddress != msg.HostAddress {
-		return nil, fmt.Errorf("%s not the program creator, expect %s", msg.HostAddress, program.CreatorAddress)
+		return nil, types.ErrProgramCreatorInvalid
 	}
 
 	plainTextDesc := types.PlainTextDesc{
