@@ -361,24 +361,23 @@ func HostProcessFinding(cmd *cobra.Command, args []string) (fid uint64,
 	return fid, commentAny, hostAddr, nil
 }
 
-
 func NewCancelFindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cancel-finding [finding id]",
 		Args:  cobra.ExactArgs(1),
 		Short: "cancel the specific finding",
-    RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-      submitAddr := clientCtx.GetFromAddress()
+			submitAddr := clientCtx.GetFromAddress()
 			fid, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				return err
 			}
 			msg := types.NewMsgCancelFinding(submitAddr, fid)
-      return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)

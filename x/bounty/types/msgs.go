@@ -15,7 +15,7 @@ const (
 	TypeMsgSubmitFinding  = "submit_finding"
 	TypeMsgAcceptFinding  = "accept_finding"
 	TypeMsgRejectFinding  = "reject_finding"
-  TypeMsgCancelFinding  = "cancel_finding"
+	TypeMsgCancelFinding  = "cancel_finding"
 	TypeMsgReleaseFinding = "release_finding"
 )
 
