@@ -5,6 +5,7 @@ const (
 	EventTypeSubmitFinding  = "submit_finding"
 	EventTypeAcceptFinding  = "accept_finding"
 	EventTypeRejectFinding  = "reject_finding"
+	EventTypeCancelFinding  = "cancel_finding"
 	EventTypeReleaseFinding = "release_finding"
 
 	AttributeKeyProgramID = "program_id"

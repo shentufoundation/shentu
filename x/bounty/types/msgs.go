@@ -15,6 +15,7 @@ const (
 	TypeMsgSubmitFinding  = "submit_finding"
 	TypeMsgAcceptFinding  = "accept_finding"
 	TypeMsgRejectFinding  = "reject_finding"
+	TypeMsgCancelFinding  = "cancel_finding"
 	TypeMsgReleaseFinding = "release_finding"
 )
 
@@ -241,6 +242,48 @@ func (msg *MsgHostRejectFinding) ValidateBasic() error {
 	return nil
 }
 
+// NewMsgCancelFinding cancel a specific finding
+func NewMsgCancelFinding(accAddr sdk.AccAddress, findingID uint64) *MsgCancelFinding {
+	return &MsgCancelFinding{
+		SubmitterAddress: accAddr.String(),
+		FindingId:        findingID,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgCancelFinding) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgCancelFinding) Type() string { return TypeMsgCancelFinding }
+
+// GetSigners implements the sdk.Msg interface
+func (msg MsgCancelFinding) GetSigners() []sdk.AccAddress {
+	// creator should sign the message
+	cAddr, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{cAddr}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg MsgCancelFinding) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgCancelFinding) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+	}
+	if msg.FindingId == 0 {
+		return errors.New("empty finding-id is not allowed")
+	}
+	return nil
+}
+
 // NewReleaseFinding release finding.
 func NewReleaseFinding(
 	hostAddr string, fid uint64, findingDesc, findingPoc, findingComment string,
@@ -268,7 +311,6 @@ func (msg MsgReleaseFinding) GetSigners() []sdk.AccAddress {
 	if err != nil {
 		panic(err)
 	}
-
 	return []sdk.AccAddress{cAddr}
 }
 
