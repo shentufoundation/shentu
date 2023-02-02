@@ -2,8 +2,11 @@ package types
 
 import (
 	"bytes"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
 func TestGetEncryptionKey(t *testing.T) {
@@ -113,12 +116,12 @@ func TestGetEncryptedDesc(t *testing.T) {
 	for _, tc := range tests {
 		for _, finding := range tc.args.finding {
 			encKeyMsg := EciesEncryptedDesc{
-				EncryptedDesc: []byte(finding.Title),
+				FindingDesc: []byte(finding.Title),
 			}
 			encAny, _ = codectypes.NewAnyWithValue(&encKeyMsg)
-			finding.EncryptedDesc = encAny
+			finding.FindingDesc = encAny
 
-			testByte := finding.GetEncryptedDesc().GetEncryptedDesc()
+			testByte := finding.GetFindingDesc().GetFindingDesc()
 
 			if tc.errArgs.shouldPass {
 				if !bytes.Equal(testByte, []byte(finding.Title)) {
@@ -133,6 +136,7 @@ func TestGetEncryptedDesc(t *testing.T) {
 		}
 	}
 }
+
 func TestGetEncryptedPoc(t *testing.T) {
 	type args struct {
 		finding []Finding
@@ -175,12 +179,12 @@ func TestGetEncryptedPoc(t *testing.T) {
 	for _, tc := range tests {
 		for _, finding := range tc.args.finding {
 			encKeyMsg := EciesEncryptedPoc{
-				EncryptedPoc: []byte(finding.Title),
+				FindingPoc: []byte(finding.Title),
 			}
 			encAny, _ = codectypes.NewAnyWithValue(&encKeyMsg)
-			finding.EncryptedPoc = encAny
+			finding.FindingPoc = encAny
 
-			testByte := finding.GetEncryptedPoc().GetEncryptedPoc()
+			testByte := finding.GetFindingPoc().GetFindingPoc()
 
 			if tc.errArgs.shouldPass {
 				if !bytes.Equal(testByte, []byte(finding.Title)) {
@@ -194,4 +198,35 @@ func TestGetEncryptedPoc(t *testing.T) {
 
 		}
 	}
+}
+
+func TestGetEncryptedComment(t *testing.T) {
+	testCases := []struct {
+		name    string
+		args    string
+		expPass bool
+	}{
+		{"empty Finding", "", true},
+		{"no empty Finding", "string", true},
+	}
+
+	for _, testCase := range testCases {
+		eciesEncryptedComment := EciesEncryptedComment{
+			FindingComment: []byte(testCase.args),
+		}
+		encAny, err := codectypes.NewAnyWithValue(&eciesEncryptedComment)
+		require.NoError(t, err)
+
+		finding := Finding{}
+		finding.FindingComment = encAny
+
+		testByte := finding.GetFindingComment().GetFindingComment()
+
+		if testCase.expPass {
+			require.Equal(t, testByte, []byte(testCase.args))
+		} else {
+			require.NotEqual(t, testByte, []byte(testCase.args))
+		}
+	}
+
 }

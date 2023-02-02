@@ -8,6 +8,7 @@ import (
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	types1 "github.com/cosmos/cosmos-sdk/types"
 
@@ -19,11 +20,13 @@ import (
 // shared setup
 type KeeperTestSuite struct {
 	suite.Suite
-	app       *shentuapp.ShentuApp
-	ctx       sdk.Context
-	keeper    keeper.Keeper
-	address   []sdk.AccAddress
-	msgServer types.MsgServer
+
+	app         *shentuapp.ShentuApp
+	ctx         sdk.Context
+	keeper      keeper.Keeper
+	address     []sdk.AccAddress
+	msgServer   types.MsgServer
+	queryClient types.QueryClient
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -32,6 +35,9 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.keeper = suite.app.BountyKeeper
 	suite.address = shentuapp.AddTestAddrs(suite.app, suite.ctx, 4, sdk.NewInt(1e10))
 
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, suite.app.BountyKeeper)
+	suite.queryClient = types.NewQueryClient(queryHelper)
 	suite.msgServer = keeper.NewMsgServerImpl(suite.keeper)
 }
 

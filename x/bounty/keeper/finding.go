@@ -3,7 +3,6 @@ package keeper
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
@@ -26,6 +25,11 @@ func (k Keeper) SetFinding(ctx sdk.Context, finding types.Finding) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&finding)
 	store.Set(types.GetFindingKey(finding.FindingId), bz)
+}
+
+func (k Keeper) DeleteFinding(ctx sdk.Context, id uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetFindingKey(id))
 }
 
 func (k Keeper) GetNextFindingID(ctx sdk.Context) uint64 {
@@ -60,7 +64,7 @@ func (k Keeper) GetPidFindingIDList(ctx sdk.Context, pid uint64) ([]uint64, erro
 	findingIDs := store.Get(types.GetProgramIDFindingListKey(pid))
 
 	if findingIDs == nil {
-		return nil, fmt.Errorf(types.ErrorEmptyProgramIDFindingList)
+		return nil, types.ErrProgramFindingListEmpty
 	}
 
 	findingIDList, err := BytesToUint64s(findingIDs)
@@ -85,11 +89,31 @@ func (k Keeper) AppendFidToFidList(ctx sdk.Context, pid, fid uint64) error {
 	return err
 }
 
+func (k Keeper) DeleteFidFromFidList(ctx sdk.Context, pid, fid uint64) error {
+	fids, err := k.GetPidFindingIDList(ctx, pid)
+	if err != nil {
+		return err
+	}
+	for idx, id := range fids {
+		if id == fid {
+			if len(fids) == 1 {
+				// Delete fid list if empty
+				store := ctx.KVStore(k.storeKey)
+				store.Delete(types.GetProgramIDFindingListKey(pid))
+				return nil
+			}
+			fids = append(fids[:idx], fids[idx+1:]...)
+			return k.SetPidFindingIDList(ctx, pid, fids)
+		}
+	}
+	return types.ErrFindingNotExists
+}
+
 func Uint64sToBytes(list []uint64) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	err := binary.Write(buf, binary.LittleEndian, list)
 	if err != nil {
-		return nil, fmt.Errorf("convert uint64 to byte list error")
+		return nil, types.ErrProgramFindingListMarshal
 	}
 	return buf.Bytes(), nil
 }
@@ -99,7 +123,7 @@ func BytesToUint64s(list []byte) ([]uint64, error) {
 	r64 := make([]uint64, (len(list)+7)/8)
 	err := binary.Read(buf, binary.LittleEndian, &r64)
 	if err != nil {
-		return nil, fmt.Errorf("convert to uint64 list error")
+		return nil, types.ErrProgramFindingListUnmarshal
 	}
 	return r64, nil
 }

@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"crypto/rand"
+	"fmt"
 	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -92,8 +93,10 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 		shouldPass bool
 	}
 
-	programId := suite.InitCreateProgram()
+	programId, pubKey := suite.InitCreateProgram()
 	errorProgramId := suite.InitCreateErrorProgram()
+
+	descAny1, pocAny1, _ := GetDescPocAny("This is real bug 1", "bug1", pubKey)
 
 	tests := []struct {
 		name    string
@@ -105,9 +108,9 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 				msgSubmitFindings: []types.MsgSubmitFinding{
 					{
 						Title:            "Test bug 1",
-						Desc:             "This is real bug 1",
+						EncryptedDesc:    descAny1,
 						ProgramId:        programId,
-						Poc:              "bug1",
+						EncryptedPoc:     pocAny1,
 						SeverityLevel:    types.SeverityLevelCritical,
 						SubmitterAddress: suite.address[0].String(),
 					},
@@ -122,9 +125,9 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 				msgSubmitFindings: []types.MsgSubmitFinding{
 					{
 						Title:            "Test bug 2",
-						Desc:             "This is real bug 2",
+						EncryptedDesc:    descAny1,
 						ProgramId:        200,
-						Poc:              "bug2",
+						EncryptedPoc:     pocAny1,
 						SeverityLevel:    types.SeverityLevelCritical,
 						SubmitterAddress: suite.address[0].String(),
 					},
@@ -139,9 +142,9 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 				msgSubmitFindings: []types.MsgSubmitFinding{
 					{
 						Title:            "Test bug 2",
-						Desc:             "This is real bug 2",
+						EncryptedDesc:    nil,
 						ProgramId:        200,
-						Poc:              "bug2",
+						EncryptedPoc:     nil,
 						SeverityLevel:    types.SeverityLevelCritical,
 						SubmitterAddress: "test address",
 					},
@@ -156,9 +159,9 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 				msgSubmitFindings: []types.MsgSubmitFinding{
 					{
 						Title:            "Test bug 2",
-						Desc:             "This is real bug 2",
+						EncryptedDesc:    descAny1,
 						ProgramId:        errorProgramId,
-						Poc:              "bug2",
+						EncryptedPoc:     pocAny1,
 						SeverityLevel:    types.SeverityLevelCritical,
 						SubmitterAddress: "test address",
 					},
@@ -191,7 +194,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 	}
 }
 
-func (suite *KeeperTestSuite) InitCreateProgram() uint64 {
+func (suite *KeeperTestSuite) InitCreateProgram() (uint64, *ecies.PublicKey) {
 	dd, _ := time.ParseDuration("24h")
 	decKey, _ := ecies.GenerateKey(rand.Reader, ecies.DefaultCurve, nil)
 	encPubKey := crypto.FromECDSAPub(&decKey.ExportECDSA().PublicKey)
@@ -220,7 +223,56 @@ func (suite *KeeperTestSuite) InitCreateProgram() uint64 {
 	resp, err := suite.msgServer.CreateProgram(ctx, &msgCreateProgram)
 	suite.Require().NoError(err)
 
-	return resp.ProgramId
+	return resp.ProgramId, &decKey.PublicKey
+}
+
+func GetDescPocAny(desc, poc string, pubKey *ecies.PublicKey) (descAny, pocAny *codectypes.Any, err error) {
+	encryptedDescBytes, err := ecies.Encrypt(rand.Reader, pubKey, []byte(desc), nil, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	encDesc := types.EciesEncryptedDesc{
+		FindingDesc: encryptedDescBytes,
+	}
+	descAny, err = codectypes.NewAnyWithValue(&encDesc)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	encryptedPocBytes, err := ecies.Encrypt(rand.Reader, pubKey, []byte(poc), nil, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	encPoc := types.EciesEncryptedPoc{
+		FindingPoc: encryptedPocBytes,
+	}
+	pocAny, err = codectypes.NewAnyWithValue(&encPoc)
+	if err != nil {
+		return nil, nil, err
+	}
+	return
+}
+
+func (suite *KeeperTestSuite) InitSubmitFinding(programId uint64, pubKey *ecies.PublicKey) uint64 {
+	desc := "Bug desc"
+	poc := "bug poc"
+	descAny, pocAny, _ := GetDescPocAny(desc, poc, pubKey)
+	msgSubmitFinding := &types.MsgSubmitFinding{
+		Title:            "Bug title",
+		EncryptedDesc:    descAny,
+		ProgramId:        programId,
+		EncryptedPoc:     pocAny,
+		SeverityLevel:    types.SeverityLevelCritical,
+		SubmitterAddress: suite.address[0].String(),
+	}
+
+	ctx := types1.WrapSDKContext(suite.ctx)
+	findingId := suite.keeper.GetNextFindingID(suite.ctx)
+	resp, err := suite.msgServer.SubmitFinding(ctx, msgSubmitFinding)
+	suite.Require().NoError(err)
+	suite.Require().Equal(findingId, resp.FindingId)
+
+	return findingId
 }
 
 func (suite *KeeperTestSuite) InitCreateErrorProgram() uint64 {
@@ -253,4 +305,241 @@ func (suite *KeeperTestSuite) InitCreateErrorProgram() uint64 {
 	suite.Require().NoError(err)
 
 	return resp.ProgramId
+}
+
+func (suite *KeeperTestSuite) TestHostAcceptFinding() {
+	programId, pubKey := suite.InitCreateProgram()
+	findingId := suite.InitSubmitFinding(programId, pubKey)
+
+	testCases := []struct {
+		name    string
+		req     *types.MsgHostAcceptFinding
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgHostAcceptFinding{},
+			false,
+		},
+		{
+			"valid request => comment is empty",
+			&types.MsgHostAcceptFinding{
+				FindingId:        findingId,
+				EncryptedComment: nil,
+				HostAddress:      suite.address[0].String(),
+			},
+			true,
+		},
+		{
+			"valid request => comment is not empty",
+			&types.MsgHostAcceptFinding{
+				FindingId:        findingId,
+				EncryptedComment: nil,
+				HostAddress:      suite.address[0].String(),
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			ctx := types1.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.HostAcceptFinding(ctx, testCase.req)
+
+			finding, _ := suite.keeper.GetFinding(suite.ctx, findingId)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(finding.FindingStatus, types.FindingStatusValid)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Equal(finding.FindingStatus, types.FindingStatusUnConfirmed)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestHostRejectFinding() {
+	programId, pubKey := suite.InitCreateProgram()
+	findingId := suite.InitSubmitFinding(programId, pubKey)
+
+	testCases := []struct {
+		name    string
+		req     *types.MsgHostRejectFinding
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgHostRejectFinding{},
+			false,
+		},
+		{
+			"valid request => comment is empty",
+			&types.MsgHostRejectFinding{
+				FindingId:        findingId,
+				EncryptedComment: nil,
+				HostAddress:      suite.address[0].String(),
+			},
+			true,
+		},
+		{
+			"valid request => comment is not empty",
+			&types.MsgHostRejectFinding{
+				FindingId:        findingId,
+				EncryptedComment: nil,
+				HostAddress:      suite.address[0].String(),
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			ctx := types1.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.HostRejectFinding(ctx, testCase.req)
+
+			finding, _ := suite.keeper.GetFinding(suite.ctx, findingId)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(finding.FindingStatus, types.FindingStatusInvalid)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Equal(finding.FindingStatus, types.FindingStatusUnConfirmed)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestCancelFinding() {
+	programId, pubKey := suite.InitCreateProgram()
+	findingId := suite.InitSubmitFinding(programId, pubKey)
+	findindId2 := suite.InitSubmitFinding(programId, pubKey)
+
+	ctx := types1.WrapSDKContext(suite.ctx)
+	suite.msgServer.HostAcceptFinding(ctx, types.NewMsgHostAcceptFinding(findindId2, nil, suite.address[0]))
+
+	testCases := []struct {
+		name string
+		req  *types.MsgCancelFinding
+		exp  bool
+	}{
+		{
+			"empty request",
+			&types.MsgCancelFinding{},
+			false,
+		},
+		{
+			"invalid finding id",
+			&types.MsgCancelFinding{
+				FindingId:        findingId + 10000,
+				SubmitterAddress: suite.address[0].String(),
+			},
+			false,
+		},
+		{
+			"invalid submitter",
+			&types.MsgCancelFinding{
+				FindingId:        findingId,
+				SubmitterAddress: suite.address[1].String(),
+			},
+			false,
+		},
+		{
+			"invalid status",
+			&types.MsgCancelFinding{
+				FindingId:        findindId2,
+				SubmitterAddress: suite.address[0].String(),
+			},
+			false,
+		},
+		{
+			"valid request",
+			&types.MsgCancelFinding{
+				FindingId:        findingId,
+				SubmitterAddress: suite.address[0].String(),
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			_, err := suite.msgServer.CancelFinding(ctx, testCase.req)
+			_, ok := suite.keeper.GetFinding(suite.ctx, findingId)
+
+			if testCase.exp {
+				suite.Require().NoError(err)
+				suite.Require().False(ok)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().True(ok)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestReleaseFinding() {
+	programId, pubKey := suite.InitCreateProgram()
+	findingId := suite.InitSubmitFinding(programId, pubKey)
+
+	testCases := []struct {
+		name    string
+		req     *types.MsgReleaseFinding
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgReleaseFinding{},
+			false,
+		},
+		{
+			"valid request => plain text is valid",
+			&types.MsgReleaseFinding{
+				FindingId:   findingId,
+				Desc:        "test desc",
+				Poc:         "test poc",
+				Comment:     "test comment",
+				HostAddress: suite.address[0].String(),
+			},
+			true,
+		},
+		{
+			"invalid request => host address is invalid",
+			&types.MsgReleaseFinding{
+				FindingId:   findingId,
+				Desc:        "test desc",
+				Poc:         "test poc",
+				Comment:     "test comment",
+				HostAddress: suite.address[1].String(),
+			},
+			false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			ctx := types1.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.ReleaseFinding(ctx, testCase.req)
+
+			finding, _ := suite.keeper.GetFinding(suite.ctx, findingId)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				desc, ok := finding.FindingDesc.GetCachedValue().(types.FindingDesc)
+				suite.Require().True(ok)
+				suite.Require().Equal(string(desc.GetFindingDesc()), testCase.req.Desc)
+
+				poc, ok := finding.FindingPoc.GetCachedValue().(types.FindingPoc)
+				suite.Require().True(ok)
+				suite.Require().Equal(string(poc.GetFindingPoc()), testCase.req.Poc)
+
+				comment, ok := finding.FindingComment.GetCachedValue().(types.FindingComment)
+				suite.Require().True(ok)
+				suite.Require().Equal(string(comment.GetFindingComment()), testCase.req.Comment)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
 }
