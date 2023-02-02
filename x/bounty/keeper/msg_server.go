@@ -91,10 +91,10 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 	finding := types.Finding{
 		FindingId:        findingID,
 		Title:            msg.Title,
-		EncryptedDesc:    msg.EncryptedDesc,
+		FindingDesc:      msg.EncryptedDesc,
 		ProgramId:        msg.ProgramId,
 		SeverityLevel:    msg.SeverityLevel,
-		EncryptedPoc:     msg.EncryptedPoc,
+		FindingPoc:       msg.EncryptedPoc,
 		SubmitterAddress: msg.SubmitterAddress,
 		FindingStatus:    types.FindingStatusUnConfirmed,
 	}
@@ -200,6 +200,74 @@ func (k msgServer) hostProcess(ctx sdk.Context, fid uint64, hostAddr string, enc
 		return nil, fmt.Errorf("%s not the program creator, expect %s", hostAddr, program.CreatorAddress)
 	}
 
-	finding.EncryptedComment = encryptedCommentAny
+	finding.FindingComment = encryptedCommentAny
 	return &finding, nil
+}
+
+func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFinding) (*types.MsgReleaseFindingResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// get finding
+	finding, isExist := k.GetFinding(ctx, msg.FindingId)
+	if !isExist {
+		return nil, fmt.Errorf("no finding id:%d", msg.FindingId)
+	}
+	// get program
+	program, isExist := k.GetProgram(ctx, finding.ProgramId)
+	if !isExist {
+		return nil, fmt.Errorf("no program id:%d", finding.ProgramId)
+	}
+	if !program.Active {
+		return nil, fmt.Errorf("program id:%d is closed", finding.ProgramId)
+	}
+
+	// only creator can update finding comment
+	if program.CreatorAddress != msg.HostAddress {
+		return nil, fmt.Errorf("%s not the program creator, expect %s", msg.HostAddress, program.CreatorAddress)
+	}
+
+	plainTextDesc := types.PlainTextDesc{
+		FindingDesc: []byte(msg.Desc),
+	}
+	descAny, err := codectypes.NewAnyWithValue(&plainTextDesc)
+	if err != nil {
+		return nil, err
+	}
+
+	plainTextPoc := types.PlainTextPoc{
+		FindingPoc: []byte(msg.Poc),
+	}
+	pocAny, err := codectypes.NewAnyWithValue(&plainTextPoc)
+	if err != nil {
+		return nil, err
+	}
+
+	plainTextComment := types.PlainTextComment{
+		FindingComment: []byte(msg.Comment),
+	}
+	commentAny, err := codectypes.NewAnyWithValue(&plainTextComment)
+	if err != nil {
+		return nil, err
+	}
+
+	finding.FindingDesc = descAny
+	finding.FindingPoc = pocAny
+	finding.FindingComment = commentAny
+
+	k.SetFinding(ctx, finding)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeReleaseFinding,
+			sdk.NewAttribute(types.AttributeKeyFindingID, strconv.FormatUint(finding.FindingId, 10)),
+			sdk.NewAttribute(types.AttributeKeyProgramID, strconv.FormatUint(program.ProgramId, 10)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.HostAddress),
+		),
+	})
+
+	return &types.MsgReleaseFindingResponse{}, nil
 }

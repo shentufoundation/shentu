@@ -13,22 +13,22 @@ type EncryptionKey interface {
 	GetEncryptionKey() []byte
 }
 
-type EncryptedDesc interface {
+type FindingDesc interface {
 	proto.Message
 
-	GetEncryptedDesc() []byte
+	GetFindingDesc() []byte
 }
 
-type EncryptedPoc interface {
+type FindingPoc interface {
 	proto.Message
 
-	GetEncryptedPoc() []byte
+	GetFindingPoc() []byte
 }
 
-type EncryptedCommnet interface {
+type FindingComment interface {
 	proto.Message
 
-	GetEncryptedComment() []byte
+	GetFindingComment() []byte
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces.
@@ -47,36 +47,40 @@ func (p Program) GetEncryptionKey() EncryptionKey {
 }
 
 func (f Finding) UnpackInterfaces(unpacker codecTypes.AnyUnpacker) error {
-	var desc EncryptedDesc
-	var poc EncryptedPoc
-	err := unpacker.UnpackAny(f.EncryptedDesc, &desc)
+	var desc FindingDesc
+	var poc FindingPoc
+	var comment FindingComment
+	err := unpacker.UnpackAny(f.FindingDesc, &desc)
 	if err != nil {
 		return err
 	}
+	if err = unpacker.UnpackAny(f.FindingComment, &comment); err != nil {
+		return err
+	}
 
-	return unpacker.UnpackAny(f.EncryptedPoc, &poc)
+	return unpacker.UnpackAny(f.FindingPoc, &poc)
 }
 
-func (f Finding) GetEncryptedDesc() EncryptedDesc {
-	desc, ok := f.EncryptedDesc.GetCachedValue().(EncryptedDesc)
+func (f Finding) GetFindingDesc() FindingDesc {
+	desc, ok := f.FindingDesc.GetCachedValue().(FindingDesc)
 	if !ok {
 		return nil
 	}
 	return desc
 }
 
-func (f Finding) GetEncryptedPoc() EncryptedPoc {
-	poc, ok := f.EncryptedPoc.GetCachedValue().(EncryptedPoc)
+func (f Finding) GetFindingPoc() FindingPoc {
+	poc, ok := f.FindingPoc.GetCachedValue().(FindingPoc)
 	if !ok {
 		return nil
 	}
 	return poc
 }
 
-func (f Finding) GetEncryptedComment() EncryptedCommnet {
-	poc, ok := f.EncryptedComment.GetCachedValue().(EncryptedCommnet)
+func (f Finding) GetFindingComment() FindingComment {
+	comment, ok := f.FindingComment.GetCachedValue().(FindingComment)
 	if !ok {
 		return nil
 	}
-	return poc
+	return comment
 }

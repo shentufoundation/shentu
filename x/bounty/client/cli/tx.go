@@ -34,6 +34,7 @@ func NewTxCmd() *cobra.Command {
 		NewSubmitFindingCmd(),
 		NewHostAcceptFindingCmd(),
 		NewHostRejectFindingCmd(),
+		NewReleaseFindingCmd(),
 	)
 
 	return bountyTxCmds
@@ -166,7 +167,6 @@ func NewSubmitFindingCmd() *cobra.Command {
 
 			poc, _ := cmd.Flags().GetString(FlagFindingPoc)
 
-			//func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny, pocAny *codectypes.Any, err error) {
 			descAny, pocAny, err := EncryptMsg(cmd, pid, desc, poc)
 			if err != nil {
 				return err
@@ -208,7 +208,7 @@ func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny
 		return nil, nil, err
 	}
 	encDesc := types.EciesEncryptedDesc{
-		EncryptedDesc: encryptedDescBytes,
+		FindingDesc: encryptedDescBytes,
 	}
 	descAny, err = codectypes.NewAnyWithValue(&encDesc)
 	if err != nil {
@@ -220,7 +220,7 @@ func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny
 		return nil, nil, err
 	}
 	encPoc := types.EciesEncryptedPoc{
-		EncryptedPoc: encryptedPocBytes,
+		FindingPoc: encryptedPocBytes,
 	}
 	pocAny, err = codectypes.NewAnyWithValue(&encPoc)
 	if err != nil {
@@ -350,7 +350,7 @@ func HostProcessFinding(cmd *cobra.Command, args []string) (fid uint64,
 		return fid, commentAny, hostAddr, err
 	}
 	encComment := types.EciesEncryptedComment{
-		EncryptedComment: encryptedComment,
+		FindingComment: encryptedComment,
 	}
 	commentAny, err = codectypes.NewAnyWithValue(&encComment)
 	if err != nil {
@@ -358,4 +358,98 @@ func HostProcessFinding(cmd *cobra.Command, args []string) (fid uint64,
 	}
 
 	return fid, commentAny, hostAddr, nil
+}
+
+func NewReleaseFindingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "release-finding",
+		Short: "release encrypted part of a finding ",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			hostAddr := clientCtx.GetFromAddress()
+
+			fid, err := cmd.Flags().GetUint64(FlagFindingID)
+			if err != nil {
+				return err
+			}
+
+			encKeyFile, err := cmd.Flags().GetString(FlagEncKeyFile)
+			if err != nil {
+				return err
+			}
+
+			findingDesc, findingPoc, findingComment, err := GetFindingPlainText(cmd, fid, encKeyFile)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewReleaseFinding(
+				hostAddr.String(),
+				fid,
+				findingDesc,
+				findingPoc,
+				findingComment,
+			)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(FlagEncKeyFile, "", "The program's encryption key file to decrypt findings")
+	cmd.Flags().Uint64(FlagFindingID, 0, "The program's ID")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagFindingID)
+	_ = cmd.MarkFlagRequired(FlagEncKeyFile)
+
+	return cmd
+}
+
+func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
+	desc, poc, comment string, err error) {
+	// get finding info
+	finding, err := GetFinding(cmd, fid)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	prvKey := LoadPrvKey(encKeyFile)
+
+	if finding.FindingDesc == nil {
+		desc = ""
+	} else {
+		encryptedDescBytes := finding.FindingDesc.GetValue()
+		descBytes, err := prvKey.Decrypt(encryptedDescBytes[2:], nil, nil)
+		if err != nil {
+			return "", "", "", err
+		}
+		desc = string(descBytes)
+	}
+
+	if finding.FindingPoc == nil {
+		poc = ""
+	} else {
+		encryptedPocBytes := finding.FindingPoc.GetValue()
+		pocBytes, err := prvKey.Decrypt(encryptedPocBytes[2:], nil, nil)
+		if err != nil {
+			return "", "", "", err
+		}
+		poc = string(pocBytes)
+	}
+
+	if finding.FindingComment == nil {
+		comment = ""
+	} else {
+		encryptedCommentBytes := finding.FindingComment.GetValue()
+		commentBytes, err := prvKey.Decrypt(encryptedCommentBytes[2:], nil, nil)
+		if err != nil {
+			return "", "", "", err
+		}
+		comment = string(commentBytes)
+	}
+	return desc, poc, comment, nil
 }
