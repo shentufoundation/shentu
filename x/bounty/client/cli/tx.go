@@ -380,6 +380,8 @@ func NewCancelFindingCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
+	flags.AddTxFlagsToCmd(cmd)
+
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	return cmd
 }
