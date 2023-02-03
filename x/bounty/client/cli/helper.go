@@ -32,7 +32,9 @@ func GetEncryptionKey(cmd *cobra.Command, programID uint64) (*ecies.PublicKey, e
 	}
 
 	var encryptionKey types.EciesPubKey
-	err = proto.Unmarshal(res.Program.EncryptionKey.GetValue(), &encryptionKey)
+	if err = proto.Unmarshal(res.Program.EncryptionKey.GetValue(), &encryptionKey); err != nil {
+		return nil, err
+	}
 
 	pubEcdsa, err := crypto.UnmarshalPubkey(encryptionKey.EncryptionKey)
 	if err != nil {
