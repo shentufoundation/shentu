@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/gogo/protobuf/proto"
 	"github.com/spf13/cobra"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -30,8 +31,10 @@ func GetEncryptionKey(cmd *cobra.Command, programID uint64) (*ecies.PublicKey, e
 		return nil, err
 	}
 
-	encryptionKey := res.Program.EncryptionKey.GetValue()
-	pubEcdsa, err := crypto.UnmarshalPubkey(encryptionKey[2:])
+	var encryptionKey types.EciesPubKey
+	err = proto.Unmarshal(res.Program.EncryptionKey.GetValue(), &encryptionKey)
+
+	pubEcdsa, err := crypto.UnmarshalPubkey(encryptionKey.EncryptionKey)
 	if err != nil {
 		return nil, err
 	}

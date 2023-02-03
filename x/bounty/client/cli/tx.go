@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/spf13/cobra"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -227,7 +228,7 @@ func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny
 	if err != nil {
 		return nil, nil, err
 	}
-	return
+	return descAny, pocAny, nil
 }
 
 // NewHostAcceptFindingCmd implements accept a finding by host.
@@ -386,7 +387,8 @@ func NewCancelFindingCmd() *cobra.Command {
 
 func NewReleaseFindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "release-finding",
+		Use:   "release-finding [finding-id]",
+		Args:  cobra.ExactArgs(1),
 		Short: "release encrypted part of a finding ",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -395,9 +397,9 @@ func NewReleaseFindingCmd() *cobra.Command {
 			}
 			hostAddr := clientCtx.GetFromAddress()
 
-			fid, err := cmd.Flags().GetUint64(FlagFindingID)
+			fid, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return err
+				return fmt.Errorf("finding-id %s not a valid uint, please input a valid finding-id", args[0])
 			}
 
 			encKeyFile, err := cmd.Flags().GetString(FlagEncKeyFile)
@@ -422,11 +424,9 @@ func NewReleaseFindingCmd() *cobra.Command {
 	}
 
 	cmd.Flags().String(FlagEncKeyFile, "", "The program's encryption key file to decrypt findings")
-	cmd.Flags().Uint64(FlagFindingID, 0, "The program's ID")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
-	_ = cmd.MarkFlagRequired(FlagFindingID)
 	_ = cmd.MarkFlagRequired(FlagEncKeyFile)
 
 	return cmd
@@ -445,8 +445,11 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 	if finding.FindingDesc == nil {
 		desc = ""
 	} else {
-		encryptedDescBytes := finding.FindingDesc.GetValue()
-		descBytes, err := prvKey.Decrypt(encryptedDescBytes[2:], nil, nil)
+		var descProto types.EciesEncryptedDesc
+		if err = proto.Unmarshal(finding.FindingDesc.GetValue(), &descProto); err != nil {
+			return "", "", "", err
+		}
+		descBytes, err := prvKey.Decrypt(descProto.FindingDesc, nil, nil)
 		if err != nil {
 			return "", "", "", err
 		}
@@ -456,8 +459,11 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 	if finding.FindingPoc == nil {
 		poc = ""
 	} else {
-		encryptedPocBytes := finding.FindingPoc.GetValue()
-		pocBytes, err := prvKey.Decrypt(encryptedPocBytes[2:], nil, nil)
+		var pocProto types.EciesEncryptedPoc
+		if err = proto.Unmarshal(finding.FindingPoc.GetValue(), &pocProto); err != nil {
+			return "", "", "", err
+		}
+		pocBytes, err := prvKey.Decrypt(pocProto.FindingPoc, nil, nil)
 		if err != nil {
 			return "", "", "", err
 		}
@@ -467,8 +473,11 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 	if finding.FindingComment == nil {
 		comment = ""
 	} else {
-		encryptedCommentBytes := finding.FindingComment.GetValue()
-		commentBytes, err := prvKey.Decrypt(encryptedCommentBytes[2:], nil, nil)
+		var commentProto types.EciesEncryptedComment
+		if err = proto.Unmarshal(finding.FindingComment.GetValue(), &commentProto); err != nil {
+			return "", "", "", err
+		}
+		commentBytes, err := prvKey.Decrypt(commentProto.FindingComment, nil, nil)
 		if err != nil {
 			return "", "", "", err
 		}
