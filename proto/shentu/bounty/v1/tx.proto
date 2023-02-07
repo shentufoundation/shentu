@@ -132,7 +132,8 @@ message MsgTerminateProgram {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  uint64 program_id = 1 [(gogoproto.moretags) = "yaml:\"program_id\""];
+  string from       = 1 [(gogoproto.moretags) = "yaml:\"from\""];
+  uint64 program_id = 2 [(gogoproto.moretags) = "yaml:\"program_id\""];
 }
 
 message MsgTerminateProgramResponse {}

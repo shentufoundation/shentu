@@ -313,3 +313,27 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 
 	return &types.MsgReleaseFindingResponse{}, nil
 }
+
+func (k msgServer) TerminateProgram(goCtx context.Context, msg *types.MsgTerminateProgram) (*types.MsgTerminateProgramResponse, error) {
+	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return nil, err
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	err = k.Keeper.TerminateProgram(ctx, fromAddr, msg.ProgramId)
+	if err != nil {
+		return nil, err
+	}
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeTerminateProgram,
+			sdk.NewAttribute(types.AttributeKeyProgramID, strconv.FormatUint(msg.ProgramId, 10)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
+	})
+	return &types.MsgTerminateProgramResponse{}, nil
+}

@@ -11,12 +11,13 @@ import (
 )
 
 const (
-	TypeMsgCreateProgram  = "create_program"
-	TypeMsgSubmitFinding  = "submit_finding"
-	TypeMsgAcceptFinding  = "accept_finding"
-	TypeMsgRejectFinding  = "reject_finding"
-	TypeMsgCancelFinding  = "cancel_finding"
-	TypeMsgReleaseFinding = "release_finding"
+	TypeMsgCreateProgram    = "create_program"
+	TypeMsgSubmitFinding    = "submit_finding"
+	TypeMsgAcceptFinding    = "accept_finding"
+	TypeMsgRejectFinding    = "reject_finding"
+	TypeMsgCancelFinding    = "cancel_finding"
+	TypeMsgReleaseFinding   = "release_finding"
+	TypeMsgTerminateProgram = "terminate_program"
 )
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
@@ -329,6 +330,41 @@ func (msg MsgReleaseFinding) ValidateBasic() error {
 
 	if msg.FindingId == 0 {
 		return errors.New("empty fid is not allowed")
+	}
+	return nil
+}
+
+func NewMsgTerminateProgram(from string, programID uint64) *MsgTerminateProgram {
+	return &MsgTerminateProgram{
+		From:      from,
+		ProgramId: programID,
+	}
+}
+
+// implements sdk.Msg interface.
+func (msg MsgTerminateProgram) Route() string { return RouterKey }
+
+// implements sdk.Msg interface.
+func (msg MsgTerminateProgram) Type() string { return TypeMsgTerminateProgram }
+
+// implements sdk.Msg interface. It returns the address(es) that
+// must sign over msg.GetSignBytes().
+func (msg MsgTerminateProgram) GetSigners() []sdk.AccAddress {
+	cAddr, _ := sdk.AccAddressFromBech32(msg.From)
+	return []sdk.AccAddress{cAddr}
+}
+
+// implements the sdk.Msg interface, returns the message bytes to sign over.
+func (msg MsgTerminateProgram) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// implements the sdk.Msg interface.
+func (msg MsgTerminateProgram) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid address (%s)", err.Error())
 	}
 	return nil
 }
