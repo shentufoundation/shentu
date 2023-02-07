@@ -232,7 +232,7 @@ func GetDescPocAny(desc, poc string, pubKey *ecies.PublicKey) (descAny, pocAny *
 		return nil, nil, err
 	}
 	encDesc := types.EciesEncryptedDesc{
-		EncryptedDesc: encryptedDescBytes,
+		FindingDesc: encryptedDescBytes,
 	}
 	descAny, err = codectypes.NewAnyWithValue(&encDesc)
 	if err != nil {
@@ -244,7 +244,7 @@ func GetDescPocAny(desc, poc string, pubKey *ecies.PublicKey) (descAny, pocAny *
 		return nil, nil, err
 	}
 	encPoc := types.EciesEncryptedPoc{
-		EncryptedPoc: encryptedPocBytes,
+		FindingPoc: encryptedPocBytes,
 	}
 	pocAny, err = codectypes.NewAnyWithValue(&encPoc)
 	if err != nil {
@@ -406,6 +406,139 @@ func (suite *KeeperTestSuite) TestHostRejectFinding() {
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal(finding.FindingStatus, types.FindingStatusUnConfirmed)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestCancelFinding() {
+	programId, pubKey := suite.InitCreateProgram()
+	findingId := suite.InitSubmitFinding(programId, pubKey)
+	findindId2 := suite.InitSubmitFinding(programId, pubKey)
+
+	ctx := types1.WrapSDKContext(suite.ctx)
+	suite.msgServer.HostAcceptFinding(ctx, types.NewMsgHostAcceptFinding(findindId2, nil, suite.address[0]))
+
+	testCases := []struct {
+		name string
+		req  *types.MsgCancelFinding
+		exp  bool
+	}{
+		{
+			"empty request",
+			&types.MsgCancelFinding{},
+			false,
+		},
+		{
+			"invalid finding id",
+			&types.MsgCancelFinding{
+				FindingId:        findingId + 10000,
+				SubmitterAddress: suite.address[0].String(),
+			},
+			false,
+		},
+		{
+			"invalid submitter",
+			&types.MsgCancelFinding{
+				FindingId:        findingId,
+				SubmitterAddress: suite.address[1].String(),
+			},
+			false,
+		},
+		{
+			"invalid status",
+			&types.MsgCancelFinding{
+				FindingId:        findindId2,
+				SubmitterAddress: suite.address[0].String(),
+			},
+			false,
+		},
+		{
+			"valid request",
+			&types.MsgCancelFinding{
+				FindingId:        findingId,
+				SubmitterAddress: suite.address[0].String(),
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			_, err := suite.msgServer.CancelFinding(ctx, testCase.req)
+			_, ok := suite.keeper.GetFinding(suite.ctx, findingId)
+
+			if testCase.exp {
+				suite.Require().NoError(err)
+				suite.Require().False(ok)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().True(ok)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestReleaseFinding() {
+	programId, pubKey := suite.InitCreateProgram()
+	findingId := suite.InitSubmitFinding(programId, pubKey)
+
+	testCases := []struct {
+		name    string
+		req     *types.MsgReleaseFinding
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgReleaseFinding{},
+			false,
+		},
+		{
+			"valid request => plain text is valid",
+			&types.MsgReleaseFinding{
+				FindingId:   findingId,
+				Desc:        "test desc",
+				Poc:         "test poc",
+				Comment:     "test comment",
+				HostAddress: suite.address[0].String(),
+			},
+			true,
+		},
+		{
+			"invalid request => host address is invalid",
+			&types.MsgReleaseFinding{
+				FindingId:   findingId,
+				Desc:        "test desc",
+				Poc:         "test poc",
+				Comment:     "test comment",
+				HostAddress: suite.address[1].String(),
+			},
+			false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			ctx := types1.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.ReleaseFinding(ctx, testCase.req)
+
+			finding, _ := suite.keeper.GetFinding(suite.ctx, findingId)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				desc, ok := finding.FindingDesc.GetCachedValue().(types.FindingDesc)
+				suite.Require().True(ok)
+				suite.Require().Equal(string(desc.GetFindingDesc()), testCase.req.Desc)
+
+				poc, ok := finding.FindingPoc.GetCachedValue().(types.FindingPoc)
+				suite.Require().True(ok)
+				suite.Require().Equal(string(poc.GetFindingPoc()), testCase.req.Poc)
+
+				comment, ok := finding.FindingComment.GetCachedValue().(types.FindingComment)
+				suite.Require().True(ok)
+				suite.Require().Equal(string(comment.GetFindingComment()), testCase.req.Comment)
+			} else {
+				suite.Require().Error(err)
 			}
 		})
 	}

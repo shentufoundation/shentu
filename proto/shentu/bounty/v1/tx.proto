@@ -24,6 +24,12 @@ service Msg {
 
   // HostRejectFinding defines a method for host reject a finding.
   rpc HostRejectFinding(MsgHostRejectFinding) returns (MsgHostRejectFindingResponse);
+
+  // CancelFinding defines a mathod for inactive the specific finding
+  rpc CancelFinding(MsgCancelFinding) returns (MsgCancelFindingResponse);
+
+  // MsgReleaseFinding defines a method for release a finding.
+  rpc ReleaseFinding(MsgReleaseFinding) returns (MsgReleaseFindingResponse);
 }
 
 // MsgCreateProgram defines a SDK message for creating a new program.
@@ -48,6 +54,8 @@ message MsgCreateProgram {
 message MsgCreateProgramResponse {
   uint64 program_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
 }
+
+// MsgSubmitFinding defines a message to submit a finding.
 message MsgSubmitFinding {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -60,6 +68,7 @@ message MsgSubmitFinding {
   string submitter_address  = 6 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
 }
 
+// MsgSubmitFindingResponse defines the MsgSubmitFinding response type.
 message MsgSubmitFindingResponse {
   option (gogoproto.goproto_getters) = false;
   uint64 finding_id = 1 [(gogoproto.jsontag) = "finding_id", (gogoproto.moretags) = "yaml:\"finding_id\""];
@@ -90,3 +99,27 @@ message MsgHostRejectFinding {
 
 // MsgHostRejectFindingResponse defines the Msg/ostRejectFinding response type.
 message MsgHostRejectFindingResponse {}
+
+message MsgCancelFinding {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string submitter_address = 1 [ (gogoproto.moretags) = "yaml:\"submitter_address\"" ];
+  uint64 finding_id = 2 [ (gogoproto.moretags) = "yaml:\"finding_id\"" ];
+}
+
+message MsgCancelFindingResponse {}
+
+// MsgReleaseFinding defines a message to release a finding.
+message MsgReleaseFinding {
+  option (gogoproto.equal)           = false;
+
+  uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string desc = 2 [(gogoproto.moretags) = "yaml:\"desc\""];
+  string poc = 3 [(gogoproto.moretags) = "yaml:\"poc\""];
+  string comment = 4 [(gogoproto.moretags) = "yaml:\"comment\""];
+  string host_address  = 5 [(gogoproto.moretags) = "yaml:\"host_address\""];
+}
+
+// MsgReleaseFindingResponse defines the MsgReleaseFinding response type.
+message MsgReleaseFindingResponse {}

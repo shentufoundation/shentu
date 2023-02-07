@@ -15,16 +15,21 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgSubmitFinding{}, "bounty/SubmitFinding", nil)
 	cdc.RegisterConcrete(MsgHostAcceptFinding{}, "bounty/HostAcceptFinding", nil)
 	cdc.RegisterConcrete(MsgHostRejectFinding{}, "bounty/HostRejectFinding", nil)
+	cdc.RegisterConcrete(MsgReleaseFinding{}, "bounty/MsgReleaseFinding", nil)
 
 	cdc.RegisterConcrete(&EciesPubKey{}, "bounty/EciesPubKey", nil)
+
 	cdc.RegisterConcrete(&EciesEncryptedDesc{}, "bounty/EciesEncryptedDesc", nil)
 	cdc.RegisterConcrete(&EciesEncryptedPoc{}, "bounty/EciesEncryptedPoc", nil)
 	cdc.RegisterConcrete(&EciesEncryptedComment{}, "bounty/EciesEncryptedComment", nil)
+	cdc.RegisterConcrete(&PlainTextDesc{}, "bounty/PlainTextDesc", nil)
+	cdc.RegisterConcrete(&PlainTextPoc{}, "bounty/PlainTextPoc", nil)
+	cdc.RegisterConcrete(&PlainTextComment{}, "bounty/PlainTextComment", nil)
 
 	cdc.RegisterInterface((*EncryptionKey)(nil), nil)
-	cdc.RegisterInterface((*EncryptedDesc)(nil), nil)
-	cdc.RegisterInterface((*EncryptedPoc)(nil), nil)
-	cdc.RegisterInterface((*EncryptedCommnet)(nil), nil)
+	cdc.RegisterInterface((*FindingDesc)(nil), nil)
+	cdc.RegisterInterface((*FindingPoc)(nil), nil)
+	cdc.RegisterInterface((*FindingComment)(nil), nil)
 }
 
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
@@ -33,6 +38,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgSubmitFinding{},
 		&MsgHostAcceptFinding{},
 		&MsgHostRejectFinding{},
+		&MsgReleaseFinding{},
 	)
 
 	registry.RegisterInterface(
@@ -42,21 +48,24 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	)
 
 	registry.RegisterInterface(
-		"shentu.bounty.v1.EncryptedDesc",
-		(*EncryptedDesc)(nil),
+		"shentu.bounty.v1.FindingDesc",
+		(*FindingDesc)(nil),
 		&EciesEncryptedDesc{},
+		&PlainTextDesc{},
 	)
 
 	registry.RegisterInterface(
-		"shentu.bounty.v1.EncryptedPoc",
-		(*EncryptedPoc)(nil),
+		"shentu.bounty.v1.FindingPoc",
+		(*FindingPoc)(nil),
 		&EciesEncryptedPoc{},
+		&PlainTextPoc{},
 	)
 
 	registry.RegisterInterface(
-		"shentu.bounty.v1.EncryptedComment",
-		(*EncryptedCommnet)(nil),
+		"shentu.bounty.v1.FindingComment",
+		(*FindingComment)(nil),
 		&EciesEncryptedComment{},
+		&PlainTextComment{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
