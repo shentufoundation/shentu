@@ -9,6 +9,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	ibcfeetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
+	ibctransfer "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 )
 
 const (
@@ -20,7 +21,8 @@ func (app ShentuApp) setUpgradeHandler() {
 		upgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			fromVM[ibcfeetypes.ModuleName] = app.mm.Modules[ibcfeetypes.ModuleName].ConsensusVersion()
-
+			// transfer module consensus version has been bumped to 2
+			fromVM[ibctransfer.ModuleName] = app.mm.Modules[ibctransfer.ModuleName].ConsensusVersion()
 			ctx.Logger().Info("Start to run module migrations...")
 			newVersionMap, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
 
