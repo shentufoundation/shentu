@@ -14,7 +14,7 @@ import (
 )
 
 // SaveKey saves the given key to a file as json and panics on error.
-func SaveKey(privKey *ecies.PrivateKey, dirPath string, creator string) {
+func SaveKey(privKey *ecies.PrivateKey, dirPath string, creator string) string {
 	if dirPath == "" {
 		panic("cannot save private key: filePath not set")
 	}
@@ -27,9 +27,11 @@ func SaveKey(privKey *ecies.PrivateKey, dirPath string, creator string) {
 	allBytes := bytes.Join([][]byte{[]byte(creator), decKeyBz}, nil)
 	hashBytes := sha256.Sum256(allBytes)
 	filename := fmt.Sprintf("dec-key-%s-%x.json", creator[6:12], hashBytes[:3])
-	if err := tempfile.WriteFileAtomic(filepath.Join(dirPath, filename), decKeyBz, 0666); err != nil {
+	fullPath := filepath.Join(dirPath, filename)
+	if err := tempfile.WriteFileAtomic(fullPath, decKeyBz, 0666); err != nil {
 		panic(err)
 	}
+	return fullPath
 }
 
 // LoadPubKey loads the key at the given location by loading the stored private key and getting the public key part.

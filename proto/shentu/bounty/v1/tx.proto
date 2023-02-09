@@ -15,9 +15,24 @@ option go_package = "github.com/shentufoundation/shentu/x/bounty/types";
 service Msg {
   // CreateProgram defines a method for creating a new program.
   rpc CreateProgram(MsgCreateProgram) returns (MsgCreateProgramResponse);
+
+  // SubmitFinding defines a method for submitting a new finding.
+  rpc SubmitFinding(MsgSubmitFinding) returns (MsgSubmitFindingResponse);
+
+  // HostAcceptFinding defines a method for host accept a finding.
+  rpc HostAcceptFinding(MsgHostAcceptFinding) returns (MsgHostAcceptFindingResponse);
+
+  // HostRejectFinding defines a method for host reject a finding.
+  rpc HostRejectFinding(MsgHostRejectFinding) returns (MsgHostRejectFindingResponse);
+
+  // CancelFinding defines a mathod for inactive the specific finding
+  rpc CancelFinding(MsgCancelFinding) returns (MsgCancelFindingResponse);
+
+  // MsgReleaseFinding defines a method for release a finding.
+  rpc ReleaseFinding(MsgReleaseFinding) returns (MsgReleaseFindingResponse);
 }
 
-// MsgCreateProgram defines a SDK message for creating a new validator.
+// MsgCreateProgram defines a SDK message for creating a new program.
 message MsgCreateProgram {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -35,7 +50,76 @@ message MsgCreateProgram {
   repeated cosmos.base.v1beta1.Coin deposit = 6 [(gogoproto.nullable) = false];
 }
 
-// MsgCreateProgramResponse defines the Msg/CreateValidator response type.
+// MsgCreateProgramResponse defines the Msg/CreateProgram response type.
 message MsgCreateProgramResponse {
   uint64 program_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
 }
+
+// MsgSubmitFinding defines a message to submit a finding.
+message MsgSubmitFinding {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string title = 1;
+  google.protobuf.Any encrypted_desc = 2 [(cosmos_proto.accepts_interface) = "EncryptedDesc",(gogoproto.moretags) = "yaml:\"encrypted_desc\""];
+  uint64 program_id = 3 [(gogoproto.moretags) = "yaml:\"program_id\""];
+  SeverityLevel severity_level = 4 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
+  google.protobuf.Any encrypted_poc = 5 [(cosmos_proto.accepts_interface) = "EncryptedPoc",(gogoproto.moretags) = "yaml:\"encrypted_poc\""];
+  string submitter_address  = 6 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
+}
+
+// MsgSubmitFindingResponse defines the MsgSubmitFinding response type.
+message MsgSubmitFindingResponse {
+  option (gogoproto.goproto_getters) = false;
+  uint64 finding_id = 1 [(gogoproto.jsontag) = "finding_id", (gogoproto.moretags) = "yaml:\"finding_id\""];
+}
+
+// MsgHostAcceptFinding defines a message to accept a finding to an existing finding.
+message MsgHostAcceptFinding {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  google.protobuf.Any encrypted_comment = 2 [(cosmos_proto.accepts_interface) = "EncryptedComment"];
+  string host_address  = 3 [(gogoproto.moretags) = "yaml:\"host_address\""];
+}
+
+// MsgHostAcceptFindingResponse defines the Msg/HostAcceptFinding response type.
+message MsgHostAcceptFindingResponse {}
+
+// MsgHostRejectFinding defines a message to accept a reject to an existing finding.
+message MsgHostRejectFinding {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  google.protobuf.Any encrypted_comment = 2 [(cosmos_proto.accepts_interface) = "EncryptedComment"];
+  string host_address  = 3 [(gogoproto.moretags) = "yaml:\"host_address\""];
+}
+
+// MsgHostRejectFindingResponse defines the Msg/ostRejectFinding response type.
+message MsgHostRejectFindingResponse {}
+
+message MsgCancelFinding {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string submitter_address = 1 [ (gogoproto.moretags) = "yaml:\"submitter_address\"" ];
+  uint64 finding_id = 2 [ (gogoproto.moretags) = "yaml:\"finding_id\"" ];
+}
+
+message MsgCancelFindingResponse {}
+
+// MsgReleaseFinding defines a message to release a finding.
+message MsgReleaseFinding {
+  option (gogoproto.equal)           = false;
+
+  uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string desc = 2 [(gogoproto.moretags) = "yaml:\"desc\""];
+  string poc = 3 [(gogoproto.moretags) = "yaml:\"poc\""];
+  string comment = 4 [(gogoproto.moretags) = "yaml:\"comment\""];
+  string host_address  = 5 [(gogoproto.moretags) = "yaml:\"host_address\""];
+}
+
+// MsgReleaseFindingResponse defines the MsgReleaseFinding response type.
+message MsgReleaseFindingResponse {}

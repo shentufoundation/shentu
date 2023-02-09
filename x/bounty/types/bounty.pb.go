@@ -32,6 +32,71 @@ var _ = time.Kitchen
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+type SeverityLevel int32
+
+const (
+	SeverityLevelCritical      SeverityLevel = 0
+	SeverityLevelMajor         SeverityLevel = 1
+	SeverityLevelMedium        SeverityLevel = 2
+	SeverityLevelMinor         SeverityLevel = 3
+	SeverityLevelOptimization  SeverityLevel = 4
+	SeverityLevelInformational SeverityLevel = 5
+)
+
+var SeverityLevel_name = map[int32]string{
+	0: "SEVERITY_LEVEL_CRITICAL",
+	1: "SEVERITY_LEVEL_MAJOR",
+	2: "SEVERITY_LEVEL_MEDIUM",
+	3: "SEVERITY_LEVEL_MINOR",
+	4: "SEVERITY_LEVEL_OPTIMIZATION",
+	5: "SEVERITY_LEVEL_INFORMATIONAL",
+}
+
+var SeverityLevel_value = map[string]int32{
+	"SEVERITY_LEVEL_CRITICAL":      0,
+	"SEVERITY_LEVEL_MAJOR":         1,
+	"SEVERITY_LEVEL_MEDIUM":        2,
+	"SEVERITY_LEVEL_MINOR":         3,
+	"SEVERITY_LEVEL_OPTIMIZATION":  4,
+	"SEVERITY_LEVEL_INFORMATIONAL": 5,
+}
+
+func (x SeverityLevel) String() string {
+	return proto.EnumName(SeverityLevel_name, int32(x))
+}
+
+func (SeverityLevel) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_36e6d679af1b94c6, []int{0}
+}
+
+type FindingStatus int32
+
+const (
+	FindingStatusUnConfirmed FindingStatus = 0
+	FindingStatusValid       FindingStatus = 1
+	FindingStatusInvalid     FindingStatus = 2
+)
+
+var FindingStatus_name = map[int32]string{
+	0: "FINDING_STATUS_UNCONFIRMED",
+	1: "FINDING_STATUS_VALID",
+	2: "FINDING_STATUS_INVALID",
+}
+
+var FindingStatus_value = map[string]int32{
+	"FINDING_STATUS_UNCONFIRMED": 0,
+	"FINDING_STATUS_VALID":       1,
+	"FINDING_STATUS_INVALID":     2,
+}
+
+func (x FindingStatus) String() string {
+	return proto.EnumName(FindingStatus_name, int32(x))
+}
+
+func (FindingStatus) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_36e6d679af1b94c6, []int{1}
+}
+
 type Program struct {
 	ProgramId         uint64                                 `protobuf:"varint,1,opt,name=program_id,json=programId,proto3" json:"id" yaml:"id"`
 	CreatorAddress    string                                 `protobuf:"bytes,2,opt,name=creator_address,json=creatorAddress,proto3" json:"creator_address,omitempty" yaml:"creator_address"`
@@ -76,57 +141,8 @@ func (m *Program) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Program proto.InternalMessageInfo
 
-func (m *Program) GetProgramId() uint64 {
-	if m != nil {
-		return m.ProgramId
-	}
-	return 0
-}
-
-func (m *Program) GetCreatorAddress() string {
-	if m != nil {
-		return m.CreatorAddress
-	}
-	return ""
-}
-
-func (m *Program) GetSubmissionEndTime() time.Time {
-	if m != nil {
-		return m.SubmissionEndTime
-	}
-	return time.Time{}
-}
-
-func (m *Program) GetDescription() string {
-	if m != nil {
-		return m.Description
-	}
-	return ""
-}
-
-func (m *Program) GetEncryptionKey() *types.Any {
-	if m != nil {
-		return m.EncryptionKey
-	}
-	return nil
-}
-
-func (m *Program) GetDeposit() []types1.Coin {
-	if m != nil {
-		return m.Deposit
-	}
-	return nil
-}
-
-func (m *Program) GetActive() bool {
-	if m != nil {
-		return m.Active
-	}
-	return false
-}
-
 type EciesPubKey struct {
-	PubKey []byte `protobuf:"bytes,1,opt,name=pub_key,json=pubKey,proto3" json:"pub_key,omitempty"`
+	EncryptionKey []byte `protobuf:"bytes,1,opt,name=encryption_key,json=encryptionKey,proto3" json:"encryption_key,omitempty"`
 }
 
 func (m *EciesPubKey) Reset()         { *m = EciesPubKey{} }
@@ -162,59 +178,417 @@ func (m *EciesPubKey) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EciesPubKey proto.InternalMessageInfo
 
-func (m *EciesPubKey) GetPubKey() []byte {
+func (m *EciesPubKey) GetEncryptionKey() []byte {
 	if m != nil {
-		return m.PubKey
+		return m.EncryptionKey
+	}
+	return nil
+}
+
+type Finding struct {
+	FindingId        uint64        `protobuf:"varint,1,opt,name=finding_id,json=findingId,proto3" json:"id" yaml:"id"`
+	Title            string        `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty" yaml:"title"`
+	FindingDesc      *types.Any    `protobuf:"bytes,3,opt,name=finding_desc,json=findingDesc,proto3" json:"finding_desc,omitempty" yaml:"finding_desc"`
+	ProgramId        uint64        `protobuf:"varint,4,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
+	SeverityLevel    SeverityLevel `protobuf:"varint,5,opt,name=severity_level,json=severityLevel,proto3,enum=shentu.bounty.v1.SeverityLevel" json:"severity_level,omitempty" yaml:"severity_level"`
+	FindingPoc       *types.Any    `protobuf:"bytes,6,opt,name=finding_poc,json=findingPoc,proto3" json:"finding_poc,omitempty" yaml:"finding_poc"`
+	SubmitterAddress string        `protobuf:"bytes,7,opt,name=submitter_address,json=submitterAddress,proto3" json:"submitter_address,omitempty" yaml:"submitter_address"`
+	FindingStatus    FindingStatus `protobuf:"varint,8,opt,name=finding_status,json=findingStatus,proto3,enum=shentu.bounty.v1.FindingStatus" json:"finding_status,omitempty" yaml:"finding_status"`
+	FindingComment   *types.Any    `protobuf:"bytes,9,opt,name=finding_comment,json=findingComment,proto3" json:"finding_comment,omitempty" yaml:"finding_comment"`
+}
+
+func (m *Finding) Reset()         { *m = Finding{} }
+func (m *Finding) String() string { return proto.CompactTextString(m) }
+func (*Finding) ProtoMessage()    {}
+func (*Finding) Descriptor() ([]byte, []int) {
+	return fileDescriptor_36e6d679af1b94c6, []int{2}
+}
+func (m *Finding) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Finding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Finding.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Finding) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Finding.Merge(m, src)
+}
+func (m *Finding) XXX_Size() int {
+	return m.Size()
+}
+func (m *Finding) XXX_DiscardUnknown() {
+	xxx_messageInfo_Finding.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Finding proto.InternalMessageInfo
+
+type EciesEncryptedDesc struct {
+	FindingDesc []byte `protobuf:"bytes,1,opt,name=finding_desc,json=findingDesc,proto3" json:"finding_desc,omitempty"`
+}
+
+func (m *EciesEncryptedDesc) Reset()         { *m = EciesEncryptedDesc{} }
+func (m *EciesEncryptedDesc) String() string { return proto.CompactTextString(m) }
+func (*EciesEncryptedDesc) ProtoMessage()    {}
+func (*EciesEncryptedDesc) Descriptor() ([]byte, []int) {
+	return fileDescriptor_36e6d679af1b94c6, []int{3}
+}
+func (m *EciesEncryptedDesc) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EciesEncryptedDesc) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EciesEncryptedDesc.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EciesEncryptedDesc) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EciesEncryptedDesc.Merge(m, src)
+}
+func (m *EciesEncryptedDesc) XXX_Size() int {
+	return m.Size()
+}
+func (m *EciesEncryptedDesc) XXX_DiscardUnknown() {
+	xxx_messageInfo_EciesEncryptedDesc.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EciesEncryptedDesc proto.InternalMessageInfo
+
+func (m *EciesEncryptedDesc) GetFindingDesc() []byte {
+	if m != nil {
+		return m.FindingDesc
+	}
+	return nil
+}
+
+type EciesEncryptedPoc struct {
+	FindingPoc []byte `protobuf:"bytes,1,opt,name=finding_poc,json=findingPoc,proto3" json:"finding_poc,omitempty"`
+}
+
+func (m *EciesEncryptedPoc) Reset()         { *m = EciesEncryptedPoc{} }
+func (m *EciesEncryptedPoc) String() string { return proto.CompactTextString(m) }
+func (*EciesEncryptedPoc) ProtoMessage()    {}
+func (*EciesEncryptedPoc) Descriptor() ([]byte, []int) {
+	return fileDescriptor_36e6d679af1b94c6, []int{4}
+}
+func (m *EciesEncryptedPoc) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EciesEncryptedPoc) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EciesEncryptedPoc.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EciesEncryptedPoc) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EciesEncryptedPoc.Merge(m, src)
+}
+func (m *EciesEncryptedPoc) XXX_Size() int {
+	return m.Size()
+}
+func (m *EciesEncryptedPoc) XXX_DiscardUnknown() {
+	xxx_messageInfo_EciesEncryptedPoc.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EciesEncryptedPoc proto.InternalMessageInfo
+
+func (m *EciesEncryptedPoc) GetFindingPoc() []byte {
+	if m != nil {
+		return m.FindingPoc
+	}
+	return nil
+}
+
+type EciesEncryptedComment struct {
+	FindingComment []byte `protobuf:"bytes,1,opt,name=finding_comment,json=findingComment,proto3" json:"finding_comment,omitempty"`
+}
+
+func (m *EciesEncryptedComment) Reset()         { *m = EciesEncryptedComment{} }
+func (m *EciesEncryptedComment) String() string { return proto.CompactTextString(m) }
+func (*EciesEncryptedComment) ProtoMessage()    {}
+func (*EciesEncryptedComment) Descriptor() ([]byte, []int) {
+	return fileDescriptor_36e6d679af1b94c6, []int{5}
+}
+func (m *EciesEncryptedComment) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EciesEncryptedComment) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EciesEncryptedComment.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EciesEncryptedComment) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EciesEncryptedComment.Merge(m, src)
+}
+func (m *EciesEncryptedComment) XXX_Size() int {
+	return m.Size()
+}
+func (m *EciesEncryptedComment) XXX_DiscardUnknown() {
+	xxx_messageInfo_EciesEncryptedComment.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EciesEncryptedComment proto.InternalMessageInfo
+
+func (m *EciesEncryptedComment) GetFindingComment() []byte {
+	if m != nil {
+		return m.FindingComment
+	}
+	return nil
+}
+
+type PlainTextDesc struct {
+	FindingDesc []byte `protobuf:"bytes,1,opt,name=finding_desc,json=findingDesc,proto3" json:"finding_desc,omitempty"`
+}
+
+func (m *PlainTextDesc) Reset()         { *m = PlainTextDesc{} }
+func (m *PlainTextDesc) String() string { return proto.CompactTextString(m) }
+func (*PlainTextDesc) ProtoMessage()    {}
+func (*PlainTextDesc) Descriptor() ([]byte, []int) {
+	return fileDescriptor_36e6d679af1b94c6, []int{6}
+}
+func (m *PlainTextDesc) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PlainTextDesc) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PlainTextDesc.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PlainTextDesc) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PlainTextDesc.Merge(m, src)
+}
+func (m *PlainTextDesc) XXX_Size() int {
+	return m.Size()
+}
+func (m *PlainTextDesc) XXX_DiscardUnknown() {
+	xxx_messageInfo_PlainTextDesc.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PlainTextDesc proto.InternalMessageInfo
+
+func (m *PlainTextDesc) GetFindingDesc() []byte {
+	if m != nil {
+		return m.FindingDesc
+	}
+	return nil
+}
+
+type PlainTextPoc struct {
+	FindingPoc []byte `protobuf:"bytes,1,opt,name=finding_poc,json=findingPoc,proto3" json:"finding_poc,omitempty"`
+}
+
+func (m *PlainTextPoc) Reset()         { *m = PlainTextPoc{} }
+func (m *PlainTextPoc) String() string { return proto.CompactTextString(m) }
+func (*PlainTextPoc) ProtoMessage()    {}
+func (*PlainTextPoc) Descriptor() ([]byte, []int) {
+	return fileDescriptor_36e6d679af1b94c6, []int{7}
+}
+func (m *PlainTextPoc) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PlainTextPoc) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PlainTextPoc.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PlainTextPoc) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PlainTextPoc.Merge(m, src)
+}
+func (m *PlainTextPoc) XXX_Size() int {
+	return m.Size()
+}
+func (m *PlainTextPoc) XXX_DiscardUnknown() {
+	xxx_messageInfo_PlainTextPoc.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PlainTextPoc proto.InternalMessageInfo
+
+func (m *PlainTextPoc) GetFindingPoc() []byte {
+	if m != nil {
+		return m.FindingPoc
+	}
+	return nil
+}
+
+type PlainTextComment struct {
+	FindingComment []byte `protobuf:"bytes,1,opt,name=finding_comment,json=findingComment,proto3" json:"finding_comment,omitempty"`
+}
+
+func (m *PlainTextComment) Reset()         { *m = PlainTextComment{} }
+func (m *PlainTextComment) String() string { return proto.CompactTextString(m) }
+func (*PlainTextComment) ProtoMessage()    {}
+func (*PlainTextComment) Descriptor() ([]byte, []int) {
+	return fileDescriptor_36e6d679af1b94c6, []int{8}
+}
+func (m *PlainTextComment) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PlainTextComment) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PlainTextComment.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PlainTextComment) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PlainTextComment.Merge(m, src)
+}
+func (m *PlainTextComment) XXX_Size() int {
+	return m.Size()
+}
+func (m *PlainTextComment) XXX_DiscardUnknown() {
+	xxx_messageInfo_PlainTextComment.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PlainTextComment proto.InternalMessageInfo
+
+func (m *PlainTextComment) GetFindingComment() []byte {
+	if m != nil {
+		return m.FindingComment
 	}
 	return nil
 }
 
 func init() {
+	proto.RegisterEnum("shentu.bounty.v1.SeverityLevel", SeverityLevel_name, SeverityLevel_value)
+	proto.RegisterEnum("shentu.bounty.v1.FindingStatus", FindingStatus_name, FindingStatus_value)
 	proto.RegisterType((*Program)(nil), "shentu.bounty.v1.Program")
 	proto.RegisterType((*EciesPubKey)(nil), "shentu.bounty.v1.EciesPubKey")
+	proto.RegisterType((*Finding)(nil), "shentu.bounty.v1.Finding")
+	proto.RegisterType((*EciesEncryptedDesc)(nil), "shentu.bounty.v1.EciesEncryptedDesc")
+	proto.RegisterType((*EciesEncryptedPoc)(nil), "shentu.bounty.v1.EciesEncryptedPoc")
+	proto.RegisterType((*EciesEncryptedComment)(nil), "shentu.bounty.v1.EciesEncryptedComment")
+	proto.RegisterType((*PlainTextDesc)(nil), "shentu.bounty.v1.PlainTextDesc")
+	proto.RegisterType((*PlainTextPoc)(nil), "shentu.bounty.v1.PlainTextPoc")
+	proto.RegisterType((*PlainTextComment)(nil), "shentu.bounty.v1.PlainTextComment")
 }
 
 func init() { proto.RegisterFile("shentu/bounty/v1/bounty.proto", fileDescriptor_36e6d679af1b94c6) }
 
 var fileDescriptor_36e6d679af1b94c6 = []byte{
-	// 591 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x53, 0xc1, 0x6e, 0xd3, 0x4c,
-	0x10, 0x8e, 0xdb, 0xfc, 0x49, 0xbb, 0xf9, 0x9b, 0x52, 0xb7, 0x14, 0x37, 0x12, 0xde, 0xc8, 0x87,
-	0x2a, 0x20, 0xd5, 0x56, 0xca, 0x05, 0x7a, 0xab, 0x4b, 0x0f, 0xa8, 0x97, 0xca, 0x42, 0x42, 0xe2,
-	0x12, 0xad, 0xbd, 0x5b, 0x77, 0xd5, 0x7a, 0xd7, 0xf2, 0xae, 0x23, 0xfc, 0x16, 0x7d, 0x04, 0x1e,
-	0x82, 0x87, 0xa8, 0x38, 0x55, 0x9c, 0x10, 0x07, 0x83, 0xda, 0x0b, 0xe2, 0x84, 0xf2, 0x04, 0xc8,
-	0xde, 0x35, 0x0d, 0x81, 0x93, 0x77, 0xe6, 0x9b, 0xef, 0xf3, 0x37, 0xb3, 0xb3, 0xe0, 0xb1, 0x38,
-	0x27, 0x4c, 0xe6, 0x5e, 0xc8, 0x73, 0x26, 0x0b, 0x6f, 0x3a, 0xd6, 0x27, 0x37, 0xcd, 0xb8, 0xe4,
-	0xe6, 0x03, 0x05, 0xbb, 0x3a, 0x39, 0x1d, 0x0f, 0xb6, 0x62, 0x1e, 0xf3, 0x1a, 0xf4, 0xaa, 0x93,
-	0xaa, 0x1b, 0xc0, 0x98, 0xf3, 0xf8, 0x92, 0x78, 0x75, 0x14, 0xe6, 0x67, 0x9e, 0xa4, 0x09, 0x11,
-	0x12, 0x25, 0xa9, 0x2e, 0xb0, 0x23, 0x2e, 0x12, 0x2e, 0xbc, 0x10, 0x09, 0xe2, 0x4d, 0xc7, 0x21,
-	0x91, 0x68, 0xec, 0x45, 0x9c, 0x32, 0x8d, 0xef, 0x28, 0x7c, 0xa2, 0x94, 0x55, 0xd0, 0x40, 0x8b,
-	0xda, 0x88, 0x69, 0x7b, 0xce, 0xcf, 0x36, 0xe8, 0x9e, 0x66, 0x3c, 0xce, 0x50, 0x62, 0xee, 0x03,
-	0x90, 0xaa, 0xe3, 0x84, 0x62, 0xcb, 0x18, 0x1a, 0xa3, 0xb6, 0xbf, 0xf9, 0xa3, 0x84, 0x4b, 0x14,
-	0xcf, 0x4a, 0xb8, 0x5a, 0xa0, 0xe4, 0xf2, 0xc0, 0xa1, 0xd8, 0x09, 0x56, 0x75, 0xd9, 0x2b, 0x6c,
-	0x1e, 0x81, 0xf5, 0x28, 0x23, 0x48, 0xf2, 0x6c, 0x82, 0x30, 0xce, 0x88, 0x10, 0xd6, 0xd2, 0xd0,
-	0x18, 0xad, 0xfa, 0x83, 0x59, 0x09, 0xb7, 0x15, 0x65, 0xa1, 0xc0, 0x09, 0xfa, 0x3a, 0x73, 0xa8,
-	0x12, 0x66, 0x06, 0x36, 0x45, 0x1e, 0x26, 0x54, 0x08, 0xca, 0xd9, 0x84, 0x30, 0x3c, 0xa9, 0x9a,
-	0xb7, 0x96, 0x87, 0xc6, 0xa8, 0xb7, 0x3f, 0x70, 0x95, 0x7b, 0xb7, 0x71, 0xef, 0xbe, 0x6e, 0x26,
-	0xe3, 0xef, 0x5e, 0x97, 0xb0, 0x35, 0x2b, 0xe1, 0x40, 0xfd, 0xe8, 0x1f, 0x22, 0xce, 0xd5, 0x57,
-	0x68, 0x04, 0x1b, 0xf7, 0xc8, 0x31, 0xc3, 0x15, 0xdf, 0x7c, 0x0e, 0x7a, 0x98, 0x88, 0x28, 0xa3,
-	0xa9, 0xa4, 0x9c, 0x59, 0xed, 0xda, 0xf4, 0xf6, 0xac, 0x84, 0xa6, 0xd2, 0x9a, 0x03, 0x9d, 0x60,
-	0xbe, 0xd4, 0x8c, 0x41, 0x9f, 0xb0, 0x28, 0x2b, 0xea, 0x68, 0x72, 0x41, 0x0a, 0xeb, 0xbf, 0xda,
-	0xe8, 0xd6, 0x5f, 0x46, 0x0f, 0x59, 0xe1, 0x3f, 0x9d, 0x95, 0xf0, 0xa1, 0x92, 0xfc, 0x93, 0xe5,
-	0x7c, 0xfc, 0xb0, 0xb7, 0x76, 0xfc, 0x3b, 0x75, 0x42, 0x8a, 0x60, 0x8d, 0xcc, 0x87, 0xe6, 0x09,
-	0xe8, 0x62, 0x92, 0x72, 0x41, 0xa5, 0xd5, 0x19, 0x2e, 0x8f, 0x7a, 0xfb, 0x3b, 0xae, 0xbe, 0xd6,
-	0x6a, 0x07, 0x5c, 0xbd, 0x03, 0xee, 0x11, 0xa7, 0xcc, 0xdf, 0xd6, 0x93, 0xe8, 0x37, 0xee, 0x6b,
-	0x9e, 0x13, 0x34, 0x0a, 0xe6, 0x1b, 0xb0, 0x1e, 0xf1, 0xa4, 0x19, 0x4f, 0x86, 0x24, 0xb1, 0xba,
-	0x75, 0xcf, 0x6e, 0xc5, 0xfc, 0x52, 0xc2, 0xdd, 0x98, 0xca, 0xf3, 0x3c, 0x74, 0x23, 0x9e, 0xe8,
-	0xed, 0xd1, 0x9f, 0x3d, 0x81, 0x2f, 0x3c, 0x59, 0xa4, 0x44, 0xb8, 0x2f, 0x49, 0x14, 0xf4, 0xef,
-	0x65, 0x02, 0x24, 0x89, 0xf9, 0x04, 0x74, 0x50, 0x24, 0xe9, 0x94, 0x58, 0x2b, 0x43, 0x63, 0xb4,
-	0xe2, 0x6f, 0xcc, 0x4a, 0xb8, 0xa6, 0x5c, 0xa8, 0xbc, 0x13, 0xe8, 0x82, 0x83, 0xf6, 0xf7, 0xf7,
-	0xb0, 0xe5, 0xbc, 0x00, 0xbd, 0xe3, 0x88, 0x12, 0x71, 0x9a, 0x87, 0x55, 0x97, 0x8f, 0x40, 0x37,
-	0xcd, 0xc3, 0x7a, 0x8e, 0xd5, 0xca, 0xfd, 0x1f, 0x74, 0xd2, 0x1a, 0x38, 0xd8, 0xf8, 0xb4, 0x38,
-	0x20, 0xff, 0xe4, 0xfa, 0xd6, 0x36, 0x6e, 0x6e, 0x6d, 0xe3, 0xdb, 0xad, 0x6d, 0x5c, 0xdd, 0xd9,
-	0xad, 0x9b, 0x3b, 0xbb, 0xf5, 0xf9, 0xce, 0x6e, 0xbd, 0x1d, 0xcf, 0xb9, 0x57, 0x2f, 0xee, 0x8c,
-	0xe7, 0x0c, 0xa3, 0x8a, 0xa9, 0x13, 0xde, 0xbb, 0xe6, 0x8d, 0xd6, 0xcd, 0x84, 0x9d, 0xfa, 0x9e,
-	0x9e, 0xfd, 0x0a, 0x00, 0x00, 0xff, 0xff, 0xe4, 0x27, 0x58, 0x4a, 0xc1, 0x03, 0x00, 0x00,
+	// 1224 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0x5d, 0x6f, 0xdb, 0x54,
+	0x18, 0x4e, 0xba, 0x7e, 0xac, 0xa7, 0x4d, 0x9a, 0x9e, 0x7e, 0x2c, 0x35, 0x5b, 0x1c, 0x2c, 0x28,
+	0x65, 0x62, 0x0e, 0x2d, 0x13, 0x42, 0x15, 0x02, 0xf2, 0xd5, 0x61, 0xd6, 0x26, 0x95, 0x9b, 0x16,
+	0x31, 0x2e, 0x2c, 0xc7, 0x3e, 0xc9, 0x0e, 0x4b, 0x7c, 0x22, 0xfb, 0x24, 0x5a, 0xf8, 0x05, 0x53,
+	0xae, 0xf6, 0x07, 0x22, 0x4d, 0xe2, 0x2f, 0x70, 0xc7, 0x1f, 0x98, 0xb8, 0x9a, 0x7a, 0x85, 0xb8,
+	0x30, 0xb0, 0x5d, 0x80, 0xb8, 0x8c, 0xf8, 0x01, 0xc8, 0x3e, 0xc7, 0x8d, 0xed, 0x56, 0x43, 0x9a,
+	0xb8, 0x8a, 0xcf, 0xfb, 0xbe, 0xcf, 0xe3, 0xf7, 0xe3, 0x79, 0x8f, 0x03, 0x6e, 0x39, 0x0f, 0x91,
+	0x45, 0xfb, 0x85, 0x26, 0xe9, 0x5b, 0x74, 0x58, 0x18, 0xec, 0xf2, 0x27, 0xb9, 0x67, 0x13, 0x4a,
+	0x60, 0x86, 0xb9, 0x65, 0x6e, 0x1c, 0xec, 0x0a, 0xeb, 0x6d, 0xd2, 0x26, 0xbe, 0xb3, 0xe0, 0x3d,
+	0xb1, 0x38, 0x41, 0x6c, 0x13, 0xd2, 0xee, 0xa0, 0x82, 0x7f, 0x6a, 0xf6, 0x5b, 0x05, 0x8a, 0xbb,
+	0xc8, 0xa1, 0x7a, 0xb7, 0xc7, 0x03, 0x72, 0x06, 0x71, 0xba, 0xc4, 0x29, 0x34, 0x75, 0x07, 0x15,
+	0x06, 0xbb, 0x4d, 0x44, 0xf5, 0xdd, 0x82, 0x41, 0xb0, 0xc5, 0xfd, 0x5b, 0xcc, 0xaf, 0x31, 0x66,
+	0x76, 0x08, 0x5c, 0x71, 0x6e, 0xdd, 0xe2, 0xe9, 0x49, 0xff, 0xcc, 0x82, 0x85, 0x63, 0x9b, 0xb4,
+	0x6d, 0xbd, 0x0b, 0xf7, 0x00, 0xe8, 0xb1, 0x47, 0x0d, 0x9b, 0xd9, 0x64, 0x3e, 0xb9, 0x33, 0x5b,
+	0x5a, 0xfb, 0xdb, 0x15, 0x67, 0xb0, 0x39, 0x71, 0xc5, 0xc5, 0xa1, 0xde, 0xed, 0xec, 0x4b, 0xd8,
+	0x94, 0xd4, 0x45, 0x1e, 0xa6, 0x98, 0xb0, 0x0c, 0x56, 0x0c, 0x1b, 0xe9, 0x94, 0xd8, 0x9a, 0x6e,
+	0x9a, 0x36, 0x72, 0x9c, 0xec, 0x4c, 0x3e, 0xb9, 0xb3, 0x58, 0x12, 0x26, 0xae, 0xb8, 0xc9, 0x20,
+	0xb1, 0x00, 0x49, 0x4d, 0x73, 0x4b, 0x91, 0x19, 0xa0, 0x0d, 0xd6, 0x9c, 0x7e, 0xb3, 0x8b, 0x1d,
+	0x07, 0x13, 0x4b, 0x43, 0x96, 0xa9, 0x79, 0xc5, 0x67, 0xaf, 0xe5, 0x93, 0x3b, 0x4b, 0x7b, 0x82,
+	0xcc, 0xb2, 0x97, 0x83, 0xec, 0xe5, 0x46, 0xd0, 0x99, 0xd2, 0xf6, 0x73, 0x57, 0x4c, 0x4c, 0x5c,
+	0x51, 0x60, 0x2f, 0xba, 0x82, 0x44, 0x7a, 0xfa, 0x9b, 0x98, 0x54, 0x57, 0xa7, 0x9e, 0xaa, 0x65,
+	0x7a, 0x78, 0xf8, 0x09, 0x58, 0x32, 0x91, 0x63, 0xd8, 0xb8, 0x47, 0x31, 0xb1, 0xb2, 0xb3, 0x7e,
+	0xd2, 0x9b, 0x13, 0x57, 0x84, 0x8c, 0x2b, 0xe4, 0x94, 0xd4, 0x70, 0x28, 0x6c, 0x83, 0x34, 0xb2,
+	0x0c, 0x7b, 0xe8, 0x9f, 0xb4, 0x47, 0x68, 0x98, 0x9d, 0xf3, 0x13, 0x5d, 0xbf, 0x94, 0x68, 0xd1,
+	0x1a, 0x96, 0x6e, 0x4f, 0x5c, 0x71, 0x83, 0x51, 0x46, 0x51, 0xd2, 0xcf, 0x3f, 0xde, 0x49, 0x55,
+	0x2f, 0x4c, 0xf7, 0xd1, 0x50, 0x4d, 0xa1, 0xf0, 0x11, 0xde, 0x07, 0x0b, 0x26, 0xea, 0x11, 0x07,
+	0xd3, 0xec, 0x7c, 0xfe, 0xda, 0xce, 0xd2, 0xde, 0x96, 0xcc, 0xc7, 0xea, 0x69, 0x40, 0xe6, 0x1a,
+	0x90, 0xcb, 0x04, 0x5b, 0xa5, 0x4d, 0xde, 0x89, 0x74, 0x90, 0xbd, 0x8f, 0x93, 0xd4, 0x80, 0x01,
+	0x7e, 0x0d, 0x56, 0x0c, 0xd2, 0x0d, 0xda, 0x63, 0xeb, 0x14, 0x65, 0x17, 0xfc, 0x9a, 0x65, 0x0f,
+	0xf9, 0xab, 0x2b, 0x6e, 0xb7, 0x31, 0x7d, 0xd8, 0x6f, 0xca, 0x06, 0xe9, 0x72, 0xf5, 0xf0, 0x9f,
+	0x3b, 0x8e, 0xf9, 0xa8, 0x40, 0x87, 0x3d, 0xe4, 0xc8, 0x15, 0x64, 0xa8, 0xe9, 0x29, 0x8d, 0xaa,
+	0x53, 0x04, 0xdf, 0x07, 0xf3, 0xba, 0x41, 0xf1, 0x00, 0x65, 0xaf, 0xe7, 0x93, 0x3b, 0xd7, 0x4b,
+	0xab, 0x13, 0x57, 0x4c, 0xb1, 0x2c, 0x98, 0x5d, 0x52, 0x79, 0xc0, 0xfe, 0xf5, 0x27, 0xcf, 0xc4,
+	0xc4, 0x5f, 0xcf, 0xc4, 0x84, 0x74, 0x0f, 0x2c, 0x55, 0x0d, 0x8c, 0x9c, 0xe3, 0x7e, 0xd3, 0xab,
+	0xf4, 0xdd, 0x4b, 0x2d, 0xf5, 0xd4, 0xb7, 0x1c, 0x6b, 0xc8, 0xfe, 0xea, 0x79, 0xbc, 0x65, 0xd2,
+	0x1f, 0x73, 0x60, 0xe1, 0x00, 0x5b, 0x26, 0xb6, 0xda, 0x9e, 0x7e, 0x5b, 0xec, 0xf1, 0xbf, 0xf4,
+	0xcb, 0xc3, 0x14, 0x13, 0x6e, 0x83, 0x39, 0x8a, 0x69, 0x07, 0x71, 0xd5, 0x66, 0x26, 0xae, 0xb8,
+	0xcc, 0x02, 0x7d, 0xb3, 0xa4, 0x32, 0x37, 0xd4, 0xc0, 0x72, 0xc0, 0xed, 0x69, 0x81, 0x6b, 0xf3,
+	0xea, 0x91, 0x6f, 0x4f, 0x5c, 0x71, 0x8d, 0x91, 0x84, 0x31, 0xde, 0xc0, 0x97, 0x78, 0xae, 0x15,
+	0xe4, 0x18, 0xea, 0x52, 0x6b, 0x7a, 0x80, 0x77, 0x23, 0xcb, 0x37, 0xeb, 0x27, 0xbf, 0x31, 0x71,
+	0xc5, 0x55, 0x46, 0x34, 0xf5, 0x45, 0xd6, 0x4f, 0x07, 0x69, 0x07, 0x0d, 0x90, 0x8d, 0xe9, 0x50,
+	0xeb, 0xa0, 0x01, 0xea, 0xf8, 0x5a, 0x4c, 0xef, 0x89, 0x72, 0xfc, 0xda, 0x91, 0x4f, 0x78, 0xdc,
+	0xa1, 0x17, 0x56, 0xda, 0x9a, 0xca, 0x32, 0x4a, 0x20, 0xa9, 0x29, 0x27, 0x1c, 0x09, 0xbf, 0x05,
+	0x41, 0x9e, 0x5a, 0x8f, 0x18, 0xd9, 0xf9, 0xd7, 0x14, 0xfe, 0xce, 0x74, 0x7d, 0x42, 0x10, 0xaf,
+	0x6e, 0xc0, 0xeb, 0x3e, 0x26, 0x86, 0x1a, 0x0c, 0xe9, 0x98, 0x18, 0x50, 0x01, 0x6c, 0x35, 0x29,
+	0x45, 0xd3, 0x0b, 0x84, 0xe9, 0xf2, 0xe6, 0xc4, 0x15, 0xb3, 0xa1, 0xbd, 0x0e, 0x87, 0x48, 0x6a,
+	0xe6, 0xc2, 0x16, 0x5c, 0x22, 0x3a, 0x48, 0x07, 0x2f, 0x75, 0xa8, 0x4e, 0xfb, 0x8e, 0xaf, 0xc7,
+	0x2b, 0x5b, 0xc1, 0x93, 0x39, 0xf1, 0xc3, 0xc2, 0xad, 0x88, 0x12, 0x48, 0x6a, 0xaa, 0x15, 0x8e,
+	0x84, 0x8f, 0xc0, 0x4a, 0x10, 0xe1, 0x2d, 0x01, 0xb2, 0x68, 0x76, 0xf1, 0x35, 0xed, 0xf8, 0x60,
+	0x7a, 0x05, 0xc6, 0x60, 0x5e, 0x4b, 0xd2, 0x3c, 0x8b, 0x32, 0x33, 0xa9, 0x41, 0xf6, 0xfc, 0x1c,
+	0x5a, 0x96, 0x2f, 0x01, 0xf4, 0x97, 0x85, 0x2b, 0x1f, 0x99, 0xbe, 0x60, 0xde, 0x8e, 0x29, 0x92,
+	0x6d, 0x4c, 0x58, 0x53, 0xfb, 0x2b, 0xe7, 0x51, 0xc5, 0x49, 0x15, 0xb0, 0x1a, 0x65, 0xf2, 0x66,
+	0x20, 0x46, 0x07, 0xcc, 0x78, 0x42, 0x43, 0xda, 0x4f, 0x9f, 0x47, 0x06, 0x28, 0x35, 0xc0, 0x46,
+	0x94, 0x85, 0xa7, 0x0c, 0xdf, 0xbb, 0xdc, 0x1f, 0xc6, 0x16, 0xaf, 0x0d, 0x9e, 0x5f, 0xaa, 0x5f,
+	0x2a, 0x83, 0xd4, 0x71, 0x47, 0xc7, 0x56, 0x03, 0x3d, 0xa6, 0x6f, 0x5c, 0xe0, 0xe7, 0x60, 0xf9,
+	0x82, 0xe4, 0x8d, 0x6a, 0xab, 0x83, 0xcc, 0x05, 0xc1, 0xff, 0x51, 0xd6, 0xed, 0x3f, 0x67, 0x40,
+	0x2a, 0xb2, 0x7a, 0xf0, 0x63, 0x70, 0xe3, 0xa4, 0x7a, 0x56, 0x55, 0x95, 0xc6, 0x37, 0xda, 0x61,
+	0xf5, 0xac, 0x7a, 0xa8, 0x95, 0x55, 0xa5, 0xa1, 0x94, 0x8b, 0x87, 0x99, 0x84, 0xb0, 0x35, 0x1a,
+	0xe7, 0x37, 0x22, 0xf1, 0x65, 0x1b, 0x53, 0x6c, 0xe8, 0x1d, 0xf8, 0x21, 0x58, 0x8f, 0xe1, 0x8e,
+	0x8a, 0x5f, 0xd5, 0xd5, 0x4c, 0x52, 0xd8, 0x1c, 0x8d, 0xf3, 0x30, 0x02, 0x3a, 0xd2, 0xbf, 0x23,
+	0x36, 0xdc, 0x03, 0x1b, 0x71, 0x44, 0xb5, 0xa2, 0x9c, 0x1e, 0x65, 0x66, 0x84, 0x1b, 0xa3, 0x71,
+	0x7e, 0x2d, 0x0a, 0x41, 0x26, 0xee, 0x77, 0xaf, 0x7a, 0x8b, 0x52, 0xab, 0xab, 0x99, 0x6b, 0x57,
+	0xbd, 0x05, 0x5b, 0xc4, 0x86, 0x9f, 0x81, 0xb7, 0x62, 0x88, 0xfa, 0x71, 0x43, 0x39, 0x52, 0x1e,
+	0x14, 0x1b, 0x4a, 0xbd, 0x96, 0x99, 0x15, 0x6e, 0x8d, 0xc6, 0xf9, 0xad, 0x08, 0xb0, 0xde, 0xa3,
+	0xb8, 0x8b, 0xbf, 0xd7, 0xfd, 0xef, 0xe9, 0x17, 0xe0, 0x66, 0x0c, 0xaf, 0xd4, 0x0e, 0xea, 0xea,
+	0x91, 0x0f, 0x2f, 0x1e, 0x66, 0xe6, 0x84, 0xdc, 0x68, 0x9c, 0x17, 0x22, 0x04, 0x8a, 0xd5, 0x22,
+	0x76, 0xd7, 0xc7, 0xeb, 0x1d, 0x61, 0xf6, 0xc9, 0x0f, 0xb9, 0xc4, 0xed, 0x9f, 0x92, 0x20, 0x15,
+	0xd9, 0x6c, 0xf8, 0x29, 0x10, 0x0e, 0x94, 0x5a, 0x45, 0xa9, 0xdd, 0xd3, 0x4e, 0x1a, 0xc5, 0xc6,
+	0xe9, 0x89, 0x76, 0x5a, 0x2b, 0xd7, 0x6b, 0x07, 0x8a, 0x7a, 0x54, 0xad, 0x64, 0x12, 0xc2, 0xcd,
+	0xd1, 0x38, 0x9f, 0x8d, 0x40, 0x4e, 0xad, 0x32, 0xb1, 0x5a, 0xd8, 0xee, 0x22, 0xd3, 0xeb, 0x44,
+	0x0c, 0x7d, 0x56, 0x3c, 0x54, 0x2a, 0x41, 0xbf, 0x23, 0xb8, 0x33, 0xbd, 0x83, 0x4d, 0x78, 0x17,
+	0x6c, 0xc6, 0x10, 0x4a, 0x8d, 0x61, 0x66, 0x84, 0xec, 0x68, 0x9c, 0x5f, 0x8f, 0x60, 0x14, 0x6b,
+	0xe0, 0xa1, 0x58, 0xf6, 0xa5, 0xfb, 0xcf, 0x5f, 0xe6, 0x92, 0x2f, 0x5e, 0xe6, 0x92, 0xbf, 0xbf,
+	0xcc, 0x25, 0x9f, 0xbe, 0xca, 0x25, 0x5e, 0xbc, 0xca, 0x25, 0x7e, 0x79, 0x95, 0x4b, 0x3c, 0xd8,
+	0x0d, 0x7d, 0x98, 0xd9, 0x55, 0xd6, 0x22, 0x7d, 0xcb, 0xf4, 0x8b, 0xe7, 0x86, 0xc2, 0xe3, 0xe0,
+	0xef, 0xa7, 0xff, 0x9d, 0x6e, 0xce, 0xfb, 0xf7, 0xd0, 0x47, 0xff, 0x06, 0x00, 0x00, 0xff, 0xff,
+	0x60, 0x6c, 0x98, 0xea, 0x9c, 0x0a, 0x00, 0x00,
 }
 
 func (m *Program) Marshal() (dAtA []byte, err error) {
@@ -333,10 +707,283 @@ func (m *EciesPubKey) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.PubKey) > 0 {
-		i -= len(m.PubKey)
-		copy(dAtA[i:], m.PubKey)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.PubKey)))
+	if len(m.EncryptionKey) > 0 {
+		i -= len(m.EncryptionKey)
+		copy(dAtA[i:], m.EncryptionKey)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.EncryptionKey)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Finding) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Finding) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Finding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.FindingComment != nil {
+		{
+			size, err := m.FindingComment.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintBounty(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x4a
+	}
+	if m.FindingStatus != 0 {
+		i = encodeVarintBounty(dAtA, i, uint64(m.FindingStatus))
+		i--
+		dAtA[i] = 0x40
+	}
+	if len(m.SubmitterAddress) > 0 {
+		i -= len(m.SubmitterAddress)
+		copy(dAtA[i:], m.SubmitterAddress)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.SubmitterAddress)))
+		i--
+		dAtA[i] = 0x3a
+	}
+	if m.FindingPoc != nil {
+		{
+			size, err := m.FindingPoc.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintBounty(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x32
+	}
+	if m.SeverityLevel != 0 {
+		i = encodeVarintBounty(dAtA, i, uint64(m.SeverityLevel))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.ProgramId != 0 {
+		i = encodeVarintBounty(dAtA, i, uint64(m.ProgramId))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.FindingDesc != nil {
+		{
+			size, err := m.FindingDesc.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintBounty(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Title) > 0 {
+		i -= len(m.Title)
+		copy(dAtA[i:], m.Title)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.Title)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.FindingId != 0 {
+		i = encodeVarintBounty(dAtA, i, uint64(m.FindingId))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EciesEncryptedDesc) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EciesEncryptedDesc) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EciesEncryptedDesc) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.FindingDesc) > 0 {
+		i -= len(m.FindingDesc)
+		copy(dAtA[i:], m.FindingDesc)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingDesc)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EciesEncryptedPoc) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EciesEncryptedPoc) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EciesEncryptedPoc) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.FindingPoc) > 0 {
+		i -= len(m.FindingPoc)
+		copy(dAtA[i:], m.FindingPoc)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingPoc)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EciesEncryptedComment) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EciesEncryptedComment) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EciesEncryptedComment) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.FindingComment) > 0 {
+		i -= len(m.FindingComment)
+		copy(dAtA[i:], m.FindingComment)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingComment)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PlainTextDesc) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PlainTextDesc) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PlainTextDesc) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.FindingDesc) > 0 {
+		i -= len(m.FindingDesc)
+		copy(dAtA[i:], m.FindingDesc)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingDesc)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PlainTextPoc) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PlainTextPoc) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PlainTextPoc) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.FindingPoc) > 0 {
+		i -= len(m.FindingPoc)
+		copy(dAtA[i:], m.FindingPoc)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingPoc)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PlainTextComment) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PlainTextComment) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PlainTextComment) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.FindingComment) > 0 {
+		i -= len(m.FindingComment)
+		copy(dAtA[i:], m.FindingComment)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingComment)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -397,7 +1044,126 @@ func (m *EciesPubKey) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.PubKey)
+	l = len(m.EncryptionKey)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	return n
+}
+
+func (m *Finding) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.FindingId != 0 {
+		n += 1 + sovBounty(uint64(m.FindingId))
+	}
+	l = len(m.Title)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	if m.FindingDesc != nil {
+		l = m.FindingDesc.Size()
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	if m.ProgramId != 0 {
+		n += 1 + sovBounty(uint64(m.ProgramId))
+	}
+	if m.SeverityLevel != 0 {
+		n += 1 + sovBounty(uint64(m.SeverityLevel))
+	}
+	if m.FindingPoc != nil {
+		l = m.FindingPoc.Size()
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	l = len(m.SubmitterAddress)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	if m.FindingStatus != 0 {
+		n += 1 + sovBounty(uint64(m.FindingStatus))
+	}
+	if m.FindingComment != nil {
+		l = m.FindingComment.Size()
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	return n
+}
+
+func (m *EciesEncryptedDesc) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.FindingDesc)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	return n
+}
+
+func (m *EciesEncryptedPoc) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.FindingPoc)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	return n
+}
+
+func (m *EciesEncryptedComment) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.FindingComment)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	return n
+}
+
+func (m *PlainTextDesc) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.FindingDesc)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	return n
+}
+
+func (m *PlainTextPoc) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.FindingPoc)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	return n
+}
+
+func (m *PlainTextComment) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.FindingComment)
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
 	}
@@ -734,7 +1500,7 @@ func (m *EciesPubKey) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PubKey", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field EncryptionKey", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -761,9 +1527,832 @@ func (m *EciesPubKey) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.PubKey = append(m.PubKey[:0], dAtA[iNdEx:postIndex]...)
-			if m.PubKey == nil {
-				m.PubKey = []byte{}
+			m.EncryptionKey = append(m.EncryptionKey[:0], dAtA[iNdEx:postIndex]...)
+			if m.EncryptionKey == nil {
+				m.EncryptionKey = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipBounty(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Finding) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowBounty
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Finding: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Finding: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingId", wireType)
+			}
+			m.FindingId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.FindingId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Title", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Title = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingDesc", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.FindingDesc == nil {
+				m.FindingDesc = &types.Any{}
+			}
+			if err := m.FindingDesc.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProgramId", wireType)
+			}
+			m.ProgramId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ProgramId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SeverityLevel", wireType)
+			}
+			m.SeverityLevel = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SeverityLevel |= SeverityLevel(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingPoc", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.FindingPoc == nil {
+				m.FindingPoc = &types.Any{}
+			}
+			if err := m.FindingPoc.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SubmitterAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SubmitterAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingStatus", wireType)
+			}
+			m.FindingStatus = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.FindingStatus |= FindingStatus(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingComment", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.FindingComment == nil {
+				m.FindingComment = &types.Any{}
+			}
+			if err := m.FindingComment.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipBounty(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EciesEncryptedDesc) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowBounty
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EciesEncryptedDesc: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EciesEncryptedDesc: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingDesc", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FindingDesc = append(m.FindingDesc[:0], dAtA[iNdEx:postIndex]...)
+			if m.FindingDesc == nil {
+				m.FindingDesc = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipBounty(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EciesEncryptedPoc) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowBounty
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EciesEncryptedPoc: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EciesEncryptedPoc: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingPoc", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FindingPoc = append(m.FindingPoc[:0], dAtA[iNdEx:postIndex]...)
+			if m.FindingPoc == nil {
+				m.FindingPoc = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipBounty(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EciesEncryptedComment) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowBounty
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EciesEncryptedComment: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EciesEncryptedComment: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingComment", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FindingComment = append(m.FindingComment[:0], dAtA[iNdEx:postIndex]...)
+			if m.FindingComment == nil {
+				m.FindingComment = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipBounty(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PlainTextDesc) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowBounty
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PlainTextDesc: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PlainTextDesc: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingDesc", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FindingDesc = append(m.FindingDesc[:0], dAtA[iNdEx:postIndex]...)
+			if m.FindingDesc == nil {
+				m.FindingDesc = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipBounty(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PlainTextPoc) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowBounty
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PlainTextPoc: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PlainTextPoc: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingPoc", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FindingPoc = append(m.FindingPoc[:0], dAtA[iNdEx:postIndex]...)
+			if m.FindingPoc == nil {
+				m.FindingPoc = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipBounty(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PlainTextComment) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowBounty
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PlainTextComment: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PlainTextComment: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingComment", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FindingComment = append(m.FindingComment[:0], dAtA[iNdEx:postIndex]...)
+			if m.FindingComment == nil {
+				m.FindingComment = []byte{}
 			}
 			iNdEx = postIndex
 		default:
