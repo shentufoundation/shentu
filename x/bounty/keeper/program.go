@@ -55,6 +55,9 @@ func (k Keeper) TerminateProgram(ctx sdk.Context, caller sdk.AccAddress, id uint
 	if !program.Active {
 		return types.ErrProgramAlreadyTerminated
 	}
+	if ctx.BlockTime().After(program.SubmissionEndTime) {
+		return types.ErrProgramAlreadyEnded
+	}
 	program.Active = false
 	k.SetProgram(ctx, program)
 	return nil
