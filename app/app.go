@@ -75,9 +75,6 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
-	ibcfee "github.com/cosmos/ibc-go/v4/modules/apps/29-fee"
-	ibcfeekeeper "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/keeper"
-	ibcfeetypes "github.com/cosmos/ibc-go/v4/modules/apps/29-fee/types"
 	"github.com/cosmos/ibc-go/v4/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v4/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
@@ -168,7 +165,6 @@ var (
 		ibc.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		ica.AppModuleBasic{},
-		ibcfee.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -176,7 +172,6 @@ var (
 		authtypes.FeeCollectorName:     nil,
 		distrtypes.ModuleName:          nil,
 		icatypes.ModuleName:            nil,
-		ibcfeetypes.ModuleName:         nil,
 		sdkminttypes.ModuleName:        {authtypes.Minter},
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
@@ -219,7 +214,6 @@ type ShentuApp struct {
 	EvidenceKeeper   evidencekeeper.Keeper
 	IBCKeeper        *ibckeeper.Keeper
 	ICAHostKeeper    icahostkeeper.Keeper
-	IBCFeeKeeper     ibcfeekeeper.Keeper
 	TransferKeeper   ibctransferkeeper.Keeper
 	CapabilityKeeper *capabilitykeeper.Keeper
 	CVMKeeper        cvmkeeper.Keeper
@@ -271,7 +265,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		shieldtypes.StoreKey,
 		evidencetypes.StoreKey,
 		ibchost.StoreKey,
-		ibcfeetypes.StoreKey,
 		ibctransfertypes.StoreKey,
 		icahosttypes.StoreKey,
 		capabilitytypes.StoreKey,
@@ -444,14 +437,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		govRouter,
 	)
 
-	// IBC Fee Module keeper
-	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
-		appCodec, keys[ibcfeetypes.StoreKey], app.GetSubspace(ibcfeetypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
-		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
-	)
-
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
@@ -516,7 +501,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		oracle.NewAppModule(app.OracleKeeper, app.BankKeeper),
 		shield.NewAppModule(app.ShieldKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
-		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		icaModule,
@@ -529,7 +513,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, sdkgovtypes.ModuleName, genutiltypes.ModuleName,
 		sdkauthz.ModuleName, sdkfeegrant.ModuleName, crisistypes.ModuleName, shieldtypes.ModuleName, certtypes.ModuleName,
-		oracletypes.ModuleName, cvmtypes.ModuleName, ibcfeetypes.ModuleName, paramstypes.ModuleName,
+		oracletypes.ModuleName, cvmtypes.ModuleName, paramstypes.ModuleName,
 	)
 
 	// NOTE: Shield endblocker comes before staking because it queries
@@ -538,7 +522,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		capabilitytypes.ModuleName, authtypes.ModuleName, sdkbanktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		sdkminttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, sdkauthz.ModuleName, sdkfeegrant.ModuleName,
 		paramstypes.ModuleName, upgradetypes.ModuleName, ibchost.ModuleName, ibctransfertypes.ModuleName, icatypes.ModuleName,
-		certtypes.ModuleName, oracletypes.ModuleName, cvmtypes.ModuleName, ibcfeetypes.ModuleName,
+		certtypes.ModuleName, oracletypes.ModuleName, cvmtypes.ModuleName,
 	)
 
 	// NOTE: genutil moodule must occur after staking so that pools
@@ -560,7 +544,6 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		icatypes.ModuleName,
 		genutiltypes.ModuleName,
 		ibctransfertypes.ModuleName,
-		ibcfeetypes.ModuleName,
 		evidencetypes.ModuleName,
 		oracletypes.ModuleName,
 		sdkauthz.ModuleName,
