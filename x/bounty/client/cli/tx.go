@@ -490,7 +490,7 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 }
 
 func NewTerminateProgramCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "terminate-program [program-id]",
 		Args:  cobra.ExactArgs(1),
 		Short: "terminate the program",
@@ -508,4 +508,6 @@ func NewTerminateProgramCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }
