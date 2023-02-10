@@ -55,19 +55,6 @@ func NewCreateProgramCmd() *cobra.Command {
 
 			desc, _ := cmd.Flags().GetString(FlagDesc)
 
-			encKeyFile, _ := cmd.Flags().GetString(FlagEncKeyFile)
-			var encKey []byte
-			if encKeyFile == "" {
-				decKey, err := ecies.GenerateKey(rand.Reader, ecies.DefaultCurve, nil)
-				if err != nil {
-					return fmt.Errorf("internal error, failed to generate key")
-				}
-				encKey = crypto.FromECDSAPub(&decKey.ExportECDSA().PublicKey)
-				SaveKey(decKey, clientCtx.HomeDir, creatorAddr.String())
-			} else {
-				encKey = LoadPubKey(encKeyFile)
-			}
-
 			newRate := sdk.ZeroDec()
 			commissionRate, _ := cmd.Flags().GetString(FlagCommissionRate)
 			if commissionRate != "" {
@@ -108,6 +95,20 @@ func NewCreateProgramCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
+			}
+
+			encKeyFile, _ := cmd.Flags().GetString(FlagEncKeyFile)
+			var encKey []byte
+			if encKeyFile == "" {
+				decKey, err := ecies.GenerateKey(rand.Reader, ecies.DefaultCurve, nil)
+				if err != nil {
+					return fmt.Errorf("internal error, failed to generate key")
+				}
+				encKey = crypto.FromECDSAPub(&decKey.ExportECDSA().PublicKey)
+				filePath := SaveKey(decKey, clientCtx.HomeDir, creatorAddr.String())
+				clientCtx.PrintString(fmt.Sprintf("The key is created and saved at %s.\n\n", filePath))
+			} else {
+				encKey = LoadPubKey(encKeyFile)
 			}
 
 			msg, err := types.NewMsgCreateProgram(
