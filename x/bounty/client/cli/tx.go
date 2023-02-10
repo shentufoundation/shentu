@@ -23,6 +23,8 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
+const RandBytesLen = 64
+
 // NewTxCmd returns the transaction commands for the certification module.
 func NewTxCmd() *cobra.Command {
 	bountyTxCmds := &cobra.Command{
@@ -205,10 +207,12 @@ func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny
 		return nil, nil, err
 	}
 
-	encryptedDescBytes, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(desc), nil, nil)
+	randBytes, reader := GetRandBytes()
+	encryptedDescBytes, err := ecies.Encrypt(reader, eciesEncKey, []byte(desc), nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
+	encryptedDescBytes = append(encryptedDescBytes, randBytes...)
 	encDesc := types.EciesEncryptedDesc{
 		FindingDesc: encryptedDescBytes,
 	}
@@ -217,10 +221,14 @@ func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny
 		return nil, nil, err
 	}
 
-	encryptedPocBytes, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(poc), nil, nil)
+	//start encrypting poc
+	randBytes, reader = GetRandBytes()
+	encryptedPocBytes, err := ecies.Encrypt(reader, eciesEncKey, []byte(poc), nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	encryptedPocBytes = append(encryptedPocBytes, randBytes...)
 	encPoc := types.EciesEncryptedPoc{
 		FindingPoc: encryptedPocBytes,
 	}
@@ -347,10 +355,12 @@ func HostProcessFinding(cmd *cobra.Command, args []string) (fid uint64,
 		return fid, commentAny, hostAddr, err
 	}
 
-	encryptedComment, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(comment), nil, nil)
+	randBytes, reader := GetRandBytes()
+	encryptedComment, err := ecies.Encrypt(reader, eciesEncKey, []byte(comment), nil, nil)
 	if err != nil {
 		return fid, commentAny, hostAddr, err
 	}
+	encryptedComment = append(encryptedComment, randBytes...)
 	encComment := types.EciesEncryptedComment{
 		FindingComment: encryptedComment,
 	}
@@ -451,7 +461,9 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 		if err = proto.Unmarshal(finding.FindingDesc.GetValue(), &descProto); err != nil {
 			return "", "", "", err
 		}
-		descBytes, err := prvKey.Decrypt(descProto.FindingDesc, nil, nil)
+
+		encryptedData := descProto.FindingDesc[:len(descProto.FindingDesc)-RandBytesLen]
+		descBytes, err := prvKey.Decrypt(encryptedData, nil, nil)
 		if err != nil {
 			return "", "", "", err
 		}
@@ -465,7 +477,8 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 		if err = proto.Unmarshal(finding.FindingPoc.GetValue(), &pocProto); err != nil {
 			return "", "", "", err
 		}
-		pocBytes, err := prvKey.Decrypt(pocProto.FindingPoc, nil, nil)
+		encryptedData := pocProto.FindingPoc[:len(pocProto.FindingPoc)-RandBytesLen]
+		pocBytes, err := prvKey.Decrypt(encryptedData, nil, nil)
 		if err != nil {
 			return "", "", "", err
 		}
@@ -479,7 +492,8 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 		if err = proto.Unmarshal(finding.FindingComment.GetValue(), &commentProto); err != nil {
 			return "", "", "", err
 		}
-		commentBytes, err := prvKey.Decrypt(commentProto.FindingComment, nil, nil)
+		encryptedData := commentProto.FindingComment[:len(commentProto.FindingComment)-RandBytesLen]
+		commentBytes, err := prvKey.Decrypt(encryptedData, nil, nil)
 		if err != nil {
 			return "", "", "", err
 		}

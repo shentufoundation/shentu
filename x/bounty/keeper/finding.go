@@ -3,8 +3,15 @@ package keeper
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 
+	"github.com/ethereum/go-ethereum/crypto/ecies"
+	"github.com/gogo/protobuf/proto"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
@@ -123,4 +130,65 @@ func BytesToUint64s(list []byte) ([]uint64, error) {
 		return nil, types.ErrProgramFindingListUnmarshal
 	}
 	return r64, nil
+}
+
+func CheckPlainText(pubKey *ecies.PublicKey, plainText string, anyData *codectypes.Any) (bool, error) {
+	var randBytes []byte
+	var encryptData []byte
+
+	if anyData.TypeUrl == "/shentu.bounty.v1.EciesEncryptedDesc" {
+		var encrypted types.EciesEncryptedDesc
+		err := proto.Unmarshal(anyData.GetValue(), &encrypted)
+		if err != nil {
+			return false, err
+		}
+
+		if len(encrypted.FindingDesc) < cli.RandBytesLen {
+			return false, types.ErrFindingEncryptedDataInvalid
+		}
+		randBytesStart := len(encrypted.FindingDesc) - cli.RandBytesLen
+		encryptData = encrypted.FindingDesc[:randBytesStart]
+		randBytes = encrypted.FindingDesc[randBytesStart:]
+
+	} else if anyData.TypeUrl == "/shentu.bounty.v1.EciesEncryptedPoc" {
+		var encrypted types.EciesEncryptedPoc
+		err := proto.Unmarshal(anyData.GetValue(), &encrypted)
+		if err != nil {
+			return false, err
+		}
+
+		if len(encrypted.FindingPoc) < cli.RandBytesLen {
+			return false, types.ErrFindingEncryptedDataInvalid
+		}
+		randBytesStart := len(encrypted.FindingPoc) - cli.RandBytesLen
+		encryptData = encrypted.FindingPoc[:randBytesStart]
+		randBytes = encrypted.FindingPoc[randBytesStart:]
+	} else if anyData.TypeUrl == "/shentu.bounty.v1.EciesEncryptedComment" {
+		var encrypted types.EciesEncryptedComment
+		err := proto.Unmarshal(anyData.GetValue(), &encrypted)
+		if err != nil {
+			return false, err
+		}
+
+		if len(encrypted.FindingComment) < cli.RandBytesLen {
+			return false, types.ErrFindingEncryptedDataInvalid
+		}
+		randBytesStart := len(encrypted.FindingComment) - cli.RandBytesLen
+		encryptData = encrypted.FindingComment[:randBytesStart]
+		randBytes = encrypted.FindingComment[randBytesStart:]
+
+	} else {
+		return false, fmt.Errorf("invalid any data")
+	}
+
+	encryptedBytes, err := ecies.Encrypt(bytes.NewReader(randBytes), pubKey, []byte(plainText), nil, nil)
+	if err != nil {
+		return false, types.ErrProgramPubKey
+	}
+
+	if !bytes.Equal(encryptedBytes, encryptData) {
+		return false, types.ErrFindingPlainTextDataInvalid
+	}
+
+	return true, nil
 }

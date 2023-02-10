@@ -1,6 +1,15 @@
 package keeper_test
 
-import "github.com/shentufoundation/shentu/v2/x/bounty/types"
+import (
+	"crypto/rand"
+	"github.com/ethereum/go-ethereum/crypto/ecies"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
+	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
+	"github.com/shentufoundation/shentu/v2/x/bounty/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
+)
 
 func (suite *KeeperTestSuite) TestFindingList_GetSet() {
 	findIDs := []uint64{10, 20, 30, 40}
@@ -145,4 +154,62 @@ func (suite *KeeperTestSuite) TestFindingList_Delete() {
 	suite.Require().NoError(err)
 	_, err = suite.keeper.GetPidFindingIDList(suite.ctx, pid)
 	suite.Require().Equal(err, types.ErrProgramFindingListEmpty)
+}
+
+func (suite *KeeperTestSuite) TestCheckPlainText() {
+	decKey, _ := ecies.GenerateKey(rand.Reader, ecies.DefaultCurve, nil)
+
+	{
+		desc := "e3232323231"
+
+		randBytes, reader := cli.GetRandBytes()
+		encryptedDesc, err := ecies.Encrypt(reader, &decKey.PublicKey, []byte(desc), nil, nil)
+
+		var descAny *codectypes.Any
+		encryptedDesc = append(encryptedDesc, randBytes...)
+
+		encDesc := types.EciesEncryptedDesc{
+			FindingDesc: encryptedDesc,
+		}
+		descAny, err = codectypes.NewAnyWithValue(&encDesc)
+		suite.Require().NoError(err)
+
+		ok, _ := keeper.CheckPlainText(&decKey.PublicKey, desc, descAny)
+		suite.Require().True(ok)
+	}
+
+	{
+		//test poc
+		poc := "real poc poc poc"
+		randBytes, reader := cli.GetRandBytes()
+		encryptedPoc, _ := ecies.Encrypt(reader, &decKey.PublicKey, []byte(poc), nil, nil)
+
+		encryptedPoc = append(encryptedPoc, randBytes...)
+		var pocAny *codectypes.Any
+		encPoc := types.EciesEncryptedPoc{
+			FindingPoc: encryptedPoc,
+		}
+		pocAny, err := codectypes.NewAnyWithValue(&encPoc)
+		suite.Require().NoError(err)
+
+		ok, _ := keeper.CheckPlainText(&decKey.PublicKey, poc, pocAny)
+		suite.Require().True(ok)
+	}
+
+	{
+		comment := "EF DevOps launch devnet with 605k validators to test BLS key changes"
+		randBytes, reader := cli.GetRandBytes()
+		encryptedComment, _ := ecies.Encrypt(reader, &decKey.PublicKey, []byte(comment), nil, nil)
+
+		encryptedComment = append(encryptedComment, randBytes...)
+		var commentAny *codectypes.Any
+		encComment := types.EciesEncryptedComment{
+			FindingComment: encryptedComment,
+		}
+		commentAny, err := codectypes.NewAnyWithValue(&encComment)
+		suite.Require().NoError(err)
+
+		ok, _ := keeper.CheckPlainText(&decKey.PublicKey, comment, commentAny)
+		suite.Require().True(ok)
+	}
 }

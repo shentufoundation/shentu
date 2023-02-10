@@ -12,6 +12,7 @@ import (
 
 	types1 "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
@@ -227,10 +228,12 @@ func (suite *KeeperTestSuite) InitCreateProgram() (uint64, *ecies.PublicKey) {
 }
 
 func GetDescPocAny(desc, poc string, pubKey *ecies.PublicKey) (descAny, pocAny *codectypes.Any, err error) {
-	encryptedDescBytes, err := ecies.Encrypt(rand.Reader, pubKey, []byte(desc), nil, nil)
+	randBytes, reader := cli.GetRandBytes()
+	encryptedDescBytes, err := ecies.Encrypt(reader, pubKey, []byte(desc), nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
+	encryptedDescBytes = append(encryptedDescBytes, randBytes...)
 	encDesc := types.EciesEncryptedDesc{
 		FindingDesc: encryptedDescBytes,
 	}
@@ -239,10 +242,12 @@ func GetDescPocAny(desc, poc string, pubKey *ecies.PublicKey) (descAny, pocAny *
 		return nil, nil, err
 	}
 
-	encryptedPocBytes, err := ecies.Encrypt(rand.Reader, pubKey, []byte(poc), nil, nil)
+	randBytes, reader = cli.GetRandBytes()
+	encryptedPocBytes, err := ecies.Encrypt(reader, pubKey, []byte(poc), nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
+	encryptedPocBytes = append(encryptedPocBytes, randBytes...)
 	encPoc := types.EciesEncryptedPoc{
 		FindingPoc: encryptedPocBytes,
 	}

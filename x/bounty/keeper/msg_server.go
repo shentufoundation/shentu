@@ -7,6 +7,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
@@ -268,33 +269,58 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 		return nil, types.ErrProgramCreatorInvalid
 	}
 
-	plainTextDesc := types.PlainTextDesc{
-		FindingDesc: []byte(msg.Desc),
-	}
-	descAny, err := codectypes.NewAnyWithValue(&plainTextDesc)
+	pubKey, err := cli.KeyAnyToPubKey(program.EncryptionKey)
 	if err != nil {
-		return nil, err
+		return nil, types.ErrProgramPubKey
 	}
 
-	plainTextPoc := types.PlainTextPoc{
-		FindingPoc: []byte(msg.Poc),
-	}
-	pocAny, err := codectypes.NewAnyWithValue(&plainTextPoc)
-	if err != nil {
-		return nil, err
+	if msg.Desc != "" {
+		ok, err := CheckPlainText(pubKey, msg.Desc, finding.FindingDesc)
+		if !ok {
+			return nil, err
+		}
+
+		plainTextDesc := types.PlainTextDesc{
+			FindingDesc: []byte(msg.Desc),
+		}
+		descAny, err := codectypes.NewAnyWithValue(&plainTextDesc)
+		if err != nil {
+			return nil, err
+		}
+		finding.FindingDesc = descAny
 	}
 
-	plainTextComment := types.PlainTextComment{
-		FindingComment: []byte(msg.Comment),
-	}
-	commentAny, err := codectypes.NewAnyWithValue(&plainTextComment)
-	if err != nil {
-		return nil, err
+	if msg.Poc != "" {
+		ok, err := CheckPlainText(pubKey, msg.Poc, finding.FindingPoc)
+		if !ok {
+			return nil, err
+		}
+
+		plainTextPoc := types.PlainTextPoc{
+			FindingPoc: []byte(msg.Poc),
+		}
+		pocAny, err := codectypes.NewAnyWithValue(&plainTextPoc)
+		if err != nil {
+			return nil, err
+		}
+		finding.FindingPoc = pocAny
 	}
 
-	finding.FindingDesc = descAny
-	finding.FindingPoc = pocAny
-	finding.FindingComment = commentAny
+	if msg.Comment != "" {
+		ok, err := CheckPlainText(pubKey, msg.Comment, finding.FindingComment)
+		if !ok {
+			return nil, err
+		}
+
+		plainTextComment := types.PlainTextComment{
+			FindingComment: []byte(msg.Comment),
+		}
+		commentAny, err := codectypes.NewAnyWithValue(&plainTextComment)
+		if err != nil {
+			return nil, err
+		}
+		finding.FindingComment = commentAny
+	}
 
 	k.SetFinding(ctx, finding)
 
