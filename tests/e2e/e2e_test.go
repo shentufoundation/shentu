@@ -5,7 +5,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gogo/protobuf/proto"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
@@ -297,13 +300,13 @@ func (s *IntegrationTestSuite) TestBounty() {
 
 	bountyKeyFile := "e2e_bounty_key.json"
 	generateBountyKeyFile(validatorA.configDir() + "/" + bountyKeyFile)
+	bountyKeyPath := "/root/.shentud/" + bountyKeyFile
 
 	s.Run("create_program", func() {
 		bountyProgramCounter++
 		s.T().Logf("Creating program %d on chain %s", bountyProgramCounter, s.chainA.id)
 		var (
 			programDesc    = "program-desc"
-			bountyKeyPath  = "/root/.shentud/" + bountyKeyFile
 			commissionRate = "2"
 			endTime        = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 		)
@@ -339,6 +342,23 @@ func (s *IntegrationTestSuite) TestBounty() {
 		)
 	})
 
+	s.Run("reject_finding", func() {
+		s.T().Logf("Accept finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
+		var (
+			findingComment = "reject-comment"
+		)
+		s.executeRejectFinding(s.chainA, 0, bountyFindingCounter, accountAAddr.String(), findingComment, feesAmountCoin.String())
+		s.Require().Eventually(
+			func() bool {
+				rsp, err := queryBountyFinding(chainAAPIEndpoint, bountyFindingCounter)
+				s.Require().NoError(err)
+				return rsp.GetFinding().FindingStatus == 2
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
+
 	s.Run("accept_finding", func() {
 		s.T().Logf("Accept finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
 		var (
@@ -356,17 +376,16 @@ func (s *IntegrationTestSuite) TestBounty() {
 		)
 	})
 
-	s.Run("reject_finding", func() {
-		s.T().Logf("Accept finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
-		var (
-			findingComment = "reject-comment"
-		)
-		s.executeRejectFinding(s.chainA, 0, bountyFindingCounter, accountAAddr.String(), findingComment, feesAmountCoin.String())
+	s.Run("release_finding", func() {
+		s.T().Logf("Release finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
+		s.executeReleaseFinding(s.chainA, 0, bountyFindingCounter, accountAAddr.String(), bountyKeyPath, feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
 				rsp, err := queryBountyFinding(chainAAPIEndpoint, bountyFindingCounter)
 				s.Require().NoError(err)
-				return rsp.GetFinding().FindingStatus == 2
+				var poc bountytypes.PlainTextPoc
+				proto.Unmarshal(rsp.Finding.FindingPoc.Value, &poc)
+				return string(poc.FindingPoc) == "finding-poc"
 			},
 			20*time.Second,
 			5*time.Second,

@@ -56,9 +56,9 @@ func (s *IntegrationTestSuite) executeSubmitFinding(c *chain, valIdx, programId 
 		txCommand,
 		bountytypes.ModuleName,
 		"submit-finding",
-		fmt.Sprintf("--%s=%s", bountycli.FlagFindingDesc, ""),
-		fmt.Sprintf("--%s=%s", bountycli.FlagFindingTitle, ""),
-		fmt.Sprintf("--%s=%s", bountycli.FlagFindingPoc, ""),
+		fmt.Sprintf("--%s=%s", bountycli.FlagFindingDesc, desc),
+		fmt.Sprintf("--%s=%s", bountycli.FlagFindingTitle, title),
+		fmt.Sprintf("--%s=%s", bountycli.FlagFindingPoc, poc),
 		fmt.Sprintf("--%s=%d", bountycli.FlagProgramID, programId),
 		fmt.Sprintf("--%s=%d", bountycli.FlagFindingSeverityLevel, bountytypes.SeverityLevelMajor),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, submitAddr),
@@ -130,6 +130,34 @@ func (s *IntegrationTestSuite) executeRejectFinding(c *chain, valIdx, findingId 
 
 	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
 	s.T().Logf("%s successfully reject finding", hostAddr)
+}
+
+func (s *IntegrationTestSuite) executeReleaseFinding(c *chain, valIdx, findingId int, hostAddr, keyFile, fees string) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	s.T().Logf("Executing shentu bounty release finding on %s", c.id)
+
+	command := []string{
+		shentuBinary,
+		txCommand,
+		bountytypes.ModuleName,
+		"release-finding",
+		fmt.Sprintf("%d", findingId),
+		fmt.Sprintf("--%s=%s", bountycli.FlagEncKeyFile, keyFile),
+		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, hostAddr),
+		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
+		fmt.Sprintf("--%s=%s", sdkflags.FlagGas, "auto"),
+		fmt.Sprintf("--%s=%s", sdkflags.FlagFees, fees),
+		"--keyring-backend=test",
+		"--output=json",
+		"-y",
+	}
+
+	s.T().Logf("cmd: %s", strings.Join(command, " "))
+
+	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
+	s.T().Logf("%s successfully release finding", hostAddr)
 }
 
 func queryBountyProgram(endpoint string, programID int) (*bountytypes.QueryProgramResponse, error) {
