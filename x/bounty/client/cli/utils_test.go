@@ -113,6 +113,11 @@ func TestSaveLoadKey2(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	keyFile := SaveKey(decKey, "./", creator)
+	defer func() {
+		if _, err := os.Stat(keyFile); err == nil {
+			os.Remove(keyFile)
+		}
+	}()
 
 	var encAny *codectypes.Any
 	encKey := crypto.FromECDSAPub(&decKey.ExportECDSA().PublicKey)
