@@ -41,6 +41,10 @@ service Query {
   rpc Finding(QueryFindingRequest) returns (QueryFindingResponse) {
     option (google.api.http).get = "/shentu/bounty/v1/findings/{finding_id}";
   }
+
+  rpc NextProgramID(QueryNextProgramIDRequest) returns (QueryNextProgramIDResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/next-program-id";
+  }
 }
 
 // QueryHostsRequest is the request type for the Query/Hosts RPC method.
@@ -118,4 +122,10 @@ message QueryFindingRequest {
 // QueryFindingResponse is the response type for the Query/Finding RPC method.
 message QueryFindingResponse {
   Finding finding = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryNextProgramIDRequest {}
+
+message QueryNextProgramIDResponse {
+  uint64 next_program_id = 1;
 }

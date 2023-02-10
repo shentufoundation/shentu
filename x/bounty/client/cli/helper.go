@@ -65,3 +65,16 @@ func GetFinding(cmd *cobra.Command, findingID uint64) (*types.Finding, error) {
 	}
 	return &res.Finding, nil
 }
+
+func GetNextProgramID(cmd *cobra.Command) (uint64, error) {
+	clientCtx, err := client.GetClientTxContext(cmd)
+	if err != nil {
+		return 0, err
+	}
+	queryClient := types.NewQueryClient(clientCtx)
+	res, err := queryClient.NextProgramID(cmd.Context(), &types.QueryNextProgramIDRequest{})
+	if err != nil {
+		return 0, err
+	}
+	return res.NextProgramId, nil
+}

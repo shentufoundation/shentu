@@ -3,13 +3,9 @@ package cli
 import (
 	"bytes"
 	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
 	"os"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/proto"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -59,15 +55,7 @@ func TestSaveLoadKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	accAddress, _ := sdk.AccAddressFromBech32(creator)
-
-	decKeyBz := crypto.FromECDSA(decKey.ExportECDSA())
-	hasher := sha256.New()
-	hasher.Write([]byte(creator))
-	hasher.Write(decKeyBz)
-	keyFile := fmt.Sprintf("./dec-key-%s-%s.json", creator[6:12], hex.EncodeToString(hasher.Sum(nil))[:6])
-
-	SaveKey(decKey, "./", accAddress.String())
+	keyFile := SaveKey(decKey, "./", 1)
 	defer func() {
 		if _, err := os.Stat(keyFile); err == nil {
 			os.Remove(keyFile)
@@ -112,7 +100,7 @@ func TestSaveLoadKey2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	keyFile := SaveKey(decKey, "./", creator)
+	keyFile := SaveKey(decKey, "./", 2)
 	defer func() {
 		if _, err := os.Stat(keyFile); err == nil {
 			os.Remove(keyFile)

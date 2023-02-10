@@ -134,3 +134,9 @@ func (k Keeper) Finding(c context.Context, req *types.QueryFindingRequest) (*typ
 
 	return &types.QueryFindingResponse{Finding: finding}, nil
 }
+
+func (k Keeper) NextProgramID(c context.Context, req *types.QueryNextProgramIDRequest) (*types.QueryNextProgramIDResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	npid := k.GetNextProgramID(ctx)
+	return &types.QueryNextProgramIDResponse{NextProgramId: npid}, nil
+}

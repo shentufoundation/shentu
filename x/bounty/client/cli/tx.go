@@ -105,7 +105,11 @@ func NewCreateProgramCmd() *cobra.Command {
 					return fmt.Errorf("internal error, failed to generate key")
 				}
 				encKey = crypto.FromECDSAPub(&decKey.ExportECDSA().PublicKey)
-				filePath := SaveKey(decKey, clientCtx.HomeDir, creatorAddr.String())
+				npid, err := GetNextProgramID(cmd)
+				if err != nil {
+					panic("failed to GetNextProgramID when generating file name for dec key")
+				}
+				filePath := SaveKey(decKey, clientCtx.HomeDir, npid)
 				clientCtx.PrintString(fmt.Sprintf("The key is created and saved at %s.\n\n", filePath))
 			} else {
 				encKey = LoadPubKey(encKeyFile)
