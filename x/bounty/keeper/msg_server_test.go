@@ -6,11 +6,9 @@ import (
 	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-
+	types1 "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/ecies"
-
-	types1 "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
@@ -488,6 +486,9 @@ func (suite *KeeperTestSuite) TestReleaseFinding() {
 	programId, pubKey := suite.InitCreateProgram()
 	findingId := suite.InitSubmitFinding(programId, pubKey)
 
+	ctx := types1.WrapSDKContext(suite.ctx)
+	suite.msgServer.HostAcceptFinding(ctx, types.NewMsgHostAcceptFinding(findingId, nil, suite.address[0]))
+
 	testCases := []struct {
 		name    string
 		req     *types.MsgReleaseFinding
@@ -502,9 +503,9 @@ func (suite *KeeperTestSuite) TestReleaseFinding() {
 			"valid request => plain text is valid",
 			&types.MsgReleaseFinding{
 				FindingId:   findingId,
-				Desc:        "test desc",
-				Poc:         "test poc",
-				Comment:     "test comment",
+				Desc:        "Bug desc",
+				Poc:         "bug poc",
+				Comment:     "",
 				HostAddress: suite.address[0].String(),
 			},
 			true,
@@ -531,6 +532,7 @@ func (suite *KeeperTestSuite) TestReleaseFinding() {
 
 			if testCase.expPass {
 				suite.Require().NoError(err)
+
 				desc, ok := finding.FindingDesc.GetCachedValue().(types.FindingDesc)
 				suite.Require().True(ok)
 				suite.Require().Equal(string(desc.GetFindingDesc()), testCase.req.Desc)
@@ -539,9 +541,13 @@ func (suite *KeeperTestSuite) TestReleaseFinding() {
 				suite.Require().True(ok)
 				suite.Require().Equal(string(poc.GetFindingPoc()), testCase.req.Poc)
 
-				comment, ok := finding.FindingComment.GetCachedValue().(types.FindingComment)
-				suite.Require().True(ok)
-				suite.Require().Equal(string(comment.GetFindingComment()), testCase.req.Comment)
+				if testCase.req.Comment == "" {
+					suite.Require().Nil(finding.FindingComment)
+				} else {
+					comment, ok := finding.FindingComment.GetCachedValue().(types.FindingComment)
+					suite.Require().True(ok)
+					suite.Require().Equal(string(comment.GetFindingComment()), testCase.req.Comment)
+				}
 			} else {
 				suite.Require().Error(err)
 			}
