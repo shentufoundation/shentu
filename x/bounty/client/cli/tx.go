@@ -491,9 +491,9 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 
 func NewEndProgramCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "terminate-program [program-id]",
+		Use:   "end-program [program-id]",
 		Args:  cobra.ExactArgs(1),
-		Short: "terminate the program",
+		Short: "end the program",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

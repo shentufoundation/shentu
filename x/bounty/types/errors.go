@@ -12,9 +12,8 @@ const (
 	errProgramNotExists
 	errProgramInactive
 	errProgramCreatorInvalid
-	errProgramNotCreator
-	errProgramAlreadyTerminated
-	errProgramAlreadyEnded
+	errProgramNotAllowed
+	errProgramExpired
 )
 
 // Finding
@@ -32,9 +31,8 @@ var (
 	ErrProgramNotExists            = sdkerrors.Register(ModuleName, errProgramNotExists, "program does not exist")
 	ErrProgramInactive             = sdkerrors.Register(ModuleName, errProgramInactive, "program is inactive")
 	ErrProgramCreatorInvalid       = sdkerrors.Register(ModuleName, errProgramCreatorInvalid, "invalid program creator")
-	ErrProgramNotCreator           = sdkerrors.Register(ModuleName, errProgramNotCreator, "program access denied because you are not the creator")
-	ErrProgramAlreadyTerminated    = sdkerrors.Register(ModuleName, errProgramAlreadyTerminated, "the program was already terminated")
-	ErrProgramAlreadyEnded         = sdkerrors.Register(ModuleName, errProgramAlreadyEnded, "cannot terminate an ended program")
+	ErrProgramNotAllowed           = sdkerrors.Register(ModuleName, errProgramNotAllowed, "program access denied because you are not the creator or certifiers")
+	ErrProgramExpired              = sdkerrors.Register(ModuleName, errProgramExpired, "cannot end an expired program")
 )
 
 // [2xx] Finding

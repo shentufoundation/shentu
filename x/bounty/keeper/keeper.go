@@ -16,12 +16,13 @@ type Keeper struct {
 	paramSpace paramtypes.Subspace
 
 	//authKeeper authtypes.AccountKeeper
-	bk types.BankKeeper
+	bk         types.BankKeeper
+	certKeeper types.CertKeeper
 }
 
 // NewKeeper creates a new Keeper object
 func NewKeeper(
-	cdc codec.BinaryCodec, storeKey sdk.StoreKey, bk types.BankKeeper, paramSpace paramtypes.Subspace,
+	cdc codec.BinaryCodec, storeKey sdk.StoreKey, bk types.BankKeeper, ck types.CertKeeper, paramSpace paramtypes.Subspace,
 ) Keeper {
 
 	// set KeyTable if it has not already been set
@@ -34,6 +35,7 @@ func NewKeeper(
 		bk:         bk,
 		storeKey:   storeKey,
 		paramSpace: paramSpace,
+		certKeeper: ck,
 	}
 }
 

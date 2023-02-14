@@ -49,14 +49,14 @@ func (k Keeper) EndProgram(ctx sdk.Context, caller sdk.AccAddress, id uint64) er
 	if err != nil {
 		return types.ErrProgramCreatorInvalid
 	}
-	if !caller.Equals(host) {
-		return types.ErrProgramNotCreator
+	if !caller.Equals(host) && !k.certKeeper.IsCertifier(ctx, caller) {
+		return types.ErrProgramNotAllowed
 	}
 	if !program.Active {
-		return types.ErrProgramAlreadyTerminated
+		return types.ErrProgramInactive
 	}
 	if ctx.BlockTime().After(program.SubmissionEndTime) {
-		return types.ErrProgramAlreadyEnded
+		return types.ErrProgramExpired
 	}
 	program.Active = false
 	k.SetProgram(ctx, program)
