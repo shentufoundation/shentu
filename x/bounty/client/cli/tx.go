@@ -23,8 +23,6 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-const RandBytesLen = 64
-
 // NewTxCmd returns the transaction commands for the certification module.
 func NewTxCmd() *cobra.Command {
 	bountyTxCmds := &cobra.Command{

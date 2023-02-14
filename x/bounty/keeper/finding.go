@@ -6,9 +6,7 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/crypto/ecies"
-	"github.com/gogo/protobuf/proto"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
@@ -132,63 +130,61 @@ func BytesToUint64s(list []byte) ([]uint64, error) {
 	return r64, nil
 }
 
-func CheckPlainText(pubKey *ecies.PublicKey, plainText string, anyData *codectypes.Any) (bool, error) {
-	var randBytes []byte
-	var encryptData []byte
-
-	if anyData.TypeUrl == "/shentu.bounty.v1.EciesEncryptedDesc" {
-		var encrypted types.EciesEncryptedDesc
-		err := proto.Unmarshal(anyData.GetValue(), &encrypted)
-		if err != nil {
-			return false, err
+func CheckPlainText(pubKey *ecies.PublicKey, msg *types.MsgReleaseFinding, finding types.Finding) error {
+	if finding.GetFindingDesc() != nil {
+		encryptedDesc, ok := finding.GetFindingDesc().(*types.EciesEncryptedDesc)
+		if !ok {
+			return fmt.Errorf("invalid any data")
 		}
-
-		if len(encrypted.FindingDesc) < cli.RandBytesLen {
-			return false, types.ErrFindingEncryptedDataInvalid
+		if err := CheckEncryptedData(pubKey, msg.Desc, encryptedDesc.FindingDesc); err != nil {
+			return err
 		}
-		randBytesStart := len(encrypted.FindingDesc) - cli.RandBytesLen
-		encryptData = encrypted.FindingDesc[:randBytesStart]
-		randBytes = encrypted.FindingDesc[randBytesStart:]
-
-	} else if anyData.TypeUrl == "/shentu.bounty.v1.EciesEncryptedPoc" {
-		var encrypted types.EciesEncryptedPoc
-		err := proto.Unmarshal(anyData.GetValue(), &encrypted)
-		if err != nil {
-			return false, err
-		}
-
-		if len(encrypted.FindingPoc) < cli.RandBytesLen {
-			return false, types.ErrFindingEncryptedDataInvalid
-		}
-		randBytesStart := len(encrypted.FindingPoc) - cli.RandBytesLen
-		encryptData = encrypted.FindingPoc[:randBytesStart]
-		randBytes = encrypted.FindingPoc[randBytesStart:]
-	} else if anyData.TypeUrl == "/shentu.bounty.v1.EciesEncryptedComment" {
-		var encrypted types.EciesEncryptedComment
-		err := proto.Unmarshal(anyData.GetValue(), &encrypted)
-		if err != nil {
-			return false, err
-		}
-
-		if len(encrypted.FindingComment) < cli.RandBytesLen {
-			return false, types.ErrFindingEncryptedDataInvalid
-		}
-		randBytesStart := len(encrypted.FindingComment) - cli.RandBytesLen
-		encryptData = encrypted.FindingComment[:randBytesStart]
-		randBytes = encrypted.FindingComment[randBytesStart:]
-
-	} else {
-		return false, fmt.Errorf("invalid any data")
+	} else if msg.Desc != "" {
+		return types.ErrFindingPlainTextDataInvalid
 	}
+
+	if finding.GetFindingPoc() != nil {
+		encryptedPoc, ok := finding.GetFindingPoc().(*types.EciesEncryptedPoc)
+		if !ok {
+			return fmt.Errorf("invalid any data")
+		}
+		if err := CheckEncryptedData(pubKey, msg.Poc, encryptedPoc.FindingPoc); err != nil {
+			return err
+		}
+	} else if msg.Poc != "" {
+		return types.ErrFindingPlainTextDataInvalid
+	}
+
+	if finding.GetFindingComment() != nil {
+		encryptedComment, ok := finding.GetFindingComment().(*types.EciesEncryptedComment)
+		if !ok {
+			return fmt.Errorf("invalid any data")
+		}
+		if err := CheckEncryptedData(pubKey, msg.Comment, encryptedComment.FindingComment); err != nil {
+			return err
+		}
+	} else if msg.Comment != "" {
+		return types.ErrFindingPlainTextDataInvalid
+	}
+
+	return nil
+}
+
+func CheckEncryptedData(pubKey *ecies.PublicKey, plainText string, encryptedData []byte) error {
+	if len(encryptedData) < cli.RandBytesLen {
+		return types.ErrFindingEncryptedDataInvalid
+	}
+	randBytesStart := len(encryptedData) - cli.RandBytesLen
+	encryptData := encryptedData[:randBytesStart]
+	randBytes := encryptedData[randBytesStart:]
 
 	encryptedBytes, err := ecies.Encrypt(bytes.NewReader(randBytes), pubKey, []byte(plainText), nil, nil)
 	if err != nil {
-		return false, types.ErrProgramPubKey
+		return types.ErrProgramPubKey
 	}
 
 	if !bytes.Equal(encryptedBytes, encryptData) {
-		return false, types.ErrFindingPlainTextDataInvalid
+		return types.ErrFindingPlainTextDataInvalid
 	}
-
-	return true, nil
+	return nil
 }

@@ -17,6 +17,8 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
+const RandBytesLen = 64
+
 // SaveKey saves the given key to a file as json and panics on error.
 func SaveKey(privKey *ecies.PrivateKey, dirPath string) {
 	if dirPath == "" {

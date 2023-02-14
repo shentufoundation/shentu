@@ -274,52 +274,8 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 		return nil, types.ErrProgramPubKey
 	}
 
-	if msg.Desc != "" {
-		ok, err := CheckPlainText(pubKey, msg.Desc, finding.FindingDesc)
-		if !ok {
-			return nil, err
-		}
-
-		plainTextDesc := types.PlainTextDesc{
-			FindingDesc: []byte(msg.Desc),
-		}
-		descAny, err := codectypes.NewAnyWithValue(&plainTextDesc)
-		if err != nil {
-			return nil, err
-		}
-		finding.FindingDesc = descAny
-	}
-
-	if msg.Poc != "" {
-		ok, err := CheckPlainText(pubKey, msg.Poc, finding.FindingPoc)
-		if !ok {
-			return nil, err
-		}
-
-		plainTextPoc := types.PlainTextPoc{
-			FindingPoc: []byte(msg.Poc),
-		}
-		pocAny, err := codectypes.NewAnyWithValue(&plainTextPoc)
-		if err != nil {
-			return nil, err
-		}
-		finding.FindingPoc = pocAny
-	}
-
-	if msg.Comment != "" {
-		ok, err := CheckPlainText(pubKey, msg.Comment, finding.FindingComment)
-		if !ok {
-			return nil, err
-		}
-
-		plainTextComment := types.PlainTextComment{
-			FindingComment: []byte(msg.Comment),
-		}
-		commentAny, err := codectypes.NewAnyWithValue(&plainTextComment)
-		if err != nil {
-			return nil, err
-		}
-		finding.FindingComment = commentAny
+	if err = CheckPlainText(pubKey, msg, finding); err != nil {
+		return nil, err
 	}
 
 	k.SetFinding(ctx, finding)
