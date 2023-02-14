@@ -17,7 +17,7 @@ func TestDefaultGenesisState(t *testing.T) {
 // func ValidateGenesis(data *GenesisState) error {
 func TestValidateGenesis(t *testing.T) {
 	type args struct {
-		dataGS []GenesisState
+		dataGS GenesisState
 	}
 
 	type errArgs struct {
@@ -31,48 +31,44 @@ func TestValidateGenesis(t *testing.T) {
 	}{
 		{"genesis(1)  -> success",
 			args{
-				dataGS: []GenesisState{
-					*DefaultGenesisState(),
-				},
+				dataGS: *DefaultGenesisState(),
 			},
 			errArgs{
 				shouldPass: true,
 			},
 		},
-		{"genesis(2)  -> fail",
+		{
+			"genesis(2)  -> fail",
 			args{
-				dataGS: []GenesisState{
-					{
-						StartingFindingId: 1,
-						StartingProgramId: 1,
-						Programs: []Program{
-							{
-								ProgramId: 100,
-							},
+				dataGS: GenesisState{
+					StartingFindingId: 1,
+					StartingProgramId: 1,
+					Programs: []Program{
+						{
+							ProgramId: 100,
 						},
-						Findings: []Finding{},
 					},
+					Findings: []Finding{},
 				},
 			},
 			errArgs{
 				shouldPass: false,
 			},
 		},
+
 		{"genesis(3)  -> findingId error",
 			args{
-				dataGS: []GenesisState{
-					{
-						StartingFindingId: 1,
-						StartingProgramId: 1,
-						Programs: []Program{
-							{
-								ProgramId: 1,
-							},
+				dataGS: GenesisState{
+					StartingFindingId: 1,
+					StartingProgramId: 1,
+					Programs: []Program{
+						{
+							ProgramId: 1,
 						},
-						Findings: []Finding{
-							{
-								FindingId: 100,
-							},
+					},
+					Findings: []Finding{
+						{
+							FindingId: 100,
 						},
 					},
 				},
@@ -81,22 +77,20 @@ func TestValidateGenesis(t *testing.T) {
 				shouldPass: false,
 			},
 		},
-		{"genesis(3)  -> invalid programId error",
+		{"genesis(4)  -> invalid programId error",
 			args{
-				dataGS: []GenesisState{
-					{
-						StartingFindingId: 1,
-						StartingProgramId: 1,
-						Programs: []Program{
-							{
-								ProgramId: 1,
-							},
+				dataGS: GenesisState{
+					StartingFindingId: 1,
+					StartingProgramId: 1,
+					Programs: []Program{
+						{
+							ProgramId: 1,
 						},
-						Findings: []Finding{
-							{
-								ProgramId: 10,
-								FindingId: 1,
-							},
+					},
+					Findings: []Finding{
+						{
+							ProgramId: 10,
+							FindingId: 1,
 						},
 					},
 				},
@@ -108,13 +102,11 @@ func TestValidateGenesis(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		for _, data := range tc.args.dataGS {
-			err := ValidateGenesis(&data)
-			if tc.errArgs.shouldPass {
-				require.NoError(t, err)
-			} else {
-				require.Error(t, err)
-			}
+		err := ValidateGenesis(&tc.args.dataGS)
+		if tc.errArgs.shouldPass {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err)
 		}
 	}
 }
