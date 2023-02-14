@@ -37,9 +37,13 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmit
 		return nil, err
 	}
 
-	votingStarted, err := k.AddDeposit(ctx, proposal.ProposalId, msg.GetProposer(), msg.GetInitialDeposit())
-	if err != nil {
-		return nil, err
+	// Skip deposit period for proposals of certifier members.
+	votingStarted := k.ActivateCertifierProposalVotingPeriod(ctx, proposal, msg.GetProposer())
+	if !votingStarted {
+		votingStarted, err = k.AddDeposit(ctx, proposal.ProposalId, msg.GetProposer(), msg.GetInitialDeposit())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err := updateAfterSubmitProposal(ctx, k.Keeper, proposal); err != nil {

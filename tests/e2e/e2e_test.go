@@ -123,22 +123,7 @@ func (s *IntegrationTestSuite) TestSubmitProposal() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.Status == govtypes.StatusDepositPeriod && res.Proposal.ProposalId == uint64(proposalCounter)
-			},
-			20*time.Second,
-			5*time.Second,
-		)
-	})
-
-	s.Run("add_deposit", func() {
-		s.T().Logf("add_deposit proposal %d on chain %s", proposalCounter, s.chainA.id)
-		s.executeDepositProposal(s.chainA, 0, validatorAAddr.String(), proposalCounter, depositAmountCoin.String(), feesAmountCoin.String())
-
-		s.Require().Eventually(
-			func() bool {
-				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
-				s.Require().NoError(err)
-				return res.Proposal.Status == govtypes.StatusVotingPeriod
+				return res.Proposal.Status == govtypes.StatusVotingPeriod && res.Proposal.ProposalId == uint64(proposalCounter)
 			},
 			20*time.Second,
 			5*time.Second,
@@ -147,9 +132,7 @@ func (s *IntegrationTestSuite) TestSubmitProposal() {
 
 	s.Run("voting_proposal", func() {
 		s.T().Logf("Voting upgrade proposal %d", proposalCounter)
-		// First round, certifier vote
-		s.executeVoteProposal(s.chainA, 0, validatorAAddr.String(), proposalCounter, "yes", feesAmountCoin.String())
-		// Second round, validator vote
+		// vote
 		s.executeVoteProposal(s.chainA, 0, validatorAAddr.String(), proposalCounter, "yes", feesAmountCoin.String())
 
 		// Validate proposal status

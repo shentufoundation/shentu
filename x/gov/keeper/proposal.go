@@ -137,3 +137,13 @@ func (k Keeper) HasSecurityVoting(p govtypes.Proposal) bool {
 		return false
 	}
 }
+
+// ActivateCertifierProposalVotingPeriod only switches proposals of certifier members.
+func (k Keeper) ActivateCertifierProposalVotingPeriod(ctx sdk.Context, proposal govtypes.Proposal, addr sdk.AccAddress) bool {
+	if k.IsCertifier(ctx, addr) {
+		k.SetCertifierVoted(ctx, proposal.ProposalId)
+		k.ActivateVotingPeriod(ctx, proposal)
+		return true
+	}
+	return false
+}
