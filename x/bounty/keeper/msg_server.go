@@ -314,19 +314,19 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 	return &types.MsgReleaseFindingResponse{}, nil
 }
 
-func (k msgServer) TerminateProgram(goCtx context.Context, msg *types.MsgTerminateProgram) (*types.MsgTerminateProgramResponse, error) {
+func (k msgServer) EndProgram(goCtx context.Context, msg *types.MsgEndProgram) (*types.MsgEndProgramResponse, error) {
 	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
 		return nil, err
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	err = k.Keeper.TerminateProgram(ctx, fromAddr, msg.ProgramId)
+	err = k.Keeper.EndProgram(ctx, fromAddr, msg.ProgramId)
 	if err != nil {
 		return nil, err
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeTerminateProgram,
+			types.EventTypeEndProgram,
 			sdk.NewAttribute(types.AttributeKeyProgramID, strconv.FormatUint(msg.ProgramId, 10)),
 		),
 		sdk.NewEvent(
@@ -335,5 +335,5 @@ func (k msgServer) TerminateProgram(goCtx context.Context, msg *types.MsgTermina
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
 		),
 	})
-	return &types.MsgTerminateProgramResponse{}, nil
+	return &types.MsgEndProgramResponse{}, nil
 }

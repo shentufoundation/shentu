@@ -40,7 +40,7 @@ func (k Keeper) SetNextProgramID(ctx sdk.Context, id uint64) {
 	store.Set(types.GetNextProgramIDKey(), bz)
 }
 
-func (k Keeper) TerminateProgram(ctx sdk.Context, caller sdk.AccAddress, id uint64) error {
+func (k Keeper) EndProgram(ctx sdk.Context, caller sdk.AccAddress, id uint64) error {
 	program, found := k.GetProgram(ctx, id)
 	if !found {
 		return types.ErrProgramNotExists

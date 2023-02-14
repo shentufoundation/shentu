@@ -37,7 +37,7 @@ func NewTxCmd() *cobra.Command {
 		NewHostRejectFindingCmd(),
 		NewCancelFindingCmd(),
 		NewReleaseFindingCmd(),
-		NewTerminateProgramCmd(),
+		NewEndProgramCmd(),
 	)
 
 	return bountyTxCmds
@@ -489,7 +489,7 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 	return desc, poc, comment, nil
 }
 
-func NewTerminateProgramCmd() *cobra.Command {
+func NewEndProgramCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "terminate-program [program-id]",
 		Args:  cobra.ExactArgs(1),
@@ -504,7 +504,7 @@ func NewTerminateProgramCmd() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("program-id %s is not a valid uint", args[0])
 			}
-			msg := types.NewMsgTerminateProgram(fromAddr.String(), pid)
+			msg := types.NewMsgEndProgram(fromAddr.String(), pid)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
