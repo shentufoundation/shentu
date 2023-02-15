@@ -62,6 +62,9 @@ func (f Finding) UnpackInterfaces(unpacker codecTypes.AnyUnpacker) error {
 }
 
 func (f Finding) GetFindingDesc() FindingDesc {
+	if f.FindingDesc == nil {
+		return nil
+	}
 	desc, ok := f.FindingDesc.GetCachedValue().(FindingDesc)
 	if !ok {
 		return nil
@@ -70,6 +73,9 @@ func (f Finding) GetFindingDesc() FindingDesc {
 }
 
 func (f Finding) GetFindingPoc() FindingPoc {
+	if f.FindingPoc == nil {
+		return nil
+	}
 	poc, ok := f.FindingPoc.GetCachedValue().(FindingPoc)
 	if !ok {
 		return nil
@@ -78,6 +84,9 @@ func (f Finding) GetFindingPoc() FindingPoc {
 }
 
 func (f Finding) GetFindingComment() FindingComment {
+	if f.FindingComment == nil {
+		return nil
+	}
 	comment, ok := f.FindingComment.GetCachedValue().(FindingComment)
 	if !ok {
 		return nil
