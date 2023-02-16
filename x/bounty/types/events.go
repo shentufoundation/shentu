@@ -7,6 +7,7 @@ const (
 	EventTypeRejectFinding  = "reject_finding"
 	EventTypeCancelFinding  = "cancel_finding"
 	EventTypeReleaseFinding = "release_finding"
+	EventTypeEndProgram     = "end_program"
 
 	AttributeKeyProgramID = "program_id"
 	AttributeKeyDeposit   = "deposit"

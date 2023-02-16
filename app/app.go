@@ -408,6 +408,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 		appCodec,
 		keys[bountytypes.StoreKey],
 		app.BankKeeper,
+		app.CertKeeper,
 		app.GetSubspace(bountytypes.ModuleName),
 	)
 
