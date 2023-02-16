@@ -21,11 +21,27 @@ func TestExportGenesis(t *testing.T) {
 			{
 				ProgramId: 1,
 			},
+			{
+				ProgramId: 2,
+			},
+			{
+				ProgramId: 4,
+			},
+			{
+				ProgramId: 5,
+			},
+			{
+				ProgramId: 8,
+			},
 		},
 		Findings: []types.Finding{
 			{
 				FindingId: 1,
 				ProgramId: 1,
+			},
+			{
+				FindingId: 4,
+				ProgramId: 5,
 			},
 		},
 	}

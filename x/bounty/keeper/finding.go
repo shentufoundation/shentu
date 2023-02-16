@@ -109,6 +109,21 @@ func (k Keeper) DeleteFidFromFidList(ctx sdk.Context, pid, fid uint64) error {
 	return types.ErrFindingNotExists
 }
 
+func (k Keeper) GetAllFindings(ctx sdk.Context) []types.Finding {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.FindingKey)
+
+	var findings []types.Finding
+	var finding types.Finding
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		k.cdc.MustUnmarshal(iterator.Value(), &finding)
+		findings = append(findings, finding)
+	}
+	return findings
+}
+
 func Uint64sToBytes(list []uint64) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	err := binary.Write(buf, binary.LittleEndian, list)

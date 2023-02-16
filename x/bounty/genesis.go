@@ -14,7 +14,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 
 	for _, finding := range data.Findings {
 		k.SetFinding(ctx, finding)
-		k.AppendFidToFidList(ctx, finding.ProgramId, finding.FindingId)
+		if err := k.AppendFidToFidList(ctx, finding.ProgramId, finding.FindingId); err != nil {
+			panic(err)
+		}
 	}
 
 	for _, program := range data.Programs {
@@ -23,27 +25,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 }
 
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
-	var programs []types.Program
-	var findings []types.Finding
-
 	maxFindingID := k.GetNextFindingID(ctx)
 	maxProgramID := k.GetNextProgramID(ctx)
-	for programID := uint64(1); programID < maxProgramID; programID++ {
-		program, ok := k.GetProgram(ctx, programID)
-		if ok {
-			programs = append(programs, program)
 
-			findingIDs, err := k.GetPidFindingIDList(ctx, program.ProgramId)
-			if err == nil {
-				for _, fid := range findingIDs {
-					finding, ok := k.GetFinding(ctx, fid)
-					if ok {
-						findings = append(findings, finding)
-					}
-				}
-			}
-		}
-	}
+	programs := k.GetAllPrograms(ctx)
+	findings := k.GetAllFindings(ctx)
 
 	return &types.GenesisState{
 		StartingFindingId: maxFindingID,
