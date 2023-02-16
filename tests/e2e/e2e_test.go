@@ -391,4 +391,18 @@ func (s *IntegrationTestSuite) TestBounty() {
 			5*time.Second,
 		)
 	})
+
+	s.Run("end_program", func() {
+		s.T().Logf("End program %d chain %s", bountyProgramCounter, s.chainA.id)
+		s.executeEndProgram(s.chainA, 0, bountyFindingCounter, accountAAddr.String(), feesAmountCoin.String())
+		s.Require().Eventually(
+			func() bool {
+				rsp, err := queryBountyProgram(chainAAPIEndpoint, bountyProgramCounter)
+				s.Require().NoError(err)
+				return rsp.GetProgram().Active == false
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
 }

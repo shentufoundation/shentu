@@ -111,7 +111,7 @@ func (s *IntegrationTestSuite) sendIBC(srcChainID, dstChainID, recipient string,
 func (s *IntegrationTestSuite) getLatestBlockHeight(endpoint string) (int64, error) {
 	grpcReq := &tmservice.GetLatestBlockRequest{}
 
-	conn, err := connectGrpc(endpoint)
+	conn, _ := connectGrpc(endpoint)
 	defer conn.Close()
 	client := tmservice.NewServiceClient(conn)
 
@@ -194,7 +194,7 @@ func queryShentuTx(endpoint, txHash string) error {
 		Hash: txHash,
 	}
 
-	conn, err := connectGrpc(endpoint)
+	conn, _ := connectGrpc(endpoint)
 	defer conn.Close()
 	client := tx.NewServiceClient(conn)
 
@@ -214,7 +214,7 @@ func queryShentuAllBalances(endpoint, addr string) (sdk.Coins, error) {
 		Address: addr,
 	}
 
-	conn, err := connectGrpc(endpoint)
+	conn, _ := connectGrpc(endpoint)
 	defer conn.Close()
 	client := banktypes.NewQueryClient(conn)
 
@@ -233,7 +233,7 @@ func queryShentuDenomBalance(endpoint, addr, denom string) (sdk.Coin, error) {
 		Denom:   denom,
 	}
 
-	conn, err := connectGrpc(endpoint)
+	conn, _ := connectGrpc(endpoint)
 	defer conn.Close()
 	client := banktypes.NewQueryClient(conn)
 

@@ -160,6 +160,33 @@ func (s *IntegrationTestSuite) executeReleaseFinding(c *chain, valIdx, findingId
 	s.T().Logf("%s successfully release finding", hostAddr)
 }
 
+func (s *IntegrationTestSuite) executeEndProgram(c *chain, valIdx, programId int, hostAddr, fees string) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	s.T().Logf("Executing shentu bounty release finding on %s", c.id)
+
+	command := []string{
+		shentuBinary,
+		txCommand,
+		bountytypes.ModuleName,
+		"end-program",
+		fmt.Sprintf("%d", programId),
+		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, hostAddr),
+		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
+		fmt.Sprintf("--%s=%s", sdkflags.FlagGas, "auto"),
+		fmt.Sprintf("--%s=%s", sdkflags.FlagFees, fees),
+		"--keyring-backend=test",
+		"--output=json",
+		"-y",
+	}
+
+	s.T().Logf("cmd: %s", strings.Join(command, " "))
+
+	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
+	s.T().Logf("%s successfully end program", hostAddr)
+}
+
 func queryBountyProgram(endpoint string, programID int) (*bountytypes.QueryProgramResponse, error) {
 	grpcReq := &bountytypes.QueryProgramRequest{
 		ProgramId: uint64(programID),
