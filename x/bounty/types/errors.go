@@ -12,6 +12,8 @@ const (
 	errProgramNotExists
 	errProgramInactive
 	errProgramCreatorInvalid
+	errProgramNotAllowed
+	errProgramExpired
 	errProgramPubKey
 )
 
@@ -32,6 +34,8 @@ var (
 	ErrProgramNotExists            = sdkerrors.Register(ModuleName, errProgramNotExists, "program does not exist")
 	ErrProgramInactive             = sdkerrors.Register(ModuleName, errProgramInactive, "program is inactive")
 	ErrProgramCreatorInvalid       = sdkerrors.Register(ModuleName, errProgramCreatorInvalid, "invalid program creator")
+	ErrProgramNotAllowed           = sdkerrors.Register(ModuleName, errProgramNotAllowed, "program access denied because you are not the creator or certifiers")
+	ErrProgramExpired              = sdkerrors.Register(ModuleName, errProgramExpired, "cannot end an expired program")
 	ErrProgramPubKey               = sdkerrors.Register(ModuleName, errProgramPubKey, "invalid program public key")
 )
 

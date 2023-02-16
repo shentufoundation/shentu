@@ -30,6 +30,9 @@ service Msg {
 
   // MsgReleaseFinding defines a method for release a finding.
   rpc ReleaseFinding(MsgReleaseFinding) returns (MsgReleaseFindingResponse);
+
+  // End a program by program_id
+  rpc EndProgram(MsgEndProgram) returns (MsgEndProgramResponse);
 }
 
 // MsgCreateProgram defines a SDK message for creating a new program.
@@ -123,3 +126,14 @@ message MsgReleaseFinding {
 
 // MsgReleaseFindingResponse defines the MsgReleaseFinding response type.
 message MsgReleaseFindingResponse {}
+
+//MsgEndProgram defines a message to terminate a program so that no more findings could be submitted for it
+message MsgEndProgram {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string from       = 1 [(gogoproto.moretags) = "yaml:\"from\""];
+  uint64 program_id = 2 [(gogoproto.moretags) = "yaml:\"program_id\""];
+}
+
+message MsgEndProgramResponse {}
