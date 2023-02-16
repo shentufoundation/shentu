@@ -1,13 +1,23 @@
 package cli
 
 import (
+	"bytes"
+	"crypto/rand"
+	"fmt"
 	"os"
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/ecies"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/tendermint/tendermint/libs/tempfile"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
+
+const RandBytesLen = 64
 
 // SaveKey saves the given key to a file as json and panics on error.
 func SaveKey(privKey *ecies.PrivateKey, dirPath string) {
@@ -49,4 +59,32 @@ func LoadPrvKey(filePath string) *ecies.PrivateKey {
 	}
 
 	return ecies.ImportECDSA(prvK)
+}
+
+func KeyAnyToPubKey(keyAny *codectypes.Any) (*ecies.PublicKey, error) {
+	if keyAny == nil {
+		return nil, fmt.Errorf("empty public key")
+	}
+	var encryptionKey types.EciesPubKey
+	err := proto.Unmarshal(keyAny.GetValue(), &encryptionKey)
+	if err != nil {
+		return nil, err
+	}
+
+	pubEcdsa, err := crypto.UnmarshalPubkey(encryptionKey.EncryptionKey)
+	if err != nil {
+		return nil, err
+	}
+	eciesEncKey := ecies.ImportECDSAPublic(pubEcdsa)
+
+	return eciesEncKey, nil
+}
+
+func GetRandBytes() ([]byte, *bytes.Reader) {
+	randBytes := make([]byte, RandBytesLen)
+	_, err := rand.Read(randBytes)
+	if err != nil {
+		panic("could not read from random source: " + err.Error())
+	}
+	return randBytes, bytes.NewReader(randBytes)
 }

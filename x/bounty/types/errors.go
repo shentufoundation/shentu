@@ -14,6 +14,7 @@ const (
 	errProgramCreatorInvalid
 	errProgramNotAllowed
 	errProgramExpired
+	errProgramPubKey
 )
 
 // Finding
@@ -21,6 +22,8 @@ const (
 	errFindingNotExists uint32 = iota + 201
 	errFindingStatusInvalid
 	errFindingSubmitterInvalid
+	errFindingPlainTextDataInvalid
+	errFindingEncryptedDataInvalid
 )
 
 // [1xx] Program
@@ -33,11 +36,14 @@ var (
 	ErrProgramCreatorInvalid       = sdkerrors.Register(ModuleName, errProgramCreatorInvalid, "invalid program creator")
 	ErrProgramNotAllowed           = sdkerrors.Register(ModuleName, errProgramNotAllowed, "program access denied because you are not the creator or certifiers")
 	ErrProgramExpired              = sdkerrors.Register(ModuleName, errProgramExpired, "cannot end an expired program")
+	ErrProgramPubKey               = sdkerrors.Register(ModuleName, errProgramPubKey, "invalid program public key")
 )
 
 // [2xx] Finding
 var (
-	ErrFindingNotExists        = sdkerrors.Register(ModuleName, errFindingNotExists, "finding does not exist")
-	ErrFindingStatusInvalid    = sdkerrors.Register(ModuleName, errFindingStatusInvalid, "invalid finding status")
-	ErrFindingSubmitterInvalid = sdkerrors.Register(ModuleName, errFindingSubmitterInvalid, "invalid finding submitter")
+	ErrFindingNotExists            = sdkerrors.Register(ModuleName, errFindingNotExists, "finding does not exist")
+	ErrFindingStatusInvalid        = sdkerrors.Register(ModuleName, errFindingStatusInvalid, "invalid finding status")
+	ErrFindingSubmitterInvalid     = sdkerrors.Register(ModuleName, errFindingSubmitterInvalid, "invalid finding submitter")
+	ErrFindingPlainTextDataInvalid = sdkerrors.Register(ModuleName, errFindingPlainTextDataInvalid, "invalid finding plain text data")
+	ErrFindingEncryptedDataInvalid = sdkerrors.Register(ModuleName, errFindingEncryptedDataInvalid, "invalid finding encrypted data")
 )

@@ -68,7 +68,9 @@ func TestSaveLoadKey(t *testing.T) {
 	pubEcies := ecies.ImportECDSAPublic(pubEcdsa)
 
 	message := []byte("test234567891011")
-	ct, err := ecies.Encrypt(rand.Reader, pubEcies, message, nil, nil)
+	_, reader := GetRandBytes()
+
+	ct, err := ecies.Encrypt(reader, pubEcies, message, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +120,8 @@ func TestSaveLoadKey2(t *testing.T) {
 	}
 	eciesEncKey := ecies.ImportECDSAPublic(pubEcdsa)
 
-	encryptedDescBytes, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(testText), nil, nil)
+	_, reader := GetRandBytes()
+	encryptedDescBytes, err := ecies.Encrypt(reader, eciesEncKey, []byte(testText), nil, nil)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -146,5 +149,13 @@ func TestSaveLoadKey2(t *testing.T) {
 	}
 	if string(descBytes) != testText {
 		t.Fatal("error")
+	}
+}
+
+func TestGetRandBytes(t *testing.T) {
+	randBytes, reader := GetRandBytes()
+
+	if reader == nil || randBytes == nil {
+		t.Fatal("GetRandBytes error")
 	}
 }
