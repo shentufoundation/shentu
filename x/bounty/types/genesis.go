@@ -36,8 +36,8 @@ func ValidateGenesis(data *GenesisState) error {
 			return fmt.Errorf("repeat programId:%d", program.ProgramId)
 		}
 
-		if !program.Valid() {
-			return fmt.Errorf("invalid program [programId:%d]", program.ProgramId)
+		if err := program.ValidateBasic(); err != nil {
+			return err
 		}
 		programIds[program.ProgramId] = true
 	}
@@ -52,8 +52,8 @@ func ValidateGenesis(data *GenesisState) error {
 		if finding.FindingId > data.StartingFindingId {
 			return fmt.Errorf("error finding id")
 		}
-		if !finding.Valid() {
-			return fmt.Errorf("invalid finding [fingdingId:%d]", finding.FindingId)
+		if err := finding.ValidateBasic(); err != nil {
+			return err
 		}
 	}
 	return nil
