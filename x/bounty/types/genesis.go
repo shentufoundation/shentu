@@ -26,26 +26,28 @@ func DefaultGenesisState() *GenesisState {
 
 // ValidateGenesis - validate bounty genesis data
 func ValidateGenesis(data *GenesisState) error {
-	programIds := make(map[uint64]bool)
-	for _, program := range data.Programs {
+	programs := make(map[uint64]int)
+	for i, program := range data.Programs {
 		if program.ProgramId > data.StartingProgramId {
 			return ErrProgramID
 		}
 
-		_, ok := programIds[program.ProgramId]
+		programIndex, ok := programs[program.ProgramId]
 		if ok {
-			return sdkerrors.Wrapf(ErrProgramID, "repeat programId:%d", program.ProgramId)
+			//repeat programId
+			return sdkerrors.Wrapf(ErrProgramID, "already program[%s], this program[%s]",
+				data.Programs[programIndex].String(), program.String())
 		}
 
 		if err := program.ValidateBasic(); err != nil {
 			return err
 		}
-		programIds[program.ProgramId] = true
+		programs[program.ProgramId] = i
 	}
 
 	for _, finding := range data.Findings {
 		//Check if it is a valid programID
-		_, ok := programIds[finding.ProgramId]
+		_, ok := programs[finding.ProgramId]
 		if !ok {
 			return ErrProgramID
 		}

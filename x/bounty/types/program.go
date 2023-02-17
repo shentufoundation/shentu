@@ -33,14 +33,16 @@ func (m *Program) ValidateBasic() error {
 }
 
 func (m *Finding) ValidateBasic() error {
-	if m.ProgramId == 0 ||
-		m.FindingId == 0 ||
-		m.SeverityLevel < 0 ||
-		int(m.SeverityLevel) >= len(SeverityLevel_name) ||
-		int(m.FindingStatus) >= len(FindingStatus_name) {
-		return fmt.Errorf("finding programId[%d] or findingId[%d] or SeverityLevel[%d] or findingStatus[%d] is error",
-			m.ProgramId, m.FindingId, m.SeverityLevel, m.FindingStatus)
+	if m.ProgramId == 0 {
+		return ErrProgramID
+	} else if m.FindingId == 0 {
+		return ErrFindingID
+	} else if m.SeverityLevel < 0 || int(m.SeverityLevel) >= len(SeverityLevel_name) {
+		return fmt.Errorf("invalid SeverityLevel:%d", m.SeverityLevel)
+	} else if int(m.FindingStatus) >= len(FindingStatus_name) {
+		return fmt.Errorf("invalid finding status:%d", m.FindingStatus)
 	}
+
 	if _, err := sdk.AccAddressFromBech32(m.SubmitterAddress); err != nil {
 		return err
 	}
