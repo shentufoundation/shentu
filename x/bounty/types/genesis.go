@@ -1,6 +1,8 @@
 package types
 
-import "fmt"
+import (
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+)
 
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(startingProgramID, startingFindingID uint64, programs []Program, findings []Finding) *GenesisState {
@@ -27,13 +29,12 @@ func ValidateGenesis(data *GenesisState) error {
 	programIds := make(map[uint64]bool)
 	for _, program := range data.Programs {
 		if program.ProgramId > data.StartingProgramId {
-			return fmt.Errorf("error program id")
+			return ErrProgramID
 		}
 
 		_, ok := programIds[program.ProgramId]
 		if ok {
-			//repeat program
-			return fmt.Errorf("repeat programId:%d", program.ProgramId)
+			return sdkerrors.Wrapf(ErrProgramID, "repeat programId:%d", program.ProgramId)
 		}
 
 		if err := program.ValidateBasic(); err != nil {
@@ -46,11 +47,11 @@ func ValidateGenesis(data *GenesisState) error {
 		//Check if it is a valid programID
 		_, ok := programIds[finding.ProgramId]
 		if !ok {
-			return fmt.Errorf("programID:%d is invalid programID", finding.ProgramId)
+			return ErrProgramID
 		}
 
 		if finding.FindingId > data.StartingFindingId {
-			return fmt.Errorf("error finding id")
+			return ErrFindingID
 		}
 		if err := finding.ValidateBasic(); err != nil {
 			return err

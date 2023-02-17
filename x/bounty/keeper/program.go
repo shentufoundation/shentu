@@ -21,6 +21,21 @@ func (k Keeper) GetProgram(ctx sdk.Context, id uint64) (types.Program, bool) {
 	return program, true
 }
 
+func (k Keeper) GetAllPrograms(ctx sdk.Context) []types.Program {
+	store := ctx.KVStore(k.storeKey)
+
+	var programs []types.Program
+	var program types.Program
+
+	iterator := sdk.KVStorePrefixIterator(store, types.ProgramsKey)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		k.cdc.MustUnmarshal(iterator.Value(), &program)
+		programs = append(programs, program)
+	}
+	return programs
+}
+
 func (k Keeper) SetProgram(ctx sdk.Context, program types.Program) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&program)
@@ -41,22 +56,6 @@ func (k Keeper) SetNextProgramID(ctx sdk.Context, id uint64) {
 	bz := make([]byte, 8)
 	binary.LittleEndian.PutUint64(bz, id)
 	store.Set(types.GetNextProgramIDKey(), bz)
-}
-
-
-func (k Keeper) GetAllPrograms(ctx sdk.Context) []types.Program {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ProgramsKey)
-
-	var programs []types.Program
-	var program types.Program
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		k.cdc.MustUnmarshal(iterator.Value(), &program)
-		programs = append(programs, program)
-	}
-	return programs
 }
 
 func (k Keeper) EndProgram(ctx sdk.Context, caller sdk.AccAddress, id uint64) error {
