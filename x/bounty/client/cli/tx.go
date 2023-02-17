@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/spf13/cobra"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -36,6 +37,7 @@ func NewTxCmd() *cobra.Command {
 		NewHostRejectFindingCmd(),
 		NewCancelFindingCmd(),
 		NewReleaseFindingCmd(),
+		NewEndProgramCmd(),
 	)
 
 	return bountyTxCmds
@@ -204,10 +206,12 @@ func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny
 		return nil, nil, err
 	}
 
-	encryptedDescBytes, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(desc), nil, nil)
+	randBytes, reader := GetRandBytes()
+	encryptedDescBytes, err := ecies.Encrypt(reader, eciesEncKey, []byte(desc), nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
+	encryptedDescBytes = append(encryptedDescBytes, randBytes...)
 	encDesc := types.EciesEncryptedDesc{
 		FindingDesc: encryptedDescBytes,
 	}
@@ -216,10 +220,14 @@ func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny
 		return nil, nil, err
 	}
 
-	encryptedPocBytes, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(poc), nil, nil)
+	//start encrypting poc
+	randBytes, reader = GetRandBytes()
+	encryptedPocBytes, err := ecies.Encrypt(reader, eciesEncKey, []byte(poc), nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	encryptedPocBytes = append(encryptedPocBytes, randBytes...)
 	encPoc := types.EciesEncryptedPoc{
 		FindingPoc: encryptedPocBytes,
 	}
@@ -227,7 +235,7 @@ func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny
 	if err != nil {
 		return nil, nil, err
 	}
-	return
+	return descAny, pocAny, nil
 }
 
 // NewHostAcceptFindingCmd implements accept a finding by host.
@@ -346,10 +354,12 @@ func HostProcessFinding(cmd *cobra.Command, args []string) (fid uint64,
 		return fid, commentAny, hostAddr, err
 	}
 
-	encryptedComment, err := ecies.Encrypt(rand.Reader, eciesEncKey, []byte(comment), nil, nil)
+	randBytes, reader := GetRandBytes()
+	encryptedComment, err := ecies.Encrypt(reader, eciesEncKey, []byte(comment), nil, nil)
 	if err != nil {
 		return fid, commentAny, hostAddr, err
 	}
+	encryptedComment = append(encryptedComment, randBytes...)
 	encComment := types.EciesEncryptedComment{
 		FindingComment: encryptedComment,
 	}
@@ -380,13 +390,16 @@ func NewCancelFindingCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
+	flags.AddTxFlagsToCmd(cmd)
+
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	return cmd
 }
 
 func NewReleaseFindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "release-finding",
+		Use:   "release-finding [finding-id]",
+		Args:  cobra.ExactArgs(1),
 		Short: "release encrypted part of a finding ",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -395,9 +408,9 @@ func NewReleaseFindingCmd() *cobra.Command {
 			}
 			hostAddr := clientCtx.GetFromAddress()
 
-			fid, err := cmd.Flags().GetUint64(FlagFindingID)
+			fid, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return err
+				return fmt.Errorf("finding-id %s not a valid uint, please input a valid finding-id", args[0])
 			}
 
 			encKeyFile, err := cmd.Flags().GetString(FlagEncKeyFile)
@@ -422,11 +435,9 @@ func NewReleaseFindingCmd() *cobra.Command {
 	}
 
 	cmd.Flags().String(FlagEncKeyFile, "", "The program's encryption key file to decrypt findings")
-	cmd.Flags().Uint64(FlagFindingID, 0, "The program's ID")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
-	_ = cmd.MarkFlagRequired(FlagFindingID)
 	_ = cmd.MarkFlagRequired(FlagEncKeyFile)
 
 	return cmd
@@ -445,8 +456,13 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 	if finding.FindingDesc == nil {
 		desc = ""
 	} else {
-		encryptedDescBytes := finding.FindingDesc.GetValue()
-		descBytes, err := prvKey.Decrypt(encryptedDescBytes[2:], nil, nil)
+		var descProto types.EciesEncryptedDesc
+		if err = proto.Unmarshal(finding.FindingDesc.GetValue(), &descProto); err != nil {
+			return "", "", "", err
+		}
+
+		encryptedData := descProto.FindingDesc[:len(descProto.FindingDesc)-RandBytesLen]
+		descBytes, err := prvKey.Decrypt(encryptedData, nil, nil)
 		if err != nil {
 			return "", "", "", err
 		}
@@ -456,8 +472,12 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 	if finding.FindingPoc == nil {
 		poc = ""
 	} else {
-		encryptedPocBytes := finding.FindingPoc.GetValue()
-		pocBytes, err := prvKey.Decrypt(encryptedPocBytes[2:], nil, nil)
+		var pocProto types.EciesEncryptedPoc
+		if err = proto.Unmarshal(finding.FindingPoc.GetValue(), &pocProto); err != nil {
+			return "", "", "", err
+		}
+		encryptedData := pocProto.FindingPoc[:len(pocProto.FindingPoc)-RandBytesLen]
+		pocBytes, err := prvKey.Decrypt(encryptedData, nil, nil)
 		if err != nil {
 			return "", "", "", err
 		}
@@ -467,12 +487,39 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 	if finding.FindingComment == nil {
 		comment = ""
 	} else {
-		encryptedCommentBytes := finding.FindingComment.GetValue()
-		commentBytes, err := prvKey.Decrypt(encryptedCommentBytes[2:], nil, nil)
+		var commentProto types.EciesEncryptedComment
+		if err = proto.Unmarshal(finding.FindingComment.GetValue(), &commentProto); err != nil {
+			return "", "", "", err
+		}
+		encryptedData := commentProto.FindingComment[:len(commentProto.FindingComment)-RandBytesLen]
+		commentBytes, err := prvKey.Decrypt(encryptedData, nil, nil)
 		if err != nil {
 			return "", "", "", err
 		}
 		comment = string(commentBytes)
 	}
 	return desc, poc, comment, nil
+}
+
+func NewEndProgramCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "end-program [program-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "end the program",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			fromAddr := clientCtx.GetFromAddress()
+			pid, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("program-id %s is not a valid uint", args[0])
+			}
+			msg := types.NewMsgEndProgram(fromAddr.String(), pid)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
 }

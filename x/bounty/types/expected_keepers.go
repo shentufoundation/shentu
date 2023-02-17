@@ -15,3 +15,7 @@ type ParamSubspace interface {
 	Set(ctx sdk.Context, key []byte, param interface{})
 	HasKeyTable() bool
 }
+
+type CertKeeper interface {
+	IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool
+}

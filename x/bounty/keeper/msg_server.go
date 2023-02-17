@@ -7,6 +7,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
@@ -268,6 +269,15 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 		return nil, types.ErrProgramCreatorInvalid
 	}
 
+	pubKey, err := cli.KeyAnyToPubKey(program.EncryptionKey)
+	if err != nil {
+		return nil, types.ErrProgramPubKey
+	}
+
+	if err = CheckPlainText(pubKey, msg, finding); err != nil {
+		return nil, err
+	}
+
 	plainTextDesc := types.PlainTextDesc{
 		FindingDesc: []byte(msg.Desc),
 	}
@@ -275,6 +285,7 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 	if err != nil {
 		return nil, err
 	}
+	finding.FindingDesc = descAny
 
 	plainTextPoc := types.PlainTextPoc{
 		FindingPoc: []byte(msg.Poc),
@@ -283,6 +294,7 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 	if err != nil {
 		return nil, err
 	}
+	finding.FindingPoc = pocAny
 
 	plainTextComment := types.PlainTextComment{
 		FindingComment: []byte(msg.Comment),
@@ -291,9 +303,6 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 	if err != nil {
 		return nil, err
 	}
-
-	finding.FindingDesc = descAny
-	finding.FindingPoc = pocAny
 	finding.FindingComment = commentAny
 
 	k.SetFinding(ctx, finding)
@@ -312,4 +321,28 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 	})
 
 	return &types.MsgReleaseFindingResponse{}, nil
+}
+
+func (k msgServer) EndProgram(goCtx context.Context, msg *types.MsgEndProgram) (*types.MsgEndProgramResponse, error) {
+	fromAddr, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return nil, err
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	err = k.Keeper.EndProgram(ctx, fromAddr, msg.ProgramId)
+	if err != nil {
+		return nil, err
+	}
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeEndProgram,
+			sdk.NewAttribute(types.AttributeKeyProgramID, strconv.FormatUint(msg.ProgramId, 10)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
+	})
+	return &types.MsgEndProgramResponse{}, nil
 }

@@ -43,6 +43,7 @@ func (k Keeper) SetNextProgramID(ctx sdk.Context, id uint64) {
 	store.Set(types.GetNextProgramIDKey(), bz)
 }
 
+
 func (k Keeper) GetAllPrograms(ctx sdk.Context) []types.Program {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ProgramsKey)
@@ -56,4 +57,27 @@ func (k Keeper) GetAllPrograms(ctx sdk.Context) []types.Program {
 		programs = append(programs, program)
 	}
 	return programs
+}
+
+func (k Keeper) EndProgram(ctx sdk.Context, caller sdk.AccAddress, id uint64) error {
+	program, found := k.GetProgram(ctx, id)
+	if !found {
+		return types.ErrProgramNotExists
+	}
+	host, err := sdk.AccAddressFromBech32(program.CreatorAddress)
+	if err != nil {
+		return types.ErrProgramCreatorInvalid
+	}
+	if !caller.Equals(host) && !k.certKeeper.IsCertifier(ctx, caller) {
+		return types.ErrProgramNotAllowed
+	}
+	if !program.Active {
+		return types.ErrProgramInactive
+	}
+	if ctx.BlockTime().After(program.SubmissionEndTime) {
+		return types.ErrProgramExpired
+	}
+	program.Active = false
+	k.SetProgram(ctx, program)
+	return nil
 }

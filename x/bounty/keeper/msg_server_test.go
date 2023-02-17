@@ -6,12 +6,11 @@ import (
 	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-
+	types1 "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/ecies"
 
-	types1 "github.com/cosmos/cosmos-sdk/types"
-
+	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
@@ -227,10 +226,12 @@ func (suite *KeeperTestSuite) InitCreateProgram() (uint64, *ecies.PublicKey) {
 }
 
 func GetDescPocAny(desc, poc string, pubKey *ecies.PublicKey) (descAny, pocAny *codectypes.Any, err error) {
-	encryptedDescBytes, err := ecies.Encrypt(rand.Reader, pubKey, []byte(desc), nil, nil)
+	randBytes, reader := cli.GetRandBytes()
+	encryptedDescBytes, err := ecies.Encrypt(reader, pubKey, []byte(desc), nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
+	encryptedDescBytes = append(encryptedDescBytes, randBytes...)
 	encDesc := types.EciesEncryptedDesc{
 		FindingDesc: encryptedDescBytes,
 	}
@@ -239,10 +240,12 @@ func GetDescPocAny(desc, poc string, pubKey *ecies.PublicKey) (descAny, pocAny *
 		return nil, nil, err
 	}
 
-	encryptedPocBytes, err := ecies.Encrypt(rand.Reader, pubKey, []byte(poc), nil, nil)
+	randBytes, reader = cli.GetRandBytes()
+	encryptedPocBytes, err := ecies.Encrypt(reader, pubKey, []byte(poc), nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
+	encryptedPocBytes = append(encryptedPocBytes, randBytes...)
 	encPoc := types.EciesEncryptedPoc{
 		FindingPoc: encryptedPocBytes,
 	}
@@ -255,7 +258,7 @@ func GetDescPocAny(desc, poc string, pubKey *ecies.PublicKey) (descAny, pocAny *
 
 func (suite *KeeperTestSuite) InitSubmitFinding(programId uint64, pubKey *ecies.PublicKey) uint64 {
 	desc := "Bug desc"
-	poc := "bug poc"
+	poc := "Bug poc"
 	descAny, pocAny, _ := GetDescPocAny(desc, poc, pubKey)
 	msgSubmitFinding := &types.MsgSubmitFinding{
 		Title:            "Bug title",
@@ -497,9 +500,9 @@ func (suite *KeeperTestSuite) TestReleaseFinding() {
 			"valid request => plain text is valid",
 			&types.MsgReleaseFinding{
 				FindingId:   findingId,
-				Desc:        "test desc",
-				Poc:         "test poc",
-				Comment:     "test comment",
+				Desc:        "Bug desc",
+				Poc:         "Bug poc",
+				Comment:     "",
 				HostAddress: suite.address[0].String(),
 			},
 			true,
@@ -522,10 +525,10 @@ func (suite *KeeperTestSuite) TestReleaseFinding() {
 			ctx := types1.WrapSDKContext(suite.ctx)
 			_, err := suite.msgServer.ReleaseFinding(ctx, testCase.req)
 
-			finding, _ := suite.keeper.GetFinding(suite.ctx, findingId)
-
 			if testCase.expPass {
 				suite.Require().NoError(err)
+				finding, _ := suite.keeper.GetFinding(suite.ctx, findingId)
+
 				desc, ok := finding.FindingDesc.GetCachedValue().(types.FindingDesc)
 				suite.Require().True(ok)
 				suite.Require().Equal(string(desc.GetFindingDesc()), testCase.req.Desc)

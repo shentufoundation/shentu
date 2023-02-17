@@ -3,8 +3,13 @@ package keeper
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
+
+	"github.com/ethereum/go-ethereum/crypto/ecies"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
@@ -141,4 +146,63 @@ func BytesToUint64s(list []byte) ([]uint64, error) {
 		return nil, types.ErrProgramFindingListUnmarshal
 	}
 	return r64, nil
+}
+
+func CheckPlainText(pubKey *ecies.PublicKey, msg *types.MsgReleaseFinding, finding types.Finding) error {
+	if finding.GetFindingDesc() != nil {
+		encryptedDesc, ok := finding.GetFindingDesc().(*types.EciesEncryptedDesc)
+		if !ok {
+			return fmt.Errorf("invalid any data")
+		}
+		if err := CheckEncryptedData(pubKey, msg.Desc, encryptedDesc.FindingDesc); err != nil {
+			return err
+		}
+	} else if msg.Desc != "" {
+		return types.ErrFindingPlainTextDataInvalid
+	}
+
+	if finding.GetFindingPoc() != nil {
+		encryptedPoc, ok := finding.GetFindingPoc().(*types.EciesEncryptedPoc)
+		if !ok {
+			return fmt.Errorf("invalid any data")
+		}
+		if err := CheckEncryptedData(pubKey, msg.Poc, encryptedPoc.FindingPoc); err != nil {
+			return err
+		}
+	} else if msg.Poc != "" {
+		return types.ErrFindingPlainTextDataInvalid
+	}
+
+	if finding.GetFindingComment() != nil {
+		encryptedComment, ok := finding.GetFindingComment().(*types.EciesEncryptedComment)
+		if !ok {
+			return fmt.Errorf("invalid any data")
+		}
+		if err := CheckEncryptedData(pubKey, msg.Comment, encryptedComment.FindingComment); err != nil {
+			return err
+		}
+	} else if msg.Comment != "" {
+		return types.ErrFindingPlainTextDataInvalid
+	}
+
+	return nil
+}
+
+func CheckEncryptedData(pubKey *ecies.PublicKey, plainText string, encryptedData []byte) error {
+	if len(encryptedData) < cli.RandBytesLen {
+		return types.ErrFindingEncryptedDataInvalid
+	}
+	randBytesStart := len(encryptedData) - cli.RandBytesLen
+	encryptData := encryptedData[:randBytesStart]
+	randBytes := encryptedData[randBytesStart:]
+
+	encryptedBytes, err := ecies.Encrypt(bytes.NewReader(randBytes), pubKey, []byte(plainText), nil, nil)
+	if err != nil {
+		return types.ErrProgramPubKey
+	}
+
+	if !bytes.Equal(encryptedBytes, encryptData) {
+		return types.ErrFindingPlainTextDataInvalid
+	}
+	return nil
 }
