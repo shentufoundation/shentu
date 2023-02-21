@@ -182,7 +182,6 @@ func NewSubmitFindingCmd() *cobra.Command {
 				pid,
 				severityLevel,
 			)
-
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}

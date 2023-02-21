@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"crypto/rand"
+
 	"github.com/ethereum/go-ethereum/crypto/ecies"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"

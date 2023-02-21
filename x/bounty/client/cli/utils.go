@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/gogo/protobuf/proto"
+
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/ecies"
-	"github.com/gogo/protobuf/proto"
 
 	"github.com/tendermint/tendermint/libs/tempfile"
 

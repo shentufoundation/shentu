@@ -153,6 +153,17 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 	return nil
 }
 
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgSubmitFinding) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var desc FindingDesc
+	var poc FindingPoc
+	err := unpacker.UnpackAny(msg.EncryptedDesc, &desc)
+	if err != nil {
+		return err
+	}
+	return unpacker.UnpackAny(msg.EncryptedPoc, &poc)
+}
+
 func NewMsgHostAcceptFinding(findingID uint64, encryptedComment *codectypes.Any, hostAddr sdk.AccAddress) *MsgHostAcceptFinding {
 	return &MsgHostAcceptFinding{
 		FindingId:        findingID,
@@ -198,6 +209,12 @@ func (msg MsgHostAcceptFinding) ValidateBasic() error {
 	return nil
 }
 
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgHostAcceptFinding) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var comment FindingComment
+	return unpacker.UnpackAny(msg.EncryptedComment, &comment)
+}
+
 func NewMsgHostRejectFinding(findingID uint64, encryptedComment *codectypes.Any, hostAddr sdk.AccAddress) *MsgHostRejectFinding {
 	return &MsgHostRejectFinding{
 		FindingId:        findingID,
@@ -241,6 +258,12 @@ func (msg *MsgHostRejectFinding) ValidateBasic() error {
 		return errors.New("empty finding-id is not allowed")
 	}
 	return nil
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgHostRejectFinding) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var comment FindingComment
+	return unpacker.UnpackAny(msg.EncryptedComment, &comment)
 }
 
 // NewMsgCancelFinding cancel a specific finding
@@ -341,26 +364,26 @@ func NewMsgEndProgram(from string, programID uint64) *MsgEndProgram {
 	}
 }
 
-// implements sdk.Msg interface.
+// Route implements sdk.Msg interface.
 func (msg MsgEndProgram) Route() string { return RouterKey }
 
-// implements sdk.Msg interface.
+// Type implements sdk.Msg interface.
 func (msg MsgEndProgram) Type() string { return TypeMsgEndProgram }
 
-// implements sdk.Msg interface. It returns the address(es) that
+// GetSigners implements sdk.Msg interface. It returns the address(es) that
 // must sign over msg.GetSignBytes().
 func (msg MsgEndProgram) GetSigners() []sdk.AccAddress {
 	cAddr, _ := sdk.AccAddressFromBech32(msg.From)
 	return []sdk.AccAddress{cAddr}
 }
 
-// implements the sdk.Msg interface, returns the message bytes to sign over.
+// GetSignBytes implements the sdk.Msg interface, returns the message bytes to sign over.
 func (msg MsgEndProgram) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
-// implements the sdk.Msg interface.
+// ValidateBasic implements the sdk.Msg interface.
 func (msg MsgEndProgram) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
