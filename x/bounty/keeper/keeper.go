@@ -15,14 +15,14 @@ type Keeper struct {
 	cdc        codec.BinaryCodec
 	paramSpace paramtypes.Subspace
 
-	//authKeeper authtypes.AccountKeeper
+	ak         types.AccountKeeper
 	bk         types.BankKeeper
 	certKeeper types.CertKeeper
 }
 
 // NewKeeper creates a new Keeper object
 func NewKeeper(
-	cdc codec.BinaryCodec, storeKey sdk.StoreKey, bk types.BankKeeper, ck types.CertKeeper, paramSpace paramtypes.Subspace,
+	cdc codec.BinaryCodec, storeKey sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper, ck types.CertKeeper, paramSpace paramtypes.Subspace,
 ) Keeper {
 
 	// set KeyTable if it has not already been set
@@ -32,6 +32,7 @@ func NewKeeper(
 
 	return Keeper{
 		cdc:        cdc,
+		ak:         ak,
 		bk:         bk,
 		storeKey:   storeKey,
 		paramSpace: paramSpace,
@@ -43,4 +44,12 @@ func NewKeeper(
 func (keeper Keeper) GetBountyAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	//return keeper.authKeeper.GetModuleAccount(ctx, types.ModuleName)
 	return nil
+}
+
+func (keeper Keeper) GetAccountKeeper() types.AccountKeeper {
+	return keeper.ak
+}
+
+func (keeper Keeper) GetBankKeeper() types.BankKeeper {
+	return keeper.bk
 }

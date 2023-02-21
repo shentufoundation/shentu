@@ -2,11 +2,18 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
+
+type AccountKeeper interface {
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	GetModuleAddress(moduleName string) sdk.AccAddress
+}
 
 // BankKeeper defines the expected supply keeper (noalias)
 type BankKeeper interface {
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 }
 
 // ParamSubspace defines the expected Subspace interface for parameters (noalias)

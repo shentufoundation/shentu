@@ -16,11 +16,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
 	"github.com/shentufoundation/shentu/v2/x/bounty/client/rest"
 	"github.com/shentufoundation/shentu/v2/x/bounty/keeper"
+	"github.com/shentufoundation/shentu/v2/x/bounty/simulation"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
@@ -31,7 +31,9 @@ var (
 )
 
 // AppModuleBasic defines the basic application module used by the bounty module.
-type AppModuleBasic struct{}
+type AppModuleBasic struct {
+	cdc codec.Codec
+}
 
 // Name returns the bounty module's name.
 func (AppModuleBasic) Name() string {
@@ -166,19 +168,21 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 }
 
 // WeightedOperations returns auth operations for use in simulations.
-func (AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations{}
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.keeper, am.keeper.GetAccountKeeper(), am.keeper.GetBankKeeper())
 }
 
 // RandomizedParams returns functions that generate params for the module.
 func (AppModuleBasic) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return []simtypes.ParamChange{}
+	return simulation.ParamChanges(r)
 }
 
 // GenerateGenesisState creates a randomized GenState of this module.
 func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
 }
 
 // RegisterStoreDecoder registers a decoder for this module.
-func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+func (am AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }

@@ -1,7 +1,9 @@
 package types
 
 import (
+	"bytes"
 	"crypto/rand"
+	"fmt"
 	"testing"
 	"time"
 
@@ -83,6 +85,50 @@ func TestMsgSubmitFinding(t *testing.T) {
 			require.Error(t, msg.ValidateBasic())
 		}
 	}
+}
+
+func Test2(t *testing.T) {
+	title := "finding title"
+	desc := "finding desc"
+	poc := "finding poc"
+	randBytes := make([]byte, 64)
+
+	priKey, _ := ecies.GenerateKey(rand.Reader, ecies.DefaultCurve, nil)
+	pubKey := priKey.PublicKey
+
+	rand.Read(randBytes)
+	reader := bytes.NewReader(randBytes)
+	descEnc, err := ecies.Encrypt(reader, &pubKey, []byte(desc), nil, nil)
+	if err != nil {
+		fmt.Printf("Error on descEnc: %#v\n", err)
+	}
+	descEnc = append(descEnc, randBytes...)
+	descByte := EciesEncryptedDesc{
+		FindingDesc: descEnc,
+	}
+	descAny, err := codectypes.NewAnyWithValue(&descByte)
+	if err != nil {
+		fmt.Printf("Error on descAny: %#v\n", err)
+	}
+	rand.Read(randBytes)
+	reader = bytes.NewReader(randBytes)
+	pocEnc, err := ecies.Encrypt(reader, &pubKey, []byte(poc), nil, nil)
+	if err != nil {
+		fmt.Printf("Error on pocEnc: %#v\n", err)
+	}
+	pocEnc = append(pocEnc, randBytes...)
+	pocByte := EciesEncryptedPoc{
+		FindingPoc: pocEnc,
+	}
+	pocAny, err := codectypes.NewAnyWithValue(&pocByte)
+	if err != nil {
+		fmt.Printf("Error on pocAny: %#v\n", err)
+	}
+
+	msg := NewMsgSubmitFinding(addrs[0].String(), title, descAny, pocAny, 1, 1)
+	fmt.Printf("msg: %#v\n", msg)
+	bz := msg.GetSignBytes()
+	fmt.Printf("bytes: %#v\n", bz)
 }
 
 func TestMsgHostAcceptFinding(t *testing.T) {

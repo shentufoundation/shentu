@@ -36,6 +36,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
 	"github.com/cosmos/ibc-go/v3/testing/simapp/helpers"
 
+	bounty "github.com/shentufoundation/shentu/v2/x/bounty/types"
 	cert "github.com/shentufoundation/shentu/v2/x/cert/types"
 	cvm "github.com/shentufoundation/shentu/v2/x/cvm/types"
 	oracle "github.com/shentufoundation/shentu/v2/x/oracle/types"
@@ -186,6 +187,7 @@ func TestAppImportExport(t *testing.T) {
 		{app.GetKey(ibchost.StoreKey), newApp.GetKey(ibchost.StoreKey), [][]byte{}},
 		{app.GetKey(ibctransfer.StoreKey), newApp.GetKey(ibctransfer.StoreKey), [][]byte{}},
 		{app.GetKey(params.StoreKey), newApp.GetKey(params.StoreKey), [][]byte{}},
+		{app.GetKey(bounty.StoreKey), newApp.GetKey(bounty.StoreKey), [][]byte{}},
 	}
 
 	for _, skp := range storeKeysPrefixes {
