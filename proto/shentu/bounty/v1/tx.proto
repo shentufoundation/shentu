@@ -64,10 +64,10 @@ message MsgSubmitFinding {
   option (gogoproto.goproto_getters) = false;
 
   string title = 1;
-  google.protobuf.Any encrypted_desc = 2 [(cosmos_proto.accepts_interface) = "EncryptedDesc",(gogoproto.moretags) = "yaml:\"encrypted_desc\""];
+  google.protobuf.Any encrypted_desc = 2 [(cosmos_proto.accepts_interface) = "FindingDesc",(gogoproto.moretags) = "yaml:\"encrypted_desc\""];
   uint64 program_id = 3 [(gogoproto.moretags) = "yaml:\"program_id\""];
   SeverityLevel severity_level = 4 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
-  google.protobuf.Any encrypted_poc = 5 [(cosmos_proto.accepts_interface) = "EncryptedPoc",(gogoproto.moretags) = "yaml:\"encrypted_poc\""];
+  google.protobuf.Any encrypted_poc = 5 [(cosmos_proto.accepts_interface) = "FindingPoc",(gogoproto.moretags) = "yaml:\"encrypted_poc\""];
   string submitter_address  = 6 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
 }
 
@@ -83,7 +83,7 @@ message MsgHostAcceptFinding {
   option (gogoproto.goproto_getters) = false;
 
   uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
-  google.protobuf.Any encrypted_comment = 2 [(cosmos_proto.accepts_interface) = "EncryptedComment"];
+  google.protobuf.Any encrypted_comment = 2 [(cosmos_proto.accepts_interface) = "FindingComment"];
   string host_address  = 3 [(gogoproto.moretags) = "yaml:\"host_address\""];
 }
 
@@ -96,7 +96,7 @@ message MsgHostRejectFinding {
   option (gogoproto.goproto_getters) = false;
 
   uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
-  google.protobuf.Any encrypted_comment = 2 [(cosmos_proto.accepts_interface) = "EncryptedComment"];
+  google.protobuf.Any encrypted_comment = 2 [(cosmos_proto.accepts_interface) = "FindingComment"];
   string host_address  = 3 [(gogoproto.moretags) = "yaml:\"host_address\""];
 }
 
