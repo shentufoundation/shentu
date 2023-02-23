@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,8 +17,8 @@ const (
 	TypeMsgWithdrawReward   = "withdraw_reward"
 	TypeMsgCreateTask       = "create_task"
 	TypeMsgRespondToTask    = "respond_to_task"
-	TypeMsgInquireTask      = "inquire_task"
 	TypeMsgDeleteTask       = "delete_task"
+	TypeMsgCreatePrecogTask = "create_precog_task"
 )
 
 // NewMsgCreateOperator returns the message for creating an operator.
@@ -380,6 +381,55 @@ func (m MsgDeleteTask) GetSignBytes() []byte {
 // GetSigners defines whose signature is required.
 func (m MsgDeleteTask) GetSigners() []sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(m.Deleter)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
+}
+
+// NewMsgCreatePrecogTask returns a new MsgCreatePrecogTask instance.
+func NewMsgCreatePrecogTask(creater, chainID string, bounty sdk.Coins, scoringWaitTime uint64, usageExpirationTime time.Time, businessTx []byte) *MsgCreatePrecogTask {
+	return &MsgCreatePrecogTask{
+		Creator:             creater,
+		ChainId:             chainID,
+		Bounty:              bounty,
+		ScoringWaitTime:     scoringWaitTime,
+		UsageExpirationTime: usageExpirationTime,
+		BusinessTx:          businessTx,
+	}
+}
+
+// Route returns the module name.
+func (MsgCreatePrecogTask) Route() string { return ModuleName }
+
+// Type returns the action name.
+func (MsgCreatePrecogTask) Type() string { return TypeMsgCreatePrecogTask }
+
+// ValidateBasic runs stateless checks on the message.
+func (m MsgCreatePrecogTask) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Creator)
+	if err != nil {
+		return err
+	}
+
+	if len(m.BusinessTx) == 0 {
+		return fmt.Errorf("error raw tax")
+	}
+	return nil
+}
+
+// GetSignBytes encodes the message for signing.
+func (m MsgCreatePrecogTask) GetSignBytes() []byte {
+	b, err := json.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(b)
+}
+
+// GetSigners defines whose signature is required.
+func (m MsgCreatePrecogTask) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(m.Creator)
 	if err != nil {
 		panic(err)
 	}

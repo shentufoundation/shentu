@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"strconv"
 	"time"
 
@@ -221,4 +223,26 @@ func (k msgServer) DeleteTask(goCtx context.Context, msg *types.MsgDeleteTask) (
 	ctx.EventManager().EmitEvent(DeleteTaskEvent)
 
 	return &types.MsgDeleteTaskResponse{}, nil
+}
+
+func (k msgServer) CreatePrecogTask(goCtx context.Context, msg *types.MsgCreatePrecogTask) (*types.MsgCreatePrecogTaskResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	hashByte := sha256.Sum256(msg.BusinessTx)
+	hash := hex.EncodeToString(hashByte[:])
+
+	if err := k.Keeper.CreatePrecogTask(ctx, msg.Creator, msg.ChainId, msg.Bounty, msg.ScoringWaitTime,
+		msg.UsageExpirationTime, hash); err != nil {
+		return nil, err
+	}
+
+	CreatePrecogTaskEvent := sdk.NewEvent(
+		types.TypeMsgCreatePrecogTask,
+		sdk.NewAttribute("business_tx_hash", hash),
+	)
+	ctx.EventManager().EmitEvent(CreatePrecogTaskEvent)
+
+	return &types.MsgCreatePrecogTaskResponse{
+		BusinessTxHash: hash,
+	}, nil
 }

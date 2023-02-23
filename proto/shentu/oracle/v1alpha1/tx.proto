@@ -4,7 +4,7 @@ package shentu.oracle.v1alpha1;
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "google/protobuf/duration.proto";
-
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/shentufoundation/shentu/x/oracle/types";
 
@@ -18,6 +18,7 @@ service Msg {
     rpc CreateTask(MsgCreateTask) returns (MsgCreateTaskResponse);
     rpc TaskResponse(MsgTaskResponse) returns (MsgTaskResponseResponse);
     rpc DeleteTask(MsgDeleteTask) returns (MsgDeleteTaskResponse);
+    rpc CreatePrecogTask(MsgCreatePrecogTask) returns (MsgCreatePrecogTaskResponse);
 }
 
 message MsgCreateOperator {
@@ -109,3 +110,20 @@ message MsgDeleteTask {
 }
 
 message MsgDeleteTaskResponse {}
+
+message MsgCreatePrecogTask {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string creator = 1 [ (gogoproto.moretags) = "yaml:\"creator\"" ];
+    string chain_id = 2 [ (gogoproto.moretags) = "yaml:\"chain_id\""];
+    repeated cosmos.base.v1beta1.Coin bounty = 3 [ (gogoproto.moretags) = "yaml:\"bounty\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    uint64 scoring_wait_time = 4 [ (gogoproto.moretags) = "yaml:\"scoring_wait_time\""];
+    google.protobuf.Timestamp usage_expiration_time = 5
+    [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"usage_expiration_time\""];
+    bytes business_tx = 6 [ (gogoproto.moretags) = "yaml:\"business_tx\"" ];
+}
+
+message MsgCreatePrecogTaskResponse {
+    string business_tx_hash = 1 [ (gogoproto.moretags) = "yaml:\"business_tx_hash\"" ];
+}

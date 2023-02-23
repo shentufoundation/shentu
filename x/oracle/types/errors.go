@@ -31,6 +31,12 @@ const (
 	errInvalidScore
 )
 
+const (
+	errPrecogTaskNotExists uint32 = iota + 401
+	errPrecogTaskNotClosed
+	errPrecogTaskExpirationTime
+)
+
 const errInconsistentOperators uint32 = 301
 
 var (
@@ -57,4 +63,8 @@ var (
 	ErrInvalidScore        = sdkerrors.Register(ModuleName, errInvalidScore, "invalid score")
 
 	ErrInconsistentOperators = sdkerrors.Register(ModuleName, errInconsistentOperators, "two operators not consistent")
+
+	ErrPrecogTaskNotExists      = sdkerrors.Register(ModuleName, errPrecogTaskNotExists, "precog task does not exist")
+	ErrPrecogTaskNotClosed      = sdkerrors.Register(ModuleName, errPrecogTaskNotClosed, "precog task has not been closed")
+	ErrPrecogTaskExpirationTime = sdkerrors.Register(ModuleName, errPrecogTaskExpirationTime, "precog task expiration time is not correct")
 )

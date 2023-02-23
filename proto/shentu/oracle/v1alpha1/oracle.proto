@@ -103,3 +103,40 @@ message TaskIDs {
 message CoinsProto {
     repeated cosmos.base.v1beta1.Coin coins = 1 [ (gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
 }
+
+message PrecogTask {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string creator = 1 [ (gogoproto.moretags) = "yaml:\"creator\"" ];
+    string chain_id = 2 [ (gogoproto.moretags) = "yaml:\"chain_id\""];
+    repeated cosmos.base.v1beta1.Coin bounty = 3 [ (gogoproto.moretags) = "yaml:\"bounty\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+    google.protobuf.Timestamp create_time = 4
+    [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"create_time\""];
+    google.protobuf.Timestamp usage_expiration_time = 5
+    [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"usage_expiration_time\""];
+    uint64 scoring_wait_time = 6 [ (gogoproto.moretags) = "yaml:\"scoring_wait_time\""];
+    string business_tx_hash = 7 [ (gogoproto.moretags) = "yaml:\"business_tx_hash\"" ];
+    PrecogTaskStatus status = 8 [ (gogoproto.moretags) = "yaml:\"status\"" ];
+    uint64 score = 9 [ (gogoproto.moretags) = "yaml:\"score\""];
+    repeated PrecogOperatorResponse score_response = 10 [ (gogoproto.moretags) = "yaml:\"score_response\""];
+}
+
+message PrecogOperatorResponse {
+    string operator = 1 [ (gogoproto.moretags) = "yaml:\"operator\"" ];
+    uint64 score = 2 [ (gogoproto.moretags) = "yaml:\"score\"" ];
+    PrecogTaskStatus status = 3 [ (gogoproto.moretags) = "yaml:\"status\"" ];
+    google.protobuf.Timestamp create_time = 4
+    [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"create_time\""];
+    uint64 weight = 5 [ (gogoproto.moretags) = "yaml:\"weight\"" ];
+    repeated cosmos.base.v1beta1.Coin reward = 6 [ (gogoproto.moretags) = "yaml:\"reward\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+}
+
+enum PrecogTaskStatus {
+    option (gogoproto.goproto_enum_prefix) = false;
+
+    PRECOG_TASK_STATUS_CREATED = 0 [(gogoproto.enumvalue_customname) = "PrecogTaskStatusCreated"];
+    PRECOG_TASK_STATUS_PENDING = 1 [(gogoproto.enumvalue_customname) = "PrecogTaskStatusPending"];
+    PRECOG_TASK_STATUS_EXPIRED = 2 [(gogoproto.enumvalue_customname) = "PrecogTaskStatusExpired"];
+    PRECOG_TASK_STATUS_DONE = 3 [(gogoproto.enumvalue_customname) = "PrecogTaskStatusDone"];
+}
