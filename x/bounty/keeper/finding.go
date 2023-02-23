@@ -16,20 +16,20 @@ import (
 func (k Keeper) GetFinding(ctx sdk.Context, id uint64) (types.Finding, bool) {
 	store := ctx.KVStore(k.storeKey)
 
-	pBz := store.Get(types.GetFindingKey(id))
-	if pBz == nil {
+	findingData := store.Get(types.GetFindingKey(id))
+	if findingData == nil {
 		return types.Finding{}, false
 	}
 
 	var finding types.Finding
-	k.cdc.MustUnmarshal(pBz, &finding)
+	k.cdc.MustUnmarshal(findingData, &finding)
 	return finding, true
 }
 
 func (k Keeper) SetFinding(ctx sdk.Context, finding types.Finding) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&finding)
-	store.Set(types.GetFindingKey(finding.FindingId), bz)
+	findingData := k.cdc.MustMarshal(&finding)
+	store.Set(types.GetFindingKey(finding.FindingId), findingData)
 }
 
 func (k Keeper) DeleteFinding(ctx sdk.Context, id uint64) {
@@ -39,11 +39,11 @@ func (k Keeper) DeleteFinding(ctx sdk.Context, id uint64) {
 
 func (k Keeper) GetNextFindingID(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	Bz := store.Get(types.GetNextFindingIDKey())
-	if Bz == nil {
+	findingID := store.Get(types.GetNextFindingIDKey())
+	if findingID == nil {
 		return 1
 	}
-	return binary.LittleEndian.Uint64(Bz)
+	return binary.LittleEndian.Uint64(findingID)
 }
 
 func (k Keeper) SetNextFindingID(ctx sdk.Context, id uint64) {
