@@ -388,9 +388,9 @@ func (m MsgDeleteTask) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgCreatePrecogTask returns a new MsgCreatePrecogTask instance.
-func NewMsgCreatePrecogTask(creater, chainID string, bounty sdk.Coins, scoringWaitTime uint64, usageExpirationTime time.Time, businessTx []byte) *MsgCreatePrecogTask {
+func NewMsgCreatePrecogTask(creator, chainID string, bounty sdk.Coins, scoringWaitTime uint64, usageExpirationTime time.Time, businessTx []byte) *MsgCreatePrecogTask {
 	return &MsgCreatePrecogTask{
-		Creator:             creater,
+		Creator:             creator,
 		ChainId:             chainID,
 		Bounty:              bounty,
 		ScoringWaitTime:     scoringWaitTime,
