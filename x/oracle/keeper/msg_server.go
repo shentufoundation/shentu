@@ -239,6 +239,9 @@ func (k msgServer) CreatePrecogTask(goCtx context.Context, msg *types.MsgCreateP
 	CreatePrecogTaskEvent := sdk.NewEvent(
 		types.TypeMsgCreatePrecogTask,
 		sdk.NewAttribute("business_tx_hash", hash),
+		sdk.NewAttribute("creator", msg.Creator),
+		sdk.NewAttribute("chain-id", msg.ChainId),
+		sdk.NewAttribute("bounty", msg.Bounty.String()),
 	)
 	ctx.EventManager().EmitEvent(CreatePrecogTaskEvent)
 

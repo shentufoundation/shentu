@@ -32,7 +32,7 @@ func (k Keeper) DeletePrecogTask(ctx sdk.Context, hash string) error {
 }
 
 // CreatePrecogTask creates a new task.
-func (k Keeper) CreatePrecogTask(ctx sdk.Context, creater, chainID string, bounty sdk.Coins, scoringWaitTime uint64, usageExpirationTime time.Time, businessTxHsh string) error {
+func (k Keeper) CreatePrecogTask(ctx sdk.Context, creator, chainID string, bounty sdk.Coins, scoringWaitTime uint64, usageExpirationTime time.Time, businessTxHsh string) error {
 	precogTaskData, err := k.GetPrecogTask(ctx, businessTxHsh)
 	if err == nil {
 		if usageExpirationTime.After(ctx.BlockTime()) {
@@ -52,7 +52,7 @@ func (k Keeper) CreatePrecogTask(ctx sdk.Context, creater, chainID string, bount
 	}
 
 	precogTask := types.PrecogTask{
-		Creator:             creater,
+		Creator:             creator,
 		ChainId:             chainID,
 		Bounty:              bounty,
 		ScoringWaitTime:     scoringWaitTime,
