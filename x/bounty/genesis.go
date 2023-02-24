@@ -11,7 +11,30 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	k.SetNextProgramID(ctx, data.StartingProgramId)
 	k.SetNextFindingID(ctx, data.StartingFindingId)
-	// TODO Complete InitGenesis
+
+	for _, finding := range data.Findings {
+		k.SetFinding(ctx, finding)
+		if err := k.AppendFidToFidList(ctx, finding.ProgramId, finding.FindingId); err != nil {
+			panic(err)
+		}
+	}
+
+	for _, program := range data.Programs {
+		k.SetProgram(ctx, program)
+	}
 }
 
-// TODO Implement ExportGenesis
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
+	maxFindingID := k.GetNextFindingID(ctx)
+	maxProgramID := k.GetNextProgramID(ctx)
+
+	programs := k.GetAllPrograms(ctx)
+	findings := k.GetAllFindings(ctx)
+
+	return &types.GenesisState{
+		StartingFindingId: maxFindingID,
+		StartingProgramId: maxProgramID,
+		Programs:          programs,
+		Findings:          findings,
+	}
+}

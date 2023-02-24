@@ -21,6 +21,21 @@ func (k Keeper) GetProgram(ctx sdk.Context, id uint64) (types.Program, bool) {
 	return program, true
 }
 
+func (k Keeper) GetAllPrograms(ctx sdk.Context) []types.Program {
+	store := ctx.KVStore(k.storeKey)
+
+	var programs []types.Program
+	var program types.Program
+
+	iterator := sdk.KVStorePrefixIterator(store, types.ProgramsKey)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		k.cdc.MustUnmarshal(iterator.Value(), &program)
+		programs = append(programs, program)
+	}
+	return programs
+}
+
 func (k Keeper) SetProgram(ctx sdk.Context, program types.Program) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&program)
@@ -30,6 +45,9 @@ func (k Keeper) SetProgram(ctx sdk.Context, program types.Program) {
 func (k Keeper) GetNextProgramID(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	Bz := store.Get(types.GetNextProgramIDKey())
+	if Bz == nil {
+		return 1
+	}
 	return binary.LittleEndian.Uint64(Bz)
 }
 
