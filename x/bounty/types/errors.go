@@ -28,6 +28,8 @@ const (
 	errFindingID
 )
 
+const errInvalidGenesis = 301
+
 // [1xx] Program
 var (
 	ErrProgramFindingListEmpty     = sdkerrors.Register(ModuleName, errProgramFindingListEmpty, "empty finding id list")
@@ -51,3 +53,5 @@ var (
 	ErrFindingEncryptedDataInvalid = sdkerrors.Register(ModuleName, errFindingEncryptedDataInvalid, "invalid finding encrypted data")
 	ErrFindingID                   = sdkerrors.Register(ModuleName, errFindingID, "invalid finding id")
 )
+
+var ErrInvalidGenesis = sdkerrors.Register(ModuleName, errInvalidGenesis, "invalid genesis state")

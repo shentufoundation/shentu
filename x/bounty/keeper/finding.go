@@ -7,6 +7,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto/ecies"
 
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
@@ -37,13 +39,13 @@ func (k Keeper) DeleteFinding(ctx sdk.Context, id uint64) {
 	store.Delete(types.GetFindingKey(id))
 }
 
-func (k Keeper) GetNextFindingID(ctx sdk.Context) uint64 {
+func (k Keeper) GetNextFindingID(ctx sdk.Context) (uint64, error) {
 	store := ctx.KVStore(k.storeKey)
 	findingID := store.Get(types.GetNextFindingIDKey())
 	if findingID == nil {
-		return 1
+		return 1, errorsmod.Wrap(types.ErrInvalidGenesis, "initial next finding ID hasn't been set")
 	}
-	return binary.LittleEndian.Uint64(findingID)
+	return binary.LittleEndian.Uint64(findingID), nil
 }
 
 func (k Keeper) SetNextFindingID(ctx sdk.Context, id uint64) {
