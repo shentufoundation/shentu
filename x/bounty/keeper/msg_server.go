@@ -31,12 +31,15 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 		return nil, err
 	}
 
-	err = k.bk.SendCoinsFromAccountToModule(ctx, creatorAddr, types.ModuleName, msg.Deposit)
+	nextID, err := k.GetNextProgramID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	nextID := k.GetNextProgramID(ctx)
+	err = k.bk.SendCoinsFromAccountToModule(ctx, creatorAddr, types.ModuleName, msg.Deposit)
+	if err != nil {
+		return nil, err
+	}
 
 	program := types.Program{
 		ProgramId:         nextID,
@@ -86,7 +89,10 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		return nil, types.ErrProgramInactive
 	}
 
-	findingID := k.GetNextFindingID(ctx)
+	findingID, err := k.GetNextFindingID(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	finding := types.Finding{
 		FindingId:        findingID,

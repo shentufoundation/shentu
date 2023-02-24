@@ -41,7 +41,7 @@ func (suite *KeeperTestSuite) CreateSubmitFinding(proposalId uint64) uint64 {
 	}
 
 	ctx := sdk.WrapSDKContext(suite.ctx)
-	findingId := suite.keeper.GetNextFindingID(suite.ctx)
+	findingId, err := suite.keeper.GetNextFindingID(suite.ctx)
 	resp, err := suite.msgServer.SubmitFinding(ctx, msgSubmitFinding)
 	suite.Require().NoError(err)
 	suite.Require().Equal(findingId, resp.FindingId)

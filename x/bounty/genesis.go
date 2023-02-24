@@ -25,8 +25,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 }
 
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
-	maxFindingID := k.GetNextFindingID(ctx)
-	maxProgramID := k.GetNextProgramID(ctx)
+	maxFindingID, _ := k.GetNextFindingID(ctx)
+	maxProgramID, _ := k.GetNextProgramID(ctx)
 
 	programs := k.GetAllPrograms(ctx)
 	findings := k.GetAllFindings(ctx)
