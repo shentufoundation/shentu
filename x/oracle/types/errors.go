@@ -31,6 +31,13 @@ const (
 	errInvalidScore
 )
 
+const (
+	errTxTaskNotExists uint32 = iota + 401
+	errTxTaskNotClosed
+	errTxTaskExpirationTime
+	errInvalidTxTask
+)
+
 const errInconsistentOperators uint32 = 301
 
 var (
@@ -57,4 +64,9 @@ var (
 	ErrInvalidScore        = sdkerrors.Register(ModuleName, errInvalidScore, "invalid score")
 
 	ErrInconsistentOperators = sdkerrors.Register(ModuleName, errInconsistentOperators, "two operators not consistent")
+
+	ErrTxTaskNotExists      = sdkerrors.Register(ModuleName, errTxTaskNotExists, "tx task does not exist")
+	ErrTxTaskNotClosed      = sdkerrors.Register(ModuleName, errTxTaskNotClosed, "tx task has not been closed")
+	ErrTxTaskExpirationTime = sdkerrors.Register(ModuleName, errTxTaskExpirationTime, "tx task expiration time is not correct")
+	ErrInvalidTxTask        = sdkerrors.Register(ModuleName, errInvalidTxTask, "invalid tx task")
 )

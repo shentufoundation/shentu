@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,6 +19,7 @@ const (
 	TypeMsgRespondToTask    = "respond_to_task"
 	TypeMsgInquireTask      = "inquire_task"
 	TypeMsgDeleteTask       = "delete_task"
+	TypeMsgCreateTxTask     = "create_tx_task"
 )
 
 // NewMsgCreateOperator returns the message for creating an operator.
@@ -380,6 +382,54 @@ func (m MsgDeleteTask) GetSignBytes() []byte {
 // GetSigners defines whose signature is required.
 func (m MsgDeleteTask) GetSigners() []sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(m.Deleter)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
+}
+
+// NewMsgCreateTxTask returns a new MsgCreateTxTask instance.
+func NewMsgCreateTxTask(creator, chainID string, bounty sdk.Coins, expirationTime time.Time, businessTx []byte) *MsgCreateTxTask {
+	return &MsgCreateTxTask{
+		Creator:    creator,
+		ChainId:    chainID,
+		Bounty:     bounty,
+		TxBytes:    businessTx,
+		Expiration: expirationTime,
+	}
+}
+
+// Route returns the module name.
+func (MsgCreateTxTask) Route() string { return ModuleName }
+
+// Type returns the action name.
+func (MsgCreateTxTask) Type() string { return TypeMsgCreateTxTask }
+
+// ValidateBasic runs stateless checks on the message.
+func (m MsgCreateTxTask) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Creator)
+	if err != nil {
+		return err
+	}
+
+	if len(m.TxBytes) == 0 {
+		return fmt.Errorf("error raw tax")
+	}
+	return nil
+}
+
+// GetSignBytes encodes the message for signing.
+func (m MsgCreateTxTask) GetSignBytes() []byte {
+	b, err := json.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(b)
+}
+
+// GetSigners defines whose signature is required.
+func (m MsgCreateTxTask) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(m.Creator)
 	if err != nil {
 		panic(err)
 	}

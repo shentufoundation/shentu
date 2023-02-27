@@ -26,6 +26,7 @@ var (
 	TotalCollateralKeyPrefix  = []byte{0x03}
 	TaskStoreKeyPrefix        = []byte{0x04}
 	ClosingTaskStoreKeyPrefix = []byte{0x05}
+	TxTaskStoreKeyPrefix      = []byte{0x06}
 )
 
 func OperatorStoreKey(operator sdk.AccAddress) []byte {
@@ -50,4 +51,8 @@ func ClosingTaskIDsStoreKey(blockHeight int64) []byte {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, uint64(blockHeight))
 	return append(ClosingTaskStoreKeyPrefix, b...)
+}
+
+func TxTaskStoreKey(hash []byte) []byte {
+	return append(TxTaskStoreKeyPrefix, hash...)
 }

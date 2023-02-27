@@ -18,6 +18,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgCreateTask{}, "oracle/CreateTask", nil)
 	cdc.RegisterConcrete(MsgTaskResponse{}, "oracle/RespondToTask", nil)
 	cdc.RegisterConcrete(MsgDeleteTask{}, "oracle/DeleteTask", nil)
+	cdc.RegisterConcrete(MsgCreateTxTask{}, "oracle/CreateTxTask", nil)
 }
 
 // RegisterInterfaces registers the x/oracle interfaces types with the interface registry
@@ -31,6 +32,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgCreateTask{},
 		&MsgTaskResponse{},
 		&MsgDeleteTask{},
+		&MsgCreateTxTask{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

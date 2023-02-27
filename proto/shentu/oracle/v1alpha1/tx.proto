@@ -19,6 +19,7 @@ service Msg {
     rpc CreateTask(MsgCreateTask) returns (MsgCreateTaskResponse);
     rpc TaskResponse(MsgTaskResponse) returns (MsgTaskResponseResponse);
     rpc DeleteTask(MsgDeleteTask) returns (MsgDeleteTaskResponse);
+    rpc CreateTxTask(MsgCreateTxTask) returns (MsgCreateTxTaskResponse);
 }
 
 message MsgCreateOperator {

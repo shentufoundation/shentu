@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"strconv"
 	"time"
 
@@ -221,4 +223,29 @@ func (k msgServer) DeleteTask(goCtx context.Context, msg *types.MsgDeleteTask) (
 	ctx.EventManager().EmitEvent(DeleteTaskEvent)
 
 	return &types.MsgDeleteTaskResponse{}, nil
+}
+
+func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTask) (*types.MsgCreateTxTaskResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	hashByte := sha256.Sum256(msg.TxBytes)
+	hash := hex.EncodeToString(hashByte[:])
+
+	if err := k.Keeper.CreateTxTask(ctx, msg.Creator, msg.Bounty, msg.Expiration, hashByte[:]); err != nil {
+		return nil, err
+	}
+
+	CreateTxTaskEvent := sdk.NewEvent(
+		types.TypeMsgCreateTxTask,
+		sdk.NewAttribute("tx_hash", hash),
+		sdk.NewAttribute("creator", msg.Creator),
+		sdk.NewAttribute("chain_id", msg.ChainId),
+		sdk.NewAttribute("bounty", msg.Bounty.String()),
+		sdk.NewAttribute("expiration_time", msg.Expiration.String()),
+	)
+	ctx.EventManager().EmitEvent(CreateTxTaskEvent)
+
+	return &types.MsgCreateTxTaskResponse{
+		TxHash: hashByte[:],
+	}, nil
 }
