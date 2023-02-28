@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,6 +19,9 @@ const (
 	TypeMsgRespondToTask    = "respond_to_task"
 	TypeMsgInquireTask      = "inquire_task"
 	TypeMsgDeleteTask       = "delete_task"
+	TypeMsgCreateTxTask     = "create_tx_task"
+	TypeMsgRespondToTxTask  = "respond_to_tx_task"
+	TypeMsgDeleteTxTask     = "delete_tx_task"
 )
 
 // NewMsgCreateOperator returns the message for creating an operator.
@@ -383,5 +387,137 @@ func (m MsgDeleteTask) GetSigners() []sdk.AccAddress {
 	if err != nil {
 		panic(err)
 	}
+	return []sdk.AccAddress{addr}
+}
+
+func NewMsgCreateTxTask(creator sdk.AccAddress, chainID string, txBytes []byte, 
+	bounty sdk.Coins, expiration time.Time) *MsgCreateTxTask {
+	return &MsgCreateTxTask{
+		Creator:    creator.String(),
+		ChainId:    chainID,
+		TxBytes:    txBytes,
+		Bounty:     bounty,
+		Expiration: expiration,
+	}
+}
+
+//LegacyMsg interface for routing Amino msg
+func (MsgCreateTxTask) Route() string { return ModuleName }
+
+//LegacyMsg interface for routing Amino msg
+func (MsgCreateTxTask) Type() string { return TypeMsgCreateTxTask }
+
+//Msg interface
+func (m MsgCreateTxTask) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Creator)
+	if err != nil {
+		return err
+	}
+	if len(m.ChainId) == 0 {
+		return fmt.Errorf("chain_id cannot be empty")
+	}
+	if len(m.TxBytes) == 0 {
+		return fmt.Errorf("business chain tx bytes cannot be empty")
+	}
+	if !m.Bounty.IsValid() {
+		return fmt.Errorf("invalid bounty")
+	}
+	return nil
+}
+
+//LegacyMsg interface for Amino
+func (m MsgCreateTxTask) GetSignBytes() []byte {
+	b, err := json.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(b)
+}
+
+//Msg interface, return the account that should sign the tx
+func (m MsgCreateTxTask) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(m.Creator)
+	return []sdk.AccAddress{addr}
+}
+
+func NewMsgTxTaskResponse(txHash []byte, score int64, operator sdk.AccAddress) *MsgTxTaskResponse {
+	return &MsgTxTaskResponse{
+		TxHash: txHash,
+		Score: score,
+		Operator: operator.String(),
+	}
+}
+
+//LegacyMsg interface for Amino
+func (MsgTxTaskResponse) Route() string { return ModuleName }
+
+//LegacyMsg interface for Amino
+func (MsgTxTaskResponse) Type() string {return TypeMsgRespondToTxTask}
+
+//Msg interface
+func (m MsgTxTaskResponse) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Operator)
+	if err != nil {
+		return err
+	}
+	if len(m.TxHash) == 0 {
+		return fmt.Errorf("tx_hash cannot be empty")
+	}
+	return nil
+}
+
+//LegacyMsg interface for Amino
+func (m MsgTxTaskResponse) GetSignBytes() []byte {
+	b, err := json.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(b)
+}
+
+//Msg interface, return the account that should sign the tx
+func (m MsgTxTaskResponse) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(m.Operator)
+	return []sdk.AccAddress{addr}
+}
+
+func NewMsgDeleteTxTask(txHash []byte, force bool, deleter sdk.AccAddress) *MsgDeleteTxTask {
+	return &MsgDeleteTxTask{
+		TxHash: txHash,
+		Force: force,
+		Deleter: deleter.String(),
+	}
+}
+
+//LegacyMsg interface for Amino
+func (MsgDeleteTxTask) Route() string { return ModuleName }
+
+//LegacyMsg interface for Amino
+func (MsgDeleteTxTask) Type() string { return TypeMsgDeleteTxTask }
+
+//Msg interface
+func (m MsgDeleteTxTask) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Deleter)
+	if err != nil {
+		return nil
+	}
+	if len(m.TxHash) == 0 {
+		return fmt.Errorf("tx_hash cannot be empty")
+	}
+	return nil
+}
+
+//LegacyMsg interface for Amino
+func (m MsgDeleteTxTask) GetSignBytes() []byte {
+	b, err := json.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(b)
+}
+
+//Msg interface, return the account that should sign the tx
+func (m MsgDeleteTxTask) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(m.Deleter)
 	return []sdk.AccAddress{addr}
 }

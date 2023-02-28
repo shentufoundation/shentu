@@ -19,6 +19,9 @@ service Msg {
     rpc CreateTask(MsgCreateTask) returns (MsgCreateTaskResponse);
     rpc TaskResponse(MsgTaskResponse) returns (MsgTaskResponseResponse);
     rpc DeleteTask(MsgDeleteTask) returns (MsgDeleteTaskResponse);
+    rpc CreateTxTask(MsgCreateTxTask) returns (MsgCreateTxTaskResponse);
+    rpc TxTaskResponse(MsgTxTaskResponse) returns (MsgTxTaskResponseResponse);
+    rpc DeleteTxTask(MsgDeleteTxTask) returns (MsgDeleteTxTaskResponse);
 }
 
 message MsgCreateOperator {
@@ -140,3 +143,14 @@ message MsgTxTaskResponse {
 }
 
 message MsgTxTaskResponseResponse {}
+
+message MsgDeleteTxTask {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    bytes tx_hash = 1 [ (gogoproto.moretags) = "yaml:\"tx_hash\"" ];
+    bool force = 2 [ (gogoproto.moretags) = "yaml:\"force\"" ];
+    string deleter = 3 [ (gogoproto.moretags) = "yaml:\"deleter\"" ];
+}
+
+message MsgDeleteTxTaskResponse {}
