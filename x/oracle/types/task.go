@@ -60,5 +60,3 @@ type TaskI interface {
 	GetStatus() TaskStatus
 	GetScore() int64
 }
-
-

@@ -390,7 +390,7 @@ func (m MsgDeleteTask) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func NewMsgCreateTxTask(creator sdk.AccAddress, chainID string, txBytes []byte, 
+func NewMsgCreateTxTask(creator sdk.AccAddress, chainID string, txBytes []byte,
 	bounty sdk.Coins, expiration time.Time) *MsgCreateTxTask {
 	return &MsgCreateTxTask{
 		Creator:    creator.String(),
@@ -442,8 +442,8 @@ func (m MsgCreateTxTask) GetSigners() []sdk.AccAddress {
 
 func NewMsgTxTaskResponse(txHash []byte, score int64, operator sdk.AccAddress) *MsgTxTaskResponse {
 	return &MsgTxTaskResponse{
-		TxHash: txHash,
-		Score: score,
+		TxHash:   txHash,
+		Score:    score,
 		Operator: operator.String(),
 	}
 }
@@ -452,7 +452,7 @@ func NewMsgTxTaskResponse(txHash []byte, score int64, operator sdk.AccAddress) *
 func (MsgTxTaskResponse) Route() string { return ModuleName }
 
 //LegacyMsg interface for Amino
-func (MsgTxTaskResponse) Type() string {return TypeMsgRespondToTxTask}
+func (MsgTxTaskResponse) Type() string { return TypeMsgRespondToTxTask }
 
 //Msg interface
 func (m MsgTxTaskResponse) ValidateBasic() error {
@@ -483,8 +483,8 @@ func (m MsgTxTaskResponse) GetSigners() []sdk.AccAddress {
 
 func NewMsgDeleteTxTask(txHash []byte, force bool, deleter sdk.AccAddress) *MsgDeleteTxTask {
 	return &MsgDeleteTxTask{
-		TxHash: txHash,
-		Force: force,
+		TxHash:  txHash,
+		Force:   force,
 		Deleter: deleter.String(),
 	}
 }
