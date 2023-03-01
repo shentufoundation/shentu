@@ -380,3 +380,7 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.Task) error {
 	k.SetTask(ctx, task)
 	return nil
 }
+
+// func (k Keeper) RespondToTxTask(ctx sdk.Context, txHash []byte, score int64, operatorAddr sdk.AccAddress) error {
+
+// }

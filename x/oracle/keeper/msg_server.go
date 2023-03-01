@@ -249,3 +249,17 @@ func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTas
 		TxHash: hashByte[:],
 	}, nil
 }
+
+func (k msgServer) TxTaskResponse(goCtx context.Context, msg *types.MsgTxTaskResponse) (*types.MsgTxTaskResponseResponse, error) {
+	//TODO: implement me
+	_, err := sdk.AccAddressFromBech32(msg.Operator)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgTxTaskResponseResponse{}, nil
+}
+
+func (k msgServer) DeleteTxTask(goCtx context.Context, msg *types.MsgDeleteTxTask) (*types.MsgDeleteTxTaskResponse, error) {
+	//TODO: implement me
+	return &types.MsgDeleteTxTaskResponse{}, nil
+}

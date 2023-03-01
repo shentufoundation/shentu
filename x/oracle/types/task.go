@@ -51,3 +51,12 @@ func (r Responses) String() string {
 	}
 	return string(jsonBytes)
 }
+
+type TaskI interface {
+	GetID() []byte
+	GetCreator() string
+	GetResponses() []Response
+	IsExpired(ctx sdk.Context) bool
+	GetStatus() TaskStatus
+	GetScore() int64
+}
