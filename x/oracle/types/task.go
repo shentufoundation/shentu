@@ -3,9 +3,9 @@ package types
 import (
 	"encoding/json"
 	"time"
-	"github.com/gogo/protobuf/proto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/gogo/protobuf/proto"
 )
 
 // NewTask returns a new task.

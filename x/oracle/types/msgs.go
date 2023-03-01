@@ -391,13 +391,13 @@ func (m MsgDeleteTask) GetSigners() []sdk.AccAddress {
 }
 
 func NewMsgCreateTxTask(creator sdk.AccAddress, chainID string, txBytes []byte,
-	bounty sdk.Coins, expiration time.Time) *MsgCreateTxTask {
+	bounty sdk.Coins, validTime time.Time) *MsgCreateTxTask {
 	return &MsgCreateTxTask{
-		Creator:    creator.String(),
-		ChainId:    chainID,
-		TxBytes:    txBytes,
-		Bounty:     bounty,
-		Expiration: expiration,
+		Creator:   creator.String(),
+		ChainId:   chainID,
+		TxBytes:   txBytes,
+		Bounty:    bounty,
+		ValidTime: validTime,
 	}
 }
 
