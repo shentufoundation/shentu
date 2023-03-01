@@ -41,4 +41,9 @@ func TestTxTaskBasic(t *testing.T) {
 	require.Equal(t, addrs[0].String(), task2.Creator)
 	require.Equal(t, businessHash2[:], task2.TxHash)
 	require.Equal(t, expiration2, task2.Expiration)
+
+	_ = ok.DeleteTxTask(ctx, businessHash2[:])
+	_, err = ok.GetTxTask(ctx, businessHash2[:])
+	require.Error(t, err)
+
 }

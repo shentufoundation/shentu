@@ -33,5 +33,8 @@ func TestMsgServer_CreateTxTask(t *testing.T) {
 	require.NoError(t, err)
 
 	businessHash1 := sha256.Sum256(businessTransaction)
-	require.Equal(t, res.TxHash, businessHash1)
+	require.Equal(t, res.TxHash, businessHash1[:])
+
+	_, err = msgServer.CreateTxTask(sdk.WrapSDKContext(ctx), msgCreateTxTask)
+	require.Error(t, err)
 }
