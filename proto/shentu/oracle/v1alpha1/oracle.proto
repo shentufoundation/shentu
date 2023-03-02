@@ -93,8 +93,7 @@ message TaskID {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    string contract = 1 [ (gogoproto.moretags) = "yaml:\"contract\"" ];
-    string function = 2 [ (gogoproto.moretags) = "yaml:\"function\"" ];
+    bytes tid = 1 [ (gogoproto.moretags) = "yaml:\"tid\"" ];
 }
 
 message TaskIDs {
