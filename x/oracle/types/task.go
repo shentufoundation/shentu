@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/gogo/protobuf/proto"
 )
 
 // NewTask returns a new task.
@@ -53,10 +54,69 @@ func (r Responses) String() string {
 }
 
 type TaskI interface {
+	proto.Message
+
 	GetID() []byte
 	GetCreator() string
 	GetResponses() []Response
 	IsExpired(ctx sdk.Context) bool
+	GetValidTime(ctx sdk.Context) (int64, time.Time)
 	GetStatus() TaskStatus
 	GetScore() int64
+}
+
+func (t Task) GetID() []byte {
+	return append([]byte(t.Contract), []byte(t.Function)...)
+}
+
+func (t Task) GetCreator() string {
+	return t.Creator
+}
+
+func (t Task) GetResponses() []Response {
+	return t.Responses
+}
+
+func (t Task) IsExpired(ctx sdk.Context) bool {
+	return t.Expiration.Before(ctx.BlockTime())
+}
+
+func (t Task) GetValidTime(ctx sdk.Context) (int64, time.Time) {
+	return t.ClosingBlock, time.Time{}
+}
+
+func (t Task) GetStatus() TaskStatus {
+	return t.Status
+}
+
+func (t Task) GetScore() int64 {
+	return t.Result.Int64()
+}
+
+func (t TxTask) GetID() []byte {
+	return t.TxHash
+}
+
+func (t TxTask) GetCreator() string {
+	return t.Creator
+}
+
+func (t TxTask) GetResponses() []Response {
+	return t.Responses
+}
+
+func (t TxTask) IsExpired(ctx sdk.Context) bool {
+	return t.Expiration.Before(ctx.BlockTime())
+}
+
+func (t TxTask) GetValidTime(ctx sdk.Context) (int64, time.Time) {
+	return -1, t.ValidTime
+}
+
+func (t TxTask) GetStatus() TaskStatus {
+	return t.Status
+}
+
+func (t TxTask) GetScore() int64 {
+	return -100
 }

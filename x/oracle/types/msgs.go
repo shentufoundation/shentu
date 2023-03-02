@@ -390,14 +390,14 @@ func (m MsgDeleteTask) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-// NewMsgCreateTxTask returns a new MsgCreateTxTask instance.
-func NewMsgCreateTxTask(creator, chainID string, bounty sdk.Coins, expirationTime time.Time, businessTx []byte) *MsgCreateTxTask {
+func NewMsgCreateTxTask(creator sdk.AccAddress, chainID string, txBytes []byte,
+	bounty sdk.Coins, validTime time.Time) *MsgCreateTxTask {
 	return &MsgCreateTxTask{
-		Creator:    creator,
-		ChainId:    chainID,
-		Bounty:     bounty,
-		TxBytes:    businessTx,
-		Expiration: expirationTime,
+		Creator:   creator.String(),
+		ChainId:   chainID,
+		TxBytes:   txBytes,
+		Bounty:    bounty,
+		ValidTime: validTime,
 	}
 }
 
