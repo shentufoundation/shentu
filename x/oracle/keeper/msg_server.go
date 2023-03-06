@@ -154,8 +154,11 @@ func (k msgServer) CreateTask(goCtx context.Context, msg *types.MsgCreateTask) (
 		expiration = ctx.BlockTime().Add(msg.ValidDuration)
 	}
 
-	if err := k.Keeper.CreateTask(ctx, msg.Contract, msg.Function, msg.Bounty, msg.Description,
-		expiration, creatorAddr, windowSize); err != nil {
+	smartContractTask := types.NewTask(
+		msg.Contract, msg.Function, ctx.BlockHeight(),
+		msg.Bounty, msg.Description, expiration,
+		creatorAddr, ctx.BlockHeight()+windowSize, windowSize)
+	if err := k.Keeper.CreateTask(ctx, creatorAddr, &smartContractTask); err != nil {
 		return nil, err
 	}
 
@@ -183,7 +186,7 @@ func (k msgServer) TaskResponse(goCtx context.Context, msg *types.MsgTaskRespons
 		return nil, err
 	}
 
-	if err := k.Keeper.RespondToTask(ctx, msg.Contract, msg.Function, msg.Score, operatorAddr); err != nil {
+	if err := k.Keeper.RespondToTask(ctx, types.NewTaskID(msg.Contract, msg.Function), msg.Score, operatorAddr); err != nil {
 		return nil, err
 	}
 
@@ -207,7 +210,7 @@ func (k msgServer) DeleteTask(goCtx context.Context, msg *types.MsgDeleteTask) (
 		return nil, err
 	}
 
-	if err := k.RemoveTask(ctx, msg.Contract, msg.Function, msg.Force, deleterAddr); err != nil {
+	if err := k.RemoveTask(ctx, types.NewTaskID(msg.Contract, msg.Function), msg.Force, deleterAddr); err != nil {
 		return nil, err
 	}
 
@@ -229,11 +232,12 @@ func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTas
 }
 
 func (k msgServer) TxTaskResponse(goCtx context.Context, msg *types.MsgTxTaskResponse) (*types.MsgTxTaskResponseResponse, error) {
-	//TODO: implement me
-	_, err := sdk.AccAddressFromBech32(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
+	// ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// operatorAddr, err := sdk.AccAddressFromBech32(msg.Operator)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	return &types.MsgTxTaskResponseResponse{}, nil
 }
 

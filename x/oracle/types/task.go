@@ -58,65 +58,108 @@ type TaskI interface {
 
 	GetID() []byte
 	GetCreator() string
-	GetResponses() []Response
+	GetResponses() Responses
 	IsExpired(ctx sdk.Context) bool
-	GetValidTime(ctx sdk.Context) (int64, time.Time)
+	IsValid(ctx sdk.Context) bool
+	GetValidTime() (int64, time.Time)
+	GetBounty() sdk.Coins
 	GetStatus() TaskStatus
 	GetScore() int64
+	AddResponse(response Response)
+	SetStatus(status TaskStatus)
+	SetScore(score int64)
 }
 
-func (t Task) GetID() []byte {
+func (t *Task) GetID() []byte {
 	return append([]byte(t.Contract), []byte(t.Function)...)
 }
 
-func (t Task) GetCreator() string {
+func (t *Task) GetCreator() string {
 	return t.Creator
 }
 
-func (t Task) GetResponses() []Response {
+func (t *Task) GetResponses() Responses {
 	return t.Responses
 }
 
-func (t Task) IsExpired(ctx sdk.Context) bool {
+func (t *Task) IsExpired(ctx sdk.Context) bool {
 	return t.Expiration.Before(ctx.BlockTime())
 }
 
-func (t Task) GetValidTime(ctx sdk.Context) (int64, time.Time) {
+func (t *Task) GetValidTime() (int64, time.Time) {
 	return t.ClosingBlock, time.Time{}
 }
 
-func (t Task) GetStatus() TaskStatus {
+func (t *Task) IsValid(ctx sdk.Context) bool {
+	return t.ClosingBlock >= ctx.BlockHeight()
+}
+
+func (t *Task) GetBounty() sdk.Coins {
+	return t.Bounty
+}
+
+func (t *Task) GetStatus() TaskStatus {
 	return t.Status
 }
 
-func (t Task) GetScore() int64 {
+func (t *Task) GetScore() int64 {
 	return t.Result.Int64()
 }
 
-func (t TxTask) GetID() []byte {
+func (t *Task) AddResponse(response Response) {
+	t.Responses = append(t.Responses, response)
+}
+
+func (t *Task) SetStatus(status TaskStatus) {
+	t.Status = status
+}
+
+func (t *Task) SetScore(score int64) {
+	t.Result = sdk.NewInt(score)
+}
+
+func (t *TxTask) GetID() []byte {
 	return t.TxHash
 }
 
-func (t TxTask) GetCreator() string {
+func (t *TxTask) GetCreator() string {
 	return t.Creator
 }
 
-func (t TxTask) GetResponses() []Response {
+func (t *TxTask) GetResponses() Responses {
 	return t.Responses
 }
 
-func (t TxTask) IsExpired(ctx sdk.Context) bool {
+func (t *TxTask) IsExpired(ctx sdk.Context) bool {
 	return t.Expiration.Before(ctx.BlockTime())
 }
 
-func (t TxTask) GetValidTime(ctx sdk.Context) (int64, time.Time) {
+func (t *TxTask) GetValidTime() (int64, time.Time) {
 	return -1, t.ValidTime
 }
 
-func (t TxTask) GetStatus() TaskStatus {
+func (t *TxTask) IsValid(ctx sdk.Context) bool {
+	return !t.ValidTime.Before(ctx.BlockTime())
+}
+
+func (t *TxTask) GetBounty() sdk.Coins {
+	return t.Bounty
+}
+
+func (t *TxTask) GetStatus() TaskStatus {
 	return t.Status
 }
 
-func (t TxTask) GetScore() int64 {
+func (t *TxTask) GetScore() int64 {
 	return -100
 }
+
+func (t *TxTask) AddResponse(response Response) {
+	t.Responses = append(t.Responses, response)
+}
+
+func (t *TxTask) SetStatus(status TaskStatus) {
+	t.Status = status
+}
+
+func (t *TxTask) SetScore(score int64) {}
