@@ -151,7 +151,7 @@ func (t *TxTask) GetStatus() TaskStatus {
 }
 
 func (t *TxTask) GetScore() int64 {
-	return -100
+	return t.Score
 }
 
 func (t *TxTask) AddResponse(response Response) {
@@ -162,4 +162,6 @@ func (t *TxTask) SetStatus(status TaskStatus) {
 	t.Status = status
 }
 
-func (t *TxTask) SetScore(score int64) {}
+func (t *TxTask) SetScore(score int64) {
+	t.Score = score
+}

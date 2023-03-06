@@ -1,6 +1,7 @@
 package oracle
 
 import (
+	"encoding/base64"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -53,9 +54,8 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					"aggregate_task",
-					//shall be base64 encoded?
-					//anyway, should be aligned with proto json encoding
-					sdk.NewAttribute("tx_hash", string(task.TxHash)),
+					//shall be base64 encoded to be aligned with proto json encoding
+					sdk.NewAttribute("tx_hash", base64.StdEncoding.EncodeToString(task.TxHash)),
 				),
 			)
 		}
