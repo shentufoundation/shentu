@@ -27,42 +27,59 @@ func TestTaskBasic(t *testing.T) {
 	contract1 := "0x1234567890abcdef"
 	function1 := "func1"
 	expiration1 := time.Now().Add(time.Hour).UTC()
-	require.NoError(t, ok.CreateTask(ctx, contract1, function1, bounty, description, expiration1, addrs[0], waitingBlocks))
+	scTask := types.NewTask(
+		contract1, function1, ctx.BlockHeight(),
+		bounty, description, expiration1,
+		addrs[0], ctx.BlockHeight()+waitingBlocks, waitingBlocks)
+	require.NoError(t, ok.CreateTask(ctx, addrs[0], &scTask))
 
-	task1, err := ok.GetTask(ctx, contract1, function1)
+	task1, err := ok.GetTask(ctx, types.NewTaskID(contract1, function1))
+	scTaskRes, castOK := task1.(*types.Task)
+	require.True(t, castOK)
 	require.Nil(t, err)
-	require.Equal(t, contract1, task1.Contract)
-	require.Equal(t, function1, task1.Function)
-	require.Equal(t, expiration1, task1.Expiration)
+	require.Equal(t, contract1, scTaskRes.Contract)
+	require.Equal(t, function1, scTaskRes.Function)
+	require.Equal(t, expiration1, scTaskRes.Expiration)
 
 	contract2 := "0x1234567890fedcba"
 	function2 := "func2"
 	expiration2 := time.Now().Add(time.Hour * 2).UTC()
-	require.NoError(t, ok.CreateTask(ctx, contract2, function2, bounty, description, expiration2, addrs[0], waitingBlocks))
+	scTask = types.NewTask(
+		contract2, function2, ctx.BlockHeight(),
+		bounty, description, expiration2,
+		addrs[0], ctx.BlockHeight()+waitingBlocks, waitingBlocks)
+	require.NoError(t, ok.CreateTask(ctx, addrs[0], &scTask))
 
-	task2, err := ok.GetTask(ctx, contract2, function2)
+	task2, err := ok.GetTask(ctx, types.NewTaskID(contract2, function2))
+	scTaskRes, castOK = task2.(*types.Task)
+	require.True(t, castOK)
 	require.Nil(t, err)
-	require.Equal(t, contract2, task2.Contract)
-	require.Equal(t, function2, task2.Function)
-	require.Equal(t, expiration2, task2.Expiration)
+	require.Equal(t, contract2, scTaskRes.Contract)
+	require.Equal(t, function2, scTaskRes.Function)
+	require.Equal(t, expiration2, scTaskRes.Expiration)
 
 	tasks := ok.GetAllTasks(ctx)
 	require.Len(t, tasks, 2)
 
-	require.Error(t, ok.RemoveTask(ctx, contract1, function1, false, addrs[0]))
-	require.Error(t, ok.RemoveTask(ctx, contract2, function2, false, addrs[0]))
+	require.Error(t, ok.RemoveTask(ctx, types.NewTaskID(contract1, function1), false, addrs[0]))
+	require.Error(t, ok.RemoveTask(ctx, types.NewTaskID(contract2, function2), false, addrs[0]))
 
 	ctx = ctx.WithBlockTime(expiration2)
-	require.Error(t, ok.RemoveTask(ctx, contract1, function1, false, addrs[0]))
-	require.Error(t, ok.RemoveTask(ctx, contract2, function2, false, addrs[0]))
+	require.Error(t, ok.RemoveTask(ctx, types.NewTaskID(contract1, function1), false, addrs[0]))
+	require.Error(t, ok.RemoveTask(ctx, types.NewTaskID(contract2, function2), false, addrs[0]))
 
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 6)
-	require.NoError(t, ok.RemoveTask(ctx, contract1, function1, false, addrs[0]))
-	require.Error(t, ok.RemoveTask(ctx, contract2, function2, false, addrs[0]))
+	require.NoError(t, ok.RemoveTask(ctx, types.NewTaskID(contract1, function1), false, addrs[0]))
+	require.Error(t, ok.RemoveTask(ctx, types.NewTaskID(contract2, function2), false, addrs[0]))
 
 	tasks = ok.GetAllTasks(ctx)
 	require.Len(t, tasks, 1)
-	require.Equal(t, []types.Task{task2}, ok.GetAllTasks(ctx))
+	var returnedScTasks []types.Task
+	tasks = ok.GetAllTasks(ctx)
+	for _, t := range tasks {
+		returnedScTasks = append(returnedScTasks, *t.(*types.Task))
+	}
+	require.Equal(t, []types.Task{*scTaskRes}, returnedScTasks)
 }
 
 func TestTaskAggregateFail(t *testing.T) {
@@ -84,27 +101,32 @@ func TestTaskAggregateFail(t *testing.T) {
 	expiration := time.Now().Add(time.Hour).UTC()
 	waitingBlocks := int64(5)
 
-	require.NoError(t, ok.CreateTask(ctx, contract, function, bounty, description, expiration, addrs[0], waitingBlocks))
+	scTask := types.NewTask(
+		contract, function, ctx.BlockHeight(),
+		bounty, description, expiration,
+		addrs[0], ctx.BlockHeight()+waitingBlocks, waitingBlocks)
+	require.NoError(t, ok.CreateTask(ctx, addrs[0], &scTask))
 
-	task, err := ok.GetTask(ctx, contract, function)
+	task, err := ok.GetTask(ctx, types.NewTaskID(contract, function))
+	scTaskRes := task.(*types.Task)
 	require.Nil(t, err)
-	require.Equal(t, contract, task.Contract)
-	require.Equal(t, function, task.Function)
+	require.Equal(t, contract, scTaskRes.Contract)
+	require.Equal(t, function, scTaskRes.Function)
 
-	require.NoError(t, ok.RespondToTask(ctx, contract, function, 100, addrs[0]))
-	require.NoError(t, ok.RespondToTask(ctx, contract, function, 100, addrs[2]))
+	require.NoError(t, ok.RespondToTask(ctx, types.NewTaskID(contract, function), 100, addrs[0]))
+	require.NoError(t, ok.RespondToTask(ctx, types.NewTaskID(contract, function), 100, addrs[2]))
 
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 6)
-	require.Error(t, ok.RespondToTask(ctx, contract, function, 100, addrs[0]))
+	require.Error(t, ok.RespondToTask(ctx, types.NewTaskID(contract, function), 100, addrs[0]))
 
 	ok.UpdateAndSetTask(ctx, task)
-	task.Status = types.TaskStatusFailed
+	task.SetStatus(types.TaskStatusFailed)
 	ok.SetTask(ctx, task)
-	require.Error(t, ok.Aggregate(ctx, contract, function))
+	require.Error(t, ok.Aggregate(ctx, types.NewTaskID(contract, function)))
 
-	task.Status = types.TaskStatusPending
+	task.SetStatus(types.TaskStatusPending)
 	ok.SetTask(ctx, task)
-	require.NoError(t, ok.Aggregate(ctx, contract, function))
+	require.NoError(t, ok.Aggregate(ctx, types.NewTaskID(contract, function)))
 }
 
 func TestTaskNoResponses(t *testing.T) {
@@ -120,14 +142,19 @@ func TestTaskNoResponses(t *testing.T) {
 	expiration := time.Now().Add(time.Hour).UTC()
 	waitingBlocks := int64(5)
 
-	require.NoError(t, ok.CreateTask(ctx, contract, function, bounty, description, expiration, addrs[0], waitingBlocks))
-	require.NoError(t, ok.Aggregate(ctx, contract, function))
+	scTask := types.NewTask(
+		contract, function, ctx.BlockHeight(),
+		bounty, description, expiration,
+		addrs[0], ctx.BlockHeight()+waitingBlocks, waitingBlocks)
+	require.NoError(t, ok.CreateTask(ctx, addrs[0], &scTask))
+	require.NoError(t, ok.Aggregate(ctx, types.NewTaskID(contract, function)))
 
-	task, err := ok.GetTask(ctx, contract, function)
+	task, err := ok.GetTask(ctx, types.NewTaskID(contract, function))
 	require.Nil(t, err)
-	require.Equal(t, contract, task.Contract)
-	require.Equal(t, function, task.Function)
-	require.Equal(t, types.TaskStatusFailed, task.Status)
+	scTaskRes := task.(*types.Task)
+	require.Equal(t, contract, scTaskRes.Contract)
+	require.Equal(t, function, scTaskRes.Function)
+	require.Equal(t, types.TaskStatusFailed, scTaskRes.Status)
 }
 
 func TestTaskMinScore(t *testing.T) {
@@ -149,19 +176,24 @@ func TestTaskMinScore(t *testing.T) {
 	expiration := time.Now().Add(time.Hour).UTC()
 	waitingBlocks := int64(5)
 
-	require.NoError(t, ok.CreateTask(ctx, contract, function, bounty, description, expiration, addrs[0], waitingBlocks))
+	scTask := types.NewTask(
+		contract, function, ctx.BlockHeight(),
+		bounty, description, expiration,
+		addrs[0], ctx.BlockHeight()+waitingBlocks, waitingBlocks)
+	require.NoError(t, ok.CreateTask(ctx, addrs[0], &scTask))
 
-	require.NoError(t, ok.RespondToTask(ctx, contract, function, 100, addrs[0]))
-	require.NoError(t, ok.RespondToTask(ctx, contract, function, 0, addrs[2]))
+	require.NoError(t, ok.RespondToTask(ctx, types.NewTaskID(contract, function), 100, addrs[0]))
+	require.NoError(t, ok.RespondToTask(ctx, types.NewTaskID(contract, function), 0, addrs[2]))
 
-	require.NoError(t, ok.Aggregate(ctx, contract, function))
+	require.NoError(t, ok.Aggregate(ctx, types.NewTaskID(contract, function)))
 
-	task, err := ok.GetTask(ctx, contract, function)
+	task, err := ok.GetTask(ctx, types.NewTaskID(contract, function))
 	require.Nil(t, err)
-	require.Equal(t, contract, task.Contract)
-	require.Equal(t, function, task.Function)
-	require.Equal(t, types.TaskStatusSucceeded, task.Status)
-	require.Equal(t, sdk.NewInt(params.MinimumCollateral), task.Result)
+	scTaskRes := task.(*types.Task)
+	require.Equal(t, contract, scTaskRes.Contract)
+	require.Equal(t, function, scTaskRes.Function)
+	require.Equal(t, types.TaskStatusSucceeded, scTaskRes.Status)
+	require.Equal(t, sdk.NewInt(params.MinimumCollateral), scTaskRes.Result)
 
 	require.NoError(t, ok.DistributeBounty(ctx, task))
 
@@ -195,19 +227,24 @@ func TestTaskBelowThreshold(t *testing.T) {
 	expiration := time.Now().Add(time.Hour).UTC()
 	waitingBlocks := int64(5)
 
-	require.NoError(t, ok.CreateTask(ctx, contract, function, bounty, description, expiration, addrs[0], waitingBlocks))
+	scTask := types.NewTask(
+		contract, function, ctx.BlockHeight(),
+		bounty, description, expiration,
+		addrs[0], ctx.BlockHeight()+waitingBlocks, waitingBlocks)
+	require.NoError(t, ok.CreateTask(ctx, addrs[0], &scTask))
 
-	require.NoError(t, ok.RespondToTask(ctx, contract, function, 40, addrs[0]))
-	require.NoError(t, ok.RespondToTask(ctx, contract, function, 20, addrs[2]))
+	require.NoError(t, ok.RespondToTask(ctx, types.NewTaskID(contract, function), 40, addrs[0]))
+	require.NoError(t, ok.RespondToTask(ctx, types.NewTaskID(contract, function), 20, addrs[2]))
 
-	require.NoError(t, ok.Aggregate(ctx, contract, function))
+	require.NoError(t, ok.Aggregate(ctx, types.NewTaskID(contract, function)))
 
-	task, err := ok.GetTask(ctx, contract, function)
+	task, err := ok.GetTask(ctx, types.NewTaskID(contract, function))
 	require.Nil(t, err)
-	require.Equal(t, contract, task.Contract)
-	require.Equal(t, function, task.Function)
-	require.Equal(t, types.TaskStatusSucceeded, task.Status)
-	require.Equal(t, sdk.NewInt(30), task.Result)
+	scTaskRes := task.(*types.Task)
+	require.Equal(t, contract, scTaskRes.Contract)
+	require.Equal(t, function, scTaskRes.Function)
+	require.Equal(t, types.TaskStatusSucceeded, scTaskRes.Status)
+	require.Equal(t, sdk.NewInt(30), scTaskRes.Result)
 
 	require.NoError(t, ok.DistributeBounty(ctx, task))
 
@@ -241,19 +278,24 @@ func TestTaskAboveThreshold(t *testing.T) {
 	expiration := time.Now().Add(time.Hour).UTC()
 	waitingBlocks := int64(5)
 
-	require.NoError(t, ok.CreateTask(ctx, contract, function, bounty, description, expiration, addrs[0], waitingBlocks))
+	scTask := types.NewTask(
+		contract, function, ctx.BlockHeight(),
+		bounty, description, expiration,
+		addrs[0], ctx.BlockHeight()+waitingBlocks, waitingBlocks)
+	require.NoError(t, ok.CreateTask(ctx, addrs[0], &scTask))
 
-	require.NoError(t, ok.RespondToTask(ctx, contract, function, 100, addrs[0]))
-	require.NoError(t, ok.RespondToTask(ctx, contract, function, 60, addrs[2]))
+	require.NoError(t, ok.RespondToTask(ctx, types.NewTaskID(contract, function), 100, addrs[0]))
+	require.NoError(t, ok.RespondToTask(ctx, types.NewTaskID(contract, function), 60, addrs[2]))
 
-	require.NoError(t, ok.Aggregate(ctx, contract, function))
+	require.NoError(t, ok.Aggregate(ctx, types.NewTaskID(contract, function)))
 
-	task, err := ok.GetTask(ctx, contract, function)
+	task, err := ok.GetTask(ctx, types.NewTaskID(contract, function))
 	require.Nil(t, err)
-	require.Equal(t, contract, task.Contract)
-	require.Equal(t, function, task.Function)
-	require.Equal(t, types.TaskStatusSucceeded, task.Status)
-	require.Equal(t, sdk.NewInt(80), task.Result)
+	scTaskRes := task.(*types.Task)
+	require.Equal(t, contract, scTaskRes.Contract)
+	require.Equal(t, function, scTaskRes.Function)
+	require.Equal(t, types.TaskStatusSucceeded, scTaskRes.Status)
+	require.Equal(t, sdk.NewInt(80), scTaskRes.Result)
 
 	require.NoError(t, ok.DistributeBounty(ctx, task))
 

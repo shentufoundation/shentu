@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
 func (suite *KeeperTestSuite) TestOperator_Create() {
@@ -361,7 +362,12 @@ func (suite *KeeperTestSuite) TestOperator_Reward() {
 			suite.SetupTest()
 			err := suite.keeper.CreateOperator(suite.ctx, tc.args.senderAddr, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.collateral)}, tc.args.proposerAddr, tc.args.operatorName)
 			suite.Require().NoError(err, tc.name)
-			err = suite.keeper.CreateTask(suite.ctx, "contract", "function", sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.rewardToAdd)}, "description", time.Now().Add(time.Hour).UTC(), tc.args.proposerAddr, int64(50))
+			scTask := types.NewTask(
+				"contract", "function", suite.ctx.BlockHeight(),
+				sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.rewardToAdd)}, "description",
+				time.Now().Add(time.Hour).UTC(), tc.args.proposerAddr,
+				suite.ctx.BlockHeight()+50, int64(50))
+			err = suite.keeper.CreateTask(suite.ctx, tc.args.proposerAddr, &scTask)
 			suite.Require().NoError(err, tc.name)
 			err = suite.keeper.AddReward(suite.ctx, tc.args.senderAddr, sdk.Coins{sdk.NewInt64Coin("uctk", tc.args.rewardToAdd)})
 			suite.Require().NoError(err, tc.name)

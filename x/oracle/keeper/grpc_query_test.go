@@ -293,11 +293,15 @@ func (suite *KeeperTestSuite) createTask(contract, function string, creator sdk.
 	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
 	expiration := time.Now().Add(time.Hour).UTC()
 	waitingBlocks := int64(5)
-	err := suite.keeper.CreateTask(suite.ctx, contract, function, bounty, "task", expiration, creator, waitingBlocks)
+	scTask := types.NewTask(
+		contract, function, suite.ctx.BlockHeight(),
+		bounty, "task", expiration,
+		creator, suite.ctx.BlockHeight()+waitingBlocks, waitingBlocks)
+	err := suite.keeper.CreateTask(suite.ctx, creator, &scTask)
 	suite.Require().NoError(err)
 }
 
 func (suite *KeeperTestSuite) respondToTask(contract, function string, operatorAddress sdk.AccAddress) {
-	err := suite.keeper.RespondToTask(suite.ctx, contract, function, 100, operatorAddress)
+	err := suite.keeper.RespondToTask(suite.ctx, types.NewTaskID(contract, function), 100, operatorAddress)
 	suite.Require().NoError(err)
 }
