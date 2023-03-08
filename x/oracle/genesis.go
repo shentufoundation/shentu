@@ -30,9 +30,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	}
 
 	for i := range tasks {
-		task := tasks[i]
-		task.ClosingBlock = ctx.BlockHeight() + task.WaitingBlocks
-		k.UpdateAndSetTask(ctx, &task)
+		k.UpdateAndSetTask(ctx, &tasks[i])
 	}
 }
 
