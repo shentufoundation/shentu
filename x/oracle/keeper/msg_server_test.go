@@ -27,7 +27,7 @@ func TestMsgServer_CreateTxTask(t *testing.T) {
 	expiration1 := time.Now().Add(time.Hour).UTC()
 	businessTransaction := []byte("ethereum transaction")
 
-	msgCreateTxTask := types.NewMsgCreateTxTask(addrs[0].String(), "1", bounty, expiration1, businessTransaction)
+	msgCreateTxTask := types.NewMsgCreateTxTask(addrs[0], "1", businessTransaction, bounty, expiration1)
 
 	res, err := msgServer.CreateTxTask(sdk.WrapSDKContext(ctx), msgCreateTxTask)
 	require.NoError(t, err)

@@ -18,7 +18,7 @@ func NewTask(
 	description string,
 	expiration time.Time,
 	creator sdk.AccAddress,
-	closingBlock int64,
+	expireHeight int64,
 	waitingBlocks int64,
 ) Task {
 	return Task{
@@ -29,7 +29,7 @@ func NewTask(
 		Description:   description,
 		Expiration:    expiration,
 		Creator:       creator.String(),
-		ClosingBlock:  closingBlock,
+		ExpireHeight:  expireHeight,
 		WaitingBlocks: waitingBlocks,
 		Status:        TaskStatusPending,
 	}
@@ -88,11 +88,11 @@ func (t *Task) IsExpired(ctx sdk.Context) bool {
 }
 
 func (t *Task) GetValidTime() (int64, time.Time) {
-	return t.ClosingBlock, time.Time{}
+	return t.ExpireHeight, time.Time{}
 }
 
 func (t *Task) IsValid(ctx sdk.Context) bool {
-	return t.ClosingBlock >= ctx.BlockHeight()
+	return t.ExpireHeight >= ctx.BlockHeight()
 }
 
 func (t *Task) GetBounty() sdk.Coins {

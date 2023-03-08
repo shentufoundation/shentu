@@ -207,10 +207,7 @@ func (k msgServer) TaskResponse(goCtx context.Context, msg *types.MsgTaskRespons
 func (k msgServer) DeleteTask(goCtx context.Context, msg *types.MsgDeleteTask) (*types.MsgDeleteTaskResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	deleterAddr, err := sdk.AccAddressFromBech32(msg.Deleter)
-	if err != nil {
-		return nil, err
-	}
+	deleterAddr, _ := sdk.AccAddressFromBech32(msg.From)
 
 	if err := k.RemoveTask(ctx, types.NewTaskID(msg.Contract, msg.Function), msg.Force, deleterAddr); err != nil {
 		return nil, err
@@ -220,7 +217,7 @@ func (k msgServer) DeleteTask(goCtx context.Context, msg *types.MsgDeleteTask) (
 		types.TypeMsgDeleteTask,
 		sdk.NewAttribute("contract", msg.Contract),
 		sdk.NewAttribute("function", msg.Function),
-		sdk.NewAttribute("creator", msg.Deleter),
+		sdk.NewAttribute("creator", msg.From),
 		sdk.NewAttribute("expired", strconv.FormatBool(msg.Force)),
 	)
 	ctx.EventManager().EmitEvent(DeleteTaskEvent)

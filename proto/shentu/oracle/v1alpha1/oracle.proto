@@ -33,7 +33,7 @@ message Task {
     string creator = 7 [ (gogoproto.moretags) = "yaml:\"creator\"" ];
     repeated Response responses = 8 [ (gogoproto.moretags) = "yaml:\"responses\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "Responses" ];
     string result = 9 [ (gogoproto.moretags) = "yaml:\"result\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
-    int64 closing_block = 10 [ (gogoproto.moretags) = "yaml:\"closing_block\"" ];
+    int64 expire_height = 10 [ (gogoproto.moretags) = "yaml:\"expire_height\"" ];
     int64 waiting_blocks = 11 [ (gogoproto.moretags) = "yaml:\"waiting_blocks\"" ];
     TaskStatus status = 12 [(gogoproto.moretags) = "yaml:\"status\""];
 }

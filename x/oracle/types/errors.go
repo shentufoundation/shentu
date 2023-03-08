@@ -29,16 +29,11 @@ const (
 	errNotFinished
 	errTaskFailed
 	errInvalidScore
-)
-
-const (
-	errTxTaskNotExists uint32 = iota + 401
-	errTxTaskNotClosed
-	errTxTaskExpirationTime
-	errInvalidTxTask
+	errInvalidTask
 )
 
 const errInconsistentOperators uint32 = 301
+const errFailedToCastTask uint32 = 401
 
 var (
 	ErrNoOperatorFound         = sdkerrors.Register(ModuleName, errNoOperatorFound, "no operator was found")
@@ -62,11 +57,9 @@ var (
 	ErrNotFinished         = sdkerrors.Register(ModuleName, errNotFinished, "the task is on going")
 	ErrTaskFailed          = sdkerrors.Register(ModuleName, errTaskFailed, "task failed")
 	ErrInvalidScore        = sdkerrors.Register(ModuleName, errInvalidScore, "invalid score")
+	ErrInvalidTask         = sdkerrors.Register(ModuleName, errInvalidTask, "invalid task")
 
 	ErrInconsistentOperators = sdkerrors.Register(ModuleName, errInconsistentOperators, "two operators not consistent")
 
-	ErrTxTaskNotExists      = sdkerrors.Register(ModuleName, errTxTaskNotExists, "tx task does not exist")
-	ErrTxTaskNotClosed      = sdkerrors.Register(ModuleName, errTxTaskNotClosed, "tx task has not been closed")
-	ErrTxTaskExpirationTime = sdkerrors.Register(ModuleName, errTxTaskExpirationTime, "tx task expiration time is not correct")
-	ErrInvalidTxTask        = sdkerrors.Register(ModuleName, errInvalidTxTask, "invalid tx task")
+	ErrFailedToCastTask = sdkerrors.Register(ModuleName, errFailedToCastTask, "failed to cast to concrete task")
 )

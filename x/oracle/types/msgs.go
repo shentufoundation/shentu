@@ -357,7 +357,7 @@ func NewMsgDeleteTask(contract, function string, force bool, deleter sdk.AccAddr
 		Contract: contract,
 		Function: function,
 		Force:    force,
-		Deleter:  deleter.String(),
+		From:     deleter.String(),
 	}
 }
 
@@ -383,7 +383,7 @@ func (m MsgDeleteTask) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgDeleteTask) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Deleter)
+	addr, err := sdk.AccAddressFromBech32(m.From)
 	if err != nil {
 		panic(err)
 	}
@@ -488,11 +488,10 @@ func (m MsgTxTaskResponse) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func NewMsgDeleteTxTask(txHash []byte, force bool, deleter sdk.AccAddress) *MsgDeleteTxTask {
+func NewMsgDeleteTxTask(txHash []byte, deleter sdk.AccAddress) *MsgDeleteTxTask {
 	return &MsgDeleteTxTask{
-		TxHash:  txHash,
-		Force:   force,
-		Deleter: deleter.String(),
+		TxHash: txHash,
+		From:   deleter.String(),
 	}
 }
 
@@ -504,7 +503,7 @@ func (MsgDeleteTxTask) Type() string { return TypeMsgDeleteTxTask }
 
 // Msg interface
 func (m MsgDeleteTxTask) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(m.Deleter)
+	_, err := sdk.AccAddressFromBech32(m.From)
 	if err != nil {
 		return nil
 	}
@@ -525,6 +524,6 @@ func (m MsgDeleteTxTask) GetSignBytes() []byte {
 
 // Msg interface, return the account that should sign the tx
 func (m MsgDeleteTxTask) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Deleter)
+	addr, _ := sdk.AccAddressFromBech32(m.From)
 	return []sdk.AccAddress{addr}
 }
