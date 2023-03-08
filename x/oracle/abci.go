@@ -45,7 +45,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 					sdk.NewAttribute("creator", task.Creator),
 					sdk.NewAttribute("responses", task.Responses.String()),
 					sdk.NewAttribute("result", task.Result.String()),
-					sdk.NewAttribute("end_block_height", strconv.FormatInt(task.ClosingBlock, 10)),
+					sdk.NewAttribute("end_block_height", strconv.FormatInt(task.ExpireHeight, 10)),
 					sdk.NewAttribute("status", task.Status.String()),
 				),
 			)

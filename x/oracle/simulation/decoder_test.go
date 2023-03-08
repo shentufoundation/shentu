@@ -51,7 +51,7 @@ func TestDecodeStore(t *testing.T) {
 		Creator:       RandomAccount().Address.String(),
 		Responses:     []types.Response{RandomResponse()},
 		Result:        sdk.NewInt(rand.Int63n(256)),
-		ClosingBlock:  rand.Int63n(10000),
+		ExpireHeight:  rand.Int63n(10000),
 		WaitingBlocks: rand.Int63n(1000),
 		Status:        types.TaskStatus(rand.Intn(4)),
 	}
@@ -72,7 +72,7 @@ func TestDecodeStore(t *testing.T) {
 			{Key: types.WithdrawStoreKey(withdrawAddr, withdraw.DueBlock), Value: cdc.MustMarshalLengthPrefixed(&withdraw)},
 			{Key: types.TotalCollateralKey(), Value: cdc.MustMarshalLengthPrefixed(&types.CoinsProto{Coins: totalCollateral})},
 			{Key: types.TaskStoreKey(types.NewTaskID(task.Contract, task.Function)), Value: cdc.MustMarshalLengthPrefixed(&task)},
-			{Key: types.ClosingTaskIDsStoreKey(task.ClosingBlock), Value: cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})},
+			{Key: types.ClosingTaskIDsStoreKey(task.ExpireHeight), Value: cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})},
 		},
 	}
 

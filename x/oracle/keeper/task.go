@@ -35,7 +35,12 @@ func (k Keeper) UpdateAndSetTask(ctx sdk.Context, task types.TaskI) {
 	if task.IsValid(ctx) {
 		k.SetClosingBlockStore(ctx, task)
 	}
-	k.SetTask(ctx, task)
+	if scTask, ok := task.(*types.Task); ok {
+		scTask.ExpireHeight = ctx.BlockHeight() + scTask.WaitingBlocks
+		k.SetTask(ctx, scTask)
+	} else {
+		k.SetTask(ctx, task)
+	}
 }
 
 // GetTask returns a task given contract and function.
@@ -58,7 +63,7 @@ func (k Keeper) SetClosingBlockStore(ctx sdk.Context, task types.TaskI) {
 	bz := k.cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})
 	switch task := task.(type) {
 	case *types.Task:
-		store.Set(types.ClosingTaskIDsStoreKey(task.ClosingBlock), bz)
+		store.Set(types.ClosingTaskIDsStoreKey(task.ExpireHeight), bz)
 		return
 	case *types.TxTask:
 		store.Set(types.ClosingTaskIDsTimedStoreKey(task.ValidTime), bz)
@@ -136,8 +141,7 @@ func (k Keeper) CreateTask(ctx sdk.Context, creator sdk.AccAddress, task types.T
 			return err
 		}
 	}
-	// closingBlock := ctx.BlockHeight() + waitingBlocks
-	// task = types.NewTask(contract, function, ctx.BlockHeight(), bounty, description, expiration, creator, closingBlock, waitingBlocks)
+
 	k.SetTask(ctx, task)
 	k.SetClosingBlockStore(ctx, task)
 	if err := k.CollectBounty(ctx, task.GetBounty(), creator); err != nil {
@@ -206,7 +210,7 @@ func (k Keeper) GetAllTasks(ctx sdk.Context) (tasks []types.TaskI) {
 func (k Keeper) UpdateAndGetAllTasks(ctx sdk.Context) (tasks []types.TaskI) {
 	k.IteratorAllTasks(ctx, func(task types.TaskI) bool {
 		if t, ok := task.(*types.Task); ok {
-			t.WaitingBlocks = t.ClosingBlock - ctx.BlockHeight()
+			t.WaitingBlocks = t.ExpireHeight - ctx.BlockHeight()
 			tasks = append(tasks, t)
 		} else {
 			tasks = append(tasks, task)
