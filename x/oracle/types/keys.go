@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/binary"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -21,12 +22,12 @@ const (
 )
 
 var (
-	OperatorStoreKeyPrefix    = []byte{0x01}
-	WithdrawStoreKeyPrefix    = []byte{0x02}
-	TotalCollateralKeyPrefix  = []byte{0x03}
-	TaskStoreKeyPrefix        = []byte{0x04}
-	ClosingTaskStoreKeyPrefix = []byte{0x05}
-	TxTaskStoreKeyPrefix      = []byte{0x06}
+	OperatorStoreKeyPrefix         = []byte{0x01}
+	WithdrawStoreKeyPrefix         = []byte{0x02}
+	TotalCollateralKeyPrefix       = []byte{0x03}
+	TaskStoreKeyPrefix             = []byte{0x04}
+	ClosingTaskStoreKeyPrefix      = []byte{0x05}
+	ClosingTaskStoreKeyTimedPrefix = []byte{0x06}
 )
 
 func OperatorStoreKey(operator sdk.AccAddress) []byte {
@@ -43,8 +44,8 @@ func TotalCollateralKey() []byte {
 	return TotalCollateralKeyPrefix
 }
 
-func TaskStoreKey(contract, function string) []byte {
-	return append(append(TaskStoreKeyPrefix, []byte(contract)...), []byte(function)...)
+func TaskStoreKey(taskID []byte) []byte {
+	return append(TaskStoreKeyPrefix, taskID...)
 }
 
 func ClosingTaskIDsStoreKey(blockHeight int64) []byte {
@@ -53,6 +54,11 @@ func ClosingTaskIDsStoreKey(blockHeight int64) []byte {
 	return append(ClosingTaskStoreKeyPrefix, b...)
 }
 
-func TxTaskStoreKey(hash []byte) []byte {
-	return append(TxTaskStoreKeyPrefix, hash...)
+func ClosingTaskIDsTimedStoreKey(closeTime time.Time) []byte {
+	b := sdk.FormatTimeBytes(closeTime)
+	return append(ClosingTaskStoreKeyTimedPrefix, b...)
+}
+
+func NewTaskID(contract, function string) []byte {
+	return append([]byte(contract), []byte(function)...)
 }

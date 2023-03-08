@@ -61,12 +61,16 @@ func (q Keeper) Task(c context.Context, req *types.QueryTaskRequest) (*types.Que
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	task, err := q.GetTask(ctx, req.Contract, req.Function)
+	task, err := q.GetTask(ctx, types.NewTaskID(req.Contract, req.Function))
 	if err != nil {
 		return nil, err
 	}
-
-	return &types.QueryTaskResponse{Task: task}, nil
+	resp := types.QueryTaskResponse{}
+	err = fmt.Errorf("failed to cast to concrete task")
+	if smartContractTask, ok := task.(*types.Task); ok {
+		resp, err = types.QueryTaskResponse{Task: *smartContractTask}, nil
+	}
+	return &resp, err
 }
 
 // Response queries a response based on its task contract, task function,
@@ -77,12 +81,12 @@ func (q Keeper) Response(c context.Context, req *types.QueryResponseRequest) (*t
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	task, err := q.GetTask(ctx, req.Contract, req.Function)
+	task, err := q.GetTask(ctx, types.NewTaskID(req.Contract, req.Function))
 	if err != nil {
 		return nil, err
 	}
 
-	for _, response := range task.Responses {
+	for _, response := range task.GetResponses() {
 		if response.Operator == req.OperatorAddress {
 			return &types.QueryResponseResponse{Response: response}, nil
 		}

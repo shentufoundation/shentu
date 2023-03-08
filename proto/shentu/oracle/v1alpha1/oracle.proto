@@ -93,8 +93,7 @@ message TaskID {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 
-    string contract = 1 [ (gogoproto.moretags) = "yaml:\"contract\"" ];
-    string function = 2 [ (gogoproto.moretags) = "yaml:\"function\"" ];
+    bytes tid = 1 [ (gogoproto.moretags) = "yaml:\"tid\"" ];
 }
 
 message TaskIDs {
@@ -113,7 +112,9 @@ message TxTask {
     bytes tx_hash = 1 [ (gogoproto.moretags) = "yaml:\"tx_hash\"" ];
     string creator = 2 [ (gogoproto.moretags) = "yaml:\"creator\"" ];
     repeated cosmos.base.v1beta1.Coin bounty = 3 [ (gogoproto.moretags) = "yaml:\"bounty\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
-    google.protobuf.Timestamp expiration = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"expiration\""];
-    repeated Response responses = 5 [ (gogoproto.moretags) = "yaml:\"responses\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "Responses" ];
-    TaskStatus status = 6 [(gogoproto.moretags) = "yaml:\"status\""];
+    google.protobuf.Timestamp valid_time = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"valid_time\""];
+    google.protobuf.Timestamp expiration = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"expiration\""];
+    repeated Response responses = 6 [ (gogoproto.moretags) = "yaml:\"responses\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "Responses" ];
+    int64 score = 7 [(gogoproto.moretags) = "yaml:\"score\""];
+    TaskStatus status = 8 [(gogoproto.moretags) = "yaml:\"status\""];
 }

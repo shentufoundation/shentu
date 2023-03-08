@@ -88,7 +88,11 @@ func TestQueryTask(t *testing.T) {
 	expiration := time.Now().Add(time.Hour).UTC()
 	waitingBlocks := int64(50)
 
-	err = ok.CreateTask(ctx, contract, function, bounty, description, expiration, addrs[0], waitingBlocks)
+	scTask := types.NewTask(
+		contract, function, ctx.BlockHeight(),
+		bounty, description, expiration,
+		addrs[0], ctx.BlockHeight()+waitingBlocks, waitingBlocks)
+	err = ok.CreateTask(ctx, addrs[0], &scTask)
 	require.Nil(t, err)
 
 	taskParams := types.QueryTaskParams{
@@ -106,7 +110,7 @@ func TestQueryTask(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, bz)
 
-	err = ok.RespondToTask(ctx, contract, function, 20, addrs[0])
+	err = ok.RespondToTask(ctx, types.NewTaskID(contract, function), 20, addrs[0])
 	require.Nil(t, err)
 
 	responseParams := types.QueryResponseParams{

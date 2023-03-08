@@ -29,8 +29,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 		k.SetWithdraw(ctx, withdraw)
 	}
 
-	for _, task := range tasks {
-		k.UpdateAndSetTask(ctx, task)
+	for i := range tasks {
+		task := tasks[i]
+		task.ClosingBlock = ctx.BlockHeight() + task.WaitingBlocks
+		k.UpdateAndSetTask(ctx, &task)
 	}
 }
 
@@ -45,5 +47,12 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 
 	tasks := k.UpdateAndGetAllTasks(ctx)
 
-	return types.NewGenesisState(operators, totalCollateral, poolParams, taskParams, withdraws, tasks)
+	//TODO: reimplement this to take both Task and TxTask
+	var smartContractTasks []types.Task
+	for _, t := range tasks {
+		if sct, ok := t.(*types.Task); ok {
+			smartContractTasks = append(smartContractTasks, *sct)
+		}
+	}
+	return types.NewGenesisState(operators, totalCollateral, poolParams, taskParams, withdraws, smartContractTasks)
 }

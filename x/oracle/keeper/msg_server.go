@@ -3,7 +3,7 @@ package keeper
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/hex"
+	"encoding/base64"
 	"strconv"
 	"time"
 
@@ -156,8 +156,11 @@ func (k msgServer) CreateTask(goCtx context.Context, msg *types.MsgCreateTask) (
 		expiration = ctx.BlockTime().Add(msg.ValidDuration)
 	}
 
-	if err := k.Keeper.CreateTask(ctx, msg.Contract, msg.Function, msg.Bounty, msg.Description,
-		expiration, creatorAddr, windowSize); err != nil {
+	smartContractTask := types.NewTask(
+		msg.Contract, msg.Function, ctx.BlockHeight(),
+		msg.Bounty, msg.Description, expiration,
+		creatorAddr, ctx.BlockHeight()+windowSize, windowSize)
+	if err := k.Keeper.CreateTask(ctx, creatorAddr, &smartContractTask); err != nil {
 		return nil, err
 	}
 
@@ -185,7 +188,7 @@ func (k msgServer) TaskResponse(goCtx context.Context, msg *types.MsgTaskRespons
 		return nil, err
 	}
 
-	if err := k.Keeper.RespondToTask(ctx, msg.Contract, msg.Function, msg.Score, operatorAddr); err != nil {
+	if err := k.Keeper.RespondToTask(ctx, types.NewTaskID(msg.Contract, msg.Function), msg.Score, operatorAddr); err != nil {
 		return nil, err
 	}
 
@@ -209,7 +212,7 @@ func (k msgServer) DeleteTask(goCtx context.Context, msg *types.MsgDeleteTask) (
 		return nil, err
 	}
 
-	if err := k.RemoveTask(ctx, msg.Contract, msg.Function, msg.Force, deleterAddr); err != nil {
+	if err := k.RemoveTask(ctx, types.NewTaskID(msg.Contract, msg.Function), msg.Force, deleterAddr); err != nil {
 		return nil, err
 	}
 
@@ -229,9 +232,10 @@ func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTas
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	hashByte := sha256.Sum256(msg.TxBytes)
-	hash := hex.EncodeToString(hashByte[:])
+	hash := base64.StdEncoding.EncodeToString(hashByte[:])
 
-	if err := k.Keeper.CreateTxTask(ctx, msg.Creator, msg.Bounty, msg.Expiration, hashByte[:]); err != nil {
+	txTask := types.NewTxTask(msg.Creator, hashByte[:], msg.Bounty, msg.ValidTime, msg.ValidTime, types.TaskStatusNil)
+	if err := k.Keeper.CreateTxTask(ctx, &txTask); err != nil {
 		return nil, err
 	}
 
@@ -241,7 +245,7 @@ func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTas
 		sdk.NewAttribute("creator", msg.Creator),
 		sdk.NewAttribute("chain_id", msg.ChainId),
 		sdk.NewAttribute("bounty", msg.Bounty.String()),
-		sdk.NewAttribute("expiration_time", msg.Expiration.String()),
+		sdk.NewAttribute("valid_time", msg.ValidTime.String()),
 	)
 	ctx.EventManager().EmitEvent(CreateTxTaskEvent)
 
@@ -251,11 +255,12 @@ func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTas
 }
 
 func (k msgServer) TxTaskResponse(goCtx context.Context, msg *types.MsgTxTaskResponse) (*types.MsgTxTaskResponseResponse, error) {
-	//TODO: implement me
-	_, err := sdk.AccAddressFromBech32(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
+	// ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// operatorAddr, err := sdk.AccAddressFromBech32(msg.Operator)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	return &types.MsgTxTaskResponseResponse{}, nil
 }
 

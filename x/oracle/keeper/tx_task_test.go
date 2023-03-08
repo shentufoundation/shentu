@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"crypto/sha256"
+	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 	"testing"
 	"time"
 
@@ -24,26 +25,41 @@ func TestTxTaskBasic(t *testing.T) {
 	businessHash := sha256.Sum256([]byte("hello"))
 
 	expiration1 := time.Now().Add(time.Hour).UTC()
-	require.NoError(t, ok.CreateTxTask(ctx, addrs[0].String(), bounty, expiration1, businessHash[:]))
 
-	task1, err := ok.GetTxTask(ctx, businessHash[:])
+	txTask := types.TxTask{
+		Creator:   addrs[0].String(),
+		TxHash:    businessHash[:],
+		Bounty:    bounty,
+		ValidTime: expiration1,
+		Status:    types.TaskStatusNil,
+	}
+	require.NoError(t, ok.CreateTxTask(ctx, &txTask))
+
+	task1, err := ok.GetTask(ctx, txTask.GetID())
 	require.Nil(t, err)
-	require.Equal(t, addrs[0].String(), task1.Creator)
-	require.Equal(t, businessHash[:], task1.TxHash)
-	require.Equal(t, expiration1, task1.Expiration)
+	require.Equal(t, addrs[0].String(), task1.GetCreator())
+	require.Equal(t, businessHash[:], task1.GetID())
+	_, validTime1 := task1.GetValidTime()
+	require.Equal(t, expiration1, validTime1)
 
 	businessHash2 := sha256.Sum256([]byte("hello world"))
 	expiration2 := time.Now().Add(time.Hour * 2).UTC()
-	require.NoError(t, ok.CreateTxTask(ctx, addrs[0].String(), bounty, expiration2, businessHash2[:]))
+	txTask2 := types.TxTask{
+		Creator:   addrs[0].String(),
+		TxHash:    businessHash2[:],
+		Bounty:    bounty,
+		ValidTime: expiration2,
+		Status:    types.TaskStatusNil,
+	}
+	require.NoError(t, ok.CreateTxTask(ctx, &txTask2))
 
-	task2, err := ok.GetTxTask(ctx, businessHash2[:])
+	task2, err := ok.GetTask(ctx, txTask2.GetID())
 	require.Nil(t, err)
-	require.Equal(t, addrs[0].String(), task2.Creator)
-	require.Equal(t, businessHash2[:], task2.TxHash)
-	require.Equal(t, expiration2, task2.Expiration)
+	require.Equal(t, addrs[0].String(), task2.GetCreator())
+	require.Equal(t, businessHash2[:], task2.GetID())
 
-	_ = ok.DeleteTxTask(ctx, businessHash2[:])
-	_, err = ok.GetTxTask(ctx, businessHash2[:])
+	_ = ok.DeleteTask(ctx, task2)
+	_, err = ok.GetTask(ctx, task2.GetID())
 	require.Error(t, err)
 
 }

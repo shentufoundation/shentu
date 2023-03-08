@@ -58,8 +58,7 @@ func TestDecodeStore(t *testing.T) {
 
 	taskIDs := []types.TaskID{
 		{
-			Contract: task.Contract,
-			Function: task.Function,
+			Tid: types.NewTaskID(task.Contract, task.Function),
 		},
 	}
 
@@ -72,7 +71,7 @@ func TestDecodeStore(t *testing.T) {
 			{Key: types.OperatorStoreKey(operatorAddr), Value: cdc.MustMarshalLengthPrefixed(&operator)},
 			{Key: types.WithdrawStoreKey(withdrawAddr, withdraw.DueBlock), Value: cdc.MustMarshalLengthPrefixed(&withdraw)},
 			{Key: types.TotalCollateralKey(), Value: cdc.MustMarshalLengthPrefixed(&types.CoinsProto{Coins: totalCollateral})},
-			{Key: types.TaskStoreKey(task.Contract, task.Function), Value: cdc.MustMarshalLengthPrefixed(&task)},
+			{Key: types.TaskStoreKey(types.NewTaskID(task.Contract, task.Function)), Value: cdc.MustMarshalLengthPrefixed(&task)},
 			{Key: types.ClosingTaskIDsStoreKey(task.ClosingBlock), Value: cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})},
 		},
 	}
