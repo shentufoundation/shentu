@@ -65,12 +65,11 @@ func (q Keeper) Task(c context.Context, req *types.QueryTaskRequest) (*types.Que
 	if err != nil {
 		return nil, err
 	}
-	resp := types.QueryTaskResponse{}
-	err = fmt.Errorf("failed to cast to concrete task")
+
 	if smartContractTask, ok := task.(*types.Task); ok {
-		resp, err = types.QueryTaskResponse{Task: *smartContractTask}, nil
+		return &types.QueryTaskResponse{Task: *smartContractTask}, nil
 	}
-	return &resp, err
+	return nil, types.ErrFailedToCastTask
 }
 
 // Response queries a response based on its task contract, task function,

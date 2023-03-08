@@ -32,6 +32,7 @@ const (
 )
 
 const errInconsistentOperators uint32 = 301
+const errFailedToCastTask uint32 = 401
 
 var (
 	ErrNoOperatorFound         = sdkerrors.Register(ModuleName, errNoOperatorFound, "no operator was found")
@@ -57,4 +58,5 @@ var (
 	ErrInvalidScore        = sdkerrors.Register(ModuleName, errInvalidScore, "invalid score")
 
 	ErrInconsistentOperators = sdkerrors.Register(ModuleName, errInconsistentOperators, "two operators not consistent")
+	ErrFailedToCastTask      = sdkerrors.Register(ModuleName, errFailedToCastTask, "failed to cast to concrete task")
 )

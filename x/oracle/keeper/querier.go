@@ -139,9 +139,9 @@ func queryTask(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper, 
 	if err != nil {
 		return nil, err
 	}
-	res, err = nil, fmt.Errorf("failed to cast to concrete task")
+
 	if smartContractTask, ok := task.(*types.Task); ok {
-		res, err = codec.MarshalJSONIndent(legacyQuerierCdc, *smartContractTask)
+		return codec.MarshalJSONIndent(legacyQuerierCdc, *smartContractTask)
 	}
-	return res, err
+	return nil, types.ErrFailedToCastTask
 }
