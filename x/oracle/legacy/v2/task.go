@@ -17,31 +17,21 @@ func MigrateTaskStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCo
 	for ; iterator.Valid(); iterator.Next() {
 		var task types.Task
 		cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &task)
-
-		newTask := types.NewTask(
-			task.Contract,
-			task.Function,
-			task.BeginBlock,
-			task.Bounty,
-			task.Description,
-			task.Expiration,
-			sdk.AccAddress(task.Creator),
-			task.ClosingBlock,
-			task.WaitingBlocks,
-		)
-
-		// task
-		store.Set(types.TaskStoreKey(newTask.GetID()), cdc.MustMarshalLengthPrefixed(&newTask))
-		// task IDs
-		newTaskID := types.TaskID{Tid: task.GetID()}
-		taskIDs = append(taskIDs, newTaskID)
-		bz := cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})
-		store.Set(types.ClosingTaskIDsStoreKey(task.ClosingBlock), bz)
+		bz, err := cdc.MarshalInterface(&task)
+		if err != nil {
+			panic(err)
+		}
 
 		// delete old task
 		oldTaskKey := append(append(types.TaskStoreKeyPrefix, []byte(task.Contract)...), []byte(task.Function)...)
 		store.Delete(oldTaskKey)
-
+		// set task
+		store.Set(types.TaskStoreKey(task.GetID()), bz)
+		// task IDs
+		newTaskID := types.TaskID{Tid: task.GetID()}
+		taskIDs = append(taskIDs, newTaskID)
+		bz = cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})
+		store.Set(types.ClosingTaskIDsStoreKey(task.ClosingBlock), bz)
 	}
 
 	return nil
