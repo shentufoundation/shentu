@@ -1,6 +1,6 @@
 module github.com/shentufoundation/shentu/v2
 
-go 1.18
+go 1.20
 
 require (
 	github.com/cosmos/cosmos-sdk v0.45.10

@@ -5,18 +5,10 @@ updates:
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-  - package-ecosystem: npm
-    directory: "/docs"
-    schedule:
-      interval: daily
-    open-pull-requests-limit: 10
-    reviewers:
-      - yoongbok-lee
   - package-ecosystem: gomod
     directory: "/"
     schedule:
       interval: daily
-    open-pull-requests-limit: 10
     labels:
       - P2
       - dependency
