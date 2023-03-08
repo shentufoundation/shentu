@@ -231,7 +231,7 @@ func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTas
 	hashByte := sha256.Sum256(msg.TxBytes)
 	hash := base64.StdEncoding.EncodeToString(hashByte[:])
 
-	txTask := types.NewTxTask(msg.Creator, hashByte[:], msg.Bounty, msg.ValidTime, msg.ValidTime, types.TaskStatusNil)
+	txTask := types.NewTxTask(msg.Creator, hashByte[:], msg.Bounty, msg.ValidTime, msg.ValidTime, types.TaskStatusNil, nil)
 	if err := k.Keeper.CreateTxTask(ctx, &txTask); err != nil {
 		return nil, err
 	}

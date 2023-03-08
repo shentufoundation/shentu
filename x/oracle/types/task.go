@@ -127,6 +127,7 @@ func NewTxTask(
 	validTime time.Time,
 	expiration time.Time,
 	taskStatus TaskStatus,
+	responses Responses,
 ) TxTask {
 	return TxTask{
 		TxHash:     txHash,
@@ -134,6 +135,7 @@ func NewTxTask(
 		Bounty:     bounty,
 		ValidTime:  validTime,
 		Expiration: expiration,
+		Responses:  responses,
 		Status:     taskStatus,
 	}
 }
