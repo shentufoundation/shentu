@@ -109,7 +109,7 @@ message MsgDeleteTask {
     string contract = 1 [ (gogoproto.moretags) = "yaml:\"contract\"" ];
     string function = 2 [ (gogoproto.moretags) = "yaml:\"function\"" ];
     bool force = 3 [ (gogoproto.moretags) = "yaml:\"force\"" ];
-    string deleter = 4 [ (gogoproto.moretags) = "yaml:\"deleter\"" ];
+    string from = 4 [ (gogoproto.moretags) = "yaml:\"from\"" ];
 }
 
 message MsgDeleteTaskResponse {}
@@ -149,8 +149,7 @@ message MsgDeleteTxTask {
     option (gogoproto.goproto_getters) = false;
 
     bytes tx_hash = 1 [ (gogoproto.moretags) = "yaml:\"tx_hash\"" ];
-    bool force = 2 [ (gogoproto.moretags) = "yaml:\"force\"" ];
-    string deleter = 3 [ (gogoproto.moretags) = "yaml:\"deleter\"" ];
+    string from = 2 [ (gogoproto.moretags) = "yaml:\"from\"" ];
 }
 
 message MsgDeleteTxTaskResponse {}
