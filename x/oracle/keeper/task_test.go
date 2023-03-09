@@ -120,7 +120,7 @@ func TestTaskAggregateFail(t *testing.T) {
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 6)
 	require.Error(t, ok.RespondToTask(ctx, types.NewTaskID(contract, function), 100, addrs[0]))
 
-	ok.UpdateAndSetTask(ctx, task)
+	ok.UpdateAndSetTask(ctx, scTaskRes)
 	task.SetStatus(types.TaskStatusFailed)
 	ok.SetTask(ctx, task)
 	require.Error(t, ok.Aggregate(ctx, types.NewTaskID(contract, function)))
