@@ -146,9 +146,6 @@ func (k Keeper) CreateTask(ctx sdk.Context, creator sdk.AccAddress, task types.T
 			if !ok {
 				return types.ErrInvalidTask
 			}
-			if !reqTask.Equal(oldTask) {
-				return types.ErrInvalidTask
-			}
 			if !reqTask.IsValid(ctx) {
 				return types.ErrInvalidTask
 			}
