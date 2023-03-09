@@ -31,15 +31,21 @@ func (k Keeper) DeleteTask(ctx sdk.Context, task types.TaskI) error {
 }
 
 // UpdateAndSetTask updates a task and set it in KVStore.
-func (k Keeper) UpdateAndSetTask(ctx sdk.Context, task types.TaskI) {
+func (k Keeper) UpdateAndSetTask(ctx sdk.Context, task *types.Task) {
 	if task.IsValid(ctx) {
 		k.SetClosingBlockStore(ctx, task)
 	}
-	if scTask, ok := task.(*types.Task); ok {
-		scTask.ExpireHeight = ctx.BlockHeight() + scTask.WaitingBlocks
-		k.SetTask(ctx, scTask)
-	} else {
+
+	task.ExpireHeight = ctx.BlockHeight() + task.WaitingBlocks
+	k.SetTask(ctx, task)
+}
+
+func (k Keeper) SetTxTask(ctx sdk.Context, task *types.TxTask) {
+	if task.Expiration.After(ctx.BlockTime()) {
 		k.SetTask(ctx, task)
+		if task.IsValid(ctx) {
+			k.SetClosingBlockStore(ctx, task)
+		}
 	}
 }
 
@@ -234,13 +240,13 @@ func (k Keeper) GetAllTasks(ctx sdk.Context) (tasks []types.TaskI) {
 }
 
 // UpdateAndGetAllTasks updates all tasks and returns them.
-func (k Keeper) UpdateAndGetAllTasks(ctx sdk.Context) (tasks []types.TaskI) {
+func (k Keeper) UpdateAndGetAllTasks(ctx sdk.Context) (tasks []types.Task, txTasks []types.TxTask) {
 	k.IteratorAllTasks(ctx, func(task types.TaskI) bool {
 		if t, ok := task.(*types.Task); ok {
 			t.WaitingBlocks = t.ExpireHeight - ctx.BlockHeight()
-			tasks = append(tasks, t)
-		} else {
-			tasks = append(tasks, task)
+			tasks = append(tasks, *t)
+		} else if t, ok := task.(*types.TxTask); ok {
+			txTasks = append(txTasks, *t)
 		}
 		return false
 	})

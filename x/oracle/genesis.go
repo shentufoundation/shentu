@@ -15,6 +15,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	taskParams := data.TaskParams
 	withdraws := data.Withdraws
 	tasks := data.Tasks
+	txTasks := data.TxTasks
 
 	for _, operator := range operators {
 		k.SetOperator(ctx, operator)
@@ -32,6 +33,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	for i := range tasks {
 		k.UpdateAndSetTask(ctx, &tasks[i])
 	}
+	for i := range tasks {
+		k.SetTxTask(ctx, &txTasks[i])
+	}
 }
 
 // ExportGenesis extracts all data from store to genesis state.
@@ -42,15 +46,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	poolParams := k.GetLockedPoolParams(ctx)
 	taskParams := k.GetTaskParams(ctx)
 	withdraws := k.GetAllWithdrawsForExport(ctx)
+	tasks, txTasks := k.UpdateAndGetAllTasks(ctx)
 
-	tasks := k.UpdateAndGetAllTasks(ctx)
-
-	//TODO: reimplement this to take both Task and TxTask
-	var smartContractTasks []types.Task
-	for _, t := range tasks {
-		if sct, ok := t.(*types.Task); ok {
-			smartContractTasks = append(smartContractTasks, *sct)
-		}
-	}
-	return types.NewGenesisState(operators, totalCollateral, poolParams, taskParams, withdraws, smartContractTasks)
+	return types.NewGenesisState(operators, totalCollateral, poolParams, taskParams, withdraws, tasks, txTasks)
 }

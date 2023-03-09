@@ -52,4 +52,14 @@ var (
 		int64(100),
 		int64(5),
 	)
+
+	validTxTask = types.NewTxTask(
+		acc1.String(),
+		[]byte("testtxtask"),
+		coins5000,
+		time.Now().Add(time.Hour).UTC(),
+		time.Now().Add(time.Hour).UTC(),
+		types.TaskStatusPending,
+		nil,
+	)
 )
