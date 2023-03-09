@@ -157,14 +157,14 @@ func (k Keeper) CreateTask(ctx sdk.Context, creator sdk.AccAddress, task types.T
 				if savedTask.IsValid(ctx) {
 					return types.ErrTaskNotClosed
 				}
-				if err := k.DeleteTask(ctx, savedTask); err != nil {
-					return err
-				}
 			} else {
 				//created by fast path
 				reqTask.Responses = oldTask.Responses
 				reqTask.Expiration = oldTask.Expiration
 				reqTask.Score = oldTask.Score
+			}
+			if err := k.DeleteTask(ctx, savedTask); err != nil {
+				return err
 			}
 		}
 	}
