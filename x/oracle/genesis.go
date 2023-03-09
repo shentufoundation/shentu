@@ -33,7 +33,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	for i := range tasks {
 		k.UpdateAndSetTask(ctx, &tasks[i])
 	}
-	for i := range tasks {
+	for i := range txTasks {
 		k.SetTxTask(ctx, &txTasks[i])
 	}
 }

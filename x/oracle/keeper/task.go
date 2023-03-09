@@ -41,7 +41,7 @@ func (k Keeper) UpdateAndSetTask(ctx sdk.Context, task *types.Task) {
 }
 
 func (k Keeper) SetTxTask(ctx sdk.Context, task *types.TxTask) {
-	if task.Expiration.After(ctx.BlockTime()) {
+	if !task.Expiration.Before(ctx.BlockTime()) {
 		k.SetTask(ctx, task)
 		if task.IsValid(ctx) {
 			k.SetClosingBlockStore(ctx, task)
