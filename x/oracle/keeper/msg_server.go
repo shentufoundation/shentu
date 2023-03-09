@@ -228,11 +228,17 @@ func (k msgServer) DeleteTask(goCtx context.Context, msg *types.MsgDeleteTask) (
 func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTask) (*types.MsgCreateTxTaskResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	creatorAddr, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return nil, err
+	}
+
 	hashByte := sha256.Sum256(msg.TxBytes)
 	hash := base64.StdEncoding.EncodeToString(hashByte[:])
 
-	txTask := types.NewTxTask(msg.Creator, hashByte[:], msg.Bounty, msg.ValidTime, msg.ValidTime, types.TaskStatusNil, nil)
-	if err := k.Keeper.CreateTxTask(ctx, &txTask); err != nil {
+	expirationTime := ctx.BlockTime().Add(k.Keeper.GetTaskParams(ctx).ExpirationDuration)
+	txTask := types.NewTxTask(msg.Creator, hashByte[:], msg.Bounty, msg.ValidTime, expirationTime, types.TaskStatusPending, nil)
+	if err := k.Keeper.CreateTask(ctx, creatorAddr, &txTask); err != nil {
 		return nil, err
 	}
 

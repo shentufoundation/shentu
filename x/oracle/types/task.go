@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"encoding/json"
 	"time"
 
@@ -161,7 +162,7 @@ func (t *TxTask) GetValidTime() (int64, time.Time) {
 }
 
 func (t *TxTask) IsValid(ctx sdk.Context) bool {
-	return !t.ValidTime.Before(ctx.BlockTime())
+	return t.ValidTime.After(ctx.BlockTime())
 }
 
 func (t *TxTask) GetBounty() sdk.Coins {
@@ -186,4 +187,26 @@ func (t *TxTask) SetStatus(status TaskStatus) {
 
 func (t *TxTask) SetScore(score int64) {
 	t.Score = score
+}
+
+func (t *TxTask) Equal(task *TxTask) bool {
+	if t.GetCreator() != task.GetCreator() {
+		return false
+	}
+
+	if !bytes.Equal(t.GetID(), task.GetID()) {
+		return false
+	}
+
+	_, dataValidTime := t.GetValidTime()
+	_, taskValidTime := task.GetValidTime()
+	if dataValidTime != taskValidTime {
+		return false
+	}
+	for i, coin := range t.GetBounty() {
+		if !coin.Equal(task.GetBounty()[i]) {
+			return false
+		}
+	}
+	return true
 }

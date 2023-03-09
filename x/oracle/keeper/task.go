@@ -134,11 +134,38 @@ func (k Keeper) DeleteClosingTaskIDs(ctx sdk.Context) {
 func (k Keeper) CreateTask(ctx sdk.Context, creator sdk.AccAddress, task types.TaskI) error {
 	savedTask, err := k.GetTask(ctx, task.GetID())
 	if err == nil {
-		if savedTask.IsValid(ctx) {
-			return types.ErrTaskNotClosed
-		}
-		if err := k.DeleteTask(ctx, savedTask); err != nil {
-			return err
+		if _, ok := task.(*types.Task); ok {
+			if savedTask.IsValid(ctx) {
+				return types.ErrTaskNotClosed
+			}
+			if err := k.DeleteTask(ctx, savedTask); err != nil {
+				return err
+			}
+		} else if reqTask, ok := task.(*types.TxTask); ok {
+			oldTask, ok := savedTask.(*types.TxTask)
+			if !ok {
+				return types.ErrInvalidTask
+			}
+			if !reqTask.Equal(oldTask) {
+				return types.ErrInvalidTask
+			}
+			if !reqTask.IsValid(ctx) {
+				return types.ErrInvalidTask
+			}
+
+			if oldTask.GetStatus() != types.TaskStatusNil {
+				if savedTask.IsValid(ctx) {
+					return types.ErrTaskNotClosed
+				}
+				if err := k.DeleteTask(ctx, savedTask); err != nil {
+					return err
+				}
+			} else {
+				//created by fast path
+				reqTask.Responses = oldTask.Responses
+				reqTask.Expiration = oldTask.Expiration
+				reqTask.Score = oldTask.Score
+			}
 		}
 	}
 
