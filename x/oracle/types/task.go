@@ -53,6 +53,22 @@ func (r Responses) String() string {
 	return string(jsonBytes)
 }
 
+func NewTxTask(
+	txHash []byte,
+	creator string,
+	bounty sdk.Coins,
+	validTime time.Time,
+	status TaskStatus,
+) TxTask {
+	return TxTask{
+		TxHash:    txHash,
+		Creator:   creator,
+		Bounty:    bounty,
+		ValidTime: validTime,
+		Status:    status,
+	}
+}
+
 type TaskI interface {
 	proto.Message
 

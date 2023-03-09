@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/base64"
 	"fmt"
 	"strconv"
 	"time"
@@ -42,6 +43,8 @@ func NewTxCmd() *cobra.Command {
 		GetCmdCreateTask(),
 		GetCmdRespondToTask(),
 		GetCmdDeleteTask(),
+		GetCmdRespondToTxTask(),
+		GetCmdDeleteTxTask(),
 	)
 
 	return oracleTxCmds
@@ -337,6 +340,83 @@ func GetCmdDeleteTask() *cobra.Command {
 	}
 
 	cmd.Flags().BoolVarP(&FlagForce, "force", "f", false, "force delete")
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdRespondToTxTask() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "respond-to-txtask <tx_hash> <score>",
+		Short: "Respond to a transaction task",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
+				return err
+			}
+
+			txHash, err := base64.StdEncoding.DecodeString(args[0])
+			if err != nil {
+				panic(err)
+			}
+
+			score, err := strconv.ParseInt(args[1], 10, 64)
+			if err != nil {
+				panic(err)
+			}
+
+			msg := types.NewMsgTxTaskResponse(txHash, score, from)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdDeleteTxTask() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete-txtask <tx_hash>",
+		Short: "Delete a transaction task",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
+				return err
+			}
+
+			txHash, err := base64.StdEncoding.DecodeString(args[0])
+			if err != nil {
+				panic(err)
+			}
+
+			msg := types.NewMsgDeleteTxTask(txHash, from)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
+		},
+	}
+
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
