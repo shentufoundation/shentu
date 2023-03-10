@@ -416,7 +416,7 @@ func (m MsgCreateTxTask) ValidateBasic() error {
 	}
 
 	if len(m.TxBytes) == 0 {
-		return fmt.Errorf("error raw tax")
+		return fmt.Errorf("tx bytes cannot be empty")
 	}
 	if len(m.ChainId) == 0 {
 		return fmt.Errorf("chain_id cannot be empty")
