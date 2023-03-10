@@ -72,6 +72,28 @@ func (q Keeper) Task(c context.Context, req *types.QueryTaskRequest) (*types.Que
 	return nil, types.ErrFailedToCastTask
 }
 
+// TxTask queries a tx task given its tx hash.
+func (q Keeper) TxTask(c context.Context, req *types.QueryTxTaskRequest) (*types.QueryTxTaskResponse, error) {
+	if req == nil || len(req.TxHash) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	taskId, err := types.NewTxTaskID(req.TxHash)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	task, err := q.GetTask(ctx, taskId)
+	if err != nil {
+		return nil, err
+	}
+
+	if txTask, ok := task.(*types.TxTask); ok {
+		return &types.QueryTxTaskResponse{Task: *txTask}, nil
+	}
+	return nil, types.ErrFailedToCastTask
+}
+
 // Response queries a response based on its task contract, task function,
 // and operator address.
 func (q Keeper) Response(c context.Context, req *types.QueryResponseRequest) (*types.QueryResponseResponse, error) {
@@ -91,4 +113,30 @@ func (q Keeper) Response(c context.Context, req *types.QueryResponseRequest) (*t
 		}
 	}
 	return &types.QueryResponseResponse{}, fmt.Errorf("there is no response from this operator")
+}
+
+// TxResponse queries a tx response based on its tx hash,
+// and operator address.
+func (q Keeper) TxResponse(c context.Context, req *types.QueryTxResponseRequest) (*types.QueryTxResponseResponse, error) {
+	if req == nil || len(req.TxHash) == 0 || len(req.OperatorAddress) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	taskId, err := types.NewTxTaskID(req.TxHash)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	task, err := q.GetTask(ctx, taskId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, response := range task.GetResponses() {
+		if response.Operator == req.OperatorAddress {
+			return &types.QueryTxResponseResponse{Response: response}, nil
+		}
+	}
+	return &types.QueryTxResponseResponse{}, fmt.Errorf("there is no response from this operator")
 }
