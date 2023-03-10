@@ -15,7 +15,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 }
 
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
-	closingTaskIDs := k.GetClosingTaskIDs(ctx, nil)
+	closingTaskIDs := k.GetInvalidTaskIDs(ctx)
 	for _, taskID := range closingTaskIDs {
 		err := k.Aggregate(ctx, taskID.Tid)
 		if err != nil {
@@ -33,32 +33,46 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 		switch task := task.(type) {
 		case *types.Task:
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					"aggregate_task",
-					sdk.NewAttribute("contract", task.Contract),
-					sdk.NewAttribute("function", task.Function),
-					sdk.NewAttribute("begin_block_height", strconv.FormatInt(task.BeginBlock, 10)),
-					sdk.NewAttribute("bounty", task.Bounty.String()),
-					sdk.NewAttribute("description", task.Description),
-					sdk.NewAttribute("expiration", task.Expiration.String()),
-					sdk.NewAttribute("creator", task.Creator),
-					sdk.NewAttribute("responses", task.Responses.String()),
-					sdk.NewAttribute("result", task.Result.String()),
-					sdk.NewAttribute("end_block_height", strconv.FormatInt(task.ExpireHeight, 10)),
-					sdk.NewAttribute("status", task.Status.String()),
-				),
-			)
+			EmitEventsForTask(ctx, task)
 		case *types.TxTask:
-			//implement me
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					"aggregate_task",
-					//shall be base64 encoded to be aligned with proto json encoding
-					sdk.NewAttribute("tx_hash", base64.StdEncoding.EncodeToString(task.TxHash)),
-				),
-			)
+			EmitEventsForTxTask(ctx, task)
 		}
 	}
 	k.DeleteClosingTaskIDs(ctx)
+	k.DeleteExpiredTasks(ctx)
+	k.SetLastBlockTime(ctx, ctx.BlockTime())
+}
+
+func EmitEventsForTask(ctx sdk.Context, task *types.Task) {
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			"aggregate_task",
+			sdk.NewAttribute("contract", task.Contract),
+			sdk.NewAttribute("function", task.Function),
+			sdk.NewAttribute("begin_block_height", strconv.FormatInt(task.BeginBlock, 10)),
+			sdk.NewAttribute("bounty", task.Bounty.String()),
+			sdk.NewAttribute("description", task.Description),
+			sdk.NewAttribute("expiration", task.Expiration.String()),
+			sdk.NewAttribute("creator", task.Creator),
+			sdk.NewAttribute("responses", task.Responses.String()),
+			sdk.NewAttribute("result", task.Result.String()),
+			sdk.NewAttribute("end_block_height", strconv.FormatInt(task.ExpireHeight, 10)),
+			sdk.NewAttribute("status", task.Status.String()),
+		),
+	)
+}
+
+func EmitEventsForTxTask(ctx sdk.Context, task *types.TxTask) {
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			"aggregate_txtask",
+			sdk.NewAttribute("tx_hash", base64.StdEncoding.EncodeToString(task.TxHash)),
+			sdk.NewAttribute("score", strconv.FormatInt(task.Score, 10)),
+			sdk.NewAttribute("status", task.Status.String()),
+			sdk.NewAttribute("creator", task.Creator),
+			sdk.NewAttribute("responses", task.Responses.String()),
+			sdk.NewAttribute("expiration", task.Expiration.String()),
+			sdk.NewAttribute("bounty", task.Bounty.String()),
+		),
+	)
 }

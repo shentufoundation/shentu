@@ -43,7 +43,7 @@ func (k Keeper) UpdateAndSetTask(ctx sdk.Context, task types.TaskI) {
 	}
 }
 
-// GetTask returns a task given contract and function.
+// GetTask returns a task given taskID.
 func (k Keeper) GetTask(ctx sdk.Context, taskID []byte) (task types.TaskI, err error) {
 	TaskData := ctx.KVStore(k.storeKey).Get(types.TaskStoreKey(taskID))
 	if TaskData == nil {
@@ -66,24 +66,21 @@ func (k Keeper) SetClosingBlockStore(ctx sdk.Context, task types.TaskI) {
 		store.Set(types.ClosingTaskIDsStoreKey(task.ExpireHeight), bz)
 		return
 	case *types.TxTask:
-		store.Set(types.ByTimeStoreKey(types.ClosingTaskStoreKeyTimedPrefix, task.ValidTime), bz)
+		store.Set(types.TimeStoreKey(types.ClosingTaskStoreKeyTimedPrefix, task.ValidTime), bz)
 		return
 	default:
 		panic(errors.New("oracle: unknown implementation of TaskI"))
 	}
 }
 
-// GetClosingTaskIDs returns a list of task IDs by the closing block.
+// GetClosingTaskIDs returns a list of task IDs by the closing block and valid time.
 func (k Keeper) GetClosingTaskIDs(ctx sdk.Context, task types.TaskI) (resIDs []types.TaskID) {
-	height, endTime := ctx.BlockHeight(), ctx.BlockTime()
-	if task != nil {
-		height, endTime = task.GetValidTime()
-	}
+	height, theTime := task.GetValidTime()
 	if height > 0 {
 		resIDs = append(resIDs, k.GetClosingTaskIDsByHeight(ctx, height)...)
 	}
-	if !endTime.IsZero() {
-		resIDs = append(resIDs, k.GetTaskIDsByTime(ctx, types.ClosingTaskStoreKeyTimedPrefix, endTime)...)
+	if !theTime.IsZero() {
+		resIDs = append(resIDs, k.GetTaskIDsByTime(ctx, types.ClosingTaskStoreKeyTimedPrefix, theTime)...)
 	}
 	return
 }
@@ -98,10 +95,16 @@ func (k Keeper) GetClosingTaskIDsByHeight(ctx sdk.Context, blockHeight int64) []
 	return taskIDsProto.TaskIds
 }
 
-func (k Keeper) IteratorTaskIDsByTime(ctx sdk.Context, prefix []byte, endTime time.Time, callback func(key, value []byte) (stop bool)) {
+func (k Keeper) IteratorTaskIDsByTimeRange(ctx sdk.Context, prefix []byte, startTime time.Time, endTime time.Time, callback func(key, value []byte) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := store.Iterator(prefix,
-		sdk.InclusiveEndBytes(types.ByTimeStoreKey(prefix, endTime)))
+	var startKey []byte
+	if startTime.IsZero() {
+		startKey = prefix
+	} else {
+		startKey = types.TimeStoreKey(prefix, startTime)
+	}
+	iterator := store.Iterator(startKey,
+		sdk.InclusiveEndBytes(types.TimeStoreKey(prefix, endTime)))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		if callback(iterator.Key(), iterator.Value()) {
@@ -110,24 +113,78 @@ func (k Keeper) IteratorTaskIDsByTime(ctx sdk.Context, prefix []byte, endTime ti
 	}
 }
 
-func (k Keeper) GetTaskIDsByTime(ctx sdk.Context, prefix []byte, endTime time.Time) (resIDs []types.TaskID) {
-	k.IteratorTaskIDsByTime(ctx, prefix, endTime, func(key, value []byte) bool {
-		var taskIDsProto types.TaskIDs
-		k.cdc.MustUnmarshalLengthPrefixed(value, &taskIDsProto)
-		resIDs = append(resIDs, taskIDsProto.TaskIds...)
-		return false
-	})
-	return
+func (k Keeper) GetTaskIDsByTime(ctx sdk.Context, prefix []byte, theTime time.Time) (resIDs []types.TaskID) {
+	bz := ctx.KVStore(k.storeKey).Get(types.TimeStoreKey(prefix, theTime))
+	var taskIDsProto types.TaskIDs
+	if bz != nil {
+		k.cdc.MustUnmarshalLengthPrefixed(bz, &taskIDsProto)
+	}
+	return taskIDsProto.TaskIds
+}
+
+func (k Keeper) SetLastBlockTime(ctx sdk.Context, theTime time.Time) {
+	bz := sdk.FormatTimeBytes(theTime)
+	ctx.KVStore(k.storeKey).Set(types.LastBlockTimeKeyPrefix, bz)
+}
+
+func (k Keeper) GetLastBlockTime(ctx sdk.Context) time.Time {
+	bz := ctx.KVStore(k.storeKey).Get(types.LastBlockTimeKeyPrefix)
+	//At the first time hitting this key, return a estimated last block time
+	if bz == nil {
+		return ctx.BlockTime().Add(time.Duration(-5) * time.Second)
+	}
+	t, err := sdk.ParseTimeBytes(bz)
+	if err != nil {
+		panic(err)
+	}
+	return t
 }
 
 // DeleteClosingTaskIDs deletes stores for task IDs closed at given block.
 func (k Keeper) DeleteClosingTaskIDs(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.ClosingTaskIDsStoreKey(ctx.BlockHeight()))
-	k.IteratorTaskIDsByTime(ctx, types.ClosingTaskStoreKeyTimedPrefix, ctx.BlockTime(), func(key, value []byte) bool {
-		store.Delete(key)
-		return false
-	})
+	k.IteratorTaskIDsByTimeRange(
+		ctx, types.ClosingTaskStoreKeyTimedPrefix, time.Time{}, ctx.BlockTime(),
+		func(key, value []byte) bool {
+			store.Delete(key)
+			return false
+		})
+}
+
+// delete tasks whose expiration >= BlockTime
+// the taget task may already be gone due to explicitally removed by user
+func (k Keeper) DeleteExpiredTasks(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	k.IteratorTaskIDsByTimeRange(
+		ctx, types.ExpireTaskStoreKeyPrefix, time.Time{}, ctx.BlockTime(),
+		func(key, value []byte) bool {
+			var taskIDsProto types.TaskIDs
+			k.cdc.MustUnmarshalLengthPrefixed(value, &taskIDsProto)
+			protoTids := taskIDsProto.TaskIds
+			for i := range protoTids {
+				tk := protoTids[i].Tid
+				if store.Has(tk) {
+					store.Delete(tk)
+				}
+			}
+			store.Delete(key)
+			return false
+		})
+}
+
+func (k Keeper) GetInvalidTaskIDs(ctx sdk.Context) (resIDs []types.TaskID) {
+	resIDs = append(resIDs, k.GetClosingTaskIDsByHeight(ctx, ctx.BlockHeight())...)
+	k.IteratorTaskIDsByTimeRange(
+		ctx, types.ClosingTaskStoreKeyTimedPrefix,
+		k.GetLastBlockTime(ctx), ctx.BlockTime(),
+		func(key, value []byte) bool {
+			var taskIDsProto types.TaskIDs
+			k.cdc.MustUnmarshalLengthPrefixed(value, &taskIDsProto)
+			resIDs = append(resIDs, taskIDsProto.TaskIds...)
+			return false
+		})
+	return resIDs
 }
 
 // calling of CreateTask creates one of following
@@ -146,6 +203,8 @@ func (k Keeper) CreateTask(ctx sdk.Context, creator sdk.AccAddress, task types.T
 	}
 
 	k.SetTask(ctx, task)
+	// if task's status is TaskStatusNil, it will not go to ClosingBlockStore,
+	// therefor will not be handled in EndBlocker
 	if task.GetStatus() == types.TaskStatusPending {
 		k.SetClosingBlockStore(ctx, task)
 		if err := k.CollectBounty(ctx, task.GetBounty(), creator); err != nil {
@@ -160,11 +219,13 @@ func (k Keeper) BuildTxTaskWithExpire(ctx sdk.Context, txHash []byte, creator st
 	txTask := types.NewTxTask(txHash, creator, bounty, validTime, status)
 	txTask.Expiration = ctx.BlockTime().Add(taskParams.ExpirationDuration)
 
-	ids := k.GetTaskIDsByTime(ctx, types.ExpireTaskStoreKeyPrefix, ctx.BlockTime())
+	ids := k.GetTaskIDsByTime(ctx, types.ExpireTaskStoreKeyPrefix, txTask.Expiration)
 	ids = append(ids, types.TaskID{Tid: txTask.GetID()})
 	bz := k.cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: ids})
 	ctx.KVStore(k.storeKey).Set(
-		types.ByTimeStoreKey(types.ExpireTaskStoreKeyPrefix, ctx.BlockTime()), bz)
+		types.TimeStoreKey(types.ExpireTaskStoreKeyPrefix, txTask.Expiration),
+		bz,
+	)
 
 	return &txTask
 }
