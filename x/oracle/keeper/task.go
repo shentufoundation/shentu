@@ -129,9 +129,9 @@ func (k Keeper) SetLastBlockTime(ctx sdk.Context, theTime time.Time) {
 
 func (k Keeper) GetLastBlockTime(ctx sdk.Context) time.Time {
 	bz := ctx.KVStore(k.storeKey).Get(types.LastBlockTimeKeyPrefix)
-	//At the first time hitting this key, return a estimated last block time
+	//At the first time hitting this key, it's safe to return the zero time
 	if bz == nil {
-		return ctx.BlockTime().Add(time.Duration(-5) * time.Second)
+		return time.Time{}
 	}
 	t, err := sdk.ParseTimeBytes(bz)
 	if err != nil {
