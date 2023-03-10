@@ -390,6 +390,7 @@ func (m MsgDeleteTask) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
+// NewMsgCreateTxTask returns a new MsgCreateTxTask instance.
 func NewMsgCreateTxTask(creator sdk.AccAddress, chainID string, txBytes []byte,
 	bounty sdk.Coins, validTime time.Time) *MsgCreateTxTask {
 	return &MsgCreateTxTask{
@@ -401,23 +402,24 @@ func NewMsgCreateTxTask(creator sdk.AccAddress, chainID string, txBytes []byte,
 	}
 }
 
-//LegacyMsg interface for routing Amino msg
+// Route returns the module name.
 func (MsgCreateTxTask) Route() string { return ModuleName }
 
-//LegacyMsg interface for routing Amino msg
+// Type returns the action name.
 func (MsgCreateTxTask) Type() string { return TypeMsgCreateTxTask }
 
-//Msg interface
+// ValidateBasic runs stateless checks on the message.
 func (m MsgCreateTxTask) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Creator)
 	if err != nil {
 		return err
 	}
+
+	if len(m.TxBytes) == 0 {
+		return fmt.Errorf("tx bytes cannot be empty")
+	}
 	if len(m.ChainId) == 0 {
 		return fmt.Errorf("chain_id cannot be empty")
-	}
-	if len(m.TxBytes) == 0 {
-		return fmt.Errorf("business chain tx bytes cannot be empty")
 	}
 	if !m.Bounty.IsValid() {
 		return fmt.Errorf("invalid bounty")
@@ -425,7 +427,8 @@ func (m MsgCreateTxTask) ValidateBasic() error {
 	return nil
 }
 
-//LegacyMsg interface for Amino
+// GetSignBytes encodes the message for signing.
+// LegacyMsg interface for Amino
 func (m MsgCreateTxTask) GetSignBytes() []byte {
 	b, err := json.Marshal(m)
 	if err != nil {
@@ -434,9 +437,13 @@ func (m MsgCreateTxTask) GetSignBytes() []byte {
 	return sdk.MustSortJSON(b)
 }
 
-//Msg interface, return the account that should sign the tx
+// GetSigners defines whose signature is required.
 func (m MsgCreateTxTask) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Creator)
+	addr, err := sdk.AccAddressFromBech32(m.Creator)
+	if err != nil {
+		panic(err)
+	}
+
 	return []sdk.AccAddress{addr}
 }
 
@@ -448,13 +455,13 @@ func NewMsgTxTaskResponse(txHash []byte, score int64, operator sdk.AccAddress) *
 	}
 }
 
-//LegacyMsg interface for Amino
+// LegacyMsg interface for Amino
 func (MsgTxTaskResponse) Route() string { return ModuleName }
 
-//LegacyMsg interface for Amino
+// LegacyMsg interface for Amino
 func (MsgTxTaskResponse) Type() string { return TypeMsgRespondToTxTask }
 
-//Msg interface
+// Msg interface
 func (m MsgTxTaskResponse) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Operator)
 	if err != nil {
@@ -466,7 +473,7 @@ func (m MsgTxTaskResponse) ValidateBasic() error {
 	return nil
 }
 
-//LegacyMsg interface for Amino
+// LegacyMsg interface for Amino
 func (m MsgTxTaskResponse) GetSignBytes() []byte {
 	b, err := json.Marshal(m)
 	if err != nil {
@@ -475,7 +482,7 @@ func (m MsgTxTaskResponse) GetSignBytes() []byte {
 	return sdk.MustSortJSON(b)
 }
 
-//Msg interface, return the account that should sign the tx
+// Msg interface, return the account that should sign the tx
 func (m MsgTxTaskResponse) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(m.Operator)
 	return []sdk.AccAddress{addr}
@@ -488,13 +495,13 @@ func NewMsgDeleteTxTask(txHash []byte, deleter sdk.AccAddress) *MsgDeleteTxTask 
 	}
 }
 
-//LegacyMsg interface for Amino
+// LegacyMsg interface for Amino
 func (MsgDeleteTxTask) Route() string { return ModuleName }
 
-//LegacyMsg interface for Amino
+// LegacyMsg interface for Amino
 func (MsgDeleteTxTask) Type() string { return TypeMsgDeleteTxTask }
 
-//Msg interface
+// Msg interface
 func (m MsgDeleteTxTask) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.From)
 	if err != nil {
@@ -506,7 +513,7 @@ func (m MsgDeleteTxTask) ValidateBasic() error {
 	return nil
 }
 
-//LegacyMsg interface for Amino
+// LegacyMsg interface for Amino
 func (m MsgDeleteTxTask) GetSignBytes() []byte {
 	b, err := json.Marshal(m)
 	if err != nil {
@@ -515,7 +522,7 @@ func (m MsgDeleteTxTask) GetSignBytes() []byte {
 	return sdk.MustSortJSON(b)
 }
 
-//Msg interface, return the account that should sign the tx
+// Msg interface, return the account that should sign the tx
 func (m MsgDeleteTxTask) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(m.From)
 	return []sdk.AccAddress{addr}
