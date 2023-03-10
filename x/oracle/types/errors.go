@@ -29,6 +29,7 @@ const (
 	errNotFinished
 	errTaskFailed
 	errInvalidScore
+	errInvalidTask
 )
 
 const errInconsistentOperators uint32 = 301
@@ -56,7 +57,9 @@ var (
 	ErrNotFinished         = sdkerrors.Register(ModuleName, errNotFinished, "the task is on going")
 	ErrTaskFailed          = sdkerrors.Register(ModuleName, errTaskFailed, "task failed")
 	ErrInvalidScore        = sdkerrors.Register(ModuleName, errInvalidScore, "invalid score")
+	ErrInvalidTask         = sdkerrors.Register(ModuleName, errInvalidTask, "invalid task")
 
 	ErrInconsistentOperators = sdkerrors.Register(ModuleName, errInconsistentOperators, "two operators not consistent")
-	ErrFailedToCastTask      = sdkerrors.Register(ModuleName, errFailedToCastTask, "failed to cast to concrete task")
+
+	ErrFailedToCastTask = sdkerrors.Register(ModuleName, errFailedToCastTask, "failed to cast to concrete task")
 )

@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"strconv"
 	"time"
 
@@ -224,8 +226,35 @@ func (k msgServer) DeleteTask(goCtx context.Context, msg *types.MsgDeleteTask) (
 }
 
 func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTask) (*types.MsgCreateTxTaskResponse, error) {
-	//TODO: implement me
-	return &types.MsgCreateTxTaskResponse{}, nil
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	creatorAddr, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return nil, err
+	}
+
+	hashByte := sha256.Sum256(msg.TxBytes)
+	hash := base64.StdEncoding.EncodeToString(hashByte[:])
+
+	expirationTime := ctx.BlockTime().Add(k.Keeper.GetTaskParams(ctx).ExpirationDuration)
+	txTask := types.NewTxTask(msg.Creator, hashByte[:], msg.Bounty, msg.ValidTime, expirationTime, types.TaskStatusPending, nil)
+	if err := k.Keeper.CreateTask(ctx, creatorAddr, &txTask); err != nil {
+		return nil, err
+	}
+
+	CreateTxTaskEvent := sdk.NewEvent(
+		types.TypeMsgCreateTxTask,
+		sdk.NewAttribute("tx_hash", hash),
+		sdk.NewAttribute("creator", msg.Creator),
+		sdk.NewAttribute("chain_id", msg.ChainId),
+		sdk.NewAttribute("bounty", msg.Bounty.String()),
+		sdk.NewAttribute("valid_time", msg.ValidTime.String()),
+	)
+	ctx.EventManager().EmitEvent(CreateTxTaskEvent)
+
+	return &types.MsgCreateTxTaskResponse{
+		TxHash: hashByte[:],
+	}, nil
 }
 
 func (k msgServer) TxTaskResponse(goCtx context.Context, msg *types.MsgTxTaskResponse) (*types.MsgTxTaskResponseResponse, error) {

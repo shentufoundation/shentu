@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/proto"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // NewTask returns a new task.
@@ -116,6 +117,27 @@ func (t *Task) SetStatus(status TaskStatus) {
 
 func (t *Task) SetScore(score int64) {
 	t.Result = sdk.NewInt(score)
+}
+
+// NewTxTask returns a new task.
+func NewTxTask(
+	creator string,
+	txHash []byte,
+	bounty sdk.Coins,
+	validTime time.Time,
+	expiration time.Time,
+	taskStatus TaskStatus,
+	responses Responses,
+) TxTask {
+	return TxTask{
+		TxHash:     txHash,
+		Creator:    creator,
+		Bounty:     bounty,
+		ValidTime:  validTime,
+		Expiration: expiration,
+		Responses:  responses,
+		Status:     taskStatus,
+	}
 }
 
 func (t *TxTask) GetID() []byte {

@@ -19,6 +19,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgTaskResponse{}, "oracle/RespondToTask", nil)
 	cdc.RegisterConcrete(MsgDeleteTask{}, "oracle/DeleteTask", nil)
 	cdc.RegisterConcrete(MsgCreateTxTask{}, "oracle/CreateTxTask", nil)
+
 	cdc.RegisterConcrete(MsgTxTaskResponse{}, "oracle/RespondToTxTask", nil)
 	cdc.RegisterConcrete(MsgDeleteTxTask{}, "oracle/DeleteTxTask", nil)
 
