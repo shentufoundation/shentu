@@ -60,8 +60,8 @@ func NewTxTask(
 	bounty sdk.Coins,
 	validTime time.Time,
 	status TaskStatus,
-) TxTask {
-	return TxTask{
+) *TxTask {
+	return &TxTask{
 		TxHash:    txHash,
 		Creator:   creator,
 		Bounty:    bounty,

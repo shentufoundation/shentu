@@ -251,7 +251,7 @@ func (k Keeper) BuildTxTaskWithExpire(ctx sdk.Context, txHash []byte, creator st
 		bz,
 	)
 
-	return &txTask
+	return txTask
 }
 
 // RemoveTask removes a task from kvstore if it is closed, expired and requested by its creator.

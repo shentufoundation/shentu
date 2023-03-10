@@ -228,17 +228,36 @@ func (k msgServer) DeleteTask(goCtx context.Context, msg *types.MsgDeleteTask) (
 func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTask) (*types.MsgCreateTxTaskResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	creatorAddr, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return nil, err
+	creatorAddr, _ := sdk.AccAddressFromBech32(msg.Creator)
+	if msg.ValidTime.Before(ctx.BlockTime()) {
+		return nil, types.ErrOverdueValidTime
 	}
 
 	hashByte := sha256.Sum256(msg.TxBytes)
 	hash := base64.StdEncoding.EncodeToString(hashByte[:])
 
-	// expirationTime := ctx.BlockTime().Add(k.Keeper.GetTaskParams(ctx).ExpirationDuration)
-	txTask := types.NewTxTask(hashByte[:], msg.Creator, msg.Bounty, msg.ValidTime, types.TaskStatusPending)
-	if err := k.Keeper.CreateTask(ctx, creatorAddr, &txTask); err != nil {
+	var txTask *types.TxTask
+	// if a TaskStatusNil task already exists, overwrite it after copying several fields.
+	// please be noted that the expiration hook remains
+	if savedTask, err := k.GetTask(ctx, hashByte[:]); err == nil {
+		if savedTask.GetStatus() == types.TaskStatusNil {
+			// in fast-path case, a TxTask could be created before the creatTxTask msg
+			savedTask, ok := savedTask.(*types.TxTask)
+			if !ok {
+				return nil, types.ErrUnexpectedTask
+			}
+			txTask = types.NewTxTask(hashByte[:], msg.Creator, msg.Bounty, msg.ValidTime, types.TaskStatusPending)
+			txTask.Expiration = savedTask.Expiration
+			txTask.Responses = savedTask.Responses
+			txTask.Score = savedTask.Score
+		}
+	}
+	if txTask == nil {
+		// BuildTxTaskWithExpire should be called with new TxTask created and expiration hooking up
+		txTask = k.BuildTxTaskWithExpire(ctx, hashByte[:], msg.Creator, msg.Bounty, msg.ValidTime, types.TaskStatusPending)
+	}
+
+	if err := k.Keeper.CreateTask(ctx, creatorAddr, txTask); err != nil {
 		return nil, err
 	}
 
