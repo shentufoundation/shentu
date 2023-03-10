@@ -79,11 +79,11 @@ func (q Keeper) TxTask(c context.Context, req *types.QueryTxTaskRequest) (*types
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	taskId, err := types.NewTxTaskID(req.TxHash)
+	taskID, err := types.NewTxTaskID(req.TxHash)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-	task, err := q.GetTask(ctx, taskId)
+	task, err := q.GetTask(ctx, taskID)
 	if err != nil {
 		return nil, err
 	}
@@ -123,12 +123,12 @@ func (q Keeper) TxResponse(c context.Context, req *types.QueryTxResponseRequest)
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	taskId, err := types.NewTxTaskID(req.TxHash)
+	taskID, err := types.NewTxTaskID(req.TxHash)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	task, err := q.GetTask(ctx, taskId)
+	task, err := q.GetTask(ctx, taskID)
 	if err != nil {
 		return nil, err
 	}
