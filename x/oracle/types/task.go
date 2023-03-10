@@ -108,7 +108,7 @@ func (t *Task) GetValidTime() (int64, time.Time) {
 }
 
 func (t *Task) IsValid(ctx sdk.Context) bool {
-	return t.ExpireHeight >= ctx.BlockHeight()
+	return t.Status != TaskStatusNil && t.ExpireHeight >= ctx.BlockHeight()
 }
 
 func (t *Task) GetBounty() sdk.Coins {
@@ -156,7 +156,7 @@ func (t *TxTask) GetValidTime() (int64, time.Time) {
 }
 
 func (t *TxTask) IsValid(ctx sdk.Context) bool {
-	return !t.ValidTime.Before(ctx.BlockTime())
+	return t.Status != TaskStatusNil && !t.ValidTime.Before(ctx.BlockTime())
 }
 
 func (t *TxTask) GetBounty() sdk.Coins {

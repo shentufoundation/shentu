@@ -45,6 +45,7 @@ func NewTxCmd() *cobra.Command {
 		GetCmdDeleteTask(),
 		GetCmdRespondToTxTask(),
 		GetCmdDeleteTxTask(),
+		GetCmdCreateTxTask(),
 	)
 
 	return oracleTxCmds
@@ -409,6 +410,57 @@ func GetCmdDeleteTxTask() *cobra.Command {
 			}
 
 			msg := types.NewMsgDeleteTxTask(txHash, from)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdCreateTxTask() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create-txtask <tx_bytes> <chain_id> <bounty> <valid_time>",
+		Short: "Create a transaction task",
+		Args:  cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
+				return err
+			}
+
+			txBytes, err := base64.StdEncoding.DecodeString(args[0])
+			if err != nil {
+				return err
+			}
+
+			chainID := args[1]
+
+			bounty, err := sdk.ParseCoinsNormalized(args[2])
+			if err != nil {
+				return err
+			}
+			if !bounty[0].Amount.IsPositive() {
+				return fmt.Errorf("bounty amount is required to be positive")
+			}
+
+			validTime, err := time.Parse(time.RFC3339, args[3])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreateTxTask(from, chainID, txBytes, bounty, validTime)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

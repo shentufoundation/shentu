@@ -257,6 +257,10 @@ func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTas
 		txTask = k.BuildTxTaskWithExpire(ctx, hashByte[:], msg.Creator, msg.Bounty, msg.ValidTime, types.TaskStatusPending)
 	}
 
+	if msg.ValidTime.After(txTask.Expiration) {
+		return nil, types.ErrTooLateValidTime
+	}
+
 	if err := k.Keeper.CreateTask(ctx, creatorAddr, txTask); err != nil {
 		return nil, err
 	}

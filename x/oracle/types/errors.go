@@ -32,6 +32,7 @@ const (
 	errInvalidTask
 	errOverdueValidTime
 	errUnexpectedTask
+	errTooLateValidTime
 )
 
 const errInconsistentOperators uint32 = 301
@@ -62,6 +63,7 @@ var (
 	ErrInvalidTask         = sdkerrors.Register(ModuleName, errInvalidTask, "invalid task")
 	ErrOverdueValidTime    = sdkerrors.Register(ModuleName, errOverdueValidTime, "the valid time is overdue")
 	ErrUnexpectedTask      = sdkerrors.Register(ModuleName, errUnexpectedTask, "a different typed task already exists")
+	ErrTooLateValidTime    = sdkerrors.Register(ModuleName, errTooLateValidTime, "the valid time is later than expiration time")
 
 	ErrInconsistentOperators = sdkerrors.Register(ModuleName, errInconsistentOperators, "two operators not consistent")
 

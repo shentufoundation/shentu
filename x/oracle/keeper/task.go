@@ -194,35 +194,12 @@ func (k Keeper) GetInvalidTaskIDs(ctx sdk.Context) (resIDs []types.TaskID) {
 func (k Keeper) CreateTask(ctx sdk.Context, creator sdk.AccAddress, task types.TaskI) error {
 	savedTask, err := k.GetTask(ctx, task.GetID())
 	if err == nil {
-		if _, ok := task.(*types.Task); ok {
-			if savedTask.IsValid(ctx) {
-				return types.ErrTaskNotClosed
-			}
-			if err := k.DeleteTask(ctx, savedTask); err != nil {
-				return err
-			}
-		} else if reqTask, ok := task.(*types.TxTask); ok {
-			oldTask, ok := savedTask.(*types.TxTask)
-			if !ok {
-				return types.ErrInvalidTask
-			}
-			if !reqTask.IsValid(ctx) {
-				return types.ErrInvalidTask
-			}
-
-			if oldTask.GetStatus() != types.TaskStatusNil {
-				if savedTask.IsValid(ctx) {
-					return types.ErrTaskNotClosed
-				}
-			} else {
-				//created by fast path
-				reqTask.Responses = oldTask.Responses
-				reqTask.Expiration = oldTask.Expiration
-				reqTask.Score = oldTask.Score
-			}
-			if err := k.DeleteTask(ctx, savedTask); err != nil {
-				return err
-			}
+		// be noted that a TaskStatusNil task is not valid
+		if savedTask.IsValid(ctx) {
+			return types.ErrTaskNotClosed
+		}
+		if err := k.DeleteTask(ctx, savedTask); err != nil {
+			return err
 		}
 	}
 
@@ -328,6 +305,7 @@ func (k Keeper) UpdateAndGetAllTasks(ctx sdk.Context) (tasks []types.TaskI) {
 
 // IsValidResponse returns error if a response is not valid.
 func (k Keeper) IsValidResponse(ctx sdk.Context, task types.TaskI, response types.Response) error {
+	// due to fast-path, response should be allowed to add if it's a TaskStatusNil task
 	if !task.IsValid(ctx) && task.GetStatus() != types.TaskStatusNil {
 		return types.ErrTaskClosed
 	}
