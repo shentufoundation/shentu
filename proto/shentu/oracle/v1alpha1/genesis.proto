@@ -18,5 +18,4 @@ message GenesisState {
     TaskParams task_params = 4 [ (gogoproto.moretags) = "yaml:\"task_params\"" ];
     repeated Withdraw withdraws = 5 [ (gogoproto.moretags) = "yaml:\"withdraws\"", (gogoproto.nullable) = false ];
     repeated Task tasks = 6 [ (gogoproto.moretags) = "yaml:\"tasks\"", (gogoproto.nullable) = false ];
-    google.protobuf.Timestamp last_block_time = 7 [ (gogoproto.stdtime) = true, (gogoproto.moretags) = "yaml:\"last_block_time\"", (gogoproto.nullable) = false ];
 }

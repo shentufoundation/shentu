@@ -15,7 +15,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	taskParams := data.TaskParams
 	withdraws := data.Withdraws
 	tasks := data.Tasks
-	lastBlockTime := data.LastBlockTime
 
 	for _, operator := range operators {
 		k.SetOperator(ctx, operator)
@@ -24,9 +23,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	k.SetTotalCollateral(ctx, totalCollateral)
 	k.SetLockedPoolParams(ctx, *poolParams)
 	k.SetTaskParams(ctx, *taskParams)
-	if !lastBlockTime.IsZero() {
-		k.SetLastBlockTime(ctx, lastBlockTime)
-	}
 
 	for _, withdraw := range withdraws {
 		withdraw.DueBlock += ctx.BlockHeight()
@@ -46,7 +42,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	poolParams := k.GetLockedPoolParams(ctx)
 	taskParams := k.GetTaskParams(ctx)
 	withdraws := k.GetAllWithdrawsForExport(ctx)
-	lastBlockTime := k.GetLastBlockTime(ctx)
 
 	tasks := k.UpdateAndGetAllTasks(ctx)
 
@@ -57,5 +52,5 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 			smartContractTasks = append(smartContractTasks, *sct)
 		}
 	}
-	return types.NewGenesisState(operators, totalCollateral, poolParams, taskParams, withdraws, smartContractTasks, lastBlockTime)
+	return types.NewGenesisState(operators, totalCollateral, poolParams, taskParams, withdraws, smartContractTasks)
 }

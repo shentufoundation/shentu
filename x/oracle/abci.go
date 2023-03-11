@@ -40,7 +40,6 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	}
 	k.DeleteClosingTaskIDs(ctx)
 	k.DeleteExpiredTasks(ctx)
-	k.SetLastBlockTime(ctx, ctx.BlockTime())
 }
 
 func EmitEventsForTask(ctx sdk.Context, task *types.Task) {

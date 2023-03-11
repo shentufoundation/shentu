@@ -95,15 +95,9 @@ func (k Keeper) GetClosingTaskIDsByHeight(ctx sdk.Context, blockHeight int64) []
 	return taskIDsProto.TaskIds
 }
 
-func (k Keeper) IteratorTaskIDsByTimeRange(ctx sdk.Context, prefix []byte, startTime time.Time, endTime time.Time, callback func(key, value []byte) (stop bool)) {
+func (k Keeper) IteratorTaskIDsByEndTime(ctx sdk.Context, prefix []byte, endTime time.Time, callback func(key, value []byte) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	var startKey []byte
-	if startTime.IsZero() {
-		startKey = prefix
-	} else {
-		startKey = types.TimeStoreKey(prefix, startTime)
-	}
-	iterator := store.Iterator(startKey,
+	iterator := store.Iterator(prefix,
 		sdk.InclusiveEndBytes(types.TimeStoreKey(prefix, endTime)))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -122,30 +116,12 @@ func (k Keeper) GetTaskIDsByTime(ctx sdk.Context, prefix []byte, theTime time.Ti
 	return taskIDsProto.TaskIds
 }
 
-func (k Keeper) SetLastBlockTime(ctx sdk.Context, theTime time.Time) {
-	bz := sdk.FormatTimeBytes(theTime)
-	ctx.KVStore(k.storeKey).Set(types.LastBlockTimeKeyPrefix, bz)
-}
-
-func (k Keeper) GetLastBlockTime(ctx sdk.Context) time.Time {
-	bz := ctx.KVStore(k.storeKey).Get(types.LastBlockTimeKeyPrefix)
-	//At the first time hitting this key, it's safe to return the zero time
-	if bz == nil {
-		return time.Time{}
-	}
-	t, err := sdk.ParseTimeBytes(bz)
-	if err != nil {
-		panic(err)
-	}
-	return t
-}
-
 // DeleteClosingTaskIDs deletes stores for task IDs closed at given block.
 func (k Keeper) DeleteClosingTaskIDs(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.ClosingTaskIDsStoreKey(ctx.BlockHeight()))
-	k.IteratorTaskIDsByTimeRange(
-		ctx, types.ClosingTaskStoreKeyTimedPrefix, time.Time{}, ctx.BlockTime(),
+	k.IteratorTaskIDsByEndTime(
+		ctx, types.ClosingTaskStoreKeyTimedPrefix, ctx.BlockTime(),
 		func(key, value []byte) bool {
 			store.Delete(key)
 			return false
@@ -156,8 +132,8 @@ func (k Keeper) DeleteClosingTaskIDs(ctx sdk.Context) {
 // the taget task may already be gone due to explicitally removed by user
 func (k Keeper) DeleteExpiredTasks(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
-	k.IteratorTaskIDsByTimeRange(
-		ctx, types.ExpireTaskStoreKeyPrefix, time.Time{}, ctx.BlockTime(),
+	k.IteratorTaskIDsByEndTime(
+		ctx, types.ExpireTaskStoreKeyPrefix, ctx.BlockTime(),
 		func(key, value []byte) bool {
 			var taskIDsProto types.TaskIDs
 			k.cdc.MustUnmarshalLengthPrefixed(value, &taskIDsProto)
@@ -175,9 +151,8 @@ func (k Keeper) DeleteExpiredTasks(ctx sdk.Context) {
 
 func (k Keeper) GetInvalidTaskIDs(ctx sdk.Context) (resIDs []types.TaskID) {
 	resIDs = append(resIDs, k.GetClosingTaskIDsByHeight(ctx, ctx.BlockHeight())...)
-	k.IteratorTaskIDsByTimeRange(
-		ctx, types.ClosingTaskStoreKeyTimedPrefix,
-		k.GetLastBlockTime(ctx), ctx.BlockTime(),
+	k.IteratorTaskIDsByEndTime(
+		ctx, types.ClosingTaskStoreKeyTimedPrefix, ctx.BlockTime(),
 		func(key, value []byte) bool {
 			var taskIDsProto types.TaskIDs
 			k.cdc.MustUnmarshalLengthPrefixed(value, &taskIDsProto)

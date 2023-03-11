@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -47,17 +46,6 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &taskIDsA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &taskIDsB)
 			return fmt.Sprintf("%v\n%v", taskIDsA.TaskIds, taskIDsB.TaskIds)
-
-		case bytes.Equal(kvA.Key[:1], types.LastBlockTimeKeyPrefix):
-			timeA, err := sdk.ParseTimeBytes(kvA.Value)
-			if err != nil {
-				panic(err)
-			}
-			timeB, err := sdk.ParseTimeBytes(kvB.Value)
-			if err != nil {
-				panic(err)
-			}
-			return fmt.Sprintf("%v\n%v", timeA, timeB)
 
 		default:
 			panic(fmt.Sprintf("invalid %s key prefix %X", types.ModuleName, kvA.Key[:1]))
