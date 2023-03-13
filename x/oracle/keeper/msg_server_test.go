@@ -39,6 +39,9 @@ func TestMsgServer_CreateTxTask(t *testing.T) {
 	require.NoError(t, err)
 	businessHash1 := sha256.Sum256(businessTransaction)
 	require.Equal(t, res.TxHash, businessHash1[:])
+	txTaskRes, err := ok.GetTask(ctx, businessHash1[:])
+	require.NoError(t, err)
+	require.Equal(t, types.TaskStatusPending, txTaskRes.GetStatus())
 
 	_, err = msgServer.CreateTxTask(sdk.WrapSDKContext(ctx), msgCreateTxTask)
 	require.Error(t, err)
@@ -55,7 +58,7 @@ func TestMsgServer_CreateTxTask(t *testing.T) {
 
 	ctx = PassBlocks(ctx, ok, t, 709, 0)
 	ctx = PassBlocks(ctx, ok, t, 1, 1) //after one hour, the txtask should become invalid
-	txTaskRes, err := ok.GetTask(ctx, businessHash1[:])
+	txTaskRes, err = ok.GetTask(ctx, businessHash1[:])
 	require.Nil(t, err)
 	require.Equal(t, types.TaskStatusSucceeded, txTaskRes.GetStatus())
 	require.Equal(t, int64(85), txTaskRes.GetScore()) // 85=(80+90)/2

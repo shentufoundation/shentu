@@ -79,10 +79,6 @@ func GetCmdCreateOperator() *cobra.Command {
 			}
 			name := viper.GetString(FlagName)
 			msg := types.NewMsgCreateOperator(address, collateral, from, name)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -115,10 +111,6 @@ func GetCmdRemoveOperator() *cobra.Command {
 				return err
 			}
 			msg := types.NewMsgRemoveOperator(address, from)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -149,10 +141,6 @@ func GetCmdDepositCollateral() *cobra.Command {
 				return err
 			}
 			msg := types.NewMsgAddCollateral(address, coins)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -183,10 +171,6 @@ func GetCmdWithdrawCollateral() *cobra.Command {
 				return err
 			}
 			msg := types.NewMsgReduceCollateral(address, coins)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -213,10 +197,6 @@ func GetCmdClaimReward() *cobra.Command {
 				return err
 			}
 			msg := types.NewMsgWithdrawReward(address)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -258,10 +238,6 @@ func GetCmdCreateTask() *cobra.Command {
 			validDuration := time.Duration(hours) * time.Hour
 
 			msg := types.NewMsgCreateTask(args[0], args[1], bounty, description, from, wait, validDuration)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -298,10 +274,6 @@ func GetCmdRespondToTask() *cobra.Command {
 			}
 
 			msg := types.NewMsgTaskResponse(args[0], args[1], score, from)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -332,10 +304,6 @@ func GetCmdDeleteTask() *cobra.Command {
 			force := FlagForce
 
 			msg := types.NewMsgDeleteTask(args[0], args[1], force, from)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -374,10 +342,6 @@ func GetCmdRespondToTxTask() *cobra.Command {
 			}
 
 			msg := types.NewMsgTxTaskResponse(txHash, score, from)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -410,10 +374,6 @@ func GetCmdDeleteTxTask() *cobra.Command {
 			}
 
 			msg := types.NewMsgDeleteTxTask(txHash, from)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -461,10 +421,6 @@ func GetCmdCreateTxTask() *cobra.Command {
 			}
 
 			msg := types.NewMsgCreateTxTask(from, chainID, txBytes, bounty, validTime)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}

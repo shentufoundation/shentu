@@ -45,7 +45,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 func EmitEventsForTask(ctx sdk.Context, task *types.Task) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			"aggregate_task",
+			types.EventTypeAggTask,
 			sdk.NewAttribute("contract", task.Contract),
 			sdk.NewAttribute("function", task.Function),
 			sdk.NewAttribute("begin_block_height", strconv.FormatInt(task.BeginBlock, 10)),
@@ -64,7 +64,7 @@ func EmitEventsForTask(ctx sdk.Context, task *types.Task) {
 func EmitEventsForTxTask(ctx sdk.Context, task *types.TxTask) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			"aggregate_txtask",
+			types.EventTypeAggTxTask,
 			sdk.NewAttribute("tx_hash", base64.StdEncoding.EncodeToString(task.TxHash)),
 			sdk.NewAttribute("score", strconv.FormatInt(task.Score, 10)),
 			sdk.NewAttribute("status", task.Status.String()),

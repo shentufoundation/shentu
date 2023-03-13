@@ -236,29 +236,9 @@ func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTas
 	hashByte := sha256.Sum256(msg.TxBytes)
 	hash := base64.StdEncoding.EncodeToString(hashByte[:])
 
-	var txTask *types.TxTask
-	// if a TaskStatusNil task already exists, overwrite it after copying several fields.
-	// please be noted that the expiration hook remains
-	if savedTask, err := k.GetTask(ctx, hashByte[:]); err == nil {
-		if savedTask.GetStatus() == types.TaskStatusNil {
-			// in fast-path case, a TxTask could be created before the creatTxTask msg
-			savedTask, ok := savedTask.(*types.TxTask)
-			if !ok {
-				return nil, types.ErrUnexpectedTask
-			}
-			txTask = types.NewTxTask(hashByte[:], msg.Creator, msg.Bounty, msg.ValidTime, types.TaskStatusPending)
-			txTask.Expiration = savedTask.Expiration
-			txTask.Responses = savedTask.Responses
-			txTask.Score = savedTask.Score
-		}
-	}
-	if txTask == nil {
-		// BuildTxTaskWithExpire should be called with new TxTask created and expiration hooking up
-		txTask = k.BuildTxTaskWithExpire(ctx, hashByte[:], msg.Creator, msg.Bounty, msg.ValidTime, types.TaskStatusPending)
-	}
-
-	if msg.ValidTime.After(txTask.Expiration) {
-		return nil, types.ErrTooLateValidTime
+	txTask, err := k.BuildTxTask(ctx, hashByte[:], msg.Creator, msg.Bounty, msg.ValidTime)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := k.Keeper.CreateTask(ctx, creatorAddr, txTask); err != nil {
@@ -284,15 +264,10 @@ func (k msgServer) TxTaskResponse(goCtx context.Context, msg *types.MsgTxTaskRes
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	operatorAddr, _ := sdk.AccAddressFromBech32(msg.Operator)
-	if _, err := k.GetTask(ctx, msg.TxHash); err != nil {
-		//if the corresponding TxTask doesn't exit,
-		//create one as a placeholder (statue being set as TaskStatusNil),
-		//waiting for the MsgCreateTxTask coming to fill in necessary fields
-		txTask := k.BuildTxTaskWithExpire(ctx, msg.TxHash, "", nil, time.Time{}, types.TaskStatusNil)
-		if err = k.Keeper.CreateTask(ctx, nil, txTask); err != nil {
-			return nil, err
-		}
+	if err := k.HandleNoneTxTaskForResponse(ctx, msg.TxHash); err != nil {
+		return nil, err
 	}
+
 	if err := k.RespondToTask(ctx, msg.TxHash, msg.Score, operatorAddr); err != nil {
 		return nil, err
 	}

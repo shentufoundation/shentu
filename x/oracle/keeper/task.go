@@ -206,6 +206,34 @@ func (k Keeper) BuildTxTaskWithExpire(ctx sdk.Context, txHash []byte, creator st
 	return txTask
 }
 
+func (k Keeper) BuildTxTask(ctx sdk.Context, txHash []byte, creator string, bounty sdk.Coins, validTime time.Time) (types.TaskI, error) {
+	var txTask *types.TxTask
+	// if a TaskStatusNil task already exists, overwrite it after copying several fields.
+	// please be noted that the expiration hook remains
+	if savedTask, err := k.GetTask(ctx, txHash); err == nil {
+		if savedTask.GetStatus() == types.TaskStatusNil {
+			// in fast-path case, a TxTask could be created before the creatTxTask msg
+			savedTask, ok := savedTask.(*types.TxTask)
+			if !ok {
+				return nil, types.ErrUnexpectedTask
+			}
+			txTask = types.NewTxTask(txHash, creator, bounty, validTime, types.TaskStatusPending)
+			txTask.Expiration = savedTask.Expiration
+			txTask.Responses = savedTask.Responses
+			txTask.Score = savedTask.Score
+		}
+	}
+	if txTask == nil {
+		// BuildTxTaskWithExpire should be called with new TxTask created and expiration hooking up
+		txTask = k.BuildTxTaskWithExpire(ctx, txHash, creator, bounty, validTime, types.TaskStatusPending)
+	}
+
+	if validTime.After(txTask.Expiration) {
+		return nil, types.ErrTooLateValidTime
+	}
+	return txTask, nil
+}
+
 // RemoveTask removes a task from kvstore if it is closed, expired and requested by its creator.
 // The id of the removed task may still remain in the ExpireTaskIDsStore.
 //  in such case, when it's expired, the unfound task will be simply skipped
@@ -291,6 +319,17 @@ func (k Keeper) IsValidResponse(ctx sdk.Context, task types.TaskI, response type
 	}
 	if response.Score.LT(types.MinScore) || response.Score.GT(types.MaxScore) {
 		return types.ErrInvalidScore
+	}
+	return nil
+}
+
+func (k Keeper) HandleNoneTxTaskForResponse(ctx sdk.Context, txHash []byte) error {
+	if _, err := k.GetTask(ctx, txHash); err != nil {
+		//if the corresponding TxTask doesn't exit,
+		//create one as a placeholder (statue being set as TaskStatusNil),
+		//waiting for the MsgCreateTxTask coming to fill in necessary fields
+		txTask := k.BuildTxTaskWithExpire(ctx, txHash, "", nil, time.Time{}, types.TaskStatusNil)
+		return k.CreateTask(ctx, nil, txTask)
 	}
 	return nil
 }
