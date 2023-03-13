@@ -139,9 +139,9 @@ func (k Keeper) DeleteExpiredTasks(ctx sdk.Context) {
 			k.cdc.MustUnmarshalLengthPrefixed(value, &taskIDsProto)
 			protoTids := taskIDsProto.TaskIds
 			for i := range protoTids {
-				tk := protoTids[i].Tid
-				if store.Has(tk) {
-					store.Delete(tk)
+				storeKey := types.TaskStoreKey(protoTids[i].Tid)
+				if store.Has(storeKey) {
+					store.Delete(storeKey)
 				}
 			}
 			store.Delete(key)
