@@ -245,15 +245,21 @@ func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTas
 		return nil, err
 	}
 
-	CreateTxTaskEvent := sdk.NewEvent(
-		types.TypeMsgCreateTxTask,
-		sdk.NewAttribute("tx_hash", hash),
-		sdk.NewAttribute("creator", msg.Creator),
-		sdk.NewAttribute("chain_id", msg.ChainId),
-		sdk.NewAttribute("bounty", msg.Bounty.String()),
-		sdk.NewAttribute("valid_time", msg.ValidTime.String()),
-	)
-	ctx.EventManager().EmitEvent(CreateTxTaskEvent)
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeMsgCreateTxTask,
+			sdk.NewAttribute("tx_hash", hash),
+			sdk.NewAttribute("creator", msg.Creator),
+			sdk.NewAttribute("chain_id", msg.ChainId),
+			sdk.NewAttribute("bounty", msg.Bounty.String()),
+			sdk.NewAttribute("valid_time", msg.ValidTime.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Creator),
+		),
+	})
 
 	return &types.MsgCreateTxTaskResponse{
 		TxHash: hashByte[:],
