@@ -437,23 +437,6 @@ func (m *CoinsProto) GetCoins() github_com_cosmos_cosmos_sdk_types.Coins {
 	return nil
 }
 
-func init() {
-	proto.RegisterEnum("shentu.oracle.v1alpha1.TaskStatus", TaskStatus_name, TaskStatus_value)
-	proto.RegisterType((*Withdraw)(nil), "shentu.oracle.v1alpha1.Withdraw")
-	proto.RegisterType((*Task)(nil), "shentu.oracle.v1alpha1.Task")
-	proto.RegisterType((*Response)(nil), "shentu.oracle.v1alpha1.Response")
-	proto.RegisterType((*Operator)(nil), "shentu.oracle.v1alpha1.Operator")
-	proto.RegisterType((*TaskParams)(nil), "shentu.oracle.v1alpha1.TaskParams")
-	proto.RegisterType((*LockedPoolParams)(nil), "shentu.oracle.v1alpha1.LockedPoolParams")
-	proto.RegisterType((*TaskID)(nil), "shentu.oracle.v1alpha1.TaskID")
-	proto.RegisterType((*TaskIDs)(nil), "shentu.oracle.v1alpha1.TaskIDs")
-	proto.RegisterType((*CoinsProto)(nil), "shentu.oracle.v1alpha1.CoinsProto")
-}
-
-func init() {
-	proto.RegisterFile("shentu/oracle/v1alpha1/oracle.proto", fileDescriptor_8a60831f9c2fed90)
-}
-
 var fileDescriptor_8a60831f9c2fed90 = []byte{
 	// 1367 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x57, 0xcd, 0x6e, 0xdb, 0xc6,
