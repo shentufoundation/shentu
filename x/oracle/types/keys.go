@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/base64"
 	"encoding/binary"
 	"time"
 
@@ -62,4 +63,8 @@ func TimeStoreKey(prefix []byte, theTime time.Time) []byte {
 
 func NewTaskID(contract, function string) []byte {
 	return append([]byte(contract), []byte(function)...)
+}
+
+func NewTxTaskID(txHash string) ([]byte, error) {
+	return base64.StdEncoding.DecodeString(txHash)
 }

@@ -27,6 +27,8 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdWithdraws(),
 		GetCmdTask(),
 		GetCmdResponse(),
+		GetCmdTxTask(),
+		GetCmdTxResponse(),
 	)
 
 	return oracleQueryCmds
@@ -150,6 +152,35 @@ func GetCmdTask() *cobra.Command {
 	return cmd
 }
 
+// GetCmdTxTask returns the tx task query command.
+func GetCmdTxTask() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "tx-task <tx_hash>",
+		Short: "Get tx task information",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+
+			res, err := queryClient.TxTask(
+				cmd.Context(),
+				&types.QueryTxTaskRequest{TxHash: args[0]},
+			)
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
 // GetCmdResponse returns the response query command.
 func GetCmdResponse() *cobra.Command {
 	cmd := &cobra.Command{
@@ -176,6 +207,35 @@ func GetCmdResponse() *cobra.Command {
 	}
 
 	cmd.Flags().String(FlagOperator, "", "Provide the operator")
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdTxResponse returns the tx response query command.
+func GetCmdTxResponse() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "tx-response <operator_address> <tx_hash>",
+		Short: "Get tx response information",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+
+			res, err := queryClient.TxResponse(
+				cmd.Context(),
+				&types.QueryTxResponseRequest{TxHash: args[1], OperatorAddress: args[0]},
+			)
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintProto(res)
+		},
+	}
+
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
