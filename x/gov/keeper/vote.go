@@ -31,8 +31,8 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAdd
 	}
 
 	// Add cert vote
-	if k.HasSecurityVoting(proposal) && !k.IsCertifierVoted(ctx, proposalID) {
-		return k.AddCertifierVoted(ctx, proposalID, voterAddr, options)
+	if k.HasSecurityVoting(proposal) && !k.GetCertifierVoted(ctx, proposalID) {
+		return k.AddCertifierVote(ctx, proposalID, voterAddr, options)
 	}
 
 	if proposal.GetContent().ProposalType() == shieldtypes.ProposalTypeShieldClaim &&
@@ -83,8 +83,8 @@ func (k Keeper) DeleteAllVotes(ctx sdk.Context, proposalID uint64) {
 	})
 }
 
-// AddCertifierVoted add a certifier vote
-func (k Keeper) AddCertifierVoted(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, options govtypes.WeightedVoteOptions) error {
+// AddCertifierVote add a certifier vote
+func (k Keeper) AddCertifierVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, options govtypes.WeightedVoteOptions) error {
 	if !k.IsCertifier(ctx, voterAddr) {
 		return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "%s is not a certified identity", voterAddr)
 	}
@@ -122,8 +122,8 @@ func (k Keeper) SetCertVote(ctx sdk.Context, proposalID uint64) {
 	store.Set(types.CertVotesKey(proposalID), govtypes.GetProposalIDBytes(proposalID))
 }
 
-// IsCertifierVoted determine cert vote for custom proposal types have finished
-func (k Keeper) IsCertifierVoted(ctx sdk.Context, proposalID uint64) bool {
+// GetCertifierVoted determine cert vote for custom proposal types have finished
+func (k Keeper) GetCertifierVoted(ctx sdk.Context, proposalID uint64) bool {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.CertVotesKey(proposalID))
 	return bz != nil

@@ -14,24 +14,12 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
-// Proposal returns proposal details based on ProposalID
-func (k Keeper) Proposal(c context.Context, req *govtypes.QueryProposalRequest) (*types.QueryProposalResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-
-	if req.ProposalId == 0 {
-		return nil, status.Error(codes.InvalidArgument, "proposal id can not be 0")
-	}
-
+// CertVoted returns certifier voting
+func (k Keeper) CertVoted(c context.Context, req *types.QueryCertVotedRequest) (*types.QueryCertVotedResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
+	voted := k.GetCertifierVoted(ctx, req.ProposalId)
 
-	proposal, found := k.GetProposal(ctx, req.ProposalId)
-	if !found {
-		return nil, status.Errorf(codes.NotFound, "proposal %d doesn't exist", req.ProposalId)
-	}
-
-	return &types.QueryProposalResponse{Proposal: proposal, CertVoted: k.IsCertifierVoted(ctx, req.ProposalId)}, nil
+	return &types.QueryCertVotedResponse{CertVoted: voted}, nil
 }
 
 // Params queries all params
@@ -39,7 +27,6 @@ func (k Keeper) Params(c context.Context, req *govtypes.QueryParamsRequest) (*ty
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-
 	ctx := sdk.UnwrapSDKContext(c)
 
 	switch req.ParamsType {

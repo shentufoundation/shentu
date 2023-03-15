@@ -237,7 +237,7 @@ func SimulateMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k keeper
 		if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim ||
 			proposal.ProposalType() == certtypes.ProposalTypeCertifierUpdate ||
 			proposal.ProposalType() == upgradetypes.ProposalTypeSoftwareUpgrade {
-			if !k.IsCertifierVoted(ctx, proposal.ProposalId) {
+			if !k.GetCertifierVoted(ctx, proposal.ProposalId) {
 				return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
 			}
 		}
@@ -293,7 +293,7 @@ func SimulateCertifierMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper,
 		if proposal.Status != govtypes.StatusVotingPeriod {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
 		}
-		if k.IsCertifierVoted(ctx, proposal.ProposalId) {
+		if k.GetCertifierVoted(ctx, proposal.ProposalId) {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
 		}
 

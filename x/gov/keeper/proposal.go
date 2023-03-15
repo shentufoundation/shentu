@@ -23,7 +23,7 @@ func (k Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal govtypes.Proposal
 	// Default case: for plain text proposals, community pool spend proposals;
 	// and second round of software upgrade, certifier update and shield claim
 	// proposals.
-	if k.IsCertifierVoted(ctx, proposal.ProposalId) {
+	if k.GetCertifierVoted(ctx, proposal.ProposalId) {
 		k.RemoveFromActiveProposalQueue(ctx, proposal.ProposalId, oldVotingEndTime)
 	} else {
 		proposal.DepositEndTime = ctx.BlockHeader().Time
@@ -138,12 +138,14 @@ func (k Keeper) HasSecurityVoting(p govtypes.Proposal) bool {
 	}
 }
 
-// ActivateCertifierProposalVotingPeriod only switches proposals of certifier members.
-func (k Keeper) ActivateCertifierProposalVotingPeriod(ctx sdk.Context, proposal govtypes.Proposal, addr sdk.AccAddress) bool {
-	if k.IsCertifier(ctx, addr) {
-		k.SetCertifierVoted(ctx, proposal.ProposalId)
-		k.ActivateVotingPeriod(ctx, proposal)
-		return true
+// ActivateVotingPeriodCustom switches proposals to voting period for customization.
+func (k Keeper) ActivateVotingPeriodCustom(ctx sdk.Context, proposal govtypes.Proposal, addr sdk.AccAddress) bool {
+	if !k.IsCertifier(ctx, addr) && !(proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim) {
+		return false
 	}
-	return false
+	if k.IsCertifier(ctx, addr) && k.HasSecurityVoting(proposal) {
+		k.SetCertifierVoted(ctx, proposal.ProposalId)
+	}
+	k.ActivateVotingPeriod(ctx, proposal)
+	return true
 }
