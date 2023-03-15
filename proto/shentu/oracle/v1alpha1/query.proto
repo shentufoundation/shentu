@@ -26,8 +26,16 @@ service Query {
         option (google.api.http).get = "/shentu/oracle/v1alpha1/contract/{contract}/function/{function}/task";
     }
 
+    rpc TxTask(QueryTxTaskRequest) returns (QueryTxTaskResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/txhash/{tx_hash}/txtask";
+    }
+
     rpc Response(QueryResponseRequest) returns (QueryResponseResponse) {
         option (google.api.http).get = "/shentu/oracle/v1alpha1/contract/{contract}/function/{function}/operator/{operator_address}/Response";
+    }
+
+    rpc TxResponse(QueryTxResponseRequest) returns (QueryTxResponseResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/txhash/{tx_hash}/operator/{operator_address}/Response";
     }
 }
 
@@ -62,6 +70,14 @@ message QueryTaskResponse {
     Task task = 1 [(gogoproto.nullable) = false];
 }
 
+message QueryTxTaskRequest {
+    string tx_hash = 1;
+}
+
+message QueryTxTaskResponse {
+   TxTask task = 1 [(gogoproto.nullable) = false];
+}
+
 message QueryResponseRequest {
     string contract = 1;
     string function = 2;
@@ -69,5 +85,14 @@ message QueryResponseRequest {
 }
 
 message QueryResponseResponse {
+    Response response = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryTxResponseRequest {
+    string tx_hash = 1;
+    string operator_address = 2;
+}
+
+message QueryTxResponseResponse {
     Response response = 1 [(gogoproto.nullable) = false];
 }
