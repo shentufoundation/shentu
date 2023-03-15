@@ -228,29 +228,38 @@ func (k msgServer) DeleteTask(goCtx context.Context, msg *types.MsgDeleteTask) (
 func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTask) (*types.MsgCreateTxTaskResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	creatorAddr, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return nil, err
+	creatorAddr, _ := sdk.AccAddressFromBech32(msg.Creator)
+	if msg.ValidTime.Before(ctx.BlockTime()) {
+		return nil, types.ErrOverdueValidTime
 	}
 
 	hashByte := sha256.Sum256(msg.TxBytes)
 	hash := base64.StdEncoding.EncodeToString(hashByte[:])
 
-	expirationTime := ctx.BlockTime().Add(k.Keeper.GetTaskParams(ctx).ExpirationDuration)
-	txTask := types.NewTxTask(msg.Creator, hashByte[:], msg.Bounty, msg.ValidTime, expirationTime, types.TaskStatusPending, nil)
-	if err := k.Keeper.CreateTask(ctx, creatorAddr, &txTask); err != nil {
+	txTask, err := k.BuildTxTask(ctx, hashByte[:], msg.Creator, msg.Bounty, msg.ValidTime)
+	if err != nil {
 		return nil, err
 	}
 
-	CreateTxTaskEvent := sdk.NewEvent(
-		types.TypeMsgCreateTxTask,
-		sdk.NewAttribute("tx_hash", hash),
-		sdk.NewAttribute("creator", msg.Creator),
-		sdk.NewAttribute("chain_id", msg.ChainId),
-		sdk.NewAttribute("bounty", msg.Bounty.String()),
-		sdk.NewAttribute("valid_time", msg.ValidTime.String()),
-	)
-	ctx.EventManager().EmitEvent(CreateTxTaskEvent)
+	if err := k.Keeper.CreateTask(ctx, creatorAddr, txTask); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeMsgCreateTxTask,
+			sdk.NewAttribute("tx_hash", hash),
+			sdk.NewAttribute("creator", msg.Creator),
+			sdk.NewAttribute("chain_id", msg.ChainId),
+			sdk.NewAttribute("bounty", msg.Bounty.String()),
+			sdk.NewAttribute("valid_time", msg.ValidTime.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Creator),
+		),
+	})
 
 	return &types.MsgCreateTxTaskResponse{
 		TxHash: hashByte[:],
@@ -258,16 +267,54 @@ func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTas
 }
 
 func (k msgServer) TxTaskResponse(goCtx context.Context, msg *types.MsgTxTaskResponse) (*types.MsgTxTaskResponseResponse, error) {
-	// ctx := sdk.UnwrapSDKContext(goCtx)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// operatorAddr, err := sdk.AccAddressFromBech32(msg.Operator)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	operatorAddr, _ := sdk.AccAddressFromBech32(msg.Operator)
+	if err := k.HandleNoneTxTaskForResponse(ctx, msg.TxHash); err != nil {
+		return nil, err
+	}
+
+	if err := k.RespondToTask(ctx, msg.TxHash, msg.Score, operatorAddr); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeMsgRespondToTxTask,
+			sdk.NewAttribute("operator", msg.Operator),
+			sdk.NewAttribute("score", strconv.FormatInt(msg.Score, 10)),
+			sdk.NewAttribute("txHash", base64.StdEncoding.EncodeToString(msg.TxHash)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Operator),
+		),
+	})
+
 	return &types.MsgTxTaskResponseResponse{}, nil
 }
 
 func (k msgServer) DeleteTxTask(goCtx context.Context, msg *types.MsgDeleteTxTask) (*types.MsgDeleteTxTaskResponse, error) {
-	//TODO: implement me
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	deleterAddr, _ := sdk.AccAddressFromBech32(msg.From)
+	if err := k.RemoveTask(ctx, msg.TxHash, true, deleterAddr); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeMsgDeleteTxTask,
+			sdk.NewAttribute("deleter", msg.From),
+			sdk.NewAttribute("txHash", base64.StdEncoding.EncodeToString(msg.TxHash)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
+	})
+
 	return &types.MsgDeleteTxTaskResponse{}, nil
 }

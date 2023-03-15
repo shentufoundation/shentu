@@ -29,6 +29,7 @@ var (
 	TaskStoreKeyPrefix             = []byte{0x04}
 	ClosingTaskStoreKeyPrefix      = []byte{0x05}
 	ClosingTaskStoreKeyTimedPrefix = []byte{0x06}
+	ExpireTaskStoreKeyPrefix       = []byte{0x07}
 )
 
 func OperatorStoreKey(operator sdk.AccAddress) []byte {
@@ -55,9 +56,9 @@ func ClosingTaskIDsStoreKey(blockHeight int64) []byte {
 	return append(ClosingTaskStoreKeyPrefix, b...)
 }
 
-func ClosingTaskIDsTimedStoreKey(closeTime time.Time) []byte {
-	b := sdk.FormatTimeBytes(closeTime)
-	return append(ClosingTaskStoreKeyTimedPrefix, b...)
+func TimeStoreKey(prefix []byte, theTime time.Time) []byte {
+	b := sdk.FormatTimeBytes(theTime)
+	return append(prefix, b...)
 }
 
 func NewTaskID(contract, function string) []byte {
