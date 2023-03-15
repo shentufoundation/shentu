@@ -32,11 +32,10 @@ func (k Keeper) DeleteTask(ctx sdk.Context, task types.TaskI) error {
 
 // UpdateAndSetTask updates a task and set it in KVStore.
 func (k Keeper) UpdateAndSetTask(ctx sdk.Context, task *types.Task) {
+	task.ExpireHeight = ctx.BlockHeight() + task.WaitingBlocks
 	if task.IsValid(ctx) {
 		k.SetClosingBlockStore(ctx, task)
 	}
-
-	task.ExpireHeight = ctx.BlockHeight() + task.WaitingBlocks
 	k.SetTask(ctx, task)
 }
 
