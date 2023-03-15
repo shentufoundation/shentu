@@ -93,13 +93,15 @@ func TestTaskAggregateFail(t *testing.T) {
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 6)
 	require.Error(t, ok.RespondToTask(ctx, tth.TaskID(), 100, addrs[0]))
 
-	ok.UpdateAndSetTask(ctx, taskRes)
+	task, result := taskRes.(*types.Task)
+	require.True(t, result)
+	ok.UpdateAndSetTask(ctx, task)
 	taskRes.SetStatus(types.TaskStatusFailed)
-	ok.SetTask(ctx, taskRes)
+	ok.SetTask(ctx, task)
 	require.Error(t, ok.Aggregate(ctx, tth.TaskID()))
 
-	taskRes.SetStatus(types.TaskStatusPending)
-	ok.SetTask(ctx, taskRes)
+	task.SetStatus(types.TaskStatusPending)
+	ok.SetTask(ctx, task)
 	require.NoError(t, ok.Aggregate(ctx, tth.TaskID()))
 }
 

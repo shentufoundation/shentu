@@ -3,7 +3,6 @@ package shentu.oracle.v1alpha1;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "google/protobuf/timestamp.proto";
 import "shentu/oracle/v1alpha1/oracle.proto";
 
 option go_package = "github.com/shentufoundation/shentu/x/oracle/types";
@@ -18,4 +17,6 @@ message GenesisState {
     TaskParams task_params = 4 [ (gogoproto.moretags) = "yaml:\"task_params\"" ];
     repeated Withdraw withdraws = 5 [ (gogoproto.moretags) = "yaml:\"withdraws\"", (gogoproto.nullable) = false ];
     repeated Task tasks = 6 [ (gogoproto.moretags) = "yaml:\"tasks\"", (gogoproto.nullable) = false ];
+    repeated TxTask tx_tasks = 7 [ (gogoproto.moretags) = "yaml:\"tx_tasks\"", (gogoproto.nullable) = false ];
+
 }

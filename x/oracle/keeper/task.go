@@ -31,16 +31,32 @@ func (k Keeper) DeleteTask(ctx sdk.Context, task types.TaskI) error {
 }
 
 // UpdateAndSetTask updates a task and set it in KVStore.
-func (k Keeper) UpdateAndSetTask(ctx sdk.Context, task types.TaskI) {
+func (k Keeper) UpdateAndSetTask(ctx sdk.Context, task *types.Task) {
+	task.ExpireHeight = ctx.BlockHeight() + task.WaitingBlocks
 	if task.IsValid(ctx) {
 		k.SetClosingBlockStore(ctx, task)
 	}
-	if scTask, ok := task.(*types.Task); ok {
-		scTask.ExpireHeight = ctx.BlockHeight() + scTask.WaitingBlocks
-		k.SetTask(ctx, scTask)
-	} else {
+	k.SetTask(ctx, task)
+}
+
+func (k Keeper) SetTxTask(ctx sdk.Context, task *types.TxTask) {
+	if !task.IsExpired(ctx) {
+		k.SaveExpireTxTask(ctx, task)
 		k.SetTask(ctx, task)
+		if task.IsValid(ctx) {
+			k.SetClosingBlockStore(ctx, task)
+		}
 	}
+}
+
+func (k Keeper) SaveExpireTxTask(ctx sdk.Context, task *types.TxTask) {
+	ids := k.GetTaskIDsByTime(ctx, types.ExpireTaskStoreKeyPrefix, task.Expiration)
+	ids = append(ids, types.TaskID{Tid: task.GetID()})
+	bz := k.cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: ids})
+	ctx.KVStore(k.storeKey).Set(
+		types.TimeStoreKey(types.ExpireTaskStoreKeyPrefix, task.Expiration),
+		bz,
+	)
 }
 
 // GetTask returns a task given taskID.
@@ -195,14 +211,7 @@ func (k Keeper) BuildTxTaskWithExpire(ctx sdk.Context, txHash []byte, creator st
 	txTask := types.NewTxTask(txHash, creator, bounty, validTime, status)
 	txTask.Expiration = ctx.BlockTime().Add(taskParams.ExpirationDuration)
 
-	ids := k.GetTaskIDsByTime(ctx, types.ExpireTaskStoreKeyPrefix, txTask.Expiration)
-	ids = append(ids, types.TaskID{Tid: txTask.GetID()})
-	bz := k.cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: ids})
-	ctx.KVStore(k.storeKey).Set(
-		types.TimeStoreKey(types.ExpireTaskStoreKeyPrefix, txTask.Expiration),
-		bz,
-	)
-
+	k.SaveExpireTxTask(ctx, txTask)
 	return txTask
 }
 
@@ -236,7 +245,8 @@ func (k Keeper) BuildTxTask(ctx sdk.Context, txHash []byte, creator string, boun
 
 // RemoveTask removes a task from kvstore if it is closed, expired and requested by its creator.
 // The id of the removed task may still remain in the ExpireTaskIDsStore.
-//  in such case, when it's expired, the unfound task will be simply skipped
+//
+//	in such case, when it's expired, the unfound task will be simply skipped
 func (k Keeper) RemoveTask(ctx sdk.Context, taskID []byte, force bool, deleter sdk.AccAddress) error {
 	task, err := k.GetTask(ctx, taskID)
 	if err != nil {
@@ -293,13 +303,13 @@ func (k Keeper) GetAllTasks(ctx sdk.Context) (tasks []types.TaskI) {
 }
 
 // UpdateAndGetAllTasks updates all tasks and returns them.
-func (k Keeper) UpdateAndGetAllTasks(ctx sdk.Context) (tasks []types.TaskI) {
+func (k Keeper) UpdateAndGetAllTasks(ctx sdk.Context) (tasks []types.Task, txTasks []types.TxTask) {
 	k.IteratorAllTasks(ctx, func(task types.TaskI) bool {
 		if t, ok := task.(*types.Task); ok {
 			t.WaitingBlocks = t.ExpireHeight - ctx.BlockHeight()
-			tasks = append(tasks, t)
-		} else {
-			tasks = append(tasks, task)
+			tasks = append(tasks, *t)
+		} else if t, ok := task.(*types.TxTask); ok {
+			txTasks = append(txTasks, *t)
 		}
 		return false
 	})

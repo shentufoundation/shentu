@@ -33,6 +33,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 		taskParams,
 		nil,
 		nil,
+		nil,
 	)
 
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&gs)
