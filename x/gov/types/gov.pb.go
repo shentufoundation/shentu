@@ -5,16 +5,15 @@ package types
 
 import (
 	fmt "fmt"
-	types2 "github.com/cosmos/cosmos-sdk/codec/types"
+	_ "github.com/cosmos/cosmos-proto"
+	types3 "github.com/cosmos/cosmos-sdk/codec/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
-	types1 "github.com/cosmos/cosmos-sdk/x/gov/types"
+	types2 "github.com/cosmos/cosmos-sdk/x/gov/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
+	_ "github.com/gogo/protobuf/types"
 	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
-	_ "github.com/regen-network/cosmos-proto"
-	_ "google.golang.org/protobuf/types/known/durationpb"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -130,9 +129,9 @@ var xxx_messageInfo_DepositParams proto.InternalMessageInfo
 
 // TallyParams defines the params for tallying votes on governance proposals.
 type TallyParams struct {
-	DefaultTally                     *types1.TallyParams `protobuf:"bytes,1,opt,name=default_tally,json=defaultTally,proto3" json:"default_tally,omitempty"`
-	CertifierUpdateSecurityVoteTally *types1.TallyParams `protobuf:"bytes,2,opt,name=certifier_update_security_vote_tally,json=certifierUpdateSecurityVoteTally,proto3" json:"certifier_update_security_vote_tally,omitempty"`
-	CertifierUpdateStakeVoteTally    *types1.TallyParams `protobuf:"bytes,3,opt,name=certifier_update_stake_vote_tally,json=certifierUpdateStakeVoteTally,proto3" json:"certifier_update_stake_vote_tally,omitempty"`
+	DefaultTally                     *types2.TallyParams `protobuf:"bytes,1,opt,name=default_tally,json=defaultTally,proto3" json:"default_tally,omitempty"`
+	CertifierUpdateSecurityVoteTally *types2.TallyParams `protobuf:"bytes,2,opt,name=certifier_update_security_vote_tally,json=certifierUpdateSecurityVoteTally,proto3" json:"certifier_update_security_vote_tally,omitempty"`
+	CertifierUpdateStakeVoteTally    *types2.TallyParams `protobuf:"bytes,3,opt,name=certifier_update_stake_vote_tally,json=certifierUpdateStakeVoteTally,proto3" json:"certifier_update_stake_vote_tally,omitempty"`
 }
 
 func (m *TallyParams) Reset()      { *m = TallyParams{} }
@@ -168,12 +167,12 @@ func (m *TallyParams) XXX_DiscardUnknown() {
 var xxx_messageInfo_TallyParams proto.InternalMessageInfo
 
 type Proposal struct {
-	Content                 *types2.Any                              `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
+	Content                 *types3.Any                              `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
 	ProposalId              uint64                                   `protobuf:"varint,2,opt,name=proposal_id,json=proposalId,proto3" json:"id" yaml:"id"`
 	Status                  ProposalStatus                           `protobuf:"varint,3,opt,name=status,proto3,enum=shentu.gov.v1alpha1.ProposalStatus" json:"status,omitempty" yaml:"proposal_status"`
 	IsProposerCouncilMember bool                                     `protobuf:"varint,4,opt,name=is_proposer_council_member,json=isProposerCouncilMember,proto3" json:"is_proposer_council_member,omitempty" yaml:"is_proposer_council_member"`
 	ProposerAddress         string                                   `protobuf:"bytes,5,opt,name=proposer_address,json=proposerAddress,proto3" json:"proposer_address,omitempty" yaml:"proposer_address"`
-	FinalTallyResult        types1.TallyResult                       `protobuf:"bytes,6,opt,name=final_tally_result,json=finalTallyResult,proto3" json:"final_tally_result" yaml:"final_tally_result"`
+	FinalTallyResult        types2.TallyResult                       `protobuf:"bytes,6,opt,name=final_tally_result,json=finalTallyResult,proto3" json:"final_tally_result" yaml:"final_tally_result"`
 	SubmitTime              time.Time                                `protobuf:"bytes,7,opt,name=submit_time,json=submitTime,proto3,stdtime" json:"submit_time" yaml:"submit_time"`
 	DepositEndTime          time.Time                                `protobuf:"bytes,8,opt,name=deposit_end_time,json=depositEndTime,proto3,stdtime" json:"deposit_end_time" yaml:"deposit_end_time"`
 	TotalDeposit            github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,9,rep,name=total_deposit,json=totalDeposit,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"total_deposit" yaml:"total_deposit"`
@@ -833,7 +832,10 @@ func (m *DepositParams) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
+			if skippy < 0 {
+				return ErrInvalidLengthGov
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthGov
 			}
 			if (iNdEx + skippy) > l {
@@ -907,7 +909,7 @@ func (m *TallyParams) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.DefaultTally == nil {
-				m.DefaultTally = &types1.TallyParams{}
+				m.DefaultTally = &types2.TallyParams{}
 			}
 			if err := m.DefaultTally.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -943,7 +945,7 @@ func (m *TallyParams) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.CertifierUpdateSecurityVoteTally == nil {
-				m.CertifierUpdateSecurityVoteTally = &types1.TallyParams{}
+				m.CertifierUpdateSecurityVoteTally = &types2.TallyParams{}
 			}
 			if err := m.CertifierUpdateSecurityVoteTally.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -979,7 +981,7 @@ func (m *TallyParams) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.CertifierUpdateStakeVoteTally == nil {
-				m.CertifierUpdateStakeVoteTally = &types1.TallyParams{}
+				m.CertifierUpdateStakeVoteTally = &types2.TallyParams{}
 			}
 			if err := m.CertifierUpdateStakeVoteTally.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -991,7 +993,10 @@ func (m *TallyParams) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
+			if skippy < 0 {
+				return ErrInvalidLengthGov
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthGov
 			}
 			if (iNdEx + skippy) > l {
@@ -1065,7 +1070,7 @@ func (m *Proposal) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Content == nil {
-				m.Content = &types2.Any{}
+				m.Content = &types3.Any{}
 			}
 			if err := m.Content.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1366,7 +1371,10 @@ func (m *Proposal) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
+			if skippy < 0 {
+				return ErrInvalidLengthGov
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthGov
 			}
 			if (iNdEx + skippy) > l {
