@@ -402,7 +402,7 @@ func (k Keeper) Aggregate(ctx sdk.Context, taskID []byte) error {
 
 	if totalCollateral.IsPositive() {
 		if minScoreCollateral.MulRaw(3).GTE(totalCollateral) {
-			result = minScoreCollateral
+			result = types.MinScore
 			for i, response := range responses {
 				if !response.Score.Equal(types.MinScore) {
 					responses[i].Weight = sdk.NewInt(0)

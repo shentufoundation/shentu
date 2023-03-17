@@ -147,17 +147,17 @@ func TestTaskMinScore(t *testing.T) {
 		desc:         "testing",
 		waitingBlock: int64(5),
 		expiration:   time.Now().Add(time.Hour).UTC(),
-		validTime:    time.Time{},
+		validTime:    time.Now().Add(time.Second).UTC(),
 	}
 	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetTask()))
 
-	require.NoError(t, ok.RespondToTask(ctx, tth.TaskID(), 100, addrs[0]))
-	require.NoError(t, ok.RespondToTask(ctx, tth.TaskID(), 0, addrs[2]))
+	require.NoError(t, ok.RespondToTask(ctx, tth.TaskID(), 100, addrs[2]))
+	require.NoError(t, ok.RespondToTask(ctx, tth.TaskID(), 0, addrs[0]))
 	require.NoError(t, ok.Aggregate(ctx, tth.TaskID()))
 
 	taskRes := tth.CheckTask(ok.GetTask(ctx, tth.TaskID()))
 	require.Equal(t, types.TaskStatusSucceeded, taskRes.GetStatus())
-	require.Equal(t, params.MinimumCollateral, taskRes.GetScore())
+	require.Equal(t, types.MinScore.Int64(), taskRes.GetScore())
 
 	require.NoError(t, ok.DistributeBounty(ctx, taskRes))
 
@@ -170,6 +170,16 @@ func TestTaskMinScore(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, addrs[2].String(), operator2.Address)
 	require.Nil(t, operator2.AccumulatedRewards)
+
+	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetTxTask(types.TaskStatusPending)))
+
+	require.NoError(t, ok.RespondToTask(ctx, tth.TxTaskID(), 0, addrs[0]))
+	require.NoError(t, ok.RespondToTask(ctx, tth.TxTaskID(), 0, addrs[2]))
+	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Second * 6))
+	oracle.EndBlocker(ctx, ok)
+	txTaskRes := tth.CheckTxTask(ok.GetTask(ctx, tth.TxTaskID()))
+	require.Equal(t, types.TaskStatusSucceeded, txTaskRes.GetStatus())
+	require.Equal(t, types.MinScore.Int64(), txTaskRes.GetScore())
 }
 
 func TestTaskBelowThreshold(t *testing.T) {
