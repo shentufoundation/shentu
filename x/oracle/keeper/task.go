@@ -550,3 +550,26 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.TaskI) error {
 	k.SetTask(ctx, task)
 	return nil
 }
+
+func (k Keeper) RefundBounty(ctx sdk.Context, task types.TaskI) error {
+	taskCreator, err := sdk.AccAddressFromBech32(task.GetCreator())
+	if err != nil {
+		panic(err)
+	}
+
+	totalReward := make(sdk.Coins, 0, 1)
+	for _, response := range task.GetResponses() {
+		if response.Reward != nil {
+			totalReward = totalReward.Add(response.Reward...)
+		}
+	}
+
+	bounties := task.GetBounty()
+	leftBounty := bounties.Sub(totalReward)
+	if leftBounty != nil && leftBounty.IsAllPositive() {
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, taskCreator, leftBounty); err != nil {
+			return err
+		}
+	}
+	return nil
+}
