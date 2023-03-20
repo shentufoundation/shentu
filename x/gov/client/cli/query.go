@@ -35,6 +35,7 @@ func GetQueryCmd() *cobra.Command {
 	govQueryCmd.AddCommand(
 		GetCmdQueryParam(),
 		GetCmdQueryParams(),
+		GetCmdCertVoted(),
 	)
 
 	return govQueryCmd
