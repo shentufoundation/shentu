@@ -12,9 +12,44 @@ option go_package = "github.com/shentufoundation/shentu/x/gov/types";
 
 // Query defines the gRPC querier service for gov module
 service Query {
+  // Proposal queries proposal details based on ProposalID.
+  rpc Proposal(cosmos.gov.v1beta1.QueryProposalRequest) returns (cosmos.gov.v1beta1.QueryProposalResponse) {
+    option (google.api.http).get = "/cosmos/gov/v1beta1/proposals/{proposal_id}";
+  }
+
+  // Proposals queries all proposals based on given status.
+  rpc Proposals(cosmos.gov.v1beta1.QueryProposalsRequest) returns (cosmos.gov.v1beta1.QueryProposalsResponse) {
+    option (google.api.http).get = "/cosmos/gov/v1beta1/proposals";
+  }
+
+  // Vote queries voted information based on proposalID, voterAddr.
+  rpc Vote(cosmos.gov.v1beta1.QueryVoteRequest) returns (cosmos.gov.v1beta1.QueryVoteResponse) {
+    option (google.api.http).get = "/cosmos/gov/v1beta1/proposals/{proposal_id}/votes/{voter}";
+  }
+
+  // Votes queries votes of a given proposal.
+  rpc Votes(cosmos.gov.v1beta1.QueryVotesRequest) returns (cosmos.gov.v1beta1.QueryVotesResponse) {
+    option (google.api.http).get = "/cosmos/gov/v1beta1/proposals/{proposal_id}/votes";
+  }
+
   // Params queries all parameters of the gov module.
   rpc Params(cosmos.gov.v1beta1.QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/cosmos/gov/v1beta1/params/{params_type}";
+  }
+
+  // Deposit queries single deposit information based proposalID, depositAddr.
+  rpc Deposit(cosmos.gov.v1beta1.QueryDepositRequest) returns (cosmos.gov.v1beta1.QueryDepositResponse) {
+    option (google.api.http).get = "/cosmos/gov/v1beta1/proposals/{proposal_id}/deposits/{depositor}";
+  }
+
+  // Deposits queries all deposits of a single proposal.
+  rpc Deposits(cosmos.gov.v1beta1.QueryDepositsRequest) returns (cosmos.gov.v1beta1.QueryDepositsResponse) {
+    option (google.api.http).get = "/cosmos/gov/v1beta1/proposals/{proposal_id}/deposits";
+  }
+
+  // TallyResult queries the tally of a proposal vote.
+  rpc TallyResult(cosmos.gov.v1beta1.QueryTallyResultRequest) returns (cosmos.gov.v1beta1.QueryTallyResultResponse) {
+    option (google.api.http).get = "/cosmos/gov/v1beta1/proposals/{proposal_id}/tally";
   }
 
   // Proposal queries proposal details based on ProposalID.
