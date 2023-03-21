@@ -28,9 +28,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 		distributeErr := k.DistributeBounty(ctx, task)
 		task, _ = k.GetTask(ctx, task.GetID())
-		if err := k.RefundBounty(ctx, task); err != nil {
-			//TODO
-		}
+		_ = k.RefundBounty(ctx, task)
 
 		if distributeErr != nil {
 			continue

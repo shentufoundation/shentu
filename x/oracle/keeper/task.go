@@ -567,7 +567,16 @@ func (k Keeper) RefundBounty(ctx sdk.Context, task types.TaskI) error {
 	bounties := task.GetBounty()
 	leftBounty := bounties.Sub(totalReward)
 	if leftBounty != nil && leftBounty.IsAllPositive() {
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, taskCreator, leftBounty); err != nil {
+		oracleAddress := k.accountKeeper.GetModuleAddress(types.ModuleName)
+		spendableCoins := k.bankKeeper.SpendableCoins(ctx, oracleAddress)
+		if ok := spendableCoins.IsAllGTE(leftBounty); !ok {
+			panic("Insufficient oracle model balance")
+		}
+
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, taskCreator, leftBounty); err != nil {
+			if err = k.distrKeeper.FundCommunityPool(ctx, leftBounty, oracleAddress); err != nil {
+				panic(err)
+			}
 			return err
 		}
 	}
