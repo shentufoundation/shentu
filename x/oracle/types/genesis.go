@@ -6,7 +6,7 @@ import (
 
 // NewGenesisState constructs a GenesisState object.
 func NewGenesisState(operators []Operator, totalCollateral sdk.Coins, poolParams LockedPoolParams, taskParams TaskParams,
-	withdraws []Withdraw, tasks []Task) GenesisState {
+	withdraws []Withdraw, tasks []Task, txTasks []TxTask) GenesisState {
 	return GenesisState{
 		Operators:       operators,
 		TotalCollateral: totalCollateral,
@@ -14,12 +14,13 @@ func NewGenesisState(operators []Operator, totalCollateral sdk.Coins, poolParams
 		TaskParams:      &taskParams,
 		Withdraws:       withdraws,
 		Tasks:           tasks,
+		TxTasks:         txTasks,
 	}
 }
 
 // DefaultGenesisState creates a default GenesisState object.
 func DefaultGenesisState() *GenesisState {
-	state := NewGenesisState(nil, nil, DefaultLockedPoolParams(), DefaultTaskParams(), nil, nil)
+	state := NewGenesisState(nil, nil, DefaultLockedPoolParams(), DefaultTaskParams(), nil, nil, nil)
 	return &state
 }
 

@@ -54,6 +54,22 @@ func (r Responses) String() string {
 	return string(jsonBytes)
 }
 
+func NewTxTask(
+	txHash []byte,
+	creator string,
+	bounty sdk.Coins,
+	validTime time.Time,
+	status TaskStatus,
+) *TxTask {
+	return &TxTask{
+		TxHash:    txHash,
+		Creator:   creator,
+		Bounty:    bounty,
+		ValidTime: validTime,
+		Status:    status,
+	}
+}
+
 type TaskI interface {
 	proto.Message
 
@@ -92,7 +108,7 @@ func (t *Task) GetValidTime() (int64, time.Time) {
 }
 
 func (t *Task) IsValid(ctx sdk.Context) bool {
-	return t.ExpireHeight >= ctx.BlockHeight()
+	return t.Status != TaskStatusNil && t.ExpireHeight >= ctx.BlockHeight()
 }
 
 func (t *Task) GetBounty() sdk.Coins {
@@ -119,27 +135,6 @@ func (t *Task) SetScore(score int64) {
 	t.Result = sdk.NewInt(score)
 }
 
-// NewTxTask returns a new task.
-func NewTxTask(
-	creator string,
-	txHash []byte,
-	bounty sdk.Coins,
-	validTime time.Time,
-	expiration time.Time,
-	taskStatus TaskStatus,
-	responses Responses,
-) TxTask {
-	return TxTask{
-		TxHash:     txHash,
-		Creator:    creator,
-		Bounty:     bounty,
-		ValidTime:  validTime,
-		Expiration: expiration,
-		Responses:  responses,
-		Status:     taskStatus,
-	}
-}
-
 func (t *TxTask) GetID() []byte {
 	return t.TxHash
 }
@@ -161,7 +156,7 @@ func (t *TxTask) GetValidTime() (int64, time.Time) {
 }
 
 func (t *TxTask) IsValid(ctx sdk.Context) bool {
-	return !t.ValidTime.Before(ctx.BlockTime())
+	return t.Status != TaskStatusNil && !t.ValidTime.Before(ctx.BlockTime())
 }
 
 func (t *TxTask) GetBounty() sdk.Coins {

@@ -432,14 +432,13 @@ func (suite *KeeperTestSuite) createTxTask(txHash []byte, creator sdk.AccAddress
 	expiration := time.Now().Add(time.Hour).UTC()
 
 	task := types.NewTxTask(
-		creator.String(),
 		txHash,
+		creator.String(),
 		bounty,
 		expiration,
-		expiration,
 		types.TaskStatusPending,
-		nil)
-	err := suite.keeper.CreateTask(suite.ctx, creator, &task)
+	)
+	err := suite.keeper.CreateTask(suite.ctx, creator, task)
 	suite.Require().NoError(err)
 }
 
