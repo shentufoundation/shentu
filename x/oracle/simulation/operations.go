@@ -518,16 +518,16 @@ func SimulateMsgCreateTxTask(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		creator, _ := simtypes.RandomAcc(r, accs)
 		creatorAcc := ak.GetAccount(ctx, creator.Address)
-		chainId := fmt.Sprintf("%d", simtypes.RandIntBetween(r, 1, 2000))
 		bounty := simtypes.RandSubsetCoins(r, bk.SpendableCoins(ctx, creatorAcc.GetAddress()))
 		validTime := ctx.BlockTime().Add(10 * time.Second).UTC()
-		// mock business
+		// mock business chain info
 		businessTx := []byte(simtypes.RandStringOfLength(r, 500))
 		businessTxHash := sha256.Sum256(businessTx)
+		businessChainID := fmt.Sprintf("%d", simtypes.RandIntBetween(r, 1, 1000))
 
 		blockWait := simtypes.RandIntBetween(r, 1, 20)
 
-		msg := types.NewMsgCreateTxTask(creator.Address, chainId, businessTx, bounty, validTime)
+		msg := types.NewMsgCreateTxTask(creator.Address, businessChainID, businessTx, bounty, validTime)
 
 		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, creatorAcc.GetAddress()).Sub(bounty))
 		if err != nil {
