@@ -140,7 +140,7 @@ func (k Keeper) HasSecurityVoting(p govtypes.Proposal) bool {
 
 // ActivateVotingPeriodCustom switches proposals to voting period for customization.
 func (k Keeper) ActivateVotingPeriodCustom(ctx sdk.Context, proposal govtypes.Proposal, addr sdk.AccAddress) bool {
-	if !k.IsCertifier(ctx, addr) && !(proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim) {
+	if !k.IsCertifier(ctx, addr) && proposal.ProposalType() != shieldtypes.ProposalTypeShieldClaim {
 		return false
 	}
 	if k.IsCertifier(ctx, addr) && k.HasSecurityVoting(proposal) {
