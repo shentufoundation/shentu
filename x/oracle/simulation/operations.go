@@ -519,7 +519,8 @@ func SimulateMsgCreateTxTask(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 		creator, _ := simtypes.RandomAcc(r, accs)
 		creatorAcc := ak.GetAccount(ctx, creator.Address)
 		bounty := simtypes.RandSubsetCoins(r, bk.SpendableCoins(ctx, creatorAcc.GetAddress()))
-		validTime := ctx.BlockTime().Add(10 * time.Second).UTC()
+		randomDuration := time.Duration(rand.Int63n(int64(2000 * time.Minute)))
+		validTime := ctx.BlockTime().Add(randomDuration)
 		// mock business chain info
 		businessTx := []byte(simtypes.RandStringOfLength(r, 500))
 		businessTxHash := sha256.Sum256(businessTx)
