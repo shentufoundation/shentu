@@ -9,7 +9,7 @@ import (
 
 func MigrateTaskStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
-	expireHeightTaskIDs := make(map[int64][]types.TaskID)
+	expireHeightMap := make(map[int64]bool)
 	iterator := sdk.KVStorePrefixIterator(store, types.TaskStoreKeyPrefix)
 
 	defer iterator.Close()
@@ -17,18 +17,29 @@ func MigrateTaskStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCo
 		var oldTask Task
 		cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &oldTask)
 
-		newTask := types.NewTask(
-			oldTask.Contract,
-			oldTask.Function,
-			oldTask.BeginBlock,
-			oldTask.Bounty,
-			oldTask.Description,
-			oldTask.Expiration,
-			sdk.AccAddress(oldTask.Creator),
-			oldTask.ClosingBlock,
-			oldTask.WaitingBlocks,
-		)
-		newTask.Status = types.TaskStatus(oldTask.Status)
+		newTask := types.Task{
+			Contract:      oldTask.Contract,
+			Function:      oldTask.Function,
+			BeginBlock:    oldTask.BeginBlock,
+			Bounty:        oldTask.Bounty,
+			Description:   oldTask.Description,
+			Expiration:    oldTask.Expiration,
+			Creator:       oldTask.Creator,
+			Responses:     nil,
+			Result:        oldTask.Result,
+			ExpireHeight:  oldTask.ClosingBlock,
+			WaitingBlocks: oldTask.WaitingBlocks,
+			Status:        types.TaskStatus(oldTask.Status),
+		}
+		for _, response := range oldTask.Responses {
+			newResponse := types.Response{
+				Operator: response.Operator,
+				Score:    response.Score,
+				Weight:   response.Weight,
+				Reward:   response.Reward,
+			}
+			newTask.Responses = append(newTask.Responses, newResponse)
+		}
 
 		// delete old task
 		store.Delete(iterator.Key())
@@ -38,17 +49,26 @@ func MigrateTaskStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCo
 			panic(err)
 		}
 		store.Set(types.TaskStoreKey(newTask.GetID()), bz)
-		// get all ExpireHeight and taskIDs
-		if newTask.Status == types.TaskStatusPending {
-			expireHeight := newTask.ExpireHeight
-			newTaskID := types.TaskID{Tid: newTask.GetID()}
-			expireHeightTaskIDs[expireHeight] = append(expireHeightTaskIDs[expireHeight], newTaskID)
-		}
+		// get all ExpireHeight
+		expireHeightMap[newTask.ExpireHeight] = true
 	}
 
-	//  Migrate ExpireHeight and taskIDs
-	for height, taskIDs := range expireHeightTaskIDs {
-		bz := cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})
+	//  Migrate ClosingTaskIDs
+	for height, _ := range expireHeightMap {
+		closingTaskIDsData := store.Get(types.ClosingTaskIDsStoreKey(height))
+		if closingTaskIDsData == nil {
+			continue
+		}
+
+		var oldTaskIDs TaskIDs
+		var newTaskIDs []types.TaskID
+		cdc.MustUnmarshalLengthPrefixed(closingTaskIDsData, &oldTaskIDs)
+		for _, t := range oldTaskIDs.TaskIds {
+			newTaskID := types.TaskID{Tid: append([]byte(t.Contract), []byte(t.Function)...)}
+			newTaskIDs = append(newTaskIDs, newTaskID)
+		}
+
+		bz := cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: newTaskIDs})
 		store.Set(types.ClosingTaskIDsStoreKey(height), bz)
 	}
 
