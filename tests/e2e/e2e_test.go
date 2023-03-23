@@ -106,7 +106,7 @@ func (s *IntegrationTestSuite) TestStaking() {
 	})
 }
 
-func (s *IntegrationTestSuite) TestGovernment() {
+func (s *IntegrationTestSuite) TestGovernance() {
 
 	chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
 	validatorA := s.chainA.validators[0]
