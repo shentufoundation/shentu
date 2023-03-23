@@ -519,14 +519,11 @@ func SimulateMsgCreateTxTask(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 		creator, _ := simtypes.RandomAcc(r, accs)
 		creatorAcc := ak.GetAccount(ctx, creator.Address)
 		bounty := simtypes.RandSubsetCoins(r, bk.SpendableCoins(ctx, creatorAcc.GetAddress()))
-		randomDuration := time.Duration(rand.Int63n(int64(2000 * time.Minute)))
-		validTime := ctx.BlockTime().Add(randomDuration)
+		validTime := ctx.BlockTime().Add(15 * time.Hour)
 		// mock business chain info
 		businessTx := []byte(simtypes.RandStringOfLength(r, 500))
 		businessTxHash := sha256.Sum256(businessTx)
 		businessChainID := fmt.Sprintf("%d", simtypes.RandIntBetween(r, 1, 1000))
-
-		blockWait := simtypes.RandIntBetween(r, 1, 20)
 
 		msg := types.NewMsgCreateTxTask(creator.Address, businessChainID, businessTx, bounty, validTime)
 
@@ -555,23 +552,24 @@ func SimulateMsgCreateTxTask(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		futureOperations := []simtypes.FutureOperation{
-			{
-				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 20, 25),
+		var futureOperations []simtypes.FutureOperation
+		if simtypes.RandIntBetween(r, 0, 100) < 10 {
+			futureOperations = append(futureOperations, simtypes.FutureOperation{
+				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 10, 15),
 				Op:          SimulateMsgDeleteTxTask(ak, bk, businessTxHash[:], creator),
-			},
+			})
 		}
 
 		for _, acc := range accs {
 			if k.IsOperator(ctx, acc.Address) && simtypes.RandIntBetween(r, 0, 100) < 10 {
 				futureOperations = append(futureOperations, simtypes.FutureOperation{
-					BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 0, blockWait),
+					BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 1, 5),
 					Op:          SimulateMsgTxTaskResponse(ak, k, bk, businessTxHash[:], acc),
 				})
 			}
 		}
 
-		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
+		return simtypes.NewOperationMsg(msg, true, "", nil), futureOperations, nil
 	}
 }
 
@@ -606,12 +604,10 @@ func SimulateMsgTxTaskResponse(ak types.AccountKeeper, k keeper.Keeper, bk types
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
-
 		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
-
 		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 	}
 }
@@ -621,7 +617,6 @@ func SimulateMsgDeleteTxTask(ak types.AccountKeeper, bk types.BankKeeper, txHash
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
 		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		msg := types.NewMsgDeleteTxTask(txHash, creator.Address)
-
 		creatorAcc := ak.GetAccount(ctx, creator.Address)
 		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, creatorAcc.GetAddress()))
 		if err != nil {
