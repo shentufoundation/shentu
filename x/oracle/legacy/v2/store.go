@@ -46,7 +46,7 @@ func MigrateTaskStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCo
 		// set task
 		bz, err := cdc.MarshalInterface(&newTask)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		store.Set(types.TaskStoreKey(newTask.GetID()), bz)
 		// get all ExpireHeight
