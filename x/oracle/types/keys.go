@@ -30,6 +30,7 @@ var (
 	ClosingTaskStoreKeyPrefix      = []byte{0x05}
 	ClosingTaskStoreKeyTimedPrefix = []byte{0x06}
 	ExpireTaskStoreKeyPrefix       = []byte{0x07}
+	ShortcutTasksKeyPrefix         = []byte{0x08}
 )
 
 func OperatorStoreKey(operator sdk.AccAddress) []byte {

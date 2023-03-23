@@ -85,6 +85,7 @@ type TaskI interface {
 	AddResponse(response Response)
 	SetStatus(status TaskStatus)
 	SetScore(score int64)
+	ShouldAgg(ctx sdk.Context) bool
 }
 
 func (t *Task) GetID() []byte {
@@ -135,6 +136,10 @@ func (t *Task) SetScore(score int64) {
 	t.Result = sdk.NewInt(score)
 }
 
+func (t *Task) ShouldAgg(ctx sdk.Context) bool {
+	return t.ExpireHeight == ctx.BlockHeight()
+}
+
 func (t *TxTask) GetID() []byte {
 	return t.TxHash
 }
@@ -181,4 +186,8 @@ func (t *TxTask) SetStatus(status TaskStatus) {
 
 func (t *TxTask) SetScore(score int64) {
 	t.Score = score
+}
+
+func (t *TxTask) ShouldAgg(ctx sdk.Context) bool {
+	return !t.ValidTime.After(ctx.BlockTime())
 }

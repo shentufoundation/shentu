@@ -16,7 +16,8 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	closingTaskIDs := k.GetInvalidTaskIDs(ctx)
-	for _, taskID := range closingTaskIDs {
+	toAggTaskIDs := append(k.GetShortcutTasks(ctx), closingTaskIDs...)
+	for _, taskID := range toAggTaskIDs {
 		err := k.Aggregate(ctx, taskID.Tid)
 		if err != nil {
 			continue
@@ -39,6 +40,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 		}
 	}
 	k.DeleteClosingTaskIDs(ctx)
+	k.DeleteShortcutTasks(ctx)
 	k.DeleteExpiredTasks(ctx)
 }
 

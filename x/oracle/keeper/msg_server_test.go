@@ -23,6 +23,10 @@ func TestMsgServer_CreateTxTask(t *testing.T) {
 	addrs := shentuapp.AddTestAddrs(app, ctx, 3, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
+	taskParsms := ok.GetTaskParams(ctx)
+	taskParsms.ShortcutQuorum = sdk.NewInt(1).ToDec()
+	ok.SetTaskParams(ctx, taskParsms)
+
 	params := ok.GetLockedPoolParams(ctx)
 	collateral := sdk.Coins{sdk.NewInt64Coin("uctk", params.MinimumCollateral)}
 	require.NoError(t, ok.CreateOperator(ctx, addrs[0], collateral, addrs[0], "operator1"))
@@ -83,9 +87,14 @@ func TestMsgServer_pending(t *testing.T) {
 	ok := app.OracleKeeper
 	msgServer := keeper.NewMsgServerImpl(ok)
 
+	taskParsms := ok.GetTaskParams(ctx)
+	taskParsms.ShortcutQuorum = sdk.NewInt(1).ToDec()
+	ok.SetTaskParams(ctx, taskParsms)
+
 	params := ok.GetLockedPoolParams(ctx)
 	collateral := sdk.Coins{sdk.NewInt64Coin("uctk", params.MinimumCollateral)}
 	require.NoError(t, ok.CreateOperator(ctx, addrs[0], collateral, addrs[0], "operator1"))
+	require.NoError(t, ok.CreateOperator(ctx, addrs[1], collateral, addrs[1], "operator2"))
 
 	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
 	txBytes := []byte("ethereum transaction")

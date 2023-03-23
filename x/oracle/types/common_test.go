@@ -36,6 +36,7 @@ var (
 		types.DefaultThresholdScore,
 		types.DefaultEpsilon1,
 		types.DefaultEpsilon2,
+		types.DefaultShortcutQuorum,
 	)
 
 	validWithdraw   = types.NewWithdraw(acc1, coins1234, int64(100))

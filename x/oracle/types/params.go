@@ -24,6 +24,7 @@ var (
 	DefaultAggregationWindow  = int64(20)
 	DefaultEpsilon1           = sdk.NewInt(1)
 	DefaultEpsilon2           = sdk.NewInt(100)
+	DefaultShortcutQuorum     = sdk.NewDecWithPrec(50, 2)
 
 	DefaultLockedInBlocks    = int64(30)
 	DefaultMinimumCollateral = int64(50000)
@@ -39,7 +40,7 @@ func ParamKeyTable() params.KeyTable {
 
 // NewTaskParams returns a TaskParams object.
 func NewTaskParams(expirationDuration time.Duration, aggregationWindow int64, aggregationResult,
-	thresholdScore, epsilon1, epsilon2 sdk.Int) TaskParams {
+	thresholdScore, epsilon1, epsilon2 sdk.Int, shortcutQuorum sdk.Dec) TaskParams {
 	return TaskParams{
 		ExpirationDuration: expirationDuration,
 		AggregationWindow:  aggregationWindow,
@@ -47,13 +48,14 @@ func NewTaskParams(expirationDuration time.Duration, aggregationWindow int64, ag
 		ThresholdScore:     thresholdScore,
 		Epsilon1:           epsilon1,
 		Epsilon2:           epsilon2,
+		ShortcutQuorum:     shortcutQuorum,
 	}
 }
 
 // DefaultTaskParams generates default set for TaskParams.
 func DefaultTaskParams() TaskParams {
 	return NewTaskParams(DefaultExpirationDuration, DefaultAggregationWindow,
-		DefaultAggregationResult, DefaultThresholdScore, DefaultEpsilon1, DefaultEpsilon2)
+		DefaultAggregationResult, DefaultThresholdScore, DefaultEpsilon1, DefaultEpsilon2, DefaultShortcutQuorum)
 }
 
 func validateTaskParams(i interface{}) error {
@@ -65,7 +67,9 @@ func validateTaskParams(i interface{}) error {
 		taskParams.AggregationWindow < 0 ||
 		taskParams.ThresholdScore.GT(MaxScore) ||
 		taskParams.Epsilon1.LT(sdk.NewInt(0)) ||
-		taskParams.Epsilon2.LT(sdk.NewInt(0)) {
+		taskParams.Epsilon2.LT(sdk.NewInt(0)) ||
+		taskParams.ShortcutQuorum.LTE(sdk.ZeroDec()) ||
+		taskParams.ShortcutQuorum.GT(sdk.OneDec()) {
 		return ErrInvalidTaskParams
 	}
 	return nil

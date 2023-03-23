@@ -79,6 +79,7 @@ message TaskParams {
     string threshold_score = 4 [ (gogoproto.moretags) = "yaml:\"threshold_score\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     string epsilon1 = 5 [ (gogoproto.moretags) = "yaml:\"epsilon1\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
     string epsilon2 = 6 [ (gogoproto.moretags) = "yaml:\"epsilon2\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false ];
+    bytes shortcut_quorum = 7 [ (gogoproto.moretags) = "yaml:\"shortcut_quorum\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false ];
 }
 
 message LockedPoolParams {

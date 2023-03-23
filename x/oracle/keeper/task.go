@@ -123,7 +123,7 @@ func (k Keeper) IteratorTaskIDsByEndTime(ctx sdk.Context, prefix []byte, endTime
 	}
 }
 
-func (k Keeper) GetTaskIDsByTime(ctx sdk.Context, prefix []byte, theTime time.Time) (resIDs []types.TaskID) {
+func (k Keeper) GetTaskIDsByTime(ctx sdk.Context, prefix []byte, theTime time.Time) []types.TaskID {
 	bz := ctx.KVStore(k.storeKey).Get(types.TimeStoreKey(prefix, theTime))
 	var taskIDsProto types.TaskIDs
 	if bz != nil {
@@ -165,6 +165,10 @@ func (k Keeper) DeleteExpiredTasks(ctx sdk.Context) {
 		})
 }
 
+func (k Keeper) DeleteShortcutTasks(ctx sdk.Context) {
+	ctx.KVStore(k.storeKey).Delete(types.ShortcutTasksKeyPrefix)
+}
+
 func (k Keeper) GetInvalidTaskIDs(ctx sdk.Context) (resIDs []types.TaskID) {
 	resIDs = append(resIDs, k.GetClosingTaskIDsByHeight(ctx, ctx.BlockHeight())...)
 	k.IteratorTaskIDsByEndTime(
@@ -201,6 +205,9 @@ func (k Keeper) CreateTask(ctx sdk.Context, creator sdk.AccAddress, task types.T
 		k.SetClosingBlockStore(ctx, task)
 		if err := k.CollectBounty(ctx, task.GetBounty(), creator); err != nil {
 			return err
+		}
+		if _, ok := task.(*types.TxTask); ok {
+			k.CheckShortcutQuorum(ctx, task)
 		}
 	}
 	return nil
@@ -241,6 +248,53 @@ func (k Keeper) BuildTxTask(ctx sdk.Context, txHash []byte, creator string, boun
 		return nil, types.ErrTooLateValidTime
 	}
 	return txTask, nil
+}
+
+func (k Keeper) GetShortcutTasks(ctx sdk.Context) []types.TaskID {
+	bz := ctx.KVStore(k.storeKey).Get(types.ShortcutTasksKeyPrefix)
+	var taskIDsProto types.TaskIDs
+	if bz != nil {
+		k.cdc.MustUnmarshalLengthPrefixed(bz, &taskIDsProto)
+	}
+	return taskIDsProto.TaskIds
+}
+
+func (k Keeper) SetShortcutTasks(ctx sdk.Context, tid []byte) {
+	// here, the uniqueness of tid is not checked deliberately
+	// later on when iterating the ShortcutTasks, the task
+	// status will be checked to make sure every one is touched once.
+	taskIDs := append(k.GetShortcutTasks(ctx), types.TaskID{Tid: tid})
+	bz := k.cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})
+	ctx.KVStore(k.storeKey).Set(types.ShortcutTasksKeyPrefix, bz)
+}
+
+func (k Keeper) CheckShortcutQuorum(ctx sdk.Context, task types.TaskI) {
+	if task.ShouldAgg(ctx) || task.GetStatus() != types.TaskStatusPending {
+		// skip checking quorum, if
+		// 1. this task will be handled in EndBlocker later on
+		// 2. this task is not pending
+		return
+	}
+	totalCollateral, err := k.GetTotalCollateral(ctx)
+	if err != nil || totalCollateral.Empty() {
+		return
+	}
+	var respondedCollateral = sdk.ZeroInt()
+	for _, response := range task.GetResponses() {
+		operatorAddr := sdk.MustAccAddressFromBech32(response.Operator)
+		amount, err := k.GetCollateralAmount(ctx, operatorAddr)
+		if err != nil {
+			continue
+		}
+		respondedCollateral = respondedCollateral.Add(amount)
+	}
+
+	taskParams := k.GetTaskParams(ctx)
+	if respondedCollateral.ToDec().
+		Quo(totalCollateral[0].Amount.ToDec()).
+		GTE(taskParams.ShortcutQuorum) {
+		k.SetShortcutTasks(ctx, task.GetID())
+	}
 }
 
 // RemoveTask removes a task from kvstore if it is closed, expired and requested by its creator.
@@ -363,6 +417,10 @@ func (k Keeper) RespondToTask(ctx sdk.Context, taskID []byte, score int64, opera
 
 	task.AddResponse(response)
 	k.SetTask(ctx, task)
+
+	if _, ok := task.(*types.TxTask); ok {
+		k.CheckShortcutQuorum(ctx, task)
+	}
 
 	return nil
 }
