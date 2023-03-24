@@ -107,10 +107,7 @@ func queryResponse(ctx sdk.Context, path []string, req abci.RequestQuery, k Keep
 		return nil, err
 	}
 	for _, response := range task.GetResponses() {
-		operatorAddr, err := sdk.AccAddressFromBech32(response.Operator)
-		if err != nil {
-			panic(err)
-		}
+		operatorAddr := sdk.MustAccAddressFromBech32(response.Operator)
 		if operatorAddr.Equals(params.Operator) {
 			res, err = codec.MarshalJSONIndent(legacyQuerierCdc, response)
 			if err != nil {

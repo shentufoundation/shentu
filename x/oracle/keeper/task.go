@@ -315,10 +315,7 @@ func (k Keeper) RemoveTask(ctx sdk.Context, taskID []byte, force bool, deleter s
 	}
 
 	// TODO: only creator can delete the task for now
-	creatorAddr, err := sdk.AccAddressFromBech32(task.GetCreator())
-	if err != nil {
-		panic(err)
-	}
+	creatorAddr := sdk.MustAccAddressFromBech32(task.GetCreator())
 	if !creatorAddr.Equals(deleter) {
 		return types.ErrNotCreator
 	}
@@ -443,10 +440,7 @@ func (k Keeper) Aggregate(ctx sdk.Context, taskID []byte) error {
 	minScoreCollateral := sdk.NewInt(0)
 	responses := task.GetResponses()
 	for i, response := range responses {
-		operatorAddr, err := sdk.AccAddressFromBech32(response.Operator)
-		if err != nil {
-			panic(err)
-		}
+		operatorAddr := sdk.MustAccAddressFromBech32(response.Operator)
 		amount, err := k.GetCollateralAmount(ctx, operatorAddr)
 		if err != nil {
 			continue
@@ -487,10 +481,7 @@ func (k Keeper) TotalValidTaskCollateral(ctx sdk.Context, task types.TaskI) sdk.
 	if task.GetScore() == types.MinScore.Int64() {
 		for _, response := range responses {
 			if response.Score.Equal(types.MinScore) {
-				operatorAddr, err := sdk.AccAddressFromBech32(response.Operator)
-				if err != nil {
-					panic(err)
-				}
+				operatorAddr := sdk.MustAccAddressFromBech32(response.Operator)
 				collateral, err := k.GetCollateralAmount(ctx, operatorAddr)
 				if err != nil {
 					continue
@@ -501,10 +492,7 @@ func (k Keeper) TotalValidTaskCollateral(ctx sdk.Context, task types.TaskI) sdk.
 	} else if task.GetScore() < taskParams.ThresholdScore.Int64() {
 		for _, response := range responses {
 			if response.Score.LT(taskParams.ThresholdScore) {
-				operatorAddr, err := sdk.AccAddressFromBech32(response.Operator)
-				if err != nil {
-					panic(err)
-				}
+				operatorAddr := sdk.MustAccAddressFromBech32(response.Operator)
 				collateral, err := k.GetCollateralAmount(ctx, operatorAddr)
 				if err != nil {
 					continue
@@ -517,10 +505,7 @@ func (k Keeper) TotalValidTaskCollateral(ctx sdk.Context, task types.TaskI) sdk.
 	} else {
 		for _, response := range responses {
 			if response.Score.GTE(taskParams.ThresholdScore) {
-				operatorAddr, err := sdk.AccAddressFromBech32(response.Operator)
-				if err != nil {
-					panic(err)
-				}
+				operatorAddr := sdk.MustAccAddressFromBech32(response.Operator)
 				collateral, err := k.GetCollateralAmount(ctx, operatorAddr)
 				if err != nil {
 					continue
@@ -549,10 +534,7 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.TaskI) error {
 		if task.GetScore() == types.MinScore.Int64() {
 			for i := range responses {
 				if responses[i].Score.Equal(types.MinScore) {
-					operatorAddr, err := sdk.AccAddressFromBech32(responses[i].Operator)
-					if err != nil {
-						panic(err)
-					}
+					operatorAddr := sdk.MustAccAddressFromBech32(responses[i].Operator)
 					collateral, err := k.GetCollateralAmount(ctx, operatorAddr)
 					if err != nil {
 						continue
@@ -587,10 +569,7 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.TaskI) error {
 		} else {
 			for i := range responses {
 				if responses[i].Score.GTE(taskParams.ThresholdScore) {
-					operatorAddr, err := sdk.AccAddressFromBech32(responses[i].Operator)
-					if err != nil {
-						panic(err)
-					}
+					operatorAddr := sdk.MustAccAddressFromBech32(responses[i].Operator)
 					collateral, err := k.GetCollateralAmount(ctx, operatorAddr)
 					if err != nil {
 						continue
