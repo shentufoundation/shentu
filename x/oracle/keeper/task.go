@@ -275,7 +275,7 @@ func (k Keeper) CheckShortcutQuorum(ctx sdk.Context, task types.TaskI) {
 		return
 	}
 	totalCollateral, err := k.GetTotalCollateral(ctx)
-	if err != nil || totalCollateral.Empty() {
+	if err != nil || totalCollateral.Empty() || totalCollateral[0].Amount.IsZero() {
 		return
 	}
 	var respondedCollateral = sdk.ZeroInt()
