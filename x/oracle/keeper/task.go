@@ -33,7 +33,7 @@ func (k Keeper) DeleteTask(ctx sdk.Context, task types.TaskI) error {
 // UpdateAndSetTask updates a task and set it in KVStore.
 func (k Keeper) UpdateAndSetTask(ctx sdk.Context, task *types.Task) {
 	task.ExpireHeight = ctx.BlockHeight() + task.WaitingBlocks
-	if task.IsValid(ctx) {
+	if task.GetStatus() == types.TaskStatusPending {
 		k.SetClosingBlockStore(ctx, task)
 	}
 	k.SetTask(ctx, task)
@@ -43,7 +43,7 @@ func (k Keeper) SetTxTask(ctx sdk.Context, task *types.TxTask) {
 	if !task.IsExpired(ctx) {
 		k.SaveExpireTxTask(ctx, task)
 		k.SetTask(ctx, task)
-		if task.IsValid(ctx) {
+		if task.GetStatus() == types.TaskStatusPending {
 			k.SetClosingBlockStore(ctx, task)
 		}
 	}
@@ -189,8 +189,7 @@ func (k Keeper) GetInvalidTaskIDs(ctx sdk.Context) (resIDs []types.TaskID) {
 func (k Keeper) CreateTask(ctx sdk.Context, creator sdk.AccAddress, task types.TaskI) error {
 	savedTask, err := k.GetTask(ctx, task.GetID())
 	if err == nil {
-		// be noted that a TaskStatusNil task is not valid
-		if savedTask.IsValid(ctx) {
+		if savedTask.GetStatus() == types.TaskStatusPending {
 			return types.ErrTaskNotClosed
 		}
 		if err := k.DeleteTask(ctx, savedTask); err != nil {
@@ -310,7 +309,8 @@ func (k Keeper) RemoveTask(ctx sdk.Context, taskID []byte, force bool, deleter s
 		return types.ErrNotExpired
 	}
 
-	if task.IsValid(ctx) {
+	if task.GetStatus() == types.TaskStatusPending ||
+		task.GetStatus() == types.TaskStatusNil {
 		return types.ErrNotFinished
 	}
 
@@ -373,7 +373,8 @@ func (k Keeper) UpdateAndGetAllTasks(ctx sdk.Context) (tasks []types.Task, txTas
 // IsValidResponse returns error if a response is not valid.
 func (k Keeper) IsValidResponse(ctx sdk.Context, task types.TaskI, response types.Response) error {
 	// due to fast-path, response should be allowed to add if it's a TaskStatusNil task
-	if !task.IsValid(ctx) && task.GetStatus() != types.TaskStatusNil {
+	if task.GetStatus() != types.TaskStatusPending &&
+		task.GetStatus() != types.TaskStatusNil {
 		return types.ErrTaskClosed
 	}
 	for _, r := range task.GetResponses() {
