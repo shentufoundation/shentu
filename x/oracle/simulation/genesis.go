@@ -56,6 +56,6 @@ func GenTaskParams(r *rand.Rand) types.TaskParams {
 		ThresholdScore:     sdk.NewInt(r.Int63n(100)),
 		Epsilon1:           sdk.NewInt(r.Int63n(10)),
 		Epsilon2:           sdk.NewInt(r.Int63n(10) + 90),
-		ShortcutQuorum:     sdk.NewDecWithPrec(int64(r.Float64()*10000)+1, 4),
+		ShortcutQuorum:     sdk.NewDecWithPrec(int64((r.Float64()+r.Float64())/2*10000)+1, 4),
 	}
 }
