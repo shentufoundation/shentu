@@ -206,7 +206,7 @@ func (k Keeper) CreateTask(ctx sdk.Context, creator sdk.AccAddress, task types.T
 			return err
 		}
 		if _, ok := task.(*types.TxTask); ok {
-			k.CheckShortcutQuorum(ctx, task)
+			k.TryShortcut(ctx, task)
 		}
 	}
 	return nil
@@ -267,7 +267,7 @@ func (k Keeper) SetShortcutTasks(ctx sdk.Context, tid []byte) {
 	ctx.KVStore(k.storeKey).Set(types.ShortcutTasksKeyPrefix, bz)
 }
 
-func (k Keeper) CheckShortcutQuorum(ctx sdk.Context, task types.TaskI) {
+func (k Keeper) TryShortcut(ctx sdk.Context, task types.TaskI) {
 	if task.ShouldAgg(ctx) || task.GetStatus() != types.TaskStatusPending {
 		// skip checking quorum, if
 		// 1. this task will be handled in EndBlocker later on
@@ -417,7 +417,7 @@ func (k Keeper) RespondToTask(ctx sdk.Context, taskID []byte, score int64, opera
 	k.SetTask(ctx, task)
 
 	if _, ok := task.(*types.TxTask); ok {
-		k.CheckShortcutQuorum(ctx, task)
+		k.TryShortcut(ctx, task)
 	}
 
 	return nil
