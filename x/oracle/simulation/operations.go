@@ -606,7 +606,11 @@ func SimulateMsgTxTaskResponse(ak types.AccountKeeper, k keeper.Keeper, bk types
 		}
 		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
+			if types.ErrTaskClosed.Is(err) {
+				return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, nil
+			} else {
+				return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
+			}
 		}
 		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 	}
