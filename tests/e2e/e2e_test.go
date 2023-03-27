@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"strings"
 	"time"
@@ -105,7 +106,7 @@ func (s *IntegrationTestSuite) TestStaking() {
 	})
 }
 
-func (s *IntegrationTestSuite) TestGovernment() {
+func (s *IntegrationTestSuite) TestGovernance() {
 
 	chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
 	validatorA := s.chainA.validators[0]
@@ -277,6 +278,150 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 				res, err := queryShieldReimbursement(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
 				return strings.Contains(res.Reimbursement.Beneficiary, accountAAddr.String())
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
+}
+
+func (s *IntegrationTestSuite) TestOracle() {
+	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
+
+	alice := s.chainA.accounts[0].keyInfo.GetAddress()
+	bob := s.chainA.accounts[1].keyInfo.GetAddress()
+	charle := s.chainA.accounts[2].keyInfo.GetAddress()
+
+	var txHash, taskHash string
+	var err error
+	valTime := time.Now().Add(60 * time.Second)
+	valTimeStr := valTime.Format(time.RFC3339)
+
+	taskContract := "demo-contract"
+	taskFunction := "demo-function"
+
+	s.Run("create_operator", func() {
+		collateralAmount, _ := sdk.NewIntFromString("100000000")
+		lessAmount, _ := sdk.NewIntFromString("50000000")
+		collateral := sdk.NewCoin(uctkDenom, collateralAmount)
+		lessCollateral := sdk.NewCoin(uctkDenom, lessAmount)
+
+		s.executeOracleCreateOperator(s.chainA, 0, alice.String(), collateral.String(), feesAmountCoin.String())
+		s.executeOracleCreateOperator(s.chainA, 0, bob.String(), lessCollateral.String(), feesAmountCoin.String())
+		s.executeOracleCreateOperator(s.chainA, 0, charle.String(), collateral.String(), feesAmountCoin.String())
+		s.Require().Eventually(
+			func() bool {
+				res, e := queryOracleOperator(chainAAPIEndpoint, alice.String())
+				s.Require().NoError(e)
+				return res.Operator.Address == alice.String()
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
+
+	s.Run("create_tx_task", func() {
+		txBytes := base64.StdEncoding.EncodeToString([]byte(valTimeStr))
+		chainId := "test"
+		bountyAmount, _ := sdk.NewIntFromString("500000")
+		bounty := sdk.NewCoin(uctkDenom, bountyAmount)
+
+		txHash, err = s.executeOracleCreateTxTask(s.chainA, 0, txBytes, chainId, bounty.String(), valTimeStr, alice.String(), feesAmountCoin.String())
+		s.Require().NoError(err)
+		s.Require().Eventually(
+			func() bool {
+				res, e := queryOracleTaskHash(chainAAPIEndpoint, txHash)
+				if e == nil {
+					taskHash = res
+					return true
+				}
+				return false
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+		s.Require().Eventually(
+			func() bool {
+				res, e := queryOracleTxTask(chainAAPIEndpoint, taskHash)
+				s.Require().NoError(e)
+				return res.Task.Status == 1
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
+
+	s.Run("respond_tx_task", func() {
+		s.executeOracleRespondTxTask(s.chainA, 0, 90, taskHash, alice.String(), feesAmountCoin.String())
+		s.executeOracleRespondTxTask(s.chainA, 0, 90, taskHash, bob.String(), feesAmountCoin.String())
+		s.executeOracleRespondTxTask(s.chainA, 0, 50, taskHash, charle.String(), feesAmountCoin.String())
+		s.Require().Eventually(
+			func() bool {
+				res, e := queryOracleTxTask(chainAAPIEndpoint, taskHash)
+				s.Require().NoError(e)
+				return len(res.Task.Responses) == 3
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
+
+	s.Run("close_tx_task", func() {
+		if time.Now().Before(valTime) {
+			time.Sleep(time.Until(valTime))
+		}
+		s.Require().Eventually(
+			func() bool {
+				res, e := queryOracleTxTask(chainAAPIEndpoint, taskHash)
+				s.Require().NoError(e)
+				return res.Task.Status == 2 && res.Task.Score == 74
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
+
+	s.Run("create_task", func() {
+		bountyAmount, _ := sdk.NewIntFromString("500000")
+		bounty := sdk.NewCoin(uctkDenom, bountyAmount)
+		s.executeOracleCreateTask(s.chainA, 0, taskContract, taskFunction, bounty.String(), alice.String(), feesAmountCoin.String())
+		s.Require().Eventually(
+			func() bool {
+				res, e := queryOracleTask(chainAAPIEndpoint, taskContract, taskFunction)
+				s.Require().NoError(e)
+				return res.Task.Status == 1
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
+
+	s.Run("respond_task", func() {
+		s.executeOracleRespondTask(s.chainA, 0, 90, taskContract, taskFunction, alice.String(), feesAmountCoin.String())
+		s.executeOracleRespondTask(s.chainA, 0, 90, taskContract, taskFunction, bob.String(), feesAmountCoin.String())
+		s.executeOracleRespondTask(s.chainA, 0, 50, taskContract, taskFunction, charle.String(), feesAmountCoin.String())
+		s.Require().Eventually(
+			func() bool {
+				res, e := queryOracleTask(chainAAPIEndpoint, taskContract, taskFunction)
+				s.Require().NoError(e)
+				return len(res.Task.Responses) == 3
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
+
+	s.Run("claim_reward", func() {
+		s.executeOracleClaimReward(s.chainA, 0, alice.String(), feesAmountCoin.String())
+	})
+
+	s.Run("remove_operator", func() {
+		s.executeOracleRemoveOperator(s.chainA, 0, charle.String(), feesAmountCoin.String())
+		s.Require().Eventually(
+			func() bool {
+				res, e := queryOracleOperators(chainAAPIEndpoint)
+				s.Require().NoError(e)
+				return len(res.Operators) == 2
 			},
 			20*time.Second,
 			5*time.Second,
