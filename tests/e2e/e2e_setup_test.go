@@ -46,7 +46,7 @@ const (
 	photonDenom         = "photon"
 	initBalanceStr      = "110000000000uctk,100000000000photon"
 	minGasPrice         = "0.00001"
-	proposalBlockBuffer = 35
+	proposalBlockBuffer = 1000
 	shieldPoolName      = "testpool"
 	shieldPoolLimit     = "1000000000"
 )
