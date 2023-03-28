@@ -18,93 +18,65 @@ import (
 )
 
 func TestMsgServer_CreateTxTask(t *testing.T) {
-	ctx, ok, msgServer, addrs := DoInit()
-	DepositCollateral(t, ctx, ok, addrs[0])
-	DepositCollateral(t, ctx, ok, addrs[1])
-	DepositCollateral(t, ctx, ok, addrs[2])
+	ctx, ok, msgServer, addrs := DoInit(t)
+	DepositCollateral(ctx, ok, addrs[0])
+	DepositCollateral(ctx, ok, addrs[1])
+	DepositCollateral(ctx, ok, addrs[2])
 
 	taskParsms := ok.GetTaskParams(ctx)
 	taskParsms.ShortcutQuorum = sdk.NewInt(1).ToDec()
 	ok.SetTaskParams(ctx, taskParsms)
 
 	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
-	validTime := ctx.BlockTime().Add(time.Hour).UTC()
-	businessTransaction := []byte("ethereum transaction")
+	txBytes, txHash := GetBytesHash("ethereum transaction")
 
-	msgCreateTxTask := types.NewMsgCreateTxTask(addrs[2], "1", businessTransaction, bounty, validTime)
-	res, err := msgServer.CreateTxTask(sdk.WrapSDKContext(ctx), msgCreateTxTask)
-	require.NoError(t, err)
-	businessHash1 := sha256.Sum256(businessTransaction)
-	require.Equal(t, res.TxHash, businessHash1[:])
-	txTaskRes, err := ok.GetTask(ctx, businessHash1[:])
-	require.NoError(t, err)
-	require.Equal(t, types.TaskStatusPending, txTaskRes.GetStatus())
+	CreateTxTask(ctx, addrs[2], txBytes, bounty, 3600, true)
+	CheckTask(ctx, txHash, types.TaskStatusPending, -1)
 
-	_, err = msgServer.CreateTxTask(sdk.WrapSDKContext(ctx), msgCreateTxTask)
-	require.Error(t, err)
+	CreateTxTask(ctx, addrs[2], txBytes, bounty, 3600, false)
 
-	msgResp := types.NewMsgTxTaskResponse(businessHash1[:], 90, addrs[0])
-	_, err = msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msgResp)
-	require.NoError(t, err)
-
+	RespondToTxTask(ctx, txHash, 90, addrs[0], true)
 	ctx = PassBlocks(ctx, ok, t, 10, 0)
-
-	msgResp = types.NewMsgTxTaskResponse(businessHash1[:], 80, addrs[1])
-	_, err = msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msgResp)
-	require.NoError(t, err)
+	RespondToTxTask(ctx, txHash, 80, addrs[1], true)
 
 	ctx = PassBlocks(ctx, ok, t, 709, 0)
-	ctx = PassBlocks(ctx, ok, t, 1, 1) //after one hour, the txtask should become invalid
-	txTaskRes, err = ok.GetTask(ctx, businessHash1[:])
-	require.Nil(t, err)
-	require.Equal(t, types.TaskStatusSucceeded, txTaskRes.GetStatus())
-	require.Equal(t, int64(85), txTaskRes.GetScore()) // 85=(80+90)/2
+	ctx = PassBlocks(ctx, ok, t, 1, 1)                    //after one hour, the txtask should become invalid
+	CheckTask(ctx, txHash, types.TaskStatusSucceeded, 85) // 85=(80+90)/2
 
 	ctx = PassBlocks(ctx, ok, t, 22, 0)
 	require.Len(t, ok.GetAllTasks(ctx), 1)
 
-	msgDel := types.NewMsgDeleteTxTask(businessHash1[:], addrs[1])
-	_, err = msgServer.DeleteTxTask(sdk.WrapSDKContext(ctx), msgDel)
+	msgDel := types.NewMsgDeleteTxTask(txHash, addrs[1])
+	_, err := msgServer.DeleteTxTask(sdk.WrapSDKContext(ctx), msgDel)
 	require.Error(t, err) // should fail because it's not the creator
 
-	msgDel = types.NewMsgDeleteTxTask(businessHash1[:], addrs[2])
+	msgDel = types.NewMsgDeleteTxTask(txHash, addrs[2])
 	_, err = msgServer.DeleteTxTask(sdk.WrapSDKContext(ctx), msgDel)
 	require.NoError(t, err)
 	require.Len(t, ok.GetAllTasks(ctx), 0)
 }
 
 func TestMsgServer_pending(t *testing.T) {
-	ctx, ok, msgServer, addrs := DoInit()
-	DepositCollateral(t, ctx, ok, addrs[0])
-	DepositCollateral(t, ctx, ok, addrs[1])
+	ctx, ok, _, addrs := DoInit(t)
+	DepositCollateral(ctx, ok, addrs[0])
+	DepositCollateral(ctx, ok, addrs[1])
 
 	taskParsms := ok.GetTaskParams(ctx)
 	taskParsms.ShortcutQuorum = sdk.NewInt(1).ToDec()
 	ok.SetTaskParams(ctx, taskParsms)
 
 	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
-	txBytes := []byte("ethereum transaction")
-	txHash := sha256.Sum256(txBytes)
+	txBytes, txHash := GetBytesHash("ethereum transaction")
 
-	msgResp := types.NewMsgTxTaskResponse(txHash[:], 78, addrs[0])
-	_, err := msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msgResp)
-	require.NoError(t, err)
+	RespondToTxTask(ctx, txHash, 78, addrs[0], true)
 
 	ctx = PassBlocks(ctx, ok, t, 2, 0)
 
-	msgCreate := types.NewMsgCreateTxTask(addrs[0], "1", txBytes, bounty, ctx.BlockTime().Add(time.Second*30))
-	res, err := msgServer.CreateTxTask(sdk.WrapSDKContext(ctx), msgCreate)
-	require.NoError(t, err)
-	require.Equal(t, res.TxHash, txHash[:])
+	CreateTxTask(ctx, addrs[0], txBytes, bounty, 30, true)
 	ctx = PassBlocks(ctx, ok, t, 3, 0)
-	txTaskRes, err := ok.GetTask(ctx, txHash[:])
-	require.Nil(t, err)
-	require.Equal(t, types.TaskStatusPending, txTaskRes.GetStatus())
+	CheckTask(ctx, txHash, types.TaskStatusPending, -1)
 	ctx = PassBlocks(ctx, ok, t, 3, 1)
-	txTaskRes, err = ok.GetTask(ctx, txHash[:])
-	require.Nil(t, err)
-	require.Equal(t, types.TaskStatusSucceeded, txTaskRes.GetStatus())
-	require.Equal(t, int64(78), txTaskRes.GetScore())
+	CheckTask(ctx, txHash, types.TaskStatusSucceeded, 78)
 
 	//be noted the expiration time is counted from TxTaskResponse
 	//the expirationDuration is one day. i.e. 86400 seconds
@@ -117,84 +89,48 @@ func TestMsgServer_pending(t *testing.T) {
 }
 
 func TestMsgServer_shortcut(t *testing.T) {
-	ctx, ok, msgServer, addrs := DoInit()
-	DepositCollateral(t, ctx, ok, addrs[0])
-	DepositCollateral(t, ctx, ok, addrs[1])
-	DepositCollateral(t, ctx, ok, addrs[2])
-	DepositCollateral(t, ctx, ok, addrs[3])
+	ctx, ok, _, addrs := DoInit(t)
+	DepositCollateral(ctx, ok, addrs[0])
+	DepositCollateral(ctx, ok, addrs[1])
+	DepositCollateral(ctx, ok, addrs[2])
+	DepositCollateral(ctx, ok, addrs[3])
 
 	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
-	txBytes := []byte("ethereum transaction")
-	txHash := sha256.Sum256(txBytes)
+	txBytes, txHash := GetBytesHash("ethereum transaction")
 
-	msgResp := types.NewMsgTxTaskResponse(txHash[:], 78, addrs[0])
-	_, err := msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msgResp)
-	require.NoError(t, err)
+	RespondToTxTask(ctx, txHash, 78, addrs[0], true)
 
 	ctx = PassBlocks(ctx, ok, t, 2, 0)
-	txTaskRes, err := ok.GetTask(ctx, txHash[:])
-	require.Nil(t, err)
-	require.Equal(t, types.TaskStatusNil, txTaskRes.GetStatus())
-
-	msgCreate := types.NewMsgCreateTxTask(addrs[0], "1", txBytes, bounty, ctx.BlockTime().Add(time.Second*30))
-	res, err := msgServer.CreateTxTask(sdk.WrapSDKContext(ctx), msgCreate)
-	require.NoError(t, err)
-	require.Equal(t, res.TxHash, txHash[:])
+	CheckTask(ctx, txHash, types.TaskStatusNil, -1)
+	CreateTxTask(ctx, addrs[0], txBytes, bounty, 30, true)
 
 	ctx = PassBlocks(ctx, ok, t, 1, 0)
-	txTaskRes, err = ok.GetTask(ctx, txHash[:])
-	require.Nil(t, err)
-	require.Equal(t, types.TaskStatusPending, txTaskRes.GetStatus())
+	CheckTask(ctx, txHash, types.TaskStatusPending, -1)
 
-	msgResp = types.NewMsgTxTaskResponse(txHash[:], 42, addrs[1])
-	_, err = msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msgResp)
-	require.NoError(t, err)
+	RespondToTxTask(ctx, txHash, 42, addrs[1], true)
 
 	ctx = PassBlocks(ctx, ok, t, 0, 1)
-	txTaskRes, err = ok.GetTask(ctx, txHash[:])
-	require.Nil(t, err)
-	require.Equal(t, types.TaskStatusSucceeded, txTaskRes.GetStatus())
-	require.Equal(t, int64(60), txTaskRes.GetScore()) // (78+42)/2
+	CheckTask(ctx, txHash, types.TaskStatusSucceeded, 60) // (78+42)/2
 
 	ctx = PassBlocks(ctx, ok, t, 1, 0)
-	msgResp = types.NewMsgTxTaskResponse(txHash[:], 42, addrs[2])
-	_, err = msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msgResp)
-	require.Error(t, err)
+	RespondToTxTask(ctx, txHash, 42, addrs[2], false)
 	ctx = PassBlocks(ctx, ok, t, 0, 0)
-
 	ctx = PassBlocks(ctx, ok, t, 1, 0)
+	RespondToTxTask(ctx, txHash, 78, addrs[0], false) //task closed
 
-	msgResp = types.NewMsgTxTaskResponse(txHash[:], 78, addrs[0])
-	_, err = msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msgResp)
-	require.Error(t, err) //task closed
+	txBytes, txHash = GetBytesHash("the second tx")
 
-	txBytes = []byte("the second tx")
-	txHash = sha256.Sum256(txBytes)
-
-	msgResp = types.NewMsgTxTaskResponse(txHash[:], 78, addrs[0])
-	_, err = msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msgResp)
-	require.NoError(t, err)
-	msgResp = types.NewMsgTxTaskResponse(txHash[:], 78, addrs[0])
-	_, err = msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msgResp)
-	require.Error(t, err) //same operator
-	msgResp = types.NewMsgTxTaskResponse(txHash[:], 78, addrs[1])
-	_, err = msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msgResp)
-	require.NoError(t, err)
-	msgResp = types.NewMsgTxTaskResponse(txHash[:], 78, addrs[2])
-	_, err = msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msgResp)
-	require.NoError(t, err)
+	RespondToTxTask(ctx, txHash, 78, addrs[0], true)
+	RespondToTxTask(ctx, txHash, 78, addrs[0], false) //same operator
+	RespondToTxTask(ctx, txHash, 78, addrs[1], true)
+	RespondToTxTask(ctx, txHash, 78, addrs[2], true)
 	ctx = PassBlocks(ctx, ok, t, 0, 0)
 
-	msgCreate = types.NewMsgCreateTxTask(addrs[3], "1", txBytes, bounty, ctx.BlockTime().Add(time.Second*30))
-	res, err = msgServer.CreateTxTask(sdk.WrapSDKContext(ctx), msgCreate)
-	require.NoError(t, err)
-	require.Equal(t, res.TxHash, txHash[:])
+	CreateTxTask(ctx, addrs[3], txBytes, bounty, 30, true)
 
 	ctx = PassBlocks(ctx, ok, t, 0, 1)
-	txTaskRes, err = ok.GetTask(ctx, txHash[:])
-	require.Nil(t, err)
-	require.Equal(t, types.TaskStatusSucceeded, txTaskRes.GetStatus())
-	require.Equal(t, int64(78), txTaskRes.GetScore())
+	CheckTask(ctx, txHash, types.TaskStatusSucceeded, 78)
+	_ = PassBlocks(ctx, ok, t, 6, 0) //the two task should already be removed from closingTaskIDs
 }
 
 func PassBlocks(ctx sdk.Context, ok keeper.Keeper, t require.TestingT, n int64, m int) sdk.Context {
@@ -204,17 +140,62 @@ func PassBlocks(ctx sdk.Context, ok keeper.Keeper, t require.TestingT, n int64, 
 	return ctx
 }
 
-func DoInit() (sdk.Context, keeper.Keeper, types.MsgServer, []sdk.AccAddress) {
+func DoInit(t *testing.T) (sdk.Context, keeper.Keeper, types.MsgServer, []sdk.AccAddress) {
 	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 5, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 	msgServer := keeper.NewMsgServerImpl(ok)
+	ctx = ctx.WithValue("msgServer", msgServer).WithValue("t", t).WithValue("ok", ok)
 	return ctx, ok, msgServer, addrs
 }
 
-func DepositCollateral(t *testing.T, ctx sdk.Context, ok keeper.Keeper, addr sdk.AccAddress) {
+func DepositCollateral(ctx sdk.Context, ok keeper.Keeper, addr sdk.AccAddress) {
+	t := ctx.Value("t").(*testing.T)
 	params := ok.GetLockedPoolParams(ctx)
 	collateral := sdk.Coins{sdk.NewInt64Coin("uctk", params.MinimumCollateral)}
 	require.NoError(t, ok.CreateOperator(ctx, addr, collateral, addr, "operator0"))
+}
+
+func RespondToTxTask(ctx sdk.Context, txHash []byte, score int64, addr sdk.AccAddress, success bool) {
+	msgResp := types.NewMsgTxTaskResponse(txHash, score, addr)
+	msgServer := ctx.Value("msgServer").(types.MsgServer)
+	t := ctx.Value("t").(*testing.T)
+	_, err := msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msgResp)
+	if success {
+		require.NoError(t, err)
+	} else {
+		require.Error(t, err)
+	}
+}
+
+func CheckTask(ctx sdk.Context, txHash []byte, expectedStatus types.TaskStatus, expectedScore int) {
+	t := ctx.Value("t").(*testing.T)
+	ok := ctx.Value("ok").(keeper.Keeper)
+	txTaskRes, err := ok.GetTask(ctx, txHash)
+	require.Nil(t, err)
+	require.Equal(t, expectedStatus, txTaskRes.GetStatus())
+	if expectedScore >= 0 {
+		require.Equal(t, int64(expectedScore), txTaskRes.GetScore())
+	}
+}
+
+func CreateTxTask(ctx sdk.Context, creator sdk.AccAddress, txBytes []byte, bounty sdk.Coins, deltaSecond int, succeed bool) {
+	t := ctx.Value("t").(*testing.T)
+	msgServer := ctx.Value("msgServer").(types.MsgServer)
+	msgCreate := types.NewMsgCreateTxTask(creator, "1", txBytes, bounty, ctx.BlockTime().Add(time.Second*time.Duration(deltaSecond)))
+	res, err := msgServer.CreateTxTask(sdk.WrapSDKContext(ctx), msgCreate)
+	if succeed {
+		require.NoError(t, err)
+		txHash := sha256.Sum256(txBytes)
+		require.Equal(t, res.TxHash, txHash[:])
+	} else {
+		require.Error(t, err)
+	}
+}
+
+func GetBytesHash(tx string) ([]byte, []byte) {
+	txBytes := []byte(tx)
+	txHash := sha256.Sum256(txBytes)
+	return txBytes, txHash[:]
 }

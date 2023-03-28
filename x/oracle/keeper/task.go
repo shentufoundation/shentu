@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"errors"
 	"time"
 
@@ -34,7 +35,7 @@ func (k Keeper) DeleteTask(ctx sdk.Context, task types.TaskI) error {
 func (k Keeper) UpdateAndSetTask(ctx sdk.Context, task *types.Task) {
 	task.ExpireHeight = ctx.BlockHeight() + task.WaitingBlocks
 	if task.GetStatus() == types.TaskStatusPending {
-		k.SetClosingBlockStore(ctx, task)
+		k.AddToClosingTaskIDs(ctx, task)
 	}
 	k.SetTask(ctx, task)
 }
@@ -44,7 +45,7 @@ func (k Keeper) SetTxTask(ctx sdk.Context, task *types.TxTask) {
 		k.SaveExpireTxTask(ctx, task)
 		k.SetTask(ctx, task)
 		if task.GetStatus() == types.TaskStatusPending {
-			k.SetClosingBlockStore(ctx, task)
+			k.AddToClosingTaskIDs(ctx, task)
 		}
 	}
 }
@@ -69,13 +70,27 @@ func (k Keeper) GetTask(ctx sdk.Context, taskID []byte) (task types.TaskI, err e
 	return
 }
 
-// SetClosingBlockStore sets the store of the aggregation block for a task.
-func (k Keeper) SetClosingBlockStore(ctx sdk.Context, task types.TaskI) {
-	store := ctx.KVStore(k.storeKey)
+//remove ID of the task from closingBlockStore because it has been handled in shortcut
+func (k Keeper) DeleteFromClosingTaskIDs(ctx sdk.Context, task types.TaskI) {
+	taskIDs := k.GetClosingTaskIDs(ctx, task)
+	for i := range taskIDs {
+		if bytes.Equal(taskIDs[i].Tid, task.GetID()) {
+			taskIDs = append(taskIDs[:i], taskIDs[i+1:]...)
+			break
+		}
+	}
+	k.SetClosingTaskIDs(ctx, task, taskIDs)
+}
 
+// AddToClosingTaskIDs sets the store of task IDs for aggregation on time.
+func (k Keeper) AddToClosingTaskIDs(ctx sdk.Context, task types.TaskI) {
 	newTaskID := types.TaskID{Tid: task.GetID()}
 	taskIDs := append(k.GetClosingTaskIDs(ctx, task), newTaskID)
+	k.SetClosingTaskIDs(ctx, task, taskIDs)
+}
 
+func (k Keeper) SetClosingTaskIDs(ctx sdk.Context, task types.TaskI, taskIDs []types.TaskID) {
+	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})
 	switch task := task.(type) {
 	case *types.Task:
@@ -201,7 +216,7 @@ func (k Keeper) CreateTask(ctx sdk.Context, creator sdk.AccAddress, task types.T
 	// if task's status is TaskStatusNil, it will not go to ClosingBlockStore,
 	// therefor will not be handled in EndBlocker
 	if task.GetStatus() == types.TaskStatusPending {
-		k.SetClosingBlockStore(ctx, task)
+		k.AddToClosingTaskIDs(ctx, task)
 		if err := k.CollectBounty(ctx, task.GetBounty(), creator); err != nil {
 			return err
 		}
@@ -293,6 +308,7 @@ func (k Keeper) TryShortcut(ctx sdk.Context, task types.TaskI) {
 		Quo(totalCollateral[0].Amount.ToDec()).
 		GTE(taskParams.ShortcutQuorum) {
 		k.SetShortcutTasks(ctx, task.GetID())
+		k.DeleteFromClosingTaskIDs(ctx, task)
 	}
 }
 
