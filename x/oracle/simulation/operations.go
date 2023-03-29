@@ -15,6 +15,7 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	simutil "github.com/shentufoundation/shentu/v2/x/cvm/simulation"
 	"github.com/shentufoundation/shentu/v2/x/oracle/keeper"
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
@@ -112,6 +113,10 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AccountKeeper, bk types
 			{
 				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 0, 20),
 				Op:          SimulateMsgAddCollateral(k, ak, bk, &stdOperator, operator.PrivKey),
+			},
+			{
+				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 0, 20),
+				Op:          SimulateMsgCreateCertOperator(k, ak, bk, &stdOperator),
 			},
 			{
 				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 0, 20),
@@ -432,6 +437,60 @@ func SimulateMsgCreateTask(ak types.AccountKeeper, k keeper.Keeper, bk types.Ban
 	}
 }
 
+// SimulateMsgCreateCertOperator add operator to cert type oracle.
+func SimulateMsgCreateCertOperator(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper,
+	stdOperator *types.Operator) simtypes.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
+		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		stdOperatorAddr, err := sdk.AccAddressFromBech32(stdOperator.Address)
+
+		certifiers := k.CertKeeper.GetAllCertifiers(ctx)
+		certifier := certifiers[r.Intn(len(certifiers))]
+		certifierAddr, err := sdk.AccAddressFromBech32(certifier.Address)
+		if err != nil {
+			panic(err)
+		}
+		var certifierAcc simtypes.Account
+		for _, acc := range accs {
+			if acc.Address.Equals(certifierAddr) {
+				certifierAcc = acc
+				break
+			}
+		}
+
+		content := certtypes.AssembleContent("ORACLEOPERATOR", stdOperatorAddr.String())
+		msg := certtypes.NewMsgIssueCertificate(content, "", "", "", certifierAddr)
+
+		account := ak.GetAccount(ctx, certifierAddr)
+		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, account.GetAddress()))
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
+		}
+
+		txGen := simappparams.MakeTestEncodingConfig().TxConfig
+		tx, err := helpers.GenTx(
+			txGen,
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{account.GetAccountNumber()},
+			[]uint64{account.GetSequence()},
+			certifierAcc.PrivKey,
+		)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
+		}
+
+		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
+		}
+
+		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
+	}
+}
+
 // SimulateMsgTaskResponse generates a MsgTaskResponse object with all of its fields randomized.
 func SimulateMsgTaskResponse(ak types.AccountKeeper, k keeper.Keeper, bk types.BankKeeper, contract, function string,
 	simAcc simtypes.Account) simtypes.Operation {
@@ -561,7 +620,8 @@ func SimulateMsgCreateTxTask(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 		}
 
 		for _, acc := range accs {
-			if k.IsOperator(ctx, acc.Address) && simtypes.RandIntBetween(r, 0, 100) < 10 {
+			isCertified := k.CertKeeper.IsCertified(ctx, acc.Address.String(), "CERT_TYPE_ORACLE_OPERATOR")
+			if k.IsOperator(ctx, acc.Address) && isCertified && simtypes.RandIntBetween(r, 0, 100) < 10 {
 				futureOperations = append(futureOperations, simtypes.FutureOperation{
 					BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 1, 5),
 					Op:          SimulateMsgTxTaskResponse(ak, k, bk, businessTxHash[:], acc),

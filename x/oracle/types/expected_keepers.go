@@ -3,6 +3,8 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 type ParamSubspace interface {
@@ -24,6 +26,7 @@ type BankKeeper interface {
 type CertKeeper interface {
 	IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool
 	IsCertified(ctx sdk.Context, content string, certType string) bool
+	GetAllCertifiers(ctx sdk.Context) certtypes.Certifiers
 }
 
 type DistrKeeper interface {
