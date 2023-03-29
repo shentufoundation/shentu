@@ -270,6 +270,9 @@ func (k msgServer) TxTaskResponse(goCtx context.Context, msg *types.MsgTxTaskRes
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	operatorAddr, _ := sdk.AccAddressFromBech32(msg.Operator)
+	if !k.IsCertifiedIdentity(ctx, operatorAddr) {
+		return nil, types.ErrCertTypeOperator
+	}
 	if err := k.HandleNoneTxTaskForResponse(ctx, msg.TxHash); err != nil {
 		return nil, err
 	}

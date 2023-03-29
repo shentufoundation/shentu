@@ -33,6 +33,7 @@ const (
 	errOverdueValidTime
 	errUnexpectedTask
 	errTooLateValidTime
+	errCertTypeOperator
 )
 
 const errInconsistentOperators uint32 = 301
@@ -64,6 +65,7 @@ var (
 	ErrOverdueValidTime    = sdkerrors.Register(ModuleName, errOverdueValidTime, "the valid time is overdue")
 	ErrUnexpectedTask      = sdkerrors.Register(ModuleName, errUnexpectedTask, "a different typed task already exists")
 	ErrTooLateValidTime    = sdkerrors.Register(ModuleName, errTooLateValidTime, "the valid time is later than expiration time")
+	ErrCertTypeOperator    = sdkerrors.Register(ModuleName, errCertTypeOperator, "operator is not cert type oracle")
 
 	ErrInconsistentOperators = sdkerrors.Register(ModuleName, errInconsistentOperators, "two operators not consistent")
 

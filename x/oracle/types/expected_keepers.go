@@ -23,6 +23,7 @@ type BankKeeper interface {
 
 type CertKeeper interface {
 	IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool
+	IsCertified(ctx sdk.Context, content string, certType string) bool
 }
 
 type DistrKeeper interface {

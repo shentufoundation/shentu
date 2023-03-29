@@ -582,3 +582,8 @@ func (k Keeper) RefundBounty(ctx sdk.Context, task types.TaskI) error {
 	}
 	return nil
 }
+
+// IsCertifiedIdentity checks if the operator address is CERT_TYPE_ORACLE_OPERATOR identity.
+func (k Keeper) IsCertifiedIdentity(ctx sdk.Context, addr sdk.AccAddress) bool {
+	return k.CertKeeper.IsCertified(ctx, addr.String(), "CERT_TYPE_ORACLE_OPERATOR")
+}
