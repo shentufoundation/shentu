@@ -437,18 +437,20 @@ func SimulateMsgCreateTask(ak types.AccountKeeper, k keeper.Keeper, bk types.Ban
 	}
 }
 
-// SimulateMsgCreateCertOperator add operator to cert type oracle.
+// SimulateMsgCreateCertOperator add operator to Certificate.
 func SimulateMsgCreateCertOperator(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper,
 	stdOperator *types.Operator) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
 		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		stdOperatorAddr, err := sdk.AccAddressFromBech32(stdOperator.Address)
-
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, "", err.Error()), nil, err
+		}
 		certifiers := k.CertKeeper.GetAllCertifiers(ctx)
 		certifier := certifiers[r.Intn(len(certifiers))]
 		certifierAddr, err := sdk.AccAddressFromBech32(certifier.Address)
 		if err != nil {
-			panic(err)
+			return simtypes.NoOpMsg(types.ModuleName, "", err.Error()), nil, err
 		}
 		var certifierAcc simtypes.Account
 		for _, acc := range accs {
