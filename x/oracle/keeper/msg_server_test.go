@@ -12,6 +12,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	certkeeper "github.com/shentufoundation/shentu/v2/x/cert/keeper"
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	"github.com/shentufoundation/shentu/v2/x/oracle"
 	"github.com/shentufoundation/shentu/v2/x/oracle/keeper"
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
@@ -23,6 +25,8 @@ func TestMsgServer_CreateTxTask(t *testing.T) {
 	addrs := shentuapp.AddTestAddrs(app, ctx, 3, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
+	err := AddCertificate(ctx, app.CertKeeper, addrs)
+	require.NoError(t, err)
 	params := ok.GetLockedPoolParams(ctx)
 	collateral := sdk.Coins{sdk.NewInt64Coin("uctk", params.MinimumCollateral)}
 	require.NoError(t, ok.CreateOperator(ctx, addrs[0], collateral, addrs[0], "operator1"))
@@ -83,6 +87,8 @@ func TestMsgServer_pending(t *testing.T) {
 	ok := app.OracleKeeper
 	msgServer := keeper.NewMsgServerImpl(ok)
 
+	err := AddCertificate(ctx, app.CertKeeper, addrs)
+	require.NoError(t, err)
 	params := ok.GetLockedPoolParams(ctx)
 	collateral := sdk.Coins{sdk.NewInt64Coin("uctk", params.MinimumCollateral)}
 	require.NoError(t, ok.CreateOperator(ctx, addrs[0], collateral, addrs[0], "operator1"))
@@ -92,7 +98,7 @@ func TestMsgServer_pending(t *testing.T) {
 	txHash := sha256.Sum256(txBytes)
 
 	msgResp := types.NewMsgTxTaskResponse(txHash[:], 78, addrs[0])
-	_, err := msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msgResp)
+	_, err = msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msgResp)
 	require.NoError(t, err)
 
 	ctx = PassBlocks(ctx, ok, t, 2, 0)
@@ -126,4 +132,20 @@ func PassBlocks(ctx sdk.Context, ok keeper.Keeper, t require.TestingT, n int64, 
 	require.Len(t, ok.GetInvalidTaskIDs(ctx), m)
 	oracle.EndBlocker(ctx, ok)
 	return ctx
+}
+
+func AddCertificate(ctx sdk.Context, ck certkeeper.Keeper, addrs []sdk.AccAddress) error {
+	for _, addr := range addrs {
+		ck.SetCertifier(ctx, certtypes.NewCertifier(addr, "", addr, ""))
+
+		certificate, err := certtypes.NewCertificate("ORACLEOPERATOR", addr.String(), "", "", "", addr)
+		if err != nil {
+			return err
+		}
+		id := ck.GetNextCertificateID(ctx)
+		certificate.CertificateId = id
+		ck.SetNextCertificateID(ctx, id+1)
+		ck.SetCertificate(ctx, certificate)
+	}
+	return nil
 }
