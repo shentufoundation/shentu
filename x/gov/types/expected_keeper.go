@@ -38,6 +38,7 @@ type ParamSubspace interface {
 	Get(ctx sdk.Context, key []byte, ptr interface{})
 	Set(ctx sdk.Context, key []byte, param interface{})
 	WithKeyTable(table paramtypes.KeyTable) paramtypes.Subspace
+	GetRaw(ctx sdk.Context, key []byte) []byte
 }
 
 type StakingKeeper interface {
