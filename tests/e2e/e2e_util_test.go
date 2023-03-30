@@ -802,6 +802,29 @@ func queryShieldReimbursement(endpoint string, proposalId int) (shieldtypes.Quer
 	return res, nil
 }
 
+func queryAllCertificates(endpoint string) (certtypes.QueryCertificatesResponse, error) {
+	var res certtypes.QueryCertificatesResponse
+	path := fmt.Sprintf("%s//shentu/cert/v1alpha1/certificates", endpoint)
+
+	resp, err := http.Get(path)
+	if err != nil {
+		return res, err
+	}
+
+	defer resp.Body.Close()
+
+	bz, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return res, err
+	}
+
+	if err = cdc.UnmarshalJSON(bz, &res); err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
 func configFile(filename string) string {
 	return filepath.Join(shentuHome, "config", filename)
 }

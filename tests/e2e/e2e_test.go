@@ -288,13 +288,16 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 func (s *IntegrationTestSuite) TestOracle() {
 	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 
+	validatorA := s.chainA.validators[0]
+	validatorAAddr := validatorA.keyInfo.GetAddress()
+
 	alice := s.chainA.accounts[0].keyInfo.GetAddress()
 	bob := s.chainA.accounts[1].keyInfo.GetAddress()
 	charle := s.chainA.accounts[2].keyInfo.GetAddress()
 
 	var txHash, taskHash string
 	var err error
-	valTime := time.Now().Add(60 * time.Second)
+	valTime := time.Now().Add(100 * time.Second)
 	valTimeStr := valTime.Format(time.RFC3339)
 
 	taskContract := "demo-contract"
@@ -318,6 +321,13 @@ func (s *IntegrationTestSuite) TestOracle() {
 			20*time.Second,
 			5*time.Second,
 		)
+	})
+
+	s.Run("issue_identity", func() {
+		s.T().Logf("Issue ORACLEOPERATOR certificate to %s %s %s on chain %s", alice.String(), bob.String(), charle.String(), s.chainA.id)
+		s.executeIssueCertificate(s.chainA, 0, "ORACLEOPERATOR", alice.String(), validatorAAddr.String(), feesAmountCoin.String())
+		s.executeIssueCertificate(s.chainA, 0, "ORACLEOPERATOR", bob.String(), validatorAAddr.String(), feesAmountCoin.String())
+		s.executeIssueCertificate(s.chainA, 0, "ORACLEOPERATOR", charle.String(), validatorAAddr.String(), feesAmountCoin.String())
 	})
 
 	s.Run("create_tx_task", func() {
