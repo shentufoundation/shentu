@@ -697,7 +697,7 @@ $ %[1]s query gov cert-voted 1
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			proposalId, err := strconv.ParseUint(args[0], 10, 64)
+			proposalID, err := strconv.ParseUint(args[0], 10, 64)
 
 			if err != nil {
 				return err
@@ -706,7 +706,7 @@ $ %[1]s query gov cert-voted 1
 			// Query store
 			res, err := queryClient.CertVoted(
 				cmd.Context(),
-				&types.QueryCertVotedRequest{ProposalId: proposalId},
+				&types.QueryCertVotedRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return err
