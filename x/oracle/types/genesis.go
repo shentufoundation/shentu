@@ -25,25 +25,25 @@ func DefaultGenesisState() *GenesisState {
 }
 
 // ValidateGenesis validates oracle genesis data.
-func ValidateGenesis(gs GenesisState) error {
-	operators := gs.Operators
-	withdraws := gs.Withdraws
-	sum := sdk.NewCoins()
+func ValidateGenesis(genesisState GenesisState) error {
+	operators := genesisState.Operators
+	withdraws := genesisState.Withdraws
+	totalCollateral := sdk.NewCoins()
 	for _, operator := range operators {
-		sum = sum.Add(operator.Collateral...)
+		totalCollateral = totalCollateral.Add(operator.Collateral...)
 	}
 	for _, withdraw := range withdraws {
 		if withdraw.DueBlock < 0 {
 			return ErrInvalidDueBlock
 		}
 	}
-	if !sum.IsEqual(gs.TotalCollateral) {
+	if !totalCollateral.IsEqual(genesisState.TotalCollateral) {
 		return ErrTotalCollateralNotEqual
 	}
-	if err := validatePoolParams(*gs.PoolParams); err != nil {
+	if err := validatePoolParams(*genesisState.PoolParams); err != nil {
 		return err
 	}
-	if err := validateTaskParams(*gs.TaskParams); err != nil {
+	if err := validateTaskParams(*genesisState.TaskParams); err != nil {
 		return err
 	}
 	return nil
