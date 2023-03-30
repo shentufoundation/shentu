@@ -233,16 +233,15 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 					totalServiceFees = totalServiceFees.Sub(entry.ServiceFees)
 					// Set purchase fees to zero because it can be reached again.
 					purchaseList.Entries[i].ServiceFees = sdk.DecCoins{}
-
-					originalStaking := k.GetOriginalStaking(ctx, entry.PurchaseId)
-					if !originalStaking.IsZero() {
-						// keep track of the list to be updated to avoid overwriting the purchase list
-						stakeForShieldUpdateList = append(stakeForShieldUpdateList, pPPTriplet{
-							poolID:     poolPurchaser.PoolId,
-							purchaseID: entry.PurchaseId,
-							purchaser:  purchaser,
-						})
-					}
+				}
+				originalStaking := k.GetOriginalStaking(ctx, entry.PurchaseId)
+				if !originalStaking.IsZero() {
+					// keep track of the list to be updated to avoid overwriting the purchase list
+					stakeForShieldUpdateList = append(stakeForShieldUpdateList, pPPTriplet{
+						poolID:     poolPurchaser.PoolId,
+						purchaseID: entry.PurchaseId,
+						purchaser:  purchaser,
+					})
 				}
 
 				// If purchaseDeletionTime < currentBlockTime, remove the purchase.
@@ -295,6 +294,7 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 
 	// Add block service fees that need to be distributed for this block
 	blockServiceFees := k.GetBlockServiceFees(ctx)
+	remainingServiceFees = remainingServiceFees.Add(blockServiceFees...)
 	serviceFees = serviceFees.Add(blockServiceFees...)
 	k.DeleteBlockServiceFees(ctx)
 
@@ -318,8 +318,6 @@ func (k Keeper) RemoveExpiredPurchasesAndDistributeFees(ctx sdk.Context) {
 		remainingServiceFees = remainingServiceFees.Sub(newFees)
 	}
 
-	// add back block fees
-	remainingServiceFees = remainingServiceFees.Add(blockServiceFees...)
 	k.SetRemainingServiceFees(ctx, remainingServiceFees)
 	k.SetLastUpdateTime(ctx, ctx.BlockTime())
 }

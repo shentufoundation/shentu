@@ -342,7 +342,7 @@ func (k Keeper) UpdateProviderCollateralForPayout(ctx sdk.Context, providerAddr 
 	payoutFromWithdraw := payout.Sub(payoutFromCollateral)
 
 	// Update provider's collateral and total withdraw.
-	provider.Collateral = provider.Collateral.Sub(payout)
+	provider.Collateral = provider.Collateral.Sub(payoutFromCollateral)
 	provider.Withdrawing = provider.Withdrawing.Sub(payoutFromWithdraw)
 	totalWithdrawing = totalWithdrawing.Sub(payoutFromWithdraw)
 
