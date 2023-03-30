@@ -643,6 +643,9 @@ func SimulateMsgTxTaskResponse(ak types.AccountKeeper, k keeper.Keeper, bk types
 		if !k.IsOperator(ctx, simAcc.Address) {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgRespondToTxTask, "not an operator"), nil, nil
 		}
+		if !k.CertKeeper.IsCertified(ctx, simAcc.Address.String(), "CERT_TYPE_ORACLE_OPERATOR") {
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgRespondToTxTask, "not an cert type operator"), nil, nil
+		}
 		score := r.Int63n(100)
 
 		msg := types.NewMsgTxTaskResponse(txHash, score, simAcc.Address)

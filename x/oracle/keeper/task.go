@@ -7,6 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
@@ -640,4 +641,9 @@ func (k Keeper) RefundBounty(ctx sdk.Context, task types.TaskI) error {
 // IsCertifiedIdentity checks if the operator address is CERT_TYPE_ORACLE_OPERATOR identity.
 func (k Keeper) IsCertifiedIdentity(ctx sdk.Context, addr sdk.AccAddress) bool {
 	return k.CertKeeper.IsCertified(ctx, addr.String(), "CERT_TYPE_ORACLE_OPERATOR")
+}
+
+// GetCertificates retrieves all certificates with given certificate type and content.
+func (k Keeper) GetCertificates(ctx sdk.Context, addr sdk.AccAddress) []certtypes.Certificate {
+	return k.CertKeeper.GetCertificatesByTypeAndContent(ctx, certtypes.CertificateTypeOracleOperator, addr.String())
 }

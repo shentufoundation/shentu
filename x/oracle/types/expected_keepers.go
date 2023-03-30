@@ -27,6 +27,8 @@ type CertKeeper interface {
 	IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool
 	IsCertified(ctx sdk.Context, content string, certType string) bool
 	GetAllCertifiers(ctx sdk.Context) certtypes.Certifiers
+	GetCertificatesByTypeAndContent(ctx sdk.Context, certType certtypes.CertificateType, content string) []certtypes.Certificate
+	DeleteCertificate(ctx sdk.Context, certificate certtypes.Certificate) error
 }
 
 type DistrKeeper interface {

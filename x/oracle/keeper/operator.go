@@ -112,6 +112,13 @@ func (k Keeper) RemoveOperator(ctx sdk.Context, operatorAddress, proposerAddress
 		operator.AccumulatedRewards); err != nil {
 		return err
 	}
+	// revoke operator cert
+	certificates := k.GetCertificates(ctx, operatorAddr)
+	for _, certificate := range certificates {
+		if err := k.CertKeeper.DeleteCertificate(ctx, certificate); err != nil {
+			return err
+		}
+	}
 	return k.DeleteOperator(ctx, operatorAddr)
 }
 
