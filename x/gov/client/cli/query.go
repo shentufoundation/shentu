@@ -48,6 +48,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryDeposit(),
 		GetCmdQueryDeposits(),
 		GetCmdQueryTally(),
+		GetCmdCertVoted(),
 	)
 
 	return govQueryCmd
@@ -604,14 +605,14 @@ $ %s query gov params
 				return err
 			}
 
-			params := types.NewParams(
-				votingRes.GetVotingParams(),
-				tallyRes.GetTallyParams(),
-				depositRes.GetDepositParams(),
-				customRes.GetCustomParams(),
-			)
+			res := &types.QueryParamsResponse{
+				VotingParams:  votingRes.GetVotingParams(),
+				DepositParams: depositRes.GetDepositParams(),
+				TallyParams:   tallyRes.GetTallyParams(),
+				CustomParams:  customRes.GetCustomParams(),
+			}
 
-			return cliCtx.PrintObjectLegacy(params)
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -668,6 +669,50 @@ $ %[1]s query gov param deposit
 			}
 
 			return cliCtx.PrintObjectLegacy(out)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdCertVoted implements the query param command.
+func GetCmdCertVoted() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "cert-voted [proposa-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query if the certifiers voted on a proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query if the certifiers voted on a proposal.
+Example:
+$ %[1]s query gov cert-voted 1
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+
+			proposalID, err := strconv.ParseUint(args[0], 10, 64)
+
+			if err != nil {
+				return err
+			}
+
+			// Query store
+			res, err := queryClient.CertVoted(
+				cmd.Context(),
+				&types.QueryCertVotedRequest{ProposalId: proposalID},
+			)
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintProto(res)
 		},
 	}
 

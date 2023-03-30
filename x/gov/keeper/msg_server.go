@@ -37,10 +37,10 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmit
 		return nil, err
 	}
 
-	// Skip deposit period for proposals of certifier members.
-	votingStarted := k.ActivateCertifierProposalVotingPeriod(ctx, proposal, msg.GetProposer())
+	// Skip deposit period for proposals from certifier memebers or shield claim proposals.
+	votingStarted := k.ActivateVotingPeriodCustom(ctx, proposal, msg.GetProposer())
 	if !votingStarted {
-		votingStarted, err = k.AddDeposit(ctx, proposal.ProposalId, msg.GetProposer(), msg.GetInitialDeposit())
+		votingStarted, err = k.Keeper.AddDeposit(ctx, proposal.ProposalId, msg.GetProposer(), msg.GetInitialDeposit())
 		if err != nil {
 			return nil, err
 		}

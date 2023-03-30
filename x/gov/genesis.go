@@ -74,7 +74,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	for _, proposal := range proposals {
 		genState.Deposits = append(genState.Deposits, k.GetDeposits(ctx, proposal.ProposalId)...)
 		genState.Votes = append(genState.Votes, k.GetVotes(ctx, proposal.ProposalId)...)
-		if k.IsCertifierVoted(ctx, proposal.ProposalId) {
+		if k.GetCertifierVoted(ctx, proposal.ProposalId) {
 			genState.CertVotedProposalIds = append(genState.CertVotedProposalIds, proposal.ProposalId)
 		}
 	}

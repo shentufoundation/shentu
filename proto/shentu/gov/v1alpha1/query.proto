@@ -13,7 +13,7 @@ option go_package = "github.com/shentufoundation/shentu/x/gov/types";
 // Query defines the gRPC querier service for gov module
 service Query {
   // Proposal queries proposal details based on ProposalID.
-  rpc Proposal(cosmos.gov.v1beta1.QueryProposalRequest) returns (QueryProposalResponse) {
+  rpc Proposal(cosmos.gov.v1beta1.QueryProposalRequest) returns (cosmos.gov.v1beta1.QueryProposalResponse) {
     option (google.api.http).get = "/cosmos/gov/v1beta1/proposals/{proposal_id}";
   }
 
@@ -51,13 +51,22 @@ service Query {
   rpc TallyResult(cosmos.gov.v1beta1.QueryTallyResultRequest) returns (cosmos.gov.v1beta1.QueryTallyResultResponse) {
     option (google.api.http).get = "/cosmos/gov/v1beta1/proposals/{proposal_id}/tally";
   }
+
+  // Proposal queries proposal details based on ProposalID.
+  rpc CertVoted(QueryCertVotedRequest) returns (QueryCertVotedResponse) {
+    option (google.api.http).get = "/shentu/gov/v1alpha1/cert_voted/{proposal_id}";
+  }
+
+}
+
+message QueryCertVotedRequest {
+  // proposal_id defines the unique id of the proposal.
+  uint64 proposal_id = 1;
 }
 
 // QueryProposalResponse is the response type for the Query/Proposal RPC method.
-message QueryProposalResponse {
-  cosmos.gov.v1beta1.Proposal proposal = 1 [(gogoproto.nullable) = false];
-  // cert_voted define a special proposal that has completed the vote of the cert.
-  bool cert_voted = 2;
+message QueryCertVotedResponse {
+  bool cert_voted = 1;
 }
 
 // QueryParamsResponse is the response type for the Query/Params RPC method.

@@ -296,6 +296,3 @@ func SecurityTally(ctx sdk.Context, k Keeper, proposal govtypes.Proposal) (bool,
 
 	return pass, endVoting, tallyResults
 }
-
-// TODO:
-//		Query tally in certifier round should show headcount, not amount staked
