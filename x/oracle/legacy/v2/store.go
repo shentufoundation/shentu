@@ -74,3 +74,18 @@ func MigrateTaskStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCo
 
 	return nil
 }
+
+func UpdateParams(ctx sdk.Context, paramSubspace types.ParamSubspace) {
+	var taskParams types.TaskParams
+	paramSubspace.Get(ctx, types.ParamsStoreKeyTaskParams, &taskParams)
+	newTaskParams := types.NewTaskParams(
+		taskParams.ExpirationDuration,
+		taskParams.AggregationWindow,
+		taskParams.AggregationResult,
+		taskParams.ThresholdScore,
+		taskParams.Epsilon1,
+		taskParams.Epsilon2,
+		types.DefaultShortcutQuorum,
+	)
+	paramSubspace.Set(ctx, types.ParamsStoreKeyTaskParams, &newTaskParams)
+}
