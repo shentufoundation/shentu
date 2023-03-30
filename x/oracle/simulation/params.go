@@ -21,6 +21,7 @@ const (
 	subkeyThresholdScore     = "threshold_score"
 	subkeyEpsilon1           = "epsilon1"
 	subkeyEpsilon2           = "epsilon2"
+	subkeyShortcutQuorum     = "shortcut_quorum"
 )
 
 // ParamChanges defines the parameters that can be modified by param change proposals on the simulation.
@@ -69,6 +70,7 @@ func ParamChanges(_ *rand.Rand) []simtypes.ParamChange {
 					pc[c.key] = strconv.FormatInt(c.value, 10)
 				}
 				pc[subkeyExpirationDuration] = fmt.Sprintf("%d", tp.ExpirationDuration)
+				pc[subkeyShortcutQuorum] = tp.ShortcutQuorum.String()
 				bz, _ := json.Marshal(pc)
 				return string(bz)
 			},

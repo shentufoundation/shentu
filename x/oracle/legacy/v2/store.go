@@ -54,7 +54,7 @@ func MigrateTaskStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCo
 	}
 
 	//  Migrate ClosingTaskIDs
-	for height, _ := range expireHeightMap {
+	for height := range expireHeightMap {
 		closingTaskIDsData := store.Get(types.ClosingTaskIDsStoreKey(height))
 		if closingTaskIDsData == nil {
 			continue

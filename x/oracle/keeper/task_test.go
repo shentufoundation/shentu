@@ -53,13 +53,15 @@ func TestTaskBasic(t *testing.T) {
 	require.Error(t, ok.RemoveTask(ctx, task1ID, false, addrs[0]))
 	require.Error(t, ok.RemoveTask(ctx, task2ID, false, addrs[0]))
 
-	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 6)
+	ctx = PassBlocks(ctx, ok, t, 5, 2)
 	require.NoError(t, ok.RemoveTask(ctx, task1ID, false, addrs[0]))
-	require.Error(t, ok.RemoveTask(ctx, task2ID, false, addrs[0]))
 
 	tasks = ok.GetAllTasks(ctx)
 	require.Len(t, tasks, 1)
-	require.Equal(t, []types.TaskI{task2Res}, ok.GetAllTasks(ctx))
+	tt := ok.GetAllTasks(ctx)[0]
+	require.Equal(t, task2ID, tt.GetID())
+	require.Equal(t, task2Res.GetBounty(), tt.GetBounty())
+	require.Equal(t, types.TaskStatusFailed, tt.GetStatus())
 }
 
 func TestTaskAggregateFail(t *testing.T) {
@@ -375,11 +377,14 @@ func TestTimer(t *testing.T) {
 	tth.contract = "0x12345678909090abc"
 	tth.creator = addrs[2]
 	tth.ctx = ctx
+	tth.validTime = ctx.BlockTime().Add(time.Second * 50).UTC()
 	require.NoError(t, ok.CreateTask(tth.ctx, tth.creator, tth.GetTxTask(types.TaskStatusNil)))
-	tth.ctx = tth.ctx.WithBlockHeight(tth.ctx.BlockHeight() + 2)
+	tth.ctx = PassBlocks(tth.ctx, ok, t, 2, 0)
 	require.NoError(t, ok.CreateTask(tth.ctx, tth.creator, tth.GetTxTask(types.TaskStatusPending)))
-	tth.ctx = tth.ctx.WithBlockHeight(tth.ctx.BlockHeight() + 2)
-	require.Error(t, ok.RemoveTask(tth.ctx, tth.TxTaskID(), true, addrs[3]))
+	tth.ctx = PassBlocks(tth.ctx, ok, t, 2, 0)
+	require.Error(t, ok.RemoveTask(tth.ctx, tth.TxTaskID(), true, addrs[3])) // status is still pending
+	tth.ctx = PassBlocks(tth.ctx, ok, t, 6, 1)
+	require.Error(t, ok.RemoveTask(tth.ctx, tth.TxTaskID(), true, addrs[3])) // not the creator
 	require.NoError(t, ok.RemoveTask(tth.ctx, tth.TxTaskID(), true, addrs[2]))
 	require.Len(t, ok.GetAllTasks(tth.ctx), 1)
 }

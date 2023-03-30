@@ -305,10 +305,11 @@ func (s *IntegrationTestSuite) TestOracle() {
 		lessAmount, _ := sdk.NewIntFromString("50000000")
 		collateral := sdk.NewCoin(uctkDenom, collateralAmount)
 		lessCollateral := sdk.NewCoin(uctkDenom, lessAmount)
+		mostCollateral := sdk.NewCoin(uctkDenom, sdk.NewInt(350000000))
 
 		s.executeOracleCreateOperator(s.chainA, 0, alice.String(), collateral.String(), feesAmountCoin.String())
 		s.executeOracleCreateOperator(s.chainA, 0, bob.String(), lessCollateral.String(), feesAmountCoin.String())
-		s.executeOracleCreateOperator(s.chainA, 0, charle.String(), collateral.String(), feesAmountCoin.String())
+		s.executeOracleCreateOperator(s.chainA, 0, charle.String(), mostCollateral.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
 				res, e := queryOracleOperator(chainAAPIEndpoint, alice.String())
@@ -374,7 +375,7 @@ func (s *IntegrationTestSuite) TestOracle() {
 			func() bool {
 				res, e := queryOracleTxTask(chainAAPIEndpoint, taskHash)
 				s.Require().NoError(e)
-				return res.Task.Status == 2 && res.Task.Score == 74
+				return res.Task.Status == 2 && res.Task.Score == 62
 			},
 			20*time.Second,
 			5*time.Second,

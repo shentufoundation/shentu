@@ -74,10 +74,7 @@ func (m MsgCreateOperator) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgCreateOperator) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Address)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Address)
 	return []sdk.AccAddress{addr}
 }
 
@@ -121,10 +118,7 @@ func (m MsgRemoveOperator) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgRemoveOperator) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Proposer)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Proposer)
 	return []sdk.AccAddress{addr}
 }
 
@@ -171,10 +165,7 @@ func (m MsgAddCollateral) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgAddCollateral) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Address)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Address)
 	return []sdk.AccAddress{addr}
 }
 
@@ -221,10 +212,7 @@ func (m MsgReduceCollateral) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgReduceCollateral) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Address)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Address)
 	return []sdk.AccAddress{addr}
 }
 
@@ -262,10 +250,7 @@ func (m MsgWithdrawReward) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgWithdrawReward) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Address)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Address)
 	return []sdk.AccAddress{addr}
 }
 
@@ -305,10 +290,7 @@ func (m MsgCreateTask) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgCreateTask) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Creator)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Creator)
 	return []sdk.AccAddress{addr}
 }
 
@@ -344,10 +326,7 @@ func (m MsgTaskResponse) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgTaskResponse) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Operator)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Operator)
 	return []sdk.AccAddress{addr}
 }
 
@@ -383,10 +362,7 @@ func (m MsgDeleteTask) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgDeleteTask) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.From)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.From)
 	return []sdk.AccAddress{addr}
 }
 
@@ -439,10 +415,7 @@ func (m MsgCreateTxTask) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgCreateTxTask) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Creator)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Creator)
 
 	return []sdk.AccAddress{addr}
 }

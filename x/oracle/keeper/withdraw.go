@@ -12,10 +12,7 @@ import (
 func (k Keeper) SetWithdraw(ctx sdk.Context, withdraw types.Withdraw) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&withdraw)
-	withdrawAddr, err := sdk.AccAddressFromBech32(withdraw.Address)
-	if err != nil {
-		panic(err)
-	}
+	withdrawAddr := sdk.MustAccAddressFromBech32(withdraw.Address)
 	store.Set(types.WithdrawStoreKey(withdrawAddr, withdraw.DueBlock), bz)
 }
 
