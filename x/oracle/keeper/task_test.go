@@ -127,6 +127,8 @@ func TestTaskNoResponses(t *testing.T) {
 	require.NoError(t, ok.Aggregate(ctx, tth.TaskID()))
 	taskRes := tth.CheckTask(ok.GetTask(ctx, tth.TaskID()))
 	require.Equal(t, types.TaskStatusFailed, taskRes.GetStatus())
+
+	require.NoError(t, ok.RefundBounty(ctx, taskRes))
 }
 
 func TestTaskMinScore(t *testing.T) {
@@ -162,6 +164,9 @@ func TestTaskMinScore(t *testing.T) {
 	require.Equal(t, types.MinScore.Int64(), taskRes.GetScore())
 
 	require.NoError(t, ok.DistributeBounty(ctx, taskRes))
+
+	taskRes = tth.CheckTask(ok.GetTask(ctx, tth.TaskID()))
+	require.NoError(t, ok.RefundBounty(ctx, taskRes))
 
 	operator1, err := ok.GetOperator(ctx, addrs[0])
 	require.Nil(t, err)
@@ -216,6 +221,9 @@ func TestTaskBelowThreshold(t *testing.T) {
 	require.Equal(t, int64(30), taskRes.GetScore())
 
 	require.NoError(t, ok.DistributeBounty(ctx, taskRes))
+
+	taskRes = tth.CheckTask(ok.GetTask(ctx, tth.TaskID()))
+	require.NoError(t, ok.RefundBounty(ctx, taskRes))
 
 	operator1, err := ok.GetOperator(ctx, addrs[0])
 	require.Nil(t, err)
