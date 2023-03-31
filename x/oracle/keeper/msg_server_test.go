@@ -17,6 +17,7 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
+// TestMsgServer_CreateTxTask This function demonstrates the ability to create and delete a transaction task, and to have collateral accounts approve or reject said task.
 func TestMsgServer_CreateTxTask(t *testing.T) {
 	ctx, ok, msgServer, addrs := DoInit(t)
 	DepositCollateral(ctx, ok, addrs[0])
@@ -27,7 +28,7 @@ func TestMsgServer_CreateTxTask(t *testing.T) {
 	taskParsms.ShortcutQuorum = sdk.NewInt(1).ToDec()
 	ok.SetTaskParams(ctx, taskParsms)
 
-	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
+	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 1)}
 	txBytes, txHash := GetBytesHash("ethereum transaction")
 
 	CreateTxTask(ctx, addrs[2], txBytes, bounty, 3600, true)
@@ -38,6 +39,8 @@ func TestMsgServer_CreateTxTask(t *testing.T) {
 	RespondToTxTask(ctx, txHash, 90, addrs[0], true)
 	ctx = PassBlocks(ctx, ok, t, 10, 0)
 	RespondToTxTask(ctx, txHash, 80, addrs[1], true)
+	//Duplicate submission
+	RespondToTxTask(ctx, txHash, 8, addrs[1], false)
 
 	ctx = PassBlocks(ctx, ok, t, 709, 0)
 	ctx = PassBlocks(ctx, ok, t, 1, 1)                    //after one hour, the txtask should become invalid
