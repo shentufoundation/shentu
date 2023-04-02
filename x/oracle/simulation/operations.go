@@ -116,11 +116,11 @@ func SimulateMsgCreateOperator(k keeper.Keeper, ak types.AccountKeeper, bk types
 			},
 			{
 				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 0, 20),
-				Op:          SimulateMsgCreateCertOperator(k, ak, bk, &stdOperator),
+				Op:          SimulateMsgReduceCollateral(k, ak, bk, &stdOperator, operator.PrivKey),
 			},
 			{
 				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 0, 20),
-				Op:          SimulateMsgReduceCollateral(k, ak, bk, &stdOperator, operator.PrivKey),
+				Op:          SimulateMsgCreateCertOperator(k, ak, bk, &stdOperator),
 			},
 			{
 				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 0, 20),
