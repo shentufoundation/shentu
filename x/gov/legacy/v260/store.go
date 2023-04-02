@@ -1,6 +1,8 @@
 package v260
 
 import (
+	"encoding/json"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -55,30 +57,25 @@ func MigrateProposalStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.Bina
 	return nil
 }
 
-func MigrateParams(ctx sdk.Context, paramSubspace types.ParamSubspace, cdc codec.BinaryCodec) error {
+func MigrateParams(ctx sdk.Context, paramSubspace types.ParamSubspace, legacyAmino *codec.LegacyAmino) error {
 	var (
-		oldDepositParams DepositParams
-		oldTallyParams   TallyParams
+		depositParams  govtypes.DepositParams
+		oldTallyParams TallyParams
 	)
 
-	depositBytes := paramSubspace.GetRaw(ctx, govtypes.ParamStoreKeyDepositParams)
-	if err := cdc.Unmarshal(depositBytes, &oldDepositParams); err != nil {
+	paramSubspace.Get(ctx, govtypes.ParamStoreKeyDepositParams, &depositParams)
+	//paramSubspace.Get(ctx, govtypes.ParamStoreKeyTallyParams, &oldTallyParams)
+	tallyParamsBytes := paramSubspace.GetRaw(ctx, govtypes.ParamStoreKeyTallyParams)
+	if err := json.Unmarshal(tallyParamsBytes, &oldTallyParams); err != nil {
 		return err
 	}
-	tallyBytes := paramSubspace.GetRaw(ctx, govtypes.ParamStoreKeyTallyParams)
-	if err := cdc.Unmarshal(tallyBytes, &oldTallyParams); err != nil {
-		return err
-	}
-
-	// depositParams
-	depositParams := govtypes.NewDepositParams(oldDepositParams.MinDeposit, oldDepositParams.MaxDepositPeriod)
 
 	// tallyParams
 	defaultTally := oldTallyParams.DefaultTally
+
 	securityVoteTally := oldTallyParams.CertifierUpdateSecurityVoteTally
 	stakeVoteTally := oldTallyParams.CertifierUpdateStakeVoteTally
 	tallyParams := govtypes.NewTallyParams(defaultTally.Quorum, defaultTally.Threshold, defaultTally.VetoThreshold)
-
 	// customParams
 	certifierUpdateSecurityVoteTally := govtypes.NewTallyParams(
 		securityVoteTally.Quorum,

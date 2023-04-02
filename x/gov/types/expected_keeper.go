@@ -4,7 +4,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
@@ -37,7 +36,6 @@ type ShieldKeeper interface {
 type ParamSubspace interface {
 	Get(ctx sdk.Context, key []byte, ptr interface{})
 	Set(ctx sdk.Context, key []byte, param interface{})
-	WithKeyTable(table paramtypes.KeyTable) paramtypes.Subspace
 	GetRaw(ctx sdk.Context, key []byte) []byte
 }
 
