@@ -27,7 +27,6 @@ func Test_MigrateProposalStore(t *testing.T) {
 
 	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	encodingConfig := shentuapp.MakeEncodingConfig()
 	govSubspace := app.GetSubspace(govtypes.ModuleName)
 	tableField := reflect.ValueOf(&govSubspace).Elem().FieldByName("table")
 	tableFieldPtr := reflect.NewAt(tableField.Type(), unsafe.Pointer(tableField.UnsafeAddr()))
@@ -54,7 +53,7 @@ func Test_MigrateProposalStore(t *testing.T) {
 	govSubspace.Set(ctx, govtypes.ParamStoreKeyTallyParams, &oldTallyParams)
 
 	tableFieldPtr.Elem().Set(reflect.ValueOf(types.ParamKeyTable()))
-	err := v260.MigrateParams(ctx, govSubspace, encodingConfig.Amino)
+	err := v260.MigrateParams(ctx, govSubspace)
 	require.NoError(t, err)
 	// get migrate params
 	govSubspace.Get(ctx, govtypes.ParamStoreKeyDepositParams, &depositParams)

@@ -57,14 +57,13 @@ func MigrateProposalStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.Bina
 	return nil
 }
 
-func MigrateParams(ctx sdk.Context, paramSubspace types.ParamSubspace, legacyAmino *codec.LegacyAmino) error {
+func MigrateParams(ctx sdk.Context, paramSubspace types.ParamSubspace) error {
 	var (
 		depositParams  govtypes.DepositParams
 		oldTallyParams TallyParams
 	)
 
 	paramSubspace.Get(ctx, govtypes.ParamStoreKeyDepositParams, &depositParams)
-	//paramSubspace.Get(ctx, govtypes.ParamStoreKeyTallyParams, &oldTallyParams)
 	tallyParamsBytes := paramSubspace.GetRaw(ctx, govtypes.ParamStoreKeyTallyParams)
 	if err := json.Unmarshal(tallyParamsBytes, &oldTallyParams); err != nil {
 		return err
