@@ -51,7 +51,11 @@ func MigrateProposalStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.Bina
 		}
 
 		store.Delete(iterator.Key())
-		store.Set(govtypes.ProposalKey(oldProposal.ProposalId), iterator.Value())
+		bz, err := cdc.Marshal(&newProposal)
+		if err != nil {
+			return err
+		}
+		store.Set(govtypes.ProposalKey(newProposal.ProposalId), bz)
 	}
 
 	return nil

@@ -1,14 +1,19 @@
 package v260_test
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
 	"unsafe"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/require"
+
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -19,6 +24,55 @@ import (
 )
 
 func Test_MigrateProposalStore(t *testing.T) {
+	govKey := sdk.NewKVStoreKey(govtypes.StoreKey)
+	ctx := testutil.DefaultContext(govKey, sdk.NewTransientStoreKey("transient_test"))
+	cdc := shentuapp.MakeEncodingConfig().Marshaler
+	store := ctx.KVStore(govKey)
+
+	content := govtypes.NewTextProposal("title", "description")
+	fmt.Println(content.ProposalRoute())
+	msg, ok := content.(proto.Message)
+	require.True(t, ok)
+	contentAny, err := codectypes.NewAnyWithValue(msg)
+	require.NoError(t, err)
+
+	testsStatus := []struct {
+		oldProposal v260.Proposal
+	}{
+		{
+			v260.Proposal{ProposalId: 1, Status: 0, Content: contentAny},
+		},
+		{
+			v260.Proposal{ProposalId: 2, Status: 1, Content: contentAny},
+		},
+		{
+			v260.Proposal{ProposalId: 3, Status: 2, Content: contentAny},
+		},
+		{
+			v260.Proposal{ProposalId: 4, Status: 3, Content: contentAny},
+		},
+		{
+			v260.Proposal{ProposalId: 5, Status: 4, Content: contentAny},
+		},
+		{
+			v260.Proposal{ProposalId: 6, Status: 5, Content: contentAny},
+		},
+		{
+			v260.Proposal{ProposalId: 7, Status: 6, Content: contentAny},
+		},
+	}
+
+	for _, test := range testsStatus {
+		bz, err := cdc.Marshal(&test.oldProposal)
+		require.NoError(t, err)
+		store.Set(govtypes.ProposalKey(test.oldProposal.ProposalId), bz)
+	}
+
+	err = v260.MigrateProposalStore(ctx, govKey, cdc)
+	require.NoError(t, err)
+}
+
+func Test_MigrateParams(t *testing.T) {
 	var (
 		depositParams govtypes.DepositParams
 		tallyParams   govtypes.TallyParams
