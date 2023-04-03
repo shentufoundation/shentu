@@ -779,19 +779,19 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Operator_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "oracle", "v1alpha1", "operator", "address"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Operator_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "oracle", "v1alpha1", "operator", "address"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Operators_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "oracle", "v1alpha1", "operators"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Operators_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "oracle", "v1alpha1", "operators"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Withdraws_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "oracle", "v1alpha1", "withdraws"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Withdraws_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "oracle", "v1alpha1", "withdraws"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Task_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"shentu", "oracle", "v1alpha1", "contract", "function", "task"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Task_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"shentu", "oracle", "v1alpha1", "contract", "function", "task"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_TxTask_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"shentu", "oracle", "v1alpha1", "txhash", "tx_hash", "txtask"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_TxTask_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"shentu", "oracle", "v1alpha1", "txhash", "tx_hash", "txtask"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Response_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7}, []string{"shentu", "oracle", "v1alpha1", "contract", "function", "operator", "operator_address", "Response"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Response_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7}, []string{"shentu", "oracle", "v1alpha1", "contract", "function", "operator", "operator_address", "Response"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_TxResponse_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7}, []string{"shentu", "oracle", "v1alpha1", "txhash", "tx_hash", "operator", "operator_address", "Response"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_TxResponse_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7}, []string{"shentu", "oracle", "v1alpha1", "txhash", "tx_hash", "operator", "operator_address", "Response"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
