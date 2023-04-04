@@ -17,7 +17,6 @@ const (
 	TypeMsgWithdrawReward   = "withdraw_reward"
 	TypeMsgCreateTask       = "create_task"
 	TypeMsgRespondToTask    = "respond_to_task"
-	TypeMsgInquireTask      = "inquire_task"
 	TypeMsgDeleteTask       = "delete_task"
 	TypeMsgCreateTxTask     = "create_tx_task"
 	TypeMsgRespondToTxTask  = "respond_to_tx_task"

@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"testing"
 	"time"
@@ -89,8 +90,9 @@ func TestTaskAggregateFail(t *testing.T) {
 	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetTask()))
 	taskRes := tth.CheckTask(ok.GetTask(ctx, tth.TaskID()))
 
-	require.NoError(t, ok.RespondToTask(ctx, tth.TaskID(), 100, addrs[0]))
+	require.Error(t, ok.RespondToTask(ctx, tth.TaskID(), 110, addrs[0]))
 	require.NoError(t, ok.RespondToTask(ctx, tth.TaskID(), 100, addrs[2]))
+	require.NoError(t, ok.RespondToTask(ctx, tth.TaskID(), 100, addrs[0]))
 
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 6)
 	require.Error(t, ok.RespondToTask(ctx, tth.TaskID(), 100, addrs[0]))
@@ -156,7 +158,9 @@ func TestTaskMinScore(t *testing.T) {
 	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetTask()))
 
 	require.NoError(t, ok.RespondToTask(ctx, tth.TaskID(), 100, addrs[2]))
+	require.Error(t, ok.RespondToTask(ctx, tth.TaskID(), -1, addrs[0]))
 	require.NoError(t, ok.RespondToTask(ctx, tth.TaskID(), 0, addrs[0]))
+
 	require.NoError(t, ok.Aggregate(ctx, tth.TaskID()))
 
 	taskRes := tth.CheckTask(ok.GetTask(ctx, tth.TaskID()))
@@ -448,5 +452,25 @@ func (t *TTHelper) CheckTxTask(i types.TaskI, err error) types.TaskI {
 	require.Equal(t.t, t.bounty, res.Bounty)
 	require.Equal(t.t, t.TxTaskID(), res.GetID())
 	require.Equal(t.t, t.validTime, res.ValidTime)
+	t.CheckClosingTaskIDsShortcutTasks(i)
 	return i
+}
+
+func (t *TTHelper) CheckClosingTaskIDsShortcutTasks(task types.TaskI) {
+	ClosingTaskIDs := t.app.OracleKeeper.GetClosingTaskIDs(t.ctx, task)
+	ShortcutTasksIDs := t.app.OracleKeeper.GetShortcutTasks(t.ctx)
+
+	var duplicates = false
+	for _, shortcutTasksID := range ShortcutTasksIDs {
+		for _, closingTaskID := range ClosingTaskIDs {
+			if bytes.Equal(shortcutTasksID.Tid, closingTaskID.Tid) {
+				duplicates = true
+				break
+			}
+		}
+		if duplicates {
+			break
+		}
+	}
+	require.False(t.t, duplicates)
 }
