@@ -2,7 +2,7 @@ package e2e
 
 import (
 	"bytes"
-	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
@@ -322,7 +322,7 @@ func (s *IntegrationTestSuite) TestOracle() {
 	})
 
 	s.Run("create_tx_task", func() {
-		txBytes := base64.StdEncoding.EncodeToString([]byte(valTimeStr))
+		txBytes := hex.EncodeToString([]byte(valTimeStr))
 		chainId := "test"
 		bountyAmount, _ := sdk.NewIntFromString("500000")
 		bounty := sdk.NewCoin(uctkDenom, bountyAmount)
