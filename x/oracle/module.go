@@ -113,7 +113,9 @@ func (am AppModule) Name() string {
 }
 
 // RegisterInvariants registers the this module invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	keeper.RegisterInvariants(ir, am.keeper)
+}
 
 // Route returns the message routing key for the oracle module.
 func (am AppModule) Route() sdk.Route {
