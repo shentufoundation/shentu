@@ -191,7 +191,7 @@ func CreateTxTask(ctx sdk.Context, creator sdk.AccAddress, txBytes []byte, bount
 	if succeed {
 		require.NoError(t, err)
 		txHash := sha256.Sum256(txBytes)
-		require.Equal(t, res.TxHash, txHash[:])
+		require.Equal(t, res.AtxHash, txHash[:])
 	} else {
 		require.Error(t, err)
 	}

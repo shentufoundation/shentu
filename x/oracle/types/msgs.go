@@ -371,7 +371,7 @@ func NewMsgCreateTxTask(creator sdk.AccAddress, chainID string, txBytes []byte,
 	return &MsgCreateTxTask{
 		Creator:   creator.String(),
 		ChainId:   chainID,
-		TxBytes:   txBytes,
+		AtxBytes:  txBytes,
 		Bounty:    bounty,
 		ValidTime: validTime,
 	}
@@ -390,7 +390,7 @@ func (m MsgCreateTxTask) ValidateBasic() error {
 		return err
 	}
 
-	if len(m.TxBytes) == 0 {
+	if len(m.AtxBytes) == 0 {
 		return fmt.Errorf("tx bytes cannot be empty")
 	}
 	if len(m.ChainId) == 0 {
@@ -421,7 +421,7 @@ func (m MsgCreateTxTask) GetSigners() []sdk.AccAddress {
 
 func NewMsgTxTaskResponse(txHash []byte, score int64, operator sdk.AccAddress) *MsgTxTaskResponse {
 	return &MsgTxTaskResponse{
-		TxHash:   txHash,
+		AtxHash:  txHash,
 		Score:    score,
 		Operator: operator.String(),
 	}
@@ -439,7 +439,7 @@ func (m MsgTxTaskResponse) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
-	if len(m.TxHash) == 0 {
+	if len(m.AtxHash) == 0 {
 		return fmt.Errorf("tx_hash cannot be empty")
 	}
 	return nil
@@ -462,8 +462,8 @@ func (m MsgTxTaskResponse) GetSigners() []sdk.AccAddress {
 
 func NewMsgDeleteTxTask(txHash []byte, deleter sdk.AccAddress) *MsgDeleteTxTask {
 	return &MsgDeleteTxTask{
-		TxHash: txHash,
-		From:   deleter.String(),
+		AtxHash: txHash,
+		From:    deleter.String(),
 	}
 }
 
@@ -479,7 +479,7 @@ func (m MsgDeleteTxTask) ValidateBasic() error {
 	if err != nil {
 		return nil
 	}
-	if len(m.TxHash) == 0 {
+	if len(m.AtxHash) == 0 {
 		return fmt.Errorf("tx_hash cannot be empty")
 	}
 	return nil
