@@ -193,7 +193,7 @@ func queryOracleTaskHash(endpoint, txHash string) (string, error) {
 		for _, event := range log.Events {
 			if event.Type == "create_tx_task" {
 				for _, attribute := range event.Attributes {
-					if attribute.Key == "tx_hash" {
+					if attribute.Key == "atx_hash" {
 						return attribute.Value, nil
 					}
 				}
