@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"time"
@@ -19,7 +19,6 @@ import (
 
 const (
 	FlagDescription   = "description"
-	FlagTxhash        = "txhash"
 	FlagWait          = "wait"
 	FlagName          = "name"
 	FlagValidDuration = "valid"
@@ -331,7 +330,7 @@ func GetCmdRespondToTxTask() *cobra.Command {
 				return err
 			}
 
-			txHash, err := base64.StdEncoding.DecodeString(args[0])
+			txHash, err := hex.DecodeString(args[0])
 			if err != nil {
 				panic(err)
 			}
@@ -368,7 +367,7 @@ func GetCmdDeleteTxTask() *cobra.Command {
 				return err
 			}
 
-			txHash, err := base64.StdEncoding.DecodeString(args[0])
+			txHash, err := hex.DecodeString(args[0])
 			if err != nil {
 				panic(err)
 			}
@@ -400,7 +399,7 @@ func GetCmdCreateTxTask() *cobra.Command {
 				return err
 			}
 
-			txBytes, err := base64.StdEncoding.DecodeString(args[0])
+			txBytes, err := hex.DecodeString(args[0])
 			if err != nil {
 				return err
 			}
