@@ -315,7 +315,7 @@ func GetCmdDeleteTask() *cobra.Command {
 
 func GetCmdRespondToAtxTask() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "respond-to-txtask <atx_hash> <score>",
+		Use:   "respond-to-atxtask <atx_hash> <score>",
 		Short: "Respond to a transaction task",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -352,7 +352,7 @@ func GetCmdRespondToAtxTask() *cobra.Command {
 
 func GetCmdDeleteAtxTask() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete-txtask <atx_hash>",
+		Use:   "delete-atxtask <atx_hash>",
 		Short: "Delete a transaction task",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

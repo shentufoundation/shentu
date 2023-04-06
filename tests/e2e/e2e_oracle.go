@@ -78,7 +78,7 @@ func (s *IntegrationTestSuite) executeOracleRespondAtxTask(c *chain, valIdx, sco
 		shentuBinary,
 		txCommand,
 		types.ModuleName,
-		"respond-to-txtask",
+		"respond-to-atxtask",
 		taskHash,
 		fmt.Sprintf("%d", score),
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, operatorAddr),
