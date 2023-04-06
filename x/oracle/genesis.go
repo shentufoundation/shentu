@@ -15,7 +15,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	taskParams := data.TaskParams
 	withdraws := data.Withdraws
 	tasks := data.Tasks
-	AtxTasks := data.AtxTasks
+	atxTasks := data.AtxTasks
 
 	for _, operator := range operators {
 		k.SetOperator(ctx, operator)
@@ -33,8 +33,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	for i := range tasks {
 		k.UpdateAndSetTask(ctx, &tasks[i])
 	}
-	for i := range AtxTasks {
-		k.SetAtxTask(ctx, &AtxTasks[i])
+	for i := range atxTasks {
+		k.SetAtxTask(ctx, &atxTasks[i])
 	}
 }
 
@@ -46,7 +46,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	poolParams := k.GetLockedPoolParams(ctx)
 	taskParams := k.GetTaskParams(ctx)
 	withdraws := k.GetAllWithdrawsForExport(ctx)
-	tasks, AtxTasks := k.UpdateAndGetAllTasks(ctx)
+	tasks, atxTasks := k.UpdateAndGetAllTasks(ctx)
 
-	return types.NewGenesisState(operators, totalCollateral, poolParams, taskParams, withdraws, tasks, AtxTasks)
+	return types.NewGenesisState(operators, totalCollateral, poolParams, taskParams, withdraws, tasks, atxTasks)
 }

@@ -38,7 +38,7 @@ func (s *IntegrationTestSuite) executeOracleCreateOperator(c *chain, valIdx int,
 func (s *IntegrationTestSuite) executeOracleCreateAtxTask(c *chain, valIdx int, txBytes, chainId, bounty, valTime, creatorAddr, fees string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	s.T().Logf("Executing shentu tx create tx-task %s", c.id)
+	s.T().Logf("Executing shentu tx create atx-task %s", c.id)
 
 	command := []string{
 		shentuBinary,
@@ -65,14 +65,14 @@ func (s *IntegrationTestSuite) executeOracleCreateAtxTask(c *chain, valIdx int, 
 		return "", err
 	}
 
-	s.T().Logf("%s successfully submit tx-task on %s", creatorAddr, txResp.AtxHash)
+	s.T().Logf("%s successfully submit atx-task on %s", creatorAddr, txResp.AtxHash)
 	return txResp.AtxHash, nil
 }
 
 func (s *IntegrationTestSuite) executeOracleRespondAtxTask(c *chain, valIdx, score int, taskHash, operatorAddr, fees string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	s.T().Logf("Executing shentu tx respond tx-task %s", c.id)
+	s.T().Logf("Executing shentu tx respond atx-task %s", c.id)
 
 	command := []string{
 		shentuBinary,
