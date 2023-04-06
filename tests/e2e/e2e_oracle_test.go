@@ -60,13 +60,13 @@ func (s *IntegrationTestSuite) executeOracleCreateAtxTask(c *chain, valIdx int, 
 	s.T().Logf("cmd: %s", strings.Join(command, " "))
 
 	stdOut, _ := s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-	txResp := sdk.AtxResponse{}
+	txResp := sdk.TxResponse{}
 	if err := cdc.UnmarshalJSON(stdOut, &txResp); err != nil {
 		return "", err
 	}
 
-	s.T().Logf("%s successfully submit atx-task on %s", creatorAddr, txResp.AtxHash)
-	return txResp.AtxHash, nil
+	s.T().Logf("%s successfully submit atx-task on %s", creatorAddr, txResp.TxHash)
+	return txResp.TxHash, nil
 }
 
 func (s *IntegrationTestSuite) executeOracleRespondAtxTask(c *chain, valIdx, score int, taskHash, operatorAddr, fees string) {
