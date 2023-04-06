@@ -326,9 +326,9 @@ func (s *IntegrationTestSuite) TestOracle() {
 	})
 
 	s.Run("create_tx_task", func() {
-		txBytes := base64.StdEncoding.EncodeToString([]byte(valTimeStr + "1"))
-		txBytes2 := base64.StdEncoding.EncodeToString([]byte(valTimeStr + "2"))
-		txBytes3 := base64.StdEncoding.EncodeToString([]byte(valTimeStr + "3"))
+		txBytes := hex.EncodeToString([]byte(valTimeStr + "1"))
+		txBytes2 := hex.EncodeToString([]byte(valTimeStr + "2"))
+		txBytes3 := hex.EncodeToString([]byte(valTimeStr + "3"))
 		chainID := "test"
 		bountyAmount, _ := sdk.NewIntFromString("500000")
 		bounty := sdk.NewCoin(uctkDenom, bountyAmount)
