@@ -459,7 +459,7 @@ func (s *IntegrationTestSuite) TestOracle() {
 	s.Run("respond_task", func() {
 		s.executeOracleRespondTask(s.chainA, 0, 90, taskContract, taskFunction, alice.String(), feesAmountCoin.String())
 		s.executeOracleRespondTask(s.chainA, 0, 90, taskContract, taskFunction, bob.String(), feesAmountCoin.String())
-		s.executeOracleRespondTask(s.chainA, 0, 50, taskContract, taskFunction, charle.String(), feesAmountCoin.String())
+		s.executeOracleRespondTask(s.chainA, 0, 60, taskContract, taskFunction, charle.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
 				res, e := queryOracleTask(chainAAPIEndpoint, taskContract, taskFunction)
