@@ -293,8 +293,8 @@ func (s *IntegrationTestSuite) TestOracle() {
 	charle := s.chainA.accounts[2].keyInfo.GetAddress()
 
 	var atxHash, taskHash string
-	var txHash2, taskHash2 string
-	var txHash3, taskHash3 string
+	var atxHash2, taskHash2 string
+	var atxHash3, taskHash3 string
 	var err error
 
 	valTime := time.Now().Add(120 * time.Second)
@@ -357,11 +357,11 @@ func (s *IntegrationTestSuite) TestOracle() {
 			5*time.Second,
 		)
 		// 0 score task
-		txHash2, err = s.executeOracleCreateAtxTask(s.chainA, 0, txBytes2, chainID, bounty.String(), valTimeStr, alice.String(), feesAmountCoin.String())
+		atxHash2, err = s.executeOracleCreateAtxTask(s.chainA, 0, txBytes2, chainID, bounty.String(), valTimeStr, alice.String(), feesAmountCoin.String())
 		s.Require().NoError(err)
 		s.Require().Eventually(
 			func() bool {
-				res, e := queryOracleTaskHash(chainAAPIEndpoint, txHash2)
+				res, e := queryOracleTaskHash(chainAAPIEndpoint, atxHash2)
 				if e == nil {
 					taskHash2 = res
 					return true
@@ -372,11 +372,11 @@ func (s *IntegrationTestSuite) TestOracle() {
 			5*time.Second,
 		)
 		// long term task
-		txHash3, err = s.executeOracleCreateAtxTask(s.chainA, 0, txBytes3, chainID, bounty.String(), longValTimeStr, alice.String(), feesAmountCoin.String())
+		atxHash3, err = s.executeOracleCreateAtxTask(s.chainA, 0, txBytes3, chainID, bounty.String(), longValTimeStr, alice.String(), feesAmountCoin.String())
 		s.Require().NoError(err)
 		s.Require().Eventually(
 			func() bool {
-				res, e := queryOracleTaskHash(chainAAPIEndpoint, txHash3)
+				res, e := queryOracleTaskHash(chainAAPIEndpoint, atxHash3)
 				if e == nil {
 					taskHash3 = res
 					return true
