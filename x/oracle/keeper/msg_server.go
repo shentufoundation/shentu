@@ -3,7 +3,7 @@ package keeper
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/base64"
+	"encoding/hex"
 	"strconv"
 	"time"
 
@@ -234,7 +234,7 @@ func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTas
 	}
 
 	hashByte := sha256.Sum256(msg.TxBytes)
-	hash := base64.StdEncoding.EncodeToString(hashByte[:])
+	hash := hex.EncodeToString(hashByte[:])
 
 	txTask, err := k.BuildTxTask(ctx, hashByte[:], msg.Creator, msg.Bounty, msg.ValidTime)
 	if err != nil {
@@ -283,7 +283,7 @@ func (k msgServer) TxTaskResponse(goCtx context.Context, msg *types.MsgTxTaskRes
 			types.TypeMsgRespondToTxTask,
 			sdk.NewAttribute("operator", msg.Operator),
 			sdk.NewAttribute("score", strconv.FormatInt(msg.Score, 10)),
-			sdk.NewAttribute("txHash", base64.StdEncoding.EncodeToString(msg.TxHash)),
+			sdk.NewAttribute("txHash", hex.EncodeToString(msg.TxHash)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -307,7 +307,7 @@ func (k msgServer) DeleteTxTask(goCtx context.Context, msg *types.MsgDeleteTxTas
 		sdk.NewEvent(
 			types.TypeMsgDeleteTxTask,
 			sdk.NewAttribute("deleter", msg.From),
-			sdk.NewAttribute("txHash", base64.StdEncoding.EncodeToString(msg.TxHash)),
+			sdk.NewAttribute("txHash", hex.EncodeToString(msg.TxHash)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

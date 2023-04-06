@@ -2,7 +2,7 @@ package e2e
 
 import (
 	"bytes"
-	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
