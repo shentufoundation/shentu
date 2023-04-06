@@ -35,7 +35,7 @@ func (s *IntegrationTestSuite) executeOracleCreateOperator(c *chain, valIdx int,
 	s.T().Logf("successfully add operator on %s", operatorAddr)
 }
 
-func (s *IntegrationTestSuite) executeOracleCreateTxTask(c *chain, valIdx int, txBytes, chainId, bounty, valTime, creatorAddr, fees string) (string, error) {
+func (s *IntegrationTestSuite) executeOracleCreateAtxTask(c *chain, valIdx int, txBytes, chainId, bounty, valTime, creatorAddr, fees string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 	s.T().Logf("Executing shentu tx create tx-task %s", c.id)
@@ -60,16 +60,16 @@ func (s *IntegrationTestSuite) executeOracleCreateTxTask(c *chain, valIdx int, t
 	s.T().Logf("cmd: %s", strings.Join(command, " "))
 
 	stdOut, _ := s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-	txResp := sdk.TxResponse{}
+	txResp := sdk.AtxResponse{}
 	if err := cdc.UnmarshalJSON(stdOut, &txResp); err != nil {
 		return "", err
 	}
 
-	s.T().Logf("%s successfully submit tx-task on %s", creatorAddr, txResp.TxHash)
-	return txResp.TxHash, nil
+	s.T().Logf("%s successfully submit tx-task on %s", creatorAddr, txResp.AtxHash)
+	return txResp.AtxHash, nil
 }
 
-func (s *IntegrationTestSuite) executeOracleRespondTxTask(c *chain, valIdx, score int, taskHash, operatorAddr, fees string) {
+func (s *IntegrationTestSuite) executeOracleRespondAtxTask(c *chain, valIdx, score int, taskHash, operatorAddr, fees string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 	s.T().Logf("Executing shentu tx respond tx-task %s", c.id)
@@ -184,16 +184,16 @@ func (s *IntegrationTestSuite) executeOracleRemoveOperator(c *chain, valIdx int,
 	s.T().Logf("successfully remove operator on %s", operatorAddr)
 }
 
-func queryOracleTaskHash(endpoint, txHash string) (string, error) {
-	txRsp, err := getShentuTx(endpoint, txHash)
+func queryOracleTaskHash(endpoint, atxHash string) (string, error) {
+	txRsp, err := getShentuTx(endpoint, atxHash)
 	if err != nil {
 		return "", err
 	}
 	for _, log := range txRsp.Logs {
 		for _, event := range log.Events {
-			if event.Type == "create_tx_task" {
+			if event.Type == "create_atx_task" {
 				for _, attribute := range event.Attributes {
-					if attribute.Key == "tx_hash" {
+					if attribute.Key == "atx_hash" {
 						return attribute.Value, nil
 					}
 				}
@@ -217,14 +217,14 @@ func queryOracleOperator(endpoint, operatorAddr string) (*types.QueryOperatorRes
 	return grpcRsp, nil
 }
 
-func queryOracleTxTask(endpoint, taskHash string) (*types.QueryTxTaskResponse, error) {
-	grpcReq := &types.QueryTxTaskRequest{
-		TxHash: taskHash,
+func queryOracleAtxTask(endpoint, taskHash string) (*types.QueryAtxTaskResponse, error) {
+	grpcReq := &types.QueryAtxTaskRequest{
+		AtxHash: taskHash,
 	}
 	conn, _ := connectGrpc(endpoint)
 	defer conn.Close()
 	client := types.NewQueryClient(conn)
-	grpcRsp, err := client.TxTask(context.Background(), grpcReq)
+	grpcRsp, err := client.AtxTask(context.Background(), grpcReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}

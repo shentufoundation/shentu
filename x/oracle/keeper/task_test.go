@@ -182,15 +182,15 @@ func TestTaskMinScore(t *testing.T) {
 	require.Equal(t, addrs[2].String(), operator2.Address)
 	require.Nil(t, operator2.AccumulatedRewards)
 
-	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetTxTask(types.TaskStatusPending)))
+	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetAtxTask(types.TaskStatusPending)))
 
-	require.NoError(t, ok.RespondToTask(ctx, tth.TxTaskID(), 0, addrs[0]))
-	require.NoError(t, ok.RespondToTask(ctx, tth.TxTaskID(), 0, addrs[2]))
+	require.NoError(t, ok.RespondToTask(ctx, tth.AtxTaskID(), 0, addrs[0]))
+	require.NoError(t, ok.RespondToTask(ctx, tth.AtxTaskID(), 0, addrs[2]))
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Second * 6))
 	oracle.EndBlocker(ctx, ok)
-	txTaskRes := tth.CheckTxTask(ok.GetTask(ctx, tth.TxTaskID()))
-	require.Equal(t, types.TaskStatusSucceeded, txTaskRes.GetStatus())
-	require.Equal(t, types.MinScore.Int64(), txTaskRes.GetScore())
+	atxTaskRes := tth.CheckAtxTask(ok.GetTask(ctx, tth.AtxTaskID()))
+	require.Equal(t, types.TaskStatusSucceeded, atxTaskRes.GetStatus())
+	require.Equal(t, types.MinScore.Int64(), atxTaskRes.GetScore())
 }
 
 func TestTaskBelowThreshold(t *testing.T) {
@@ -285,7 +285,7 @@ func TestTaskAboveThreshold(t *testing.T) {
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin("uctk", 41666)}, operator2.AccumulatedRewards)
 }
 
-func TestTxTaskBasic(t *testing.T) {
+func TestAtxTaskBasic(t *testing.T) {
 	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 1, sdk.NewInt(80000*1e6))
@@ -297,18 +297,18 @@ func TestTxTaskBasic(t *testing.T) {
 		contract:  "hello",
 		validTime: time.Now().Add(time.Hour).UTC(),
 	}
-	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetTxTask(types.TaskStatusPending)))
-	tth.CheckTxTask(ok.GetTask(ctx, tth.TxTaskID()))
+	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetAtxTask(types.TaskStatusPending)))
+	tth.CheckAtxTask(ok.GetTask(ctx, tth.AtxTaskID()))
 
 	tth.contract = "hello world"
 	tth.validTime = time.Now().Add(time.Hour * 2).UTC()
-	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetTxTask(types.TaskStatusNil)))
-	txtask2 := tth.CheckTxTask(ok.GetTask(ctx, tth.TxTaskID()))
+	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetAtxTask(types.TaskStatusNil)))
+	atxtask2 := tth.CheckAtxTask(ok.GetTask(ctx, tth.AtxTaskID()))
 
-	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetTxTask(types.TaskStatusPending)))
+	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetAtxTask(types.TaskStatusPending)))
 
-	_ = ok.DeleteTask(ctx, txtask2)
-	_, err := ok.GetTask(ctx, tth.TxTaskID())
+	_ = ok.DeleteTask(ctx, atxtask2)
+	_, err := ok.GetTask(ctx, tth.AtxTaskID())
 	require.Error(t, err)
 }
 
@@ -331,24 +331,24 @@ func TestTimer(t *testing.T) {
 	}
 	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetTask()))
 	tth.creator = addrs[1]
-	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetTxTask(types.TaskStatusPending)))
+	require.NoError(t, ok.CreateTask(ctx, tth.creator, tth.GetAtxTask(types.TaskStatusPending)))
 
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 2)
 	oracle.EndBlocker(ctx, ok)
 	require.Len(t, ok.GetAllTasks(ctx), 2)
 	taskRes := tth.CheckTask(ok.GetTask(ctx, tth.TaskID()))
-	txTaskRes := tth.CheckTxTask(ok.GetTask(ctx, tth.TxTaskID()))
+	atxTaskRes := tth.CheckAtxTask(ok.GetTask(ctx, tth.AtxTaskID()))
 	require.Equal(t, types.TaskStatusPending, taskRes.GetStatus())
-	require.Equal(t, types.TaskStatusPending, txTaskRes.GetStatus())
+	require.Equal(t, types.TaskStatusPending, atxTaskRes.GetStatus())
 
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 3)
 	require.Len(t, ok.GetInvalidTaskIDs(ctx), 1)
 	oracle.EndBlocker(ctx, ok)
 	require.Len(t, ok.GetInvalidTaskIDs(ctx), 0)
 	taskRes = tth.CheckTask(ok.GetTask(ctx, tth.TaskID()))
-	txTaskRes = tth.CheckTxTask(ok.GetTask(ctx, tth.TxTaskID()))
+	atxTaskRes = tth.CheckAtxTask(ok.GetTask(ctx, tth.AtxTaskID()))
 	require.Equal(t, types.TaskStatusFailed, taskRes.GetStatus())
-	require.Equal(t, types.TaskStatusPending, txTaskRes.GetStatus())
+	require.Equal(t, types.TaskStatusPending, atxTaskRes.GetStatus())
 
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 6)
 	oracle.EndBlocker(ctx, ok)
@@ -359,8 +359,8 @@ func TestTimer(t *testing.T) {
 	require.Len(t, ok.GetInvalidTaskIDs(ctx), 1)
 	oracle.EndBlocker(ctx, ok)
 	require.Len(t, ok.GetAllTasks(ctx), 2)
-	txTaskRes = tth.CheckTxTask(ok.GetTask(ctx, tth.TxTaskID()))
-	require.Equal(t, types.TaskStatusFailed, txTaskRes.GetStatus())
+	atxTaskRes = tth.CheckAtxTask(ok.GetTask(ctx, tth.AtxTaskID()))
+	require.Equal(t, types.TaskStatusFailed, atxTaskRes.GetStatus())
 
 	ctx = ctx.WithBlockTime(tth.validTime.Add(time.Second * 61))
 	require.Len(t, ok.GetInvalidTaskIDs(ctx), 0)
@@ -382,19 +382,19 @@ func TestTimer(t *testing.T) {
 	tth.creator = addrs[2]
 	tth.ctx = ctx
 	tth.validTime = ctx.BlockTime().Add(time.Second * 50).UTC()
-	require.NoError(t, ok.CreateTask(tth.ctx, tth.creator, tth.GetTxTask(types.TaskStatusNil)))
+	require.NoError(t, ok.CreateTask(tth.ctx, tth.creator, tth.GetAtxTask(types.TaskStatusNil)))
 	tth.ctx = PassBlocks(tth.ctx, ok, t, 2, 0)
-	require.NoError(t, ok.CreateTask(tth.ctx, tth.creator, tth.GetTxTask(types.TaskStatusPending)))
+	require.NoError(t, ok.CreateTask(tth.ctx, tth.creator, tth.GetAtxTask(types.TaskStatusPending)))
 	tth.ctx = PassBlocks(tth.ctx, ok, t, 2, 0)
-	require.Error(t, ok.RemoveTask(tth.ctx, tth.TxTaskID(), true, addrs[3])) // status is still pending
+	require.Error(t, ok.RemoveTask(tth.ctx, tth.AtxTaskID(), true, addrs[3])) // status is still pending
 	tth.ctx = PassBlocks(tth.ctx, ok, t, 6, 1)
-	require.Error(t, ok.RemoveTask(tth.ctx, tth.TxTaskID(), true, addrs[3])) // not the creator
-	require.NoError(t, ok.RemoveTask(tth.ctx, tth.TxTaskID(), true, addrs[2]))
+	require.Error(t, ok.RemoveTask(tth.ctx, tth.AtxTaskID(), true, addrs[3])) // not the creator
+	require.NoError(t, ok.RemoveTask(tth.ctx, tth.AtxTaskID(), true, addrs[2]))
 	require.Len(t, ok.GetAllTasks(tth.ctx), 1)
 }
 
 type TTHelper struct {
-	//for both Task and TxTask
+	//for both Task and AtxTask
 	app     *shentuapp.ShentuApp
 	ctx     sdk.Context
 	t       *testing.T
@@ -406,7 +406,7 @@ type TTHelper struct {
 	desc         string
 	waitingBlock int64
 	expiration   time.Time
-	//only for TxTask
+	//only for AtxTask
 	validTime time.Time
 }
 
@@ -434,23 +434,23 @@ func (t *TTHelper) CheckTask(i types.TaskI, err error) types.TaskI {
 	return i
 }
 
-func (t *TTHelper) GetTxTask(status types.TaskStatus) *types.TxTask {
-	return t.app.OracleKeeper.BuildTxTaskWithExpire(
-		t.ctx, t.TxTaskID(), t.creator.String(),
+func (t *TTHelper) GetAtxTask(status types.TaskStatus) *types.AtxTask {
+	return t.app.OracleKeeper.BuildAtxTaskWithExpire(
+		t.ctx, t.AtxTaskID(), t.creator.String(),
 		t.bounty, t.validTime, status)
 }
 
-func (t *TTHelper) TxTaskID() []byte {
-	txHash := sha256.Sum256([]byte(t.contract))
-	return txHash[:]
+func (t *TTHelper) AtxTaskID() []byte {
+	atxHash := sha256.Sum256([]byte(t.contract))
+	return atxHash[:]
 }
 
-func (t *TTHelper) CheckTxTask(i types.TaskI, err error) types.TaskI {
+func (t *TTHelper) CheckAtxTask(i types.TaskI, err error) types.TaskI {
 	require.Nil(t.t, err)
-	res := i.(*types.TxTask)
+	res := i.(*types.AtxTask)
 	require.Equal(t.t, t.creator, sdk.MustAccAddressFromBech32(res.Creator))
 	require.Equal(t.t, t.bounty, res.Bounty)
-	require.Equal(t.t, t.TxTaskID(), res.GetID())
+	require.Equal(t.t, t.AtxTaskID(), res.GetID())
 	require.Equal(t.t, t.validTime, res.ValidTime)
 	t.CheckClosingTaskIDsShortcutTasks(i)
 	return i

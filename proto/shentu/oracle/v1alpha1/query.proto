@@ -26,16 +26,16 @@ service Query {
         option (google.api.http).get = "/shentu/oracle/v1alpha1/contract/{contract}/function/{function}/task";
     }
 
-    rpc TxTask(QueryTxTaskRequest) returns (QueryTxTaskResponse) {
-        option (google.api.http).get = "/shentu/oracle/v1alpha1/txhash/{tx_hash}/txtask";
+    rpc AtxTask(QueryAtxTaskRequest) returns (QueryAtxTaskResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/atxhash/{atx_hash}/atxtask";
     }
 
     rpc Response(QueryResponseRequest) returns (QueryResponseResponse) {
         option (google.api.http).get = "/shentu/oracle/v1alpha1/contract/{contract}/function/{function}/operator/{operator_address}/Response";
     }
 
-    rpc TxResponse(QueryTxResponseRequest) returns (QueryTxResponseResponse) {
-        option (google.api.http).get = "/shentu/oracle/v1alpha1/txhash/{tx_hash}/operator/{operator_address}/Response";
+    rpc AtxResponse(QueryAtxResponseRequest) returns (QueryAtxResponseResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/atxhash/{atx_hash}/operator/{operator_address}/Response";
     }
 }
 
@@ -70,12 +70,12 @@ message QueryTaskResponse {
     Task task = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryTxTaskRequest {
-    string tx_hash = 1;
+message QueryAtxTaskRequest {
+    string atx_hash = 1;
 }
 
-message QueryTxTaskResponse {
-   TxTask task = 1 [(gogoproto.nullable) = false];
+message QueryAtxTaskResponse {
+   AtxTask task = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryResponseRequest {
@@ -88,11 +88,11 @@ message QueryResponseResponse {
     Response response = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryTxResponseRequest {
-    string tx_hash = 1;
+message QueryAtxResponseRequest {
+    string atx_hash = 1;
     string operator_address = 2;
 }
 
-message QueryTxResponseResponse {
+message QueryAtxResponseResponse {
     Response response = 1 [(gogoproto.nullable) = false];
 }

@@ -210,42 +210,42 @@ func (suite *KeeperTestSuite) TestGRPCQueryTask() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGRPCQueryTxTask() {
+func (suite *KeeperTestSuite) TestGRPCQueryAtxTask() {
 	tests := []struct {
 		name    string
-		req     *types.QueryTxTaskRequest
+		req     *types.QueryAtxTaskRequest
 		preRun  func()
-		postRun func(_ *types.QueryTxTaskResponse)
+		postRun func(_ *types.QueryAtxTaskResponse)
 		expPass bool
 	}{
 		{
 			"empty tx hash",
-			&types.QueryTxTaskRequest{
-				TxHash: "",
+			&types.QueryAtxTaskRequest{
+				AtxHash: "",
 			},
 			func() {},
-			func(*types.QueryTxTaskResponse) {},
+			func(*types.QueryAtxTaskResponse) {},
 			false,
 		},
 		{
 			"invalid tx hash",
-			&types.QueryTxTaskRequest{
-				TxHash: "1234567",
+			&types.QueryAtxTaskRequest{
+				AtxHash: "1234567",
 			},
 			func() {},
-			func(*types.QueryTxTaskResponse) {},
+			func(*types.QueryAtxTaskResponse) {},
 			false,
 		},
 		{
 			"valid request",
-			&types.QueryTxTaskRequest{
-				TxHash: base64.StdEncoding.EncodeToString([]byte("valid request")),
+			&types.QueryAtxTaskRequest{
+				AtxHash: base64.StdEncoding.EncodeToString([]byte("valid request")),
 			},
 			func() {
-				suite.createTxTask([]byte("valid request"), suite.address[0])
+				suite.createAtxTask([]byte("valid request"), suite.address[0])
 			},
-			func(res *types.QueryTxTaskResponse) {
-				suite.Require().Equal([]byte("valid request"), res.Task.TxHash)
+			func(res *types.QueryAtxTaskResponse) {
+				suite.Require().Equal([]byte("valid request"), res.Task.AtxHash)
 			},
 			true,
 		},
@@ -255,7 +255,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryTxTask() {
 			suite.SetupTest()
 			tc.preRun()
 			ctx := sdk.WrapSDKContext(suite.ctx)
-			res, err := suite.queryClient.TxTask(ctx, tc.req)
+			res, err := suite.queryClient.AtxTask(ctx, tc.req)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
@@ -338,50 +338,50 @@ func (suite *KeeperTestSuite) TestGRPCQueryResponse() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGRPCQueryTxResponse() {
+func (suite *KeeperTestSuite) TestGRPCQueryAtxResponse() {
 	tests := []struct {
 		name    string
-		req     *types.QueryTxResponseRequest
+		req     *types.QueryAtxResponseRequest
 		preRun  func()
-		postRun func(_ *types.QueryTxResponseResponse)
+		postRun func(_ *types.QueryAtxResponseResponse)
 		expPass bool
 	}{
 		{
 			"no task found",
-			&types.QueryTxResponseRequest{
-				TxHash:          "",
+			&types.QueryAtxResponseRequest{
+				AtxHash:         "",
 				OperatorAddress: suite.address[0].String(),
 			},
 			func() {},
-			func(response *types.QueryTxResponseResponse) {},
+			func(response *types.QueryAtxResponseResponse) {},
 			false,
 		},
 		{
 			"no operator found",
-			&types.QueryTxResponseRequest{
-				TxHash:          base64.StdEncoding.EncodeToString([]byte("no operator")),
+			&types.QueryAtxResponseRequest{
+				AtxHash:         base64.StdEncoding.EncodeToString([]byte("no operator")),
 				OperatorAddress: suite.address[1].String(),
 			},
 			func() {
 				suite.createOperator(suite.address[0], suite.address[0])
-				suite.createTxTask([]byte("no operator"), suite.address[0])
-				suite.respondToTxTask([]byte("no operator"), suite.address[0])
+				suite.createAtxTask([]byte("no operator"), suite.address[0])
+				suite.respondToAtxTask([]byte("no operator"), suite.address[0])
 			},
-			func(*types.QueryTxResponseResponse) {},
+			func(*types.QueryAtxResponseResponse) {},
 			false,
 		},
 		{
 			"valid request",
-			&types.QueryTxResponseRequest{
-				TxHash:          base64.StdEncoding.EncodeToString([]byte("0x1234567890abcdef")),
+			&types.QueryAtxResponseRequest{
+				AtxHash:         base64.StdEncoding.EncodeToString([]byte("0x1234567890abcdef")),
 				OperatorAddress: suite.address[0].String(),
 			},
 			func() {
 				suite.createOperator(suite.address[0], suite.address[0])
-				suite.createTxTask([]byte("0x1234567890abcdef"), suite.address[0])
-				suite.respondToTxTask([]byte("0x1234567890abcdef"), suite.address[0])
+				suite.createAtxTask([]byte("0x1234567890abcdef"), suite.address[0])
+				suite.respondToAtxTask([]byte("0x1234567890abcdef"), suite.address[0])
 			},
-			func(res *types.QueryTxResponseResponse) {
+			func(res *types.QueryAtxResponseResponse) {
 				suite.Require().Equal(suite.address[0].String(), res.Response.Operator)
 			},
 			true,
@@ -392,7 +392,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryTxResponse() {
 			suite.SetupTest()
 			tc.preRun()
 			ctx := sdk.WrapSDKContext(suite.ctx)
-			res, err := suite.queryClient.TxResponse(ctx, tc.req)
+			res, err := suite.queryClient.AtxResponse(ctx, tc.req)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
@@ -427,12 +427,12 @@ func (suite *KeeperTestSuite) createTask(contract, function string, creator sdk.
 	suite.Require().NoError(err)
 }
 
-func (suite *KeeperTestSuite) createTxTask(txHash []byte, creator sdk.AccAddress) {
+func (suite *KeeperTestSuite) createAtxTask(atxHash []byte, creator sdk.AccAddress) {
 	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
 	expiration := time.Now().Add(time.Hour).UTC()
 
-	task := types.NewTxTask(
-		txHash,
+	task := types.NewAtxTask(
+		atxHash,
 		creator.String(),
 		bounty,
 		expiration,
@@ -447,7 +447,7 @@ func (suite *KeeperTestSuite) respondToTask(contract, function string, operatorA
 	suite.Require().NoError(err)
 }
 
-func (suite *KeeperTestSuite) respondToTxTask(txHash []byte, operatorAddress sdk.AccAddress) {
-	err := suite.keeper.RespondToTask(suite.ctx, txHash, 100, operatorAddress)
+func (suite *KeeperTestSuite) respondToAtxTask(atxHash []byte, operatorAddress sdk.AccAddress) {
+	err := suite.keeper.RespondToTask(suite.ctx, atxHash, 100, operatorAddress)
 	suite.Require().NoError(err)
 }

@@ -292,7 +292,7 @@ func (s *IntegrationTestSuite) TestOracle() {
 	bob := s.chainA.accounts[1].keyInfo.GetAddress()
 	charle := s.chainA.accounts[2].keyInfo.GetAddress()
 
-	var txHash, taskHash string
+	var AtxHash, taskHash string
 	var err error
 	valTime := time.Now().Add(60 * time.Second)
 	valTimeStr := valTime.Format(time.RFC3339)
@@ -321,17 +321,17 @@ func (s *IntegrationTestSuite) TestOracle() {
 		)
 	})
 
-	s.Run("create_tx_task", func() {
+	s.Run("create_atx_task", func() {
 		txBytes := base64.StdEncoding.EncodeToString([]byte(valTimeStr))
 		chainId := "test"
 		bountyAmount, _ := sdk.NewIntFromString("500000")
 		bounty := sdk.NewCoin(uctkDenom, bountyAmount)
 
-		txHash, err = s.executeOracleCreateTxTask(s.chainA, 0, txBytes, chainId, bounty.String(), valTimeStr, alice.String(), feesAmountCoin.String())
+		AtxHash, err = s.executeOracleCreateAtxTask(s.chainA, 0, txBytes, chainId, bounty.String(), valTimeStr, alice.String(), feesAmountCoin.String())
 		s.Require().NoError(err)
 		s.Require().Eventually(
 			func() bool {
-				res, e := queryOracleTaskHash(chainAAPIEndpoint, txHash)
+				res, e := queryOracleTaskHash(chainAAPIEndpoint, AtxHash)
 				if e == nil {
 					taskHash = res
 					return true
@@ -343,7 +343,7 @@ func (s *IntegrationTestSuite) TestOracle() {
 		)
 		s.Require().Eventually(
 			func() bool {
-				res, e := queryOracleTxTask(chainAAPIEndpoint, taskHash)
+				res, e := queryOracleAtxTask(chainAAPIEndpoint, taskHash)
 				s.Require().NoError(e)
 				return res.Task.Status == 1
 			},
@@ -352,13 +352,13 @@ func (s *IntegrationTestSuite) TestOracle() {
 		)
 	})
 
-	s.Run("respond_tx_task", func() {
-		s.executeOracleRespondTxTask(s.chainA, 0, 90, taskHash, alice.String(), feesAmountCoin.String())
-		s.executeOracleRespondTxTask(s.chainA, 0, 90, taskHash, bob.String(), feesAmountCoin.String())
-		s.executeOracleRespondTxTask(s.chainA, 0, 50, taskHash, charle.String(), feesAmountCoin.String())
+	s.Run("respond_atx_task", func() {
+		s.executeOracleRespondAtxTask(s.chainA, 0, 90, taskHash, alice.String(), feesAmountCoin.String())
+		s.executeOracleRespondAtxTask(s.chainA, 0, 90, taskHash, bob.String(), feesAmountCoin.String())
+		s.executeOracleRespondAtxTask(s.chainA, 0, 50, taskHash, charle.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
-				res, e := queryOracleTxTask(chainAAPIEndpoint, taskHash)
+				res, e := queryOracleAtxTask(chainAAPIEndpoint, taskHash)
 				s.Require().NoError(e)
 				return len(res.Task.Responses) == 3
 			},
@@ -367,13 +367,13 @@ func (s *IntegrationTestSuite) TestOracle() {
 		)
 	})
 
-	s.Run("close_tx_task", func() {
+	s.Run("close_atx_task", func() {
 		if time.Now().Before(valTime) {
 			time.Sleep(time.Until(valTime))
 		}
 		s.Require().Eventually(
 			func() bool {
-				res, e := queryOracleTxTask(chainAAPIEndpoint, taskHash)
+				res, e := queryOracleAtxTask(chainAAPIEndpoint, taskHash)
 				s.Require().NoError(e)
 				return res.Task.Status == 2 && res.Task.Score == 62
 			},

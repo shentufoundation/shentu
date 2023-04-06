@@ -27,8 +27,8 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdWithdraws(),
 		GetCmdTask(),
 		GetCmdResponse(),
-		GetCmdTxTask(),
-		GetCmdTxResponse(),
+		GetCmdAtxTask(),
+		GetCmdAtxResponse(),
 	)
 
 	return oracleQueryCmds
@@ -152,11 +152,11 @@ func GetCmdTask() *cobra.Command {
 	return cmd
 }
 
-// GetCmdTxTask returns the tx task query command.
-func GetCmdTxTask() *cobra.Command {
+// GetCmdAtxTask returns the tx task query command.
+func GetCmdAtxTask() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "tx-task <tx_hash>",
-		Short: "Get tx task information",
+		Use:   "atx-task <atx_hash>",
+		Short: "Get atx task information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)
@@ -165,9 +165,9 @@ func GetCmdTxTask() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.TxTask(
+			res, err := queryClient.AtxTask(
 				cmd.Context(),
-				&types.QueryTxTaskRequest{TxHash: args[0]},
+				&types.QueryAtxTaskRequest{AtxHash: args[0]},
 			)
 			if err != nil {
 				return err
@@ -211,10 +211,10 @@ func GetCmdResponse() *cobra.Command {
 	return cmd
 }
 
-// GetCmdTxResponse returns the tx response query command.
-func GetCmdTxResponse() *cobra.Command {
+// GetCmdAtResponse returns the tx response query command.
+func GetCmdAtxResponse() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "tx-response <operator_address> <tx_hash>",
+		Use:   "tx-response <operator_address> <atx_hash>",
 		Short: "Get tx response information",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -224,9 +224,9 @@ func GetCmdTxResponse() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(cliCtx)
 
-			res, err := queryClient.TxResponse(
+			res, err := queryClient.AtxResponse(
 				cmd.Context(),
-				&types.QueryTxResponseRequest{TxHash: args[1], OperatorAddress: args[0]},
+				&types.QueryAtxResponseRequest{AtxHash: args[1], OperatorAddress: args[0]},
 			)
 			if err != nil {
 				return err

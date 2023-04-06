@@ -38,8 +38,8 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 		switch task := task.(type) {
 		case *types.Task:
 			EmitEventsForTask(ctx, task)
-		case *types.TxTask:
-			EmitEventsForTxTask(ctx, task)
+		case *types.AtxTask:
+			EmitEventsForAtxTask(ctx, task)
 		}
 	}
 	k.DeleteClosingTaskIDs(ctx)
@@ -66,11 +66,11 @@ func EmitEventsForTask(ctx sdk.Context, task *types.Task) {
 	)
 }
 
-func EmitEventsForTxTask(ctx sdk.Context, task *types.TxTask) {
+func EmitEventsForAtxTask(ctx sdk.Context, task *types.AtxTask) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeAggTxTask,
-			sdk.NewAttribute("tx_hash", base64.StdEncoding.EncodeToString(task.TxHash)),
+			types.EventTypeAggAtxTask,
+			sdk.NewAttribute("atx_hash", base64.StdEncoding.EncodeToString(task.AtxHash)),
 			sdk.NewAttribute("score", strconv.FormatInt(task.Score, 10)),
 			sdk.NewAttribute("status", task.Status.String()),
 			sdk.NewAttribute("creator", task.Creator),

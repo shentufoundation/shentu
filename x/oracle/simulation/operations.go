@@ -23,7 +23,7 @@ import (
 const (
 	OpWeightMsgCreateOperator = "op_weight_msg_create_operator"
 	OpWeightMsgCreateTask     = "op_weight_msg_create_task"
-	OpWeightMsgCreateTxTask   = "op_weight_msg_create_tx_task"
+	OpWeightMsgCreateTxTask   = "op_weight_msg_create_atx_task"
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights.

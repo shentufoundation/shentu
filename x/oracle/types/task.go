@@ -54,15 +54,15 @@ func (r Responses) String() string {
 	return string(jsonBytes)
 }
 
-func NewTxTask(
-	txHash []byte,
+func NewAtxTask(
+	atxHash []byte,
 	creator string,
 	bounty sdk.Coins,
 	validTime time.Time,
 	status TaskStatus,
-) *TxTask {
-	return &TxTask{
-		TxHash:    txHash,
+) *AtxTask {
+	return &AtxTask{
+		AtxHash:   atxHash,
 		Creator:   creator,
 		Bounty:    bounty,
 		ValidTime: validTime,
@@ -135,50 +135,50 @@ func (t *Task) ShouldAgg(ctx sdk.Context) bool {
 	return t.ExpireHeight == ctx.BlockHeight()
 }
 
-func (t *TxTask) GetID() []byte {
-	return t.TxHash
+func (t *AtxTask) GetID() []byte {
+	return t.AtxHash
 }
 
-func (t *TxTask) GetCreator() string {
+func (t *AtxTask) GetCreator() string {
 	return t.Creator
 }
 
-func (t *TxTask) GetResponses() Responses {
+func (t *AtxTask) GetResponses() Responses {
 	return t.Responses
 }
 
-func (t *TxTask) IsExpired(ctx sdk.Context) bool {
+func (t *AtxTask) IsExpired(ctx sdk.Context) bool {
 	return t.Expiration.Before(ctx.BlockTime())
 }
 
-func (t *TxTask) GetValidTime() (int64, time.Time) {
+func (t *AtxTask) GetValidTime() (int64, time.Time) {
 	return -1, t.ValidTime
 }
 
-func (t *TxTask) GetBounty() sdk.Coins {
+func (t *AtxTask) GetBounty() sdk.Coins {
 	return t.Bounty
 }
 
-func (t *TxTask) GetStatus() TaskStatus {
+func (t *AtxTask) GetStatus() TaskStatus {
 	return t.Status
 }
 
-func (t *TxTask) GetScore() int64 {
+func (t *AtxTask) GetScore() int64 {
 	return t.Score
 }
 
-func (t *TxTask) AddResponse(response Response) {
+func (t *AtxTask) AddResponse(response Response) {
 	t.Responses = append(t.Responses, response)
 }
 
-func (t *TxTask) SetStatus(status TaskStatus) {
+func (t *AtxTask) SetStatus(status TaskStatus) {
 	t.Status = status
 }
 
-func (t *TxTask) SetScore(score int64) {
+func (t *AtxTask) SetScore(score int64) {
 	t.Score = score
 }
 
-func (t *TxTask) ShouldAgg(ctx sdk.Context) bool {
+func (t *AtxTask) ShouldAgg(ctx sdk.Context) bool {
 	return !t.ValidTime.After(ctx.BlockTime())
 }

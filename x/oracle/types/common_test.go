@@ -54,7 +54,7 @@ var (
 		int64(5),
 	)
 
-	validTxTask = types.NewTxTask(
+	validAtxTask = types.NewAtxTask(
 		[]byte("testtxtask"),
 		acc1.String(),
 		coins5000,
