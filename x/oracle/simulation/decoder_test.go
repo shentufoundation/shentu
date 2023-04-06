@@ -93,6 +93,7 @@ func TestDecodeStore(t *testing.T) {
 		{"TotalCollateral", fmt.Sprintf("%s\n%s", totalCollateral, totalCollateral)},
 		{"Task", fmt.Sprintf("%v\n%v", task, task)},
 		{"TaskIDs", fmt.Sprintf("%v\n%v", taskIDs, taskIDs)},
+		{"LeftBounty", fmt.Sprintf("%v\n%v", leftBounty, leftBounty)},
 		{"other", ""},
 	}
 

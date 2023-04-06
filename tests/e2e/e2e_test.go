@@ -442,18 +442,20 @@ func (s *IntegrationTestSuite) TestOracle() {
 			time.Sleep(time.Until(valTime))
 		}
 
-		balance, err := queryShentuAllBalances(chainAAPIEndpoint, alice.String())
-		s.Require().NoError(err)
-		s.executeOracleWithdrawBounty(s.chainA, 0, alice.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
 				res, e := queryOracleLeftBounty(chainAAPIEndpoint, alice.String())
 				s.Require().NoError(e)
-				return res.Bounty.Amount[0] == bounty
+				return res.Bounty.Amount[0].Amount == bounty.Amount
 			},
 			20*time.Second,
 			5*time.Second,
 		)
+
+		balance, err := queryShentuAllBalances(chainAAPIEndpoint, alice.String())
+		s.Require().NoError(err)
+		s.executeOracleWithdrawBounty(s.chainA, 0, alice.String(), feesAmountCoin.String())
+
 		balance2, err := queryShentuAllBalances(chainAAPIEndpoint, alice.String())
 		s.Require().NoError(err)
 		s.Require().Equal(balance.Add(bounty), balance2)
