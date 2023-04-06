@@ -1,7 +1,7 @@
 package oracle
 
 import (
-	"encoding/base64"
+	"encoding/hex"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -70,7 +70,7 @@ func EmitEventsForAtxTask(ctx sdk.Context, task *types.AtxTask) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAggAtxTask,
-			sdk.NewAttribute("atx_hash", base64.StdEncoding.EncodeToString(task.AtxHash)),
+			sdk.NewAttribute("atx_hash", hex.EncodeToString(task.AtxHash)),
 			sdk.NewAttribute("score", strconv.FormatInt(task.Score, 10)),
 			sdk.NewAttribute("status", task.Status.String()),
 			sdk.NewAttribute("creator", task.Creator),

@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"encoding/base64"
+	"encoding/hex"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -239,7 +239,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryAtxTask() {
 		{
 			"valid request",
 			&types.QueryAtxTaskRequest{
-				AtxHash: base64.StdEncoding.EncodeToString([]byte("valid request")),
+				AtxHash: hex.EncodeToString([]byte("valid request")),
 			},
 			func() {
 				suite.createAtxTask([]byte("valid request"), suite.address[0])
@@ -359,7 +359,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryAtxResponse() {
 		{
 			"no operator found",
 			&types.QueryAtxResponseRequest{
-				AtxHash:         base64.StdEncoding.EncodeToString([]byte("no operator")),
+				AtxHash:         hex.EncodeToString([]byte("no operator")),
 				OperatorAddress: suite.address[1].String(),
 			},
 			func() {
@@ -373,7 +373,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryAtxResponse() {
 		{
 			"valid request",
 			&types.QueryAtxResponseRequest{
-				AtxHash:         base64.StdEncoding.EncodeToString([]byte("0x1234567890abcdef")),
+				AtxHash:         hex.EncodeToString([]byte("0x1234567890abcdef")),
 				OperatorAddress: suite.address[0].String(),
 			},
 			func() {

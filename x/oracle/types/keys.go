@@ -1,8 +1,8 @@
 package types
 
 import (
-	"encoding/base64"
 	"encoding/binary"
+	"encoding/hex"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -67,5 +67,5 @@ func NewTaskID(contract, function string) []byte {
 }
 
 func NewAtxTaskID(txHash string) ([]byte, error) {
-	return base64.StdEncoding.DecodeString(txHash)
+	return hex.DecodeString(txHash)
 }
