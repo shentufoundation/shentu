@@ -23,7 +23,7 @@ func Test_MigrateTaskStore(t *testing.T) {
 	cdc := shentuapp.MakeEncodingConfig().Marshaler
 
 	// mock old data
-	var tasks []v2.Task
+	tasks := make(map[string]v2.Task)
 	for i := 0; i < 10; i++ {
 		r := rand.New(rand.NewSource(time.Now().UnixNano()))
 		beginBlock := r.Int63n(100)
@@ -40,12 +40,12 @@ func Test_MigrateTaskStore(t *testing.T) {
 			Expiration:    time.Time{},
 			Creator:       "",
 			Responses:     nil,
-			Result:        sdk.Int{},
+			Result:        simtypes.RandomAmount(r, sdk.NewInt(100)),
 			ClosingBlock:  ClosingBlock,
 			WaitingBlocks: waitingBlocks,
 			Status:        v2.TaskStatus(status),
 		}
-		tasks = append(tasks, task)
+		tasks[string(oracletypes.NewTaskID(task.Contract, task.Function))] = task
 	}
 
 	store := ctx.KVStore(app.GetKey(oracletypes.StoreKey))
@@ -66,6 +66,24 @@ func Test_MigrateTaskStore(t *testing.T) {
 
 	err := v2.MigrateTaskStore(ctx, app.GetKey(oracletypes.StoreKey), cdc)
 	require.Nil(t, err)
+
+	app.OracleKeeper.IteratorAllTasks(ctx, func(task oracletypes.TaskI) bool {
+		ntk, ok := task.(*oracletypes.Task)
+		require.True(t, ok)
+		tk, ok := tasks[string(task.GetID())]
+		require.True(t, ok)
+		require.Equal(t, tk.BeginBlock, ntk.BeginBlock)
+		require.Equal(t, tk.Bounty, ntk.Bounty)
+		require.Equal(t, tk.Description, ntk.Description)
+		require.Equal(t, tk.Expiration, ntk.Expiration)
+		require.Equal(t, tk.Creator, ntk.Creator)
+		require.Equal(t, tk.Result.Int64(), ntk.Result.Int64())
+		require.Equal(t, tk.ClosingBlock, ntk.ExpireHeight)
+		require.Equal(t, tk.WaitingBlocks, ntk.WaitingBlocks)
+		require.Equal(t, tk.Status.String(), ntk.Status.String())
+		return false
+	})
+
 }
 
 func TaskStoreKey(contract, function string) []byte {
