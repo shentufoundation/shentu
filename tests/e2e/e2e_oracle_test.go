@@ -184,6 +184,27 @@ func (s *IntegrationTestSuite) executeOracleRemoveOperator(c *chain, valIdx int,
 	s.T().Logf("successfully remove operator on %s", operatorAddr)
 }
 
+func (s *IntegrationTestSuite) executeOracleWithdrawBounty(c *chain, valIdx int, addr, fees string) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	s.T().Logf("Executing shentu tx withdraw bounty %s", c.id)
+
+	command := []string{
+		shentuBinary,
+		txCommand,
+		types.ModuleName,
+		"withdraw-bounty",
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, addr),
+		fmt.Sprintf("--%s=%s", flags.FlagGasPrices, fees),
+		fmt.Sprintf("--%s=%s", flags.FlagChainID, c.id),
+		"--keyring-backend=test",
+		"--output=json",
+		"-y",
+	}
+	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
+	s.T().Logf("successfully withdraw bounty on %s", addr)
+}
+
 func queryOracleTaskHash(endpoint, txHash string) (string, error) {
 	txRsp, err := getShentuTx(endpoint, txHash)
 	if err != nil {
@@ -252,6 +273,20 @@ func queryOracleOperators(endpoint string) (*types.QueryOperatorsResponse, error
 	defer conn.Close()
 	client := types.NewQueryClient(conn)
 	grpcRsp, err := client.Operators(context.Background(), grpcReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+	return grpcRsp, nil
+}
+
+func queryOracleLeftBounty(endpoint, addr string) (*types.QueryLeftBountyResponse, error) {
+	grpcReq := &types.QueryLeftBountyRequest{
+		Address: addr,
+	}
+	conn, _ := connectGrpc(endpoint)
+	defer conn.Close()
+	client := types.NewQueryClient(conn)
+	grpcRsp, err := client.LeftBounty(context.Background(), grpcReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}

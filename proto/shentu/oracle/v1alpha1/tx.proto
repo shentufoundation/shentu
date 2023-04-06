@@ -22,6 +22,7 @@ service Msg {
     rpc CreateTxTask(MsgCreateTxTask) returns (MsgCreateTxTaskResponse);
     rpc TxTaskResponse(MsgTxTaskResponse) returns (MsgTxTaskResponseResponse);
     rpc DeleteTxTask(MsgDeleteTxTask) returns (MsgDeleteTxTaskResponse);
+    rpc WithdrawBounty(MsgWithdrawBounty) returns (MsgWithdrawBountyResponse);
 }
 
 message MsgCreateOperator {
@@ -153,3 +154,12 @@ message MsgDeleteTxTask {
 }
 
 message MsgDeleteTxTaskResponse {}
+
+message MsgWithdrawBounty {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string from = 1 [ (gogoproto.moretags) = "yaml:\"from\"" ];
+}
+
+message MsgWithdrawBountyResponse {}

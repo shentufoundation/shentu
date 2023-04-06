@@ -130,7 +130,8 @@ func TestTaskNoResponses(t *testing.T) {
 	taskRes := tth.CheckTask(ok.GetTask(ctx, tth.TaskID()))
 	require.Equal(t, types.TaskStatusFailed, taskRes.GetStatus())
 
-	require.NoError(t, ok.RefundBounty(ctx, taskRes))
+	require.NoError(t, ok.HandleLeftBounty(ctx, taskRes))
+	tth.CheckLeftBounty(100000, true)
 }
 
 func TestTaskMinScore(t *testing.T) {
@@ -170,7 +171,8 @@ func TestTaskMinScore(t *testing.T) {
 	require.NoError(t, ok.DistributeBounty(ctx, taskRes))
 
 	taskRes = tth.CheckTask(ok.GetTask(ctx, tth.TaskID()))
-	require.NoError(t, ok.RefundBounty(ctx, taskRes))
+	require.NoError(t, ok.HandleLeftBounty(ctx, taskRes))
+	tth.CheckLeftBounty(0, false)
 
 	operator1, err := ok.GetOperator(ctx, addrs[0])
 	require.Nil(t, err)
@@ -227,7 +229,11 @@ func TestTaskBelowThreshold(t *testing.T) {
 	require.NoError(t, ok.DistributeBounty(ctx, taskRes))
 
 	taskRes = tth.CheckTask(ok.GetTask(ctx, tth.TaskID()))
-	require.NoError(t, ok.RefundBounty(ctx, taskRes))
+
+	_, err := ok.GetCreatorLeftBounty(ctx, tth.creator)
+	require.Error(t, err)
+	require.NoError(t, ok.HandleLeftBounty(ctx, taskRes))
+	tth.CheckLeftBounty(1, true)
 
 	operator1, err := ok.GetOperator(ctx, addrs[0])
 	require.Nil(t, err)
@@ -473,4 +479,14 @@ func (t *TTHelper) CheckClosingTaskIDsShortcutTasks(task types.TaskI) {
 		}
 	}
 	require.False(t.t, duplicates)
+}
+
+func (t *TTHelper) CheckLeftBounty(left int64, success bool) {
+	bounty, err := t.app.OracleKeeper.GetCreatorLeftBounty(t.ctx, t.creator)
+	if success {
+		require.NoError(t.t, err)
+		require.Equal(t.t, sdk.Coins{sdk.NewInt64Coin("uctk", left)}, bounty.Amount)
+	} else {
+		require.Error(t.t, err)
+	}
 }

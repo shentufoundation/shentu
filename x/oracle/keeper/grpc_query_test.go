@@ -405,6 +405,64 @@ func (suite *KeeperTestSuite) TestGRPCQueryTxResponse() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestGRPCQueryLeftBounty() {
+	tests := []struct {
+		name    string
+		req     *types.QueryLeftBountyRequest
+		preRun  func()
+		postRun func(_ *types.QueryLeftBountyResponse)
+		expPass bool
+	}{
+		{
+			"invalid address",
+			&types.QueryLeftBountyRequest{
+				Address: "invalid",
+			},
+			func() {},
+			func(*types.QueryLeftBountyResponse) {},
+			false,
+		},
+		{
+			"no left bounty",
+			&types.QueryLeftBountyRequest{
+				Address: suite.address[0].String(),
+			},
+			func() {},
+			func(*types.QueryLeftBountyResponse) {},
+			false,
+		},
+		{
+			"valid request",
+			&types.QueryLeftBountyRequest{
+				Address: suite.address[0].String(),
+			},
+			func() {
+				suite.keeper.AddLeftBounty(suite.ctx, suite.address[0], sdk.Coins{sdk.NewInt64Coin("uctk", 10000)})
+			},
+			func(res *types.QueryLeftBountyResponse) {
+				suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("uctk", 10000)}, res.Bounty.Amount)
+			},
+			true,
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			tc.preRun()
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			res, err := suite.queryClient.LeftBounty(ctx, tc.req)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+			}
+			tc.postRun(res)
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) createOperator(address, proposer sdk.AccAddress) {
 	err := suite.keeper.CreateOperator(suite.ctx, address, sdk.Coins{sdk.NewInt64Coin("uctk", 50000)}, proposer, "operator")
 	suite.Require().NoError(err)

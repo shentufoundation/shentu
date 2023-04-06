@@ -31,6 +31,7 @@ var (
 	ClosingTaskStoreKeyTimedPrefix = []byte{0x06}
 	ExpireTaskStoreKeyPrefix       = []byte{0x07}
 	ShortcutTasksKeyPrefix         = []byte{0x08}
+	LeftBountyStoreKeyPrefix       = []byte{0x09}
 )
 
 func OperatorStoreKey(operator sdk.AccAddress) []byte {
@@ -68,4 +69,8 @@ func NewTaskID(contract, function string) []byte {
 
 func NewTxTaskID(txHash string) ([]byte, error) {
 	return hex.DecodeString(txHash)
+}
+
+func LeftBountyStoreKey(address sdk.AccAddress) []byte {
+	return append(LeftBountyStoreKeyPrefix, address.Bytes()...)
 }

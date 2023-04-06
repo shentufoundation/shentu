@@ -119,3 +119,11 @@ message TxTask {
     int64 score = 7 [(gogoproto.moretags) = "yaml:\"score\""];
     TaskStatus status = 8 [(gogoproto.moretags) = "yaml:\"status\""];
 }
+
+message LeftBounty {
+    option (gogoproto.equal) = false;
+    option (gogoproto.goproto_getters) = false;
+
+    string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+    repeated cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
+}

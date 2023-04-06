@@ -21,6 +21,7 @@ const (
 	TypeMsgCreateTxTask     = "create_tx_task"
 	TypeMsgRespondToTxTask  = "respond_to_tx_task"
 	TypeMsgDeleteTxTask     = "delete_tx_task"
+	TypeMsgWithdrawBounty   = "withdraw_bounty"
 )
 
 // NewMsgCreateOperator returns the message for creating an operator.
@@ -497,5 +498,44 @@ func (m MsgDeleteTxTask) GetSignBytes() []byte {
 // Msg interface, return the account that should sign the tx
 func (m MsgDeleteTxTask) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(m.From)
+	return []sdk.AccAddress{addr}
+}
+
+// NewMsgWithdrawBounty This function creates a new message to withdraw a bounty from a given account address.
+func NewMsgWithdrawBounty(from sdk.AccAddress) *MsgWithdrawBounty {
+	return &MsgWithdrawBounty{
+		From: from.String(),
+	}
+}
+
+// Route returns the module name.
+func (MsgWithdrawBounty) Route() string { return ModuleName }
+
+// Type returns the action name.
+func (MsgWithdrawBounty) Type() string { return TypeMsgWithdrawBounty }
+
+// ValidateBasic runs stateless checks on the message.
+func (m MsgWithdrawBounty) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.From)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetSignBytes encodes the message for signing.
+// LegacyMsg interface for Amino
+func (m MsgWithdrawBounty) GetSignBytes() []byte {
+	b, err := json.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(b)
+}
+
+// GetSigners defines whose signature is required.
+func (m MsgWithdrawBounty) GetSigners() []sdk.AccAddress {
+	addr := sdk.MustAccAddressFromBech32(m.From)
+
 	return []sdk.AccAddress{addr}
 }

@@ -318,3 +318,29 @@ func (k msgServer) DeleteTxTask(goCtx context.Context, msg *types.MsgDeleteTxTas
 
 	return &types.MsgDeleteTxTaskResponse{}, nil
 }
+
+// WithdrawBounty This function allows the sender to withdraw their bounty from the msgServer.
+func (k msgServer) WithdrawBounty(goCtx context.Context, msg *types.MsgWithdrawBounty) (*types.MsgWithdrawBountyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	addr, _ := sdk.AccAddressFromBech32(msg.From)
+	amount, err := k.Keeper.WithdrawBounty(ctx, addr)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeMsgWithdrawBounty,
+			sdk.NewAttribute("receiver", msg.From),
+			sdk.NewAttribute("bounty", amount.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
+	})
+
+	return &types.MsgWithdrawBountyResponse{}, nil
+}

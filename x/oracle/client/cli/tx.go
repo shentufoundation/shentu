@@ -45,6 +45,7 @@ func NewTxCmd() *cobra.Command {
 		GetCmdRespondToTxTask(),
 		GetCmdDeleteTxTask(),
 		GetCmdCreateTxTask(),
+		GetCmdWithdrawBounty(),
 	)
 
 	return oracleTxCmds
@@ -420,6 +421,33 @@ func GetCmdCreateTxTask() *cobra.Command {
 			}
 
 			msg := types.NewMsgCreateTxTask(from, chainID, txBytes, bounty, validTime)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdWithdrawBounty() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "withdraw-bounty",
+		Short: "withdraw left bounty in tx_task",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
+				return err
+			}
+
+			msg := types.NewMsgWithdrawBounty(from)
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}

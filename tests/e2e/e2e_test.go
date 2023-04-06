@@ -428,4 +428,34 @@ func (s *IntegrationTestSuite) TestOracle() {
 			5*time.Second,
 		)
 	})
+
+	s.Run("withdraw_bounty", func() {
+		txBytes := hex.EncodeToString([]byte(valTimeStr))
+		chainId := "test"
+		bountyAmount, _ := sdk.NewIntFromString("500000")
+		bounty := sdk.NewCoin(uctkDenom, bountyAmount)
+
+		txHash, err = s.executeOracleCreateTxTask(s.chainA, 0, txBytes, chainId, bounty.String(), valTimeStr, alice.String(), feesAmountCoin.String())
+		s.Require().NoError(err)
+
+		if time.Now().Before(valTime) {
+			time.Sleep(time.Until(valTime))
+		}
+
+		balance, err := queryShentuAllBalances(chainAAPIEndpoint, alice.String())
+		s.Require().NoError(err)
+		s.executeOracleWithdrawBounty(s.chainA, 0, alice.String(), feesAmountCoin.String())
+		s.Require().Eventually(
+			func() bool {
+				res, e := queryOracleLeftBounty(chainAAPIEndpoint, alice.String())
+				s.Require().NoError(e)
+				return res.Bounty.Amount[0] == bounty
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+		balance2, err := queryShentuAllBalances(chainAAPIEndpoint, alice.String())
+		s.Require().NoError(err)
+		s.Require().Equal(balance.Add(bounty), balance2)
+	})
 }

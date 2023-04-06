@@ -136,6 +136,28 @@ func TestMsgServer_shortcut(t *testing.T) {
 	_ = PassBlocks(ctx, ok, t, 6, 0) //the two task should already be removed from closingTaskIDs
 }
 
+func TestMsgServer_WithdrawBounty(t *testing.T) {
+	ctx, ok, _, addrs := DoInit(t)
+	msgServer := ctx.Value("msgServer").(types.MsgServer)
+	withdrawBounty := types.NewMsgWithdrawBounty(addrs[0])
+	_, err := msgServer.WithdrawBounty(sdk.WrapSDKContext(ctx), withdrawBounty)
+	require.Error(t, err)
+
+	leftCoins := sdk.Coins{sdk.NewInt64Coin("uctk", 10000)}
+	ok.AddLeftBounty(ctx, addrs[0], leftCoins)
+	_, err = msgServer.WithdrawBounty(sdk.WrapSDKContext(ctx), withdrawBounty)
+	require.Error(t, err)
+
+	CreateTxTask(ctx, addrs[0], []byte("test left"), leftCoins, 30, true)
+	leftBounty, err := ok.GetCreatorLeftBounty(ctx, addrs[0])
+	require.NoError(t, err)
+	require.Equal(t, leftCoins, leftBounty.Amount)
+	_, err = msgServer.WithdrawBounty(sdk.WrapSDKContext(ctx), withdrawBounty)
+	require.NoError(t, err)
+	_, err = ok.GetCreatorLeftBounty(ctx, addrs[0])
+	require.Error(t, err)
+}
+
 func PassBlocks(ctx sdk.Context, ok keeper.Keeper, t require.TestingT, n int64, m int) sdk.Context {
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + n).WithBlockTime(ctx.BlockTime().Add(time.Second * 5 * time.Duration(n)))
 	require.Len(t, append(ok.GetInvalidTaskIDs(ctx), ok.GetShortcutTasks(ctx)...), m)

@@ -37,6 +37,10 @@ service Query {
     rpc TxResponse(QueryTxResponseRequest) returns (QueryTxResponseResponse) {
         option (google.api.http).get = "/shentu/oracle/v1alpha1/txhash/{tx_hash}/operator/{operator_address}/Response";
     }
+
+    rpc LeftBounty(QueryLeftBountyRequest) returns (QueryLeftBountyResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/leftbounty/{address}";
+    }
 }
 
 message QueryOperatorRequest {
@@ -95,4 +99,12 @@ message QueryTxResponseRequest {
 
 message QueryTxResponseResponse {
     Response response = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryLeftBountyRequest {
+    string address = 1;
+}
+
+message QueryLeftBountyResponse {
+    LeftBounty bounty = 1 [(gogoproto.nullable) = false];
 }

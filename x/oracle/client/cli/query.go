@@ -29,6 +29,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdResponse(),
 		GetCmdTxTask(),
 		GetCmdTxResponse(),
+		GetCmdLeftBounty(),
 	)
 
 	return oracleQueryCmds
@@ -227,6 +228,35 @@ func GetCmdTxResponse() *cobra.Command {
 			res, err := queryClient.TxResponse(
 				cmd.Context(),
 				&types.QueryTxResponseRequest{TxHash: args[1], OperatorAddress: args[0]},
+			)
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdLeftBounty This function fetches the left bounty information for any given address.
+func GetCmdLeftBounty() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "left_bounty <address>",
+		Short: "Get left bounty information",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+
+			res, err := queryClient.LeftBounty(
+				cmd.Context(),
+				&types.QueryLeftBountyRequest{Address: args[0]},
 			)
 			if err != nil {
 				return err

@@ -140,3 +140,25 @@ func (q Keeper) TxResponse(c context.Context, req *types.QueryTxResponseRequest)
 	}
 	return &types.QueryTxResponseResponse{}, fmt.Errorf("there is no response from this operator")
 }
+
+// LeftBounty This function retrieves the amount of bounty left for the task creator
+func (q Keeper) LeftBounty(c context.Context, req *types.QueryLeftBountyRequest) (*types.QueryLeftBountyResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	address, err := sdk.AccAddressFromBech32(req.Address)
+	if err != nil {
+		return nil, err
+	}
+
+	leftBounty, err := q.GetCreatorLeftBounty(ctx, address)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryLeftBountyResponse{
+		Bounty: leftBounty,
+	}, nil
+
+}

@@ -62,10 +62,17 @@ func TestDecodeStore(t *testing.T) {
 		},
 	}
 
+	leftBounty := types.LeftBounty{
+		Address: RandomAccount().Address.String(),
+		Amount:  RandomCoins(100000),
+	}
 	operatorAddr, err := sdk.AccAddressFromBech32(operator.Address)
 	require.NoError(t, err)
 	withdrawAddr, err := sdk.AccAddressFromBech32(withdraw.Address)
 	require.NoError(t, err)
+	leftBountyAddr, err := sdk.AccAddressFromBech32(leftBounty.Address)
+	require.NoError(t, err)
+
 	KVPairs := kv.Pairs{
 		Pairs: []kv.Pair{
 			{Key: types.OperatorStoreKey(operatorAddr), Value: cdc.MustMarshalLengthPrefixed(&operator)},
@@ -73,6 +80,7 @@ func TestDecodeStore(t *testing.T) {
 			{Key: types.TotalCollateralKey(), Value: cdc.MustMarshalLengthPrefixed(&types.CoinsProto{Coins: totalCollateral})},
 			{Key: types.TaskStoreKey(types.NewTaskID(task.Contract, task.Function)), Value: cdc.MustMarshalLengthPrefixed(&task)},
 			{Key: types.ClosingTaskIDsStoreKey(task.ExpireHeight), Value: cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})},
+			{Key: types.LeftBountyStoreKey(leftBountyAddr), Value: cdc.MustMarshalLengthPrefixed(&leftBounty)},
 		},
 	}
 

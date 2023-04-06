@@ -33,6 +33,7 @@ const (
 	errOverdueValidTime
 	errUnexpectedTask
 	errTooLateValidTime
+	errNoLeftBountyFound
 )
 
 const errInconsistentOperators uint32 = 301
@@ -68,4 +69,6 @@ var (
 	ErrInconsistentOperators = sdkerrors.Register(ModuleName, errInconsistentOperators, "two operators not consistent")
 
 	ErrFailedToCastTask = sdkerrors.Register(ModuleName, errFailedToCastTask, "failed to cast to concrete task")
+
+	ErrNoLeftBountyFound = sdkerrors.Register(ModuleName, errNoLeftBountyFound, "no left bounty was found")
 )

@@ -21,6 +21,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgCreateTxTask{}, "oracle/CreateTxTask", nil)
 	cdc.RegisterConcrete(MsgTxTaskResponse{}, "oracle/RespondToTxTask", nil)
 	cdc.RegisterConcrete(MsgDeleteTxTask{}, "oracle/DeleteTxTask", nil)
+	cdc.RegisterConcrete(MsgWithdrawBounty{}, "oracle/WithdrawBounty", nil)
 
 	cdc.RegisterInterface((*TaskI)(nil), nil)
 	cdc.RegisterConcrete(Task{}, "oracle/Task", nil)
@@ -41,6 +42,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgCreateTxTask{},
 		&MsgTxTaskResponse{},
 		&MsgDeleteTxTask{},
+		&MsgWithdrawBounty{},
 	)
 	registry.RegisterInterface("shentu.oracle.v1alpha1.TaskI", (*TaskI)(nil), &Task{}, &TxTask{})
 
