@@ -504,9 +504,15 @@ func (s *IntegrationTestSuite) TestOracle() {
 			time.Sleep(time.Until(validTime) + time.Second*5)
 		}
 
-		res, e := queryOracleLeftBounty(chainAAPIEndpoint, alice.String())
-		s.Require().NoError(e)
-		s.Require().Equal(res.Bounty.Amount[0].Amount, bounty.Amount)
+		s.Require().Eventually(
+			func() bool {
+				res, e := queryOracleLeftBounty(chainAAPIEndpoint, alice.String())
+				s.Require().NoError(e)
+				return res.Bounty.Amount[0].Amount.Equal(bounty.Amount)
+			},
+			20*time.Second,
+			5*time.Second,
+		)
 
 		chainAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
 
