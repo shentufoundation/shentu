@@ -430,16 +430,19 @@ func (s *IntegrationTestSuite) TestOracle() {
 	})
 
 	s.Run("withdraw_bounty", func() {
-		txBytes := hex.EncodeToString([]byte(valTimeStr))
+		validTime := time.Now().Add(60 * time.Second)
+		validTimeStr := validTime.Format(time.RFC3339)
+
+		txBytes := hex.EncodeToString([]byte(validTimeStr))
 		chainId := "test"
 		bountyAmount, _ := sdk.NewIntFromString("500000")
 		bounty := sdk.NewCoin(uctkDenom, bountyAmount)
 
-		txHash, err = s.executeOracleCreateTxTask(s.chainA, 0, txBytes, chainId, bounty.String(), valTimeStr, alice.String(), feesAmountCoin.String())
+		txHash, err = s.executeOracleCreateTxTask(s.chainA, 0, txBytes, chainId, bounty.String(), validTimeStr, alice.String(), feesAmountCoin.String())
 		s.Require().NoError(err)
 
-		if time.Now().Before(valTime) {
-			time.Sleep(time.Until(valTime))
+		if time.Now().Before(validTime) {
+			time.Sleep(time.Until(validTime))
 		}
 
 		s.Require().Eventually(
