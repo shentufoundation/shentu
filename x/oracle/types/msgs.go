@@ -419,9 +419,9 @@ func (m MsgCreateAtxTask) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func NewMsgAtxTaskResponse(txHash []byte, score int64, operator sdk.AccAddress) *MsgAtxTaskResponse {
+func NewMsgAtxTaskResponse(atxHash []byte, score int64, operator sdk.AccAddress) *MsgAtxTaskResponse {
 	return &MsgAtxTaskResponse{
-		AtxHash:  txHash,
+		AtxHash:  atxHash,
 		Score:    score,
 		Operator: operator.String(),
 	}
@@ -460,9 +460,9 @@ func (m MsgAtxTaskResponse) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func NewMsgDeleteAtxTask(txHash []byte, deleter sdk.AccAddress) *MsgDeleteAtxTask {
+func NewMsgDeleteAtxTask(atxHash []byte, deleter sdk.AccAddress) *MsgDeleteAtxTask {
 	return &MsgDeleteAtxTask{
-		AtxHash: txHash,
+		AtxHash: atxHash,
 		From:    deleter.String(),
 	}
 }
