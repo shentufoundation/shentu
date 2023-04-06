@@ -522,6 +522,6 @@ func (s *IntegrationTestSuite) TestOracle() {
 
 		balance2, err := queryShentuDenomBalance(chainAPIEndpoint, alice.String(), uctkDenom)
 		s.Require().NoError(err)
-		s.Require().Greater(balance2, balance)
+		s.Require().Greater(balance2.Amount.Int64(), balance.Amount.Int64())
 	})
 }
