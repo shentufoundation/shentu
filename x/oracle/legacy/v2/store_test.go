@@ -107,7 +107,7 @@ func Test_MigrateTaskParams(t *testing.T) {
 	v2.UpdateParams(ctx, oracleSubspace)
 	tp = ok.GetTaskParams(ctx)
 	require.Equal(t, oracletypes.DefaultShortcutQuorum, tp.ShortcutQuorum)
-	require.Equal(t, oldTaskParams.ExpirationDuration, tp.ExpirationDuration)
+	require.Equal(t, time.Duration(1800)*time.Second, tp.ExpirationDuration)
 	require.Equal(t, oldTaskParams.AggregationWindow, tp.AggregationWindow)
 	require.Equal(t, oldTaskParams.AggregationResult, tp.AggregationResult)
 	require.Equal(t, oldTaskParams.ThresholdScore, tp.ThresholdScore)

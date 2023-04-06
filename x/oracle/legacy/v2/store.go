@@ -1,6 +1,8 @@
 package v2
 
 import (
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -79,7 +81,8 @@ func UpdateParams(ctx sdk.Context, paramSubspace types.ParamSubspace) {
 	var taskParams types.TaskParams
 	paramSubspace.Get(ctx, types.ParamsStoreKeyTaskParams, &taskParams)
 	newTaskParams := types.NewTaskParams(
-		taskParams.ExpirationDuration,
+		// shorten the expiration time to half an hour to decrease txTask storage footprint
+		time.Duration(30)*time.Minute,
 		taskParams.AggregationWindow,
 		taskParams.AggregationResult,
 		taskParams.ThresholdScore,
