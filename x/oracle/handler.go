@@ -48,16 +48,16 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.DeleteTask(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgTxTaskResponse:
-			res, err := msgServer.TxTaskResponse(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgAtxTaskResponse:
+			res, err := msgServer.AtxTaskResponse(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgDeleteTxTask:
-			res, err := msgServer.DeleteTxTask(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgDeleteAtxTask:
+			res, err := msgServer.DeleteAtxTask(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgCreateTxTask:
-			res, err := msgServer.CreateTxTask(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgCreateAtxTask:
+			res, err := msgServer.CreateAtxTask(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:

@@ -66,6 +66,6 @@ func NewTaskID(contract, function string) []byte {
 	return append([]byte(contract), []byte(function)...)
 }
 
-func NewTxTaskID(txHash string) ([]byte, error) {
+func NewAtxTaskID(txHash string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(txHash)
 }
