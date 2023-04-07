@@ -233,8 +233,8 @@ func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTas
 		return nil, types.ErrOverdueValidTime
 	}
 
-	hashByte := sha256.Sum256(msg.TxBytes)
-	hash := hex.EncodeToString(hashByte[:])
+	hashByte := sha256.Sum256(msg.AtxBytes)
+	athHash := hex.EncodeToString(hashByte[:])
 
 	txTask, err := k.BuildTxTask(ctx, hashByte[:], msg.Creator, msg.Bounty, msg.ValidTime)
 	if err != nil {
@@ -248,7 +248,7 @@ func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTas
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.TypeMsgCreateTxTask,
-			sdk.NewAttribute("tx_hash", hash),
+			sdk.NewAttribute("atx_hash", athHash),
 			sdk.NewAttribute("creator", msg.Creator),
 			sdk.NewAttribute("chain_id", msg.ChainId),
 			sdk.NewAttribute("bounty", msg.Bounty.String()),
@@ -262,7 +262,7 @@ func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTas
 	})
 
 	return &types.MsgCreateTxTaskResponse{
-		TxHash: hashByte[:],
+		AtxHash: hashByte[:],
 	}, nil
 }
 
@@ -270,11 +270,11 @@ func (k msgServer) TxTaskResponse(goCtx context.Context, msg *types.MsgTxTaskRes
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	operatorAddr, _ := sdk.AccAddressFromBech32(msg.Operator)
-	if err := k.HandleNoneTxTaskForResponse(ctx, msg.TxHash); err != nil {
+	if err := k.HandleNoneTxTaskForResponse(ctx, msg.AtxHash); err != nil {
 		return nil, err
 	}
 
-	if err := k.RespondToTask(ctx, msg.TxHash, msg.Score, operatorAddr); err != nil {
+	if err := k.RespondToTask(ctx, msg.AtxHash, msg.Score, operatorAddr); err != nil {
 		return nil, err
 	}
 
@@ -283,7 +283,7 @@ func (k msgServer) TxTaskResponse(goCtx context.Context, msg *types.MsgTxTaskRes
 			types.TypeMsgRespondToTxTask,
 			sdk.NewAttribute("operator", msg.Operator),
 			sdk.NewAttribute("score", strconv.FormatInt(msg.Score, 10)),
-			sdk.NewAttribute("txHash", hex.EncodeToString(msg.TxHash)),
+			sdk.NewAttribute("atx_hash", hex.EncodeToString(msg.AtxHash)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -299,7 +299,7 @@ func (k msgServer) DeleteTxTask(goCtx context.Context, msg *types.MsgDeleteTxTas
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	deleterAddr, _ := sdk.AccAddressFromBech32(msg.From)
-	if err := k.RemoveTask(ctx, msg.TxHash, true, deleterAddr); err != nil {
+	if err := k.RemoveTask(ctx, msg.AtxHash, true, deleterAddr); err != nil {
 		return nil, err
 	}
 
@@ -307,7 +307,7 @@ func (k msgServer) DeleteTxTask(goCtx context.Context, msg *types.MsgDeleteTxTas
 		sdk.NewEvent(
 			types.TypeMsgDeleteTxTask,
 			sdk.NewAttribute("deleter", msg.From),
-			sdk.NewAttribute("txHash", hex.EncodeToString(msg.TxHash)),
+			sdk.NewAttribute("atx_hash", hex.EncodeToString(msg.AtxHash)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

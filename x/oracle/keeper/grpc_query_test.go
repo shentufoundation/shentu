@@ -221,7 +221,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryTxTask() {
 		{
 			"empty tx hash",
 			&types.QueryTxTaskRequest{
-				TxHash: "",
+				AtxHash: "",
 			},
 			func() {},
 			func(*types.QueryTxTaskResponse) {},
@@ -230,7 +230,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryTxTask() {
 		{
 			"invalid tx hash",
 			&types.QueryTxTaskRequest{
-				TxHash: "1234567",
+				AtxHash: "1234567",
 			},
 			func() {},
 			func(*types.QueryTxTaskResponse) {},
@@ -239,13 +239,13 @@ func (suite *KeeperTestSuite) TestGRPCQueryTxTask() {
 		{
 			"valid request",
 			&types.QueryTxTaskRequest{
-				TxHash: hex.EncodeToString([]byte("valid request")),
+				AtxHash: hex.EncodeToString([]byte("valid request")),
 			},
 			func() {
 				suite.createTxTask([]byte("valid request"), suite.address[0])
 			},
 			func(res *types.QueryTxTaskResponse) {
-				suite.Require().Equal([]byte("valid request"), res.Task.TxHash)
+				suite.Require().Equal([]byte("valid request"), res.Task.AtxHash)
 			},
 			true,
 		},
@@ -349,7 +349,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryTxResponse() {
 		{
 			"no task found",
 			&types.QueryTxResponseRequest{
-				TxHash:          "",
+				AtxHash:         "",
 				OperatorAddress: suite.address[0].String(),
 			},
 			func() {},
@@ -359,7 +359,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryTxResponse() {
 		{
 			"no operator found",
 			&types.QueryTxResponseRequest{
-				TxHash:          hex.EncodeToString([]byte("no operator")),
+				AtxHash:         hex.EncodeToString([]byte("no operator")),
 				OperatorAddress: suite.address[1].String(),
 			},
 			func() {
@@ -373,7 +373,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryTxResponse() {
 		{
 			"valid request",
 			&types.QueryTxResponseRequest{
-				TxHash:          hex.EncodeToString([]byte("0x1234567890abcdef")),
+				AtxHash:         hex.EncodeToString([]byte("0x1234567890abcdef")),
 				OperatorAddress: suite.address[0].String(),
 			},
 			func() {

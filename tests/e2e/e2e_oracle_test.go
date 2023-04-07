@@ -193,7 +193,7 @@ func queryOracleTaskHash(endpoint, txHash string) (string, error) {
 		for _, event := range log.Events {
 			if event.Type == "create_tx_task" {
 				for _, attribute := range event.Attributes {
-					if attribute.Key == "tx_hash" {
+					if attribute.Key == "atx_hash" {
 						return attribute.Value, nil
 					}
 				}
@@ -217,9 +217,9 @@ func queryOracleOperator(endpoint, operatorAddr string) (*types.QueryOperatorRes
 	return grpcRsp, nil
 }
 
-func queryOracleTxTask(endpoint, taskHash string) (*types.QueryTxTaskResponse, error) {
+func queryOracleTxTask(endpoint, ataskHash string) (*types.QueryTxTaskResponse, error) {
 	grpcReq := &types.QueryTxTaskRequest{
-		TxHash: taskHash,
+		AtxHash: ataskHash,
 	}
 	conn, _ := connectGrpc(endpoint)
 	defer conn.Close()

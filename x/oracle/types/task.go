@@ -62,7 +62,7 @@ func NewTxTask(
 	status TaskStatus,
 ) *TxTask {
 	return &TxTask{
-		TxHash:    txHash,
+		AtxHash:   txHash,
 		Creator:   creator,
 		Bounty:    bounty,
 		ValidTime: validTime,
@@ -136,7 +136,7 @@ func (t *Task) ShouldAgg(ctx sdk.Context) bool {
 }
 
 func (t *TxTask) GetID() []byte {
-	return t.TxHash
+	return t.AtxHash
 }
 
 func (t *TxTask) GetCreator() string {
