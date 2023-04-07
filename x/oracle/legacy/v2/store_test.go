@@ -2,8 +2,10 @@ package v2_test
 
 import (
 	"math/rand"
+	"reflect"
 	"testing"
 	"time"
+	"unsafe"
 
 	"github.com/stretchr/testify/require"
 
@@ -11,6 +13,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	params "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	v2 "github.com/shentufoundation/shentu/v2/x/oracle/legacy/v2"
@@ -70,4 +73,53 @@ func Test_MigrateTaskStore(t *testing.T) {
 
 func TaskStoreKey(contract, function string) []byte {
 	return append(append(oracletypes.TaskStoreKeyPrefix, []byte(contract)...), []byte(function)...)
+}
+
+func Test_MigrateTaskParams(t *testing.T) {
+	app := shentuapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	ok := app.OracleKeeper
+	oracleSubspace := app.GetSubspace(oracletypes.ModuleName)
+	oldTaskParams := v2.TaskParams{
+		ExpirationDuration: time.Duration(569000),
+		AggregationWindow:  123,
+		AggregationResult:  sdk.NewInt(58),
+		ThresholdScore:     sdk.NewInt(75),
+		Epsilon1:           sdk.NewInt(9),
+		Epsilon2:           sdk.NewInt(7),
+	}
+	oldTable := params.NewKeyTable(
+		params.NewParamSetPair(oracletypes.ParamsStoreKeyTaskParams, v2.TaskParams{}, func(i interface{}) error { return nil }),
+		params.NewParamSetPair(oracletypes.ParamsStoreKeyPoolParams, v2.LockedPoolParams{}, func(i interface{}) error { return nil }),
+	)
+
+	tableField := reflect.ValueOf(&oracleSubspace).Elem().FieldByName("table")
+	// save the KeyTable for restoring later
+	cachedTable := GetUnexportedField(tableField)
+	// set the KeyTable as old version of Oracle module
+	SetUnexportedField(tableField, oldTable)
+	// set the params in the form of old version of Oracle module
+	oracleSubspace.Set(ctx, oracletypes.ParamsStoreKeyTaskParams, &oldTaskParams)
+	tp := ok.GetTaskParams(ctx)
+	require.True(t, tp.ShortcutQuorum.IsNil())
+	// restore the KeyTable as this version of Oracle module
+	SetUnexportedField(tableField, cachedTable)
+	v2.UpdateParams(ctx, oracleSubspace)
+	tp = ok.GetTaskParams(ctx)
+	require.Equal(t, oracletypes.DefaultShortcutQuorum, tp.ShortcutQuorum)
+	require.Equal(t, time.Duration(1800)*time.Second, tp.ExpirationDuration)
+	require.Equal(t, oldTaskParams.AggregationWindow, tp.AggregationWindow)
+	require.Equal(t, oldTaskParams.AggregationResult, tp.AggregationResult)
+	require.Equal(t, oldTaskParams.ThresholdScore, tp.ThresholdScore)
+	require.Equal(t, oldTaskParams.Epsilon1, tp.Epsilon1)
+	require.Equal(t, oldTaskParams.Epsilon2, tp.Epsilon2)
+}
+
+func GetUnexportedField(field reflect.Value) interface{} {
+	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Interface()
+}
+
+func SetUnexportedField(field reflect.Value, value interface{}) {
+	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).
+		Elem().Set(reflect.ValueOf(value))
 }
