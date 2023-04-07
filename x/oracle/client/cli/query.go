@@ -155,7 +155,7 @@ func GetCmdTask() *cobra.Command {
 // GetCmdTxTask returns the tx task query command.
 func GetCmdTxTask() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "tx-task <tx_hash>",
+		Use:   "tx-task <atx_hash>",
 		Short: "Get tx task information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -214,7 +214,7 @@ func GetCmdResponse() *cobra.Command {
 // GetCmdTxResponse returns the tx response query command.
 func GetCmdTxResponse() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "tx-response <operator_address> <tx_hash>",
+		Use:   "tx-response <operator_address> <atx_hash>",
 		Short: "Get tx response information",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {

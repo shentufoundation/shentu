@@ -440,7 +440,7 @@ func (m MsgTxTaskResponse) ValidateBasic() error {
 		return err
 	}
 	if len(m.AtxHash) == 0 {
-		return fmt.Errorf("tx_hash cannot be empty")
+		return fmt.Errorf("atx_hash cannot be empty")
 	}
 	return nil
 }
@@ -480,7 +480,7 @@ func (m MsgDeleteTxTask) ValidateBasic() error {
 		return nil
 	}
 	if len(m.AtxHash) == 0 {
-		return fmt.Errorf("tx_hash cannot be empty")
+		return fmt.Errorf("atx_hash cannot be empty")
 	}
 	return nil
 }
