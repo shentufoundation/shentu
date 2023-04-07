@@ -306,6 +306,9 @@ func (s *IntegrationTestSuite) TestOracle() {
 	taskContract := "demo-contract"
 	taskFunction := "demo-function"
 
+	chainID := "test"
+	bounty := sdk.NewCoin(uctkDenom, sdk.NewInt(500000))
+
 	s.Run("create_operator", func() {
 		lessCollateral := sdk.NewCoin(uctkDenom, sdk.NewInt(50000000))
 		collateral := sdk.NewCoin(uctkDenom, sdk.NewInt(100000000))
@@ -329,9 +332,8 @@ func (s *IntegrationTestSuite) TestOracle() {
 		txBytes := hex.EncodeToString([]byte(valTimeStr + "1"))
 		txBytes2 := hex.EncodeToString([]byte(valTimeStr + "2"))
 		txBytes3 := hex.EncodeToString([]byte(valTimeStr + "3"))
-		chainID := "test"
-		bountyAmount, _ := sdk.NewIntFromString("500000")
-		bounty := sdk.NewCoin(uctkDenom, bountyAmount)
+		txBytes4 := hex.EncodeToString([]byte(valTimeStr + "4"))
+
 		// normal tx task
 		txHash, err = s.executeOracleCreateTxTask(s.chainA, 0, txBytes, chainID, bounty.String(), valTimeStr, alice.String(), feesAmountCoin.String())
 		s.Require().NoError(err)
@@ -386,6 +388,9 @@ func (s *IntegrationTestSuite) TestOracle() {
 			20*time.Second,
 			5*time.Second,
 		)
+		// non-response task
+		_, err = s.executeOracleCreateTxTask(s.chainA, 0, txBytes4, chainID, bounty.String(), valTimeStr, bob.String(), feesAmountCoin.String())
+		s.Require().NoError(err)
 	})
 
 	s.Run("respond_tx_task", func() {
@@ -442,8 +447,6 @@ func (s *IntegrationTestSuite) TestOracle() {
 	})
 
 	s.Run("create_task", func() {
-		bountyAmount, _ := sdk.NewIntFromString("500000")
-		bounty := sdk.NewCoin(uctkDenom, bountyAmount)
 		s.executeOracleCreateTask(s.chainA, 0, taskContract, taskFunction, bounty.String(), alice.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
@@ -489,39 +492,26 @@ func (s *IntegrationTestSuite) TestOracle() {
 	})
 
 	s.Run("withdraw_bounty", func() {
-		validTime := time.Now().Add(6 * time.Second)
-		validTimeStr := validTime.Format(time.RFC3339)
-
-		txBytes := hex.EncodeToString([]byte(validTimeStr))
-		chainId := "test"
-		bountyAmount, _ := sdk.NewIntFromString("500000")
-		bounty := sdk.NewCoin(uctkDenom, bountyAmount)
-
-		txHash, err = s.executeOracleCreateTxTask(s.chainA, 0, txBytes, chainId, bounty.String(), validTimeStr, alice.String(), feesAmountCoin.String())
-		s.Require().NoError(err)
-
-		if time.Now().Before(validTime) {
-			time.Sleep(time.Until(validTime) + time.Second*5)
+		if time.Now().Before(valTime) {
+			time.Sleep(time.Until(valTime))
 		}
 
 		s.Require().Eventually(
 			func() bool {
-				res, e := queryOracleLeftBounty(chainAAPIEndpoint, alice.String())
+				res, e := queryOracleLeftBounty(chainAAPIEndpoint, bob.String())
 				s.Require().NoError(e)
-				return res.Bounty.Amount[0].Amount.Int64() > 0
+				return res.Bounty.Amount[0].Amount.Equal(bounty.Amount)
 			},
 			20*time.Second,
 			5*time.Second,
 		)
 
-		chainAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
-
-		balance, err := queryShentuDenomBalance(chainAPIEndpoint, alice.String(), uctkDenom)
+		balance, err := getBalance(chainAAPIEndpoint, bob.String(), uctkDenom)
 		s.Require().NoError(err)
-		s.executeOracleWithdrawBounty(s.chainA, 0, alice.String(), feesAmountCoin.String())
+		s.executeOracleWithdrawBounty(s.chainA, 0, bob.String(), feesAmountCoin.String())
 
-		balance2, err := queryShentuDenomBalance(chainAPIEndpoint, alice.String(), uctkDenom)
+		balance2, err := getBalance(chainAAPIEndpoint, bob.String(), uctkDenom)
 		s.Require().NoError(err)
-		s.Require().Greater(balance2.Amount.Int64(), balance.Amount.Int64())
+		s.Require().True(balance.Amount.Add(bounty.Amount).Equal(balance2.Amount))
 	})
 }
