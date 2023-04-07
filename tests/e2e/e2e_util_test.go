@@ -547,6 +547,21 @@ func getShentuTx(endpoint, txHash string) (*sdk.TxResponse, error) {
 	return grpcRsp.TxResponse, nil
 }
 
+func getBalance(endpoint, addr, denom string) (*sdk.Coin, error) {
+	grpcReq := &banktypes.QueryBalanceRequest{
+		Address: addr,
+		Denom:   denom,
+	}
+	conn, _ := connectGrpc(endpoint)
+	defer conn.Close()
+	client := banktypes.NewQueryClient(conn)
+	grpcRsp, err := client.Balance(context.Background(), grpcReq)
+	if err != nil {
+		return nil, err
+	}
+	return grpcRsp.Balance, nil
+}
+
 func queryShentuTx(endpoint, txHash string) error {
 	resp, err := http.Get(fmt.Sprintf("%s/cosmos/tx/v1beta1/txs/%s", endpoint, txHash))
 	if err != nil {
