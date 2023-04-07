@@ -332,14 +332,8 @@ func (s *IntegrationTestSuite) TestOracle() {
 		txBytes := hex.EncodeToString([]byte(valTimeStr + "1"))
 		txBytes2 := hex.EncodeToString([]byte(valTimeStr + "2"))
 		txBytes3 := hex.EncodeToString([]byte(valTimeStr + "3"))
-<<<<<<< HEAD
-		chainID := "test"
-		bountyAmount, _ := sdk.NewIntFromString("500000")
-		bounty := sdk.NewCoin(uctkDenom, bountyAmount)
-=======
 		txBytes4 := hex.EncodeToString([]byte(valTimeStr + "4"))
 
->>>>>>> 9afca97 (update test case)
 		// normal tx task
 		txHash, err = s.executeOracleCreateTxTask(s.chainA, 0, txBytes, chainID, bounty.String(), valTimeStr, alice.String(), feesAmountCoin.String())
 		s.Require().NoError(err)
@@ -498,58 +492,26 @@ func (s *IntegrationTestSuite) TestOracle() {
 	})
 
 	s.Run("withdraw_bounty", func() {
-<<<<<<< HEAD
-		validTime := time.Now().Add(6 * time.Second)
-		validTimeStr := validTime.Format(time.RFC3339)
-
-		txBytes := hex.EncodeToString([]byte(validTimeStr))
-		chainId := "test"
-		bountyAmount, _ := sdk.NewIntFromString("500000")
-		bounty := sdk.NewCoin(uctkDenom, bountyAmount)
-
-		txHash, err = s.executeOracleCreateTxTask(s.chainA, 0, txBytes, chainId, bounty.String(), validTimeStr, alice.String(), feesAmountCoin.String())
-		s.Require().NoError(err)
-
-		if time.Now().Before(validTime) {
-			time.Sleep(time.Until(validTime) + time.Second*5)
-=======
 		if time.Now().Before(valTime) {
 			time.Sleep(time.Until(valTime))
->>>>>>> 9afca97 (update test case)
 		}
 
 		s.Require().Eventually(
 			func() bool {
 				res, e := queryOracleLeftBounty(chainAAPIEndpoint, bob.String())
 				s.Require().NoError(e)
-<<<<<<< HEAD
-				return res.Bounty.Amount[0].Amount.Int64() > 0
-=======
 				return res.Bounty.Amount[0].Amount.Equal(bounty.Amount)
->>>>>>> 9afca97 (update test case)
 			},
 			20*time.Second,
 			5*time.Second,
 		)
 
-<<<<<<< HEAD
-		chainAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
-
-		balance, err := queryShentuDenomBalance(chainAPIEndpoint, alice.String(), uctkDenom)
-=======
 		balance, err := getBalance(chainAAPIEndpoint, bob.String(), uctkDenom)
->>>>>>> 9afca97 (update test case)
 		s.Require().NoError(err)
 		s.executeOracleWithdrawBounty(s.chainA, 0, bob.String(), feesAmountCoin.String())
 
-<<<<<<< HEAD
-		balance2, err := queryShentuDenomBalance(chainAPIEndpoint, alice.String(), uctkDenom)
-		s.Require().NoError(err)
-		s.Require().Greater(balance2.Amount.Int64(), balance.Amount.Int64())
-=======
 		balance2, err := getBalance(chainAAPIEndpoint, bob.String(), uctkDenom)
 		s.Require().NoError(err)
 		s.Require().True(balance.Amount.Add(bounty.Amount).Equal(balance2.Amount))
->>>>>>> 9afca97 (update test case)
 	})
 }
