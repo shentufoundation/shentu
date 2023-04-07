@@ -217,9 +217,9 @@ func queryOracleOperator(endpoint, operatorAddr string) (*types.QueryOperatorRes
 	return grpcRsp, nil
 }
 
-func queryOracleTxTask(endpoint, taskHash string) (*types.QueryTxTaskResponse, error) {
+func queryOracleTxTask(endpoint, ataskHash string) (*types.QueryTxTaskResponse, error) {
 	grpcReq := &types.QueryTxTaskRequest{
-		TxHash: taskHash,
+		AtxHash: ataskHash,
 	}
 	conn, _ := connectGrpc(endpoint)
 	defer conn.Close()
