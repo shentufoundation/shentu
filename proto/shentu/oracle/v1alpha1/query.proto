@@ -27,7 +27,7 @@ service Query {
     }
 
     rpc TxTask(QueryTxTaskRequest) returns (QueryTxTaskResponse) {
-        option (google.api.http).get = "/shentu/oracle/v1alpha1/txhash/{tx_hash}/txtask";
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/txhash/{atx_hash}/txtask";
     }
 
     rpc Response(QueryResponseRequest) returns (QueryResponseResponse) {
@@ -71,7 +71,7 @@ message QueryTaskResponse {
 }
 
 message QueryTxTaskRequest {
-    string tx_hash = 1;
+    string atx_hash = 1;
 }
 
 message QueryTxTaskResponse {
@@ -89,7 +89,7 @@ message QueryResponseResponse {
 }
 
 message QueryTxResponseRequest {
-    string tx_hash = 1;
+    string atx_hash = 1;
     string operator_address = 2;
 }
 

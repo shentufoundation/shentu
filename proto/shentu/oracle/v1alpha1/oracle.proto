@@ -62,7 +62,7 @@ message Operator {
 // TaskStatus enumerates the valid statuses of a task.
 enum TaskStatus {
     option (gogoproto.goproto_enum_prefix) = false;
-  
+
     TASK_STATUS_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "TaskStatusNil"];
     TASK_STATUS_PENDING = 1 [(gogoproto.enumvalue_customname) = "TaskStatusPending"];
     TASK_STATUS_SUCCEEDED = 2 [(gogoproto.enumvalue_customname) = "TaskStatusSucceeded"];
@@ -110,7 +110,7 @@ message TxTask {
     option (gogoproto.goproto_getters) = false;
     option (cosmos_proto.implements_interface) = "TaskI";
 
-    bytes tx_hash = 1 [ (gogoproto.moretags) = "yaml:\"tx_hash\"" ];
+    bytes atx_hash = 1 [ (gogoproto.moretags) = "yaml:\"atx_hash\"" ];
     string creator = 2 [ (gogoproto.moretags) = "yaml:\"creator\"" ];
     repeated cosmos.base.v1beta1.Coin bounty = 3 [ (gogoproto.moretags) = "yaml:\"bounty\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
     google.protobuf.Timestamp valid_time = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"valid_time\""];
