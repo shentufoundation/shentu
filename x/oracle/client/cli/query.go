@@ -167,7 +167,7 @@ func GetCmdTxTask() *cobra.Command {
 
 			res, err := queryClient.TxTask(
 				cmd.Context(),
-				&types.QueryTxTaskRequest{TxHash: args[0]},
+				&types.QueryTxTaskRequest{AtxHash: args[0]},
 			)
 			if err != nil {
 				return err
@@ -226,7 +226,7 @@ func GetCmdTxResponse() *cobra.Command {
 
 			res, err := queryClient.TxResponse(
 				cmd.Context(),
-				&types.QueryTxResponseRequest{TxHash: args[1], OperatorAddress: args[0]},
+				&types.QueryTxResponseRequest{AtxHash: args[1], OperatorAddress: args[0]},
 			)
 			if err != nil {
 				return err
