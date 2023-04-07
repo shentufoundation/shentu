@@ -2,8 +2,10 @@ package v2_test
 
 import (
 	"math/rand"
+	"reflect"
 	"testing"
 	"time"
+	"unsafe"
 
 	"github.com/stretchr/testify/require"
 
@@ -11,6 +13,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	params "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	v2 "github.com/shentufoundation/shentu/v2/x/oracle/legacy/v2"
@@ -23,7 +26,7 @@ func Test_MigrateTaskStore(t *testing.T) {
 	cdc := shentuapp.MakeEncodingConfig().Marshaler
 
 	// mock old data
-	var tasks []v2.Task
+	tasks := make(map[string]v2.Task)
 	for i := 0; i < 10; i++ {
 		r := rand.New(rand.NewSource(time.Now().UnixNano()))
 		beginBlock := r.Int63n(100)
@@ -40,12 +43,12 @@ func Test_MigrateTaskStore(t *testing.T) {
 			Expiration:    time.Time{},
 			Creator:       "",
 			Responses:     nil,
-			Result:        sdk.Int{},
+			Result:        simtypes.RandomAmount(r, sdk.NewInt(100)),
 			ClosingBlock:  ClosingBlock,
 			WaitingBlocks: waitingBlocks,
 			Status:        v2.TaskStatus(status),
 		}
-		tasks = append(tasks, task)
+		tasks[string(oracletypes.NewTaskID(task.Contract, task.Function))] = task
 	}
 
 	store := ctx.KVStore(app.GetKey(oracletypes.StoreKey))
@@ -66,8 +69,75 @@ func Test_MigrateTaskStore(t *testing.T) {
 
 	err := v2.MigrateTaskStore(ctx, app.GetKey(oracletypes.StoreKey), cdc)
 	require.Nil(t, err)
+
+	app.OracleKeeper.IteratorAllTasks(ctx, func(task oracletypes.TaskI) bool {
+		ntk, ok := task.(*oracletypes.Task)
+		require.True(t, ok)
+		tk, ok := tasks[string(task.GetID())]
+		require.True(t, ok)
+		require.Equal(t, tk.BeginBlock, ntk.BeginBlock)
+		require.Equal(t, tk.Bounty, ntk.Bounty)
+		require.Equal(t, tk.Description, ntk.Description)
+		require.Equal(t, tk.Expiration, ntk.Expiration)
+		require.Equal(t, tk.Creator, ntk.Creator)
+		require.Equal(t, tk.Result.Int64(), ntk.Result.Int64())
+		require.Equal(t, tk.ClosingBlock, ntk.ExpireHeight)
+		require.Equal(t, tk.WaitingBlocks, ntk.WaitingBlocks)
+		require.Equal(t, tk.Status.String(), ntk.Status.String())
+		return false
+	})
+
 }
 
 func TaskStoreKey(contract, function string) []byte {
 	return append(append(oracletypes.TaskStoreKeyPrefix, []byte(contract)...), []byte(function)...)
+}
+
+func Test_MigrateTaskParams(t *testing.T) {
+	app := shentuapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	ok := app.OracleKeeper
+	oracleSubspace := app.GetSubspace(oracletypes.ModuleName)
+	oldTaskParams := v2.TaskParams{
+		ExpirationDuration: time.Duration(569000),
+		AggregationWindow:  123,
+		AggregationResult:  sdk.NewInt(58),
+		ThresholdScore:     sdk.NewInt(75),
+		Epsilon1:           sdk.NewInt(9),
+		Epsilon2:           sdk.NewInt(7),
+	}
+	oldTable := params.NewKeyTable(
+		params.NewParamSetPair(oracletypes.ParamsStoreKeyTaskParams, v2.TaskParams{}, func(i interface{}) error { return nil }),
+		params.NewParamSetPair(oracletypes.ParamsStoreKeyPoolParams, v2.LockedPoolParams{}, func(i interface{}) error { return nil }),
+	)
+
+	tableField := reflect.ValueOf(&oracleSubspace).Elem().FieldByName("table")
+	// save the KeyTable for restoring later
+	cachedTable := GetUnexportedField(tableField)
+	// set the KeyTable as old version of Oracle module
+	SetUnexportedField(tableField, oldTable)
+	// set the params in the form of old version of Oracle module
+	oracleSubspace.Set(ctx, oracletypes.ParamsStoreKeyTaskParams, &oldTaskParams)
+	tp := ok.GetTaskParams(ctx)
+	require.True(t, tp.ShortcutQuorum.IsNil())
+	// restore the KeyTable as this version of Oracle module
+	SetUnexportedField(tableField, cachedTable)
+	v2.UpdateParams(ctx, oracleSubspace)
+	tp = ok.GetTaskParams(ctx)
+	require.Equal(t, oracletypes.DefaultShortcutQuorum, tp.ShortcutQuorum)
+	require.Equal(t, time.Duration(1800)*time.Second, tp.ExpirationDuration)
+	require.Equal(t, oldTaskParams.AggregationWindow, tp.AggregationWindow)
+	require.Equal(t, oldTaskParams.AggregationResult, tp.AggregationResult)
+	require.Equal(t, oldTaskParams.ThresholdScore, tp.ThresholdScore)
+	require.Equal(t, oldTaskParams.Epsilon1, tp.Epsilon1)
+	require.Equal(t, oldTaskParams.Epsilon2, tp.Epsilon2)
+}
+
+func GetUnexportedField(field reflect.Value) interface{} {
+	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Interface()
+}
+
+func SetUnexportedField(field reflect.Value, value interface{}) {
+	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).
+		Elem().Set(reflect.ValueOf(value))
 }
