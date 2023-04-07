@@ -1,6 +1,8 @@
 package v2
 
 import (
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -73,4 +75,20 @@ func MigrateTaskStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCo
 	}
 
 	return nil
+}
+
+func UpdateParams(ctx sdk.Context, paramSubspace types.ParamSubspace) {
+	var taskParams types.TaskParams
+	paramSubspace.Get(ctx, types.ParamsStoreKeyTaskParams, &taskParams)
+	newTaskParams := types.NewTaskParams(
+		// shorten the expiration time to half an hour to decrease txTask storage footprint
+		time.Duration(30)*time.Minute,
+		taskParams.AggregationWindow,
+		taskParams.AggregationResult,
+		taskParams.ThresholdScore,
+		taskParams.Epsilon1,
+		taskParams.Epsilon2,
+		types.DefaultShortcutQuorum,
+	)
+	paramSubspace.Set(ctx, types.ParamsStoreKeyTaskParams, &newTaskParams)
 }

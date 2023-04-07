@@ -60,6 +60,29 @@ func (k Keeper) SaveExpireTxTask(ctx sdk.Context, task *types.TxTask) {
 	)
 }
 
+func (k Keeper) DeleteFromExpireIDs(ctx sdk.Context, task types.TxTask) {
+	store := ctx.KVStore(k.storeKey)
+	taskIDs := k.GetTaskIDsByTime(ctx, types.ExpireTaskStoreKeyPrefix, task.Expiration)
+	if taskIDs == nil {
+		return
+	}
+	for i, taskID := range taskIDs {
+		if bytes.Equal(taskID.Tid, task.GetID()) {
+			taskIDs = append(taskIDs[:i], taskIDs[i+1:]...)
+			break
+		}
+	}
+	if len(taskIDs) == 0 {
+		store.Delete(types.TimeStoreKey(types.ExpireTaskStoreKeyPrefix, task.Expiration))
+	} else {
+		bz := k.cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})
+		store.Set(
+			types.TimeStoreKey(types.ExpireTaskStoreKeyPrefix, task.Expiration),
+			bz,
+		)
+	}
+}
+
 // GetTask returns a task given taskID.
 func (k Keeper) GetTask(ctx sdk.Context, taskID []byte) (task types.TaskI, err error) {
 	TaskData := ctx.KVStore(k.storeKey).Get(types.TaskStoreKey(taskID))
@@ -210,6 +233,9 @@ func (k Keeper) CreateTask(ctx sdk.Context, creator sdk.AccAddress, task types.T
 		if err := k.DeleteTask(ctx, savedTask); err != nil {
 			return err
 		}
+		if txTask, ok := savedTask.(*types.TxTask); ok && savedTask.GetStatus() != types.TaskStatusNil {
+			k.DeleteFromExpireIDs(ctx, *txTask)
+		}
 	}
 
 	k.SetTask(ctx, task)
@@ -338,6 +364,9 @@ func (k Keeper) RemoveTask(ctx sdk.Context, taskID []byte, force bool, deleter s
 	err = k.DeleteTask(ctx, task)
 	if err != nil {
 		return err
+	}
+	if txTask, ok := task.(*types.TxTask); ok {
+		k.DeleteFromExpireIDs(ctx, *txTask)
 	}
 	return nil
 }

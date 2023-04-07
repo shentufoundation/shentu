@@ -121,8 +121,8 @@ message MsgCreateTxTask {
 
     string creator = 1 [ (gogoproto.moretags) = "yaml:\"creator\"" ];
     string chain_id = 2 [ (gogoproto.moretags) = "yaml:\"chain_id\"" ];
-    // the bytes of business chain transaction that is going to be evaluated
-    bytes tx_bytes = 3 [ (gogoproto.moretags) = "yaml:\"tx_bytes\"" ];
+    // the bytes of application chain transaction that is going to be evaluated
+    bytes atx_bytes = 3 [ (gogoproto.moretags) = "yaml:\"atx_bytes\"" ];
     repeated cosmos.base.v1beta1.Coin bounty = 4 [ (gogoproto.moretags) = "yaml:\"bounty\"", (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins" ];
     google.protobuf.Timestamp valid_time = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"valid_time\""];
 }
@@ -130,15 +130,15 @@ message MsgCreateTxTask {
 message MsgCreateTxTaskResponse {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
-    // sha256 hash of the business chain transaction
-    bytes tx_hash = 1;
+    // sha256 hash of the application chain transaction
+    bytes atx_hash = 1;
 }
 
 message MsgTxTaskResponse {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
-
-    bytes tx_hash = 1 [ (gogoproto.moretags) = "yaml:\"tx_hash\"" ];
+    // sha256 hash of the application chain transaction
+    bytes atx_hash = 1 [ (gogoproto.moretags) = "yaml:\"atx_hash\"" ];
     int64 score = 2 [ (gogoproto.moretags) = "yaml:\"score\"" ];
     string operator = 3 [ (gogoproto.moretags) = "yaml:\"operator\"" ];
 }
@@ -148,8 +148,8 @@ message MsgTxTaskResponseResponse {}
 message MsgDeleteTxTask {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
-
-    bytes tx_hash = 1 [ (gogoproto.moretags) = "yaml:\"tx_hash\"" ];
+    // sha256 hash of the application chain transaction
+    bytes atx_hash = 1 [ (gogoproto.moretags) = "yaml:\"atx_hash\"" ];
     string from = 2 [ (gogoproto.moretags) = "yaml:\"from\"" ];
 }
 

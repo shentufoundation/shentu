@@ -70,7 +70,7 @@ func EmitEventsForTxTask(ctx sdk.Context, task *types.TxTask) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAggTxTask,
-			sdk.NewAttribute("tx_hash", hex.EncodeToString(task.TxHash)),
+			sdk.NewAttribute("atx_hash", hex.EncodeToString(task.AtxHash)),
 			sdk.NewAttribute("score", strconv.FormatInt(task.Score, 10)),
 			sdk.NewAttribute("status", task.Status.String()),
 			sdk.NewAttribute("creator", task.Creator),

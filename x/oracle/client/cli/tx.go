@@ -316,7 +316,7 @@ func GetCmdDeleteTask() *cobra.Command {
 
 func GetCmdRespondToTxTask() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "respond-to-txtask <tx_hash> <score>",
+		Use:   "respond-to-txtask <atx_hash> <score>",
 		Short: "Respond to a transaction task",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -331,7 +331,7 @@ func GetCmdRespondToTxTask() *cobra.Command {
 				return err
 			}
 
-			txHash, err := hex.DecodeString(args[0])
+			atxHash, err := hex.DecodeString(args[0])
 			if err != nil {
 				panic(err)
 			}
@@ -341,7 +341,7 @@ func GetCmdRespondToTxTask() *cobra.Command {
 				panic(err)
 			}
 
-			msg := types.NewMsgTxTaskResponse(txHash, score, from)
+			msg := types.NewMsgTxTaskResponse(atxHash, score, from)
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -353,7 +353,7 @@ func GetCmdRespondToTxTask() *cobra.Command {
 
 func GetCmdDeleteTxTask() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete-txtask <tx_hash>",
+		Use:   "delete-txtask <atx_hash>",
 		Short: "Delete a transaction task",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -368,12 +368,12 @@ func GetCmdDeleteTxTask() *cobra.Command {
 				return err
 			}
 
-			txHash, err := hex.DecodeString(args[0])
+			atxHash, err := hex.DecodeString(args[0])
 			if err != nil {
 				panic(err)
 			}
 
-			msg := types.NewMsgDeleteTxTask(txHash, from)
+			msg := types.NewMsgDeleteTxTask(atxHash, from)
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -385,7 +385,7 @@ func GetCmdDeleteTxTask() *cobra.Command {
 
 func GetCmdCreateTxTask() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-txtask <tx_bytes> <chain_id> <bounty> <valid_time>",
+		Use:   "create-txtask <atx_bytes> <chain_id> <bounty> <valid_time>",
 		Short: "Create a transaction task",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -400,7 +400,7 @@ func GetCmdCreateTxTask() *cobra.Command {
 				return err
 			}
 
-			txBytes, err := hex.DecodeString(args[0])
+			atxBytes, err := hex.DecodeString(args[0])
 			if err != nil {
 				return err
 			}
@@ -420,7 +420,7 @@ func GetCmdCreateTxTask() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateTxTask(from, chainID, txBytes, bounty, validTime)
+			msg := types.NewMsgCreateTxTask(from, chainID, atxBytes, bounty, validTime)
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}

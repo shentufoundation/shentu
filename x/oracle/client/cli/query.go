@@ -156,7 +156,7 @@ func GetCmdTask() *cobra.Command {
 // GetCmdTxTask returns the tx task query command.
 func GetCmdTxTask() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "tx-task <tx_hash>",
+		Use:   "tx-task <atx_hash>",
 		Short: "Get tx task information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -168,7 +168,7 @@ func GetCmdTxTask() *cobra.Command {
 
 			res, err := queryClient.TxTask(
 				cmd.Context(),
-				&types.QueryTxTaskRequest{TxHash: args[0]},
+				&types.QueryTxTaskRequest{AtxHash: args[0]},
 			)
 			if err != nil {
 				return err
@@ -215,7 +215,7 @@ func GetCmdResponse() *cobra.Command {
 // GetCmdTxResponse returns the tx response query command.
 func GetCmdTxResponse() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "tx-response <operator_address> <tx_hash>",
+		Use:   "tx-response <operator_address> <atx_hash>",
 		Short: "Get tx response information",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -227,7 +227,7 @@ func GetCmdTxResponse() *cobra.Command {
 
 			res, err := queryClient.TxResponse(
 				cmd.Context(),
-				&types.QueryTxResponseRequest{TxHash: args[1], OperatorAddress: args[0]},
+				&types.QueryTxResponseRequest{AtxHash: args[1], OperatorAddress: args[0]},
 			)
 			if err != nil {
 				return err

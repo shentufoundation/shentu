@@ -210,15 +210,15 @@ func request_Query_TxTask_0(ctx context.Context, marshaler runtime.Marshaler, cl
 		_   = err
 	)
 
-	val, ok = pathParams["tx_hash"]
+	val, ok = pathParams["atx_hash"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "tx_hash")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "atx_hash")
 	}
 
-	protoReq.TxHash, err = runtime.String(val)
+	protoReq.AtxHash, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tx_hash", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "atx_hash", err)
 	}
 
 	msg, err := client.TxTask(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -237,15 +237,15 @@ func local_request_Query_TxTask_0(ctx context.Context, marshaler runtime.Marshal
 		_   = err
 	)
 
-	val, ok = pathParams["tx_hash"]
+	val, ok = pathParams["atx_hash"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "tx_hash")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "atx_hash")
 	}
 
-	protoReq.TxHash, err = runtime.String(val)
+	protoReq.AtxHash, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tx_hash", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "atx_hash", err)
 	}
 
 	msg, err := server.TxTask(ctx, &protoReq)
@@ -362,15 +362,15 @@ func request_Query_TxResponse_0(ctx context.Context, marshaler runtime.Marshaler
 		_   = err
 	)
 
-	val, ok = pathParams["tx_hash"]
+	val, ok = pathParams["atx_hash"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "tx_hash")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "atx_hash")
 	}
 
-	protoReq.TxHash, err = runtime.String(val)
+	protoReq.AtxHash, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tx_hash", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "atx_hash", err)
 	}
 
 	val, ok = pathParams["operator_address"]
@@ -400,15 +400,15 @@ func local_request_Query_TxResponse_0(ctx context.Context, marshaler runtime.Mar
 		_   = err
 	)
 
-	val, ok = pathParams["tx_hash"]
+	val, ok = pathParams["atx_hash"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "tx_hash")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "atx_hash")
 	}
 
-	protoReq.TxHash, err = runtime.String(val)
+	protoReq.AtxHash, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tx_hash", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "atx_hash", err)
 	}
 
 	val, ok = pathParams["operator_address"]
@@ -884,11 +884,11 @@ var (
 
 	pattern_Query_Task_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"shentu", "oracle", "v1alpha1", "contract", "function", "task"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_TxTask_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"shentu", "oracle", "v1alpha1", "txhash", "tx_hash", "txtask"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_TxTask_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"shentu", "oracle", "v1alpha1", "txhash", "atx_hash", "txtask"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_Response_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7}, []string{"shentu", "oracle", "v1alpha1", "contract", "function", "operator", "operator_address", "Response"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_TxResponse_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7}, []string{"shentu", "oracle", "v1alpha1", "txhash", "tx_hash", "operator", "operator_address", "Response"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_TxResponse_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7}, []string{"shentu", "oracle", "v1alpha1", "txhash", "atx_hash", "operator", "operator_address", "Response"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_LeftBounty_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "oracle", "v1alpha1", "leftbounty", "address"}, "", runtime.AssumeColonVerbOpt(true)))
 )
