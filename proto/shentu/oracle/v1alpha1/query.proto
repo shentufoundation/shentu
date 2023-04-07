@@ -35,7 +35,7 @@ service Query {
     }
 
     rpc TxResponse(QueryTxResponseRequest) returns (QueryTxResponseResponse) {
-        option (google.api.http).get = "/shentu/oracle/v1alpha1/txhash/{tx_hash}/operator/{operator_address}/Response";
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/txhash/{atx_hash}/operator/{operator_address}/Response";
     }
 }
 
