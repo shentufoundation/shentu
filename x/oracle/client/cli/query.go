@@ -244,7 +244,7 @@ func GetCmdTxResponse() *cobra.Command {
 // GetCmdLeftBounty This function fetches the left bounty information for any given address.
 func GetCmdLeftBounty() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "left_bounty <address>",
+		Use:   "left-bounty <address>",
 		Short: "Get left bounty information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
