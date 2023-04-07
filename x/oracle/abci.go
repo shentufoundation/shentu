@@ -29,7 +29,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 		distributeErr := k.DistributeBounty(ctx, task)
 		task, _ = k.GetTask(ctx, task.GetID())
-		_ = k.HandleLeftBounty(ctx, task)
+		leftBounty := k.HandleLeftBounty(ctx, task)
 
 		if distributeErr != nil {
 			continue
@@ -37,9 +37,9 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 		switch task := task.(type) {
 		case *types.Task:
-			EmitEventsForTask(ctx, task)
+			EmitEventsForTask(ctx, task, leftBounty)
 		case *types.TxTask:
-			EmitEventsForTxTask(ctx, task)
+			EmitEventsForTxTask(ctx, task, leftBounty)
 		}
 	}
 	k.DeleteClosingTaskIDs(ctx)
@@ -47,7 +47,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	k.DeleteExpiredTasks(ctx)
 }
 
-func EmitEventsForTask(ctx sdk.Context, task *types.Task) {
+func EmitEventsForTask(ctx sdk.Context, task *types.Task, leftBounty string) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAggTask,
@@ -62,11 +62,12 @@ func EmitEventsForTask(ctx sdk.Context, task *types.Task) {
 			sdk.NewAttribute("result", task.Result.String()),
 			sdk.NewAttribute("end_block_height", strconv.FormatInt(task.ExpireHeight, 10)),
 			sdk.NewAttribute("status", task.Status.String()),
+			sdk.NewAttribute("left_bounty", leftBounty),
 		),
 	)
 }
 
-func EmitEventsForTxTask(ctx sdk.Context, task *types.TxTask) {
+func EmitEventsForTxTask(ctx sdk.Context, task *types.TxTask, leftBounty string) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAggTxTask,
@@ -77,6 +78,7 @@ func EmitEventsForTxTask(ctx sdk.Context, task *types.TxTask) {
 			sdk.NewAttribute("responses", task.Responses.String()),
 			sdk.NewAttribute("expiration", task.Expiration.String()),
 			sdk.NewAttribute("bounty", task.Bounty.String()),
+			sdk.NewAttribute("left_bounty", leftBounty),
 		),
 	)
 }

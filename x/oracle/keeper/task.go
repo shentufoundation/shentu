@@ -635,7 +635,7 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.TaskI) error {
 }
 
 // HandleLeftBounty This function subtracts the total rewards of task from the total bounty of task and ensures that the oracle module has sufficient balance for the bounty left.
-func (k Keeper) HandleLeftBounty(ctx sdk.Context, task types.TaskI) error {
+func (k Keeper) HandleLeftBounty(ctx sdk.Context, task types.TaskI) string {
 	taskCreator, err := sdk.AccAddressFromBech32(task.GetCreator())
 	if err != nil {
 		panic(err)
@@ -648,6 +648,7 @@ func (k Keeper) HandleLeftBounty(ctx sdk.Context, task types.TaskI) error {
 		}
 	}
 
+	lefBounty := ""
 	bounties := task.GetBounty()
 	leftBounty := bounties.Sub(totalReward)
 	if leftBounty != nil && leftBounty.IsAllPositive() {
@@ -657,10 +658,11 @@ func (k Keeper) HandleLeftBounty(ctx sdk.Context, task types.TaskI) error {
 			panic("Insufficient oracle model balance")
 		}
 		if err = k.AddLeftBounty(ctx, taskCreator, leftBounty); err != nil {
-			return err
+			return ""
 		}
+		lefBounty = leftBounty.String()
 	}
-	return nil
+	return lefBounty
 }
 
 // AddLeftBounty This function sets the left bounty for a given address, and adds the increment to the existing bounty if it exists.
