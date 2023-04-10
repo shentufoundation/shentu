@@ -13,40 +13,40 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
-func TestGetAllLeftBounties(t *testing.T) {
+func TestGetAllRemainingBounties(t *testing.T) {
 	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
-	leftBounties := ok.GetAllLeftBounties(ctx)
-	require.Equal(t, 0, len(leftBounties))
+	remainingBounties := ok.GetAllRemainingBounties(ctx)
+	require.Equal(t, 0, len(remainingBounties))
 
 	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
-	ok.AddLeftBounty(ctx, addrs[0], bounty)
-	ok.AddLeftBounty(ctx, addrs[1], bounty)
-	ok.AddLeftBounty(ctx, addrs[2], bounty)
-	ok.AddLeftBounty(ctx, addrs[3], bounty)
+	ok.AddRemainingBounty(ctx, addrs[0], bounty)
+	ok.AddRemainingBounty(ctx, addrs[1], bounty)
+	ok.AddRemainingBounty(ctx, addrs[2], bounty)
+	ok.AddRemainingBounty(ctx, addrs[3], bounty)
 
-	leftBounties = ok.GetAllLeftBounties(ctx)
-	require.Equal(t, 4, len(leftBounties))
-	require.Equal(t, bounty, leftBounties[0].Amount)
+	remainingBounties = ok.GetAllRemainingBounties(ctx)
+	require.Equal(t, 4, len(remainingBounties))
+	require.Equal(t, bounty, remainingBounties[0].Amount)
 }
 
-func TestCreatorLeftBounties(t *testing.T) {
+func TestCreatorRemainingBounties(t *testing.T) {
 	app := shentuapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	addrs := shentuapp.AddTestAddrs(app, ctx, 4, sdk.NewInt(80000*1e6))
 	ok := app.OracleKeeper
 
 	bounty := sdk.Coins{sdk.NewInt64Coin("uctk", 100000)}
-	leftBounty := types.LeftBounty{
+	remainingBounty := types.RemainingBounty{
 		Address: addrs[0].String(),
 		Amount:  bounty,
 	}
 
-	ok.SetCreatorLeftBounty(ctx, leftBounty)
-	savedLeftBounty, err := ok.GetCreatorLeftBounty(ctx, addrs[0])
+	ok.SetRemainingBounty(ctx, remainingBounty)
+	savedRemainingBounty, err := ok.GetRemainingBounty(ctx, addrs[0])
 	require.NoError(t, err)
-	require.Equal(t, savedLeftBounty.Amount, leftBounty.Amount)
+	require.Equal(t, savedRemainingBounty.Amount, remainingBounty.Amount)
 }

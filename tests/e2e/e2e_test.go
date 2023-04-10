@@ -499,7 +499,7 @@ func (s *IntegrationTestSuite) TestOracle() {
 
 		s.Require().Eventually(
 			func() bool {
-				res, e := queryOracleLeftBounty(chainAAPIEndpoint, bob.String())
+				res, e := queryOracleRemainingBounty(chainAAPIEndpoint, bob.String())
 				s.Require().NoError(e)
 				return res.Bounty.Amount[0].Amount.Equal(bounty.Amount)
 			},

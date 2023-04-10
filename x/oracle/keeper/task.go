@@ -634,8 +634,8 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.TaskI) error {
 	return nil
 }
 
-// HandleLeftBounty This function subtracts the total rewards of task from the total bounty of task and ensures that the oracle module has sufficient balance for the bounty left.
-func (k Keeper) HandleLeftBounty(ctx sdk.Context, task types.TaskI) string {
+// HandleRemainingBounty This function subtracts the total rewards of task from the total bounty of task and ensures that the oracle module has sufficient balance for the bounty left.
+func (k Keeper) HandleRemainingBounty(ctx sdk.Context, task types.TaskI) string {
 	taskCreator, err := sdk.AccAddressFromBech32(task.GetCreator())
 	if err != nil {
 		panic(err)
@@ -650,46 +650,46 @@ func (k Keeper) HandleLeftBounty(ctx sdk.Context, task types.TaskI) string {
 
 	lefBounty := ""
 	bounties := task.GetBounty()
-	leftBounty := bounties.Sub(totalReward)
-	if leftBounty != nil && leftBounty.IsAllPositive() {
+	remainingBounty := bounties.Sub(totalReward)
+	if remainingBounty != nil && remainingBounty.IsAllPositive() {
 		oracleAddress := k.accountKeeper.GetModuleAddress(types.ModuleName)
 		spendableCoins := k.bankKeeper.SpendableCoins(ctx, oracleAddress)
-		if ok := spendableCoins.IsAllGTE(leftBounty); !ok {
+		if ok := spendableCoins.IsAllGTE(remainingBounty); !ok {
 			panic("Insufficient oracle model balance")
 		}
-		if err = k.AddLeftBounty(ctx, taskCreator, leftBounty); err != nil {
+		if err = k.AddRemainingBounty(ctx, taskCreator, remainingBounty); err != nil {
 			return ""
 		}
-		lefBounty = leftBounty.String()
+		lefBounty = remainingBounty.String()
 	}
 	return lefBounty
 }
 
-// AddLeftBounty This function sets the left bounty for a given address, and adds the increment to the existing bounty if it exists.
-func (k Keeper) AddLeftBounty(ctx sdk.Context, address sdk.AccAddress, increment sdk.Coins) error {
-	leftBounty, err := k.GetCreatorLeftBounty(ctx, address)
+// AddRemainingBounty This function sets the left bounty for a given address, and adds the increment to the existing bounty if it exists.
+func (k Keeper) AddRemainingBounty(ctx sdk.Context, address sdk.AccAddress, increment sdk.Coins) error {
+	remainingBounty, err := k.GetRemainingBounty(ctx, address)
 	if err != nil {
-		leftBounty.Address = address.String()
-		leftBounty.Amount = increment
+		remainingBounty.Address = address.String()
+		remainingBounty.Amount = increment
 	} else {
-		leftBounty.Amount = leftBounty.Amount.Add(increment...)
+		remainingBounty.Amount = remainingBounty.Amount.Add(increment...)
 	}
 
-	k.SetCreatorLeftBounty(ctx, leftBounty)
+	k.SetRemainingBounty(ctx, remainingBounty)
 	return nil
 }
 
 // WithdrawBounty This function withdraws a bounty from an address by sending coins from the module to the account and then deleting the withdraw bounty.
 func (k Keeper) WithdrawBounty(ctx sdk.Context, address sdk.AccAddress) (sdk.Coins, error) {
-	leftBounty, err := k.GetCreatorLeftBounty(ctx, address)
+	remainingBounty, err := k.GetRemainingBounty(ctx, address)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, address, leftBounty.Amount); err != nil {
+	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, address, remainingBounty.Amount); err != nil {
 		return nil, err
 	}
 
-	k.DeleteCreatorLeftBounty(ctx, address)
-	return leftBounty.Amount, nil
+	k.DeleteRemainingBounty(ctx, address)
+	return remainingBounty.Amount, nil
 }

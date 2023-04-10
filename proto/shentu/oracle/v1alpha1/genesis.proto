@@ -18,6 +18,6 @@ message GenesisState {
     repeated Withdraw withdraws = 5 [ (gogoproto.moretags) = "yaml:\"withdraws\"", (gogoproto.nullable) = false ];
     repeated Task tasks = 6 [ (gogoproto.moretags) = "yaml:\"tasks\"", (gogoproto.nullable) = false ];
     repeated TxTask tx_tasks = 7 [ (gogoproto.moretags) = "yaml:\"tx_tasks\"", (gogoproto.nullable) = false ];
-    repeated LeftBounty left_bounties = 8 [ (gogoproto.moretags) = "yaml:\"left_bounties\"", (gogoproto.nullable) = false ];
+    repeated RemainingBounty remaining_bounties = 8 [ (gogoproto.moretags) = "yaml:\"remaining_bounties\"", (gogoproto.nullable) = false ];
 
 }

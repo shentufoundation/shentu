@@ -120,7 +120,7 @@ message TxTask {
     TaskStatus status = 8 [(gogoproto.moretags) = "yaml:\"status\""];
 }
 
-message LeftBounty {
+message RemainingBounty {
     option (gogoproto.equal) = false;
     option (gogoproto.goproto_getters) = false;
 

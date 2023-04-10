@@ -130,7 +130,7 @@ func TestTaskNoResponses(t *testing.T) {
 	taskRes := tth.CheckTask(ok.GetTask(ctx, tth.TaskID()))
 	require.Equal(t, types.TaskStatusFailed, taskRes.GetStatus())
 
-	require.Equal(t, ok.HandleLeftBounty(ctx, taskRes), "100000uctk")
+	require.Equal(t, ok.HandleRemainingBounty(ctx, taskRes), "100000uctk")
 }
 
 func TestTaskMinScore(t *testing.T) {
@@ -170,7 +170,7 @@ func TestTaskMinScore(t *testing.T) {
 	require.NoError(t, ok.DistributeBounty(ctx, taskRes))
 
 	taskRes = tth.CheckTask(ok.GetTask(ctx, tth.TaskID()))
-	require.Equal(t, ok.HandleLeftBounty(ctx, taskRes), "")
+	require.Equal(t, ok.HandleRemainingBounty(ctx, taskRes), "")
 
 	operator1, err := ok.GetOperator(ctx, addrs[0])
 	require.Nil(t, err)
@@ -228,9 +228,9 @@ func TestTaskBelowThreshold(t *testing.T) {
 
 	taskRes = tth.CheckTask(ok.GetTask(ctx, tth.TaskID()))
 
-	_, err := ok.GetCreatorLeftBounty(ctx, tth.creator)
+	_, err := ok.GetRemainingBounty(ctx, tth.creator)
 	require.Error(t, err)
-	require.Equal(t, ok.HandleLeftBounty(ctx, taskRes), "1uctk")
+	require.Equal(t, ok.HandleRemainingBounty(ctx, taskRes), "1uctk")
 
 	operator1, err := ok.GetOperator(ctx, addrs[0])
 	require.Nil(t, err)

@@ -62,7 +62,7 @@ func TestDecodeStore(t *testing.T) {
 		},
 	}
 
-	leftBounty := types.LeftBounty{
+	remainingBounty := types.RemainingBounty{
 		Address: RandomAccount().Address.String(),
 		Amount:  RandomCoins(100000),
 	}
@@ -70,7 +70,7 @@ func TestDecodeStore(t *testing.T) {
 	require.NoError(t, err)
 	withdrawAddr, err := sdk.AccAddressFromBech32(withdraw.Address)
 	require.NoError(t, err)
-	leftBountyAddr, err := sdk.AccAddressFromBech32(leftBounty.Address)
+	remainingBountyAddr, err := sdk.AccAddressFromBech32(remainingBounty.Address)
 	require.NoError(t, err)
 
 	KVPairs := kv.Pairs{
@@ -80,7 +80,7 @@ func TestDecodeStore(t *testing.T) {
 			{Key: types.TotalCollateralKey(), Value: cdc.MustMarshalLengthPrefixed(&types.CoinsProto{Coins: totalCollateral})},
 			{Key: types.TaskStoreKey(types.NewTaskID(task.Contract, task.Function)), Value: cdc.MustMarshalLengthPrefixed(&task)},
 			{Key: types.ClosingTaskIDsStoreKey(task.ExpireHeight), Value: cdc.MustMarshalLengthPrefixed(&types.TaskIDs{TaskIds: taskIDs})},
-			{Key: types.LeftBountyStoreKey(leftBountyAddr), Value: cdc.MustMarshalLengthPrefixed(&leftBounty)},
+			{Key: types.RemainingBountyStoreKey(remainingBountyAddr), Value: cdc.MustMarshalLengthPrefixed(&remainingBounty)},
 		},
 	}
 
@@ -93,7 +93,7 @@ func TestDecodeStore(t *testing.T) {
 		{"TotalCollateral", fmt.Sprintf("%s\n%s", totalCollateral, totalCollateral)},
 		{"Task", fmt.Sprintf("%v\n%v", task, task)},
 		{"TaskIDs", fmt.Sprintf("%v\n%v", taskIDs, taskIDs)},
-		{"LeftBounty", fmt.Sprintf("%v\n%v", leftBounty, leftBounty)},
+		{"RemainingBounty", fmt.Sprintf("%v\n%v", remainingBounty, remainingBounty)},
 		{"other", ""},
 	}
 

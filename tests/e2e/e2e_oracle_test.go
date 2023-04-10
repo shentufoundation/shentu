@@ -279,14 +279,14 @@ func queryOracleOperators(endpoint string) (*types.QueryOperatorsResponse, error
 	return grpcRsp, nil
 }
 
-func queryOracleLeftBounty(endpoint, addr string) (*types.QueryLeftBountyResponse, error) {
-	grpcReq := &types.QueryLeftBountyRequest{
+func queryOracleRemainingBounty(endpoint, addr string) (*types.QueryRemainingBountyResponse, error) {
+	grpcReq := &types.QueryRemainingBountyRequest{
 		Address: addr,
 	}
 	conn, _ := connectGrpc(endpoint)
 	defer conn.Close()
 	client := types.NewQueryClient(conn)
-	grpcRsp, err := client.LeftBounty(context.Background(), grpcReq)
+	grpcRsp, err := client.RemainingBounty(context.Background(), grpcReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}

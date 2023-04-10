@@ -405,41 +405,41 @@ func (suite *KeeperTestSuite) TestGRPCQueryTxResponse() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGRPCQueryLeftBounty() {
+func (suite *KeeperTestSuite) TestGRPCQueryRemainingBounty() {
 	tests := []struct {
 		name    string
-		req     *types.QueryLeftBountyRequest
+		req     *types.QueryRemainingBountyRequest
 		preRun  func()
-		postRun func(_ *types.QueryLeftBountyResponse)
+		postRun func(_ *types.QueryRemainingBountyResponse)
 		expPass bool
 	}{
 		{
 			"invalid address",
-			&types.QueryLeftBountyRequest{
+			&types.QueryRemainingBountyRequest{
 				Address: "invalid",
 			},
 			func() {},
-			func(*types.QueryLeftBountyResponse) {},
+			func(*types.QueryRemainingBountyResponse) {},
 			false,
 		},
 		{
 			"no left bounty",
-			&types.QueryLeftBountyRequest{
+			&types.QueryRemainingBountyRequest{
 				Address: suite.address[0].String(),
 			},
 			func() {},
-			func(*types.QueryLeftBountyResponse) {},
+			func(*types.QueryRemainingBountyResponse) {},
 			false,
 		},
 		{
 			"valid request",
-			&types.QueryLeftBountyRequest{
+			&types.QueryRemainingBountyRequest{
 				Address: suite.address[0].String(),
 			},
 			func() {
-				suite.keeper.AddLeftBounty(suite.ctx, suite.address[0], sdk.Coins{sdk.NewInt64Coin("uctk", 10000)})
+				suite.keeper.AddRemainingBounty(suite.ctx, suite.address[0], sdk.Coins{sdk.NewInt64Coin("uctk", 10000)})
 			},
-			func(res *types.QueryLeftBountyResponse) {
+			func(res *types.QueryRemainingBountyResponse) {
 				suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("uctk", 10000)}, res.Bounty.Amount)
 			},
 			true,
@@ -450,7 +450,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryLeftBounty() {
 			suite.SetupTest()
 			tc.preRun()
 			ctx := sdk.WrapSDKContext(suite.ctx)
-			res, err := suite.queryClient.LeftBounty(ctx, tc.req)
+			res, err := suite.queryClient.RemainingBounty(ctx, tc.req)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)

@@ -47,8 +47,8 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &taskIDsB)
 			return fmt.Sprintf("%v\n%v", taskIDsA.TaskIds, taskIDsB.TaskIds)
 
-		case bytes.Equal(kvA.Key[:1], types.LeftBountyStoreKeyPrefix):
-			var bountyA, bountyB types.LeftBounty
+		case bytes.Equal(kvA.Key[:1], types.RemainingBountyStoreKeyPrefix):
+			var bountyA, bountyB types.RemainingBounty
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &bountyA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &bountyB)
 			return fmt.Sprintf("%v\n%v", bountyA, bountyB)

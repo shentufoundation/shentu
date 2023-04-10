@@ -16,7 +16,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	withdraws := data.Withdraws
 	tasks := data.Tasks
 	txTasks := data.TxTasks
-	leftBounties := data.LeftBounties
+	remainingBounties := data.RemainingBounties
 
 	for _, operator := range operators {
 		k.SetOperator(ctx, operator)
@@ -38,8 +38,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 		k.SetTxTask(ctx, &txTasks[i])
 	}
 
-	for _, bounty := range leftBounties {
-		k.SetCreatorLeftBounty(ctx, bounty)
+	for _, bounty := range remainingBounties {
+		k.SetRemainingBounty(ctx, bounty)
 	}
 }
 
@@ -52,6 +52,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	taskParams := k.GetTaskParams(ctx)
 	withdraws := k.GetAllWithdrawsForExport(ctx)
 	tasks, txTasks := k.UpdateAndGetAllTasks(ctx)
-	leftBounties := k.GetAllLeftBounties(ctx)
-	return types.NewGenesisState(operators, totalCollateral, poolParams, taskParams, withdraws, tasks, txTasks, leftBounties)
+	remainingBounties := k.GetAllRemainingBounties(ctx)
+	return types.NewGenesisState(operators, totalCollateral, poolParams, taskParams, withdraws, tasks, txTasks, remainingBounties)
 }

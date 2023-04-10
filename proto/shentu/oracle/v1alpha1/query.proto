@@ -38,8 +38,8 @@ service Query {
         option (google.api.http).get = "/shentu/oracle/v1alpha1/txhash/{atx_hash}/operator/{operator_address}/Response";
     }
 
-    rpc LeftBounty(QueryLeftBountyRequest) returns (QueryLeftBountyResponse) {
-        option (google.api.http).get = "/shentu/oracle/v1alpha1/leftbounty/{address}";
+    rpc RemainingBounty(QueryRemainingBountyRequest) returns (QueryRemainingBountyResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/remainingbounty/{address}";
     }
 }
 
@@ -101,10 +101,10 @@ message QueryTxResponseResponse {
     Response response = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryLeftBountyRequest {
+message QueryRemainingBountyRequest {
     string address = 1;
 }
 
-message QueryLeftBountyResponse {
-    LeftBounty bounty = 1 [(gogoproto.nullable) = false];
+message QueryRemainingBountyResponse {
+    RemainingBounty bounty = 1 [(gogoproto.nullable) = false];
 }
