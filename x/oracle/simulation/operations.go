@@ -24,6 +24,7 @@ const (
 	OpWeightMsgCreateOperator = "op_weight_msg_create_operator"
 	OpWeightMsgCreateTask     = "op_weight_msg_create_task"
 	OpWeightMsgCreateTxTask   = "op_weight_msg_create_tx_task"
+	OpWeightMsgTxTaskResponse = "op_weight_msg_tx_task_response"
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights.
@@ -32,6 +33,7 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, k kee
 		weightMsgCreateOperator int
 		weightMsgCreateTask     int
 		weightMsgCreateTxTask   int
+		weightMsgTxTaskResponse int
 	)
 
 	appParams.GetOrGenerate(cdc, OpWeightMsgCreateOperator, &weightMsgCreateOperator, nil,
@@ -52,10 +54,19 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, k kee
 		},
 	)
 
+	appParams.GetOrGenerate(cdc, OpWeightMsgTxTaskResponse, &weightMsgTxTaskResponse, nil,
+		func(_ *rand.Rand) {
+			weightMsgTxTaskResponse = simappparams.DefaultWeightMsgSend
+		},
+	)
+
+	atxHashStore = nil
+
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(weightMsgCreateOperator, SimulateMsgCreateOperator(k, ak, bk)),
 		simulation.NewWeightedOperation(weightMsgCreateTask, SimulateMsgCreateTask(ak, k, bk)),
 		simulation.NewWeightedOperation(weightMsgCreateTxTask, SimulateMsgCreateTxTask(ak, k, bk)),
+		simulation.NewWeightedOperation(weightMsgTxTaskResponse, SimulateMsgTxTaskResponse(ak, k, bk, nil, simtypes.Account{})),
 	}
 }
 
@@ -521,8 +532,7 @@ func SimulateMsgCreateTxTask(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 		bounty := simtypes.RandSubsetCoins(r, bk.SpendableCoins(ctx, creatorAcc.GetAddress()))
 		validTime := ctx.BlockTime().Add(15 * time.Hour)
 		// mock business chain info
-		businessTx := []byte(simtypes.RandStringOfLength(r, 500))
-		businessTxHash := sha256.Sum256(businessTx)
+		businessTx, businessTxHash := getAtxHash(r)
 		businessChainID := fmt.Sprintf("%d", simtypes.RandIntBetween(r, 1, 1000))
 
 		msg := types.NewMsgCreateTxTask(creator.Address, businessChainID, businessTx, bounty, validTime)
@@ -549,6 +559,9 @@ func SimulateMsgCreateTxTask(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 
 		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
+			if types.ErrTaskNotClosed.Is(err) {
+				return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
+			}
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
@@ -556,7 +569,7 @@ func SimulateMsgCreateTxTask(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 		if simtypes.RandIntBetween(r, 0, 100) < 10 {
 			futureOperations = append(futureOperations, simtypes.FutureOperation{
 				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 10, 15),
-				Op:          SimulateMsgDeleteTxTask(ak, bk, businessTxHash[:], creator),
+				Op:          SimulateMsgDeleteTxTask(ak, bk, businessTxHash, creator),
 			})
 		}
 
@@ -564,7 +577,7 @@ func SimulateMsgCreateTxTask(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 			if k.IsOperator(ctx, acc.Address) && simtypes.RandIntBetween(r, 0, 100) < 10 {
 				futureOperations = append(futureOperations, simtypes.FutureOperation{
 					BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 1, 5),
-					Op:          SimulateMsgTxTaskResponse(ak, k, bk, businessTxHash[:], acc),
+					Op:          SimulateMsgTxTaskResponse(ak, k, bk, businessTxHash, acc),
 				})
 			}
 		}
@@ -573,11 +586,53 @@ func SimulateMsgCreateTxTask(ak types.AccountKeeper, k keeper.Keeper, bk types.B
 	}
 }
 
+func getAnOperator(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account, k keeper.Keeper) (simtypes.Account, error) {
+	amt := len(accs)
+	startIndex := r.Intn(amt)
+	for i := 0; i < len(accs); i++ {
+		if k.IsOperator(ctx, accs[(startIndex+i)%amt].Address) {
+			return accs[(startIndex+i)%amt], nil
+		}
+	}
+	return simtypes.Account{}, fmt.Errorf("no operator")
+}
+
+func randomHash(r *rand.Rand) ([]byte, []byte) {
+	txbytes := []byte(simtypes.RandStringOfLength(r, 500))
+	txhash := sha256.Sum256(txbytes)
+	return txbytes, txhash[:]
+}
+
+var atxHashStore [][][]byte
+
+func getAtxHash(r *rand.Rand) ([]byte, []byte) {
+	if atxHashStore == nil {
+		atxHashStore = make([][][]byte, 20)
+	}
+	if r.Intn(100) < 30 {
+		return randomHash(r)
+	}
+	pickedIndex := r.Intn(len(atxHashStore))
+	if atxHashStore[pickedIndex] == nil {
+		tx, hash := randomHash(r)
+		atxHashStore[pickedIndex] = append(atxHashStore[pickedIndex], tx, hash)
+	}
+	return atxHashStore[pickedIndex][0], atxHashStore[pickedIndex][1]
+}
+
 // SimulateMsgTxTaskResponse generates a MsgTxTaskResponse object with all of its fields randomized.
 func SimulateMsgTxTaskResponse(ak types.AccountKeeper, k keeper.Keeper, bk types.BankKeeper, txHash []byte,
 	simAcc simtypes.Account) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
 		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		var err error
+		if txHash == nil {
+			_, txHash = getAtxHash(r)
+			simAcc, err = getAnOperator(r, ctx, accs, k)
+			if err != nil {
+				return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgRespondToTxTask, "no operator available"), nil, nil
+			}
+		}
 		if !k.IsOperator(ctx, simAcc.Address) {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgRespondToTxTask, "not an operator"), nil, nil
 		}
@@ -606,7 +661,7 @@ func SimulateMsgTxTaskResponse(ak types.AccountKeeper, k keeper.Keeper, bk types
 		}
 		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
-			if types.ErrTaskClosed.Is(err) {
+			if types.ErrTaskClosed.Is(err) || types.ErrDuplicateResponse.Is(err) {
 				return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, nil
 			}
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
@@ -643,6 +698,9 @@ func SimulateMsgDeleteTxTask(ak types.AccountKeeper, bk types.BankKeeper, txHash
 
 		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
+			if types.ErrNotFinished.Is(err) || types.ErrNotCreator.Is(err) {
+				return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
+			}
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
