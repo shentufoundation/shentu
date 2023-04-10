@@ -787,15 +787,11 @@ var (
 
 	pattern_Query_Task_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"shentu", "oracle", "v1alpha1", "contract", "function", "task"}, "", runtime.AssumeColonVerbOpt(false)))
 
-<<<<<<< HEAD
-	pattern_Query_TxTask_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"shentu", "oracle", "v1alpha1", "txhash", "atx_hash", "txtask"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_TxTask_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"shentu", "oracle", "v1alpha1", "txhash", "atx_hash", "txtask"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Response_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7}, []string{"shentu", "oracle", "v1alpha1", "contract", "function", "operator", "operator_address", "Response"}, "", runtime.AssumeColonVerbOpt(true)))
-
-	pattern_Query_TxResponse_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7}, []string{"shentu", "oracle", "v1alpha1", "txhash", "atx_hash", "operator", "operator_address", "Response"}, "", runtime.AssumeColonVerbOpt(true)))
-=======
 	pattern_Query_Response_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7}, []string{"shentu", "oracle", "v1alpha1", "contract", "function", "operator", "operator_address", "Response"}, "", runtime.AssumeColonVerbOpt(false)))
->>>>>>> master
+
+	pattern_Query_TxResponse_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7}, []string{"shentu", "oracle", "v1alpha1", "txhash", "atx_hash", "operator", "operator_address", "Response"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
