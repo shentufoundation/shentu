@@ -433,7 +433,7 @@ func GetCmdCreateTxTask() *cobra.Command {
 func GetCmdWithdrawBounty() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "withdraw-bounty",
-		Short: "withdraw left bounty in tx_task",
+		Short: "withdraw remaining bounty in tx_task",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)

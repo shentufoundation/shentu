@@ -62,7 +62,7 @@ func EmitEventsForTask(ctx sdk.Context, task *types.Task, remainingBounty string
 			sdk.NewAttribute("result", task.Result.String()),
 			sdk.NewAttribute("end_block_height", strconv.FormatInt(task.ExpireHeight, 10)),
 			sdk.NewAttribute("status", task.Status.String()),
-			sdk.NewAttribute("left_bounty", remainingBounty),
+			sdk.NewAttribute("remaining_bounty", remainingBounty),
 		),
 	)
 }
@@ -78,7 +78,7 @@ func EmitEventsForTxTask(ctx sdk.Context, task *types.TxTask, remainingBounty st
 			sdk.NewAttribute("responses", task.Responses.String()),
 			sdk.NewAttribute("expiration", task.Expiration.String()),
 			sdk.NewAttribute("bounty", task.Bounty.String()),
-			sdk.NewAttribute("left_bounty", remainingBounty),
+			sdk.NewAttribute("remaining_bounty", remainingBounty),
 		),
 	)
 }

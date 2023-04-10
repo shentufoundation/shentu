@@ -423,7 +423,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryRemainingBounty() {
 			false,
 		},
 		{
-			"no left bounty",
+			"no remaining bounty",
 			&types.QueryRemainingBountyRequest{
 				Address: suite.address[0].String(),
 			},

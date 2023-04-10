@@ -634,7 +634,7 @@ func (k Keeper) DistributeBounty(ctx sdk.Context, task types.TaskI) error {
 	return nil
 }
 
-// HandleRemainingBounty This function subtracts the total rewards of task from the total bounty of task and ensures that the oracle module has sufficient balance for the bounty left.
+// HandleRemainingBounty This function subtracts the total rewards of task from the total bounty of task and ensures that the oracle module has sufficient balance for the bounty remaining.
 func (k Keeper) HandleRemainingBounty(ctx sdk.Context, task types.TaskI) string {
 	taskCreator, err := sdk.AccAddressFromBech32(task.GetCreator())
 	if err != nil {
@@ -665,7 +665,7 @@ func (k Keeper) HandleRemainingBounty(ctx sdk.Context, task types.TaskI) string 
 	return lefBounty
 }
 
-// AddRemainingBounty This function sets the left bounty for a given address, and adds the increment to the existing bounty if it exists.
+// AddRemainingBounty This function sets the remaining bounty for a given address, and adds the increment to the existing bounty if it exists.
 func (k Keeper) AddRemainingBounty(ctx sdk.Context, address sdk.AccAddress, increment sdk.Coins) error {
 	remainingBounty, err := k.GetRemainingBounty(ctx, address)
 	if err != nil {

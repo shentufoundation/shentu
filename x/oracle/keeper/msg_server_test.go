@@ -143,15 +143,15 @@ func TestMsgServer_WithdrawBounty(t *testing.T) {
 	_, err := msgServer.WithdrawBounty(sdk.WrapSDKContext(ctx), withdrawBounty)
 	require.Error(t, err)
 
-	leftCoins := sdk.Coins{sdk.NewInt64Coin("uctk", 10000)}
-	ok.AddRemainingBounty(ctx, addrs[0], leftCoins)
+	remainingCoins := sdk.Coins{sdk.NewInt64Coin("uctk", 10000)}
+	ok.AddRemainingBounty(ctx, addrs[0], remainingCoins)
 	_, err = msgServer.WithdrawBounty(sdk.WrapSDKContext(ctx), withdrawBounty)
 	require.Error(t, err)
 
-	CreateTxTask(ctx, addrs[0], []byte("test left"), leftCoins, 30, true)
+	CreateTxTask(ctx, addrs[0], []byte("test remaining"), remainingCoins, 30, true)
 	remainingBounty, err := ok.GetRemainingBounty(ctx, addrs[0])
 	require.NoError(t, err)
-	require.Equal(t, leftCoins, remainingBounty.Amount)
+	require.Equal(t, remainingCoins, remainingBounty.Amount)
 	_, err = msgServer.WithdrawBounty(sdk.WrapSDKContext(ctx), withdrawBounty)
 	require.NoError(t, err)
 	_, err = ok.GetRemainingBounty(ctx, addrs[0])

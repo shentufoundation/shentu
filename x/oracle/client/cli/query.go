@@ -241,11 +241,11 @@ func GetCmdTxResponse() *cobra.Command {
 	return cmd
 }
 
-// GetCmdRemainingBounty This function fetches the left bounty information for any given address.
+// GetCmdRemainingBounty This function fetches the remaining bounty information for any given address.
 func GetCmdRemainingBounty() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "left-bounty <address>",
-		Short: "Get left bounty information",
+		Use:   "remaining-bounty <address>",
+		Short: "Get remaining bounty information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientQueryContext(cmd)

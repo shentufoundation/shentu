@@ -141,7 +141,7 @@ func (q Keeper) TxResponse(c context.Context, req *types.QueryTxResponseRequest)
 	return &types.QueryTxResponseResponse{}, fmt.Errorf("there is no response from this operator")
 }
 
-// RemainingBounty This function retrieves the amount of bounty left for the task creator
+// RemainingBounty This function retrieves the amount of bounty remaining for the task creator
 func (q Keeper) RemainingBounty(c context.Context, req *types.QueryRemainingBountyRequest) (*types.QueryRemainingBountyResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")

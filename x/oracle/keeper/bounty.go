@@ -25,7 +25,7 @@ func (k Keeper) GetRemainingBounty(ctx sdk.Context, address sdk.AccAddress) (typ
 	return types.RemainingBounty{}, types.ErrNoRemainingBountyFound
 }
 
-// DeleteRemainingBounty This function deletes the store key associated with a Creator's Left Bounty within the context of the given Keeper.
+// DeleteRemainingBounty This function deletes the store key associated with a Creator's remaining Bounty within the context of the given Keeper.
 func (k Keeper) DeleteRemainingBounty(ctx sdk.Context, address sdk.AccAddress) error {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.RemainingBountyStoreKey(address))

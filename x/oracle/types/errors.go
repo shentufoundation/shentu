@@ -70,5 +70,5 @@ var (
 
 	ErrFailedToCastTask = sdkerrors.Register(ModuleName, errFailedToCastTask, "failed to cast to concrete task")
 
-	ErrNoRemainingBountyFound = sdkerrors.Register(ModuleName, errNoRemainingBountyFound, "no left bounty was found")
+	ErrNoRemainingBountyFound = sdkerrors.Register(ModuleName, errNoRemainingBountyFound, "no remaining bounty was found")
 )
