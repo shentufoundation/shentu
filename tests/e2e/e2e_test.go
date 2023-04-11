@@ -8,6 +8,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
@@ -29,10 +30,9 @@ func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
 			func() bool {
 				balances, err = queryShentuAllBalances(chainBAPIEndpoint, recipient)
 				s.Require().NoError(err)
-
 				return balances.Len() == 3
 			},
-			time.Minute,
+			20*time.Second,
 			5*time.Second,
 		)
 
@@ -106,7 +106,11 @@ func (s *IntegrationTestSuite) TestStaking() {
 	})
 }
 
+<<<<<<< HEAD
 func (s *IntegrationTestSuite) TestGovernance() {
+=======
+func (s *IntegrationTestSuite) TestSubmitProposal() {
+>>>>>>> master
 
 	chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
 	validatorA := s.chainA.validators[0]
@@ -124,7 +128,7 @@ func (s *IntegrationTestSuite) TestGovernance() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.ProposalId == uint64(proposalCounter)
+				return res.Proposal.Status == govtypes.StatusVotingPeriod && res.Proposal.ProposalId == uint64(proposalCounter)
 			},
 			20*time.Second,
 			5*time.Second,
@@ -133,9 +137,7 @@ func (s *IntegrationTestSuite) TestGovernance() {
 
 	s.Run("voting_proposal", func() {
 		s.T().Logf("Voting upgrade proposal %d", proposalCounter)
-		// First round, certifier vote
-		s.executeVoteProposal(s.chainA, 0, validatorAAddr.String(), proposalCounter, "yes", feesAmountCoin.String())
-		// Second round, validator vote
+		// vote
 		s.executeVoteProposal(s.chainA, 0, validatorAAddr.String(), proposalCounter, "yes", feesAmountCoin.String())
 
 		// Validate proposal status
@@ -143,7 +145,7 @@ func (s *IntegrationTestSuite) TestGovernance() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.Status == 3
+				return res.Proposal.Status == govtypes.StatusPassed
 			},
 			20*time.Second,
 			5*time.Second,
@@ -235,6 +237,7 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 		proposalFile := "test_claim.json"
 		s.T().Logf("Submiting claim from %s on chain %s", accountAAddr.String(), s.chainA.id)
 		s.writeClaimProposal(s.chainA, 0, shieldPoolCounter, shieldPurchaseCounter, proposalFile)
+		// Todo Obtain proposalID through query
 		proposalCounter++
 		s.executeSubmitClaimProposal(s.chainA, 0, configFile(proposalFile), accountAAddr.String(), feesAmountCoin.String())
 
@@ -242,7 +245,7 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.ProposalId == uint64(proposalCounter)
+				return res.Proposal.Status == govtypes.StatusVotingPeriod && res.Proposal.ProposalId == uint64(proposalCounter)
 			},
 			20*time.Second,
 			5*time.Second,
@@ -262,7 +265,7 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 			func() bool {
 				res, err := queryProposal(chainAAPIEndpoint, proposalCounter)
 				s.Require().NoError(err)
-				return res.Proposal.Status == 4
+				return res.Proposal.Status == govtypes.StatusPassed
 			},
 			20*time.Second,
 			5*time.Second,

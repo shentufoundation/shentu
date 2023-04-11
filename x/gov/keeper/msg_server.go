@@ -9,7 +9,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
@@ -19,43 +18,29 @@ type msgServer struct {
 
 // NewMsgServerImpl returns an implementation of the gov MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) types.MsgServer {
+func NewMsgServerImpl(keeper Keeper) govtypes.MsgServer {
 	return &msgServer{Keeper: keeper}
 }
 
-var _ types.MsgServer = msgServer{}
+var _ govtypes.MsgServer = msgServer{}
 
 func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmitProposal) (*govtypes.MsgSubmitProposalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	var initialDepositAmount = msg.InitialDeposit.AmountOf(k.stakingKeeper.BondDenom(ctx))
-	var depositParams = k.GetDepositParams(ctx)
-	var minimalInitialDepositAmount = depositParams.MinInitialDeposit.AmountOf(k.stakingKeeper.BondDenom(ctx))
-	// Check if delegator proposal reach the bar, current bar is 0 ctk.
-	if initialDepositAmount.LT(minimalInitialDepositAmount) && !k.IsCouncilMember(ctx, msg.GetProposer()) {
-		return nil, sdkerrors.Wrapf(
-			sdkerrors.ErrInsufficientFunds,
-			"insufficient initial deposits amount: %v, minimum: %v",
-			initialDepositAmount,
-			minimalInitialDepositAmount,
-		)
-	}
 
 	err := validateProposalByType(ctx, k.Keeper, msg)
 	if err != nil {
 		return nil, err
 	}
 
-	proposal, err := k.Keeper.SubmitProposal(ctx, msg.GetContent(), msg.GetProposer())
+	proposal, err := k.Keeper.SubmitProposal(ctx, msg.GetContent())
 	if err != nil {
 		return nil, err
 	}
 
-	// Skip deposit period for proposals of council members.
-	isVotingPeriodActivated := k.ActivateCouncilProposalVotingPeriod(ctx, proposal)
-	if !isVotingPeriodActivated {
-		// Non council members can add deposit to their newly submitted proposals.
-		isVotingPeriodActivated, err = k.AddDeposit(ctx, proposal.ProposalId, msg.GetProposer(), msg.GetInitialDeposit())
+	// Skip deposit period for proposals from certifier memebers or shield claim proposals.
+	votingStarted := k.ActivateVotingPeriodCustom(ctx, proposal, msg.GetProposer())
+	if !votingStarted {
+		votingStarted, err = k.Keeper.AddDeposit(ctx, proposal.ProposalId, msg.GetProposer(), msg.GetInitialDeposit())
 		if err != nil {
 			return nil, err
 		}
@@ -78,7 +63,7 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmit
 		sdk.NewAttribute(govtypes.AttributeKeyProposalType, msg.GetContent().ProposalType()),
 		sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
 	)
-	if isVotingPeriodActivated {
+	if votingStarted {
 		submitEvent = submitEvent.AppendAttributes(
 			sdk.NewAttribute(govtypes.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", proposal.ProposalId)),
 		)
@@ -97,9 +82,9 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 			return certtypes.ErrRepeatedAlias
 		}
 
-	case shieldtypes.ShieldClaimProposal:
+	case *shieldtypes.ShieldClaimProposal:
 		// check initial deposit >= max(<loss>*ClaimDepositRate, MinimumClaimDeposit)
-		denom := k.BondDenom(ctx)
+		denom := k.stakingKeeper.BondDenom(ctx)
 		initialDepositAmount := msg.InitialDeposit.AmountOf(denom).ToDec()
 		lossAmount := c.Loss.AmountOf(denom)
 		lossAmountDec := lossAmount.ToDec()
@@ -143,7 +128,7 @@ func validateProposalByType(ctx sdk.Context, k Keeper, msg *govtypes.MsgSubmitPr
 	return nil
 }
 
-func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, proposal types.Proposal) error {
+func updateAfterSubmitProposal(ctx sdk.Context, k Keeper, proposal govtypes.Proposal) error {
 	if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
 		c := proposal.GetContent().(*shieldtypes.ShieldClaimProposal)
 		lockPeriod := k.GetVotingParams(ctx).VotingPeriod * 2
@@ -217,7 +202,6 @@ func (k msgServer) Deposit(goCtx context.Context, msg *govtypes.MsgDeposit) (*go
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor),
-			//sdk.NewAttribute(types.AttributeTxHash, hex.EncodeToString(tmhash.Sum(ctx.TxBytes()))),
 		),
 	)
 

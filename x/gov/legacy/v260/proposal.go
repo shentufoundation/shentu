@@ -1,4 +1,4 @@
-package types
+package v260
 
 import (
 	"encoding/json"

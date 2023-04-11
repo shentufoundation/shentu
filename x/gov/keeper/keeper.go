@@ -2,9 +2,6 @@
 package keeper
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
@@ -66,68 +63,7 @@ func NewKeeper(
 	}
 }
 
-// Iterators
-
-// IterateActiveProposalsQueue iterates over the proposals in the active proposal queue
-// and performs a callback function.
-func (k Keeper) IterateActiveProposalsQueue(ctx sdk.Context, endTime time.Time, cb func(proposal types.Proposal) (stop bool)) {
-	iterator := k.ActiveProposalQueueIterator(ctx, endTime)
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		proposalID, _ := govtypes.SplitActiveProposalQueueKey(iterator.Key())
-		proposal, found := k.GetProposal(ctx, proposalID)
-		if !found {
-			panic(fmt.Sprintf("proposal %d does not exist", proposalID))
-		}
-
-		if cb(proposal) {
-			break
-		}
-	}
-}
-
-// IterateInactiveProposalsQueue iterates over the proposals in the inactive proposal queue
-// and performs a callback function.
-func (k Keeper) IterateInactiveProposalsQueue(ctx sdk.Context, endTime time.Time, cb func(proposal types.Proposal) (stop bool)) {
-	iterator := k.InactiveProposalQueueIterator(ctx, endTime)
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		proposalID, _ := govtypes.SplitInactiveProposalQueueKey(iterator.Key())
-		proposal, found := k.GetProposal(ctx, proposalID)
-		if !found {
-			panic(fmt.Sprintf("proposal %d does not exist", proposalID))
-		}
-
-		if cb(proposal) {
-			break
-		}
-	}
-}
-
-// IterateAllDeposits iterates over the all the stored deposits and performs a callback function.
-func (k Keeper) IterateAllDeposits(ctx sdk.Context, cb func(deposit govtypes.Deposit) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, govtypes.DepositsKeyPrefix)
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var deposit govtypes.Deposit
-		k.cdc.MustUnmarshal(iterator.Value(), &deposit)
-
-		if cb(deposit) {
-			break
-		}
-	}
-}
-
 // Tally counts the votes and returns whether the proposal passes and/or if tokens should be burned.
-func (k Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes bool, burnDeposits bool, tallyResults govtypes.TallyResult) {
+func (k Keeper) Tally(ctx sdk.Context, proposal govtypes.Proposal) (passes bool, burnDeposits bool, tallyResults govtypes.TallyResult) {
 	return Tally(ctx, k, proposal)
-}
-
-// BondDenom returns the staking denom.
-func (k Keeper) BondDenom(ctx sdk.Context) string {
-	return k.stakingKeeper.BondDenom(ctx)
 }

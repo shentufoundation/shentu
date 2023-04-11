@@ -1,4 +1,5 @@
 syntax = "proto3";
+
 package shentu.gov.v1alpha1;
 
 import "gogoproto/gogo.proto";
@@ -16,12 +17,16 @@ message GenesisState {
     // votes defines all the votes present at genesis.
     repeated cosmos.gov.v1beta1.Vote votes = 3 [(gogoproto.nullable) = false];
     // proposals defines all the proposals present at genesis.
-    repeated Proposal proposals = 4 [(gogoproto.castrepeated) = "Proposals", (gogoproto.nullable) = false];
+    repeated cosmos.gov.v1beta1.Proposal proposals = 4 [(gogoproto.nullable) = false];
     // params defines all the parameters of related to deposit.
-    DepositParams deposit_params = 5 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"deposit_params\""];
+    cosmos.gov.v1beta1.DepositParams deposit_params = 5 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"deposit_params\""];
     // params defines all the parameters of related to voting.
     cosmos.gov.v1beta1.VotingParams voting_params = 6 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"voting_params\""];
     // params defines all the parameters of related to tally.
-    TallyParams tally_params = 7 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"tally_params\""];
+    cosmos.gov.v1beta1.TallyParams tally_params = 7 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"tally_params\""];
+    // params defines all the parameters of related to custom.
+    CustomParams custom_params = 8 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"custom_params\""];
+    // proposals that require and have passed cert votes.
+    repeated uint64 cert_voted_proposal_ids = 9 [(gogoproto.moretags) = "yaml:\"cert_voted_proposal_ids\""];
 }
 

@@ -417,7 +417,7 @@ func NewShentuApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest
 	)
 
 	govRouter := sdkgovtypes.NewRouter()
-	govRouter.AddRoute(sdkgovtypes.RouterKey, govtypes.ProposalHandler).
+	govRouter.AddRoute(sdkgovtypes.RouterKey, sdkgovtypes.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
 		AddRoute(distrtypes.RouterKey, sdkdistr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
