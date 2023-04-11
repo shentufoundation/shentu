@@ -106,11 +106,7 @@ func (s *IntegrationTestSuite) TestStaking() {
 	})
 }
 
-<<<<<<< HEAD
-func (s *IntegrationTestSuite) TestGovernance() {
-=======
 func (s *IntegrationTestSuite) TestSubmitProposal() {
->>>>>>> master
 
 	chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainA.id][0].GetHostPort("1317/tcp"))
 	validatorA := s.chainA.validators[0]
