@@ -35,6 +35,24 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v2.7.0] - 04-11-2023
+Version 2.7.0 brings many breaking changes with Oracle module.
+
+### State Machine Breaking Changes
+(x/gov)[\#651](https://github.com/shentufoundation/shentu/pull/651) Extract all customized parts out of the standard gov module.
+
+### Features
+(x/oracle)[\#613](https://github.com/shentufoundation/shentu/pull/613) The new feature precog task is introduced to provide credible scoring for other on-chain business transactions.
+
+### Improvements
+(app) [\#646](https://github.com/shentufoundation/shentu/pull/646) Upgrade cosmos-sdk from v0.45.10 to v0.45.11 and tendermint from v0.34.22 to v0.34.23
+(app) [\#599](https://github.com/shentufoundation/shentu/pull/599)  Upgrade IBC to v4.2.0
+(x/oracle)[\#639](https://github.com/shentufoundation/shentu/pull/639)  Add remaining bounty refund feature in oracle module.
+(app)[\#633](https://github.com/shentufoundation/shentu/pull/633)  Improve go deps and proto gen.
+
+### Bug Fixes
+(x/shield)[\#563](https://github.com/shentufoundation/shentu/pull/563) Fix shield service fees bug.
+
 ## [v2.6.0] - 10-21-2022
 
 ### Client Breaking Changes
