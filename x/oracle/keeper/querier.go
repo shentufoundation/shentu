@@ -102,17 +102,14 @@ func queryResponse(ctx sdk.Context, path []string, req abci.RequestQuery, k Keep
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	task, err := k.GetTask(ctx, params.Contract, params.Function)
+	task, err := k.GetTask(ctx, types.NewTaskID(params.Contract, params.Function))
 	if err != nil {
 		return nil, err
 	}
-	for i := 0; i < len(task.Responses); i++ {
-		operatorAddr, err := sdk.AccAddressFromBech32(task.Responses[i].Operator)
-		if err != nil {
-			panic(err)
-		}
+	for _, response := range task.GetResponses() {
+		operatorAddr := sdk.MustAccAddressFromBech32(response.Operator)
 		if operatorAddr.Equals(params.Operator) {
-			res, err = codec.MarshalJSONIndent(legacyQuerierCdc, task.Responses[i])
+			res, err = codec.MarshalJSONIndent(legacyQuerierCdc, response)
 			if err != nil {
 				return nil, err
 			}
@@ -135,13 +132,13 @@ func queryTask(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper, 
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	task, err := k.GetTask(ctx, params.Contract, params.Function)
+	task, err := k.GetTask(ctx, types.NewTaskID(params.Contract, params.Function))
 	if err != nil {
 		return nil, err
 	}
-	res, err = codec.MarshalJSONIndent(legacyQuerierCdc, task)
-	if err != nil {
-		return nil, err
+
+	if smartContractTask, ok := task.(*types.Task); ok {
+		return codec.MarshalJSONIndent(legacyQuerierCdc, *smartContractTask)
 	}
-	return res, nil
+	return nil, types.ErrFailedToCastTask
 }
