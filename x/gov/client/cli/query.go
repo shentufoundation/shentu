@@ -19,6 +19,13 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
+// Proposal flags
+const (
+	flagVoter     = "voter"
+	flagDepositor = "depositor"
+	flagStatus    = "status"
+)
+
 // GetQueryCmd returns the cli query commands for this module.
 func GetQueryCmd() *cobra.Command {
 	// Group gov queries under a subcommand
@@ -41,6 +48,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryDeposit(),
 		GetCmdQueryDeposits(),
 		GetCmdQueryTally(),
+		GetCmdCertVoted(),
 	)
 
 	return govQueryCmd
@@ -78,7 +86,7 @@ $ %[1]s query gov proposal 1
 			// query the proposal
 			res, err := queryClient.Proposal(
 				cmd.Context(),
-				&types.QueryProposalRequest{ProposalId: proposalID},
+				&govtypes.QueryProposalRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return err
@@ -113,7 +121,7 @@ $ %[1]s query gov proposals --page=2 --limit=100
 			bechVoterAddr := viper.GetString(flagVoter)
 			strProposalStatus := viper.GetString(flagStatus)
 
-			var proposalStatus types.ProposalStatus
+			var proposalStatus govtypes.ProposalStatus
 			var err error
 			if bechDepositorAddr != "" {
 				_, err = sdk.AccAddressFromBech32(bechDepositorAddr)
@@ -130,7 +138,7 @@ $ %[1]s query gov proposals --page=2 --limit=100
 			}
 
 			if strProposalStatus != "" {
-				proposalStatus, err = types.ProposalStatusFromString(govUtils.NormalizeProposalStatus(strProposalStatus))
+				proposalStatus, err = govtypes.ProposalStatusFromString(govUtils.NormalizeProposalStatus(strProposalStatus))
 				if err != nil {
 					return err
 				}
@@ -149,7 +157,7 @@ $ %[1]s query gov proposals --page=2 --limit=100
 
 			res, err := queryClient.Proposals(
 				cmd.Context(),
-				&types.QueryProposalsRequest{
+				&govtypes.QueryProposalsRequest{
 					ProposalStatus: proposalStatus,
 					Voter:          bechVoterAddr,
 					Depositor:      bechDepositorAddr,
@@ -211,7 +219,7 @@ $ %s query gov vote 1 certik16gzt5vd0dd5c98ajl3ld2ltvcahxgyygzglazd
 			ctx := cmd.Context()
 			_, err = queryClient.Proposal(
 				ctx,
-				&types.QueryProposalRequest{ProposalId: proposalID},
+				&govtypes.QueryProposalRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
@@ -224,7 +232,7 @@ $ %s query gov vote 1 certik16gzt5vd0dd5c98ajl3ld2ltvcahxgyygzglazd
 
 			res, err := queryClient.Vote(
 				ctx,
-				&types.QueryVoteRequest{ProposalId: proposalID, Voter: args[1]},
+				&govtypes.QueryVoteRequest{ProposalId: proposalID, Voter: args[1]},
 			)
 			if err != nil {
 				return err
@@ -285,7 +293,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 			// check to see if the proposal is in the store
 			proposalRes, err := queryClient.Proposal(
 				cmd.Context(),
-				&types.QueryProposalRequest{ProposalId: proposalID},
+				&govtypes.QueryProposalRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
@@ -293,7 +301,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 
 			// TODO Query tx depending on proposal status?
 			propStatus := proposalRes.GetProposal().Status
-			if !(propStatus == types.StatusCertifierVotingPeriod || propStatus == types.StatusValidatorVotingPeriod || propStatus == types.StatusDepositPeriod) {
+			if !(propStatus == govtypes.StatusVotingPeriod || propStatus == govtypes.StatusDepositPeriod) {
 				page, _ := cmd.Flags().GetInt(flags.FlagPage)
 				limit, _ := cmd.Flags().GetInt(flags.FlagLimit)
 
@@ -317,7 +325,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 
 			res, err := queryClient.Votes(
 				cmd.Context(),
-				&types.QueryVotesRequest{ProposalId: proposalID, Pagination: pageReq},
+				&govtypes.QueryVotesRequest{ProposalId: proposalID, Pagination: pageReq},
 			)
 
 			if err != nil {
@@ -367,7 +375,7 @@ $ %s query gov deposit 1 certik1r4tssz9j0025vrct90uxxfzrte0w94q6s27n4x
 			ctx := cmd.Context()
 			proposalRes, err := queryClient.Proposal(
 				ctx,
-				&types.QueryProposalRequest{ProposalId: proposalID},
+				&govtypes.QueryProposalRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
@@ -380,7 +388,7 @@ $ %s query gov deposit 1 certik1r4tssz9j0025vrct90uxxfzrte0w94q6s27n4x
 
 			var deposit govtypes.Deposit
 			propStatus := proposalRes.Proposal.Status
-			if !(propStatus == types.StatusCertifierVotingPeriod || propStatus == types.StatusValidatorVotingPeriod || propStatus == types.StatusDepositPeriod) {
+			if !(propStatus == govtypes.StatusVotingPeriod || propStatus == govtypes.StatusDepositPeriod) {
 				params := govtypes.NewQueryDepositParams(proposalID, depositorAddr)
 				resByTxQuery, err := govUtils.QueryDepositByTxQuery(clientCtx, params)
 				if err != nil {
@@ -392,7 +400,7 @@ $ %s query gov deposit 1 certik1r4tssz9j0025vrct90uxxfzrte0w94q6s27n4x
 
 			res, err := queryClient.Deposit(
 				ctx,
-				&types.QueryDepositRequest{ProposalId: proposalID, Depositor: args[1]},
+				&govtypes.QueryDepositRequest{ProposalId: proposalID, Depositor: args[1]},
 			)
 			if err != nil {
 				return err
@@ -439,14 +447,14 @@ $ %[1]s query gov deposits 1
 			// check to see if the proposal is in the store
 			proposalRes, err := queryClient.Proposal(
 				cmd.Context(),
-				&types.QueryProposalRequest{ProposalId: proposalID},
+				&govtypes.QueryProposalRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
 			}
 
 			propStatus := proposalRes.GetProposal().Status
-			if !(propStatus == types.StatusCertifierVotingPeriod || propStatus == types.StatusValidatorVotingPeriod || propStatus == types.StatusDepositPeriod) {
+			if !(propStatus == govtypes.StatusVotingPeriod || propStatus == govtypes.StatusDepositPeriod) {
 				params := govtypes.NewQueryProposalParams(proposalID)
 				resByTxQuery, err := govUtils.QueryDepositsByTxQuery(cliCtx, params)
 				if err != nil {
@@ -468,7 +476,7 @@ $ %[1]s query gov deposits 1
 
 			res, err := queryClient.Deposits(
 				cmd.Context(),
-				&types.QueryDepositsRequest{ProposalId: proposalID, Pagination: pageReq},
+				&govtypes.QueryDepositsRequest{ProposalId: proposalID, Pagination: pageReq},
 			)
 
 			if err != nil {
@@ -518,7 +526,7 @@ $ %s query gov tally 1
 			ctx := cmd.Context()
 			_, err = queryClient.Proposal(
 				ctx,
-				&types.QueryProposalRequest{ProposalId: proposalID},
+				&govtypes.QueryProposalRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
@@ -527,7 +535,7 @@ $ %s query gov tally 1
 			// Query store
 			res, err := queryClient.TallyResult(
 				ctx,
-				&types.QueryTallyResultRequest{ProposalId: proposalID},
+				&govtypes.QueryTallyResultRequest{ProposalId: proposalID},
 			)
 			if err != nil {
 				return err
@@ -567,7 +575,7 @@ $ %s query gov params
 			// Query store for all 3 params
 			votingRes, err := queryClient.Params(
 				cmd.Context(),
-				&types.QueryParamsRequest{ParamsType: "voting"},
+				&govtypes.QueryParamsRequest{ParamsType: "voting"},
 			)
 			if err != nil {
 				return err
@@ -575,7 +583,7 @@ $ %s query gov params
 
 			tallyRes, err := queryClient.Params(
 				cmd.Context(),
-				&types.QueryParamsRequest{ParamsType: "tallying"},
+				&govtypes.QueryParamsRequest{ParamsType: "tallying"},
 			)
 			if err != nil {
 				return err
@@ -583,19 +591,28 @@ $ %s query gov params
 
 			depositRes, err := queryClient.Params(
 				cmd.Context(),
-				&types.QueryParamsRequest{ParamsType: "deposit"},
+				&govtypes.QueryParamsRequest{ParamsType: "deposit"},
 			)
 			if err != nil {
 				return err
 			}
 
-			params := types.NewParams(
-				votingRes.GetVotingParams(),
-				tallyRes.GetTallyParams(),
-				depositRes.GetDepositParams(),
+			customRes, err := queryClient.Params(
+				cmd.Context(),
+				&govtypes.QueryParamsRequest{ParamsType: "custom"},
 			)
+			if err != nil {
+				return err
+			}
 
-			return cliCtx.PrintObjectLegacy(params)
+			res := &types.QueryParamsResponse{
+				VotingParams:  votingRes.GetVotingParams(),
+				DepositParams: depositRes.GetDepositParams(),
+				TallyParams:   tallyRes.GetTallyParams(),
+				CustomParams:  customRes.GetCustomParams(),
+			}
+
+			return cliCtx.PrintProto(res)
 		},
 	}
 
@@ -631,7 +648,7 @@ $ %[1]s query gov param deposit
 			// Query store
 			res, err := queryClient.Params(
 				cmd.Context(),
-				&types.QueryParamsRequest{ParamsType: args[0]},
+				&govtypes.QueryParamsRequest{ParamsType: args[0]},
 			)
 			if err != nil {
 				return err
@@ -639,17 +656,63 @@ $ %[1]s query gov param deposit
 
 			var out fmt.Stringer
 			switch args[0] {
-			case "voting":
+			case govtypes.ParamVoting:
 				out = res.GetVotingParams()
-			case "tallying":
+			case govtypes.ParamTallying:
 				out = res.GetTallyParams()
-			case "deposit":
+			case govtypes.ParamDeposit:
 				out = res.GetDepositParams()
+			case types.ParamCustom:
+				out = res.GetCustomParams()
 			default:
 				return fmt.Errorf("argument must be one of (voting|tallying|deposit), was %s", args[0])
 			}
 
 			return cliCtx.PrintObjectLegacy(out)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdCertVoted implements the query param command.
+func GetCmdCertVoted() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "cert-voted [proposa-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query if the certifiers voted on a proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query if the certifiers voted on a proposal.
+Example:
+$ %[1]s query gov cert-voted 1
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+
+			proposalID, err := strconv.ParseUint(args[0], 10, 64)
+
+			if err != nil {
+				return err
+			}
+
+			// Query store
+			res, err := queryClient.CertVoted(
+				cmd.Context(),
+				&types.QueryCertVotedRequest{ProposalId: proposalID},
+			)
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintProto(res)
 		},
 	}
 

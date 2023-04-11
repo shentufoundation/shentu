@@ -77,6 +77,7 @@ func SimulateSubmitProposal(
 		accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		// 1) submit proposal now
+		// todo refactor
 		content := contentSim(r, ctx, accs)
 		if content == nil {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgSubmitProposal, ""), nil, nil
@@ -119,13 +120,6 @@ func SimulateSubmitProposal(
 			} else {
 				deposit = simtypes.RandSubsetCoins(r, minDeposit)
 			}
-		}
-
-		minInitialDeposit := k.GetDepositParams(ctx).MinInitialDeposit
-		if deposit.AmountOf(sdk.DefaultBondDenom).LT(minInitialDeposit.AmountOf(sdk.DefaultBondDenom)) &&
-			!k.IsCouncilMember(ctx, simAccount.Address) {
-			return simtypes.NewOperationMsgBasic(govtypes.ModuleName,
-				"NoOp: insufficient initial deposit amount, skip this tx", "", false, nil), nil, nil
 		}
 
 		msg, _ := govtypes.NewMsgSubmitProposal(content, deposit, simAccount.Address)
@@ -236,8 +230,16 @@ func SimulateMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k keeper
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
 		}
 
-		if proposal.Status != types.StatusValidatorVotingPeriod {
+		if proposal.Status != govtypes.StatusVotingPeriod {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
+		}
+
+		if proposal.ProposalType() == shieldtypes.ProposalTypeShieldClaim ||
+			proposal.ProposalType() == certtypes.ProposalTypeCertifierUpdate ||
+			proposal.ProposalType() == upgradetypes.ProposalTypeSoftwareUpgrade {
+			if !k.GetCertifierVoted(ctx, proposal.ProposalId) {
+				return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
+			}
 		}
 
 		option := randomVotingOption(r)
@@ -288,7 +290,10 @@ func SimulateCertifierMsgVote(ak govtypes.AccountKeeper, bk govtypes.BankKeeper,
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
 		}
 
-		if proposal.Status != types.StatusCertifierVotingPeriod {
+		if proposal.Status != govtypes.StatusVotingPeriod {
+			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
+		}
+		if k.GetCertifierVoted(ctx, proposal.ProposalId) {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgVote, ""), nil, nil
 		}
 
@@ -340,7 +345,7 @@ func SimulateMsgDeposit(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, k kee
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgDeposit, ""), nil, nil
 		}
 
-		if proposal.Status != types.StatusDepositPeriod {
+		if proposal.Status != govtypes.StatusDepositPeriod {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgDeposit, ""), nil, nil
 		}
 
