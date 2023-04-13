@@ -15,14 +15,24 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ory/dockertest/v3/docker"
+	"google.golang.org/grpc"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
+
+func connectGrpc(endpoint string) (*grpc.ClientConn, error) {
+	conn, err := grpc.Dial(endpoint, grpc.WithInsecure())
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect %s: %v", endpoint, err)
+	}
+	return conn, nil
+}
 
 func (s *IntegrationTestSuite) connectIBCChains() {
 	s.T().Logf("connecting %s and %s chains via IBC", s.chainA.id, s.chainB.id)
@@ -426,7 +436,7 @@ func (s *IntegrationTestSuite) executePurchaseShield(c *chain, valIdx, poolId in
 	s.T().Logf("%s successfully purchase shield at pool %d", submitterAddr, poolId)
 }
 
-func (s *IntegrationTestSuite) execShentuTxCmd(ctx context.Context, c *chain, cmd []string, valIdx int, validation func([]byte, []byte) bool) {
+func (s *IntegrationTestSuite) execShentuTxCmd(ctx context.Context, c *chain, cmd []string, valIdx int, validation func([]byte, []byte) bool) ([]byte, []byte) {
 	if validation == nil {
 		validation = s.defaultExecValidation(s.chainA, 0)
 	}
@@ -458,6 +468,7 @@ func (s *IntegrationTestSuite) execShentuTxCmd(ctx context.Context, c *chain, cm
 		s.Require().FailNowf("tx validation failed", "stdout: %s, stderr: %s",
 			string(stdOut), string(stdErr))
 	}
+	return stdOut, stdErr
 }
 
 func (s *IntegrationTestSuite) defaultExecValidation(chain *chain, valIdx int) func([]byte, []byte) bool {
@@ -515,6 +526,20 @@ func (s *IntegrationTestSuite) writeClaimProposal(c *chain, valIdx, poolId, purc
 
 	os.WriteFile(path, proposalByte, 0o600)
 	return path
+}
+
+func getShentuTx(endpoint, txHash string) (*sdk.TxResponse, error) {
+	grpcReq := &tx.GetTxRequest{
+		Hash: txHash,
+	}
+	conn, _ := connectGrpc(endpoint)
+	defer conn.Close()
+	client := tx.NewServiceClient(conn)
+	grpcRsp, err := client.GetTx(context.Background(), grpcReq)
+	if err != nil {
+		return nil, err
+	}
+	return grpcRsp.TxResponse, nil
 }
 
 func queryShentuTx(endpoint, txHash string) error {

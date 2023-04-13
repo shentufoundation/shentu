@@ -1,11 +1,13 @@
 package oracle
 
 import (
+	"encoding/hex"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/keeper"
+	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
@@ -13,38 +15,68 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 }
 
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
-	closingTaskIDs := k.GetClosingTaskIDs(ctx, ctx.BlockHeight())
-	for _, taskID := range closingTaskIDs {
-		err := k.Aggregate(ctx, taskID.Contract, taskID.Function)
+	closingTaskIDs := k.GetInvalidTaskIDs(ctx)
+	toAggTaskIDs := append(k.GetShortcutTasks(ctx), closingTaskIDs...)
+	for _, taskID := range toAggTaskIDs {
+		err := k.Aggregate(ctx, taskID.Tid)
 		if err != nil {
 			continue
 		}
-		task, err := k.GetTask(ctx, taskID.Contract, taskID.Function)
+		task, err := k.GetTask(ctx, taskID.Tid)
 		if err != nil {
 			continue
 		}
 
-		if err := k.DistributeBounty(ctx, task); err != nil {
-			// TODO
+		distributeErr := k.DistributeBounty(ctx, task)
+		task, _ = k.GetTask(ctx, task.GetID())
+		_ = k.RefundBounty(ctx, task)
+
+		if distributeErr != nil {
 			continue
 		}
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				"aggregate_task",
-				sdk.NewAttribute("contract", task.Contract),
-				sdk.NewAttribute("function", task.Function),
-				sdk.NewAttribute("begin_block_height", strconv.FormatInt(task.BeginBlock, 10)),
-				sdk.NewAttribute("bounty", task.Bounty.String()),
-				sdk.NewAttribute("description", task.Description),
-				sdk.NewAttribute("expiration", task.Expiration.String()),
-				sdk.NewAttribute("creator", task.Creator),
-				sdk.NewAttribute("responses", task.Responses.String()),
-				sdk.NewAttribute("result", task.Result.String()),
-				sdk.NewAttribute("end_block_height", strconv.FormatInt(task.ClosingBlock, 10)),
-				sdk.NewAttribute("status", task.Status.String()),
-			),
-		)
+		switch task := task.(type) {
+		case *types.Task:
+			EmitEventsForTask(ctx, task)
+		case *types.TxTask:
+			EmitEventsForTxTask(ctx, task)
+		}
 	}
-	k.DeleteClosingTaskIDs(ctx, ctx.BlockHeight())
+	k.DeleteClosingTaskIDs(ctx)
+	k.DeleteShortcutTasks(ctx)
+	k.DeleteExpiredTasks(ctx)
+}
+
+func EmitEventsForTask(ctx sdk.Context, task *types.Task) {
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeAggTask,
+			sdk.NewAttribute("contract", task.Contract),
+			sdk.NewAttribute("function", task.Function),
+			sdk.NewAttribute("begin_block_height", strconv.FormatInt(task.BeginBlock, 10)),
+			sdk.NewAttribute("bounty", task.Bounty.String()),
+			sdk.NewAttribute("description", task.Description),
+			sdk.NewAttribute("expiration", task.Expiration.String()),
+			sdk.NewAttribute("creator", task.Creator),
+			sdk.NewAttribute("responses", task.Responses.String()),
+			sdk.NewAttribute("result", task.Result.String()),
+			sdk.NewAttribute("end_block_height", strconv.FormatInt(task.ExpireHeight, 10)),
+			sdk.NewAttribute("status", task.Status.String()),
+		),
+	)
+}
+
+func EmitEventsForTxTask(ctx sdk.Context, task *types.TxTask) {
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeAggTxTask,
+			sdk.NewAttribute("atx_hash", hex.EncodeToString(task.AtxHash)),
+			sdk.NewAttribute("score", strconv.FormatInt(task.Score, 10)),
+			sdk.NewAttribute("status", task.Status.String()),
+			sdk.NewAttribute("creator", task.Creator),
+			sdk.NewAttribute("responses", task.Responses.String()),
+			sdk.NewAttribute("expiration", task.Expiration.String()),
+			sdk.NewAttribute("bounty", task.Bounty.String()),
+		),
+	)
 }

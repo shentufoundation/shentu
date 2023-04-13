@@ -29,9 +29,14 @@ const (
 	errNotFinished
 	errTaskFailed
 	errInvalidScore
+	errInvalidTask
+	errOverdueValidTime
+	errUnexpectedTask
+	errTooLateValidTime
 )
 
 const errInconsistentOperators uint32 = 301
+const errFailedToCastTask uint32 = 401
 
 var (
 	ErrNoOperatorFound         = sdkerrors.Register(ModuleName, errNoOperatorFound, "no operator was found")
@@ -55,6 +60,12 @@ var (
 	ErrNotFinished         = sdkerrors.Register(ModuleName, errNotFinished, "the task is on going")
 	ErrTaskFailed          = sdkerrors.Register(ModuleName, errTaskFailed, "task failed")
 	ErrInvalidScore        = sdkerrors.Register(ModuleName, errInvalidScore, "invalid score")
+	ErrInvalidTask         = sdkerrors.Register(ModuleName, errInvalidTask, "invalid task")
+	ErrOverdueValidTime    = sdkerrors.Register(ModuleName, errOverdueValidTime, "the valid time is overdue")
+	ErrUnexpectedTask      = sdkerrors.Register(ModuleName, errUnexpectedTask, "a different typed task already exists")
+	ErrTooLateValidTime    = sdkerrors.Register(ModuleName, errTooLateValidTime, "the valid time is later than expiration time")
 
 	ErrInconsistentOperators = sdkerrors.Register(ModuleName, errInconsistentOperators, "two operators not consistent")
+
+	ErrFailedToCastTask = sdkerrors.Register(ModuleName, errFailedToCastTask, "failed to cast to concrete task")
 )
