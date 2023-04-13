@@ -36,13 +36,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 # Changelog
 
 ## [v2.7.0] - 04-11-2023
-Version 2.7.0 brings many breaking changes with Oracle module.
+Version 2.7.0 brings many breaking changes with Oracle 2.0.
 
 ### State Machine Breaking Changes
 * (x/gov) [\#651](https://github.com/shentufoundation/shentu/pull/651) Extract all customized parts out of the standard gov module.
 
 ### Features
-* (x/oracle) [\#613](https://github.com/shentufoundation/shentu/pull/613) The new feature precog task is introduced to provide credible scoring for other on-chain business transactions.
+* (x/oracle) [\#613](https://github.com/shentufoundation/shentu/pull/613) Introducing Oracle 2.0 to provide trusted scoring for other on-chain business transactions.
 
 ### Improvements
 * (app) [\#646](https://github.com/shentufoundation/shentu/pull/646) Upgrade cosmos-sdk from v0.45.10 to v0.45.11 and tendermint from v0.34.22 to v0.34.23
