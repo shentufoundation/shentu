@@ -413,18 +413,8 @@ func (suite *KeeperTestSuite) TestGRPCQueryParamsResponse() {
 	}{
 		{
 			"query task",
-			&types.QueryParamsRequest{ParamsType: types.ParamTask},
+			&types.QueryParamsRequest{},
 			true,
-		},
-		{
-			"query pool",
-			&types.QueryParamsRequest{ParamsType: types.ParamPool},
-			true,
-		},
-		{
-			"valid request",
-			&types.QueryParamsRequest{ParamsType: "valid request"},
-			false,
 		},
 	}
 

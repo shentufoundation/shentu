@@ -269,26 +269,14 @@ $ %s query oracle params
 
 			// Query store for all 2 params
 			ctx := cmd.Context()
-			resTask, err := queryClient.Params(
+			res, err := queryClient.Params(
 				ctx,
-				&types.QueryParamsRequest{ParamsType: "task"},
+				&types.QueryParamsRequest{},
 			)
 			if err != nil {
 				return err
 			}
 
-			resPool, err := queryClient.Params(
-				ctx,
-				&types.QueryParamsRequest{ParamsType: "pool"},
-			)
-			if err != nil {
-				return err
-			}
-
-			res := &types.QueryParamsResponse{
-				TaskParams: resTask.GetTaskParams(),
-				PoolParams: resPool.GetPoolParams(),
-			}
 			return cliCtx.PrintProto(res)
 		},
 	}
