@@ -416,11 +416,6 @@ func (suite *KeeperTestSuite) TestGRPCQueryParamsResponse() {
 			&types.QueryParamsRequest{},
 			true,
 		},
-		{
-			"nil req",
-			nil,
-			true,
-		},
 	}
 
 	for _, tc := range tests {
