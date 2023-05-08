@@ -412,8 +412,13 @@ func (suite *KeeperTestSuite) TestGRPCQueryParamsResponse() {
 		expPass bool
 	}{
 		{
-			"query task",
+			"query",
 			&types.QueryParamsRequest{},
+			true,
+		},
+		{
+			"nil req",
+			nil,
 			true,
 		},
 	}
