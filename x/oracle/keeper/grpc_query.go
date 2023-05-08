@@ -140,3 +140,24 @@ func (q Keeper) TxResponse(c context.Context, req *types.QueryTxResponseRequest)
 	}
 	return &types.QueryTxResponseResponse{}, fmt.Errorf("there is no response from this operator")
 }
+
+// Params queries all params
+func (q Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	switch req.ParamsType {
+	case types.ParamTask:
+		taskParams := q.GetTaskParams(ctx)
+		return &types.QueryParamsResponse{TaskParams: taskParams}, nil
+	case types.ParamPool:
+		poolParams := q.GetLockedPoolParams(ctx)
+		return &types.QueryParamsResponse{PoolParams: poolParams}, nil
+	default:
+		return nil, status.Errorf(codes.InvalidArgument,
+			"%s is not a valid parameter type", req.ParamsType)
+	}
+}

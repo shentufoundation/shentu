@@ -1,11 +1,15 @@
 package cli
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
@@ -29,6 +33,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdResponse(),
 		GetCmdTxTask(),
 		GetCmdTxResponse(),
+		GetCmdQueryParams(),
 	)
 
 	return oracleQueryCmds
@@ -232,6 +237,58 @@ func GetCmdTxResponse() *cobra.Command {
 				return err
 			}
 
+			return cliCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryParams implements the query params command.
+func GetCmdQueryParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "params",
+		Short: "Query the parameters of the oracle",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query the all the parameters for the oracle.
+
+Example:
+$ %s query oracle params
+`,
+				version.AppName,
+			),
+		),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(cliCtx)
+
+			// Query store for all 2 params
+			ctx := cmd.Context()
+			resTask, err := queryClient.Params(
+				ctx,
+				&types.QueryParamsRequest{ParamsType: "task"},
+			)
+			if err != nil {
+				return err
+			}
+
+			resPool, err := queryClient.Params(
+				ctx,
+				&types.QueryParamsRequest{ParamsType: "pool"},
+			)
+			if err != nil {
+				return err
+			}
+
+			res := &types.QueryParamsResponse{
+				TaskParams: resTask.GetTaskParams(),
+				PoolParams: resPool.GetPoolParams(),
+			}
 			return cliCtx.PrintProto(res)
 		},
 	}

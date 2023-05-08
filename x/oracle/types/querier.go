@@ -9,6 +9,9 @@ const (
 	QueryWithdrawals = "withdrawals"
 	QueryTask        = "task"
 	QueryResponse    = "response"
+
+	ParamPool = "pool"
+	ParamTask = "task"
 )
 
 type QueryTaskParams struct {
