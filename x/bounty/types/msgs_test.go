@@ -17,11 +17,11 @@ import (
 )
 
 var (
-	addrs         = []sdk.AccAddress{sdk.AccAddress("test1"), sdk.AccAddress("test2")}
-	decKey, _     = ecies.GenerateKey(rand.Reader, ecies.DefaultCurve, nil)
-	encKey        = crypto.FromECDSAPub(&decKey.ExportECDSA().PublicKey)
-	deposit       = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(1e5)))
-	sET, jET, cET time.Time
+	addrs     = []sdk.AccAddress{sdk.AccAddress("test1"), sdk.AccAddress("test2")}
+	decKey, _ = ecies.GenerateKey(rand.Reader, ecies.DefaultCurve, nil)
+	encKey    = crypto.FromECDSAPub(&decKey.ExportECDSA().PublicKey)
+	deposit   = sdk.NewCoins(sdk.NewCoin(common.MicroCTKDenom, sdk.NewInt(1e5)))
+	sET       time.Time
 )
 
 func TestMsgCreateProgram(t *testing.T) {
@@ -43,7 +43,7 @@ func TestMsgCreateProgram(t *testing.T) {
 
 	for i, test := range tests {
 		msg, err := NewMsgCreateProgram(test.creatorAddress.String(), test.description, test.encKey, test.commissionRate,
-			test.deposit, sET, jET, cET)
+			test.deposit, sET)
 		require.Equal(t, msg.Route(), RouterKey)
 		require.Equal(t, msg.Type(), TypeMsgCreateProgram)
 

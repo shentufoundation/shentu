@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -39,6 +40,10 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 	err = k.bk.SendCoinsFromAccountToModule(ctx, creatorAddr, types.ModuleName, msg.Deposit)
 	if err != nil {
 		return nil, err
+	}
+
+	if msg.SubmissionEndTime.Before(ctx.BlockTime()) {
+		return nil, fmt.Errorf("submission end time is invalid")
 	}
 
 	program := types.Program{

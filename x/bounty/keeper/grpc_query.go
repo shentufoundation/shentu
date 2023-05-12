@@ -77,7 +77,7 @@ func (k Keeper) Program(c context.Context, req *types.QueryProgramRequest) (*typ
 }
 
 func (k Keeper) Findings(c context.Context, req *types.QueryFindingsRequest) (*types.QueryFindingsResponse, error) {
-	var findings types.Findings
+	var queryFindings []types.QueryFinding
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
@@ -102,7 +102,9 @@ func (k Keeper) Findings(c context.Context, req *types.QueryFindingsRequest) (*t
 
 		if matchProgramID && matchSubmitter {
 			if accumulate {
-				findings = append(findings, finding)
+				if queryFinding, err := GetBase64QueryFinding(&finding); err == nil {
+					queryFindings = append(queryFindings, queryFinding)
+				}
 			}
 		}
 
@@ -113,7 +115,7 @@ func (k Keeper) Findings(c context.Context, req *types.QueryFindingsRequest) (*t
 	}
 
 	return &types.QueryFindingsResponse{
-		Findings:   findings,
+		Findings:   queryFindings,
 		Pagination: pageRes,
 	}, nil
 }
@@ -132,5 +134,6 @@ func (k Keeper) Finding(c context.Context, req *types.QueryFindingRequest) (*typ
 		return nil, status.Errorf(codes.NotFound, "finding %d doesn't exist", req.FindingId)
 	}
 
-	return &types.QueryFindingResponse{Finding: finding}, nil
+	queryFinding, err := GetBase64QueryFinding(&finding)
+	return &types.QueryFindingResponse{Finding: queryFinding}, err
 }

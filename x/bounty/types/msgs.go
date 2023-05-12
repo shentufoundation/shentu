@@ -24,7 +24,7 @@ const (
 // Delegator address and validator address are the same.
 func NewMsgCreateProgram(
 	creatorAddress string, description string, encKey []byte, commissionRate sdk.Dec, deposit sdk.Coins,
-	submissionEndTime, judgingEndTime, claimEndTime time.Time,
+	submissionEndTime time.Time,
 ) (*MsgCreateProgram, error) {
 	var encAny *codectypes.Any
 	if encKey != nil {

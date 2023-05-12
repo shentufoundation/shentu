@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
 
@@ -207,4 +208,60 @@ func CheckEncryptedData(pubKey *ecies.PublicKey, plainText string, encryptedData
 		return types.ErrFindingPlainTextDataInvalid
 	}
 	return nil
+}
+
+// GetBase64QueryFinding This function takes a Finding and converts associated descriptions, proofs of concept, and comments into a QueryFinding with all the information encoded in base64.
+func GetBase64QueryFinding(finding *types.Finding) (types.QueryFinding, error) {
+	queryFinding := types.QueryFinding{
+		FindingId:        finding.FindingId,
+		Title:            finding.Title,
+		ProgramId:        finding.ProgramId,
+		SeverityLevel:    finding.SeverityLevel,
+		SubmitterAddress: finding.SubmitterAddress,
+		FindingStatus:    finding.FindingStatus,
+	}
+
+	if finding.GetFindingDesc() != nil {
+		encryptedDesc, ok := finding.GetFindingDesc().(*types.EciesEncryptedDesc)
+		if !ok {
+			plainTextDesc, ok := finding.GetFindingDesc().(*types.PlainTextDesc)
+			if !ok {
+				return queryFinding, fmt.Errorf("invalid any data")
+			}
+			queryFinding.FindingDesc = base64.StdEncoding.EncodeToString(plainTextDesc.FindingDesc)
+		} else {
+			randBytesStart := len(encryptedDesc.FindingDesc) - cli.RandBytesLen
+			queryFinding.FindingDesc = base64.StdEncoding.EncodeToString(encryptedDesc.FindingDesc[:randBytesStart])
+		}
+	}
+
+	if finding.GetFindingPoc() != nil {
+		encryptedPoc, ok := finding.GetFindingPoc().(*types.EciesEncryptedPoc)
+		if !ok {
+			plainTextPoc, ok := finding.GetFindingPoc().(*types.PlainTextPoc)
+			if !ok {
+				return queryFinding, fmt.Errorf("invalid any data")
+			}
+			queryFinding.FindingPoc = base64.StdEncoding.EncodeToString(plainTextPoc.FindingPoc)
+		} else {
+			randBytesStart := len(encryptedPoc.FindingPoc) - cli.RandBytesLen
+			queryFinding.FindingPoc = base64.StdEncoding.EncodeToString(encryptedPoc.FindingPoc[:randBytesStart])
+		}
+	}
+
+	if finding.GetFindingComment() != nil {
+		encryptedComment, ok := finding.GetFindingComment().(*types.EciesEncryptedComment)
+		if !ok {
+			plainTextComment, ok := finding.GetFindingComment().(*types.PlainTextComment)
+			if !ok {
+				return queryFinding, fmt.Errorf("invalid any data")
+			}
+			queryFinding.FindingComment = base64.StdEncoding.EncodeToString(plainTextComment.FindingComment)
+		} else {
+			randBytesStart := len(encryptedComment.FindingComment) - cli.RandBytesLen
+			queryFinding.FindingComment = base64.StdEncoding.EncodeToString(encryptedComment.FindingComment[:randBytesStart])
+		}
+	}
+
+	return queryFinding, nil
 }

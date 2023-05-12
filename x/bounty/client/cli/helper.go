@@ -46,7 +46,7 @@ func GetEncryptionKey(cmd *cobra.Command, programID uint64) (*ecies.PublicKey, e
 }
 
 // GetFinding get finding details
-func GetFinding(cmd *cobra.Command, findingID uint64) (*types.Finding, error) {
+func GetFinding(cmd *cobra.Command, findingID uint64) (*types.QueryFinding, error) {
 	clientCtx, err := client.GetClientTxContext(cmd)
 	if err != nil {
 		return nil, err
