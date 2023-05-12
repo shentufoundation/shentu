@@ -37,6 +37,12 @@ service Query {
     rpc TxResponse(QueryTxResponseRequest) returns (QueryTxResponseResponse) {
         option (google.api.http).get = "/shentu/oracle/v1alpha1/txhash/{atx_hash}/operator/{operator_address}/Response";
     }
+
+    // Params queries all parameters of the oracle module.
+    rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/params";
+    }
+
 }
 
 message QueryOperatorRequest {
@@ -95,4 +101,14 @@ message QueryTxResponseRequest {
 
 message QueryTxResponseResponse {
     Response response = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryParamsRequest is the request type for the Query/Params RPC method.
+message QueryParamsRequest {
+}
+
+// QueryParamsResponse is the response type for the Query/Params RPC method.
+message QueryParamsResponse {
+    TaskParams task_params = 2 [(gogoproto.nullable) = false];
+    LockedPoolParams pool_params = 1 [(gogoproto.nullable) = false];
 }

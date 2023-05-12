@@ -405,6 +405,35 @@ func (suite *KeeperTestSuite) TestGRPCQueryTxResponse() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestGRPCQueryParamsResponse() {
+	tests := []struct {
+		name    string
+		req     *types.QueryParamsRequest
+		expPass bool
+	}{
+		{
+			"query",
+			&types.QueryParamsRequest{},
+			true,
+		},
+	}
+
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			res, err := suite.queryClient.Params(ctx, tc.req)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) createOperator(address, proposer sdk.AccAddress) {
 	err := suite.keeper.CreateOperator(suite.ctx, address, sdk.Coins{sdk.NewInt64Coin("uctk", 50000)}, proposer, "operator")
 	suite.Require().NoError(err)
