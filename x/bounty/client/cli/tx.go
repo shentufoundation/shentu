@@ -457,7 +457,7 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 	if finding.FindingPoc == "" {
 		poc = ""
 	} else {
-		encryptedData, err := base64.StdEncoding.DecodeString(finding.FindingDesc)
+		encryptedData, err := base64.StdEncoding.DecodeString(finding.FindingPoc)
 		if err != nil {
 			return "", "", "", err
 		}
@@ -471,7 +471,7 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 	if finding.FindingComment == "" {
 		comment = ""
 	} else {
-		encryptedData, err := base64.StdEncoding.DecodeString(finding.FindingDesc)
+		encryptedData, err := base64.StdEncoding.DecodeString(finding.FindingComment)
 		if err != nil {
 			return "", "", "", err
 		}
