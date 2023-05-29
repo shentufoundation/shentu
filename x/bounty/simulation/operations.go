@@ -99,20 +99,18 @@ func SimulateMsgCreateProgram(k keeper.Keeper, ak types.AccountKeeper, bk types.
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		programId := k.GetNextProgramID(ctx)
-
 		futureOperations := []simtypes.FutureOperation{
-			{
-				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 0, 20),
-				Op:          SimulateMsgSubmitFinding(k, ak, bk, programId, priKey.PublicKey),
-			},
+			// {
+			// 	BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 0, 20),
+			// 	Op:          SimulateMsgSubmitFinding(k, ak, bk, priKey.PublicKey),
+			// },
 		}
 
 		return simtypes.NewOperationMsg(msg, true, "", nil), futureOperations, nil
 	}
 }
 
-func SimulateMsgSubmitFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, programID uint64, pubKey ecies.PublicKey) simtypes.Operation {
+func SimulateMsgSubmitFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, pubKey ecies.PublicKey) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
 		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		submitter, _ := simtypes.RandomAcc(r, accs)
@@ -150,6 +148,9 @@ func SimulateMsgSubmitFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.
 		if err != nil {
 			fmt.Printf("Error on pocAny: %#v\n", err)
 		}
+
+		rsp, _ := k.Programs(sdk.WrapSDKContext(ctx), &types.QueryProgramsRequest{})
+		programID := rsp.Programs[r.Intn(len(rsp.Programs))].ProgramId
 
 		serverity := r.Int31n(5)
 
