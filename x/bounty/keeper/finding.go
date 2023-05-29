@@ -221,46 +221,52 @@ func GetBase64QueryFinding(finding *types.Finding) (types.QueryFinding, error) {
 		FindingStatus:    finding.FindingStatus,
 	}
 
-	if finding.GetFindingDesc() != nil {
-		encryptedDesc, ok := finding.GetFindingDesc().(*types.EciesEncryptedDesc)
-		if !ok {
-			plainTextDesc, ok := finding.GetFindingDesc().(*types.PlainTextDesc)
-			if !ok {
-				return queryFinding, fmt.Errorf("invalid any data")
-			}
-			queryFinding.FindingDesc = base64.StdEncoding.EncodeToString(plainTextDesc.FindingDesc)
-		} else {
-			randBytesStart := len(encryptedDesc.FindingDesc) - cli.RandBytesLen
-			queryFinding.FindingDesc = base64.StdEncoding.EncodeToString(encryptedDesc.FindingDesc[:randBytesStart])
+	processFindingData := func(data interface{}, fieldName string) (string, error) {
+		if data == nil {
+			return "", nil
 		}
+		switch v := data.(type) {
+		case *types.EciesEncryptedDesc:
+			randBytesStart := len(v.FindingDesc) - cli.RandBytesLen
+			return base64.StdEncoding.EncodeToString(v.FindingDesc[:randBytesStart]), nil
+		case *types.EciesEncryptedPoc:
+			randBytesStart := len(v.FindingPoc) - cli.RandBytesLen
+			return base64.StdEncoding.EncodeToString(v.FindingPoc[:randBytesStart]), nil
+		case *types.EciesEncryptedComment:
+			randBytesStart := len(v.FindingComment) - cli.RandBytesLen
+			return base64.StdEncoding.EncodeToString(v.FindingComment[:randBytesStart]), nil
+		case *types.PlainTextDesc:
+			if v.FindingDesc != nil {
+				return base64.StdEncoding.EncodeToString(v.FindingDesc), nil
+			}
+		case *types.PlainTextPoc:
+			if v.FindingPoc != nil {
+				return base64.StdEncoding.EncodeToString(v.FindingPoc), nil
+			}
+		case *types.PlainTextComment:
+			if v.FindingComment != nil {
+				return base64.StdEncoding.EncodeToString(v.FindingComment), nil
+			}
+		default:
+			return "", fmt.Errorf("invalid any data for field %s", fieldName)
+		}
+		return "", nil
 	}
 
-	if finding.GetFindingPoc() != nil {
-		encryptedPoc, ok := finding.GetFindingPoc().(*types.EciesEncryptedPoc)
-		if !ok {
-			plainTextPoc, ok := finding.GetFindingPoc().(*types.PlainTextPoc)
-			if !ok {
-				return queryFinding, fmt.Errorf("invalid any data")
-			}
-			queryFinding.FindingPoc = base64.StdEncoding.EncodeToString(plainTextPoc.FindingPoc)
-		} else {
-			randBytesStart := len(encryptedPoc.FindingPoc) - cli.RandBytesLen
-			queryFinding.FindingPoc = base64.StdEncoding.EncodeToString(encryptedPoc.FindingPoc[:randBytesStart])
-		}
+	var err error
+	queryFinding.FindingDesc, err = processFindingData(finding.GetFindingDesc(), "FindingDesc")
+	if err != nil {
+		return queryFinding, err
 	}
 
-	if finding.GetFindingComment() != nil {
-		encryptedComment, ok := finding.GetFindingComment().(*types.EciesEncryptedComment)
-		if !ok {
-			plainTextComment, ok := finding.GetFindingComment().(*types.PlainTextComment)
-			if !ok {
-				return queryFinding, fmt.Errorf("invalid any data")
-			}
-			queryFinding.FindingComment = base64.StdEncoding.EncodeToString(plainTextComment.FindingComment)
-		} else {
-			randBytesStart := len(encryptedComment.FindingComment) - cli.RandBytesLen
-			queryFinding.FindingComment = base64.StdEncoding.EncodeToString(encryptedComment.FindingComment[:randBytesStart])
-		}
+	queryFinding.FindingPoc, err = processFindingData(finding.GetFindingPoc(), "FindingPoc")
+	if err != nil {
+		return queryFinding, err
+	}
+
+	queryFinding.FindingComment, err = processFindingData(finding.GetFindingComment(), "FindingComment")
+	if err != nil {
+		return queryFinding, err
 	}
 
 	return queryFinding, nil
