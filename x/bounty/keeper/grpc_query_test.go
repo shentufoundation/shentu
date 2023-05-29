@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
@@ -115,7 +117,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 	queryClient := suite.queryClient
 
 	// create programs
-	programId := suite.CreatePrograms()
+	programId, privKey := suite.CreatePrograms()
 
 	var (
 		req *types.QueryFindingRequest
@@ -151,7 +153,20 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 			"valid request",
 			func() {
 				req = &types.QueryFindingRequest{FindingId: 1}
-				suite.CreateSubmitFinding(programId)
+				suite.CreateSubmitFinding(programId, &privKey.PublicKey, "test")
+
+			},
+			true,
+		},
+		{
+			"valid request",
+			func() {
+				req = &types.QueryFindingRequest{FindingId: 1}
+				suite.CreateSubmitFinding(programId, &privKey.PublicKey, "test")
+
+				ctx := sdk.WrapSDKContext(suite.ctx)
+				suite.msgServer.ReleaseFinding(ctx,
+					types.NewReleaseFinding(suite.address[0].String(), 1, "test", "", ""))
 			},
 			true,
 		},
@@ -177,7 +192,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryFindings() {
 	queryClient := suite.queryClient
 
 	// create programs
-	programId := suite.CreatePrograms()
+	programId, privKey := suite.CreatePrograms()
 
 	var (
 		req *types.QueryFindingsRequest
@@ -192,7 +207,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryFindings() {
 			"valid request",
 			func() {
 				req = &types.QueryFindingsRequest{ProgramId: programId}
-				suite.CreateSubmitFinding(programId)
+				suite.CreateSubmitFinding(programId, &privKey.PublicKey, "test")
 			},
 			true,
 		},

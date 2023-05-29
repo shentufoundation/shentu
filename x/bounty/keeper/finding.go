@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
 
@@ -207,4 +208,66 @@ func CheckEncryptedData(pubKey *ecies.PublicKey, plainText string, encryptedData
 		return types.ErrFindingPlainTextDataInvalid
 	}
 	return nil
+}
+
+// GetBase64QueryFinding This function takes a Finding and converts associated descriptions, proofs of concept, and comments into a QueryFinding with all the information encoded in base64.
+func GetBase64QueryFinding(finding *types.Finding) (types.QueryFinding, error) {
+	queryFinding := types.QueryFinding{
+		FindingId:        finding.FindingId,
+		Title:            finding.Title,
+		ProgramId:        finding.ProgramId,
+		SeverityLevel:    finding.SeverityLevel,
+		SubmitterAddress: finding.SubmitterAddress,
+		FindingStatus:    finding.FindingStatus,
+	}
+
+	processFindingData := func(data interface{}, fieldName string) (string, error) {
+		if data == nil {
+			return "", nil
+		}
+		switch v := data.(type) {
+		case *types.EciesEncryptedDesc:
+			randBytesStart := len(v.FindingDesc) - cli.RandBytesLen
+			return base64.StdEncoding.EncodeToString(v.FindingDesc[:randBytesStart]), nil
+		case *types.EciesEncryptedPoc:
+			randBytesStart := len(v.FindingPoc) - cli.RandBytesLen
+			return base64.StdEncoding.EncodeToString(v.FindingPoc[:randBytesStart]), nil
+		case *types.EciesEncryptedComment:
+			randBytesStart := len(v.FindingComment) - cli.RandBytesLen
+			return base64.StdEncoding.EncodeToString(v.FindingComment[:randBytesStart]), nil
+		case *types.PlainTextDesc:
+			if v.FindingDesc != nil {
+				return base64.StdEncoding.EncodeToString(v.FindingDesc), nil
+			}
+		case *types.PlainTextPoc:
+			if v.FindingPoc != nil {
+				return base64.StdEncoding.EncodeToString(v.FindingPoc), nil
+			}
+		case *types.PlainTextComment:
+			if v.FindingComment != nil {
+				return base64.StdEncoding.EncodeToString(v.FindingComment), nil
+			}
+		default:
+			return "", fmt.Errorf("invalid any data for field %s", fieldName)
+		}
+		return "", nil
+	}
+
+	var err error
+	queryFinding.FindingDesc, err = processFindingData(finding.GetFindingDesc(), "FindingDesc")
+	if err != nil {
+		return queryFinding, err
+	}
+
+	queryFinding.FindingPoc, err = processFindingData(finding.GetFindingPoc(), "FindingPoc")
+	if err != nil {
+		return queryFinding, err
+	}
+
+	queryFinding.FindingComment, err = processFindingData(finding.GetFindingComment(), "FindingComment")
+	if err != nil {
+		return queryFinding, err
+	}
+
+	return queryFinding, nil
 }

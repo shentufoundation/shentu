@@ -2,12 +2,12 @@ package cli
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/spf13/cobra"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -86,8 +86,11 @@ func NewCreateProgramCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			var sET, jET, cET time.Time
+			if !deposit.IsValid() {
+				return fmt.Errorf("invalid deposit")
+			}
+			//set default time for submission end time
+			sET := time.Now().Add(30 * 24 * time.Hour)
 
 			submissionEndTimeStr, _ := cmd.Flags().GetString(FlagSubmissionEndTime)
 			if submissionEndTimeStr != "" {
@@ -96,21 +99,8 @@ func NewCreateProgramCmd() *cobra.Command {
 					return err
 				}
 			}
-
-			judgingEndTimeStr, _ := cmd.Flags().GetString(FlagSubmissionEndTime)
-			if judgingEndTimeStr != "" {
-				sET, err = time.Parse(dateLayout, judgingEndTimeStr)
-				if err != nil {
-					return err
-				}
-			}
-
-			claimEndTimeStr, _ := cmd.Flags().GetString(FlagSubmissionEndTime)
-			if claimEndTimeStr != "" {
-				sET, err = time.Parse(dateLayout, claimEndTimeStr)
-				if err != nil {
-					return err
-				}
+			if sET.Before(time.Now()) {
+				return fmt.Errorf("invalid submission end time")
 			}
 
 			msg, err := types.NewMsgCreateProgram(
@@ -120,8 +110,6 @@ func NewCreateProgramCmd() *cobra.Command {
 				newRate,
 				deposit,
 				sET,
-				jET,
-				cET,
 			)
 			if err != nil {
 				return err
@@ -452,15 +440,13 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 
 	prvKey := LoadPrvKey(encKeyFile)
 
-	if finding.FindingDesc == nil {
+	if finding.FindingDesc == "" {
 		desc = ""
 	} else {
-		var descProto types.EciesEncryptedDesc
-		if err = proto.Unmarshal(finding.FindingDesc.GetValue(), &descProto); err != nil {
+		encryptedData, err := base64.StdEncoding.DecodeString(finding.FindingDesc)
+		if err != nil {
 			return "", "", "", err
 		}
-
-		encryptedData := descProto.FindingDesc[:len(descProto.FindingDesc)-RandBytesLen]
 		descBytes, err := prvKey.Decrypt(encryptedData, nil, nil)
 		if err != nil {
 			return "", "", "", err
@@ -468,14 +454,13 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 		desc = string(descBytes)
 	}
 
-	if finding.FindingPoc == nil {
+	if finding.FindingPoc == "" {
 		poc = ""
 	} else {
-		var pocProto types.EciesEncryptedPoc
-		if err = proto.Unmarshal(finding.FindingPoc.GetValue(), &pocProto); err != nil {
+		encryptedData, err := base64.StdEncoding.DecodeString(finding.FindingPoc)
+		if err != nil {
 			return "", "", "", err
 		}
-		encryptedData := pocProto.FindingPoc[:len(pocProto.FindingPoc)-RandBytesLen]
 		pocBytes, err := prvKey.Decrypt(encryptedData, nil, nil)
 		if err != nil {
 			return "", "", "", err
@@ -483,14 +468,13 @@ func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
 		poc = string(pocBytes)
 	}
 
-	if finding.FindingComment == nil {
+	if finding.FindingComment == "" {
 		comment = ""
 	} else {
-		var commentProto types.EciesEncryptedComment
-		if err = proto.Unmarshal(finding.FindingComment.GetValue(), &commentProto); err != nil {
+		encryptedData, err := base64.StdEncoding.DecodeString(finding.FindingComment)
+		if err != nil {
 			return "", "", "", err
 		}
-		encryptedData := commentProto.FindingComment[:len(commentProto.FindingComment)-RandBytesLen]
 		commentBytes, err := prvKey.Decrypt(encryptedData, nil, nil)
 		if err != nil {
 			return "", "", "", err

@@ -2,13 +2,11 @@ package e2e
 
 import (
 	"bytes"
+	"encoding/base64"
 	"strings"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
@@ -383,9 +381,9 @@ func (s *IntegrationTestSuite) TestBounty() {
 			func() bool {
 				rsp, err := queryBountyFinding(chainAAPIEndpoint, bountyFindingCounter)
 				s.Require().NoError(err)
-				var poc bountytypes.PlainTextPoc
-				proto.Unmarshal(rsp.Finding.FindingPoc.Value, &poc)
-				return string(poc.FindingPoc) == "finding-poc"
+				findingPoc, err := base64.StdEncoding.DecodeString(rsp.Finding.FindingPoc)
+				s.Require().NoError(err)
+				return string(findingPoc) == "finding-poc"
 			},
 			20*time.Second,
 			5*time.Second,
