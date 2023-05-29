@@ -69,8 +69,10 @@ func (suite *KeeperTestSuite) TestCreateProgram() {
 		suite.Run(tc.name, func() {
 			for _, program := range tc.args.msgCresatePrograms {
 				ctx := types1.WrapSDKContext(suite.ctx)
-				programID := suite.keeper.GetNextProgramID(suite.ctx)
+				programID, err := suite.keeper.GetNextProgramID(suite.ctx)
+				suite.Require().NoError(err)
 				resp, err := suite.msgServer.CreateProgram(ctx, &program)
+				suite.Require().NoError(err)
 				storedProgram, result := suite.keeper.GetProgram(suite.ctx, programID)
 				if tc.errArgs.shouldPass {
 					suite.Require().NoError(err)
@@ -178,7 +180,8 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 			for _, finding := range tc.args.msgSubmitFindings {
 				ctx := types1.WrapSDKContext(suite.ctx)
 
-				findingID := suite.keeper.GetNextFindingID(suite.ctx)
+				findingID, err := suite.keeper.GetNextFindingID(suite.ctx)
+				suite.Require().NoError(err)
 				resp, err := suite.msgServer.SubmitFinding(ctx, &finding)
 
 				if tc.errArgs.shouldPass {
@@ -271,7 +274,8 @@ func (suite *KeeperTestSuite) InitSubmitFinding(programId uint64, pubKey *ecies.
 	}
 
 	ctx := types1.WrapSDKContext(suite.ctx)
-	findingId := suite.keeper.GetNextFindingID(suite.ctx)
+	findingId, err := suite.keeper.GetNextFindingID(suite.ctx)
+	suite.Require().NoError(err)
 	resp, err := suite.msgServer.SubmitFinding(ctx, msgSubmitFinding)
 	suite.Require().NoError(err)
 	suite.Require().Equal(findingId, resp.FindingId)

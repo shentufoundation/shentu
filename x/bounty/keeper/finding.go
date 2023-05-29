@@ -2,10 +2,13 @@ package keeper
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/crypto/ecies"
+
+	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -16,20 +19,20 @@ import (
 func (k Keeper) GetFinding(ctx sdk.Context, id uint64) (types.Finding, bool) {
 	store := ctx.KVStore(k.storeKey)
 
-	pBz := store.Get(types.GetFindingKey(id))
-	if pBz == nil {
+	findingData := store.Get(types.GetFindingKey(id))
+	if findingData == nil {
 		return types.Finding{}, false
 	}
 
 	var finding types.Finding
-	k.cdc.MustUnmarshal(pBz, &finding)
+	k.cdc.MustUnmarshal(findingData, &finding)
 	return finding, true
 }
 
 func (k Keeper) SetFinding(ctx sdk.Context, finding types.Finding) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&finding)
-	store.Set(types.GetFindingKey(finding.FindingId), bz)
+	findingData := k.cdc.MustMarshal(&finding)
+	store.Set(types.GetFindingKey(finding.FindingId), findingData)
 }
 
 func (k Keeper) DeleteFinding(ctx sdk.Context, id uint64) {
@@ -37,10 +40,13 @@ func (k Keeper) DeleteFinding(ctx sdk.Context, id uint64) {
 	store.Delete(types.GetFindingKey(id))
 }
 
-func (k Keeper) GetNextFindingID(ctx sdk.Context) uint64 {
+func (k Keeper) GetNextFindingID(ctx sdk.Context) (uint64, error) {
 	store := ctx.KVStore(k.storeKey)
-	Bz := store.Get(types.GetNextFindingIDKey())
-	return binary.LittleEndian.Uint64(Bz)
+	findingID := store.Get(types.GetNextFindingIDKey())
+	if findingID == nil {
+		return 1, errorsmod.Wrap(types.ErrInvalidGenesis, "initial next finding ID hasn't been set")
+	}
+	return binary.LittleEndian.Uint64(findingID), nil
 }
 
 func (k Keeper) SetNextFindingID(ctx sdk.Context, id uint64) {
@@ -109,6 +115,21 @@ func (k Keeper) DeleteFidFromFidList(ctx sdk.Context, pid, fid uint64) error {
 		}
 	}
 	return types.ErrFindingNotExists
+}
+
+func (k Keeper) GetAllFindings(ctx sdk.Context) []types.Finding {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.FindingKey)
+
+	var findings []types.Finding
+	var finding types.Finding
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		k.cdc.MustUnmarshal(iterator.Value(), &finding)
+		findings = append(findings, finding)
+	}
+	return findings
 }
 
 func Uint64sToBytes(list []uint64) ([]byte, error) {
@@ -187,4 +208,66 @@ func CheckEncryptedData(pubKey *ecies.PublicKey, plainText string, encryptedData
 		return types.ErrFindingPlainTextDataInvalid
 	}
 	return nil
+}
+
+// GetBase64QueryFinding This function takes a Finding and converts associated descriptions, proofs of concept, and comments into a QueryFinding with all the information encoded in base64.
+func GetBase64QueryFinding(finding *types.Finding) (types.QueryFinding, error) {
+	queryFinding := types.QueryFinding{
+		FindingId:        finding.FindingId,
+		Title:            finding.Title,
+		ProgramId:        finding.ProgramId,
+		SeverityLevel:    finding.SeverityLevel,
+		SubmitterAddress: finding.SubmitterAddress,
+		FindingStatus:    finding.FindingStatus,
+	}
+
+	processFindingData := func(data interface{}, fieldName string) (string, error) {
+		if data == nil {
+			return "", nil
+		}
+		switch v := data.(type) {
+		case *types.EciesEncryptedDesc:
+			randBytesStart := len(v.FindingDesc) - cli.RandBytesLen
+			return base64.StdEncoding.EncodeToString(v.FindingDesc[:randBytesStart]), nil
+		case *types.EciesEncryptedPoc:
+			randBytesStart := len(v.FindingPoc) - cli.RandBytesLen
+			return base64.StdEncoding.EncodeToString(v.FindingPoc[:randBytesStart]), nil
+		case *types.EciesEncryptedComment:
+			randBytesStart := len(v.FindingComment) - cli.RandBytesLen
+			return base64.StdEncoding.EncodeToString(v.FindingComment[:randBytesStart]), nil
+		case *types.PlainTextDesc:
+			if v.FindingDesc != nil {
+				return base64.StdEncoding.EncodeToString(v.FindingDesc), nil
+			}
+		case *types.PlainTextPoc:
+			if v.FindingPoc != nil {
+				return base64.StdEncoding.EncodeToString(v.FindingPoc), nil
+			}
+		case *types.PlainTextComment:
+			if v.FindingComment != nil {
+				return base64.StdEncoding.EncodeToString(v.FindingComment), nil
+			}
+		default:
+			return "", fmt.Errorf("invalid any data for field %s", fieldName)
+		}
+		return "", nil
+	}
+
+	var err error
+	queryFinding.FindingDesc, err = processFindingData(finding.GetFindingDesc(), "FindingDesc")
+	if err != nil {
+		return queryFinding, err
+	}
+
+	queryFinding.FindingPoc, err = processFindingData(finding.GetFindingPoc(), "FindingPoc")
+	if err != nil {
+		return queryFinding, err
+	}
+
+	queryFinding.FindingComment, err = processFindingData(finding.GetFindingComment(), "FindingComment")
+	if err != nil {
+		return queryFinding, err
+	}
+
+	return queryFinding, nil
 }

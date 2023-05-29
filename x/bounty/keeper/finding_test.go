@@ -108,7 +108,7 @@ func (suite *KeeperTestSuite) TestFinding_GetSet() {
 func (suite *KeeperTestSuite) TestNextFindingID_GetSet() {
 	var findingID uint64 = 2
 	suite.keeper.SetNextFindingID(suite.ctx, findingID)
-	nextFindingID := suite.keeper.GetNextFindingID(suite.ctx)
+	nextFindingID, _ := suite.keeper.GetNextFindingID(suite.ctx)
 
 	suite.Require().Equal(findingID, nextFindingID)
 }

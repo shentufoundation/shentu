@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -31,12 +32,19 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 		return nil, err
 	}
 
+	nextID, err := k.GetNextProgramID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	err = k.bk.SendCoinsFromAccountToModule(ctx, creatorAddr, types.ModuleName, msg.Deposit)
 	if err != nil {
 		return nil, err
 	}
 
-	nextID := k.GetNextProgramID(ctx)
+	if msg.SubmissionEndTime.Before(ctx.BlockTime()) {
+		return nil, fmt.Errorf("submission end time is invalid")
+	}
 
 	program := types.Program{
 		ProgramId:         nextID,
@@ -86,7 +94,10 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		return nil, types.ErrProgramInactive
 	}
 
-	findingID := k.GetNextFindingID(ctx)
+	findingID, err := k.GetNextFindingID(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	finding := types.Finding{
 		FindingId:        findingID,

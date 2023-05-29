@@ -47,7 +47,7 @@ func TestAnyToBytes(t *testing.T) {
 	descDecrypt, err := decKey.Decrypt(descProto.FindingDesc, nil, nil)
 
 	if string(descDecrypt) != desc {
-		t.Fatal("error")
+		t.Fatal(err)
 	}
 }
 

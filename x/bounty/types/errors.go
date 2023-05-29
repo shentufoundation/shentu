@@ -15,6 +15,7 @@ const (
 	errProgramNotAllowed
 	errProgramExpired
 	errProgramPubKey
+	errProgramID
 )
 
 // Finding
@@ -24,7 +25,10 @@ const (
 	errFindingSubmitterInvalid
 	errFindingPlainTextDataInvalid
 	errFindingEncryptedDataInvalid
+	errFindingID
 )
+
+const errInvalidGenesis = 301
 
 // [1xx] Program
 var (
@@ -37,6 +41,7 @@ var (
 	ErrProgramNotAllowed           = sdkerrors.Register(ModuleName, errProgramNotAllowed, "program access denied because you are not the creator or certifiers")
 	ErrProgramExpired              = sdkerrors.Register(ModuleName, errProgramExpired, "cannot end an expired program")
 	ErrProgramPubKey               = sdkerrors.Register(ModuleName, errProgramPubKey, "invalid program public key")
+	ErrProgramID                   = sdkerrors.Register(ModuleName, errProgramID, "invalid program id")
 )
 
 // [2xx] Finding
@@ -46,4 +51,7 @@ var (
 	ErrFindingSubmitterInvalid     = sdkerrors.Register(ModuleName, errFindingSubmitterInvalid, "invalid finding submitter")
 	ErrFindingPlainTextDataInvalid = sdkerrors.Register(ModuleName, errFindingPlainTextDataInvalid, "invalid finding plain text data")
 	ErrFindingEncryptedDataInvalid = sdkerrors.Register(ModuleName, errFindingEncryptedDataInvalid, "invalid finding encrypted data")
+	ErrFindingID                   = sdkerrors.Register(ModuleName, errFindingID, "invalid finding id")
 )
+
+var ErrInvalidGenesis = sdkerrors.Register(ModuleName, errInvalidGenesis, "invalid genesis state")
