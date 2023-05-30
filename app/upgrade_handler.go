@@ -13,14 +13,13 @@ import (
 )
 
 const (
-	upgradeName = "v2.7.0"
+	upgradeName = "v2.8.0"
 )
 
 func (app ShentuApp) setUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-
 			fromVM[bountytypes.ModuleName] = app.mm.Modules[bountytypes.ModuleName].ConsensusVersion()
 
 			ctx.Logger().Info("Start to run module migrations...")
@@ -28,6 +27,8 @@ func (app ShentuApp) setUpgradeHandler() {
 			bountyGenesis := bountytypes.DefaultGenesisState()
 			bounty.InitGenesis(ctx, app.BountyKeeper, *bountyGenesis)
 
+			// transfer module consensus version has been bumped to 2
+			ctx.Logger().Info("Start to run module migrations...")
 			newVersionMap, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
 
 			return newVersionMap, err

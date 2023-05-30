@@ -217,6 +217,9 @@ func (k Keeper) UpdatePool(ctx sdk.Context, poolID uint64, description string, u
 		}
 	} else if !serviceFees.IsZero() {
 		// Allow adding service fees without purchasing more shield.
+		if err := k.bk.SendCoinsFromAccountToModule(ctx, updater, types.ModuleName, serviceFees); err != nil {
+			return pool, err
+		}
 		totalServiceFees := k.GetServiceFees(ctx)
 		totalServiceFees = totalServiceFees.Add(sdk.NewDecCoinsFromCoins(serviceFees...)...)
 		k.SetServiceFees(ctx, totalServiceFees)

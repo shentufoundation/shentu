@@ -40,7 +40,7 @@ func Test_TaskStoreKey(t *testing.T) {
 	t.Run("Task", func(t *testing.T) {
 		s1 := "abc"
 		s2 := "ghj"
-		tmp := types.TaskStoreKey(s1, s2)
+		tmp := types.TaskStoreKey(types.NewTaskID(s1, s2))
 		assert.Equal(t, tmp, []byte{4, 97, 98, 99, 103, 104, 106})
 	})
 }

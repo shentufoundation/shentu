@@ -6,7 +6,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
-	"github.com/shentufoundation/shentu/v2/x/gov/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
@@ -20,7 +19,7 @@ type validatorGovInfo struct {
 }
 
 // Tally counts the votes and returns whether the proposal passes and/or if tokens should be burned.
-func Tally(ctx sdk.Context, k Keeper, proposal types.Proposal) (pass bool, veto bool, tallyResults govtypes.TallyResult) {
+func Tally(ctx sdk.Context, k Keeper, proposal govtypes.Proposal) (pass bool, veto bool, tallyResults govtypes.TallyResult) {
 	results := newResults()
 
 	totalVotingPower := sdk.ZeroDec()
@@ -65,14 +64,15 @@ func Tally(ctx sdk.Context, k Keeper, proposal types.Proposal) (pass bool, veto 
 	}
 
 	tallyParams := k.GetTallyParams(ctx)
+	customParams := k.GetCustomParams(ctx)
 	tallyResults = govtypes.NewTallyResultFromMap(results)
 
 	var tp govtypes.TallyParams
 	switch proposal.GetContent().(type) {
 	case *certtypes.CertifierUpdateProposal:
-		tp = *tallyParams.CertifierUpdateStakeVoteTally
+		tp = *customParams.CertifierUpdateStakeVoteTally
 	default:
-		tp = *tallyParams.DefaultTally
+		tp = tallyParams
 	}
 
 	th := TallyHelper{
@@ -227,7 +227,6 @@ func passAndVetoStakeResultForShieldClaim(k Keeper, ctx sdk.Context, th TallyHel
 
 // passAndVetoSecurityResult has two storeKey differences from passAndVetoStakeResult:
 //  1. Every certifier has equal voting power (1 head =  1 vote)
-//  2. The only voting options are "yes" and "no".
 func passAndVetoSecurityResult(k Keeper, ctx sdk.Context, th TallyHelper) (pass bool) {
 	nCertifiers := sdk.NewDec(int64(len(k.CertKeeper.GetAllCertifiers(ctx))))
 
@@ -262,34 +261,25 @@ func passAndVetoSecurityResult(k Keeper, ctx sdk.Context, th TallyHelper) (pass 
 // we setup the validator voting round and the calling function EndBlocker
 // continues to the next iteration. If it fails, the proposal is removed by the
 // logic in EndBlocker.
-func SecurityTally(ctx sdk.Context, k Keeper, proposal types.Proposal) (bool, bool, govtypes.TallyResult) {
+func SecurityTally(ctx sdk.Context, k Keeper, proposal govtypes.Proposal) (bool, bool, govtypes.TallyResult) {
 	results := newResults()
 	totalHeadCounts := sdk.ZeroDec()
 
 	currVotes := k.GetVotes(ctx, proposal.ProposalId)
 	for _, vote := range currVotes {
-		if len(vote.Options) == 0 {
+		if len(vote.Options) != 1 {
 			continue
 		}
 
-		if len(vote.Options) == 1 {
-			results[vote.Options[0].Option] = results[vote.Options[0].Option].Add(sdk.NewDec(1))
-			totalHeadCounts = totalHeadCounts.Add(sdk.NewDec(1))
-			continue
-		}
-
-		for _, option := range vote.Options {
-			results[option.Option] = results[option.Option].Add(option.Weight)
-		}
+		results[vote.Options[0].Option] = results[vote.Options[0].Option].Add(sdk.NewDec(1))
 		totalHeadCounts = totalHeadCounts.Add(sdk.NewDec(1))
 	}
-	tallyParams := k.GetTallyParams(ctx)
-	// todo tallyResults will show 0 if the sum is below 1.
+	customParams := k.GetCustomParams(ctx)
 	tallyResults := govtypes.NewTallyResultFromMap(results)
 
 	th := TallyHelper{
 		totalHeadCounts,
-		*tallyParams.CertifierUpdateSecurityVoteTally,
+		*customParams.CertifierUpdateSecurityVoteTally,
 		results,
 	}
 	pass := passAndVetoSecurityResult(k, ctx, th)
@@ -306,6 +296,3 @@ func SecurityTally(ctx sdk.Context, k Keeper, proposal types.Proposal) (bool, bo
 
 	return pass, endVoting, tallyResults
 }
-
-// TODO:
-//		Query tally in certifier round should show headcount, not amount staked

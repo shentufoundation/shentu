@@ -26,9 +26,23 @@ service Query {
         option (google.api.http).get = "/shentu/oracle/v1alpha1/contract/{contract}/function/{function}/task";
     }
 
+    rpc TxTask(QueryTxTaskRequest) returns (QueryTxTaskResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/txhash/{atx_hash}/txtask";
+    }
+
     rpc Response(QueryResponseRequest) returns (QueryResponseResponse) {
         option (google.api.http).get = "/shentu/oracle/v1alpha1/contract/{contract}/function/{function}/operator/{operator_address}/Response";
     }
+
+    rpc TxResponse(QueryTxResponseRequest) returns (QueryTxResponseResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/txhash/{atx_hash}/operator/{operator_address}/Response";
+    }
+
+    // Params queries all parameters of the oracle module.
+    rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+        option (google.api.http).get = "/shentu/oracle/v1alpha1/params";
+    }
+
 }
 
 message QueryOperatorRequest {
@@ -62,6 +76,14 @@ message QueryTaskResponse {
     Task task = 1 [(gogoproto.nullable) = false];
 }
 
+message QueryTxTaskRequest {
+    string atx_hash = 1;
+}
+
+message QueryTxTaskResponse {
+   TxTask task = 1 [(gogoproto.nullable) = false];
+}
+
 message QueryResponseRequest {
     string contract = 1;
     string function = 2;
@@ -70,4 +92,23 @@ message QueryResponseRequest {
 
 message QueryResponseResponse {
     Response response = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryTxResponseRequest {
+    string atx_hash = 1;
+    string operator_address = 2;
+}
+
+message QueryTxResponseResponse {
+    Response response = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryParamsRequest is the request type for the Query/Params RPC method.
+message QueryParamsRequest {
+}
+
+// QueryParamsResponse is the response type for the Query/Params RPC method.
+message QueryParamsResponse {
+    TaskParams task_params = 2 [(gogoproto.nullable) = false];
+    LockedPoolParams pool_params = 1 [(gogoproto.nullable) = false];
 }

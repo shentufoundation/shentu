@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,8 +17,10 @@ const (
 	TypeMsgWithdrawReward   = "withdraw_reward"
 	TypeMsgCreateTask       = "create_task"
 	TypeMsgRespondToTask    = "respond_to_task"
-	TypeMsgInquireTask      = "inquire_task"
 	TypeMsgDeleteTask       = "delete_task"
+	TypeMsgCreateTxTask     = "create_tx_task"
+	TypeMsgRespondToTxTask  = "respond_to_tx_task"
+	TypeMsgDeleteTxTask     = "delete_tx_task"
 )
 
 // NewMsgCreateOperator returns the message for creating an operator.
@@ -70,10 +73,7 @@ func (m MsgCreateOperator) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgCreateOperator) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Address)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Address)
 	return []sdk.AccAddress{addr}
 }
 
@@ -117,10 +117,7 @@ func (m MsgRemoveOperator) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgRemoveOperator) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Proposer)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Proposer)
 	return []sdk.AccAddress{addr}
 }
 
@@ -167,10 +164,7 @@ func (m MsgAddCollateral) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgAddCollateral) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Address)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Address)
 	return []sdk.AccAddress{addr}
 }
 
@@ -217,10 +211,7 @@ func (m MsgReduceCollateral) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgReduceCollateral) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Address)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Address)
 	return []sdk.AccAddress{addr}
 }
 
@@ -258,10 +249,7 @@ func (m MsgWithdrawReward) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgWithdrawReward) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Address)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Address)
 	return []sdk.AccAddress{addr}
 }
 
@@ -301,10 +289,7 @@ func (m MsgCreateTask) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgCreateTask) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Creator)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Creator)
 	return []sdk.AccAddress{addr}
 }
 
@@ -340,10 +325,7 @@ func (m MsgTaskResponse) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgTaskResponse) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Operator)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(m.Operator)
 	return []sdk.AccAddress{addr}
 }
 
@@ -353,7 +335,7 @@ func NewMsgDeleteTask(contract, function string, force bool, deleter sdk.AccAddr
 		Contract: contract,
 		Function: function,
 		Force:    force,
-		Deleter:  deleter.String(),
+		From:     deleter.String(),
 	}
 }
 
@@ -379,9 +361,141 @@ func (m MsgDeleteTask) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required.
 func (m MsgDeleteTask) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.Deleter)
+	addr := sdk.MustAccAddressFromBech32(m.From)
+	return []sdk.AccAddress{addr}
+}
+
+// NewMsgCreateTxTask returns a new MsgCreateTxTask instance.
+func NewMsgCreateTxTask(creator sdk.AccAddress, chainID string, txBytes []byte,
+	bounty sdk.Coins, validTime time.Time) *MsgCreateTxTask {
+	return &MsgCreateTxTask{
+		Creator:   creator.String(),
+		ChainId:   chainID,
+		AtxBytes:  txBytes,
+		Bounty:    bounty,
+		ValidTime: validTime,
+	}
+}
+
+// Route returns the module name.
+func (MsgCreateTxTask) Route() string { return ModuleName }
+
+// Type returns the action name.
+func (MsgCreateTxTask) Type() string { return TypeMsgCreateTxTask }
+
+// ValidateBasic runs stateless checks on the message.
+func (m MsgCreateTxTask) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Creator)
+	if err != nil {
+		return err
+	}
+
+	if len(m.AtxBytes) == 0 {
+		return fmt.Errorf("tx bytes cannot be empty")
+	}
+	if len(m.ChainId) == 0 {
+		return fmt.Errorf("chain_id cannot be empty")
+	}
+	if !m.Bounty.IsValid() {
+		return fmt.Errorf("invalid bounty")
+	}
+	return nil
+}
+
+// GetSignBytes encodes the message for signing.
+// LegacyMsg interface for Amino
+func (m MsgCreateTxTask) GetSignBytes() []byte {
+	b, err := json.Marshal(m)
 	if err != nil {
 		panic(err)
 	}
+	return sdk.MustSortJSON(b)
+}
+
+// GetSigners defines whose signature is required.
+func (m MsgCreateTxTask) GetSigners() []sdk.AccAddress {
+	addr := sdk.MustAccAddressFromBech32(m.Creator)
+
+	return []sdk.AccAddress{addr}
+}
+
+func NewMsgTxTaskResponse(txHash []byte, score int64, operator sdk.AccAddress) *MsgTxTaskResponse {
+	return &MsgTxTaskResponse{
+		AtxHash:  txHash,
+		Score:    score,
+		Operator: operator.String(),
+	}
+}
+
+// LegacyMsg interface for Amino
+func (MsgTxTaskResponse) Route() string { return ModuleName }
+
+// LegacyMsg interface for Amino
+func (MsgTxTaskResponse) Type() string { return TypeMsgRespondToTxTask }
+
+// Msg interface
+func (m MsgTxTaskResponse) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Operator)
+	if err != nil {
+		return err
+	}
+	if len(m.AtxHash) == 0 {
+		return fmt.Errorf("atx_hash cannot be empty")
+	}
+	return nil
+}
+
+// LegacyMsg interface for Amino
+func (m MsgTxTaskResponse) GetSignBytes() []byte {
+	b, err := json.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(b)
+}
+
+// Msg interface, return the account that should sign the tx
+func (m MsgTxTaskResponse) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(m.Operator)
+	return []sdk.AccAddress{addr}
+}
+
+func NewMsgDeleteTxTask(txHash []byte, deleter sdk.AccAddress) *MsgDeleteTxTask {
+	return &MsgDeleteTxTask{
+		AtxHash: txHash,
+		From:    deleter.String(),
+	}
+}
+
+// LegacyMsg interface for Amino
+func (MsgDeleteTxTask) Route() string { return ModuleName }
+
+// LegacyMsg interface for Amino
+func (MsgDeleteTxTask) Type() string { return TypeMsgDeleteTxTask }
+
+// Msg interface
+func (m MsgDeleteTxTask) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.From)
+	if err != nil {
+		return nil
+	}
+	if len(m.AtxHash) == 0 {
+		return fmt.Errorf("atx_hash cannot be empty")
+	}
+	return nil
+}
+
+// LegacyMsg interface for Amino
+func (m MsgDeleteTxTask) GetSignBytes() []byte {
+	b, err := json.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(b)
+}
+
+// Msg interface, return the account that should sign the tx
+func (m MsgDeleteTxTask) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(m.From)
 	return []sdk.AccAddress{addr}
 }

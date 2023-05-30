@@ -46,7 +46,7 @@ const (
 	photonDenom         = "photon"
 	initBalanceStr      = "110000000000uctk,100000000000photon"
 	minGasPrice         = "0.00001"
-	proposalBlockBuffer = 35
+	proposalBlockBuffer = 1000
 	shieldPoolName      = "testpool"
 	shieldPoolLimit     = "1000000000"
 )
@@ -238,7 +238,9 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 	var govGenState govtypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[sdkgovtypes.ModuleName], &govGenState))
 
-	govGenState.VotingParams.VotingPeriod = time.Duration(time.Second * 20)
+	govGenState.VotingParams.VotingPeriod = time.Second * 20
+	minDepositTokens := sdk.TokensFromConsensusPower(0, sdk.NewIntFromUint64(10))
+	govGenState.DepositParams.MinDeposit = sdk.Coins{sdk.NewCoin(common.MicroCTKDenom, minDepositTokens)}
 	bz, err = cdc.MarshalJSON(&govGenState)
 	s.Require().NoError(err)
 	appGenState[sdkgovtypes.ModuleName] = bz

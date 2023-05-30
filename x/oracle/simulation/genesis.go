@@ -33,6 +33,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 		taskParams,
 		nil,
 		nil,
+		nil,
 	)
 
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&gs)
@@ -53,7 +54,8 @@ func GenTaskParams(r *rand.Rand) types.TaskParams {
 		AggregationWindow:  r.Int63n(40),
 		AggregationResult:  sdk.NewInt(r.Int63n(100)),
 		ThresholdScore:     sdk.NewInt(r.Int63n(100)),
-		Epsilon1:           sdk.NewInt(r.Int63n(10)),
+		Epsilon1:           sdk.NewInt(r.Int63n(10) + 1),
 		Epsilon2:           sdk.NewInt(r.Int63n(10) + 90),
+		ShortcutQuorum:     sdk.NewDecWithPrec(int64((r.Float64()+r.Float64())/2*10000)+1, 4),
 	}
 }
