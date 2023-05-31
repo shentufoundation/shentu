@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
@@ -135,17 +136,17 @@ func (s *IntegrationTestSuite) writeClaimProposal(c *chain, valIdx, poolId, purc
 		Amount string `json:"amount"`
 	}
 	type ClaimProposal struct {
-		PoolId      int         `json:"pool_id"`
-		PurchaseId  int         `json:"purchase_id"`
-		Evidence    string      `json:"evidence"`
-		Description string      `json:"description"`
-		Loss        []ClaimLoss `json:"loss"`
+		PoolId      int       `json:"pool_id"`
+		PurchaseId  int       `json:"purchase_id"`
+		Evidence    string    `json:"evidence"`
+		Description string    `json:"description"`
+		Loss        sdk.Coins `json:"loss"`
+		Deposit     sdk.Coins `json:"deposit"`
 	}
 
-	var loss = ClaimLoss{
-		Denom:  "uctk",
-		Amount: "100000000",
-	}
+	loss := sdk.NewCoin(uctkDenom, sdk.NewInt(1000000))
+	deposit := sdk.NewCoin(uctkDenom, sdk.NewInt(110000000))
+
 	var proposal = &ClaimProposal{
 		PoolId:      poolId,
 		PurchaseId:  purchaseId,
@@ -153,6 +154,7 @@ func (s *IntegrationTestSuite) writeClaimProposal(c *chain, valIdx, poolId, purc
 		Description: "Details of the attack",
 	}
 	proposal.Loss = append(proposal.Loss, loss)
+	proposal.Deposit = append(proposal.Deposit, deposit)
 
 	proposalByte, err := json.Marshal(proposal)
 	s.Require().NoError(err)

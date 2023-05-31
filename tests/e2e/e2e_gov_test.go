@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdkgovtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/shentufoundation/shentu/v2/x/gov/types"
 )
 
 func (s *IntegrationTestSuite) executeSubmitUpgradeProposal(c *chain, valIdx, upgradeHeight int, submitterAddr, proposalName, fees string) {
@@ -94,13 +95,13 @@ func (s *IntegrationTestSuite) executeVoteProposal(c *chain, valIdx int, submitt
 	s.T().Logf("%s successfully vote proposal %d %s", submitterAddr, proposalId, vote)
 }
 
-func queryProposal(endpoint string, proposalId int) (*sdkgovtypes.QueryProposalResponse, error) {
+func queryProposal(endpoint string, proposalID int) (*sdkgovtypes.QueryProposalResponse, error) {
 	grpcReq := &sdkgovtypes.QueryProposalRequest{
-		ProposalId: uint64(proposalId),
+		ProposalId: uint64(proposalID),
 	}
 	conn, err := connectGrpc(endpoint)
 	defer conn.Close()
-	client := sdkgovtypes.NewQueryClient(conn)
+	client := govtypes.NewQueryClient(conn)
 
 	grpcRsp, err := client.Proposal(context.Background(), grpcReq)
 	if err != nil {
