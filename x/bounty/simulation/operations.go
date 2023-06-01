@@ -25,8 +25,8 @@ import (
 )
 
 const (
+	// OpWeightMsgCreateProgram desc
 	OpWeightMsgCreateProgram = "op_weight_msg_create_program"
-	OpWeightMsgSubmitFinding = "op_weight_msg_submit_finding"
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights.
@@ -35,13 +35,6 @@ func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, k kee
 	appParams.GetOrGenerate(cdc, OpWeightMsgCreateProgram, &weightMsgCreateProgram, nil,
 		func(_ *rand.Rand) {
 			weightMsgCreateProgram = simappparams.DefaultWeightMsgSend
-		},
-	)
-
-	var weightMsgSubmitFinding int
-	appParams.GetOrGenerate(cdc, OpWeightMsgSubmitFinding, &weightMsgSubmitFinding, nil,
-		func(_ *rand.Rand) {
-			weightMsgSubmitFinding = simappparams.DefaultWeightMsgSend
 		},
 	)
 
@@ -71,13 +64,13 @@ func SimulateMsgCreateProgram(k keeper.Keeper, ak types.AccountKeeper, bk types.
 		desc := fmt.Sprintf("simulation desc %d", r.Int())
 
 		priKey, _ := ecies.GenerateKey(cryptorand.Reader, ecies.DefaultCurve, nil)
-		pubKey := crypto.FromECDSAPub(&priKey.ExportECDSA().PublicKey)
+		pubKey := crypto.FromECDSAPub(priKey.PublicKey.ExportECDSA())
 
 		commission := sdk.NewDec(r.Int63n(10))
 
-		endTime := time.Now().Add(time.Duration((r.Intn(120) + 10) * int(time.Hour)))
+		endTime := ctx.BlockTime().Add(time.Duration((r.Intn(120) + 720) * int(time.Hour)))
 
-		msg, _ := types.NewMsgCreateProgram(host.Address.String(), desc, pubKey, commission, deposit, endTime, endTime, endTime)
+		msg, _ := types.NewMsgCreateProgram(host.Address.String(), desc, pubKey, commission, deposit, endTime)
 
 		txGen := simappparams.MakeTestEncodingConfig().TxConfig
 		tx, err := helpers.GenTx(
@@ -94,23 +87,41 @@ func SimulateMsgCreateProgram(k keeper.Keeper, ak types.AccountKeeper, bk types.
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
+		programID, err := k.GetNextProgramID(ctx)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
+		}
+
 		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
 		futureOperations := []simtypes.FutureOperation{
-			// {
-			// 	BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 0, 20),
-			// 	Op:          SimulateMsgSubmitFinding(k, ak, bk, priKey.PublicKey),
-			// },
+			{
+				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 0, 9),
+				Op:          SimulateMsgSubmitFinding(k, ak, bk, priKey, programID, host),
+			},
+			{
+				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 10, 19),
+				Op:          SimulateMsgAcceptFinding(k, ak, bk, priKey, programID, host),
+			},
+			{
+				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 10, 19),
+				Op:          SimulateMsgRejectFinding(k, ak, bk, priKey, programID, host),
+			},
+			{
+				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 30, 39),
+				Op:          SimulateMsgEndProgram(k, ak, bk, programID, host),
+			},
 		}
 
 		return simtypes.NewOperationMsg(msg, true, "", nil), futureOperations, nil
 	}
 }
 
-func SimulateMsgSubmitFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, pubKey ecies.PublicKey) simtypes.Operation {
+// SimulateMsgSubmitFinding submits a Finding to the Program
+func SimulateMsgSubmitFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, priKey *ecies.PrivateKey, programID uint64, host simtypes.Account) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
 		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		submitter, _ := simtypes.RandomAcc(r, accs)
@@ -122,6 +133,7 @@ func SimulateMsgSubmitFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.
 
 		randBytes := make([]byte, 64)
 
+		pubKey := priKey.PublicKey
 		cryptorand.Read(randBytes)
 		reader := bytes.NewReader(randBytes)
 		descEnc, err := ecies.Encrypt(reader, &pubKey, []byte(desc), nil, nil)
@@ -149,9 +161,6 @@ func SimulateMsgSubmitFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.
 			fmt.Printf("Error on pocAny: %#v\n", err)
 		}
 
-		rsp, _ := k.Programs(sdk.WrapSDKContext(ctx), &types.QueryProgramsRequest{})
-		programID := rsp.Programs[r.Intn(len(rsp.Programs))].ProgramId
-
 		serverity := r.Int31n(5)
 
 		msg := types.NewMsgSubmitFinding(submitter.Address.String(), title, descAny, pocAny, programID, serverity)
@@ -173,6 +182,10 @@ func SimulateMsgSubmitFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
+		}
+
 		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
@@ -180,4 +193,142 @@ func SimulateMsgSubmitFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.
 
 		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
 	}
+}
+
+// SimulateMsgAcceptFinding accept finding by host
+func SimulateMsgAcceptFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, priKey *ecies.PrivateKey, programID uint64, host simtypes.Account) simtypes.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
+		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+
+		hostAcc := ak.GetAccount(ctx, host.Address)
+		findingIDs, _ := k.GetPidFindingIDList(ctx, programID)
+		findingID, ok := randSliceElem(r, findingIDs)
+		if !ok {
+			return simtypes.NewOperationMsgBasic(types.ModuleName, "NoOp: empty finding, skip this tx", "", false, nil), nil, nil
+		}
+		comment := fmt.Sprintf("finding comment %d", r.Int())
+		randBytes := make([]byte, 64)
+		cryptorand.Read(randBytes)
+		reader := bytes.NewReader(randBytes)
+		commentEnc, err := ecies.Encrypt(reader, &priKey.PublicKey, []byte(comment), nil, nil)
+		if err != nil {
+			fmt.Printf("Error on pocEnc: %#v\n", err)
+		}
+		commentEnc = append(commentEnc, randBytes...)
+		commentAny, err := codectypes.NewAnyWithValue(&types.EciesEncryptedComment{
+			FindingComment: commentEnc,
+		})
+		msg := types.NewMsgHostAcceptFinding(findingID, commentAny, host.Address)
+		fees, _ := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, host.Address))
+		txGen := simappparams.MakeTestEncodingConfig().TxConfig
+		tx, err := helpers.GenTx(
+			txGen,
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{hostAcc.GetAccountNumber()},
+			[]uint64{hostAcc.GetSequence()},
+			host.PrivKey,
+		)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
+		}
+		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
+		}
+
+		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
+	}
+}
+
+// SimulateMsgRejectFinding reject finding by host
+func SimulateMsgRejectFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, priKey *ecies.PrivateKey, programID uint64, host simtypes.Account) simtypes.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
+		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+
+		hostAcc := ak.GetAccount(ctx, host.Address)
+		findingIDs, _ := k.GetPidFindingIDList(ctx, programID)
+		findingID, ok := randSliceElem(r, findingIDs)
+		if !ok {
+			return simtypes.NewOperationMsgBasic(types.ModuleName, "NoOp: empty finding, skip this tx", "", false, nil), nil, nil
+		}
+		finding, _ := k.GetFinding(ctx, findingID)
+		if finding.FindingId == 0 {
+			return simtypes.NewOperationMsgBasic(types.ModuleName, "NoOp: zero finding, skip this tx", "", false, nil), nil, nil
+		}
+		comment := fmt.Sprintf("finding comment %d", r.Int())
+		randBytes := make([]byte, 64)
+		cryptorand.Read(randBytes)
+		reader := bytes.NewReader(randBytes)
+		commentEnc, err := ecies.Encrypt(reader, &priKey.PublicKey, []byte(comment), nil, nil)
+		if err != nil {
+			fmt.Printf("Error on pocEnc: %#v\n", err)
+		}
+		commentEnc = append(commentEnc, randBytes...)
+		commentAny, err := codectypes.NewAnyWithValue(&types.EciesEncryptedComment{
+			FindingComment: commentEnc,
+		})
+		msg := types.NewMsgHostRejectFinding(findingID, commentAny, host.Address)
+		fees, _ := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, host.Address))
+		txGen := simappparams.MakeTestEncodingConfig().TxConfig
+		tx, err := helpers.GenTx(
+			txGen,
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{hostAcc.GetAccountNumber()},
+			[]uint64{hostAcc.GetSequence()},
+			host.PrivKey,
+		)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
+		}
+		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
+		}
+
+		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
+	}
+}
+
+// SimulateMsgEndProgram generates a MsgEndProgram object with all of its fields randomized.
+func SimulateMsgEndProgram(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper, programID uint64, host simtypes.Account) simtypes.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (
+		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+
+		hostAcc := ak.GetAccount(ctx, host.Address)
+		msg := types.NewMsgEndProgram(host.Address.String(), programID)
+		fees, _ := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, host.Address))
+		txGen := simappparams.MakeTestEncodingConfig().TxConfig
+		tx, err := helpers.GenTx(
+			txGen,
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{hostAcc.GetAccountNumber()},
+			[]uint64{hostAcc.GetSequence()},
+			host.PrivKey,
+		)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
+		}
+		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
+		}
+		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
+	}
+}
+
+func randSliceElem(r *rand.Rand, elems []uint64) (uint64, bool) {
+	if len(elems) == 0 {
+		var e uint64
+		return e, false
+	}
+	return elems[r.Intn(len(elems))], true
 }

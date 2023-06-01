@@ -12,6 +12,7 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
+// BytesToUint64List trans byte array to an uint64
 func BytesToUint64List(list []byte) []uint64 {
 	buf := bytes.NewBuffer(list)
 	r64 := make([]uint64, (len(list)+7)/8)
