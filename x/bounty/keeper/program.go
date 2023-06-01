@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/binary"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -9,6 +10,42 @@ import (
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
+
+func (k Keeper) CreateProgram(ctx sdk.Context, msg *types.MsgCreateProgram) (*types.Program, error) {
+	creatorAddr, err := sdk.AccAddressFromBech32(msg.CreatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	nextID, err := k.GetNextProgramID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = k.bk.SendCoinsFromAccountToModule(ctx, creatorAddr, types.ModuleName, msg.Deposit)
+	if err != nil {
+		return nil, err
+	}
+
+	if msg.SubmissionEndTime.Before(ctx.BlockTime()) {
+		return nil, fmt.Errorf("submission end time is invalid")
+	}
+
+	program := types.Program{
+		ProgramId:         nextID,
+		CreatorAddress:    msg.CreatorAddress,
+		SubmissionEndTime: msg.SubmissionEndTime,
+		Description:       msg.Description,
+		EncryptionKey:     msg.EncryptionKey,
+		Deposit:           msg.Deposit,
+		CommissionRate:    msg.CommissionRate,
+		Active:            true,
+	}
+
+	k.SetProgram(ctx, program)
+	k.SetNextProgramID(ctx, nextID+1)
+	return &program, nil
+}
 
 func (k Keeper) GetProgram(ctx sdk.Context, id uint64) (types.Program, bool) {
 	store := ctx.KVStore(k.storeKey)

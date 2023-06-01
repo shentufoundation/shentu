@@ -10,6 +10,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
@@ -130,6 +131,148 @@ func (k Keeper) GetAllFindings(ctx sdk.Context) []types.Finding {
 		findings = append(findings, finding)
 	}
 	return findings
+}
+
+func (k Keeper) SubmitFinding(ctx sdk.Context, msg *types.MsgSubmitFinding) (*types.Finding, error) {
+	program, isExist := k.GetProgram(ctx, msg.ProgramId)
+	if !isExist {
+		return nil, types.ErrProgramNotExists
+	}
+
+	if !program.Active {
+		return nil, types.ErrProgramInactive
+	}
+
+	findingID, err := k.GetNextFindingID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	finding := types.Finding{
+		FindingId:        findingID,
+		Title:            msg.Title,
+		FindingDesc:      msg.EncryptedDesc,
+		ProgramId:        msg.ProgramId,
+		SeverityLevel:    msg.SeverityLevel,
+		FindingPoc:       msg.EncryptedPoc,
+		SubmitterAddress: msg.SubmitterAddress,
+		FindingStatus:    types.FindingStatusUnConfirmed,
+	}
+
+	err = k.AppendFidToFidList(ctx, msg.ProgramId, findingID)
+	if err != nil {
+		return nil, err
+	}
+
+	k.SetFinding(ctx, finding)
+	k.SetNextFindingID(ctx, findingID+1)
+	return &finding, nil
+}
+
+func (k Keeper) CancelFinding(ctx sdk.Context, msg *types.MsgCancelFinding) (*types.Finding, error) {
+	// get finding
+	finding, ok := k.GetFinding(ctx, msg.FindingId)
+	if !ok {
+		return nil, types.ErrFindingNotExists
+	}
+
+	// check submitter
+	if finding.SubmitterAddress != msg.SubmitterAddress {
+		return nil, types.ErrFindingSubmitterInvalid
+	}
+
+	// check status
+	if finding.FindingStatus != types.FindingStatusUnConfirmed {
+		return nil, types.ErrFindingStatusInvalid
+	}
+
+	k.DeleteFidFromFidList(ctx, finding.ProgramId, finding.FindingId)
+	k.DeleteFinding(ctx, finding.FindingId)
+	return &finding, nil
+}
+
+func (k Keeper) ReleaseFinding(ctx sdk.Context, msg *types.MsgReleaseFinding) (*types.Finding, error) {
+	// get finding
+	finding, isExist := k.GetFinding(ctx, msg.FindingId)
+	if !isExist {
+		return nil, types.ErrFindingNotExists
+	}
+	// get program
+	program, isExist := k.GetProgram(ctx, finding.ProgramId)
+	if !isExist {
+		return nil, types.ErrProgramNotExists
+	}
+	if !program.Active {
+		return nil, types.ErrProgramInactive
+	}
+
+	// only creator can update finding comment
+	if program.CreatorAddress != msg.HostAddress {
+		return nil, types.ErrProgramCreatorInvalid
+	}
+
+	pubKey, err := cli.KeyAnyToPubKey(program.EncryptionKey)
+	if err != nil {
+		return nil, types.ErrProgramPubKey
+	}
+
+	if err = CheckPlainText(pubKey, msg, finding); err != nil {
+		return nil, err
+	}
+
+	plainTextDesc := types.PlainTextDesc{
+		FindingDesc: []byte(msg.Desc),
+	}
+	descAny, err := codectypes.NewAnyWithValue(&plainTextDesc)
+	if err != nil {
+		return nil, err
+	}
+	finding.FindingDesc = descAny
+
+	plainTextPoc := types.PlainTextPoc{
+		FindingPoc: []byte(msg.Poc),
+	}
+	pocAny, err := codectypes.NewAnyWithValue(&plainTextPoc)
+	if err != nil {
+		return nil, err
+	}
+	finding.FindingPoc = pocAny
+
+	plainTextComment := types.PlainTextComment{
+		FindingComment: []byte(msg.Comment),
+	}
+	commentAny, err := codectypes.NewAnyWithValue(&plainTextComment)
+	if err != nil {
+		return nil, err
+	}
+	finding.FindingComment = commentAny
+
+	k.SetFinding(ctx, finding)
+	return &finding, nil
+}
+
+func (k Keeper) hostProcessFinding(ctx sdk.Context, fid uint64, hostAddr string, encryptedCommentAny *codectypes.Any) (*types.Finding, error) {
+	// get finding
+	finding, isExist := k.GetFinding(ctx, fid)
+	if !isExist {
+		return nil, types.ErrFindingNotExists
+	}
+	// get program
+	program, isExist := k.GetProgram(ctx, finding.ProgramId)
+	if !isExist {
+		return nil, types.ErrProgramNotExists
+	}
+	if !program.Active {
+		return nil, types.ErrProgramInactive
+	}
+
+	// only creator can update finding comment
+	if program.CreatorAddress != hostAddr {
+		return nil, types.ErrProgramCreatorInvalid
+	}
+
+	finding.FindingComment = encryptedCommentAny
+	return &finding, nil
 }
 
 func Uint64sToBytes(list []uint64) ([]byte, error) {
