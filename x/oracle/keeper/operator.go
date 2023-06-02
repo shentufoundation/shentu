@@ -10,10 +10,7 @@ import (
 func (k Keeper) SetOperator(ctx sdk.Context, operator types.Operator) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&operator)
-	addr, err := sdk.AccAddressFromBech32(operator.Address)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromBech32(operator.Address)
 	store.Set(types.OperatorStoreKey(addr), bz)
 }
 
@@ -165,10 +162,7 @@ func (k Keeper) ReduceCollateral(ctx sdk.Context, address sdk.AccAddress, decrem
 	if err := k.ReduceTotalCollateral(ctx, decrement); err != nil {
 		return err
 	}
-	operatorAddr, err := sdk.AccAddressFromBech32(operator.Address)
-	if err != nil {
-		panic(err)
-	}
+	operatorAddr := sdk.MustAccAddressFromBech32(operator.Address)
 	if err := k.CreateWithdraw(ctx, operatorAddr, decrement); err != nil {
 		return err
 	}

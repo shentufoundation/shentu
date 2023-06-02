@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"time"
@@ -18,7 +19,6 @@ import (
 
 const (
 	FlagDescription   = "description"
-	FlagTxhash        = "txhash"
 	FlagWait          = "wait"
 	FlagName          = "name"
 	FlagValidDuration = "valid"
@@ -42,6 +42,9 @@ func NewTxCmd() *cobra.Command {
 		GetCmdCreateTask(),
 		GetCmdRespondToTask(),
 		GetCmdDeleteTask(),
+		GetCmdRespondToTxTask(),
+		GetCmdDeleteTxTask(),
+		GetCmdCreateTxTask(),
 	)
 
 	return oracleTxCmds
@@ -75,10 +78,6 @@ func GetCmdCreateOperator() *cobra.Command {
 			}
 			name := viper.GetString(FlagName)
 			msg := types.NewMsgCreateOperator(address, collateral, from, name)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -111,10 +110,6 @@ func GetCmdRemoveOperator() *cobra.Command {
 				return err
 			}
 			msg := types.NewMsgRemoveOperator(address, from)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -145,10 +140,6 @@ func GetCmdDepositCollateral() *cobra.Command {
 				return err
 			}
 			msg := types.NewMsgAddCollateral(address, coins)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -179,10 +170,6 @@ func GetCmdWithdrawCollateral() *cobra.Command {
 				return err
 			}
 			msg := types.NewMsgReduceCollateral(address, coins)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -209,10 +196,6 @@ func GetCmdClaimReward() *cobra.Command {
 				return err
 			}
 			msg := types.NewMsgWithdrawReward(address)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -254,10 +237,6 @@ func GetCmdCreateTask() *cobra.Command {
 			validDuration := time.Duration(hours) * time.Hour
 
 			msg := types.NewMsgCreateTask(args[0], args[1], bounty, description, from, wait, validDuration)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -294,10 +273,6 @@ func GetCmdRespondToTask() *cobra.Command {
 			}
 
 			msg := types.NewMsgTaskResponse(args[0], args[1], score, from)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
@@ -328,15 +303,127 @@ func GetCmdDeleteTask() *cobra.Command {
 			force := FlagForce
 
 			msg := types.NewMsgDeleteTask(args[0], args[1], force, from)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
 		},
 	}
 
 	cmd.Flags().BoolVarP(&FlagForce, "force", "f", false, "force delete")
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdRespondToTxTask() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "respond-to-txtask <atx_hash> <score>",
+		Short: "Respond to a transaction task",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
+				return err
+			}
+
+			atxHash, err := hex.DecodeString(args[0])
+			if err != nil {
+				panic(err)
+			}
+
+			score, err := strconv.ParseInt(args[1], 10, 64)
+			if err != nil {
+				panic(err)
+			}
+
+			msg := types.NewMsgTxTaskResponse(atxHash, score, from)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdDeleteTxTask() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete-txtask <atx_hash>",
+		Short: "Delete a transaction task",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
+				return err
+			}
+
+			atxHash, err := hex.DecodeString(args[0])
+			if err != nil {
+				panic(err)
+			}
+
+			msg := types.NewMsgDeleteTxTask(atxHash, from)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdCreateTxTask() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create-txtask <atx_bytes> <chain_id> <bounty> <valid_time>",
+		Short: "Create a transaction task",
+		Args:  cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txf := tx.NewFactoryCLI(cliCtx, cmd.Flags()).WithTxConfig(cliCtx.TxConfig).WithAccountRetriever(cliCtx.AccountRetriever)
+
+			from := cliCtx.GetFromAddress()
+			if err := txf.AccountRetriever().EnsureExists(cliCtx, from); err != nil {
+				return err
+			}
+
+			atxBytes, err := hex.DecodeString(args[0])
+			if err != nil {
+				return err
+			}
+
+			chainID := args[1]
+
+			bounty, err := sdk.ParseCoinsNormalized(args[2])
+			if err != nil {
+				return err
+			}
+			if !bounty[0].Amount.IsPositive() {
+				return fmt.Errorf("bounty amount is required to be positive")
+			}
+
+			validTime, err := time.Parse(time.RFC3339, args[3])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreateTxTask(from, chainID, atxBytes, bounty, validTime)
+			return tx.GenerateOrBroadcastTxWithFactory(cliCtx, txf, msg)
+		},
+	}
+
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

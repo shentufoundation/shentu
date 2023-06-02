@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"strconv"
 	"time"
 
@@ -154,8 +156,11 @@ func (k msgServer) CreateTask(goCtx context.Context, msg *types.MsgCreateTask) (
 		expiration = ctx.BlockTime().Add(msg.ValidDuration)
 	}
 
-	if err := k.Keeper.CreateTask(ctx, msg.Contract, msg.Function, msg.Bounty, msg.Description,
-		expiration, creatorAddr, windowSize); err != nil {
+	smartContractTask := types.NewTask(
+		msg.Contract, msg.Function, ctx.BlockHeight(),
+		msg.Bounty, msg.Description, expiration,
+		creatorAddr, ctx.BlockHeight()+windowSize, windowSize)
+	if err := k.Keeper.CreateTask(ctx, creatorAddr, &smartContractTask); err != nil {
 		return nil, err
 	}
 
@@ -183,7 +188,7 @@ func (k msgServer) TaskResponse(goCtx context.Context, msg *types.MsgTaskRespons
 		return nil, err
 	}
 
-	if err := k.Keeper.RespondToTask(ctx, msg.Contract, msg.Function, msg.Score, operatorAddr); err != nil {
+	if err := k.Keeper.RespondToTask(ctx, types.NewTaskID(msg.Contract, msg.Function), msg.Score, operatorAddr); err != nil {
 		return nil, err
 	}
 
@@ -202,12 +207,9 @@ func (k msgServer) TaskResponse(goCtx context.Context, msg *types.MsgTaskRespons
 func (k msgServer) DeleteTask(goCtx context.Context, msg *types.MsgDeleteTask) (*types.MsgDeleteTaskResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	deleterAddr, err := sdk.AccAddressFromBech32(msg.Deleter)
-	if err != nil {
-		return nil, err
-	}
+	deleterAddr, _ := sdk.AccAddressFromBech32(msg.From)
 
-	if err := k.RemoveTask(ctx, msg.Contract, msg.Function, msg.Force, deleterAddr); err != nil {
+	if err := k.RemoveTask(ctx, types.NewTaskID(msg.Contract, msg.Function), msg.Force, deleterAddr); err != nil {
 		return nil, err
 	}
 
@@ -215,10 +217,104 @@ func (k msgServer) DeleteTask(goCtx context.Context, msg *types.MsgDeleteTask) (
 		types.TypeMsgDeleteTask,
 		sdk.NewAttribute("contract", msg.Contract),
 		sdk.NewAttribute("function", msg.Function),
-		sdk.NewAttribute("creator", msg.Deleter),
+		sdk.NewAttribute("creator", msg.From),
 		sdk.NewAttribute("expired", strconv.FormatBool(msg.Force)),
 	)
 	ctx.EventManager().EmitEvent(DeleteTaskEvent)
 
 	return &types.MsgDeleteTaskResponse{}, nil
+}
+
+func (k msgServer) CreateTxTask(goCtx context.Context, msg *types.MsgCreateTxTask) (*types.MsgCreateTxTaskResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	creatorAddr, _ := sdk.AccAddressFromBech32(msg.Creator)
+	if msg.ValidTime.Before(ctx.BlockTime()) {
+		return nil, types.ErrOverdueValidTime
+	}
+
+	hashByte := sha256.Sum256(msg.AtxBytes)
+	athHash := hex.EncodeToString(hashByte[:])
+
+	txTask, err := k.BuildTxTask(ctx, hashByte[:], msg.Creator, msg.Bounty, msg.ValidTime)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := k.Keeper.CreateTask(ctx, creatorAddr, txTask); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeMsgCreateTxTask,
+			sdk.NewAttribute("atx_hash", athHash),
+			sdk.NewAttribute("creator", msg.Creator),
+			sdk.NewAttribute("chain_id", msg.ChainId),
+			sdk.NewAttribute("bounty", msg.Bounty.String()),
+			sdk.NewAttribute("valid_time", msg.ValidTime.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Creator),
+		),
+	})
+
+	return &types.MsgCreateTxTaskResponse{
+		AtxHash: hashByte[:],
+	}, nil
+}
+
+func (k msgServer) TxTaskResponse(goCtx context.Context, msg *types.MsgTxTaskResponse) (*types.MsgTxTaskResponseResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr, _ := sdk.AccAddressFromBech32(msg.Operator)
+	if err := k.HandleNoneTxTaskForResponse(ctx, msg.AtxHash); err != nil {
+		return nil, err
+	}
+
+	if err := k.RespondToTask(ctx, msg.AtxHash, msg.Score, operatorAddr); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeMsgRespondToTxTask,
+			sdk.NewAttribute("operator", msg.Operator),
+			sdk.NewAttribute("score", strconv.FormatInt(msg.Score, 10)),
+			sdk.NewAttribute("atx_hash", hex.EncodeToString(msg.AtxHash)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Operator),
+		),
+	})
+
+	return &types.MsgTxTaskResponseResponse{}, nil
+}
+
+func (k msgServer) DeleteTxTask(goCtx context.Context, msg *types.MsgDeleteTxTask) (*types.MsgDeleteTxTaskResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	deleterAddr, _ := sdk.AccAddressFromBech32(msg.From)
+	if err := k.RemoveTask(ctx, msg.AtxHash, true, deleterAddr); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeMsgDeleteTxTask,
+			sdk.NewAttribute("deleter", msg.From),
+			sdk.NewAttribute("atx_hash", hex.EncodeToString(msg.AtxHash)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
+	})
+
+	return &types.MsgDeleteTxTaskResponse{}, nil
 }

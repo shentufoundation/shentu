@@ -36,6 +36,7 @@ var (
 		types.DefaultThresholdScore,
 		types.DefaultEpsilon1,
 		types.DefaultEpsilon2,
+		types.DefaultShortcutQuorum,
 	)
 
 	validWithdraw   = types.NewWithdraw(acc1, coins1234, int64(100))
@@ -51,5 +52,13 @@ var (
 		acc1,
 		int64(100),
 		int64(5),
+	)
+
+	validTxTask = types.NewTxTask(
+		[]byte("testtxtask"),
+		acc1.String(),
+		coins5000,
+		time.Now().Add(time.Hour).UTC(),
+		types.TaskStatusPending,
 	)
 )

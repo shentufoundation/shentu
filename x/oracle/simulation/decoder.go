@@ -39,7 +39,9 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &taskB)
 			return fmt.Sprintf("%v\n%v", taskA, taskB)
 
-		case bytes.Equal(kvA.Key[:1], types.ClosingTaskStoreKeyPrefix):
+		case bytes.Equal(kvA.Key[:1], types.ClosingTaskStoreKeyPrefix),
+			bytes.Equal(kvA.Key[:1], types.ClosingTaskStoreKeyTimedPrefix),
+			bytes.Equal(kvA.Key[:1], types.ExpireTaskStoreKeyPrefix):
 			var taskIDsA, taskIDsB types.TaskIDs
 			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &taskIDsA)
 			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &taskIDsB)

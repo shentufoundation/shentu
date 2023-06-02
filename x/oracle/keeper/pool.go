@@ -67,10 +67,7 @@ func (k Keeper) FundCommunityPool(ctx sdk.Context, amount sdk.Coins) error {
 // FinalizeMatureWithdraws finishes mature (unlocked) withdrawals and removes them.
 func (k Keeper) FinalizeMatureWithdraws(ctx sdk.Context) {
 	k.IterateMatureWithdraws(ctx, func(withdraw types.Withdraw) bool {
-		withdrawAddr, err := sdk.AccAddressFromBech32(withdraw.Address)
-		if err != nil {
-			panic(err)
-		}
+		withdrawAddr := sdk.MustAccAddressFromBech32(withdraw.Address)
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, withdrawAddr, withdraw.Amount); err != nil {
 			panic(err)
 		}

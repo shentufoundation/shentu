@@ -123,7 +123,7 @@ func (s *IntegrationTestSuite) getLatestBlockHeight(endpoint string) (int64, err
 	return grpcRsp.GetBlock().GetHeader().Height, nil
 }
 
-func (s *IntegrationTestSuite) execShentuTxCmd(ctx context.Context, c *chain, cmd []string, valIdx int, validation func([]byte, []byte) bool) {
+func (s *IntegrationTestSuite) execShentuTxCmd(ctx context.Context, c *chain, cmd []string, valIdx int, validation func([]byte, []byte) bool) ([]byte, []byte) {
 	if validation == nil {
 		validation = s.defaultExecValidation(s.chainA, 0)
 	}
@@ -155,6 +155,7 @@ func (s *IntegrationTestSuite) execShentuTxCmd(ctx context.Context, c *chain, cm
 		s.Require().FailNowf("tx validation failed", "stdout: %s, stderr: %s",
 			string(stdOut), string(stdErr))
 	}
+	return stdOut, stdErr
 }
 
 func (s *IntegrationTestSuite) defaultExecValidation(chain *chain, valIdx int) func([]byte, []byte) bool {
@@ -187,6 +188,20 @@ func connectGrpc(endpoint string) (*grpc.ClientConn, error) {
 		return nil, fmt.Errorf("failed to connect %s: %v", endpoint, err)
 	}
 	return conn, nil
+}
+
+func getShentuTx(endpoint, txHash string) (*sdk.TxResponse, error) {
+	grpcReq := &tx.GetTxRequest{
+		Hash: txHash,
+	}
+	conn, _ := connectGrpc(endpoint)
+	defer conn.Close()
+	client := tx.NewServiceClient(conn)
+	grpcRsp, err := client.GetTx(context.Background(), grpcReq)
+	if err != nil {
+		return nil, err
+	}
+	return grpcRsp.TxResponse, nil
 }
 
 func queryShentuTx(endpoint, txHash string) error {
