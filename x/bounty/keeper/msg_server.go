@@ -53,6 +53,9 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	finding, err := k.Keeper.SubmitFinding(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -161,6 +164,7 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 	if err != nil {
 		return nil, err
 	}
+
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeReleaseFinding,
