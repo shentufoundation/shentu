@@ -2,7 +2,6 @@ package simulation
 
 import (
 	"bytes"
-	cryptorand "crypto/rand"
 	"fmt"
 	"math/rand"
 	"time"
@@ -28,6 +27,15 @@ const (
 	// OpWeightMsgCreateProgram desc
 	OpWeightMsgCreateProgram = "op_weight_msg_create_program"
 )
+
+// TestRandReader is for generate pri/pub key
+type TestRandReader struct {
+	roll rand.Rand
+}
+
+func (reader TestRandReader) Read(p []byte) (int, error) {
+	return reader.roll.Read(p)
+}
 
 // WeightedOperations returns all the operations from the module with their respective weights.
 func WeightedOperations(appParams simtypes.AppParams, cdc codec.JSONCodec, k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper) simulation.WeightedOperations {
@@ -63,7 +71,8 @@ func SimulateMsgCreateProgram(k keeper.Keeper, ak types.AccountKeeper, bk types.
 
 		desc := fmt.Sprintf("simulation desc %d", r.Int())
 
-		priKey, _ := ecies.GenerateKey(cryptorand.Reader, ecies.DefaultCurve, nil)
+		reader := TestRandReader{roll: *r}
+		priKey, _ := ecies.GenerateKey(reader, ecies.DefaultCurve, nil)
 		pubKey := crypto.FromECDSAPub(priKey.PublicKey.ExportECDSA())
 
 		commission := sdk.NewDec(r.Int63n(10))
@@ -134,7 +143,7 @@ func SimulateMsgSubmitFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.
 		randBytes := make([]byte, 64)
 
 		pubKey := priKey.PublicKey
-		cryptorand.Read(randBytes)
+		r.Read(randBytes)
 		reader := bytes.NewReader(randBytes)
 		descEnc, err := ecies.Encrypt(reader, &pubKey, []byte(desc), nil, nil)
 		if err != nil {
@@ -147,7 +156,7 @@ func SimulateMsgSubmitFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.
 		if err != nil {
 			fmt.Printf("Error on descAny: %#v\n", err)
 		}
-		cryptorand.Read(randBytes)
+		r.Read(randBytes)
 		reader = bytes.NewReader(randBytes)
 		pocEnc, err := ecies.Encrypt(reader, &pubKey, []byte(poc), nil, nil)
 		if err != nil {
@@ -208,14 +217,14 @@ func SimulateMsgAcceptFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.
 		}
 		comment := fmt.Sprintf("finding comment %d", r.Int())
 		randBytes := make([]byte, 64)
-		cryptorand.Read(randBytes)
+		r.Read(randBytes)
 		reader := bytes.NewReader(randBytes)
 		commentEnc, err := ecies.Encrypt(reader, &priKey.PublicKey, []byte(comment), nil, nil)
 		if err != nil {
-			fmt.Printf("Error on pocEnc: %#v\n", err)
+			fmt.Printf("Error on commentEnc: %#v\n", err)
 		}
 		commentEnc = append(commentEnc, randBytes...)
-		commentAny, err := codectypes.NewAnyWithValue(&types.EciesEncryptedComment{
+		commentAny, _ := codectypes.NewAnyWithValue(&types.EciesEncryptedComment{
 			FindingComment: commentEnc,
 		})
 		msg := types.NewMsgHostAcceptFinding(findingID, commentAny, host.Address)
@@ -260,14 +269,14 @@ func SimulateMsgRejectFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.
 		}
 		comment := fmt.Sprintf("finding comment %d", r.Int())
 		randBytes := make([]byte, 64)
-		cryptorand.Read(randBytes)
+		r.Read(randBytes)
 		reader := bytes.NewReader(randBytes)
 		commentEnc, err := ecies.Encrypt(reader, &priKey.PublicKey, []byte(comment), nil, nil)
 		if err != nil {
-			fmt.Printf("Error on pocEnc: %#v\n", err)
+			fmt.Printf("Error on commentEnc: %#v\n", err)
 		}
 		commentEnc = append(commentEnc, randBytes...)
-		commentAny, err := codectypes.NewAnyWithValue(&types.EciesEncryptedComment{
+		commentAny, _ := codectypes.NewAnyWithValue(&types.EciesEncryptedComment{
 			FindingComment: commentEnc,
 		})
 		msg := types.NewMsgHostRejectFinding(findingID, commentAny, host.Address)
