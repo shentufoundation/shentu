@@ -178,6 +178,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 
 	// add rosetta
 	rootCmd.AddCommand(server.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Marshaler))
+	rootCmd.AddCommand(PubkeyToAddressCmd())
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
