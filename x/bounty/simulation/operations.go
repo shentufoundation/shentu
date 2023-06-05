@@ -61,7 +61,7 @@ func SimulateMsgCreateProgram(k keeper.Keeper, ak types.AccountKeeper, bk types.
 		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		host, _ := simtypes.RandomAcc(r, accs)
 
-		maxDepositAmount := sdk.NewInt(10000)
+		maxDepositAmount := sdk.NewInt(100)
 
 		hostAcc := ak.GetAccount(ctx, host.Address)
 		deposit := simtypes.RandSubsetCoins(r, bk.SpendableCoins(ctx, hostAcc.GetAddress()))
