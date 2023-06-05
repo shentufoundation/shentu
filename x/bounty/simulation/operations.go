@@ -34,7 +34,10 @@ type TestRandReader struct {
 }
 
 func (reader TestRandReader) Read(p []byte) (int, error) {
-	return reader.roll.Read(p)
+	for i := range p {
+		p[i] = 0
+	}
+	return len(p), nil
 }
 
 // WeightedOperations returns all the operations from the module with their respective weights.
@@ -58,10 +61,15 @@ func SimulateMsgCreateProgram(k keeper.Keeper, ak types.AccountKeeper, bk types.
 		simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		host, _ := simtypes.RandomAcc(r, accs)
 
+		maxDepositAmount := sdk.NewInt(10000)
+
 		hostAcc := ak.GetAccount(ctx, host.Address)
 		deposit := simtypes.RandSubsetCoins(r, bk.SpendableCoins(ctx, hostAcc.GetAddress()))
 		if deposit.Empty() {
 			return simtypes.NewOperationMsgBasic(types.ModuleName, "NoOp: empty deposit, skip this tx", "", false, nil), nil, nil
+		}
+		if deposit.AmountOf(sdk.DefaultBondDenom).GTE(maxDepositAmount) {
+			deposit = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, maxDepositAmount)}
 		}
 
 		fees, err := simutil.RandomReasonableFees(r, ctx, bk.SpendableCoins(ctx, hostAcc.GetAddress()).Sub(deposit))
@@ -74,8 +82,7 @@ func SimulateMsgCreateProgram(k keeper.Keeper, ak types.AccountKeeper, bk types.
 		reader := TestRandReader{roll: *r}
 		priKey, _ := ecies.GenerateKey(reader, ecies.DefaultCurve, nil)
 		pubKey := crypto.FromECDSAPub(priKey.PublicKey.ExportECDSA())
-
-		commission := sdk.NewDec(r.Int63n(10))
+		commission := sdk.OneDec()
 
 		endTime := ctx.BlockTime().Add(time.Duration((r.Intn(120) + 720) * int(time.Hour)))
 
@@ -110,18 +117,6 @@ func SimulateMsgCreateProgram(k keeper.Keeper, ak types.AccountKeeper, bk types.
 			{
 				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 0, 9),
 				Op:          SimulateMsgSubmitFinding(k, ak, bk, priKey, programID, host),
-			},
-			{
-				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 10, 19),
-				Op:          SimulateMsgAcceptFinding(k, ak, bk, priKey, programID, host),
-			},
-			{
-				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 10, 19),
-				Op:          SimulateMsgRejectFinding(k, ak, bk, priKey, programID, host),
-			},
-			{
-				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 30, 39),
-				Op:          SimulateMsgEndProgram(k, ak, bk, programID, host),
 			},
 		}
 
@@ -200,7 +195,14 @@ func SimulateMsgSubmitFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
+		futureOperations := []simtypes.FutureOperation{
+			{
+				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 10, 19),
+				Op:          SimulateMsgAcceptFinding(k, ak, bk, priKey, programID, host),
+			},
+		}
+
+		return simtypes.NewOperationMsg(msg, true, "", nil), futureOperations, nil
 	}
 }
 
@@ -248,7 +250,14 @@ func SimulateMsgAcceptFinding(k keeper.Keeper, ak types.AccountKeeper, bk types.
 			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), err.Error()), nil, err
 		}
 
-		return simtypes.NewOperationMsg(msg, true, "", nil), nil, nil
+		futureOperations := []simtypes.FutureOperation{
+			{
+				BlockHeight: int(ctx.BlockHeight()) + simtypes.RandIntBetween(r, 30, 39),
+				Op:          SimulateMsgEndProgram(k, ak, bk, programID, host),
+			},
+		}
+
+		return simtypes.NewOperationMsg(msg, true, "", nil), futureOperations, nil
 	}
 }
 

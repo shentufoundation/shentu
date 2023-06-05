@@ -62,7 +62,7 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 }
 
 // RegisterRESTRoutes registers no REST routes for the bounty module.
-func (a AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
+func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
 	rest.RegisterHandlers(ctx, rtr)
 }
 

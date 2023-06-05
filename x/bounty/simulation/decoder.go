@@ -26,8 +26,8 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 		switch {
 		case bytes.Equal(kvA.Key[:1], types.ProgramsKey):
 			var programA, programB types.Program
-			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &programA)
-			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &programB)
+			cdc.MustUnmarshal(kvA.Value, &programA)
+			cdc.MustUnmarshal(kvB.Value, &programB)
 			return fmt.Sprintf("%v\n%v", programA, programB)
 
 		case bytes.Equal(kvA.Key[:1], types.NextProgramIDKey),
@@ -38,8 +38,8 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 
 		case bytes.Equal(kvA.Key[:1], types.FindingKey):
 			var findingA, findingB types.Finding
-			cdc.MustUnmarshalLengthPrefixed(kvA.Value, &findingA)
-			cdc.MustUnmarshalLengthPrefixed(kvB.Value, &findingB)
+			cdc.MustUnmarshal(kvA.Value, &findingA)
+			cdc.MustUnmarshal(kvB.Value, &findingB)
 			return fmt.Sprintf("%v\n%v", findingA, findingB)
 
 		case bytes.Equal(kvA.Key[:1], types.ProgramIDFindingListKey):

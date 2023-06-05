@@ -126,6 +126,7 @@ func (k Keeper) GetAllFindings(ctx sdk.Context) []types.Finding {
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
+		finding.Reset()
 		k.cdc.MustUnmarshal(iterator.Value(), &finding)
 		findings = append(findings, finding)
 	}

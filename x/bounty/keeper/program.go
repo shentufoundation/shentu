@@ -32,6 +32,7 @@ func (k Keeper) GetAllPrograms(ctx sdk.Context) []types.Program {
 	iterator := sdk.KVStorePrefixIterator(store, types.ProgramsKey)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
+		program.Reset()
 		k.cdc.MustUnmarshal(iterator.Value(), &program)
 		programs = append(programs, program)
 	}
