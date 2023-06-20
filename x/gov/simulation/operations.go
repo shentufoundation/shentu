@@ -88,6 +88,7 @@ func SimulateSubmitProposal(
 		)
 		var simAccount simtypes.Account
 		if content.ProposalType() == shieldtypes.ProposalTypeShieldClaim {
+			maxLoss := sdk.NewDec(10000)
 			c := content.(*shieldtypes.ShieldClaimProposal)
 			for _, simAcc := range accs {
 				proposerAddr, _ := sdk.AccAddressFromBech32(c.Proposer)
@@ -102,6 +103,9 @@ func SimulateSubmitProposal(
 			}
 			denom := sdk.DefaultBondDenom
 			lossAmountDec := c.Loss.AmountOf(denom).ToDec()
+			if lossAmountDec.GTE(maxLoss) {
+				return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgSubmitProposal, ""), nil, nil
+			}
 			claimProposalParams := k.ShieldKeeper.GetClaimProposalParams(ctx)
 			depositRate := claimProposalParams.DepositRate
 			minDepositAmountDec := sdk.MaxDec(claimProposalParams.MinDeposit.AmountOf(denom).ToDec(), lossAmountDec.Mul(depositRate))
@@ -162,7 +166,6 @@ func SimulateSubmitProposal(
 		if err != nil {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgSubmitProposal, ""), nil, err
 		}
-
 		_, _, err = app.Deliver(txGen.TxEncoder(), tx)
 		if err != nil {
 			return simtypes.NoOpMsg(govtypes.ModuleName, govtypes.TypeMsgSubmitProposal, ""), nil, err
