@@ -159,7 +159,7 @@ require (
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
-	github.com/hashicorp/golang-lru v0.5.4 // indirect
+	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hdevalence/ed25519consensus v0.0.0-20210204194344-59a8610d2b87 // indirect
 	github.com/hexops/gotextdiff v1.0.3 // indirect
@@ -304,3 +304,5 @@ require (
 replace google.golang.org/grpc => google.golang.org/grpc v1.33.2
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
+
+replace github.com/cosmos/cosmos-sdk => github.com/shentufoundation/cosmos-sdk v0.45.11-1

@@ -1,12 +1,16 @@
 package common
 
 import (
+	"fmt"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 )
 
 const (
 	// Bech32MainPrefix is the common prefix of all prefixes.
-	Bech32MainPrefix = "certik"
+	Bech32MainPrefix = "shentu"
 
 	// Bech32PrefixAccAddr is the prefix of account addresses.
 	Bech32PrefixAccAddr = Bech32MainPrefix
@@ -21,3 +25,37 @@ const (
 	// Bech32PrefixConsPub is the prefix of consensus node public keys.
 	Bech32PrefixConsPub = Bech32MainPrefix + sdk.PrefixValidator + sdk.PrefixConsensus + sdk.PrefixPublic
 )
+
+// PrefixToCertik convert shentu prefix address to certik prefix address
+func PrefixToCertik(address string) (string, error) {
+	hrp, data, err := bech32.DecodeAndConvert(address)
+	if err != nil {
+		return "", err
+	}
+	if !strings.HasPrefix(hrp, "shentu") {
+		return "", fmt.Errorf("invalid address:%s", address)
+	}
+
+	certikAddr, err := bech32.ConvertAndEncode("certik", data)
+	if err != nil {
+		return "", err
+	}
+	return certikAddr, nil
+}
+
+// PrefixToShentu convert certik prefix address to shentu prefix address
+func PrefixToShentu(address string) (string, error) {
+	hrp, data, err := bech32.DecodeAndConvert(address)
+	if err != nil {
+		return "", err
+	}
+	if !strings.HasPrefix(hrp, "certik") {
+		return "", fmt.Errorf("invalid address:%s", address)
+	}
+
+	shentuAddr, err := bech32.ConvertAndEncode("shentu", data)
+	if err != nil {
+		return "", err
+	}
+	return shentuAddr, nil
+}
