@@ -35,6 +35,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v2.7.1] - 05-25-2023
+* (app) [\#702](https://github.com/shentufoundation/shentu/pull/702)  Upgrade IBC to v4.2.1
+
 ## [v2.7.0] - 04-11-2023
 Version 2.7.0 brings Oracle 1.5, which offers security evaluation for transactions running on business chains.
 
