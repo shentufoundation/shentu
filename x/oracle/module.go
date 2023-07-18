@@ -112,7 +112,7 @@ func (am AppModule) Name() string {
 	return types.ModuleName
 }
 
-// RegisterInvariants registers the this module invariants.
+// RegisterInvariants registers this module invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	keeper.RegisterInvariants(ir, am.keeper)
 }
@@ -139,6 +139,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	m := keeper.NewMigrator(am.keeper)
 	err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
+	if err != nil {
+		panic(err)
+	}
+
+	err = cfg.RegisterMigration(types.ModuleName, 2, m.Migrate2to3)
 	if err != nil {
 		panic(err)
 	}
