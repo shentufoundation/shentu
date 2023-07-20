@@ -82,18 +82,6 @@ func makePurchaseList(poolId uint64) (sdk.AccAddress, types.PurchaseList) {
 	}
 }
 
-func makePoolPurchaser() (poolPurchases []types.PoolPurchaser) {
-	for i := 0; i < PURCHASE_NUM; i++ {
-		_, _, addr := testdata.KeyTestPubAddr()
-		purchaserAddr, _ := common.PrefixToCertik(addr.String())
-		poolPurchases = append(poolPurchases, types.PoolPurchaser{
-			PoolId:    rand.Uint64(),
-			Purchaser: purchaserAddr,
-		})
-	}
-	return
-}
-
 func makeReimbursement() types.Reimbursement {
 	_, _, addr := testdata.KeyTestPubAddr()
 	beneficiaryAddr, _ := common.PrefixToCertik(addr.String())
