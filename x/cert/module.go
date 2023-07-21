@@ -133,6 +133,12 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.moduleKeeper))
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.Querier{Keeper: am.moduleKeeper})
+
+	m := keeper.NewMigrator(am.moduleKeeper)
+	err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // InitGenesis initializes the module genesis.

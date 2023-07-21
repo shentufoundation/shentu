@@ -1,0 +1,100 @@
+package v280_test
+
+import (
+	"fmt"
+	"github.com/gogo/protobuf/proto"
+	"github.com/stretchr/testify/require"
+	"math/rand"
+	"testing"
+	"time"
+
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/testutil/testdata"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
+	"github.com/shentufoundation/shentu/v2/common"
+	v280 "github.com/shentufoundation/shentu/v2/x/cert/legacy/v280"
+	"github.com/shentufoundation/shentu/v2/x/cert/types"
+)
+
+func makeCertificate(certType string) types.Certificate {
+	_, _, addr := testdata.KeyTestPubAddr()
+	certifier, _ := common.PrefixToCertik(addr.String())
+
+	content := types.AssembleContent(certType, "test")
+	msg, ok := content.(proto.Message)
+	if !ok {
+		panic(fmt.Errorf("%T does not implement proto.Message", content))
+	}
+	any, err := codectypes.NewAnyWithValue(msg)
+	if err != nil {
+		panic(err)
+	}
+
+	return types.Certificate{
+		CertificateId:      rand.Uint64(),
+		Content:            any,
+		CompilationContent: &types.CompilationContent{Compiler: "", BytecodeHash: ""},
+		Description:        "for test",
+		Certifier:          certifier,
+	}
+}
+
+func makeCertifier(certifierAddr, alias string) types.Certifier {
+	_, _, addr := testdata.KeyTestPubAddr()
+	proposer, _ := common.PrefixToCertik(addr.String())
+
+	return types.Certifier{
+		Address:     certifierAddr,
+		Alias:       alias,
+		Proposer:    proposer,
+		Description: "unit test",
+	}
+}
+
+func TestMigrateStore(t *testing.T) {
+	cfg := sdk.GetConfig()
+	cfg.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
+
+	app := shentuapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cdc := shentuapp.MakeEncodingConfig().Marshaler
+
+	oldCertificate := makeCertificate("AUDITING")
+
+	oldCertifier := makeCertifier(oldCertificate.Certifier, "test_certifier")
+
+	app.CertKeeper.SetCertificate(ctx, oldCertificate)
+	app.CertKeeper.SetCertifier(ctx, oldCertifier)
+
+	store := ctx.KVStore(app.GetKey(types.StoreKey))
+	err := v280.MigrateStore(ctx, app.GetKey(types.StoreKey), cdc)
+	require.NoError(t, err)
+
+	//check for Certificate
+	var cert types.Certificate
+	bz := store.Get(types.CertificateStoreKey(oldCertificate.CertificateId))
+	cdc.MustUnmarshalLengthPrefixed(bz, &cert)
+
+	newCertifierAddr, _ := common.PrefixToShentu(oldCertificate.Certifier)
+	require.Equal(t, newCertifierAddr, cert.Certifier)
+
+	var certifier types.Certifier
+	certifierAcc, err := sdk.AccAddressFromBech32(cert.Certifier)
+	require.NoError(t, err)
+	bz = store.Get(types.CertifierStoreKey(certifierAcc))
+	cdc.MustUnmarshalLengthPrefixed(bz, &certifier)
+	require.Equal(t, newCertifierAddr, certifier.Address)
+
+	newCertifierProposer, _ := common.PrefixToShentu(oldCertifier.Proposer)
+	require.Equal(t, newCertifierProposer, certifier.Proposer)
+
+	bz = store.Get(types.CertifierAliasStoreKey(oldCertifier.Alias))
+	var certifierAlias types.Certifier
+	cdc.MustUnmarshalLengthPrefixed(bz, &certifierAlias)
+	require.Equal(t, newCertifierAddr, certifierAlias.Address)
+	require.Equal(t, newCertifierProposer, certifierAlias.Proposer)
+}
