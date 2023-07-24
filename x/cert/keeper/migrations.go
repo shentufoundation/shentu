@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/shentufoundation/shentu/v2/x/cert/legacy/v280"
+	v280 "github.com/shentufoundation/shentu/v2/x/cert/legacy/v280"
 )
 
 // Migrator is a struct for handling in-place store migrations.
