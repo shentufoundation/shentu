@@ -16,25 +16,16 @@ func migratePool(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var oldPool types.Pool
-		cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &oldPool)
+		var pool types.Pool
+		cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &pool)
 
-		shentuSponsorAddr, err := common.PrefixToShentu(oldPool.SponsorAddr)
+		shentuSponsorAddr, err := common.PrefixToShentu(pool.SponsorAddr)
 		if err != nil {
 			return err
 		}
 
-		newPool := types.Pool{
-			Id:          oldPool.Id,
-			Description: oldPool.Description,
-			Sponsor:     oldPool.Sponsor,
-			SponsorAddr: shentuSponsorAddr,
-			ShieldLimit: oldPool.ShieldLimit,
-			Active:      oldPool.Active,
-			Shield:      oldPool.Shield,
-		}
-
-		newProviderBz := cdc.MustMarshalLengthPrefixed(&newPool)
+		pool.SponsorAddr = shentuSponsorAddr
+		newProviderBz := cdc.MustMarshalLengthPrefixed(&pool)
 		oldStore.Set(iterator.Key(), newProviderBz)
 	}
 	return nil
@@ -72,23 +63,19 @@ func migratePurchases(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	defer oldStoreIter.Close()
 
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
-		var oldPurchaseList types.PurchaseList
-		err := cdc.UnmarshalLengthPrefixed(oldStoreIter.Value(), &oldPurchaseList)
+		var purchaseList types.PurchaseList
+		err := cdc.UnmarshalLengthPrefixed(oldStoreIter.Value(), &purchaseList)
 		if err != nil {
 			return err
 		}
 
-		purchaser, err := common.PrefixToShentu(oldPurchaseList.Purchaser)
+		shentuPurchaser, err := common.PrefixToShentu(purchaseList.Purchaser)
 		if err != nil {
 			return err
 		}
-		newPurchaseList := types.PurchaseList{
-			PoolId:    oldPurchaseList.PoolId,
-			Purchaser: purchaser,
-			Entries:   oldPurchaseList.Entries,
-		}
+		purchaseList.Purchaser = shentuPurchaser
 
-		newPurchaseBz := cdc.MustMarshalLengthPrefixed(&newPurchaseList)
+		newPurchaseBz := cdc.MustMarshalLengthPrefixed(&purchaseList)
 		oldStore.Set(oldStoreIter.Key(), newPurchaseBz)
 	}
 
