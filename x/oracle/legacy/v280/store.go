@@ -154,3 +154,39 @@ func MigrateOperatorStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.Bina
 	}
 	return nil
 }
+
+func MigrateWithdrawStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
+	store := ctx.KVStore(storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.WithdrawStoreKeyPrefix)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var withdraw types.Withdraw
+		cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &withdraw)
+
+		shentuAddr, err := common.PrefixToShentu(withdraw.Address)
+		if err != nil {
+			return err
+		}
+
+		withdraw.Address = shentuAddr
+
+		bz := cdc.MustMarshalLengthPrefixed(&withdraw)
+		withdrawAddr := sdk.MustAccAddressFromBech32(shentuAddr)
+		store.Set(types.WithdrawStoreKey(withdrawAddr, withdraw.DueBlock), bz)
+	}
+	return nil
+}
+
+func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
+	if err := MigrateAllTaskStore(ctx, storeKey, cdc); err != nil {
+		return err
+	}
+	if err := MigrateOperatorStore(ctx, storeKey, cdc); err != nil {
+		return err
+	}
+	if err := MigrateWithdrawStore(ctx, storeKey, cdc); err != nil {
+		return err
+	}
+	return nil
+}

@@ -155,3 +155,40 @@ func Test_MigrateOperator(t *testing.T) {
 		return false
 	})
 }
+
+func Test_MigrateWithdraw(t *testing.T) {
+	app := shentuapp.Setup(false)
+	cfg := sdk.GetConfig()
+	cfg.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
+	cdc := shentuapp.MakeEncodingConfig().Marshaler
+
+	store := ctx.KVStore(app.GetKey(oracletypes.StoreKey))
+	// mock old data
+	for i := 0; i < 10; i++ {
+		withdrawsAddr, _ := common.PrefixToCertik(sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes()).String())
+
+		withdraw := oracletypes.Withdraw{
+			Address:  withdrawsAddr,
+			Amount:   nil,
+			DueBlock: rand.Int63(),
+		}
+
+		bz := cdc.MustMarshalLengthPrefixed(&withdraw)
+		withdrawAcc, err := sdk.AccAddressFromBech32(withdrawsAddr)
+		if err != nil {
+			panic(err)
+		}
+		store.Set(oracletypes.WithdrawStoreKey(withdrawAcc, withdraw.DueBlock), bz)
+	}
+
+	err := v280.MigrateWithdrawStore(ctx, app.GetKey(oracletypes.StoreKey), cdc)
+	require.Nil(t, err)
+
+	app.OracleKeeper.IterateAllWithdraws(ctx, func(withdraw oracletypes.Withdraw) bool {
+		hrp, _, err := bech32.DecodeAndConvert(withdraw.Address)
+		require.NoError(t, err)
+		require.Equal(t, hrp, "shentu")
+		return false
+	})
+}
