@@ -133,28 +133,22 @@ func MigrateOperatorStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.Bina
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var oldOperator types.Operator
-		cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &oldOperator)
+		var operator types.Operator
+		cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &operator)
 
-		shentuOperatorAddress, err := common.PrefixToShentu(oldOperator.Address)
+		shentuOperatorAddress, err := common.PrefixToShentu(operator.Address)
 		if err != nil {
 			return err
 		}
-		shentuProposal, err := common.PrefixToShentu(oldOperator.Proposer)
+		shentuProposal, err := common.PrefixToShentu(operator.Proposer)
 		if err != nil {
 			return err
 		}
 
-		newOperator := types.Operator{
-			Address:            shentuOperatorAddress,
-			Proposer:           shentuProposal,
-			Collateral:         oldOperator.Collateral,
-			AccumulatedRewards: oldOperator.AccumulatedRewards,
-			Name:               oldOperator.Name,
-		}
+		operator.Address = shentuOperatorAddress
+		operator.Proposer = shentuProposal
 
-		store.Delete(iterator.Value())
-		bz := cdc.MustMarshalLengthPrefixed(&newOperator)
+		bz := cdc.MustMarshalLengthPrefixed(&operator)
 		addr := sdk.MustAccAddressFromBech32(shentuOperatorAddress)
 		store.Set(types.OperatorStoreKey(addr), bz)
 	}
