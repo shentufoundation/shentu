@@ -7,8 +7,10 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	stakingTypes  "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/shentufoundation/shentu/v2/common"
 )
@@ -48,11 +50,15 @@ func (app ShentuApp) setUpgradeHandler() {
 
 // the function transite bech32 address prefix from 'certik' to 'shentu' for the values stored in related modules
 // this function is supposed to be called when chain upgraded from v2.7.1 to v2.8.0
-func transAddrPrefix(ctx sdk.Context, app ShentuApp) error {
-	if err := transAddrPrefixForStaking(ctx, app); err != nil {
+func transAddrPrefix(ctx sdk.Context, app ShentuApp) (err error) {
+	if err = transAddrPrefixForStaking(ctx, app); err != nil {
 		return err
 	}
-	return nil
+	if err = transAddrPrefixForFeegrant(ctx, app); err != nil {
+		return err
+	}
+	err = transAddrPrefixForGov(ctx, app)
+	return err
 }
 
 func transAddrPrefixForStaking(ctx sdk.Context, app ShentuApp) (err error) {
@@ -73,7 +79,7 @@ func transAddrPrefixForStaking(ctx sdk.Context, app ShentuApp) (err error) {
 		}
 	}
 	//transite prefix for delegations
-	skKeeper.IterateAllDelegations(ctx, func(delg stakingTypes.Delegation) bool {
+	skKeeper.IterateAllDelegations(ctx, func(delg stakingtypes.Delegation) bool {
 		delg.DelegatorAddress, err = common.PrefixToShentu(delg.DelegatorAddress)
 		if err != nil {
 			return true
@@ -90,7 +96,7 @@ func transAddrPrefixForStaking(ctx sdk.Context, app ShentuApp) (err error) {
 	}
 	//transite prefix for redelegation and redelegationQueue
 	touchedTimes := make(map[time.Time]bool)
-	skKeeper.IterateRedelegations(ctx, func(idx int64, red stakingTypes.Redelegation) bool {
+	skKeeper.IterateRedelegations(ctx, func(idx int64, red stakingtypes.Redelegation) bool {
 		red.DelegatorAddress, err = common.PrefixToShentu(red.DelegatorAddress)
 		if err != nil {
 			return true
@@ -135,7 +141,7 @@ func transAddrPrefixForStaking(ctx sdk.Context, app ShentuApp) (err error) {
 		return err
 	}
 	//transite prefix for UnbondingDelegation and UnbondingQueue
-	skKeeper.IterateUnbondingDelegations(ctx, func(idx int64, ubd stakingTypes.UnbondingDelegation) bool {
+	skKeeper.IterateUnbondingDelegations(ctx, func(idx int64, ubd stakingtypes.UnbondingDelegation) bool {
 		ubd.DelegatorAddress, err = common.PrefixToShentu(ubd.DelegatorAddress)
 		if err != nil {
 			return true
@@ -170,7 +176,7 @@ func transAddrPrefixForStaking(ctx sdk.Context, app ShentuApp) (err error) {
 		return err
 	}
 	//transite prefix for HistoricalInfo
-	skKeeper.IterateHistoricalInfo(ctx, func(hi stakingTypes.HistoricalInfo) bool {
+	skKeeper.IterateHistoricalInfo(ctx, func(hi stakingtypes.HistoricalInfo) bool {
 		for _, v := range hi.Valset {
 			v.OperatorAddress, err = common.PrefixToShentu(v.OperatorAddress)
 			if err != nil {
@@ -180,6 +186,57 @@ func transAddrPrefixForStaking(ctx sdk.Context, app ShentuApp) (err error) {
 		skKeeper.SetHistoricalInfo(ctx, hi.Header.Height, &hi)
 		return false
 	})
+	return err
+}
 
+func transAddrPrefixForFeegrant(ctx sdk.Context, app ShentuApp) (err error) {
+	fgKeeper := app.FeegrantKeeper
+	fgKeeper.IterateAllFeeAllowances(ctx, func(grant feegrant.Grant) bool {
+		grant.Grantee, err = common.PrefixToShentu(grant.Grantee)
+		if err != nil {
+			return true
+		}
+		grant.Granter, err = common.PrefixToShentu(grant.Granter)
+		if err != nil {
+			return true
+		}
+		var granteeAcc, granterAcc sdk.AccAddress
+		var allowance feegrant.FeeAllowanceI
+		granteeAcc, err = sdk.AccAddressFromBech32(grant.Grantee)
+		if err != nil {
+			return true
+		}
+		granterAcc, err = sdk.AccAddressFromBech32(grant.Granter)
+		if err != nil {
+			return true
+		}
+		allowance, err = grant.GetGrant()
+		err = fgKeeper.GrantAllowance(ctx, granterAcc, granteeAcc, allowance)
+		return err != nil
+	})
+	return err
+}
+
+func transAddrPrefixForGov(ctx sdk.Context, app ShentuApp) (err error) {
+	govKeeper := app.GovKeeper.Keeper
+	govKeeper.IterateAllDeposits(ctx, func(deposit govtypes.Deposit) (stop bool) {
+		deposit.Depositor, err = common.PrefixToShentu(deposit.Depositor)
+		if err != nil {
+			return true
+		}
+		govKeeper.SetDeposit(ctx, deposit)
+		return false
+	})
+	if err != nil {
+		return err
+	}
+	govKeeper.IterateAllVotes(ctx, func(vote govtypes.Vote) (stop bool) {
+		vote.Voter, err = common.PrefixToShentu(vote.Voter)
+		if err != nil {
+			return true
+		}
+		govKeeper.SetVote(ctx, vote)
+		return false
+	})
 	return err
 }
