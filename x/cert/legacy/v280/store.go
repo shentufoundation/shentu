@@ -87,6 +87,34 @@ func migrateCertifierAlias(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	return nil
 }
 
+func migrateLibrary(store sdk.KVStore, cdc codec.BinaryCodec) error {
+	oldStore := prefix.NewStore(store, types.LibrariesStoreKey())
+
+	iterator := oldStore.Iterator(nil, nil)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var library types.Library
+		cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &library)
+
+		libraryAddr, err := common.PrefixToShentu(library.Address)
+		if err != nil {
+			return err
+		}
+		library.Address = libraryAddr
+
+		publisher, err := common.PrefixToShentu(library.Publisher)
+		if err != nil {
+			return err
+		}
+		library.Publisher = publisher
+
+		bz := cdc.MustMarshalLengthPrefixed(&library)
+		oldStore.Set(iterator.Key(), bz)
+	}
+	return nil
+}
+
 func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
 
@@ -99,6 +127,10 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey, cdc codec.BinaryCodec)
 	}
 
 	if err := migrateCertifierAlias(store, cdc); err != nil {
+		return err
+	}
+
+	if err := migrateLibrary(store, cdc); err != nil {
 		return err
 	}
 	return nil

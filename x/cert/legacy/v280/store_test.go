@@ -2,6 +2,7 @@ package v280_test
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/require"
 	"math/rand"
@@ -55,6 +56,23 @@ func makeCertifier(certifierAddr, alias string) types.Certifier {
 	}
 }
 
+func saveLibrary(cdc codec.BinaryCodec, storeKey sdk.KVStore) types.Library {
+	_, _, libraryAddr := testdata.KeyTestPubAddr()
+	libraryAddrStr, _ := common.PrefixToCertik(libraryAddr.String())
+
+	_, _, publisherAddr := testdata.KeyTestPubAddr()
+	publisherStr, _ := common.PrefixToCertik(publisherAddr.String())
+
+	library := types.Library{
+		Address:   libraryAddrStr,
+		Publisher: publisherStr,
+	}
+
+	bz := cdc.MustMarshalLengthPrefixed(&library)
+	storeKey.Set(types.LibraryStoreKey(libraryAddr), bz)
+	return library
+}
+
 func TestMigrateStore(t *testing.T) {
 	cfg := sdk.GetConfig()
 	cfg.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
@@ -71,6 +89,9 @@ func TestMigrateStore(t *testing.T) {
 	app.CertKeeper.SetCertifier(ctx, oldCertifier)
 
 	store := ctx.KVStore(app.GetKey(types.StoreKey))
+
+	oldLibrary := saveLibrary(cdc, store)
+
 	err := v280.MigrateStore(ctx, app.GetKey(types.StoreKey), cdc)
 	require.NoError(t, err)
 
@@ -97,4 +118,13 @@ func TestMigrateStore(t *testing.T) {
 	cdc.MustUnmarshalLengthPrefixed(bz, &certifierAlias)
 	require.Equal(t, newCertifierAddr, certifierAlias.Address)
 	require.Equal(t, newCertifierProposer, certifierAlias.Proposer)
+
+	libraryAddr, _ := sdk.AccAddressFromBech32(oldLibrary.Address)
+	bz = store.Get(types.LibraryStoreKey(libraryAddr))
+	var library types.Library
+	cdc.MustUnmarshalLengthPrefixed(bz, &library)
+	newLibraryAddr, _ := common.PrefixToShentu(oldLibrary.Address)
+	newPublisherAddr, _ := common.PrefixToShentu(oldLibrary.Publisher)
+	require.Equal(t, library.Address, newLibraryAddr)
+	require.Equal(t, library.Publisher, newPublisherAddr)
 }
