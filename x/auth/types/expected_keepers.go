@@ -18,4 +18,6 @@ type AccountKeeper interface {
 	SetAccount(ctx sdk.Context, acc types.AccountI)
 
 	IterateAccounts(ctx sdk.Context, cb func(account types.AccountI) (stop bool))
+	UnmarshalAccount(bz []byte) (types.AccountI, error)
+	MarshalAccount(accountI types.AccountI) ([]byte, error)
 }

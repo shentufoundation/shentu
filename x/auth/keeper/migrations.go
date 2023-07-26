@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	v271 "github.com/shentufoundation/shentu/v2/x/auth/legacy/v271"
 	"math"
 
 	"github.com/gogo/protobuf/grpc"
@@ -63,4 +64,9 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	})
 
 	return iterErr
+}
+
+// Migrate2to3 migrates from version 2 to 3.
+func (m Migrator) Migrate2to3(ctx sdk.Context) error {
+	return v271.MigrateAccount(ctx, m.keeper)
 }
