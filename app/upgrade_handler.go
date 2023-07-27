@@ -118,16 +118,16 @@ func transAddrPrefixForStaking(ctx sdk.Context, app ShentuApp) (err error) {
 			if len(dvvts) == 0 {
 				continue
 			}
-			for _, t := range dvvts {
-				t.DelegatorAddress, err = common.PrefixToShentu(t.DelegatorAddress)
+			for i := range dvvts {
+				dvvts[i].DelegatorAddress, err = common.PrefixToShentu(dvvts[i].DelegatorAddress)
 				if err != nil {
 					return true
 				}
-				t.ValidatorDstAddress, err = common.PrefixToShentu(t.ValidatorDstAddress)
+				dvvts[i].ValidatorDstAddress, err = common.PrefixToShentu(dvvts[i].ValidatorDstAddress)
 				if err != nil {
 					return true
 				}
-				t.ValidatorSrcAddress, err = common.PrefixToShentu(t.ValidatorSrcAddress)
+				dvvts[i].ValidatorSrcAddress, err = common.PrefixToShentu(dvvts[i].ValidatorSrcAddress)
 				if err != nil {
 					return true
 				}
@@ -157,12 +157,12 @@ func transAddrPrefixForStaking(ctx sdk.Context, app ShentuApp) (err error) {
 				continue
 			}
 			dvps := skKeeper.GetUBDQueueTimeSlice(ctx, e.CompletionTime)
-			for _, p := range dvps {
-				p.DelegatorAddress, err = common.PrefixToShentu(p.DelegatorAddress)
+			for i := range dvps {
+				dvps[i].DelegatorAddress, err = common.PrefixToShentu(dvps[i].DelegatorAddress)
 				if err != nil {
 					return true
 				}
-				p.ValidatorAddress, err = common.PrefixToShentu(p.ValidatorAddress)
+				dvps[i].ValidatorAddress, err = common.PrefixToShentu(dvps[i].ValidatorAddress)
 				if err != nil {
 					return true
 				}
@@ -177,8 +177,8 @@ func transAddrPrefixForStaking(ctx sdk.Context, app ShentuApp) (err error) {
 	}
 	//transite prefix for HistoricalInfo
 	skKeeper.IterateHistoricalInfo(ctx, func(hi stakingtypes.HistoricalInfo) bool {
-		for _, v := range hi.Valset {
-			v.OperatorAddress, err = common.PrefixToShentu(v.OperatorAddress)
+		for i := range hi.Valset {
+			hi.Valset[i].OperatorAddress, err = common.PrefixToShentu(hi.Valset[i].OperatorAddress)
 			if err != nil {
 				return true
 			}
