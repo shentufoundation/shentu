@@ -23,26 +23,40 @@ import (
 	authtypes "github.com/shentufoundation/shentu/v2/x/auth/types"
 )
 
+func setConfig(prefix string) {
+	stoc := func(txt string) string {
+		if prefix == "certik" {
+			return strings.Replace(txt, "shentu", "certik", 1)
+		}
+		return txt
+	}
+	cfg := sdk.GetConfig()
+	cfg.SetBech32PrefixForAccount(stoc(common.Bech32PrefixAccAddr), stoc(common.Bech32PrefixAccPub))
+	cfg.SetBech32PrefixForValidator(stoc(common.Bech32PrefixValAddr), stoc(common.Bech32PrefixValPub))
+	cfg.SetBech32PrefixForConsensusNode(stoc(common.Bech32PrefixConsAddr), stoc(common.Bech32PrefixConsPub))
+}
+
 func TestMigrateStore(t *testing.T) {
 	genesisState := loadState(t)
 
 	app := Setup(false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
-	cfg := sdk.GetConfig()
-	cfg.SetBech32PrefixForAccount(common.Bech32PrefixAccAddr, common.Bech32PrefixAccPub)
-	cfg.SetBech32PrefixForValidator(common.Bech32PrefixValAddr, common.Bech32PrefixValPub)
-	cfg.SetBech32PrefixForConsensusNode(common.Bech32PrefixConsAddr, common.Bech32PrefixConsPub)
-	cfg.Seal()
+	setConfig("certik")
 
 	for _, m := range []string{"auth", "bank", "staking", "feegrant", "gov", "slashing"} {
 		app.mm.Modules[m].InitGenesis(ctx, app.appCodec, genesisState[m])
 	}
+	//it has to be independently set store for feegrant to avoid affect accAddrCache
+	setStoreForFeegrant(ctx, app, genesisState["feegrant"])
+
 	checkStaking(t, ctx, app, true)
 	checkFeegrant(t, ctx, app, true)
 	checkGov(t, ctx, app, true)
 	//checkAuth(t, ctx, app, true)
 	checkSlashing(t, ctx, app, true)
+	setConfig("shentu")
 	transAddrPrefix(ctx, *app)
+
 	checkStaking(t, ctx, app, false)
 	checkFeegrant(t, ctx, app, false)
 	checkGov(t, ctx, app, false)
@@ -151,6 +165,19 @@ func checkGov(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
 	ck := NewChecker(t, app, store, old)
 	ck.checkForOneKey(govtypes.DepositsKeyPrefix, &govtypes.Deposit{})
 	ck.checkForOneKey(govtypes.VotesKeyPrefix, &govtypes.Vote{})
+}
+
+func setStoreForFeegrant(ctx sdk.Context, app *ShentuApp, jraw json.RawMessage) {
+	store := ctx.KVStore(app.keys[fgtypes.StoreKey])
+	var fggs fgtypes.GenesisState
+	app.appCodec.MustUnmarshalJSON(jraw, &fggs)
+	for _, one := range fggs.Allowances {
+		granter := sdk.MustAccAddressFromBech32(one.Granter)
+		grantee := sdk.MustAccAddressFromBech32(one.Grantee)
+		key := fgtypes.FeeAllowanceKey(granter, grantee)
+		bz := app.appCodec.MustMarshal(&one)
+		store.Set(key, bz)
+	}
 }
 
 func checkFeegrant(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
