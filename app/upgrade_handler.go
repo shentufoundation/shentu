@@ -1,18 +1,22 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	sdkauthtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/shentufoundation/shentu/v2/common"
+	authtypes "github.com/shentufoundation/shentu/v2/x/auth/types"
 )
 
 const (
@@ -57,7 +61,13 @@ func transAddrPrefix(ctx sdk.Context, app ShentuApp) (err error) {
 	if err = transAddrPrefixForFeegrant(ctx, app); err != nil {
 		return err
 	}
-	err = transAddrPrefixForGov(ctx, app)
+	if err = transAddrPrefixForGov(ctx, app); err != nil {
+		return err
+	}
+	if err = runSlashingMigration(ctx, app); err != nil {
+		return err
+	}
+	err = runAuthMigration(ctx, app)
 	return err
 }
 
@@ -236,6 +246,53 @@ func transAddrPrefixForGov(ctx sdk.Context, app ShentuApp) (err error) {
 			return true
 		}
 		govKeeper.SetVote(ctx, vote)
+		return false
+	})
+	return err
+}
+
+func runSlashingMigration(ctx sdk.Context, app ShentuApp) (err error) {
+	sk := app.SlashingKeeper
+	sk.IterateValidatorSigningInfos(ctx, func(address sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) (stop bool) {
+		info.Address, err = common.PrefixToShentu(info.Address)
+		if err != nil {
+			return true
+		}
+		sk.SetValidatorSigningInfo(ctx, address, info)
+
+		return false
+	})
+
+	return err
+}
+
+func runAuthMigration(ctx sdk.Context, app ShentuApp) (err error) {
+	ak := app.AccountKeeper
+	ak.IterateAccounts(ctx, func(acc sdkauthtypes.AccountI) (stop bool) {
+		newAddr, err := common.PrefixToShentu(acc.GetAddress().String())
+		if err != nil {
+			return true
+		}
+
+		switch account := acc.(type) {
+		case *sdkauthtypes.BaseAccount:
+			account.Address = newAddr
+			ak.SetAccount(ctx, account)
+		case *sdkauthtypes.ModuleAccount:
+			account.Address = newAddr
+			ak.SetAccount(ctx, account)
+		case *authtypes.ManualVestingAccount:
+			newUnlocker, err := common.PrefixToShentu(account.Unlocker)
+			if err != nil {
+				return true
+			}
+			account.Address = newAddr
+			account.Unlocker = newUnlocker
+			ak.SetAccount(ctx, account)
+		default:
+			err = errors.New("unknown account type")
+			return true
+		}
 		return false
 	})
 	return err
