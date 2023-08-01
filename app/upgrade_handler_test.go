@@ -2,20 +2,25 @@ package app
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"strings"
 	"testing"
 	"time"
-	
-	"io/ioutil"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/shentufoundation/shentu/v2/common"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/test-go/testify/require"
-	sktypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	fgtypes "github.com/cosmos/cosmos-sdk/x/feegrant"
+
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkauthtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	fgtypes "github.com/cosmos/cosmos-sdk/x/feegrant"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	sktypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/shentufoundation/shentu/v2/common"
+	authtypes "github.com/shentufoundation/shentu/v2/x/auth/types"
 )
 
 func TestMigrateStore(t *testing.T) {
@@ -29,16 +34,20 @@ func TestMigrateStore(t *testing.T) {
 	cfg.SetBech32PrefixForConsensusNode(common.Bech32PrefixConsAddr, common.Bech32PrefixConsPub)
 	cfg.Seal()
 
-	for _, m := range []string{"auth", "bank", "staking", "feegrant", "gov"} {
+	for _, m := range []string{"auth", "bank", "staking", "feegrant", "gov", "slashing"} {
 		app.mm.Modules[m].InitGenesis(ctx, app.appCodec, genesisState[m])
 	}
 	checkStaking(t, ctx, app, true)
 	checkFeegrant(t, ctx, app, true)
 	checkGov(t, ctx, app, true)
+	//checkAuth(t, ctx, app, true)
+	checkSlashing(t, ctx, app, true)
 	transAddrPrefix(ctx, *app)
 	checkStaking(t, ctx, app, false)
 	checkFeegrant(t, ctx, app, false)
 	checkGov(t, ctx, app, false)
+	//checkAuth(t, ctx, app, false)
+	checkSlashing(t, ctx, app, false)
 }
 
 func loadState(t *testing.T) GenesisState {
@@ -68,10 +77,11 @@ func NewChecker(t *testing.T, app *ShentuApp, store sdk.KVStore, old bool) Check
 	}
 	return Checker{t, app, store, prefixPos, prefixNeg}
 }
+
 type Checker struct {
-	t *testing.T
-	app *ShentuApp
-	store sdk.KVStore
+	t         *testing.T
+	app       *ShentuApp
+	store     sdk.KVStore
 	prefixPos string
 	prefixNeg string
 }
@@ -85,8 +95,31 @@ func (c Checker) checkForOneKey(keyPrefix []byte, v any) {
 			panic("failed to cast to codec.ProtoMarshaler")
 		}
 		c.app.appCodec.MustUnmarshal(iter.Value(), iv)
-		jsonstr := MustMarshalJSON(v)
-		c.checkStr(jsonstr)
+		jsonStr := MustMarshalJSON(v)
+		c.checkStr(jsonStr)
+	}
+}
+
+func (c Checker) checkForAuth(keyPrefix []byte) {
+	ak := c.app.AccountKeeper
+	iter := sdk.KVStorePrefixIterator(c.store, keyPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		acc, err := ak.UnmarshalAccount(iter.Value())
+		if err != nil {
+			panic(err)
+		}
+
+		switch account := acc.(type) {
+		case *sdkauthtypes.BaseAccount:
+			c.checkStr(account.String())
+		case *sdkauthtypes.ModuleAccount:
+			c.checkStr(account.String())
+		case *authtypes.ManualVestingAccount:
+			c.checkStr(account.String())
+		default:
+			panic("unknown account type")
+		}
 	}
 }
 
@@ -128,4 +161,16 @@ func checkFeegrant(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
 		ck.checkStr(grant.Grantee + grant.Granter)
 		return false
 	})
+}
+
+func checkAuth(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
+	store := ctx.KVStore(app.keys[sdkauthtypes.StoreKey])
+	ck := NewChecker(t, app, store, old)
+	ck.checkForAuth(sdkauthtypes.AddressStoreKeyPrefix)
+}
+
+func checkSlashing(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
+	store := ctx.KVStore(app.keys[slashingtypes.StoreKey])
+	ck := NewChecker(t, app, store, old)
+	ck.checkForOneKey(slashingtypes.ValidatorSigningInfoKeyPrefix, &slashingtypes.ValidatorSigningInfo{})
 }
