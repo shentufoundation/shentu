@@ -269,7 +269,8 @@ func runSlashingMigration(ctx sdk.Context, app ShentuApp) (err error) {
 func runAuthMigration(ctx sdk.Context, app ShentuApp) (err error) {
 	ak := app.AccountKeeper
 	ak.IterateAccounts(ctx, func(acc sdkauthtypes.AccountI) (stop bool) {
-		newAddr, err := common.PrefixToShentu(acc.GetAddress().String())
+		var newAddr string
+		newAddr, err = common.PrefixToShentu(acc.GetAddress().String())
 		if err != nil {
 			return true
 		}
@@ -282,7 +283,8 @@ func runAuthMigration(ctx sdk.Context, app ShentuApp) (err error) {
 			account.Address = newAddr
 			ak.SetAccount(ctx, account)
 		case *authtypes.ManualVestingAccount:
-			newUnlocker, err := common.PrefixToShentu(account.Unlocker)
+			var newUnlocker string
+			newUnlocker, err = common.PrefixToShentu(account.Unlocker)
 			if err != nil {
 				return true
 			}
