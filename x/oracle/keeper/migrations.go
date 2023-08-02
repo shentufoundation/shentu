@@ -2,9 +2,9 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	v280 "github.com/shentufoundation/shentu/v2/x/oracle/legacy/v280"
 
 	v2 "github.com/shentufoundation/shentu/v2/x/oracle/legacy/v2"
+	v280 "github.com/shentufoundation/shentu/v2/x/oracle/legacy/v280"
 )
 
 // Migrator is a struct for handling in-place store migrations.
