@@ -5,17 +5,17 @@ import (
 	"strings"
 	"testing"
 	"time"
-	
+
 	"io/ioutil"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	fgtypes "github.com/cosmos/cosmos-sdk/x/feegrant"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	sktypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/shentufoundation/shentu/v2/common"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/test-go/testify/require"
-	sktypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	fgtypes "github.com/cosmos/cosmos-sdk/x/feegrant"
-	"github.com/cosmos/cosmos-sdk/codec"
 )
 
 func setConfig(prefix string) {
@@ -83,10 +83,11 @@ func NewChecker(t *testing.T, app *ShentuApp, store sdk.KVStore, old bool) Check
 	}
 	return Checker{t, app, store, prefixPos, prefixNeg}
 }
+
 type Checker struct {
-	t *testing.T
-	app *ShentuApp
-	store sdk.KVStore
+	t         *testing.T
+	app       *ShentuApp
+	store     sdk.KVStore
 	prefixPos string
 	prefixNeg string
 }
