@@ -56,21 +56,21 @@ func (app ShentuApp) setUpgradeHandler() {
 // the function transite bech32 address prefix from 'certik' to 'shentu' for the values stored in related modules
 // this function is supposed to be called when chain upgraded from v2.7.1 to v2.8.0
 func transAddrPrefix(ctx sdk.Context, app ShentuApp) (err error) {
-	//if err = transAddrPrefixForStaking(ctx, app); err != nil {
-	//	return err
-	//}
-	//if err = transAddrPrefixForFeegrant(ctx, app); err != nil {
-	//	return err
-	//}
-	//if err = transAddrPrefixForGov(ctx, app); err != nil {
-	//	return err
-	//}
-	//if err = runSlashingMigration(ctx, app); err != nil {
-	//	return err
-	//}
-	//if err = runAuthMigration(ctx, app); err != nil {
-	//	return err
-	//}
+	if err = transAddrPrefixForStaking(ctx, app); err != nil {
+		return err
+	}
+	if err = transAddrPrefixForFeegrant(ctx, app); err != nil {
+		return err
+	}
+	if err = transAddrPrefixForGov(ctx, app); err != nil {
+		return err
+	}
+	if err = runSlashingMigration(ctx, app); err != nil {
+		return err
+	}
+	if err = runAuthMigration(ctx, app); err != nil {
+		return err
+	}
 	err = runAuthzMigration(ctx, app)
 	return err
 }
@@ -273,20 +273,29 @@ func runSlashingMigration(ctx sdk.Context, app ShentuApp) (err error) {
 func runAuthMigration(ctx sdk.Context, app ShentuApp) (err error) {
 	ak := app.AccountKeeper
 	ak.IterateAccounts(ctx, func(acc sdkauthtypes.AccountI) (stop bool) {
-		var newAddr string
-		newAddr, err = common.PrefixToShentu(acc.GetAddress().String())
-		if err != nil {
-			return true
-		}
-
 		switch account := acc.(type) {
 		case *sdkauthtypes.BaseAccount:
+			var newAddr string
+			newAddr, err = common.PrefixToShentu(account.Address)
+			if err != nil {
+				return true
+			}
 			account.Address = newAddr
 			ak.SetAccount(ctx, account)
 		case *sdkauthtypes.ModuleAccount:
+			var newAddr string
+			newAddr, err = common.PrefixToShentu(account.Address)
+			if err != nil {
+				return true
+			}
 			account.Address = newAddr
 			ak.SetAccount(ctx, account)
 		case *authtypes.ManualVestingAccount:
+			var newAddr string
+			newAddr, err = common.PrefixToShentu(account.Address)
+			if err != nil {
+				return true
+			}
 			var newUnlocker string
 			newUnlocker, err = common.PrefixToShentu(account.Unlocker)
 			if err != nil {
@@ -320,7 +329,7 @@ func runAuthzMigration(ctx sdk.Context, app ShentuApp) (err error) {
 			if err = processStakeAuthorization(stakeAuthorization); err != nil {
 				return true
 			}
-			if err := ak.SaveGrant(ctx, granterAddr, granteeAddr, stakeAuthorization, grant.Expiration); err != nil {
+			if err := ak.SaveGrant(ctx, granteeAddr, granterAddr, stakeAuthorization, grant.Expiration); err != nil {
 				return true
 			}
 		default:
@@ -343,7 +352,7 @@ func processStakeAuthorization(stakeAuthorization *stakingtypes.StakeAuthorizati
 		stakeAuthorization.Validators = &stakingtypes.StakeAuthorization_DenyList{DenyList: &stakingtypes.StakeAuthorization_Validators{Address: newList}}
 	}
 	if allowList.Size() > 0 {
-		newList, err := prefixToShentuAddrs(denyList.GetAddress())
+		newList, err := prefixToShentuAddrs(allowList.GetAddress())
 		if err != nil {
 			return err
 		}

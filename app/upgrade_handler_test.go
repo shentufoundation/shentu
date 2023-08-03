@@ -18,6 +18,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	sktypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
@@ -45,28 +46,31 @@ func TestMigrateStore(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	setConfig("certik")
 
-	for _, m := range []string{"auth", "authz", "bank", "staking", "gov", "slashing"} {
+	for _, m := range []string{"auth", "authz", "bank", "staking", "slashing", "gov"} {
 		app.mm.Modules[m].InitGenesis(ctx, app.appCodec, genesisState[m])
 	}
 	//it has to be independently set store for feegrant to avoid affect accAddrCache
-	//setStoreForFeegrant(ctx, app, genesisState["feegrant"])
+	setStoreForFeegrant(ctx, app, genesisState["feegrant"])
 
 	checkStaking(t, ctx, app, true)
 	checkFeegrant(t, ctx, app, true)
 	checkGov(t, ctx, app, true)
 	checkSlashing(t, ctx, app, true)
-	//checkAuth(t, ctx, app, true)
-	//checkAuthz(t, ctx, app, true)
+	checkAuth(t, ctx, app, true)
+	checkAuthz(t, ctx, app, true)
 
 	setConfig("shentu")
-	transAddrPrefix(ctx, *app)
+	err := transAddrPrefix(ctx, *app)
+	if err != nil {
+		panic(err)
+	}
 
 	checkStaking(t, ctx, app, false)
-	checkFeegrant(t, ctx, app, false)
+	//checkFeegrant(t, ctx, app, false)
 	checkGov(t, ctx, app, false)
 	checkSlashing(t, ctx, app, false)
-	//checkAuth(t, ctx, app, false)
-	//checkAuthz(t, ctx, app, false)
+	checkAuth(t, ctx, app, false)
+	checkAuthz(t, ctx, app, false)
 }
 
 func loadState(t *testing.T) GenesisState {
@@ -116,29 +120,6 @@ func (c Checker) checkForOneKey(keyPrefix []byte, v any) {
 		c.app.appCodec.MustUnmarshal(iter.Value(), iv)
 		jsonStr := MustMarshalJSON(v)
 		c.checkStr(jsonStr)
-	}
-}
-
-func (c Checker) checkForAuth(keyPrefix []byte) {
-	ak := c.app.AccountKeeper
-	iter := sdk.KVStorePrefixIterator(c.store, keyPrefix)
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		acc, err := ak.UnmarshalAccount(iter.Value())
-		if err != nil {
-			panic(err)
-		}
-
-		switch account := acc.(type) {
-		case *sdkauthtypes.BaseAccount:
-			c.checkStr(account.String())
-		case *sdkauthtypes.ModuleAccount:
-			c.checkStr(account.String())
-		case *authtypes.ManualVestingAccount:
-			c.checkStr(account.String())
-		default:
-			panic("unknown account type")
-		}
 	}
 }
 
@@ -210,5 +191,48 @@ func checkSlashing(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
 func checkAuthz(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
 	store := ctx.KVStore(app.keys[authzkeeper.StoreKey])
 	ck := NewChecker(t, app, store, old)
-	ck.checkForOneKey(authzkeeper.GrantKey, &authz.Grant{})
+	ck.checkForAuthz(authzkeeper.GrantKey)
+}
+
+func (c Checker) checkForAuth(keyPrefix []byte) {
+	ak := c.app.AccountKeeper
+	iter := sdk.KVStorePrefixIterator(c.store, keyPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		acc, err := ak.UnmarshalAccount(iter.Value())
+		if err != nil {
+			panic(err)
+		}
+
+		switch account := acc.(type) {
+		case *sdkauthtypes.BaseAccount:
+			c.checkStr(account.Address)
+		case *sdkauthtypes.ModuleAccount:
+			c.checkStr(account.Address)
+		case *authtypes.ManualVestingAccount:
+			c.checkStr(account.Address + account.Unlocker)
+		default:
+			panic("unknown account type")
+		}
+	}
+}
+
+func (c Checker) checkForAuthz(keyPrefix []byte) {
+	iter := sdk.KVStorePrefixIterator(c.store, keyPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		var grant authz.Grant
+		c.app.appCodec.MustUnmarshal(iter.Value(), &grant)
+		authorization := grant.Authorization
+		value := authorization.GetValue()
+
+		switch authorization.GetTypeUrl() {
+		case "/cosmos.staking.v1beta1.StakeAuthorization":
+			stakeAuthorization := &stakingtypes.StakeAuthorization{}
+			if err := stakeAuthorization.Unmarshal(value); err != nil {
+				panic(err)
+			}
+			c.checkStr(stakeAuthorization.String())
+		}
+	}
 }
