@@ -1,4 +1,4 @@
-package v280_test
+package v2_test
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ import (
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/common"
-	v280 "github.com/shentufoundation/shentu/v2/x/cert/legacy/v280"
+	v280 "github.com/shentufoundation/shentu/v2/x/cert/legacy/v2"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
