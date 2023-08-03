@@ -2,6 +2,7 @@ package v2
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -25,10 +26,46 @@ func migrateCertificate(store sdk.KVStore, cdc codec.BinaryCodec) error {
 		}
 		cert.Certifier = shentuAddr
 
+		transistCertContent(&cert)
+
 		bz := cdc.MustMarshalLengthPrefixed(&cert)
 		oldStore.Set(iterator.Key(), bz)
 	}
 	return nil
+}
+
+func transistCertContent(certificate *types.Certificate) {
+	switch certificate.GetContent().(type) {
+	case *types.OracleOperator:
+		contentShentu, err := common.PrefixToShentu(certificate.GetContentString())
+		if err != nil {
+			return
+		}
+		content := types.OracleOperator{Content: contentShentu}
+		setContentAny(certificate, &content)
+	case *types.ShieldPoolCreator:
+		contentShentu, err := common.PrefixToShentu(certificate.GetContentString())
+		if err != nil {
+			return
+		}
+		content := types.ShieldPoolCreator{Content: contentShentu}
+		setContentAny(certificate, &content)
+	case *types.Identity:
+		contentShentu, err := common.PrefixToShentu(certificate.GetContentString())
+		if err != nil {
+			return
+		}
+		content := types.Identity{Content: contentShentu}
+		setContentAny(certificate, &content)
+	}
+}
+
+func setContentAny(certificate *types.Certificate, content types.Content) {
+	any, err := codectypes.NewAnyWithValue(content)
+	if err != nil {
+		panic(err)
+	}
+	certificate.Content = any
 }
 
 func migrateCertifier(store sdk.KVStore, cdc codec.BinaryCodec) error {

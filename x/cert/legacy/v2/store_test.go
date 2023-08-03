@@ -17,7 +17,7 @@ import (
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/common"
-	v280 "github.com/shentufoundation/shentu/v2/x/cert/legacy/v2"
+	v2 "github.com/shentufoundation/shentu/v2/x/cert/legacy/v2"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
@@ -25,7 +25,7 @@ func makeCertificate(certType string) types.Certificate {
 	_, _, addr := testdata.KeyTestPubAddr()
 	certifier, _ := common.PrefixToCertik(addr.String())
 
-	content := types.AssembleContent(certType, "test")
+	content := types.AssembleContent(certType, certifier)
 	msg, ok := content.(proto.Message)
 	if !ok {
 		panic(fmt.Errorf("%T does not implement proto.Message", content))
@@ -81,7 +81,7 @@ func TestMigrateStore(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	cdc := shentuapp.MakeEncodingConfig().Marshaler
 
-	oldCertificate := makeCertificate("AUDITING")
+	oldCertificate := makeCertificate("IDENTITY")
 
 	oldCertifier := makeCertifier(oldCertificate.Certifier, "test_certifier")
 
@@ -92,7 +92,7 @@ func TestMigrateStore(t *testing.T) {
 
 	oldLibrary := saveLibrary(cdc, store)
 
-	err := v280.MigrateStore(ctx, app.GetKey(types.StoreKey), cdc)
+	err := v2.MigrateStore(ctx, app.GetKey(types.StoreKey), cdc)
 	require.NoError(t, err)
 
 	//check for Certificate
@@ -109,6 +109,7 @@ func TestMigrateStore(t *testing.T) {
 	bz = store.Get(types.CertifierStoreKey(certifierAcc))
 	cdc.MustUnmarshalLengthPrefixed(bz, &certifier)
 	require.Equal(t, newCertifierAddr, certifier.Address)
+	require.Equal(t, newCertifierAddr, cert.GetContentString())
 
 	newCertifierProposer, _ := common.PrefixToShentu(oldCertifier.Proposer)
 	require.Equal(t, newCertifierProposer, certifier.Proposer)
