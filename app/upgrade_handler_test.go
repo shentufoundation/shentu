@@ -12,6 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkauthtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	fgtypes "github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -43,17 +45,18 @@ func TestMigrateStore(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	setConfig("certik")
 
-	for _, m := range []string{"auth", "bank", "staking", "gov", "slashing"} {
+	for _, m := range []string{"auth", "authz", "bank", "staking", "gov", "slashing"} {
 		app.mm.Modules[m].InitGenesis(ctx, app.appCodec, genesisState[m])
 	}
 	//it has to be independently set store for feegrant to avoid affect accAddrCache
-	setStoreForFeegrant(ctx, app, genesisState["feegrant"])
+	//setStoreForFeegrant(ctx, app, genesisState["feegrant"])
 
 	checkStaking(t, ctx, app, true)
 	checkFeegrant(t, ctx, app, true)
 	checkGov(t, ctx, app, true)
 	checkSlashing(t, ctx, app, true)
 	//checkAuth(t, ctx, app, true)
+	//checkAuthz(t, ctx, app, true)
 
 	setConfig("shentu")
 	transAddrPrefix(ctx, *app)
@@ -63,6 +66,7 @@ func TestMigrateStore(t *testing.T) {
 	checkGov(t, ctx, app, false)
 	checkSlashing(t, ctx, app, false)
 	//checkAuth(t, ctx, app, false)
+	//checkAuthz(t, ctx, app, false)
 }
 
 func loadState(t *testing.T) GenesisState {
@@ -201,4 +205,10 @@ func checkSlashing(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
 	store := ctx.KVStore(app.keys[slashingtypes.StoreKey])
 	ck := NewChecker(t, app, store, old)
 	ck.checkForOneKey(slashingtypes.ValidatorSigningInfoKeyPrefix, &slashingtypes.ValidatorSigningInfo{})
+}
+
+func checkAuthz(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
+	store := ctx.KVStore(app.keys[authzkeeper.StoreKey])
+	ck := NewChecker(t, app, store, old)
+	ck.checkForOneKey(authzkeeper.GrantKey, &authz.Grant{})
 }

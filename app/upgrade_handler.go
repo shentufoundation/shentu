@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	sdkauthtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -55,19 +56,22 @@ func (app ShentuApp) setUpgradeHandler() {
 // the function transite bech32 address prefix from 'certik' to 'shentu' for the values stored in related modules
 // this function is supposed to be called when chain upgraded from v2.7.1 to v2.8.0
 func transAddrPrefix(ctx sdk.Context, app ShentuApp) (err error) {
-	if err = transAddrPrefixForStaking(ctx, app); err != nil {
-		return err
-	}
-	if err = transAddrPrefixForFeegrant(ctx, app); err != nil {
-		return err
-	}
-	if err = transAddrPrefixForGov(ctx, app); err != nil {
-		return err
-	}
-	if err = runSlashingMigration(ctx, app); err != nil {
-		return err
-	}
-	err = runAuthMigration(ctx, app)
+	//if err = transAddrPrefixForStaking(ctx, app); err != nil {
+	//	return err
+	//}
+	//if err = transAddrPrefixForFeegrant(ctx, app); err != nil {
+	//	return err
+	//}
+	//if err = transAddrPrefixForGov(ctx, app); err != nil {
+	//	return err
+	//}
+	//if err = runSlashingMigration(ctx, app); err != nil {
+	//	return err
+	//}
+	//if err = runAuthMigration(ctx, app); err != nil {
+	//	return err
+	//}
+	err = runAuthzMigration(ctx, app)
 	return err
 }
 
@@ -298,4 +302,64 @@ func runAuthMigration(ctx sdk.Context, app ShentuApp) (err error) {
 		return false
 	})
 	return err
+}
+
+func runAuthzMigration(ctx sdk.Context, app ShentuApp) (err error) {
+	ak := app.AuthzKeeper
+	ak.IterateGrants(ctx, func(granterAddr sdk.AccAddress, granteeAddr sdk.AccAddress, grant authz.Grant) bool {
+		authorization := grant.Authorization
+		value := authorization.GetValue()
+
+		switch authorization.GetTypeUrl() {
+		case "/cosmos.authz.v1beta1.GenericAuthorization":
+		case "/cosmos.staking.v1beta1.StakeAuthorization":
+			stakeAuthorization := &stakingtypes.StakeAuthorization{}
+			if err = stakeAuthorization.Unmarshal(value); err != nil {
+				return true
+			}
+			if err = processStakeAuthorization(stakeAuthorization); err != nil {
+				return true
+			}
+			if err := ak.SaveGrant(ctx, granterAddr, granteeAddr, stakeAuthorization, grant.Expiration); err != nil {
+				return true
+			}
+		default:
+			err = errors.New("unknown authorization types")
+			return true
+		}
+		return false
+	})
+	return err
+}
+
+func processStakeAuthorization(stakeAuthorization *stakingtypes.StakeAuthorization) error {
+	denyList := stakeAuthorization.GetDenyList()
+	allowList := stakeAuthorization.GetAllowList()
+	if denyList.Size() > 0 {
+		newList, err := prefixToShentuAddrs(denyList.GetAddress())
+		if err != nil {
+			return err
+		}
+		stakeAuthorization.Validators = &stakingtypes.StakeAuthorization_DenyList{DenyList: &stakingtypes.StakeAuthorization_Validators{Address: newList}}
+	}
+	if allowList.Size() > 0 {
+		newList, err := prefixToShentuAddrs(denyList.GetAddress())
+		if err != nil {
+			return err
+		}
+		stakeAuthorization.Validators = &stakingtypes.StakeAuthorization_AllowList{AllowList: &stakingtypes.StakeAuthorization_Validators{Address: newList}}
+	}
+	return nil
+}
+
+func prefixToShentuAddrs(addrs []string) (newAddrs []string, err error) {
+	for _, addr := range addrs {
+		var newAddr string
+		newAddr, err = common.PrefixToShentu(addr)
+		if err != nil {
+			return newAddrs, err
+		}
+		newAddrs = append(newAddrs, newAddr)
+	}
+	return newAddrs, err
 }
