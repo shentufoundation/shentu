@@ -1,4 +1,4 @@
-package v280_test
+package v3_test
 
 import (
 	"encoding/hex"
@@ -16,7 +16,7 @@ import (
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/common"
-	v280 "github.com/shentufoundation/shentu/v2/x/oracle/legacy/v280"
+	v280 "github.com/shentufoundation/shentu/v2/x/oracle/legacy/v3"
 	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 

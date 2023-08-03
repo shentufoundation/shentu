@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	v2 "github.com/shentufoundation/shentu/v2/x/oracle/legacy/v2"
-	v280 "github.com/shentufoundation/shentu/v2/x/oracle/legacy/v280"
+	v3 "github.com/shentufoundation/shentu/v2/x/oracle/legacy/v3"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -25,5 +25,5 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 
 // Migrate2to3 migrates from version 2 to 3.
 func (m Migrator) Migrate2to3(ctx sdk.Context) error {
-	return v280.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc)
+	return v3.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc)
 }
