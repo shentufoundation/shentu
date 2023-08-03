@@ -106,7 +106,7 @@ gas estimate: 287069
 {
 	"title": "New Certifier, Joe Shmoe",
 	"description": "Why we should make Joe Shmoe a certifier",
-	"certifier": "certik1fdyv6hpukqj6kqdtwc42qacq9lpxm0pn85w6l9",
+	"certifier": "shentu1fdyv6hpukqj6kqdtwc42qacq9lpxm0pnggk5vn",
 	"add_or_remove": "add",
 	"alias": "joe",
 	"deposit": [
@@ -131,7 +131,7 @@ $ certik tx gov submit-proposal certifier-update certifier-update.json --from ja
 {
 	"title": "Community Pool Spend",
 	"description": "Pay me some Atoms!",
-	"recipient": "certik1s5afhd6gxevu37mkqcvvsj8qeylhn0rz46zdlq",
+	"recipient": "shentu1s5afhd6gxevu37mkqcvvsj8qeylhn0rzawx5da",
 	"amount": "1000stake",
 	"deposit": "1000stake"
 }

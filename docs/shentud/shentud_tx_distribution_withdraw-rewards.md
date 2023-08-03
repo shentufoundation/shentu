@@ -8,8 +8,8 @@ Withdraw rewards from a given delegation address,
 and optionally withdraw validator commission if the delegation address given is a validator operator.
 
 Example:
-$ shentud tx distribution withdraw-rewards certikvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj --from mykey
-$ shentud tx distribution withdraw-rewards certikvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj --from mykey --commission
+$ shentud tx distribution withdraw-rewards shentuvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldtshsu6 --from mykey
+$ shentud tx distribution withdraw-rewards shentuvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldtshsu6 --from mykey --commission
 
 ```
 shentud tx distribution withdraw-rewards [validator-addr] [flags]

@@ -7,7 +7,7 @@ Unbond shares from a validator
 Unbond an amount of bonded shares from a validator.
 
 Example:
-$ shentud tx staking unbond certikvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj 100stake --from mykey
+$ shentud tx staking unbond shentuvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldtshsu6 100stake --from mykey
 
 ```
 shentud tx staking unbond [validator-addr] [amount] [flags]

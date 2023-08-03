@@ -42,3 +42,12 @@ func TestPrefixToShentu(t *testing.T) {
 	_, err = PrefixToShentu(address)
 	require.Error(t, err)
 }
+
+func TestAddress(t *testing.T) {
+	address := "certik1fdqkh6v4d09hq7hu8xq8gl9zr2zm0azydcpq0d"
+	shentuAddr, err := PrefixToShentu(address)
+	if err != nil {
+		t.Log(err.Error())
+	}
+	t.Log("address:", shentuAddr)
+}

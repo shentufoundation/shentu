@@ -216,7 +216,7 @@ func Test_IsCertified(t *testing.T) {
 		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "", addrs[0], ""))
 
 		certType := "auditing"
-		contentStr := "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag"
+		contentStr := "shentu1fdyv6hpukqj6kqdtwc42qacq9lpxm0pnggk5vn"
 
 		isCertified := app.CertKeeper.IsCertified(ctx, contentStr, certType)
 		require.Equal(t, false, isCertified)

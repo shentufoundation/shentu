@@ -7,7 +7,7 @@ change the default withdraw address for rewards associated with an address
 Set the withdraw address for rewards associated with a delegator address.
 
 Example:
-$ shentud tx distribution set-withdraw-addr certik1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
+$ shentud tx distribution set-withdraw-addr shentu1gghjut3ccd8ay0zduzj64hwre2fxs9ldkq89hu --from mykey
 
 ```
 shentud tx distribution set-withdraw-addr [withdraw-addr] [flags]

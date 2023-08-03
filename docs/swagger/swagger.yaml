@@ -17,7 +17,7 @@ paths:
           description: Certifier address
           required: true
           type: string
-          x-example: certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6
+          x-example: shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv
       responses:
         '200':
           description: Successfully found result
@@ -32,13 +32,13 @@ paths:
                 properties:
                   address:
                     type: string
-                    example: certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6
+                    example: shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv
                   alias:
                     type: string
                     example: node1
                   proposer:
                     type: string
-                    example: certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4
+                    example: shentu1hvtvsmznq749svdkd2rfeana2age6qnjxcvrhr
                   description:
                     type: string
                     example: propose node1 as a certifier
@@ -73,13 +73,13 @@ paths:
                       properties:
                         certifier:
                           type: string
-                          example: certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6
+                          example: shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv
                         alias:
                           type: string
                           example: node1
                         proposer:
                           type: string
-                          example: certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4
+                          example: shentu1hvtvsmznq749svdkd2rfeana2age6qnjxcvrhr
                         description:
                           type: string
                           example: propose node1 as a certifier
@@ -116,13 +116,13 @@ paths:
                 properties:
                   certifier:
                     type: string
-                    example: certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6
+                    example: shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv
                   alias:
                     type: string
                     example: node1
                   proposer:
                     type: string
-                    example: certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4
+                    example: shentu1hvtvsmznq749svdkd2rfeana2age6qnjxcvrhr
                   description:
                     type: string
                     example: propose node1 as a certifier
@@ -145,7 +145,7 @@ paths:
           required: true
           type: string
           x-example: >-
-            certikvalconspub1addwnpepqtxtlwnjnayy0lcyvfye7zju99crykxmt28h740zqu3tcpjmjcggxs6lwn4
+            shentuvalconspub1addwnpepqtxtlwnjnayy0lcyvfye7zju99crykxmt28h740zqu3tcpjmjcggxkpgpqy
       responses:
         '200':
           description: Successfully found result
@@ -159,7 +159,7 @@ paths:
                 properties:
                   certifier:
                     type: string
-                    example: certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6
+                    example: shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv
         '404':
           description: Failed to find result
   /cert/validators:
@@ -185,7 +185,7 @@ paths:
                     items:
                       type: string
                       example: >-
-                        certikvalconspub1addwnpepqtxtlwnjnayy0lcyvfye7zju99crykxmt28h740zqu3tcpjmjcggxs6lwn4
+                        shentuvalconspub1addwnpepqtxtlwnjnayy0lcyvfye7zju99crykxmt28h740zqu3tcpjmjcggxkpgpqy
         '404':
           description: Failed to find result
   '/cert/platform/{pubkey}':
@@ -202,7 +202,7 @@ paths:
           required: true
           type: string
           x-example: >-
-            certikvalconspub1addwnpepqtxtlwnjnayy0lcyvfye7zju99crykxmt28h740zqu3tcpjmjcggxs6lwn4
+            shentuvalconspub1addwnpepqtxtlwnjnayy0lcyvfye7zju99crykxmt28h740zqu3tcpjmjcggxkpgpqy
       responses:
         '200':
           description: Successfully found result
@@ -275,7 +275,7 @@ paths:
                     example: a description for the compilation
                   certifier:
                     type: string
-                    example: certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6
+                    example: shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv
         '404':
           description: Failed to find result
   /cert/certificates:
@@ -331,7 +331,7 @@ paths:
                           example: a description for the compilation
                         certifier:
                           type: string
-                          example: certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6
+                          example: shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv
         '404':
           description: Failed to find result
   '/cvm/code/{address}':
@@ -347,7 +347,7 @@ paths:
           description: Code address
           required: true
           type: string
-          x-example: certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0
+          x-example: shentu1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0zsewne
       responses:
         '200':
           description: Successfully found result
@@ -379,7 +379,7 @@ paths:
           description: Storage address
           required: true
           type: string
-          x-example: certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0
+          x-example: shentu1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0zsewne
         - in: path
           name: key
           description: Storage key
@@ -416,7 +416,7 @@ paths:
           description: Abi address
           required: true
           type: string
-          x-example: certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0
+          x-example: shentu1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0zsewne
       responses:
         '200':
           description: Successfully found result
@@ -448,7 +448,7 @@ paths:
           description: Address-meta address
           required: true
           type: string
-          x-example: certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0
+          x-example: shentu1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0zsewne
       responses:
         '200':
           description: Successfully found result
@@ -513,7 +513,7 @@ paths:
           description: contract address
           required: true
           type: string
-          x-example: certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0
+          x-example: shentu1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0zsewne
       responses:
         '200':
           description: Successfully found result
@@ -528,7 +528,7 @@ paths:
                 properties:
                   address:
                     type: string
-                    example: certik1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0dvpqq0
+                    example: shentu1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0zsewne
                   coins:
                     type: array
                     items:
@@ -571,7 +571,7 @@ paths:
           description: Operator address
           required: true
           type: string
-          x-example: certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6
+          x-example: shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv
       responses:
         '200':
           description: Successfully found result
@@ -586,10 +586,10 @@ paths:
                 properties:
                   address:
                     type: string
-                    example: certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6
+                    example: shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv
                   proposer:
                     type: string
-                    example: certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4
+                    example: shentu1hvtvsmznq749svdkd2rfeana2age6qnjxcvrhr
                   collateral:
                     type: array
                     items:
@@ -640,10 +640,10 @@ paths:
                   properties:
                     address:
                       type: string
-                      example: certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6
+                      example: shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv
                     proposer:
                       type: string
-                      example: certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4
+                      example: shentu1hvtvsmznq749svdkd2rfeana2age6qnjxcvrhr
                     collateral:
                       type: array
                       items:
@@ -694,7 +694,7 @@ paths:
                   properties:
                     address:
                       type: string
-                      example: certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6
+                      example: shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv
                     amount:
                       type: array
                       items:
@@ -758,7 +758,7 @@ paths:
                     example: '2020-10-27T20:29:34.755279Z'
                   creater:
                     type: string
-                    example: certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4
+                    example: shentu1hvtvsmznq749svdkd2rfeana2age6qnjxcvrhr
                   responses:
                     type: array
                     items:
@@ -766,7 +766,7 @@ paths:
                       properties:
                         operator:
                           type: string
-                          example: certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4
+                          example: shentu1hvtvsmznq749svdkd2rfeana2age6qnjxcvrhr
                         score:
                           type: string
                           example: '255'
@@ -819,7 +819,7 @@ paths:
                 properties:
                   operator:
                     type: string
-                    example: certik1hvtvsmznq749svdkd2rfeana2age6qnjfy5dy4
+                    example: shentu1hvtvsmznq749svdkd2rfeana2age6qnjxcvrhr
                   score:
                     type: string
                     example: '255'
@@ -871,7 +871,7 @@ paths:
                       example: abc
                     sponsor_address:
                       type: string
-                      example: certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6
+                      example: shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv
                     shield_limit:
                       type: string
                       example: '100000'
@@ -920,7 +920,7 @@ paths:
                     example: abc
                   sponsor_address:
                     type: string
-                    example: certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6
+                    example: shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv
                   shield_limit:
                     type: string
                     example: '100000'
@@ -969,7 +969,7 @@ paths:
                     example: abc
                   sponsor_address:
                     type: string
-                    example: certik16rpggu4j84x9km2ne6reggyqd5n5gyw37gfga6
+                    example: shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv
                   shield_limit:
                     type: string
                     example: '100000'
@@ -1014,7 +1014,7 @@ paths:
                       example: '1'
                     purchaser:
                       type: string
-                      example: certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7
+                      example: shentu1nqvk0skpfqpc86fvqnul36sufeq33yp0rm7ftg
                     entries:
                       type: array
                       items:
@@ -1081,7 +1081,7 @@ paths:
           description: Address
           required: true
           type: string
-          x-example: certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7
+          x-example: shentu1nqvk0skpfqpc86fvqnul36sufeq33yp0rm7ftg
       responses:
         '200':
           description: Successfully found result
@@ -1099,7 +1099,7 @@ paths:
                     example: '1'
                   purchaser:
                     type: string
-                    example: certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7
+                    example: shentu1nqvk0skpfqpc86fvqnul36sufeq33yp0rm7ftg
                   entries:
                     type: array
                     items:
@@ -1160,7 +1160,7 @@ paths:
           description: Address
           required: true
           type: string
-          x-example: certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7
+          x-example: shentu1nqvk0skpfqpc86fvqnul36sufeq33yp0rm7ftg
       responses:
         '200':
           description: Successfully found result
@@ -1175,7 +1175,7 @@ paths:
                 properties:
                   address:
                     type: string
-                    example: certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7
+                    example: shentu1nqvk0skpfqpc86fvqnul36sufeq33yp0rm7ftg
                   delegation_bonded:
                     type: string
                     example: '10000000'
@@ -1238,7 +1238,7 @@ paths:
                   properties:
                     address:
                       type: string
-                      example: certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7
+                      example: shentu1nqvk0skpfqpc86fvqnul36sufeq33yp0rm7ftg
                     delegation_bonded:
                       type: string
                       example: '10000000'
@@ -1291,7 +1291,7 @@ paths:
           description: Address
           required: true
           type: string
-          x-example: certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7
+          x-example: shentu1nqvk0skpfqpc86fvqnul36sufeq33yp0rm7ftg
       responses:
         '200':
           description: Successfully found result
@@ -1311,7 +1311,7 @@ paths:
                       example: '1'
                     purchaser:
                       type: string
-                      example: certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7
+                      example: shentu1nqvk0skpfqpc86fvqnul36sufeq33yp0rm7ftg
                     entries:
                       type: array
                       items:
@@ -1612,7 +1612,7 @@ paths:
           description: Address
           required: true
           type: string
-          x-example: certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7
+          x-example: shentu1nqvk0skpfqpc86fvqnul36sufeq33yp0rm7ftg
       responses:
         '200':
           description: Successfully found result
@@ -1630,7 +1630,7 @@ paths:
                     example: '1'
                   purchaser:
                     type: string
-                    example: certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7
+                    example: shentu1nqvk0skpfqpc86fvqnul36sufeq33yp0rm7ftg
                   amount:
                     type: string
                     example: '10000'
@@ -1699,7 +1699,7 @@ paths:
                           example: '50000'
                   beneficiary:
                     type: string
-                    example: certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7
+                    example: shentu1nqvk0skpfqpc86fvqnul36sufeq33yp0rm7ftg
                   payout_time:
                     type: string
                     example: '2020-11-20T20:29:34.755279Z'
@@ -1745,7 +1745,7 @@ paths:
                                 example: '50000'
                         beneficiary:
                           type: string
-                          example: certik1nqvk0skpfqpc86fvqnul36sufeq33yp0v8x8c7
+                          example: shentu1nqvk0skpfqpc86fvqnul36sufeq33yp0rm7ftg
                         payout_time:
                           type: string
                           example: '2020-11-20T20:29:34.755279Z'
@@ -3762,11 +3762,11 @@ paths:
                       properties:
                         operator_address:
                           type: string
-                          example: certikvaloper18knfymnl2hhy83yj7ndwszt5gdluh823egtnx3
+                          example: shentuvaloper18knfymnl2hhy83yj7ndwszt5gdluh823us8ghm
                         consensus_pubkey:
                           type: string
                           example: >-
-                            certikvalconspub1zcjduepq969kzmatne84am2jpfdtkcrvh8fnt6skgs63dkc4s4dnp69rshhqlu8vpd
+                            shentuvalconspub1zcjduepq969kzmatne84am2jpfdtkcrvh8fnt6skgs63dkc4s4dnp69rshhqyl6zvm
                         jailed:
                           type: boolean
                           example: false
@@ -24944,7 +24944,7 @@ definitions:
     properties:
       from:
         type: string
-        example: certik1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjd0crvgh
+        example: shentu1f0rsp7qg6x7lvfwpph4c3m64kcsz5pjdqymzmp
       memo:
         type: string
         example: This is a memo!

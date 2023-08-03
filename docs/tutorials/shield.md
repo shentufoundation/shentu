@@ -43,28 +43,28 @@ $ certik tx shield deposit-collateral 100000uctk --from alice --fees 500uctk -y 
 ```{engine = 'sh'}
 $ certik tx shield pause-pool 1 --from jack -y --chain-id certikchain
 
-{"height":"273","txhash":"BF329A55C34628B506D874507497775AEA3052E9CA95ED32C6E2D7E42A774455","codespace":"","code":0,"data":"0A0C0A0A70617573655F706F6F6C","raw_log":"[{\"events\":[{\"type\":\"message\",\"attributes\":[{\"key\":\"action\",\"value\":\"pause_pool\"},{\"key\":\"module\",\"value\":\"shield\"},{\"key\":\"sender\",\"value\":\"certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed\"}]},{\"type\":\"pause_pool\",\"attributes\":[{\"key\":\"pool_id\",\"value\":\"1\"}]}]}]","logs":[{"msg_index":0,"log":"","events":[{"type":"message","attributes":[{"key":"action","value":"pause_pool"},{"key":"module","value":"shield"},{"key":"sender","value":"certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed"}]},{"type":"pause_pool","attributes":[{"key":"pool_id","value":"1"}]}]}],"info":"","gas_wanted":"200000","gas_used":"44372","tx":null,"timestamp":""}
+{"height":"273","txhash":"BF329A55C34628B506D874507497775AEA3052E9CA95ED32C6E2D7E42A774455","codespace":"","code":0,"data":"0A0C0A0A70617573655F706F6F6C","raw_log":"[{\"events\":[{\"type\":\"message\",\"attributes\":[{\"key\":\"action\",\"value\":\"pause_pool\"},{\"key\":\"module\",\"value\":\"shield\"},{\"key\":\"sender\",\"value\":\"shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m\"}]},{\"type\":\"pause_pool\",\"attributes\":[{\"key\":\"pool_id\",\"value\":\"1\"}]}]}]","logs":[{"msg_index":0,"log":"","events":[{"type":"message","attributes":[{"key":"action","value":"pause_pool"},{"key":"module","value":"shield"},{"key":"sender","value":"shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m"}]},{"type":"pause_pool","attributes":[{"key":"pool_id","value":"1"}]}]}],"info":"","gas_wanted":"200000","gas_used":"44372","tx":null,"timestamp":""}
 ```
 
 - `certik tx shield purchase [pool id] [shield amount] [description] [flags]`: Purchase Shield. Requires purchaser to provide descriptions of accounts to be protected. For example, Bob purchases a pool that has id 2 and he needs to provide description "test purchase 1" as below:
 ```{engine = 'sh'}
 $ certik tx shield purchase 2 50000000uctk "test purchase 1" --from bob -y --chain-id certikchain
 
-{"height":"808","txhash":"D9E07C3A566AEC8ED01B918C961D1BEB3A718FC50835AB1FA2475F6E3FF7CB34","codespace":"","code":0,"data":"0A110A0F70757263686173655F736869656C64","raw_log":"[{\"events\":[{\"type\":\"message\",\"attributes\":[{\"key\":\"action\",\"value\":\"purchase_shield\"},{\"key\":\"sender\",\"value\":\"certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed\"},{\"key\":\"module\",\"value\":\"shield\"},{\"key\":\"sender\",\"value\":\"certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed\"}]},{\"type\":\"purchase_shield\",\"attributes\":[{\"key\":\"purchase_id\",\"value\":\"3\"},{\"key\":\"pool_id\",\"value\":\"2\"},{\"key\":\"protection_end_time\",\"value\":\"2021-08-18 17:23:28.41884 +0000 UTC\"},{\"key\":\"purchase_description\",\"value\":\"test purchase 1\"},{\"key\":\"shield\",\"value\":\"50000000\"},{\"key\":\"service_fees\",\"value\":\"native:\\u003cdenom:\\\"uctk\\\" amount:\\\"384500000000000000000000\\\" \\u003e \"}]},{\"type\":\"transfer\",\"attributes\":[{\"key\":\"recipient\",\"value\":\"certik1qu4xymkj6mx86hdqlnpc3ucx0dyujw7dp9w7dr\"},{\"key\":\"sender\",\"value\":\"certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed\"},{\"key\":\"amount\",\"value\":\"384500uctk\"}]}]}]","logs":[{"msg_index":0,"log":"","events":[{"type":"message","attributes":[{"key":"action","value":"purchase_shield"},{"key":"sender","value":"certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed"},{"key":"module","value":"shield"},{"key":"sender","value":"certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed"}]},{"type":"purchase_shield","attributes":[{"key":"purchase_id","value":"3"},{"key":"pool_id","value":"2"},{"key":"protection_end_time","value":"2021-08-18 17:23:28.41884 +0000 UTC"},{"key":"purchase_description","value":"test purchase 1"},{"key":"shield","value":"50000000"},{"key":"service_fees","value":"native:\u003cdenom:\"uctk\" amount:\"384500000000000000000000\" \u003e "}]},{"type":"transfer","attributes":[{"key":"recipient","value":"certik1qu4xymkj6mx86hdqlnpc3ucx0dyujw7dp9w7dr"},{"key":"sender","value":"certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed"},{"key":"amount","value":"384500uctk"}]}]}],"info":"","gas_wanted":"200000","gas_used":"96859","tx":null,"timestamp":""}
+{"height":"808","txhash":"D9E07C3A566AEC8ED01B918C961D1BEB3A718FC50835AB1FA2475F6E3FF7CB34","codespace":"","code":0,"data":"0A110A0F70757263686173655F736869656C64","raw_log":"[{\"events\":[{\"type\":\"message\",\"attributes\":[{\"key\":\"action\",\"value\":\"purchase_shield\"},{\"key\":\"sender\",\"value\":\"shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m\"},{\"key\":\"module\",\"value\":\"shield\"},{\"key\":\"sender\",\"value\":\"shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m\"}]},{\"type\":\"purchase_shield\",\"attributes\":[{\"key\":\"purchase_id\",\"value\":\"3\"},{\"key\":\"pool_id\",\"value\":\"2\"},{\"key\":\"protection_end_time\",\"value\":\"2021-08-18 17:23:28.41884 +0000 UTC\"},{\"key\":\"purchase_description\",\"value\":\"test purchase 1\"},{\"key\":\"shield\",\"value\":\"50000000\"},{\"key\":\"service_fees\",\"value\":\"native:\\u003cdenom:\\\"uctk\\\" amount:\\\"384500000000000000000000\\\" \\u003e \"}]},{\"type\":\"transfer\",\"attributes\":[{\"key\":\"recipient\",\"value\":\"certik1qu4xymkj6mx86hdqlnpc3ucx0dyujw7dp9w7dr\"},{\"key\":\"sender\",\"value\":\"shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m\"},{\"key\":\"amount\",\"value\":\"384500uctk\"}]}]}]","logs":[{"msg_index":0,"log":"","events":[{"type":"message","attributes":[{"key":"action","value":"purchase_shield"},{"key":"sender","value":"shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m"},{"key":"module","value":"shield"},{"key":"sender","value":"shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m"}]},{"type":"purchase_shield","attributes":[{"key":"purchase_id","value":"3"},{"key":"pool_id","value":"2"},{"key":"protection_end_time","value":"2021-08-18 17:23:28.41884 +0000 UTC"},{"key":"purchase_description","value":"test purchase 1"},{"key":"shield","value":"50000000"},{"key":"service_fees","value":"native:\u003cdenom:\"uctk\" amount:\"384500000000000000000000\" \u003e "}]},{"type":"transfer","attributes":[{"key":"recipient","value":"certik1qu4xymkj6mx86hdqlnpc3ucx0dyujw7dp9w7dr"},{"key":"sender","value":"shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m"},{"key":"amount","value":"384500uctk"}]}]}],"info":"","gas_wanted":"200000","gas_used":"96859","tx":null,"timestamp":""}
 ```
 
 - `certik tx shield resume-pool [pool id] [flags]`: Resume a Shield pool to reactivate Shield purchase. Can only be executed from the Shield admin address. After pausing pool 1 above, jack can resume the pool so that members in Shield pool can purchase it.
 ```{engine = 'sh'}
 $ certik tx shield resume-pool 1 --from jack -y --chain-id certikchain
 
-{"height":"282","txhash":"24C7755605CBCE48489E312B619C21418F27B6E994F9B9F67D0110D04F758FDB","codespace":"","code":0,"data":"0A0D0A0B726573756D655F706F6F6C","raw_log":"[{\"events\":[{\"type\":\"message\",\"attributes\":[{\"key\":\"action\",\"value\":\"resume_pool\"},{\"key\":\"module\",\"value\":\"shield\"},{\"key\":\"sender\",\"value\":\"certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed\"}]},{\"type\":\"resume_pool\",\"attributes\":[{\"key\":\"pool_id\",\"value\":\"1\"}]}]}]","logs":[{"msg_index":0,"log":"","events":[{"type":"message","attributes":[{"key":"action","value":"resume_pool"},{"key":"module","value":"shield"},{"key":"sender","value":"certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed"}]},{"type":"resume_pool","attributes":[{"key":"pool_id","value":"1"}]}]}],"info":"","gas_wanted":"200000","gas_used":"44436","tx":null,"timestamp":""}
+{"height":"282","txhash":"24C7755605CBCE48489E312B619C21418F27B6E994F9B9F67D0110D04F758FDB","codespace":"","code":0,"data":"0A0D0A0B726573756D655F706F6F6C","raw_log":"[{\"events\":[{\"type\":\"message\",\"attributes\":[{\"key\":\"action\",\"value\":\"resume_pool\"},{\"key\":\"module\",\"value\":\"shield\"},{\"key\":\"sender\",\"value\":\"shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m\"}]},{\"type\":\"resume_pool\",\"attributes\":[{\"key\":\"pool_id\",\"value\":\"1\"}]}]}]","logs":[{"msg_index":0,"log":"","events":[{"type":"message","attributes":[{"key":"action","value":"resume_pool"},{"key":"module","value":"shield"},{"key":"sender","value":"shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m"}]},{"type":"resume_pool","attributes":[{"key":"pool_id","value":"1"}]}]}],"info":"","gas_wanted":"200000","gas_used":"44436","tx":null,"timestamp":""}
 ```
 
 - `certik tx shield stake-for-shield [pool id] [shield amount] [description] [flags]`: Obtain shield through staking. Requires purchaser to provide descriptions of accounts to be protected. For example, jack wants to obtain the shield, he can stake 5000000uctk for pool with id 1 and provide the description "test 1" as described below:
 ```{engine = 'sh'}
 $ certik tx shield stake-for-shield 1 50000000uctk "test 1" --chain-id certikchain --from jack
 
-{"body":{"messages":[{"@type":"/shentu.shield.v1alpha1.MsgStakeForShield","pool_id":"1","shield":[{"denom":"uctk","amount":"50000000"}],"description":"test 1","from":"certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed"}],"memo":"","timeout_height":"0","extension_options":[],"non_critical_extension_options":[]},"auth_info":{"signer_infos":[],"fee":{"amount":[],"gas_limit":"200000","payer":"","granter":""}},"signatures":[]}
+{"body":{"messages":[{"@type":"/shentu.shield.v1alpha1.MsgStakeForShield","pool_id":"1","shield":[{"denom":"uctk","amount":"50000000"}],"description":"test 1","from":"shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m"}],"memo":"","timeout_height":"0","extension_options":[],"non_critical_extension_options":[]},"auth_info":{"signer_infos":[],"fee":{"amount":[],"gas_limit":"200000","payer":"","granter":""}},"signatures":[]}
   
 confirm transaction before signing and broadcasting [y/N]: y
 ```
@@ -73,7 +73,7 @@ confirm transaction before signing and broadcasting [y/N]: y
 ```{engine = 'sh'}
 $ certik tx shield unstake-from-shield 1 5000000uctk  --chain-id certikchain --from jack
 
-{"body":{"messages":[{"@type":"/shentu.shield.v1alpha1.MsgUnstakeFromShield","pool_id":"1","shield":[{"denom":"uctk","amount":"5000000"}],"from":"certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed"}],"memo":"","timeout_height":"0","extension_options":[],"non_critical_extension_options":[]},"auth_info":{"signer_infos":[],"fee":{"amount":[],"gas_limit":"200000","payer":"","granter":""}},"signatures":[]}  
+{"body":{"messages":[{"@type":"/shentu.shield.v1alpha1.MsgUnstakeFromShield","pool_id":"1","shield":[{"denom":"uctk","amount":"5000000"}],"from":"shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m"}],"memo":"","timeout_height":"0","extension_options":[],"non_critical_extension_options":[]},"auth_info":{"signer_infos":[],"fee":{"amount":[],"gas_limit":"200000","payer":"","granter":""}},"signatures":[]}  
 
 confirm transaction before signing and broadcasting [y/N]: y
 ```
@@ -82,7 +82,7 @@ confirm transaction before signing and broadcasting [y/N]: y
 ```{engine = 'sh'}
 $ certik tx shield update-pool 1 --shield-limit 100000000 --from jack --chain-id certikchain
 
-{"body":{"messages":[{"@type":"/shentu.shield.v1alpha1.MsgUpdatePool","from":"certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed","shield":[],"service_fees":{"native":[],"foreign":[]},"pool_id":"1","description":"","shield_limit":"100000000"}],"memo":"","timeout_height":"0","extension_options":[],"non_critical_extension_options":[]},"auth_info":{"signer_infos":[],"fee":{"amount":[],"gas_limit":"200000","payer":"","granter":""}},"signatures":[]}
+{"body":{"messages":[{"@type":"/shentu.shield.v1alpha1.MsgUpdatePool","from":"shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m","shield":[],"service_fees":{"native":[],"foreign":[]},"pool_id":"1","description":"","shield_limit":"100000000"}],"memo":"","timeout_height":"0","extension_options":[],"non_critical_extension_options":[]},"auth_info":{"signer_infos":[],"fee":{"amount":[],"gas_limit":"200000","payer":"","granter":""}},"signatures":[]}
 
 confirm transaction before signing and broadcasting [y/N]: y
 ```
@@ -100,7 +100,7 @@ confirm transaction before signing and broadcasting [y/N]: y
 ```{engine = 'sh'}
 $ certik tx shield withdraw-collateral 100000uctk --from jack --chain-id certikchain
 
-{"body":{"messages":[{"@type":"/shentu.shield.v1alpha1.MsgWithdrawCollateral","from":"certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed","collateral":[{"denom":"uctk","amount":"100000"}]}],"memo":"","timeout_height":"0","extension_options":[],"non_critical_extension_options":[]},"auth_info":{"signer_infos":[],"fee":{"amount":[],"gas_limit":"200000","payer":"","granter":""}},"signatures":[]}
+{"body":{"messages":[{"@type":"/shentu.shield.v1alpha1.MsgWithdrawCollateral","from":"shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m","collateral":[{"denom":"uctk","amount":"100000"}]}],"memo":"","timeout_height":"0","extension_options":[],"non_critical_extension_options":[]},"auth_info":{"signer_infos":[],"fee":{"amount":[],"gas_limit":"200000","payer":"","granter":""}},"signatures":[]}
 
 confirm transaction before signing and broadcasting [y/N]: y
 ```
@@ -193,7 +193,7 @@ purchase_list:
 	denom: uctk
 	shield: "50000000"
 	pool_id: "2"
-	purchaser: certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed
+	purchaser: shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m
 ```
 
 - `certik query shield pool-purchases [pool_ID] [flags]`: Query purchases in a given pool. Get all the purchasers from a pool 1 by using: 
@@ -213,7 +213,7 @@ purchase_lists:
 	denom: uctk
 	shield: "1000000"
 	pool_id: "1"
-	purchaser: certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed
+	purchaser: shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m
 ```
 
 - `certik query shield pools [flags]`: Query a complete list of pools. After pools are created, we can get all the information of the pools:
@@ -228,7 +228,7 @@ pools:
 	shield: "1000000"
 	shield_limit: "100000000"
 	sponsor: abc
-	sponsor_addr: certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed
+	sponsor_addr: shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m
 
 	- active: true
 	description: ""
@@ -236,14 +236,14 @@ pools:
 	shield: "10000"
 	shield_limit: "100000000"
 	sponsor: test
-	sponsor_addr: certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed
+	sponsor_addr: shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m
 ```
 
 - `certik query shield provider [provider_address] [flags]`: Get provider information.
 ```{engine = 'sh'}
-$ certik query shield provider certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed --chain-id certikchain
+$ certik query shield provider shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m --chain-id certikchain
 providers:
-	- address: certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed
+	- address: shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m
 	collateral: "100000000"
 	delegation_bonded: "10020000000"
 	rewards:
@@ -260,7 +260,7 @@ providers:
 $ certik query shield providers --chain-id certikchain
 
 providers:
-	- address: certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed
+	- address: shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m
 	collateral: "100000000"
 	delegation_bonded: "10020000000"
 	rewards:
@@ -324,7 +324,7 @@ purchase_lists:
 	denom: uctk
 	shield: "1000000"
 	pool_id: "1"
-	purchaser: certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed
+	purchaser: shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m
 	- entries:
 	- deletion_time: "2021-08-18T16:35:53.986569Z"
 	description: shield for sponsor
@@ -347,7 +347,7 @@ purchase_lists:
 	denom: uctk
 	shield: "50000000"
 	pool_id: "2"
-	purchaser: certik1p49jqcz6zs7n603qr74p5tmzf3068uee9dc5ed
+	purchaser: shentu1p49jqcz6zs7n603qr74p5tmzf3068uee23q62m
 ```
 
 - `certik query shield reimbursement [proposal ID] [flags]`: Query a reimbursement. After the proposal is passed, a reimbursement is made and we can get the information of that reimbursement:

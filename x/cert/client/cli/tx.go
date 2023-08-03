@@ -198,7 +198,7 @@ Where proposal.json contains:
 {
   "title": "New Certifier, Joe Shmoe",
   "description": "Why we should make Joe Shmoe a certifier",
-  "certifier": "certik1fdyv6hpukqj6kqdtwc42qacq9lpxm0pn85w6l9",
+  "certifier": "shentu1fdyv6hpukqj6kqdtwc42qacq9lpxm0pnggk5vn",
   "add_or_remove": "add",
   "alias": "joe",
   "deposit": [

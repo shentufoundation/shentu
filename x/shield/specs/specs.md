@@ -2,7 +2,7 @@
 
 CertiKShield is a decentralized pool of CTK that uses CertiK Chain on-chain governance system to reimburse lost, stolen, or inaccessible assets from any blockchain network. There are two members of the CertiKShield system: Collateral Providers and Shield Purchasers. Providers contribute cryptocurrency as collateral to fill the CertiKShield Pool. In return, they receive a portion of the fees paid by Purchasers, in addition to the usual staking rewards. Purchasers pay a recurring fee, based on their riskiness as determined by their CertiK Security Oracle score, that entitles them to submit a Claim Proposal to be reimbursed from the pool for stolen assets.
 
-See the [whitepaper](https://www.certik.foundation/whitepaper#3-CertiKShield) for more information on CertiKShield.
+See the [whitepaper](https://www.shentu.foundation/whitepaper#3-ShentuShield) for more information on ShentuShield.
 
 ## State
 
@@ -319,6 +319,7 @@ type MsgUnstakeFromShield struct {
 ```
 
 `MsgUpdateSponsor` updates the sponsor information of a given pool specified by `PoolID`.
+
 ```go
 // MsgUpdateSponsor defines the attributes of a update-sponsor transaction.
 type MsgUpdateSponsor struct {
@@ -330,6 +331,7 @@ type MsgUpdateSponsor struct {
 ```
 
 ## Parameters
+
 | Parameter           | Info                                                                          | Default |
 |---------------------|-------------------------------------------------------------------------------|---------|
 | `ProtectionPeriod`  | how long a Shield lasts                                                       | 21 days |
@@ -343,3 +345,4 @@ type MsgUpdateSponsor struct {
 | `DepositRate`       |                              _(currently unused)_                             | 10%     |
 | `FeesRate`          |                              _(currently unused)_                             | 1%      |
 | `StakingShieldRate` | multiple of Shield's protected assets that purchaser can stake in lieu of fee | 2       |
+
