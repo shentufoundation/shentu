@@ -1,4 +1,4 @@
-package v4
+package v4_test
 
 import (
 	"github.com/stretchr/testify/require"
@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/common"
+	v4 "github.com/shentufoundation/shentu/v2/x/shield/legacy/v4"
 	"github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
@@ -196,7 +197,7 @@ func TestMigrateStore(t *testing.T) {
 		store.Set(types.GetStakeForShieldKey(plCases[0].poolID, purchaseAddr), bz)
 
 	}
-	err := MigrateStore(ctx, shieldKey, cdc)
+	err := v4.MigrateStore(ctx, shieldKey, cdc)
 	require.NoError(t, err)
 
 	//check for Provider
