@@ -16,7 +16,7 @@ import (
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/common"
-	v280 "github.com/shentufoundation/shentu/v2/x/oracle/legacy/v3"
+	v3 "github.com/shentufoundation/shentu/v2/x/oracle/legacy/v3"
 	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
 )
 
@@ -89,7 +89,7 @@ func Test_MigrateAllTaskStore(t *testing.T) {
 		store.Set(oracletypes.TaskStoreKey(txTask.GetID()), bz)
 	}
 
-	err := v280.MigrateAllTaskStore(ctx, app.GetKey(oracletypes.StoreKey), cdc)
+	err := v3.MigrateAllTaskStore(ctx, app.GetKey(oracletypes.StoreKey), cdc)
 	require.Nil(t, err)
 
 	app.OracleKeeper.IteratorAllTasks(ctx, func(task oracletypes.TaskI) bool {
@@ -141,7 +141,7 @@ func Test_MigrateOperator(t *testing.T) {
 		store.Set(oracletypes.OperatorStoreKey(addr), bz)
 	}
 
-	err := v280.MigrateOperatorStore(ctx, app.GetKey(oracletypes.StoreKey), cdc)
+	err := v3.MigrateOperatorStore(ctx, app.GetKey(oracletypes.StoreKey), cdc)
 	require.Nil(t, err)
 
 	app.OracleKeeper.IterateAllOperators(ctx, func(operator oracletypes.Operator) bool {
@@ -182,7 +182,7 @@ func Test_MigrateWithdraw(t *testing.T) {
 		store.Set(oracletypes.WithdrawStoreKey(withdrawAcc, withdraw.DueBlock), bz)
 	}
 
-	err := v280.MigrateWithdrawStore(ctx, app.GetKey(oracletypes.StoreKey), cdc)
+	err := v3.MigrateWithdrawStore(ctx, app.GetKey(oracletypes.StoreKey), cdc)
 	require.Nil(t, err)
 
 	app.OracleKeeper.IterateAllWithdraws(ctx, func(withdraw oracletypes.Withdraw) bool {
