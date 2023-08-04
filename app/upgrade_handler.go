@@ -317,13 +317,12 @@ func runAuthzMigration(ctx sdk.Context, app ShentuApp) (err error) {
 	ak := app.AuthzKeeper
 	ak.IterateGrants(ctx, func(granterAddr sdk.AccAddress, granteeAddr sdk.AccAddress, grant authz.Grant) bool {
 		authorization := grant.Authorization
-		value := authorization.GetValue()
 
-		switch authorization.GetTypeUrl() {
-		case "/cosmos.authz.v1beta1.GenericAuthorization":
-		case "/cosmos.staking.v1beta1.StakeAuthorization":
+		switch authorization.GetCachedValue().(type) {
+		case *authz.GenericAuthorization:
+		case *stakingtypes.StakeAuthorization:
 			stakeAuthorization := &stakingtypes.StakeAuthorization{}
-			if err = stakeAuthorization.Unmarshal(value); err != nil {
+			if err = stakeAuthorization.Unmarshal(authorization.Value); err != nil {
 				return true
 			}
 			if err = processStakeAuthorization(stakeAuthorization); err != nil {
