@@ -205,6 +205,7 @@ func transAddrPrefixForStaking(ctx sdk.Context, app ShentuApp) (err error) {
 
 func transAddrPrefixForFeegrant(ctx sdk.Context, app ShentuApp) (err error) {
 	fgKeeper := app.FeegrantKeeper
+	store := ctx.KVStore(app.keys[feegrant.StoreKey])
 	fgKeeper.IterateAllFeeAllowances(ctx, func(grant feegrant.Grant) bool {
 		grant.Grantee, err = common.PrefixToShentu(grant.Grantee)
 		if err != nil {
@@ -215,7 +216,6 @@ func transAddrPrefixForFeegrant(ctx sdk.Context, app ShentuApp) (err error) {
 			return true
 		}
 		var granteeAcc, granterAcc sdk.AccAddress
-		var allowance feegrant.FeeAllowanceI
 		granteeAcc, err = sdk.AccAddressFromBech32(grant.Grantee)
 		if err != nil {
 			return true
@@ -224,8 +224,9 @@ func transAddrPrefixForFeegrant(ctx sdk.Context, app ShentuApp) (err error) {
 		if err != nil {
 			return true
 		}
-		allowance, err = grant.GetGrant()
-		err = fgKeeper.GrantAllowance(ctx, granterAcc, granteeAcc, allowance)
+		bz := app.appCodec.MustMarshal(&grant)
+		key := feegrant.FeeAllowanceKey(granterAcc, granteeAcc)
+		store.Set(key, bz) //this will overwrite the value attched with the same key
 		return err != nil
 	})
 	return err

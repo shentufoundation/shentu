@@ -46,11 +46,9 @@ func TestMigrateStore(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	setConfig("certik")
 
-	for _, m := range []string{"auth", "authz", "bank", "staking", "slashing", "gov"} {
+	for _, m := range []string{"auth", "authz", "bank", "staking", "slashing", "gov", "feegrant"} {
 		app.mm.Modules[m].InitGenesis(ctx, app.appCodec, genesisState[m])
 	}
-	//it has to be independently set store for feegrant to avoid affect accAddrCache
-	setStoreForFeegrant(ctx, app, genesisState["feegrant"])
 
 	checkStaking(t, ctx, app, true)
 	checkFeegrant(t, ctx, app, true)
@@ -66,11 +64,16 @@ func TestMigrateStore(t *testing.T) {
 	}
 
 	checkStaking(t, ctx, app, false)
-	//checkFeegrant(t, ctx, app, false)
+	checkFeegrant(t, ctx, app, false)
 	checkGov(t, ctx, app, false)
 	checkSlashing(t, ctx, app, false)
 	checkAuth(t, ctx, app, false)
 	checkAuthz(t, ctx, app, false)
+
+	//check for error cases
+	require.Error(t, transAddrPrefix(ctx, *app))
+	require.Error(t, transAddrPrefixForFeegrant(ctx, *app))
+	require.Error(t, transAddrPrefixForStaking(ctx, *app))
 }
 
 func loadState(t *testing.T) GenesisState {
@@ -151,19 +154,6 @@ func checkGov(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
 	ck := NewChecker(t, app, store, old)
 	ck.checkForOneKey(govtypes.DepositsKeyPrefix, &govtypes.Deposit{})
 	ck.checkForOneKey(govtypes.VotesKeyPrefix, &govtypes.Vote{})
-}
-
-func setStoreForFeegrant(ctx sdk.Context, app *ShentuApp, jraw json.RawMessage) {
-	store := ctx.KVStore(app.keys[fgtypes.StoreKey])
-	var fggs fgtypes.GenesisState
-	app.appCodec.MustUnmarshalJSON(jraw, &fggs)
-	for _, one := range fggs.Allowances {
-		granter := sdk.MustAccAddressFromBech32(one.Granter)
-		grantee := sdk.MustAccAddressFromBech32(one.Grantee)
-		key := fgtypes.FeeAllowanceKey(granter, grantee)
-		bz := app.appCodec.MustMarshal(&one)
-		store.Set(key, bz)
-	}
 }
 
 func checkFeegrant(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
