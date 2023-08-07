@@ -98,7 +98,7 @@ func TestMigrateStore(t *testing.T) {
 	//check for Certificate
 	var cert types.Certificate
 	bz := store.Get(types.CertificateStoreKey(oldCertificate.CertificateId))
-	cdc.MustUnmarshalLengthPrefixed(bz, &cert)
+	cdc.MustUnmarshal(bz, &cert)
 
 	newCertifierAddr, _ := common.PrefixToShentu(oldCertificate.Certifier)
 	require.Equal(t, newCertifierAddr, cert.Certifier)
