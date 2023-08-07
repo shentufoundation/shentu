@@ -2,20 +2,28 @@ package app
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"strings"
 	"testing"
 	"time"
 
-	"io/ioutil"
+	"github.com/test-go/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkauthtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	fgtypes "github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	sktypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/shentufoundation/shentu/v2/common"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"github.com/test-go/testify/require"
+
+	"github.com/shentufoundation/shentu/v2/common"
+	authtypes "github.com/shentufoundation/shentu/v2/x/auth/types"
 )
 
 func setConfig(prefix string) {
@@ -38,20 +46,29 @@ func TestMigrateStore(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now().UTC()})
 	setConfig("certik")
 
-	for _, m := range []string{"auth", "bank", "staking", "gov", "feegrant"} {
+	for _, m := range []string{"auth", "authz", "bank", "staking", "slashing", "gov", "feegrant"} {
 		app.mm.Modules[m].InitGenesis(ctx, app.appCodec, genesisState[m])
 	}
 
 	checkStaking(t, ctx, app, true)
 	checkFeegrant(t, ctx, app, true)
 	checkGov(t, ctx, app, true)
+	checkSlashing(t, ctx, app, true)
+	checkAuth(t, ctx, app, true)
+	checkAuthz(t, ctx, app, true)
 
 	setConfig("shentu")
-	transAddrPrefix(ctx, *app)
+	err := transAddrPrefix(ctx, *app)
+	if err != nil {
+		panic(err)
+	}
 
 	checkStaking(t, ctx, app, false)
 	checkFeegrant(t, ctx, app, false)
 	checkGov(t, ctx, app, false)
+	checkSlashing(t, ctx, app, false)
+	checkAuth(t, ctx, app, false)
+	checkAuthz(t, ctx, app, false)
 
 	//check for error cases
 	require.Error(t, transAddrPrefix(ctx, *app))
@@ -104,8 +121,8 @@ func (c Checker) checkForOneKey(keyPrefix []byte, v any) {
 			panic("failed to cast to codec.ProtoMarshaler")
 		}
 		c.app.appCodec.MustUnmarshal(iter.Value(), iv)
-		jsonstr := MustMarshalJSON(v)
-		c.checkStr(jsonstr)
+		jsonStr := MustMarshalJSON(v)
+		c.checkStr(jsonStr)
 	}
 }
 
@@ -147,4 +164,65 @@ func checkFeegrant(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
 		ck.checkStr(grant.Grantee + grant.Granter)
 		return false
 	})
+}
+
+func checkAuth(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
+	store := ctx.KVStore(app.keys[sdkauthtypes.StoreKey])
+	ck := NewChecker(t, app, store, old)
+	ck.checkForAuth(sdkauthtypes.AddressStoreKeyPrefix)
+}
+
+func checkSlashing(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
+	store := ctx.KVStore(app.keys[slashingtypes.StoreKey])
+	ck := NewChecker(t, app, store, old)
+	ck.checkForOneKey(slashingtypes.ValidatorSigningInfoKeyPrefix, &slashingtypes.ValidatorSigningInfo{})
+}
+
+func checkAuthz(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
+	store := ctx.KVStore(app.keys[authzkeeper.StoreKey])
+	ck := NewChecker(t, app, store, old)
+	ck.checkForAuthz(authzkeeper.GrantKey)
+}
+
+func (c Checker) checkForAuth(keyPrefix []byte) {
+	ak := c.app.AccountKeeper
+	iter := sdk.KVStorePrefixIterator(c.store, keyPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		acc, err := ak.UnmarshalAccount(iter.Value())
+		if err != nil {
+			panic(err)
+		}
+
+		switch account := acc.(type) {
+		case *sdkauthtypes.BaseAccount:
+			c.checkStr(account.Address)
+		case *sdkauthtypes.ModuleAccount:
+			c.checkStr(account.Address)
+		case *authtypes.ManualVestingAccount:
+			c.checkStr(account.Address + account.Unlocker)
+		default:
+			panic("unknown account type")
+		}
+	}
+}
+
+func (c Checker) checkForAuthz(keyPrefix []byte) {
+	iter := sdk.KVStorePrefixIterator(c.store, keyPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		var grant authz.Grant
+		c.app.appCodec.MustUnmarshal(iter.Value(), &grant)
+		authorization := grant.Authorization
+		value := authorization.GetValue()
+
+		switch authorization.GetTypeUrl() {
+		case "/cosmos.staking.v1beta1.StakeAuthorization":
+			stakeAuthorization := &stakingtypes.StakeAuthorization{}
+			if err := stakeAuthorization.Unmarshal(value); err != nil {
+				panic(err)
+			}
+			c.checkStr(stakeAuthorization.String())
+		}
+	}
 }
