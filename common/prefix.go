@@ -52,8 +52,8 @@ func PrefixToShentu(address string) (string, error) {
 	if !strings.HasPrefix(hrp, "certik") {
 		return "", fmt.Errorf("invalid address:%s", address)
 	}
-
-	shentuAddr, err := bech32.ConvertAndEncode("shentu", data)
+	newhrp := strings.Replace(hrp, "certik", "shentu", 1)
+	shentuAddr, err := bech32.ConvertAndEncode(newhrp, data)
 	if err != nil {
 		return "", err
 	}
