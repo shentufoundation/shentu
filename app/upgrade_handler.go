@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	sdkauthtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -321,6 +322,7 @@ func runAuthzMigration(ctx sdk.Context, app ShentuApp) (err error) {
 
 		switch authorization.GetCachedValue().(type) {
 		case *authz.GenericAuthorization:
+		case *banktypes.SendAuthorization:
 		case *stakingtypes.StakeAuthorization:
 			stakeAuthorization := &stakingtypes.StakeAuthorization{}
 			if err = stakeAuthorization.Unmarshal(authorization.Value); err != nil {
