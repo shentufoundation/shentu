@@ -28,7 +28,7 @@ func migrateCertificate(store sdk.KVStore, cdc codec.BinaryCodec) error {
 
 		transistCertContent(&cert)
 
-		bz := cdc.MustMarshalLengthPrefixed(&cert)
+		bz := cdc.MustMarshal(&cert)
 		oldStore.Set(iterator.Key(), bz)
 	}
 	return nil
