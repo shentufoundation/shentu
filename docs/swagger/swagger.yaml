@@ -24939,7 +24939,7 @@ securityDefinitions:
   kms:
     type: basic
 definitions:
-  CertikBaseReq:
+  ShentuBaseReq:
     type: object
     properties:
       from:
@@ -24979,7 +24979,7 @@ definitions:
       simulate:
         type: boolean
         example: false
-  CertikCoins:
+  ShentuCoins:
     type: array
     items:
       type: object
@@ -24990,7 +24990,7 @@ definitions:
         amount:
           type: string
           example: '50000'
-  CertikDecCoin:
+  ShentuDecCoin:
     type: array
     items:
       type: object

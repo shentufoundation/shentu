@@ -7,7 +7,7 @@ Query details of a deposit
 Query details for a single proposal deposit on a proposal by its identifier.
 
 Example:
-$ shentud query gov deposit 1 certik1r4tssz9j0025vrct90uxxfzrte0w94q6s27n4x
+$ shentud query gov deposit 1 shentu1skjwj5whet0lpe65qaq4rpq03hjxlwd9ma4udt
 
 ```
 shentud query gov deposit [proposal-id] [depositer-addr] [flags]

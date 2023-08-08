@@ -560,7 +560,7 @@ paths:
                     type: string
                     example: "shentu1tq980d0dz7jjrtv9j5sqt79sv7zw0rt0zsewne"
                   coins:
-                    $ref: "#/definitions/CertikCoins"
+                    $ref: "#/definitions/ShentuCoins"
                   public_key:
                     example: null
                   account_number:
@@ -611,9 +611,9 @@ paths:
                     type: string
                     example: "shentu1hvtvsmznq749svdkd2rfeana2age6qnjxcvrhr"
                   collateral:
-                    $ref: "#/definitions/CertikCoins"
+                    $ref: "#/definitions/ShentuCoins"
                   accumulated_rewards:
-                    $ref: "#/definitions/CertikCoins"
+                    $ref: "#/definitions/ShentuCoins"
                   name:
                     type: string
                     example: "jack"
@@ -648,9 +648,9 @@ paths:
                       type: string
                       example: "shentu1hvtvsmznq749svdkd2rfeana2age6qnjxcvrhr"
                     collateral:
-                      $ref: "#/definitions/CertikCoins"
+                      $ref: "#/definitions/ShentuCoins"
                     accumulated_rewards:
-                      $ref: "#/definitions/CertikCoins"
+                      $ref: "#/definitions/ShentuCoins"
                     name:
                       type: string
                       example: "jack"
@@ -682,7 +682,7 @@ paths:
                       type: string
                       example: "shentu16rpggu4j84x9km2ne6reggyqd5n5gyw3353xwv"
                     amount:
-                      $ref: "#/definitions/CertikCoins"
+                      $ref: "#/definitions/ShentuCoins"
                     due_block:
                       type: string
                       example: "78"
@@ -718,7 +718,7 @@ paths:
                     type: string
                     example: "78"
                   bounty:
-                    $ref: "#/definitions/CertikCoins"
+                    $ref: "#/definitions/ShentuCoins"
                   description:
                     type: string
                     example: "This is a description"
@@ -743,7 +743,7 @@ paths:
                           type: string
                           example: "100"
                         reward:
-                          $ref: "#/definitions/CertikCoins"
+                          $ref: "#/definitions/ShentuCoins"
                   result:
                     type: string
                     example: "255"
@@ -788,7 +788,7 @@ paths:
                     type: string
                     example: "100"
                   reward:
-                    $ref: "#/definitions/CertikCoins"
+                    $ref: "#/definitions/ShentuCoins"
         404:
           description: Failed to find result
 
@@ -995,7 +995,7 @@ paths:
                             type: object
                             properties:
                               native:
-                                $ref: "#/definitions/CertikDecCoin"
+                                $ref: "#/definitions/ShentuDecCoin"
                               foreign:
                                 type: array
                                 items:
@@ -1072,7 +1072,7 @@ paths:
                           type: object
                           properties:
                             native:
-                              $ref: "#/definitions/CertikDecCoin"
+                              $ref: "#/definitions/ShentuDecCoin"
                             foreign:
                               type: array
                               items:
@@ -1132,7 +1132,7 @@ paths:
                     type: object
                     properties:
                       native:
-                        $ref: "#/definitions/CertikDecCoin"
+                        $ref: "#/definitions/ShentuDecCoin"
                       foreign:
                         type: array
                         items:
@@ -1187,7 +1187,7 @@ paths:
                       type: object
                       properties:
                         native:
-                          $ref: "#/definitions/CertikDecCoin"
+                          $ref: "#/definitions/ShentuDecCoin"
                         foreign:
                           type: array
                           items:
@@ -1260,7 +1260,7 @@ paths:
                             type: object
                             properties:
                               native:
-                                $ref: "#/definitions/CertikDecCoin"
+                                $ref: "#/definitions/ShentuDecCoin"
                               foreign:
                                 type: array
                                 items:
@@ -1315,7 +1315,7 @@ paths:
                       type: object
                       properties:
                         native:
-                          $ref: "#/definitions/CertikDecCoin"
+                          $ref: "#/definitions/ShentuDecCoin"
                         foreign:
                           type: array
                           items:
@@ -1362,7 +1362,7 @@ paths:
                     type: string
                     example: "0.500000000000000000"
                   min_shield_purchase:
-                    $ref: "#/definitions/CertikCoins"
+                    $ref: "#/definitions/ShentuCoins"
         404:
           description: Failed to find result
 
@@ -1392,7 +1392,7 @@ paths:
                     type: string
                     example: "4838400000000000"
                   min_deposit:
-                    $ref: "#/definitions/CertikCoins"
+                    $ref: "#/definitions/ShentuCoins"
                   deposit_rate:
                     type: string
                     example: "0.100000000000000000"
@@ -1434,7 +1434,7 @@ paths:
                     type: object
                     properties:
                       native:
-                        $ref: "#/definitions/CertikDecCoin"
+                        $ref: "#/definitions/ShentuDecCoin"
                       foreign:
                         type: array
                         items:
@@ -1450,7 +1450,7 @@ paths:
                     type: object
                     properties:
                       native:
-                        $ref: "#/definitions/CertikDecCoin"
+                        $ref: "#/definitions/ShentuDecCoin"
                       foreign:
                         type: array
                         items:
@@ -1564,7 +1564,7 @@ paths:
                 type: object
                 properties:
                   amount:
-                    $ref: "#/definitions/CertikCoins"
+                    $ref: "#/definitions/ShentuCoins"
                   beneficiary:
                     type: string
                     example: "shentu1nqvk0skpfqpc86fvqnul36sufeq33yp0rm7ftg"
@@ -1602,7 +1602,7 @@ paths:
                       type: object
                       properties:
                         amount:
-                          $ref: "#/definitions/CertikCoins"
+                          $ref: "#/definitions/ShentuCoins"
                         beneficiary:
                           type: string
                           example: "shentu1nqvk0skpfqpc86fvqnul36sufeq33yp0rm7ftg"
@@ -2801,7 +2801,7 @@ paths:
             type: object
             properties:
               min_initial_deposit:
-                $ref: "#/definitions/CertikCoins"
+                $ref: "#/definitions/ShentuCoins"
               min_deposit:
                 type: array
                 items:
@@ -3177,7 +3177,7 @@ paths:
         500:
           description: Internal Server Error
 definitions:
-  CertikBaseReq:
+  ShentuBaseReq:
     type: object
     properties:
       from:
@@ -3198,7 +3198,7 @@ definitions:
         format: uint64
         example: "1"
       fees:
-        $ref: "#/definitions/CertikCoins"
+        $ref: "#/definitions/ShentuCoins"
       gas:
         type: string
         example: "200000"
@@ -3208,7 +3208,7 @@ definitions:
       simulate:
         type: boolean
         example: false
-  CertikCoins:
+  ShentuCoins:
     type: array
     items:
       type: object
@@ -3219,7 +3219,7 @@ definitions:
         amount:
           type: string
           example: "50000"
-  CertikDecCoin:
+  ShentuDecCoin:
     type: array
     items:
       type: object

@@ -222,7 +222,7 @@ func Test_IsCertified(t *testing.T) {
 		require.Equal(t, false, isCertified)
 
 		cert, err := types.NewCertificate(certType, contentStr,
-			"", "", "Audited by CertiK", addrs[0])
+			"", "", "Audited by Shentu", addrs[0])
 		require.NoError(t, err)
 
 		_, err = app.CertKeeper.IssueCertificate(ctx, cert)
