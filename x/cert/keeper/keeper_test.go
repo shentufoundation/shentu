@@ -185,10 +185,10 @@ func (suite *KeeperTestSuite) TestCertificate_Delete() {
 			args{
 				cert: []cert{
 					{
-						certTypeStr:  "compilation",
-						contStr:      "sourcodehash0",
-						compiler:     "compiler1",
-						bytecodeHash: "bytecodehash1",
+						certTypeStr:  "identity",
+						contStr:      "shentu13kq6ju9ftdas6lngqc9ehl8nfh89jp5k997563",
+						compiler:     "",
+						bytecodeHash: "",
 						description:  "",
 						certifier:    suite.address[0],
 						delete:       true,
@@ -203,6 +203,15 @@ func (suite *KeeperTestSuite) TestCertificate_Delete() {
 		{"Certificate(1) Delete: Add Three Delete the Second One",
 			args{
 				cert: []cert{
+					{
+						certTypeStr:  "compilation",
+						contStr:      "sourcodehash0",
+						compiler:     "compiler1",
+						bytecodeHash: "bytecodehash1",
+						description:  "",
+						certifier:    suite.address[0],
+						delete:       true,
+					},
 					{
 						certTypeStr:  "compilation",
 						contStr:      "sourcodehash0",
