@@ -155,9 +155,8 @@ func (c Certificate) ToString() string {
 		c.CertificateId, c.GetContentString(), c.Description, c.Certifier)
 	if c.CompilationContent != nil {
 		return certStr + "<" + c.CompilationContent.String() + ">"
-	} else {
-		return certStr + "<>"
 	}
+	return certStr + "<>"
 }
 
 // NewKVPair returns a new key-value pair.
