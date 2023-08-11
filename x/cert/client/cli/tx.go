@@ -107,7 +107,15 @@ func GetCmdCertifyPlatform() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "certify-platform <validator pubkey> <platform>",
 		Short: "Certify a validator's host platform",
-		Args:  cobra.ExactArgs(2),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Certify a validator's host platform
+Example:
+$ %s tx cert certify-platform '{\"@type\":\"/cosmos.crypto.secp256k1.PubKey\",\"key\":\"A/N4uA+0c7xg1nOI8eGSB5tYIiQXbLfAZif0/MnwdeJP\"}' test --from=<key_or_address>
+`,
+				version.AppName,
+			),
+		),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -121,7 +129,7 @@ func GetCmdCertifyPlatform() *cobra.Command {
 			}
 
 			var validator cryptotypes.PubKey
-			err = cliCtx.Codec.UnmarshalJSON([]byte(args[0]), validator)
+			err = cliCtx.Codec.UnmarshalInterfaceJSON([]byte(args[0]), &validator)
 			if err != nil {
 				return err
 			}

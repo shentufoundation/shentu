@@ -45,6 +45,7 @@ func Test_GetNewCertificateID(t *testing.T) {
 		c2, err := types.NewCertificate("compilation", "sourcodehash0", "compiler1",
 			"bytecodehash1", "", addrs[0])
 		require.NoError(t, err)
+
 		id2 := app.CertKeeper.GetNextCertificateID(ctx)
 		c2.CertificateId = id2
 		app.CertKeeper.SetNextCertificateID(ctx, id2+1)
