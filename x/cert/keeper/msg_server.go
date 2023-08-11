@@ -75,7 +75,7 @@ func (k msgServer) RevokeCertificate(goCtx context.Context, msg *types.MsgRevoke
 	revokeEvent := sdk.NewEvent(
 		types.EventTypeRevokeCertificate,
 		sdk.NewAttribute("revoker", msg.Revoker),
-		sdk.NewAttribute("revoked_certificate", certificate.String()),
+		sdk.NewAttribute("revoked_certificate", certificate.ToString()),
 		sdk.NewAttribute("revoke_description", msg.Description),
 	)
 	ctx.EventManager().EmitEvent(revokeEvent)
