@@ -116,6 +116,11 @@ func (so *So) WriteString(txt string) {
 	}
 }
 
+func clear(itr interface{}) {
+	p := reflect.ValueOf(itr).Elem()
+	p.Set(reflect.Zero(p.Type()))
+}
+
 func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context) string {
 	cdc := app.Codec()
 	var so = So{wrt: os.Stdout}
@@ -127,7 +132,10 @@ func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context)
 			so.WriteStarter(hex.EncodeToString(k.prefix), "[")
 			for ; iter.Valid(); iter.Next() {
 				var msg proto.Message
-				if k.marshalWay != 3 {
+				if k.marshalWay == 3 {
+					cdc.UnmarshalInterface(iter.Value(), k.ptr)
+					msg = reflect.ValueOf(k.ptr).Elem().Interface().(proto.Message)
+				} else {
 					iv, ok := k.ptr.(codec.ProtoMarshaler)
 					if !ok {
 						panic("failed to cast to codec.ProtoMarshaler")
@@ -136,14 +144,14 @@ func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context)
 						cdc.MustUnmarshalLengthPrefixed(iter.Value(), iv)
 					} else if k.marshalWay == 1{
 						cdc.MustUnmarshal(iter.Value(), iv)
+					} else {
+						panic("unknow marshalway!")
 					}
 					msg = iv.(proto.Message)
-				} else if k.marshalWay == 3 {
-					cdc.UnmarshalInterface(iter.Value(), k.ptr)
-					msg = reflect.ValueOf(k.ptr).Elem().Interface().(proto.Message)
 				}
 				vstr := string(cdc.MustMarshalJSON(msg))
 				so.WriteString(vstr+",")
+				clear(k.ptr)
 			}
 			so.WriteEnder("]")
 			iter.Close()

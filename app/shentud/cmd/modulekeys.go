@@ -23,6 +23,10 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
+	cvmtypes "github.com/shentufoundation/shentu/v2/x/cvm/types"
+	// stgovtypes "github.com/shentufoundation/shentu/v2/x/gov/types"
+	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
+	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 type OneKey struct {
@@ -35,6 +39,7 @@ var (
 	ai authtypes.AccountI
 	evidi evidexported.Evidence
 	pki cryptotypes.PubKey
+	ti  oracletypes.TaskI
 )
 
 var allKeys = map[string][]OneKey {
@@ -45,6 +50,47 @@ var allKeys = map[string][]OneKey {
 		{certtypes.CertificatesStoreKey(),     &certtypes.Certificate{}, 1},
 		{certtypes.LibrariesStoreKey(),        &certtypes.Library{}, 2},
 		// {certtypes.NextCertificateIDStoreKey(), &uint64(), 1}, //binary.LittleEndian.Uint64
+		// {certtypes.ValidatorsStoreKey(),} //this key is not used
+	},
+	cvmtypes.StoreKey: {
+		// {cvmtypes.StorageStoreKeyPrefix, []byte, 1},
+		// {cvmtypes.BlockHashStoreKeyPrefix, []byte, 1},
+		{cvmtypes.CodeStoreKeyPrefix, &cvmtypes.CVMCode{}, 1},
+		// {cvmtypes.AbiStoreKeyPrefix, []byte, 1},
+		// {cvmtypes.MetaHashStoreKeyPrefix, []byte, 1},
+		{cvmtypes.AddressMetaHashStoreKeyPrefix, &cvmtypes.ContractMetas{}, 1},
+	},
+	oracletypes.StoreKey: {
+		{oracletypes.OperatorStoreKeyPrefix,   &oracletypes.Operator{}, 2},
+		{oracletypes.WithdrawStoreKeyPrefix,   &oracletypes.Withdraw{}, 2},
+		{oracletypes.TotalCollateralKeyPrefix, &oracletypes.CoinsProto{}, 2},
+		{oracletypes.TaskStoreKeyPrefix,       &ti, 3},
+		{oracletypes.ClosingTaskStoreKeyPrefix, &oracletypes.TaskIDs{}, 2},
+		{oracletypes.ClosingTaskStoreKeyTimedPrefix, &oracletypes.TaskIDs{}, 2},
+		{oracletypes.ExpireTaskStoreKeyPrefix, &oracletypes.TaskIDs{}, 2},
+		{oracletypes.ShortcutTasksKeyPrefix,   &oracletypes.TaskIDs{}, 2},
+	},
+	shieldtypes.StoreKey: {
+		// {shieldtypes.ShieldAdminKey, sdk.AccAddress},
+		{shieldtypes.TotalCollateralKey, &sdk.IntProto{}, 2},
+		{shieldtypes.TotalWithdrawingKey, &sdk.IntProto{}, 2},
+		{shieldtypes.TotalShieldKey, &sdk.IntProto{}, 2},
+		{shieldtypes.TotalClaimedKey, &sdk.IntProto{}, 2},
+		{shieldtypes.ServiceFeesKey, &shieldtypes.Fees{}, 2},
+		{shieldtypes.RemainingServiceFeesKey, &shieldtypes.Fees{}, 2},
+		{shieldtypes.PoolKey, &shieldtypes.Pool{}, 2},
+		// {shieldtypes.NextPoolIDKey, uint64}, //binary.LittleEndian.PutUint64(bz, id)
+		// {shieldtypes.NextPurchaseIDKey, uint64}, //binary.LittleEndian.PutUint64(bz, id)
+		{shieldtypes.PurchaseListKey, &shieldtypes.PurchaseList{}, 2},
+		{shieldtypes.PurchaseQueueKey, &shieldtypes.PoolPurchaserPairs{}, 2},
+		{shieldtypes.ProviderKey, &shieldtypes.Provider{}, 2},
+		{shieldtypes.WithdrawQueueKey, &shieldtypes.Withdraws{}, 2},
+		{shieldtypes.LastUpdateTimeKey, &shieldtypes.LastUpdateTime{}, 2},
+		{shieldtypes.GlobalStakeForShieldPoolKey, &sdk.IntProto{}, 2},
+		{shieldtypes.StakeForShieldKey, &shieldtypes.ShieldStaking{}, 2},
+		{shieldtypes.BlockServiceFeesKey, &shieldtypes.Fees{}, 2},
+		{shieldtypes.OriginalStakingKey, &sdk.IntProto{}, 2},
+		{shieldtypes.ReimbursementKey, &shieldtypes.Reimbursement{}, 2},
 	},
 	authtypes.StoreKey: {
 		{authtypes.AddressStoreKeyPrefix, &ai, 3},
@@ -88,6 +134,7 @@ var allKeys = map[string][]OneKey {
 		// {govtypes.ProposalIDKey, uint64, 1},
 		{govtypes.DepositsKeyPrefix, &govtypes.Deposit{}, 1},
 		{govtypes.VotesKeyPrefix, &govtypes.Vote{}, 1},
+		// {stgovtypes.CertVotesKeyPrefix, []byte}, // managed by shentu/gov
 	},
 	minttypes.StoreKey: {
 		{minttypes.MinterKey, &minttypes.Minter{}, 1},
