@@ -3,15 +3,15 @@
 ##
 ## Input parameters
 ##
-BINARY=/certik/${BINARY:-certik}
+BINARY=/shentud/${BINARY:-shentud}
 ID=${ID:-0}
-LOG=${LOG:-certik.log}
+LOG=${LOG:-shentud.log}
 
 ##
 ## Assert linux binary
 ##
 if ! [ -f "${BINARY}" ]; then
-	echo "The binary $(basename "${BINARY}") cannot be found. Please add the binary to the shared folder. Please use the BINARY environment variable if the name of the binary is not 'certik' E.g.: -e BINARY=certik_my_test_version"
+	echo "The binary $(basename "${BINARY}") cannot be found. Please add the binary to the shared folder. Please use the BINARY environment variable if the name of the binary is not 'shentud' E.g.: -e BINARY=shentu_my_test_version"
 	exit 1
 fi
 BINARY_CHECK="$(file "$BINARY" | grep 'ELF 64-bit LSB executable, x86-64')"
@@ -23,10 +23,10 @@ fi
 ##
 ## Run binary with all parameters
 ##
-export CERTIKHOME="/certik/node${ID}/certik"
+export SHENTUDHOME="/shentud/node${ID}/shentud"
 
-if [ -d "$(dirname "${CERTIKHOME}"/"${LOG}")" ]; then
-  "${BINARY}" --home "${CERTIKHOME}" "$@" | tee "${CERTIKHOME}/${LOG}"
+if [ -d "$(dirname "${SHENTUDHOME}"/"${LOG}")" ]; then
+  "${BINARY}" --home "${SHENTUDHOME}" "$@" | tee "${SHENTUDHOME}/${LOG}"
 else
-  "${BINARY}" --home "${CERTIKHOME}" "$@"
+  "${BINARY}" --home "${SHENTUDHOME}" "$@"
 fi

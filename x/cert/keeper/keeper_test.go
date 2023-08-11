@@ -304,7 +304,7 @@ func (suite *KeeperTestSuite) TestCertificate_IsCertified_Issue() {
 				cert: []cert{
 					{
 						certTypeStr:  "auditing",
-						contStr:      "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag",
+						contStr:      "shentu1fdyv6hpukqj6kqdtwc42qacq9lpxm0pnggk5vn",
 						compiler:     "compiler1",
 						bytecodeHash: "bytecodehash1",
 						description:  "",
@@ -324,7 +324,7 @@ func (suite *KeeperTestSuite) TestCertificate_IsCertified_Issue() {
 				cert: []cert{
 					{
 						certTypeStr:  "random",
-						contStr:      "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag",
+						contStr:      "shentu1fdyv6hpukqj6kqdtwc42qacq9lpxm0pnggk5vn",
 						compiler:     "compiler1",
 						bytecodeHash: "bytecodehash1",
 						description:  "",
@@ -344,7 +344,7 @@ func (suite *KeeperTestSuite) TestCertificate_IsCertified_Issue() {
 				cert: []cert{
 					{
 						certTypeStr:  "shieldpoolcreator",
-						contStr:      "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag",
+						contStr:      "shentu1fdyv6hpukqj6kqdtwc42qacq9lpxm0pnggk5vn",
 						compiler:     "compiler1",
 						bytecodeHash: "bytecodehash1",
 						description:  "",
@@ -366,7 +366,7 @@ func (suite *KeeperTestSuite) TestCertificate_IsCertified_Issue() {
 				cert: []cert{
 					{
 						certTypeStr:  "oracleoperator",
-						contStr:      "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag",
+						contStr:      "shentu1fdyv6hpukqj6kqdtwc42qacq9lpxm0pnggk5vn",
 						compiler:     "compiler1",
 						bytecodeHash: "bytecodehash1",
 						description:  "",
@@ -388,7 +388,7 @@ func (suite *KeeperTestSuite) TestCertificate_IsCertified_Issue() {
 				cert: []cert{
 					{
 						certTypeStr:  "shieldpoolcreator",
-						contStr:      "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag",
+						contStr:      "shentu1fdyv6hpukqj6kqdtwc42qacq9lpxm0pnggk5vn",
 						compiler:     "compiler1",
 						bytecodeHash: "bytecodehash1",
 						description:  "",

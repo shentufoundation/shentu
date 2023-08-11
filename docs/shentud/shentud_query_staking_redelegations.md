@@ -7,7 +7,7 @@ Query all redelegations records for one delegator
 Query all redelegation records for an individual delegator.
 
 Example:
-$ shentud query staking redelegation certik1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
+$ shentud query staking redelegation shentu1gghjut3ccd8ay0zduzj64hwre2fxs9ldkq89hu
 
 ```
 shentud query staking redelegations [delegator-addr] [flags]

@@ -253,8 +253,8 @@ Response:
   Height: 169
   TxHash: 8067DBC001BE239E5A44843CCEF4C71A87B802352989F97664AF8F265E7B888E
   Data: 07BC7F3C21C34643A90AA1138C950FAC5025B693
-  Raw Log: [{"msg_index":"0","success":true,"log":"certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy"}]
-  Logs: [{"msg_index":0,"success":true,"log":"certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy"}]
+  Raw Log: [{"msg_index":"0","success":true,"log":"shentu1q77870ppcdry82g25yfce9g043gztd5n99x7we"}]
+  Logs: [{"msg_index":0,"success":true,"log":"shentu1q77870ppcdry82g25yfce9g043gztd5n99x7we"}]
   GasWanted: 200000
   GasUsed: 41849
   Tags:
@@ -263,10 +263,10 @@ Response:
   Timestamp: 2019-06-27T16:05:27Z
 ```
 
-To inspect contract code bytes deployed at `certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy`
+To inspect contract code bytes deployed at `shentu1q77870ppcdry82g25yfce9g043gztd5n99x7we`
 
 ```bash
-$ shentud query cvm code certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy
+$ shentud query cvm code shentu1q77870ppcdry82g25yfce9g043gztd5n99x7we
 6080604052348015600F57600080FD5B506004361060325760003560E01C806360FE47B114603757
 80636D4CE63C146062575B600080FD5B606060048036036020811015604B57600080FD5B81019080
 80359060200190929190505050607E565B005B60686088565B604051808281526020019150506040
@@ -277,14 +277,14 @@ $ shentud query cvm code certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy
 To call `SimpleStorage.set(123)` at the contract
 
 ```bash
-$ shentud tx cvm call certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy set 123 --from node0
+$ shentud tx cvm call shentu1q77870ppcdry82g25yfce9g043gztd5n99x7we set 123 --from node0
 ```
 
 Then we can verify the storage setting by calling `SimpleStorage.get()` at the
 contract
 
 ```bash
-$ shentud tx cvm call certik1q77870ppcdry82g25yfce9g043gztd5nd3z8uy get --from node0
+$ shentud tx cvm call shentu1q77870ppcdry82g25yfce9g043gztd5n99x7we get --from node0
 Response:
   TxHash: 6EAABFDF5022F21F88D9DBBE8A0837F3CF6819F06F801BEF301188F22DF16C9B
 ```

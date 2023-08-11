@@ -36,7 +36,8 @@ func PrefixToCertik(address string) (string, error) {
 		return "", fmt.Errorf("invalid address:%s", address)
 	}
 
-	certikAddr, err := bech32.ConvertAndEncode("certik", data)
+	newhrp := strings.Replace(hrp, "shentu", "certik", 1)
+	certikAddr, err := bech32.ConvertAndEncode(newhrp, data)
 	if err != nil {
 		return "", err
 	}

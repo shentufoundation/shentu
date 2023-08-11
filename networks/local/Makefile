@@ -1,6 +1,6 @@
-# Makefile for the "certiknode" docker image.
+# Makefile for the "shentunode" docker image.
 
 all:
-	docker build --tag shentufoundation/certiknode certiknode
+	docker build --tag shentufoundation/shentunode shentunode
 
 .PHONY: all

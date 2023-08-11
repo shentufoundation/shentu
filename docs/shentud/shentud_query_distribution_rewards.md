@@ -7,8 +7,8 @@ Query all distribution delegator rewards or rewards from a particular validator
 Query all rewards earned by a delegator, optionally restrict to rewards from a single validator.
 
 Example:
-$ shentud query distribution rewards certik1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
-$ shentud query distribution rewards certik1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p certikvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
+$ shentud query distribution rewards shentu1gghjut3ccd8ay0zduzj64hwre2fxs9ldkq89hu
+$ shentud query distribution rewards shentu1gghjut3ccd8ay0zduzj64hwre2fxs9ldkq89hu shentuvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldtshsu6
 
 ```
 shentud query distribution rewards [delegator-addr] [validator-addr] [flags]
