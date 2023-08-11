@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"io"
+	"os"
 	"path/filepath"
 	"strings"
 	"reflect"
@@ -9,19 +11,14 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/gogo/protobuf/proto"
-	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	codec "github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	authztypes "github.com/cosmos/cosmos-sdk/x/authz/keeper"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
-	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -79,7 +76,7 @@ shentud check-store 'shentu[a-z]{0,10}1'`,
 				false,
 				shentuApp.Logger(),
 			)
-			jstr := checkKeys(ctx, shentuApp)
+			jstr := checkKeys(ctx, shentuApp, cliCtx)
 
 			cliCtx.PrintString("------------------- " + jstr)
 			return nil
@@ -88,57 +85,46 @@ shentud check-store 'shentu[a-z]{0,10}1'`,
 	return cmd
 }
 
-func WriteStarter(sb *strings.Builder, str, sep string) {
-	sb.WriteString("\n\""+str+"\":"+sep)
+type So struct { 
+	strings.Builder 
+	wrt io.Writer
 }
 
-func WriteEnder(sb *strings.Builder, edr string) {
-	sb.WriteString("\n"+edr)
+func (so *So) WriteStarter(str, sep string) {
+	txt := "\n\""+str+"\":"+sep
+	if so.wrt != nil {
+		so.wrt.Write([]byte(txt))
+	} else {
+		so.WriteString(txt)
+	}
 }
 
-type OneKey struct {
-	prefix []byte
-	ptr interface{}
-	marshalWay int //1: Marshal; 2: MarshalLengthPrefixed; 3: MarshalInterface
+func (so *So) WriteEnder(edr string) {
+	txt := "\n"+edr
+	if so.wrt != nil {
+		so.wrt.Write([]byte(txt))
+	} else {
+		so.WriteString(txt)
+	}
 }
 
-var (
-	ai authtypes.AccountI
-)
-
-var allKeys = map[string][]OneKey {
-	certtypes.StoreKey: {
-		{certtypes.CertifiersStoreKey(),       &certtypes.Certifier{}, 2},
-		{certtypes.CertifierAliasesStoreKey(), &certtypes.Certifier{}, 2},
-		{certtypes.PlatformsStoreKey(),        &certtypes.Platform{}, 1},
-		{certtypes.CertificatesStoreKey(),     &certtypes.Certificate{}, 1},
-		{certtypes.LibrariesStoreKey(),        &certtypes.Library{}, 2},
-		// {certtypes.NextCertificateIDStoreKey(), &uint64(), 1}, //binary.LittleEndian.Uint64
-	},
-	authtypes.StoreKey: {
-		{authtypes.AddressStoreKeyPrefix, &ai, 3},
-		{authtypes.GlobalAccountNumberKey, &gogotypes.UInt64Value{}, 1},
-	},
-	authztypes.StoreKey: {
-		{authztypes.GrantKey, &authz.Grant{}, 1},
-	},
-	banktypes.StoreKey: {
-		{banktypes.BalancesPrefix, &sdk.Coin{}, 1},
-		// {banktypes.SupplyKey, &sdk.Int{}, 1},
-		{banktypes.DenomMetadataPrefix, &banktypes.Metadata{}, 1},
-	},
-	
+func (so *So) WriteString(txt string) {
+	if so.wrt != nil {
+		so.wrt.Write([]byte(txt))
+	} else {
+		so.Builder.WriteString(txt)
+	}
 }
 
-func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp) string {
+func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context) string {
 	cdc := app.Codec()
-	var sb strings.Builder
+	var so = So{wrt: os.Stdout}
 	for skn, ks := range allKeys {
 		store := ctx.KVStore(app.GetKey(skn))
-		WriteStarter(&sb, skn, "{")
+		so.WriteStarter(skn+"###", "{")
 		for _, k := range ks {
 			iter := sdk.KVStorePrefixIterator(store, k.prefix)
-			WriteStarter(&sb, hex.EncodeToString(k.prefix), "[")
+			so.WriteStarter(hex.EncodeToString(k.prefix), "[")
 			for ; iter.Valid(); iter.Next() {
 				var msg proto.Message
 				if k.marshalWay != 3 {
@@ -157,12 +143,12 @@ func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp) string {
 					msg = reflect.ValueOf(k.ptr).Elem().Interface().(proto.Message)
 				}
 				vstr := string(cdc.MustMarshalJSON(msg))
-				sb.WriteString(vstr+",")
+				so.WriteString(vstr+",")
 			}
-			WriteEnder(&sb, "]")
+			so.WriteEnder("]")
 			iter.Close()
 		}
-		WriteEnder(&sb, "}")
+		so.WriteEnder("}")
 	}
-	return sb.String()
+	return so.String()
 }
