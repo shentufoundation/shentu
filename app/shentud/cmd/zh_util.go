@@ -169,11 +169,11 @@ func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context,
 					}
 					msg = iv.(proto.Message)
 				}
-				clear(k.ptr)
 				if so.WriteString(cdc.MustMarshalJSON(msg)) != nil {
+					clear(k.ptr)
 					break
 				}
-				// clear(k.ptr)
+				clear(k.ptr)
 			}
 			so.WriteEnder("]")
 			iter.Close()
