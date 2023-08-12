@@ -1,23 +1,25 @@
 package cmd
 
 import (
+	"encoding/hex"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"reflect"
-	"encoding/hex"
+	"regexp"
+	"strings"
 
 	"github.com/spf13/cobra"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/cosmos/cosmos-sdk/client"
 	codec "github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/gogo/protobuf/proto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	
+
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -57,12 +59,21 @@ func CheckStoreCmd() *cobra.Command {
 		Short: "match dumped store with the given regular expression pattern",
 		Long: `sample (matching bech32 address prefix [shentu]):
 shentud check-store 'shentu[a-z]{0,10}1'`,
-		Args: cobra.ExactArgs(1),
+		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
+
+			so := So{wrt: os.Stdout}
+			if len(args) == 1 {
+				so.rep, err = regexp.Compile(args[0])
+				if err != nil {
+					return err
+				}
+			}
+			
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			home := serverCtx.Config.RootDir
 			db, err := sdk.NewLevelDB("application", filepath.Join(home, "data"))
@@ -76,9 +87,9 @@ shentud check-store 'shentu[a-z]{0,10}1'`,
 				false,
 				shentuApp.Logger(),
 			)
-			jstr := checkKeys(ctx, shentuApp, cliCtx)
+			jstr := checkKeys(ctx, shentuApp, cliCtx, so)
 
-			cliCtx.PrintString("------------------- " + jstr)
+			cliCtx.PrintString(jstr + "-------------------done!\n")
 			return nil
 		},
 	}
@@ -88,6 +99,7 @@ shentud check-store 'shentu[a-z]{0,10}1'`,
 type So struct { 
 	strings.Builder 
 	wrt io.Writer
+	rep *regexp.Regexp
 }
 
 func (so *So) WriteStarter(str, sep string) {
@@ -95,25 +107,34 @@ func (so *So) WriteStarter(str, sep string) {
 	if so.wrt != nil {
 		so.wrt.Write([]byte(txt))
 	} else {
-		so.WriteString(txt)
+		so.WriteString([]byte(txt))
 	}
 }
 
 func (so *So) WriteEnder(edr string) {
-	txt := "\n"+edr
+	txt := edr
 	if so.wrt != nil {
 		so.wrt.Write([]byte(txt))
 	} else {
-		so.WriteString(txt)
+		so.WriteString([]byte(txt))
 	}
 }
 
-func (so *So) WriteString(txt string) {
-	if so.wrt != nil {
-		so.wrt.Write([]byte(txt))
-	} else {
-		so.Builder.WriteString(txt)
+func (so *So) WriteString(txt []byte) error{
+	if so.rep != nil {
+		if so.rep.FindIndex(txt) != nil {
+			so.wrt.Write([]byte("found the pattern!"))
+			so.wrt.Write(append([]byte(" sample: "), txt...))
+			return fmt.Errorf("pattern found")
+		}
+		return nil
 	}
+	if so.wrt != nil {
+		so.wrt.Write(txt)
+		return nil
+	}
+	so.Builder.WriteString(string(txt))
+	return nil
 }
 
 func clear(itr interface{}) {
@@ -121,15 +142,14 @@ func clear(itr interface{}) {
 	p.Set(reflect.Zero(p.Type()))
 }
 
-func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context) string {
+func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context, so So) string {
 	cdc := app.Codec()
-	var so = So{wrt: os.Stdout}
 	for skn, ks := range allKeys {
 		store := ctx.KVStore(app.GetKey(skn))
-		so.WriteStarter(skn+"###", "{")
+		so.WriteStarter("module-"+skn, "{")
 		for _, k := range ks {
 			iter := sdk.KVStorePrefixIterator(store, k.prefix)
-			so.WriteStarter(hex.EncodeToString(k.prefix), "[")
+			so.WriteStarter("key-"+hex.EncodeToString(k.prefix), "[")
 			for ; iter.Valid(); iter.Next() {
 				var msg proto.Message
 				if k.marshalWay == 3 {
@@ -149,14 +169,16 @@ func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context)
 					}
 					msg = iv.(proto.Message)
 				}
-				vstr := string(cdc.MustMarshalJSON(msg))
-				so.WriteString(vstr+",")
 				clear(k.ptr)
+				if so.WriteString(cdc.MustMarshalJSON(msg)) != nil {
+					break
+				}
+				// clear(k.ptr)
 			}
 			so.WriteEnder("]")
 			iter.Close()
 		}
-		so.WriteEnder("}")
+		so.WriteEnder("\n}\n")
 	}
 	return so.String()
 }
