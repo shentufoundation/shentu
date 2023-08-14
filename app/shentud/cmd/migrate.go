@@ -23,6 +23,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distribution "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -112,6 +113,7 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 		panic(err)
 	}
 
+	oldNewValidatorSet := make(map[string]string, len(rks))
 	var state types.AppMap
 	if err := json.Unmarshal(genDoc.AppState, &state); err != nil {
 		log.Fatal(errors.Wrap(err, "failed to JSON unmarshal initial genesis state"))
@@ -121,11 +123,13 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 	var slashingGenesis slashing.GenesisState
 	var bankGenesis bank.GenesisState
 	var authGenesis auth.GenesisState
+	var distributionGenesis distribution.GenesisState
 
 	clientCtx.Codec.MustUnmarshalJSON(state[staking.ModuleName], &stakingGenesis)
 	clientCtx.Codec.MustUnmarshalJSON(state[slashing.ModuleName], &slashingGenesis)
 	clientCtx.Codec.MustUnmarshalJSON(state[bank.ModuleName], &bankGenesis)
 	clientCtx.Codec.MustUnmarshalJSON(state[auth.ModuleName], &authGenesis)
+	clientCtx.Codec.MustUnmarshalJSON(state[distribution.ModuleName], &distributionGenesis)
 
 	// sort validators power descending
 	sort.Slice(stakingGenesis.Validators, func(i, j int) bool {
@@ -222,6 +226,8 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 				bankGenesis.Balances[m].Address = accAddr.String()
 			}
 		}
+
+		oldNewValidatorSet[val.OperatorAddress] = replaceValOperAddress
 		val.OperatorAddress = replaceValOperAddress
 
 		account := auth.NewBaseAccountWithAddress(accAddr)
@@ -233,10 +239,25 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 
 		stakingGenesis.Validators[i] = val
 	}
+
+	for i := 0; i < len(stakingGenesis.Delegations); i++ {
+		newDelegationsValidator := oldNewValidatorSet[stakingGenesis.Delegations[i].ValidatorAddress]
+		if len(oldNewValidatorSet[newDelegationsValidator]) > 0 {
+			stakingGenesis.Delegations[i].ValidatorAddress = oldNewValidatorSet[newDelegationsValidator]
+		}
+	}
+	for i := 0; i < len(distributionGenesis.ValidatorHistoricalRewards); i++ {
+		newDistributionValidator := distributionGenesis.ValidatorHistoricalRewards[i].ValidatorAddress
+		if len(oldNewValidatorSet[newDistributionValidator]) > 0 {
+			distributionGenesis.ValidatorHistoricalRewards[i].ValidatorAddress = oldNewValidatorSet[newDistributionValidator]
+		}
+	}
+
 	state[staking.ModuleName] = clientCtx.Codec.MustMarshalJSON(&stakingGenesis)
 	state[slashing.ModuleName] = clientCtx.Codec.MustMarshalJSON(&slashingGenesis)
 	state[bank.ModuleName] = clientCtx.Codec.MustMarshalJSON(&bankGenesis)
 	state[auth.ModuleName] = clientCtx.Codec.MustMarshalJSON(&authGenesis)
+	state[distribution.ModuleName] = clientCtx.Codec.MustMarshalJSON(&distributionGenesis)
 
 	genDoc.AppState, err = json.Marshal(state)
 
