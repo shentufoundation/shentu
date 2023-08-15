@@ -241,15 +241,15 @@ func loadKeydataFromFile(clientCtx client.Context, replacementsJSON string, genD
 	}
 
 	for i := 0; i < len(stakingGenesis.Delegations); i++ {
-		newDelegationsValidator := oldNewValidatorSet[stakingGenesis.Delegations[i].ValidatorAddress]
-		if len(oldNewValidatorSet[newDelegationsValidator]) > 0 {
-			stakingGenesis.Delegations[i].ValidatorAddress = oldNewValidatorSet[newDelegationsValidator]
+		delegationsValidator := oldNewValidatorSet[stakingGenesis.Delegations[i].ValidatorAddress]
+		if len(oldNewValidatorSet[delegationsValidator]) > 0 {
+			stakingGenesis.Delegations[i].ValidatorAddress = oldNewValidatorSet[delegationsValidator]
 		}
 	}
 	for i := 0; i < len(distributionGenesis.ValidatorHistoricalRewards); i++ {
-		newDistributionValidator := distributionGenesis.ValidatorHistoricalRewards[i].ValidatorAddress
-		if len(oldNewValidatorSet[newDistributionValidator]) > 0 {
-			distributionGenesis.ValidatorHistoricalRewards[i].ValidatorAddress = oldNewValidatorSet[newDistributionValidator]
+		distributionValidator := distributionGenesis.ValidatorHistoricalRewards[i].ValidatorAddress
+		if len(oldNewValidatorSet[distributionValidator]) > 0 {
+			distributionGenesis.ValidatorHistoricalRewards[i].ValidatorAddress = oldNewValidatorSet[distributionValidator]
 		}
 	}
 
