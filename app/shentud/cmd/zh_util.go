@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/spf13/cobra"
 
@@ -23,6 +24,11 @@ import (
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+)
+
+const (
+	ModulesFlag = "modules"
+	ModulesFlagP = "m"
 )
 
 func PubkeyToAddressCmd() *cobra.Command {
@@ -54,11 +60,17 @@ shentud pubkey2addr '{"@type": "/cosmos.crypto.ed25519.PubKey", "key": "lzn2Q4Z4
 }
 
 func CheckStoreCmd() *cobra.Command {
+	ks := make([]string, 0, len(allKeys))
+	for k := range allKeys {
+		ks = append(ks, k)
+	}
+	modulesTxt := strings.Join(ks, ",")
 	cmd := &cobra.Command{
 		Use:   "check-store <rep-pattern>",
 		Short: "match dumped store with the given regular expression pattern",
 		Long: `sample (matching bech32 address prefix [shentu]):
-shentud check-store 'shentu[a-z]{0,10}1'`,
+shentud check-store 'shentu[a-z]{0,10}1'
+All modules are: ` + modulesTxt,
 		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
@@ -73,6 +85,19 @@ shentud check-store 'shentu[a-z]{0,10}1'`,
 					return err
 				}
 			}
+			ms, _ := cmd.Flags().GetString(ModulesFlag)
+			var ks map[string]bool
+			if ms != "" {
+				ks = make(map[string]bool)
+				for _, k := range strings.Split(ms, ",") {
+					ks[k] = true
+				}
+			}
+			for k := range ks {
+				if _, ok := allKeys[k]; !ok {
+					return fmt.Errorf("module %s not in the list", k)
+				}
+			}
 			
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			home := serverCtx.Config.RootDir
@@ -82,17 +107,19 @@ shentud check-store 'shentu[a-z]{0,10}1'`,
 			}
 			app := newApp(serverCtx.Logger, db, nil, serverCtx.Viper)
 			shentuApp, _ := app.(*shentuapp.ShentuApp)
-			ctx := sdk.NewContext(shentuApp.CommitMultiStore().CacheMultiStore(),
+			ctx := sdk.NewContext(
+				shentuApp.CommitMultiStore().CacheMultiStore(),
 				tmproto.Header{Height: shentuApp.LastBlockHeight()},
 				false,
 				shentuApp.Logger(),
 			)
-			jstr := checkKeys(ctx, shentuApp, cliCtx, so)
 
+			jstr := checkKeys(ctx, shentuApp, cliCtx, so, ks)
 			cliCtx.PrintString(jstr + "-------------------done!\n")
 			return nil
 		},
 	}
+	cmd.Flags().StringP(ModulesFlag, ModulesFlagP, "", "specify comma separated module names that will be checked")
 	return cmd
 }
 
@@ -142,9 +169,22 @@ func clear(itr interface{}) {
 	p.Set(reflect.Zero(p.Type()))
 }
 
-func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context, so So) string {
+func byteToStr(bys []byte) string {
+	if utf8.Valid(bys) {
+		return string(bys)
+	}
+	if sdk.VerifyAddressFormat(bys) != nil {
+		return "addr-"+hex.EncodeToString(bys)
+	}
+	return hex.EncodeToString(bys)
+}
+
+func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context, so So, mKeys map[string]bool) string {
 	cdc := app.Codec()
 	for skn, ks := range allKeys {
+		if mKeys != nil && !mKeys[skn] {
+			continue
+		}
 		store := ctx.KVStore(app.GetKey(skn))
 		so.WriteStarter("module-"+skn, "{")
 		for _, k := range ks {

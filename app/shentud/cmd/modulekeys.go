@@ -53,11 +53,11 @@ var allKeys = map[string][]OneKey {
 		// {certtypes.ValidatorsStoreKey(),} //this key is not used
 	},
 	cvmtypes.StoreKey: {
-		// {cvmtypes.StorageStoreKeyPrefix, []byte, 1},
-		// {cvmtypes.BlockHashStoreKeyPrefix, []byte, 1},
+		// {cvmtypes.StorageStoreKeyPrefix, []byte, 1}, //raw
+		// {cvmtypes.BlockHashStoreKeyPrefix, []byte, 1}, //hash
 		{cvmtypes.CodeStoreKeyPrefix, &cvmtypes.CVMCode{}, 1},
-		// {cvmtypes.AbiStoreKeyPrefix, []byte, 1},
-		// {cvmtypes.MetaHashStoreKeyPrefix, []byte, 1},
+		// {cvmtypes.AbiStoreKeyPrefix, []byte, 1}, //string
+		// {cvmtypes.MetaHashStoreKeyPrefix, []byte, 1}, //string
 		{cvmtypes.AddressMetaHashStoreKeyPrefix, &cvmtypes.ContractMetas{}, 1},
 	},
 	oracletypes.StoreKey: {
@@ -105,9 +105,9 @@ var allKeys = map[string][]OneKey {
 		{banktypes.DenomMetadataPrefix, &banktypes.Metadata{}, 1},
 	},
 	captypes.StoreKey: {
-		// {captypes.KeyIndex, uint64(), 1},
+		// {captypes.KeyIndex, uint64(), 1}, //binary.BigEndian.PutUint64
 		{captypes.KeyPrefixIndexCapability, &captypes.CapabilityOwners{}, 1},
-		// {captypes.KeyMemInitialized, []byte, 1}
+		// {captypes.KeyMemInitialized, []byte, 1} //[]byte{1}
 	},
 	// crisistypes: {}
 	disttypes.StoreKey: {
@@ -129,12 +129,12 @@ var allKeys = map[string][]OneKey {
 	},
 	govtypes.StoreKey: {
 		{govtypes.ProposalsKeyPrefix, &govtypes.Proposal{}, 1},
-		// {govtypes.ActiveProposalQueuePrefix, uint64, 1},
-		// {govtypes.InactiveProposalQueuePrefix, uint64, 1},
-		// {govtypes.ProposalIDKey, uint64, 1},
+		// {govtypes.ActiveProposalQueuePrefix, uint64, 1}, //binary.BigEndian.PutUint64
+		// {govtypes.InactiveProposalQueuePrefix, uint64, 1}, //binary.BigEndian.PutUint64
+		// {govtypes.ProposalIDKey, uint64, 1}, //binary.BigEndian.PutUint64
 		{govtypes.DepositsKeyPrefix, &govtypes.Deposit{}, 1},
 		{govtypes.VotesKeyPrefix, &govtypes.Vote{}, 1},
-		// {stgovtypes.CertVotesKeyPrefix, []byte}, // managed by shentu/gov
+		// {stgovtypes.CertVotesKeyPrefix, []byte}, // managed by shentu/gov, binary.BigEndian.PutUint64
 	},
 	minttypes.StoreKey: {
 		{minttypes.MinterKey, &minttypes.Minter{}, 1},
