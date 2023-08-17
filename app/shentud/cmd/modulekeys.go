@@ -24,7 +24,7 @@ import (
 
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	cvmtypes "github.com/shentufoundation/shentu/v2/x/cvm/types"
-	// stgovtypes "github.com/shentufoundation/shentu/v2/x/gov/types"
+	stgovtypes "github.com/shentufoundation/shentu/v2/x/gov/types"
 	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
@@ -49,15 +49,15 @@ var allKeys = map[string][]OneKey {
 		{certtypes.PlatformsStoreKey(),        &certtypes.Platform{}, 1},
 		{certtypes.CertificatesStoreKey(),     &certtypes.Certificate{}, 1},
 		{certtypes.LibrariesStoreKey(),        &certtypes.Library{}, 2},
-		// {certtypes.NextCertificateIDStoreKey(), &uint64(), 1}, //binary.LittleEndian.Uint64
-		// {certtypes.ValidatorsStoreKey(),} //this key is not used
+		{certtypes.NextCertificateIDStoreKey(), nil, 4}, //binary.LittleEndian.Uint64
+		{certtypes.ValidatorsStoreKey(), nil, 4}, //this key is not used
 	},
 	cvmtypes.StoreKey: {
-		// {cvmtypes.StorageStoreKeyPrefix, []byte, 1}, //raw
-		// {cvmtypes.BlockHashStoreKeyPrefix, []byte, 1}, //hash
+		{cvmtypes.StorageStoreKeyPrefix, nil, 4}, //raw []byte
+		{cvmtypes.BlockHashStoreKeyPrefix, nil, 4}, //hash []byte
 		{cvmtypes.CodeStoreKeyPrefix, &cvmtypes.CVMCode{}, 1},
-		// {cvmtypes.AbiStoreKeyPrefix, []byte, 1}, //string
-		// {cvmtypes.MetaHashStoreKeyPrefix, []byte, 1}, //string
+		{cvmtypes.AbiStoreKeyPrefix, nil, 4}, //string
+		{cvmtypes.MetaHashStoreKeyPrefix, nil, 4}, //string
 		{cvmtypes.AddressMetaHashStoreKeyPrefix, &cvmtypes.ContractMetas{}, 1},
 	},
 	oracletypes.StoreKey: {
@@ -71,26 +71,26 @@ var allKeys = map[string][]OneKey {
 		{oracletypes.ShortcutTasksKeyPrefix,   &oracletypes.TaskIDs{}, 2},
 	},
 	shieldtypes.StoreKey: {
-		// {shieldtypes.ShieldAdminKey, sdk.AccAddress},
+		{shieldtypes.ShieldAdminKey, nil, 4}, //sdk.AccAddress
 		{shieldtypes.TotalCollateralKey, &sdk.IntProto{}, 2},
 		{shieldtypes.TotalWithdrawingKey, &sdk.IntProto{}, 2},
 		{shieldtypes.TotalShieldKey, &sdk.IntProto{}, 2},
 		{shieldtypes.TotalClaimedKey, &sdk.IntProto{}, 2},
 		{shieldtypes.ServiceFeesKey, &shieldtypes.Fees{}, 2},
 		{shieldtypes.RemainingServiceFeesKey, &shieldtypes.Fees{}, 2},
-		{shieldtypes.PoolKey, &shieldtypes.Pool{}, 2},
-		// {shieldtypes.NextPoolIDKey, uint64}, //binary.LittleEndian.PutUint64(bz, id)
-		// {shieldtypes.NextPurchaseIDKey, uint64}, //binary.LittleEndian.PutUint64(bz, id)
-		{shieldtypes.PurchaseListKey, &shieldtypes.PurchaseList{}, 2},
-		{shieldtypes.PurchaseQueueKey, &shieldtypes.PoolPurchaserPairs{}, 2},
-		{shieldtypes.ProviderKey, &shieldtypes.Provider{}, 2},
-		{shieldtypes.WithdrawQueueKey, &shieldtypes.Withdraws{}, 2},
+		{shieldtypes.PoolKey,       &shieldtypes.Pool{}, 2},
+		{shieldtypes.NextPoolIDKey, nil, 4}, //binary.LittleEndian.PutUint64(bz, id)
+		{shieldtypes.NextPurchaseIDKey, nil, 4}, //binary.LittleEndian.PutUint64(bz, id)
+		{shieldtypes.PurchaseListKey,   &shieldtypes.PurchaseList{}, 2},
+		{shieldtypes.PurchaseQueueKey,  &shieldtypes.PoolPurchaserPairs{}, 2},
+		{shieldtypes.ProviderKey,       &shieldtypes.Provider{}, 2},
+		{shieldtypes.WithdrawQueueKey,  &shieldtypes.Withdraws{}, 2},
 		{shieldtypes.LastUpdateTimeKey, &shieldtypes.LastUpdateTime{}, 2},
 		{shieldtypes.GlobalStakeForShieldPoolKey, &sdk.IntProto{}, 2},
-		{shieldtypes.StakeForShieldKey, &shieldtypes.ShieldStaking{}, 2},
+		{shieldtypes.StakeForShieldKey,   &shieldtypes.ShieldStaking{}, 2},
 		{shieldtypes.BlockServiceFeesKey, &shieldtypes.Fees{}, 2},
-		{shieldtypes.OriginalStakingKey, &sdk.IntProto{}, 2},
-		{shieldtypes.ReimbursementKey, &shieldtypes.Reimbursement{}, 2},
+		{shieldtypes.OriginalStakingKey,  &sdk.IntProto{}, 2},
+		{shieldtypes.ReimbursementKey,    &shieldtypes.Reimbursement{}, 2},
 	},
 	authtypes.StoreKey: {
 		{authtypes.AddressStoreKeyPrefix, &ai, 3},
@@ -101,20 +101,20 @@ var allKeys = map[string][]OneKey {
 	},
 	banktypes.StoreKey: {
 		{banktypes.BalancesPrefix, &sdk.Coin{}, 1},
-		// {banktypes.SupplyKey, &sdk.Int{}, 1},
+		{banktypes.SupplyKey, nil, 4}, //sdk.Int
 		{banktypes.DenomMetadataPrefix, &banktypes.Metadata{}, 1},
 	},
 	captypes.StoreKey: {
-		// {captypes.KeyIndex, uint64(), 1}, //binary.BigEndian.PutUint64
+		{captypes.KeyIndex, nil, 4}, //binary.BigEndian.PutUint64
 		{captypes.KeyPrefixIndexCapability, &captypes.CapabilityOwners{}, 1},
-		// {captypes.KeyMemInitialized, []byte, 1} //[]byte{1}
+		{captypes.KeyMemInitialized, nil, 4}, //[]byte{1}
 	},
 	// crisistypes: {}
 	disttypes.StoreKey: {
 		{disttypes.FeePoolKey, &disttypes.FeePool{}, 1},
 		{disttypes.ProposerKey, &gogotypes.BytesValue{}, 1},
 		{disttypes.ValidatorOutstandingRewardsPrefix, &disttypes.ValidatorOutstandingRewards{}, 1},
-		// {disttypes.DelegatorWithdrawAddrPrefix, sdk.AccAddress, 1},
+		{disttypes.DelegatorWithdrawAddrPrefix, nil, 4}, //sdk.AccAddress
 		{disttypes.DelegatorStartingInfoPrefix, &disttypes.DelegatorStartingInfo{}, 1},
 		{disttypes.ValidatorHistoricalRewardsPrefix, &disttypes.ValidatorHistoricalRewards{}, 1},
 		{disttypes.ValidatorCurrentRewardsPrefix, &disttypes.ValidatorCurrentRewards{}, 1},
@@ -129,12 +129,12 @@ var allKeys = map[string][]OneKey {
 	},
 	govtypes.StoreKey: {
 		{govtypes.ProposalsKeyPrefix, &govtypes.Proposal{}, 1},
-		// {govtypes.ActiveProposalQueuePrefix, uint64, 1}, //binary.BigEndian.PutUint64
-		// {govtypes.InactiveProposalQueuePrefix, uint64, 1}, //binary.BigEndian.PutUint64
-		// {govtypes.ProposalIDKey, uint64, 1}, //binary.BigEndian.PutUint64
+		{govtypes.ActiveProposalQueuePrefix, nil, 4}, //binary.BigEndian.PutUint64
+		{govtypes.InactiveProposalQueuePrefix, nil, 4}, //binary.BigEndian.PutUint64
+		{govtypes.ProposalIDKey, nil, 4}, //binary.BigEndian.PutUint64
 		{govtypes.DepositsKeyPrefix, &govtypes.Deposit{}, 1},
 		{govtypes.VotesKeyPrefix, &govtypes.Vote{}, 1},
-		// {stgovtypes.CertVotesKeyPrefix, []byte}, // managed by shentu/gov, binary.BigEndian.PutUint64
+		{stgovtypes.CertVotesKeyPrefix, nil, 4}, // managed by shentu/gov, binary.BigEndian.PutUint64
 	},
 	minttypes.StoreKey: {
 		{minttypes.MinterKey, &minttypes.Minter{}, 1},
@@ -149,14 +149,14 @@ var allKeys = map[string][]OneKey {
 		{stakingtypes.LastValidatorPowerKey, &gogotypes.Int64Value{}, 1},
 		{stakingtypes.LastTotalPowerKey,     &sdk.IntProto{}, 1},
 		{stakingtypes.ValidatorsKey,         &stakingtypes.Validator{}, 1},
-		// {stakingtypes.ValidatorsByConsAddrKey, sdk.ValAddress, 1},
-		// {stakingtypes.ValidatorsByPowerIndexKey, sdk.ValAddress, 1},
+		{stakingtypes.ValidatorsByConsAddrKey, nil, 4}, //sdk.ValAddress
+		{stakingtypes.ValidatorsByPowerIndexKey, nil, 4}, //sdk.ValAddress
 		{stakingtypes.DelegationKey,          &stakingtypes.Delegation{}, 1},
 		{stakingtypes.UnbondingDelegationKey, &stakingtypes.UnbondingDelegation{}, 1},
-		// {stakingtypes.UnbondingDelegationByValIndexKey, []byte{}, 1},
+		{stakingtypes.UnbondingDelegationByValIndexKey, nil, 4}, //[]byte
 		{stakingtypes.RedelegationKey,      &stakingtypes.Redelegation{}, 1},
-		// {stakingtypes.RedelegationByValSrcIndexKey, []byte{}, 1},
-		// {stakingtypes.RedelegationByValDstIndexKey, []byte{}, 1},
+		{stakingtypes.RedelegationByValSrcIndexKey, nil, 4}, //[]byte
+		{stakingtypes.RedelegationByValDstIndexKey, nil, 4}, //[]byte
 		{stakingtypes.UnbondingQueueKey,    &stakingtypes.DVPairs{}, 1},
 		{stakingtypes.RedelegationQueueKey, &stakingtypes.DVVTriplets{}, 1},
 		{stakingtypes.ValidatorQueueKey,    &stakingtypes.ValAddresses{}, 1},
@@ -164,11 +164,11 @@ var allKeys = map[string][]OneKey {
 	},
 	upgradetypes.StoreKey: {
 		{[]byte{upgradetypes.PlanByte}, &upgradetypes.Plan{}, 1},
-		// {upgradetypes.DoneByte, uint64, 1},
-		// {upgradetypes.VersionMapByte, uint64, 1},
-		// {upgradetypes.ProtocolVersionByte, uint64, 1},
-		// {upgradetypes.KeyUpgradedIBCState, []byte, 1},
-		// {upgradetypes.KeyUpgradedClient, },
-		// {upgradetypes.KeyUpgradedConsState, },
+		{[]byte{upgradetypes.DoneByte}, nil, 4}, //binary.BigEndian.PutUint64
+		{[]byte{upgradetypes.VersionMapByte}, nil, 4}, //binary.BigEndian.PutUint64
+		{[]byte{upgradetypes.ProtocolVersionByte}, nil, 4}, //binary.BigEndian.PutUint64
+		{[]byte(upgradetypes.KeyUpgradedIBCState), nil, 4}, //[]byte
+		// {[]byte{upgradetypes.KeyUpgradedClient}, },
+		// {[]byte{upgradetypes.KeyUpgradedConsState}, },
 	},
 }

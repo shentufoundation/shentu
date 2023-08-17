@@ -18,7 +18,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/gogo/protobuf/proto"
-
+	gogotypes "github.com/gogo/protobuf/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
@@ -165,8 +165,10 @@ func (so *So) WriteString(txt []byte) error{
 }
 
 func clear(itr interface{}) {
-	p := reflect.ValueOf(itr).Elem()
-	p.Set(reflect.Zero(p.Type()))
+	if itr != nil {
+		p := reflect.ValueOf(itr).Elem()
+		p.Set(reflect.Zero(p.Type()))
+	}
 }
 
 func byteToStr(bys []byte) string {
@@ -195,6 +197,8 @@ func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context,
 				if k.marshalWay == 3 {
 					cdc.UnmarshalInterface(iter.Value(), k.ptr)
 					msg = reflect.ValueOf(k.ptr).Elem().Interface().(proto.Message)
+				} else if k.marshalWay == 4 {
+					msg = &gogotypes.StringValue{Value: byteToStr(iter.Value())}
 				} else {
 					iv, ok := k.ptr.(codec.ProtoMarshaler)
 					if !ok {
