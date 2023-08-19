@@ -17,8 +17,12 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/gogo/protobuf/proto"
 	"github.com/shentufoundation/shentu/v2/common"
 	authtypes "github.com/shentufoundation/shentu/v2/x/auth/types"
+	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
+	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
 )
 
 const (
@@ -252,6 +256,42 @@ func transAddrPrefixForGov(ctx sdk.Context, app ShentuApp) (err error) {
 			return true
 		}
 		govKeeper.SetVote(ctx, vote)
+		return false
+	})
+	if err != nil {
+		return err
+	}
+	govKeeper.IterateProposals(ctx, func(proposal govtypes.Proposal) (stop bool) {
+		scp, ok := proposal.Content.GetCachedValue().(*shieldtypes.ShieldClaimProposal)
+		if ok {
+			scp.Proposer, err = common.PrefixToShentu(scp.Proposer)
+			if err != nil {
+				return true
+			}
+			var msg proto.Message = scp
+			proposal.Content, err = codectypes.NewAnyWithValue(msg)
+			if err != nil {
+				return true
+			}
+			govKeeper.SetProposal(ctx, proposal)
+		}
+		cup, ok := proposal.Content.GetCachedValue().(*certtypes.CertifierUpdateProposal)
+		if ok {
+			cup.Certifier, err = common.PrefixToShentu(cup.Certifier)
+			if err != nil {
+				return true
+			}
+			cup.Proposer, err = common.PrefixToShentu(cup.Proposer)
+			if err != nil {
+				return true
+			}
+			var msg proto.Message = cup
+			proposal.Content, err = codectypes.NewAnyWithValue(msg)
+			if err != nil {
+				return true
+			}
+			govKeeper.SetProposal(ctx, proposal)
+		}
 		return false
 	})
 	return err
