@@ -77,6 +77,7 @@ func TestMigrateStore(t *testing.T) {
 	require.Error(t, transAddrPrefix(ctx, *app))
 	require.Error(t, transAddrPrefixForFeegrant(ctx, *app))
 	require.Error(t, transAddrPrefixForStaking(ctx, *app))
+	require.Error(t, transAddrPrefixForGov(ctx, *app))
 }
 
 func loadState(t *testing.T) GenesisState {
