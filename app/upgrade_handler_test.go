@@ -3,6 +3,8 @@ package app
 import (
 	"encoding/json"
 	"io/ioutil"
+	"reflect"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -22,6 +24,7 @@ import (
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/shentufoundation/shentu/v2/common"
 	authtypes "github.com/shentufoundation/shentu/v2/x/auth/types"
 )
@@ -74,6 +77,7 @@ func TestMigrateStore(t *testing.T) {
 	require.Error(t, transAddrPrefix(ctx, *app))
 	require.Error(t, transAddrPrefixForFeegrant(ctx, *app))
 	require.Error(t, transAddrPrefixForStaking(ctx, *app))
+	require.Error(t, transAddrPrefixForGov(ctx, *app))
 }
 
 func loadState(t *testing.T) GenesisState {
@@ -88,28 +92,23 @@ func loadState(t *testing.T) GenesisState {
 	return genesisState
 }
 
-func MustMarshalJSON(v any) string {
-	bs, err := json.Marshal(v)
-	if err != nil {
-		panic("failed to do json marshal")
-	}
-	return string(bs)
-}
-
 func NewChecker(t *testing.T, app *ShentuApp, store sdk.KVStore, old bool) Checker {
-	prefixPos, prefixNeg := "shentu", "certik"
+	prePos, preNeg := "shentu", "certik"
 	if old {
-		prefixPos, prefixNeg = "certik", "shentu"
+		prePos, preNeg = "certik", "shentu"
 	}
-	return Checker{t, app, store, prefixPos, prefixNeg}
+	return Checker{t, app, store,
+		regexp.MustCompile(prePos + "[a-z]{0,10}1"),
+		regexp.MustCompile(preNeg + "[a-z]{0,10}1"),
+	}
 }
 
 type Checker struct {
 	t         *testing.T
 	app       *ShentuApp
 	store     sdk.KVStore
-	prefixPos string
-	prefixNeg string
+	prefixPos *regexp.Regexp
+	prefixNeg *regexp.Regexp
 }
 
 func (c Checker) checkForOneKey(keyPrefix []byte, v any) {
@@ -121,24 +120,25 @@ func (c Checker) checkForOneKey(keyPrefix []byte, v any) {
 			panic("failed to cast to codec.ProtoMarshaler")
 		}
 		c.app.appCodec.MustUnmarshal(iter.Value(), iv)
-		jsonStr := MustMarshalJSON(v)
+		jsonStr := c.app.appCodec.MustMarshalJSON(v.(proto.Message))
 		c.checkStr(jsonStr)
+		p := reflect.ValueOf(v).Elem()
+		p.Set(reflect.Zero(p.Type()))
 	}
 }
 
-func (c Checker) checkStr(str string) {
-	require.True(c.t, strings.Contains(str, c.prefixPos))
-	require.False(c.t, strings.Contains(str, c.prefixNeg))
+func (c Checker) checkStr(str []byte) {
+	if c.prefixPos.FindIndex(str) != nil || c.prefixNeg.FindIndex(str) != nil {
+		require.NotNil(c.t, c.prefixPos.FindIndex(str))
+		require.Nil(c.t, c.prefixNeg.FindIndex(str))
+	}
 }
 
 func checkStaking(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
-	skKeeper := app.StakingKeeper.Keeper
 	store := ctx.KVStore(app.keys[sktypes.StoreKey])
 	ck := NewChecker(t, app, store, old)
 
-	for _, v := range skKeeper.GetAllValidators(ctx) {
-		ck.checkStr(v.OperatorAddress)
-	}
+	ck.checkForOneKey(sktypes.ValidatorsKey, &sktypes.Validator{})
 	ck.checkForOneKey(sktypes.DelegationKey, &sktypes.Delegation{})
 	ck.checkForOneKey(sktypes.UnbondingDelegationKey, &sktypes.UnbondingDelegation{})
 	ck.checkForOneKey(sktypes.RedelegationKey, &sktypes.Redelegation{})
@@ -154,16 +154,13 @@ func checkGov(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
 	ck := NewChecker(t, app, store, old)
 	ck.checkForOneKey(govtypes.DepositsKeyPrefix, &govtypes.Deposit{})
 	ck.checkForOneKey(govtypes.VotesKeyPrefix, &govtypes.Vote{})
+	ck.checkForOneKey(govtypes.ProposalsKeyPrefix, &govtypes.Proposal{})
 }
 
 func checkFeegrant(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
-	fgKeeper := app.FeegrantKeeper
 	store := ctx.KVStore(app.keys[fgtypes.StoreKey])
 	ck := NewChecker(t, app, store, old)
-	fgKeeper.IterateAllFeeAllowances(ctx, func(grant fgtypes.Grant) bool {
-		ck.checkStr(grant.Grantee + grant.Granter)
-		return false
-	})
+	ck.checkForOneKey(fgtypes.FeeAllowanceKeyPrefix, &fgtypes.Grant{})
 }
 
 func checkAuth(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
@@ -196,11 +193,11 @@ func (c Checker) checkForAuth(keyPrefix []byte) {
 
 		switch account := acc.(type) {
 		case *sdkauthtypes.BaseAccount:
-			c.checkStr(account.Address)
+			c.checkStr([]byte(account.Address))
 		case *sdkauthtypes.ModuleAccount:
-			c.checkStr(account.Address)
+			c.checkStr([]byte(account.Address))
 		case *authtypes.ManualVestingAccount:
-			c.checkStr(account.Address + account.Unlocker)
+			c.checkStr([]byte(account.Address + account.Unlocker))
 		default:
 			panic("unknown account type")
 		}
@@ -222,7 +219,7 @@ func (c Checker) checkForAuthz(keyPrefix []byte) {
 			if err := stakeAuthorization.Unmarshal(value); err != nil {
 				panic(err)
 			}
-			c.checkStr(stakeAuthorization.String())
+			c.checkStr([]byte(stakeAuthorization.String()))
 		}
 	}
 }
