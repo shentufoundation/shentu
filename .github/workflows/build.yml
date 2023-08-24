@@ -23,7 +23,7 @@ jobs:
 #        include:
 #          - targetos: windows
 #            arch: amd64
-    name: certik ${{ matrix.arch }} for ${{ matrix.targetos }}
+    name: shentud ${{ matrix.arch }} for ${{ matrix.targetos }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4.0.1
@@ -33,7 +33,7 @@ jobs:
           GOOS: ${{ matrix.targetos }}
           GOARCH: ${{ matrix.arch }}
 
-      - name: Compile certik binary
+      - name: Compile shentud binary
         run: |
           go mod download
           cd app/shentud/cmd

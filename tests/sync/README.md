@@ -15,8 +15,7 @@ The diagram of the two-node chain is shown above. Because there's only one valid
 ```
 .
 |-- certifier_update.json
-|-- certikcli (you have to place it here manually) 
-|-- certikd (you have to place it here manually) 
+|-- shentud (you have to place it here manually) 
 |-- node0.sh
 |-- node1.sh
 |-- README.md
@@ -24,6 +23,6 @@ The diagram of the two-node chain is shown above. Because there's only one valid
 |-- start.sh
 `-- txs.sh
 ```
-Before starting the integration test, make sure `.../shentu/tests/sync/` directory looks like the diagram above. `certikcli` and `certikd` are the old binaries run by the validator node, and you have to manually place them in this directory. `txs.sh` covers most of our custom transactions, and you're welcome to replace them with your own desired tx sequence.
+Before starting the integration test, make sure `.../shentu/tests/sync/` directory looks like the diagram above. `shentud` is the old binaries run by the validator node, and you have to manually place them in this directory. `txs.sh` covers most of our custom transactions, and you're welcome to replace them with your own desired tx sequence.
 
-To start the integration test, first you need to stop any `certikd` processes on your machine, then run `start.sh`. If something went wrong and you want to terminate the mess, run `killall certikd`. Two nodes will reside in `~/.synctest/` by default, and each node will maintain a `log.txt` in its `certikd` directory for debugging purpose. 
+To start the integration test, first you need to stop any `shentud` processes on your machine, then run `start.sh`. If something went wrong and you want to terminate the mess, run `killall shentud`. Two nodes will reside in `~/.synctest/` by default, and each node will maintain a `log.txt` in its `shentud` directory for debugging purpose. 

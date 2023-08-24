@@ -7,7 +7,7 @@ Query all delegations made to one validator
 Query delegations on an individual validator.
 
 Example:
-$ shentud query staking delegations-to certikvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
+$ shentud query staking delegations-to shentuvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldtshsu6
 
 ```
 shentud query staking delegations-to [validator-addr] [flags]

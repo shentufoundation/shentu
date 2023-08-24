@@ -93,7 +93,7 @@ func (k Keeper) GetTask(ctx sdk.Context, taskID []byte) (task types.TaskI, err e
 	return
 }
 
-//remove ID of the task from closingBlockStore because it has been handled in shortcut
+// DeleteFromClosingTaskIDs remove ID of the task from closingBlockStore because it has been handled in shortcut
 func (k Keeper) DeleteFromClosingTaskIDs(ctx sdk.Context, task types.TaskI) {
 	taskIDs := k.GetClosingTaskIDs(ctx, task)
 	for i := range taskIDs {

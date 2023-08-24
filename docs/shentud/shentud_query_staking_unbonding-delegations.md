@@ -7,7 +7,7 @@ Query all unbonding-delegations records for one delegator
 Query unbonding delegations for an individual delegator.
 
 Example:
-$ shentud query staking unbonding-delegations certik1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
+$ shentud query staking unbonding-delegations shentu1gghjut3ccd8ay0zduzj64hwre2fxs9ldkq89hu
 
 ```
 shentud query staking unbonding-delegations [delegator-addr] [flags]

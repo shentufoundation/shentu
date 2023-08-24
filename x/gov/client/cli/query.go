@@ -108,8 +108,8 @@ func GetCmdQueryProposals() *cobra.Command {
 			fmt.Sprintf(`Query for a all paginated proposals that match optional filters:
 
 Example:
-$ %[1]s query gov proposals --depositor certik1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
-$ %[1]s query gov proposals --voter certik1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
+$ %[1]s query gov proposals --depositor shentu1skjwj5whet0lpe65qaq4rpq03hjxlwd9ma4udt
+$ %[1]s query gov proposals --voter shentu1skjwj5whet0lpe65qaq4rpq03hjxlwd9ma4udt
 $ %[1]s query gov proposals --status (DepositPeriod|CertifierVotingPeriod|ValidatorVotingPeriod|Passed|Rejected)
 $ %[1]s query gov proposals --page=2 --limit=100
 `,
@@ -197,7 +197,7 @@ func GetCmdQueryVote() *cobra.Command {
 			fmt.Sprintf(`Query details for a single vote on a proposal given its identifier.
 
 Example:
-$ %s query gov vote 1 certik16gzt5vd0dd5c98ajl3ld2ltvcahxgyygzglazd
+$ %s query gov vote 1 shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m
 `,
 				version.AppName,
 			),
@@ -353,7 +353,7 @@ func GetCmdQueryDeposit() *cobra.Command {
 			fmt.Sprintf(`Query details for a single proposal deposit on a proposal by its identifier.
 
 Example:
-$ %s query gov deposit 1 certik1r4tssz9j0025vrct90uxxfzrte0w94q6s27n4x
+$ %s query gov deposit 1 shentu16gzt5vd0dd5c98ajl3ld2ltvcahxgyygd58n3m
 `,
 				version.AppName,
 			),

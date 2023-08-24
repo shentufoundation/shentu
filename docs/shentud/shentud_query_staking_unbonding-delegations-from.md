@@ -7,7 +7,7 @@ Query all unbonding delegatations from a validator
 Query delegations that are unbonding _from_ a validator.
 
 Example:
-$ shentud query staking unbonding-delegations-from certikvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
+$ shentud query staking unbonding-delegations-from shentuvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldtshsu6
 
 ```
 shentud query staking unbonding-delegations-from [validator-addr] [flags]
