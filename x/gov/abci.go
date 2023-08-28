@@ -146,6 +146,10 @@ func processSecurityVote(ctx sdk.Context, k keeper.Keeper, proposal govtypes.Pro
 	)
 	logger := k.Logger(ctx)
 
+	// Only process security proposals
+	if !k.HasSecurityVoting(proposal) {
+		return false
+	}
 	// Only process proposals in the security voting period.
 	if k.HasSecurityVoting(proposal) && k.GetCertifierVoted(ctx, proposal.ProposalId) {
 		return false
