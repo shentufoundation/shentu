@@ -35,6 +35,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v2.7.2] - 08-28-2023
+### Bug Fixes
+* (x/gov) [\#761](https://github.com/shentufoundation/shentu/pull/761)  fix the bug of votes are removed early for general proposals
+
 ## [v2.7.1] - 05-25-2023
 * (app) [\#702](https://github.com/shentufoundation/shentu/pull/702)  Upgrade IBC to v4.2.1
 
