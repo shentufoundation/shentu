@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-go@v4.0.1
         with:
           go-version: 1.18
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: technote-space/get-diff-action@v6.1.2
         with:
           PATTERNS: |
@@ -62,7 +62,7 @@ jobs:
       - uses: actions/setup-go@v4.0.1
         with:
           go-version: 1.18
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: technote-space/get-diff-action@v6.1.2
         with:
           PATTERNS: |
@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4.0.1
         with:
           go-version: 1.18
