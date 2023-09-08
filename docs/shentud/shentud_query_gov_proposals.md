@@ -7,8 +7,8 @@ Query proposals with optional filters
 Query for a all paginated proposals that match optional filters:
 
 Example:
-$ shentud query gov proposals --depositor certik1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
-$ shentud query gov proposals --voter certik1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
+$ shentud query gov proposals --depositor shentu1skjwj5whet0lpe65qaq4rpq03hjxlwd9ma4udt
+$ shentud query gov proposals --voter shentu1skjwj5whet0lpe65qaq4rpq03hjxlwd9ma4udt
 $ shentud query gov proposals --status (DepositPeriod|CertifierVotingPeriod|ValidatorVotingPeriod|Passed|Rejected)
 $ shentud query gov proposals --page=2 --limit=100
 

@@ -7,7 +7,7 @@ Query distribution validator slashes
 Query all slashes of a validator for a given block range.
 
 Example:
-$ shentud query distribution slashes certikvalopervaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj 0 100
+$ shentud query distribution slashes shentuvalopervaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldhpn28c 0 100
 
 ```
 shentud query distribution slashes [validator] [start-height] [end-height] [flags]

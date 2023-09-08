@@ -94,9 +94,9 @@ type replacementKeys []map[string]interface{}
  sample replacement key json
 [
     {"pub_key": {"@type":"/cosmos.crypto.ed25519.PubKey","key":"ggUAGDemAsE3poIz6sIhvZ66v3wzQh1eaJwHs6u5dI8="},
-    "valoper": "certikvaloper17dtr2l33v7zc6jwcajtex8jc2ena0msygjrcl5"},
+    "valoper": "shentuvaloper17dtr2l33v7zc6jwcajtex8jc2ena0msyd20rw7"},
     {"pub_key": {"@type":"/cosmos.crypto.ed25519.PubKey","key":"dcRpDFrR/i5e6zYEhIduQ73bAVMNuO7YttDT8O/Bkjo="},
-    "valoper": "certikvaloper1v8yvepuclny9aycq5p7hthe25cer6tprky62nn"}
+    "valoper": "shentuvaloper1v8yvepuclny9aycq5p7hthe25cer6tprnuk3ze"}
 ]
 
 */

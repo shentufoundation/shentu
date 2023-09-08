@@ -26,6 +26,6 @@ sleep 6
 
 # exiting
 
-killall certikd
+killall shentud
 echo "Compatibility check passed!"
 exit 0

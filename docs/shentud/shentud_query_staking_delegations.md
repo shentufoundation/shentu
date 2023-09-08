@@ -7,7 +7,7 @@ Query all delegations made by one delegator
 Query delegations for an individual delegator on all validators.
 
 Example:
-$ shentud query staking delegations certik1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
+$ shentud query staking delegations shentu1gghjut3ccd8ay0zduzj64hwre2fxs9ldkq89hu
 
 ```
 shentud query staking delegations [delegator-addr] [flags]

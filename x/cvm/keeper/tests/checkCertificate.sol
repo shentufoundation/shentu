@@ -1,10 +1,10 @@
 pragma solidity >0.7.0;
 
 contract CheckCertificate {
-    string not_certified = "certik1udzp23twf4a6pf47er26ujgczzh3tcst7c5aze";
+    string not_certified = "shentu1udzp23twf4a6pf47er26ujgczzh3tcst3yvn30";
     string auditing = "cosmos1xxkueklal9vejv9unqu80w9vptyepfa95pd53u";
     string proof = "cosmos1r60hj2xaxn79qth4pkjm9t27l985xfsmnz9paw";
-    string compilation = "certik1udzp23twf4a6pf47er26ujgczzh3tcst7c5aze";
+    string compilation = "shentu1udzp23twf4a6pf47er26ujgczzh3tcst3yvn30";
     string everything = "cosmos1xxkueklal9vejv9unqu80w9vptyepfa95pd53u";
     string sourceCodeHash = "dummysourcecodehash";
 
