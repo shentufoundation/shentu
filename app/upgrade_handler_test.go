@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"reflect"
 	"regexp"
@@ -59,6 +60,7 @@ func TestMigrateStore(t *testing.T) {
 	checkSlashing(t, ctx, app, true)
 	checkAuth(t, ctx, app, true)
 	checkAuthz(t, ctx, app, true)
+	require.NoError(t, checkBank(ctx, app, true))
 
 	setConfig("shentu")
 	err := transAddrPrefix(ctx, *app)
@@ -72,6 +74,7 @@ func TestMigrateStore(t *testing.T) {
 	checkSlashing(t, ctx, app, false)
 	checkAuth(t, ctx, app, false)
 	checkAuthz(t, ctx, app, false)
+	require.NoError(t, checkBank(ctx, app, false))
 
 	//check for error cases
 	require.Error(t, transAddrPrefix(ctx, *app))
@@ -179,6 +182,26 @@ func checkAuthz(t *testing.T, ctx sdk.Context, app *ShentuApp, old bool) {
 	store := ctx.KVStore(app.keys[authzkeeper.StoreKey])
 	ck := NewChecker(t, app, store, old)
 	ck.checkForAuthz(authzkeeper.GrantKey)
+}
+
+func checkBank(ctx sdk.Context, app *ShentuApp, old bool) error {
+	baseKeeper := app.BankKeeper.BaseKeeper
+	metaData := baseKeeper.GetAllDenomMetaData(ctx)
+	oldDescription := "The native staking token of the CertiK Chain."
+	newDescription := "The native staking token of the Shentu Chain."
+	for _, meta := range metaData {
+		if old {
+			if meta.Description != oldDescription {
+				return errors.New("bank migration error")
+			}
+		} else {
+			if meta.Description != newDescription {
+				return errors.New("bank migration error")
+			}
+		}
+	}
+	return nil
+
 }
 
 func (c Checker) checkForAuth(keyPrefix []byte) {

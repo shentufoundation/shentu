@@ -67,6 +67,9 @@ func transAddrPrefix(ctx sdk.Context, app ShentuApp) (err error) {
 	if err = transAddrPrefixForFeegrant(ctx, app); err != nil {
 		return err
 	}
+	if err = transDescriptionForBank(ctx, app); err != nil {
+		return err
+	}
 	if err = transAddrPrefixForGov(ctx, app); err != nil {
 		return err
 	}
@@ -413,4 +416,15 @@ func prefixToShentuAddrs(addrs []string) (newAddrs []string, err error) {
 		newAddrs = append(newAddrs, newAddr)
 	}
 	return newAddrs, err
+}
+
+func transDescriptionForBank(ctx sdk.Context, app ShentuApp) (err error) {
+	baseKeeper := app.BankKeeper.BaseKeeper
+	metaData := baseKeeper.GetAllDenomMetaData(ctx)
+
+	for _, meta := range metaData {
+		meta.Description = "The native staking token of the Shentu Chain."
+		baseKeeper.SetDenomMetaData(ctx, meta)
+	}
+	return nil
 }
