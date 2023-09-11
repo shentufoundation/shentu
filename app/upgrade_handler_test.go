@@ -192,11 +192,11 @@ func checkBank(ctx sdk.Context, app *ShentuApp, old bool) error {
 	for _, meta := range metaData {
 		if old {
 			if meta.Description != oldDescription {
-				return errors.New("asd")
+				return errors.New("bank migration error")
 			}
 		} else {
 			if meta.Description != newDescription {
-				return errors.New("asd")
+				return errors.New("bank migration error")
 			}
 		}
 	}

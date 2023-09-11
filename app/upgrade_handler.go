@@ -423,9 +423,7 @@ func transDescriptionForBank(ctx sdk.Context, app ShentuApp) (err error) {
 	metaData := baseKeeper.GetAllDenomMetaData(ctx)
 
 	for _, meta := range metaData {
-		if meta.Description == "The native staking token of the CertiK Chain." {
-			meta.Description = "The native staking token of the Shentu Chain."
-		}
+		meta.Description = "The native staking token of the Shentu Chain."
 		baseKeeper.SetDenomMetaData(ctx, meta)
 	}
 	return nil
