@@ -182,6 +182,12 @@ func byteToStr(bys []byte) string {
 	return hex.EncodeToString(bys)
 }
 
+type Depositzh struct {
+	ProposalID uint64         `json:"proposal_id"`
+	Depositor  sdk.AccAddress `json:"depositor"`
+	Amount     sdk.Coins      `json:"amount"`
+}
+
 func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context, so So, mKeys map[string]bool) string {
 	cdc := app.Codec()
 	for skn, ks := range allKeys {
@@ -211,6 +217,14 @@ func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context,
 						// cdc.MustUnmarshal(iter.Value(), iv)
 						err := cdc.Unmarshal(iter.Value(), iv)
 						if err != nil {
+							var dzh interface{} = &Depositzh{}
+							ivzh, _ := dzh.(codec.ProtoMarshaler)
+							errzh := cdc.Unmarshal(iter.Value(), ivzh)
+							if errzh != nil {
+								so.WriteString([]byte("new-format-fails!"))
+							} else {
+								so.WriteString(cdc.MustMarshalJSON(ivzh.(proto.Message)))
+							}
 							// so.WriteString(append([]byte("##############"), iter.Key()...))
 							lenstr := strconv.FormatInt(int64(len(iter.Value())), 10)
 							keystr := hex.EncodeToString(iter.Key())
