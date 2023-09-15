@@ -207,7 +207,12 @@ func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context,
 					if k.marshalWay == 2 {
 						cdc.MustUnmarshalLengthPrefixed(iter.Value(), iv)
 					} else if k.marshalWay == 1{
-						cdc.MustUnmarshal(iter.Value(), iv)
+						// cdc.MustUnmarshal(iter.Value(), iv)
+						err := cdc.Unmarshal(iter.Value(), iv)
+						if err != nil {
+							so.WriteString(append([]byte("##############"), iter.Key()...))
+							so.WriteString([]byte("##############"))
+						}
 					} else {
 						panic("unknow marshalway!")
 					}
