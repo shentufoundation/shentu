@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"strconv"
 	"unicode/utf8"
 
 	"github.com/spf13/cobra"
@@ -211,6 +212,12 @@ func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context,
 						err := cdc.Unmarshal(iter.Value(), iv)
 						if err != nil {
 							// so.WriteString(append([]byte("##############"), iter.Key()...))
+							lenstr := strconv.FormatInt(int64(len(iter.Value())), 10)
+							keystr := hex.EncodeToString(iter.Key())
+							so.WriteString([]byte("##############"))
+							so.WriteString([]byte(keystr))
+							so.WriteString([]byte("###"))
+							so.WriteString([]byte(lenstr))
 							so.WriteString([]byte("##############"))
 						}
 					} else {
