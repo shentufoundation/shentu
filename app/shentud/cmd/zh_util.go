@@ -210,7 +210,7 @@ func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context,
 						// cdc.MustUnmarshal(iter.Value(), iv)
 						err := cdc.Unmarshal(iter.Value(), iv)
 						if err != nil {
-							so.WriteString(append([]byte("##############"), iter.Key()...))
+							// so.WriteString(append([]byte("##############"), iter.Key()...))
 							so.WriteString([]byte("##############"))
 						}
 					} else {
