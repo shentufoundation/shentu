@@ -67,3 +67,23 @@ func NewKeeper(
 func (k Keeper) Tally(ctx sdk.Context, proposal govtypes.Proposal) (passes bool, burnDeposits bool, tallyResults govtypes.TallyResult) {
 	return Tally(ctx, k, proposal)
 }
+
+func (k Keeper) IterateAllDepositszh(ctx sdk.Context, cb func(deposit govtypes.Deposit) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, govtypes.DepositsKeyPrefix)
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var deposit govtypes.Deposit
+
+		err := k.cdc.Unmarshal(iterator.Value(), &deposit)
+		if err != nil {
+			deposit.ProposalId = 998877
+		}
+
+		if cb(deposit) {
+			break
+		}
+	}
+}
