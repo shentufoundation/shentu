@@ -20,6 +20,9 @@ import (
 	"github.com/gogo/protobuf/proto"
 	gogotypes "github.com/gogo/protobuf/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibchost "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
+	icahosttypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 
@@ -115,6 +118,7 @@ All modules are: ` + modulesTxt,
 			)
 
 			jstr := checkKeys(ctx, shentuApp, cliCtx, so, ks)
+			printIBCKeys(ctx, shentuApp, cliCtx, so)
 			cliCtx.PrintString(jstr + "-------------------done!\n")
 			return nil
 		},
@@ -225,4 +229,37 @@ func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context,
 		so.WriteEnder("\n}\n")
 	}
 	return so.String()
+}
+
+func binToStr(binData []byte) string {
+	sb := strings.Builder{}
+	for _, b := range binData {
+		if b >= 32 && b <= 126 {
+			sb.WriteString(fmt.Sprintf("%c", b))
+		} else {
+			sb.WriteString(fmt.Sprintf("[%02x]", b))
+		}
+	}
+	return sb.String()
+}
+
+func printIBCKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context, so So) string {
+	// cdc := app.Codec()
+	ibcKeys := []string{
+		ibchost.StoreKey,
+		ibctransfertypes.StoreKey,
+		icahosttypes.StoreKey,
+	}
+	for _, skn := range ibcKeys {
+		store := ctx.KVStore(app.GetKey(skn))
+		iter := sdk.KVStorePrefixIterator(store, nil)
+		so.WriteStarter(skn, "{")
+		for ; iter.Valid(); iter.Next() {
+			so.WriteString([]byte("\n"))
+			so.WriteString([]byte(binToStr(iter.Key())))
+		}
+		so.WriteEnder("\n}")
+		iter.Close()
+	}
+	return "//////////////"
 }
