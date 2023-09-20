@@ -10,6 +10,8 @@ import (
 	"regexp"
 	"strings"
 	"unicode/utf8"
+	"strconv"
+	"sort"
 
 	"github.com/spf13/cobra"
 
@@ -118,54 +120,93 @@ All modules are: ` + modulesTxt,
 			)
 
 			jstr := checkKeys(ctx, shentuApp, cliCtx, so, ks)
-			printIBCKeys(ctx, shentuApp, cliCtx, so)
-			cliCtx.PrintString(jstr + "-------------------done!\n")
+			// printIBCKeys(ctx, shentuApp, cliCtx, so)
+			cliCtx.PrintString(jstr + "\n")
 			return nil
 		},
 	}
 	cmd.Flags().StringP(ModulesFlag, ModulesFlagP, "", "specify comma separated module names that will be checked")
 	return cmd
 }
+type Layer struct {
+	encloseToken string
+	starting bool
+}
 
 type So struct { 
 	strings.Builder 
 	wrt io.Writer
 	rep *regexp.Regexp
+	layers []Layer
 }
 
 func (so *So) WriteStarter(str, sep string) {
-	txt := "\n\""+str+"\":"+sep
-	if so.wrt != nil {
-		so.wrt.Write([]byte(txt))
-	} else {
-		so.WriteString([]byte(txt))
+	txt := sep
+	if str != "" {
+		txt = "\n\""+str+"\":"+txt
 	}
+	if !so.HitFirst() {
+		txt = ", " + txt
+	}
+	so.WriteString(txt)
 }
 
-func (so *So) WriteEnder(edr string) {
-	txt := edr
-	if so.wrt != nil {
-		so.wrt.Write([]byte(txt))
-	} else {
-		so.WriteString([]byte(txt))
-	}
+func (so *So) StartObj(key string) {
+	so.WriteStarter(key, "{")
+	so.layers = append(so.layers, Layer{"}", true})
 }
 
-func (so *So) WriteString(txt []byte) error{
+func (so *So) StartArray(key string) {
+	so.WriteStarter(key, "[")
+	so.layers = append(so.layers, Layer{"]", true})
+}
+
+func (so *So) End() {
+	if len(so.layers) <= 0 {
+		panic("empty tokens when calling End")
+	}
+	innermostLayer := so.layers[len(so.layers)-1]
+	so.layers  = so.layers[:len(so.layers)-1]
+	so.WriteString(innermostLayer.encloseToken)
+}
+
+func (so *So) HitFirst() bool {
+	if len(so.layers) <= 0 {
+		return true
+	}
+	isFirst := so.layers[len(so.layers)-1].starting
+	so.layers[len(so.layers)-1].starting = false
+	return isFirst
+}
+
+func (so *So) WriteKV(key, value []byte) error {
 	if so.rep != nil {
-		if so.rep.FindIndex(txt) != nil {
-			so.wrt.Write([]byte("found the pattern!"))
-			so.wrt.Write(append([]byte(" sample: "), txt...))
+		if so.rep.FindIndex(value) != nil {
+			so.WriteString("found the pattern! sample: ", string(value))
 			return fmt.Errorf("pattern found")
 		}
 		return nil
 	}
-	if so.wrt != nil {
-		so.wrt.Write(txt)
-		return nil
+
+	wrappedKey := "{\"k\":"+binToStr(key)+", \"v\":"
+	if !so.HitFirst() {
+		wrappedKey = ", " + wrappedKey
 	}
-	so.Builder.WriteString(string(txt))
+	if so.wrt != nil {
+		so.wrt.Write([]byte(wrappedKey))
+	} else {
+		so.Builder.WriteString(wrappedKey)
+	}
+	so.WriteString(string(value), "}")
 	return nil
+}
+
+func (so *So) WriteString(strs ...string) {
+	if so.wrt != nil {
+		so.wrt.Write([]byte(strings.Join(strs, "")))
+	} else {
+		so.Builder.WriteString(strings.Join(strs, ""))
+	}
 }
 
 func clear(itr interface{}) {
@@ -187,15 +228,22 @@ func byteToStr(bys []byte) string {
 
 func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context, so So, mKeys map[string]bool) string {
 	cdc := app.Codec()
-	for skn, ks := range allKeys {
+	allModules := make([]string, 0, len(allKeys))
+	for k := range allKeys {
+		allModules = append(allModules, k)
+	}
+	sort.Strings(allModules)
+
+	so.StartObj("")
+	for _, skn := range allModules {
 		if mKeys != nil && !mKeys[skn] {
 			continue
 		}
 		store := ctx.KVStore(app.GetKey(skn))
-		so.WriteStarter("module-"+skn, "{")
-		for _, k := range ks {
+		so.StartObj("module-"+skn)
+		for _, k := range allKeys[skn] {
 			iter := sdk.KVStorePrefixIterator(store, k.prefix)
-			so.WriteStarter("key-"+hex.EncodeToString(k.prefix), "[")
+			so.StartArray("key-"+hex.EncodeToString(k.prefix))
 			for ; iter.Valid(); iter.Next() {
 				var msg proto.Message
 				if k.marshalWay == 3 {
@@ -217,20 +265,24 @@ func checkKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context,
 					}
 					msg = iv.(proto.Message)
 				}
-				if so.WriteString(cdc.MustMarshalJSON(msg)) != nil {
+				if so.WriteKV(iter.Key(), cdc.MustMarshalJSON(msg)) != nil {
 					clear(k.ptr)
 					break
 				}
 				clear(k.ptr)
 			}
-			so.WriteEnder("]")
+			so.End()
 			iter.Close()
 		}
-		so.WriteEnder("\n}\n")
+		so.End()
 	}
+	so.End()
 	return so.String()
 }
 
+//for printable ascii, print as is
+//otherwise, print [hex]
+//escape double-quote character
 func binToStr(binData []byte) string {
 	sb := strings.Builder{}
 	for _, b := range binData {
@@ -240,7 +292,7 @@ func binToStr(binData []byte) string {
 			sb.WriteString(fmt.Sprintf("[%02x]", b))
 		}
 	}
-	return sb.String()
+	return strconv.Quote(sb.String()) 
 }
 
 func printIBCKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Context, so So) string {
@@ -253,12 +305,11 @@ func printIBCKeys(ctx sdk.Context, app *shentuapp.ShentuApp, cliCtx client.Conte
 	for _, skn := range ibcKeys {
 		store := ctx.KVStore(app.GetKey(skn))
 		iter := sdk.KVStorePrefixIterator(store, nil)
-		so.WriteStarter(skn, "{")
+		so.StartObj(skn)
 		for ; iter.Valid(); iter.Next() {
-			so.WriteString([]byte("\n"))
-			so.WriteString([]byte(binToStr(iter.Key())))
+			so.WriteString("\n", binToStr(iter.Key()))
 		}
-		so.WriteEnder("\n}")
+		so.End()
 		iter.Close()
 	}
 	return "//////////////"
