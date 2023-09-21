@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"fmt"
+	"sort"
+	"regexp"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gogotypes "github.com/gogo/protobuf/types"
 
@@ -27,6 +31,14 @@ import (
 	stgovtypes "github.com/shentufoundation/shentu/v2/x/gov/types"
 	oracletypes "github.com/shentufoundation/shentu/v2/x/oracle/types"
 	shieldtypes "github.com/shentufoundation/shentu/v2/x/shield/types"
+
+	ibchost "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
+	icahosttypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	ibcexported "github.com/cosmos/ibc-go/v4/modules/core/exported"
+	ibcconntypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
+	ibcchantypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 )
 
 type OneKey struct {
@@ -40,9 +52,33 @@ var (
 	evidi evidexported.Evidence
 	pki cryptotypes.PubKey
 	ti  oracletypes.TaskI
+	ibcCS ibcexported.ClientState
+	ibcConsS    ibcexported.ConsensusState
 )
+type OKs []OneKey
+type KeyTypes map[string]OKs
 
-var allKeys = map[string][]OneKey {
+func (kt KeyTypes) SortedModuleNames() []string {
+	allModules := make([]string, 0, len(kt))
+	for k := range kt {
+		allModules = append(allModules, k)
+	}
+	sort.Strings(allModules)
+	return allModules
+}
+
+func (ks OKs) MatchKey(key []byte) (OneKey, error) {
+	for _, i := range ks {
+		//Todo: cache the compiled exp
+		m := regexp.MustCompile(string(i.prefix))
+		if m.FindIndex(key) != nil {
+			return i, nil
+		}
+	}
+	return OneKey{}, fmt.Errorf("key not matched")
+}
+
+var allKeys = KeyTypes {
 	certtypes.StoreKey: {
 		{certtypes.CertifiersStoreKey(),        &certtypes.Certifier{}, 2},
 		{certtypes.CertifierAliasesStoreKey(),  &certtypes.Certifier{}, 2},
@@ -170,5 +206,53 @@ var allKeys = map[string][]OneKey {
 		{[]byte(upgradetypes.KeyUpgradedIBCState), nil, 4}, //[]byte
 		// {[]byte{upgradetypes.KeyUpgradedClient}, },
 		// {[]byte{upgradetypes.KeyUpgradedConsState}, },
+	},
+	ibctransfertypes.StoreKey: {
+		{ibctransfertypes.PortKey,       nil, 4},
+		{ibctransfertypes.DenomTraceKey, &ibctransfertypes.DenomTrace{}, 1},
+	},
+	icahosttypes.StoreKey: {
+		{[]byte(icatypes.ActiveChannelKeyPrefix), nil, 4},
+		{[]byte(icatypes.OwnerKeyPrefix),         nil, 4},
+		{[]byte(icatypes.PortKeyPrefix),          nil, 4},
+	},
+}
+
+var pathKeys = KeyTypes {
+	ibchost.StoreKey: {
+		//sample: clients/07-tendermint-9/clientState
+		{[]byte("clients/[^/]+/clientState$"), &ibcCS, 3},
+		//sample: clients/07-tendermint-9/connections
+		{[]byte("clients/[^/]+/connections$"), &ibcconntypes.ClientPaths{}, 1},
+		//sample: clients/07-tendermint-9/consensusStates/1-11532270
+		{[]byte("clients/[^/]+/consensusStates/[^/]+[0-9]+$"), &ibcConsS, 3},
+		//sample: clients/07-tendermint-9/consensusStates/1-11504960/processedHeight
+		{[]byte("clients/[^/]+/consensusStates/[^/]+[0-9]+/processedHeight$"), nil, 4}, //[]byte(exported.Height.String())
+		//sample: clients/07-tendermint-9/consensusStates/1-11504960/processedTime
+		{[]byte("clients/[^/]+/consensusStates/[^/]+[0-9]+/processedTime$"), nil, 4},  //sdk.Uint64ToBigEndian(uint64 timeNs)
+		//sample: clients/07-tendermint-9/iterateConsensusStates[00][00][00][00][00][00][00][01][00][00][00][00][00][ad][02][85]
+		{[]byte("(?s)clients/[^/]+/iterateConsensusStates.+$"), nil, 4},  //[]byte(ConsensusStatePath(height))
+		//sample: receipts/ports/transfer/channels/channel-8/sequences/88
+		{[]byte("receipts/.+$"),         nil, 4},  //[]byte{byte(1)}
+		//sample: nextSequenceSend/ports/transfer/channels/channel-9
+		{[]byte("nextSequenceSend/.+$"), nil, 4},  //sdk.Uint64ToBigEndian(uint64)
+		//sample: connections/connection-18
+		{[]byte("connections/.+$"), &ibcconntypes.ConnectionEnd{}, 1},
+		//sample: nextSequenceAck/ports/transfer/channels/channel-12
+		{[]byte("nextSequenceAck/.+$"),  nil, 4},  //sdk.Uint64ToBigEndian(uint64)
+		//sample: nextSequenceRecv/ports/transfer/channels/channel-11
+		{[]byte("nextSequenceRecv/.+$"), nil, 4},  // sdk.Uint64ToBigEndian(uint64)
+		//sample: acks/ports/transfer/channels/channel-1/sequences/28
+		{[]byte("acks/.+$"),             nil, 4},  // []byte
+		//sample: channelEnds/ports/transfer/channels/channel-15
+		{[]byte("channelEnds/.+$"),         &ibcchantypes.Channel{}, 1},
+		//sample: commitments/ports/transfer/channels/channel-11/sequences/1
+		{[]byte("commitments/.+$"),         nil, 4}, //sha256.Sum256(buf)
+		//sample: nextChannelSequence
+		{[]byte("nextChannelSequence$"),    nil, 4}, //sdk.Uint64ToBigEndian(sequence)
+		//sample: nextClientSequence
+		{[]byte("nextClientSequence$"),     nil, 4}, //sdk.Uint64ToBigEndian(sequence)
+		//sample: nextConnectionSequence
+		{[]byte("nextConnectionSequence$"), nil, 4}, //sdk.Uint64ToBigEndian(sequence)
 	},
 }
