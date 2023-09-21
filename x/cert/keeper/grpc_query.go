@@ -11,6 +11,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	qtypes "github.com/cosmos/cosmos-sdk/types/query"
 
+	"github.com/shentufoundation/shentu/v2/common"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
@@ -136,4 +137,15 @@ func (q Querier) Certificates(c context.Context, req *types.QueryCertificatesReq
 	}
 
 	return &types.QueryCertificatesResponse{Total: total, Certificates: results}, nil
+}
+
+func (q Querier) AddrConversion(c context.Context, req *types.ConversionToShentuAddrRequest) (*types.ConversionToShentuAddrResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	shentuAddr, err := common.PrefixToShentu(req.Address)
+	if err != nil {
+		return nil, err
+	}
+	return &types.ConversionToShentuAddrResponse{Address: shentuAddr}, nil
 }
