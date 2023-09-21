@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"github.com/shentufoundation/shentu/v2/common"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -12,6 +11,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	qtypes "github.com/cosmos/cosmos-sdk/types/query"
 
+	"github.com/shentufoundation/shentu/v2/common"
 	"github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
