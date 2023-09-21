@@ -32,6 +32,10 @@ service Query {
     rpc Certificates(QueryCertificatesRequest) returns (QueryCertificatesResponse) {
         option (google.api.http).get = "/shentu/cert/v1alpha1/certificates";
     }
+
+    rpc AddrConversion(ConversionToShentuAddrRequest) returns (ConversionToShentuAddrResponse) {
+        option (google.api.http).get = "/shentu/conversion/to-shentu/{address}";
+    }
 }
 
 message QueryCertifierRequest {
@@ -80,4 +84,12 @@ message QueryCertificatesResponse {
 
     // pagination defines the pagination in the response.
     //cosmos.base.query.v1beta1.PageResponse pagination = 3;
+}
+
+message ConversionToShentuAddrRequest {
+    string address = 1;
+}
+
+message ConversionToShentuAddrResponse {
+    string address = 1;
 }
