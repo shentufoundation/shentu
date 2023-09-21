@@ -231,6 +231,7 @@ var pathKeys = KeyTypes {
 		//sample: clients/07-tendermint-9/consensusStates/1-11504960/processedTime
 		{[]byte("clients/[^/]+/consensusStates/[^/]+[0-9]+/processedTime$"), nil, 4},  //sdk.Uint64ToBigEndian(uint64 timeNs)
 		//sample: clients/07-tendermint-9/iterateConsensusStates[00][00][00][00][00][00][00][01][00][00][00][00][00][ad][02][85]
+		//the leading (?s) is to make dot . matches new line
 		{[]byte("(?s)clients/[^/]+/iterateConsensusStates.+$"), nil, 4},  //[]byte(ConsensusStatePath(height))
 		//sample: receipts/ports/transfer/channels/channel-8/sequences/88
 		{[]byte("receipts/.+$"),         nil, 4},  //[]byte{byte(1)}
