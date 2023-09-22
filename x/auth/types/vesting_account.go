@@ -69,7 +69,7 @@ func (mva *ManualVestingAccount) TrackDelegation(blockTime time.Time, balance, a
 }
 
 // GetStartTime returns zero since a manual vesting account has no start time.
-func (mva ManualVestingAccount) GetStartTime() int64 {
+func (ManualVestingAccount) GetStartTime() int64 {
 	return 0
 }
 

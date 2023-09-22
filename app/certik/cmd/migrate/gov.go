@@ -231,15 +231,15 @@ func (cup CertifierUpdateProposal) GetTitle() string { return cup.Title }
 func (cup CertifierUpdateProposal) GetDescription() string { return cup.Description }
 
 // GetDescription returns the routing key of a certifier update proposal.
-func (cup CertifierUpdateProposal) ProposalRoute() string { return certtypes.RouterKey }
+func (CertifierUpdateProposal) ProposalRoute() string { return certtypes.RouterKey }
 
 // ProposalType returns the type of a certifier update proposal.
-func (cup CertifierUpdateProposal) ProposalType() string {
+func (CertifierUpdateProposal) ProposalType() string {
 	return certtypes.ProposalTypeCertifierUpdate
 }
 
 // ValidateBasic runs basic stateless validity checks
-func (cup CertifierUpdateProposal) ValidateBasic() error {
+func (CertifierUpdateProposal) ValidateBasic() error {
 	return nil
 }
 
@@ -281,17 +281,17 @@ func (scp ShieldClaimProposal) GetDescription() string {
 }
 
 // GetDescription returns the routing key of a shield claim proposal.
-func (scp ShieldClaimProposal) ProposalRoute() string {
+func (ShieldClaimProposal) ProposalRoute() string {
 	return shieldtypes.RouterKey
 }
 
 // ProposalType returns the type of a shield claim proposal.
-func (scp ShieldClaimProposal) ProposalType() string {
+func (ShieldClaimProposal) ProposalType() string {
 	return shieldtypes.ProposalTypeShieldClaim
 }
 
 // ValidateBasic runs basic stateless validity checks.
-func (scp ShieldClaimProposal) ValidateBasic() error {
+func (ShieldClaimProposal) ValidateBasic() error {
 	// TODO
 	return nil
 }

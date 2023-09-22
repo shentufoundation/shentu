@@ -88,7 +88,7 @@ func (a AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) 
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
-func (a AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, mux *runtime.ServeMux) {
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, mux *runtime.ServeMux) {
 	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(ctx))
 }
 
@@ -108,7 +108,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
-func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
 }
 
@@ -132,12 +132,12 @@ func NewAppModule(cdc codec.Marshaler, keeper keeper.Keeper, ak govtypes.Account
 }
 
 // Name returns the governance module's name.
-func (am AppModule) Name() string {
+func (AppModule) Name() string {
 	return govtypes.ModuleName
 }
 
 // RegisterInvariants registers the governance module invariants.
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	// TODO: Register cosmos invariant?
 }
 
@@ -147,7 +147,7 @@ func (am AppModule) Route() sdk.Route {
 }
 
 // QuerierRoute returns the governance module's querier route name.
-func (am AppModule) QuerierRoute() string {
+func (AppModule) QuerierRoute() string {
 	return govtypes.QuerierRoute
 }
 
@@ -178,7 +178,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json
 }
 
 // BeginBlock implements the Cosmos SDK BeginBlock module function.
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
+func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
 // EndBlock implements the Cosmos SDK EndBlock module function.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {

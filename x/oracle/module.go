@@ -108,12 +108,12 @@ func NewAppModule(oracleKeeper keeper.Keeper, bk types.BankKeeper) AppModule {
 }
 
 // Name returns the oracle module's name.
-func (am AppModule) Name() string {
+func (AppModule) Name() string {
 	return types.ModuleName
 }
 
 // RegisterInvariants registers the this module invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Route returns the message routing key for the oracle module.
 func (am AppModule) Route() sdk.Route {
@@ -121,7 +121,7 @@ func (am AppModule) Route() sdk.Route {
 }
 
 // QuerierRoute returns the oracle module's querier route name.
-func (am AppModule) QuerierRoute() string {
+func (AppModule) QuerierRoute() string {
 	return types.QuerierRoute
 }
 

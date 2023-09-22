@@ -401,6 +401,6 @@ func (k msgServer) WithdrawReimbursement(goCtx context.Context, msg *types.MsgWi
 	return &types.MsgWithdrawReimbursementResponse{}, nil
 }
 
-func (k msgServer) WithdrawForeignRewards(goCtx context.Context, msg *types.MsgWithdrawForeignRewards) (*types.MsgWithdrawForeignRewardsResponse, error) {
+func (msgServer) WithdrawForeignRewards(goCtx context.Context, msg *types.MsgWithdrawForeignRewards) (*types.MsgWithdrawForeignRewardsResponse, error) {
 	return &types.MsgWithdrawForeignRewardsResponse{}, nil
 }

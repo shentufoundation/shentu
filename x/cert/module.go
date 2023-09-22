@@ -106,12 +106,12 @@ func NewAppModule(k keeper.Keeper, ak types.AccountKeeper, bk types.BankKeeper) 
 }
 
 // Name returns the cert module's name.
-func (am AppModule) Name() string {
+func (AppModule) Name() string {
 	return types.ModuleName
 }
 
 // RegisterInvariants registers the module invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
+func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
 }
 
 // Route returns the module's route key.
@@ -150,11 +150,11 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json
 }
 
 // BeginBlock implements the Cosmos SDK BeginBlock module function.
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
+func (AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 }
 
 // EndBlock implements the Cosmos SDK EndBlock module function.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
 

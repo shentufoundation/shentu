@@ -69,7 +69,7 @@ func (mva ManualVestingAccount) GetVestingCoins(blockTime time.Time) sdk.Coins {
 }
 
 // GetStartTime returns zero since a manual vesting account has no start time.
-func (mva ManualVestingAccount) GetStartTime() int64 {
+func (ManualVestingAccount) GetStartTime() int64 {
 	return 0
 }
 

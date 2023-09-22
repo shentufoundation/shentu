@@ -30,10 +30,10 @@ func NewMsgCall(caller, callee string, value uint64, data []byte) MsgCall {
 }
 
 // Route returns the module name.
-func (m MsgCall) Route() string { return ModuleName }
+func (MsgCall) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (m MsgCall) Type() string { return "call" }
+func (MsgCall) Type() string { return "call" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgCall) ValidateBasic() error {
@@ -80,10 +80,10 @@ func NewMsgDeploy(caller string, value uint64, code acm.Bytecode, abi string, me
 }
 
 // Route returns the module name.
-func (m MsgDeploy) Route() string { return ModuleName }
+func (MsgDeploy) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (m MsgDeploy) Type() string { return "deploy" }
+func (MsgDeploy) Type() string { return "deploy" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgDeploy) ValidateBasic() error {

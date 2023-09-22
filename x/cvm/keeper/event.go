@@ -95,6 +95,6 @@ func (es *EventSink) Log(log *exec.LogEvent) error {
 	return nil
 }
 
-func (es *EventSink) Print(print *exec.PrintEvent) error {
+func (*EventSink) Print(print *exec.PrintEvent) error {
 	return nil
 }

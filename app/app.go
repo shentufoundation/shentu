@@ -584,7 +584,7 @@ func (app *CertiKApp) LoadHeight(height int64) error {
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
-func (app *CertiKApp) ModuleAccountAddrs() map[string]bool {
+func (*CertiKApp) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
@@ -657,7 +657,7 @@ func RegisterSwaggerAPI(ctx client.Context, rtr *mux.Router) {
 
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
-func (app *CertiKApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+func (*CertiKApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
 	rpc.RegisterRoutes(clientCtx, apiSvr.Router)
 	// Register legacy tx routes.

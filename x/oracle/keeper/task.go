@@ -159,7 +159,7 @@ func (k Keeper) UpdateAndGetAllTasks(ctx sdk.Context) (tasks []types.Task) {
 }
 
 // IsValidResponse returns error if a response is not valid.
-func (k Keeper) IsValidResponse(ctx sdk.Context, task types.Task, response types.Response) error {
+func (Keeper) IsValidResponse(ctx sdk.Context, task types.Task, response types.Response) error {
 	if ctx.BlockHeight() > task.ClosingBlock {
 		return types.ErrTaskClosed
 	}

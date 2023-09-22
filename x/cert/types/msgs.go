@@ -32,10 +32,10 @@ func NewMsgProposeCertifier(proposer, certifier sdk.AccAddress, alias string, de
 }
 
 // Route returns the module name.
-func (m MsgProposeCertifier) Route() string { return ModuleName }
+func (MsgProposeCertifier) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (m MsgProposeCertifier) Type() string { return "propose_certifier" }
+func (MsgProposeCertifier) Type() string { return "propose_certifier" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgProposeCertifier) ValidateBasic() error {
@@ -91,13 +91,13 @@ func NewMsgIssueCertificate(
 }
 
 // Route returns the module name.
-func (m MsgIssueCertificate) Route() string { return ModuleName }
+func (MsgIssueCertificate) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (m MsgIssueCertificate) Type() string { return "issue_certificate" }
+func (MsgIssueCertificate) Type() string { return "issue_certificate" }
 
 // ValidateBasic runs stateless checks on the message.
-func (m MsgIssueCertificate) ValidateBasic() error {
+func (MsgIssueCertificate) ValidateBasic() error {
 	return nil
 }
 
@@ -144,10 +144,10 @@ func (m MsgRevokeCertificate) ValidateBasic() error {
 }
 
 // Route returns the module name.
-func (m MsgRevokeCertificate) Route() string { return ModuleName }
+func (MsgRevokeCertificate) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (m MsgRevokeCertificate) Type() string { return "revoke_certificate" }
+func (MsgRevokeCertificate) Type() string { return "revoke_certificate" }
 
 // GetSignBytes encodes the message for signing.
 func (m MsgRevokeCertificate) GetSignBytes() []byte {
@@ -185,10 +185,10 @@ func NewMsgCertifyPlatform(certifier sdk.AccAddress, pk cryptotypes.PubKey, plat
 }
 
 // Route returns the module name.
-func (m MsgCertifyPlatform) Route() string { return ModuleName }
+func (MsgCertifyPlatform) Route() string { return ModuleName }
 
 // Type returns the action name.
-func (m MsgCertifyPlatform) Type() string { return "certify_platform" }
+func (MsgCertifyPlatform) Type() string { return "certify_platform" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgCertifyPlatform) ValidateBasic() error {

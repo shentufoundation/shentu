@@ -286,7 +286,7 @@ func (MsgCreateTask) Route() string { return ModuleName }
 func (MsgCreateTask) Type() string { return TypeMsgCreateTask }
 
 // ValidateBasic runs stateless checks on the message.
-func (m MsgCreateTask) ValidateBasic() error {
+func (MsgCreateTask) ValidateBasic() error {
 	return nil
 }
 
@@ -325,7 +325,7 @@ func (MsgTaskResponse) Route() string { return ModuleName }
 func (MsgTaskResponse) Type() string { return TypeMsgRespondToTask }
 
 // ValidateBasic runs stateless checks on the message.
-func (m MsgTaskResponse) ValidateBasic() error {
+func (MsgTaskResponse) ValidateBasic() error {
 	return nil
 }
 
@@ -364,7 +364,7 @@ func (MsgDeleteTask) Route() string { return ModuleName }
 func (MsgDeleteTask) Type() string { return TypeMsgDeleteTask }
 
 // ValidateBasic runs stateless checks on the message.
-func (m MsgDeleteTask) ValidateBasic() error {
+func (MsgDeleteTask) ValidateBasic() error {
 	return nil
 }
 

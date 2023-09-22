@@ -44,7 +44,7 @@ func (AppModuleBasic) Name() string {
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 
 // RegisterInterfaces registers the module's interface types
-func (b AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
+func (AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
 
 // DefaultGenesis returns default genesis state as raw bytes for the mint module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
@@ -97,13 +97,13 @@ func (AppModule) Name() string {
 }
 
 // RegisterInvariants registers module invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Route routes message routes.
 func (AppModule) Route() sdk.Route { return sdk.Route{} }
 
 // NewHandler creates new module handler.
-func (am AppModule) NewHandler() sdk.Handler { return nil }
+func (AppModule) NewHandler() sdk.Handler { return nil }
 
 // QuerierRoute returns the module query route.
 func (AppModule) QuerierRoute() string {
@@ -141,7 +141,7 @@ func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 }
 
 // EndBlock processes module beginblock.
-func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
 

@@ -113,7 +113,7 @@ func NewAppModule(keeper keeper.Keeper, ak types.AccountKeeper, bk types.BankKee
 }
 
 // Name returns the shield module's name.
-func (am AppModule) Name() string {
+func (AppModule) Name() string {
 	return types.ModuleName
 }
 
@@ -128,7 +128,7 @@ func (am AppModule) Route() sdk.Route {
 }
 
 // QuerierRoute returns the shield module's querier route name.
-func (am AppModule) QuerierRoute() string {
+func (AppModule) QuerierRoute() string {
 	return types.QuerierRoute
 }
 

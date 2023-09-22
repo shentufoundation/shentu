@@ -234,7 +234,7 @@ func getCallee(callee sdk.AccAddress, cache *acmstate.Cache) (crypto.Address, ac
 }
 
 // getOriginalGas returns the original gas cost.
-func (k Keeper) getOriginalGas(ctx sdk.Context, gasRate uint64) (uint64, error) {
+func (Keeper) getOriginalGas(ctx sdk.Context, gasRate uint64) (uint64, error) {
 	gasCurrent := ctx.GasMeter().Limit() - ctx.GasMeter().GasConsumed()
 	originalGas := gasCurrent * gasRate
 	if originalGas < gasCurrent {

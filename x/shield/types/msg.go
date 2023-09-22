@@ -37,10 +37,10 @@ func NewMsgCreatePool(accAddr sdk.AccAddress, shield sdk.Coins, deposit MixedCoi
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgCreatePool) Route() string { return RouterKey }
+func (MsgCreatePool) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgCreatePool) Type() string { return TypeMsgCreatePool }
+func (MsgCreatePool) Type() string { return TypeMsgCreatePool }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgCreatePool) GetSigners() []sdk.AccAddress {
@@ -89,10 +89,10 @@ func NewMsgUpdatePool(accAddr sdk.AccAddress, shield sdk.Coins, serviceFees Mixe
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgUpdatePool) Route() string { return RouterKey }
+func (MsgUpdatePool) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgUpdatePool) Type() string { return TypeMsgUpdatePool }
+func (MsgUpdatePool) Type() string { return TypeMsgUpdatePool }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgUpdatePool) GetSigners() []sdk.AccAddress {
@@ -137,10 +137,10 @@ func NewMsgPausePool(accAddr sdk.AccAddress, id uint64) *MsgPausePool {
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgPausePool) Route() string { return RouterKey }
+func (MsgPausePool) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgPausePool) Type() string { return TypeMsgPausePool }
+func (MsgPausePool) Type() string { return TypeMsgPausePool }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgPausePool) GetSigners() []sdk.AccAddress {
@@ -181,10 +181,10 @@ func NewMsgResumePool(accAddr sdk.AccAddress, id uint64) *MsgResumePool {
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgResumePool) Route() string { return RouterKey }
+func (MsgResumePool) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgResumePool) Type() string { return TypeMsgResumePool }
+func (MsgResumePool) Type() string { return TypeMsgResumePool }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgResumePool) GetSigners() []sdk.AccAddress {
@@ -226,10 +226,10 @@ func NewMsgDepositCollateral(sender sdk.AccAddress, collateral sdk.Coins) *MsgDe
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgDepositCollateral) Route() string { return RouterKey }
+func (MsgDepositCollateral) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgDepositCollateral) Type() string { return "deposit_collateral" }
+func (MsgDepositCollateral) Type() string { return "deposit_collateral" }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgDepositCollateral) GetSigners() []sdk.AccAddress {
@@ -271,10 +271,10 @@ func NewMsgWithdrawCollateral(sender sdk.AccAddress, collateral sdk.Coins) *MsgW
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgWithdrawCollateral) Route() string { return RouterKey }
+func (MsgWithdrawCollateral) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgWithdrawCollateral) Type() string { return "withdraw_collateral" }
+func (MsgWithdrawCollateral) Type() string { return "withdraw_collateral" }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgWithdrawCollateral) GetSigners() []sdk.AccAddress {
@@ -315,10 +315,10 @@ func NewMsgWithdrawRewards(sender sdk.AccAddress) *MsgWithdrawRewards {
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgWithdrawRewards) Route() string { return RouterKey }
+func (MsgWithdrawRewards) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgWithdrawRewards) Type() string { return TypeMsgWithdrawRewards }
+func (MsgWithdrawRewards) Type() string { return TypeMsgWithdrawRewards }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgWithdrawRewards) GetSigners() []sdk.AccAddress {
@@ -358,10 +358,10 @@ func NewMsgWithdrawForeignRewards(sender sdk.AccAddress, denom, toAddr string) *
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgWithdrawForeignRewards) Route() string { return RouterKey }
+func (MsgWithdrawForeignRewards) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface
-func (msg MsgWithdrawForeignRewards) Type() string { return TypeMsgWithdrawForeignRewards }
+func (MsgWithdrawForeignRewards) Type() string { return TypeMsgWithdrawForeignRewards }
 
 // GetSigners implements the sdk.Msg interface
 func (msg MsgWithdrawForeignRewards) GetSigners() []sdk.AccAddress {
@@ -404,10 +404,10 @@ func NewMsgPurchaseShield(poolID uint64, shield sdk.Coins, description string, f
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgPurchaseShield) Route() string { return RouterKey }
+func (MsgPurchaseShield) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgPurchaseShield) Type() string { return TypeMsgPurchaseShield }
+func (MsgPurchaseShield) Type() string { return TypeMsgPurchaseShield }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgPurchaseShield) GetSigners() []sdk.AccAddress {
@@ -455,10 +455,10 @@ func NewMsgWithdrawReimbursement(proposalID uint64, from sdk.AccAddress) *MsgWit
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgWithdrawReimbursement) Route() string { return RouterKey }
+func (MsgWithdrawReimbursement) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgWithdrawReimbursement) Type() string { return TypeMsgWithdrawReimbursement }
+func (MsgWithdrawReimbursement) Type() string { return TypeMsgWithdrawReimbursement }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgWithdrawReimbursement) GetSigners() []sdk.AccAddress {
@@ -476,7 +476,7 @@ func (msg MsgWithdrawReimbursement) GetSignBytes() []byte {
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgWithdrawReimbursement) ValidateBasic() error {
+func (MsgWithdrawReimbursement) ValidateBasic() error {
 	return nil
 }
 
@@ -491,10 +491,10 @@ func NewMsgStakeForShield(poolID uint64, shield sdk.Coins, description string, f
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgStakeForShield) Route() string { return RouterKey }
+func (MsgStakeForShield) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgStakeForShield) Type() string { return TypeMsgStakeForShield }
+func (MsgStakeForShield) Type() string { return TypeMsgStakeForShield }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgStakeForShield) GetSigners() []sdk.AccAddress {
@@ -512,7 +512,7 @@ func (msg MsgStakeForShield) GetSignBytes() []byte {
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgStakeForShield) ValidateBasic() error {
+func (MsgStakeForShield) ValidateBasic() error {
 	return nil
 }
 
@@ -526,10 +526,10 @@ func NewMsgUnstakeFromShield(poolID uint64, shield sdk.Coins, from sdk.AccAddres
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgUnstakeFromShield) Route() string { return RouterKey }
+func (MsgUnstakeFromShield) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgUnstakeFromShield) Type() string { return TypeMsgUnstakeFromShield }
+func (MsgUnstakeFromShield) Type() string { return TypeMsgUnstakeFromShield }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgUnstakeFromShield) GetSigners() []sdk.AccAddress {
@@ -547,7 +547,7 @@ func (msg MsgUnstakeFromShield) GetSignBytes() []byte {
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgUnstakeFromShield) ValidateBasic() error {
+func (MsgUnstakeFromShield) ValidateBasic() error {
 	return nil
 }
 
@@ -562,10 +562,10 @@ func NewMsgUpdateSponsor(poolID uint64, sponsor string, sponsorAddr, fromAddr sd
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgUpdateSponsor) Route() string { return RouterKey }
+func (MsgUpdateSponsor) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgUpdateSponsor) Type() string { return TypeMsgUpdateSponsor }
+func (MsgUpdateSponsor) Type() string { return TypeMsgUpdateSponsor }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgUpdateSponsor) GetSigners() []sdk.AccAddress {

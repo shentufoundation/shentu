@@ -50,6 +50,6 @@ func TestGetMaccPerms(t *testing.T) {
 type EmptyAppOptions struct{}
 
 // Get implements AppOptions
-func (ao EmptyAppOptions) Get(o string) interface{} {
+func (EmptyAppOptions) Get(o string) interface{} {
 	return nil
 }

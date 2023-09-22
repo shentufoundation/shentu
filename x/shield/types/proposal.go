@@ -47,17 +47,17 @@ func (scp ShieldClaimProposal) GetDescription() string {
 }
 
 // GetDescription returns the routing key of a shield claim proposal.
-func (scp ShieldClaimProposal) ProposalRoute() string {
+func (ShieldClaimProposal) ProposalRoute() string {
 	return RouterKey
 }
 
 // ProposalType returns the type of a shield claim proposal.
-func (scp ShieldClaimProposal) ProposalType() string {
+func (ShieldClaimProposal) ProposalType() string {
 	return ProposalTypeShieldClaim
 }
 
 // ValidateBasic runs basic stateless validity checks.
-func (scp ShieldClaimProposal) ValidateBasic() error {
+func (ShieldClaimProposal) ValidateBasic() error {
 	// TODO
 	return nil
 }

@@ -23,10 +23,10 @@ func NewMsgUnlock(issuer, account sdk.AccAddress, unlockAmount sdk.Coins) *MsgUn
 }
 
 // Route returns the name of the module.
-func (m MsgUnlock) Route() string { return ModuleName }
+func (MsgUnlock) Route() string { return ModuleName }
 
 // Type returns a human-readable string for the message.
-func (m MsgUnlock) Type() string { return "unlock" }
+func (MsgUnlock) Type() string { return "unlock" }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgUnlock) ValidateBasic() error {

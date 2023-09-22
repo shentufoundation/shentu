@@ -146,12 +146,12 @@ func (c GeneralCertificate) RequestContent() RequestContent {
 }
 
 // CertificateContent returns certificate content of the certificate.
-func (c GeneralCertificate) CertificateContent() string {
+func (GeneralCertificate) CertificateContent() string {
 	return "general certificate"
 }
 
 // FormattedCertificateContent returns formatted certificate content of the certificate.
-func (c GeneralCertificate) FormattedCertificateContent() []KVPair {
+func (GeneralCertificate) FormattedCertificateContent() []KVPair {
 	return nil
 }
 
@@ -233,12 +233,12 @@ func (c CompilationCertificate) RequestContent() RequestContent {
 }
 
 // CertificateContent returns certificate content of the certificate.
-func (c CompilationCertificate) CertificateContent() string {
+func (CompilationCertificate) CertificateContent() string {
 	return ""
 }
 
 // FormattedCertificateContent returns formatted certificate content of the certificate.
-func (c CompilationCertificate) FormattedCertificateContent() []KVPair {
+func (CompilationCertificate) FormattedCertificateContent() []KVPair {
 	return []KVPair{}
 }
 

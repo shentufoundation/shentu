@@ -24,10 +24,10 @@ func NewMsgLockedSend(from, to sdk.AccAddress, unlocker string, amount sdk.Coins
 }
 
 // Route returns the name of the module.
-func (m MsgLockedSend) Route() string { return bankTypes.RouterKey }
+func (MsgLockedSend) Route() string { return bankTypes.RouterKey }
 
 // Type returns a human-readable string for the message.
-func (m MsgLockedSend) Type() string { return TypeMsgLockedSend }
+func (MsgLockedSend) Type() string { return TypeMsgLockedSend }
 
 // ValidateBasic runs stateless checks on the message.
 func (m MsgLockedSend) ValidateBasic() error {

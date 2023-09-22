@@ -46,10 +46,10 @@ func (cup CertifierUpdateProposal) GetTitle() string { return cup.Title }
 func (cup CertifierUpdateProposal) GetDescription() string { return cup.Description }
 
 // ProposalRoute returns the routing key of a certifier update proposal.
-func (cup CertifierUpdateProposal) ProposalRoute() string { return RouterKey }
+func (CertifierUpdateProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a certifier update proposal.
-func (cup CertifierUpdateProposal) ProposalType() string { return ProposalTypeCertifierUpdate }
+func (CertifierUpdateProposal) ProposalType() string { return ProposalTypeCertifierUpdate }
 
 // ValidateBasic runs basic stateless validity checks
 func (cup CertifierUpdateProposal) ValidateBasic() error {
