@@ -1,16 +1,12 @@
 package keeper
 
 import (
-	"encoding/binary"
-
-	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-func (k Keeper) GetProgram(ctx sdk.Context, id uint64) (types.Program, bool) {
+func (k Keeper) GetProgram(ctx sdk.Context, id string) (types.Program, bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	pBz := store.Get(types.GetProgramKey(id))
@@ -44,41 +40,41 @@ func (k Keeper) SetProgram(ctx sdk.Context, program types.Program) {
 	store.Set(types.GetProgramKey(program.ProgramId), bz)
 }
 
-func (k Keeper) GetNextProgramID(ctx sdk.Context) (uint64, error) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetNextProgramIDKey())
-	if bz == nil {
-		return 1, errorsmod.Wrap(types.ErrInvalidGenesis, "initial next finding ID hasn't been set")
-	}
-	return binary.LittleEndian.Uint64(bz), nil
-}
-
-func (k Keeper) SetNextProgramID(ctx sdk.Context, id uint64) {
-	store := ctx.KVStore(k.storeKey)
-	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, id)
-	store.Set(types.GetNextProgramIDKey(), bz)
-}
-
-func (k Keeper) EndProgram(ctx sdk.Context, caller sdk.AccAddress, id uint64) error {
+func (k Keeper) OpenProgram(ctx sdk.Context, caller sdk.AccAddress, id string) error {
 	program, found := k.GetProgram(ctx, id)
 	if !found {
 		return types.ErrProgramNotExists
 	}
-	host, err := sdk.AccAddressFromBech32(program.CreatorAddress)
+
+	if !k.certKeeper.IsCertifier(ctx, caller) {
+		return types.ErrProgramNotAllowed
+	}
+	if program.Status != types.ProgramStatusInactive {
+		return types.ErrProgramNotInactive
+	}
+
+	program.Status = types.ProgramStatusActive
+	k.SetProgram(ctx, program)
+	return nil
+}
+
+func (k Keeper) CloseProgram(ctx sdk.Context, caller sdk.AccAddress, id string) error {
+	program, found := k.GetProgram(ctx, id)
+	if !found {
+		return types.ErrProgramNotExists
+	}
+	host, err := sdk.AccAddressFromBech32(program.AdminAddress)
 	if err != nil {
 		return types.ErrProgramCreatorInvalid
 	}
-	if !caller.Equals(host) && !k.certKeeper.IsCertifier(ctx, caller) {
+	if !caller.Equals(host) {
 		return types.ErrProgramNotAllowed
 	}
-	if !program.Active {
-		return types.ErrProgramInactive
+	if program.Status != types.ProgramStatusActive {
+		return types.ErrProgramNotActive
 	}
-	if ctx.BlockTime().After(program.SubmissionEndTime) {
-		return types.ErrProgramExpired
-	}
-	program.Active = false
+
+	program.Status = types.ProgramStatusClosed
 	k.SetProgram(ctx, program)
 	return nil
 }

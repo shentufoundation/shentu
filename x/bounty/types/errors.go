@@ -9,6 +9,7 @@ const (
 	errProgramFindingListEmpty uint32 = iota + 101
 	errProgramFindingListMarshal
 	errProgramFindingListUnmarshal
+	errProgramAlreadyExists
 	errProgramNotExists
 	errProgramInactive
 	errProgramCreatorInvalid
@@ -16,11 +17,13 @@ const (
 	errProgramExpired
 	errProgramPubKey
 	errProgramID
+	errNoProgramFound
 )
 
 // Finding
 const (
-	errFindingNotExists uint32 = iota + 201
+	errFindingAlreadyExists uint32 = iota + 201
+	errFindingNotExists
 	errFindingStatusInvalid
 	errFindingSubmitterInvalid
 	errFindingPlainTextDataInvalid
@@ -35,17 +38,22 @@ var (
 	ErrProgramFindingListEmpty     = sdkerrors.Register(ModuleName, errProgramFindingListEmpty, "empty finding id list")
 	ErrProgramFindingListMarshal   = sdkerrors.Register(ModuleName, errProgramFindingListMarshal, "convert uint64 to byte list error")
 	ErrProgramFindingListUnmarshal = sdkerrors.Register(ModuleName, errProgramFindingListUnmarshal, "convert to uint64 list error")
-	ErrProgramNotExists            = sdkerrors.Register(ModuleName, errProgramNotExists, "program does not exist")
-	ErrProgramInactive             = sdkerrors.Register(ModuleName, errProgramInactive, "program is inactive")
-	ErrProgramCreatorInvalid       = sdkerrors.Register(ModuleName, errProgramCreatorInvalid, "invalid program creator")
-	ErrProgramNotAllowed           = sdkerrors.Register(ModuleName, errProgramNotAllowed, "program access denied because you are not the creator or certifiers")
-	ErrProgramExpired              = sdkerrors.Register(ModuleName, errProgramExpired, "cannot end an expired program")
-	ErrProgramPubKey               = sdkerrors.Register(ModuleName, errProgramPubKey, "invalid program public key")
-	ErrProgramID                   = sdkerrors.Register(ModuleName, errProgramID, "invalid program id")
+	ErrProgramAlreadyExists        = sdkerrors.Register(ModuleName, errProgramAlreadyExists, "program already exists")
+	ErrProgramNotExists            = sdkerrors.Register(ModuleName, errProgramNotExists, "program does not exists")
+	ErrProgramNotActive            = sdkerrors.Register(ModuleName, errProgramInactive, "program is not active")
+	ErrProgramNotInactive          = sdkerrors.Register(ModuleName, errProgramInactive, "program is not inactive")
+
+	ErrProgramCreatorInvalid = sdkerrors.Register(ModuleName, errProgramCreatorInvalid, "invalid program creator")
+	ErrProgramNotAllowed     = sdkerrors.Register(ModuleName, errProgramNotAllowed, "program access denied because you are not the creator or certifiers")
+	ErrProgramExpired        = sdkerrors.Register(ModuleName, errProgramExpired, "cannot end an expired program")
+	ErrProgramPubKey         = sdkerrors.Register(ModuleName, errProgramPubKey, "invalid program public key")
+	ErrProgramID             = sdkerrors.Register(ModuleName, errProgramID, "invalid program id")
+	ErrNoProgramFound        = sdkerrors.Register(ModuleName, errNoProgramFound, "program does not exist")
 )
 
 // [2xx] Finding
 var (
+	ErrFindingAlreadyExists        = sdkerrors.Register(ModuleName, errFindingAlreadyExists, "program already exists")
 	ErrFindingNotExists            = sdkerrors.Register(ModuleName, errFindingNotExists, "finding does not exist")
 	ErrFindingStatusInvalid        = sdkerrors.Register(ModuleName, errFindingStatusInvalid, "invalid finding status")
 	ErrFindingSubmitterInvalid     = sdkerrors.Register(ModuleName, errFindingSubmitterInvalid, "invalid finding submitter")

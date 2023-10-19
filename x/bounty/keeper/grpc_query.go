@@ -88,26 +88,6 @@ func (k Keeper) Findings(c context.Context, req *types.QueryFindingsRequest) (*t
 		if err := k.cdc.Unmarshal(value, &finding); err != nil {
 			return false, status.Error(codes.Internal, err.Error())
 		}
-
-		matchProgramID, matchSubmitter := true, true
-		// match program-id
-		if req.ProgramId != 0 {
-			matchProgramID = req.ProgramId == finding.ProgramId
-		}
-		// match submitter address
-		if len(req.SubmitterAddress) > 0 {
-			matchSubmitter = req.SubmitterAddress == finding.SubmitterAddress
-
-		}
-
-		if matchProgramID && matchSubmitter {
-			if accumulate {
-				if queryFinding, err := GetBase64QueryFinding(&finding); err == nil {
-					queryFindings = append(queryFindings, queryFinding)
-				}
-			}
-		}
-
 		return true, nil
 	})
 	if err != nil {
@@ -134,6 +114,5 @@ func (k Keeper) Finding(c context.Context, req *types.QueryFindingRequest) (*typ
 		return nil, status.Errorf(codes.NotFound, "finding %d doesn't exist", req.FindingId)
 	}
 
-	queryFinding, err := GetBase64QueryFinding(&finding)
-	return &types.QueryFindingResponse{Finding: queryFinding}, err
+	return &types.QueryFindingResponse{Finding: finding}, nil
 }

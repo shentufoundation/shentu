@@ -594,17 +594,17 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Hosts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "bounty", "v1", "hosts"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Hosts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "bounty", "v1", "hosts"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Host_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "bounty", "v1", "hosts", "host_addr"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Host_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "bounty", "v1", "hosts", "host_addr"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Programs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "bounty", "v1", "programs"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Programs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "bounty", "v1", "programs"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Program_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "bounty", "v1", "programs", "program_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Program_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "bounty", "v1", "programs", "program_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Findings_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "bounty", "v1", "findings"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Findings_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "bounty", "v1", "findings"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Finding_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "bounty", "v1", "findings", "finding_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Finding_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "bounty", "v1", "findings", "finding_id"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

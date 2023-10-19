@@ -2,10 +2,6 @@ package types
 
 import (
 	"errors"
-	"fmt"
-	"time"
-
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -22,31 +18,14 @@ const (
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
 // Delegator address and validator address are the same.
-func NewMsgCreateProgram(
-	creatorAddress string, description string, encKey []byte, commissionRate sdk.Dec, deposit sdk.Coins,
-	submissionEndTime time.Time,
-) (*MsgCreateProgram, error) {
-	var encAny *codectypes.Any
-	if encKey != nil {
-		encKeyMsg := EciesPubKey{
-			EncryptionKey: encKey,
-		}
-
-		var err error
-		if encAny, err = codectypes.NewAnyWithValue(&encKeyMsg); err != nil {
-			return nil, err
-		}
-	} else {
-		return nil, fmt.Errorf("encKey is empty")
-	}
+func NewMsgCreateProgram(name, creatorAddr, pid string, detail ProgramDetail, memberAddrs []string) (*MsgCreateProgram, error) {
 
 	return &MsgCreateProgram{
-		Description:       description,
-		CommissionRate:    commissionRate,
-		SubmissionEndTime: submissionEndTime,
-		CreatorAddress:    creatorAddress,
-		EncryptionKey:     encAny,
-		Deposit:           deposit,
+		Name:           name,
+		Detail:         detail,
+		CreatorAddress: creatorAddr,
+		MemberAccounts: memberAddrs,
+		ProgramId:      pid,
 	}, nil
 }
 
@@ -82,35 +61,65 @@ func (msg MsgCreateProgram) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
-	if len(msg.Deposit) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "Deposit is empty")
+	return nil
+}
+
+// NewMsgEditProgram edit a program.
+func NewMsgEditProgram(name, creatorAddr string, desc ProgramDetail, memberAddrs []string) MsgEditProgram {
+
+	return MsgEditProgram{
+		Name:           name,
+		Detail:         desc,
+		CreatorAddress: creatorAddr,
+		MemberAccounts: memberAddrs,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgEditProgram) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgEditProgram) Type() string { return TypeMsgCreateProgram }
+
+// GetSigners implements the sdk.Msg interface. It returns the address(es) that
+// must sign over msg.GetSignBytes().
+// If the validator address is not same as delegator's, then the validator must
+// sign the msg as well.
+func (msg MsgEditProgram) GetSigners() []sdk.AccAddress {
+	// creator should sign the message
+	cAddr, err := sdk.AccAddressFromBech32(msg.CreatorAddress)
+	if err != nil {
+		panic(err)
 	}
 
-	for _, deposit := range msg.Deposit {
-		if !deposit.IsValid() {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "Deposit is invalid")
-		}
+	return []sdk.AccAddress{cAddr}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg MsgEditProgram) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgEditProgram) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.CreatorAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
 	return nil
 }
 
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgCreateProgram) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var pubKey EncryptionKey
-	return unpacker.UnpackAny(msg.EncryptionKey, &pubKey)
-}
-
 // NewMsgSubmitFinding submit a new finding.
 func NewMsgSubmitFinding(
-	submitterAddress, title string, descAny, pocAny *codectypes.Any, programID uint64, severityLevel int32,
-) *MsgSubmitFinding {
+	programId, findingId, title string, detail FindingDetail, accAddr sdk.AccAddress) *MsgSubmitFinding {
+
 	return &MsgSubmitFinding{
+		ProgramId:        programId,
+		FindingId:        findingId,
 		Title:            title,
-		EncryptedDesc:    descAny,
-		ProgramId:        programID,
-		SeverityLevel:    SeverityLevel(severityLevel),
-		EncryptedPoc:     pocAny,
-		SubmitterAddress: submitterAddress,
+		Detail:           detail,
+		SubmitterAddress: accAddr.String(),
 	}
 }
 
@@ -147,28 +156,16 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
 
-	if msg.ProgramId == 0 {
+	if len(msg.ProgramId) == 0 {
 		return errors.New("empty pid is not allowed")
 	}
 	return nil
 }
 
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgSubmitFinding) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var desc FindingDesc
-	var poc FindingPoc
-	err := unpacker.UnpackAny(msg.EncryptedDesc, &desc)
-	if err != nil {
-		return err
-	}
-	return unpacker.UnpackAny(msg.EncryptedPoc, &poc)
-}
-
-func NewMsgHostAcceptFinding(findingID uint64, encryptedComment *codectypes.Any, hostAddr sdk.AccAddress) *MsgHostAcceptFinding {
+func NewMsgHostAcceptFinding(findingID string, hostAddr sdk.AccAddress) *MsgHostAcceptFinding {
 	return &MsgHostAcceptFinding{
-		FindingId:        findingID,
-		EncryptedComment: encryptedComment,
-		HostAddress:      hostAddr.String(),
+		FindingId:   findingID,
+		HostAddress: hostAddr.String(),
 	}
 }
 
@@ -203,23 +200,16 @@ func (msg MsgHostAcceptFinding) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
 
-	if msg.FindingId == 0 {
+	if len(msg.FindingId) == 0 {
 		return errors.New("empty finding-id is not allowed")
 	}
 	return nil
 }
 
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgHostAcceptFinding) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var comment FindingComment
-	return unpacker.UnpackAny(msg.EncryptedComment, &comment)
-}
-
-func NewMsgHostRejectFinding(findingID uint64, encryptedComment *codectypes.Any, hostAddr sdk.AccAddress) *MsgHostRejectFinding {
+func NewMsgHostRejectFinding(findingID string, hostAddr sdk.AccAddress) *MsgHostRejectFinding {
 	return &MsgHostRejectFinding{
-		FindingId:        findingID,
-		EncryptedComment: encryptedComment,
-		HostAddress:      hostAddr.String(),
+		FindingId:   findingID,
+		HostAddress: hostAddr.String(),
 	}
 }
 
@@ -254,20 +244,14 @@ func (msg *MsgHostRejectFinding) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
 
-	if msg.FindingId == 0 {
+	if len(msg.FindingId) == 0 {
 		return errors.New("empty finding-id is not allowed")
 	}
 	return nil
 }
 
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgHostRejectFinding) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var comment FindingComment
-	return unpacker.UnpackAny(msg.EncryptedComment, &comment)
-}
-
 // NewMsgCancelFinding cancel a specific finding
-func NewMsgCancelFinding(accAddr sdk.AccAddress, findingID uint64) *MsgCancelFinding {
+func NewMsgCancelFinding(accAddr sdk.AccAddress, findingID string) *MsgCancelFinding {
 	return &MsgCancelFinding{
 		SubmitterAddress: accAddr.String(),
 		FindingId:        findingID,
@@ -302,7 +286,7 @@ func (msg MsgCancelFinding) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
-	if msg.FindingId == 0 {
+	if len(msg.FindingId) == 0 {
 		return errors.New("empty finding-id is not allowed")
 	}
 	return nil
@@ -310,13 +294,12 @@ func (msg MsgCancelFinding) ValidateBasic() error {
 
 // NewReleaseFinding release finding.
 func NewReleaseFinding(
-	hostAddr string, fid uint64, findingDesc, findingPoc, findingComment string,
+	hostAddr, fid string, findingDesc, findingPoc, findingComment string,
 ) *MsgReleaseFinding {
 	return &MsgReleaseFinding{
 		FindingId:   fid,
 		Desc:        findingDesc,
 		Poc:         findingPoc,
-		Comment:     findingComment,
 		HostAddress: hostAddr,
 	}
 }
@@ -351,41 +334,76 @@ func (msg MsgReleaseFinding) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
 
-	if msg.FindingId == 0 {
+	if len(msg.FindingId) == 0 {
 		return errors.New("empty fid is not allowed")
 	}
 	return nil
 }
 
-func NewMsgEndProgram(from string, programID uint64) *MsgEndProgram {
-	return &MsgEndProgram{
-		From:      from,
-		ProgramId: programID,
+func NewMsgOpenProgram(accAddr sdk.AccAddress, pid string) *MsgOpenProgram {
+	return &MsgOpenProgram{
+		OpenAddress: accAddr.String(),
+		ProgramId:   pid,
 	}
 }
 
 // Route implements sdk.Msg interface.
-func (msg MsgEndProgram) Route() string { return RouterKey }
+func (msg MsgOpenProgram) Route() string { return RouterKey }
 
 // Type implements sdk.Msg interface.
-func (msg MsgEndProgram) Type() string { return TypeMsgEndProgram }
+func (msg MsgOpenProgram) Type() string { return TypeMsgEndProgram }
 
 // GetSigners implements sdk.Msg interface. It returns the address(es) that
 // must sign over msg.GetSignBytes().
-func (msg MsgEndProgram) GetSigners() []sdk.AccAddress {
-	cAddr, _ := sdk.AccAddressFromBech32(msg.From)
+func (msg MsgOpenProgram) GetSigners() []sdk.AccAddress {
+	cAddr, _ := sdk.AccAddressFromBech32(msg.OpenAddress)
 	return []sdk.AccAddress{cAddr}
 }
 
 // GetSignBytes implements the sdk.Msg interface, returns the message bytes to sign over.
-func (msg MsgEndProgram) GetSignBytes() []byte {
+func (msg MsgOpenProgram) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgEndProgram) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.From)
+func (msg MsgOpenProgram) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.OpenAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid address (%s)", err.Error())
+	}
+	return nil
+}
+
+func NewMsgCloseProgram(accAddr sdk.AccAddress, pid string) *MsgCloseProgram {
+	return &MsgCloseProgram{
+		CloseAddress: accAddr.String(),
+		ProgramId:    pid,
+	}
+}
+
+// Route implements sdk.Msg interface.
+func (msg MsgCloseProgram) Route() string { return RouterKey }
+
+// Type implements sdk.Msg interface.
+func (msg MsgCloseProgram) Type() string { return TypeMsgEndProgram }
+
+// GetSigners implements sdk.Msg interface. It returns the address(es) that
+// must sign over msg.GetSignBytes().
+func (msg MsgCloseProgram) GetSigners() []sdk.AccAddress {
+	cAddr, _ := sdk.AccAddressFromBech32(msg.CloseAddress)
+	return []sdk.AccAddress{cAddr}
+}
+
+// GetSignBytes implements the sdk.Msg interface, returns the message bytes to sign over.
+func (msg MsgCloseProgram) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgCloseProgram) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.CloseAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid address (%s)", err.Error())
 	}

@@ -1,9 +1,5 @@
 package types
 
-import (
-	"strconv"
-)
-
 const (
 	ModuleName = "bounty"
 
@@ -25,8 +21,8 @@ var (
 
 // GetProgramKey creates the key for a program
 // VALUE: staking/Validator
-func GetProgramKey(id uint64) []byte {
-	return append(ProgramsKey, []byte(strconv.FormatUint(id, 10))...)
+func GetProgramKey(id string) []byte {
+	return append(ProgramsKey, []byte(id)...)
 }
 
 // GetNextProgramIDKey creates the key for the validator with address
@@ -36,8 +32,8 @@ func GetNextProgramIDKey() []byte {
 }
 
 // GetFindingKey creates the key for a program
-func GetFindingKey(id uint64) []byte {
-	return append(FindingKey, []byte(strconv.FormatUint(id, 10))...)
+func GetFindingKey(id string) []byte {
+	return append(FindingKey, []byte(id)...)
 }
 
 // GetNextFindingIDKey creates the key for the validator with address
@@ -45,6 +41,6 @@ func GetNextFindingIDKey() []byte {
 	return NextFindingIDKey
 }
 
-func GetProgramIDFindingListKey(id uint64) []byte {
-	return append(ProgramIDFindingListKey, []byte(strconv.FormatUint(id, 10))...)
+func GetProgramIDFindingListKey(id string) []byte {
+	return append(ProgramIDFindingListKey, []byte(id)...)
 }

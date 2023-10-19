@@ -16,6 +16,15 @@ service Msg {
   // CreateProgram defines a method for creating a new program.
   rpc CreateProgram(MsgCreateProgram) returns (MsgCreateProgramResponse);
 
+  // EditProgram defines a method for modifying a program.
+  rpc EditProgram(MsgEditProgram) returns (MsgEditProgramResponse);
+
+  // Open a program status by program_id
+  rpc OpenProgram(MsgOpenProgram) returns (MsgOpenProgramResponse);
+
+  // Closed a program status by program_id
+  rpc CloseProgram(MsgCloseProgram) returns (MsgCloseProgramResponse);
+
   // SubmitFinding defines a method for submitting a new finding.
   rpc SubmitFinding(MsgSubmitFinding) returns (MsgSubmitFindingResponse);
 
@@ -30,61 +39,82 @@ service Msg {
 
   // MsgReleaseFinding defines a method for release a finding.
   rpc ReleaseFinding(MsgReleaseFinding) returns (MsgReleaseFindingResponse);
-
-  // End a program by program_id
-  rpc EndProgram(MsgEndProgram) returns (MsgEndProgramResponse);
 }
 
 // MsgCreateProgram defines a SDK message for creating a new program.
 message MsgCreateProgram {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string     description = 1;
-  string commission_rate = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string name = 1;
+  ProgramDetail detail = 2 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"detail\""];
+  string creator_address = 3 [(gogoproto.moretags) = "yaml:\"creator_address\""];
+  repeated string member_accounts = 4 [(gogoproto.moretags) = "yaml:\"member_accounts\""];
+  string program_id = 5 [(gogoproto.moretags) = "yaml:\"program_id\""];
+}
 
-  google.protobuf.Timestamp submission_end_time = 3
-  [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"submission_end_time\""];
+// MsgEditProgram defines a SDK message for editing a program.
+message MsgEditProgram {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
 
-  string                   creator_address  = 4 [(gogoproto.moretags) = "yaml:\"creator_address\""];
-
-  google.protobuf.Any encryption_key = 5 [(cosmos_proto.accepts_interface) = "EncryptionKey",(gogoproto.moretags) = "yaml:\"encryption_key\""];
-
-  repeated cosmos.base.v1beta1.Coin deposit = 6 [(gogoproto.nullable) = false];
+  string name = 1;
+  ProgramDetail detail = 2 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"detail\""];
+  string creator_address = 3 [(gogoproto.moretags) = "yaml:\"creator_address\""];
+  repeated string member_accounts = 4 [(gogoproto.moretags) = "yaml:\"member_accounts\""];
+  string program_id = 5 [(gogoproto.moretags) = "yaml:\"program_id\""];
 }
 
 // MsgCreateProgramResponse defines the Msg/CreateProgram response type.
 message MsgCreateProgramResponse {
-  uint64 program_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
 }
+
+// MsgModifyProgramResponse defines the Msg/ModifyProgram response type.
+message MsgEditProgramResponse {}
+
+message MsgOpenProgram {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string open_address = 1 [(gogoproto.moretags) = "yaml:\"open_address\""];
+  string program_id = 2 [(gogoproto.moretags) = "yaml:\"program_id\""];
+}
+
+message MsgOpenProgramResponse {}
+
+message MsgCloseProgram {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string close_address = 1 [(gogoproto.moretags) = "yaml:\"close_address\""];
+  string program_id = 2 [(gogoproto.moretags) = "yaml:\"program_id\""];
+}
+
+message MsgCloseProgramResponse {}
 
 // MsgSubmitFinding defines a message to submit a finding.
 message MsgSubmitFinding {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string title = 1;
-  google.protobuf.Any encrypted_desc = 2 [(cosmos_proto.accepts_interface) = "FindingDesc",(gogoproto.moretags) = "yaml:\"encrypted_desc\""];
-  uint64 program_id = 3 [(gogoproto.moretags) = "yaml:\"program_id\""];
-  SeverityLevel severity_level = 4 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
-  google.protobuf.Any encrypted_poc = 5 [(cosmos_proto.accepts_interface) = "FindingPoc",(gogoproto.moretags) = "yaml:\"encrypted_poc\""];
-  string submitter_address  = 6 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
+  string program_id = 1 [(gogoproto.moretags) = "yaml:\"program_id\""];
+  string finding_id = 2 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string title = 3;
+  FindingDetail detail = 4 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"detail\""];
+  string submitter_address = 5 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
 }
 
 // MsgSubmitFindingResponse defines the MsgSubmitFinding response type.
 message MsgSubmitFindingResponse {
-  option (gogoproto.goproto_getters) = false;
-  uint64 finding_id = 1 [(gogoproto.jsontag) = "finding_id", (gogoproto.moretags) = "yaml:\"finding_id\""];
 }
 
 // MsgHostAcceptFinding defines a message to accept a finding to an existing finding.
 message MsgHostAcceptFinding {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
-  google.protobuf.Any encrypted_comment = 2 [(cosmos_proto.accepts_interface) = "FindingComment"];
-  string host_address  = 3 [(gogoproto.moretags) = "yaml:\"host_address\""];
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string host_address = 2 [(gogoproto.moretags) = "yaml:\"host_address\""];
 }
 
 // MsgHostAcceptFindingResponse defines the Msg/HostAcceptFinding response type.
@@ -92,12 +122,11 @@ message MsgHostAcceptFindingResponse {}
 
 // MsgHostRejectFinding defines a message to accept a reject to an existing finding.
 message MsgHostRejectFinding {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
-  google.protobuf.Any encrypted_comment = 2 [(cosmos_proto.accepts_interface) = "FindingComment"];
-  string host_address  = 3 [(gogoproto.moretags) = "yaml:\"host_address\""];
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string host_address = 2 [(gogoproto.moretags) = "yaml:\"host_address\""];
 }
 
 // MsgHostRejectFindingResponse defines the Msg/ostRejectFinding response type.
@@ -107,33 +136,21 @@ message MsgCancelFinding {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string submitter_address = 1 [ (gogoproto.moretags) = "yaml:\"submitter_address\"" ];
-  uint64 finding_id = 2 [ (gogoproto.moretags) = "yaml:\"finding_id\"" ];
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string submitter_address = 2 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
 }
 
 message MsgCancelFindingResponse {}
 
 // MsgReleaseFinding defines a message to release a finding.
 message MsgReleaseFinding {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
 
-  uint64 finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
   string desc = 2 [(gogoproto.moretags) = "yaml:\"desc\""];
   string poc = 3 [(gogoproto.moretags) = "yaml:\"poc\""];
-  string comment = 4 [(gogoproto.moretags) = "yaml:\"comment\""];
-  string host_address  = 5 [(gogoproto.moretags) = "yaml:\"host_address\""];
+  string host_address = 4 [(gogoproto.moretags) = "yaml:\"host_address\""];
 }
 
 // MsgReleaseFindingResponse defines the MsgReleaseFinding response type.
 message MsgReleaseFindingResponse {}
-
-//MsgEndProgram defines a message to terminate a program so that no more findings could be submitted for it
-message MsgEndProgram {
-  option (gogoproto.equal)           = false;
-  option (gogoproto.goproto_getters) = false;
-
-  string from       = 1 [(gogoproto.moretags) = "yaml:\"from\""];
-  uint64 program_id = 2 [(gogoproto.moretags) = "yaml:\"program_id\""];
-}
-
-message MsgEndProgramResponse {}

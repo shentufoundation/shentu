@@ -26,11 +26,8 @@ func DefaultGenesisState() *GenesisState {
 
 // ValidateGenesis - validate bounty genesis data
 func ValidateGenesis(data *GenesisState) error {
-	programs := make(map[uint64]int)
+	programs := make(map[string]int)
 	for i, program := range data.Programs {
-		if program.ProgramId > data.StartingProgramId {
-			return ErrProgramID
-		}
 
 		programIndex, ok := programs[program.ProgramId]
 		if ok {
@@ -52,9 +49,6 @@ func ValidateGenesis(data *GenesisState) error {
 			return ErrProgramID
 		}
 
-		if finding.FindingId > data.StartingFindingId {
-			return ErrFindingID
-		}
 		if err := finding.ValidateBasic(); err != nil {
 			return err
 		}

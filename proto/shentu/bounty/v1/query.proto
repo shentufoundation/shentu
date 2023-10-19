@@ -103,7 +103,7 @@ message QueryFindingsRequest {
 
 // QueryFindingsResponse is the response type for the Query/Findings RPC method.
 message QueryFindingsResponse {
-  repeated QueryFinding findings = 1 [(gogoproto.nullable) = false];
+  repeated Finding findings = 1 [(gogoproto.nullable) = false];
 
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
@@ -117,20 +117,5 @@ message QueryFindingRequest {
 
 // QueryFindingResponse is the response type for the Query/Finding RPC method.
 message QueryFindingResponse {
-  QueryFinding finding = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryFinding {
-  option (gogoproto.equal)            = false;
-  option (gogoproto.goproto_getters) = false;
-
-  uint64 finding_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
-  string title = 2 [(gogoproto.moretags) = "yaml:\"title\""];
-  string finding_desc = 3 [(gogoproto.moretags) = "yaml:\"finding_desc\""];
-  uint64 program_id = 4 [(gogoproto.moretags) = "yaml:\"program_id\""];
-  SeverityLevel severity_level = 5 [(gogoproto.moretags) = "yaml:\"severity_level\""];;
-  string finding_poc = 6 [(gogoproto.moretags) = "yaml:\"finding_poc\""];
-  string submitter_address  = 7 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
-  FindingStatus finding_status = 8 [(gogoproto.moretags) = "yaml:\"finding_status\""];
-  string finding_comment = 9 [(gogoproto.moretags) = "yaml:\"finding_comment\""];
+  Finding finding = 1 [(gogoproto.nullable) = false];
 }

@@ -5,19 +5,17 @@ package types
 
 import (
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-proto"
+	_ "github.com/cosmos/cosmos-sdk/codec/types"
+	types1 "github.com/cosmos/cosmos-sdk/types"
+	_ "github.com/gogo/protobuf/gogoproto"
+	proto "github.com/gogo/protobuf/proto"
+	_ "github.com/gogo/protobuf/types"
+	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"
 	time "time"
-
-	types "github.com/cosmos/cosmos-sdk/codec/types"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
-	types1 "github.com/cosmos/cosmos-sdk/types"
-	_ "github.com/gogo/protobuf/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
-	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
-	_ "github.com/regen-network/cosmos-proto"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -36,29 +34,26 @@ type SeverityLevel int32
 
 const (
 	SeverityLevelCritical      SeverityLevel = 0
-	SeverityLevelMajor         SeverityLevel = 1
+	SeverityLevelHigh          SeverityLevel = 1
 	SeverityLevelMedium        SeverityLevel = 2
-	SeverityLevelMinor         SeverityLevel = 3
-	SeverityLevelOptimization  SeverityLevel = 4
-	SeverityLevelInformational SeverityLevel = 5
+	SeverityLevelLow           SeverityLevel = 3
+	SeverityLevelInformational SeverityLevel = 4
 )
 
 var SeverityLevel_name = map[int32]string{
 	0: "SEVERITY_LEVEL_CRITICAL",
-	1: "SEVERITY_LEVEL_MAJOR",
+	1: "SEVERITY_LEVEL_HIGH",
 	2: "SEVERITY_LEVEL_MEDIUM",
-	3: "SEVERITY_LEVEL_MINOR",
-	4: "SEVERITY_LEVEL_OPTIMIZATION",
-	5: "SEVERITY_LEVEL_INFORMATIONAL",
+	3: "SEVERITY_LEVEL_LOW",
+	4: "SEVERITY_LEVEL_INFORMATIONAL",
 }
 
 var SeverityLevel_value = map[string]int32{
 	"SEVERITY_LEVEL_CRITICAL":      0,
-	"SEVERITY_LEVEL_MAJOR":         1,
+	"SEVERITY_LEVEL_HIGH":          1,
 	"SEVERITY_LEVEL_MEDIUM":        2,
-	"SEVERITY_LEVEL_MINOR":         3,
-	"SEVERITY_LEVEL_OPTIMIZATION":  4,
-	"SEVERITY_LEVEL_INFORMATIONAL": 5,
+	"SEVERITY_LEVEL_LOW":           3,
+	"SEVERITY_LEVEL_INFORMATIONAL": 4,
 }
 
 func (x SeverityLevel) String() string {
@@ -72,21 +67,30 @@ func (SeverityLevel) EnumDescriptor() ([]byte, []int) {
 type FindingStatus int32
 
 const (
-	FindingStatusUnConfirmed FindingStatus = 0
-	FindingStatusValid       FindingStatus = 1
-	FindingStatusInvalid     FindingStatus = 2
+	FindingStatusReported  FindingStatus = 0
+	FindingStatusProposed  FindingStatus = 1
+	FindingStatusActive    FindingStatus = 2
+	FindingStatusConfirmed FindingStatus = 3
+	FindingStatusPaid      FindingStatus = 4
+	FindingStatusClosed    FindingStatus = 5
 )
 
 var FindingStatus_name = map[int32]string{
-	0: "FINDING_STATUS_UNCONFIRMED",
-	1: "FINDING_STATUS_VALID",
-	2: "FINDING_STATUS_INVALID",
+	0: "FINDING_STATUS_REPORTED",
+	1: "FINDING_STATUS_PROPOSED",
+	2: "FINDING_STATUS_ACTIVE",
+	3: "FINDING_STATUS_CONFIRMED",
+	4: "FINDING_STATUS_PAID",
+	5: "FINDING_STATUS_CLOSED",
 }
 
 var FindingStatus_value = map[string]int32{
-	"FINDING_STATUS_UNCONFIRMED": 0,
-	"FINDING_STATUS_VALID":       1,
-	"FINDING_STATUS_INVALID":     2,
+	"FINDING_STATUS_REPORTED":  0,
+	"FINDING_STATUS_PROPOSED":  1,
+	"FINDING_STATUS_ACTIVE":    2,
+	"FINDING_STATUS_CONFIRMED": 3,
+	"FINDING_STATUS_PAID":      4,
+	"FINDING_STATUS_CLOSED":    5,
 }
 
 func (x FindingStatus) String() string {
@@ -97,15 +101,41 @@ func (FindingStatus) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_36e6d679af1b94c6, []int{1}
 }
 
+type ProgramStatus int32
+
+const (
+	ProgramStatusInactive ProgramStatus = 0
+	ProgramStatusActive   ProgramStatus = 1
+	ProgramStatusClosed   ProgramStatus = 2
+)
+
+var ProgramStatus_name = map[int32]string{
+	0: "PROGRAM_STATUS_INACTIVE",
+	1: "PROGRAM_STATUS_ACTIVE",
+	2: "PROGRAM_STATUS_CLOSED",
+}
+
+var ProgramStatus_value = map[string]int32{
+	"PROGRAM_STATUS_INACTIVE": 0,
+	"PROGRAM_STATUS_ACTIVE":   1,
+	"PROGRAM_STATUS_CLOSED":   2,
+}
+
+func (x ProgramStatus) String() string {
+	return proto.EnumName(ProgramStatus_name, int32(x))
+}
+
+func (ProgramStatus) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_36e6d679af1b94c6, []int{2}
+}
+
 type Program struct {
-	ProgramId         uint64                                 `protobuf:"varint,1,opt,name=program_id,json=programId,proto3" json:"id" yaml:"id"`
-	CreatorAddress    string                                 `protobuf:"bytes,2,opt,name=creator_address,json=creatorAddress,proto3" json:"creator_address,omitempty" yaml:"creator_address"`
-	SubmissionEndTime time.Time                              `protobuf:"bytes,3,opt,name=submission_end_time,json=submissionEndTime,proto3,stdtime" json:"submission_end_time" yaml:"submission_end_time"`
-	Description       string                                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty" yaml:"description"`
-	EncryptionKey     *types.Any                             `protobuf:"bytes,5,opt,name=encryption_key,json=encryptionKey,proto3" json:"encryption_key,omitempty" yaml:"encryption_key"`
-	Deposit           []types1.Coin                          `protobuf:"bytes,6,rep,name=deposit,proto3" json:"deposit" yaml:"deposit"`
-	CommissionRate    github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,7,opt,name=commission_rate,json=commissionRate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"commission_rate"`
-	Active            bool                                   `protobuf:"varint,8,opt,name=active,proto3" json:"active,omitempty" yaml:"active"`
+	ProgramId      string        `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"id" yaml:"id"`
+	Name           string        `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty" yaml:"name"`
+	Detail         ProgramDetail `protobuf:"bytes,3,opt,name=detail,proto3" json:"detail" yaml:"detail"`
+	AdminAddress   string        `protobuf:"bytes,4,opt,name=admin_address,json=adminAddress,proto3" json:"admin_address,omitempty" yaml:"admin_address"`
+	MemberAccounts []string      `protobuf:"bytes,5,rep,name=member_accounts,json=memberAccounts,proto3" json:"member_accounts,omitempty" yaml:"member_accounts"`
+	Status         ProgramStatus `protobuf:"varint,6,opt,name=status,proto3,enum=shentu.bounty.v1.ProgramStatus" json:"status,omitempty" yaml:"status"`
 }
 
 func (m *Program) Reset()         { *m = Program{} }
@@ -141,67 +171,22 @@ func (m *Program) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Program proto.InternalMessageInfo
 
-type EciesPubKey struct {
-	EncryptionKey []byte `protobuf:"bytes,1,opt,name=encryption_key,json=encryptionKey,proto3" json:"encryption_key,omitempty"`
-}
-
-func (m *EciesPubKey) Reset()         { *m = EciesPubKey{} }
-func (m *EciesPubKey) String() string { return proto.CompactTextString(m) }
-func (*EciesPubKey) ProtoMessage()    {}
-func (*EciesPubKey) Descriptor() ([]byte, []int) {
-	return fileDescriptor_36e6d679af1b94c6, []int{1}
-}
-func (m *EciesPubKey) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *EciesPubKey) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_EciesPubKey.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *EciesPubKey) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EciesPubKey.Merge(m, src)
-}
-func (m *EciesPubKey) XXX_Size() int {
-	return m.Size()
-}
-func (m *EciesPubKey) XXX_DiscardUnknown() {
-	xxx_messageInfo_EciesPubKey.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_EciesPubKey proto.InternalMessageInfo
-
-func (m *EciesPubKey) GetEncryptionKey() []byte {
-	if m != nil {
-		return m.EncryptionKey
-	}
-	return nil
-}
-
 type Finding struct {
-	FindingId        uint64        `protobuf:"varint,1,opt,name=finding_id,json=findingId,proto3" json:"id" yaml:"id"`
-	Title            string        `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty" yaml:"title"`
-	FindingDesc      *types.Any    `protobuf:"bytes,3,opt,name=finding_desc,json=findingDesc,proto3" json:"finding_desc,omitempty" yaml:"finding_desc"`
-	ProgramId        uint64        `protobuf:"varint,4,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
-	SeverityLevel    SeverityLevel `protobuf:"varint,5,opt,name=severity_level,json=severityLevel,proto3,enum=shentu.bounty.v1.SeverityLevel" json:"severity_level,omitempty" yaml:"severity_level"`
-	FindingPoc       *types.Any    `protobuf:"bytes,6,opt,name=finding_poc,json=findingPoc,proto3" json:"finding_poc,omitempty" yaml:"finding_poc"`
-	SubmitterAddress string        `protobuf:"bytes,7,opt,name=submitter_address,json=submitterAddress,proto3" json:"submitter_address,omitempty" yaml:"submitter_address"`
-	FindingStatus    FindingStatus `protobuf:"varint,8,opt,name=finding_status,json=findingStatus,proto3,enum=shentu.bounty.v1.FindingStatus" json:"finding_status,omitempty" yaml:"finding_status"`
-	FindingComment   *types.Any    `protobuf:"bytes,9,opt,name=finding_comment,json=findingComment,proto3" json:"finding_comment,omitempty" yaml:"finding_comment"`
+	FindingId        string        `protobuf:"bytes,1,opt,name=finding_id,json=findingId,proto3" json:"id" yaml:"id"`
+	ProgramId        string        `protobuf:"bytes,2,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
+	Title            string        `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Detail           FindingDetail `protobuf:"bytes,4,opt,name=detail,proto3" json:"detail" yaml:"detail"`
+	SubmitterAddress string        `protobuf:"bytes,5,opt,name=submitter_address,json=submitterAddress,proto3" json:"submitter_address,omitempty" yaml:"submitter_address"`
+	CreateTime       time.Time     `protobuf:"bytes,6,opt,name=create_time,json=createTime,proto3,stdtime" json:"create_time" yaml:"create_time"`
+	Status           FindingStatus `protobuf:"varint,7,opt,name=status,proto3,enum=shentu.bounty.v1.FindingStatus" json:"status,omitempty" yaml:"status"`
+	FindingHash      string        `protobuf:"bytes,8,opt,name=finding_hash,json=findingHash,proto3" json:"finding_hash,omitempty" yaml:"finding_hash"`
 }
 
 func (m *Finding) Reset()         { *m = Finding{} }
 func (m *Finding) String() string { return proto.CompactTextString(m) }
 func (*Finding) ProtoMessage()    {}
 func (*Finding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_36e6d679af1b94c6, []int{2}
+	return fileDescriptor_36e6d679af1b94c6, []int{1}
 }
 func (m *Finding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -230,22 +215,66 @@ func (m *Finding) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Finding proto.InternalMessageInfo
 
-type EciesEncryptedDesc struct {
-	FindingDesc []byte `protobuf:"bytes,1,opt,name=finding_desc,json=findingDesc,proto3" json:"finding_desc,omitempty"`
+// ProgramDetail defines a program detail.
+type ProgramDetail struct {
+	Description  string        `protobuf:"bytes,1,opt,name=description,proto3" json:"description,omitempty"`
+	ScopeRules   string        `protobuf:"bytes,2,opt,name=scope_rules,json=scopeRules,proto3" json:"scope_rules,omitempty"`
+	KnownIssues  string        `protobuf:"bytes,3,opt,name=known_issues,json=knownIssues,proto3" json:"known_issues,omitempty"`
+	BountyLevels []BountyLevel `protobuf:"bytes,4,rep,name=bounty_levels,json=bountyLevels,proto3" json:"bounty_levels" yaml:"bounty_levels"`
 }
 
-func (m *EciesEncryptedDesc) Reset()         { *m = EciesEncryptedDesc{} }
-func (m *EciesEncryptedDesc) String() string { return proto.CompactTextString(m) }
-func (*EciesEncryptedDesc) ProtoMessage()    {}
-func (*EciesEncryptedDesc) Descriptor() ([]byte, []int) {
+func (m *ProgramDetail) Reset()         { *m = ProgramDetail{} }
+func (m *ProgramDetail) String() string { return proto.CompactTextString(m) }
+func (*ProgramDetail) ProtoMessage()    {}
+func (*ProgramDetail) Descriptor() ([]byte, []int) {
+	return fileDescriptor_36e6d679af1b94c6, []int{2}
+}
+func (m *ProgramDetail) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ProgramDetail) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ProgramDetail.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ProgramDetail) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ProgramDetail.Merge(m, src)
+}
+func (m *ProgramDetail) XXX_Size() int {
+	return m.Size()
+}
+func (m *ProgramDetail) XXX_DiscardUnknown() {
+	xxx_messageInfo_ProgramDetail.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ProgramDetail proto.InternalMessageInfo
+
+type BountyLevel struct {
+	SeverityLevel SeverityLevel `protobuf:"varint,1,opt,name=severity_level,json=severityLevel,proto3,enum=shentu.bounty.v1.SeverityLevel" json:"severity_level,omitempty" yaml:"severity_level"`
+	Poc           bool          `protobuf:"varint,2,opt,name=poc,proto3" json:"poc,omitempty"`
+	MinBounty     types1.Coin   `protobuf:"bytes,3,opt,name=min_bounty,json=minBounty,proto3" json:"min_bounty" yaml:"min_bounty"`
+	MaxBounty     types1.Coin   `protobuf:"bytes,4,opt,name=max_bounty,json=maxBounty,proto3" json:"max_bounty" yaml:"max_bounty"`
+}
+
+func (m *BountyLevel) Reset()         { *m = BountyLevel{} }
+func (m *BountyLevel) String() string { return proto.CompactTextString(m) }
+func (*BountyLevel) ProtoMessage()    {}
+func (*BountyLevel) Descriptor() ([]byte, []int) {
 	return fileDescriptor_36e6d679af1b94c6, []int{3}
 }
-func (m *EciesEncryptedDesc) XXX_Unmarshal(b []byte) error {
+func (m *BountyLevel) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *EciesEncryptedDesc) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *BountyLevel) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_EciesEncryptedDesc.Marshal(b, m, deterministic)
+		return xxx_messageInfo_BountyLevel.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -255,41 +284,39 @@ func (m *EciesEncryptedDesc) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *EciesEncryptedDesc) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EciesEncryptedDesc.Merge(m, src)
+func (m *BountyLevel) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_BountyLevel.Merge(m, src)
 }
-func (m *EciesEncryptedDesc) XXX_Size() int {
+func (m *BountyLevel) XXX_Size() int {
 	return m.Size()
 }
-func (m *EciesEncryptedDesc) XXX_DiscardUnknown() {
-	xxx_messageInfo_EciesEncryptedDesc.DiscardUnknown(m)
+func (m *BountyLevel) XXX_DiscardUnknown() {
+	xxx_messageInfo_BountyLevel.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_EciesEncryptedDesc proto.InternalMessageInfo
+var xxx_messageInfo_BountyLevel proto.InternalMessageInfo
 
-func (m *EciesEncryptedDesc) GetFindingDesc() []byte {
-	if m != nil {
-		return m.FindingDesc
-	}
-	return nil
+// FindingDetail defines a finding detail.
+type FindingDetail struct {
+	Description    string        `protobuf:"bytes,1,opt,name=description,proto3" json:"description,omitempty"`
+	ProofOfConcept string        `protobuf:"bytes,2,opt,name=proof_of_concept,json=proofOfConcept,proto3" json:"proof_of_concept,omitempty" yaml:"proof_of_concept"`
+	ProgramTargets []string      `protobuf:"bytes,3,rep,name=program_targets,json=programTargets,proto3" json:"program_targets,omitempty" yaml:"program_targets"`
+	Attachments    []string      `protobuf:"bytes,4,rep,name=attachments,proto3" json:"attachments,omitempty"`
+	SeverityLevel  SeverityLevel `protobuf:"varint,5,opt,name=severity_level,json=severityLevel,proto3,enum=shentu.bounty.v1.SeverityLevel" json:"severity_level,omitempty" yaml:"severity_level"`
 }
 
-type EciesEncryptedPoc struct {
-	FindingPoc []byte `protobuf:"bytes,1,opt,name=finding_poc,json=findingPoc,proto3" json:"finding_poc,omitempty"`
-}
-
-func (m *EciesEncryptedPoc) Reset()         { *m = EciesEncryptedPoc{} }
-func (m *EciesEncryptedPoc) String() string { return proto.CompactTextString(m) }
-func (*EciesEncryptedPoc) ProtoMessage()    {}
-func (*EciesEncryptedPoc) Descriptor() ([]byte, []int) {
+func (m *FindingDetail) Reset()         { *m = FindingDetail{} }
+func (m *FindingDetail) String() string { return proto.CompactTextString(m) }
+func (*FindingDetail) ProtoMessage()    {}
+func (*FindingDetail) Descriptor() ([]byte, []int) {
 	return fileDescriptor_36e6d679af1b94c6, []int{4}
 }
-func (m *EciesEncryptedPoc) XXX_Unmarshal(b []byte) error {
+func (m *FindingDetail) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *EciesEncryptedPoc) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *FindingDetail) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_EciesEncryptedPoc.Marshal(b, m, deterministic)
+		return xxx_messageInfo_FindingDetail.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -299,296 +326,113 @@ func (m *EciesEncryptedPoc) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (m *EciesEncryptedPoc) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EciesEncryptedPoc.Merge(m, src)
+func (m *FindingDetail) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FindingDetail.Merge(m, src)
 }
-func (m *EciesEncryptedPoc) XXX_Size() int {
+func (m *FindingDetail) XXX_Size() int {
 	return m.Size()
 }
-func (m *EciesEncryptedPoc) XXX_DiscardUnknown() {
-	xxx_messageInfo_EciesEncryptedPoc.DiscardUnknown(m)
+func (m *FindingDetail) XXX_DiscardUnknown() {
+	xxx_messageInfo_FindingDetail.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_EciesEncryptedPoc proto.InternalMessageInfo
-
-func (m *EciesEncryptedPoc) GetFindingPoc() []byte {
-	if m != nil {
-		return m.FindingPoc
-	}
-	return nil
-}
-
-type EciesEncryptedComment struct {
-	FindingComment []byte `protobuf:"bytes,1,opt,name=finding_comment,json=findingComment,proto3" json:"finding_comment,omitempty"`
-}
-
-func (m *EciesEncryptedComment) Reset()         { *m = EciesEncryptedComment{} }
-func (m *EciesEncryptedComment) String() string { return proto.CompactTextString(m) }
-func (*EciesEncryptedComment) ProtoMessage()    {}
-func (*EciesEncryptedComment) Descriptor() ([]byte, []int) {
-	return fileDescriptor_36e6d679af1b94c6, []int{5}
-}
-func (m *EciesEncryptedComment) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *EciesEncryptedComment) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_EciesEncryptedComment.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *EciesEncryptedComment) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EciesEncryptedComment.Merge(m, src)
-}
-func (m *EciesEncryptedComment) XXX_Size() int {
-	return m.Size()
-}
-func (m *EciesEncryptedComment) XXX_DiscardUnknown() {
-	xxx_messageInfo_EciesEncryptedComment.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_EciesEncryptedComment proto.InternalMessageInfo
-
-func (m *EciesEncryptedComment) GetFindingComment() []byte {
-	if m != nil {
-		return m.FindingComment
-	}
-	return nil
-}
-
-type PlainTextDesc struct {
-	FindingDesc []byte `protobuf:"bytes,1,opt,name=finding_desc,json=findingDesc,proto3" json:"finding_desc,omitempty"`
-}
-
-func (m *PlainTextDesc) Reset()         { *m = PlainTextDesc{} }
-func (m *PlainTextDesc) String() string { return proto.CompactTextString(m) }
-func (*PlainTextDesc) ProtoMessage()    {}
-func (*PlainTextDesc) Descriptor() ([]byte, []int) {
-	return fileDescriptor_36e6d679af1b94c6, []int{6}
-}
-func (m *PlainTextDesc) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *PlainTextDesc) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_PlainTextDesc.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *PlainTextDesc) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PlainTextDesc.Merge(m, src)
-}
-func (m *PlainTextDesc) XXX_Size() int {
-	return m.Size()
-}
-func (m *PlainTextDesc) XXX_DiscardUnknown() {
-	xxx_messageInfo_PlainTextDesc.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_PlainTextDesc proto.InternalMessageInfo
-
-func (m *PlainTextDesc) GetFindingDesc() []byte {
-	if m != nil {
-		return m.FindingDesc
-	}
-	return nil
-}
-
-type PlainTextPoc struct {
-	FindingPoc []byte `protobuf:"bytes,1,opt,name=finding_poc,json=findingPoc,proto3" json:"finding_poc,omitempty"`
-}
-
-func (m *PlainTextPoc) Reset()         { *m = PlainTextPoc{} }
-func (m *PlainTextPoc) String() string { return proto.CompactTextString(m) }
-func (*PlainTextPoc) ProtoMessage()    {}
-func (*PlainTextPoc) Descriptor() ([]byte, []int) {
-	return fileDescriptor_36e6d679af1b94c6, []int{7}
-}
-func (m *PlainTextPoc) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *PlainTextPoc) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_PlainTextPoc.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *PlainTextPoc) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PlainTextPoc.Merge(m, src)
-}
-func (m *PlainTextPoc) XXX_Size() int {
-	return m.Size()
-}
-func (m *PlainTextPoc) XXX_DiscardUnknown() {
-	xxx_messageInfo_PlainTextPoc.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_PlainTextPoc proto.InternalMessageInfo
-
-func (m *PlainTextPoc) GetFindingPoc() []byte {
-	if m != nil {
-		return m.FindingPoc
-	}
-	return nil
-}
-
-type PlainTextComment struct {
-	FindingComment []byte `protobuf:"bytes,1,opt,name=finding_comment,json=findingComment,proto3" json:"finding_comment,omitempty"`
-}
-
-func (m *PlainTextComment) Reset()         { *m = PlainTextComment{} }
-func (m *PlainTextComment) String() string { return proto.CompactTextString(m) }
-func (*PlainTextComment) ProtoMessage()    {}
-func (*PlainTextComment) Descriptor() ([]byte, []int) {
-	return fileDescriptor_36e6d679af1b94c6, []int{8}
-}
-func (m *PlainTextComment) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *PlainTextComment) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_PlainTextComment.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *PlainTextComment) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PlainTextComment.Merge(m, src)
-}
-func (m *PlainTextComment) XXX_Size() int {
-	return m.Size()
-}
-func (m *PlainTextComment) XXX_DiscardUnknown() {
-	xxx_messageInfo_PlainTextComment.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_PlainTextComment proto.InternalMessageInfo
-
-func (m *PlainTextComment) GetFindingComment() []byte {
-	if m != nil {
-		return m.FindingComment
-	}
-	return nil
-}
+var xxx_messageInfo_FindingDetail proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterEnum("shentu.bounty.v1.SeverityLevel", SeverityLevel_name, SeverityLevel_value)
 	proto.RegisterEnum("shentu.bounty.v1.FindingStatus", FindingStatus_name, FindingStatus_value)
+	proto.RegisterEnum("shentu.bounty.v1.ProgramStatus", ProgramStatus_name, ProgramStatus_value)
 	proto.RegisterType((*Program)(nil), "shentu.bounty.v1.Program")
-	proto.RegisterType((*EciesPubKey)(nil), "shentu.bounty.v1.EciesPubKey")
 	proto.RegisterType((*Finding)(nil), "shentu.bounty.v1.Finding")
-	proto.RegisterType((*EciesEncryptedDesc)(nil), "shentu.bounty.v1.EciesEncryptedDesc")
-	proto.RegisterType((*EciesEncryptedPoc)(nil), "shentu.bounty.v1.EciesEncryptedPoc")
-	proto.RegisterType((*EciesEncryptedComment)(nil), "shentu.bounty.v1.EciesEncryptedComment")
-	proto.RegisterType((*PlainTextDesc)(nil), "shentu.bounty.v1.PlainTextDesc")
-	proto.RegisterType((*PlainTextPoc)(nil), "shentu.bounty.v1.PlainTextPoc")
-	proto.RegisterType((*PlainTextComment)(nil), "shentu.bounty.v1.PlainTextComment")
+	proto.RegisterType((*ProgramDetail)(nil), "shentu.bounty.v1.ProgramDetail")
+	proto.RegisterType((*BountyLevel)(nil), "shentu.bounty.v1.BountyLevel")
+	proto.RegisterType((*FindingDetail)(nil), "shentu.bounty.v1.FindingDetail")
 }
 
 func init() { proto.RegisterFile("shentu/bounty/v1/bounty.proto", fileDescriptor_36e6d679af1b94c6) }
 
 var fileDescriptor_36e6d679af1b94c6 = []byte{
-	// 1224 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0x5d, 0x6f, 0xdb, 0x54,
-	0x18, 0x4e, 0xba, 0x7e, 0xac, 0xa7, 0x4d, 0x9a, 0x9e, 0x7e, 0x2c, 0x35, 0x5b, 0x1c, 0x2c, 0x28,
-	0x65, 0x62, 0x0e, 0x2d, 0x13, 0x42, 0x15, 0x02, 0xf2, 0xd5, 0x61, 0xd6, 0x26, 0x95, 0x9b, 0x16,
-	0x31, 0x2e, 0x2c, 0xc7, 0x3e, 0xc9, 0x0e, 0x4b, 0x7c, 0x22, 0xfb, 0x24, 0x5a, 0xf8, 0x05, 0x53,
-	0xae, 0xf6, 0x07, 0x22, 0x4d, 0xe2, 0x2f, 0x70, 0xc7, 0x1f, 0x98, 0xb8, 0x9a, 0x7a, 0x85, 0xb8,
-	0x30, 0xb0, 0x5d, 0x80, 0xb8, 0x8c, 0xf8, 0x01, 0xc8, 0x3e, 0xc7, 0x8d, 0xed, 0x56, 0x43, 0x9a,
-	0xb8, 0x8a, 0xcf, 0xfb, 0xbe, 0xcf, 0xe3, 0xf7, 0xe3, 0x79, 0x8f, 0x03, 0x6e, 0x39, 0x0f, 0x91,
-	0x45, 0xfb, 0x85, 0x26, 0xe9, 0x5b, 0x74, 0x58, 0x18, 0xec, 0xf2, 0x27, 0xb9, 0x67, 0x13, 0x4a,
-	0x60, 0x86, 0xb9, 0x65, 0x6e, 0x1c, 0xec, 0x0a, 0xeb, 0x6d, 0xd2, 0x26, 0xbe, 0xb3, 0xe0, 0x3d,
-	0xb1, 0x38, 0x41, 0x6c, 0x13, 0xd2, 0xee, 0xa0, 0x82, 0x7f, 0x6a, 0xf6, 0x5b, 0x05, 0x8a, 0xbb,
-	0xc8, 0xa1, 0x7a, 0xb7, 0xc7, 0x03, 0x72, 0x06, 0x71, 0xba, 0xc4, 0x29, 0x34, 0x75, 0x07, 0x15,
-	0x06, 0xbb, 0x4d, 0x44, 0xf5, 0xdd, 0x82, 0x41, 0xb0, 0xc5, 0xfd, 0x5b, 0xcc, 0xaf, 0x31, 0x66,
-	0x76, 0x08, 0x5c, 0x71, 0x6e, 0xdd, 0xe2, 0xe9, 0x49, 0xff, 0xcc, 0x82, 0x85, 0x63, 0x9b, 0xb4,
-	0x6d, 0xbd, 0x0b, 0xf7, 0x00, 0xe8, 0xb1, 0x47, 0x0d, 0x9b, 0xd9, 0x64, 0x3e, 0xb9, 0x33, 0x5b,
-	0x5a, 0xfb, 0xdb, 0x15, 0x67, 0xb0, 0x39, 0x71, 0xc5, 0xc5, 0xa1, 0xde, 0xed, 0xec, 0x4b, 0xd8,
-	0x94, 0xd4, 0x45, 0x1e, 0xa6, 0x98, 0xb0, 0x0c, 0x56, 0x0c, 0x1b, 0xe9, 0x94, 0xd8, 0x9a, 0x6e,
-	0x9a, 0x36, 0x72, 0x9c, 0xec, 0x4c, 0x3e, 0xb9, 0xb3, 0x58, 0x12, 0x26, 0xae, 0xb8, 0xc9, 0x20,
-	0xb1, 0x00, 0x49, 0x4d, 0x73, 0x4b, 0x91, 0x19, 0xa0, 0x0d, 0xd6, 0x9c, 0x7e, 0xb3, 0x8b, 0x1d,
-	0x07, 0x13, 0x4b, 0x43, 0x96, 0xa9, 0x79, 0xc5, 0x67, 0xaf, 0xe5, 0x93, 0x3b, 0x4b, 0x7b, 0x82,
-	0xcc, 0xb2, 0x97, 0x83, 0xec, 0xe5, 0x46, 0xd0, 0x99, 0xd2, 0xf6, 0x73, 0x57, 0x4c, 0x4c, 0x5c,
-	0x51, 0x60, 0x2f, 0xba, 0x82, 0x44, 0x7a, 0xfa, 0x9b, 0x98, 0x54, 0x57, 0xa7, 0x9e, 0xaa, 0x65,
-	0x7a, 0x78, 0xf8, 0x09, 0x58, 0x32, 0x91, 0x63, 0xd8, 0xb8, 0x47, 0x31, 0xb1, 0xb2, 0xb3, 0x7e,
-	0xd2, 0x9b, 0x13, 0x57, 0x84, 0x8c, 0x2b, 0xe4, 0x94, 0xd4, 0x70, 0x28, 0x6c, 0x83, 0x34, 0xb2,
-	0x0c, 0x7b, 0xe8, 0x9f, 0xb4, 0x47, 0x68, 0x98, 0x9d, 0xf3, 0x13, 0x5d, 0xbf, 0x94, 0x68, 0xd1,
-	0x1a, 0x96, 0x6e, 0x4f, 0x5c, 0x71, 0x83, 0x51, 0x46, 0x51, 0xd2, 0xcf, 0x3f, 0xde, 0x49, 0x55,
-	0x2f, 0x4c, 0xf7, 0xd1, 0x50, 0x4d, 0xa1, 0xf0, 0x11, 0xde, 0x07, 0x0b, 0x26, 0xea, 0x11, 0x07,
-	0xd3, 0xec, 0x7c, 0xfe, 0xda, 0xce, 0xd2, 0xde, 0x96, 0xcc, 0xc7, 0xea, 0x69, 0x40, 0xe6, 0x1a,
-	0x90, 0xcb, 0x04, 0x5b, 0xa5, 0x4d, 0xde, 0x89, 0x74, 0x90, 0xbd, 0x8f, 0x93, 0xd4, 0x80, 0x01,
-	0x7e, 0x0d, 0x56, 0x0c, 0xd2, 0x0d, 0xda, 0x63, 0xeb, 0x14, 0x65, 0x17, 0xfc, 0x9a, 0x65, 0x0f,
-	0xf9, 0xab, 0x2b, 0x6e, 0xb7, 0x31, 0x7d, 0xd8, 0x6f, 0xca, 0x06, 0xe9, 0x72, 0xf5, 0xf0, 0x9f,
-	0x3b, 0x8e, 0xf9, 0xa8, 0x40, 0x87, 0x3d, 0xe4, 0xc8, 0x15, 0x64, 0xa8, 0xe9, 0x29, 0x8d, 0xaa,
-	0x53, 0x04, 0xdf, 0x07, 0xf3, 0xba, 0x41, 0xf1, 0x00, 0x65, 0xaf, 0xe7, 0x93, 0x3b, 0xd7, 0x4b,
-	0xab, 0x13, 0x57, 0x4c, 0xb1, 0x2c, 0x98, 0x5d, 0x52, 0x79, 0xc0, 0xfe, 0xf5, 0x27, 0xcf, 0xc4,
-	0xc4, 0x5f, 0xcf, 0xc4, 0x84, 0x74, 0x0f, 0x2c, 0x55, 0x0d, 0x8c, 0x9c, 0xe3, 0x7e, 0xd3, 0xab,
-	0xf4, 0xdd, 0x4b, 0x2d, 0xf5, 0xd4, 0xb7, 0x1c, 0x6b, 0xc8, 0xfe, 0xea, 0x79, 0xbc, 0x65, 0xd2,
-	0x1f, 0x73, 0x60, 0xe1, 0x00, 0x5b, 0x26, 0xb6, 0xda, 0x9e, 0x7e, 0x5b, 0xec, 0xf1, 0xbf, 0xf4,
-	0xcb, 0xc3, 0x14, 0x13, 0x6e, 0x83, 0x39, 0x8a, 0x69, 0x07, 0x71, 0xd5, 0x66, 0x26, 0xae, 0xb8,
-	0xcc, 0x02, 0x7d, 0xb3, 0xa4, 0x32, 0x37, 0xd4, 0xc0, 0x72, 0xc0, 0xed, 0x69, 0x81, 0x6b, 0xf3,
-	0xea, 0x91, 0x6f, 0x4f, 0x5c, 0x71, 0x8d, 0x91, 0x84, 0x31, 0xde, 0xc0, 0x97, 0x78, 0xae, 0x15,
-	0xe4, 0x18, 0xea, 0x52, 0x6b, 0x7a, 0x80, 0x77, 0x23, 0xcb, 0x37, 0xeb, 0x27, 0xbf, 0x31, 0x71,
-	0xc5, 0x55, 0x46, 0x34, 0xf5, 0x45, 0xd6, 0x4f, 0x07, 0x69, 0x07, 0x0d, 0x90, 0x8d, 0xe9, 0x50,
-	0xeb, 0xa0, 0x01, 0xea, 0xf8, 0x5a, 0x4c, 0xef, 0x89, 0x72, 0xfc, 0xda, 0x91, 0x4f, 0x78, 0xdc,
-	0xa1, 0x17, 0x56, 0xda, 0x9a, 0xca, 0x32, 0x4a, 0x20, 0xa9, 0x29, 0x27, 0x1c, 0x09, 0xbf, 0x05,
-	0x41, 0x9e, 0x5a, 0x8f, 0x18, 0xd9, 0xf9, 0xd7, 0x14, 0xfe, 0xce, 0x74, 0x7d, 0x42, 0x10, 0xaf,
-	0x6e, 0xc0, 0xeb, 0x3e, 0x26, 0x86, 0x1a, 0x0c, 0xe9, 0x98, 0x18, 0x50, 0x01, 0x6c, 0x35, 0x29,
-	0x45, 0xd3, 0x0b, 0x84, 0xe9, 0xf2, 0xe6, 0xc4, 0x15, 0xb3, 0xa1, 0xbd, 0x0e, 0x87, 0x48, 0x6a,
-	0xe6, 0xc2, 0x16, 0x5c, 0x22, 0x3a, 0x48, 0x07, 0x2f, 0x75, 0xa8, 0x4e, 0xfb, 0x8e, 0xaf, 0xc7,
-	0x2b, 0x5b, 0xc1, 0x93, 0x39, 0xf1, 0xc3, 0xc2, 0xad, 0x88, 0x12, 0x48, 0x6a, 0xaa, 0x15, 0x8e,
-	0x84, 0x8f, 0xc0, 0x4a, 0x10, 0xe1, 0x2d, 0x01, 0xb2, 0x68, 0x76, 0xf1, 0x35, 0xed, 0xf8, 0x60,
-	0x7a, 0x05, 0xc6, 0x60, 0x5e, 0x4b, 0xd2, 0x3c, 0x8b, 0x32, 0x33, 0xa9, 0x41, 0xf6, 0xfc, 0x1c,
-	0x5a, 0x96, 0x2f, 0x01, 0xf4, 0x97, 0x85, 0x2b, 0x1f, 0x99, 0xbe, 0x60, 0xde, 0x8e, 0x29, 0x92,
-	0x6d, 0x4c, 0x58, 0x53, 0xfb, 0x2b, 0xe7, 0x51, 0xc5, 0x49, 0x15, 0xb0, 0x1a, 0x65, 0xf2, 0x66,
-	0x20, 0x46, 0x07, 0xcc, 0x78, 0x42, 0x43, 0xda, 0x4f, 0x9f, 0x47, 0x06, 0x28, 0x35, 0xc0, 0x46,
-	0x94, 0x85, 0xa7, 0x0c, 0xdf, 0xbb, 0xdc, 0x1f, 0xc6, 0x16, 0xaf, 0x0d, 0x9e, 0x5f, 0xaa, 0x5f,
-	0x2a, 0x83, 0xd4, 0x71, 0x47, 0xc7, 0x56, 0x03, 0x3d, 0xa6, 0x6f, 0x5c, 0xe0, 0xe7, 0x60, 0xf9,
-	0x82, 0xe4, 0x8d, 0x6a, 0xab, 0x83, 0xcc, 0x05, 0xc1, 0xff, 0x51, 0xd6, 0xed, 0x3f, 0x67, 0x40,
-	0x2a, 0xb2, 0x7a, 0xf0, 0x63, 0x70, 0xe3, 0xa4, 0x7a, 0x56, 0x55, 0x95, 0xc6, 0x37, 0xda, 0x61,
-	0xf5, 0xac, 0x7a, 0xa8, 0x95, 0x55, 0xa5, 0xa1, 0x94, 0x8b, 0x87, 0x99, 0x84, 0xb0, 0x35, 0x1a,
-	0xe7, 0x37, 0x22, 0xf1, 0x65, 0x1b, 0x53, 0x6c, 0xe8, 0x1d, 0xf8, 0x21, 0x58, 0x8f, 0xe1, 0x8e,
-	0x8a, 0x5f, 0xd5, 0xd5, 0x4c, 0x52, 0xd8, 0x1c, 0x8d, 0xf3, 0x30, 0x02, 0x3a, 0xd2, 0xbf, 0x23,
-	0x36, 0xdc, 0x03, 0x1b, 0x71, 0x44, 0xb5, 0xa2, 0x9c, 0x1e, 0x65, 0x66, 0x84, 0x1b, 0xa3, 0x71,
-	0x7e, 0x2d, 0x0a, 0x41, 0x26, 0xee, 0x77, 0xaf, 0x7a, 0x8b, 0x52, 0xab, 0xab, 0x99, 0x6b, 0x57,
-	0xbd, 0x05, 0x5b, 0xc4, 0x86, 0x9f, 0x81, 0xb7, 0x62, 0x88, 0xfa, 0x71, 0x43, 0x39, 0x52, 0x1e,
-	0x14, 0x1b, 0x4a, 0xbd, 0x96, 0x99, 0x15, 0x6e, 0x8d, 0xc6, 0xf9, 0xad, 0x08, 0xb0, 0xde, 0xa3,
-	0xb8, 0x8b, 0xbf, 0xd7, 0xfd, 0xef, 0xe9, 0x17, 0xe0, 0x66, 0x0c, 0xaf, 0xd4, 0x0e, 0xea, 0xea,
-	0x91, 0x0f, 0x2f, 0x1e, 0x66, 0xe6, 0x84, 0xdc, 0x68, 0x9c, 0x17, 0x22, 0x04, 0x8a, 0xd5, 0x22,
-	0x76, 0xd7, 0xc7, 0xeb, 0x1d, 0x61, 0xf6, 0xc9, 0x0f, 0xb9, 0xc4, 0xed, 0x9f, 0x92, 0x20, 0x15,
-	0xd9, 0x6c, 0xf8, 0x29, 0x10, 0x0e, 0x94, 0x5a, 0x45, 0xa9, 0xdd, 0xd3, 0x4e, 0x1a, 0xc5, 0xc6,
-	0xe9, 0x89, 0x76, 0x5a, 0x2b, 0xd7, 0x6b, 0x07, 0x8a, 0x7a, 0x54, 0xad, 0x64, 0x12, 0xc2, 0xcd,
-	0xd1, 0x38, 0x9f, 0x8d, 0x40, 0x4e, 0xad, 0x32, 0xb1, 0x5a, 0xd8, 0xee, 0x22, 0xd3, 0xeb, 0x44,
-	0x0c, 0x7d, 0x56, 0x3c, 0x54, 0x2a, 0x41, 0xbf, 0x23, 0xb8, 0x33, 0xbd, 0x83, 0x4d, 0x78, 0x17,
-	0x6c, 0xc6, 0x10, 0x4a, 0x8d, 0x61, 0x66, 0x84, 0xec, 0x68, 0x9c, 0x5f, 0x8f, 0x60, 0x14, 0x6b,
-	0xe0, 0xa1, 0x58, 0xf6, 0xa5, 0xfb, 0xcf, 0x5f, 0xe6, 0x92, 0x2f, 0x5e, 0xe6, 0x92, 0xbf, 0xbf,
-	0xcc, 0x25, 0x9f, 0xbe, 0xca, 0x25, 0x5e, 0xbc, 0xca, 0x25, 0x7e, 0x79, 0x95, 0x4b, 0x3c, 0xd8,
-	0x0d, 0x7d, 0x98, 0xd9, 0x55, 0xd6, 0x22, 0x7d, 0xcb, 0xf4, 0x8b, 0xe7, 0x86, 0xc2, 0xe3, 0xe0,
-	0xef, 0xa7, 0xff, 0x9d, 0x6e, 0xce, 0xfb, 0xf7, 0xd0, 0x47, 0xff, 0x06, 0x00, 0x00, 0xff, 0xff,
-	0x60, 0x6c, 0x98, 0xea, 0x9c, 0x0a, 0x00, 0x00,
+	// 1269 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0xcf, 0x6e, 0xdb, 0xc6,
+	0x13, 0xd6, 0x3f, 0x3b, 0xd1, 0xca, 0x72, 0x68, 0xda, 0x8a, 0x65, 0xfe, 0x12, 0x51, 0x3f, 0xf6,
+	0x62, 0x04, 0x85, 0x04, 0xbb, 0x45, 0x51, 0x04, 0x28, 0x50, 0xfd, 0x73, 0xcc, 0x56, 0x96, 0x8c,
+	0x95, 0x92, 0xa2, 0xed, 0x81, 0x5d, 0x91, 0x2b, 0x89, 0xa8, 0xc8, 0x15, 0xc8, 0x95, 0x93, 0xbc,
+	0x41, 0x60, 0xf4, 0x10, 0xa0, 0x67, 0x01, 0x29, 0xfa, 0x0c, 0xed, 0x33, 0xe4, 0xd0, 0x43, 0x6e,
+	0xed, 0x49, 0x6d, 0x93, 0x4b, 0xd1, 0xa3, 0x9e, 0xa0, 0x58, 0xee, 0x2a, 0x12, 0x59, 0xb9, 0x49,
+	0x81, 0xde, 0x76, 0x67, 0xbe, 0x6f, 0x38, 0x33, 0xdf, 0xec, 0x48, 0xe0, 0xb6, 0x3f, 0xc4, 0x2e,
+	0x9d, 0x94, 0x7b, 0x64, 0xe2, 0xd2, 0xc7, 0xe5, 0x8b, 0x23, 0x71, 0x2a, 0x8d, 0x3d, 0x42, 0x89,
+	0x2c, 0x71, 0x77, 0x49, 0x18, 0x2f, 0x8e, 0x94, 0xbd, 0x01, 0x19, 0x90, 0xc0, 0x59, 0x66, 0x27,
+	0x8e, 0x53, 0xd4, 0x01, 0x21, 0x83, 0x11, 0x2e, 0x07, 0xb7, 0xde, 0xa4, 0x5f, 0xa6, 0xb6, 0x83,
+	0x7d, 0x8a, 0x9c, 0xb1, 0x00, 0x14, 0x4c, 0xe2, 0x3b, 0xc4, 0x2f, 0xf7, 0x90, 0x8f, 0xcb, 0x17,
+	0x47, 0x3d, 0x4c, 0xd1, 0x51, 0xd9, 0x24, 0xb6, 0x2b, 0xfc, 0x07, 0xdc, 0x6f, 0xf0, 0xc8, 0xfc,
+	0xb2, 0x70, 0x45, 0x63, 0x23, 0x57, 0xa4, 0xa7, 0x7d, 0x93, 0x04, 0xd7, 0xce, 0x3d, 0x32, 0xf0,
+	0x90, 0x23, 0x1f, 0x03, 0x30, 0xe6, 0x47, 0xc3, 0xb6, 0xf2, 0xf1, 0x62, 0xfc, 0x30, 0x5d, 0xdd,
+	0xfd, 0x73, 0xa6, 0x26, 0x6c, 0x6b, 0x3e, 0x53, 0xd3, 0x8f, 0x91, 0x33, 0xba, 0xab, 0xd9, 0x96,
+	0x06, 0xd3, 0x02, 0xa6, 0x5b, 0xf2, 0x3b, 0x20, 0xe5, 0x22, 0x07, 0xe7, 0x13, 0x01, 0xfa, 0xc6,
+	0x7c, 0xa6, 0x66, 0x38, 0x8e, 0x59, 0x35, 0x18, 0x38, 0xe5, 0x16, 0xd8, 0xb4, 0x30, 0x45, 0xf6,
+	0x28, 0x9f, 0x2c, 0xc6, 0x0f, 0x33, 0xc7, 0x6a, 0x29, 0xda, 0x94, 0x92, 0xc8, 0xa1, 0x1e, 0xc0,
+	0xaa, 0xb9, 0xe7, 0x33, 0x35, 0x36, 0x9f, 0xa9, 0x59, 0x1e, 0x8b, 0x93, 0x35, 0x28, 0xa2, 0xc8,
+	0x1f, 0x81, 0x2c, 0xb2, 0x1c, 0xdb, 0x35, 0x90, 0x65, 0x79, 0xd8, 0xf7, 0xf3, 0xa9, 0xe0, 0xeb,
+	0xf9, 0xf9, 0x4c, 0xdd, 0xe3, 0x8c, 0x90, 0x5b, 0x83, 0x5b, 0xc1, 0xbd, 0xc2, 0xaf, 0x72, 0x0d,
+	0xdc, 0x70, 0xb0, 0xd3, 0xc3, 0x9e, 0x81, 0x4c, 0x93, 0x65, 0xe0, 0xe7, 0x37, 0x8a, 0xc9, 0xc3,
+	0x74, 0x55, 0x99, 0xcf, 0xd4, 0x9b, 0x3c, 0x40, 0x04, 0xa0, 0xc1, 0x6d, 0x6e, 0xa9, 0x08, 0x83,
+	0xfc, 0x09, 0xd8, 0xf4, 0x29, 0xa2, 0x13, 0x3f, 0xbf, 0x59, 0x8c, 0x1f, 0x6e, 0xff, 0x43, 0x4d,
+	0x9d, 0x00, 0x56, 0xdd, 0x59, 0xd6, 0xc3, 0x89, 0x1a, 0x14, 0x11, 0xee, 0x5e, 0x7f, 0xf2, 0x4c,
+	0x8d, 0xfd, 0xf1, 0x4c, 0x8d, 0x69, 0xdf, 0xa6, 0xc0, 0xb5, 0x13, 0xdb, 0xb5, 0x6c, 0x77, 0xc0,
+	0xe4, 0xe8, 0xf3, 0xe3, 0x9b, 0xe4, 0x10, 0x30, 0xdd, 0x92, 0xdf, 0x0f, 0x49, 0xc8, 0x45, 0xc9,
+	0xcd, 0x67, 0xea, 0x0e, 0x47, 0x2f, 0x7d, 0x21, 0x11, 0xf7, 0xc0, 0x06, 0xb5, 0xe9, 0x08, 0x07,
+	0xf2, 0xa4, 0x21, 0xbf, 0xac, 0xa8, 0x96, 0xba, 0x4a, 0x35, 0x91, 0xea, 0xdb, 0xa9, 0xa6, 0x83,
+	0x1d, 0x7f, 0xd2, 0x73, 0x6c, 0x4a, 0x59, 0x63, 0x85, 0x72, 0x1b, 0x41, 0x8a, 0xb7, 0xe6, 0x33,
+	0x35, 0x2f, 0x7a, 0x13, 0x85, 0x68, 0x50, 0x7a, 0x6d, 0x5b, 0x28, 0xf8, 0x25, 0xc8, 0x98, 0x1e,
+	0x46, 0x14, 0x1b, 0xec, 0x95, 0x04, 0x0a, 0x64, 0x8e, 0x95, 0x12, 0x1f, 0xf3, 0xd2, 0x62, 0xcc,
+	0x4b, 0xdd, 0xc5, 0x13, 0xaa, 0x16, 0x44, 0x6a, 0x32, 0xff, 0xc8, 0x0a, 0x59, 0x7b, 0xfa, 0xab,
+	0x1a, 0x87, 0x80, 0x5b, 0x18, 0x61, 0x45, 0xd9, 0x6b, 0x57, 0x29, 0x2b, 0xea, 0x7e, 0xa3, 0xb2,
+	0xf2, 0x5d, 0xb0, 0xb5, 0xd0, 0x70, 0x88, 0xfc, 0x61, 0xfe, 0x7a, 0x50, 0xee, 0xfe, 0x7c, 0xa6,
+	0xee, 0x72, 0xc2, 0xaa, 0x57, 0x83, 0x19, 0x71, 0x3d, 0x45, 0xfe, 0x70, 0x65, 0x2a, 0x7e, 0x8f,
+	0x83, 0x6c, 0xe8, 0x81, 0xc8, 0x45, 0x90, 0xb1, 0xb0, 0x6f, 0x7a, 0xf6, 0x98, 0xda, 0xc4, 0xe5,
+	0xc3, 0x01, 0x57, 0x4d, 0xb2, 0x0a, 0x32, 0xbe, 0x49, 0xc6, 0xd8, 0xf0, 0x26, 0x23, 0xec, 0xf3,
+	0x51, 0x80, 0x20, 0x30, 0x41, 0x66, 0x91, 0xff, 0x0f, 0xb6, 0xbe, 0x76, 0xc9, 0x43, 0xd7, 0xb0,
+	0x7d, 0x7f, 0x82, 0x7d, 0xa1, 0x7d, 0x26, 0xb0, 0xe9, 0x81, 0x49, 0xfe, 0x0a, 0x64, 0x79, 0xcd,
+	0xc6, 0x08, 0x5f, 0xe0, 0x11, 0x7b, 0x67, 0xc9, 0xc3, 0xcc, 0xf1, 0xed, 0xbf, 0x37, 0xa4, 0x1a,
+	0x9c, 0x9a, 0x0c, 0x55, 0xbd, 0x25, 0x7a, 0x2d, 0x9e, 0x62, 0x28, 0x82, 0x06, 0xb7, 0x7a, 0x4b,
+	0xe8, 0xea, 0xe4, 0xff, 0x98, 0x00, 0x99, 0x95, 0x28, 0x32, 0x02, 0xdb, 0x3e, 0xbe, 0xc0, 0x9e,
+	0xbd, 0xe0, 0x06, 0x45, 0xae, 0x55, 0xa3, 0x23, 0x70, 0xfc, 0xf3, 0x07, 0xf3, 0x99, 0x9a, 0x13,
+	0x6a, 0x84, 0x02, 0x68, 0x30, 0xeb, 0xaf, 0x22, 0x65, 0x09, 0x24, 0xc7, 0xc4, 0x0c, 0x5a, 0x73,
+	0x1d, 0xb2, 0xa3, 0xdc, 0x01, 0x80, 0xed, 0x0d, 0x1e, 0x5a, 0x2c, 0xab, 0x83, 0x92, 0xd8, 0xa5,
+	0x6c, 0xf1, 0x96, 0xc4, 0xe2, 0x2d, 0xd5, 0x88, 0xed, 0x56, 0x0f, 0x44, 0xa5, 0xe2, 0x75, 0x2d,
+	0xa9, 0x1a, 0x4c, 0x3b, 0xb6, 0xcb, 0xcb, 0x09, 0x82, 0xa2, 0x47, 0x8b, 0xa0, 0xa9, 0x7f, 0x1b,
+	0xf4, 0x35, 0x95, 0x05, 0x45, 0x8f, 0x78, 0xd0, 0x95, 0xc6, 0xfd, 0x94, 0x00, 0xd9, 0xd0, 0x3b,
+	0x7c, 0x8b, 0xe1, 0x68, 0x00, 0x69, 0xec, 0x11, 0xd2, 0x37, 0x48, 0xdf, 0x30, 0x89, 0x6b, 0xe2,
+	0x31, 0x15, 0xcb, 0xe2, 0x7f, 0xf3, 0x99, 0xba, 0xff, 0x7a, 0x59, 0x84, 0x10, 0x1a, 0xdc, 0x0e,
+	0x4c, 0xed, 0x7e, 0x8d, 0x1b, 0xd8, 0x22, 0x5d, 0x6c, 0x14, 0x8a, 0xbc, 0x01, 0xa6, 0x6c, 0x8a,
+	0x22, 0x8b, 0x34, 0x02, 0xe0, 0x41, 0x98, 0xa5, 0xcb, 0x0d, 0x2c, 0x5b, 0x44, 0x29, 0x32, 0x87,
+	0x0e, 0x66, 0x9b, 0x98, 0x8d, 0x58, 0x1a, 0xae, 0x9a, 0xd6, 0x8c, 0xc2, 0xc6, 0x7f, 0x3c, 0x0a,
+	0xcb, 0x76, 0xde, 0xf9, 0x2e, 0x01, 0xb2, 0xa1, 0x28, 0xf2, 0x07, 0x60, 0xbf, 0xd3, 0x78, 0xd0,
+	0x80, 0x7a, 0xf7, 0x73, 0xa3, 0xd9, 0x78, 0xd0, 0x68, 0x1a, 0x35, 0xa8, 0x77, 0xf5, 0x5a, 0xa5,
+	0x29, 0xc5, 0x94, 0x83, 0xcb, 0x69, 0x31, 0x17, 0xc2, 0xd7, 0x3c, 0x9b, 0xda, 0x26, 0x1a, 0xc9,
+	0x25, 0xb0, 0x1b, 0xe1, 0x9d, 0xea, 0xf7, 0x4e, 0xa5, 0xb8, 0x92, 0xbb, 0x9c, 0x16, 0x77, 0x42,
+	0x9c, 0x53, 0x7b, 0x30, 0x94, 0x8f, 0x41, 0x2e, 0x82, 0x3f, 0x6b, 0xd4, 0xf5, 0xfb, 0x67, 0x52,
+	0x42, 0xd9, 0xbf, 0x9c, 0x16, 0x77, 0x43, 0x8c, 0x33, 0x6c, 0xd9, 0x13, 0x47, 0x7e, 0x17, 0xc8,
+	0x11, 0x4e, 0xb3, 0xfd, 0x99, 0x94, 0x54, 0xf6, 0x2e, 0xa7, 0x45, 0x29, 0x44, 0x68, 0x92, 0x87,
+	0xf2, 0xc7, 0xe0, 0x56, 0x04, 0xad, 0xb7, 0x4e, 0xda, 0xf0, 0xac, 0xd2, 0xd5, 0xdb, 0xad, 0x4a,
+	0x53, 0x4a, 0x29, 0x85, 0xcb, 0x69, 0x51, 0x09, 0xf1, 0x74, 0xb7, 0x4f, 0x3c, 0x07, 0xb1, 0xb1,
+	0x41, 0x23, 0x25, 0xf5, 0xe4, 0xfb, 0x42, 0xec, 0xce, 0xcf, 0xcb, 0x91, 0xe3, 0x2b, 0x90, 0xf5,
+	0xe8, 0x44, 0x6f, 0xd5, 0xf5, 0xd6, 0x3d, 0xa3, 0xd3, 0xad, 0x74, 0xef, 0x77, 0x0c, 0xd8, 0x38,
+	0x6f, 0xc3, 0x6e, 0xa3, 0xbe, 0xe8, 0x51, 0x08, 0x0f, 0xf1, 0x98, 0x78, 0x14, 0x5b, 0x6b, 0x78,
+	0xe7, 0xb0, 0x7d, 0xde, 0xee, 0x34, 0xea, 0x52, 0x7c, 0x0d, 0xef, 0xdc, 0x23, 0x63, 0xe2, 0x63,
+	0x8b, 0xf5, 0x2a, 0xc2, 0xab, 0xd4, 0xba, 0xfa, 0x83, 0xc6, 0xa2, 0x57, 0x21, 0x56, 0xc5, 0xa4,
+	0xf6, 0x05, 0x96, 0x3f, 0x04, 0xf9, 0x08, 0xa7, 0xd6, 0x6e, 0x9d, 0xe8, 0xf0, 0xac, 0x51, 0x97,
+	0x92, 0x8a, 0x72, 0x39, 0x2d, 0xde, 0x0c, 0xd1, 0x6a, 0xc4, 0xed, 0xdb, 0x9e, 0x83, 0x2d, 0xa6,
+	0x64, 0x34, 0xcb, 0x8a, 0x5e, 0x97, 0x52, 0x5c, 0xc9, 0x70, 0x86, 0xc8, 0x5e, 0x97, 0x5d, 0xad,
+	0x19, 0xd4, 0xb4, 0xb1, 0x26, 0xbb, 0xda, 0x88, 0x55, 0x24, 0x3a, 0xfb, 0xc3, 0x72, 0xd3, 0x2f,
+	0x3b, 0x7b, 0x0e, 0xdb, 0xf7, 0x60, 0xe5, 0x6c, 0x11, 0x4b, 0x6f, 0x89, 0x5a, 0x45, 0x67, 0x43,
+	0x78, 0xdd, 0x45, 0xbc, 0xda, 0x63, 0x90, 0x8b, 0xf0, 0x04, 0x2b, 0xce, 0x73, 0x08, 0xb1, 0x2a,
+	0x57, 0x71, 0x44, 0xde, 0x89, 0x35, 0x9c, 0xd5, 0xbc, 0xab, 0x9f, 0x3e, 0x7f, 0x59, 0x88, 0xbf,
+	0x78, 0x59, 0x88, 0xff, 0xf6, 0xb2, 0x10, 0x7f, 0xfa, 0xaa, 0x10, 0x7b, 0xf1, 0xaa, 0x10, 0xfb,
+	0xe5, 0x55, 0x21, 0xf6, 0xc5, 0xd1, 0xc0, 0xa6, 0xc3, 0x49, 0xaf, 0x64, 0x12, 0xa7, 0xcc, 0x9f,
+	0x6b, 0x9f, 0x4c, 0x5c, 0x2b, 0x18, 0x28, 0x61, 0x28, 0x3f, 0x5a, 0xfc, 0x79, 0xa6, 0x8f, 0xc7,
+	0xd8, 0xef, 0x6d, 0x06, 0x3f, 0xe0, 0xef, 0xfd, 0x15, 0x00, 0x00, 0xff, 0xff, 0x92, 0x2b, 0x89,
+	0x2a, 0x5a, 0x0b, 0x00, 0x00,
 }
 
 func (m *Program) Marshal() (dAtA []byte, err error) {
@@ -611,106 +455,48 @@ func (m *Program) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Active {
+	if m.Status != 0 {
+		i = encodeVarintBounty(dAtA, i, uint64(m.Status))
 		i--
-		if m.Active {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i--
-		dAtA[i] = 0x40
+		dAtA[i] = 0x30
 	}
-	{
-		size := m.CommissionRate.Size()
-		i -= size
-		if _, err := m.CommissionRate.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintBounty(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0x3a
-	if len(m.Deposit) > 0 {
-		for iNdEx := len(m.Deposit) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Deposit[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintBounty(dAtA, i, uint64(size))
-			}
+	if len(m.MemberAccounts) > 0 {
+		for iNdEx := len(m.MemberAccounts) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.MemberAccounts[iNdEx])
+			copy(dAtA[i:], m.MemberAccounts[iNdEx])
+			i = encodeVarintBounty(dAtA, i, uint64(len(m.MemberAccounts[iNdEx])))
 			i--
-			dAtA[i] = 0x32
+			dAtA[i] = 0x2a
 		}
 	}
-	if m.EncryptionKey != nil {
-		{
-			size, err := m.EncryptionKey.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintBounty(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x2a
-	}
-	if len(m.Description) > 0 {
-		i -= len(m.Description)
-		copy(dAtA[i:], m.Description)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.Description)))
+	if len(m.AdminAddress) > 0 {
+		i -= len(m.AdminAddress)
+		copy(dAtA[i:], m.AdminAddress)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.AdminAddress)))
 		i--
 		dAtA[i] = 0x22
 	}
-	n2, err2 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.SubmissionEndTime, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.SubmissionEndTime):])
-	if err2 != nil {
-		return 0, err2
+	{
+		size, err := m.Detail.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintBounty(dAtA, i, uint64(size))
 	}
-	i -= n2
-	i = encodeVarintBounty(dAtA, i, uint64(n2))
 	i--
 	dAtA[i] = 0x1a
-	if len(m.CreatorAddress) > 0 {
-		i -= len(m.CreatorAddress)
-		copy(dAtA[i:], m.CreatorAddress)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.CreatorAddress)))
+	if len(m.Name) > 0 {
+		i -= len(m.Name)
+		copy(dAtA[i:], m.Name)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.Name)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.ProgramId != 0 {
-		i = encodeVarintBounty(dAtA, i, uint64(m.ProgramId))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *EciesPubKey) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *EciesPubKey) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *EciesPubKey) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.EncryptionKey) > 0 {
-		i -= len(m.EncryptionKey)
-		copy(dAtA[i:], m.EncryptionKey)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.EncryptionKey)))
+	if len(m.ProgramId) > 0 {
+		i -= len(m.ProgramId)
+		copy(dAtA[i:], m.ProgramId)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.ProgramId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -737,80 +523,184 @@ func (m *Finding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.FindingComment != nil {
-		{
-			size, err := m.FindingComment.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintBounty(dAtA, i, uint64(size))
-		}
+	if len(m.FindingHash) > 0 {
+		i -= len(m.FindingHash)
+		copy(dAtA[i:], m.FindingHash)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingHash)))
 		i--
-		dAtA[i] = 0x4a
+		dAtA[i] = 0x42
 	}
-	if m.FindingStatus != 0 {
-		i = encodeVarintBounty(dAtA, i, uint64(m.FindingStatus))
+	if m.Status != 0 {
+		i = encodeVarintBounty(dAtA, i, uint64(m.Status))
 		i--
-		dAtA[i] = 0x40
+		dAtA[i] = 0x38
 	}
+	n2, err2 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.CreateTime, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.CreateTime):])
+	if err2 != nil {
+		return 0, err2
+	}
+	i -= n2
+	i = encodeVarintBounty(dAtA, i, uint64(n2))
+	i--
+	dAtA[i] = 0x32
 	if len(m.SubmitterAddress) > 0 {
 		i -= len(m.SubmitterAddress)
 		copy(dAtA[i:], m.SubmitterAddress)
 		i = encodeVarintBounty(dAtA, i, uint64(len(m.SubmitterAddress)))
 		i--
-		dAtA[i] = 0x3a
+		dAtA[i] = 0x2a
 	}
-	if m.FindingPoc != nil {
-		{
-			size, err := m.FindingPoc.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintBounty(dAtA, i, uint64(size))
+	{
+		size, err := m.Detail.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
 		}
-		i--
-		dAtA[i] = 0x32
+		i -= size
+		i = encodeVarintBounty(dAtA, i, uint64(size))
 	}
-	if m.SeverityLevel != 0 {
-		i = encodeVarintBounty(dAtA, i, uint64(m.SeverityLevel))
-		i--
-		dAtA[i] = 0x28
-	}
-	if m.ProgramId != 0 {
-		i = encodeVarintBounty(dAtA, i, uint64(m.ProgramId))
-		i--
-		dAtA[i] = 0x20
-	}
-	if m.FindingDesc != nil {
-		{
-			size, err := m.FindingDesc.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintBounty(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1a
-	}
+	i--
+	dAtA[i] = 0x22
 	if len(m.Title) > 0 {
 		i -= len(m.Title)
 		copy(dAtA[i:], m.Title)
 		i = encodeVarintBounty(dAtA, i, uint64(len(m.Title)))
 		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.ProgramId) > 0 {
+		i -= len(m.ProgramId)
+		copy(dAtA[i:], m.ProgramId)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.ProgramId)))
+		i--
 		dAtA[i] = 0x12
 	}
-	if m.FindingId != 0 {
-		i = encodeVarintBounty(dAtA, i, uint64(m.FindingId))
+	if len(m.FindingId) > 0 {
+		i -= len(m.FindingId)
+		copy(dAtA[i:], m.FindingId)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ProgramDetail) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ProgramDetail) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ProgramDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.BountyLevels) > 0 {
+		for iNdEx := len(m.BountyLevels) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.BountyLevels[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintBounty(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if len(m.KnownIssues) > 0 {
+		i -= len(m.KnownIssues)
+		copy(dAtA[i:], m.KnownIssues)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.KnownIssues)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.ScopeRules) > 0 {
+		i -= len(m.ScopeRules)
+		copy(dAtA[i:], m.ScopeRules)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.ScopeRules)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Description) > 0 {
+		i -= len(m.Description)
+		copy(dAtA[i:], m.Description)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.Description)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *BountyLevel) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *BountyLevel) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *BountyLevel) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.MaxBounty.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintBounty(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	{
+		size, err := m.MinBounty.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintBounty(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if m.Poc {
+		i--
+		if m.Poc {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.SeverityLevel != 0 {
+		i = encodeVarintBounty(dAtA, i, uint64(m.SeverityLevel))
 		i--
 		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *EciesEncryptedDesc) Marshal() (dAtA []byte, err error) {
+func (m *FindingDetail) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -820,170 +710,50 @@ func (m *EciesEncryptedDesc) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *EciesEncryptedDesc) MarshalTo(dAtA []byte) (int, error) {
+func (m *FindingDetail) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *EciesEncryptedDesc) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *FindingDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.FindingDesc) > 0 {
-		i -= len(m.FindingDesc)
-		copy(dAtA[i:], m.FindingDesc)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingDesc)))
+	if m.SeverityLevel != 0 {
+		i = encodeVarintBounty(dAtA, i, uint64(m.SeverityLevel))
 		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x28
 	}
-	return len(dAtA) - i, nil
-}
-
-func (m *EciesEncryptedPoc) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
+	if len(m.Attachments) > 0 {
+		for iNdEx := len(m.Attachments) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Attachments[iNdEx])
+			copy(dAtA[i:], m.Attachments[iNdEx])
+			i = encodeVarintBounty(dAtA, i, uint64(len(m.Attachments[iNdEx])))
+			i--
+			dAtA[i] = 0x22
+		}
 	}
-	return dAtA[:n], nil
-}
-
-func (m *EciesEncryptedPoc) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *EciesEncryptedPoc) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.FindingPoc) > 0 {
-		i -= len(m.FindingPoc)
-		copy(dAtA[i:], m.FindingPoc)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingPoc)))
+	if len(m.ProgramTargets) > 0 {
+		for iNdEx := len(m.ProgramTargets) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.ProgramTargets[iNdEx])
+			copy(dAtA[i:], m.ProgramTargets[iNdEx])
+			i = encodeVarintBounty(dAtA, i, uint64(len(m.ProgramTargets[iNdEx])))
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.ProofOfConcept) > 0 {
+		i -= len(m.ProofOfConcept)
+		copy(dAtA[i:], m.ProofOfConcept)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.ProofOfConcept)))
 		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x12
 	}
-	return len(dAtA) - i, nil
-}
-
-func (m *EciesEncryptedComment) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *EciesEncryptedComment) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *EciesEncryptedComment) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.FindingComment) > 0 {
-		i -= len(m.FindingComment)
-		copy(dAtA[i:], m.FindingComment)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingComment)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *PlainTextDesc) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *PlainTextDesc) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *PlainTextDesc) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.FindingDesc) > 0 {
-		i -= len(m.FindingDesc)
-		copy(dAtA[i:], m.FindingDesc)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingDesc)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *PlainTextPoc) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *PlainTextPoc) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *PlainTextPoc) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.FindingPoc) > 0 {
-		i -= len(m.FindingPoc)
-		copy(dAtA[i:], m.FindingPoc)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingPoc)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *PlainTextComment) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *PlainTextComment) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *PlainTextComment) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.FindingComment) > 0 {
-		i -= len(m.FindingComment)
-		copy(dAtA[i:], m.FindingComment)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingComment)))
+	if len(m.Description) > 0 {
+		i -= len(m.Description)
+		copy(dAtA[i:], m.Description)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.Description)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1007,46 +777,28 @@ func (m *Program) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.ProgramId != 0 {
-		n += 1 + sovBounty(uint64(m.ProgramId))
-	}
-	l = len(m.CreatorAddress)
+	l = len(m.ProgramId)
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
 	}
-	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.SubmissionEndTime)
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	l = m.Detail.Size()
 	n += 1 + l + sovBounty(uint64(l))
-	l = len(m.Description)
+	l = len(m.AdminAddress)
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
 	}
-	if m.EncryptionKey != nil {
-		l = m.EncryptionKey.Size()
-		n += 1 + l + sovBounty(uint64(l))
-	}
-	if len(m.Deposit) > 0 {
-		for _, e := range m.Deposit {
-			l = e.Size()
+	if len(m.MemberAccounts) > 0 {
+		for _, s := range m.MemberAccounts {
+			l = len(s)
 			n += 1 + l + sovBounty(uint64(l))
 		}
 	}
-	l = m.CommissionRate.Size()
-	n += 1 + l + sovBounty(uint64(l))
-	if m.Active {
-		n += 2
-	}
-	return n
-}
-
-func (m *EciesPubKey) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.EncryptionKey)
-	if l > 0 {
-		n += 1 + l + sovBounty(uint64(l))
+	if m.Status != 0 {
+		n += 1 + sovBounty(uint64(m.Status))
 	}
 	return n
 }
@@ -1057,115 +809,110 @@ func (m *Finding) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.FindingId != 0 {
-		n += 1 + sovBounty(uint64(m.FindingId))
+	l = len(m.FindingId)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	l = len(m.ProgramId)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
 	}
 	l = len(m.Title)
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
 	}
-	if m.FindingDesc != nil {
-		l = m.FindingDesc.Size()
-		n += 1 + l + sovBounty(uint64(l))
-	}
-	if m.ProgramId != 0 {
-		n += 1 + sovBounty(uint64(m.ProgramId))
-	}
-	if m.SeverityLevel != 0 {
-		n += 1 + sovBounty(uint64(m.SeverityLevel))
-	}
-	if m.FindingPoc != nil {
-		l = m.FindingPoc.Size()
-		n += 1 + l + sovBounty(uint64(l))
-	}
+	l = m.Detail.Size()
+	n += 1 + l + sovBounty(uint64(l))
 	l = len(m.SubmitterAddress)
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
 	}
-	if m.FindingStatus != 0 {
-		n += 1 + sovBounty(uint64(m.FindingStatus))
+	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.CreateTime)
+	n += 1 + l + sovBounty(uint64(l))
+	if m.Status != 0 {
+		n += 1 + sovBounty(uint64(m.Status))
 	}
-	if m.FindingComment != nil {
-		l = m.FindingComment.Size()
-		n += 1 + l + sovBounty(uint64(l))
-	}
-	return n
-}
-
-func (m *EciesEncryptedDesc) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.FindingDesc)
+	l = len(m.FindingHash)
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
 	}
 	return n
 }
 
-func (m *EciesEncryptedPoc) Size() (n int) {
+func (m *ProgramDetail) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.FindingPoc)
+	l = len(m.Description)
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
+	}
+	l = len(m.ScopeRules)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	l = len(m.KnownIssues)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
+	}
+	if len(m.BountyLevels) > 0 {
+		for _, e := range m.BountyLevels {
+			l = e.Size()
+			n += 1 + l + sovBounty(uint64(l))
+		}
 	}
 	return n
 }
 
-func (m *EciesEncryptedComment) Size() (n int) {
+func (m *BountyLevel) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.FindingComment)
-	if l > 0 {
-		n += 1 + l + sovBounty(uint64(l))
+	if m.SeverityLevel != 0 {
+		n += 1 + sovBounty(uint64(m.SeverityLevel))
 	}
+	if m.Poc {
+		n += 2
+	}
+	l = m.MinBounty.Size()
+	n += 1 + l + sovBounty(uint64(l))
+	l = m.MaxBounty.Size()
+	n += 1 + l + sovBounty(uint64(l))
 	return n
 }
 
-func (m *PlainTextDesc) Size() (n int) {
+func (m *FindingDetail) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.FindingDesc)
+	l = len(m.Description)
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
 	}
-	return n
-}
-
-func (m *PlainTextPoc) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.FindingPoc)
+	l = len(m.ProofOfConcept)
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
 	}
-	return n
-}
-
-func (m *PlainTextComment) Size() (n int) {
-	if m == nil {
-		return 0
+	if len(m.ProgramTargets) > 0 {
+		for _, s := range m.ProgramTargets {
+			l = len(s)
+			n += 1 + l + sovBounty(uint64(l))
+		}
 	}
-	var l int
-	_ = l
-	l = len(m.FindingComment)
-	if l > 0 {
-		n += 1 + l + sovBounty(uint64(l))
+	if len(m.Attachments) > 0 {
+		for _, s := range m.Attachments {
+			l = len(s)
+			n += 1 + l + sovBounty(uint64(l))
+		}
+	}
+	if m.SeverityLevel != 0 {
+		n += 1 + sovBounty(uint64(m.SeverityLevel))
 	}
 	return n
 }
@@ -1206,27 +953,8 @@ func (m *Program) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ProgramId", wireType)
-			}
-			m.ProgramId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ProgramId |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreatorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ProgramId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1254,11 +982,43 @@ func (m *Program) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.CreatorAddress = string(dAtA[iNdEx:postIndex])
+			m.ProgramId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SubmissionEndTime", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Detail", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1285,13 +1045,13 @@ func (m *Program) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.SubmissionEndTime, dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Detail.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field AdminAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1319,81 +1079,11 @@ func (m *Program) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Description = string(dAtA[iNdEx:postIndex])
+			m.AdminAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field EncryptionKey", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBounty
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.EncryptionKey == nil {
-				m.EncryptionKey = &types.Any{}
-			}
-			if err := m.EncryptionKey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Deposit", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBounty
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Deposit = append(m.Deposit, types1.Coin{})
-			if err := m.Deposit[len(m.Deposit)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CommissionRate", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberAccounts", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1421,15 +1111,13 @@ func (m *Program) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.CommissionRate.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.MemberAccounts = append(m.MemberAccounts, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		case 8:
+		case 6:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Active", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
 			}
-			var v int
+			m.Status = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowBounty
@@ -1439,109 +1127,18 @@ func (m *Program) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= int(b&0x7F) << shift
+				m.Status |= ProgramStatus(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			m.Active = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipBounty(dAtA[iNdEx:])
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *EciesPubKey) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBounty
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: EciesPubKey: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: EciesPubKey: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field EncryptionKey", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthBounty
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.EncryptionKey = append(m.EncryptionKey[:0], dAtA[iNdEx:postIndex]...)
-			if m.EncryptionKey == nil {
-				m.EncryptionKey = []byte{}
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBounty(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthBounty
 			}
 			if (iNdEx + skippy) > l {
@@ -1586,10 +1183,10 @@ func (m *Finding) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field FindingId", wireType)
 			}
-			m.FindingId = 0
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowBounty
@@ -1599,12 +1196,57 @@ func (m *Finding) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.FindingId |= uint64(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FindingId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProgramId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ProgramId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Title", wireType)
 			}
@@ -1636,83 +1278,9 @@ func (m *Finding) Unmarshal(dAtA []byte) error {
 			}
 			m.Title = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FindingDesc", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBounty
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.FindingDesc == nil {
-				m.FindingDesc = &types.Any{}
-			}
-			if err := m.FindingDesc.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		case 4:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ProgramId", wireType)
-			}
-			m.ProgramId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ProgramId |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SeverityLevel", wireType)
-			}
-			m.SeverityLevel = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.SeverityLevel |= SeverityLevel(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FindingPoc", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Detail", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1739,14 +1307,11 @@ func (m *Finding) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.FindingPoc == nil {
-				m.FindingPoc = &types.Any{}
-			}
-			if err := m.FindingPoc.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Detail.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
-		case 7:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field SubmitterAddress", wireType)
 			}
@@ -1778,28 +1343,9 @@ func (m *Finding) Unmarshal(dAtA []byte) error {
 			}
 			m.SubmitterAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 8:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FindingStatus", wireType)
-			}
-			m.FindingStatus = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.FindingStatus |= FindingStatus(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 9:
+		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FindingComment", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateTime", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1826,12 +1372,60 @@ func (m *Finding) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.FindingComment == nil {
-				m.FindingComment = &types.Any{}
-			}
-			if err := m.FindingComment.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.CreateTime, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= FindingStatus(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingHash", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FindingHash = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1839,10 +1433,7 @@ func (m *Finding) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthBounty
 			}
 			if (iNdEx + skippy) > l {
@@ -1857,7 +1448,7 @@ func (m *Finding) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *EciesEncryptedDesc) Unmarshal(dAtA []byte) error {
+func (m *ProgramDetail) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1880,17 +1471,17 @@ func (m *EciesEncryptedDesc) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: EciesEncryptedDesc: wiretype end group for non-group")
+			return fmt.Errorf("proto: ProgramDetail: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: EciesEncryptedDesc: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ProgramDetail: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FindingDesc", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowBounty
@@ -1900,24 +1491,120 @@ func (m *EciesEncryptedDesc) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthBounty
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthBounty
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.FindingDesc = append(m.FindingDesc[:0], dAtA[iNdEx:postIndex]...)
-			if m.FindingDesc == nil {
-				m.FindingDesc = []byte{}
+			m.Description = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ScopeRules", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ScopeRules = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field KnownIssues", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.KnownIssues = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BountyLevels", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BountyLevels = append(m.BountyLevels, BountyLevel{})
+			if err := m.BountyLevels[len(m.BountyLevels)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		default:
@@ -1926,10 +1613,7 @@ func (m *EciesEncryptedDesc) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthBounty
 			}
 			if (iNdEx + skippy) > l {
@@ -1944,7 +1628,7 @@ func (m *EciesEncryptedDesc) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *EciesEncryptedPoc) Unmarshal(dAtA []byte) error {
+func (m *BountyLevel) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1967,17 +1651,17 @@ func (m *EciesEncryptedPoc) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: EciesEncryptedPoc: wiretype end group for non-group")
+			return fmt.Errorf("proto: BountyLevel: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: EciesEncryptedPoc: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: BountyLevel: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FindingPoc", wireType)
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SeverityLevel", wireType)
 			}
-			var byteLen int
+			m.SeverityLevel = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowBounty
@@ -1987,24 +1671,95 @@ func (m *EciesEncryptedPoc) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				m.SeverityLevel |= SeverityLevel(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Poc", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Poc = bool(v != 0)
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinBounty", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
 				return ErrInvalidLengthBounty
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthBounty
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.FindingPoc = append(m.FindingPoc[:0], dAtA[iNdEx:postIndex]...)
-			if m.FindingPoc == nil {
-				m.FindingPoc = []byte{}
+			if err := m.MinBounty.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MaxBounty", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MaxBounty.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		default:
@@ -2013,10 +1768,7 @@ func (m *EciesEncryptedPoc) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthBounty
 			}
 			if (iNdEx + skippy) > l {
@@ -2031,7 +1783,7 @@ func (m *EciesEncryptedPoc) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *EciesEncryptedComment) Unmarshal(dAtA []byte) error {
+func (m *FindingDetail) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2054,17 +1806,17 @@ func (m *EciesEncryptedComment) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: EciesEncryptedComment: wiretype end group for non-group")
+			return fmt.Errorf("proto: FindingDetail: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: EciesEncryptedComment: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: FindingDetail: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FindingComment", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowBounty
@@ -2074,84 +1826,29 @@ func (m *EciesEncryptedComment) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthBounty
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthBounty
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.FindingComment = append(m.FindingComment[:0], dAtA[iNdEx:postIndex]...)
-			if m.FindingComment == nil {
-				m.FindingComment = []byte{}
-			}
+			m.Description = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBounty(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *PlainTextDesc) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBounty
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: PlainTextDesc: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: PlainTextDesc: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
+		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FindingDesc", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ProofOfConcept", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowBounty
@@ -2161,84 +1858,29 @@ func (m *PlainTextDesc) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthBounty
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthBounty
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.FindingDesc = append(m.FindingDesc[:0], dAtA[iNdEx:postIndex]...)
-			if m.FindingDesc == nil {
-				m.FindingDesc = []byte{}
-			}
+			m.ProofOfConcept = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBounty(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *PlainTextPoc) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBounty
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: PlainTextPoc: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: PlainTextPoc: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
+		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FindingPoc", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ProgramTargets", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowBounty
@@ -2248,84 +1890,29 @@ func (m *PlainTextPoc) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthBounty
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthBounty
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.FindingPoc = append(m.FindingPoc[:0], dAtA[iNdEx:postIndex]...)
-			if m.FindingPoc == nil {
-				m.FindingPoc = []byte{}
-			}
+			m.ProgramTargets = append(m.ProgramTargets, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBounty(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *PlainTextComment) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBounty
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: PlainTextComment: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: PlainTextComment: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
+		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FindingComment", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Attachments", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowBounty
@@ -2335,36 +1922,50 @@ func (m *PlainTextComment) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthBounty
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthBounty
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.FindingComment = append(m.FindingComment[:0], dAtA[iNdEx:postIndex]...)
-			if m.FindingComment == nil {
-				m.FindingComment = []byte{}
-			}
+			m.Attachments = append(m.Attachments, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SeverityLevel", wireType)
+			}
+			m.SeverityLevel = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SeverityLevel |= SeverityLevel(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipBounty(dAtA[iNdEx:])
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthBounty
 			}
 			if (iNdEx + skippy) > l {

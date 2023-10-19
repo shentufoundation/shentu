@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/hex"
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 	"strings"
 	"time"
 
@@ -397,7 +398,7 @@ func (s *IntegrationTestSuite) TestBounty() {
 			func() bool {
 				rsp, err := queryBountyProgram(chainAAPIEndpoint, bountyProgramCounter)
 				s.Require().NoError(err)
-				return rsp.GetProgram().Active == false
+				return rsp.GetProgram().Status == types.ProgramStatusClosed
 			},
 			20*time.Second,
 			5*time.Second,

@@ -1,23 +1,14 @@
 package cli
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
-
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/crypto/ecies"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
@@ -32,12 +23,12 @@ func NewTxCmd() *cobra.Command {
 
 	bountyTxCmds.AddCommand(
 		NewCreateProgramCmd(),
+		NewOpenProgramCmd(),
+		NewCloseProgramCmd(),
 		NewSubmitFindingCmd(),
-		NewHostAcceptFindingCmd(),
-		NewHostRejectFindingCmd(),
+		NewAcceptFindingCmd(),
+		NewRejectFindingCmd(),
 		NewCancelFindingCmd(),
-		NewReleaseFindingCmd(),
-		NewEndProgramCmd(),
 	)
 
 	return bountyTxCmds
@@ -46,71 +37,24 @@ func NewTxCmd() *cobra.Command {
 func NewCreateProgramCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-program",
-		Short: "create new program initialized with an initial deposit",
+		Short: "create new program",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			creatorAddr := clientCtx.GetFromAddress()
+
+			creatorAddr := clientCtx.GetFromAddress().String()
+			name, _ := cmd.Flags().GetString(FlagName)
+			members, _ := cmd.Flags().GetStringArray(FlagMembers)
+			pid, _ := cmd.Flags().GetString(FlagProgramID)
 
 			desc, _ := cmd.Flags().GetString(FlagDesc)
+			scopeRules, _ := cmd.Flags().GetString(FlagScopeRules)
+			knownIssues, _ := cmd.Flags().GetString(FlagKnownIssues)
 
-			encKeyFile, _ := cmd.Flags().GetString(FlagEncKeyFile)
-			var encKey []byte
-			if encKeyFile == "" {
-				decKey, err := ecies.GenerateKey(rand.Reader, ecies.DefaultCurve, nil)
-				if err != nil {
-					return fmt.Errorf("internal error, failed to generate key")
-				}
-				encKey = crypto.FromECDSAPub(&decKey.ExportECDSA().PublicKey)
-
-				// TODO: avoid overwriting silently
-				SaveKey(decKey, clientCtx.HomeDir)
-			} else {
-				encKey = LoadPubKey(encKeyFile)
-			}
-
-			newRate := sdk.ZeroDec()
-			commissionRate, _ := cmd.Flags().GetString(FlagCommissionRate)
-			if commissionRate != "" {
-				rate, err := sdk.NewDecFromStr(commissionRate)
-				if err != nil {
-					return fmt.Errorf("invalid new commission rate: %v", err)
-				}
-				newRate = rate
-			}
-
-			depositStr, _ := cmd.Flags().GetString(FlagDeposit)
-			deposit, err := sdk.ParseCoinsNormalized(depositStr)
-			if err != nil {
-				return err
-			}
-			if !deposit.IsValid() {
-				return fmt.Errorf("invalid deposit")
-			}
-			//set default time for submission end time
-			sET := time.Now().Add(30 * 24 * time.Hour)
-
-			submissionEndTimeStr, _ := cmd.Flags().GetString(FlagSubmissionEndTime)
-			if submissionEndTimeStr != "" {
-				sET, err = time.Parse(dateLayout, submissionEndTimeStr)
-				if err != nil {
-					return err
-				}
-			}
-			if sET.Before(time.Now()) {
-				return fmt.Errorf("invalid submission end time")
-			}
-
-			msg, err := types.NewMsgCreateProgram(
-				creatorAddr.String(),
-				desc,
-				encKey,
-				newRate,
-				deposit,
-				sET,
-			)
+			detail := types.NewDetail(desc, scopeRules, knownIssues, nil)
+			msg, err := types.NewMsgCreateProgram(name, creatorAddr, pid, detail, members)
 			if err != nil {
 				return err
 			}
@@ -119,16 +63,54 @@ func NewCreateProgramCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagEncKeyFile, "", "The program's encryption key file to encrypt findings")
-	cmd.Flags().String(FlagDesc, "", "The program description.")
-	cmd.Flags().String(FlagCommissionRate, "", "The commission rate for the program")
-	cmd.Flags().String(FlagDeposit, "", "The initial deposit to the program")
-	cmd.Flags().String(FlagSubmissionEndTime, "", "The program's submission end time")
+	cmd.Flags().AddFlagSet(FlagSetProgramDetail())
+
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagName)
 	_ = cmd.MarkFlagRequired(FlagDesc)
 
+	return cmd
+}
+
+func NewOpenProgramCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "open-program [program-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "open the program",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			fromAddr := clientCtx.GetFromAddress()
+
+			msg := types.NewMsgOpenProgram(fromAddr, args[0])
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+func NewCloseProgramCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "close-program [program-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "end the program",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			fromAddr := clientCtx.GetFromAddress()
+
+			msg := types.NewMsgCloseProgram(fromAddr, args[0])
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -143,38 +125,33 @@ func NewSubmitFindingCmd() *cobra.Command {
 			}
 			submitAddr := clientCtx.GetFromAddress()
 
-			desc, _ := cmd.Flags().GetString(FlagFindingDesc)
-			title, _ := cmd.Flags().GetString(FlagFindingTitle)
-
-			pid, err := cmd.Flags().GetUint64(FlagProgramID)
+			pid, err := cmd.Flags().GetString(FlagProgramID)
 			if err != nil {
 				return err
 			}
+			fid, err := cmd.Flags().GetString(FlagFindingID)
+			if err != nil {
+				return err
+			}
+			title, _ := cmd.Flags().GetString(FlagFindingTitle)
+
 			severityLevel, _ := cmd.Flags().GetInt32(FlagFindingSeverityLevel)
 			_, ok := types.SeverityLevel_name[severityLevel]
 			if !ok {
 				return fmt.Errorf("invalid %s value", FlagFindingSeverityLevel)
 			}
 
+			desc, _ := cmd.Flags().GetString(FlagDesc)
 			poc, _ := cmd.Flags().GetString(FlagFindingPoc)
 
-			descAny, pocAny, err := EncryptMsg(cmd, pid, desc, poc)
-			if err != nil {
-				return err
-			}
-			msg := types.NewMsgSubmitFinding(
-				submitAddr.String(),
-				title,
-				descAny,
-				pocAny,
-				pid,
-				severityLevel,
-			)
+			detail := types.NewFindingDetail(desc, poc, nil, types.SeverityLevel(severityLevel))
+
+			msg := types.NewMsgSubmitFinding(pid, fid, title, detail, submitAddr)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
-	cmd.Flags().String(FlagFindingDesc, "", "The finding's description")
+	cmd.Flags().String(FlagDesc, "", "The finding's description")
 	cmd.Flags().String(FlagFindingTitle, "", "The finding's title")
 	cmd.Flags().String(FlagFindingPoc, "", "Ths finding's poc")
 	cmd.Flags().Uint64(FlagProgramID, 0, "The program's ID")
@@ -187,46 +164,8 @@ func NewSubmitFindingCmd() *cobra.Command {
 	return cmd
 }
 
-func EncryptMsg(cmd *cobra.Command, programID uint64, desc, poc string) (descAny, pocAny *codectypes.Any, err error) {
-	eciesEncKey, err := GetEncryptionKey(cmd, programID)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	randBytes, reader := GetRandBytes()
-	encryptedDescBytes, err := ecies.Encrypt(reader, eciesEncKey, []byte(desc), nil, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	encryptedDescBytes = append(encryptedDescBytes, randBytes...)
-	encDesc := types.EciesEncryptedDesc{
-		FindingDesc: encryptedDescBytes,
-	}
-	descAny, err = codectypes.NewAnyWithValue(&encDesc)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	//start encrypting poc
-	randBytes, reader = GetRandBytes()
-	encryptedPocBytes, err := ecies.Encrypt(reader, eciesEncKey, []byte(poc), nil, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	encryptedPocBytes = append(encryptedPocBytes, randBytes...)
-	encPoc := types.EciesEncryptedPoc{
-		FindingPoc: encryptedPocBytes,
-	}
-	pocAny, err = codectypes.NewAnyWithValue(&encPoc)
-	if err != nil {
-		return nil, nil, err
-	}
-	return descAny, pocAny, nil
-}
-
-// NewHostAcceptFindingCmd implements accept a finding by host.
-func NewHostAcceptFindingCmd() *cobra.Command {
+// NewAcceptFindingCmd implements accept a finding by host.
+func NewAcceptFindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "accept-finding [finding-id]",
 		Args:  cobra.ExactArgs(1),
@@ -239,7 +178,7 @@ $ %s tx bounty accept-finding 1 --comment "Looks good to me"
 				version.AppName,
 			),
 		),
-		RunE: HostAcceptFinding,
+		RunE: AcceptFinding,
 	}
 
 	cmd.Flags().String(FlagComment, "", "Host's comment on finding")
@@ -250,8 +189,8 @@ $ %s tx bounty accept-finding 1 --comment "Looks good to me"
 	return cmd
 }
 
-// NewHostRejectFindingCmd implements reject a finding by host.
-func NewHostRejectFindingCmd() *cobra.Command {
+// NewRejectFindingCmd implements reject a finding by host.
+func NewRejectFindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "reject-finding [finding-id]",
 		Args:  cobra.ExactArgs(1),
@@ -264,7 +203,7 @@ $ %s tx bounty reject-finding 1 --comment "Verified to be an invalid finding"
 				version.AppName,
 			),
 		),
-		RunE: HostRejectFinding,
+		RunE: RejectFinding,
 	}
 
 	cmd.Flags().String(FlagComment, "", "Host's comment on finding")
@@ -275,87 +214,31 @@ $ %s tx bounty reject-finding 1 --comment "Verified to be an invalid finding"
 	return cmd
 }
 
-func HostAcceptFinding(cmd *cobra.Command, args []string) error {
+func AcceptFinding(cmd *cobra.Command, args []string) error {
 	clientCtx, err := client.GetClientTxContext(cmd)
 	if err != nil {
 		return err
 	}
 
-	findingID, encryptedCommentAny, hostAddr, err := HostProcessFinding(cmd, args)
-	if err != nil {
-		return err
-	}
-
-	msg := types.NewMsgHostAcceptFinding(findingID, encryptedCommentAny, hostAddr)
-
-	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-}
-
-func HostRejectFinding(cmd *cobra.Command, args []string) error {
-	clientCtx, err := client.GetClientTxContext(cmd)
-	if err != nil {
-		return err
-	}
-
-	findingID, encryptedCommentAny, hostAddr, err := HostProcessFinding(cmd, args)
-	if err != nil {
-		return err
-	}
-
-	msg := types.NewMsgHostRejectFinding(findingID, encryptedCommentAny, hostAddr)
-
-	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-}
-
-func HostProcessFinding(cmd *cobra.Command, args []string) (fid uint64,
-	commentAny *codectypes.Any, hostAddr sdk.AccAddress, err error) {
-	clientCtx, err := client.GetClientTxContext(cmd)
-	if err != nil {
-		return fid, commentAny, hostAddr, err
-	}
-
-	// validate that the finding id is uint
-	fid, err = strconv.ParseUint(args[0], 10, 64)
-	if err != nil {
-		return fid, commentAny, hostAddr, fmt.Errorf("finding-id %s not a valid uint, please input a valid finding-id", args[0])
-	}
 	// Get host address
-	hostAddr = clientCtx.GetFromAddress()
-	comment, err := cmd.Flags().GetString(FlagComment)
+	hostAddr := clientCtx.GetFromAddress()
+	msg := types.NewMsgHostAcceptFinding(args[0], hostAddr)
+
+	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+}
+
+func RejectFinding(cmd *cobra.Command, args []string) error {
+	clientCtx, err := client.GetClientTxContext(cmd)
 	if err != nil {
-		return fid, commentAny, hostAddr, err
+		return err
 	}
 
-	// comment is empty and does not need to be encrypted
-	if len(comment) == 0 {
-		return fid, commentAny, hostAddr, nil
-	}
+	// Get host address
+	hostAddr := clientCtx.GetFromAddress()
 
-	// get eciesEncKey
-	finding, err := GetFinding(cmd, fid)
-	if err != nil {
-		return fid, commentAny, hostAddr, err
-	}
-	eciesEncKey, err := GetEncryptionKey(cmd, finding.ProgramId)
-	if err != nil {
-		return fid, commentAny, hostAddr, err
-	}
+	msg := types.NewMsgHostRejectFinding(args[0], hostAddr)
 
-	randBytes, reader := GetRandBytes()
-	encryptedComment, err := ecies.Encrypt(reader, eciesEncKey, []byte(comment), nil, nil)
-	if err != nil {
-		return fid, commentAny, hostAddr, err
-	}
-	encryptedComment = append(encryptedComment, randBytes...)
-	encComment := types.EciesEncryptedComment{
-		FindingComment: encryptedComment,
-	}
-	commentAny, err = codectypes.NewAnyWithValue(&encComment)
-	if err != nil {
-		return fid, commentAny, hostAddr, err
-	}
-
-	return fid, commentAny, hostAddr, nil
+	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 }
 
 func NewCancelFindingCmd() *cobra.Command {
@@ -369,140 +252,12 @@ func NewCancelFindingCmd() *cobra.Command {
 				return err
 			}
 			submitAddr := clientCtx.GetFromAddress()
-			fid, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
-			msg := types.NewMsgCancelFinding(submitAddr, fid)
+			msg := types.NewMsgCancelFinding(submitAddr, args[0])
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
-	return cmd
-}
-
-func NewReleaseFindingCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "release-finding [finding-id]",
-		Args:  cobra.ExactArgs(1),
-		Short: "release encrypted part of a finding ",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			hostAddr := clientCtx.GetFromAddress()
-
-			fid, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("finding-id %s not a valid uint, please input a valid finding-id", args[0])
-			}
-
-			encKeyFile, err := cmd.Flags().GetString(FlagEncKeyFile)
-			if err != nil {
-				return err
-			}
-
-			findingDesc, findingPoc, findingComment, err := GetFindingPlainText(cmd, fid, encKeyFile)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewReleaseFinding(
-				hostAddr.String(),
-				fid,
-				findingDesc,
-				findingPoc,
-				findingComment,
-			)
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	cmd.Flags().String(FlagEncKeyFile, "", "The program's encryption key file to decrypt findings")
-	flags.AddTxFlagsToCmd(cmd)
-
-	_ = cmd.MarkFlagRequired(flags.FlagFrom)
-	_ = cmd.MarkFlagRequired(FlagEncKeyFile)
-
-	return cmd
-}
-
-func GetFindingPlainText(cmd *cobra.Command, fid uint64, encKeyFile string) (
-	desc, poc, comment string, err error) {
-	// get finding info
-	finding, err := GetFinding(cmd, fid)
-	if err != nil {
-		return "", "", "", err
-	}
-
-	prvKey := LoadPrvKey(encKeyFile)
-
-	if finding.FindingDesc == "" {
-		desc = ""
-	} else {
-		encryptedData, err := base64.StdEncoding.DecodeString(finding.FindingDesc)
-		if err != nil {
-			return "", "", "", err
-		}
-		descBytes, err := prvKey.Decrypt(encryptedData, nil, nil)
-		if err != nil {
-			return "", "", "", err
-		}
-		desc = string(descBytes)
-	}
-
-	if finding.FindingPoc == "" {
-		poc = ""
-	} else {
-		encryptedData, err := base64.StdEncoding.DecodeString(finding.FindingPoc)
-		if err != nil {
-			return "", "", "", err
-		}
-		pocBytes, err := prvKey.Decrypt(encryptedData, nil, nil)
-		if err != nil {
-			return "", "", "", err
-		}
-		poc = string(pocBytes)
-	}
-
-	if finding.FindingComment == "" {
-		comment = ""
-	} else {
-		encryptedData, err := base64.StdEncoding.DecodeString(finding.FindingComment)
-		if err != nil {
-			return "", "", "", err
-		}
-		commentBytes, err := prvKey.Decrypt(encryptedData, nil, nil)
-		if err != nil {
-			return "", "", "", err
-		}
-		comment = string(commentBytes)
-	}
-	return desc, poc, comment, nil
-}
-
-func NewEndProgramCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "end-program [program-id]",
-		Args:  cobra.ExactArgs(1),
-		Short: "end the program",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			fromAddr := clientCtx.GetFromAddress()
-			pid, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("program-id %s is not a valid uint", args[0])
-			}
-			msg := types.NewMsgEndProgram(fromAddr.String(), pid)
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
