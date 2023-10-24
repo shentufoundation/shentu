@@ -7,7 +7,7 @@ Query an unbonding-delegation record based on delegator and validator address
 Query unbonding delegations for an individual delegator on an individual validator.
 
 Example:
-$ shentud query staking unbonding-delegation certik1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p certikvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
+$ shentud query staking unbonding-delegation shentu1gghjut3ccd8ay0zduzj64hwre2fxs9ldkq89hu shentuvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldtshsu6
 
 ```
 shentud query staking unbonding-delegation [delegator-addr] [validator-addr] [flags]

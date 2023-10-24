@@ -16,36 +16,34 @@ set -x
 # directory
 
 # DIR=~/.synctest
-DIR_D0=$DIR/node0/certikd
-DIR_CLI0=$DIR/node0/certikcli
+DIR_D0=$DIR/node0/shentud
 
 # binary
 
 # PROJ_ROOT=$(git rev-parse --show-toplevel)
-CERTIKD=$PROJ_ROOT/tests/sync/certikd
-CERTIKD0=$CERTIKD" --home $DIR_D0"
-CERTIKCLI=$PROJ_ROOT/tests/sync/certikcli
-export CERTIKCLI0=$CERTIKCLI" --home $DIR_CLI0"
+SHENTUD=$PROJ_ROOT/tests/sync/shentud
+SHENTUD0=$SHENTUD" --home $DIR_D0"
+export $SHENTUD0
 
 # set up a validator node
 
-$CERTIKD0 unsafe-reset-all
+$SHENTUD0 tendermint unsafe-reset-all
 rm -rf $DIR/node0
-$CERTIKD0 init node0 --chain-id shentuchain
+$SHENTUD0 init node0 --chain-id shentuchain
 sed -i "" 's/26657/20057/g' $DIR_D0/config/config.toml # rpc port
-$CERTIKCLI0 config chain-id shentuchain
-$CERTIKCLI0 config keyring-backend test
+$SHENTUD0 config chain-id shentuchain
+$SHENTUD0 config keyring-backend test
 
-$CERTIKCLI0 keys add jack
-export jack=$($CERTIKCLI0 keys show jack -a)
-$CERTIKCLI0 keys add bob
-export bob=$($CERTIKCLI0 keys show bob -a)
-$CERTIKD0 add-genesis-account $jack 1000000000uctk --vesting-amount=1000000uctk --manual --unlocker $bob
-$CERTIKD0 add-genesis-account $bob 1000000000uctk
-$CERTIKD0 add-genesis-certifier $bob
-$CERTIKD0 add-genesis-shield-admin $bob
+$SHENTUD0 keys add jack
+export jack=$($SHENTUD0 keys show jack -a)
+$SHENTUD0 keys add bob
+export bob=$($SHENTUD0 keys show bob -a)
+$SHENTUD0 add-genesis-account $jack 1000000000uctk --vesting-amount=1000000uctk --manual --unlocker $bob
+$SHENTUD0 add-genesis-account $bob 1000000000uctk
+$SHENTUD0 add-genesis-certifier $bob
+$SHENTUD0 add-genesis-shield-admin $bob
 
-$CERTIKD0 gentx --name jack --amount 2000000uctk --home-client $DIR_CLI0 --keyring-backend test
-$CERTIKD0 collect-gentxs
+$SHENTUD0 gentx --name jack --amount 2000000uctk --home-client $DIR_D0 --keyring-backend test
+$SHENTUD0 collect-gentxs
 
-$CERTIKD0 start >$DIR/node0/log.txt 2>&1 &
+$SHENTUD0 start >$DIR/node0/log.txt 2>&1 &

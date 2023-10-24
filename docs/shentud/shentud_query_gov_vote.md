@@ -7,7 +7,7 @@ Query details of a single vote
 Query details for a single vote on a proposal given its identifier.
 
 Example:
-$ shentud query gov vote 1 certik16gzt5vd0dd5c98ajl3ld2ltvcahxgyygzglazd
+$ shentud query gov vote 1 shentu1skjwj5whet0lpe65qaq4rpq03hjxlwd9ma4udt
 
 ```
 shentud query gov vote [proposal-id] [voter-addr] [flags]

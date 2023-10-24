@@ -150,6 +150,15 @@ func (c Certificate) GetCertifier() sdk.AccAddress {
 	return certifierAddr
 }
 
+func (c Certificate) ToString() string {
+	certStr := fmt.Sprintf("certificate_id:%d content:%s description:%s certifier:%s compilation_content:",
+		c.CertificateId, c.GetContentString(), c.Description, c.Certifier)
+	if c.CompilationContent != nil {
+		return certStr + "<" + c.CompilationContent.String() + ">"
+	}
+	return certStr + "<>"
+}
+
 // NewKVPair returns a new key-value pair.
 func NewKVPair(key string, value string) KVPair {
 	return KVPair{Key: key, Value: value}

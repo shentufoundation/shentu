@@ -254,7 +254,7 @@ func GetCmdAddressTranslate() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			addr := args[0]
 			errorMsg := `Address is not in a readable format.
-			Please supply either a Bech32 address ("certik1...", "certikvaloper1...")
+			Please supply either a Bech32 address ("shentu1...", "shentuvaloper1...")
 			or a 20-byte hex address ("0x" prefix not necessary).`
 
 			config := sdk.GetConfig()

@@ -7,7 +7,7 @@ Query distribution outstanding (un-withdrawn) rewards for a validator and all th
 Query distribution outstanding (un-withdrawn) rewards for a validator and all their delegations.
 
 Example:
-$ shentud query distribution validator-outstanding-rewards certikvaloper1lwjmdnks33xwnmfayc64ycprww49n33mtm92ne
+$ shentud query distribution validator-outstanding-rewards shentuvaloper1lwjmdnks33xwnmfayc64ycprww49n33mmt9nx3
 
 ```
 shentud query distribution validator-outstanding-rewards [validator] [flags]

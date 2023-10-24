@@ -35,6 +35,22 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v2.8.0] - 09-12-2023
+Version 2.8.0 changes the Bech32 address prefix to 'shentu'.
+
+### State Machine Breaking Changes
+* (app) [\#718](https://github.com/shentufoundation/shentu/pull/718) Modify the persisted Bech32 addresses for various modules to change the prefix to 'shentu'.
+
+### Bug Fixes
+* (x/cert) [\#754](https://github.com/shentufoundation/shentu/pull/754) Fix the bug of wrongly decoding of platform certificate.
+
+## [v2.7.2] - 08-28-2023
+### Bug Fixes
+* (x/gov) [\#761](https://github.com/shentufoundation/shentu/pull/761)  fix the bug of votes are removed early for general proposals
+
+## [v2.7.1] - 05-25-2023
+* (app) [\#702](https://github.com/shentufoundation/shentu/pull/702)  Upgrade IBC to v4.2.1
+
 ## [v2.7.0] - 04-11-2023
 Version 2.7.0 brings Oracle 1.5, which offers security evaluation for transactions running on business chains.
 

@@ -497,6 +497,94 @@ func (m *QueryCertificatesResponse) GetCertificates() []QueryCertificateResponse
 	return nil
 }
 
+type ConversionToShentuAddrRequest struct {
+	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+}
+
+func (m *ConversionToShentuAddrRequest) Reset()         { *m = ConversionToShentuAddrRequest{} }
+func (m *ConversionToShentuAddrRequest) String() string { return proto.CompactTextString(m) }
+func (*ConversionToShentuAddrRequest) ProtoMessage()    {}
+func (*ConversionToShentuAddrRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d0446c22ac299371, []int{10}
+}
+func (m *ConversionToShentuAddrRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ConversionToShentuAddrRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ConversionToShentuAddrRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ConversionToShentuAddrRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ConversionToShentuAddrRequest.Merge(m, src)
+}
+func (m *ConversionToShentuAddrRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *ConversionToShentuAddrRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ConversionToShentuAddrRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ConversionToShentuAddrRequest proto.InternalMessageInfo
+
+func (m *ConversionToShentuAddrRequest) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+type ConversionToShentuAddrResponse struct {
+	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+}
+
+func (m *ConversionToShentuAddrResponse) Reset()         { *m = ConversionToShentuAddrResponse{} }
+func (m *ConversionToShentuAddrResponse) String() string { return proto.CompactTextString(m) }
+func (*ConversionToShentuAddrResponse) ProtoMessage()    {}
+func (*ConversionToShentuAddrResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d0446c22ac299371, []int{11}
+}
+func (m *ConversionToShentuAddrResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ConversionToShentuAddrResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ConversionToShentuAddrResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ConversionToShentuAddrResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ConversionToShentuAddrResponse.Merge(m, src)
+}
+func (m *ConversionToShentuAddrResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *ConversionToShentuAddrResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ConversionToShentuAddrResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ConversionToShentuAddrResponse proto.InternalMessageInfo
+
+func (m *ConversionToShentuAddrResponse) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*QueryCertifierRequest)(nil), "shentu.cert.v1alpha1.QueryCertifierRequest")
 	proto.RegisterType((*QueryCertifierResponse)(nil), "shentu.cert.v1alpha1.QueryCertifierResponse")
@@ -508,11 +596,14 @@ func init() {
 	proto.RegisterType((*QueryCertificateResponse)(nil), "shentu.cert.v1alpha1.QueryCertificateResponse")
 	proto.RegisterType((*QueryCertificatesRequest)(nil), "shentu.cert.v1alpha1.QueryCertificatesRequest")
 	proto.RegisterType((*QueryCertificatesResponse)(nil), "shentu.cert.v1alpha1.QueryCertificatesResponse")
+	proto.RegisterType((*ConversionToShentuAddrRequest)(nil), "shentu.cert.v1alpha1.ConversionToShentuAddrRequest")
+	proto.RegisterType((*ConversionToShentuAddrResponse)(nil), "shentu.cert.v1alpha1.ConversionToShentuAddrResponse")
 }
 
 func init() { proto.RegisterFile("shentu/cert/v1alpha1/query.proto", fileDescriptor_d0446c22ac299371) }
 
 var fileDescriptor_d0446c22ac299371 = []byte{
+<<<<<<< HEAD
 	// 766 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x94, 0xcf, 0x4f, 0x13, 0x4d,
 	0x18, 0xc7, 0xbb, 0xbc, 0xc0, 0x4b, 0x07, 0xde, 0x57, 0x33, 0xa9, 0x5a, 0x1a, 0xb2, 0xd4, 0x89,
@@ -562,6 +653,62 @@ var fileDescriptor_d0446c22ac299371 = []byte{
 	0x64, 0x17, 0x5e, 0x60, 0xd7, 0x13, 0xeb, 0x51, 0xc3, 0x69, 0xb2, 0x0d, 0xed, 0xa7, 0xcd, 0x22,
 	0xbf, 0x25, 0xa7, 0xdc, 0x38, 0x7e, 0xab, 0x5c, 0x27, 0x7b, 0x85, 0x37, 0x86, 0xe5, 0x6e, 0xbf,
 	0xf5, 0x27, 0x00, 0x00, 0xff, 0xff, 0x65, 0x16, 0xfc, 0xad, 0x4b, 0x08, 0x00, 0x00,
+=======
+	// 842 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x95, 0xcf, 0x4f, 0xdb, 0x48,
+	0x14, 0xc7, 0x63, 0x96, 0x5f, 0x19, 0x58, 0x76, 0x35, 0xca, 0xee, 0x86, 0x88, 0x35, 0xd9, 0xd1,
+	0x2e, 0x62, 0xa1, 0xf1, 0x28, 0x80, 0x54, 0xc1, 0xa5, 0xfc, 0x50, 0xa9, 0x50, 0x2f, 0x34, 0xe5,
+	0xd0, 0x56, 0x6a, 0xe9, 0x24, 0x99, 0x18, 0xab, 0xc1, 0x63, 0x3c, 0x63, 0x54, 0x0b, 0x71, 0xe9,
+	0x95, 0x4b, 0x25, 0x8e, 0xfd, 0x03, 0x5a, 0x89, 0x6b, 0xff, 0x08, 0x54, 0xf5, 0x80, 0xd4, 0x4b,
+	0x4f, 0x55, 0x05, 0xfd, 0x43, 0x2a, 0x8f, 0xc7, 0x8e, 0x09, 0xf9, 0x61, 0x4e, 0xc9, 0xcc, 0x7c,
+	0xdf, 0x7b, 0x9f, 0x79, 0xf3, 0xde, 0x33, 0x28, 0xf2, 0x3d, 0x6a, 0x0b, 0x0f, 0xd7, 0xa8, 0x2b,
+	0xf0, 0x61, 0x99, 0x34, 0x9d, 0x3d, 0x52, 0xc6, 0x07, 0x1e, 0x75, 0x7d, 0xc3, 0x71, 0x99, 0x60,
+	0x30, 0x17, 0x2a, 0x8c, 0x40, 0x61, 0x44, 0x8a, 0x42, 0xce, 0x64, 0x26, 0x93, 0x02, 0x1c, 0xfc,
+	0x0b, 0xb5, 0x85, 0xb9, 0x1a, 0xe3, 0xfb, 0x8c, 0xe3, 0x2a, 0xe1, 0x34, 0x74, 0x82, 0x0f, 0xcb,
+	0x55, 0x2a, 0x48, 0x19, 0x3b, 0xc4, 0xb4, 0x6c, 0x22, 0x2c, 0x66, 0x2b, 0xed, 0x94, 0xc9, 0x98,
+	0xd9, 0xa4, 0x98, 0x38, 0x16, 0x26, 0xb6, 0xcd, 0x84, 0x3c, 0xe4, 0xea, 0x74, 0xba, 0x23, 0x97,
+	0x64, 0x08, 0x05, 0xa8, 0xa3, 0xc0, 0xa4, 0x36, 0xe5, 0x56, 0xe4, 0x64, 0x52, 0x85, 0x90, 0xab,
+	0xaa, 0xd7, 0xc0, 0xc4, 0xf6, 0xa3, 0xa3, 0x90, 0x74, 0x37, 0xbc, 0x42, 0xb8, 0x08, 0x8f, 0xd0,
+	0x03, 0xf0, 0xc7, 0xa3, 0x00, 0x7d, 0x83, 0xba, 0xc2, 0x6a, 0x58, 0xd4, 0xad, 0xd0, 0x03, 0x8f,
+	0x72, 0x01, 0xf3, 0x60, 0x84, 0xd4, 0xeb, 0x2e, 0xe5, 0x3c, 0xaf, 0x15, 0xb5, 0xd9, 0x6c, 0x25,
+	0x5a, 0xc2, 0x1c, 0x18, 0x22, 0x4d, 0x8b, 0xf0, 0xfc, 0x80, 0xdc, 0x0f, 0x17, 0xe8, 0x39, 0xf8,
+	0xb3, 0xdd, 0x11, 0x77, 0x98, 0xcd, 0x29, 0xdc, 0x00, 0xd9, 0x5a, 0xb4, 0x29, 0x7d, 0x8d, 0x2d,
+	0x4c, 0x1b, 0x9d, 0xf2, 0x6c, 0xc4, 0xb6, 0xeb, 0x83, 0xe7, 0xdf, 0xa6, 0x33, 0x95, 0x96, 0x1d,
+	0xca, 0xb7, 0xbb, 0xe7, 0x0a, 0x14, 0xbd, 0x04, 0x7f, 0xdd, 0x38, 0x51, 0x91, 0xef, 0x03, 0x10,
+	0x7b, 0x08, 0xae, 0xf1, 0x4b, 0xfa, 0xd0, 0x09, 0x43, 0xf4, 0x02, 0xe4, 0x64, 0x84, 0xed, 0x26,
+	0x11, 0x0d, 0xe6, 0xee, 0x47, 0x29, 0xda, 0x04, 0xc3, 0x8e, 0x57, 0x7d, 0x45, 0x7d, 0x75, 0xab,
+	0x9c, 0x11, 0x3e, 0x81, 0x11, 0x3d, 0x81, 0xb1, 0x66, 0xfb, 0xeb, 0xf9, 0x4f, 0x1f, 0x4b, 0x39,
+	0x95, 0xf3, 0x9a, 0xeb, 0x3b, 0x82, 0x19, 0xdb, 0x5e, 0xf5, 0x21, 0xf5, 0x2b, 0xca, 0x1a, 0x3d,
+	0x55, 0x6f, 0xd0, 0xf2, 0xaf, 0xf8, 0x57, 0xc1, 0xa8, 0xa3, 0xf6, 0x54, 0x08, 0xbd, 0x33, 0x7d,
+	0x64, 0xa9, 0xe0, 0x63, 0x2b, 0xb4, 0x7a, 0x3d, 0x39, 0x35, 0x22, 0x68, 0x44, 0xff, 0x1f, 0x98,
+	0xa8, 0xb5, 0x76, 0x77, 0xad, 0xba, 0x0c, 0x31, 0x58, 0xf9, 0x35, 0xb1, 0xbb, 0x55, 0x47, 0x14,
+	0xe4, 0x6f, 0x7a, 0x50, 0x7c, 0x5b, 0x60, 0x2c, 0x21, 0x56, 0x88, 0xff, 0xf4, 0x4c, 0x70, 0x20,
+	0x54, 0x94, 0x49, 0x5b, 0x74, 0xa6, 0xdd, 0x8c, 0x13, 0x3d, 0x31, 0x9c, 0x6a, 0xaf, 0xa0, 0x6c,
+	0xa2, 0x34, 0xe0, 0xff, 0xe0, 0xf7, 0xe4, 0x45, 0x84, 0xef, 0x50, 0x55, 0x9a, 0xbf, 0x25, 0xf6,
+	0x77, 0x7c, 0x87, 0xc2, 0x4d, 0x00, 0x5a, 0xad, 0x99, 0x1f, 0x94, 0xbc, 0x33, 0x86, 0x7a, 0x9c,
+	0xa0, 0x8f, 0x8d, 0x70, 0x18, 0xa8, 0x3e, 0x36, 0xb6, 0x89, 0x19, 0xe5, 0xab, 0x92, 0xb0, 0x44,
+	0x27, 0x1a, 0x98, 0xec, 0x40, 0xab, 0xd2, 0x92, 0x03, 0x43, 0x82, 0x09, 0xd2, 0x54, 0x09, 0x0d,
+	0x17, 0xf0, 0x09, 0x18, 0x4f, 0xe0, 0x04, 0xdd, 0x13, 0x94, 0xa3, 0xd1, 0x39, 0x5b, 0xdd, 0x52,
+	0xae, 0x52, 0x77, 0xcd, 0x13, 0x5a, 0x06, 0x7f, 0x6f, 0x30, 0xfb, 0x90, 0xba, 0xdc, 0x62, 0xf6,
+	0x0e, 0x7b, 0x2c, 0x1d, 0xae, 0xd5, 0xeb, 0xfd, 0x7b, 0x19, 0xad, 0x00, 0xbd, 0x9b, 0xa9, 0xba,
+	0x4c, 0x57, 0xdb, 0x85, 0xcf, 0x23, 0x60, 0x48, 0x72, 0xc2, 0xf7, 0x1a, 0xc8, 0xc6, 0x0d, 0x04,
+	0xe7, 0xfb, 0x5f, 0x29, 0x1e, 0x33, 0x85, 0x3b, 0xe9, 0xc4, 0x21, 0x0c, 0xba, 0xf7, 0xe6, 0xcb,
+	0x8f, 0xd3, 0x81, 0x65, 0x78, 0x17, 0x77, 0x9d, 0x98, 0xd2, 0x00, 0x1f, 0x29, 0xc8, 0x63, 0x2c,
+	0xa7, 0x13, 0x3e, 0x92, 0x3f, 0xc7, 0xf0, 0x54, 0x03, 0xa0, 0x35, 0x28, 0x60, 0xaa, 0xe8, 0x51,
+	0x19, 0x16, 0x4a, 0x29, 0xd5, 0x0a, 0x76, 0x56, 0xc2, 0x22, 0x58, 0xec, 0x03, 0xcb, 0xe1, 0x89,
+	0x06, 0x46, 0xa3, 0x16, 0x86, 0x73, 0x3d, 0xa2, 0xb4, 0x4d, 0xa0, 0xc2, 0x7c, 0x2a, 0xad, 0xe2,
+	0x99, 0x91, 0x3c, 0x45, 0xa8, 0x77, 0xe6, 0x89, 0x66, 0x06, 0xfc, 0xa0, 0x81, 0xb1, 0x44, 0xe9,
+	0xc1, 0x52, 0xda, 0x12, 0x0d, 0x99, 0x6e, 0x59, 0xd1, 0x68, 0x45, 0x62, 0x2d, 0xc1, 0x85, 0x9e,
+	0x69, 0x0a, 0x4c, 0xf0, 0xd1, 0xf5, 0x81, 0x75, 0x0c, 0xdf, 0x69, 0x60, 0x3c, 0xd9, 0x82, 0x30,
+	0x65, 0xf0, 0xf8, 0x49, 0x71, 0x6a, 0xbd, 0xa2, 0x9d, 0x93, 0xb4, 0xff, 0x42, 0xd4, 0x97, 0x96,
+	0xc3, 0x33, 0x0d, 0x4c, 0x04, 0xbd, 0xd4, 0xea, 0x30, 0xb8, 0xd8, 0x65, 0x38, 0xf6, 0x6a, 0xdf,
+	0xc2, 0xd2, 0xed, 0x8c, 0x14, 0xa9, 0x21, 0x49, 0x67, 0xe1, 0x4c, 0x4c, 0x1a, 0xeb, 0xb1, 0x60,
+	0x25, 0xb5, 0x19, 0x37, 0xca, 0xfa, 0xd6, 0xf9, 0xa5, 0xae, 0x5d, 0x5c, 0xea, 0xda, 0xf7, 0x4b,
+	0x5d, 0x7b, 0x7b, 0xa5, 0x67, 0x2e, 0xae, 0xf4, 0xcc, 0xd7, 0x2b, 0x3d, 0xf3, 0x0c, 0x9b, 0x96,
+	0xd8, 0xf3, 0xaa, 0x46, 0x8d, 0xed, 0x2b, 0x5f, 0x0d, 0xe6, 0xd9, 0x75, 0x39, 0x0a, 0x23, 0xe7,
+	0xaf, 0xc3, 0x44, 0x04, 0xc3, 0x97, 0x57, 0x87, 0xe5, 0x07, 0x70, 0xf1, 0x67, 0x00, 0x00, 0x00,
+	0xff, 0xff, 0x7f, 0x4b, 0x19, 0x39, 0x70, 0x09, 0x00, 0x00,
+>>>>>>> master
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -581,6 +728,7 @@ type QueryClient interface {
 	Platform(ctx context.Context, in *QueryPlatformRequest, opts ...grpc.CallOption) (*QueryPlatformResponse, error)
 	Certificate(ctx context.Context, in *QueryCertificateRequest, opts ...grpc.CallOption) (*QueryCertificateResponse, error)
 	Certificates(ctx context.Context, in *QueryCertificatesRequest, opts ...grpc.CallOption) (*QueryCertificatesResponse, error)
+	AddrConversion(ctx context.Context, in *ConversionToShentuAddrRequest, opts ...grpc.CallOption) (*ConversionToShentuAddrResponse, error)
 }
 
 type queryClient struct {
@@ -636,6 +784,15 @@ func (c *queryClient) Certificates(ctx context.Context, in *QueryCertificatesReq
 	return out, nil
 }
 
+func (c *queryClient) AddrConversion(ctx context.Context, in *ConversionToShentuAddrRequest, opts ...grpc.CallOption) (*ConversionToShentuAddrResponse, error) {
+	out := new(ConversionToShentuAddrResponse)
+	err := c.cc.Invoke(ctx, "/shentu.cert.v1alpha1.Query/AddrConversion", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	Certifier(context.Context, *QueryCertifierRequest) (*QueryCertifierResponse, error)
@@ -643,6 +800,7 @@ type QueryServer interface {
 	Platform(context.Context, *QueryPlatformRequest) (*QueryPlatformResponse, error)
 	Certificate(context.Context, *QueryCertificateRequest) (*QueryCertificateResponse, error)
 	Certificates(context.Context, *QueryCertificatesRequest) (*QueryCertificatesResponse, error)
+	AddrConversion(context.Context, *ConversionToShentuAddrRequest) (*ConversionToShentuAddrResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -663,6 +821,9 @@ func (*UnimplementedQueryServer) Certificate(ctx context.Context, req *QueryCert
 }
 func (*UnimplementedQueryServer) Certificates(ctx context.Context, req *QueryCertificatesRequest) (*QueryCertificatesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Certificates not implemented")
+}
+func (*UnimplementedQueryServer) AddrConversion(ctx context.Context, req *ConversionToShentuAddrRequest) (*ConversionToShentuAddrResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddrConversion not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -759,6 +920,24 @@ func _Query_Certificates_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_AddrConversion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConversionToShentuAddrRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).AddrConversion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/shentu.cert.v1alpha1.Query/AddrConversion",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).AddrConversion(ctx, req.(*ConversionToShentuAddrRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "shentu.cert.v1alpha1.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -782,6 +961,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Certificates",
 			Handler:    _Query_Certificates_Handler,
+		},
+		{
+			MethodName: "AddrConversion",
+			Handler:    _Query_AddrConversion_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1138,6 +1321,66 @@ func (m *QueryCertificatesResponse) MarshalToSizedBuffer(dAtA []byte) (int, erro
 	return len(dAtA) - i, nil
 }
 
+func (m *ConversionToShentuAddrRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ConversionToShentuAddrRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ConversionToShentuAddrRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Address) > 0 {
+		i -= len(m.Address)
+		copy(dAtA[i:], m.Address)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Address)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ConversionToShentuAddrResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ConversionToShentuAddrResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ConversionToShentuAddrResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Address) > 0 {
+		i -= len(m.Address)
+		copy(dAtA[i:], m.Address)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Address)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -1283,6 +1526,32 @@ func (m *QueryCertificatesResponse) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
+	}
+	return n
+}
+
+func (m *ConversionToShentuAddrRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *ConversionToShentuAddrResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
 }
@@ -2184,6 +2453,173 @@ func (m *QueryCertificatesResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if (skippy < 0) || (iNdEx+skippy) < 0 {
+<<<<<<< HEAD
+=======
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ConversionToShentuAddrRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ConversionToShentuAddrRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ConversionToShentuAddrRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ConversionToShentuAddrResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ConversionToShentuAddrResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ConversionToShentuAddrResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+>>>>>>> master
 				return ErrInvalidLengthQuery
 			}
 			if (iNdEx + skippy) > l {

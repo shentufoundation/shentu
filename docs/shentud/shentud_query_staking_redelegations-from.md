@@ -7,7 +7,7 @@ Query all outgoing redelegatations from a validator
 Query delegations that are redelegating _from_ a validator.
 
 Example:
-$ shentud query staking redelegations-from certikvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
+$ shentud query staking redelegations-from shentuvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldtshsu6
 
 ```
 shentud query staking redelegations-from [validator-addr] [flags]

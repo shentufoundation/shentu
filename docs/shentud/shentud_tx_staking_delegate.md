@@ -7,7 +7,7 @@ Delegate liquid tokens to a validator
 Delegate an amount of liquid coins to a validator from your wallet.
 
 Example:
-$ shentud tx staking delegate certikvaloper1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm 1000stake --from mykey
+$ shentud tx staking delegate shentuvaloper1l2rsakp388kuv9k8qzq6lrm9taddae7f3k5umn 1000stake --from mykey
 
 ```
 shentud tx staking delegate [validator-addr] [amount] [flags]

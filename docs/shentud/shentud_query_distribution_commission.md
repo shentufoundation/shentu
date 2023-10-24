@@ -7,7 +7,7 @@ Query distribution validator commission
 Query validator commission rewards from delegators to that validator.
 
 Example:
-$ shentud query distribution commission certikvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
+$ shentud query distribution commission shentuvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldtshsu6
 
 ```
 shentud query distribution commission [validator] [flags]

@@ -45,6 +45,7 @@ func Test_GetNewCertificateID(t *testing.T) {
 		c2, err := types.NewCertificate("compilation", "sourcodehash0", "compiler1",
 			"bytecodehash1", "", addrs[0])
 		require.NoError(t, err)
+
 		id2 := app.CertKeeper.GetNextCertificateID(ctx)
 		c2.CertificateId = id2
 		app.CertKeeper.SetNextCertificateID(ctx, id2+1)
@@ -216,13 +217,13 @@ func Test_IsCertified(t *testing.T) {
 		app.CertKeeper.SetCertifier(ctx, types.NewCertifier(addrs[0], "", addrs[0], ""))
 
 		certType := "auditing"
-		contentStr := "certik1k4gj07sgy6x3k6ms31aztgu9aajjkaw3ktsydag"
+		contentStr := "shentu1fdyv6hpukqj6kqdtwc42qacq9lpxm0pnggk5vn"
 
 		isCertified := app.CertKeeper.IsCertified(ctx, contentStr, certType)
 		require.Equal(t, false, isCertified)
 
 		cert, err := types.NewCertificate(certType, contentStr,
-			"", "", "Audited by CertiK", addrs[0])
+			"", "", "Audited by Shentu", addrs[0])
 		require.NoError(t, err)
 
 		_, err = app.CertKeeper.IssueCertificate(ctx, cert)
