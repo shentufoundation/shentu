@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -10,7 +9,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	types1 "github.com/cosmos/cosmos-sdk/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/x/bounty/keeper"
@@ -55,8 +53,6 @@ func (suite *KeeperTestSuite) TestProgram_GetSet() {
 		contains   string
 	}
 
-	deposit1 := types1.NewInt(10000)
-	dd, _ := time.ParseDuration("24h")
 	tests := []struct {
 		name    string
 		args    args
@@ -66,17 +62,11 @@ func (suite *KeeperTestSuite) TestProgram_GetSet() {
 			args{
 				program: []types.Program{
 					{
-						ProgramId:         1,
-						CreatorAddress:    suite.address[0].String(),
-						SubmissionEndTime: time.Now().Add(dd),
-						Description:       "for test1",
-						Deposit: []types1.Coin{
-							{
-								Denom:  "uctk",
-								Amount: deposit1,
-							},
-						},
-						CommissionRate: types1.NewDec(1),
+						ProgramId:    "1",
+						Name:         "name",
+						Description:  "desc",
+						AdminAddress: suite.address[0].String(),
+						Status:       1,
 					},
 				},
 			},

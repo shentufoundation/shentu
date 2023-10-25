@@ -19,7 +19,7 @@ const (
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
 // Delegator address and validator address are the same.
-func NewMsgCreateProgram(name, pid, desc string, operator sdk.AccAddress, members []string, levels []BountyLevel) (*MsgCreateProgram, error) {
+func NewMsgCreateProgram(name, desc, pid string, operator sdk.AccAddress, members []string, levels []BountyLevel) (*MsgCreateProgram, error) {
 	return &MsgCreateProgram{
 		Name:            name,
 		Description:     desc,

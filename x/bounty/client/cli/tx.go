@@ -51,7 +51,7 @@ func NewCreateProgramCmd() *cobra.Command {
 			desc, _ := cmd.Flags().GetString(FlagDesc)
 			members, _ := cmd.Flags().GetStringArray(FlagMembers)
 
-			msg, err := types.NewMsgCreateProgram(name, pid, desc, creatorAddr, members, nil)
+			msg, err := types.NewMsgCreateProgram(name, desc, pid, creatorAddr, members, nil)
 			if err != nil {
 				return err
 			}

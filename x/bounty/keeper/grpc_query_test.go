@@ -31,23 +31,23 @@ func (suite *KeeperTestSuite) TestGRPCQueryProgram() {
 		{
 			"non existing program request",
 			func() {
-				req = &types.QueryProgramRequest{ProgramId: 3}
+				req = &types.QueryProgramRequest{ProgramId: "3"}
 			},
 			false,
 		},
 		{
 			"zero program id request",
 			func() {
-				req = &types.QueryProgramRequest{ProgramId: 0}
+				req = &types.QueryProgramRequest{ProgramId: "0"}
 			},
 			false,
 		},
 		{
 			"valid request",
 			func() {
-				req = &types.QueryProgramRequest{ProgramId: 1}
+				req = &types.QueryProgramRequest{ProgramId: "1"}
 				// create programs
-				suite.CreatePrograms()
+				suite.CreatePrograms("1")
 			},
 			true,
 		},
@@ -89,8 +89,8 @@ func (suite *KeeperTestSuite) TestGRPCQueryPrograms() {
 				}
 
 				// create two programs
-				suite.CreatePrograms()
-				suite.CreatePrograms()
+				suite.CreatePrograms("1")
+				suite.CreatePrograms("2")
 			},
 			true,
 		},
@@ -117,7 +117,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 	queryClient := suite.queryClient
 
 	// create programs
-	programId, privKey := suite.CreatePrograms()
+	suite.CreatePrograms("1")
 
 	var (
 		req *types.QueryFindingRequest
@@ -138,35 +138,33 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 		{
 			"non existing finding id request",
 			func() {
-				req = &types.QueryFindingRequest{FindingId: 100}
+				req = &types.QueryFindingRequest{FindingId: "100"}
 			},
 			false,
 		},
 		{
 			"zero finding id request",
 			func() {
-				req = &types.QueryFindingRequest{FindingId: 1}
+				req = &types.QueryFindingRequest{FindingId: "1"}
 			},
 			false,
 		},
 		{
 			"valid request",
 			func() {
-				req = &types.QueryFindingRequest{FindingId: 1}
-				suite.CreateSubmitFinding(programId, &privKey.PublicKey, "test")
-
+				req = &types.QueryFindingRequest{FindingId: "1"}
+				suite.CreateSubmitFinding("1", "1")
 			},
 			true,
 		},
 		{
 			"valid request",
 			func() {
-				req = &types.QueryFindingRequest{FindingId: 1}
-				suite.CreateSubmitFinding(programId, &privKey.PublicKey, "test")
+				req = &types.QueryFindingRequest{FindingId: "2"}
+				suite.CreateSubmitFinding("1", "2")
 
 				ctx := sdk.WrapSDKContext(suite.ctx)
-				suite.msgServer.ReleaseFinding(ctx,
-					types.NewReleaseFinding(suite.address[0].String(), 1, "test", "", ""))
+				suite.msgServer.ReleaseFinding(ctx, types.NewReleaseFinding("2", "release desc", suite.address[0]))
 			},
 			true,
 		},
@@ -192,7 +190,8 @@ func (suite *KeeperTestSuite) TestGRPCQueryFindings() {
 	queryClient := suite.queryClient
 
 	// create programs
-	programId, privKey := suite.CreatePrograms()
+	pid := "1"
+	suite.CreatePrograms(pid)
 
 	var (
 		req *types.QueryFindingsRequest
@@ -206,15 +205,15 @@ func (suite *KeeperTestSuite) TestGRPCQueryFindings() {
 		{
 			"valid request",
 			func() {
-				req = &types.QueryFindingsRequest{ProgramId: programId}
-				suite.CreateSubmitFinding(programId, &privKey.PublicKey, "test")
+				req = &types.QueryFindingsRequest{ProgramId: pid}
+				suite.CreateSubmitFinding(pid, "1")
 			},
 			true,
 		},
 		{
 			"valid request with submitter address",
 			func() {
-				req = &types.QueryFindingsRequest{ProgramId: programId, SubmitterAddress: suite.address[0].String()}
+				req = &types.QueryFindingsRequest{ProgramId: pid, SubmitterAddress: suite.address[0].String()}
 			},
 			true,
 		},
