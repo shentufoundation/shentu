@@ -1,6 +1,8 @@
 package types
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -10,26 +12,32 @@ import (
 // Findings is an array of finding
 type Findings []Finding
 
-func NewFinding(pid, fid string, title, submitterAddr string, detail FindingDetail, submitTime time.Time) (Finding, error) {
+func NewFinding(pid, fid, title, desc string, operator sdk.ValAddress, submitTime time.Time, level SeverityLevel) (Finding, error) {
+
+	hash := sha256.Sum256([]byte(title + desc))
+	bzHash := hash[:]
+	hashString := hex.EncodeToString(bzHash)
 
 	return Finding{
-		FindingId:        fid,
 		ProgramId:        pid,
+		FindingId:        fid,
 		Title:            title,
-		Detail:           detail,
+		Description:      desc,
+		SubmitterAddress: operator.String(),
 		CreateTime:       submitTime,
-		SubmitterAddress: submitterAddr,
 		Status:           FindingStatusReported,
+		FindingHash:      hashString,
+		SeverityLevel:    level,
 	}, nil
 }
 
-func (m *Finding) ValidateBasic() error {
+func (m Finding) ValidateBasic() error {
 	if len(m.ProgramId) == 0 {
 		return ErrProgramID
 	} else if len(m.FindingId) == 0 {
 		return ErrFindingID
-	} else if m.Detail.SeverityLevel < 0 || int(m.Detail.SeverityLevel) >= len(SeverityLevel_name) {
-		return fmt.Errorf("invalid SeverityLevel:%d", m.Detail.SeverityLevel)
+	} else if m.SeverityLevel < 0 || int(m.SeverityLevel) >= len(SeverityLevel_name) {
+		return fmt.Errorf("invalid SeverityLevel:%d", m.SeverityLevel)
 	} else if int(m.Status) >= len(FindingStatus_name) {
 		return fmt.Errorf("invalid finding status:%d", m.Status)
 	}
@@ -38,14 +46,4 @@ func (m *Finding) ValidateBasic() error {
 		return err
 	}
 	return nil
-}
-
-func NewFindingDetail(desc, poc string, targets []string, level SeverityLevel) FindingDetail {
-
-	return FindingDetail{
-		Description:    desc,
-		ProofOfConcept: poc,
-		ProgramTargets: targets,
-		SeverityLevel:  level,
-	}
 }

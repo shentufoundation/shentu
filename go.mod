@@ -4,9 +4,9 @@ go 1.18
 
 require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	github.com/cosmos/cosmos-sdk v0.45.11
+	github.com/cosmos/cosmos-sdk v0.45.6
 	github.com/cosmos/go-bip39 v1.0.0
-	github.com/cosmos/ibc-go/v4 v4.2.1
+	github.com/cosmos/ibc-go/v4 v4.0.0-rc2
 	github.com/cosmos/tools/cmd/runsim v1.0.0
 	github.com/ethereum/go-ethereum v1.9.25
 	github.com/gogo/protobuf v1.3.3

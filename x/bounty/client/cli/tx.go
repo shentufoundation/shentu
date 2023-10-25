@@ -23,6 +23,7 @@ func NewTxCmd() *cobra.Command {
 
 	bountyTxCmds.AddCommand(
 		NewCreateProgramCmd(),
+		NewEditProgramCmd(),
 		NewOpenProgramCmd(),
 		NewCloseProgramCmd(),
 		NewSubmitFindingCmd(),
@@ -46,15 +47,47 @@ func NewCreateProgramCmd() *cobra.Command {
 
 			creatorAddr := clientCtx.GetFromAddress()
 			name, _ := cmd.Flags().GetString(FlagName)
-			members, _ := cmd.Flags().GetStringArray(FlagMembers)
 			pid, _ := cmd.Flags().GetString(FlagProgramID)
-
 			desc, _ := cmd.Flags().GetString(FlagDesc)
-			scopeRules, _ := cmd.Flags().GetString(FlagScopeRules)
-			knownIssues, _ := cmd.Flags().GetString(FlagKnownIssues)
+			members, _ := cmd.Flags().GetStringArray(FlagMembers)
 
-			detail := types.NewDetail(desc, scopeRules, knownIssues, nil)
-			msg, err := types.NewMsgCreateProgram(name, pid, creatorAddr, detail, members)
+			msg, err := types.NewMsgCreateProgram(name, pid, desc, creatorAddr, members, nil)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FlagSetProgramDetail())
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagName)
+	_ = cmd.MarkFlagRequired(FlagDesc)
+
+	return cmd
+}
+
+func NewEditProgramCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "edit-program",
+		Short: "edit a program",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			creatorAddr := clientCtx.GetFromAddress()
+			name, _ := cmd.Flags().GetString(FlagName)
+			pid, _ := cmd.Flags().GetString(FlagProgramID)
+			desc, _ := cmd.Flags().GetString(FlagDesc)
+			members, _ := cmd.Flags().GetStringArray(FlagMembers)
+
+			msg, err := types.NewMsgEditProgram(name, pid, desc, creatorAddr, members, nil)
 			if err != nil {
 				return err
 			}
@@ -142,11 +175,8 @@ func NewSubmitFindingCmd() *cobra.Command {
 			}
 
 			desc, _ := cmd.Flags().GetString(FlagDesc)
-			poc, _ := cmd.Flags().GetString(FlagFindingPoc)
 
-			detail := types.NewFindingDetail(desc, poc, nil, types.SeverityLevel(severityLevel))
-
-			msg := types.NewMsgSubmitFinding(pid, fid, title, detail, submitAddr)
+			msg := types.NewMsgSubmitFinding(pid, fid, title, desc, submitAddr, types.SeverityLevel(severityLevel))
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}

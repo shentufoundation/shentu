@@ -30,6 +30,34 @@ var _ = time.Kitchen
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+type ProgramStatus int32
+
+const (
+	ProgramStatusInactive ProgramStatus = 0
+	ProgramStatusActive   ProgramStatus = 1
+	ProgramStatusClosed   ProgramStatus = 2
+)
+
+var ProgramStatus_name = map[int32]string{
+	0: "PROGRAM_STATUS_INACTIVE",
+	1: "PROGRAM_STATUS_ACTIVE",
+	2: "PROGRAM_STATUS_CLOSED",
+}
+
+var ProgramStatus_value = map[string]int32{
+	"PROGRAM_STATUS_INACTIVE": 0,
+	"PROGRAM_STATUS_ACTIVE":   1,
+	"PROGRAM_STATUS_CLOSED":   2,
+}
+
+func (x ProgramStatus) String() string {
+	return proto.EnumName(ProgramStatus_name, int32(x))
+}
+
+func (ProgramStatus) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_36e6d679af1b94c6, []int{0}
+}
+
 type SeverityLevel int32
 
 const (
@@ -61,7 +89,7 @@ func (x SeverityLevel) String() string {
 }
 
 func (SeverityLevel) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_36e6d679af1b94c6, []int{0}
+	return fileDescriptor_36e6d679af1b94c6, []int{1}
 }
 
 type FindingStatus int32
@@ -98,44 +126,18 @@ func (x FindingStatus) String() string {
 }
 
 func (FindingStatus) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_36e6d679af1b94c6, []int{1}
-}
-
-type ProgramStatus int32
-
-const (
-	ProgramStatusInactive ProgramStatus = 0
-	ProgramStatusActive   ProgramStatus = 1
-	ProgramStatusClosed   ProgramStatus = 2
-)
-
-var ProgramStatus_name = map[int32]string{
-	0: "PROGRAM_STATUS_INACTIVE",
-	1: "PROGRAM_STATUS_ACTIVE",
-	2: "PROGRAM_STATUS_CLOSED",
-}
-
-var ProgramStatus_value = map[string]int32{
-	"PROGRAM_STATUS_INACTIVE": 0,
-	"PROGRAM_STATUS_ACTIVE":   1,
-	"PROGRAM_STATUS_CLOSED":   2,
-}
-
-func (x ProgramStatus) String() string {
-	return proto.EnumName(ProgramStatus_name, int32(x))
-}
-
-func (ProgramStatus) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_36e6d679af1b94c6, []int{2}
 }
 
 type Program struct {
-	ProgramId      string        `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"id" yaml:"id"`
-	Name           string        `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty" yaml:"name"`
-	Detail         ProgramDetail `protobuf:"bytes,3,opt,name=detail,proto3" json:"detail" yaml:"detail"`
+	ProgramId string `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"id" yaml:"id"`
+	Name      string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty" yaml:"name"`
+	// JSON by ProgramDetail
+	Description    string        `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty" yaml:"description"`
 	AdminAddress   string        `protobuf:"bytes,4,opt,name=admin_address,json=adminAddress,proto3" json:"admin_address,omitempty" yaml:"admin_address"`
 	MemberAccounts []string      `protobuf:"bytes,5,rep,name=member_accounts,json=memberAccounts,proto3" json:"member_accounts,omitempty" yaml:"member_accounts"`
 	Status         ProgramStatus `protobuf:"varint,6,opt,name=status,proto3,enum=shentu.bounty.v1.ProgramStatus" json:"status,omitempty" yaml:"status"`
+	BountyLevels   []BountyLevel `protobuf:"bytes,7,rep,name=bounty_levels,json=bountyLevels,proto3" json:"bounty_levels" yaml:"bounty_levels"`
 }
 
 func (m *Program) Reset()         { *m = Program{} }
@@ -172,14 +174,16 @@ func (m *Program) XXX_DiscardUnknown() {
 var xxx_messageInfo_Program proto.InternalMessageInfo
 
 type Finding struct {
-	FindingId        string        `protobuf:"bytes,1,opt,name=finding_id,json=findingId,proto3" json:"id" yaml:"id"`
-	ProgramId        string        `protobuf:"bytes,2,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
-	Title            string        `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
-	Detail           FindingDetail `protobuf:"bytes,4,opt,name=detail,proto3" json:"detail" yaml:"detail"`
+	ProgramId string `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
+	FindingId string `protobuf:"bytes,2,opt,name=finding_id,json=findingId,proto3" json:"id" yaml:"id"`
+	Title     string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	// JSON by FindingDetail
+	Description      string        `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty" yaml:"description"`
 	SubmitterAddress string        `protobuf:"bytes,5,opt,name=submitter_address,json=submitterAddress,proto3" json:"submitter_address,omitempty" yaml:"submitter_address"`
 	CreateTime       time.Time     `protobuf:"bytes,6,opt,name=create_time,json=createTime,proto3,stdtime" json:"create_time" yaml:"create_time"`
 	Status           FindingStatus `protobuf:"varint,7,opt,name=status,proto3,enum=shentu.bounty.v1.FindingStatus" json:"status,omitempty" yaml:"status"`
 	FindingHash      string        `protobuf:"bytes,8,opt,name=finding_hash,json=findingHash,proto3" json:"finding_hash,omitempty" yaml:"finding_hash"`
+	SeverityLevel    SeverityLevel `protobuf:"varint,9,opt,name=severity_level,json=severityLevel,proto3,enum=shentu.bounty.v1.SeverityLevel" json:"severity_level,omitempty" yaml:"severity_level"`
 }
 
 func (m *Finding) Reset()         { *m = Finding{} }
@@ -215,47 +219,6 @@ func (m *Finding) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Finding proto.InternalMessageInfo
 
-// ProgramDetail defines a program detail.
-type ProgramDetail struct {
-	Description  string        `protobuf:"bytes,1,opt,name=description,proto3" json:"description,omitempty"`
-	ScopeRules   string        `protobuf:"bytes,2,opt,name=scope_rules,json=scopeRules,proto3" json:"scope_rules,omitempty"`
-	KnownIssues  string        `protobuf:"bytes,3,opt,name=known_issues,json=knownIssues,proto3" json:"known_issues,omitempty"`
-	BountyLevels []BountyLevel `protobuf:"bytes,4,rep,name=bounty_levels,json=bountyLevels,proto3" json:"bounty_levels" yaml:"bounty_levels"`
-}
-
-func (m *ProgramDetail) Reset()         { *m = ProgramDetail{} }
-func (m *ProgramDetail) String() string { return proto.CompactTextString(m) }
-func (*ProgramDetail) ProtoMessage()    {}
-func (*ProgramDetail) Descriptor() ([]byte, []int) {
-	return fileDescriptor_36e6d679af1b94c6, []int{2}
-}
-func (m *ProgramDetail) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ProgramDetail) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ProgramDetail.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ProgramDetail) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ProgramDetail.Merge(m, src)
-}
-func (m *ProgramDetail) XXX_Size() int {
-	return m.Size()
-}
-func (m *ProgramDetail) XXX_DiscardUnknown() {
-	xxx_messageInfo_ProgramDetail.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ProgramDetail proto.InternalMessageInfo
-
 type BountyLevel struct {
 	SeverityLevel SeverityLevel `protobuf:"varint,1,opt,name=severity_level,json=severityLevel,proto3,enum=shentu.bounty.v1.SeverityLevel" json:"severity_level,omitempty" yaml:"severity_level"`
 	Poc           bool          `protobuf:"varint,2,opt,name=poc,proto3" json:"poc,omitempty"`
@@ -267,7 +230,7 @@ func (m *BountyLevel) Reset()         { *m = BountyLevel{} }
 func (m *BountyLevel) String() string { return proto.CompactTextString(m) }
 func (*BountyLevel) ProtoMessage()    {}
 func (*BountyLevel) Descriptor() ([]byte, []int) {
-	return fileDescriptor_36e6d679af1b94c6, []int{3}
+	return fileDescriptor_36e6d679af1b94c6, []int{2}
 }
 func (m *BountyLevel) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -296,143 +259,89 @@ func (m *BountyLevel) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_BountyLevel proto.InternalMessageInfo
 
-// FindingDetail defines a finding detail.
-type FindingDetail struct {
-	Description    string        `protobuf:"bytes,1,opt,name=description,proto3" json:"description,omitempty"`
-	ProofOfConcept string        `protobuf:"bytes,2,opt,name=proof_of_concept,json=proofOfConcept,proto3" json:"proof_of_concept,omitempty" yaml:"proof_of_concept"`
-	ProgramTargets []string      `protobuf:"bytes,3,rep,name=program_targets,json=programTargets,proto3" json:"program_targets,omitempty" yaml:"program_targets"`
-	Attachments    []string      `protobuf:"bytes,4,rep,name=attachments,proto3" json:"attachments,omitempty"`
-	SeverityLevel  SeverityLevel `protobuf:"varint,5,opt,name=severity_level,json=severityLevel,proto3,enum=shentu.bounty.v1.SeverityLevel" json:"severity_level,omitempty" yaml:"severity_level"`
-}
-
-func (m *FindingDetail) Reset()         { *m = FindingDetail{} }
-func (m *FindingDetail) String() string { return proto.CompactTextString(m) }
-func (*FindingDetail) ProtoMessage()    {}
-func (*FindingDetail) Descriptor() ([]byte, []int) {
-	return fileDescriptor_36e6d679af1b94c6, []int{4}
-}
-func (m *FindingDetail) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *FindingDetail) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_FindingDetail.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *FindingDetail) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_FindingDetail.Merge(m, src)
-}
-func (m *FindingDetail) XXX_Size() int {
-	return m.Size()
-}
-func (m *FindingDetail) XXX_DiscardUnknown() {
-	xxx_messageInfo_FindingDetail.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_FindingDetail proto.InternalMessageInfo
-
 func init() {
+	proto.RegisterEnum("shentu.bounty.v1.ProgramStatus", ProgramStatus_name, ProgramStatus_value)
 	proto.RegisterEnum("shentu.bounty.v1.SeverityLevel", SeverityLevel_name, SeverityLevel_value)
 	proto.RegisterEnum("shentu.bounty.v1.FindingStatus", FindingStatus_name, FindingStatus_value)
-	proto.RegisterEnum("shentu.bounty.v1.ProgramStatus", ProgramStatus_name, ProgramStatus_value)
 	proto.RegisterType((*Program)(nil), "shentu.bounty.v1.Program")
 	proto.RegisterType((*Finding)(nil), "shentu.bounty.v1.Finding")
-	proto.RegisterType((*ProgramDetail)(nil), "shentu.bounty.v1.ProgramDetail")
 	proto.RegisterType((*BountyLevel)(nil), "shentu.bounty.v1.BountyLevel")
-	proto.RegisterType((*FindingDetail)(nil), "shentu.bounty.v1.FindingDetail")
 }
 
 func init() { proto.RegisterFile("shentu/bounty/v1/bounty.proto", fileDescriptor_36e6d679af1b94c6) }
 
 var fileDescriptor_36e6d679af1b94c6 = []byte{
-	// 1269 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0xcf, 0x6e, 0xdb, 0xc6,
-	0x13, 0xd6, 0x3f, 0x3b, 0xd1, 0xca, 0x72, 0x68, 0xda, 0x8a, 0x65, 0xfe, 0x12, 0x51, 0x3f, 0xf6,
-	0x62, 0x04, 0x85, 0x04, 0xbb, 0x45, 0x51, 0x04, 0x28, 0x50, 0xfd, 0x73, 0xcc, 0x56, 0x96, 0x8c,
-	0x95, 0x92, 0xa2, 0xed, 0x81, 0x5d, 0x91, 0x2b, 0x89, 0xa8, 0xc8, 0x15, 0xc8, 0x95, 0x93, 0xbc,
-	0x41, 0x60, 0xf4, 0x10, 0xa0, 0x67, 0x01, 0x29, 0xfa, 0x0c, 0xed, 0x33, 0xe4, 0xd0, 0x43, 0x6e,
-	0xed, 0x49, 0x6d, 0x93, 0x4b, 0xd1, 0xa3, 0x9e, 0xa0, 0x58, 0xee, 0x2a, 0x12, 0x59, 0xb9, 0x49,
-	0x81, 0xde, 0x76, 0x67, 0xbe, 0x6f, 0x38, 0x33, 0xdf, 0xec, 0x48, 0xe0, 0xb6, 0x3f, 0xc4, 0x2e,
-	0x9d, 0x94, 0x7b, 0x64, 0xe2, 0xd2, 0xc7, 0xe5, 0x8b, 0x23, 0x71, 0x2a, 0x8d, 0x3d, 0x42, 0x89,
-	0x2c, 0x71, 0x77, 0x49, 0x18, 0x2f, 0x8e, 0x94, 0xbd, 0x01, 0x19, 0x90, 0xc0, 0x59, 0x66, 0x27,
-	0x8e, 0x53, 0xd4, 0x01, 0x21, 0x83, 0x11, 0x2e, 0x07, 0xb7, 0xde, 0xa4, 0x5f, 0xa6, 0xb6, 0x83,
-	0x7d, 0x8a, 0x9c, 0xb1, 0x00, 0x14, 0x4c, 0xe2, 0x3b, 0xc4, 0x2f, 0xf7, 0x90, 0x8f, 0xcb, 0x17,
-	0x47, 0x3d, 0x4c, 0xd1, 0x51, 0xd9, 0x24, 0xb6, 0x2b, 0xfc, 0x07, 0xdc, 0x6f, 0xf0, 0xc8, 0xfc,
-	0xb2, 0x70, 0x45, 0x63, 0x23, 0x57, 0xa4, 0xa7, 0x7d, 0x93, 0x04, 0xd7, 0xce, 0x3d, 0x32, 0xf0,
-	0x90, 0x23, 0x1f, 0x03, 0x30, 0xe6, 0x47, 0xc3, 0xb6, 0xf2, 0xf1, 0x62, 0xfc, 0x30, 0x5d, 0xdd,
-	0xfd, 0x73, 0xa6, 0x26, 0x6c, 0x6b, 0x3e, 0x53, 0xd3, 0x8f, 0x91, 0x33, 0xba, 0xab, 0xd9, 0x96,
-	0x06, 0xd3, 0x02, 0xa6, 0x5b, 0xf2, 0x3b, 0x20, 0xe5, 0x22, 0x07, 0xe7, 0x13, 0x01, 0xfa, 0xc6,
-	0x7c, 0xa6, 0x66, 0x38, 0x8e, 0x59, 0x35, 0x18, 0x38, 0xe5, 0x16, 0xd8, 0xb4, 0x30, 0x45, 0xf6,
-	0x28, 0x9f, 0x2c, 0xc6, 0x0f, 0x33, 0xc7, 0x6a, 0x29, 0xda, 0x94, 0x92, 0xc8, 0xa1, 0x1e, 0xc0,
-	0xaa, 0xb9, 0xe7, 0x33, 0x35, 0x36, 0x9f, 0xa9, 0x59, 0x1e, 0x8b, 0x93, 0x35, 0x28, 0xa2, 0xc8,
-	0x1f, 0x81, 0x2c, 0xb2, 0x1c, 0xdb, 0x35, 0x90, 0x65, 0x79, 0xd8, 0xf7, 0xf3, 0xa9, 0xe0, 0xeb,
-	0xf9, 0xf9, 0x4c, 0xdd, 0xe3, 0x8c, 0x90, 0x5b, 0x83, 0x5b, 0xc1, 0xbd, 0xc2, 0xaf, 0x72, 0x0d,
-	0xdc, 0x70, 0xb0, 0xd3, 0xc3, 0x9e, 0x81, 0x4c, 0x93, 0x65, 0xe0, 0xe7, 0x37, 0x8a, 0xc9, 0xc3,
-	0x74, 0x55, 0x99, 0xcf, 0xd4, 0x9b, 0x3c, 0x40, 0x04, 0xa0, 0xc1, 0x6d, 0x6e, 0xa9, 0x08, 0x83,
-	0xfc, 0x09, 0xd8, 0xf4, 0x29, 0xa2, 0x13, 0x3f, 0xbf, 0x59, 0x8c, 0x1f, 0x6e, 0xff, 0x43, 0x4d,
-	0x9d, 0x00, 0x56, 0xdd, 0x59, 0xd6, 0xc3, 0x89, 0x1a, 0x14, 0x11, 0xee, 0x5e, 0x7f, 0xf2, 0x4c,
-	0x8d, 0xfd, 0xf1, 0x4c, 0x8d, 0x69, 0xdf, 0xa6, 0xc0, 0xb5, 0x13, 0xdb, 0xb5, 0x6c, 0x77, 0xc0,
-	0xe4, 0xe8, 0xf3, 0xe3, 0x9b, 0xe4, 0x10, 0x30, 0xdd, 0x92, 0xdf, 0x0f, 0x49, 0xc8, 0x45, 0xc9,
-	0xcd, 0x67, 0xea, 0x0e, 0x47, 0x2f, 0x7d, 0x21, 0x11, 0xf7, 0xc0, 0x06, 0xb5, 0xe9, 0x08, 0x07,
-	0xf2, 0xa4, 0x21, 0xbf, 0xac, 0xa8, 0x96, 0xba, 0x4a, 0x35, 0x91, 0xea, 0xdb, 0xa9, 0xa6, 0x83,
-	0x1d, 0x7f, 0xd2, 0x73, 0x6c, 0x4a, 0x59, 0x63, 0x85, 0x72, 0x1b, 0x41, 0x8a, 0xb7, 0xe6, 0x33,
-	0x35, 0x2f, 0x7a, 0x13, 0x85, 0x68, 0x50, 0x7a, 0x6d, 0x5b, 0x28, 0xf8, 0x25, 0xc8, 0x98, 0x1e,
-	0x46, 0x14, 0x1b, 0xec, 0x95, 0x04, 0x0a, 0x64, 0x8e, 0x95, 0x12, 0x1f, 0xf3, 0xd2, 0x62, 0xcc,
-	0x4b, 0xdd, 0xc5, 0x13, 0xaa, 0x16, 0x44, 0x6a, 0x32, 0xff, 0xc8, 0x0a, 0x59, 0x7b, 0xfa, 0xab,
-	0x1a, 0x87, 0x80, 0x5b, 0x18, 0x61, 0x45, 0xd9, 0x6b, 0x57, 0x29, 0x2b, 0xea, 0x7e, 0xa3, 0xb2,
-	0xf2, 0x5d, 0xb0, 0xb5, 0xd0, 0x70, 0x88, 0xfc, 0x61, 0xfe, 0x7a, 0x50, 0xee, 0xfe, 0x7c, 0xa6,
-	0xee, 0x72, 0xc2, 0xaa, 0x57, 0x83, 0x19, 0x71, 0x3d, 0x45, 0xfe, 0x70, 0x65, 0x2a, 0x7e, 0x8f,
-	0x83, 0x6c, 0xe8, 0x81, 0xc8, 0x45, 0x90, 0xb1, 0xb0, 0x6f, 0x7a, 0xf6, 0x98, 0xda, 0xc4, 0xe5,
-	0xc3, 0x01, 0x57, 0x4d, 0xb2, 0x0a, 0x32, 0xbe, 0x49, 0xc6, 0xd8, 0xf0, 0x26, 0x23, 0xec, 0xf3,
-	0x51, 0x80, 0x20, 0x30, 0x41, 0x66, 0x91, 0xff, 0x0f, 0xb6, 0xbe, 0x76, 0xc9, 0x43, 0xd7, 0xb0,
-	0x7d, 0x7f, 0x82, 0x7d, 0xa1, 0x7d, 0x26, 0xb0, 0xe9, 0x81, 0x49, 0xfe, 0x0a, 0x64, 0x79, 0xcd,
-	0xc6, 0x08, 0x5f, 0xe0, 0x11, 0x7b, 0x67, 0xc9, 0xc3, 0xcc, 0xf1, 0xed, 0xbf, 0x37, 0xa4, 0x1a,
-	0x9c, 0x9a, 0x0c, 0x55, 0xbd, 0x25, 0x7a, 0x2d, 0x9e, 0x62, 0x28, 0x82, 0x06, 0xb7, 0x7a, 0x4b,
-	0xe8, 0xea, 0xe4, 0xff, 0x98, 0x00, 0x99, 0x95, 0x28, 0x32, 0x02, 0xdb, 0x3e, 0xbe, 0xc0, 0x9e,
-	0xbd, 0xe0, 0x06, 0x45, 0xae, 0x55, 0xa3, 0x23, 0x70, 0xfc, 0xf3, 0x07, 0xf3, 0x99, 0x9a, 0x13,
-	0x6a, 0x84, 0x02, 0x68, 0x30, 0xeb, 0xaf, 0x22, 0x65, 0x09, 0x24, 0xc7, 0xc4, 0x0c, 0x5a, 0x73,
-	0x1d, 0xb2, 0xa3, 0xdc, 0x01, 0x80, 0xed, 0x0d, 0x1e, 0x5a, 0x2c, 0xab, 0x83, 0x92, 0xd8, 0xa5,
-	0x6c, 0xf1, 0x96, 0xc4, 0xe2, 0x2d, 0xd5, 0x88, 0xed, 0x56, 0x0f, 0x44, 0xa5, 0xe2, 0x75, 0x2d,
-	0xa9, 0x1a, 0x4c, 0x3b, 0xb6, 0xcb, 0xcb, 0x09, 0x82, 0xa2, 0x47, 0x8b, 0xa0, 0xa9, 0x7f, 0x1b,
-	0xf4, 0x35, 0x95, 0x05, 0x45, 0x8f, 0x78, 0xd0, 0x95, 0xc6, 0xfd, 0x94, 0x00, 0xd9, 0xd0, 0x3b,
-	0x7c, 0x8b, 0xe1, 0x68, 0x00, 0x69, 0xec, 0x11, 0xd2, 0x37, 0x48, 0xdf, 0x30, 0x89, 0x6b, 0xe2,
-	0x31, 0x15, 0xcb, 0xe2, 0x7f, 0xf3, 0x99, 0xba, 0xff, 0x7a, 0x59, 0x84, 0x10, 0x1a, 0xdc, 0x0e,
-	0x4c, 0xed, 0x7e, 0x8d, 0x1b, 0xd8, 0x22, 0x5d, 0x6c, 0x14, 0x8a, 0xbc, 0x01, 0xa6, 0x6c, 0x8a,
-	0x22, 0x8b, 0x34, 0x02, 0xe0, 0x41, 0x98, 0xa5, 0xcb, 0x0d, 0x2c, 0x5b, 0x44, 0x29, 0x32, 0x87,
-	0x0e, 0x66, 0x9b, 0x98, 0x8d, 0x58, 0x1a, 0xae, 0x9a, 0xd6, 0x8c, 0xc2, 0xc6, 0x7f, 0x3c, 0x0a,
-	0xcb, 0x76, 0xde, 0xf9, 0x2e, 0x01, 0xb2, 0xa1, 0x28, 0xf2, 0x07, 0x60, 0xbf, 0xd3, 0x78, 0xd0,
-	0x80, 0x7a, 0xf7, 0x73, 0xa3, 0xd9, 0x78, 0xd0, 0x68, 0x1a, 0x35, 0xa8, 0x77, 0xf5, 0x5a, 0xa5,
-	0x29, 0xc5, 0x94, 0x83, 0xcb, 0x69, 0x31, 0x17, 0xc2, 0xd7, 0x3c, 0x9b, 0xda, 0x26, 0x1a, 0xc9,
-	0x25, 0xb0, 0x1b, 0xe1, 0x9d, 0xea, 0xf7, 0x4e, 0xa5, 0xb8, 0x92, 0xbb, 0x9c, 0x16, 0x77, 0x42,
-	0x9c, 0x53, 0x7b, 0x30, 0x94, 0x8f, 0x41, 0x2e, 0x82, 0x3f, 0x6b, 0xd4, 0xf5, 0xfb, 0x67, 0x52,
-	0x42, 0xd9, 0xbf, 0x9c, 0x16, 0x77, 0x43, 0x8c, 0x33, 0x6c, 0xd9, 0x13, 0x47, 0x7e, 0x17, 0xc8,
-	0x11, 0x4e, 0xb3, 0xfd, 0x99, 0x94, 0x54, 0xf6, 0x2e, 0xa7, 0x45, 0x29, 0x44, 0x68, 0x92, 0x87,
-	0xf2, 0xc7, 0xe0, 0x56, 0x04, 0xad, 0xb7, 0x4e, 0xda, 0xf0, 0xac, 0xd2, 0xd5, 0xdb, 0xad, 0x4a,
-	0x53, 0x4a, 0x29, 0x85, 0xcb, 0x69, 0x51, 0x09, 0xf1, 0x74, 0xb7, 0x4f, 0x3c, 0x07, 0xb1, 0xb1,
-	0x41, 0x23, 0x25, 0xf5, 0xe4, 0xfb, 0x42, 0xec, 0xce, 0xcf, 0xcb, 0x91, 0xe3, 0x2b, 0x90, 0xf5,
-	0xe8, 0x44, 0x6f, 0xd5, 0xf5, 0xd6, 0x3d, 0xa3, 0xd3, 0xad, 0x74, 0xef, 0x77, 0x0c, 0xd8, 0x38,
-	0x6f, 0xc3, 0x6e, 0xa3, 0xbe, 0xe8, 0x51, 0x08, 0x0f, 0xf1, 0x98, 0x78, 0x14, 0x5b, 0x6b, 0x78,
-	0xe7, 0xb0, 0x7d, 0xde, 0xee, 0x34, 0xea, 0x52, 0x7c, 0x0d, 0xef, 0xdc, 0x23, 0x63, 0xe2, 0x63,
-	0x8b, 0xf5, 0x2a, 0xc2, 0xab, 0xd4, 0xba, 0xfa, 0x83, 0xc6, 0xa2, 0x57, 0x21, 0x56, 0xc5, 0xa4,
-	0xf6, 0x05, 0x96, 0x3f, 0x04, 0xf9, 0x08, 0xa7, 0xd6, 0x6e, 0x9d, 0xe8, 0xf0, 0xac, 0x51, 0x97,
-	0x92, 0x8a, 0x72, 0x39, 0x2d, 0xde, 0x0c, 0xd1, 0x6a, 0xc4, 0xed, 0xdb, 0x9e, 0x83, 0x2d, 0xa6,
-	0x64, 0x34, 0xcb, 0x8a, 0x5e, 0x97, 0x52, 0x5c, 0xc9, 0x70, 0x86, 0xc8, 0x5e, 0x97, 0x5d, 0xad,
-	0x19, 0xd4, 0xb4, 0xb1, 0x26, 0xbb, 0xda, 0x88, 0x55, 0x24, 0x3a, 0xfb, 0xc3, 0x72, 0xd3, 0x2f,
-	0x3b, 0x7b, 0x0e, 0xdb, 0xf7, 0x60, 0xe5, 0x6c, 0x11, 0x4b, 0x6f, 0x89, 0x5a, 0x45, 0x67, 0x43,
-	0x78, 0xdd, 0x45, 0xbc, 0xda, 0x63, 0x90, 0x8b, 0xf0, 0x04, 0x2b, 0xce, 0x73, 0x08, 0xb1, 0x2a,
-	0x57, 0x71, 0x44, 0xde, 0x89, 0x35, 0x9c, 0xd5, 0xbc, 0xab, 0x9f, 0x3e, 0x7f, 0x59, 0x88, 0xbf,
-	0x78, 0x59, 0x88, 0xff, 0xf6, 0xb2, 0x10, 0x7f, 0xfa, 0xaa, 0x10, 0x7b, 0xf1, 0xaa, 0x10, 0xfb,
-	0xe5, 0x55, 0x21, 0xf6, 0xc5, 0xd1, 0xc0, 0xa6, 0xc3, 0x49, 0xaf, 0x64, 0x12, 0xa7, 0xcc, 0x9f,
-	0x6b, 0x9f, 0x4c, 0x5c, 0x2b, 0x18, 0x28, 0x61, 0x28, 0x3f, 0x5a, 0xfc, 0x79, 0xa6, 0x8f, 0xc7,
-	0xd8, 0xef, 0x6d, 0x06, 0x3f, 0xe0, 0xef, 0xfd, 0x15, 0x00, 0x00, 0xff, 0xff, 0x92, 0x2b, 0x89,
-	0x2a, 0x5a, 0x0b, 0x00, 0x00,
+	// 1111 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0xdb, 0x6e, 0xe2, 0x46,
+	0x18, 0xc6, 0x40, 0x0e, 0x0c, 0x21, 0xeb, 0x38, 0x27, 0xc7, 0xca, 0x62, 0xe4, 0xde, 0x44, 0xab,
+	0xca, 0x28, 0xb4, 0xaa, 0x56, 0x91, 0x2a, 0x95, 0x53, 0x12, 0xb7, 0x9c, 0x34, 0xb0, 0xa9, 0xda,
+	0x5e, 0x50, 0x83, 0x27, 0x30, 0x12, 0xb6, 0x91, 0x6d, 0x68, 0xf2, 0x06, 0x2b, 0xae, 0xf6, 0x05,
+	0x90, 0xb6, 0xea, 0x33, 0xb4, 0xcf, 0xb0, 0x97, 0x7b, 0xd7, 0xbd, 0x72, 0x57, 0xc9, 0x4d, 0xd5,
+	0x4b, 0x9e, 0xa0, 0xb2, 0x67, 0xbc, 0xc1, 0x2e, 0xe9, 0x41, 0xea, 0xdd, 0xcc, 0xfc, 0xdf, 0xf7,
+	0xf1, 0xfb, 0xff, 0xbe, 0x19, 0x01, 0x9e, 0xda, 0x43, 0x64, 0x38, 0x93, 0x7c, 0xcf, 0x9c, 0x18,
+	0xce, 0x6d, 0x7e, 0x7a, 0x4a, 0x57, 0xf2, 0xd8, 0x32, 0x1d, 0x93, 0x63, 0x49, 0x59, 0xa6, 0x87,
+	0xd3, 0x53, 0x61, 0x6f, 0x60, 0x0e, 0x4c, 0xbf, 0x98, 0xf7, 0x56, 0x04, 0x27, 0x88, 0x03, 0xd3,
+	0x1c, 0x8c, 0x50, 0xde, 0xdf, 0xf5, 0x26, 0xd7, 0x79, 0x07, 0xeb, 0xc8, 0x76, 0x54, 0x7d, 0x4c,
+	0x01, 0xd9, 0xbe, 0x69, 0xeb, 0xa6, 0x9d, 0xef, 0xa9, 0x36, 0xca, 0x4f, 0x4f, 0x7b, 0xc8, 0x51,
+	0x4f, 0xf3, 0x7d, 0x13, 0x1b, 0xb4, 0x7e, 0x44, 0xea, 0x5d, 0xa2, 0x4c, 0x36, 0x41, 0x29, 0xaa,
+	0xad, 0x1a, 0xb4, 0x3d, 0xe9, 0x5d, 0x02, 0x6c, 0xb4, 0x2c, 0x73, 0x60, 0xa9, 0x3a, 0x57, 0x00,
+	0x60, 0x4c, 0x96, 0x5d, 0xac, 0xf1, 0x4c, 0x8e, 0x39, 0x49, 0x95, 0x76, 0xff, 0x70, 0xc5, 0x38,
+	0xd6, 0x16, 0xae, 0x98, 0xba, 0x55, 0xf5, 0xd1, 0x99, 0x84, 0x35, 0x09, 0xa6, 0x28, 0x4c, 0xd1,
+	0xb8, 0x8f, 0x40, 0xd2, 0x50, 0x75, 0xc4, 0xc7, 0x7d, 0xf4, 0x93, 0x85, 0x2b, 0xa6, 0x09, 0xce,
+	0x3b, 0x95, 0xa0, 0x5f, 0xe4, 0x9e, 0x83, 0xb4, 0x86, 0xec, 0xbe, 0x85, 0xc7, 0x0e, 0x36, 0x0d,
+	0x3e, 0xe1, 0x63, 0x0f, 0x16, 0xae, 0xc8, 0x11, 0xec, 0x52, 0x51, 0x82, 0xcb, 0x50, 0xee, 0x73,
+	0x90, 0x51, 0x35, 0x1d, 0x1b, 0x5d, 0x55, 0xd3, 0x2c, 0x64, 0xdb, 0x7c, 0xd2, 0xe7, 0xf2, 0x0b,
+	0x57, 0xdc, 0x23, 0xdc, 0x50, 0x59, 0x82, 0x5b, 0xfe, 0xbe, 0x48, 0xb6, 0x5c, 0x19, 0x3c, 0xd1,
+	0x91, 0xde, 0x43, 0x56, 0x57, 0xed, 0xf7, 0x3d, 0x03, 0x6c, 0x7e, 0x2d, 0x97, 0x38, 0x49, 0x95,
+	0x84, 0x85, 0x2b, 0x1e, 0x10, 0x81, 0x08, 0x40, 0x82, 0xdb, 0xe4, 0xa4, 0x48, 0x0f, 0xb8, 0x2f,
+	0xc1, 0xba, 0xed, 0xa8, 0xce, 0xc4, 0xe6, 0xd7, 0x73, 0xcc, 0xc9, 0x76, 0x41, 0x94, 0xa3, 0x96,
+	0xca, 0x74, 0x82, 0x6d, 0x1f, 0x56, 0xda, 0x59, 0xb8, 0x62, 0x86, 0x88, 0x13, 0xa2, 0x04, 0xa9,
+	0x02, 0xf7, 0x3d, 0xc8, 0x10, 0x56, 0x77, 0x84, 0xa6, 0x68, 0x64, 0xf3, 0x1b, 0xb9, 0xc4, 0x49,
+	0xba, 0xf0, 0xf4, 0xaf, 0x92, 0x25, 0x7f, 0x55, 0xf3, 0x50, 0xa5, 0xe3, 0x37, 0xae, 0x18, 0x7b,
+	0xf8, 0xe4, 0x90, 0x82, 0x04, 0xb7, 0x7a, 0x0f, 0x50, 0xfb, 0x6c, 0xf3, 0xe5, 0x6b, 0x31, 0xf6,
+	0xfb, 0x6b, 0x31, 0x26, 0xbd, 0x4f, 0x82, 0x8d, 0x73, 0x6c, 0x68, 0xd8, 0x18, 0x70, 0x9f, 0xae,
+	0xb0, 0x76, 0x7f, 0xe1, 0x8a, 0x3b, 0x44, 0xf1, 0xa1, 0x16, 0x32, 0xb7, 0x00, 0xc0, 0x35, 0x11,
+	0xf0, 0x58, 0xf1, 0xbf, 0x09, 0x04, 0x85, 0x29, 0x1a, 0xb7, 0x07, 0xd6, 0x1c, 0xec, 0x8c, 0x10,
+	0x71, 0x19, 0x92, 0x4d, 0x34, 0x01, 0xc9, 0x7f, 0x9f, 0x00, 0x05, 0xec, 0xd8, 0x93, 0x9e, 0x8e,
+	0x1d, 0xc7, 0x33, 0x89, 0xa6, 0x60, 0xcd, 0xe7, 0x1f, 0x2f, 0x5c, 0x91, 0xa7, 0x73, 0x8e, 0x42,
+	0x24, 0xc8, 0x7e, 0x38, 0x0b, 0xd2, 0xf0, 0x1d, 0x48, 0xf7, 0x2d, 0xa4, 0x3a, 0xa8, 0xeb, 0xdd,
+	0x2d, 0xdf, 0xcd, 0x74, 0x41, 0x90, 0xc9, 0xe5, 0x90, 0x83, 0xcb, 0x21, 0x77, 0x82, 0x8b, 0x57,
+	0xca, 0xd2, 0xb9, 0xd3, 0x26, 0x97, 0xc8, 0xd2, 0xab, 0xdf, 0x44, 0x06, 0x02, 0x72, 0xe2, 0x11,
+	0x96, 0x52, 0xb2, 0xf1, 0x58, 0x4a, 0xa8, 0x19, 0xff, 0x9c, 0x92, 0x33, 0xb0, 0x15, 0xcc, 0x7d,
+	0xa8, 0xda, 0x43, 0x7e, 0xd3, 0xff, 0xdc, 0xc3, 0x85, 0x2b, 0xee, 0x12, 0xc2, 0x72, 0x55, 0x82,
+	0x69, 0xba, 0xbd, 0x54, 0xed, 0x21, 0xa7, 0x82, 0x6d, 0x1b, 0x4d, 0x91, 0x85, 0x83, 0x84, 0xf0,
+	0xa9, 0xc7, 0xfa, 0x69, 0x53, 0x1c, 0x09, 0xd9, 0xd1, 0xc2, 0x15, 0xf7, 0x69, 0x3f, 0x21, 0x01,
+	0x09, 0x66, 0xec, 0x65, 0xe4, 0x52, 0xc4, 0x7e, 0x89, 0x83, 0xf4, 0x52, 0x50, 0x57, 0xfc, 0x38,
+	0xf3, 0x3f, 0xff, 0x38, 0xc7, 0x82, 0xc4, 0xd8, 0xec, 0xfb, 0x61, 0xdc, 0x84, 0xde, 0x92, 0x6b,
+	0x03, 0xe0, 0x3d, 0x01, 0x44, 0xda, 0x8f, 0x5d, 0xba, 0x70, 0x24, 0xd3, 0x07, 0xd0, 0x7b, 0x2d,
+	0x65, 0xfa, 0x5a, 0xca, 0x65, 0x13, 0x1b, 0xa5, 0x23, 0x6a, 0x2a, 0x8d, 0xfe, 0x03, 0x55, 0x82,
+	0x29, 0x1d, 0x1b, 0xe4, 0x73, 0x7c, 0x51, 0xf5, 0x26, 0x10, 0x4d, 0xfe, 0x57, 0xd1, 0x0f, 0x54,
+	0x4f, 0x54, 0xbd, 0x21, 0xa2, 0x0f, 0x83, 0x7b, 0xf6, 0x33, 0x03, 0x32, 0xa1, 0x47, 0x83, 0xfb,
+	0x0c, 0x1c, 0xb6, 0x60, 0xf3, 0x02, 0x16, 0xeb, 0xdd, 0x76, 0xa7, 0xd8, 0x79, 0xd1, 0xee, 0x2a,
+	0x8d, 0x62, 0xb9, 0xa3, 0x5c, 0x55, 0xd9, 0x98, 0x70, 0x34, 0x9b, 0xe7, 0xf6, 0x43, 0x78, 0xc5,
+	0x50, 0xfb, 0x0e, 0x9e, 0x22, 0xae, 0x00, 0xf6, 0x23, 0x3c, 0xca, 0x62, 0x84, 0xc3, 0xd9, 0x3c,
+	0xb7, 0x1b, 0x62, 0x15, 0x1f, 0xe3, 0x94, 0x6b, 0xcd, 0x76, 0xb5, 0xc2, 0xc6, 0x57, 0x70, 0xca,
+	0x23, 0xd3, 0x46, 0x9a, 0x90, 0x7c, 0xf9, 0x53, 0x36, 0xf6, 0xec, 0xc7, 0x38, 0xc8, 0x84, 0x9c,
+	0xf3, 0xfa, 0x6e, 0x57, 0xaf, 0xaa, 0x50, 0xe9, 0x7c, 0xd3, 0xad, 0x55, 0xaf, 0xaa, 0xb5, 0x6e,
+	0x19, 0x2a, 0x1d, 0xa5, 0x5c, 0xac, 0x05, 0x7d, 0x87, 0xf0, 0x65, 0x0b, 0x3b, 0xb8, 0xaf, 0x8e,
+	0x38, 0x19, 0xec, 0x46, 0x78, 0x97, 0xca, 0xc5, 0x25, 0xcb, 0x08, 0xfb, 0xb3, 0x79, 0x6e, 0x27,
+	0xc4, 0xb9, 0xc4, 0x83, 0xa1, 0xd7, 0x73, 0x04, 0x5f, 0xaf, 0x56, 0x94, 0x17, 0xf5, 0xa0, 0xe7,
+	0x10, 0xa3, 0x8e, 0x34, 0x3c, 0xd1, 0xb9, 0x8f, 0x01, 0x17, 0xe1, 0xd4, 0x9a, 0x5f, 0xb3, 0x09,
+	0x61, 0x6f, 0x36, 0xcf, 0xb1, 0x21, 0x42, 0xcd, 0xfc, 0x81, 0xfb, 0x02, 0x1c, 0x47, 0xd0, 0x4a,
+	0xe3, 0xbc, 0x09, 0xeb, 0xc5, 0x8e, 0xd2, 0x6c, 0x14, 0x6b, 0x6c, 0x52, 0xc8, 0xce, 0xe6, 0x39,
+	0x21, 0xc4, 0x53, 0x8c, 0x6b, 0xd3, 0xd2, 0x55, 0xef, 0xa5, 0x52, 0x47, 0x74, 0x46, 0xbf, 0xc6,
+	0x41, 0x26, 0x74, 0xd5, 0xbd, 0x19, 0x9d, 0x2b, 0x8d, 0x8a, 0xd2, 0xb8, 0x08, 0xe6, 0x0d, 0xab,
+	0xad, 0x26, 0xec, 0x54, 0x2b, 0xc1, 0x8c, 0x42, 0x78, 0x88, 0xc6, 0xa6, 0xe5, 0x20, 0x6d, 0x05,
+	0xaf, 0x05, 0x9b, 0x2d, 0xdf, 0x29, 0x66, 0x05, 0xaf, 0x65, 0x99, 0x63, 0xcf, 0x2b, 0x6f, 0x56,
+	0x11, 0x1e, 0xcd, 0x04, 0x9d, 0x55, 0x88, 0x45, 0x33, 0xf1, 0x1c, 0xf0, 0x11, 0x4e, 0xb9, 0xd9,
+	0x38, 0x57, 0x60, 0xbd, 0x5a, 0x61, 0x13, 0x82, 0x30, 0x9b, 0xe7, 0x0e, 0x42, 0xb4, 0xb2, 0x69,
+	0x5c, 0x63, 0x4b, 0x47, 0x9a, 0xe7, 0x64, 0xb4, 0xcb, 0xa2, 0x52, 0x61, 0x93, 0xc4, 0xc9, 0x70,
+	0x87, 0x2a, 0x5e, 0xd5, 0x1d, 0x4d, 0xdf, 0xda, 0x8a, 0xee, 0x96, 0xd3, 0x57, 0xfa, 0xea, 0xcd,
+	0x5d, 0x96, 0x79, 0x7b, 0x97, 0x65, 0xde, 0xdf, 0x65, 0x99, 0x57, 0xf7, 0xd9, 0xd8, 0xdb, 0xfb,
+	0x6c, 0xec, 0xdd, 0x7d, 0x36, 0xf6, 0xed, 0xe9, 0x00, 0x3b, 0xc3, 0x49, 0x4f, 0xee, 0x9b, 0x7a,
+	0x9e, 0x3c, 0x35, 0xd7, 0xe6, 0xc4, 0xd0, 0x7c, 0x63, 0xe8, 0x41, 0xfe, 0x26, 0xf8, 0x8b, 0xe6,
+	0xdc, 0x8e, 0x91, 0xdd, 0x5b, 0xf7, 0x1f, 0xfc, 0x4f, 0xfe, 0x0c, 0x00, 0x00, 0xff, 0xff, 0x12,
+	0x9e, 0x74, 0xf8, 0xc0, 0x09, 0x00, 0x00,
 }
 
 func (m *Program) Marshal() (dAtA []byte, err error) {
@@ -455,6 +364,20 @@ func (m *Program) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.BountyLevels) > 0 {
+		for iNdEx := len(m.BountyLevels) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.BountyLevels[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintBounty(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x3a
+		}
+	}
 	if m.Status != 0 {
 		i = encodeVarintBounty(dAtA, i, uint64(m.Status))
 		i--
@@ -476,16 +399,13 @@ func (m *Program) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x22
 	}
-	{
-		size, err := m.Detail.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintBounty(dAtA, i, uint64(size))
+	if len(m.Description) > 0 {
+		i -= len(m.Description)
+		copy(dAtA[i:], m.Description)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.Description)))
+		i--
+		dAtA[i] = 0x1a
 	}
-	i--
-	dAtA[i] = 0x1a
 	if len(m.Name) > 0 {
 		i -= len(m.Name)
 		copy(dAtA[i:], m.Name)
@@ -523,6 +443,11 @@ func (m *Finding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.SeverityLevel != 0 {
+		i = encodeVarintBounty(dAtA, i, uint64(m.SeverityLevel))
+		i--
+		dAtA[i] = 0x48
+	}
 	if len(m.FindingHash) > 0 {
 		i -= len(m.FindingHash)
 		copy(dAtA[i:], m.FindingHash)
@@ -535,12 +460,12 @@ func (m *Finding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x38
 	}
-	n2, err2 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.CreateTime, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.CreateTime):])
-	if err2 != nil {
-		return 0, err2
+	n1, err1 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.CreateTime, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.CreateTime):])
+	if err1 != nil {
+		return 0, err1
 	}
-	i -= n2
-	i = encodeVarintBounty(dAtA, i, uint64(n2))
+	i -= n1
+	i = encodeVarintBounty(dAtA, i, uint64(n1))
 	i--
 	dAtA[i] = 0x32
 	if len(m.SubmitterAddress) > 0 {
@@ -550,16 +475,13 @@ func (m *Finding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x2a
 	}
-	{
-		size, err := m.Detail.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintBounty(dAtA, i, uint64(size))
+	if len(m.Description) > 0 {
+		i -= len(m.Description)
+		copy(dAtA[i:], m.Description)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.Description)))
+		i--
+		dAtA[i] = 0x22
 	}
-	i--
-	dAtA[i] = 0x22
 	if len(m.Title) > 0 {
 		i -= len(m.Title)
 		copy(dAtA[i:], m.Title)
@@ -567,75 +489,17 @@ func (m *Finding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.ProgramId) > 0 {
-		i -= len(m.ProgramId)
-		copy(dAtA[i:], m.ProgramId)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.ProgramId)))
-		i--
-		dAtA[i] = 0x12
-	}
 	if len(m.FindingId) > 0 {
 		i -= len(m.FindingId)
 		copy(dAtA[i:], m.FindingId)
 		i = encodeVarintBounty(dAtA, i, uint64(len(m.FindingId)))
 		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ProgramDetail) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ProgramDetail) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ProgramDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.BountyLevels) > 0 {
-		for iNdEx := len(m.BountyLevels) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.BountyLevels[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintBounty(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x22
-		}
-	}
-	if len(m.KnownIssues) > 0 {
-		i -= len(m.KnownIssues)
-		copy(dAtA[i:], m.KnownIssues)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.KnownIssues)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.ScopeRules) > 0 {
-		i -= len(m.ScopeRules)
-		copy(dAtA[i:], m.ScopeRules)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.ScopeRules)))
-		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Description) > 0 {
-		i -= len(m.Description)
-		copy(dAtA[i:], m.Description)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.Description)))
+	if len(m.ProgramId) > 0 {
+		i -= len(m.ProgramId)
+		copy(dAtA[i:], m.ProgramId)
+		i = encodeVarintBounty(dAtA, i, uint64(len(m.ProgramId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -700,66 +564,6 @@ func (m *BountyLevel) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *FindingDetail) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *FindingDetail) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *FindingDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.SeverityLevel != 0 {
-		i = encodeVarintBounty(dAtA, i, uint64(m.SeverityLevel))
-		i--
-		dAtA[i] = 0x28
-	}
-	if len(m.Attachments) > 0 {
-		for iNdEx := len(m.Attachments) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.Attachments[iNdEx])
-			copy(dAtA[i:], m.Attachments[iNdEx])
-			i = encodeVarintBounty(dAtA, i, uint64(len(m.Attachments[iNdEx])))
-			i--
-			dAtA[i] = 0x22
-		}
-	}
-	if len(m.ProgramTargets) > 0 {
-		for iNdEx := len(m.ProgramTargets) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.ProgramTargets[iNdEx])
-			copy(dAtA[i:], m.ProgramTargets[iNdEx])
-			i = encodeVarintBounty(dAtA, i, uint64(len(m.ProgramTargets[iNdEx])))
-			i--
-			dAtA[i] = 0x1a
-		}
-	}
-	if len(m.ProofOfConcept) > 0 {
-		i -= len(m.ProofOfConcept)
-		copy(dAtA[i:], m.ProofOfConcept)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.ProofOfConcept)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Description) > 0 {
-		i -= len(m.Description)
-		copy(dAtA[i:], m.Description)
-		i = encodeVarintBounty(dAtA, i, uint64(len(m.Description)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
 func encodeVarintBounty(dAtA []byte, offset int, v uint64) int {
 	offset -= sovBounty(v)
 	base := offset
@@ -785,8 +589,10 @@ func (m *Program) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
 	}
-	l = m.Detail.Size()
-	n += 1 + l + sovBounty(uint64(l))
+	l = len(m.Description)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
+	}
 	l = len(m.AdminAddress)
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
@@ -800,6 +606,12 @@ func (m *Program) Size() (n int) {
 	if m.Status != 0 {
 		n += 1 + sovBounty(uint64(m.Status))
 	}
+	if len(m.BountyLevels) > 0 {
+		for _, e := range m.BountyLevels {
+			l = e.Size()
+			n += 1 + l + sovBounty(uint64(l))
+		}
+	}
 	return n
 }
 
@@ -809,11 +621,11 @@ func (m *Finding) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.FindingId)
+	l = len(m.ProgramId)
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
 	}
-	l = len(m.ProgramId)
+	l = len(m.FindingId)
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
 	}
@@ -821,8 +633,10 @@ func (m *Finding) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
 	}
-	l = m.Detail.Size()
-	n += 1 + l + sovBounty(uint64(l))
+	l = len(m.Description)
+	if l > 0 {
+		n += 1 + l + sovBounty(uint64(l))
+	}
 	l = len(m.SubmitterAddress)
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
@@ -836,32 +650,8 @@ func (m *Finding) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovBounty(uint64(l))
 	}
-	return n
-}
-
-func (m *ProgramDetail) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Description)
-	if l > 0 {
-		n += 1 + l + sovBounty(uint64(l))
-	}
-	l = len(m.ScopeRules)
-	if l > 0 {
-		n += 1 + l + sovBounty(uint64(l))
-	}
-	l = len(m.KnownIssues)
-	if l > 0 {
-		n += 1 + l + sovBounty(uint64(l))
-	}
-	if len(m.BountyLevels) > 0 {
-		for _, e := range m.BountyLevels {
-			l = e.Size()
-			n += 1 + l + sovBounty(uint64(l))
-		}
+	if m.SeverityLevel != 0 {
+		n += 1 + sovBounty(uint64(m.SeverityLevel))
 	}
 	return n
 }
@@ -882,38 +672,6 @@ func (m *BountyLevel) Size() (n int) {
 	n += 1 + l + sovBounty(uint64(l))
 	l = m.MaxBounty.Size()
 	n += 1 + l + sovBounty(uint64(l))
-	return n
-}
-
-func (m *FindingDetail) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Description)
-	if l > 0 {
-		n += 1 + l + sovBounty(uint64(l))
-	}
-	l = len(m.ProofOfConcept)
-	if l > 0 {
-		n += 1 + l + sovBounty(uint64(l))
-	}
-	if len(m.ProgramTargets) > 0 {
-		for _, s := range m.ProgramTargets {
-			l = len(s)
-			n += 1 + l + sovBounty(uint64(l))
-		}
-	}
-	if len(m.Attachments) > 0 {
-		for _, s := range m.Attachments {
-			l = len(s)
-			n += 1 + l + sovBounty(uint64(l))
-		}
-	}
-	if m.SeverityLevel != 0 {
-		n += 1 + sovBounty(uint64(m.SeverityLevel))
-	}
 	return n
 }
 
@@ -1018,9 +776,9 @@ func (m *Program) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Detail", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowBounty
@@ -1030,24 +788,23 @@ func (m *Program) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthBounty
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthBounty
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Detail.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Description = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
@@ -1132,6 +889,40 @@ func (m *Program) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BountyLevels", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BountyLevels = append(m.BountyLevels, BountyLevel{})
+			if err := m.BountyLevels[len(m.BountyLevels)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipBounty(dAtA[iNdEx:])
@@ -1184,38 +975,6 @@ func (m *Finding) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FindingId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthBounty
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.FindingId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ProgramId", wireType)
 			}
 			var stringLen uint64
@@ -1245,6 +1004,38 @@ func (m *Finding) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.ProgramId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBounty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthBounty
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBounty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FindingId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -1280,9 +1071,9 @@ func (m *Finding) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Detail", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowBounty
@@ -1292,24 +1083,23 @@ func (m *Finding) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthBounty
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthBounty
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Detail.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Description = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
@@ -1427,61 +1217,11 @@ func (m *Finding) Unmarshal(dAtA []byte) error {
 			}
 			m.FindingHash = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBounty(dAtA[iNdEx:])
-			if err != nil {
-				return err
+		case 9:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SeverityLevel", wireType)
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ProgramDetail) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBounty
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ProgramDetail: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ProgramDetail: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
-			}
-			var stringLen uint64
+			m.SeverityLevel = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowBounty
@@ -1491,122 +1231,11 @@ func (m *ProgramDetail) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.SeverityLevel |= SeverityLevel(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthBounty
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Description = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ScopeRules", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthBounty
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ScopeRules = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field KnownIssues", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthBounty
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.KnownIssues = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BountyLevels", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBounty
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.BountyLevels = append(m.BountyLevels, BountyLevel{})
-			if err := m.BountyLevels[len(m.BountyLevels)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipBounty(dAtA[iNdEx:])
@@ -1762,203 +1391,6 @@ func (m *BountyLevel) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBounty(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *FindingDetail) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBounty
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: FindingDetail: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: FindingDetail: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthBounty
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Description = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ProofOfConcept", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthBounty
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ProofOfConcept = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ProgramTargets", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthBounty
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ProgramTargets = append(m.ProgramTargets, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Attachments", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthBounty
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBounty
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Attachments = append(m.Attachments, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SeverityLevel", wireType)
-			}
-			m.SeverityLevel = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBounty
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.SeverityLevel |= SeverityLevel(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipBounty(dAtA[iNdEx:])

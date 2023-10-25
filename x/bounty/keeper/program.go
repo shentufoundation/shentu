@@ -2,6 +2,8 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
@@ -46,9 +48,11 @@ func (k Keeper) OpenProgram(ctx sdk.Context, caller sdk.AccAddress, id string) e
 		return types.ErrProgramNotExists
 	}
 
+	// Check the permissions. Only the cert address can operate.
 	if !k.certKeeper.IsCertifier(ctx, caller) {
-		return types.ErrProgramNotAllowed
+		return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "%s is not a certified identity", caller.String())
 	}
+
 	if program.Status != types.ProgramStatusInactive {
 		return types.ErrProgramNotInactive
 	}
@@ -63,13 +67,12 @@ func (k Keeper) CloseProgram(ctx sdk.Context, caller sdk.AccAddress, id string) 
 	if !found {
 		return types.ErrProgramNotExists
 	}
-	host, err := sdk.AccAddressFromBech32(program.AdminAddress)
-	if err != nil {
-		return types.ErrProgramCreatorInvalid
+
+	// Check the permissions. Only the admin of the program or cert address can operate.
+	if program.AdminAddress != caller.String() || !k.certKeeper.IsCertifier(ctx, caller) {
+		return types.ErrFindingOperatorNotAllowed
 	}
-	if !caller.Equals(host) {
-		return types.ErrProgramNotAllowed
-	}
+
 	if program.Status != types.ProgramStatusActive {
 		return types.ErrProgramNotActive
 	}

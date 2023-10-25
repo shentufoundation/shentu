@@ -44,14 +44,10 @@ service Query {
 }
 
 // QueryHostsRequest is the request type for the Query/Hosts RPC method.
-message QueryHostsRequest {
-
-}
+message QueryHostsRequest {}
 
 // QueryHostsResponse is the response type for the Query/Hosts RPC method.
-message QueryHostsResponse {
-
-}
+message QueryHostsResponse {}
 
 // QueryHostRequest is the request type for the Query/Host RPC method.
 message QueryHostRequest {
@@ -60,9 +56,7 @@ message QueryHostRequest {
 }
 
 // QueryHostResponse is the response type for the Query/Host RPC method.
-message QueryHostResponse {
-
-}
+message QueryHostResponse {}
 
 // QueryProgramsRequest is the request type for the Query/Programs RPC method.
 message QueryProgramsRequest {

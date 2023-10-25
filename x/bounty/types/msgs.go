@@ -19,14 +19,14 @@ const (
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
 // Delegator address and validator address are the same.
-func NewMsgCreateProgram(name, pid string, accAddr sdk.AccAddress, detail ProgramDetail, memberAddrs []string) (*MsgCreateProgram, error) {
-
+func NewMsgCreateProgram(name, pid, desc string, operator sdk.AccAddress, members []string, levels []BountyLevel) (*MsgCreateProgram, error) {
 	return &MsgCreateProgram{
-		Name:           name,
-		Detail:         detail,
-		CreatorAddress: accAddr.String(),
-		MemberAccounts: memberAddrs,
-		ProgramId:      pid,
+		Name:            name,
+		Description:     desc,
+		OperatorAddress: operator.String(),
+		MemberAccounts:  members,
+		ProgramId:       pid,
+		BountyLevels:    levels,
 	}, nil
 }
 
@@ -42,7 +42,7 @@ func (msg MsgCreateProgram) Type() string { return TypeMsgCreateProgram }
 // sign the msg as well.
 func (msg MsgCreateProgram) GetSigners() []sdk.AccAddress {
 	// creator should sign the message
-	cAddr, err := sdk.AccAddressFromBech32(msg.CreatorAddress)
+	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -58,7 +58,7 @@ func (msg MsgCreateProgram) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgCreateProgram) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.CreatorAddress)
+	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
@@ -66,14 +66,15 @@ func (msg MsgCreateProgram) ValidateBasic() error {
 }
 
 // NewMsgEditProgram edit a program.
-func NewMsgEditProgram(name, pid string, accAddr sdk.AccAddress, detail ProgramDetail, memberAddrs []string) *MsgEditProgram {
-	return &MsgEditProgram{
-		Name:           name,
-		Detail:         detail,
-		CreatorAddress: accAddr.String(),
-		MemberAccounts: memberAddrs,
-		ProgramId:      pid,
-	}
+func NewMsgEditProgram(name, pid, desc string, operator sdk.AccAddress, members []string, levels []BountyLevel) (*MsgCreateProgram, error) {
+	return &MsgCreateProgram{
+		Name:            name,
+		Description:     desc,
+		OperatorAddress: operator.String(),
+		MemberAccounts:  members,
+		ProgramId:       pid,
+		BountyLevels:    levels,
+	}, nil
 }
 
 // Route implements the sdk.Msg interface.
@@ -88,7 +89,7 @@ func (msg MsgEditProgram) Type() string { return TypeMsgCreateProgram }
 // sign the msg as well.
 func (msg MsgEditProgram) GetSigners() []sdk.AccAddress {
 	// creator should sign the message
-	cAddr, err := sdk.AccAddressFromBech32(msg.CreatorAddress)
+	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -104,7 +105,7 @@ func (msg MsgEditProgram) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgEditProgram) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.CreatorAddress)
+	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
@@ -112,14 +113,15 @@ func (msg MsgEditProgram) ValidateBasic() error {
 }
 
 // NewMsgSubmitFinding submit a new finding.
-func NewMsgSubmitFinding(pid, fid, title string, detail FindingDetail, accAddr sdk.AccAddress) *MsgSubmitFinding {
+func NewMsgSubmitFinding(pid, fid, title, desc string, operator sdk.AccAddress, level SeverityLevel) *MsgSubmitFinding {
 
 	return &MsgSubmitFinding{
 		ProgramId:        pid,
 		FindingId:        fid,
 		Title:            title,
-		Detail:           detail,
-		SubmitterAddress: accAddr.String(),
+		Description:      desc,
+		SubmitterAddress: operator.String(),
+		SeverityLevel:    level,
 	}
 }
 
@@ -207,14 +209,11 @@ func (msg MsgModifyFindingStatus) ValidateBasic() error {
 }
 
 // NewReleaseFinding release finding.
-func NewReleaseFinding(
-	hostAddr, fid string, findingDesc, findingPoc, findingComment string,
-) *MsgReleaseFinding {
+func NewReleaseFinding(fid, desc string, operator sdk.AccAddress) *MsgReleaseFinding {
 	return &MsgReleaseFinding{
-		FindingId:   fid,
-		Desc:        findingDesc,
-		Poc:         findingPoc,
-		HostAddress: hostAddr,
+		FindingId:       fid,
+		Description:     desc,
+		OperatorAddress: operator.String(),
 	}
 }
 
@@ -228,7 +227,7 @@ func (msg MsgReleaseFinding) Type() string { return TypeMsgReleaseFinding }
 // must sign over msg.GetSignBytes().
 func (msg MsgReleaseFinding) GetSigners() []sdk.AccAddress {
 	// releaser should sign the message
-	cAddr, err := sdk.AccAddressFromBech32(msg.HostAddress)
+	cAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -243,7 +242,7 @@ func (msg MsgReleaseFinding) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgReleaseFinding) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.HostAddress)
+	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}

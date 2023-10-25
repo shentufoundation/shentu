@@ -7,14 +7,17 @@ import (
 // Programs is an array of program
 type Programs []Program
 
-func NewProgram(pid, name, adminAddr string, detail ProgramDetail, memberAddrs []string, status ProgramStatus) (Program, error) {
+func NewProgram(pid, name, desc string,
+	admin sdk.ValAddress, members []string, status ProgramStatus, levels []BountyLevel) (Program, error) {
+
 	return Program{
 		ProgramId:      pid,
 		Name:           name,
-		Detail:         detail,
-		AdminAddress:   adminAddr,
-		MemberAccounts: memberAddrs,
+		Description:    desc,
+		AdminAddress:   admin.String(),
+		MemberAccounts: members,
 		Status:         status,
+		BountyLevels:   levels,
 	}, nil
 }
 
@@ -28,45 +31,3 @@ func (m *Program) ValidateBasic() error {
 
 	return nil
 }
-
-func NewDetail(desc, scopeRules, knownIssues string, bountyLevels []BountyLevel) ProgramDetail {
-
-	return ProgramDetail{
-		Description:  desc,
-		ScopeRules:   scopeRules,
-		KnownIssues:  knownIssues,
-		BountyLevels: bountyLevels,
-	}
-}
-
-//// UpdateDetail updates the fields of a given description. An error is
-//// returned if the resulting description contains an invalid length.
-//func (p ProgramDetail) UpdateDetail(p2 ProgramDetail) (ProgramDetail, error) {
-//	if p2.Description  == DoNotModifyDesc {
-//		d2.Moniker = d.Moniker
-//	}
-//
-//	if d2.Identity == DoNotModifyDesc {
-//		d2.Identity = d.Identity
-//	}
-//
-//	if d2.Website == DoNotModifyDesc {
-//		d2.Website = d.Website
-//	}
-//
-//	if d2.SecurityContact == DoNotModifyDesc {
-//		d2.SecurityContact = d.SecurityContact
-//	}
-//
-//	if d2.Details == DoNotModifyDesc {
-//		d2.Details = d.Details
-//	}
-//
-//	return NewDescription(
-//		d2.Moniker,
-//		d2.Identity,
-//		d2.Website,
-//		d2.SecurityContact,
-//		d2.Details,
-//	).EnsureLength()
-//}

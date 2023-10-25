@@ -43,12 +43,12 @@ var (
 	ErrProgramNotActive            = sdkerrors.Register(ModuleName, errProgramInactive, "program is not active")
 	ErrProgramNotInactive          = sdkerrors.Register(ModuleName, errProgramInactive, "program is not inactive")
 
-	ErrProgramCreatorInvalid = sdkerrors.Register(ModuleName, errProgramCreatorInvalid, "invalid program creator")
-	ErrProgramNotAllowed     = sdkerrors.Register(ModuleName, errProgramNotAllowed, "program access denied because you are not the creator or certifiers")
-	ErrProgramExpired        = sdkerrors.Register(ModuleName, errProgramExpired, "cannot end an expired program")
-	ErrProgramPubKey         = sdkerrors.Register(ModuleName, errProgramPubKey, "invalid program public key")
-	ErrProgramID             = sdkerrors.Register(ModuleName, errProgramID, "invalid program id")
-	ErrNoProgramFound        = sdkerrors.Register(ModuleName, errNoProgramFound, "program does not exist")
+	ErrProgramCreatorInvalid     = sdkerrors.Register(ModuleName, errProgramCreatorInvalid, "invalid program creator")
+	ErrProgramOperatorNotAllowed = sdkerrors.Register(ModuleName, errProgramNotAllowed, "program access denied because you are not the creator or certifiers")
+	ErrProgramExpired            = sdkerrors.Register(ModuleName, errProgramExpired, "cannot end an expired program")
+	ErrProgramPubKey             = sdkerrors.Register(ModuleName, errProgramPubKey, "invalid program public key")
+	ErrProgramID                 = sdkerrors.Register(ModuleName, errProgramID, "invalid program id")
+	ErrNoProgramFound            = sdkerrors.Register(ModuleName, errNoProgramFound, "program does not exist")
 )
 
 // [2xx] Finding
@@ -57,6 +57,7 @@ var (
 	ErrFindingNotExists            = sdkerrors.Register(ModuleName, errFindingNotExists, "finding does not exist")
 	ErrFindingStatusInvalid        = sdkerrors.Register(ModuleName, errFindingStatusInvalid, "invalid finding status")
 	ErrFindingSubmitterInvalid     = sdkerrors.Register(ModuleName, errFindingSubmitterInvalid, "invalid finding submitter")
+	ErrFindingOperatorNotAllowed   = sdkerrors.Register(ModuleName, errProgramNotAllowed, "finding access denied because you are not the creator or certifiers")
 	ErrFindingPlainTextDataInvalid = sdkerrors.Register(ModuleName, errFindingPlainTextDataInvalid, "invalid finding plain text data")
 	ErrFindingEncryptedDataInvalid = sdkerrors.Register(ModuleName, errFindingEncryptedDataInvalid, "invalid finding encrypted data")
 	ErrFindingID                   = sdkerrors.Register(ModuleName, errFindingID, "invalid finding id")

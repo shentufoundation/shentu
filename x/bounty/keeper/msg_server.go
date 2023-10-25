@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
@@ -23,12 +22,16 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProgram) (*types.MsgCreateProgramResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	operatorAddr, err := sdk.ValAddressFromBech32(msg.OperatorAddress)
+	if err != nil {
+		return nil, err
+	}
 	_, found := k.GetProgram(ctx, msg.ProgramId)
 	if found {
 		return nil, types.ErrProgramAlreadyExists
 	}
 
-	program, err := types.NewProgram(msg.ProgramId, msg.Name, msg.CreatorAddress, msg.Detail, msg.MemberAccounts, types.ProgramStatusInactive)
+	program, err := types.NewProgram(msg.ProgramId, msg.Name, msg.Description, operatorAddr, msg.MemberAccounts, types.ProgramStatusInactive, msg.BountyLevels)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +46,7 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.CreatorAddress),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
 	})
 
@@ -53,19 +56,32 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram) (*types.MsgEditProgramResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
 	program, found := k.GetProgram(ctx, msg.ProgramId)
 	if !found {
 		return nil, types.ErrNoProgramFound
 	}
 
-	// todo add UpdateDescription
-	program.Detail = msg.Detail
+	// Check the permissions. Only the admin of the program or cert address can operate.
+	if program.AdminAddress != msg.OperatorAddress || !k.certKeeper.IsCertifier(ctx, operatorAddr) {
+		return nil, types.ErrProgramOperatorNotAllowed
+	}
 
-	if len(msg.Name) != 0 {
+	if len(msg.Name) > 0 {
 		program.Name = msg.Name
 	}
-	if len(msg.MemberAccounts) != 0 {
+	if len(msg.Description) > 0 {
+		program.Description = msg.Description
+	}
+	if len(msg.MemberAccounts) > 0 {
 		program.MemberAccounts = msg.MemberAccounts
+	}
+	if len(msg.BountyLevels) > 0 {
+		program.BountyLevels = msg.BountyLevels
 	}
 
 	k.SetProgram(ctx, program)
@@ -78,7 +94,7 @@ func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram)
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.CreatorAddress),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
 	})
 
@@ -88,11 +104,17 @@ func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram)
 func (k msgServer) OpenProgram(goCtx context.Context, msg *types.MsgModifyProgramStatus) (*types.MsgModifyProgramStatusResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	fromAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	_, found := k.GetProgram(ctx, msg.ProgramId)
+	if !found {
+		return nil, types.ErrNoProgramFound
+	}
+
+	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
-	if err = k.Keeper.OpenProgram(ctx, fromAddr, msg.ProgramId); err != nil {
+
+	if err = k.Keeper.OpenProgram(ctx, operatorAddr, msg.ProgramId); err != nil {
 		return nil, err
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -110,12 +132,14 @@ func (k msgServer) OpenProgram(goCtx context.Context, msg *types.MsgModifyProgra
 }
 
 func (k msgServer) CloseProgram(goCtx context.Context, msg *types.MsgModifyProgramStatus) (*types.MsgModifyProgramStatusResponse, error) {
-	fromAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	err = k.Keeper.CloseProgram(ctx, fromAddr, msg.ProgramId)
+
+	err = k.Keeper.CloseProgram(ctx, operatorAddr, msg.ProgramId)
 	if err != nil {
 		return nil, err
 	}
@@ -134,12 +158,12 @@ func (k msgServer) CloseProgram(goCtx context.Context, msg *types.MsgModifyProgr
 }
 
 func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFinding) (*types.MsgSubmitFindingResponse, error) {
-	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr, err := sdk.ValAddressFromBech32(msg.SubmitterAddress)
 	if err != nil {
 		return nil, err
 	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	program, isExist := k.GetProgram(ctx, msg.ProgramId)
 	if !isExist {
@@ -156,7 +180,7 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		return nil, types.ErrFindingAlreadyExists
 	}
 
-	finding, err := types.NewFinding(msg.ProgramId, msg.FindingId, msg.Title, msg.SubmitterAddress, msg.Detail, submitTime)
+	finding, err := types.NewFinding(msg.ProgramId, msg.FindingId, msg.Title, msg.Description, operatorAddr, submitTime, msg.SeverityLevel)
 	if err != nil {
 		return nil, err
 	}
@@ -262,12 +286,12 @@ func (k msgServer) hostProcess(ctx sdk.Context, fid, hostAddr string) (*types.Fi
 }
 
 func (k msgServer) CancelFinding(goCtx context.Context, msg *types.MsgModifyFindingStatus) (*types.MsgModifyFindingStatusResponse, error) {
-	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// get finding
 	finding, ok := k.GetFinding(ctx, msg.FindingId)
@@ -276,7 +300,7 @@ func (k msgServer) CancelFinding(goCtx context.Context, msg *types.MsgModifyFind
 	}
 
 	// check submitter
-	if finding.SubmitterAddress != msg.OperatorAddress {
+	if finding.SubmitterAddress != msg.OperatorAddress || !k.certKeeper.IsCertifier(ctx, operatorAddr) {
 		return nil, types.ErrFindingSubmitterInvalid
 	}
 
@@ -321,7 +345,7 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 		return nil, types.ErrProgramNotActive
 	}
 
-	if program.AdminAddress != msg.HostAddress {
+	if program.AdminAddress != msg.OperatorAddress {
 		return nil, types.ErrProgramCreatorInvalid
 	}
 
@@ -336,7 +360,7 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.HostAddress),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
 	})
 
