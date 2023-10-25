@@ -625,11 +625,8 @@ var (
 	pattern_Query_Certificate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"shentu", "cert", "v1alpha1", "certificate", "certificate_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_Certificates_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"shentu", "cert", "v1alpha1", "certificates"}, "", runtime.AssumeColonVerbOpt(false)))
-<<<<<<< HEAD
-=======
 
 	pattern_Query_AddrConversion_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"shentu", "conversion", "to-shentu", "address"}, "", runtime.AssumeColonVerbOpt(false)))
->>>>>>> master
 )
 
 var (
