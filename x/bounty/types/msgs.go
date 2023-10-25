@@ -18,12 +18,12 @@ const (
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
 // Delegator address and validator address are the same.
-func NewMsgCreateProgram(name, creatorAddr, pid string, detail ProgramDetail, memberAddrs []string) (*MsgCreateProgram, error) {
+func NewMsgCreateProgram(name, pid string, accAddr sdk.AccAddress, detail ProgramDetail, memberAddrs []string) (*MsgCreateProgram, error) {
 
 	return &MsgCreateProgram{
 		Name:           name,
 		Detail:         detail,
-		CreatorAddress: creatorAddr,
+		CreatorAddress: accAddr.String(),
 		MemberAccounts: memberAddrs,
 		ProgramId:      pid,
 	}, nil
@@ -65,13 +65,13 @@ func (msg MsgCreateProgram) ValidateBasic() error {
 }
 
 // NewMsgEditProgram edit a program.
-func NewMsgEditProgram(name, creatorAddr string, desc ProgramDetail, memberAddrs []string) MsgEditProgram {
-
-	return MsgEditProgram{
+func NewMsgEditProgram(name, pid string, accAddr sdk.AccAddress, detail ProgramDetail, memberAddrs []string) *MsgEditProgram {
+	return &MsgEditProgram{
 		Name:           name,
-		Detail:         desc,
-		CreatorAddress: creatorAddr,
+		Detail:         detail,
+		CreatorAddress: accAddr.String(),
 		MemberAccounts: memberAddrs,
+		ProgramId:      pid,
 	}
 }
 
@@ -162,30 +162,30 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgHostAcceptFinding(findingID string, hostAddr sdk.AccAddress) *MsgHostAcceptFinding {
-	return &MsgHostAcceptFinding{
-		FindingId:   findingID,
-		HostAddress: hostAddr.String(),
+func NewMsgModifyFindingStatus(findingID string, hostAddr sdk.AccAddress) *MsgModifyFindingStatus {
+	return &MsgModifyFindingStatus{
+		FindingId:       findingID,
+		OperatorAddress: hostAddr.String(),
 	}
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgHostAcceptFinding) Route() string { return RouterKey }
+func (msg MsgModifyFindingStatus) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgHostAcceptFinding) Type() string { return TypeMsgAcceptFinding }
+func (msg MsgModifyFindingStatus) Type() string { return TypeMsgAcceptFinding }
 
 // GetSignBytes returns the message bytes to sign over.
-func (msg MsgHostAcceptFinding) GetSignBytes() []byte {
+func (msg MsgModifyFindingStatus) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners implements the sdk.Msg interface. It returns the address(es) that
 // must sign over msg.GetSignBytes().
-func (msg MsgHostAcceptFinding) GetSigners() []sdk.AccAddress {
+func (msg MsgModifyFindingStatus) GetSigners() []sdk.AccAddress {
 	// host should sign the message
-	hostAddr, err := sdk.AccAddressFromBech32(msg.HostAddress)
+	hostAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -194,98 +194,12 @@ func (msg MsgHostAcceptFinding) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgHostAcceptFinding) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.HostAddress)
+func (msg MsgModifyFindingStatus) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
 
-	if len(msg.FindingId) == 0 {
-		return errors.New("empty finding-id is not allowed")
-	}
-	return nil
-}
-
-func NewMsgHostRejectFinding(findingID string, hostAddr sdk.AccAddress) *MsgHostRejectFinding {
-	return &MsgHostRejectFinding{
-		FindingId:   findingID,
-		HostAddress: hostAddr.String(),
-	}
-}
-
-// Route implements the sdk.Msg interface.
-func (msg MsgHostRejectFinding) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgHostRejectFinding) Type() string { return TypeMsgRejectFinding }
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgHostRejectFinding) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// GetSigners implements the sdk.Msg interface. It returns the address(es) that
-// must sign over msg.GetSignBytes().
-func (msg MsgHostRejectFinding) GetSigners() []sdk.AccAddress {
-	// host should sign the message
-	hostAddr, err := sdk.AccAddressFromBech32(msg.HostAddress)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{hostAddr}
-}
-
-// ValidateBasic implements the sdk.Msg interface.
-func (msg *MsgHostRejectFinding) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.HostAddress)
-	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
-	}
-
-	if len(msg.FindingId) == 0 {
-		return errors.New("empty finding-id is not allowed")
-	}
-	return nil
-}
-
-// NewMsgCancelFinding cancel a specific finding
-func NewMsgCancelFinding(accAddr sdk.AccAddress, findingID string) *MsgCancelFinding {
-	return &MsgCancelFinding{
-		SubmitterAddress: accAddr.String(),
-		FindingId:        findingID,
-	}
-}
-
-// Route implements the sdk.Msg interface.
-func (msg MsgCancelFinding) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgCancelFinding) Type() string { return TypeMsgCancelFinding }
-
-// GetSigners implements the sdk.Msg interface
-func (msg MsgCancelFinding) GetSigners() []sdk.AccAddress {
-	// creator should sign the message
-	cAddr, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{cAddr}
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (msg MsgCancelFinding) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgCancelFinding) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
-	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
-	}
 	if len(msg.FindingId) == 0 {
 		return errors.New("empty finding-id is not allowed")
 	}
@@ -340,70 +254,35 @@ func (msg MsgReleaseFinding) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgOpenProgram(accAddr sdk.AccAddress, pid string) *MsgOpenProgram {
-	return &MsgOpenProgram{
-		OpenAddress: accAddr.String(),
-		ProgramId:   pid,
+func NewMsgOpenProgram(accAddr sdk.AccAddress, pid string) *MsgModifyProgramStatus {
+	return &MsgModifyProgramStatus{
+		ProgramId:       pid,
+		OperatorAddress: accAddr.String(),
 	}
 }
 
 // Route implements sdk.Msg interface.
-func (msg MsgOpenProgram) Route() string { return RouterKey }
+func (msg MsgModifyProgramStatus) Route() string { return RouterKey }
 
 // Type implements sdk.Msg interface.
-func (msg MsgOpenProgram) Type() string { return TypeMsgEndProgram }
+func (msg MsgModifyProgramStatus) Type() string { return TypeMsgEndProgram }
 
 // GetSigners implements sdk.Msg interface. It returns the address(es) that
 // must sign over msg.GetSignBytes().
-func (msg MsgOpenProgram) GetSigners() []sdk.AccAddress {
-	cAddr, _ := sdk.AccAddressFromBech32(msg.OpenAddress)
+func (msg MsgModifyProgramStatus) GetSigners() []sdk.AccAddress {
+	cAddr, _ := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	return []sdk.AccAddress{cAddr}
 }
 
 // GetSignBytes implements the sdk.Msg interface, returns the message bytes to sign over.
-func (msg MsgOpenProgram) GetSignBytes() []byte {
+func (msg MsgModifyProgramStatus) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgOpenProgram) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.OpenAddress)
-	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid address (%s)", err.Error())
-	}
-	return nil
-}
-
-func NewMsgCloseProgram(accAddr sdk.AccAddress, pid string) *MsgCloseProgram {
-	return &MsgCloseProgram{
-		CloseAddress: accAddr.String(),
-		ProgramId:    pid,
-	}
-}
-
-// Route implements sdk.Msg interface.
-func (msg MsgCloseProgram) Route() string { return RouterKey }
-
-// Type implements sdk.Msg interface.
-func (msg MsgCloseProgram) Type() string { return TypeMsgEndProgram }
-
-// GetSigners implements sdk.Msg interface. It returns the address(es) that
-// must sign over msg.GetSignBytes().
-func (msg MsgCloseProgram) GetSigners() []sdk.AccAddress {
-	cAddr, _ := sdk.AccAddressFromBech32(msg.CloseAddress)
-	return []sdk.AccAddress{cAddr}
-}
-
-// GetSignBytes implements the sdk.Msg interface, returns the message bytes to sign over.
-func (msg MsgCloseProgram) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// ValidateBasic implements the sdk.Msg interface.
-func (msg MsgCloseProgram) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.CloseAddress)
+func (msg MsgModifyProgramStatus) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid address (%s)", err.Error())
 	}

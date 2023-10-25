@@ -21,28 +21,30 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgEditProgram:
 			res, err := msgServer.EditProgram(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgOpenProgram:
-			res, err := msgServer.OpenProgram(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgCloseProgram:
+		case *types.MsgModifyProgramStatus:
+			if msg.Status == types.ProgramStatusActive {
+				res, err := msgServer.OpenProgram(sdk.WrapSDKContext(ctx), msg)
+				return sdk.WrapServiceResult(ctx, res, err)
+			}
 			res, err := msgServer.CloseProgram(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 		case *types.MsgSubmitFinding:
 			res, err := msgServer.SubmitFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgHostAcceptFinding:
-			res, err := msgServer.HostAcceptFinding(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgHostRejectFinding:
-			res, err := msgServer.HostRejectFinding(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgCancelFinding:
+		case *types.MsgModifyFindingStatus:
+			if msg.Status == types.FindingStatusClosed {
+				res, err := msgServer.RejectFinding(sdk.WrapSDKContext(ctx), msg)
+				return sdk.WrapServiceResult(ctx, res, err)
+			}
+			if msg.Status == types.FindingStatusConfirmed {
+				res, err := msgServer.AcceptFinding(sdk.WrapSDKContext(ctx), msg)
+				return sdk.WrapServiceResult(ctx, res, err)
+			}
 			res, err := msgServer.CancelFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 		case *types.MsgReleaseFinding:
 			res, err := msgServer.ReleaseFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", types.ModuleName, msg)
 		}

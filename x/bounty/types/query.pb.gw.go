@@ -157,7 +157,7 @@ func request_Query_Program_0(ctx context.Context, marshaler runtime.Marshaler, c
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "program_id")
 	}
 
-	protoReq.ProgramId, err = runtime.Uint64(val)
+	protoReq.ProgramId, err = runtime.String(val)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "program_id", err)
@@ -184,7 +184,7 @@ func local_request_Query_Program_0(ctx context.Context, marshaler runtime.Marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "program_id")
 	}
 
-	protoReq.ProgramId, err = runtime.Uint64(val)
+	protoReq.ProgramId, err = runtime.String(val)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "program_id", err)
@@ -247,7 +247,7 @@ func request_Query_Finding_0(ctx context.Context, marshaler runtime.Marshaler, c
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "finding_id")
 	}
 
-	protoReq.FindingId, err = runtime.Uint64(val)
+	protoReq.FindingId, err = runtime.String(val)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "finding_id", err)
@@ -274,7 +274,7 @@ func local_request_Query_Finding_0(ctx context.Context, marshaler runtime.Marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "finding_id")
 	}
 
-	protoReq.FindingId, err = runtime.Uint64(val)
+	protoReq.FindingId, err = runtime.String(val)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "finding_id", err)

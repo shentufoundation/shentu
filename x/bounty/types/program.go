@@ -8,7 +8,6 @@ import (
 type Programs []Program
 
 func NewProgram(programId, name, adminAddr string, detail ProgramDetail, memberAddrs []string, status ProgramStatus) (Program, error) {
-
 	return Program{
 		ProgramId:      programId,
 		Name:           name,

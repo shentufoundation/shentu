@@ -190,23 +190,24 @@ func (m *MsgEditProgramResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgEditProgramResponse proto.InternalMessageInfo
 
-type MsgOpenProgram struct {
-	OpenAddress string `protobuf:"bytes,1,opt,name=open_address,json=openAddress,proto3" json:"open_address,omitempty" yaml:"open_address"`
-	ProgramId   string `protobuf:"bytes,2,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
+type MsgModifyProgramStatus struct {
+	ProgramId       string        `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
+	OperatorAddress string        `protobuf:"bytes,2,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
+	Status          ProgramStatus `protobuf:"varint,3,opt,name=status,proto3,enum=shentu.bounty.v1.ProgramStatus" json:"status,omitempty" yaml:"status"`
 }
 
-func (m *MsgOpenProgram) Reset()         { *m = MsgOpenProgram{} }
-func (m *MsgOpenProgram) String() string { return proto.CompactTextString(m) }
-func (*MsgOpenProgram) ProtoMessage()    {}
-func (*MsgOpenProgram) Descriptor() ([]byte, []int) {
+func (m *MsgModifyProgramStatus) Reset()         { *m = MsgModifyProgramStatus{} }
+func (m *MsgModifyProgramStatus) String() string { return proto.CompactTextString(m) }
+func (*MsgModifyProgramStatus) ProtoMessage()    {}
+func (*MsgModifyProgramStatus) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1e4b4296bac3db30, []int{4}
 }
-func (m *MsgOpenProgram) XXX_Unmarshal(b []byte) error {
+func (m *MsgModifyProgramStatus) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgOpenProgram) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgModifyProgramStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgOpenProgram.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgModifyProgramStatus.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -216,33 +217,33 @@ func (m *MsgOpenProgram) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
-func (m *MsgOpenProgram) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgOpenProgram.Merge(m, src)
+func (m *MsgModifyProgramStatus) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgModifyProgramStatus.Merge(m, src)
 }
-func (m *MsgOpenProgram) XXX_Size() int {
+func (m *MsgModifyProgramStatus) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgOpenProgram) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgOpenProgram.DiscardUnknown(m)
+func (m *MsgModifyProgramStatus) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgModifyProgramStatus.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgOpenProgram proto.InternalMessageInfo
+var xxx_messageInfo_MsgModifyProgramStatus proto.InternalMessageInfo
 
-type MsgOpenProgramResponse struct {
+type MsgModifyProgramStatusResponse struct {
 }
 
-func (m *MsgOpenProgramResponse) Reset()         { *m = MsgOpenProgramResponse{} }
-func (m *MsgOpenProgramResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgOpenProgramResponse) ProtoMessage()    {}
-func (*MsgOpenProgramResponse) Descriptor() ([]byte, []int) {
+func (m *MsgModifyProgramStatusResponse) Reset()         { *m = MsgModifyProgramStatusResponse{} }
+func (m *MsgModifyProgramStatusResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgModifyProgramStatusResponse) ProtoMessage()    {}
+func (*MsgModifyProgramStatusResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1e4b4296bac3db30, []int{5}
 }
-func (m *MsgOpenProgramResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgModifyProgramStatusResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgOpenProgramResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgModifyProgramStatusResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgOpenProgramResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgModifyProgramStatusResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -252,91 +253,17 @@ func (m *MsgOpenProgramResponse) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (m *MsgOpenProgramResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgOpenProgramResponse.Merge(m, src)
+func (m *MsgModifyProgramStatusResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgModifyProgramStatusResponse.Merge(m, src)
 }
-func (m *MsgOpenProgramResponse) XXX_Size() int {
+func (m *MsgModifyProgramStatusResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgOpenProgramResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgOpenProgramResponse.DiscardUnknown(m)
+func (m *MsgModifyProgramStatusResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgModifyProgramStatusResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgOpenProgramResponse proto.InternalMessageInfo
-
-type MsgCloseProgram struct {
-	CloseAddress string `protobuf:"bytes,1,opt,name=close_address,json=closeAddress,proto3" json:"close_address,omitempty" yaml:"close_address"`
-	ProgramId    string `protobuf:"bytes,2,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
-}
-
-func (m *MsgCloseProgram) Reset()         { *m = MsgCloseProgram{} }
-func (m *MsgCloseProgram) String() string { return proto.CompactTextString(m) }
-func (*MsgCloseProgram) ProtoMessage()    {}
-func (*MsgCloseProgram) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{6}
-}
-func (m *MsgCloseProgram) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgCloseProgram) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgCloseProgram.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgCloseProgram) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCloseProgram.Merge(m, src)
-}
-func (m *MsgCloseProgram) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgCloseProgram) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCloseProgram.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgCloseProgram proto.InternalMessageInfo
-
-type MsgCloseProgramResponse struct {
-}
-
-func (m *MsgCloseProgramResponse) Reset()         { *m = MsgCloseProgramResponse{} }
-func (m *MsgCloseProgramResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgCloseProgramResponse) ProtoMessage()    {}
-func (*MsgCloseProgramResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{7}
-}
-func (m *MsgCloseProgramResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgCloseProgramResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgCloseProgramResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgCloseProgramResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCloseProgramResponse.Merge(m, src)
-}
-func (m *MsgCloseProgramResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgCloseProgramResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCloseProgramResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgCloseProgramResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgModifyProgramStatusResponse proto.InternalMessageInfo
 
 // MsgSubmitFinding defines a message to submit a finding.
 type MsgSubmitFinding struct {
@@ -351,7 +278,7 @@ func (m *MsgSubmitFinding) Reset()         { *m = MsgSubmitFinding{} }
 func (m *MsgSubmitFinding) String() string { return proto.CompactTextString(m) }
 func (*MsgSubmitFinding) ProtoMessage()    {}
 func (*MsgSubmitFinding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{8}
+	return fileDescriptor_1e4b4296bac3db30, []int{6}
 }
 func (m *MsgSubmitFinding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -388,7 +315,7 @@ func (m *MsgSubmitFindingResponse) Reset()         { *m = MsgSubmitFindingRespon
 func (m *MsgSubmitFindingResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSubmitFindingResponse) ProtoMessage()    {}
 func (*MsgSubmitFindingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{9}
+	return fileDescriptor_1e4b4296bac3db30, []int{7}
 }
 func (m *MsgSubmitFindingResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -417,24 +344,25 @@ func (m *MsgSubmitFindingResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSubmitFindingResponse proto.InternalMessageInfo
 
-// MsgHostAcceptFinding defines a message to accept a finding to an existing finding.
-type MsgHostAcceptFinding struct {
-	FindingId   string `protobuf:"bytes,1,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
-	HostAddress string `protobuf:"bytes,2,opt,name=host_address,json=hostAddress,proto3" json:"host_address,omitempty" yaml:"host_address"`
+// MsgModifyFindingStatus defines a message to accept a finding to an existing finding.
+type MsgModifyFindingStatus struct {
+	FindingId       string        `protobuf:"bytes,1,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
+	OperatorAddress string        `protobuf:"bytes,2,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
+	Status          FindingStatus `protobuf:"varint,3,opt,name=status,proto3,enum=shentu.bounty.v1.FindingStatus" json:"status,omitempty" yaml:"status"`
 }
 
-func (m *MsgHostAcceptFinding) Reset()         { *m = MsgHostAcceptFinding{} }
-func (m *MsgHostAcceptFinding) String() string { return proto.CompactTextString(m) }
-func (*MsgHostAcceptFinding) ProtoMessage()    {}
-func (*MsgHostAcceptFinding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{10}
+func (m *MsgModifyFindingStatus) Reset()         { *m = MsgModifyFindingStatus{} }
+func (m *MsgModifyFindingStatus) String() string { return proto.CompactTextString(m) }
+func (*MsgModifyFindingStatus) ProtoMessage()    {}
+func (*MsgModifyFindingStatus) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{8}
 }
-func (m *MsgHostAcceptFinding) XXX_Unmarshal(b []byte) error {
+func (m *MsgModifyFindingStatus) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgHostAcceptFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgModifyFindingStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgHostAcceptFinding.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgModifyFindingStatus.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -444,34 +372,34 @@ func (m *MsgHostAcceptFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return b[:n], nil
 	}
 }
-func (m *MsgHostAcceptFinding) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgHostAcceptFinding.Merge(m, src)
+func (m *MsgModifyFindingStatus) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgModifyFindingStatus.Merge(m, src)
 }
-func (m *MsgHostAcceptFinding) XXX_Size() int {
+func (m *MsgModifyFindingStatus) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgHostAcceptFinding) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgHostAcceptFinding.DiscardUnknown(m)
+func (m *MsgModifyFindingStatus) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgModifyFindingStatus.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgHostAcceptFinding proto.InternalMessageInfo
+var xxx_messageInfo_MsgModifyFindingStatus proto.InternalMessageInfo
 
-// MsgHostAcceptFindingResponse defines the Msg/HostAcceptFinding response type.
-type MsgHostAcceptFindingResponse struct {
+// MsgModifyFindingStatusResponse defines the Msg/HostAcceptFinding response type.
+type MsgModifyFindingStatusResponse struct {
 }
 
-func (m *MsgHostAcceptFindingResponse) Reset()         { *m = MsgHostAcceptFindingResponse{} }
-func (m *MsgHostAcceptFindingResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgHostAcceptFindingResponse) ProtoMessage()    {}
-func (*MsgHostAcceptFindingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{11}
+func (m *MsgModifyFindingStatusResponse) Reset()         { *m = MsgModifyFindingStatusResponse{} }
+func (m *MsgModifyFindingStatusResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgModifyFindingStatusResponse) ProtoMessage()    {}
+func (*MsgModifyFindingStatusResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{9}
 }
-func (m *MsgHostAcceptFindingResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgModifyFindingStatusResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgHostAcceptFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgModifyFindingStatusResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgHostAcceptFindingResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgModifyFindingStatusResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -481,167 +409,17 @@ func (m *MsgHostAcceptFindingResponse) XXX_Marshal(b []byte, deterministic bool)
 		return b[:n], nil
 	}
 }
-func (m *MsgHostAcceptFindingResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgHostAcceptFindingResponse.Merge(m, src)
+func (m *MsgModifyFindingStatusResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgModifyFindingStatusResponse.Merge(m, src)
 }
-func (m *MsgHostAcceptFindingResponse) XXX_Size() int {
+func (m *MsgModifyFindingStatusResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgHostAcceptFindingResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgHostAcceptFindingResponse.DiscardUnknown(m)
+func (m *MsgModifyFindingStatusResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgModifyFindingStatusResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgHostAcceptFindingResponse proto.InternalMessageInfo
-
-// MsgHostRejectFinding defines a message to accept a reject to an existing finding.
-type MsgHostRejectFinding struct {
-	FindingId   string `protobuf:"bytes,1,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
-	HostAddress string `protobuf:"bytes,2,opt,name=host_address,json=hostAddress,proto3" json:"host_address,omitempty" yaml:"host_address"`
-}
-
-func (m *MsgHostRejectFinding) Reset()         { *m = MsgHostRejectFinding{} }
-func (m *MsgHostRejectFinding) String() string { return proto.CompactTextString(m) }
-func (*MsgHostRejectFinding) ProtoMessage()    {}
-func (*MsgHostRejectFinding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{12}
-}
-func (m *MsgHostRejectFinding) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgHostRejectFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgHostRejectFinding.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgHostRejectFinding) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgHostRejectFinding.Merge(m, src)
-}
-func (m *MsgHostRejectFinding) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgHostRejectFinding) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgHostRejectFinding.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgHostRejectFinding proto.InternalMessageInfo
-
-// MsgHostRejectFindingResponse defines the Msg/ostRejectFinding response type.
-type MsgHostRejectFindingResponse struct {
-}
-
-func (m *MsgHostRejectFindingResponse) Reset()         { *m = MsgHostRejectFindingResponse{} }
-func (m *MsgHostRejectFindingResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgHostRejectFindingResponse) ProtoMessage()    {}
-func (*MsgHostRejectFindingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{13}
-}
-func (m *MsgHostRejectFindingResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgHostRejectFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgHostRejectFindingResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgHostRejectFindingResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgHostRejectFindingResponse.Merge(m, src)
-}
-func (m *MsgHostRejectFindingResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgHostRejectFindingResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgHostRejectFindingResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgHostRejectFindingResponse proto.InternalMessageInfo
-
-type MsgCancelFinding struct {
-	SubmitterAddress string `protobuf:"bytes,1,opt,name=submitter_address,json=submitterAddress,proto3" json:"submitter_address,omitempty" yaml:"submitter_address"`
-	FindingId        string `protobuf:"bytes,2,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
-}
-
-func (m *MsgCancelFinding) Reset()         { *m = MsgCancelFinding{} }
-func (m *MsgCancelFinding) String() string { return proto.CompactTextString(m) }
-func (*MsgCancelFinding) ProtoMessage()    {}
-func (*MsgCancelFinding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{14}
-}
-func (m *MsgCancelFinding) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgCancelFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgCancelFinding.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgCancelFinding) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCancelFinding.Merge(m, src)
-}
-func (m *MsgCancelFinding) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgCancelFinding) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCancelFinding.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgCancelFinding proto.InternalMessageInfo
-
-type MsgCancelFindingResponse struct {
-}
-
-func (m *MsgCancelFindingResponse) Reset()         { *m = MsgCancelFindingResponse{} }
-func (m *MsgCancelFindingResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgCancelFindingResponse) ProtoMessage()    {}
-func (*MsgCancelFindingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{15}
-}
-func (m *MsgCancelFindingResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgCancelFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgCancelFindingResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgCancelFindingResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCancelFindingResponse.Merge(m, src)
-}
-func (m *MsgCancelFindingResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgCancelFindingResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCancelFindingResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgCancelFindingResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgModifyFindingStatusResponse proto.InternalMessageInfo
 
 // MsgReleaseFinding defines a message to release a finding.
 type MsgReleaseFinding struct {
@@ -655,7 +433,7 @@ func (m *MsgReleaseFinding) Reset()         { *m = MsgReleaseFinding{} }
 func (m *MsgReleaseFinding) String() string { return proto.CompactTextString(m) }
 func (*MsgReleaseFinding) ProtoMessage()    {}
 func (*MsgReleaseFinding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{16}
+	return fileDescriptor_1e4b4296bac3db30, []int{10}
 }
 func (m *MsgReleaseFinding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -720,7 +498,7 @@ func (m *MsgReleaseFindingResponse) Reset()         { *m = MsgReleaseFindingResp
 func (m *MsgReleaseFindingResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgReleaseFindingResponse) ProtoMessage()    {}
 func (*MsgReleaseFindingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{17}
+	return fileDescriptor_1e4b4296bac3db30, []int{11}
 }
 func (m *MsgReleaseFindingResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -754,18 +532,12 @@ func init() {
 	proto.RegisterType((*MsgEditProgram)(nil), "shentu.bounty.v1.MsgEditProgram")
 	proto.RegisterType((*MsgCreateProgramResponse)(nil), "shentu.bounty.v1.MsgCreateProgramResponse")
 	proto.RegisterType((*MsgEditProgramResponse)(nil), "shentu.bounty.v1.MsgEditProgramResponse")
-	proto.RegisterType((*MsgOpenProgram)(nil), "shentu.bounty.v1.MsgOpenProgram")
-	proto.RegisterType((*MsgOpenProgramResponse)(nil), "shentu.bounty.v1.MsgOpenProgramResponse")
-	proto.RegisterType((*MsgCloseProgram)(nil), "shentu.bounty.v1.MsgCloseProgram")
-	proto.RegisterType((*MsgCloseProgramResponse)(nil), "shentu.bounty.v1.MsgCloseProgramResponse")
+	proto.RegisterType((*MsgModifyProgramStatus)(nil), "shentu.bounty.v1.MsgModifyProgramStatus")
+	proto.RegisterType((*MsgModifyProgramStatusResponse)(nil), "shentu.bounty.v1.MsgModifyProgramStatusResponse")
 	proto.RegisterType((*MsgSubmitFinding)(nil), "shentu.bounty.v1.MsgSubmitFinding")
 	proto.RegisterType((*MsgSubmitFindingResponse)(nil), "shentu.bounty.v1.MsgSubmitFindingResponse")
-	proto.RegisterType((*MsgHostAcceptFinding)(nil), "shentu.bounty.v1.MsgHostAcceptFinding")
-	proto.RegisterType((*MsgHostAcceptFindingResponse)(nil), "shentu.bounty.v1.MsgHostAcceptFindingResponse")
-	proto.RegisterType((*MsgHostRejectFinding)(nil), "shentu.bounty.v1.MsgHostRejectFinding")
-	proto.RegisterType((*MsgHostRejectFindingResponse)(nil), "shentu.bounty.v1.MsgHostRejectFindingResponse")
-	proto.RegisterType((*MsgCancelFinding)(nil), "shentu.bounty.v1.MsgCancelFinding")
-	proto.RegisterType((*MsgCancelFindingResponse)(nil), "shentu.bounty.v1.MsgCancelFindingResponse")
+	proto.RegisterType((*MsgModifyFindingStatus)(nil), "shentu.bounty.v1.MsgModifyFindingStatus")
+	proto.RegisterType((*MsgModifyFindingStatusResponse)(nil), "shentu.bounty.v1.MsgModifyFindingStatusResponse")
 	proto.RegisterType((*MsgReleaseFinding)(nil), "shentu.bounty.v1.MsgReleaseFinding")
 	proto.RegisterType((*MsgReleaseFindingResponse)(nil), "shentu.bounty.v1.MsgReleaseFindingResponse")
 }
@@ -773,66 +545,62 @@ func init() {
 func init() { proto.RegisterFile("shentu/bounty/v1/tx.proto", fileDescriptor_1e4b4296bac3db30) }
 
 var fileDescriptor_1e4b4296bac3db30 = []byte{
-	// 934 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x57, 0x4f, 0x6f, 0xe3, 0x44,
-	0x14, 0x8f, 0xd3, 0x6c, 0x45, 0x27, 0x6d, 0xda, 0x9a, 0xee, 0xae, 0x63, 0x16, 0x3b, 0xcc, 0x4a,
-	0xa8, 0x80, 0x14, 0x2b, 0x0b, 0xa7, 0x48, 0x1c, 0x9a, 0x05, 0x44, 0x85, 0x02, 0x68, 0x38, 0x81,
-	0x90, 0x22, 0xff, 0x99, 0xba, 0x86, 0xd8, 0x63, 0x65, 0x26, 0xd5, 0xe6, 0x1b, 0x70, 0xe0, 0xb0,
-	0xe2, 0x8e, 0xb4, 0x5f, 0x83, 0x0b, 0xe2, 0xb8, 0xc7, 0x15, 0x27, 0x4e, 0x16, 0x6a, 0x2f, 0x9c,
-	0x7d, 0xe4, 0x84, 0xec, 0x19, 0xbb, 0xfe, 0x17, 0x9a, 0x2d, 0x1c, 0x38, 0x70, 0xcb, 0x9b, 0xf7,
-	0x7b, 0xef, 0xfd, 0xde, 0x9b, 0xf7, 0xde, 0xc4, 0xa0, 0x4f, 0xcf, 0x71, 0xc0, 0x96, 0x86, 0x45,
-	0x96, 0x01, 0x5b, 0x19, 0x17, 0x23, 0x83, 0x3d, 0x19, 0x86, 0x0b, 0xc2, 0x88, 0x7c, 0xc0, 0x55,
-	0x43, 0xae, 0x1a, 0x5e, 0x8c, 0xd4, 0x23, 0x97, 0xb8, 0x24, 0x55, 0x1a, 0xc9, 0x2f, 0x8e, 0x53,
-	0x75, 0x97, 0x10, 0x77, 0x8e, 0x8d, 0x54, 0xb2, 0x96, 0x67, 0x06, 0xf3, 0x7c, 0x4c, 0x99, 0xe9,
-	0x87, 0x02, 0xd0, 0xb7, 0x09, 0xf5, 0x09, 0x9d, 0x71, 0x4b, 0x2e, 0x64, 0xaa, 0xaa, 0xad, 0x19,
-	0xac, 0x84, 0x4a, 0xe3, 0x40, 0xc3, 0x32, 0x29, 0x36, 0x2e, 0x46, 0x16, 0x66, 0xe6, 0xc8, 0xb0,
-	0x89, 0x17, 0x08, 0xfd, 0xeb, 0x35, 0xe6, 0x82, 0x68, 0xaa, 0x86, 0xbf, 0xb4, 0xc1, 0xc1, 0x94,
-	0xba, 0x8f, 0x17, 0xd8, 0x64, 0xf8, 0xf3, 0x05, 0x71, 0x17, 0xa6, 0x2f, 0xcb, 0xa0, 0x13, 0x98,
-	0x3e, 0x56, 0xa4, 0x81, 0x74, 0xbc, 0x83, 0xd2, 0xdf, 0xf2, 0xa7, 0x60, 0xdb, 0xc1, 0xcc, 0xf4,
-	0xe6, 0x4a, 0x7b, 0x20, 0x1d, 0x77, 0x1f, 0xe9, 0xc3, 0x6a, 0xde, 0x43, 0x61, 0xfe, 0x41, 0x0a,
-	0x9b, 0xdc, 0x7d, 0x1e, 0xe9, 0xad, 0x38, 0xd2, 0xf7, 0x56, 0xa6, 0x3f, 0x1f, 0x43, 0x6e, 0x0c,
-	0x91, 0xf0, 0x22, 0x3f, 0x06, 0xfb, 0x76, 0x12, 0x94, 0x2c, 0x66, 0xa6, 0xe3, 0x2c, 0x30, 0xa5,
-	0xca, 0x56, 0x12, 0x6e, 0xa2, 0xc6, 0x91, 0x7e, 0x8f, 0xdb, 0x54, 0x00, 0x10, 0xf5, 0xc4, 0xc9,
-	0x09, 0x3f, 0x48, 0x9c, 0xf8, 0xd8, 0xb7, 0xf0, 0x62, 0x66, 0xda, 0x76, 0xc2, 0x83, 0x2a, 0x9d,
-	0xc1, 0x56, 0xd9, 0x49, 0x05, 0x00, 0x51, 0x8f, 0x9f, 0x9c, 0x88, 0x03, 0xf9, 0x3d, 0x00, 0x42,
-	0xce, 0x7c, 0xe6, 0x39, 0xca, 0x9d, 0x94, 0xc4, 0xdd, 0x38, 0xd2, 0x0f, 0xb9, 0xfd, 0xb5, 0x0e,
-	0xa2, 0x1d, 0x21, 0x9c, 0x3a, 0xe3, 0x57, 0xbe, 0x7b, 0xa6, 0xb7, 0xfe, 0x78, 0xa6, 0xb7, 0xe0,
-	0xcf, 0x6d, 0xd0, 0x9b, 0x52, 0xf7, 0x43, 0xc7, 0x63, 0xff, 0x17, 0xf0, 0x36, 0x05, 0x54, 0x81,
-	0x52, 0x6d, 0x41, 0x84, 0x69, 0x48, 0x02, 0x8a, 0xa1, 0x02, 0xee, 0x95, 0x6b, 0x9b, 0x6b, 0xbe,
-	0x97, 0xd2, 0xb2, 0x7f, 0x16, 0xe2, 0x20, 0x2b, 0xfb, 0x18, 0xec, 0x92, 0x10, 0x07, 0x79, 0x3d,
-	0xd2, 0xf2, 0x4f, 0xee, 0xc7, 0x91, 0xfe, 0x2a, 0xa7, 0x52, 0xd4, 0x42, 0xd4, 0x4d, 0xc4, 0xac,
-	0x12, 0xe5, 0x24, 0xda, 0x2f, 0x9d, 0x04, 0x27, 0x5a, 0x60, 0x93, 0x13, 0x7d, 0x2a, 0x81, 0xfd,
-	0x24, 0xbf, 0x39, 0xa1, 0xf9, 0x84, 0xbd, 0x0f, 0xf6, 0xec, 0x44, 0xae, 0x50, 0x55, 0xe2, 0x48,
-	0x3f, 0x12, 0x57, 0x57, 0x54, 0x43, 0xb4, 0x9b, 0xca, 0xff, 0x16, 0xd9, 0x3e, 0xb8, 0x5f, 0x61,
-	0x94, 0xb3, 0xfd, 0x89, 0x2f, 0x84, 0x2f, 0x96, 0x96, 0xef, 0xb1, 0x8f, 0xbc, 0xc0, 0xf1, 0x02,
-	0xb7, 0x12, 0x4f, 0xda, 0x2c, 0x5e, 0x62, 0x75, 0xc6, 0x1d, 0x34, 0xb2, 0xbc, 0xd6, 0x41, 0xb4,
-	0x23, 0x84, 0x53, 0x47, 0x3e, 0x02, 0x77, 0x98, 0xc7, 0xe6, 0x98, 0x77, 0x33, 0xe2, 0x42, 0x61,
-	0x7a, 0x3a, 0xeb, 0xa6, 0x47, 0x90, 0xdd, 0x6c, 0x7a, 0x4e, 0xc1, 0x21, 0x4d, 0x53, 0x64, 0xf8,
-	0x7a, 0x7e, 0x78, 0xeb, 0x3e, 0x88, 0x23, 0x5d, 0xe1, 0x56, 0x35, 0x08, 0x44, 0x07, 0xf9, 0x99,
-	0xb8, 0x8c, 0x5a, 0x23, 0x97, 0x4a, 0x97, 0xd7, 0xf5, 0x07, 0x09, 0x1c, 0x4d, 0xa9, 0xfb, 0x31,
-	0xa1, 0xec, 0xc4, 0xb6, 0x71, 0x58, 0xac, 0x6d, 0xa1, 0x4a, 0xd2, 0x86, 0x55, 0x1a, 0x83, 0xdd,
-	0x73, 0x42, 0x59, 0x4e, 0xbd, 0x5d, 0x6d, 0xf5, 0xa2, 0x16, 0xa2, 0x6e, 0x22, 0xd6, 0x09, 0x6b,
-	0xe0, 0x41, 0x13, 0xa7, 0x26, 0xd2, 0x08, 0x7f, 0x83, 0xed, 0xff, 0x18, 0xe9, 0x12, 0xa7, 0x9c,
-	0xf4, 0x8f, 0x12, 0x7f, 0xd2, 0xcc, 0xc0, 0xc6, 0xf3, 0x8c, 0x70, 0xe3, 0x7d, 0x4b, 0xb7, 0xb9,
-	0xef, 0xdb, 0xb5, 0x75, 0x7d, 0xdd, 0x15, 0xe9, 0xe5, 0xdc, 0x7f, 0x95, 0xc0, 0xe1, 0x94, 0xba,
-	0x08, 0xcf, 0xb1, 0x49, 0xf1, 0x3f, 0xab, 0xf6, 0x43, 0xd0, 0x71, 0x30, 0xb5, 0x05, 0xc3, 0xfd,
-	0x38, 0xd2, 0xbb, 0xd9, 0x2c, 0x50, 0x1b, 0xa2, 0x54, 0x29, 0x0f, 0xc0, 0x56, 0x48, 0x6c, 0xf1,
-	0x72, 0xf4, 0xe2, 0x48, 0x07, 0x62, 0xa4, 0x89, 0x0d, 0x51, 0xa2, 0xaa, 0x5d, 0x5a, 0xe7, 0x25,
-	0x2e, 0xad, 0x93, 0x26, 0xfc, 0x1a, 0xe8, 0xd7, 0x72, 0xca, 0x32, 0x7e, 0xf4, 0xe7, 0x36, 0xd8,
-	0x9a, 0x52, 0x57, 0x9e, 0x81, 0xbd, 0xf2, 0x9f, 0x10, 0x58, 0x9f, 0xf0, 0xea, 0x2b, 0xa1, 0xbe,
-	0x7d, 0x33, 0x26, 0x0b, 0x24, 0x7f, 0x09, 0xba, 0xc5, 0x27, 0x7a, 0xd0, 0x68, 0x5a, 0x40, 0xa8,
-	0xc7, 0x37, 0x21, 0x8a, 0xae, 0x8b, 0xcf, 0x50, 0xb3, 0xeb, 0x02, 0x62, 0x8d, 0xeb, 0x86, 0xc7,
-	0x43, 0xfe, 0x1a, 0xec, 0x96, 0x1e, 0x8e, 0x37, 0x9a, 0x33, 0x2e, 0x40, 0xd4, 0xb7, 0x6e, 0x84,
-	0xe4, 0xde, 0x67, 0x60, 0xaf, 0xbc, 0xe8, 0x9b, 0x8b, 0x5e, 0xc2, 0xac, 0x29, 0x7a, 0xe3, 0xd6,
-	0x93, 0xbf, 0x05, 0x87, 0xf5, 0x8d, 0xf7, 0x66, 0xa3, 0x83, 0x1a, 0x4e, 0x1d, 0x6e, 0x86, 0xab,
-	0x06, 0x2b, 0x6f, 0xaa, 0xf5, 0xc1, 0x4a, 0xb8, 0xbf, 0x09, 0xd6, 0xb8, 0x65, 0xd2, 0x7e, 0x2d,
-	0x6d, 0x98, 0x35, 0xfd, 0x5a, 0xc4, 0xac, 0xeb, 0xd7, 0xa6, 0x55, 0x20, 0x5b, 0xa0, 0x57, 0x59,
-	0x03, 0x0f, 0x1b, 0xad, 0xcb, 0x20, 0xf5, 0x9d, 0x0d, 0x40, 0x59, 0x8c, 0xc9, 0x27, 0xcf, 0x2f,
-	0x35, 0xe9, 0xc5, 0xa5, 0x26, 0xfd, 0x7e, 0xa9, 0x49, 0x4f, 0xaf, 0xb4, 0xd6, 0x8b, 0x2b, 0xad,
-	0xf5, 0xdb, 0x95, 0xd6, 0xfa, 0x6a, 0xe4, 0x7a, 0xec, 0x7c, 0x69, 0x0d, 0x6d, 0xe2, 0x1b, 0xdc,
-	0xe1, 0x19, 0x59, 0x06, 0x8e, 0xc9, 0x3c, 0x12, 0x88, 0x03, 0xe3, 0x49, 0xf6, 0x51, 0xc1, 0x56,
-	0x21, 0xa6, 0xd6, 0x76, 0xfa, 0x45, 0xf1, 0xee, 0x5f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xc6, 0xd2,
-	0x56, 0x41, 0x2c, 0x0d, 0x00, 0x00,
+	// 870 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x56, 0x3d, 0x93, 0xdb, 0x44,
+	0x18, 0xb6, 0x7c, 0xce, 0xc1, 0xad, 0x73, 0x3e, 0x5b, 0xe4, 0x43, 0xa7, 0x80, 0xe4, 0xd9, 0x34,
+	0x37, 0x30, 0x63, 0xe1, 0x90, 0xea, 0xba, 0xb3, 0x21, 0x33, 0x07, 0x63, 0x60, 0x36, 0x15, 0x34,
+	0x1e, 0x7d, 0xac, 0x75, 0x0a, 0x96, 0x56, 0xa3, 0x5d, 0xdf, 0xc4, 0xff, 0x80, 0x92, 0x9f, 0x90,
+	0x82, 0x3f, 0x41, 0xc3, 0x50, 0xa6, 0xcc, 0x50, 0x51, 0x69, 0x98, 0xbb, 0x86, 0x82, 0x4a, 0xbf,
+	0x80, 0x91, 0x76, 0x25, 0x5b, 0xb2, 0x72, 0x31, 0x57, 0xb8, 0x4a, 0xe7, 0x7d, 0x9f, 0xe7, 0xfd,
+	0x7a, 0xde, 0x77, 0xd7, 0x02, 0xc7, 0xf4, 0x02, 0x07, 0x6c, 0x61, 0x58, 0x64, 0x11, 0xb0, 0xa5,
+	0x71, 0x39, 0x34, 0xd8, 0xcb, 0x41, 0x18, 0x11, 0x46, 0xe4, 0x2e, 0x87, 0x06, 0x1c, 0x1a, 0x5c,
+	0x0e, 0xd5, 0x7b, 0x2e, 0x71, 0x49, 0x06, 0x1a, 0xe9, 0x2f, 0xce, 0x53, 0x75, 0x97, 0x10, 0x77,
+	0x8e, 0x8d, 0xec, 0x64, 0x2d, 0x66, 0x06, 0xf3, 0x7c, 0x4c, 0x99, 0xe9, 0x87, 0x82, 0x70, 0x6c,
+	0x13, 0xea, 0x13, 0x3a, 0xe5, 0x9e, 0xfc, 0x90, 0x43, 0x55, 0x5f, 0x33, 0x58, 0x0a, 0x48, 0xe3,
+	0x44, 0xc3, 0x32, 0x29, 0x36, 0x2e, 0x87, 0x16, 0x66, 0xe6, 0xd0, 0xb0, 0x89, 0x17, 0x08, 0xfc,
+	0x93, 0x8d, 0xca, 0x45, 0xa1, 0x19, 0x0c, 0xff, 0x68, 0x82, 0xee, 0x84, 0xba, 0xe3, 0x08, 0x9b,
+	0x0c, 0x7f, 0x1f, 0x11, 0x37, 0x32, 0x7d, 0x59, 0x06, 0xad, 0xc0, 0xf4, 0xb1, 0x22, 0xf5, 0xa5,
+	0x93, 0x03, 0x94, 0xfd, 0x96, 0xbf, 0x05, 0xfb, 0x0e, 0x66, 0xa6, 0x37, 0x57, 0x9a, 0x7d, 0xe9,
+	0xa4, 0xfd, 0x44, 0x1f, 0x54, 0xfb, 0x1e, 0x08, 0xf7, 0x2f, 0x33, 0xda, 0xe8, 0xfe, 0xeb, 0x58,
+	0x6f, 0x24, 0xb1, 0x7e, 0xb8, 0x34, 0xfd, 0xf9, 0x29, 0xe4, 0xce, 0x10, 0x89, 0x28, 0xf2, 0x18,
+	0x1c, 0xd9, 0x69, 0x52, 0x12, 0x4d, 0x4d, 0xc7, 0x89, 0x30, 0xa5, 0xca, 0x5e, 0x9a, 0x6e, 0xa4,
+	0x26, 0xb1, 0xfe, 0x80, 0xfb, 0x54, 0x08, 0x10, 0x75, 0x84, 0xe5, 0x8c, 0x1b, 0xd2, 0x20, 0x3e,
+	0xf6, 0x2d, 0x1c, 0x4d, 0x4d, 0xdb, 0x4e, 0xeb, 0xa0, 0x4a, 0xab, 0xbf, 0x57, 0x0e, 0x52, 0x21,
+	0x40, 0xd4, 0xe1, 0x96, 0x33, 0x61, 0x90, 0x9f, 0x02, 0x10, 0xf2, 0xca, 0xa7, 0x9e, 0xa3, 0xdc,
+	0xc9, 0x8a, 0xb8, 0x9f, 0xc4, 0x7a, 0x8f, 0xfb, 0xaf, 0x30, 0x88, 0x0e, 0xc4, 0xe1, 0xdc, 0x39,
+	0xfd, 0xf0, 0xe7, 0x57, 0x7a, 0xe3, 0x9f, 0x57, 0x7a, 0x03, 0xfe, 0xde, 0x04, 0x9d, 0x09, 0x75,
+	0xbf, 0x72, 0x3c, 0xf6, 0x5e, 0xc0, 0xdb, 0x08, 0xa8, 0x02, 0xa5, 0xba, 0x82, 0x08, 0xd3, 0x90,
+	0x04, 0x14, 0x43, 0x05, 0x3c, 0x28, 0x6b, 0x5b, 0x20, 0xff, 0x4a, 0x19, 0x34, 0x21, 0x8e, 0x37,
+	0x5b, 0x0a, 0xf0, 0x39, 0x33, 0xd9, 0xa2, 0x5a, 0x90, 0xb4, 0x5d, 0x41, 0xf2, 0x33, 0xd0, 0x25,
+	0x21, 0x8e, 0x4a, 0x8a, 0x36, 0x33, 0xdf, 0x47, 0x49, 0xac, 0x3f, 0xe4, 0xbe, 0x55, 0x06, 0x44,
+	0x47, 0xb9, 0x29, 0xd7, 0xf4, 0x6b, 0xb0, 0x4f, 0xb3, 0x3a, 0xb2, 0x79, 0x74, 0x6e, 0x18, 0x34,
+	0x2f, 0x77, 0xd4, 0x5b, 0x0d, 0x99, 0x3b, 0x42, 0x24, 0x22, 0xac, 0x89, 0xd4, 0x07, 0x5a, 0x7d,
+	0xb7, 0x85, 0x20, 0xbf, 0xf1, 0xab, 0xfc, 0x7c, 0x61, 0xf9, 0x1e, 0x7b, 0xe6, 0x05, 0x8e, 0x17,
+	0xb8, 0xb7, 0x94, 0xe2, 0x29, 0x00, 0x33, 0x1e, 0x20, 0xf5, 0x6a, 0x56, 0xbd, 0x56, 0x18, 0x44,
+	0x07, 0xe2, 0x70, 0xee, 0xc8, 0xf7, 0xc0, 0x1d, 0xe6, 0xb1, 0x39, 0xe6, 0x7b, 0x88, 0xf8, 0x61,
+	0x6d, 0xef, 0x5b, 0x6f, 0xdb, 0x7b, 0x51, 0xec, 0x76, 0x7b, 0x7f, 0x0e, 0x7a, 0x34, 0x6b, 0x91,
+	0xe1, 0xd5, 0x9c, 0xf8, 0xd2, 0x7d, 0x9c, 0xc4, 0xba, 0x22, 0x84, 0xac, 0x52, 0x20, 0xea, 0x16,
+	0x36, 0x31, 0xa9, 0x8d, 0x15, 0x2c, 0x49, 0x57, 0xbf, 0x68, 0x02, 0x5c, 0x2d, 0xda, 0x9a, 0x4e,
+	0xd2, 0x96, 0x3a, 0xed, 0x70, 0xd1, 0x4a, 0xe5, 0xfe, 0xff, 0x45, 0x2b, 0xb9, 0x17, 0x82, 0xfc,
+	0x29, 0x81, 0xde, 0x84, 0xba, 0x08, 0xcf, 0xb1, 0x49, 0xf1, 0xda, 0xa6, 0xdd, 0x42, 0x8b, 0xc7,
+	0xa0, 0xe5, 0x60, 0x6a, 0x8b, 0xfe, 0x8f, 0x92, 0x58, 0x6f, 0xe7, 0x63, 0xa7, 0x36, 0x44, 0x19,
+	0x28, 0xf7, 0xc1, 0x5e, 0x48, 0x6c, 0xf1, 0xbc, 0x75, 0x92, 0x58, 0x07, 0x62, 0x7b, 0x89, 0x0d,
+	0x51, 0x0a, 0xc9, 0xa7, 0xe0, 0xee, 0x05, 0xa1, 0xac, 0x90, 0xb3, 0x95, 0x51, 0x1f, 0x26, 0xb1,
+	0xfe, 0x11, 0xa7, 0xae, 0xa3, 0x10, 0xb5, 0xd3, 0x63, 0xbe, 0x05, 0xad, 0xac, 0xed, 0x47, 0xe0,
+	0x78, 0xa3, 0xa7, 0xbc, 0xe3, 0x27, 0xbf, 0x7e, 0x00, 0xf6, 0x26, 0xd4, 0x95, 0xa7, 0xe0, 0xb0,
+	0xfc, 0x4f, 0x09, 0x37, 0x25, 0xaf, 0x3e, 0x65, 0xea, 0xa7, 0xef, 0xe6, 0xe4, 0x89, 0xe4, 0x1f,
+	0x40, 0x7b, 0xfd, 0x7f, 0xa4, 0x5f, 0xeb, 0xba, 0xc6, 0x50, 0x4f, 0xde, 0xc5, 0x28, 0x42, 0x7b,
+	0xa0, 0xfd, 0x5d, 0x88, 0x83, 0x3c, 0x74, 0xbd, 0x63, 0xcd, 0xfb, 0xa2, 0x7e, 0xbe, 0x2d, 0xb3,
+	0x48, 0xf5, 0x02, 0xdc, 0x1d, 0xcf, 0x09, 0xc5, 0xbb, 0xc8, 0x35, 0x05, 0x87, 0xe5, 0x17, 0xaf,
+	0x7e, 0x24, 0x25, 0xce, 0x5b, 0x46, 0x52, 0x7b, 0xfd, 0xe5, 0x9f, 0xc0, 0xe1, 0x99, 0x6d, 0xe3,
+	0xb0, 0x48, 0x70, 0x53, 0x37, 0xa5, 0x0b, 0x73, 0x63, 0x37, 0xb5, 0x57, 0x2b, 0x4d, 0x86, 0xf0,
+	0x0b, 0x6c, 0xef, 0x2a, 0xd9, 0xd8, 0x0c, 0x6c, 0x3c, 0xdf, 0x45, 0x32, 0x0b, 0x74, 0x2a, 0x0f,
+	0xc6, 0xe3, 0xda, 0x18, 0x65, 0x92, 0xfa, 0xd9, 0x16, 0xa4, 0x3c, 0xc7, 0xe8, 0x9b, 0xd7, 0x57,
+	0x9a, 0xf4, 0xe6, 0x4a, 0x93, 0xfe, 0xbe, 0xd2, 0xa4, 0x5f, 0xae, 0xb5, 0xc6, 0x9b, 0x6b, 0xad,
+	0xf1, 0xd7, 0xb5, 0xd6, 0xf8, 0x71, 0xe8, 0x7a, 0xec, 0x62, 0x61, 0x0d, 0x6c, 0xe2, 0x1b, 0x3c,
+	0xe0, 0x8c, 0x2c, 0x02, 0xc7, 0x64, 0x1e, 0x09, 0x84, 0xc1, 0x78, 0x99, 0x7f, 0x23, 0xb3, 0x65,
+	0x88, 0xa9, 0xb5, 0x9f, 0x7d, 0x20, 0x7f, 0xf1, 0x5f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xeb, 0x46,
+	0xb9, 0xb0, 0xfb, 0x0b, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -852,17 +620,17 @@ type MsgClient interface {
 	// EditProgram defines a method for modifying a program.
 	EditProgram(ctx context.Context, in *MsgEditProgram, opts ...grpc.CallOption) (*MsgEditProgramResponse, error)
 	// Open a program status by program_id
-	OpenProgram(ctx context.Context, in *MsgOpenProgram, opts ...grpc.CallOption) (*MsgOpenProgramResponse, error)
+	OpenProgram(ctx context.Context, in *MsgModifyProgramStatus, opts ...grpc.CallOption) (*MsgModifyProgramStatusResponse, error)
 	// Closed a program status by program_id
-	CloseProgram(ctx context.Context, in *MsgCloseProgram, opts ...grpc.CallOption) (*MsgCloseProgramResponse, error)
+	CloseProgram(ctx context.Context, in *MsgModifyProgramStatus, opts ...grpc.CallOption) (*MsgModifyProgramStatusResponse, error)
 	// SubmitFinding defines a method for submitting a new finding.
 	SubmitFinding(ctx context.Context, in *MsgSubmitFinding, opts ...grpc.CallOption) (*MsgSubmitFindingResponse, error)
 	// HostAcceptFinding defines a method for host accept a finding.
-	HostAcceptFinding(ctx context.Context, in *MsgHostAcceptFinding, opts ...grpc.CallOption) (*MsgHostAcceptFindingResponse, error)
+	AcceptFinding(ctx context.Context, in *MsgModifyFindingStatus, opts ...grpc.CallOption) (*MsgModifyFindingStatusResponse, error)
 	// HostRejectFinding defines a method for host reject a finding.
-	HostRejectFinding(ctx context.Context, in *MsgHostRejectFinding, opts ...grpc.CallOption) (*MsgHostRejectFindingResponse, error)
+	RejectFinding(ctx context.Context, in *MsgModifyFindingStatus, opts ...grpc.CallOption) (*MsgModifyFindingStatusResponse, error)
 	// CancelFinding defines a mathod for inactive the specific finding
-	CancelFinding(ctx context.Context, in *MsgCancelFinding, opts ...grpc.CallOption) (*MsgCancelFindingResponse, error)
+	CancelFinding(ctx context.Context, in *MsgModifyFindingStatus, opts ...grpc.CallOption) (*MsgModifyFindingStatusResponse, error)
 	// MsgReleaseFinding defines a method for release a finding.
 	ReleaseFinding(ctx context.Context, in *MsgReleaseFinding, opts ...grpc.CallOption) (*MsgReleaseFindingResponse, error)
 }
@@ -893,8 +661,8 @@ func (c *msgClient) EditProgram(ctx context.Context, in *MsgEditProgram, opts ..
 	return out, nil
 }
 
-func (c *msgClient) OpenProgram(ctx context.Context, in *MsgOpenProgram, opts ...grpc.CallOption) (*MsgOpenProgramResponse, error) {
-	out := new(MsgOpenProgramResponse)
+func (c *msgClient) OpenProgram(ctx context.Context, in *MsgModifyProgramStatus, opts ...grpc.CallOption) (*MsgModifyProgramStatusResponse, error) {
+	out := new(MsgModifyProgramStatusResponse)
 	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/OpenProgram", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -902,8 +670,8 @@ func (c *msgClient) OpenProgram(ctx context.Context, in *MsgOpenProgram, opts ..
 	return out, nil
 }
 
-func (c *msgClient) CloseProgram(ctx context.Context, in *MsgCloseProgram, opts ...grpc.CallOption) (*MsgCloseProgramResponse, error) {
-	out := new(MsgCloseProgramResponse)
+func (c *msgClient) CloseProgram(ctx context.Context, in *MsgModifyProgramStatus, opts ...grpc.CallOption) (*MsgModifyProgramStatusResponse, error) {
+	out := new(MsgModifyProgramStatusResponse)
 	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/CloseProgram", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -920,26 +688,26 @@ func (c *msgClient) SubmitFinding(ctx context.Context, in *MsgSubmitFinding, opt
 	return out, nil
 }
 
-func (c *msgClient) HostAcceptFinding(ctx context.Context, in *MsgHostAcceptFinding, opts ...grpc.CallOption) (*MsgHostAcceptFindingResponse, error) {
-	out := new(MsgHostAcceptFindingResponse)
-	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/HostAcceptFinding", in, out, opts...)
+func (c *msgClient) AcceptFinding(ctx context.Context, in *MsgModifyFindingStatus, opts ...grpc.CallOption) (*MsgModifyFindingStatusResponse, error) {
+	out := new(MsgModifyFindingStatusResponse)
+	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/AcceptFinding", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) HostRejectFinding(ctx context.Context, in *MsgHostRejectFinding, opts ...grpc.CallOption) (*MsgHostRejectFindingResponse, error) {
-	out := new(MsgHostRejectFindingResponse)
-	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/HostRejectFinding", in, out, opts...)
+func (c *msgClient) RejectFinding(ctx context.Context, in *MsgModifyFindingStatus, opts ...grpc.CallOption) (*MsgModifyFindingStatusResponse, error) {
+	out := new(MsgModifyFindingStatusResponse)
+	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/RejectFinding", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) CancelFinding(ctx context.Context, in *MsgCancelFinding, opts ...grpc.CallOption) (*MsgCancelFindingResponse, error) {
-	out := new(MsgCancelFindingResponse)
+func (c *msgClient) CancelFinding(ctx context.Context, in *MsgModifyFindingStatus, opts ...grpc.CallOption) (*MsgModifyFindingStatusResponse, error) {
+	out := new(MsgModifyFindingStatusResponse)
 	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/CancelFinding", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -963,17 +731,17 @@ type MsgServer interface {
 	// EditProgram defines a method for modifying a program.
 	EditProgram(context.Context, *MsgEditProgram) (*MsgEditProgramResponse, error)
 	// Open a program status by program_id
-	OpenProgram(context.Context, *MsgOpenProgram) (*MsgOpenProgramResponse, error)
+	OpenProgram(context.Context, *MsgModifyProgramStatus) (*MsgModifyProgramStatusResponse, error)
 	// Closed a program status by program_id
-	CloseProgram(context.Context, *MsgCloseProgram) (*MsgCloseProgramResponse, error)
+	CloseProgram(context.Context, *MsgModifyProgramStatus) (*MsgModifyProgramStatusResponse, error)
 	// SubmitFinding defines a method for submitting a new finding.
 	SubmitFinding(context.Context, *MsgSubmitFinding) (*MsgSubmitFindingResponse, error)
 	// HostAcceptFinding defines a method for host accept a finding.
-	HostAcceptFinding(context.Context, *MsgHostAcceptFinding) (*MsgHostAcceptFindingResponse, error)
+	AcceptFinding(context.Context, *MsgModifyFindingStatus) (*MsgModifyFindingStatusResponse, error)
 	// HostRejectFinding defines a method for host reject a finding.
-	HostRejectFinding(context.Context, *MsgHostRejectFinding) (*MsgHostRejectFindingResponse, error)
+	RejectFinding(context.Context, *MsgModifyFindingStatus) (*MsgModifyFindingStatusResponse, error)
 	// CancelFinding defines a mathod for inactive the specific finding
-	CancelFinding(context.Context, *MsgCancelFinding) (*MsgCancelFindingResponse, error)
+	CancelFinding(context.Context, *MsgModifyFindingStatus) (*MsgModifyFindingStatusResponse, error)
 	// MsgReleaseFinding defines a method for release a finding.
 	ReleaseFinding(context.Context, *MsgReleaseFinding) (*MsgReleaseFindingResponse, error)
 }
@@ -988,22 +756,22 @@ func (*UnimplementedMsgServer) CreateProgram(ctx context.Context, req *MsgCreate
 func (*UnimplementedMsgServer) EditProgram(ctx context.Context, req *MsgEditProgram) (*MsgEditProgramResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditProgram not implemented")
 }
-func (*UnimplementedMsgServer) OpenProgram(ctx context.Context, req *MsgOpenProgram) (*MsgOpenProgramResponse, error) {
+func (*UnimplementedMsgServer) OpenProgram(ctx context.Context, req *MsgModifyProgramStatus) (*MsgModifyProgramStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OpenProgram not implemented")
 }
-func (*UnimplementedMsgServer) CloseProgram(ctx context.Context, req *MsgCloseProgram) (*MsgCloseProgramResponse, error) {
+func (*UnimplementedMsgServer) CloseProgram(ctx context.Context, req *MsgModifyProgramStatus) (*MsgModifyProgramStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CloseProgram not implemented")
 }
 func (*UnimplementedMsgServer) SubmitFinding(ctx context.Context, req *MsgSubmitFinding) (*MsgSubmitFindingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitFinding not implemented")
 }
-func (*UnimplementedMsgServer) HostAcceptFinding(ctx context.Context, req *MsgHostAcceptFinding) (*MsgHostAcceptFindingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HostAcceptFinding not implemented")
+func (*UnimplementedMsgServer) AcceptFinding(ctx context.Context, req *MsgModifyFindingStatus) (*MsgModifyFindingStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AcceptFinding not implemented")
 }
-func (*UnimplementedMsgServer) HostRejectFinding(ctx context.Context, req *MsgHostRejectFinding) (*MsgHostRejectFindingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HostRejectFinding not implemented")
+func (*UnimplementedMsgServer) RejectFinding(ctx context.Context, req *MsgModifyFindingStatus) (*MsgModifyFindingStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RejectFinding not implemented")
 }
-func (*UnimplementedMsgServer) CancelFinding(ctx context.Context, req *MsgCancelFinding) (*MsgCancelFindingResponse, error) {
+func (*UnimplementedMsgServer) CancelFinding(ctx context.Context, req *MsgModifyFindingStatus) (*MsgModifyFindingStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CancelFinding not implemented")
 }
 func (*UnimplementedMsgServer) ReleaseFinding(ctx context.Context, req *MsgReleaseFinding) (*MsgReleaseFindingResponse, error) {
@@ -1051,7 +819,7 @@ func _Msg_EditProgram_Handler(srv interface{}, ctx context.Context, dec func(int
 }
 
 func _Msg_OpenProgram_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgOpenProgram)
+	in := new(MsgModifyProgramStatus)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1063,13 +831,13 @@ func _Msg_OpenProgram_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: "/shentu.bounty.v1.Msg/OpenProgram",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).OpenProgram(ctx, req.(*MsgOpenProgram))
+		return srv.(MsgServer).OpenProgram(ctx, req.(*MsgModifyProgramStatus))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_CloseProgram_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgCloseProgram)
+	in := new(MsgModifyProgramStatus)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1081,7 +849,7 @@ func _Msg_CloseProgram_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: "/shentu.bounty.v1.Msg/CloseProgram",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).CloseProgram(ctx, req.(*MsgCloseProgram))
+		return srv.(MsgServer).CloseProgram(ctx, req.(*MsgModifyProgramStatus))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1104,44 +872,44 @@ func _Msg_SubmitFinding_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_HostAcceptFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgHostAcceptFinding)
+func _Msg_AcceptFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgModifyFindingStatus)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).HostAcceptFinding(ctx, in)
+		return srv.(MsgServer).AcceptFinding(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/shentu.bounty.v1.Msg/HostAcceptFinding",
+		FullMethod: "/shentu.bounty.v1.Msg/AcceptFinding",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).HostAcceptFinding(ctx, req.(*MsgHostAcceptFinding))
+		return srv.(MsgServer).AcceptFinding(ctx, req.(*MsgModifyFindingStatus))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_HostRejectFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgHostRejectFinding)
+func _Msg_RejectFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgModifyFindingStatus)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).HostRejectFinding(ctx, in)
+		return srv.(MsgServer).RejectFinding(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/shentu.bounty.v1.Msg/HostRejectFinding",
+		FullMethod: "/shentu.bounty.v1.Msg/RejectFinding",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).HostRejectFinding(ctx, req.(*MsgHostRejectFinding))
+		return srv.(MsgServer).RejectFinding(ctx, req.(*MsgModifyFindingStatus))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_CancelFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgCancelFinding)
+	in := new(MsgModifyFindingStatus)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1153,7 +921,7 @@ func _Msg_CancelFinding_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: "/shentu.bounty.v1.Msg/CancelFinding",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).CancelFinding(ctx, req.(*MsgCancelFinding))
+		return srv.(MsgServer).CancelFinding(ctx, req.(*MsgModifyFindingStatus))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1201,12 +969,12 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_SubmitFinding_Handler,
 		},
 		{
-			MethodName: "HostAcceptFinding",
-			Handler:    _Msg_HostAcceptFinding_Handler,
+			MethodName: "AcceptFinding",
+			Handler:    _Msg_AcceptFinding_Handler,
 		},
 		{
-			MethodName: "HostRejectFinding",
-			Handler:    _Msg_HostRejectFinding_Handler,
+			MethodName: "RejectFinding",
+			Handler:    _Msg_RejectFinding_Handler,
 		},
 		{
 			MethodName: "CancelFinding",
@@ -1393,7 +1161,7 @@ func (m *MsgEditProgramResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgOpenProgram) Marshal() (dAtA []byte, err error) {
+func (m *MsgModifyProgramStatus) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1403,34 +1171,39 @@ func (m *MsgOpenProgram) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgOpenProgram) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgModifyProgramStatus) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgOpenProgram) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgModifyProgramStatus) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if m.Status != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.OperatorAddress) > 0 {
+		i -= len(m.OperatorAddress)
+		copy(dAtA[i:], m.OperatorAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OperatorAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.ProgramId) > 0 {
 		i -= len(m.ProgramId)
 		copy(dAtA[i:], m.ProgramId)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.ProgramId)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.OpenAddress) > 0 {
-		i -= len(m.OpenAddress)
-		copy(dAtA[i:], m.OpenAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.OpenAddress)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgOpenProgramResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgModifyProgramStatusResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1440,72 +1213,12 @@ func (m *MsgOpenProgramResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgOpenProgramResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgModifyProgramStatusResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgOpenProgramResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgCloseProgram) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgCloseProgram) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgCloseProgram) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.ProgramId) > 0 {
-		i -= len(m.ProgramId)
-		copy(dAtA[i:], m.ProgramId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.ProgramId)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.CloseAddress) > 0 {
-		i -= len(m.CloseAddress)
-		copy(dAtA[i:], m.CloseAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.CloseAddress)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgCloseProgramResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgCloseProgramResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgCloseProgramResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgModifyProgramStatusResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1597,7 +1310,7 @@ func (m *MsgSubmitFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgHostAcceptFinding) Marshal() (dAtA []byte, err error) {
+func (m *MsgModifyFindingStatus) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1607,20 +1320,25 @@ func (m *MsgHostAcceptFinding) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgHostAcceptFinding) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgModifyFindingStatus) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgHostAcceptFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgModifyFindingStatus) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.HostAddress) > 0 {
-		i -= len(m.HostAddress)
-		copy(dAtA[i:], m.HostAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.HostAddress)))
+	if m.Status != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.OperatorAddress) > 0 {
+		i -= len(m.OperatorAddress)
+		copy(dAtA[i:], m.OperatorAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OperatorAddress)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -1634,7 +1352,7 @@ func (m *MsgHostAcceptFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgHostAcceptFindingResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgModifyFindingStatusResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1644,132 +1362,12 @@ func (m *MsgHostAcceptFindingResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgHostAcceptFindingResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgModifyFindingStatusResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgHostAcceptFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgHostRejectFinding) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgHostRejectFinding) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgHostRejectFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.HostAddress) > 0 {
-		i -= len(m.HostAddress)
-		copy(dAtA[i:], m.HostAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.HostAddress)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.FindingId) > 0 {
-		i -= len(m.FindingId)
-		copy(dAtA[i:], m.FindingId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.FindingId)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgHostRejectFindingResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgHostRejectFindingResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgHostRejectFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgCancelFinding) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgCancelFinding) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgCancelFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.FindingId) > 0 {
-		i -= len(m.FindingId)
-		copy(dAtA[i:], m.FindingId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.FindingId)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.SubmitterAddress) > 0 {
-		i -= len(m.SubmitterAddress)
-		copy(dAtA[i:], m.SubmitterAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.SubmitterAddress)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgCancelFindingResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgCancelFindingResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgCancelFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgModifyFindingStatusResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1938,50 +1536,27 @@ func (m *MsgEditProgramResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgOpenProgram) Size() (n int) {
+func (m *MsgModifyProgramStatus) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.OpenAddress)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
 	l = len(m.ProgramId)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	return n
-}
-
-func (m *MsgOpenProgramResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
-func (m *MsgCloseProgram) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.CloseAddress)
+	l = len(m.OperatorAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.ProgramId)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
+	if m.Status != 0 {
+		n += 1 + sovTx(uint64(m.Status))
 	}
 	return n
 }
 
-func (m *MsgCloseProgramResponse) Size() (n int) {
+func (m *MsgModifyProgramStatusResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2026,7 +1601,7 @@ func (m *MsgSubmitFindingResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgHostAcceptFinding) Size() (n int) {
+func (m *MsgModifyFindingStatus) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2036,66 +1611,17 @@ func (m *MsgHostAcceptFinding) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.HostAddress)
+	l = len(m.OperatorAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.Status != 0 {
+		n += 1 + sovTx(uint64(m.Status))
 	}
 	return n
 }
 
-func (m *MsgHostAcceptFindingResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
-func (m *MsgHostRejectFinding) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.FindingId)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.HostAddress)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	return n
-}
-
-func (m *MsgHostRejectFindingResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
-func (m *MsgCancelFinding) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.SubmitterAddress)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.FindingId)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	return n
-}
-
-func (m *MsgCancelFindingResponse) Size() (n int) {
+func (m *MsgModifyFindingStatusResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2666,7 +2192,7 @@ func (m *MsgEditProgramResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgOpenProgram) Unmarshal(dAtA []byte) error {
+func (m *MsgModifyProgramStatus) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2689,45 +2215,13 @@ func (m *MsgOpenProgram) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgOpenProgram: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgModifyProgramStatus: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgOpenProgram: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgModifyProgramStatus: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OpenAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.OpenAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ProgramId", wireType)
 			}
@@ -2759,141 +2253,9 @@ func (m *MsgOpenProgram) Unmarshal(dAtA []byte) error {
 			}
 			m.ProgramId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgOpenProgramResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgOpenProgramResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgOpenProgramResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgCloseProgram) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCloseProgram: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCloseProgram: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CloseAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.CloseAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ProgramId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2921,8 +2283,27 @@ func (m *MsgCloseProgram) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ProgramId = string(dAtA[iNdEx:postIndex])
+			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= ProgramStatus(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -2944,7 +2325,7 @@ func (m *MsgCloseProgram) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCloseProgramResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgModifyProgramStatusResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2967,10 +2348,10 @@ func (m *MsgCloseProgramResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCloseProgramResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgModifyProgramStatusResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCloseProgramResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgModifyProgramStatusResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -3255,7 +2636,7 @@ func (m *MsgSubmitFindingResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgHostAcceptFinding) Unmarshal(dAtA []byte) error {
+func (m *MsgModifyFindingStatus) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3278,10 +2659,10 @@ func (m *MsgHostAcceptFinding) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgHostAcceptFinding: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgModifyFindingStatus: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgHostAcceptFinding: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgModifyFindingStatus: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -3318,7 +2699,7 @@ func (m *MsgHostAcceptFinding) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field HostAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3346,113 +2727,13 @@ func (m *MsgHostAcceptFinding) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.HostAddress = string(dAtA[iNdEx:postIndex])
+			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgHostAcceptFindingResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgHostAcceptFindingResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgHostAcceptFindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgHostRejectFinding) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgHostRejectFinding: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgHostRejectFinding: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FindingId", wireType)
-			}
-			var stringLen uint64
+			m.Status = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -3462,56 +2743,11 @@ func (m *MsgHostRejectFinding) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.Status |= FindingStatus(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.FindingId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field HostAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.HostAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -3533,7 +2769,7 @@ func (m *MsgHostRejectFinding) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgHostRejectFindingResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgModifyFindingStatusResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3556,174 +2792,10 @@ func (m *MsgHostRejectFindingResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgHostRejectFindingResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgModifyFindingStatusResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgHostRejectFindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgCancelFinding) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCancelFinding: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCancelFinding: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SubmitterAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.SubmitterAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FindingId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.FindingId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgCancelFindingResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCancelFindingResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCancelFindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgModifyFindingStatusResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

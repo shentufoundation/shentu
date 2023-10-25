@@ -9,9 +9,6 @@ import (
 
 // InitGenesis stores genesis parameters.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
-	k.SetNextProgramID(ctx, data.StartingProgramId)
-	k.SetNextFindingID(ctx, data.StartingFindingId)
-
 	for _, finding := range data.Findings {
 		k.SetFinding(ctx, finding)
 		if err := k.AppendFidToFidList(ctx, finding.ProgramId, finding.FindingId); err != nil {
@@ -25,16 +22,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 }
 
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
-	maxFindingID, _ := k.GetNextFindingID(ctx)
-	maxProgramID, _ := k.GetNextProgramID(ctx)
-
 	programs := k.GetAllPrograms(ctx)
 	findings := k.GetAllFindings(ctx)
 
 	return &types.GenesisState{
-		StartingFindingId: maxFindingID,
-		StartingProgramId: maxProgramID,
-		Programs:          programs,
-		Findings:          findings,
+		Programs: programs,
+		Findings: findings,
 	}
 }

@@ -84,14 +84,14 @@ func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram)
 	return &types.MsgEditProgramResponse{}, nil
 }
 
-func (k msgServer) OpenProgram(goCtx context.Context, msg *types.MsgOpenProgram) (*types.MsgOpenProgramResponse, error) {
-	fromAddr, err := sdk.AccAddressFromBech32(msg.OpenAddress)
+func (k msgServer) OpenProgram(goCtx context.Context, msg *types.MsgModifyProgramStatus) (*types.MsgModifyProgramStatusResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	fromAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	err = k.Keeper.OpenProgram(ctx, fromAddr, msg.ProgramId)
-	if err != nil {
+	if err = k.Keeper.OpenProgram(ctx, fromAddr, msg.ProgramId); err != nil {
 		return nil, err
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -102,14 +102,14 @@ func (k msgServer) OpenProgram(goCtx context.Context, msg *types.MsgOpenProgram)
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OpenAddress),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
 	})
-	return &types.MsgOpenProgramResponse{}, nil
+	return &types.MsgModifyProgramStatusResponse{}, nil
 }
 
-func (k msgServer) CloseProgram(goCtx context.Context, msg *types.MsgCloseProgram) (*types.MsgCloseProgramResponse, error) {
-	fromAddr, err := sdk.AccAddressFromBech32(msg.CloseAddress)
+func (k msgServer) CloseProgram(goCtx context.Context, msg *types.MsgModifyProgramStatus) (*types.MsgModifyProgramStatusResponse, error) {
+	fromAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -126,10 +126,10 @@ func (k msgServer) CloseProgram(goCtx context.Context, msg *types.MsgCloseProgra
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.CloseAddress),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
 	})
-	return &types.MsgCloseProgramResponse{}, nil
+	return &types.MsgModifyProgramStatusResponse{}, nil
 }
 
 func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFinding) (*types.MsgSubmitFindingResponse, error) {
@@ -182,10 +182,10 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 	return &types.MsgSubmitFindingResponse{}, nil
 }
 
-func (k msgServer) HostAcceptFinding(goCtx context.Context, msg *types.MsgHostAcceptFinding) (*types.MsgHostAcceptFindingResponse, error) {
+func (k msgServer) AcceptFinding(goCtx context.Context, msg *types.MsgModifyFindingStatus) (*types.MsgModifyFindingStatusResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	finding, err := k.hostProcess(ctx, msg.FindingId, msg.HostAddress)
+	finding, err := k.hostProcess(ctx, msg.FindingId, msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -202,17 +202,17 @@ func (k msgServer) HostAcceptFinding(goCtx context.Context, msg *types.MsgHostAc
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.HostAddress),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
 	})
 
-	return &types.MsgHostAcceptFindingResponse{}, nil
+	return &types.MsgModifyFindingStatusResponse{}, nil
 }
 
-func (k msgServer) HostRejectFinding(goCtx context.Context, msg *types.MsgHostRejectFinding) (*types.MsgHostRejectFindingResponse, error) {
+func (k msgServer) RejectFinding(goCtx context.Context, msg *types.MsgModifyFindingStatus) (*types.MsgModifyFindingStatusResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	finding, err := k.hostProcess(ctx, msg.FindingId, msg.HostAddress)
+	finding, err := k.hostProcess(ctx, msg.FindingId, msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -229,11 +229,11 @@ func (k msgServer) HostRejectFinding(goCtx context.Context, msg *types.MsgHostRe
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.HostAddress),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
 	})
 
-	return &types.MsgHostRejectFindingResponse{}, nil
+	return &types.MsgModifyFindingStatusResponse{}, nil
 }
 
 func (k msgServer) hostProcess(ctx sdk.Context, fid, hostAddr string) (*types.Finding, error) {
@@ -260,8 +260,8 @@ func (k msgServer) hostProcess(ctx sdk.Context, fid, hostAddr string) (*types.Fi
 	return &finding, nil
 }
 
-func (k msgServer) CancelFinding(goCtx context.Context, msg *types.MsgCancelFinding) (*types.MsgCancelFindingResponse, error) {
-	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
+func (k msgServer) CancelFinding(goCtx context.Context, msg *types.MsgModifyFindingStatus) (*types.MsgModifyFindingStatusResponse, error) {
+	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +275,7 @@ func (k msgServer) CancelFinding(goCtx context.Context, msg *types.MsgCancelFind
 	}
 
 	// check submitter
-	if finding.SubmitterAddress != msg.SubmitterAddress {
+	if finding.SubmitterAddress != msg.OperatorAddress {
 		return nil, types.ErrFindingSubmitterInvalid
 	}
 
@@ -296,11 +296,11 @@ func (k msgServer) CancelFinding(goCtx context.Context, msg *types.MsgCancelFind
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.SubmitterAddress),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
 		),
 	})
 
-	return &types.MsgCancelFindingResponse{}, nil
+	return &types.MsgModifyFindingStatusResponse{}, nil
 }
 
 func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFinding) (*types.MsgReleaseFindingResponse, error) {

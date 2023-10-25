@@ -1,21 +1,13 @@
 package cli
 
 import (
-	"bytes"
 	"crypto/rand"
-	"fmt"
 	"os"
-
-	"github.com/gogo/protobuf/proto"
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/ecies"
 
 	"github.com/tendermint/tendermint/libs/tempfile"
-
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-
-	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 const RandBytesLen = 64
@@ -69,32 +61,4 @@ func GenerateKey() (*ecies.PrivateKey, *ecies.PublicKey, error) {
 	}
 	encKey := &decKey.PublicKey
 	return decKey, encKey, nil
-}
-
-func KeyAnyToPubKey(keyAny *codectypes.Any) (*ecies.PublicKey, error) {
-	if keyAny == nil {
-		return nil, fmt.Errorf("empty public key")
-	}
-	var encryptionKey types.EciesPubKey
-	err := proto.Unmarshal(keyAny.GetValue(), &encryptionKey)
-	if err != nil {
-		return nil, err
-	}
-
-	pubEcdsa, err := crypto.UnmarshalPubkey(encryptionKey.EncryptionKey)
-	if err != nil {
-		return nil, err
-	}
-	eciesEncKey := ecies.ImportECDSAPublic(pubEcdsa)
-
-	return eciesEncKey, nil
-}
-
-func GetRandBytes() ([]byte, *bytes.Reader) {
-	randBytes := make([]byte, RandBytesLen)
-	_, err := rand.Read(randBytes)
-	if err != nil {
-		panic("could not read from random source: " + err.Error())
-	}
-	return randBytes, bytes.NewReader(randBytes)
 }

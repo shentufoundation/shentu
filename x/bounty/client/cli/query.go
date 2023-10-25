@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -78,16 +77,10 @@ $ %s query bounty program 1
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			// validate that the program-id is an uint
-			programID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("program-id %s not a valid uint, please input a valid program-id", args[0])
-			}
-
 			// Query the program
 			res, err := queryClient.Program(
 				cmd.Context(),
-				&types.QueryProgramRequest{ProgramId: programID},
+				&types.QueryProgramRequest{ProgramId: args[0]},
 			)
 			if err != nil {
 				return err
@@ -166,12 +159,6 @@ $ %s query bounty finding 1
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// validate that the finding-id is an uint
-			findingID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("finding-id %s not a valid uint, please input a valid finding-id", args[1])
-			}
-
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
@@ -182,7 +169,7 @@ $ %s query bounty finding 1
 			res, err := queryClient.Finding(
 				cmd.Context(),
 				&types.QueryFindingRequest{
-					FindingId: findingID,
+					FindingId: args[0],
 				})
 			if err != nil {
 				return err
@@ -215,10 +202,7 @@ $ %s query bounty findings --page=1 --limit=100
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// validate that the program-id is an uint
-			programID, err := cmd.Flags().GetUint64(FlagProgramID)
-			if err != nil {
-				return fmt.Errorf("program-id not a valid uint, please input a valid program-id")
-			}
+			programId, _ := cmd.Flags().GetString(FlagProgramID)
 
 			submitterAddr, _ := cmd.Flags().GetString(FlagSubmitterAddress)
 			if len(submitterAddr) != 0 {
@@ -240,8 +224,8 @@ $ %s query bounty findings --page=1 --limit=100
 				SubmitterAddress: submitterAddr,
 				Pagination:       pageReq,
 			}
-			if programID != 0 {
-				req.ProgramId = programID
+			if len(programId) != 0 {
+				req.ProgramId = programId
 			}
 
 			res, err := queryClient.Findings(cmd.Context(), req)

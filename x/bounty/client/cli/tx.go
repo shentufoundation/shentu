@@ -44,7 +44,7 @@ func NewCreateProgramCmd() *cobra.Command {
 				return err
 			}
 
-			creatorAddr := clientCtx.GetFromAddress().String()
+			creatorAddr := clientCtx.GetFromAddress()
 			name, _ := cmd.Flags().GetString(FlagName)
 			members, _ := cmd.Flags().GetStringArray(FlagMembers)
 			pid, _ := cmd.Flags().GetString(FlagProgramID)
@@ -54,7 +54,7 @@ func NewCreateProgramCmd() *cobra.Command {
 			knownIssues, _ := cmd.Flags().GetString(FlagKnownIssues)
 
 			detail := types.NewDetail(desc, scopeRules, knownIssues, nil)
-			msg, err := types.NewMsgCreateProgram(name, creatorAddr, pid, detail, members)
+			msg, err := types.NewMsgCreateProgram(name, pid, creatorAddr, detail, members)
 			if err != nil {
 				return err
 			}
@@ -106,7 +106,7 @@ func NewCloseProgramCmd() *cobra.Command {
 			}
 			fromAddr := clientCtx.GetFromAddress()
 
-			msg := types.NewMsgCloseProgram(fromAddr, args[0])
+			msg := types.NewMsgModifyFindingStatus(args[0], fromAddr)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -222,7 +222,7 @@ func AcceptFinding(cmd *cobra.Command, args []string) error {
 
 	// Get host address
 	hostAddr := clientCtx.GetFromAddress()
-	msg := types.NewMsgHostAcceptFinding(args[0], hostAddr)
+	msg := types.NewMsgModifyFindingStatus(args[0], hostAddr)
 
 	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 }
@@ -236,7 +236,7 @@ func RejectFinding(cmd *cobra.Command, args []string) error {
 	// Get host address
 	hostAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgHostRejectFinding(args[0], hostAddr)
+	msg := types.NewMsgModifyFindingStatus(args[0], hostAddr)
 
 	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 }
@@ -252,7 +252,7 @@ func NewCancelFindingCmd() *cobra.Command {
 				return err
 			}
 			submitAddr := clientCtx.GetFromAddress()
-			msg := types.NewMsgCancelFinding(submitAddr, args[0])
+			msg := types.NewMsgModifyFindingStatus(args[0], submitAddr)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}

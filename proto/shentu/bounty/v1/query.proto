@@ -81,7 +81,7 @@ message QueryProgramsResponse {
 // QueryProgramRequest is the request type for the Query/Program RPC method.
 message QueryProgramRequest {
   // program_id defines the unique id of the bounty program.
-  uint64 program_id = 1;
+  string program_id = 1;
 }
 
 // QueryProgramResponse is the response type for the Query/Program RPC method.
@@ -92,7 +92,7 @@ message QueryProgramResponse {
 // QueryFindingRequests is the request type for the Query/Findings RPC method.
 message QueryFindingsRequest {
   // program_id defines the unique id of the program.
-  uint64 program_id = 1;
+  string program_id = 1;
 
   // submitter_address defines the find address for the finding.
   string submitter_address = 2;
@@ -112,7 +112,7 @@ message QueryFindingsResponse {
 // QueryFindingRequest is the request type for the Query/Finding RPC method.
 message QueryFindingRequest {
   // finding_id defines the unique id of the finding.
-  uint64 finding_id = 1;
+  string finding_id = 1;
 }
 
 // QueryFindingResponse is the response type for the Query/Finding RPC method.

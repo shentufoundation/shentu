@@ -63,7 +63,7 @@ func (k Keeper) Program(c context.Context, req *types.QueryProgramRequest) (*typ
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-	if req.ProgramId == 0 {
+	if len(req.ProgramId) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "program-id can not be 0")
 	}
 
@@ -77,7 +77,7 @@ func (k Keeper) Program(c context.Context, req *types.QueryProgramRequest) (*typ
 }
 
 func (k Keeper) Findings(c context.Context, req *types.QueryFindingsRequest) (*types.QueryFindingsResponse, error) {
-	var queryFindings []types.QueryFinding
+	var queryFindings types.Findings
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
@@ -104,7 +104,7 @@ func (k Keeper) Finding(c context.Context, req *types.QueryFindingRequest) (*typ
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-	if req.FindingId == 0 {
+	if len(req.FindingId) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "finding-id can not be 0")
 	}
 

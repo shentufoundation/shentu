@@ -12,60 +12,23 @@ import (
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgCreateProgram{}, "bounty/CreateProgram", nil)
+	cdc.RegisterConcrete(MsgEditProgram{}, "bounty/EditProgram", nil)
+	cdc.RegisterConcrete(MsgModifyProgramStatus{}, "bounty/OpenProgram", nil)
+	cdc.RegisterConcrete(MsgModifyProgramStatus{}, "bounty/CloseProgram", nil)
 	cdc.RegisterConcrete(MsgSubmitFinding{}, "bounty/SubmitFinding", nil)
-	cdc.RegisterConcrete(MsgHostAcceptFinding{}, "bounty/HostAcceptFinding", nil)
-	cdc.RegisterConcrete(MsgHostRejectFinding{}, "bounty/HostRejectFinding", nil)
-	cdc.RegisterConcrete(MsgReleaseFinding{}, "bounty/MsgReleaseFinding", nil)
-
-	cdc.RegisterConcrete(&EciesPubKey{}, "bounty/EciesPubKey", nil)
-
-	cdc.RegisterConcrete(&EciesEncryptedDesc{}, "bounty/EciesEncryptedDesc", nil)
-	cdc.RegisterConcrete(&EciesEncryptedPoc{}, "bounty/EciesEncryptedPoc", nil)
-	cdc.RegisterConcrete(&EciesEncryptedComment{}, "bounty/EciesEncryptedComment", nil)
-	cdc.RegisterConcrete(&PlainTextDesc{}, "bounty/PlainTextDesc", nil)
-	cdc.RegisterConcrete(&PlainTextPoc{}, "bounty/PlainTextPoc", nil)
-	cdc.RegisterConcrete(&PlainTextComment{}, "bounty/PlainTextComment", nil)
-
-	cdc.RegisterInterface((*EncryptionKey)(nil), nil)
-	cdc.RegisterInterface((*FindingDesc)(nil), nil)
-	cdc.RegisterInterface((*FindingPoc)(nil), nil)
-	cdc.RegisterInterface((*FindingComment)(nil), nil)
+	cdc.RegisterConcrete(MsgModifyFindingStatus{}, "bounty/RejectFinding", nil)
+	cdc.RegisterConcrete(MsgModifyFindingStatus{}, "bounty/AcceptFinding", nil)
+	cdc.RegisterConcrete(MsgReleaseFinding{}, "bounty/ReleaseFinding", nil)
 }
 
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCreateProgram{},
+		&MsgEditProgram{},
+		&MsgModifyProgramStatus{},
 		&MsgSubmitFinding{},
-		&MsgHostAcceptFinding{},
-		&MsgHostRejectFinding{},
+		&MsgModifyFindingStatus{},
 		&MsgReleaseFinding{},
-	)
-
-	registry.RegisterInterface(
-		"shentu.bounty.v1.EncryptionKey",
-		(*EncryptionKey)(nil),
-		&EciesPubKey{},
-	)
-
-	registry.RegisterInterface(
-		"shentu.bounty.v1.FindingDesc",
-		(*FindingDesc)(nil),
-		&EciesEncryptedDesc{},
-		&PlainTextDesc{},
-	)
-
-	registry.RegisterInterface(
-		"shentu.bounty.v1.FindingPoc",
-		(*FindingPoc)(nil),
-		&EciesEncryptedPoc{},
-		&PlainTextPoc{},
-	)
-
-	registry.RegisterInterface(
-		"shentu.bounty.v1.FindingComment",
-		(*FindingComment)(nil),
-		&EciesEncryptedComment{},
-		&PlainTextComment{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

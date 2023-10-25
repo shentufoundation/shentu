@@ -19,29 +19,29 @@ func TestExportGenesis(t *testing.T) {
 		StartingProgramId: 2,
 		Programs: []types.Program{
 			{
-				ProgramId: 1,
+				ProgramId: "1",
 			},
 			{
-				ProgramId: 2,
+				ProgramId: "2",
 			},
 			{
-				ProgramId: 4,
+				ProgramId: "4",
 			},
 			{
-				ProgramId: 5,
+				ProgramId: "5",
 			},
 			{
-				ProgramId: 8,
+				ProgramId: "8",
 			},
 		},
 		Findings: []types.Finding{
 			{
-				FindingId: 1,
-				ProgramId: 1,
+				FindingId: "1",
+				ProgramId: "1",
 			},
 			{
-				FindingId: 4,
-				ProgramId: 5,
+				FindingId: "4",
+				ProgramId: "5",
 			},
 		},
 	}
