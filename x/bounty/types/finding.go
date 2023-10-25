@@ -10,11 +10,11 @@ import (
 // Findings is an array of finding
 type Findings []Finding
 
-func NewFinding(programId, findingId string, title, submitterAddr string, detail FindingDetail, submitTime time.Time) (Finding, error) {
+func NewFinding(pid, fid string, title, submitterAddr string, detail FindingDetail, submitTime time.Time) (Finding, error) {
 
 	return Finding{
-		FindingId:        findingId,
-		ProgramId:        programId,
+		FindingId:        fid,
+		ProgramId:        pid,
 		Title:            title,
 		Detail:           detail,
 		CreateTime:       submitTime,

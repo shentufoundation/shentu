@@ -202,7 +202,7 @@ $ %s query bounty findings --page=1 --limit=100
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// validate that the program-id is an uint
-			programId, _ := cmd.Flags().GetString(FlagProgramID)
+			pid, _ := cmd.Flags().GetString(FlagProgramID)
 
 			submitterAddr, _ := cmd.Flags().GetString(FlagSubmitterAddress)
 			if len(submitterAddr) != 0 {
@@ -224,8 +224,8 @@ $ %s query bounty findings --page=1 --limit=100
 				SubmitterAddress: submitterAddr,
 				Pagination:       pageReq,
 			}
-			if len(programId) != 0 {
-				req.ProgramId = programId
+			if len(pid) != 0 {
+				req.ProgramId = pid
 			}
 
 			res, err := queryClient.Findings(cmd.Context(), req)

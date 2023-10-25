@@ -25,8 +25,8 @@ message Finding {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string finding_id = 1 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
-  string program_id = 2 [(gogoproto.moretags) = "yaml:\"program_id\""];
+  string program_id = 1 [(gogoproto.moretags) = "yaml:\"program_id\""];
+  string finding_id = 2 [(gogoproto.jsontag) = "id", (gogoproto.moretags) = "yaml:\"id\""];
   string title = 3;
   FindingDetail detail = 4 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"detail\""];
   string submitter_address = 5 [(gogoproto.moretags) = "yaml:\"submitter_address\""];

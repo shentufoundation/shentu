@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -111,12 +112,11 @@ func (msg MsgEditProgram) ValidateBasic() error {
 }
 
 // NewMsgSubmitFinding submit a new finding.
-func NewMsgSubmitFinding(
-	programId, findingId, title string, detail FindingDetail, accAddr sdk.AccAddress) *MsgSubmitFinding {
+func NewMsgSubmitFinding(pid, fid, title string, detail FindingDetail, accAddr sdk.AccAddress) *MsgSubmitFinding {
 
 	return &MsgSubmitFinding{
-		ProgramId:        programId,
-		FindingId:        findingId,
+		ProgramId:        pid,
+		FindingId:        fid,
 		Title:            title,
 		Detail:           detail,
 		SubmitterAddress: accAddr.String(),

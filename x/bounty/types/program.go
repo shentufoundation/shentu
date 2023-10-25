@@ -7,9 +7,9 @@ import (
 // Programs is an array of program
 type Programs []Program
 
-func NewProgram(programId, name, adminAddr string, detail ProgramDetail, memberAddrs []string, status ProgramStatus) (Program, error) {
+func NewProgram(pid, name, adminAddr string, detail ProgramDetail, memberAddrs []string, status ProgramStatus) (Program, error) {
 	return Program{
-		ProgramId:      programId,
+		ProgramId:      pid,
 		Name:           name,
 		Detail:         detail,
 		AdminAddress:   adminAddr,

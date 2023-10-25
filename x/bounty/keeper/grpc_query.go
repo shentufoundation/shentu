@@ -70,7 +70,7 @@ func (k Keeper) Program(c context.Context, req *types.QueryProgramRequest) (*typ
 	ctx := sdk.UnwrapSDKContext(c)
 	program, found := k.GetProgram(ctx, req.ProgramId)
 	if !found {
-		return nil, status.Errorf(codes.NotFound, "program %d doesn't exist", req.ProgramId)
+		return nil, status.Errorf(codes.NotFound, "program %s doesn't exist", req.ProgramId)
 	}
 
 	return &types.QueryProgramResponse{Program: program}, nil
@@ -111,7 +111,7 @@ func (k Keeper) Finding(c context.Context, req *types.QueryFindingRequest) (*typ
 	ctx := sdk.UnwrapSDKContext(c)
 	finding, found := k.GetFinding(ctx, req.FindingId)
 	if !found {
-		return nil, status.Errorf(codes.NotFound, "finding %d doesn't exist", req.FindingId)
+		return nil, status.Errorf(codes.NotFound, "finding %s doesn't exist", req.FindingId)
 	}
 
 	return &types.QueryFindingResponse{Finding: finding}, nil
