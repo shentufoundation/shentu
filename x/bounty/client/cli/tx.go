@@ -29,7 +29,7 @@ func NewTxCmd() *cobra.Command {
 		NewSubmitFindingCmd(),
 		NewAcceptFindingCmd(),
 		NewRejectFindingCmd(),
-		NewCancelFindingCmd(),
+		NewCloseFindingCmd(),
 	)
 
 	return bountyTxCmds
@@ -139,7 +139,7 @@ func NewCloseProgramCmd() *cobra.Command {
 			}
 			fromAddr := clientCtx.GetFromAddress()
 
-			msg := types.NewMsgModifyFindingStatus(args[0], fromAddr)
+			msg := types.NewMsgCloseProgram(args[0], fromAddr)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -252,7 +252,7 @@ func AcceptFinding(cmd *cobra.Command, args []string) error {
 
 	// Get host address
 	hostAddr := clientCtx.GetFromAddress()
-	msg := types.NewMsgModifyFindingStatus(args[0], hostAddr)
+	msg := types.NewMsgAcceptFinding(args[0], hostAddr)
 
 	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 }
@@ -266,23 +266,23 @@ func RejectFinding(cmd *cobra.Command, args []string) error {
 	// Get host address
 	hostAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgModifyFindingStatus(args[0], hostAddr)
+	msg := types.NewMsgRejectFinding(args[0], hostAddr)
 
 	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 }
 
-func NewCancelFindingCmd() *cobra.Command {
+func NewCloseFindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cancel-finding [finding id]",
+		Use:   "close-finding [finding id]",
 		Args:  cobra.ExactArgs(1),
-		Short: "cancel the specific finding",
+		Short: "close the specific finding",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 			submitAddr := clientCtx.GetFromAddress()
-			msg := types.NewMsgModifyFindingStatus(args[0], submitAddr)
+			msg := types.NewMsgCloseFinding(args[0], submitAddr)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}

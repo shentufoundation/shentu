@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryProgram() {
 			func() {
 				req = &types.QueryProgramRequest{ProgramId: "1"}
 				// create programs
-				suite.CreatePrograms("1")
+				suite.InitCreateProgram("1")
 			},
 			true,
 		},
@@ -89,8 +89,8 @@ func (suite *KeeperTestSuite) TestGRPCQueryPrograms() {
 				}
 
 				// create two programs
-				suite.CreatePrograms("1")
-				suite.CreatePrograms("2")
+				suite.InitCreateProgram("1")
+				suite.InitCreateProgram("2")
 			},
 			true,
 		},
@@ -117,8 +117,8 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 	queryClient := suite.queryClient
 
 	// create programs
-	suite.CreatePrograms("1")
-
+	suite.InitCreateProgram("1")
+	suite.InitOpenProgram("1")
 	var (
 		req *types.QueryFindingRequest
 	)
@@ -153,7 +153,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 			"valid request",
 			func() {
 				req = &types.QueryFindingRequest{FindingId: "1"}
-				suite.CreateSubmitFinding("1", "1")
+				suite.InitSubmitFinding("1", "1")
 			},
 			true,
 		},
@@ -161,7 +161,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 			"valid request",
 			func() {
 				req = &types.QueryFindingRequest{FindingId: "2"}
-				suite.CreateSubmitFinding("1", "2")
+				suite.InitSubmitFinding("1", "2")
 
 				ctx := sdk.WrapSDKContext(suite.ctx)
 				suite.msgServer.ReleaseFinding(ctx, types.NewReleaseFinding("2", "release desc", suite.address[0]))
@@ -191,7 +191,8 @@ func (suite *KeeperTestSuite) TestGRPCQueryFindings() {
 
 	// create programs
 	pid := "1"
-	suite.CreatePrograms(pid)
+	suite.InitCreateProgram(pid)
+	suite.InitOpenProgram(pid)
 
 	var (
 		req *types.QueryFindingsRequest
@@ -206,7 +207,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryFindings() {
 			"valid request",
 			func() {
 				req = &types.QueryFindingsRequest{ProgramId: pid}
-				suite.CreateSubmitFinding(pid, "1")
+				suite.InitSubmitFinding(pid, "1")
 			},
 			true,
 		},

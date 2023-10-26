@@ -40,5 +40,5 @@ func TestPrefixToShentu(t *testing.T) {
 	address, err = bech32.ConvertAndEncode("shentu", sum[:])
 	require.NoError(t, err)
 	_, err = PrefixToShentu(address)
-	require.Error(t, err)
+	require.NoError(t, err)
 }

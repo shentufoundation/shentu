@@ -21,26 +21,23 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgEditProgram:
 			res, err := msgServer.EditProgram(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgModifyProgramStatus:
-			if msg.Status == types.ProgramStatusActive {
-				res, err := msgServer.OpenProgram(sdk.WrapSDKContext(ctx), msg)
-				return sdk.WrapServiceResult(ctx, res, err)
-			}
+		case *types.MsgOpenProgram:
+			res, err := msgServer.OpenProgram(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgCloseProgram:
 			res, err := msgServer.CloseProgram(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 		case *types.MsgSubmitFinding:
 			res, err := msgServer.SubmitFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgModifyFindingStatus:
-			if msg.Status == types.FindingStatusClosed {
-				res, err := msgServer.RejectFinding(sdk.WrapSDKContext(ctx), msg)
-				return sdk.WrapServiceResult(ctx, res, err)
-			}
-			if msg.Status == types.FindingStatusConfirmed {
-				res, err := msgServer.AcceptFinding(sdk.WrapSDKContext(ctx), msg)
-				return sdk.WrapServiceResult(ctx, res, err)
-			}
-			res, err := msgServer.CancelFinding(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgAcceptFinding:
+			res, err := msgServer.AcceptFinding(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgRejectFinding:
+			res, err := msgServer.RejectFinding(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgCloseFinding:
+			res, err := msgServer.CloseFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 		case *types.MsgReleaseFinding:
 			res, err := msgServer.ReleaseFinding(sdk.WrapSDKContext(ctx), msg)

@@ -8,7 +8,7 @@ import (
 type Programs []Program
 
 func NewProgram(pid, name, desc string,
-	admin sdk.ValAddress, members []string, status ProgramStatus, levels []BountyLevel) (Program, error) {
+	admin sdk.AccAddress, members []string, status ProgramStatus, levels []BountyLevel) (Program, error) {
 
 	return Program{
 		ProgramId:      pid,

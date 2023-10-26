@@ -12,7 +12,7 @@ import (
 // Findings is an array of finding
 type Findings []Finding
 
-func NewFinding(pid, fid, title, desc string, operator sdk.ValAddress, submitTime time.Time, level SeverityLevel) (Finding, error) {
+func NewFinding(pid, fid, title, desc string, operator sdk.AccAddress, submitTime time.Time, level SeverityLevel) (Finding, error) {
 
 	hash := sha256.Sum256([]byte(title + desc))
 	bzHash := hash[:]

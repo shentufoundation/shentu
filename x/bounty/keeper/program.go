@@ -73,8 +73,8 @@ func (k Keeper) CloseProgram(ctx sdk.Context, caller sdk.AccAddress, id string) 
 		return types.ErrFindingOperatorNotAllowed
 	}
 
-	if program.Status != types.ProgramStatusActive {
-		return types.ErrProgramNotActive
+	if program.Status == types.ProgramStatusClosed {
+		return types.ErrProgramAlreadyClosed
 	}
 
 	program.Status = types.ProgramStatusClosed

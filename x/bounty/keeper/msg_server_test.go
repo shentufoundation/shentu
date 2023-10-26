@@ -68,7 +68,9 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 		shouldPass bool
 	}
 
-	pid := suite.InitCreateProgram()
+	pid := "1"
+	suite.InitCreateProgram(pid)
+	suite.InitOpenProgram(pid)
 
 	tests := []struct {
 		name    string
@@ -147,60 +149,27 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 	}
 }
 
-func (suite *KeeperTestSuite) InitCreateProgram() string {
-
-	msgCreateProgram := &types.MsgCreateProgram{
-		Name:            "name",
-		Description:     "create test1",
-		OperatorAddress: suite.address[0].String(),
-		MemberAccounts:  []string{suite.address[1].String(), suite.address[2].String()},
-		ProgramId:       "1",
-	}
-
-	ctx := types1.WrapSDKContext(suite.ctx)
-	_, err := suite.msgServer.CreateProgram(ctx, msgCreateProgram)
-	suite.Require().NoError(err)
-
-	return msgCreateProgram.ProgramId
-}
-
-func (suite *KeeperTestSuite) InitSubmitFinding(pid string) string {
-	msgSubmitFinding := &types.MsgSubmitFinding{
-		ProgramId:        pid,
-		FindingId:        "1",
-		Title:            "Bug title",
-		Description:      "Bug desc",
-		SubmitterAddress: suite.address[0].String(),
-		SeverityLevel:    types.SeverityLevelCritical,
-	}
-
-	ctx := types1.WrapSDKContext(suite.ctx)
-	_, err := suite.msgServer.SubmitFinding(ctx, msgSubmitFinding)
-	suite.Require().NoError(err)
-
-	return msgSubmitFinding.FindingId
-}
-
 func (suite *KeeperTestSuite) TestAcceptFinding() {
-	programId := suite.InitCreateProgram()
-	findingId := suite.InitSubmitFinding(programId)
+	pid, fid := "1", "1"
+	suite.InitCreateProgram(pid)
+	suite.InitOpenProgram(pid)
+	suite.InitSubmitFinding(pid, fid)
 
 	testCases := []struct {
 		name    string
-		req     *types.MsgModifyFindingStatus
+		req     *types.MsgAcceptFinding
 		expPass bool
 	}{
 		{
 			"empty request",
-			&types.MsgModifyFindingStatus{},
+			&types.MsgAcceptFinding{},
 			false,
 		},
 		{
 			"valid request => ",
-			&types.MsgModifyFindingStatus{
-				FindingId:       "1",
+			&types.MsgAcceptFinding{
+				FindingId:       fid,
 				OperatorAddress: suite.address[0].String(),
-				Status:          types.FindingStatusConfirmed,
 			},
 			true,
 		},
@@ -211,39 +180,40 @@ func (suite *KeeperTestSuite) TestAcceptFinding() {
 			ctx := types1.WrapSDKContext(suite.ctx)
 			_, err := suite.msgServer.AcceptFinding(ctx, testCase.req)
 
-			finding, _ := suite.keeper.GetFinding(suite.ctx, findingId)
+			finding, _ := suite.keeper.GetFinding(suite.ctx, fid)
 
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(finding.Status, types.FindingStatusConfirmed)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Equal(finding.String(), types.FindingStatusReported)
+				suite.Require().Equal(finding.Status, types.FindingStatusReported)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestHostRejectFinding() {
-	programId := suite.InitCreateProgram()
-	findingId := suite.InitSubmitFinding(programId)
+func (suite *KeeperTestSuite) TestRejectFinding() {
+	pid, fid := "1", "1"
+	suite.InitCreateProgram(pid)
+	suite.InitOpenProgram(pid)
+	findingId := suite.InitSubmitFinding(pid, fid)
 
 	testCases := []struct {
 		name    string
-		req     *types.MsgModifyFindingStatus
+		req     *types.MsgRejectFinding
 		expPass bool
 	}{
 		{
 			"empty request",
-			&types.MsgModifyFindingStatus{},
+			&types.MsgRejectFinding{},
 			false,
 		},
 		{
 			"valid request => comment is empty",
-			&types.MsgModifyFindingStatus{
+			&types.MsgRejectFinding{
 				FindingId:       "1",
 				OperatorAddress: suite.address[0].String(),
-				Status:          types.FindingStatusClosed,
 			},
 			true,
 		},
@@ -265,4 +235,47 @@ func (suite *KeeperTestSuite) TestHostRejectFinding() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) InitCreateProgram(pid string) {
+
+	msgCreateProgram := &types.MsgCreateProgram{
+		Name:            "name",
+		Description:     "create test1",
+		OperatorAddress: suite.address[0].String(),
+		MemberAccounts:  []string{suite.address[1].String(), suite.address[2].String()},
+		ProgramId:       pid,
+	}
+
+	ctx := types1.WrapSDKContext(suite.ctx)
+	_, err := suite.msgServer.CreateProgram(ctx, msgCreateProgram)
+	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) InitOpenProgram(pid string) {
+	msgCreateProgram := &types.MsgOpenProgram{
+		ProgramId:       pid,
+		OperatorAddress: suite.address[3].String(),
+	}
+
+	ctx := types1.WrapSDKContext(suite.ctx)
+	_, err := suite.msgServer.OpenProgram(ctx, msgCreateProgram)
+	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) InitSubmitFinding(pid, fid string) string {
+	msgSubmitFinding := &types.MsgSubmitFinding{
+		ProgramId:        pid,
+		FindingId:        fid,
+		Title:            "Bug title",
+		Description:      "Bug desc",
+		SubmitterAddress: suite.address[0].String(),
+		SeverityLevel:    types.SeverityLevelCritical,
+	}
+
+	ctx := types1.WrapSDKContext(suite.ctx)
+	_, err := suite.msgServer.SubmitFinding(ctx, msgSubmitFinding)
+	suite.Require().NoError(err)
+
+	return msgSubmitFinding.FindingId
 }

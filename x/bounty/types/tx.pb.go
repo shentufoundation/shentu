@@ -192,24 +192,23 @@ func (m *MsgEditProgramResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgEditProgramResponse proto.InternalMessageInfo
 
-type MsgModifyProgramStatus struct {
-	ProgramId       string        `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
-	OperatorAddress string        `protobuf:"bytes,2,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
-	Status          ProgramStatus `protobuf:"varint,3,opt,name=status,proto3,enum=shentu.bounty.v1.ProgramStatus" json:"status,omitempty" yaml:"status"`
+type MsgOpenProgram struct {
+	ProgramId       string `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
+	OperatorAddress string `protobuf:"bytes,2,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
 }
 
-func (m *MsgModifyProgramStatus) Reset()         { *m = MsgModifyProgramStatus{} }
-func (m *MsgModifyProgramStatus) String() string { return proto.CompactTextString(m) }
-func (*MsgModifyProgramStatus) ProtoMessage()    {}
-func (*MsgModifyProgramStatus) Descriptor() ([]byte, []int) {
+func (m *MsgOpenProgram) Reset()         { *m = MsgOpenProgram{} }
+func (m *MsgOpenProgram) String() string { return proto.CompactTextString(m) }
+func (*MsgOpenProgram) ProtoMessage()    {}
+func (*MsgOpenProgram) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1e4b4296bac3db30, []int{4}
 }
-func (m *MsgModifyProgramStatus) XXX_Unmarshal(b []byte) error {
+func (m *MsgOpenProgram) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgModifyProgramStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgOpenProgram) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgModifyProgramStatus.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgOpenProgram.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -219,33 +218,33 @@ func (m *MsgModifyProgramStatus) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (m *MsgModifyProgramStatus) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgModifyProgramStatus.Merge(m, src)
+func (m *MsgOpenProgram) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgOpenProgram.Merge(m, src)
 }
-func (m *MsgModifyProgramStatus) XXX_Size() int {
+func (m *MsgOpenProgram) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgModifyProgramStatus) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgModifyProgramStatus.DiscardUnknown(m)
+func (m *MsgOpenProgram) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgOpenProgram.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgModifyProgramStatus proto.InternalMessageInfo
+var xxx_messageInfo_MsgOpenProgram proto.InternalMessageInfo
 
-type MsgModifyProgramStatusResponse struct {
+type MsgOpenProgramResponse struct {
 }
 
-func (m *MsgModifyProgramStatusResponse) Reset()         { *m = MsgModifyProgramStatusResponse{} }
-func (m *MsgModifyProgramStatusResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgModifyProgramStatusResponse) ProtoMessage()    {}
-func (*MsgModifyProgramStatusResponse) Descriptor() ([]byte, []int) {
+func (m *MsgOpenProgramResponse) Reset()         { *m = MsgOpenProgramResponse{} }
+func (m *MsgOpenProgramResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgOpenProgramResponse) ProtoMessage()    {}
+func (*MsgOpenProgramResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1e4b4296bac3db30, []int{5}
 }
-func (m *MsgModifyProgramStatusResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgOpenProgramResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgModifyProgramStatusResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgOpenProgramResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgModifyProgramStatusResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgOpenProgramResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -255,17 +254,91 @@ func (m *MsgModifyProgramStatusResponse) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *MsgModifyProgramStatusResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgModifyProgramStatusResponse.Merge(m, src)
+func (m *MsgOpenProgramResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgOpenProgramResponse.Merge(m, src)
 }
-func (m *MsgModifyProgramStatusResponse) XXX_Size() int {
+func (m *MsgOpenProgramResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgModifyProgramStatusResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgModifyProgramStatusResponse.DiscardUnknown(m)
+func (m *MsgOpenProgramResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgOpenProgramResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgModifyProgramStatusResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgOpenProgramResponse proto.InternalMessageInfo
+
+type MsgCloseProgram struct {
+	ProgramId       string `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
+	OperatorAddress string `protobuf:"bytes,2,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
+}
+
+func (m *MsgCloseProgram) Reset()         { *m = MsgCloseProgram{} }
+func (m *MsgCloseProgram) String() string { return proto.CompactTextString(m) }
+func (*MsgCloseProgram) ProtoMessage()    {}
+func (*MsgCloseProgram) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{6}
+}
+func (m *MsgCloseProgram) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgCloseProgram) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgCloseProgram.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgCloseProgram) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCloseProgram.Merge(m, src)
+}
+func (m *MsgCloseProgram) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgCloseProgram) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCloseProgram.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgCloseProgram proto.InternalMessageInfo
+
+type MsgCloseProgramResponse struct {
+}
+
+func (m *MsgCloseProgramResponse) Reset()         { *m = MsgCloseProgramResponse{} }
+func (m *MsgCloseProgramResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgCloseProgramResponse) ProtoMessage()    {}
+func (*MsgCloseProgramResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{7}
+}
+func (m *MsgCloseProgramResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgCloseProgramResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgCloseProgramResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgCloseProgramResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCloseProgramResponse.Merge(m, src)
+}
+func (m *MsgCloseProgramResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgCloseProgramResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCloseProgramResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgCloseProgramResponse proto.InternalMessageInfo
 
 // MsgSubmitFinding defines a message to submit a finding.
 type MsgSubmitFinding struct {
@@ -281,7 +354,7 @@ func (m *MsgSubmitFinding) Reset()         { *m = MsgSubmitFinding{} }
 func (m *MsgSubmitFinding) String() string { return proto.CompactTextString(m) }
 func (*MsgSubmitFinding) ProtoMessage()    {}
 func (*MsgSubmitFinding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{6}
+	return fileDescriptor_1e4b4296bac3db30, []int{8}
 }
 func (m *MsgSubmitFinding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -318,7 +391,7 @@ func (m *MsgSubmitFindingResponse) Reset()         { *m = MsgSubmitFindingRespon
 func (m *MsgSubmitFindingResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSubmitFindingResponse) ProtoMessage()    {}
 func (*MsgSubmitFindingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{7}
+	return fileDescriptor_1e4b4296bac3db30, []int{9}
 }
 func (m *MsgSubmitFindingResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -347,25 +420,25 @@ func (m *MsgSubmitFindingResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSubmitFindingResponse proto.InternalMessageInfo
 
-// MsgModifyFindingStatus defines a message to accept a finding to an existing finding.
-type MsgModifyFindingStatus struct {
+// MsgAcceptFinding defines a message to accept a finding to an existing finding.
+type MsgAcceptFinding struct {
 	FindingId       string        `protobuf:"bytes,1,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
 	OperatorAddress string        `protobuf:"bytes,2,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
 	Status          FindingStatus `protobuf:"varint,3,opt,name=status,proto3,enum=shentu.bounty.v1.FindingStatus" json:"status,omitempty" yaml:"status"`
 }
 
-func (m *MsgModifyFindingStatus) Reset()         { *m = MsgModifyFindingStatus{} }
-func (m *MsgModifyFindingStatus) String() string { return proto.CompactTextString(m) }
-func (*MsgModifyFindingStatus) ProtoMessage()    {}
-func (*MsgModifyFindingStatus) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{8}
+func (m *MsgAcceptFinding) Reset()         { *m = MsgAcceptFinding{} }
+func (m *MsgAcceptFinding) String() string { return proto.CompactTextString(m) }
+func (*MsgAcceptFinding) ProtoMessage()    {}
+func (*MsgAcceptFinding) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{10}
 }
-func (m *MsgModifyFindingStatus) XXX_Unmarshal(b []byte) error {
+func (m *MsgAcceptFinding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgModifyFindingStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgAcceptFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgModifyFindingStatus.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgAcceptFinding.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -375,34 +448,34 @@ func (m *MsgModifyFindingStatus) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (m *MsgModifyFindingStatus) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgModifyFindingStatus.Merge(m, src)
+func (m *MsgAcceptFinding) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAcceptFinding.Merge(m, src)
 }
-func (m *MsgModifyFindingStatus) XXX_Size() int {
+func (m *MsgAcceptFinding) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgModifyFindingStatus) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgModifyFindingStatus.DiscardUnknown(m)
+func (m *MsgAcceptFinding) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAcceptFinding.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgModifyFindingStatus proto.InternalMessageInfo
+var xxx_messageInfo_MsgAcceptFinding proto.InternalMessageInfo
 
-// MsgModifyFindingStatusResponse defines the Msg/HostAcceptFinding response type.
-type MsgModifyFindingStatusResponse struct {
+// MsgAcceptFindingResponse defines the Msg/AcceptFinding response type.
+type MsgAcceptFindingResponse struct {
 }
 
-func (m *MsgModifyFindingStatusResponse) Reset()         { *m = MsgModifyFindingStatusResponse{} }
-func (m *MsgModifyFindingStatusResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgModifyFindingStatusResponse) ProtoMessage()    {}
-func (*MsgModifyFindingStatusResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{9}
+func (m *MsgAcceptFindingResponse) Reset()         { *m = MsgAcceptFindingResponse{} }
+func (m *MsgAcceptFindingResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgAcceptFindingResponse) ProtoMessage()    {}
+func (*MsgAcceptFindingResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{11}
 }
-func (m *MsgModifyFindingStatusResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgAcceptFindingResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgModifyFindingStatusResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgAcceptFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgModifyFindingStatusResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgAcceptFindingResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -412,17 +485,169 @@ func (m *MsgModifyFindingStatusResponse) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *MsgModifyFindingStatusResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgModifyFindingStatusResponse.Merge(m, src)
+func (m *MsgAcceptFindingResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAcceptFindingResponse.Merge(m, src)
 }
-func (m *MsgModifyFindingStatusResponse) XXX_Size() int {
+func (m *MsgAcceptFindingResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgModifyFindingStatusResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgModifyFindingStatusResponse.DiscardUnknown(m)
+func (m *MsgAcceptFindingResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAcceptFindingResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgModifyFindingStatusResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgAcceptFindingResponse proto.InternalMessageInfo
+
+// MsgRejectFinding defines a message to reject a finding to an existing finding.
+type MsgRejectFinding struct {
+	FindingId       string `protobuf:"bytes,1,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
+	OperatorAddress string `protobuf:"bytes,2,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
+}
+
+func (m *MsgRejectFinding) Reset()         { *m = MsgRejectFinding{} }
+func (m *MsgRejectFinding) String() string { return proto.CompactTextString(m) }
+func (*MsgRejectFinding) ProtoMessage()    {}
+func (*MsgRejectFinding) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{12}
+}
+func (m *MsgRejectFinding) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRejectFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRejectFinding.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRejectFinding) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRejectFinding.Merge(m, src)
+}
+func (m *MsgRejectFinding) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRejectFinding) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRejectFinding.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRejectFinding proto.InternalMessageInfo
+
+// MsgRejectFindingResponse defines the Msg/RejectFinding response type.
+type MsgRejectFindingResponse struct {
+}
+
+func (m *MsgRejectFindingResponse) Reset()         { *m = MsgRejectFindingResponse{} }
+func (m *MsgRejectFindingResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRejectFindingResponse) ProtoMessage()    {}
+func (*MsgRejectFindingResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{13}
+}
+func (m *MsgRejectFindingResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRejectFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRejectFindingResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRejectFindingResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRejectFindingResponse.Merge(m, src)
+}
+func (m *MsgRejectFindingResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRejectFindingResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRejectFindingResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRejectFindingResponse proto.InternalMessageInfo
+
+// MsgCloseFinding defines a message to close a finding to an existing finding.
+type MsgCloseFinding struct {
+	FindingId       string `protobuf:"bytes,1,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
+	OperatorAddress string `protobuf:"bytes,2,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
+}
+
+func (m *MsgCloseFinding) Reset()         { *m = MsgCloseFinding{} }
+func (m *MsgCloseFinding) String() string { return proto.CompactTextString(m) }
+func (*MsgCloseFinding) ProtoMessage()    {}
+func (*MsgCloseFinding) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{14}
+}
+func (m *MsgCloseFinding) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgCloseFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgCloseFinding.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgCloseFinding) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCloseFinding.Merge(m, src)
+}
+func (m *MsgCloseFinding) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgCloseFinding) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCloseFinding.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgCloseFinding proto.InternalMessageInfo
+
+// MsgCloseFindingResponse defines the Msg/CloseFinding response type.
+type MsgCloseFindingResponse struct {
+}
+
+func (m *MsgCloseFindingResponse) Reset()         { *m = MsgCloseFindingResponse{} }
+func (m *MsgCloseFindingResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgCloseFindingResponse) ProtoMessage()    {}
+func (*MsgCloseFindingResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e4b4296bac3db30, []int{15}
+}
+func (m *MsgCloseFindingResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgCloseFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgCloseFindingResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgCloseFindingResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCloseFindingResponse.Merge(m, src)
+}
+func (m *MsgCloseFindingResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgCloseFindingResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCloseFindingResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgCloseFindingResponse proto.InternalMessageInfo
 
 // MsgReleaseFinding defines a message to release a finding.
 type MsgReleaseFinding struct {
@@ -435,7 +660,7 @@ func (m *MsgReleaseFinding) Reset()         { *m = MsgReleaseFinding{} }
 func (m *MsgReleaseFinding) String() string { return proto.CompactTextString(m) }
 func (*MsgReleaseFinding) ProtoMessage()    {}
 func (*MsgReleaseFinding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{10}
+	return fileDescriptor_1e4b4296bac3db30, []int{16}
 }
 func (m *MsgReleaseFinding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -493,7 +718,7 @@ func (m *MsgReleaseFindingResponse) Reset()         { *m = MsgReleaseFindingResp
 func (m *MsgReleaseFindingResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgReleaseFindingResponse) ProtoMessage()    {}
 func (*MsgReleaseFindingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{11}
+	return fileDescriptor_1e4b4296bac3db30, []int{17}
 }
 func (m *MsgReleaseFindingResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -527,12 +752,18 @@ func init() {
 	proto.RegisterType((*MsgEditProgram)(nil), "shentu.bounty.v1.MsgEditProgram")
 	proto.RegisterType((*MsgCreateProgramResponse)(nil), "shentu.bounty.v1.MsgCreateProgramResponse")
 	proto.RegisterType((*MsgEditProgramResponse)(nil), "shentu.bounty.v1.MsgEditProgramResponse")
-	proto.RegisterType((*MsgModifyProgramStatus)(nil), "shentu.bounty.v1.MsgModifyProgramStatus")
-	proto.RegisterType((*MsgModifyProgramStatusResponse)(nil), "shentu.bounty.v1.MsgModifyProgramStatusResponse")
+	proto.RegisterType((*MsgOpenProgram)(nil), "shentu.bounty.v1.MsgOpenProgram")
+	proto.RegisterType((*MsgOpenProgramResponse)(nil), "shentu.bounty.v1.MsgOpenProgramResponse")
+	proto.RegisterType((*MsgCloseProgram)(nil), "shentu.bounty.v1.MsgCloseProgram")
+	proto.RegisterType((*MsgCloseProgramResponse)(nil), "shentu.bounty.v1.MsgCloseProgramResponse")
 	proto.RegisterType((*MsgSubmitFinding)(nil), "shentu.bounty.v1.MsgSubmitFinding")
 	proto.RegisterType((*MsgSubmitFindingResponse)(nil), "shentu.bounty.v1.MsgSubmitFindingResponse")
-	proto.RegisterType((*MsgModifyFindingStatus)(nil), "shentu.bounty.v1.MsgModifyFindingStatus")
-	proto.RegisterType((*MsgModifyFindingStatusResponse)(nil), "shentu.bounty.v1.MsgModifyFindingStatusResponse")
+	proto.RegisterType((*MsgAcceptFinding)(nil), "shentu.bounty.v1.MsgAcceptFinding")
+	proto.RegisterType((*MsgAcceptFindingResponse)(nil), "shentu.bounty.v1.MsgAcceptFindingResponse")
+	proto.RegisterType((*MsgRejectFinding)(nil), "shentu.bounty.v1.MsgRejectFinding")
+	proto.RegisterType((*MsgRejectFindingResponse)(nil), "shentu.bounty.v1.MsgRejectFindingResponse")
+	proto.RegisterType((*MsgCloseFinding)(nil), "shentu.bounty.v1.MsgCloseFinding")
+	proto.RegisterType((*MsgCloseFindingResponse)(nil), "shentu.bounty.v1.MsgCloseFindingResponse")
 	proto.RegisterType((*MsgReleaseFinding)(nil), "shentu.bounty.v1.MsgReleaseFinding")
 	proto.RegisterType((*MsgReleaseFindingResponse)(nil), "shentu.bounty.v1.MsgReleaseFindingResponse")
 }
@@ -540,61 +771,64 @@ func init() {
 func init() { proto.RegisterFile("shentu/bounty/v1/tx.proto", fileDescriptor_1e4b4296bac3db30) }
 
 var fileDescriptor_1e4b4296bac3db30 = []byte{
-	// 856 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x56, 0xcf, 0x6e, 0xe2, 0x46,
-	0x18, 0xc7, 0xc0, 0xd2, 0x32, 0x2c, 0x2c, 0x58, 0xd9, 0xad, 0xf1, 0xee, 0xda, 0xc8, 0xbd, 0xa0,
-	0x56, 0xc2, 0x25, 0xcd, 0x29, 0xb7, 0x80, 0x1a, 0x29, 0x6d, 0x51, 0x2b, 0xe7, 0xd4, 0x5e, 0xe8,
-	0xd8, 0x1e, 0x1c, 0xa7, 0xb6, 0xc7, 0xf2, 0x0c, 0x28, 0xbc, 0x41, 0x8f, 0x7d, 0x84, 0x1c, 0xfa,
-	0x12, 0x7d, 0x83, 0x1c, 0x73, 0xec, 0xc9, 0xaa, 0x92, 0x4b, 0x0f, 0x55, 0x0f, 0x48, 0x55, 0xaf,
-	0x15, 0x1e, 0x1b, 0xb0, 0x71, 0x12, 0x9a, 0x03, 0xa7, 0xde, 0x3c, 0xf3, 0xfb, 0x7d, 0xff, 0x7e,
-	0xdf, 0x37, 0x1f, 0x80, 0x36, 0xb9, 0x40, 0x1e, 0x9d, 0xaa, 0x3a, 0x9e, 0x7a, 0x74, 0xae, 0xce,
-	0xfa, 0x2a, 0xbd, 0xea, 0xf9, 0x01, 0xa6, 0x98, 0x6f, 0x32, 0xa8, 0xc7, 0xa0, 0xde, 0xac, 0x2f,
-	0x1e, 0x58, 0xd8, 0xc2, 0x11, 0xa8, 0x2e, 0xbf, 0x18, 0x4f, 0x94, 0x2d, 0x8c, 0x2d, 0x07, 0xa9,
-	0xd1, 0x49, 0x9f, 0x4e, 0x54, 0x6a, 0xbb, 0x88, 0x50, 0xe8, 0xfa, 0x31, 0xa1, 0x6d, 0x60, 0xe2,
-	0x62, 0x32, 0x66, 0x96, 0xec, 0x90, 0x40, 0x59, 0x5b, 0xe8, 0xcd, 0x63, 0x48, 0x62, 0x44, 0x55,
-	0x87, 0x04, 0xa9, 0xb3, 0xbe, 0x8e, 0x28, 0xec, 0xab, 0x06, 0xb6, 0xbd, 0x18, 0x7f, 0xbf, 0x95,
-	0x79, 0x9c, 0x68, 0x04, 0x2b, 0xff, 0x14, 0x41, 0x73, 0x44, 0xac, 0x61, 0x80, 0x20, 0x45, 0xdf,
-	0x06, 0xd8, 0x0a, 0xa0, 0xcb, 0xf3, 0xa0, 0xec, 0x41, 0x17, 0x09, 0x5c, 0x87, 0xeb, 0x56, 0xb5,
-	0xe8, 0x9b, 0xef, 0x80, 0x9a, 0x89, 0x88, 0x11, 0xd8, 0x3e, 0xb5, 0xb1, 0x27, 0x14, 0x23, 0x68,
-	0xf3, 0x8a, 0x3f, 0x05, 0x4d, 0xec, 0xa3, 0x00, 0x52, 0x1c, 0x8c, 0xa1, 0x69, 0x06, 0x88, 0x10,
-	0xa1, 0xb4, 0xa4, 0x0d, 0xde, 0x2e, 0x42, 0xf9, 0xa3, 0x39, 0x74, 0x9d, 0x63, 0x25, 0xcb, 0x50,
-	0xb4, 0x57, 0xc9, 0xd5, 0x09, 0xbb, 0xe1, 0x87, 0xe0, 0x95, 0x8b, 0x5c, 0x1d, 0x05, 0x63, 0x68,
-	0x18, 0xcb, 0x5c, 0x89, 0x50, 0xee, 0x94, 0xba, 0xd5, 0x81, 0xb8, 0x08, 0xe5, 0x37, 0xcc, 0x4d,
-	0x86, 0xa0, 0x68, 0x0d, 0x76, 0x73, 0x12, 0x5f, 0xf0, 0x47, 0x00, 0xf8, 0xac, 0x9a, 0xb1, 0x6d,
-	0x0a, 0x2f, 0xa2, 0x34, 0x5e, 0x2f, 0x42, 0xb9, 0xc5, 0xec, 0xd7, 0x98, 0xa2, 0x55, 0xe3, 0xc3,
-	0x99, 0xc9, 0xff, 0x00, 0xea, 0x4c, 0x9d, 0xb1, 0x83, 0x66, 0xc8, 0x21, 0x42, 0xa5, 0x53, 0xea,
-	0xd6, 0x0e, 0xdf, 0xf7, 0xb2, 0x3d, 0xee, 0x0d, 0xa2, 0xaf, 0xaf, 0x97, 0xac, 0xc1, 0xbb, 0x9b,
-	0x50, 0x2e, 0x2c, 0x42, 0xf9, 0x80, 0xf9, 0x4e, 0x79, 0x50, 0xb4, 0x97, 0xfa, 0x9a, 0x4a, 0x8e,
-	0x3f, 0xfc, 0xe9, 0x5a, 0x2e, 0xfc, 0x71, 0x2d, 0x17, 0x94, 0xbf, 0x8b, 0xa0, 0x31, 0x22, 0xd6,
-	0x17, 0xa6, 0x4d, 0xff, 0xd7, 0x7d, 0x8f, 0xba, 0x8b, 0x40, 0xc8, 0x0e, 0xbc, 0x86, 0x88, 0x8f,
-	0x3d, 0x82, 0x14, 0x01, 0xbc, 0x49, 0xb7, 0x64, 0x85, 0xfc, 0xc9, 0x45, 0xd0, 0x08, 0x9b, 0xf6,
-	0x64, 0x1e, 0x83, 0xe7, 0x14, 0xd2, 0x69, 0xb6, 0x64, 0x6e, 0xc7, 0x92, 0xf3, 0xba, 0x56, 0x7c,
-	0x46, 0xd7, 0xbe, 0x04, 0x15, 0x12, 0xe5, 0x11, 0xf5, 0xbc, 0x71, 0x28, 0x6f, 0x6b, 0x96, 0x4a,
-	0x77, 0xd0, 0x5a, 0x84, 0x72, 0x9d, 0xb9, 0x67, 0x86, 0x8a, 0x16, 0x7b, 0xd8, 0x10, 0xa9, 0x03,
-	0xa4, 0xfc, 0x6a, 0x57, 0x82, 0xfc, 0xc5, 0x16, 0xc7, 0xf9, 0x54, 0x77, 0x6d, 0x7a, 0x6a, 0x7b,
-	0xa6, 0xed, 0x59, 0xcf, 0x94, 0xe2, 0x08, 0x80, 0x09, 0x73, 0xb0, 0xb4, 0x2a, 0x66, 0xad, 0xd6,
-	0x98, 0xa2, 0x55, 0xe3, 0xc3, 0x99, 0xc9, 0x1f, 0x80, 0x17, 0xd4, 0xa6, 0x0e, 0x62, 0xb3, 0xae,
-	0xb1, 0x43, 0xf6, 0xb9, 0x94, 0xb7, 0x9f, 0xcb, 0x19, 0x68, 0x91, 0x28, 0x69, 0x8a, 0xd6, 0xca,
-	0xb3, 0x41, 0x7d, 0xb7, 0x08, 0x65, 0x21, 0x96, 0x26, 0x4b, 0x51, 0xb4, 0xe6, 0xea, 0x2e, 0xd1,
-	0x1e, 0x82, 0x06, 0x41, 0x33, 0x14, 0xd8, 0xc9, 0xd8, 0x09, 0x95, 0x87, 0x7a, 0x70, 0x1e, 0xf3,
-	0xd8, 0xe4, 0xb6, 0x17, 0xa1, 0xfc, 0x3a, 0x0e, 0x94, 0x72, 0xa0, 0x68, 0x75, 0xb2, 0xc9, 0xdc,
-	0x9a, 0xdb, 0x94, 0xde, 0xf9, 0xd3, 0x19, 0x83, 0xeb, 0xe9, 0xdc, 0x10, 0x97, 0xdb, 0x51, 0xdc,
-	0x3d, 0x4e, 0x67, 0x2a, 0xdd, 0xff, 0x3e, 0x9d, 0x29, 0xf3, 0x95, 0x20, 0xbf, 0x72, 0xa0, 0x35,
-	0x22, 0x96, 0x86, 0x1c, 0x04, 0x09, 0xda, 0x18, 0xcf, 0x67, 0x68, 0xb1, 0xb7, 0x0d, 0x7c, 0x5c,
-	0x8e, 0xaa, 0x7b, 0x0b, 0xda, 0x5b, 0xa9, 0x27, 0x85, 0x1d, 0xfe, 0xf2, 0x01, 0x28, 0x8d, 0x88,
-	0xc5, 0x8f, 0x41, 0x3d, 0xfd, 0x9b, 0xad, 0x6c, 0x2b, 0x9b, 0x5d, 0x73, 0xe2, 0x27, 0x4f, 0x73,
-	0x92, 0x40, 0xfc, 0x77, 0xa0, 0xb6, 0xf9, 0xd3, 0xd4, 0xc9, 0x35, 0xdd, 0x60, 0x88, 0xdd, 0xa7,
-	0x18, 0x2b, 0xd7, 0x36, 0xa8, 0x7d, 0xe3, 0x23, 0x2f, 0x71, 0x9d, 0x6f, 0x98, 0xb3, 0x7b, 0xc4,
-	0xcf, 0x76, 0x65, 0xae, 0x42, 0x5d, 0x82, 0x97, 0x43, 0x07, 0x13, 0xb4, 0x8f, 0x58, 0x63, 0x50,
-	0x4f, 0x6f, 0xc3, 0xfc, 0x96, 0xa4, 0x38, 0x0f, 0xb4, 0x24, 0xf7, 0x95, 0xf3, 0x3f, 0x82, 0xfa,
-	0x89, 0x61, 0x20, 0x7f, 0x15, 0xe0, 0xb1, 0x6a, 0x52, 0xef, 0xe2, 0xd1, 0x6a, 0x72, 0x5f, 0xd0,
-	0x32, 0x98, 0x86, 0x2e, 0x91, 0xb1, 0xaf, 0x60, 0x43, 0xe8, 0x19, 0xc8, 0xd9, 0x47, 0x30, 0x1d,
-	0x34, 0x32, 0x7b, 0xe1, 0xe3, 0x5c, 0x1f, 0x69, 0x92, 0xf8, 0xe9, 0x0e, 0xa4, 0x24, 0xc6, 0xe0,
-	0xab, 0x9b, 0x3b, 0x89, 0xbb, 0xbd, 0x93, 0xb8, 0xdf, 0xef, 0x24, 0xee, 0xe7, 0x7b, 0xa9, 0x70,
-	0x7b, 0x2f, 0x15, 0x7e, 0xbb, 0x97, 0x0a, 0xdf, 0xf7, 0x2d, 0x9b, 0x5e, 0x4c, 0xf5, 0x9e, 0x81,
-	0x5d, 0x95, 0x39, 0x9c, 0xe0, 0xa9, 0x67, 0xc2, 0xe5, 0x22, 0x89, 0x2f, 0xd4, 0xab, 0xe4, 0xdf,
-	0x3a, 0x9d, 0xfb, 0x88, 0xe8, 0x95, 0xe8, 0xaf, 0xfa, 0xe7, 0xff, 0x06, 0x00, 0x00, 0xff, 0xff,
-	0xc7, 0x0b, 0x63, 0x76, 0x85, 0x0c, 0x00, 0x00,
+	// 909 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x57, 0x4d, 0x6f, 0xf3, 0x44,
+	0x10, 0x8e, 0x93, 0xbc, 0x11, 0xd9, 0xbe, 0x49, 0x13, 0xab, 0x6f, 0xeb, 0xb8, 0x6d, 0x1c, 0xcc,
+	0x25, 0x05, 0x29, 0x56, 0x4a, 0x4f, 0xbd, 0x35, 0x15, 0x95, 0x0a, 0x54, 0x20, 0xf7, 0x04, 0x42,
+	0x0a, 0xfe, 0xd8, 0xba, 0x46, 0xb1, 0xd7, 0xf2, 0x6e, 0xa2, 0xe6, 0x1f, 0x70, 0xe4, 0x08, 0x9c,
+	0xfa, 0x37, 0xf8, 0x07, 0x3d, 0xf6, 0xc8, 0xc9, 0xa0, 0x56, 0x42, 0x9c, 0x38, 0x44, 0x42, 0x5c,
+	0x91, 0xbd, 0xb6, 0xe3, 0xaf, 0x90, 0xf2, 0xa1, 0xaa, 0x07, 0x6e, 0xde, 0x9d, 0x67, 0x67, 0x9e,
+	0x79, 0x66, 0x67, 0x36, 0x01, 0x1d, 0x7c, 0x0d, 0x6d, 0x32, 0x95, 0x54, 0x34, 0xb5, 0xc9, 0x5c,
+	0x9a, 0x0d, 0x25, 0x72, 0x33, 0x70, 0x5c, 0x44, 0x10, 0xdb, 0xa2, 0xa6, 0x01, 0x35, 0x0d, 0x66,
+	0x43, 0x7e, 0xcb, 0x40, 0x06, 0x0a, 0x8c, 0x92, 0xff, 0x45, 0x71, 0xbc, 0x60, 0x20, 0x64, 0x4c,
+	0xa0, 0x14, 0xac, 0xd4, 0xe9, 0x95, 0x44, 0x4c, 0x0b, 0x62, 0xa2, 0x58, 0x4e, 0x08, 0xe8, 0x68,
+	0x08, 0x5b, 0x08, 0x8f, 0xe9, 0x49, 0xba, 0x88, 0x4c, 0xd9, 0xb3, 0x8a, 0x3d, 0x0f, 0x4d, 0x5d,
+	0x0a, 0x94, 0x54, 0x05, 0x43, 0x69, 0x36, 0x54, 0x21, 0x51, 0x86, 0x92, 0x86, 0x4c, 0x3b, 0xb4,
+	0xef, 0xe7, 0x98, 0x87, 0x44, 0x03, 0xb3, 0xf8, 0x47, 0x19, 0xb4, 0x2e, 0xb0, 0x71, 0xea, 0x42,
+	0x85, 0xc0, 0x4f, 0x5d, 0x64, 0xb8, 0x8a, 0xc5, 0xb2, 0xa0, 0x6a, 0x2b, 0x16, 0xe4, 0x98, 0x1e,
+	0xd3, 0xaf, 0xcb, 0xc1, 0x37, 0xdb, 0x03, 0x1b, 0x3a, 0xc4, 0x9a, 0x6b, 0x3a, 0xc4, 0x44, 0x36,
+	0x57, 0x0e, 0x4c, 0xc9, 0x2d, 0xf6, 0x0c, 0xb4, 0x90, 0x03, 0x5d, 0x85, 0x20, 0x77, 0xac, 0xe8,
+	0xba, 0x0b, 0x31, 0xe6, 0x2a, 0x3e, 0x6c, 0xb4, 0xbb, 0xf0, 0x84, 0x9d, 0xb9, 0x62, 0x4d, 0x8e,
+	0xc5, 0x2c, 0x42, 0x94, 0x37, 0xa3, 0xad, 0x13, 0xba, 0xc3, 0x9e, 0x82, 0x4d, 0x0b, 0x5a, 0x2a,
+	0x74, 0xc7, 0x8a, 0xa6, 0xf9, 0x5c, 0x31, 0x57, 0xed, 0x55, 0xfa, 0xf5, 0x11, 0xbf, 0xf0, 0x84,
+	0x6d, 0xea, 0x26, 0x03, 0x10, 0xe5, 0x26, 0xdd, 0x39, 0x09, 0x37, 0xd8, 0x23, 0x00, 0x1c, 0x9a,
+	0xcd, 0xd8, 0xd4, 0xb9, 0x57, 0x01, 0x8d, 0x37, 0x0b, 0x4f, 0x68, 0xd3, 0xf3, 0x4b, 0x9b, 0x28,
+	0xd7, 0xc3, 0xc5, 0xb9, 0xce, 0x7e, 0x09, 0x1a, 0x54, 0x9d, 0xf1, 0x04, 0xce, 0xe0, 0x04, 0x73,
+	0xb5, 0x5e, 0xa5, 0xbf, 0x71, 0xb8, 0x3f, 0xc8, 0xd6, 0x78, 0x30, 0x0a, 0xbe, 0x3e, 0xf6, 0x51,
+	0xa3, 0xbd, 0x3b, 0x4f, 0x28, 0x2d, 0x3c, 0x61, 0x8b, 0xfa, 0x4e, 0x79, 0x10, 0xe5, 0xd7, 0xea,
+	0x12, 0x8a, 0x8f, 0xdf, 0xfa, 0xfa, 0x56, 0x28, 0xfd, 0x7a, 0x2b, 0x94, 0xc4, 0xdf, 0xcb, 0xa0,
+	0x79, 0x81, 0x8d, 0x0f, 0x74, 0x93, 0xfc, 0xaf, 0xfb, 0x33, 0xea, 0xce, 0x03, 0x2e, 0x7b, 0xe1,
+	0x65, 0x88, 0x1d, 0x64, 0x63, 0x28, 0x72, 0x60, 0x3b, 0x5d, 0x92, 0xd8, 0xf2, 0x2d, 0x13, 0x54,
+	0xeb, 0x13, 0x07, 0xda, 0x51, 0xb5, 0xd2, 0xa9, 0x32, 0x4f, 0x4c, 0xb5, 0xa8, 0x5a, 0xe5, 0xbf,
+	0x5f, 0xad, 0x44, 0x42, 0x94, 0x74, 0x82, 0x59, 0x4c, 0xfa, 0x3b, 0x06, 0x6c, 0xfa, 0xb9, 0x4e,
+	0x10, 0x86, 0x2f, 0x8d, 0x75, 0x07, 0xec, 0x64, 0xa8, 0xc5, 0xb4, 0x7f, 0xa3, 0x33, 0xe9, 0x72,
+	0xaa, 0x5a, 0x26, 0x39, 0x33, 0x6d, 0xdd, 0xb4, 0x8d, 0x7f, 0xc8, 0xfb, 0x08, 0x80, 0x2b, 0xea,
+	0xc0, 0x3f, 0x55, 0xce, 0x9e, 0x5a, 0xda, 0x44, 0xb9, 0x1e, 0x2e, 0xce, 0x75, 0x76, 0x0b, 0xbc,
+	0x22, 0x26, 0x99, 0x40, 0xda, 0x46, 0x32, 0x5d, 0x64, 0x3b, 0xb1, 0x9a, 0xef, 0xc4, 0x73, 0xd0,
+	0xc6, 0x01, 0x69, 0x02, 0x97, 0x32, 0xd1, 0x1e, 0xd8, 0x5b, 0x78, 0x02, 0x47, 0x83, 0xe6, 0x20,
+	0xa2, 0xdc, 0x8a, 0xf7, 0xa2, 0x66, 0x54, 0x40, 0x13, 0xc3, 0x19, 0x74, 0xcd, 0xe8, 0x46, 0x73,
+	0xb5, 0x1e, 0xd3, 0x6f, 0x1e, 0x0a, 0xf9, 0x96, 0xb8, 0x0c, 0x71, 0xb4, 0x29, 0x3a, 0x0b, 0x4f,
+	0x78, 0x13, 0x06, 0x4a, 0x39, 0x10, 0xe5, 0x06, 0x4e, 0x22, 0x73, 0x2d, 0x91, 0xd2, 0x3b, 0x2e,
+	0xc6, 0x2f, 0x4c, 0x50, 0x8c, 0x13, 0x4d, 0x83, 0x4e, 0xb2, 0x18, 0x09, 0x59, 0x99, 0x27, 0xca,
+	0xfa, 0x1f, 0x5d, 0x22, 0xf6, 0x43, 0x50, 0xc3, 0x44, 0x21, 0x53, 0x3a, 0xe6, 0x0a, 0x35, 0x09,
+	0x89, 0x5e, 0x06, 0xb0, 0x51, 0x7b, 0xe1, 0x09, 0x8d, 0x50, 0x93, 0x60, 0x47, 0x94, 0x43, 0x0f,
+	0x39, 0x11, 0x52, 0x79, 0xc6, 0x22, 0x7c, 0x4f, 0x45, 0x90, 0xe1, 0x57, 0x50, 0x7b, 0x19, 0x22,
+	0xe4, 0x88, 0xa7, 0xb8, 0x15, 0x4e, 0x80, 0x97, 0xc6, 0x3b, 0x31, 0x01, 0xb2, 0xb4, 0x7f, 0x60,
+	0x40, 0x3b, 0xc8, 0x69, 0x02, 0x95, 0x7f, 0x4b, 0xfc, 0xd9, 0x1e, 0xd0, 0xe3, 0x6a, 0x90, 0xd6,
+	0x2e, 0xe8, 0xe4, 0xa8, 0x47, 0x89, 0x1d, 0xfe, 0x54, 0x03, 0x95, 0x0b, 0x6c, 0xb0, 0x63, 0xd0,
+	0x48, 0xff, 0xe4, 0x12, 0xf3, 0x77, 0x38, 0xfb, 0x4a, 0xf1, 0xef, 0xae, 0xc7, 0x44, 0x81, 0xd8,
+	0xcf, 0xc0, 0x46, 0xf2, 0x97, 0x45, 0xaf, 0xf0, 0x68, 0x02, 0xc1, 0xf7, 0xd7, 0x21, 0x92, 0xae,
+	0x93, 0xcf, 0x60, 0xb1, 0xeb, 0x04, 0x62, 0x85, 0xeb, 0x82, 0x07, 0x8b, 0xfd, 0x02, 0xbc, 0x4e,
+	0x3d, 0x56, 0x6f, 0x17, 0x67, 0x9c, 0x80, 0xf0, 0x07, 0x6b, 0x21, 0xb1, 0xf7, 0x31, 0x68, 0xa4,
+	0xdf, 0x94, 0x62, 0xd1, 0x53, 0x98, 0x15, 0xa2, 0x17, 0xce, 0x4a, 0x3f, 0x40, 0x7a, 0x4e, 0x16,
+	0x07, 0x48, 0x61, 0x56, 0x04, 0x28, 0x9c, 0x43, 0x7e, 0x80, 0xf4, 0x0c, 0x2a, 0x0e, 0x90, 0xc2,
+	0xac, 0x08, 0x50, 0x38, 0x2f, 0xe2, 0x02, 0x44, 0xfe, 0xff, 0xa2, 0x00, 0x91, 0xfb, 0x83, 0xb5,
+	0x90, 0xd8, 0xbb, 0x0a, 0x9a, 0x99, 0x96, 0x7e, 0x67, 0x05, 0xb7, 0x24, 0x88, 0x7f, 0xef, 0x09,
+	0xa0, 0x28, 0xc6, 0xe8, 0xa3, 0xbb, 0x87, 0x2e, 0x73, 0xff, 0xd0, 0x65, 0x7e, 0x7e, 0xe8, 0x32,
+	0xdf, 0x3c, 0x76, 0x4b, 0xf7, 0x8f, 0xdd, 0xd2, 0x8f, 0x8f, 0xdd, 0xd2, 0xe7, 0x43, 0xc3, 0x24,
+	0xd7, 0x53, 0x75, 0xa0, 0x21, 0x4b, 0xa2, 0x0e, 0xaf, 0xd0, 0xd4, 0xd6, 0x15, 0x7f, 0x06, 0x84,
+	0x1b, 0xd2, 0x4d, 0xf4, 0x3f, 0x89, 0xcc, 0x1d, 0x88, 0xd5, 0x5a, 0xf0, 0x27, 0xe9, 0xfd, 0x3f,
+	0x03, 0x00, 0x00, 0xff, 0xff, 0x8e, 0x48, 0xd3, 0x83, 0xff, 0x0d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -614,17 +848,17 @@ type MsgClient interface {
 	// EditProgram defines a method for modifying a program.
 	EditProgram(ctx context.Context, in *MsgEditProgram, opts ...grpc.CallOption) (*MsgEditProgramResponse, error)
 	// Open a program status by program_id
-	OpenProgram(ctx context.Context, in *MsgModifyProgramStatus, opts ...grpc.CallOption) (*MsgModifyProgramStatusResponse, error)
+	OpenProgram(ctx context.Context, in *MsgOpenProgram, opts ...grpc.CallOption) (*MsgOpenProgramResponse, error)
 	// Closed a program status by program_id
-	CloseProgram(ctx context.Context, in *MsgModifyProgramStatus, opts ...grpc.CallOption) (*MsgModifyProgramStatusResponse, error)
+	CloseProgram(ctx context.Context, in *MsgCloseProgram, opts ...grpc.CallOption) (*MsgCloseProgramResponse, error)
 	// SubmitFinding defines a method for submitting a new finding.
 	SubmitFinding(ctx context.Context, in *MsgSubmitFinding, opts ...grpc.CallOption) (*MsgSubmitFindingResponse, error)
-	// HostAcceptFinding defines a method for host accept a finding.
-	AcceptFinding(ctx context.Context, in *MsgModifyFindingStatus, opts ...grpc.CallOption) (*MsgModifyFindingStatusResponse, error)
-	// HostRejectFinding defines a method for host reject a finding.
-	RejectFinding(ctx context.Context, in *MsgModifyFindingStatus, opts ...grpc.CallOption) (*MsgModifyFindingStatusResponse, error)
-	// CancelFinding defines a mathod for inactive the specific finding
-	CancelFinding(ctx context.Context, in *MsgModifyFindingStatus, opts ...grpc.CallOption) (*MsgModifyFindingStatusResponse, error)
+	// AcceptFinding defines a method for host accept a finding.
+	AcceptFinding(ctx context.Context, in *MsgAcceptFinding, opts ...grpc.CallOption) (*MsgAcceptFindingResponse, error)
+	// RejectFinding defines a method for host reject a finding.
+	RejectFinding(ctx context.Context, in *MsgRejectFinding, opts ...grpc.CallOption) (*MsgRejectFindingResponse, error)
+	// CloseFinding defines a method for submitter or certifier close a finding
+	CloseFinding(ctx context.Context, in *MsgCloseFinding, opts ...grpc.CallOption) (*MsgCloseFindingResponse, error)
 	// MsgReleaseFinding defines a method for release a finding.
 	ReleaseFinding(ctx context.Context, in *MsgReleaseFinding, opts ...grpc.CallOption) (*MsgReleaseFindingResponse, error)
 }
@@ -655,8 +889,8 @@ func (c *msgClient) EditProgram(ctx context.Context, in *MsgEditProgram, opts ..
 	return out, nil
 }
 
-func (c *msgClient) OpenProgram(ctx context.Context, in *MsgModifyProgramStatus, opts ...grpc.CallOption) (*MsgModifyProgramStatusResponse, error) {
-	out := new(MsgModifyProgramStatusResponse)
+func (c *msgClient) OpenProgram(ctx context.Context, in *MsgOpenProgram, opts ...grpc.CallOption) (*MsgOpenProgramResponse, error) {
+	out := new(MsgOpenProgramResponse)
 	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/OpenProgram", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -664,8 +898,8 @@ func (c *msgClient) OpenProgram(ctx context.Context, in *MsgModifyProgramStatus,
 	return out, nil
 }
 
-func (c *msgClient) CloseProgram(ctx context.Context, in *MsgModifyProgramStatus, opts ...grpc.CallOption) (*MsgModifyProgramStatusResponse, error) {
-	out := new(MsgModifyProgramStatusResponse)
+func (c *msgClient) CloseProgram(ctx context.Context, in *MsgCloseProgram, opts ...grpc.CallOption) (*MsgCloseProgramResponse, error) {
+	out := new(MsgCloseProgramResponse)
 	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/CloseProgram", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -682,8 +916,8 @@ func (c *msgClient) SubmitFinding(ctx context.Context, in *MsgSubmitFinding, opt
 	return out, nil
 }
 
-func (c *msgClient) AcceptFinding(ctx context.Context, in *MsgModifyFindingStatus, opts ...grpc.CallOption) (*MsgModifyFindingStatusResponse, error) {
-	out := new(MsgModifyFindingStatusResponse)
+func (c *msgClient) AcceptFinding(ctx context.Context, in *MsgAcceptFinding, opts ...grpc.CallOption) (*MsgAcceptFindingResponse, error) {
+	out := new(MsgAcceptFindingResponse)
 	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/AcceptFinding", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -691,8 +925,8 @@ func (c *msgClient) AcceptFinding(ctx context.Context, in *MsgModifyFindingStatu
 	return out, nil
 }
 
-func (c *msgClient) RejectFinding(ctx context.Context, in *MsgModifyFindingStatus, opts ...grpc.CallOption) (*MsgModifyFindingStatusResponse, error) {
-	out := new(MsgModifyFindingStatusResponse)
+func (c *msgClient) RejectFinding(ctx context.Context, in *MsgRejectFinding, opts ...grpc.CallOption) (*MsgRejectFindingResponse, error) {
+	out := new(MsgRejectFindingResponse)
 	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/RejectFinding", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -700,9 +934,9 @@ func (c *msgClient) RejectFinding(ctx context.Context, in *MsgModifyFindingStatu
 	return out, nil
 }
 
-func (c *msgClient) CancelFinding(ctx context.Context, in *MsgModifyFindingStatus, opts ...grpc.CallOption) (*MsgModifyFindingStatusResponse, error) {
-	out := new(MsgModifyFindingStatusResponse)
-	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/CancelFinding", in, out, opts...)
+func (c *msgClient) CloseFinding(ctx context.Context, in *MsgCloseFinding, opts ...grpc.CallOption) (*MsgCloseFindingResponse, error) {
+	out := new(MsgCloseFindingResponse)
+	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/CloseFinding", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -725,17 +959,17 @@ type MsgServer interface {
 	// EditProgram defines a method for modifying a program.
 	EditProgram(context.Context, *MsgEditProgram) (*MsgEditProgramResponse, error)
 	// Open a program status by program_id
-	OpenProgram(context.Context, *MsgModifyProgramStatus) (*MsgModifyProgramStatusResponse, error)
+	OpenProgram(context.Context, *MsgOpenProgram) (*MsgOpenProgramResponse, error)
 	// Closed a program status by program_id
-	CloseProgram(context.Context, *MsgModifyProgramStatus) (*MsgModifyProgramStatusResponse, error)
+	CloseProgram(context.Context, *MsgCloseProgram) (*MsgCloseProgramResponse, error)
 	// SubmitFinding defines a method for submitting a new finding.
 	SubmitFinding(context.Context, *MsgSubmitFinding) (*MsgSubmitFindingResponse, error)
-	// HostAcceptFinding defines a method for host accept a finding.
-	AcceptFinding(context.Context, *MsgModifyFindingStatus) (*MsgModifyFindingStatusResponse, error)
-	// HostRejectFinding defines a method for host reject a finding.
-	RejectFinding(context.Context, *MsgModifyFindingStatus) (*MsgModifyFindingStatusResponse, error)
-	// CancelFinding defines a mathod for inactive the specific finding
-	CancelFinding(context.Context, *MsgModifyFindingStatus) (*MsgModifyFindingStatusResponse, error)
+	// AcceptFinding defines a method for host accept a finding.
+	AcceptFinding(context.Context, *MsgAcceptFinding) (*MsgAcceptFindingResponse, error)
+	// RejectFinding defines a method for host reject a finding.
+	RejectFinding(context.Context, *MsgRejectFinding) (*MsgRejectFindingResponse, error)
+	// CloseFinding defines a method for submitter or certifier close a finding
+	CloseFinding(context.Context, *MsgCloseFinding) (*MsgCloseFindingResponse, error)
 	// MsgReleaseFinding defines a method for release a finding.
 	ReleaseFinding(context.Context, *MsgReleaseFinding) (*MsgReleaseFindingResponse, error)
 }
@@ -750,23 +984,23 @@ func (*UnimplementedMsgServer) CreateProgram(ctx context.Context, req *MsgCreate
 func (*UnimplementedMsgServer) EditProgram(ctx context.Context, req *MsgEditProgram) (*MsgEditProgramResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditProgram not implemented")
 }
-func (*UnimplementedMsgServer) OpenProgram(ctx context.Context, req *MsgModifyProgramStatus) (*MsgModifyProgramStatusResponse, error) {
+func (*UnimplementedMsgServer) OpenProgram(ctx context.Context, req *MsgOpenProgram) (*MsgOpenProgramResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OpenProgram not implemented")
 }
-func (*UnimplementedMsgServer) CloseProgram(ctx context.Context, req *MsgModifyProgramStatus) (*MsgModifyProgramStatusResponse, error) {
+func (*UnimplementedMsgServer) CloseProgram(ctx context.Context, req *MsgCloseProgram) (*MsgCloseProgramResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CloseProgram not implemented")
 }
 func (*UnimplementedMsgServer) SubmitFinding(ctx context.Context, req *MsgSubmitFinding) (*MsgSubmitFindingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitFinding not implemented")
 }
-func (*UnimplementedMsgServer) AcceptFinding(ctx context.Context, req *MsgModifyFindingStatus) (*MsgModifyFindingStatusResponse, error) {
+func (*UnimplementedMsgServer) AcceptFinding(ctx context.Context, req *MsgAcceptFinding) (*MsgAcceptFindingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AcceptFinding not implemented")
 }
-func (*UnimplementedMsgServer) RejectFinding(ctx context.Context, req *MsgModifyFindingStatus) (*MsgModifyFindingStatusResponse, error) {
+func (*UnimplementedMsgServer) RejectFinding(ctx context.Context, req *MsgRejectFinding) (*MsgRejectFindingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RejectFinding not implemented")
 }
-func (*UnimplementedMsgServer) CancelFinding(ctx context.Context, req *MsgModifyFindingStatus) (*MsgModifyFindingStatusResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CancelFinding not implemented")
+func (*UnimplementedMsgServer) CloseFinding(ctx context.Context, req *MsgCloseFinding) (*MsgCloseFindingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CloseFinding not implemented")
 }
 func (*UnimplementedMsgServer) ReleaseFinding(ctx context.Context, req *MsgReleaseFinding) (*MsgReleaseFindingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReleaseFinding not implemented")
@@ -813,7 +1047,7 @@ func _Msg_EditProgram_Handler(srv interface{}, ctx context.Context, dec func(int
 }
 
 func _Msg_OpenProgram_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgModifyProgramStatus)
+	in := new(MsgOpenProgram)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -825,13 +1059,13 @@ func _Msg_OpenProgram_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: "/shentu.bounty.v1.Msg/OpenProgram",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).OpenProgram(ctx, req.(*MsgModifyProgramStatus))
+		return srv.(MsgServer).OpenProgram(ctx, req.(*MsgOpenProgram))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_CloseProgram_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgModifyProgramStatus)
+	in := new(MsgCloseProgram)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -843,7 +1077,7 @@ func _Msg_CloseProgram_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: "/shentu.bounty.v1.Msg/CloseProgram",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).CloseProgram(ctx, req.(*MsgModifyProgramStatus))
+		return srv.(MsgServer).CloseProgram(ctx, req.(*MsgCloseProgram))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -867,7 +1101,7 @@ func _Msg_SubmitFinding_Handler(srv interface{}, ctx context.Context, dec func(i
 }
 
 func _Msg_AcceptFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgModifyFindingStatus)
+	in := new(MsgAcceptFinding)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -879,13 +1113,13 @@ func _Msg_AcceptFinding_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: "/shentu.bounty.v1.Msg/AcceptFinding",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).AcceptFinding(ctx, req.(*MsgModifyFindingStatus))
+		return srv.(MsgServer).AcceptFinding(ctx, req.(*MsgAcceptFinding))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_RejectFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgModifyFindingStatus)
+	in := new(MsgRejectFinding)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -897,25 +1131,25 @@ func _Msg_RejectFinding_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: "/shentu.bounty.v1.Msg/RejectFinding",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RejectFinding(ctx, req.(*MsgModifyFindingStatus))
+		return srv.(MsgServer).RejectFinding(ctx, req.(*MsgRejectFinding))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_CancelFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgModifyFindingStatus)
+func _Msg_CloseFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgCloseFinding)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).CancelFinding(ctx, in)
+		return srv.(MsgServer).CloseFinding(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/shentu.bounty.v1.Msg/CancelFinding",
+		FullMethod: "/shentu.bounty.v1.Msg/CloseFinding",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).CancelFinding(ctx, req.(*MsgModifyFindingStatus))
+		return srv.(MsgServer).CloseFinding(ctx, req.(*MsgCloseFinding))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -971,8 +1205,8 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_RejectFinding_Handler,
 		},
 		{
-			MethodName: "CancelFinding",
-			Handler:    _Msg_CancelFinding_Handler,
+			MethodName: "CloseFinding",
+			Handler:    _Msg_CloseFinding_Handler,
 		},
 		{
 			MethodName: "ReleaseFinding",
@@ -1177,7 +1411,7 @@ func (m *MsgEditProgramResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgModifyProgramStatus) Marshal() (dAtA []byte, err error) {
+func (m *MsgOpenProgram) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1187,21 +1421,16 @@ func (m *MsgModifyProgramStatus) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgModifyProgramStatus) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgOpenProgram) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgModifyProgramStatus) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgOpenProgram) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.Status != 0 {
-		i = encodeVarintTx(dAtA, i, uint64(m.Status))
-		i--
-		dAtA[i] = 0x18
-	}
 	if len(m.OperatorAddress) > 0 {
 		i -= len(m.OperatorAddress)
 		copy(dAtA[i:], m.OperatorAddress)
@@ -1219,7 +1448,7 @@ func (m *MsgModifyProgramStatus) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgModifyProgramStatusResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgOpenProgramResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1229,12 +1458,72 @@ func (m *MsgModifyProgramStatusResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgModifyProgramStatusResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgOpenProgramResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgModifyProgramStatusResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgOpenProgramResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgCloseProgram) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgCloseProgram) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgCloseProgram) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.OperatorAddress) > 0 {
+		i -= len(m.OperatorAddress)
+		copy(dAtA[i:], m.OperatorAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OperatorAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.ProgramId) > 0 {
+		i -= len(m.ProgramId)
+		copy(dAtA[i:], m.ProgramId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ProgramId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgCloseProgramResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgCloseProgramResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgCloseProgramResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1328,7 +1617,7 @@ func (m *MsgSubmitFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgModifyFindingStatus) Marshal() (dAtA []byte, err error) {
+func (m *MsgAcceptFinding) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1338,12 +1627,12 @@ func (m *MsgModifyFindingStatus) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgModifyFindingStatus) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgAcceptFinding) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgModifyFindingStatus) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgAcceptFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1370,7 +1659,7 @@ func (m *MsgModifyFindingStatus) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgModifyFindingStatusResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgAcceptFindingResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1380,12 +1669,132 @@ func (m *MsgModifyFindingStatusResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgModifyFindingStatusResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgAcceptFindingResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgModifyFindingStatusResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgAcceptFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRejectFinding) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRejectFinding) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRejectFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.OperatorAddress) > 0 {
+		i -= len(m.OperatorAddress)
+		copy(dAtA[i:], m.OperatorAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OperatorAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.FindingId) > 0 {
+		i -= len(m.FindingId)
+		copy(dAtA[i:], m.FindingId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.FindingId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRejectFindingResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRejectFindingResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRejectFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgCloseFinding) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgCloseFinding) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgCloseFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.OperatorAddress) > 0 {
+		i -= len(m.OperatorAddress)
+		copy(dAtA[i:], m.OperatorAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OperatorAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.FindingId) > 0 {
+		i -= len(m.FindingId)
+		copy(dAtA[i:], m.FindingId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.FindingId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgCloseFindingResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgCloseFindingResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgCloseFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1563,7 +1972,7 @@ func (m *MsgEditProgramResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgModifyProgramStatus) Size() (n int) {
+func (m *MsgOpenProgram) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1577,13 +1986,36 @@ func (m *MsgModifyProgramStatus) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	if m.Status != 0 {
-		n += 1 + sovTx(uint64(m.Status))
+	return n
+}
+
+func (m *MsgOpenProgramResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgCloseProgram) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ProgramId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.OperatorAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
 	}
 	return n
 }
 
-func (m *MsgModifyProgramStatusResponse) Size() (n int) {
+func (m *MsgCloseProgramResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1633,7 +2065,7 @@ func (m *MsgSubmitFindingResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgModifyFindingStatus) Size() (n int) {
+func (m *MsgAcceptFinding) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1653,7 +2085,59 @@ func (m *MsgModifyFindingStatus) Size() (n int) {
 	return n
 }
 
-func (m *MsgModifyFindingStatusResponse) Size() (n int) {
+func (m *MsgAcceptFindingResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgRejectFinding) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.FindingId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.OperatorAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgRejectFindingResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgCloseFinding) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.FindingId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.OperatorAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgCloseFindingResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2286,7 +2770,7 @@ func (m *MsgEditProgramResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgModifyProgramStatus) Unmarshal(dAtA []byte) error {
+func (m *MsgOpenProgram) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2309,10 +2793,10 @@ func (m *MsgModifyProgramStatus) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgModifyProgramStatus: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgOpenProgram: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgModifyProgramStatus: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgOpenProgram: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2379,25 +2863,6 @@ func (m *MsgModifyProgramStatus) Unmarshal(dAtA []byte) error {
 			}
 			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
-			}
-			m.Status = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Status |= ProgramStatus(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -2419,7 +2884,7 @@ func (m *MsgModifyProgramStatus) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgModifyProgramStatusResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgOpenProgramResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2442,10 +2907,174 @@ func (m *MsgModifyProgramStatusResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgModifyProgramStatusResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgOpenProgramResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgModifyProgramStatusResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgOpenProgramResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgCloseProgram) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgCloseProgram: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgCloseProgram: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProgramId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ProgramId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgCloseProgramResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgCloseProgramResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgCloseProgramResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -2748,7 +3377,7 @@ func (m *MsgSubmitFindingResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgModifyFindingStatus) Unmarshal(dAtA []byte) error {
+func (m *MsgAcceptFinding) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2771,10 +3400,10 @@ func (m *MsgModifyFindingStatus) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgModifyFindingStatus: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAcceptFinding: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgModifyFindingStatus: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAcceptFinding: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2881,7 +3510,7 @@ func (m *MsgModifyFindingStatus) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgModifyFindingStatusResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgAcceptFindingResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2904,10 +3533,338 @@ func (m *MsgModifyFindingStatusResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgModifyFindingStatusResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAcceptFindingResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgModifyFindingStatusResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAcceptFindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRejectFinding) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRejectFinding: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRejectFinding: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FindingId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRejectFindingResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRejectFindingResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRejectFindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgCloseFinding) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgCloseFinding: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgCloseFinding: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FindingId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgCloseFindingResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgCloseFindingResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgCloseFindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

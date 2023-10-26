@@ -20,22 +20,22 @@ service Msg {
   rpc EditProgram(MsgEditProgram) returns (MsgEditProgramResponse);
 
   // Open a program status by program_id
-  rpc OpenProgram(MsgModifyProgramStatus) returns (MsgModifyProgramStatusResponse);
+  rpc OpenProgram(MsgOpenProgram) returns (MsgOpenProgramResponse);
 
   // Closed a program status by program_id
-  rpc CloseProgram(MsgModifyProgramStatus) returns (MsgModifyProgramStatusResponse);
+  rpc CloseProgram(MsgCloseProgram) returns (MsgCloseProgramResponse);
 
   // SubmitFinding defines a method for submitting a new finding.
   rpc SubmitFinding(MsgSubmitFinding) returns (MsgSubmitFindingResponse);
 
-  // HostAcceptFinding defines a method for host accept a finding.
-  rpc AcceptFinding(MsgModifyFindingStatus) returns (MsgModifyFindingStatusResponse);
+  // AcceptFinding defines a method for host accept a finding.
+  rpc AcceptFinding(MsgAcceptFinding) returns (MsgAcceptFindingResponse);
 
-  // HostRejectFinding defines a method for host reject a finding.
-  rpc RejectFinding(MsgModifyFindingStatus) returns (MsgModifyFindingStatusResponse);
+  // RejectFinding defines a method for host reject a finding.
+  rpc RejectFinding(MsgRejectFinding) returns (MsgRejectFindingResponse);
 
-  // CancelFinding defines a mathod for inactive the specific finding
-  rpc CancelFinding(MsgModifyFindingStatus) returns (MsgModifyFindingStatusResponse);
+  // CloseFinding defines a method for submitter or certifier close a finding
+  rpc CloseFinding(MsgCloseFinding) returns (MsgCloseFindingResponse);
 
   // MsgReleaseFinding defines a method for release a finding.
   rpc ReleaseFinding(MsgReleaseFinding) returns (MsgReleaseFindingResponse);
@@ -74,16 +74,25 @@ message MsgCreateProgramResponse {
 // MsgModifyProgramResponse defines the Msg/ModifyProgram response type.
 message MsgEditProgramResponse {}
 
-message MsgModifyProgramStatus {
+message MsgOpenProgram {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   string program_id = 1 [(gogoproto.moretags) = "yaml:\"program_id\""];
   string operator_address = 2 [(gogoproto.moretags) = "yaml:\"operator_address\""];
-  ProgramStatus status = 3 [(gogoproto.moretags) = "yaml:\"status\""];
 }
 
-message MsgModifyProgramStatusResponse {}
+message MsgOpenProgramResponse {}
+
+message MsgCloseProgram {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string program_id = 1 [(gogoproto.moretags) = "yaml:\"program_id\""];
+  string operator_address = 2 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+}
+
+message MsgCloseProgramResponse {}
 
 // MsgSubmitFinding defines a message to submit a finding.
 message MsgSubmitFinding {
@@ -101,8 +110,8 @@ message MsgSubmitFinding {
 // MsgSubmitFindingResponse defines the MsgSubmitFinding response type.
 message MsgSubmitFindingResponse {}
 
-// MsgModifyFindingStatus defines a message to accept a finding to an existing finding.
-message MsgModifyFindingStatus {
+// MsgAcceptFinding defines a message to accept a finding to an existing finding.
+message MsgAcceptFinding {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -111,8 +120,32 @@ message MsgModifyFindingStatus {
   FindingStatus status = 3 [(gogoproto.moretags) = "yaml:\"status\""];
 }
 
-// MsgModifyFindingStatusResponse defines the Msg/HostAcceptFinding response type.
-message MsgModifyFindingStatusResponse {}
+// MsgAcceptFindingResponse defines the Msg/AcceptFinding response type.
+message MsgAcceptFindingResponse {}
+
+// MsgRejectFinding defines a message to reject a finding to an existing finding.
+message MsgRejectFinding {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string operator_address = 2 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+}
+
+// MsgRejectFindingResponse defines the Msg/RejectFinding response type.
+message MsgRejectFindingResponse {}
+
+// MsgCloseFinding defines a message to close a finding to an existing finding.
+message MsgCloseFinding {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string operator_address = 2 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+}
+
+// MsgCloseFindingResponse defines the Msg/CloseFinding response type.
+message MsgCloseFindingResponse {}
 
 // MsgReleaseFinding defines a message to release a finding.
 message MsgReleaseFinding {

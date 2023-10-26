@@ -46,9 +46,8 @@ func TestMsgSubmitFinding(t *testing.T) {
 		severityLevel         int8
 		expectPass            bool
 	}{
-		{"0", "1", "title", "desc", addrs[0], 3, false},
-		{"1", "1", "title", "desc", sdk.AccAddress{}, 3, false},
-		{"1", "2", "title", "desc", addrs[0], 3, true},
+		{"1", "1", "title", "desc", addrs[0], 3, true},
+		{"2", "2", "title", "desc", sdk.AccAddress{}, 3, false},
 	}
 
 	for _, tc := range testCases {
