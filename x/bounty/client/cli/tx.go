@@ -181,10 +181,9 @@ func NewSubmitFindingCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagDesc, "", "The finding's description")
 	cmd.Flags().String(FlagFindingTitle, "", "The finding's title")
-	cmd.Flags().String(FlagFindingPoc, "", "Ths finding's poc")
-	cmd.Flags().Uint64(FlagProgramID, 0, "The program's ID")
+	cmd.Flags().String(FlagDesc, "", "The finding's description")
+	cmd.Flags().String(FlagProgramID, "", "The program's ID")
 	cmd.Flags().Int32(FlagFindingSeverityLevel, 0, "The finding's severity level")
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -211,7 +210,6 @@ $ %s tx bounty accept-finding 1 --comment "Looks good to me"
 		RunE: AcceptFinding,
 	}
 
-	cmd.Flags().String(FlagComment, "", "Host's comment on finding")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -236,7 +234,6 @@ $ %s tx bounty reject-finding 1 --comment "Verified to be an invalid finding"
 		RunE: RejectFinding,
 	}
 
-	cmd.Flags().String(FlagComment, "", "Host's comment on finding")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)

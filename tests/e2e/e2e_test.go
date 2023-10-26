@@ -289,28 +289,24 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 
 func (s *IntegrationTestSuite) TestBounty() {
 	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
-	validatorA := s.chainA.validators[0]
 	accountA := s.chainA.accounts[0]
 	accountAAddr := accountA.keyInfo.GetAddress()
 	accountB := s.chainA.accounts[1]
 	accountBAddr := accountB.keyInfo.GetAddress()
 
-	bountyKeyFile := "e2e_bounty_key.json"
-	generateBountyKeyFile(validatorA.configDir() + "/" + bountyKeyFile)
-	bountyKeyPath := "/root/.shentud/" + bountyKeyFile
-
+	validatorA := s.chainA.validators[0]
+	validatorAAddr := validatorA.keyInfo.GetAddress()
 	s.Run("create_program", func() {
 		bountyProgramCounter++
 		s.T().Logf("Creating program %d on chain %s", bountyProgramCounter, s.chainA.id)
 		var (
-			programDesc    = "program-desc"
-			commissionRate = "2"
-			endTime        = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
+			programName = "name"
+			programDesc = "program-desc"
 		)
-		s.executeCreateProgram(s.chainA, 0, accountAAddr.String(), programDesc, bountyKeyPath, commissionRate, depositAmountCoin.String(), endTime, feesAmountCoin.String())
+		s.executeCreateProgram(s.chainA, 0, programName, programDesc, accountAAddr.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
-				rsp, err := queryBountyProgram(chainAAPIEndpoint, bountyProgramCounter)
+				rsp, err := queryBountyProgram(chainAAPIEndpoint, string(rune(bountyProgramCounter)))
 				s.Require().NoError(err)
 				return len(rsp.GetProgram().ProgramId) > 0
 				return true
@@ -320,18 +316,33 @@ func (s *IntegrationTestSuite) TestBounty() {
 		)
 	})
 
+	s.Run("open_program", func() {
+		pid := string(rune(bountyProgramCounter))
+		s.T().Logf("Open program %s on chain %s", pid, s.chainA.id)
+		s.executeOpenProgram(s.chainA, 0, pid, validatorAAddr.String(), feesAmountCoin.String())
+		s.Require().Eventually(
+			func() bool {
+				rsp, err := queryBountyProgram(chainAAPIEndpoint, pid)
+				s.Require().NoError(err)
+				return len(rsp.GetProgram().ProgramId) > 0
+			},
+			20*time.Second,
+			5*time.Second,
+		)
+	})
+
 	s.Run("submit_finding", func() {
 		bountyFindingCounter++
+		pid := string(rune(bountyProgramCounter))
 		s.T().Logf("Submit finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
 		var (
 			findingDesc  = "finding-desc"
 			findingTitle = "finding-title"
-			findingPoc   = "finding-poc"
 		)
-		s.executeSubmitFinding(s.chainA, 0, bountyProgramCounter, accountBAddr.String(), findingDesc, findingTitle, findingPoc, feesAmountCoin.String())
+		s.executeSubmitFinding(s.chainA, 0, pid, accountBAddr.String(), findingTitle, findingDesc, feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
-				rsp, err := queryBountyFinding(chainAAPIEndpoint, bountyFindingCounter)
+				rsp, err := queryBountyFinding(chainAAPIEndpoint, pid)
 				s.Require().NoError(err)
 				return rsp.GetFinding().Status == 0
 			},
@@ -341,14 +352,13 @@ func (s *IntegrationTestSuite) TestBounty() {
 	})
 
 	s.Run("reject_finding", func() {
+		fid := string(rune(bountyFindingCounter))
 		s.T().Logf("Accept finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
-		var (
-			findingComment = "reject-comment"
-		)
-		s.executeRejectFinding(s.chainA, 0, bountyFindingCounter, accountAAddr.String(), findingComment, feesAmountCoin.String())
+
+		s.executeRejectFinding(s.chainA, 0, fid, accountAAddr.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
-				rsp, err := queryBountyFinding(chainAAPIEndpoint, bountyFindingCounter)
+				rsp, err := queryBountyFinding(chainAAPIEndpoint, fid)
 				s.Require().NoError(err)
 				return rsp.GetFinding().Status == 5
 			},
@@ -358,14 +368,12 @@ func (s *IntegrationTestSuite) TestBounty() {
 	})
 
 	s.Run("accept_finding", func() {
+		fid := string(rune(bountyFindingCounter))
 		s.T().Logf("Accept finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
-		var (
-			findingComment = "accept-comment"
-		)
-		s.executeAcceptFinding(s.chainA, 0, bountyFindingCounter, accountAAddr.String(), findingComment, feesAmountCoin.String())
+		s.executeAcceptFinding(s.chainA, 0, fid, accountAAddr.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
-				rsp, err := queryBountyFinding(chainAAPIEndpoint, bountyFindingCounter)
+				rsp, err := queryBountyFinding(chainAAPIEndpoint, fid)
 				s.Require().NoError(err)
 				return rsp.GetFinding().Status == 3
 			},
@@ -391,11 +399,12 @@ func (s *IntegrationTestSuite) TestBounty() {
 	//})
 
 	s.Run("end_program", func() {
+		pid := string(rune(bountyProgramCounter))
 		s.T().Logf("End program %d chain %s", bountyProgramCounter, s.chainA.id)
-		s.executeEndProgram(s.chainA, 0, bountyFindingCounter, accountAAddr.String(), feesAmountCoin.String())
+		s.executeEndProgram(s.chainA, 0, pid, accountAAddr.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
-				rsp, err := queryBountyProgram(chainAAPIEndpoint, bountyProgramCounter)
+				rsp, err := queryBountyProgram(chainAAPIEndpoint, pid)
 				s.Require().NoError(err)
 				return rsp.GetProgram().Status == 5
 			},
