@@ -68,8 +68,10 @@ func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram)
 	}
 
 	// Check the permissions. Only the admin of the program or cert address can operate.
-	if program.AdminAddress != msg.OperatorAddress || !k.certKeeper.IsCertifier(ctx, operatorAddr) {
-		return nil, types.ErrProgramOperatorNotAllowed
+	if program.AdminAddress != msg.OperatorAddress {
+		if !k.certKeeper.IsCertifier(ctx, operatorAddr) {
+			return nil, types.ErrProgramOperatorNotAllowed
+		}
 	}
 
 	if len(msg.Name) > 0 {
@@ -115,7 +117,7 @@ func (k msgServer) OpenProgram(goCtx context.Context, msg *types.MsgOpenProgram)
 		return nil, err
 	}
 
-	if err = k.Keeper.OpenProgram(ctx, operatorAddr, msg.ProgramId); err != nil {
+	if err = k.Keeper.OpenProgram(ctx, msg.ProgramId, operatorAddr); err != nil {
 		return nil, err
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -140,7 +142,7 @@ func (k msgServer) CloseProgram(goCtx context.Context, msg *types.MsgCloseProgra
 		return nil, err
 	}
 
-	err = k.Keeper.CloseProgram(ctx, operatorAddr, msg.ProgramId)
+	err = k.Keeper.CloseProgram(ctx, msg.ProgramId, operatorAddr)
 	if err != nil {
 		return nil, err
 	}

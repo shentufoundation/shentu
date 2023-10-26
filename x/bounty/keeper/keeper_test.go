@@ -16,7 +16,6 @@ import (
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-// shared setup
 type KeeperTestSuite struct {
 	suite.Suite
 
@@ -43,54 +42,4 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
-}
-
-func (suite *KeeperTestSuite) TestProgram_GetSet() {
-	type args struct {
-		program []types.Program
-	}
-
-	type errArgs struct {
-		shouldPass bool
-		contains   string
-	}
-
-	tests := []struct {
-		name    string
-		args    args
-		errArgs errArgs
-	}{
-		{"Program(1)  -> Set: Simple",
-			args{
-				program: []types.Program{
-					{
-						ProgramId:    "1",
-						Name:         "name",
-						Description:  "desc",
-						AdminAddress: suite.address[0].String(),
-						Status:       1,
-					},
-				},
-			},
-			errArgs{
-				shouldPass: true,
-			},
-		},
-	}
-
-	for _, tc := range tests {
-		suite.Run(tc.name, func() {
-			for _, program := range tc.args.program {
-				suite.keeper.SetProgram(suite.ctx, program)
-				storedProgram, isExist := suite.keeper.GetProgram(suite.ctx, program.ProgramId)
-				suite.Require().Equal(true, isExist)
-
-				if tc.errArgs.shouldPass {
-					suite.Require().Equal(program.ProgramId, storedProgram.ProgramId)
-				} else {
-					suite.Require().NotEqual(program.ProgramId, storedProgram.ProgramId)
-				}
-			}
-		})
-	}
 }

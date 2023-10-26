@@ -1,7 +1,10 @@
 package bounty_test
 
 import (
+	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
@@ -40,16 +43,16 @@ func TestExportGenesis(t *testing.T) {
 	k1 := app1.BountyKeeper
 
 	bounty.InitGenesis(ctx1, k1, dataGS)
-	//exported1 := bounty.ExportGenesis(ctx1, k1)
+	exported1 := bounty.ExportGenesis(ctx1, k1)
 
-	//app2 := shentuapp.Setup(false)
-	//ctx2 := app2.BaseApp.NewContext(false, tmproto.Header{})
-	//k2 := app2.BountyKeeper
-	//
-	//exported2 := bounty.ExportGenesis(ctx2, k2)
-	//require.False(t, reflect.DeepEqual(exported1, exported2))
-	//
-	//bounty.InitGenesis(ctx2, k2, *exported1)
-	//exported3 := bounty.ExportGenesis(ctx2, k2)
-	//require.True(t, reflect.DeepEqual(exported1, exported3))
+	app2 := shentuapp.Setup(false)
+	ctx2 := app2.BaseApp.NewContext(false, tmproto.Header{})
+	k2 := app2.BountyKeeper
+
+	exported2 := bounty.ExportGenesis(ctx2, k2)
+	require.False(t, reflect.DeepEqual(exported1, exported2))
+
+	bounty.InitGenesis(ctx2, k2, *exported1)
+	exported3 := bounty.ExportGenesis(ctx2, k2)
+	require.True(t, reflect.DeepEqual(exported1, exported3))
 }

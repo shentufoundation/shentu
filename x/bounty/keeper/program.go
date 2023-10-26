@@ -42,8 +42,8 @@ func (k Keeper) SetProgram(ctx sdk.Context, program types.Program) {
 	store.Set(types.GetProgramKey(program.ProgramId), bz)
 }
 
-func (k Keeper) OpenProgram(ctx sdk.Context, caller sdk.AccAddress, id string) error {
-	program, found := k.GetProgram(ctx, id)
+func (k Keeper) OpenProgram(ctx sdk.Context, pid string, caller sdk.AccAddress) error {
+	program, found := k.GetProgram(ctx, pid)
 	if !found {
 		return types.ErrProgramNotExists
 	}
@@ -62,21 +62,25 @@ func (k Keeper) OpenProgram(ctx sdk.Context, caller sdk.AccAddress, id string) e
 	return nil
 }
 
-func (k Keeper) CloseProgram(ctx sdk.Context, caller sdk.AccAddress, id string) error {
-	program, found := k.GetProgram(ctx, id)
+func (k Keeper) CloseProgram(ctx sdk.Context, pid string, caller sdk.AccAddress) error {
+	program, found := k.GetProgram(ctx, pid)
 	if !found {
 		return types.ErrProgramNotExists
 	}
 
-	// Check the permissions. Only the admin of the program or cert address can operate.
-	if program.AdminAddress != caller.String() || !k.certKeeper.IsCertifier(ctx, caller) {
-		return types.ErrFindingOperatorNotAllowed
-	}
-
+	// Check if the program is already closed
 	if program.Status == types.ProgramStatusClosed {
 		return types.ErrProgramAlreadyClosed
 	}
 
+	// Check the permissions. Only the admin of the program or cert address can operate.
+	if program.AdminAddress != caller.String() {
+		if !k.certKeeper.IsCertifier(ctx, caller) {
+			return types.ErrFindingOperatorNotAllowed
+		}
+	}
+
+	// Close the program and update its status in the store
 	program.Status = types.ProgramStatusClosed
 	k.SetProgram(ctx, program)
 	return nil

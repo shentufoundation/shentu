@@ -98,7 +98,7 @@ $ %s query bounty program 1
 func GetCmdQueryPrograms() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "programs",
-		Short: "Query programs with optional filters",
+		Short: "Query all programs",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query for a all paginated programs that match optional filters.
 
@@ -138,7 +138,6 @@ $ %s query bounty programs --page=1 --limit=100
 		},
 	}
 
-	cmd.Flags().String(FlagFindingAddress, "", "(optional) filter by programs find by finding address")
 	flags.AddPaginationFlagsToCmd(cmd, "programs")
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd

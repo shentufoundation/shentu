@@ -9,17 +9,18 @@ import (
 
 const (
 	TypeMsgCreateProgram  = "create_program"
+	TypeMsgOpenProgram    = "open_program"
+	TypeMsgCloseProgram   = "close_program"
 	TypeMsgSubmitFinding  = "submit_finding"
 	TypeMsgAcceptFinding  = "accept_finding"
 	TypeMsgRejectFinding  = "reject_finding"
-	TypeMsgCancelFinding  = "cancel_finding"
+	TypeMsgCloseFinding   = "close_finding"
 	TypeMsgReleaseFinding = "release_finding"
-	TypeMsgEndProgram     = "end_program"
 )
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
 // Delegator address and validator address are the same.
-func NewMsgCreateProgram(name, desc, pid string, operator sdk.AccAddress, members []string, levels []BountyLevel) (*MsgCreateProgram, error) {
+func NewMsgCreateProgram(pid, name, desc string, operator sdk.AccAddress, members []string, levels []BountyLevel) *MsgCreateProgram {
 	return &MsgCreateProgram{
 		Name:            name,
 		Description:     desc,
@@ -27,7 +28,7 @@ func NewMsgCreateProgram(name, desc, pid string, operator sdk.AccAddress, member
 		MemberAccounts:  members,
 		ProgramId:       pid,
 		BountyLevels:    levels,
-	}, nil
+	}
 }
 
 // Route implements the sdk.Msg interface.
@@ -66,7 +67,7 @@ func (msg MsgCreateProgram) ValidateBasic() error {
 }
 
 // NewMsgEditProgram edit a program.
-func NewMsgEditProgram(name, pid, desc string, operator sdk.AccAddress, members []string, levels []BountyLevel) (*MsgCreateProgram, error) {
+func NewMsgEditProgram(pid, name, desc string, operator sdk.AccAddress, members []string, levels []BountyLevel) (*MsgCreateProgram, error) {
 	return &MsgCreateProgram{
 		Name:            name,
 		Description:     desc,
@@ -157,14 +158,13 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
-
 	if len(msg.ProgramId) == 0 {
 		return errors.New("empty pid is not allowed")
 	}
 	return nil
 }
 
-func NewMsgOpenProgram(accAddr sdk.AccAddress, pid string) *MsgOpenProgram {
+func NewMsgOpenProgram(pid string, accAddr sdk.AccAddress) *MsgOpenProgram {
 	return &MsgOpenProgram{
 		ProgramId:       pid,
 		OperatorAddress: accAddr.String(),
@@ -175,7 +175,7 @@ func NewMsgOpenProgram(accAddr sdk.AccAddress, pid string) *MsgOpenProgram {
 func (msg MsgOpenProgram) Route() string { return RouterKey }
 
 // Type implements sdk.Msg interface.
-func (msg MsgOpenProgram) Type() string { return TypeMsgEndProgram }
+func (msg MsgOpenProgram) Type() string { return TypeMsgOpenProgram }
 
 // GetSigners implements sdk.Msg interface. It returns the address(es) that
 // must sign over msg.GetSignBytes().
@@ -210,7 +210,7 @@ func NewMsgCloseProgram(pid string, accAddr sdk.AccAddress) *MsgCloseProgram {
 func (msg MsgCloseProgram) Route() string { return RouterKey }
 
 // Type implements sdk.Msg interface.
-func (msg MsgCloseProgram) Type() string { return TypeMsgEndProgram }
+func (msg MsgCloseProgram) Type() string { return TypeMsgCloseProgram }
 
 // GetSigners implements sdk.Msg interface. It returns the address(es) that
 // must sign over msg.GetSignBytes().
@@ -289,7 +289,7 @@ func NewMsgRejectFinding(findingID string, hostAddr sdk.AccAddress) *MsgRejectFi
 func (msg MsgRejectFinding) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgRejectFinding) Type() string { return TypeMsgAcceptFinding }
+func (msg MsgRejectFinding) Type() string { return TypeMsgRejectFinding }
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg MsgRejectFinding) GetSignBytes() []byte {
@@ -333,7 +333,7 @@ func NewMsgCloseFinding(findingID string, hostAddr sdk.AccAddress) *MsgCloseFind
 func (msg MsgCloseFinding) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgCloseFinding) Type() string { return TypeMsgAcceptFinding }
+func (msg MsgCloseFinding) Type() string { return TypeMsgCloseFinding }
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg MsgCloseFinding) GetSignBytes() []byte {
@@ -366,8 +366,8 @@ func (msg MsgCloseFinding) ValidateBasic() error {
 	return nil
 }
 
-// NewReleaseFinding release finding.
-func NewReleaseFinding(fid, desc string, operator sdk.AccAddress) *MsgReleaseFinding {
+// NewMsgReleaseFinding release finding.
+func NewMsgReleaseFinding(fid, desc string, operator sdk.AccAddress) *MsgReleaseFinding {
 	return &MsgReleaseFinding{
 		FindingId:       fid,
 		Description:     desc,
