@@ -310,7 +310,6 @@ func (s *IntegrationTestSuite) TestBounty() {
 				rsp, err := queryBountyProgram(chainAAPIEndpoint, string(rune(bountyProgramCounter)))
 				s.Require().NoError(err)
 				return len(rsp.GetProgram().ProgramId) > 0
-				return true
 			},
 			20*time.Second,
 			5*time.Second,
@@ -335,12 +334,13 @@ func (s *IntegrationTestSuite) TestBounty() {
 	s.Run("submit_finding", func() {
 		bountyFindingCounter++
 		pid := string(rune(bountyProgramCounter))
+		fid := string(rune(bountyFindingCounter))
 		s.T().Logf("Submit finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
 		var (
-			findingDesc  = "finding-desc"
 			findingTitle = "finding-title"
+			findingDesc  = "finding-desc"
 		)
-		s.executeSubmitFinding(s.chainA, 0, pid, accountBAddr.String(), findingTitle, findingDesc, feesAmountCoin.String())
+		s.executeSubmitFinding(s.chainA, 0, pid, fid, accountBAddr.String(), findingTitle, findingDesc, feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
 				rsp, err := queryBountyFinding(chainAAPIEndpoint, pid)
@@ -399,7 +399,7 @@ func (s *IntegrationTestSuite) TestBounty() {
 	//	)
 	//})
 
-	s.Run("end_program", func() {
+	s.Run("close-program", func() {
 		pid := string(rune(bountyProgramCounter))
 		s.T().Logf("End program %d chain %s", bountyProgramCounter, s.chainA.id)
 		s.executeEndProgram(s.chainA, 0, pid, accountAAddr.String(), feesAmountCoin.String())

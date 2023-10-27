@@ -15,7 +15,7 @@ func (s *IntegrationTestSuite) executeCreateProgram(c *chain, valIdx int, pid, n
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	s.T().Logf("Executing shentu bounty create program on %s", c.id)
+	s.T().Logf("Executing shentu bounty create program %s on %s", pid, c.id)
 
 	command := []string{
 		shentuBinary,
@@ -44,7 +44,7 @@ func (s *IntegrationTestSuite) executeOpenProgram(c *chain, valIdx int, pid, cre
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	s.T().Logf("Executing shentu bounty create program on %s", c.id)
+	s.T().Logf("Executing shentu bounty open program %s on %s", pid, c.id)
 
 	command := []string{
 		shentuBinary,
@@ -67,7 +67,7 @@ func (s *IntegrationTestSuite) executeOpenProgram(c *chain, valIdx int, pid, cre
 	s.T().Logf("%s successfully create program", creatorAddr)
 }
 
-func (s *IntegrationTestSuite) executeSubmitFinding(c *chain, valIdx int, pid, submitAddr, title, desc, fees string) {
+func (s *IntegrationTestSuite) executeSubmitFinding(c *chain, valIdx int, pid, fid, submitAddr, title, desc, fees string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
@@ -78,9 +78,10 @@ func (s *IntegrationTestSuite) executeSubmitFinding(c *chain, valIdx int, pid, s
 		txCommand,
 		bountytypes.ModuleName,
 		"submit-finding",
+		fmt.Sprintf("--%s=%s", bountycli.FlagProgramID, pid),
+		fmt.Sprintf("--%s=%s", bountycli.FlagFindingID, fid),
 		fmt.Sprintf("--%s=%s", bountycli.FlagFindingTitle, title),
 		fmt.Sprintf("--%s=%s", bountycli.FlagDesc, desc),
-		fmt.Sprintf("--%s=%s", bountycli.FlagProgramID, pid),
 		fmt.Sprintf("--%s=%d", bountycli.FlagFindingSeverityLevel, bountytypes.SeverityLevelMedium),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, submitAddr),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
@@ -182,13 +183,13 @@ func (s *IntegrationTestSuite) executeEndProgram(c *chain, valIdx int, programId
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	s.T().Logf("Executing shentu bounty release finding on %s", c.id)
+	s.T().Logf("Executing shentu bounty close program on %s", c.id)
 
 	command := []string{
 		shentuBinary,
 		txCommand,
 		bountytypes.ModuleName,
-		"end-program",
+		"close-program",
 		fmt.Sprintf("%s", programId),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, hostAddr),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),

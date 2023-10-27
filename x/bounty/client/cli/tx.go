@@ -196,14 +196,18 @@ func NewSubmitFindingCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			severityLevel, _ := cmd.Flags().GetInt32(FlagFindingSeverityLevel)
+			desc, err := cmd.Flags().GetString(FlagDesc)
+			if err != nil {
+				return err
+			}
+			severityLevel, err := cmd.Flags().GetInt32(FlagFindingSeverityLevel)
+			if err != nil {
+				return err
+			}
 			_, ok := types.SeverityLevel_name[severityLevel]
 			if !ok {
 				return fmt.Errorf("invalid %s value", FlagFindingSeverityLevel)
 			}
-
-			desc, _ := cmd.Flags().GetString(FlagDesc)
 
 			msg := types.NewMsgSubmitFinding(pid, fid, title, desc, submitAddr, types.SeverityLevel(severityLevel))
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
