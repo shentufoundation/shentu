@@ -157,7 +157,7 @@ func NewCloseProgramCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "close-program [program-id]",
 		Args:  cobra.ExactArgs(1),
-		Short: "end the program",
+		Short: "close the program",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

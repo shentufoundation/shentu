@@ -15,7 +15,7 @@ func (s *IntegrationTestSuite) executeCreateProgram(c *chain, valIdx int, pid, n
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	s.T().Logf("Executing shentu bounty create program %s on %s", pid, c.id)
+	s.T().Logf("Executing shentu bounty open program %s on %s", pid, c.id)
 
 	command := []string{
 		shentuBinary,
@@ -44,7 +44,7 @@ func (s *IntegrationTestSuite) executeOpenProgram(c *chain, valIdx int, pid, cre
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	s.T().Logf("Executing shentu bounty open program %s on %s", pid, c.id)
+	s.T().Logf("Executing shentu bounty create program %s on %s", pid, c.id)
 
 	command := []string{
 		shentuBinary,

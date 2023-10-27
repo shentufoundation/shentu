@@ -8,6 +8,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
@@ -309,7 +311,7 @@ func (s *IntegrationTestSuite) TestBounty() {
 			func() bool {
 				rsp, err := queryBountyProgram(chainAAPIEndpoint, string(rune(bountyProgramCounter)))
 				s.Require().NoError(err)
-				return len(rsp.GetProgram().ProgramId) > 0
+				return rsp.GetProgram().Status == types.ProgramStatusInactive
 			},
 			20*time.Second,
 			5*time.Second,
@@ -324,7 +326,7 @@ func (s *IntegrationTestSuite) TestBounty() {
 			func() bool {
 				rsp, err := queryBountyProgram(chainAAPIEndpoint, pid)
 				s.Require().NoError(err)
-				return len(rsp.GetProgram().ProgramId) > 0
+				return rsp.GetProgram().Status == types.ProgramStatusActive
 			},
 			20*time.Second,
 			5*time.Second,
@@ -361,7 +363,7 @@ func (s *IntegrationTestSuite) TestBounty() {
 			func() bool {
 				rsp, err := queryBountyFinding(chainAAPIEndpoint, fid)
 				s.Require().NoError(err)
-				return rsp.GetFinding().Status == 5
+				return rsp.GetFinding().Status == types.FindingStatusClosed
 			},
 			20*time.Second,
 			5*time.Second,
@@ -376,7 +378,7 @@ func (s *IntegrationTestSuite) TestBounty() {
 			func() bool {
 				rsp, err := queryBountyFinding(chainAAPIEndpoint, fid)
 				s.Require().NoError(err)
-				return rsp.GetFinding().Status == 3
+				return rsp.GetFinding().Status == types.FindingStatusConfirmed
 			},
 			20*time.Second,
 			5*time.Second,
@@ -407,7 +409,7 @@ func (s *IntegrationTestSuite) TestBounty() {
 			func() bool {
 				rsp, err := queryBountyProgram(chainAAPIEndpoint, pid)
 				s.Require().NoError(err)
-				return rsp.GetProgram().Status == 5
+				return rsp.GetProgram().Status == types.ProgramStatusClosed
 			},
 			20*time.Second,
 			5*time.Second,
