@@ -107,11 +107,6 @@ func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram)
 func (k msgServer) OpenProgram(goCtx context.Context, msg *types.MsgOpenProgram) (*types.MsgOpenProgramResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_, found := k.GetProgram(ctx, msg.ProgramId)
-	if !found {
-		return nil, types.ErrNoProgramFound
-	}
-
 	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return nil, err
@@ -148,7 +143,7 @@ func (k msgServer) CloseProgram(goCtx context.Context, msg *types.MsgCloseProgra
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeOpenProgram,
+			types.EventTypeCloseProgram,
 			sdk.NewAttribute(types.AttributeKeyProgramID, msg.ProgramId),
 		),
 		sdk.NewEvent(
@@ -183,7 +178,7 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		return nil, types.ErrFindingAlreadyExists
 	}
 
-	finding, err := types.NewFinding(msg.ProgramId, msg.FindingId, msg.Title, msg.Description, operatorAddr, submitTime, msg.SeverityLevel)
+	finding, err := types.NewFinding(msg.ProgramId, msg.FindingId, msg.Title, msg.Description, msg.FindingHash, operatorAddr, submitTime, msg.SeverityLevel)
 	if err != nil {
 		return nil, err
 	}
@@ -208,6 +203,53 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 	})
 
 	return &types.MsgSubmitFindingResponse{}, nil
+}
+
+func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding) (*types.MsgEditFindingResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	program, isExist := k.GetProgram(ctx, msg.ProgramId)
+	if !isExist {
+		return nil, types.ErrProgramNotExists
+	}
+	if program.Status != types.ProgramStatusActive {
+		return nil, types.ErrProgramNotActive
+	}
+
+	finding, found := k.GetFinding(ctx, msg.FindingId)
+	if !found {
+		return nil, types.ErrFindingNotExists
+	}
+	// check submitter
+	if finding.SubmitterAddress != msg.SubmitterAddress {
+		return nil, types.ErrFindingSubmitterInvalid
+	}
+	if len(msg.Title) > 0 {
+		finding.Title = msg.Title
+	}
+	if len(msg.Description) > 0 {
+		finding.Description = msg.Description
+	}
+	if msg.SeverityLevel != types.Unspecified {
+		finding.SeverityLevel = msg.SeverityLevel
+	}
+
+	k.SetFinding(ctx, finding)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeEditFinding,
+			sdk.NewAttribute(types.AttributeKeyFindingID, finding.FindingId),
+			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.SubmitterAddress),
+		),
+	})
+
+	return &types.MsgEditFindingResponse{}, nil
 }
 
 func (k msgServer) AcceptFinding(goCtx context.Context, msg *types.MsgAcceptFinding) (*types.MsgAcceptFindingResponse, error) {
@@ -303,12 +345,12 @@ func (k msgServer) CloseFinding(goCtx context.Context, msg *types.MsgCloseFindin
 	}
 
 	// check submitter
-	if finding.SubmitterAddress != msg.OperatorAddress || !k.certKeeper.IsCertifier(ctx, operatorAddr) {
+	if finding.SubmitterAddress != msg.OperatorAddress && !k.certKeeper.IsCertifier(ctx, operatorAddr) {
 		return nil, types.ErrFindingSubmitterInvalid
 	}
 
 	// check status
-	if finding.Status != types.FindingStatusReported {
+	if finding.Status != types.FindingStatusSubmitted {
 		return nil, types.ErrFindingStatusInvalid
 	}
 
@@ -317,7 +359,7 @@ func (k msgServer) CloseFinding(goCtx context.Context, msg *types.MsgCloseFindin
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeCancelFinding,
+			types.EventTypeCloseFinding,
 			sdk.NewAttribute(types.AttributeKeyFindingID, msg.FindingId),
 			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
 		),
@@ -352,6 +394,7 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 		return nil, types.ErrProgramCreatorInvalid
 	}
 
+	finding.Description = msg.Description
 	k.SetFinding(ctx, finding)
 
 	ctx.EventManager().EmitEvents(sdk.Events{

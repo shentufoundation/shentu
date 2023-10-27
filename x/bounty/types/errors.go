@@ -10,6 +10,7 @@ const (
 	errProgramFindingListMarshal
 	errProgramFindingListUnmarshal
 	errProgramAlreadyExists
+	errProgramAlreadyActive
 	errProgramAlreadyClosed
 	errProgramNotExists
 	errProgramInactive
@@ -42,10 +43,12 @@ var (
 	ErrProgramFindingListMarshal   = sdkerrors.Register(ModuleName, errProgramFindingListMarshal, "convert uint64 to byte list error")
 	ErrProgramFindingListUnmarshal = sdkerrors.Register(ModuleName, errProgramFindingListUnmarshal, "convert to uint64 list error")
 	ErrProgramAlreadyExists        = sdkerrors.Register(ModuleName, errProgramAlreadyExists, "program already exists")
+	ErrProgramAlreadyActive        = sdkerrors.Register(ModuleName, errProgramAlreadyActive, "program already active")
 	ErrProgramAlreadyClosed        = sdkerrors.Register(ModuleName, errProgramAlreadyClosed, "program already closed")
-	ErrProgramNotExists            = sdkerrors.Register(ModuleName, errProgramNotExists, "program does not exists")
-	ErrProgramNotActive            = sdkerrors.Register(ModuleName, errProgramInactive, "program status is not active")
-	ErrProgramNotInactive          = sdkerrors.Register(ModuleName, errProgramNotInactive, "program status is not inactive")
+
+	ErrProgramNotExists   = sdkerrors.Register(ModuleName, errProgramNotExists, "program does not exists")
+	ErrProgramNotActive   = sdkerrors.Register(ModuleName, errProgramInactive, "program status is not active")
+	ErrProgramNotInactive = sdkerrors.Register(ModuleName, errProgramNotInactive, "program status is not inactive")
 
 	ErrProgramCreatorInvalid     = sdkerrors.Register(ModuleName, errProgramCreatorInvalid, "invalid program creator")
 	ErrProgramOperatorNotAllowed = sdkerrors.Register(ModuleName, errProgramNotAllowed, "program access denied because you are not the creator or certifiers")

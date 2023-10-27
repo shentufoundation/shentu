@@ -48,13 +48,14 @@ func (k Keeper) OpenProgram(ctx sdk.Context, pid string, caller sdk.AccAddress) 
 		return types.ErrProgramNotExists
 	}
 
+	// Check if the program is already closed
+	if program.Status == types.ProgramStatusActive {
+		return types.ErrProgramAlreadyActive
+	}
+
 	// Check the permissions. Only the cert address can operate.
 	if !k.certKeeper.IsCertifier(ctx, caller) {
 		return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "%s is not a certified identity", caller.String())
-	}
-
-	if program.Status != types.ProgramStatusInactive {
-		return types.ErrProgramNotInactive
 	}
 
 	program.Status = types.ProgramStatusActive
@@ -74,10 +75,8 @@ func (k Keeper) CloseProgram(ctx sdk.Context, pid string, caller sdk.AccAddress)
 	}
 
 	// Check the permissions. Only the admin of the program or cert address can operate.
-	if program.AdminAddress != caller.String() {
-		if !k.certKeeper.IsCertifier(ctx, caller) {
-			return types.ErrFindingOperatorNotAllowed
-		}
+	if program.AdminAddress != caller.String() && !k.certKeeper.IsCertifier(ctx, caller) {
+		return types.ErrFindingOperatorNotAllowed
 	}
 
 	// Close the program and update its status in the store

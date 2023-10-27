@@ -1,8 +1,6 @@
 package types
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -12,11 +10,7 @@ import (
 // Findings is an array of finding
 type Findings []Finding
 
-func NewFinding(pid, fid, title, desc string, operator sdk.AccAddress, submitTime time.Time, level SeverityLevel) (Finding, error) {
-
-	hash := sha256.Sum256([]byte(title + desc))
-	bzHash := hash[:]
-	hashString := hex.EncodeToString(bzHash)
+func NewFinding(pid, fid, title, desc, hash string, operator sdk.AccAddress, submitTime time.Time, level SeverityLevel) (Finding, error) {
 
 	return Finding{
 		ProgramId:        pid,
@@ -25,8 +19,8 @@ func NewFinding(pid, fid, title, desc string, operator sdk.AccAddress, submitTim
 		Description:      desc,
 		SubmitterAddress: operator.String(),
 		CreateTime:       submitTime,
-		Status:           FindingStatusReported,
-		FindingHash:      hashString,
+		Status:           FindingStatusSubmitted,
+		FindingHash:      hash,
 		SeverityLevel:    level,
 	}, nil
 }

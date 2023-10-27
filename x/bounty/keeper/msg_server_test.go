@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 						Title:            "Test bug 1",
 						Description:      "Desc",
 						SubmitterAddress: suite.address[0].String(),
-						SeverityLevel:    types.SeverityLevelCritical,
+						SeverityLevel:    types.Critical,
 					},
 				},
 			},
@@ -103,7 +103,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 						Title:            "Test bug 1",
 						Description:      "Desc",
 						SubmitterAddress: suite.address[0].String(),
-						SeverityLevel:    types.SeverityLevelCritical,
+						SeverityLevel:    types.Critical,
 					},
 				},
 			},
@@ -120,7 +120,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 						Title:            "Test bug 1",
 						Description:      "Desc",
 						SubmitterAddress: "Test address",
-						SeverityLevel:    types.SeverityLevelCritical,
+						SeverityLevel:    types.Critical,
 					},
 				},
 			},
@@ -187,7 +187,7 @@ func (suite *KeeperTestSuite) TestAcceptFinding() {
 				suite.Require().Equal(finding.Status, types.FindingStatusConfirmed)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Equal(finding.Status, types.FindingStatusReported)
+				suite.Require().Equal(finding.Status, types.FindingStatusSubmitted)
 			}
 		})
 	}
@@ -231,7 +231,7 @@ func (suite *KeeperTestSuite) TestRejectFinding() {
 				suite.Require().Equal(finding.Status, types.FindingStatusClosed)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Equal(finding.Status, types.FindingStatusReported)
+				suite.Require().Equal(finding.Status, types.FindingStatusSubmitted)
 			}
 		})
 	}
@@ -270,7 +270,7 @@ func (suite *KeeperTestSuite) InitSubmitFinding(pid, fid string) string {
 		Title:            "Bug title",
 		Description:      "Bug desc",
 		SubmitterAddress: suite.address[0].String(),
-		SeverityLevel:    types.SeverityLevelCritical,
+		SeverityLevel:    types.Critical,
 	}
 
 	ctx := types1.WrapSDKContext(suite.ctx)

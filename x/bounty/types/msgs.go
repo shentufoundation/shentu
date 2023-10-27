@@ -12,6 +12,7 @@ const (
 	TypeMsgOpenProgram    = "open_program"
 	TypeMsgCloseProgram   = "close_program"
 	TypeMsgSubmitFinding  = "submit_finding"
+	TypeMsgEditFinding    = "edit_finding"
 	TypeMsgAcceptFinding  = "accept_finding"
 	TypeMsgRejectFinding  = "reject_finding"
 	TypeMsgCloseFinding   = "close_finding"
@@ -154,6 +155,57 @@ func (msg MsgSubmitFinding) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgSubmitFinding) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+	}
+	if len(msg.ProgramId) == 0 {
+		return errors.New("empty pid is not allowed")
+	}
+	return nil
+}
+
+// NewMsgEditFinding submit a new finding.
+func NewMsgEditFinding(pid, fid, title, desc string, operator sdk.AccAddress, level SeverityLevel) *MsgEditFinding {
+
+	return &MsgEditFinding{
+		ProgramId:        pid,
+		FindingId:        fid,
+		Title:            title,
+		Description:      desc,
+		SubmitterAddress: operator.String(),
+		SeverityLevel:    level,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgEditFinding) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgEditFinding) Type() string { return TypeMsgEditFinding }
+
+// GetSigners implements the sdk.Msg interface. It returns the address(es) that
+// must sign over msg.GetSignBytes().
+// If the validator address is not same as delegator's, then the validator must
+// sign the msg as well.
+func (msg MsgEditFinding) GetSigners() []sdk.AccAddress {
+	// creator should sign the message
+	cAddr, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{cAddr}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg MsgEditFinding) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgEditFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())

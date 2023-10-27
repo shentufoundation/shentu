@@ -32,12 +32,13 @@ message Finding {
   string title = 3;
   // JSON by FindingDetail
   string description = 4 [(gogoproto.moretags) = "yaml:\"description\""];
-  string submitter_address = 5 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
-  google.protobuf.Timestamp create_time = 6
+  // hash(desc + pos + submitter)
+  string finding_hash = 5 [(gogoproto.moretags) = "yaml:\"finding_hash\""];
+  string submitter_address = 6 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
+  SeverityLevel severity_level = 7 [(gogoproto.moretags) = "yaml:\"severity_level\""];
+  FindingStatus status = 8 [(gogoproto.moretags) = "yaml:\"status\""];
+  google.protobuf.Timestamp create_time = 9
   [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"create_time\""];
-  FindingStatus status = 7 [(gogoproto.moretags) = "yaml:\"status\""];
-  string finding_hash = 8 [(gogoproto.moretags) = "yaml:\"finding_hash\""];
-  SeverityLevel severity_level = 9 [(gogoproto.moretags) = "yaml:\"severity_level\""];
 }
 
 enum ProgramStatus {
@@ -51,22 +52,22 @@ enum ProgramStatus {
 enum SeverityLevel {
   option (gogoproto.goproto_enum_prefix) = false;
 
-  SEVERITY_LEVEL_CRITICAL = 0 [(gogoproto.enumvalue_customname) = "SeverityLevelCritical"];
-  SEVERITY_LEVEL_HIGH = 1 [(gogoproto.enumvalue_customname) = "SeverityLevelHigh"];
-  SEVERITY_LEVEL_MEDIUM = 2 [(gogoproto.enumvalue_customname) = "SeverityLevelMedium"];
-  SEVERITY_LEVEL_LOW = 3 [(gogoproto.enumvalue_customname) = "SeverityLevelLow"];
-  SEVERITY_LEVEL_INFORMATIONAL = 4 [(gogoproto.enumvalue_customname) = "SeverityLevelInformational"];
+  SEVERITY_LEVEL_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "Unspecified"];
+  SEVERITY_LEVEL_CRITICAL = 1 [(gogoproto.enumvalue_customname) = "Critical"];
+  SEVERITY_LEVEL_HIGH = 2 [(gogoproto.enumvalue_customname) = "High"];
+  SEVERITY_LEVEL_MEDIUM = 3 [(gogoproto.enumvalue_customname) = "Medium"];
+  SEVERITY_LEVEL_LOW = 4 [(gogoproto.enumvalue_customname) = "Low"];
+  SEVERITY_LEVEL_INFORMATIONAL = 5 [(gogoproto.enumvalue_customname) = "Informational"];
 }
 
 enum FindingStatus {
   option (gogoproto.goproto_enum_prefix) = false;
 
-  FINDING_STATUS_REPORTED = 0 [(gogoproto.enumvalue_customname) = "FindingStatusReported"];
-  FINDING_STATUS_PROPOSED = 1 [(gogoproto.enumvalue_customname) = "FindingStatusProposed"];
-  FINDING_STATUS_ACTIVE = 2 [(gogoproto.enumvalue_customname) = "FindingStatusActive"];
-  FINDING_STATUS_CONFIRMED = 3 [(gogoproto.enumvalue_customname) = "FindingStatusConfirmed"];
-  FINDING_STATUS_PAID = 4 [(gogoproto.enumvalue_customname) = "FindingStatusPaid"];
-  FINDING_STATUS_CLOSED = 5 [(gogoproto.enumvalue_customname) = "FindingStatusClosed"];
+  FINDING_STATUS_SUBMITTED = 0 [(gogoproto.enumvalue_customname) = "FindingStatusSubmitted"];
+  FINDING_STATUS_ACTIVE = 1 [(gogoproto.enumvalue_customname) = "FindingStatusActive"];
+  FINDING_STATUS_CONFIRMED = 2 [(gogoproto.enumvalue_customname) = "FindingStatusConfirmed"];
+  FINDING_STATUS_PAID = 3 [(gogoproto.enumvalue_customname) = "FindingStatusPaid"];
+  FINDING_STATUS_CLOSED = 4 [(gogoproto.enumvalue_customname) = "FindingStatusClosed"];
 }
 
 message BountyLevel {
@@ -87,7 +88,6 @@ message BountyLevel {
 //  string description = 1;
 //  string scope_rules = 2;
 //  string known_issues = 3;
-//  repeated BountyLevel bounty_levels = 4 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"bounty_levels\""];
 //}
 
 //// FindingDetail defines a finding detail.
@@ -99,5 +99,4 @@ message BountyLevel {
 //  string proof_of_concept = 2 [(gogoproto.moretags) = "yaml:\"proof_of_concept\""];
 //  repeated string program_targets = 3 [(gogoproto.moretags) = "yaml:\"program_targets\""];
 //  repeated string attachments = 4;
-//  SeverityLevel severity_level = 5 [(gogoproto.moretags) = "yaml:\"severity_level\""];
 //}

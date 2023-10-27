@@ -30,6 +30,9 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgSubmitFinding:
 			res, err := msgServer.SubmitFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgEditFinding:
+			res, err := msgServer.EditFinding(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 		case *types.MsgAcceptFinding:
 			res, err := msgServer.AcceptFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
