@@ -298,12 +298,13 @@ func (s *IntegrationTestSuite) TestBounty() {
 	validatorAAddr := validatorA.keyInfo.GetAddress()
 	s.Run("create_program", func() {
 		bountyProgramCounter++
+		pid := string(rune(bountyProgramCounter))
 		s.T().Logf("Creating program %d on chain %s", bountyProgramCounter, s.chainA.id)
 		var (
 			programName = "name"
 			programDesc = "program-desc"
 		)
-		s.executeCreateProgram(s.chainA, 0, programName, programDesc, accountAAddr.String(), feesAmountCoin.String())
+		s.executeCreateProgram(s.chainA, 0, pid, programName, programDesc, accountAAddr.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
 				rsp, err := queryBountyProgram(chainAAPIEndpoint, string(rune(bountyProgramCounter)))

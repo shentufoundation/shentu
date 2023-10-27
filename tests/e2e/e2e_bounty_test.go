@@ -11,7 +11,7 @@ import (
 	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-func (s *IntegrationTestSuite) executeCreateProgram(c *chain, valIdx int, name, desc, creatorAddr, fees string) {
+func (s *IntegrationTestSuite) executeCreateProgram(c *chain, valIdx int, pid, name, desc, creatorAddr, fees string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
@@ -22,6 +22,7 @@ func (s *IntegrationTestSuite) executeCreateProgram(c *chain, valIdx int, name, 
 		txCommand,
 		bountytypes.ModuleName,
 		"create-program",
+		fmt.Sprintf("--%s=%s", bountycli.FlagProgramID, pid),
 		fmt.Sprintf("--%s=%s", bountycli.FlagName, name),
 		fmt.Sprintf("--%s=%s", bountycli.FlagDesc, desc),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, creatorAddr),
@@ -50,7 +51,7 @@ func (s *IntegrationTestSuite) executeOpenProgram(c *chain, valIdx int, pid, cre
 		txCommand,
 		bountytypes.ModuleName,
 		"open-program",
-		fmt.Sprintf("--%s=%s", bountycli.FlagProgramID, pid),
+		fmt.Sprintf("%s", pid),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, creatorAddr),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagGas, "auto"),
