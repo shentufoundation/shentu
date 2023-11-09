@@ -12,5 +12,5 @@ type ParamSubspace interface {
 }
 
 type CertKeeper interface {
-	IsCertifier(ctx sdk.Context, addr sdk.AccAddress) bool
+	IsBountyAdmin(ctx sdk.Context, addr sdk.AccAddress) bool
 }

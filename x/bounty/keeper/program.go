@@ -53,8 +53,8 @@ func (k Keeper) OpenProgram(ctx sdk.Context, pid string, caller sdk.AccAddress) 
 		return types.ErrProgramAlreadyActive
 	}
 
-	// Check the permissions. Only the cert address can operate.
-	if !k.certKeeper.IsCertifier(ctx, caller) {
+	// Check the permissions. Only the certificate address can operate.
+	if !k.certKeeper.IsBountyAdmin(ctx, caller) {
 		return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "%s is not a certified identity", caller.String())
 	}
 
@@ -73,7 +73,10 @@ func (k Keeper) CloseProgram(ctx sdk.Context, pid string, caller sdk.AccAddress)
 	if program.Status == types.ProgramStatusClosed {
 		return types.ErrProgramAlreadyClosed
 	}
-
+	// todo finding 3种存在不可关闭
+	//   FINDING_STATUS_SUBMITTED = 0 [(gogoproto.enumvalue_customname) = "FindingStatusSubmitted"];
+	//  FINDING_STATUS_ACTIVE = 1 [(gogoproto.enumvalue_customname) = "FindingStatusActive"];
+	//  FINDING_STATUS_CONFIRMED = 2 [(gogoproto.enumvalue_customname) = "FindingStatusConfirmed"];
 	// Check the permissions. Only the admin of the program or cert address can operate.
 	if program.AdminAddress != caller.String() && !k.certKeeper.IsCertifier(ctx, caller) {
 		return types.ErrFindingOperatorNotAllowed

@@ -21,8 +21,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgEditProgram:
 			res, err := msgServer.EditProgram(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgOpenProgram:
-			res, err := msgServer.OpenProgram(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgActivateProgram:
+			res, err := msgServer.ActivateProgram(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 		case *types.MsgCloseProgram:
 			res, err := msgServer.CloseProgram(sdk.WrapSDKContext(ctx), msg)
@@ -33,11 +33,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgEditFinding:
 			res, err := msgServer.EditFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgAcceptFinding:
-			res, err := msgServer.AcceptFinding(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgRejectFinding:
-			res, err := msgServer.RejectFinding(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgConfirmFinding:
+			res, err := msgServer.ConfirmFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 		case *types.MsgCloseFinding:
 			res, err := msgServer.CloseFinding(sdk.WrapSDKContext(ctx), msg)

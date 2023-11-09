@@ -1,15 +1,18 @@
 package cli
 
 const (
+	FlagProgramID = "program-id"
+	FlagFindingID = "finding-id"
+
 	FlagName    = "name"
 	FlagMembers = "members"
-	FlagDesc    = "desc"
 
 	FlagFindingTitle         = "title"
 	FlagFindingSeverityLevel = "severity-level"
+	FlagFindingDescription   = "description"
+	FlagFindingPoc           = "poc"
 	FlagFindingAddress       = "finding-address"
 	FlagSubmitterAddress     = "submitter-address"
 
-	FlagProgramID = "program-id"
-	FlagFindingID = "finding-id"
+	FlagDetail = "detail"
 )

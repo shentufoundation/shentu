@@ -7,17 +7,16 @@ import (
 // Programs is an array of program
 type Programs []Program
 
-func NewProgram(pid, name, desc string,
-	admin sdk.AccAddress, members []string, status ProgramStatus, levels []BountyLevel) (Program, error) {
+func NewProgram(pid, name, detail string,
+	admin sdk.AccAddress, status ProgramStatus, levels []BountyLevel) (Program, error) {
 
 	return Program{
-		ProgramId:      pid,
-		Name:           name,
-		Description:    desc,
-		AdminAddress:   admin.String(),
-		MemberAccounts: members,
-		Status:         status,
-		BountyLevels:   levels,
+		ProgramId:    pid,
+		Name:         name,
+		Detail:       detail,
+		AdminAddress: admin.String(),
+		Status:       status,
+		BountyLevels: levels,
 	}, nil
 }
 

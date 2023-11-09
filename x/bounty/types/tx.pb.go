@@ -34,12 +34,11 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // MsgCreateProgram defines a SDK message for creating a new program.
 type MsgCreateProgram struct {
-	Name            string        `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Description     string        `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	OperatorAddress string        `protobuf:"bytes,3,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
-	MemberAccounts  []string      `protobuf:"bytes,4,rep,name=member_accounts,json=memberAccounts,proto3" json:"member_accounts,omitempty" yaml:"member_accounts"`
-	ProgramId       string        `protobuf:"bytes,5,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
-	BountyLevels    []BountyLevel `protobuf:"bytes,6,rep,name=bounty_levels,json=bountyLevels,proto3" json:"bounty_levels" yaml:"bounty_levels"`
+	ProgramId       string        `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
+	Name            string        `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Detail          string        `protobuf:"bytes,3,opt,name=detail,proto3" json:"detail,omitempty"`
+	BountyLevels    []BountyLevel `protobuf:"bytes,4,rep,name=bounty_levels,json=bountyLevels,proto3" json:"bounty_levels" yaml:"bounty_levels"`
+	OperatorAddress string        `protobuf:"bytes,5,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
 }
 
 func (m *MsgCreateProgram) Reset()         { *m = MsgCreateProgram{} }
@@ -77,12 +76,11 @@ var xxx_messageInfo_MsgCreateProgram proto.InternalMessageInfo
 
 // MsgEditProgram defines a SDK message for editing a program.
 type MsgEditProgram struct {
-	Name            string        `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Description     string        `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	OperatorAddress string        `protobuf:"bytes,3,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
-	MemberAccounts  []string      `protobuf:"bytes,4,rep,name=member_accounts,json=memberAccounts,proto3" json:"member_accounts,omitempty" yaml:"member_accounts"`
-	ProgramId       string        `protobuf:"bytes,5,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
-	BountyLevels    []BountyLevel `protobuf:"bytes,6,rep,name=bounty_levels,json=bountyLevels,proto3" json:"bounty_levels" yaml:"bounty_levels"`
+	ProgramId       string        `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
+	Name            string        `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Detail          string        `protobuf:"bytes,3,opt,name=detail,proto3" json:"detail,omitempty"`
+	BountyLevels    []BountyLevel `protobuf:"bytes,4,rep,name=bounty_levels,json=bountyLevels,proto3" json:"bounty_levels" yaml:"bounty_levels"`
+	OperatorAddress string        `protobuf:"bytes,5,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
 }
 
 func (m *MsgEditProgram) Reset()         { *m = MsgEditProgram{} }
@@ -192,23 +190,23 @@ func (m *MsgEditProgramResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgEditProgramResponse proto.InternalMessageInfo
 
-type MsgOpenProgram struct {
+type MsgActivateProgram struct {
 	ProgramId       string `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
 	OperatorAddress string `protobuf:"bytes,2,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
 }
 
-func (m *MsgOpenProgram) Reset()         { *m = MsgOpenProgram{} }
-func (m *MsgOpenProgram) String() string { return proto.CompactTextString(m) }
-func (*MsgOpenProgram) ProtoMessage()    {}
-func (*MsgOpenProgram) Descriptor() ([]byte, []int) {
+func (m *MsgActivateProgram) Reset()         { *m = MsgActivateProgram{} }
+func (m *MsgActivateProgram) String() string { return proto.CompactTextString(m) }
+func (*MsgActivateProgram) ProtoMessage()    {}
+func (*MsgActivateProgram) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1e4b4296bac3db30, []int{4}
 }
-func (m *MsgOpenProgram) XXX_Unmarshal(b []byte) error {
+func (m *MsgActivateProgram) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgOpenProgram) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgActivateProgram) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgOpenProgram.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgActivateProgram.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -218,33 +216,33 @@ func (m *MsgOpenProgram) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
-func (m *MsgOpenProgram) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgOpenProgram.Merge(m, src)
+func (m *MsgActivateProgram) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgActivateProgram.Merge(m, src)
 }
-func (m *MsgOpenProgram) XXX_Size() int {
+func (m *MsgActivateProgram) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgOpenProgram) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgOpenProgram.DiscardUnknown(m)
+func (m *MsgActivateProgram) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgActivateProgram.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgOpenProgram proto.InternalMessageInfo
+var xxx_messageInfo_MsgActivateProgram proto.InternalMessageInfo
 
-type MsgOpenProgramResponse struct {
+type MsgActivateProgramResponse struct {
 }
 
-func (m *MsgOpenProgramResponse) Reset()         { *m = MsgOpenProgramResponse{} }
-func (m *MsgOpenProgramResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgOpenProgramResponse) ProtoMessage()    {}
-func (*MsgOpenProgramResponse) Descriptor() ([]byte, []int) {
+func (m *MsgActivateProgramResponse) Reset()         { *m = MsgActivateProgramResponse{} }
+func (m *MsgActivateProgramResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgActivateProgramResponse) ProtoMessage()    {}
+func (*MsgActivateProgramResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1e4b4296bac3db30, []int{5}
 }
-func (m *MsgOpenProgramResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgActivateProgramResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgOpenProgramResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgActivateProgramResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgOpenProgramResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgActivateProgramResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -254,17 +252,17 @@ func (m *MsgOpenProgramResponse) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (m *MsgOpenProgramResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgOpenProgramResponse.Merge(m, src)
+func (m *MsgActivateProgramResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgActivateProgramResponse.Merge(m, src)
 }
-func (m *MsgOpenProgramResponse) XXX_Size() int {
+func (m *MsgActivateProgramResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgOpenProgramResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgOpenProgramResponse.DiscardUnknown(m)
+func (m *MsgActivateProgramResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgActivateProgramResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgOpenProgramResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgActivateProgramResponse proto.InternalMessageInfo
 
 type MsgCloseProgram struct {
 	ProgramId       string `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
@@ -345,10 +343,10 @@ type MsgSubmitFinding struct {
 	ProgramId        string        `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
 	FindingId        string        `protobuf:"bytes,2,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
 	Title            string        `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
-	Description      string        `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	FindingHash      string        `protobuf:"bytes,5,opt,name=finding_hash,json=findingHash,proto3" json:"finding_hash,omitempty" yaml:"finding_hash"`
-	SubmitterAddress string        `protobuf:"bytes,6,opt,name=submitter_address,json=submitterAddress,proto3" json:"submitter_address,omitempty" yaml:"submitter_address"`
-	SeverityLevel    SeverityLevel `protobuf:"varint,7,opt,name=severity_level,json=severityLevel,proto3,enum=shentu.bounty.v1.SeverityLevel" json:"severity_level,omitempty" yaml:"severity_level"`
+	FindingHash      string        `protobuf:"bytes,4,opt,name=finding_hash,json=findingHash,proto3" json:"finding_hash,omitempty" yaml:"finding_hash"`
+	SubmitterAddress string        `protobuf:"bytes,5,opt,name=submitter_address,json=submitterAddress,proto3" json:"submitter_address,omitempty" yaml:"submitter_address"`
+	SeverityLevel    SeverityLevel `protobuf:"varint,6,opt,name=severity_level,json=severityLevel,proto3,enum=shentu.bounty.v1.SeverityLevel" json:"severity_level,omitempty" yaml:"severity_level"`
+	Detail           string        `protobuf:"bytes,7,opt,name=detail,proto3" json:"detail,omitempty"`
 }
 
 func (m *MsgSubmitFinding) Reset()         { *m = MsgSubmitFinding{} }
@@ -426,9 +424,10 @@ type MsgEditFinding struct {
 	ProgramId        string        `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty" yaml:"program_id"`
 	FindingId        string        `protobuf:"bytes,2,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
 	Title            string        `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
-	Description      string        `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	FindingHash      string        `protobuf:"bytes,4,opt,name=finding_hash,json=findingHash,proto3" json:"finding_hash,omitempty" yaml:"finding_hash"`
 	SubmitterAddress string        `protobuf:"bytes,5,opt,name=submitter_address,json=submitterAddress,proto3" json:"submitter_address,omitempty" yaml:"submitter_address"`
 	SeverityLevel    SeverityLevel `protobuf:"varint,6,opt,name=severity_level,json=severityLevel,proto3,enum=shentu.bounty.v1.SeverityLevel" json:"severity_level,omitempty" yaml:"severity_level"`
+	Detail           string        `protobuf:"bytes,7,opt,name=detail,proto3" json:"detail,omitempty"`
 }
 
 func (m *MsgEditFinding) Reset()         { *m = MsgEditFinding{} }
@@ -501,25 +500,25 @@ func (m *MsgEditFindingResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgEditFindingResponse proto.InternalMessageInfo
 
-// MsgAcceptFinding defines a message to accept a finding to an existing finding.
-type MsgAcceptFinding struct {
+// MsgConfirmFinding defines a message to accept a finding to an existing finding.
+type MsgConfirmFinding struct {
 	FindingId       string        `protobuf:"bytes,1,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
 	OperatorAddress string        `protobuf:"bytes,2,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
 	Status          FindingStatus `protobuf:"varint,3,opt,name=status,proto3,enum=shentu.bounty.v1.FindingStatus" json:"status,omitempty" yaml:"status"`
 }
 
-func (m *MsgAcceptFinding) Reset()         { *m = MsgAcceptFinding{} }
-func (m *MsgAcceptFinding) String() string { return proto.CompactTextString(m) }
-func (*MsgAcceptFinding) ProtoMessage()    {}
-func (*MsgAcceptFinding) Descriptor() ([]byte, []int) {
+func (m *MsgConfirmFinding) Reset()         { *m = MsgConfirmFinding{} }
+func (m *MsgConfirmFinding) String() string { return proto.CompactTextString(m) }
+func (*MsgConfirmFinding) ProtoMessage()    {}
+func (*MsgConfirmFinding) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1e4b4296bac3db30, []int{12}
 }
-func (m *MsgAcceptFinding) XXX_Unmarshal(b []byte) error {
+func (m *MsgConfirmFinding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgAcceptFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgConfirmFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgAcceptFinding.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgConfirmFinding.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -529,34 +528,34 @@ func (m *MsgAcceptFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (m *MsgAcceptFinding) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgAcceptFinding.Merge(m, src)
+func (m *MsgConfirmFinding) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgConfirmFinding.Merge(m, src)
 }
-func (m *MsgAcceptFinding) XXX_Size() int {
+func (m *MsgConfirmFinding) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgAcceptFinding) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgAcceptFinding.DiscardUnknown(m)
+func (m *MsgConfirmFinding) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgConfirmFinding.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgAcceptFinding proto.InternalMessageInfo
+var xxx_messageInfo_MsgConfirmFinding proto.InternalMessageInfo
 
-// MsgAcceptFindingResponse defines the Msg/AcceptFinding response type.
-type MsgAcceptFindingResponse struct {
+// MsgConfirmFindingResponse defines the Msg/AcceptFinding response type.
+type MsgConfirmFindingResponse struct {
 }
 
-func (m *MsgAcceptFindingResponse) Reset()         { *m = MsgAcceptFindingResponse{} }
-func (m *MsgAcceptFindingResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgAcceptFindingResponse) ProtoMessage()    {}
-func (*MsgAcceptFindingResponse) Descriptor() ([]byte, []int) {
+func (m *MsgConfirmFindingResponse) Reset()         { *m = MsgConfirmFindingResponse{} }
+func (m *MsgConfirmFindingResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgConfirmFindingResponse) ProtoMessage()    {}
+func (*MsgConfirmFindingResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1e4b4296bac3db30, []int{13}
 }
-func (m *MsgAcceptFindingResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgConfirmFindingResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgAcceptFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgConfirmFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgAcceptFindingResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgConfirmFindingResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -566,93 +565,17 @@ func (m *MsgAcceptFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *MsgAcceptFindingResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgAcceptFindingResponse.Merge(m, src)
+func (m *MsgConfirmFindingResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgConfirmFindingResponse.Merge(m, src)
 }
-func (m *MsgAcceptFindingResponse) XXX_Size() int {
+func (m *MsgConfirmFindingResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgAcceptFindingResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgAcceptFindingResponse.DiscardUnknown(m)
+func (m *MsgConfirmFindingResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgConfirmFindingResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgAcceptFindingResponse proto.InternalMessageInfo
-
-// MsgRejectFinding defines a message to reject a finding to an existing finding.
-type MsgRejectFinding struct {
-	FindingId       string `protobuf:"bytes,1,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
-	OperatorAddress string `protobuf:"bytes,2,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
-}
-
-func (m *MsgRejectFinding) Reset()         { *m = MsgRejectFinding{} }
-func (m *MsgRejectFinding) String() string { return proto.CompactTextString(m) }
-func (*MsgRejectFinding) ProtoMessage()    {}
-func (*MsgRejectFinding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{14}
-}
-func (m *MsgRejectFinding) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgRejectFinding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgRejectFinding.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgRejectFinding) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRejectFinding.Merge(m, src)
-}
-func (m *MsgRejectFinding) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgRejectFinding) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRejectFinding.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgRejectFinding proto.InternalMessageInfo
-
-// MsgRejectFindingResponse defines the Msg/RejectFinding response type.
-type MsgRejectFindingResponse struct {
-}
-
-func (m *MsgRejectFindingResponse) Reset()         { *m = MsgRejectFindingResponse{} }
-func (m *MsgRejectFindingResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgRejectFindingResponse) ProtoMessage()    {}
-func (*MsgRejectFindingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{15}
-}
-func (m *MsgRejectFindingResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgRejectFindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgRejectFindingResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgRejectFindingResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRejectFindingResponse.Merge(m, src)
-}
-func (m *MsgRejectFindingResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgRejectFindingResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRejectFindingResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgRejectFindingResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgConfirmFindingResponse proto.InternalMessageInfo
 
 // MsgCloseFinding defines a message to close a finding to an existing finding.
 type MsgCloseFinding struct {
@@ -664,7 +587,7 @@ func (m *MsgCloseFinding) Reset()         { *m = MsgCloseFinding{} }
 func (m *MsgCloseFinding) String() string { return proto.CompactTextString(m) }
 func (*MsgCloseFinding) ProtoMessage()    {}
 func (*MsgCloseFinding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{16}
+	return fileDescriptor_1e4b4296bac3db30, []int{14}
 }
 func (m *MsgCloseFinding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -701,7 +624,7 @@ func (m *MsgCloseFindingResponse) Reset()         { *m = MsgCloseFindingResponse
 func (m *MsgCloseFindingResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgCloseFindingResponse) ProtoMessage()    {}
 func (*MsgCloseFindingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{17}
+	return fileDescriptor_1e4b4296bac3db30, []int{15}
 }
 func (m *MsgCloseFindingResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -733,15 +656,16 @@ var xxx_messageInfo_MsgCloseFindingResponse proto.InternalMessageInfo
 // MsgReleaseFinding defines a message to release a finding.
 type MsgReleaseFinding struct {
 	FindingId       string `protobuf:"bytes,1,opt,name=finding_id,json=findingId,proto3" json:"finding_id,omitempty" yaml:"finding_id"`
-	Description     string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	OperatorAddress string `protobuf:"bytes,3,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
+	Description     string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty" yaml:"description"`
+	ProofOfConcept  string `protobuf:"bytes,3,opt,name=proof_of_concept,json=proofOfConcept,proto3" json:"proof_of_concept,omitempty" yaml:"proof_of_concept"`
+	OperatorAddress string `protobuf:"bytes,4,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty" yaml:"operator_address"`
 }
 
 func (m *MsgReleaseFinding) Reset()         { *m = MsgReleaseFinding{} }
 func (m *MsgReleaseFinding) String() string { return proto.CompactTextString(m) }
 func (*MsgReleaseFinding) ProtoMessage()    {}
 func (*MsgReleaseFinding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{18}
+	return fileDescriptor_1e4b4296bac3db30, []int{16}
 }
 func (m *MsgReleaseFinding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -784,6 +708,13 @@ func (m *MsgReleaseFinding) GetDescription() string {
 	return ""
 }
 
+func (m *MsgReleaseFinding) GetProofOfConcept() string {
+	if m != nil {
+		return m.ProofOfConcept
+	}
+	return ""
+}
+
 func (m *MsgReleaseFinding) GetOperatorAddress() string {
 	if m != nil {
 		return m.OperatorAddress
@@ -799,7 +730,7 @@ func (m *MsgReleaseFindingResponse) Reset()         { *m = MsgReleaseFindingResp
 func (m *MsgReleaseFindingResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgReleaseFindingResponse) ProtoMessage()    {}
 func (*MsgReleaseFindingResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e4b4296bac3db30, []int{19}
+	return fileDescriptor_1e4b4296bac3db30, []int{17}
 }
 func (m *MsgReleaseFindingResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -833,18 +764,16 @@ func init() {
 	proto.RegisterType((*MsgEditProgram)(nil), "shentu.bounty.v1.MsgEditProgram")
 	proto.RegisterType((*MsgCreateProgramResponse)(nil), "shentu.bounty.v1.MsgCreateProgramResponse")
 	proto.RegisterType((*MsgEditProgramResponse)(nil), "shentu.bounty.v1.MsgEditProgramResponse")
-	proto.RegisterType((*MsgOpenProgram)(nil), "shentu.bounty.v1.MsgOpenProgram")
-	proto.RegisterType((*MsgOpenProgramResponse)(nil), "shentu.bounty.v1.MsgOpenProgramResponse")
+	proto.RegisterType((*MsgActivateProgram)(nil), "shentu.bounty.v1.MsgActivateProgram")
+	proto.RegisterType((*MsgActivateProgramResponse)(nil), "shentu.bounty.v1.MsgActivateProgramResponse")
 	proto.RegisterType((*MsgCloseProgram)(nil), "shentu.bounty.v1.MsgCloseProgram")
 	proto.RegisterType((*MsgCloseProgramResponse)(nil), "shentu.bounty.v1.MsgCloseProgramResponse")
 	proto.RegisterType((*MsgSubmitFinding)(nil), "shentu.bounty.v1.MsgSubmitFinding")
 	proto.RegisterType((*MsgSubmitFindingResponse)(nil), "shentu.bounty.v1.MsgSubmitFindingResponse")
 	proto.RegisterType((*MsgEditFinding)(nil), "shentu.bounty.v1.MsgEditFinding")
 	proto.RegisterType((*MsgEditFindingResponse)(nil), "shentu.bounty.v1.MsgEditFindingResponse")
-	proto.RegisterType((*MsgAcceptFinding)(nil), "shentu.bounty.v1.MsgAcceptFinding")
-	proto.RegisterType((*MsgAcceptFindingResponse)(nil), "shentu.bounty.v1.MsgAcceptFindingResponse")
-	proto.RegisterType((*MsgRejectFinding)(nil), "shentu.bounty.v1.MsgRejectFinding")
-	proto.RegisterType((*MsgRejectFindingResponse)(nil), "shentu.bounty.v1.MsgRejectFindingResponse")
+	proto.RegisterType((*MsgConfirmFinding)(nil), "shentu.bounty.v1.MsgConfirmFinding")
+	proto.RegisterType((*MsgConfirmFindingResponse)(nil), "shentu.bounty.v1.MsgConfirmFindingResponse")
 	proto.RegisterType((*MsgCloseFinding)(nil), "shentu.bounty.v1.MsgCloseFinding")
 	proto.RegisterType((*MsgCloseFindingResponse)(nil), "shentu.bounty.v1.MsgCloseFindingResponse")
 	proto.RegisterType((*MsgReleaseFinding)(nil), "shentu.bounty.v1.MsgReleaseFinding")
@@ -854,69 +783,67 @@ func init() {
 func init() { proto.RegisterFile("shentu/bounty/v1/tx.proto", fileDescriptor_1e4b4296bac3db30) }
 
 var fileDescriptor_1e4b4296bac3db30 = []byte{
-	// 977 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x57, 0x4f, 0x6f, 0xe3, 0x44,
-	0x14, 0x8f, 0x93, 0x36, 0x4b, 0xa7, 0x4d, 0xda, 0x9a, 0xee, 0xd6, 0xc9, 0xee, 0xc6, 0xc1, 0x5c,
-	0xb2, 0x20, 0xc5, 0x4a, 0xd9, 0x53, 0x6f, 0xcd, 0x8a, 0x15, 0x05, 0x2a, 0x90, 0x7b, 0x02, 0x21,
-	0x85, 0xb1, 0x3d, 0x75, 0x8c, 0x62, 0x8f, 0xe5, 0x99, 0x44, 0x9b, 0x6f, 0xc0, 0x91, 0x23, 0x70,
-	0xda, 0x33, 0xdf, 0x00, 0x3e, 0xc1, 0x1e, 0xf7, 0xc8, 0xc9, 0x42, 0xad, 0x84, 0x38, 0x70, 0x8a,
-	0x84, 0xb8, 0x22, 0xcf, 0xd8, 0x8e, 0xff, 0x85, 0x14, 0x58, 0xaa, 0x22, 0x71, 0xf3, 0xcc, 0xfb,
-	0xcd, 0x6f, 0x7e, 0xef, 0xbd, 0x79, 0x2f, 0x2f, 0xa0, 0x45, 0xc6, 0xc8, 0xa5, 0x53, 0x55, 0xc7,
-	0x53, 0x97, 0xce, 0xd5, 0xd9, 0x40, 0xa5, 0xcf, 0xfa, 0x9e, 0x8f, 0x29, 0x16, 0xf7, 0xb8, 0xa9,
-	0xcf, 0x4d, 0xfd, 0xd9, 0xa0, 0x7d, 0x60, 0x61, 0x0b, 0x33, 0xa3, 0x1a, 0x7e, 0x71, 0x5c, 0x5b,
-	0xb6, 0x30, 0xb6, 0x26, 0x48, 0x65, 0x2b, 0x7d, 0x7a, 0xa1, 0x52, 0xdb, 0x41, 0x84, 0x42, 0xc7,
-	0x8b, 0x00, 0x2d, 0x03, 0x13, 0x07, 0x93, 0x11, 0x3f, 0xc9, 0x17, 0xb1, 0x29, 0x7f, 0x16, 0xba,
-	0xf3, 0xc8, 0xd4, 0xe1, 0x40, 0x55, 0x87, 0x04, 0xa9, 0xb3, 0x81, 0x8e, 0x28, 0x1c, 0xa8, 0x06,
-	0xb6, 0xdd, 0xc8, 0xfe, 0xb0, 0xa0, 0x3c, 0x12, 0xca, 0xcc, 0xca, 0xef, 0x55, 0xb0, 0x77, 0x46,
-	0xac, 0x27, 0x3e, 0x82, 0x14, 0x7d, 0xec, 0x63, 0xcb, 0x87, 0x8e, 0x28, 0x82, 0x0d, 0x17, 0x3a,
-	0x48, 0x12, 0xba, 0x42, 0x6f, 0x4b, 0x63, 0xdf, 0x62, 0x17, 0x6c, 0x9b, 0x88, 0x18, 0xbe, 0xed,
-	0x51, 0x1b, 0xbb, 0x52, 0x95, 0x99, 0xd2, 0x5b, 0xe2, 0x53, 0xb0, 0x87, 0x3d, 0xe4, 0x43, 0x8a,
-	0xfd, 0x11, 0x34, 0x4d, 0x1f, 0x11, 0x22, 0xd5, 0x42, 0xd8, 0xf0, 0xfe, 0x22, 0x90, 0x0f, 0xe7,
-	0xd0, 0x99, 0x1c, 0x2b, 0x79, 0x84, 0xa2, 0xed, 0xc6, 0x5b, 0x27, 0x7c, 0x47, 0x7c, 0x02, 0x76,
-	0x1d, 0xe4, 0xe8, 0xc8, 0x1f, 0x41, 0xc3, 0x08, 0xb5, 0x12, 0x69, 0xa3, 0x5b, 0xeb, 0x6d, 0x0d,
-	0xdb, 0x8b, 0x40, 0xbe, 0xc7, 0x69, 0x72, 0x00, 0x45, 0x6b, 0xf2, 0x9d, 0x93, 0x68, 0x43, 0x7c,
-	0x0c, 0x80, 0xc7, 0xbd, 0x19, 0xd9, 0xa6, 0xb4, 0xc9, 0x64, 0xdc, 0x5d, 0x04, 0xf2, 0x3e, 0x3f,
-	0xbf, 0xb4, 0x29, 0xda, 0x56, 0xb4, 0x38, 0x35, 0xc5, 0xcf, 0x41, 0x83, 0x47, 0x67, 0x34, 0x41,
-	0x33, 0x34, 0x21, 0x52, 0xbd, 0x5b, 0xeb, 0x6d, 0x1f, 0x3d, 0xec, 0xe7, 0x73, 0xdc, 0x1f, 0xb2,
-	0xaf, 0x0f, 0x43, 0xd4, 0xf0, 0xc1, 0x8b, 0x40, 0xae, 0x2c, 0x02, 0xf9, 0x80, 0x73, 0x67, 0x18,
-	0x14, 0x6d, 0x47, 0x5f, 0x42, 0xc9, 0xf1, 0x6b, 0x5f, 0x3e, 0x97, 0x2b, 0xbf, 0x3c, 0x97, 0x2b,
-	0xca, 0x6f, 0x55, 0xd0, 0x3c, 0x23, 0xd6, 0xbb, 0xa6, 0x4d, 0xff, 0x8f, 0xfb, 0x0d, 0xc6, 0xbd,
-	0x0d, 0xa4, 0xfc, 0x83, 0xd7, 0x10, 0xf1, 0xb0, 0x4b, 0x90, 0x22, 0x81, 0x7b, 0xd9, 0x94, 0x24,
-	0x96, 0xaf, 0x05, 0x96, 0xad, 0x8f, 0x3c, 0xe4, 0xc6, 0xd9, 0xca, 0xba, 0x2a, 0x5c, 0xd3, 0xd5,
-	0xb2, 0x6c, 0x55, 0xff, 0x7a, 0xb6, 0x52, 0x0e, 0x71, 0xd1, 0x29, 0x65, 0x89, 0xe8, 0x6f, 0x04,
-	0xb0, 0x1b, 0xfa, 0x3a, 0xc1, 0x04, 0xdd, 0x36, 0xd5, 0x2d, 0x70, 0x98, 0x93, 0x96, 0xc8, 0xfe,
-	0xae, 0xc6, 0x7a, 0xd2, 0xf9, 0x54, 0x77, 0x6c, 0xfa, 0xd4, 0x76, 0x4d, 0xdb, 0xb5, 0xfe, 0xa6,
-	0xee, 0xc7, 0x00, 0x5c, 0x70, 0x82, 0xf0, 0x54, 0x35, 0x7f, 0x6a, 0x69, 0x53, 0xb4, 0xad, 0x68,
-	0x71, 0x6a, 0x8a, 0x07, 0x60, 0x93, 0xda, 0x74, 0x82, 0x78, 0x19, 0x69, 0x7c, 0x91, 0xaf, 0xc4,
-	0x8d, 0x62, 0x25, 0x1e, 0x83, 0x9d, 0x98, 0x71, 0x0c, 0xc9, 0x38, 0x7a, 0xfe, 0x87, 0x8b, 0x40,
-	0x7e, 0x3d, 0x7b, 0x5f, 0x68, 0x55, 0xb4, 0xed, 0x68, 0xf9, 0x1e, 0x24, 0x63, 0xf1, 0x14, 0xec,
-	0x13, 0xe6, 0x30, 0x45, 0xcb, 0x10, 0xd7, 0x19, 0xc1, 0x83, 0x45, 0x20, 0x4b, 0x9c, 0xa0, 0x00,
-	0x51, 0xb4, 0xbd, 0x64, 0x2f, 0x2e, 0x64, 0x08, 0x9a, 0x04, 0xcd, 0x90, 0x6f, 0xc7, 0xd5, 0x20,
-	0xdd, 0xe9, 0x0a, 0xbd, 0xe6, 0x91, 0x5c, 0x2c, 0xa7, 0xf3, 0x08, 0xc7, 0x0b, 0xaa, 0xb5, 0x08,
-	0xe4, 0xbb, 0xd1, 0x45, 0x19, 0x02, 0x45, 0x6b, 0x90, 0x34, 0xb2, 0x50, 0x4e, 0x99, 0x5c, 0x25,
-	0x89, 0xfc, 0x75, 0xd9, 0xe2, 0xfe, 0x4b, 0x69, 0x2c, 0x4d, 0xc5, 0xe6, 0x2b, 0x4a, 0x45, 0xfd,
-	0xdf, 0x4b, 0xc5, 0xb2, 0x7b, 0xe5, 0x13, 0xf1, 0xb3, 0xc0, 0x2a, 0xea, 0xc4, 0x30, 0x90, 0x97,
-	0x4e, 0x45, 0x2a, 0xa8, 0xc2, 0x35, 0x83, 0xfa, 0x8a, 0x3a, 0x81, 0xf8, 0x3e, 0xa8, 0x13, 0x0a,
-	0xe9, 0x94, 0xff, 0x56, 0x95, 0x46, 0x24, 0x12, 0x7a, 0xce, 0x60, 0xc3, 0xfd, 0x45, 0x20, 0x37,
-	0xa2, 0x88, 0xb0, 0x1d, 0x45, 0x8b, 0x18, 0x0a, 0xaf, 0x31, 0xe3, 0x67, 0x12, 0x84, 0x6f, 0x79,
-	0x10, 0x34, 0xf4, 0x05, 0x32, 0x6e, 0x47, 0x10, 0x0a, 0xc2, 0x33, 0xda, 0x4a, 0xdb, 0xf8, 0x6d,
-	0xd3, 0x9d, 0x6a, 0xe3, 0x79, 0xd9, 0xdf, 0x0b, 0x60, 0x9f, 0xf9, 0x34, 0x41, 0xf0, 0x9f, 0x0a,
-	0xbf, 0xb1, 0x29, 0xe8, 0x78, 0x83, 0xb9, 0x75, 0x1f, 0xb4, 0x0a, 0xd2, 0x63, 0xc7, 0x8e, 0x7e,
-	0xb8, 0x03, 0x6a, 0x67, 0xc4, 0x12, 0x47, 0xa0, 0x91, 0x9d, 0x9b, 0x95, 0xe2, 0x1b, 0xce, 0x8f,
-	0x1a, 0xed, 0xb7, 0xd6, 0x63, 0xe2, 0x8b, 0xc4, 0x4f, 0xc0, 0x76, 0x7a, 0x3c, 0xec, 0x96, 0x1e,
-	0x4d, 0x21, 0xda, 0xbd, 0x75, 0x88, 0x34, 0x75, 0x7a, 0x96, 0x29, 0xa7, 0x4e, 0x21, 0x56, 0x50,
-	0x97, 0x4c, 0x1d, 0xe2, 0x67, 0x60, 0x27, 0x33, 0x71, 0xbc, 0x51, 0xee, 0x71, 0x0a, 0xd2, 0x7e,
-	0xb4, 0x16, 0x92, 0xb0, 0x8f, 0x40, 0x23, 0x3b, 0x18, 0x94, 0x07, 0x3d, 0x83, 0x59, 0x11, 0xf4,
-	0xd2, 0x1f, 0xad, 0x38, 0xe8, 0x31, 0xfd, 0xea, 0xa0, 0xc7, 0xe4, 0xbd, 0x75, 0x88, 0xb4, 0xf6,
-	0x6c, 0x0b, 0x2e, 0xd7, 0x9e, 0xc1, 0xac, 0xd0, 0x5e, 0xda, 0xe2, 0xc2, 0x0b, 0xb2, 0xed, 0xad,
-	0xfc, 0x82, 0x0c, 0x66, 0xc5, 0x05, 0xa5, 0xad, 0x28, 0xc9, 0x6d, 0xcc, 0xff, 0x27, 0xb9, 0x8d,
-	0xe9, 0x1f, 0xad, 0x85, 0x24, 0xec, 0x3a, 0x68, 0xe6, 0xba, 0xc5, 0x9b, 0x2b, 0xb4, 0xa5, 0x41,
-	0xed, 0xb7, 0xaf, 0x01, 0x8a, 0xef, 0x18, 0x7e, 0xf0, 0xe2, 0xb2, 0x23, 0xbc, 0xbc, 0xec, 0x08,
-	0x3f, 0x5d, 0x76, 0x84, 0xaf, 0xae, 0x3a, 0x95, 0x97, 0x57, 0x9d, 0xca, 0x8f, 0x57, 0x9d, 0xca,
-	0xa7, 0x03, 0xcb, 0xa6, 0xe3, 0xa9, 0xde, 0x37, 0xb0, 0xa3, 0x72, 0xc2, 0x0b, 0x3c, 0x75, 0x4d,
-	0x18, 0xb6, 0x97, 0x68, 0x43, 0x7d, 0x16, 0xff, 0x8f, 0xa6, 0x73, 0x0f, 0x11, 0xbd, 0xce, 0xfe,
-	0x44, 0xbf, 0xf3, 0x47, 0x00, 0x00, 0x00, 0xff, 0xff, 0x5b, 0xd2, 0x6c, 0x3d, 0x1f, 0x10, 0x00,
-	0x00,
+	// 954 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x57, 0x41, 0x6f, 0xe3, 0x44,
+	0x14, 0x8e, 0x93, 0x6c, 0xa0, 0xd3, 0x26, 0x4d, 0x87, 0x6e, 0xeb, 0x78, 0xbb, 0x71, 0x31, 0x1c,
+	0xb2, 0x80, 0x62, 0xa5, 0xec, 0x01, 0xf5, 0xb6, 0x59, 0xed, 0x8a, 0x02, 0x15, 0xc8, 0x3d, 0x81,
+	0x90, 0xc2, 0x38, 0x9e, 0x38, 0x96, 0x62, 0x8f, 0xe5, 0x99, 0x44, 0xdb, 0x7f, 0xc0, 0x91, 0x23,
+	0x48, 0x08, 0xf5, 0x84, 0xf8, 0x29, 0x7b, 0xdc, 0x23, 0x27, 0x0b, 0xb5, 0x07, 0xf6, 0x9c, 0x5f,
+	0x80, 0xe2, 0x19, 0x3b, 0xb6, 0xe3, 0x6e, 0xaa, 0x2d, 0x87, 0x1e, 0xf6, 0xe6, 0x79, 0xef, 0x9b,
+	0x37, 0xef, 0x7d, 0xdf, 0xbc, 0x97, 0x09, 0x68, 0xd1, 0x31, 0xf6, 0xd8, 0x54, 0x37, 0xc9, 0xd4,
+	0x63, 0xe7, 0xfa, 0xac, 0xa7, 0xb3, 0x17, 0x5d, 0x3f, 0x20, 0x8c, 0xc0, 0x26, 0x77, 0x75, 0xb9,
+	0xab, 0x3b, 0xeb, 0x29, 0xbb, 0x36, 0xb1, 0x49, 0xe4, 0xd4, 0x17, 0x5f, 0x1c, 0xa7, 0xa8, 0x36,
+	0x21, 0xf6, 0x04, 0xeb, 0xd1, 0xca, 0x9c, 0x8e, 0x74, 0xe6, 0xb8, 0x98, 0x32, 0xe4, 0xfa, 0x02,
+	0xd0, 0x1a, 0x12, 0xea, 0x12, 0x3a, 0xe0, 0x3b, 0xf9, 0x22, 0x76, 0xe5, 0xf7, 0x22, 0xef, 0x5c,
+	0xb8, 0xda, 0x1c, 0xa8, 0x9b, 0x88, 0x62, 0x7d, 0xd6, 0x33, 0x31, 0x43, 0x3d, 0x7d, 0x48, 0x1c,
+	0x4f, 0xf8, 0x1f, 0xae, 0x64, 0x2e, 0x12, 0x8d, 0xdc, 0xda, 0x5f, 0x65, 0xd0, 0x3c, 0xa5, 0xf6,
+	0xd3, 0x00, 0x23, 0x86, 0xbf, 0x0b, 0x88, 0x1d, 0x20, 0x17, 0x3e, 0x06, 0xc0, 0xe7, 0x9f, 0x03,
+	0xc7, 0x92, 0xa5, 0x43, 0xa9, 0xb3, 0xd1, 0xbf, 0x3f, 0x0f, 0xd5, 0x9d, 0x73, 0xe4, 0x4e, 0x8e,
+	0xb5, 0xa5, 0x4f, 0x33, 0x36, 0xc4, 0xe2, 0xc4, 0x82, 0x10, 0x54, 0x3d, 0xe4, 0x62, 0xb9, 0xbc,
+	0xc0, 0x1b, 0xd1, 0x37, 0xdc, 0x03, 0x35, 0x0b, 0x33, 0xe4, 0x4c, 0xe4, 0x4a, 0x64, 0x15, 0x2b,
+	0xf8, 0x13, 0xa8, 0xf3, 0x34, 0x06, 0x13, 0x3c, 0xc3, 0x13, 0x2a, 0x57, 0x0f, 0x2b, 0x9d, 0xcd,
+	0xa3, 0x87, 0xdd, 0x3c, 0x99, 0xdd, 0x7e, 0xf4, 0xf5, 0xcd, 0x02, 0xd5, 0x3f, 0x78, 0x19, 0xaa,
+	0xa5, 0x79, 0xa8, 0xee, 0xf2, 0x3c, 0x32, 0x11, 0x34, 0x63, 0xcb, 0x5c, 0x42, 0x29, 0x7c, 0x0e,
+	0x9a, 0xc4, 0xc7, 0x01, 0x62, 0x24, 0x18, 0x20, 0xcb, 0x0a, 0x30, 0xa5, 0xf2, 0xbd, 0xa8, 0x92,
+	0x07, 0xf3, 0x50, 0xdd, 0xe7, 0x11, 0xf2, 0x08, 0xcd, 0xd8, 0x8e, 0x4d, 0x4f, 0xb8, 0xe5, 0xf8,
+	0xfd, 0x9f, 0x2f, 0xd4, 0xd2, 0xeb, 0x0b, 0xb5, 0xa4, 0xfd, 0x59, 0x06, 0x8d, 0x53, 0x6a, 0x3f,
+	0xb3, 0x1c, 0xf6, 0x8e, 0xa8, 0x37, 0x11, 0xa5, 0x00, 0x39, 0x7f, 0xa5, 0x0c, 0x4c, 0x7d, 0xe2,
+	0x51, 0xac, 0xc9, 0x60, 0x2f, 0xcb, 0x61, 0xe2, 0xf9, 0x5d, 0x02, 0xf0, 0x94, 0xda, 0x4f, 0x86,
+	0xcc, 0x99, 0xdd, 0xfa, 0x2e, 0x16, 0x15, 0x55, 0xbe, 0x55, 0x51, 0x07, 0x40, 0x59, 0xcd, 0x2e,
+	0x49, 0xfe, 0x37, 0x09, 0x6c, 0x2f, 0x6a, 0x9e, 0x10, 0x7a, 0xe7, 0x32, 0x6f, 0x81, 0xfd, 0x5c,
+	0x6a, 0x49, 0xda, 0x17, 0x95, 0xa8, 0xfb, 0xcf, 0xa6, 0xa6, 0xeb, 0xb0, 0xe7, 0x8e, 0x67, 0x39,
+	0x9e, 0xfd, 0x96, 0x79, 0x3f, 0x06, 0x60, 0xc4, 0x03, 0x2c, 0x76, 0x95, 0xf3, 0xbb, 0x96, 0x3e,
+	0xcd, 0xd8, 0x10, 0x8b, 0x13, 0x0b, 0xee, 0x82, 0x7b, 0xcc, 0x61, 0x13, 0x2c, 0x6e, 0x3d, 0x5f,
+	0xc0, 0x63, 0xb0, 0x15, 0xe3, 0xc7, 0x88, 0x8e, 0xe5, 0x6a, 0x14, 0x6d, 0x7f, 0x1e, 0xaa, 0x1f,
+	0x64, 0xa3, 0x2d, 0xbc, 0x9a, 0xb1, 0x29, 0x96, 0x5f, 0x22, 0x3a, 0x86, 0x27, 0x60, 0x87, 0x46,
+	0xe5, 0x30, 0x9c, 0xbf, 0xcf, 0x07, 0xf3, 0x50, 0x95, 0x79, 0x80, 0x15, 0x88, 0x66, 0x34, 0x13,
+	0x9b, 0xa0, 0x10, 0x22, 0xd0, 0xa0, 0x78, 0x86, 0x03, 0x27, 0xee, 0x1d, 0xb9, 0x76, 0x28, 0x75,
+	0x1a, 0x47, 0xea, 0x6a, 0xf3, 0x9d, 0x09, 0x1c, 0x6f, 0xbf, 0xd6, 0x3c, 0x54, 0xef, 0x8b, 0x83,
+	0x32, 0x01, 0x34, 0xa3, 0x4e, 0xd3, 0xc8, 0x54, 0xdb, 0xbf, 0x97, 0x6e, 0xfb, 0x95, 0x66, 0xca,
+	0x28, 0x94, 0xc8, 0xf7, 0x47, 0x25, 0x99, 0x48, 0xef, 0xc4, 0xbb, 0x8b, 0xe2, 0x2d, 0xa7, 0x5d,
+	0x5e, 0xba, 0x7f, 0x25, 0xb0, 0xb3, 0xe8, 0x4a, 0xe2, 0x8d, 0x9c, 0xc0, 0x4d, 0xa9, 0x97, 0xd2,
+	0x41, 0xba, 0xa1, 0x0e, 0xff, 0xd3, 0xc8, 0x80, 0x5f, 0x81, 0x1a, 0x65, 0x88, 0x4d, 0x69, 0x24,
+	0x68, 0x21, 0x55, 0x22, 0xd1, 0xb3, 0x08, 0xd6, 0xdf, 0x99, 0x87, 0x6a, 0x5d, 0x50, 0x15, 0x59,
+	0x34, 0x43, 0x44, 0x48, 0x71, 0xf0, 0x00, 0xb4, 0x56, 0x0a, 0x2d, 0x9c, 0x9b, 0x77, 0x82, 0x84,
+	0xe2, 0xb9, 0x99, 0x4f, 0xfb, 0xd7, 0x72, 0xa4, 0x9e, 0x81, 0x27, 0x18, 0xdd, 0x36, 0xf1, 0x2f,
+	0xc0, 0xa6, 0x85, 0xe9, 0x30, 0x70, 0x7c, 0xe6, 0x10, 0x4f, 0xe4, 0xbc, 0x37, 0x0f, 0x55, 0xc8,
+	0xb7, 0xa5, 0x9c, 0x9a, 0x91, 0x86, 0xc2, 0x67, 0xa0, 0xe9, 0x07, 0x84, 0x8c, 0x06, 0x64, 0x34,
+	0x18, 0x12, 0x6f, 0x88, 0x7d, 0xc6, 0x5b, 0x31, 0x5d, 0x72, 0x1e, 0xa1, 0x19, 0x8d, 0xc8, 0xf4,
+	0xed, 0xe8, 0x29, 0x37, 0x14, 0x32, 0x57, 0x7d, 0x0b, 0xe6, 0xaa, 0x29, 0xb9, 0xb3, 0xcc, 0xc4,
+	0xbc, 0x1d, 0xbd, 0xae, 0x81, 0xca, 0x29, 0xb5, 0xe1, 0x00, 0xd4, 0xb3, 0x2f, 0x4e, 0x6d, 0xf5,
+	0xaa, 0xe5, 0x9f, 0x10, 0xca, 0x27, 0xeb, 0x31, 0xf1, 0x41, 0xf0, 0x7b, 0xb0, 0x99, 0x7e, 0xa7,
+	0x1d, 0x16, 0x6e, 0x4d, 0x21, 0x94, 0xce, 0x3a, 0x44, 0x12, 0x1a, 0x83, 0xed, 0xfc, 0x1b, 0xe5,
+	0xe3, 0xc2, 0xcd, 0x39, 0x94, 0xf2, 0xd9, 0x4d, 0x50, 0xc9, 0x31, 0x3f, 0x82, 0xad, 0xcc, 0x6b,
+	0xe2, 0xc3, 0xe2, 0xea, 0x53, 0x10, 0xe5, 0xd1, 0x5a, 0x48, 0x12, 0x7d, 0x00, 0xea, 0xd9, 0x1f,
+	0xfd, 0x62, 0x01, 0x32, 0x98, 0x6b, 0x04, 0x28, 0xfc, 0x69, 0x8a, 0x05, 0x88, 0xc3, 0x5f, 0x2f,
+	0x40, 0x1c, 0xbc, 0xb3, 0x0e, 0x91, 0x84, 0x36, 0x41, 0x23, 0x37, 0x36, 0x3f, 0x2a, 0x2e, 0x3c,
+	0x03, 0x52, 0x3e, 0xbd, 0x01, 0x68, 0x85, 0xfd, 0xf8, 0x84, 0x37, 0xb0, 0x1f, 0xc7, 0x7f, 0xb4,
+	0x16, 0x92, 0xae, 0x20, 0x37, 0x3a, 0x8a, 0x2b, 0xc8, 0x82, 0xae, 0xa9, 0xa0, 0xb8, 0xd5, 0xfa,
+	0x5f, 0xbf, 0xbc, 0x6c, 0x4b, 0xaf, 0x2e, 0xdb, 0xd2, 0x3f, 0x97, 0x6d, 0xe9, 0x97, 0xab, 0x76,
+	0xe9, 0xd5, 0x55, 0xbb, 0xf4, 0xf7, 0x55, 0xbb, 0xf4, 0x43, 0xcf, 0x76, 0xd8, 0x78, 0x6a, 0x76,
+	0x87, 0xc4, 0xd5, 0x79, 0xc0, 0x11, 0x99, 0x7a, 0x16, 0x5a, 0xcc, 0x14, 0x61, 0xd0, 0x5f, 0xc4,
+	0xff, 0x17, 0xd9, 0xb9, 0x8f, 0xa9, 0x59, 0x8b, 0xfe, 0x2c, 0x7e, 0xfe, 0x5f, 0x00, 0x00, 0x00,
+	0xff, 0xff, 0x69, 0xc1, 0x5c, 0x4b, 0x07, 0x0f, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -935,18 +862,16 @@ type MsgClient interface {
 	CreateProgram(ctx context.Context, in *MsgCreateProgram, opts ...grpc.CallOption) (*MsgCreateProgramResponse, error)
 	// EditProgram defines a method for modifying a program.
 	EditProgram(ctx context.Context, in *MsgEditProgram, opts ...grpc.CallOption) (*MsgEditProgramResponse, error)
-	// Open a program status by program_id
-	OpenProgram(ctx context.Context, in *MsgOpenProgram, opts ...grpc.CallOption) (*MsgOpenProgramResponse, error)
+	// Activate a program status by program_id
+	ActivateProgram(ctx context.Context, in *MsgActivateProgram, opts ...grpc.CallOption) (*MsgActivateProgramResponse, error)
 	// Closed a program status by program_id
 	CloseProgram(ctx context.Context, in *MsgCloseProgram, opts ...grpc.CallOption) (*MsgCloseProgramResponse, error)
 	// SubmitFinding defines a method for submitting a new finding.
 	SubmitFinding(ctx context.Context, in *MsgSubmitFinding, opts ...grpc.CallOption) (*MsgSubmitFindingResponse, error)
 	// EditFinding defines a method for editing a new finding.
 	EditFinding(ctx context.Context, in *MsgEditFinding, opts ...grpc.CallOption) (*MsgEditFindingResponse, error)
-	// AcceptFinding defines a method for host accept a finding.
-	AcceptFinding(ctx context.Context, in *MsgAcceptFinding, opts ...grpc.CallOption) (*MsgAcceptFindingResponse, error)
-	// RejectFinding defines a method for host reject a finding.
-	RejectFinding(ctx context.Context, in *MsgRejectFinding, opts ...grpc.CallOption) (*MsgRejectFindingResponse, error)
+	// ConfirmFinding defines a method for host confirm a finding.
+	ConfirmFinding(ctx context.Context, in *MsgConfirmFinding, opts ...grpc.CallOption) (*MsgConfirmFindingResponse, error)
 	// CloseFinding defines a method for submitter or certifier close a finding
 	CloseFinding(ctx context.Context, in *MsgCloseFinding, opts ...grpc.CallOption) (*MsgCloseFindingResponse, error)
 	// MsgReleaseFinding defines a method for release a finding.
@@ -979,9 +904,9 @@ func (c *msgClient) EditProgram(ctx context.Context, in *MsgEditProgram, opts ..
 	return out, nil
 }
 
-func (c *msgClient) OpenProgram(ctx context.Context, in *MsgOpenProgram, opts ...grpc.CallOption) (*MsgOpenProgramResponse, error) {
-	out := new(MsgOpenProgramResponse)
-	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/OpenProgram", in, out, opts...)
+func (c *msgClient) ActivateProgram(ctx context.Context, in *MsgActivateProgram, opts ...grpc.CallOption) (*MsgActivateProgramResponse, error) {
+	out := new(MsgActivateProgramResponse)
+	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/ActivateProgram", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1015,18 +940,9 @@ func (c *msgClient) EditFinding(ctx context.Context, in *MsgEditFinding, opts ..
 	return out, nil
 }
 
-func (c *msgClient) AcceptFinding(ctx context.Context, in *MsgAcceptFinding, opts ...grpc.CallOption) (*MsgAcceptFindingResponse, error) {
-	out := new(MsgAcceptFindingResponse)
-	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/AcceptFinding", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *msgClient) RejectFinding(ctx context.Context, in *MsgRejectFinding, opts ...grpc.CallOption) (*MsgRejectFindingResponse, error) {
-	out := new(MsgRejectFindingResponse)
-	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/RejectFinding", in, out, opts...)
+func (c *msgClient) ConfirmFinding(ctx context.Context, in *MsgConfirmFinding, opts ...grpc.CallOption) (*MsgConfirmFindingResponse, error) {
+	out := new(MsgConfirmFindingResponse)
+	err := c.cc.Invoke(ctx, "/shentu.bounty.v1.Msg/ConfirmFinding", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1057,18 +973,16 @@ type MsgServer interface {
 	CreateProgram(context.Context, *MsgCreateProgram) (*MsgCreateProgramResponse, error)
 	// EditProgram defines a method for modifying a program.
 	EditProgram(context.Context, *MsgEditProgram) (*MsgEditProgramResponse, error)
-	// Open a program status by program_id
-	OpenProgram(context.Context, *MsgOpenProgram) (*MsgOpenProgramResponse, error)
+	// Activate a program status by program_id
+	ActivateProgram(context.Context, *MsgActivateProgram) (*MsgActivateProgramResponse, error)
 	// Closed a program status by program_id
 	CloseProgram(context.Context, *MsgCloseProgram) (*MsgCloseProgramResponse, error)
 	// SubmitFinding defines a method for submitting a new finding.
 	SubmitFinding(context.Context, *MsgSubmitFinding) (*MsgSubmitFindingResponse, error)
 	// EditFinding defines a method for editing a new finding.
 	EditFinding(context.Context, *MsgEditFinding) (*MsgEditFindingResponse, error)
-	// AcceptFinding defines a method for host accept a finding.
-	AcceptFinding(context.Context, *MsgAcceptFinding) (*MsgAcceptFindingResponse, error)
-	// RejectFinding defines a method for host reject a finding.
-	RejectFinding(context.Context, *MsgRejectFinding) (*MsgRejectFindingResponse, error)
+	// ConfirmFinding defines a method for host confirm a finding.
+	ConfirmFinding(context.Context, *MsgConfirmFinding) (*MsgConfirmFindingResponse, error)
 	// CloseFinding defines a method for submitter or certifier close a finding
 	CloseFinding(context.Context, *MsgCloseFinding) (*MsgCloseFindingResponse, error)
 	// MsgReleaseFinding defines a method for release a finding.
@@ -1085,8 +999,8 @@ func (*UnimplementedMsgServer) CreateProgram(ctx context.Context, req *MsgCreate
 func (*UnimplementedMsgServer) EditProgram(ctx context.Context, req *MsgEditProgram) (*MsgEditProgramResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditProgram not implemented")
 }
-func (*UnimplementedMsgServer) OpenProgram(ctx context.Context, req *MsgOpenProgram) (*MsgOpenProgramResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OpenProgram not implemented")
+func (*UnimplementedMsgServer) ActivateProgram(ctx context.Context, req *MsgActivateProgram) (*MsgActivateProgramResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ActivateProgram not implemented")
 }
 func (*UnimplementedMsgServer) CloseProgram(ctx context.Context, req *MsgCloseProgram) (*MsgCloseProgramResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CloseProgram not implemented")
@@ -1097,11 +1011,8 @@ func (*UnimplementedMsgServer) SubmitFinding(ctx context.Context, req *MsgSubmit
 func (*UnimplementedMsgServer) EditFinding(ctx context.Context, req *MsgEditFinding) (*MsgEditFindingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditFinding not implemented")
 }
-func (*UnimplementedMsgServer) AcceptFinding(ctx context.Context, req *MsgAcceptFinding) (*MsgAcceptFindingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AcceptFinding not implemented")
-}
-func (*UnimplementedMsgServer) RejectFinding(ctx context.Context, req *MsgRejectFinding) (*MsgRejectFindingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RejectFinding not implemented")
+func (*UnimplementedMsgServer) ConfirmFinding(ctx context.Context, req *MsgConfirmFinding) (*MsgConfirmFindingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConfirmFinding not implemented")
 }
 func (*UnimplementedMsgServer) CloseFinding(ctx context.Context, req *MsgCloseFinding) (*MsgCloseFindingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CloseFinding not implemented")
@@ -1150,20 +1061,20 @@ func _Msg_EditProgram_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_OpenProgram_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgOpenProgram)
+func _Msg_ActivateProgram_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgActivateProgram)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).OpenProgram(ctx, in)
+		return srv.(MsgServer).ActivateProgram(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/shentu.bounty.v1.Msg/OpenProgram",
+		FullMethod: "/shentu.bounty.v1.Msg/ActivateProgram",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).OpenProgram(ctx, req.(*MsgOpenProgram))
+		return srv.(MsgServer).ActivateProgram(ctx, req.(*MsgActivateProgram))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1222,38 +1133,20 @@ func _Msg_EditFinding_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_AcceptFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgAcceptFinding)
+func _Msg_ConfirmFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgConfirmFinding)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).AcceptFinding(ctx, in)
+		return srv.(MsgServer).ConfirmFinding(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/shentu.bounty.v1.Msg/AcceptFinding",
+		FullMethod: "/shentu.bounty.v1.Msg/ConfirmFinding",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).AcceptFinding(ctx, req.(*MsgAcceptFinding))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Msg_RejectFinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRejectFinding)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).RejectFinding(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/shentu.bounty.v1.Msg/RejectFinding",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RejectFinding(ctx, req.(*MsgRejectFinding))
+		return srv.(MsgServer).ConfirmFinding(ctx, req.(*MsgConfirmFinding))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1307,8 +1200,8 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_EditProgram_Handler,
 		},
 		{
-			MethodName: "OpenProgram",
-			Handler:    _Msg_OpenProgram_Handler,
+			MethodName: "ActivateProgram",
+			Handler:    _Msg_ActivateProgram_Handler,
 		},
 		{
 			MethodName: "CloseProgram",
@@ -1323,12 +1216,8 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_EditFinding_Handler,
 		},
 		{
-			MethodName: "AcceptFinding",
-			Handler:    _Msg_AcceptFinding_Handler,
-		},
-		{
-			MethodName: "RejectFinding",
-			Handler:    _Msg_RejectFinding_Handler,
+			MethodName: "ConfirmFinding",
+			Handler:    _Msg_ConfirmFinding_Handler,
 		},
 		{
 			MethodName: "CloseFinding",
@@ -1363,6 +1252,13 @@ func (m *MsgCreateProgram) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.OperatorAddress) > 0 {
+		i -= len(m.OperatorAddress)
+		copy(dAtA[i:], m.OperatorAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OperatorAddress)))
+		i--
+		dAtA[i] = 0x2a
+	}
 	if len(m.BountyLevels) > 0 {
 		for iNdEx := len(m.BountyLevels) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -1374,43 +1270,27 @@ func (m *MsgCreateProgram) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 				i = encodeVarintTx(dAtA, i, uint64(size))
 			}
 			i--
-			dAtA[i] = 0x32
-		}
-	}
-	if len(m.ProgramId) > 0 {
-		i -= len(m.ProgramId)
-		copy(dAtA[i:], m.ProgramId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.ProgramId)))
-		i--
-		dAtA[i] = 0x2a
-	}
-	if len(m.MemberAccounts) > 0 {
-		for iNdEx := len(m.MemberAccounts) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.MemberAccounts[iNdEx])
-			copy(dAtA[i:], m.MemberAccounts[iNdEx])
-			i = encodeVarintTx(dAtA, i, uint64(len(m.MemberAccounts[iNdEx])))
-			i--
 			dAtA[i] = 0x22
 		}
 	}
-	if len(m.OperatorAddress) > 0 {
-		i -= len(m.OperatorAddress)
-		copy(dAtA[i:], m.OperatorAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.OperatorAddress)))
+	if len(m.Detail) > 0 {
+		i -= len(m.Detail)
+		copy(dAtA[i:], m.Detail)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Detail)))
 		i--
 		dAtA[i] = 0x1a
-	}
-	if len(m.Description) > 0 {
-		i -= len(m.Description)
-		copy(dAtA[i:], m.Description)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Description)))
-		i--
-		dAtA[i] = 0x12
 	}
 	if len(m.Name) > 0 {
 		i -= len(m.Name)
 		copy(dAtA[i:], m.Name)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.Name)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.ProgramId) > 0 {
+		i -= len(m.ProgramId)
+		copy(dAtA[i:], m.ProgramId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ProgramId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1437,6 +1317,13 @@ func (m *MsgEditProgram) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.OperatorAddress) > 0 {
+		i -= len(m.OperatorAddress)
+		copy(dAtA[i:], m.OperatorAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OperatorAddress)))
+		i--
+		dAtA[i] = 0x2a
+	}
 	if len(m.BountyLevels) > 0 {
 		for iNdEx := len(m.BountyLevels) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -1448,43 +1335,27 @@ func (m *MsgEditProgram) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 				i = encodeVarintTx(dAtA, i, uint64(size))
 			}
 			i--
-			dAtA[i] = 0x32
-		}
-	}
-	if len(m.ProgramId) > 0 {
-		i -= len(m.ProgramId)
-		copy(dAtA[i:], m.ProgramId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.ProgramId)))
-		i--
-		dAtA[i] = 0x2a
-	}
-	if len(m.MemberAccounts) > 0 {
-		for iNdEx := len(m.MemberAccounts) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.MemberAccounts[iNdEx])
-			copy(dAtA[i:], m.MemberAccounts[iNdEx])
-			i = encodeVarintTx(dAtA, i, uint64(len(m.MemberAccounts[iNdEx])))
-			i--
 			dAtA[i] = 0x22
 		}
 	}
-	if len(m.OperatorAddress) > 0 {
-		i -= len(m.OperatorAddress)
-		copy(dAtA[i:], m.OperatorAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.OperatorAddress)))
+	if len(m.Detail) > 0 {
+		i -= len(m.Detail)
+		copy(dAtA[i:], m.Detail)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Detail)))
 		i--
 		dAtA[i] = 0x1a
-	}
-	if len(m.Description) > 0 {
-		i -= len(m.Description)
-		copy(dAtA[i:], m.Description)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Description)))
-		i--
-		dAtA[i] = 0x12
 	}
 	if len(m.Name) > 0 {
 		i -= len(m.Name)
 		copy(dAtA[i:], m.Name)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.Name)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.ProgramId) > 0 {
+		i -= len(m.ProgramId)
+		copy(dAtA[i:], m.ProgramId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ProgramId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1537,7 +1408,7 @@ func (m *MsgEditProgramResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgOpenProgram) Marshal() (dAtA []byte, err error) {
+func (m *MsgActivateProgram) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1547,12 +1418,12 @@ func (m *MsgOpenProgram) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgOpenProgram) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgActivateProgram) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgOpenProgram) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgActivateProgram) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1574,7 +1445,7 @@ func (m *MsgOpenProgram) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgOpenProgramResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgActivateProgramResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1584,12 +1455,12 @@ func (m *MsgOpenProgramResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgOpenProgramResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgActivateProgramResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgOpenProgramResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgActivateProgramResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1677,29 +1548,29 @@ func (m *MsgSubmitFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.Detail) > 0 {
+		i -= len(m.Detail)
+		copy(dAtA[i:], m.Detail)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Detail)))
+		i--
+		dAtA[i] = 0x3a
+	}
 	if m.SeverityLevel != 0 {
 		i = encodeVarintTx(dAtA, i, uint64(m.SeverityLevel))
 		i--
-		dAtA[i] = 0x38
+		dAtA[i] = 0x30
 	}
 	if len(m.SubmitterAddress) > 0 {
 		i -= len(m.SubmitterAddress)
 		copy(dAtA[i:], m.SubmitterAddress)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.SubmitterAddress)))
 		i--
-		dAtA[i] = 0x32
+		dAtA[i] = 0x2a
 	}
 	if len(m.FindingHash) > 0 {
 		i -= len(m.FindingHash)
 		copy(dAtA[i:], m.FindingHash)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.FindingHash)))
-		i--
-		dAtA[i] = 0x2a
-	}
-	if len(m.Description) > 0 {
-		i -= len(m.Description)
-		copy(dAtA[i:], m.Description)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Description)))
 		i--
 		dAtA[i] = 0x22
 	}
@@ -1770,6 +1641,13 @@ func (m *MsgEditFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.Detail) > 0 {
+		i -= len(m.Detail)
+		copy(dAtA[i:], m.Detail)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Detail)))
+		i--
+		dAtA[i] = 0x3a
+	}
 	if m.SeverityLevel != 0 {
 		i = encodeVarintTx(dAtA, i, uint64(m.SeverityLevel))
 		i--
@@ -1782,10 +1660,10 @@ func (m *MsgEditFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x2a
 	}
-	if len(m.Description) > 0 {
-		i -= len(m.Description)
-		copy(dAtA[i:], m.Description)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Description)))
+	if len(m.FindingHash) > 0 {
+		i -= len(m.FindingHash)
+		copy(dAtA[i:], m.FindingHash)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.FindingHash)))
 		i--
 		dAtA[i] = 0x22
 	}
@@ -1836,7 +1714,7 @@ func (m *MsgEditFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgAcceptFinding) Marshal() (dAtA []byte, err error) {
+func (m *MsgConfirmFinding) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1846,12 +1724,12 @@ func (m *MsgAcceptFinding) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgAcceptFinding) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgConfirmFinding) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgAcceptFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgConfirmFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1878,7 +1756,7 @@ func (m *MsgAcceptFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgAcceptFindingResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgConfirmFindingResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1888,72 +1766,12 @@ func (m *MsgAcceptFindingResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgAcceptFindingResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgConfirmFindingResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgAcceptFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgRejectFinding) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgRejectFinding) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgRejectFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.OperatorAddress) > 0 {
-		i -= len(m.OperatorAddress)
-		copy(dAtA[i:], m.OperatorAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.OperatorAddress)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.FindingId) > 0 {
-		i -= len(m.FindingId)
-		copy(dAtA[i:], m.FindingId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.FindingId)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgRejectFindingResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgRejectFindingResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgRejectFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgConfirmFindingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2046,6 +1864,13 @@ func (m *MsgReleaseFinding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.OperatorAddress)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.OperatorAddress)))
 		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.ProofOfConcept) > 0 {
+		i -= len(m.ProofOfConcept)
+		copy(dAtA[i:], m.ProofOfConcept)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ProofOfConcept)))
+		i--
 		dAtA[i] = 0x1a
 	}
 	if len(m.Description) > 0 {
@@ -2105,25 +1930,15 @@ func (m *MsgCreateProgram) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = len(m.ProgramId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = len(m.Name)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.Description)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.OperatorAddress)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	if len(m.MemberAccounts) > 0 {
-		for _, s := range m.MemberAccounts {
-			l = len(s)
-			n += 1 + l + sovTx(uint64(l))
-		}
-	}
-	l = len(m.ProgramId)
+	l = len(m.Detail)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2132,6 +1947,10 @@ func (m *MsgCreateProgram) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovTx(uint64(l))
 		}
+	}
+	l = len(m.OperatorAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
 	}
 	return n
 }
@@ -2142,25 +1961,15 @@ func (m *MsgEditProgram) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = len(m.ProgramId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = len(m.Name)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.Description)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.OperatorAddress)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	if len(m.MemberAccounts) > 0 {
-		for _, s := range m.MemberAccounts {
-			l = len(s)
-			n += 1 + l + sovTx(uint64(l))
-		}
-	}
-	l = len(m.ProgramId)
+	l = len(m.Detail)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2169,6 +1978,10 @@ func (m *MsgEditProgram) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovTx(uint64(l))
 		}
+	}
+	l = len(m.OperatorAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
 	}
 	return n
 }
@@ -2191,7 +2004,7 @@ func (m *MsgEditProgramResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgOpenProgram) Size() (n int) {
+func (m *MsgActivateProgram) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2208,7 +2021,7 @@ func (m *MsgOpenProgram) Size() (n int) {
 	return n
 }
 
-func (m *MsgOpenProgramResponse) Size() (n int) {
+func (m *MsgActivateProgramResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2261,10 +2074,6 @@ func (m *MsgSubmitFinding) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.Description)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
 	l = len(m.FindingHash)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
@@ -2275,6 +2084,10 @@ func (m *MsgSubmitFinding) Size() (n int) {
 	}
 	if m.SeverityLevel != 0 {
 		n += 1 + sovTx(uint64(m.SeverityLevel))
+	}
+	l = len(m.Detail)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
 	}
 	return n
 }
@@ -2306,7 +2119,7 @@ func (m *MsgEditFinding) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.Description)
+	l = len(m.FindingHash)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2316,6 +2129,10 @@ func (m *MsgEditFinding) Size() (n int) {
 	}
 	if m.SeverityLevel != 0 {
 		n += 1 + sovTx(uint64(m.SeverityLevel))
+	}
+	l = len(m.Detail)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
 	}
 	return n
 }
@@ -2329,7 +2146,7 @@ func (m *MsgEditFindingResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgAcceptFinding) Size() (n int) {
+func (m *MsgConfirmFinding) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2349,33 +2166,7 @@ func (m *MsgAcceptFinding) Size() (n int) {
 	return n
 }
 
-func (m *MsgAcceptFindingResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
-func (m *MsgRejectFinding) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.FindingId)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.OperatorAddress)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	return n
-}
-
-func (m *MsgRejectFindingResponse) Size() (n int) {
+func (m *MsgConfirmFindingResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2421,6 +2212,10 @@ func (m *MsgReleaseFinding) Size() (n int) {
 		n += 1 + l + sovTx(uint64(l))
 	}
 	l = len(m.Description)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.ProofOfConcept)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2477,134 +2272,6 @@ func (m *MsgCreateProgram) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Name = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Description = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MemberAccounts", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.MemberAccounts = append(m.MemberAccounts, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ProgramId", wireType)
 			}
 			var stringLen uint64
@@ -2635,7 +2302,71 @@ func (m *MsgCreateProgram) Unmarshal(dAtA []byte) error {
 			}
 			m.ProgramId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 6:
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Detail", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Detail = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field BountyLevels", wireType)
 			}
@@ -2668,6 +2399,38 @@ func (m *MsgCreateProgram) Unmarshal(dAtA []byte) error {
 			if err := m.BountyLevels[len(m.BountyLevels)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2721,134 +2484,6 @@ func (m *MsgEditProgram) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Name = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Description = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MemberAccounts", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.MemberAccounts = append(m.MemberAccounts, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ProgramId", wireType)
 			}
 			var stringLen uint64
@@ -2879,7 +2514,71 @@ func (m *MsgEditProgram) Unmarshal(dAtA []byte) error {
 			}
 			m.ProgramId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 6:
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Detail", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Detail = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field BountyLevels", wireType)
 			}
@@ -2912,6 +2611,38 @@ func (m *MsgEditProgram) Unmarshal(dAtA []byte) error {
 			if err := m.BountyLevels[len(m.BountyLevels)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -3034,7 +2765,7 @@ func (m *MsgEditProgramResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgOpenProgram) Unmarshal(dAtA []byte) error {
+func (m *MsgActivateProgram) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3057,10 +2788,10 @@ func (m *MsgOpenProgram) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgOpenProgram: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgActivateProgram: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgOpenProgram: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgActivateProgram: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -3148,7 +2879,7 @@ func (m *MsgOpenProgram) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgOpenProgramResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgActivateProgramResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3171,10 +2902,10 @@ func (m *MsgOpenProgramResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgOpenProgramResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgActivateProgramResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgOpenProgramResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgActivateProgramResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -3489,38 +3220,6 @@ func (m *MsgSubmitFinding) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Description = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field FindingHash", wireType)
 			}
 			var stringLen uint64
@@ -3551,7 +3250,7 @@ func (m *MsgSubmitFinding) Unmarshal(dAtA []byte) error {
 			}
 			m.FindingHash = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 6:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field SubmitterAddress", wireType)
 			}
@@ -3583,7 +3282,7 @@ func (m *MsgSubmitFinding) Unmarshal(dAtA []byte) error {
 			}
 			m.SubmitterAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 7:
+		case 6:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field SeverityLevel", wireType)
 			}
@@ -3602,6 +3301,38 @@ func (m *MsgSubmitFinding) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Detail", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Detail = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -3800,7 +3531,7 @@ func (m *MsgEditFinding) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field FindingHash", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3828,7 +3559,7 @@ func (m *MsgEditFinding) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Description = string(dAtA[iNdEx:postIndex])
+			m.FindingHash = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
@@ -3881,6 +3612,38 @@ func (m *MsgEditFinding) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Detail", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Detail = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -3952,7 +3715,7 @@ func (m *MsgEditFindingResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgAcceptFinding) Unmarshal(dAtA []byte) error {
+func (m *MsgConfirmFinding) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3975,10 +3738,10 @@ func (m *MsgAcceptFinding) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgAcceptFinding: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgConfirmFinding: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgAcceptFinding: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgConfirmFinding: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4085,7 +3848,7 @@ func (m *MsgAcceptFinding) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgAcceptFindingResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgConfirmFindingResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4108,174 +3871,10 @@ func (m *MsgAcceptFindingResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgAcceptFindingResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgConfirmFindingResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgAcceptFindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgRejectFinding) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRejectFinding: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRejectFinding: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FindingId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.FindingId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgRejectFindingResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRejectFindingResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRejectFindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgConfirmFindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -4557,6 +4156,38 @@ func (m *MsgReleaseFinding) Unmarshal(dAtA []byte) error {
 			m.Description = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProofOfConcept", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ProofOfConcept = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
 			}
