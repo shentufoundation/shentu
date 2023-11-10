@@ -74,11 +74,11 @@ func (k Keeper) CloseProgram(ctx sdk.Context, pid string, caller sdk.AccAddress)
 		return types.ErrProgramAlreadyClosed
 	}
 	// todo finding 3种存在不可关闭
-	//   FINDING_STATUS_SUBMITTED = 0 [(gogoproto.enumvalue_customname) = "FindingStatusSubmitted"];
+	//  FINDING_STATUS_SUBMITTED = 0 [(gogoproto.enumvalue_customname) = "FindingStatusSubmitted"];
 	//  FINDING_STATUS_ACTIVE = 1 [(gogoproto.enumvalue_customname) = "FindingStatusActive"];
 	//  FINDING_STATUS_CONFIRMED = 2 [(gogoproto.enumvalue_customname) = "FindingStatusConfirmed"];
 	// Check the permissions. Only the admin of the program or cert address can operate.
-	if program.AdminAddress != caller.String() && !k.certKeeper.IsCertifier(ctx, caller) {
+	if program.AdminAddress != caller.String() && !k.certKeeper.IsBountyAdmin(ctx, caller) {
 		return types.ErrFindingOperatorNotAllowed
 	}
 
