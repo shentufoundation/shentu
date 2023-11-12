@@ -126,14 +126,14 @@ message MsgEditFinding {
 // MsgEditFindingResponse defines the MsgEditFinding response type.
 message MsgEditFindingResponse {}
 
-// MsgConfirmFinding defines a message to accept a finding to an existing finding.
+// MsgConfirmFinding defines a message to confirm a finding to an existing finding.
 message MsgConfirmFinding {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
   string operator_address = 2 [(gogoproto.moretags) = "yaml:\"operator_address\""];
-  FindingStatus status = 3 [(gogoproto.moretags) = "yaml:\"status\""];
+  string finger_print = 3 [(gogoproto.moretags) = "yaml:\"finger_print\""];
 }
 
 // MsgConfirmFindingResponse defines the Msg/AcceptFinding response type.

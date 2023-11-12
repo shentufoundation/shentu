@@ -1,9 +1,8 @@
 package types
 
 const (
-	EventTypeCreateProgram = "create_program"
-	EventTypeEditProgram   = "edit_program"
-	//todo
+	EventTypeCreateProgram   = "create_program"
+	EventTypeEditProgram     = "edit_program"
 	EventTypeActivateProgram = "activate_program"
 	EventTypeCloseProgram    = "close_program"
 

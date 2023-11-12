@@ -11,10 +11,8 @@ const (
 )
 
 var (
-	ProgramsKey      = []byte{0x01}
-	NextProgramIDKey = []byte{0x02}
-	FindingKey       = []byte{0x03}
-	NextFindingIDKey = []byte{0x04}
+	ProgramKey = []byte{0x01}
+	FindingKey = []byte{0x02}
 
 	ProgramIDFindingListKey = []byte{0x10}
 )
@@ -22,7 +20,7 @@ var (
 // GetProgramKey creates the key for a program
 // VALUE: staking/Validator
 func GetProgramKey(id string) []byte {
-	return append(ProgramsKey, []byte(id)...)
+	return append(ProgramKey, []byte(id)...)
 }
 
 // GetFindingKey creates the key for a program

@@ -2,8 +2,6 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
@@ -27,7 +25,7 @@ func (k Keeper) GetAllPrograms(ctx sdk.Context) []types.Program {
 	var programs []types.Program
 	var program types.Program
 
-	iterator := sdk.KVStorePrefixIterator(store, types.ProgramsKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ProgramKey)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		k.cdc.MustUnmarshal(iterator.Value(), &program)
@@ -48,14 +46,14 @@ func (k Keeper) OpenProgram(ctx sdk.Context, pid string, caller sdk.AccAddress) 
 		return types.ErrProgramNotExists
 	}
 
-	// Check if the program is already closed
+	// Check if the program is already active
 	if program.Status == types.ProgramStatusActive {
 		return types.ErrProgramAlreadyActive
 	}
 
-	// Check the permissions. Only the certificate address can operate.
+	// Check the permissions. Only the bounty cert address can operate.
 	if !k.certKeeper.IsBountyAdmin(ctx, caller) {
-		return sdkerrors.Wrapf(govtypes.ErrInvalidVote, "%s is not a certified identity", caller.String())
+		return types.ErrProgramOperatorNotAllowed
 	}
 
 	program.Status = types.ProgramStatusActive
@@ -73,11 +71,27 @@ func (k Keeper) CloseProgram(ctx sdk.Context, pid string, caller sdk.AccAddress)
 	if program.Status == types.ProgramStatusClosed {
 		return types.ErrProgramAlreadyClosed
 	}
-	// todo finding 3种存在不可关闭
-	//  FINDING_STATUS_SUBMITTED = 0 [(gogoproto.enumvalue_customname) = "FindingStatusSubmitted"];
-	//  FINDING_STATUS_ACTIVE = 1 [(gogoproto.enumvalue_customname) = "FindingStatusActive"];
-	//  FINDING_STATUS_CONFIRMED = 2 [(gogoproto.enumvalue_customname) = "FindingStatusConfirmed"];
-	// Check the permissions. Only the admin of the program or cert address can operate.
+
+	// The program cannot be closed
+	// There are 3 finding states: FindingStatusSubmitted FindingStatusActive FindingStatusConfirmed
+	fidsList, err := k.GetPidFindingIDList(ctx, pid)
+	if err != nil {
+		return err
+	}
+	for _, fid := range fidsList {
+		finding, found := k.GetFinding(ctx, fid)
+		if !found {
+			return types.ErrFindingNotExists
+		}
+		if finding.Status != types.FindingStatusSubmitted &&
+			finding.Status != types.FindingStatusActive &&
+			finding.Status != types.FindingStatusConfirmed {
+			return types.ErrProgramExpired
+		}
+
+	}
+
+	// Check the permissions. Only the admin of the program or bounty cert address can operate.
 	if program.AdminAddress != caller.String() && !k.certKeeper.IsBountyAdmin(ctx, caller) {
 		return types.ErrFindingOperatorNotAllowed
 	}

@@ -24,7 +24,6 @@ func DefaultGenesisState() *GenesisState {
 func ValidateGenesis(data *GenesisState) error {
 	programs := make(map[string]int)
 	for i, program := range data.Programs {
-
 		programIndex, ok := programs[program.ProgramId]
 		if ok {
 			//repeat programId

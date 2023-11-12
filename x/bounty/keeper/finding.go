@@ -23,8 +23,8 @@ func (k Keeper) GetFinding(ctx sdk.Context, id string) (types.Finding, bool) {
 
 func (k Keeper) SetFinding(ctx sdk.Context, finding types.Finding) {
 	store := ctx.KVStore(k.storeKey)
-	findingData := k.cdc.MustMarshal(&finding)
-	store.Set(types.GetFindingKey(finding.FindingId), findingData)
+	bz := k.cdc.MustMarshal(&finding)
+	store.Set(types.GetFindingKey(finding.FindingId), bz)
 }
 
 func (k Keeper) DeleteFinding(ctx sdk.Context, id string) {

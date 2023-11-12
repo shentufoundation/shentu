@@ -1,19 +1,17 @@
 package keeper_test
 
 import (
-	certTypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 	"testing"
-
-	"github.com/stretchr/testify/suite"
-
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/suite"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/x/bounty/keeper"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
+	certTypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
 type KeeperTestSuite struct {
@@ -37,7 +35,17 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.queryClient = types.NewQueryClient(queryHelper)
 	suite.msgServer = keeper.NewMsgServerImpl(suite.keeper)
 
-	suite.app.CertKeeper.SetCertifier(suite.ctx, certTypes.NewCertifier(suite.address[3], "", suite.address[3], ""))
+	suite.app.CertKeeper.SetCertifier(suite.ctx, certTypes.NewCertifier(suite.address[2], "", suite.address[2], ""))
+	certificate, err := certTypes.NewCertificate("bountyadmin", suite.address[3].String(), "", "", "", suite.address[2])
+	if err != nil {
+		panic(err)
+	}
+	id := suite.app.CertKeeper.GetNextCertificateID(suite.ctx)
+	certificate.CertificateId = id
+	// set the cert and its ID in the store
+	suite.app.CertKeeper.SetNextCertificateID(suite.ctx, id+1)
+	suite.app.CertKeeper.SetCertificate(suite.ctx, certificate)
+
 }
 
 func TestKeeperTestSuite(t *testing.T) {

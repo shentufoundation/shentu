@@ -33,7 +33,7 @@ func (k Keeper) Programs(c context.Context, req *types.QueryProgramsRequest) (*t
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
-	programStore := prefix.NewStore(store, types.ProgramsKey)
+	programStore := prefix.NewStore(store, types.ProgramKey)
 
 	pageRes, err := query.FilteredPaginate(programStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		var p types.Program

@@ -14,18 +14,18 @@ var (
 
 func TestMsgCreateProgram(t *testing.T) {
 	tests := []struct {
-		name           string
-		description    string
 		pid            string
+		name           string
+		detail         string
 		creatorAddress sdk.AccAddress
 		expectPass     bool
 	}{
-		{"name", "desc", "1", addrs[0], true},
-		{"name", "desc", "1", sdk.AccAddress{}, false},
+		{"1", "name", "desc", addrs[0], true},
+		{"1", "name", "desc", sdk.AccAddress{}, false},
 	}
 
 	for i, test := range tests {
-		msg := NewMsgCreateProgram(test.name, test.description, test.pid, test.creatorAddress, nil, nil)
+		msg := NewMsgCreateProgram(test.pid, test.name, test.detail, test.creatorAddress, nil)
 		require.Equal(t, msg.Route(), RouterKey)
 		require.Equal(t, msg.Type(), TypeMsgCreateProgram)
 
@@ -40,18 +40,18 @@ func TestMsgCreateProgram(t *testing.T) {
 
 func TestMsgSubmitFinding(t *testing.T) {
 	testCases := []struct {
-		pid, fid, title, desc string
-		addr                  sdk.AccAddress
-		severityLevel         int8
-		expectPass            bool
+		pid, fid, title, desc, hash string
+		addr                        sdk.AccAddress
+		severityLevel               int8
+		expectPass                  bool
 	}{
-		{"1", "1", "title", "desc", addrs[0], 3, true},
-		{"", "1", "title", "desc", addrs[0], 3, false},
-		{"2", "2", "title", "desc", sdk.AccAddress{}, 3, false},
+		{"1", "1", "title", "desc", "hash", addrs[0], 3, true},
+		{"", "1", "title", "desc", "hash", addrs[0], 3, false},
+		{"2", "2", "title", "desc", "hash", sdk.AccAddress{}, 3, false},
 	}
 
 	for _, tc := range testCases {
-		msg := NewMsgSubmitFinding(tc.pid, tc.fid, tc.title, tc.desc, tc.addr, SeverityLevel(tc.severityLevel))
+		msg := NewMsgSubmitFinding(tc.pid, tc.fid, tc.title, tc.desc, tc.hash, tc.addr, SeverityLevel(tc.severityLevel))
 		require.Equal(t, msg.Route(), RouterKey)
 		require.Equal(t, msg.Type(), TypeMsgSubmitFinding)
 
@@ -64,7 +64,7 @@ func TestMsgSubmitFinding(t *testing.T) {
 	}
 }
 
-func TestMsgOpenProgram(t *testing.T) {
+func TestMsgActivateProgram(t *testing.T) {
 	testCases := []struct {
 		pid        string
 		addr       sdk.AccAddress
@@ -75,10 +75,10 @@ func TestMsgOpenProgram(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		msg := NewMsgOpenProgram(tc.pid, tc.addr)
+		msg := NewMsgActivateProgram(tc.pid, tc.addr)
 
 		require.Equal(t, msg.Route(), RouterKey)
-		require.Equal(t, msg.Type(), TypeMsgOpenProgram)
+		require.Equal(t, msg.Type(), TypeMsgActivateProgram)
 
 		if tc.expectPass {
 			require.NoError(t, msg.ValidateBasic())
@@ -114,7 +114,7 @@ func TestMsgCloseProgram(t *testing.T) {
 	}
 }
 
-func TestMsgAcceptFinding(t *testing.T) {
+func TestMsgConfirmFinding(t *testing.T) {
 	testCases := []struct {
 		fid        string
 		addr       sdk.AccAddress
@@ -125,35 +125,10 @@ func TestMsgAcceptFinding(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		msg := NewMsgAcceptFinding(tc.fid, tc.addr)
+		msg := NewMsgConfirmFinding(tc.fid, tc.addr)
 
 		require.Equal(t, msg.Route(), RouterKey)
-		require.Equal(t, msg.Type(), TypeMsgAcceptFinding)
-
-		if tc.expectPass {
-			require.NoError(t, msg.ValidateBasic())
-			require.Equal(t, msg.GetSigners(), []sdk.AccAddress{tc.addr})
-		} else {
-			require.Error(t, msg.ValidateBasic())
-		}
-	}
-}
-
-func TestMsgRejectFinding(t *testing.T) {
-	testCases := []struct {
-		fid        string
-		addr       sdk.AccAddress
-		expectPass bool
-	}{
-		{"1", addrs[0], true},
-		{"2", sdk.AccAddress{}, false},
-	}
-
-	for _, tc := range testCases {
-		msg := NewMsgRejectFinding(tc.fid, tc.addr)
-
-		require.Equal(t, msg.Route(), RouterKey)
-		require.Equal(t, msg.Type(), TypeMsgRejectFinding)
+		require.Equal(t, msg.Type(), TypeMsgConfirmFinding)
 
 		if tc.expectPass {
 			require.NoError(t, msg.ValidateBasic())
@@ -191,16 +166,16 @@ func TestMsgCloseFinding(t *testing.T) {
 
 func TestMsgReleaseFinding(t *testing.T) {
 	testCases := []struct {
-		fid, desc  string
-		addr       sdk.AccAddress
-		expectPass bool
+		fid, desc, poc string
+		addr           sdk.AccAddress
+		expectPass     bool
 	}{
-		{"1", "desc", addrs[0], true},
-		{"2", "desc", sdk.AccAddress{}, false},
+		{"1", "desc", "poc", addrs[0], true},
+		{"2", "desc", "poc", sdk.AccAddress{}, false},
 	}
 
 	for _, tc := range testCases {
-		msg := NewMsgReleaseFinding(tc.fid, tc.desc, tc.addr)
+		msg := NewMsgReleaseFinding(tc.fid, tc.desc, tc.poc, tc.addr)
 
 		require.Equal(t, msg.Route(), RouterKey)
 		require.Equal(t, msg.Type(), TypeMsgReleaseFinding)

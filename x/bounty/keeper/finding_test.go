@@ -1,8 +1,11 @@
 package keeper_test
 
 import (
-	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 func (suite *KeeperTestSuite) TestSetGetFinding() {
@@ -13,12 +16,11 @@ func (suite *KeeperTestSuite) TestSetGetFinding() {
 		shouldPass bool
 		contains   string
 	}
-
 	// create program
 	program := types.Program{
-		ProgramId:    "1",
+		ProgramId:    uuid.NewString(),
 		Name:         "name",
-		Description:  "desc",
+		Detail:       "detail",
 		AdminAddress: suite.address[0].String(),
 		Status:       types.ProgramStatusInactive,
 	}

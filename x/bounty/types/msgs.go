@@ -9,6 +9,7 @@ import (
 
 const (
 	TypeMsgCreateProgram   = "create_program"
+	TypeMsgEditProgram     = "edit_program"
 	TypeMsgActivateProgram = "activate_program"
 	TypeMsgCloseProgram    = "close_program"
 	TypeMsgSubmitFinding   = "submit_finding"
@@ -16,6 +17,18 @@ const (
 	TypeMsgConfirmFinding  = "confirm_finding"
 	TypeMsgCloseFinding    = "close_finding"
 	TypeMsgReleaseFinding  = "release_finding"
+)
+
+var (
+	_ sdk.Msg = &MsgCreateProgram{}
+	_ sdk.Msg = &MsgEditProgram{}
+	_ sdk.Msg = &MsgActivateProgram{}
+	_ sdk.Msg = &MsgCloseProgram{}
+	_ sdk.Msg = &MsgSubmitFinding{}
+	_ sdk.Msg = &MsgEditFinding{}
+	_ sdk.Msg = &MsgConfirmFinding{}
+	_ sdk.Msg = &MsgCloseFinding{}
+	_ sdk.Msg = &MsgReleaseFinding{}
 )
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
@@ -80,7 +93,7 @@ func NewMsgEditProgram(pid, name, detail string, operator sdk.AccAddress, levels
 func (msg MsgEditProgram) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgEditProgram) Type() string { return TypeMsgCreateProgram }
+func (msg MsgEditProgram) Type() string { return TypeMsgEditProgram }
 
 // GetSigners implements the sdk.Msg interface. It returns the address(es) that
 // must sign over msg.GetSignBytes().

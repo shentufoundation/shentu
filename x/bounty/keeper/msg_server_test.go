@@ -3,7 +3,8 @@ package keeper_test
 import (
 	"fmt"
 
-	types1 "github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/google/uuid"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
@@ -27,7 +28,7 @@ func (suite *KeeperTestSuite) TestCreateProgram() {
 				msgCresatePrograms: []types.MsgCreateProgram{
 					{
 						Name:            "Name",
-						Description:     "Desc",
+						Detail:          "detail",
 						OperatorAddress: suite.address[0].String(),
 						ProgramId:       "1",
 					},
@@ -42,7 +43,7 @@ func (suite *KeeperTestSuite) TestCreateProgram() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			for _, program := range tc.args.msgCresatePrograms {
-				ctx := types1.WrapSDKContext(suite.ctx)
+				ctx := sdk.WrapSDKContext(suite.ctx)
 
 				_, err := suite.msgServer.CreateProgram(ctx, &program)
 				suite.Require().NoError(err)
@@ -68,9 +69,9 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 		shouldPass bool
 	}
 
-	pid := "1"
+	pid := uuid.NewString()
 	suite.InitCreateProgram(pid)
-	suite.InitOpenProgram(pid)
+	suite.InitActivateProgram(pid)
 
 	tests := []struct {
 		name    string
@@ -84,7 +85,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 						ProgramId:        pid,
 						FindingId:        "1",
 						Title:            "Test bug 1",
-						Description:      "Desc",
+						Detail:           "detail",
 						SubmitterAddress: suite.address[0].String(),
 						SeverityLevel:    types.Critical,
 					},
@@ -101,7 +102,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 						ProgramId:        "Not exist pid",
 						FindingId:        "1",
 						Title:            "Test bug 1",
-						Description:      "Desc",
+						Detail:           "detail",
 						SubmitterAddress: suite.address[0].String(),
 						SeverityLevel:    types.Critical,
 					},
@@ -118,7 +119,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 						ProgramId:        "not exist pid",
 						FindingId:        "1",
 						Title:            "Test bug 1",
-						Description:      "Desc",
+						Detail:           "detail",
 						SubmitterAddress: "Test address",
 						SeverityLevel:    types.Critical,
 					},
@@ -133,7 +134,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			for _, finding := range tc.args.msgSubmitFindings {
-				ctx := types1.WrapSDKContext(suite.ctx)
+				ctx := sdk.WrapSDKContext(suite.ctx)
 
 				_, err := suite.msgServer.SubmitFinding(ctx, &finding)
 
@@ -149,25 +150,25 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestAcceptFinding() {
+func (suite *KeeperTestSuite) TestConfirmFinding() {
 	pid, fid := "1", "1"
 	suite.InitCreateProgram(pid)
-	suite.InitOpenProgram(pid)
+	suite.InitActivateProgram(pid)
 	suite.InitSubmitFinding(pid, fid)
 
 	testCases := []struct {
 		name    string
-		req     *types.MsgAcceptFinding
+		req     *types.MsgConfirmFinding
 		expPass bool
 	}{
 		{
 			"empty request",
-			&types.MsgAcceptFinding{},
+			&types.MsgConfirmFinding{},
 			false,
 		},
 		{
 			"valid request => ",
-			&types.MsgAcceptFinding{
+			&types.MsgConfirmFinding{
 				FindingId:       fid,
 				OperatorAddress: suite.address[0].String(),
 			},
@@ -177,8 +178,8 @@ func (suite *KeeperTestSuite) TestAcceptFinding() {
 
 	for _, testCase := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
-			ctx := types1.WrapSDKContext(suite.ctx)
-			_, err := suite.msgServer.AcceptFinding(ctx, testCase.req)
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.ConfirmFinding(ctx, testCase.req)
 
 			finding, _ := suite.keeper.GetFinding(suite.ctx, fid)
 
@@ -193,25 +194,25 @@ func (suite *KeeperTestSuite) TestAcceptFinding() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestRejectFinding() {
+func (suite *KeeperTestSuite) TestCloseFinding() {
 	pid, fid := "1", "1"
 	suite.InitCreateProgram(pid)
-	suite.InitOpenProgram(pid)
+	suite.InitActivateProgram(pid)
 	findingId := suite.InitSubmitFinding(pid, fid)
 
 	testCases := []struct {
 		name    string
-		req     *types.MsgRejectFinding
+		req     *types.MsgCloseFinding
 		expPass bool
 	}{
 		{
 			"empty request",
-			&types.MsgRejectFinding{},
+			&types.MsgCloseFinding{},
 			false,
 		},
 		{
 			"valid request => comment is empty",
-			&types.MsgRejectFinding{
+			&types.MsgCloseFinding{
 				FindingId:       "1",
 				OperatorAddress: suite.address[0].String(),
 			},
@@ -221,8 +222,8 @@ func (suite *KeeperTestSuite) TestRejectFinding() {
 
 	for _, testCase := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
-			ctx := types1.WrapSDKContext(suite.ctx)
-			_, err := suite.msgServer.RejectFinding(ctx, testCase.req)
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.CloseFinding(ctx, testCase.req)
 
 			finding, _ := suite.keeper.GetFinding(suite.ctx, findingId)
 
@@ -238,28 +239,26 @@ func (suite *KeeperTestSuite) TestRejectFinding() {
 }
 
 func (suite *KeeperTestSuite) InitCreateProgram(pid string) {
-
 	msgCreateProgram := &types.MsgCreateProgram{
-		Name:            "name",
-		Description:     "create test1",
-		OperatorAddress: suite.address[0].String(),
-		MemberAccounts:  []string{suite.address[1].String(), suite.address[2].String()},
 		ProgramId:       pid,
+		Name:            "name",
+		Detail:          "detail",
+		OperatorAddress: suite.address[0].String(),
 	}
 
-	ctx := types1.WrapSDKContext(suite.ctx)
+	ctx := sdk.WrapSDKContext(suite.ctx)
 	_, err := suite.msgServer.CreateProgram(ctx, msgCreateProgram)
 	suite.Require().NoError(err)
 }
 
-func (suite *KeeperTestSuite) InitOpenProgram(pid string) {
-	msgCreateProgram := &types.MsgOpenProgram{
+func (suite *KeeperTestSuite) InitActivateProgram(pid string) {
+	msgCreateProgram := &types.MsgActivateProgram{
 		ProgramId:       pid,
 		OperatorAddress: suite.address[3].String(),
 	}
 
-	ctx := types1.WrapSDKContext(suite.ctx)
-	_, err := suite.msgServer.OpenProgram(ctx, msgCreateProgram)
+	ctx := sdk.WrapSDKContext(suite.ctx)
+	_, err := suite.msgServer.ActivateProgram(ctx, msgCreateProgram)
 	suite.Require().NoError(err)
 }
 
@@ -267,13 +266,14 @@ func (suite *KeeperTestSuite) InitSubmitFinding(pid, fid string) string {
 	msgSubmitFinding := &types.MsgSubmitFinding{
 		ProgramId:        pid,
 		FindingId:        fid,
-		Title:            "Bug title",
-		Description:      "Bug desc",
+		Title:            "title",
+		FindingHash:      "finding hash",
 		SubmitterAddress: suite.address[0].String(),
 		SeverityLevel:    types.Critical,
+		Detail:           "detail",
 	}
 
-	ctx := types1.WrapSDKContext(suite.ctx)
+	ctx := sdk.WrapSDKContext(suite.ctx)
 	_, err := suite.msgServer.SubmitFinding(ctx, msgSubmitFinding)
 	suite.Require().NoError(err)
 

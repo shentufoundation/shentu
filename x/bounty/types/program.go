@@ -28,5 +28,20 @@ func (m *Program) ValidateBasic() error {
 		return err
 	}
 
+	if !ValidProgramStatus(m.Status) {
+		return ErrProgramStatusInvalid
+	}
+
 	return nil
+}
+
+// ValidProgramStatus returns true if the program status is valid and false
+// otherwise.
+func ValidProgramStatus(status ProgramStatus) bool {
+	if status == ProgramStatusInactive ||
+		status == ProgramStatusActive ||
+		status == ProgramStatusClosed {
+		return true
+	}
+	return false
 }

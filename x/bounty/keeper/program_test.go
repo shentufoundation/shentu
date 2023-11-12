@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestSetGetProgram() {
 					{
 						ProgramId:    "1",
 						Name:         "name",
-						Description:  "desc",
+						Detail:       "detail",
 						AdminAddress: suite.address[0].String(),
 						Status:       1,
 					},
@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestOpenCloseProgram() {
 	program := types.Program{
 		ProgramId:    "1",
 		Name:         "name",
-		Description:  "desc",
+		Detail:       "detail",
 		AdminAddress: suite.address[0].String(),
 		Status:       types.ProgramStatusInactive,
 	}

@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,7 +10,6 @@ import (
 type Findings []Finding
 
 func NewFinding(pid, fid, title, detail, hash string, operator sdk.AccAddress, submitTime time.Time, level SeverityLevel) (Finding, error) {
-
 	return Finding{
 		ProgramId:        pid,
 		FindingId:        fid,
@@ -28,16 +26,48 @@ func NewFinding(pid, fid, title, detail, hash string, operator sdk.AccAddress, s
 func (m Finding) ValidateBasic() error {
 	if len(m.ProgramId) == 0 {
 		return ErrProgramID
-	} else if len(m.FindingId) == 0 {
+	}
+	if len(m.FindingId) == 0 {
 		return ErrFindingID
-	} else if m.SeverityLevel < 0 || int(m.SeverityLevel) >= len(SeverityLevel_name) {
-		return fmt.Errorf("invalid SeverityLevel:%d", m.SeverityLevel)
-	} else if int(m.Status) >= len(FindingStatus_name) {
-		return fmt.Errorf("invalid finding status:%d", m.Status)
 	}
 
 	if _, err := sdk.AccAddressFromBech32(m.SubmitterAddress); err != nil {
 		return err
 	}
+
+	if !ValidFindingStatus(m.Status) {
+		return ErrFindingStatusInvalid
+	}
+	if !ValidFindingSeverityLevel(m.SeverityLevel) {
+		return ErrFindingSeverityLevelInvalid
+	}
+
 	return nil
+}
+
+// ValidFindingStatus returns true if the finding status is valid and false
+// otherwise.
+func ValidFindingStatus(status FindingStatus) bool {
+	if status == FindingStatusSubmitted ||
+		status == FindingStatusActive ||
+		status == FindingStatusConfirmed ||
+		status == FindingStatusPaid ||
+		status == FindingStatusClosed {
+		return true
+	}
+	return false
+}
+
+// ValidFindingSeverityLevel returns true if the finding level is valid and false
+// otherwise.
+func ValidFindingSeverityLevel(level SeverityLevel) bool {
+	if level == Unspecified ||
+		level == Critical ||
+		level == High ||
+		level == Medium ||
+		level == Low ||
+		level == Informational {
+		return true
+	}
+	return false
 }

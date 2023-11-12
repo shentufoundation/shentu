@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/google/uuid"
 
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
@@ -117,8 +118,9 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 	queryClient := suite.queryClient
 
 	// create programs
-	suite.InitCreateProgram("1")
-	suite.InitOpenProgram("1")
+	pid := uuid.NewString()
+	suite.InitCreateProgram(pid)
+	suite.InitActivateProgram(pid)
 	var (
 		req *types.QueryFindingRequest
 	)
@@ -164,7 +166,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 				suite.InitSubmitFinding("1", "2")
 
 				ctx := sdk.WrapSDKContext(suite.ctx)
-				suite.msgServer.ReleaseFinding(ctx, types.NewMsgReleaseFinding("2", "release desc", suite.address[0]))
+				suite.msgServer.ReleaseFinding(ctx, types.NewMsgReleaseFinding("2", "desc", "poc", suite.address[0]))
 			},
 			true,
 		},
@@ -190,9 +192,9 @@ func (suite *KeeperTestSuite) TestGRPCQueryFindings() {
 	queryClient := suite.queryClient
 
 	// create programs
-	pid := "1"
+	pid := uuid.NewString()
 	suite.InitCreateProgram(pid)
-	suite.InitOpenProgram(pid)
+	suite.InitActivateProgram(pid)
 
 	var (
 		req *types.QueryFindingsRequest
