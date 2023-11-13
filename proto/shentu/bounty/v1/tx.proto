@@ -34,6 +34,9 @@ service Msg {
   // ConfirmFinding defines a method for host confirm a finding.
   rpc ConfirmFinding(MsgConfirmFinding) returns (MsgConfirmFindingResponse);
 
+  // ConfirmFindingPaid defines a method for submitter confirm a finding paid
+  rpc ConfirmFindingPaid(MsgConfirmFindingPaid) returns (MsgConfirmFindingPaidResponse);
+
   // CloseFinding defines a method for submitter or certifier close a finding
   rpc CloseFinding(MsgCloseFinding) returns (MsgCloseFindingResponse);
 
@@ -133,11 +136,23 @@ message MsgConfirmFinding {
 
   string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
   string operator_address = 2 [(gogoproto.moretags) = "yaml:\"operator_address\""];
-  string finger_print = 3 [(gogoproto.moretags) = "yaml:\"finger_print\""];
+  string fingerprint = 3;
 }
 
 // MsgConfirmFindingResponse defines the Msg/AcceptFinding response type.
 message MsgConfirmFindingResponse {}
+
+// MsgConfirmFindingPaid defines a message to close a finding to an existing finding.
+message MsgConfirmFindingPaid {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string operator_address = 2 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+}
+
+// MsgCloseFindingResponse defines the Msg/CloseFinding response type.
+message MsgConfirmFindingPaidResponse {}
 
 // MsgCloseFinding defines a message to close a finding to an existing finding.
 message MsgCloseFinding {

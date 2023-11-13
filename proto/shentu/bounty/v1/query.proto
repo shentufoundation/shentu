@@ -41,6 +41,11 @@ service Query {
   rpc Finding(QueryFindingRequest) returns (QueryFindingResponse) {
     option (google.api.http).get = "/shentu/bounty/v1/findings/{finding_id}";
   }
+
+  // FindingFingerprint queries Finding Fingerprint based on FindingId.
+  rpc FindingFingerprint(QueryFindingFingerprintRequest) returns (QueryFindingFingerprintResponse) {
+    option (google.api.http).get = "/shentu/bounty/v1/findings/{finding_id}/fingerprint";
+  }
 }
 
 // QueryHostsRequest is the request type for the Query/Hosts RPC method.
@@ -112,4 +117,15 @@ message QueryFindingRequest {
 // QueryFindingResponse is the response type for the Query/Finding RPC method.
 message QueryFindingResponse {
   Finding finding = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryFindingFingerPrint is the request type for the Query/Finding RPC method.
+message QueryFindingFingerprintRequest {
+  // finding_id defines the unique id of the finding.
+  string finding_id = 1;
+}
+
+// QueryFindingFingerPrintResponse is the response type for the Query/Finding RPC method.
+message QueryFindingFingerprintResponse {
+  string fingerprint = 1;
 }

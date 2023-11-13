@@ -162,11 +162,9 @@ func (suite *KeeperTestSuite) TestConfirmFinding() {
 
 	finding, found := suite.keeper.GetFinding(suite.ctx, fid)
 	suite.Require().True(found)
-
 	// fingerprint calculate
 	cdc := shentuapp.MakeEncodingConfig().Marshaler
-	bz := cdc.MustMarshal(&finding)
-	hash := sha256.Sum256(bz)
+	hash := sha256.Sum256(cdc.MustMarshal(&finding))
 
 	testCases := []struct {
 		name    string
@@ -183,7 +181,7 @@ func (suite *KeeperTestSuite) TestConfirmFinding() {
 			&types.MsgConfirmFinding{
 				FindingId:       fid,
 				OperatorAddress: suite.address[0].String(),
-				FingerPrint:     hex.EncodeToString(hash[:]),
+				Fingerprint:     hex.EncodeToString(hash[:]),
 			},
 			true,
 		},
@@ -202,6 +200,56 @@ func (suite *KeeperTestSuite) TestConfirmFinding() {
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal(finding.Status, types.FindingStatusSubmitted)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestConfirmFindingPaid() {
+	pid, fid := uuid.NewString(), uuid.NewString()
+	suite.InitCreateProgram(pid)
+	suite.InitActivateProgram(pid)
+	suite.InitSubmitFinding(pid, fid)
+
+	finding, found := suite.keeper.GetFinding(suite.ctx, fid)
+	suite.Require().True(found)
+	// fingerprint calculate
+	cdc := shentuapp.MakeEncodingConfig().Marshaler
+	hash := sha256.Sum256(cdc.MustMarshal(&finding))
+	suite.InitConfirmFinding(fid, hex.EncodeToString(hash[:]))
+
+	testCases := []struct {
+		name    string
+		req     *types.MsgConfirmFindingPaid
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgConfirmFindingPaid{},
+			false,
+		},
+		{
+			"valid request",
+			&types.MsgConfirmFindingPaid{
+				FindingId:       fid,
+				OperatorAddress: suite.address[0].String(),
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.ConfirmFindingPaid(ctx, testCase.req)
+			finding, _ := suite.keeper.GetFinding(suite.ctx, fid)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(finding.Status, types.FindingStatusPaid)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Equal(finding.Status, types.FindingStatusConfirmed)
 			}
 		})
 	}
@@ -250,11 +298,20 @@ func (suite *KeeperTestSuite) TestCloseFinding() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestReleaseFinding() {
+func (suite *KeeperTestSuite) TestReleaseConfirmFinding() {
 	pid, fid := uuid.NewString(), uuid.NewString()
 	suite.InitCreateProgram(pid)
 	suite.InitActivateProgram(pid)
 	suite.InitSubmitFinding(pid, fid)
+
+	finding, found := suite.keeper.GetFinding(suite.ctx, fid)
+	suite.Require().True(found)
+	// fingerprint calculate
+	cdc := shentuapp.MakeEncodingConfig().Marshaler
+	hash := sha256.Sum256(cdc.MustMarshal(&finding))
+	suite.InitConfirmFinding(fid, hex.EncodeToString(hash[:]))
+
+	suite.InitConfirmFindingPaid(fid)
 
 	testCases := []struct {
 		name    string
@@ -288,9 +345,10 @@ func (suite *KeeperTestSuite) TestReleaseFinding() {
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(finding.Description, "desc")
+				suite.Require().Equal(finding.ProofOfConcept, "poc")
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Equal(finding.Status, types.FindingStatusSubmitted)
+				suite.Require().Equal(finding.Status, types.FindingStatusPaid)
 			}
 		})
 	}
@@ -339,4 +397,31 @@ func (suite *KeeperTestSuite) InitSubmitFinding(pid, fid string) string {
 	suite.Require().NoError(err)
 
 	return msgSubmitFinding.FindingId
+}
+
+func (suite *KeeperTestSuite) InitConfirmFinding(fid, fingerprint string) string {
+	msgConfirmFinding := &types.MsgConfirmFinding{
+		FindingId:       fid,
+		OperatorAddress: suite.address[0].String(),
+		Fingerprint:     fingerprint,
+	}
+
+	ctx := sdk.WrapSDKContext(suite.ctx)
+	_, err := suite.msgServer.ConfirmFinding(ctx, msgConfirmFinding)
+	suite.Require().NoError(err)
+
+	return msgConfirmFinding.FindingId
+}
+
+func (suite *KeeperTestSuite) InitConfirmFindingPaid(fid string) string {
+	msgConfirmFindingPaid := &types.MsgConfirmFindingPaid{
+		FindingId:       fid,
+		OperatorAddress: suite.address[0].String(),
+	}
+
+	ctx := sdk.WrapSDKContext(suite.ctx)
+	_, err := suite.msgServer.ConfirmFindingPaid(ctx, msgConfirmFindingPaid)
+	suite.Require().NoError(err)
+
+	return msgConfirmFindingPaid.FindingId
 }

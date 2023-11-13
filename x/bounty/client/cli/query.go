@@ -31,6 +31,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryPrograms(),
 		GetCmdQueryFinding(),
 		GetCmdQueryFindings(),
+		GetCmdQueryFindingFingerPrint(),
 	)
 
 	return bountyQueryCmd
@@ -244,6 +245,45 @@ $ %s query bounty findings --page=1 --limit=100
 	cmd.Flags().Uint64(FlagProgramID, 0, "(optional) filter by programs find by program id")
 	cmd.Flags().String(FlagSubmitterAddress, "", "(optional) filter by programs find by submitter address")
 	flags.AddPaginationFlagsToCmd(cmd, "findings")
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryFindingFingerPrint implements the query finding fingerPrint command.
+func GetCmdQueryFindingFingerPrint() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "fingerprint [finding-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query fingerPrint of a single finding",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query fingerPrint for a finding. You can find the finding-id by running "%s query bounty findings".
+Example:
+$ %s query bounty finding 1
+`,
+				version.AppName, version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			// Query the finding
+			res, err := queryClient.FindingFingerprint(
+				cmd.Context(),
+				&types.QueryFindingFingerprintRequest{
+					FindingId: args[0],
+				})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

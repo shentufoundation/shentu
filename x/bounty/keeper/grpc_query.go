@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -115,4 +117,22 @@ func (k Keeper) Finding(c context.Context, req *types.QueryFindingRequest) (*typ
 	}
 
 	return &types.QueryFindingResponse{Finding: finding}, nil
+}
+
+func (k Keeper) FindingFingerprint(c context.Context, req *types.QueryFindingFingerprintRequest) (*types.QueryFindingFingerprintResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	if len(req.FindingId) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "finding-id can not be 0")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	finding, found := k.GetFinding(ctx, req.FindingId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "finding %s doesn't exist", req.FindingId)
+	}
+
+	hash := sha256.Sum256(k.cdc.MustMarshal(&finding))
+	return &types.QueryFindingFingerprintResponse{Fingerprint: hex.EncodeToString(hash[:])}, nil
 }

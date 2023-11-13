@@ -8,10 +8,9 @@ const (
 	FlagDetail = "detail"
 
 	FlagFindingTitle          = "title"
-	FlagFindingSeverityLevel  = "severity-level"
 	FlagFindingDescription    = "desc"
 	FlagFindingProofOfContent = "poc"
-	FlagFindingFingerPrint    = "fingerPrint,"
-	FlagFindingAddress        = "finding-address"
+	FlagFindingSeverityLevel  = "severity-level"
+	FlagFindingFingerprint    = "fingerprint"
 	FlagSubmitterAddress      = "submitter-address"
 )

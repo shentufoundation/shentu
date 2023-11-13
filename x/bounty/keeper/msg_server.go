@@ -313,10 +313,51 @@ func (k msgServer) hostProcess(ctx sdk.Context, msg *types.MsgConfirmFinding) (t
 	// fingerprint comparison
 	bz := k.cdc.MustMarshal(&finding)
 	hash := sha256.Sum256(bz)
-	if msg.FingerPrint != hex.EncodeToString(hash[:]) {
+	if msg.Fingerprint != hex.EncodeToString(hash[:]) {
 		return finding, types.ErrFindingHashInvalid
 	}
 	return finding, nil
+}
+
+func (k msgServer) ConfirmFindingPaid(goCtx context.Context, msg *types.MsgConfirmFindingPaid) (*types.MsgConfirmFindingPaidResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	// get finding
+	finding, ok := k.GetFinding(ctx, msg.FindingId)
+	if !ok {
+		return nil, types.ErrFindingNotExists
+	}
+	if finding.Status != types.FindingStatusConfirmed {
+		return nil, types.ErrFindingStatusInvalid
+	}
+
+	// check operator: finding owner, certificate
+	if finding.SubmitterAddress != msg.OperatorAddress && !k.certKeeper.IsBountyAdmin(ctx, operatorAddr) {
+		return nil, types.ErrFindingOperatorNotAllowed
+	}
+
+	finding.Status = types.FindingStatusPaid
+	k.SetFinding(ctx, finding)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeConfirmFindingPaid,
+			sdk.NewAttribute(types.AttributeKeyFindingID, msg.FindingId),
+			sdk.NewAttribute(types.AttributeKeyProgramID, finding.ProgramId),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OperatorAddress),
+		),
+	})
+
+	return &types.MsgConfirmFindingPaidResponse{}, nil
 }
 
 func (k msgServer) CloseFinding(goCtx context.Context, msg *types.MsgCloseFinding) (*types.MsgCloseFindingResponse, error) {
@@ -396,6 +437,8 @@ func (k msgServer) ReleaseFinding(goCtx context.Context, msg *types.MsgReleaseFi
 		if program.AdminAddress != msg.OperatorAddress {
 			return nil, types.ErrProgramCreatorInvalid
 		}
+	default:
+		return nil, types.ErrFindingStatusInvalid
 	}
 
 	// check hash

@@ -6,11 +6,12 @@ const (
 	EventTypeActivateProgram = "activate_program"
 	EventTypeCloseProgram    = "close_program"
 
-	EventTypeSubmitFinding  = "submit_finding"
-	EventTypeEditFinding    = "edit_finding"
-	EventTypeConfirmFinding = "confirm_finding"
-	EventTypeCloseFinding   = "close_finding"
-	EventTypeReleaseFinding = "release_finding"
+	EventTypeSubmitFinding      = "submit_finding"
+	EventTypeEditFinding        = "edit_finding"
+	EventTypeConfirmFinding     = "confirm_finding"
+	EventTypeConfirmFindingPaid = "confirm_finding_paid"
+	EventTypeCloseFinding       = "close_finding"
+	EventTypeReleaseFinding     = "release_finding"
 
 	AttributeKeyProgramID = "program_id"
 	AttributeKeyFindingID = "finding_id"

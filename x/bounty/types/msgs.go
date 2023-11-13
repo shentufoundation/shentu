@@ -8,15 +8,16 @@ import (
 )
 
 const (
-	TypeMsgCreateProgram   = "create_program"
-	TypeMsgEditProgram     = "edit_program"
-	TypeMsgActivateProgram = "activate_program"
-	TypeMsgCloseProgram    = "close_program"
-	TypeMsgSubmitFinding   = "submit_finding"
-	TypeMsgEditFinding     = "edit_finding"
-	TypeMsgConfirmFinding  = "confirm_finding"
-	TypeMsgCloseFinding    = "close_finding"
-	TypeMsgReleaseFinding  = "release_finding"
+	TypeMsgCreateProgram      = "create_program"
+	TypeMsgEditProgram        = "edit_program"
+	TypeMsgActivateProgram    = "activate_program"
+	TypeMsgCloseProgram       = "close_program"
+	TypeMsgSubmitFinding      = "submit_finding"
+	TypeMsgEditFinding        = "edit_finding"
+	TypeMsgConfirmFinding     = "confirm_finding"
+	TypeMsgConfirmFindingPaid = "confirm_finding_paid"
+	TypeMsgCloseFinding       = "close_finding"
+	TypeMsgReleaseFinding     = "release_finding"
 )
 
 var (
@@ -296,11 +297,11 @@ func (msg MsgCloseProgram) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgConfirmFinding(findingID, fingerPrint string, hostAddr sdk.AccAddress) *MsgConfirmFinding {
+func NewMsgConfirmFinding(findingID, fingerprint string, hostAddr sdk.AccAddress) *MsgConfirmFinding {
 	return &MsgConfirmFinding{
 		FindingId:       findingID,
 		OperatorAddress: hostAddr.String(),
-		FingerPrint:     fingerPrint,
+		Fingerprint:     fingerprint,
 	}
 }
 
@@ -330,6 +331,50 @@ func (msg MsgConfirmFinding) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgConfirmFinding) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+	}
+
+	if len(msg.FindingId) == 0 {
+		return errors.New("empty finding-id is not allowed")
+	}
+	return nil
+}
+
+func NewMsgConfirmFindingPaid(findingID string, hostAddr sdk.AccAddress) *MsgConfirmFindingPaid {
+	return &MsgConfirmFindingPaid{
+		FindingId:       findingID,
+		OperatorAddress: hostAddr.String(),
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgConfirmFindingPaid) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgConfirmFindingPaid) Type() string { return TypeMsgConfirmFindingPaid }
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg MsgConfirmFindingPaid) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners implements the sdk.Msg interface. It returns the address(es) that
+// must sign over msg.GetSignBytes().
+func (msg MsgConfirmFindingPaid) GetSigners() []sdk.AccAddress {
+	// host should sign the message
+	hostAddr, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{hostAddr}
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgConfirmFindingPaid) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())

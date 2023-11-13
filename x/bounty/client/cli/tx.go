@@ -3,16 +3,11 @@ package cli
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
-	"strings"
-
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/version"
-
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
@@ -189,13 +184,13 @@ func NewSubmitFindingCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			severityLevel, err := cmd.Flags().GetInt32(FlagFindingSeverityLevel)
+			severityLevel, err := cmd.Flags().GetString(FlagFindingSeverityLevel)
 			if err != nil {
 				return err
 			}
-			_, ok := types.SeverityLevel_name[severityLevel]
-			if !ok {
-				return fmt.Errorf("invalid %s value", FlagFindingSeverityLevel)
+			byteSeverityLevel, err := types.SeverityLevelFromString(types.NormalizeSeverityLevel(severityLevel))
+			if err != nil {
+				return err
 			}
 
 			desc, err := cmd.Flags().GetString(FlagFindingDescription)
@@ -208,7 +203,7 @@ func NewSubmitFindingCmd() *cobra.Command {
 			}
 			hash := sha256.Sum256([]byte(desc + poc + submitAddr.String()))
 
-			msg := types.NewMsgSubmitFinding(pid, fid, title, detail, hex.EncodeToString(hash[:]), submitAddr, types.SeverityLevel(severityLevel))
+			msg := types.NewMsgSubmitFinding(pid, fid, title, detail, hex.EncodeToString(hash[:]), submitAddr, byteSeverityLevel)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -219,7 +214,7 @@ func NewSubmitFindingCmd() *cobra.Command {
 	cmd.Flags().String(FlagFindingDescription, "", "The finding's description")
 	cmd.Flags().String(FlagFindingProofOfContent, "", "The finding's proof of content")
 	cmd.Flags().String(FlagDetail, "", "The finding's detail")
-	cmd.Flags().Int32(FlagFindingSeverityLevel, 0, "The finding's severity level")
+	cmd.Flags().String(FlagFindingSeverityLevel, "unspecified", "The finding's severity level")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -259,7 +254,11 @@ func NewEditFindingCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			severityLevel, err := cmd.Flags().GetInt32(FlagFindingSeverityLevel)
+			severityLevel, err := cmd.Flags().GetString(FlagFindingSeverityLevel)
+			if err != nil {
+				return err
+			}
+			byteSeverityLevel, err := types.SeverityLevelFromString(types.NormalizeSeverityLevel(severityLevel))
 			if err != nil {
 				return err
 			}
@@ -275,7 +274,7 @@ func NewEditFindingCmd() *cobra.Command {
 			hash := sha256.Sum256([]byte(desc + poc + submitAddr.String()))
 			hashString := hex.EncodeToString(hash[:])
 
-			msg := types.NewMsgEditFinding(pid, fid, title, detail, hashString, submitAddr, types.SeverityLevel(severityLevel))
+			msg := types.NewMsgEditFinding(pid, fid, title, detail, hashString, submitAddr, byteSeverityLevel)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -286,7 +285,7 @@ func NewEditFindingCmd() *cobra.Command {
 	cmd.Flags().String(FlagFindingDescription, "", "The finding's description")
 	cmd.Flags().String(FlagFindingProofOfContent, "", "The finding's proof of content")
 	cmd.Flags().String(FlagDetail, "", "The finding's detail")
-	cmd.Flags().Int32(FlagFindingSeverityLevel, 0, "The finding's severity level")
+	cmd.Flags().String(FlagFindingSeverityLevel, "unspecified", "The finding's severity level")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -296,43 +295,32 @@ func NewEditFindingCmd() *cobra.Command {
 	return cmd
 }
 
-// NewConfirmFinding implements accept a finding by host.
 func NewConfirmFinding() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "confirm-finding [finding-id]",
+		Use:   "confirm-finding [finding id]",
 		Args:  cobra.ExactArgs(1),
-		Short: "Host confirm a finding",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Host accept a finding for a program.Meantime, you can also add some comments, which will be encrypted.
-Example:
-$ %s tx bounty confirm-finding 1 --comment "Looks good to me"
-`,
-				version.AppName,
-			),
-		),
-		RunE: ConfirmFinding,
+		Short: "release the specific finding",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			submitAddr := clientCtx.GetFromAddress()
+			fingerprint, err := cmd.Flags().GetString(FlagFindingFingerprint)
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgConfirmFinding(args[0], fingerprint, submitAddr)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
 	}
 
+	cmd.Flags().String(FlagFindingFingerprint, "", "The finding's fingerprint")
 	flags.AddTxFlagsToCmd(cmd)
 
-	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagFindingFingerprint)
 
 	return cmd
-}
-
-func ConfirmFinding(cmd *cobra.Command, args []string) error {
-	clientCtx, err := client.GetClientTxContext(cmd)
-	if err != nil {
-		return err
-	}
-
-	fingerPrint, err := cmd.Flags().GetString(FlagFindingFingerPrint)
-
-	// Get host address
-	hostAddr := clientCtx.GetFromAddress()
-	msg := types.NewMsgConfirmFinding(args[0], fingerPrint, hostAddr)
-
-	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 }
 
 func NewCloseFindingCmd() *cobra.Command {
