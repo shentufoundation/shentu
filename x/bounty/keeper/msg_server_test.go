@@ -1,11 +1,14 @@
 package keeper_test
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/google/uuid"
 
+	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
@@ -70,6 +73,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 	}
 
 	pid := uuid.NewString()
+	fid := uuid.NewString()
 	suite.InitCreateProgram(pid)
 	suite.InitActivateProgram(pid)
 
@@ -83,7 +87,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 				msgSubmitFindings: []types.MsgSubmitFinding{
 					{
 						ProgramId:        pid,
-						FindingId:        "1",
+						FindingId:        fid,
 						Title:            "Test bug 1",
 						Detail:           "detail",
 						SubmitterAddress: suite.address[0].String(),
@@ -95,12 +99,12 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 				shouldPass: true,
 			},
 		},
-		{"Submit finding(2)  -> submit: Simple",
+		{"Submit finding(2)  -> fid repeat",
 			args{
 				msgSubmitFindings: []types.MsgSubmitFinding{
 					{
-						ProgramId:        "Not exist pid",
-						FindingId:        "1",
+						ProgramId:        pid,
+						FindingId:        fid,
 						Title:            "Test bug 1",
 						Detail:           "detail",
 						SubmitterAddress: suite.address[0].String(),
@@ -112,7 +116,7 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 				shouldPass: false,
 			},
 		},
-		{"Submit finding(3)  -> submit: Simple",
+		{"Submit finding(3)  -> pid not exist",
 			args{
 				msgSubmitFindings: []types.MsgSubmitFinding{
 					{
@@ -151,10 +155,18 @@ func (suite *KeeperTestSuite) TestSubmitFinding() {
 }
 
 func (suite *KeeperTestSuite) TestConfirmFinding() {
-	pid, fid := "1", "1"
+	pid, fid := uuid.NewString(), uuid.NewString()
 	suite.InitCreateProgram(pid)
 	suite.InitActivateProgram(pid)
 	suite.InitSubmitFinding(pid, fid)
+
+	finding, found := suite.keeper.GetFinding(suite.ctx, fid)
+	suite.Require().True(found)
+
+	// fingerprint calculate
+	cdc := shentuapp.MakeEncodingConfig().Marshaler
+	bz := cdc.MustMarshal(&finding)
+	hash := sha256.Sum256(bz)
 
 	testCases := []struct {
 		name    string
@@ -171,6 +183,7 @@ func (suite *KeeperTestSuite) TestConfirmFinding() {
 			&types.MsgConfirmFinding{
 				FindingId:       fid,
 				OperatorAddress: suite.address[0].String(),
+				FingerPrint:     hex.EncodeToString(hash[:]),
 			},
 			true,
 		},
@@ -195,10 +208,10 @@ func (suite *KeeperTestSuite) TestConfirmFinding() {
 }
 
 func (suite *KeeperTestSuite) TestCloseFinding() {
-	pid, fid := "1", "1"
+	pid, fid := uuid.NewString(), uuid.NewString()
 	suite.InitCreateProgram(pid)
 	suite.InitActivateProgram(pid)
-	findingId := suite.InitSubmitFinding(pid, fid)
+	suite.InitSubmitFinding(pid, fid)
 
 	testCases := []struct {
 		name    string
@@ -211,9 +224,9 @@ func (suite *KeeperTestSuite) TestCloseFinding() {
 			false,
 		},
 		{
-			"valid request => comment is empty",
+			"valid request",
 			&types.MsgCloseFinding{
-				FindingId:       "1",
+				FindingId:       fid,
 				OperatorAddress: suite.address[0].String(),
 			},
 			true,
@@ -224,12 +237,57 @@ func (suite *KeeperTestSuite) TestCloseFinding() {
 		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
 			ctx := sdk.WrapSDKContext(suite.ctx)
 			_, err := suite.msgServer.CloseFinding(ctx, testCase.req)
-
-			finding, _ := suite.keeper.GetFinding(suite.ctx, findingId)
+			finding, _ := suite.keeper.GetFinding(suite.ctx, fid)
 
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(finding.Status, types.FindingStatusClosed)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Equal(finding.Status, types.FindingStatusSubmitted)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestReleaseFinding() {
+	pid, fid := uuid.NewString(), uuid.NewString()
+	suite.InitCreateProgram(pid)
+	suite.InitActivateProgram(pid)
+	suite.InitSubmitFinding(pid, fid)
+
+	testCases := []struct {
+		name    string
+		req     *types.MsgReleaseFinding
+		expPass bool
+	}{
+		{
+			"empty request",
+			&types.MsgReleaseFinding{},
+			false,
+		},
+		{
+			"valid request",
+			&types.MsgReleaseFinding{
+				FindingId:       fid,
+				OperatorAddress: suite.address[0].String(),
+				Description:     "desc",
+				ProofOfConcept:  "poc",
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", testCase.name), func() {
+			ctx := sdk.WrapSDKContext(suite.ctx)
+			_, err := suite.msgServer.ReleaseFinding(ctx, testCase.req)
+
+			finding, _ := suite.keeper.GetFinding(suite.ctx, fid)
+
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(finding.Description, "desc")
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal(finding.Status, types.FindingStatusSubmitted)
@@ -263,11 +321,14 @@ func (suite *KeeperTestSuite) InitActivateProgram(pid string) {
 }
 
 func (suite *KeeperTestSuite) InitSubmitFinding(pid, fid string) string {
+	desc, poc := "desc", "poc"
+	hash := sha256.Sum256([]byte(desc + poc + suite.address[0].String()))
+
 	msgSubmitFinding := &types.MsgSubmitFinding{
 		ProgramId:        pid,
 		FindingId:        fid,
 		Title:            "title",
-		FindingHash:      "finding hash",
+		FindingHash:      hex.EncodeToString(hash[:]),
 		SubmitterAddress: suite.address[0].String(),
 		SeverityLevel:    types.Critical,
 		Detail:           "detail",

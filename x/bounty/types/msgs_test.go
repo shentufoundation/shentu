@@ -125,7 +125,7 @@ func TestMsgConfirmFinding(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		msg := NewMsgConfirmFinding(tc.fid, tc.addr)
+		msg := NewMsgConfirmFinding(tc.fid, "", tc.addr)
 
 		require.Equal(t, msg.Route(), RouterKey)
 		require.Equal(t, msg.Type(), TypeMsgConfirmFinding)

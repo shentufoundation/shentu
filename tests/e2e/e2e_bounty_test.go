@@ -11,7 +11,7 @@ import (
 	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
-func (s *IntegrationTestSuite) executeCreateProgram(c *chain, valIdx int, pid, name, desc, creatorAddr, fees string) {
+func (s *IntegrationTestSuite) executeCreateProgram(c *chain, valIdx int, pid, name, detail, creatorAddr, fees string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
@@ -24,7 +24,7 @@ func (s *IntegrationTestSuite) executeCreateProgram(c *chain, valIdx int, pid, n
 		"create-program",
 		fmt.Sprintf("--%s=%s", bountycli.FlagProgramID, pid),
 		fmt.Sprintf("--%s=%s", bountycli.FlagName, name),
-		fmt.Sprintf("--%s=%s", bountycli.FlagDesc, desc),
+		fmt.Sprintf("--%s=%s", bountycli.FlagDetail, detail),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, creatorAddr),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagGas, "auto"),
@@ -40,7 +40,7 @@ func (s *IntegrationTestSuite) executeCreateProgram(c *chain, valIdx int, pid, n
 	s.T().Logf("%s successfully create program", creatorAddr)
 }
 
-func (s *IntegrationTestSuite) executeOpenProgram(c *chain, valIdx int, pid, creatorAddr, fees string) {
+func (s *IntegrationTestSuite) executeActivateProgram(c *chain, valIdx int, pid, creatorAddr, fees string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
@@ -50,7 +50,7 @@ func (s *IntegrationTestSuite) executeOpenProgram(c *chain, valIdx int, pid, cre
 		shentuBinary,
 		txCommand,
 		bountytypes.ModuleName,
-		"open-program",
+		"activate-program",
 		fmt.Sprintf("%s", pid),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, creatorAddr),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
@@ -67,7 +67,7 @@ func (s *IntegrationTestSuite) executeOpenProgram(c *chain, valIdx int, pid, cre
 	s.T().Logf("%s successfully create program", creatorAddr)
 }
 
-func (s *IntegrationTestSuite) executeSubmitFinding(c *chain, valIdx int, pid, fid, submitAddr, title, desc, fees string) {
+func (s *IntegrationTestSuite) executeSubmitFinding(c *chain, valIdx int, pid, fid, submitAddr, title, desc, poc, detail, fees string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
@@ -81,8 +81,10 @@ func (s *IntegrationTestSuite) executeSubmitFinding(c *chain, valIdx int, pid, f
 		fmt.Sprintf("--%s=%s", bountycli.FlagProgramID, pid),
 		fmt.Sprintf("--%s=%s", bountycli.FlagFindingID, fid),
 		fmt.Sprintf("--%s=%s", bountycli.FlagFindingTitle, title),
-		fmt.Sprintf("--%s=%s", bountycli.FlagDesc, desc),
-		fmt.Sprintf("--%s=%d", bountycli.FlagFindingSeverityLevel, bountytypes.SeverityLevelMedium),
+		fmt.Sprintf("--%s=%s", bountycli.FlagFindingDescription, desc),
+		fmt.Sprintf("--%s=%s", bountycli.FlagFindingProofOfContent, poc),
+		fmt.Sprintf("--%s=%s", bountycli.FlagDetail, detail),
+		fmt.Sprintf("--%s=%d", bountycli.FlagFindingSeverityLevel, bountytypes.Medium),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, submitAddr),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagGas, "auto"),
@@ -97,7 +99,7 @@ func (s *IntegrationTestSuite) executeSubmitFinding(c *chain, valIdx int, pid, f
 	s.T().Logf("%s successfully submit finding", submitAddr)
 }
 
-func (s *IntegrationTestSuite) executeAcceptFinding(c *chain, valIdx int, findingId, hostAddr, fees string) {
+func (s *IntegrationTestSuite) executeConfirmFinding(c *chain, valIdx int, findingId, hostAddr, fees string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
@@ -107,7 +109,7 @@ func (s *IntegrationTestSuite) executeAcceptFinding(c *chain, valIdx int, findin
 		shentuBinary,
 		txCommand,
 		bountytypes.ModuleName,
-		"accept-finding",
+		"confirm-finding",
 		fmt.Sprintf("%s", findingId),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, hostAddr),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
@@ -124,7 +126,7 @@ func (s *IntegrationTestSuite) executeAcceptFinding(c *chain, valIdx int, findin
 	s.T().Logf("%s successfully accept finding", hostAddr)
 }
 
-func (s *IntegrationTestSuite) executeRejectFinding(c *chain, valIdx int, findingId, hostAddr, fees string) {
+func (s *IntegrationTestSuite) executeCloseFinding(c *chain, valIdx int, findingId, hostAddr, fees string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
@@ -134,7 +136,7 @@ func (s *IntegrationTestSuite) executeRejectFinding(c *chain, valIdx int, findin
 		shentuBinary,
 		txCommand,
 		bountytypes.ModuleName,
-		"reject-finding",
+		"close-finding",
 		fmt.Sprintf("%s", findingId),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, hostAddr),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),

@@ -47,7 +47,7 @@ func (k Keeper) GetPidFindingIDList(ctx sdk.Context, pid string) ([]string, erro
 	findingIDs := store.Get(types.GetProgramIDFindingListKey(pid))
 
 	if findingIDs == nil {
-		return nil, types.ErrProgramFindingListEmpty
+		return []string{}, nil
 	}
 
 	findingIDList, err := BytesToStrings(findingIDs)
@@ -60,11 +60,7 @@ func (k Keeper) GetPidFindingIDList(ctx sdk.Context, pid string) ([]string, erro
 func (k Keeper) AppendFidToFidList(ctx sdk.Context, pid, fid string) error {
 	fids, err := k.GetPidFindingIDList(ctx, pid)
 	if err != nil {
-		if err == types.ErrProgramFindingListEmpty {
-			fids = []string{}
-		} else {
-			return err
-		}
+		return err
 	}
 
 	fids = append(fids, fid)

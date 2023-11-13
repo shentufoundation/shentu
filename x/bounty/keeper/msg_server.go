@@ -344,12 +344,13 @@ func (k msgServer) CloseFinding(goCtx context.Context, msg *types.MsgCloseFindin
 
 	// check operator
 	// program, certificate, finding owner
-	if finding.SubmitterAddress != msg.OperatorAddress && !k.certKeeper.IsBountyAdmin(ctx, operatorAddr) && finding.SubmitterAddress != program.AdminAddress {
+	if finding.SubmitterAddress != msg.OperatorAddress && !k.certKeeper.IsBountyAdmin(ctx, operatorAddr) && program.AdminAddress != msg.OperatorAddress {
 		return nil, types.ErrFindingOperatorNotAllowed
 	}
 
 	k.DeleteFidFromFidList(ctx, finding.ProgramId, finding.FindingId)
-	k.DeleteFinding(ctx, finding.FindingId)
+	finding.Status = types.FindingStatusClosed
+	k.SetFinding(ctx, finding)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(

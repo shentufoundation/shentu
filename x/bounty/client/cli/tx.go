@@ -71,7 +71,6 @@ func NewCreateProgramCmd() *cobra.Command {
 	cmd.Flags().String(FlagProgramID, "", "The program's id")
 	cmd.Flags().String(FlagName, "", "The program's name")
 	cmd.Flags().String(FlagDetail, "", "The program's detail")
-	cmd.Flags().StringArray(FlagMembers, []string{}, "")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagProgramID)
@@ -115,7 +114,6 @@ func NewEditProgramCmd() *cobra.Command {
 	cmd.Flags().String(FlagProgramID, "", "The program's id")
 	cmd.Flags().String(FlagName, "", "The program's name")
 	cmd.Flags().String(FlagDetail, "", "The program's detail")
-	cmd.Flags().StringArray(FlagMembers, []string{}, "")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagProgramID)
@@ -126,9 +124,9 @@ func NewEditProgramCmd() *cobra.Command {
 
 func NewActivateProgramCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "open-program [program-id]",
+		Use:   "activate-program [program-id]",
 		Args:  cobra.ExactArgs(1),
-		Short: "open the program",
+		Short: "activate the program",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -204,14 +202,13 @@ func NewSubmitFindingCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			poc, err := cmd.Flags().GetString(FlagFindingPoc)
+			poc, err := cmd.Flags().GetString(FlagFindingProofOfContent)
 			if err != nil {
 				return err
 			}
 			hash := sha256.Sum256([]byte(desc + poc + submitAddr.String()))
-			hashString := hex.EncodeToString(hash[:])
 
-			msg := types.NewMsgSubmitFinding(pid, fid, title, detail, hashString, submitAddr, types.SeverityLevel(severityLevel))
+			msg := types.NewMsgSubmitFinding(pid, fid, title, detail, hex.EncodeToString(hash[:]), submitAddr, types.SeverityLevel(severityLevel))
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -219,7 +216,9 @@ func NewSubmitFindingCmd() *cobra.Command {
 	cmd.Flags().String(FlagProgramID, "", "The program's ID")
 	cmd.Flags().String(FlagFindingID, "", "The finding's ID")
 	cmd.Flags().String(FlagFindingTitle, "", "The finding's title")
-	cmd.Flags().String(FlagDetail, "", "The finding's description")
+	cmd.Flags().String(FlagFindingDescription, "", "The finding's description")
+	cmd.Flags().String(FlagFindingProofOfContent, "", "The finding's proof of content")
+	cmd.Flags().String(FlagDetail, "", "The finding's detail")
 	cmd.Flags().Int32(FlagFindingSeverityLevel, 0, "The finding's severity level")
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -228,7 +227,7 @@ func NewSubmitFindingCmd() *cobra.Command {
 	_ = cmd.MarkFlagRequired(FlagFindingID)
 	_ = cmd.MarkFlagRequired(FlagFindingTitle)
 	_ = cmd.MarkFlagRequired(FlagFindingDescription)
-	_ = cmd.MarkFlagRequired(FlagFindingPoc)
+	_ = cmd.MarkFlagRequired(FlagFindingProofOfContent)
 
 	return cmd
 }
@@ -269,7 +268,7 @@ func NewEditFindingCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			poc, err := cmd.Flags().GetString(FlagFindingPoc)
+			poc, err := cmd.Flags().GetString(FlagFindingProofOfContent)
 			if err != nil {
 				return err
 			}
@@ -284,8 +283,10 @@ func NewEditFindingCmd() *cobra.Command {
 	cmd.Flags().String(FlagProgramID, "", "The program's ID")
 	cmd.Flags().String(FlagFindingID, "", "The finding's ID")
 	cmd.Flags().String(FlagFindingTitle, "", "The finding's title")
+	cmd.Flags().String(FlagFindingDescription, "", "The finding's description")
+	cmd.Flags().String(FlagFindingProofOfContent, "", "The finding's proof of content")
 	cmd.Flags().String(FlagDetail, "", "The finding's detail")
-	cmd.Flags().Int32(FlagFindingSeverityLevel, 8, "The finding's severity level")
+	cmd.Flags().Int32(FlagFindingSeverityLevel, 0, "The finding's severity level")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -304,7 +305,7 @@ func NewConfirmFinding() *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Host accept a finding for a program.Meantime, you can also add some comments, which will be encrypted.
 Example:
-$ %s tx bounty accept-finding 1 --comment "Looks good to me"
+$ %s tx bounty confirm-finding 1 --comment "Looks good to me"
 `,
 				version.AppName,
 			),
@@ -325,9 +326,11 @@ func ConfirmFinding(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	fingerPrint, err := cmd.Flags().GetString(FlagFindingFingerPrint)
+
 	// Get host address
 	hostAddr := clientCtx.GetFromAddress()
-	msg := types.NewMsgConfirmFinding(args[0], hostAddr)
+	msg := types.NewMsgConfirmFinding(args[0], fingerPrint, hostAddr)
 
 	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 }
@@ -368,7 +371,7 @@ func NewReleaseFindingCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			poc, err := cmd.Flags().GetString(FlagFindingPoc)
+			poc, err := cmd.Flags().GetString(FlagFindingProofOfContent)
 			if err != nil {
 				return err
 			}
@@ -378,11 +381,11 @@ func NewReleaseFindingCmd() *cobra.Command {
 	}
 
 	cmd.Flags().String(FlagFindingDescription, "", "The finding's description")
-	cmd.Flags().String(FlagFindingPoc, "", "The finding's poc")
+	cmd.Flags().String(FlagFindingProofOfContent, "", "The finding's poc")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagFindingDescription)
-	_ = cmd.MarkFlagRequired(FlagFindingPoc)
+	_ = cmd.MarkFlagRequired(FlagFindingProofOfContent)
 
 	return cmd
 }

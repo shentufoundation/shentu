@@ -155,7 +155,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 			"valid request",
 			func() {
 				req = &types.QueryFindingRequest{FindingId: "1"}
-				suite.InitSubmitFinding("1", "1")
+				suite.InitSubmitFinding(pid, "1")
 			},
 			true,
 		},
@@ -163,7 +163,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryFinding() {
 			"valid request",
 			func() {
 				req = &types.QueryFindingRequest{FindingId: "2"}
-				suite.InitSubmitFinding("1", "2")
+				suite.InitSubmitFinding(pid, "2")
 
 				ctx := sdk.WrapSDKContext(suite.ctx)
 				suite.msgServer.ReleaseFinding(ctx, types.NewMsgReleaseFinding("2", "desc", "poc", suite.address[0]))

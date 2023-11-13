@@ -74,7 +74,7 @@ func (suite *KeeperTestSuite) TestOpenCloseProgram() {
 	suite.Require().Equal(true, isExist)
 	suite.Require().Equal(program.ProgramId, storedProgram.ProgramId)
 
-	isCert := suite.app.CertKeeper.IsCertifier(suite.ctx, suite.address[3])
+	isCert := suite.app.CertKeeper.IsBountyAdmin(suite.ctx, suite.address[3])
 	suite.Require().True(isCert)
 
 	// normal addr open program

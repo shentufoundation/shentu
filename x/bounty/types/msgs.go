@@ -296,10 +296,11 @@ func (msg MsgCloseProgram) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgConfirmFinding(findingID string, hostAddr sdk.AccAddress) *MsgConfirmFinding {
+func NewMsgConfirmFinding(findingID, fingerPrint string, hostAddr sdk.AccAddress) *MsgConfirmFinding {
 	return &MsgConfirmFinding{
 		FindingId:       findingID,
 		OperatorAddress: hostAddr.String(),
+		FingerPrint:     fingerPrint,
 	}
 }
 

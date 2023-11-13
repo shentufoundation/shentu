@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/gogo/protobuf/proto"
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/server"
@@ -14,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 )
 
@@ -130,7 +132,23 @@ func addCertifierAccount(path, moniker string, accAddr sdk.AccAddress) error {
 	certifier := certtypes.Certifier{
 		Address: accAddr.String(),
 	}
+
+	content := certtypes.AssembleContent("bountyadmin", accAddr.String())
+	msg, ok := content.(proto.Message)
+	if !ok {
+		panic(fmt.Errorf("%T does not implement proto.Message", content))
+	}
+	any, err := codectypes.NewAnyWithValue(msg)
+	certificate := certtypes.Certificate{
+		CertificateId:      1,
+		Content:            any,
+		CompilationContent: nil,
+		Description:        "",
+		Certifier:          accAddr.String(),
+	}
+
 	certGenState.Certifiers = append(certGenState.Certifiers, certifier)
+	certGenState.Certificates = append(certGenState.Certificates, certificate)
 
 	certGenStateBz, err := cdc.MarshalJSON(&certGenState)
 	if err != nil {

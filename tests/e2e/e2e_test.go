@@ -318,10 +318,10 @@ func (s *IntegrationTestSuite) TestBounty() {
 		)
 	})
 
-	s.Run("open_program", func() {
+	s.Run("activate_program", func() {
 		pid := string(rune(bountyProgramCounter))
 		s.T().Logf("Open program %s on chain %s", pid, s.chainA.id)
-		s.executeOpenProgram(s.chainA, 0, pid, validatorAAddr.String(), feesAmountCoin.String())
+		s.executeActivateProgram(s.chainA, 0, pid, validatorAAddr.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
 				rsp, err := queryBountyProgram(chainAAPIEndpoint, pid)
@@ -338,11 +338,8 @@ func (s *IntegrationTestSuite) TestBounty() {
 		pid := string(rune(bountyProgramCounter))
 		fid := string(rune(bountyFindingCounter))
 		s.T().Logf("Submit finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
-		var (
-			findingTitle = "finding-title"
-			findingDesc  = "finding-desc"
-		)
-		s.executeSubmitFinding(s.chainA, 0, pid, fid, accountBAddr.String(), findingTitle, findingDesc, feesAmountCoin.String())
+		title, desc, poc, detail := "title", "desc", "poc", "detail"
+		s.executeSubmitFinding(s.chainA, 0, pid, fid, accountBAddr.String(), title, desc, poc, detail, feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
 				rsp, err := queryBountyFinding(chainAAPIEndpoint, pid)
@@ -354,11 +351,11 @@ func (s *IntegrationTestSuite) TestBounty() {
 		)
 	})
 
-	s.Run("reject_finding", func() {
+	s.Run("close_finding", func() {
 		fid := string(rune(bountyFindingCounter))
 		s.T().Logf("Accept finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
 
-		s.executeRejectFinding(s.chainA, 0, fid, accountAAddr.String(), feesAmountCoin.String())
+		s.executeCloseFinding(s.chainA, 0, fid, accountAAddr.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
 				rsp, err := queryBountyFinding(chainAAPIEndpoint, fid)
@@ -370,10 +367,10 @@ func (s *IntegrationTestSuite) TestBounty() {
 		)
 	})
 
-	s.Run("accept_finding", func() {
+	s.Run("confirm_finding", func() {
 		fid := string(rune(bountyFindingCounter))
 		s.T().Logf("Accept finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
-		s.executeAcceptFinding(s.chainA, 0, fid, accountAAddr.String(), feesAmountCoin.String())
+		s.executeConfirmFinding(s.chainA, 0, fid, accountAAddr.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
 				rsp, err := queryBountyFinding(chainAAPIEndpoint, fid)
