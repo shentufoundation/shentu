@@ -7,6 +7,7 @@ import (
 	"time"
 
 	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
+
 	bountycli "github.com/shentufoundation/shentu/v2/x/bounty/client/cli"
 	bountytypes "github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
@@ -15,7 +16,7 @@ func (s *IntegrationTestSuite) executeCreateProgram(c *chain, valIdx int, pid, n
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	s.T().Logf("Executing shentu bounty open program %s on %s", pid, c.id)
+	s.T().Logf("Executing shentu bounty create program %s on %s", pid, c.id)
 
 	command := []string{
 		shentuBinary,
@@ -40,7 +41,7 @@ func (s *IntegrationTestSuite) executeCreateProgram(c *chain, valIdx int, pid, n
 	s.T().Logf("%s successfully create program", creatorAddr)
 }
 
-func (s *IntegrationTestSuite) executeActivateProgram(c *chain, valIdx int, pid, creatorAddr, fees string) {
+func (s *IntegrationTestSuite) executeActivateProgram(c *chain, valIdx int, pid, operatorAddr, fees string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
@@ -52,7 +53,7 @@ func (s *IntegrationTestSuite) executeActivateProgram(c *chain, valIdx int, pid,
 		bountytypes.ModuleName,
 		"activate-program",
 		fmt.Sprintf("%s", pid),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, creatorAddr),
+		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, operatorAddr),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagGas, "auto"),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFees, fees),
@@ -64,7 +65,7 @@ func (s *IntegrationTestSuite) executeActivateProgram(c *chain, valIdx int, pid,
 	s.T().Logf("cmd: %s", strings.Join(command, " "))
 
 	s.execShentuTxCmd(ctx, c, command, valIdx, s.defaultExecValidation(c, valIdx))
-	s.T().Logf("%s successfully create program", creatorAddr)
+	s.T().Logf("%s successfully create program", operatorAddr)
 }
 
 func (s *IntegrationTestSuite) executeSubmitFinding(c *chain, valIdx int, pid, fid, submitAddr, title, desc, poc, detail, fees string) {
@@ -84,7 +85,7 @@ func (s *IntegrationTestSuite) executeSubmitFinding(c *chain, valIdx int, pid, f
 		fmt.Sprintf("--%s=%s", bountycli.FlagFindingDescription, desc),
 		fmt.Sprintf("--%s=%s", bountycli.FlagFindingProofOfContent, poc),
 		fmt.Sprintf("--%s=%s", bountycli.FlagDetail, detail),
-		fmt.Sprintf("--%s=%d", bountycli.FlagFindingSeverityLevel, bountytypes.Medium),
+		fmt.Sprintf("--%s=%s", bountycli.FlagFindingSeverityLevel, bountytypes.Low.String()),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, submitAddr),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagChainID, c.id),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagGas, "auto"),

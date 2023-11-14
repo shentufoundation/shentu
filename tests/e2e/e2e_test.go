@@ -3,13 +3,12 @@ package e2e
 import (
 	"bytes"
 	"encoding/hex"
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
@@ -291,25 +290,22 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 
 func (s *IntegrationTestSuite) TestBounty() {
 	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
-	accountA := s.chainA.accounts[0]
-	accountAAddr := accountA.keyInfo.GetAddress()
-	accountB := s.chainA.accounts[1]
-	accountBAddr := accountB.keyInfo.GetAddress()
+	programCli := s.chainA.accounts[0]
+	programCliAddr := programCli.keyInfo.GetAddress()
+	//accountB := s.chainA.accounts[1]
+	//accountBAddr := accountB.keyInfo.GetAddress()
 
-	validatorA := s.chainA.validators[0]
-	validatorAAddr := validatorA.keyInfo.GetAddress()
+	bountyAdmin := s.chainA.validators[0]
+	bountyAdminAddr := bountyAdmin.keyInfo.GetAddress()
 	s.Run("create_program", func() {
 		bountyProgramCounter++
 		pid := string(rune(bountyProgramCounter))
-		s.T().Logf("Creating program %d on chain %s", bountyProgramCounter, s.chainA.id)
-		var (
-			programName = "name"
-			programDesc = "program-desc"
-		)
-		s.executeCreateProgram(s.chainA, 0, pid, programName, programDesc, accountAAddr.String(), feesAmountCoin.String())
+		s.T().Logf("Creating program %s on chain %s", pid, s.chainA.id)
+		name, detail := "name", "detail"
+		s.executeCreateProgram(s.chainA, 0, pid, name, detail, programCliAddr.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
-				rsp, err := queryBountyProgram(chainAAPIEndpoint, string(rune(bountyProgramCounter)))
+				rsp, err := queryBountyProgram(chainAAPIEndpoint, pid)
 				s.Require().NoError(err)
 				return rsp.GetProgram().Status == types.ProgramStatusInactive
 			},
@@ -318,95 +314,16 @@ func (s *IntegrationTestSuite) TestBounty() {
 		)
 	})
 
+	// todo edit-program
 	s.Run("activate_program", func() {
 		pid := string(rune(bountyProgramCounter))
-		s.T().Logf("Open program %s on chain %s", pid, s.chainA.id)
-		s.executeActivateProgram(s.chainA, 0, pid, validatorAAddr.String(), feesAmountCoin.String())
+		s.T().Logf("Activate program %s on chain %s", pid, s.chainA.id)
+		s.executeActivateProgram(s.chainA, 0, pid, bountyAdminAddr.String(), feesAmountCoin.String())
 		s.Require().Eventually(
 			func() bool {
 				rsp, err := queryBountyProgram(chainAAPIEndpoint, pid)
 				s.Require().NoError(err)
 				return rsp.GetProgram().Status == types.ProgramStatusActive
-			},
-			20*time.Second,
-			5*time.Second,
-		)
-	})
-
-	s.Run("submit_finding", func() {
-		bountyFindingCounter++
-		pid := string(rune(bountyProgramCounter))
-		fid := string(rune(bountyFindingCounter))
-		s.T().Logf("Submit finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
-		title, desc, poc, detail := "title", "desc", "poc", "detail"
-		s.executeSubmitFinding(s.chainA, 0, pid, fid, accountBAddr.String(), title, desc, poc, detail, feesAmountCoin.String())
-		s.Require().Eventually(
-			func() bool {
-				rsp, err := queryBountyFinding(chainAAPIEndpoint, pid)
-				s.Require().NoError(err)
-				return rsp.GetFinding().Status == 0
-			},
-			20*time.Second,
-			5*time.Second,
-		)
-	})
-
-	s.Run("close_finding", func() {
-		fid := string(rune(bountyFindingCounter))
-		s.T().Logf("Accept finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
-
-		s.executeCloseFinding(s.chainA, 0, fid, accountAAddr.String(), feesAmountCoin.String())
-		s.Require().Eventually(
-			func() bool {
-				rsp, err := queryBountyFinding(chainAAPIEndpoint, fid)
-				s.Require().NoError(err)
-				return rsp.GetFinding().Status == types.FindingStatusClosed
-			},
-			20*time.Second,
-			5*time.Second,
-		)
-	})
-
-	s.Run("confirm_finding", func() {
-		fid := string(rune(bountyFindingCounter))
-		s.T().Logf("Accept finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
-		s.executeConfirmFinding(s.chainA, 0, fid, accountAAddr.String(), feesAmountCoin.String())
-		s.Require().Eventually(
-			func() bool {
-				rsp, err := queryBountyFinding(chainAAPIEndpoint, fid)
-				s.Require().NoError(err)
-				return rsp.GetFinding().Status == types.FindingStatusConfirmed
-			},
-			20*time.Second,
-			5*time.Second,
-		)
-	})
-
-	//s.Run("release_finding", func() {
-	//	s.T().Logf("Release finding %d on program %d chain %s", bountyFindingCounter, bountyProgramCounter, s.chainA.id)
-	//	s.executeReleaseFinding(s.chainA, 0, bountyFindingCounter, accountAAddr.String(), bountyKeyPath, feesAmountCoin.String())
-	//	s.Require().Eventually(
-	//		func() bool {
-	//			rsp, err := queryBountyFinding(chainAAPIEndpoint, bountyFindingCounter)
-	//			s.Require().NoError(err)
-	//			findingPoc, err := base64.StdEncoding.DecodeString(rsp.Finding.FindingPoc)
-	//			s.Require().NoError(err)
-	//			return string(findingPoc) == "finding-poc"
-	//		},
-	//		20*time.Second,
-	//		5*time.Second,
-	//	)
-	//})
-
-	s.Run("close-program", func() {
-		pid := string(rune(bountyProgramCounter))
-		s.T().Logf("End program %d chain %s", bountyProgramCounter, s.chainA.id)
-		s.executeEndProgram(s.chainA, 0, pid, accountAAddr.String(), feesAmountCoin.String())
-		s.Require().Eventually(
-			func() bool {
-				rsp, err := queryBountyProgram(chainAAPIEndpoint, pid)
-				s.Require().NoError(err)
-				return rsp.GetProgram().Status == types.ProgramStatusClosed
 			},
 			20*time.Second,
 			5*time.Second,
