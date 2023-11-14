@@ -38,28 +38,28 @@ func TestMsgCreateProgram(t *testing.T) {
 	}
 }
 
-func TestMsgSubmitFinding(t *testing.T) {
-	testCases := []struct {
-		pid, fid, title, desc, hash string
-		addr                        sdk.AccAddress
-		severityLevel               int8
-		expectPass                  bool
+func TestMsgEditProgram(t *testing.T) {
+	tests := []struct {
+		pid            string
+		name           string
+		detail         string
+		creatorAddress sdk.AccAddress
+		expectPass     bool
 	}{
-		{"1", "1", "title", "desc", "hash", addrs[0], 3, true},
-		{"", "1", "title", "desc", "hash", addrs[0], 3, false},
-		{"2", "2", "title", "desc", "hash", sdk.AccAddress{}, 3, false},
+		{"1", "name", "desc", addrs[0], true},
+		{"1", "name", "desc", sdk.AccAddress{}, false},
 	}
 
-	for _, tc := range testCases {
-		msg := NewMsgSubmitFinding(tc.pid, tc.fid, tc.title, tc.desc, tc.hash, tc.addr, SeverityLevel(tc.severityLevel))
+	for i, test := range tests {
+		msg := NewMsgEditProgram(test.pid, test.name, test.detail, test.creatorAddress, nil)
 		require.Equal(t, msg.Route(), RouterKey)
-		require.Equal(t, msg.Type(), TypeMsgSubmitFinding)
+		require.Equal(t, msg.Type(), TypeMsgEditProgram)
 
-		if tc.expectPass {
-			require.NoError(t, msg.ValidateBasic())
-			require.Equal(t, msg.GetSigners(), []sdk.AccAddress{tc.addr})
+		if test.expectPass {
+			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
+			require.Equal(t, msg.GetSigners(), []sdk.AccAddress{test.creatorAddress})
 		} else {
-			require.Error(t, msg.ValidateBasic())
+			require.Error(t, msg.ValidateBasic(), "test: %v", i)
 		}
 	}
 }
@@ -114,6 +114,32 @@ func TestMsgCloseProgram(t *testing.T) {
 	}
 }
 
+func TestMsgSubmitFinding(t *testing.T) {
+	testCases := []struct {
+		pid, fid, title, desc, hash string
+		addr                        sdk.AccAddress
+		severityLevel               int8
+		expectPass                  bool
+	}{
+		{"1", "1", "title", "desc", "hash", addrs[0], 3, true},
+		{"", "1", "title", "desc", "hash", addrs[0], 3, false},
+		{"2", "2", "title", "desc", "hash", sdk.AccAddress{}, 3, false},
+	}
+
+	for _, tc := range testCases {
+		msg := NewMsgSubmitFinding(tc.pid, tc.fid, tc.title, tc.desc, tc.hash, tc.addr, SeverityLevel(tc.severityLevel))
+		require.Equal(t, msg.Route(), RouterKey)
+		require.Equal(t, msg.Type(), TypeMsgSubmitFinding)
+
+		if tc.expectPass {
+			require.NoError(t, msg.ValidateBasic())
+			require.Equal(t, msg.GetSigners(), []sdk.AccAddress{tc.addr})
+		} else {
+			require.Error(t, msg.ValidateBasic())
+		}
+	}
+}
+
 func TestMsgConfirmFinding(t *testing.T) {
 	testCases := []struct {
 		fid        string
@@ -125,10 +151,35 @@ func TestMsgConfirmFinding(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		msg := NewMsgConfirmFinding(tc.fid, "", tc.addr)
+		msg := NewMsgConfirmFinding(tc.fid, "fingerprint", tc.addr)
 
 		require.Equal(t, msg.Route(), RouterKey)
 		require.Equal(t, msg.Type(), TypeMsgConfirmFinding)
+
+		if tc.expectPass {
+			require.NoError(t, msg.ValidateBasic())
+			require.Equal(t, msg.GetSigners(), []sdk.AccAddress{tc.addr})
+		} else {
+			require.Error(t, msg.ValidateBasic())
+		}
+	}
+}
+
+func TestMsgConfirmFindingPaid(t *testing.T) {
+	testCases := []struct {
+		fid        string
+		addr       sdk.AccAddress
+		expectPass bool
+	}{
+		{"1", addrs[0], true},
+		{"2", sdk.AccAddress{}, false},
+	}
+
+	for _, tc := range testCases {
+		msg := NewMsgConfirmFindingPaid(tc.fid, tc.addr)
+
+		require.Equal(t, msg.Route(), RouterKey)
+		require.Equal(t, msg.Type(), TypeMsgConfirmFindingPaid)
 
 		if tc.expectPass {
 			require.NoError(t, msg.ValidateBasic())
