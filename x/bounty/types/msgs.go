@@ -69,6 +69,15 @@ func (msg MsgCreateProgram) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
+	if len(msg.ProgramId) == 0 {
+		return errors.New("empty programId is not allowed")
+	}
+	if len(msg.Name) == 0 {
+		return errors.New("empty name is not allowed")
+	}
+	if len(msg.Detail) == 0 {
+		return errors.New("empty detail is not allowed")
+	}
 	return nil
 }
 
@@ -114,6 +123,9 @@ func (msg MsgEditProgram) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+	}
+	if len(msg.ProgramId) == 0 {
+		return errors.New("empty programId is not allowed")
 	}
 	return nil
 }
@@ -164,7 +176,19 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
 	if len(msg.ProgramId) == 0 {
-		return errors.New("empty pid is not allowed")
+		return errors.New("empty programId is not allowed")
+	}
+	if len(msg.FindingId) == 0 {
+		return errors.New("empty findingId is not allowed")
+	}
+	if len(msg.Title) == 0 {
+		return errors.New("empty title is not allowed")
+	}
+	if len(msg.FindingHash) == 0 {
+		return errors.New("empty findingHash is not allowed")
+	}
+	if !ValidFindingSeverityLevel(msg.SeverityLevel) {
+		return sdkerrors.Wrap(ErrFindingSeverityLevelInvalid, msg.SeverityLevel.String())
 	}
 	return nil
 }
@@ -216,6 +240,15 @@ func (msg MsgEditFinding) ValidateBasic() error {
 	if len(msg.FindingId) == 0 {
 		return errors.New("empty fid is not allowed")
 	}
+	if len(msg.Title) == 0 {
+		return errors.New("empty title is not allowed")
+	}
+	if len(msg.FindingHash) == 0 {
+		return errors.New("empty findingHash is not allowed")
+	}
+	if !ValidFindingSeverityLevel(msg.SeverityLevel) {
+		return sdkerrors.Wrap(ErrFindingSeverityLevelInvalid, msg.SeverityLevel.String())
+	}
 	return nil
 }
 
@@ -251,6 +284,9 @@ func (msg MsgActivateProgram) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid address (%s)", err.Error())
 	}
+	if len(msg.ProgramId) == 0 {
+		return errors.New("empty programId is not allowed")
+	}
 	return nil
 }
 
@@ -285,6 +321,9 @@ func (msg MsgCloseProgram) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid address (%s)", err.Error())
+	}
+	if len(msg.ProgramId) == 0 {
+		return errors.New("empty programId is not allowed")
 	}
 	return nil
 }
@@ -327,9 +366,11 @@ func (msg MsgConfirmFinding) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
-
 	if len(msg.FindingId) == 0 {
-		return errors.New("empty finding-id is not allowed")
+		return errors.New("empty findingId is not allowed")
+	}
+	if len(msg.Fingerprint) == 0 {
+		return errors.New("empty fingerprint is not allowed")
 	}
 	return nil
 }
@@ -373,7 +414,7 @@ func (msg MsgConfirmFindingPaid) ValidateBasic() error {
 	}
 
 	if len(msg.FindingId) == 0 {
-		return errors.New("empty finding-id is not allowed")
+		return errors.New("empty findingId is not allowed")
 	}
 	return nil
 }
@@ -417,7 +458,7 @@ func (msg MsgCloseFinding) ValidateBasic() error {
 	}
 
 	if len(msg.FindingId) == 0 {
-		return errors.New("empty finding-id is not allowed")
+		return errors.New("empty findingId is not allowed")
 	}
 	return nil
 }
@@ -464,6 +505,12 @@ func (msg MsgReleaseFinding) ValidateBasic() error {
 
 	if len(msg.FindingId) == 0 {
 		return errors.New("empty fid is not allowed")
+	}
+	if len(msg.Description) == 0 {
+		return errors.New("empty description is not allowed")
+	}
+	if len(msg.ProofOfConcept) == 0 {
+		return errors.New("empty proofOfConcept is not allowed")
 	}
 	return nil
 }
