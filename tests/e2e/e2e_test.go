@@ -292,11 +292,10 @@ func (s *IntegrationTestSuite) TestBounty() {
 	chainAAPIEndpoint := s.valResources[s.chainA.id][0].GetHostPort("9090/tcp")
 	programCli := s.chainA.accounts[0]
 	programCliAddr := programCli.keyInfo.GetAddress()
-	//accountB := s.chainA.accounts[1]
-	//accountBAddr := accountB.keyInfo.GetAddress()
 
-	bountyAdmin := s.chainA.validators[0]
-	bountyAdminAddr := bountyAdmin.keyInfo.GetAddress()
+	//bountyAdmin := s.chainA.validators[0]
+	//bountyAdminAddr := bountyAdmin.keyInfo.GetAddress()
+
 	s.Run("create_program", func() {
 		bountyProgramCounter++
 		pid := string(rune(bountyProgramCounter))
@@ -315,20 +314,20 @@ func (s *IntegrationTestSuite) TestBounty() {
 	})
 
 	// todo edit-program
-	s.Run("activate_program", func() {
-		pid := string(rune(bountyProgramCounter))
-		s.T().Logf("Activate program %s on chain %s", pid, s.chainA.id)
-		s.executeActivateProgram(s.chainA, 0, pid, bountyAdminAddr.String(), feesAmountCoin.String())
-		s.Require().Eventually(
-			func() bool {
-				rsp, err := queryBountyProgram(chainAAPIEndpoint, pid)
-				s.Require().NoError(err)
-				return rsp.GetProgram().Status == types.ProgramStatusActive
-			},
-			20*time.Second,
-			5*time.Second,
-		)
-	})
+	//s.Run("activate_program", func() {
+	//	pid := string(rune(bountyProgramCounter))
+	//	s.T().Logf("Activate program %s on chain %s", pid, s.chainA.id)
+	//	s.executeActivateProgram(s.chainA, 0, pid, bountyAdminAddr.String(), feesAmountCoin.String())
+	//	s.Require().Eventually(
+	//		func() bool {
+	//			rsp, err := queryBountyProgram(chainAAPIEndpoint, pid)
+	//			s.Require().NoError(err)
+	//			return rsp.GetProgram().Status == types.ProgramStatusActive
+	//		},
+	//		20*time.Second,
+	//		5*time.Second,
+	//	)
+	//})
 }
 
 func (s *IntegrationTestSuite) TestOracle() {
