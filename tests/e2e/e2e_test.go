@@ -223,7 +223,7 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 		// Validate certificate status
 		s.Require().Eventually(
 			func() bool {
-				res, err := queryCertificate(chainAAPIEndpoint, certificateCounter)
+				res, err := queryCertificate(chainAAPIEndpoint, int(certificateCounter))
 				s.Require().NoError(err)
 				return bytes.Contains(res.Certificate.Content.GetValue(), []byte(validatorAAddr.String()))
 			},
