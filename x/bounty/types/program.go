@@ -2,13 +2,14 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"time"
 )
 
 // Programs is an array of program
 type Programs []Program
 
 func NewProgram(pid, name, detail string,
-	admin sdk.AccAddress, status ProgramStatus, levels []BountyLevel) (Program, error) {
+	admin sdk.AccAddress, status ProgramStatus, levels []BountyLevel, createTime time.Time) (Program, error) {
 
 	return Program{
 		ProgramId:    pid,
@@ -17,6 +18,7 @@ func NewProgram(pid, name, detail string,
 		AdminAddress: admin.String(),
 		Status:       status,
 		BountyLevels: levels,
+		CreateTime:   createTime,
 	}, nil
 }
 

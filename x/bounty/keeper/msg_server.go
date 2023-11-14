@@ -34,7 +34,8 @@ func (k msgServer) CreateProgram(goCtx context.Context, msg *types.MsgCreateProg
 		return nil, types.ErrProgramAlreadyExists
 	}
 
-	program, err := types.NewProgram(msg.ProgramId, msg.Name, msg.Detail, operatorAddr, types.ProgramStatusInactive, msg.BountyLevels)
+	createTime := ctx.BlockHeader().Time
+	program, err := types.NewProgram(msg.ProgramId, msg.Name, msg.Detail, operatorAddr, types.ProgramStatusInactive, msg.BountyLevels, createTime)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +67,7 @@ func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram)
 
 	program, found := k.GetProgram(ctx, msg.ProgramId)
 	if !found {
-		return nil, types.ErrNoProgramFound
+		return nil, types.ErrProgramNotExists
 	}
 
 	// check the status.
@@ -183,8 +184,8 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 		return nil, types.ErrFindingAlreadyExists
 	}
 
-	submitTime := ctx.BlockHeader().Time
-	finding, err := types.NewFinding(msg.ProgramId, msg.FindingId, msg.Title, msg.Detail, msg.FindingHash, operatorAddr, submitTime, msg.SeverityLevel)
+	createTime := ctx.BlockHeader().Time
+	finding, err := types.NewFinding(msg.ProgramId, msg.FindingId, msg.Title, msg.Detail, msg.FindingHash, operatorAddr, createTime, msg.SeverityLevel)
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,7 @@ import (
 // Findings is an array of finding
 type Findings []Finding
 
-func NewFinding(pid, fid, title, detail, hash string, operator sdk.AccAddress, submitTime time.Time, level SeverityLevel) (Finding, error) {
+func NewFinding(pid, fid, title, detail, hash string, operator sdk.AccAddress, createTime time.Time, level SeverityLevel) (Finding, error) {
 	return Finding{
 		ProgramId:        pid,
 		FindingId:        fid,
@@ -21,7 +21,7 @@ func NewFinding(pid, fid, title, detail, hash string, operator sdk.AccAddress, s
 		SeverityLevel:    level,
 		Status:           FindingStatusSubmitted,
 		Detail:           detail,
-		CreateTime:       submitTime,
+		CreateTime:       createTime,
 	}, nil
 }
 

@@ -18,30 +18,39 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgCreateProgram:
 			res, err := msgServer.CreateProgram(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+
 		case *types.MsgEditProgram:
 			res, err := msgServer.EditProgram(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+
 		case *types.MsgActivateProgram:
 			res, err := msgServer.ActivateProgram(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+
 		case *types.MsgCloseProgram:
 			res, err := msgServer.CloseProgram(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+
 		case *types.MsgSubmitFinding:
 			res, err := msgServer.SubmitFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+
 		case *types.MsgEditFinding:
 			res, err := msgServer.EditFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+
 		case *types.MsgConfirmFinding:
 			res, err := msgServer.ConfirmFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+
 		case *types.MsgCloseFinding:
 			res, err := msgServer.CloseFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+
 		case *types.MsgReleaseFinding:
 			res, err := msgServer.ReleaseFinding(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", types.ModuleName, msg)
 		}

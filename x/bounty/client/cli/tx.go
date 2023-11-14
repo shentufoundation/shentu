@@ -26,7 +26,8 @@ func NewTxCmd() *cobra.Command {
 		NewCloseProgramCmd(),
 		NewSubmitFindingCmd(),
 		NewEditFindingCmd(),
-		NewConfirmFinding(),
+		NewConfirmFindingCmd(),
+		NewConfirmFindingPaidCmd(),
 		NewCloseFindingCmd(),
 		NewReleaseFindingCmd(),
 	)
@@ -290,11 +291,11 @@ func NewEditFindingCmd() *cobra.Command {
 	return cmd
 }
 
-func NewConfirmFinding() *cobra.Command {
+func NewConfirmFindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "confirm-finding [finding id]",
 		Args:  cobra.ExactArgs(1),
-		Short: "release the specific finding",
+		Short: "confirm the specific finding",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -314,6 +315,27 @@ func NewConfirmFinding() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagFindingFingerprint)
+
+	return cmd
+}
+
+func NewConfirmFindingPaidCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "confirm-finding-paid [finding id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "confirm the specific finding paid",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			submitAddr := clientCtx.GetFromAddress()
+			msg := types.NewMsgConfirmFindingPaid(args[0], submitAddr)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }

@@ -1,8 +1,6 @@
 package types
 
 import (
-	"errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -67,16 +65,16 @@ func (msg MsgCreateProgram) GetSignBytes() []byte {
 func (msg MsgCreateProgram) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.ProgramId) == 0 {
-		return errors.New("empty programId is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
 	}
 	if len(msg.Name) == 0 {
-		return errors.New("empty name is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty name")
 	}
 	if len(msg.Detail) == 0 {
-		return errors.New("empty detail is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty detail")
 	}
 	return nil
 }
@@ -122,10 +120,10 @@ func (msg MsgEditProgram) GetSignBytes() []byte {
 func (msg MsgEditProgram) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.ProgramId) == 0 {
-		return errors.New("empty programId is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
 	}
 	return nil
 }
@@ -173,19 +171,22 @@ func (msg MsgSubmitFinding) GetSignBytes() []byte {
 func (msg MsgSubmitFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.ProgramId) == 0 {
-		return errors.New("empty programId is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
 	}
 	if len(msg.FindingId) == 0 {
-		return errors.New("empty findingId is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
 	}
 	if len(msg.Title) == 0 {
-		return errors.New("empty title is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty title")
 	}
 	if len(msg.FindingHash) == 0 {
-		return errors.New("empty findingHash is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingHash")
+	}
+	if len(msg.Detail) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty detail")
 	}
 	if !ValidFindingSeverityLevel(msg.SeverityLevel) {
 		return sdkerrors.Wrap(ErrFindingSeverityLevelInvalid, msg.SeverityLevel.String())
@@ -235,16 +236,10 @@ func (msg MsgEditFinding) GetSignBytes() []byte {
 func (msg MsgEditFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.SubmitterAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.FindingId) == 0 {
-		return errors.New("empty fid is not allowed")
-	}
-	if len(msg.Title) == 0 {
-		return errors.New("empty title is not allowed")
-	}
-	if len(msg.FindingHash) == 0 {
-		return errors.New("empty findingHash is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
 	}
 	if !ValidFindingSeverityLevel(msg.SeverityLevel) {
 		return sdkerrors.Wrap(ErrFindingSeverityLevelInvalid, msg.SeverityLevel.String())
@@ -282,10 +277,10 @@ func (msg MsgActivateProgram) GetSignBytes() []byte {
 func (msg MsgActivateProgram) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid address (%s)", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.ProgramId) == 0 {
-		return errors.New("empty programId is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
 	}
 	return nil
 }
@@ -320,10 +315,10 @@ func (msg MsgCloseProgram) GetSignBytes() []byte {
 func (msg MsgCloseProgram) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid address (%s)", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.ProgramId) == 0 {
-		return errors.New("empty programId is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
 	}
 	return nil
 }
@@ -364,13 +359,13 @@ func (msg MsgConfirmFinding) GetSigners() []sdk.AccAddress {
 func (msg MsgConfirmFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if len(msg.FindingId) == 0 {
-		return errors.New("empty findingId is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty programId")
 	}
 	if len(msg.Fingerprint) == 0 {
-		return errors.New("empty fingerprint is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty fingerprint")
 	}
 	return nil
 }
@@ -410,11 +405,11 @@ func (msg MsgConfirmFindingPaid) GetSigners() []sdk.AccAddress {
 func (msg MsgConfirmFindingPaid) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if len(msg.FindingId) == 0 {
-		return errors.New("empty findingId is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
 	}
 	return nil
 }
@@ -454,11 +449,11 @@ func (msg MsgCloseFinding) GetSigners() []sdk.AccAddress {
 func (msg MsgCloseFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if len(msg.FindingId) == 0 {
-		return errors.New("empty findingId is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
 	}
 	return nil
 }
@@ -500,17 +495,17 @@ func (msg MsgReleaseFinding) GetSignBytes() []byte {
 func (msg MsgReleaseFinding) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if len(msg.FindingId) == 0 {
-		return errors.New("empty fid is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty findingId")
 	}
 	if len(msg.Description) == 0 {
-		return errors.New("empty description is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "description")
 	}
 	if len(msg.ProofOfConcept) == 0 {
-		return errors.New("empty proofOfConcept is not allowed")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty proofOfConcept")
 	}
 	return nil
 }

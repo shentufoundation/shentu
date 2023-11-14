@@ -243,8 +243,8 @@ github.com/cosmos/iavl v0.15.0-rc5/go.mod h1:WqoPL9yPTQ85QBMT45OOUzPxG/U/JcJoN7u
 github.com/cosmos/iavl v0.15.3/go.mod h1:OLjQiAQ4fGD2KDZooyJG9yz+p2ao2IAYSbke8mVvSA4=
 github.com/cosmos/iavl v0.19.4 h1:t82sN+Y0WeqxDLJRSpNd8YFX5URIrT+p8n6oJbJ2Dok=
 github.com/cosmos/iavl v0.19.4/go.mod h1:X9PKD3J0iFxdmgNLa7b2LYWdsGd90ToV5cAONApkEPw=
-github.com/cosmos/ibc-go/v4 v4.0.0-rc2 h1:rnCEMkDxhOYYFF8TN5IYO2jTuD6Qu15z7njYAQuhL/4=
-github.com/cosmos/ibc-go/v4 v4.0.0-rc2/go.mod h1:4LK+uPycPhebJrJ8ebIqvsMEZ0lVRVNTiEyeI9zfB0U=
+github.com/cosmos/ibc-go/v4 v4.2.1 h1:AlP2YGktkbkKOeN0bEVMKNKsfCQJrjF+dTWxERNRkRU=
+github.com/cosmos/ibc-go/v4 v4.2.1/go.mod h1:EFFqkrJHQPHWUlw155QUxGuis4Ett4lvewAT5nvX0yU=
 github.com/cosmos/ledger-cosmos-go v0.12.2 h1:/XYaBlE2BJxtvpkHiBm97gFGSGmYGKunKyF3nNqAXZA=
 github.com/cosmos/ledger-cosmos-go v0.12.2/go.mod h1:ZcqYgnfNJ6lAXe4HPtWgarNEY+B74i+2/8MhZw4ziiI=
 github.com/cosmos/tools/cmd/runsim v1.0.0 h1:xEHe8ieMX7vORhbQBL4mrjtGQ7ZqusHvsDVktv8Xun8=
