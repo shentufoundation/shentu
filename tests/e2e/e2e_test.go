@@ -3,12 +3,13 @@ package e2e
 import (
 	"bytes"
 	"encoding/hex"
-	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
 func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
@@ -223,7 +224,7 @@ func (s *IntegrationTestSuite) TestCoreShield() {
 		// Validate certificate status
 		s.Require().Eventually(
 			func() bool {
-				res, err := queryCertificate(chainAAPIEndpoint, int(certificateCounter))
+				res, err := queryCertificate(chainAAPIEndpoint, certificateCounter)
 				s.Require().NoError(err)
 				return bytes.Contains(res.Certificate.Content.GetValue(), []byte(validatorAAddr.String()))
 			},

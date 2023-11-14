@@ -239,10 +239,6 @@ func NewEditFindingCmd() *cobra.Command {
 			}
 			submitAddr := clientCtx.GetFromAddress()
 
-			pid, err := cmd.Flags().GetString(FlagProgramID)
-			if err != nil {
-				return err
-			}
 			fid, err := cmd.Flags().GetString(FlagFindingID)
 			if err != nil {
 				return err
@@ -275,12 +271,11 @@ func NewEditFindingCmd() *cobra.Command {
 			hash := sha256.Sum256([]byte(desc + poc + submitAddr.String()))
 			hashString := hex.EncodeToString(hash[:])
 
-			msg := types.NewMsgEditFinding(pid, fid, title, detail, hashString, submitAddr, byteSeverityLevel)
+			msg := types.NewMsgEditFinding(fid, title, detail, hashString, submitAddr, byteSeverityLevel)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
-	cmd.Flags().String(FlagProgramID, "", "The program's ID")
 	cmd.Flags().String(FlagFindingID, "", "The finding's ID")
 	cmd.Flags().String(FlagFindingTitle, "", "The finding's title")
 	cmd.Flags().String(FlagFindingDescription, "", "The finding's description")
@@ -290,7 +285,6 @@ func NewEditFindingCmd() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
-	_ = cmd.MarkFlagRequired(FlagProgramID)
 	_ = cmd.MarkFlagRequired(FlagFindingID)
 
 	return cmd

@@ -2,9 +2,6 @@ package keeper
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -16,18 +13,6 @@ import (
 )
 
 var _ types.QueryServer = Keeper{}
-
-// Hosts implements the Query/Hosts gRPC method
-func (k Keeper) Hosts(c context.Context, req *types.QueryHostsRequest) (*types.QueryHostsResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-// Host implements
-func (k Keeper) Host(c context.Context, req *types.QueryHostRequest) (*types.QueryHostResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
 
 // Programs implements the Query/Programs gRPC method
 func (k Keeper) Programs(c context.Context, req *types.QueryProgramsRequest) (*types.QueryProgramsResponse, error) {
@@ -133,6 +118,6 @@ func (k Keeper) FindingFingerprint(c context.Context, req *types.QueryFindingFin
 		return nil, status.Errorf(codes.NotFound, "finding %s doesn't exist", req.FindingId)
 	}
 
-	hash := sha256.Sum256(k.cdc.MustMarshal(&finding))
-	return &types.QueryFindingFingerprintResponse{Fingerprint: hex.EncodeToString(hash[:])}, nil
+	findingFingerPrintHash := k.GetFindingFingerPrintHash(&finding)
+	return &types.QueryFindingFingerprintResponse{Fingerprint: findingFingerPrintHash}, nil
 }

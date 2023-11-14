@@ -12,16 +12,6 @@ option go_package = "github.com/shentufoundation/shentu/x/bounty/types";
 
 // Query defines the gRPC querier service for bounty module
 service Query {
-  // Hosts queries all hosts that match the given status.
-  rpc Hosts(QueryHostsRequest) returns (QueryHostsResponse) {
-    option (google.api.http).get = "/shentu/bounty/v1/hosts";
-  }
-
-  // Host queries host info for given host address.
-  rpc Host(QueryHostRequest) returns (QueryHostResponse) {
-    option (google.api.http).get = "/shentu/bounty/v1/hosts/{host_addr}";
-  }
-
   // Programs queries all programs based on given status.
   rpc Programs(QueryProgramsRequest) returns (QueryProgramsResponse) {
     option (google.api.http).get = "/shentu/bounty/v1/programs";

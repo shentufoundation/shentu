@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gogo/protobuf/proto"
-
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/server"
@@ -16,11 +14,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	certtypes "github.com/shentufoundation/shentu/v2/x/cert/types"
 )
-
-var certificateCounter uint64 = 0
 
 func getGenDoc(path string) (*tmtypes.GenesisDoc, error) {
 	serverCtx := server.NewDefaultContext()
@@ -136,54 +131,6 @@ func addCertifierAccount(path, moniker string, accAddr sdk.AccAddress) error {
 		Address: accAddr.String(),
 	}
 	certGenState.Certifiers = append(certGenState.Certifiers, certifier)
-
-	certGenStateBz, err := cdc.MarshalJSON(&certGenState)
-	if err != nil {
-		return fmt.Errorf("failed to marshal cert genesis state: %w", err)
-	}
-
-	appState[certtypes.ModuleName] = certGenStateBz
-	appStateJSON, err := json.Marshal(appState)
-	if err != nil {
-		return fmt.Errorf("failed to marshal application genesis state: %w", err)
-	}
-
-	genDoc.AppState = appStateJSON
-	return genutil.ExportGenesisFile(genDoc, genFile)
-}
-
-func addCertificateAccount(path, moniker, certifier string, accAddr sdk.AccAddress) error {
-	serverCtx := server.NewDefaultContext()
-	config := serverCtx.Config
-	config.SetRoot(path)
-	config.Moniker = moniker
-
-	certificateCounter++
-
-	genFile := config.GenesisFile()
-	appState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFile)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal genesis state: %w", err)
-	}
-
-	certGenState := certtypes.GetGenesisStateFromAppState(cdc, appState)
-
-	content := certtypes.AssembleContent("bountyadmin", accAddr.String())
-	msg, ok := content.(proto.Message)
-	if !ok {
-		panic(fmt.Errorf("%T does not implement proto.Message", content))
-	}
-	any, err := codectypes.NewAnyWithValue(msg)
-	certificate := certtypes.Certificate{
-		CertificateId:      certificateCounter,
-		Content:            any,
-		CompilationContent: nil,
-		Description:        "",
-		Certifier:          certifier,
-	}
-
-	certGenState.Certificates = append(certGenState.Certificates, certificate)
-	certGenState.NextCertificateId = certificateCounter + 1
 
 	certGenStateBz, err := cdc.MarshalJSON(&certGenState)
 	if err != nil {

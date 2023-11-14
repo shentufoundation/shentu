@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/google/uuid"
 
-	shentuapp "github.com/shentufoundation/shentu/v2/app"
 	"github.com/shentufoundation/shentu/v2/x/bounty/types"
 )
 
@@ -162,9 +161,7 @@ func (suite *KeeperTestSuite) TestConfirmFinding() {
 
 	finding, found := suite.keeper.GetFinding(suite.ctx, fid)
 	suite.Require().True(found)
-	// fingerprint calculate
-	cdc := shentuapp.MakeEncodingConfig().Marshaler
-	hash := sha256.Sum256(cdc.MustMarshal(&finding))
+	findingFingerPrintHash := suite.app.BountyKeeper.GetFindingFingerPrintHash(&finding)
 
 	testCases := []struct {
 		name    string
@@ -181,7 +178,7 @@ func (suite *KeeperTestSuite) TestConfirmFinding() {
 			&types.MsgConfirmFinding{
 				FindingId:       fid,
 				OperatorAddress: suite.address[0].String(),
-				Fingerprint:     hex.EncodeToString(hash[:]),
+				Fingerprint:     findingFingerPrintHash,
 			},
 			true,
 		},
@@ -213,10 +210,9 @@ func (suite *KeeperTestSuite) TestConfirmFindingPaid() {
 
 	finding, found := suite.keeper.GetFinding(suite.ctx, fid)
 	suite.Require().True(found)
-	// fingerprint calculate
-	cdc := shentuapp.MakeEncodingConfig().Marshaler
-	hash := sha256.Sum256(cdc.MustMarshal(&finding))
-	suite.InitConfirmFinding(fid, hex.EncodeToString(hash[:]))
+	// fingerprint
+	findingFingerPrintHash := suite.app.BountyKeeper.GetFindingFingerPrintHash(&finding)
+	suite.InitConfirmFinding(fid, findingFingerPrintHash)
 
 	testCases := []struct {
 		name    string
@@ -306,10 +302,8 @@ func (suite *KeeperTestSuite) TestReleaseConfirmFinding() {
 
 	finding, found := suite.keeper.GetFinding(suite.ctx, fid)
 	suite.Require().True(found)
-	// fingerprint calculate
-	cdc := shentuapp.MakeEncodingConfig().Marshaler
-	hash := sha256.Sum256(cdc.MustMarshal(&finding))
-	suite.InitConfirmFinding(fid, hex.EncodeToString(hash[:]))
+	findingFingerPrintHash := suite.app.BountyKeeper.GetFindingFingerPrintHash(&finding)
+	suite.InitConfirmFinding(fid, findingFingerPrintHash)
 
 	suite.InitConfirmFindingPaid(fid)
 

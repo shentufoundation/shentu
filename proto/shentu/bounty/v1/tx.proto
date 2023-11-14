@@ -117,13 +117,12 @@ message MsgEditFinding {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string program_id = 1 [(gogoproto.moretags) = "yaml:\"program_id\""];
-  string finding_id = 2 [(gogoproto.moretags) = "yaml:\"finding_id\""];
-  string title = 3;
-  string finding_hash = 4 [(gogoproto.moretags) = "yaml:\"finding_hash\""];
-  string submitter_address = 5 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
-  SeverityLevel severity_level = 6 [(gogoproto.moretags) = "yaml:\"severity_level\""];
-  string detail = 7;
+  string finding_id = 1 [(gogoproto.moretags) = "yaml:\"finding_id\""];
+  string title = 2;
+  string finding_hash = 3 [(gogoproto.moretags) = "yaml:\"finding_hash\""];
+  string submitter_address = 4 [(gogoproto.moretags) = "yaml:\"submitter_address\""];
+  SeverityLevel severity_level = 5 [(gogoproto.moretags) = "yaml:\"severity_level\""];
+  string detail = 6;
 }
 
 // MsgEditFindingResponse defines the MsgEditFinding response type.

@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -119,4 +121,49 @@ func BytesToStrings(list []byte) ([]string, error) {
 	}
 
 	return fids, nil
+}
+
+func (k Keeper) ConfirmFinding(ctx sdk.Context, msg *types.MsgConfirmFinding) (types.Finding, error) {
+	var finding types.Finding
+	// get finding
+	finding, found := k.GetFinding(ctx, msg.FindingId)
+	if !found {
+		return finding, types.ErrFindingNotExists
+	}
+	// get program
+	program, isExist := k.GetProgram(ctx, finding.ProgramId)
+	if !isExist {
+		return finding, types.ErrProgramNotExists
+	}
+	if program.Status != types.ProgramStatusActive {
+		return finding, types.ErrProgramNotActive
+	}
+
+	// only host can update finding comment
+	if program.AdminAddress != msg.OperatorAddress {
+		return finding, types.ErrProgramCreatorInvalid
+	}
+
+	// fingerprint comparison
+	fingerprintHash := k.GetFindingFingerPrintHash(&finding)
+	if msg.Fingerprint != fingerprintHash {
+		return finding, types.ErrFindingHashInvalid
+	}
+	return finding, nil
+}
+
+func (k Keeper) GetFindingFingerPrintHash(finding *types.Finding) string {
+	findingFingerPrint := &types.FindingFingerPrint{
+		ProgramId:     finding.ProgramId,
+		FindingId:     finding.FindingId,
+		Title:         finding.Title,
+		FindingHash:   finding.FindingHash,
+		SeverityLevel: finding.SeverityLevel,
+		Status:        finding.Status,
+		Detail:        finding.Detail,
+	}
+
+	bz := k.cdc.MustMarshal(findingFingerPrint)
+	hash := sha256.Sum256(bz)
+	return hex.EncodeToString(hash[:])
 }

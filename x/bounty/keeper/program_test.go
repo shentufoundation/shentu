@@ -78,10 +78,10 @@ func (suite *KeeperTestSuite) TestOpenCloseProgram() {
 	suite.Require().True(isCert)
 
 	// normal addr open program
-	err := suite.keeper.OpenProgram(suite.ctx, program.ProgramId, suite.address[1])
+	err := suite.keeper.ActivateProgram(suite.ctx, program.ProgramId, suite.address[1])
 	suite.Require().Error(err)
 	// certifier open program
-	err = suite.keeper.OpenProgram(suite.ctx, program.ProgramId, suite.address[3])
+	err = suite.keeper.ActivateProgram(suite.ctx, program.ProgramId, suite.address[3])
 	suite.Require().NoError(err)
 
 	// normal addr close program

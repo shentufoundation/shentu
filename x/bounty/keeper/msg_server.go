@@ -70,8 +70,8 @@ func (k msgServer) EditProgram(goCtx context.Context, msg *types.MsgEditProgram)
 	}
 
 	// check the status.
-	// inactive: program admin, cert
-	// active: certificate
+	// inactive: program admin, bounty certificate
+	// active: bounty certificate
 	switch program.Status {
 	case types.ProgramStatusInactive:
 		if program.AdminAddress != msg.OperatorAddress && !k.certKeeper.IsBountyAdmin(ctx, operatorAddr) {
@@ -119,8 +119,7 @@ func (k msgServer) ActivateProgram(goCtx context.Context, msg *types.MsgActivate
 	if err != nil {
 		return nil, err
 	}
-
-	if err = k.Keeper.OpenProgram(ctx, msg.ProgramId, operatorAddr); err != nil {
+	if err = k.Keeper.ActivateProgram(ctx, msg.ProgramId, operatorAddr); err != nil {
 		return nil, err
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -214,15 +213,6 @@ func (k msgServer) SubmitFinding(goCtx context.Context, msg *types.MsgSubmitFind
 
 func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding) (*types.MsgEditFindingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	program, isExist := k.GetProgram(ctx, msg.ProgramId)
-	if !isExist {
-		return nil, types.ErrProgramNotExists
-	}
-	if program.Status != types.ProgramStatusActive {
-		return nil, types.ErrProgramNotActive
-	}
-
 	finding, found := k.GetFinding(ctx, msg.FindingId)
 	if !found {
 		return nil, types.ErrFindingNotExists
@@ -231,6 +221,15 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 	if finding.SubmitterAddress != msg.SubmitterAddress {
 		return nil, types.ErrFindingSubmitterInvalid
 	}
+	// check program
+	program, isExist := k.GetProgram(ctx, finding.ProgramId)
+	if !isExist {
+		return nil, types.ErrProgramNotExists
+	}
+	if program.Status != types.ProgramStatusActive {
+		return nil, types.ErrProgramNotActive
+	}
+
 	if len(msg.Title) > 0 {
 		finding.Title = msg.Title
 	}
@@ -265,7 +264,7 @@ func (k msgServer) EditFinding(goCtx context.Context, msg *types.MsgEditFinding)
 func (k msgServer) ConfirmFinding(goCtx context.Context, msg *types.MsgConfirmFinding) (*types.MsgConfirmFindingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	finding, err := k.hostProcess(ctx, msg)
+	finding, err := k.Keeper.ConfirmFinding(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
@@ -287,36 +286,6 @@ func (k msgServer) ConfirmFinding(goCtx context.Context, msg *types.MsgConfirmFi
 	})
 
 	return &types.MsgConfirmFindingResponse{}, nil
-}
-
-func (k msgServer) hostProcess(ctx sdk.Context, msg *types.MsgConfirmFinding) (types.Finding, error) {
-	var finding types.Finding
-	// get finding
-	finding, found := k.GetFinding(ctx, msg.FindingId)
-	if !found {
-		return finding, types.ErrFindingNotExists
-	}
-	// get program
-	program, isExist := k.GetProgram(ctx, finding.ProgramId)
-	if !isExist {
-		return finding, types.ErrProgramNotExists
-	}
-	if program.Status != types.ProgramStatusActive {
-		return finding, types.ErrProgramNotActive
-	}
-
-	// only host can update finding comment
-	if program.AdminAddress != msg.OperatorAddress {
-		return finding, types.ErrProgramCreatorInvalid
-	}
-
-	// fingerprint comparison
-	bz := k.cdc.MustMarshal(&finding)
-	hash := sha256.Sum256(bz)
-	if msg.Fingerprint != hex.EncodeToString(hash[:]) {
-		return finding, types.ErrFindingHashInvalid
-	}
-	return finding, nil
 }
 
 func (k msgServer) ConfirmFindingPaid(goCtx context.Context, msg *types.MsgConfirmFindingPaid) (*types.MsgConfirmFindingPaidResponse, error) {
@@ -388,8 +357,6 @@ func (k msgServer) CloseFinding(goCtx context.Context, msg *types.MsgCloseFindin
 	if finding.SubmitterAddress != msg.OperatorAddress && !k.certKeeper.IsBountyAdmin(ctx, operatorAddr) && program.AdminAddress != msg.OperatorAddress {
 		return nil, types.ErrFindingOperatorNotAllowed
 	}
-
-	k.DeleteFidFromFidList(ctx, finding.ProgramId, finding.FindingId)
 	finding.Status = types.FindingStatusClosed
 	k.SetFinding(ctx, finding)
 

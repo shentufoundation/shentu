@@ -63,6 +63,7 @@ var (
 	depositAmountCoin     = sdk.NewCoin(uctkDenom, depositAmount)
 	feesAmountCoin        = sdk.NewCoin(photonDenom, feesAmount)
 	proposalCounter       = 0
+	certificateCounter    = 0
 	shieldPoolCounter     = 0
 	shieldPurchaseCounter = 0
 	bountyProgramCounter  = 0
@@ -172,15 +173,11 @@ func (s *IntegrationTestSuite) initNodes(c *chain) {
 	// initialize a genesis file for the first validator
 	val0ConfigDir := c.validators[0].configDir()
 	for _, val := range c.validators {
-		s.T().Logf("validator %s : %s", val.moniker, val.keyInfo.GetAddress())
 		s.Require().NoError(
 			addGenesisAccount(val0ConfigDir, "", initBalanceStr, val.keyInfo.GetAddress()),
 		)
 		s.Require().NoError(
 			addCertifierAccount(val0ConfigDir, "", val.keyInfo.GetAddress()),
-		)
-		s.Require().NoError(
-			addCertificateAccount(val0ConfigDir, "", val.keyInfo.GetAddress().String(), val.keyInfo.GetAddress()),
 		)
 	}
 	for _, val := range c.accounts {

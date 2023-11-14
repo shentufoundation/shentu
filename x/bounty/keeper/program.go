@@ -40,7 +40,7 @@ func (k Keeper) SetProgram(ctx sdk.Context, program types.Program) {
 	store.Set(types.GetProgramKey(program.ProgramId), bz)
 }
 
-func (k Keeper) OpenProgram(ctx sdk.Context, pid string, caller sdk.AccAddress) error {
+func (k Keeper) ActivateProgram(ctx sdk.Context, pid string, caller sdk.AccAddress) error {
 	program, found := k.GetProgram(ctx, pid)
 	if !found {
 		return types.ErrProgramNotExists
@@ -88,7 +88,6 @@ func (k Keeper) CloseProgram(ctx sdk.Context, pid string, caller sdk.AccAddress)
 			finding.Status != types.FindingStatusConfirmed {
 			return types.ErrProgramExpired
 		}
-
 	}
 
 	// Check the permissions. Only the admin of the program or bounty cert address can operate.

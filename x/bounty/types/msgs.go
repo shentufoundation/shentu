@@ -21,15 +21,8 @@ const (
 )
 
 var (
-	_ sdk.Msg = &MsgCreateProgram{}
-	_ sdk.Msg = &MsgEditProgram{}
-	_ sdk.Msg = &MsgActivateProgram{}
-	_ sdk.Msg = &MsgCloseProgram{}
-	_ sdk.Msg = &MsgSubmitFinding{}
-	_ sdk.Msg = &MsgEditFinding{}
-	_ sdk.Msg = &MsgConfirmFinding{}
-	_ sdk.Msg = &MsgCloseFinding{}
-	_ sdk.Msg = &MsgReleaseFinding{}
+	_, _, _, _    sdk.Msg = &MsgCreateProgram{}, &MsgEditProgram{}, &MsgActivateProgram{}, &MsgCloseProgram{}
+	_, _, _, _, _ sdk.Msg = &MsgSubmitFinding{}, &MsgEditFinding{}, &MsgConfirmFinding{}, &MsgCloseFinding{}, &MsgReleaseFinding{}
 )
 
 // NewMsgCreateProgram creates a new NewMsgCreateProgram instance.
@@ -177,9 +170,8 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 }
 
 // NewMsgEditFinding submit a new finding.
-func NewMsgEditFinding(pid, fid, title, detail, hash string, operator sdk.AccAddress, level SeverityLevel) *MsgEditFinding {
+func NewMsgEditFinding(fid, title, detail, hash string, operator sdk.AccAddress, level SeverityLevel) *MsgEditFinding {
 	return &MsgEditFinding{
-		ProgramId:        pid,
 		FindingId:        fid,
 		Title:            title,
 		FindingHash:      hash,
@@ -221,8 +213,8 @@ func (msg MsgEditFinding) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid issuer address (%s)", err.Error())
 	}
-	if len(msg.ProgramId) == 0 {
-		return errors.New("empty pid is not allowed")
+	if len(msg.FindingId) == 0 {
+		return errors.New("empty fid is not allowed")
 	}
 	return nil
 }
