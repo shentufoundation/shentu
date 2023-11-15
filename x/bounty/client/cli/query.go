@@ -31,7 +31,8 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryPrograms(),
 		GetCmdQueryFinding(),
 		GetCmdQueryFindings(),
-		GetCmdQueryFindingFingerPrint(),
+		GetCmdQueryFindingFingerprint(),
+		GetCmdQueryProgramFingerprint(),
 	)
 
 	return bountyQueryCmd
@@ -249,10 +250,10 @@ $ %s query bounty findings --page=1 --limit=100
 	return cmd
 }
 
-// GetCmdQueryFindingFingerPrint implements the query finding fingerPrint command.
-func GetCmdQueryFindingFingerPrint() *cobra.Command {
+// GetCmdQueryFindingFingerprint implements the query finding fingerPrint command.
+func GetCmdQueryFindingFingerprint() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "fingerprint [finding-id]",
+		Use:   "finding-fingerprint [finding-id]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Query fingerPrint of a single finding",
 		Long: strings.TrimSpace(
@@ -275,6 +276,45 @@ $ %s query bounty finding 1
 				cmd.Context(),
 				&types.QueryFindingFingerprintRequest{
 					FindingId: args[0],
+				})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryProgramFingerprint implements the query program fingerPrint command.
+func GetCmdQueryProgramFingerprint() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "program-fingerprint [program-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query fingerPrint of a single program",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query fingerPrint for a program. You can find the program-id by running "%s query bounty findings".
+Example:
+$ %s query bounty program 1
+`,
+				version.AppName, version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			// Query the program
+			res, err := queryClient.ProgramFingerprint(
+				cmd.Context(),
+				&types.QueryProgramFingerprintRequest{
+					ProgramId: args[0],
 				})
 			if err != nil {
 				return err

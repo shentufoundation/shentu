@@ -11,6 +11,7 @@ const (
 	FlagFindingDescription    = "desc"
 	FlagFindingProofOfContent = "poc"
 	FlagFindingSeverityLevel  = "severity-level"
+	FlagFindingPaymentHash    = "payment-hash"
 	FlagFindingFingerprint    = "fingerprint"
 	FlagSubmitterAddress      = "submitter-address"
 )

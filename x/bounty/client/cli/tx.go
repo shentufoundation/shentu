@@ -272,7 +272,12 @@ func NewEditFindingCmd() *cobra.Command {
 			hash := sha256.Sum256([]byte(desc + poc + submitAddr.String()))
 			hashString := hex.EncodeToString(hash[:])
 
-			msg := types.NewMsgEditFinding(fid, title, detail, hashString, submitAddr, byteSeverityLevel)
+			paymentHash, err := cmd.Flags().GetString(FlagFindingPaymentHash)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgEditFinding(fid, title, detail, hashString, paymentHash, submitAddr, byteSeverityLevel)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -283,6 +288,7 @@ func NewEditFindingCmd() *cobra.Command {
 	cmd.Flags().String(FlagFindingProofOfContent, "", "The finding's proof of content")
 	cmd.Flags().String(FlagDetail, "", "The finding's detail")
 	cmd.Flags().String(FlagFindingSeverityLevel, "unspecified", "The finding's severity level")
+	cmd.Flags().String(FlagFindingPaymentHash, "", "The finding's payment hash")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)

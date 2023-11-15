@@ -193,7 +193,7 @@ func (msg MsgSubmitFinding) ValidateBasic() error {
 }
 
 // NewMsgEditFinding submit a new finding.
-func NewMsgEditFinding(fid, title, detail, hash string, operator sdk.AccAddress, level SeverityLevel) *MsgEditFinding {
+func NewMsgEditFinding(fid, title, detail, hash, paymentHash string, operator sdk.AccAddress, level SeverityLevel) *MsgEditFinding {
 	return &MsgEditFinding{
 		FindingId:       fid,
 		Title:           title,
@@ -201,6 +201,7 @@ func NewMsgEditFinding(fid, title, detail, hash string, operator sdk.AccAddress,
 		OperatorAddress: operator.String(),
 		SeverityLevel:   level,
 		Detail:          detail,
+		PaymentHash:     paymentHash,
 	}
 }
 
