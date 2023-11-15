@@ -99,22 +99,28 @@ message BountyLevel {
 }
 
 //// ProgramDetail defines a program detail.
-//message ProgramDetail {
-//  option (gogoproto.equal) = false;
-//  option (gogoproto.goproto_getters) = false;
-//
-//  string description = 1;
-//  string scope_rules = 2;
-//  string known_issues = 3;
+//type ProgramDetail struct {
+//    Type           string        `json:"type"`
+//    Name           string        `json:"name"`
+//    Logo           string        `json:"logo"`
+//    Desc           string        `json:"desc"`
+//    Targets        []string      `json:"targets"`
+//    ScopeRules     string        `json:"scope_rules"`
+//    KnownIssues    string        `json:"known_issues"`
+//    TotalBounty    int           `json:"total_bounty"`
+//    BountyLevels   []BountyLevel `json:"bounty_levels"`
+//    PaymentInfo    string        `json:"payment_info"`
+//    PaymentChain   string        `json:"payment_chain"`
+//    ProgramSLA     []SLAItem     `json:"sla"`
 //}
 
 //// FindingDetail defines a finding detail.
-//message FindingDetail {
-//  option (gogoproto.equal) = false;
-//  option (gogoproto.goproto_getters) = false;
-//
-//  string description = 1;
-//  string proof_of_concept = 2 [(gogoproto.moretags) = "yaml:\"proof_of_concept\""];
-//  repeated string program_targets = 3 [(gogoproto.moretags) = "yaml:\"program_targets\""];
-//  repeated string attachments = 4;
+//type FindingDetail struct{
+//    ProgramTarget []string     `json:"program_target"`
+//    Impacts       []string     `json:"impacts"`
+//    Attachments   []string     `json:"attachments"`
+//    ReceiverInfo  ReceiverInfo `json:"receiver_info"`
+//    PaidInfo      PaidInfo     `json:"paid_info"`
+//    FindingHash   string       `json:"finding_hash"`
+//    ShentuAddress string       `json:"shentu_addr"`
 //}
